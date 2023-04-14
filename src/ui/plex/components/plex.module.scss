@@ -1,0 +1,29 @@
+.buttonWarning {
+  position: relative;
+
+  /* show a dot on the corner of the button */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 6px;
+    height: 6px;
+    background-color: red;
+    border-radius: 50%;
+  }
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-left: 16px;
+  border: 1px solid #fff;
+}
+
+.popupPanel {
+  position: absolute;
+  z-index: 9999999;
+  max-width: 500px;
+}
