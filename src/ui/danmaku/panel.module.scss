@@ -1,0 +1,165 @@
+.baseInput {
+  height: 32px;
+  border-radius: 144px;
+  background-color: #262626;
+  color: hsla(0, 0%, 100%, 0.7);
+  border: 0;
+  transition: all 0.2s;
+
+  &:focus {
+    background-color: #fff;
+    color: #000;
+  }
+}
+
+.baseButton {
+  padding: 4px 8px;
+  border-radius: 144px;
+  border: hsla(0, 0%, 100%, 0.7) 1px solid;
+  line-height: unset;
+
+  &:hover {
+    color: #fff;
+  }
+
+  &.disabled:hover {
+    color: hsla(0, 0%, 100%, 0.3);
+  }
+}
+
+.baseScrollbar {
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-clip: padding-box;
+    background-color: hsla(0, 0%, 100%, 0.2);
+    border: 3px solid transparent;
+    border-radius: 8px;
+    min-height: 50px;
+  }
+}
+
+.disabled {
+  color: hsla(0, 0%, 100%, 0.3);
+  border-color: hsla(0, 0%, 100%, 0.3);
+}
+
+.panelWrapper {
+}
+
+.panel {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-radius: 4px;
+  background-color: #191a1c;
+  border-radius: 4px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  transform-origin: center top;
+  transition: background 0.15s ease-out;
+
+  & > * {
+    color: hsla(0, 0%, 100%, 0.7);
+  }
+
+  .sectionHeader {
+    font-size: 16px;
+  }
+}
+
+.chSelection {
+  display: flex;
+  justify-content: space-between;
+
+  & > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+.sliderInput {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+
+  & > div {
+    &:first-child {
+      width: 60px;
+    }
+  }
+}
+
+.seriesSelection {
+  composes: baseScrollbar;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.seriesSelectionChip {
+  composes: baseButton;
+  flex-shrink: 0;
+  max-width: 240px;
+  display: flex;
+  gap: 4px;
+  overflow: hidden;
+
+  & > div:nth-child(2) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.titleSelection {
+  display: flex;
+  gap: 8px;
+}
+
+.titleSelectionInput {
+  composes: baseInput;
+  padding: 8px 12px;
+}
+
+.episodeSelection {
+  composes: baseInput;
+  width: 100%;
+}
+
+.episodeSelectionOptions {
+  background-color: #202629;
+  color: #ffffffcc;
+  height: 24px;
+}
+
+.danmakuListWrapper {
+  composes: baseScrollbar;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+
+  .danmakuEntry {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+
+    .time {
+      width: 48px;
+      flex-shrink: 0;
+    }
+
+    .message {
+      flex-grow: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
