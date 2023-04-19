@@ -1,5 +1,3 @@
-import { logger } from '@/utils/logger'
-
 const apiRoot = 'https://api.dandanplay.net'
 
 export interface SearchAPIParams {
@@ -40,13 +38,9 @@ export const searchAPI = async (
 ): Promise<DanDanEpisodeSearchResult> => {
   const url = `${apiRoot}/api/v2/search/episodes?${new URLSearchParams(params)}`
 
-  logger.debug('Dispatching search request', params)
-
   const res = await fetch(url)
 
   const json = (await res.json()) as DanDanEpisodeSearchResult
-
-  logger.debug('Search result', json)
 
   return json
 }
@@ -91,8 +85,6 @@ export const commentAPI = async (
     chConvert: params.chConvert?.toString() ?? '0',
   }
 
-  logger.debug('Dispatching damaku request', episodeId, params)
-
   const url = `${apiRoot}/api/v2/comment/${episodeId.toString()}?${new URLSearchParams(
     convertedParams
   )}`
@@ -100,8 +92,6 @@ export const commentAPI = async (
   const res = await fetch(url)
 
   const json = (await res.json()) as DanDanCommentGetResult
-
-  logger.debug('Danmaku result', json)
 
   return json
 }

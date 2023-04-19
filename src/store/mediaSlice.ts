@@ -1,5 +1,6 @@
 import { StateCreator } from 'zustand'
 import type { State } from './store'
+import { logger } from '@/utils/logger'
 import { DanDanEpisode, DanDanMedia, searchAPI } from '@/dandanplay/api'
 
 interface MediaInfo {
@@ -80,9 +81,15 @@ export const createMediaSlice: StateCreator<State, [], [], MediaSlice> = (
     }))
   },
   fetchMediaInfo: async (title) => {
+    logger.debug('Dispatching search request', {
+      anime: title,
+    })
+
     const { animes, errorMessage, success } = await searchAPI({
       anime: title,
     })
+
+    logger.debug('Search result', { animes, errorMessage, success })
 
     if (!success) {
       get().updateMedia({
