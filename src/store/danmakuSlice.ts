@@ -163,7 +163,11 @@ export const createDanmakuSlice: StateCreator<State, [], [], DanmakuSlice> = (
 
     params.chConvert ??= chConvert
 
+    logger.debug('Dispatching damaku request', episodeId, params)
+
     const result = await commentAPI(episodeId, params)
+
+    logger.debug('Danmaku result', result)
 
     set((state) => ({
       danmaku: {
