@@ -1,12 +1,12 @@
+import { DanDanAnime } from '@danmaku-anywhere/danmaku-engine'
 import { useEffect, useState } from 'preact/hooks'
 import styles from './panel.module.scss'
-import { SectionHeader } from './SectionHeader'
 import { PopupPanelWrapper } from './PopupPanelWrapper'
-import { DanDanMedia } from '@/dandanplay/api'
-import { useMedia, useStore } from '@/store/store'
+import { SectionHeader } from './SectionHeader'
 import { logger } from '@/utils/logger'
+import { useMedia, useStore } from '@/store/store'
 
-const getIcon = (type: DanDanMedia['type']) => {
+const getIcon = (type: DanDanAnime['type']) => {
   switch (type) {
     case 'jpdrama':
       return '🎭'
@@ -25,7 +25,7 @@ const getIcon = (type: DanDanMedia['type']) => {
   }
 }
 
-const SeriesChip = ({ media }: { media: DanDanMedia }) => {
+const SeriesChip = ({ media }: { media: DanDanAnime }) => {
   const { meta } = useMedia()
   const updateMedia = useStore.use.updateMedia()
   const setTitleMap = useStore.use.setTitleMap()

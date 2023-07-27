@@ -1,16 +1,16 @@
+import {
+  createDanmakuEngine,
+  DanDanChConvert,
+  DanDanComment,
+  DanDanCommentAPIParams,
+  DanmakuEngine,
+  fetchComments,
+  transformDanDanComments,
+} from '@danmaku-anywhere/danmaku-engine'
 import { StateCreator } from 'zustand'
-import Danmaku from 'danmaku'
-import { commentAPI, CommentAPIParams, DanDanComment } from '../dandanplay/api'
-import { createDanmakuEngine, parseDanDanComments } from '../danmaku/parser'
 import type { State } from './store'
-import { debounce } from '@/utils/debounce'
 import { logger } from '@/utils/logger'
-
-export enum ChConvert {
-  None = 0,
-  Simplified = 1,
-  Traditional = 2,
-}
+import { debounce } from '@/utils/debounce'
 
 export interface DanmakuStyle {
   opacity: number
@@ -25,12 +25,12 @@ export interface DanmakuConfig {
   filters: string[]
   userFilters: string[]
   speed: number
-  chConvert: ChConvert
+  chConvert: DanDanChConvert
 }
 
 interface DanmakuData {
   config: DanmakuConfig
-  engine: Danmaku | null
+  engine: DanmakuEngine | null
   container: HTMLElement | null
   media: HTMLMediaElement | null
   comments: DanDanComment[] | null
@@ -40,18 +40,18 @@ export interface DanmakuCache {
   comments: DanDanComment[]
   episodeId: number
   time: number
-  params: Partial<CommentAPIParams>
+  params: Partial<DanDanCommentAPIParams>
 }
 
 export interface DanmakuSlice {
   danmaku: DanmakuData
   _fetchCommentsWithCache: (
     episodeId: number,
-    params: Partial<CommentAPIParams>
+    params: Partial<DanDanCommentAPIParams>
   ) => Promise<DanDanComment[]>
   fetchComments: (
     episodeId: number,
-    params: Partial<CommentAPIParams>,
+    params: Partial<DanDanCommentAPIParams>,
     useCache?: boolean
   ) => Promise<DanDanComment[]>
   updateDanmakuConfig: (config: Partial<DanmakuConfig>) => void
@@ -60,7 +60,7 @@ export interface DanmakuSlice {
   createDanmaku: (
     container: HTMLElement,
     media: HTMLMediaElement
-  ) => Danmaku | null
+  ) => DanmakuEngine | null
   // updates danmaku config and also update the danmaku engine
   toggleDanmaku: () => void
   setDanmakuSpeed: (speed: number) => void
@@ -72,7 +72,7 @@ export interface DanmakuSlice {
 }
 
 const defaultDamakuConfig: DanmakuConfig = {
-  chConvert: ChConvert.None,
+  chConvert: DanDanChConvert.None,
   autoFetch: false,
   enabled: true,
   filters: [],
@@ -165,7 +165,7 @@ export const createDanmakuSlice: StateCreator<State, [], [], DanmakuSlice> = (
 
     logger.debug('Dispatching damaku request', episodeId, params)
 
-    const result = await commentAPI(episodeId, params)
+    const result = await fetchComments(episodeId, params)
 
     logger.debug('Danmaku result', result)
 
@@ -224,8 +224,7 @@ export const createDanmakuSlice: StateCreator<State, [], [], DanmakuSlice> = (
     const danmakuEngine = createDanmakuEngine({
       container,
       media,
-      engine: 'dom',
-      comments: parseDanDanComments(comments, config.style),
+      comments: transformDanDanComments(comments, config.style),
     })
 
     danmakuEngine.speed = config.speed

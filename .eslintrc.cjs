@@ -21,5 +21,6 @@ module.exports = {
     '@typescript-eslint/ban-ts-comment': 'off',
     radix: 'off',
   },
+  ignorePatterns: ['node_modules', 'dist', 'build'],
   root: true,
 }

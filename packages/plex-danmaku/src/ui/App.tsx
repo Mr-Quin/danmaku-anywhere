@@ -1,8 +1,8 @@
 import { useEffect } from 'preact/hooks'
-import { useStore } from '../store/store'
-import { debounce } from '../utils/debounce'
-import { logger } from '../utils/logger'
 import { Plex } from './plex/components/Plex'
+import { useStore } from '@/store/store'
+import { debounce } from '@/utils/debounce'
+import { logger } from '@/utils/logger'
 
 const App = () => {
   const openDb = useStore.use.openDb()
@@ -13,7 +13,8 @@ const App = () => {
       debounce(() => {
         const engine = useStore.getState().danmaku.engine
         if (engine) {
-          logger.debug('Resizing danmaku engine'), engine.resize()
+          logger.debug('Resizing danmaku engine')
+          engine.resize()
         }
       }, 200)
     )

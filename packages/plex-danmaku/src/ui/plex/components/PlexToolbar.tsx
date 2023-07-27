@@ -1,25 +1,25 @@
-import { useEffect, useState, useRef } from 'preact/hooks'
-import { shallow } from 'zustand/shallow'
-import { createPortal, forwardRef, PropsWithChildren } from 'preact/compat'
 import { Ref } from 'preact'
-import { DanmakuMenu } from '../../danmaku/DanmakuMenu'
-import { SettingsMenu } from '../../danmaku/SettingsMenu'
-import { useIsVisible } from '../../hooks/useIsVisible'
+import { createPortal, forwardRef, PropsWithChildren } from 'preact/compat'
+import { useEffect, useRef, useState } from 'preact/hooks'
+import { shallow } from 'zustand/shallow'
+import { getDanmakuContainer } from '../plexMediaUtils'
+import styles from './plex.module.scss'
+import { PlexButton } from './PlexButton'
+import { useDanmaku, useStore } from '@/store/store'
+import { ClickawayListener } from '@/ui/components/ClickawayListener'
 import {
   DanmakuIcon,
   InfoIcon,
   SettingsIcon,
   VisibleIcon,
   VisibleOffIcon,
-} from '../../components/Icons'
-import { ClickawayListener } from '../../components/ClickawayListener'
-import { getDanmakuContainer } from '../plexMediaUtils'
-import { PlexButton } from './PlexButton'
-import styles from './plex.module.scss'
-import { useDanmaku, useStore } from '@/store/store'
+} from '@/ui/components/Icons'
+import { DanmakuMenu } from '@/ui/danmaku/DanmakuMenu'
+import { InfoMenu } from '@/ui/danmaku/InfoMenu'
+import { SettingsMenu } from '@/ui/danmaku/SettingsMenu'
+import { useIsVisible } from '@/ui/hooks/useIsVisible'
 import { logger } from '@/utils/logger'
 import { mergeRefs } from '@/utils/mergeRefs'
-import { InfoMenu } from '@/ui/danmaku/InfoMenu'
 
 interface Position {
   top: number

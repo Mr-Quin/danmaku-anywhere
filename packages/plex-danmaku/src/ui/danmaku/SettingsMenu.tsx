@@ -1,10 +1,10 @@
+import { DanDanChConvert } from '@danmaku-anywhere/danmaku-engine'
 import { ComponentProps } from 'preact'
 import { TargetedEvent } from 'preact/compat'
 import styles from './panel.module.scss'
-import { SectionHeader } from './SectionHeader'
 import { PopupPanelWrapper } from './PopupPanelWrapper'
+import { SectionHeader } from './SectionHeader'
 import { useDanmaku, useStore } from '@/store/store'
-import { ChConvert } from '@/store/danmakuSlice'
 
 interface SliderInputProps extends Omit<ComponentProps<'input'>, 'onChange'> {
   title: string
@@ -74,8 +74,8 @@ export const SettingsMenu = () => {
           <input
             type="radio"
             name="mode"
-            value={ChConvert.None}
-            checked={config.chConvert === ChConvert.None}
+            value={DanDanChConvert.None}
+            checked={config.chConvert === DanDanChConvert.None}
             onChange={handleRadioChange}
           />
         </div>
@@ -84,8 +84,8 @@ export const SettingsMenu = () => {
           <input
             type="radio"
             name="mode"
-            value={ChConvert.Simplified}
-            checked={config.chConvert === ChConvert.Simplified}
+            value={DanDanChConvert.Simplified}
+            checked={config.chConvert === DanDanChConvert.Simplified}
             onChange={handleRadioChange}
           />
         </div>
@@ -94,8 +94,8 @@ export const SettingsMenu = () => {
           <input
             type="radio"
             name="mode"
-            value={ChConvert.Traditional}
-            checked={config.chConvert === ChConvert.Traditional}
+            value={DanDanChConvert.Traditional}
+            checked={config.chConvert === DanDanChConvert.Traditional}
             onChange={handleRadioChange}
           />
         </div>

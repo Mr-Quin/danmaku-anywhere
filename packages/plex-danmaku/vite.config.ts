@@ -1,7 +1,7 @@
-import { defineConfig } from 'vite'
 import preact from '@preact/preset-vite'
-import monkey, { cdn } from 'vite-plugin-monkey'
+import { defineConfig } from 'vite'
 import eslint from 'vite-plugin-eslint'
+import monkey, { cdn } from 'vite-plugin-monkey'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -11,6 +11,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': '/src',
+      '@danmaku-engine': '@danmaku-anywhere/danmaku-engine',
     },
   },
   plugins: [

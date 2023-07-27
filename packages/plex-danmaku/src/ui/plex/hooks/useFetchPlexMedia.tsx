@@ -1,13 +1,13 @@
+import { DanDanAnime } from '@danmaku-anywhere/danmaku-engine'
 import { useEffect, useRef } from 'preact/hooks'
 import {
-  PlexMediaInfo,
   matchAnimeEpisode,
   matchAnimeTitle,
   mediaChangeType,
+  PlexMediaInfo,
 } from '../plexMediaUtils'
-import { useMedia, useStore } from '@/store/store'
 import { logger } from '@/utils/logger'
-import { DanDanMedia } from '@/dandanplay/api'
+import { useMedia, useStore } from '@/store/store'
 
 export const useFetchMedia = (mediaInfo: PlexMediaInfo | null) => {
   const { meta } = useMedia()
@@ -34,7 +34,7 @@ export const useFetchMedia = (mediaInfo: PlexMediaInfo | null) => {
 
       const mappedTitle = getTitleMap(meta.key)
 
-      let results: DanDanMedia[]
+      let results: DanDanAnime[]
 
       logger.debug(`Title changed to ${title}, fetching media info`)
 
@@ -55,7 +55,7 @@ export const useFetchMedia = (mediaInfo: PlexMediaInfo | null) => {
       await handleSeasonChange(results)
     }
 
-    const handleSeasonChange = async (results: DanDanMedia[]) => {
+    const handleSeasonChange = async (results: DanDanAnime[]) => {
       const selected = matchAnimeTitle(results, title, season)
 
       if (!selected) {
@@ -70,7 +70,7 @@ export const useFetchMedia = (mediaInfo: PlexMediaInfo | null) => {
       await handleEpisodeChange(selected)
     }
 
-    const handleEpisodeChange = async (selected: DanDanMedia) => {
+    const handleEpisodeChange = async (selected: DanDanAnime) => {
       const currentEpisode = matchAnimeEpisode(selected, episode)
 
       if (!currentEpisode) {
