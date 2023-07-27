@@ -3,7 +3,6 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   extends: [
     'plugin:prettier/recommended',
-    'preact',
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:import/recommended',
