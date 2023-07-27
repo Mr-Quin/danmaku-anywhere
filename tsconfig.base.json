@@ -2,11 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "useDefineForClassFields": true,
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ESNext"
-    ],
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": false,
@@ -17,16 +13,12 @@
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
+    "noEmit": false,
     "jsx": "react-jsx",
     "baseUrl": "./packages",
     "paths": {
-      "@plex-danmaku": [
-        "plex-danmaku/src"
-      ],
-      "@danmaku-engine": [
-        "danmaku-engine/src"
-      ]
+      "@danmaku-anywhere/plex-danmaku": ["plex-danmaku/src"],
+      "@danmaku-anywhere/danmaku-engine": ["danmaku-engine/src"]
     }
   }
 }

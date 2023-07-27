@@ -1,11 +1,11 @@
 import DanmakuEngine from 'danmaku'
 import { create } from 'zustand'
-import { DanDanComment } from '@/api/api'
+import { DanDanComment } from './api'
 import {
-  DanmakuStyle,
   createDanmakuEngine,
+  DanmakuStyle,
   transformDanDanComments,
-} from '@/parser'
+} from './parser'
 
 export interface DanmakuConfig {
   style: DanmakuStyle

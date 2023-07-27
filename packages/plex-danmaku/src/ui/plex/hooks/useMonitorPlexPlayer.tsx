@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'preact/hooks'
+import { useEffect, useRef, useState } from 'preact/hooks'
 import { logger } from '@/utils/logger'
 
 // we monitor this class because it changes when the video is minimized

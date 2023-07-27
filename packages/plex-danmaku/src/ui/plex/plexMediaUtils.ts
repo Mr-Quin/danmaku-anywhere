@@ -1,4 +1,4 @@
-import { DanDanMedia } from '@/dandanplay/api'
+import { DanDanAnime } from '@danmaku-anywhere/danmaku-engine'
 
 export interface PlexMediaInfo {
   title: string
@@ -54,7 +54,7 @@ export const getEpisodeInfo = () => {
 // try to find the anime that matches the title
 // if not found, use the first one, which may be wrong
 export const matchAnimeTitle = (
-  animes: DanDanMedia[],
+  animes: DanDanAnime[],
   title: string,
   season: number
 ) => {
@@ -71,12 +71,12 @@ export const matchAnimeTitle = (
   }
 
   const seasonMatch = animes[season - 1]
-  if (seasonMatch) seasonMatch
+  if (seasonMatch) return seasonMatch
 
   return animes[0]
 }
 
-export const matchAnimeEpisode = (anime: DanDanMedia, episode: number) => {
+export const matchAnimeEpisode = (anime: DanDanAnime, episode: number) => {
   const exactEpisode = anime.episodes[episode - 1]
   if (exactEpisode) return exactEpisode
 

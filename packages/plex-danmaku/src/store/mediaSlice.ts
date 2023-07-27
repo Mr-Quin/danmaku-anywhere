@@ -1,7 +1,11 @@
+import {
+  DanDanAnime,
+  DanDanEpisode,
+  searchAnime,
+} from '@danmaku-anywhere/danmaku-engine'
 import { StateCreator } from 'zustand'
 import type { State } from './store'
 import { logger } from '@/utils/logger'
-import { DanDanEpisode, DanDanMedia, searchAPI } from '@/dandanplay/api'
 
 interface MediaInfo {
   meta: {
@@ -10,9 +14,9 @@ interface MediaInfo {
     // used for ui
     title: string
   }
-  results: DanDanMedia[]
+  results: DanDanAnime[]
   error: string | null
-  selected: DanDanMedia | null
+  selected: DanDanAnime | null
   episode: DanDanEpisode | null
 }
 
@@ -22,7 +26,7 @@ export interface MediaSlice {
   setIsMediaActive: (isPlaying: boolean) => void
   updateMedia: (media: Partial<MediaInfo>) => void
   setTitle: (title: string) => void
-  fetchMediaInfo: (title: string) => Promise<DanDanMedia[]>
+  fetchMediaInfo: (title: string) => Promise<DanDanAnime[]>
   // reset media info except meta
   resetMedia: () => void
   setTitleMap: (key: string, value: string) => void
@@ -85,7 +89,7 @@ export const createMediaSlice: StateCreator<State, [], [], MediaSlice> = (
       anime: title,
     })
 
-    const { animes, errorMessage, success } = await searchAPI({
+    const { animes, errorMessage, success } = await searchAnime({
       anime: title,
     })
 

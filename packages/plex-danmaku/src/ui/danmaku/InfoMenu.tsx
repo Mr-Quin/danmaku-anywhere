@@ -1,8 +1,8 @@
-import { SectionHeader } from './SectionHeader'
-import { PopupPanelWrapper } from './PopupPanelWrapper'
+import { parseDanDanCommentParams } from '@danmaku-anywhere/danmaku-engine'
 import styles from './panel.module.scss'
+import { PopupPanelWrapper } from './PopupPanelWrapper'
+import { SectionHeader } from './SectionHeader'
 import { useDanmaku } from '@/store/store'
-import { parseDanDanCommetParams } from '@/danmaku/parser'
 
 const timeToHMS = (time: number) => {
   const h = Math.floor(time / 3600)
@@ -23,7 +23,7 @@ export const InfoMenu = () => {
 
   const parsedComments = comments
     ?.map((comment) => {
-      const { time } = parseDanDanCommetParams(comment.p)
+      const { time } = parseDanDanCommentParams(comment.p)
       return {
         message: comment.m,
         time,

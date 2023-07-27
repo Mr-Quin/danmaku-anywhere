@@ -1,8 +1,8 @@
-import { useState, useMemo, useEffect } from 'preact/hooks'
+import { useEffect, useMemo, useState } from 'preact/hooks'
 import {
-  PlexMediaInfo,
   getEpisodeInfo,
   mediaChangeType,
+  PlexMediaInfo,
 } from '../plexMediaUtils'
 import { useStore } from '@/store/store'
 

@@ -1,9 +1,9 @@
+import { DBSchema, IDBPDatabase, openDB } from 'idb'
 import { create } from 'zustand'
 import { shallow } from 'zustand/shallow'
-import { DBSchema, IDBPDatabase, openDB } from 'idb'
 import { createSelectors } from './createSelectors'
+import { createDanmakuSlice, DanmakuCache, DanmakuSlice } from './danmakuSlice'
 import { createMediaSlice, MediaSlice } from './mediaSlice'
-import { DanmakuSlice, createDanmakuSlice, DanmakuCache } from './danmakuSlice'
 import { logger } from '@/utils/logger'
 
 interface DbSlice {

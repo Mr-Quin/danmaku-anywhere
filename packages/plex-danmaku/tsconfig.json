@@ -2,7 +2,13 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "jsxImportSource": "preact",
-    "types": []
+    "types": [],
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@danmaku-anywhere/danmaku-engine": ["../danmaku-engine/src"]
+    }
   },
   "include": ["./src"],
   "references": [
