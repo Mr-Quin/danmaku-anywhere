@@ -1,10 +1,10 @@
 {
-  "name": "plex-danmaku",
-  "private": true,
+  "name": "danmaku-anywhere",
+  "private": false,
   "version": "0.0.1",
   "type": "module",
   "author": "Mr.Quin",
-  "description": "A danmaku script for Plex",
+  "description": "Danmaku anywhere",
   "keywords": [
     "plex",
     "danmaku",
@@ -13,33 +13,24 @@
   "repository": "https://github.com/Mr-Quin/plex-danmaku",
   "license": "MIT",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "danmaku": "^2.0.6",
-    "idb": "^7.1.1",
-    "preact": "^10.13.2",
     "zustand": "^4.3.7"
   },
   "devDependencies": {
-    "@preact/preset-vite": "^2.5.0",
+    "typescript": "^5.0.4",
+    "gh-pages": "^5.0.0",
+    "eslint": "^8.38.0",
     "@typescript-eslint/eslint-plugin": "^5.58.0",
     "@typescript-eslint/parser": "^5.58.0",
-    "eslint": "^8.38.0",
-    "eslint-config-preact": "^1.3.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-import-resolver-typescript": "^3.5.5",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-prettier": "^4.2.1",
-    "gh-pages": "^5.0.0",
-    "jest": "^29.5.0",
     "prettier": "^2.8.7",
-    "sass": "^1.62.0",
-    "typescript": "^5.0.2",
-    "vite": "^4.2.1",
+    "vite": "^4.2.3",
     "vite-plugin-eslint": "^1.8.1",
-    "vite-plugin-monkey": "^3.1.1"
+    "jest": "^29.5.0"
   }
 }
