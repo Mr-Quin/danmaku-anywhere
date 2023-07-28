@@ -1,9 +1,8 @@
 {
   "name": "danmaku-anywhere",
-  "private": false,
   "version": "0.0.1",
-  "type": "module",
-  "author": "Mr.Quin",
+  "private": false,
+  "author": "Mr-Quin",
   "description": "Danmaku anywhere",
   "keywords": [
     "plex",
