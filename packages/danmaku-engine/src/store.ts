@@ -1,4 +1,5 @@
 import DanmakuEngine from 'danmaku'
+import { useEffect, useRef } from 'react'
 import { create } from 'zustand'
 import { DanDanComment } from './api'
 import {
@@ -115,3 +116,47 @@ export const store = create<State>((set, get) => ({
     set({ config: { ...get().config, ...rest } })
   },
 }))
+
+export const useDanmakuStore = store
+
+export interface UseDanmakuConfig {
+  container?: HTMLElement
+  media?: HTMLMediaElement
+  comments?: DanDanComment[]
+  config?: DanmakuConfig
+}
+
+export const useDanmakuEngine = ({
+  container,
+  media,
+  comments,
+  config: configProp,
+}: UseDanmakuConfig = {}) => {
+  const store = useDanmakuStore()
+  const isInit = useRef(true)
+
+  const { create, destroy, updateConfig } = store
+
+  useEffect(() => {
+    if (isInit.current) return
+    if (configProp) {
+      updateConfig(configProp)
+    }
+  }, [configProp])
+
+  useEffect(() => {
+    if (!container || !media || !comments) return
+
+    console.log('recreate danmaku engine')
+
+    create(container, media, comments, configProp)
+
+    isInit.current = false
+
+    return () => {
+      destroy()
+    }
+  }, [container, media, comments])
+
+  return store
+}
