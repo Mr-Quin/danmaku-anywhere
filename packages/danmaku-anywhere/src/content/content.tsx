@@ -39,11 +39,8 @@ export const Content = () => {
     console.log(el)
   }
 
-  console.log(location.href)
-
   return (
     <>
-      <div>Hello World</div>
       <DanmakuManager />
       <DomSelector enable={isEnabled} onSelect={onSelect} />
     </>
