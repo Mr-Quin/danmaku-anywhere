@@ -11,7 +11,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': '/src',
-      '@danmaku-engine': '@danmaku-anywhere/danmaku-engine',
     },
   },
   plugins: [

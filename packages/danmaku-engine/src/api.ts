@@ -79,7 +79,7 @@ export interface DanDanCommentAPIResult {
 
 export const fetchComments = async (
   episodeId: number,
-  params: Partial<DanDanCommentAPIParams>
+  params: Partial<DanDanCommentAPIParams> = {}
 ): Promise<DanDanCommentAPIResult> => {
   const convertedParams = {
     from: params.from?.toString() ?? '0',

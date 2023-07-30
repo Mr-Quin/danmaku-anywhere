@@ -1,14 +1,15 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App'
-import './index.css'
+import { Content } from './content'
 
 const root = document.createElement('div')
-root.id = 'crx-root'
-document.body.appendChild(root)
+root.id = 'danmaku-anywhere-root'
+document.body.prepend(root)
+
+console.log('content script loaded')
 
 ReactDOM.createRoot(root).render(
   <React.StrictMode>
-    <App />
+    <Content />
   </React.StrictMode>
 )
