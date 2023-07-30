@@ -1,21 +1,27 @@
-# plex-danmaku
+# danmaku-anywhere
 
-A Plex user script that adds danmaku (弹幕) to videos.
+Browser extension to inject danmaku into any webpage with a video player.
 
-Based on [lsl330/plex-danmaku](https://github.com/lsl330/plex-danmaku)
+For the userscript plex-danmaku, see [here](./packages/plex-danmaku).
 
-Bootstrapped with [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey)
+## Development
 
-## Installation
+This is a pnpm monorepo.
 
-Install the script [here](https://mr-quin.github.io/plex-danmaku/plex-danmaku.user.js).
+### Install dependencies
 
-Add your Plex server address to the script @match header if needed.
+In the root directory:
 
-## Screenshots
+```bash
+pnpm i
+```
 
-![danmaku](./assets/danmaku.png)
+### Build the dependencies
 
-![comments](./assets/comment_menu.png)
+In the root directory:
 
-![settings](./assets/settings_menu.png)
+```bash
+pnpm build
+```
+
+Now you can go to each package and run `pnpm dev` to start developing.
