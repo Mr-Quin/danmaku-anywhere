@@ -13,11 +13,12 @@ export const useMessageListener = <T = any>(listener: (request: T) => void) => {
 interface MessageSenderConfig {
   tabQuery?: chrome.tabs.QueryInfo
   skip?: boolean
+  dependencies?: any[]
 }
 
 export const useMessageSender = (
   message: any,
-  { tabQuery, skip = true }: MessageSenderConfig = {}
+  { tabQuery, skip = true, dependencies }: MessageSenderConfig = {}
 ) => {
   const [response, setResponse] = useState<any>(null)
 
@@ -35,12 +36,12 @@ export const useMessageSender = (
       const res = await chrome.runtime.sendMessage(message)
       setResponse(res)
     }
-  }, [message, tabQuery])
+  }, dependencies || [message, tabQuery])
 
   useEffect(() => {
     if (skip) return
     handleSendMessage()
-  }, [handleSendMessage])
+  }, [handleSendMessage, skip])
 
   return {
     response,

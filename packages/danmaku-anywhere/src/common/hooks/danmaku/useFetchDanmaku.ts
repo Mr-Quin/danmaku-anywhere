@@ -1,13 +1,15 @@
 import {
   DanDanCommentAPIParams,
+  DanDanCommentAPIResult,
   fetchComments,
 } from '@danmaku-anywhere/danmaku-engine'
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import {
   DanmakuCache,
   DanmakuMeta,
   useLocalDanmaku,
 } from '@/common/hooks/danmaku/useLocalDanmaku'
+import { useAsyncLifecycle } from '@/common/hooks/useAsyncLifecycle'
 
 interface UseFetchDanmakuConfig {
   params?: Partial<DanDanCommentAPIParams>
@@ -15,30 +17,39 @@ interface UseFetchDanmakuConfig {
 }
 
 // fetch danmaku comments and cache them to chrome local storage
-export const useFetchDanmaku = (
-  meta?: DanmakuMeta,
-  { params = {}, invalidateFn }: UseFetchDanmakuConfig = {}
-) => {
-  const episodeId = meta?.episodeId
+export const useFetchDanmaku = ({
+  params = {},
+  invalidateFn,
+}: UseFetchDanmakuConfig = {}) => {
+  const {
+    selectDanmaku,
+    updateDanmaku,
+    isLoading: isLocalDanmakuLoading,
+  } = useLocalDanmaku()
 
-  const { danmaku, updateDanmaku } = useLocalDanmaku(episodeId)
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
+  const [{ isLoading: isFetchLoading, isSuccess }, dispatch] =
+    useAsyncLifecycle<DanDanCommentAPIResult>()
 
-  const invalidate = useCallback(() => {
-    if (!danmaku) return true
-    if (!invalidateFn) return false
-    return invalidateFn(danmaku)
-  }, [invalidateFn, danmaku])
+  const isLoading = isLocalDanmakuLoading || isFetchLoading
 
-  const handleFetchComments = async (ignoreInvalidation = false) => {
-    if (!episodeId || !meta) return
-    if (!ignoreInvalidation) {
-      if (!invalidate()) return
-    }
-    setIsLoading(true)
-    setIsSuccess(false)
+  const invalidate = useCallback(
+    (danmaku?: DanmakuCache) => {
+      if (!danmaku || !invalidateFn) return true
+      return invalidateFn(danmaku)
+    },
+    [invalidateFn]
+  )
 
+  const handleFetchComments = async (meta: DanmakuMeta) => {
+    if (isLoading) return
+
+    const { episodeId } = meta
+
+    const danmaku = selectDanmaku(episodeId)
+
+    if (!invalidate(danmaku)) return
+
+    dispatch({ type: 'LOADING' })
     try {
       const result = await fetchComments(episodeId, params)
       console.log('fetched danmaku', result)
@@ -54,17 +65,12 @@ export const useFetchDanmaku = (
           schemaVersion: 1,
         })
       }
-      setIsSuccess(true)
+      dispatch({ type: 'SET', payload: result })
     } catch (e) {
       console.error(e)
-    } finally {
-      setIsLoading(false)
+      dispatch({ type: 'ERROR', payload: e })
     }
   }
 
-  const refetch = async () => {
-    await handleFetchComments(true)
-  }
-
-  return { danmaku, isLoading, isSuccess, fetch: refetch }
+  return { isLoading, isSuccess, fetch: handleFetchComments }
 }

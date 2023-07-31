@@ -51,7 +51,7 @@ const reducer = <T>(state: State<T>, action: Action<T>): State<T> => {
       throw new Error('unknown action')
   }
 }
-export const useStateLifeCycle = <T>(initialData?: T) => {
+export const useAsyncLifecycle = <T>(initialData?: T) => {
   const [state, dispatch] = useReducer<Reducer<State<T>, Action<T>>>(reducer, {
     ...initialState,
     data: initialData ?? null,

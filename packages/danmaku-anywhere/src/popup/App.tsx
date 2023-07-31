@@ -1,17 +1,27 @@
-import { AnimeSearch } from './AnimeSearch'
-import { DanmakuController } from '@/popup/DanmakuController'
-import { DanmakuDashboard } from '@/popup/DanmakuDashboard'
-import { Selector } from '@/popup/Selector'
-import './App.css'
+import { Backdrop, CircularProgress, Container, Paper } from '@mui/material'
+import { AnimeSearch } from './search/AnimeSearch'
+import { useLocalDanmaku } from '@/common/hooks/danmaku/useLocalDanmaku'
+import { Theme } from '@/common/style/Theme'
 
-function App() {
+const App = () => {
+  const { isLoading } = useLocalDanmaku()
+
   return (
-    <>
-      <AnimeSearch />
-      <DanmakuController />
-      <Selector />
-      <DanmakuDashboard />
-    </>
+    <Theme>
+      <Container sx={{ padding: 0, minWidth: 430, maxWidth: 430 }} fixed>
+        <Backdrop
+          open={isLoading}
+          sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        >
+          <CircularProgress />
+        </Backdrop>
+        <Paper>
+          <AnimeSearch />
+          {/*<DanmakuController />*/}
+          {/*<DanmakuDashboard />*/}
+        </Paper>
+      </Container>
+    </Theme>
   )
 }
 

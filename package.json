@@ -12,24 +12,26 @@
   "repository": "https://github.com/Mr-Quin/plex-danmaku",
   "license": "MIT",
   "scripts": {
-    "build": "pnpm -r build"
+    "build": "pnpm -r build",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "zustand": "^4.3.7"
   },
   "devDependencies": {
-    "typescript": "^5.0.4",
-    "gh-pages": "^5.0.0",
-    "eslint": "^8.38.0",
     "@typescript-eslint/eslint-plugin": "^5.58.0",
     "@typescript-eslint/parser": "^5.58.0",
+    "eslint": "^8.38.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-import-resolver-typescript": "^3.5.5",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-react": "^7.33.1",
+    "gh-pages": "^5.0.0",
+    "jest": "^29.5.0",
     "prettier": "^2.8.7",
+    "typescript": "^5.0.4",
     "vite": "^4.2.3",
-    "vite-plugin-eslint": "^1.8.1",
-    "jest": "^29.5.0"
+    "vite-plugin-eslint": "^1.8.1"
   }
 }

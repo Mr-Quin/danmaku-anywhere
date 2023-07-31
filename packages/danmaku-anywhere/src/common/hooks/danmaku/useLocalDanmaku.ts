@@ -22,7 +22,7 @@ export interface DanmakuCache {
   schemaVersion: number
 }
 
-export type DanmakuStore = Record<string, DanmakuCache>
+export type DanmakuStore = Record<string | number, DanmakuCache>
 
 const DANMAKU_KEY = 'danmaku'
 export const useLocalDanmaku = (episodeId?: number) => {
@@ -56,6 +56,10 @@ export const useLocalDanmaku = (episodeId?: number) => {
     await setAllDanmaku(newDanmaku)
   }
 
+  const selectDanmaku = (episodeId: number) => {
+    return allDanmaku?.[episodeId] as DanmakuCache | undefined
+  }
+
   // initialize allDanmaku to empty object if it's not initialized
   useEffect(() => {
     if (
@@ -78,6 +82,7 @@ export const useLocalDanmaku = (episodeId?: number) => {
     allDanmakuArray,
     updateDanmaku,
     deleteDanmaku,
+    selectDanmaku,
     isLoading,
   }
 }

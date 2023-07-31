@@ -4,7 +4,7 @@ export const DanmakuIcon = () => {
       viewBox="0 0 400 400"
       version="1.1"
       xmlns="http://www.w3.org/2000/svg"
-      p-id="1713"
+      // p-id="1713"
       width="32"
       height="24"
     >
@@ -39,7 +39,7 @@ export const SettingsIcon = () => {
       width="16"
       height="16"
       fill="currentColor"
-      class="bi bi-gear"
+      className="bi bi-gear"
       viewBox="0 0 16 16"
     >
       <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z" />
@@ -55,7 +55,7 @@ export const InfoIcon = () => {
       width="16"
       height="16"
       fill="currentColor"
-      class="bi bi-info-circle"
+      className="bi bi-info-circle"
       viewBox="0 0 16 16"
     >
       <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
@@ -71,7 +71,7 @@ export const VisibleIcon = () => {
       width="16"
       height="16"
       fill="currentColor"
-      class="bi bi-eye"
+      className="bi bi-eye"
       viewBox="0 0 16 16"
     >
       <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z" />
@@ -87,7 +87,7 @@ export const VisibleOffIcon = () => {
       width="16"
       height="16"
       fill="currentColor"
-      class="bi bi-eye-slash"
+      className="bi bi-eye-slash"
       viewBox="0 0 16 16"
     >
       <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z" />
