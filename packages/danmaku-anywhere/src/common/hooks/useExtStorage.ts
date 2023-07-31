@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { useStateLifeCycle } from '@/common/hooks/useStateLifeCycle'
+import { useAsyncLifecycle } from '@/common/hooks/useAsyncLifecycle'
 import { IS_EXTENSION } from '@/common/utils'
 
 export type StorageType = 'local' | 'sync' | 'session'
@@ -16,7 +16,7 @@ export const useExtStorage = <T>(
   if (!IS_EXTENSION)
     throw new Error('useExtStorage can only be used in extensions')
 
-  const [state, dispatch] = useStateLifeCycle<T>()
+  const [state, dispatch] = useAsyncLifecycle<T>()
 
   const storage = chrome.storage[storageType]
 
@@ -72,21 +72,22 @@ export const useExtStorage = <T>(
     }
   }, [key, storage, sync])
 
-  const deps = Array.isArray(key)
-    ? [...key, get, state.isInit]
-    : [key, get, state.isInit]
+  const deps = Array.isArray(key) ? key : [key]
 
   useEffect(() => {
     if (state.isInit) dispatch({ type: 'INIT' })
 
     get()
+  }, [...deps, get, state.isInit])
 
+  useEffect(() => {
+    // listen to storage change from elsewhere and update state
     if (typeof key === 'string') {
       const listener = (changes: {
         [p: string]: chrome.storage.StorageChange
       }) => {
-        console.log('storage change', key, changes)
         if (changes[key]) {
+          console.log('storage change', key, changes)
           dispatch({ type: 'SET', payload: changes[key].newValue })
         }
       }
@@ -96,7 +97,7 @@ export const useExtStorage = <T>(
         storage.onChanged.removeListener(listener)
       }
     }
-  }, deps)
+  }, [...deps, storage])
 
   return { ...state, setData: set, getData: get, remove }
 }

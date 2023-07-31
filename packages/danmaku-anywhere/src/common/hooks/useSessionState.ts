@@ -29,7 +29,7 @@ export const useSessionState = <T>(initialState: T, key: string) => {
       if (data) setState(data)
       isInit.current = false
     }
-  }, [isLoading])
+  }, [isLoading, isInitState, data])
 
   return [state, updateState] as const
 }

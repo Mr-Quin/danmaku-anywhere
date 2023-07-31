@@ -2,6 +2,8 @@
 
 Browser extension to inject danmaku into any webpage with a video player.
 
+Currently a WIP.
+
 For the userscript plex-danmaku, see [here](./packages/plex-danmaku).
 
 ## Development
@@ -16,7 +18,7 @@ In the root directory:
 pnpm i
 ```
 
-### Build the dependencies
+### Build shared libraries
 
 In the root directory:
 
