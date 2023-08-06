@@ -1,45 +1,21 @@
 import { useEffect, useState } from 'react'
 import { DanmakuManager } from './DanmakuManager'
-import { useMessageListener } from '@/common/hooks/useMessages'
+import { contentLogger } from '@/common/logger'
 
-export const useSelector = () => {
-  const [isEnabled, setIsEnabled] = useState(false)
-
-  useMessageListener((request: any) => {
-    if (request.action === 'startSelector') {
-      // start the inspector mode
-      console.log('start inspector')
-      setIsEnabled(true)
-    }
-  })
-
-  // cancel the selector on escape
-  useEffect(() => {
-    const listener = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsEnabled(false)
-      }
-    }
-
-    window.addEventListener('keydown', listener)
-
-    return () => {
-      window.removeEventListener('keydown', listener)
-    }
-  }, [isEnabled])
-
-  return { isEnabled, disableSelector: () => setIsEnabled(false) }
-}
-
-export const useNodeMonitor = <T extends HTMLElement>(selector: string) => {
-  const [node, setNode] = useState<T>()
+export const useNodeMonitor = <T extends HTMLElement>(selector?: string) => {
+  const [node, setNode] = useState<T | null>(null)
 
   useEffect(() => {
+    if (!selector) {
+      setNode(null)
+      return
+    }
+
+    contentLogger.log('useNodeMonitor', selector)
     const current = document.querySelector(selector) as T
 
     if (current) {
       setNode(current)
-      return
     }
 
     const observer = new MutationObserver((mutations) => {
@@ -48,17 +24,24 @@ export const useNodeMonitor = <T extends HTMLElement>(selector: string) => {
           if (node instanceof HTMLElement) {
             if (node.matches(selector)) {
               // stop at the first match
+              contentLogger.log('found node', node)
               setNode(node as T)
-              return
+              break
             }
           }
         }
 
-        for (const node of mutation.removedNodes) {
-          if (node instanceof HTMLElement) {
-            if (node.matches(selector)) {
-              setNode(undefined)
-              return
+        for (const removedNode of mutation.removedNodes) {
+          if (removedNode instanceof HTMLElement) {
+            // contentLogger.log('comparing node', node)
+            if (
+              removedNode === node ||
+              removedNode.contains(node) ||
+              removedNode.matches(selector)
+            ) {
+              contentLogger.log('removed node', removedNode)
+              setNode(null)
+              break
             }
           }
         }
@@ -69,7 +52,11 @@ export const useNodeMonitor = <T extends HTMLElement>(selector: string) => {
       childList: true,
       subtree: true,
     })
-  }, [selector])
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [selector, node])
 
   return node
 }
@@ -78,7 +65,6 @@ export const Content = () => {
   return (
     <>
       <DanmakuManager />
-      {/*<DomSelector enable={isEnabled} onSelect={onSelect} />*/}
     </>
   )
 }

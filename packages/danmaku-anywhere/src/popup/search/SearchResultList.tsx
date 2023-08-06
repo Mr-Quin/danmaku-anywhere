@@ -23,10 +23,7 @@ import {
   Tooltip,
 } from '@mui/material'
 import { ReactNode, useId, useState } from 'react'
-import {
-  DanmakuMeta,
-  useLocalDanmaku,
-} from '@/common/hooks/danmaku/useLocalDanmaku'
+import { DanmakuMeta, useDanmakuDb } from '@/common/hooks/danmaku/useDanmakuDb'
 
 interface CollapsableListItemProps extends ListItemButtonProps {
   listItemChildren: ReactNode
@@ -114,7 +111,7 @@ export const SearchResultList = ({
   onFetch,
 }: SearchResultListProps) => {
   const headerId = useId()
-  const { selectDanmaku } = useLocalDanmaku()
+  const { selectDanmaku, deleteDanmaku } = useDanmakuDb()
 
   const createMeta = (anime: DanDanAnime, episode: DanDanEpisode) => {
     return {

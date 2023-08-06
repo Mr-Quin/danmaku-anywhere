@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-export const useMessageListener = <T = any>(listener: (request: T) => void) => {
+export const useRuntimeMessage = <T = any>(listener: (request: T) => void) => {
   useEffect(() => {
     chrome.runtime.onMessage.addListener(listener)
 
@@ -23,7 +23,6 @@ export const useMessageSender = (
   const [response, setResponse] = useState<any>(null)
 
   const handleSendMessage = useCallback(async () => {
-    console.log('handleSendMessage', message)
     if (tabQuery) {
       const tabs = await chrome.tabs.query(tabQuery)
       const res = []

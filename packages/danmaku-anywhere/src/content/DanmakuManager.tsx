@@ -1,41 +1,61 @@
-import { useDanmakuEngine } from '@danmaku-anywhere/danmaku-engine'
+import {
+  DanDanComment,
+  useDanmakuEngine,
+} from '@danmaku-anywhere/danmaku-engine'
 import { useCallback, useState } from 'react'
-import { useLocalDanmaku } from '@/common/hooks/danmaku/useLocalDanmaku'
-import { useMessageListener } from '@/common/hooks/useMessages'
+import { useRuntimeMessage } from '@/common/hooks/useMessages'
+import { contentLogger } from '@/common/logger'
 import { useNodeMonitor } from '@/content/Content'
-import { DanmakuStartMessage } from '@/popup/DanmakuController'
 
 export const DanmakuManager = () => {
   const [config, setConfig] = useState<any>({})
-  const { danmaku } = useLocalDanmaku(config.episodeId)
+  const [comments, setComments] = useState<DanDanComment[]>([])
 
-  const container = useNodeMonitor('.Player-fullPlayerContainer-wBDz23')
-  const node = useNodeMonitor<HTMLVideoElement>('video')
+  const container = useNodeMonitor(config.containerQuery)
+  const node = useNodeMonitor<HTMLVideoElement>(config.mediaQuery)
 
-  console.log('danmaku', danmaku, node, container)
-
-  useDanmakuEngine({
-    container: container,
-    media: node,
-    comments: danmaku?.comments,
+  const store = useDanmakuEngine({
+    container: container ?? undefined,
+    media: node ?? undefined,
+    comments,
   })
 
-  useMessageListener<DanmakuStartMessage>(
-    useCallback((request) => {
-      if (request.action === 'danmaku/start') {
-        // start the inspector mode
-        console.log('received message', request)
-        const { episodeId, mediaQuery, containerQuery } = request.payload
-        const mediaElement = document.querySelector(mediaQuery)
-        const containerElement = document.querySelector(containerQuery)
+  const iframe = document.querySelector('iframe')
 
-        setConfig({
-          episodeId,
-          mediaElement,
-          containerElement,
-        })
-      }
-    }, [])
+  contentLogger.log(
+    'danmaku',
+    config,
+    comments.length,
+    node,
+    container,
+    store,
+    document.querySelector('iframe'),
+    iframe?.contentDocument
+  )
+
+  useRuntimeMessage(
+    useCallback(
+      (request: any) => {
+        if (request.action === 'danmaku/start') {
+          // start the inspector mode
+          contentLogger.log('received message', request)
+          const { comments, mediaQuery, containerQuery } = request.payload
+
+          setComments(comments)
+          setConfig({
+            mediaQuery,
+            containerQuery,
+          })
+        }
+        if (request.action === 'danmaku/stop') {
+          // stop the inspector mode
+          contentLogger.log('received message', request)
+          setComments([])
+          setConfig({})
+        }
+      },
+      [store]
+    )
   )
 
   return null
