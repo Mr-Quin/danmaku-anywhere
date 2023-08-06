@@ -14,7 +14,7 @@ Add your Plex server address to the script @match header if needed.
 
 ## Screenshots
 
-![danmaku](../../assets/danmaku.png)
+![danmaku](../../assets/danmaku_plex.png)
 
 ![comments](../../assets/comment_menu.png)
 

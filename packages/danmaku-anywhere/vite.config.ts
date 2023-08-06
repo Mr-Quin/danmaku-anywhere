@@ -16,5 +16,15 @@ export default defineConfig({
     hmr: {
       clientPort: 3000,
     },
+    open: 'pages/popup.html',
+  },
+  build: {
+    rollupOptions: {
+      input: {
+        app: 'pages/popup.html',
+        options: 'pages/options.html',
+        background: 'src/background/index.ts',
+      },
+    },
   },
 })

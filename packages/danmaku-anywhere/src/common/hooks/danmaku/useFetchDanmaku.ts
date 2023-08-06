@@ -7,25 +7,26 @@ import { useCallback } from 'react'
 import {
   DanmakuCache,
   DanmakuMeta,
-  useLocalDanmaku,
-} from '@/common/hooks/danmaku/useLocalDanmaku'
+  useDanmakuDb,
+} from '@/common/hooks/danmaku/useDanmakuDb'
 import { useAsyncLifecycle } from '@/common/hooks/useAsyncLifecycle'
+import { popupLogger } from '@/common/logger'
 
 interface UseFetchDanmakuConfig {
   params?: Partial<DanDanCommentAPIParams>
   invalidateFn?: (danmaku: DanmakuCache) => boolean
 }
 
-// fetch danmaku comments and cache them to chrome local storage
+// fetch danmaku comments and cache them to some storage
 export const useFetchDanmaku = ({
-  params = {},
+  params = { withRelated: true },
   invalidateFn,
 }: UseFetchDanmakuConfig = {}) => {
   const {
     selectDanmaku,
     updateDanmaku,
     isLoading: isLocalDanmakuLoading,
-  } = useLocalDanmaku()
+  } = useDanmakuDb()
 
   const [{ isLoading: isFetchLoading, isSuccess }, dispatch] =
     useAsyncLifecycle<DanDanCommentAPIResult>()
@@ -52,7 +53,7 @@ export const useFetchDanmaku = ({
     dispatch({ type: 'LOADING' })
     try {
       const result = await fetchComments(episodeId, params)
-      console.log('fetched danmaku', result)
+      popupLogger.log('fetched danmaku', result)
       if (result.count > 0) {
         // cache the comments
         await updateDanmaku(episodeId, {
@@ -62,12 +63,11 @@ export const useFetchDanmaku = ({
           meta,
           params,
           version: danmaku?.version ? danmaku.version + 1 : 1,
-          schemaVersion: 1,
         })
       }
       dispatch({ type: 'SET', payload: result })
     } catch (e) {
-      console.error(e)
+      popupLogger.error(e)
       dispatch({ type: 'ERROR', payload: e })
     }
   }

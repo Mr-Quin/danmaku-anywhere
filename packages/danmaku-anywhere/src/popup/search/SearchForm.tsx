@@ -3,6 +3,7 @@ import { LoadingButton } from '@mui/lab'
 import { Box, Stack, TextField } from '@mui/material'
 import { useEffect } from 'react'
 import { useStore } from './store'
+import { popupLogger } from '@/common/logger'
 import { useSessionState } from '@/common/hooks/useSessionState'
 import { useAsyncLifecycle } from '@/common/hooks/useAsyncLifecycle'
 
@@ -34,10 +35,10 @@ export const SearchForm = () => {
       if (result.success) {
         dispatch({ type: 'SET', payload: result.animes })
         setCachedResults(result.animes)
-        console.log(result)
+        popupLogger.log(result)
       } else {
         dispatch({ type: 'ERROR', payload: result.errorMessage })
-        console.error(result.errorMessage)
+        popupLogger.error(result.errorMessage)
       }
     } catch (e) {
       dispatch({ type: 'ERROR', payload: e })

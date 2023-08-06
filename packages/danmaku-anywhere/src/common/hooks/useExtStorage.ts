@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAsyncLifecycle } from '@/common/hooks/useAsyncLifecycle'
 import { IS_EXTENSION } from '@/common/utils'
 
@@ -7,6 +7,52 @@ export type StorageType = 'local' | 'sync' | 'session'
 export type StorageConfig = {
   sync?: boolean
   storageType?: StorageType
+}
+
+// provides read-only access to storage
+export const useSubscribeExtStorage = <T>(
+  key: string,
+  { storageType = 'local' }: Pick<StorageConfig, 'storageType'>
+) => {
+  const storage = chrome.storage[storageType]
+
+  const [state, setState] = useState<T>()
+
+  const subscribe = useCallback(
+    (onChange?: (change: chrome.storage.StorageChange) => void) => {
+      const listener = (changes: {
+        [p: string]: chrome.storage.StorageChange
+      }) => {
+        const change = changes[key]
+        if (change) {
+          if (onChange) return onChange(change)
+          setState(change.newValue)
+        }
+      }
+      storage.onChanged.addListener(listener)
+
+      return () => {
+        storage.onChanged.removeListener(listener)
+      }
+    },
+    [storage, key]
+  )
+
+  const getSnapshot = useCallback(() => {
+    return state
+  }, [state])
+
+  useEffect(() => {
+    // need to a manual fetch to get the data initially
+    storage.get(key).then((result) => {
+      setState(result[key] as T)
+    })
+  }, [key])
+
+  return {
+    subscribe,
+    getSnapshot,
+  }
 }
 
 export const useExtStorage = <T>(
@@ -82,24 +128,27 @@ export const useExtStorage = <T>(
 
   useEffect(() => {
     // listen to storage change from elsewhere and update state
-    if (typeof key === 'string') {
-      const listener = (changes: {
-        [p: string]: chrome.storage.StorageChange
-      }) => {
-        if (changes[key]) {
-          console.log('storage change', key, changes)
-          dispatch({ type: 'SET', payload: changes[key].newValue })
-        }
-      }
-      storage.onChanged.addListener(listener)
+    if (typeof key !== 'string') return
 
-      return () => {
-        storage.onChanged.removeListener(listener)
+    const listener = (changes: {
+      [p: string]: chrome.storage.StorageChange
+    }) => {
+      const change = changes[key]
+      if (change) {
+        dispatch({ type: 'SET', payload: change.newValue })
       }
+    }
+    storage.onChanged.addListener(listener)
+
+    return () => {
+      storage.onChanged.removeListener(listener)
     }
   }, [...deps, storage])
 
-  return { ...state, setData: set, getData: get, remove }
+  return {
+    ...state,
+    setData: set,
+    getData: get,
+    remove,
+  }
 }
-
-export default useExtStorage
