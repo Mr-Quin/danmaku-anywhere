@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import useExtStorage from '@/common/hooks/useExtStorage'
+import { useExtStorage } from '@/common/hooks/useExtStorage'
 
 // persist state to chrome.storage.session
 export const useSessionState = <T>(initialState: T, key: string) => {
@@ -25,7 +25,6 @@ export const useSessionState = <T>(initialState: T, key: string) => {
 
   useEffect(() => {
     if (isInit.current && !isInitState && !isLoading) {
-      console.log('init', key, data)
       if (data) setState(data)
       isInit.current = false
     }

@@ -1,31 +1,32 @@
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { DanmakuCache } from '@/common/hooks/danmaku/useDanmakuDb'
 import {
-  DanDanComment,
-  DanDanCommentAPIParams,
-} from '@danmaku-anywhere/danmaku-engine'
-import { useEffect, useMemo, useState } from 'react'
-import useExtStorage from '@/common/hooks/useExtStorage'
-
-export interface DanmakuMeta {
-  episodeId: number
-  animeId: number
-  episodeTitle: string
-  animeTitle: string
-}
-
-export interface DanmakuCache {
-  comments: DanDanComment[]
-  count: number
-  meta: DanmakuMeta
-  params: Partial<DanDanCommentAPIParams>
-  timeUpdated: number
-  version: number
-  schemaVersion: number
-}
+  useExtStorage,
+  useSubscribeExtStorage,
+} from '@/common/hooks/useExtStorage'
 
 export type DanmakuStore = Record<string | number, DanmakuCache>
-
 const DANMAKU_KEY = 'danmaku'
-export const useLocalDanmaku = (episodeId?: number) => {
+// for read-only use cases, reduces number of renders
+export const useReadonlyDanmakuStore = () => {
+  const { getSnapshot, subscribe } = useSubscribeExtStorage<DanmakuStore>(
+    DANMAKU_KEY,
+    {
+      storageType: 'local',
+    }
+  )
+
+  const danmaku = useSyncExternalStore(subscribe, getSnapshot)
+
+  const danmakuArray = useMemo(
+    () => (danmaku ? Object.values(danmaku) : []),
+    [danmaku]
+  )
+
+  return { danmaku, danmakuArray }
+}
+
+export const useDanmakuStore = (episodeId?: number) => {
   const {
     data: allDanmaku,
     isInit,
