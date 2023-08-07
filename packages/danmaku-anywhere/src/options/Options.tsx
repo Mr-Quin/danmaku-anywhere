@@ -101,7 +101,6 @@ export const MountConfigEditor = ({
   open,
   onClose,
   onSave,
-  mode,
 }: MountConfigEditorProps) => {
   return (
     <Dialog open={open} onClose={onClose}>

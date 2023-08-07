@@ -50,7 +50,10 @@ export const ConfigControl = () => {
       <Slider
         value={style.opacity}
         onChange={(e, newValue) =>
-          setStyle((prevStyle) => ({ ...prevStyle, opacity: newValue }))
+          setStyle((prevStyle) => ({
+            ...prevStyle,
+            opacity: newValue as number,
+          }))
         }
         step={0.1}
         min={0}
@@ -63,7 +66,10 @@ export const ConfigControl = () => {
         name="fontSize"
         value={style.fontSize}
         onChange={(e, newValue) =>
-          setStyle((prevStyle) => ({ ...prevStyle, fontSize: newValue }))
+          setStyle((prevStyle) => ({
+            ...prevStyle,
+            fontSize: newValue as number,
+          }))
         }
         step={1}
         min={10}
