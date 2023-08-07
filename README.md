@@ -2,9 +2,23 @@
 
 For the userscript plex-danmaku, see [here](./packages/plex-danmaku).
 
-Browser extension to inject danmaku into any webpage with a `<video>` player.
+Danmaku Anywhere is a browser extension to inject danmaku into any webpage with a `<video>` player.
 
-Currently wip, somewhat working but not user friendly.
+## Features
+
+| Feature                                     | Status         |
+|---------------------------------------------|----------------|
+| UI to search for Danmaku                    | ✅ Done         |
+| UI to manually mount/unmount Danmaku        | ✅ Done         |
+| Declarative mounting configuration          | ⚙️ In Progress |
+| Configurable Danmaku style                  | ⚙️ In Progress |
+| Site-Specific Integration:                  | 📅 Planned     |
+| - Video lifecycle detection                 |                |
+| - Auto-detection of currently playing video |                |
+| - Automatic Danmaku fetching                |                |
+| - Injection of site-specific control UI     |                |
+
+Currently wip, but it's usable.
 
 ## Screenshots
 
