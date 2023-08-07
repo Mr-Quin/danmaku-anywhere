@@ -9,19 +9,21 @@ type Logger = {
 type ConsoleMethod = 'log' | 'info' | 'warn' | 'error' | 'debug'
 
 const createLogger = (prefix: string): Logger => {
-  return new Proxy(console, {
-    get(target, method) {
-      if (typeof target[method as keyof Console] === 'function') {
-        return (...args: any[]) => {
-          target[method as ConsoleMethod](prefix, ...args)
-        }
-      }
-      if (method === 'sub') {
-        return (subPrefix: string) => createLogger(`${prefix} ${subPrefix}`)
-      }
-      return target[method as keyof Console]
-    },
-  }) as Logger
+  const logger = {} as Logger
+
+  const methods: ConsoleMethod[] = ['log', 'info', 'warn', 'error', 'debug']
+
+  // bind console to preserve the original console context
+  // this is needed for the correct file and line number to be shown
+  methods.forEach((method) => {
+    logger[method] = console[method].bind(console, prefix)
+  })
+
+  logger.sub = (subPrefix: string) => {
+    return createLogger(`${prefix} ${subPrefix}`)
+  }
+
+  return logger
 }
 
 export const mainLogger = createLogger(prefix)

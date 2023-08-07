@@ -11,7 +11,7 @@ import { AnimeSearch } from './search/AnimeSearch'
 import { useDanmakuDb } from '@/common/hooks/danmaku/useDanmakuDb'
 import { useSessionState } from '@/common/hooks/useSessionState'
 import { popupLogger } from '@/common/logger'
-import { DanmakuController } from '@/popup/DanmakuController'
+import { DanmakuController } from '@/popup/control/DanmakuController'
 
 const App = () => {
   const [tab, setTab] = useSessionState(0, 'main/tab')
@@ -42,6 +42,7 @@ const App = () => {
         maxWidth: 400,
         height: 600,
         maxHeight: 600,
+        overflow: 'hidden',
       }}
       fixed
     >
@@ -54,6 +55,7 @@ const App = () => {
       <Paper
         sx={{
           height: '100%',
+          overflow: 'auto',
         }}
       >
         <Stack direction="column" spacing={0}>

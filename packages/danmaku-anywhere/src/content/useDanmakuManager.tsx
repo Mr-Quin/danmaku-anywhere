@@ -3,16 +3,23 @@ import {
   useDanmakuEngine,
 } from '@danmaku-anywhere/danmaku-engine'
 import { useCallback, useState } from 'react'
+import {
+  useCurrentMountConfig,
+  useMountConfig,
+} from '@/common/hooks/mountConfig/useMountConfig'
 import { useRuntimeMessage } from '@/common/hooks/useMessages'
 import { contentLogger } from '@/common/logger'
-import { useNodeMonitor } from '@/content/Content'
+import { useNodeMonitor } from '@/content/useNodeMonitor'
 
-export const DanmakuManager = () => {
-  const [config, setConfig] = useState<any>({})
+export const useDanmakuManager = () => {
+  const { configs } = useMountConfig()
+  const url = window.location.href
+  const mountConfig = useCurrentMountConfig(url, configs)
+
   const [comments, setComments] = useState<DanDanComment[]>([])
 
-  const container = useNodeMonitor(config.containerQuery)
-  const node = useNodeMonitor<HTMLVideoElement>(config.mediaQuery)
+  const container = useNodeMonitor(mountConfig?.containerQuery)
+  const node = useNodeMonitor<HTMLVideoElement>(mountConfig?.mediaQuery)
 
   const store = useDanmakuEngine({
     container: container ?? undefined,
@@ -20,38 +27,27 @@ export const DanmakuManager = () => {
     comments,
   })
 
-  const iframe = document.querySelector('iframe')
-
-  contentLogger.log(
-    'danmaku',
-    config,
-    comments.length,
+  contentLogger.debug({
+    url,
+    comments: comments.length,
     node,
     container,
     store,
-    document.querySelector('iframe'),
-    iframe?.contentDocument
-  )
+    mountConfig,
+  })
 
   useRuntimeMessage(
     useCallback(
       (request: any) => {
         if (request.action === 'danmaku/start') {
           // start the inspector mode
-          contentLogger.log('received message', request)
-          const { comments, mediaQuery, containerQuery } = request.payload
-
-          setComments(comments)
-          setConfig({
-            mediaQuery,
-            containerQuery,
-          })
+          contentLogger.debug('received message', request)
+          setComments(request.payload.comments)
         }
         if (request.action === 'danmaku/stop') {
           // stop the inspector mode
-          contentLogger.log('received message', request)
+          contentLogger.debug('received message', request)
           setComments([])
-          setConfig({})
         }
       },
       [store]
