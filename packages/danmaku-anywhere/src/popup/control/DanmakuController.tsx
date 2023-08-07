@@ -1,4 +1,3 @@
-import { DanDanComment } from '@danmaku-anywhere/danmaku-engine'
 import {
   Autocomplete,
   Box,
@@ -8,45 +7,16 @@ import {
   TextField,
 } from '@mui/material'
 import { useMemo } from 'react'
+import { blankMountConfig } from '@/common/constants'
 import { DanmakuMeta, useDanmakuDb } from '@/common/hooks/danmaku/useDanmakuDb'
+import {
+  useActiveTabUrl,
+  useCurrentMountConfig,
+  useMountConfig,
+} from '@/common/hooks/mountConfig/useMountConfig'
 import { useMessageSender } from '@/common/hooks/useMessages'
 import { useSessionState } from '@/common/hooks/useSessionState'
-
-export interface DanmakuStartMessage {
-  action: 'danmaku/start'
-  payload: {
-    mediaQuery: string
-    containerQuery: string
-    comments: DanDanComment[]
-  }
-}
-
-// interface ControllerState {
-
-//   mediaQuery: string
-//   containerQuery: string
-//   episodeId: number
-// }
-//
-// interface ControllerStore {
-//   [key: string | number]: ControllerState
-// }
-
-// const useControllerStore = () => {
-//   const { data, setData } = useExtStorage<ControllerStore>('control')
-//
-//   const setControllerState = (episodeId: number, state: ControllerState) => {
-//     setStore((prev) => ({
-//       ...prev,
-//       [episodeId]: state,
-//     }))
-//   }
-//
-//   return {
-//     store,
-//     setControllerState,
-//   }
-// }
+import { MountConfigEditor } from '@/popup/control/MountConfigEditor'
 
 export const DanmakuController = () => {
   const { allDanmaku, isLoading, selectDanmaku } = useDanmakuDb()
@@ -59,11 +29,10 @@ export const DanmakuController = () => {
     [allDanmaku]
   )
 
-  const [mediaQuery, setMediaQuery] = useSessionState('', 'mediaQuery')
-  const [containerQuery, setContainerQuery] = useSessionState(
-    '',
-    'containerQuery'
-  )
+  const url = useActiveTabUrl()
+  const { updateConfig, addConfig, deleteConfig, configs } = useMountConfig()
+  const config = useCurrentMountConfig(url, configs)
+
   const [episodeId, setEpisodeId] = useSessionState<DanmakuMeta | null>(
     options[0] ?? null,
     'controller/episodeId'
@@ -75,8 +44,6 @@ export const DanmakuController = () => {
     {
       action: 'danmaku/start',
       payload: {
-        containerQuery,
-        mediaQuery,
         comments: comments ?? [],
       },
     },
@@ -111,22 +78,6 @@ export const DanmakuController = () => {
       }}
     >
       <Stack direction="column" spacing={2}>
-        <Stack direction="row" spacing={2}>
-          <TextField
-            label="Media Query"
-            value={mediaQuery}
-            onChange={(e) => setMediaQuery(e.target.value)}
-            variant="standard"
-            size="small"
-          />
-          <TextField
-            label="Container Query"
-            value={containerQuery}
-            onChange={(e) => setContainerQuery(e.target.value)}
-            variant="standard"
-            size="small"
-          />
-        </Stack>
         <Autocomplete
           value={episodeId ?? null}
           loading={isLoading}
@@ -143,11 +94,23 @@ export const DanmakuController = () => {
           disablePortal
         />
         <Button type="submit" variant="outlined" size="small">
-          Set
+          Mount
         </Button>
-        <Button variant="outlined" size="small" onClick={sendStop}>
-          Stop
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={sendStop}
+          color="warning"
+        >
+          Unmount
         </Button>
+        {/*<ConfigControl />*/}
+        <MountConfigEditor
+          config={config ?? blankMountConfig(url ?? '')}
+          onUpdate={updateConfig}
+          onAdd={addConfig}
+          onDelete={deleteConfig}
+        />
       </Stack>
     </Box>
   )

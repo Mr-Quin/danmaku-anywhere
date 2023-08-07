@@ -1,6 +1,6 @@
 {
   "name": "@mr-quin/danmaku-anywhere",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "description": "Plex extension",
   "keywords": [],
@@ -29,6 +29,7 @@
     "@types/chrome": "^0.0.242",
     "@types/react": "^18.2.17",
     "@types/react-dom": "^18.2.7",
-    "@vitejs/plugin-react": "^4.0.3"
+    "@vitejs/plugin-react": "^4.0.3",
+    "urlpattern-polyfill": "^9.0.0"
   }
 }

@@ -23,7 +23,6 @@ export default defineConfig({
       input: {
         app: 'pages/popup.html',
         options: 'pages/options.html',
-        background: 'src/background/index.ts',
       },
     },
   },

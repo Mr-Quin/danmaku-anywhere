@@ -78,7 +78,7 @@ export const transformDanDanComments = (
       time,
       style: {
         fontSize: `${style.fontSize}px`,
-        color: `#${color}`,
+        color: `${color}`,
         opacity: `${style.opacity}`,
         textShadow:
           color === '00000'
