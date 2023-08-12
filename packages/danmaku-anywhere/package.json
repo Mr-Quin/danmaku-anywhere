@@ -17,19 +17,20 @@
     "@danmaku-anywhere/danmaku-engine": "workspace:*",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
-    "@fontsource/roboto": "^5.0.5",
-    "@mui/icons-material": "^5.14.1",
+    "@fontsource/roboto": "^5.0.8",
+    "@mui/icons-material": "^5.14.3",
     "@mui/lab": "5.0.0-alpha.137",
-    "@mui/material": "^5.14.2",
+    "@mui/material": "^5.14.4",
+    "@tanstack/react-query": "5.0.0-beta.15",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "2.0.0-beta.18",
     "@types/chrome": "^0.0.242",
-    "@types/react": "^18.2.17",
+    "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
-    "@vitejs/plugin-react": "^4.0.3",
+    "@vitejs/plugin-react": "^4.0.4",
     "urlpattern-polyfill": "^9.0.0"
   }
 }
