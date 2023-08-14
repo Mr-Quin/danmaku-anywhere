@@ -44,6 +44,10 @@ export const searchAnime = async (
 
   const json = (await res.json()) as DanDanAnimeSearchResult
 
+  if (!json.success) {
+    throw new Error(json.errorMessage)
+  }
+
   return json
 }
 

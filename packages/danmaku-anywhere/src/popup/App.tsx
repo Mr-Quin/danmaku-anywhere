@@ -7,17 +7,17 @@ import {
   Tab,
   Tabs,
 } from '@mui/material'
-import { AnimeSearch } from './search/AnimeSearch'
-import { useDanmakuDb } from '@/common/hooks/danmaku/useDanmakuDb'
-import { useSessionState } from '@/common/hooks/useSessionState'
+import { useState } from 'react'
+import { SearchPage } from './search/SearchPage'
+import { useIndexedDBContext } from '@/common/indexedDb/IndexedDbContext'
 import { popupLogger } from '@/common/logger'
-import { DanmakuController } from '@/popup/control/DanmakuController'
+import { ControlPage } from '@/popup/control/ControlPage'
 
 const App = () => {
-  const [tab, setTab] = useSessionState(0, 'main/tab')
-  const { isLoading, data, allDanmaku } = useDanmakuDb()
+  const [tab, setTab] = useState(0)
+  const { db } = useIndexedDBContext()
 
-  popupLogger.log('App', isLoading, data, allDanmaku, window.location.href)
+  popupLogger.log('App', window.location.href)
 
   const handleChange = (_: any, newValue: number) => {
     setTab(newValue)
@@ -26,11 +26,11 @@ const App = () => {
   const renderTabs = () => {
     switch (tab) {
       case 0:
-        return <AnimeSearch />
+        return <SearchPage />
       case 1:
-        return <DanmakuController />
+        return <ControlPage />
       default:
-        return <AnimeSearch />
+        return <SearchPage />
     }
   }
 
@@ -46,10 +46,7 @@ const App = () => {
       }}
       fixed
     >
-      <Backdrop
-        open={isLoading}
-        sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
-      >
+      <Backdrop open={!db} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <CircularProgress />
       </Backdrop>
       <Paper

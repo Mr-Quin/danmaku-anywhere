@@ -1,32 +1,77 @@
-import { Box, Stack } from '@mui/material'
-import { useState } from 'react'
-import { SearchForm } from './SearchForm'
+import { searchAnime } from '@danmaku-anywhere/danmaku-engine'
+import { LoadingButton } from '@mui/lab'
+import { Box, Stack, TextField, Typography } from '@mui/material'
+import { useQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import { useStore } from './store'
-import { SearchResultList } from '@/popup/search/SearchResultList'
-import { useFetchDanmaku } from '@/common/hooks/danmaku/useFetchDanmaku'
-import { DanmakuMeta } from '@/common/hooks/danmaku/useDanmakuDb'
+import { popupLogger } from '@/common/logger'
+import { useSessionState } from '@/common/hooks/useSessionState'
 
 export const AnimeSearch = () => {
-  const animeSearchResults = useStore((state) => state.animeSearchResults)
+  const [title, setTitle] = useSessionState('', 'search/title')
+  const [episodeNumber, setEpisodeNumber] = useSessionState(
+    '',
+    'search/episode'
+  )
 
-  const [danmakuMeta, setDanmakuMeta] = useState<DanmakuMeta | undefined>()
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['search', { title, episodeNumber }],
+    queryFn: async () => {
+      return searchAnime({
+        anime: title,
+        episode: episodeNumber,
+      })
+    },
+    enabled: false,
+    select: (result) => {
+      return result.animes
+    },
+    staleTime: Infinity,
+  })
 
-  const { fetch, isLoading } = useFetchDanmaku()
+  console.log(data)
+
+  useEffect(() => {
+    useStore.setState({ animeSearchResults: data ?? [] })
+    popupLogger.log(data)
+  }, [data])
 
   return (
-    <Stack direction="column">
-      <Stack direction="column" spacing={2}>
-        <Box paddingX={2} mt={2}>
-          <SearchForm />
-        </Box>
-        <SearchResultList
-          results={animeSearchResults}
+    <Box
+      component="form"
+      onSubmit={(e) => {
+        e.preventDefault()
+        refetch()
+      }}
+    >
+      <Stack spacing={2}>
+        <Typography variant="h6">Search for anime</Typography>
+        <Stack direction="row" spacing={2}>
+          <TextField
+            label="Anime Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            variant="standard"
+            size="small"
+            required
+          />
+          <TextField
+            label="Episode"
+            value={episodeNumber}
+            onChange={(e) => setEpisodeNumber(e.target.value)}
+            variant="standard"
+            size="small"
+          />
+        </Stack>
+        <LoadingButton
+          type="submit"
           loading={isLoading}
-          selectedEpisodeId={danmakuMeta?.episodeId}
-          onFetch={fetch}
-          onSelect={setDanmakuMeta}
-        />
+          variant="outlined"
+          size="small"
+        >
+          Search
+        </LoadingButton>
       </Stack>
-    </Stack>
+    </Box>
   )
 }

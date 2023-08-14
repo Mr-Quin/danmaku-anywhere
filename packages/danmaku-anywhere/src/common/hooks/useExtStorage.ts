@@ -1,130 +1,56 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useAsyncLifecycle } from '@/common/hooks/useAsyncLifecycle'
-import { IS_EXTENSION } from '@/common/utils'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
+import { toArray } from '@/common/utils'
 
 export type StorageType = 'local' | 'sync' | 'session'
 
 export type StorageConfig = {
-  sync?: boolean
   storageType?: StorageType
-}
-
-// provides read-only access to storage
-export const useSubscribeExtStorage = <T>(
-  key: string,
-  { storageType = 'local' }: Pick<StorageConfig, 'storageType'>
-) => {
-  const storage = chrome.storage[storageType]
-
-  const [state, setState] = useState<T>()
-
-  const subscribe = useCallback(
-    (onChange?: (change: chrome.storage.StorageChange) => void) => {
-      const listener = (changes: {
-        [p: string]: chrome.storage.StorageChange
-      }) => {
-        const change = changes[key]
-        if (change) {
-          if (onChange) return onChange(change)
-          setState(change.newValue)
-        }
-      }
-      storage.onChanged.addListener(listener)
-
-      return () => {
-        storage.onChanged.removeListener(listener)
-      }
-    },
-    [storage, key]
-  )
-
-  const getSnapshot = useCallback(() => {
-    return state
-  }, [state])
-
-  useEffect(() => {
-    // need to a manual fetch to get the data initially
-    storage.get(key).then((result) => {
-      setState(result[key] as T)
-    })
-  }, [key])
-
-  return {
-    subscribe,
-    getSnapshot,
-  }
+  placeholderData?: { [key: string]: any }
 }
 
 export const useExtStorage = <T>(
   key: string | string[] | null,
-  { sync = true, storageType = 'local' }: StorageConfig = {}
+  { storageType = 'local', placeholderData = {} }: StorageConfig = {}
 ) => {
-  if (!IS_EXTENSION)
-    throw new Error('useExtStorage can only be used in extensions')
-
-  const [state, dispatch] = useAsyncLifecycle<T>()
-
   const storage = chrome.storage[storageType]
 
-  const { get, set, remove } = useMemo(() => {
-    const get = async () => {
-      dispatch({ type: 'LOADING' })
-      try {
-        if (key === null) {
-          const result = await storage.get(null)
-          dispatch({ type: 'SET', payload: result as T })
-        } else {
-          const result = await storage.get(key)
-          if (Array.isArray(key)) {
-            dispatch({ type: 'SET', payload: result as T })
-          } else {
-            dispatch({ type: 'SET', payload: result[key] })
-          }
-        }
-      } catch (e) {
-        dispatch({ type: 'ERROR', payload: e })
-      }
-    }
+  const queryKey = ['ext-storage', storageType, ...toArray(key)]
 
-    const set = async (value: T) => {
-      if (key === null || Array.isArray(key)) return
-      if (!sync) dispatch({ type: 'LOADING' })
-      try {
-        await storage.set({ [key]: value })
-        dispatch({ type: 'SET', payload: value })
-      } catch (e) {
-        dispatch({ type: 'ERROR', payload: e })
-      }
-    }
+  const queryClient = useQueryClient()
 
-    const remove = async () => {
-      if (!sync) dispatch({ type: 'LOADING' })
-      try {
-        if (key === null) {
-          await storage.clear()
-        } else {
-          await storage.remove(key)
-        }
-        dispatch({ type: 'SET', payload: null })
-      } catch (e) {
-        dispatch({ type: 'ERROR', payload: e })
-      }
-    }
+  const query = useQuery({
+    queryKey,
+    queryFn: () => {
+      return storage.get(key)
+    },
+    select: (data) => {
+      if (key === null) return data as T
+      if (Array.isArray(key)) return data as T
+      return data[key] as T
+    },
+    placeholderData,
+  })
 
-    return {
-      get,
-      set,
-      remove,
-    }
-  }, [key, storage, sync])
+  const updateMutation = useMutation({
+    mutationFn: async (value: T) => {
+      if (key === null || Array.isArray(key)) throw new Error('invalid key')
+      return storage.set({ [key]: value })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey })
+    },
+  })
 
-  const deps = Array.isArray(key) ? key : [key]
-
-  useEffect(() => {
-    if (state.isInit) dispatch({ type: 'INIT' })
-
-    get()
-  }, [...deps, get, state.isInit])
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (key === null) return storage.clear()
+      return storage.remove(key)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey })
+    },
+  })
 
   useEffect(() => {
     // listen to storage change from elsewhere and update state
@@ -135,7 +61,7 @@ export const useExtStorage = <T>(
     }) => {
       const change = changes[key]
       if (change) {
-        dispatch({ type: 'SET', payload: change.newValue })
+        queryClient.invalidateQueries({ queryKey })
       }
     }
     storage.onChanged.addListener(listener)
@@ -143,12 +69,11 @@ export const useExtStorage = <T>(
     return () => {
       storage.onChanged.removeListener(listener)
     }
-  }, [...deps, storage])
+  }, [...queryKey])
 
   return {
-    ...state,
-    setData: set,
-    getData: get,
-    remove,
+    ...query,
+    update: updateMutation,
+    remove: deleteMutation,
   }
 }

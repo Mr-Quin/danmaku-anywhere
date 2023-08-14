@@ -5,40 +5,39 @@ import {
   createFilterOptions,
   Stack,
   TextField,
+  Typography,
 } from '@mui/material'
 import { useMemo } from 'react'
-import { blankMountConfig } from '@/common/constants'
-import { DanmakuMeta, useDanmakuDb } from '@/common/hooks/danmaku/useDanmakuDb'
-import {
-  useActiveTabUrl,
-  useCurrentMountConfig,
-  useMountConfig,
-} from '@/common/hooks/mountConfig/useMountConfig'
+import { DanmakuMeta } from '@/common/hooks/danmaku/useDanmakuQuery'
+import { useDanmakuQueryAll } from '@/common/hooks/danmaku/useDanmakuQueryAll'
 import { useMessageSender } from '@/common/hooks/useMessages'
 import { useSessionState } from '@/common/hooks/useSessionState'
-import { MountConfigEditor } from '@/popup/control/MountConfigEditor'
 
-export const DanmakuController = () => {
-  const { allDanmaku, isLoading, selectDanmaku } = useDanmakuDb()
+const filterOptions = createFilterOptions({
+  stringify: (option: DanmakuMeta) =>
+    `${option.animeTitle} ${option.episodeTitle}`,
+})
+
+const isOptionEqualToValue = (option: DanmakuMeta, value: DanmakuMeta) => {
+  return option.episodeId === value?.episodeId
+}
+
+export const MountController = () => {
+  const { data, isLoading, select } = useDanmakuQueryAll()
 
   const options = useMemo(
     () =>
-      allDanmaku.map((danmaku) => {
+      data.map((danmaku) => {
         return danmaku.meta
       }),
-    [allDanmaku]
+    [data]
   )
 
-  const url = useActiveTabUrl()
-  const { updateConfig, addConfig, deleteConfig, configs } = useMountConfig()
-  const config = useCurrentMountConfig(url, configs)
+  const [danmakuMeta, setDanmakuMeta, loading] = useSessionState<
+    DanmakuMeta | undefined
+  >(options[0], 'controller/danmakuMeta')
 
-  const [episodeId, setEpisodeId] = useSessionState<DanmakuMeta | null>(
-    options[0] ?? null,
-    'controller/episodeId'
-  )
-
-  const comments = episodeId ? selectDanmaku(episodeId.episodeId)?.comments : []
+  const comments = danmakuMeta ? select(danmakuMeta.episodeId) : undefined
 
   const { sendMessage } = useMessageSender(
     {
@@ -63,14 +62,8 @@ export const DanmakuController = () => {
     }
   )
 
-  const filterOptions = createFilterOptions({
-    stringify: (option: DanmakuMeta) =>
-      `${option.animeTitle} ${option.episodeTitle}`,
-  })
-
   return (
     <Box
-      p={2}
       component="form"
       onSubmit={(e) => {
         e.preventDefault()
@@ -78,13 +71,15 @@ export const DanmakuController = () => {
       }}
     >
       <Stack direction="column" spacing={2}>
+        <Typography variant="h6">Mount</Typography>
         <Autocomplete
-          value={episodeId ?? null}
-          loading={isLoading}
+          value={danmakuMeta ?? null} // value must be null when empty so that the component is "controlled"
+          loading={isLoading || loading}
           options={options}
           filterOptions={filterOptions}
+          isOptionEqualToValue={isOptionEqualToValue}
           onChange={(e, value) => {
-            setEpisodeId(value)
+            if (value) setDanmakuMeta(value)
           }}
           getOptionLabel={(option) => option.episodeTitle}
           groupBy={(option) => option.animeTitle}
@@ -98,19 +93,13 @@ export const DanmakuController = () => {
         </Button>
         <Button
           variant="outlined"
+          type="button"
           size="small"
           onClick={sendStop}
           color="warning"
         >
           Unmount
         </Button>
-        {/*<ConfigControl />*/}
-        <MountConfigEditor
-          config={config ?? blankMountConfig(url ?? '')}
-          onUpdate={updateConfig}
-          onAdd={addConfig}
-          onDelete={deleteConfig}
-        />
       </Stack>
     </Box>
   )
