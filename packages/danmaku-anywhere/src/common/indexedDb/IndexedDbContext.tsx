@@ -1,5 +1,5 @@
 import { createContext, PropsWithChildren, useContext } from 'react'
-import { DanmakuCache } from '@/common/hooks/danmaku/useDanmakuDb'
+import { DanmakuCache } from '@/common/hooks/danmaku/useDanmakuQuery'
 import { useIndexedDB } from '@/common/indexedDb/useIndexedDb'
 
 type IndexedDBContextProps<T = DanmakuCache> = ReturnType<

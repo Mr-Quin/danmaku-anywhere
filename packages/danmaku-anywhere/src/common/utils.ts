@@ -3,6 +3,10 @@ import { mainLogger } from '@/common/logger'
 
 export const IS_EXTENSION = !!chrome.runtime
 
+export const toArray = <T>(value: T | T[]): T[] => {
+  return Array.isArray(value) ? value : [value]
+}
+
 export const getActiveTab = async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
   return tab

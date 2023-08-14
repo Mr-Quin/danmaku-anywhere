@@ -7,9 +7,9 @@ Danmaku Anywhere is a browser extension to inject danmaku into any webpage with 
 ## Features
 
 | Feature                                     | Status         |
-|---------------------------------------------|----------------|
-| UI to search for Danmaku                    | ✅ Done         |
-| UI to manually mount/unmount Danmaku        | ✅ Done         |
+| ------------------------------------------- | -------------- |
+| UI to search for Danmaku                    | ✅ Done        |
+| UI to manually mount/unmount Danmaku        | ✅ Done        |
 | Declarative mounting configuration          | ⚙️ In Progress |
 | Configurable Danmaku style                  | ⚙️ In Progress |
 | Site-Specific Integration:                  | 📅 Planned     |

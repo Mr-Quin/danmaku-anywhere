@@ -4,11 +4,11 @@ import { useExtStorage } from '@/common/hooks/useExtStorage'
 import { getActiveTab, matchConfig } from '@/common/utils'
 
 export const useActiveTabUrl = () => {
-  const [url, setUrl] = useState<string | null>(null)
+  const [url, setUrl] = useState<string>()
 
   useEffect(() => {
     getActiveTab().then((tab) => {
-      setUrl(tab?.url ?? null)
+      setUrl(tab?.url)
     })
   }, [])
 
@@ -16,7 +16,7 @@ export const useActiveTabUrl = () => {
 }
 
 export const useMountConfig = () => {
-  const { data, setData } = useExtStorage<MountConfig[]>('mountConfig', {
+  const { data, update } = useExtStorage<MountConfig[]>('mountConfig', {
     storageType: 'sync',
   })
 
@@ -35,7 +35,7 @@ export const useMountConfig = () => {
         ...config,
         id,
       }
-      await setData(newData)
+      await update.mutateAsync(newData)
     }
 
     const addConfig = async (config: MountConfigWithoutId) => {
@@ -45,7 +45,7 @@ export const useMountConfig = () => {
         ...config,
         id: lastId + 1,
       }
-      await setData([...data, newConfig])
+      await update.mutateAsync([...data, newConfig])
     }
 
     const deleteConfig = async (id: number) => {
@@ -57,7 +57,7 @@ export const useMountConfig = () => {
         throw new Error('Cannot delete predefined config')
       const newData = [...data]
       newData.splice(index, 1)
-      await setData(newData)
+      await update.mutateAsync(newData)
     }
 
     return {
@@ -65,7 +65,7 @@ export const useMountConfig = () => {
       addConfig,
       deleteConfig,
     }
-  }, [data, setData])
+  }, [data, update])
 
   return {
     configs: data,

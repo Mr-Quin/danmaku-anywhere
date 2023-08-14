@@ -1,76 +1,67 @@
 import {
   DanDanCommentAPIParams,
-  DanDanCommentAPIResult,
   fetchComments,
 } from '@danmaku-anywhere/danmaku-engine'
-import { useCallback } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import {
   DanmakuCache,
   DanmakuMeta,
-  useDanmakuDb,
-} from '@/common/hooks/danmaku/useDanmakuDb'
-import { useAsyncLifecycle } from '@/common/hooks/useAsyncLifecycle'
-import { popupLogger } from '@/common/logger'
+  useDanmakuQuery,
+} from '@/common/hooks/danmaku/useDanmakuQuery'
 
 interface UseFetchDanmakuConfig {
   params?: Partial<DanDanCommentAPIParams>
   invalidateFn?: (danmaku: DanmakuCache) => boolean
+  meta: DanmakuMeta
 }
 
 // fetch danmaku comments and cache them to some storage
 export const useFetchDanmaku = ({
   params = { withRelated: true },
-  invalidateFn,
-}: UseFetchDanmakuConfig = {}) => {
+  meta,
+}: UseFetchDanmakuConfig) => {
   const {
-    selectDanmaku,
+    danmaku,
     updateDanmaku,
-    isLoading: isLocalDanmakuLoading,
-  } = useDanmakuDb()
+    isLoading: isDbLoading,
+    isFetching: isDbFetching,
+    isUpdating,
+  } = useDanmakuQuery(meta.episodeId)
 
-  const [{ isLoading: isFetchLoading, isSuccess }, dispatch] =
-    useAsyncLifecycle<DanDanCommentAPIResult>()
-
-  const isLoading = isLocalDanmakuLoading || isFetchLoading
-
-  const invalidate = useCallback(
-    (danmaku?: DanmakuCache) => {
-      if (!danmaku || !invalidateFn) return true
-      return invalidateFn(danmaku)
+  const query = useQuery({
+    queryKey: [
+      'danmaku',
+      'fetch',
+      {
+        episodeId: meta.episodeId,
+        animeId: meta.animeId,
+      },
+    ],
+    queryFn: async () => {
+      return fetchComments(meta.episodeId, params)
     },
-    [invalidateFn]
-  )
+    enabled: false,
+    staleTime: Infinity,
+  })
 
-  const handleFetchComments = async (meta: DanmakuMeta) => {
-    if (isLoading) return
+  const { data, isFetching, isFetchedAfterMount, refetch } = query
 
-    const { episodeId } = meta
+  useEffect(() => {
+    // only update db if data is fetched after mount
+    // if isFetchedAfterMount is false, it means the data is cached so there's no need to update db
+    if (!data || !isFetchedAfterMount) return
 
-    const danmaku = selectDanmaku(episodeId)
+    updateDanmaku({
+      comments: data.comments,
+      count: data.count,
+      timeUpdated: Date.now(),
+      meta,
+      params,
+    })
+  }, [data, isFetchedAfterMount])
 
-    if (!invalidate(danmaku)) return
+  const isLoading = isDbLoading || isFetching || isDbFetching || isUpdating
 
-    dispatch({ type: 'LOADING' })
-    try {
-      const result = await fetchComments(episodeId, params)
-      popupLogger.log('fetched danmaku', result)
-      if (result.count > 0) {
-        // cache the comments
-        await updateDanmaku(episodeId, {
-          comments: result.comments,
-          count: result.count,
-          timeUpdated: Date.now(),
-          meta,
-          params,
-          version: danmaku?.version ? danmaku.version + 1 : 1,
-        })
-      }
-      dispatch({ type: 'SET', payload: result })
-    } catch (e) {
-      popupLogger.error(e)
-      dispatch({ type: 'ERROR', payload: e })
-    }
-  }
-
-  return { isLoading, isSuccess, fetch: handleFetchComments }
+  return { data: danmaku, isLoading, fetch: refetch }
 }
