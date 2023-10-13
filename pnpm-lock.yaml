@@ -77,6 +77,12 @@ importers:
       '@tanstack/react-query':
         specifier: 5.0.0-beta.15
         version: 5.0.0-beta.15(react-dom@18.2.0)(react@18.2.0)
+      dexie:
+        specifier: ^3.2.4
+        version: 3.2.4
+      dexie-react-hooks:
+        specifier: ^1.1.6
+        version: 1.1.6(@types/react@18.2.20)(dexie@3.2.4)(react@18.2.0)
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -2841,6 +2847,23 @@ packages:
     transitivePeerDependencies:
       - supports-color
     dev: true
+
+  /dexie-react-hooks@1.1.6(@types/react@18.2.20)(dexie@3.2.4)(react@18.2.0):
+    resolution: {integrity: sha512-xSblWtmPwhafWNWMECsW7zMMmBu8goH3QqTxEfwBNoNG1mgsM0oFclippev7ss9HhKICqBwTjgqpscci5Ed4mA==}
+    peerDependencies:
+      '@types/react': '>=16'
+      dexie: ^3.2 || ^4.0.1-alpha
+      react: '>=16'
+    dependencies:
+      '@types/react': 18.2.20
+      dexie: 3.2.4
+      react: 18.2.0
+    dev: false
+
+  /dexie@3.2.4:
+    resolution: {integrity: sha512-VKoTQRSv7+RnffpOJ3Dh6ozknBqzWw/F3iqMdsZg958R0AS8AnY9x9d1lbwENr0gzeGJHXKcGhAMRaqys6SxqA==}
+    engines: {node: '>=6.0'}
+    dev: false
 
   /diff-sequences@29.4.3:
     resolution: {integrity: sha512-ofrBgwpPhCD85kMKtE9RYFFq6OC1A89oW2vvgWZNCwxrUpRUILopY7lsYyMDSjc8g6U6aiO0Qubg6r4Wgt5ZnA==}

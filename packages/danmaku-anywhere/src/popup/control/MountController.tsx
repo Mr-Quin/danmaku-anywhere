@@ -37,7 +37,9 @@ export const MountController = () => {
     DanmakuMeta | undefined
   >(options[0], 'controller/danmakuMeta')
 
-  const comments = danmakuMeta ? select(danmakuMeta.episodeId) : undefined
+  const comments = danmakuMeta
+    ? select(danmakuMeta.episodeId)?.comments
+    : undefined
 
   const { sendMessage } = useMessageSender(
     {

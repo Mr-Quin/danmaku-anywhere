@@ -9,7 +9,12 @@ import {
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { createUrlPattern } from '@/common/utils'
-import { MountConfigWithoutId } from '@/common/constants'
+import { MountConfigWithoutId, blankMountConfig } from '@/common/constants'
+import {
+  useActiveTabUrl,
+  useCurrentMountConfig,
+  useMountConfig,
+} from '@/common/hooks/mountConfig/useMountConfig'
 
 const validatePattern = (pattern: string) => {
   try {
@@ -27,16 +32,18 @@ interface MountConfigProps {
   onDelete?: (id: number) => void
 }
 
-export const MountConfigEditor = ({
-  config,
-  onUpdate,
-  onAdd,
-  onDelete,
-}: MountConfigProps) => {
+export const MountConfigEditor = ({}) => {
+  const url = useActiveTabUrl()
+  const { updateConfig, addConfig, deleteConfig, configs } = useMountConfig()
+
+  const config =
+    useCurrentMountConfig(url, configs) ?? blankMountConfig(url ?? '')
+
   const [localConfig, setLocalConfig] = useState(config)
   const [patternErrors, setPatternErrors] = useState<string[]>([])
 
   const isAdd = config.id === undefined
+
   const handlePatternChange = (index: number, value: string) => {
     const newPatterns = [...localConfig.patterns]
     newPatterns[index] = value
@@ -73,9 +80,9 @@ export const MountConfigEditor = ({
     if (!patternsValid.every((valid) => valid)) return
 
     if (isAdd) {
-      onAdd?.(localConfig)
-    } else if (onUpdate) {
-      onUpdate?.(config.id!, localConfig)
+      addConfig?.(localConfig)
+    } else if (updateConfig) {
+      updateConfig?.(config.id!, localConfig)
     }
   }
 
@@ -86,7 +93,7 @@ export const MountConfigEditor = ({
           {isAdd ? 'Add Config' : `Editing config ${config.id}`}
         </Typography>
         {!isAdd && !config.predefined && (
-          <IconButton onClick={() => onDelete?.(config.id!)}>
+          <IconButton onClick={() => deleteConfig?.(config.id!)}>
             <RemoveCircleOutline />
           </IconButton>
         )}
@@ -119,6 +126,16 @@ export const MountConfigEditor = ({
       <Button onClick={addPatternField} startIcon={<AddCircleOutline />}>
         Add Pattern
       </Button>
+
+      <TextField
+        label="Name"
+        value={localConfig.name}
+        size="small"
+        onChange={(e) =>
+          setLocalConfig((prev) => ({ ...prev, name: e.target.value }))
+        }
+        fullWidth
+      />
 
       <TextField
         label="Media Query"

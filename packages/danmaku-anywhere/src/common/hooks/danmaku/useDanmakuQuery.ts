@@ -3,7 +3,8 @@ import {
   DanDanCommentAPIParams,
 } from '@danmaku-anywhere/danmaku-engine'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useIndexedDBContext } from '@/common/indexedDb/IndexedDbContext'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db } from '@/common/db'
 
 export interface DanmakuMeta {
   episodeId: number
@@ -22,7 +23,7 @@ export interface DanmakuCache {
 }
 
 export const useDanmakuQuery = (episodeId?: number) => {
-  const { db, get, set, remove } = useIndexedDBContext()
+  const dbReady = useLiveQuery(() => db.isOpen())
 
   const queryClient = useQueryClient()
 
@@ -31,7 +32,7 @@ export const useDanmakuQuery = (episodeId?: number) => {
   const query = useQuery({
     queryKey,
     queryFn: async () => {
-      const result = await get(episodeId!)
+      const result = await db.dandanplay.get(episodeId!)
       if (!result) {
         return null
       }
@@ -49,17 +50,17 @@ export const useDanmakuQuery = (episodeId?: number) => {
         (item: DanmakuCache) => item.meta.episodeId === episodeId
       )
     },
-    enabled: db !== null && episodeId !== undefined,
+    enabled: dbReady && episodeId !== undefined,
   })
 
   const updateMutation = useMutation({
     mutationFn: async (danmaku: Omit<DanmakuCache, 'version'>) => {
-      const existing = await get(danmaku.meta.episodeId)
+      const existing = await db.dandanplay.get(danmaku.meta.episodeId)
       const update: DanmakuCache = {
         ...danmaku,
         version: existing ? existing.version + 1 : 1,
       }
-      await set(0, update, true)
+      await db.dandanplay.update(danmaku.meta.episodeId, update)
       return update
     },
     onSuccess: (data) => {
@@ -69,7 +70,7 @@ export const useDanmakuQuery = (episodeId?: number) => {
 
   const deleteMutation = useMutation({
     mutationFn: async (episodeId: number) => {
-      await remove(episodeId)
+      await db.dandanplay.delete(episodeId)
     },
     onSuccess: () => {
       queryClient.setQueryData(queryKey, null)

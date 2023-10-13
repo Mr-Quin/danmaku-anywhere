@@ -4,6 +4,7 @@ export interface MountConfig {
   containerQuery: string
   predefined: boolean
   enabled: boolean
+  name: string
   id: number
 }
 
@@ -18,16 +19,18 @@ export const blankMountConfig = (url: string): MountConfigWithoutId => {
     containerQuery: '',
     predefined: false,
     enabled: true,
+    name: '',
   }
 }
 
 export const defaultMountConfig: MountConfig[] = [
   {
-    patterns: ['https://app.plex.tv', 'https://plex.intranet.quin.fish'],
+    patterns: ['https://app.plex.tv'],
     mediaQuery: 'video',
     containerQuery: '.Player-fullPlayerContainer-wBDz23',
     predefined: true,
     enabled: true,
+    name: 'plex',
     id: 0,
   },
   {
@@ -36,6 +39,7 @@ export const defaultMountConfig: MountConfig[] = [
     containerQuery: '.bpx-player-row-dm-wrap',
     predefined: true,
     enabled: true,
+    name: 'bilibili',
     id: 1,
   },
   {
@@ -44,6 +48,7 @@ export const defaultMountConfig: MountConfig[] = [
     containerQuery: '#movie_player',
     predefined: true,
     enabled: true,
+    name: 'youtube',
     id: 2,
   },
   {
@@ -53,6 +58,7 @@ export const defaultMountConfig: MountConfig[] = [
     containerQuery: '#vilosRoot',
     predefined: true,
     enabled: true,
+    name: 'crunchyroll',
     id: 3,
   },
 ]
