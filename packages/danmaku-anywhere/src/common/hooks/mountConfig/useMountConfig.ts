@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { MountConfig, MountConfigWithoutId } from '@/common/constants'
 import { useExtStorage } from '@/common/hooks/useExtStorage'
-import { getActiveTab, matchConfig } from '@/common/utils'
+import { getActiveTab, matchConfig, matchUrl } from '@/common/utils'
 
 export const useActiveTabUrl = () => {
   const [url, setUrl] = useState<string>()
@@ -20,7 +20,7 @@ export const useMountConfig = () => {
     storageType: 'sync',
   })
 
-  const { updateConfig, addConfig, deleteConfig } = useMemo(() => {
+  const { updateConfig, addConfig, deleteConfig, matchByUrl } = useMemo(() => {
     const updateConfig = async (
       id: number,
       config: Partial<MountConfigWithoutId>
@@ -60,10 +60,19 @@ export const useMountConfig = () => {
       await update.mutateAsync(newData)
     }
 
+    const matchByUrl = (url: string) => {
+      if (!data) return
+      return data.find((config) => {
+        const { patterns } = config
+        return patterns.some((pattern) => matchUrl(url, pattern))
+      })
+    }
+
     return {
       updateConfig,
       addConfig,
       deleteConfig,
+      matchByUrl,
     }
   }, [data, update])
 
@@ -72,6 +81,7 @@ export const useMountConfig = () => {
     updateConfig,
     addConfig,
     deleteConfig,
+    matchByUrl,
   }
 }
 

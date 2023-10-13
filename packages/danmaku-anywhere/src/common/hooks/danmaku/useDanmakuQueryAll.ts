@@ -1,17 +1,18 @@
 import { useQuery } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { DanmakuCache } from '@/common/hooks/danmaku/useDanmakuQuery'
-import { useIndexedDBContext } from '@/common/indexedDb/IndexedDbContext'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db } from '@/common/db'
 
 export const useDanmakuQueryAll = () => {
-  const { db, getAll } = useIndexedDBContext()
+  const dbOpen = useLiveQuery(() => db.isOpen())
 
   const { data, ...query } = useQuery({
     queryKey: ['indexeddb', 'danmaku', 'all'],
     queryFn: async () => {
-      return getAll()
+      return db.dandanplay.toArray()
     },
-    enabled: db !== null,
+    enabled: dbOpen,
     placeholderData: [],
   })
 

@@ -2,7 +2,7 @@ import {
   DanDanComment,
   useDanmakuEngine,
 } from '@danmaku-anywhere/danmaku-engine'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   useCurrentMountConfig,
   useMountConfig,
@@ -10,6 +10,7 @@ import {
 import { useRuntimeMessage } from '@/common/hooks/useMessages'
 import { contentLogger } from '@/common/logger'
 import { useNodeMonitor } from '@/content/useNodeMonitor'
+import { useToast } from './store'
 
 export const useDanmakuManager = () => {
   const { configs } = useMountConfig()
@@ -27,13 +28,17 @@ export const useDanmakuManager = () => {
     comments,
   })
 
-  contentLogger.debug({
-    url,
-    comments: comments.length,
-    node,
-    container,
-    store,
-    mountConfig,
+  const { toast } = useToast((state) => state)
+
+  useEffect(() => {
+    contentLogger.debug({
+      url,
+      comments: comments.length,
+      node,
+      container,
+      store,
+      mountConfig,
+    })
   })
 
   useRuntimeMessage(
@@ -43,11 +48,13 @@ export const useDanmakuManager = () => {
           // start the inspector mode
           contentLogger.debug('received message', request)
           setComments(request.payload.comments)
+          toast.success('Danmaku started')
         }
         if (request.action === 'danmaku/stop') {
           // stop the inspector mode
           contentLogger.debug('received message', request)
           setComments([])
+          toast.info('Danmaku stopped')
         }
       },
       [store]

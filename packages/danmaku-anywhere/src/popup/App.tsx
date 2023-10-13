@@ -7,17 +7,34 @@ import {
   Tab,
   Tabs,
 } from '@mui/material'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { SearchPage } from './search/SearchPage'
-import { useIndexedDBContext } from '@/common/indexedDb/IndexedDbContext'
 import { popupLogger } from '@/common/logger'
 import { ControlPage } from '@/popup/control/ControlPage'
 
+import { db } from '@/common/db'
+
 const App = () => {
   const [tab, setTab] = useState(0)
-  const { db } = useIndexedDBContext()
 
   popupLogger.log('App', window.location.href)
+
+  const [isOpen, setIsOpen] = useState(false)
+
+  useEffect(() => {
+    db.on('ready', () => {
+      setIsOpen(true)
+    })
+  }, [])
+
+  useEffect(() => {
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      if (request.action === 'danmaku/manager') {
+        console.log(request)
+        sendResponse('popup ready')
+      }
+    })
+  }, [])
 
   const handleChange = (_: any, newValue: number) => {
     setTab(newValue)
@@ -46,7 +63,10 @@ const App = () => {
       }}
       fixed
     >
-      <Backdrop open={!db} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+      <Backdrop
+        open={!isOpen}
+        sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+      >
         <CircularProgress />
       </Backdrop>
       <Paper
