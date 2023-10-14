@@ -1,8 +1,8 @@
+import { useEffect } from 'react'
 import {
   useCurrentMountConfig,
   useMountConfig,
 } from '@/common/hooks/mountConfig/useMountConfig'
-import { useEffect } from 'react'
 
 export const useConfigAvailable = () => {
   const { configs } = useMountConfig()

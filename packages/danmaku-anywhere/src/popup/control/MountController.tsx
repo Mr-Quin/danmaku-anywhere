@@ -8,9 +8,9 @@ import {
   Typography,
 } from '@mui/material'
 import { useMemo } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { useMessageSender } from '@/common/hooks/useMessages'
 import { useSessionState } from '@/common/hooks/useSessionState'
-import { useLiveQuery } from 'dexie-react-hooks'
 import { DanmakuMeta, db } from '@/common/db'
 
 const filterOptions = createFilterOptions({

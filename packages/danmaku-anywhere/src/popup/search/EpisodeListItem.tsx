@@ -8,8 +8,8 @@ import {
   Tooltip,
 } from '@mui/material'
 import { useState } from 'react'
-import { DanmakuCache, DanmakuMeta, db } from '@/common/db'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { DanmakuCache, DanmakuMeta, db } from '@/common/db'
 import { popupLogger } from '@/common/logger'
 
 const useFetchDanmakuMessage = (meta: DanmakuMeta) => {
