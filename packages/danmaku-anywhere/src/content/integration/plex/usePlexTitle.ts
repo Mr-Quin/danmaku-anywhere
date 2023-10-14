@@ -78,8 +78,7 @@ export const usePlexTitle = () => {
   useEffect(() => {
     const a = async () => {
       await chrome.runtime.sendMessage({
-        topic: 'danmaku',
-        payload: 'available',
+        action: 'setIcon/active',
       })
     }
     a()

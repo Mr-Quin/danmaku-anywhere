@@ -1,10 +1,10 @@
 import { defaultMountConfig } from '@/common/constants'
-import { db } from '@/common/db'
-import { DanmakuCache } from '@/common/hooks/danmaku/useDanmakuQuery'
+import { DanmakuMeta, db } from '@/common/db'
 import { backgroundLogger } from '@/common/logger'
-import { matchConfig } from '@/common/utils'
-import { fetchComments } from '@danmaku-anywhere/danmaku-engine'
-import Dexie from 'dexie'
+import {
+  DanDanCommentAPIParams,
+  fetchComments,
+} from '@danmaku-anywhere/danmaku-engine'
 
 chrome.runtime.onInstalled.addListener(async () => {
   // set default config on install
@@ -65,74 +65,121 @@ const unsetActiveIcon = async (tabId: number) => {
   await chrome.action.setIcon({ path: 'normal_16.png', tabId })
 }
 
-// chrome.storage.onChanged.addListener(async (changes, namespace) => {
-//   backgroundLogger.log('storage changed', changes, namespace)
-//   if (namespace === 'sync') {
-//     const mountConfig = changes.mountConfig
-//     if (mountConfig) {
-//       const { newValue } = mountConfig
-//       // if the config is changed, we need recheck each tab to see if it's supported under the new config
-//       const tabs = await chrome.tabs.query({})
-
-//       for (const tab of tabs) {
-//         const config = matchConfig(tab.url as string, newValue)
-//         if (config?.enabled) {
-//           await setActiveIcon(tab.id as number)
-//         } else {
-//           await unsetActiveIcon(tab.id as number)
-//         }
-//       }
-//     }
-//   }
-// })
-
-// chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-//   if (changeInfo.status === 'complete') {
-//     const configs = await chrome.storage.sync.get('mountConfig')
-//     const config = matchConfig(tab.url as string, configs.mountConfig)
-
-//     // if a config is matched, the website is supported, so we show the active icon
-//     if (config?.enabled) {
-//       await setActiveIcon(tabId)
-//     }
-//   }
-//   backgroundLogger.log('tab updated', tabId, changeInfo, tab)
-// })
-
 chrome.runtime.onMessage.addListener((request, sender) => {
-  if (request.topic === 'danmaku') {
-    if (sender.tab) {
-      setActiveIcon(sender.tab.id as number)
+  // only handle messages from content script
+  if (!sender.tab) return true
+
+  if (request.action === 'setIcon/active') {
+    setActiveIcon(sender.tab.id as number)
+  } else if (request.action === 'setIcon/inactive') {
+    unsetActiveIcon(sender.tab.id as number)
+  }
+
+  return true
+})
+
+const fetchDanmaku = async (
+  data: DanmakuMeta,
+  params: Partial<DanDanCommentAPIParams> = {},
+  options: { forceUpdate?: boolean; cacheOnly?: boolean } = {}
+) => {
+  const { episodeId } = data
+
+  const result = await db.dandanplay.get(episodeId)
+
+  if (options.cacheOnly) return result
+  if (result && !options.forceUpdate) return result
+
+  backgroundLogger.debug('Danmaku not found in db, fetching from server')
+
+  const comments = await fetchComments(episodeId, params)
+
+  // prevent updating db if new result has less comments than the old one
+  if (
+    result &&
+    result.comments.length > 0 &&
+    result.comments.length >= comments.comments.length
+  ) {
+    backgroundLogger.debug('New danmaku has less comments, skip caching')
+    return result
+  }
+
+  const newEntry = {
+    ...comments,
+    meta: data,
+    params,
+    timeUpdated: Date.now(),
+    version: 1 + (result?.version ?? 0),
+  }
+
+  await db.dandanplay.put(newEntry)
+
+  return result
+}
+
+const deleteDanmaku = async (episodeId: number) => {
+  return await db.dandanplay.delete(episodeId)
+}
+
+type DanmakuMessage =
+  | {
+      action: 'danmaku/fetch'
+      payload: {
+        data: DanmakuMeta
+        params?: Partial<DanDanCommentAPIParams>
+        options?: { forceUpdate?: boolean; cacheOnly?: boolean }
+      }
+    }
+  | {
+      action: 'danmaku/delete'
+      payload: {
+        episodeId: number
+      }
+    }
+
+chrome.runtime.onMessage.addListener(
+  async (request: DanmakuMessage, sender, sendResponse) => {
+    switch (request.action) {
+      case 'danmaku/fetch':
+        ;(async () => {
+          backgroundLogger.debug('fetch danmaku', request)
+
+          try {
+            const res = await fetchDanmaku(
+              request.payload.data,
+              request.payload.params,
+              request.payload.options
+            )
+
+            backgroundLogger.debug('fetch danmaku success', res)
+
+            sendResponse({ type: 'success', payload: res })
+          } catch (err: any) {
+            backgroundLogger.error('error fetching danmaku', err)
+            sendResponse({ type: 'error', payload: err.message })
+          }
+        })()
+
+        return true
+      case 'danmaku/delete':
+        ;;(async () => {
+          backgroundLogger.debug('delete danmaku', request)
+
+          try {
+            const res = await deleteDanmaku(request.payload.episodeId)
+
+            backgroundLogger.debug('delete danmaku success', res)
+
+            sendResponse({ type: 'success', payload: res })
+          } catch (err: any) {
+            backgroundLogger.error(err)
+            sendResponse({ type: 'error', payload: err.message })
+          }
+        })()
+
+        return true
+      default:
+        break
     }
   }
-})
-
-const dandanplayTable = db.dandanplay
-
-interface Message<T = any> {
-  topic: string
-  payload: T
-}
-
-interface DanDanPlayDanmkuMessage extends Message {
-  topic: 'request'
-  payload: {
-    episodeId: number
-  }
-}
-
-const handleDanmakuRequest = async (message: Message) => {}
-
-chrome.runtime.onConnect.addListener((port) => {
-  if (port.name === 'danmaku') {
-    port.onMessage.addListener(async (msg: DanDanPlayDanmkuMessage) => {
-      if (msg.topic === 'request') {
-        const comments = await fetchComments(msg.payload.episodeId)
-
-        // dandanplayTable.add(comments)
-      }
-    })
-  }
-})
-
-dandanplayTable.toCollection().toArray().then(console.log)
+)

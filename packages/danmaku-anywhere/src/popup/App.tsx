@@ -13,19 +13,14 @@ import { popupLogger } from '@/common/logger'
 import { ControlPage } from '@/popup/control/ControlPage'
 
 import { db } from '@/common/db'
+import { useLiveQuery } from 'dexie-react-hooks'
 
 const App = () => {
   const [tab, setTab] = useState(0)
 
   popupLogger.log('App', window.location.href)
 
-  const [isOpen, setIsOpen] = useState(false)
-
-  useEffect(() => {
-    db.on('ready', () => {
-      setIsOpen(true)
-    })
-  }, [])
+  const isReady = useLiveQuery(() => db.isReady, [])
 
   useEffect(() => {
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -64,7 +59,7 @@ const App = () => {
       fixed
     >
       <Backdrop
-        open={!isOpen}
+        open={!isReady}
         sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
       >
         <CircularProgress />
