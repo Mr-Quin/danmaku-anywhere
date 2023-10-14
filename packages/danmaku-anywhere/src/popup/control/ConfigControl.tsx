@@ -6,7 +6,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { ChangeEvent, useState } from 'react'
+import { useState } from 'react'
 
 export const ConfigControl = () => {
   const [show, setShow] = useState(true)
@@ -17,10 +17,10 @@ export const ConfigControl = () => {
     fontFamily: 'sans-serif',
   })
 
-  const handleStyleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setStyle((prevStyle) => ({ ...prevStyle, [name]: value }))
-  }
+  // const handleStyleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  //   const { name, value } = e.target
+  //   setStyle((prevStyle) => ({ ...prevStyle, [name]: value }))
+  // }
 
   return (
     <Box p={1}>

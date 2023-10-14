@@ -3,6 +3,7 @@ import {
   useDanmakuEngine,
 } from '@danmaku-anywhere/danmaku-engine'
 import { useCallback, useEffect, useState } from 'react'
+import { useToast } from './store'
 import {
   useCurrentMountConfig,
   useMountConfig,
@@ -10,7 +11,6 @@ import {
 import { useRuntimeMessage } from '@/common/hooks/useMessages'
 import { contentLogger } from '@/common/logger'
 import { useNodeMonitor } from '@/content/useNodeMonitor'
-import { useToast } from './store'
 
 export const useDanmakuManager = () => {
   const { configs } = useMountConfig()

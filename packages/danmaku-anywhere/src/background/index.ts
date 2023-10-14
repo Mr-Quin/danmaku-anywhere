@@ -1,10 +1,10 @@
-import { defaultMountConfig } from '@/common/constants'
-import { DanmakuMeta, db } from '@/common/db'
-import { backgroundLogger } from '@/common/logger'
 import {
   DanDanCommentAPIParams,
   fetchComments,
 } from '@danmaku-anywhere/danmaku-engine'
+import { defaultMountConfig } from '@/common/constants'
+import { DanmakuMeta, db } from '@/common/db'
+import { backgroundLogger } from '@/common/logger'
 
 chrome.runtime.onInstalled.addListener(async () => {
   // set default config on install
@@ -162,7 +162,7 @@ chrome.runtime.onMessage.addListener(
 
         return true
       case 'danmaku/delete':
-        ;;(async () => {
+        ;(async () => {
           backgroundLogger.debug('delete danmaku', request)
 
           try {

@@ -1,5 +1,5 @@
-import { useToast } from '@/content/store'
 import { useEffect, useMemo, useState } from 'react'
+import { useToast } from '@/content/store'
 
 export interface PlexMediaInfo {
   title: string

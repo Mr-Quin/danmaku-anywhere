@@ -9,7 +9,7 @@ import {
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { createUrlPattern } from '@/common/utils'
-import { MountConfigWithoutId, blankMountConfig } from '@/common/constants'
+import { blankMountConfig } from '@/common/constants'
 import {
   useActiveTabUrl,
   useCurrentMountConfig,
@@ -25,14 +25,14 @@ const validatePattern = (pattern: string) => {
   }
 }
 
-interface MountConfigProps {
-  config: MountConfigWithoutId
-  onUpdate?: (id: number, updatedConfig: MountConfigWithoutId) => void
-  onAdd?: (newConfig: MountConfigWithoutId) => void
-  onDelete?: (id: number) => void
-}
+// interface MountConfigProps {
+//   config: MountConfigWithoutId
+//   onUpdate?: (id: number, updatedConfig: MountConfigWithoutId) => void
+//   onAdd?: (newConfig: MountConfigWithoutId) => void
+//   onDelete?: (id: number) => void
+// }
 
-export const MountConfigEditor = ({}) => {
+export const MountConfigEditor = () => {
   const url = useActiveTabUrl()
   const { updateConfig, addConfig, deleteConfig, configs } = useMountConfig()
 
