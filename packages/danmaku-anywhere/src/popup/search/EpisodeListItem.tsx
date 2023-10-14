@@ -7,7 +7,54 @@ import {
   ListItemText,
   Tooltip,
 } from '@mui/material'
-import { useFetchDanmaku } from '@/common/hooks/danmaku/useFetchDanmaku'
+import { useState } from 'react'
+import { DanmakuCache, DanmakuMeta, db } from '@/common/db'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { popupLogger } from '@/common/logger'
+
+const useFetchDanmakuMessage = (meta: DanmakuMeta) => {
+  const [isLoading, setIsLoading] = useState(false)
+  const [data, setData] = useState<DanmakuCache>()
+  const [error, setError] = useState<string>()
+
+  const dispatchFetch = async () => {
+    setIsLoading(true)
+    setData(undefined)
+
+    popupLogger.debug('useFetchDanmakuMessage', 'dispatchFetch', meta)
+
+    try {
+      const res = await chrome.runtime.sendMessage({
+        action: 'danmaku/fetch',
+        payload: {
+          data: meta,
+          options: {
+            forceUpdate: true,
+          },
+        },
+      })
+
+      if (res.type === 'error') {
+        throw new Error(res.payload)
+      }
+
+      setData(res.payload)
+
+      return res
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return {
+    fetch: dispatchFetch,
+    data,
+    error,
+    isLoading,
+  }
+}
 
 interface EpisodeListItemProps {
   episodeId: number
@@ -22,14 +69,23 @@ export const EpisodeListItem = ({
   animeId,
   animeTitle,
 }: EpisodeListItemProps) => {
-  const { fetch, data, isLoading } = useFetchDanmaku({
-    meta: {
-      animeId,
-      animeTitle,
-      episodeId,
-      episodeTitle,
-    },
+  const {
+    fetch,
+    data: fetchedData,
+    isLoading,
+  } = useFetchDanmakuMessage({
+    animeId,
+    animeTitle,
+    episodeId,
+    episodeTitle,
   })
+
+  const existingData = useLiveQuery(
+    () => db.dandanplay.get(episodeId),
+    [episodeId]
+  )
+
+  const data = existingData ?? fetchedData
 
   return (
     <ListItem

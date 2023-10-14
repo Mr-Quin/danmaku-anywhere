@@ -8,10 +8,10 @@ import {
   Typography,
 } from '@mui/material'
 import { useMemo } from 'react'
-import { DanmakuMeta } from '@/common/hooks/danmaku/useDanmakuQuery'
-import { useDanmakuQueryAll } from '@/common/hooks/danmaku/useDanmakuQueryAll'
 import { useMessageSender } from '@/common/hooks/useMessages'
 import { useSessionState } from '@/common/hooks/useSessionState'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { DanmakuMeta, db } from '@/common/db'
 
 const filterOptions = createFilterOptions({
   stringify: (option: DanmakuMeta) =>
@@ -23,29 +23,30 @@ const isOptionEqualToValue = (option: DanmakuMeta, value: DanmakuMeta) => {
 }
 
 export const MountController = () => {
-  const { data, isLoading, select } = useDanmakuQueryAll()
+  const allDanmaku = useLiveQuery(() => db.dandanplay.toArray(), [], [])
 
   const options = useMemo(
     () =>
-      data.map((danmaku) => {
+      allDanmaku.map((danmaku) => {
         return danmaku.meta
       }),
-    [data]
+    [allDanmaku]
   )
 
   const [danmakuMeta, setDanmakuMeta, loading] = useSessionState<
     DanmakuMeta | undefined
   >(options[0], 'controller/danmakuMeta')
 
-  const comments = danmakuMeta
-    ? select(danmakuMeta.episodeId)?.comments
-    : undefined
+  const danmaku = useLiveQuery(
+    () => db.dandanplay.get(danmakuMeta?.episodeId ?? 0),
+    [danmakuMeta?.episodeId]
+  )
 
   const { sendMessage } = useMessageSender(
     {
       action: 'danmaku/start',
       payload: {
-        comments: comments ?? [],
+        comments: danmaku?.comments ?? [],
       },
     },
     {
@@ -76,7 +77,7 @@ export const MountController = () => {
         <Typography variant="h6">Mount</Typography>
         <Autocomplete
           value={danmakuMeta ?? null} // value must be null when empty so that the component is "controlled"
-          loading={isLoading || loading}
+          loading={loading}
           options={options}
           filterOptions={filterOptions}
           isOptionEqualToValue={isOptionEqualToValue}

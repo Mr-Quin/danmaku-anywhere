@@ -29,11 +29,9 @@ export const AnimeSearch = () => {
     staleTime: Infinity,
   })
 
-  console.log(data)
-
   useEffect(() => {
     useStore.setState({ animeSearchResults: data ?? [] })
-    popupLogger.log(data)
+    popupLogger.debug(data)
   }, [data])
 
   return (
