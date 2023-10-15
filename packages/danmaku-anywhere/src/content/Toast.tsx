@@ -2,11 +2,16 @@ import { Alert, Snackbar } from '@mui/material'
 import { useToast } from './store'
 
 export const Toast = () => {
-  const { isOpen, onClose, duration, severity, message } = useToast()
+  const { isOpen, close, duration, severity, message, key } = useToast()
 
   return (
-    <Snackbar open={isOpen} autoHideDuration={duration} onClose={onClose}>
-      <Alert onClose={onClose} severity={severity}>
+    <Snackbar
+      open={isOpen}
+      key={key}
+      autoHideDuration={duration}
+      onClose={close}
+    >
+      <Alert onClose={close} severity={severity} sx={{ width: '100%' }}>
         {message}
       </Alert>
     </Snackbar>

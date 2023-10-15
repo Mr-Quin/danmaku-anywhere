@@ -12,8 +12,9 @@ export interface StoreState {
   message: string
   severity: 'success' | 'info' | 'warning' | 'error'
   duration: number
-  onOpen: () => void
-  onClose: () => void
+  key: any
+  open: () => void
+  close: () => void
   show: ({
     message,
     duration,
@@ -25,32 +26,38 @@ export interface StoreState {
   }) => void
   toast: Toast
 }
-export const useToast = create<StoreState>((set) => ({
+export const useToast = create<StoreState>((set, get) => ({
   isOpen: false,
   message: '',
   severity: 'info',
   duration: 3000,
-  onOpen: () => {
-    set({ isOpen: true })
+  key: 0,
+  open: () => {
+    set({ isOpen: true, key: Date.now() })
   },
-  onClose: () => {
+  close: () => {
     set({ isOpen: false })
   },
   show: ({ message, duration = 3000, severity = 'info' }) => {
-    set({ isOpen: true, message, severity, duration })
+    set({ message, severity, duration })
+    get().open()
   },
   toast: {
     info: (message, duration) => {
-      set({ isOpen: true, message, severity: 'info', duration })
+      get().show({ message, duration })
+      get().open()
     },
     success: (message, duration) => {
-      set({ isOpen: true, message, severity: 'success', duration })
+      get().show({ message, duration, severity: 'success' })
+      get().open()
     },
     warning: (message, duration) => {
-      set({ isOpen: true, message, severity: 'warning', duration })
+      get().show({ message, duration, severity: 'warning' })
+      get().open()
     },
     error: (message, duration) => {
-      set({ isOpen: true, message, severity: 'error', duration })
+      get().show({ message, duration, severity: 'error' })
+      get().open()
     },
   },
 }))

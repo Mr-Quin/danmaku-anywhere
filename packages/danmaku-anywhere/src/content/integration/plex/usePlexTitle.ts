@@ -13,7 +13,7 @@ export interface PlexMediaInfo {
 // ▶ [TITLE]
 // [TITLE]
 const titleRegex =
-  /(?<title>[^\s]+)\s*-\s*S(?<season>\d+)\s*·\s*E(?<episode>\d+)/
+  /(?<playing>▶\s)?(?<title>.+)\s-\s*S(?<season>\d+)\s*·\s*E(?<episode>\d+)/
 
 const parseTitle = (title: string) => {
   const match = titleRegex.exec(title)
@@ -21,18 +21,19 @@ const parseTitle = (title: string) => {
   if (!match) throw new Error(`Failed to parse title: ${title}`)
 
   return {
+    playing: !!match.groups?.playing,
     title: match.groups!.title,
     season: parseInt(match.groups!.season),
     episode: parseInt(match.groups!.episode),
   }
 }
 
-const isEqual = (a: PlexMediaInfo, b: PlexMediaInfo) => {
-  return a.title === b.title && a.season === b.season && a.episode === b.episode
-}
-
 export const usePlexTitle = () => {
-  const [media, setMedia] = useState<PlexMediaInfo>()
+  const [title, setTitle] = useState<string>()
+  const [season, setSeason] = useState<number>()
+  const [episode, setEpisode] = useState<number>()
+  const [playing, setPlaying] = useState<boolean>(false)
+
   const { toast } = useToast()
 
   const titleElt = document.querySelector('title')
@@ -51,13 +52,16 @@ export const usePlexTitle = () => {
             try {
               const title = parseTitle(newTitle)
 
-              if (title) {
-                if (media && isEqual(media, title)) continue
-                setMedia(title)
-                toast.info(`Detected media: ${title.title}`)
-              }
+              setTitle(title.title)
+              setSeason(title.season)
+              setEpisode(title.episode)
+              setPlaying(title.playing)
             } catch (error: any) {
-              toast.error(error.message)
+              setTitle(undefined)
+              setSeason(undefined)
+              setEpisode(undefined)
+              setPlaying(false)
+              // toast.error(error.message)
             }
           }
         }
@@ -76,13 +80,14 @@ export const usePlexTitle = () => {
   }, [titleElt])
 
   useEffect(() => {
-    const a = async () => {
-      await chrome.runtime.sendMessage({
-        action: 'setIcon/active',
-      })
+    if (!title) {
+      toast.info('No media detected')
+      return
     }
-    a()
-  }, [])
-
-  return media
+    if (playing) {
+      toast.info(`Playing: ${title} S${season} · E${episode}`)
+    } else {
+      toast.info(`Paused: ${title} S${season} · E${episode}`)
+    }
+  }, [playing, title, season, episode])
 }

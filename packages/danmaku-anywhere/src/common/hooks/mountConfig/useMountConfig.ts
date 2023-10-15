@@ -1,24 +1,15 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { MountConfig, MountConfigWithoutId } from '@/common/constants'
 import { useExtStorage } from '@/common/hooks/useExtStorage'
-import { getActiveTab, matchConfig, matchUrl } from '@/common/utils'
-
-export const useActiveTabUrl = () => {
-  const [url, setUrl] = useState<string>()
-
-  useEffect(() => {
-    getActiveTab().then((tab) => {
-      setUrl(tab?.url)
-    })
-  }, [])
-
-  return url
-}
+import { matchUrl } from '@/common/utils'
 
 export const useMountConfig = () => {
-  const { data, update } = useExtStorage<MountConfig[]>('mountConfig', {
-    storageType: 'sync',
-  })
+  const { data, update, isLoading } = useExtStorage<MountConfig[]>(
+    'mountConfig',
+    {
+      storageType: 'sync',
+    }
+  )
 
   const { updateConfig, addConfig, deleteConfig, matchByUrl } = useMemo(() => {
     const updateConfig = async (
@@ -40,6 +31,8 @@ export const useMountConfig = () => {
 
     const addConfig = async (config: MountConfigWithoutId) => {
       if (!data) return
+      // if (data.some((item) => item.name === config.name))
+      //   throw new Error('Name already exists')
       const lastId = data[data.length - 1]?.id ?? 0
       const newConfig = {
         ...config,
@@ -77,6 +70,7 @@ export const useMountConfig = () => {
   }, [data, update])
 
   return {
+    isLoading,
     configs: data,
     updateConfig,
     addConfig,
@@ -85,12 +79,11 @@ export const useMountConfig = () => {
   }
 }
 
-export const useCurrentMountConfig = (
-  url?: string | null,
-  configs?: MountConfig[] | null
-) => {
+export const useMatchMountConfig = (url?: string) => {
+  const { matchByUrl } = useMountConfig()
+
   return useMemo(() => {
-    if (!url || !configs) return null
-    return matchConfig(url, configs)
-  }, [url, configs])
+    if (!url) return
+    return matchByUrl(url)
+  }, [url, matchByUrl])
 }

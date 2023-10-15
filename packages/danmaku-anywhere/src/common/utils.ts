@@ -12,6 +12,17 @@ export const getActiveTab = async () => {
   return tab
 }
 
+export const getOrigin = (url: string) => {
+  try {
+    const pattern = new URL(url)
+
+    return `${pattern.origin}`
+  } catch (e) {
+    // in case the url is invalid, just return it
+    return url
+  }
+}
+
 export const createUrlPattern = (pattern: string) => {
   // this will throw error if pattern is invalid
   return new URLPattern({
