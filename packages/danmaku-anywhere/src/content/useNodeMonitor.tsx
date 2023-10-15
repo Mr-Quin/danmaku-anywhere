@@ -1,7 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 export const useNodeMonitor = <T extends HTMLElement>(selector?: string) => {
   const [node, setNode] = useState<T | null>(null)
+
+  const nodeRef = useRef<T | null>(null)
+
+  const handleSetNode = useCallback(
+    (node: T | null) => {
+      nodeRef.current = node
+      setNode(node)
+    },
+    [setNode]
+  )
 
   useEffect(() => {
     if (!selector) {
@@ -16,27 +26,41 @@ export const useNodeMonitor = <T extends HTMLElement>(selector?: string) => {
     }
 
     const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
+      mutationLoop: for (const mutation of mutations) {
+        // check added nodes
         for (const node of mutation.addedNodes) {
           if (node instanceof HTMLElement) {
             if (node.matches(selector)) {
               // stop at the first match
-              setNode(node as T)
-              break
+              handleSetNode(node as T)
+              break mutationLoop
             }
+          }
+        }
+
+        // check attribute changes
+        if (mutation.type === 'attributes') {
+          const target = mutation.target as HTMLElement
+          if (target.matches(selector)) {
+            handleSetNode(target as T)
+            break mutationLoop
+          }
+          // if the node is removed
+          if (target === nodeRef.current) {
+            handleSetNode(null)
+            break mutationLoop
           }
         }
 
         for (const removedNode of mutation.removedNodes) {
           if (removedNode instanceof HTMLElement) {
-            // contentLogger.log('comparing node', node)
             if (
-              removedNode === node ||
+              removedNode === nodeRef.current ||
               removedNode.contains(node) ||
               removedNode.matches(selector)
             ) {
-              setNode(null)
-              break
+              handleSetNode(null)
+              break mutationLoop
             }
           }
         }
@@ -46,12 +70,14 @@ export const useNodeMonitor = <T extends HTMLElement>(selector?: string) => {
     observer.observe(document.body, {
       childList: true,
       subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'id'],
     })
 
     return () => {
       observer.disconnect()
     }
-  }, [selector])
+  }, [selector, handleSetNode])
 
   return node
 }

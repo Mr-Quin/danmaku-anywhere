@@ -12,7 +12,7 @@ export interface MountConfigWithoutId extends Omit<MountConfig, 'id'> {
   id?: number
 }
 
-export const blankMountConfig = (url: string): MountConfigWithoutId => {
+export const createMountConfig = (url: string): MountConfigWithoutId => {
   return {
     patterns: [url],
     mediaQuery: '',

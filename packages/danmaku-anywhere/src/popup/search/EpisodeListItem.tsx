@@ -105,33 +105,28 @@ export const EpisodeListItem = ({
           )}
         </IconButton>
       }
-      disablePadding
+      sx={{
+        pl: 4,
+      }}
     >
-      <ListItem
-        sx={{
-          pl: 4,
-        }}
-        dense
-      >
-        <ListItemIcon>{data ? <Check /> : null}</ListItemIcon>
-        <Tooltip title={episodeTitle} enterDelay={500} placement="top">
-          <ListItemText
-            primary={episodeTitle}
-            primaryTypographyProps={{
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              overflow: 'hidden',
-            }}
-            secondary={
-              data
-                ? `${new Date(data.timeUpdated).toLocaleDateString()} - ${
-                    data.count
-                  } comments ${data.version}`
-                : ''
-            }
-          />
-        </Tooltip>
-      </ListItem>
+      <ListItemIcon>{data ? <Check /> : null}</ListItemIcon>
+      <Tooltip title={episodeTitle} enterDelay={500} placement="top">
+        <ListItemText
+          primary={episodeTitle}
+          primaryTypographyProps={{
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis',
+            overflow: 'hidden',
+          }}
+          secondary={
+            data
+              ? `${new Date(data.timeUpdated).toLocaleDateString()} - ${
+                  data.count
+                } comments ${data.version}`
+              : ''
+          }
+        />
+      </Tooltip>
     </ListItem>
   )
 }

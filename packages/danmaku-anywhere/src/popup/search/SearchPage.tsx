@@ -1,6 +1,6 @@
 import { Box, Stack } from '@mui/material'
+import { useStore } from '../store'
 import { AnimeSearch } from './AnimeSearch'
-import { useStore } from './store'
 import { SearchResultList } from '@/popup/search/SearchResultList'
 
 export const SearchPage = () => {

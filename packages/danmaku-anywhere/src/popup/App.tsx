@@ -10,24 +10,33 @@ import {
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { SearchPage } from './search/SearchPage'
-import { popupLogger } from '@/common/logger'
+import { useStore } from './store'
+import { ConfigPage } from './config/ConfigPage'
 import { ControlPage } from '@/popup/control/ControlPage'
 
 import { db } from '@/common/db'
+import { getActiveTab } from '@/common/utils'
 
 const App = () => {
   const [tab, setTab] = useState(0)
 
-  popupLogger.log('App', window.location.href)
-
-  const isReady = useLiveQuery(() => db.isReady, [])
+  const isDbReady = useLiveQuery(() => db.isReady, [])
+  const isLoadingTab = useStore((state) => state.isLoadingTabUrl)
 
   useEffect(() => {
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       if (request.action === 'danmaku/manager') {
-        console.log(request)
         sendResponse('popup ready')
       }
+    })
+  }, [])
+
+  useEffect(() => {
+    useStore.setState({ isLoadingTabUrl: true })
+
+    getActiveTab().then((tab) => {
+      if (!tab.url) throw new Error('No active tab')
+      useStore.setState({ tabUrl: tab.url, isLoadingTabUrl: false })
     })
   }, [])
 
@@ -41,6 +50,8 @@ const App = () => {
         return <SearchPage />
       case 1:
         return <ControlPage />
+      case 2:
+        return <ConfigPage />
       default:
         return <SearchPage />
     }
@@ -59,7 +70,7 @@ const App = () => {
       fixed
     >
       <Backdrop
-        open={!isReady}
+        open={!isDbReady || isLoadingTab}
         sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
       >
         <CircularProgress />
@@ -75,6 +86,7 @@ const App = () => {
             <Tabs value={tab} onChange={handleChange}>
               <Tab label="Search"></Tab>
               <Tab label="Control"></Tab>
+              <Tab label="Config"></Tab>
             </Tabs>
           </Paper>
           {renderTabs()}

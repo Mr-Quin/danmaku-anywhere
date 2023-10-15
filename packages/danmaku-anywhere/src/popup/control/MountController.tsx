@@ -42,7 +42,7 @@ export const MountController = () => {
     [danmakuMeta?.episodeId]
   )
 
-  const { sendMessage } = useMessageSender(
+  const { sendMessage: sendStart } = useMessageSender(
     {
       action: 'danmaku/start',
       payload: {
@@ -70,11 +70,11 @@ export const MountController = () => {
       component="form"
       onSubmit={(e) => {
         e.preventDefault()
-        sendMessage()
+        sendStart()
       }}
     >
       <Stack direction="column" spacing={2}>
-        <Typography variant="h6">Mount</Typography>
+        <Typography variant="h6">Active config</Typography>
         <Autocomplete
           value={danmakuMeta ?? null} // value must be null when empty so that the component is "controlled"
           loading={loading}

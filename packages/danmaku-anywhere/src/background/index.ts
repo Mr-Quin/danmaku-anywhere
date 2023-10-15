@@ -14,22 +14,24 @@ chrome.runtime.onInstalled.addListener(async () => {
     backgroundLogger.error(err)
   }
 
-  backgroundLogger.log('Extension Installed')
+  backgroundLogger.debug('Extension Installed')
 })
 
-// chrome.runtime.onStartup.addListener(() => {})
+const getIconBitmap = async (path: string) => {
+  const response = await fetch(chrome.runtime.getURL(path))
+  const blob = await response.blob()
+  return await createImageBitmap(blob)
+}
 
-let iconCache: ImageData | null = null
+let activeIconCache: ImageData | null = null
 const setActiveIcon = async (tabId: number) => {
-  if (iconCache) {
-    await chrome.action.setIcon({ imageData: iconCache, tabId })
+  if (activeIconCache) {
+    await chrome.action.setIcon({ imageData: activeIconCache, tabId })
     return
   }
   try {
     // Fetch the original icon
-    const response = await fetch(chrome.runtime.getURL('normal_16.png'))
-    const blob = await response.blob()
-    const imgBitmap = await createImageBitmap(blob)
+    const imgBitmap = await getIconBitmap('normal_16.png')
 
     const canvas = new OffscreenCanvas(16, 16)
     const ctx = canvas.getContext('2d')
@@ -54,14 +56,33 @@ const setActiveIcon = async (tabId: number) => {
     ctx.fill()
 
     const imageData = ctx.getImageData(0, 0, 16, 16)
-    iconCache = imageData
+    activeIconCache = imageData
     await chrome.action.setIcon({ imageData, tabId })
   } catch (err) {
     backgroundLogger.error('Error overlaying icon:', err)
   }
 }
 
-const unsetActiveIcon = async (tabId: number) => {
+const setUnavailableIcon = async (tabId: number) => {
+  const imgBitmap = await getIconBitmap('normal_16.png')
+
+  const canvas = new OffscreenCanvas(16, 16)
+  const ctx = canvas.getContext('2d')
+
+  if (!ctx) {
+    backgroundLogger.error('Error getting canvas context')
+    return
+  }
+
+  // make the icon gray
+  ctx.filter = 'grayscale(100%)'
+  ctx.drawImage(imgBitmap, 0, 0, 16, 16)
+
+  const imageData = ctx.getImageData(0, 0, 16, 16)
+  await chrome.action.setIcon({ imageData, tabId })
+}
+
+const setNormalIcon = async (tabId: number) => {
   await chrome.action.setIcon({ path: 'normal_16.png', tabId })
 }
 
@@ -69,10 +90,18 @@ chrome.runtime.onMessage.addListener((request, sender) => {
   // only handle messages from content script
   if (!sender.tab) return true
 
-  if (request.action === 'setIcon/active') {
-    setActiveIcon(sender.tab.id as number)
-  } else if (request.action === 'setIcon/inactive') {
-    unsetActiveIcon(sender.tab.id as number)
+  switch (request.action) {
+    case 'setIcon/unavailable':
+      setUnavailableIcon(sender.tab.id as number)
+      break
+    case 'setIcon/active':
+      setActiveIcon(sender.tab.id as number)
+      break
+    case 'setIcon/available':
+      setNormalIcon(sender.tab.id as number)
+      break
+    default:
+      break
   }
 
   return true
@@ -80,7 +109,7 @@ chrome.runtime.onMessage.addListener((request, sender) => {
 
 const fetchDanmaku = async (
   data: DanmakuMeta,
-  params: Partial<DanDanCommentAPIParams> = {},
+  params: Partial<DanDanCommentAPIParams> = { withRelated: true },
   options: { forceUpdate?: boolean; cacheOnly?: boolean } = {}
 ) => {
   const { episodeId } = data

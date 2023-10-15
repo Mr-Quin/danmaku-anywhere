@@ -4,18 +4,14 @@ import {
 } from '@danmaku-anywhere/danmaku-engine'
 import { useCallback, useEffect, useState } from 'react'
 import { useToast } from './store'
-import {
-  useCurrentMountConfig,
-  useMountConfig,
-} from '@/common/hooks/mountConfig/useMountConfig'
+import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 import { useRuntimeMessage } from '@/common/hooks/useMessages'
 import { contentLogger } from '@/common/logger'
 import { useNodeMonitor } from '@/content/useNodeMonitor'
 
 export const useDanmakuManager = () => {
-  const { configs } = useMountConfig()
   const url = window.location.href
-  const mountConfig = useCurrentMountConfig(url, configs)
+  const mountConfig = useMatchMountConfig(url)
 
   const [comments, setComments] = useState<DanDanComment[]>([])
 
@@ -39,7 +35,7 @@ export const useDanmakuManager = () => {
       store,
       mountConfig,
     })
-  })
+  }, [container, node, comments])
 
   useRuntimeMessage(
     useCallback(
@@ -54,6 +50,7 @@ export const useDanmakuManager = () => {
           // stop the inspector mode
           contentLogger.debug('received message', request)
           setComments([])
+          store.destroy()
           toast.info('Danmaku stopped')
         }
       },
