@@ -22,7 +22,7 @@ const parseTitle = (title: string) => {
 }
 
 export class PlexObserver extends MediaObserver {
-  static name = 'plex'
+  static observerName = 'plex'
 
   private titleObserver?: MutationObserver
   private title?: string
