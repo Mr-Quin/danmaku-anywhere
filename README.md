@@ -6,19 +6,21 @@ Danmaku Anywhere is a browser extension to inject danmaku into any webpage with 
 
 ## Features
 
-| Feature                                     | Status         |
-| ------------------------------------------- | -------------- |
-| UI to search for Danmaku                    | ✅ Done        |
-| UI to manually mount/unmount Danmaku        | ✅ Done        |
-| Declarative mounting configuration          | ⚙️ In Progress |
-| Configurable Danmaku style                  | ⚙️ In Progress |
-| Site-Specific Integration:                  | 📅 Planned     |
-| - Video lifecycle detection                 |                |
-| - Auto-detection of currently playing video |                |
-| - Automatic Danmaku fetching                |                |
-| - Injection of site-specific control UI     |                |
+| Feature                              | Status         |
+| ------------------------------------ | -------------- |
+| UI to search for Danmaku             | ✅ Done        |
+| UI to manually mount/unmount Danmaku | ✅ Done        |
+| Declarative mounting configuration   | ✅ Done        |
+| Configurable Danmaku style           | ⚙️ In Progress |
+| Site-Specific Integration:           | ⚙️ In Progress |
+| - Video lifecycle detection          | ⚙️ In Progress |
+| - Feedback UI                        | ⚙️ In Progress |
+| - Automatic Danmaku fetching         | ⚙️ In Progress |
 
-Currently wip, but it's usable.
+## Usage
+
+Find the latest release [here](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest).
+Download the unpacked extension and load it into your browser (Chromium only).
 
 ## Screenshots
 
