@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useDanmakuManager } from './useDanmakuManager'
-import { usePlexTitle } from './integration/plex/usePlexTitle'
+import { useMediaObserver } from './hooks/useMediaObserver'
 import { Toast } from './Toast'
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 
@@ -20,7 +20,7 @@ export const Content = () => {
   }, [config])
 
   useDanmakuManager()
-  usePlexTitle()
+  useMediaObserver()
 
   return <Toast />
 }

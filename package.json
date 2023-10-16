@@ -16,7 +16,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "zustand": "^4.3.7"
+    "zustand": "^4.4.3"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.58.0",

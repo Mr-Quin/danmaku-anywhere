@@ -2,6 +2,7 @@ import {
   DanDanCommentAPIParams,
   fetchComments,
 } from '@danmaku-anywhere/danmaku-engine'
+import { DanmakuMessage } from '../common/danmakuMessage'
 import { defaultMountConfig } from '@/common/constants'
 import { DanmakuMeta, db } from '@/common/db'
 import { backgroundLogger } from '@/common/logger'
@@ -123,6 +124,8 @@ const fetchDanmaku = async (
 
   const comments = await fetchComments(episodeId, params)
 
+  backgroundLogger.debug('Danmaku fetched from server', comments)
+
   // prevent updating db if new result has less comments than the old one
   if (
     result &&
@@ -141,30 +144,40 @@ const fetchDanmaku = async (
     version: 1 + (result?.version ?? 0),
   }
 
+  backgroundLogger.debug('Cached danmaku to db')
+
   await db.dandanplay.put(newEntry)
 
-  return result
+  return comments
 }
 
 const deleteDanmaku = async (episodeId: number) => {
   return await db.dandanplay.delete(episodeId)
 }
 
-type DanmakuMessage =
-  | {
-      action: 'danmaku/fetch'
-      payload: {
-        data: DanmakuMeta
-        params?: Partial<DanDanCommentAPIParams>
-        options?: { forceUpdate?: boolean; cacheOnly?: boolean }
-      }
-    }
-  | {
-      action: 'danmaku/delete'
-      payload: {
-        episodeId: number
-      }
-    }
+// const danmakuMessageBus = createMessageBus<DanmakuMessage>()
+
+// danmakuMessageBus.subscribe(
+//   'danmaku/fetch',
+//   async (message, sender, sendResponse) => {
+//     backgroundLogger.debug('fetch danmaku', message)
+
+//     try {
+//       const res = await fetchDanmaku(
+//         message.payload.data,
+//         message.payload.params,
+//         message.payload.options
+//       )
+
+//       backgroundLogger.debug('fetch danmaku success', res)
+
+//       sendResponse({ type: 'success', payload: res })
+//     } catch (err: any) {
+//       backgroundLogger.error('error fetching danmaku', err)
+//       sendResponse({ type: 'error', payload: err.message })
+//     }
+//   }
+// )
 
 chrome.runtime.onMessage.addListener(
   async (request: DanmakuMessage, sender, sendResponse) => {

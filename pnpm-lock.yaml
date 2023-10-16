@@ -5,8 +5,8 @@ importers:
   .:
     dependencies:
       zustand:
-        specifier: ^4.3.7
-        version: 4.3.7(react@18.2.0)
+        specifier: ^4.4.3
+        version: 4.4.3(react@18.2.0)
     devDependencies:
       '@typescript-eslint/eslint-plugin':
         specifier: ^5.58.0
@@ -6114,13 +6114,16 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  /zustand@4.3.7(react@18.2.0):
-    resolution: {integrity: sha512-dY8ERwB9Nd21ellgkBZFhudER8KVlelZm8388B5nDAXhO/+FZDhYMuRnqDgu5SYyRgz/iaf8RKnbUs/cHfOGlQ==}
+  /zustand@4.4.3(react@18.2.0):
+    resolution: {integrity: sha512-oRy+X3ZazZvLfmv6viIaQmtLOMeij1noakIsK/Y47PWYhT8glfXzQ4j0YcP5i0P0qI1A4rIB//SGROGyZhx91A==}
     engines: {node: '>=12.7.0'}
     peerDependencies:
+      '@types/react': '>=16.8'
       immer: '>=9.0'
       react: '>=16.8'
     peerDependenciesMeta:
+      '@types/react':
+        optional: true
       immer:
         optional: true
       react:

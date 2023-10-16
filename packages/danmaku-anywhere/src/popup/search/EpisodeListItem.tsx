@@ -11,6 +11,7 @@ import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { DanmakuCache, DanmakuMeta, db } from '@/common/db'
 import { popupLogger } from '@/common/logger'
+import { createDanmakuAction } from '@/common/danmakuMessage'
 
 const useFetchDanmakuMessage = (meta: DanmakuMeta) => {
   const [isLoading, setIsLoading] = useState(false)
@@ -24,15 +25,17 @@ const useFetchDanmakuMessage = (meta: DanmakuMeta) => {
     popupLogger.debug('useFetchDanmakuMessage', 'dispatchFetch', meta)
 
     try {
-      const res = await chrome.runtime.sendMessage({
-        action: 'danmaku/fetch',
-        payload: {
-          data: meta,
-          options: {
-            forceUpdate: true,
+      const res = await chrome.runtime.sendMessage(
+        createDanmakuAction({
+          action: 'danmaku/fetch',
+          payload: {
+            data: meta,
+            options: {
+              forceUpdate: true,
+            },
           },
-        },
-      })
+        })
+      )
 
       if (res.type === 'error') {
         throw new Error(res.payload)

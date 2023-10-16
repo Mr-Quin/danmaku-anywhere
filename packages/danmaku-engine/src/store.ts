@@ -147,8 +147,6 @@ export const useDanmakuEngine = ({
   useEffect(() => {
     if (!container || !media || !comments) return
 
-    console.log('recreate danmaku engine')
-
     create(container, media, comments, configProp)
 
     isInit.current = false
