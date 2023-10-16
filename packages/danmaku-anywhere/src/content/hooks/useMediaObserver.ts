@@ -30,7 +30,7 @@ export const useMediaObserver = () => {
     if (!config) return
 
     const Observer = observers.find(
-      (integration) => integration.name === config.name
+      (integration) => integration.observerName === config.name
     )
 
     if (!Observer) return

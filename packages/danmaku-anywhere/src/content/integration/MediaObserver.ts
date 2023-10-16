@@ -28,7 +28,7 @@ type Fn = (...args: any[]) => void
 
 export class MediaObserver {
   private subscriptions: Map<IntegrationEventKey, Set<Fn>>
-  static name = '__media_observer'
+  static observerName = '__media_observer'
 
   constructor() {
     this.subscriptions = new Map()
