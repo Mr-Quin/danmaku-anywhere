@@ -1,5 +1,5 @@
 import { Alert, Snackbar } from '@mui/material'
-import { useToast } from './store'
+import { useToast } from './toastStore'
 
 export const Toast = () => {
   const { isOpen, close, duration, severity, message, key } = useToast()

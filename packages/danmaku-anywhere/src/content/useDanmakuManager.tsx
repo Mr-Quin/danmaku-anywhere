@@ -1,19 +1,21 @@
-import {
-  DanDanComment,
-  useDanmakuEngine,
-} from '@danmaku-anywhere/danmaku-engine'
-import { useCallback, useEffect, useState } from 'react'
-import { useToast } from './store'
+import { useDanmakuEngine } from '@danmaku-anywhere/danmaku-engine'
+import { useCallback, useEffect } from 'react'
+import { useShallow } from 'zustand/react/shallow'
+import { useToast } from './toastStore'
+import { useStore } from './store'
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 import { useRuntimeMessage } from '@/common/hooks/useMessages'
 import { contentLogger } from '@/common/logger'
-import { useNodeMonitor } from '@/content/useNodeMonitor'
+import { useNodeMonitor } from '@/content/hooks/useNodeMonitor'
 
 export const useDanmakuManager = () => {
-  const url = window.location.href
-  const mountConfig = useMatchMountConfig(url)
+  const mountConfig = useMatchMountConfig(window.location.href)
 
-  const [comments, setComments] = useState<DanDanComment[]>([])
+  const { comments, setComments } = useStore(
+    useShallow(({ comments, setComments }) => {
+      return { comments, setComments }
+    })
+  )
 
   const container = useNodeMonitor(mountConfig?.containerQuery)
   const node = useNodeMonitor<HTMLVideoElement>(mountConfig?.mediaQuery)
@@ -28,7 +30,6 @@ export const useDanmakuManager = () => {
 
   useEffect(() => {
     contentLogger.debug({
-      url,
       comments: comments.length,
       node,
       container,
@@ -43,7 +44,7 @@ export const useDanmakuManager = () => {
         if (request.action === 'danmaku/start') {
           // start the inspector mode
           contentLogger.debug('received message', request)
-          setComments(request.payload.comments)
+          useStore.setState(request.payload.comments)
           toast.success('Danmaku started')
         }
         if (request.action === 'danmaku/stop') {
