@@ -1,12 +1,12 @@
 {
   "name": "@mr-quin/danmaku-anywhere",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Plex extension",
   "keywords": [],
   "author": "Mr-Quin",
   "repository": "https://github.com/Mr-Quin/plex-danmaku",
-  "license": "MIT",
+  "license": "AGPL-3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
