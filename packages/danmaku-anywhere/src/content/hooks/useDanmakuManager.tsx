@@ -1,13 +1,14 @@
 import { useDanmakuEngine } from '@danmaku-anywhere/danmaku-engine'
 import { useCallback, useEffect } from 'react'
 import { useShallow } from 'zustand/react/shallow'
-import { useToast } from './toastStore'
-import { useStore } from './store'
+import { useToast } from '../store/toastStore'
+import { useStore } from '../store/store'
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 import { useRuntimeMessage } from '@/common/hooks/useMessages'
 import { contentLogger } from '@/common/logger'
 import { useNodeMonitor } from '@/content/hooks/useNodeMonitor'
 
+// listen to comment changes and mount/unmount the danmaku engine
 export const useDanmakuManager = () => {
   const mountConfig = useMatchMountConfig(window.location.href)
 

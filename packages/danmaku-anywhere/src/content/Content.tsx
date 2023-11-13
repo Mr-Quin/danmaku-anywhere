@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useDanmakuManager } from './useDanmakuManager'
+import { useDanmakuManager } from './hooks/useDanmakuManager'
 import { useMediaObserver } from './hooks/useMediaObserver'
 import { Toast } from './Toast'
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
