@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { searchAnime } from '@danmaku-anywhere/danmaku-engine'
-import { useToast } from '../toastStore'
+import { useToast } from '../store/toastStore'
 import { PlexObserver } from '../integration/Plex'
 import {
   MediaState,
   MediaObserver,
   PlaybackStatus,
 } from '../integration/MediaObserver'
-import { useStore } from '../store'
+import { useStore } from '../store/store'
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 import { contentLogger } from '@/common/logger'
 import { createDanmakuAction } from '@/common/danmakuMessage'
@@ -65,6 +65,7 @@ export const useMediaObserver = () => {
             `No anime found for ${state.title} S${state.season} E${state.episode}`
           )
         } else if (result.animes.length > 1) {
+          // TODO: popup ui to let user choose
           toast.warn(`Multiple anime found: ${JSON.stringify(result.animes)}`)
         } else {
           const { episodes, animeTitle, animeId } = result.animes[0]
