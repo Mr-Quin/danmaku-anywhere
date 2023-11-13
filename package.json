@@ -1,7 +1,7 @@
 {
   "name": "danmaku-anywhere",
   "version": "0.0.1",
-  "private": false,
+  "private": true,
   "author": "Mr-Quin",
   "description": "Danmaku anywhere",
   "keywords": [
@@ -10,7 +10,6 @@
     "user script"
   ],
   "repository": "https://github.com/Mr-Quin/plex-danmaku",
-  "license": "MIT",
   "scripts": {
     "build": "pnpm -r build",
     "format": "prettier --write ."
