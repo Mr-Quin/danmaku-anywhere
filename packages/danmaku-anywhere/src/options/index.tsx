@@ -3,15 +3,12 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { queryClient } from '@/common/queryClient'
 import { Theme } from '@/common/style/Theme'
-import { Options } from '@/options/Options'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <Theme>
-      <QueryClientProvider client={queryClient}>
-        <Options />
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}></QueryClientProvider>
     </Theme>
   </React.StrictMode>
 )

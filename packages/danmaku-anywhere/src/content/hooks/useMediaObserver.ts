@@ -1,33 +1,31 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { searchAnime } from '@danmaku-anywhere/danmaku-engine'
 import { useToast } from '../store/toastStore'
-import { PlexObserver } from '../integration/Plex'
-import {
-  MediaState,
-  MediaObserver,
-  PlaybackStatus,
-} from '../integration/MediaObserver'
+import { MediaState } from '../integration/MediaObserver'
 import { useStore } from '../store/store'
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 import { contentLogger } from '@/common/logger'
-import { createDanmakuAction } from '@/common/danmakuMessage'
-
-const observers = [PlexObserver]
+import { danmakuAction } from '@/common/messages/danmakuMessage'
 
 export const useMediaObserver = () => {
-  const [mediaInfo, setMediaInfo] = useState<MediaState>()
-  const [status, setStatus] = useState<PlaybackStatus>()
+  const { toast, openAnimePopup } = useToast()
 
-  const [observer, setObserver] = useState<MediaObserver>()
-
-  const { toast } = useToast()
-
-  const setComments = useStore((state) => state.setComments)
+  const {
+    mediaInfo,
+    setMediaInfo,
+    status,
+    setStatus,
+    activeObserver,
+    setActiveObserver,
+    observers,
+    setComments,
+  } = useStore()
 
   const config = useMatchMountConfig(window.location.href)
 
   useEffect(() => {
     if (!config) return
+    // when config changes, try to find a matching observer
 
     const Observer = observers.find(
       (integration) => integration.observerName === config.name
@@ -36,18 +34,19 @@ export const useMediaObserver = () => {
     if (!Observer) return
 
     toast.info(`Using integration: ${config.name}`)
+    contentLogger.debug(`Using integration: ${config.name}`)
 
     const obs = new Observer()
 
-    setObserver(obs)
-  }, [config])
+    setActiveObserver(Observer.observerName, obs)
+  }, [config, observers])
 
   useEffect(() => {
-    if (!observer) return
+    if (!activeObserver) return
 
-    observer.setup()
+    activeObserver.setup()
 
-    observer.on({
+    activeObserver.on({
       mediaChange: async (state: MediaState) => {
         setMediaInfo(state)
 
@@ -65,8 +64,10 @@ export const useMediaObserver = () => {
             `No anime found for ${state.title} S${state.season} E${state.episode}`
           )
         } else if (result.animes.length > 1) {
-          // TODO: popup ui to let user choose
-          toast.warn(`Multiple anime found: ${JSON.stringify(result.animes)}`)
+          contentLogger.debug('Multiple animes found, open disambiguation')
+
+          // open popup to let user choose which anime to use
+          openAnimePopup(result.animes)
         } else {
           const { episodes, animeTitle, animeId } = result.animes[0]
           const { episodeId, episodeTitle } = episodes[0]
@@ -75,24 +76,23 @@ export const useMediaObserver = () => {
             `Fetching danmaku for: ${animeTitle} Id${animeId}`
           )
 
-          const res = await chrome.runtime.sendMessage(
-            createDanmakuAction({
-              action: 'danmaku/fetch',
-              payload: {
-                data: {
-                  animeId,
-                  animeTitle,
-                  episodeId,
-                  episodeTitle,
-                },
-                options: {
-                  forceUpdate: false,
-                },
-              },
-            })
-          )
+          const res = await danmakuAction.fetch({
+            data: {
+              animeId,
+              animeTitle,
+              episodeId,
+              episodeTitle,
+            },
+            options: {
+              forceUpdate: false,
+            },
+          })
 
           contentLogger.debug('Danmaku fetch result:', res)
+
+          toast.info(
+            `Danmaku mounted: ${animeTitle} E${episodeTitle} (${res.payload.count})`
+          )
 
           setComments(res.payload.comments)
         }
@@ -105,8 +105,8 @@ export const useMediaObserver = () => {
       },
     })
 
-    return () => observer.destroy()
-  }, [observer])
+    return () => activeObserver.destroy()
+  }, [activeObserver])
 
   useEffect(() => {
     if (!mediaInfo) return

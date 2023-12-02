@@ -2,7 +2,7 @@ import {
   DanDanCommentAPIParams,
   fetchComments,
 } from '@danmaku-anywhere/danmaku-engine'
-import { DanmakuMessage } from '../common/danmakuMessage'
+import { DanmakuMessage } from '../common/messages/danmakuMessage'
 import { defaultMountConfig } from '@/common/constants'
 import { DanmakuMeta, db } from '@/common/db'
 import { backgroundLogger } from '@/common/logger'
@@ -154,30 +154,6 @@ const fetchDanmaku = async (
 const deleteDanmaku = async (episodeId: number) => {
   return await db.dandanplay.delete(episodeId)
 }
-
-// const danmakuMessageBus = createMessageBus<DanmakuMessage>()
-
-// danmakuMessageBus.subscribe(
-//   'danmaku/fetch',
-//   async (message, sender, sendResponse) => {
-//     backgroundLogger.debug('fetch danmaku', message)
-
-//     try {
-//       const res = await fetchDanmaku(
-//         message.payload.data,
-//         message.payload.params,
-//         message.payload.options
-//       )
-
-//       backgroundLogger.debug('fetch danmaku success', res)
-
-//       sendResponse({ type: 'success', payload: res })
-//     } catch (err: any) {
-//       backgroundLogger.error('error fetching danmaku', err)
-//       sendResponse({ type: 'error', payload: err.message })
-//     }
-//   }
-// )
 
 chrome.runtime.onMessage.addListener(
   async (request: DanmakuMessage, sender, sendResponse) => {

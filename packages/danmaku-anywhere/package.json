@@ -1,11 +1,11 @@
 {
   "name": "@mr-quin/danmaku-anywhere",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
-  "description": "Plex extension",
+  "description": "Browser extension for danmaku-anywhere",
   "keywords": [],
   "author": "Mr-Quin",
-  "repository": "https://github.com/Mr-Quin/plex-danmaku",
+  "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
   "license": "AGPL-3.0",
   "type": "module",
   "scripts": {
