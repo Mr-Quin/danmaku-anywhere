@@ -30,7 +30,7 @@ class MyDb extends Dexie {
   })
 
   constructor() {
-    super('danmaku')
+    super('danmaku-anywhere')
 
     this.version(1).stores({
       dandanplay: 'meta.episodeId',

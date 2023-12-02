@@ -1,26 +1,18 @@
-import { useEffect } from 'react'
 import { useDanmakuManager } from './hooks/useDanmakuManager'
 import { useMediaObserver } from './hooks/useMediaObserver'
 import { Toast } from './Toast'
-import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
+import { useIconManager } from './hooks/useIconManager'
+import { AnimeSelectorPopup } from './AnimeSelector'
 
 export const Content = () => {
-  const config = useMatchMountConfig(window.location.href)
-
-  useEffect(() => {
-    if (config) {
-      chrome.runtime.sendMessage({
-        action: 'setIcon/available',
-      })
-    } else {
-      chrome.runtime.sendMessage({
-        action: 'setIcon/unavailable',
-      })
-    }
-  }, [config])
-
+  useIconManager()
   useDanmakuManager()
   useMediaObserver()
 
-  return <Toast />
+  return (
+    <>
+      <Toast />
+      <AnimeSelectorPopup />
+    </>
+  )
 }
