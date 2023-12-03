@@ -5,7 +5,7 @@ import { MediaState } from '../integration/MediaObserver'
 import { useStore } from '../store/store'
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 import { contentLogger } from '@/common/logger'
-import { danmakuAction } from '@/common/messages/danmakuMessage'
+import { danmakuMessage } from '@/common/messages/danmakuMessage'
 
 export const useMediaObserver = () => {
   const { toast, openAnimePopup } = useToast()
@@ -76,7 +76,7 @@ export const useMediaObserver = () => {
             `Fetching danmaku for: ${animeTitle} Id${animeId}`
           )
 
-          const res = await danmakuAction.fetch({
+          const res = await danmakuMessage.fetch({
             data: {
               animeId,
               animeTitle,
@@ -87,6 +87,13 @@ export const useMediaObserver = () => {
               forceUpdate: false,
             },
           })
+
+          if (!res.success) {
+            toast.error(
+              `Failed to fetch danmaku: ${animeTitle} E${episodeTitle}`
+            )
+            return
+          }
 
           contentLogger.debug('Danmaku fetch result:', res)
 

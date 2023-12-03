@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { DanDanCommentAPIResult } from '@danmaku-anywhere/danmaku-engine'
-import { danmakuAction } from '@/common/messages/danmakuMessage'
+import { danmakuMessage } from '@/common/messages/danmakuMessage'
 
 export const useFetchDanmaku = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -8,16 +8,16 @@ export const useFetchDanmaku = () => {
   const [error, setError] = useState<string>()
 
   const dispatchFetch = async (
-    payload: Parameters<typeof danmakuAction.fetch>[0]
+    payload: Parameters<typeof danmakuMessage.fetch>[0]
   ) => {
     setIsLoading(true)
     setData(undefined)
 
     try {
-      const res = await danmakuAction.fetch(payload)
+      const res = await danmakuMessage.fetch(payload)
 
-      if (res.type === 'error') {
-        throw new Error('Failed to fetch danmaku', { cause: res.payload })
+      if (res.success === false) {
+        throw new Error('Failed to fetch danmaku', { cause: res.error })
       }
 
       setData(res.payload)

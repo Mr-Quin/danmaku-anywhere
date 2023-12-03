@@ -6,6 +6,9 @@ import { DanmakuMessage } from '../common/messages/danmakuMessage'
 import { defaultMountConfig } from '@/common/constants'
 import { DanmakuMeta, db } from '@/common/db'
 import { backgroundLogger } from '@/common/logger'
+import { MessageOf } from '@/common/messages/message'
+import { MessageRouter } from '@/common/messages/MessageRouter'
+import { IconMessage } from '@/common/messages/iconMessage'
 
 chrome.runtime.onInstalled.addListener(async () => {
   // set default config on install
@@ -87,27 +90,6 @@ const setNormalIcon = async (tabId: number) => {
   await chrome.action.setIcon({ path: 'normal_16.png', tabId })
 }
 
-chrome.runtime.onMessage.addListener((request, sender) => {
-  // only handle messages from content script
-  if (!sender.tab) return true
-
-  switch (request.action) {
-    case 'setIcon/unavailable':
-      setUnavailableIcon(sender.tab.id as number)
-      break
-    case 'setIcon/active':
-      setActiveIcon(sender.tab.id as number)
-      break
-    case 'setIcon/available':
-      setNormalIcon(sender.tab.id as number)
-      break
-    default:
-      break
-  }
-
-  return true
-})
-
 const fetchDanmaku = async (
   data: DanmakuMeta,
   params: Partial<DanDanCommentAPIParams> = { withRelated: true },
@@ -155,49 +137,69 @@ const deleteDanmaku = async (episodeId: number) => {
   return await db.dandanplay.delete(episodeId)
 }
 
-chrome.runtime.onMessage.addListener(
-  async (request: DanmakuMessage, sender, sendResponse) => {
-    switch (request.action) {
-      case 'danmaku/fetch':
-        ;(async () => {
-          backgroundLogger.debug('fetch danmaku', request)
+const messageRouter = new MessageRouter()
 
-          try {
-            const res = await fetchDanmaku(
-              request.payload.data,
-              request.payload.params,
-              request.payload.options
-            )
+messageRouter.on<MessageOf<IconMessage, 'icon/set'>>(
+  'icon/set',
+  async (request, sender, sendResponse) => {
+    // only handle messages from content script
+    if (sender.tab?.id === undefined) {
+      sendResponse({ success: false, error: 'No tab id found' })
+      return
+    }
 
-            backgroundLogger.debug('fetch danmaku success', res)
-
-            sendResponse({ type: 'success', payload: res })
-          } catch (err: any) {
-            backgroundLogger.error('error fetching danmaku', err)
-            sendResponse({ type: 'error', payload: err.message })
-          }
-        })()
-
-        return true
-      case 'danmaku/delete':
-        ;(async () => {
-          backgroundLogger.debug('delete danmaku', request)
-
-          try {
-            const res = await deleteDanmaku(request.payload.episodeId)
-
-            backgroundLogger.debug('delete danmaku success', res)
-
-            sendResponse({ type: 'success', payload: res })
-          } catch (err: any) {
-            backgroundLogger.error(err)
-            sendResponse({ type: 'error', payload: err.message })
-          }
-        })()
-
-        return true
+    switch (request.state) {
+      case 'active':
+        setActiveIcon(sender.tab.id)
+        break
+      case 'inactive':
+        setNormalIcon(sender.tab.id)
+        break
+      case 'available':
+        setNormalIcon(sender.tab.id)
+        break
+      case 'unavailable':
+        setUnavailableIcon(sender.tab.id)
+        break
       default:
         break
     }
+
+    backgroundLogger.debug('Icon state set to:', request.state)
+
+    sendResponse({ success: true, payload: {} })
   }
 )
+
+messageRouter.on<MessageOf<DanmakuMessage, 'danmaku/fetch'>>(
+  'danmaku/fetch',
+  async (request, _, sendResponse) => {
+    backgroundLogger.debug('Fetching danmaku:', request)
+
+    const res = await fetchDanmaku(
+      request.data,
+      request.params,
+      request.options
+    )
+
+    backgroundLogger.debug('Fetch danmaku success', res)
+
+    sendResponse({ success: true, payload: res })
+  }
+)
+
+messageRouter.on<MessageOf<DanmakuMessage, 'danmaku/delete'>>(
+  'danmaku/delete',
+  async (request, _, sendResponse) => {
+    const res = await deleteDanmaku(request.episodeId)
+
+    backgroundLogger.debug('Delete danmaku success', res)
+
+    sendResponse({ success: true, payload: res })
+  }
+)
+
+chrome.runtime.onMessage.addListener((...args) => {
+  backgroundLogger.debug('Message received:', args[0])
+  return messageRouter.getListener()(...args)
+})
