@@ -1,5 +1,4 @@
 import {
-  DanDanComment,
   DanDanCommentAPIParams,
   DanDanCommentAPIResult,
 } from '@danmaku-anywhere/danmaku-engine'
@@ -25,16 +24,6 @@ export type DanmakuMessage =
         episodeId: number
       }
     }
-  | {
-      action: 'danmaku/setComments'
-      payload: {
-        comments: DanDanComment[]
-      }
-    }
-  | {
-      action: 'danmaku/unsetComments'
-      payload: undefined
-    }
 
 type DanmakuPayload<TAction> = PayloadOf<DanmakuMessage, TAction>
 
@@ -59,18 +48,6 @@ export const danmakuMessage = {
     return await chrome.runtime.sendMessage({
       action: 'danmaku/delete',
       payload,
-    })
-  },
-  setComments: async (payload: DanmakuPayload<'danmaku/setComments'>) => {
-    return await chrome.runtime.sendMessage({
-      action: 'danmaku/setComments',
-      payload,
-    })
-  },
-  unsetComments: async () => {
-    // No payload needed for this action
-    return await chrome.runtime.sendMessage({
-      action: 'danmaku/unsetComments',
     })
   },
 }

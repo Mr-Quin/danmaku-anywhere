@@ -14,9 +14,9 @@ import { HTMLAttributes, SyntheticEvent } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Update } from '@mui/icons-material'
 import { useFetchDanmaku } from '../hooks/useFetchDanmaku'
-import { useMessageSender } from '@/common/hooks/useMessages'
 import { useSessionState } from '@/common/hooks/useSessionState'
 import { DanmakuCache, db } from '@/common/db'
+import { danmakuControlMessage } from '@/common/messages/danmakuControlMessage'
 
 const filterOptions = createFilterOptions({
   stringify: (option: DanmakuCache) =>
@@ -81,35 +81,14 @@ export const MountController = () => {
     DanmakuCache | undefined
   >(options[0], 'controller/danmakuMeta')
 
-  const { sendMessage: sendStart } = useMessageSender(
-    {
-      action: 'danmaku/start',
-      payload: {
-        comments: danmakuCache?.comments ?? [],
-      },
-    },
-    {
-      skip: true,
-      tabQuery: { active: true, currentWindow: true },
-    }
-  )
-
-  const { sendMessage: sendStop } = useMessageSender(
-    {
-      action: 'danmaku/stop',
-    },
-    {
-      skip: true,
-      tabQuery: { active: true, currentWindow: true },
-    }
-  )
-
   return (
     <Box
       component="form"
       onSubmit={(e) => {
         e.preventDefault()
-        sendStart()
+        danmakuControlMessage.set({
+          comments: danmakuCache?.comments ?? [],
+        })
       }}
     >
       <Stack direction="column" spacing={2}>
@@ -140,7 +119,7 @@ export const MountController = () => {
           variant="outlined"
           type="button"
           size="small"
-          onClick={sendStop}
+          onClick={danmakuControlMessage.unset}
           color="warning"
         >
           Unmount
