@@ -3,7 +3,7 @@ import pkg from './package.json' assert { type: 'json' }
 
 export const manifest = defineManifest({
   manifest_version: 3,
-  name: 'Danmaku anywhere',
+  name: 'Danmaku Anywhere',
   version: pkg.version,
   action: {
     default_popup: 'pages/popup.html',

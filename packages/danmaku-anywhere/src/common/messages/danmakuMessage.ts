@@ -37,7 +37,7 @@ export type DanmakuMessage =
 
 type DanmakuPayload<TAction> = PayloadOf<DanmakuMessage, TAction>
 
-export const danmakuAction = {
+export const danmakuMessage = {
   fetch: async (payload: DanmakuPayload<'danmaku/fetch'>) => {
     return (await chrome.runtime.sendMessage({
       action: 'danmaku/fetch',

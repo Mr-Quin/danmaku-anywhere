@@ -1,18 +1,15 @@
 import { useEffect } from 'react'
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
+import { iconMessage } from '@/common/messages/iconMessage'
 
 export const useIconManager = () => {
   const config = useMatchMountConfig(window.location.href)
 
   useEffect(() => {
     if (config) {
-      chrome.runtime.sendMessage({
-        action: 'setIcon/available',
-      })
+      iconMessage.set({ state: 'available' })
     } else {
-      chrome.runtime.sendMessage({
-        action: 'setIcon/unavailable',
-      })
+      iconMessage.set({ state: 'unavailable' })
     }
   }, [config])
 }
