@@ -26,7 +26,14 @@ const createLogger = (prefix: string): Logger => {
   return logger
 }
 
-export const mainLogger = createLogger(prefix)
-export const popupLogger = mainLogger.sub('[Popup]')
-export const contentLogger = mainLogger.sub('[Content]')
-export const backgroundLogger = mainLogger.sub('[Background]')
+const getEnv = () => {
+  if (location.protocol.includes('extension')) {
+    if (location.href.includes('popup')) {
+      return 'Popup'
+    }
+    return 'Background'
+  }
+  return 'Content'
+}
+
+export const logger = createLogger(prefix).sub(`[${getEnv()}]`)

@@ -4,7 +4,7 @@ import { useToast } from '../store/toastStore'
 import { MediaState } from '../integration/MediaObserver'
 import { useStore } from '../store/store'
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
-import { contentLogger } from '@/common/logger'
+import { logger } from '@/common/logger'
 import { danmakuMessage } from '@/common/messages/danmakuMessage'
 
 export const useMediaObserver = () => {
@@ -34,7 +34,7 @@ export const useMediaObserver = () => {
     if (!Observer) return
 
     toast.info(`Using integration: ${config.name}`)
-    contentLogger.debug(`Using integration: ${config.name}`)
+    logger.debug(`Using integration: ${config.name}`)
 
     const obs = new Observer()
 
@@ -50,21 +50,21 @@ export const useMediaObserver = () => {
       mediaChange: async (state: MediaState) => {
         setMediaInfo(state)
 
-        contentLogger.debug('Searching for anime:', state.toString())
+        logger.debug('Searching for anime:', state.toString())
 
         const result = await searchAnime({
           anime: state.title,
           episode: state.episode.toString(),
         })
 
-        contentLogger.debug('Anime search result:', result)
+        logger.debug('Anime search result:', result)
 
         if (result.animes.length === 0) {
           toast.error(
             `No anime found for ${state.title} S${state.season} E${state.episode}`
           )
         } else if (result.animes.length > 1) {
-          contentLogger.debug('Multiple animes found, open disambiguation')
+          logger.debug('Multiple animes found, open disambiguation')
 
           // open popup to let user choose which anime to use
           openAnimePopup(result.animes)
@@ -72,36 +72,30 @@ export const useMediaObserver = () => {
           const { episodes, animeTitle, animeId } = result.animes[0]
           const { episodeId, episodeTitle } = episodes[0]
 
-          contentLogger.debug(
-            `Fetching danmaku for: ${animeTitle} Id${animeId}`
-          )
+          try {
+            const res = await danmakuMessage.fetch({
+              data: {
+                animeId,
+                animeTitle,
+                episodeId,
+                episodeTitle,
+              },
+              options: {
+                forceUpdate: false,
+              },
+            })
 
-          const res = await danmakuMessage.fetch({
-            data: {
-              animeId,
-              animeTitle,
-              episodeId,
-              episodeTitle,
-            },
-            options: {
-              forceUpdate: false,
-            },
-          })
+            toast.info(
+              `Danmaku mounted: ${animeTitle} E${episodeTitle} (${res.count})`
+            )
 
-          if (!res.success) {
+            setComments(res.comments)
+          } catch (err) {
             toast.error(
               `Failed to fetch danmaku: ${animeTitle} E${episodeTitle}`
             )
             return
           }
-
-          contentLogger.debug('Danmaku fetch result:', res)
-
-          toast.info(
-            `Danmaku mounted: ${animeTitle} E${episodeTitle} (${res.payload.count})`
-          )
-
-          setComments(res.payload.comments)
         }
       },
       statusChange: (status) => {

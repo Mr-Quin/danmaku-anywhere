@@ -55,7 +55,7 @@ const AnimeSelector = forwardRef<HTMLDivElement>((props, ref) => {
     })
 
     if (!res) return
-    setComments(res.payload.comments)
+    setComments(res.comments)
     closeAnimePopup()
   }
 
