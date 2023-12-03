@@ -85,10 +85,6 @@ export const useMediaObserver = () => {
               },
             })
 
-            toast.info(
-              `Danmaku mounted: ${animeTitle} E${episodeTitle} (${res.count})`
-            )
-
             setComments(res.comments)
           } catch (err) {
             toast.error(
@@ -114,10 +110,11 @@ export const useMediaObserver = () => {
 
     if (status === 'playing') {
       toast.info(`Playing: ${mediaInfo.toString()}`)
+      logger.debug(`Playing: ${mediaInfo.toString()}`)
     } else if (status === 'paused') {
-      toast.info(`Playback Paused`)
+      logger.debug(`Playback Paused`)
     } else if (status === 'stopped') {
-      toast.info(`Playback Stopped`)
+      logger.debug(`Playback Stopped`)
     }
   }, [status, mediaInfo])
 }
