@@ -4,7 +4,6 @@ import { Box, Stack, TextField, Typography } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { useStore } from '../store'
-import { popupLogger } from '@/common/logger'
 import { useSessionState } from '@/common/hooks/useSessionState'
 
 export const AnimeSearch = () => {
@@ -31,7 +30,6 @@ export const AnimeSearch = () => {
 
   useEffect(() => {
     useStore.setState({ animeSearchResults: data ?? [] })
-    popupLogger.debug(data)
   }, [data])
 
   return (

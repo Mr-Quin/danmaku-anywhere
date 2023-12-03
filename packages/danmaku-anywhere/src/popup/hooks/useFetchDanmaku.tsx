@@ -16,11 +16,7 @@ export const useFetchDanmaku = () => {
     try {
       const res = await danmakuMessage.fetch(payload)
 
-      if (res.success === false) {
-        throw new Error('Failed to fetch danmaku', { cause: res.error })
-      }
-
-      setData(res.payload)
+      setData(res)
 
       return res
     } catch (e: any) {

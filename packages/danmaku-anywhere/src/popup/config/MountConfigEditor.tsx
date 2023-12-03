@@ -19,14 +19,14 @@ import { useStore } from '../store'
 import { createUrlPattern, getOrigin } from '@/common/utils'
 import { MountConfig, MountConfigWithoutId } from '@/common/constants'
 import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
-import { popupLogger } from '@/common/logger'
+import { logger } from '@/common/logger'
 
 const validatePattern = (pattern: string) => {
   try {
     createUrlPattern(pattern)
     return true
   } catch (e) {
-    popupLogger.debug('Invalid pattern', e)
+    logger.debug('Invalid pattern', e)
     return false
   }
 }

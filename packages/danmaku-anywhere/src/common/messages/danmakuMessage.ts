@@ -3,7 +3,8 @@ import {
   DanDanCommentAPIParams,
   DanDanCommentAPIResult,
 } from '@danmaku-anywhere/danmaku-engine'
-import { MessageResponse, PayloadOf } from './message'
+import { logger } from '../logger'
+import { PayloadOf } from './message'
 import { DanmakuMeta } from '@/common/db'
 
 export type DanmakuMessage =
@@ -39,10 +40,20 @@ type DanmakuPayload<TAction> = PayloadOf<DanmakuMessage, TAction>
 
 export const danmakuMessage = {
   fetch: async (payload: DanmakuPayload<'danmaku/fetch'>) => {
-    return (await chrome.runtime.sendMessage({
+    logger.debug('Fetching danmaku:', payload)
+
+    const res = await chrome.runtime.sendMessage({
       action: 'danmaku/fetch',
       payload,
-    })) as MessageResponse<DanDanCommentAPIResult>
+    })
+
+    if (!res.success) {
+      throw new Error(res.error)
+    }
+
+    logger.debug('Fetch danmaku success', res.payload)
+
+    return res.payload as DanDanCommentAPIResult
   },
   delete: async (payload: DanmakuPayload<'danmaku/delete'>) => {
     return await chrome.runtime.sendMessage({

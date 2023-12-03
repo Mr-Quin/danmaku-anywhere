@@ -5,7 +5,7 @@ import { useToast } from '../store/toastStore'
 import { useStore } from '../store/store'
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 import { useRuntimeMessage } from '@/common/hooks/useMessages'
-import { contentLogger } from '@/common/logger'
+import { logger } from '@/common/logger'
 import { useNodeMonitor } from '@/content/hooks/useNodeMonitor'
 
 // listen to comment changes and mount/unmount the danmaku engine
@@ -30,7 +30,7 @@ export const useDanmakuManager = () => {
   const { toast } = useToast((state) => state)
 
   useEffect(() => {
-    contentLogger.debug({
+    logger.debug({
       comments: comments.length,
       node,
       container,
@@ -44,13 +44,13 @@ export const useDanmakuManager = () => {
       (request: any) => {
         if (request.action === 'danmaku/start') {
           // start the inspector mode
-          contentLogger.debug('received message', request)
+          logger.debug('received message', request)
           useStore.setState(request.payload.comments)
           toast.success('Danmaku started')
         }
         if (request.action === 'danmaku/stop') {
           // stop the inspector mode
-          contentLogger.debug('received message', request)
+          logger.debug('received message', request)
           setComments([])
           store.destroy()
           toast.info('Danmaku stopped')

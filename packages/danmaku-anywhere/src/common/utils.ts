@@ -1,5 +1,5 @@
 import { MountConfig } from '@/common/constants'
-import { mainLogger } from '@/common/logger'
+import { logger } from '@/common/logger'
 
 export const IS_EXTENSION = !!chrome.runtime
 
@@ -38,7 +38,7 @@ export const matchUrl = (url: string, pattern: string) => {
     const urlPattern = createUrlPattern(pattern)
     return urlPattern.test(url)
   } catch (e) {
-    mainLogger.error(e)
+    logger.error(e)
     return false
   }
 }
