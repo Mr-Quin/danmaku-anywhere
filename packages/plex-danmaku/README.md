@@ -1,4 +1,6 @@
-# plex-danmaku
+# plex-danmaku (legacy)
+
+## This project is no longer being maintained
 
 A user script that adds danmaku (弹幕) to Plex videos.
 
