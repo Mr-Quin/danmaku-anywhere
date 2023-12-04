@@ -101,21 +101,21 @@ export const SettingsMenu = () => {
         </div>
       </div>
       <SliderInput
-        title={'Opacity'}
+        title="Opacity"
         value={(style.opacity * 100).toFixed(0)}
         onChange={handleOpacityChange}
         min={0}
         max={100}
       />
       <SliderInput
-        title={'Font size'}
+        title="Font size"
         value={style.fontSize}
         onChange={handleFontSizeChange}
         min={10}
         max={100}
       />
       <SliderInput
-        title={'Speed'}
+        title="Speed"
         value={config.speed}
         onChange={handleSpeedChange}
         min={1}
