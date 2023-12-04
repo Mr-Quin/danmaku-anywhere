@@ -14,11 +14,12 @@ const packageVersion = packageJson.version
 
 const tarFileName = `${packageName}-${packageVersion}.tar.gz`
 const distPath = path.resolve(__dirname, '../dist')
+const packagePath = path.resolve(__dirname, '../package', tarFileName)
 
-exec(`tar -czf ${tarFileName} -C ${distPath} .`, (error, stdout, stderr) => {
+exec(`tar -czf ${packagePath} -C ${distPath} .`, (error) => {
   if (error) {
     console.error('Error occurred:', error)
     return
   }
-  console.log(`Package created: ${tarFileName}`)
+  console.log(`Package created: ${packagePath}`)
 })
