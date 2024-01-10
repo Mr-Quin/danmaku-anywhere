@@ -3,14 +3,17 @@ import { useEffect } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { useToast } from '../store/toastStore'
 import { useStore } from '../store/store'
-import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
+import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMatchMountConfig'
 import { logger } from '@/common/logger'
 import { useNodeMonitor } from '@/content/hooks/useNodeMonitor'
 import { DanmakuControlMessage } from '@/common/messages/danmakuControlMessage'
+import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
 
 // listen to comment changes and mount/unmount the danmaku engine
 export const useDanmakuManager = () => {
   const mountConfig = useMatchMountConfig(window.location.href)
+
+  const { data: options } = useDanmakuOptions()
 
   const { comments, setComments, mediaInfo } = useStore(
     useShallow(({ comments, setComments, mediaInfo }) => {
@@ -21,11 +24,17 @@ export const useDanmakuManager = () => {
   const container = useNodeMonitor(mountConfig?.containerQuery)
   const node = useNodeMonitor<HTMLVideoElement>(mountConfig?.mediaQuery)
 
-  const danmakuEngine = useDanmakuEngine({
-    container: container ?? undefined,
-    media: node ?? undefined,
-    comments,
-  })
+  const danmakuEngine = useDanmakuEngine()
+
+  useEffect(() => {
+    if (!options || !container || !node) return
+    logger.debug('Creating danmaku', options)
+    danmakuEngine.create(container, node, comments, options)
+
+    return () => {
+      danmakuEngine.destroy()
+    }
+  }, [container, node, comments, options])
 
   const { toast } = useToast((state) => state)
 
@@ -40,6 +49,8 @@ export const useDanmakuManager = () => {
   }, [container, node, comments])
 
   useEffect(() => {
+    if (!mountConfig) return
+
     if (comments.length > 0) {
       toast.success(
         `Danmaku mounted: ${mediaInfo?.title} E${mediaInfo?.episode} (${comments.length})`

@@ -90,6 +90,23 @@ export const transformDanDanComments = (
   }) as Comment[]
 }
 
+// ratio is a number between 0 and 1 where 0 means we keep 0% of the comments
+// and 1 means we keep 100% of the comments
+export const sampleComments = (comments: DanDanComment[], ratio: number) => {
+  if (ratio < 0 || ratio > 1) throw new Error('ratio must be between 0 and 1')
+
+  const length = comments.length
+  const filteredLength = Math.floor(length * ratio)
+
+  // evenly sample comments, assuming they are sorted by time
+  const gap = Math.floor(length / filteredLength)
+  const filteredComments = []
+  for (let i = 0; i < filteredLength; i++) {
+    filteredComments.push(comments[i * gap])
+  }
+  return filteredComments
+}
+
 export const createDanmakuEngine = (opts: DanmakuOption) => {
   return new Danmaku(opts)
 }

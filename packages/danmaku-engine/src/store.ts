@@ -5,14 +5,15 @@ import { DanDanComment } from './api'
 import {
   createDanmakuEngine,
   DanmakuStyle,
+  sampleComments,
   transformDanDanComments,
 } from './parser'
 
-export interface DanmakuConfig {
+export interface DanmakuOptions {
   style: DanmakuStyle
   show: boolean
   filters: string[]
-  userFilters: string[]
+  filterLevel: number
   speed: number
 }
 
@@ -35,23 +36,24 @@ interface State {
     container: HTMLElement,
     media: HTMLMediaElement,
     comments: DanDanComment[],
-    config?: DanmakuConfig
+    config?: DanmakuOptions
   ) => Engine
   recreate: (
     comments?: DanDanComment[],
-    config?: DanmakuConfig
+    config?: DanmakuOptions
   ) => Engine | null
   destroy: () => void
-  updateConfig: (config: Partial<DanmakuConfig>) => void
-  config: DanmakuConfig
+  updateConfig: (config: DanmakuOptions) => void
+  config: DanmakuOptions
   engine: Engine
+  created: boolean
 }
 
-const configDefaults: DanmakuConfig = {
+const configDefaults: DanmakuOptions = {
   show: true,
   filters: [],
-  userFilters: [],
-  speed: 1,
+  speed: 1, // speed is a multiplier of the base speed of 144
+  filterLevel: 0,
   style: {
     opacity: 1,
     fontSize: 25,
@@ -59,18 +61,37 @@ const configDefaults: DanmakuConfig = {
   },
 }
 
+const baseSpeed = 144
+
+// level is from 0 to 5
+const filterLevelToRatio = (level: number) => {
+  return (5 - level) / 5
+}
+
 export const store = create<State>((set, get) => ({
   engine: engineDefaults,
   config: configDefaults,
+  created: false,
   create: (container, media, comments, config?) => {
     config ??= get().config
 
-    const parsedComments = transformDanDanComments(comments, config.style)
+    const sampledComments = sampleComments(
+      comments,
+      filterLevelToRatio(config.filterLevel)
+    )
+
+    const parsedComments = transformDanDanComments(
+      sampledComments,
+      config.style
+    )
+
+    console.debug('parsed comments', parsedComments.length, parsedComments)
 
     const engineInstance = createDanmakuEngine({
       container,
       media,
       comments: parsedComments,
+      speed: config.speed * baseSpeed,
     })
 
     const engine = {
@@ -81,7 +102,7 @@ export const store = create<State>((set, get) => ({
       instance: engineInstance,
     }
 
-    set({ engine })
+    set({ engine, created: true })
     return engine
   },
   recreate: (comments?, config?) => {
@@ -100,7 +121,7 @@ export const store = create<State>((set, get) => ({
     const { instance } = get().engine
     instance?.destroy()
 
-    set({ engine: engineDefaults })
+    set({ engine: engineDefaults, created: false })
   },
   updateConfig: (config) => {
     const { instance } = get().engine
@@ -108,12 +129,10 @@ export const store = create<State>((set, get) => ({
       return
     }
 
-    const { style, ...rest } = config
-    if (style) {
-      // instance.setStyle(style)
-    }
+    console.log('update config', config)
+    get().recreate(undefined, config)
 
-    set({ config: { ...get().config, ...rest } })
+    set({ config: { ...get().config, ...config } })
   },
 }))
 
@@ -123,7 +142,7 @@ export interface UseDanmakuConfig {
   container?: HTMLElement
   media?: HTMLMediaElement
   comments?: DanDanComment[]
-  config?: DanmakuConfig
+  config?: DanmakuOptions
 }
 
 export const useDanmakuEngine = ({
@@ -135,11 +154,11 @@ export const useDanmakuEngine = ({
   const store = useDanmakuStore()
   const isInit = useRef(true)
 
-  const { create, destroy, updateConfig } = store
+  const { create, destroy, updateConfig, created } = store
 
   useEffect(() => {
     if (isInit.current) return
-    if (configProp) {
+    if (configProp && created) {
       updateConfig(configProp)
     }
   }, [configProp])

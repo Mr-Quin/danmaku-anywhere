@@ -11,7 +11,7 @@ import {
 } from '@mui/material'
 import { useId } from 'react'
 import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
-import { MountConfig } from '@/common/constants'
+import { MountConfig } from '@/common/constants/mountConfig'
 
 export const MountConfigList = ({
   onEdit,

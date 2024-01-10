@@ -1,4 +1,3 @@
-import { MountConfig } from '@/common/constants'
 import { logger } from '@/common/logger'
 
 export const IS_EXTENSION = !!chrome.runtime
@@ -43,9 +42,11 @@ export const matchUrl = (url: string, pattern: string) => {
   }
 }
 
-export const matchConfig = (url: string, configs: MountConfig[]) => {
-  return configs.find((config) => {
-    const { patterns } = config
-    return patterns.some((pattern) => matchUrl(url, pattern))
-  })
+// golang style error handling
+export const tryCatch = async <T>(fn: () => Promise<T>) => {
+  try {
+    return [await fn(), null] as const
+  } catch (e) {
+    return [null as T, e] as const
+  }
 }

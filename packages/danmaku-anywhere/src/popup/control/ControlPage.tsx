@@ -2,7 +2,8 @@ import { Box, Typography } from '@mui/material'
 
 import { useStore } from '../store'
 import { MountController } from './MountController'
-import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
+import { DanmakuOptionsController } from './DanmakuOptionsController'
+import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMatchMountConfig'
 
 export const ControlPage = () => {
   const url = useStore((state) => state.tabUrl)
@@ -21,6 +22,7 @@ export const ControlPage = () => {
 
   return (
     <Box p={2}>
+      <DanmakuOptionsController />
       <MountController />
     </Box>
   )

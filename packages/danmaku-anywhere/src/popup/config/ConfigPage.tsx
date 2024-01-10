@@ -8,7 +8,7 @@ import {
   MountConfig,
   MountConfigWithoutId,
   createMountConfig,
-} from '@/common/constants'
+} from '@/common/constants/mountConfig'
 import { getOrigin } from '@/common/utils'
 
 export const ConfigPage = () => {
