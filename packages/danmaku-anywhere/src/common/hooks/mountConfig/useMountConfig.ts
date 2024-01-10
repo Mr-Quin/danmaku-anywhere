@@ -1,5 +1,8 @@
 import { useMemo } from 'react'
-import { MountConfig, MountConfigWithoutId } from '@/common/constants'
+import {
+  MountConfig,
+  MountConfigWithoutId,
+} from '@/common/constants/mountConfig'
 import { useExtStorage } from '@/common/hooks/useExtStorage'
 import { matchUrl } from '@/common/utils'
 
@@ -77,13 +80,4 @@ export const useMountConfig = () => {
     deleteConfig,
     matchByUrl,
   }
-}
-
-export const useMatchMountConfig = (url?: string) => {
-  const { matchByUrl } = useMountConfig()
-
-  return useMemo(() => {
-    if (!url) return
-    return matchByUrl(url)
-  }, [url, matchByUrl])
 }

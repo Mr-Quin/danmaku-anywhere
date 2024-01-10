@@ -18,7 +18,6 @@ interface StoreState {
   activeObserver?: MediaObserver
   integration?: string
   setActiveObserver: (name: string, observer: MediaObserver) => void
-  registerObserver: (newObserver: typeof MediaObserver) => void
 }
 
 export const useStore = create<StoreState>((set) => ({
@@ -33,6 +32,4 @@ export const useStore = create<StoreState>((set) => ({
   integration: undefined,
   setActiveObserver: (name, observer) =>
     set({ integration: name, activeObserver: observer }),
-  registerObserver: (newObserver) =>
-    set((state) => ({ observers: [...state.observers, newObserver] })),
 }))

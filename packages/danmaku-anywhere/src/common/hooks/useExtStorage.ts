@@ -73,6 +73,7 @@ export const useExtStorage = <T>(
 
   return {
     ...query,
+    isLoading: query.isLoading || updateMutation.isPending,
     update: updateMutation,
     remove: deleteMutation,
   }

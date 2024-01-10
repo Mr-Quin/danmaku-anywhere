@@ -1,21 +1,32 @@
 import { DanmakuMessage } from '../common/messages/danmakuMessage'
 import { iconService } from './services/icon'
 import { danmakuService } from './services/danmaku'
-import { defaultMountConfig } from '@/common/constants'
+import { animeService } from './services/anime'
+import { defaultMountConfig } from '@/common/constants/mountConfig'
 import { logger } from '@/common/logger'
 import { MessageOf } from '@/common/messages/message'
 import { MessageRouter } from '@/common/messages/MessageRouter'
 import { IconMessage } from '@/common/messages/iconMessage'
+import { defaultDanmakuOptions } from '@/common/constants/danmakuOptions'
+import { AnimeMessage } from '@/common/messages/animeMessage'
 
 chrome.runtime.onInstalled.addListener(async () => {
-  // set default config on install
+  // set default config on install, if not exists
+  // TODO: add logic to update config when new version is released
   try {
-    await chrome.storage.sync.set({ mountConfig: defaultMountConfig })
+    const { mountConfig } = await chrome.storage.sync.get('mountConfig')
+    if (!mountConfig) {
+      await chrome.storage.sync.set({ mountConfig: defaultMountConfig })
+    }
+    const { danmakuOptions } = await chrome.storage.sync.get('danmakuOptions')
+    if (!danmakuOptions) {
+      await chrome.storage.sync.set({ danmakuOptions: defaultDanmakuOptions })
+    }
   } catch (err) {
     logger.error(err)
   }
 
-  logger.debug('Extension Installed')
+  logger.info('Danmaku Anywhere Installed')
 })
 
 const messageRouter = new MessageRouter()
@@ -75,6 +86,22 @@ messageRouter.on<MessageOf<DanmakuMessage, 'danmaku/delete'>>(
     const res = await danmakuService.delete(request.episodeId)
 
     logger.debug('Delete danmaku success', res)
+
+    sendResponse({ success: true, payload: res })
+  }
+)
+
+messageRouter.on<MessageOf<AnimeMessage, 'anime/search'>>(
+  'anime/search',
+  async (request, _, sendResponse) => {
+    logger.debug('Search for anime:', request)
+
+    const res = await animeService.search({
+      anime: request.anime,
+      episode: request.episode,
+    })
+
+    logger.debug('Anime search success', res)
 
     sendResponse({ success: true, payload: res })
   }

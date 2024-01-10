@@ -1,11 +1,12 @@
 import { useEffect } from 'react'
-import { searchAnime } from '@danmaku-anywhere/danmaku-engine'
 import { useToast } from '../store/toastStore'
 import { MediaState } from '../integration/MediaObserver'
 import { useStore } from '../store/store'
-import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
+import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMatchMountConfig'
 import { logger } from '@/common/logger'
 import { danmakuMessage } from '@/common/messages/danmakuMessage'
+import { tryCatch } from '@/common/utils'
+import { animeMessage } from '@/common/messages/animeMessage'
 
 export const useMediaObserver = () => {
   const { toast, openAnimePopup } = useToast()
@@ -39,7 +40,7 @@ export const useMediaObserver = () => {
     const obs = new Observer()
 
     setActiveObserver(Observer.observerName, obs)
-  }, [config, observers])
+  }, [config])
 
   useEffect(() => {
     if (!activeObserver) return
@@ -50,14 +51,17 @@ export const useMediaObserver = () => {
       mediaChange: async (state: MediaState) => {
         setMediaInfo(state)
 
-        logger.debug('Searching for anime:', state.toString())
+        const [result, error] = await tryCatch(() =>
+          animeMessage.search({
+            anime: state.title,
+            episode: state.episode.toString(),
+          })
+        )
 
-        const result = await searchAnime({
-          anime: state.title,
-          episode: state.episode.toString(),
-        })
-
-        logger.debug('Anime search result:', result)
+        if (error) {
+          toast.error(`Failed to search for anime: ${state.title}`)
+          return
+        }
 
         if (result.animes.length === 0) {
           toast.error(

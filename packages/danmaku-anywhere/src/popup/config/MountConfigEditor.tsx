@@ -17,7 +17,10 @@ import {
 import { useState } from 'react'
 import { useStore } from '../store'
 import { createUrlPattern, getOrigin } from '@/common/utils'
-import { MountConfig, MountConfigWithoutId } from '@/common/constants'
+import {
+  MountConfig,
+  MountConfigWithoutId,
+} from '@/common/constants/mountConfig'
 import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 import { logger } from '@/common/logger'
 
