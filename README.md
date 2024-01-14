@@ -11,11 +11,11 @@ Danmaku Anywhere is a browser extension to inject danmaku into any webpage with 
 | UI to search for Danmaku             | ✅ Done        |
 | UI to manually mount/unmount Danmaku | ✅ Done        |
 | Declarative mounting configuration   | ✅ Done        |
-| Configurable Danmaku style           | ⚙️ In Progress |
+| Configurable Danmaku style           | ✅ Done        |
 | Site-Specific Integration:           | ⚙️ In Progress |
 | - Video lifecycle detection          | ⚙️ In Progress |
 | - Feedback UI                        | ⚙️ In Progress |
-| - Automatic Danmaku fetching         | ⚙️ In Progress |
+| - Automatic Danmaku fetching         | ✅ Done        |
 
 ## Usage
 
