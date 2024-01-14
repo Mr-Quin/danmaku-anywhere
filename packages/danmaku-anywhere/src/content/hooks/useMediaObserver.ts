@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
 import { useToast } from '../store/toastStore'
+import { usePopup } from '../store/popupStore'
 import { MediaState } from '../integration/MediaObserver'
 import { useStore } from '../store/store'
+import { observers } from '../integration/observers'
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMatchMountConfig'
 import { logger } from '@/common/logger'
 import { danmakuMessage } from '@/common/messages/danmakuMessage'
@@ -9,7 +11,8 @@ import { tryCatch } from '@/common/utils'
 import { animeMessage } from '@/common/messages/animeMessage'
 
 export const useMediaObserver = () => {
-  const { toast, openAnimePopup } = useToast()
+  const { toast } = useToast()
+  const { open } = usePopup()
 
   const {
     mediaInfo,
@@ -18,7 +21,6 @@ export const useMediaObserver = () => {
     setStatus,
     activeObserver,
     setActiveObserver,
-    observers,
     setComments,
   } = useStore()
 
@@ -26,13 +28,13 @@ export const useMediaObserver = () => {
 
   useEffect(() => {
     if (!config) return
-    // when config changes, try to find a matching observer
 
+    // when config changes, try to find a matching observer
     const Observer = observers.find(
       (integration) => integration.observerName === config.name
     )
 
-    if (!Observer) return
+    if (!Observer) return // no matching observer found
 
     toast.info(`Using integration: ${config.name}`)
     logger.debug(`Using integration: ${config.name}`)
@@ -51,14 +53,14 @@ export const useMediaObserver = () => {
       mediaChange: async (state: MediaState) => {
         setMediaInfo(state)
 
-        const [result, error] = await tryCatch(() =>
+        const [result, err] = await tryCatch(() =>
           animeMessage.search({
             anime: state.title,
             episode: state.episode.toString(),
           })
         )
 
-        if (error) {
+        if (err) {
           toast.error(`Failed to search for anime: ${state.title}`)
           return
         }
@@ -71,13 +73,13 @@ export const useMediaObserver = () => {
           logger.debug('Multiple animes found, open disambiguation')
 
           // open popup to let user choose which anime to use
-          openAnimePopup(result.animes)
+          open(result.animes)
         } else {
           const { episodes, animeTitle, animeId } = result.animes[0]
           const { episodeId, episodeTitle } = episodes[0]
 
-          try {
-            const res = await danmakuMessage.fetch({
+          const [res, err] = await tryCatch(() =>
+            danmakuMessage.fetch({
               data: {
                 animeId,
                 animeTitle,
@@ -88,20 +90,19 @@ export const useMediaObserver = () => {
                 forceUpdate: false,
               },
             })
+          )
 
-            setComments(res.comments)
-          } catch (err) {
+          if (err) {
             toast.error(
               `Failed to fetch danmaku: ${animeTitle} E${episodeTitle}`
             )
             return
           }
+
+          setComments(res.comments)
         }
       },
       statusChange: (status) => {
-        if (status === 'stopped') {
-          setComments([])
-        }
         setStatus(status)
       },
     })

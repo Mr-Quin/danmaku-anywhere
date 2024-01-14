@@ -5,10 +5,8 @@ import {
   MediaState,
   PlaybackStatus,
 } from '../integration/MediaObserver'
-import { PlexObserver } from '../integration/Plex'
 
 interface StoreState {
-  observers: (typeof MediaObserver)[]
   comments: DanDanComment[]
   setComments: (comments: DanDanComment[]) => void
   mediaInfo?: MediaState
@@ -21,7 +19,6 @@ interface StoreState {
 }
 
 export const useStore = create<StoreState>((set) => ({
-  observers: [PlexObserver],
   comments: [],
   setComments: (comments) => set({ comments }),
   mediaInfo: undefined,
