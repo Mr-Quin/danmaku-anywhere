@@ -1,4 +1,3 @@
-import { DanDanAnime } from '@danmaku-anywhere/danmaku-engine'
 import { create } from 'zustand'
 
 interface Toast {
@@ -25,10 +24,6 @@ interface ToastStoreState {
     severity?: 'success' | 'info' | 'warning' | 'error'
   }) => void
   toast: Toast
-  isAnimePopupOpen: boolean
-  popupAnimes: DanDanAnime[]
-  openAnimePopup: (animes: DanDanAnime[]) => void
-  closeAnimePopup: () => void
 }
 
 export const useToast = create<ToastStoreState>((set, get) => ({
@@ -56,13 +51,5 @@ export const useToast = create<ToastStoreState>((set, get) => ({
     error: (message, duration) => {
       get().show({ message, duration, severity: 'error' })
     },
-  },
-  isAnimePopupOpen: false,
-  popupAnimes: [],
-  openAnimePopup: (animes) => {
-    set({ isAnimePopupOpen: true, popupAnimes: animes })
-  },
-  closeAnimePopup: () => {
-    set({ isAnimePopupOpen: false, popupAnimes: [] })
   },
 }))

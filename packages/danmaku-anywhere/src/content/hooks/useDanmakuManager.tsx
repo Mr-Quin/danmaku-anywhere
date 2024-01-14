@@ -15,9 +15,9 @@ export const useDanmakuManager = () => {
 
   const { data: options } = useDanmakuOptions()
 
-  const { comments, setComments, mediaInfo } = useStore(
-    useShallow(({ comments, setComments, mediaInfo }) => {
-      return { comments, setComments, mediaInfo }
+  const { comments, setComments, mediaInfo, status } = useStore(
+    useShallow(({ comments, setComments, mediaInfo, status }) => {
+      return { comments, setComments, mediaInfo, status }
     })
   )
 
@@ -28,15 +28,16 @@ export const useDanmakuManager = () => {
 
   useEffect(() => {
     if (!options || !container || !node) return
-    logger.debug('Creating danmaku', options)
-    danmakuEngine.create(container, node, comments, options)
 
-    return () => {
-      danmakuEngine.destroy()
+    if (danmakuEngine.created) return
+
+    if (status === 'playing') {
+      logger.debug('Creating danmaku', options)
+      danmakuEngine.create(container, node, comments, options)
     }
-  }, [container, node, comments, options])
+  }, [container, node, comments, options, status])
 
-  const { toast } = useToast((state) => state)
+  const { toast } = useToast()
 
   useEffect(() => {
     logger.debug({
@@ -55,10 +56,15 @@ export const useDanmakuManager = () => {
       toast.success(
         `Danmaku mounted: ${mediaInfo?.title} E${mediaInfo?.episode} (${comments.length})`
       )
-    } else {
-      toast.info(`Danmaku unmounted`)
     }
   }, [comments])
+
+  useEffect(() => {
+    if (status === 'stopped') {
+      logger.debug('Destroying danmaku')
+      danmakuEngine.destroy()
+    }
+  }, [status])
 
   useEffect(() => {
     const listener = (request: DanmakuControlMessage) => {

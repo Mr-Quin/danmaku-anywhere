@@ -115,5 +115,6 @@ export class PlexObserver extends MediaObserver {
   destroy() {
     super.destroy()
     this.titleObserver?.disconnect()
+    this.titleObserver = undefined
   }
 }

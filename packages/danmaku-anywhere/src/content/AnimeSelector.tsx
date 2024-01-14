@@ -14,13 +14,13 @@ import {
 } from '@mui/material'
 import { DanDanAnime, DanDanEpisode } from '@danmaku-anywhere/danmaku-engine'
 import { Close } from '@mui/icons-material'
-import { useToast } from './store/toastStore'
+import { usePopup } from './store/popupStore'
 import { useStore } from './store/store'
 import { makeAnimeIcon } from '@/common/components/makeIcon'
 import { useFetchDanmaku } from '@/popup/hooks/useFetchDanmaku'
 
 const AnimeSelector = forwardRef<HTMLDivElement>((props, ref) => {
-  const { closeAnimePopup, popupAnimes } = useToast()
+  const { close, animes } = usePopup()
   const { setComments } = useStore((state) => {
     return {
       setComments: state.setComments,
@@ -56,7 +56,7 @@ const AnimeSelector = forwardRef<HTMLDivElement>((props, ref) => {
 
     if (!res) return
     setComments(res.comments)
-    closeAnimePopup()
+    close()
   }
 
   return (
@@ -75,13 +75,13 @@ const AnimeSelector = forwardRef<HTMLDivElement>((props, ref) => {
           alignItems="center"
         >
           <Typography variant="h6">Anime Disambiguation</Typography>
-          <IconButton onClick={closeAnimePopup}>
+          <IconButton onClick={close}>
             <Close />
           </IconButton>
         </Stack>
         <Typography variant="body2">Which anime are you watching?</Typography>
         <Box>
-          {popupAnimes.map((anime) => (
+          {animes.map((anime) => (
             <Chip
               icon={makeAnimeIcon(anime.type)}
               key={anime.animeId}
@@ -128,7 +128,7 @@ const AnimeSelector = forwardRef<HTMLDivElement>((props, ref) => {
 AnimeSelector.displayName = 'AnimeSelector'
 
 export const AnimeSelectorPopup = () => {
-  const { isAnimePopupOpen } = useToast()
+  const { isOpen } = usePopup()
 
   return (
     <Box
@@ -140,7 +140,7 @@ export const AnimeSelectorPopup = () => {
         maxWidth: '350px',
       }}
     >
-      <Slide direction="right" in={isAnimePopupOpen} mountOnEnter unmountOnExit>
+      <Slide direction="right" in={isOpen} mountOnEnter unmountOnExit>
         <AnimeSelector />
       </Slide>
     </Box>
