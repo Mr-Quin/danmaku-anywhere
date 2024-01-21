@@ -3,9 +3,10 @@ import ReactDOM from 'react-dom/client'
 import { QueryClientProvider } from '@tanstack/react-query'
 import createCache from '@emotion/cache'
 import { CacheProvider } from '@emotion/react'
+import { ThemeProvider, createTheme } from '@mui/material'
 import { Content } from './Content'
 import { queryClient } from '@/common/queryClient'
-import { Theme } from '@/common/style/Theme'
+import { themeOptions } from '@/common/style/Theme'
 
 const root = document.createElement('div')
 document.body.append(root)
@@ -24,14 +25,35 @@ const cache = createCache({
   prepend: true,
 })
 
+const theme = createTheme({
+  ...themeOptions,
+  components: {
+    MuiPopover: {
+      defaultProps: {
+        container: shadowRootElement,
+      },
+    },
+    MuiPopper: {
+      defaultProps: {
+        container: shadowRootElement,
+      },
+    },
+    MuiModal: {
+      defaultProps: {
+        container: shadowRootElement,
+      },
+    },
+  },
+})
+
 ReactDOM.createRoot(shadowRootElement).render(
   <React.StrictMode>
-    <Theme>
+    <ThemeProvider theme={theme}>
       <CacheProvider value={cache}>
         <QueryClientProvider client={queryClient}>
           <Content />
         </QueryClientProvider>
       </CacheProvider>
-    </Theme>
+    </ThemeProvider>
   </React.StrictMode>
 )

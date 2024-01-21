@@ -85,8 +85,6 @@ export const store = create<State>((set, get) => ({
       config.style
     )
 
-    console.debug('parsed comments', parsedComments.length, parsedComments)
-
     const engineInstance = createDanmakuEngine({
       container,
       media,
@@ -129,7 +127,6 @@ export const store = create<State>((set, get) => ({
       return
     }
 
-    console.log('update config', config)
     get().recreate(undefined, config)
 
     set({ config: { ...get().config, ...config } })

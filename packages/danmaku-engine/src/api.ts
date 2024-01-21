@@ -20,7 +20,7 @@ export interface DanDanAnime {
   episodes: DanDanEpisode[]
 }
 
-export interface DanDanAnimeSearchAPIParams {
+export type DanDanAnimeSearchAPIParams = {
   anime: string
   episode: string
 }
@@ -34,7 +34,7 @@ export interface DanDanAnimeSearchResult {
 }
 
 export const searchAnime = async (
-  params: Partial<DanDanAnimeSearchAPIParams>
+  params: DanDanAnimeSearchAPIParams
 ): Promise<DanDanAnimeSearchResult> => {
   const url = `${API_ROOT}/api/v2/search/episodes?${new URLSearchParams(
     params

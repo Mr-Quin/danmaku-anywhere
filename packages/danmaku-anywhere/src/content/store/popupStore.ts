@@ -1,24 +1,45 @@
 import { DanDanAnime } from '@danmaku-anywhere/danmaku-engine'
 import { create } from 'zustand'
 
+export enum PopupTab {
+  Info = 'info',
+  Search = 'search',
+  Selector = 'selector',
+}
+
 interface PopupStoreState {
-  duration: number
   key: any
   isOpen: boolean
   animes: DanDanAnime[]
-  open: (animes: DanDanAnime[]) => void
+  setAnimes: (animes: DanDanAnime[]) => void
+  searchTitle: string
+  setSearchTitle: (title: string) => void
+  tab: PopupTab
+  setTab: (tab: PopupTab) => void
+  open: (params: { animes?: DanDanAnime[]; tab?: PopupTab }) => void
   close: () => void
 }
 
 export const usePopup = create<PopupStoreState>((set) => ({
   isOpen: false,
-  duration: 3000,
   key: 0,
   animes: [],
-  open: (animes) => {
+  setAnimes: (animes) => {
+    set({ animes })
+  },
+  searchTitle: '',
+  setSearchTitle: (title) => {
+    set({ searchTitle: title })
+  },
+  tab: PopupTab.Search,
+  setTab: (tab) => {
+    set({ tab })
+  },
+  open: ({ animes = [], tab }) => {
     set({ isOpen: true, animes: animes })
+    if (tab) set({ tab })
   },
   close: () => {
-    set({ isOpen: false, animes: [] })
+    set({ isOpen: false })
   },
 }))

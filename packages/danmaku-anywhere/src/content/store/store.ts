@@ -11,11 +11,14 @@ interface StoreState {
   setComments: (comments: DanDanComment[]) => void
   mediaInfo?: MediaState
   setMediaInfo: (mediaInfo: MediaState) => void
-  status?: PlaybackStatus
+  status: PlaybackStatus
   setStatus: (status: PlaybackStatus) => void
+  danmakuMeta?: DanmakuMeta
+  setDanmakuMeta: (danmakuMeta: DanmakuMeta) => void
   activeObserver?: MediaObserver
   integration?: string
   setActiveObserver: (name: string, observer: MediaObserver) => void
+  resetMediaState: () => void
 }
 
 export const useStore = create<StoreState>((set) => ({
@@ -23,10 +26,20 @@ export const useStore = create<StoreState>((set) => ({
   setComments: (comments) => set({ comments }),
   mediaInfo: undefined,
   setMediaInfo: (mediaInfo) => set({ mediaInfo }),
-  status: undefined,
+  status: 'stopped',
   setStatus: (status) => set({ status }),
+  danmakuMeta: undefined,
+  setDanmakuMeta: (danmakuMeta) => set({ danmakuMeta }),
   activeObserver: undefined,
   integration: undefined,
   setActiveObserver: (name, observer) =>
     set({ integration: name, activeObserver: observer }),
+  resetMediaState: () =>
+    set({
+      comments: [],
+      mediaInfo: undefined,
+      status: 'stopped',
+      danmakuMeta: undefined,
+      // don't reset observer and integration
+    }),
 }))

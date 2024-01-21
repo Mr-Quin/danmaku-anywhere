@@ -1,6 +1,6 @@
 {
   "name": "@mr-quin/danmaku-anywhere",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "Browser extension for danmaku-anywhere",
   "keywords": [],
@@ -20,20 +20,20 @@
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
     "@fontsource/roboto": "^5.0.8",
-    "@mui/icons-material": "^5.15.3",
+    "@mui/icons-material": "^5.15.5",
     "@mui/lab": "5.0.0-alpha.148",
-    "@mui/material": "^5.15.3",
-    "@tanstack/react-query": "5.0.0-beta.15",
+    "@mui/material": "^5.15.5",
+    "@tanstack/react-query": "5.17.10",
     "dexie": "^3.2.4",
     "dexie-react-hooks": "^1.1.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.21.1"
+    "react-router-dom": "^6.21.3"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "2.0.0-beta.18",
     "@types/chrome": "^0.0.242",
-    "@types/react": "^18.2.47",
+    "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
     "@vitejs/plugin-react": "^4.2.1",
     "urlpattern-polyfill": "^9.0.0"
