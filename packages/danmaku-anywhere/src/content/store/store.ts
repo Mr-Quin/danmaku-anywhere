@@ -5,6 +5,7 @@ import {
   MediaState,
   PlaybackStatus,
 } from '../integration/MediaObserver'
+import { DanmakuMeta } from '@/common/db'
 
 interface StoreState {
   comments: DanDanComment[]
