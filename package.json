@@ -12,7 +12,7 @@
   "repository": "https://github.com/Mr-Quin/plex-danmaku",
   "scripts": {
     "build": "pnpm -r build",
-    "format": "prettier --write ."
+    "format": "pnpm -r format"
   },
   "dependencies": {
     "zustand": "^4.4.7"
