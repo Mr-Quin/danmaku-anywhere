@@ -19,10 +19,24 @@ module.exports = {
     },
   },
   rules: {
-    'prettier/prettier': 'error',
-    '@typescript-eslint/no-unused-vars': 'error',
-    'import/order': 'error',
     '@typescript-eslint/ban-ts-comment': 'off',
+    '@typescript-eslint/no-unused-vars': 'error',
+    'prettier/prettier': 'error',
+    'import/order': [
+      'error',
+      {
+        'newlines-between': 'always',
+        alphabetize: { order: 'asc', caseInsensitive: true },
+      },
+    ],
+    'import/no-unused-modules': ['error', { unusedExports: true }],
+    'import/no-useless-path-segments': [
+      'error',
+      {
+        noUselessIndex: true,
+      },
+    ],
+    'import/no-relative-packages': 'error',
     'react/jsx-curly-brace-presence': [
       'error',
       { props: 'never', children: 'never', propElementValues: 'always' },

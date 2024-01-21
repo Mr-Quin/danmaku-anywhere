@@ -1,8 +1,10 @@
 import { crx } from '@crxjs/vite-plugin'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
+
 import { manifest } from './manifest'
 
+// eslint-disable-next-line import/no-unused-modules
 export default defineConfig({
   plugins: [react({}), crx({ manifest })],
   resolve: {

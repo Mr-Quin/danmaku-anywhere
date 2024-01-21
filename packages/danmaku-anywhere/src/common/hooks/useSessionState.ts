@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+
 import { useExtStorage } from '@/common/hooks/useExtStorage'
 
 // persist state to chrome.storage.session

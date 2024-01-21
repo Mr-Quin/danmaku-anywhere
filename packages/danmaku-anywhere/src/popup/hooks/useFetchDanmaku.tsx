@@ -1,5 +1,6 @@
-import { useState } from 'react'
 import { DanDanCommentAPIResult } from '@danmaku-anywhere/danmaku-engine'
+import { useState } from 'react'
+
 import { danmakuMessage } from '@/common/messages/danmakuMessage'
 
 export const useFetchDanmaku = () => {

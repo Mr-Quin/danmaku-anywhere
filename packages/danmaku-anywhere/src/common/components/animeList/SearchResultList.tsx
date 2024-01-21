@@ -1,7 +1,9 @@
 import { DanDanAnime, DanDanEpisode } from '@danmaku-anywhere/danmaku-engine'
 import { Box, List, ListItem, ListItemText, ListSubheader } from '@mui/material'
 import React, { useId } from 'react'
+
 import { AnimeTypeIcon } from './AnimeTypeIcon'
+
 import { CollapsableListItems } from '@/common/components/animeList/CollapsableListItems'
 
 interface SearchResultListProps {

@@ -1,7 +1,10 @@
 import { Box, Collapse, Stack } from '@mui/material'
+
 import { useStore } from '../store'
+
 import { AnimeSearch } from './AnimeSearch'
 import { EpisodeListItem } from './EpisodeListItem'
+
 import { SearchResultList } from '@/common/components/animeList/SearchResultList'
 
 export const SearchPage = () => {

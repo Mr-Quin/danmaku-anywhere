@@ -1,13 +1,15 @@
 import { useDanmakuEngine } from '@danmaku-anywhere/danmaku-engine'
 import { useEffect } from 'react'
 import { useShallow } from 'zustand/react/shallow'
-import { useToast } from '../store/toastStore'
+
 import { useStore } from '../store/store'
+import { useToast } from '../store/toastStore'
+
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMatchMountConfig'
-import { logger } from '@/common/logger'
-import { useNodeMonitor } from '@/content/hooks/useNodeMonitor'
-import { DanmakuControlMessage } from '@/common/messages/danmakuControlMessage'
 import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
+import { logger } from '@/common/logger'
+import { DanmakuControlMessage } from '@/common/messages/danmakuControlMessage'
+import { useNodeMonitor } from '@/content/hooks/useNodeMonitor'
 
 // listen to comment changes and mount/unmount the danmaku engine
 export const useDanmakuManager = () => {

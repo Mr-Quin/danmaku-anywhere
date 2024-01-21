@@ -1,3 +1,4 @@
+import { Update } from '@mui/icons-material'
 import {
   Autocomplete,
   Box,
@@ -10,12 +11,13 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import { HTMLAttributes, SyntheticEvent } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Update } from '@mui/icons-material'
+import { HTMLAttributes, SyntheticEvent } from 'react'
+
 import { useFetchDanmaku } from '../hooks/useFetchDanmaku'
-import { useSessionState } from '@/common/hooks/useSessionState'
+
 import { DanmakuCache, db } from '@/common/db'
+import { useSessionState } from '@/common/hooks/useSessionState'
 import { danmakuControlMessage } from '@/common/messages/danmakuControlMessage'
 
 const filterOptions = createFilterOptions({

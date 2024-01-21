@@ -12,7 +12,7 @@
     "dev": "vite",
     "build": "tsc && vite build --outDir build --emptyOutDir",
     "preview": "vite preview",
-    "lint": "eslint --ext .js,.jsx,.ts,.tsx --fix . && pnpm run format && tsc",
+    "lint": "tsc && eslint --ext .js,.jsx,.ts,.tsx --fix .",
     "format": "prettier --write . --ignore-path ../../.prettierignore",
     "package": "pnpm run build && node ./scripts/package.js"
   },

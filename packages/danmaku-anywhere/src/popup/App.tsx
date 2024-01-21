@@ -7,15 +7,16 @@ import {
   Tab,
   Tabs,
 } from '@mui/material'
-import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { useEffect, useState } from 'react'
+
+import { ConfigPage } from './config/ConfigPage'
 import { SearchPage } from './search/SearchPage'
 import { useStore } from './store'
-import { ConfigPage } from './config/ConfigPage'
-import { ControlPage } from '@/popup/control/ControlPage'
 
 import { db } from '@/common/db'
 import { getActiveTab } from '@/common/utils'
+import { ControlPage } from '@/popup/control/ControlPage'
 
 const App = () => {
   const [tab, setTab] = useState(0)

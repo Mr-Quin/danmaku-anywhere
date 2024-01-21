@@ -1,5 +1,7 @@
 import { DanDanAnimeSearchResult } from '@danmaku-anywhere/danmaku-engine'
+
 import { logger } from '../logger'
+
 import { PayloadOf } from './message'
 
 export type AnimeMessage = {

@@ -1,14 +1,16 @@
 import { DanmakuMessage } from '../common/messages/danmakuMessage'
-import { iconService } from './services/icon'
-import { danmakuService } from './services/danmaku'
+
 import { animeService } from './services/anime'
+import { danmakuService } from './services/danmaku'
+import { iconService } from './services/icon'
+
+import { defaultDanmakuOptions } from '@/common/constants/danmakuOptions'
 import { defaultMountConfig } from '@/common/constants/mountConfig'
 import { logger } from '@/common/logger'
+import { AnimeMessage } from '@/common/messages/animeMessage'
+import { IconMessage } from '@/common/messages/iconMessage'
 import { MessageOf } from '@/common/messages/message'
 import { MessageRouter } from '@/common/messages/MessageRouter'
-import { IconMessage } from '@/common/messages/iconMessage'
-import { defaultDanmakuOptions } from '@/common/constants/danmakuOptions'
-import { AnimeMessage } from '@/common/messages/animeMessage'
 
 chrome.runtime.onInstalled.addListener(async () => {
   // set default config on install, if not exists

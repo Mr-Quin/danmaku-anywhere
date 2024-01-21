@@ -1,4 +1,6 @@
-import { useRef, useState } from 'react'
+import { DanDanAnime, DanDanEpisode } from '@danmaku-anywhere/danmaku-engine'
+import { Check } from '@mui/icons-material'
+import { LoadingButton } from '@mui/lab'
 import {
   Box,
   Autocomplete,
@@ -10,12 +12,11 @@ import {
   Divider,
   Typography,
 } from '@mui/material'
+import { useRef, useState } from 'react'
 
-import { DanDanAnime, DanDanEpisode } from '@danmaku-anywhere/danmaku-engine'
-import { LoadingButton } from '@mui/lab'
-import { Check } from '@mui/icons-material'
-import { usePopup } from '../store/popupStore'
 import { useFetchAndSetDanmaku } from '../hooks/useFetchAndSetDanmaku'
+import { usePopup } from '../store/popupStore'
+
 import { AnimeTypeIcon } from '@/common/components/animeList/AnimeTypeIcon'
 
 export const SelectorPanel = () => {

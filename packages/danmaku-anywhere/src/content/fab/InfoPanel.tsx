@@ -1,4 +1,5 @@
 import { Box } from '@mui/material'
+
 import { useStore } from '../store/store'
 
 export const DanmakuInfo = () => {

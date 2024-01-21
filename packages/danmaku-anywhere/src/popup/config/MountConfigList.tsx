@@ -10,8 +10,9 @@ import {
   Tooltip,
 } from '@mui/material'
 import { useId } from 'react'
-import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
+
 import { MountConfig } from '@/common/constants/mountConfig'
+import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 
 export const MountConfigList = ({
   onEdit,

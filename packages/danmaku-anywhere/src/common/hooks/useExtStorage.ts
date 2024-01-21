@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
+
 import { toArray } from '@/common/utils'
 
-export type StorageType = 'local' | 'sync' | 'session'
+type StorageType = 'local' | 'sync' | 'session'
 
-export type StorageConfig = {
+type StorageConfig = {
   storageType?: StorageType
   placeholderData?: { [key: string]: any }
 }

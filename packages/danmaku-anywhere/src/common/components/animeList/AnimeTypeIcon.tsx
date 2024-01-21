@@ -1,5 +1,6 @@
-import { ListItemIcon, Tooltip } from '@mui/material'
 import { DanDanAnime } from '@danmaku-anywhere/danmaku-engine'
+import { ListItemIcon, Tooltip } from '@mui/material'
+
 import { makeAnimeIcon } from './makeIcon'
 
 interface AnimeTypeIconProps {

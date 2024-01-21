@@ -1,5 +1,6 @@
-import { Fab, FabProps } from '@mui/material'
 import { KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material'
+import { Fab, FabProps } from '@mui/material'
+
 import { useStore } from '../store/store'
 
 interface HiddenFabProps extends FabProps {

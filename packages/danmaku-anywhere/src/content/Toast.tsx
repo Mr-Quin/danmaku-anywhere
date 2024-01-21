@@ -1,4 +1,5 @@
 import { Alert, Snackbar } from '@mui/material'
+
 import { useToast } from './store/toastStore'
 
 export const Toast = () => {
