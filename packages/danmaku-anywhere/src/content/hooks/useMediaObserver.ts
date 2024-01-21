@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useToast } from '../store/toastStore'
-import { usePopup } from '../store/popupStore'
+import { PopupTab, usePopup } from '../store/popupStore'
 import { MediaState } from '../integration/MediaObserver'
 import { useStore } from '../store/store'
 import { observers } from '../integration/observers'
@@ -19,9 +19,11 @@ export const useMediaObserver = () => {
     setMediaInfo,
     status,
     setStatus,
+    setDanmakuMeta,
     activeObserver,
     setActiveObserver,
     setComments,
+    resetMediaState,
   } = useStore()
 
   const config = useMatchMountConfig(window.location.href)
@@ -35,6 +37,8 @@ export const useMediaObserver = () => {
     )
 
     if (!Observer) return // no matching observer found
+
+    Observer.observerName
 
     toast.info(`Using integration: ${config.name}`)
     logger.debug(`Using integration: ${config.name}`)
@@ -51,6 +55,7 @@ export const useMediaObserver = () => {
 
     activeObserver.on({
       mediaChange: async (state: MediaState) => {
+        resetMediaState()
         setMediaInfo(state)
 
         const [result, err] = await tryCatch(() =>
@@ -72,20 +77,24 @@ export const useMediaObserver = () => {
         } else if (result.animes.length > 1) {
           logger.debug('Multiple animes found, open disambiguation')
 
-          // open popup to let user choose which anime to use
-          open(result.animes)
+          open({ animes: result.animes, tab: PopupTab.Selector })
         } else {
+          // only one anime found, continue to fetch danmaku
           const { episodes, animeTitle, animeId } = result.animes[0]
           const { episodeId, episodeTitle } = episodes[0]
 
+          const danmakuMeta = {
+            animeId,
+            animeTitle,
+            episodeId,
+            episodeTitle,
+          }
+
+          setDanmakuMeta(danmakuMeta)
+
           const [res, err] = await tryCatch(() =>
             danmakuMessage.fetch({
-              data: {
-                animeId,
-                animeTitle,
-                episodeId,
-                episodeTitle,
-              },
+              data: danmakuMeta,
               options: {
                 forceUpdate: false,
               },
@@ -115,7 +124,7 @@ export const useMediaObserver = () => {
 
     if (status === 'playing') {
       toast.info(`Playing: ${mediaInfo.toString()}`)
-      logger.debug(`Playing: ${mediaInfo.toString()}`)
+      logger.debug(`Playback started: ${mediaInfo.toString()}`)
     } else if (status === 'paused') {
       logger.debug(`Playback Paused`)
     } else if (status === 'stopped') {

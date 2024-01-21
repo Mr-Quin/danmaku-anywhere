@@ -26,18 +26,35 @@ export const useDanmakuManager = () => {
 
   const danmakuEngine = useDanmakuEngine()
 
+  const { toast } = useToast()
+
   useEffect(() => {
-    if (!options || !container || !node) return
+    if (!options || !container || !node || !mountConfig) return
 
     if (danmakuEngine.created) return
 
-    if (status === 'playing') {
+    if (status === 'playing' && comments.length > 0) {
       logger.debug('Creating danmaku', options)
+      toast.success(
+        `Danmaku mounted: ${mediaInfo?.title} E${mediaInfo?.episode} (${comments.length})`
+      )
       danmakuEngine.create(container, node, comments, options)
     }
-  }, [container, node, comments, options, status])
+  }, [container, node, comments, options, status, mountConfig])
 
-  const { toast } = useToast()
+  useEffect(() => {
+    if (!danmakuEngine.created || !options) return
+
+    logger.debug('Updating danmaku config', options)
+    danmakuEngine.updateConfig(options)
+  }, [options])
+
+  useEffect(() => {
+    if (status === 'stopped') {
+      logger.debug('Destroying danmaku')
+      danmakuEngine.destroy()
+    }
+  }, [status])
 
   useEffect(() => {
     logger.debug({
@@ -46,25 +63,9 @@ export const useDanmakuManager = () => {
       container,
       danmakuEngine,
       mountConfig,
+      status,
     })
   }, [container, node, comments])
-
-  useEffect(() => {
-    if (!mountConfig) return
-
-    if (comments.length > 0) {
-      toast.success(
-        `Danmaku mounted: ${mediaInfo?.title} E${mediaInfo?.episode} (${comments.length})`
-      )
-    }
-  }, [comments])
-
-  useEffect(() => {
-    if (status === 'stopped') {
-      logger.debug('Destroying danmaku')
-      danmakuEngine.destroy()
-    }
-  }, [status])
 
   useEffect(() => {
     const listener = (request: DanmakuControlMessage) => {
