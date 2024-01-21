@@ -1,10 +1,12 @@
 import { DanDanComment } from '@danmaku-anywhere/danmaku-engine'
 import { create } from 'zustand'
+
 import {
   MediaObserver,
   MediaState,
   PlaybackStatus,
 } from '../integration/MediaObserver'
+
 import { DanmakuMeta } from '@/common/db'
 
 interface StoreState {

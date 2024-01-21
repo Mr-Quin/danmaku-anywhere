@@ -1,9 +1,11 @@
 import { Box, Paper, Slide } from '@mui/material'
-
 import { useState } from 'react'
+
 import { useStore } from '../store'
+
 import { MountConfigEditor } from './MountConfigEditor'
 import { MountConfigList } from './MountConfigList'
+
 import {
   MountConfig,
   MountConfigWithoutId,

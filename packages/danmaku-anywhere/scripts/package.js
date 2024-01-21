@@ -33,5 +33,5 @@ exec(`tar -czf ${packageFileName} -C ${buildPath} .`, (error) => {
     console.error('Error occurred:', error)
     return
   }
-  console.log(`Package created: ${packagePath}`)
+  console.log(`Package created: ${packageFileName}`)
 })

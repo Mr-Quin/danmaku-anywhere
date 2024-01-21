@@ -1,7 +1,5 @@
 import { logger } from '@/common/logger'
 
-export const IS_EXTENSION = !!chrome.runtime
-
 export const toArray = <T>(value: T | T[]): T[] => {
   return Array.isArray(value) ? value : [value]
 }

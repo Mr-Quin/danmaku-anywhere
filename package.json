@@ -12,7 +12,8 @@
   "repository": "https://github.com/Mr-Quin/plex-danmaku",
   "scripts": {
     "build": "pnpm -r build",
-    "format": "pnpm -r format"
+    "format": "pnpm -r format",
+    "lint": "pnpm -r lint"
   },
   "dependencies": {
     "zustand": "^4.4.7"

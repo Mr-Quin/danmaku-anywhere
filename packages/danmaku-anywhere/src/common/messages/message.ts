@@ -3,12 +3,12 @@ export interface Message {
   payload?: any
 }
 
-export interface SuccessMessageResponse<P = any> {
+interface SuccessMessageResponse<P = any> {
   success: true
   payload: P
 }
 
-export interface ErrorMessageResponse {
+interface ErrorMessageResponse {
   success: false
   error: string
 }

@@ -1,4 +1,5 @@
 import { DanDanComment } from '@danmaku-anywhere/danmaku-engine'
+
 import { PayloadOf } from './message'
 
 export type DanmakuControlMessage =

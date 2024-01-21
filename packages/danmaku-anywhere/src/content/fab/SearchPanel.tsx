@@ -1,14 +1,16 @@
-import { useEffect } from 'react'
+import { Search } from '@mui/icons-material'
+import { LoadingButton } from '@mui/lab'
 import { Box, Collapse, Divider, Stack, TextField } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
-import { LoadingButton } from '@mui/lab'
-import { Search } from '@mui/icons-material'
-import { useStore } from '../store/store'
-import { usePopup } from '../store/popupStore'
+import { useEffect } from 'react'
+
 import { useFetchAndSetDanmaku } from '../hooks/useFetchAndSetDanmaku'
-import { animeMessage } from '@/common/messages/animeMessage'
-import { SearchResultList } from '@/common/components/animeList/SearchResultList'
+import { usePopup } from '../store/popupStore'
+import { useStore } from '../store/store'
+
 import { BaseEpisodeListItem } from '@/common/components/animeList/BaseEpisodeListItem'
+import { SearchResultList } from '@/common/components/animeList/SearchResultList'
+import { animeMessage } from '@/common/messages/animeMessage'
 
 export const SearchPanel = () => {
   const { setAnimes, searchTitle, setSearchTitle, animes } = usePopup()

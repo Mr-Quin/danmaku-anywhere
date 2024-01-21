@@ -1,3 +1,4 @@
+import type { DanmakuOptions } from '@danmaku-anywhere/danmaku-engine'
 import {
   Slider,
   Switch,
@@ -10,7 +11,7 @@ import {
   TypographyProps,
 } from '@mui/material'
 import { useEffect, useId, useState } from 'react'
-import type { DanmakuOptions } from '@danmaku-anywhere/danmaku-engine'
+
 import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
 
 const filterMarks = [

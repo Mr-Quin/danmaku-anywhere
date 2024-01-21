@@ -1,4 +1,5 @@
 import Danmaku from 'danmaku'
+
 import { DanDanComment, DanDanCommentMode } from './api'
 
 // copied from danmaku

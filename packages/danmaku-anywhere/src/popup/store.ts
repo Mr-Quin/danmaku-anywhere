@@ -1,7 +1,7 @@
 import { DanDanAnime } from '@danmaku-anywhere/danmaku-engine'
 import { create } from 'zustand'
 
-export interface StoreState {
+interface StoreState {
   animeSearchResults: DanDanAnime[] | undefined
   tabUrl: string
   isLoadingTabUrl: boolean

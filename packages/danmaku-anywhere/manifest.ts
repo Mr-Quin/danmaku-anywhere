@@ -1,4 +1,5 @@
 import { defineManifest } from '@crxjs/vite-plugin'
+
 import pkg from './package.json' assert { type: 'json' }
 
 export const manifest = defineManifest({

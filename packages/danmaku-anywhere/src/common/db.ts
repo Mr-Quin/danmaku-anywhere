@@ -1,8 +1,8 @@
-import Dexie from 'dexie'
 import {
   DanDanComment,
   DanDanCommentAPIParams,
 } from '@danmaku-anywhere/danmaku-engine'
+import Dexie from 'dexie'
 
 export interface DanmakuMeta {
   episodeId: number

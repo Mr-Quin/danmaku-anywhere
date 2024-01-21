@@ -1,14 +1,16 @@
 import { useEffect } from 'react'
-import { useToast } from '../store/toastStore'
-import { PopupTab, usePopup } from '../store/popupStore'
+
 import { MediaState } from '../integration/MediaObserver'
-import { useStore } from '../store/store'
 import { observers } from '../integration/observers'
+import { PopupTab, usePopup } from '../store/popupStore'
+import { useStore } from '../store/store'
+import { useToast } from '../store/toastStore'
+
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMatchMountConfig'
 import { logger } from '@/common/logger'
+import { animeMessage } from '@/common/messages/animeMessage'
 import { danmakuMessage } from '@/common/messages/danmakuMessage'
 import { tryCatch } from '@/common/utils'
-import { animeMessage } from '@/common/messages/animeMessage'
 
 export const useMediaObserver = () => {
   const { toast } = useToast()

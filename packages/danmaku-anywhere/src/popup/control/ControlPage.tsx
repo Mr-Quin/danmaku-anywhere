@@ -1,8 +1,10 @@
 import { Box, Typography } from '@mui/material'
 
 import { useStore } from '../store'
-import { MountController } from './MountController'
+
 import { DanmakuOptionsController } from './DanmakuOptionsController'
+import { MountController } from './MountController'
+
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMatchMountConfig'
 
 export const ControlPage = () => {

@@ -1,10 +1,12 @@
 import { Paper, Box, Slide, Tabs, Tab, AppBar } from '@mui/material'
+
 import { PopupTab, usePopup } from '../store/popupStore'
-import { SelectorPanel } from './SelectorPanel'
+
+import { PopupPanelContainer } from './components/PopupPanelContainer'
+import { HiddenFab } from './Fab'
 import { DanmakuInfo } from './InfoPanel'
 import { SearchPanel } from './SearchPanel'
-import { HiddenFab } from './Fab'
-import { PopupPanelContainer } from './components/PopupPanelContainer'
+import { SelectorPanel } from './SelectorPanel'
 
 export const AnimeSelectorPopup = () => {
   const { isOpen, tab, setTab } = usePopup()
