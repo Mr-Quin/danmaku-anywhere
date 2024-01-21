@@ -1,8 +1,13 @@
-import { Fab } from '@mui/material'
+import { Fab, FabProps } from '@mui/material'
 import { KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material'
 import { useStore } from '../store/store'
 
-export const HiddenFab = ({ onOpen, isOpen, ...rest }: Props) => {
+interface HiddenFabProps extends FabProps {
+  onOpen: () => void
+  isOpen: boolean
+}
+
+export const HiddenFab = ({ onOpen, isOpen, ...rest }: HiddenFabProps) => {
   const { status } = useStore()
 
   const getOpacity = () => {
