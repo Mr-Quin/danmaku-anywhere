@@ -2,7 +2,7 @@ import { Search } from '@mui/icons-material'
 import { LoadingButton } from '@mui/lab'
 import { Box, Collapse, Divider, Stack, TextField } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
-import { useEffect } from 'react'
+import { KeyboardEvent, useEffect, useRef } from 'react'
 
 import { useFetchAndSetDanmaku } from '../hooks/useFetchAndSetDanmaku'
 import { usePopup } from '../store/popupStore'
@@ -39,6 +39,12 @@ export const SearchPanel = () => {
     setSearchTitle(mediaInfo.title)
   }, [mediaInfo])
 
+  const handleTextFieldKeyDown = (e: KeyboardEvent) => {
+    // prevent keydown event from triggering global shortcuts
+    if (e.key === 'Escape') return
+    e.stopPropagation()
+  }
+
   return (
     <Box>
       <form
@@ -53,7 +59,11 @@ export const SearchPanel = () => {
               label="Anime Title"
               variant="outlined"
               value={searchTitle}
-              onChange={(e) => setSearchTitle(e.target.value)}
+              onKeyDown={handleTextFieldKeyDown}
+              onKeyPress={handleTextFieldKeyDown}
+              onChange={(e) => {
+                setSearchTitle(e.target.value)
+              }}
               fullWidth
             />
             <LoadingButton
