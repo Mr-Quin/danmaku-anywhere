@@ -43,6 +43,8 @@ export class DanmakuManager {
     comments: DanDanComment[],
     config?: Partial<DanmakuOptions>
   ): void {
+    if (this.created) this.destroy()
+
     this.container = container
     this.media = media
     this.comments = comments

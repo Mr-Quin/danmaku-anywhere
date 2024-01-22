@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-import { MediaState } from '../integration/MediaObserver'
+import { MediaInfo } from '../integration/MediaObserver'
 import { observers } from '../integration/observers'
 import { PopupTab, usePopup } from '../store/popupStore'
 import { useStore } from '../store/store'
@@ -56,14 +56,14 @@ export const useMediaObserver = () => {
     activeObserver.setup()
 
     activeObserver.on({
-      mediaChange: async (state: MediaState) => {
+      mediaChange: async (state: MediaInfo) => {
         resetMediaState()
         setMediaInfo(state)
 
         const [result, err] = await tryCatch(() =>
           animeMessage.search({
             anime: state.title,
-            episode: state.episode.toString(),
+            episode: state.episodic ? state.episode.toString() : '',
           })
         )
 

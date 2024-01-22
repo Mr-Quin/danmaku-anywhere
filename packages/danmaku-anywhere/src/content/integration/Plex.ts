@@ -1,23 +1,45 @@
-import { MediaObserver, MediaState } from './MediaObserver'
+import { MediaObserver, MediaInfo } from './MediaObserver'
 
 // title format
 // ▶ [TITLE] - S[SEASON] · E[EPISODE]
 // [TITLE] - S[SEASON] · E[EPISODE]
 // ▶ [TITLE]
 // [TITLE]
-const titleRegex =
-  /(?<playing>▶\s)?(?<title>.+)\s-\s*S(?<season>\d+)\s*·\s*E(?<episode>\d+)/
+const titleRegex = {
+  episodic:
+    /(?<playing>▶\s)?(?<title>.+)(\s-\s*S(?<season>\d+)\s*·\s*E(?<episode>\d+))/,
+  other: /(?<playing>▶\s)?(?<title>.+)/,
+}
 
 const parseTitle = (title: string) => {
-  const match = titleRegex.exec(title)
+  if (title.toLocaleLowerCase() === 'plex') return
 
-  if (!match) return null
+  const episodicMatch = title.match(titleRegex.episodic)
 
-  return {
-    playing: !!match.groups?.playing,
-    title: match.groups!.title,
-    season: parseInt(match.groups!.season),
-    episode: parseInt(match.groups!.episode),
+  if (episodicMatch?.groups?.season !== undefined) {
+    return {
+      playing: !!episodicMatch.groups?.playing,
+      mediaInfo: new MediaInfo(
+        episodicMatch.groups!.title,
+        parseInt(episodicMatch.groups!.episode),
+        parseInt(episodicMatch.groups!.season),
+        true
+      ),
+    }
+  }
+
+  const match = title.match(titleRegex.other)
+
+  if (match) {
+    return {
+      playing: !!match.groups?.playing,
+      mediaInfo: new MediaInfo(
+        match.groups!.title,
+        undefined,
+        undefined,
+        false
+      ),
+    }
   }
 }
 
@@ -28,60 +50,44 @@ export class PlexObserver extends MediaObserver {
   private title?: string
   private season?: number
   private episode?: number
-  private playing?: boolean
-
-  constructor() {
-    super()
-  }
+  private playing = false
 
   setup() {
-    // assume title element is always present
     const titleElt = document.querySelector('title')!
-
     this.titleObserver = new MutationObserver(this.handleTitleChange.bind(this))
-
     this.titleObserver.observe(titleElt, { childList: true })
 
-    const title = titleElt?.textContent
-
+    const title = titleElt.textContent
     if (!title) return
 
     const titleData = parseTitle(title)
-
     if (!titleData) return
 
-    const mediaState = new MediaState(
-      titleData.title,
-      titleData.episode,
-      titleData.season
-    )
-
-    this.updateState(titleData.playing, mediaState)
+    this.updateState(titleData.playing, titleData.mediaInfo)
   }
 
-  private updateState(isPlaying: boolean, state: MediaState) {
-    if (this.title !== state.title) this.emit('titleChange', state.title)
-    if (this.season !== state.season) this.emit('seasonChange', state.season!)
-    if (this.episode !== state.episode)
-      this.emit('episodeChange', state.episode)
-    if (
-      this.title !== state.title ||
-      this.season !== state.season ||
-      this.episode !== state.episode
-    ) {
-      this.emit('mediaChange', state)
+  private updateState(isPlaying: boolean, info: MediaInfo) {
+    const titleChanged = this.title !== info.title
+    const seasonChanged = this.season !== info.season
+    const episodeChanged = this.episode !== info.episode
+    const statusChanged = isPlaying !== this.playing
+
+    if (titleChanged) this.emit('titleChange', info.title)
+    if (seasonChanged && info.season !== undefined)
+      this.emit('seasonChange', info.season)
+    if (episodeChanged) this.emit('episodeChange', info.episode)
+    if (titleChanged || seasonChanged || episodeChanged) {
+      this.emit('mediaChange', info)
     }
 
-    if (isPlaying !== this.playing) {
-      if (isPlaying) {
-        this.emit('statusChange', 'playing')
-      } else {
-        this.emit('statusChange', 'paused')
-      }
+    if (statusChanged) {
+      const status = isPlaying ? 'playing' : 'paused'
+      this.emit('statusChange', status)
     }
-    this.title = state.title
-    this.season = state.season
-    this.episode = state.episode
+
+    this.title = info.title
+    this.season = info.season
+    this.episode = info.episode
     this.playing = isPlaying
   }
 
@@ -89,25 +95,21 @@ export class PlexObserver extends MediaObserver {
     for (const mutation of mutationList) {
       if (mutation.type === 'childList') {
         const newTitle = mutation.target.textContent
-
         if (!newTitle) continue
 
         const titleData = parseTitle(newTitle)
 
+        // if there's no title data and we have a title, it means the video has ended
         if (!titleData) {
           if (this.title) {
             this.emit('statusChange', 'stopped')
+            this.playing = false
+            this.title = undefined
           }
           continue
         }
 
-        const mediaState = new MediaState(
-          titleData.title,
-          titleData.episode,
-          titleData.season
-        )
-
-        this.updateState(titleData.playing, mediaState)
+        this.updateState(titleData.playing, titleData.mediaInfo)
       }
     }
   }
@@ -115,6 +117,5 @@ export class PlexObserver extends MediaObserver {
   destroy() {
     super.destroy()
     this.titleObserver?.disconnect()
-    this.titleObserver = undefined
   }
 }

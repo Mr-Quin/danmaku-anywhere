@@ -2,7 +2,7 @@ import { Search } from '@mui/icons-material'
 import { LoadingButton } from '@mui/lab'
 import { Box, Collapse, Divider, Stack, TextField } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
-import { KeyboardEvent, useEffect, useRef } from 'react'
+import { KeyboardEvent, useEffect } from 'react'
 
 import { useFetchAndSetDanmaku } from '../hooks/useFetchAndSetDanmaku'
 import { usePopup } from '../store/popupStore'
