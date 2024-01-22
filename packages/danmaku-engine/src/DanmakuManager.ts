@@ -54,8 +54,9 @@ export class DanmakuManager {
       comments,
       filterLevelToRatio(this.config.filterLevel)
     )
+
     const parsedComments = transformDanDanComments(
-      sampledComments,
+      Array.from(sampledComments),
       this.config.style
     )
 
