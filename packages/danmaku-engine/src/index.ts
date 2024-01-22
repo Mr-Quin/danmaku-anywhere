@@ -1,8 +1,7 @@
 export * from './api'
-export * from './store'
+export * from './DanmakuManager'
 export * from './parser'
-export { default as DanmakuEngine } from 'danmaku'
 
-import { store } from './store'
+import { DanmakuManager } from './DanmakuManager'
 
-export default store
+export default DanmakuManager

@@ -1,5 +1,3 @@
-import Danmaku from 'danmaku'
-
 import { DanDanComment, DanDanCommentMode } from './api'
 
 // copied from danmaku
@@ -106,8 +104,4 @@ export const sampleComments = (comments: DanDanComment[], ratio: number) => {
     filteredComments.push(comments[i * gap])
   }
   return filteredComments
-}
-
-export const createDanmakuEngine = (opts: DanmakuOption) => {
-  return new Danmaku(opts)
 }

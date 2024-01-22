@@ -1,13 +1,16 @@
 import { createPortal } from 'preact/compat'
 import { useEffect } from 'preact/hooks'
+
 import { useCreatePlexDanmaku } from '../hooks/useCreatePlexDanmaku'
 import { useCreatePlexPortal } from '../hooks/useCreatePlexPortal'
 import { useFetchMedia } from '../hooks/useFetchPlexMedia'
 import { useMonitorPlexToolbar } from '../hooks/useMonitorPlexToolbar'
 import { useParsePlexMedia } from '../hooks/useParsePlexMedia'
+
 import { PlexToolbar } from './PlexToolbar'
-import { logger } from '@/utils/logger'
+
 import { useStore } from '@/store/store'
+import { logger } from '@/utils/logger'
 
 export const Plex = () => {
   const resetDanmaku = useStore.use.resetDanmaku()

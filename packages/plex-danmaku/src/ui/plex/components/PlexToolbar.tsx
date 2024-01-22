@@ -2,9 +2,12 @@ import { Ref } from 'preact'
 import { createPortal, forwardRef, PropsWithChildren } from 'preact/compat'
 import { useEffect, useRef, useState } from 'preact/hooks'
 import { shallow } from 'zustand/shallow'
+
 import { getDanmakuContainer } from '../plexMediaUtils'
+
 import styles from './plex.module.scss'
 import { PlexButton } from './PlexButton'
+
 import { useDanmaku, useStore } from '@/store/store'
 import { ClickawayListener } from '@/ui/components/ClickawayListener'
 import {

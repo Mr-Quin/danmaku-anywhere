@@ -1,9 +1,11 @@
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-engine'
 import { ComponentProps } from 'preact'
 import { TargetedEvent } from 'preact/compat'
+
 import styles from './panel.module.scss'
 import { PopupPanelWrapper } from './PopupPanelWrapper'
 import { SectionHeader } from './SectionHeader'
+
 import { useDanmaku, useStore } from '@/store/store'
 
 interface SliderInputProps extends Omit<ComponentProps<'input'>, 'onChange'> {

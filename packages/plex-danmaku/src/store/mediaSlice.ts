@@ -4,7 +4,9 @@ import {
   searchAnime,
 } from '@danmaku-anywhere/danmaku-engine'
 import { StateCreator } from 'zustand'
+
 import type { State } from './store'
+
 import { logger } from '@/utils/logger'
 
 interface MediaInfo {

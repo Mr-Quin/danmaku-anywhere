@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'preact/hooks'
+
 import {
   getEpisodeInfo,
   mediaChangeType,
   PlexMediaInfo,
 } from '../plexMediaUtils'
+
 import { useStore } from '@/store/store'
 
 export const useParsePlexMedia = () => {

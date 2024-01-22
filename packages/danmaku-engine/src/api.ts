@@ -22,7 +22,7 @@ export interface DanDanAnime {
 
 export type DanDanAnimeSearchAPIParams = {
   anime: string
-  episode: string
+  episode?: string
 }
 
 export interface DanDanAnimeSearchResult {
@@ -33,12 +33,14 @@ export interface DanDanAnimeSearchResult {
   success: boolean
 }
 
-export const searchAnime = async (
-  params: DanDanAnimeSearchAPIParams
-): Promise<DanDanAnimeSearchResult> => {
-  const url = `${API_ROOT}/api/v2/search/episodes?${new URLSearchParams(
-    params
-  )}`
+export const searchAnime = async ({
+  anime,
+  episode = '',
+}: DanDanAnimeSearchAPIParams): Promise<DanDanAnimeSearchResult> => {
+  const url = `${API_ROOT}/api/v2/search/episodes?${new URLSearchParams({
+    anime,
+    episode,
+  })}`
 
   const res = await fetch(url)
 

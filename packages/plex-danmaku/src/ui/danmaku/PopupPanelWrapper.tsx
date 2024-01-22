@@ -1,5 +1,6 @@
 import { ComponentProps } from 'preact'
 import { forwardRef } from 'preact/compat'
+
 import styles from './panel.module.scss'
 
 type PopupPanelWrapperProps = ComponentProps<'div'>

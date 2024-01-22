@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
+
 import { logger } from '@/utils/logger'
 
 const getMountRoot = () =>

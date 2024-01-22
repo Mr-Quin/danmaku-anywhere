@@ -1,5 +1,6 @@
 import { ComponentProps } from 'preact'
 import { forwardRef } from 'preact/compat'
+
 import styles from './plex.module.scss'
 
 interface PlexButtonProps extends ComponentProps<'button'> {

@@ -1,7 +1,9 @@
 import { parseDanDanCommentParams } from '@danmaku-anywhere/danmaku-engine'
+
 import styles from './panel.module.scss'
 import { PopupPanelWrapper } from './PopupPanelWrapper'
 import { SectionHeader } from './SectionHeader'
+
 import { useDanmaku } from '@/store/store'
 
 const timeToHMS = (time: number) => {
