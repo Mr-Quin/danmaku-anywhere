@@ -1,24 +1,24 @@
 import {
-  createDanmakuEngine,
+  DanmakuManager,
   DanDanChConvert,
   DanDanComment,
   DanDanCommentAPIParams,
-  DanmakuEngine,
   fetchComments,
-  transformDanDanComments,
 } from '@danmaku-anywhere/danmaku-engine'
 import { StateCreator } from 'zustand'
-import type { State } from './store'
-import { logger } from '@/utils/logger'
-import { debounce } from '@/utils/debounce'
 
-export interface DanmakuStyle {
+import type { State } from './store'
+
+import { debounce } from '@/utils/debounce'
+import { logger } from '@/utils/logger'
+
+interface DanmakuStyle {
   opacity: number
   fontSize: number
   fontFamily: string
 }
 
-export interface DanmakuConfig {
+interface DanmakuConfig {
   style: DanmakuStyle
   autoFetch: boolean
   enabled: boolean
@@ -30,7 +30,7 @@ export interface DanmakuConfig {
 
 interface DanmakuData {
   config: DanmakuConfig
-  engine: DanmakuEngine | null
+  engine: DanmakuManager | null
   container: HTMLElement | null
   media: HTMLMediaElement | null
   comments: DanDanComment[] | null
@@ -60,7 +60,7 @@ export interface DanmakuSlice {
   createDanmaku: (
     container: HTMLElement,
     media: HTMLMediaElement
-  ) => DanmakuEngine | null
+  ) => DanmakuManager | null
   // updates danmaku config and also update the danmaku engine
   toggleDanmaku: () => void
   setDanmakuSpeed: (speed: number) => void
@@ -221,13 +221,12 @@ export const createDanmakuSlice: StateCreator<State, [], [], DanmakuSlice> = (
 
     get().destroyDanmaku()
 
-    const danmakuEngine = createDanmakuEngine({
-      container,
-      media,
-      comments: transformDanDanComments(comments, config.style),
-    })
+    const danmakuEngine = new DanmakuManager()
 
-    danmakuEngine.speed = config.speed
+    danmakuEngine.create(container, media, comments, {
+      style: config.style,
+      speed: config.speed,
+    })
 
     if (!config.enabled) danmakuEngine.hide()
 
@@ -263,7 +262,9 @@ export const createDanmakuSlice: StateCreator<State, [], [], DanmakuSlice> = (
     })
 
     if (engine) {
-      engine.speed = speed
+      engine.updateConfig({
+        speed,
+      })
     }
   },
   resetDanmaku: () => {

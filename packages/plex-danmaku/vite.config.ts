@@ -4,6 +4,7 @@ import eslint from 'vite-plugin-eslint'
 import monkey, { cdn } from 'vite-plugin-monkey'
 
 // https://vitejs.dev/config/
+// eslint-disable-next-line import/no-unused-modules
 export default defineConfig({
   build: {
     minify: 'esbuild',

@@ -1,5 +1,5 @@
-import { useDanmakuEngine } from '@danmaku-anywhere/danmaku-engine'
-import { useEffect } from 'react'
+import { DanmakuManager } from '@danmaku-anywhere/danmaku-engine'
+import { useEffect, useMemo } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 
 import { useStore } from '../store/store'
@@ -26,7 +26,7 @@ export const useDanmakuManager = () => {
   const container = useNodeMonitor(mountConfig?.containerQuery)
   const node = useNodeMonitor<HTMLVideoElement>(mountConfig?.mediaQuery)
 
-  const danmakuEngine = useDanmakuEngine()
+  const danmakuEngine = useMemo(() => new DanmakuManager(), [])
 
   const { toast } = useToast()
 

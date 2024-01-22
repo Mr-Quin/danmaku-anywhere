@@ -1,10 +1,12 @@
 import { DanDanAnime } from '@danmaku-anywhere/danmaku-engine'
 import { useEffect, useState } from 'preact/hooks'
+
 import styles from './panel.module.scss'
 import { PopupPanelWrapper } from './PopupPanelWrapper'
 import { SectionHeader } from './SectionHeader'
-import { logger } from '@/utils/logger'
+
 import { useMedia, useStore } from '@/store/store'
+import { logger } from '@/utils/logger'
 
 const getIcon = (type: DanDanAnime['type']) => {
   switch (type) {

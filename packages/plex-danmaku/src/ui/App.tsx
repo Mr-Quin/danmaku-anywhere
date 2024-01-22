@@ -1,5 +1,7 @@
 import { useEffect } from 'preact/hooks'
+
 import { Plex } from './plex/components/Plex'
+
 import { useStore } from '@/store/store'
 import { debounce } from '@/utils/debounce'
 import { logger } from '@/utils/logger'

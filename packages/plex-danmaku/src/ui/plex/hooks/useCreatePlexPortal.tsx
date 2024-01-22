@@ -1,4 +1,5 @@
 import { useEffect } from 'preact/hooks'
+
 import { logger } from '@/utils/logger'
 
 export const useCreatePlexPortal = () => {

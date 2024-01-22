@@ -1,13 +1,15 @@
 import { DanDanAnime } from '@danmaku-anywhere/danmaku-engine'
 import { useEffect, useRef } from 'preact/hooks'
+
 import {
   matchAnimeEpisode,
   matchAnimeTitle,
   mediaChangeType,
   PlexMediaInfo,
 } from '../plexMediaUtils'
-import { logger } from '@/utils/logger'
+
 import { useMedia, useStore } from '@/store/store'
+import { logger } from '@/utils/logger'
 
 export const useFetchMedia = (mediaInfo: PlexMediaInfo | null) => {
   const { meta } = useMedia()
