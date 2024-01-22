@@ -3,7 +3,7 @@ import { create } from 'zustand'
 
 import {
   MediaObserver,
-  MediaState,
+  MediaInfo,
   PlaybackStatus,
 } from '../integration/MediaObserver'
 
@@ -12,8 +12,8 @@ import { DanmakuMeta } from '@/common/db'
 interface StoreState {
   comments: DanDanComment[]
   setComments: (comments: DanDanComment[]) => void
-  mediaInfo?: MediaState
-  setMediaInfo: (mediaInfo: MediaState) => void
+  mediaInfo?: MediaInfo
+  setMediaInfo: (mediaInfo: MediaInfo) => void
   status: PlaybackStatus
   setStatus: (status: PlaybackStatus) => void
   danmakuMeta?: DanmakuMeta

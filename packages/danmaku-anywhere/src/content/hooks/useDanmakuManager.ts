@@ -23,20 +23,29 @@ export const useDanmakuManager = () => {
     })
   )
 
+  const { toast } = useToast()
+
   const container = useNodeMonitor(mountConfig?.containerQuery)
   const node = useNodeMonitor<HTMLVideoElement>(mountConfig?.mediaQuery)
 
   const danmakuEngine = useMemo(() => new DanmakuManager(), [])
 
-  const { toast } = useToast()
-
   useEffect(() => {
+    // if danmaku is created, destroy it when status is stopped
+    if (danmakuEngine.created) {
+      if (status === 'stopped') {
+        logger.debug('Destroying danmaku')
+        danmakuEngine.destroy()
+      }
+      return
+    }
+
+    // if media is not ready, do nothing
     if (!options || !container || !node || !mountConfig) return
 
-    if (danmakuEngine.created) return
-
+    // if danmaku is not created, create it when status is playing
     if (status === 'playing' && comments.length > 0) {
-      logger.debug('Creating danmaku', options)
+      logger.debug('Creating danmaku')
       toast.success(
         `Danmaku mounted: ${mediaInfo?.title} E${mediaInfo?.episode} (${comments.length})`
       )
@@ -52,17 +61,7 @@ export const useDanmakuManager = () => {
   }, [options])
 
   useEffect(() => {
-    if (status === 'stopped') {
-      logger.debug('Destroying danmaku')
-      danmakuEngine.destroy()
-    }
-  }, [status])
-
-  useEffect(() => {
     logger.debug({
-      comments: comments.length,
-      node,
-      container,
       danmakuEngine,
       mountConfig,
       status,

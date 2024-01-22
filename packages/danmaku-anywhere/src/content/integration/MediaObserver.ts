@@ -1,13 +1,15 @@
 export type PlaybackStatus = 'playing' | 'paused' | 'stopped'
 
-export class MediaState {
+export class MediaInfo {
   constructor(
     public title: string,
-    public episode: number,
-    public season?: number
+    public episode: number = 1,
+    public season?: number,
+    public episodic?: boolean
   ) {}
 
   toString() {
+    if (!this.episodic) return `${this.title}`
     if (!this.season) return `${this.title} E${this.episode}`
     return `${this.title} S${this.season}E${this.episode}`
   }
@@ -17,7 +19,7 @@ interface IntegrationHandlers {
   titleChange: (title: string) => void
   seasonChange: (season: number) => void
   episodeChange: (episode: number) => void
-  mediaChange: (state: MediaState) => void
+  mediaChange: (state: MediaInfo) => void
   statusChange: (status: PlaybackStatus) => void
   error: (err: Error) => void
 }
