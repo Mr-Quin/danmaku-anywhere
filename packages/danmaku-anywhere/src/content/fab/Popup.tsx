@@ -1,4 +1,5 @@
 import { Paper, Box, Slide, Tabs, Tab, AppBar } from '@mui/material'
+import { useEffect } from 'react'
 
 import { PopupTab, usePopup } from '../store/popupStore'
 
@@ -29,6 +30,20 @@ export const AnimeSelectorPopup = () => {
         return <SelectorPanel />
     }
   }
+
+  // Close popup when press ESC
+  useEffect(() => {
+    const listener = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        usePopup.setState({ isOpen: false })
+      }
+    }
+    window.addEventListener('keydown', listener)
+
+    return () => {
+      window.removeEventListener('keydown', listener)
+    }
+  }, [isOpen])
 
   return (
     <Box
