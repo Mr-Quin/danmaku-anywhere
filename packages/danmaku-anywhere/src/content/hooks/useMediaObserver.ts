@@ -67,18 +67,30 @@ export const useMediaObserver = () => {
           })
         )
 
+        const handleError = () => {
+          setDanmakuMeta(undefined)
+          setComments([])
+        }
+
         if (err) {
           toast.error(`Failed to search for anime: ${state.title}`)
+          handleError()
           return
         }
 
         if (result.animes.length === 0) {
           toast.error(`No anime found for ${state.toString()}`)
-        } else if (result.animes.length > 1) {
+          handleError()
+          return
+        }
+        if (result.animes.length > 1) {
           Logger.debug('Multiple animes found, open disambiguation')
 
           open({ animes: result.animes, tab: PopupTab.Selector })
-        } else {
+          return
+        }
+        // use a block to scope the variables
+        {
           // only one anime found, continue to fetch danmaku
           const { episodes, animeTitle, animeId } = result.animes[0]
           const { episodeId, episodeTitle } = episodes[0]
@@ -105,6 +117,7 @@ export const useMediaObserver = () => {
             toast.error(
               `Failed to fetch danmaku: ${animeTitle} E${episodeTitle}`
             )
+            handleError()
             return
           }
 
