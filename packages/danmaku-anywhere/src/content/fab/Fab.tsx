@@ -9,7 +9,7 @@ interface HiddenFabProps extends FabProps {
 }
 
 export const HiddenFab = ({ onOpen, isOpen, ...rest }: HiddenFabProps) => {
-  const { status } = useStore()
+  const status = useStore((state) => state.status)
 
   const getOpacity = () => {
     if (isOpen) return 1

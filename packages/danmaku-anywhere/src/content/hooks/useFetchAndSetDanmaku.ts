@@ -1,7 +1,7 @@
 import { usePopup } from '../store/popupStore'
 import { useStore } from '../store/store'
 
-import { DanmakuMeta } from '@/common/db'
+import { DanmakuMeta } from '@/common/db/db'
 import { useFetchDanmaku } from '@/popup/hooks/useFetchDanmaku'
 
 export const useFetchAndSetDanmaku = () => {

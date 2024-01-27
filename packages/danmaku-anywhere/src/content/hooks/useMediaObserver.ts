@@ -7,9 +7,9 @@ import { useStore } from '../store/store'
 import { useToast } from '../store/toastStore'
 
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMatchMountConfig'
-import { logger } from '@/common/logger'
 import { animeMessage } from '@/common/messages/animeMessage'
 import { danmakuMessage } from '@/common/messages/danmakuMessage'
+import { Logger } from '@/common/services/Logger'
 import { tryCatch } from '@/common/utils'
 
 export const useMediaObserver = () => {
@@ -43,7 +43,7 @@ export const useMediaObserver = () => {
     Observer.observerName
 
     toast.info(`Using integration: ${config.name}`)
-    logger.debug(`Using integration: ${config.name}`)
+    Logger.debug(`Using integration: ${config.name}`)
 
     const obs = new Observer()
 
@@ -73,11 +73,9 @@ export const useMediaObserver = () => {
         }
 
         if (result.animes.length === 0) {
-          toast.error(
-            `No anime found for ${state.title} S${state.season} E${state.episode}`
-          )
+          toast.error(`No anime found for ${state.toString()}`)
         } else if (result.animes.length > 1) {
-          logger.debug('Multiple animes found, open disambiguation')
+          Logger.debug('Multiple animes found, open disambiguation')
 
           open({ animes: result.animes, tab: PopupTab.Selector })
         } else {
@@ -126,11 +124,11 @@ export const useMediaObserver = () => {
 
     if (status === 'playing') {
       toast.info(`Playing: ${mediaInfo.toString()}`)
-      logger.debug(`Playback started: ${mediaInfo.toString()}`)
+      Logger.debug(`Playback started: ${mediaInfo.toString()}`)
     } else if (status === 'paused') {
-      logger.debug(`Playback Paused`)
+      Logger.debug(`Playback Paused`)
     } else if (status === 'stopped') {
-      logger.debug(`Playback Stopped`)
+      Logger.debug(`Playback Stopped`)
     }
   }, [status, mediaInfo])
 }

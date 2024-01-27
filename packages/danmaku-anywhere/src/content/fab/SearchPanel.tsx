@@ -14,7 +14,7 @@ import { animeMessage } from '@/common/messages/animeMessage'
 
 export const SearchPanel = () => {
   const { setAnimes, searchTitle, setSearchTitle, animes } = usePopup()
-  const { mediaInfo } = useStore()
+  const mediaInfo = useStore((state) => state.mediaInfo)
 
   const { data, isFetching, isFetched, isSuccess, refetch } = useQuery({
     queryKey: ['anime'],

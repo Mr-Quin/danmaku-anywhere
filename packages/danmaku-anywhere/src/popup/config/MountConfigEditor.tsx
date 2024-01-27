@@ -23,7 +23,7 @@ import {
   MountConfigWithoutId,
 } from '@/common/constants/mountConfig'
 import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
-import { logger } from '@/common/logger'
+import { Logger } from '@/common/services/Logger'
 import { createUrlPattern, getOrigin } from '@/common/utils'
 
 const validatePattern = (pattern: string) => {
@@ -31,7 +31,7 @@ const validatePattern = (pattern: string) => {
     createUrlPattern(pattern)
     return true
   } catch (e) {
-    logger.debug('Invalid pattern', e)
+    Logger.debug('Invalid pattern', e)
     return false
   }
 }

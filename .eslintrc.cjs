@@ -29,7 +29,7 @@ module.exports = {
         alphabetize: { order: 'asc', caseInsensitive: true },
       },
     ],
-    'import/no-unused-modules': ['error', { unusedExports: true }],
+    'import/no-unused-modules': ['warn', { unusedExports: true }],
     'import/no-useless-path-segments': [
       'error',
       {

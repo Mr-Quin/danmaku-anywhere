@@ -36,4 +36,4 @@ const getEnv = () => {
   return 'Content'
 }
 
-export const logger = createLogger(prefix).sub(`[${getEnv()}]`)
+export const Logger = createLogger(prefix).sub(`[${getEnv()}]`)

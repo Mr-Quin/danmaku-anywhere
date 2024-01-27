@@ -6,14 +6,14 @@ import {
 } from '../../common/components/animeList/BaseEpisodeListItem'
 import { useFetchDanmaku } from '../hooks/useFetchDanmaku'
 
-import { db } from '@/common/db'
+import { db } from '@/common/db/db'
 
 export const EpisodeListItem = (props: EpisodeListItemProps) => {
   const { episodeId, episodeTitle } = props
   const { fetch, isLoading } = useFetchDanmaku()
 
   const danmakuData = useLiveQuery(
-    () => db.dandanplay.get(episodeId),
+    () => db.danmakuCache.get(episodeId),
     [episodeId]
   )
 

@@ -1,6 +1,6 @@
 import { DanDanAnimeSearchResult } from '@danmaku-anywhere/danmaku-engine'
 
-import { logger } from '../logger'
+import { Logger } from '../services/Logger'
 
 import { PayloadOf } from './message'
 
@@ -14,7 +14,7 @@ export type AnimeMessage = {
 
 export const animeMessage = {
   search: async (payload: PayloadOf<AnimeMessage, 'anime/search'>) => {
-    logger.debug('Search for anime:', payload)
+    Logger.debug('Search for anime:', payload)
 
     const res = await chrome.runtime.sendMessage({
       action: 'anime/search',
@@ -22,11 +22,11 @@ export const animeMessage = {
     })
 
     if (!res.success) {
-      logger.error(res.error)
+      Logger.error(res.error)
       throw new Error(res.error)
     }
 
-    logger.debug('Anime search success', res.payload)
+    Logger.debug('Anime search success', res.payload)
 
     return res.payload as DanDanAnimeSearchResult
   },

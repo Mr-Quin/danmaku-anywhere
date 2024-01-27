@@ -1,16 +1,18 @@
 import { DanmakuMessage } from '../common/messages/danmakuMessage'
+import { AnimeService } from '../common/services/AnimeService'
 
-import { animeService } from './services/anime'
-import { danmakuService } from './services/danmaku'
-import { iconService } from './services/icon'
+import { DanmakuService } from './services/DanmakuService'
+import { IconService } from './services/IconService'
+import { TitleMappingService } from './services/TitleMappingService'
 
 import { defaultDanmakuOptions } from '@/common/constants/danmakuOptions'
 import { defaultMountConfig } from '@/common/constants/mountConfig'
-import { logger } from '@/common/logger'
 import { AnimeMessage } from '@/common/messages/animeMessage'
 import { IconMessage } from '@/common/messages/iconMessage'
 import { MessageOf } from '@/common/messages/message'
 import { MessageRouter } from '@/common/messages/MessageRouter'
+import { TitleMappingMessage } from '@/common/messages/titleMappingMessage'
+import { Logger } from '@/common/services/Logger'
 
 chrome.runtime.onInstalled.addListener(async () => {
   // set default config on install, if not exists
@@ -25,13 +27,17 @@ chrome.runtime.onInstalled.addListener(async () => {
       await chrome.storage.sync.set({ danmakuOptions: defaultDanmakuOptions })
     }
   } catch (err) {
-    logger.error(err)
+    Logger.error(err)
   }
 
-  logger.info('Danmaku Anywhere Installed')
+  Logger.info('Danmaku Anywhere Installed')
 })
 
 const messageRouter = new MessageRouter()
+const animeService = new AnimeService()
+const iconService = new IconService(chrome)
+const danmakuService = new DanmakuService()
+const titleMappingService = new TitleMappingService()
 
 messageRouter.on<MessageOf<IconMessage, 'icon/set'>>(
   'icon/set',
@@ -59,7 +65,7 @@ messageRouter.on<MessageOf<IconMessage, 'icon/set'>>(
         break
     }
 
-    logger.debug('Icon state set to:', request.state)
+    Logger.debug('Icon state set to:', request.state)
 
     sendResponse({ success: true, payload: {} })
   }
@@ -68,7 +74,7 @@ messageRouter.on<MessageOf<IconMessage, 'icon/set'>>(
 messageRouter.on<MessageOf<DanmakuMessage, 'danmaku/fetch'>>(
   'danmaku/fetch',
   async (request, _, sendResponse) => {
-    logger.debug('Fetching danmaku:', request)
+    Logger.debug('Fetching danmaku:', request)
 
     const res = await danmakuService.fetch(
       request.data,
@@ -76,7 +82,7 @@ messageRouter.on<MessageOf<DanmakuMessage, 'danmaku/fetch'>>(
       request.options
     )
 
-    logger.debug('Fetch danmaku success', res)
+    Logger.debug('Fetch danmaku success', res)
 
     sendResponse({ success: true, payload: res })
   }
@@ -87,7 +93,7 @@ messageRouter.on<MessageOf<DanmakuMessage, 'danmaku/delete'>>(
   async (request, _, sendResponse) => {
     const res = await danmakuService.delete(request.episodeId)
 
-    logger.debug('Delete danmaku success', res)
+    Logger.debug('Delete danmaku success', res)
 
     sendResponse({ success: true, payload: res })
   }
@@ -96,20 +102,49 @@ messageRouter.on<MessageOf<DanmakuMessage, 'danmaku/delete'>>(
 messageRouter.on<MessageOf<AnimeMessage, 'anime/search'>>(
   'anime/search',
   async (request, _, sendResponse) => {
-    logger.debug('Search for anime:', request)
+    Logger.debug('Search for anime:', request)
 
     const res = await animeService.search({
       anime: request.anime,
       episode: request.episode,
     })
 
-    logger.debug('Anime search success', res)
+    Logger.debug('Anime search success', res)
+
+    sendResponse({ success: true, payload: res })
+  }
+)
+
+messageRouter.on<MessageOf<TitleMappingMessage, 'titleMapping/save'>>(
+  'titleMapping/save',
+  async (request, _, sendResponse) => {
+    Logger.debug('Saving title mapping:', request)
+
+    const res = await titleMappingService.add(request)
+
+    Logger.debug('Title mapping saved', res)
+
+    sendResponse({ success: true, payload: res })
+  }
+)
+
+messageRouter.on<MessageOf<TitleMappingMessage, 'titleMapping/get'>>(
+  'titleMapping/get',
+  async (request, _, sendResponse) => {
+    Logger.debug('Getting title mapping:', request)
+
+    const res = await titleMappingService.getMappedTitle(
+      request.originalTitle,
+      request.source
+    )
+
+    Logger.debug('Title mapping found', res)
 
     sendResponse({ success: true, payload: res })
   }
 )
 
 chrome.runtime.onMessage.addListener((...args) => {
-  logger.debug('Message received:', args[0])
+  Logger.debug('Message received:', args[0])
   return messageRouter.getListener()(...args)
 })

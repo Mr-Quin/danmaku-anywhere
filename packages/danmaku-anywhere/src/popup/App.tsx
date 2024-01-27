@@ -14,7 +14,7 @@ import { ConfigPage } from './config/ConfigPage'
 import { SearchPage } from './search/SearchPage'
 import { useStore } from './store'
 
-import { db } from '@/common/db'
+import { db } from '@/common/db/db'
 import { getActiveTab } from '@/common/utils'
 import { ControlPage } from '@/popup/control/ControlPage'
 
