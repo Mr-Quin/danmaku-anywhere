@@ -7,7 +7,7 @@ import {
   PlaybackStatus,
 } from '../integration/MediaObserver'
 
-import { DanmakuMeta } from '@/common/db'
+import { DanmakuMeta } from '@/common/db/db'
 
 interface StoreState {
   comments: DanDanComment[]
@@ -17,7 +17,7 @@ interface StoreState {
   status: PlaybackStatus
   setStatus: (status: PlaybackStatus) => void
   danmakuMeta?: DanmakuMeta
-  setDanmakuMeta: (danmakuMeta: DanmakuMeta) => void
+  setDanmakuMeta: (danmakuMeta: DanmakuMeta | undefined) => void
   activeObserver?: MediaObserver
   integration?: string
   setActiveObserver: (name: string, observer: MediaObserver) => void

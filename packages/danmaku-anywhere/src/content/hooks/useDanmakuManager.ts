@@ -7,8 +7,8 @@ import { useToast } from '../store/toastStore'
 
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMatchMountConfig'
 import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
-import { logger } from '@/common/logger'
 import { DanmakuControlMessage } from '@/common/messages/danmakuControlMessage'
+import { Logger } from '@/common/services/Logger'
 import { useNodeMonitor } from '@/content/hooks/useNodeMonitor'
 
 // listen to comment changes and mount/unmount the danmaku engine
@@ -33,8 +33,8 @@ export const useDanmakuManager = () => {
   useEffect(() => {
     // if danmaku is created, destroy it when status is stopped
     if (danmakuEngine.created) {
-      if (status === 'stopped') {
-        logger.debug('Destroying danmaku')
+      if (status === 'stopped' || comments.length === 0) {
+        Logger.debug('Destroying danmaku')
         danmakuEngine.destroy()
       }
       return
@@ -45,9 +45,9 @@ export const useDanmakuManager = () => {
 
     // if danmaku is not created, create it when status is playing
     if (status === 'playing' && comments.length > 0) {
-      logger.debug('Creating danmaku')
+      Logger.debug('Creating danmaku')
       toast.success(
-        `Danmaku mounted: ${mediaInfo?.title} E${mediaInfo?.episode} (${comments.length})`
+        `Danmaku mounted: ${mediaInfo?.toString() ?? ''} (${comments.length})`
       )
       danmakuEngine.create(container, node, comments, options)
     }
@@ -56,12 +56,12 @@ export const useDanmakuManager = () => {
   useEffect(() => {
     if (!danmakuEngine.created || !options) return
 
-    logger.debug('Updating danmaku config', options)
+    Logger.debug('Updating danmaku config', options)
     danmakuEngine.updateConfig(options)
   }, [options])
 
   useEffect(() => {
-    logger.debug({
+    Logger.debug({
       danmakuEngine,
       mountConfig,
       status,
@@ -71,11 +71,11 @@ export const useDanmakuManager = () => {
   useEffect(() => {
     const listener = (request: DanmakuControlMessage) => {
       if (request.action === 'danmakuControl/set') {
-        logger.debug('received message', request)
+        Logger.debug('received message', request)
         setComments(request.payload.comments)
       }
       if (request.action === 'danmakuControl/unset') {
-        logger.debug('received message', request)
+        Logger.debug('received message', request)
         setComments([])
         danmakuEngine.destroy()
       }

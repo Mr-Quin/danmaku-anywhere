@@ -1,4 +1,4 @@
-import { logger } from '@/common/logger'
+import { Logger } from '@/common/services/Logger'
 
 export const toArray = <T>(value: T | T[]): T[] => {
   return Array.isArray(value) ? value : [value]
@@ -35,7 +35,7 @@ export const matchUrl = (url: string, pattern: string) => {
     const urlPattern = createUrlPattern(pattern)
     return urlPattern.test(url)
   } catch (e) {
-    logger.error(e)
+    Logger.error(e)
     return false
   }
 }
@@ -47,4 +47,15 @@ export const tryCatch = async <T>(fn: () => Promise<T>) => {
   } catch (e) {
     return [null as T, e] as const
   }
+}
+
+export const invariant = (condition: boolean, message: string) => {
+  if (!condition) {
+    throw new Error(message)
+  }
+}
+
+export const isServiceWorker = () => {
+  // getBackgroundPage is not available in service worker
+  return chrome.runtime.getBackgroundPage === undefined
 }

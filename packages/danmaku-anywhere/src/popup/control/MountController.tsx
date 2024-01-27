@@ -16,7 +16,7 @@ import { HTMLAttributes, SyntheticEvent } from 'react'
 
 import { useFetchDanmaku } from '../hooks/useFetchDanmaku'
 
-import { DanmakuCache, db } from '@/common/db'
+import { DanmakuCache, db } from '@/common/db/db'
 import { useSessionState } from '@/common/hooks/useSessionState'
 import { danmakuControlMessage } from '@/common/messages/danmakuControlMessage'
 
@@ -77,7 +77,7 @@ const EpisodeOption = (
 }
 
 export const MountController = () => {
-  const options = useLiveQuery(() => db.dandanplay.toArray(), [], [])
+  const options = useLiveQuery(() => db.danmakuCache.toArray(), [], [])
 
   const [danmakuCache, setDanmakuCache, loading] = useSessionState<
     DanmakuCache | undefined
