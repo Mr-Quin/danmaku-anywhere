@@ -69,6 +69,19 @@ export const useDanmakuManager = () => {
   }, [container, node])
 
   useEffect(() => {
+    const handler = () => {
+      if (danmakuEngine.created) {
+        danmakuEngine.resize()
+      }
+    }
+    window.addEventListener('resize', handler)
+
+    return () => {
+      window.removeEventListener('resize', handler)
+    }
+  }, [danmakuEngine])
+
+  useEffect(() => {
     const listener = (request: DanmakuControlMessage) => {
       if (request.action === 'danmakuControl/set') {
         Logger.debug('received message', request)
