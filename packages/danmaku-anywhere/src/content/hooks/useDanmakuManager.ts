@@ -56,17 +56,17 @@ export const useDanmakuManager = () => {
   useEffect(() => {
     if (!danmakuEngine.created || !options) return
 
-    Logger.debug('Updating danmaku config', options)
+    Logger.debug('Updating danmaku config', options, danmakuEngine)
     danmakuEngine.updateConfig(options)
   }, [options])
 
   useEffect(() => {
-    Logger.debug({
+    Logger.debug('Container changed', {
       danmakuEngine,
       mountConfig,
       status,
     })
-  }, [container, node, comments])
+  }, [container, node])
 
   useEffect(() => {
     const listener = (request: DanmakuControlMessage) => {
