@@ -7,9 +7,9 @@ import { useToast } from '../store/toastStore'
 
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMatchMountConfig'
 import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
-import { DanmakuControlMessage } from '@/common/messages/danmakuControlMessage'
 import { Logger } from '@/common/services/Logger'
 import { useNodeMonitor } from '@/content/hooks/useNodeMonitor'
+import { useManualDanmaku } from './useManualDanmaku'
 
 // listen to comment changes and mount/unmount the danmaku engine
 export const useDanmakuManager = () => {
@@ -29,6 +29,8 @@ export const useDanmakuManager = () => {
   const node = useNodeMonitor<HTMLVideoElement>(mountConfig?.mediaQuery)
 
   const danmakuEngine = useMemo(() => new DanmakuManager(), [])
+
+  useManualDanmaku(danmakuEngine, node, container)
 
   useEffect(() => {
     // if danmaku is created, destroy it when status is stopped
@@ -65,6 +67,8 @@ export const useDanmakuManager = () => {
       danmakuEngine,
       mountConfig,
       status,
+      node,
+      container,
     })
   }, [container, node])
 
@@ -81,26 +85,6 @@ export const useDanmakuManager = () => {
       window.removeEventListener('resize', handler)
     }
   }, [])
-
-  useEffect(() => {
-    const listener = (request: DanmakuControlMessage) => {
-      if (request.action === 'danmakuControl/set') {
-        Logger.debug('received message', request)
-        setComments(request.payload.comments)
-      }
-      if (request.action === 'danmakuControl/unset') {
-        Logger.debug('received message', request)
-        setComments([])
-        danmakuEngine.destroy()
-      }
-    }
-
-    chrome.runtime.onMessage.addListener(listener)
-
-    return () => {
-      chrome.runtime.onMessage.removeListener(listener)
-    }
-  }, [danmakuEngine])
 
   return null
 }

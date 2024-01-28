@@ -1,4 +1,4 @@
-import { useDanmakuManager } from './hooks/useDanmakuManager'
+import { useDanmakuManager } from './useDanmakuManager'
 
 export const DanmakuManagerWrapper = () => {
   useDanmakuManager()
