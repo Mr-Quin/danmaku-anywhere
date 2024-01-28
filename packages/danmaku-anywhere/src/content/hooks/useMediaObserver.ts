@@ -14,6 +14,8 @@ import { Logger } from '@/common/services/Logger'
 import { getEpisodeId, tryCatch } from '@/common/utils'
 
 export const useMediaObserver = () => {
+  const config = useMatchMountConfig(window.location.href)
+
   const { toast } = useToast()
   const { open } = usePopup()
 
@@ -28,8 +30,6 @@ export const useMediaObserver = () => {
     setComments,
     resetMediaState,
   } = useStore()
-
-  const config = useMatchMountConfig(window.location.href)
 
   useEffect(() => {
     if (!config) return
@@ -186,4 +186,6 @@ export const useMediaObserver = () => {
       Logger.debug(`Playback Stopped`)
     }
   }, [status, mediaInfo])
+
+  return activeObserver
 }

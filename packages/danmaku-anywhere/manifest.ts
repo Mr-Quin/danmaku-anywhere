@@ -19,7 +19,13 @@ export const manifest = defineManifest({
     },
   ],
   background: { service_worker: 'src/background/index.ts', type: 'module' },
-  permissions: ['storage', 'unlimitedStorage', 'activeTab', 'tabs'],
+  permissions: [
+    'storage',
+    'unlimitedStorage',
+    'activeTab',
+    'tabs',
+    'contextMenus',
+  ],
   icons: {
     16: 'normal_16.png',
     32: 'normal_32.png',

@@ -1,11 +1,13 @@
 import { DanmakuMessage } from '../common/messages/danmakuMessage'
 import { AnimeService } from '../common/services/AnimeService'
 
+import { addEnabledMenu } from './contextMenu/enabled'
 import { DanmakuService } from './services/DanmakuService'
 import { IconService } from './services/IconService'
 import { TitleMappingService } from './services/TitleMappingService'
 
 import { defaultDanmakuOptions } from '@/common/constants/danmakuOptions'
+import { defaultExtensionOptions } from '@/common/constants/extensionOptions'
 import { defaultMountConfig } from '@/common/constants/mountConfig'
 import { AnimeMessage } from '@/common/messages/animeMessage'
 import { IconMessage } from '@/common/messages/iconMessage'
@@ -15,16 +17,22 @@ import { TitleMappingMessage } from '@/common/messages/titleMappingMessage'
 import { Logger } from '@/common/services/Logger'
 
 chrome.runtime.onInstalled.addListener(async () => {
-  // set default config on install, if not exists
+  // set default config on install, if not already set
   // TODO: add logic to update config when new version is released
   try {
-    const { mountConfig } = await chrome.storage.sync.get('mountConfig')
+    const { mountConfig, danmakuOptions, extensionOptions } =
+      await chrome.storage.sync.get()
+
     if (!mountConfig) {
       await chrome.storage.sync.set({ mountConfig: defaultMountConfig })
     }
-    const { danmakuOptions } = await chrome.storage.sync.get('danmakuOptions')
     if (!danmakuOptions) {
       await chrome.storage.sync.set({ danmakuOptions: defaultDanmakuOptions })
+    }
+    if (!extensionOptions) {
+      await chrome.storage.sync.set({
+        extensionOptions: defaultExtensionOptions,
+      })
     }
   } catch (err) {
     Logger.error(err)
@@ -32,6 +40,8 @@ chrome.runtime.onInstalled.addListener(async () => {
 
   Logger.info('Danmaku Anywhere Installed')
 })
+
+addEnabledMenu()
 
 const messageRouter = new MessageRouter()
 const animeService = new AnimeService()
