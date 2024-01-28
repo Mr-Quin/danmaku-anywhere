@@ -67,6 +67,12 @@ export class DanmakuManager {
       speed: this.config.speed * BASE_SPEED,
     })
 
+    if (this.config.show) {
+      this.instance.show()
+    } else {
+      this.instance.hide()
+    }
+
     this.created = true
   }
 
