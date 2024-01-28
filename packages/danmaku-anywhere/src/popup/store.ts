@@ -4,10 +4,10 @@ import { create } from 'zustand'
 interface StoreState {
   animeSearchResults: DanDanAnime[] | undefined
   tabUrl: string
-  isLoadingTabUrl: boolean
+  isLoading: boolean
 }
 export const useStore = create<StoreState>(() => ({
   animeSearchResults: undefined,
   tabUrl: '',
-  isLoadingTabUrl: false,
+  isLoading: false,
 }))

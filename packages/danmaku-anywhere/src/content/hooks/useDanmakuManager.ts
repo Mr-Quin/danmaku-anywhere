@@ -77,9 +77,10 @@ export const useDanmakuManager = () => {
     window.addEventListener('resize', handler)
 
     return () => {
+      danmakuEngine.destroy()
       window.removeEventListener('resize', handler)
     }
-  }, [danmakuEngine])
+  }, [])
 
   useEffect(() => {
     const listener = (request: DanmakuControlMessage) => {

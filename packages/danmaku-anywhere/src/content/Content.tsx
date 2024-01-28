@@ -1,26 +1,27 @@
+import { DanmakuManagerWrapper } from './DanmakuManagerWrapper'
 import { AnimeSelectorPopup } from './fab/Popup'
-import { useDanmakuManager } from './hooks/useDanmakuManager'
 import { useIconManager } from './hooks/useIconManager'
 import { useMediaObserver } from './hooks/useMediaObserver'
-import { useStore } from './store/store'
 import { Toast } from './Toast'
 
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMatchMountConfig'
+import { useExtensionOptions } from '@/common/hooks/useExtensionOptions'
 
 export const Content = () => {
   const config = useMatchMountConfig(window.location.href)
-  const observer = useStore((state) => state.activeObserver)
+  const observer = useMediaObserver()
 
   useIconManager()
-  useDanmakuManager()
-  useMediaObserver()
 
-  if (!config || !observer) return null
+  const { data: options, isLoading } = useExtensionOptions()
+
+  if (isLoading || options?.enabled === false) return null
 
   return (
     <>
       <Toast />
-      <AnimeSelectorPopup />
+      {observer && <AnimeSelectorPopup />}
+      {config && <DanmakuManagerWrapper />}
     </>
   )
 }
