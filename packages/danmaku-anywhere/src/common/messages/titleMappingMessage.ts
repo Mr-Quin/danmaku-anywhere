@@ -44,8 +44,10 @@ export const titleMappingMessage = {
       throw new Error(res.error)
     }
 
-    Logger.debug('Title mapping found', res.payload)
+    if (res.payload) {
+      Logger.debug('Title mapping found', res.payload)
+    }
 
-    return res.payload as string | undefined
+    return res.payload as TitleMapping | undefined
   },
 }

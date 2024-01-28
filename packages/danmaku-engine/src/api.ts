@@ -25,12 +25,14 @@ export type DanDanAnimeSearchAPIParams = {
   episode?: string
 }
 
-export interface DanDanAnimeSearchResult {
-  animes: DanDanAnime[]
+export interface DanDanApiResponse {
   errorCode: number
   errorMessage: string
-  hasMore: boolean
   success: boolean
+}
+export interface DanDanAnimeSearchResult extends DanDanApiResponse {
+  animes: DanDanAnime[]
+  hasMore: boolean
 }
 
 export const searchAnime = async ({
@@ -100,6 +102,36 @@ export const fetchComments = async (
   const res = await fetch(url)
 
   const json = (await res.json()) as DanDanCommentAPIResult
+
+  return json
+}
+
+export interface DanDanBangumiAnimeResult extends DanDanApiResponse {
+  bangumi: {
+    type: string
+    typeDescription: string
+    titles: {
+      language: string
+      title: string
+    }[]
+    episodes: {
+      episodeId: number
+      episodeTitle: string
+      episodeNumber: number
+    }[]
+    summary: string
+    metadata: string[]
+  }
+}
+
+export const getAnime = async (animeId: number) => {
+  const res = await fetch(`${API_ROOT}/api/v2/bangumi/${animeId}`)
+
+  const json = (await res.json()) as DanDanBangumiAnimeResult
+
+  if (!json.success) {
+    throw new Error(json.errorMessage)
+  }
 
   return json
 }

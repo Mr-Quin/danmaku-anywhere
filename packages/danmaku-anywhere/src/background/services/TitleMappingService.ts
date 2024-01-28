@@ -22,7 +22,7 @@ export class TitleMappingService {
 
   async getMappedTitle(originalTitle: string, source: string) {
     const mapping = await this.db.get({ originalTitle, source })
-    return mapping?.title
+    return mapping
   }
 
   async getMappingsForSource(source: string) {

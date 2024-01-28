@@ -9,8 +9,9 @@ import { useToast } from '../store/toastStore'
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMatchMountConfig'
 import { animeMessage } from '@/common/messages/animeMessage'
 import { danmakuMessage } from '@/common/messages/danmakuMessage'
+import { titleMappingMessage } from '@/common/messages/titleMappingMessage'
 import { Logger } from '@/common/services/Logger'
-import { tryCatch } from '@/common/utils'
+import { getEpisodeId, tryCatch } from '@/common/utils'
 
 export const useMediaObserver = () => {
   const { toast } = useToast()
@@ -60,69 +61,110 @@ export const useMediaObserver = () => {
         resetMediaState()
         setMediaInfo(state)
 
-        const [result, err] = await tryCatch(() =>
-          animeMessage.search({
-            anime: state.title,
-            episode: state.episodic ? state.episode.toString() : '',
-          })
-        )
-
         const handleError = () => {
           setDanmakuMeta(undefined)
           setComments([])
         }
 
-        if (err) {
-          toast.error(`Failed to search for anime: ${state.title}`)
-          handleError()
-          return
+        const [mapping, mappingErr] = await tryCatch(() =>
+          titleMappingMessage.get({
+            originalTitle: state.toTitleString(),
+            source: config!.name,
+          })
+        )
+
+        if (mappingErr) {
+          toast.error(
+            `Failed to get title mapping: ${state.toTitleString()}, skipping`
+          )
         }
 
-        if (result.animes.length === 0) {
-          toast.error(`No anime found for ${state.toString()}`)
-          handleError()
-          return
+        if (mapping) {
+          Logger.debug(
+            `Mapped title found for ${state.toTitleString()}`,
+            mapping
+          )
+          toast.info(
+            `Mapped title found: ${state.toTitleString()} -> ${mapping.title}`
+          )
+        } else {
+          Logger.debug(
+            `No mapped title found for ${state.toTitleString()}, fallback to ${
+              state.title
+            }`
+          )
         }
-        if (result.animes.length > 1) {
-          Logger.debug('Multiple animes found, open disambiguation')
 
-          open({ animes: result.animes, tab: PopupTab.Selector })
-          return
-        }
-        // use a block to scope the variables
-        {
-          // only one anime found, continue to fetch danmaku
+        const getDanmakuMeta = async () => {
+          if (mapping) {
+            return {
+              animeId: mapping.animeId,
+              animeTitle: mapping.title,
+              episodeId: getEpisodeId(mapping.animeId, state.episode),
+            }
+          }
+
+          const [result, searchErr] = await tryCatch(() =>
+            animeMessage.search({
+              anime: state.title, // intentionally not using toTitleString() here
+              episode: state.episodic ? state.episode.toString() : '',
+            })
+          )
+
+          if (searchErr) {
+            toast.error(`Failed to search for anime: ${state.toString()}`)
+            handleError()
+            return
+          }
+
+          if (result.animes.length === 0) {
+            Logger.debug(`No anime found for ${state.toString()}`)
+            toast.error(`No anime found for ${state.toString()}`)
+            handleError()
+            return
+          }
+
+          if (result.animes.length > 1) {
+            Logger.debug('Multiple animes found, open disambiguation')
+
+            open({ animes: result.animes, tab: PopupTab.Selector })
+            return
+          }
+
+          // at this point, there should be only one anime
           const { episodes, animeTitle, animeId } = result.animes[0]
           const { episodeId, episodeTitle } = episodes[0]
 
-          const danmakuMeta = {
+          return {
             animeId,
             animeTitle,
             episodeId,
             episodeTitle,
           }
-
-          setDanmakuMeta(danmakuMeta)
-
-          const [res, err] = await tryCatch(() =>
-            danmakuMessage.fetch({
-              data: danmakuMeta,
-              options: {
-                forceUpdate: false,
-              },
-            })
-          )
-
-          if (err) {
-            toast.error(
-              `Failed to fetch danmaku: ${animeTitle} E${episodeTitle}`
-            )
-            handleError()
-            return
-          }
-
-          setComments(res.comments)
         }
+
+        const danmakuMeta = await getDanmakuMeta()
+
+        if (!danmakuMeta) return
+
+        setDanmakuMeta(danmakuMeta)
+
+        const [res, danmakuErr] = await tryCatch(() =>
+          danmakuMessage.fetch({
+            data: danmakuMeta,
+            options: {
+              forceUpdate: false,
+            },
+          })
+        )
+
+        if (danmakuErr) {
+          toast.error(`Failed to fetch danmaku: ${state.toString()}`)
+          handleError()
+          return
+        }
+
+        setComments(res.comments)
       },
       statusChange: (status) => {
         setStatus(status)

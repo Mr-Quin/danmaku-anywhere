@@ -7,7 +7,7 @@ import Dexie from 'dexie'
 export interface DanmakuMeta {
   episodeId: number
   animeId: number
-  episodeTitle: string
+  episodeTitle?: string
   animeTitle: string
 }
 
@@ -24,6 +24,7 @@ export interface TitleMapping {
   originalTitle: string
   title: string
   source: string
+  animeId: number
 }
 
 class DanmakuAnywhereDb extends Dexie {

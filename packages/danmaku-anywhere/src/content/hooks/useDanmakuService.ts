@@ -1,18 +1,21 @@
-import { usePopup } from '../store/popupStore'
 import { useStore } from '../store/store'
 
-import { DanmakuMeta } from '@/common/db/db'
+import { DanmakuMeta, TitleMapping } from '@/common/db/db'
+import { titleMappingMessage } from '@/common/messages/titleMappingMessage'
+import { tryCatch } from '@/common/utils'
 import { useFetchDanmaku } from '@/popup/hooks/useFetchDanmaku'
 
-export const useFetchAndSetDanmaku = () => {
-  const { close } = usePopup()
+export const useDanmakuService = () => {
   const { setComments, setDanmakuMeta } = useStore()
 
   const props = useFetchDanmaku()
 
   const { fetch } = props
 
-  const handleFetch = async (danmakuMeta: DanmakuMeta) => {
+  const handleFetch = async (
+    danmakuMeta: DanmakuMeta,
+    titleMapping?: TitleMapping
+  ) => {
     setDanmakuMeta(danmakuMeta)
 
     const res = await fetch({
@@ -23,8 +26,12 @@ export const useFetchAndSetDanmaku = () => {
     })
 
     if (!res) return
+
+    if (titleMapping) {
+      await tryCatch(() => titleMappingMessage.save(titleMapping))
+    }
+
     setComments(res.comments)
-    close()
   }
 
   return {
