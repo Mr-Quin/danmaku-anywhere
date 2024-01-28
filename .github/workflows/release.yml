@@ -1,0 +1,48 @@
+name: Release Package
+
+on:
+  push:
+    branches: ['master']
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    strategy:
+      matrix:
+        node-version: [18.x] # node 20.x has some problems with pnpm/action-setup@v2
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Build
+        run: |
+          pnpm install
+          pnpm build
+      
+      - name: Package
+        run: |
+          cd packages/danmaku-anywhere
+          pnpm package
+
+      - uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifacts: 'packages/danmaku-anywhere/package/*.tar.gz'
+          generateReleaseNotes: true
+          prerelease: true
