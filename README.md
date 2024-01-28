@@ -1,26 +1,36 @@
 # danmaku-anywhere
 
+> A browser extension that injects danmaku into theoretically any website with a `<video>` player.
+
 For the userscript plex-danmaku, see [here](./packages/plex-danmaku).
 
-Danmaku Anywhere is a browser extension to inject danmaku into any webpage with a `<video>` player.
+## Features 🚧
 
-## Features
+For all websites:
 
-| Feature                              | Status         |
-| ------------------------------------ | -------------- |
-| UI to search for Danmaku             | ✅ Done        |
-| UI to manually mount/unmount Danmaku | ✅ Done        |
-| Declarative mounting configuration   | ✅ Done        |
-| Configurable Danmaku style           | ✅ Done        |
-| Site-Specific Integration:           | ⚙️ In Progress |
-| - Video lifecycle detection          | ⚙️ In Progress |
-| - Feedback UI                        | ⚙️ In Progress |
-| - Automatic Danmaku fetching         | ✅ Done        |
+- Search for danmaku by anime
+- Inject danmaku into any video with customizable configuration
+- Customizable danmaku style
+- Cache danmaku locally and export to file
 
-## Usage
+And for websites with integration: 🚧
 
-Find the latest release [here](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest).
-Download the unpacked extension and load it into your browser (Chromium only).
+- Automatically detect the anime being played and match danmaku
+
+Currently the only website with integration implemented is [Plex](https://www.plex.tv/)
+
+All danmaku is sourced from [弹弹play](https://www.dandanplay.com/)
+
+## Installation
+
+Download the latest [latest release](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest)
+
+### Chrome
+
+1. Goto the extensions page [chrome://extensions/](chrome://extensions/) and enable developer mode.
+2. Click on "Load unpacked" and select the extracted folder
+
+This extension has only been tested on Chromium based browsers in desktop mode
 
 ## Screenshots
 
@@ -32,33 +42,51 @@ Crunchyroll
 
 ![Crunchyroll](./assets/danmaku_crunchyroll.png)
 
-Billibili
+UI
 
-![Billibili](./assets/danmaku_bilibili.png)
-
-Control panel
-
-![Search panel](./assets/danmaku_search.png)
-![Control panel](./assets/danmaku_control.png)
+![Search page](./assets/danmaku_search_page.png)
+![Options page](./assets/danmaku_options_page.png)
+![Floating panel](./assets/danmaku_floating_dialogue.png)
 
 ## Development
 
-This is a pnpm monorepo.
+### Prerequisites
 
-### Install dependencies
+This is a pnpm monorepo. You'll need to install [pnpm](https://pnpm.io/installation) first.
 
-In the root directory:
+### Project structure
 
-```bash
-pnpm i
+```
+.
+├── packages
+│   ├── danmaku-anywhere       # the browser extension package
+│   ├── danmaku-engine         # wraps danmaku engine and dandanplay api
+│   └── plex-danmaku           # legacy userscript for plex
+├── package.json
+└── ...
 ```
 
-### Build shared libraries
+### Installation
 
-In the root directory:
+1. Install dependencies
 
-```bash
-pnpm build
-```
+   ```bash
+   # in the root dir
+   pnpm i
+   ```
 
-Now you can go to each package and run `pnpm dev` to start developing.
+2. Build shared libraries
+
+   ```bash
+   # in the root dir
+   pnpm build
+   ```
+
+3. Build the extension in dev mode and start the dev server
+
+   ```bash
+   # packages/danmaku-anywhere
+   pnpm dev
+   ```
+
+4. This the output is in `packages/danmaku-anywhere/dist`, load this folder as unpacked extension
