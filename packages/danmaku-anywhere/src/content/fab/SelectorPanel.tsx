@@ -11,24 +11,30 @@ import {
   ListItemButton,
   Divider,
   Typography,
+  FormControl,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material'
 import { useRef, useState } from 'react'
 
-import { useFetchAndSetDanmaku } from '../hooks/useFetchAndSetDanmaku'
+import { useDanmakuService } from '../hooks/useDanmakuService'
 import { usePopup } from '../store/popupStore'
+import { useStore } from '../store/store'
 
 import { AnimeTypeIcon } from '@/common/components/animeList/AnimeTypeIcon'
 
 export const SelectorPanel = () => {
   const selectorBoxRef = useRef<HTMLDivElement>()
-  const { animes } = usePopup()
+  const { animes, saveMapping, setSaveMapping } = usePopup()
+  const mediaInfo = useStore((state) => state.mediaInfo)
+  const integration = useStore((state) => state.integration)
 
   const [selectedAnime, setSelectedAnime] = useState<DanDanAnime>()
   const [selectedEpisode, setSelectedEpisode] = useState<DanDanEpisode>()
 
   const episodes = selectedAnime?.episodes ?? []
 
-  const { fetch, isLoading } = useFetchAndSetDanmaku()
+  const { fetch, isLoading } = useDanmakuService()
 
   const handleAnimeSelect = (anime: DanDanAnime) => {
     setSelectedAnime(anime)
@@ -42,12 +48,25 @@ export const SelectorPanel = () => {
   const handleApply = async () => {
     if (!selectedAnime || !selectedEpisode) return
 
-    await fetch({
-      animeId: selectedAnime.animeId,
-      animeTitle: selectedAnime.animeTitle,
-      episodeId: selectedEpisode.episodeId,
-      episodeTitle: selectedEpisode.episodeTitle,
-    })
+    const titleMapping =
+      mediaInfo && saveMapping && integration
+        ? {
+            originalTitle: mediaInfo.toTitleString(),
+            title: selectedAnime.animeTitle,
+            animeId: selectedAnime.animeId,
+            source: integration,
+          }
+        : undefined
+
+    await fetch(
+      {
+        animeId: selectedAnime.animeId,
+        animeTitle: selectedAnime.animeTitle,
+        episodeId: selectedEpisode.episodeId,
+        episodeTitle: selectedEpisode.episodeTitle,
+      },
+      titleMapping
+    )
   }
 
   if (animes.length === 0) {
@@ -112,6 +131,20 @@ export const SelectorPanel = () => {
           >
             Select
           </LoadingButton>
+          <FormControl>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  inputProps={{ 'aria-label': 'controlled' }}
+                  checked={saveMapping}
+                  onChange={(e) => {
+                    setSaveMapping(e.target.checked)
+                  }}
+                />
+              }
+              label="Remember selection"
+            />
+          </FormControl>
         </Stack>
       </Box>
     </Box>

@@ -19,6 +19,7 @@ import { useFetchDanmaku } from '../hooks/useFetchDanmaku'
 import { DanmakuCache, db } from '@/common/db/db'
 import { useSessionState } from '@/common/hooks/useSessionState'
 import { danmakuControlMessage } from '@/common/messages/danmakuControlMessage'
+import { episodeIdToEpisodeNumber } from '@/common/utils'
 
 const filterOptions = createFilterOptions({
   stringify: (option: DanmakuCache) =>
@@ -56,7 +57,10 @@ const EpisodeOption = (
       }}
     >
       <Box>
-        <Typography variant="body1">{option.meta.episodeTitle}</Typography>
+        <Typography variant="body1">
+          {option.meta.episodeTitle ??
+            `Episode ${episodeIdToEpisodeNumber(option.meta.episodeId)}`}
+        </Typography>
         <Typography variant="caption">{option.count}</Typography>
       </Box>
       <IconButton edge="end" disabled={isLoading} onClick={handleClick}>
@@ -107,7 +111,10 @@ export const MountController = () => {
           renderOption={(props, option) => {
             return <EpisodeOption {...props} option={option} />
           }}
-          getOptionLabel={(option) => option.meta.episodeTitle}
+          getOptionLabel={(option) =>
+            option.meta.episodeTitle ??
+            `Episode ${episodeIdToEpisodeNumber(option.meta.episodeId)}`
+          }
           groupBy={(option) => option.meta.animeTitle}
           renderInput={(params) => {
             return <TextField {...params} label="Episode" />

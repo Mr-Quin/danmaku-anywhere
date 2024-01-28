@@ -1,20 +1,38 @@
 import { Search } from '@mui/icons-material'
 import { LoadingButton } from '@mui/lab'
-import { Box, Collapse, Divider, Stack, TextField } from '@mui/material'
+import {
+  Box,
+  Checkbox,
+  Collapse,
+  Divider,
+  FormControl,
+  FormControlLabel,
+  Stack,
+  TextField,
+} from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { KeyboardEvent, useEffect } from 'react'
 
-import { useFetchAndSetDanmaku } from '../hooks/useFetchAndSetDanmaku'
+import { useDanmakuService } from '../hooks/useDanmakuService'
 import { usePopup } from '../store/popupStore'
 import { useStore } from '../store/store'
 
 import { BaseEpisodeListItem } from '@/common/components/animeList/BaseEpisodeListItem'
 import { SearchResultList } from '@/common/components/animeList/SearchResultList'
+import { DanmakuMeta } from '@/common/db/db'
 import { animeMessage } from '@/common/messages/animeMessage'
 
 export const SearchPanel = () => {
-  const { setAnimes, searchTitle, setSearchTitle, animes } = usePopup()
+  const {
+    setAnimes,
+    searchTitle,
+    setSearchTitle,
+    animes,
+    saveMapping,
+    setSaveMapping,
+  } = usePopup()
   const mediaInfo = useStore((state) => state.mediaInfo)
+  const integration = useStore((state) => state.integration)
 
   const { data, isFetching, isFetched, isSuccess, refetch } = useQuery({
     queryKey: ['anime'],
@@ -24,8 +42,8 @@ export const SearchPanel = () => {
     retry: false,
   })
 
-  const { isLoading: isDanmakuLoading, fetch: fetchAndSetDanmaku } =
-    useFetchAndSetDanmaku()
+  const { isLoading: isDanmakuLoading, fetch: fetchDanmaku } =
+    useDanmakuService()
 
   useEffect(() => {
     if (!isSuccess) return
@@ -38,6 +56,20 @@ export const SearchPanel = () => {
 
     setSearchTitle(mediaInfo.title)
   }, [mediaInfo])
+
+  const handleFetchDanmaku = async (meta: DanmakuMeta) => {
+    const titleMapping =
+      mediaInfo && saveMapping && integration
+        ? {
+            originalTitle: mediaInfo.toTitleString(),
+            title: meta.animeTitle,
+            animeId: meta.animeId,
+            source: integration,
+          }
+        : undefined
+
+    await fetchDanmaku(meta, titleMapping)
+  }
 
   const handleTextFieldKeyDown = (e: KeyboardEvent) => {
     // prevent keydown event from triggering global shortcuts
@@ -75,6 +107,22 @@ export const SearchPanel = () => {
               <Search />
             </LoadingButton>
           </Stack>
+          {true && (
+            <FormControl>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    inputProps={{ 'aria-label': 'controlled' }}
+                    checked={saveMapping}
+                    onChange={(e) => {
+                      setSaveMapping(e.target.checked)
+                    }}
+                  />
+                }
+                label="Remember selection"
+              />
+            </FormControl>
+          )}
         </Box>
       </form>
       <Collapse in={isFetched} unmountOnExit>
@@ -89,7 +137,7 @@ export const SearchPanel = () => {
                 isLoading={isDanmakuLoading}
                 showIcon={isDanmakuLoading}
                 onClick={() => {
-                  fetchAndSetDanmaku({
+                  handleFetchDanmaku({
                     episodeId: episode.episodeId,
                     episodeTitle: episode.episodeTitle,
                     animeId: anime.animeId,

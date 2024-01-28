@@ -8,9 +8,14 @@ export class MediaInfo {
     public episodic?: boolean
   ) {}
 
+  toTitleString() {
+    if (this.season === undefined) return `${this.title}`
+    return `${this.title} S${this.season}`
+  }
+
   toString() {
     if (!this.episodic) return `${this.title}`
-    if (!this.season) return `${this.title} E${this.episode}`
+    if (this.season === undefined) return `${this.title} E${this.episode}`
     return `${this.title} S${this.season}E${this.episode}`
   }
 }
