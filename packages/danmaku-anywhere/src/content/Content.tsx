@@ -1,4 +1,4 @@
-import { DanmakuManagerWrapper } from './DanmakuManagerWrapper'
+import { DanmakuManagerWrapper } from './danmakuManager/DanmakuManagerWrapper'
 import { AnimeSelectorPopup } from './fab/Popup'
 import { useIconManager } from './hooks/useIconManager'
 import { useMediaObserver } from './hooks/useMediaObserver'
