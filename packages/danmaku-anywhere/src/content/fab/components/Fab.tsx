@@ -1,7 +1,7 @@
 import { KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material'
 import { Fab, FabProps } from '@mui/material'
 
-import { useStore } from '../store/store'
+import { useStore } from '../../store/store'
 
 interface HiddenFabProps extends FabProps {
   onOpen: () => void

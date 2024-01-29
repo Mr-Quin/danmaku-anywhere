@@ -8,6 +8,10 @@ export interface MountConfig {
   id: number
 }
 
+export interface MountConfigOptions {
+  configs: MountConfig[]
+}
+
 export interface MountConfigWithoutId extends Omit<MountConfig, 'id'> {
   id?: number
 }

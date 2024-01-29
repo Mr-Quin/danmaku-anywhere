@@ -135,10 +135,6 @@ export const DanmakuOptionsController = () => {
     setLocalConfig(config)
   }, [config])
 
-  console.log({
-    isLoading,
-  })
-
   const handleUpdate = async (newConfig: DanmakuOptions) => {
     // flush config to storage
     await update.mutateAsync(newConfig)

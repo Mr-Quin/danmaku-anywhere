@@ -4,16 +4,13 @@ import { invariant, isServiceWorker } from '@/common/utils'
 type Chrome = typeof chrome
 
 export class IconService {
-  private chrome: Chrome
-  private activeIconCache: ImageData | null = null
+  private activeIconCache?: ImageData
 
-  constructor(chrome: Chrome) {
+  constructor(private chrome: Chrome) {
     invariant(
       isServiceWorker(),
       'IconService is only available in service worker'
     )
-
-    this.chrome = chrome
   }
 
   async getIconBitmap(path: string) {

@@ -5,6 +5,7 @@ export enum PopupTab {
   Info = 'info',
   Search = 'search',
   Selector = 'selector',
+  Comments = 'comments',
 }
 
 interface PopupStoreState {

@@ -13,9 +13,9 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { KeyboardEvent, useEffect } from 'react'
 
-import { useDanmakuService } from '../hooks/useDanmakuService'
-import { usePopup } from '../store/popupStore'
-import { useStore } from '../store/store'
+import { useDanmakuService } from '../../hooks/useDanmakuService'
+import { usePopup } from '../../store/popupStore'
+import { useStore } from '../../store/store'
 
 import { BaseEpisodeListItem } from '@/common/components/animeList/BaseEpisodeListItem'
 import { SearchResultList } from '@/common/components/animeList/SearchResultList'
@@ -92,7 +92,7 @@ export const SearchPanel = () => {
               variant="outlined"
               value={searchTitle}
               onKeyDown={handleTextFieldKeyDown}
-              onKeyPress={handleTextFieldKeyDown}
+              onKeyPress={handleTextFieldKeyDown} // required for stopPropagation
               onChange={(e) => {
                 setSearchTitle(e.target.value)
               }}

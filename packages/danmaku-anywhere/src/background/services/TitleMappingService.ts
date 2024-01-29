@@ -1,17 +1,26 @@
 import { TitleMapping, db } from '../../common/db/db'
 import { invariant, isServiceWorker } from '../../common/utils'
 
+import { Logger } from '@/common/services/Logger'
+
 export class TitleMappingService {
   private db = db.titleMapping
+  private logger: typeof Logger
 
   constructor() {
     invariant(
       isServiceWorker(),
       'TitleMappingService is only available in service worker'
     )
+    this.logger = Logger.sub('[TitleMappingService]')
   }
 
   async add(mapping: TitleMapping) {
+    if (await this.mappingExists(mapping.originalTitle, mapping.source)) {
+      this.logger.debug('Title mapping already exists:', mapping)
+      return
+    }
+    this.logger.debug('Adding title mapping:', mapping)
     return this.db.add(mapping)
   }
 
@@ -25,7 +34,7 @@ export class TitleMappingService {
     return mapping
   }
 
-  async getMappingsForSource(source: string) {
+  async getMappingsBySource(source: string) {
     return this.db.where({ source }).toArray()
   }
 }

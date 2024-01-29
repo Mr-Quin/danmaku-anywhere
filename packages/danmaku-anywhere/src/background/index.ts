@@ -15,25 +15,50 @@ import { MessageOf } from '@/common/messages/message'
 import { MessageRouter } from '@/common/messages/MessageRouter'
 import { TitleMappingMessage } from '@/common/messages/titleMappingMessage'
 import { Logger } from '@/common/services/Logger'
+import { SyncOptionsService } from '@/common/services/SyncOptionsService'
 
 chrome.runtime.onInstalled.addListener(async () => {
   // set default config on install, if not already set
   // TODO: add logic to update config when new version is released
   try {
-    const { mountConfig, danmakuOptions, extensionOptions } =
-      await chrome.storage.sync.get()
-
-    if (!mountConfig) {
-      await chrome.storage.sync.set({ mountConfig: defaultMountConfig })
-    }
-    if (!danmakuOptions) {
-      await chrome.storage.sync.set({ danmakuOptions: defaultDanmakuOptions })
-    }
-    if (!extensionOptions) {
-      await chrome.storage.sync.set({
-        extensionOptions: defaultExtensionOptions,
+    await new SyncOptionsService('extensionOptions', defaultExtensionOptions)
+      .version(1, {
+        upgrade: (data: any) => data,
       })
-    }
+      .upgrade()
+
+    await new SyncOptionsService('danmakuOptions', defaultDanmakuOptions)
+      .version(1, {
+        upgrade: (data: any) => data,
+      })
+      .upgrade()
+
+    await new SyncOptionsService('mountConfig', {
+      configs: defaultMountConfig,
+    })
+      .version(1, {
+        upgrade: (data: any) => {
+          return {
+            configs: data, // version 0 is just an array of configs
+          }
+        },
+      })
+      .upgrade()
+
+    // const { mountConfig, danmakuOptions, extensionOptions } =
+    //   await chrome.storage.sync.get()
+
+    // if (!mountConfig) {
+    //   await chrome.storage.sync.set({ mountConfig: defaultMountConfig })
+    // }
+    // if (!danmakuOptions) {
+    //   await chrome.storage.sync.set({ danmakuOptions: defaultDanmakuOptions })
+    // }
+    // if (!extensionOptions) {
+    //   await chrome.storage.sync.set({
+    //     extensionOptions: defaultExtensionOptions,
+    //   })
+    // }
   } catch (err) {
     Logger.error(err)
   }

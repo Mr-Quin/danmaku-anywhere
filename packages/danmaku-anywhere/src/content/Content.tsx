@@ -1,5 +1,5 @@
 import { DanmakuManagerWrapper } from './danmakuManager/DanmakuManagerWrapper'
-import { AnimeSelectorPopup } from './fab/Popup'
+import { PopupButton } from './fab/PopupButton'
 import { useIconManager } from './hooks/useIconManager'
 import { useMediaObserver } from './hooks/useMediaObserver'
 import { Toast } from './Toast'
@@ -20,7 +20,7 @@ export const Content = () => {
   return (
     <>
       <Toast />
-      {observer && <AnimeSelectorPopup />}
+      {observer && <PopupButton />}
       {config && <DanmakuManagerWrapper />}
     </>
   )
