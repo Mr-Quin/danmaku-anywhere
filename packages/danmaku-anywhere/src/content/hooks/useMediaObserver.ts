@@ -77,6 +77,7 @@ export const useMediaObserver = () => {
           toast.error(
             `Failed to get title mapping: ${state.toTitleString()}, skipping`
           )
+          Logger.error(mappingErr)
         }
 
         if (mapping) {
@@ -96,6 +97,7 @@ export const useMediaObserver = () => {
         }
 
         const getDanmakuMeta = async () => {
+          // if mapping exists, use the mapped animeId and calculate the episodeId
           if (mapping) {
             return {
               animeId: mapping.animeId,
@@ -104,9 +106,10 @@ export const useMediaObserver = () => {
             }
           }
 
+          // if no mapping, search for anime to get the animeId
           const [result, searchErr] = await tryCatch(() =>
             animeMessage.search({
-              anime: state.title, // intentionally not using toTitleString() here
+              anime: state.title,
               episode: state.episodic ? state.episode.toString() : '',
             })
           )

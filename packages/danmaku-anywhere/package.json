@@ -25,6 +25,7 @@
     "@mui/lab": "5.0.0-alpha.148",
     "@mui/material": "^5.15.5",
     "@tanstack/react-query": "5.17.10",
+    "@tanstack/react-virtual": "^3.1.2",
     "dexie": "^3.2.4",
     "dexie-react-hooks": "^1.1.7",
     "react": "^18.2.0",

@@ -33,7 +33,7 @@ type IntegrationEventKey = keyof IntegrationHandlers
 
 type Fn = (...args: any[]) => void
 
-export class MediaObserver {
+export abstract class MediaObserver {
   private subscriptions: Map<IntegrationEventKey, Set<Fn>>
   static observerName = '__media_observer'
 
@@ -41,9 +41,7 @@ export class MediaObserver {
     this.subscriptions = new Map()
   }
 
-  setup() {
-    return
-  }
+  abstract setup(): void
 
   on(handlers: Partial<IntegrationHandlers>) {
     Object.entries(handlers).forEach(([event, eventHandler]) => {

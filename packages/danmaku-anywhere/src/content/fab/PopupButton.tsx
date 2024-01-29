@@ -3,31 +3,61 @@ import { useEffect } from 'react'
 
 import { PopupTab, usePopup } from '../store/popupStore'
 
+import { HiddenFab } from './components/Fab'
 import { PopupPanelContainer } from './components/PopupPanelContainer'
-import { HiddenFab } from './Fab'
-import { DanmakuInfo } from './InfoPanel'
-import { SearchPanel } from './SearchPanel'
-import { SelectorPanel } from './SelectorPanel'
+import { CommentsPanel } from './panels/CommentsPanel'
+import { InfoPanel } from './panels/InfoPanel'
+import { SearchPanel } from './panels/SearchPanel'
+import { SelectorPanel } from './panels/SelectorPanel'
 
-export const AnimeSelectorPopup = () => {
-  const { isOpen, tab, setTab } = usePopup()
+export const PanelTabs = () => {
+  const { tab, setTab } = usePopup()
 
   const handleTabChange = (_: any, value: PopupTab) => {
     setTab(value)
   }
 
+  const tabs =
+    tab === PopupTab.Selector
+      ? [PopupTab.Selector]
+      : [PopupTab.Search, PopupTab.Info, PopupTab.Comments]
+
+  return (
+    <Tabs
+      value={tab}
+      onChange={handleTabChange}
+      aria-label="Popup"
+      variant="scrollable"
+      scrollButtons="auto"
+    >
+      {tabs.map((tab) => (
+        <Tab label={tab} value={tab} key={tab} />
+      ))}
+    </Tabs>
+  )
+}
+
+export const PopupButton = () => {
+  const { isOpen, tab, setTab } = usePopup()
+
   const handleClick = () => {
     usePopup.setState({ isOpen: !isOpen })
+    // Switch to search tab when open
+    if (!isOpen && tab === PopupTab.Selector) {
+      setTab(PopupTab.Search)
+    }
   }
 
   const renderTabs = () => {
     switch (tab) {
       case PopupTab.Info:
-        return <DanmakuInfo />
+        return <InfoPanel />
       case PopupTab.Search:
         return <SearchPanel />
       case PopupTab.Selector:
         return <SelectorPanel />
+      case PopupTab.Comments:
+        return <CommentsPanel />
     }
   }
 
@@ -55,11 +85,7 @@ export const AnimeSelectorPopup = () => {
       <Slide direction="right" in={isOpen} mountOnEnter unmountOnExit>
         <PopupPanelContainer>
           <AppBar position="static">
-            <Tabs value={tab} onChange={handleTabChange} aria-label="Popup">
-              <Tab label={PopupTab.Search} value={PopupTab.Search} />
-              <Tab label={PopupTab.Selector} value={PopupTab.Selector} />
-              <Tab label={PopupTab.Info} value={PopupTab.Info} />
-            </Tabs>
+            <PanelTabs />
           </AppBar>
           <Paper sx={{ borderRadius: 0, overflow: 'auto', height: 1 }}>
             {renderTabs()}

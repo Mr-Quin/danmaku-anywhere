@@ -5,11 +5,12 @@ import { useShallow } from 'zustand/react/shallow'
 import { useStore } from '../store/store'
 import { useToast } from '../store/toastStore'
 
+import { useManualDanmaku } from './useManualDanmaku'
+
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMatchMountConfig'
 import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
 import { Logger } from '@/common/services/Logger'
 import { useNodeMonitor } from '@/content/hooks/useNodeMonitor'
-import { useManualDanmaku } from './useManualDanmaku'
 
 // listen to comment changes and mount/unmount the danmaku engine
 export const useDanmakuManager = () => {
@@ -17,7 +18,7 @@ export const useDanmakuManager = () => {
 
   const { data: options } = useDanmakuOptions()
 
-  const { comments, setComments, mediaInfo, status } = useStore(
+  const { comments, mediaInfo, status } = useStore(
     useShallow(({ comments, setComments, mediaInfo, status }) => {
       return { comments, setComments, mediaInfo, status }
     })
@@ -67,8 +68,6 @@ export const useDanmakuManager = () => {
       danmakuEngine,
       mountConfig,
       status,
-      node,
-      container,
     })
   }, [container, node])
 

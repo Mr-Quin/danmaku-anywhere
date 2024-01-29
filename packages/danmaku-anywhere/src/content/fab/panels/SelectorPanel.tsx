@@ -14,12 +14,13 @@ import {
   FormControl,
   FormControlLabel,
   Checkbox,
+  FormHelperText,
 } from '@mui/material'
 import { useRef, useState } from 'react'
 
-import { useDanmakuService } from '../hooks/useDanmakuService'
-import { usePopup } from '../store/popupStore'
-import { useStore } from '../store/store'
+import { useDanmakuService } from '../../hooks/useDanmakuService'
+import { usePopup } from '../../store/popupStore'
+import { useStore } from '../../store/store'
 
 import { AnimeTypeIcon } from '@/common/components/animeList/AnimeTypeIcon'
 
@@ -79,6 +80,9 @@ export const SelectorPanel = () => {
 
   return (
     <Box>
+      <Typography variant="body1" p={2}>
+        Multile matches found for {mediaInfo?.toTitleString()}, please select
+      </Typography>
       <List disablePadding dense>
         {animes.map((anime) => {
           return (
@@ -140,10 +144,18 @@ export const SelectorPanel = () => {
                   onChange={(e) => {
                     setSaveMapping(e.target.checked)
                   }}
+                  disabled={!selectedAnime}
                 />
               }
               label="Remember selection"
             />
+            {selectedAnime && (
+              <FormHelperText>
+                {`Remember "${mediaInfo?.toTitleString()}" as "${
+                  selectedAnime?.animeTitle
+                }"`}
+              </FormHelperText>
+            )}
           </FormControl>
         </Stack>
       </Box>

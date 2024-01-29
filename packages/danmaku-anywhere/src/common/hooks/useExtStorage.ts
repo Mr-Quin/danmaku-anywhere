@@ -1,76 +1,64 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
+
+import {
+  ExtStorageService,
+  ExtStorageServiceOptions,
+} from '../services/ExtStorageService'
 
 import { toArray } from '@/common/utils'
 
-type StorageType = 'local' | 'sync' | 'session'
+// required for useQuery to accept placeholderData
+// eslint-disable-next-line @typescript-eslint/ban-types
+type NonFunctionGuard<T> = T extends Function ? never : T
 
-type StorageConfig = {
-  storageType?: StorageType
-  placeholderData?: { [key: string]: any }
+interface UseExtStorageOptions<T> extends ExtStorageServiceOptions {
+  placeholderData?: T
 }
 
 export const useExtStorage = <T>(
   key: string | string[] | null,
-  { storageType = 'local', placeholderData = {} }: StorageConfig = {}
+  { storageType = 'local', placeholderData }: UseExtStorageOptions<T> = {}
 ) => {
-  const storage = chrome.storage[storageType]
-
   const queryKey = ['ext-storage', storageType, ...toArray(key)]
+
+  const storageService = useMemo(
+    () => new ExtStorageService<T>(key, { storageType }),
+    [...queryKey]
+  )
+
+  useEffect(() => {
+    storageService.subscribe(() => {
+      queryClient.invalidateQueries({ queryKey })
+    })
+
+    return () => {
+      queryClient.invalidateQueries({ queryKey })
+      storageService.destroy()
+    }
+  }, [storageService])
 
   const queryClient = useQueryClient()
 
   const query = useQuery({
     queryKey,
-    queryFn: () => {
-      return storage.get(key)
-    },
-    select: (data) => {
-      if (key === null) return data as T
-      if (Array.isArray(key)) return data as T
-      return data[key] as T
-    },
-    placeholderData,
+    queryFn: storageService.read.bind(storageService), // useQuery requires non-undefined return value
+    placeholderData: placeholderData as NonFunctionGuard<T>,
   })
 
   const updateMutation = useMutation({
-    mutationFn: async (value: T) => {
-      if (key === null || Array.isArray(key)) throw new Error('invalid key')
-      return storage.set({ [key]: value })
-    },
+    mutationFn: storageService.set.bind(storageService),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
     },
   })
 
   const deleteMutation = useMutation({
-    mutationFn: async () => {
-      if (key === null) return storage.clear()
-      return storage.remove(key)
-    },
+    mutationFn: storageService.set.bind(storageService),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
     },
   })
-
-  useEffect(() => {
-    // listen to storage change from elsewhere and update state
-    if (typeof key !== 'string') return
-
-    const listener = (changes: {
-      [p: string]: chrome.storage.StorageChange
-    }) => {
-      const change = changes[key]
-      if (change) {
-        queryClient.invalidateQueries({ queryKey })
-      }
-    }
-    storage.onChanged.addListener(listener)
-
-    return () => {
-      storage.onChanged.removeListener(listener)
-    }
-  }, [...queryKey])
 
   return {
     ...query,

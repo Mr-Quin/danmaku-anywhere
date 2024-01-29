@@ -1,38 +1,41 @@
+import { ExtensionOptions } from '@/common/constants/extensionOptions'
+import { ExtStorageService } from '@/common/services/ExtStorageService'
+
 export const addEnabledMenu = () => {
   // add menu item to disable danmaku
-  chrome.storage.sync.get('extensionOptions', ({ extensionOptions }) => {
+  const extensionOptionsService = new ExtStorageService<ExtensionOptions>(
+    'extensionOptions',
+    {
+      storageType: 'sync',
+    }
+  )
+
+  extensionOptionsService.read().then((extensionOptions) => {
     chrome.contextMenus.create({
       id: 'danmaku-anywhere-enabled',
       type: 'checkbox',
       checked: extensionOptions?.enabled ?? false,
       title: 'Enabled',
-      contexts: ['action', 'page'],
+      contexts: ['action', 'page', 'video'],
     })
   })
 
   chrome.contextMenus.onClicked.addListener(async (info) => {
     if (info.menuItemId === 'danmaku-anywhere-enabled') {
-      const { extensionOptions } = await chrome.storage.sync.get(
-        'extensionOptions'
-      )
+      const extensionOptions = await extensionOptionsService.read()
 
-      await chrome.storage.sync.set({
-        extensionOptions: {
-          ...extensionOptions,
-          enabled: !extensionOptions?.enabled,
-        },
+      await extensionOptionsService.set({
+        ...extensionOptions,
+        enabled: !extensionOptions?.enabled,
       })
     }
   })
 
-  chrome.storage.sync.onChanged.addListener((changes) => {
-    if (changes.extensionOptions) {
-      const { newValue } = changes.extensionOptions
-      if (newValue) {
-        chrome.contextMenus.update('danmaku-anywhere-enabled', {
-          checked: newValue.enabled,
-        })
-      }
+  extensionOptionsService.subscribe((extensionOptions) => {
+    if (extensionOptions) {
+      chrome.contextMenus.update('danmaku-anywhere-enabled', {
+        checked: extensionOptions.enabled,
+      })
     }
   })
 }

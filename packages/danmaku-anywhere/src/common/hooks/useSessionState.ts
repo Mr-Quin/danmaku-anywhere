@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 
 import { useExtStorage } from '@/common/hooks/useExtStorage'
 
-// persist state to chrome.storage.session
 export const useSessionState = <T>(initialState: T, key: string) => {
   const [state, setState] = useState<T>(initialState)
 
   const { data, update, isLoading } = useExtStorage<T>(key, {
     storageType: 'session',
+    placeholderData: initialState,
   })
 
   const initialized = useRef(false)
