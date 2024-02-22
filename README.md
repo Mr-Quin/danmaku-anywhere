@@ -1,38 +1,37 @@
 # danmaku-anywhere
 
-> A browser extension that injects danmaku into theoretically any website with a `<video>` player.
+[English](./README.en.md)
 
-For the userscript plex-danmaku, see [here](./packages/plex-danmaku).
+> danmaku-anywhere 是一个理论上可以在任何视频网站上加载弹幕的浏览器插件.
 
-## Features 🚧
+## 功能 🚧
 
-For all websites:
+任何网站都可用:
 
-- Search for danmaku by anime
-- Inject danmaku into any video with customizable configuration
-- Customizable danmaku style
-- Cache danmaku locally and export to file
+- 按动画搜索弹幕
+- 将弹幕嵌入视频
+- 自定义弹幕样式
+- 本地弹幕缓存并导出为文件
 
-And for websites with integration: 🚧
+需网站适配: 🚧
 
-- Automatically detect the anime being played and match danmaku
+- 自动检测播放的动画并匹配弹幕
 
-Currently the only website with integration implemented is [Plex](https://www.plex.tv/)
+目前只有 [Plex](https://www.plex.tv/) 实现了适配
 
-All danmaku is sourced from [弹弹play](https://www.dandanplay.com/)
+所有弹幕均来自 [弹弹 play](https://www.dandanplay.com/)
 
-## Installation
+## 安装
 
-Download the latest [latest release](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest)
+下载[最新发布的版本](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest)
 
 ### Chrome
 
-1. Goto the extensions page [chrome://extensions/](chrome://extensions/) and enable developer mode.
-2. Click on "Load unpacked" and select the extracted folder
+1. 进入扩展页面 [chrome://extensions/](chrome://extensions/) 并启用开发者模式。
+2. 点击 "加载未打包的扩展" 并选择已解压的扩展文件夹。
 
-This extension has only been tested on Chromium based browsers in desktop mode
 
-## Screenshots
+## 截图
 
 Plex
 
@@ -48,45 +47,6 @@ UI
 ![Options page](./assets/danmaku_options_page.png)
 ![Floating panel](./assets/danmaku_floating_dialogue.png)
 
-## Development
+## 开发
 
-### Prerequisites
-
-This is a pnpm monorepo. You'll need to install [pnpm](https://pnpm.io/installation) first.
-
-### Project structure
-
-```
-.
-├── packages
-│   ├── danmaku-anywhere       # the browser extension package
-│   ├── danmaku-engine         # wraps danmaku engine and dandanplay api
-│   └── plex-danmaku           # legacy userscript for plex
-├── package.json
-└── ...
-```
-
-### Installation
-
-1. Install dependencies
-
-   ```bash
-   # in the root dir
-   pnpm i
-   ```
-
-2. Build shared libraries
-
-   ```bash
-   # in the root dir
-   pnpm build
-   ```
-
-3. Build the extension in dev mode and start the dev server
-
-   ```bash
-   # packages/danmaku-anywhere
-   pnpm dev
-   ```
-
-4. This the output is in `packages/danmaku-anywhere/dist`, load this folder as unpacked extension
+见[英文文档](./README.en.md#development)
