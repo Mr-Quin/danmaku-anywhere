@@ -2,14 +2,15 @@ name: Release Package
 
 on:
   push:
-    branches: ['master']
     tags:
       - 'v*.*.*'
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
+      
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -41,6 +42,7 @@ jobs:
           pnpm package
 
       - uses: ncipollo/release-action@v1
+        
         with:
           allowUpdates: true
           artifacts: 'packages/danmaku-anywhere/package/*.tar.gz'
