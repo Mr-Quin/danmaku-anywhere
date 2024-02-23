@@ -3,7 +3,10 @@ import { Logger } from './Logger'
 
 type OptionsSchema = Record<string, any>
 
-type WithVersion<T> = T & { version: number }
+export type Options<T> = {
+  data: T
+  version: number
+}
 
 type Version<T> = {
   version: number
@@ -16,16 +19,19 @@ type VersionConfig<T> = Omit<Version<T>, 'version'>
 export class SyncOptionsService<T extends OptionsSchema> {
   private versions: Version<T>[] = []
   private logger: typeof Logger
-  private storageService: ExtStorageService<WithVersion<T>>
+  private storageService: ExtStorageService<Options<T>>
 
   constructor(private key: string, private defaultOptions: T) {
-    this.storageService = new ExtStorageService<WithVersion<T>>(key, {
+    this.storageService = new ExtStorageService<Options<T>>(key, {
       storageType: 'sync',
     })
     this.logger = Logger.sub('[SyncOptionsService]').sub(`[${key}]`)
   }
 
   version(version: number, versionConfig: VersionConfig<T>) {
+    if (version <= 0) {
+      throw new Error(`Version must be larger than 0`)
+    }
     if (this.versions.some((v) => v.version >= version)) {
       throw new Error(`New version must be bigger than existing ones`)
     }
@@ -46,40 +52,46 @@ export class SyncOptionsService<T extends OptionsSchema> {
     this.logger.debug('Init')
 
     if (!options) {
-      // if no options, set default options with latest version
-      const latestVersion = this.#getLatestVersion()
+      // if no options, set default options as first version
       this.logger.debug(
-        `No options found, setting default options with version ${latestVersion.version}`
+        `No existing options found, upgrading using default options`
       )
-      this.storageService.set({
-        ...this.defaultOptions,
-        version: latestVersion.version,
-      })
+
+      const firstOptions = {
+        data: this.defaultOptions,
+        version: 0, // version is guaranteed to > 0
+      }
+
+      // recursively upgrade to latest version
+      const upgradedOptions = this.#migrate(firstOptions)
+      await this.storageService.set(upgradedOptions)
+
       return
     }
+
     // if options is not versioned, set version to 0
     options.version ??= 0
     this.logger.debug(`Found options with version ${options.version}`)
     const upgradedOptions = this.#migrate(options)
-    this.storageService.set(upgradedOptions)
+    await this.storageService.set(upgradedOptions)
   }
 
-  #migrate(data: WithVersion<T>): WithVersion<T> {
-    const nextVersion = this.#getNextVersion(data.version)
+  #migrate(options: Options<T>): Options<T> {
+    const nextVersion = this.#getNextVersion(options.version)
 
     // if no next migration, return data as is
     if (!nextVersion) {
-      this.logger.debug(`At latest version ${data.version}`)
-      return data as WithVersion<T>
+      this.logger.debug(`At latest version ${options.version}`)
+      return options as Options<T>
     }
 
     this.logger.debug(
-      `Upgrading from version ${data.version} to ${nextVersion.version}`
+      `Upgrading from version ${options.version} to ${nextVersion.version}`
     )
 
     // recursively upgrade data until no next migration
     const upgradedData = {
-      ...nextVersion.upgrade(data),
+      data: nextVersion.upgrade(options.data),
       version: nextVersion.version, // increment version
     }
     return this.#migrate(upgradedData)
@@ -111,17 +123,17 @@ export class SyncOptionsService<T extends OptionsSchema> {
     })
   }
 
-  async get() {
-    const data = await this.storageService.read()
-    if (!data) return this.defaultOptions
-    return data
+  async get(): Promise<T> {
+    const options = await this.storageService.read()
+    if (!options) return this.defaultOptions
+    return options.data
   }
 
   // update options and keep version
   // assumes data is already at latest version
   async update(data: T) {
     return this.storageService.set({
-      ...data,
+      data,
       version: this.#getLatestVersion().version,
     })
   }
@@ -129,16 +141,16 @@ export class SyncOptionsService<T extends OptionsSchema> {
   // reset options to default
   async reset() {
     return this.storageService.set({
-      ...this.defaultOptions,
+      data: this.defaultOptions,
       version: this.#getLatestVersion().version,
     })
   }
 
   onChange(listener: (data: T | undefined) => void) {
-    this.storageService.subscribe((data) => {
+    this.storageService.subscribe((options) => {
       // data is undefined when storage is cleared, which should not happen
-      if (!data) return
-      listener(data)
+      if (!options) return
+      listener(options.data)
     })
   }
 

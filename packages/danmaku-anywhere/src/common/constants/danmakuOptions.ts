@@ -1,5 +1,9 @@
 import { DanmakuOptions } from '@danmaku-anywhere/danmaku-engine'
 
+import { Options } from '../services/SyncOptionsService'
+
+export type DanmakuOptionsOptions = Options<DanmakuOptions>
+
 export const defaultDanmakuOptions: DanmakuOptions = {
   show: true,
   filters: [],

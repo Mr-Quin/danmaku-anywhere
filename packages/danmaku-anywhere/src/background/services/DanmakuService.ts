@@ -8,7 +8,7 @@ import { DanmakuMeta, db } from '@/common/db/db'
 import { Logger } from '@/common/services/Logger'
 import { invariant, isServiceWorker, tryCatch } from '@/common/utils'
 
-interface DanmakuFetchOptions {
+export interface DanmakuFetchOptions {
   forceUpdate?: boolean // force update danmaku from server even if it's already in db
   cacheOnly?: boolean // only fetch from cache, prevent making request to server
 }

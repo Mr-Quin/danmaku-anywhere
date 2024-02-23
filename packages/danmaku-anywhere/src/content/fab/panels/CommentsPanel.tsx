@@ -1,15 +1,41 @@
 import { Refresh } from '@mui/icons-material'
-import { Box, IconButton, Stack, Tooltip, Typography } from '@mui/material'
+import {
+  Box,
+  CircularProgress,
+  IconButton,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material'
 
 import { useStore } from '../../store/store'
 import { CommentList } from '../components/CommentList'
 
+import { tryCatch } from '@/common/utils'
+import { useDanmakuService } from '@/content/hooks/useDanmakuService'
+import { useToast } from '@/content/store/toastStore'
+
 export const CommentsPanel = () => {
-  const { comments, status } = useStore()
+  const { comments, danmakuMeta } = useStore()
+  const { toast } = useToast()
+
+  const { fetch, isLoading } = useDanmakuService()
+
+  const handleRefreshComments = async () => {
+    if (!danmakuMeta) return
+
+    const [, err] = await tryCatch(() =>
+      fetch(danmakuMeta, undefined, { forceUpdate: true })
+    )
+
+    if (!err) {
+      toast.success('Comments refreshed')
+    }
+  }
 
   return (
     <>
-      {status !== 'stopped' && comments.length > 0 ? (
+      {comments.length > 0 ? (
         <Stack height="100%">
           <Box px={2}>
             <Stack
@@ -19,8 +45,8 @@ export const CommentsPanel = () => {
             >
               <Typography variant="h6">{comments.length} comments</Typography>
               <Tooltip title="Refresh comments">
-                <IconButton color="primary">
-                  <Refresh />
+                <IconButton color="primary" onClick={handleRefreshComments}>
+                  {isLoading ? <CircularProgress size={24} /> : <Refresh />}
                 </IconButton>
               </Tooltip>
             </Stack>

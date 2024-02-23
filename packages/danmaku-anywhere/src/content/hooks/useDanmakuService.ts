@@ -1,5 +1,6 @@
 import { useStore } from '../store/store'
 
+import { DanmakuFetchOptions } from '@/background/services/DanmakuService'
 import { DanmakuMeta, TitleMapping } from '@/common/db/db'
 import { titleMappingMessage } from '@/common/messages/titleMappingMessage'
 import { tryCatch } from '@/common/utils'
@@ -14,7 +15,8 @@ export const useDanmakuService = () => {
 
   const handleFetch = async (
     danmakuMeta: DanmakuMeta,
-    titleMapping?: TitleMapping
+    titleMapping?: TitleMapping,
+    options?: DanmakuFetchOptions
   ) => {
     setDanmakuMeta(danmakuMeta)
 
@@ -22,6 +24,7 @@ export const useDanmakuService = () => {
       data: danmakuMeta,
       options: {
         forceUpdate: false,
+        ...options,
       },
     })
 
