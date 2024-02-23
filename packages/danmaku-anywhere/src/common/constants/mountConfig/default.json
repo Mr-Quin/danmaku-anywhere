@@ -1,0 +1,33 @@
+[
+  {
+    "patterns": ["https://app.plex.tv"],
+    "mediaQuery": "video",
+    "containerQuery": ".Player-fullPlayerContainer-wBDz23",
+    "enabled": true,
+    "name": "plex"
+  },
+  {
+    "patterns": ["https://www.bilibili.com"],
+    "mediaQuery": "video",
+    "containerQuery": ".bpx-player-row-dm-wrap",
+    "enabled": true,
+    "name": "bilibili"
+  },
+  {
+    "patterns": ["https://www.youtube.com"],
+    "mediaQuery": "video",
+    "containerQuery": "#movie_player",
+    "enabled": true,
+    "name": "youtube"
+  },
+  {
+    "patterns": [
+      "https://www.crunchyroll.com",
+      "https://static.crunchyroll.com"
+    ],
+    "mediaQuery": "#player0",
+    "containerQuery": "#vilosRoot",
+    "enabled": true,
+    "name": "crunchyroll"
+  }
+]
