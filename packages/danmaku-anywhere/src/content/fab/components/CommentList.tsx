@@ -2,11 +2,11 @@ import {
   DanDanComment,
   parseDanDanCommentParams,
 } from '@danmaku-anywhere/danmaku-engine'
-import { Box, Stack } from '@mui/material'
+import { Box, BoxProps, Stack } from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useRef } from 'react'
 
-interface CommentListProps {
+interface CommentListProps extends BoxProps {
   comments: DanDanComment[]
 }
 
@@ -19,7 +19,7 @@ const formatTime = (seconds: number) => {
   ).padStart(2, '0')}`
 }
 
-export const CommentList = ({ comments }: CommentListProps) => {
+export const CommentList = ({ comments, ...rest }: CommentListProps) => {
   const ref = useRef<HTMLDivElement>(null)
 
   const virtualizer = useVirtualizer({
@@ -29,9 +29,8 @@ export const CommentList = ({ comments }: CommentListProps) => {
   })
 
   return (
-    <Box ref={ref} height="100%" overflow="auto">
+    <Box ref={ref} height="100%" overflow="auto" {...rest}>
       <Stack direction="row" spacing={2}>
-        <div>index</div>
         <div>time</div>
         <div>color</div>
         <div>comment</div>
@@ -60,7 +59,6 @@ export const CommentList = ({ comments }: CommentListProps) => {
               }}
             >
               <Stack direction="row" spacing={2}>
-                <div>{virtualItem.index}</div>
                 <div>{formatTime(time)}</div>
                 <div
                   style={{

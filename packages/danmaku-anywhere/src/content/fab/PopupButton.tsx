@@ -1,41 +1,15 @@
-import { Paper, Box, Slide, Tabs, Tab, AppBar } from '@mui/material'
+import { Paper, Box, Slide, AppBar } from '@mui/material'
 import { useEffect } from 'react'
 
 import { PopupTab, usePopup } from '../store/popupStore'
 
 import { HiddenFab } from './components/Fab'
+import { PanelTabs } from './components/PanelTabs'
 import { PopupPanelContainer } from './components/PopupPanelContainer'
 import { CommentsPanel } from './panels/CommentsPanel'
 import { InfoPanel } from './panels/InfoPanel'
 import { SearchPanel } from './panels/SearchPanel'
 import { SelectorPanel } from './panels/SelectorPanel'
-
-export const PanelTabs = () => {
-  const { tab, setTab } = usePopup()
-
-  const handleTabChange = (_: any, value: PopupTab) => {
-    setTab(value)
-  }
-
-  const tabs =
-    tab === PopupTab.Selector
-      ? [PopupTab.Selector]
-      : [PopupTab.Search, PopupTab.Info, PopupTab.Comments]
-
-  return (
-    <Tabs
-      value={tab}
-      onChange={handleTabChange}
-      aria-label="Popup"
-      variant="scrollable"
-      scrollButtons="auto"
-    >
-      {tabs.map((tab) => (
-        <Tab label={tab} value={tab} key={tab} />
-      ))}
-    </Tabs>
-  )
-}
 
 export const PopupButton = () => {
   const { isOpen, tab, setTab } = usePopup()
@@ -84,7 +58,7 @@ export const PopupButton = () => {
     >
       <Slide direction="right" in={isOpen} mountOnEnter unmountOnExit>
         <PopupPanelContainer>
-          <AppBar position="static">
+          <AppBar position="relative">
             <PanelTabs />
           </AppBar>
           <Paper sx={{ borderRadius: 0, overflow: 'auto', height: 1 }}>
