@@ -44,21 +44,6 @@ chrome.runtime.onInstalled.addListener(async () => {
         },
       })
       .upgrade()
-
-    // const { mountConfig, danmakuOptions, extensionOptions } =
-    //   await chrome.storage.sync.get()
-
-    // if (!mountConfig) {
-    //   await chrome.storage.sync.set({ mountConfig: defaultMountConfig })
-    // }
-    // if (!danmakuOptions) {
-    //   await chrome.storage.sync.set({ danmakuOptions: defaultDanmakuOptions })
-    // }
-    // if (!extensionOptions) {
-    //   await chrome.storage.sync.set({
-    //     extensionOptions: defaultExtensionOptions,
-    //   })
-    // }
   } catch (err) {
     Logger.error(err)
   }
