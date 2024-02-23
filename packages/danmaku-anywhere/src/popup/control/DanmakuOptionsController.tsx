@@ -121,7 +121,7 @@ const LabeledSlider = ({
 }
 
 export const DanmakuOptionsController = () => {
-  const { data: config, update, isLoading } = useDanmakuOptions()
+  const { data: config, partialUpdate, isLoading } = useDanmakuOptions()
 
   const [localConfig, setLocalConfig] = useState<DanmakuOptions | undefined>(
     config
@@ -137,7 +137,7 @@ export const DanmakuOptionsController = () => {
 
   const handleUpdate = async (newConfig: DanmakuOptions) => {
     // flush config to storage
-    await update.mutateAsync(newConfig)
+    partialUpdate(newConfig)
   }
 
   const handleLocalUpdate = (newConfig: DanmakuOptions) => {

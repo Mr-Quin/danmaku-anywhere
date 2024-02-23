@@ -18,8 +18,6 @@ import { Logger } from '@/common/services/Logger'
 import { SyncOptionsService } from '@/common/services/SyncOptionsService'
 
 chrome.runtime.onInstalled.addListener(async () => {
-  // set default config on install, if not already set
-  // TODO: add logic to update config when new version is released
   try {
     await new SyncOptionsService('extensionOptions', defaultExtensionOptions)
       .version(1, {
@@ -33,15 +31,9 @@ chrome.runtime.onInstalled.addListener(async () => {
       })
       .upgrade()
 
-    await new SyncOptionsService('mountConfig', {
-      configs: defaultMountConfig,
-    })
+    await new SyncOptionsService('mountConfig', defaultMountConfig)
       .version(1, {
-        upgrade: (data: any) => {
-          return {
-            configs: data, // version 0 is just an array of configs
-          }
-        },
+        upgrade: (data: any) => data,
       })
       .upgrade()
   } catch (err) {

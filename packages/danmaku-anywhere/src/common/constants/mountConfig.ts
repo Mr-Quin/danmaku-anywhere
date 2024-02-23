@@ -1,3 +1,5 @@
+import { Options } from '../services/SyncOptionsService'
+
 import defaultMountConfigJson from './mountConfig/default.json'
 export interface MountConfig {
   patterns: string[]
@@ -9,9 +11,7 @@ export interface MountConfig {
   id: number
 }
 
-export interface MountConfigOptions {
-  configs: MountConfig[]
-}
+export type MountConfigOptions = Options<MountConfig[]>
 
 export interface MountConfigWithoutId extends Omit<MountConfig, 'id'> {
   id?: number

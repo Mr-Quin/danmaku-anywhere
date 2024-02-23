@@ -7,6 +7,7 @@ import { Logger } from '../services/Logger'
 
 import { PayloadOf } from './message'
 
+import { DanmakuFetchOptions } from '@/background/services/DanmakuService'
 import { DanmakuMeta } from '@/common/db/db'
 
 export type DanmakuMessage =
@@ -15,10 +16,7 @@ export type DanmakuMessage =
       payload: {
         data: DanmakuMeta
         params?: Partial<DanDanCommentAPIParams>
-        options?: {
-          forceUpdate?: boolean // if false, prefer cache and fallback to remote if cache is empty
-          cacheOnly?: boolean // if true, skip remote entirely and only use cache
-        }
+        options?: DanmakuFetchOptions
       }
     }
   | {
