@@ -45,6 +45,6 @@ jobs:
         
         with:
           allowUpdates: true
-          artifacts: 'packages/danmaku-anywhere/package/*.tar.gz'
+          artifacts: 'packages/danmaku-anywhere/package/*'
           generateReleaseNotes: true
           prerelease: true
