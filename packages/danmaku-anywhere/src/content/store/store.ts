@@ -41,8 +41,6 @@ export const useStore = create<StoreState>((set) => ({
     set({
       comments: [],
       mediaInfo: undefined,
-      status: 'stopped',
       danmakuMeta: undefined,
-      // don't reset observer and integration
     }),
 }))
