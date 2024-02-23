@@ -17,10 +17,10 @@ const packageName = packageJson.name.replace(/@.*?\//, '') // Removing scope if 
 const packageVersion = packageJson.version
 
 const tarFileName = `${packageName}-${packageVersion}.tar.gz`
+const zipFileName = `${packageName}-${packageVersion}.zip`
 
 const buildPath = path.resolve(__dirname, '../build')
 const packagePath = path.resolve(__dirname, '../package')
-const packageFileName = path.resolve(__dirname, '../package', tarFileName)
 
 // create package folder
 await fs.promises.mkdir(packagePath, { recursive: true })
@@ -28,10 +28,18 @@ await fs.promises.mkdir(packagePath, { recursive: true })
 // empty package folder
 await emptyDir(packagePath)
 
-exec(`tar -czf ${packageFileName} -C ${buildPath} .`, (error) => {
+exec(`tar -czf ${packagePath}/${tarFileName} -C ${buildPath} .`, (error) => {
   if (error) {
     console.error('Error occurred:', error)
     return
   }
-  console.log(`Package created: ${packageFileName}`)
+  console.log(`Package created: ${tarFileName}`)
+})
+
+exec(`7z a ${packagePath}/${zipFileName} ${buildPath}/*`, (error) => {
+  if (error) {
+    console.error('Error occurred:', error)
+    return
+  }
+  console.log(`Package created: ${zipFileName}`)
 })
