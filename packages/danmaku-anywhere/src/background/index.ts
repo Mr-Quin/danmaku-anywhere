@@ -5,44 +5,16 @@ import { addEnabledMenu } from './contextMenu/enabled'
 import { DanmakuService } from './services/DanmakuService'
 import { IconService } from './services/IconService'
 import { TitleMappingService } from './services/TitleMappingService'
+import { setupOptions } from './syncOptions/upgradeOptions'
 
-import { defaultDanmakuOptions } from '@/common/constants/danmakuOptions'
-import { defaultExtensionOptions } from '@/common/constants/extensionOptions'
-import { defaultMountConfig } from '@/common/constants/mountConfig'
 import { AnimeMessage } from '@/common/messages/animeMessage'
 import { IconMessage } from '@/common/messages/iconMessage'
 import { MessageOf } from '@/common/messages/message'
 import { MessageRouter } from '@/common/messages/MessageRouter'
 import { TitleMappingMessage } from '@/common/messages/titleMappingMessage'
 import { Logger } from '@/common/services/Logger'
-import { SyncOptionsService } from '@/common/services/SyncOptionsService'
 
-chrome.runtime.onInstalled.addListener(async () => {
-  try {
-    await new SyncOptionsService('extensionOptions', defaultExtensionOptions)
-      .version(1, {
-        upgrade: (data: any) => data,
-      })
-      .upgrade()
-
-    await new SyncOptionsService('danmakuOptions', defaultDanmakuOptions)
-      .version(1, {
-        upgrade: (data: any) => data,
-      })
-      .upgrade()
-
-    await new SyncOptionsService('mountConfig', defaultMountConfig)
-      .version(1, {
-        upgrade: (data: any) => data,
-      })
-      .upgrade()
-  } catch (err) {
-    Logger.error(err)
-  }
-
-  Logger.info('Danmaku Anywhere Installed')
-})
-
+setupOptions()
 addEnabledMenu()
 
 const messageRouter = new MessageRouter()
