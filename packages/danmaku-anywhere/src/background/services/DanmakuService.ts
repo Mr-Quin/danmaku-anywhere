@@ -32,7 +32,7 @@ export class DanmakuService {
   ) {
     const { episodeId } = data
 
-    const result = await db.danmakuCache.get(episodeId)
+    const result = await this.db.get(episodeId)
 
     if (options.cacheOnly) return result
     if (result && !options.forceUpdate) {
@@ -85,7 +85,7 @@ export class DanmakuService {
       }
     }
 
-    await db.danmakuCache.put(newEntry)
+    await this.db.put(newEntry)
 
     this.logger.debug('Cached danmaku to db')
 
@@ -94,5 +94,9 @@ export class DanmakuService {
 
   async delete(episodeId: number) {
     return this.db.delete(episodeId)
+  }
+
+  async getAll() {
+    return this.db.toArray()
   }
 }

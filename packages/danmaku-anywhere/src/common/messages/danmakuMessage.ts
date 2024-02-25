@@ -8,7 +8,7 @@ import { Logger } from '../services/Logger'
 import { PayloadOf } from './message'
 
 import { DanmakuFetchOptions } from '@/background/services/DanmakuService'
-import { DanmakuMeta } from '@/common/db/db'
+import { DanmakuCache, DanmakuMeta } from '@/common/db/db'
 
 export type DanmakuMessage =
   | {
@@ -24,6 +24,9 @@ export type DanmakuMessage =
       payload: {
         episodeId: number
       }
+    }
+  | {
+      action: 'danmaku/getAll'
     }
 
 type DanmakuPayload<TAction> = PayloadOf<DanmakuMessage, TAction>
@@ -50,5 +53,11 @@ export const danmakuMessage = {
       action: 'danmaku/delete',
       payload,
     })
+  },
+  getAll: async (payload: DanmakuPayload<'danmaku/getAll'>) => {
+    return (await chrome.runtime.sendMessage({
+      action: 'danmaku/getAll',
+      payload: payload ?? {},
+    })) as DanmakuCache[]
   },
 }

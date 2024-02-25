@@ -83,6 +83,17 @@ messageRouter.on<MessageOf<DanmakuMessage, 'danmaku/delete'>>(
   }
 )
 
+messageRouter.on<MessageOf<DanmakuMessage, 'danmaku/getAll'>>(
+  'danmaku/getAll',
+  async (_, __, sendResponse) => {
+    const res = await danmakuService.getAll()
+
+    Logger.debug('Get all danmaku success', res.length)
+
+    sendResponse({ success: true, payload: res })
+  }
+)
+
 messageRouter.on<MessageOf<AnimeMessage, 'anime/search'>>(
   'anime/search',
   async (request, _, sendResponse) => {
