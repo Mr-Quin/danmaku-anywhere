@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  UseQueryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import { useEffect, useMemo } from 'react'
 
 import {
@@ -8,17 +13,13 @@ import {
 
 import { toArray } from '@/common/utils'
 
-// required for useQuery to accept placeholderData
-// eslint-disable-next-line @typescript-eslint/ban-types
-type NonFunctionGuard<T> = T extends Function ? never : T
-
 interface UseExtStorageOptions<T> extends ExtStorageServiceOptions {
-  placeholderData?: T
+  queryOptions?: Omit<UseQueryOptions<T>, 'queryKey' | 'queryFn'>
 }
 
 export const useExtStorage = <T>(
   key: string | string[] | null,
-  { storageType = 'local', placeholderData }: UseExtStorageOptions<T> = {}
+  { storageType = 'local', queryOptions }: UseExtStorageOptions<T> = {}
 ) => {
   const queryKey = ['ext-storage', storageType, ...toArray(key)]
 
@@ -42,8 +43,17 @@ export const useExtStorage = <T>(
 
   const query = useQuery({
     queryKey,
-    queryFn: storageService.read.bind(storageService), // useQuery requires non-undefined return value
-    placeholderData: placeholderData as NonFunctionGuard<T>,
+    queryFn: async () => {
+      const res = await storageService.read()
+
+      if (res === undefined) {
+        // useQuery requires non-undefined return value
+        throw new Error('Failed to read from storage, result is undefined')
+      }
+
+      return res
+    },
+    ...queryOptions,
   })
 
   const updateMutation = useMutation({

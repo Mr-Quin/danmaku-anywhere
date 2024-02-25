@@ -15,7 +15,7 @@ export const AnimeSearch = () => {
     'search/episode'
   )
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, refetch, error } = useQuery({
     queryKey: ['search', { title, episodeNumber }],
     queryFn: async () => {
       return searchAnime({
@@ -61,12 +61,8 @@ export const AnimeSearch = () => {
             size="small"
           />
         </Stack>
-        <LoadingButton
-          type="submit"
-          loading={isLoading}
-          variant="outlined"
-          size="small"
-        >
+        {error && <Typography color="error">{error.message}</Typography>}
+        <LoadingButton type="submit" loading={isLoading} variant="outlined">
           Search
         </LoadingButton>
       </Stack>

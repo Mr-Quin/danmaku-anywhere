@@ -1,13 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
 
+import { NonFunctionGuard } from '../types'
+
 import { useExtStorage } from '@/common/hooks/useExtStorage'
 
-export const useSessionState = <T>(initialState: T, key: string) => {
+export const useSessionState = <T>(
+  initialState: NonFunctionGuard<T>,
+  key: string
+) => {
   const [state, setState] = useState<T>(initialState)
+  const [enableQuery, setEnableQuery] = useState(false)
 
   const { data, update, isLoading } = useExtStorage<T>(key, {
     storageType: 'session',
-    placeholderData: initialState,
+    queryOptions: {
+      enabled: enableQuery,
+      placeholderData: initialState,
+    },
   })
 
   const initialized = useRef(false)
@@ -20,7 +29,9 @@ export const useSessionState = <T>(initialState: T, key: string) => {
   }, [data])
 
   useEffect(() => {
-    update.mutate(state)
+    update.mutateAsync(state).then(() => {
+      setEnableQuery(true)
+    })
   }, [state])
 
   return [state, setState, isLoading] as const

@@ -88,7 +88,7 @@ messageRouter.on<MessageOf<DanmakuMessage, 'danmaku/getAll'>>(
   async (_, __, sendResponse) => {
     const res = await danmakuService.getAll()
 
-    Logger.debug('Get all danmaku success', res.length)
+    Logger.debug(`Get all danmaku success: ${res.length} records`)
 
     sendResponse({ success: true, payload: res })
   }

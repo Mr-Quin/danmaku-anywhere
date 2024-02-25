@@ -98,7 +98,10 @@ export const MountController = () => {
       }}
     >
       <Stack direction="column" spacing={2}>
-        <Typography variant="h6">Active config</Typography>
+        <Typography variant="h6">Select Danmaku</Typography>
+        <Typography variant="caption">
+          {danmakuCache?.meta.animeTitle}
+        </Typography>
         <Autocomplete
           value={danmakuCache ?? null} // value must be null when empty so that the component is "controlled"
           loading={loading}
@@ -106,7 +109,7 @@ export const MountController = () => {
           filterOptions={filterOptions}
           isOptionEqualToValue={isOptionEqualToValue}
           onChange={(e, value) => {
-            if (value) setDanmakuCache(value)
+            setDanmakuCache(value ?? undefined)
           }}
           renderOption={(props, option) => {
             return <EpisodeOption {...props} option={option} />

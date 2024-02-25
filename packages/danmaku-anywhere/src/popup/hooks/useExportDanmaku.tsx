@@ -1,17 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
-
-import { danmakuMessage } from '@/common/messages/danmakuMessage'
+import { useAllDanmakuQuery } from './useAllDanmakuQuery'
 
 export const useExportDanmaku = () => {
-  const query = useQuery({
-    queryKey: ['danmakuCache', 'getAll'],
-    queryFn: async () => {
-      const res = await danmakuMessage.getAll({})
-      if (!res) throw new Error('Failed to get danmaku from cache')
-      return res
-    },
-    enabled: false,
-  })
+  const query = useAllDanmakuQuery()
 
   const exportDanmaku = async () => {
     const { data: danmakuList } = await query.refetch()
@@ -22,12 +12,10 @@ export const useExportDanmaku = () => {
 
     const filename = `danmaku-export-${dateString}.json`
 
-    // Create a hidden anchor tag
     const link = document.createElement('a')
     link.href = url
     link.download = filename
 
-    // Append to the document for the download to work
     document.body.appendChild(link)
 
     link.click()

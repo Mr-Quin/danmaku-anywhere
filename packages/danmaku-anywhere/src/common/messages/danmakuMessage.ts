@@ -55,9 +55,13 @@ export const danmakuMessage = {
     })
   },
   getAll: async (payload: DanmakuPayload<'danmaku/getAll'>) => {
-    return (await chrome.runtime.sendMessage({
+    const res = await chrome.runtime.sendMessage({
       action: 'danmaku/getAll',
       payload: payload ?? {},
-    })) as DanmakuCache[]
+    })
+
+    Logger.debug(`Get all danmaku: ${res.payload.length} records`)
+
+    return res.payload as DanmakuCache[]
   },
 }

@@ -8,19 +8,20 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material'
+import { useNavigate } from 'react-router-dom'
 
 import { useExtensionOptions } from '@/common/hooks/useExtensionOptions'
 
 export const AppToolBar = () => {
   const { partialUpdate, data: options } = useExtensionOptions()
-  // const loc = useLocation()
-  const handleEnableChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+
+  const handleEnable = async (event: React.ChangeEvent<HTMLInputElement>) => {
     await partialUpdate({
       enabled: event.target.checked,
     })
   }
+
+  const navigate = useNavigate()
 
   return (
     <AppBar position="static">
@@ -33,7 +34,7 @@ export const AppToolBar = () => {
             control={
               <Switch
                 checked={options?.enabled ?? false}
-                onChange={handleEnableChange}
+                onChange={handleEnable}
                 size="small"
               />
             }
@@ -47,7 +48,14 @@ export const AppToolBar = () => {
             sx={{ m: 0 }}
           />
         </FormGroup>
-        <IconButton sx={{ ml: 2 }}>
+        <IconButton
+          sx={{ ml: 2 }}
+          onClick={() => {
+            navigate('/options')
+          }}
+          edge="end"
+          disabled
+        >
           <Settings />
         </IconButton>
       </Toolbar>
