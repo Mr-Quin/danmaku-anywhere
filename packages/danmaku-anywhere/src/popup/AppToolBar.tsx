@@ -1,7 +1,9 @@
+import { Settings } from '@mui/icons-material'
 import {
   AppBar,
   FormControlLabel,
   FormGroup,
+  IconButton,
   Switch,
   Toolbar,
   Typography,
@@ -11,7 +13,7 @@ import { useExtensionOptions } from '@/common/hooks/useExtensionOptions'
 
 export const AppToolBar = () => {
   const { partialUpdate, data: options } = useExtensionOptions()
-
+  // const loc = useLocation()
   const handleEnableChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -45,6 +47,9 @@ export const AppToolBar = () => {
             sx={{ m: 0 }}
           />
         </FormGroup>
+        <IconButton sx={{ ml: 2 }}>
+          <Settings />
+        </IconButton>
       </Toolbar>
     </AppBar>
   )

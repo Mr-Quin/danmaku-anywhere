@@ -1,3 +1,5 @@
+import { Logger } from '../services/Logger'
+
 import { Message, MessageResponse } from './message'
 
 type SendReponse = (response: MessageResponse) => void
@@ -24,6 +26,7 @@ export class MessageRouter {
       for (const [action, handler] of this.handlers.entries()) {
         if (request.action === action) {
           handler(request.payload, sender, sendResponse).catch((err) => {
+            Logger.error(err)
             sendResponse({ success: false, error: err.message })
           })
 
