@@ -1,8 +1,8 @@
 import type { DanmakuOptions } from '@danmaku-anywhere/danmaku-engine'
+import { LoadingButton } from '@mui/lab'
 import {
   Slider,
   Switch,
-  Button,
   Box,
   FormControlLabel,
   FormGroup,
@@ -149,10 +149,7 @@ export const DanmakuOptionsController = () => {
   }
 
   return (
-    <Box sx={{ m: 2 }}>
-      <Typography variant="h6" gutterBottom>
-        Danmaku Options
-      </Typography>
+    <Box>
       <FormControlLabel
         control={
           <Switch
@@ -234,13 +231,14 @@ export const DanmakuOptionsController = () => {
           size="small"
           valueLabelDisplay="auto"
         />
-        <Button
+        <LoadingButton
           variant="contained"
           onClick={() => handleUpdate(localConfig)}
-          disabled={isLoading || localConfig === config}
+          disabled={localConfig === config}
+          loading={isLoading}
         >
           Apply
-        </Button>
+        </LoadingButton>
       </FormGroup>
     </Box>
   )

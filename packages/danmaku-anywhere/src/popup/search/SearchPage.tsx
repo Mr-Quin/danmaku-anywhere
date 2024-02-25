@@ -4,6 +4,7 @@ import { useStore } from '../store'
 
 import { AnimeSearch } from './AnimeSearch'
 import { EpisodeListItem } from './EpisodeListItem'
+import { MountController } from './MountController'
 
 import { SearchResultList } from '@/common/components/animeList/SearchResultList'
 
@@ -13,8 +14,9 @@ export const SearchPage = () => {
   const hasResults = !!animeSearchResults && animeSearchResults.length > 0
 
   return (
-    <Stack direction="column" spacing={2}>
+    <Stack direction="column" spacing={2} overflow="auto">
       <Box paddingX={2} pt={2}>
+        <MountController />
         <AnimeSearch />
       </Box>
       <Collapse in={hasResults}>
