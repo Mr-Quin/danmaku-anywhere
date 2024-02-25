@@ -129,26 +129,36 @@ export class SyncOptionsService<T extends OptionsSchema> {
     return options.data
   }
 
-  // update options and keep version
-  // assumes data is already at latest version
-  async update(data: T) {
+  async set(data: T, version?: number) {
+    if (!version) {
+      const options = await this.storageService.read()
+      if (!options) {
+        throw new Error('Cannot set options without existing options')
+      }
+      version = options.version
+    }
     return this.storageService.set({
       data,
-      version: this.#getLatestVersion().version,
+      version,
     })
+  }
+
+  // allow partial update
+  async update(data: Partial<T>) {
+    const options = await this.get()
+    return this.set({ ...options, ...data })
   }
 
   // reset options to default
   async reset() {
     return this.storageService.set({
       data: this.defaultOptions,
-      version: this.#getLatestVersion().version,
+      version: this.#getLatestVersion().version, // TODO: this is a bug, refactor this service to separate upgrade logic from storage service
     })
   }
 
   onChange(listener: (data: T | undefined) => void) {
     this.storageService.subscribe((options) => {
-      // data is undefined when storage is cleared, which should not happen
       if (!options) return
       listener(options.data)
     })
