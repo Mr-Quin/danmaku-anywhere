@@ -3,12 +3,12 @@ import { Logger } from './Logger'
 
 type OptionsSchema = Record<string, any>
 
-export type Options<T> = {
+export interface Options<T> {
   data: T
   version: number
 }
 
-type Version<T> = {
+interface Version<T> {
   version: number
   upgrade: (prevSchema: unknown) => T // previous shema's type is unknown
 }
@@ -21,7 +21,10 @@ export class SyncOptionsService<T extends OptionsSchema> {
   private logger: typeof Logger
   private storageService: ExtStorageService<Options<T>>
 
-  constructor(private key: string, private defaultOptions: T) {
+  constructor(
+    private key: string,
+    private defaultOptions: T
+  ) {
     this.storageService = new ExtStorageService<Options<T>>(key, {
       storageType: 'sync',
     })

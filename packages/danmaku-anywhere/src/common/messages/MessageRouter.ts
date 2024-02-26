@@ -1,21 +1,19 @@
 import { Logger } from '../services/Logger'
 
-import { Message, MessageResponse } from './message'
+import type { Message, MessageResponse } from './message'
 
 type SendReponse = (response: MessageResponse) => void
 
 type Sender = chrome.runtime.MessageSender
 
-interface MessageHandler<T extends Message = any> {
-  (
-    request: T['payload'],
-    sender: Sender,
-    sendResponse: SendReponse
-  ): Promise<any>
-}
+type MessageHandler<T extends Message = any> = (
+  request: T['payload'],
+  sender: Sender,
+  sendResponse: SendReponse
+) => Promise<any>
 
 export class MessageRouter {
-  private handlers: Map<string, MessageHandler> = new Map()
+  private handlers = new Map<string, MessageHandler>()
 
   on<T extends Message>(action: T['action'], handler: MessageHandler<T>) {
     this.handlers.set(action, handler)

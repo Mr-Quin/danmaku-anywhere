@@ -1,4 +1,7 @@
-import { DanDanAnime, DanDanEpisode } from '@danmaku-anywhere/danmaku-engine'
+import type {
+  DanDanAnime,
+  DanDanEpisode,
+} from '@danmaku-anywhere/danmaku-engine'
 import { Check } from '@mui/icons-material'
 import { LoadingButton } from '@mui/lab'
 import {
@@ -18,7 +21,7 @@ import {
 } from '@mui/material'
 import { useRef, useState } from 'react'
 
-import { useDanmakuService } from '../../hooks/useDanmakuService'
+import { useContentFetchDanmaku } from '../../hooks/useContentFetchDanmaku'
 import { usePopup } from '../../store/popupStore'
 import { useStore } from '../../store/store'
 
@@ -35,7 +38,7 @@ export const SelectorPanel = () => {
 
   const episodes = selectedAnime?.episodes ?? []
 
-  const { fetch, isLoading } = useDanmakuService()
+  const { fetch, isLoading } = useContentFetchDanmaku()
 
   const handleAnimeSelect = (anime: DanDanAnime) => {
     setSelectedAnime(anime)

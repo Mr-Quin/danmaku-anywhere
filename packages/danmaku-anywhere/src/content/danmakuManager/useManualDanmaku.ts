@@ -1,9 +1,12 @@
-import { DanDanComment, DanmakuManager } from '@danmaku-anywhere/danmaku-engine'
+import type {
+  DanDanComment,
+  DanmakuManager,
+} from '@danmaku-anywhere/danmaku-engine'
 import { useEventCallback } from '@mui/material'
 import { useEffect } from 'react'
 
 import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
-import { DanmakuControlMessage } from '@/common/messages/danmakuControlMessage'
+import type { DanmakuControlMessage } from '@/common/messages/danmakuControlMessage'
 import { Logger } from '@/common/services/Logger'
 
 // listen to comment changes and mount/unmount the danmaku engine

@@ -1,5 +1,5 @@
 import { Box, Paper, Slide } from '@mui/material'
-import { PropsWithChildren } from 'react'
+import type { PropsWithChildren } from 'react'
 
 export const OptionsPage = ({ children }: PropsWithChildren) => {
   return (

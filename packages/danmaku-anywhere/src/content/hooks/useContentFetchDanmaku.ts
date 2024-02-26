@@ -1,12 +1,12 @@
 import { useStore } from '../store/store'
 
-import { DanmakuFetchOptions } from '@/background/services/DanmakuService'
-import { DanmakuMeta, TitleMapping } from '@/common/db/db'
+import type { DanmakuMeta, TitleMapping } from '@/common/db/db'
+import { useFetchDanmaku } from '@/common/hooks/useFetchDanmakuCache'
 import { titleMappingMessage } from '@/common/messages/titleMappingMessage'
+import type { DanmakuFetchOptions } from '@/common/types/DanmakuFetchOptions'
 import { tryCatch } from '@/common/utils'
-import { useFetchDanmaku } from '@/popup/hooks/useFetchDanmaku'
 
-export const useDanmakuService = () => {
+export const useContentFetchDanmaku = () => {
   const { setComments, setDanmakuMeta } = useStore()
 
   const props = useFetchDanmaku()

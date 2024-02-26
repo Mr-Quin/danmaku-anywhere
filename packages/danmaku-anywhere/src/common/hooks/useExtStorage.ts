@@ -1,15 +1,9 @@
-import {
-  UseQueryOptions,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query'
+import type { UseQueryOptions } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo } from 'react'
 
-import {
-  ExtStorageService,
-  ExtStorageServiceOptions,
-} from '../services/ExtStorageService'
+import type { ExtStorageServiceOptions } from '../services/ExtStorageService'
+import { ExtStorageService } from '../services/ExtStorageService'
 
 import { toArray } from '@/common/utils'
 

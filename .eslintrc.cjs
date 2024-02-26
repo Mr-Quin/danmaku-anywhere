@@ -4,6 +4,7 @@ module.exports = {
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
+    'plugin:@typescript-eslint/stylistic',
     'plugin:import/recommended',
     'plugin:import/typescript',
     'plugin:react/recommended',
@@ -21,6 +22,11 @@ module.exports = {
   rules: {
     '@typescript-eslint/ban-ts-comment': 'off',
     '@typescript-eslint/no-unused-vars': 'error',
+    '@typescript-eslint/consistent-type-imports': [
+      'error',
+      { prefer: 'type-imports', fixStyle: 'separate-type-imports' },
+    ],
+    '@typescript-eslint/no-explicit-any': 'warn',
     'prettier/prettier': 'error',
     'import/order': [
       'error',
@@ -43,6 +49,6 @@ module.exports = {
     ],
     radix: 'off',
   },
-  ignorePatterns: ['node_modules', 'dist', 'build'],
+  ignorePatterns: ['node_modules', 'dist', 'build', 'plex-danmaku'],
   root: true,
 }

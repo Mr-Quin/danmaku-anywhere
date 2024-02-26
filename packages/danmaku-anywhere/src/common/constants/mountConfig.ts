@@ -1,4 +1,4 @@
-import { Options } from '../services/SyncOptionsService'
+import type { Options } from '../services/SyncOptionsService'
 
 import defaultMountConfigJson from './mountConfig/default.json'
 export interface MountConfig {

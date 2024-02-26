@@ -1,10 +1,10 @@
-import { DanDanAnimeSearchResult } from '@danmaku-anywhere/danmaku-engine'
+import type { DanDanAnimeSearchResult } from '@danmaku-anywhere/danmaku-engine'
 
 import { Logger } from '../services/Logger'
 
-import { PayloadOf } from './message'
+import type { PayloadOf } from './message'
 
-export type AnimeMessage = {
+export interface AnimeMessage {
   action: 'anime/search'
   payload: {
     anime: string

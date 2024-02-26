@@ -1,10 +1,8 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 
-import {
-  EpisodeListItemProps,
-  BaseEpisodeListItem,
-} from '../../common/components/animeList/BaseEpisodeListItem'
-import { useFetchDanmaku } from '../hooks/useFetchDanmaku'
+import type { EpisodeListItemProps } from '../../common/components/animeList/BaseEpisodeListItem'
+import { BaseEpisodeListItem } from '../../common/components/animeList/BaseEpisodeListItem'
+import { useFetchDanmaku } from '../../common/hooks/useFetchDanmakuCache'
 
 import { db } from '@/common/db/db'
 

@@ -1,4 +1,4 @@
-import {
+import type {
   DanDanComment,
   DanDanCommentAPIParams,
 } from '@danmaku-anywhere/danmaku-engine'
@@ -31,7 +31,7 @@ class DanmakuAnywhereDb extends Dexie {
   danmakuCache!: Dexie.Table<DanmakuCache, number>
   titleMapping!: Dexie.Table<TitleMapping, string>
 
-  isReady: Promise<boolean> = new Promise((resolve) => {
+  isReady = new Promise<boolean>((resolve) => {
     this.on('ready', () => resolve(true))
   })
 

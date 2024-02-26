@@ -14,12 +14,6 @@ import { useAllDanmakuQuery } from '../hooks/useAllDanmakuQuery'
 
 import { ExportButton } from './components/ExportButton'
 
-declare global {
-  interface ObjectConstructor {
-    groupBy<T>(arr: T[], key: (item: T) => string): Record<string, T[]>
-  }
-}
-
 export const DanmakuPage = () => {
   const { data, isLoading } = useAllDanmakuQuery({ enabled: true })
 

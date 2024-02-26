@@ -1,6 +1,6 @@
-import { PayloadOf } from './message'
+import type { PayloadOf } from './message'
 
-export type IconMessage = {
+export interface IconMessage {
   action: 'icon/set'
   payload: {
     state: 'active' | 'inactive' | 'available' | 'unavailable'

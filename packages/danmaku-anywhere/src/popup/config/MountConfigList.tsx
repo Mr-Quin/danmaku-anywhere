@@ -11,7 +11,7 @@ import {
 } from '@mui/material'
 import { useId } from 'react'
 
-import { MountConfig } from '@/common/constants/mountConfig'
+import type { MountConfig } from '@/common/constants/mountConfig'
 import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 
 export const MountConfigList = ({

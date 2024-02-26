@@ -1,6 +1,6 @@
-import { DanDanComment } from '@danmaku-anywhere/danmaku-engine'
+import type { DanDanComment } from '@danmaku-anywhere/danmaku-engine'
 
-import { PayloadOf } from './message'
+import type { PayloadOf } from './message'
 
 export type DanmakuControlMessage =
   | {

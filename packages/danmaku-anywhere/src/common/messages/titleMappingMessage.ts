@@ -1,7 +1,7 @@
-import { TitleMapping } from '../db/db'
+import type { TitleMapping } from '../db/db'
 import { Logger } from '../services/Logger'
 
-import { PayloadOf } from './message'
+import type { PayloadOf } from './message'
 
 export type TitleMappingMessage =
   | {

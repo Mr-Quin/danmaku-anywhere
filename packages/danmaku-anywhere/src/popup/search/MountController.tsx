@@ -12,11 +12,12 @@ import {
   Typography,
 } from '@mui/material'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { HTMLAttributes, SyntheticEvent } from 'react'
+import type { HTMLAttributes, SyntheticEvent } from 'react'
 
-import { useFetchDanmaku } from '../hooks/useFetchDanmaku'
+import { useFetchDanmaku } from '../../common/hooks/useFetchDanmakuCache'
 
-import { DanmakuCache, db } from '@/common/db/db'
+import type { DanmakuCache } from '@/common/db/db'
+import { db } from '@/common/db/db'
 import { useSessionState } from '@/common/hooks/useSessionState'
 import { danmakuControlMessage } from '@/common/messages/danmakuControlMessage'
 import { episodeIdToEpisodeNumber } from '@/common/utils'
