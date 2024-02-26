@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-import { MediaInfo } from '../integration/MediaObserver'
+import type { MediaInfo } from '../integration/MediaObserver'
 import { observers } from '../integration/observers'
 import { PopupTab, usePopup } from '../store/popupStore'
 import { useStore } from '../store/store'

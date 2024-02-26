@@ -1,7 +1,8 @@
 import Danmaku from 'danmaku'
 
-import { DanDanComment } from './api'
-import { DanmakuStyle, sampleComments, transformDanDanComments } from './parser'
+import type { DanDanComment } from './api'
+import type { DanmakuStyle } from './parser'
+import { sampleComments, transformDanDanComments } from './parser'
 
 export interface DanmakuOptions {
   style: DanmakuStyle

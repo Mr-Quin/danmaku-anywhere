@@ -1,4 +1,5 @@
-import { TitleMapping, db } from '../../common/db/db'
+import type { TitleMapping } from '../../common/db/db'
+import { db } from '../../common/db/db'
 import { invariant, isServiceWorker } from '../../common/utils'
 
 import { Logger } from '@/common/services/Logger'

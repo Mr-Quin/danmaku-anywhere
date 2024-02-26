@@ -1,8 +1,7 @@
-import {
-  DanDanComment,
-  parseDanDanCommentParams,
-} from '@danmaku-anywhere/danmaku-engine'
-import { Box, BoxProps, Stack } from '@mui/material'
+import type { DanDanComment } from '@danmaku-anywhere/danmaku-engine'
+import { parseDanDanCommentParams } from '@danmaku-anywhere/danmaku-engine'
+import type { BoxProps } from '@mui/material'
+import { Box, Stack } from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useRef } from 'react'
 

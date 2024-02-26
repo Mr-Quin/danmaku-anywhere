@@ -1,12 +1,11 @@
-import { DanDanAnime, DanDanEpisode } from '@danmaku-anywhere/danmaku-engine'
-import {
-  List,
-  ListItem,
-  ListItemText,
-  ListProps,
-  ListSubheader,
-} from '@mui/material'
-import React, { useId } from 'react'
+import type {
+  DanDanAnime,
+  DanDanEpisode,
+} from '@danmaku-anywhere/danmaku-engine'
+import type { ListProps } from '@mui/material'
+import { List, ListItem, ListItemText, ListSubheader } from '@mui/material'
+import type React from 'react'
+import { useId } from 'react'
 
 import { AnimeTypeIcon } from './AnimeTypeIcon'
 

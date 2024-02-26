@@ -1,5 +1,6 @@
 import { KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material'
-import { Fab, FabProps } from '@mui/material'
+import type { FabProps } from '@mui/material'
+import { Fab } from '@mui/material'
 
 import { useStore } from '../../store/store'
 

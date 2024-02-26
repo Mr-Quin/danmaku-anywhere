@@ -12,7 +12,7 @@ interface ToastStoreState {
   message: string
   severity: 'success' | 'info' | 'warning' | 'error'
   duration: number
-  key: any
+  key: number
   close: () => void
   show: ({
     message,

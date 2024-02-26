@@ -11,15 +11,16 @@ import {
   TextField,
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
-import { KeyboardEvent, useEffect } from 'react'
+import type { KeyboardEvent } from 'react'
+import { useEffect } from 'react'
 
-import { useDanmakuService } from '../../hooks/useDanmakuService'
+import { useContentFetchDanmaku } from '../../hooks/useContentFetchDanmaku'
 import { usePopup } from '../../store/popupStore'
 import { useStore } from '../../store/store'
 
 import { BaseEpisodeListItem } from '@/common/components/animeList/BaseEpisodeListItem'
 import { SearchResultList } from '@/common/components/animeList/SearchResultList'
-import { DanmakuMeta } from '@/common/db/db'
+import type { DanmakuMeta } from '@/common/db/db'
 import { animeMessage } from '@/common/messages/animeMessage'
 
 export const SearchPanel = () => {
@@ -43,7 +44,7 @@ export const SearchPanel = () => {
   })
 
   const { isLoading: isDanmakuLoading, fetch: fetchDanmaku } =
-    useDanmakuService()
+    useContentFetchDanmaku()
 
   useEffect(() => {
     if (!isSuccess) return

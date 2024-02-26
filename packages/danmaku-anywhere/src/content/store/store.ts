@@ -1,13 +1,13 @@
-import { DanDanComment } from '@danmaku-anywhere/danmaku-engine'
+import type { DanDanComment } from '@danmaku-anywhere/danmaku-engine'
 import { create } from 'zustand'
 
-import {
+import type {
   MediaObserver,
   MediaInfo,
   PlaybackStatus,
 } from '../integration/MediaObserver'
 
-import { DanmakuMeta } from '@/common/db/db'
+import type { DanmakuMeta } from '@/common/db/db'
 
 interface StoreState {
   comments: DanDanComment[]

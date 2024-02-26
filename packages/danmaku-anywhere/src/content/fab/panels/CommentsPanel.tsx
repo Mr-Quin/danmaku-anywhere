@@ -12,14 +12,14 @@ import { useStore } from '../../store/store'
 import { CommentList } from '../components/CommentList'
 
 import { tryCatch } from '@/common/utils'
-import { useDanmakuService } from '@/content/hooks/useDanmakuService'
+import { useContentFetchDanmaku } from '@/content/hooks/useContentFetchDanmaku'
 import { useToast } from '@/content/store/toastStore'
 
 export const CommentsPanel = () => {
   const { comments, danmakuMeta } = useStore()
   const { toast } = useToast()
 
-  const { fetch, isLoading } = useDanmakuService()
+  const { fetch, isLoading } = useContentFetchDanmaku()
 
   const handleRefreshComments = async () => {
     if (!danmakuMeta) return

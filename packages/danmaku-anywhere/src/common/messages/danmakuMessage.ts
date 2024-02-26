@@ -1,14 +1,14 @@
-import {
+import type {
   DanDanCommentAPIParams,
   DanDanCommentAPIResult,
 } from '@danmaku-anywhere/danmaku-engine'
 
 import { Logger } from '../services/Logger'
 
-import { PayloadOf } from './message'
+import type { PayloadOf } from './message'
 
-import { DanmakuFetchOptions } from '@/background/services/DanmakuService'
-import { DanmakuCache, DanmakuMeta } from '@/common/db/db'
+import type { DanmakuCache, DanmakuMeta } from '@/common/db/db'
+import type { DanmakuFetchOptions } from '@/common/types/DanmakuFetchOptions'
 
 export type DanmakuMessage =
   | {

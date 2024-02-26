@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { NonFunctionGuard } from '../types'
+import type { NonFunctionGuard } from '../types'
 
 import { useExtStorage } from '@/common/hooks/useExtStorage'
 

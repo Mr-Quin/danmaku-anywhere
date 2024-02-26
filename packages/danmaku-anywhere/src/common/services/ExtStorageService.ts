@@ -10,12 +10,12 @@ export interface ExtStorageServiceOptions {
 
 type ExtStorageServiceListener<T> = (value: T | undefined) => void
 
-type StorageAreaListener = (changes: {
-  [key: string]: chrome.storage.StorageChange
-}) => void
+type StorageAreaListener = (
+  changes: Record<string, chrome.storage.StorageChange>
+) => void
 
 export class ExtStorageService<T> {
-  private listeners: Set<ExtStorageServiceListener<T>> = new Set()
+  private listeners = new Set<ExtStorageServiceListener<T>>()
   private storage: chrome.storage.StorageArea
   private listener?: StorageAreaListener
 
@@ -62,7 +62,7 @@ export class ExtStorageService<T> {
 
   async delete() {
     invariant(
-      typeof this.key !== null,
+      this.key !== null,
       'Key cannot be null when deleting value, you must explicitly call clearStorage()'
     )
 

@@ -1,17 +1,11 @@
-import {
-  DanDanCommentAPIParams,
-  fetchComments,
-  getAnime,
-} from '@danmaku-anywhere/danmaku-engine'
+import type { DanDanCommentAPIParams } from '@danmaku-anywhere/danmaku-engine'
+import { fetchComments, getAnime } from '@danmaku-anywhere/danmaku-engine'
 
-import { DanmakuMeta, db } from '@/common/db/db'
+import type { DanmakuMeta } from '@/common/db/db'
+import { db } from '@/common/db/db'
 import { Logger } from '@/common/services/Logger'
+import type { DanmakuFetchOptions } from '@/common/types/DanmakuFetchOptions'
 import { invariant, isServiceWorker, tryCatch } from '@/common/utils'
-
-export interface DanmakuFetchOptions {
-  forceUpdate?: boolean // force update danmaku from server even if it's already in db
-  cacheOnly?: boolean // only fetch from cache, prevent making request to server
-}
 
 export class DanmakuService {
   private db = db.danmakuCache

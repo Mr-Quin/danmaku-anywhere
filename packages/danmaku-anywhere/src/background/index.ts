@@ -1,4 +1,4 @@
-import { DanmakuMessage } from '../common/messages/danmakuMessage'
+import type { DanmakuMessage } from '../common/messages/danmakuMessage'
 import { AnimeService } from '../common/services/AnimeService'
 
 import { addEnabledMenu } from './contextMenu/enabled'
@@ -7,11 +7,11 @@ import { IconService } from './services/IconService'
 import { TitleMappingService } from './services/TitleMappingService'
 import { setupOptions } from './syncOptions/upgradeOptions'
 
-import { AnimeMessage } from '@/common/messages/animeMessage'
-import { IconMessage } from '@/common/messages/iconMessage'
-import { MessageOf } from '@/common/messages/message'
+import type { AnimeMessage } from '@/common/messages/animeMessage'
+import type { IconMessage } from '@/common/messages/iconMessage'
+import type { MessageOf } from '@/common/messages/message'
 import { MessageRouter } from '@/common/messages/MessageRouter'
-import { TitleMappingMessage } from '@/common/messages/titleMappingMessage'
+import type { TitleMappingMessage } from '@/common/messages/titleMappingMessage'
 import { Logger } from '@/common/services/Logger'
 
 setupOptions()

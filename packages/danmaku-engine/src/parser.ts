@@ -1,4 +1,5 @@
-import { DanDanComment, DanDanCommentMode } from './api'
+import type { DanDanComment } from './api'
+import { DanDanCommentMode } from './api'
 
 // copied from danmaku
 export interface Comment {

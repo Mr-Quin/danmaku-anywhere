@@ -1,7 +1,5 @@
-import {
-  ExtensionOptions,
-  defaultExtensionOptions,
-} from '@/common/constants/extensionOptions'
+import type { ExtensionOptions } from '@/common/constants/extensionOptions'
+import { defaultExtensionOptions } from '@/common/constants/extensionOptions'
 import { Logger } from '@/common/services/Logger'
 import { SyncOptionsService } from '@/common/services/SyncOptionsService'
 

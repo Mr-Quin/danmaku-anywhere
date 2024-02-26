@@ -1,4 +1,4 @@
-import { DanDanAnime } from '@danmaku-anywhere/danmaku-engine'
+import type { DanDanAnime } from '@danmaku-anywhere/danmaku-engine'
 import { create } from 'zustand'
 
 export enum PopupTab {
@@ -9,7 +9,6 @@ export enum PopupTab {
 }
 
 interface PopupStoreState {
-  key: any
   isOpen: boolean
   animes: DanDanAnime[]
   setAnimes: (animes: DanDanAnime[]) => void
@@ -25,7 +24,6 @@ interface PopupStoreState {
 
 export const usePopup = create<PopupStoreState>((set) => ({
   isOpen: false,
-  key: 0,
   animes: [],
   setAnimes: (animes) => {
     set({ animes })

@@ -20,7 +20,7 @@ export interface DanDanAnime {
   episodes: DanDanEpisode[]
 }
 
-export type DanDanAnimeSearchAPIParams = {
+export interface DanDanAnimeSearchAPIParams {
   anime: string
   episode?: string
 }

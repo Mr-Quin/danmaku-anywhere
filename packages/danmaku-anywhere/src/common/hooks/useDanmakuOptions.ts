@@ -1,6 +1,6 @@
-import { DanmakuOptions } from '@danmaku-anywhere/danmaku-engine'
+import type { DanmakuOptions } from '@danmaku-anywhere/danmaku-engine'
 
-import { DanmakuOptionsOptions } from '../constants/danmakuOptions'
+import type { DanmakuOptionsOptions } from '../constants/danmakuOptions'
 
 import { useExtStorage } from '@/common/hooks/useExtStorage'
 

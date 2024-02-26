@@ -1,6 +1,7 @@
 import { Backdrop, CircularProgress, Container, Paper } from '@mui/material'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { PropsWithChildren, useEffect } from 'react'
+import type { PropsWithChildren } from 'react'
+import { useEffect } from 'react'
 
 import { useStore } from './store'
 

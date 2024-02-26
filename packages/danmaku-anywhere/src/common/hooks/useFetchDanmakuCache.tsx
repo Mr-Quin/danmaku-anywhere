@@ -1,4 +1,4 @@
-import { DanDanCommentAPIResult } from '@danmaku-anywhere/danmaku-engine'
+import type { DanDanCommentAPIResult } from '@danmaku-anywhere/danmaku-engine'
 import { useState } from 'react'
 
 import { danmakuMessage } from '@/common/messages/danmakuMessage'
@@ -20,8 +20,8 @@ export const useFetchDanmaku = () => {
       setData(res)
 
       return res
-    } catch (e: any) {
-      setError(e.message)
+    } catch (e: unknown) {
+      setError((e as Error).message)
     } finally {
       setIsLoading(false)
     }

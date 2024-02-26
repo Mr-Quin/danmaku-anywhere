@@ -18,7 +18,7 @@ import { useState } from 'react'
 
 import { useStore } from '../store'
 
-import {
+import type {
   MountConfig,
   MountConfigWithoutId,
 } from '@/common/constants/mountConfig'

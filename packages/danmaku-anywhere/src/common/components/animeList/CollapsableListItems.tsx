@@ -1,7 +1,8 @@
 import { ExpandLess, ExpandMore } from '@mui/icons-material'
 import { Collapse, ListItemButton, Paper } from '@mui/material'
 import type { ListItemButtonProps } from '@mui/material/ListItemButton/ListItemButton'
-import { MouseEvent, ReactNode, useState } from 'react'
+import type { MouseEvent, ReactNode } from 'react'
+import { useState } from 'react'
 
 interface CollapsableListItemProps extends ListItemButtonProps {
   listItemChildren: ReactNode

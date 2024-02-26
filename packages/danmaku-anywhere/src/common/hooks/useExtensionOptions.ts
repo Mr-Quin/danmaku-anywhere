@@ -1,4 +1,4 @@
-import {
+import type {
   ExtensionOptions,
   ExtensionOptionsOptions,
 } from '../constants/extensionOptions'

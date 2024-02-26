@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 
-import {
+import type {
   MountConfigOptions,
   MountConfigWithoutId,
 } from '@/common/constants/mountConfig'

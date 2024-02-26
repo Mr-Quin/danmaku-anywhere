@@ -1,5 +1,6 @@
 import type { DanmakuOptions } from '@danmaku-anywhere/danmaku-engine'
 import { LoadingButton } from '@mui/lab'
+import type { SliderProps, TypographyProps } from '@mui/material'
 import {
   Slider,
   Switch,
@@ -7,8 +8,6 @@ import {
   FormControlLabel,
   FormGroup,
   Typography,
-  SliderProps,
-  TypographyProps,
 } from '@mui/material'
 import { useEffect, useId, useState } from 'react'
 

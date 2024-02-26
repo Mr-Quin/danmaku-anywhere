@@ -1,6 +1,6 @@
-import { DanmakuOptions } from '@danmaku-anywhere/danmaku-engine'
+import type { DanmakuOptions } from '@danmaku-anywhere/danmaku-engine'
 
-import { Options } from '../services/SyncOptionsService'
+import type { Options } from '../services/SyncOptionsService'
 
 export type DanmakuOptionsOptions = Options<DanmakuOptions>
 

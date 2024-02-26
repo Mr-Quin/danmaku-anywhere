@@ -3,7 +3,7 @@ export type PlaybackStatus = 'playing' | 'paused' | 'stopped'
 export class MediaInfo {
   constructor(
     public title: string,
-    public episode: number = 1,
+    public episode = 1,
     public season?: number,
     public episodic?: boolean
   ) {}

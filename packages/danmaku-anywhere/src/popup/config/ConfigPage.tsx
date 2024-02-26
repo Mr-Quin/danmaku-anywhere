@@ -6,11 +6,11 @@ import { useStore } from '../store'
 import { MountConfigEditor } from './MountConfigEditor'
 import { MountConfigList } from './MountConfigList'
 
-import {
+import type {
   MountConfig,
   MountConfigWithoutId,
-  createMountConfig,
 } from '@/common/constants/mountConfig'
+import { createMountConfig } from '@/common/constants/mountConfig'
 import { getOrigin } from '@/common/utils'
 
 export const ConfigPage = () => {
