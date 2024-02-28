@@ -7,6 +7,7 @@ export const useMatchMountConfig = (url?: string) => {
 
   return useMemo(() => {
     if (!url) return
-    return matchByUrl(url)
+    const match = matchByUrl(url)
+    return match
   }, [url, matchByUrl])
 }

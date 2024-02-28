@@ -21,7 +21,7 @@ import {
 } from '@mui/material'
 import { useRef, useState } from 'react'
 
-import { useContentFetchDanmaku } from '../../hooks/useContentFetchDanmaku'
+import { useFetchDanmakuMutation } from '../../hooks/useFetchDanmakuMutation'
 import { usePopup } from '../../store/popupStore'
 import { useStore } from '../../store/store'
 
@@ -29,7 +29,7 @@ import { AnimeTypeIcon } from '@/common/components/animeList/AnimeTypeIcon'
 
 export const SelectorPanel = () => {
   const selectorBoxRef = useRef<HTMLDivElement>()
-  const { animes, saveMapping, setSaveMapping } = usePopup()
+  const { animes, saveMapping, setSaveMapping, close } = usePopup()
   const mediaInfo = useStore((state) => state.mediaInfo)
   const integration = useStore((state) => state.integration)
 
@@ -38,7 +38,7 @@ export const SelectorPanel = () => {
 
   const episodes = selectedAnime?.episodes ?? []
 
-  const { fetch, isLoading } = useContentFetchDanmaku()
+  const { fetch, isPending } = useFetchDanmakuMutation()
 
   const handleAnimeSelect = (anime: DanDanAnime) => {
     setSelectedAnime(anime)
@@ -62,15 +62,15 @@ export const SelectorPanel = () => {
           }
         : undefined
 
-    await fetch(
-      {
-        animeId: selectedAnime.animeId,
-        animeTitle: selectedAnime.animeTitle,
-        episodeId: selectedEpisode.episodeId,
-        episodeTitle: selectedEpisode.episodeTitle,
+    await fetch({
+      danmakuMeta: {
+        ...selectedAnime,
+        ...selectedEpisode,
       },
-      titleMapping
-    )
+      titleMapping,
+    })
+
+    close()
   }
 
   if (animes.length === 0) {
@@ -130,11 +130,11 @@ export const SelectorPanel = () => {
 
           <LoadingButton
             type="submit"
-            loading={isLoading}
+            loading={isPending}
             variant="contained"
             size="small"
             onClick={handleApply}
-            disabled={!selectedAnime || isLoading}
+            disabled={!selectedAnime || isPending}
           >
             Select
           </LoadingButton>

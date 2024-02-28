@@ -1,18 +1,19 @@
 import { useMemo } from 'react'
 
+import { useSuspenseExtStorageQuery } from '../extStorage/useSuspenseExtStorageQuery'
+
 import type {
   MountConfigOptions,
   MountConfigWithoutId,
 } from '@/common/constants/mountConfig'
-import { useExtStorage } from '@/common/hooks/useExtStorage'
 import { matchUrl } from '@/common/utils'
 
 export const useMountConfig = () => {
   const {
     data: options,
     update,
-    isLoading,
-  } = useExtStorage<MountConfigOptions>('mountConfig', {
+    ...rest
+  } = useSuspenseExtStorageQuery<MountConfigOptions>('mountConfig', {
     storageType: 'sync',
   })
 
@@ -21,7 +22,6 @@ export const useMountConfig = () => {
       id: number,
       config: Partial<MountConfigWithoutId>
     ) => {
-      if (!options) return
       const { data: configs, version } = options
 
       const index = configs.findIndex((item) => item.id === id)
@@ -37,7 +37,6 @@ export const useMountConfig = () => {
     }
 
     const addConfig = async (config: MountConfigWithoutId) => {
-      if (!options) return
       const { data: configs, version } = options
       // if (data.some((item) => item.name === config.name))
       //   throw new Error('Name already exists')
@@ -53,7 +52,6 @@ export const useMountConfig = () => {
     }
 
     const deleteConfig = async (id: number) => {
-      if (!options) return
       const { data: configs, version } = options
       const index = configs.findIndex((item) => item.id === id)
       if (index === -1) throw new Error('Config not found')
@@ -66,7 +64,6 @@ export const useMountConfig = () => {
     }
 
     const matchByUrl = (url: string) => {
-      if (!options) return
       const { data: configs } = options
 
       return configs.find((config) => {
@@ -81,11 +78,11 @@ export const useMountConfig = () => {
       deleteConfig,
       matchByUrl,
     }
-  }, [options, update])
+  }, [options, update.mutateAsync])
 
   return {
-    isLoading,
-    configs: options?.data ?? [],
+    ...rest,
+    configs: options.data,
     updateConfig,
     addConfig,
     deleteConfig,

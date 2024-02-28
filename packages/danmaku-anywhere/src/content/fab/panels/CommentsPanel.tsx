@@ -12,20 +12,20 @@ import { useStore } from '../../store/store'
 import { CommentList } from '../components/CommentList'
 
 import { tryCatch } from '@/common/utils'
-import { useContentFetchDanmaku } from '@/content/hooks/useContentFetchDanmaku'
+import { useFetchDanmakuMutation } from '@/content/hooks/useFetchDanmakuMutation'
 import { useToast } from '@/content/store/toastStore'
 
 export const CommentsPanel = () => {
   const { comments, danmakuMeta } = useStore()
   const { toast } = useToast()
 
-  const { fetch, isLoading } = useContentFetchDanmaku()
+  const { fetch, isPending } = useFetchDanmakuMutation()
 
   const handleRefreshComments = async () => {
     if (!danmakuMeta) return
 
     const [, err] = await tryCatch(() =>
-      fetch(danmakuMeta, undefined, { forceUpdate: true })
+      fetch({ danmakuMeta, options: { forceUpdate: true } })
     )
 
     if (!err) {
@@ -46,7 +46,7 @@ export const CommentsPanel = () => {
               <Typography variant="h6">{comments.length} comments</Typography>
               <Tooltip title="Refresh comments">
                 <IconButton color="primary" onClick={handleRefreshComments}>
-                  {isLoading ? <CircularProgress size={24} /> : <Refresh />}
+                  {isPending ? <CircularProgress size={24} /> : <Refresh />}
                 </IconButton>
               </Tooltip>
             </Stack>

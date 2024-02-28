@@ -1,3 +1,4 @@
+import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-engine'
 import { Search } from '@mui/icons-material'
 import { LoadingButton } from '@mui/lab'
 import {
@@ -9,54 +10,67 @@ import {
   FormControlLabel,
   Stack,
   TextField,
+  Typography,
 } from '@mui/material'
-import { useQuery } from '@tanstack/react-query'
+import {
+  useIsFetching,
+  useQueryErrorResetBoundary,
+} from '@tanstack/react-query'
 import type { KeyboardEvent } from 'react'
-import { useEffect } from 'react'
+import { Suspense, useEffect, useRef, useState, useTransition } from 'react'
+import { ErrorBoundary } from 'react-error-boundary'
 
-import { useContentFetchDanmaku } from '../../hooks/useContentFetchDanmaku'
+import { useFetchDanmakuMutation } from '../../hooks/useFetchDanmakuMutation'
 import { usePopup } from '../../store/popupStore'
 import { useStore } from '../../store/store'
 
 import { BaseEpisodeListItem } from '@/common/components/animeList/BaseEpisodeListItem'
 import { SearchResultList } from '@/common/components/animeList/SearchResultList'
+import { Center } from '@/common/components/Center'
+import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import type { DanmakuMeta } from '@/common/db/db'
-import { animeMessage } from '@/common/messages/animeMessage'
 
 export const SearchPanel = () => {
   const {
-    setAnimes,
     searchTitle,
-    setSearchTitle,
-    animes,
     saveMapping,
+    setAnimes,
+    setSearchTitle,
     setSaveMapping,
   } = usePopup()
   const mediaInfo = useStore((state) => state.mediaInfo)
   const integration = useStore((state) => state.integration)
 
-  const { data, isFetching, isFetched, isSuccess, refetch } = useQuery({
-    queryKey: ['anime'],
-    queryFn: () => animeMessage.search({ anime: searchTitle }),
-    enabled: false,
-    refetchOnMount: false,
-    retry: false,
-  })
+  const [searchParams, setSearchParams] = useState<DanDanAnimeSearchAPIParams>()
 
-  const { isLoading: isDanmakuLoading, fetch: fetchDanmaku } =
-    useContentFetchDanmaku()
+  const ref = useRef<ErrorBoundary>(null)
+  const { reset } = useQueryErrorResetBoundary()
 
-  useEffect(() => {
-    if (!isSuccess) return
+  const [pending, startTransition] = useTransition()
 
-    setAnimes(data.animes)
-  }, [isSuccess, data])
+  const isSearching =
+    useIsFetching({
+      queryKey: ['search', searchParams],
+    }) > 0
+
+  const { isPending: isDanmakuLoading, fetch: fetchDanmaku } =
+    useFetchDanmakuMutation()
 
   useEffect(() => {
     if (!mediaInfo) return
 
     setSearchTitle(mediaInfo.title)
   }, [mediaInfo])
+
+  const handleSearch = () => {
+    startTransition(() => {
+      if (ref.current?.state.didCatch) {
+        ref.current.resetErrorBoundary()
+      }
+
+      setSearchParams({ anime: searchTitle })
+    })
+  }
 
   const handleFetchDanmaku = async (meta: DanmakuMeta) => {
     const titleMapping =
@@ -69,7 +83,7 @@ export const SearchPanel = () => {
           }
         : undefined
 
-    await fetchDanmaku(meta, titleMapping)
+    await fetchDanmaku({ danmakuMeta: meta, titleMapping })
   }
 
   const handleTextFieldKeyDown = (e: KeyboardEvent) => {
@@ -83,7 +97,7 @@ export const SearchPanel = () => {
       <form
         onSubmit={(e) => {
           e.preventDefault()
-          refetch()
+          handleSearch()
         }}
       >
         <Box py={2} px={2}>
@@ -101,56 +115,73 @@ export const SearchPanel = () => {
             />
             <LoadingButton
               type="submit"
-              loading={isFetching}
+              loading={isSearching || pending}
               disabled={searchTitle.length === 0}
               variant="contained"
             >
               <Search />
             </LoadingButton>
           </Stack>
-          {true && (
-            <FormControl>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    inputProps={{ 'aria-label': 'controlled' }}
-                    checked={saveMapping}
-                    onChange={(e) => {
-                      setSaveMapping(e.target.checked)
-                    }}
-                  />
-                }
-                label="Remember selection"
-              />
-            </FormControl>
-          )}
+          <FormControl>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  inputProps={{ 'aria-label': 'controlled' }}
+                  checked={saveMapping}
+                  onChange={(e) => {
+                    setSaveMapping(e.target.checked)
+                  }}
+                />
+              }
+              label="Remember selection"
+            />
+          </FormControl>
         </Box>
       </form>
-      <Collapse in={isFetched} unmountOnExit>
-        <Divider />
-        <SearchResultList
-          dense
-          results={animes ?? []}
-          renderEpisodes={(episodes, anime) => {
-            return episodes.map((episode) => (
-              <BaseEpisodeListItem
-                episodeTitle={episode.episodeTitle}
-                isLoading={isDanmakuLoading}
-                showIcon={isDanmakuLoading}
-                onClick={() => {
-                  handleFetchDanmaku({
-                    episodeId: episode.episodeId,
-                    episodeTitle: episode.episodeTitle,
-                    animeId: anime.animeId,
-                    animeTitle: anime.animeTitle,
-                  })
-                }}
-                key={episode.episodeId}
-              />
-            ))
-          }}
-        />
-      </Collapse>
+      <ErrorBoundary
+        ref={ref}
+        onReset={reset}
+        fallbackRender={({ error }) => (
+          <Center>
+            <Typography>There was an error!</Typography>
+            <Typography color={(theme) => theme.palette.error.main}>
+              {error.message}
+            </Typography>
+          </Center>
+        )}
+      >
+        <Collapse in={searchParams !== undefined} unmountOnExit>
+          <Suspense fallback={<FullPageSpinner />}>
+            <Divider />
+            <SearchResultList
+              searchParams={searchParams!}
+              dense
+              pending={pending}
+              onLoad={(data) => {
+                setAnimes(data)
+              }}
+              renderEpisodes={(episodes, anime) => {
+                return episodes.map((episode) => (
+                  <BaseEpisodeListItem
+                    episodeTitle={episode.episodeTitle}
+                    isLoading={isDanmakuLoading}
+                    showIcon={isDanmakuLoading}
+                    onClick={() => {
+                      handleFetchDanmaku({
+                        episodeId: episode.episodeId,
+                        episodeTitle: episode.episodeTitle,
+                        animeId: anime.animeId,
+                        animeTitle: anime.animeTitle,
+                      })
+                    }}
+                    key={episode.episodeId}
+                  />
+                ))
+              }}
+            />
+          </Suspense>
+        </Collapse>
+      </ErrorBoundary>
     </Box>
   )
 }

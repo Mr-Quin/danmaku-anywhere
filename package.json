@@ -16,7 +16,7 @@
     "lint": "pnpm -r lint"
   },
   "dependencies": {
-    "zustand": "^4.4.7"
+    "zustand": "^5.0.0-alpha.3"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.1.0",

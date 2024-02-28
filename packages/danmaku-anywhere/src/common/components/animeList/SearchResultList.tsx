@@ -1,33 +1,59 @@
 import type {
   DanDanAnime,
+  DanDanAnimeSearchAPIParams,
   DanDanEpisode,
 } from '@danmaku-anywhere/danmaku-engine'
 import type { ListProps } from '@mui/material'
 import { List, ListItem, ListItemText, ListSubheader } from '@mui/material'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import type React from 'react'
-import { useId } from 'react'
+import { useEffect, useId } from 'react'
 
 import { AnimeTypeIcon } from './AnimeTypeIcon'
 
 import { CollapsableListItems } from '@/common/components/animeList/CollapsableListItems'
+import { animeMessage } from '@/common/messages/animeMessage'
 
 interface SearchResultListProps {
-  results: DanDanAnime[]
   renderEpisodes: (
     episode: DanDanEpisode[],
     result: DanDanAnime
   ) => React.ReactNode
   listProps?: ListProps
   dense?: boolean
+  searchParams: DanDanAnimeSearchAPIParams
+  pending?: boolean
+  onLoad?: (animes: DanDanAnime[]) => void
 }
 
 export const SearchResultList = ({
-  results,
   renderEpisodes,
   dense = false,
+  pending,
+  onLoad,
+  searchParams,
   listProps,
 }: SearchResultListProps) => {
   const headerId = useId()
+
+  const { data, error } = useSuspenseQuery({
+    queryKey: ['search', searchParams],
+    queryFn: async () => {
+      return animeMessage.search({
+        anime: searchParams.anime,
+        episode: searchParams.episode,
+      })
+    },
+    select: (result) => {
+      return result.animes
+    },
+    staleTime: Infinity,
+    retry: false,
+  })
+
+  useEffect(() => {
+    onLoad?.(data)
+  }, [data])
 
   return (
     <List
@@ -39,14 +65,22 @@ export const SearchResultList = ({
       }
       dense={dense}
       disablePadding
+      sx={{
+        opacity: pending ? 0.5 : 1,
+      }}
       {...listProps}
     >
-      {results.length === 0 && (
+      {error && (
+        <ListItem>
+          <ListItemText primary="An error occurred while searching" />
+        </ListItem>
+      )}
+      {data.length === 0 && (
         <ListItem>
           <ListItemText primary="No results found, try a different title" />
         </ListItem>
       )}
-      {results.map((result) => {
+      {data.map((anime) => {
         return (
           <CollapsableListItems
             paperProps={{
@@ -59,16 +93,16 @@ export const SearchResultList = ({
             listItemChildren={
               <>
                 <AnimeTypeIcon
-                  type={result.type}
-                  typeDescription={result.typeDescription}
+                  type={anime.type}
+                  typeDescription={anime.typeDescription}
                 />
-                <ListItemText primary={result.animeTitle} />
+                <ListItemText primary={anime.animeTitle} />
               </>
             }
-            key={result.animeId}
+            key={anime.animeId}
           >
             <List dense={dense} disablePadding>
-              {renderEpisodes(result.episodes, result)}
+              {renderEpisodes(anime.episodes, anime)}
             </List>
           </CollapsableListItems>
         )

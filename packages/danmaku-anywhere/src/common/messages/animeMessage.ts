@@ -1,4 +1,7 @@
-import type { DanDanAnimeSearchResult } from '@danmaku-anywhere/danmaku-engine'
+import type {
+  DanDanAnimeSearchAPIParams,
+  DanDanAnimeSearchResult,
+} from '@danmaku-anywhere/danmaku-engine'
 
 import { Logger } from '../services/Logger'
 
@@ -6,10 +9,7 @@ import type { PayloadOf } from './message'
 
 export interface AnimeMessage {
   action: 'anime/search'
-  payload: {
-    anime: string
-    episode?: string
-  }
+  payload: DanDanAnimeSearchAPIParams
 }
 
 export const animeMessage = {

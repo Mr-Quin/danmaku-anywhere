@@ -113,7 +113,6 @@ export class ExtStorageService<T> {
       typeof this.key === 'string',
       'Key must be a string when notifying listeners'
     )
-
     this.listeners.forEach((listener) => listener(value))
   }
 
