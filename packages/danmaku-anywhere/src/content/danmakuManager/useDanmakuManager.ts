@@ -7,15 +7,13 @@ import { useToast } from '../store/toastStore'
 
 import { useManualDanmaku } from './useManualDanmaku'
 
-import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMatchMountConfig'
+import type { MountConfig } from '@/common/constants/mountConfig'
 import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
 import { Logger } from '@/common/services/Logger'
 import { useNodeMonitor } from '@/content/hooks/useNodeMonitor'
 
 // listen to comment changes and mount/unmount the danmaku engine
-export const useDanmakuManager = () => {
-  const mountConfig = useMatchMountConfig(window.location.href)
-
+export const useDanmakuManager = (config: MountConfig) => {
   const { data: options } = useDanmakuOptions()
 
   const { comments, mediaInfo, status } = useStore(
@@ -26,8 +24,8 @@ export const useDanmakuManager = () => {
 
   const { toast } = useToast()
 
-  const container = useNodeMonitor(mountConfig?.containerQuery)
-  const node = useNodeMonitor<HTMLVideoElement>(mountConfig?.mediaQuery)
+  const container = useNodeMonitor(config.containerQuery)
+  const node = useNodeMonitor<HTMLVideoElement>(config.mediaQuery)
 
   const danmakuEngine = useMemo(() => new DanmakuManager(), [])
 
@@ -44,7 +42,7 @@ export const useDanmakuManager = () => {
     }
 
     // if media is not ready, do nothing
-    if (!options || !container || !node || !mountConfig) return
+    if (!container || !node) return
 
     // if danmaku is not created, create it when status is playing
     if (status === 'playing' && comments.length > 0) {
@@ -54,10 +52,10 @@ export const useDanmakuManager = () => {
       )
       danmakuEngine.create(container, node, comments, options)
     }
-  }, [container, node, comments, options, status, mountConfig])
+  }, [container, node, comments, options, status, config])
 
   useEffect(() => {
-    if (!danmakuEngine.created || !options) return
+    if (!danmakuEngine.created) return
 
     Logger.debug('Updating danmaku config', options, danmakuEngine)
     danmakuEngine.updateConfig(options)
@@ -66,7 +64,7 @@ export const useDanmakuManager = () => {
   useEffect(() => {
     Logger.debug('Container changed', {
       danmakuEngine,
-      mountConfig,
+      config,
       status,
     })
   }, [container, node])

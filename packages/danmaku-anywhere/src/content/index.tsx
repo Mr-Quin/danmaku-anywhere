@@ -1,14 +1,14 @@
 import createCache from '@emotion/cache'
 import { CacheProvider } from '@emotion/react'
-import { ThemeProvider, createTheme } from '@mui/material'
+import type { ThemeOptions } from '@mui/material'
 import { QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 
-import { Content } from './Content'
+import { App } from './App'
 
 import { queryClient } from '@/common/queryClient'
-import { themeOptions } from '@/common/style/Theme'
+import { Theme } from '@/common/style/Theme'
 
 const root = document.createElement('div')
 document.body.append(root)
@@ -27,8 +27,7 @@ const cache = createCache({
   prepend: true,
 })
 
-const theme = createTheme({
-  ...themeOptions,
+const themeOptions: ThemeOptions = {
   components: {
     MuiPopover: {
       defaultProps: {
@@ -46,16 +45,16 @@ const theme = createTheme({
       },
     },
   },
-})
+}
 
 ReactDOM.createRoot(shadowRootElement).render(
   <React.StrictMode>
-    <ThemeProvider theme={theme}>
-      <CacheProvider value={cache}>
-        <QueryClientProvider client={queryClient}>
-          <Content />
-        </QueryClientProvider>
-      </CacheProvider>
-    </ThemeProvider>
+    <CacheProvider value={cache}>
+      <QueryClientProvider client={queryClient}>
+        <Theme options={themeOptions}>
+          <App />
+        </Theme>
+      </QueryClientProvider>
+    </CacheProvider>
   </React.StrictMode>
 )

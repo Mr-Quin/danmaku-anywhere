@@ -2,16 +2,17 @@ import type { DanmakuOptions } from '@danmaku-anywhere/danmaku-engine'
 
 import type { DanmakuOptionsOptions } from '../constants/danmakuOptions'
 
-import { useExtStorage } from '@/common/hooks/useExtStorage'
+import { useSuspenseExtStorageQuery } from './extStorage/useSuspenseExtStorageQuery'
 
 export const useDanmakuOptions = () => {
-  const store = useExtStorage<DanmakuOptionsOptions>('danmakuOptions', {
-    storageType: 'sync',
-  })
+  const store = useSuspenseExtStorageQuery<DanmakuOptionsOptions>(
+    'danmakuOptions',
+    {
+      storageType: 'sync',
+    }
+  )
 
   const partialUpdate = async (config: Partial<DanmakuOptions>) => {
-    if (store.isLoading || !store.data) return
-
     const { data: prevOptions, version } = store.data
 
     store.update.mutateAsync({
@@ -27,5 +28,5 @@ export const useDanmakuOptions = () => {
     })
   }
 
-  return { ...store, partialUpdate, data: store.data?.data }
+  return { ...store, partialUpdate, data: store.data.data }
 }

@@ -1,27 +1,47 @@
-import { DanmakuManagerWrapper } from './danmakuManager/DanmakuManagerWrapper'
+import { Suspense } from 'react'
+
+import { DanmakuManagerComponent } from './danmakuManager/DanmakuManagertComponent'
 import { PopupButton } from './fab/PopupButton'
-import { useIconManager } from './hooks/useIconManager'
-import { useMediaObserver } from './hooks/useMediaObserver'
+import { IconManagerComponent } from './iconManager/IconManagerComponent'
+import { MediaObserverComponent } from './mediaObserver/MediaObserverComponent'
 import { Toast } from './Toast'
 
+import type { MountConfig } from '@/common/constants/mountConfig'
 import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMatchMountConfig'
 import { useExtensionOptions } from '@/common/hooks/useExtensionOptions'
 
-export const Content = () => {
+interface RenderWithConfigProps {
+  children: (config: MountConfig) => JSX.Element
+}
+
+const RenderWithConfig = ({ children }: RenderWithConfigProps) => {
   const config = useMatchMountConfig(window.location.href)
-  const observer = useMediaObserver()
 
-  useIconManager()
+  if (!config) return null
 
-  const { data: options, isLoading } = useExtensionOptions()
+  return children(config)
+}
 
-  if (isLoading || options?.enabled === false) return null
+export const Content = () => {
+  const { data: options } = useExtensionOptions()
+
+  if (!options.enabled) return null
 
   return (
-    <>
-      <Toast />
-      {observer && <PopupButton />}
-      {config && <DanmakuManagerWrapper />}
-    </>
+    <RenderWithConfig>
+      {(config) => {
+        return (
+          <>
+            <IconManagerComponent config={config} />
+            <MediaObserverComponent config={config} />
+            <Suspense fallback={null}>
+              <DanmakuManagerComponent config={config} />
+            </Suspense>
+            <PopupButton />
+            <Toast />
+          </>
+        )
+      }}
+    </RenderWithConfig>
   )
 }

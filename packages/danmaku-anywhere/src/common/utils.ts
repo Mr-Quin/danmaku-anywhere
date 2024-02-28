@@ -67,3 +67,7 @@ export const getEpisodeId = (animeId: number, episodeNumber: number) => {
 export const episodeIdToEpisodeNumber = (episodeId: number) => {
   return episodeId % 10000
 }
+
+export const sleep = async (ms: number) => {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}

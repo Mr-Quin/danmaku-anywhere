@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "./dist/",
     "noEmit": true,
-    "types": ["chrome"],
+    "types": ["chrome", "react-dom/canary", "react/canary"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],

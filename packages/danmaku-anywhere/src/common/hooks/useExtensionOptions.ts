@@ -3,16 +3,17 @@ import type {
   ExtensionOptionsOptions,
 } from '../constants/extensionOptions'
 
-import { useExtStorage } from '@/common/hooks/useExtStorage'
+import { useSuspenseExtStorageQuery } from './extStorage/useSuspenseExtStorageQuery'
 
 export const useExtensionOptions = () => {
-  const store = useExtStorage<ExtensionOptionsOptions>('extensionOptions', {
-    storageType: 'sync',
-  })
+  const store = useSuspenseExtStorageQuery<ExtensionOptionsOptions>(
+    'extensionOptions',
+    {
+      storageType: 'sync',
+    }
+  )
 
   const partialUpdate = async (config: Partial<ExtensionOptions>) => {
-    if (store.isLoading || !store.data) return
-
     const { version, data: options } = store.data
 
     await store.update.mutateAsync({
@@ -24,5 +25,5 @@ export const useExtensionOptions = () => {
     })
   }
 
-  return { ...store, partialUpdate, data: store.data?.data }
+  return { ...store, partialUpdate, data: store.data.data }
 }
