@@ -48,6 +48,6 @@ export const titleMappingMessage = {
       Logger.debug('Title mapping found', res.payload)
     }
 
-    return res.payload as TitleMapping | undefined
+    return (res.payload ?? null) as TitleMapping | null
   },
 }
