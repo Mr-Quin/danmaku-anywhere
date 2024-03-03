@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
 import type { MediaInfo } from '../integration/MediaObserver'
@@ -28,6 +29,8 @@ export const useMediaObserver = (config: MountConfig) => {
     setComments,
     resetMediaState,
   } = useStore()
+
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     // when config changes, try to find a matching observer
@@ -60,10 +63,15 @@ export const useMediaObserver = (config: MountConfig) => {
           setComments([])
         }
 
+        const titleMappingPayload = {
+          originalTitle: state.toTitleString(),
+          source: config.name,
+        }
+
         const [mapping, mappingErr] = await tryCatch(() =>
-          titleMappingMessage.get({
-            originalTitle: state.toTitleString(),
-            source: config!.name,
+          queryClient.fetchQuery({
+            queryKey: ['titleMapping', titleMappingPayload],
+            queryFn: () => titleMappingMessage.get(titleMappingPayload),
           })
         )
 
@@ -102,9 +110,13 @@ export const useMediaObserver = (config: MountConfig) => {
 
           // if no mapping, search for anime to get the animeId
           const [result, searchErr] = await tryCatch(() =>
-            animeMessage.search({
-              anime: state.title,
-              episode: state.episodic ? state.episode.toString() : '',
+            queryClient.fetchQuery({
+              queryKey: ['anime', state],
+              queryFn: () =>
+                animeMessage.search({
+                  anime: state.title,
+                  episode: state.episodic ? state.episode.toString() : '',
+                }),
             })
           )
 
@@ -147,11 +159,15 @@ export const useMediaObserver = (config: MountConfig) => {
         setDanmakuMeta(danmakuMeta)
 
         const [res, danmakuErr] = await tryCatch(() =>
-          danmakuMessage.fetch({
-            data: danmakuMeta,
-            options: {
-              forceUpdate: false,
-            },
+          queryClient.fetchQuery({
+            queryKey: ['danmaku', danmakuMeta],
+            queryFn: () =>
+              danmakuMessage.fetch({
+                data: danmakuMeta,
+                options: {
+                  forceUpdate: false,
+                },
+              }),
           })
         )
 

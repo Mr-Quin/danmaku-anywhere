@@ -1,4 +1,4 @@
-import { Paper, Box, Slide, AppBar } from '@mui/material'
+import { Paper, Box, Slide, AppBar, ClickAwayListener } from '@mui/material'
 import { useEffect } from 'react'
 
 import { PopupTab, usePopup } from '../store/popupStore'
@@ -50,28 +50,30 @@ export const PopupButton = () => {
   }, [isOpen])
 
   return (
-    <Box
-      position="absolute"
-      zIndex={9999}
-      bottom={(theme) => theme.spacing(12)}
-      left={(theme) => theme.spacing(3)}
-    >
-      <Slide direction="right" in={isOpen} mountOnEnter unmountOnExit>
-        <PopupPanelContainer>
-          <AppBar position="relative">
-            <PanelTabs />
-          </AppBar>
-          <Paper sx={{ borderRadius: 0, overflow: 'auto', height: 1 }}>
-            {renderTabs()}
-          </Paper>
-        </PopupPanelContainer>
-      </Slide>
-      <HiddenFab
-        color="primary"
-        size="small"
-        onOpen={handleClick}
-        isOpen={isOpen}
-      />
-    </Box>
+    <ClickAwayListener onClickAway={() => usePopup.setState({ isOpen: false })}>
+      <Box
+        position="absolute"
+        zIndex={9999}
+        bottom={(theme) => theme.spacing(12)}
+        left={(theme) => theme.spacing(3)}
+      >
+        <Slide direction="right" in={isOpen} mountOnEnter unmountOnExit>
+          <PopupPanelContainer>
+            <AppBar position="relative">
+              <PanelTabs />
+            </AppBar>
+            <Paper sx={{ borderRadius: 0, overflow: 'auto', height: 1 }}>
+              {renderTabs()}
+            </Paper>
+          </PopupPanelContainer>
+        </Slide>
+        <HiddenFab
+          color="primary"
+          size="small"
+          onOpen={handleClick}
+          isOpen={isOpen}
+        />
+      </Box>
+    </ClickAwayListener>
   )
 }
