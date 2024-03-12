@@ -1,6 +1,5 @@
 import preact from '@preact/preset-vite'
 import { defineConfig } from 'vite'
-import eslint from 'vite-plugin-eslint'
 import monkey, { cdn } from 'vite-plugin-monkey'
 
 // https://vitejs.dev/config/
@@ -16,7 +15,6 @@ export default defineConfig({
   },
   plugins: [
     preact(),
-    eslint(),
     monkey({
       entry: 'src/main.ts',
       userscript: {
