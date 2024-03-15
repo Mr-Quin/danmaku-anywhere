@@ -12,6 +12,7 @@ type MessageHandler<T extends Message = any> = (
   sendResponse: SendReponse
 ) => Promise<any>
 
+// maybe switch to a type safe solution like trpc
 export class MessageRouter {
   private handlers = new Map<string, MessageHandler>()
 

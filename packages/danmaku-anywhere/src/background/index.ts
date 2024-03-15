@@ -1,7 +1,7 @@
 import type { DanmakuMessage } from '../common/messages/danmakuMessage'
-import { AnimeService } from '../common/services/AnimeService'
 
 import { addEnabledMenu } from './contextMenu/enabled'
+import { AnimeService } from './services/AnimeService'
 import { DanmakuService } from './services/DanmakuService'
 import { IconService } from './services/IconService'
 import { TitleMappingService } from './services/TitleMappingService'
