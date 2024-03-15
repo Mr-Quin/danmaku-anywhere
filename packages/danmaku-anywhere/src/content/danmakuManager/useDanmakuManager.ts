@@ -1,11 +1,12 @@
 import { DanmakuManager } from '@danmaku-anywhere/danmaku-engine'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useEffect as useLayoutEffect, useMemo, useRef } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 
 import { useStore } from '../store/store'
 import { useToast } from '../store/toastStore'
 
 import { useManualDanmaku } from './useManualDanmaku'
+import { useRect } from './useRect'
 
 import type { MountConfig } from '@/common/constants/mountConfig'
 import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
@@ -24,12 +25,14 @@ export const useDanmakuManager = (config: MountConfig) => {
 
   const { toast } = useToast()
 
-  const container = useNodeMonitor(config.containerQuery)
-  const node = useNodeMonitor<HTMLVideoElement>(config.mediaQuery)
+  const videoNode = useNodeMonitor<HTMLVideoElement>(config.mediaQuery)
+
+  const rect = useRect(videoNode)
+  const ref = useRef<HTMLDivElement>(null)
 
   const danmakuEngine = useMemo(() => new DanmakuManager(), [])
 
-  useManualDanmaku(danmakuEngine, node, container)
+  useManualDanmaku(danmakuEngine, videoNode, ref.current)
 
   useEffect(() => {
     // if danmaku is created, destroy it when status is stopped
@@ -42,17 +45,21 @@ export const useDanmakuManager = (config: MountConfig) => {
     }
 
     // if media is not ready, do nothing
-    if (!container || !node) return
+    if (!ref.current || !videoNode) return
 
     // if danmaku is not created, create it when status is playing
     if (status === 'playing' && comments.length > 0) {
-      Logger.debug('Creating danmaku')
+      Logger.debug('Creating danmaku', {
+        container: ref.current,
+        node: videoNode,
+        engine: danmakuEngine,
+      })
       toast.success(
         `Danmaku mounted: ${mediaInfo?.toString() ?? ''} (${comments.length})`
       )
-      danmakuEngine.create(container, node, comments, options)
+      danmakuEngine.create(ref.current, videoNode, comments, options)
     }
-  }, [container, node, comments, options, status, config])
+  }, [videoNode, comments, options, status, config])
 
   useEffect(() => {
     if (!danmakuEngine.created) return
@@ -61,20 +68,13 @@ export const useDanmakuManager = (config: MountConfig) => {
     danmakuEngine.updateConfig(options)
   }, [options])
 
-  useEffect(() => {
-    Logger.debug('Container changed', {
-      danmakuEngine,
-      config,
-      status,
-    })
-  }, [container, node])
-
-  useEffect(() => {
+  useLayoutEffect(() => {
     const handler = () => {
       if (danmakuEngine.created) {
         danmakuEngine.resize()
       }
     }
+
     window.addEventListener('resize', handler)
 
     return () => {
@@ -83,5 +83,5 @@ export const useDanmakuManager = (config: MountConfig) => {
     }
   }, [])
 
-  return null
+  return [ref, rect] as const
 }

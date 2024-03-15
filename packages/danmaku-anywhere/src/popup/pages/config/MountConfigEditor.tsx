@@ -195,18 +195,6 @@ export const MountConfigEditor = ({
             fullWidth
           />
 
-          <TextField
-            label="Container Query"
-            value={localConfig.containerQuery}
-            size="small"
-            onChange={(e) =>
-              setLocalConfig((prev) => ({
-                ...prev,
-                containerQuery: e.target.value,
-              }))
-            }
-            fullWidth
-          />
           <Button variant="contained" color="primary" type="submit">
             {isAdd ? 'Add' : 'Save'} Config
           </Button>
