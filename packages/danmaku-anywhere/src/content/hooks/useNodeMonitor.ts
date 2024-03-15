@@ -4,6 +4,7 @@ export const useNodeMonitor = <T extends HTMLElement>(selector?: string) => {
   const [node, setNode] = useState<T | null>(null)
 
   // use a weak ref to avoid memory leaks when the node is removed
+  // for the node state, assume the mutation observer will handle setting it to null when the node is removed
   const nodeRef = useRef<WeakRef<T>>()
 
   const handleSetNode = useCallback(
