@@ -21,6 +21,14 @@ const shadowRootElement = document.createElement('div')
 shadowContainer.appendChild(emotionRoot)
 shadowContainer.appendChild(shadowRootElement)
 
+// prevent global styles from leaking into shadow dom
+// TODO: rem unit is still affected by html { font-size }
+emotionRoot.textContent = `
+:host {
+  all : initial;
+}
+`
+
 const cache = createCache({
   key: 'danmaku-anywhere',
   container: emotionRoot,
