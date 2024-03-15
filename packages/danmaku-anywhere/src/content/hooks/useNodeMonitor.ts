@@ -3,11 +3,14 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 export const useNodeMonitor = <T extends HTMLElement>(selector?: string) => {
   const [node, setNode] = useState<T | null>(null)
 
-  const nodeRef = useRef<T | null>(null)
+  // use a weak ref to avoid memory leaks when the node is removed
+  const nodeRef = useRef<WeakRef<T>>()
 
   const handleSetNode = useCallback(
     (node: T | null) => {
-      nodeRef.current = node
+      if (node) {
+        nodeRef.current = new WeakRef(node)
+      }
       setNode(node)
     },
     [setNode]
@@ -26,6 +29,7 @@ export const useNodeMonitor = <T extends HTMLElement>(selector?: string) => {
     }
 
     const observer = new MutationObserver((mutations) => {
+      // label for breaking out of nested loops
       mutationLoop: for (const mutation of mutations) {
         // check added nodes
         for (const node of mutation.addedNodes) {
@@ -46,7 +50,7 @@ export const useNodeMonitor = <T extends HTMLElement>(selector?: string) => {
             break mutationLoop
           }
           // if the node is removed
-          if (target === nodeRef.current) {
+          if (target === nodeRef.current?.deref()) {
             handleSetNode(null)
             break mutationLoop
           }
@@ -55,7 +59,7 @@ export const useNodeMonitor = <T extends HTMLElement>(selector?: string) => {
         for (const removedNode of mutation.removedNodes) {
           if (removedNode instanceof HTMLElement) {
             if (
-              removedNode === nodeRef.current ||
+              removedNode === nodeRef.current?.deref() ||
               removedNode.contains(node) ||
               removedNode.matches(selector)
             ) {
