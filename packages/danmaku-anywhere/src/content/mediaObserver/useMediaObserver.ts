@@ -1,4 +1,4 @@
-import { useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
 import type { MediaInfo } from '../integration/MediaObserver'
@@ -31,6 +31,11 @@ export const useMediaObserver = (config: MountConfig) => {
   } = useStore()
 
   const queryClient = useQueryClient()
+
+  const { mutate } = useMutation({
+    mutationFn: titleMappingMessage.save,
+    throwOnError: false,
+  })
 
   useEffect(() => {
     // when config changes, try to find a matching observer
@@ -144,6 +149,14 @@ export const useMediaObserver = (config: MountConfig) => {
           // at this point, there should be only one anime
           const { episodes, animeTitle, animeId } = result.animes[0]
           const { episodeId, episodeTitle } = episodes[0]
+
+          // save the result to title mapping
+          // no need to await, it's ok if it fails
+          mutate({
+            ...titleMappingPayload,
+            title: animeTitle,
+            animeId,
+          })
 
           return {
             animeId,
