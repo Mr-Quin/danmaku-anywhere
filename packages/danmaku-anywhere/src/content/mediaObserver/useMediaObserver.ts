@@ -136,6 +136,7 @@ export const useMediaObserver = (config: MountConfig) => {
           if (result.animes.length > 1) {
             Logger.debug('Multiple animes found, open disambiguation')
 
+            // the popup is responsible for setting the danmaku meta
             open({ animes: result.animes, tab: PopupTab.Selector })
             return
           }

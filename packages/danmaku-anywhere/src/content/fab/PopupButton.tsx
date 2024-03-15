@@ -1,5 +1,6 @@
 import { Paper, Box, Slide, AppBar, ClickAwayListener } from '@mui/material'
 import { useEffect } from 'react'
+import { match } from 'ts-pattern'
 
 import { PopupTab, usePopup } from '../store/popupStore'
 
@@ -19,19 +20,6 @@ export const PopupButton = () => {
     // Switch to search tab when open
     if (!isOpen && tab === PopupTab.Selector) {
       setTab(PopupTab.Search)
-    }
-  }
-
-  const renderTabs = () => {
-    switch (tab) {
-      case PopupTab.Info:
-        return <InfoPanel />
-      case PopupTab.Search:
-        return <SearchPanel />
-      case PopupTab.Selector:
-        return <SelectorPanel />
-      case PopupTab.Comments:
-        return <CommentsPanel />
     }
   }
 
@@ -63,7 +51,12 @@ export const PopupButton = () => {
               <PanelTabs />
             </AppBar>
             <Paper sx={{ borderRadius: 0, overflow: 'auto', height: 1 }}>
-              {renderTabs()}
+              {match(tab)
+                .with(PopupTab.Info, () => <InfoPanel />)
+                .with(PopupTab.Search, () => <SearchPanel />)
+                .with(PopupTab.Selector, () => <SelectorPanel />)
+                .with(PopupTab.Comments, () => <CommentsPanel />)
+                .exhaustive()}
             </Paper>
           </PopupPanelContainer>
         </Slide>
