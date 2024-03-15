@@ -9,7 +9,21 @@ interface DanmakuManagerComponentProps {
 export const DanmakuManagerComponent = ({
   config,
 }: DanmakuManagerComponentProps) => {
-  useDanmakuManager(config)
+  const [ref, rect] = useDanmakuManager(config)
 
-  return null
+  return (
+    <div
+      ref={ref}
+      style={{
+        visibility: rect ? 'visible' : 'hidden',
+        pointerEvents: 'none',
+        position: 'absolute',
+        top: rect?.top,
+        left: rect?.left,
+        width: rect?.width,
+        height: rect?.height,
+        zIndex: 999999,
+      }}
+    />
+  )
 }
