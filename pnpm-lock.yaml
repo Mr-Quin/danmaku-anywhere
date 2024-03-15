@@ -105,6 +105,9 @@ importers:
       react-router-dom:
         specifier: ^6.22.1
         version: 6.22.1(react-dom@18.3.0-canary-3bcd2de01-20240227)(react@18.3.0-canary-3bcd2de01-20240227)
+      ts-pattern:
+        specifier: ^5.0.8
+        version: 5.0.8
     devDependencies:
       '@crxjs/vite-plugin':
         specifier: 2.0.0-beta.18
@@ -6342,6 +6345,10 @@ packages:
     dependencies:
       typescript: 5.3.3
     dev: true
+
+  /ts-pattern@5.0.8:
+    resolution: {integrity: sha512-aafbuAQOTEeWmA7wtcL94w6I89EgLD7F+IlWkr596wYxeb0oveWDO5dQpv85YP0CGbxXT/qXBIeV6IYLcoZ2uA==}
+    dev: false
 
   /tsconfig-paths@3.15.0:
     resolution: {integrity: sha512-2Ac2RgzDe/cn48GvOe3M+o82pEFewD3UPbyoUHHdKasHwJKjds4fLXWf/Ux5kATBKN20oaFGu+jbElp1pos0mg==}
