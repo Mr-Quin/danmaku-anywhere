@@ -1,6 +1,6 @@
 import type { DanmakuMessage } from '../common/messages/danmakuMessage'
 
-import { addEnabledMenu } from './contextMenu/enabled'
+import { setupContextMenu } from './contextMenu/setupContextMenu'
 import { AnimeService } from './services/AnimeService'
 import { DanmakuService } from './services/DanmakuService'
 import { IconService } from './services/IconService'
@@ -15,7 +15,7 @@ import type { TitleMappingMessage } from '@/common/messages/titleMappingMessage'
 import { Logger } from '@/common/services/Logger'
 
 setupOptions()
-addEnabledMenu()
+setupContextMenu()
 
 const messageRouter = new MessageRouter()
 const animeService = new AnimeService()
