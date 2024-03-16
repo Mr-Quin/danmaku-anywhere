@@ -1,15 +1,15 @@
 import { Refresh } from '@mui/icons-material'
 import {
-  Box,
   CircularProgress,
   IconButton,
   Stack,
+  Toolbar,
   Tooltip,
   Typography,
 } from '@mui/material'
 
 import { useStore } from '../../store/store'
-import { CommentList } from '../components/CommentList'
+import { CommentsTable } from '../components/CommentsTable'
 
 import { tryCatch } from '@/common/utils'
 import { useFetchDanmakuMutation } from '@/content/hooks/useFetchDanmakuMutation'
@@ -33,29 +33,33 @@ export const CommentsPanel = () => {
     }
   }
 
+  const hasComments = comments.length > 0
+
   return (
     <>
-      {comments.length > 0 ? (
-        <Stack height="100%">
-          <Box px={2}>
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-            >
-              <Typography variant="h6">{comments.length} comments</Typography>
-              <Tooltip title="Refresh comments">
-                <IconButton color="primary" onClick={handleRefreshComments}>
-                  {isPending ? <CircularProgress size={24} /> : <Refresh />}
-                </IconButton>
-              </Tooltip>
-            </Stack>
-          </Box>
-          <CommentList comments={comments} px={2} />
-        </Stack>
-      ) : (
-        <Typography variant="h6">No comments loaded</Typography>
-      )}
+      <Stack height="100%">
+        <Toolbar
+          variant="dense"
+          sx={{
+            pl: { sm: 2 },
+            pr: { xs: 1, sm: 1 },
+            minHeight: 32,
+            backgroundColor: 'background.paper',
+          }}
+        >
+          <Typography variant="h6" sx={{ flexGrow: 1 }}>
+            Comments
+          </Typography>
+          {hasComments && (
+            <Tooltip title="Refresh comments">
+              <IconButton color="primary" onClick={handleRefreshComments}>
+                {isPending ? <CircularProgress size={24} /> : <Refresh />}
+              </IconButton>
+            </Tooltip>
+          )}
+        </Toolbar>
+        <CommentsTable comments={comments} />
+      </Stack>
     </>
   )
 }
