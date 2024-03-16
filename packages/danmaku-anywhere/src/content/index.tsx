@@ -53,6 +53,17 @@ const themeOptions: ThemeOptions = {
       },
     },
   },
+  // fab container has a z-index of 9999, so we need to make sure any popper is above it
+  zIndex: {
+    mobileStepper: 10000,
+    fab: 10500,
+    speedDial: 10500,
+    appBar: 11000,
+    drawer: 12000,
+    modal: 13000,
+    snackbar: 14000,
+    tooltip: 15000,
+  },
 }
 
 ReactDOM.createRoot(shadowRootElement).render(
