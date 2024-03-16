@@ -17,7 +17,7 @@ export class TitleMappingService {
   }
 
   async add(mapping: TitleMapping) {
-    if (await this.mappingExists(mapping.originalTitle, mapping.source)) {
+    if (await this.mappingExists(mapping)) {
       this.logger.debug('Title mapping already exists:', mapping)
       return
     }
@@ -25,8 +25,8 @@ export class TitleMappingService {
     return this.db.add(mapping)
   }
 
-  async mappingExists(originalTitle: string, source: string) {
-    const count = await this.db.where({ originalTitle, source }).count()
+  async mappingExists({ title, source }: TitleMapping) {
+    const count = await this.db.where({ title, source }).count()
     return count > 0
   }
 
