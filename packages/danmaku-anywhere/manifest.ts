@@ -14,7 +14,7 @@ export const manifest = defineManifest({
   content_scripts: [
     {
       js: ['src/content/index.tsx'],
-      matches: ['<all_urls>'],
+      matches: ['*://*/*'],
       all_frames: true,
     },
   ],
