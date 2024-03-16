@@ -8,15 +8,11 @@ import type {
   MountConfigWithoutId,
 } from '@/common/constants/mountConfig'
 import { createMountConfig } from '@/common/constants/mountConfig'
-import { getOrigin } from '@/common/utils'
-import { useTabUrl } from '@/popup/hooks/useTabUrl'
 
 export const ConfigPage = () => {
-  const url = useTabUrl()
-
   const [editConfig, setEditConfig] = useState<
     MountConfig | MountConfigWithoutId
-  >(() => createMountConfig(getOrigin(url)))
+  >(() => createMountConfig(''))
 
   const navigatge = useNavigate()
 
@@ -27,7 +23,7 @@ export const ConfigPage = () => {
 
   const handleAddConfig = () => {
     navigatge('add')
-    setEditConfig(createMountConfig(getOrigin(url)))
+    setEditConfig(createMountConfig(''))
   }
 
   return (

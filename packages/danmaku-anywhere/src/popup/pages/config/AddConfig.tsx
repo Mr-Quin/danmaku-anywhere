@@ -7,7 +7,6 @@ import type {
   MountConfig,
   MountConfigWithoutId,
 } from '@/common/constants/mountConfig'
-import { useTabUrl } from '@/popup/hooks/useTabUrl'
 
 export const AddConfigPage = () => {
   const navigate = useNavigate()
@@ -23,7 +22,6 @@ export const AddConfigPage = () => {
             goBack={() => {
               navigate(-1)
             }}
-            tabUrl={useTabUrl()}
           />
         </Paper>
       </Slide>
