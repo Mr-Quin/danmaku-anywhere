@@ -22,7 +22,7 @@ import type {
 } from '@/common/constants/mountConfig'
 import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 import { Logger } from '@/common/services/Logger'
-import { createUrlPattern, getOrigin } from '@/common/utils'
+import { createUrlPattern } from '@/common/utils'
 
 const validatePattern = (pattern: string) => {
   try {
@@ -37,11 +37,9 @@ const validatePattern = (pattern: string) => {
 export const MountConfigEditor = ({
   editConfig,
   goBack,
-  tabUrl,
 }: {
   editConfig: MountConfigWithoutId | MountConfig
   goBack: () => void
-  tabUrl: string
 }) => {
   const { updateConfig, addConfig, deleteConfig } = useMountConfig()
 
@@ -59,7 +57,7 @@ export const MountConfigEditor = ({
   const addPatternField = () => {
     setLocalConfig((prev) => ({
       ...prev,
-      patterns: [...prev.patterns, getOrigin(tabUrl)],
+      patterns: [...prev.patterns, ''],
     }))
   }
 
