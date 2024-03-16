@@ -1,5 +1,5 @@
 import { DanmakuManager } from '@danmaku-anywhere/danmaku-engine'
-import { useEffect, useEffect as useLayoutEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 
 import { useStore } from '../store/store'
@@ -68,20 +68,11 @@ export const useDanmakuManager = (config: MountConfig) => {
     danmakuEngine.updateConfig(options)
   }, [options])
 
-  useLayoutEffect(() => {
-    const handler = () => {
-      if (danmakuEngine.created) {
-        danmakuEngine.resize()
-      }
+  useEffect(() => {
+    if (danmakuEngine.created) {
+      danmakuEngine.resize()
     }
-
-    window.addEventListener('resize', handler)
-
-    return () => {
-      danmakuEngine.destroy()
-      window.removeEventListener('resize', handler)
-    }
-  }, [])
+  }, [rect])
 
   return [ref, rect] as const
 }
