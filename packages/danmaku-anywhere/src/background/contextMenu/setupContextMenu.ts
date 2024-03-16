@@ -33,10 +33,8 @@ export const setupContextMenu = async () => {
   chrome.contextMenus.onClicked.addListener(async (info) => {
     match(info.menuItemId)
       .with(ContextMenuId.ENABLED, async () => {
-        const extensionOptions = await extensionOptionsService.get()
-
         await extensionOptionsService.update({
-          enabled: !extensionOptions?.enabled,
+          enabled: info.checked ?? false,
         })
       })
       .run()
