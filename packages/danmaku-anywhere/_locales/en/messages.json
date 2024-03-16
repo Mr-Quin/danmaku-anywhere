@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "Danmaku Anywhere"
+  },
+  "extDescription": {
+    "message": "A browser extension that injects danmaku into theoretically any website with a video player."
+  }
+}
