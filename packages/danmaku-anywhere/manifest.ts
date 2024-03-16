@@ -4,7 +4,8 @@ import pkg from './package.json' assert { type: 'json' }
 
 export const manifest = defineManifest({
   manifest_version: 3,
-  name: 'Danmaku Anywhere',
+  name: '__MSG_extName__',
+  description: '__MSG_extDescription__',
   version: pkg.version,
   action: {
     default_popup: 'pages/popup.html',
@@ -26,4 +27,5 @@ export const manifest = defineManifest({
     192: 'normal_192.png',
     512: 'normal_512.png',
   },
+  default_locale: 'en',
 })
