@@ -1,3 +1,5 @@
+import { Box } from '@mui/material'
+
 import { useDanmakuManager } from './useDanmakuManager'
 
 import type { MountConfig } from '@/common/constants/mountConfig'
@@ -12,9 +14,10 @@ export const DanmakuManagerComponent = ({
   const [ref, rect] = useDanmakuManager(config)
 
   return (
-    <div
+    <Box
       ref={ref}
-      style={{
+      id="danmaku-anywhere-danmaku-container"
+      sx={{
         visibility: rect ? 'visible' : 'hidden',
         pointerEvents: 'none',
         position: 'absolute',
