@@ -5,6 +5,7 @@ import { ConfigPage } from '../pages/config/ConfigPage'
 import { DanmakuPage } from '../pages/danmaku/DanmakuPage'
 import { Home } from '../pages/home/Home'
 import { Options } from '../pages/options/Options'
+import { Permissions } from '../pages/options/pages/Permissions'
 import { SearchPage } from '../pages/search/SearchPage'
 import { StylesPage } from '../pages/styles/StylesPage'
 
@@ -44,5 +45,11 @@ export const router = createHashRouter([
   {
     path: '/options',
     Component: Options,
+    children: [
+      {
+        path: 'permissions',
+        Component: Permissions,
+      },
+    ],
   },
 ])
