@@ -48,7 +48,7 @@ export const CommentsPanel = () => {
           }}
         >
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Comments
+            {comments.length} Comments
           </Typography>
           {hasComments && (
             <Tooltip title="Refresh comments">
