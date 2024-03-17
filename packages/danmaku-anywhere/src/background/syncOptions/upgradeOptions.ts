@@ -4,24 +4,41 @@ import { defaultMountConfig } from '@/common/constants/mountConfig'
 import { Logger } from '@/common/services/Logger'
 import { SyncOptionsService } from '@/common/services/SyncOptionsService'
 
+export const extensionOptionsService = new SyncOptionsService(
+  'extensionOptions',
+  defaultExtensionOptions
+).version(1, {
+  upgrade: (data: any) => data,
+})
+
+const danmakuOptionsService = new SyncOptionsService(
+  'danmakuOptions',
+  defaultDanmakuOptions
+).version(1, {
+  upgrade: (data: any) => data,
+})
+
+export const mountConfigService = new SyncOptionsService(
+  'mountConfig',
+  defaultMountConfig
+)
+  .version(1, {
+    upgrade: (data: any) => data,
+  })
+  .version(2, {
+    upgrade: (data: any) =>
+      data.map((config: any) => ({
+        ...config,
+        enabled: false,
+      })),
+  })
+
 const upgradeOptions = async () => {
-  await new SyncOptionsService('extensionOptions', defaultExtensionOptions)
-    .version(1, {
-      upgrade: (data: any) => data,
-    })
-    .upgrade()
-
-  await new SyncOptionsService('danmakuOptions', defaultDanmakuOptions)
-    .version(1, {
-      upgrade: (data: any) => data,
-    })
-    .upgrade()
-
-  await new SyncOptionsService('mountConfig', defaultMountConfig)
-    .version(1, {
-      upgrade: (data: any) => data,
-    })
-    .upgrade()
+  await Promise.all([
+    extensionOptionsService.upgrade(),
+    danmakuOptionsService.upgrade(),
+    mountConfigService.upgrade(),
+  ])
 }
 
 export const setupOptions = async () => {

@@ -1,6 +1,6 @@
 import type { Options } from '../services/SyncOptionsService'
 
-import defaultMountConfigJson from './mountConfig/default.json'
+import defaultMountConfigJson from './mountConfig/default.json' assert { type: 'json' }
 export interface MountConfig {
   patterns: string[]
   mediaQuery: string
@@ -9,7 +9,7 @@ export interface MountConfig {
    * it's tricky to find the right container to serve as the danamku mount point,
    * so we use a global container and overlay it on top of the video.
    */
-  containerQuery: string
+  containerQuery?: string
   predefined: boolean
   enabled: boolean
   name: string

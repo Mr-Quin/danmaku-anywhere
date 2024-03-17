@@ -5,6 +5,7 @@ import { AnimeService } from './services/AnimeService'
 import { DanmakuService } from './services/DanmakuService'
 import { IconService } from './services/IconService'
 import { TitleMappingService } from './services/TitleMappingService'
+import { setupScripting } from './setupScripting'
 import { setupOptions } from './syncOptions/upgradeOptions'
 
 import type { AnimeMessage } from '@/common/messages/animeMessage'
@@ -16,6 +17,7 @@ import { Logger } from '@/common/services/Logger'
 
 setupOptions()
 setupContextMenu()
+setupScripting()
 
 const messageRouter = new MessageRouter()
 const animeService = new AnimeService()
