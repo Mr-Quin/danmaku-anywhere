@@ -1,33 +1,29 @@
 [
   {
-    "patterns": ["https://app.plex.tv"],
+    "patterns": ["https://app.plex.tv/*"],
     "mediaQuery": "video",
-    "containerQuery": ".Player-fullPlayerContainer-wBDz23",
-    "enabled": true,
+    "enabled": false,
     "name": "plex"
   },
   {
-    "patterns": ["https://www.bilibili.com"],
+    "patterns": ["https://www.bilibili.com/*"],
     "mediaQuery": "video",
-    "containerQuery": ".bpx-player-row-dm-wrap",
-    "enabled": true,
+    "enabled": false,
     "name": "bilibili"
   },
   {
-    "patterns": ["https://www.youtube.com"],
+    "patterns": ["https://www.youtube.com/*"],
     "mediaQuery": "video",
-    "containerQuery": "#movie_player",
-    "enabled": true,
+    "enabled": false,
     "name": "youtube"
   },
   {
     "patterns": [
-      "https://www.crunchyroll.com",
-      "https://static.crunchyroll.com"
+      "https://www.crunchyroll.com/*",
+      "https://static.crunchyroll.com/*"
     ],
     "mediaQuery": "#player0",
-    "containerQuery": "#vilosRoot",
-    "enabled": true,
+    "enabled": false,
     "name": "crunchyroll"
   }
 ]

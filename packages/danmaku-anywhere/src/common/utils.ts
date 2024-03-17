@@ -4,7 +4,36 @@ export const toArray = <T>(value: T | T[]): T[] => {
   return Array.isArray(value) ? value : [value]
 }
 
-export const createUrlPattern = (pattern: string) => {
+export const hasOriginPermission = async (origins: string[]) => {
+  return chrome.permissions.contains({
+    origins,
+  })
+}
+
+export const validateOrigin = async (origin: string) => {
+  try {
+    await chrome.permissions.contains({
+      origins: [origin],
+    })
+    return ''
+  } catch (e: any) {
+    return (e.message as string) ?? 'invalid pattern'
+  }
+}
+
+export const requestOriginPermission = async (origins: string[]) => {
+  return chrome.permissions.request({
+    origins,
+  })
+}
+
+export const removeOriginPermission = async (origins: string[]) => {
+  return chrome.permissions.remove({
+    origins,
+  })
+}
+
+const createUrlPattern = (pattern: string) => {
   // this will throw error if pattern is invalid
   return new URLPattern({
     search: '*',

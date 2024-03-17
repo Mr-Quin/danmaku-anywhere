@@ -8,6 +8,9 @@ import {
   AppBar,
   Box,
   Button,
+  Checkbox,
+  FormControl,
+  FormControlLabel,
   IconButton,
   Stack,
   TextField,
@@ -22,17 +25,13 @@ import type {
 } from '@/common/constants/mountConfig'
 import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 import { Logger } from '@/common/services/Logger'
-import { createUrlPattern } from '@/common/utils'
-
-const validatePattern = (pattern: string) => {
-  try {
-    createUrlPattern(pattern)
-    return true
-  } catch (e) {
-    Logger.debug('Invalid pattern', e)
-    return false
-  }
-}
+import {
+  hasOriginPermission,
+  removeOriginPermission,
+  requestOriginPermission,
+  tryCatch,
+  validateOrigin,
+} from '@/common/utils'
 
 export const MountConfigEditor = ({
   editConfig,
@@ -74,13 +73,23 @@ export const MountConfigEditor = ({
   const handleSave = async () => {
     if (localConfig.patterns.length === 0) return
 
-    const patternsValid = localConfig.patterns.map(validatePattern)
-
-    setPatternErrors(
-      patternsValid.map((valid) => (valid ? '' : 'Invalid pattern'))
+    const patternsValid = await Promise.all(
+      localConfig.patterns.map((pattern) => validateOrigin(pattern))
     )
 
-    if (!patternsValid.every((valid) => valid)) return
+    setPatternErrors(patternsValid)
+
+    if (!patternsValid.every((err) => err === '')) return
+
+    Logger.debug('Checking origin permission, patterns:', localConfig.patterns)
+
+    if (!(await hasOriginPermission(localConfig.patterns))) {
+      // request permission if not granted
+      // if user denies permission, do not save
+      if (!(await requestOriginPermission(localConfig.patterns))) {
+        return
+      }
+    }
 
     if (isAdd) {
       await addConfig(localConfig)
@@ -92,6 +101,8 @@ export const MountConfigEditor = ({
   }
 
   const handleDelete = async (id: number) => {
+    // ignore errors when removing permission so invalid patterns won't block deletion
+    await tryCatch(async () => removeOriginPermission(editConfig.patterns))
     await deleteConfig(id)
     goBack()
   }
@@ -192,6 +203,23 @@ export const MountConfigEditor = ({
             }
             fullWidth
           />
+
+          <FormControl>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={localConfig.enabled}
+                  onChange={(e) =>
+                    setLocalConfig((prev) => ({
+                      ...prev,
+                      enabled: e.target.checked,
+                    }))
+                  }
+                />
+              }
+              label="Enabled"
+            />
+          </FormControl>
 
           <Button variant="contained" color="primary" type="submit">
             {isAdd ? 'Add' : 'Save'} Config

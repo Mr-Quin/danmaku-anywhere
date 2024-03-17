@@ -10,6 +10,7 @@ import { App } from './App'
 import { queryClient } from '@/common/queryClient'
 import { Theme } from '@/common/style/Theme'
 
+console.debug('Danmaku Anywhere content script loaded')
 const root = document.createElement('div')
 document.body.append(root)
 root.id = 'danmaku-anywhere'

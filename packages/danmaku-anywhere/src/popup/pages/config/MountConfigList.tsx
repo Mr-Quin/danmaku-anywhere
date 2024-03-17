@@ -43,7 +43,9 @@ export const MountConfigList = ({
             <IconButton
               edge="end"
               aria-label="add"
-              onClick={() => onAdd()}
+              onClick={() => {
+                onAdd()
+              }}
               color="primary"
             >
               <Tooltip title="Add">
@@ -64,7 +66,9 @@ export const MountConfigList = ({
               <IconButton
                 edge="end"
                 aria-label="go to url"
-                onClick={() => gotoUrl(config.patterns[0])}
+                onClick={() => {
+                  gotoUrl(config.patterns[0])
+                }}
               >
                 <Tooltip title="Go to url">
                   <Link />

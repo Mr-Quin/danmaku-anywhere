@@ -1,9 +1,9 @@
 import { match } from 'ts-pattern'
 
-import type { ExtensionOptions } from '@/common/constants/extensionOptions'
-import { defaultExtensionOptions } from '@/common/constants/extensionOptions'
+import { extensionOptionsService } from '../syncOptions/upgradeOptions'
+
 import { Logger } from '@/common/services/Logger'
-import { SyncOptionsService } from '@/common/services/SyncOptionsService'
+import { tryCatch } from '@/common/utils'
 
 enum ContextMenuId {
   ENABLED = 'danmaku-anywhere-enabled',
@@ -11,11 +11,6 @@ enum ContextMenuId {
 
 // add menu item to disable danmaku
 export const setupContextMenu = async () => {
-  const extensionOptionsService = new SyncOptionsService<ExtensionOptions>(
-    'extensionOptions',
-    defaultExtensionOptions
-  )
-
   chrome.runtime.onInstalled.addListener(async () => {
     const extensionOptions = await extensionOptionsService.get()
 
@@ -24,7 +19,7 @@ export const setupContextMenu = async () => {
     chrome.contextMenus.create({
       id: ContextMenuId.ENABLED,
       type: 'checkbox',
-      checked: extensionOptions?.enabled ?? false,
+      checked: extensionOptions.enabled,
       title: 'Enabled',
       contexts: ['action', 'page', 'video'],
     })
@@ -41,10 +36,12 @@ export const setupContextMenu = async () => {
   })
 
   extensionOptionsService.onChange((extensionOptions) => {
-    if (extensionOptions) {
+    if (!extensionOptions) return
+    // try block in case the context menu is not created yet
+    tryCatch(async () =>
       chrome.contextMenus.update(ContextMenuId.ENABLED, {
         checked: extensionOptions.enabled,
       })
-    }
+    )
   })
 }

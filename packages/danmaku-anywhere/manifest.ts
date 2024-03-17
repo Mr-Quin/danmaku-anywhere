@@ -12,15 +12,19 @@ export const manifest = defineManifest({
     default_title: 'Danmaku anywhere',
   },
   options_page: 'pages/options.html',
-  content_scripts: [
-    {
-      js: ['src/content/index.tsx'],
-      matches: ['*://*/*'],
-      all_frames: true,
-    },
-  ],
   background: { service_worker: 'src/background/index.ts', type: 'module' },
-  permissions: ['storage', 'unlimitedStorage', 'activeTab', 'contextMenus'],
+  permissions: [
+    'storage',
+    'unlimitedStorage',
+    'activeTab',
+    'scripting',
+    'contextMenus',
+  ],
+  // permission to make requests to dandanplay for seraching and fetching comments
+  host_permissions: ['https://*.dandanplay.net/*'],
+  // @ts-expect-error
+  // permission to inject content script into any page, to be requested at runtime
+  optional_host_permissions: ['*://*/*'],
   icons: {
     16: 'normal_16.png',
     32: 'normal_32.png',
