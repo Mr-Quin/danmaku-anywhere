@@ -64,7 +64,6 @@ export const AppToolBar = () => {
             navigate('/options')
           }}
           edge="end"
-          disabled
         >
           <Settings />
         </IconButton>
