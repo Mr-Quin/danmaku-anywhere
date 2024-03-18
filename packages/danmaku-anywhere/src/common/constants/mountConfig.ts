@@ -11,6 +11,12 @@ export interface MountConfig {
    */
   containerQuery?: string
   predefined: boolean
+  /**
+   * Whether the config is enabled
+   * Affects content script registration.
+   * Content script is only registered for sites with enabled configs.
+   * Page needs to be reloaded for changes to take effect.
+   */
   enabled: boolean
   name: string
   id: number
