@@ -1,13 +1,10 @@
-import { Box, Typography } from '@mui/material'
+import { Box } from '@mui/material'
 
 import { DanmakuOptionsController } from './StylesForm'
 
 export const StylesPage = () => {
   return (
-    <Box p={2} overflow="hidden">
-      <Typography variant="h6" gutterBottom>
-        Danmaku Style
-      </Typography>
+    <Box p={2} overflow="auto">
       <DanmakuOptionsController />
     </Box>
   )

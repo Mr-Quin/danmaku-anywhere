@@ -1,4 +1,3 @@
-import type { DanmakuOptions } from '@danmaku-anywhere/danmaku-engine'
 import { LoadingButton } from '@mui/lab'
 import type { SliderProps, TypographyProps } from '@mui/material'
 import {
@@ -6,11 +5,15 @@ import {
   Switch,
   Box,
   FormControlLabel,
-  FormGroup,
   Typography,
+  Stack,
+  Tooltip,
 } from '@mui/material'
+import type { Draft } from 'immer'
+import { produce } from 'immer'
 import { useEffect, useId, useState } from 'react'
 
+import type { DanmakuOptions } from '@/common/constants/danmakuOptions'
 import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
 
 const filterMarks = [
@@ -63,6 +66,19 @@ const speedMarks = [
   },
 ]
 
+const safeZoneMarks = [
+  {
+    value: 0,
+    label: '0%',
+  },
+  {
+    value: 50,
+    label: '50%',
+  },
+]
+
+const safeZoneValueLabelFormat = (value: number) => `${value}%`
+
 const convertActualSpeedToDisplay = (actualSpeed: number) => {
   // convert actual playback rate to a number between 1 and 5
   switch (actualSpeed) {
@@ -100,22 +116,26 @@ const convertDisplaySpeedToActual = (displaySpeed: number) => {
 
 interface LabeledSliderProps extends SliderProps {
   label: string
+  tooltip?: string
   typographyProps?: TypographyProps
 }
 
 const LabeledSlider = ({
   label,
+  tooltip,
   typographyProps = {},
   ...rest
 }: LabeledSliderProps) => {
   const id = useId()
   return (
-    <>
-      <Typography id={id} {...typographyProps}>
-        {label}
-      </Typography>
+    <Box>
+      <Tooltip title={tooltip} sx={{ width: 'fit-content' }}>
+        <Typography id={id} {...typographyProps}>
+          {label}
+        </Typography>
+      </Tooltip>
       <Slider aria-labelledby={id} {...rest} />
-    </>
+    </Box>
   )
 }
 
@@ -141,34 +161,41 @@ export const DanmakuOptionsController = () => {
     return partialUpdate(newConfig)
   }
 
-  const handleLocalUpdate = (newConfig: DanmakuOptions) => {
-    setLocalConfig(newConfig)
+  const handleLocalUpdate = (
+    updater: (draft: Draft<DanmakuOptions>) => void
+  ) => {
+    setLocalConfig(produce(localConfig, updater))
   }
 
   return (
-    <Box>
-      <FormControlLabel
-        control={
-          <Switch
-            checked={localConfig.show}
-            onChange={(e) =>
-              handleLocalUpdate({ ...localConfig, show: e.target.checked })
-            }
-          />
-        }
-        label="Show Danmaku"
-      />
-      <FormGroup>
+    <>
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Typography fontSize={20} color="text.secondary">
+          Danmaku Style
+        </Typography>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={localConfig.show}
+              onChange={(e) =>
+                handleLocalUpdate((draft) => {
+                  draft.show = e.target.checked
+                })
+              }
+            />
+          }
+          label="Show Danmaku"
+        />
+      </Stack>
+
+      <Stack spacing={1} mt={2}>
         <LabeledSlider
           label="Opacity"
+          tooltip='"0" means invisible, "1" means fully visible.'
           value={localConfig.style.opacity}
           onChange={(e, newValue) =>
-            handleLocalUpdate({
-              ...localConfig,
-              style: {
-                ...localConfig.style,
-                opacity: newValue as number,
-              },
+            handleLocalUpdate((draft) => {
+              draft.style.opacity = newValue as number
             })
           }
           step={0.01}
@@ -180,11 +207,11 @@ export const DanmakuOptionsController = () => {
         />
         <LabeledSlider
           label="Size"
+          tooltip="Font size of danmaku."
           value={localConfig.style.fontSize}
           onChange={(e, newValue) =>
-            handleLocalUpdate({
-              ...localConfig,
-              style: { ...localConfig.style, fontSize: newValue as number },
+            handleLocalUpdate((draft) => {
+              draft.style.fontSize = newValue as number
             })
           }
           step={1}
@@ -196,11 +223,11 @@ export const DanmakuOptionsController = () => {
         />
         <LabeledSlider
           label="Filter Level"
+          tooltip='Limits the amount of danmaku shown on screen. "0" means show all danmaku, each level reduces the amount of danmaku shown by 20%.'
           value={localConfig.filterLevel}
           onChange={(e, newValue) =>
-            handleLocalUpdate({
-              ...localConfig,
-              filterLevel: newValue as number,
+            handleLocalUpdate((draft) => {
+              draft.filterLevel = newValue as number
             })
           }
           step={1}
@@ -213,11 +240,11 @@ export const DanmakuOptionsController = () => {
         />
         <LabeledSlider
           label="Speed"
+          tooltip='How fast danmaku flies across the screen. "1" being the slowest, "5" being the fastest.'
           value={convertActualSpeedToDisplay(localConfig.speed)}
           onChange={(e, newValue) => {
-            handleLocalUpdate({
-              ...localConfig,
-              speed: convertDisplaySpeedToActual(newValue as number),
+            handleLocalUpdate((draft) => {
+              draft.speed = convertDisplaySpeedToActual(newValue as number)
             })
           }}
           step={1}
@@ -228,15 +255,59 @@ export const DanmakuOptionsController = () => {
           size="small"
           valueLabelDisplay="auto"
         />
-        <LoadingButton
-          variant="contained"
-          onClick={() => flushUpdate(localConfig)}
-          disabled={localConfig === config}
-          loading={isPending}
-        >
-          Apply
-        </LoadingButton>
-      </FormGroup>
-    </Box>
+      </Stack>
+
+      <Stack spacing={1} mt={2}>
+        <Typography fontSize={20} color="text.secondary">
+          Safe Zones
+        </Typography>
+        <LabeledSlider
+          label="Top"
+          tooltip="The percentage of the top of the screen that is safe from danmaku"
+          value={localConfig.safeZones.top}
+          onChange={(e, newValue) =>
+            handleLocalUpdate((draft) => {
+              draft.safeZones.top = newValue as number
+            })
+          }
+          step={1}
+          min={0}
+          max={50}
+          size="small"
+          valueLabelDisplay="auto"
+          marks={safeZoneMarks}
+          valueLabelFormat={safeZoneValueLabelFormat}
+        />
+        <LabeledSlider
+          label="Bottom"
+          tooltip="The percentage of the bottom of the screen that is safe from danmaku"
+          value={localConfig.safeZones.bottom}
+          onChange={(e, newValue) =>
+            handleLocalUpdate((draft) => {
+              draft.safeZones.bottom = newValue as number
+            })
+          }
+          step={1}
+          min={0}
+          max={50}
+          size="small"
+          valueLabelDisplay="auto"
+          marks={safeZoneMarks}
+          valueLabelFormat={safeZoneValueLabelFormat}
+        />
+      </Stack>
+
+      <LoadingButton
+        variant="contained"
+        onClick={() => flushUpdate(localConfig)}
+        disabled={localConfig === config}
+        loading={isPending}
+        sx={{
+          mt: 2,
+        }}
+      >
+        Apply
+      </LoadingButton>
+    </>
   )
 }
