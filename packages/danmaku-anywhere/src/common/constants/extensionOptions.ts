@@ -6,7 +6,7 @@ export interface ExtensionOptions {
    * Does not affect content script registration.
    * Content script is only visually hidden when disabled
    */
-  enabled: boolean
+  readonly enabled: boolean
 }
 
 export type ExtensionOptionsOptions = Options<ExtensionOptions>

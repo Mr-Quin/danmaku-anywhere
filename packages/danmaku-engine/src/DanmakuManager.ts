@@ -5,11 +5,15 @@ import type { DanmakuStyle } from './parser'
 import { sampleComments, transformDanDanComments } from './parser'
 
 export interface DanmakuOptions {
-  style: DanmakuStyle
-  show: boolean
-  filters: string[]
-  filterLevel: number
-  speed: number
+  readonly style: DanmakuStyle
+  readonly show: boolean
+  readonly filters: string[]
+  readonly filterLevel: number
+  readonly speed: number
+  /**
+   * The offset in milliseconds to adjust the time of the comments.
+   */
+  readonly offset: number
 }
 
 const configDefaults: DanmakuOptions = {
@@ -22,6 +26,7 @@ const configDefaults: DanmakuOptions = {
     fontSize: 25,
     fontFamily: 'sans-serif',
   },
+  offset: 0,
 }
 
 const BASE_SPEED = 144
