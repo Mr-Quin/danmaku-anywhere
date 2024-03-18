@@ -17,7 +17,9 @@ interface RenderWithConfigProps {
 const RenderWithConfig = ({ children }: RenderWithConfigProps) => {
   const config = useMatchMountConfig(window.location.href)
 
-  if (!config) return null
+  // the script should not be loaded at all if the config is not enabled
+  // this check is likely only necessary for when the user manually disables the config
+  if (!config || !config.enabled) return null
 
   return children(config)
 }

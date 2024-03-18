@@ -24,14 +24,7 @@ import type {
   MountConfigWithoutId,
 } from '@/common/constants/mountConfig'
 import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
-import { Logger } from '@/common/services/Logger'
-import {
-  hasOriginPermission,
-  removeOriginPermission,
-  requestOriginPermission,
-  tryCatch,
-  validateOrigin,
-} from '@/common/utils'
+import { validateOrigin } from '@/common/utils'
 
 export const MountConfigEditor = ({
   editConfig,
@@ -81,16 +74,6 @@ export const MountConfigEditor = ({
 
     if (!patternsValid.every((err) => err === '')) return
 
-    Logger.debug('Checking origin permission, patterns:', localConfig.patterns)
-
-    if (!(await hasOriginPermission(localConfig.patterns))) {
-      // request permission if not granted
-      // if user denies permission, do not save
-      if (!(await requestOriginPermission(localConfig.patterns))) {
-        return
-      }
-    }
-
     if (isAdd) {
       await addConfig(localConfig)
     } else if (updateConfig) {
@@ -101,8 +84,6 @@ export const MountConfigEditor = ({
   }
 
   const handleDelete = async (id: number) => {
-    // ignore errors when removing permission so invalid patterns won't block deletion
-    await tryCatch(async () => removeOriginPermission(editConfig.patterns))
     await deleteConfig(id)
     goBack()
   }

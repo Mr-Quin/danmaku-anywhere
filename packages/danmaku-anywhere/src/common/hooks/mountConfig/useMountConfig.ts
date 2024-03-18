@@ -6,7 +6,24 @@ import type {
   MountConfigOptions,
   MountConfigWithoutId,
 } from '@/common/constants/mountConfig'
-import { matchUrl } from '@/common/utils'
+import {
+  hasOriginPermission,
+  matchUrl,
+  removeOriginPermission,
+  requestOriginPermission,
+  tryCatch,
+} from '@/common/utils'
+
+const isPermissionGranted = async (patterns: string[]) => {
+  if (!(await hasOriginPermission(patterns))) {
+    // request permission if not granted
+    // if user denies permission, do not save
+    if (!(await requestOriginPermission(patterns))) {
+      return false
+    }
+  }
+  return true
+}
 
 export const useMountConfig = () => {
   const {
@@ -28,23 +45,35 @@ export const useMountConfig = () => {
       if (index === -1) throw new Error('Config not found')
       // replace the stored config with the new one
       const newData = [...configs]
-      newData[index] = {
+
+      const newConfig = {
         ...newData[index],
         ...config,
         id,
       }
+
+      newData[index] = newConfig
+
+      if (!(await isPermissionGranted(newConfig.patterns))) {
+        return
+      }
+
       await update.mutateAsync({ data: newData, version })
     }
 
     const addConfig = async (config: MountConfigWithoutId) => {
       const { data: configs, version } = options
-      // if (data.some((item) => item.name === config.name))
-      //   throw new Error('Name already exists')
+
       const lastId = configs[configs.length - 1]?.id ?? 0
       const newConfig = {
         ...config,
         id: lastId + 1,
       }
+
+      if (!(await isPermissionGranted(config.patterns))) {
+        return
+      }
+
       await update.mutateAsync({
         data: [...configs, newConfig],
         version,
@@ -60,6 +89,9 @@ export const useMountConfig = () => {
         throw new Error('Cannot delete predefined config')
       const newData = [...configs]
       newData.splice(index, 1)
+
+      // ignore errors when removing permission so invalid patterns won't block deletion
+      await tryCatch(async () => removeOriginPermission(toDelete.patterns))
       await update.mutateAsync({ data: newData, version })
     }
 

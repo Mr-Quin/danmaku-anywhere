@@ -1,6 +1,8 @@
+import { P, match } from 'ts-pattern'
+
 import { mountConfigService } from './syncOptions/upgradeOptions'
 
-import { defaultMountConfig } from '@/common/constants/mountConfig'
+import { Logger } from '@/common/services/Logger'
 // @ts-expect-error
 // eslint-disable-next-line import/no-restricted-paths, import/default
 import contentScript from '@/content/index?script'
@@ -8,28 +10,64 @@ import contentScript from '@/content/index?script'
 const contentScriptId = 'main-content'
 
 export const setupScripting = () => {
-  const scripts: chrome.scripting.RegisteredContentScript[] = [
-    {
-      id: contentScriptId,
-      js: [contentScript],
-      matches: defaultMountConfig.map((config) => config.patterns).flat(),
-      persistAcrossSessions: true,
-      allFrames: true,
-      runAt: 'document_idle',
-      world: 'ISOLATED',
-    },
-  ]
-
-  chrome.scripting.registerContentScripts(scripts)
+  const mainScript: chrome.scripting.RegisteredContentScript = {
+    id: contentScriptId,
+    js: [contentScript],
+    matches: [],
+    persistAcrossSessions: true,
+    allFrames: true,
+    runAt: 'document_idle',
+    world: 'ISOLATED',
+  }
 
   mountConfigService.onChange(async (configs) => {
     if (!configs) return
 
-    chrome.scripting.updateContentScripts([
+    // assume patterns is valid
+    const patterns = configs
+      // only register enabled configs
+      .filter((configs) => configs.enabled)
+      .map((config) => config.patterns)
+      .flat()
+
+    const registeredScript = await chrome.scripting.getRegisteredContentScripts(
       {
-        id: contentScriptId,
-        matches: configs.map((config) => config.patterns).flat(),
-      },
-    ])
+        ids: [contentScriptId],
+      }
+    )
+
+    match([registeredScript.length, patterns.length])
+      // no registered script, but has patterns, register the script
+      .with([0, P.number.positive()], () => {
+        chrome.scripting.registerContentScripts([
+          {
+            ...mainScript,
+            matches: patterns,
+          },
+        ])
+      })
+      // has registered script and patterns, update the script
+      .with([1, P.number.positive()], () => {
+        chrome.scripting.updateContentScripts([
+          {
+            id: contentScriptId,
+            matches: patterns,
+          },
+        ])
+      })
+      // has registered script, but no patterns, unregister the script
+      .with([1, 0], () => {
+        chrome.scripting.unregisterContentScripts({
+          ids: [contentScriptId],
+        })
+      })
+      .with([P.number.positive(), P.any], () => {
+        Logger.error(
+          'Invalid state: multiple registered scripts when there should be only one'
+        )
+      })
+      .otherwise(() => {
+        // do nothing
+      })
   })
 }
