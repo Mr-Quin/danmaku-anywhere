@@ -3,6 +3,6 @@
     "message": "Danmaku Anywhere"
   },
   "extDescription": {
-    "message": "A browser extension that injects danmaku into theoretically any website with a video player."
+    "message": "A browser extension that injects danmaku (bullet comments) into any website with a video player."
   }
 }
