@@ -1,7 +1,7 @@
 import type {
   DanDanCommentAPIParams,
   DanDanCommentAPIResult,
-} from '@danmaku-anywhere/danmaku-engine'
+} from '@danmaku-anywhere/dandanplay-api'
 
 import { Logger } from '../services/Logger'
 

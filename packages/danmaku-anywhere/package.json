@@ -14,10 +14,12 @@
     "preview": "vite preview",
     "lint": "tsc && eslint --ext .js,.jsx,.ts,.tsx --fix .",
     "format": "prettier --write . --ignore-path ../../.prettierignore",
-    "package": "pnpm run build && node ./scripts/package.js"
+    "package": "pnpm run build && node ./scripts/package.js",
+    "tsc": "tsc"
   },
   "dependencies": {
     "@danmaku-anywhere/danmaku-engine": "workspace:*",
+    "@danmaku-anywhere/dandanplay-api": "workspace:*",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
     "@fontsource/roboto": "^5.0.12",

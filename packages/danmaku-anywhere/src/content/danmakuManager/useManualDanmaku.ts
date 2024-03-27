@@ -1,7 +1,5 @@
-import type {
-  DanDanComment,
-  DanmakuManager,
-} from '@danmaku-anywhere/danmaku-engine'
+import type { DanDanComment } from '@danmaku-anywhere/dandanplay-api'
+import type { DanmakuManager } from '@danmaku-anywhere/danmaku-engine'
 import { useEventCallback } from '@mui/material'
 import { useEffect } from 'react'
 

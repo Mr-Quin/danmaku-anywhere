@@ -1,7 +1,7 @@
 import type {
   DanDanComment,
   DanDanCommentAPIParams,
-} from '@danmaku-anywhere/danmaku-engine'
+} from '@danmaku-anywhere/dandanplay-api'
 import Dexie from 'dexie'
 
 export interface DanmakuMeta {

@@ -1,4 +1,4 @@
-import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-engine'
+import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/dandanplay-api'
 import { create } from 'zustand'
 
 interface StoreState {

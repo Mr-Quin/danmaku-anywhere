@@ -2,7 +2,7 @@ import type {
   DanDanAnime,
   DanDanAnimeSearchAPIParams,
   DanDanEpisode,
-} from '@danmaku-anywhere/danmaku-engine'
+} from '@danmaku-anywhere/dandanplay-api'
 import type { ListProps } from '@mui/material'
 import { List, ListItem, ListItemText, ListSubheader } from '@mui/material'
 import { useSuspenseQuery } from '@tanstack/react-query'

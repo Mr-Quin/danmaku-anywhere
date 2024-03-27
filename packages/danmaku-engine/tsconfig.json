@@ -2,8 +2,12 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist/",
-    "noEmit": false,
-    "declaration": true
+    "baseUrl": ".",
+    "paths": {
+      "@danmaku-anywhere/dandanplay-api": ["../dandanplay-api/src"]
+    },
+    "composite": true
   },
-  "include": ["./src"]
+  "include": ["./src"],
+  "references": [{ "path": "../dandanplay-api" }]
 }
