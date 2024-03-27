@@ -1,6 +1,6 @@
+import type { DanDanComment } from '@danmaku-anywhere/dandanplay-api'
 import Danmaku from 'danmaku'
 
-import type { DanDanComment } from './api'
 import type { DanmakuStyle } from './parser'
 import { sampleComments, transformDanDanComments } from './parser'
 

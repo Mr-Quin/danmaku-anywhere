@@ -1,4 +1,4 @@
-import type { DanDanComment } from '@danmaku-anywhere/danmaku-engine'
+import type { DanDanComment } from '@danmaku-anywhere/dandanplay-api'
 
 import type { PayloadOf } from './message'
 

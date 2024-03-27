@@ -9,6 +9,8 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
     "module": "ESNext",
     "moduleResolution": "Node",
     "resolveJsonModule": true,
@@ -18,7 +20,8 @@
     "baseUrl": "./packages",
     "paths": {
       "@danmaku-anywhere/plex-danmaku": ["plex-danmaku/src"],
-      "@danmaku-anywhere/danmaku-engine": ["danmaku-engine/src"]
+      "@danmaku-anywhere/danmaku-engine": ["danmaku-engine/src"],
+      "@danmaku-anywhere/dandanplay-api": ["dandanplay-api/src"]
     }
   }
 }

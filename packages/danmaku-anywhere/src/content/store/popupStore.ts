@@ -1,4 +1,4 @@
-import type { DanDanAnime } from '@danmaku-anywhere/danmaku-engine'
+import type { DanDanAnime } from '@danmaku-anywhere/dandanplay-api'
 import { create } from 'zustand'
 
 export enum PopupTab {

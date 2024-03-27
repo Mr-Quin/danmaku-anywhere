@@ -55,8 +55,13 @@ importers:
         specifier: ^1.8.1
         version: 1.8.1(eslint@8.57.0)(vite@4.5.2)
 
+  packages/dandanplay-api: {}
+
   packages/danmaku-anywhere:
     dependencies:
+      '@danmaku-anywhere/dandanplay-api':
+        specifier: workspace:*
+        version: link:../dandanplay-api
       '@danmaku-anywhere/danmaku-engine':
         specifier: workspace:*
         version: link:../danmaku-engine
@@ -133,6 +138,9 @@ importers:
 
   packages/danmaku-engine:
     dependencies:
+      '@danmaku-anywhere/dandanplay-api':
+        specifier: workspace:*
+        version: link:../dandanplay-api
       danmaku:
         specifier: ^2.0.6
         version: 2.0.6

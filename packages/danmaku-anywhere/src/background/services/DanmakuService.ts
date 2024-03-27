@@ -1,5 +1,5 @@
-import type { DanDanCommentAPIParams } from '@danmaku-anywhere/danmaku-engine'
-import { fetchComments, getAnime } from '@danmaku-anywhere/danmaku-engine'
+import type { DanDanCommentAPIParams } from '@danmaku-anywhere/dandanplay-api'
+import { fetchComments, getAnime } from '@danmaku-anywhere/dandanplay-api'
 
 import type { DanmakuMeta } from '@/common/db/db'
 import { db } from '@/common/db/db'

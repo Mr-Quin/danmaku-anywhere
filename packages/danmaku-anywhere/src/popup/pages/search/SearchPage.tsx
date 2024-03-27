@@ -1,4 +1,4 @@
-import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-engine'
+import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/dandanplay-api'
 import { Box, Collapse, Stack, Typography } from '@mui/material'
 import {
   useIsFetching,
