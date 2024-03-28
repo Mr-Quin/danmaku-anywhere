@@ -63,7 +63,8 @@ export class DanmakuManager {
 
     const parsedComments = transformDanDanComments(
       Array.from(sampledComments),
-      this.config.style
+      this.config.style,
+      this.config.offset
     )
 
     this.instance = new Danmaku({
