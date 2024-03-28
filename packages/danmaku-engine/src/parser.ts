@@ -52,8 +52,8 @@ export const parseDanDanCommentParams = (p: string) => {
   return {
     time: parseFloat(time),
     mode: DanDanCommentMode[parseInt(mode)],
-    color: `#${`000000${parseInt(color).toString(16)}`.slice(-6)}`,
-    uid: parseInt(uid),
+    color: `#${`000000${parseInt(color).toString(16)}`.slice(-6)}`, // convert to hex
+    uid, // uid may include string
   }
 }
 
@@ -66,16 +66,18 @@ export interface DanmakuStyle {
 // transform danmaku comments to a format understood by danmaku engine
 export const transformDanDanComments = (
   comments: DanDanComment[],
-  style: DanmakuStyle
+  style: DanmakuStyle,
+  offset: number
 ) => {
   return comments.map((comment) => {
     const { p, m } = comment
     const { time, mode, color } = parseDanDanCommentParams(p)
+    const offsetTime = time + offset / 1000
 
     return {
       text: m,
       mode,
-      time,
+      time: offsetTime,
       style: {
         fontSize: `${style.fontSize}px`,
         color: `${color}`,

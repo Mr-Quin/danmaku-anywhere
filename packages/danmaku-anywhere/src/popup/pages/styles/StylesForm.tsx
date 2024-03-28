@@ -8,6 +8,8 @@ import {
   Typography,
   Stack,
   Tooltip,
+  Grid,
+  Input,
 } from '@mui/material'
 import type { Draft } from 'immer'
 import { produce } from 'immer'
@@ -79,6 +81,10 @@ const safeZoneMarks = [
 
 const safeZoneValueLabelFormat = (value: number) => `${value}%`
 
+const offsetValueLabelFormat = (value: number) => {
+  return `${value > 0 ? '+' : ''}${value / 1000}s`
+}
+
 const convertActualSpeedToDisplay = (actualSpeed: number) => {
   // convert actual playback rate to a number between 1 and 5
   switch (actualSpeed) {
@@ -118,12 +124,14 @@ interface LabeledSliderProps extends SliderProps {
   label: string
   tooltip?: string
   typographyProps?: TypographyProps
+  children?: React.ReactNode
 }
 
 const LabeledSlider = ({
   label,
   tooltip,
   typographyProps = {},
+  children,
   ...rest
 }: LabeledSliderProps) => {
   const id = useId()
@@ -134,7 +142,12 @@ const LabeledSlider = ({
           {label}
         </Typography>
       </Tooltip>
-      <Slider aria-labelledby={id} {...rest} />
+      <Grid container spacing={2}>
+        <Grid item xs>
+          <Slider aria-labelledby={id} {...rest} />
+        </Grid>
+        {children}
+      </Grid>
     </Box>
   )
 }
@@ -147,10 +160,8 @@ export const DanmakuOptionsController = () => {
   } = useDanmakuOptions()
 
   const [localConfig, setLocalConfig] = useState<DanmakuOptions>(config)
-
-  const opacitySlider = useId()
-  const sizeSlider = useId()
-  const filterSlider = useId()
+  const [offsetInput, setOffsetInput] = useState<string>('')
+  const [offsetInputActive, setOffsetInputActive] = useState(false)
 
   useEffect(() => {
     setLocalConfig(config)
@@ -201,7 +212,6 @@ export const DanmakuOptionsController = () => {
           step={0.01}
           min={0}
           max={1}
-          aria-labelledby={opacitySlider}
           size="small"
           valueLabelDisplay="auto"
         />
@@ -217,7 +227,6 @@ export const DanmakuOptionsController = () => {
           step={1}
           min={4}
           max={48}
-          aria-labelledby={sizeSlider}
           size="small"
           valueLabelDisplay="auto"
         />
@@ -234,7 +243,6 @@ export const DanmakuOptionsController = () => {
           min={0}
           max={5}
           marks={filterMarks}
-          aria-labelledby={filterSlider}
           size="small"
           valueLabelDisplay="auto"
         />
@@ -251,10 +259,53 @@ export const DanmakuOptionsController = () => {
           min={1}
           max={5}
           marks={speedMarks}
-          aria-labelledby={filterSlider}
           size="small"
           valueLabelDisplay="auto"
         />
+        <LabeledSlider
+          label="Offset"
+          tooltip="How earlier danmaku appears. Positive values make danmaku appear later, negative values make danmaku appear earlier."
+          value={localConfig.offset}
+          onChange={(e, newValue) => {
+            handleLocalUpdate((draft) => {
+              draft.offset = newValue as number
+            })
+          }}
+          step={10}
+          min={-5000}
+          max={5000}
+          size="small"
+          valueLabelDisplay="auto"
+          valueLabelFormat={offsetValueLabelFormat}
+        >
+          <Grid item xs={4}>
+            <Input
+              value={offsetInputActive ? offsetInput : localConfig.offset}
+              size="small"
+              onFocus={() => {
+                setOffsetInputActive(true)
+                setOffsetInput(localConfig.offset.toString())
+              }}
+              onBlur={() => {
+                setOffsetInputActive(false)
+                handleLocalUpdate((draft) => {
+                  if (offsetInput === '') {
+                    draft.offset = 0
+                  } else {
+                    draft.offset = parseInt(offsetInput, 10)
+                  }
+                })
+              }}
+              onChange={(e) => {
+                setOffsetInput(e.target.value)
+              }}
+              inputProps={{
+                step: 1,
+                type: 'number',
+              }}
+            />
+          </Grid>
+        </LabeledSlider>
       </Stack>
 
       <Stack spacing={1} mt={2}>
