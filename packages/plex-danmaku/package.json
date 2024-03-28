@@ -21,6 +21,7 @@
   "dependencies": {
     "zustand": "4.5.2",
     "@danmaku-anywhere/danmaku-engine": "workspace:*",
+    "@danmaku-anywhere/dandanplay-api": "workspace:*",
     "danmaku": "2.0.6",
     "idb": "7.1.1",
     "preact": "10.13.2"

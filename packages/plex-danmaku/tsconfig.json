@@ -7,13 +7,14 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@danmaku-anywhere/danmaku-engine": ["../danmaku-engine/src"]
+      "@danmaku-anywhere/danmaku-engine": ["../danmaku-engine/src"],
+      "@danmaku-anywhere/dandanplay-api": ["../dandanplay-api/src"]
     }
   },
   "include": ["./src"],
   "references": [
-    {
-      "path": "./tsconfig.node.json"
-    }
+    { "path": "./tsconfig.node.json" },
+    { "path": "../danmaku-engine" },
+    { "path": "../dandanplay-api" }
   ]
 }

@@ -1,4 +1,4 @@
-import { DanDanChConvert } from '@danmaku-anywhere/danmaku-engine'
+import { DanDanChConvert } from '@danmaku-anywhere/dandanplay-api'
 import { ComponentProps } from 'preact'
 import { TargetedEvent } from 'preact/compat'
 
