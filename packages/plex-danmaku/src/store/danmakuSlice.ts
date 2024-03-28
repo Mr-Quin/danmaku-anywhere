@@ -1,10 +1,10 @@
 import {
-  DanmakuManager,
   DanDanChConvert,
   DanDanComment,
   DanDanCommentAPIParams,
   fetchComments,
-} from '@danmaku-anywhere/danmaku-engine'
+} from '@danmaku-anywhere/dandanplay-api'
+import { DanmakuManager } from '@danmaku-anywhere/danmaku-engine'
 import { StateCreator } from 'zustand'
 
 import type { State } from './store'

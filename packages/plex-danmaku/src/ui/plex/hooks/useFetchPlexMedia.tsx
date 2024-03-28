@@ -1,4 +1,4 @@
-import { DanDanAnime } from '@danmaku-anywhere/danmaku-engine'
+import { DanDanAnime } from '@danmaku-anywhere/dandanplay-api'
 import { useEffect, useRef } from 'preact/hooks'
 
 import {

@@ -2,7 +2,7 @@ import {
   DanDanAnime,
   DanDanEpisode,
   searchAnime,
-} from '@danmaku-anywhere/danmaku-engine'
+} from '@danmaku-anywhere/dandanplay-api'
 import { StateCreator } from 'zustand'
 
 import type { State } from './store'

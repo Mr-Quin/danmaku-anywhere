@@ -153,6 +153,9 @@ importers:
 
   packages/plex-danmaku:
     dependencies:
+      '@danmaku-anywhere/dandanplay-api':
+        specifier: workspace:*
+        version: link:../dandanplay-api
       '@danmaku-anywhere/danmaku-engine':
         specifier: workspace:*
         version: link:../danmaku-engine

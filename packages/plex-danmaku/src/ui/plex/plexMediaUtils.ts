@@ -1,4 +1,4 @@
-import { DanDanAnime } from '@danmaku-anywhere/danmaku-engine'
+import { DanDanAnime } from '@danmaku-anywhere/dandanplay-api'
 
 export interface PlexMediaInfo {
   title: string

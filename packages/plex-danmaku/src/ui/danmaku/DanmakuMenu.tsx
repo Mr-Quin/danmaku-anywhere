@@ -1,4 +1,4 @@
-import { DanDanAnime } from '@danmaku-anywhere/danmaku-engine'
+import { DanDanAnime } from '@danmaku-anywhere/dandanplay-api'
 import { useEffect, useState } from 'preact/hooks'
 
 import styles from './panel.module.scss'
