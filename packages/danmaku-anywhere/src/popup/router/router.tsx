@@ -32,7 +32,11 @@ export const router = createHashRouter([
         children: [
           {
             path: 'add',
-            Component: AddConfigPage,
+            element: <AddConfigPage edit={false} />,
+          },
+          {
+            path: 'edit',
+            element: <AddConfigPage edit />,
           },
         ],
       },

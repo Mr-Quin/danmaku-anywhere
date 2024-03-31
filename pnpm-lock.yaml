@@ -110,12 +110,18 @@ importers:
       react-error-boundary:
         specifier: ^4.0.13
         version: 4.0.13(react@18.3.0-canary-3bcd2de01-20240227)
+      react-hook-form:
+        specifier: ^7.51.2
+        version: 7.51.2(react@18.3.0-canary-3bcd2de01-20240227)
       react-router-dom:
         specifier: ^6.22.3
         version: 6.22.3(react-dom@18.3.0-canary-3bcd2de01-20240227)(react@18.3.0-canary-3bcd2de01-20240227)
       ts-pattern:
         specifier: ^5.0.8
         version: 5.0.8
+      zod:
+        specifier: ^3.22.4
+        version: 3.22.4
     devDependencies:
       '@crxjs/vite-plugin':
         specifier: 2.0.0-beta.23
@@ -129,6 +135,9 @@ importers:
       '@types/react-dom':
         specifier: ^18.2.22
         version: 18.2.22
+      '@types/wicg-file-system-access':
+        specifier: ^2023.10.5
+        version: 2023.10.5
       '@vitejs/plugin-react':
         specifier: ^4.2.1
         version: 4.2.1(vite@4.5.2)
@@ -1987,6 +1996,10 @@ packages:
 
   /@types/stack-utils@2.0.3:
     resolution: {integrity: sha512-9aEbYZ3TbYMznPdcdr3SmIrLXwC/AKZXQeCf9Pgao5CKb8CyHuEX5jzWPTkvregvhRJHcpRO6BFoGW9ycaOkYw==}
+    dev: true
+
+  /@types/wicg-file-system-access@2023.10.5:
+    resolution: {integrity: sha512-e9kZO9kCdLqT2h9Tw38oGv9UNzBBWaR1MzuAavxPcsV/7FJ3tWbU6RI3uB+yKIDPGLkGVbplS52ub0AcRLvrhA==}
     dev: true
 
   /@types/yargs-parser@21.0.3:
@@ -5521,6 +5534,15 @@ packages:
       react: 18.3.0-canary-3bcd2de01-20240227
     dev: false
 
+  /react-hook-form@7.51.2(react@18.3.0-canary-3bcd2de01-20240227):
+    resolution: {integrity: sha512-y++lwaWjtzDt/XNnyGDQy6goHskFualmDlf+jzEZvjvz6KWDf7EboL7pUvRCzPTJd0EOPpdekYaQLEvvG6m6HA==}
+    engines: {node: '>=12.22.0'}
+    peerDependencies:
+      react: ^16.8.0 || ^17 || ^18
+    dependencies:
+      react: 18.3.0-canary-3bcd2de01-20240227
+    dev: false
+
   /react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
@@ -6531,6 +6553,10 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
     dev: true
+
+  /zod@3.22.4:
+    resolution: {integrity: sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==}
+    dev: false
 
   /zustand@4.5.2(react@18.2.0):
     resolution: {integrity: sha512-2cN1tPkDVkwCy5ickKrI7vijSjPksFRfqS6237NzT0vqSsztTNnQdHw9mmN7uBdk3gceVXU0a+21jFzFzAc9+g==}

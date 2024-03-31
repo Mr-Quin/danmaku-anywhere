@@ -1,12 +1,10 @@
-import { AddCircle, Link } from '@mui/icons-material'
+import { Link } from '@mui/icons-material'
 import {
   IconButton,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
-  ListSubheader,
-  Stack,
   Tooltip,
 } from '@mui/material'
 import { useId } from 'react'
@@ -16,10 +14,8 @@ import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 
 export const MountConfigList = ({
   onEdit,
-  onAdd,
 }: {
   onEdit: (config: MountConfig) => void
-  onAdd: () => void
 }) => {
   const { configs } = useMountConfig()
 
@@ -30,38 +26,11 @@ export const MountConfigList = ({
   }
 
   return (
-    <List
-      aria-labelledby={subheaderId}
-      subheader={
-        <ListSubheader component="div" id={subheaderId}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            Configs
-            <IconButton
-              edge="end"
-              aria-label="add"
-              onClick={() => {
-                onAdd()
-              }}
-              color="primary"
-            >
-              <Tooltip title="Add">
-                <AddCircle />
-              </Tooltip>
-            </IconButton>
-          </Stack>
-        </ListSubheader>
-      }
-      dense
-      disablePadding
-    >
+    <List aria-labelledby={subheaderId} dense disablePadding>
       {configs?.map((config) => {
         return (
           <ListItem
-            key={config.id}
+            key={config.name}
             secondaryAction={
               <IconButton
                 edge="end"

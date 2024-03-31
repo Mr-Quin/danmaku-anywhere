@@ -3,15 +3,12 @@ import { useNavigate, useOutletContext } from 'react-router-dom'
 
 import { MountConfigEditor } from './MountConfigEditor'
 
-import type {
-  MountConfig,
-  MountConfigWithoutId,
-} from '@/common/constants/mountConfig'
+import type { MountConfig } from '@/common/constants/mountConfig'
 
-export const AddConfigPage = () => {
+export const AddConfigPage = ({ edit }: { edit: boolean }) => {
   const navigate = useNavigate()
 
-  const config = useOutletContext<MountConfig | MountConfigWithoutId>()
+  const config = useOutletContext<MountConfig>()
 
   return (
     <Box position="absolute" top={0} zIndex={1} width={1}>
@@ -22,6 +19,7 @@ export const AddConfigPage = () => {
             goBack={() => {
               navigate(-1)
             }}
+            edit={edit}
           />
         </Paper>
       </Slide>
