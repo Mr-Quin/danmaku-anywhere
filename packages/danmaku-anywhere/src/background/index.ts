@@ -96,6 +96,28 @@ messageRouter.on<MessageOf<DanmakuMessage, 'danmaku/getAll'>>(
   }
 )
 
+messageRouter.on<MessageOf<DanmakuMessage, 'danmaku/getAllLite'>>(
+  'danmaku/getAllLite',
+  async (_, __, sendResponse) => {
+    const res = await danmakuService.getAllLite()
+
+    Logger.debug(`Get all danmaku lite success: ${res.length} records`)
+
+    sendResponse({ success: true, payload: res })
+  }
+)
+
+messageRouter.on<MessageOf<DanmakuMessage, 'danmaku/getByEpisodeId'>>(
+  'danmaku/getByEpisodeId',
+  async (request, __, sendResponse) => {
+    const res = await danmakuService.getByEpisodeId(request.episodeId)
+
+    Logger.debug(`Get by episodeId success: ${res}`)
+
+    sendResponse({ success: true, payload: res })
+  }
+)
+
 messageRouter.on<MessageOf<AnimeMessage, 'anime/search'>>(
   'anime/search',
   async (request, _, sendResponse) => {

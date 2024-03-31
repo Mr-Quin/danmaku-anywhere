@@ -2,11 +2,11 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 
 import { danmakuMessage } from '@/common/messages/danmakuMessage'
 
-export const useAllDanmakuQuery = () => {
+export const useAllDanmakuQuerySuspense = () => {
   const query = useSuspenseQuery({
-    queryKey: ['danmakuCache', 'all'],
+    queryKey: ['danmakuCacheLite', 'all'],
     queryFn: async () => {
-      const res = await danmakuMessage.getAll({})
+      const res = await danmakuMessage.getAllLite({})
       if (!res) throw new Error('Failed to get danmaku from cache')
       return res
     },
@@ -15,4 +15,4 @@ export const useAllDanmakuQuery = () => {
   return query
 }
 
-useAllDanmakuQuery.queryKey = ['danmakuCache', 'all']
+useAllDanmakuQuerySuspense.queryKey = ['danmakuCacheLite', 'all']

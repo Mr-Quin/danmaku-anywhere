@@ -8,14 +8,14 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useMemo } from 'react'
 
-import { useAllDanmakuQuery } from '@/popup/hooks/useAllDanmakuQuery'
+import { useAllDanmakuQuerySuspense } from '@/popup/hooks/useAllDanmakuQuerySuspense'
 
 interface DanmakuListProps {
   scrollElement: any
 }
 
 export const DanmakuList = ({ scrollElement }: DanmakuListProps) => {
-  const { data, isFetching } = useAllDanmakuQuery()
+  const { data, isFetching } = useAllDanmakuQuerySuspense()
 
   const groupedData = useMemo(
     () => Object.groupBy(data ?? [], (item) => item.meta.animeTitle),

@@ -7,7 +7,11 @@ import { Logger } from '../services/Logger'
 
 import type { PayloadOf } from './message'
 
-import type { DanmakuCache, DanmakuMeta } from '@/common/db/db'
+import type {
+  DanmakuCache,
+  DanmakuCacheLite,
+  DanmakuMeta,
+} from '@/common/db/db'
 import type { DanmakuFetchOptions } from '@/common/types/DanmakuFetchOptions'
 
 export type DanmakuMessage =
@@ -27,6 +31,15 @@ export type DanmakuMessage =
     }
   | {
       action: 'danmaku/getAll'
+    }
+  | {
+      action: 'danmaku/getAllLite'
+    }
+  | {
+      action: 'danmaku/getByEpisodeId'
+      payload: {
+        episodeId: number
+      }
     }
 
 type DanmakuPayload<TAction> = PayloadOf<DanmakuMessage, TAction>
@@ -63,5 +76,25 @@ export const danmakuMessage = {
     Logger.debug(`Get all danmaku: ${res.payload.length} records`)
 
     return res.payload as DanmakuCache[]
+  },
+  getAllLite: async (payload: DanmakuPayload<'danmaku/getAllLite'>) => {
+    const res = await chrome.runtime.sendMessage({
+      action: 'danmaku/getAllLite',
+      payload: payload ?? {},
+    })
+
+    Logger.debug(`Get all danmaku: ${res.payload.length} records`)
+
+    return res.payload as DanmakuCacheLite[]
+  },
+  getByEpisodeId: async (payload: DanmakuPayload<'danmaku/getByEpisodeId'>) => {
+    const res = await chrome.runtime.sendMessage({
+      action: 'danmaku/getByEpisodeId',
+      payload: payload,
+    })
+
+    Logger.debug(`Get danmaku by id: ${res.payload} `)
+
+    return res.payload as DanmakuCache
   },
 }

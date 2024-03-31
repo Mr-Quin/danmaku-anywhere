@@ -20,6 +20,12 @@ export interface DanmakuCache {
   version: number
 }
 
+/**
+ * A lite version of DanmakuCache, only contains count and meta
+ * To reduce the size of the cache for cases where comments are not needed
+ */
+export type DanmakuCacheLite = Pick<DanmakuCache, 'count' | 'meta'>
+
 export interface TitleMapping {
   originalTitle: string
   title: string

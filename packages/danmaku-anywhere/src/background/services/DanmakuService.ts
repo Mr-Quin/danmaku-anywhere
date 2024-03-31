@@ -1,7 +1,7 @@
 import type { DanDanCommentAPIParams } from '@danmaku-anywhere/dandanplay-api'
 import { fetchComments, getAnime } from '@danmaku-anywhere/dandanplay-api'
 
-import type { DanmakuMeta } from '@/common/db/db'
+import type { DanmakuCacheLite, DanmakuMeta } from '@/common/db/db'
 import { db } from '@/common/db/db'
 import { Logger } from '@/common/services/Logger'
 import type { DanmakuFetchOptions } from '@/common/types/DanmakuFetchOptions'
@@ -90,7 +90,31 @@ export class DanmakuService {
     return this.db.delete(episodeId)
   }
 
+  /**
+   * Avoid using this method because it will load all danmaku from db at once
+   * which may cause performance issues or even crash when there are too many danmaku in db
+   */
   async getAll() {
     return this.db.toArray()
+  }
+
+  /**
+   * Get only the count and metadata of all danmaku in db
+   */
+  async getAllLite() {
+    const result: DanmakuCacheLite[] = []
+
+    await this.db.toCollection().each((cache) => {
+      result.push({
+        meta: cache.meta,
+        count: cache.count,
+      })
+    })
+
+    return result
+  }
+
+  async getByEpisodeId(episodeId: number) {
+    return this.db.get(episodeId)
   }
 }

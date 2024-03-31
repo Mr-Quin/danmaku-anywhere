@@ -1,23 +1,36 @@
-import { Autocomplete, CircularProgress, TextField } from '@mui/material'
-
 import {
-  filterOptions,
-  isOptionEqualToValue,
-  EpisodeOption,
-} from './MountController'
+  Autocomplete,
+  CircularProgress,
+  TextField,
+  createFilterOptions,
+} from '@mui/material'
 
-import type { DanmakuCache } from '@/common/db/db'
+import { EpisodeOption } from './EpisodeOption'
+
+import type { DanmakuCacheLite } from '@/common/db/db'
 import { episodeIdToEpisodeNumber } from '@/common/utils'
-import { useAllDanmakuQuery } from '@/popup/hooks/useAllDanmakuQuery'
+import { useAllDanmakuQuerySuspense } from '@/popup/hooks/useAllDanmakuQuerySuspense'
+
+const filterOptions = createFilterOptions({
+  stringify: (option: DanmakuCacheLite) =>
+    `${option.meta.animeTitle} ${option.meta.episodeTitle}`,
+})
+
+const isOptionEqualToValue = (
+  option: DanmakuCacheLite,
+  value: DanmakuCacheLite
+) => {
+  return option.meta.episodeId === value?.meta.episodeId
+}
 
 export const MountControllerAutoComplete = ({
   value,
   onChange,
 }: {
-  value: DanmakuCache | null
-  onChange: (value: DanmakuCache | null) => void
+  value: DanmakuCacheLite | null
+  onChange: (value: DanmakuCacheLite | null) => void
 }) => {
-  const { data: options, isFetching } = useAllDanmakuQuery()
+  const { data: options, isFetching } = useAllDanmakuQuerySuspense()
 
   return (
     <Autocomplete

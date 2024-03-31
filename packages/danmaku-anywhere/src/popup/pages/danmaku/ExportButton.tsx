@@ -4,13 +4,13 @@ import { LoadingButton } from '@mui/lab'
 import { useExportDanmaku } from '../../hooks/useExportDanmaku'
 
 export const ExportButton = () => {
-  const { exportDanmaku, isLoading } = useExportDanmaku()
+  const { mutate, isPending } = useExportDanmaku()
 
   return (
     <LoadingButton
       sx={{ justifyContent: 'space-between' }}
-      loading={isLoading}
-      onClick={exportDanmaku}
+      loading={isPending}
+      onClick={() => mutate()}
     >
       Export Danmaku
       <Download />
