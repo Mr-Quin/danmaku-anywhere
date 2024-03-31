@@ -18,7 +18,6 @@ import { useOutletContext } from 'react-router-dom'
 
 import type { ConfigEditorContext } from '../ConfigPage'
 
-import { ConfigEditorLayout } from './ConfigEditorLayout'
 import { ConfigEditorToolbar } from './ConfigEditorToolbar'
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog'
 
@@ -27,6 +26,7 @@ import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 import { validateOrigin } from '@/common/utils'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 import { useImperitaveRender } from '@/popup/hooks/useImperitaveRender'
+import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 
 export const MountConfigEditor = () => {
   const { updateConfig, addConfig, deleteConfig, nameExists } = useMountConfig()
@@ -111,7 +111,7 @@ export const MountConfigEditor = () => {
   }
 
   return (
-    <ConfigEditorLayout>
+    <OptionsPageLayout direction="up">
       <ConfigEditorToolbar onDelete={handleDelete} />
       <Box px={2} mt={2} component="form" onSubmit={handleSubmit(handleSave)}>
         <Stack direction="column" spacing={2} alignItems="flex-start">
@@ -219,6 +219,6 @@ export const MountConfigEditor = () => {
         onClose={handleCloseDialog}
         onDelete={handleConfirmDelete}
       />
-    </ConfigEditorLayout>
+    </OptionsPageLayout>
   )
 }

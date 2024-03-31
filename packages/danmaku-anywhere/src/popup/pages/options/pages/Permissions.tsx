@@ -2,9 +2,9 @@ import { Delete } from '@mui/icons-material'
 import { IconButton, List, ListItem, ListItemText } from '@mui/material'
 import { useSuspenseQuery } from '@tanstack/react-query'
 
-import { OptionsLayout } from '../components/OptionsLayout'
-
 import { removeOriginPermission } from '@/common/utils'
+import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
+import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 
 const defaultHostPermissions = ['https://*.dandanplay.net/*']
 
@@ -17,7 +17,8 @@ export const Permissions = () => {
   })
 
   return (
-    <OptionsLayout subpage title="Permissions">
+    <OptionsPageLayout>
+      <OptionsPageToolBar title="Permissions" />
       <List disablePadding>
         {data.origins
           // prevent modifying default permissions
@@ -42,6 +43,6 @@ export const Permissions = () => {
             )
           })}
       </List>
-    </OptionsLayout>
+    </OptionsPageLayout>
   )
 }
