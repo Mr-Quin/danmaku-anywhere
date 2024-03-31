@@ -50,9 +50,6 @@ export const useMountConfig = () => {
 
       if (!prevConfig) throw new Error('Config not found')
 
-      if (config.name && nameExists(config.name))
-        throw new Error('Name already exists')
-
       const newConfig = produce(prevConfig, (draft) => {
         Object.assign(draft, config)
       })
@@ -145,6 +142,16 @@ export const useMountConfig = () => {
         }
       })
 
+      // check permission for all imported configs
+      // it should only ask for permission for the ones that are not already granted
+      if (
+        !(await isPermissionGranted(
+          newData.flatMap((config) => config.patterns)
+        ))
+      ) {
+        return
+      }
+
       await update.mutateAsync({ data: newData, version })
     }
 
@@ -155,6 +162,7 @@ export const useMountConfig = () => {
       matchByUrl,
       exportConfigs,
       importConfigs,
+      nameExists,
     }
   }, [options, update.mutateAsync])
 

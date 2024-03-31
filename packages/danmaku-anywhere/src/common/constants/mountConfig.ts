@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import type { Options } from '../services/SyncOptionsService'
+import { validateOrigin } from '../utils'
 
 import defaultMountConfigJson from './mountConfig/default.json' assert { type: 'json' }
 
@@ -40,7 +41,20 @@ interface LegacyMountConfig {
 }
 
 const mountConfigSchema = z.object({
-  patterns: z.array(z.string()),
+  patterns: z.array(
+    z.string().refine(
+      async (value) => {
+        // If the pattern is a invalid, it returns a error string, so we need to negate it
+        if (await validateOrigin(value)) {
+          return false
+        }
+        return true
+      },
+      {
+        message: 'Invalid pattern',
+      }
+    )
+  ),
   mediaQuery: z.string(),
   /**
    * Whether the config is enabled

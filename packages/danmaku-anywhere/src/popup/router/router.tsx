@@ -1,7 +1,7 @@
 import { createHashRouter, Navigate } from 'react-router-dom'
 
-import { AddConfigPage } from '../pages/config/AddConfig'
 import { ConfigPage } from '../pages/config/ConfigPage'
+import { MountConfigEditor } from '../pages/config/editor/MountConfigEditor'
 import { DanmakuPage } from '../pages/danmaku/DanmakuPage'
 import { Home } from '../pages/home/Home'
 import { Options } from '../pages/options/Options'
@@ -32,11 +32,11 @@ export const router = createHashRouter([
         children: [
           {
             path: 'add',
-            element: <AddConfigPage edit={false} />,
+            Component: MountConfigEditor,
           },
           {
             path: 'edit',
-            element: <AddConfigPage edit />,
+            Component: MountConfigEditor,
           },
         ],
       },

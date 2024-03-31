@@ -3,6 +3,7 @@ import { IconButton, Toolbar, Tooltip, Typography } from '@mui/material'
 
 import { mountConfigListSchema } from '@/common/constants/mountConfig'
 import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
+import { Logger } from '@/common/services/Logger'
 import { tryCatch } from '@/common/utils'
 
 const CAN_IMPORT = typeof window.showOpenFilePicker === 'function'
@@ -13,7 +14,7 @@ export const ConfigToolbar = ({ onAdd }: { onAdd: () => void }) => {
   const handleImportConfigs = async () => {
     // TODO: showOpenFilePicker is not available in Firefox
     // throws DOMException when user closes the file picker, ignore this error
-    const [fileHandles, err] = await tryCatch(() =>
+    const [fileHandles, fileErr] = await tryCatch(() =>
       showOpenFilePicker({
         types: [
           {
@@ -28,15 +29,21 @@ export const ConfigToolbar = ({ onAdd }: { onAdd: () => void }) => {
       })
     )
 
-    if (err) return
+    if (fileErr) return
 
     const [fileHandle] = fileHandles
 
     const json = await (await fileHandle.getFile()).text()
 
-    const mountConfigList = mountConfigListSchema.parse(JSON.parse(json))
+    const [mountConfigList, parseErr] = await tryCatch(() =>
+      mountConfigListSchema.parseAsync(JSON.parse(json))
+    )
 
-    console.log(mountConfigList)
+    if (parseErr) {
+      Logger.error('Failed to parse imported config', parseErr)
+      return
+    }
+
     await importConfigs(mountConfigList)
   }
 
