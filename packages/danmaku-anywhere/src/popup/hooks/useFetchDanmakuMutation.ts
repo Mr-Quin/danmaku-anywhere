@@ -1,8 +1,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { danmakuMessage } from '@/common/messages/danmakuMessage'
-import { useAllDanmakuQuery } from '@/popup/hooks/useAllDanmakuQuery'
+import { useAllDanmakuQuerySuspense } from './useAllDanmakuQuerySuspense'
 
+import { danmakuMessage } from '@/common/messages/danmakuMessage'
+
+/**
+ * Fetches danmaku from cahce
+ * If not found in cache, fetches from server and saves to cache
+ *
+ * This is a mutation because it updates the cache
+ */
 export const useFetchDanmakuMutation = () => {
   const queryClient = useQueryClient()
 
@@ -10,7 +17,7 @@ export const useFetchDanmakuMutation = () => {
     mutationFn: danmakuMessage.fetch,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: useAllDanmakuQuery.queryKey,
+        queryKey: useAllDanmakuQuerySuspense.queryKey,
       })
     },
   })

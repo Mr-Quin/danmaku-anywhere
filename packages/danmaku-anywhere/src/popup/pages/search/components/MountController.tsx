@@ -1,108 +1,42 @@
-import { Update } from '@mui/icons-material'
-import {
-  Box,
-  Button,
-  CircularProgress,
-  createFilterOptions,
-  IconButton,
-  Skeleton,
-  Stack,
-  Tooltip,
-  Typography,
-} from '@mui/material'
-import { Suspense, type HTMLAttributes, type SyntheticEvent } from 'react'
+import { Box, Button, Skeleton, Stack } from '@mui/material'
+import { Suspense } from 'react'
 
 import { MountControllerAutoComplete } from './MountControllerAutoComplete'
 
-import type { DanmakuCache } from '@/common/db/db'
+import type { DanmakuCacheLite } from '@/common/db/db'
 import { useSessionState } from '@/common/hooks/extStorage/useSessionState'
 import { danmakuControlMessage } from '@/common/messages/danmakuControlMessage'
-import { episodeIdToEpisodeNumber } from '@/common/utils'
-import { useFetchDanmakuMutation } from '@/popup/hooks/useFetchDanmakuMutation'
-
-export const filterOptions = createFilterOptions({
-  stringify: (option: DanmakuCache) =>
-    `${option.meta.animeTitle} ${option.meta.episodeTitle}`,
-})
-
-export const isOptionEqualToValue = (
-  option: DanmakuCache,
-  value: DanmakuCache
-) => {
-  return option.meta.episodeId === value?.meta.episodeId
-}
-
-export const EpisodeOption = (
-  props: {
-    option: DanmakuCache
-    isLoading: boolean
-  } & HTMLAttributes<HTMLLIElement>
-) => {
-  const { option, isLoading, ...rest } = props
-  const { isPending, fetch } = useFetchDanmakuMutation()
-
-  const handleClick = (e: SyntheticEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    fetch({
-      data: option.meta,
-      options: {
-        forceUpdate: true,
-      },
-    })
-  }
-
-  return (
-    <Stack
-      direction="row"
-      component="li"
-      {...rest}
-      sx={{
-        justifyContent: 'space-between !important' as 'space-between',
-      }}
-    >
-      <Box>
-        <Typography variant="body1">
-          {option.meta.episodeTitle ??
-            `Episode ${episodeIdToEpisodeNumber(option.meta.episodeId)}`}
-        </Typography>
-
-        <Typography variant="caption">
-          {isLoading ? <Skeleton variant="text" width={48} /> : option.count}
-        </Typography>
-      </Box>
-      <IconButton edge="end" disabled={isPending} onClick={handleClick}>
-        <Tooltip title="Update" placement="top">
-          <Update />
-        </Tooltip>
-        {isPending && (
-          <CircularProgress
-            sx={{
-              position: 'absolute',
-            }}
-            size={24}
-          />
-        )}
-      </IconButton>
-    </Stack>
-  )
-}
+import { useDanmakuQuery } from '@/popup/hooks/useDanmakuQuery'
 
 export const MountController = () => {
-  const [danmakuCache, setDanmakuCache] = useSessionState<DanmakuCache | null>(
-    null,
-    'controller/danmakuMeta'
-  )
+  const [danmakuCache, setDanmakuCache] =
+    useSessionState<DanmakuCacheLite | null>(null, 'controller/danmakuMeta')
+
+  const danmakuQuery = useDanmakuQuery(danmakuCache?.meta.episodeId)
+
+  const handleSetDanmaku = async () => {
+    if (danmakuQuery.data) {
+      danmakuControlMessage.set({
+        comments: danmakuQuery.data.comments,
+      })
+      return
+    }
+
+    const cache = await danmakuQuery.refetch()
+
+    if (cache.data) {
+      danmakuControlMessage.set({
+        comments: cache.data.comments,
+      })
+    }
+  }
 
   return (
     <Box
       component="form"
       onSubmit={(e) => {
         e.preventDefault()
-        danmakuControlMessage.set({
-          comments: danmakuCache?.comments ?? [],
-        })
+        handleSetDanmaku()
       }}
     >
       <Stack direction="column" spacing={2}>

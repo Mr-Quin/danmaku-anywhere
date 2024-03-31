@@ -1,17 +1,20 @@
-import { useAllDanmakuQuery } from './useAllDanmakuQuery'
+import { useMutation } from '@tanstack/react-query'
 
+import { danmakuMessage } from '@/common/messages/danmakuMessage'
 import { createDownload } from '@/common/utils'
 
 export const useExportDanmaku = () => {
-  const query = useAllDanmakuQuery()
-
   const exportDanmaku = async () => {
-    const { data: danmakuList } = await query.refetch()
+    const danmakuList = await danmakuMessage.getAll({})
 
     await createDownload(
       new Blob([JSON.stringify(danmakuList)], { type: 'text/json' })
     )
   }
 
-  return { ...query, exportDanmaku }
+  const mutation = useMutation({
+    mutationFn: exportDanmaku,
+  })
+
+  return mutation
 }
