@@ -1,10 +1,11 @@
 import { AddCircle, Download, Upload } from '@mui/icons-material'
-import { IconButton, Toolbar, Tooltip, Typography } from '@mui/material'
+import { IconButton, Tooltip } from '@mui/material'
 
 import { mountConfigListSchema } from '@/common/constants/mountConfig'
 import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 import { Logger } from '@/common/services/Logger'
 import { tryCatch } from '@/common/utils'
+import { PageToolbar } from '@/popup/component/PageToolbar'
 
 const CAN_IMPORT = typeof window.showOpenFilePicker === 'function'
 
@@ -48,10 +49,7 @@ export const ConfigToolbar = ({ onAdd }: { onAdd: () => void }) => {
   }
 
   return (
-    <Toolbar>
-      <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-        Configs
-      </Typography>
+    <PageToolbar title="Configs">
       <IconButton
         aria-label="add"
         onClick={() => {
@@ -86,6 +84,6 @@ export const ConfigToolbar = ({ onAdd }: { onAdd: () => void }) => {
           <Upload />
         </Tooltip>
       </IconButton>
-    </Toolbar>
+    </PageToolbar>
   )
 }
