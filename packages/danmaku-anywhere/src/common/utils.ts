@@ -15,7 +15,6 @@ export const validateOrigin = async (origin: string) => {
     await chrome.permissions.contains({
       origins: [origin],
     })
-    return ''
   } catch (e: any) {
     return (e.message as string) ?? 'invalid pattern'
   }

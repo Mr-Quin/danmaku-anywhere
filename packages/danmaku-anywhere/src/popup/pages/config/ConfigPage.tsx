@@ -8,21 +8,40 @@ import { MountConfigList } from './MountConfigList'
 import type { MountConfig } from '@/common/constants/mountConfig'
 import { createMountConfig } from '@/common/constants/mountConfig'
 
+export interface ConfigEditorContext {
+  config: MountConfig
+  isEdit: boolean
+}
+
 export const ConfigPage = () => {
-  const [editConfig, setEditConfig] = useState<MountConfig>(() =>
-    createMountConfig('')
+  const [editorContext, setEditorContext] = useState<ConfigEditorContext>(
+    () => {
+      return {
+        config: createMountConfig(''),
+        isEdit: false,
+      }
+    }
   )
 
   const navigatge = useNavigate()
 
   const handleEditConfig = (config: MountConfig) => {
     navigatge('edit')
-    setEditConfig(config)
+    setEditorContext({
+      config,
+      isEdit: true,
+    })
   }
 
   const handleAddConfig = () => {
     navigatge('add')
-    setEditConfig(createMountConfig(''))
+    setEditorContext({
+      config: {
+        ...createMountConfig(''),
+        mediaQuery: 'video',
+      },
+      isEdit: false,
+    })
   }
 
   return (
@@ -30,7 +49,7 @@ export const ConfigPage = () => {
       <ConfigToolbar onAdd={handleAddConfig} />
       <Divider />
       <MountConfigList onEdit={handleEditConfig} />
-      <Outlet context={editConfig} />
+      <Outlet context={editorContext} />
     </Box>
   )
 }
