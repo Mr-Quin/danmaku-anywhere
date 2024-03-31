@@ -84,3 +84,28 @@ export const episodeIdToEpisodeNumber = (episodeId: number) => {
 export const sleep = async (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
+
+// TODO: replace with wicg-file-system-access when it's available in Firefox
+export const createDownload = (data: Blob, filename?: string) => {
+  const url = URL.createObjectURL(data)
+
+  const dateString = new Date().toISOString().split('T')[0]
+
+  const defaultFileName = `export-${dateString}.json`
+
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename ?? defaultFileName
+
+  document.body.appendChild(link)
+
+  link.click()
+
+  return new Promise<void>((resolve) => {
+    setTimeout(() => {
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      resolve()
+    }, 100)
+  })
+}

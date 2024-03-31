@@ -17,46 +17,49 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material'
+import { produce } from 'immer'
 import { useState } from 'react'
 
-import type {
-  MountConfig,
-  MountConfigWithoutId,
-} from '@/common/constants/mountConfig'
+import type { MountConfig } from '@/common/constants/mountConfig'
 import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 import { validateOrigin } from '@/common/utils'
 
 export const MountConfigEditor = ({
   editConfig,
   goBack,
+  edit,
 }: {
-  editConfig: MountConfigWithoutId | MountConfig
+  editConfig: MountConfig
   goBack: () => void
+  edit: boolean
 }) => {
   const { updateConfig, addConfig, deleteConfig } = useMountConfig()
 
   const [localConfig, setLocalConfig] = useState(editConfig)
   const [patternErrors, setPatternErrors] = useState<string[]>([])
 
-  const isAdd = editConfig.id === undefined
-
   const handlePatternChange = (index: number, value: string) => {
-    const newPatterns = [...localConfig.patterns]
-    newPatterns[index] = value
-    setLocalConfig((prev) => ({ ...prev, patterns: newPatterns }))
+    setLocalConfig((prev) =>
+      produce(prev, (draft) => {
+        draft.patterns[index] = value
+      })
+    )
   }
 
   const addPatternField = () => {
-    setLocalConfig((prev) => ({
-      ...prev,
-      patterns: [...prev.patterns, ''],
-    }))
+    setLocalConfig((prev) =>
+      produce(prev, (draft) => {
+        draft.patterns.push('')
+      })
+    )
   }
 
   const removePatternField = (index: number) => {
-    const newPatterns = [...localConfig.patterns]
-    newPatterns.splice(index, 1)
-    setLocalConfig((prev) => ({ ...prev, patterns: newPatterns }))
+    setLocalConfig((prev) =>
+      produce(prev, (draft) => {
+        draft.patterns.splice(index, 1)
+      })
+    )
   }
 
   const reset = () => {
@@ -74,17 +77,17 @@ export const MountConfigEditor = ({
 
     if (!patternsValid.every((err) => err === '')) return
 
-    if (isAdd) {
+    if (edit) {
+      await updateConfig(editConfig.name, localConfig)
+    } else {
       await addConfig(localConfig)
-    } else if (updateConfig) {
-      await updateConfig(editConfig.id!, localConfig)
     }
 
     goBack()
   }
 
-  const handleDelete = async (id: number) => {
-    await deleteConfig(id)
+  const handleDelete = async (name: string) => {
+    await deleteConfig(name)
     goBack()
   }
 
@@ -103,12 +106,13 @@ export const MountConfigEditor = ({
               transform: 'translate(-50%)',
             }}
           >
-            {editConfig?.id !== undefined
-              ? `Edit ${editConfig.name}`
-              : 'Add Mount Config'}
+            {edit ? `Edit ${editConfig.name}` : 'Add Mount Config'}
           </Typography>
-          {!editConfig.predefined && !isAdd && (
-            <IconButton edge="end" onClick={() => handleDelete(editConfig.id!)}>
+          {edit && (
+            <IconButton
+              edge="end"
+              onClick={() => handleDelete(editConfig.name)}
+            >
               <Delete />
             </IconButton>
           )}
@@ -203,9 +207,9 @@ export const MountConfigEditor = ({
           </FormControl>
 
           <Button variant="contained" color="primary" type="submit">
-            {isAdd ? 'Add' : 'Save'} Config
+            {!edit ? 'Add' : 'Save'} Config
           </Button>
-          {!isAdd && (
+          {edit && (
             <Button variant="outlined" onClick={reset}>
               Reset
             </Button>

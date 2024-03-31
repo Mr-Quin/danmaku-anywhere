@@ -1,23 +1,22 @@
+import { Box, Divider } from '@mui/material'
 import { useState } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 
+import { ConfigToolbar } from './ConfigToolbar'
 import { MountConfigList } from './MountConfigList'
 
-import type {
-  MountConfig,
-  MountConfigWithoutId,
-} from '@/common/constants/mountConfig'
+import type { MountConfig } from '@/common/constants/mountConfig'
 import { createMountConfig } from '@/common/constants/mountConfig'
 
 export const ConfigPage = () => {
-  const [editConfig, setEditConfig] = useState<
-    MountConfig | MountConfigWithoutId
-  >(() => createMountConfig(''))
+  const [editConfig, setEditConfig] = useState<MountConfig>(() =>
+    createMountConfig('')
+  )
 
   const navigatge = useNavigate()
 
   const handleEditConfig = (config: MountConfig) => {
-    navigatge('add')
+    navigatge('edit')
     setEditConfig(config)
   }
 
@@ -27,9 +26,11 @@ export const ConfigPage = () => {
   }
 
   return (
-    <>
-      <MountConfigList onEdit={handleEditConfig} onAdd={handleAddConfig} />
+    <Box>
+      <ConfigToolbar onAdd={handleAddConfig} />
+      <Divider />
+      <MountConfigList onEdit={handleEditConfig} />
       <Outlet context={editConfig} />
-    </>
+    </Box>
   )
 }
