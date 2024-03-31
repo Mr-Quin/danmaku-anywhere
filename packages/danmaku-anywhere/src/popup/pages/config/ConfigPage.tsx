@@ -1,4 +1,4 @@
-import { Box, Divider } from '@mui/material'
+import { Box } from '@mui/material'
 import { useState } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 
@@ -47,7 +47,6 @@ export const ConfigPage = () => {
   return (
     <Box>
       <ConfigToolbar onAdd={handleAddConfig} />
-      <Divider />
       <MountConfigList onEdit={handleEditConfig} />
       <Outlet context={editorContext} />
     </Box>

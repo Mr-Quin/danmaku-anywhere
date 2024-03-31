@@ -2,16 +2,12 @@ import { LoadingButton } from '@mui/lab'
 import type { SliderProps, TypographyProps } from '@mui/material'
 import {
   Slider,
-  Switch,
   Box,
-  FormControlLabel,
   Typography,
   Stack,
   Tooltip,
   Grid,
   Input,
-  Toolbar,
-  Divider,
 } from '@mui/material'
 import type { Draft } from 'immer'
 import { produce } from 'immer'
@@ -182,26 +178,7 @@ export const DanmakuOptionsController = () => {
 
   return (
     <>
-      <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          Danmaku Style
-        </Typography>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={localConfig.show}
-              onChange={(e) =>
-                handleLocalUpdate((draft) => {
-                  draft.show = e.target.checked
-                })
-              }
-            />
-          }
-          label="Show Danmaku"
-        />
-      </Toolbar>
-      <Divider />
-      <Stack spacing={1} mt={2} px={2}>
+      <Stack spacing={1} mt={2}>
         <LabeledSlider
           label="Opacity"
           tooltip='"0" means invisible, "1" means fully visible.'
@@ -310,7 +287,7 @@ export const DanmakuOptionsController = () => {
         </LabeledSlider>
       </Stack>
 
-      <Stack spacing={1} mt={2} px={2}>
+      <Stack spacing={1} mt={2}>
         <Typography variant="h6" component="div">
           Safe Zones
         </Typography>

@@ -106,7 +106,6 @@ export const MountController = () => {
       }}
     >
       <Stack direction="column" spacing={2}>
-        <Typography variant="h6">Select Danmaku</Typography>
         <Suspense fallback={<Skeleton height={56} width="100%" />}>
           <MountControllerAutoComplete
             value={danmakuCache ?? null}

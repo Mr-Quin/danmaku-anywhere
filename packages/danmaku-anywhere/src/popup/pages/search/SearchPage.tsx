@@ -1,5 +1,5 @@
 import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/dandanplay-api'
-import { Box, Collapse, Stack, Typography } from '@mui/material'
+import { Box, Collapse, Divider, Stack, Typography } from '@mui/material'
 import {
   useIsFetching,
   useQueryErrorResetBoundary,
@@ -13,6 +13,7 @@ import { SearchForm } from './components/SearchForm'
 
 import { SearchResultList } from '@/common/components/animeList/SearchResultList'
 import { Center } from '@/common/components/Center'
+import { PageToolbar } from '@/popup/component/PageToolbar'
 import { useStore } from '@/popup/store'
 
 export const SearchPage = () => {
@@ -50,14 +51,20 @@ export const SearchPage = () => {
   }
 
   return (
-    <Stack direction="column" spacing={2} overflow="auto">
-      <Box paddingX={2} pt={2}>
-        <MountController />
-        <SearchForm
-          onSearch={handleSearch}
-          isLoading={isSearching || pending}
-        />
-      </Box>
+    <Box overflow="auto">
+      <PageToolbar title="Search Anime" />
+      <Stack direction="column" spacing={2} my={2}>
+        <Box px={2}>
+          <MountController />
+        </Box>
+        <Divider />
+        <Box px={2}>
+          <SearchForm
+            onSearch={handleSearch}
+            isLoading={isSearching || pending}
+          />
+        </Box>
+      </Stack>
       <ErrorBoundary
         ref={ref}
         onReset={reset}
@@ -91,6 +98,6 @@ export const SearchPage = () => {
           </Suspense>
         </Collapse>
       </ErrorBoundary>
-    </Stack>
+    </Box>
   )
 }
