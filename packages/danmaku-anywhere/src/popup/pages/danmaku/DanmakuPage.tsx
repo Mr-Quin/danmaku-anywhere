@@ -1,4 +1,4 @@
-import { Box, Stack, Typography } from '@mui/material'
+import { Box, Divider, Toolbar, Typography } from '@mui/material'
 import { useState } from 'react'
 
 import { DanmakuList } from './DanmakuList'
@@ -9,19 +9,13 @@ export const DanmakuPage = () => {
 
   return (
     <Box overflow="auto" ref={setRef}>
-      <Stack
-        direction="row"
-        spacing={2}
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{
-          px: 2,
-          pt: 2,
-        }}
-      >
-        <Typography variant="h6">Danmaku List</Typography>
+      <Toolbar>
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          Danmaku List
+        </Typography>
         <ExportButton />
-      </Stack>
+      </Toolbar>
+      <Divider />
       <DanmakuList scrollElement={ref as HTMLDivElement} />
     </Box>
   )

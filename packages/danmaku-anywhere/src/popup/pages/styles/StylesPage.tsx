@@ -4,7 +4,7 @@ import { DanmakuOptionsController } from './StylesForm'
 
 export const StylesPage = () => {
   return (
-    <Box p={2} overflow="auto">
+    <Box overflow="auto">
       <DanmakuOptionsController />
     </Box>
   )
