@@ -11,9 +11,10 @@ import {
 } from '@mui/material'
 import { Outlet, useNavigate } from 'react-router-dom'
 
-import { OptionsLayout } from './components/OptionsLayout'
+import { OptionsPageLayout } from '../../layout/OptionsPageLayout'
 
 import { useThemeContext } from '@/common/style/Theme'
+import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 
 const OptionsListItem = ({
   title,
@@ -47,7 +48,8 @@ export const Options = () => {
 
   return (
     <>
-      <OptionsLayout title="Options">
+      <OptionsPageLayout direction="up">
+        <OptionsPageToolBar title="Options" />
         <List disablePadding>
           <OptionsListItem
             title="Edit Permissions"
@@ -71,7 +73,7 @@ export const Options = () => {
             </ListItem>
           )}
         </List>
-      </OptionsLayout>
+      </OptionsPageLayout>
       <Outlet />
     </>
   )

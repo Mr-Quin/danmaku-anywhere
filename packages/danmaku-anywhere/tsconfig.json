@@ -3,7 +3,12 @@
   "compilerOptions": {
     "outDir": "./dist/",
     "noEmit": true,
-    "types": ["chrome", "react-dom/canary", "react/canary", "@types/wicg-file-system-access"],
+    "types": [
+      "chrome",
+      "react-dom/canary",
+      "react/canary",
+      "@types/wicg-file-system-access"
+    ],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
