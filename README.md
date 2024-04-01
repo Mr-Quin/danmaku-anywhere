@@ -23,21 +23,28 @@
 
 正在尝试上架Chrome Web Store，在上架之前需手动安装
 
-下载[最新发布的版本](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest)
+下载[最新发布的版本](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest)然后解压到任意文件夹
+
+> [!IMPORTANT]
+> 除非删除扩展，请勿删除此文件夹
+
+后续的更新直接解压到这个文件夹中并覆盖即可
 
 ### Chrome
 
 1. 进入扩展页面 [chrome://extensions/](chrome://extensions/) 并启用开发者模式。
 2. 点击 "加载未打包的扩展" 并选择已解压的扩展文件夹。
 
+### Firefox
+
+没有在Firefox上测试过所以不知道能不能用，但是后续计划支持Firefox
+
 ## 使用指南
 
-本扩展程序提供两种模式：
+此扩展程序提供两种模式：
 
-- 手动模式： 可用于任何网站，需要手动搜索、挂载和卸载各个节目和剧集的弹幕。
-- 自动模式： 适用于选定网站（目前仅适用于 [Plex](https://www.plex.tv/)，包括自架版本），可以自动匹配并挂载弹幕
-
-## 快速上手
+- 手动模式： 手动搜索、挂载和卸载各个剧集的弹幕。可用于任何网站。
+- 自动模式： 自动匹配并挂载弹幕，但是需要对每个网站进行适配（目前仅适用于 [Plex](https://www.plex.tv/)，包括自架版本）
 
 ### 1. 添加挂载配置
 
@@ -45,7 +52,7 @@
 
 - 在扩展程序弹出窗口中，打开“Config”页
 - 启用预设配置
-- 如果你的网站不在预设列表中，点击“+”并提供：
+- 如果你的网站不在预设列表中，点击“+”并输入：
   - 匹配模式： 网站的 URL 格式（例如，`https://your.website.com/*`）使用[匹配模式](https://developer.mozilla.org/zh-CN/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)格式
   - 视频选择器：选择视频播放器（通常为`video`）使用[`querySelector`](https://developer.mozilla.org/zh-CN/docs/Web/API/Document/querySelector)格式
 
@@ -57,10 +64,10 @@
 > [!TIP]
 > 自动模式无需这些操作
 
-- 在“Search”页中按标题查找动画。
+- 在“Search”页中按标题查找剧集。
 - 点击剧集以下载/更新弹幕。
-- 在下拉菜单中选择剧集并点击“Mount”以显示弹幕。
-- 点击“Unmount”以移除弹幕。
+- 在下拉菜单中选择剧集并点击“Mount”显示弹幕。
+- 点击“Unmount”移除弹幕。
 
 ### 关闭插件/隐藏弹幕
 
