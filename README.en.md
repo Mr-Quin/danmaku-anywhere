@@ -30,14 +30,24 @@ All danmaku is sourced from [弹弹play](https://www.dandanplay.com/)
 
 ## Installation
 
-Download the latest [latest release](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest)
+Download the [latest release](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest)
+
+Extract the archive to a folder. This folder should not be deleted except to uninstall the extension.
+
+To update the extension, extract the newer release to the same folder and overwrite everything.
 
 ### Chrome
 
 1. Goto the extensions page [chrome://extensions/](chrome://extensions/) and enable developer mode.
 2. Click on "Load unpacked" and select the extracted folder
 
-This extension has only been tested on Chrome in desktop mode
+**To update**: Go to the extension page and click on the reload button after the new release is extracted
+
+### Firefox
+
+The extension has not been tested on Firefox at all so it may or may not work.
+
+However, Firefox support is planned for the 1.0.0 release.
 
 ## Usage
 
@@ -117,8 +127,9 @@ This is a pnpm monorepo. You'll need to install [pnpm](https://pnpm.io/installat
 .
 ├── packages
 │   ├── danmaku-anywhere       # the browser extension package
-│   ├── danmaku-engine         # wraps danmaku engine and dandanplay api
-│   └── plex-danmaku           # legacy userscript for plex
+│   ├── danmaku-engine         # wrapper for danmaku engine
+│   ├── plex-danmaku           # legacy userscript for plex
+|   └── dandanplay-api         # handles interacting with dandanplay's api
 ├── package.json
 └── ...
 ```
