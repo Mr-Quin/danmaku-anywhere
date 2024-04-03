@@ -95,6 +95,6 @@ export const danmakuMessage = {
 
     Logger.debug(`Get danmaku by id: ${res.payload} `)
 
-    return res.payload as DanmakuCache
+    return (res.payload || null) as DanmakuCache | null
   },
 }

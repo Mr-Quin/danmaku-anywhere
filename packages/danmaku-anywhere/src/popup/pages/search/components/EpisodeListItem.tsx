@@ -1,19 +1,20 @@
-import { useLiveQuery } from 'dexie-react-hooks'
+import { Suspense } from 'react'
 
-import { useFetchDanmakuMutation } from '../../../hooks/useFetchDanmakuMutation'
+import {
+  BaseListItemSkeleton,
+  BaseEpisodeListItem,
+} from '@/common/components/animeList/BaseEpisodeListItem'
+import type { DanmakuMeta } from '@/common/db/db'
+import { useDanmakuQuerySuspense } from '@/popup/hooks/useDanmakuQuerySuspense'
+import { useFetchDanmakuMutation } from '@/popup/hooks/useFetchDanmakuMutation'
 
-import type { EpisodeListItemProps } from '@/common/components/animeList/BaseEpisodeListItem'
-import { BaseEpisodeListItem } from '@/common/components/animeList/BaseEpisodeListItem'
-import { db } from '@/common/db/db'
+type EpisodeListItemProps = Required<DanmakuMeta>
 
-export const EpisodeListItem = (props: EpisodeListItemProps) => {
+const InnerEpisodeListItem = (props: EpisodeListItemProps) => {
   const { episodeId, episodeTitle } = props
   const { fetch, isPending } = useFetchDanmakuMutation()
 
-  const danmakuData = useLiveQuery(
-    () => db.danmakuCache.get(episodeId),
-    [episodeId]
-  )
+  const { data: danmakuData } = useDanmakuQuerySuspense(episodeId)
 
   const hasDanmaku = !!danmakuData
 
@@ -41,5 +42,13 @@ export const EpisodeListItem = (props: EpisodeListItemProps) => {
           : ''
       }
     />
+  )
+}
+
+export const EpisodeListItem = (props: EpisodeListItemProps) => {
+  return (
+    <Suspense fallback={<BaseListItemSkeleton />}>
+      <InnerEpisodeListItem {...props} />
+    </Suspense>
   )
 }
