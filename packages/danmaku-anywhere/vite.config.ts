@@ -6,6 +6,7 @@ import { manifest } from './manifest'
 
 // eslint-disable-next-line import/no-unused-modules
 export default defineConfig({
+  // @ts-ignore
   plugins: [react({}), crx({ manifest })],
   resolve: {
     alias: {

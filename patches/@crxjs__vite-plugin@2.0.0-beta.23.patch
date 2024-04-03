@@ -1,0 +1,13 @@
+diff --git a/dist/index.mjs b/dist/index.mjs
+index 2bff6db04fc022cee8a921c391e11ec5dc8ebbf1..95fe863116cb9e9bcf72e033de5c50b8d81938ee 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -98,7 +98,7 @@ function encodeManifest(manifest) {
+   return `export default ${json}`;
+ }
+ function parseJsonAsset(bundle, key) {
+-  const asset = bundle[key];
++  const asset = bundle[key] || bundle[`.vite/${key}`];
+   if (typeof asset === "undefined")
+     throw new TypeError(`OutputBundle["${key}"] is undefined.`);
+   if (asset.type !== "asset")
