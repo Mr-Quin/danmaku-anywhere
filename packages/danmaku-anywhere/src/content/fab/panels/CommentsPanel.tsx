@@ -33,7 +33,7 @@ export const CommentsPanel = () => {
     }
   }
 
-  const hasComments = comments.length > 0
+  const hasComments = !!danmakuMeta
 
   return (
     <>
