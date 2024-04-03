@@ -83,7 +83,13 @@ export const SearchPanel = () => {
           }
         : undefined
 
-    await fetchDanmaku({ danmakuMeta: meta, titleMapping })
+    await fetchDanmaku({
+      danmakuMeta: meta,
+      titleMapping,
+      options: {
+        forceUpdate: true,
+      },
+    })
   }
 
   const handleTextFieldKeyDown = (e: KeyboardEvent) => {
