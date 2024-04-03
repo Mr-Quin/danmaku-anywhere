@@ -7,10 +7,10 @@ import {
   type MountConfig,
   type MountConfigOptions,
 } from '@/common/constants/mountConfig'
+import { matchUrl } from '@/common/hooks/mountConfig/matchUrl'
 import {
   createDownload,
   hasOriginPermission,
-  matchUrl,
   removeOriginPermission,
   requestOriginPermission,
   tryCatch,

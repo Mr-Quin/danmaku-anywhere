@@ -1,5 +1,3 @@
-import { Logger } from '@/common/services/Logger'
-
 export const toArray = <T>(value: T | T[]): T[] => {
   return Array.isArray(value) ? value : [value]
 }
@@ -30,26 +28,6 @@ export const removeOriginPermission = async (origins: string[]) => {
   return chrome.permissions.remove({
     origins,
   })
-}
-
-const createUrlPattern = (pattern: string) => {
-  // this will throw error if pattern is invalid
-  return new URLPattern({
-    search: '*',
-    pathname: '*',
-    hash: '*',
-    baseURL: pattern,
-  })
-}
-
-export const matchUrl = (url: string, pattern: string) => {
-  try {
-    const urlPattern = createUrlPattern(pattern)
-    return urlPattern.test(url)
-  } catch (e) {
-    Logger.error(e)
-    return false
-  }
 }
 
 // golang style error handling
