@@ -5,10 +5,11 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Skeleton,
   Tooltip,
 } from '@mui/material'
 
-interface BaseEpisodeListItemProps {
+export interface BaseEpisodeListItemProps {
   episodeTitle: string
   isLoading?: boolean
   isFetched?: boolean
@@ -52,9 +53,15 @@ export const BaseEpisodeListItem = ({
   )
 }
 
-export interface EpisodeListItemProps {
-  episodeId: number
-  episodeTitle: string
-  animeId: number
-  animeTitle: string
+export const BaseListItemSkeleton = () => {
+  return (
+    <ListItem>
+      <Skeleton
+        variant="text"
+        width="100%"
+        height={40}
+        animation="wave"
+      ></Skeleton>
+    </ListItem>
+  )
 }
