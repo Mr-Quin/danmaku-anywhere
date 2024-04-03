@@ -33,6 +33,7 @@ export const Permissions = () => {
                       await removeOriginPermission([origin])
                       await refetch()
                     }}
+                    edge="end"
                   >
                     <Delete />
                   </IconButton>
