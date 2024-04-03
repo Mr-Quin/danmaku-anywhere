@@ -31,14 +31,14 @@ export const useNodeMonitor = <T extends HTMLElement>(selector?: string) => {
 
     const observer = new MutationObserver((mutations) => {
       // label for breaking out of nested loops
-      mutationLoop: for (const mutation of mutations) {
+      for (const mutation of mutations) {
         // check added nodes
         for (const node of mutation.addedNodes) {
           if (node instanceof HTMLElement) {
             if (node.matches(selector)) {
               // stop at the first match
               handleSetNode(node as T)
-              break mutationLoop
+              break
             }
           }
         }
@@ -48,12 +48,12 @@ export const useNodeMonitor = <T extends HTMLElement>(selector?: string) => {
           const target = mutation.target as HTMLElement
           if (target.matches(selector)) {
             handleSetNode(target as T)
-            break mutationLoop
+            break
           }
           // if the node is removed
           if (target === nodeRef.current?.deref()) {
             handleSetNode(null)
-            break mutationLoop
+            break
           }
         }
 
@@ -65,7 +65,7 @@ export const useNodeMonitor = <T extends HTMLElement>(selector?: string) => {
               removedNode.matches(selector)
             ) {
               handleSetNode(null)
-              break mutationLoop
+              break
             }
           }
         }
