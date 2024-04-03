@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build --outDir build --emptyOutDir",
+    "test": "vitest",
     "preview": "vite preview",
     "lint": "tsc && eslint --ext .js,.jsx,.ts,.tsx --fix .",
     "format": "prettier --write . --ignore-path ../../.prettierignore",
@@ -37,7 +38,9 @@
     "react-hook-form": "^7.51.2",
     "react-router-dom": "^6.22.3",
     "ts-pattern": "^5.0.8",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "zustand": "5.0.0-alpha.5",
+    "urlpattern-polyfill": "^10.0.0"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "2.0.0-beta.23",
@@ -46,6 +49,8 @@
     "@types/react-dom": "^18.2.22",
     "@types/wicg-file-system-access": "^2023.10.5",
     "@vitejs/plugin-react": "^4.2.1",
-    "urlpattern-polyfill": "^10.0.0"
+    "vite": "^5.2.8",
+    "vite-plugin-eslint": "^1.8.1",
+    "vitest": "^1.4.0"
   }
 }

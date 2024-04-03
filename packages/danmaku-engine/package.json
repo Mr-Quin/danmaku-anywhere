@@ -15,9 +15,11 @@
     "lint": "tsc && eslint --ext .js,.jsx,.ts,.tsx --fix .",
     "dev": "tsc -w"
   },
+  "peerDependencies": {
+    "danmaku": "^2.0.6"
+  },
   "dependencies": {
     "@danmaku-anywhere/dandanplay-api": "workspace:*",
-    "danmaku": "^2.0.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   }
