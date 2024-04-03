@@ -1,3 +1,5 @@
+import * as process from 'node:process'
+
 const prefix = `[Danmaku]`
 
 type Logger = {
@@ -27,6 +29,9 @@ const createLogger = (prefix: string): Logger => {
 }
 
 const getEnv = () => {
+  if (import.meta.env.MODE === 'test') {
+    return 'Test'
+  }
   if (location.protocol.includes('extension')) {
     if (location.href.includes('popup')) {
       return 'Popup'
