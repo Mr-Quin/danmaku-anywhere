@@ -45,7 +45,7 @@ export const ConfigPage = () => {
   }
 
   return (
-    <Box>
+    <Box overflow="auto">
       <ConfigToolbar onAdd={handleAddConfig} />
       <MountConfigList onEdit={handleEditConfig} />
       <Outlet context={editorContext} />
