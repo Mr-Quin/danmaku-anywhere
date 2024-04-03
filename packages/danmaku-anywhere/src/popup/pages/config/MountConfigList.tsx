@@ -1,4 +1,4 @@
-import { Link } from '@mui/icons-material'
+import { ContentCopy } from '@mui/icons-material'
 import {
   IconButton,
   List,
@@ -11,6 +11,7 @@ import { useId } from 'react'
 
 import type { MountConfig } from '@/common/constants/mountConfig'
 import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
+import { tryCatch } from '@/common/utils'
 
 export const MountConfigList = ({
   onEdit,
@@ -21,8 +22,10 @@ export const MountConfigList = ({
 
   const subheaderId = useId()
 
-  const gotoUrl = (url: string) => {
-    chrome.tabs.create({ url })
+  const copyToClipboard = async (config: MountConfig) => {
+    tryCatch(() =>
+      navigator.clipboard.writeText(JSON.stringify(config, null, 2))
+    )
   }
 
   return (
@@ -36,11 +39,11 @@ export const MountConfigList = ({
                 edge="end"
                 aria-label="go to url"
                 onClick={() => {
-                  gotoUrl(config.patterns[0])
+                  copyToClipboard(config)
                 }}
               >
-                <Tooltip title="Go to url">
-                  <Link />
+                <Tooltip title="Copy to clipboard">
+                  <ContentCopy />
                 </Tooltip>
               </IconButton>
             }
