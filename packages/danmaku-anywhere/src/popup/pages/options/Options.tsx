@@ -15,6 +15,7 @@ import { OptionsPageLayout } from '../../layout/OptionsPageLayout'
 
 import { useThemeContext } from '@/common/style/Theme'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
+import { Version } from '@/popup/pages/options/components/Version'
 
 const OptionsListItem = ({
   title,
@@ -50,6 +51,7 @@ export const Options = () => {
     <>
       <OptionsPageLayout direction="up">
         <OptionsPageToolBar title="Options" />
+        <Version />
         <List disablePadding>
           <OptionsListItem
             title="Edit Permissions"
