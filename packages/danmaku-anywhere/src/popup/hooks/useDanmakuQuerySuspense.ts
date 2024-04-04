@@ -1,12 +1,12 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 
-import { danmakuMessage } from '@/common/messages/danmakuMessage'
+import { chromeRpcClient } from '@/common/rpc/client'
 
 export const useDanmakuQuerySuspense = (episodeId: number) => {
   const query = useSuspenseQuery({
     queryKey: ['getByEpisodeId', episodeId],
     queryFn: async () => {
-      return await danmakuMessage.getByEpisodeId({ episodeId: episodeId })
+      return await chromeRpcClient.danmakuGetByEpisodeId(episodeId)
     },
   })
 

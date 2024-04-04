@@ -1,11 +1,11 @@
 import { useMutation } from '@tanstack/react-query'
 
-import { danmakuMessage } from '@/common/messages/danmakuMessage'
+import { chromeRpcClient } from '@/common/rpc/client'
 import { createDownload } from '@/common/utils'
 
 export const useExportDanmaku = () => {
   const exportDanmaku = async () => {
-    const danmakuList = await danmakuMessage.getAll({})
+    const danmakuList = await chromeRpcClient.danmakuGetAll()
 
     await createDownload(
       new Blob([JSON.stringify(danmakuList)], { type: 'text/json' })

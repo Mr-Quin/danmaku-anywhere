@@ -8,9 +8,7 @@ import { useStore } from '../store/store'
 import { useToast } from '../store/toastStore'
 
 import type { MountConfig } from '@/common/constants/mountConfig'
-import { animeMessage } from '@/common/messages/animeMessage'
-import { danmakuMessage } from '@/common/messages/danmakuMessage'
-import { titleMappingMessage } from '@/common/messages/titleMappingMessage'
+import { chromeRpcClient } from '@/common/rpc/client'
 import { Logger } from '@/common/services/Logger'
 import { getEpisodeId, tryCatch } from '@/common/utils'
 
@@ -33,7 +31,7 @@ export const useMediaObserver = (config: MountConfig) => {
   const queryClient = useQueryClient()
 
   const { mutate } = useMutation({
-    mutationFn: titleMappingMessage.save,
+    mutationFn: chromeRpcClient.titleMappingSet,
     throwOnError: false,
   })
 
@@ -76,7 +74,7 @@ export const useMediaObserver = (config: MountConfig) => {
         const [mapping, mappingErr] = await tryCatch(() =>
           queryClient.fetchQuery({
             queryKey: ['titleMapping', titleMappingPayload],
-            queryFn: () => titleMappingMessage.get(titleMappingPayload),
+            queryFn: () => chromeRpcClient.titleMappingGet(titleMappingPayload),
           })
         )
 
@@ -114,11 +112,11 @@ export const useMediaObserver = (config: MountConfig) => {
           }
 
           // if no mapping, search for anime to get the animeId
-          const [result, searchErr] = await tryCatch(() =>
+          const [animes, searchErr] = await tryCatch(() =>
             queryClient.fetchQuery({
               queryKey: ['anime', state],
               queryFn: () =>
-                animeMessage.search({
+                chromeRpcClient.animeSearch({
                   anime: state.title,
                   episode: state.episodic ? state.episode.toString() : '',
                 }),
@@ -131,23 +129,23 @@ export const useMediaObserver = (config: MountConfig) => {
             return
           }
 
-          if (result.animes.length === 0) {
+          if (animes.length === 0) {
             Logger.debug(`No anime found for ${state.toString()}`)
             toast.error(`No anime found for ${state.toString()}`)
             handleError()
             return
           }
 
-          if (result.animes.length > 1) {
+          if (animes.length > 1) {
             Logger.debug('Multiple animes found, open disambiguation')
 
             // the popup is responsible for setting the danmaku meta
-            open({ animes: result.animes, tab: PopupTab.Selector })
+            open({ animes: animes, tab: PopupTab.Selector })
             return
           }
 
           // at this point, there should be only one anime
-          const { episodes, animeTitle, animeId } = result.animes[0]
+          const { episodes, animeTitle, animeId } = animes[0]
           const { episodeId, episodeTitle } = episodes[0]
 
           // save the result to title mapping
@@ -176,7 +174,7 @@ export const useMediaObserver = (config: MountConfig) => {
           queryClient.fetchQuery({
             queryKey: ['danmaku', danmakuMeta],
             queryFn: () =>
-              danmakuMessage.fetch({
+              chromeRpcClient.danmakuFetch({
                 data: danmakuMeta,
                 options: {
                   forceUpdate: false,

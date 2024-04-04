@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { useAllDanmakuQuerySuspense } from './useAllDanmakuQuerySuspense'
 
-import { danmakuMessage } from '@/common/messages/danmakuMessage'
+import { chromeRpcClient } from '@/common/rpc/client'
 
 /**
  * Fetches danmaku from cahce
@@ -14,7 +14,7 @@ export const useFetchDanmakuMutation = () => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
-    mutationFn: danmakuMessage.fetch,
+    mutationFn: chromeRpcClient.danmakuFetch,
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: useAllDanmakuQuerySuspense.queryKey,

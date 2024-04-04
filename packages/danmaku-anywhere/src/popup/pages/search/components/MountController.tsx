@@ -5,7 +5,7 @@ import { MountControllerAutoComplete } from './MountControllerAutoComplete'
 
 import type { DanmakuCacheLite } from '@/common/db/db'
 import { useSessionState } from '@/common/hooks/extStorage/useSessionState'
-import { danmakuControlMessage } from '@/common/messages/danmakuControlMessage'
+import { tabRpcClient } from '@/common/rpc/client'
 import { useDanmakuQuery } from '@/popup/hooks/useDanmakuQuery'
 
 export const MountController = () => {
@@ -16,18 +16,14 @@ export const MountController = () => {
 
   const handleSetDanmaku = async () => {
     if (danmakuQuery.data) {
-      danmakuControlMessage.set({
-        comments: danmakuQuery.data.comments,
-      })
+      tabRpcClient.danmakuMount(danmakuQuery.data.comments)
       return
     }
 
     const cache = await danmakuQuery.refetch()
 
     if (cache.data) {
-      danmakuControlMessage.set({
-        comments: cache.data.comments,
-      })
+      tabRpcClient.danmakuMount(cache.data.comments)
     }
   }
 
@@ -58,7 +54,7 @@ export const MountController = () => {
           variant="outlined"
           type="button"
           size="small"
-          onClick={danmakuControlMessage.unset}
+          onClick={() => tabRpcClient.danmakuUnmount()}
           color="warning"
         >
           Unmount

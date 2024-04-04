@@ -28,7 +28,6 @@ export class DanmakuService {
 
     const result = await this.db.get(episodeId)
 
-    if (options.cacheOnly) return result
     if (result && !options.forceUpdate) {
       this.logger.debug('Danmaku found in db', result)
       return result

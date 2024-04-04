@@ -3,8 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useStore } from '../store/store'
 
 import type { DanmakuMeta, TitleMapping } from '@/common/db/db'
-import { danmakuMessage } from '@/common/messages/danmakuMessage'
-import { titleMappingMessage } from '@/common/messages/titleMappingMessage'
+import { chromeRpcClient } from '@/common/rpc/client'
 import type { DanmakuFetchOptions } from '@/common/types/DanmakuFetchOptions'
 import { tryCatch } from '@/common/utils'
 
@@ -22,7 +21,7 @@ export const useFetchDanmakuMutation = () => {
   }) => {
     setDanmakuMeta(danmakuMeta)
 
-    const res = await danmakuMessage.fetch({
+    const res = await chromeRpcClient.danmakuFetch({
       data: danmakuMeta,
       options: {
         forceUpdate: false,
@@ -31,7 +30,7 @@ export const useFetchDanmakuMutation = () => {
     })
 
     if (titleMapping) {
-      await tryCatch(() => titleMappingMessage.save(titleMapping))
+      await tryCatch(() => chromeRpcClient.titleMappingSet(titleMapping))
     }
 
     return res.comments

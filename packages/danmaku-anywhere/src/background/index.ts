@@ -1,5 +1,3 @@
-import type { DanmakuMessage } from '../common/messages/danmakuMessage'
-
 import { setupContextMenu } from './contextMenu/setupContextMenu'
 import { AnimeService } from './services/AnimeService'
 import { DanmakuService } from './services/DanmakuService'
@@ -8,33 +6,36 @@ import { TitleMappingService } from './services/TitleMappingService'
 import { setupScripting } from './setupScripting'
 import { setupOptions } from './syncOptions/upgradeOptions'
 
-import type { AnimeMessage } from '@/common/messages/animeMessage'
-import type { IconMessage } from '@/common/messages/iconMessage'
-import type { MessageOf } from '@/common/messages/message'
-import { MessageRouter } from '@/common/messages/MessageRouter'
-import type { TitleMappingMessage } from '@/common/messages/titleMappingMessage'
+import type { BackgroundMethods } from '@/common/rpc/interface/background'
+import { RpcException } from '@/common/rpc/rpc'
+import { createRpcServer } from '@/common/rpc/server'
 import { Logger } from '@/common/services/Logger'
 
 setupOptions()
 setupContextMenu()
 setupScripting()
 
-const messageRouter = new MessageRouter()
 const animeService = new AnimeService()
 const iconService = new IconService(chrome)
 const danmakuService = new DanmakuService()
 const titleMappingService = new TitleMappingService()
 
-messageRouter.on<MessageOf<IconMessage, 'icon/set'>>(
-  'icon/set',
-  async (request, sender, sendResponse) => {
-    // only handle messages from content script
-    if (sender.tab?.id === undefined) {
-      sendResponse({ success: false, error: 'No tab id found' })
-      return
+const rpcServer = createRpcServer<BackgroundMethods>({
+  animeSearch: async (input) => {
+    const res = await animeService.search(input)
+
+    if (!res.success) {
+      throw new RpcException(res.errorMessage)
     }
 
-    switch (request.state) {
+    return res.animes
+  },
+  iconSet: async (state, sender) => {
+    if (sender.tab?.id === undefined) {
+      throw new RpcException('No tab id found')
+    }
+
+    switch (state) {
       case 'active':
         iconService.setActive(sender.tab.id)
         break
@@ -51,119 +52,43 @@ messageRouter.on<MessageOf<IconMessage, 'icon/set'>>(
         break
     }
 
-    Logger.debug('Icon state set to:', request.state)
-
-    sendResponse({ success: true, payload: {} })
-  }
-)
-
-messageRouter.on<MessageOf<DanmakuMessage, 'danmaku/fetch'>>(
-  'danmaku/fetch',
-  async (request, _, sendResponse) => {
-    Logger.debug('Fetching danmaku:', request)
-
-    const res = await danmakuService.fetch(
-      request.data,
-      request.params,
-      request.options
+    Logger.debug('Icon state set to:', state)
+  },
+  danmakuGetAll: async () => {
+    return danmakuService.getAll()
+  },
+  danmakuGetAllLite: async () => {
+    return danmakuService.getAllLite()
+  },
+  danmakuGetByEpisodeId: async (episodeId) => {
+    const result = await danmakuService.getByEpisodeId(episodeId)
+    return result || null
+  },
+  danmakuFetch: async (input) => {
+    const result = await danmakuService.fetch(
+      input.data,
+      input.params,
+      input.options
     )
 
-    Logger.debug('Fetch danmaku success', res)
-
-    sendResponse({ success: true, payload: res })
-  }
-)
-
-messageRouter.on<MessageOf<DanmakuMessage, 'danmaku/delete'>>(
-  'danmaku/delete',
-  async (request, _, sendResponse) => {
-    const res = await danmakuService.delete(request.episodeId)
-
-    Logger.debug('Delete danmaku success', res)
-
-    sendResponse({ success: true, payload: res })
-  }
-)
-
-messageRouter.on<MessageOf<DanmakuMessage, 'danmaku/getAll'>>(
-  'danmaku/getAll',
-  async (_, __, sendResponse) => {
-    const res = await danmakuService.getAll()
-
-    Logger.debug(`Get all danmaku success: ${res.length} records`)
-
-    sendResponse({ success: true, payload: res })
-  }
-)
-
-messageRouter.on<MessageOf<DanmakuMessage, 'danmaku/getAllLite'>>(
-  'danmaku/getAllLite',
-  async (_, __, sendResponse) => {
-    const res = await danmakuService.getAllLite()
-
-    Logger.debug(`Get all danmaku lite success: ${res.length} records`)
-
-    sendResponse({ success: true, payload: res })
-  }
-)
-
-messageRouter.on<MessageOf<DanmakuMessage, 'danmaku/getByEpisodeId'>>(
-  'danmaku/getByEpisodeId',
-  async (request, __, sendResponse) => {
-    const res = await danmakuService.getByEpisodeId(request.episodeId)
-
-    Logger.debug(`Get by episodeId success: ${res}`)
-
-    sendResponse({ success: true, payload: res })
-  }
-)
-
-messageRouter.on<MessageOf<AnimeMessage, 'anime/search'>>(
-  'anime/search',
-  async (request, _, sendResponse) => {
-    Logger.debug('Search for anime:', request)
-
-    const res = await animeService.search({
-      anime: request.anime,
-      episode: request.episode,
-    })
-
-    Logger.debug('Anime search success', res)
-
-    sendResponse({ success: true, payload: res })
-  }
-)
-
-messageRouter.on<MessageOf<TitleMappingMessage, 'titleMapping/save'>>(
-  'titleMapping/save',
-  async (request, _, sendResponse) => {
-    Logger.debug('Saving title mapping:', request)
-
-    const res = await titleMappingService.add(request)
-
-    Logger.debug('Title mapping saved', res)
-
-    sendResponse({ success: true, payload: res })
-  }
-)
-
-messageRouter.on<MessageOf<TitleMappingMessage, 'titleMapping/get'>>(
-  'titleMapping/get',
-  async (request, _, sendResponse) => {
-    Logger.debug('Getting title mapping:', request)
-
-    const res = await titleMappingService.getMappedTitle(
-      request.originalTitle,
-      request.source
+    return result
+  },
+  danmakuDelete: async (episodeId) => {
+    return danmakuService.delete(episodeId)
+  },
+  titleMappingSet: async (input) => {
+    return titleMappingService.add(input)
+  },
+  titleMappingGet: async (input) => {
+    const result = await titleMappingService.getMappedTitle(
+      input.originalTitle,
+      input.source
     )
+    return result || null
+  },
+})
 
-    Logger.debug('Title mapping found', res)
-
-    sendResponse({ success: true, payload: res })
-  }
-)
-
-chrome.runtime.onMessage.addListener((...args) => {
-  Logger.debug('Message received:', args[0])
-  return messageRouter.getListener()(...args)
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  rpcServer.onMessage(message, sender).then((res) => sendResponse(res))
+  return true // return true to indicate that the response will be sent asynchronously
 })
