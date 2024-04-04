@@ -111,6 +111,9 @@ importers:
       ts-pattern:
         specifier: ^5.0.8
         version: 5.0.8
+      urlpattern-polyfill:
+        specifier: ^10.0.0
+        version: 10.0.0
       zod:
         specifier: ^3.22.4
         version: 3.22.4
@@ -136,9 +139,6 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^4.2.1
         version: 4.2.1(vite@5.2.8)
-      urlpattern-polyfill:
-        specifier: ^10.0.0
-        version: 10.0.0
       vite:
         specifier: ^5.2.8
         version: 5.2.8
@@ -6939,7 +6939,7 @@ packages:
 
   /urlpattern-polyfill@10.0.0:
     resolution: {integrity: sha512-H/A06tKD7sS1O1X2SshBVeA5FLycRpjqiBeqGKmBwBDBy28EnRjORxTNe269KSSr5un5qyWi1iL61wLxpd+ZOg==}
-    dev: true
+    dev: false
 
   /use-sync-external-store@1.2.0(react@18.2.0):
     resolution: {integrity: sha512-eEgnFxGQ1Ife9bzYs6VLi8/4X6CObHMw9Qr9tPY43iKwsPw8xE8+EFsf/2cFZ5S3esXgpWgtSCtLNS41F+sKPA==}

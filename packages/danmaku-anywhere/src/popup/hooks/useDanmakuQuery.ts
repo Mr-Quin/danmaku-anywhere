@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { danmakuMessage } from '@/common/messages/danmakuMessage'
+import { chromeRpcClient } from '@/common/rpc/client'
 
 export const useDanmakuQuery = (episodeId?: number) => {
   const query = useQuery({
     queryKey: ['getByEpisodeId', episodeId],
     queryFn: async () => {
-      const res = await danmakuMessage.getByEpisodeId({ episodeId: episodeId! })
+      const res = await chromeRpcClient.danmakuGetByEpisodeId(episodeId!)
       return res
     },
     enabled: episodeId !== undefined,

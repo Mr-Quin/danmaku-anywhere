@@ -22,7 +22,7 @@ export class TitleMappingService {
       return
     }
     this.logger.debug('Adding title mapping:', mapping)
-    return this.db.add(mapping)
+    this.db.add(mapping)
   }
 
   async mappingExists({ title, source }: TitleMapping) {

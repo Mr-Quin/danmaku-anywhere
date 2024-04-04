@@ -12,7 +12,7 @@ import { useEffect, useId } from 'react'
 import { AnimeTypeIcon } from './AnimeTypeIcon'
 
 import { CollapsableListItems } from '@/common/components/animeList/CollapsableListItems'
-import { animeMessage } from '@/common/messages/animeMessage'
+import { chromeRpcClient } from '@/common/rpc/client'
 
 interface SearchResultListProps {
   renderEpisodes: (
@@ -39,13 +39,10 @@ export const SearchResultList = ({
   const { data, error } = useSuspenseQuery({
     queryKey: ['search', searchParams],
     queryFn: async () => {
-      return animeMessage.search({
+      return chromeRpcClient.animeSearch({
         anime: searchParams.anime,
         episode: searchParams.episode,
       })
-    },
-    select: (result) => {
-      return result.animes
     },
     staleTime: Infinity,
     retry: false,

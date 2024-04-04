@@ -4,7 +4,8 @@ import { useEventCallback } from '@mui/material'
 import { useEffect } from 'react'
 
 import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
-import type { DanmakuControlMessage } from '@/common/messages/danmakuControlMessage'
+import type { TabMethods } from '@/common/rpc/interface/tab'
+import { createRpcServer } from '@/common/rpc/server'
 import { Logger } from '@/common/services/Logger'
 
 // listen to comment changes and mount/unmount the danmaku engine
@@ -37,20 +38,22 @@ export const useManualDanmaku = (
   })
 
   useEffect(() => {
-    const listener = (request: DanmakuControlMessage) => {
-      if (request.action === 'danmakuControl/set') {
-        handleSetDanmaku(request.payload.comments)
-      }
-
-      if (request.action === 'danmakuControl/unset') {
+    const tabRPCServer = createRpcServer<TabMethods>({
+      danmakuMount: async (comments) => {
+        handleSetDanmaku(comments)
+      },
+      danmakuUnmount: async () => {
         handleUnsetDanmaku()
-      }
-    }
+      },
+    })
 
-    chrome.runtime.onMessage.addListener(listener)
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      tabRPCServer.onMessage(message, sender).then(sendResponse)
+      return true
+    })
 
     return () => {
-      chrome.runtime.onMessage.removeListener(listener)
+      chrome.runtime.onMessage.removeListener(tabRPCServer.onMessage)
     }
   }, [handleSetDanmaku, handleUnsetDanmaku])
 
