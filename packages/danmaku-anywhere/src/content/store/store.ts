@@ -5,7 +5,7 @@ import type {
   MediaObserver,
   MediaInfo,
   PlaybackStatus,
-} from '../integration/MediaObserver'
+} from '../danmaku/integration/MediaObserver'
 
 import type { DanmakuMeta } from '@/common/db/db'
 

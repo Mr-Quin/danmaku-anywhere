@@ -1,9 +1,8 @@
 import { Suspense } from 'react'
 
-import { DanmakuManagerComponent } from './danmakuManager/DanmakuManagertComponent'
+import { DanmakuContainer } from './danmaku/DanmakuContainer'
 import { PopupButton } from './fab/PopupButton'
 import { IconManagerComponent } from './iconManager/IconManagerComponent'
-import { MediaObserverComponent } from './mediaObserver/MediaObserverComponent'
 import { Toast } from './Toast'
 
 import type { MountConfig } from '@/common/constants/mountConfig'
@@ -35,9 +34,8 @@ export const Content = () => {
         return (
           <>
             <IconManagerComponent config={config} />
-            <MediaObserverComponent config={config} />
             <Suspense fallback={null}>
-              <DanmakuManagerComponent config={config} />
+              <DanmakuContainer config={config} />
             </Suspense>
             <PopupButton />
             <Toast />

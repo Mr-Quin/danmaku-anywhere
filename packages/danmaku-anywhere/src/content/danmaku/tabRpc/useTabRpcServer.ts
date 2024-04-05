@@ -1,7 +1,7 @@
 import { useEventCallback } from '@mui/material'
 import { useEffect } from 'react'
 
-import { useManualDanmaku } from './useManualDanmaku'
+import { useManualDanmaku } from '../danmakuManager/hooks/useManualDanmaku'
 
 import type { TabMethods } from '@/common/rpc/interface/tab'
 import { createRpcServer } from '@/common/rpc/server'

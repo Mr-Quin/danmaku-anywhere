@@ -1,7 +1,7 @@
 import type { DanDanComment } from '@danmaku-anywhere/dandanplay-api'
 import { useEventCallback } from '@mui/material'
 
-import { useDanmakuEngine } from '../../store/danmakuEngineStore'
+import { useDanmakuEngine } from '../../../store/danmakuEngineStore'
 
 import type { DanmakuMeta } from '@/common/db/db'
 import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'

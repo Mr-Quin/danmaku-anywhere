@@ -4,9 +4,9 @@ import { useShallow } from 'zustand/react/shallow'
 
 import type { MediaInfo } from '../integration/MediaObserver'
 import { observersMap } from '../integration/observers'
-import { PopupTab, usePopup } from '../store/popupStore'
-import { useStore } from '../store/store'
-import { useToast } from '../store/toastStore'
+import { PopupTab, usePopup } from '../../store/popupStore'
+import { useStore } from '../../store/store'
+import { useToast } from '../../store/toastStore'
 
 import type { MountConfig } from '@/common/constants/mountConfig'
 import { chromeRpcClient } from '@/common/rpc/client'

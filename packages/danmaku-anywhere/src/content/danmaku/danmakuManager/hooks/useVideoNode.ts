@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 
-import { useNodeMonitor } from '../../hooks/useNodeMonitor'
-import { useMediaElementStore } from '../../store/mediaElementStore'
+import { useNodeMonitor } from '../../../hooks/useNodeMonitor'
+import { useMediaElementStore } from '../../../store/mediaElementStore'
 
 import { useToast } from '@/content/store/toastStore'
 
