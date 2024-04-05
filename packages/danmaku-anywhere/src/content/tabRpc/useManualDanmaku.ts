@@ -1,7 +1,7 @@
 import type { DanDanComment } from '@danmaku-anywhere/dandanplay-api'
 import { useEventCallback } from '@mui/material'
 
-import { useDanmakuEngine } from '../../../store/danmakuEngineStore'
+import { useDanmakuEngine } from '../store/danmakuEngineStore'
 
 import type { DanmakuMeta } from '@/common/db/db'
 import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
@@ -53,7 +53,7 @@ export const useManualDanmaku = () => {
       return
     }
 
-    Logger.debug('Danmaku unloaded')
+    Logger.debug('Unloading danmaku')
     useToast.getState().toast.info('Danmaku unloaded')
     useStore.getState().turnOffManualMode()
     danmakuEngine.destroy()

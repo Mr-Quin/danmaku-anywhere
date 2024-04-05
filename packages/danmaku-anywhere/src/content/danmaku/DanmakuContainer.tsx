@@ -1,25 +1,17 @@
 import { Box } from '@mui/material'
 import { useEffect, useState } from 'react'
 
+import { useActiveConfig } from '../hooks/useActiveConfig'
 import { useRect } from '../hooks/useRect'
 
-import { DanmakuManager } from './danmakuManager/DanmakuManager'
-import { useContainerNode } from './danmakuManager/hooks/useContainerNode'
-import { useVideoNode } from './danmakuManager/hooks/useVideoNode'
+import { useContainerNode } from './useContainerNode'
+import { useVideoNode } from './useVideoNode'
 
 import type { SafeZones } from '@/common/constants/danmakuOptions'
-import type { MountConfig } from '@/common/constants/mountConfig'
 import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
 import { useDanmakuEngine } from '@/content/store/danmakuEngineStore'
-import { AutomaticMode } from './AutomaticMode'
-import { MediaObserver } from './mediaObserver/MediaObserver'
-import { TabRpcServer } from './tabRpc/TabRpc'
 
-interface DanmakuManagerProps {
-  config: MountConfig
-}
-
-// get a padding string for the safe zone
+// returns a padding object for the safe zone
 const calculatePaddings = (safeZones: SafeZones, rect?: DOMRectReadOnly) => {
   const { top, bottom } = safeZones
 
@@ -34,12 +26,14 @@ const calculatePaddings = (safeZones: SafeZones, rect?: DOMRectReadOnly) => {
   }
 }
 
-export const DanmakuContainer = ({ config }: DanmakuManagerProps) => {
+export const DanmakuContainer = () => {
   const { data: options } = useDanmakuOptions()
   const [paddings, setPaddings] = useState({
     paddingTop: '0px',
     paddingBottom: '0px',
   })
+
+  const config = useActiveConfig()
 
   const videoNode = useVideoNode(config.mediaQuery)
 
@@ -56,36 +50,29 @@ export const DanmakuContainer = ({ config }: DanmakuManagerProps) => {
   }, [rect, options.safeZones])
 
   return (
-    <>
+    <Box
+      id="danmaku-anywhere-danmaku-container"
+      sx={{
+        visibility: rect ? 'visible' : 'hidden',
+        pointerEvents: 'none',
+        position: 'absolute',
+        top: rect?.top,
+        left: rect?.left,
+        width: rect?.width,
+        height: rect?.height,
+        ...paddings,
+        zIndex: 999999,
+        boxSizing: 'border-box',
+      }}
+    >
       <Box
-        id="danmaku-anywhere-danmaku-container"
+        ref={ref}
         sx={{
-          visibility: rect ? 'visible' : 'hidden',
-          pointerEvents: 'none',
-          position: 'absolute',
-          top: rect?.top,
-          left: rect?.left,
-          width: rect?.width,
-          height: rect?.height,
-          ...paddings,
-          zIndex: 999999,
+          width: '100%',
+          height: '100%',
           boxSizing: 'border-box',
         }}
-      >
-        <Box
-          ref={ref}
-          sx={{
-            width: '100%',
-            height: '100%',
-            boxSizing: 'border-box',
-          }}
-        />
-      </Box>
-      <TabRpcServer />
-      <AutomaticMode>
-        <DanmakuManager />
-        <MediaObserver config={config} />
-      </AutomaticMode>
-    </>
+      />
+    </Box>
   )
 }

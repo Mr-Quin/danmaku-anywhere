@@ -1,6 +1,6 @@
 import { memo } from 'react'
 
-import { useDanmakuManager } from './hooks/useDanmakuManager'
+import { useDanmakuManager } from './useDanmakuManager'
 
 export const DanmakuManager = memo(() => {
   useDanmakuManager()

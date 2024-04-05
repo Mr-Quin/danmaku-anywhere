@@ -3,6 +3,7 @@ import { Suspense, useEffect, useRef } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
 import { Content } from './Content'
+import { LoadInitialData } from './LoadInitialData'
 
 import { Logger } from '@/common/services/Logger'
 
@@ -27,7 +28,9 @@ export const App = () => {
       }}
     >
       <Suspense fallback={null}>
-        <Content />
+        <LoadInitialData>
+          <Content />
+        </LoadInitialData>
       </Suspense>
     </ErrorBoundary>
   )

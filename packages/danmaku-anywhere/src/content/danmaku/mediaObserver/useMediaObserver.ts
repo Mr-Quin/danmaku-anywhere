@@ -2,18 +2,20 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 
-import type { MediaInfo } from '../integration/MediaObserver'
-import { observersMap } from '../integration/observers'
 import { PopupTab, usePopup } from '../../store/popupStore'
 import { useStore } from '../../store/store'
 import { useToast } from '../../store/toastStore'
+import type { MediaInfo } from '../integration/MediaObserver'
+import { observersMap } from '../integration/observers'
 
-import type { MountConfig } from '@/common/constants/mountConfig'
 import { chromeRpcClient } from '@/common/rpc/client'
 import { Logger } from '@/common/services/Logger'
 import { getEpisodeId, tryCatch } from '@/common/utils'
+import { useActiveConfig } from '@/content/hooks/useActiveConfig'
 
-export const useMediaObserver = (config: MountConfig) => {
+export const useMediaObserver = () => {
+  const config = useActiveConfig()
+
   const { toast } = useToast()
   const { open } = usePopup()
 
