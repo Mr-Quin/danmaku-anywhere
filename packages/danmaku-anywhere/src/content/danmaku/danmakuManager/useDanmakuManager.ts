@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 
-import { useDanmakuEngine } from '../../../store/danmakuEngineStore'
-import { useMediaElementStore } from '../../../store/mediaElementStore'
-import { useStore } from '../../../store/store'
-import { useToast } from '../../../store/toastStore'
+import { useDanmakuEngine } from '../../store/danmakuEngineStore'
+import { useMediaElementStore } from '../../store/mediaElementStore'
+import { useStore } from '../../store/store'
+import { useToast } from '../../store/toastStore'
 
 import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
 import { Logger } from '@/common/services/Logger'

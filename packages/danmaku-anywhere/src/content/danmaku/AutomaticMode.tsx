@@ -1,11 +1,17 @@
-import type { PropsWithChildren } from 'react'
+import { DanmakuManager } from './danmakuManager/DanmakuManager'
+import { MediaObserver } from './mediaObserver/MediaObserver'
 
 import { useStore } from '@/content/store/store'
 
-export const AutomaticMode = ({ children }: PropsWithChildren) => {
+export const AutomaticDanmaku = () => {
   const manual = useStore((state) => state.manual)
 
   if (manual) return null
 
-  return children
+  return (
+    <>
+      <DanmakuManager />
+      <MediaObserver />
+    </>
+  )
 }

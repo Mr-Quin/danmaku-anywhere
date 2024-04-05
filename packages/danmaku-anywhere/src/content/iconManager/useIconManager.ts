@@ -1,9 +1,12 @@
 import { useEffect } from 'react'
 
-import type { MountConfig } from '@/common/constants/mountConfig'
+import { useActiveConfig } from '../hooks/useActiveConfig'
+
 import { chromeRpcClient } from '@/common/rpc/client'
 
-export const useIconManager = (config: MountConfig) => {
+export const useIconManager = () => {
+  const config = useActiveConfig()
+
   useEffect(() => {
     if (config) {
       chromeRpcClient.iconSet('available')
