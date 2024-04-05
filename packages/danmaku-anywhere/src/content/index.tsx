@@ -9,12 +9,17 @@ import { App } from './App'
 
 import { PortProvider } from '@/common/port/PortProvider'
 import { queryClient } from '@/common/queryClient'
+import { Logger } from '@/common/services/Logger'
 import { Theme } from '@/common/style/Theme'
 
-console.debug('Danmaku Anywhere content script loaded')
+Logger.debug('Danmaku Anywhere content script loaded')
 const root = document.createElement('div')
 document.body.append(root)
 root.id = 'danmaku-anywhere'
+root.style.setProperty('position', 'absolute', 'important')
+root.style.setProperty('z-index', '2147483647', 'important')
+root.style.setProperty('left', '0', 'important')
+root.style.setProperty('top', '0', 'important')
 
 const shadowContainer = root.attachShadow({ mode: 'closed' })
 const emotionRoot = document.createElement('style')
@@ -54,17 +59,6 @@ const themeOptions: ThemeOptions = {
         container: shadowRootElement,
       },
     },
-  },
-  // fab container has a z-index of 9999, so we need to make sure any popper is above it
-  zIndex: {
-    mobileStepper: 10000,
-    fab: 10500,
-    speedDial: 10500,
-    appBar: 11000,
-    drawer: 12000,
-    modal: 13000,
-    snackbar: 14000,
-    tooltip: 15000,
   },
 }
 

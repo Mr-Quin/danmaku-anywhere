@@ -61,7 +61,6 @@ export const DanmakuContainer = () => {
         width: rect?.width,
         height: rect?.height,
         ...paddings,
-        zIndex: 999999,
         boxSizing: 'border-box',
       }}
     >

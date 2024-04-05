@@ -41,7 +41,6 @@ export const PopupButton = () => {
     <ClickAwayListener onClickAway={() => usePopup.setState({ isOpen: false })}>
       <Box
         position="fixed"
-        zIndex={9999}
         bottom={(theme) => theme.spacing(12)}
         left={(theme) => theme.spacing(3)}
       >
