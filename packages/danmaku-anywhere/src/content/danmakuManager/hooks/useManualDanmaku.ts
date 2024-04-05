@@ -33,13 +33,14 @@ export const useManualDanmaku = () => {
         .toast.success(
           `Danmaku mounted: ${meta.animeTitle} ${meta.episodeTitle}`
         )
-      Logger.debug('Creating danmaku')
 
       if (useStore.getState().activeObserver) {
-        Logger.warn(
+        Logger.debug(
           'Manual mode is enabled while the page has an active observer'
         )
       }
+
+      Logger.debug('Creating manual danmaku')
 
       useStore.getState().turnOnManualMode(comments, meta)
       danmakuEngine.create(containerNode, videoNode, comments, options)
