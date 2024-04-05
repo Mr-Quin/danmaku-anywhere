@@ -1,3 +1,5 @@
+import { tryCatch } from '../utils'
+
 import type { BackgroundMethods } from './interface/background'
 import type { TabMethods } from './interface/tab'
 import {
@@ -52,7 +54,13 @@ const createRpcClient = <
     {
       get(_, method: string) {
         return async (input: TInput) => {
-          const result = await messageSender(createPayload(method, input))
+          const [result, err] = await tryCatch(() =>
+            messageSender(createPayload(method, input))
+          )
+
+          if (err) {
+            throw new RpcException(err.message)
+          }
 
           if (!result.success) {
             throw new RpcException(result.error)

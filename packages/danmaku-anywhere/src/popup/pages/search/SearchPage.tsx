@@ -30,7 +30,7 @@ export const SearchPage = () => {
 
   const isSearching =
     useIsFetching({
-      queryKey: ['search', searchParams],
+      queryKey: ['anime', 'search', searchParams],
     }) > 0
 
   useEffect(() => {

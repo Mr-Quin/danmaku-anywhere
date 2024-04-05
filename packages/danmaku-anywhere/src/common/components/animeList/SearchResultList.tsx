@@ -37,7 +37,7 @@ export const SearchResultList = ({
   const headerId = useId()
 
   const { data, error } = useSuspenseQuery({
-    queryKey: ['search', searchParams],
+    queryKey: ['anime', 'search', searchParams],
     queryFn: async () => {
       return chromeRpcClient.animeSearch({
         anime: searchParams.anime,

@@ -1,29 +1,70 @@
+import { LoadingButton } from '@mui/lab'
 import { Box, Button, Skeleton, Stack } from '@mui/material'
-import { Suspense } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { Suspense, useEffect, useState } from 'react'
 
-import { MountControllerAutoComplete } from './MountControllerAutoComplete'
+import { DanmakuSelector } from './DanmakuSelector'
 
 import type { DanmakuCacheLite } from '@/common/db/db'
 import { useSessionState } from '@/common/hooks/extStorage/useSessionState'
 import { tabRpcClient } from '@/common/rpc/client'
+import { Logger } from '@/common/services/Logger'
 import { useDanmakuQuery } from '@/popup/hooks/useDanmakuQuery'
 
 export const MountController = () => {
   const [danmakuCache, setDanmakuCache] =
     useSessionState<DanmakuCacheLite | null>(null, 'controller/danmakuMeta')
+  const [canUnmount, setCanUnmount] = useState<boolean>(false)
 
   const danmakuQuery = useDanmakuQuery(danmakuCache?.meta.episodeId)
 
-  const handleSetDanmaku = async () => {
-    if (danmakuQuery.data) {
-      tabRpcClient.danmakuMount(danmakuQuery.data.comments)
-      return
+  const tabDanmakuState = useQuery({
+    queryKey: ['tab', 'danmaku', 'getCurrent'],
+    queryFn: () => tabRpcClient.danmakuGetState(),
+    retry: false,
+  })
+
+  useEffect(() => {
+    if (tabDanmakuState.data?.meta) {
+      setDanmakuCache({
+        meta: tabDanmakuState.data.meta,
+        count: tabDanmakuState.data.count,
+      })
+      setCanUnmount(tabDanmakuState.data.manual)
     }
+  }, [tabDanmakuState.data])
 
-    const cache = await danmakuQuery.refetch()
+  const handleMount = async () => {
+    try {
+      if (danmakuQuery.data) {
+        await tabRpcClient.danmakuMount({
+          meta: danmakuQuery.data.meta,
+          comments: danmakuQuery.data.comments,
+        })
+        return
+      }
 
-    if (cache.data) {
-      tabRpcClient.danmakuMount(cache.data.comments)
+      const cache = await danmakuQuery.refetch()
+
+      if (cache.data) {
+        await tabRpcClient.danmakuMount({
+          meta: cache.data.meta,
+          comments: cache.data.comments,
+        })
+      }
+
+      setCanUnmount(true)
+    } catch (e) {
+      Logger.error(e)
+    }
+  }
+
+  const handleUnmount = async () => {
+    try {
+      await tabRpcClient.danmakuUnmount()
+      setCanUnmount(false)
+    } catch (e) {
+      Logger.error(e)
     }
   }
 
@@ -32,30 +73,32 @@ export const MountController = () => {
       component="form"
       onSubmit={(e) => {
         e.preventDefault()
-        handleSetDanmaku()
+        handleMount()
       }}
     >
       <Stack direction="column" spacing={2}>
         <Suspense fallback={<Skeleton height={56} width="100%" />}>
-          <MountControllerAutoComplete
+          <DanmakuSelector
             value={danmakuCache ?? null}
             onChange={setDanmakuCache}
           />
         </Suspense>
-        <Button
+        <LoadingButton
           type="submit"
           variant="outlined"
           size="small"
+          loading={danmakuCache !== null && danmakuQuery.isPending}
           disabled={danmakuCache === null}
         >
           Mount
-        </Button>
+        </LoadingButton>
         <Button
           variant="outlined"
           type="button"
           size="small"
-          onClick={() => tabRpcClient.danmakuUnmount()}
+          onClick={handleUnmount}
           color="warning"
+          disabled={!canUnmount}
         >
           Unmount
         </Button>

@@ -4,7 +4,7 @@ import { chromeRpcClient } from '@/common/rpc/client'
 
 export const useDanmakuQuery = (episodeId?: number) => {
   const query = useQuery({
-    queryKey: ['getByEpisodeId', episodeId],
+    queryKey: ['danmaku', 'getByEpisodeId', episodeId],
     queryFn: async () => {
       const res = await chromeRpcClient.danmakuGetByEpisodeId(episodeId!)
       return res

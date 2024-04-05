@@ -1,40 +1,31 @@
-import { DanmakuManager } from '@danmaku-anywhere/danmaku-engine'
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 
-import { useStore } from '../store/store'
-import { useToast } from '../store/toastStore'
+import { useDanmakuEngine } from '../../store/danmakuEngineStore'
+import { useMediaElementStore } from '../../store/mediaElementStore'
+import { useStore } from '../../store/store'
+import { useToast } from '../../store/toastStore'
 
-import { useManualDanmaku } from './useManualDanmaku'
-
-import type { MountConfig } from '@/common/constants/mountConfig'
 import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
 import { Logger } from '@/common/services/Logger'
 
 // listen to comment changes and mount/unmount the danmaku engine
-export const useDanmakuManager = (
-  config: MountConfig,
-  videoNode: HTMLVideoElement | null,
-  containerNode: HTMLDivElement | null
-) => {
+export const useDanmakuManager = () => {
   const { data: options } = useDanmakuOptions()
+  const danmakuEngine = useDanmakuEngine()
+  const { toast } = useToast()
+  const { videoNode, containerNode } = useMediaElementStore()
 
-  const { comments, mediaInfo, status } = useStore(
-    useShallow(({ comments, setComments, mediaInfo, status }) => {
-      return { comments, setComments, mediaInfo, status }
+  const { comments, mediaInfo, playbackStatus } = useStore(
+    useShallow(({ comments, mediaInfo, playbackStatus, manual }) => {
+      return { comments, mediaInfo, playbackStatus, manual }
     })
   )
-
-  const { toast } = useToast()
-
-  const danmakuEngine = useMemo(() => new DanmakuManager(), [])
-
-  useManualDanmaku(danmakuEngine, videoNode, containerNode)
 
   useEffect(() => {
     // if danmaku is created, destroy it when status is stopped
     if (danmakuEngine.created) {
-      if (status === 'stopped' || comments.length === 0) {
+      if (playbackStatus === 'stopped' || comments.length === 0) {
         Logger.debug('Destroying danmaku')
         danmakuEngine.destroy()
       }
@@ -45,7 +36,7 @@ export const useDanmakuManager = (
     if (!containerNode || !videoNode) return
 
     // if danmaku is not created, create it when status is playing
-    if (status === 'playing' && comments.length > 0) {
+    if (playbackStatus === 'playing' && comments.length > 0) {
       Logger.debug('Creating danmaku', {
         container: containerNode,
         node: videoNode,
@@ -56,12 +47,12 @@ export const useDanmakuManager = (
       )
       danmakuEngine.create(containerNode, videoNode, comments, options)
     }
-  }, [videoNode, comments, options, status, config])
+  }, [videoNode, comments, options, playbackStatus])
 
   useEffect(() => {
     if (!danmakuEngine.created) return
 
-    Logger.debug('Updating danmaku config', options, danmakuEngine)
+    Logger.debug('Updating danmaku config', options)
     danmakuEngine.updateConfig(options)
   }, [options])
 

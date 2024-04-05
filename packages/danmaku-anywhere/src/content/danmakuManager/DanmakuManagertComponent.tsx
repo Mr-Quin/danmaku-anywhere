@@ -1,10 +1,12 @@
 import { Box } from '@mui/material'
-import { useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
 
-import { useNodeMonitor } from '../hooks/useNodeMonitor'
+import { useRect } from '../hooks/useRect'
 
-import { useDanmakuManager } from './useDanmakuManager'
-import { useRect } from './useRect'
+import { useContainerNode } from './hooks/useContainerNode'
+import { useDanmakuManager } from './hooks/useDanmakuManager'
+import { useTabRpcServer } from './hooks/useTabRpcServer'
+import { useVideoNode } from './hooks/useVideoNode'
 
 import type { SafeZones } from '@/common/constants/danmakuOptions'
 import type { MountConfig } from '@/common/constants/mountConfig'
@@ -33,21 +35,26 @@ export const DanmakuManagerComponent = ({
   config,
 }: DanmakuManagerComponentProps) => {
   const { data: options } = useDanmakuOptions()
+  const [paddings, setPaddings] = useState({
+    paddingTop: '0px',
+    paddingBottom: '0px',
+  })
 
-  const videoNode = useNodeMonitor<HTMLVideoElement>(config.mediaQuery)
+  const videoNode = useVideoNode(config.mediaQuery)
 
   const rect = useRect(videoNode)
-  const ref = useRef<HTMLDivElement>(null)
+  const ref = useContainerNode()
 
-  const danmakuEngine = useDanmakuManager(config, videoNode, ref.current)
+  const danmakuEngine = useDanmakuManager()
+
+  useTabRpcServer()
 
   useEffect(() => {
     if (danmakuEngine.created) {
       danmakuEngine.resize()
     }
+    setPaddings(calculatePaddings(options.safeZones, rect))
   }, [rect, options.safeZones])
-
-  const paddings = calculatePaddings(options.safeZones, rect)
 
   return (
     <Box

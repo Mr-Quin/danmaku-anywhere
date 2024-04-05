@@ -10,33 +10,80 @@ import type {
 import type { DanmakuMeta } from '@/common/db/db'
 
 interface StoreState {
+  /**
+   * Danmaku to be displayed
+   */
   comments: DanDanComment[]
   setComments: (comments: DanDanComment[]) => void
-  mediaInfo?: MediaInfo
-  setMediaInfo: (mediaInfo: MediaInfo) => void
-  status: PlaybackStatus
-  setStatus: (status: PlaybackStatus) => void
+
+  /**
+   * The current video playback status
+   */
+  playbackStatus: PlaybackStatus
+  setPlaybackStatus: (status: PlaybackStatus) => void
+
+  /**
+   * Information about the current danmaku
+   */
   danmakuMeta?: DanmakuMeta
   setDanmakuMeta: (danmakuMeta: DanmakuMeta | undefined) => void
+
+  /**
+   * Media information for pages with integration
+   */
+  mediaInfo?: MediaInfo
+  setMediaInfo: (mediaInfo: MediaInfo) => void
+
+  /**
+   * Whether the danmaku is manually set
+   * When true, automatic danmaku fetching is disabled
+   */
+  manual: boolean
+  turnOnManualMode: (
+    comments: DanDanComment[],
+    danmakuMeta: DanmakuMeta
+  ) => void
+  turnOffManualMode: () => void
+
+  /**
+   * The active integration observer for pages with integration
+   */
   activeObserver?: MediaObserver
   integration?: string
-  setActiveObserver: (name: string, observer: MediaObserver) => void
+  setObserver: (name: string, observer: MediaObserver) => void
+  unsetObserver: () => void
+
+  /**
+   * Reset media related state
+   * Includes comments, mediaInfo, and danmakuMeta
+   */
   resetMediaState: () => void
 }
 
-export const useStore = create<StoreState>((set) => ({
+export const useStore = create<StoreState>((set, get) => ({
   comments: [],
   setComments: (comments) => set({ comments }),
+  manual: false,
+  turnOnManualMode: (comments, danmakuMeta) => {
+    get().resetMediaState()
+    set({ manual: true, comments, danmakuMeta })
+  },
+  turnOffManualMode: () => {
+    get().resetMediaState()
+    set({ manual: false })
+  },
   mediaInfo: undefined,
   setMediaInfo: (mediaInfo) => set({ mediaInfo }),
-  status: 'stopped',
-  setStatus: (status) => set({ status }),
+  playbackStatus: 'stopped',
+  setPlaybackStatus: (status) => set({ playbackStatus: status }),
   danmakuMeta: undefined,
   setDanmakuMeta: (danmakuMeta) => set({ danmakuMeta }),
   activeObserver: undefined,
   integration: undefined,
-  setActiveObserver: (name, observer) =>
+  setObserver: (name, observer) =>
     set({ integration: name, activeObserver: observer }),
+  unsetObserver: () =>
+    set({ integration: undefined, activeObserver: undefined }),
   resetMediaState: () =>
     set({
       comments: [],

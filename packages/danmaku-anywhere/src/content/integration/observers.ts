@@ -1,3 +1,5 @@
 import { PlexObserver } from './Plex'
 
-export const observers = [PlexObserver]
+export const observersMap: Record<string, typeof PlexObserver> = {
+  plex: PlexObserver,
+}

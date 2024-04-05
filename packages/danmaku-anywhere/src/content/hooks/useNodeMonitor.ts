@@ -1,6 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-export const useNodeMonitor = <T extends HTMLElement>(selector?: string) => {
+import { tryCatchSync } from '@/common/utils'
+
+interface NodeMonitorOptions {
+  // callback for when an error occurs
+  onError?: (err: Error) => void
+}
+
+export const useNodeMonitor = <T extends HTMLElement>(
+  selector?: string,
+  options: NodeMonitorOptions = {}
+) => {
   const [node, setNode] = useState<T | null>(null)
 
   // use a weak ref to avoid memory leaks when the node is removed
@@ -23,7 +33,14 @@ export const useNodeMonitor = <T extends HTMLElement>(selector?: string) => {
       return
     }
 
-    const current = document.querySelector(selector) as T
+    const [current, err] = tryCatchSync<T | null>(() =>
+      document.querySelector(selector)
+    )
+
+    if (err) {
+      options.onError?.(err)
+      return
+    }
 
     if (current) {
       setNode(current)
