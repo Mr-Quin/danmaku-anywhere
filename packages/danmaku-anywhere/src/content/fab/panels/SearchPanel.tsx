@@ -50,7 +50,7 @@ export const SearchPanel = () => {
 
   const isSearching =
     useIsFetching({
-      queryKey: ['search', searchParams],
+      queryKey: ['anime', 'search', searchParams],
     }) > 0
 
   const { isPending: isDanmakuLoading, fetch: fetchDanmaku } =

@@ -32,13 +32,13 @@ interface HiddenFabProps extends FabProps {
 }
 
 export const HiddenFab = ({ onOpen, isOpen, ...rest }: HiddenFabProps) => {
-  const status = useStore((state) => state.status)
+  const playbackStatus = useStore((state) => state.playbackStatus)
 
   const isLoading = useAnyLoading()
 
   const getOpacity = () => {
     if (isOpen || isLoading) return 1
-    if (status === 'playing') return 0.2
+    if (playbackStatus === 'playing') return 0.2
     return 1
   }
 

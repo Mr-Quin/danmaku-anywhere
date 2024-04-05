@@ -23,7 +23,7 @@ const isOptionEqualToValue = (
   return option.meta.episodeId === value?.meta.episodeId
 }
 
-export const MountControllerAutoComplete = ({
+export const DanmakuSelector = ({
   value,
   onChange,
 }: {

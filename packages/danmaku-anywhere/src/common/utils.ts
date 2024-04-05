@@ -1,3 +1,5 @@
+import type { NotPromise } from './types/types'
+
 export const toArray = <T>(value: T | T[]): T[] => {
   return Array.isArray(value) ? value : [value]
 }
@@ -35,7 +37,21 @@ export const tryCatch = async <T>(fn: () => Promise<T>) => {
   try {
     return [await fn(), null] as const
   } catch (e) {
-    return [null as T, e] as const
+    if (!(e instanceof Error)) {
+      return [null, new Error('Unknown error')] as const
+    }
+    return [null, e as Error] as const
+  }
+}
+
+export const tryCatchSync = <T>(fn: () => NotPromise<T>) => {
+  try {
+    return [fn(), null] as const
+  } catch (e) {
+    if (!(e instanceof Error)) {
+      return [null, new Error('Unknown error')] as const
+    }
+    return [null, e as Error] as const
   }
 }
 

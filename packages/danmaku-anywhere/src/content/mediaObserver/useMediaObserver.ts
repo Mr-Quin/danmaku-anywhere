@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 
 import type { MediaInfo } from '../integration/MediaObserver'
-import { observers } from '../integration/observers'
+import { observersMap } from '../integration/observers'
 import { PopupTab, usePopup } from '../store/popupStore'
 import { useStore } from '../store/store'
 import { useToast } from '../store/toastStore'
@@ -19,14 +20,15 @@ export const useMediaObserver = (config: MountConfig) => {
   const {
     mediaInfo,
     setMediaInfo,
-    status,
-    setStatus,
-    setDanmakuMeta,
+    playbackStatus,
+    setPlaybackStatus,
     activeObserver,
-    setActiveObserver,
+    setDanmakuMeta,
+    setObserver,
+    unsetObserver,
     setComments,
     resetMediaState,
-  } = useStore()
+  } = useStore(useShallow((state) => state))
 
   const queryClient = useQueryClient()
 
@@ -37,9 +39,7 @@ export const useMediaObserver = (config: MountConfig) => {
 
   useEffect(() => {
     // when config changes, try to find a matching observer
-    const Observer = observers.find(
-      (integration) => integration.observerName === config.name
-    )
+    const Observer = observersMap[config.name]
 
     if (!Observer) return // no matching observer found
 
@@ -48,7 +48,9 @@ export const useMediaObserver = (config: MountConfig) => {
 
     const obs = new Observer()
 
-    setActiveObserver(Observer.observerName, obs)
+    setObserver(config.name, obs)
+
+    return () => unsetObserver()
   }, [config])
 
   useEffect(() => {
@@ -172,7 +174,7 @@ export const useMediaObserver = (config: MountConfig) => {
 
         const [res, danmakuErr] = await tryCatch(() =>
           queryClient.fetchQuery({
-            queryKey: ['danmaku', danmakuMeta],
+            queryKey: ['danmaku', 'fetch', danmakuMeta],
             queryFn: () =>
               chromeRpcClient.danmakuFetch({
                 data: danmakuMeta,
@@ -192,7 +194,7 @@ export const useMediaObserver = (config: MountConfig) => {
         setComments(res.comments)
       },
       statusChange: (status) => {
-        setStatus(status)
+        setPlaybackStatus(status)
       },
     })
 
@@ -202,15 +204,15 @@ export const useMediaObserver = (config: MountConfig) => {
   useEffect(() => {
     if (!mediaInfo) return
 
-    if (status === 'playing') {
+    if (playbackStatus === 'playing') {
       toast.info(`Playing: ${mediaInfo.toString()}`)
       Logger.debug(`Playback started: ${mediaInfo.toString()}`)
-    } else if (status === 'paused') {
+    } else if (playbackStatus === 'paused') {
       Logger.debug(`Playback Paused`)
-    } else if (status === 'stopped') {
+    } else if (playbackStatus === 'stopped') {
       Logger.debug(`Playback Stopped`)
     }
-  }, [status, mediaInfo])
+  }, [playbackStatus, mediaInfo])
 
   return activeObserver
 }

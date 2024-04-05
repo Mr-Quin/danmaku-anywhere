@@ -4,7 +4,7 @@ import { chromeRpcClient } from '@/common/rpc/client'
 
 export const useAllDanmakuQuerySuspense = () => {
   const query = useSuspenseQuery({
-    queryKey: ['danmakuCacheLite', 'all'],
+    queryKey: ['danmaku ', 'getAllLite'],
     queryFn: async () => {
       const res = await chromeRpcClient.danmakuGetAllLite()
       if (!res) throw new Error('Failed to get danmaku from cache')
@@ -15,4 +15,4 @@ export const useAllDanmakuQuerySuspense = () => {
   return query
 }
 
-useAllDanmakuQuerySuspense.queryKey = ['danmakuCacheLite', 'all']
+useAllDanmakuQuerySuspense.queryKey = ['danmaku ', 'getAllLite']
