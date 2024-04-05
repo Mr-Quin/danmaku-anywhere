@@ -56,8 +56,6 @@ export const useMediaObserver = (config: MountConfig) => {
   useEffect(() => {
     if (!activeObserver) return
 
-    activeObserver.setup()
-
     activeObserver.on({
       mediaChange: async (state: MediaInfo) => {
         resetMediaState()
@@ -197,6 +195,8 @@ export const useMediaObserver = (config: MountConfig) => {
         setPlaybackStatus(status)
       },
     })
+
+    activeObserver.setup()
 
     return () => activeObserver.destroy()
   }, [activeObserver])
