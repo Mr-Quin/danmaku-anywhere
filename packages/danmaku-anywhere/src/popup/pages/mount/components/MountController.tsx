@@ -1,10 +1,11 @@
 import { LoadingButton } from '@mui/lab'
-import { Box, Button, Skeleton, Stack } from '@mui/material'
+import { Box, Button, Skeleton, Stack, Typography } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { Suspense, useEffect, useState } from 'react'
 
 import { DanmakuSelector } from './DanmakuSelector'
 
+import { useToast } from '@/common/components/toast/toastStore'
 import type { DanmakuCacheLite } from '@/common/db/db'
 import { useSessionState } from '@/common/hooks/extStorage/useSessionState'
 import { tabRpcClient } from '@/common/rpc/client'
@@ -14,7 +15,6 @@ import { useDanmakuQuery } from '@/popup/hooks/useDanmakuQuery'
 export const MountController = () => {
   const [danmakuCache, setDanmakuCache] =
     useSessionState<DanmakuCacheLite | null>(null, 'controller/danmakuMeta')
-  const [canUnmount, setCanUnmount] = useState<boolean>(false)
 
   const danmakuQuery = useDanmakuQuery(danmakuCache?.meta.episodeId)
 
@@ -23,6 +23,12 @@ export const MountController = () => {
     queryFn: () => tabRpcClient.danmakuGetState(),
     retry: false,
   })
+
+  const toast = useToast((state) => state.toast)
+
+  const [canUnmount, setCanUnmount] = useState<boolean>(false)
+
+  const canMount = danmakuCache !== null
 
   useEffect(() => {
     if (tabDanmakuState.data?.meta) {
@@ -41,6 +47,8 @@ export const MountController = () => {
           meta: danmakuQuery.data.meta,
           comments: danmakuQuery.data.comments,
         })
+        setCanUnmount(true)
+        toast.success('Danmaku mounted')
         return
       }
 
@@ -51,11 +59,12 @@ export const MountController = () => {
           meta: cache.data.meta,
           comments: cache.data.comments,
         })
+        setCanUnmount(true)
+        toast.success('Danmaku mounted')
       }
-
-      setCanUnmount(true)
     } catch (e) {
-      Logger.error(e)
+      toast.error(`Failed to mount danmaku: ${(e as Error).message}`)
+      Logger.debug(e)
     }
   }
 
@@ -64,7 +73,8 @@ export const MountController = () => {
       await tabRpcClient.danmakuUnmount()
       setCanUnmount(false)
     } catch (e) {
-      Logger.error(e)
+      toast.error(`Failed to unmount danmaku: ${(e as Error).message}`)
+      Logger.debug(e)
     }
   }
 
@@ -77,6 +87,9 @@ export const MountController = () => {
       }}
     >
       <Stack direction="column" spacing={2}>
+        <Typography>
+          Select an episode and click Mount to inject it into the current tab.
+        </Typography>
         <Suspense fallback={<Skeleton height={56} width="100%" />}>
           <DanmakuSelector
             value={danmakuCache ?? null}
@@ -85,17 +98,15 @@ export const MountController = () => {
         </Suspense>
         <LoadingButton
           type="submit"
-          variant="outlined"
-          size="small"
+          variant="contained"
           loading={danmakuCache !== null && danmakuQuery.isPending}
-          disabled={danmakuCache === null}
+          disabled={!canMount}
         >
           Mount
         </LoadingButton>
         <Button
           variant="outlined"
           type="button"
-          size="small"
           onClick={handleUnmount}
           color="warning"
           disabled={!canUnmount}

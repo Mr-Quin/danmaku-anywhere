@@ -4,6 +4,7 @@ import { ConfigPage } from '../pages/config/ConfigPage'
 import { MountConfigEditor } from '../pages/config/editor/MountConfigEditor'
 import { DanmakuPage } from '../pages/danmaku/DanmakuPage'
 import { Home } from '../pages/home/Home'
+import { MountPage } from '../pages/mount/MountPage'
 import { Options } from '../pages/options/Options'
 import { Permissions } from '../pages/options/pages/Permissions'
 import { SearchPage } from '../pages/search/SearchPage'
@@ -16,7 +17,11 @@ export const router = createHashRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="search" />,
+        element: <Navigate to="mount" />,
+      },
+      {
+        path: 'mount',
+        Component: MountPage,
       },
       {
         path: 'search',

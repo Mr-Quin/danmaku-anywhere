@@ -4,14 +4,15 @@ import { produce } from 'immer'
 import { DanmakuOptionsController } from './StylesForm'
 
 import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
-import { PageToolbar } from '@/popup/component/PageToolbar'
+import { TabToolbar } from '@/popup/component/TabToolbar'
+import { TabLayout } from '@/popup/layout/TabLayout'
 
 export const StylesPage = () => {
   const { data: config, partialUpdate } = useDanmakuOptions()
 
   return (
-    <Box overflow="auto">
-      <PageToolbar title="Danmaku Style">
+    <TabLayout>
+      <TabToolbar title="Danmaku Style">
         <FormControlLabel
           control={
             <Switch
@@ -27,10 +28,10 @@ export const StylesPage = () => {
           }
           label="Show Danmaku"
         />
-      </PageToolbar>
+      </TabToolbar>
       <Box px={2} pb={2}>
         <DanmakuOptionsController />
       </Box>
-    </Box>
+    </TabLayout>
   )
 }

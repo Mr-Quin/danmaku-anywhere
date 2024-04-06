@@ -13,14 +13,17 @@ import { Logger } from '@/common/services/Logger'
 import { Theme } from '@/common/style/Theme'
 
 Logger.debug('Danmaku Anywhere content script loaded')
+
+// create root element
 const root = document.createElement('div')
-document.body.append(root)
 root.id = 'danmaku-anywhere'
 root.style.setProperty('position', 'absolute', 'important')
 root.style.setProperty('z-index', '2147483647', 'important')
 root.style.setProperty('left', '0', 'important')
 root.style.setProperty('top', '0', 'important')
+document.body.append(root)
 
+// create shadow dom
 const shadowContainer = root.attachShadow({ mode: 'closed' })
 const emotionRoot = document.createElement('style')
 const shadowRootElement = document.createElement('div')

@@ -3,12 +3,12 @@ import { useEventCallback } from '@mui/material'
 
 import { useDanmakuEngine } from '../store/danmakuEngineStore'
 
+import { useToast } from '@/common/components/toast/toastStore'
 import type { DanmakuMeta } from '@/common/db/db'
 import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
 import { Logger } from '@/common/services/Logger'
 import { useMediaElementStore } from '@/content/store/mediaElementStore'
 import { useStore } from '@/content/store/store'
-import { useToast } from '@/content/store/toastStore'
 
 // listen to comment changes and mount/unmount the danmaku engine
 export const useManualDanmaku = () => {
@@ -25,7 +25,9 @@ export const useManualDanmaku = () => {
 
         useToast.getState().toast.error(logString)
         Logger.debug(logString)
-        return
+
+        // Error is returned to the client
+        throw new Error(logString)
       }
 
       useToast

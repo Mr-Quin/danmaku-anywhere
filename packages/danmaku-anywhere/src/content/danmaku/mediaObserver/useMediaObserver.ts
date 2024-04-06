@@ -4,10 +4,10 @@ import { useShallow } from 'zustand/react/shallow'
 
 import { PopupTab, usePopup } from '../../store/popupStore'
 import { useStore } from '../../store/store'
-import { useToast } from '../../store/toastStore'
 import type { MediaInfo } from '../integration/MediaObserver'
 import { observersMap } from '../integration/observers'
 
+import { useToast } from '@/common/components/toast/toastStore'
 import { chromeRpcClient } from '@/common/rpc/client'
 import { Logger } from '@/common/services/Logger'
 import { getEpisodeId, tryCatch } from '@/common/utils'

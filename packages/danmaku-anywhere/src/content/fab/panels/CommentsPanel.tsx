@@ -11,9 +11,9 @@ import {
 import { useStore } from '../../store/store'
 import { CommentsTable } from '../components/CommentsTable'
 
+import { useToast } from '@/common/components/toast/toastStore'
 import { tryCatch } from '@/common/utils'
 import { useFetchDanmakuMutation } from '@/content/hooks/useFetchDanmakuMutation'
-import { useToast } from '@/content/store/toastStore'
 
 export const CommentsPanel = () => {
   const { comments, danmakuMeta } = useStore()

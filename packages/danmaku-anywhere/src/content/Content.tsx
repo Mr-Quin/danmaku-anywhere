@@ -5,7 +5,8 @@ import { DanmakuContainer } from './danmaku/DanmakuContainer'
 import { PopupButton } from './fab/PopupButton'
 import { IconManagerComponent } from './iconManager/IconManagerComponent'
 import { TabRpcServer } from './tabRpc/TabRpc'
-import { Toast } from './Toast'
+
+import { Toast } from '@/common/components/toast/Toast'
 
 export const Content = () => {
   return (

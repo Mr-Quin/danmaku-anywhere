@@ -1,10 +1,11 @@
-import { Paper, Stack, Tab, Tabs } from '@mui/material'
+import { Box, Stack, Tab, Tabs } from '@mui/material'
 import { Suspense } from 'react'
 import { Link, Outlet, useMatches } from 'react-router-dom'
 
 import { AppToolBar } from './AppToolBar'
 
-import { PageSkeleton } from '@/popup/layout/PageSkeleton'
+import { Toast } from '@/common/components/toast/Toast'
+import { TabSkeleton } from '@/popup/layout/TabSkeleton'
 
 export const Home = () => {
   // the tab path should be the second element of the array
@@ -13,8 +14,19 @@ export const Home = () => {
   return (
     <Stack direction="column" spacing={0} height={1}>
       <AppToolBar />
-      <Paper elevation={1}>
-        <Tabs value={currentTab === '/' ? '/search' : currentTab}>
+      <Box display="flex" flexGrow={1} height={1} minHeight={0}>
+        <Tabs
+          value={currentTab === '/' ? '/mount' : currentTab}
+          orientation="vertical"
+          variant="scrollable"
+          sx={{
+            borderRight: 1,
+            borderColor: 'divider',
+            width: 100,
+            flexShrink: 0,
+          }}
+        >
+          <Tab label="Mount" value="/mount" to="/mount" component={Link} />
           <Tab label="Search" value="/search" to="/search" component={Link} />
           <Tab
             label="Danmaku"
@@ -25,10 +37,16 @@ export const Home = () => {
           <Tab label="Style" value="/styles" to="/styles" component={Link} />
           <Tab label="Config" value="/config" to="/config" component={Link} />
         </Tabs>
-      </Paper>
-      <Suspense fallback={<PageSkeleton />}>
-        <Outlet />
-      </Suspense>
+        <Suspense fallback={<TabSkeleton />}>
+          <Outlet />
+        </Suspense>
+      </Box>
+      <Toast
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'center',
+        }}
+      />
     </Stack>
   )
 }

@@ -1,4 +1,3 @@
-import { Box } from '@mui/material'
 import { useState } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 
@@ -7,6 +6,7 @@ import { MountConfigList } from './MountConfigList'
 
 import type { MountConfig } from '@/common/constants/mountConfig'
 import { createMountConfig } from '@/common/constants/mountConfig'
+import { TabLayout } from '@/popup/layout/TabLayout'
 
 export interface ConfigEditorContext {
   config: MountConfig
@@ -45,10 +45,10 @@ export const ConfigPage = () => {
   }
 
   return (
-    <Box overflow="auto">
+    <TabLayout>
       <ConfigToolbar onAdd={handleAddConfig} />
       <MountConfigList onEdit={handleEditConfig} />
       <Outlet context={editorContext} />
-    </Box>
+    </TabLayout>
   )
 }
