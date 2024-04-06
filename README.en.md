@@ -28,6 +28,18 @@ Imagine that, but the comments are overlaid on top of the video and flying acros
 
 All danmaku is sourced from [弹弹play](https://www.dandanplay.com/)
 
+## Screenshots
+
+![UI](./assets/ui_tour.gif)
+
+Plex
+
+![Plex](./assets/danmaku_plex.png)
+
+Crunchyroll
+
+![Crunchyroll](./assets/danmaku_crunchyroll.png)
+
 ## Installation
 
 Download the [latest release](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest)
@@ -98,22 +110,6 @@ If the extension is working, you should see a floating button show up on the web
 - Global 'Enabled' toggle: Turns off the extension across all pages. This option is also available in the right-click context menu.
 - 'Show Danmaku' toggle (Styles tab): Visually hides danmaku.
 - 'Enable' checkbox (Mount Config): Complete removes the extension from the configured page. Requires a page refresh to take effect.
-
-## Screenshots
-
-Plex
-
-![Plex](./assets/danmaku_plex.png)
-
-Crunchyroll
-
-![Crunchyroll](./assets/danmaku_crunchyroll.png)
-
-UI
-
-![Search page](./assets/danmaku_search_page.png)
-![Options page](./assets/danmaku_options_page.png)
-![Floating panel](./assets/danmaku_floating_dialogue.png)
 
 ## Development
 

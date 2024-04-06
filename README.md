@@ -19,6 +19,18 @@
 
 所有弹幕均来自 [弹弹 play](https://www.dandanplay.com/)
 
+## 截图
+
+![UI](./assets/ui_tour.gif)
+
+Plex
+
+![Plex](./assets/danmaku_plex.png)
+
+Crunchyroll
+
+![Crunchyroll](./assets/danmaku_crunchyroll.png)
+
 ## 安装
 
 正在尝试上架Chrome Web Store，在上架之前需手动安装
@@ -74,22 +86,6 @@
 - 全局“启用”开关：关闭弹幕相关的所用功能，可以在右键菜单中开关
 - “显示弹幕”开关（Styles）： 暂时隐藏弹幕
 - 禁用挂载配置（Mount Config）： 单独页面的开关，需要刷新页面才能生效
-
-## 截图
-
-Plex
-
-![Plex](./assets/danmaku_plex.png)
-
-Crunchyroll
-
-![Crunchyroll](./assets/danmaku_crunchyroll.png)
-
-UI
-
-![Search page](./assets/danmaku_search_page.png)
-![Options page](./assets/danmaku_options_page.png)
-![Floating panel](./assets/danmaku_floating_dialogue.png)
 
 ## 开发
 
