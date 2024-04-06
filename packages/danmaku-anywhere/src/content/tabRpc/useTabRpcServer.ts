@@ -5,6 +5,7 @@ import { useManualDanmaku } from './useManualDanmaku'
 
 import type { TabMethods } from '@/common/rpc/interface/tab'
 import { createRpcServer } from '@/common/rpc/server'
+import { Logger } from '@/common/services/Logger'
 import { useStore } from '@/content/store/store'
 
 export const useTabRpcServer = () => {
@@ -33,7 +34,10 @@ export const useTabRpcServer = () => {
     })
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      tabRpcServer.onMessage(message, sender).then(sendResponse)
+      tabRpcServer
+        .onMessage(message, sender)
+        .then(sendResponse)
+        .catch(Logger.debug)
       return true
     })
 
