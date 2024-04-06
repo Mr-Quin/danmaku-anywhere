@@ -89,7 +89,7 @@ export const HiddenFab = ({ onOpen, isOpen, ...rest }: HiddenFabProps) => {
   }, [mouseLocation, playbackStatus, manual])
 
   return (
-    <Slide direction="right" in={showFab}>
+    <Slide direction="right" in={isLoading || showFab}>
       <Fab
         color="primary"
         aria-label="Add"
