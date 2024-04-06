@@ -24,7 +24,7 @@ export const SearchPage = () => {
   const ref = useRef<ErrorBoundary>(null)
   const { reset } = useQueryErrorResetBoundary()
 
-  const savedSearchParams = useStore((state) => state.animeSearchParams)
+  const savedSearchParams = useStore.use.animeSearchParams?.()
 
   const [pending, startTransition] = useTransition()
 

@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 
+import { createSelectors } from '@/common/createSelectors'
+
 interface Toast {
   info: (message: string, duration?: number) => void
   success: (message: string, duration?: number) => void
@@ -26,7 +28,7 @@ interface ToastStoreState {
   toast: Toast
 }
 
-export const useToast = create<ToastStoreState>((set, get) => ({
+const useToastBase = create<ToastStoreState>((set, get) => ({
   isOpen: false,
   message: '',
   severity: 'info',
@@ -53,3 +55,5 @@ export const useToast = create<ToastStoreState>((set, get) => ({
     },
   },
 }))
+
+export const useToast = createSelectors(useToastBase)
