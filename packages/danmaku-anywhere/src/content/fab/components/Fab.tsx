@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { LoadingRing } from './LoadingRing'
 
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
+import { useStore } from '@/content/store/store'
 
 interface HiddenFabProps extends FabProps {
   onOpen: () => void
@@ -56,15 +57,24 @@ const getDistance = (x1: number, y1: number, x2: number, y2: number) =>
 
 export const HiddenFab = ({ onOpen, isOpen, ...rest }: HiddenFabProps) => {
   const isLoading = useAnyLoading()
+  const playbackStatus = useStore((state) => state.playbackStatus)
+  const manual = useStore((state) => state.manual)
 
   const fabRef = useRef<HTMLButtonElement>(null)
 
   const mouseLocation = useMouseLocation()
 
-  const [isClose, setIsClose] = useState(false)
+  const [showFab, setShowFab] = useState(true)
 
   useEffect(() => {
     if (!fabRef.current) return
+    if (!manual) {
+      if (playbackStatus !== 'playing') {
+        setShowFab(true)
+        return
+      }
+    }
+
     const position = fabRef.current.getBoundingClientRect()
 
     const isClose =
@@ -75,11 +85,11 @@ export const HiddenFab = ({ onOpen, isOpen, ...rest }: HiddenFabProps) => {
         position.y + position.height / 2
       ) < 100
 
-    setIsClose(isClose)
-  }, [mouseLocation])
+    setShowFab(isClose)
+  }, [mouseLocation, playbackStatus, manual])
 
   return (
-    <Slide direction="right" in={isClose}>
+    <Slide direction="right" in={showFab}>
       <Fab
         color="primary"
         aria-label="Add"
