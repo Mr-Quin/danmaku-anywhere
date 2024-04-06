@@ -31,7 +31,7 @@
     "@preact/preset-vite": "2.5.0",
     "sass": "1.62.0",
     "vite-plugin-monkey": "3.1.1",
-    "vite": "^4.5.2",
+    "vite": "^4.5.3",
     "vite-plugin-eslint": "^1.8.1"
   }
 }
