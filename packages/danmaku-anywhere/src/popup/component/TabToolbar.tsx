@@ -5,11 +5,11 @@ interface PageToolbarProps extends PropsWithChildren {
   title: string
 }
 
-export const PageToolbar = ({ title, children }: PageToolbarProps) => {
+export const TabToolbar = ({ title, children }: PageToolbarProps) => {
   return (
     <>
       <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+        <Typography variant="h2" fontSize={18} sx={{ flexGrow: 1 }}>
           {title}
         </Typography>
         {children}

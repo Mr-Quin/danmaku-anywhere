@@ -13,9 +13,17 @@ export const OptionsPageLayout = ({
   direction = 'left',
 }: OptionsPageProps) => {
   return (
-    <Box position="absolute" top={0} zIndex={1} width={1} overflow="auto">
+    <Box
+      position="absolute"
+      top={0}
+      zIndex={1}
+      width={1}
+      height={1}
+      minHeight={0}
+      overflow="auto"
+    >
       <Slide direction={direction} in mountOnEnter unmountOnExit>
-        <Paper sx={{ height: '100vh' }}>
+        <Paper sx={{ height: 1 }}>
           <Suspense fallback={<FullPageSpinner />}>{children}</Suspense>
         </Paper>
       </Slide>

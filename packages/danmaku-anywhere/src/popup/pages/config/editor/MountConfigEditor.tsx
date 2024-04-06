@@ -111,7 +111,7 @@ export const MountConfigEditor = () => {
   }
 
   return (
-    <OptionsPageLayout direction="up">
+    <OptionsPageLayout direction="left">
       <ConfigEditorToolbar onDelete={handleDelete} />
       <Box px={2} mt={2} component="form" onSubmit={handleSubmit(handleSave)}>
         <Stack direction="column" spacing={2} alignItems="flex-start">

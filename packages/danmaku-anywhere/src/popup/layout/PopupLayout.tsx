@@ -6,8 +6,8 @@ export const PopupLayout = ({ children }: PropsWithChildren) => {
     <Container
       sx={{
         padding: 0,
-        width: 400,
-        maxWidth: 400,
+        width: 500,
+        maxWidth: 500,
         height: 600,
         maxHeight: 600,
         overflow: 'hidden',

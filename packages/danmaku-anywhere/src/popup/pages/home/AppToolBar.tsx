@@ -36,7 +36,7 @@ export const AppToolBar = () => {
             <LinearProgress sx={{ height: '1px' }} />
           </Box>
         </Fade>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
+        <Typography variant="h1" fontSize={20} sx={{ flexGrow: 1 }}>
           Danmaku Anywhere
         </Typography>
         <FormGroup>

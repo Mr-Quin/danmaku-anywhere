@@ -12,7 +12,7 @@ export const ExportButton = () => {
       loading={isPending}
       onClick={() => mutate()}
     >
-      Export Danmaku
+      Export All
       <Download />
     </LoadingButton>
   )

@@ -1,20 +1,20 @@
-import { Box } from '@mui/material'
 import { useState } from 'react'
 
 import { DanmakuList } from './DanmakuList'
 import { ExportButton } from './ExportButton'
 
-import { PageToolbar } from '@/popup/component/PageToolbar'
+import { TabToolbar } from '@/popup/component/TabToolbar'
+import { TabLayout } from '@/popup/layout/TabLayout'
 
 export const DanmakuPage = () => {
   const [ref, setRef] = useState<HTMLDivElement>()
 
   return (
-    <Box overflow="auto" ref={setRef}>
-      <PageToolbar title="Danmaku List">
+    <TabLayout ref={setRef}>
+      <TabToolbar title="Danmaku List">
         <ExportButton />
-      </PageToolbar>
+      </TabToolbar>
       <DanmakuList scrollElement={ref as HTMLDivElement} />
-    </Box>
+    </TabLayout>
   )
 }

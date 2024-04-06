@@ -5,7 +5,7 @@ import { mountConfigListSchema } from '@/common/constants/mountConfig'
 import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 import { Logger } from '@/common/services/Logger'
 import { tryCatch } from '@/common/utils'
-import { PageToolbar } from '@/popup/component/PageToolbar'
+import { TabToolbar } from '@/popup/component/TabToolbar'
 
 const CAN_IMPORT = typeof window.showOpenFilePicker === 'function'
 
@@ -49,13 +49,13 @@ export const ConfigToolbar = ({ onAdd }: { onAdd: () => void }) => {
   }
 
   return (
-    <PageToolbar title="Configs">
+    <TabToolbar title="Configs">
       <IconButton
         aria-label="add"
         onClick={() => {
           onAdd()
         }}
-        color="inherit"
+        color="primary"
       >
         <Tooltip title="Add">
           <AddCircle />
@@ -66,7 +66,7 @@ export const ConfigToolbar = ({ onAdd }: { onAdd: () => void }) => {
         onClick={() => {
           exportConfigs()
         }}
-        color="inherit"
+        color="primary"
       >
         <Tooltip title="Export">
           <Download />
@@ -78,12 +78,12 @@ export const ConfigToolbar = ({ onAdd }: { onAdd: () => void }) => {
           handleImportConfigs()
         }}
         disabled={!CAN_IMPORT}
-        color="inherit"
+        color="primary"
       >
         <Tooltip title="Import">
           <Upload />
         </Tooltip>
       </IconButton>
-    </PageToolbar>
+    </TabToolbar>
   )
 }
