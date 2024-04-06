@@ -89,6 +89,9 @@ const rpcServer = createRpcServer<BackgroundMethods>({
 })
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  rpcServer.onMessage(message, sender).then((res) => sendResponse(res))
+  rpcServer
+    .onMessage(message, sender)
+    .then((res) => sendResponse(res))
+    .catch(Logger.debug)
   return true // return true to indicate that the response will be sent asynchronously
 })

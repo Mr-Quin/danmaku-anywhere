@@ -20,16 +20,37 @@ type RPCClient<TRecords extends RPCRecord> = {
 }
 
 const chromeSender = async <TInput, TOutput>(payload: RPCPayload<TInput>) => {
-  return (await chrome.runtime.sendMessage(payload)) as RPCResponse<TOutput>
+  const res = (await chrome.runtime.sendMessage(
+    payload
+  )) as RPCResponse<TOutput>
+
+  if (chrome.runtime.lastError) {
+    throw new RpcException(
+      chrome.runtime.lastError.message ?? 'Unknown lastError'
+    )
+  }
+
+  return res
 }
 
 const tabSender = async <TInput, TOutput>(payload: RPCPayload<TInput>) => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
 
-  return (await chrome.tabs.sendMessage(
-    tab.id as number,
-    payload
-  )) as RPCResponse<TOutput>
+  if (!tab) {
+    throw new RpcException('No active tab found')
+  }
+
+  try {
+    return (await chrome.tabs.sendMessage(
+      tab.id as number,
+      payload
+    )) as RPCResponse<TOutput>
+  } catch (e) {
+    if (e instanceof Error) {
+      throw new RpcException(e.message)
+    }
+    throw new RpcException('Unknown error occurred when sending message to tab')
+  }
 }
 
 const createPayload = <TInput>(

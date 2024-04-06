@@ -91,14 +91,18 @@ const IsConnected = ({ children }: PropsWithChildren) => {
                     {activeTabUrl}
                   </Typography>
                   <br />
-                  does not have a mount configuration, or not configured
+                  does not have a mount configuration, or is not configured
                   correctly.
                 </Typography>
-                <Box mt={2}>
+                <Box my={2}>
                   <Typography color="primary" to="/config/add" component={Link}>
                     Add a mount configuration to enable the controller
                   </Typography>
                 </Box>
+                <Typography>
+                  If this happens after updating the extension, try restarting
+                  the browser.
+                </Typography>
               </>
             )
           })}

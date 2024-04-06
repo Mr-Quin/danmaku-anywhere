@@ -7,7 +7,6 @@ import ReactDOM from 'react-dom/client'
 
 import { App } from './App'
 
-import { PortProvider } from '@/common/port/PortProvider'
 import { queryClient } from '@/common/queryClient'
 import { Logger } from '@/common/services/Logger'
 import { Theme } from '@/common/style/Theme'
@@ -70,9 +69,7 @@ ReactDOM.createRoot(shadowRootElement).render(
     <CacheProvider value={cache}>
       <QueryClientProvider client={queryClient}>
         <Theme options={themeOptions}>
-          <PortProvider>
-            <App />
-          </PortProvider>
+          <App />
         </Theme>
       </QueryClientProvider>
     </CacheProvider>
