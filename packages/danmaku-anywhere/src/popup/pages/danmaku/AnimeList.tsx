@@ -7,20 +7,38 @@ import {
 } from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import { NoAnime } from './components/NoAnime'
 
 import { useAllDanmakuQuerySuspense } from '@/popup/hooks/useAllDanmakuQuerySuspense'
+import { useStore } from '@/popup/store'
 
 interface DanmakuListProps {
-  scrollElement: any
+  scrollElement: HTMLDivElement
 }
 
 export const DanmakuList = ({ scrollElement }: DanmakuListProps) => {
+  const navigate = useNavigate()
+
   const { data, isFetching } = useAllDanmakuQuerySuspense()
 
+  const { animeFilter: filter, setSelectedAnime } = useStore.use.danmaku()
+
+  const filteredData = useMemo(() => {
+    if (!filter) return data
+
+    return data.filter((item) =>
+      item.meta.animeTitle.toLowerCase().includes(filter.toLowerCase())
+    )
+  }, [data, filter])
+
   const groupedData = useMemo(
-    () => Object.groupBy(data ?? [], (item) => item.meta.animeTitle),
-    [data]
+    () => Object.groupBy(filteredData, (item) => item.meta.animeTitle),
+    [filteredData]
   )
+
+  // unique titles
   const titles = Object.keys(groupedData).toSorted()
 
   const virtualizer = useVirtualizer({
@@ -29,7 +47,7 @@ export const DanmakuList = ({ scrollElement }: DanmakuListProps) => {
     estimateSize: () => 40,
   })
 
-  if (!data.length) return <Typography>No danmaku</Typography>
+  if (!filteredData.length) return <NoAnime />
 
   return (
     <Box
@@ -43,6 +61,7 @@ export const DanmakuList = ({ scrollElement }: DanmakuListProps) => {
       <List>
         {virtualizer.getVirtualItems().map((virtualItem) => {
           const title = titles[virtualItem.index]
+          const animeId = groupedData[title][0].meta.animeId
 
           return (
             <ListItemButton
@@ -56,6 +75,10 @@ export const DanmakuList = ({ scrollElement }: DanmakuListProps) => {
               }}
               data-index={virtualItem.index}
               ref={virtualizer.measureElement}
+              onClick={() => {
+                navigate(animeId.toString())
+                setSelectedAnime(title)
+              }}
             >
               <ListItemText
                 primary={title}

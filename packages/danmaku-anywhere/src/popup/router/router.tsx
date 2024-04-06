@@ -2,7 +2,9 @@ import { createHashRouter, Navigate } from 'react-router-dom'
 
 import { ConfigPage } from '../pages/config/ConfigPage'
 import { MountConfigEditor } from '../pages/config/editor/MountConfigEditor'
+import { AnimePage } from '../pages/danmaku/AnimePage'
 import { DanmakuPage } from '../pages/danmaku/DanmakuPage'
+import { EpisodePage } from '../pages/danmaku/EpisodePage'
 import { Home } from '../pages/home/Home'
 import { MountPage } from '../pages/mount/MountPage'
 import { Options } from '../pages/options/Options'
@@ -47,7 +49,22 @@ export const router = createHashRouter([
       },
       {
         path: 'danmaku',
-        Component: DanmakuPage,
+        children: [
+          {
+            index: true,
+            Component: AnimePage,
+          },
+          {
+            path: ':animeId',
+            children: [
+              { index: true, Component: EpisodePage },
+              {
+                path: ':episodeId',
+                Component: DanmakuPage,
+              },
+            ],
+          },
+        ],
       },
     ],
   },

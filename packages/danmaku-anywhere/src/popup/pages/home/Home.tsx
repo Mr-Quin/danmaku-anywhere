@@ -1,15 +1,17 @@
 import { Box, Stack, Tab, Tabs } from '@mui/material'
 import { Suspense } from 'react'
-import { Link, Outlet, useMatches } from 'react-router-dom'
+import { Link, Outlet, useLocation, useMatches } from 'react-router-dom'
 
 import { AppToolBar } from './AppToolBar'
 
+import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { Toast } from '@/common/components/toast/Toast'
-import { TabSkeleton } from '@/popup/layout/TabSkeleton'
+import { TabLayout } from '@/popup/layout/TabLayout'
 
 export const Home = () => {
   // the tab path should be the second element of the array
   const currentTab = useMatches()[1].pathname
+  const location = useLocation()
 
   return (
     <Stack direction="column" spacing={0} height={1}>
@@ -37,7 +39,14 @@ export const Home = () => {
           <Tab label="Style" value="/styles" to="/styles" component={Link} />
           <Tab label="Config" value="/config" to="/config" component={Link} />
         </Tabs>
-        <Suspense fallback={<TabSkeleton />}>
+        <Suspense
+          fallback={
+            <TabLayout>
+              <FullPageSpinner />
+            </TabLayout>
+          }
+          key={location.key}
+        >
           <Outlet />
         </Suspense>
       </Box>
