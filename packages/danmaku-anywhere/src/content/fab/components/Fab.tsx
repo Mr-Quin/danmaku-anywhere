@@ -1,60 +1,95 @@
 import { KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material'
 import type { FabProps } from '@mui/material'
-import { Box, Fab, Fade } from '@mui/material'
+import { Fab, Slide, useEventCallback } from '@mui/material'
+import { useEffect, useRef, useState } from 'react'
 
-import { useAnyLoading } from '../../hooks/useAnyLoading'
-import { useStore } from '../../store/store'
+import { LoadingRing } from './LoadingRing'
 
-import { LoadingRipple } from './LoadingRipple'
-
-const LoadingRing = ({ isLoading }: { isLoading: boolean }) => {
-  return (
-    <Fade in={isLoading}>
-      <Box
-        component="div"
-        sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: 1,
-          height: 1,
-        }}
-      >
-        <LoadingRipple />
-      </Box>
-    </Fade>
-  )
-}
+import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 
 interface HiddenFabProps extends FabProps {
   onOpen: () => void
   isOpen: boolean
 }
 
-export const HiddenFab = ({ onOpen, isOpen, ...rest }: HiddenFabProps) => {
-  const playbackStatus = useStore((state) => state.playbackStatus)
+const useDebouncedState = <T,>(initialValue: T, delay = 300) => {
+  const [value, setValue] = useState(initialValue)
 
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const debouncedSetState = useEventCallback((newValue: T) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      setValue(newValue)
+    }, delay)
+  })
+
+  return [value, debouncedSetState] as const
+}
+
+const useMouseLocation = () => {
+  const [mouseLocation, setMouseLocation] = useDebouncedState(
+    { x: 0, y: 0 },
+    100
+  )
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMouseLocation({ x: e.clientX, y: e.clientY })
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+    }
+  }, [])
+
+  return mouseLocation
+}
+
+const getDistance = (x1: number, y1: number, x2: number, y2: number) =>
+  Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
+export const HiddenFab = ({ onOpen, isOpen, ...rest }: HiddenFabProps) => {
   const isLoading = useAnyLoading()
 
-  const getOpacity = () => {
-    if (isOpen || isLoading) return 1
-    if (playbackStatus === 'playing') return 0.2
-    return 1
-  }
+  const fabRef = useRef<HTMLButtonElement>(null)
+
+  const mouseLocation = useMouseLocation()
+
+  const [isClose, setIsClose] = useState(false)
+
+  useEffect(() => {
+    if (!fabRef.current) return
+    const position = fabRef.current.getBoundingClientRect()
+
+    const isClose =
+      getDistance(
+        mouseLocation.x,
+        mouseLocation.y,
+        position.x + position.width / 2,
+        position.y + position.height / 2
+      ) < 100
+
+    setIsClose(isClose)
+  }, [mouseLocation])
 
   return (
-    <Fab
-      sx={{
-        opacity: getOpacity(),
-        transition: 'opacity 0.3s',
-      }}
-      color="primary"
-      aria-label="Add"
-      onClick={onOpen}
-      {...rest}
-    >
-      <LoadingRing isLoading={isLoading} />
-      {isOpen ? <KeyboardArrowLeft /> : <KeyboardArrowRight />}
-    </Fab>
+    <Slide direction="right" in={isClose}>
+      <Fab
+        color="primary"
+        aria-label="Add"
+        onClick={onOpen}
+        ref={fabRef}
+        {...rest}
+      >
+        <LoadingRing isLoading={isLoading} />
+        {isOpen ? <KeyboardArrowLeft /> : <KeyboardArrowRight />}
+      </Fab>
+    </Slide>
   )
 }

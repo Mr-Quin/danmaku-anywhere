@@ -11,9 +11,9 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material'
-import { useIsFetching } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 
+import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { useExtensionOptions } from '@/common/hooks/useExtensionOptions'
 
 export const AppToolBar = () => {
@@ -26,12 +26,12 @@ export const AppToolBar = () => {
   }
 
   const navigate = useNavigate()
-  const isFetching = useIsFetching() > 0
+  const isAnyLoading = useAnyLoading()
 
   return (
     <AppBar position="static">
       <Toolbar>
-        <Fade in={isFetching} unmountOnExit>
+        <Fade in={isAnyLoading} unmountOnExit>
           <Box position="absolute" top={0} left={0} width={1}>
             <LinearProgress sx={{ height: '1px' }} />
           </Box>
