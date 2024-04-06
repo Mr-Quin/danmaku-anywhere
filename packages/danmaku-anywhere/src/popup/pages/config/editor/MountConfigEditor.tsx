@@ -11,9 +11,8 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { produce } from 'immer'
 import { useState } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { useOutletContext } from 'react-router-dom'
 
 import type { ConfigEditorContext } from '../ConfigPage'
@@ -25,8 +24,26 @@ import type { MountConfig } from '@/common/constants/mountConfig'
 import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 import { validateOrigin } from '@/common/utils'
 import { useGoBack } from '@/popup/hooks/useGoBack'
-import { useImperitaveRender } from '@/popup/hooks/useImperitaveRender'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
+
+// react-hook-form does not allow primitive arrays, so we need to convert the array to an object
+type MountConfigForm = Omit<MountConfig, 'patterns'> & {
+  patterns: { value: string }[]
+}
+
+const toForm = (config: MountConfig): MountConfigForm => {
+  return {
+    ...config,
+    patterns: config.patterns.map((value) => ({ value })),
+  }
+}
+
+const fromForm = (form: MountConfigForm): MountConfig => {
+  return {
+    ...form,
+    patterns: form.patterns.map(({ value }) => value),
+  }
+}
 
 export const MountConfigEditor = () => {
   const { updateConfig, addConfig, deleteConfig, nameExists } = useMountConfig()
@@ -41,33 +58,24 @@ export const MountConfigEditor = () => {
     handleSubmit,
     control,
     register,
-    unregister,
-    setValue,
-    getValues,
+
     reset: resetForm,
     formState: { errors, isSubmitting },
-  } = useForm<MountConfig>({
-    values: config,
+  } = useForm<MountConfigForm>({
+    values: toForm(config),
   })
 
-  const reRender = useImperitaveRender()
+  const { fields, append, remove } = useFieldArray({
+    control, // control props comes from useForm (optional: if you are using FormProvider)
+    name: 'patterns', // unique name for your Field Array
+  })
 
   const addPatternField = () => {
-    setValue('patterns', [...getValues().patterns, ''])
-    // rhf does not trigger re-render when array is updated, so we need to manually trigger it
-    // otherwise the new field will not be rendered
-    reRender()
+    append({ value: '' })
   }
 
   const removePatternField = (index: number) => {
-    setValue(
-      'patterns',
-      produce(getValues().patterns, (draft) => {
-        draft.splice(index, 1)
-      })
-    )
-    unregister(`patterns.${index}`)
-    reRender()
+    remove(index)
   }
 
   const reset = () => {
@@ -83,13 +91,15 @@ export const MountConfigEditor = () => {
     goBack()
   }
 
-  const handleSave = async (data: MountConfig) => {
+  const handleSave = async (data: MountConfigForm) => {
     if (data.patterns.length === 0) return
 
+    const toUpdate = fromForm(data)
+
     if (isEdit) {
-      await updateConfig(config.name, data)
+      await updateConfig(config.name, toUpdate)
     } else {
-      await addConfig(data)
+      await addConfig(toUpdate)
     }
 
     goBack()
@@ -119,12 +129,12 @@ export const MountConfigEditor = () => {
             URL Patterns
           </Typography>
 
-          {getValues().patterns.map((_, index, arr) => (
+          {fields.map((field, index, arr) => (
             <Stack
               direction="row"
               spacing={2}
               alignItems="center"
-              key={index}
+              key={field.id}
               sx={{ alignSelf: 'stretch' }}
             >
               <TextField
@@ -132,7 +142,9 @@ export const MountConfigEditor = () => {
                 error={!!errors.patterns?.[index]}
                 helperText={errors.patterns?.[index]?.message}
                 size="small"
-                {...register(`patterns.${index}`, { validate: validateOrigin })}
+                {...register(`patterns.${index}.value`, {
+                  validate: validateOrigin,
+                })}
                 fullWidth
                 required
               />
