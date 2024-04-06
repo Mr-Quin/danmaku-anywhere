@@ -9,10 +9,10 @@ const hexToRgba = (hex: string, alpha: number) => {
 
 const rippleKeyFrames = (hexColor: string) => keyframes`
 0% {
-  box-shadow: 0 0 0 0 ${hexToRgba(hexColor, 0.3)}, 0 0 0 10px ${hexToRgba(hexColor, 0.3)}, 0 0 0 20px ${hexToRgba(hexColor, 0.3)};
+  box-shadow: 0 0 0 0 ${hexToRgba(hexColor, 0.3)}, 0 0 0 5px ${hexToRgba(hexColor, 0.3)}, 0 0 0 10px ${hexToRgba(hexColor, 0.3)};
 }
 100% {
-  box-shadow: 0 0 0 10px ${hexToRgba(hexColor, 0.3)}, 0 0 0 20px ${hexToRgba(hexColor, 0.3)}, 0 0 0 30px ${hexToRgba(hexColor, 0)};
+  box-shadow: 0 0 0 5px ${hexToRgba(hexColor, 0.3)}, 0 0 0 10px ${hexToRgba(hexColor, 0.3)}, 0 0 0 20px ${hexToRgba(hexColor, 0)};
 }
 `
 
