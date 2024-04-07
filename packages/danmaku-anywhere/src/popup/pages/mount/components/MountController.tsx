@@ -24,7 +24,7 @@ export const MountController = () => {
     retry: false,
   })
 
-  const toast = useToast((state) => state.toast)
+  const toast = useToast.use.toast()
 
   const [canUnmount, setCanUnmount] = useState<boolean>(false)
 

@@ -1,10 +1,17 @@
 import { AddCircle, Download, Upload } from '@mui/icons-material'
-import { IconButton, Tooltip } from '@mui/material'
+import {
+  IconButton,
+  ListItemIcon,
+  ListItemText,
+  MenuItem,
+  Tooltip,
+} from '@mui/material'
 
 import { mountConfigListSchema } from '@/common/constants/mountConfig'
 import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 import { Logger } from '@/common/services/Logger'
 import { tryCatch } from '@/common/utils'
+import { DrilldownMenu } from '@/popup/component/DrilldownMenu'
 import { TabToolbar } from '@/popup/component/TabToolbar'
 
 const CAN_IMPORT = typeof window.showOpenFilePicker === 'function'
@@ -61,29 +68,27 @@ export const ConfigToolbar = ({ onAdd }: { onAdd: () => void }) => {
           <AddCircle />
         </Tooltip>
       </IconButton>
-      <IconButton
-        aria-label="add"
-        onClick={() => {
-          exportConfigs()
-        }}
-        color="primary"
-      >
-        <Tooltip title="Export">
-          <Download />
+      <DrilldownMenu ButtonProps={{ edge: 'end' }}>
+        <MenuItem onClick={exportConfigs}>
+          <ListItemIcon>
+            <Download />
+          </ListItemIcon>
+          <ListItemText>Export</ListItemText>
+        </MenuItem>
+        <Tooltip
+          title={CAN_IMPORT ? '' : 'Importing is not available in this browser'}
+        >
+          {/* A div is needed for the tooltip to show up for a disabled element  */}
+          <div>
+            <MenuItem onClick={handleImportConfigs} disabled={!CAN_IMPORT}>
+              <ListItemIcon>
+                <Upload />
+              </ListItemIcon>
+              <ListItemText>Import</ListItemText>
+            </MenuItem>
+          </div>
         </Tooltip>
-      </IconButton>
-      <IconButton
-        aria-label="add"
-        onClick={() => {
-          handleImportConfigs()
-        }}
-        disabled={!CAN_IMPORT}
-        color="primary"
-      >
-        <Tooltip title="Import">
-          <Upload />
-        </Tooltip>
-      </IconButton>
+      </DrilldownMenu>
     </TabToolbar>
   )
 }

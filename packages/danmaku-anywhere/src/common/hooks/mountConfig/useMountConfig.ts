@@ -48,7 +48,7 @@ export const useMountConfig = () => {
 
       const prevConfig = configs.find((item) => item.name === name)
 
-      if (!prevConfig) throw new Error('Config not found')
+      if (!prevConfig) throw new Error(`Config not found: "${name}"`)
 
       const newConfig = produce(prevConfig, (draft) => {
         Object.assign(draft, config)
@@ -73,7 +73,8 @@ export const useMountConfig = () => {
     const addConfig = async (config: MountConfig) => {
       const { data: configs, version } = options
 
-      if (nameExists(config.name)) throw new Error('Name already exists')
+      if (nameExists(config.name))
+        throw new Error(`Name already exists: "${config.name}"`)
 
       if (!(await isPermissionGranted(config.patterns))) {
         return
@@ -90,7 +91,7 @@ export const useMountConfig = () => {
 
       const index = configs.findIndex((item) => item.name === name)
 
-      if (index === -1) throw new Error('Config not found')
+      if (index === -1) throw new Error(`Config not found: "${name}"`)
 
       const toDelete = configs[index]
 

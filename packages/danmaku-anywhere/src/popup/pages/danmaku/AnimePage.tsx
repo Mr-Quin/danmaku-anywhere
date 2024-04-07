@@ -1,8 +1,9 @@
 import { useState } from 'react'
 
+import { DrilldownMenu } from '../../component/DrilldownMenu'
+
 import { DanmakuList } from './AnimeList'
 import { AnimeFilter } from './components/AnimeFilter'
-import { DrilldownMenu } from './components/DrilldownMenu'
 import { ExportButton } from './components/ExportButton'
 
 import { TabToolbar } from '@/popup/component/TabToolbar'
