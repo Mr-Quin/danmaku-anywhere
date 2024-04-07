@@ -2,6 +2,8 @@ import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/dandanplay-ap
 import { produce } from 'immer'
 import { create } from 'zustand'
 
+import type { MountConfig } from '@/common/constants/mountConfig'
+import { createMountConfig } from '@/common/constants/mountConfig'
 import { createSelectors } from '@/common/createSelectors'
 
 interface StoreState {
@@ -13,6 +15,12 @@ interface StoreState {
     setSelectedAnime: (anime: string) => void
     selectedEpisode: string
     setSelectedEpisode: (episode: string) => void
+  }
+  config: {
+    editingConfig: MountConfig
+    setEditingConfig: (config: MountConfig) => void
+    showConfirmDeleteDialog: boolean
+    setShowConfirmDeleteDialog: (show: boolean) => void
   }
 }
 
@@ -40,6 +48,24 @@ const useStoreBase = create<StoreState>((set) => ({
       set(
         produce((state) => {
           state.danmaku.selectedEpisode = episode
+        })
+      )
+    },
+  },
+  config: {
+    editingConfig: createMountConfig(''),
+    setEditingConfig: (config: MountConfig) => {
+      set(
+        produce((state) => {
+          state.config.editingConfig = config
+        })
+      )
+    },
+    showConfirmDeleteDialog: false,
+    setShowConfirmDeleteDialog: (show: boolean) => {
+      set(
+        produce((state) => {
+          state.config.showConfirmDeleteDialog = show
         })
       )
     },

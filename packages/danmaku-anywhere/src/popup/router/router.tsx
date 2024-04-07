@@ -1,7 +1,7 @@
 import { createHashRouter, Navigate } from 'react-router-dom'
 
+import { MountConfigEditor } from '../pages/config/components/MountConfigEditor'
 import { ConfigPage } from '../pages/config/ConfigPage'
-import { MountConfigEditor } from '../pages/config/editor/MountConfigEditor'
 import { AnimePage } from '../pages/danmaku/AnimePage'
 import { DanmakuPage } from '../pages/danmaku/DanmakuPage'
 import { EpisodePage } from '../pages/danmaku/EpisodePage'
@@ -39,11 +39,11 @@ export const router = createHashRouter([
         children: [
           {
             path: 'add',
-            Component: MountConfigEditor,
+            element: <MountConfigEditor mode="add" />,
           },
           {
             path: 'edit',
-            Component: MountConfigEditor,
+            element: <MountConfigEditor mode="edit" />,
           },
         ],
       },

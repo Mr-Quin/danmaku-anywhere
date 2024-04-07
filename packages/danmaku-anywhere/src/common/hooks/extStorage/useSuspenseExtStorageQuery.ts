@@ -13,11 +13,24 @@ import { toArray } from '@/common/utils'
 
 interface UseSuspenseExtStorageOptions<T> extends ExtStorageServiceOptions {
   queryOptions?: Omit<UseSuspenseQueryOptions<T>, 'queryKey' | 'queryFn'>
+  updateMutationOptions?: {
+    onSuccess?: () => void
+    onError?: (error: Error) => void
+  }
+  deleteMutationOptions?: {
+    onSuccess?: () => void
+    onError?: (error: Error) => void
+  }
 }
 
 export const useSuspenseExtStorageQuery = <T>(
   key: string | string[] | null,
-  { storageType = 'local', queryOptions }: UseSuspenseExtStorageOptions<T> = {}
+  {
+    storageType = 'local',
+    queryOptions,
+    updateMutationOptions,
+    deleteMutationOptions,
+  }: UseSuspenseExtStorageOptions<T> = {}
 ) => {
   const queryKey = ['ext-storage', storageType, ...toArray(key)]
 
@@ -58,6 +71,10 @@ export const useSuspenseExtStorageQuery = <T>(
     mutationFn: storageService.set.bind(storageService),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
+      updateMutationOptions?.onSuccess?.()
+    },
+    onError: (error) => {
+      updateMutationOptions?.onError?.(error)
     },
   })
 
@@ -65,6 +82,10 @@ export const useSuspenseExtStorageQuery = <T>(
     mutationFn: storageService.set.bind(storageService),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
+      deleteMutationOptions?.onSuccess?.()
+    },
+    onError: (error) => {
+      deleteMutationOptions?.onError?.(error)
     },
   })
 

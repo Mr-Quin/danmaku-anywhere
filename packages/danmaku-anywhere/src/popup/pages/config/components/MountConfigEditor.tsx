@@ -11,20 +11,17 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
-import { useOutletContext } from 'react-router-dom'
 
-import type { ConfigEditorContext } from '../ConfigPage'
-
-import { ConfigEditorToolbar } from './ConfigEditorToolbar'
-import { ConfirmDeleteDialog } from './ConfirmDeleteDialog'
-
+import { useToast } from '@/common/components/toast/toastStore'
 import type { MountConfig } from '@/common/constants/mountConfig'
 import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 import { validateOrigin } from '@/common/utils'
+import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
+import { useStore } from '@/popup/store'
 
 // react-hook-form does not allow primitive arrays, so we need to convert the array to an object
 type MountConfigForm = Omit<MountConfig, 'patterns'> & {
@@ -45,20 +42,22 @@ const fromForm = (form: MountConfigForm): MountConfig => {
   }
 }
 
-export const MountConfigEditor = () => {
-  const { updateConfig, addConfig, deleteConfig, nameExists } = useMountConfig()
+interface MountConfigEditorProps {
+  mode: 'add' | 'edit'
+}
 
-  const [dialogOpen, setDialogOpen] = useState(false)
+export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
+  const { updateConfig, addConfig, nameExists } = useMountConfig()
 
   const goBack = useGoBack()
 
-  const { isEdit, config } = useOutletContext<ConfigEditorContext>()
+  const isEdit = mode === 'edit'
+  const { editingConfig: config } = useStore.use.config()
 
   const {
     handleSubmit,
     control,
     register,
-
     reset: resetForm,
     formState: { errors, isSubmitting },
   } = useForm<MountConfigForm>({
@@ -66,9 +65,11 @@ export const MountConfigEditor = () => {
   })
 
   const { fields, append, remove } = useFieldArray({
-    control, // control props comes from useForm (optional: if you are using FormProvider)
-    name: 'patterns', // unique name for your Field Array
+    control,
+    name: 'patterns',
   })
+
+  const toast = useToast.use.toast()
 
   const addPatternField = () => {
     append({ value: '' })
@@ -78,32 +79,34 @@ export const MountConfigEditor = () => {
     remove(index)
   }
 
-  const reset = () => {
-    resetForm()
-  }
+  const { mutateAsync } = useMutation({
+    mutationFn: async (data: MountConfigForm) => {
+      if (data.patterns.length === 0) {
+        throw new Error('At least one pattern is required')
+      }
 
-  const handleDelete = async () => {
-    handleOpenDialog()
-  }
+      const toUpdate = fromForm(data)
 
-  const handleConfirmDelete = async () => {
-    await deleteConfig(config.name)
-    goBack()
-  }
+      if (isEdit) {
+        return updateConfig(config.name, toUpdate)
+      } else {
+        return addConfig(toUpdate)
+      }
+    },
+    onSuccess: () => {
+      if (isEdit) {
+        toast.success('Config updated')
+      } else {
+        toast.success('Config added')
+      }
+      goBack()
+    },
+    onError: (error) => {
+      toast.error(error.message)
+    },
+  })
 
-  const handleSave = async (data: MountConfigForm) => {
-    if (data.patterns.length === 0) return
-
-    const toUpdate = fromForm(data)
-
-    if (isEdit) {
-      await updateConfig(config.name, toUpdate)
-    } else {
-      await addConfig(toUpdate)
-    }
-
-    goBack()
-  }
+  const handleSave = async (data: MountConfigForm) => mutateAsync(data)
 
   const validateName = (name: string) => {
     if (isEdit) return
@@ -112,17 +115,11 @@ export const MountConfigEditor = () => {
     }
   }
 
-  const handleOpenDialog = () => {
-    setDialogOpen(true)
-  }
-
-  const handleCloseDialog = () => {
-    setDialogOpen(false)
-  }
-
   return (
     <OptionsPageLayout direction="left">
-      <ConfigEditorToolbar onDelete={handleDelete} />
+      <OptionsPageToolBar
+        title={isEdit ? `Edit ${config.name}` : 'Add Mount Config'}
+      />
       <Box px={2} mt={2} component="form" onSubmit={handleSubmit(handleSave)}>
         <Stack direction="column" spacing={2} alignItems="flex-start">
           <Typography variant="body2" color="textSecondary">
@@ -140,7 +137,7 @@ export const MountConfigEditor = () => {
               <TextField
                 label={`Pattern ${index + 1}`}
                 error={!!errors.patterns?.[index]}
-                helperText={errors.patterns?.[index]?.message}
+                helperText={errors.patterns?.[index]?.value?.message}
                 size="small"
                 {...register(`patterns.${index}.value`, {
                   validate: validateOrigin,
@@ -219,18 +216,16 @@ export const MountConfigEditor = () => {
             {!isEdit ? 'Add' : 'Save'} Config
           </LoadingButton>
           {isEdit && (
-            <Button variant="outlined" onClick={reset} disabled={isSubmitting}>
+            <Button
+              variant="outlined"
+              onClick={() => resetForm()}
+              disabled={isSubmitting}
+            >
               Reset
             </Button>
           )}
         </Stack>
       </Box>
-      <ConfirmDeleteDialog
-        name={config.name}
-        open={dialogOpen}
-        onClose={handleCloseDialog}
-        onDelete={handleConfirmDelete}
-      />
     </OptionsPageLayout>
   )
 }

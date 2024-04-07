@@ -1,4 +1,4 @@
-import { ContentCopy } from '@mui/icons-material'
+import { ContentCopy, Delete } from '@mui/icons-material'
 import {
   IconButton,
   List,
@@ -7,11 +7,11 @@ import {
   ListItemText,
   Tooltip,
 } from '@mui/material'
-import { useId } from 'react'
 
 import type { MountConfig } from '@/common/constants/mountConfig'
 import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
 import { tryCatch } from '@/common/utils'
+import { useStore } from '@/popup/store'
 
 export const MountConfigList = ({
   onEdit,
@@ -20,7 +20,7 @@ export const MountConfigList = ({
 }) => {
   const { configs } = useMountConfig()
 
-  const subheaderId = useId()
+  const { setShowConfirmDeleteDialog, setEditingConfig } = useStore.use.config()
 
   const copyToClipboard = async (config: MountConfig) => {
     tryCatch(() =>
@@ -28,24 +28,36 @@ export const MountConfigList = ({
     )
   }
 
+  const handleDelete = (config: MountConfig) => {
+    setShowConfirmDeleteDialog(true)
+    setEditingConfig(config)
+  }
+
   return (
-    <List aria-labelledby={subheaderId} dense disablePadding>
-      {configs?.map((config) => {
+    <List dense disablePadding>
+      {configs.map((config) => {
         return (
           <ListItem
             key={config.name}
             secondaryAction={
-              <IconButton
-                edge="end"
-                aria-label="go to url"
-                onClick={() => {
-                  copyToClipboard(config)
-                }}
-              >
-                <Tooltip title="Copy to clipboard">
-                  <ContentCopy />
+              <>
+                <Tooltip title="Delete">
+                  <IconButton onClick={() => handleDelete(config)}>
+                    <Delete />
+                  </IconButton>
                 </Tooltip>
-              </IconButton>
+                <Tooltip title="Copy to clipboard">
+                  <IconButton
+                    edge="end"
+                    aria-label="go to url"
+                    onClick={() => {
+                      copyToClipboard(config)
+                    }}
+                  >
+                    <ContentCopy />
+                  </IconButton>
+                </Tooltip>
+              </>
             }
             disablePadding
           >

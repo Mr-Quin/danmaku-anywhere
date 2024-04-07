@@ -1,46 +1,28 @@
-import { useState } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 
+import { ConfirmDeleteDialog } from './components/ConfirmDeleteDialog'
 import { ConfigToolbar } from './ConfigToolbar'
 import { MountConfigList } from './MountConfigList'
 
 import type { MountConfig } from '@/common/constants/mountConfig'
 import { createMountConfig } from '@/common/constants/mountConfig'
 import { TabLayout } from '@/popup/layout/TabLayout'
-
-export interface ConfigEditorContext {
-  config: MountConfig
-  isEdit: boolean
-}
+import { useStore } from '@/popup/store'
 
 export const ConfigPage = () => {
-  const [editorContext, setEditorContext] = useState<ConfigEditorContext>(
-    () => {
-      return {
-        config: createMountConfig(''),
-        isEdit: false,
-      }
-    }
-  )
-
+  const { setEditingConfig } = useStore.use.config()
   const navigatge = useNavigate()
 
   const handleEditConfig = (config: MountConfig) => {
     navigatge('edit')
-    setEditorContext({
-      config,
-      isEdit: true,
-    })
+    setEditingConfig(config)
   }
 
   const handleAddConfig = () => {
     navigatge('add')
-    setEditorContext({
-      config: {
-        ...createMountConfig(''),
-        mediaQuery: 'video',
-      },
-      isEdit: false,
+    setEditingConfig({
+      ...createMountConfig(''),
+      mediaQuery: 'video',
     })
   }
 
@@ -48,7 +30,8 @@ export const ConfigPage = () => {
     <TabLayout>
       <ConfigToolbar onAdd={handleAddConfig} />
       <MountConfigList onEdit={handleEditConfig} />
-      <Outlet context={editorContext} />
+      <Outlet />
+      <ConfirmDeleteDialog />
     </TabLayout>
   )
 }
