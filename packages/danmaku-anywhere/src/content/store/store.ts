@@ -48,6 +48,7 @@ interface StoreState {
    * When true, automatic danmaku fetching is disabled
    */
   manual: boolean
+  toggleManualMode: (manual: boolean) => void
   turnOnManualMode: (
     comments: DanDanComment[],
     danmakuMeta: DanmakuMeta
@@ -78,6 +79,7 @@ export const useStore = create<StoreState>((set, get) => ({
   setConfig: (config) => set({ config }),
 
   manual: false,
+  toggleManualMode: (manual) => set({ manual }),
   turnOnManualMode: (comments, danmakuMeta) => {
     get().resetMediaState()
     set({ manual: true, comments, danmakuMeta })

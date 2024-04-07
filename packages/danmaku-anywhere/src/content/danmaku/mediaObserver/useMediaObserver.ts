@@ -5,7 +5,6 @@ import { useShallow } from 'zustand/react/shallow'
 import { PopupTab, usePopup } from '../../store/popupStore'
 import { useStore } from '../../store/store'
 import type { MediaInfo } from '../integration/MediaObserver'
-import { observersMap } from '../integration/observers'
 
 import { useToast } from '@/common/components/toast/toastStore'
 import { chromeRpcClient } from '@/common/rpc/client'
@@ -26,8 +25,6 @@ export const useMediaObserver = () => {
     setPlaybackStatus,
     activeObserver,
     setDanmakuMeta,
-    setObserver,
-    unsetObserver,
     setComments,
     resetMediaState,
   } = useStore(useShallow((state) => state))
@@ -38,22 +35,6 @@ export const useMediaObserver = () => {
     mutationFn: chromeRpcClient.titleMappingSet,
     throwOnError: false,
   })
-
-  useEffect(() => {
-    // when config changes, try to find a matching observer
-    const Observer = observersMap[config.name]
-
-    if (!Observer) return // no matching observer found
-
-    toast.info(`Using integration: ${config.name}`)
-    Logger.debug(`Using integration: ${config.name}`)
-
-    const obs = new Observer()
-
-    setObserver(config.name, obs)
-
-    return () => unsetObserver()
-  }, [config])
 
   useEffect(() => {
     if (!activeObserver) return
