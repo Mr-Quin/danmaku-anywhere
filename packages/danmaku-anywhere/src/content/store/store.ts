@@ -55,6 +55,11 @@ interface StoreState {
    * Includes comments, mediaInfo, and danmakuMeta
    */
   resetMediaState: () => void
+
+  /**
+   * Uses the mediaInfo and danmakuMeta to get the name
+   */
+  getAnimeName: () => string
 }
 
 export const useStore = create<StoreState>((set, get) => ({
@@ -89,4 +94,16 @@ export const useStore = create<StoreState>((set, get) => ({
       mediaInfo: undefined,
       danmakuMeta: undefined,
     }),
+
+  getAnimeName: () => {
+    const { mediaInfo, danmakuMeta } = get()
+    if (mediaInfo) return mediaInfo.toString()
+    if (danmakuMeta) {
+      if (danmakuMeta.episodeTitle) {
+        return `${danmakuMeta.animeTitle} - ${danmakuMeta.episodeTitle}`
+      }
+      return danmakuMeta.animeTitle
+    }
+    return 'Unknown anime'
+  },
 }))
