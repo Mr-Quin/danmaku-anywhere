@@ -12,3 +12,9 @@ export const useDanmakuQuerySuspense = (episodeId: number) => {
 
   return query
 }
+
+useDanmakuQuerySuspense.queryKey = (episodeId: number) => [
+  'danmaku',
+  'getByEpisodeId',
+  episodeId,
+]

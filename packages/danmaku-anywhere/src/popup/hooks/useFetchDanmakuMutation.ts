@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { useAllDanmakuQuerySuspense } from './useAllDanmakuQuerySuspense'
+import { useDanmakuQuerySuspense } from './useDanmakuQuerySuspense'
 
 import { chromeRpcClient } from '@/common/rpc/client'
 
@@ -15,9 +16,12 @@ export const useFetchDanmakuMutation = () => {
 
   const mutation = useMutation({
     mutationFn: chromeRpcClient.danmakuFetch,
-    onSuccess: () => {
+    onSuccess: (_, v) => {
       queryClient.invalidateQueries({
         queryKey: useAllDanmakuQuerySuspense.queryKey,
+      })
+      queryClient.invalidateQueries({
+        queryKey: useDanmakuQuerySuspense.queryKey(v.data.episodeId),
       })
     },
   })
