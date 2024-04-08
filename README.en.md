@@ -15,16 +15,17 @@ For the userscript plex-danmaku, see [here](./packages/plex-danmaku).
 
 [Wikipedia page](https://en.wikipedia.org/wiki/Danmaku_subtitling)
 
-You know Twitch chat or Youtube Live chat, where scrolling comments are displayed next to the video?
+You know Twitch chat or YouTube Live chat, where scrolling comments are displayed next to the video?
 
 Imagine that, but the comments are overlaid on top of the video and flying across the screen.
 
-## Features 🚧
+## Features
 
 - Search for danmaku by anime
 - Inject danmaku into any video with customizable configuration
 - Customizable danmaku style
 - Cache danmaku locally and export to file
+- Automatically search for danmaku for the currently playing video🚧
 
 All danmaku is sourced from [弹弹play](https://www.dandanplay.com/)
 
@@ -44,7 +45,10 @@ Crunchyroll
 
 Download the [latest release](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest)
 
-Extract the archive to a folder. This folder should not be deleted except to uninstall the extension.
+Extract the archive to a folder.
+
+> [!IMPORTANT]
+> This folder should not be deleted except to uninstall the extension.
 
 To update the extension, extract the newer release to the same folder and overwrite everything.
 
@@ -57,59 +61,63 @@ To update the extension, extract the newer release to the same folder and overwr
 
 ### Firefox
 
-The extension has not been tested on Firefox at all so it may or may not work.
+The extension has not been tested on Firefox at all, so it may or may not work.
 
-However, Firefox support is planned for the 1.0.0 release.
+Firefox support is planned for the 1.0.0 release.
 
 ## Usage
 
-This extension offers two operating modes:
+This extension has two operating modes:
 
-### Manual mode:
-
-- Works on any website.
-- Requires you to search for danmaku by show.
-- Manually add/remove (mount/unmount) danmaku when switching shows/episodes.
-
-### Automatic mode:
-
-- Currently available only on websites with specific integration (like [Plex](https://www.plex.tv/), including self-hosted installations).
-- Automates all the steps involved in manual mode.
-
-## Getting started
+- Manual Mode: Requires you to search for danmaku and manually mount them. Works on every website.
+- Automatic Mode: Automatically searches for and mounts danmaku. Requires integration with each supported website.
+  Currently only works on [Plex](https://www.plex.tv/).
 
 ### 1. Configure Where to Load Danmaku (Mount Config)
 
+> [!IMPORTANT]
+> When enabling a mount config for a website, the extension will ask for permission to the site. You can revoke the
+> permission by deleting the mount config, or by deleting it in the options page.
+
 - In the extension's popup window, go to the "Config" tab.
-- Option A: If your website is in the predefined list, enable the corresponding entry.
-- Option B: If your website isn't listed:
+- If your website is in the predefined list, enable it.
+- If your website isn't listed:
   - Click "add" to create a new entry.
-  - Patterns: Enter the website's match pattern (e.g., `https://your.website.com/*`). [Learn more about match patterns](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns).
-  - Video query: Enter the video player's [selector](https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector) (often just `video`).
-  - Name your config and enable it.
+  - Patterns: Enter the website's match pattern (
+    e.g., `https://your.website.com/*`). [Learn more about match patterns](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns).
+    For websites using `iframe` for its video player, the match pattern should be based on the `iframes`'s `src`
+    attribute.
+  - Video query: Enter the video
+    player's [selector](https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector) (often just `video`,
+    unless the website has multiple video players).
+  - Name: Enter a unique name for the config. The name cannot be changed later, but you can delete and recreate the
+    config with a different name.
 
-### 2. Grant Permissions
+### 2. Search for danmaku (Manual Mode or Ad-Hoc Use)
 
-- The extension will ask for permission to work on your chosen website. This is essential for functionality.
-- You can revoke permission later by deleting the config or via the extension's Options page.
+> [!NOTE]
+> For most shows, searching in English will not work. Trying using the Japanese or Chinese title.
 
-### 3. Search and Add Danmaku (Manual Mode or Ad-Hoc Use)
+- In the extension's popup window, go to the "Search" tab.
+- Enter the title and click on Search. (The Episode field should usually be left empty).
+- In the results list, expand a result and click on each episode to download danmaku for that episode.
 
-> [!TIP]
-> Automatic mode does this for you
+### 3. Mount danmaku (Manual Mode or Ad-Hoc Use)
 
-- Under the "Search" tab, find your desired anime by title.
-- Click the episodes you want danmaku for. (Clicking an episode with existing danmaku will update it.)
-- Select an episode in the Episode Selector, then click "Mount" to overlay danmaku on the video.
-- Use "Unmount" to remove danmaku.
+> [!NOTE]
+> You should be able to see the extension's floating button (a blue circle) on the page. If not, check if your mount config is correct before proceeding
 
-If the extension is working, you should see a floating button show up on the website.
+- In the extension's popup window, go to the "Mount" tab.
+- Select an episode in the dropdown selector, then click "Mount" to mount it over the video
+- In manual mode, you'll need to repeat the steps above when the episode changes
 
 ### Turning off the extension
 
-- Global 'Enabled' toggle: Turns off the extension across all pages. This option is also available in the right-click context menu.
+- Global 'Enabled' toggle: Turns off the extension across all pages. This option is also available in the right-click
+  context menu.
 - 'Show Danmaku' toggle (Styles tab): Visually hides danmaku.
-- 'Enable' checkbox (Mount Config): Complete removes the extension from the configured page. Requires a page refresh to take effect.
+- 'Enable' checkbox (Mount Config): Complete removes the extension from the configured page. Requires a page refresh to
+  take effect.
 
 ## Development
 
