@@ -20,7 +20,11 @@ root.style.setProperty('position', 'absolute', 'important')
 root.style.setProperty('z-index', '2147483647', 'important')
 root.style.setProperty('left', '0', 'important')
 root.style.setProperty('top', '0', 'important')
+
+// make the root element a popover so it can be shown on top of everything
+root.setAttribute('popover', 'manual')
 document.body.append(root)
+root.showPopover()
 
 // create shadow dom
 const shadowContainer = root.attachShadow({ mode: 'closed' })

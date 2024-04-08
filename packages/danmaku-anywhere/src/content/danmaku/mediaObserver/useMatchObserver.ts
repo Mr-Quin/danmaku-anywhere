@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useStore } from '../../store/store'
+import type { MediaObserver } from '../integration/MediaObserver'
 import { observersMap } from '../integration/observers'
 
 import { useToast } from '@/common/components/toast/toastStore'
@@ -12,8 +13,8 @@ export const useMatchObserver = () => {
 
   const toast = useToast.use.toast()
 
-  const setObserver = useStore((state) => state.setObserver)
-  const unsetObserver = useStore((state) => state.unsetObserver)
+  const [observer, setObserver] = useState<MediaObserver>()
+
   const toggleManualMode = useStore((state) => state.toggleManualMode)
 
   useEffect(() => {
@@ -32,8 +33,8 @@ export const useMatchObserver = () => {
 
     const obs = new Observer()
 
-    setObserver(config.name, obs)
-
-    return () => unsetObserver()
+    setObserver(obs)
   }, [config])
+
+  return observer
 }

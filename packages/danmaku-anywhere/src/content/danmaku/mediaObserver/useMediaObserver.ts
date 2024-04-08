@@ -6,6 +6,8 @@ import { PopupTab, usePopup } from '../../store/popupStore'
 import { useStore } from '../../store/store'
 import type { MediaInfo } from '../integration/MediaObserver'
 
+import { useMatchObserver } from './useMatchObserver'
+
 import { useToast } from '@/common/components/toast/toastStore'
 import { chromeRpcClient } from '@/common/rpc/client'
 import { Logger } from '@/common/services/Logger'
@@ -18,12 +20,13 @@ export const useMediaObserver = () => {
   const { toast } = useToast()
   const { open } = usePopup()
 
+  const activeObserver = useMatchObserver()
+
   const {
     mediaInfo,
     setMediaInfo,
     playbackStatus,
     setPlaybackStatus,
-    activeObserver,
     setDanmakuMeta,
     setComments,
     resetMediaState,
