@@ -2,12 +2,10 @@ import type { DanDanComment } from '@danmaku-anywhere/dandanplay-api'
 import { create } from 'zustand'
 
 import type {
-  MediaObserver,
   MediaInfo,
   PlaybackStatus,
 } from '../danmaku/integration/MediaObserver'
 
-import type { MountConfig } from '@/common/constants/mountConfig'
 import type { DanmakuMeta } from '@/common/db/db'
 
 interface StoreState {
@@ -16,14 +14,6 @@ interface StoreState {
    */
   comments: DanDanComment[]
   setComments: (comments: DanDanComment[]) => void
-
-  /**
-   * Mount configuration for the current page
-   * Initialized after the content script is injected,
-   * usage is only safe after initial data has been loaded
-   */
-  config: MountConfig
-  setConfig: (config: MountConfig) => void
 
   /**
    * The current video playback status
@@ -58,10 +48,7 @@ interface StoreState {
   /**
    * The active integration observer for pages with integration
    */
-  activeObserver?: MediaObserver
   integration?: string
-  setObserver: (name: string, observer: MediaObserver) => void
-  unsetObserver: () => void
 
   /**
    * Reset media related state
@@ -73,10 +60,6 @@ interface StoreState {
 export const useStore = create<StoreState>((set, get) => ({
   comments: [],
   setComments: (comments) => set({ comments }),
-
-  // Hack so we don't have to check for undefined
-  config: {} as MountConfig,
-  setConfig: (config) => set({ config }),
 
   manual: false,
   toggleManualMode: (manual) => set({ manual }),
@@ -98,12 +81,7 @@ export const useStore = create<StoreState>((set, get) => ({
   danmakuMeta: undefined,
   setDanmakuMeta: (danmakuMeta) => set({ danmakuMeta }),
 
-  activeObserver: undefined,
   integration: undefined,
-  setObserver: (name, observer) =>
-    set({ integration: name, activeObserver: observer }),
-  unsetObserver: () =>
-    set({ integration: undefined, activeObserver: undefined }),
 
   resetMediaState: () =>
     set({

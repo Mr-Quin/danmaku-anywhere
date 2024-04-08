@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 
-import { useMediaElementStore } from '../store/mediaElementStore'
+import { useMediaElementStore } from '../../store/mediaElementStore'
 
 export const useContainerNode = () => {
   const containerNode = useRef<HTMLDivElement>(null)

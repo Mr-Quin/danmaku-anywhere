@@ -5,6 +5,9 @@ import type {
 
 import { useSuspenseExtStorageQuery } from './extStorage/useSuspenseExtStorageQuery'
 
+/**
+ * Suspends
+ */
 export const useDanmakuOptions = () => {
   const store = useSuspenseExtStorageQuery<DanmakuOptionsOptions>(
     'danmakuOptions',

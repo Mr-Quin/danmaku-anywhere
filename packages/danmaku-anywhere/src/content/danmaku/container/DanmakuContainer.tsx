@@ -1,10 +1,11 @@
 import { Box } from '@mui/material'
 import { useEffect, useState } from 'react'
 
-import { useActiveConfig } from '../hooks/useActiveConfig'
-import { useRect } from '../hooks/useRect'
+import { useActiveConfig } from '../../hooks/useActiveConfig'
+import { useRect } from '../../hooks/useRect'
 
 import { useContainerNode } from './useContainerNode'
+import { useFullScreenElement } from './useFullScreenElement'
 import { useVideoNode } from './useVideoNode'
 
 import type { SafeZones } from '@/common/constants/danmakuOptions'
@@ -28,6 +29,7 @@ const calculatePaddings = (safeZones: SafeZones, rect?: DOMRectReadOnly) => {
 
 export const DanmakuContainer = () => {
   const { data: options } = useDanmakuOptions()
+
   const [paddings, setPaddings] = useState({
     paddingTop: '0px',
     paddingBottom: '0px',
@@ -38,9 +40,24 @@ export const DanmakuContainer = () => {
   const videoNode = useVideoNode(config.mediaQuery)
 
   const rect = useRect(videoNode)
+
   const ref = useContainerNode()
 
   const danmakuEngine = useDanmakuEngine()
+
+  const fullScreenElement = useFullScreenElement()
+
+  useEffect(() => {
+    /**
+     * When the video enters full screen, hide then show the popover
+     * so that it will appear on top of the full screen element,
+     * since the last element in the top layer is shown on top
+     */
+    if (fullScreenElement) {
+      document.getElementById('danmaku-anywhere')?.hidePopover()
+      document.getElementById('danmaku-anywhere')?.showPopover()
+    }
+  }, [fullScreenElement])
 
   useEffect(() => {
     if (danmakuEngine.created) {

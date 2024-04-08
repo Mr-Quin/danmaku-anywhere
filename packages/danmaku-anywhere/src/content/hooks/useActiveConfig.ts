@@ -1,5 +1,14 @@
-import { useStore } from '../store/store'
+import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMatchMountConfig'
 
+/**
+ * Suspends
+ */
 export const useActiveConfig = () => {
-  return useStore((state) => state.config)
+  const config = useMatchMountConfig(window.location.href)
+
+  if (!config) {
+    throw new Error('No active config found, this should not happen.')
+  }
+
+  return config
 }

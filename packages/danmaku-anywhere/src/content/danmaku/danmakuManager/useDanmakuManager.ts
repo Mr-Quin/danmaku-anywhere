@@ -16,38 +16,72 @@ export const useDanmakuManager = () => {
   const { toast } = useToast()
   const { videoNode, containerNode } = useMediaElementStore()
 
-  const { comments, mediaInfo, playbackStatus } = useStore(
-    useShallow(({ comments, mediaInfo, playbackStatus }) => {
-      return { comments, mediaInfo, playbackStatus }
+  const { comments, mediaInfo, playbackStatus, manual } = useStore(
+    useShallow(({ comments, mediaInfo, playbackStatus, manual }) => {
+      return { comments, mediaInfo, playbackStatus, manual }
     })
   )
 
   useEffect(() => {
+    // recreate danmaku when containerNode or videoNode changes
+    if (containerNode && videoNode && danmakuEngine.created) {
+      Logger.debug('Container changed, reparenting danmaku')
+      danmakuEngine.create(containerNode, videoNode, comments, options)
+    }
+  }, [containerNode])
+
+  // handle manual mode
+  useEffect(() => {
+    if (!manual) {
+      // when leaving manual mode, destroy the engine
+      return () => danmakuEngine.destroy()
+    }
+
+    // if media is not ready, do nothing
+    if (!containerNode || !videoNode) return
+
+    // create or recreate danmaku when comments change
+    if (comments.length > 0) {
+      const meta = useStore.getState().danmakuMeta
+      Logger.debug('Creating manual danmaku')
+      toast.success(
+        `Manual Danmaku mounted: ${
+          meta ? `${meta.animeTitle} - ${meta.episodeTitle ?? ''}` : ''
+        } (${comments.length})`
+      )
+
+      danmakuEngine.create(containerNode, videoNode, comments, options)
+    }
+  }, [manual, videoNode, containerNode, comments])
+
+  // handle automatic mode
+  useEffect(() => {
+    if (manual) {
+      return
+    }
+
     // if danmaku is created, destroy it when status is stopped
-    if (danmakuEngine.created) {
-      if (playbackStatus === 'stopped' || comments.length === 0) {
-        Logger.debug('Destroying danmaku')
-        danmakuEngine.destroy()
-      }
+    if (
+      (playbackStatus === 'stopped' || comments.length === 0) &&
+      danmakuEngine.created
+    ) {
+      Logger.debug('Destroying danmaku')
+      danmakuEngine.destroy()
       return
     }
 
     // if media is not ready, do nothing
     if (!containerNode || !videoNode) return
 
-    // if danmaku is not created, create it when status is playing
+    // create or recreate danmaku when status is playing
     if (playbackStatus === 'playing' && comments.length > 0) {
-      Logger.debug('Creating danmaku', {
-        container: containerNode,
-        node: videoNode,
-        engine: danmakuEngine,
-      })
+      Logger.debug('Creating danmaku')
       toast.success(
         `Danmaku mounted: ${mediaInfo?.toString() ?? ''} (${comments.length})`
       )
       danmakuEngine.create(containerNode, videoNode, comments, options)
     }
-  }, [videoNode, comments, options, playbackStatus])
+  }, [manual, videoNode, containerNode, comments, options, playbackStatus])
 
   useEffect(() => {
     if (!danmakuEngine.created) return
