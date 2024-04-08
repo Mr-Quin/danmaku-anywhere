@@ -89,7 +89,6 @@ export const HiddenFab = ({ onOpen, isOpen, ...rest }: HiddenFabProps) => {
   const [showFab, setShowFab] = useState(true)
 
   useEffect(() => {
-    console.log(mouseLocation)
     if (!fabRef.current) return
 
     if (!manual) {
