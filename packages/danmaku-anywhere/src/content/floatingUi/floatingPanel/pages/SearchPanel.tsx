@@ -20,15 +20,15 @@ import type { KeyboardEvent } from 'react'
 import { Suspense, useEffect, useRef, useState, useTransition } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
-import { useFetchDanmakuMutation } from '../../hooks/useFetchDanmakuMutation'
-import { usePopup } from '../../store/popupStore'
-import { useStore } from '../../store/store'
+import { usePopup } from '../../../store/popupStore'
+import { useStore } from '../../../store/store'
 
 import { BaseEpisodeListItem } from '@/common/components/animeList/BaseEpisodeListItem'
 import { SearchResultList } from '@/common/components/animeList/SearchResultList'
 import { Center } from '@/common/components/Center'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import type { DanmakuMeta } from '@/common/db/db'
+import { useFetchDanmakuMutation } from '@/content/common/hooks/useFetchDanmakuMutation'
 
 export const SearchPanel = () => {
   const {

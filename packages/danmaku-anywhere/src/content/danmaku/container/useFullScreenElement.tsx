@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react'
 
-import { useRect } from '../../hooks/useRect'
 import { useMediaElementStore } from '../../store/mediaElementStore'
+
+import { useRect } from '@/content/common/hooks/useRect'
 
 export const useFullScreenElement = () => {
   const prevFullScreenElement = useRef<Element | null>(null)

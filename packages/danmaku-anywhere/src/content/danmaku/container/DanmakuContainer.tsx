@@ -1,15 +1,14 @@
 import { Box } from '@mui/material'
 import { useEffect, useState } from 'react'
 
-import { useActiveConfig } from '../../hooks/useActiveConfig'
-import { useRect } from '../../hooks/useRect'
-
 import { useContainerNode } from './useContainerNode'
 import { useFullScreenElement } from './useFullScreenElement'
 import { useVideoNode } from './useVideoNode'
 
 import type { SafeZones } from '@/common/constants/danmakuOptions'
 import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
+import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
+import { useRect } from '@/content/common/hooks/useRect'
 import { useDanmakuEngine } from '@/content/store/danmakuEngineStore'
 
 // returns a padding object for the safe zone

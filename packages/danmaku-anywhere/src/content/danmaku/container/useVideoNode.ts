@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
 
-import { useNodeMonitor } from '../../hooks/useNodeMonitor'
 import { useMediaElementStore } from '../../store/mediaElementStore'
 
 import { useToast } from '@/common/components/toast/toastStore'
+import { useNodeMonitor } from '@/content/common/hooks/useNodeMonitor'
 
 export const useVideoNode = (mediaQuery: string) => {
   const videoNode = useNodeMonitor<HTMLVideoElement>(mediaQuery, {

@@ -12,7 +12,7 @@ import { useToast } from '@/common/components/toast/toastStore'
 import { chromeRpcClient } from '@/common/rpc/client'
 import { Logger } from '@/common/services/Logger'
 import { getEpisodeId, tryCatch } from '@/common/utils'
-import { useActiveConfig } from '@/content/hooks/useActiveConfig'
+import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
 
 export const useMediaObserver = () => {
   const config = useActiveConfig()

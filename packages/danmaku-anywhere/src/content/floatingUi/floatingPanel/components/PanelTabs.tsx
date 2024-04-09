@@ -1,6 +1,6 @@
 import { Tabs, Tab } from '@mui/material'
 
-import { PopupTab, usePopup } from '../../store/popupStore'
+import { PopupTab, usePopup } from '../../../store/popupStore'
 
 export const PanelTabs = () => {
   const { tab, setTab } = usePopup()
