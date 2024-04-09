@@ -21,11 +21,11 @@ import {
 } from '@mui/material'
 import { useRef, useState } from 'react'
 
-import { useFetchDanmakuMutation } from '../../hooks/useFetchDanmakuMutation'
-import { usePopup } from '../../store/popupStore'
-import { useStore } from '../../store/store'
+import { usePopup } from '../../../store/popupStore'
+import { useStore } from '../../../store/store'
 
 import { AnimeTypeIcon } from '@/common/components/animeList/AnimeTypeIcon'
+import { useFetchDanmakuMutation } from '@/content/common/hooks/useFetchDanmakuMutation'
 
 export const SelectorPanel = () => {
   const selectorBoxRef = useRef<HTMLDivElement>()

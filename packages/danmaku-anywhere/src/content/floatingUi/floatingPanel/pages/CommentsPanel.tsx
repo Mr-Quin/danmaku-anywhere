@@ -8,12 +8,12 @@ import {
   Typography,
 } from '@mui/material'
 
-import { useStore } from '../../store/store'
+import { useStore } from '../../../store/store'
 
 import { CommentsTable } from '@/common/components/CommentsTable'
 import { useToast } from '@/common/components/toast/toastStore'
 import { tryCatch } from '@/common/utils'
-import { useFetchDanmakuMutation } from '@/content/hooks/useFetchDanmakuMutation'
+import { useFetchDanmakuMutation } from '@/content/common/hooks/useFetchDanmakuMutation'
 
 export const CommentsPanel = () => {
   const { comments, danmakuMeta } = useStore()

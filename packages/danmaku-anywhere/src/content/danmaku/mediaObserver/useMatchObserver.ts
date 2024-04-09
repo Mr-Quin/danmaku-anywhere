@@ -6,7 +6,7 @@ import { observersMap } from '../integration/observers'
 
 import { useToast } from '@/common/components/toast/toastStore'
 import { Logger } from '@/common/services/Logger'
-import { useActiveConfig } from '@/content/hooks/useActiveConfig'
+import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
 
 export const useMatchObserver = () => {
   const config = useActiveConfig()

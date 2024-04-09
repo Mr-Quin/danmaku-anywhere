@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 
-import { useStore } from '../store/store'
+import { useStore } from '../../store/store'
 
 import type { DanmakuMeta, TitleMapping } from '@/common/db/db'
 import { chromeRpcClient } from '@/common/rpc/client'

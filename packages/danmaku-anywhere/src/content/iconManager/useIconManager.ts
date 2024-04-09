@@ -1,8 +1,7 @@
 import { useEffect } from 'react'
 
-import { useActiveConfig } from '../hooks/useActiveConfig'
-
 import { chromeRpcClient } from '@/common/rpc/client'
+import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
 
 export const useIconManager = () => {
   const config = useActiveConfig()
