@@ -22,7 +22,7 @@ import { useShowFab } from './hooks/useShowFab'
 
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { useMergeRefs } from '@/common/hooks/useMergeRefs'
-import { createVirtualElement } from '@/common/utils'
+import { createVirtualElement } from '@/common/utils/utils'
 import { useRefreshComments } from '@/content/common/hooks/useRefreshComments'
 import { useStore } from '@/content/store/store'
 

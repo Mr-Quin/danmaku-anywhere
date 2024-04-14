@@ -1,4 +1,4 @@
-import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMatchMountConfig'
+import { useMatchMountConfig } from '@/common/options/mountConfig/useMatchMountConfig'
 
 /**
  * Suspends

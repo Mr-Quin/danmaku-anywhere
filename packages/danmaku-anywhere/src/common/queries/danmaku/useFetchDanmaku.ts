@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { useAllDanmakuQuerySuspense } from '../../common/hooks/useAllDanmakuQuerySuspense'
+import { useAllDanmakuQuerySuspense } from './useAllDanmakuQuerySuspense'
 
-import { useDanmakuQuerySuspense } from '@/common/hooks/useDanmakuQuerySuspense'
+import { useDanmakuQuerySuspense } from '@/common/queries/danmaku/useDanmakuQuerySuspense'
 import { chromeRpcClient } from '@/common/rpc/client'
 
 /**
@@ -11,7 +11,7 @@ import { chromeRpcClient } from '@/common/rpc/client'
  *
  * This is a mutation because it updates the cache
  */
-export const useFetchDanmakuMutation = () => {
+export const useFetchDanmaku = () => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({

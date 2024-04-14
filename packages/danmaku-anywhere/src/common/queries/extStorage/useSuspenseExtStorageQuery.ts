@@ -1,19 +1,36 @@
-import type { UseQueryOptions } from '@tanstack/react-query'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { UseSuspenseQueryOptions } from '@tanstack/react-query'
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query'
 import { useEffect, useMemo } from 'react'
 
 import type { ExtStorageServiceOptions } from '../../services/ExtStorageService'
 import { ExtStorageService } from '../../services/ExtStorageService'
 
-import { toArray } from '@/common/utils'
+import { toArray } from '@/common/utils/utils'
 
-interface UseExtStorageOptions<T> extends ExtStorageServiceOptions {
-  queryOptions?: Omit<UseQueryOptions<T>, 'queryKey' | 'queryFn'>
+interface UseSuspenseExtStorageOptions<T> extends ExtStorageServiceOptions {
+  queryOptions?: Omit<UseSuspenseQueryOptions<T>, 'queryKey' | 'queryFn'>
+  updateMutationOptions?: {
+    onSuccess?: () => void
+    onError?: (error: Error) => void
+  }
+  deleteMutationOptions?: {
+    onSuccess?: () => void
+    onError?: (error: Error) => void
+  }
 }
 
-export const useExtStorage = <T>(
+export const useSuspenseExtStorageQuery = <T>(
   key: string | string[] | null,
-  { storageType = 'local', queryOptions }: UseExtStorageOptions<T> = {}
+  {
+    storageType = 'local',
+    queryOptions,
+    updateMutationOptions,
+    deleteMutationOptions,
+  }: UseSuspenseExtStorageOptions<T> = {}
 ) => {
   const queryKey = ['ext-storage', storageType, ...toArray(key)]
 
@@ -35,7 +52,7 @@ export const useExtStorage = <T>(
     }
   }, [storageService, queryClient])
 
-  const query = useQuery({
+  const query = useSuspenseQuery({
     queryKey,
     queryFn: async () => {
       const res = await storageService.read()
@@ -54,6 +71,10 @@ export const useExtStorage = <T>(
     mutationFn: storageService.set.bind(storageService),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
+      updateMutationOptions?.onSuccess?.()
+    },
+    onError: (error) => {
+      updateMutationOptions?.onError?.(error)
     },
   })
 
@@ -61,12 +82,12 @@ export const useExtStorage = <T>(
     mutationFn: storageService.set.bind(storageService),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
+      deleteMutationOptions?.onSuccess?.()
+    },
+    onError: (error) => {
+      deleteMutationOptions?.onError?.(error)
     },
   })
 
-  return {
-    ...query,
-    update: updateMutation,
-    remove: deleteMutation,
-  }
+  return { ...query, update: updateMutation, remove: deleteMutation }
 }

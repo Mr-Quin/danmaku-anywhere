@@ -79,6 +79,51 @@ export class SyncOptionsService<T extends OptionsSchema> {
     await this.storageService.set(upgradedOptions)
   }
 
+  async get(): Promise<T> {
+    const options = await this.storageService.read()
+    if (!options) return this.defaultOptions
+    return options.data
+  }
+
+  async set(data: T, version?: number) {
+    if (!version) {
+      const options = await this.storageService.read()
+      if (!options) {
+        throw new Error('Cannot set options without existing options')
+      }
+      version = options.version
+    }
+    return this.storageService.set({
+      data,
+      version,
+    })
+  }
+
+  // allow partial update
+  async update(data: Partial<T>) {
+    const options = await this.get()
+    return this.set({ ...options, ...data })
+  }
+
+  // reset options to default
+  async reset() {
+    return this.storageService.set({
+      data: this.defaultOptions,
+      version: this.#getLatestVersion().version, // TODO: this is a bug, refactor this service to separate upgrade logic from storage service
+    })
+  }
+
+  onChange(listener: (data: T | undefined) => void) {
+    this.storageService.subscribe((options) => {
+      if (!options) return
+      listener(options.data)
+    })
+  }
+
+  destroy() {
+    this.storageService.destroy()
+  }
+
   #migrate(options: Options<T>): Options<T> {
     const nextVersion = this.#getNextVersion(options.version)
 
@@ -124,50 +169,5 @@ export class SyncOptionsService<T extends OptionsSchema> {
       }
       return acc
     })
-  }
-
-  async get(): Promise<T> {
-    const options = await this.storageService.read()
-    if (!options) return this.defaultOptions
-    return options.data
-  }
-
-  async set(data: T, version?: number) {
-    if (!version) {
-      const options = await this.storageService.read()
-      if (!options) {
-        throw new Error('Cannot set options without existing options')
-      }
-      version = options.version
-    }
-    return this.storageService.set({
-      data,
-      version,
-    })
-  }
-
-  // allow partial update
-  async update(data: Partial<T>) {
-    const options = await this.get()
-    return this.set({ ...options, ...data })
-  }
-
-  // reset options to default
-  async reset() {
-    return this.storageService.set({
-      data: this.defaultOptions,
-      version: this.#getLatestVersion().version, // TODO: this is a bug, refactor this service to separate upgrade logic from storage service
-    })
-  }
-
-  onChange(listener: (data: T | undefined) => void) {
-    this.storageService.subscribe((options) => {
-      if (!options) return
-      listener(options.data)
-    })
-  }
-
-  destroy() {
-    this.storageService.destroy()
   }
 }

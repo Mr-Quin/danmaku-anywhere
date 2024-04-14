@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 
-import type { NonFunctionGuard } from '../../types'
-
 import { useExtStorage } from './useExtStorage'
+
+import type { NonFunctionGuard } from '@/common/types/types'
 
 export const useSessionState = <T>(
   initialState: NonFunctionGuard<T>,

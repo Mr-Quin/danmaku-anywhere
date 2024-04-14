@@ -1,5 +1,5 @@
 import type { PopperProps } from '@mui/material'
-import { Popper, Fade } from '@mui/material'
+import { Fade, Popper } from '@mui/material'
 import type { ReactElement } from 'react'
 
 interface FloatingPanelPopperProps {

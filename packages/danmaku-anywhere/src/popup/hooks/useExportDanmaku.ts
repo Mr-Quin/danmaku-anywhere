@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 
 import { useToast } from '@/common/components/toast/toastStore'
 import { chromeRpcClient } from '@/common/rpc/client'
-import { createDownload } from '@/common/utils'
+import { createDownload } from '@/common/utils/utils'
 
 export const useExportDanmaku = () => {
   const toast = useToast.use.toast()

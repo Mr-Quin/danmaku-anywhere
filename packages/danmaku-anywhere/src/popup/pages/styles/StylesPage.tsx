@@ -3,12 +3,12 @@ import { produce } from 'immer'
 
 import { DanmakuOptionsController } from './StylesForm'
 
-import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
+import { useDanmakuOptionsSuspense } from '@/common/options/danmakuOptions/useDanmakuOptionsSuspense'
 import { TabToolbar } from '@/popup/component/TabToolbar'
 import { TabLayout } from '@/popup/layout/TabLayout'
 
 export const StylesPage = () => {
-  const { data: config, partialUpdate } = useDanmakuOptions()
+  const { data: config, partialUpdate } = useDanmakuOptionsSuspense()
 
   return (
     <TabLayout>

@@ -1,12 +1,12 @@
 import { Suspense } from 'react'
 
 import {
-  BaseListItemSkeleton,
   BaseEpisodeListItem,
+  BaseListItemSkeleton,
 } from '@/common/components/animeList/BaseEpisodeListItem'
 import type { DanmakuMeta, TitleMapping } from '@/common/db/db'
-import { useDanmakuQuerySuspense } from '@/common/hooks/useDanmakuQuerySuspense'
-import { useFetchDanmakuMutation } from '@/content/common/hooks/useFetchDanmakuMutation'
+import { useDanmakuQuerySuspense } from '@/common/queries/danmaku/useDanmakuQuerySuspense'
+import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
 type EpisodeListItemProps = Required<DanmakuMeta> & {
   titleMapping?: TitleMapping
@@ -17,7 +17,7 @@ const InnerEpisodeListItem = ({
   ...rest
 }: EpisodeListItemProps) => {
   const { episodeId, episodeTitle } = rest
-  const { fetch, isPending } = useFetchDanmakuMutation()
+  const { fetch, isPending } = useFetchDanmakuMapped()
 
   const { data: danmakuData } = useDanmakuQuerySuspense(episodeId)
 

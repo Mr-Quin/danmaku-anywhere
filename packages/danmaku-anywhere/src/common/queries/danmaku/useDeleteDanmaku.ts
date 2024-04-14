@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { useToast } from '../components/toast/toastStore'
-import { chromeRpcClient } from '../rpc/client'
+import { useToast } from '../../components/toast/toastStore'
+import { chromeRpcClient } from '../../rpc/client'
 
 import { useAllDanmakuQuerySuspense } from './useAllDanmakuQuerySuspense'
 import { useDanmakuQuerySuspense } from './useDanmakuQuerySuspense'

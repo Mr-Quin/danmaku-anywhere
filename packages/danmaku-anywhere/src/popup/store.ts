@@ -2,9 +2,9 @@ import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/dandanplay-ap
 import { produce } from 'immer'
 import { create } from 'zustand'
 
-import type { MountConfig } from '@/common/constants/mountConfig'
-import { createMountConfig } from '@/common/constants/mountConfig'
-import { createSelectors } from '@/common/createSelectors'
+import type { MountConfig } from '@/common/options/mountConfig/mountConfig'
+import { createMountConfig } from '@/common/options/mountConfig/mountConfig'
+import { createSelectors } from '@/common/utils/createSelectors'
 
 interface StoreState {
   animeSearchParams?: DanDanAnimeSearchAPIParams

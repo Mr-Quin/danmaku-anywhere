@@ -14,3 +14,9 @@ export const useDanmakuQuery = (episodeId?: number) => {
 
   return query
 }
+
+useDanmakuQuery.queryKey = (episodeId: number) => [
+  'danmaku',
+  'getByEpisodeId',
+  episodeId,
+]

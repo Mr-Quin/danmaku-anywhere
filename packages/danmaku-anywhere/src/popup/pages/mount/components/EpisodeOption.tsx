@@ -11,8 +11,8 @@ import {
 import { type HTMLAttributes, type SyntheticEvent } from 'react'
 
 import type { DanmakuCacheLite } from '@/common/db/db'
-import { episodeIdToEpisodeNumber } from '@/common/utils'
-import { useFetchDanmakuMutation } from '@/popup/hooks/useFetchDanmakuMutation'
+import { useFetchDanmaku } from '@/common/queries/danmaku/useFetchDanmaku'
+import { episodeIdToEpisodeNumber } from '@/common/utils/utils'
 
 export const EpisodeOption = (
   props: {
@@ -21,7 +21,7 @@ export const EpisodeOption = (
   } & HTMLAttributes<HTMLLIElement>
 ) => {
   const { option, isLoading, ...rest } = props
-  const { isPending, fetch } = useFetchDanmakuMutation()
+  const { isPending, fetch } = useFetchDanmaku()
 
   const handleClick = (e: SyntheticEvent) => {
     e.preventDefault()

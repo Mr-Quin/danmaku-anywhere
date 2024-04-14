@@ -1,6 +1,6 @@
-import { defaultDanmakuOptions } from '@/common/constants/danmakuOptions'
-import { defaultExtensionOptions } from '@/common/constants/extensionOptions'
-import { defaultMountConfig } from '@/common/constants/mountConfig'
+import { defaultDanmakuOptions } from '@/common/options/danmakuOptions/danmakuOptions'
+import { defaultExtensionOptions } from '@/common/options/extensionOptions/extensionOptions'
+import { defaultMountConfig } from '@/common/options/mountConfig/mountConfig'
 import { Logger } from '@/common/services/Logger'
 import { SyncOptionsService } from '@/common/services/SyncOptionsService'
 

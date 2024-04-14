@@ -6,6 +6,7 @@ interface UseDebouncedStateOptions {
   leading?: boolean
   trailing?: boolean
 }
+
 const useDebouncedStateDefaultOptions: UseDebouncedStateOptions = {
   delay: 300,
   leading: false,

@@ -1,7 +1,7 @@
 import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/dandanplay-api'
 import { searchAnime } from '@danmaku-anywhere/dandanplay-api'
 
-import { invariant, isServiceWorker } from '@/common/utils'
+import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 export class AnimeService {
   constructor() {

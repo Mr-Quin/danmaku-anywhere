@@ -1,12 +1,12 @@
-import { tryCatch } from '../utils'
+import { tryCatch } from '../utils/utils'
 
 import type { BackgroundMethods } from './interface/background'
 import type { TabMethods } from './interface/tab'
 import {
-  type RPCPayload,
-  type RPCResponse,
-  type RPCRecord,
   RpcException,
+  type RPCPayload,
+  type RPCRecord,
+  type RPCResponse,
 } from './rpc'
 
 type ClientMessageSender<TInput, TOutput> = (

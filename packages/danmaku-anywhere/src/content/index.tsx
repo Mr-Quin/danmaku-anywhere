@@ -10,7 +10,7 @@ import { App } from './App'
 import { queryClient } from '@/common/queryClient'
 import { Logger } from '@/common/services/Logger'
 import { Theme } from '@/common/style/Theme'
-import { tryCatchSync } from '@/common/utils'
+import { tryCatchSync } from '@/common/utils/utils'
 
 Logger.debug('Danmaku Anywhere content script loaded')
 

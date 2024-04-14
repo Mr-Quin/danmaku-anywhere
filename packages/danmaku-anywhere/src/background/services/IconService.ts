@@ -1,5 +1,5 @@
 import { Logger } from '@/common/services/Logger'
-import { invariant, isServiceWorker } from '@/common/utils'
+import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 type Chrome = typeof chrome
 

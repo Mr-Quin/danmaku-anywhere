@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { tryCatchSync } from '@/common/utils'
+import { tryCatchSync } from '@/common/utils/utils'
 
 interface NodeMonitorOptions {
   // callback for when an error occurs

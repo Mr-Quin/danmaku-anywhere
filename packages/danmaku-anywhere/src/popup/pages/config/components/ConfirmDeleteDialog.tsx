@@ -10,7 +10,7 @@ import {
 import { useMutation } from '@tanstack/react-query'
 
 import { useToast } from '@/common/components/toast/toastStore'
-import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
+import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { useStore } from '@/popup/store'
 
 export const ConfirmDeleteDialog = () => {

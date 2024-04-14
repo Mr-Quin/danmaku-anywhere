@@ -1,11 +1,10 @@
 import type {
   ExtensionOptions,
   ExtensionOptionsOptions,
-} from '../constants/extensionOptions'
+} from '@/common/options/extensionOptions/extensionOptions'
+import { useSuspenseExtStorageQuery } from '@/common/queries/extStorage/useSuspenseExtStorageQuery'
 
-import { useSuspenseExtStorageQuery } from './extStorage/useSuspenseExtStorageQuery'
-
-export const useExtensionOptions = () => {
+export const useExtensionOptionsSuspense = () => {
   const store = useSuspenseExtStorageQuery<ExtensionOptionsOptions>(
     'extensionOptions',
     {

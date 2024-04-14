@@ -8,7 +8,7 @@ import { List, ListItem, ListItemText, ListSubheader } from '@mui/material'
 import type React from 'react'
 import { useEffect, useId } from 'react'
 
-import { useAnimeSearchSuspense } from '../../hooks/useAnimeSearchSuspense'
+import { useAnimeSearchSuspense } from '../../queries/anime/useAnimeSearchSuspense'
 
 import { AnimeTypeIcon } from './AnimeTypeIcon'
 

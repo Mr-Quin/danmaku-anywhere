@@ -6,13 +6,13 @@ import { useMediaElementStore } from '../../store/mediaElementStore'
 import { useStore } from '../../store/store'
 
 import { useToast } from '@/common/components/toast/toastStore'
-import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
+import { useDanmakuOptionsSuspense } from '@/common/options/danmakuOptions/useDanmakuOptionsSuspense'
 import { Logger } from '@/common/services/Logger'
 import { useRefreshComments } from '@/content/common/hooks/useRefreshComments'
 
 // listen to comment changes and mount/unmount the danmaku engine
 export const useDanmakuManager = () => {
-  const { data: options } = useDanmakuOptions()
+  const { data: options } = useDanmakuOptionsSuspense()
   const danmakuEngine = useDanmakuEngine()
   const { toast } = useToast()
   const { videoNode, containerNode } = useMediaElementStore()

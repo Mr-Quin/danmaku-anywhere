@@ -1,20 +1,19 @@
 import { produce } from 'immer'
 import { useMemo } from 'react'
 
-import { useSuspenseExtStorageQuery } from '../extStorage/useSuspenseExtStorageQuery'
-
 import {
   type MountConfig,
   type MountConfigOptions,
-} from '@/common/constants/mountConfig'
-import { matchUrl } from '@/common/hooks/mountConfig/matchUrl'
+} from '@/common/options/mountConfig/mountConfig'
+import { useSuspenseExtStorageQuery } from '@/common/queries/extStorage/useSuspenseExtStorageQuery'
+import { matchUrl } from '@/common/utils/matchUrl'
 import {
   createDownload,
   hasOriginPermission,
   removeOriginPermission,
   requestOriginPermission,
   tryCatch,
-} from '@/common/utils'
+} from '@/common/utils/utils'
 
 const isPermissionGranted = async (patterns: string[]) => {
   if (!(await hasOriginPermission(patterns))) {

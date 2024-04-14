@@ -1,4 +1,4 @@
-import { invariant, tryCatch } from '../utils'
+import { invariant, tryCatch } from '../utils/utils'
 
 import { Logger } from './Logger'
 

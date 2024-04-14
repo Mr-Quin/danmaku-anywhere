@@ -8,9 +8,9 @@ import {
   Tooltip,
 } from '@mui/material'
 
-import type { MountConfig } from '@/common/constants/mountConfig'
-import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
-import { tryCatch } from '@/common/utils'
+import type { MountConfig } from '@/common/options/mountConfig/mountConfig'
+import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
+import { tryCatch } from '@/common/utils/utils'
 import { useStore } from '@/popup/store'
 
 export const MountConfigList = ({

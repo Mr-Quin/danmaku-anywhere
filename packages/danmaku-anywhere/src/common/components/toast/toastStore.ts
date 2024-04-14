@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-import { createSelectors } from '@/common/createSelectors'
+import { createSelectors } from '@/common/utils/createSelectors'
 
 interface ToastOptions {
   duration?: number
