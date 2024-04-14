@@ -13,8 +13,8 @@ import type { Draft } from 'immer'
 import { produce } from 'immer'
 import { useEffect, useId, useState } from 'react'
 
-import type { DanmakuOptions } from '@/common/constants/danmakuOptions'
-import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
+import type { DanmakuOptions } from '@/common/options/danmakuOptions/danmakuOptions'
+import { useDanmakuOptionsSuspense } from '@/common/options/danmakuOptions/useDanmakuOptionsSuspense'
 
 const filterMarks = [
   {
@@ -155,7 +155,7 @@ export const DanmakuOptionsController = () => {
     data: config,
     partialUpdate,
     update: { isPending },
-  } = useDanmakuOptions()
+  } = useDanmakuOptionsSuspense()
 
   const [localConfig, setLocalConfig] = useState<DanmakuOptions>(config)
   const [offsetInput, setOffsetInput] = useState<string>('')

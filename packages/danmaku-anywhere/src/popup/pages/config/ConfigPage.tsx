@@ -4,8 +4,8 @@ import { ConfirmDeleteDialog } from './components/ConfirmDeleteDialog'
 import { ConfigToolbar } from './ConfigToolbar'
 import { MountConfigList } from './MountConfigList'
 
-import type { MountConfig } from '@/common/constants/mountConfig'
-import { createMountConfig } from '@/common/constants/mountConfig'
+import type { MountConfig } from '@/common/options/mountConfig/mountConfig'
+import { createMountConfig } from '@/common/options/mountConfig/mountConfig'
 import { TabLayout } from '@/popup/layout/TabLayout'
 import { useStore } from '@/popup/store'
 

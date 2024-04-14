@@ -3,7 +3,7 @@ import { match } from 'ts-pattern'
 import { extensionOptionsService } from '../syncOptions/upgradeOptions'
 
 import { Logger } from '@/common/services/Logger'
-import { tryCatch } from '@/common/utils'
+import { tryCatch } from '@/common/utils/utils'
 
 enum ContextMenuId {
   ENABLED = 'danmaku-anywhere-enabled',

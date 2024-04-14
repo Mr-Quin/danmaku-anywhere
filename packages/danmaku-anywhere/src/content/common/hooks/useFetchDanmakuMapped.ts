@@ -1,16 +1,17 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 
 import { useStore } from '../../store/store'
 
 import type { DanmakuMeta, TitleMapping } from '@/common/db/db'
-import { useAllDanmakuQuerySuspense } from '@/common/hooks/useAllDanmakuQuerySuspense'
-import { useDanmakuQuerySuspense } from '@/common/hooks/useDanmakuQuerySuspense'
+import { useFetchDanmaku } from '@/common/queries/danmaku/useFetchDanmaku'
 import { chromeRpcClient } from '@/common/rpc/client'
 import type { DanmakuFetchOptions } from '@/common/types/DanmakuFetchOptions'
-import { tryCatch } from '@/common/utils'
+import { tryCatch } from '@/common/utils/utils'
 
-export const useFetchDanmakuMutation = () => {
+export const useFetchDanmakuMapped = () => {
   const { setComments, setDanmakuMeta } = useStore()
+
+  const { mutateAsync } = useFetchDanmaku()
 
   const handleFetch = async ({
     danmakuMeta,
@@ -21,7 +22,7 @@ export const useFetchDanmakuMutation = () => {
     titleMapping?: TitleMapping
     options?: DanmakuFetchOptions
   }) => {
-    const res = await chromeRpcClient.danmakuFetch({
+    const res = await mutateAsync({
       data: danmakuMeta,
       options: {
         forceUpdate: false,
@@ -36,21 +37,13 @@ export const useFetchDanmakuMutation = () => {
     return res.comments
   }
 
-  const queryClient = useQueryClient()
-
   const mutation = useMutation({
     mutationFn: handleFetch,
     onMutate: (v) => {
       setDanmakuMeta(v.danmakuMeta)
     },
-    onSuccess: (comments, v) => {
+    onSuccess: (comments) => {
       setComments(comments)
-      queryClient.invalidateQueries({
-        queryKey: useAllDanmakuQuerySuspense.queryKey,
-      })
-      queryClient.invalidateQueries({
-        queryKey: useDanmakuQuerySuspense.queryKey(v.danmakuMeta.episodeId),
-      })
     },
   })
 

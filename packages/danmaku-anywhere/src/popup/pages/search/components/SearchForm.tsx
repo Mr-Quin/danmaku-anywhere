@@ -2,7 +2,7 @@ import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/dandanplay-ap
 import { LoadingButton } from '@mui/lab'
 import { Box, Stack, TextField } from '@mui/material'
 
-import { useSessionState } from '@/common/hooks/extStorage/useSessionState'
+import { useSessionState } from '@/common/queries/extStorage/useSessionState'
 
 export const SearchForm = ({
   onSearch,

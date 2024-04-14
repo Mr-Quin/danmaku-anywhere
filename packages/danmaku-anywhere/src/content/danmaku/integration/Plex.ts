@@ -1,4 +1,4 @@
-import { MediaObserver, MediaInfo } from './MediaObserver'
+import { MediaInfo, MediaObserver } from './MediaObserver'
 
 // title format
 // ▶ [TITLE] - S[SEASON] · E[EPISODE]

@@ -3,7 +3,7 @@ import { Box, IconButton, Typography } from '@mui/material'
 import { Link, useParams } from 'react-router-dom'
 
 import { CommentsTable } from '@/common/components/CommentsTable'
-import { useDanmakuQuerySuspense } from '@/common/hooks/useDanmakuQuerySuspense'
+import { useDanmakuQuerySuspense } from '@/common/queries/danmaku/useDanmakuQuerySuspense'
 import { TabToolbar } from '@/popup/component/TabToolbar'
 import { TabLayout } from '@/popup/layout/TabLayout'
 import { useStore } from '@/popup/store'

@@ -9,10 +9,10 @@ import type { MediaInfo } from '../integration/MediaObserver'
 import { useMatchObserver } from './useMatchObserver'
 
 import { useToast } from '@/common/components/toast/toastStore'
-import { useAnimeSearchSuspense } from '@/common/hooks/useAnimeSearchSuspense'
+import { useAnimeSearchSuspense } from '@/common/queries/anime/useAnimeSearchSuspense'
 import { chromeRpcClient } from '@/common/rpc/client'
 import { Logger } from '@/common/services/Logger'
-import { getEpisodeId, tryCatch } from '@/common/utils'
+import { getEpisodeId, tryCatch } from '@/common/utils/utils'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
 
 export const useMediaObserver = () => {

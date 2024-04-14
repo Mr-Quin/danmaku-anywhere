@@ -7,10 +7,10 @@ import { DanmakuSelector } from './DanmakuSelector'
 
 import { useToast } from '@/common/components/toast/toastStore'
 import type { DanmakuCacheLite } from '@/common/db/db'
-import { useSessionState } from '@/common/hooks/extStorage/useSessionState'
+import { useDanmakuQuery } from '@/common/queries/danmaku/useDanmakuQuery'
+import { useSessionState } from '@/common/queries/extStorage/useSessionState'
 import { tabRpcClient } from '@/common/rpc/client'
 import { Logger } from '@/common/services/Logger'
-import { useDanmakuQuery } from '@/popup/hooks/useDanmakuQuery'
 
 export const MountController = () => {
   const [danmakuCache, setDanmakuCache] =

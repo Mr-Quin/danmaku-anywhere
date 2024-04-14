@@ -1,6 +1,6 @@
 import type { PopoverVirtualElement } from '@mui/material'
 
-import type { NotPromise } from './types/types'
+import type { NotPromise } from '../types/types'
 
 export const toArray = <T>(value: T | T[]): T[] => {
   return Array.isArray(value) ? value : [value]
@@ -17,8 +17,11 @@ export const validateOrigin = async (origin: string) => {
     await chrome.permissions.contains({
       origins: [origin],
     })
-  } catch (e: any) {
-    return (e.message as string) ?? 'invalid pattern'
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      return e.message
+    }
+    return 'invalid pattern'
   }
 }
 

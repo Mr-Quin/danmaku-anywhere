@@ -14,8 +14,8 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
-import { useAllDanmakuQuerySuspense } from '@/common/hooks/useAllDanmakuQuerySuspense'
-import { useDeleteDanmaku } from '@/common/hooks/useDeleteDanmaku'
+import { useAllDanmakuQuerySuspense } from '@/common/queries/danmaku/useAllDanmakuQuerySuspense'
+import { useDeleteDanmaku } from '@/common/queries/danmaku/useDeleteDanmaku'
 import { useStore } from '@/popup/store'
 
 interface EpisodeListProps {

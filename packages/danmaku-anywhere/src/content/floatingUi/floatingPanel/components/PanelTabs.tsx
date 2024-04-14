@@ -1,4 +1,4 @@
-import { Tabs, Tab } from '@mui/material'
+import { Tab, Tabs } from '@mui/material'
 
 import { PopupTab, usePopup } from '../../../store/popupStore'
 

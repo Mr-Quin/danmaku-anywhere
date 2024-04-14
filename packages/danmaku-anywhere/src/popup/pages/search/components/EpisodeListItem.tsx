@@ -5,14 +5,14 @@ import {
   BaseEpisodeListItem,
 } from '@/common/components/animeList/BaseEpisodeListItem'
 import type { DanmakuMeta } from '@/common/db/db'
-import { useDanmakuQuerySuspense } from '@/common/hooks/useDanmakuQuerySuspense'
-import { useFetchDanmakuMutation } from '@/popup/hooks/useFetchDanmakuMutation'
+import { useDanmakuQuerySuspense } from '@/common/queries/danmaku/useDanmakuQuerySuspense'
+import { useFetchDanmaku } from '@/common/queries/danmaku/useFetchDanmaku'
 
 type EpisodeListItemProps = Required<DanmakuMeta>
 
 const InnerEpisodeListItem = (props: EpisodeListItemProps) => {
   const { episodeId, episodeTitle } = props
-  const { fetch, isPending } = useFetchDanmakuMutation()
+  const { fetch, isPending } = useFetchDanmaku()
 
   const { data: danmakuData } = useDanmakuQuerySuspense(episodeId)
 

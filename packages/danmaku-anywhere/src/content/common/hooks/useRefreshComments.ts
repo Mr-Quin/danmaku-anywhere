@@ -3,14 +3,14 @@ import { useEventCallback } from '@mui/material'
 import { useStore } from '../../store/store'
 
 import { useToast } from '@/common/components/toast/toastStore'
-import { tryCatch } from '@/common/utils'
-import { useFetchDanmakuMutation } from '@/content/common/hooks/useFetchDanmakuMutation'
+import { tryCatch } from '@/common/utils/utils'
+import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
 export const useRefreshComments = () => {
   const danmakuMeta = useStore((state) => state.danmakuMeta)
   const toast = useToast.use.toast()
 
-  const { fetch, isPending } = useFetchDanmakuMutation()
+  const { fetch, isPending } = useFetchDanmakuMapped()
 
   const refreshComments = useEventCallback(async () => {
     if (!danmakuMeta) return

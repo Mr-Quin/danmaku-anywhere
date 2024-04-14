@@ -1,9 +1,9 @@
 import { z } from 'zod'
 
-import type { Options } from '../services/SyncOptionsService'
-import { validateOrigin } from '../utils'
+import type { Options } from '../../services/SyncOptionsService'
+import { validateOrigin } from '../../utils/utils'
 
-import defaultMountConfigJson from './mountConfig/default.json' assert { type: 'json' }
+import defaultMountConfigJson from './default.json' assert { type: 'json' }
 
 /**
  * @deprecated

@@ -1,7 +1,7 @@
-import { expect, describe, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import 'urlpattern-polyfill'
 
-import { matchUrl } from '@/common/hooks/mountConfig/matchUrl'
+import { matchUrl } from './matchUrl'
 
 describe('matchUrl', () => {
   it('should match with exact http URL', () => {

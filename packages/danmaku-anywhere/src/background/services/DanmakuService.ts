@@ -5,7 +5,7 @@ import type { DanmakuCacheLite, DanmakuMeta } from '@/common/db/db'
 import { db } from '@/common/db/db'
 import { Logger } from '@/common/services/Logger'
 import type { DanmakuFetchOptions } from '@/common/types/DanmakuFetchOptions'
-import { invariant, isServiceWorker, tryCatch } from '@/common/utils'
+import { invariant, isServiceWorker, tryCatch } from '@/common/utils/utils'
 
 export class DanmakuService {
   private db = db.danmakuCache

@@ -1,11 +1,11 @@
 import type { PropsWithChildren } from 'react'
 
-import { useMatchMountConfig } from '@/common/hooks/mountConfig/useMatchMountConfig'
-import { useExtensionOptions } from '@/common/hooks/useExtensionOptions'
+import { useExtensionOptionsSuspense } from '@/common/options/extensionOptions/useExtensionOptionsSuspense'
+import { useMatchMountConfig } from '@/common/options/mountConfig/useMatchMountConfig'
 
 export const LoadInitialData = ({ children }: PropsWithChildren) => {
   const config = useMatchMountConfig(window.location.href)
-  const { data: options } = useExtensionOptions()
+  const { data: options } = useExtensionOptionsSuspense()
 
   // the script should not be loaded at all if the config is not enabled
   // this check is likely only necessary for when the user manually

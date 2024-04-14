@@ -1,14 +1,10 @@
 import type {
   DanmakuOptions,
   DanmakuOptionsOptions,
-} from '../constants/danmakuOptions'
+} from '@/common/options/danmakuOptions/danmakuOptions'
+import { useSuspenseExtStorageQuery } from '@/common/queries/extStorage/useSuspenseExtStorageQuery'
 
-import { useSuspenseExtStorageQuery } from './extStorage/useSuspenseExtStorageQuery'
-
-/**
- * Suspends
- */
-export const useDanmakuOptions = () => {
+export const useDanmakuOptionsSuspense = () => {
   const store = useSuspenseExtStorageQuery<DanmakuOptionsOptions>(
     'danmakuOptions',
     {

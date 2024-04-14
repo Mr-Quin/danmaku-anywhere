@@ -1,6 +1,6 @@
 import { Close } from '@mui/icons-material'
 import type { PopperProps } from '@mui/material'
-import { Paper, AppBar, Toolbar, IconButton, Box } from '@mui/material'
+import { AppBar, Box, IconButton, Paper, Toolbar } from '@mui/material'
 import { match } from 'ts-pattern'
 
 import { PopupTab, usePopup } from '../../store/popupStore'

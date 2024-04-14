@@ -2,11 +2,11 @@ import { useMediaQuery } from '@mui/material'
 import type { ThemeOptions } from '@mui/material/styles'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import {
-  useMemo,
-  type PropsWithChildren,
-  useState,
   createContext,
+  type PropsWithChildren,
   use,
+  useMemo,
+  useState,
 } from 'react'
 
 const defaultThemeOptions: ThemeOptions = {
@@ -16,6 +16,7 @@ const defaultThemeOptions: ThemeOptions = {
 }
 
 type ColorScheme = 'dark' | 'light' | 'system'
+
 interface ThemeContext {
   colorScheme: ColorScheme
   setColorScheme: (colorScheme: ColorScheme) => void

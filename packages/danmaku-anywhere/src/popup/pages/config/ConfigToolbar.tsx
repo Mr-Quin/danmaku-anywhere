@@ -7,10 +7,10 @@ import {
   Tooltip,
 } from '@mui/material'
 
-import { mountConfigListSchema } from '@/common/constants/mountConfig'
-import { useMountConfig } from '@/common/hooks/mountConfig/useMountConfig'
+import { mountConfigListSchema } from '@/common/options/mountConfig/mountConfig'
+import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { Logger } from '@/common/services/Logger'
-import { tryCatch } from '@/common/utils'
+import { tryCatch } from '@/common/utils/utils'
 import { DrilldownMenu } from '@/popup/component/DrilldownMenu'
 import { TabToolbar } from '@/popup/component/TabToolbar'
 

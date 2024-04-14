@@ -5,19 +5,19 @@ import type {
 import { Check } from '@mui/icons-material'
 import { LoadingButton } from '@mui/lab'
 import {
-  Box,
   Autocomplete,
-  TextField,
-  Stack,
-  List,
-  ListItemText,
-  ListItemButton,
+  Box,
+  Checkbox,
   Divider,
-  Typography,
   FormControl,
   FormControlLabel,
-  Checkbox,
   FormHelperText,
+  List,
+  ListItemButton,
+  ListItemText,
+  Stack,
+  TextField,
+  Typography,
 } from '@mui/material'
 import { useRef, useState } from 'react'
 
@@ -25,7 +25,7 @@ import { usePopup } from '../../../store/popupStore'
 import { useStore } from '../../../store/store'
 
 import { AnimeTypeIcon } from '@/common/components/animeList/AnimeTypeIcon'
-import { useFetchDanmakuMutation } from '@/content/common/hooks/useFetchDanmakuMutation'
+import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
 export const SelectorPanel = () => {
   const selectorBoxRef = useRef<HTMLDivElement>()
@@ -38,7 +38,7 @@ export const SelectorPanel = () => {
 
   const episodes = selectedAnime?.episodes ?? []
 
-  const { fetch, isPending } = useFetchDanmakuMutation()
+  const { fetch, isPending } = useFetchDanmakuMapped()
 
   const handleAnimeSelect = (anime: DanDanAnime) => {
     setSelectedAnime(anime)
