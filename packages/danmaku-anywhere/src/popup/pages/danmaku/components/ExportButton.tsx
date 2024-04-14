@@ -8,7 +8,7 @@ import {
 
 import { useExportDanmaku } from '../../../hooks/useExportDanmaku'
 
-import { useAllDanmakuQuerySuspense } from '@/popup/hooks/useAllDanmakuQuerySuspense'
+import { useAllDanmakuQuerySuspense } from '@/common/hooks/useAllDanmakuQuerySuspense'
 
 export const ExportButton = () => {
   const { mutate, isPending } = useExportDanmaku()

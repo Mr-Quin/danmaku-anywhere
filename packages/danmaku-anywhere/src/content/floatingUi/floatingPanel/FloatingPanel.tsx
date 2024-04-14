@@ -12,7 +12,7 @@ import { FloatingPanelLayout } from './layout/FloatingPanelLayout'
 
 import { CommentsPanel } from '@/content/floatingUi/floatingPanel/pages/CommentsPanel'
 import { InfoPanel } from '@/content/floatingUi/floatingPanel/pages/InfoPanel'
-import { SearchPanel } from '@/content/floatingUi/floatingPanel/pages/SearchPanel'
+import { SearchPanel } from '@/content/floatingUi/floatingPanel/pages/search/SearchPanel'
 import { SelectorPanel } from '@/content/floatingUi/floatingPanel/pages/SelectorPanel'
 
 export const FloatingPanel = ({

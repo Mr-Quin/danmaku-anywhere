@@ -7,11 +7,11 @@ import { match, P } from 'ts-pattern'
 import { MountController } from './components/MountController'
 
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
+import { useAllDanmakuQuerySuspense } from '@/common/hooks/useAllDanmakuQuerySuspense'
 import { tabRpcClient } from '@/common/rpc/client'
 import { Logger } from '@/common/services/Logger'
 import { sleep } from '@/common/utils'
 import { TabToolbar } from '@/popup/component/TabToolbar'
-import { useAllDanmakuQuerySuspense } from '@/popup/hooks/useAllDanmakuQuerySuspense'
 import { TabLayout } from '@/popup/layout/TabLayout'
 
 const HasDanmaku = ({ children }: PropsWithChildren) => {

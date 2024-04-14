@@ -9,7 +9,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
-import { useAllDanmakuQuerySuspense } from '@/popup/hooks/useAllDanmakuQuerySuspense'
+import { useAllDanmakuQuerySuspense } from '@/common/hooks/useAllDanmakuQuerySuspense'
 import { useStore } from '@/popup/store'
 
 interface EpisodeListProps {

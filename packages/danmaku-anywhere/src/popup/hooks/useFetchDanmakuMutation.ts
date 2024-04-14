@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { useAllDanmakuQuerySuspense } from './useAllDanmakuQuerySuspense'
-import { useDanmakuQuerySuspense } from './useDanmakuQuerySuspense'
+import { useAllDanmakuQuerySuspense } from '../../common/hooks/useAllDanmakuQuerySuspense'
 
+import { useDanmakuQuerySuspense } from '@/common/hooks/useDanmakuQuerySuspense'
 import { chromeRpcClient } from '@/common/rpc/client'
 
 /**
