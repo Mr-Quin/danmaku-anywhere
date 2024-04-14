@@ -117,7 +117,10 @@ export const useMediaObserver = () => {
 
           if (animes.length === 0) {
             Logger.debug(`No anime found for ${state.toString()}`)
-            toast.error(`No anime found for ${state.toString()}`)
+            toast.error(`No anime found for ${state.toString()}`, {
+              actionFn: () => open({ tab: PopupTab.Search }),
+              actionLabel: 'Open Search',
+            })
             handleError()
             return
           }

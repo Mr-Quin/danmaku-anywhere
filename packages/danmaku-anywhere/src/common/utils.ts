@@ -1,3 +1,5 @@
+import type { PopoverVirtualElement } from '@mui/material'
+
 import type { NotPromise } from './types/types'
 
 export const toArray = <T>(value: T | T[]): T[] => {
@@ -105,3 +107,23 @@ export const createDownload = (data: Blob, filename?: string) => {
 
 export const getDistance = (x1: number, y1: number, x2: number, y2: number) =>
   Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
+export const createVirtualElement = (
+  x: number,
+  y: number
+): PopoverVirtualElement => {
+  return {
+    getBoundingClientRect: () => ({
+      width: 0,
+      height: 0,
+      x,
+      y,
+      top: y,
+      right: x,
+      bottom: y,
+      left: x,
+      toJSON: () => ({}),
+    }),
+    nodeType: Node.ELEMENT_NODE,
+  }
+}
