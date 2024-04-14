@@ -1,42 +1,109 @@
-import { ExpandLess, ExpandMore } from '@mui/icons-material'
-import type { FabProps } from '@mui/material'
-import { Fab, Zoom } from '@mui/material'
-import { forwardRef } from 'react'
+import { MenuOpen, Refresh } from '@mui/icons-material'
+import type { FabProps, PopoverVirtualElement } from '@mui/material'
+import {
+  Box,
+  Fade,
+  SpeedDial,
+  SpeedDialAction,
+  SpeedDialIcon,
+} from '@mui/material'
+import type { MouseEventHandler } from 'react'
+import { forwardRef, useRef } from 'react'
+import { createPortal } from 'react-dom'
 
 import { LoadingRing } from './components/LoadingRing'
 import { useShowFab } from './hooks/useShowFab'
 
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
-import { useMergeRefs } from '@/common/hooks/useMergeRefs'
+import { useRefreshComments } from '@/content/common/hooks/useRefreshComments'
 
 interface FloatingButtonProps extends FabProps {
-  onOpen: () => void
+  onOpen: (virtualElement: PopoverVirtualElement) => void
   isOpen: boolean
 }
 
 export const FloatingButton = forwardRef<
   HTMLButtonElement,
   FloatingButtonProps
->(({ onOpen, isOpen, ...rest }: FloatingButtonProps, passedRef) => {
+>(({ onOpen, isOpen }: FloatingButtonProps, ref) => {
   const isLoading = useAnyLoading()
 
-  const [showFab, fabRef] = useShowFab()
+  const showFab = useShowFab()
 
-  const ref = useMergeRefs<HTMLButtonElement>(fabRef, passedRef)
+  const handleOpen: MouseEventHandler<HTMLElement> = (e) => {
+    const virtualElement = {
+      getBoundingClientRect: () => ({
+        width: 0,
+        height: 0,
+        x: e.clientX,
+        y: e.clientY,
+        top: e.clientY,
+        right: e.clientX,
+        bottom: e.clientY,
+        left: e.clientX,
+        toJSON: () => ({}),
+      }),
+      nodeType: Node.ELEMENT_NODE,
+    }
+    onOpen(virtualElement)
+  }
+
+  const handleContextMenu: MouseEventHandler<HTMLElement> = (e) => {
+    if (isOpen) {
+      return
+    }
+    e.preventDefault()
+    handleOpen(e)
+  }
+
+  const { refreshComments } = useRefreshComments()
+
+  const fabRef = useRef<HTMLButtonElement>(null)
 
   return (
-    <Zoom in={isLoading || showFab || isOpen}>
-      <Fab
-        color="primary"
-        aria-label="Add"
-        onClick={onOpen}
-        ref={ref}
-        {...rest}
-      >
-        <LoadingRing isLoading={isLoading} />
-        {isOpen ? <ExpandMore /> : <ExpandLess />}
-      </Fab>
-    </Zoom>
+    <Box>
+      <Fade in={isLoading || showFab || isOpen}>
+        <div>
+          <SpeedDial
+            ariaLabel="SpeedDial playground example"
+            icon={<SpeedDialIcon />}
+            FabProps={{
+              size: 'small',
+              children: <LoadingRing isLoading />,
+              onContextMenu: handleContextMenu,
+              ref: fabRef,
+            }}
+            ref={ref}
+          >
+            <SpeedDialAction
+              icon={<Refresh />}
+              tooltipTitle="Refresh danmaku"
+              onClick={refreshComments}
+            />
+            <SpeedDialAction
+              icon={<MenuOpen />}
+              tooltipTitle="Open popup"
+              onClick={handleOpen}
+            />
+          </SpeedDial>
+          {fabRef.current &&
+            createPortal(
+              <Fade in={isLoading}>
+                <Box
+                  position="absolute"
+                  width={40}
+                  height={40}
+                  top={0}
+                  left={0}
+                >
+                  <LoadingRing isLoading={isLoading} />
+                </Box>
+              </Fade>,
+              fabRef.current
+            )}
+        </div>
+      </Fade>
+    </Box>
   )
 })
 

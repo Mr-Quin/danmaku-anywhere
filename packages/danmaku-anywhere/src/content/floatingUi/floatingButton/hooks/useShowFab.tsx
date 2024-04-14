@@ -8,15 +8,12 @@ export const useShowFab = () => {
   const playbackStatus = useStore((state) => state.playbackStatus)
   const manual = useStore((state) => state.manual)
 
-  const fabRef = useRef<HTMLButtonElement>(null)
   const timeoutRef = useRef<NodeJS.Timeout>()
 
   const mouseLocation = useMouseLocation()
   const [showFab, setShowFab] = useState(true)
 
   useEffect(() => {
-    if (!fabRef.current) return
-
     if (!manual) {
       if (playbackStatus !== 'playing') {
         setShowFab(true)
@@ -35,5 +32,5 @@ export const useShowFab = () => {
     return
   }, [mouseLocation, playbackStatus, manual])
 
-  return [showFab, fabRef] as const
+  return showFab
 }
