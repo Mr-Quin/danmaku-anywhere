@@ -1,15 +1,21 @@
+import { Delete } from '@mui/icons-material'
 import {
   Box,
   Typography,
   List,
+  ListItem,
   ListItemButton,
   ListItemText,
+  Tooltip,
+  IconButton,
+  CircularProgress,
 } from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { useAllDanmakuQuerySuspense } from '@/common/hooks/useAllDanmakuQuerySuspense'
+import { useDeleteDanmaku } from '@/common/hooks/useDeleteDanmaku'
 import { useStore } from '@/popup/store'
 
 interface EpisodeListProps {
@@ -39,7 +45,15 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
 
   const navigate = useNavigate()
 
-  if (!data.length) return <Typography>No danmaku</Typography>
+  const { mutate: deleteDanmaku, isPending } = useDeleteDanmaku()
+
+  useEffect(() => {
+    if (episodes.length === 0) {
+      navigate('..')
+    }
+  }, [episodes])
+
+  if (!episodes.length) return <Typography>No danmaku</Typography>
 
   return (
     <Box
@@ -52,13 +66,14 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
     >
       <List>
         {virtualizer.getVirtualItems().map((virtualItem) => {
+          const episode = episodes[virtualItem.index]
           const {
             meta: { episodeTitle, episodeId },
             count,
-          } = episodes[virtualItem.index]
+          } = episode
 
           return (
-            <ListItemButton
+            <ListItem
               key={episodeTitle}
               sx={{
                 position: 'absolute',
@@ -69,20 +84,38 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
               }}
               data-index={virtualItem.index}
               ref={virtualizer.measureElement}
-              onClick={() => {
-                navigate(episodeId.toString())
-                setSelectedEpisode(episodeTitle ?? '')
-              }}
+              secondaryAction={
+                <Tooltip title="Delete">
+                  <IconButton
+                    onClick={() => deleteDanmaku(episodeId)}
+                    disabled={isPending}
+                  >
+                    {isPending ? (
+                      <CircularProgress size={24} color="inherit" />
+                    ) : (
+                      <Delete />
+                    )}
+                  </IconButton>
+                </Tooltip>
+              }
+              disablePadding
             >
-              <ListItemText
-                primary={episodeTitle}
-                secondary={
-                  <Typography variant="caption" color="text.secondary">
-                    {count} comments
-                  </Typography>
-                }
-              />
-            </ListItemButton>
+              <ListItemButton
+                onClick={() => {
+                  navigate(episodeId.toString())
+                  setSelectedEpisode(episodeTitle ?? '')
+                }}
+              >
+                <ListItemText
+                  primary={episodeTitle}
+                  secondary={
+                    <Typography variant="caption" color="text.secondary">
+                      {count} comments
+                    </Typography>
+                  }
+                />
+              </ListItemButton>
+            </ListItem>
           )
         })}
       </List>
