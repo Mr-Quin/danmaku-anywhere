@@ -21,14 +21,14 @@ export const FloatingPanel = ({
   anchorEl: PopperProps['anchorEl']
 }) => {
   useCloseOnEsc()
-  const { tab, isOpen, close } = usePopup()
+  const { tab, isOpen, toggleOpen } = usePopup()
 
   return (
     <FloatingPanelPopper isOpen={isOpen} anchorEl={anchorEl}>
       <FloatingPanelLayout>
         <AppBar position="relative">
           <Toolbar variant="dense" sx={{ justifyContent: 'flex-end' }}>
-            <IconButton edge="end" onClick={close}>
+            <IconButton edge="end" onClick={() => toggleOpen(false)}>
               <Close />
             </IconButton>
           </Toolbar>

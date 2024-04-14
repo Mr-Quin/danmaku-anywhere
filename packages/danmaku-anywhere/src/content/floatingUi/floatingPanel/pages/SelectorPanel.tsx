@@ -29,7 +29,7 @@ import { useFetchDanmakuMutation } from '@/content/common/hooks/useFetchDanmakuM
 
 export const SelectorPanel = () => {
   const selectorBoxRef = useRef<HTMLDivElement>()
-  const { animes, saveMapping, setSaveMapping, close } = usePopup()
+  const { animes, saveMapping, setSaveMapping, toggleOpen } = usePopup()
   const mediaInfo = useStore((state) => state.mediaInfo)
   const integration = useStore((state) => state.integration)
 
@@ -70,7 +70,7 @@ export const SelectorPanel = () => {
       titleMapping,
     })
 
-    close()
+    toggleOpen(false)
   }
 
   if (animes.length === 0) {

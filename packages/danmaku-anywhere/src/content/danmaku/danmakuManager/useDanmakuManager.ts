@@ -8,6 +8,7 @@ import { useStore } from '../../store/store'
 import { useToast } from '@/common/components/toast/toastStore'
 import { useDanmakuOptions } from '@/common/hooks/useDanmakuOptions'
 import { Logger } from '@/common/services/Logger'
+import { useRefreshComments } from '@/content/common/hooks/useRefreshComments'
 
 // listen to comment changes and mount/unmount the danmaku engine
 export const useDanmakuManager = () => {
@@ -15,6 +16,7 @@ export const useDanmakuManager = () => {
   const danmakuEngine = useDanmakuEngine()
   const { toast } = useToast()
   const { videoNode, containerNode } = useMediaElementStore()
+  const { canRefresh, refreshComments } = useRefreshComments()
 
   const { comments, playbackStatus } = useStore(
     useShallow(({ comments, playbackStatus }) => {
@@ -37,7 +39,11 @@ export const useDanmakuManager = () => {
     if (comments.length > 0) {
       Logger.debug('Creating danmaku')
       toast.success(
-        `Danmaku mounted: ${useStore.getState().getAnimeName()} (${comments.length})`
+        `Danmaku mounted: ${useStore.getState().getAnimeName()} (${comments.length})`,
+        {
+          actionFn: canRefresh ? refreshComments : undefined,
+          actionLabel: 'Refresh',
+        }
       )
       danmakuEngine.create(containerNode, videoNode, comments, options)
     }

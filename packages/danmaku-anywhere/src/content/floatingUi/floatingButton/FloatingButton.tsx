@@ -21,6 +21,8 @@ import { LoadingRing } from './components/LoadingRing'
 import { useShowFab } from './hooks/useShowFab'
 
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
+import { useMergeRefs } from '@/common/hooks/useMergeRefs'
+import { createVirtualElement } from '@/common/utils'
 import { useRefreshComments } from '@/content/common/hooks/useRefreshComments'
 import { useStore } from '@/content/store/store'
 
@@ -43,20 +45,7 @@ export const FloatingButton = forwardRef<
   const toggleEnabled = useStore((state) => state.toggleEnabled)
 
   const handleOpen: MouseEventHandler<HTMLElement> = (e) => {
-    const virtualElement = {
-      getBoundingClientRect: () => ({
-        width: 0,
-        height: 0,
-        x: e.clientX,
-        y: e.clientY,
-        top: e.clientY,
-        right: e.clientX,
-        bottom: e.clientY,
-        left: e.clientX,
-        toJSON: () => ({}),
-      }),
-      nodeType: Node.ELEMENT_NODE,
-    }
+    const virtualElement = createVirtualElement(e.clientX, e.clientY)
     onOpen(virtualElement)
   }
 
@@ -75,6 +64,8 @@ export const FloatingButton = forwardRef<
 
   const fabRef = useRef<HTMLButtonElement>(null)
 
+  const mergedFabRefs = useMergeRefs(fabRef, ref)
+
   return (
     <Box>
       <Fade in={isLoading || showFab || isOpen}>
@@ -87,9 +78,8 @@ export const FloatingButton = forwardRef<
               children: <LoadingRing isLoading />,
               onContextMenu: handleContextMenu,
               onClick: handleClick,
-              ref: fabRef,
+              ref: mergedFabRefs,
             }}
-            ref={ref}
           >
             <SpeedDialAction
               icon={

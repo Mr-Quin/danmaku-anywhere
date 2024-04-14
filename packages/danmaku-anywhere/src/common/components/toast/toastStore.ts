@@ -2,17 +2,25 @@ import { create } from 'zustand'
 
 import { createSelectors } from '@/common/createSelectors'
 
+interface ToastOptions {
+  duration?: number
+  actionFn?: () => void
+  actionLabel?: string
+}
+
 interface Toast {
-  info: (message: string, duration?: number) => void
-  success: (message: string, duration?: number) => void
-  warn: (message: string, duration?: number) => void
-  error: (message: string, duration?: number) => void
+  info: (message: string, options?: ToastOptions) => void
+  success: (message: string, options?: ToastOptions) => void
+  warn: (message: string, options?: ToastOptions) => void
+  error: (message: string, options?: ToastOptions) => void
 }
 
 interface ToastStoreState {
   isOpen: boolean
   message: string
   severity: 'success' | 'info' | 'warning' | 'error'
+  actionFn?: () => void
+  actionLabel?: string
   duration: number
   key: number
   close: () => void
@@ -20,38 +28,60 @@ interface ToastStoreState {
     message,
     duration,
     severity,
+    actionFn,
+    actionLabel,
   }: {
     message: string
     duration?: number
     severity?: 'success' | 'info' | 'warning' | 'error'
+    actionFn?: () => void
+    actionLabel?: string
   }) => void
+  unsetAction: () => void
   toast: Toast
 }
 
 const useToastBase = create<ToastStoreState>((set, get) => ({
   isOpen: false,
   message: '',
-  severity: 'info',
+  severity: 'info' as const,
   duration: 3000,
   key: 0,
   close: () => {
     set({ isOpen: false })
   },
-  show: ({ message, duration = 3000, severity = 'info' }) => {
-    set({ message, severity, duration, isOpen: true, key: Date.now() })
+  show: ({
+    message,
+    duration = 3000,
+    severity = 'info',
+    actionFn,
+    actionLabel,
+  }) => {
+    set({
+      message,
+      severity,
+      duration,
+      isOpen: true,
+      key: Date.now(),
+      actionFn,
+      actionLabel,
+    })
+  },
+  unsetAction: () => {
+    set({ actionFn: undefined, actionLabel: undefined })
   },
   toast: {
-    info: (message, duration) => {
-      get().show({ message, duration })
+    info: (message, options) => {
+      get().show({ message, severity: 'info', ...options })
     },
-    success: (message, duration) => {
-      get().show({ message, duration, severity: 'success' })
+    success: (message, options) => {
+      get().show({ message, severity: 'success', ...options })
     },
-    warn: (message, duration) => {
-      get().show({ message, duration, severity: 'warning' })
+    warn: (message, options) => {
+      get().show({ message, severity: 'warning', ...options })
     },
-    error: (message, duration) => {
-      get().show({ message, duration, severity: 'error' })
+    error: (message, options) => {
+      get().show({ message, severity: 'error', ...options })
     },
   },
 }))

@@ -10,9 +10,8 @@ export enum PopupTab {
 
 interface PopupStoreState {
   isOpen: boolean
-  toggleOpen: () => void
+  toggleOpen: (open?: boolean) => void
   open: (params?: { animes?: DanDanAnime[]; tab?: PopupTab }) => void
-  close: () => void
 
   animes: DanDanAnime[]
   setAnimes: (animes: DanDanAnime[]) => void
@@ -29,15 +28,13 @@ interface PopupStoreState {
 
 export const usePopup = create<PopupStoreState>((set) => ({
   isOpen: false,
-  toggleOpen: () => {
-    set((state) => ({ isOpen: !state.isOpen }))
+  toggleOpen: (open) => {
+    if (open !== undefined) set({ isOpen: open })
+    else set((state) => ({ isOpen: !state.isOpen }))
   },
   open: ({ animes = [], tab } = {}) => {
     set({ isOpen: true, animes: animes })
     if (tab) set({ tab })
-  },
-  close: () => {
-    set({ isOpen: false })
   },
 
   animes: [],
