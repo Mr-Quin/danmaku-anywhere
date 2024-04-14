@@ -20,15 +20,14 @@ import type { KeyboardEvent } from 'react'
 import { Suspense, useEffect, useRef, useState, useTransition } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
-import { usePopup } from '../../../store/popupStore'
-import { useStore } from '../../../store/store'
+import { usePopup } from '../../../../store/popupStore'
+import { useStore } from '../../../../store/store'
 
-import { BaseEpisodeListItem } from '@/common/components/animeList/BaseEpisodeListItem'
+import { EpisodeListItem } from './EpisodeListItem'
+
 import { SearchResultList } from '@/common/components/animeList/SearchResultList'
 import { Center } from '@/common/components/Center'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
-import type { DanmakuMeta } from '@/common/db/db'
-import { useFetchDanmakuMutation } from '@/content/common/hooks/useFetchDanmakuMutation'
 
 export const SearchPanel = () => {
   const {
@@ -53,9 +52,6 @@ export const SearchPanel = () => {
       queryKey: ['anime', 'search', searchParams],
     }) > 0
 
-  const { isPending: isDanmakuLoading, fetch: fetchDanmaku } =
-    useFetchDanmakuMutation()
-
   useEffect(() => {
     if (!mediaInfo) return
 
@@ -72,24 +68,15 @@ export const SearchPanel = () => {
     })
   }
 
-  const handleFetchDanmaku = async (meta: DanmakuMeta) => {
-    const titleMapping =
-      mediaInfo && saveMapping && integration
-        ? {
-            originalTitle: mediaInfo.toTitleString(),
-            title: meta.animeTitle,
-            animeId: meta.animeId,
-            source: integration,
-          }
-        : undefined
+  const getTitleMapping = (animeTitle: string, animeId: number) => {
+    if (!mediaInfo || !saveMapping || !integration) return undefined
 
-    await fetchDanmaku({
-      danmakuMeta: meta,
-      titleMapping,
-      options: {
-        forceUpdate: true,
-      },
-    })
+    return {
+      originalTitle: mediaInfo.toTitleString(),
+      title: animeTitle,
+      animeId: animeId,
+      source: integration,
+    }
   }
 
   const handleTextFieldKeyDown = (e: KeyboardEvent) => {
@@ -168,18 +155,15 @@ export const SearchPanel = () => {
               }}
               renderEpisodes={(episodes, anime) => {
                 return episodes.map((episode) => (
-                  <BaseEpisodeListItem
+                  <EpisodeListItem
+                    titleMapping={getTitleMapping(
+                      anime.animeTitle,
+                      anime.animeId
+                    )}
+                    episodeId={episode.episodeId}
                     episodeTitle={episode.episodeTitle}
-                    isLoading={isDanmakuLoading}
-                    showIcon={isDanmakuLoading}
-                    onClick={() => {
-                      handleFetchDanmaku({
-                        episodeId: episode.episodeId,
-                        episodeTitle: episode.episodeTitle,
-                        animeId: anime.animeId,
-                        animeTitle: anime.animeTitle,
-                      })
-                    }}
+                    animeId={anime.animeId}
+                    animeTitle={anime.animeTitle}
                     key={episode.episodeId}
                   />
                 ))

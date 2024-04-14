@@ -5,14 +5,14 @@ import type {
 } from '@danmaku-anywhere/dandanplay-api'
 import type { ListProps } from '@mui/material'
 import { List, ListItem, ListItemText, ListSubheader } from '@mui/material'
-import { useSuspenseQuery } from '@tanstack/react-query'
 import type React from 'react'
 import { useEffect, useId } from 'react'
+
+import { useAnimeSearchSuspense } from '../../hooks/useAnimeSearchSuspense'
 
 import { AnimeTypeIcon } from './AnimeTypeIcon'
 
 import { CollapsableListItems } from '@/common/components/animeList/CollapsableListItems'
-import { chromeRpcClient } from '@/common/rpc/client'
 
 interface SearchResultListProps {
   renderEpisodes: (
@@ -36,17 +36,7 @@ export const SearchResultList = ({
 }: SearchResultListProps) => {
   const headerId = useId()
 
-  const { data, error } = useSuspenseQuery({
-    queryKey: ['anime', 'search', searchParams],
-    queryFn: async () => {
-      return chromeRpcClient.animeSearch({
-        anime: searchParams.anime,
-        episode: searchParams.episode,
-      })
-    },
-    staleTime: Infinity,
-    retry: false,
-  })
+  const { data, error } = useAnimeSearchSuspense(searchParams)
 
   useEffect(() => {
     onLoad?.(data)

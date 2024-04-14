@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { NoAnime } from './components/NoAnime'
 
-import { useAllDanmakuQuerySuspense } from '@/popup/hooks/useAllDanmakuQuerySuspense'
+import { useAllDanmakuQuerySuspense } from '@/common/hooks/useAllDanmakuQuerySuspense'
 import { useStore } from '@/popup/store'
 
 interface DanmakuListProps {

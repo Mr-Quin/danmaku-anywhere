@@ -8,8 +8,8 @@ import {
 import { EpisodeOption } from './EpisodeOption'
 
 import type { DanmakuCacheLite } from '@/common/db/db'
+import { useAllDanmakuQuerySuspense } from '@/common/hooks/useAllDanmakuQuerySuspense'
 import { episodeIdToEpisodeNumber } from '@/common/utils'
-import { useAllDanmakuQuerySuspense } from '@/popup/hooks/useAllDanmakuQuerySuspense'
 
 const filterOptions = createFilterOptions({
   stringify: (option: DanmakuCacheLite) =>

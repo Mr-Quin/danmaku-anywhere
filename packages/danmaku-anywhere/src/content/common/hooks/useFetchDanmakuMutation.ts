@@ -1,8 +1,10 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { useStore } from '../../store/store'
 
 import type { DanmakuMeta, TitleMapping } from '@/common/db/db'
+import { useAllDanmakuQuerySuspense } from '@/common/hooks/useAllDanmakuQuerySuspense'
+import { useDanmakuQuerySuspense } from '@/common/hooks/useDanmakuQuerySuspense'
 import { chromeRpcClient } from '@/common/rpc/client'
 import type { DanmakuFetchOptions } from '@/common/types/DanmakuFetchOptions'
 import { tryCatch } from '@/common/utils'
@@ -19,8 +21,6 @@ export const useFetchDanmakuMutation = () => {
     titleMapping?: TitleMapping
     options?: DanmakuFetchOptions
   }) => {
-    setDanmakuMeta(danmakuMeta)
-
     const res = await chromeRpcClient.danmakuFetch({
       data: danmakuMeta,
       options: {
@@ -36,10 +36,21 @@ export const useFetchDanmakuMutation = () => {
     return res.comments
   }
 
+  const queryClient = useQueryClient()
+
   const mutation = useMutation({
     mutationFn: handleFetch,
-    onSuccess: (comments) => {
+    onMutate: (v) => {
+      setDanmakuMeta(v.danmakuMeta)
+    },
+    onSuccess: (comments, v) => {
       setComments(comments)
+      queryClient.invalidateQueries({
+        queryKey: useAllDanmakuQuerySuspense.queryKey,
+      })
+      queryClient.invalidateQueries({
+        queryKey: useDanmakuQuerySuspense.queryKey(v.danmakuMeta.episodeId),
+      })
     },
   })
 

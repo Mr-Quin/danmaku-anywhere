@@ -9,6 +9,7 @@ import type { MediaInfo } from '../integration/MediaObserver'
 import { useMatchObserver } from './useMatchObserver'
 
 import { useToast } from '@/common/components/toast/toastStore'
+import { useAnimeSearchSuspense } from '@/common/hooks/useAnimeSearchSuspense'
 import { chromeRpcClient } from '@/common/rpc/client'
 import { Logger } from '@/common/services/Logger'
 import { getEpisodeId, tryCatch } from '@/common/utils'
@@ -100,7 +101,10 @@ export const useMediaObserver = () => {
           // if no mapping, search for anime to get the animeId
           const [animes, searchErr] = await tryCatch(() =>
             queryClient.fetchQuery({
-              queryKey: ['anime', state],
+              queryKey: useAnimeSearchSuspense.queryKey({
+                anime: state.title,
+                episode: state.episodic ? state.episode.toString() : '',
+              }),
               queryFn: () =>
                 chromeRpcClient.animeSearch({
                   anime: state.title,

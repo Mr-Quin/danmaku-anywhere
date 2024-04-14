@@ -57,6 +57,7 @@ interface StoreState {
    * The active integration observer for pages with integration
    */
   integration?: string
+  setIntegration: (integration?: string) => void
 
   /**
    * Reset media related state
@@ -103,6 +104,7 @@ export const useStore = create<StoreState>((set, get) => ({
   setDanmakuMeta: (danmakuMeta) => set({ danmakuMeta }),
 
   integration: undefined,
+  setIntegration: (integration) => set({ integration }),
 
   resetMediaState: () =>
     set({

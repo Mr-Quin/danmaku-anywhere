@@ -4,14 +4,19 @@ import {
   BaseListItemSkeleton,
   BaseEpisodeListItem,
 } from '@/common/components/animeList/BaseEpisodeListItem'
-import type { DanmakuMeta } from '@/common/db/db'
+import type { DanmakuMeta, TitleMapping } from '@/common/db/db'
 import { useDanmakuQuerySuspense } from '@/common/hooks/useDanmakuQuerySuspense'
-import { useFetchDanmakuMutation } from '@/popup/hooks/useFetchDanmakuMutation'
+import { useFetchDanmakuMutation } from '@/content/common/hooks/useFetchDanmakuMutation'
 
-type EpisodeListItemProps = Required<DanmakuMeta>
+type EpisodeListItemProps = Required<DanmakuMeta> & {
+  titleMapping?: TitleMapping
+}
 
-const InnerEpisodeListItem = (props: EpisodeListItemProps) => {
-  const { episodeId, episodeTitle } = props
+const InnerEpisodeListItem = ({
+  titleMapping,
+  ...rest
+}: EpisodeListItemProps) => {
+  const { episodeId, episodeTitle } = rest
   const { fetch, isPending } = useFetchDanmakuMutation()
 
   const { data: danmakuData } = useDanmakuQuerySuspense(episodeId)
@@ -20,7 +25,8 @@ const InnerEpisodeListItem = (props: EpisodeListItemProps) => {
 
   const handleFetchDanmaku = async () => {
     await fetch({
-      data: props,
+      danmakuMeta: rest,
+      titleMapping,
       options: {
         forceUpdate: true,
       },

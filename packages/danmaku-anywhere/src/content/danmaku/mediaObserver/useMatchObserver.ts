@@ -16,6 +16,7 @@ export const useMatchObserver = () => {
   const [observer, setObserver] = useState<MediaObserver>()
 
   const toggleManualMode = useStore((state) => state.toggleManualMode)
+  const setIntegration = useStore((state) => state.setIntegration)
 
   useEffect(() => {
     // when config changes, try to find a matching observer
@@ -24,10 +25,12 @@ export const useMatchObserver = () => {
     if (!Observer) {
       // no matching observer found, fallback to manual mode
       toggleManualMode(true)
+      setIntegration(undefined)
       return
     }
 
     toggleManualMode(false)
+    setIntegration(config.name)
     toast.info(`Using integration: ${config.name}`)
     Logger.debug(`Using integration: ${config.name}`)
 

@@ -15,12 +15,12 @@ export const useRefreshComments = () => {
   const refreshComments = useEventCallback(async () => {
     if (!danmakuMeta) return
 
-    const [, err] = await tryCatch(() =>
+    const [result, err] = await tryCatch(() =>
       fetch({ danmakuMeta, options: { forceUpdate: true } })
     )
 
     if (!err) {
-      toast.success('Comments refreshed')
+      toast.success(`Refreshed ${danmakuMeta.episodeTitle} (${result.length})`)
     }
   })
 
