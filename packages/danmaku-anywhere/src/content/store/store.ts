@@ -10,6 +10,14 @@ import type { DanmakuMeta } from '@/common/db/db'
 
 interface StoreState {
   /**
+   * Whether to enable the danmaku feature
+   * If off, the popup will work, but danmaku will not be displayed
+   * This is separate from the extension options
+   */
+  enabled: boolean
+  toggleEnabled: (enabled?: boolean) => void
+
+  /**
    * Danmaku to be displayed
    */
   comments: DanDanComment[]
@@ -63,6 +71,14 @@ interface StoreState {
 }
 
 export const useStore = create<StoreState>((set, get) => ({
+  enabled: true,
+  toggleEnabled: (enabled) => {
+    if (enabled !== undefined) {
+      set({ enabled })
+    }
+    set({ enabled: !get().enabled })
+  },
+
   comments: [],
   setComments: (comments) => set({ comments }),
 

@@ -1,7 +1,13 @@
-import { MenuOpen, Refresh } from '@mui/icons-material'
+import {
+  MenuOpen,
+  Refresh,
+  Visibility,
+  VisibilityOff,
+} from '@mui/icons-material'
 import type { FabProps, PopoverVirtualElement } from '@mui/material'
 import {
   Box,
+  CircularProgress,
   Fade,
   SpeedDial,
   SpeedDialAction,
@@ -16,6 +22,7 @@ import { useShowFab } from './hooks/useShowFab'
 
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { useRefreshComments } from '@/content/common/hooks/useRefreshComments'
+import { useStore } from '@/content/store/store'
 
 interface FloatingButtonProps extends FabProps {
   onOpen: (virtualElement: PopoverVirtualElement) => void
@@ -29,6 +36,11 @@ export const FloatingButton = forwardRef<
   const isLoading = useAnyLoading()
 
   const showFab = useShowFab()
+
+  const { refreshComments, isPending, canRefresh } = useRefreshComments()
+
+  const enabled = useStore((state) => state.enabled)
+  const toggleEnabled = useStore((state) => state.toggleEnabled)
 
   const handleOpen: MouseEventHandler<HTMLElement> = (e) => {
     const virtualElement = {
@@ -56,7 +68,10 @@ export const FloatingButton = forwardRef<
     handleOpen(e)
   }
 
-  const { refreshComments } = useRefreshComments()
+  // reserved for touch devices
+  const handleClick: MouseEventHandler<HTMLElement> = (e) => {
+    handleOpen(e)
+  }
 
   const fabRef = useRef<HTMLButtonElement>(null)
 
@@ -71,14 +86,29 @@ export const FloatingButton = forwardRef<
               size: 'small',
               children: <LoadingRing isLoading />,
               onContextMenu: handleContextMenu,
+              onClick: handleClick,
               ref: fabRef,
             }}
             ref={ref}
           >
             <SpeedDialAction
-              icon={<Refresh />}
+              icon={
+                isPending ? (
+                  <CircularProgress size={18} color="inherit" />
+                ) : (
+                  <Refresh />
+                )
+              }
               tooltipTitle="Refresh danmaku"
               onClick={refreshComments}
+              FabProps={{
+                disabled: isPending || !canRefresh,
+              }}
+            />
+            <SpeedDialAction
+              icon={enabled ? <Visibility /> : <VisibilityOff />}
+              tooltipTitle={enabled ? 'Disable danmaku' : 'Enable danmaku'}
+              onClick={() => toggleEnabled()}
             />
             <SpeedDialAction
               icon={<MenuOpen />}
