@@ -10,6 +10,7 @@ import { App } from './App'
 import { queryClient } from '@/common/queryClient'
 import { Logger } from '@/common/services/Logger'
 import { Theme } from '@/common/style/Theme'
+import { tryCatchSync } from '@/common/utils'
 
 Logger.debug('Danmaku Anywhere content script loaded')
 
@@ -42,6 +43,15 @@ emotionRoot.textContent = `
 }
 `
 
+// try to get the html font size for rem unit
+// if it fails, use 16 as default
+const htmlFontSize =
+  tryCatchSync(() => {
+    return parseFloat(
+      window.getComputedStyle(document.documentElement).fontSize
+    )
+  })[0] ?? 16
+
 const cache = createCache({
   key: 'danmaku-anywhere',
   container: emotionRoot,
@@ -49,6 +59,9 @@ const cache = createCache({
 })
 
 const themeOptions: ThemeOptions = {
+  typography: {
+    htmlFontSize,
+  },
   components: {
     MuiPopover: {
       defaultProps: {
