@@ -125,6 +125,9 @@ export const FloatingButton = forwardRef<
                   height={40}
                   top={0}
                   left={0}
+                  sx={{
+                    pointerEvents: 'none',
+                  }}
                 >
                   <LoadingRing isLoading={isLoading} />
                 </Box>
