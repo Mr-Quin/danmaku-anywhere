@@ -10,20 +10,36 @@ export enum PopupTab {
 
 interface PopupStoreState {
   isOpen: boolean
+  toggleOpen: () => void
+  open: (params?: { animes?: DanDanAnime[]; tab?: PopupTab }) => void
+  close: () => void
+
   animes: DanDanAnime[]
   setAnimes: (animes: DanDanAnime[]) => void
+
   searchTitle: string
   setSearchTitle: (title: string) => void
+
   tab: PopupTab
   setTab: (tab: PopupTab) => void
+
   saveMapping: boolean
   setSaveMapping: (saving: boolean) => void
-  open: (params: { animes?: DanDanAnime[]; tab?: PopupTab }) => void
-  close: () => void
 }
 
 export const usePopup = create<PopupStoreState>((set) => ({
   isOpen: false,
+  toggleOpen: () => {
+    set((state) => ({ isOpen: !state.isOpen }))
+  },
+  open: ({ animes = [], tab } = {}) => {
+    set({ isOpen: true, animes: animes })
+    if (tab) set({ tab })
+  },
+  close: () => {
+    set({ isOpen: false })
+  },
+
   animes: [],
   setAnimes: (animes) => {
     set({ animes })
@@ -39,12 +55,5 @@ export const usePopup = create<PopupStoreState>((set) => ({
   saveMapping: true,
   setSaveMapping: (saving) => {
     set({ saveMapping: saving })
-  },
-  open: ({ animes = [], tab }) => {
-    set({ isOpen: true, animes: animes })
-    if (tab) set({ tab })
-  },
-  close: () => {
-    set({ isOpen: false })
   },
 }))
