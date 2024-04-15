@@ -17,7 +17,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useAllDanmakuQuerySuspense } from '@/common/queries/danmaku/useAllDanmakuQuerySuspense'
 import { useDeleteDanmaku } from '@/common/queries/danmaku/useDeleteDanmaku'
 import { useIsConnected } from '@/popup/hooks/useIsConnected'
-import { useMountDanmaku } from '@/popup/hooks/useMountDanmaku'
+import { useMountDanmakuPopup } from '@/popup/hooks/useMountDanmakuPopup'
 import { useStore } from '@/popup/store'
 
 interface EpisodeListProps {
@@ -48,7 +48,7 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
   const navigate = useNavigate()
 
   const { mutate: deleteDanmaku, isPending: isDeleting } = useDeleteDanmaku()
-  const { mutateAsync: mount, isPending: isMounting } = useMountDanmaku()
+  const { mutateAsync: mount, isPending: isMounting } = useMountDanmakuPopup()
   const { data: isConnected } = useIsConnected()
 
   useEffect(() => {

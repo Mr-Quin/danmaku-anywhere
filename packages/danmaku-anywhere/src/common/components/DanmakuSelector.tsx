@@ -4,64 +4,63 @@ import {
   TextField,
   createFilterOptions,
 } from '@mui/material'
+import { useMemo } from 'react'
 
 import { EpisodeOption } from './EpisodeOption'
 
-import type { DanmakuCacheLite } from '@/common/db/db'
+import type { DanmakuMeta } from '@/common/db/db'
 import { useAllDanmakuQuerySuspense } from '@/common/queries/danmaku/useAllDanmakuQuerySuspense'
 import { episodeIdToEpisodeNumber } from '@/common/utils/utils'
 
 const filterOptions = createFilterOptions({
-  stringify: (option: DanmakuCacheLite) =>
-    `${option.meta.animeTitle} ${option.meta.episodeTitle}`,
+  stringify: (option: DanmakuMeta) =>
+    `${option.animeTitle} ${option.episodeTitle}`,
 })
 
-const isOptionEqualToValue = (
-  option: DanmakuCacheLite,
-  value: DanmakuCacheLite
-) => {
-  return option.meta.episodeId === value?.meta.episodeId
+const isOptionEqualToValue = (option: DanmakuMeta, value: DanmakuMeta) => {
+  return option.episodeId === value.episodeId
 }
 
-export const DanmakuSelector = ({
-  value,
-  onChange,
-}: {
-  value: DanmakuCacheLite | null
-  onChange: (value: DanmakuCacheLite | null) => void
-}) => {
+interface DanmakuSelectorProps {
+  value: DanmakuMeta | null
+  onChange: (value: DanmakuMeta | null) => void
+}
+
+export const DanmakuSelector = ({ value, onChange }: DanmakuSelectorProps) => {
   const { data: options, isFetching } = useAllDanmakuQuerySuspense()
+
+  const metas = useMemo(() => options.map((option) => option.meta), [options])
 
   return (
     <Autocomplete
       value={value} // value must be null when empty so that the component is "controlled"
       loading={isFetching}
-      options={options}
+      options={metas}
       filterOptions={filterOptions}
       isOptionEqualToValue={isOptionEqualToValue}
       onChange={(e, value) => {
         onChange(value ?? null)
       }}
-      renderOption={(props, option) => {
+      renderOption={(props, option, optionState) => {
         return (
           <EpisodeOption
             {...props}
-            key={option.meta.episodeId}
-            option={option}
+            key={option.episodeId}
+            option={options[optionState.index]}
             isLoading={isFetching}
           />
         )
       }}
       getOptionLabel={(option) =>
-        option.meta.episodeTitle ??
-        `Episode ${episodeIdToEpisodeNumber(option.meta.episodeId)}`
+        option.episodeTitle ??
+        `Episode ${episodeIdToEpisodeNumber(option.episodeId)}`
       }
-      groupBy={(option) => option.meta.animeTitle}
+      groupBy={(option) => option.animeTitle}
       renderInput={(params) => {
         return (
           <TextField
             {...params}
-            label={value ? value.meta.animeTitle : 'Select Episode'}
+            label={value ? value.animeTitle : 'Select Episode'}
             InputProps={{
               ...params.InputProps,
               endAdornment: (

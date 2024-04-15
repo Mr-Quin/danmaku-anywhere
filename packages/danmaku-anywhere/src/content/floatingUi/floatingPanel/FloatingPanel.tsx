@@ -1,6 +1,7 @@
 import { Close } from '@mui/icons-material'
 import type { PopperProps } from '@mui/material'
 import { AppBar, Box, IconButton, Paper, Toolbar } from '@mui/material'
+import { Suspense } from 'react'
 import { match } from 'ts-pattern'
 
 import { PopupTab, usePopup } from '../../store/popupStore'
@@ -9,7 +10,9 @@ import { FloatingPanelPopper } from './components/FloatingPanelPopper'
 import { PanelTabs } from './components/PanelTabs'
 import { useCloseOnEsc } from './hooks/useCloseOnEsc'
 import { FloatingPanelLayout } from './layout/FloatingPanelLayout'
+import { MountPage } from './pages/mount/MountPage'
 
+import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { CommentsPanel } from '@/content/floatingUi/floatingPanel/pages/CommentsPanel'
 import { InfoPanel } from '@/content/floatingUi/floatingPanel/pages/InfoPanel'
 import { SearchPanel } from '@/content/floatingUi/floatingPanel/pages/search/SearchPanel'
@@ -35,13 +38,30 @@ export const FloatingPanel = ({
         </AppBar>
         <Box display="flex" flexGrow={1} minHeight={0}>
           <PanelTabs />
-          <Paper sx={{ borderRadius: 0, overflow: 'auto', height: 1, flex: 1 }}>
-            {match(tab)
-              .with(PopupTab.Info, () => <InfoPanel />)
-              .with(PopupTab.Search, () => <SearchPanel />)
-              .with(PopupTab.Selector, () => <SelectorPanel />)
-              .with(PopupTab.Comments, () => <CommentsPanel />)
-              .exhaustive()}
+          <Paper
+            sx={{
+              borderRadius: 0,
+              overflow: 'auto',
+              height: 1,
+              flex: 1,
+              display: 'flex',
+            }}
+          >
+            <Suspense
+              fallback={
+                <Box flexGrow={1}>
+                  <FullPageSpinner />
+                </Box>
+              }
+            >
+              {match(tab)
+                .with(PopupTab.Info, () => <InfoPanel />)
+                .with(PopupTab.Search, () => <SearchPanel />)
+                .with(PopupTab.Selector, () => <SelectorPanel />)
+                .with(PopupTab.Comments, () => <CommentsPanel />)
+                .with(PopupTab.Mount, () => <MountPage />)
+                .exhaustive()}
+            </Suspense>
           </Paper>
         </Box>
       </FloatingPanelLayout>

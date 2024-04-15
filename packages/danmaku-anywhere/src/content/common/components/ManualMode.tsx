@@ -1,11 +1,15 @@
-import type { PropsWithChildren } from 'react'
+import type { PropsWithChildren, ReactNode } from 'react'
 
 import { useStore } from '@/content/store/store'
 
-export const ManualMode = ({ children }: PropsWithChildren) => {
+type ManualModeProps = PropsWithChildren & {
+  fallback?: ReactNode
+}
+
+export const ManualMode = ({ children, fallback }: ManualModeProps) => {
   const manual = useStore((state) => state.manual)
 
   if (manual) return children
 
-  return null
+  return fallback
 }

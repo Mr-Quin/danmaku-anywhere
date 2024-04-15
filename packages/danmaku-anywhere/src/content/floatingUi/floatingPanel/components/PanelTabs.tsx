@@ -12,7 +12,7 @@ export const PanelTabs = () => {
   const tabs =
     tab === PopupTab.Selector
       ? [PopupTab.Selector]
-      : [PopupTab.Search, PopupTab.Info, PopupTab.Comments]
+      : [PopupTab.Search, PopupTab.Info, PopupTab.Comments, PopupTab.Mount]
 
   return (
     <Tabs

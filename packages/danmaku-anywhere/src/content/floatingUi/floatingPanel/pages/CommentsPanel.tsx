@@ -19,7 +19,7 @@ export const CommentsPanel = () => {
   const { refreshComments, isPending, canRefresh } = useRefreshComments()
 
   return (
-    <Stack height="100%">
+    <Stack height="100%" flexGrow={1}>
       <Toolbar
         variant="dense"
         sx={{

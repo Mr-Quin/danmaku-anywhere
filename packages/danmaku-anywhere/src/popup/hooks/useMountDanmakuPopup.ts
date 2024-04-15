@@ -6,7 +6,7 @@ import { useDanmakuQuerySuspense } from '@/common/queries/danmaku/useDanmakuQuer
 import { chromeRpcClient, tabRpcClient } from '@/common/rpc/client'
 import { Logger } from '@/common/services/Logger'
 
-export const useMountDanmaku = () => {
+export const useMountDanmakuPopup = () => {
   const toast = useToast.use.toast()
 
   const queryClient = useQueryClient()
