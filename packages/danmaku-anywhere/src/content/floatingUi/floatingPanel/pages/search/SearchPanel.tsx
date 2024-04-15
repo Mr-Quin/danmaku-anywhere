@@ -96,7 +96,7 @@ export const SearchPanel = () => {
         <Box py={2} px={2}>
           <Stack direction="row" spacing={1} alignItems="center">
             <TextField
-              label="Anime Title"
+              label="Title"
               variant="outlined"
               value={searchTitle}
               onKeyDown={handleTextFieldKeyDown}
@@ -105,6 +105,7 @@ export const SearchPanel = () => {
                 setSearchTitle(e.target.value)
               }}
               fullWidth
+              required
             />
             <LoadingButton
               type="submit"
