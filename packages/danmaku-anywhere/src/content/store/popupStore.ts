@@ -26,11 +26,15 @@ interface PopupStoreState {
   setSaveMapping: (saving: boolean) => void
 }
 
-export const usePopup = create<PopupStoreState>((set) => ({
+export const usePopup = create<PopupStoreState>((set, get) => ({
   isOpen: false,
   toggleOpen: (open) => {
-    if (open !== undefined) set({ isOpen: open })
-    else set((state) => ({ isOpen: !state.isOpen }))
+    const nextOpen = open ?? !get().isOpen
+    if (get().tab === PopupTab.Selector) {
+      set({ isOpen: nextOpen, tab: PopupTab.Search })
+    } else {
+      set({ isOpen: nextOpen })
+    }
   },
   open: ({ animes = [], tab } = {}) => {
     set({ isOpen: true, animes: animes })
