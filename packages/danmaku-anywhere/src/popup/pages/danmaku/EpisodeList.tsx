@@ -1,4 +1,4 @@
-import { Delete } from '@mui/icons-material'
+import { Delete, Publish } from '@mui/icons-material'
 import {
   Box,
   Typography,
@@ -16,6 +16,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import { useAllDanmakuQuerySuspense } from '@/common/queries/danmaku/useAllDanmakuQuerySuspense'
 import { useDeleteDanmaku } from '@/common/queries/danmaku/useDeleteDanmaku'
+import { useIsConnected } from '@/popup/hooks/useIsConnected'
+import { useMountDanmaku } from '@/popup/hooks/useMountDanmaku'
 import { useStore } from '@/popup/store'
 
 interface EpisodeListProps {
@@ -45,7 +47,9 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
 
   const navigate = useNavigate()
 
-  const { mutate: deleteDanmaku, isPending } = useDeleteDanmaku()
+  const { mutate: deleteDanmaku, isPending: isDeleting } = useDeleteDanmaku()
+  const { mutateAsync: mount, isPending: isMounting } = useMountDanmaku()
+  const { data: isConnected } = useIsConnected()
 
   useEffect(() => {
     if (episodes.length === 0) {
@@ -85,18 +89,36 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
               data-index={virtualItem.index}
               ref={virtualizer.measureElement}
               secondaryAction={
-                <Tooltip title="Delete">
-                  <IconButton
-                    onClick={() => deleteDanmaku(episodeId)}
-                    disabled={isPending}
-                  >
-                    {isPending ? (
-                      <CircularProgress size={24} color="inherit" />
-                    ) : (
-                      <Delete />
-                    )}
-                  </IconButton>
-                </Tooltip>
+                <>
+                  <Tooltip title="Mount">
+                    <span>
+                      <IconButton
+                        onClick={() => mount(episode.meta)}
+                        disabled={!isConnected || isMounting}
+                      >
+                        {isMounting ? (
+                          <CircularProgress size={24} color="inherit" />
+                        ) : (
+                          <Publish />
+                        )}
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title="Delete">
+                    <span>
+                      <IconButton
+                        onClick={() => deleteDanmaku(episodeId)}
+                        disabled={isDeleting}
+                      >
+                        {isDeleting ? (
+                          <CircularProgress size={24} color="inherit" />
+                        ) : (
+                          <Delete />
+                        )}
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                </>
               }
               disablePadding
             >

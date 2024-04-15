@@ -4,13 +4,12 @@ import { Suspense, type PropsWithChildren } from 'react'
 import { Link } from 'react-router-dom'
 import { match, P } from 'ts-pattern'
 
+import { useIsConnected } from '../../hooks/useIsConnected'
+
 import { MountController } from './components/MountController'
 
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { useAllDanmakuQuerySuspense } from '@/common/queries/danmaku/useAllDanmakuQuerySuspense'
-import { tabRpcClient } from '@/common/rpc/client'
-import { Logger } from '@/common/services/Logger'
-import { sleep } from '@/common/utils/utils'
 import { TabToolbar } from '@/popup/component/TabToolbar'
 import { TabLayout } from '@/popup/layout/TabLayout'
 
@@ -34,20 +33,7 @@ const HasDanmaku = ({ children }: PropsWithChildren) => {
 }
 
 const IsConnected = ({ children }: PropsWithChildren) => {
-  const { data: isTabConnected } = useSuspenseQuery({
-    queryKey: ['tab', 'ping'],
-    queryFn: async () => {
-      try {
-        const res = await Promise.any([await tabRpcClient.ping(), sleep(1500)])
-        return res === true
-      } catch (e) {
-        Logger.debug('Content script is not connected')
-
-        return false
-      }
-    },
-    retry: 0,
-  })
+  const { data: isTabConnected } = useIsConnected()
 
   const { data: activeTabUrl } = useSuspenseQuery({
     queryKey: ['chrome', 'tabs', 'query'],
