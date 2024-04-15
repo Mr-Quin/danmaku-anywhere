@@ -3,19 +3,20 @@ import { Box, Button, Skeleton, Stack, Typography } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { Suspense, useEffect, useState } from 'react'
 
-import { useMountDanmaku } from '../../../hooks/useMountDanmaku'
+import { useMountDanmakuPopup } from '../../../hooks/useMountDanmakuPopup'
 
-import { DanmakuSelector } from './DanmakuSelector'
-
+import { DanmakuSelector } from '@/common/components/DanmakuSelector'
 import { useToast } from '@/common/components/toast/toastStore'
-import type { DanmakuCacheLite } from '@/common/db/db'
+import type { DanmakuMeta } from '@/common/db/db'
 import { useSessionState } from '@/common/queries/extStorage/useSessionState'
 import { tabRpcClient } from '@/common/rpc/client'
 import { Logger } from '@/common/services/Logger'
 
 export const MountController = () => {
-  const [danmakuCache, setDanmakuCache] =
-    useSessionState<DanmakuCacheLite | null>(null, 'controller/danmakuMeta')
+  const [danmakuMeta, setDanmakuMeta] = useSessionState<DanmakuMeta | null>(
+    null,
+    'controller/danmakuMeta'
+  )
 
   const tabDanmakuState = useQuery({
     queryKey: ['tab', 'danmaku', 'getCurrent'],
@@ -27,23 +28,20 @@ export const MountController = () => {
 
   const [canUnmount, setCanUnmount] = useState<boolean>(false)
 
-  const canMount = danmakuCache !== null
+  const canMount = danmakuMeta !== null
 
-  const { mutateAsync: mount, isPending: isMounting } = useMountDanmaku()
+  const { mutateAsync: mount, isPending: isMounting } = useMountDanmakuPopup()
 
   useEffect(() => {
     if (tabDanmakuState.data?.meta) {
-      setDanmakuCache({
-        meta: tabDanmakuState.data.meta,
-        count: tabDanmakuState.data.count,
-      })
+      setDanmakuMeta(tabDanmakuState.data.meta)
       setCanUnmount(tabDanmakuState.data.manual)
     }
   }, [tabDanmakuState.data])
 
   const handleMount = async () => {
-    if (!danmakuCache) return
-    await mount(danmakuCache.meta)
+    if (!danmakuMeta) return
+    await mount(danmakuMeta)
     setCanUnmount(true)
   }
 
@@ -71,8 +69,8 @@ export const MountController = () => {
         </Typography>
         <Suspense fallback={<Skeleton height={56} width="100%" />}>
           <DanmakuSelector
-            value={danmakuCache ?? null}
-            onChange={setDanmakuCache}
+            value={danmakuMeta ?? null}
+            onChange={setDanmakuMeta}
           />
         </Suspense>
         <LoadingButton

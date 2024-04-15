@@ -12,7 +12,7 @@ export const InfoPanel = () => {
   }
 
   return (
-    <Box component="pre" m={0}>
+    <Box component="pre" m={0} flexGrow={1}>
       {JSON.stringify(displayState, null, 2)}
     </Box>
   )

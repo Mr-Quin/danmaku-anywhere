@@ -82,7 +82,7 @@ export const SelectorPanel = () => {
   }
 
   return (
-    <Box>
+    <Box flexGrow={1}>
       <Typography variant="body1" p={2}>
         Multile matches found for {mediaInfo?.toTitleString()}, please select
       </Typography>

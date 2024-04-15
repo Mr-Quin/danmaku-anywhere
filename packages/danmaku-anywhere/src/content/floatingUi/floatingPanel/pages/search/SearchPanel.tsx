@@ -86,7 +86,7 @@ export const SearchPanel = () => {
   }
 
   return (
-    <Box>
+    <Box flexGrow={1}>
       <form
         onSubmit={(e) => {
           e.preventDefault()
