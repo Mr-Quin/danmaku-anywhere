@@ -3,11 +3,12 @@ import { Box, Button, Skeleton, Stack, Typography } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { Suspense, useEffect, useState } from 'react'
 
+import { useMountDanmaku } from '../../../hooks/useMountDanmaku'
+
 import { DanmakuSelector } from './DanmakuSelector'
 
 import { useToast } from '@/common/components/toast/toastStore'
 import type { DanmakuCacheLite } from '@/common/db/db'
-import { useDanmakuQuery } from '@/common/queries/danmaku/useDanmakuQuery'
 import { useSessionState } from '@/common/queries/extStorage/useSessionState'
 import { tabRpcClient } from '@/common/rpc/client'
 import { Logger } from '@/common/services/Logger'
@@ -15,8 +16,6 @@ import { Logger } from '@/common/services/Logger'
 export const MountController = () => {
   const [danmakuCache, setDanmakuCache] =
     useSessionState<DanmakuCacheLite | null>(null, 'controller/danmakuMeta')
-
-  const danmakuQuery = useDanmakuQuery(danmakuCache?.meta.episodeId)
 
   const tabDanmakuState = useQuery({
     queryKey: ['tab', 'danmaku', 'getCurrent'],
@@ -30,6 +29,8 @@ export const MountController = () => {
 
   const canMount = danmakuCache !== null
 
+  const { mutateAsync: mount, isPending: isMounting } = useMountDanmaku()
+
   useEffect(() => {
     if (tabDanmakuState.data?.meta) {
       setDanmakuCache({
@@ -41,31 +42,9 @@ export const MountController = () => {
   }, [tabDanmakuState.data])
 
   const handleMount = async () => {
-    try {
-      if (danmakuQuery.data) {
-        await tabRpcClient.danmakuMount({
-          meta: danmakuQuery.data.meta,
-          comments: danmakuQuery.data.comments,
-        })
-        setCanUnmount(true)
-        toast.success('Danmaku mounted')
-        return
-      }
-
-      const cache = await danmakuQuery.refetch()
-
-      if (cache.data) {
-        await tabRpcClient.danmakuMount({
-          meta: cache.data.meta,
-          comments: cache.data.comments,
-        })
-        setCanUnmount(true)
-        toast.success('Danmaku mounted')
-      }
-    } catch (e) {
-      toast.error(`Failed to mount danmaku: ${(e as Error).message}`)
-      Logger.debug(e)
-    }
+    if (!danmakuCache) return
+    await mount(danmakuCache.meta)
+    setCanUnmount(true)
   }
 
   const handleUnmount = async () => {
@@ -99,7 +78,7 @@ export const MountController = () => {
         <LoadingButton
           type="submit"
           variant="contained"
-          loading={danmakuCache !== null && danmakuQuery.isPending}
+          loading={isMounting}
           disabled={!canMount}
         >
           Mount
