@@ -161,8 +161,6 @@ export const useMediaObserver = () => {
 
         if (!danmakuMeta) return
 
-        setDanmakuMeta(danmakuMeta)
-
         const [res, danmakuErr] = await tryCatch(() =>
           queryClient.fetchQuery({
             queryKey: ['danmaku', 'fetch', danmakuMeta],
@@ -182,6 +180,7 @@ export const useMediaObserver = () => {
           return
         }
 
+        setDanmakuMeta(res.meta)
         setComments(res.comments)
       },
       statusChange: (status) => {

@@ -2,7 +2,6 @@ import type {
   DanDanAnime,
   DanDanAnimeSearchAPIParams,
   DanDanCommentAPIParams,
-  DanDanCommentAPIResult,
 } from '@danmaku-anywhere/dandanplay-api'
 
 import type {
@@ -35,7 +34,7 @@ type DanmakuMethods = {
       params?: Partial<DanDanCommentAPIParams>
       options?: DanmakuFetchOptions
     },
-    DanDanCommentAPIResult
+    DanmakuCache
   >
   danmakuDelete: RPCDef<number, void>
 }
