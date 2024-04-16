@@ -1,13 +1,19 @@
 import { MediaInfo, MediaObserver } from './MediaObserver'
 
 // title format
+// episodic:
 // ▶ [TITLE] - S[SEASON] · E[EPISODE]
-// [TITLE] - S[SEASON] · E[EPISODE]
+// ▶ [TITLE] - 第[SEASON]季 · 第[EPISODE]集
+// ▶ [TITLE] - 第[SEASON]季 · E[EPISODE]
+// ▶ [TITLE] - シーズン[SEASON] · 第[EPISODE]話
+// generally the season and episode number have the following format:
+// - *[SEASON]* · *[EPISODE]*
+// where * is any number of non-digit character
+// non-episodic (movie, music, etc.):
 // ▶ [TITLE]
-// [TITLE]
 const titleRegex = {
   episodic:
-    /(?<playing>▶\s)?(?<title>.+)(\s-\s*S(?<season>\d+)\s*·\s*E(?<episode>\d+))/,
+    /(?<playing>▶\s)?(?<title>.+)(\s-\s*[^\d]*(?<season>\d+)[^\d]*\s·\s[^\d]*(?<episode>\d+)[^\d]*$)/,
   other: /(?<playing>▶\s)?(?<title>.+)/,
 }
 
