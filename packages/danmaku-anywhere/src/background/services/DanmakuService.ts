@@ -82,7 +82,7 @@ export class DanmakuService {
 
     this.logger.debug('Cached danmaku to db')
 
-    return comments
+    return newEntry
   }
 
   async delete(episodeId: number) {

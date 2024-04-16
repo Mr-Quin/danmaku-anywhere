@@ -34,7 +34,7 @@ export const useFetchDanmakuMapped = () => {
       await tryCatch(() => chromeRpcClient.titleMappingSet(titleMapping))
     }
 
-    return res.comments
+    return res
   }
 
   const mutation = useMutation({
@@ -42,8 +42,8 @@ export const useFetchDanmakuMapped = () => {
     onMutate: (v) => {
       setDanmakuMeta(v.danmakuMeta)
     },
-    onSuccess: (comments) => {
-      setComments(comments)
+    onSuccess: (cache) => {
+      setComments(cache.comments)
     },
   })
 

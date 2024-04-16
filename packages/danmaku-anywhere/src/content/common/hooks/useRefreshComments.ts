@@ -20,7 +20,7 @@ export const useRefreshComments = () => {
     )
 
     if (!err) {
-      toast.success(`Refreshed ${danmakuMeta.episodeTitle} (${result.length})`)
+      toast.success(`Refreshed ${result.meta.episodeTitle} (${result.count})`)
     }
   })
 
