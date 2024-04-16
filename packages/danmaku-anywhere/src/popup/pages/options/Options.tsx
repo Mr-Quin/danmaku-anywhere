@@ -54,7 +54,7 @@ export const Options = () => {
         <Version />
         <List disablePadding>
           <OptionsListItem
-            title="Edit Permissions"
+            title="View Permissions"
             onClick={() => navigate('permissions')}
           />
           {false && (
