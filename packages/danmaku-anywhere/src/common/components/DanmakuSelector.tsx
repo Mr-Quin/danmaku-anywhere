@@ -41,12 +41,12 @@ export const DanmakuSelector = ({ value, onChange }: DanmakuSelectorProps) => {
       onChange={(e, value) => {
         onChange(value ?? null)
       }}
-      renderOption={(props, option, optionState) => {
+      renderOption={(props, option) => {
         return (
           <EpisodeOption
             {...props}
             key={option.episodeId}
-            option={options[optionState.index]}
+            option={options.find((o) => o.meta.episodeId === option.episodeId)!}
             isLoading={isFetching}
           />
         )
