@@ -1,15 +1,18 @@
-import { Delete } from '@mui/icons-material'
-import { IconButton, List, ListItem, ListItemText } from '@mui/material'
+import {
+  Box,
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
+  Typography,
+} from '@mui/material'
 import { useSuspenseQuery } from '@tanstack/react-query'
 
-import { removeOriginPermission } from '@/common/utils/utils'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 
-const defaultHostPermissions = ['https://*.dandanplay.net/*']
-
 export const Permissions = () => {
-  const { data, refetch } = useSuspenseQuery({
+  const { data } = useSuspenseQuery({
     queryKey: ['permissions'],
     queryFn: async () => {
       return await chrome.permissions.getAll()
@@ -19,30 +22,21 @@ export const Permissions = () => {
   return (
     <OptionsPageLayout>
       <OptionsPageToolBar title="Permissions" />
+      <Box p={2}>
+        <Typography>
+          Permissions can be managed in the browser settings. This page only
+          shows the permissions that are set by the extension.
+        </Typography>
+      </Box>
+      <Divider />
       <List disablePadding>
-        {data.origins
-          // prevent modifying default permissions
-          ?.filter((origin) => !defaultHostPermissions.includes(origin))
-          .map((origin) => {
-            return (
-              <ListItem
-                key={origin}
-                secondaryAction={
-                  <IconButton
-                    onClick={async () => {
-                      await removeOriginPermission([origin])
-                      await refetch()
-                    }}
-                    edge="end"
-                  >
-                    <Delete />
-                  </IconButton>
-                }
-              >
-                <ListItemText>{origin}</ListItemText>
-              </ListItem>
-            )
-          })}
+        {data.origins?.map((origin) => {
+          return (
+            <ListItem key={origin}>
+              <ListItemText>{origin}</ListItemText>
+            </ListItem>
+          )
+        })}
       </List>
     </OptionsPageLayout>
   )

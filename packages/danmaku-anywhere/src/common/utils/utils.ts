@@ -31,12 +31,6 @@ export const requestOriginPermission = async (origins: string[]) => {
   })
 }
 
-export const removeOriginPermission = async (origins: string[]) => {
-  return chrome.permissions.remove({
-    origins,
-  })
-}
-
 // golang style error handling
 export const tryCatch = async <T>(fn: () => Promise<T>) => {
   try {

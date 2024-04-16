@@ -10,9 +10,7 @@ import { matchUrl } from '@/common/utils/matchUrl'
 import {
   createDownload,
   hasOriginPermission,
-  removeOriginPermission,
   requestOriginPermission,
-  tryCatch,
 } from '@/common/utils/utils'
 
 const isPermissionGranted = async (patterns: string[]) => {
@@ -92,14 +90,10 @@ export const useMountConfig = () => {
 
       if (index === -1) throw new Error(`Config not found: "${name}"`)
 
-      const toDelete = configs[index]
-
       const newData = produce(configs, (draft) => {
         draft.splice(index, 1)
       })
 
-      // ignore errors when removing permission so invalid patterns won't block deletion
-      await tryCatch(async () => removeOriginPermission(toDelete.patterns))
       await update.mutateAsync({ data: newData, version })
     }
 

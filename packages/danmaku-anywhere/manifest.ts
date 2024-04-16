@@ -20,11 +20,8 @@ export const manifest = defineManifest({
     'scripting',
     'contextMenus',
   ],
-  // permission to make requests to dandanplay for seraching and fetching comments
-  host_permissions: ['https://*.dandanplay.net/*'],
-  // @ts-expect-error
-  // permission to inject content script into any page, to be requested at runtime
-  optional_host_permissions: ['*://*/*'],
+  // implicit permission for https://*.dandanplay.net/*
+  host_permissions: ['https://*/*', 'http://*/*'],
   icons: {
     16: 'normal_16.png',
     32: 'normal_32.png',
