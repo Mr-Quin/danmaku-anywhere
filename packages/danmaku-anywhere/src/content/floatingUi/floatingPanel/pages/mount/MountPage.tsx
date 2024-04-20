@@ -14,8 +14,7 @@ export const MountPage = () => {
   const integration = useStore((state) => state.integration)
   const danmakuMeta = useStore((state) => state.danmakuMeta)
   const setDanmakuMeta = useStore((state) => state.setDanmakuMeta)
-  const toggleManualMode = useStore((state) => state.toggleManualMode)
-  const turnOffManualMode = useStore((state) => state.turnOffManualMode)
+  const unmountManual = useStore((state) => state.unmountManual)
 
   const { mutateAsync, isPending } = useMountDanmakuContent()
 
@@ -26,7 +25,7 @@ export const MountPage = () => {
 
   const handleUnmount = () => {
     toast.info('Danmaku unmounted')
-    turnOffManualMode()
+    unmountManual()
   }
 
   return (
@@ -38,11 +37,9 @@ export const MountPage = () => {
               The mount page is only available in manual mode.
             </Typography>
             <Typography>
-              Entering manual mode will disable integration with {integration}.
+              This page has integration with <strong>{integration}</strong>.
+              Turn off auto mode first to use manual mounting.
             </Typography>
-            <Button onClick={() => toggleManualMode(true)} variant="contained">
-              Switch to manual mode
-            </Button>
           </Stack>
         }
       >
@@ -69,20 +66,6 @@ export const MountPage = () => {
           >
             Unmount
           </Button>
-          {integration && (
-            <Button
-              onClick={() => toggleManualMode(false)}
-              variant="contained"
-              sx={{
-                alignSelf: 'flex-end',
-              }}
-              style={{
-                marginTop: 'auto', // for some reason auto in sx doesn't work
-              }}
-            >
-              Turn off manual mode
-            </Button>
-          )}
         </Stack>
       </ManualMode>
     </Box>

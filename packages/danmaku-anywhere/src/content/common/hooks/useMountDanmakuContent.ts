@@ -9,7 +9,7 @@ import { useStore } from '@/content/store/store'
 
 export const useMountDanmakuContent = () => {
   const toast = useToast.use.toast()
-  const turnOnManualMode = useStore((state) => state.turnOnManualMode)
+  const mountManual = useStore((state) => state.mountManual)
 
   const queryClient = useQueryClient()
 
@@ -23,10 +23,11 @@ export const useMountDanmakuContent = () => {
 
       if (!data) throw new Error('No danmaku found')
 
-      turnOnManualMode(data.comments, danmakuMeta)
+      return data
     },
-    onSuccess: () => {
+    onSuccess: (data, meta) => {
       toast.success('Danmaku mounted')
+      mountManual(data.comments, meta)
     },
     onError: (e) => {
       toast.error(`Failed to mount danmaku: ${(e as Error).message}`)

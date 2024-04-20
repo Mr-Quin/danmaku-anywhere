@@ -33,13 +33,13 @@ export const useManualDanmaku = () => {
 
       Logger.debug('Requested manual danmaku')
 
-      useStore.getState().turnOnManualMode(comments, meta)
+      useStore.getState().mountManual(comments, meta)
     }
   )
 
   const handleUnsetDanmaku = useEventCallback(() => {
     Logger.debug('Requested to unload danmaku')
-    useStore.getState().turnOffManualMode()
+    useStore.getState().unmountManual()
   })
 
   return {
