@@ -1,12 +1,12 @@
-import { Close } from '@mui/icons-material'
 import type { PopperProps } from '@mui/material'
-import { AppBar, Box, IconButton, Paper, Toolbar } from '@mui/material'
+import { Box, Paper } from '@mui/material'
 import { Suspense } from 'react'
 import { match } from 'ts-pattern'
 
 import { PopupTab, usePopup } from '../../store/popupStore'
 
 import { FloatingPanelPopper } from './components/FloatingPanelPopper'
+import { FloatingPanelToolbar } from './components/FloatingPanelToolbar'
 import { PanelTabs } from './components/PanelTabs'
 import { useCloseOnEsc } from './hooks/useCloseOnEsc'
 import { FloatingPanelLayout } from './layout/FloatingPanelLayout'
@@ -24,18 +24,12 @@ export const FloatingPanel = ({
   anchorEl: PopperProps['anchorEl']
 }) => {
   useCloseOnEsc()
-  const { tab, isOpen, toggleOpen } = usePopup()
+  const { tab, isOpen } = usePopup()
 
   return (
     <FloatingPanelPopper isOpen={isOpen} anchorEl={anchorEl}>
       <FloatingPanelLayout>
-        <AppBar position="relative">
-          <Toolbar variant="dense" sx={{ justifyContent: 'flex-end' }}>
-            <IconButton edge="end" onClick={() => toggleOpen(false)}>
-              <Close />
-            </IconButton>
-          </Toolbar>
-        </AppBar>
+        <FloatingPanelToolbar />
         <Box display="flex" flexGrow={1} minHeight={0}>
           <PanelTabs />
           <Paper

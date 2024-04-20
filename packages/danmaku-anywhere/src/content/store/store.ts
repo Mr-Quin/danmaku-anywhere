@@ -46,12 +46,9 @@ interface StoreState {
    * When true, automatic danmaku fetching is disabled
    */
   manual: boolean
-  toggleManualMode: (manual: boolean) => void
-  turnOnManualMode: (
-    comments: DanDanComment[],
-    danmakuMeta: DanmakuMeta
-  ) => void
-  turnOffManualMode: () => void
+  toggleManualMode: (manual?: boolean) => void
+  mountManual: (comments: DanDanComment[], danmakuMeta: DanmakuMeta) => void
+  unmountManual: () => void
 
   /**
    * The active integration observer for pages with integration
@@ -84,12 +81,18 @@ export const useStore = create<StoreState>((set, get) => ({
   setComments: (comments) => set({ comments }),
 
   manual: false,
-  toggleManualMode: (manual) => set({ manual }),
-  turnOnManualMode: (comments, danmakuMeta) => {
+  toggleManualMode: (manual) => {
+    if (manual === undefined) {
+      set((state) => ({ manual: !state.manual }))
+    } else {
+      set({ manual })
+    }
+  },
+  mountManual: (comments, danmakuMeta) => {
     get().resetMediaState()
     set({ manual: true, comments, danmakuMeta })
   },
-  turnOffManualMode: () => {
+  unmountManual: () => {
     get().resetMediaState()
     set({ manual: false })
   },
