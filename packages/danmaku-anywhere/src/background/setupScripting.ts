@@ -39,6 +39,7 @@ export const setupScripting = () => {
     match([registeredScript.length, patterns.length])
       // no registered script, but has patterns, register the script
       .with([0, P.number.positive()], () => {
+        Logger.debug('Registering content scripts', { patterns })
         chrome.scripting.registerContentScripts([
           {
             ...mainScript,
@@ -48,6 +49,7 @@ export const setupScripting = () => {
       })
       // has registered script and patterns, update the script
       .with([1, P.number.positive()], () => {
+        Logger.debug('Updating content scripts', { patterns })
         chrome.scripting.updateContentScripts([
           {
             id: contentScriptId,
@@ -57,6 +59,7 @@ export const setupScripting = () => {
       })
       // has registered script, but no patterns, unregister the script
       .with([1, 0], () => {
+        Logger.debug('Unregistering content scripts')
         chrome.scripting.unregisterContentScripts({
           ids: [contentScriptId],
         })
