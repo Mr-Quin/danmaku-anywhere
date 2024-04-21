@@ -10,6 +10,7 @@ import { useStore } from '@/content/store/store'
 export const useMountDanmakuContent = () => {
   const toast = useToast.use.toast()
   const mountManual = useStore((state) => state.mountManual)
+  const getAnimeName = useStore((state) => state.getAnimeName)
 
   const queryClient = useQueryClient()
 
@@ -26,7 +27,9 @@ export const useMountDanmakuContent = () => {
       return data
     },
     onSuccess: (data, meta) => {
-      toast.success('Danmaku mounted')
+      toast.success(
+        `Danmaku mounted: ${getAnimeName()} (${data.comments.length})`
+      )
       mountManual(data.comments, meta)
     },
     onError: (e) => {
