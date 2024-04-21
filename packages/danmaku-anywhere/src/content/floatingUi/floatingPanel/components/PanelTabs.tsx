@@ -1,4 +1,5 @@
 import { Tab, Tabs } from '@mui/material'
+import { match } from 'ts-pattern'
 
 import { PopupTab, usePopup } from '../../../store/popupStore'
 
@@ -9,15 +10,18 @@ export const PanelTabs = () => {
     setTab(value)
   }
 
-  const tabs =
-    tab === PopupTab.Selector
-      ? [PopupTab.Selector]
-      : [
-          PopupTab.Search,
-          PopupTab.Comments,
-          PopupTab.Mount,
-          import.meta.env.DEV && PopupTab.Info,
-        ].filter(Boolean)
+  const tabs = match(tab)
+    .with(PopupTab.Selector, () => {
+      return [PopupTab.Selector]
+    })
+    .otherwise(() => {
+      return [
+        PopupTab.Search,
+        PopupTab.Comments,
+        PopupTab.Mount,
+        import.meta.env.DEV && PopupTab.Info,
+      ].filter(Boolean) as PopupTab[]
+    })
 
   return (
     <Tabs
