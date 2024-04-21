@@ -202,6 +202,7 @@ export const useMediaObserver = () => {
     } else if (playbackStatus === 'paused') {
       Logger.debug(`Playback Paused`)
     } else if (playbackStatus === 'stopped') {
+      useStore.getState().resetMediaState()
       Logger.debug(`Playback Stopped`)
     }
   }, [playbackStatus, mediaInfo])
