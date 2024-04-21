@@ -2,7 +2,7 @@ import type { DanDanAnime } from '@danmaku-anywhere/dandanplay-api'
 import { create } from 'zustand'
 
 export enum PopupTab {
-  Info = 'info',
+  Info = 'debug',
   Search = 'search',
   Selector = 'selector',
   Comments = 'comments',
