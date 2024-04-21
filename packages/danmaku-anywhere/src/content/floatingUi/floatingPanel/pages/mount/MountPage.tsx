@@ -15,7 +15,7 @@ export const MountPage = () => {
   const manual = useStore((state) => state.manual)
   const integration = useStore((state) => state.integration)
   const danmakuMeta = useStore((state) => state.danmakuMeta)
-  const comments = useStore((state) => state.comments)
+  const hasComments = useStore((state) => state.hasComments)
   const resetMediaState = useStore((state) => state.resetMediaState)
 
   const [localDanmakuMeta, setLocalDanmakuMeta] = useState<
@@ -72,7 +72,7 @@ export const MountPage = () => {
             type="button"
             onClick={handleUnmount}
             color="warning"
-            disabled={!manual || !localDanmakuMeta || !comments.length}
+            disabled={!manual || !localDanmakuMeta || !hasComments}
           >
             Unmount
           </Button>

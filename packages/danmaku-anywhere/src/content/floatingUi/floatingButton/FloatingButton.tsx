@@ -43,6 +43,7 @@ export const FloatingButton = forwardRef<
 
   const enabled = useStore((state) => state.enabled)
   const toggleEnabled = useStore((state) => state.toggleEnabled)
+  const hasComments = useStore((state) => state.hasComments)
 
   const handleOpen: MouseEventHandler<HTMLElement> = (e) => {
     const virtualElement = createVirtualElement(e.clientX, e.clientY)
@@ -79,6 +80,7 @@ export const FloatingButton = forwardRef<
               onContextMenu: handleContextMenu,
               onClick: handleClick,
               ref: mergedFabRefs,
+              color: hasComments ? 'success' : 'primary',
             }}
           >
             <SpeedDialAction

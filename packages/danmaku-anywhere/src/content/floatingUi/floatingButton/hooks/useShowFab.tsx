@@ -6,7 +6,7 @@ import { useStore } from '@/content/store/store'
 
 export const useShowFab = () => {
   const playbackStatus = useStore((state) => state.playbackStatus)
-  const manual = useStore((state) => state.manual)
+  const integration = useStore((state) => state.integration)
 
   const timeoutRef = useRef<NodeJS.Timeout>()
 
@@ -14,7 +14,7 @@ export const useShowFab = () => {
   const [showFab, setShowFab] = useState(true)
 
   useEffect(() => {
-    if (!manual) {
+    if (integration) {
       if (playbackStatus !== 'playing') {
         setShowFab(true)
         return
@@ -30,7 +30,7 @@ export const useShowFab = () => {
     }, 3000)
 
     return
-  }, [mouseLocation, playbackStatus, manual])
+  }, [mouseLocation, playbackStatus, integration])
 
   return showFab
 }
