@@ -12,6 +12,7 @@ import {
 } from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useEffect, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { useAllDanmakuQuerySuspense } from '@/common/queries/danmaku/useAllDanmakuQuerySuspense'
@@ -25,6 +26,7 @@ interface EpisodeListProps {
 }
 
 export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
+  const { t } = useTranslation()
   const { data, isFetching } = useAllDanmakuQuerySuspense()
 
   const { animeId } = useParams()
@@ -90,7 +92,7 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
               ref={virtualizer.measureElement}
               secondaryAction={
                 <>
-                  <Tooltip title="Mount">
+                  <Tooltip title={t('danmaku.mount')}>
                     <span>
                       <IconButton
                         onClick={() => mount(episode.meta)}
@@ -104,7 +106,7 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
                       </IconButton>
                     </span>
                   </Tooltip>
-                  <Tooltip title="Delete">
+                  <Tooltip title={t('common.delete')}>
                     <span>
                       <IconButton
                         onClick={() => deleteDanmaku(episodeId)}
@@ -132,7 +134,7 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
                   primary={episodeTitle}
                   secondary={
                     <Typography variant="caption" color="text.secondary">
-                      {count} comments
+                      {t('danmaku.commentCounted', { count })}
                     </Typography>
                   }
                 />

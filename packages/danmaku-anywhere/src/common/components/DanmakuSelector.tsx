@@ -5,6 +5,7 @@ import {
   createFilterOptions,
 } from '@mui/material'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { EpisodeOption } from './EpisodeOption'
 
@@ -27,6 +28,8 @@ interface DanmakuSelectorProps {
 }
 
 export const DanmakuSelector = ({ value, onChange }: DanmakuSelectorProps) => {
+  const { t } = useTranslation()
+
   const { data: options, isFetching } = useAllDanmakuQuerySuspense()
 
   const metas = useMemo(() => options.map((option) => option.meta), [options])
@@ -60,7 +63,7 @@ export const DanmakuSelector = ({ value, onChange }: DanmakuSelectorProps) => {
         return (
           <TextField
             {...params}
-            label={value ? value.animeTitle : 'Select Episode'}
+            label={value ? value.animeTitle : t('anime.episode.select')}
             InputProps={{
               ...params.InputProps,
               endAdornment: (

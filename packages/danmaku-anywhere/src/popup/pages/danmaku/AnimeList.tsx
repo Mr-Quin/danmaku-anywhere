@@ -7,6 +7,7 @@ import {
 } from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
 import { NoAnime } from './components/NoAnime'
@@ -19,6 +20,7 @@ interface DanmakuListProps {
 }
 
 export const DanmakuList = ({ scrollElement }: DanmakuListProps) => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
 
   const { data, isFetching } = useAllDanmakuQuerySuspense()
@@ -84,7 +86,9 @@ export const DanmakuList = ({ scrollElement }: DanmakuListProps) => {
                 primary={title}
                 secondary={
                   <Typography variant="caption" color="text.secondary">
-                    {groupedData[title].length} episodes
+                    {t('anime.episodeCounted', {
+                      count: groupedData[title].length,
+                    })}
                   </Typography>
                 }
               />

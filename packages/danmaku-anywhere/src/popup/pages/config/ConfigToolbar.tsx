@@ -6,6 +6,7 @@ import {
   MenuItem,
   Tooltip,
 } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 
 import { mountConfigListSchema } from '@/common/options/mountConfig/mountConfig'
 import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
@@ -17,6 +18,7 @@ import { TabToolbar } from '@/popup/component/TabToolbar'
 const CAN_IMPORT = typeof window.showOpenFilePicker === 'function'
 
 export const ConfigToolbar = ({ onAdd }: { onAdd: () => void }) => {
+  const { t } = useTranslation()
   const { exportConfigs, importConfigs } = useMountConfig()
 
   const handleImportConfigs = async () => {
@@ -56,15 +58,15 @@ export const ConfigToolbar = ({ onAdd }: { onAdd: () => void }) => {
   }
 
   return (
-    <TabToolbar title="Configs">
+    <TabToolbar title={t('configPage.name')}>
       <IconButton
-        aria-label="add"
+        aria-label={t('common.add')}
         onClick={() => {
           onAdd()
         }}
         color="primary"
       >
-        <Tooltip title="Add">
+        <Tooltip title={t('common.add')}>
           <AddCircle />
         </Tooltip>
       </IconButton>
@@ -73,7 +75,7 @@ export const ConfigToolbar = ({ onAdd }: { onAdd: () => void }) => {
           <ListItemIcon>
             <Download />
           </ListItemIcon>
-          <ListItemText>Export</ListItemText>
+          <ListItemText>{t('common.export')}</ListItemText>
         </MenuItem>
         <Tooltip
           title={CAN_IMPORT ? '' : 'Importing is not available in this browser'}
@@ -84,7 +86,7 @@ export const ConfigToolbar = ({ onAdd }: { onAdd: () => void }) => {
               <ListItemIcon>
                 <Upload />
               </ListItemIcon>
-              <ListItemText>Import</ListItemText>
+              <ListItemText>{t('common.import')}</ListItemText>
             </MenuItem>
           </div>
         </Tooltip>

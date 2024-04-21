@@ -19,6 +19,7 @@ import {
 import type { KeyboardEvent } from 'react'
 import { Suspense, useEffect, useRef, useState, useTransition } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
+import { useTranslation } from 'react-i18next'
 
 import { usePopup } from '../../../../store/popupStore'
 import { useStore } from '../../../../store/store'
@@ -30,6 +31,7 @@ import { Center } from '@/common/components/Center'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 
 export const SearchPanel = () => {
+  const { t } = useTranslation()
   const {
     searchTitle,
     saveMapping,
@@ -96,7 +98,7 @@ export const SearchPanel = () => {
         <Box py={2} px={2}>
           <Stack direction="row" spacing={1} alignItems="center">
             <TextField
-              label="Title"
+              label={t('searchPage.title')}
               variant="outlined"
               value={searchTitle}
               onKeyDown={handleTextFieldKeyDown}
@@ -127,7 +129,7 @@ export const SearchPanel = () => {
                   }}
                 />
               }
-              label="Remember selection"
+              label={t('searchPage.saveMapping')}
             />
           </FormControl>
         </Box>

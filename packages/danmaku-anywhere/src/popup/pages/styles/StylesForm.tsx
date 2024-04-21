@@ -12,6 +12,7 @@ import {
 import type { Draft } from 'immer'
 import { produce } from 'immer'
 import { useEffect, useId, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/danmakuOptions'
 import { useDanmakuOptionsSuspense } from '@/common/options/danmakuOptions/useDanmakuOptionsSuspense'
@@ -151,6 +152,7 @@ const LabeledSlider = ({
 }
 
 export const DanmakuOptionsController = () => {
+  const { t } = useTranslation()
   const {
     data: config,
     partialUpdate,
@@ -180,8 +182,8 @@ export const DanmakuOptionsController = () => {
     <>
       <Stack spacing={1} mt={2}>
         <LabeledSlider
-          label="Opacity"
-          tooltip='"0" means invisible, "1" means fully visible.'
+          label={t('stylePage.opacity')}
+          tooltip={t('stylePage.tooltip.opacity')}
           value={localConfig.style.opacity}
           onChange={(e, newValue) =>
             handleLocalUpdate((draft) => {
@@ -195,8 +197,8 @@ export const DanmakuOptionsController = () => {
           valueLabelDisplay="auto"
         />
         <LabeledSlider
-          label="Size"
-          tooltip="Font size of danmaku."
+          label={t('stylePage.size')}
+          tooltip={t('stylePage.tooltip.size')}
           value={localConfig.style.fontSize}
           onChange={(e, newValue) =>
             handleLocalUpdate((draft) => {
@@ -210,8 +212,8 @@ export const DanmakuOptionsController = () => {
           valueLabelDisplay="auto"
         />
         <LabeledSlider
-          label="Filter Level"
-          tooltip='Limits the amount of danmaku shown on screen. "0" means show all danmaku, each level reduces the amount of danmaku shown by 20%.'
+          label={t('stylePage.filterLevel')}
+          tooltip={t('stylePage.tooltip.filterLevel')}
           value={localConfig.filterLevel}
           onChange={(e, newValue) =>
             handleLocalUpdate((draft) => {
@@ -226,8 +228,8 @@ export const DanmakuOptionsController = () => {
           valueLabelDisplay="auto"
         />
         <LabeledSlider
-          label="Speed"
-          tooltip='How fast danmaku flies across the screen. "1" being the slowest, "5" being the fastest.'
+          label={t('stylePage.speed')}
+          tooltip={t('stylePage.tooltip.speed')}
           value={convertActualSpeedToDisplay(localConfig.speed)}
           onChange={(e, newValue) => {
             handleLocalUpdate((draft) => {
@@ -242,8 +244,8 @@ export const DanmakuOptionsController = () => {
           valueLabelDisplay="auto"
         />
         <LabeledSlider
-          label="Offset"
-          tooltip="How earlier danmaku appears. Positive values make danmaku appear later, negative values make danmaku appear earlier."
+          label={t('stylePage.offset')}
+          tooltip={t('stylePage.tooltip.offset')}
           value={localConfig.offset}
           onChange={(e, newValue) => {
             handleLocalUpdate((draft) => {
@@ -289,11 +291,11 @@ export const DanmakuOptionsController = () => {
 
       <Stack spacing={1} mt={2}>
         <Typography variant="h6" component="div">
-          Safe Zones
+          {t('stylePage.safeZones')}
         </Typography>
         <LabeledSlider
-          label="Top"
-          tooltip="The percentage of the top of the screen that is safe from danmaku"
+          label={t('stylePage.safeZone.top')}
+          tooltip={t('stylePage.tooltip.safeZone.top')}
           value={localConfig.safeZones.top}
           onChange={(e, newValue) =>
             handleLocalUpdate((draft) => {
@@ -309,8 +311,8 @@ export const DanmakuOptionsController = () => {
           valueLabelFormat={safeZoneValueLabelFormat}
         />
         <LabeledSlider
-          label="Bottom"
-          tooltip="The percentage of the bottom of the screen that is safe from danmaku"
+          label={t('stylePage.safeZone.bottom')}
+          tooltip={t('stylePage.tooltip.safeZone.bottom')}
           value={localConfig.safeZones.bottom}
           onChange={(e, newValue) =>
             handleLocalUpdate((draft) => {
@@ -336,7 +338,7 @@ export const DanmakuOptionsController = () => {
           mt: 2,
         }}
       >
-        Apply
+        {t('common.apply')}
       </LoadingButton>
     </>
   )

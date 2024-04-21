@@ -7,6 +7,7 @@ import type {
 } from '../danmaku/integration/MediaObserver'
 
 import type { DanmakuMeta } from '@/common/db/db'
+import { danmakuMetaToString } from '@/common/utils/utils'
 
 interface StoreState {
   /**
@@ -126,10 +127,7 @@ export const useStore = create<StoreState>((set, get) => ({
     const { mediaInfo, danmakuMeta } = get()
     if (mediaInfo) return mediaInfo.toString()
     if (danmakuMeta) {
-      if (danmakuMeta.episodeTitle) {
-        return `${danmakuMeta.animeTitle} - ${danmakuMeta.episodeTitle}`
-      }
-      return danmakuMeta.animeTitle
+      return danmakuMetaToString(danmakuMeta)
     }
     return 'Unknown anime'
   },

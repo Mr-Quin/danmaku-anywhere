@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 
 import { useDanmakuEngine } from '../../store/danmakuEngineStore'
@@ -12,6 +13,7 @@ import { useRefreshComments } from '@/content/common/hooks/useRefreshComments'
 
 // listen to comment changes and mount/unmount the danmaku engine
 export const useDanmakuManager = () => {
+  const { t } = useTranslation()
   const { data: options } = useDanmakuOptionsSuspense()
   const danmakuEngine = useDanmakuEngine()
   const { toast } = useToast()
@@ -39,10 +41,13 @@ export const useDanmakuManager = () => {
     if (comments.length > 0) {
       Logger.debug('Creating danmaku')
       toast.success(
-        `Danmaku mounted: ${useStore.getState().getAnimeName()} (${comments.length})`,
+        t('danmaku.alert.mounted', {
+          name: useStore.getState().getAnimeName(),
+          count: comments.length,
+        }),
         {
           actionFn: canRefresh ? refreshComments : undefined,
-          actionLabel: 'Refresh',
+          actionLabel: t('danmaku.refresh'),
         }
       )
       danmakuEngine.create(containerNode, videoNode, comments, options)

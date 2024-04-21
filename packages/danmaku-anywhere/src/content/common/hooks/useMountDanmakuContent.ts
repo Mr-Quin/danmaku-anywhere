@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/toast/toastStore'
 import type { DanmakuMeta } from '@/common/db/db'
@@ -8,6 +9,7 @@ import { Logger } from '@/common/services/Logger'
 import { useStore } from '@/content/store/store'
 
 export const useMountDanmakuContent = () => {
+  const { t } = useTranslation()
   const toast = useToast.use.toast()
   const mountManual = useStore((state) => state.mountManual)
   const getAnimeName = useStore((state) => state.getAnimeName)
@@ -27,13 +29,20 @@ export const useMountDanmakuContent = () => {
       return data
     },
     onSuccess: (data, meta) => {
-      toast.success(
-        `Danmaku mounted: ${getAnimeName()} (${data.comments.length})`
-      )
       mountManual(data.comments, meta)
+      toast.success(
+        t('danmaku.alert.mounted', {
+          name: getAnimeName(),
+          count: data.comments.length,
+        })
+      )
     },
     onError: (e) => {
-      toast.error(`Failed to mount danmaku: ${(e as Error).message}`)
+      toast.error(
+        t('danmaku.alert.mountError', {
+          message: (e as Error).message,
+        })
+      )
       Logger.debug(e)
     },
   })

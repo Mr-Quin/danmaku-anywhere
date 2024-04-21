@@ -1,5 +1,6 @@
 import type { DanDanComment } from '@danmaku-anywhere/dandanplay-api'
 import { useEventCallback } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/toast/toastStore'
 import type { DanmakuMeta } from '@/common/db/db'
@@ -9,14 +10,15 @@ import { useStore } from '@/content/store/store'
 
 // listen to comment changes and mount/unmount the danmaku engine
 export const useManualDanmaku = () => {
+  const { t } = useTranslation()
   const { videoNode, containerNode } = useMediaElementStore()
 
   const handleSetDanmaku = useEventCallback(
     (meta: DanmakuMeta, comments: DanDanComment[]) => {
       if (!containerNode || !videoNode) {
         const logString = videoNode
-          ? 'Container node is not ready'
-          : 'Video node not found'
+          ? t('danmaku.error.containerNotFound')
+          : t('danmaku.error.videoNotFound')
 
         useToast.getState().toast.error(logString)
         Logger.debug(logString)

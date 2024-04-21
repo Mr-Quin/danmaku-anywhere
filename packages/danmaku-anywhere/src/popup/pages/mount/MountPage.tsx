@@ -1,6 +1,7 @@
 import { Box, Typography } from '@mui/material'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Suspense, type PropsWithChildren } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { match, P } from 'ts-pattern'
 
@@ -15,14 +16,15 @@ import { TabLayout } from '@/popup/layout/TabLayout'
 
 const HasDanmaku = ({ children }: PropsWithChildren) => {
   const { data } = useAllDanmakuQuerySuspense()
+  const { t } = useTranslation()
 
   if (data.length === 0) {
     return (
       <Box p={2}>
-        <Typography>No danmaku found.</Typography>
+        <Typography>{t('mountPage.noDanmaku')}</Typography>
         <Box mt={2}>
           <Typography color="primary" to="/search" component={Link}>
-            Search and danmaku to enable the controller
+            {t('mountPage.noDanmakuHelp')}
           </Typography>
         </Box>
       </Box>
@@ -34,6 +36,7 @@ const HasDanmaku = ({ children }: PropsWithChildren) => {
 
 const IsConnected = ({ children }: PropsWithChildren) => {
   const { data: isTabConnected } = useIsConnected()
+  const { t } = useTranslation()
 
   const { data: activeTabUrl } = useSuspenseQuery({
     queryKey: ['chrome', 'tabs', 'query'],
@@ -56,39 +59,21 @@ const IsConnected = ({ children }: PropsWithChildren) => {
       <Box p={2}>
         {match(activeTabUrl)
           .with('', () => {
-            return <Typography>No active tab</Typography>
+            return <Typography>{t('mountPage.noActiveTab')}</Typography>
           })
           .with(P.string.regex(/^chrome:\/\//), () => {
-            return (
-              <Typography>Chrome internal pages are not supported</Typography>
-            )
+            return <Typography>{t('mountPage.unsupported')}</Typography>
           })
           .otherwise(() => {
             return (
               <>
-                <Typography>
-                  The current page
-                  <br />
-                  <Typography
-                    component="span"
-                    color={(theme) => theme.palette.text.disabled}
-                    sx={{ wordWrap: 'break-word' }}
-                  >
-                    {activeTabUrl}
-                  </Typography>
-                  <br />
-                  does not have a mount configuration, or is not configured
-                  correctly.
-                </Typography>
+                <Typography>{t('mountPage.unavailable')}</Typography>
                 <Box my={2}>
                   <Typography color="primary" to="/config/add" component={Link}>
-                    Add a mount configuration to enable the controller
+                    {t('mountPage.addMountConfig')}
                   </Typography>
                 </Box>
-                <Typography>
-                  If this happens after updating the extension, try restarting
-                  the browser.
-                </Typography>
+                <Typography>{t('mountPage.unavailableTips')}</Typography>
               </>
             )
           })}
@@ -100,10 +85,12 @@ const IsConnected = ({ children }: PropsWithChildren) => {
 }
 
 export const MountPage = () => {
+  const { t } = useTranslation()
+
   return (
     <TabLayout>
       <Suspense fallback={<FullPageSpinner />}>
-        <TabToolbar title="Mount Controller" />
+        <TabToolbar title={t('mountPage.pageTitle')} />
         <IsConnected>
           <HasDanmaku>
             <Box p={2}>

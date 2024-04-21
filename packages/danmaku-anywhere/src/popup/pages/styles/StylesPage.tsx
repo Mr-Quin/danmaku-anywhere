@@ -1,5 +1,6 @@
 import { Box, FormControlLabel, Switch } from '@mui/material'
 import { produce } from 'immer'
+import { useTranslation } from 'react-i18next'
 
 import { DanmakuOptionsController } from './StylesForm'
 
@@ -8,11 +9,12 @@ import { TabToolbar } from '@/popup/component/TabToolbar'
 import { TabLayout } from '@/popup/layout/TabLayout'
 
 export const StylesPage = () => {
+  const { t } = useTranslation()
   const { data: config, partialUpdate } = useDanmakuOptionsSuspense()
 
   return (
     <TabLayout>
-      <TabToolbar title="Danmaku Style">
+      <TabToolbar title={t('stylePage.name')}>
         <FormControlLabel
           control={
             <Switch
@@ -26,7 +28,7 @@ export const StylesPage = () => {
               }
             />
           }
-          label="Show Danmaku"
+          label={t('stylePage.show')}
         />
       </TabToolbar>
       <Box px={2} pb={2}>

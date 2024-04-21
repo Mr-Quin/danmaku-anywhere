@@ -1,3 +1,4 @@
+import { Language } from '@/common/localization/language'
 import { defaultDanmakuOptions } from '@/common/options/danmakuOptions/danmakuOptions'
 import { defaultExtensionOptions } from '@/common/options/extensionOptions/extensionOptions'
 import { defaultMountConfig } from '@/common/options/mountConfig/mountConfig'
@@ -7,9 +8,18 @@ import { SyncOptionsService } from '@/common/services/SyncOptionsService'
 export const extensionOptionsService = new SyncOptionsService(
   'extensionOptions',
   defaultExtensionOptions
-).version(1, {
-  upgrade: (data: any) => data,
-})
+)
+  .version(1, {
+    upgrade: (data: any) => data,
+  })
+  .version(2, {
+    upgrade: (data: any) => {
+      return {
+        ...data,
+        lang: Language.zh, // add lang field
+      }
+    },
+  })
 
 const danmakuOptionsService = new SyncOptionsService(
   'danmakuOptions',

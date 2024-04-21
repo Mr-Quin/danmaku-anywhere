@@ -7,12 +7,14 @@ import {
   Switch,
   Typography,
 } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 
 import { HasIntegration } from '@/content/common/components/HasIntegration'
 import { usePopup } from '@/content/store/popupStore'
 import { useStore } from '@/content/store/store'
 
 export const FloatingPanelToolbar = () => {
+  const { t } = useTranslation()
   const { toggleOpen } = usePopup()
   const { toggleManualMode, manual, integration } = useStore()
 
@@ -29,7 +31,7 @@ export const FloatingPanelToolbar = () => {
                 size="small"
               />
             }
-            label="Auto"
+            label={t('integration.autoMode')}
             labelPlacement="top"
             slotProps={{
               typography: {

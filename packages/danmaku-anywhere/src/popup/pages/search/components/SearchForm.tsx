@@ -1,6 +1,7 @@
 import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/dandanplay-api'
 import { LoadingButton } from '@mui/lab'
 import { Box, Stack, TextField } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 
 import { useSessionState } from '@/common/queries/extStorage/useSessionState'
 
@@ -11,6 +12,8 @@ export const SearchForm = ({
   onSearch: (params: DanDanAnimeSearchAPIParams) => void
   isLoading: boolean
 }) => {
+  const { t } = useTranslation()
+
   const [title, setTitle] = useSessionState('', 'search/title')
   const [episodeNumber, setEpisodeNumber] = useSessionState(
     '',
@@ -27,14 +30,14 @@ export const SearchForm = ({
     >
       <Stack spacing={2}>
         <TextField
-          label="Title"
+          label={t('searchPage.title')}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           fullWidth
           required
         />
         <TextField
-          label="Episode"
+          label={t('searchPage.episode')}
           value={episodeNumber}
           onChange={(e) => setEpisodeNumber(e.target.value)}
           fullWidth
@@ -45,7 +48,7 @@ export const SearchForm = ({
           variant="contained"
           disabled={!title}
         >
-          Search
+          {t('common.search')}
         </LoadingButton>
       </Stack>
     </Box>

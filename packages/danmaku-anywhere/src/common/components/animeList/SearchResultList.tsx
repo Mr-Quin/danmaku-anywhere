@@ -7,6 +7,7 @@ import type { ListProps } from '@mui/material'
 import { List, ListItem, ListItemText, ListSubheader } from '@mui/material'
 import type React from 'react'
 import { useEffect, useId } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { useAnimeSearchSuspense } from '../../queries/anime/useAnimeSearchSuspense'
 
@@ -34,6 +35,7 @@ export const SearchResultList = ({
   searchParams,
   listProps,
 }: SearchResultListProps) => {
+  const { t } = useTranslation()
   const headerId = useId()
 
   const { data, error } = useAnimeSearchSuspense(searchParams)
@@ -47,7 +49,7 @@ export const SearchResultList = ({
       aria-labelledby={headerId}
       subheader={
         <ListSubheader component="div" id={headerId}>
-          Search Results
+          {t('common.searchResults')}
         </ListSubheader>
       }
       dense={dense}

@@ -1,6 +1,7 @@
 import { LoadingButton } from '@mui/lab'
 import { Box, Button, Stack, Typography } from '@mui/material'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { DanmakuSelector } from '@/common/components/DanmakuSelector'
 import { useToast } from '@/common/components/toast/toastStore'
@@ -10,6 +11,7 @@ import { useMountDanmakuContent } from '@/content/common/hooks/useMountDanmakuCo
 import { useStore } from '@/content/store/store'
 
 export const MountPage = () => {
+  const { t } = useTranslation()
   const toast = useToast.use.toast()
 
   const manual = useStore((state) => state.manual)
@@ -34,7 +36,7 @@ export const MountPage = () => {
   }
 
   const handleUnmount = () => {
-    toast.info('Danmaku unmounted')
+    toast.info(t('danmaku.alert.unmounted'))
     resetMediaState()
   }
 
@@ -44,11 +46,7 @@ export const MountPage = () => {
         fallback={
           <Stack direction="column" spacing={2}>
             <Typography>
-              The mount page is only available in manual mode.
-            </Typography>
-            <Typography>
-              This page has integration with <strong>{integration}</strong>.
-              Turn off auto mode first to use manual mounting.
+              {t('mountPage.manualModeOnly', { integration })}
             </Typography>
           </Stack>
         }
@@ -65,7 +63,7 @@ export const MountPage = () => {
             disabled={!localDanmakuMeta}
             onClick={handleMount}
           >
-            Mount
+            {t('danmaku.mount')}
           </LoadingButton>
           <Button
             variant="outlined"
@@ -74,7 +72,7 @@ export const MountPage = () => {
             color="warning"
             disabled={!manual || !localDanmakuMeta || !hasComments}
           >
-            Unmount
+            {t('danmaku.unmount')}
           </Button>
         </Stack>
       </ManualMode>

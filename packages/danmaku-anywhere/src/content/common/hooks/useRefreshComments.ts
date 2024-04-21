@@ -1,4 +1,5 @@
 import { useEventCallback } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 
 import { useStore } from '../../store/store'
 
@@ -7,6 +8,7 @@ import { tryCatch } from '@/common/utils/utils'
 import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
 export const useRefreshComments = () => {
+  const { t } = useTranslation()
   const danmakuMeta = useStore((state) => state.danmakuMeta)
   const getAnimeName = useStore((state) => state.getAnimeName)
   const toast = useToast.use.toast()
@@ -21,7 +23,12 @@ export const useRefreshComments = () => {
     )
 
     if (!err) {
-      toast.success(`Refreshed ${getAnimeName()} (${result.count})`)
+      toast.success(
+        t('danmaku.alert.refreshed', {
+          name: getAnimeName(),
+          count: result.count,
+        })
+      )
     }
   })
 

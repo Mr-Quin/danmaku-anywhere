@@ -8,12 +8,14 @@ import {
   DialogTitle,
 } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/toast/toastStore'
 import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { useStore } from '@/popup/store'
 
 export const ConfirmDeleteDialog = () => {
+  const { t } = useTranslation()
   const { deleteConfig } = useMountConfig()
 
   const { showConfirmDeleteDialog, setShowConfirmDeleteDialog, editingConfig } =
@@ -26,12 +28,12 @@ export const ConfirmDeleteDialog = () => {
       return deleteConfig(editingConfig.name)
     },
     onSuccess: () => {
-      toast.success('Config deleted')
+      toast.success(t('configs.alert.deleted'))
       setShowConfirmDeleteDialog(false)
       handleClose()
     },
     onError: (e) => {
-      toast.error(e.message)
+      toast.error(t('configs.alert.deleteError', { message: e.message }))
     },
   })
 
@@ -41,22 +43,22 @@ export const ConfirmDeleteDialog = () => {
 
   return (
     <Dialog open={showConfirmDeleteDialog} onClose={handleClose}>
-      <DialogTitle>Confirm delete</DialogTitle>
+      <DialogTitle>{t('common.confirmDeleteTitle')}</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          {`Are you sure you want to delete "${editingConfig.name}"?`}
+          {t('common.confirmDeleteMessage', { name: editingConfig.name })}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} autoFocus disabled={isPending}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <LoadingButton
           onClick={() => mutate()}
           color="error"
           loading={isPending}
         >
-          Delete
+          {t('common.delete')}
         </LoadingButton>
       </DialogActions>
     </Dialog>

@@ -13,6 +13,7 @@ import {
 } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/toast/toastStore'
 import type { MountConfig } from '@/common/options/mountConfig/mountConfig'
@@ -47,6 +48,7 @@ interface MountConfigEditorProps {
 }
 
 export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
+  const { t } = useTranslation()
   const { updateConfig, addConfig, nameExists } = useMountConfig()
 
   const goBack = useGoBack()
@@ -95,9 +97,9 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
     },
     onSuccess: () => {
       if (isEdit) {
-        toast.success('Config updated')
+        toast.success(t('configs.alert.updated'))
       } else {
-        toast.success('Config added')
+        toast.success(t('configs.alert.created'))
       }
       goBack()
     },
@@ -118,12 +120,16 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
   return (
     <OptionsPageLayout direction="left">
       <OptionsPageToolBar
-        title={isEdit ? `Edit ${config.name}` : 'Add Mount Config'}
+        title={
+          isEdit
+            ? t('configPage.editor.title.edit', { name: config.name })
+            : t('configPage.editor.title.create')
+        }
       />
       <Box px={2} mt={2} component="form" onSubmit={handleSubmit(handleSave)}>
         <Stack direction="column" spacing={2} alignItems="flex-start">
           <Typography variant="body2" color="textSecondary">
-            URL Patterns
+            {t('configPage.editor.urlPatterns')}
           </Typography>
 
           {fields.map((field, index, arr) => (
@@ -135,7 +141,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
               sx={{ alignSelf: 'stretch' }}
             >
               <TextField
-                label={`Pattern ${index + 1}`}
+                label={`${t('configPage.editor.pattern')} ${index + 1}`}
                 error={!!errors.patterns?.[index]}
                 helperText={errors.patterns?.[index]?.value?.message}
                 size="small"
@@ -158,18 +164,18 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
           ))}
 
           <Button onClick={addPatternField} startIcon={<AddCircleOutline />}>
-            Add Pattern
+            {t('configPage.editor.pattern.add')}
           </Button>
 
           <TextField
-            label="Name"
+            label={t('configPage.editor.name')}
             size="small"
             error={!!errors.name}
             helperText={
               isEdit
-                ? 'To change the name, delete this config and add a new one'
+                ? t('configPage.editor.helper.name.edit')
                 : errors.name?.message ??
-                  'Name cannot be changed after creation'
+                  t('configPage.editor.helper.name.create')
             }
             {...register('name', { required: true, validate: validateName })}
             disabled={isEdit}
@@ -178,7 +184,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
           />
 
           <TextField
-            label="Media Query"
+            label={t('configPage.editor.mediaQuery')}
             size="small"
             error={!!errors.mediaQuery}
             helperText={errors.mediaQuery?.message}
@@ -203,7 +209,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
                   )}
                 />
               }
-              label="Enabled"
+              label={t('common.enable')}
             />
           </FormControl>
 
@@ -213,7 +219,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
             type="submit"
             loading={isSubmitting}
           >
-            {!isEdit ? 'Add' : 'Save'} Config
+            {t('common.save')}
           </LoadingButton>
           {isEdit && (
             <Button
@@ -221,7 +227,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
               onClick={() => resetForm()}
               disabled={isSubmitting}
             >
-              Reset
+              {t('common.reset')}
             </Button>
           )}
         </Stack>

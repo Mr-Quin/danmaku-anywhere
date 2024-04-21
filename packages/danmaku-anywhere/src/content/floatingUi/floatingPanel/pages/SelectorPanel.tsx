@@ -20,6 +20,7 @@ import {
   Typography,
 } from '@mui/material'
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { usePopup } from '../../../store/popupStore'
 import { useStore } from '../../../store/store'
@@ -28,6 +29,7 @@ import { AnimeTypeIcon } from '@/common/components/animeList/AnimeTypeIcon'
 import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
 export const SelectorPanel = () => {
+  const { t } = useTranslation()
   const selectorBoxRef = useRef<HTMLDivElement>()
   const { animes, saveMapping, setSaveMapping, toggleOpen } = usePopup()
   const mediaInfo = useStore((state) => state.mediaInfo)
@@ -76,7 +78,7 @@ export const SelectorPanel = () => {
   if (animes.length === 0) {
     return (
       <Box p={2}>
-        <Typography variant="h6">Nothing to select from</Typography>
+        <Typography variant="h6">{t('selectorPage.noAnimeFound')}</Typography>
       </Box>
     )
   }
@@ -84,7 +86,7 @@ export const SelectorPanel = () => {
   return (
     <Box flexGrow={1}>
       <Typography variant="body1" p={2}>
-        Multile matches found for {mediaInfo?.toTitleString()}, please select
+        {t('selectorPage.selectAnime', { name: mediaInfo?.toTitleString() })}
       </Typography>
       <List disablePadding dense>
         {animes.map((anime) => {
@@ -121,7 +123,7 @@ export const SelectorPanel = () => {
               }}
               getOptionLabel={(option) => option.episodeTitle}
               renderInput={(params) => {
-                return <TextField {...params} label="Episode" />
+                return <TextField {...params} label={t('anime.episode')} />
               }}
               disableClearable
               fullWidth
@@ -136,7 +138,7 @@ export const SelectorPanel = () => {
             onClick={handleApply}
             disabled={!selectedAnime || isPending}
           >
-            Select
+            {t('common.apply')}
           </LoadingButton>
           <FormControl>
             <FormControlLabel
@@ -150,13 +152,14 @@ export const SelectorPanel = () => {
                   disabled={!selectedAnime}
                 />
               }
-              label="Remember selection"
+              label={t('selectorPage.saveMapping')}
             />
             {selectedAnime && (
               <FormHelperText>
-                {`Remember "${mediaInfo?.toTitleString()}" as "${
-                  selectedAnime?.animeTitle
-                }"`}
+                {t('selectorPage.saveMappingAs', {
+                  originalName: mediaInfo?.toTitleString(),
+                  newName: selectedAnime.animeTitle,
+                })}
               </FormHelperText>
             )}
           </FormControl>

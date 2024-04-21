@@ -11,6 +11,7 @@ import { queryClient } from '@/common/queryClient'
 import { Logger } from '@/common/services/Logger'
 import { Theme } from '@/common/style/Theme'
 import { tryCatchSync } from '@/common/utils/utils'
+import '@/common/localization/i18n'
 
 Logger.debug('Danmaku Anywhere content script loaded')
 

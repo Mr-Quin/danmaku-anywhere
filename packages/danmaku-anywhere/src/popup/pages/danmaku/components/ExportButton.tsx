@@ -5,6 +5,7 @@ import {
   ListItemText,
   MenuItem,
 } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 
 import { useExportDanmaku } from '../../../hooks/useExportDanmaku'
 
@@ -13,6 +14,7 @@ import { useAllDanmakuQuerySuspense } from '@/common/queries/danmaku/useAllDanma
 export const ExportButton = () => {
   const { mutate, isPending } = useExportDanmaku()
   const { data, isFetching } = useAllDanmakuQuerySuspense()
+  const { t } = useTranslation()
 
   return (
     <MenuItem
@@ -22,7 +24,7 @@ export const ExportButton = () => {
       <ListItemIcon>
         {isPending ? <CircularProgress size={24} /> : <Download />}
       </ListItemIcon>
-      <ListItemText>Export All</ListItemText>
+      <ListItemText>{t('common.export.all')}</ListItemText>
     </MenuItem>
   )
 }
