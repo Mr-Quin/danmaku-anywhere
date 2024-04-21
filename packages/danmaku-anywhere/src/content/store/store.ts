@@ -21,6 +21,7 @@ interface StoreState {
    * Danmaku to be displayed
    */
   comments: DanDanComment[]
+  hasComments: boolean
   setComments: (comments: DanDanComment[]) => void
 
   /**
@@ -78,7 +79,9 @@ export const useStore = create<StoreState>((set, get) => ({
   },
 
   comments: [],
-  setComments: (comments) => set({ comments }),
+  hasComments: false,
+  setComments: (comments) =>
+    set({ comments, hasComments: comments.length > 0 }),
 
   manual: false,
   toggleManualMode: (manual) => {
@@ -90,11 +93,13 @@ export const useStore = create<StoreState>((set, get) => ({
   },
   mountManual: (comments, danmakuMeta) => {
     get().resetMediaState()
-    set({ manual: true, comments, danmakuMeta })
+    get().toggleManualMode(true)
+    get().setComments(comments)
+    get().setDanmakuMeta(danmakuMeta)
   },
   unmountManual: () => {
     get().resetMediaState()
-    set({ manual: false })
+    get().toggleManualMode(false)
   },
 
   mediaInfo: undefined,
@@ -109,12 +114,13 @@ export const useStore = create<StoreState>((set, get) => ({
   integration: undefined,
   setIntegration: (integration) => set({ integration }),
 
-  resetMediaState: () =>
+  resetMediaState: () => {
+    get().setComments([])
+    get().setDanmakuMeta(undefined)
     set({
-      comments: [],
       mediaInfo: undefined,
-      danmakuMeta: undefined,
-    }),
+    })
+  },
 
   getAnimeName: () => {
     const { mediaInfo, danmakuMeta } = get()
