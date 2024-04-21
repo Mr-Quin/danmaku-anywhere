@@ -8,6 +8,7 @@ import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMap
 
 export const useRefreshComments = () => {
   const danmakuMeta = useStore((state) => state.danmakuMeta)
+  const getAnimeName = useStore((state) => state.getAnimeName)
   const toast = useToast.use.toast()
 
   const { fetch, isPending } = useFetchDanmakuMapped()
@@ -20,7 +21,7 @@ export const useRefreshComments = () => {
     )
 
     if (!err) {
-      toast.success(`Refreshed ${result.meta.episodeTitle} (${result.count})`)
+      toast.success(`Refreshed ${getAnimeName()} (${result.count})`)
     }
   })
 
