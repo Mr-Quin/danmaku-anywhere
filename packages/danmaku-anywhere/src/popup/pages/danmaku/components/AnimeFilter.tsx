@@ -1,10 +1,12 @@
 import { Close, Search } from '@mui/icons-material'
 import { Box, TextField, IconButton, InputAdornment } from '@mui/material'
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { useStore } from '@/popup/store'
 
 export const AnimeFilter = () => {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [filter, setFilter] = useState('')
 
@@ -55,7 +57,7 @@ export const AnimeFilter = () => {
         >
           <TextField
             ref={inputRef}
-            label="Search"
+            label={t('common.filter')}
             variant="outlined"
             size="small"
             type="text"

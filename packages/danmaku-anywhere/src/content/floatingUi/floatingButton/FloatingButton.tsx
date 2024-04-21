@@ -16,6 +16,7 @@ import {
 import type { MouseEventHandler } from 'react'
 import { forwardRef, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslation } from 'react-i18next'
 
 import { LoadingRing } from './components/LoadingRing'
 import { useShowFab } from './hooks/useShowFab'
@@ -35,6 +36,7 @@ export const FloatingButton = forwardRef<
   HTMLButtonElement,
   FloatingButtonProps
 >(({ onOpen, isOpen }: FloatingButtonProps, ref) => {
+  const { t } = useTranslation()
   const isLoading = useAnyLoading()
 
   const showFab = useShowFab()
@@ -72,7 +74,7 @@ export const FloatingButton = forwardRef<
       <Fade in={isLoading || showFab || isOpen}>
         <div>
           <SpeedDial
-            ariaLabel="SpeedDial playground example"
+            ariaLabel="SpeedDial"
             icon={<SpeedDialIcon />}
             FabProps={{
               size: 'small',
@@ -91,7 +93,7 @@ export const FloatingButton = forwardRef<
                   <Refresh />
                 )
               }
-              tooltipTitle="Refresh danmaku"
+              tooltipTitle={t('danmaku.refresh')}
               onClick={refreshComments}
               FabProps={{
                 disabled: isPending || !canRefresh,
@@ -99,7 +101,9 @@ export const FloatingButton = forwardRef<
             />
             <SpeedDialAction
               icon={enabled ? <Visibility /> : <VisibilityOff />}
-              tooltipTitle={enabled ? 'Disable danmaku' : 'Enable danmaku'}
+              tooltipTitle={
+                enabled ? t('danmaku.disable') : t('danmaku.enable')
+              }
               onClick={() => toggleEnabled()}
             />
             <SpeedDialAction

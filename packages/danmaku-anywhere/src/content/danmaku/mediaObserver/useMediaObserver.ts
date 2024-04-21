@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 
 import { PopupTab, usePopup } from '../../store/popupStore'
@@ -16,6 +17,7 @@ import { getEpisodeId, tryCatch } from '@/common/utils/utils'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
 
 export const useMediaObserver = () => {
+  const { t } = useTranslation()
   const config = useActiveConfig()
 
   const { toast } = useToast()
@@ -67,7 +69,9 @@ export const useMediaObserver = () => {
 
         if (mappingErr) {
           toast.error(
-            `Failed to get title mapping: ${state.toTitleString()}, skipping`
+            t('integration.alert.titleMappingError', {
+              title: state.toTitleString(),
+            })
           )
           Logger.error(mappingErr)
         }
@@ -78,7 +82,10 @@ export const useMediaObserver = () => {
             mapping
           )
           toast.info(
-            `Mapped title found: ${state.toTitleString()} -> ${mapping.title}`
+            t('integration.alert.titleMapping', {
+              originalTitle: state.toTitleString(),
+              mappedTitle: mapping.title,
+            })
           )
         } else {
           Logger.debug(
@@ -114,17 +121,22 @@ export const useMediaObserver = () => {
           )
 
           if (searchErr) {
-            toast.error(`Failed to search for anime: ${state.toString()}`)
+            toast.error(
+              t('integration.alert.searchError', { message: state.title })
+            )
             handleError()
             return
           }
 
           if (animes.length === 0) {
             Logger.debug(`No anime found for ${state.toString()}`)
-            toast.error(`No anime found for ${state.toString()}`, {
-              actionFn: () => open({ tab: PopupTab.Search }),
-              actionLabel: 'Open Search',
-            })
+            toast.error(
+              t('integration.alert.searchResultEmpty', { title: state.title }),
+              {
+                actionFn: () => open({ tab: PopupTab.Search }),
+                actionLabel: t('integration.alert.openSearch'),
+              }
+            )
             handleError()
             return
           }
@@ -175,7 +187,11 @@ export const useMediaObserver = () => {
         )
 
         if (danmakuErr) {
-          toast.error(`Failed to fetch danmaku: ${state.toString()}`)
+          toast.error(
+            t('danmaku.alert.fetchError', {
+              message: state.toString(),
+            })
+          )
           handleError()
           return
         }
@@ -197,7 +213,9 @@ export const useMediaObserver = () => {
     if (!mediaInfo) return
 
     if (playbackStatus === 'playing') {
-      toast.info(`Playing: ${mediaInfo.toString()}`)
+      toast.info(
+        t('integration.alert.playing', { title: mediaInfo.toString() })
+      )
       Logger.debug(`Playback started: ${mediaInfo.toString()}`)
     } else if (playbackStatus === 'paused') {
       Logger.debug(`Playback Paused`)

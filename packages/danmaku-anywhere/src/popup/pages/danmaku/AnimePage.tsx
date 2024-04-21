@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { DrilldownMenu } from '../../component/DrilldownMenu'
 
@@ -11,10 +12,11 @@ import { TabLayout } from '@/popup/layout/TabLayout'
 
 export const AnimePage = () => {
   const [ref, setRef] = useState<HTMLDivElement>()
+  const { t } = useTranslation()
 
   return (
     <TabLayout ref={setRef}>
-      <TabToolbar title="Anime List">
+      <TabToolbar title={t('danmakuPage.animeList')}>
         <AnimeFilter />
         <DrilldownMenu ButtonProps={{ edge: 'end' }}>
           <ExportButton />

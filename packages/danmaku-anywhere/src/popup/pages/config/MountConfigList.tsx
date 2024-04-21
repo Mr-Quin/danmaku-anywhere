@@ -7,6 +7,7 @@ import {
   ListItemText,
   Tooltip,
 } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 
 import type { MountConfig } from '@/common/options/mountConfig/mountConfig'
 import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
@@ -18,6 +19,7 @@ export const MountConfigList = ({
 }: {
   onEdit: (config: MountConfig) => void
 }) => {
+  const { t } = useTranslation()
   const { configs } = useMountConfig()
 
   const { setShowConfirmDeleteDialog, setEditingConfig } = useStore.use.config()
@@ -41,15 +43,15 @@ export const MountConfigList = ({
             key={config.name}
             secondaryAction={
               <>
-                <Tooltip title="Delete">
+                <Tooltip title={t('common.delete')}>
                   <IconButton onClick={() => handleDelete(config)}>
                     <Delete />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title="Copy to clipboard">
+                <Tooltip title={t('common.copyToClipboard')}>
                   <IconButton
                     edge="end"
-                    aria-label="go to url"
+                    aria-label={t('common.copyToClipboard')}
                     onClick={() => {
                       copyToClipboard(config)
                     }}

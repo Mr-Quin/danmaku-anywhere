@@ -11,6 +11,7 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
@@ -27,6 +28,8 @@ export const AppToolBar = () => {
 
   const navigate = useNavigate()
   const isAnyLoading = useAnyLoading()
+
+  const { t } = useTranslation()
 
   return (
     <AppBar position="static">
@@ -48,7 +51,7 @@ export const AppToolBar = () => {
                 size="small"
               />
             }
-            label="Enable"
+            label={t('common.enable')}
             labelPlacement="top"
             slotProps={{
               typography: {

@@ -9,9 +9,12 @@ import {
   Stack,
   Switch,
 } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import { Outlet, useNavigate } from 'react-router-dom'
 
 import { OptionsPageLayout } from '../../layout/OptionsPageLayout'
+
+import { LanguageListItem } from './components/LanguageListItem'
 
 import { useThemeContext } from '@/common/style/Theme'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
@@ -44,19 +47,21 @@ const OptionsListItem = ({
 }
 
 export const Options = () => {
+  const { t } = useTranslation()
   const { colorScheme, setColorScheme } = useThemeContext()
   const navigate = useNavigate()
 
   return (
     <>
       <OptionsPageLayout direction="up">
-        <OptionsPageToolBar title="Options" />
+        <OptionsPageToolBar title={t('optionsPage.name')} />
         <Version />
         <List disablePadding>
           <OptionsListItem
             title="View Permissions"
             onClick={() => navigate('permissions')}
           />
+          <LanguageListItem />
           {false && (
             <ListItem
               disablePadding

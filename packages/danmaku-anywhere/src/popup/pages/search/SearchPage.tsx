@@ -6,6 +6,7 @@ import {
 } from '@tanstack/react-query'
 import { Suspense, useEffect, useRef, useState, useTransition } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
+import { useTranslation } from 'react-i18next'
 
 import { EpisodeListItem } from './components/EpisodeListItem'
 import { SearchForm } from './components/SearchForm'
@@ -17,6 +18,7 @@ import { TabLayout } from '@/popup/layout/TabLayout'
 import { useStore } from '@/popup/store'
 
 export const SearchPage = () => {
+  const { t } = useTranslation()
   // TODO: useTransition does not yet work with useSyncExternalStore (zustand),
   // so we use useState for now and save the state to the store
   const [searchParams, setSearchParams] = useState<DanDanAnimeSearchAPIParams>()
@@ -52,7 +54,7 @@ export const SearchPage = () => {
 
   return (
     <TabLayout>
-      <TabToolbar title="Search Anime" />
+      <TabToolbar title={t('searchPage.name')} />
       <Box p={2}>
         <SearchForm
           onSearch={handleSearch}

@@ -8,6 +8,7 @@ import { App } from './App'
 
 import { queryClient } from '@/common/queryClient'
 import { Theme } from '@/common/style/Theme'
+import '@/common/localization/i18n'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

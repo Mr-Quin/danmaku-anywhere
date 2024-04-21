@@ -1,5 +1,6 @@
 import type { PopoverVirtualElement } from '@mui/material'
 
+import type { DanmakuMeta } from '../db/db'
 import type { NotPromise } from '../types/types'
 
 export const toArray = <T>(value: T | T[]): T[] => {
@@ -123,4 +124,11 @@ export const createVirtualElement = (
     }),
     nodeType: Node.ELEMENT_NODE,
   }
+}
+
+export const danmakuMetaToString = (meta: DanmakuMeta) => {
+  if (meta.episodeTitle) {
+    return `${meta.animeTitle} - ${meta.episodeTitle}`
+  }
+  return meta.animeTitle
 }

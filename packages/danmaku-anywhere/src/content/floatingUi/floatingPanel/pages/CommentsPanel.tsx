@@ -7,6 +7,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 
 import { useRefreshComments } from '../../../common/hooks/useRefreshComments'
 import { useStore } from '../../../store/store'
@@ -14,6 +15,7 @@ import { useStore } from '../../../store/store'
 import { CommentsTable } from '@/common/components/CommentsTable'
 
 export const CommentsPanel = () => {
+  const { t } = useTranslation()
   const { comments } = useStore()
 
   const { refreshComments, isPending, canRefresh } = useRefreshComments()
@@ -30,10 +32,10 @@ export const CommentsPanel = () => {
         }}
       >
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          {comments.length} Comments
+          {t('danmaku.commentCounted', { count: comments.length })}
         </Typography>
         {canRefresh && (
-          <Tooltip title="Refresh comments">
+          <Tooltip title={t('danmaku.refresh')}>
             <IconButton color="primary" onClick={refreshComments}>
               {isPending ? <CircularProgress size={24} /> : <Refresh />}
             </IconButton>

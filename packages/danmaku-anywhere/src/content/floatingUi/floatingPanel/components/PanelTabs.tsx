@@ -1,9 +1,19 @@
 import { Tab, Tabs } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import { match } from 'ts-pattern'
 
 import { PopupTab, usePopup } from '../../../store/popupStore'
 
+const tabMap = {
+  [PopupTab.Search]: 'tabs.search',
+  [PopupTab.Selector]: 'tabs.selector',
+  [PopupTab.Comments]: 'tabs.danmaku',
+  [PopupTab.Mount]: 'tabs.mount',
+  [PopupTab.Info]: 'debug',
+}
+
 export const PanelTabs = () => {
+  const { t } = useTranslation()
   const { tab, setTab } = usePopup()
 
   const handleTabChange = (_: any, value: PopupTab) => {
@@ -39,7 +49,7 @@ export const PanelTabs = () => {
       }}
     >
       {tabs.map((tab) => (
-        <Tab label={tab} value={tab} key={tab} />
+        <Tab label={t(tabMap[tab])} value={tab} key={tab} />
       ))}
     </Tabs>
   )

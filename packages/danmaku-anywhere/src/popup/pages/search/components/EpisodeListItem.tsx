@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import {
   BaseListItemSkeleton,
@@ -11,6 +12,7 @@ import { useFetchDanmaku } from '@/common/queries/danmaku/useFetchDanmaku'
 type EpisodeListItemProps = Required<DanmakuMeta>
 
 const InnerEpisodeListItem = (props: EpisodeListItemProps) => {
+  const { t } = useTranslation()
   const { episodeId, episodeTitle } = props
   const { fetch, isPending } = useFetchDanmaku()
 
@@ -36,9 +38,12 @@ const InnerEpisodeListItem = (props: EpisodeListItemProps) => {
       onClick={handleFetchDanmaku}
       secondaryText={
         hasDanmaku
-          ? `${new Date(danmakuData.timeUpdated).toLocaleDateString()} - ${
-              danmakuData.count
-            } comments`
+          ? `${new Date(danmakuData.timeUpdated).toLocaleDateString()} -  ${t(
+              'danmaku.commentCounted',
+              {
+                count: danmakuData.count,
+              }
+            )}`
           : ''
       }
     />

@@ -90,6 +90,9 @@ importers:
       dexie:
         specifier: ^3.2.6
         version: 3.2.6(karma@6.4.3)
+      i18next:
+        specifier: ^23.11.2
+        version: 23.11.2
       immer:
         specifier: ^10.0.4
         version: 10.0.4
@@ -105,6 +108,9 @@ importers:
       react-hook-form:
         specifier: ^7.51.2
         version: 7.51.2(react@18.3.0-canary-3bcd2de01-20240227)
+      react-i18next:
+        specifier: ^14.1.0
+        version: 14.1.0(i18next@23.11.2)(react-dom@18.3.0-canary-3bcd2de01-20240227)(react@18.3.0-canary-3bcd2de01-20240227)
       react-router-dom:
         specifier: ^6.22.3
         version: 6.22.3(react-dom@18.3.0-canary-3bcd2de01-20240227)(react@18.3.0-canary-3bcd2de01-20240227)
@@ -4464,6 +4470,12 @@ packages:
     resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
     dev: true
 
+  /html-parse-stringify@3.0.1:
+    resolution: {integrity: sha512-KknJ50kTInJ7qIScF3jeaFRpMpE8/lfiTdzf/twXyPBLAGrLRTmkz3AdTnKeh40X8k9L2fdYwEp/42WGXIRGcg==}
+    dependencies:
+      void-elements: 3.1.0
+    dev: false
+
   /htmlparser2@8.0.2:
     resolution: {integrity: sha512-GYdjWKDkbRLkZ5geuHs5NY1puJ+PXwP7+fHPRz06Eirsb9ugf6d8kkXav6ADhcODhFFPMIXyxkxSuMf3D6NCFA==}
     dependencies:
@@ -4504,6 +4516,12 @@ packages:
     resolution: {integrity: sha512-AXcZb6vzzrFAUE61HnN4mpLqd/cSIwNQjtNWR0euPm6y0iqx3G4gOXaIDdtdDwZmhwe82LA6+zinmW4UBWVePQ==}
     engines: {node: '>=16.17.0'}
     dev: true
+
+  /i18next@23.11.2:
+    resolution: {integrity: sha512-qMBm7+qT8jdpmmDw/kQD16VpmkL9BdL+XNAK5MNbNFaf1iQQq35ZbPrSlqmnNPOSUY4m342+c0t0evinF5l7sA==}
+    dependencies:
+      '@babel/runtime': 7.24.0
+    dev: false
 
   /iconv-lite@0.4.24:
     resolution: {integrity: sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==}
@@ -6099,6 +6117,26 @@ packages:
       react: 18.3.0-canary-3bcd2de01-20240227
     dev: false
 
+  /react-i18next@14.1.0(i18next@23.11.2)(react-dom@18.3.0-canary-3bcd2de01-20240227)(react@18.3.0-canary-3bcd2de01-20240227):
+    resolution: {integrity: sha512-3KwX6LHpbvGQ+sBEntjV4sYW3Zovjjl3fpoHbUwSgFHf0uRBcbeCBLR5al6ikncI5+W0EFb71QXZmfop+J6NrQ==}
+    peerDependencies:
+      i18next: '>= 23.2.3'
+      react: '>= 16.8.0'
+      react-dom: '*'
+      react-native: '*'
+    peerDependenciesMeta:
+      react-dom:
+        optional: true
+      react-native:
+        optional: true
+    dependencies:
+      '@babel/runtime': 7.24.0
+      html-parse-stringify: 3.0.1
+      i18next: 23.11.2
+      react: 18.3.0-canary-3bcd2de01-20240227
+      react-dom: 18.3.0-canary-3bcd2de01-20240227(react@18.3.0-canary-3bcd2de01-20240227)
+    dev: false
+
   /react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
@@ -7154,6 +7192,11 @@ packages:
 
   /void-elements@2.0.1:
     resolution: {integrity: sha512-qZKX4RnBzH2ugr8Lxa7x+0V6XD9Sb/ouARtiasEQCHB1EVU4NXtmHsDDrx1dO4ne5fc3J6EW05BP1Dl0z0iung==}
+    engines: {node: '>=0.10.0'}
+    dev: false
+
+  /void-elements@3.1.0:
+    resolution: {integrity: sha512-Dhxzh5HZuiHQhbvTW9AMetFfBHDMYpo23Uo9btPXgdYP+3T5S+p+jgNy7spra+veYhBP2dCSgxR/i2Y02h5/6w==}
     engines: {node: '>=0.10.0'}
     dev: false
 

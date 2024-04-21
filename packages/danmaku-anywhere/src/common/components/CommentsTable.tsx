@@ -13,6 +13,7 @@ import {
 } from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { match } from 'ts-pattern'
 
 interface CommentListProps extends BoxProps {
@@ -28,12 +29,16 @@ const formatTime = (seconds: number) => {
   ).padStart(2, '0')}`
 }
 
-const headerCells = [
-  { id: 'time', label: 'Time', width: 32 },
-  { id: 'comment', label: 'Comment' },
-]
-
 export const CommentsTable = ({ comments, ...rest }: CommentListProps) => {
+  const { t } = useTranslation()
+  const headerCells = useMemo(
+    () => [
+      { id: 'time', label: t('common.time'), width: 56 },
+      { id: 'comment', label: t('danmaku.commentContent') },
+    ],
+    [t]
+  )
+
   const [orderBy, setOrderBy] = useState(headerCells[0].id)
   const [order, setOrder] = useState<'asc' | 'desc'>('asc')
 
@@ -102,7 +107,7 @@ export const CommentsTable = ({ comments, ...rest }: CommentListProps) => {
           {sortedComments.length === 0 && (
             <TableRow>
               <TableCell colSpan={2} align="center">
-                No comments
+                {t('danmaku.noComments')}
               </TableCell>
             </TableRow>
           )}
@@ -124,7 +129,7 @@ export const CommentsTable = ({ comments, ...rest }: CommentListProps) => {
                   display: 'flex',
                 }}
               >
-                <TableCell width={32}>{formatTime(time)}</TableCell>
+                <TableCell width={56}>{formatTime(time)}</TableCell>
                 <TableCell
                   sx={{
                     whiteSpace: 'nowrap',

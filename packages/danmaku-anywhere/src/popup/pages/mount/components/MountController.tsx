@@ -2,6 +2,7 @@ import { LoadingButton } from '@mui/lab'
 import { Box, Button, Skeleton, Stack, Typography } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { Suspense, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { useMountDanmakuPopup } from '../../../hooks/useMountDanmakuPopup'
 
@@ -13,6 +14,7 @@ import { tabRpcClient } from '@/common/rpc/client'
 import { Logger } from '@/common/services/Logger'
 
 export const MountController = () => {
+  const { t } = useTranslation()
   const [danmakuMeta, setDanmakuMeta] = useSessionState<DanmakuMeta | null>(
     null,
     'controller/danmakuMeta'
@@ -50,7 +52,7 @@ export const MountController = () => {
       await tabRpcClient.danmakuUnmount()
       setCanUnmount(false)
     } catch (e) {
-      toast.error(`Failed to unmount danmaku: ${(e as Error).message}`)
+      toast.error(`${(e as Error).message}`)
       Logger.debug(e)
     }
   }
@@ -64,9 +66,7 @@ export const MountController = () => {
       }}
     >
       <Stack direction="column" spacing={2}>
-        <Typography>
-          Select an episode and click Mount to inject it into the current tab.
-        </Typography>
+        <Typography>{t('mountPage.instructions')}</Typography>
         <Suspense fallback={<Skeleton height={56} width="100%" />}>
           <DanmakuSelector
             value={danmakuMeta ?? null}
@@ -79,7 +79,7 @@ export const MountController = () => {
           loading={isMounting}
           disabled={!canMount}
         >
-          Mount
+          {t('danmaku.mount')}
         </LoadingButton>
         <Button
           variant="outlined"
@@ -88,7 +88,7 @@ export const MountController = () => {
           color="warning"
           disabled={!canUnmount}
         >
-          Unmount
+          {t('danmaku.unmount')}
         </Button>
       </Stack>
     </Box>

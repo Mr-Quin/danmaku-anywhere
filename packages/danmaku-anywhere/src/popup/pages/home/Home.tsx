@@ -1,5 +1,6 @@
 import { Box, Stack, Tab, Tabs } from '@mui/material'
 import { Suspense } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, Outlet, useLocation, useMatches } from 'react-router-dom'
 
 import { AppToolBar } from './AppToolBar'
@@ -12,6 +13,7 @@ export const Home = () => {
   // the tab path should be the second element of the array
   const currentTab = useMatches()[1].pathname
   const location = useLocation()
+  const { t } = useTranslation()
 
   return (
     <Stack direction="column" spacing={0} height={1}>
@@ -28,16 +30,36 @@ export const Home = () => {
             flexShrink: 0,
           }}
         >
-          <Tab label="Mount" value="/mount" to="/mount" component={Link} />
-          <Tab label="Search" value="/search" to="/search" component={Link} />
           <Tab
-            label="Danmaku"
+            label={t('danmaku.mount')}
+            value="/mount"
+            to="/mount"
+            component={Link}
+          />
+          <Tab
+            label={t('tabs.search')}
+            value="/search"
+            to="/search"
+            component={Link}
+          />
+          <Tab
+            label={t('tabs.danmaku')}
             value="/danmaku"
             to="/danmaku"
             component={Link}
           />
-          <Tab label="Style" value="/styles" to="/styles" component={Link} />
-          <Tab label="Config" value="/config" to="/config" component={Link} />
+          <Tab
+            label={t('tabs.style')}
+            value="/styles"
+            to="/styles"
+            component={Link}
+          />
+          <Tab
+            label={t('tabs.config')}
+            value="/config"
+            to="/config"
+            component={Link}
+          />
         </Tabs>
         <Suspense
           fallback={

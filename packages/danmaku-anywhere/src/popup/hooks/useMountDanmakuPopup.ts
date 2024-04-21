@@ -1,12 +1,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/toast/toastStore'
 import type { DanmakuMeta } from '@/common/db/db'
 import { useDanmakuQuerySuspense } from '@/common/queries/danmaku/useDanmakuQuerySuspense'
 import { chromeRpcClient, tabRpcClient } from '@/common/rpc/client'
 import { Logger } from '@/common/services/Logger'
+import { danmakuMetaToString } from '@/common/utils/utils'
 
 export const useMountDanmakuPopup = () => {
+  const { t } = useTranslation()
   const toast = useToast.use.toast()
 
   const queryClient = useQueryClient()
@@ -25,12 +28,21 @@ export const useMountDanmakuPopup = () => {
         meta: danmakuMeta,
         comments: data.comments,
       })
+
+      return data
     },
-    onSuccess: () => {
-      toast.success('Danmaku mounted')
+    onSuccess: (data) => {
+      toast.success(
+        t('danmaku.alert.mounted', {
+          name: danmakuMetaToString(data.meta),
+          count: data.comments.length,
+        })
+      )
     },
     onError: (e) => {
-      toast.error(`Failed to mount danmaku: ${(e as Error).message}`)
+      toast.error(
+        t('danmaku.alert.mountError', { message: (e as Error).message })
+      )
       Logger.debug(e)
     },
   })
