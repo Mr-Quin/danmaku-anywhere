@@ -75,10 +75,6 @@ This extension has two operating modes:
 
 ### 1. Configure Where to Load Danmaku (Mount Config)
 
-> [!IMPORTANT]
-> When enabling a mount config for a website, the extension will ask for permission to the site. You can revoke the
-> permission by deleting the mount config, or by deleting it in the options page.
-
 - In the extension's popup window, go to the "Config" tab.
 - If your website is in the predefined list, enable it.
 - If your website isn't listed:
