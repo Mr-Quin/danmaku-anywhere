@@ -78,16 +78,16 @@ This extension has two operating modes:
 - In the extension's popup window, go to the "Config" tab.
 - If your website is in the predefined list, enable it.
 - If your website isn't listed:
-  - Click "add" to create a new entry.
-  - Patterns: Enter the website's match pattern (
-    e.g., `https://your.website.com/*`). [Learn more about match patterns](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns).
-    For websites using `iframe` for its video player, the match pattern should be based on the `iframes`'s `src`
-    attribute.
-  - Video query: Enter the video
-    player's [selector](https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector) (often just `video`,
-    unless the website has multiple video players).
-  - Name: Enter a unique name for the config. The name cannot be changed later, but you can delete and recreate the
-    config with a different name.
+    - Click "add" to create a new entry.
+    - Patterns: Enter the website's match pattern (
+      e.g., `https://your.website.com/*`). [Learn more about match patterns](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns).
+      For websites using `iframe` for its video player, the match pattern should be based on the `iframes`'s `src`
+      attribute.
+    - Video query: Enter the video
+      player's [selector](https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector) (often just `video`,
+      unless the website has multiple video players).
+    - Name: Enter a unique name for the config. The name cannot be changed later, but you can delete and recreate the
+      config with a different name.
 
 ### 2. Search for danmaku (Manual Mode or Ad-Hoc Use)
 
@@ -101,11 +101,31 @@ This extension has two operating modes:
 ### 3. Mount danmaku (Manual Mode or Ad-Hoc Use)
 
 > [!NOTE]
-> You should be able to see the extension's floating button (a blue circle) on the page. If not, check if your mount config is correct before proceeding
+> You should be able to see the extension's floating button (a blue circle) on the page. If not, check if your mount
+> config is correct before proceeding
 
 - In the extension's popup window, go to the "Mount" tab.
 - Select an episode in the dropdown selector, then click "Mount" to mount it over the video
 - In manual mode, you'll need to repeat the steps above when the episode changes
+
+### Automatic Mode
+
+In automatic mode, the extension will parse the currently playing show and try to find matching danmaku. Automatic mode
+can be turned off at anytime from the speed dial button.
+
+Automatic mode requires manual integration with each website. Feel free to submit a feature request if you
+want automatic mode for a specific website.
+
+Below are the instruction for each integration.
+
+#### Plex
+
+Set the "name" field of a Mount Config to "plex" to enable the Plex integration.
+
+- The extension uses the name and episode number of the currently playing media to match danmaku, so please make sure
+  you library metadata is accurate.
+- The extension cannot distinguish between videos and non-video contents (such as music), so please disable danmaku
+  first before playing non-video content.
 
 ### Turning off the extension
 
