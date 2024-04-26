@@ -1,6 +1,6 @@
 import type { PopoverVirtualElement } from '@mui/material'
 
-import type { DanmakuMeta } from '../db/db'
+import type { DanmakuMeta } from '../types/Danmaku'
 import type { NotPromise } from '../types/types'
 
 export const toArray = <T>(value: T | T[]): T[] => {
@@ -64,14 +64,6 @@ export const invariant = (condition: boolean, message: string) => {
 export const isServiceWorker = () => {
   // getBackgroundPage is not available in service worker
   return chrome.runtime.getBackgroundPage === undefined
-}
-
-export const getEpisodeId = (animeId: number, episodeNumber: number) => {
-  return animeId * 10000 + episodeNumber
-}
-
-export const episodeIdToEpisodeNumber = (episodeId: number) => {
-  return episodeId % 10000
 }
 
 export const sleep = async (ms: number) => {

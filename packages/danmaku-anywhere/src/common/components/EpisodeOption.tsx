@@ -10,9 +10,9 @@ import {
 } from '@mui/material'
 import { type HTMLAttributes, type SyntheticEvent } from 'react'
 
-import type { DanmakuCacheLite } from '@/common/db/db'
+import { DanmakuType, type DanmakuCacheLite } from '../types/Danmaku'
+
 import { useFetchDanmaku } from '@/common/queries/danmaku/useFetchDanmaku'
-import { episodeIdToEpisodeNumber } from '@/common/utils/utils'
 
 export const EpisodeOption = (
   props: {
@@ -27,8 +27,10 @@ export const EpisodeOption = (
     e.preventDefault()
     e.stopPropagation()
 
+    if (option.meta.type === DanmakuType.Manual) return
+
     fetch({
-      data: option.meta,
+      meta: option.meta,
       options: {
         forceUpdate: true,
       },
@@ -46,27 +48,28 @@ export const EpisodeOption = (
     >
       <Box>
         <Typography variant="body1">
-          {option.meta.episodeTitle ??
-            `Episode ${episodeIdToEpisodeNumber(option.meta.episodeId)}`}
+          {option.meta.episodeTitle ?? option.meta.animeTitle}
         </Typography>
 
         <Typography variant="caption">
           {isLoading ? <Skeleton variant="text" width={48} /> : option.count}
         </Typography>
       </Box>
-      <IconButton edge="end" disabled={isPending} onClick={handleClick}>
-        <Tooltip title="Update" placement="top">
-          <Update />
-        </Tooltip>
-        {isPending && (
-          <CircularProgress
-            sx={{
-              position: 'absolute',
-            }}
-            size={24}
-          />
-        )}
-      </IconButton>
+      {option.meta.type !== DanmakuType.Manual && (
+        <IconButton edge="end" disabled={isPending} onClick={handleClick}>
+          <Tooltip title="Update" placement="top">
+            <Update />
+          </Tooltip>
+          {isPending && (
+            <CircularProgress
+              sx={{
+                position: 'absolute',
+              }}
+              size={24}
+            />
+          )}
+        </IconButton>
+      )}
     </Stack>
   )
 }

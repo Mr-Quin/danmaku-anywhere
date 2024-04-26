@@ -1,20 +1,21 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 
 import { chromeRpcClient } from '@/common/rpc/client'
+import type { DanmakuGetOneDto, DanmakuMeta } from '@/common/types/Danmaku'
 
-export const useDanmakuQuerySuspense = (episodeId: number) => {
+export const useDanmakuQuerySuspense = (data: DanmakuGetOneDto) => {
   const query = useSuspenseQuery({
-    queryKey: ['danmaku', 'getByEpisodeId', episodeId],
+    queryKey: ['danmaku', 'get', data],
     queryFn: async () => {
-      return await chromeRpcClient.danmakuGetByEpisodeId(episodeId)
+      return await chromeRpcClient.danmakuGetOne(data)
     },
   })
 
   return query
 }
 
-useDanmakuQuerySuspense.queryKey = (episodeId: number) => [
+useDanmakuQuerySuspense.queryKey = (meta: DanmakuMeta) => [
   'danmaku',
-  'getByEpisodeId',
-  episodeId,
+  'get',
+  meta,
 ]

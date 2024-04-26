@@ -6,7 +6,7 @@ import type {
   PlaybackStatus,
 } from '../danmaku/integration/MediaObserver'
 
-import type { DanmakuMeta } from '@/common/db/db'
+import type { DanmakuMeta } from '@/common/types/Danmaku'
 import { danmakuMetaToString } from '@/common/utils/utils'
 
 interface StoreState {
