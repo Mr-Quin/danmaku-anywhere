@@ -5,11 +5,12 @@ import {
   BaseEpisodeListItem,
   BaseListItemSkeleton,
 } from '@/common/components/animeList/BaseEpisodeListItem'
-import type { DanmakuMeta, TitleMapping } from '@/common/db/db'
 import { useDanmakuQuerySuspense } from '@/common/queries/danmaku/useDanmakuQuerySuspense'
+import type { DDPDanmakuMeta, TitleMapping } from '@/common/types/Danmaku'
+import { DanmakuType } from '@/common/types/Danmaku'
 import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
-type EpisodeListItemProps = Required<DanmakuMeta> & {
+type EpisodeListItemProps = Omit<Required<DDPDanmakuMeta>, 'type'> & {
   titleMapping?: TitleMapping
 }
 
@@ -21,13 +22,16 @@ const InnerEpisodeListItem = ({
   const { episodeId, episodeTitle } = rest
   const { fetch, isPending } = useFetchDanmakuMapped()
 
-  const { data: danmakuData } = useDanmakuQuerySuspense(episodeId)
+  const { data: danmakuData } = useDanmakuQuerySuspense({
+    type: DanmakuType.DDP,
+    id: episodeId,
+  })
 
   const hasDanmaku = !!danmakuData
 
   const handleFetchDanmaku = async () => {
     await fetch({
-      danmakuMeta: rest,
+      danmakuMeta: { ...rest, type: DanmakuType.DDP },
       titleMapping,
       options: {
         forceUpdate: true,

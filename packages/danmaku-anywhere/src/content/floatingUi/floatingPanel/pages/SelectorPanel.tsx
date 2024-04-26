@@ -26,6 +26,7 @@ import { usePopup } from '../../../store/popupStore'
 import { useStore } from '../../../store/store'
 
 import { AnimeTypeIcon } from '@/common/components/animeList/AnimeTypeIcon'
+import { DanmakuType } from '@/common/types/Danmaku'
 import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
 export const SelectorPanel = () => {
@@ -63,10 +64,11 @@ export const SelectorPanel = () => {
             source: integration,
           }
         : undefined
-
     await fetch({
       danmakuMeta: {
-        ...selectedAnime,
+        type: DanmakuType.DDP,
+        animeId: selectedAnime.animeId,
+        animeTitle: selectedAnime.animeTitle,
         ...selectedEpisode,
       },
       titleMapping,

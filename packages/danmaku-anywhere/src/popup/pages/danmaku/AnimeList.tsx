@@ -8,7 +8,7 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
+import { createSearchParams, useNavigate } from 'react-router-dom'
 
 import { NoAnime } from './components/NoAnime'
 
@@ -63,7 +63,7 @@ export const DanmakuList = ({ scrollElement }: DanmakuListProps) => {
       <List>
         {virtualizer.getVirtualItems().map((virtualItem) => {
           const title = titles[virtualItem.index]
-          const animeId = groupedData[title][0].meta.animeId
+          const type = groupedData[title][0].meta.type
 
           return (
             <ListItemButton
@@ -78,7 +78,13 @@ export const DanmakuList = ({ scrollElement }: DanmakuListProps) => {
               data-index={virtualItem.index}
               ref={virtualizer.measureElement}
               onClick={() => {
-                navigate(animeId.toString())
+                navigate({
+                  pathname: 'anime',
+                  search: createSearchParams({
+                    type: type.toString(),
+                    title,
+                  }).toString(),
+                })
                 setSelectedAnime(title)
               }}
             >

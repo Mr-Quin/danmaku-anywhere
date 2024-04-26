@@ -1,40 +1,15 @@
-import type {
-  DanDanComment,
-  DanDanCommentAPIParams,
-} from '@danmaku-anywhere/dandanplay-api'
 import Dexie from 'dexie'
 
-export interface DanmakuMeta {
-  episodeId: number
-  animeId: number
-  episodeTitle?: string
-  animeTitle: string
-}
-
-export interface DanmakuCache {
-  comments: DanDanComment[]
-  count: number
-  meta: DanmakuMeta
-  params: Partial<DanDanCommentAPIParams>
-  timeUpdated: number
-  version: number
-}
-
-/**
- * A lite version of DanmakuCache, only contains count and meta
- * To reduce the size of the cache for cases where comments are not needed
- */
-export type DanmakuCacheLite = Pick<DanmakuCache, 'count' | 'meta'>
-
-export interface TitleMapping {
-  originalTitle: string
-  title: string
-  source: string
-  animeId: number
-}
+import { DanmakuType } from '../types/Danmaku'
+import type {
+  DDPDanmakuCache,
+  ManualDanmakuCache,
+  TitleMapping,
+} from '../types/Danmaku'
 
 class DanmakuAnywhereDb extends Dexie {
-  danmakuCache!: Dexie.Table<DanmakuCache, number>
+  danmakuCache!: Dexie.Table<DDPDanmakuCache, number>
+  manualDanmakuCache!: Dexie.Table<ManualDanmakuCache, number>
   titleMapping!: Dexie.Table<TitleMapping, string>
 
   isReady = new Promise<boolean>((resolve) => {
@@ -69,6 +44,24 @@ class DanmakuAnywhereDb extends Dexie {
       danmakuCache: 'meta.episodeId, meta.animeId, meta.animeTitle',
       titleMapping: '++id, originalTitle, title, source',
     })
+
+    this.version(5)
+      .stores({
+        dandanplay: null,
+        danmakuCache: 'meta.episodeId, meta.animeId, meta.animeTitle',
+        // auto increment id for manual danmaku
+        manualDanmakuCache: '++meta.episodeId, meta.animeTitle',
+        titleMapping: '++id, originalTitle, title, source',
+      })
+      .upgrade(async (tx) => {
+        // add type field to danmkauCache.meta
+        await tx
+          .table<DDPDanmakuCache>('danmakuCache')
+          .toCollection()
+          .modify((item) => {
+            item.meta.type = DanmakuType.DDP
+          })
+      })
 
     this.open()
   }

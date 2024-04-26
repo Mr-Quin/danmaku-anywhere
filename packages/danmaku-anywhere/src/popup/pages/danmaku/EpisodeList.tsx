@@ -13,7 +13,11 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate, useParams } from 'react-router-dom'
+import {
+  createSearchParams,
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom'
 
 import { useAllDanmakuQuerySuspense } from '@/common/queries/danmaku/useAllDanmakuQuerySuspense'
 import { useDeleteDanmaku } from '@/common/queries/danmaku/useDeleteDanmaku'
@@ -29,17 +33,18 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
   const { t } = useTranslation()
   const { data, isFetching } = useAllDanmakuQuerySuspense()
 
-  const { animeId } = useParams()
+  const [searchParams] = useSearchParams()
+
+  const animeTitle = searchParams.get('title')!
+  const type = searchParams.get('type')!
 
   const { setSelectedEpisode } = useStore.use.danmaku()
 
-  const episodes = useMemo(
-    () =>
-      data
-        .filter((item) => item.meta.animeId.toString() === animeId)
-        .toSorted((a, b) => a.meta.episodeId - b.meta.episodeId),
-    [data]
-  )
+  const episodes = useMemo(() => {
+    return data
+      .filter((item) => item.meta.animeTitle === animeTitle)
+      .toSorted((a, b) => a.meta.episodeId - b.meta.episodeId)
+  }, [data])
 
   const virtualizer = useVirtualizer({
     count: episodes.length,
@@ -109,7 +114,7 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
                   <Tooltip title={t('common.delete')}>
                     <span>
                       <IconButton
-                        onClick={() => deleteDanmaku(episodeId)}
+                        onClick={() => deleteDanmaku(episode.meta)}
                         disabled={isDeleting}
                       >
                         {isDeleting ? (
@@ -126,7 +131,15 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
             >
               <ListItemButton
                 onClick={() => {
-                  navigate(episodeId.toString())
+                  navigate({
+                    pathname: 'comment',
+                    search: createSearchParams({
+                      type: type,
+                      title: animeTitle,
+                      id: episodeId.toString(),
+                      episodeTitle: episodeTitle ?? '',
+                    }).toString(),
+                  })
                   setSelectedEpisode(episodeTitle ?? '')
                 }}
               >

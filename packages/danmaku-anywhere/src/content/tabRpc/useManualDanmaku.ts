@@ -3,8 +3,8 @@ import { useEventCallback } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/toast/toastStore'
-import type { DanmakuMeta } from '@/common/db/db'
 import { Logger } from '@/common/services/Logger'
+import type { DanmakuMeta } from '@/common/types/Danmaku'
 import { useMediaElementStore } from '@/content/store/mediaElementStore'
 import { useStore } from '@/content/store/store'
 

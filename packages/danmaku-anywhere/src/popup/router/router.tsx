@@ -55,11 +55,11 @@ export const router = createHashRouter([
             Component: AnimePage,
           },
           {
-            path: ':animeId',
+            path: 'anime',
             children: [
               { index: true, Component: EpisodePage },
               {
-                path: ':episodeId',
+                path: 'comment',
                 Component: DanmakuPage,
               },
             ],

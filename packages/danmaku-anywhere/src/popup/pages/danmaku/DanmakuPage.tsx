@@ -1,10 +1,11 @@
 import { ChevronLeft } from '@mui/icons-material'
 import { Box, IconButton, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { CommentsTable } from '@/common/components/CommentsTable'
 import { useDanmakuQuerySuspense } from '@/common/queries/danmaku/useDanmakuQuerySuspense'
+import type { DanmakuType } from '@/common/types/Danmaku'
 import { TabToolbar } from '@/popup/component/TabToolbar'
 import { TabLayout } from '@/popup/layout/TabLayout'
 import { useStore } from '@/popup/store'
@@ -12,9 +13,15 @@ import { useStore } from '@/popup/store'
 export const DanmakuPage = () => {
   const { t } = useTranslation()
 
-  const { episodeId } = useParams()
+  const [searchParams] = useSearchParams()
 
-  const { data } = useDanmakuQuerySuspense(parseInt(episodeId!))
+  const type = parseInt(searchParams.get('type')!) as DanmakuType
+  const id = parseInt(searchParams.get('id')!)
+
+  const { data } = useDanmakuQuerySuspense({
+    type,
+    id,
+  })
 
   const { selectedAnime, selectedEpisode } = useStore.use.danmaku()
 
