@@ -2,8 +2,11 @@ import type {
   DanDanComment,
   DanDanCommentAPIParams,
 } from '@danmaku-anywhere/dandanplay-api'
+import type { z } from 'zod'
 
-import type { DanmakuFetchOptions } from './DanmakuFetchOptions'
+import type { DanmakuFetchOptions } from '../DanmakuFetchOptions'
+
+import type { commentSchema, manualDanmakuCreateSchema } from './schema'
 
 export enum DanmakuType {
   Manual,
@@ -15,18 +18,28 @@ interface BaseDanmakuMeta {
 }
 
 export interface DDPDanmakuMeta extends BaseDanmakuMeta {
+  type: DanmakuType.DDP
+  /**
+   * All properties come from DDP API
+   */
   episodeId: number
   animeId: number
   episodeTitle?: string
   animeTitle: string
-  type: DanmakuType.DDP
 }
 
 export interface ManualDanmakuMeta extends BaseDanmakuMeta {
+  type: DanmakuType.Manual
+  /**
+   * Auto generated id for manual danmaku
+   */
   episodeId: number
   animeTitle: string
+  /**
+   * One of episodeTitle or episodeNumber is required
+   */
   episodeTitle?: string
-  type: DanmakuType.Manual
+  episodeNumber?: number
 }
 
 export type DanmakuMeta = DDPDanmakuMeta | ManualDanmakuMeta
@@ -59,6 +72,10 @@ export type DanmakuCache = DDPDanmakuCache | ManualDanmakuCache
 export type DanmakuCacheLite = Pick<DanmakuCache, 'count' | 'meta'> & {
   type: DanmakuType
 }
+
+export type DanmakuComment = z.infer<typeof commentSchema>
+
+export type ManualDanmakuCreateDto = z.infer<typeof manualDanmakuCreateSchema>
 
 export interface DanmakuGetOneDto {
   type: DanmakuType

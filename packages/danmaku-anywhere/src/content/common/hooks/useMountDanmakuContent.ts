@@ -5,7 +5,7 @@ import { useToast } from '@/common/components/toast/toastStore'
 import { useDanmakuQuerySuspense } from '@/common/queries/danmaku/useDanmakuQuerySuspense'
 import { chromeRpcClient } from '@/common/rpc/client'
 import { Logger } from '@/common/services/Logger'
-import type { DanmakuMeta } from '@/common/types/Danmaku'
+import type { DanmakuMeta } from '@/common/types/danmaku/Danmaku'
 import { useStore } from '@/content/store/store'
 
 export const useMountDanmakuContent = () => {

@@ -8,8 +8,8 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { match } from 'ts-pattern'
 
-import { DanmakuType } from '../types/Danmaku'
-import type { DanmakuMeta } from '../types/Danmaku'
+import { DanmakuType } from '../types/danmaku/Danmaku'
+import type { DanmakuMeta } from '../types/danmaku/Danmaku'
 
 import { EpisodeOption } from './EpisodeOption'
 

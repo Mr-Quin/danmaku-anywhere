@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import { DanmakuSelector } from '@/common/components/DanmakuSelector'
 import { useToast } from '@/common/components/toast/toastStore'
-import type { DanmakuMeta } from '@/common/types/Danmaku'
+import type { DanmakuMeta } from '@/common/types/danmaku/Danmaku'
 import { ManualMode } from '@/content/common/components/ManualMode'
 import { useMountDanmakuContent } from '@/content/common/hooks/useMountDanmakuContent'
 import { useStore } from '@/content/store/store'

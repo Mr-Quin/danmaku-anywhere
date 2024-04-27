@@ -13,7 +13,7 @@ import type {
   DanmakuFetchDDPDto,
   DanmakuGetOneDto,
   TitleMapping,
-} from '@/common/types/Danmaku'
+} from '@/common/types/danmaku/Danmaku'
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type IconMethods = {

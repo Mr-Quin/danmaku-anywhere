@@ -1,11 +1,11 @@
 import Dexie from 'dexie'
 
-import { DanmakuType } from '../types/Danmaku'
+import { DanmakuType } from '../types/danmaku/Danmaku'
 import type {
   DDPDanmakuCache,
   ManualDanmakuCache,
   TitleMapping,
-} from '../types/Danmaku'
+} from '../types/danmaku/Danmaku'
 
 class DanmakuAnywhereDb extends Dexie {
   danmakuCache!: Dexie.Table<DDPDanmakuCache, number>

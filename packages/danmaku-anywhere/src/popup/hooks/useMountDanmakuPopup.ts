@@ -5,8 +5,8 @@ import { useToast } from '@/common/components/toast/toastStore'
 import { useDanmakuQuerySuspense } from '@/common/queries/danmaku/useDanmakuQuerySuspense'
 import { chromeRpcClient, tabRpcClient } from '@/common/rpc/client'
 import { Logger } from '@/common/services/Logger'
-import type { DanmakuMeta } from '@/common/types/Danmaku'
-import { danmakuMetaToString } from '@/common/utils/utils'
+import type { DanmakuMeta } from '@/common/types/danmaku/Danmaku'
+import { danmakuMetaToString } from '@/common/utils/danmaku'
 
 export const useMountDanmakuPopup = () => {
   const { t } = useTranslation()

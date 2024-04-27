@@ -2,7 +2,7 @@ import type { DanDanComment } from '@danmaku-anywhere/dandanplay-api'
 
 import type { RPCDef } from '../rpc'
 
-import type { DanmakuMeta } from '@/common/types/Danmaku'
+import type { DanmakuMeta } from '@/common/types/danmaku/Danmaku'
 
 export interface TabDanmakuState {
   meta?: DanmakuMeta
