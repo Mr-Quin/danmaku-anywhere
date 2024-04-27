@@ -11,7 +11,7 @@ import { useExportDanmaku } from '../../../hooks/useExportDanmaku'
 
 import { useAllDanmakuQuerySuspense } from '@/common/queries/danmaku/useAllDanmakuQuerySuspense'
 
-export const ExportButton = () => {
+export const ExportDanmaku = () => {
   const { mutate, isPending } = useExportDanmaku()
   const { data, isFetching } = useAllDanmakuQuerySuspense()
   const { t } = useTranslation()

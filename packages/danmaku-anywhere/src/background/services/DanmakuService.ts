@@ -13,6 +13,8 @@ import type {
   DanmakuCacheLite,
   DanmakuDeleteDto,
   DanmakuGetOneDto,
+  ManualDanmakuCreateDto,
+  ManualDanmakuMeta,
 } from '@/common/types/danmaku/Danmaku'
 import type { DanmakuFetchOptions } from '@/common/types/DanmakuFetchOptions'
 import { invariant, isServiceWorker, tryCatch } from '@/common/utils/utils'
@@ -109,6 +111,30 @@ export class DanmakuService {
       })
   }
 
+  async createManual(data: ManualDanmakuCreateDto) {
+    const createCache = (dto: ManualDanmakuCreateDto[number]) => {
+      const { comments, animeTitle, episodeNumber, episodeTitle } = dto
+
+      const cache = {
+        comments,
+        meta: {
+          type: DanmakuType.Manual,
+          episodeNumber,
+          animeTitle,
+          episodeTitle,
+          // episodeId is auto generated after creation
+        } as ManualDanmakuMeta,
+        version: 1,
+        timeUpdated: Date.now(),
+        count: comments.length,
+      } as const
+
+      return cache
+    }
+
+    this.manualTable.bulkAdd(data.map(createCache))
+  }
+
   /**
    * Avoid using this method because it will load all danmaku from db at once
    * which may cause performance issues or even crash when there are too many danmaku in db
@@ -134,8 +160,11 @@ export class DanmakuService {
   /**
    * Get only the count and metadata of all danmaku in db
    */
-  async getAllLite() {
-    const tables = [db.danmakuCache, db.manualDanmakuCache]
+  async getAllLite(type?: DanmakuType) {
+    const tables = match(type)
+      .with(DanmakuType.DDP, () => [this.ddpTable])
+      .with(DanmakuType.Manual, () => [this.manualTable])
+      .otherwise(() => [this.ddpTable, this.manualTable])
 
     const data = await Promise.all(tables.map((type) => this._getAllLite(type)))
 

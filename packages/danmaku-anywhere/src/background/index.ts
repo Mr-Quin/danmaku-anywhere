@@ -73,6 +73,9 @@ const rpcServer = createRpcServer<BackgroundMethods>({
 
     return result
   },
+  danmakuCreateManual: async (data) => {
+    return danmakuService.createManual(data)
+  },
   danmakuDelete: async (data) => {
     return danmakuService.delete(data)
   },

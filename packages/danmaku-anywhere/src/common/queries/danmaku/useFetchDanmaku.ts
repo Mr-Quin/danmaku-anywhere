@@ -18,7 +18,7 @@ export const useFetchDanmaku = () => {
     mutationFn: chromeRpcClient.danmakuFetchDDP,
     onSuccess: (_, v) => {
       queryClient.invalidateQueries({
-        queryKey: useAllDanmakuQuerySuspense.queryKey,
+        queryKey: useAllDanmakuQuerySuspense.queryKey(),
       })
       queryClient.invalidateQueries({
         queryKey: useDanmakuQuerySuspense.queryKey(v.meta),
