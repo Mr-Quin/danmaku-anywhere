@@ -71,12 +71,6 @@ export const ConfigToolbar = ({ onAdd }: { onAdd: () => void }) => {
         </Tooltip>
       </IconButton>
       <DrilldownMenu ButtonProps={{ edge: 'end' }}>
-        <MenuItem onClick={exportConfigs}>
-          <ListItemIcon>
-            <Download />
-          </ListItemIcon>
-          <ListItemText>{t('common.export')}</ListItemText>
-        </MenuItem>
         <Tooltip
           title={CAN_IMPORT ? '' : 'Importing is not available in this browser'}
         >
@@ -90,6 +84,12 @@ export const ConfigToolbar = ({ onAdd }: { onAdd: () => void }) => {
             </MenuItem>
           </div>
         </Tooltip>
+        <MenuItem onClick={exportConfigs}>
+          <ListItemIcon>
+            <Download />
+          </ListItemIcon>
+          <ListItemText>{t('common.export')}</ListItemText>
+        </MenuItem>
       </DrilldownMenu>
     </TabToolbar>
   )

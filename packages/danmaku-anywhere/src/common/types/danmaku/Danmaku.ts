@@ -11,6 +11,10 @@ export enum DanmakuType {
   DDP,
 }
 
+export const danmakuTypeList = Object.values(DanmakuType).filter(
+  (e): e is DanmakuType => typeof e === 'number'
+)
+
 interface BaseDanmakuMeta {
   type: DanmakuType
 }

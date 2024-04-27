@@ -4,6 +4,9 @@ import {
   List,
   ListItemButton,
   ListItemText,
+  ListItemIcon,
+  Chip,
+  Tooltip,
 } from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useMemo } from 'react'
@@ -13,10 +16,36 @@ import { createSearchParams, useNavigate } from 'react-router-dom'
 import { NoAnime } from './components/NoAnime'
 
 import { useAllDanmakuQuerySuspense } from '@/common/queries/danmaku/useAllDanmakuQuerySuspense'
+import type { DanmakuCacheLite } from '@/common/types/danmaku/Danmaku'
+import { DanmakuType } from '@/common/types/danmaku/Danmaku'
 import { useStore } from '@/popup/store'
 
 interface AnimeListProps {
   scrollElement: HTMLDivElement
+}
+
+const partitionDanmaku = (
+  danmakuTypes: DanmakuType[],
+  data: DanmakuCacheLite[]
+) => {
+  return danmakuTypes
+    .map((type) => {
+      const items = data.filter((item) => item.meta.type === type)
+      const grouped = Object.groupBy(items, (item) => item.meta.animeTitle)
+
+      const titles = Object.keys(grouped).map((title) => ({
+        title,
+        count: grouped[title].length,
+        type,
+      }))
+
+      return {
+        type,
+        items: titles,
+      }
+    })
+    .flatMap((item) => item.items)
+    .toSorted((a, b) => a.title.localeCompare(b.title))
 }
 
 export const AnimeList = ({ scrollElement }: AnimeListProps) => {
@@ -25,7 +54,11 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
 
   const { data, isFetching } = useAllDanmakuQuerySuspense()
 
-  const { animeFilter: filter, setSelectedAnime } = useStore.use.danmaku()
+  const {
+    animeFilter: filter,
+    setSelectedAnime,
+    selectedTypes,
+  } = useStore.use.danmaku()
 
   const filteredData = useMemo(() => {
     if (!filter) return data
@@ -35,13 +68,9 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
     )
   }, [data, filter])
 
-  const groupedData = useMemo(
-    () => Object.groupBy(filteredData, (item) => item.meta.animeTitle),
-    [filteredData]
-  )
-
-  // unique titles
-  const titles = Object.keys(groupedData).toSorted()
+  const titles = useMemo(() => {
+    return partitionDanmaku(selectedTypes, filteredData)
+  }, [selectedTypes, filteredData])
 
   const virtualizer = useVirtualizer({
     count: titles.length,
@@ -53,17 +82,17 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
 
   return (
     <Box
-      style={{
+      sx={{
         height: `${virtualizer.getTotalSize()}px`,
         width: '100%',
         position: 'relative',
         opacity: isFetching ? 0.5 : 1,
+        flexShrink: 0,
       }}
     >
       <List>
         {virtualizer.getVirtualItems().map((virtualItem) => {
-          const title = titles[virtualItem.index]
-          const type = groupedData[title][0].meta.type
+          const { title, type, count } = titles[virtualItem.index]
 
           return (
             <ListItemButton
@@ -82,22 +111,34 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
                   pathname: 'anime',
                   search: createSearchParams({
                     type: type.toString(),
-                    title,
                   }).toString(),
                 })
                 setSelectedAnime(title)
               }}
             >
-              <ListItemText
-                primary={title}
-                secondary={
-                  <Typography variant="caption" color="text.secondary">
-                    {t('anime.episodeCounted', {
-                      count: groupedData[title].length,
-                    })}
-                  </Typography>
-                }
-              />
+              <Tooltip title={title}>
+                <ListItemText
+                  primary={title}
+                  secondary={
+                    <Typography variant="caption" color="text.secondary">
+                      {t('anime.episodeCounted', {
+                        count,
+                      })}
+                    </Typography>
+                  }
+                  primaryTypographyProps={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                />
+              </Tooltip>
+              <ListItemIcon>
+                <Chip
+                  label={t(`danmaku.type.${DanmakuType[type]}`)}
+                  size="small"
+                />
+              </ListItemIcon>
             </ListItemButton>
           )
         })}

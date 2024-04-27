@@ -16,6 +16,7 @@ export const commentSchema = z
           invalid_type_error: 'Mode must be one of ltr, rtl, top, bottom',
         }
       )
+      .optional()
       .default('rtl'),
     time: z.number(), // in seconds, float
     color: z.string().refine((data) => {
