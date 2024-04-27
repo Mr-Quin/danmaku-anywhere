@@ -35,14 +35,13 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
 
   const [searchParams] = useSearchParams()
 
-  const animeTitle = searchParams.get('title')!
   const type = searchParams.get('type')!
 
-  const { setSelectedEpisode } = useStore.use.danmaku()
+  const { setSelectedEpisode, selectedAnime } = useStore.use.danmaku()
 
   const episodes = useMemo(() => {
     return data
-      .filter((item) => item.meta.animeTitle === animeTitle)
+      .filter((item) => item.meta.animeTitle === selectedAnime)
       .toSorted((a, b) => a.meta.episodeId - b.meta.episodeId)
   }, [data])
 
@@ -135,7 +134,7 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
                     pathname: 'comment',
                     search: createSearchParams({
                       type: type,
-                      title: animeTitle,
+                      title: selectedAnime,
                       id: episodeId.toString(),
                       episodeTitle: episodeTitle ?? '',
                     }).toString(),

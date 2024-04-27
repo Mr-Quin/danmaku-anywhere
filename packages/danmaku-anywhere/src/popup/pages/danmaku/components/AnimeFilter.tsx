@@ -1,5 +1,11 @@
 import { Close, Search } from '@mui/icons-material'
-import { Box, TextField, IconButton, InputAdornment } from '@mui/material'
+import {
+  Box,
+  TextField,
+  IconButton,
+  InputAdornment,
+  Popover,
+} from '@mui/material'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -11,13 +17,11 @@ export const AnimeFilter = () => {
   const [filter, setFilter] = useState('')
 
   const anchorRef = useRef<HTMLButtonElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
 
   const handleSearch = useStore.use.danmaku().setAnimeFilter
 
   const handleOpen = () => {
     setOpen(true)
-    inputRef.current?.focus()
   }
 
   const handleClear = () => {
@@ -31,41 +35,41 @@ export const AnimeFilter = () => {
     handleSearch(e.target.value.trim())
   }
 
-  const handleBlur = () => {
-    if (filter === '') {
-      setOpen(false)
-    }
-  }
-
   return (
     <>
-      {!open && (
-        <IconButton ref={anchorRef} onClick={handleOpen} color="primary">
-          <Search />
-        </IconButton>
-      )}
-
-      {open && (
+      <IconButton ref={anchorRef} onClick={handleOpen} color="primary">
+        <Search />
+      </IconButton>
+      <Popover
+        anchorEl={anchorRef.current}
+        onClose={() => setOpen(false)}
+        open={open}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+      >
         <Box
-          px={1}
-          flexShrink={1}
           component="form"
           onSubmit={(e) => {
             e.preventDefault()
             handleSearch(filter)
           }}
+          sx={{
+            background: 'background.paper',
+          }}
         >
           <TextField
-            ref={inputRef}
-            label={t('common.filter')}
-            variant="outlined"
+            label={t('common.search')}
+            variant="filled"
             size="small"
-            type="text"
             value={filter}
             onChange={handleChange}
-            onBlur={handleBlur}
             autoFocus
-            margin="none"
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -77,7 +81,7 @@ export const AnimeFilter = () => {
             }}
           />
         </Box>
-      )}
+      </Popover>
     </>
   )
 }
