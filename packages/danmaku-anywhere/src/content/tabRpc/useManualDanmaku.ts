@@ -1,4 +1,4 @@
-import type { DanDanComment } from '@danmaku-anywhere/dandanplay-api'
+import type { CachedComment } from '@danmaku-anywhere/danmaku-engine'
 import { useEventCallback } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
@@ -14,7 +14,7 @@ export const useManualDanmaku = () => {
   const { videoNode, containerNode } = useMediaElementStore()
 
   const handleSetDanmaku = useEventCallback(
-    (meta: DanmakuMeta, comments: DanDanComment[]) => {
+    (meta: DanmakuMeta, comments: CachedComment[]) => {
       if (!containerNode || !videoNode) {
         const logString = videoNode
           ? t('danmaku.error.containerNotFound')

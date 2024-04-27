@@ -5,7 +5,8 @@ import { DrilldownMenu } from '../../component/DrilldownMenu'
 
 import { AnimeList } from './AnimeList'
 import { AnimeFilter } from './components/AnimeFilter'
-import { ExportButton } from './components/ExportButton'
+import { ExportDanmaku } from './components/ExportDanmaku'
+import { UploadDanmaku } from './components/UploadDanmaku'
 
 import { TabToolbar } from '@/popup/component/TabToolbar'
 import { TabLayout } from '@/popup/layout/TabLayout'
@@ -19,7 +20,8 @@ export const AnimePage = () => {
       <TabToolbar title={t('danmakuPage.animeList')}>
         <AnimeFilter />
         <DrilldownMenu ButtonProps={{ edge: 'end' }}>
-          <ExportButton />
+          <ExportDanmaku />
+          <UploadDanmaku />
         </DrilldownMenu>
       </TabToolbar>
       <AnimeList scrollElement={ref as HTMLDivElement} />

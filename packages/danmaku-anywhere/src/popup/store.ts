@@ -15,6 +15,8 @@ interface StoreState {
     setSelectedAnime: (anime: string) => void
     selectedEpisode: string
     setSelectedEpisode: (episode: string) => void
+    showUploadDialog: boolean
+    toggleUploadDialog: (show?: boolean) => void
   }
   config: {
     editingConfig: MountConfig
@@ -48,6 +50,15 @@ const useStoreBase = create<StoreState>((set) => ({
       set(
         produce((state) => {
           state.danmaku.selectedEpisode = episode
+        })
+      )
+    },
+    showUploadDialog: false,
+    toggleUploadDialog: (show?: boolean) => {
+      set(
+        produce((state) => {
+          state.danmaku.showUploadDialog =
+            show ?? !state.danmaku.showUploadDialog
         })
       )
     },

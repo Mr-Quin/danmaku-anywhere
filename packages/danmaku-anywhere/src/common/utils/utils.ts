@@ -1,6 +1,5 @@
 import type { PopoverVirtualElement } from '@mui/material'
 
-import type { DanmakuMeta } from '../types/danmaku/Danmaku'
 import type { NotPromise } from '../types/types'
 
 export const toArray = <T>(value: T | T[]): T[] => {

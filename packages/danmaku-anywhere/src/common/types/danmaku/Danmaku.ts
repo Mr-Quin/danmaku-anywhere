@@ -1,12 +1,10 @@
-import type {
-  DanDanComment,
-  DanDanCommentAPIParams,
-} from '@danmaku-anywhere/dandanplay-api'
+import type { DanDanCommentAPIParams } from '@danmaku-anywhere/dandanplay-api'
+import type { CachedComment } from '@danmaku-anywhere/danmaku-engine'
 import type { z } from 'zod'
 
 import type { DanmakuFetchOptions } from '../DanmakuFetchOptions'
 
-import type { commentSchema, manualDanmakuCreateSchema } from './schema'
+import type { manualDanmakuCreateSchema } from './schema'
 
 export enum DanmakuType {
   Manual,
@@ -45,13 +43,13 @@ export interface ManualDanmakuMeta extends BaseDanmakuMeta {
 export type DanmakuMeta = DDPDanmakuMeta | ManualDanmakuMeta
 
 interface BaseDanmakuCache {
-  comments: DanDanComment[]
+  comments: CachedComment[]
   count: number
   version: number
   timeUpdated: number
 }
 
-export interface DDPDanmakuCache extends BaseDanmakuCache {
+export type DDPDanmakuCache = BaseDanmakuCache & {
   meta: DDPDanmakuMeta
   /**
    * The params used to fetch the comments
@@ -59,7 +57,7 @@ export interface DDPDanmakuCache extends BaseDanmakuCache {
   params: Partial<DanDanCommentAPIParams>
 }
 
-export interface ManualDanmakuCache extends BaseDanmakuCache {
+export type ManualDanmakuCache = BaseDanmakuCache & {
   meta: ManualDanmakuMeta
 }
 
@@ -73,9 +71,7 @@ export type DanmakuCacheLite = Pick<DanmakuCache, 'count' | 'meta'> & {
   type: DanmakuType
 }
 
-export type DanmakuComment = z.infer<typeof commentSchema>
-
-export type ManualDanmakuCreateDto = z.infer<typeof manualDanmakuCreateSchema>
+export type ManualDanmakuCreateDto = z.infer<typeof manualDanmakuCreateSchema>[]
 
 export interface DanmakuGetOneDto {
   type: DanmakuType
