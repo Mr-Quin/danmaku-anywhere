@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { DrilldownMenu } from '../../component/DrilldownMenu'
 
-import { DanmakuList } from './AnimeList'
+import { AnimeList } from './AnimeList'
 import { AnimeFilter } from './components/AnimeFilter'
 import { ExportButton } from './components/ExportButton'
 
@@ -22,7 +22,7 @@ export const AnimePage = () => {
           <ExportButton />
         </DrilldownMenu>
       </TabToolbar>
-      <DanmakuList scrollElement={ref as HTMLDivElement} />
+      <AnimeList scrollElement={ref as HTMLDivElement} />
     </TabLayout>
   )
 }

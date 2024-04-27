@@ -6,14 +6,14 @@ import { match } from 'ts-pattern'
 import { db } from '@/common/db/db'
 import { RpcException } from '@/common/rpc/rpc'
 import { Logger } from '@/common/services/Logger'
-import { DanmakuType } from '@/common/types/Danmaku'
+import { DanmakuType } from '@/common/types/danmaku/Danmaku'
 import type {
   DDPDanmakuMeta,
   DanmakuCache,
   DanmakuCacheLite,
   DanmakuDeleteDto,
   DanmakuGetOneDto,
-} from '@/common/types/Danmaku'
+} from '@/common/types/danmaku/Danmaku'
 import type { DanmakuFetchOptions } from '@/common/types/DanmakuFetchOptions'
 import { invariant, isServiceWorker, tryCatch } from '@/common/utils/utils'
 

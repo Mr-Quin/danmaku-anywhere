@@ -7,7 +7,7 @@ import { chromeRpcClient } from '../../rpc/client'
 import { useAllDanmakuQuerySuspense } from './useAllDanmakuQuerySuspense'
 import { useDanmakuQuerySuspense } from './useDanmakuQuerySuspense'
 
-import type { DanmakuMeta } from '@/common/types/Danmaku'
+import type { DanmakuMeta } from '@/common/types/danmaku/Danmaku'
 
 export const useDeleteDanmaku = () => {
   const { t } = useTranslation()

@@ -4,7 +4,10 @@ import { useStore } from '../../store/store'
 
 import { useFetchDanmaku } from '@/common/queries/danmaku/useFetchDanmaku'
 import { chromeRpcClient } from '@/common/rpc/client'
-import { type DDPDanmakuMeta, type TitleMapping } from '@/common/types/Danmaku'
+import {
+  type DDPDanmakuMeta,
+  type TitleMapping,
+} from '@/common/types/danmaku/Danmaku'
 import type { DanmakuFetchOptions } from '@/common/types/DanmakuFetchOptions'
 import { tryCatch } from '@/common/utils/utils'
 

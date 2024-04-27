@@ -15,11 +15,11 @@ import { NoAnime } from './components/NoAnime'
 import { useAllDanmakuQuerySuspense } from '@/common/queries/danmaku/useAllDanmakuQuerySuspense'
 import { useStore } from '@/popup/store'
 
-interface DanmakuListProps {
+interface AnimeListProps {
   scrollElement: HTMLDivElement
 }
 
-export const DanmakuList = ({ scrollElement }: DanmakuListProps) => {
+export const AnimeList = ({ scrollElement }: AnimeListProps) => {
   const { t } = useTranslation()
   const navigate = useNavigate()
 

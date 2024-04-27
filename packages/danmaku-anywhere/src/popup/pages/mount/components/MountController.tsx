@@ -11,7 +11,7 @@ import { useToast } from '@/common/components/toast/toastStore'
 import { useSessionState } from '@/common/queries/extStorage/useSessionState'
 import { tabRpcClient } from '@/common/rpc/client'
 import { Logger } from '@/common/services/Logger'
-import type { DanmakuMeta } from '@/common/types/Danmaku'
+import type { DanmakuMeta } from '@/common/types/danmaku/Danmaku'
 
 export const MountController = () => {
   const { t } = useTranslation()
