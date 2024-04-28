@@ -2,12 +2,22 @@ import type { DanDanComment } from '@danmaku-anywhere/dandanplay-api'
 import Danmaku from 'danmaku'
 
 import type { DanmakuStyle } from './parser'
-import { sampleComments, transformDanDanComments } from './parser'
+import {
+  filterComments,
+  sampleComments,
+  transformDanDanComments,
+} from './parser'
+
+export interface DanmakuFilter {
+  type: 'text' | 'regex'
+  value: string
+  enabled: boolean
+}
 
 export interface DanmakuOptions {
   readonly style: DanmakuStyle
   readonly show: boolean
-  readonly filters: string[]
+  readonly filters: DanmakuFilter[]
   readonly filterLevel: number
   readonly speed: number
   /**
@@ -56,8 +66,10 @@ export class DanmakuManager {
     this.comments = comments
     this.config = this.#mergeConfig(config)
 
+    const filteredComments = filterComments(comments, this.config.filters)
+
     const sampledComments = sampleComments(
-      comments,
+      filteredComments,
       filterLevelToRatio(this.config.filterLevel)
     )
 
