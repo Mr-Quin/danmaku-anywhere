@@ -1,21 +1,44 @@
 import { LoadingButton } from '@mui/lab'
-import type { SliderProps, TypographyProps } from '@mui/material'
-import {
-  Slider,
-  Box,
-  Typography,
-  Stack,
-  Tooltip,
-  Grid,
-  Input,
-} from '@mui/material'
+import { Typography, Stack, Grid, Input, Divider } from '@mui/material'
 import type { Draft } from 'immer'
 import { produce } from 'immer'
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+
+import { LabeledSlider } from '../../../common/components/LabeledSlider'
 
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/danmakuOptions'
 import { useDanmakuOptionsSuspense } from '@/common/options/danmakuOptions/useDanmakuOptionsSuspense'
+
+const opacityMarks = [
+  {
+    value: 0,
+    label: '0%',
+  },
+  {
+    value: 0.5,
+    label: '50%',
+  },
+  {
+    value: 1,
+    label: '100%',
+  },
+]
+
+const fontSizeMarks = [
+  {
+    value: 4,
+    label: '4px',
+  },
+  {
+    value: 24,
+    label: '24px',
+  },
+  {
+    value: 48,
+    label: '48px',
+  },
+]
 
 const filterMarks = [
   {
@@ -78,6 +101,10 @@ const safeZoneMarks = [
   },
 ]
 
+const opacityValueLabelFormat = (value: number) => `${value * 100}%`
+
+const fontSizeValueLabelFormat = (value: number) => `${value}px`
+
 const safeZoneValueLabelFormat = (value: number) => `${value}%`
 
 const offsetValueLabelFormat = (value: number) => {
@@ -119,39 +146,7 @@ const convertDisplaySpeedToActual = (displaySpeed: number) => {
   }
 }
 
-interface LabeledSliderProps extends SliderProps {
-  label: string
-  tooltip?: string
-  typographyProps?: TypographyProps
-  children?: React.ReactNode
-}
-
-const LabeledSlider = ({
-  label,
-  tooltip,
-  typographyProps = {},
-  children,
-  ...rest
-}: LabeledSliderProps) => {
-  const id = useId()
-  return (
-    <Box>
-      <Tooltip title={tooltip} sx={{ width: 'fit-content' }}>
-        <Typography id={id} {...typographyProps}>
-          {label}
-        </Typography>
-      </Tooltip>
-      <Grid container spacing={2}>
-        <Grid item xs>
-          <Slider aria-labelledby={id} {...rest} />
-        </Grid>
-        {children}
-      </Grid>
-    </Box>
-  )
-}
-
-export const DanmakuOptionsController = () => {
+export const DanmakuStylesForm = () => {
   const { t } = useTranslation()
   const {
     data: config,
@@ -195,6 +190,8 @@ export const DanmakuOptionsController = () => {
           max={1}
           size="small"
           valueLabelDisplay="auto"
+          marks={opacityMarks}
+          valueLabelFormat={opacityValueLabelFormat}
         />
         <LabeledSlider
           label={t('stylePage.size')}
@@ -210,6 +207,8 @@ export const DanmakuOptionsController = () => {
           max={48}
           size="small"
           valueLabelDisplay="auto"
+          marks={fontSizeMarks}
+          valueLabelFormat={fontSizeValueLabelFormat}
         />
         <LabeledSlider
           label={t('stylePage.filterLevel')}
@@ -293,6 +292,7 @@ export const DanmakuOptionsController = () => {
         <Typography variant="h6" component="div">
           {t('stylePage.safeZones')}
         </Typography>
+        <Divider />
         <LabeledSlider
           label={t('stylePage.safeZone.top')}
           tooltip={t('stylePage.tooltip.safeZone.top')}

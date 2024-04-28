@@ -19,6 +19,9 @@ const common = {
     search: '搜索',
     searchResults: '搜索结果',
     time: '时间',
+    test: '测试',
+    regex: '正则表达式',
+    regexShort: '正则',
   },
   error: {
     unknown: '出了一些问题。',
@@ -83,7 +86,7 @@ const domain = {
       titleMappingError: '获取标题映射失败：{{title}}，跳过',
       search: '搜索番剧：{{title}}',
       searchError: '搜索番剧失败：{{message}}',
-      searchResultEmpty: '没有找到标题为 {{title}} 的动漫',
+      searchResultEmpty: '没有找到标题为 {{title}} 的番剧',
       openSearch: '打开搜索页面',
       playing: '播放中：{{title}}',
     },
@@ -111,8 +114,8 @@ const pages = {
   },
   danmakuPage: {
     animeList: '剧集列表',
-    noAnime: '没有可用的动漫',
-    noResult: "没有找到标题为 '{{filter}}' 的动漫",
+    noAnime: '没有可用的番剧',
+    noResult: "没有找到标题为 '{{filter}}' 的番剧",
   },
   mountPage: {
     addMountConfig: '添加装填配置以启用控制器',
@@ -144,8 +147,8 @@ const pages = {
     selectAnime: '找到多个匹配项：{{name}}，请选择',
   },
   stylePage: {
-    filterLevel: '过滤等级',
-    name: '弹幕样式',
+    filterLevel: '屏蔽等级',
+    name: '弹幕设置',
     offset: '时间轴',
     opacity: '不透明度',
     'safeZone.bottom': '底部',
@@ -165,7 +168,25 @@ const pages = {
       safeZones: '安全区域',
       show: '显示弹幕',
       size: '弹幕的字体大小。',
-      speed: '弹幕飞过屏幕的速度。 “1”是最慢的，“5”是最快的。',
+      speed: '弹幕飞过屏幕的速度。 “1”最慢，“5”最快。',
+    },
+    filtering: {
+      name: '屏蔽设置',
+      addFilterPattern: '添加屏蔽词',
+      enterFilterPattern: '输入屏蔽词，正则以 "/" 开头和结尾',
+      testFilterPatterns: '测试屏蔽词',
+      enterTestText: '输入测试文本',
+      testResultExclude: '这段文本将被过滤',
+      testResultInclude: '这段文本不会被过滤',
+      patternList: '屏蔽词列表',
+      validation: {
+        patternEmpty: '屏蔽词不能为空',
+        duplicate: '屏蔽词已存在',
+        invalidRegex: '无效正则表达式',
+      },
+      tooltip: {
+        noFilter: '不存在屏蔽词，请先添加一些屏蔽词以进行测试',
+      },
     },
   },
   tabs: {
@@ -174,7 +195,7 @@ const pages = {
     mount: '装填弹幕',
     search: '搜索番剧',
     selector: '修正匹配',
-    style: '弹幕样式',
+    style: '弹幕设置',
   },
 }
 

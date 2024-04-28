@@ -1,16 +1,25 @@
-import { Box, FormControlLabel, Switch } from '@mui/material'
+import {
+  Box,
+  FormControlLabel,
+  ListItemText,
+  MenuItem,
+  Switch,
+} from '@mui/material'
 import { produce } from 'immer'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 
-import { DanmakuOptionsController } from './StylesForm'
+import { DanmakuStylesForm } from './StylesForm'
 
 import { useDanmakuOptionsSuspense } from '@/common/options/danmakuOptions/useDanmakuOptionsSuspense'
+import { DrilldownMenu } from '@/popup/component/DrilldownMenu'
 import { TabToolbar } from '@/popup/component/TabToolbar'
 import { TabLayout } from '@/popup/layout/TabLayout'
 
 export const StylesPage = () => {
   const { t } = useTranslation()
   const { data: config, partialUpdate } = useDanmakuOptionsSuspense()
+  const navigate = useNavigate()
 
   return (
     <TabLayout>
@@ -30,9 +39,22 @@ export const StylesPage = () => {
           }
           label={t('stylePage.show')}
         />
+        <DrilldownMenu
+          ButtonProps={{
+            edge: 'end',
+          }}
+        >
+          <MenuItem
+            onClick={() => {
+              navigate('filtering')
+            }}
+          >
+            <ListItemText>{t('stylePage.filtering.name')}</ListItemText>
+          </MenuItem>
+        </DrilldownMenu>
       </TabToolbar>
-      <Box px={2} pb={2}>
-        <DanmakuOptionsController />
+      <Box px={3} pb={2} maxWidth="100%">
+        <DanmakuStylesForm />
       </Box>
     </TabLayout>
   )

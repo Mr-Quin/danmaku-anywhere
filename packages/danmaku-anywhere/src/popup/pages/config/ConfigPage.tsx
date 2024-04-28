@@ -11,15 +11,15 @@ import { useStore } from '@/popup/store'
 
 export const ConfigPage = () => {
   const { setEditingConfig } = useStore.use.config()
-  const navigatge = useNavigate()
+  const navigate = useNavigate()
 
   const handleEditConfig = (config: MountConfig) => {
-    navigatge('edit')
+    navigate('edit')
     setEditingConfig(config)
   }
 
   const handleAddConfig = () => {
-    navigatge('add')
+    navigate('add')
     setEditingConfig({
       ...createMountConfig(''),
       mediaQuery: 'video',

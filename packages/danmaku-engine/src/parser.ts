@@ -1,6 +1,8 @@
 import type { DanDanComment } from '@danmaku-anywhere/dandanplay-api'
 import { DanDanCommentMode } from '@danmaku-anywhere/dandanplay-api'
 
+import type { DanmakuFilter } from './DanmakuManager'
+
 // copied from danmaku
 export interface Comment {
   text?: string
@@ -113,4 +115,27 @@ export function* sampleComments(comments: DanDanComment[], ratio: number) {
   for (let i = 0; i < filteredLength && i * gap < length; i++) {
     yield comments[i * gap]
   }
+}
+
+// returns true if the comment should be be filtered out
+export const applyFilter = (comment: string, filters: DanmakuFilter[]) => {
+  return filters.some(({ type, value, enabled }) => {
+    if (!enabled) return false
+
+    switch (type) {
+      case 'text':
+        return comment.includes(value)
+      case 'regex':
+        return new RegExp(value).test(comment)
+    }
+  })
+}
+
+export const filterComments = (
+  comments: DanDanComment[],
+  filters: DanmakuFilter[]
+) => {
+  return comments.filter((comment) => {
+    return !applyFilter(comment.m, filters)
+  })
 }

@@ -17,6 +17,9 @@ const common = {
     search: 'Search',
     searchResults: 'Search Results',
     time: 'Time',
+    test: 'Test',
+    regex: 'Regex',
+    regexShort: 'Regex',
   },
   error: {
     unknown: 'Something went wrong.',
@@ -146,8 +149,8 @@ const pages = {
     selectAnime: 'Multile matches found for {{name}}, please select',
   },
   stylePage: {
+    name: 'Danmaku Settings',
     filterLevel: 'Filter Level',
-    name: 'Danmaku Style',
     offset: 'Time Offset',
     opacity: 'Opacity',
     'safeZone.bottom': 'Bottom',
@@ -170,6 +173,24 @@ const pages = {
       speed:
         'How fast danmaku flies across the screen. "1" being the slowest, "5" being the fastest.',
     },
+    filtering: {
+      name: 'Filter Settings',
+      addFilterPattern: 'Add Filter Pattern',
+      enterFilterPattern: 'Enter filter pattern, wrap with "/" for regex',
+      testFilterPatterns: 'Test Filter Patterns',
+      enterTestText: 'Enter test text',
+      testResultExclude: 'This text will be filtered out',
+      testResultInclude: 'This text will not be filtered out',
+      patternList: 'Pattern List',
+      validation: {
+        patternEmpty: 'Pattern cannot be empty',
+        duplicate: 'Pattern already exists',
+        invalidRegex: 'Invalid regex',
+      },
+      tooltip: {
+        noFilter: 'Filter is empty, add some patterns to test',
+      },
+    },
   },
   tabs: {
     config: 'Config',
@@ -177,7 +198,7 @@ const pages = {
     mount: 'Mount',
     search: 'Search',
     selector: 'Selector',
-    style: 'Style',
+    style: 'Danmaku Settings',
   },
 }
 

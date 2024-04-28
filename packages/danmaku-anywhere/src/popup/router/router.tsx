@@ -10,6 +10,7 @@ import { MountPage } from '../pages/mount/MountPage'
 import { Options } from '../pages/options/Options'
 import { Permissions } from '../pages/options/pages/Permissions'
 import { SearchPage } from '../pages/search/SearchPage'
+import { FilterPage } from '../pages/styles/FilterPage'
 import { StylesPage } from '../pages/styles/StylesPage'
 
 export const router = createHashRouter([
@@ -31,7 +32,16 @@ export const router = createHashRouter([
       },
       {
         path: 'styles',
-        Component: StylesPage,
+        children: [
+          {
+            index: true,
+            Component: StylesPage,
+          },
+          {
+            path: 'filtering',
+            Component: FilterPage,
+          },
+        ],
       },
       {
         path: 'config',
