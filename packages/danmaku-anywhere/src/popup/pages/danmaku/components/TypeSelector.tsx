@@ -104,11 +104,11 @@ export const TypeSelector = () => {
               control={
                 <Checkbox
                   defaultChecked
-                  onChange={handleSelect(DanmakuType.Manual)}
+                  onChange={handleSelect(DanmakuType.Custom)}
                 />
               }
-              label={t(`danmaku.type.${DanmakuType[DanmakuType.Manual]}`)}
-              checked={selectedTypes.includes(DanmakuType.Manual)}
+              label={t(`danmaku.type.${DanmakuType[DanmakuType.Custom]}`)}
+              checked={selectedTypes.includes(DanmakuType.Custom)}
               sx={{
                 ml: 1,
               }}

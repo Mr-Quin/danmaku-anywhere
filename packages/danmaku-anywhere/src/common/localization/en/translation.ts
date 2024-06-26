@@ -71,6 +71,10 @@ const domain = {
     noComments: 'No comments',
     refresh: 'Refresh Danmaku',
     style: 'Style',
+    type: {
+      Custom: 'Custom',
+      DDP: 'DDP',
+    },
     unmount: 'Unmount',
   },
   integration: {

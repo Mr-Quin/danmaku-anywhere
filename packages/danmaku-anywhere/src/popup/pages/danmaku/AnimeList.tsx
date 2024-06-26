@@ -30,9 +30,13 @@ const partitionDanmaku = (
 ) => {
   return danmakuTypes
     .map((type) => {
+      // filter by type
       const items = data.filter((item) => item.meta.type === type)
+
+      // group by anime title
       const grouped = Object.groupBy(items, (item) => item.meta.animeTitle)
 
+      // map to type and count
       const titles = Object.keys(grouped).map((title) => ({
         title,
         count: grouped[title].length,
@@ -40,7 +44,6 @@ const partitionDanmaku = (
       }))
 
       return {
-        type,
         items: titles,
       }
     })

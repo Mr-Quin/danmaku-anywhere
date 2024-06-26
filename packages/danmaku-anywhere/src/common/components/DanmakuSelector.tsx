@@ -29,7 +29,7 @@ const isOptionEqualToValue = (option: DanmakuMeta, value: DanmakuMeta) => {
       }
     )
     .with(
-      [{ type: DanmakuType.Manual }, { type: DanmakuType.Manual }],
+      [{ type: DanmakuType.Custom }, { type: DanmakuType.Custom }],
       ([option, value]) => {
         return (
           option.animeTitle === value.animeTitle &&
