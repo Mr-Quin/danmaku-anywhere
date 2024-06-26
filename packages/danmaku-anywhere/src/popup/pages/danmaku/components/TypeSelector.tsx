@@ -77,28 +77,11 @@ export const TypeSelector = () => {
               control={
                 <Checkbox
                   defaultChecked
-                  onChange={handleSelectAll}
-                  indeterminate={
-                    selectedTypes.length > 0 &&
-                    selectedTypes.length < danmakuTypeList.length
-                  }
-                />
-              }
-              label={t(`danmaku.type.all`)}
-              checked={selectedTypes.length === danmakuTypeList.length}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  defaultChecked
                   onChange={handleSelect(DanmakuType.DDP)}
                 />
               }
               label={t(`danmaku.type.${DanmakuType[DanmakuType.DDP]}`)}
               checked={selectedTypes.includes(DanmakuType.DDP)}
-              sx={{
-                ml: 1,
-              }}
             />
             <FormControlLabel
               control={
@@ -109,9 +92,6 @@ export const TypeSelector = () => {
               }
               label={t(`danmaku.type.${DanmakuType[DanmakuType.Custom]}`)}
               checked={selectedTypes.includes(DanmakuType.Custom)}
-              sx={{
-                ml: 1,
-              }}
             />
           </FormGroup>
         </Box>

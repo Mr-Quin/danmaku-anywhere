@@ -117,6 +117,15 @@ const pages = {
     animeList: '剧集列表',
     noAnime: '没有可用的动漫',
     noResult: "没有找到标题为 '{{filter}}' 的动漫",
+    upload: {
+      confirm: '确认导入',
+      dialogTitle: '确定要导入这些弹幕吗？',
+      parsedEntries: '发现剧集：',
+      parseError: '{{count}}个文件格式不正确',
+      selectFile: '选择弹幕文件',
+      success: '导入成功',
+      upload: '导入弹幕',
+    },
   },
   mountPage: {
     addMountConfig: '添加装填配置以启用控制器',

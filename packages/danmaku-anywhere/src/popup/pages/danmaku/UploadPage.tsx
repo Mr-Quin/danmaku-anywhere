@@ -72,18 +72,19 @@ export const UploadPage = () => {
           (result): result is Exclude<typeof result, null> => result !== null
         )
 
-      const errored = res
+      const errorCount = res
         .map((result) => {
           if (result.success) return null
           return result.error
         })
         .filter(
           (result): result is Exclude<typeof result, null> => result !== null
-        )
+        ).length
 
       return {
+        successCount: succeeded.length,
         succeeded,
-        errored,
+        errorCount,
       } as const
     },
     onError: (e) => {
@@ -101,7 +102,7 @@ export const UploadPage = () => {
       return chromeRpcClient.danmakuCreateManual(data.succeeded)
     },
     onSuccess: () => {
-      toast.success(t('danmakuPage.uploadSuccess'))
+      toast.success(t('danmakuPage.upload.success'))
       setShowResult(false)
       queryClient.invalidateQueries({
         queryKey: useAllDanmakuQuerySuspense.queryKey(),
@@ -113,46 +114,54 @@ export const UploadPage = () => {
   })
 
   const successUploads = data?.succeeded
-  const errorUploads = data?.errored
+  const errorCount = data?.errorCount ?? 0
+  const successCount = data?.successCount ?? 0
 
   return (
     <TabLayout>
       <TabToolbar
-        title={t('danmakuPage.upload')}
+        title={t('danmakuPage.upload.upload')}
         leftElement={
           <IconButton edge="start" component={Link} to="..">
             <ChevronLeft />
           </IconButton>
         }
       />
-      <Box>
-        <Button onClick={() => handleParse()}>{t('danmaku.upload')}</Button>
+      <Box p={2}>
+        <Button onClick={() => handleParse()} variant="contained">
+          {t('danmakuPage.upload.selectFile')}
+        </Button>
       </Box>
+
       <Dialog open={showResult} onClose={() => setShowResult(false)}>
-        <DialogTitle>{t('danmakuPage.confirmUploadTitle')}</DialogTitle>
+        <DialogTitle>{t('danmakuPage.upload.dialogTitle')}</DialogTitle>
 
         <DialogContent>
-          <DialogContentText>
-            {t('danmakuPage.uploadResultSuccess')}
-          </DialogContentText>
-          {successUploads?.map((result, index) => {
-            return (
-              <DialogContentText key={index}>
-                {result.animeTitle} -{' '}
-                {result.episodeTitle ?? result.episodeNumber}
+          {successCount > 0 && (
+            <>
+              <DialogContentText>
+                {t('danmakuPage.upload.parsedEntries')}
               </DialogContentText>
-            )
-          })}
-          <DialogContentText>
-            {t('danmakuPage.uploadResultError')}
-          </DialogContentText>
-          {errorUploads?.map((result, index) => {
-            return (
-              <DialogContentText key={index}>
-                {result.message}
-              </DialogContentText>
-            )
-          })}
+              {successUploads?.map((result, index) => {
+                return (
+                  <DialogContentText key={index}>
+                    {result.animeTitle} -{' '}
+                    {result.episodeTitle ?? result.episodeNumber} (
+                    {result.comments.length})
+                  </DialogContentText>
+                )
+              })}
+            </>
+          )}
+          {errorCount > 0 && (
+            <DialogContentText
+              sx={{
+                color: 'warning.main',
+              }}
+            >
+              {t('danmakuPage.upload.parseError', { count: errorCount })}
+            </DialogContentText>
+          )}
         </DialogContent>
         <DialogActions>
           <Button
@@ -164,10 +173,12 @@ export const UploadPage = () => {
           </Button>
           <LoadingButton
             onClick={() => handleUpload()}
+            variant="contained"
             color="success"
             loading={isUploading}
+            disabled={!successCount}
           >
-            {t('danmakuPage.confirmUpdate')}
+            {t('danmakuPage.upload.confirm')}
           </LoadingButton>
         </DialogActions>
       </Dialog>
