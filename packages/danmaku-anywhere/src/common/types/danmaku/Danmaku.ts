@@ -7,7 +7,7 @@ import type { DanmakuFetchOptions } from '../DanmakuFetchOptions'
 import type { manualDanmakuCreateSchema } from './schema'
 
 export enum DanmakuType {
-  Manual,
+  Custom,
   DDP,
 }
 
@@ -31,7 +31,7 @@ export interface DDPDanmakuMeta extends BaseDanmakuMeta {
 }
 
 export interface ManualDanmakuMeta extends BaseDanmakuMeta {
-  type: DanmakuType.Manual
+  type: DanmakuType.Custom
   /**
    * Auto generated id for manual danmaku
    */

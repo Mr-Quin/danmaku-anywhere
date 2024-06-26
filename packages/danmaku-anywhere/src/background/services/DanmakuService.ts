@@ -103,7 +103,7 @@ export class DanmakuService {
       .with({ type: DanmakuType.DDP }, (data) => {
         return this.ddpTable.delete(data.id)
       })
-      .with({ type: DanmakuType.Manual }, (data) => {
+      .with({ type: DanmakuType.Custom }, (data) => {
         return this.manualTable.delete(data.id)
       })
       .otherwise(() => {
@@ -118,7 +118,7 @@ export class DanmakuService {
       const cache = {
         comments,
         meta: {
-          type: DanmakuType.Manual,
+          type: DanmakuType.Custom,
           episodeNumber,
           animeTitle,
           episodeTitle,
@@ -163,7 +163,7 @@ export class DanmakuService {
   async getAllLite(type?: DanmakuType) {
     const tables = match(type)
       .with(DanmakuType.DDP, () => [this.ddpTable])
-      .with(DanmakuType.Manual, () => [this.manualTable])
+      .with(DanmakuType.Custom, () => [this.manualTable])
       .otherwise(() => [this.ddpTable, this.manualTable])
 
     const data = await Promise.all(tables.map((type) => this._getAllLite(type)))
@@ -176,7 +176,7 @@ export class DanmakuService {
       .with({ type: DanmakuType.DDP }, (data) => {
         return this.ddpTable.get(data.id)
       })
-      .with({ type: DanmakuType.Manual }, (data) => {
+      .with({ type: DanmakuType.Custom }, (data) => {
         return this.manualTable.get(data.id)
       })
       .otherwise(() => {

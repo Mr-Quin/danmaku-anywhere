@@ -73,6 +73,10 @@ const domain = {
     noComments: '弹幕列表为空',
     refresh: '刷新弹幕',
     style: '弹幕样式',
+    type: {
+      Custom: '自定义',
+      DDP: '弹弹Play',
+    },
     unmount: '卸载弹幕',
   },
   integration: {

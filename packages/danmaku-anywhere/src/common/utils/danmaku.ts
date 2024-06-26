@@ -13,7 +13,7 @@ export const episodeIdToEpisodeNumber = (episodeId: number) => {
 }
 
 export const isManual = (meta: DanmakuMeta): meta is ManualDanmakuMeta => {
-  return meta.type === DanmakuType.Manual
+  return meta.type === DanmakuType.Custom
 }
 
 export const danmakuMetaToString = (meta: DanmakuMeta) => {
