@@ -137,6 +137,7 @@ export const CommentsTable = ({ comments, ...rest }: CommentListProps) => {
                     textOverflow: 'ellipsis',
                     flexGrow: 1,
                   }}
+                  title={comment.m}
                 >
                   {comment.m}
                 </TableCell>
