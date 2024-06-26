@@ -12,7 +12,7 @@ export const UploadDanmaku = () => {
       <ListItemIcon>
         <Upload />
       </ListItemIcon>
-      <ListItemText>{t('danmaku.upload')}</ListItemText>
+      <ListItemText>{t('danmakuPage.upload.upload')}</ListItemText>
     </MenuItem>
   )
 }
