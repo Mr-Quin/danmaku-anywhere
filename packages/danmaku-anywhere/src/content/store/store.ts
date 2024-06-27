@@ -1,4 +1,4 @@
-import type { DanDanComment } from '@danmaku-anywhere/dandanplay-api'
+import type { CachedComment } from '@danmaku-anywhere/danmaku-engine'
 import { create } from 'zustand'
 
 import type {
@@ -6,8 +6,8 @@ import type {
   PlaybackStatus,
 } from '../danmaku/integration/MediaObserver'
 
-import type { DanmakuMeta } from '@/common/db/db'
-import { danmakuMetaToString } from '@/common/utils/utils'
+import type { DanmakuMeta } from '@/common/types/danmaku/Danmaku'
+import { danmakuMetaToString } from '@/common/utils/danmaku'
 
 interface StoreState {
   /**
@@ -21,9 +21,9 @@ interface StoreState {
   /**
    * Danmaku to be displayed
    */
-  comments: DanDanComment[]
+  comments: CachedComment[]
   hasComments: boolean
-  setComments: (comments: DanDanComment[]) => void
+  setComments: (comments: CachedComment[]) => void
 
   /**
    * The current video playback status
@@ -49,7 +49,7 @@ interface StoreState {
    */
   manual: boolean
   toggleManualMode: (manual?: boolean) => void
-  mountManual: (comments: DanDanComment[], danmakuMeta: DanmakuMeta) => void
+  mountManual: (comments: CachedComment[], danmakuMeta: DanmakuMeta) => void
   unmountManual: () => void
 
   /**

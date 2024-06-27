@@ -60,21 +60,24 @@ const rpcServer = createRpcServer<BackgroundMethods>({
   danmakuGetAllLite: async () => {
     return danmakuService.getAllLite()
   },
-  danmakuGetByEpisodeId: async (episodeId) => {
-    const result = await danmakuService.getByEpisodeId(episodeId)
+  danmakuGetOne: async (data) => {
+    const result = await danmakuService.getOne(data)
     return result || null
   },
-  danmakuFetch: async (input) => {
-    const result = await danmakuService.fetch(
-      input.data,
-      input.params,
-      input.options
+  danmakuFetchDDP: async (data) => {
+    const result = await danmakuService.fetchDDP(
+      data.meta,
+      data.params,
+      data.options
     )
 
     return result
   },
-  danmakuDelete: async (episodeId) => {
-    return danmakuService.delete(episodeId)
+  danmakuCreateManual: async (data) => {
+    return danmakuService.createManual(data)
+  },
+  danmakuDelete: async (data) => {
+    return danmakuService.delete(data)
   },
   titleMappingSet: async (input) => {
     return titleMappingService.add(input)

@@ -74,6 +74,10 @@ const domain = {
     noComments: 'No comments',
     refresh: 'Refresh Danmaku',
     style: 'Style',
+    type: {
+      Custom: 'Custom',
+      DDP: 'DDP',
+    },
     unmount: 'Unmount',
   },
   integration: {
@@ -115,6 +119,16 @@ const pages = {
     animeList: 'Anime List',
     noAnime: 'No anime available',
     noResult: "No anime found with title '{{filter}}'",
+    upload: {
+      confirm: 'Confirm Import',
+      dialogTitle: 'Import Danmaku',
+      parsedEntries: 'Episodes found: ',
+      parseError_one: 'Failed to parse {{count}} Danmaku file',
+      parseError_other: 'Failed to parse {{count}} Danmaku files',
+      selectFile: 'Select Danmaku files',
+      success: 'Import successful',
+      upload: 'Import Danmaku',
+    },
   },
   mountPage: {
     addMountConfig: 'Add a mount configuration to enable the controller',

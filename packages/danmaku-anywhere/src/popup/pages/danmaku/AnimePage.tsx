@@ -3,9 +3,11 @@ import { useTranslation } from 'react-i18next'
 
 import { DrilldownMenu } from '../../component/DrilldownMenu'
 
-import { DanmakuList } from './AnimeList'
+import { AnimeList } from './AnimeList'
 import { AnimeFilter } from './components/AnimeFilter'
-import { ExportButton } from './components/ExportButton'
+import { ExportDanmaku } from './components/ExportDanmaku'
+import { TypeSelector } from './components/TypeSelector'
+import { UploadDanmaku } from './components/UploadDanmaku'
 
 import { TabToolbar } from '@/popup/component/TabToolbar'
 import { TabLayout } from '@/popup/layout/TabLayout'
@@ -18,11 +20,13 @@ export const AnimePage = () => {
     <TabLayout ref={setRef}>
       <TabToolbar title={t('danmakuPage.animeList')}>
         <AnimeFilter />
+        <TypeSelector />
         <DrilldownMenu ButtonProps={{ edge: 'end' }}>
-          <ExportButton />
+          <UploadDanmaku />
+          <ExportDanmaku />
         </DrilldownMenu>
       </TabToolbar>
-      <DanmakuList scrollElement={ref as HTMLDivElement} />
+      <AnimeList scrollElement={ref as HTMLDivElement} />
     </TabLayout>
   )
 }

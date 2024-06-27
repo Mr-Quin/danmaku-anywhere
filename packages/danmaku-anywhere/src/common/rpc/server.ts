@@ -29,7 +29,7 @@ export const createRpcServer = <TRecords extends RPCRecord>(
         if (!handler) {
           return {
             success: false,
-            error: 'Unsupported method',
+            error: `Unknown method: ${method}`,
           }
         }
 

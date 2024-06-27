@@ -15,13 +15,13 @@ export const useFetchDanmaku = () => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
-    mutationFn: chromeRpcClient.danmakuFetch,
+    mutationFn: chromeRpcClient.danmakuFetchDDP,
     onSuccess: (_, v) => {
       queryClient.invalidateQueries({
-        queryKey: useAllDanmakuQuerySuspense.queryKey,
+        queryKey: useAllDanmakuQuerySuspense.queryKey(),
       })
       queryClient.invalidateQueries({
-        queryKey: useDanmakuQuerySuspense.queryKey(v.data.episodeId),
+        queryKey: useDanmakuQuerySuspense.queryKey(v.meta),
       })
     },
   })

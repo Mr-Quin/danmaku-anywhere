@@ -1,7 +1,6 @@
-import type { DanDanComment } from '@danmaku-anywhere/dandanplay-api'
 import Danmaku from 'danmaku'
 
-import type { DanmakuStyle } from './parser'
+import type { CachedComment, DanmakuStyle } from './parser'
 import {
   filterComments,
   sampleComments,
@@ -49,14 +48,14 @@ export class DanmakuManager {
   instance?: Danmaku
   container?: HTMLElement
   media?: HTMLMediaElement
-  comments: DanDanComment[] = []
+  comments: CachedComment[] = []
   config: DanmakuOptions = configDefaults
   created = false
 
   create(
     container: HTMLElement,
     media: HTMLMediaElement,
-    comments: DanDanComment[],
+    comments: CachedComment[],
     config?: Partial<DanmakuOptions>
   ): void {
     if (this.created) this.destroy()

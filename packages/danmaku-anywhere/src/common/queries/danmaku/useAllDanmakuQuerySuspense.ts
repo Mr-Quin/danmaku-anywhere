@@ -16,4 +16,4 @@ export const useAllDanmakuQuerySuspense = () => {
   return query
 }
 
-useAllDanmakuQuerySuspense.queryKey = ['danmaku ', 'getAllLite']
+useAllDanmakuQuerySuspense.queryKey = () => ['danmaku ', 'getAllLite']
