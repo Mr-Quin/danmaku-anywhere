@@ -69,6 +69,12 @@ export const FloatingButton = forwardRef<
 
   const mergedFabRefs = useMergeRefs(fabRef, ref)
 
+  const dialColor = !enabled
+    ? 'text.disabled'
+    : hasComments
+      ? 'success.main'
+      : 'primary.main'
+
   return (
     <Box>
       <Fade in={isLoading || showFab || isOpen}>
@@ -81,8 +87,11 @@ export const FloatingButton = forwardRef<
               children: <LoadingRing isLoading />,
               onContextMenu: handleContextMenu,
               onClick: handleClick,
+              onDoubleClick: () => toggleEnabled(),
               ref: mergedFabRefs,
-              color: hasComments ? 'success' : 'primary',
+              sx: {
+                bgcolor: dialColor,
+              },
             }}
           >
             <SpeedDialAction

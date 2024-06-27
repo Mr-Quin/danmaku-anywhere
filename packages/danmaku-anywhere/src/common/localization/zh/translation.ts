@@ -66,8 +66,8 @@ const domain = {
     commentContent: '弹幕内容',
     commentCounted_one: '{{count}}条弹幕',
     commentCounted_other: '{{count}}条弹幕',
-    disable: '关闭弹幕',
-    enable: '开启弹幕',
+    disable: '禁用弹幕',
+    enable: '启用弹幕',
     error: {
       containerNotFound: '未找到弹幕容器',
       videoNotFound: '未找到视频元素',
