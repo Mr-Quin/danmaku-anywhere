@@ -1,3 +1,4 @@
+import type { DanDanComment } from '@danmaku-anywhere/dandanplay-api'
 import { DanDanCommentMode } from '@danmaku-anywhere/dandanplay-api'
 
 import type { DanmakuFilter } from './DanmakuManager'
@@ -157,7 +158,7 @@ export const applyFilter = (comment: string, filters: DanmakuFilter[]) => {
 }
 
 export const filterComments = (
-  comments: DanDanComment[],
+  comments: CachedComment[],
   filters: DanmakuFilter[]
 ) => {
   return comments.filter((comment) => {
