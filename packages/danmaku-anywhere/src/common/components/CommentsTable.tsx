@@ -1,4 +1,4 @@
-import type { DanDanComment } from '@danmaku-anywhere/dandanplay-api'
+import type { CachedComment } from '@danmaku-anywhere/danmaku-engine'
 import { parseDanDanCommentParams } from '@danmaku-anywhere/danmaku-engine'
 import type { BoxProps } from '@mui/material'
 import {
@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next'
 import { match } from 'ts-pattern'
 
 interface CommentListProps extends BoxProps {
-  comments: DanDanComment[]
+  comments: CachedComment[]
 }
 
 const formatTime = (seconds: number) => {
@@ -137,6 +137,7 @@ export const CommentsTable = ({ comments, ...rest }: CommentListProps) => {
                     textOverflow: 'ellipsis',
                     flexGrow: 1,
                   }}
+                  title={comment.m}
                 >
                   {comment.m}
                 </TableCell>

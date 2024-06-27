@@ -1,6 +1,5 @@
 import type { PopoverVirtualElement } from '@mui/material'
 
-import type { DanmakuMeta } from '../db/db'
 import type { NotPromise } from '../types/types'
 
 export const toArray = <T>(value: T | T[]): T[] => {
@@ -66,14 +65,6 @@ export const isServiceWorker = () => {
   return chrome.runtime.getBackgroundPage === undefined
 }
 
-export const getEpisodeId = (animeId: number, episodeNumber: number) => {
-  return animeId * 10000 + episodeNumber
-}
-
-export const episodeIdToEpisodeNumber = (episodeId: number) => {
-  return episodeId % 10000
-}
-
 export const sleep = async (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
@@ -124,11 +115,4 @@ export const createVirtualElement = (
     }),
     nodeType: Node.ELEMENT_NODE,
   }
-}
-
-export const danmakuMetaToString = (meta: DanmakuMeta) => {
-  if (meta.episodeTitle) {
-    return `${meta.animeTitle} - ${meta.episodeTitle}`
-  }
-  return meta.animeTitle
 }

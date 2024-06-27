@@ -6,12 +6,14 @@ import {
 } from '@mui/material'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { match } from 'ts-pattern'
+
+import { DanmakuType } from '../types/danmaku/Danmaku'
+import type { DanmakuMeta } from '../types/danmaku/Danmaku'
 
 import { EpisodeOption } from './EpisodeOption'
 
-import type { DanmakuMeta } from '@/common/db/db'
 import { useAllDanmakuQuerySuspense } from '@/common/queries/danmaku/useAllDanmakuQuerySuspense'
-import { episodeIdToEpisodeNumber } from '@/common/utils/utils'
 
 const filterOptions = createFilterOptions({
   stringify: (option: DanmakuMeta) =>
@@ -19,7 +21,23 @@ const filterOptions = createFilterOptions({
 })
 
 const isOptionEqualToValue = (option: DanmakuMeta, value: DanmakuMeta) => {
-  return option.episodeId === value.episodeId
+  return match([option, value])
+    .with(
+      [{ type: DanmakuType.DDP }, { type: DanmakuType.DDP }],
+      ([option, value]) => {
+        return option.episodeId === value.episodeId
+      }
+    )
+    .with(
+      [{ type: DanmakuType.Custom }, { type: DanmakuType.Custom }],
+      ([option, value]) => {
+        return (
+          option.animeTitle === value.animeTitle &&
+          option.episodeTitle === value.episodeTitle
+        )
+      }
+    )
+    .otherwise(() => false)
 }
 
 interface DanmakuSelectorProps {
@@ -48,16 +66,17 @@ export const DanmakuSelector = ({ value, onChange }: DanmakuSelectorProps) => {
         return (
           <EpisodeOption
             {...props}
-            key={option.episodeId}
-            option={options.find((o) => o.meta.episodeId === option.episodeId)!}
+            key={
+              option.type === DanmakuType.DDP
+                ? option.episodeId
+                : `${option.animeTitle}-${option.episodeTitle}`
+            }
+            option={options.find((o) => isOptionEqualToValue(o.meta, option))!}
             isLoading={isFetching}
           />
         )
       }}
-      getOptionLabel={(option) =>
-        option.episodeTitle ??
-        `Episode ${episodeIdToEpisodeNumber(option.episodeId)}`
-      }
+      getOptionLabel={(option) => option.episodeTitle ?? option.animeTitle}
       groupBy={(option) => option.animeTitle}
       renderInput={(params) => {
         return (

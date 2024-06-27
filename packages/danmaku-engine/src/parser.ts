@@ -1,4 +1,3 @@
-import type { DanDanComment } from '@danmaku-anywhere/dandanplay-api'
 import { DanDanCommentMode } from '@danmaku-anywhere/dandanplay-api'
 
 import type { DanmakuFilter } from './DanmakuManager'
@@ -22,6 +21,24 @@ export interface Comment {
    * When it exist, `text` and `style` will be ignored.
    */
   render?(): HTMLElement | HTMLCanvasElement
+}
+
+export interface CachedComment {
+  /**
+   * Comment id
+   * Undefined for imported comments
+   */
+  cid?: number
+  /**
+   * Comma separated string in format of `time,mode,color,uid`
+   * Uid may be a string
+   * Uid may not be provided
+   */
+  p: string
+  /**
+   * Comment text
+   */
+  m: string
 }
 
 export interface DanmakuOption {
@@ -48,13 +65,21 @@ export interface DanmakuOption {
   speed?: number
 }
 
+export const decodeColor = (color: number) => {
+  return `#${`000000${color.toString(16)}`.slice(-6)}`
+}
+
+export const encodeColor = (hexColor: string) => {
+  return parseInt(hexColor.replace('#', '0x'))
+}
+
 export const parseDanDanCommentParams = (p: string) => {
-  const [time, mode, color, uid] = p.split(',')
+  const [time, mode, color, uid = ''] = p.split(',')
 
   return {
     time: parseFloat(time),
     mode: DanDanCommentMode[parseInt(mode)],
-    color: `#${`000000${parseInt(color).toString(16)}`.slice(-6)}`, // convert to hex
+    color: decodeColor(parseInt(color)),
     uid, // uid may include string
   }
 }
@@ -67,7 +92,7 @@ export interface DanmakuStyle {
 
 // transform danmaku comments to a format understood by danmaku engine
 export const transformDanDanComments = (
-  comments: DanDanComment[],
+  comments: CachedComment[],
   style: DanmakuStyle,
   offset: number
 ) => {
@@ -96,7 +121,7 @@ export const transformDanDanComments = (
 
 // ratio is a number between 0 and 1 where 0 means we keep 0% of the comments
 // and 1 means we keep 100% of the comments
-export function* sampleComments(comments: DanDanComment[], ratio: number) {
+export function* sampleComments(comments: CachedComment[], ratio: number) {
   if (ratio < 0 || ratio > 1) throw new Error('ratio must be between 0 and 1')
 
   const length = comments.length

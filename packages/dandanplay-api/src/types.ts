@@ -47,8 +47,18 @@ export enum DanDanCommentMode {
 }
 
 export interface DanDanComment {
+  /**
+   * Comment id
+   */
   cid: number
+  /**
+   * Comma separated string in format of `time,mode,color,uid`
+   * Uid may be a string
+   */
   p: string
+  /**
+   * Comment text
+   */
   m: string
 }
 

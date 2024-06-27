@@ -1,17 +1,20 @@
 import type {
   DanDanAnime,
   DanDanAnimeSearchAPIParams,
-  DanDanCommentAPIParams,
 } from '@danmaku-anywhere/dandanplay-api'
 
+import type { RPCDef } from '../rpc'
+
 import type {
+  DDPDanmakuCache,
   DanmakuCache,
   DanmakuCacheLite,
-  DanmakuMeta,
+  DanmakuDeleteDto,
+  DanmakuFetchDDPDto,
+  DanmakuGetOneDto,
+  ManualDanmakuCreateDto,
   TitleMapping,
-} from '../../db/db'
-import type { DanmakuFetchOptions } from '../../types/DanmakuFetchOptions'
-import type { RPCDef } from '../rpc'
+} from '@/common/types/danmaku/Danmaku'
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type IconMethods = {
@@ -27,16 +30,10 @@ type AnimeMethods = {
 type DanmakuMethods = {
   danmakuGetAll: RPCDef<void, DanmakuCache[]>
   danmakuGetAllLite: RPCDef<void, DanmakuCacheLite[]>
-  danmakuGetByEpisodeId: RPCDef<number, DanmakuCache | null>
-  danmakuFetch: RPCDef<
-    {
-      data: DanmakuMeta
-      params?: Partial<DanDanCommentAPIParams>
-      options?: DanmakuFetchOptions
-    },
-    DanmakuCache
-  >
-  danmakuDelete: RPCDef<number, void>
+  danmakuGetOne: RPCDef<DanmakuGetOneDto, DanmakuCache | null>
+  danmakuFetchDDP: RPCDef<DanmakuFetchDDPDto, DDPDanmakuCache>
+  danmakuCreateManual: RPCDef<ManualDanmakuCreateDto, void>
+  danmakuDelete: RPCDef<DanmakuDeleteDto, void>
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

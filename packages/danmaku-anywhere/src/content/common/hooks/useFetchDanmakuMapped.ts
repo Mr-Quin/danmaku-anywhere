@@ -2,9 +2,12 @@ import { useMutation } from '@tanstack/react-query'
 
 import { useStore } from '../../store/store'
 
-import type { DanmakuMeta, TitleMapping } from '@/common/db/db'
 import { useFetchDanmaku } from '@/common/queries/danmaku/useFetchDanmaku'
 import { chromeRpcClient } from '@/common/rpc/client'
+import {
+  type DDPDanmakuMeta,
+  type TitleMapping,
+} from '@/common/types/danmaku/Danmaku'
 import type { DanmakuFetchOptions } from '@/common/types/DanmakuFetchOptions'
 import { tryCatch } from '@/common/utils/utils'
 
@@ -18,12 +21,12 @@ export const useFetchDanmakuMapped = () => {
     titleMapping,
     options,
   }: {
-    danmakuMeta: DanmakuMeta
+    danmakuMeta: DDPDanmakuMeta
     titleMapping?: TitleMapping
     options?: DanmakuFetchOptions
   }) => {
     const res = await mutateAsync({
-      data: danmakuMeta,
+      meta: danmakuMeta,
       options: {
         forceUpdate: false,
         ...options,

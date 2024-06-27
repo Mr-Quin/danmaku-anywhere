@@ -7,6 +7,8 @@ import { chromeRpcClient } from '../../rpc/client'
 import { useAllDanmakuQuerySuspense } from './useAllDanmakuQuerySuspense'
 import { useDanmakuQuerySuspense } from './useDanmakuQuerySuspense'
 
+import type { DanmakuMeta } from '@/common/types/danmaku/Danmaku'
+
 export const useDeleteDanmaku = () => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
@@ -14,8 +16,11 @@ export const useDeleteDanmaku = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (id: number) => {
-      await chromeRpcClient.danmakuDelete(id)
+    mutationFn: async (meta: DanmakuMeta) => {
+      await chromeRpcClient.danmakuDelete({
+        type: meta.type,
+        id: meta.episodeId,
+      })
     },
     onError: (e) => {
       toast.error(
@@ -27,7 +32,7 @@ export const useDeleteDanmaku = () => {
     onSuccess: (_, id) => {
       toast.success(t('danmaku.alert.deleted'))
       queryClient.invalidateQueries({
-        queryKey: useAllDanmakuQuerySuspense.queryKey,
+        queryKey: useAllDanmakuQuerySuspense.queryKey(),
       })
       queryClient.invalidateQueries({
         queryKey: useDanmakuQuerySuspense.queryKey(id),

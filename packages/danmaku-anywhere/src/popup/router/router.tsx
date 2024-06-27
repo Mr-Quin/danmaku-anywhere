@@ -5,6 +5,7 @@ import { ConfigPage } from '../pages/config/ConfigPage'
 import { AnimePage } from '../pages/danmaku/AnimePage'
 import { DanmakuPage } from '../pages/danmaku/DanmakuPage'
 import { EpisodePage } from '../pages/danmaku/EpisodePage'
+import { UploadPage } from '../pages/danmaku/UploadPage'
 import { Home } from '../pages/home/Home'
 import { MountPage } from '../pages/mount/MountPage'
 import { Options } from '../pages/options/Options'
@@ -65,14 +66,18 @@ export const router = createHashRouter([
             Component: AnimePage,
           },
           {
-            path: ':animeId',
+            path: 'anime',
             children: [
               { index: true, Component: EpisodePage },
               {
-                path: ':episodeId',
+                path: 'comment',
                 Component: DanmakuPage,
               },
             ],
+          },
+          {
+            path: 'upload',
+            Component: UploadPage,
           },
         ],
       },

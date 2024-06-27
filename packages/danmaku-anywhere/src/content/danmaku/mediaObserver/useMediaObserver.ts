@@ -13,7 +13,9 @@ import { useToast } from '@/common/components/toast/toastStore'
 import { useAnimeSearchSuspense } from '@/common/queries/anime/useAnimeSearchSuspense'
 import { chromeRpcClient } from '@/common/rpc/client'
 import { Logger } from '@/common/services/Logger'
-import { getEpisodeId, tryCatch } from '@/common/utils/utils'
+import { DanmakuType } from '@/common/types/danmaku/Danmaku'
+import { getEpisodeId } from '@/common/utils/danmaku'
+import { tryCatch } from '@/common/utils/utils'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
 
 export const useMediaObserver = () => {
@@ -102,7 +104,8 @@ export const useMediaObserver = () => {
               animeId: mapping.animeId,
               animeTitle: mapping.title,
               episodeId: getEpisodeId(mapping.animeId, state.episode),
-            }
+              type: DanmakuType.DDP,
+            } as const
           }
 
           // if no mapping, search for anime to get the animeId
@@ -166,7 +169,8 @@ export const useMediaObserver = () => {
             animeTitle,
             episodeId,
             episodeTitle,
-          }
+            type: DanmakuType.DDP,
+          } as const
         }
 
         const danmakuMeta = await getDanmakuMeta()
@@ -177,8 +181,8 @@ export const useMediaObserver = () => {
           queryClient.fetchQuery({
             queryKey: ['danmaku', 'fetch', danmakuMeta],
             queryFn: () =>
-              chromeRpcClient.danmakuFetch({
-                data: danmakuMeta,
+              chromeRpcClient.danmakuFetchDDP({
+                meta: danmakuMeta,
                 options: {
                   forceUpdate: false,
                 },
