@@ -10,7 +10,7 @@ import {
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { DanmakuType, danmakuTypeList } from '@/common/types/danmaku/Danmaku'
+import { DanmakuType } from '@/common/types/danmaku/Danmaku'
 import { useStore } from '@/popup/store'
 
 export const TypeSelector = () => {
@@ -35,14 +35,6 @@ export const TypeSelector = () => {
         setSelectedType(selectedTypes.filter((item) => item !== type))
       }
     }
-
-  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
-      setSelectedType(danmakuTypeList)
-    } else {
-      setSelectedType([])
-    }
-  }
 
   return (
     <>
