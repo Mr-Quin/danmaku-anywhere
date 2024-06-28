@@ -8,6 +8,7 @@ import { RootRouter } from './router/RootRouter'
 
 import { Center } from '@/common/components/Center'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
+import { Toast } from '@/common/components/toast/Toast'
 import { db } from '@/common/db/db'
 import { Logger } from '@/common/services/Logger'
 
@@ -30,6 +31,12 @@ export const App = () => {
       >
         <Suspense fallback={<FullPageSpinner />}>
           <LoadInitialData>
+            <Toast
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'center',
+              }}
+            />
             <RootRouter />
           </LoadInitialData>
         </Suspense>

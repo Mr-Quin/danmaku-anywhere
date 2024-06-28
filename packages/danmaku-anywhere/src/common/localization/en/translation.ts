@@ -1,6 +1,7 @@
 const common = {
   common: {
     add: 'Add',
+    apiEndpoint: 'API Endpoint',
     apply: 'Apply',
     cancel: 'Cancel',
     confirmDeleteMessage: 'Are you sure you want to delete "{{name}}"?',
@@ -20,6 +21,8 @@ const common = {
     test: 'Test',
     regex: 'Regex',
     regexShort: 'Regex',
+    success: 'Success',
+    failed: 'Failed',
   },
   error: {
     unknown: 'Something went wrong.',
@@ -149,6 +152,10 @@ const pages = {
   optionsPage: {
     language: 'Language',
     name: 'Options',
+    pages: {
+      danmakuSource: 'Danmaku Source',
+      permissions: 'Permissions',
+    },
   },
   searchPage: {
     episode: 'Episode',

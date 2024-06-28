@@ -6,16 +6,45 @@ import type {
   DanDanCommentAPIResult,
 } from './types'
 
-const API_ROOT = 'https://api.dandanplay.net'
+export const API_ROOT = 'https://api.dandanplay.net'
+
+const store = {
+  baseUrl: API_ROOT,
+}
+
+export const configure = (options: { baseUrl: string }) => {
+  store.baseUrl = options.baseUrl
+}
+
+const createUrl = ({
+  path,
+  params,
+  baseUrl: baseUrlProp,
+}: {
+  path: string
+  params?: Record<string, string>
+  baseUrl?: string
+}) => {
+  const baseUrl = baseUrlProp || store.baseUrl
+
+  if (!params) {
+    return `${baseUrl}${path}`
+  }
+
+  return `${baseUrl}${path}?${new URLSearchParams(params)}`
+}
 
 export const searchAnime = async ({
   anime,
   episode = '',
 }: DanDanAnimeSearchAPIParams): Promise<DanDanAnimeSearchResult> => {
-  const url = `${API_ROOT}/api/v2/search/episodes?${new URLSearchParams({
-    anime,
-    episode,
-  })}`
+  const url = createUrl({
+    path: '/api/v2/search/episodes',
+    params: {
+      anime,
+      episode,
+    },
+  })
 
   const res = await fetch(url)
 
@@ -38,9 +67,10 @@ export const fetchComments = async (
     chConvert: params.chConvert?.toString() ?? '0',
   }
 
-  const url = `${API_ROOT}/api/v2/comment/${episodeId.toString()}?${new URLSearchParams(
-    convertedParams
-  )}`
+  const url = createUrl({
+    path: `/api/v2/comment/${episodeId.toString()}`,
+    params: convertedParams,
+  })
 
   const res = await fetch(url)
 
@@ -50,7 +80,11 @@ export const fetchComments = async (
 }
 
 export const getAnime = async (animeId: number) => {
-  const res = await fetch(`${API_ROOT}/api/v2/bangumi/${animeId}`)
+  const url = createUrl({
+    path: `/api/v2/bangumi/${animeId}`,
+  })
+
+  const res = await fetch(url)
 
   const json = (await res.json()) as DanDanBangumiAnimeResult
 

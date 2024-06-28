@@ -3,6 +3,7 @@ import type enTranslation from '../en/translation'
 const common = {
   common: {
     add: '添加',
+    apiEndpoint: 'API 接口',
     apply: '应用',
     cancel: '取消',
     confirmDeleteMessage: '确定要删除 "{{name}}" 吗？',
@@ -22,6 +23,8 @@ const common = {
     test: '测试',
     regex: '正则表达式',
     regexShort: '正则',
+    success: '成功',
+    failed: '失败',
   },
   error: {
     unknown: '出了一些问题。',
@@ -147,6 +150,10 @@ const pages = {
   optionsPage: {
     language: '语言',
     name: '设置',
+    pages: {
+      danmakuSource: '弹幕来源',
+      permissions: '权限设置',
+    },
   },
   searchPage: {
     episode: '集数',

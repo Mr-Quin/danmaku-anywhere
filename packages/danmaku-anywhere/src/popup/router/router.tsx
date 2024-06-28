@@ -9,6 +9,7 @@ import { UploadPage } from '../pages/danmaku/UploadPage'
 import { Home } from '../pages/home/Home'
 import { MountPage } from '../pages/mount/MountPage'
 import { Options } from '../pages/options/Options'
+import { DanmakuSource } from '../pages/options/pages/DanmakuSource'
 import { Permissions } from '../pages/options/pages/Permissions'
 import { SearchPage } from '../pages/search/SearchPage'
 import { FilterPage } from '../pages/styles/FilterPage'
@@ -90,6 +91,10 @@ export const router = createHashRouter([
       {
         path: 'permissions',
         Component: Permissions,
+      },
+      {
+        path: 'danmaku-source',
+        Component: DanmakuSource,
       },
     ],
   },

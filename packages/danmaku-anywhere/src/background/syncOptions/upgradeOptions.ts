@@ -20,6 +20,18 @@ export const extensionOptionsService = new SyncOptionsService(
       }
     },
   })
+  .version(3, {
+    upgrade: (data: any) => {
+      return {
+        ...data,
+        danmakuSources: {
+          dandanplay: {
+            baseUrl: 'https://api.dandanplay.net', // add danmakuSource with baseUrl field
+          },
+        },
+      }
+    },
+  })
 
 const danmakuOptionsService = new SyncOptionsService(
   'danmakuOptions',

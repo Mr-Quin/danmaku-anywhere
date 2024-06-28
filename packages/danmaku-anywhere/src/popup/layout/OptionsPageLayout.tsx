@@ -10,7 +10,7 @@ type OptionsPageProps = PropsWithChildren<{
 
 export const OptionsPageLayout = ({
   children,
-  direction = 'left',
+  direction = 'up',
 }: OptionsPageProps) => {
   return (
     <Slide direction={direction} in mountOnEnter unmountOnExit>

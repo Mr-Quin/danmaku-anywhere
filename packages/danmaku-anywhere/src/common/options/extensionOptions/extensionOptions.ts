@@ -14,6 +14,12 @@ export interface ExtensionOptions {
    * Language of the extension
    */
   readonly lang: Language
+
+  readonly danmakuSources: {
+    readonly dandanplay: {
+      readonly baseUrl: string
+    }
+  }
 }
 
 export type ExtensionOptionsOptions = Options<ExtensionOptions>
@@ -21,4 +27,9 @@ export type ExtensionOptionsOptions = Options<ExtensionOptions>
 export const defaultExtensionOptions: ExtensionOptions = {
   enabled: true,
   lang: Language.zh,
+  danmakuSources: {
+    dandanplay: {
+      baseUrl: 'https://api.dandanplay.net',
+    },
+  },
 }

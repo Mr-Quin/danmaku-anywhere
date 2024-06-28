@@ -6,7 +6,6 @@ import { Link, Outlet, useLocation, useMatches } from 'react-router-dom'
 import { AppToolBar } from './AppToolBar'
 
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
-import { Toast } from '@/common/components/toast/Toast'
 import { TabLayout } from '@/popup/layout/TabLayout'
 
 export const Home = () => {
@@ -72,12 +71,6 @@ export const Home = () => {
           <Outlet />
         </Suspense>
       </Box>
-      <Toast
-        anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'center',
-        }}
-      />
     </Stack>
   )
 }
