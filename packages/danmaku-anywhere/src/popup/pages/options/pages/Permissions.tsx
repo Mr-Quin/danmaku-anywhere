@@ -7,11 +7,14 @@ import {
   Typography,
 } from '@mui/material'
 import { useSuspenseQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 
 export const Permissions = () => {
+  const { t } = useTranslation()
+
   const { data } = useSuspenseQuery({
     queryKey: ['permissions'],
     queryFn: async () => {
@@ -21,7 +24,7 @@ export const Permissions = () => {
 
   return (
     <OptionsPageLayout>
-      <OptionsPageToolBar title="Permissions" />
+      <OptionsPageToolBar title={t('optionsPage.pages.permissions')} />
       <Box p={2}>
         <Typography>
           Permissions can be managed in the browser settings. This page only

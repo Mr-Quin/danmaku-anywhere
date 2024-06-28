@@ -57,11 +57,15 @@ export const Options = () => {
         <OptionsPageToolBar title={t('optionsPage.name')} />
         <Version />
         <List disablePadding>
+          <LanguageListItem />
           <OptionsListItem
-            title="View Permissions"
+            title={t('optionsPage.pages.danmakuSource')}
+            onClick={() => navigate('danmaku-source')}
+          />
+          <OptionsListItem
+            title={t('optionsPage.pages.permissions')}
             onClick={() => navigate('permissions')}
           />
-          <LanguageListItem />
           {false && (
             <ListItem
               disablePadding
