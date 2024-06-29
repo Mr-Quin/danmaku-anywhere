@@ -12,7 +12,11 @@ export const manifest = defineManifest({
     default_title: 'Danmaku anywhere',
   },
   options_page: 'pages/options.html',
-  background: { service_worker: 'src/background/index.ts', type: 'module' },
+  background: {
+    service_worker: 'src/background/index.ts',
+    scripts: ['src/background/index.ts'],
+    type: 'module',
+  },
   permissions: [
     'storage',
     'unlimitedStorage',
@@ -29,4 +33,7 @@ export const manifest = defineManifest({
     512: 'normal_512.png',
   },
   default_locale: 'en',
+  ...{
+    browser_specific_settings: { gecko: { id: 'danmakuanywhere@quin.fish' } },
+  },
 })

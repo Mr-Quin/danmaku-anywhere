@@ -61,8 +61,11 @@ export const invariant = (condition: boolean, message: string) => {
 }
 
 export const isServiceWorker = () => {
-  // getBackgroundPage is not available in service worker
-  return chrome.runtime.getBackgroundPage === undefined
+  // getBackgroundPage is not available in service worker, also not available in Firefox
+  if (import.meta.env.DEV) {
+    return chrome.runtime.getBackgroundPage === undefined
+  }
+  return true
 }
 
 export const sleep = async (ms: number) => {

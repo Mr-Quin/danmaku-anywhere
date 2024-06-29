@@ -31,7 +31,8 @@
   },
   "pnpm": {
     "patchedDependencies": {
-      "@crxjs/vite-plugin@2.0.0-beta.23": "patches/@crxjs__vite-plugin@2.0.0-beta.23.patch"
+      "@crxjs/vite-plugin@2.0.0-beta.23": "patches/@crxjs__vite-plugin@2.0.0-beta.23.patch",
+      "danmaku@2.0.6": "patches/danmaku@2.0.6.patch"
     }
   },
   "packageManager": "pnpm@9.1.2+sha1.907f57a52517de34399d66401bf220a549e47b57"
