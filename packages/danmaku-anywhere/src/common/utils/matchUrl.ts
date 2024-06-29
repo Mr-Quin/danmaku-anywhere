@@ -1,4 +1,6 @@
 import { Logger } from '@/common/services/Logger'
+// TODO: URLPattern is not available in Firefox yet
+import 'urlpattern-polyfill'
 
 /**
  * Tests url against Match Patterns https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns

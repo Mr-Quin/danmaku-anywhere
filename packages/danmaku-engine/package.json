@@ -16,7 +16,7 @@
     "dev": "tsc -w"
   },
   "peerDependencies": {
-    "danmaku": "^2.0.6"
+    "danmaku": "2.0.6"
   },
   "dependencies": {
     "@danmaku-anywhere/dandanplay-api": "workspace:*",

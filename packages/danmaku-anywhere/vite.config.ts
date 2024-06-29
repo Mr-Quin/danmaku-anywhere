@@ -4,10 +4,12 @@ import { defineConfig } from 'vite'
 
 import { manifest } from './manifest'
 
+const browser = process.env.TARGET_BROWSER ?? 'chrome'
+
 // eslint-disable-next-line import/no-unused-modules
 export default defineConfig({
   // @ts-ignore
-  plugins: [react({}), crx({ manifest })],
+  plugins: [react({}), crx({ manifest, browser: browser })],
   resolve: {
     alias: {
       '@': '/src',

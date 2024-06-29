@@ -9,6 +9,8 @@ import {
   useState,
 } from 'react'
 
+import { tryCatchSync } from '../utils/utils'
+
 const defaultThemeOptions: ThemeOptions = {
   palette: {
     mode: 'dark',
@@ -32,7 +34,11 @@ interface ThemeProps extends PropsWithChildren {
 }
 
 export const Theme = ({ children, options = {} }: ThemeProps) => {
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
+  // TODO: for some reason, useMediaQuery crashes in Firefox so we wrap it in a try-catch
+  // probably for the same reason as https://github.com/facebook/react/issues/16606
+  const [prefersDarkMode] = tryCatchSync(() =>
+    useMediaQuery('(prefers-color-scheme: dark)')
+  )
 
   const [colorScheme, setColorScheme] = useState<ColorScheme>('system')
 
@@ -46,7 +52,7 @@ export const Theme = ({ children, options = {} }: ThemeProps) => {
           ...options.palette,
           mode:
             colorScheme === 'system'
-              ? prefersDarkMode
+              ? prefersDarkMode ?? true
                 ? 'dark'
                 : 'light'
               : colorScheme,
