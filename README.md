@@ -36,7 +36,7 @@ Crunchyroll
 
 正在尝试上架Chrome Web Store，在上架之前需手动安装
 
-下载[最新发布的版本](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest)然后解压到任意文件夹
+下载对应浏览器[最新发布的版本](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest)然后解压到任意文件夹
 
 > [!IMPORTANT]
 > 除非卸载扩展，请勿删除此文件夹
@@ -50,7 +50,12 @@ Crunchyroll
 
 ### Firefox
 
-没有在Firefox上测试过所以不知道能不能用，但是后续计划支持Firefox
+Firefox版本相比Chrome版本有更多的限制，并且由于部分API缺失，一些功能可能无法使用。
+
+由于发布的Firefox版本未经审核，需要手动安装且只能在开发者版本的Firefox中使用。
+
+安装详情见[这里](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/)和[这里](https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/)
+
 
 ## 使用指南
 

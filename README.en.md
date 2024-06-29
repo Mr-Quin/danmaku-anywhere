@@ -43,7 +43,7 @@ Crunchyroll
 
 ## Installation
 
-Download the [latest release](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest)
+Download the [latest release](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest) for your browser.
 
 Extract the archive to a folder.
 
@@ -61,9 +61,12 @@ To update the extension, extract the newer release to the same folder and overwr
 
 ### Firefox
 
-The extension has not been tested on Firefox at all, so it may or may not work.
+The Firefox version has limited support. The extension has fewer features and may not work as expected.
 
-Firefox support is planned for the 1.0.0 release.
+**Installation**
+
+The extension is not signed, so it can only be installed on certain versions of Firefox.
+See [here](https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/#unlisted-addons)
 
 ## Usage
 
@@ -78,16 +81,16 @@ This extension has two operating modes:
 - In the extension's popup window, go to the "Config" tab.
 - If your website is in the predefined list, enable it.
 - If your website isn't listed:
-    - Click "add" to create a new entry.
-    - Patterns: Enter the website's match pattern (
-      e.g., `https://your.website.com/*`). [Learn more about match patterns](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns).
-      For websites using `iframe` for its video player, the match pattern should be based on the `iframes`'s `src`
-      attribute.
-    - Video query: Enter the video
-      player's [selector](https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector) (often just `video`,
-      unless the website has multiple video players).
-    - Name: Enter a unique name for the config. The name cannot be changed later, but you can delete and recreate the
-      config with a different name.
+  - Click "add" to create a new entry.
+  - Patterns: Enter the website's match pattern (
+    e.g., `https://your.website.com/*`). [Learn more about match patterns](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns).
+    For websites using `iframe` for its video player, the match pattern should be based on the `iframes`'s `src`
+    attribute.
+  - Video query: Enter the video
+    player's [selector](https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector) (often just `video`,
+    unless the website has multiple video players).
+  - Name: Enter a unique name for the config. The name cannot be changed later, but you can delete and recreate the
+    config with a different name.
 
 ### 2. Search for danmaku (Manual Mode or Ad-Hoc Use)
 
@@ -178,3 +181,21 @@ This is a pnpm monorepo. You'll need to install [pnpm](https://pnpm.io/installat
    ```
 
 4. The dev build is in `packages/danmaku-anywhere/dist`, load this folder as unpacked extension
+
+### Building the extension
+
+The output are in `packages/danmaku-anywhere/package`
+
+**Chrome**
+
+```bash
+# packages/danmaku-anywhere
+pnpm package
+```
+
+**Firefox**
+
+```bash
+# packages/danmaku-anywhere
+pnpm package:firefox
+```
