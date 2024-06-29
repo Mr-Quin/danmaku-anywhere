@@ -31,7 +31,7 @@ jobs:
         with:
           version: 8
 
-      - name: Build
+      - name: Install and build dependencies
         run: |
           pnpm install
           pnpm build
@@ -40,6 +40,7 @@ jobs:
         run: |
           cd packages/danmaku-anywhere
           pnpm package
+          pnpm package:firefox
 
       - uses: ncipollo/release-action@v1
         
