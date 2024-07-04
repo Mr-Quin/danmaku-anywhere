@@ -34,7 +34,14 @@ Crunchyroll
 
 ## 安装
 
-正在尝试上架Chrome Web Store，在上架之前需手动安装
+### Chrome
+
+直接通过[商店](https://chromewebstore.google.com/detail/danmaku-anywhere/jnflbkkmffognjjhibkjnomjedogmdpo?authuser=1&hl=zh)
+安装
+
+#### 手动安装
+
+商店发布的版本可能落后于最新版。需要最新版本的可以选择手动安装。
 
 下载对应浏览器[最新发布的版本](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest)然后解压到任意文件夹
 
@@ -43,8 +50,6 @@ Crunchyroll
 
 后续的更新直接解压到这个文件夹中并覆盖即可
 
-### Chrome
-
 1. 进入扩展页面[chrome://extensions/](chrome://extensions/)并启用开发者模式。
 2. 点击 "加载未打包的扩展" 并选择已解压的扩展文件夹。
 
@@ -52,10 +57,14 @@ Crunchyroll
 
 Firefox版本相比Chrome版本有更多的限制，并且由于部分API缺失，一些功能可能无法使用。
 
-由于发布的Firefox版本未经审核，需要手动安装且只能在开发者版本的Firefox中使用。
+使用Firefox浏览器，从[这里](https://mr-quin.github.io/danmaku-anywhere/)下载并安装。
 
-安装详情见[这里](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/)和[这里](https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/)
+#### 手动安装
 
+手动安装需使用开发者版本的Firefox。
+
+安装详情见[这里](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/)
+和[这里](https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/)
 
 ## 使用指南
 
@@ -144,4 +153,6 @@ Firefox版本相比Chrome版本有更多的限制，并且由于部分API缺失�
 
 ## 猴油脚本（停止维护）
 
-[plex-danmaku](./packages/plex-danmaku)
+通过[这里](https://mr-quin.github.io/danmaku-anywhere/)安装
+
+文档[plex-danmaku](./packages/plex-danmaku)
