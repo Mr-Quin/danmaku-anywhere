@@ -63,6 +63,9 @@ importers:
       '@danmaku-anywhere/danmaku-engine':
         specifier: workspace:*
         version: link:../danmaku-engine
+      '@emotion/cache':
+        specifier: ^11.11.0
+        version: 11.11.0
       '@emotion/react':
         specifier: ^11.11.4
         version: 11.11.4(@types/react@18.2.66)(react@18.3.0-canary-c3048aab4-20240326)
