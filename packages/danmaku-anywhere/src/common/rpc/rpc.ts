@@ -15,9 +15,9 @@ export interface RPCPayload<TInput> {
   input: TInput
 }
 
-interface RPCSuccessResponse<TOutupt> {
+interface RPCSuccessResponse<TOutput> {
   success: true
-  output: TOutupt
+  output: TOutput
 }
 
 interface RPCErrorResponse {
