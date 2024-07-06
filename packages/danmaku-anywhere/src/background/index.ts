@@ -1,15 +1,10 @@
-import { configure } from '@danmaku-anywhere/dandanplay-api'
-
 import { setupContextMenu } from './contextMenu/setupContextMenu'
 import { AnimeService } from './services/AnimeService'
 import { DanmakuService } from './services/DanmakuService'
 import { IconService } from './services/IconService'
 import { TitleMappingService } from './services/TitleMappingService'
 import { setupScripting } from './setupScripting'
-import {
-  extensionOptionsService,
-  setupOptions,
-} from './syncOptions/upgradeOptions'
+import { setupOptions } from './syncOptions/upgradeOptions'
 
 import type { BackgroundMethods } from '@/common/rpc/interface/background'
 import { RpcException } from '@/common/rpc/rpc'
@@ -24,20 +19,6 @@ const animeService = new AnimeService()
 const iconService = new IconService(chrome)
 const danmakuService = new DanmakuService()
 const titleMappingService = new TitleMappingService()
-
-// configure dandanplay api on init and when options change
-extensionOptionsService.get().then((options) => {
-  configure({
-    baseUrl: options.danmakuSources.dandanplay.baseUrl,
-  })
-})
-
-extensionOptionsService.onChange((options) => {
-  if (!options) return
-  configure({
-    baseUrl: options.danmakuSources.dandanplay.baseUrl,
-  })
-})
 
 const rpcServer = createRpcServer<BackgroundMethods>({
   animeSearch: async (input) => {
