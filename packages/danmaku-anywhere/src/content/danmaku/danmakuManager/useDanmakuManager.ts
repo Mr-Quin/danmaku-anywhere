@@ -20,39 +20,37 @@ export const useDanmakuManager = () => {
   const { videoNode, containerNode } = useMediaElementStore()
   const { canRefresh, refreshComments } = useRefreshComments()
 
-  const { comments, playbackStatus } = useStore(
-    useShallow(({ comments, playbackStatus }) => {
-      return { comments, playbackStatus }
+  const { comments, playbackStatus, hasComments } = useStore(
+    useShallow(({ comments, playbackStatus, hasComments }) => {
+      return { comments, playbackStatus, hasComments }
     })
   )
 
   useEffect(() => {
     // if danmaku is created, destroy it when comments are removed
-    if (comments.length === 0 && danmakuEngine.created) {
+    if (!hasComments && danmakuEngine.created) {
       Logger.debug('Destroying danmaku')
       danmakuEngine.destroy()
       return
     }
 
     // if media is not ready, do nothing
-    if (!containerNode || !videoNode) return
+    if (!containerNode || !videoNode || !hasComments) return
 
     // create or recreate danmaku
-    if (comments.length > 0) {
-      Logger.debug('Creating danmaku')
-      toast.success(
-        t('danmaku.alert.mounted', {
-          name: useStore.getState().getAnimeName(),
-          count: comments.length,
-        }),
-        {
-          actionFn: canRefresh ? refreshComments : undefined,
-          actionLabel: t('danmaku.refresh'),
-        }
-      )
-      danmakuEngine.create(containerNode, videoNode, comments, options)
-    }
-  }, [videoNode, containerNode, comments, options])
+    Logger.debug('Creating danmaku')
+    toast.success(
+      t('danmaku.alert.mounted', {
+        name: useStore.getState().getAnimeName(),
+        count: comments.length,
+      }),
+      {
+        actionFn: canRefresh ? refreshComments : undefined,
+        actionLabel: t('danmaku.refresh'),
+      }
+    )
+    danmakuEngine.create(containerNode, videoNode, comments, options)
+  }, [videoNode, containerNode, comments, options, hasComments])
 
   // in automatic mode, destroy danmaku when playback is stopped
   useEffect(() => {

@@ -34,6 +34,7 @@ export const useMediaObserver = () => {
     setPlaybackStatus,
     setDanmakuMeta,
     setComments,
+    unsetComments,
     resetMediaState,
   } = useStore(useShallow((state) => state))
 
@@ -42,6 +43,9 @@ export const useMediaObserver = () => {
   const { mutate } = useMutation({
     mutationFn: chromeRpcClient.titleMappingSet,
     throwOnError: false,
+    onError: (error) => {
+      Logger.error(error)
+    },
   })
 
   useEffect(() => {
@@ -54,7 +58,7 @@ export const useMediaObserver = () => {
 
         const handleError = () => {
           setDanmakuMeta(undefined)
-          setComments([])
+          unsetComments()
         }
 
         const titleMappingPayload = {
