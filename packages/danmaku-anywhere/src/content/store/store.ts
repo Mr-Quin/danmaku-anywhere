@@ -24,6 +24,7 @@ interface StoreState {
   comments: CachedComment[]
   hasComments: boolean
   setComments: (comments: CachedComment[]) => void
+  unsetComments: () => void
 
   /**
    * The current video playback status
@@ -81,8 +82,8 @@ export const useStore = create<StoreState>((set, get) => ({
 
   comments: [],
   hasComments: false,
-  setComments: (comments) =>
-    set({ comments, hasComments: comments.length > 0 }),
+  setComments: (comments) => set({ comments, hasComments: true }),
+  unsetComments: () => set({ comments: [], hasComments: false }),
 
   manual: false,
   toggleManualMode: (manual) => {
@@ -101,6 +102,7 @@ export const useStore = create<StoreState>((set, get) => ({
   unmountManual: () => {
     get().resetMediaState()
     get().toggleManualMode(false)
+    get().unsetComments()
   },
 
   mediaInfo: undefined,
