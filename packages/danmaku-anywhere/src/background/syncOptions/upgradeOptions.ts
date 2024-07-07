@@ -1,10 +1,7 @@
-import { configure } from '@danmaku-anywhere/dandanplay-api'
-
 import { Language } from '@/common/localization/language'
 import { defaultDanmakuOptions } from '@/common/options/danmakuOptions/danmakuOptions'
 import { defaultExtensionOptions } from '@/common/options/extensionOptions/extensionOptions'
 import { defaultMountConfig } from '@/common/options/mountConfig/mountConfig'
-import { Logger } from '@/common/services/Logger'
 import { SyncOptionsService } from '@/common/services/SyncOptionsService'
 
 export const extensionOptionsService = new SyncOptionsService(
@@ -71,38 +68,10 @@ export const mountConfigService = new SyncOptionsService(
       })),
   })
 
-const upgradeOptions = async () => {
+export const upgradeOptions = async () => {
   await Promise.all([
     extensionOptionsService.upgrade(),
     danmakuOptionsService.upgrade(),
     mountConfigService.upgrade(),
   ])
-}
-
-export const setupOptions = async () => {
-  chrome.runtime.onInstalled.addListener(async () => {
-    try {
-      await upgradeOptions()
-    } catch (err) {
-      Logger.error(err)
-    }
-
-    Logger.info('Danmaku Anywhere Installed')
-  })
-
-  // configure dandanplay api on init and when options change
-  chrome.runtime.onStartup.addListener(async () => {
-    const options = await extensionOptionsService.get()
-
-    configure({
-      baseUrl: options.danmakuSources.dandanplay.baseUrl,
-    })
-  })
-
-  extensionOptionsService.onChange((options) => {
-    if (!options) return
-    configure({
-      baseUrl: options.danmakuSources.dandanplay.baseUrl,
-    })
-  })
 }

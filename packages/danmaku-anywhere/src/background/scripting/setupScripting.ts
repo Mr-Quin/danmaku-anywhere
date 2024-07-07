@@ -1,12 +1,13 @@
 import { P, match } from 'ts-pattern'
 
-import { mountConfigService } from './syncOptions/upgradeOptions'
+import { mountConfigService } from '../syncOptions/upgradeOptions'
 
 import type { MountConfig } from '@/common/options/mountConfig/mountConfig'
 import { Logger } from '@/common/services/Logger'
+// the ?script part gets the file name of the script
 // @ts-expect-error
 // eslint-disable-next-line import/no-restricted-paths, import/default
-import contentScript from '@/content/index?script'
+import contentScript from '@/content?script'
 
 const contentScriptId = 'main-content'
 
