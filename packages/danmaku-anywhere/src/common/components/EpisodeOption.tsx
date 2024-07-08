@@ -11,7 +11,7 @@ import {
 import { type HTMLAttributes, type SyntheticEvent } from 'react'
 
 import { DanmakuType, type DanmakuCacheLite } from '../types/danmaku/Danmaku'
-import { isManual } from '../utils/danmaku'
+import { isCustomDanmaku } from '../utils/danmaku'
 
 import { useFetchDanmaku } from '@/common/queries/danmaku/useFetchDanmaku'
 
@@ -28,7 +28,7 @@ export const EpisodeOption = (
     e.preventDefault()
     e.stopPropagation()
 
-    if (isManual(option.meta)) return
+    if (isCustomDanmaku(option.meta)) return
 
     fetch({
       meta: option.meta,

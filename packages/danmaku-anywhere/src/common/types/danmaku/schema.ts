@@ -33,7 +33,7 @@ export const commentSchema = z
     }
   })
 
-export const manualDanmakuCreateSchema = z
+export const customDanmakuCreateSchema = z
   .object({
     comments: z
       .array(commentSchema)

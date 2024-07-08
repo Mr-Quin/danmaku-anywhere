@@ -18,7 +18,7 @@ import { Link } from 'react-router-dom'
 import { useToast } from '@/common/components/toast/toastStore'
 import { useAllDanmakuQuerySuspense } from '@/common/queries/danmaku/useAllDanmakuQuerySuspense'
 import { chromeRpcClient } from '@/common/rpc/client'
-import { manualDanmakuCreateSchema } from '@/common/types/danmaku/schema'
+import { customDanmakuCreateSchema } from '@/common/types/danmaku/schema'
 import { tryCatch } from '@/common/utils/utils'
 import { TabToolbar } from '@/popup/component/TabToolbar'
 import { TabLayout } from '@/popup/layout/TabLayout'
@@ -55,7 +55,7 @@ export const UploadPage = () => {
         fileHandles.map(async (fileHandle) => {
           const json = await (await fileHandle.getFile()).text()
 
-          const parseResult = manualDanmakuCreateSchema.safeParse(
+          const parseResult = customDanmakuCreateSchema.safeParse(
             JSON.parse(json)
           )
 
@@ -99,7 +99,7 @@ export const UploadPage = () => {
     mutationFn: async () => {
       if (!data) return
 
-      return chromeRpcClient.danmakuCreateManual(data.succeeded)
+      return chromeRpcClient.danmakuCreateCustom(data.succeeded)
     },
     onSuccess: () => {
       toast.success(t('danmakuPage.upload.success'))

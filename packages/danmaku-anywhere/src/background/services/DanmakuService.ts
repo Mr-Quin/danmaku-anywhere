@@ -13,15 +13,15 @@ import type {
   DanmakuCacheLite,
   DanmakuDeleteDto,
   DanmakuGetOneDto,
-  ManualDanmakuCreateDto,
-  ManualDanmakuMeta,
+  CustomDanmakuCreateDto,
+  CustomDanmakuMeta,
 } from '@/common/types/danmaku/Danmaku'
 import type { DanmakuFetchOptions } from '@/common/types/DanmakuFetchOptions'
 import { invariant, isServiceWorker, tryCatch } from '@/common/utils/utils'
 
 export class DanmakuService {
   private ddpTable = db.danmakuCache
-  private manualTable = db.manualDanmakuCache
+  private customTable = db.manualDanmakuCache
   private logger: typeof Logger
 
   constructor() {
@@ -104,15 +104,15 @@ export class DanmakuService {
         return this.ddpTable.delete(data.id)
       })
       .with({ type: DanmakuType.Custom }, (data) => {
-        return this.manualTable.delete(data.id)
+        return this.customTable.delete(data.id)
       })
       .otherwise(() => {
         throw new RpcException(`Unknown danmaku type: ${data.type}`)
       })
   }
 
-  async createManual(data: ManualDanmakuCreateDto) {
-    const createCache = (dto: ManualDanmakuCreateDto[number]) => {
+  async createCustom(data: CustomDanmakuCreateDto) {
+    const createCache = (dto: CustomDanmakuCreateDto[number]) => {
       const { comments, animeTitle, episodeNumber, episodeTitle } = dto
 
       const cache = {
@@ -123,7 +123,7 @@ export class DanmakuService {
           animeTitle,
           episodeTitle,
           // episodeId is auto generated after creation
-        } as ManualDanmakuMeta,
+        } as CustomDanmakuMeta,
         version: 1,
         timeUpdated: Date.now(),
         count: comments.length,
@@ -132,7 +132,7 @@ export class DanmakuService {
       return cache
     }
 
-    this.manualTable.bulkAdd(data.map(createCache))
+    this.customTable.bulkAdd(data.map(createCache))
   }
 
   /**
@@ -141,6 +141,33 @@ export class DanmakuService {
    */
   async getAll() {
     return this.ddpTable.toArray()
+  }
+
+  /**
+   * Get only the count and metadata of all danmaku in db
+   */
+  async getAllLite(type?: DanmakuType) {
+    const tables = match(type)
+      .with(DanmakuType.DDP, () => [this.ddpTable])
+      .with(DanmakuType.Custom, () => [this.customTable])
+      .otherwise(() => [this.ddpTable, this.customTable])
+
+    const data = await Promise.all(tables.map((type) => this._getAllLite(type)))
+
+    return data.flat()
+  }
+
+  async getOne(data: DanmakuGetOneDto) {
+    return match(data)
+      .with({ type: DanmakuType.DDP }, (data) => {
+        return this.ddpTable.get(data.id)
+      })
+      .with({ type: DanmakuType.Custom }, (data) => {
+        return this.customTable.get(data.id)
+      })
+      .otherwise(() => {
+        throw new RpcException(`Unknown danmaku type: ${data.type}`)
+      })
   }
 
   private async _getAllLite(table: Dexie.Table<DanmakuCache>) {
@@ -155,32 +182,5 @@ export class DanmakuService {
     })
 
     return cache
-  }
-
-  /**
-   * Get only the count and metadata of all danmaku in db
-   */
-  async getAllLite(type?: DanmakuType) {
-    const tables = match(type)
-      .with(DanmakuType.DDP, () => [this.ddpTable])
-      .with(DanmakuType.Custom, () => [this.manualTable])
-      .otherwise(() => [this.ddpTable, this.manualTable])
-
-    const data = await Promise.all(tables.map((type) => this._getAllLite(type)))
-
-    return data.flat()
-  }
-
-  async getOne(data: DanmakuGetOneDto) {
-    return match(data)
-      .with({ type: DanmakuType.DDP }, (data) => {
-        return this.ddpTable.get(data.id)
-      })
-      .with({ type: DanmakuType.Custom }, (data) => {
-        return this.manualTable.get(data.id)
-      })
-      .otherwise(() => {
-        throw new RpcException(`Unknown danmaku type: ${data.type}`)
-      })
   }
 }

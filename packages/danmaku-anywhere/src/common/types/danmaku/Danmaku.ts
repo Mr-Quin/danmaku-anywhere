@@ -4,7 +4,7 @@ import type { z } from 'zod'
 
 import type { DanmakuFetchOptions } from '../DanmakuFetchOptions'
 
-import type { manualDanmakuCreateSchema } from './schema'
+import type { customDanmakuCreateSchema } from './schema'
 
 export enum DanmakuType {
   Custom,
@@ -30,10 +30,10 @@ export interface DDPDanmakuMeta extends BaseDanmakuMeta {
   animeTitle: string
 }
 
-export interface ManualDanmakuMeta extends BaseDanmakuMeta {
+export interface CustomDanmakuMeta extends BaseDanmakuMeta {
   type: DanmakuType.Custom
   /**
-   * Auto generated id for manual danmaku
+   * Auto generated id for custom danmaku
    */
   episodeId: number
   animeTitle: string
@@ -44,7 +44,7 @@ export interface ManualDanmakuMeta extends BaseDanmakuMeta {
   episodeNumber?: number
 }
 
-export type DanmakuMeta = DDPDanmakuMeta | ManualDanmakuMeta
+export type DanmakuMeta = DDPDanmakuMeta | CustomDanmakuMeta
 
 interface BaseDanmakuCache {
   comments: CachedComment[]
@@ -61,11 +61,11 @@ export type DDPDanmakuCache = BaseDanmakuCache & {
   params: Partial<DanDanCommentAPIParams>
 }
 
-export type ManualDanmakuCache = BaseDanmakuCache & {
-  meta: ManualDanmakuMeta
+export type CustomDanmakuCache = BaseDanmakuCache & {
+  meta: CustomDanmakuMeta
 }
 
-export type DanmakuCache = DDPDanmakuCache | ManualDanmakuCache
+export type DanmakuCache = DDPDanmakuCache | CustomDanmakuCache
 
 /**
  * A lite version of DanmakuCache, only contains count and meta
@@ -75,7 +75,7 @@ export type DanmakuCacheLite = Pick<DanmakuCache, 'count' | 'meta'> & {
   type: DanmakuType
 }
 
-export type ManualDanmakuCreateDto = z.infer<typeof manualDanmakuCreateSchema>[]
+export type CustomDanmakuCreateDto = z.infer<typeof customDanmakuCreateSchema>[]
 
 export interface DanmakuGetOneDto {
   type: DanmakuType

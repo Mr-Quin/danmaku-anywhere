@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store/store'
 
 import { useToast } from '@/common/components/toast/toastStore'
-import { isManual } from '@/common/utils/danmaku'
+import { isCustomDanmaku } from '@/common/utils/danmaku'
 import { tryCatch } from '@/common/utils/utils'
 import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
@@ -17,7 +17,7 @@ export const useRefreshComments = () => {
   const { fetch, isPending } = useFetchDanmakuMapped()
 
   const refreshComments = useEventCallback(async () => {
-    if (!danmakuMeta || isManual(danmakuMeta)) return
+    if (!danmakuMeta || isCustomDanmaku(danmakuMeta)) return
 
     const [result, err] = await tryCatch(() =>
       fetch({ danmakuMeta, options: { forceUpdate: true } })
