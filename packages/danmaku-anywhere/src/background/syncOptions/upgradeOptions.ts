@@ -2,7 +2,7 @@ import { Language } from '@/common/localization/language'
 import { defaultDanmakuOptions } from '@/common/options/danmakuOptions/danmakuOptions'
 import { defaultExtensionOptions } from '@/common/options/extensionOptions/extensionOptions'
 import { defaultMountConfig } from '@/common/options/mountConfig/mountConfig'
-import { SyncOptionsService } from '@/common/services/SyncOptionsService'
+import { SyncOptionsService } from '@/common/services/SyncOptionsService/SyncOptionsService'
 
 export const extensionOptionsService = new SyncOptionsService(
   'extensionOptions',

@@ -3,7 +3,7 @@ import { initReactI18next } from 'react-i18next'
 
 import { defaultExtensionOptions } from '../options/extensionOptions/extensionOptions'
 import { Logger } from '../services/Logger'
-import { SyncOptionsService } from '../services/SyncOptionsService'
+import { SyncOptionsService } from '../services/SyncOptionsService/SyncOptionsService'
 
 import { resources } from './resources'
 

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import type { Options } from '../../services/SyncOptionsService'
+import type { Options } from '../../services/SyncOptionsService/types'
 import { validateOrigin } from '../../utils/utils'
 
 import defaultMountConfigJson from './default.json' assert { type: 'json' }

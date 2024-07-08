@@ -1,4 +1,4 @@
-import type { Options } from '../../services/SyncOptionsService'
+import type { Options } from '../../services/SyncOptionsService/types'
 
 import { Language } from '@/common/localization/language'
 
