@@ -118,7 +118,7 @@ export const useStore = create<StoreState>((set, get) => ({
   setIntegration: (integration) => set({ integration }),
 
   resetMediaState: () => {
-    get().setComments([])
+    get().unsetComments()
     get().setDanmakuMeta(undefined)
     set({
       mediaInfo: undefined,
