@@ -79,7 +79,7 @@ const domain = {
     style: 'Style',
     type: {
       Custom: 'Custom',
-      DDP: 'DDP',
+      DDP: 'DanDanPlay',
     },
     unmount: 'Unmount',
   },
@@ -152,6 +152,12 @@ const pages = {
   optionsPage: {
     language: 'Language',
     name: 'Options',
+    chConvert: {
+      name: 'Simplified/Traditional Conversion',
+      simplified: 'Convert to simplified',
+      traditional: 'Convert to traditional',
+      none: 'No conversion',
+    },
     pages: {
       danmakuSource: 'Danmaku Source',
       permissions: 'Permissions',
