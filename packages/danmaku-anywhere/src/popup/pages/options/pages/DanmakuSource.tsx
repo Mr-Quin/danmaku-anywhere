@@ -47,7 +47,6 @@ export const DanmakuSource = () => {
       })
     },
     onSuccess: () => {
-      console.log('success')
       toast.success(t('common.success'))
     },
   })
