@@ -1,19 +1,9 @@
-import { ExtStorageService } from './ExtStorageService'
-import { Logger } from './Logger'
+import { ExtStorageService } from '../ExtStorageService'
+import { Logger } from '../Logger'
 
-type OptionsSchema = Record<string, any>
+import type { Options, OptionsSchema, Version, VersionConfig } from './types'
 
-export interface Options<T> {
-  data: T
-  version: number
-}
-
-interface Version<T> {
-  version: number
-  upgrade: (prevSchema: unknown) => T // previous shema's type is unknown
-}
-
-type VersionConfig<T> = Omit<Version<T>, 'version'>
+import { migrateOptions } from '@/common/services/SyncOptionsService/migrationOptions'
 
 //Handles creating and upgrading options schema
 export class SyncOptionsService<T extends OptionsSchema> {
@@ -55,27 +45,21 @@ export class SyncOptionsService<T extends OptionsSchema> {
     this.logger.debug('Init')
 
     if (!options) {
-      // if no options, set default options as first version
-      this.logger.debug(
-        `No existing options found, upgrading using default options`
-      )
+      // if no options, set default options as the latest version
+      this.logger.debug(`No existing options found, using default options`)
 
-      const firstOptions = {
+      await this.storageService.set({
         data: this.defaultOptions,
-        version: 0, // version is guaranteed to > 0
-      }
-
-      // recursively upgrade to latest version
-      const upgradedOptions = this.#migrate(firstOptions)
-      await this.storageService.set(upgradedOptions)
+        version: this.#getLatestVersion().version,
+      })
 
       return
     }
 
-    // if options is not versioned, set version to 0
+    this.logger.debug(`Found options with version '${options.version}'`)
+    // if options is not versioned, assume version 0 for purpose of upgrading
     options.version ??= 0
-    this.logger.debug(`Found options with version ${options.version}`)
-    const upgradedOptions = this.#migrate(options)
+    const upgradedOptions = migrateOptions(options, this.versions, this.logger)
     await this.storageService.set(upgradedOptions)
   }
 
@@ -122,44 +106,6 @@ export class SyncOptionsService<T extends OptionsSchema> {
 
   destroy() {
     this.storageService.destroy()
-  }
-
-  #migrate(options: Options<T>): Options<T> {
-    const nextVersion = this.#getNextVersion(options.version)
-
-    // if no next migration, return data as is
-    if (!nextVersion) {
-      this.logger.debug(`At latest version ${options.version}`)
-      return options as Options<T>
-    }
-
-    this.logger.debug(
-      `Upgrading from version ${options.version} to ${nextVersion.version}`
-    )
-
-    // recursively upgrade data until no next migration
-    const upgradedData = {
-      data: nextVersion.upgrade(options.data),
-      version: nextVersion.version, // increment version
-    }
-    return this.#migrate(upgradedData)
-  }
-
-  #getNextVersion(version: number): Version<T> | undefined {
-    // get all versions bigger than current version
-    const biggerVersions = this.versions.filter((v) => v.version > version)
-
-    if (biggerVersions.length === 0) {
-      return undefined
-    }
-
-    // return the smallest version of the bigger versions
-    return biggerVersions.reduce((acc, v) => {
-      if (acc.version > v.version) {
-        return v
-      }
-      return acc
-    })
   }
 
   #getLatestVersion() {

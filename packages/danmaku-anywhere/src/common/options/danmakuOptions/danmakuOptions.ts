@@ -1,6 +1,6 @@
 import type { DanmakuOptions as DanmakuEngineOptions } from '@danmaku-anywhere/danmaku-engine'
 
-import type { Options } from '../../services/SyncOptionsService'
+import type { Options } from '../../services/SyncOptionsService/types'
 
 export interface SafeZones {
   readonly top: number
