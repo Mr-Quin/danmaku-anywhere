@@ -28,6 +28,7 @@ export interface DanDanApiResponse {
   errorMessage: string
   success: boolean
 }
+
 export interface DanDanAnimeSearchResult extends DanDanApiResponse {
   animes: DanDanAnime[]
   hasMore: boolean
@@ -63,8 +64,17 @@ export interface DanDanComment {
 }
 
 export interface DanDanCommentAPIParams {
+  /**
+   * 起始弹幕编号，忽略此编号以前的弹幕。默认值为0
+   */
   from: number
+  /**
+   * 是否同时获取关联的第三方弹幕。默认值为false
+   */
   withRelated: boolean
+  /**
+   * 中文简繁转换。0-不转换，1-转换为简体，2-转换为繁体。
+   */
   chConvert: DanDanChConvert
 }
 

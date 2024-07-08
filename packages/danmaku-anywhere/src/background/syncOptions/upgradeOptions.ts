@@ -1,5 +1,9 @@
+import { DanDanChConvert } from '@danmaku-anywhere/dandanplay-api'
+import { produce } from 'immer'
+
 import { Language } from '@/common/localization/language'
 import { defaultDanmakuOptions } from '@/common/options/danmakuOptions/danmakuOptions'
+import type { ExtensionOptions } from '@/common/options/extensionOptions/extensionOptions'
 import { defaultExtensionOptions } from '@/common/options/extensionOptions/extensionOptions'
 import { defaultMountConfig } from '@/common/options/mountConfig/mountConfig'
 import { SyncOptionsService } from '@/common/services/SyncOptionsService/SyncOptionsService'
@@ -30,6 +34,12 @@ export const extensionOptionsService = new SyncOptionsService(
         },
       }
     },
+  })
+  .version(4, {
+    upgrade: (data: any) =>
+      produce<ExtensionOptions>(data, (draft) => {
+        draft.danmakuSources.dandanplay.chConvert = DanDanChConvert.None
+      }),
   })
 
 const danmakuOptionsService = new SyncOptionsService(

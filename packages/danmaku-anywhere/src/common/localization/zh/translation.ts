@@ -150,6 +150,12 @@ const pages = {
   optionsPage: {
     language: '语言',
     name: '设置',
+    chConvert: {
+      name: '简繁转换',
+      simplified: '转换成简体',
+      traditional: '转换成繁体',
+      none: '不转换',
+    },
     pages: {
       danmakuSource: '弹幕来源',
       permissions: '权限设置',

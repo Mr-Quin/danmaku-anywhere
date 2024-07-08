@@ -1,21 +1,23 @@
 import type { DanDanCommentAPIParams } from '@danmaku-anywhere/dandanplay-api'
 import { fetchComments, getAnime } from '@danmaku-anywhere/dandanplay-api'
 import type Dexie from 'dexie'
+import { produce } from 'immer'
 import { match } from 'ts-pattern'
 
+import { extensionOptionsService } from '@/background/syncOptions/upgradeOptions'
 import { db } from '@/common/db/db'
 import { RpcException } from '@/common/rpc/rpc'
 import { Logger } from '@/common/services/Logger'
-import { DanmakuType } from '@/common/types/danmaku/Danmaku'
 import type {
-  DDPDanmakuMeta,
+  CustomDanmakuCreateDto,
+  CustomDanmakuMeta,
   DanmakuCache,
   DanmakuCacheLite,
   DanmakuDeleteDto,
   DanmakuGetOneDto,
-  CustomDanmakuCreateDto,
-  CustomDanmakuMeta,
+  DDPDanmakuMeta,
 } from '@/common/types/danmaku/Danmaku'
+import { DanmakuType } from '@/common/types/danmaku/Danmaku'
 import type { DanmakuFetchOptions } from '@/common/types/DanmakuFetchOptions'
 import { invariant, isServiceWorker, tryCatch } from '@/common/utils/utils'
 
@@ -23,6 +25,7 @@ export class DanmakuService {
   private ddpTable = db.danmakuCache
   private customTable = db.manualDanmakuCache
   private logger: typeof Logger
+  private extensionOptionsService = extensionOptionsService
 
   constructor() {
     invariant(
@@ -34,43 +37,54 @@ export class DanmakuService {
 
   async fetchDDP(
     meta: DDPDanmakuMeta,
-    params: Partial<DanDanCommentAPIParams> = { withRelated: true },
+    params: Partial<DanDanCommentAPIParams> = {},
     options: DanmakuFetchOptions = {}
   ) {
+    const {
+      danmakuSources: {
+        dandanplay: { chConvert: chConvertPreference },
+      },
+    } = await this.extensionOptionsService.get()
+
+    // apply default params, use chConvert specified in options unless provided in params input
+    const paramsCopy = produce(params, (draft) => {
+      draft.chConvert ??= chConvertPreference
+      draft.withRelated ??= true
+      draft.from ??= 0
+    })
+
     const { episodeId } = meta
 
-    const result = await this.ddpTable.get(episodeId)
+    const existingDanmaku = await this.ddpTable.get(episodeId)
 
-    if (result && !options.forceUpdate) {
-      this.logger.debug('Danmaku found in db', result)
-      return result
+    if (existingDanmaku && !options.forceUpdate) {
+      this.logger.debug('Danmaku found in db', existingDanmaku)
+      return existingDanmaku
     }
 
     this.logger.debug('Danmaku not found in db, fetching from server')
 
-    const comments = await fetchComments(episodeId, {
-      ...params,
-      withRelated: true,
-    })
+    const comments = await fetchComments(episodeId, paramsCopy)
 
     this.logger.debug('Danmaku fetched from server', comments)
 
-    // prevent updating db if new result has less comments than the old one
+    // prevent updating db if new result has fewer comments than the old one
     if (
-      result &&
-      result.comments.length > 0 &&
-      result.comments.length >= comments.comments.length
+      !options.forceUpdate &&
+      existingDanmaku &&
+      existingDanmaku.comments.length > 0 &&
+      existingDanmaku.comments.length >= comments.comments.length
     ) {
       this.logger.debug('New danmaku has less comments, skip caching')
-      return result
+      return existingDanmaku
     }
 
     const newEntry = {
       ...comments,
       meta: meta,
-      params,
+      params: paramsCopy,
       timeUpdated: Date.now(),
-      version: 1 + (result?.version ?? 0),
+      version: 1 + (existingDanmaku?.version ?? 0),
     }
 
     // if episode title is not provided, try to get it from the server
