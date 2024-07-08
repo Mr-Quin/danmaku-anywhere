@@ -3,13 +3,13 @@ import Dexie from 'dexie'
 import { DanmakuType } from '../types/danmaku/Danmaku'
 import type {
   DDPDanmakuCache,
-  ManualDanmakuCache,
+  CustomDanmakuCache,
   TitleMapping,
 } from '../types/danmaku/Danmaku'
 
 class DanmakuAnywhereDb extends Dexie {
   danmakuCache!: Dexie.Table<DDPDanmakuCache, number>
-  manualDanmakuCache!: Dexie.Table<ManualDanmakuCache, number>
+  manualDanmakuCache!: Dexie.Table<CustomDanmakuCache, number>
   titleMapping!: Dexie.Table<TitleMapping, string>
 
   isReady = new Promise<boolean>((resolve) => {

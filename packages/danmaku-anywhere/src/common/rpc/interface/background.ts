@@ -12,7 +12,7 @@ import type {
   DanmakuDeleteDto,
   DanmakuFetchDDPDto,
   DanmakuGetOneDto,
-  ManualDanmakuCreateDto,
+  CustomDanmakuCreateDto,
   TitleMapping,
 } from '@/common/types/danmaku/Danmaku'
 
@@ -32,7 +32,7 @@ type DanmakuMethods = {
   danmakuGetAllLite: RPCDef<void, DanmakuCacheLite[]>
   danmakuGetOne: RPCDef<DanmakuGetOneDto, DanmakuCache | null>
   danmakuFetchDDP: RPCDef<DanmakuFetchDDPDto, DDPDanmakuCache>
-  danmakuCreateManual: RPCDef<ManualDanmakuCreateDto, void>
+  danmakuCreateCustom: RPCDef<CustomDanmakuCreateDto, void>
   danmakuDelete: RPCDef<DanmakuDeleteDto, void>
 }
 

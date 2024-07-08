@@ -1,7 +1,7 @@
 import {
   DanmakuType,
   type DanmakuMeta,
-  type ManualDanmakuMeta,
+  type CustomDanmakuMeta,
 } from '../types/danmaku/Danmaku'
 
 export const getEpisodeId = (animeId: number, episodeNumber: number) => {
@@ -12,7 +12,9 @@ export const episodeIdToEpisodeNumber = (episodeId: number) => {
   return episodeId % 10000
 }
 
-export const isManual = (meta: DanmakuMeta): meta is ManualDanmakuMeta => {
+export const isCustomDanmaku = (
+  meta: DanmakuMeta
+): meta is CustomDanmakuMeta => {
   return meta.type === DanmakuType.Custom
 }
 
