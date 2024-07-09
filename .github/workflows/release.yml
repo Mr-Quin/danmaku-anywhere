@@ -8,15 +8,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     strategy:
       matrix:
-        node-version: [18.x] # node 20.x has some problems with pnpm/action-setup@v2
+        node-version: [ 18.x ] # node 20.x has some problems with pnpm/action-setup@v2
 
     steps:
       - uses: actions/checkout@v3
@@ -35,17 +32,44 @@ jobs:
         run: |
           pnpm install
           pnpm build
-      
+
       - name: Package
         run: |
           cd packages/danmaku-anywhere
           pnpm package
           pnpm package:firefox
 
-      - uses: ncipollo/release-action@v1
-        
+      - name: Release
+        uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
           artifacts: 'packages/danmaku-anywhere/package/*'
           generateReleaseNotes: true
           prerelease: true
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-files
+          path: packages/danmaku-anywhere/package/*.zip
+
+  publish-chrome:
+    runs-on: ubuntu-latest
+    needs: build
+    environment: chrome-web-store-publish
+
+    steps:
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: package-files
+
+      - name: Publish to Chrome Web Store
+        uses: chrome-extension-upload-action/upload@v2
+        with:
+          file-path: 'packages/danmaku-anywhere/package/*chrome.zip'
+          extension-id: $EXTENSION_ID
+          client-id: ${{ secrets.CLIENT_ID }}
+          client-secret: ${{ secrets.CLIENT_SECRET }}
+          refresh-token: ${{ secrets.REFRESH_TOKEN }}
+          glob: true
