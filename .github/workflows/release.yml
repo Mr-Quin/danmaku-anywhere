@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [ 18.x ] # node 20.x has some problems with pnpm/action-setup@v2
+        node-version: [ 20.x ]
 
     steps:
       - uses: actions/checkout@v3
@@ -24,9 +24,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
+        uses: pnpm/action-setup@v4
+        # uses version from package.json > packageManager
 
       - name: Install and build dependencies
         run: |
@@ -65,10 +64,10 @@ jobs:
           name: package-files
 
       - name: Publish to Chrome Web Store
-        uses: chrome-extension-upload-action/upload@v2
+        uses: mnao305/chrome-extension-upload@v5.0.0
         with:
           file-path: 'packages/danmaku-anywhere/package/*chrome.zip'
-          extension-id: $EXTENSION_ID
+          extension-id: ${{ vars.EXTENSION_ID }}
           client-id: ${{ secrets.CLIENT_ID }}
           client-secret: ${{ secrets.CLIENT_SECRET }}
           refresh-token: ${{ secrets.REFRESH_TOKEN }}
