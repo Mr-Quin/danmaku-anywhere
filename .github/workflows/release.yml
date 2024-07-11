@@ -36,6 +36,7 @@ jobs:
         run: |
           cd packages/danmaku-anywhere
           pnpm package
+          pnpm build:firefox
           pnpm package:firefox
 
       - name: Release
