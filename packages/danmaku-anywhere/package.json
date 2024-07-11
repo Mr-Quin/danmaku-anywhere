@@ -17,7 +17,7 @@
     "preview": "vite preview",
     "lint": "tsc && eslint --ext .js,.jsx,.ts,.tsx --fix .",
     "format": "prettier --write . --ignore-path ../../.prettierignore",
-    "package": "pnpm run build && node ./scripts/package.js",
+    "package": "node ./scripts/package.js",
     "package:firefox": "TARGET_BROWSER=firefox pnpm run package",
     "tsc": "tsc"
   },
