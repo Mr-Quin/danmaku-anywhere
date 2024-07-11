@@ -31,18 +31,21 @@ for (const file of files) {
   }
 }
 
-exec(`tar -czf ${packagePath}/${tarFileName} -C ${buildPath} .`, (error) => {
-  if (error) {
-    console.error('Error occurred:', error)
-    return
+exec(
+  `tar -czf ${packagePath}/${tarFileName} -C ${buildPath} ./ --xform s:'^./'::`,
+  (error) => {
+    if (error) {
+      console.error('Error occurred:', error)
+      return
+    }
+    console.log(`Package created: ${packagePath}/${tarFileName}`)
   }
-  console.log(`Package created: ${tarFileName}`)
-})
+)
 
-exec(`7z a ${packagePath}/${zipFileName} ${buildPath}/*`, (error) => {
+exec(`cd ${buildPath} && zip -r ${packagePath}/${zipFileName} ./`, (error) => {
   if (error) {
     console.error('Error occurred:', error)
     return
   }
-  console.log(`Package created: ${zipFileName}`)
+  console.log(`Package created: ${packagePath}/${zipFileName}`)
 })
