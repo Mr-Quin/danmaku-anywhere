@@ -6,6 +6,7 @@ import {
   InputAdornment,
   Popover,
 } from '@mui/material'
+import type { ChangeEvent } from 'react'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -14,11 +15,11 @@ import { useStore } from '@/popup/store'
 export const AnimeFilter = () => {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
-  const [filter, setFilter] = useState('')
 
   const anchorRef = useRef<HTMLButtonElement>(null)
 
-  const handleSearch = useStore.use.danmaku().setAnimeFilter
+  const setFilter = useStore.use.danmaku().setAnimeFilter
+  const filter = useStore.use.danmaku().animeFilter
 
   const handleOpen = () => {
     setOpen(true)
@@ -26,13 +27,11 @@ export const AnimeFilter = () => {
 
   const handleClear = () => {
     setFilter('')
-    handleSearch('')
     setOpen(false)
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilter(e.target.value.trim())
-    handleSearch(e.target.value.trim())
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setFilter(e.target.value)
   }
 
   return (
@@ -57,7 +56,7 @@ export const AnimeFilter = () => {
           component="form"
           onSubmit={(e) => {
             e.preventDefault()
-            handleSearch(filter)
+            setFilter(filter.trim())
           }}
           sx={{
             background: 'background.paper',
