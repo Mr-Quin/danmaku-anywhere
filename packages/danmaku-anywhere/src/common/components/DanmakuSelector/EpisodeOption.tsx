@@ -10,8 +10,8 @@ import {
 } from '@mui/material'
 import { type HTMLAttributes, type SyntheticEvent } from 'react'
 
-import { DanmakuType, type DanmakuCacheLite } from '../types/danmaku/Danmaku'
-import { isCustomDanmaku } from '../utils/danmaku'
+import { DanmakuType, type DanmakuCacheLite } from '../../types/danmaku/Danmaku'
+import { isCustomDanmaku } from '../../utils/danmaku'
 
 import { useFetchDanmaku } from '@/common/queries/danmaku/useFetchDanmaku'
 

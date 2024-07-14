@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useMountDanmakuPopup } from '../../../hooks/useMountDanmakuPopup'
 
-import { DanmakuSelector } from '@/common/components/DanmakuSelector'
+import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSelector'
 import { useToast } from '@/common/components/toast/toastStore'
 import { useSessionState } from '@/common/queries/extStorage/useSessionState'
 import { tabRpcClient } from '@/common/rpc/client'

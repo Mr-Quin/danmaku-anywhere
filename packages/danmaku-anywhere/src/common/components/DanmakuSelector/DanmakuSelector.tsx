@@ -4,11 +4,12 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { match } from 'ts-pattern'
 
-import { DanmakuType } from '../types/danmaku/Danmaku'
-import type { DanmakuMeta } from '../types/danmaku/Danmaku'
+import type { DanmakuMeta } from '../../types/danmaku/Danmaku'
+import { DanmakuType } from '../../types/danmaku/Danmaku'
 
 import { EpisodeOption } from './EpisodeOption'
 
+import { ListboxComponent } from '@/common/components/DanmakuSelector/ListboxComponent'
 import { useAllDanmakuQuerySuspense } from '@/common/queries/danmaku/useAllDanmakuQuerySuspense'
 import { matchWithPinyin } from '@/common/utils/utils'
 
@@ -104,6 +105,8 @@ export const DanmakuSelector = ({ value, onChange }: DanmakuSelectorProps) => {
           />
         )
       }}
+      renderGroup={(params) => params as any}
+      ListboxComponent={ListboxComponent}
       disablePortal
     />
   )
