@@ -3,7 +3,7 @@ import { Box, Button, Stack, Typography } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { DanmakuSelector } from '@/common/components/DanmakuSelector'
+import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSelector'
 import { useToast } from '@/common/components/toast/toastStore'
 import type { DanmakuMeta } from '@/common/types/danmaku/Danmaku'
 import { ManualMode } from '@/content/common/components/ManualMode'
