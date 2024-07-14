@@ -66,22 +66,12 @@ export const TypeSelector = () => {
         >
           <FormGroup>
             <FormControlLabel
-              control={
-                <Checkbox
-                  defaultChecked
-                  onChange={handleSelect(DanmakuType.DDP)}
-                />
-              }
+              control={<Checkbox onChange={handleSelect(DanmakuType.DDP)} />}
               label={t(`danmaku.type.${DanmakuType[DanmakuType.DDP]}`)}
               checked={selectedTypes.includes(DanmakuType.DDP)}
             />
             <FormControlLabel
-              control={
-                <Checkbox
-                  defaultChecked
-                  onChange={handleSelect(DanmakuType.Custom)}
-                />
-              }
+              control={<Checkbox onChange={handleSelect(DanmakuType.Custom)} />}
               label={t(`danmaku.type.${DanmakuType[DanmakuType.Custom]}`)}
               checked={selectedTypes.includes(DanmakuType.Custom)}
             />
