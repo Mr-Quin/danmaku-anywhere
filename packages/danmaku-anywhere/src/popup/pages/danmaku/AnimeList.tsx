@@ -18,6 +18,7 @@ import { NoAnime } from './components/NoAnime'
 import { useAllDanmakuQuerySuspense } from '@/common/queries/danmaku/useAllDanmakuQuerySuspense'
 import type { DanmakuCacheLite } from '@/common/types/danmaku/Danmaku'
 import { DanmakuType } from '@/common/types/danmaku/Danmaku'
+import { matchWithPinyin } from '@/common/utils/utils'
 import { useStore } from '@/popup/store'
 
 interface AnimeListProps {
@@ -66,9 +67,7 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
   const filteredData = useMemo(() => {
     if (!filter) return data
 
-    return data.filter((item) =>
-      item.meta.animeTitle.toLowerCase().includes(filter.toLowerCase())
-    )
+    return data.filter((item) => matchWithPinyin(item.meta.animeTitle, filter))
   }, [data, filter])
 
   const titles = useMemo(() => {

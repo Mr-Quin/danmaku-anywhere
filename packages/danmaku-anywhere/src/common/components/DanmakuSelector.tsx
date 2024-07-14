@@ -1,9 +1,5 @@
-import {
-  Autocomplete,
-  CircularProgress,
-  TextField,
-  createFilterOptions,
-} from '@mui/material'
+import type { createFilterOptions } from '@mui/material'
+import { Autocomplete, CircularProgress, TextField } from '@mui/material'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { match } from 'ts-pattern'
@@ -14,11 +10,22 @@ import type { DanmakuMeta } from '../types/danmaku/Danmaku'
 import { EpisodeOption } from './EpisodeOption'
 
 import { useAllDanmakuQuerySuspense } from '@/common/queries/danmaku/useAllDanmakuQuerySuspense'
+import { matchWithPinyin } from '@/common/utils/utils'
 
-const filterOptions = createFilterOptions({
-  stringify: (option: DanmakuMeta) =>
-    `${option.animeTitle} ${option.episodeTitle}`,
-})
+type FilterOptions = ReturnType<typeof createFilterOptions<DanmakuMeta>>
+
+const stringifyDanmakuMeta = (danmakuMeta: DanmakuMeta) => {
+  return `${danmakuMeta.animeTitle} ${danmakuMeta.episodeTitle}`
+}
+
+const filterOptions: FilterOptions = (options, { inputValue }) => {
+  return options.filter((option) => {
+    return matchWithPinyin(
+      stringifyDanmakuMeta(option),
+      inputValue.toLocaleLowerCase()
+    )
+  })
+}
 
 const isOptionEqualToValue = (option: DanmakuMeta, value: DanmakuMeta) => {
   return match([option, value])

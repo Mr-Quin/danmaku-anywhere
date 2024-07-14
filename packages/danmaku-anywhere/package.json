@@ -39,6 +39,7 @@
     "dexie": "^3.2.7",
     "i18next": "^23.11.5",
     "immer": "^10.1.1",
+    "pinyin-pro": "^3.23.0",
     "react": "18.3.0-canary-c3048aab4-20240326",
     "react-dom": "18.3.0-canary-c3048aab4-20240326",
     "react-error-boundary": "^4.0.13",

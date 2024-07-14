@@ -1,4 +1,5 @@
 import type { PopoverVirtualElement } from '@mui/material'
+import { match as matchPinyin } from 'pinyin-pro'
 
 import type { NotPromise } from '../types/types'
 
@@ -118,4 +119,16 @@ export const createVirtualElement = (
     }),
     nodeType: Node.ELEMENT_NODE,
   }
+}
+
+export const matchWithPinyin = (inputString: string, searchString: string) => {
+  const lowerCaseInputString = inputString.toLocaleLowerCase()
+  const lowerCaseSearchString = searchString.toLocaleLowerCase()
+
+  // string search
+  if (lowerCaseInputString.includes(lowerCaseSearchString)) return true
+
+  // pinyin match
+  const pinyinMatches = matchPinyin(lowerCaseInputString, lowerCaseSearchString)
+  return !!pinyinMatches
 }
