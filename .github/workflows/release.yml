@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # required by ncipollo/release-action@v1
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
