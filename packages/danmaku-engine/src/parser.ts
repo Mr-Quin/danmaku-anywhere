@@ -1,4 +1,3 @@
-import type { DanDanComment } from '@danmaku-anywhere/dandanplay-api'
 import { DanDanCommentMode } from '@danmaku-anywhere/dandanplay-api'
 
 import type { DanmakuFilter } from './DanmakuManager'
