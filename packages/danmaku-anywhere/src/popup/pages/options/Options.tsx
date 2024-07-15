@@ -62,10 +62,6 @@ export const Options = () => {
             title={t('optionsPage.pages.danmakuSource')}
             onClick={() => navigate('danmaku-source')}
           />
-          <OptionsListItem
-            title={t('optionsPage.pages.permissions')}
-            onClick={() => navigate('permissions')}
-          />
           {false && (
             <ListItem
               disablePadding
