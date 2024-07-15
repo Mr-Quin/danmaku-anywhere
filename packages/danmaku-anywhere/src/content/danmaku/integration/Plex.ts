@@ -1,3 +1,4 @@
+import type { PlaybackStatus } from './MediaObserver'
 import { MediaInfo, MediaObserver } from './MediaObserver'
 
 // title format
@@ -56,7 +57,7 @@ export class PlexObserver extends MediaObserver {
   private title?: string
   private season?: number
   private episode?: number
-  private playing = false
+  private playing: PlaybackStatus = 'stopped'
 
   setup() {
     const titleElt = document.querySelector('title')!
@@ -69,10 +70,14 @@ export class PlexObserver extends MediaObserver {
     const titleData = parseTitle(title)
     if (!titleData) return
 
-    this.updateState(titleData.playing, titleData.mediaInfo)
+    // Since we matched the title, we know the video must be either playing or paused
+    this.updateState(
+      titleData.playing ? 'playing' : 'paused',
+      titleData.mediaInfo
+    )
   }
 
-  private updateState(isPlaying: boolean, info: MediaInfo) {
+  private updateState(isPlaying: PlaybackStatus, info: MediaInfo) {
     const titleChanged = this.title !== info.title
     const seasonChanged = this.season !== info.season
     const episodeChanged = this.episode !== info.episode
@@ -87,8 +92,7 @@ export class PlexObserver extends MediaObserver {
     }
 
     if (statusChanged) {
-      const status = isPlaying ? 'playing' : 'paused'
-      this.emit('statusChange', status)
+      this.emit('statusChange', isPlaying)
     }
 
     this.title = info.title
@@ -109,13 +113,16 @@ export class PlexObserver extends MediaObserver {
         if (!titleData) {
           if (this.title) {
             this.emit('statusChange', 'stopped')
-            this.playing = false
+            this.playing = 'stopped'
             this.title = undefined
           }
           continue
         }
 
-        this.updateState(titleData.playing, titleData.mediaInfo)
+        this.updateState(
+          titleData.playing ? 'playing' : 'paused',
+          titleData.mediaInfo
+        )
       }
     }
   }
