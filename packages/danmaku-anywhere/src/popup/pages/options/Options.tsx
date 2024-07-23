@@ -7,7 +7,6 @@ import {
   ListItemButton,
   ListItemText,
   Stack,
-  Switch,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { Outlet, useNavigate } from 'react-router-dom'
@@ -16,7 +15,6 @@ import { OptionsPageLayout } from '../../layout/OptionsPageLayout'
 
 import { LanguageListItem } from './components/LanguageListItem'
 
-import { useThemeContext } from '@/common/style/Theme'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { Version } from '@/popup/pages/options/components/Version'
 
@@ -48,7 +46,6 @@ const OptionsListItem = ({
 
 export const Options = () => {
   const { t } = useTranslation()
-  const { colorScheme, setColorScheme } = useThemeContext()
   const navigate = useNavigate()
 
   return (
@@ -62,23 +59,6 @@ export const Options = () => {
             title={t('optionsPage.pages.danmakuSource')}
             onClick={() => navigate('danmaku-source')}
           />
-          {false && (
-            <ListItem
-              disablePadding
-              secondaryAction={
-                <Switch
-                  checked={colorScheme === 'system'}
-                  onChange={() => {
-                    setColorScheme(colorScheme === 'system' ? 'dark' : 'system')
-                  }}
-                />
-              }
-            >
-              <ListItemButton>
-                <ListItemText primary="Theme" />
-              </ListItemButton>
-            </ListItem>
-          )}
         </List>
       </OptionsPageLayout>
       <Outlet />

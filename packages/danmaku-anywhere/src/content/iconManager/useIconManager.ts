@@ -8,9 +8,9 @@ export const useIconManager = () => {
 
   useEffect(() => {
     if (config) {
-      chromeRpcClient.iconSet('available')
+      void chromeRpcClient.iconSet('available')
     } else {
-      chromeRpcClient.iconSet('unavailable')
+      void chromeRpcClient.iconSet('unavailable')
     }
   }, [config])
 }

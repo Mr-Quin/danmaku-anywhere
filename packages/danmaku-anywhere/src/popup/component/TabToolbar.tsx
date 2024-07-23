@@ -1,10 +1,10 @@
 import { Divider, Toolbar, Typography } from '@mui/material'
-import type { PropsWithChildren } from 'react'
+import type { PropsWithChildren, ReactNode } from 'react'
 
 interface PageToolbarProps extends PropsWithChildren {
   title?: string
   childrenPlacement?: 'start' | 'end'
-  leftElement?: React.ReactNode
+  leftElement?: ReactNode
 }
 
 export const TabToolbar = ({

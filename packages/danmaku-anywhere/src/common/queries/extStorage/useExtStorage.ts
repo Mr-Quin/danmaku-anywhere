@@ -26,11 +26,11 @@ export const useExtStorage = <T>(
 
   useEffect(() => {
     storageService.subscribe(() => {
-      queryClient.invalidateQueries({ queryKey })
+      void queryClient.invalidateQueries({ queryKey })
     })
 
     return () => {
-      queryClient.invalidateQueries({ queryKey })
+      void queryClient.invalidateQueries({ queryKey })
       storageService.destroy()
     }
   }, [storageService, queryClient])
@@ -53,14 +53,14 @@ export const useExtStorage = <T>(
   const updateMutation = useMutation({
     mutationFn: storageService.set.bind(storageService),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey })
+      void queryClient.invalidateQueries({ queryKey })
     },
   })
 
   const deleteMutation = useMutation({
     mutationFn: storageService.set.bind(storageService),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey })
+      void queryClient.invalidateQueries({ queryKey })
     },
   })
 

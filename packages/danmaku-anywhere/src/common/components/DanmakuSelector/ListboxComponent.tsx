@@ -24,7 +24,7 @@ export const ListboxComponent = forwardRef<
   const itemData: ReactElement[] = []
 
   ;(children as ReactElement[]).forEach(
-    (item: React.ReactElement & { children?: React.ReactElement[] }) => {
+    (item: ReactElement & { children?: ReactElement[] }) => {
       itemData.push(item)
       if (item.children) itemData.push(...item.children)
     }

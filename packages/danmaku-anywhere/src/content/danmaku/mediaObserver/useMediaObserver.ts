@@ -113,7 +113,7 @@ export const useMediaObserver = () => {
           }
 
           // if no mapping, search for anime to get the animeId
-          const [animes, searchErr] = await tryCatch(() =>
+          const [anime, searchErr] = await tryCatch(() =>
             queryClient.fetchQuery({
               queryKey: useAnimeSearchSuspense.queryKey({
                 anime: state.title,
@@ -135,7 +135,7 @@ export const useMediaObserver = () => {
             return
           }
 
-          if (animes.length === 0) {
+          if (anime.length === 0) {
             Logger.debug(`No anime found for ${state.toString()}`)
             toast.error(
               t('integration.alert.searchResultEmpty', { title: state.title }),
@@ -148,16 +148,16 @@ export const useMediaObserver = () => {
             return
           }
 
-          if (animes.length > 1) {
-            Logger.debug('Multiple animes found, open disambiguation')
+          if (anime.length > 1) {
+            Logger.debug('Multiple anime found, open disambiguation')
 
             // the popup is responsible for setting the danmaku meta
-            open({ animes: animes, tab: PopupTab.Selector })
+            open({ animes: anime, tab: PopupTab.Selector })
             return
           }
 
           // at this point, there should be only one anime
-          const { episodes, animeTitle, animeId } = animes[0]
+          const { episodes, animeTitle, animeId } = anime[0]
           const { episodeId, episodeTitle } = episodes[0]
 
           // save the result to title mapping

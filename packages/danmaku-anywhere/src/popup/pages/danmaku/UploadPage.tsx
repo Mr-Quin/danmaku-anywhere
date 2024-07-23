@@ -104,7 +104,7 @@ export const UploadPage = () => {
     onSuccess: () => {
       toast.success(t('danmakuPage.upload.success'))
       setShowResult(false)
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: useAllDanmakuQuerySuspense.queryKey(),
       })
     },

@@ -8,7 +8,7 @@ import { migrateOptions } from '@/common/services/SyncOptionsService/migrationOp
 //Handles creating and upgrading options schema
 export class SyncOptionsService<T extends OptionsSchema> {
   private versions: Version<T>[] = []
-  private logger: typeof Logger
+  private readonly logger: typeof Logger
   private storageService: ExtStorageService<Options<T>>
 
   constructor(

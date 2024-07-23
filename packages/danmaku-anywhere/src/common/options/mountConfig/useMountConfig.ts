@@ -15,8 +15,8 @@ import {
 
 const isPermissionGranted = async (patterns: string[]) => {
   if (!(await hasOriginPermission(patterns))) {
-    // request permission if not granted
-    // if user denies permission, do not save
+    // Request permission if not granted.
+    // If the user denies permission, do not save
     if (!(await requestOriginPermission(patterns))) {
       return false
     }

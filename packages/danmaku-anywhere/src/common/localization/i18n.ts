@@ -9,7 +9,7 @@ import { resources } from './resources'
 
 export const i18n = use(initReactI18next)
 
-i18n.init({
+void i18n.init({
   resources,
   lng: 'en',
   interpolation: {
@@ -21,7 +21,7 @@ i18n.init({
 new SyncOptionsService('extensionOptions', defaultExtensionOptions)
   .get()
   .then((options) => {
-    i18n.changeLanguage(options.lang)
+    void i18n.changeLanguage(options.lang)
   })
   .catch(() => {
     Logger.error(

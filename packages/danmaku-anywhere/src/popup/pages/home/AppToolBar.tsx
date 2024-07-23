@@ -11,6 +11,7 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material'
+import type { ChangeEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
@@ -20,7 +21,7 @@ import { useExtensionOptionsSuspense } from '@/common/options/extensionOptions/u
 export const AppToolBar = () => {
   const { partialUpdate, data: options } = useExtensionOptionsSuspense()
 
-  const handleEnable = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleEnable = async (event: ChangeEvent<HTMLInputElement>) => {
     await partialUpdate({
       enabled: event.target.checked,
     })

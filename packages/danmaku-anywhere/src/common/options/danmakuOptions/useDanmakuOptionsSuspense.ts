@@ -15,7 +15,7 @@ export const useDanmakuOptionsSuspense = () => {
   const partialUpdate = async (config: DanmakuOptions) => {
     const { version } = store.data
 
-    store.update.mutateAsync({
+    await store.update.mutateAsync({
       version,
       data: config,
     })

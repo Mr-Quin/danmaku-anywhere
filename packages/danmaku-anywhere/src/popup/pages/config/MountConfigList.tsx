@@ -25,7 +25,7 @@ export const MountConfigList = ({
   const { setShowConfirmDeleteDialog, setEditingConfig } = useStore.use.config()
 
   const copyToClipboard = async (config: MountConfig) => {
-    tryCatch(() =>
+    await tryCatch(() =>
       navigator.clipboard.writeText(JSON.stringify(config, null, 2))
     )
   }
@@ -53,7 +53,7 @@ export const MountConfigList = ({
                     edge="end"
                     aria-label={t('common.copyToClipboard')}
                     onClick={() => {
-                      copyToClipboard(config)
+                      void copyToClipboard(config)
                     }}
                   >
                     <ContentCopy />

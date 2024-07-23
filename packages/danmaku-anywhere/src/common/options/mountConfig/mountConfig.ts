@@ -26,13 +26,13 @@ interface LegacyMountConfig {
   /**
    * @deprecated
    * containerQuery is deprecated because
-   * it's tricky to find the right container to serve as the danamku mount point,
+   * it's tricky to find the right container to serve as the danmaku mount point,
    * so we use a global container and overlay it on top of the video.
    */
   readonly containerQuery?: string
   /**
    * @deprecated
-   * Whether the config is predefined
+   * Whether the config is predefined.
    * Predefined configs cannot be deleted
    *
    * We don't use this field anymore because there is no point in preventing users from deleting configs
@@ -44,7 +44,7 @@ const mountConfigSchema = z.object({
   patterns: z.array(
     z.string().refine(
       async (value) => {
-        // If the pattern is a invalid, it returns a error string, so we need to negate it
+        // If the pattern is invalid, it returns an error string, so we need to negate it
         if (await validateOrigin(value)) {
           return false
         }

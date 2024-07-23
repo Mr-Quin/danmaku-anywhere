@@ -7,9 +7,8 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
-import { useExportDanmaku } from '../../../hooks/useExportDanmaku'
-
 import { useAllDanmakuQuerySuspense } from '@/common/queries/danmaku/useAllDanmakuQuerySuspense'
+import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 
 export const ExportDanmaku = () => {
   const { mutate, isPending } = useExportDanmaku()

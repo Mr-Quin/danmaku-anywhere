@@ -43,11 +43,11 @@ export const useSuspenseExtStorageQuery = <T>(
 
   useEffect(() => {
     storageService.subscribe(() => {
-      queryClient.invalidateQueries({ queryKey })
+      void queryClient.invalidateQueries({ queryKey })
     })
 
     return () => {
-      queryClient.invalidateQueries({ queryKey })
+      void queryClient.invalidateQueries({ queryKey })
       storageService.destroy()
     }
   }, [storageService, queryClient])
@@ -70,7 +70,7 @@ export const useSuspenseExtStorageQuery = <T>(
   const updateMutation = useMutation({
     mutationFn: storageService.set.bind(storageService),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey })
+      void queryClient.invalidateQueries({ queryKey })
       updateMutationOptions?.onSuccess?.()
     },
     onError: (error) => {
@@ -81,7 +81,7 @@ export const useSuspenseExtStorageQuery = <T>(
   const deleteMutation = useMutation({
     mutationFn: storageService.set.bind(storageService),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey })
+      void queryClient.invalidateQueries({ queryKey })
       deleteMutationOptions?.onSuccess?.()
     },
     onError: (error) => {

@@ -5,8 +5,7 @@ import { produce } from 'immer'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { LabeledSlider } from '../../../common/components/LabeledSlider'
-
+import { LabeledSlider } from '@/common/components/LabeledSlider'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/danmakuOptions'
 import { useDanmakuOptionsSuspense } from '@/common/options/danmakuOptions/useDanmakuOptionsSuspense'
 

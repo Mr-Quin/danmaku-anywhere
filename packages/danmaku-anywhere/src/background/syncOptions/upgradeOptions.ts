@@ -8,15 +8,17 @@ import { defaultExtensionOptions } from '@/common/options/extensionOptions/exten
 import { defaultMountConfig } from '@/common/options/mountConfig/mountConfig'
 import { SyncOptionsService } from '@/common/services/SyncOptionsService/SyncOptionsService'
 
+type PrevOptions = any
+
 export const extensionOptionsService = new SyncOptionsService(
   'extensionOptions',
   defaultExtensionOptions
 )
   .version(1, {
-    upgrade: (data: any) => data,
+    upgrade: (data: PrevOptions) => data,
   })
   .version(2, {
-    upgrade: (data: any) => {
+    upgrade: (data: PrevOptions) => {
       return {
         ...data,
         lang: Language.zh, // add lang field
@@ -24,7 +26,7 @@ export const extensionOptionsService = new SyncOptionsService(
     },
   })
   .version(3, {
-    upgrade: (data: any) => {
+    upgrade: (data: PrevOptions) => {
       return {
         ...data,
         danmakuSources: {
@@ -36,7 +38,7 @@ export const extensionOptionsService = new SyncOptionsService(
     },
   })
   .version(4, {
-    upgrade: (data: any) =>
+    upgrade: (data: PrevOptions) =>
       produce<ExtensionOptions>(data, (draft) => {
         draft.danmakuSources.dandanplay.chConvert = DanDanChConvert.None
       }),
@@ -47,10 +49,10 @@ const danmakuOptionsService = new SyncOptionsService(
   defaultDanmakuOptions
 )
   .version(1, {
-    upgrade: (data: any) => data,
+    upgrade: (data: PrevOptions) => data,
   })
   .version(2, {
-    upgrade: (data: any) => ({
+    upgrade: (data: PrevOptions) => ({
       ...data,
       // add safeZones and offset
       safeZones: {
@@ -68,11 +70,11 @@ export const mountConfigService = new SyncOptionsService(
   defaultMountConfig
 )
   .version(1, {
-    upgrade: (data: any) => data,
+    upgrade: (data: PrevOptions) => data,
   })
   .version(2, {
-    upgrade: (data: any) =>
-      data.map((config: any) => ({
+    upgrade: (data: PrevOptions) =>
+      data.map((config: PrevOptions) => ({
         ...config,
         enabled: false, // switching to new permission model. disable all configs by default, permission will be asked when enabled
       })),

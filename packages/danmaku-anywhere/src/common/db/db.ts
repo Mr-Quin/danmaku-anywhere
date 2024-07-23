@@ -54,7 +54,7 @@ class DanmakuAnywhereDb extends Dexie {
         titleMapping: '++id, originalTitle, title, source',
       })
       .upgrade(async (tx) => {
-        // add type field to danmkauCache.meta
+        // add type field to danmakuCache.meta
         await tx
           .table<DDPDanmakuCache>('danmakuCache')
           .toCollection()
