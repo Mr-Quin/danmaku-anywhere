@@ -174,7 +174,7 @@ const pages = {
     noAnimeFound: 'Nothing to select from',
     saveMapping: 'Remember selection',
     saveMappingAs: 'Remember {{originalName}} as {{newName}}',
-    selectAnime: 'Multile matches found for {{name}}, please select',
+    selectAnime: 'Multiple matches found for {{name}}, please select',
   },
   stylePage: {
     name: 'Danmaku Settings',

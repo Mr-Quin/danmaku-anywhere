@@ -30,7 +30,7 @@ export const EpisodeOption = (
 
     if (isCustomDanmaku(option.meta)) return
 
-    fetch({
+    void fetch({
       meta: option.meta,
       options: {
         forceUpdate: true,

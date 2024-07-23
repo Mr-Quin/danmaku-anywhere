@@ -6,7 +6,7 @@ import { useDanmakuQuerySuspense } from '@/common/queries/danmaku/useDanmakuQuer
 import { chromeRpcClient } from '@/common/rpc/client'
 
 /**
- * Fetches danmaku from cahce
+ * Fetches danmaku from cache
  * If not found in cache, fetches from server and saves to cache
  *
  * This is a mutation because it updates the cache
@@ -17,10 +17,10 @@ export const useFetchDanmaku = () => {
   const mutation = useMutation({
     mutationFn: chromeRpcClient.danmakuFetchDDP,
     onSuccess: (_, v) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: useAllDanmakuQuerySuspense.queryKey(),
       })
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: useDanmakuQuerySuspense.queryKey(v.meta),
       })
     },

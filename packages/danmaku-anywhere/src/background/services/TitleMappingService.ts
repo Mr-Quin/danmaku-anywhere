@@ -1,8 +1,7 @@
-import { db } from '../../common/db/db'
-import { invariant, isServiceWorker } from '../../common/utils/utils'
-
+import { db } from '@/common/db/db'
 import { Logger } from '@/common/services/Logger'
 import type { TitleMapping } from '@/common/types/danmaku/Danmaku'
+import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 export class TitleMappingService {
   private db = db.titleMapping

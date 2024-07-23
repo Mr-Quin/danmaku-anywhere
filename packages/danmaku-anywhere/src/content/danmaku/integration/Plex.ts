@@ -109,7 +109,7 @@ export class PlexObserver extends MediaObserver {
 
         const titleData = parseTitle(newTitle)
 
-        // if there's no title data and we have a title, it means the video has ended
+        // if there's no title data, and we have a title, it means the video has ended
         if (!titleData) {
           if (this.title) {
             this.emit('statusChange', 'stopped')

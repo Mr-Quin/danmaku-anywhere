@@ -7,6 +7,7 @@ import {
   FormControlLabel,
   Checkbox,
 } from '@mui/material'
+import type { ChangeEvent } from 'react'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -26,7 +27,7 @@ export const TypeSelector = () => {
   }
 
   const handleSelect =
-    (type: DanmakuType) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    (type: DanmakuType) => (e: ChangeEvent<HTMLInputElement>) => {
       if (e.target.checked) {
         if (!selectedTypes.includes(type)) {
           setSelectedType([...selectedTypes, type])

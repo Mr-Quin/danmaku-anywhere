@@ -31,16 +31,16 @@ export const setupRpc = () => {
 
       switch (state) {
         case 'active':
-          iconService.setActive(sender.tab.id)
+          void iconService.setActive(sender.tab.id)
           break
         case 'inactive':
-          iconService.setNormal(sender.tab.id)
+          void iconService.setNormal(sender.tab.id)
           break
         case 'available':
-          iconService.setNormal(sender.tab.id)
+          void iconService.setNormal(sender.tab.id)
           break
         case 'unavailable':
-          iconService.setUnavailable(sender.tab.id)
+          void iconService.setUnavailable(sender.tab.id)
           break
         default:
           break

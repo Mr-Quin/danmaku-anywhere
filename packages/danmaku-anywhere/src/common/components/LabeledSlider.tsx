@@ -1,12 +1,13 @@
 import type { SliderProps, TypographyProps } from '@mui/material'
 import { Slider, Box, Typography, Tooltip, Grid } from '@mui/material'
+import type { ReactNode } from 'react'
 import { useId } from 'react'
 
 interface LabeledSliderProps extends SliderProps {
   label: string
   tooltip?: string
   typographyProps?: TypographyProps
-  children?: React.ReactNode
+  children?: ReactNode
 }
 
 export const LabeledSlider = ({

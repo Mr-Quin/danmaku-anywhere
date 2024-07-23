@@ -112,7 +112,7 @@ export const FilterPage = () => {
   })
 
   const handleUpdate = (updater: (draft: Draft<DanmakuOptions>) => void) => {
-    partialUpdate(produce(config, updater))
+    void partialUpdate(produce(config, updater))
   }
 
   const handleAddFilter = () => {

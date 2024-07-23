@@ -18,7 +18,7 @@ export interface Comment {
 
   /**
    * A custom render to draw comment.
-   * When it exist, `text` and `style` will be ignored.
+   * When it exists, `text` and `style` will be ignored.
    */
   render?(): HTMLElement | HTMLCanvasElement
 }
@@ -51,7 +51,7 @@ export interface DanmakuOption {
    */
   media?: HTMLMediaElement
   /**
-   * Preseted comments, used in media mode
+   * Preset comments, used in media mode
    */
   comments?: Comment[]
   /**
@@ -142,7 +142,7 @@ export function* sampleComments(comments: CachedComment[], ratio: number) {
   }
 }
 
-// returns true if the comment should be be filtered out
+// returns true if the comment should be filtered out
 export const applyFilter = (comment: string, filters: DanmakuFilter[]) => {
   return filters.some(({ type, value, enabled }) => {
     if (!enabled) return false

@@ -31,10 +31,10 @@ export const useDeleteDanmaku = () => {
     },
     onSuccess: (_, id) => {
       toast.success(t('danmaku.alert.deleted'))
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: useAllDanmakuQuerySuspense.queryKey(),
       })
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: useDanmakuQuerySuspense.queryKey(id),
       })
     },

@@ -4,14 +4,13 @@ import { useQuery } from '@tanstack/react-query'
 import { Suspense, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useMountDanmakuPopup } from '../../../hooks/useMountDanmakuPopup'
-
 import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSelector'
 import { useToast } from '@/common/components/toast/toastStore'
 import { useSessionState } from '@/common/queries/extStorage/useSessionState'
 import { tabRpcClient } from '@/common/rpc/client'
 import { Logger } from '@/common/services/Logger'
 import type { DanmakuMeta } from '@/common/types/danmaku/Danmaku'
+import { useMountDanmakuPopup } from '@/popup/hooks/useMountDanmakuPopup'
 
 export const MountController = () => {
   const { t } = useTranslation()
@@ -62,7 +61,7 @@ export const MountController = () => {
       component="form"
       onSubmit={(e) => {
         e.preventDefault()
-        handleMount()
+        void handleMount()
       }}
     >
       <Stack direction="column" spacing={2}>
