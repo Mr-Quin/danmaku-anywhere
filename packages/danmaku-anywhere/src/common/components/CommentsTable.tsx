@@ -2,6 +2,7 @@ import type { CachedComment } from '@danmaku-anywhere/danmaku-engine'
 import { parseDanDanCommentParams } from '@danmaku-anywhere/danmaku-engine'
 import type { BoxProps } from '@mui/material'
 import {
+  Button,
   Box,
   Table,
   TableBody,
@@ -16,8 +17,12 @@ import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { match } from 'ts-pattern'
 
-interface CommentListProps extends BoxProps {
+interface CommentListProps {
   comments: CachedComment[]
+  boxProps?: BoxProps
+  isTimeClickable?: boolean
+  onTimeClick?: (time: number) => void
+  onFilterComment?: (comment: string) => void
 }
 
 const formatTime = (seconds: number) => {
@@ -29,8 +34,15 @@ const formatTime = (seconds: number) => {
   ).padStart(2, '0')}`
 }
 
-export const CommentsTable = ({ comments, ...rest }: CommentListProps) => {
+export const CommentsTable = ({
+  comments,
+  boxProps,
+  isTimeClickable,
+  onFilterComment,
+  onTimeClick,
+}: CommentListProps) => {
   const { t } = useTranslation()
+
   const headerCells = useMemo(
     () => [
       { id: 'time', label: t('common.time'), width: 56 },
@@ -41,6 +53,7 @@ export const CommentsTable = ({ comments, ...rest }: CommentListProps) => {
 
   const [orderBy, setOrderBy] = useState(headerCells[0].id)
   const [order, setOrder] = useState<'asc' | 'desc'>('asc')
+  const [hoverRow, setHoverRow] = useState<number>()
 
   const sortedComments = useMemo(() => {
     return match(orderBy)
@@ -75,7 +88,7 @@ export const CommentsTable = ({ comments, ...rest }: CommentListProps) => {
       component={Box}
       height="100%"
       overflow="auto"
-      {...rest}
+      {...boxProps}
       ref={ref}
     >
       <Table size="small" stickyHeader>
@@ -114,13 +127,14 @@ export const CommentsTable = ({ comments, ...rest }: CommentListProps) => {
           {virtualizer.getVirtualItems().map((virtualItem) => {
             const comment = sortedComments[virtualItem.index]
             const { time } = parseDanDanCommentParams(comment.p)
+            const isHovering = hoverRow === virtualItem.index
 
             return (
               <TableRow
                 key={virtualItem.key}
                 data-index={virtualItem.index}
                 ref={virtualizer.measureElement}
-                sx={{
+                style={{
                   position: 'absolute',
                   top: 0,
                   left: 0,
@@ -128,10 +142,32 @@ export const CommentsTable = ({ comments, ...rest }: CommentListProps) => {
                   transform: `translateY(${virtualItem.start}px)`,
                   display: 'flex',
                 }}
+                onMouseOver={() => setHoverRow(virtualItem.index)}
               >
-                <TableCell width={56}>{formatTime(time)}</TableCell>
                 <TableCell
+                  width={56}
+                  style={{
+                    flexShrink: 0,
+                  }}
                   sx={{
+                    color:
+                      isTimeClickable && isHovering
+                        ? 'primary.main'
+                        : 'text.primary',
+                  }}
+                  onClick={() => onTimeClick?.(time)}
+                >
+                  <span
+                    style={{
+                      cursor:
+                        isTimeClickable && isHovering ? 'pointer' : 'unset',
+                    }}
+                  >
+                    {formatTime(time)}
+                  </span>
+                </TableCell>
+                <TableCell
+                  style={{
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -141,6 +177,38 @@ export const CommentsTable = ({ comments, ...rest }: CommentListProps) => {
                 >
                   {comment.m}
                 </TableCell>
+                {isHovering && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      right: 2,
+                      display: 'flex',
+                      gap: 1,
+                    }}
+                    component={TableCell}
+                  >
+                    <Button
+                      variant="contained"
+                      size="small"
+                      sx={{ height: 0.75 }}
+                      onClick={() =>
+                        void navigator.clipboard.writeText(comment.m)
+                      }
+                    >
+                      {t('common.copy')}
+                    </Button>
+                    {onFilterComment && (
+                      <Button
+                        variant="contained"
+                        size="small"
+                        sx={{ height: 0.75 }}
+                        onClick={() => onFilterComment(comment.m)}
+                      >
+                        {t('common.filter')}
+                      </Button>
+                    )}
+                  </Box>
+                )}
               </TableRow>
             )
           })}

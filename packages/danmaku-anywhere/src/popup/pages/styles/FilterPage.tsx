@@ -18,7 +18,7 @@ import type { Draft } from 'immer'
 import { produce } from 'immer'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/danmakuOptions'
 import { useDanmakuOptionsSuspense } from '@/common/options/danmakuOptions/useDanmakuOptionsSuspense'
@@ -98,7 +98,11 @@ export const FilterPage = () => {
     update: { isPending },
   } = useDanmakuOptionsSuspense()
 
-  const [filterPattern, setFilterPattern] = useState('')
+  const { state } = useLocation()
+
+  const [filterPattern, setFilterPattern] = useState(
+    typeof state === 'string' ? state : ''
+  )
   const [filterError, setFilterError] = useState('')
 
   const [filterTestString, setFilterTestString] = useState('')

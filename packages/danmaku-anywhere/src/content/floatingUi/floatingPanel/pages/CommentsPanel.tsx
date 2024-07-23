@@ -13,12 +13,19 @@ import { useRefreshComments } from '../../../common/hooks/useRefreshComments'
 import { useStore } from '../../../store/store'
 
 import { CommentsTable } from '@/common/components/CommentsTable'
+import { useMediaElementStore } from '@/content/store/mediaElementStore'
 
 export const CommentsPanel = () => {
   const { t } = useTranslation()
   const { comments } = useStore()
 
   const { refreshComments, isPending, canRefresh } = useRefreshComments()
+  const videoNode = useMediaElementStore.use.videoNode()
+
+  const handleGoToTimestamp = (time: number) => {
+    if (!videoNode) return
+    videoNode.currentTime = time
+  }
 
   return (
     <Stack height="100%" flexGrow={1}>
@@ -42,7 +49,11 @@ export const CommentsPanel = () => {
           </Tooltip>
         )}
       </Toolbar>
-      <CommentsTable comments={comments} />
+      <CommentsTable
+        comments={comments}
+        onTimeClick={handleGoToTimestamp}
+        isTimeClickable={videoNode !== null}
+      />
     </Stack>
   )
 }

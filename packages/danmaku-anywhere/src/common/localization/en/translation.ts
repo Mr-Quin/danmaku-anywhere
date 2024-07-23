@@ -7,6 +7,7 @@ const common = {
     confirmDeleteMessage: 'Are you sure you want to delete "{{name}}"?',
     confirmDeleteTitle: 'Confirm delete',
     copyToClipboard: 'Copy to Clipboard',
+    copy: 'copy',
     delete: 'Delete',
     enable: 'Enable',
     export: 'Export',

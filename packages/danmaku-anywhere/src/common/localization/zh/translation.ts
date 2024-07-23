@@ -9,6 +9,7 @@ const common = {
     confirmDeleteMessage: '确定要删除 "{{name}}" 吗？',
     confirmDeleteTitle: '确认删除',
     copyToClipboard: '复制到剪贴板',
+    copy: '复制',
     delete: '删除',
     enable: '启用',
     export: '导出',

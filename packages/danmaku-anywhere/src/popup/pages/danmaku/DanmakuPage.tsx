@@ -1,7 +1,7 @@
 import { ChevronLeft } from '@mui/icons-material'
 import { Box, IconButton, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { CommentsTable } from '@/common/components/CommentsTable'
 import { useDanmakuQuerySuspense } from '@/common/queries/danmaku/useDanmakuQuerySuspense'
@@ -16,6 +16,7 @@ export const DanmakuPage = () => {
 
   const [searchParams] = useSearchParams()
 
+  const navigate = useNavigate()
   const goBack = useGoBack()
 
   const type = parseInt(searchParams.get('type')!) as DanmakuType
@@ -39,7 +40,16 @@ export const DanmakuPage = () => {
         }
       />
       {data ? (
-        <CommentsTable comments={data.comments} flexGrow={1} height="initial" />
+        <CommentsTable
+          comments={data.comments}
+          boxProps={{
+            flexGrow: 1,
+            height: 'initial',
+          }}
+          onFilterComment={(comment) =>
+            navigate('/styles/filtering', { state: comment })
+          }
+        />
       ) : (
         <Box p={2}>
           <Typography>{t('error.unknown')}</Typography>

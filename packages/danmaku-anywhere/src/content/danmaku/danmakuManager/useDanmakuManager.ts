@@ -12,6 +12,7 @@ import { Logger } from '@/common/services/Logger'
 import { useRefreshComments } from '@/content/common/hooks/useRefreshComments'
 
 // listen to comment changes and mount/unmount the danmaku engine
+// TODO: this should be a state machine
 export const useDanmakuManager = () => {
   const { t } = useTranslation()
   const { data: options } = useDanmakuOptionsSuspense()
