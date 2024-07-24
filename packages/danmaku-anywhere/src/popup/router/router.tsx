@@ -1,7 +1,7 @@
 import { createHashRouter, Navigate } from 'react-router-dom'
 
-import { MountConfigEditor } from '../pages/config/components/MountConfigEditor'
 import { ConfigPage } from '../pages/config/ConfigPage'
+import { MountConfigEditor } from '../pages/config/edit/MountConfigEditor'
 import { AnimePage } from '../pages/danmaku/AnimePage'
 import { DanmakuPage } from '../pages/danmaku/DanmakuPage'
 import { EpisodePage } from '../pages/danmaku/EpisodePage'

@@ -160,9 +160,12 @@ export const useMountConfig = () => {
     }
   }, [options, update.mutateAsync])
 
+  const configs: MountConfig[] = options.data
+
   return {
     ...rest,
-    configs: options.data,
+    update,
+    configs,
     ...methods,
   }
 }

@@ -1,8 +1,8 @@
 import { Outlet, useNavigate } from 'react-router-dom'
 
+import { ConfigToolbar } from './components/ConfigToolbar'
 import { ConfirmDeleteDialog } from './components/ConfirmDeleteDialog'
-import { ConfigToolbar } from './ConfigToolbar'
-import { MountConfigList } from './MountConfigList'
+import { MountConfigList } from './components/MountConfigList'
 
 import type { MountConfig } from '@/common/options/mountConfig/mountConfig'
 import { createMountConfig } from '@/common/options/mountConfig/mountConfig'
