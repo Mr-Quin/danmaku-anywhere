@@ -1,3 +1,5 @@
+import { match } from 'ts-pattern'
+
 import { AnimeService } from '../services/AnimeService'
 import { DanmakuService } from '../services/DanmakuService'
 import { IconService } from '../services/IconService'
@@ -10,7 +12,7 @@ import { Logger } from '@/common/services/Logger'
 
 export const setupRpc = () => {
   const animeService = new AnimeService()
-  const iconService = new IconService(chrome)
+  const iconService = new IconService()
   const danmakuService = new DanmakuService()
   const titleMappingService = new TitleMappingService()
 
@@ -24,29 +26,29 @@ export const setupRpc = () => {
 
       return res.animes
     },
-    iconSet: async (state, sender) => {
+    iconSet: async (data, sender) => {
       if (sender.tab?.id === undefined) {
         throw new RpcException('No tab id found')
       }
 
-      switch (state) {
-        case 'active':
-          void iconService.setActive(sender.tab.id)
-          break
-        case 'inactive':
-          void iconService.setNormal(sender.tab.id)
-          break
-        case 'available':
-          void iconService.setNormal(sender.tab.id)
-          break
-        case 'unavailable':
-          void iconService.setUnavailable(sender.tab.id)
-          break
-        default:
-          break
-      }
+      const tabId = sender.tab.id
 
-      Logger.debug('Icon state set to:', state)
+      match(data)
+        .with({ state: 'active' }, (data) => {
+          void iconService.setActive(tabId, data.count)
+        })
+        .with({ state: 'inactive' }, () => {
+          void iconService.setNormal(tabId)
+        })
+        .with({ state: 'available' }, () => {
+          void iconService.setNormal(tabId)
+        })
+        .with({ state: 'unavailable' }, () => {
+          void iconService.setUnavailable(tabId)
+        })
+        .exhaustive()
+
+      Logger.debug('Icon state set to:', data.state)
     },
     danmakuGetAll: async () => {
       return danmakuService.getAll()

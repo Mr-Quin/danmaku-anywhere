@@ -12,6 +12,7 @@ export const manifest = defineManifest({
   action: {
     default_popup: 'pages/popup.html',
     default_title: 'Danmaku anywhere',
+    default_icon: { 32: 'grey_32.png' },
   },
   options_page: 'pages/options.html',
   background: {
