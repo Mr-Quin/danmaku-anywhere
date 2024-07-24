@@ -40,7 +40,7 @@ const partitionDanmaku = (
       // map to type and count
       const titles = Object.keys(grouped).map((title) => ({
         title,
-        count: grouped[title].length,
+        count: grouped[title]?.length ?? 0,
         type,
       }))
 
