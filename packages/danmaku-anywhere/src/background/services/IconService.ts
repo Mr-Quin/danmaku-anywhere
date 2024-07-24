@@ -1,86 +1,31 @@
-import { Logger } from '@/common/services/Logger'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
-type Chrome = typeof chrome
-
 export class IconService {
-  private activeIconCache?: ImageData
-
-  constructor(private chrome: Chrome) {
+  constructor() {
     invariant(
       isServiceWorker(),
       'IconService is only available in service worker'
     )
   }
 
-  async getIconBitmap(path: string) {
-    const response = await fetch(this.chrome.runtime.getURL(path))
+  private async getIconBitmap(path: string) {
+    const response = await fetch(chrome.runtime.getURL(path))
     const blob = await response.blob()
     return await createImageBitmap(blob)
   }
 
-  async setActive(tabId: number) {
-    if (this.activeIconCache) {
-      await this.chrome.action.setIcon({
-        imageData: this.activeIconCache,
-        tabId,
-      })
-      return
-    }
-    try {
-      // Fetch the original icon
-      const imgBitmap = await this.getIconBitmap('normal_16.png')
-
-      const canvas = new OffscreenCanvas(16, 16)
-      const ctx = canvas.getContext('2d')
-
-      if (!ctx) {
-        Logger.error('Error getting canvas context')
-        return
-      }
-
-      // Draw the original icon
-      ctx.drawImage(imgBitmap, 0, 0, 16, 16)
-
-      // Define green dot size and position
-      const dotRadius = 6 // Size of green dot
-      const dotX = 14 // X-position (right corner)
-      const dotY = 2 // Y-position (top corner)
-
-      // Draw the green circle overlay
-      ctx.fillStyle = '#ffffff'
-      ctx.beginPath()
-      ctx.arc(dotX, dotY, dotRadius, 0, 2 * Math.PI)
-      ctx.fill()
-
-      const imageData = ctx.getImageData(0, 0, 16, 16)
-      this.activeIconCache = imageData
-      await this.chrome.action.setIcon({ imageData, tabId })
-    } catch (err) {
-      Logger.error('Error overlaying icon:', err)
-    }
+  async setActive(tabId: number, commentCount: number) {
+    const badgeText = commentCount > 999 ? '999+' : commentCount.toString()
+    await chrome.action.setBadgeText({ text: badgeText, tabId })
   }
 
   async setUnavailable(tabId: number) {
-    const imgBitmap = await this.getIconBitmap('normal_16.png')
-
-    const canvas = new OffscreenCanvas(16, 16)
-    const ctx = canvas.getContext('2d')
-
-    if (!ctx) {
-      Logger.error('Error getting canvas context')
-      return
-    }
-
-    // make the icon gray
-    ctx.filter = 'grayscale(100%)'
-    ctx.drawImage(imgBitmap, 0, 0, 16, 16)
-
-    const imageData = ctx.getImageData(0, 0, 16, 16)
-    await this.chrome.action.setIcon({ imageData, tabId })
+    await chrome.action.setBadgeText({ text: '', tabId })
+    await chrome.action.setIcon({ path: 'grey_32.png', tabId })
   }
 
   async setNormal(tabId: number) {
-    await this.chrome.action.setIcon({ path: 'normal_16.png', tabId })
+    await chrome.action.setBadgeText({ text: '', tabId })
+    await chrome.action.setIcon({ path: 'normal_32.png', tabId })
   }
 }

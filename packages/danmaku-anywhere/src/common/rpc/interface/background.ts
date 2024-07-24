@@ -16,9 +16,24 @@ import type {
   TitleMapping,
 } from '@/common/types/danmaku/Danmaku'
 
+type IconSetDto =
+  | {
+      state: 'active'
+      count: number
+    }
+  | {
+      state: 'inactive'
+    }
+  | {
+      state: 'available'
+    }
+  | {
+      state: 'unavailable'
+    }
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type IconMethods = {
-  iconSet: RPCDef<'active' | 'inactive' | 'available' | 'unavailable', void>
+  iconSet: RPCDef<IconSetDto, void>
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
