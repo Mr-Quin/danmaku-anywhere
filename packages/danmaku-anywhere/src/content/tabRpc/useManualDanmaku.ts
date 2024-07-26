@@ -2,9 +2,9 @@ import type { CachedComment } from '@danmaku-anywhere/danmaku-engine'
 import { useEventCallback } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
-import { useToast } from '@/common/components/toast/toastStore'
-import { Logger } from '@/common/services/Logger'
-import type { DanmakuMeta } from '@/common/types/danmaku/Danmaku'
+import { useToast } from '@/common/components/Toast/toastStore'
+import type { DanmakuMeta } from '@/common/danmaku/types/types'
+import { Logger } from '@/common/Logger'
 import { useMediaElementStore } from '@/content/store/mediaElementStore'
 import { useStore } from '@/content/store/store'
 

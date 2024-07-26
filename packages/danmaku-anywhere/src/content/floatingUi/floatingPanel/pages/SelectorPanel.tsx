@@ -25,8 +25,8 @@ import { useTranslation } from 'react-i18next'
 import { usePopup } from '../../../store/popupStore'
 import { useStore } from '../../../store/store'
 
-import { AnimeTypeIcon } from '@/common/components/animeList/AnimeTypeIcon'
-import { DanmakuType } from '@/common/types/danmaku/Danmaku'
+import { AnimeTypeIcon } from '@/common/components/AnimeList/AnimeTypeIcon'
+import { DanmakuSourceType } from '@/common/danmaku/types/enums'
 import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
 export const SelectorPanel = () => {
@@ -66,7 +66,7 @@ export const SelectorPanel = () => {
         : undefined
     await fetch({
       danmakuMeta: {
-        type: DanmakuType.DDP,
+        type: DanmakuSourceType.DDP,
         animeId: selectedAnime.animeId,
         animeTitle: selectedAnime.animeTitle,
         ...selectedEpisode,

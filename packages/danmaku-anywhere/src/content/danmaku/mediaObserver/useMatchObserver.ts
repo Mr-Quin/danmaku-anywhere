@@ -5,8 +5,8 @@ import { useStore } from '../../store/store'
 import type { MediaObserver } from '../integration/MediaObserver'
 import { observersMap } from '../integration/observers'
 
-import { useToast } from '@/common/components/toast/toastStore'
-import { Logger } from '@/common/services/Logger'
+import { useToast } from '@/common/components/Toast/toastStore'
+import { Logger } from '@/common/Logger'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
 
 export const useMatchObserver = () => {

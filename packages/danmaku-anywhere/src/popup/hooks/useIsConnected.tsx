@@ -1,7 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 
-import { tabRpcClient } from '@/common/rpc/client'
-import { Logger } from '@/common/services/Logger'
+import { Logger } from '@/common/Logger'
+import { tabRpcClient } from '@/common/rpcClient/tab/client'
 import { sleep } from '@/common/utils/utils'
 
 export const useIsConnected = () => {

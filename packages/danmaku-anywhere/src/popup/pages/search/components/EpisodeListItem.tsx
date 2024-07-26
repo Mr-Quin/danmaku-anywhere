@@ -2,13 +2,13 @@ import { Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import {
-  BaseListItemSkeleton,
   BaseEpisodeListItem,
-} from '@/common/components/animeList/BaseEpisodeListItem'
-import { useDanmakuQuerySuspense } from '@/common/queries/danmaku/useDanmakuQuerySuspense'
-import { useFetchDanmaku } from '@/common/queries/danmaku/useFetchDanmaku'
-import type { DDPDanmakuMeta } from '@/common/types/danmaku/Danmaku'
-import { DanmakuType } from '@/common/types/danmaku/Danmaku'
+  BaseListItemSkeleton,
+} from '@/common/components/AnimeList/BaseEpisodeListItem'
+import { useDanmakuQuerySuspense } from '@/common/danmaku/queries/useDanmakuQuerySuspense'
+import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
+import { DanmakuSourceType } from '@/common/danmaku/types/enums'
+import type { DDPDanmakuMeta } from '@/common/danmaku/types/types'
 
 type EpisodeListItemProps = Omit<Required<DDPDanmakuMeta>, 'type'>
 
@@ -18,7 +18,7 @@ const InnerEpisodeListItem = (props: EpisodeListItemProps) => {
   const { fetch, isPending } = useFetchDanmaku()
 
   const { data: danmakuData } = useDanmakuQuerySuspense({
-    type: DanmakuType.DDP,
+    type: DanmakuSourceType.DDP,
     id: episodeId,
   })
 
@@ -26,7 +26,7 @@ const InnerEpisodeListItem = (props: EpisodeListItemProps) => {
 
   const handleFetchDanmaku = async () => {
     await fetch({
-      meta: { ...props, type: DanmakuType.DDP },
+      meta: { ...props, type: DanmakuSourceType.DDP },
       options: {
         forceUpdate: true,
       },

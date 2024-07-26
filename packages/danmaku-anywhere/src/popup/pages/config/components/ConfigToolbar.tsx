@@ -8,9 +8,9 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
-import { mountConfigListSchema } from '@/common/options/mountConfig/mountConfig'
+import { Logger } from '@/common/Logger'
+import { mountConfigListSchema } from '@/common/options/mountConfig/schema'
 import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
-import { Logger } from '@/common/services/Logger'
 import { tryCatch } from '@/common/utils/utils'
 import { DrilldownMenu } from '@/popup/component/DrilldownMenu'
 import { TabToolbar } from '@/popup/component/TabToolbar'

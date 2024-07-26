@@ -8,9 +8,9 @@ import { RootRouter } from './router/RootRouter'
 
 import { Center } from '@/common/components/Center'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
-import { Toast } from '@/common/components/toast/Toast'
+import { Toast } from '@/common/components/Toast/Toast'
 import { db } from '@/common/db/db'
-import { Logger } from '@/common/services/Logger'
+import { Logger } from '@/common/Logger'
 
 const LoadInitialData = ({ children }: PropsWithChildren) => {
   use(db.isReady)

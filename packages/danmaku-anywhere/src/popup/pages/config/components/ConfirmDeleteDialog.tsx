@@ -10,7 +10,7 @@ import {
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
-import { useToast } from '@/common/components/toast/toastStore'
+import { useToast } from '@/common/components/Toast/toastStore'
 import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { useStore } from '@/popup/store'
 

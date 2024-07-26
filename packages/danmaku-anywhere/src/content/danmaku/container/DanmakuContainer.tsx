@@ -5,8 +5,8 @@ import { useContainerNode } from './useContainerNode'
 import { useFullScreenElement } from './useFullScreenElement'
 import { useVideoNode } from './useVideoNode'
 
-import type { SafeZones } from '@/common/options/danmakuOptions/danmakuOptions'
-import { useDanmakuOptionsSuspense } from '@/common/options/danmakuOptions/useDanmakuOptionsSuspense'
+import type { SafeZones } from '@/common/options/danmakuOptions/constant'
+import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
 import { useRect } from '@/content/common/hooks/useRect'
 import { useDanmakuEngine } from '@/content/store/danmakuEngineStore'
@@ -27,7 +27,7 @@ const calculatePaddings = (safeZones: SafeZones, rect?: DOMRectReadOnly) => {
 }
 
 export const DanmakuContainer = () => {
-  const { data: options } = useDanmakuOptionsSuspense()
+  const { data: options } = useDanmakuOptions()
 
   const [paddings, setPaddings] = useState({
     paddingTop: '0px',

@@ -5,10 +5,10 @@ import { DanmakuService } from '../services/DanmakuService'
 import { IconService } from '../services/IconService'
 import { TitleMappingService } from '../services/TitleMappingService'
 
-import type { BackgroundMethods } from '@/common/rpc/interface/background'
-import { RpcException } from '@/common/rpc/rpc'
+import { Logger } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
-import { Logger } from '@/common/services/Logger'
+import { RpcException } from '@/common/rpc/types'
+import type { BackgroundMethods } from '@/common/rpcClient/background/types'
 
 export const setupRpc = () => {
   const animeService = new AnimeService()

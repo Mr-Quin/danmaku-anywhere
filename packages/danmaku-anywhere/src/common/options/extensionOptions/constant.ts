@@ -1,0 +1,30 @@
+import { DanDanChConvert } from '@danmaku-anywhere/dandanplay-api'
+
+import { Language } from '@/common/localization/language'
+import type { ExtensionOptions } from '@/common/options/extensionOptions/schema'
+
+export const ChConvertList = [
+  {
+    label: 'optionsPage.chConvert.none',
+    value: DanDanChConvert.None,
+  },
+  {
+    label: 'optionsPage.chConvert.simplified',
+    value: DanDanChConvert.Simplified,
+  },
+  {
+    label: 'optionsPage.chConvert.traditional',
+    value: DanDanChConvert.Traditional,
+  },
+] as const
+
+export const defaultExtensionOptions: ExtensionOptions = {
+  enabled: true,
+  lang: Language.zh,
+  danmakuSources: {
+    dandanplay: {
+      baseUrl: 'https://api.dandanplay.net',
+      chConvert: DanDanChConvert.None,
+    },
+  },
+} as const

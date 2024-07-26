@@ -3,9 +3,9 @@ import { useEffect } from 'react'
 
 import { useManualDanmaku } from './useManualDanmaku'
 
-import type { TabMethods } from '@/common/rpc/interface/tab'
+import { Logger } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
-import { Logger } from '@/common/services/Logger'
+import type { TabMethods } from '@/common/rpcClient/tab/types'
 import { useStore } from '@/content/store/store'
 
 export const useTabRpcServer = () => {

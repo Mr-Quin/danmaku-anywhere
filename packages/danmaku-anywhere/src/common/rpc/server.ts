@@ -1,6 +1,6 @@
-import { Logger } from '../services/Logger'
+import { Logger } from '../Logger'
 
-import type { RPCPayload, RPCRecord, RPCResponse } from './rpc'
+import type { RPCPayload, RPCRecord, RPCResponse } from './types'
 
 type RPCServerHandlers<TRecords extends RPCRecord> = {
   [TKey in keyof TRecords]: (

@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
-import { useToast } from '@/common/components/toast/toastStore'
-import { useDanmakuQuerySuspense } from '@/common/queries/danmaku/useDanmakuQuerySuspense'
-import { chromeRpcClient } from '@/common/rpc/client'
-import { Logger } from '@/common/services/Logger'
-import type { DanmakuMeta } from '@/common/types/danmaku/Danmaku'
+import { useToast } from '@/common/components/Toast/toastStore'
+import { useDanmakuQuerySuspense } from '@/common/danmaku/queries/useDanmakuQuerySuspense'
+import type { DanmakuMeta } from '@/common/danmaku/types/types'
+import { Logger } from '@/common/Logger'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useStore } from '@/content/store/store'
 
 export const useMountDanmakuContent = () => {

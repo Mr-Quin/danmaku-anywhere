@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next'
 import { EpisodeListItem } from './components/EpisodeListItem'
 import { SearchForm } from './components/SearchForm'
 
-import { SearchResultList } from '@/common/components/animeList/SearchResultList'
+import { SearchResultList } from '@/common/components/AnimeList/SearchResultList'
 import { Center } from '@/common/components/Center'
 import { TabToolbar } from '@/popup/component/TabToolbar'
 import { TabLayout } from '@/popup/layout/TabLayout'

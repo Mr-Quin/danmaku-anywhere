@@ -2,10 +2,10 @@ import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/dandanplay-ap
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 
-import type { MountConfig } from '@/common/options/mountConfig/mountConfig'
-import { createMountConfig } from '@/common/options/mountConfig/mountConfig'
-import type { DanmakuType } from '@/common/types/danmaku/Danmaku'
-import { danmakuTypeList } from '@/common/types/danmaku/Danmaku'
+import type { DanmakuSourceType } from '@/common/danmaku/types/enums'
+import { danmakuSourceTypeList } from '@/common/danmaku/types/enums'
+import { createMountConfig } from '@/common/options/mountConfig/constant'
+import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { createSelectors } from '@/common/utils/createSelectors'
 
 interface StoreState {
@@ -17,8 +17,8 @@ interface StoreState {
     setSelectedAnime: (anime: string) => void
     selectedEpisode: string
     setSelectedEpisode: (episode: string) => void
-    selectedTypes: DanmakuType[]
-    setSelectedType: (type: DanmakuType[]) => void
+    selectedTypes: DanmakuSourceType[]
+    setSelectedType: (type: DanmakuSourceType[]) => void
     showUploadDialog: boolean
     toggleUploadDialog: (show?: boolean) => void
   }
@@ -52,7 +52,7 @@ const useStoreBase = create<StoreState>()(
           state.danmaku.selectedEpisode = episode
         })
       },
-      selectedTypes: danmakuTypeList,
+      selectedTypes: danmakuSourceTypeList,
       setSelectedType: (type) => {
         set((state) => {
           state.danmaku.selectedTypes = type

@@ -5,7 +5,7 @@ import { ErrorBoundary } from 'react-error-boundary'
 import { Content } from './Content'
 import { LoadInitialData } from './LoadInitialData'
 
-import { Logger } from '@/common/services/Logger'
+import { Logger } from '@/common/Logger'
 
 export const App = () => {
   const ref = useRef<ErrorBoundary>(null)

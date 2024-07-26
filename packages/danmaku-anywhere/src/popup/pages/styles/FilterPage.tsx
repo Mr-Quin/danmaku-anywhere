@@ -20,8 +20,8 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router-dom'
 
-import type { DanmakuOptions } from '@/common/options/danmakuOptions/danmakuOptions'
-import { useDanmakuOptionsSuspense } from '@/common/options/danmakuOptions/useDanmakuOptionsSuspense'
+import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
+import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
 import { TabToolbar } from '@/popup/component/TabToolbar'
 import { TabLayout } from '@/popup/layout/TabLayout'
 
@@ -96,7 +96,7 @@ export const FilterPage = () => {
     data: config,
     partialUpdate,
     update: { isPending },
-  } = useDanmakuOptionsSuspense()
+  } = useDanmakuOptions()
 
   const { state } = useLocation()
 

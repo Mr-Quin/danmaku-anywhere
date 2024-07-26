@@ -2,13 +2,13 @@ import { useMutation } from '@tanstack/react-query'
 
 import { useStore } from '../../store/store'
 
-import { useFetchDanmaku } from '@/common/queries/danmaku/useFetchDanmaku'
-import { chromeRpcClient } from '@/common/rpc/client'
-import {
-  type DDPDanmakuMeta,
-  type TitleMapping,
-} from '@/common/types/danmaku/Danmaku'
-import type { DanmakuFetchOptions } from '@/common/types/DanmakuFetchOptions'
+import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
+import type {
+  DanmakuFetchOptions,
+  DDPDanmakuMeta,
+  TitleMapping,
+} from '@/common/danmaku/types/types'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { tryCatch } from '@/common/utils/utils'
 
 export const useFetchDanmakuMapped = () => {

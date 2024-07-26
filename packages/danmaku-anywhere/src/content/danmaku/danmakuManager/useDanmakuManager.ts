@@ -6,16 +6,16 @@ import { useDanmakuEngine } from '../../store/danmakuEngineStore'
 import { useMediaElementStore } from '../../store/mediaElementStore'
 import { useStore } from '../../store/store'
 
-import { useToast } from '@/common/components/toast/toastStore'
-import { useDanmakuOptionsSuspense } from '@/common/options/danmakuOptions/useDanmakuOptionsSuspense'
-import { Logger } from '@/common/services/Logger'
+import { useToast } from '@/common/components/Toast/toastStore'
+import { Logger } from '@/common/Logger'
+import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
 import { useRefreshComments } from '@/content/common/hooks/useRefreshComments'
 
 // listen to comment changes and mount/unmount the danmaku engine
 // TODO: this should be a state machine
 export const useDanmakuManager = () => {
   const { t } = useTranslation()
-  const { data: options } = useDanmakuOptionsSuspense()
+  const { data: options } = useDanmakuOptions()
   const danmakuEngine = useDanmakuEngine()
   const { toast } = useToast()
   const { videoNode, containerNode } = useMediaElementStore()

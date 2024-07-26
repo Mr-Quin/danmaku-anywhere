@@ -1,4 +1,4 @@
-import { Logger } from '@/common/services/Logger'
+import { Logger } from '@/common/Logger'
 // TODO: URLPattern is not available in Firefox yet
 import 'urlpattern-polyfill'
 

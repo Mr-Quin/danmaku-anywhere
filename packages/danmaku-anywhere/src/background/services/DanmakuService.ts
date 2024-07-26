@@ -4,21 +4,23 @@ import type Dexie from 'dexie'
 import { produce } from 'immer'
 import { match } from 'ts-pattern'
 
-import { extensionOptionsService } from '@/background/syncOptions/upgradeOptions'
-import { db } from '@/common/db/db'
-import { RpcException } from '@/common/rpc/rpc'
-import { Logger } from '@/common/services/Logger'
 import type {
   CustomDanmakuCreateDto,
+  DanmakuDeleteDto,
+  DanmakuGetOneDto,
+} from '@/common/danmaku/types/dto'
+import { DanmakuSourceType } from '@/common/danmaku/types/enums'
+import type {
   CustomDanmakuMeta,
   DanmakuCache,
   DanmakuCacheLite,
-  DanmakuDeleteDto,
-  DanmakuGetOneDto,
+  DanmakuFetchOptions,
   DDPDanmakuMeta,
-} from '@/common/types/danmaku/Danmaku'
-import { DanmakuType } from '@/common/types/danmaku/Danmaku'
-import type { DanmakuFetchOptions } from '@/common/types/DanmakuFetchOptions'
+} from '@/common/danmaku/types/types'
+import { db } from '@/common/db/db'
+import { Logger } from '@/common/Logger'
+import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
+import { RpcException } from '@/common/rpc/types'
 import { invariant, isServiceWorker, tryCatch } from '@/common/utils/utils'
 
 export class DanmakuService {
@@ -114,10 +116,10 @@ export class DanmakuService {
 
   async delete(data: DanmakuDeleteDto) {
     return match(data)
-      .with({ type: DanmakuType.DDP }, (data) => {
+      .with({ type: DanmakuSourceType.DDP }, (data) => {
         return this.ddpTable.delete(data.id)
       })
-      .with({ type: DanmakuType.Custom }, (data) => {
+      .with({ type: DanmakuSourceType.Custom }, (data) => {
         return this.customTable.delete(data.id)
       })
       .otherwise(() => {
@@ -132,7 +134,7 @@ export class DanmakuService {
       const cache = {
         comments,
         meta: {
-          type: DanmakuType.Custom,
+          type: DanmakuSourceType.Custom,
           episodeNumber,
           animeTitle,
           episodeTitle,
@@ -160,10 +162,10 @@ export class DanmakuService {
   /**
    * Get only the count and metadata of all danmaku in db
    */
-  async getAllLite(type?: DanmakuType) {
+  async getAllLite(type?: DanmakuSourceType) {
     const tables = match(type)
-      .with(DanmakuType.DDP, () => [this.ddpTable])
-      .with(DanmakuType.Custom, () => [this.customTable])
+      .with(DanmakuSourceType.DDP, () => [this.ddpTable])
+      .with(DanmakuSourceType.Custom, () => [this.customTable])
       .otherwise(() => [this.ddpTable, this.customTable])
 
     const data = await Promise.all(tables.map((type) => this._getAllLite(type)))
@@ -173,10 +175,10 @@ export class DanmakuService {
 
   async getOne(data: DanmakuGetOneDto) {
     return match(data)
-      .with({ type: DanmakuType.DDP }, (data) => {
+      .with({ type: DanmakuSourceType.DDP }, (data) => {
         return this.ddpTable.get(data.id)
       })
-      .with({ type: DanmakuType.Custom }, (data) => {
+      .with({ type: DanmakuSourceType.Custom }, (data) => {
         return this.customTable.get(data.id)
       })
       .otherwise(() => {

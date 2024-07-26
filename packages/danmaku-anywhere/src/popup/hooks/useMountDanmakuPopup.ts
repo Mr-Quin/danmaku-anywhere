@@ -1,12 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
-import { useToast } from '@/common/components/toast/toastStore'
-import { useDanmakuQuerySuspense } from '@/common/queries/danmaku/useDanmakuQuerySuspense'
-import { chromeRpcClient, tabRpcClient } from '@/common/rpc/client'
-import { Logger } from '@/common/services/Logger'
-import type { DanmakuMeta } from '@/common/types/danmaku/Danmaku'
-import { danmakuMetaToString } from '@/common/utils/danmaku'
+import { useToast } from '@/common/components/Toast/toastStore'
+import { useDanmakuQuerySuspense } from '@/common/danmaku/queries/useDanmakuQuerySuspense'
+import type { DanmakuMeta } from '@/common/danmaku/types/types'
+import { danmakuMetaToString } from '@/common/danmaku/utils'
+import { Logger } from '@/common/Logger'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { tabRpcClient } from '@/common/rpcClient/tab/client'
 
 export const useMountDanmakuPopup = () => {
   const { t } = useTranslation()

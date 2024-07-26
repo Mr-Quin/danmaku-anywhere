@@ -2,18 +2,14 @@ import { DanDanChConvert } from '@danmaku-anywhere/dandanplay-api'
 import { produce } from 'immer'
 
 import { Language } from '@/common/localization/language'
-import { defaultDanmakuOptions } from '@/common/options/danmakuOptions/danmakuOptions'
-import type { ExtensionOptions } from '@/common/options/extensionOptions/extensionOptions'
-import { defaultExtensionOptions } from '@/common/options/extensionOptions/extensionOptions'
-import { defaultMountConfig } from '@/common/options/mountConfig/mountConfig'
-import { SyncOptionsService } from '@/common/services/SyncOptionsService/SyncOptionsService'
+import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
+import type { ExtensionOptions } from '@/common/options/extensionOptions/schema'
+import { danmakuOptionsService } from '@/common/options/extensionOptions/service'
+import { mountConfigService } from '@/common/options/mountConfig/service'
 
 type PrevOptions = any
 
-export const extensionOptionsService = new SyncOptionsService(
-  'extensionOptions',
-  defaultExtensionOptions
-)
+extensionOptionsService
   .version(1, {
     upgrade: (data: PrevOptions) => data,
   })
@@ -44,10 +40,7 @@ export const extensionOptionsService = new SyncOptionsService(
       }),
   })
 
-const danmakuOptionsService = new SyncOptionsService(
-  'danmakuOptions',
-  defaultDanmakuOptions
-)
+danmakuOptionsService
   .version(1, {
     upgrade: (data: PrevOptions) => data,
   })
@@ -65,10 +58,7 @@ const danmakuOptionsService = new SyncOptionsService(
     }),
   })
 
-export const mountConfigService = new SyncOptionsService(
-  'mountConfig',
-  defaultMountConfig
-)
+mountConfigService
   .version(1, {
     upgrade: (data: PrevOptions) => data,
   })
