@@ -14,7 +14,6 @@ export const manifest = defineManifest({
     default_title: 'Danmaku anywhere',
     default_icon: { 32: 'grey_32.png' },
   },
-  options_page: 'pages/options.html',
   background: {
     service_worker: 'src/background/index.ts',
     scripts: ['src/background/index.ts'],
