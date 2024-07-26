@@ -27,7 +27,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         app: 'pages/popup.html',
-        options: 'pages/options.html',
       },
     },
   },
