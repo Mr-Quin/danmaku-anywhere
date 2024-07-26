@@ -1,13 +1,13 @@
 import { LoadingButton } from '@mui/lab'
-import { Typography, Stack, Grid, Input, Divider } from '@mui/material'
+import { Divider, Grid, Input, Stack, Typography } from '@mui/material'
 import type { Draft } from 'immer'
 import { produce } from 'immer'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { LabeledSlider } from '@/common/components/LabeledSlider'
-import type { DanmakuOptions } from '@/common/options/danmakuOptions/danmakuOptions'
-import { useDanmakuOptionsSuspense } from '@/common/options/danmakuOptions/useDanmakuOptionsSuspense'
+import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
+import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
 
 const opacityMarks = [
   {
@@ -151,7 +151,7 @@ export const DanmakuStylesForm = () => {
     data: config,
     partialUpdate,
     update: { isPending },
-  } = useDanmakuOptionsSuspense()
+  } = useDanmakuOptions()
 
   const [localConfig, setLocalConfig] = useState<DanmakuOptions>(config)
   const [offsetInput, setOffsetInput] = useState<string>('')

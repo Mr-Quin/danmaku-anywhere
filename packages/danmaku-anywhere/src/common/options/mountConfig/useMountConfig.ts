@@ -1,11 +1,11 @@
 import { produce } from 'immer'
 import { useMemo } from 'react'
 
-import {
-  type MountConfig,
-  type MountConfigOptions,
-} from '@/common/options/mountConfig/mountConfig'
-import { useSuspenseExtStorageQuery } from '@/common/queries/extStorage/useSuspenseExtStorageQuery'
+import type {
+  MountConfig,
+  MountConfigOptions,
+} from '@/common/options/mountConfig/schema'
+import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import { matchUrl } from '@/common/utils/matchUrl'
 import {
   createDownload,

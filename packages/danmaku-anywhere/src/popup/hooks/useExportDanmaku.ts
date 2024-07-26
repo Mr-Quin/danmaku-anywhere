@@ -1,8 +1,8 @@
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
-import { useToast } from '@/common/components/toast/toastStore'
-import { chromeRpcClient } from '@/common/rpc/client'
+import { useToast } from '@/common/components/Toast/toastStore'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { createDownload } from '@/common/utils/utils'
 
 export const useExportDanmaku = () => {

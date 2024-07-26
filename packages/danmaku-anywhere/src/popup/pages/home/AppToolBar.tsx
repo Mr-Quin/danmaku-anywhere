@@ -16,10 +16,10 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
-import { useExtensionOptionsSuspense } from '@/common/options/extensionOptions/useExtensionOptionsSuspense'
+import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 
 export const AppToolBar = () => {
-  const { partialUpdate, data: options } = useExtensionOptionsSuspense()
+  const { partialUpdate, data: options } = useExtensionOptions()
 
   const handleEnable = async (event: ChangeEvent<HTMLInputElement>) => {
     await partialUpdate({

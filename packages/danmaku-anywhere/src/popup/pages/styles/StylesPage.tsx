@@ -11,14 +11,14 @@ import { useNavigate } from 'react-router-dom'
 
 import { DanmakuStylesForm } from './StylesForm'
 
-import { useDanmakuOptionsSuspense } from '@/common/options/danmakuOptions/useDanmakuOptionsSuspense'
+import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
 import { DrilldownMenu } from '@/popup/component/DrilldownMenu'
 import { TabToolbar } from '@/popup/component/TabToolbar'
 import { TabLayout } from '@/popup/layout/TabLayout'
 
 export const StylesPage = () => {
   const { t } = useTranslation()
-  const { data: config, partialUpdate } = useDanmakuOptionsSuspense()
+  const { data: config, partialUpdate } = useDanmakuOptions()
   const navigate = useNavigate()
 
   return (

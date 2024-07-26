@@ -1,9 +1,8 @@
-import { P, match } from 'ts-pattern'
+import { match, P } from 'ts-pattern'
 
-import { mountConfigService } from '../syncOptions/upgradeOptions'
-
-import type { MountConfig } from '@/common/options/mountConfig/mountConfig'
-import { Logger } from '@/common/services/Logger'
+import { Logger } from '@/common/Logger'
+import type { MountConfig } from '@/common/options/mountConfig/schema'
+import { mountConfigService } from '@/common/options/mountConfig/service'
 // the ?script part gets the file name of the script
 // @ts-expect-error
 // eslint-disable-next-line import/no-restricted-paths, import/default

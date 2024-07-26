@@ -5,11 +5,11 @@ import { Suspense, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSelector'
-import { useToast } from '@/common/components/toast/toastStore'
-import { useSessionState } from '@/common/queries/extStorage/useSessionState'
-import { tabRpcClient } from '@/common/rpc/client'
-import { Logger } from '@/common/services/Logger'
-import type { DanmakuMeta } from '@/common/types/danmaku/Danmaku'
+import { useToast } from '@/common/components/Toast/toastStore'
+import type { DanmakuMeta } from '@/common/danmaku/types/types'
+import { Logger } from '@/common/Logger'
+import { tabRpcClient } from '@/common/rpcClient/tab/client'
+import { useSessionState } from '@/common/storage/hooks/useSessionState'
 import { useMountDanmakuPopup } from '@/popup/hooks/useMountDanmakuPopup'
 
 export const MountController = () => {

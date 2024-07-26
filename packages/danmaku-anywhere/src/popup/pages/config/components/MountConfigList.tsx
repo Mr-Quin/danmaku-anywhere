@@ -9,7 +9,7 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
-import type { MountConfig } from '@/common/options/mountConfig/mountConfig'
+import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { tryCatch } from '@/common/utils/utils'
 import { DrilldownMenu } from '@/popup/component/DrilldownMenu'

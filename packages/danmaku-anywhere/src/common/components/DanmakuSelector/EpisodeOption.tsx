@@ -10,10 +10,11 @@ import {
 } from '@mui/material'
 import { type HTMLAttributes, type SyntheticEvent } from 'react'
 
-import { DanmakuType, type DanmakuCacheLite } from '../../types/danmaku/Danmaku'
-import { isCustomDanmaku } from '../../utils/danmaku'
+import { isCustomDanmaku } from '../../danmaku/utils'
 
-import { useFetchDanmaku } from '@/common/queries/danmaku/useFetchDanmaku'
+import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
+import { DanmakuSourceType } from '@/common/danmaku/types/enums'
+import { type DanmakuCacheLite } from '@/common/danmaku/types/types'
 
 export const EpisodeOption = (
   props: {
@@ -56,7 +57,7 @@ export const EpisodeOption = (
           {isLoading ? <Skeleton variant="text" width={48} /> : option.count}
         </Typography>
       </Box>
-      {option.meta.type !== DanmakuType.Custom && (
+      {option.meta.type !== DanmakuSourceType.Custom && (
         <IconButton edge="end" disabled={isPending} onClick={handleClick}>
           <Tooltip title="Update" placement="top">
             <Update />

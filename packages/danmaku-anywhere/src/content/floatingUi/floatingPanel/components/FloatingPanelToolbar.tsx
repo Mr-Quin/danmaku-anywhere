@@ -1,10 +1,10 @@
 import { Close } from '@mui/icons-material'
 import {
   AppBar,
-  Toolbar,
-  IconButton,
   FormControlLabel,
+  IconButton,
   Switch,
+  Toolbar,
   Typography,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'

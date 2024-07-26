@@ -1,11 +1,11 @@
 import Dexie from 'dexie'
 
-import { DanmakuType } from '../types/danmaku/Danmaku'
+import { DanmakuSourceType } from '@/common/danmaku/types/enums'
 import type {
-  DDPDanmakuCache,
   CustomDanmakuCache,
+  DDPDanmakuCache,
   TitleMapping,
-} from '../types/danmaku/Danmaku'
+} from '@/common/danmaku/types/types'
 
 class DanmakuAnywhereDb extends Dexie {
   danmakuCache!: Dexie.Table<DDPDanmakuCache, number>
@@ -59,7 +59,7 @@ class DanmakuAnywhereDb extends Dexie {
           .table<DDPDanmakuCache>('danmakuCache')
           .toCollection()
           .modify((item) => {
-            item.meta.type = DanmakuType.DDP
+            item.meta.type = DanmakuSourceType.DDP
           })
       })
 

@@ -4,13 +4,10 @@ import { useTranslation } from 'react-i18next'
 import {
   BaseEpisodeListItem,
   BaseListItemSkeleton,
-} from '@/common/components/animeList/BaseEpisodeListItem'
-import { useDanmakuQuerySuspense } from '@/common/queries/danmaku/useDanmakuQuerySuspense'
-import type {
-  DDPDanmakuMeta,
-  TitleMapping,
-} from '@/common/types/danmaku/Danmaku'
-import { DanmakuType } from '@/common/types/danmaku/Danmaku'
+} from '@/common/components/AnimeList/BaseEpisodeListItem'
+import { useDanmakuQuerySuspense } from '@/common/danmaku/queries/useDanmakuQuerySuspense'
+import { DanmakuSourceType } from '@/common/danmaku/types/enums'
+import type { DDPDanmakuMeta, TitleMapping } from '@/common/danmaku/types/types'
 import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
 type EpisodeListItemProps = Omit<Required<DDPDanmakuMeta>, 'type'> & {
@@ -26,7 +23,7 @@ const InnerEpisodeListItem = ({
   const { fetch, isPending } = useFetchDanmakuMapped()
 
   const { data: danmakuData } = useDanmakuQuerySuspense({
-    type: DanmakuType.DDP,
+    type: DanmakuSourceType.DDP,
     id: episodeId,
   })
 
@@ -34,7 +31,7 @@ const InnerEpisodeListItem = ({
 
   const handleFetchDanmaku = async () => {
     await fetch({
-      danmakuMeta: { ...rest, type: DanmakuType.DDP },
+      danmakuMeta: { ...rest, type: DanmakuSourceType.DDP },
       titleMapping,
       options: {
         forceUpdate: true,

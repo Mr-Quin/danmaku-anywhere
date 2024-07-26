@@ -4,13 +4,12 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { match } from 'ts-pattern'
 
-import type { DanmakuMeta } from '../../types/danmaku/Danmaku'
-import { DanmakuType } from '../../types/danmaku/Danmaku'
-
 import { EpisodeOption } from './EpisodeOption'
 
 import { ListboxComponent } from '@/common/components/DanmakuSelector/ListboxComponent'
-import { useAllDanmakuQuerySuspense } from '@/common/queries/danmaku/useAllDanmakuQuerySuspense'
+import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
+import { DanmakuSourceType } from '@/common/danmaku/types/enums'
+import type { DanmakuMeta } from '@/common/danmaku/types/types'
 import { matchWithPinyin } from '@/common/utils/utils'
 
 type FilterOptions = ReturnType<typeof createFilterOptions<DanmakuMeta>>
@@ -31,13 +30,13 @@ const filterOptions: FilterOptions = (options, { inputValue }) => {
 const isOptionEqualToValue = (option: DanmakuMeta, value: DanmakuMeta) => {
   return match([option, value])
     .with(
-      [{ type: DanmakuType.DDP }, { type: DanmakuType.DDP }],
+      [{ type: DanmakuSourceType.DDP }, { type: DanmakuSourceType.DDP }],
       ([option, value]) => {
         return option.episodeId === value.episodeId
       }
     )
     .with(
-      [{ type: DanmakuType.Custom }, { type: DanmakuType.Custom }],
+      [{ type: DanmakuSourceType.Custom }, { type: DanmakuSourceType.Custom }],
       ([option, value]) => {
         return (
           option.animeTitle === value.animeTitle &&
@@ -75,7 +74,7 @@ export const DanmakuSelector = ({ value, onChange }: DanmakuSelectorProps) => {
           <EpisodeOption
             {...props}
             key={
-              option.type === DanmakuType.DDP
+              option.type === DanmakuSourceType.DDP
                 ? option.episodeId
                 : `${option.animeTitle}-${option.episodeTitle}`
             }

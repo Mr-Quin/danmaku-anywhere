@@ -3,7 +3,7 @@ import { LoadingButton } from '@mui/lab'
 import { Box, Stack, TextField } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
-import { useSessionState } from '@/common/queries/extStorage/useSessionState'
+import { useSessionState } from '@/common/storage/hooks/useSessionState'
 
 export const SearchForm = ({
   onSearch,

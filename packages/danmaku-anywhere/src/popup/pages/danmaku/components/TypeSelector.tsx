@@ -1,17 +1,17 @@
 import { FilterList } from '@mui/icons-material'
 import {
   Box,
+  Checkbox,
+  FormControlLabel,
+  FormGroup,
   IconButton,
   Popover,
-  FormGroup,
-  FormControlLabel,
-  Checkbox,
 } from '@mui/material'
 import type { ChangeEvent } from 'react'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { DanmakuType } from '@/common/types/danmaku/Danmaku'
+import { DanmakuSourceType } from '@/common/danmaku/types/enums'
 import { useStore } from '@/popup/store'
 
 export const TypeSelector = () => {
@@ -27,7 +27,7 @@ export const TypeSelector = () => {
   }
 
   const handleSelect =
-    (type: DanmakuType) => (e: ChangeEvent<HTMLInputElement>) => {
+    (type: DanmakuSourceType) => (e: ChangeEvent<HTMLInputElement>) => {
       if (e.target.checked) {
         if (!selectedTypes.includes(type)) {
           setSelectedType([...selectedTypes, type])
@@ -67,14 +67,22 @@ export const TypeSelector = () => {
         >
           <FormGroup>
             <FormControlLabel
-              control={<Checkbox onChange={handleSelect(DanmakuType.DDP)} />}
-              label={t(`danmaku.type.${DanmakuType[DanmakuType.DDP]}`)}
-              checked={selectedTypes.includes(DanmakuType.DDP)}
+              control={
+                <Checkbox onChange={handleSelect(DanmakuSourceType.DDP)} />
+              }
+              label={t(
+                `danmaku.type.${DanmakuSourceType[DanmakuSourceType.DDP]}`
+              )}
+              checked={selectedTypes.includes(DanmakuSourceType.DDP)}
             />
             <FormControlLabel
-              control={<Checkbox onChange={handleSelect(DanmakuType.Custom)} />}
-              label={t(`danmaku.type.${DanmakuType[DanmakuType.Custom]}`)}
-              checked={selectedTypes.includes(DanmakuType.Custom)}
+              control={
+                <Checkbox onChange={handleSelect(DanmakuSourceType.Custom)} />
+              }
+              label={t(
+                `danmaku.type.${DanmakuSourceType[DanmakuSourceType.Custom]}`
+              )}
+              checked={selectedTypes.includes(DanmakuSourceType.Custom)}
             />
           </FormGroup>
         </Box>

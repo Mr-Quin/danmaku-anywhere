@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 
 import { useStore } from '../../store/store'
 
-import { useToast } from '@/common/components/toast/toastStore'
-import { isCustomDanmaku } from '@/common/utils/danmaku'
+import { useToast } from '@/common/components/Toast/toastStore'
+import { isCustomDanmaku } from '@/common/danmaku/utils'
 import { tryCatch } from '@/common/utils/utils'
 import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 

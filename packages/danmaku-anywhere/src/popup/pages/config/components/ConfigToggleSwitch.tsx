@@ -1,6 +1,6 @@
 import { Switch } from '@mui/material'
 
-import type { MountConfig } from '@/common/options/mountConfig/mountConfig'
+import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
 
 interface ConfigToggleSwitchProps {

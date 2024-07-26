@@ -9,12 +9,12 @@ import type { MediaInfo } from '../integration/MediaObserver'
 
 import { useMatchObserver } from './useMatchObserver'
 
-import { useToast } from '@/common/components/toast/toastStore'
-import { useAnimeSearchSuspense } from '@/common/queries/anime/useAnimeSearchSuspense'
-import { chromeRpcClient } from '@/common/rpc/client'
-import { Logger } from '@/common/services/Logger'
-import { DanmakuType } from '@/common/types/danmaku/Danmaku'
-import { getEpisodeId } from '@/common/utils/danmaku'
+import { useAnimeSearchSuspense } from '@/common/anime/queries/useAnimeSearchSuspense'
+import { useToast } from '@/common/components/Toast/toastStore'
+import { DanmakuSourceType } from '@/common/danmaku/types/enums'
+import { getEpisodeId } from '@/common/danmaku/utils'
+import { Logger } from '@/common/Logger'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { tryCatch } from '@/common/utils/utils'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
 
@@ -108,7 +108,7 @@ export const useMediaObserver = () => {
               animeId: mapping.animeId,
               animeTitle: mapping.title,
               episodeId: getEpisodeId(mapping.animeId, state.episode),
-              type: DanmakuType.DDP,
+              type: DanmakuSourceType.DDP,
             } as const
           }
 
@@ -173,7 +173,7 @@ export const useMediaObserver = () => {
             animeTitle,
             episodeId,
             episodeTitle,
-            type: DanmakuType.DDP,
+            type: DanmakuSourceType.DDP,
           } as const
         }
 

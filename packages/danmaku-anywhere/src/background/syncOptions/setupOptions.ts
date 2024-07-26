@@ -1,10 +1,8 @@
 import { configure } from '@danmaku-anywhere/dandanplay-api'
 
-import {
-  extensionOptionsService,
-  upgradeOptions,
-} from '@/background/syncOptions/upgradeOptions'
-import { Logger } from '@/common/services/Logger'
+import { upgradeOptions } from '@/background/syncOptions/upgradeOptions'
+import { Logger } from '@/common/Logger'
+import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
 
 export const setupOptions = async () => {
   chrome.runtime.onInstalled.addListener(async () => {

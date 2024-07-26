@@ -1,6 +1,6 @@
 import type { SlideProps } from '@mui/material'
 import { Paper, Slide } from '@mui/material'
-import { Suspense, type PropsWithChildren } from 'react'
+import { type PropsWithChildren, Suspense } from 'react'
 
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 

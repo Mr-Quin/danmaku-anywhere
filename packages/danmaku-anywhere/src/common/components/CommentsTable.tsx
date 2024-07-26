@@ -2,8 +2,8 @@ import type { CachedComment } from '@danmaku-anywhere/danmaku-engine'
 import { parseDanDanCommentParams } from '@danmaku-anywhere/danmaku-engine'
 import type { BoxProps } from '@mui/material'
 import {
-  Button,
   Box,
+  Button,
   Table,
   TableBody,
   TableCell,

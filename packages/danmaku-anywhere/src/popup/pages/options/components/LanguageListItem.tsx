@@ -11,11 +11,11 @@ import { useTranslation } from 'react-i18next'
 import { i18n } from '@/common/localization/i18n'
 import type { Language } from '@/common/localization/language'
 import { LanguageList } from '@/common/localization/language'
-import { useExtensionOptionsSuspense } from '@/common/options/extensionOptions/useExtensionOptionsSuspense'
+import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 
 export const LanguageListItem = () => {
   const { t } = useTranslation()
-  const { data, partialUpdate } = useExtensionOptionsSuspense()
+  const { data, partialUpdate } = useExtensionOptions()
 
   const handleSelect = async (lang: Language) => {
     await partialUpdate({ lang })

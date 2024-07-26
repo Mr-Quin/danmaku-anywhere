@@ -7,9 +7,9 @@ import ReactDOM from 'react-dom/client'
 
 import { App } from './App'
 
+import { Logger } from '@/common/Logger'
 import { queryClient } from '@/common/queryClient'
-import { Logger } from '@/common/services/Logger'
-import { Theme } from '@/common/style/Theme'
+import { Theme } from '@/common/theme/Theme'
 import { tryCatchSync } from '@/common/utils/utils'
 import '@/common/localization/i18n'
 

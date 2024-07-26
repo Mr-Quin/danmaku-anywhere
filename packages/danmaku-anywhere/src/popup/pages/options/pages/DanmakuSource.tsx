@@ -12,20 +12,20 @@ import { produce } from 'immer'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
-import { useToast } from '@/common/components/toast/toastStore'
+import { useToast } from '@/common/components/Toast/toastStore'
 import {
   ChConvertList,
-  danmakuSourcesSchema,
   defaultExtensionOptions,
-} from '@/common/options/extensionOptions/extensionOptions'
-import type { DanmakuSources } from '@/common/options/extensionOptions/extensionOptions'
-import { useExtensionOptionsSuspense } from '@/common/options/extensionOptions/useExtensionOptionsSuspense'
+} from '@/common/options/extensionOptions/constant'
+import type { DanmakuSources } from '@/common/options/extensionOptions/schema'
+import { danmakuSourcesSchema } from '@/common/options/extensionOptions/schema'
+import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 
 export const DanmakuSource = () => {
   const { t } = useTranslation()
-  const { data, partialUpdate } = useExtensionOptionsSuspense()
+  const { data, partialUpdate } = useExtensionOptions()
 
   const { toast } = useToast()
 

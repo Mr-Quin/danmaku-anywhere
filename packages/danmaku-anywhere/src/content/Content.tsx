@@ -7,7 +7,7 @@ import { IconManagerComponent } from './iconManager/IconManagerComponent'
 import { useStore } from './store/store'
 import { TabRpcServer } from './tabRpc/TabRpc'
 
-import { Toast } from '@/common/components/toast/Toast'
+import { Toast } from '@/common/components/Toast/Toast'
 import { AutomaticMode } from '@/content/common/components/AutomaticMode'
 import { PopupUi } from '@/content/floatingUi/PopupUi'
 

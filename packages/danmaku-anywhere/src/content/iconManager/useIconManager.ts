@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-import { chromeRpcClient } from '@/common/rpc/client'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
 import { useStore } from '@/content/store/store'
 

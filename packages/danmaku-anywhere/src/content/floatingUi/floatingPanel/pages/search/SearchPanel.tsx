@@ -23,7 +23,7 @@ import { useTranslation } from 'react-i18next'
 
 import { EpisodeListItem } from './EpisodeListItem'
 
-import { SearchResultList } from '@/common/components/animeList/SearchResultList'
+import { SearchResultList } from '@/common/components/AnimeList/SearchResultList'
 import { Center } from '@/common/components/Center'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { usePopup } from '@/content/store/popupStore'

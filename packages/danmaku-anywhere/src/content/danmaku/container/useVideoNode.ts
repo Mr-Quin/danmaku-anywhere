@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 
 import { useMediaElementStore } from '../../store/mediaElementStore'
 
-import { useToast } from '@/common/components/toast/toastStore'
+import { useToast } from '@/common/components/Toast/toastStore'
 import { useNodeMonitor } from '@/content/common/hooks/useNodeMonitor'
 
 export const useVideoNode = (mediaQuery: string) => {
