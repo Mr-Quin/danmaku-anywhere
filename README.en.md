@@ -13,11 +13,13 @@ For the userscript plex-danmaku, see [here](./packages/plex-danmaku).
 
 ## Wait, what is danmaku?
 
+Danmaku, also known as bullet comments or barrage comments, is a form of user-generated commentary that overlays a
+video.
+
+If you are familiar with vertical-scrolling chat rooms such as Twitch chat, danmaku is similar but with the comments
+being displayed on the video itself.
+
 [Wikipedia page](https://en.wikipedia.org/wiki/Danmaku_subtitling)
-
-You know Twitch chat or YouTube Live chat, where scrolling comments are displayed next to the video?
-
-Imagine that, but the comments are overlaid on top of the video and flying across the screen.
 
 ## Features
 
@@ -59,20 +61,15 @@ the [Chrome Web Store](https://chromewebstore.google.com/detail/danmaku-anywhere
 
 #### Manual installation
 
-The version published to the store may not be the newest version. If you wish to use the version, you can install the
-extension manually.
+> [!NOTE]
+> Installing from the store is recommended as it will automatically update the extension. But if you are unable to
+> install from the store, you can install manually using the following steps.
 
-Download the [latest release](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest) for your browser.
-
-Extract the archive to a folder.
-
-> [!IMPORTANT]
-> This folder should not be deleted except to uninstall the extension.
-
-1. Goto the extensions page [chrome://extensions/](chrome://extensions/) and enable developer mode.
-2. Click on "Load unpacked" and select the extracted folder
-
-**To update**: Go to the extension page and click on the reload button after the new release is extracted
+1. Download the [latest release](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest) for your browser.
+2. Extract the archive to a folder. This folder should not be deleted except to uninstall the extension.
+3. Goto the extensions page [chrome://extensions/](chrome://extensions/) and enable developer mode.
+4. Click on "Load unpacked" and select the extracted folder
+5. To update, overwrite the folder with the newer release, then click on the "Reload" button on the extensions page.
 
 ### Firefox
 
@@ -100,15 +97,15 @@ This extension has two operating modes:
 - If your website is in the predefined list, enable it.
 - If your website isn't listed:
     - Click "add" to create a new entry.
-    - Patterns: Enter the website's match pattern (
-      e.g., `https://your.website.com/*`). [Learn more about match patterns](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns).
-      For websites using `iframe` for its video player, the match pattern should be based on the `iframes`'s `src`
-      attribute.
-    - Video query: Enter the video
-      player's [selector](https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector) (often just `video`,
+    - URL Patterns: Enter the website's match pattern (
+      e.g., `https://your.website.com/*`).
+        - [Learn more about match patterns](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)
+        - For websites using `iframe` for its video player, the match pattern should be based on the `iframes`'s `src`
+          attribute.
+    - Video element: Enter the video
+      player's [CSS selector](https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector) (often
+      just `video`,
       unless the website has multiple video players).
-    - Name: Enter a unique name for the config. The name cannot be changed later, but you can delete and recreate the
-      config with a different name.
 
 ### 2. Search for danmaku (Manual Mode or Ad-Hoc Use)
 
@@ -141,7 +138,7 @@ Below are the instruction for each integration.
 
 #### Plex
 
-Set the "name" field of a Mount Config to "plex" to enable the Plex integration.
+In the Mount Config editor, select Plex from the integration dropdown.
 
 - The extension uses the name and episode number of the currently playing media to match danmaku, so please make sure
   you library metadata is accurate.

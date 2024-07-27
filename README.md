@@ -22,7 +22,7 @@
 
 ## 截图
 
-![UI](./assets/ui_tour.gif)
+![UI](./assets/ui_tour_cn.gif)
 
 Plex
 
@@ -37,21 +37,17 @@ Crunchyroll
 ### Chrome
 
 直接通过[商店](https://chromewebstore.google.com/detail/danmaku-anywhere/jnflbkkmffognjjhibkjnomjedogmdpo?authuser=1&hl=zh)
-安装
+安装（**推荐**）
 
 #### 手动安装
 
-商店发布的版本可能落后于最新版。需要最新版本的可以选择手动安装。
+> [!NOTE]
+> 手动安装无法自动更新，如非必要建议通过商店安装
 
-下载对应浏览器[最新发布的版本](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest)然后解压到任意文件夹
-
-> [!IMPORTANT]
-> 除非卸载扩展，请勿删除此文件夹
-
-后续的更新直接解压到这个文件夹中并覆盖即可
-
-1. 进入扩展页面[chrome://extensions/](chrome://extensions/)并启用开发者模式。
-2. 点击 "加载未打包的扩展" 并选择已解压的扩展文件夹。
+1. 下载对应浏览器[最新发布的版本](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest)然后解压到任意文件夹。除非卸载扩展，请勿删除此文件夹。
+2. 进入扩展页面[chrome://extensions/](chrome://extensions/)并启用开发者模式。
+3. 点击 "加载未打包的扩展" 并选择已解压的扩展文件夹。
+4. 后续的更新直接解压到这个文件夹中并覆盖即可
 
 ### Firefox
 
@@ -63,8 +59,7 @@ Firefox版本相比Chrome版本有更多的限制，并且由于部分API缺失�
 
 手动安装需使用开发者版本的Firefox。
 
-安装详情见[这里](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/)
-和[这里](https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/)
+安装详情见[这里](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/)和[这里](https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/)
 
 ## 使用指南
 
@@ -81,15 +76,14 @@ Firefox版本相比Chrome版本有更多的限制，并且由于部分API缺失�
 装填配置决定在什么网站的什么位置加载弹幕
 
 - 在扩展弹出窗口中，打开“装填配置”页
-- 如果你的网站在预设配置中，点击预设配置，勾选”启用“并保存
-- 如果你的网站不在预设列表中，点击“+”并填写：
-    - URL模式（URL Patterns）： 网站的 URL
-      格式（例如，`https://your.website.com/*`）使用[匹配模式](https://developer.mozilla.org/zh-CN/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)格式。如果你的网站使用`
-      iframe`播放视频，此处应填写`iframe`的地址，通过查看`iframe`的`src`属性获得。
-    - 视频选择器（Media Query）：选择视频播放器（通常为`video`
-      ）使用[`querySelector`](https://developer.mozilla.org/zh-CN/docs/Web/API/Document/querySelector)
-      格式。一些视频网站比较特殊，例如页面中有多个`video`的情况需要填写更详细的`querySelector`。
-    - 配置名称不可与其他配置重名，保存后不可更改，如果需要改名请删除配置再添加。
+- 如果你的网站在预设配置中，点击按钮启用即可。若有已经打开的网站需要刷新。
+- 如果你的网站不在预设列表中，点击“+”并按照提示填写配置信息。
+    - URL模式（URL Patterns）： 网站的URL格式，例如：`https://your.website.com/*`
+      - 使用[匹配模式](https://developer.mozilla.org/zh-CN/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)格式。
+      - 如果你的网站的视频元素位于`iframe`中，此处应填写`iframe`的地址，通过查看`iframe`的`src`属性获得。
+    - 视频元素：通常为`video`。
+      - 使用[CSS选择器](https://developer.mozilla.org/zh-CN/docs/Web/API/Document/querySelector)格式。
+      - 一些视频网站比较特殊，例如页面中有多个`video`的情况需要填写更详细的选择器。
 
 ### 2. 搜索弹幕（手动模式）
 
@@ -132,7 +126,7 @@ Firefox版本相比Chrome版本有更多的限制，并且由于部分API缺失�
 
 #### Plex
 
-把装填配置的名称设为“plex”以启用对Plex的适配。
+在装填配置的适配选项中选择Plex。
 
 - 拓展使用正在播放的媒体名称和集数来查找番剧，请确保媒体信息准确。推荐在媒体库中使用Plex Series和Plex Movie代理进行匹配。
 - 拓展无法分辨正在播放的媒体是否为视频。如果正在播放的媒体不是视频（音乐，图片等），请先通过快捷按钮关闭弹幕或关闭自动模式。
