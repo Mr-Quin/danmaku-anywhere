@@ -5,10 +5,12 @@ import type {
   MountConfig,
   MountConfigOptions,
 } from '@/common/options/mountConfig/schema'
+import { mountConfigListSchema } from '@/common/options/mountConfig/schema'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import { matchUrl } from '@/common/utils/matchUrl'
 import {
   createDownload,
+  getRandomUUID,
   hasOriginPermission,
   requestOriginPermission,
 } from '@/common/utils/utils'
@@ -34,18 +36,12 @@ export const useMountConfig = () => {
   })
 
   const methods = useMemo(() => {
-    const nameExists = (name: string) => {
-      const { data: configs } = options
-
-      return configs.some((config) => config.name === name)
-    }
-
-    const updateConfig = async (name: string, config: Partial<MountConfig>) => {
+    const updateConfig = async (id: string, config: Partial<MountConfig>) => {
       const { data: configs, version } = options
 
-      const prevConfig = configs.find((item) => item.name === name)
+      const prevConfig = configs.find((item) => item.id === id)
 
-      if (!prevConfig) throw new Error(`Config not found: "${name}"`)
+      if (!prevConfig) throw new Error(`Config not found: "${id}"`)
 
       const newConfig = produce(prevConfig, (draft) => {
         Object.assign(draft, config)
@@ -53,7 +49,7 @@ export const useMountConfig = () => {
 
       // replace the stored config with the new one
       const newData = produce(configs, (draft) => {
-        const index = draft.findIndex((item) => item.name === name)
+        const index = draft.findIndex((item) => item.id === id)
         draft[index] = {
           ...draft[index],
           ...config,
@@ -70,9 +66,6 @@ export const useMountConfig = () => {
     const addConfig = async (config: MountConfig) => {
       const { data: configs, version } = options
 
-      if (nameExists(config.name))
-        throw new Error(`Name already exists: "${config.name}"`)
-
       if (!(await isPermissionGranted(config.patterns))) {
         return
       }
@@ -83,12 +76,12 @@ export const useMountConfig = () => {
       })
     }
 
-    const deleteConfig = async (name: string) => {
+    const deleteConfig = async (id: string) => {
       const { data: configs, version } = options
 
-      const index = configs.findIndex((item) => item.name === name)
+      const index = configs.findIndex((item) => item.id === id)
 
-      if (index === -1) throw new Error(`Config not found: "${name}"`)
+      if (index === -1) throw new Error(`Config not found: "${id}"`)
 
       const newData = produce(configs, (draft) => {
         draft.splice(index, 1)
@@ -116,25 +109,22 @@ export const useMountConfig = () => {
     }
 
     /**
-     * Import the configs, replacing the current configs if name matches,
-     * otherwise add the config
+     * Import the configs
+     * Disable all imported configs and regenerate the id
      */
     const importConfigs = async (configs: MountConfig[]) => {
       const { data: currentConfigs, version } = options
 
-      const newData = produce(currentConfigs, (draft) => {
-        for (const config of configs) {
-          const index = draft.findIndex((item) => item.name === config.name)
+      const parsed = await mountConfigListSchema.parseAsync(configs)
 
-          if (index !== -1) {
-            // if the config already exists, replace it
-            draft[index] = config
-          } else {
-            // otherwise add it
-            draft.push(config)
-          }
-        }
-      })
+      const newData = [
+        ...currentConfigs,
+        ...parsed.map((config) => ({
+          ...config,
+          enabled: false,
+          id: getRandomUUID(),
+        })),
+      ]
 
       // check permission for all imported configs
       // it should only ask for permission for the ones that are not already granted
@@ -156,7 +146,6 @@ export const useMountConfig = () => {
       matchByUrl,
       exportConfigs,
       importConfigs,
-      nameExists,
     }
   }, [options, update.mutateAsync])
 

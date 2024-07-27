@@ -6,7 +6,9 @@ import {
   Checkbox,
   FormControl,
   FormControlLabel,
+  FormHelperText,
   IconButton,
+  MenuItem,
   Stack,
   TextField,
   Typography,
@@ -16,6 +18,7 @@ import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
+import { IntegrationList } from '@/common/danmaku/types/enums'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { validateOrigin } from '@/common/utils/utils'
@@ -49,7 +52,7 @@ interface MountConfigEditorProps {
 
 export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
   const { t } = useTranslation()
-  const { updateConfig, addConfig, nameExists } = useMountConfig()
+  const { updateConfig, addConfig } = useMountConfig()
 
   const goBack = useGoBack()
 
@@ -90,7 +93,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
       const toUpdate = fromForm(data)
 
       if (isEdit) {
-        return updateConfig(config.name, toUpdate)
+        return updateConfig(config.id, toUpdate)
       } else {
         return addConfig(toUpdate)
       }
@@ -110,13 +113,6 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
 
   const handleSave = async (data: MountConfigForm) => mutateAsync(data)
 
-  const validateName = (name: string) => {
-    if (isEdit) return
-    if (nameExists(name)) {
-      return 'Name already exists'
-    }
-  }
-
   return (
     <OptionsPageLayout direction="left">
       <OptionsPageToolBar
@@ -126,11 +122,59 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
             : t('configPage.editor.title.create')
         }
       />
-      <Box px={2} mt={2} component="form" onSubmit={handleSubmit(handleSave)}>
+      <Box p={2} component="form" onSubmit={handleSubmit(handleSave)}>
         <Stack direction="column" spacing={2} alignItems="flex-start">
+          <TextField
+            label={t('configPage.editor.name')}
+            size="small"
+            error={!!errors.name}
+            {...register('name', { required: true })}
+            fullWidth
+            required
+          />
+
+          <TextField
+            label={t('configPage.editor.mediaQuery')}
+            size="small"
+            error={!!errors.mediaQuery}
+            helperText={
+              errors.mediaQuery
+                ? errors.mediaQuery?.message
+                : t('configPage.editor.helper.mediaQuery')
+            }
+            {...register('mediaQuery', { required: true })}
+            fullWidth
+            required
+          />
+
+          <Controller
+            name="integration"
+            control={control}
+            render={({ field: { ref, ...field } }) => (
+              <TextField
+                {...field}
+                label={t('integration.name')}
+                size="small"
+                select
+                inputRef={ref}
+                fullWidth
+                helperText={t('configPage.editor.helper.integration')}
+              >
+                {IntegrationList.map((integration) => (
+                  <MenuItem value={integration.value} key={integration.label}>
+                    {t(integration.label)}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+          />
+
           <Typography variant="body2" color="textSecondary">
             {t('configPage.editor.urlPatterns')}
           </Typography>
+          <FormHelperText>
+            {t('configPage.editor.helper.urlPattern')}
+          </FormHelperText>
 
           {fields.map((field, index, arr) => (
             <Stack
@@ -167,69 +211,52 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
             {t('configPage.editor.pattern.add')}
           </Button>
 
-          <TextField
-            label={t('configPage.editor.name')}
-            size="small"
-            error={!!errors.name}
-            helperText={
-              isEdit
-                ? t('configPage.editor.helper.name.edit')
-                : errors.name?.message ??
-                  t('configPage.editor.helper.name.create')
-            }
-            {...register('name', { required: true, validate: validateName })}
-            disabled={isEdit}
-            fullWidth
-            required
-          />
-
-          <TextField
-            label={t('configPage.editor.mediaQuery')}
-            size="small"
-            error={!!errors.mediaQuery}
-            helperText={errors.mediaQuery?.message}
-            {...register('mediaQuery', { required: true })}
-            fullWidth
-            required
-          />
-
-          <FormControl>
-            <FormControlLabel
-              control={
-                <Controller
-                  name="enabled"
-                  control={control}
-                  render={({ field: { value, ref, ...field } }) => (
-                    <Checkbox
-                      {...field}
-                      inputRef={ref}
-                      checked={!!value}
-                      color="primary"
-                    />
-                  )}
-                />
-              }
-              label={t('common.enable')}
-            />
-          </FormControl>
-
-          <LoadingButton
-            variant="contained"
-            color="primary"
-            type="submit"
-            loading={isSubmitting}
+          <Stack
+            direction="row"
+            spacing={2}
+            width={1}
+            justifyContent="space-between"
           >
-            {t('common.save')}
-          </LoadingButton>
-          {isEdit && (
-            <Button
-              variant="outlined"
-              onClick={() => resetForm()}
-              disabled={isSubmitting}
-            >
-              {t('common.reset')}
-            </Button>
-          )}
+            <FormControl>
+              <FormControlLabel
+                control={
+                  <Controller
+                    name="enabled"
+                    control={control}
+                    render={({ field: { value, ref, ...field } }) => (
+                      <Checkbox
+                        {...field}
+                        inputRef={ref}
+                        checked={value}
+                        color="primary"
+                      />
+                    )}
+                  />
+                }
+                label={t('common.enable')}
+              />
+            </FormControl>
+            <div>
+              {isEdit && (
+                <Button
+                  variant="outlined"
+                  onClick={() => resetForm()}
+                  disabled={isSubmitting}
+                  sx={{ mr: 2 }}
+                >
+                  {t('common.reset')}
+                </Button>
+              )}
+              <LoadingButton
+                variant="contained"
+                color="primary"
+                type="submit"
+                loading={isSubmitting}
+              >
+                {t('common.save')}
+              </LoadingButton>
+            </div>
+          </Stack>
         </Stack>
       </Box>
     </OptionsPageLayout>

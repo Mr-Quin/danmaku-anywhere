@@ -1,6 +1,8 @@
 import defaultMountConfigJson from './default.json' assert { type: 'json' }
 
+import { IntegrationType } from '@/common/danmaku/types/enums'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
+import { getRandomUUID } from '@/common/utils/utils'
 
 /**
  * @deprecated
@@ -43,13 +45,20 @@ export const createMountConfig = (url: string): MountConfig => {
     mediaQuery: '',
     enabled: true,
     name: '',
+    integration: IntegrationType.None,
+    id: getRandomUUID(),
   }
 }
 
 export const defaultMountConfig: MountConfig[] = defaultMountConfigJson.map(
   (config) => {
+    const integration =
+      IntegrationType[config.integration as keyof typeof IntegrationType]
+
     const newConfig = {
       ...config,
+      id: getRandomUUID(),
+      integration: integration ?? IntegrationType.None,
     }
     Object.freeze(newConfig)
     return newConfig
