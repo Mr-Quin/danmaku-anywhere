@@ -167,8 +167,8 @@ const pages = {
     theme: {
       colorMode: {
         name: '色彩模式',
-        light: '明亮',
-        dark: '暗黑',
+        light: '浅色',
+        dark: '深色',
         system: '跟随系统',
       },
     },
