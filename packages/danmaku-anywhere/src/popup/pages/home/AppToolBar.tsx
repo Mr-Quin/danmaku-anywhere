@@ -7,7 +7,6 @@ import {
   FormGroup,
   IconButton,
   LinearProgress,
-  Switch,
   Toolbar,
   Typography,
 } from '@mui/material'
@@ -15,6 +14,7 @@ import type { ChangeEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
+import { StyledEnableSwitch } from '@/common/components/StyledEnableSwitch'
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 
@@ -46,7 +46,7 @@ export const AppToolBar = () => {
         <FormGroup>
           <FormControlLabel
             control={
-              <Switch
+              <StyledEnableSwitch
                 checked={options.enabled}
                 onChange={handleEnable}
                 size="small"

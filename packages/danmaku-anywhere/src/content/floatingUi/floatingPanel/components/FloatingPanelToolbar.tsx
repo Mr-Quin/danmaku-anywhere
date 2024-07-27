@@ -3,12 +3,12 @@ import {
   AppBar,
   FormControlLabel,
   IconButton,
-  Switch,
   Toolbar,
   Typography,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
+import { StyledEnableSwitch } from '@/common/components/StyledEnableSwitch'
 import { getIntegrationLabel } from '@/common/danmaku/types/enums'
 import { HasIntegration } from '@/content/common/components/HasIntegration'
 import { usePopup } from '@/content/store/popupStore'
@@ -26,7 +26,7 @@ export const FloatingPanelToolbar = () => {
           <Typography>{getIntegrationLabel(integration)}</Typography>
           <FormControlLabel
             control={
-              <Switch
+              <StyledEnableSwitch
                 checked={!manual}
                 onChange={() => toggleManualMode()}
                 size="small"
