@@ -1,5 +1,7 @@
 import { PlexObserver } from './Plex'
 
+import { IntegrationType } from '@/common/danmaku/types/enums'
+
 export const observersMap: Record<string, typeof PlexObserver> = {
-  plex: PlexObserver,
+  [IntegrationType.Plex]: PlexObserver,
 }

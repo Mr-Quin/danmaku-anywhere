@@ -63,7 +63,7 @@ export const useMediaObserver = () => {
 
         const titleMappingPayload = {
           originalTitle: state.toTitleString(),
-          source: config.name,
+          integration: config.integration,
         }
 
         const [mapping, mappingErr] = await tryCatch(() =>

@@ -26,6 +26,7 @@ import { EpisodeListItem } from './EpisodeListItem'
 import { SearchResultList } from '@/common/components/AnimeList/SearchResultList'
 import { Center } from '@/common/components/Center'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
+import { isIntegrationNone } from '@/common/danmaku/types/enums'
 import { usePopup } from '@/content/store/popupStore'
 import { useStore } from '@/content/store/store'
 
@@ -70,13 +71,14 @@ export const SearchPanel = () => {
   }
 
   const getTitleMapping = (animeTitle: string, animeId: number) => {
-    if (!mediaInfo || !saveMapping || !integration) return undefined
+    if (!mediaInfo || !saveMapping || isIntegrationNone(integration))
+      return undefined
 
     return {
       originalTitle: mediaInfo.toTitleString(),
       title: animeTitle,
       animeId: animeId,
-      source: integration,
+      integration,
     }
   }
 

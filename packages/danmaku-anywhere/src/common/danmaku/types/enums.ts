@@ -12,6 +12,12 @@ export enum IntegrationType {
   Plex,
 }
 
+export const isIntegrationNone = (type: IntegrationType) =>
+  type === IntegrationType.None
+
+export const getIntegrationLabel = (type: IntegrationType) =>
+  IntegrationType[type]
+
 export const integrationTypeList = Object.values(IntegrationType).filter(
   (e): e is IntegrationType => typeof e === 'number'
 )

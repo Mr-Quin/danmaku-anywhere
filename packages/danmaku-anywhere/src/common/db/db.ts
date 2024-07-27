@@ -1,6 +1,9 @@
 import Dexie from 'dexie'
 
-import { DanmakuSourceType } from '@/common/danmaku/types/enums'
+import {
+  DanmakuSourceType,
+  IntegrationType,
+} from '@/common/danmaku/types/enums'
 import type {
   CustomDanmakuCache,
   DDPDanmakuCache,
@@ -60,6 +63,26 @@ class DanmakuAnywhereDb extends Dexie {
           .toCollection()
           .modify((item) => {
             item.meta.type = DanmakuSourceType.DDP
+          })
+      })
+
+    this.version(6)
+      .stores({
+        dandanplay: null,
+        danmakuCache: 'meta.episodeId, meta.animeId, meta.animeTitle',
+        // auto increment id for manual danmaku
+        manualDanmakuCache: '++meta.episodeId, meta.animeTitle',
+        titleMapping: '++id, originalTitle, title, integration',
+      })
+      .upgrade(async (tx) => {
+        // Rename source to integration and make it an enum type
+        await tx
+          .table<TitleMapping>('titleMapping')
+          .toCollection()
+          .modify((item) => {
+            // At this moment plex is the only source, so we can safely assume it's plex
+            item.integration = IntegrationType.Plex
+            delete item.source
           })
       })
 

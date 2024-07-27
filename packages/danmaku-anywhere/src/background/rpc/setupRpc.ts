@@ -81,7 +81,7 @@ export const setupRpc = () => {
     titleMappingGet: async (input) => {
       const result = await titleMappingService.getMappedTitle(
         input.originalTitle,
-        input.source
+        input.integration
       )
       return result || null
     },
