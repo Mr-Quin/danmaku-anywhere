@@ -42,7 +42,7 @@ export const MountConfigList = ({
       {configs.map((config) => {
         return (
           <ListItem
-            key={config.name}
+            key={config.id}
             secondaryAction={
               <>
                 <ConfigToggleSwitch config={config} />

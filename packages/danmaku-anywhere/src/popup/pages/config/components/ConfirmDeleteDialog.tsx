@@ -25,7 +25,7 @@ export const ConfirmDeleteDialog = () => {
 
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
-      return deleteConfig(editingConfig.name)
+      return deleteConfig(editingConfig.id)
     },
     onSuccess: () => {
       toast.success(t('configs.alert.deleted'))

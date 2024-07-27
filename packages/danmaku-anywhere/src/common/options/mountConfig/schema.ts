@@ -1,7 +1,8 @@
 import { z } from 'zod'
 
+import { IntegrationType } from '@/common/danmaku/types/enums'
 import type { Options } from '@/common/options/OptionsService/types'
-import { validateOrigin } from '@/common/utils/utils'
+import { getRandomUUID, validateOrigin } from '@/common/utils/utils'
 
 const mountConfigSchema = z.object({
   patterns: z.array(
@@ -31,6 +32,14 @@ const mountConfigSchema = z.object({
    * Should be unique
    */
   name: z.string(),
+  /**
+   * The integration to associate with the config
+   */
+  integration: z.nativeEnum(IntegrationType).default(IntegrationType.None),
+  /**
+   * The unique identifier of the config
+   */
+  id: z.string().uuid().optional().default(getRandomUUID),
 })
 
 export const mountConfigListSchema = z.array(mountConfigSchema)

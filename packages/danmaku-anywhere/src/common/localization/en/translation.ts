@@ -85,6 +85,7 @@ const domain = {
     unmount: 'Unmount',
   },
   integration: {
+    name: 'Integration',
     alert: {
       usingIntegration: 'Using Integration: {{name}}',
       titleMapping:
@@ -96,6 +97,10 @@ const domain = {
       openSearch: 'Open search page',
       playing: 'Playing: {{title}}',
     },
+    type: {
+      None: 'None',
+      Plex: 'Plex',
+    },
     autoMode: 'Auto Mode',
   },
 }
@@ -104,10 +109,13 @@ const pages = {
   configPage: {
     editor: {
       helper: {
-        'name.create': 'Name cannot be changed after creation',
-        'name.edit': 'To change the name, delete this config and add a new one',
+        mediaQuery: 'CSS selector for the video element, normally "video"',
+        integration:
+          'Enables the selected integration for this configuration. If you are not sure, leave it as None.',
+        urlPattern:
+          'URL pattern to match the page. Format: https://example.com/*. If the video is in an iframe, use the iframe URL here.',
       },
-      mediaQuery: 'Media Query',
+      mediaQuery: 'Video Element',
       name: 'Name',
       pattern: 'Pattern',
       'pattern.add': 'Add Pattern',

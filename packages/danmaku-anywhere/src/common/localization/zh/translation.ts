@@ -87,6 +87,11 @@ const domain = {
     unmount: '卸载弹幕',
   },
   integration: {
+    name: '适配',
+    type: {
+      None: '无',
+      Plex: 'Plex',
+    },
     autoMode: '自动模式',
     alert: {
       usingIntegration: '以适配{{name}}',
@@ -105,10 +110,12 @@ const pages = {
   configPage: {
     editor: {
       helper: {
-        'name.create': '创建后无法更改名称',
-        'name.edit': '如要更改名称，请删除该配置后重新添加',
+        mediaQuery: '用来选择视频元素, 一般为“video”',
+        integration: '启用对应的适配。如果你不清楚这是什么，请保持默认设置“无”',
+        urlPattern:
+          '用来匹配视频页面，一般为视频网站的网址。格式：https://example.com/*。如果视频处于iframe中，此处需iframe的地址',
       },
-      mediaQuery: 'Media Query',
+      mediaQuery: '视频元素',
       name: '名称',
       pattern: '模式',
       'pattern.add': '添加模式',

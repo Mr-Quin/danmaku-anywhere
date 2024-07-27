@@ -14,7 +14,7 @@ export const ConfigToggleSwitch = ({ config }: ConfigToggleSwitchProps) => {
     <Switch
       checked={config.enabled}
       onChange={(e) =>
-        updateConfig(config.name, { ...config, enabled: e.target.checked })
+        updateConfig(config.id, { ...config, enabled: e.target.checked })
       }
       disabled={isPending || update.isPending}
     />

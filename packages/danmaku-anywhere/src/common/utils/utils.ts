@@ -132,3 +132,7 @@ export const matchWithPinyin = (inputString: string, searchString: string) => {
   const pinyinMatches = matchPinyin(lowerCaseInputString, lowerCaseSearchString)
   return !!pinyinMatches
 }
+
+export const getRandomUUID = () => {
+  return globalThis.crypto.randomUUID()
+}
