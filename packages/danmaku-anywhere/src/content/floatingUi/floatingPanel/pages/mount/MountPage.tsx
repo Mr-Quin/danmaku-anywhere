@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSelector'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { getIntegrationLabel } from '@/common/danmaku/types/enums'
 import type { DanmakuMeta } from '@/common/danmaku/types/types'
 import { ManualMode } from '@/content/common/components/ManualMode'
 import { useMountDanmakuContent } from '@/content/common/hooks/useMountDanmakuContent'
@@ -46,7 +47,9 @@ export const MountPage = () => {
         fallback={
           <Stack direction="column" spacing={2}>
             <Typography>
-              {t('mountPage.manualModeOnly', { integration })}
+              {t('mountPage.manualModeOnly', {
+                integration: getIntegrationLabel(integration),
+              })}
             </Typography>
           </Stack>
         }

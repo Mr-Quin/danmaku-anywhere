@@ -1,3 +1,4 @@
+import type { IntegrationType } from '@/common/danmaku/types/enums'
 import type { TitleMapping } from '@/common/danmaku/types/types'
 import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
@@ -24,13 +25,16 @@ export class TitleMappingService {
     this.db.add(mapping)
   }
 
-  async mappingExists({ title, source }: TitleMapping) {
-    const count = await this.db.where({ title, source }).count()
+  async mappingExists({ title, originalTitle, integration }: TitleMapping) {
+    // The originalTitle might change over time, so we need to check both title and originalTitle
+    const count = await this.db
+      .where({ title, originalTitle, integration })
+      .count()
     return count > 0
   }
 
-  async getMappedTitle(originalTitle: string, source: string) {
-    const mapping = await this.db.get({ originalTitle, source })
+  async getMappedTitle(originalTitle: string, integration: IntegrationType) {
+    const mapping = await this.db.get({ originalTitle, integration })
     return mapping
   }
 

@@ -3,6 +3,7 @@ import { useEventCallback } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
+import { isIntegrationNone } from '@/common/danmaku/types/enums'
 import type { DanmakuMeta } from '@/common/danmaku/types/types'
 import { Logger } from '@/common/Logger'
 import { useMediaElementStore } from '@/content/store/mediaElementStore'
@@ -27,7 +28,7 @@ export const useManualDanmaku = () => {
         throw new Error(logString)
       }
 
-      if (useStore.getState().integration) {
+      if (!isIntegrationNone(useStore.getState().integration)) {
         Logger.debug(
           'Manual mode is enabled while the page has an active observer'
         )

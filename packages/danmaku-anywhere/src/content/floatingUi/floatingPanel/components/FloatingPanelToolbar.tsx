@@ -9,6 +9,7 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
+import { getIntegrationLabel } from '@/common/danmaku/types/enums'
 import { HasIntegration } from '@/content/common/components/HasIntegration'
 import { usePopup } from '@/content/store/popupStore'
 import { useStore } from '@/content/store/store'
@@ -22,7 +23,7 @@ export const FloatingPanelToolbar = () => {
     <AppBar position="relative">
       <Toolbar variant="dense" sx={{ gap: 2 }}>
         <HasIntegration>
-          <Typography>{integration}</Typography>
+          <Typography>{getIntegrationLabel(integration)}</Typography>
           <FormControlLabel
             control={
               <Switch

@@ -1,7 +1,10 @@
 import type { DanDanCommentAPIParams } from '@danmaku-anywhere/dandanplay-api'
 import type { CachedComment } from '@danmaku-anywhere/danmaku-engine'
 
-import type { DanmakuSourceType } from '@/common/danmaku/types/enums'
+import type {
+  DanmakuSourceType,
+  IntegrationType,
+} from '@/common/danmaku/types/enums'
 
 interface BaseDanmakuMeta {
   type: DanmakuSourceType
@@ -70,6 +73,11 @@ export interface DanmakuFetchOptions {
 export interface TitleMapping {
   originalTitle: string
   title: string
-  source: string
+  /**
+   * @deprecated
+   * Use source to identify the source of the title mapping, replaced by integration
+   */
+  source?: string
+  integration: IntegrationType
   animeId: number
 }

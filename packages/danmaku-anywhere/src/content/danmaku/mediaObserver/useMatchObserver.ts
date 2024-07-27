@@ -6,6 +6,10 @@ import type { MediaObserver } from '../integration/MediaObserver'
 import { observersMap } from '../integration/observers'
 
 import { useToast } from '@/common/components/Toast/toastStore'
+import {
+  getIntegrationLabel,
+  IntegrationType,
+} from '@/common/danmaku/types/enums'
 import { Logger } from '@/common/Logger'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
 
@@ -22,19 +26,21 @@ export const useMatchObserver = () => {
 
   useEffect(() => {
     // when config changes, try to find a matching observer
-    const Observer = observersMap[config.name]
+    const Observer = observersMap[config.integration]
 
     if (!Observer) {
       // no matching observer found, fallback to manual mode
       toggleManualMode(true)
-      setIntegration(undefined)
+      setIntegration(IntegrationType.None)
       return
     }
 
     toggleManualMode(false)
-    setIntegration(config.name)
+    setIntegration(config.integration)
     toast.info(t('integration.alert.usingIntegration', { name: config.name }))
-    Logger.debug(`Using integration: ${config.name}`)
+    Logger.debug(
+      `Using integration: ${getIntegrationLabel(config.integration)}`
+    )
 
     const obs = new Observer()
 

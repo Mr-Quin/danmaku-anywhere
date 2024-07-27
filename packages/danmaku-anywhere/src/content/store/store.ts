@@ -6,6 +6,7 @@ import type {
   PlaybackStatus,
 } from '../danmaku/integration/MediaObserver'
 
+import { IntegrationType } from '@/common/danmaku/types/enums'
 import type { DanmakuMeta } from '@/common/danmaku/types/types'
 import { danmakuMetaToString } from '@/common/danmaku/utils'
 
@@ -56,8 +57,8 @@ interface StoreState {
   /**
    * The active integration observer for pages with integration
    */
-  integration?: string
-  setIntegration: (integration?: string) => void
+  integration: IntegrationType
+  setIntegration: (integration?: IntegrationType) => void
 
   /**
    * Reset media related state
@@ -114,7 +115,7 @@ export const useStore = create<StoreState>((set, get) => ({
   danmakuMeta: undefined,
   setDanmakuMeta: (danmakuMeta) => set({ danmakuMeta }),
 
-  integration: undefined,
+  integration: IntegrationType.None,
   setIntegration: (integration) => set({ integration }),
 
   resetMediaState: () => {

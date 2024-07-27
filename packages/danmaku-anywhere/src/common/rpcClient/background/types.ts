@@ -57,7 +57,7 @@ type DanmakuMethods = {
 type TitleMappingMethods = {
   titleMappingSet: RPCDef<TitleMapping, void>
   titleMappingGet: RPCDef<
-    Pick<TitleMapping, 'originalTitle' | 'source'>,
+    Pick<TitleMapping, 'originalTitle' | 'integration'>,
     TitleMapping | null
   >
 }
