@@ -7,6 +7,7 @@ import { extensionOptionsService } from '@/common/options/danmakuOptions/service
 import type { ExtensionOptions } from '@/common/options/extensionOptions/schema'
 import { danmakuOptionsService } from '@/common/options/extensionOptions/service'
 import { mountConfigService } from '@/common/options/mountConfig/service'
+import { ColorMode } from '@/common/theme/enums'
 import { getRandomUUID } from '@/common/utils/utils'
 
 type PrevOptions = any
@@ -38,7 +39,17 @@ extensionOptionsService
   .version(4, {
     upgrade: (data: PrevOptions) =>
       produce<ExtensionOptions>(data, (draft) => {
+        // Add option to convert between simplified and traditional Chinese
         draft.danmakuSources.dandanplay.chConvert = DanDanChConvert.None
+      }),
+  })
+  .version(5, {
+    upgrade: (data: PrevOptions) =>
+      produce<ExtensionOptions>(data, (draft) => {
+        // Add theme options
+        draft.theme = {
+          colorMode: ColorMode.System,
+        }
       }),
   })
 

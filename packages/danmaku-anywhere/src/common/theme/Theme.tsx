@@ -1,15 +1,14 @@
 import { useMediaQuery } from '@mui/material'
 import type { ThemeOptions } from '@mui/material/styles'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
-import {
-  createContext,
-  type PropsWithChildren,
-  use,
-  useMemo,
-  useState,
-} from 'react'
+import { produce } from 'immer'
+import { createContext, type PropsWithChildren, use, useMemo } from 'react'
 
 import { tryCatchSync } from '../utils/utils'
+
+import type { UserTheme } from '@/common/options/extensionOptions/schema'
+import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
+import { ColorMode } from '@/common/theme/enums'
 
 const defaultThemeOptions: ThemeOptions = {
   palette: {
@@ -17,16 +16,13 @@ const defaultThemeOptions: ThemeOptions = {
   },
 }
 
-type ColorScheme = 'dark' | 'light' | 'system'
-
-interface ThemeContext {
-  colorScheme: ColorScheme
-  setColorScheme: (colorScheme: ColorScheme) => void
+type ThemeContext = UserTheme & {
+  setColorMode: (colorScheme: ColorMode) => void
 }
 
 const context = createContext<ThemeContext>({
-  colorScheme: 'system',
-  setColorScheme: () => void 0,
+  colorMode: ColorMode.System,
+  setColorMode: () => void 0,
 })
 
 interface ThemeProps extends PropsWithChildren {
@@ -40,33 +36,36 @@ export const Theme = ({ children, options = {} }: ThemeProps) => {
     useMediaQuery('(prefers-color-scheme: dark)')
   )
 
-  const [colorScheme, setColorScheme] = useState<ColorScheme>('system')
+  const { data, partialUpdate } = useExtensionOptions()
+  const colorMode = data.theme.colorMode
 
-  const theme = useMemo(
-    () =>
-      createTheme({
-        ...defaultThemeOptions,
-        ...options,
-        palette: {
-          ...defaultThemeOptions.palette,
-          ...options.palette,
-          mode:
-            colorScheme === 'system'
-              ? prefersDarkMode ?? true
-                ? 'dark'
-                : 'light'
-              : colorScheme,
-        },
-      }),
-    [colorScheme, options]
-  )
+  const setColorMode = async (colorScheme: ColorMode) => {
+    await partialUpdate(
+      produce(data, (draft) => {
+        draft.theme.colorMode = colorScheme
+      })
+    )
+  }
+
+  const theme = useMemo(() => {
+    const preferredColorScheme = prefersDarkMode ?? true ? 'dark' : 'light'
+
+    return createTheme(
+      produce(defaultThemeOptions, (draft) => {
+        Object.assign(draft, options)
+        if (!draft.palette) draft.palette = {}
+        draft.palette.mode =
+          colorMode === 'system' ? preferredColorScheme : colorMode
+      })
+    )
+  }, [colorMode, options])
 
   const themeContextValue = useMemo(
     () => ({
-      colorScheme,
-      setColorScheme,
+      colorMode,
+      setColorMode,
     }),
-    [colorScheme, setColorScheme]
+    [colorMode, setColorMode]
   )
 
   return (

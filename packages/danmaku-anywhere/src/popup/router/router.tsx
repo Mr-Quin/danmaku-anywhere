@@ -15,6 +15,8 @@ import { SearchPage } from '../pages/search/SearchPage'
 import { FilterPage } from '../pages/styles/FilterPage'
 import { StylesPage } from '../pages/styles/StylesPage'
 
+import { ThemeOptions } from '@/popup/pages/options/pages/theme/ThemeOptions'
+
 export const router = createHashRouter([
   {
     path: '/',
@@ -95,6 +97,10 @@ export const router = createHashRouter([
       {
         path: 'danmaku-source',
         Component: DanmakuSource,
+      },
+      {
+        path: 'theme',
+        Component: ThemeOptions,
       },
     ],
   },

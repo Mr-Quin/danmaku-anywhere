@@ -164,9 +164,18 @@ const pages = {
       traditional: '转换成繁体',
       none: '不转换',
     },
+    theme: {
+      colorMode: {
+        name: '色彩模式',
+        light: '明亮',
+        dark: '暗黑',
+        system: '跟随系统',
+      },
+    },
     pages: {
       danmakuSource: '弹幕来源',
       permissions: '权限设置',
+      theme: 'UI主题',
     },
   },
   searchPage: {

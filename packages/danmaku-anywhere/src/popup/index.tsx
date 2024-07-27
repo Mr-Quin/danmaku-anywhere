@@ -12,11 +12,11 @@ import '@/common/localization/i18n'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <Theme>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <Theme>
         <App />
         <ReactQueryDevtools />
-      </QueryClientProvider>
-    </Theme>
+      </Theme>
+    </QueryClientProvider>
   </React.StrictMode>
 )
