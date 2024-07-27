@@ -1,11 +1,4 @@
-import {
-  FormControl,
-  InputLabel,
-  ListItem,
-  ListItemText,
-  MenuItem,
-  Select,
-} from '@mui/material'
+import { ListItem, ListItemText, MenuItem, TextField } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
 import { i18n } from '@/common/localization/i18n'
@@ -25,19 +18,20 @@ export const LanguageListItem = () => {
   return (
     <ListItem
       secondaryAction={
-        <FormControl size="small" sx={{ width: 150 }}>
-          <InputLabel>{t('optionsPage.language')}</InputLabel>
-          <Select
-            value={data.lang}
-            onChange={(e) => handleSelect(e.target.value as Language)}
-          >
-            {LanguageList.map((lang) => (
-              <MenuItem value={lang.value} key={lang.label}>
-                {lang.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <TextField
+          size="small"
+          sx={{ width: 150 }}
+          label={t('optionsPage.language')}
+          value={data.lang}
+          onChange={(e) => handleSelect(e.target.value as Language)}
+          select
+        >
+          {LanguageList.map((lang) => (
+            <MenuItem value={lang.value} key={lang.label}>
+              {lang.label}
+            </MenuItem>
+          ))}
+        </TextField>
       }
     >
       <ListItemText primary={t('optionsPage.language')} />
