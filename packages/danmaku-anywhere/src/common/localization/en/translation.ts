@@ -167,9 +167,18 @@ const pages = {
       traditional: 'Convert to traditional',
       none: 'No conversion',
     },
+    theme: {
+      colorMode: {
+        name: 'Color Mode',
+        light: 'Light',
+        dark: 'Dark',
+        system: 'System',
+      },
+    },
     pages: {
       danmakuSource: 'Danmaku Source',
       permissions: 'Permissions',
+      theme: 'UI Theme',
     },
   },
   searchPage: {

@@ -42,8 +42,6 @@ export const DanmakuSource = () => {
     mode: 'onChange',
   })
 
-  console.log({ data: data.danmakuSources, values: getValues() })
-
   const { mutate: handleApply } = useMutation({
     mutationFn: async () => {
       await partialUpdate(

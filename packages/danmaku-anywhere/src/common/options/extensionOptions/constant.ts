@@ -2,6 +2,7 @@ import { DanDanChConvert } from '@danmaku-anywhere/dandanplay-api'
 
 import { Language } from '@/common/localization/language'
 import type { ExtensionOptions } from '@/common/options/extensionOptions/schema'
+import { ColorMode } from '@/common/theme/enums'
 
 export const ChConvertList = [
   {
@@ -26,5 +27,8 @@ export const defaultExtensionOptions: ExtensionOptions = {
       baseUrl: 'https://api.dandanplay.net',
       chConvert: DanDanChConvert.None,
     },
+  },
+  theme: {
+    colorMode: ColorMode.System,
   },
 } as const

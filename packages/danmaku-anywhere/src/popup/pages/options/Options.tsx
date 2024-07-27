@@ -59,6 +59,10 @@ export const Options = () => {
             title={t('optionsPage.pages.danmakuSource')}
             onClick={() => navigate('danmaku-source')}
           />
+          <OptionsListItem
+            title={t('optionsPage.pages.theme')}
+            onClick={() => navigate('theme')}
+          />
         </List>
       </OptionsPageLayout>
       <Outlet />
