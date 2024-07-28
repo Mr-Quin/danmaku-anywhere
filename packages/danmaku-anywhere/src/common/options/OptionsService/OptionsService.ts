@@ -1,9 +1,8 @@
 import { Logger } from '../../Logger'
 import { ExtStorageService } from '../../storage/ExtStorageService'
 
+import { migrateOptions } from './migrationOptions'
 import type { Options, OptionsSchema, Version, VersionConfig } from './types'
-
-import { migrateOptions } from '@/common/options/OptionsService/migrationOptions'
 
 //Handles creating and upgrading options schema
 export class OptionsService<T extends OptionsSchema> {
@@ -48,12 +47,7 @@ export class OptionsService<T extends OptionsSchema> {
       // if no options, set default options as the latest version
       this.logger.debug(`No existing options found, using default options`)
 
-      await this.storageService.set({
-        data: this.defaultOptions,
-        version: this.#getLatestVersion().version,
-      })
-
-      return
+      return await this.reset()
     }
 
     this.logger.debug(`Found options with version '${options.version}'`)
@@ -93,7 +87,7 @@ export class OptionsService<T extends OptionsSchema> {
   async reset() {
     return this.storageService.set({
       data: this.defaultOptions,
-      version: this.#getLatestVersion().version, // TODO: this is a bug, refactor this service to separate upgrade logic from storage service
+      version: this.#getLatestVersion().version,
     })
   }
 

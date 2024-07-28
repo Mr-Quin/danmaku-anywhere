@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { crx } from '@crxjs/vite-plugin'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
@@ -29,5 +30,8 @@ export default defineConfig({
         app: 'pages/popup.html',
       },
     },
+  },
+  test: {
+    setupFiles: ['src/tests/mockChromeApis.ts'],
   },
 })
