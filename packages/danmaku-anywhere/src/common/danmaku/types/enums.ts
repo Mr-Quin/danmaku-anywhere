@@ -12,8 +12,8 @@ export enum IntegrationType {
   Plex,
 }
 
-export const isIntegrationNone = (type: IntegrationType) =>
-  type === IntegrationType.None
+export const hasIntegration = (type: IntegrationType) =>
+  type !== IntegrationType.None
 
 export const getIntegrationLabel = (type: IntegrationType) =>
   IntegrationType[type]

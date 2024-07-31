@@ -26,10 +26,7 @@ import { usePopup } from '../../../store/popupStore'
 import { useStore } from '../../../store/store'
 
 import { AnimeTypeIcon } from '@/common/components/AnimeList/AnimeTypeIcon'
-import {
-  DanmakuSourceType,
-  isIntegrationNone,
-} from '@/common/danmaku/types/enums'
+import { DanmakuSourceType, hasIntegration } from '@/common/danmaku/types/enums'
 import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
 export const SelectorPanel = () => {
@@ -59,7 +56,7 @@ export const SelectorPanel = () => {
     if (!selectedAnime || !selectedEpisode) return
 
     const titleMapping =
-      mediaInfo && saveMapping && !isIntegrationNone(integration)
+      mediaInfo && saveMapping && !hasIntegration(integration)
         ? {
             originalTitle: mediaInfo.toTitleString(),
             title: selectedAnime.animeTitle,

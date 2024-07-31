@@ -1,26 +1,20 @@
 [
   {
-    "patterns": [
-      "https://app.plex.tv/*"
-    ],
+    "patterns": ["https://app.plex.tv/*"],
     "mediaQuery": "video",
     "enabled": false,
     "integration": "Plex",
     "name": "plex"
   },
   {
-    "patterns": [
-      "https://www.bilibili.com/*"
-    ],
+    "patterns": ["https://www.bilibili.com/*"],
     "mediaQuery": "video",
     "enabled": false,
     "integration": "None",
     "name": "bilibili"
   },
   {
-    "patterns": [
-      "https://www.youtube.com/*"
-    ],
+    "patterns": ["https://www.youtube.com/*"],
     "mediaQuery": "video",
     "enabled": false,
     "integration": "None",
