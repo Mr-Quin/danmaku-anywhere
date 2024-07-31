@@ -27,6 +27,7 @@ import { SearchResultList } from '@/common/components/AnimeList/SearchResultList
 import { Center } from '@/common/components/Center'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { hasIntegration } from '@/common/danmaku/types/enums'
+import { AutomaticMode } from '@/content/common/components/AutomaticMode'
 import { usePopup } from '@/content/store/popupStore'
 import { useStore } from '@/content/store/store'
 
@@ -119,20 +120,22 @@ export const SearchPanel = () => {
               <Search />
             </LoadingButton>
           </Stack>
-          <FormControl>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  inputProps={{ 'aria-label': 'controlled' }}
-                  checked={saveMapping}
-                  onChange={(e) => {
-                    setSaveMapping(e.target.checked)
-                  }}
-                />
-              }
-              label={t('searchPage.saveMapping')}
-            />
-          </FormControl>
+          <AutomaticMode>
+            <FormControl>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    inputProps={{ 'aria-label': 'controlled' }}
+                    checked={saveMapping}
+                    onChange={(e) => {
+                      setSaveMapping(e.target.checked)
+                    }}
+                  />
+                }
+                label={t('searchPage.saveMapping')}
+              />
+            </FormControl>
+          </AutomaticMode>
         </Box>
       </form>
       <ErrorBoundary
