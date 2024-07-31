@@ -48,7 +48,7 @@ export const Theme = ({ children, options = {} }: ThemeProps) => {
   }
 
   const theme = useMemo(() => {
-    const preferredColorScheme = prefersDarkMode ?? true ? 'dark' : 'light'
+    const preferredColorScheme = (prefersDarkMode ?? true) ? 'dark' : 'light'
 
     return createTheme(
       produce(defaultThemeOptions, (draft) => {

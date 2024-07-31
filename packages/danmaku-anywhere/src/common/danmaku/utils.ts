@@ -12,6 +12,10 @@ export const episodeIdToEpisodeNumber = (episodeId: number) => {
   return episodeId % 10000
 }
 
+export const getNextEpisodeId = (episodeId: number) => {
+  return episodeId + 1
+}
+
 export const isCustomDanmaku = (
   meta: DanmakuMeta
 ): meta is CustomDanmakuMeta => {

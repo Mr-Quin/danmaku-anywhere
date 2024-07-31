@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { useMouseLocation } from './useMouseLocation'
 
-import { isIntegrationNone } from '@/common/danmaku/types/enums'
+import { hasIntegration } from '@/common/danmaku/types/enums'
 import { useStore } from '@/content/store/store'
 
 export const useShowFab = () => {
@@ -15,7 +15,7 @@ export const useShowFab = () => {
   const [showFab, setShowFab] = useState(true)
 
   useEffect(() => {
-    if (!isIntegrationNone(integration)) {
+    if (hasIntegration(integration)) {
       if (playbackStatus !== 'playing') {
         setShowFab(true)
         return
