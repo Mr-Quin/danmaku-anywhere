@@ -1,5 +1,7 @@
 import type { PlaybackStatus } from './MediaObserver'
-import { MediaInfo, MediaObserver } from './MediaObserver'
+import { MediaObserver } from './MediaObserver'
+
+import { MediaInfo } from '@/content/danmaku/integration/MediaInfo'
 
 // title format
 // episodic:

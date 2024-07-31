@@ -5,7 +5,6 @@ import { useShallow } from 'zustand/react/shallow'
 
 import { PopupTab, usePopup } from '../../store/popupStore'
 import { useStore } from '../../store/store'
-import type { MediaInfo } from '../integration/MediaObserver'
 
 import { useMatchObserver } from './useMatchObserver'
 
@@ -17,6 +16,7 @@ import { Logger } from '@/common/Logger'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { tryCatch } from '@/common/utils/utils'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
+import type { MediaInfo } from '@/content/danmaku/integration/MediaInfo'
 
 export const useMediaObserver = () => {
   const { t } = useTranslation()
