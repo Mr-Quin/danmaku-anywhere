@@ -1,14 +1,12 @@
 import type { CachedComment } from '@danmaku-anywhere/danmaku-engine'
 import { create } from 'zustand'
 
-import type {
-  MediaInfo,
-  PlaybackStatus,
-} from '../danmaku/integration/MediaObserver'
+import type { PlaybackStatus } from '../danmaku/integration/MediaObserver'
 
 import { IntegrationType } from '@/common/danmaku/types/enums'
 import type { DanmakuMeta } from '@/common/danmaku/types/types'
 import { danmakuMetaToString } from '@/common/danmaku/utils'
+import type { MediaInfo } from '@/content/danmaku/integration/MediaInfo'
 
 interface StoreState {
   /**
