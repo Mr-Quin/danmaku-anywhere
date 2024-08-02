@@ -18,23 +18,16 @@ export const useDanmakuManager = () => {
   const { data: options } = useDanmakuOptions()
   const danmakuEngine = useDanmakuEngine()
   const { toast } = useToast()
-  const { videoNode, containerNode } = useMediaElementStore()
+  const { videoNode, containerNode, videoSrc } = useMediaElementStore()
   const { canRefresh, refreshComments } = useRefreshComments()
 
-  const { comments, playbackStatus, hasComments } = useStore(
-    useShallow(({ comments, playbackStatus, hasComments }) => {
-      return { comments, playbackStatus, hasComments }
+  const { comments, playbackStatus, hasComments, resetMediaState } = useStore(
+    useShallow(({ comments, playbackStatus, hasComments, resetMediaState }) => {
+      return { comments, playbackStatus, hasComments, resetMediaState }
     })
   )
 
   useEffect(() => {
-    // if danmaku is created, destroy it when comments are removed
-    if (!hasComments && danmakuEngine.created) {
-      Logger.debug('Destroying danmaku')
-      danmakuEngine.destroy()
-      return
-    }
-
     // if media is not ready, do nothing
     if (!containerNode || !videoNode || !hasComments) return
 
@@ -53,6 +46,20 @@ export const useDanmakuManager = () => {
     danmakuEngine.create(containerNode, videoNode, comments, options)
   }, [videoNode, containerNode, comments, options, hasComments])
 
+  useEffect(() => {
+    if (!hasComments && danmakuEngine.created) {
+      Logger.debug('Comments removed, destroying danmaku')
+      danmakuEngine.destroy()
+    }
+  }, [hasComments])
+
+  useEffect(() => {
+    if (!videoNode && danmakuEngine.created) {
+      Logger.debug('Video node removed, removing comments')
+      resetMediaState()
+    }
+  }, [videoNode])
+
   // in automatic mode, destroy danmaku when playback is stopped
   useEffect(() => {
     if (!danmakuEngine.created) return
@@ -67,11 +74,11 @@ export const useDanmakuManager = () => {
     if (!danmakuEngine.created) return
 
     // recreate danmaku when containerNode or videoNode changes
-    if (containerNode && videoNode) {
-      Logger.debug('Container changed, recreating danmaku')
+    if (containerNode && videoNode && videoSrc) {
+      Logger.debug('Container or videoSrc changed, recreating danmaku')
       danmakuEngine.create(containerNode, videoNode, comments, options)
     }
-  }, [containerNode])
+  }, [containerNode, videoSrc])
 
   useEffect(() => {
     if (!danmakuEngine.created) return
