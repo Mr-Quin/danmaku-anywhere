@@ -9,6 +9,7 @@ import type { SafeZones } from '@/common/options/danmakuOptions/constant'
 import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
 import { useRect } from '@/content/common/hooks/useRect'
+import { useVideoSrc } from '@/content/danmaku/container/useVideoSrc'
 import { useDanmakuEngine } from '@/content/store/danmakuEngineStore'
 
 // returns a padding object for the safe zone
@@ -37,6 +38,8 @@ export const DanmakuContainer = () => {
   const config = useActiveConfig()
 
   const videoNode = useVideoNode(config.mediaQuery)
+
+  useVideoSrc(videoNode)
 
   const rect = useRect(videoNode)
 
