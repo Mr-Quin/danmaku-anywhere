@@ -34,7 +34,6 @@ export const useMediaObserver = () => {
     setPlaybackStatus,
     setDanmakuMeta,
     setComments,
-    unsetComments,
     resetMediaState,
   } = useStore(useShallow((state) => state))
 
@@ -57,8 +56,7 @@ export const useMediaObserver = () => {
         setMediaInfo(state)
 
         const handleError = () => {
-          setDanmakuMeta(undefined)
-          unsetComments()
+          resetMediaState(state)
         }
 
         const titleMappingPayload = {
