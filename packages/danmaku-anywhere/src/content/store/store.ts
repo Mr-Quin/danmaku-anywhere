@@ -62,7 +62,7 @@ interface StoreState {
    * Reset media related state
    * Includes comments, mediaInfo, and danmakuMeta
    */
-  resetMediaState: () => void
+  resetMediaState: (mediaInfo?: MediaInfo) => void
 
   /**
    * Uses the mediaInfo and danmakuMeta to get the name
@@ -116,11 +116,11 @@ export const useStore = create<StoreState>((set, get) => ({
   integration: IntegrationType.None,
   setIntegration: (integration) => set({ integration }),
 
-  resetMediaState: () => {
+  resetMediaState: (mediaInfo) => {
     get().unsetComments()
     get().setDanmakuMeta(undefined)
     set({
-      mediaInfo: undefined,
+      mediaInfo: mediaInfo,
     })
   },
 
