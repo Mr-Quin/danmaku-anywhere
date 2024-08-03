@@ -1,22 +1,13 @@
-import {
-  MenuOpen,
-  Refresh,
-  Visibility,
-  VisibilityOff,
-} from '@mui/icons-material'
 import type { FabProps, PopoverVirtualElement } from '@mui/material'
 import {
+  ClickAwayListener,
   Box,
-  CircularProgress,
   Fade,
   SpeedDial,
-  SpeedDialAction,
   SpeedDialIcon,
 } from '@mui/material'
 import type { MouseEventHandler } from 'react'
-import { forwardRef, useRef } from 'react'
-import { createPortal } from 'react-dom'
-import { useTranslation } from 'react-i18next'
+import { forwardRef, useRef, useState } from 'react'
 
 import { LoadingRing } from './components/LoadingRing'
 import { useShowFab } from './hooks/useShowFab'
@@ -24,7 +15,8 @@ import { useShowFab } from './hooks/useShowFab'
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { useMergeRefs } from '@/common/hooks/useMergeRefs'
 import { createVirtualElement } from '@/common/utils/utils'
-import { useRefreshComments } from '@/content/common/hooks/useRefreshComments'
+import { FabContextMenu } from '@/content/floatingUi/floatingButton/components/FabContextMenu'
+import { FabLoadingIndicator } from '@/content/floatingUi/floatingButton/components/FabLoadingIndicator'
 import { useStore } from '@/content/store/store'
 
 interface FloatingButtonProps extends FabProps {
@@ -36,12 +28,12 @@ export const FloatingButton = forwardRef<
   HTMLButtonElement,
   FloatingButtonProps
 >(({ onOpen, isOpen }: FloatingButtonProps, ref) => {
-  const { t } = useTranslation()
   const isLoading = useAnyLoading()
 
   const showFab = useShowFab()
 
-  const { refreshComments, isPending, canRefresh } = useRefreshComments()
+  const [contextMenuAnchor, setContextMenuAnchor] =
+    useState<PopoverVirtualElement | null>(null)
 
   const enabled = useStore((state) => state.enabled)
   const toggleEnabled = useStore((state) => state.toggleEnabled)
@@ -52,17 +44,25 @@ export const FloatingButton = forwardRef<
     onOpen(virtualElement)
   }
 
+  const handleCloseContextMenu = () => {
+    setContextMenuAnchor(null)
+  }
+
   const handleContextMenu: MouseEventHandler<HTMLElement> = (e) => {
-    if (isOpen) {
+    if (contextMenuAnchor) {
+      // if context menu is already open, use the system context menu
+      handleCloseContextMenu()
       return
     }
     e.preventDefault()
-    handleOpen(e)
+    const virtualElement = createVirtualElement(e.clientX, e.clientY)
+    setContextMenuAnchor(virtualElement)
   }
 
   // reserved for touch devices
   const handleClick: MouseEventHandler<HTMLElement> = (e) => {
     handleOpen(e)
+    handleCloseContextMenu()
   }
 
   const fabRef = useRef<HTMLButtonElement>(null)
@@ -76,72 +76,39 @@ export const FloatingButton = forwardRef<
       : 'primary.main'
 
   return (
-    <Box>
-      <Fade in={isLoading || showFab || isOpen}>
-        <div>
-          <SpeedDial
-            ariaLabel="SpeedDial"
-            icon={<SpeedDialIcon />}
-            FabProps={{
-              size: 'small',
-              children: <LoadingRing isLoading />,
-              onContextMenu: handleContextMenu,
-              onClick: handleClick,
-              onDoubleClick: () => toggleEnabled(),
-              ref: mergedFabRefs,
-              sx: {
-                bgcolor: dialColor,
-              },
-            }}
-          >
-            <SpeedDialAction
-              icon={
-                isPending ? (
-                  <CircularProgress size={18} color="inherit" />
-                ) : (
-                  <Refresh />
-                )
-              }
-              tooltipTitle={t('danmaku.refresh')}
-              onClick={refreshComments}
+    <ClickAwayListener onClickAway={handleCloseContextMenu}>
+      <Box>
+        <Fade in={isLoading || showFab || isOpen || !!contextMenuAnchor}>
+          <div>
+            <SpeedDial
+              ariaLabel="SpeedDial"
+              icon={<SpeedDialIcon />}
               FabProps={{
-                disabled: isPending || !canRefresh,
+                size: 'small',
+                children: <LoadingRing isLoading />,
+                onContextMenu: handleContextMenu,
+                onClick: handleClick,
+                onDoubleClick: () => toggleEnabled(),
+                ref: mergedFabRefs,
+                sx: {
+                  bgcolor: dialColor,
+                },
               }}
             />
-            <SpeedDialAction
-              icon={enabled ? <Visibility /> : <VisibilityOff />}
-              tooltipTitle={
-                enabled ? t('danmaku.disable') : t('danmaku.enable')
-              }
-              onClick={() => toggleEnabled()}
-            />
-            <SpeedDialAction
-              icon={<MenuOpen />}
-              tooltipTitle="Open popup"
-              onClick={handleOpen}
-            />
-          </SpeedDial>
-          {fabRef.current &&
-            createPortal(
-              <Fade in={isLoading}>
-                <Box
-                  position="absolute"
-                  width={40}
-                  height={40}
-                  top={0}
-                  left={0}
-                  sx={{
-                    pointerEvents: 'none',
-                  }}
-                >
-                  <LoadingRing isLoading={isLoading} />
-                </Box>
-              </Fade>,
-              fabRef.current
+            {fabRef.current && (
+              <FabLoadingIndicator
+                anchor={fabRef.current}
+                isLoading={isLoading}
+              />
             )}
-        </div>
-      </Fade>
-    </Box>
+            <FabContextMenu
+              open={contextMenuAnchor !== null}
+              anchorEl={contextMenuAnchor}
+            />
+          </div>
+        </Fade>
+      </Box>
+    </ClickAwayListener>
   )
 })
 

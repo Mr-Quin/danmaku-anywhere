@@ -5,7 +5,6 @@ import { useStore } from '../../store/store'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import { isCustomDanmaku } from '@/common/danmaku/utils'
-import { tryCatch } from '@/common/utils/utils'
 import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
 export const useRefreshComments = () => {
@@ -14,23 +13,24 @@ export const useRefreshComments = () => {
   const getAnimeName = useStore((state) => state.getAnimeName)
   const toast = useToast.use.toast()
 
-  const { fetch, isPending } = useFetchDanmakuMapped()
-
-  const refreshComments = useEventCallback(async () => {
-    if (!danmakuMeta || isCustomDanmaku(danmakuMeta)) return
-
-    const [result, err] = await tryCatch(() =>
-      fetch({ danmakuMeta, options: { forceUpdate: true } })
-    )
-
-    if (!err) {
+  const { mutate, isPending } = useFetchDanmakuMapped({
+    onMutate: () => {
+      toast.info(t('danmaku.alert.refreshingDanmaku'))
+    },
+    onSuccess: (result) => {
       toast.success(
         t('danmaku.alert.refreshed', {
           name: getAnimeName(),
           count: result.count,
         })
       )
-    }
+    },
+  })
+
+  const refreshComments = useEventCallback(async () => {
+    if (!danmakuMeta || isCustomDanmaku(danmakuMeta)) return
+
+    mutate({ danmakuMeta, options: { forceUpdate: true } })
   })
 
   return {

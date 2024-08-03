@@ -1,6 +1,7 @@
 import { DanmakuSourceType } from '@/common/danmaku/types/enums'
 import {
   type CustomDanmakuMeta,
+  type DDPDanmakuMeta,
   type DanmakuMeta,
 } from '@/common/danmaku/types/types'
 
@@ -14,6 +15,14 @@ export const episodeIdToEpisodeNumber = (episodeId: number) => {
 
 export const getNextEpisodeId = (episodeId: number) => {
   return episodeId + 1
+}
+
+export const getNextEpisodeMeta = (meta: DDPDanmakuMeta) => {
+  return {
+    ...meta,
+    episodeId: getNextEpisodeId(meta.episodeId),
+    episodeTitle: undefined,
+  }
 }
 
 export const isCustomDanmaku = (

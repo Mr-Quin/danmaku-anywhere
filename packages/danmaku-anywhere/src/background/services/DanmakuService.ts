@@ -64,7 +64,11 @@ export class DanmakuService {
       return existingDanmaku
     }
 
-    this.logger.debug('Danmaku not found in db, fetching from server')
+    if (options.forceUpdate) {
+      this.logger.debug('Force update flag set, bypassed cache')
+    } else {
+      this.logger.debug('Danmaku not found in db, fetching from server')
+    }
 
     const comments = await fetchComments(episodeId, paramsCopy)
 
@@ -96,14 +100,21 @@ export class DanmakuService {
       )
 
       const [anime, err] = await tryCatch(async () => getAnime(meta.animeId))
-      if (!err) {
-        const episode = anime.bangumi.episodes.find(
-          (e) => e.episodeId === meta.episodeId
-        )
-        if (episode) {
-          this.logger.debug(`Found episode title: ${episode.episodeTitle}`)
-          newEntry.meta.episodeTitle = episode.episodeTitle
-        }
+
+      if (err) {
+        this.logger.debug('Failed to fetch anime', err)
+        throw err
+      }
+
+      const episode = anime.bangumi.episodes.find(
+        (e) => e.episodeId === meta.episodeId
+      )
+      if (episode) {
+        this.logger.debug(`Found episode title: ${episode.episodeTitle}`)
+        newEntry.meta.episodeTitle = episode.episodeTitle
+      } else {
+        this.logger.debug('Episode title not found')
+        throw new Error('Episode title not found')
       }
     }
 

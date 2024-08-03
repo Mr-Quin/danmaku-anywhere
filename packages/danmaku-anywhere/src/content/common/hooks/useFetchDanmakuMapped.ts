@@ -1,18 +1,37 @@
+import type { UseMutationOptions } from '@tanstack/react-query'
 import { useMutation } from '@tanstack/react-query'
 
 import { useStore } from '../../store/store'
 
+import { useToast } from '@/common/components/Toast/toastStore'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import type {
   DanmakuFetchOptions,
+  DDPDanmakuCache,
   DDPDanmakuMeta,
   TitleMapping,
 } from '@/common/danmaku/types/types'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { tryCatch } from '@/common/utils/utils'
 
-export const useFetchDanmakuMapped = () => {
+interface FetchOptions {
+  danmakuMeta: DDPDanmakuMeta
+  titleMapping?: TitleMapping
+  options?: DanmakuFetchOptions
+}
+
+type UseFetchDanmakuMappedOptions = Partial<
+  Pick<
+    UseMutationOptions<DDPDanmakuCache, Error, FetchOptions, void>,
+    'onSuccess' | 'onError' | 'onMutate'
+  >
+>
+
+export const useFetchDanmakuMapped = (
+  options: UseFetchDanmakuMappedOptions = {}
+) => {
   const { setComments, setDanmakuMeta } = useStore()
+  const toast = useToast.use.toast()
 
   const { mutateAsync } = useFetchDanmaku()
 
@@ -20,11 +39,7 @@ export const useFetchDanmakuMapped = () => {
     danmakuMeta,
     titleMapping,
     options,
-  }: {
-    danmakuMeta: DDPDanmakuMeta
-    titleMapping?: TitleMapping
-    options?: DanmakuFetchOptions
-  }) => {
+  }: FetchOptions) => {
     const res = await mutateAsync({
       meta: danmakuMeta,
       options: {
@@ -43,10 +58,16 @@ export const useFetchDanmakuMapped = () => {
   const mutation = useMutation({
     mutationFn: handleFetch,
     onMutate: (v) => {
-      setDanmakuMeta(v.danmakuMeta)
+      options.onMutate?.(v)
     },
-    onSuccess: (cache) => {
+    onSuccess: (cache, v) => {
       setComments(cache.comments)
+      setDanmakuMeta(cache.meta)
+      options.onSuccess?.(cache, v)
+    },
+    onError: (err, v) => {
+      toast.error(err.message)
+      options.onError?.(err, v)
     },
   })
 
