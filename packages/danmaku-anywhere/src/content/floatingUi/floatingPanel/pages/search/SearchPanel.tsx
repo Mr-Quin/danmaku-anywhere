@@ -89,7 +89,7 @@ export const SearchPanel = () => {
   }
 
   return (
-    <Box flexGrow={1}>
+    <Box flexGrow={1} sx={{ overflowX: 'hidden' }}>
       <form
         onSubmit={(e) => {
           e.preventDefault()
