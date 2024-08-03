@@ -27,6 +27,7 @@ import { SearchResultList } from '@/common/components/AnimeList/SearchResultList
 import { Center } from '@/common/components/Center'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { hasIntegration } from '@/common/danmaku/types/enums'
+import { stopKeyboardPropagation } from '@/common/utils/utils'
 import { AutomaticMode } from '@/content/common/components/AutomaticMode'
 import { usePopup } from '@/content/store/popupStore'
 import { useStore } from '@/content/store/store'
@@ -84,9 +85,7 @@ export const SearchPanel = () => {
   }
 
   const handleTextFieldKeyDown = (e: KeyboardEvent) => {
-    // prevent keydown event from triggering global shortcuts
-    if (e.key === 'Escape') return
-    e.stopPropagation()
+    stopKeyboardPropagation(e)
   }
 
   return (

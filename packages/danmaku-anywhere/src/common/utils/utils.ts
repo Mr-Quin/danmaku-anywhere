@@ -1,5 +1,6 @@
 import type { PopoverVirtualElement } from '@mui/material'
 import { match as matchPinyin } from 'pinyin-pro'
+import type { KeyboardEvent } from 'react'
 
 import type { NotPromise } from '../types/types'
 
@@ -135,4 +136,10 @@ export const matchWithPinyin = (inputString: string, searchString: string) => {
 
 export const getRandomUUID = () => {
   return globalThis.crypto.randomUUID()
+}
+
+export const stopKeyboardPropagation = (e: KeyboardEvent) => {
+  // prevent keydown event from triggering global shortcuts
+  if (e.key === 'Escape' || e.key === 'Enter') return
+  e.stopPropagation()
 }

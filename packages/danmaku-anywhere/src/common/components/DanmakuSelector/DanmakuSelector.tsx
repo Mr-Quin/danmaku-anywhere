@@ -10,7 +10,7 @@ import { ListboxComponent } from '@/common/components/DanmakuSelector/ListboxCom
 import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
 import { DanmakuSourceType } from '@/common/danmaku/types/enums'
 import type { DanmakuMeta } from '@/common/danmaku/types/types'
-import { matchWithPinyin } from '@/common/utils/utils'
+import { matchWithPinyin, stopKeyboardPropagation } from '@/common/utils/utils'
 
 type FilterOptions = ReturnType<typeof createFilterOptions<DanmakuMeta>>
 
@@ -92,6 +92,9 @@ export const DanmakuSelector = ({ value, onChange }: DanmakuSelectorProps) => {
             label={value ? value.animeTitle : t('anime.episode.select')}
             InputProps={{
               ...params.InputProps,
+              onKeyDown: (e) => {
+                stopKeyboardPropagation(e)
+              },
               endAdornment: (
                 <>
                   {isFetching ? (
