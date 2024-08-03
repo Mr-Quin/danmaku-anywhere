@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next'
 
 import { StyledEnableSwitch } from '@/common/components/StyledEnableSwitch'
 import { getIntegrationLabel } from '@/common/danmaku/types/enums'
+import { danmakuMetaToString } from '@/common/danmaku/utils'
 import { HasIntegration } from '@/content/common/components/HasIntegration'
 import { usePopup } from '@/content/store/popupStore'
 import { useStore } from '@/content/store/store'
@@ -17,12 +18,20 @@ import { useStore } from '@/content/store/store'
 export const FloatingPanelToolbar = () => {
   const { t } = useTranslation()
   const { toggleOpen } = usePopup()
-  const { toggleManualMode, manual, integration } = useStore()
+  const { toggleManualMode, manual, integration, danmakuMeta } = useStore()
 
   return (
     <AppBar position="relative">
       <Toolbar variant="dense" sx={{ gap: 2 }}>
-        <HasIntegration>
+        <HasIntegration
+          fallback={
+            danmakuMeta && (
+              <Typography noWrap title={danmakuMetaToString(danmakuMeta)}>
+                {danmakuMetaToString(danmakuMeta)}
+              </Typography>
+            )
+          }
+        >
           <Typography>{getIntegrationLabel(integration)}</Typography>
           <FormControlLabel
             control={
