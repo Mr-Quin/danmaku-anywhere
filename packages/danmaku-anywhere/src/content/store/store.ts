@@ -6,6 +6,7 @@ import type { PlaybackStatus } from '../danmaku/integration/MediaObserver'
 import { IntegrationType } from '@/common/danmaku/types/enums'
 import type { DanmakuMeta } from '@/common/danmaku/types/types'
 import { danmakuMetaToString } from '@/common/danmaku/utils'
+import { createSelectors } from '@/common/utils/createSelectors'
 import type { MediaInfo } from '@/content/danmaku/integration/MediaInfo'
 
 interface StoreState {
@@ -70,7 +71,7 @@ interface StoreState {
   getAnimeName: () => string
 }
 
-export const useStore = create<StoreState>((set, get) => ({
+const useStoreBase = create<StoreState>((set, get) => ({
   enabled: true,
   toggleEnabled: (enabled) => {
     if (enabled !== undefined) {
@@ -133,3 +134,5 @@ export const useStore = create<StoreState>((set, get) => ({
     return 'Unknown anime'
   },
 }))
+
+export const useStore = createSelectors(useStoreBase)
