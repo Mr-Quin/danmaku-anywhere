@@ -79,6 +79,13 @@ const themeOptions: ThemeOptions = {
         container: shadowRootElement,
       },
     },
+    MuiTooltip: {
+      styleOverrides: {
+        tooltip: {
+          width: 'max-content', // fix an issue where the tooltip would wrap too early
+        },
+      },
+    },
   },
 }
 
