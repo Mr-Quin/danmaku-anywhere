@@ -1,5 +1,5 @@
-import type { IntegrationType } from '@/common/danmaku/types/enums'
-import type { TitleMapping } from '@/common/danmaku/types/types'
+import type { IntegrationType } from '@/common/danmaku/enums'
+import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
 import { invariant, isServiceWorker } from '@/common/utils/utils'

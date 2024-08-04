@@ -11,7 +11,7 @@ import type { ChangeEvent } from 'react'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { DanmakuSourceType } from '@/common/danmaku/types/enums'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { useStore } from '@/popup/store'
 
 export const TypeSelector = () => {

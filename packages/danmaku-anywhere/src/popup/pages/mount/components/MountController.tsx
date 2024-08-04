@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 
 import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSelector'
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { DanmakuMeta } from '@/common/danmaku/types/types'
+import type { DanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
 import { Logger } from '@/common/Logger'
 import { tabRpcClient } from '@/common/rpcClient/tab/client'
 import { useSessionState } from '@/common/storage/hooks/useSessionState'

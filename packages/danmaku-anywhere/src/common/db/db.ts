@@ -1,14 +1,11 @@
 import Dexie from 'dexie'
 
-import {
-  DanmakuSourceType,
-  IntegrationType,
-} from '@/common/danmaku/types/enums'
+import { DanmakuSourceType, IntegrationType } from '@/common/danmaku/enums'
 import type {
   CustomDanmakuCacheDbModel,
   DDPDanmakuCacheDbModel,
-  TitleMapping,
-} from '@/common/danmaku/types/types'
+} from '@/common/danmaku/models/danmakuCache/db'
+import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 
 class DanmakuAnywhereDb extends Dexie {
   danmakuCache!: Dexie.Table<DDPDanmakuCacheDbModel, number>

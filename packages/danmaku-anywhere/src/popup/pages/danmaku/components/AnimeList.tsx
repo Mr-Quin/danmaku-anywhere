@@ -15,9 +15,9 @@ import { createSearchParams, useNavigate } from 'react-router-dom'
 
 import { NoAnime } from './NoAnime'
 
+import { DanmakuSourceType } from '@/common/danmaku/enums'
+import type { DanmakuCacheLite } from '@/common/danmaku/models/danmakuCache/dto'
 import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
-import { DanmakuSourceType } from '@/common/danmaku/types/enums'
-import type { DanmakuCacheLite } from '@/common/danmaku/types/types'
 import { matchWithPinyin } from '@/common/utils/utils'
 import { useStore } from '@/popup/store'
 

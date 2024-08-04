@@ -3,8 +3,8 @@ import { create } from 'zustand'
 
 import type { PlaybackStatus } from '../danmaku/integration/MediaObserver'
 
-import { IntegrationType } from '@/common/danmaku/types/enums'
-import type { DanmakuMeta } from '@/common/danmaku/types/types'
+import { IntegrationType } from '@/common/danmaku/enums'
+import type { DanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
 import { danmakuMetaToString } from '@/common/danmaku/utils'
 import { createSelectors } from '@/common/utils/createSelectors'
 import type { MediaInfo } from '@/content/danmaku/integration/MediaInfo'

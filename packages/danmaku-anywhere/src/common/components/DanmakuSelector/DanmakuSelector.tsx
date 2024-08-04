@@ -7,9 +7,9 @@ import { match } from 'ts-pattern'
 import { EpisodeOption } from './EpisodeOption'
 
 import { ListboxComponent } from '@/common/components/DanmakuSelector/ListboxComponent'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
+import type { DanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
 import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
-import { DanmakuSourceType } from '@/common/danmaku/types/enums'
-import type { DanmakuMeta } from '@/common/danmaku/types/types'
 import { matchWithPinyin, stopKeyboardPropagation } from '@/common/utils/utils'
 
 type FilterOptions = ReturnType<typeof createFilterOptions<DanmakuMeta>>

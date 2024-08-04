@@ -1,7 +1,7 @@
 import { DanDanChConvert } from '@danmaku-anywhere/dandanplay-api'
 import { produce } from 'immer'
 
-import { IntegrationType } from '@/common/danmaku/types/enums'
+import { IntegrationType } from '@/common/danmaku/enums'
 import { Language } from '@/common/localization/language'
 import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
 import type { ExtensionOptions } from '@/common/options/extensionOptions/schema'

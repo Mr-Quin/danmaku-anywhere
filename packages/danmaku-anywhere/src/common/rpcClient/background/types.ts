@@ -6,17 +6,17 @@ import type {
 import type { RPCDef } from '../../rpc/types'
 
 import type {
-  CustomDanmakuCreateDto,
   DanmakuDeleteDto,
   DanmakuFetchDDPDto,
   DanmakuGetOneDto,
-} from '@/common/danmaku/types/dto'
+} from '@/common/danmaku/dto'
 import type {
   DanmakuCache,
   DanmakuCacheLite,
   DDPDanmakuCache,
-  TitleMapping,
-} from '@/common/danmaku/types/types'
+} from '@/common/danmaku/models/danmakuCache/dto'
+import type { CustomDanmakuCreateDto } from '@/common/danmaku/models/danmakuImport/customDanmaku'
+import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 
 type IconSetDto =
   | {

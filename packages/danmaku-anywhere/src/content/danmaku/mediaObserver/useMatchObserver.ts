@@ -6,10 +6,7 @@ import type { MediaObserver } from '../integration/MediaObserver'
 import { observersMap } from '../integration/observers'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import {
-  getIntegrationLabel,
-  IntegrationType,
-} from '@/common/danmaku/types/enums'
+import { getIntegrationLabel, IntegrationType } from '@/common/danmaku/enums'
 import { Logger } from '@/common/Logger'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
 
