@@ -2,8 +2,8 @@ import type { DanDanCommentAPIParams } from '@danmaku-anywhere/dandanplay-api'
 import type { CachedComment } from '@danmaku-anywhere/danmaku-engine'
 
 import type {
-  DanmakuSourceType,
   IntegrationType,
+  DanmakuSourceType,
 } from '@/common/danmaku/types/enums'
 
 interface BaseDanmakuMeta {
@@ -44,7 +44,7 @@ interface BaseDanmakuCache {
   timeUpdated: number
 }
 
-export type DDPDanmakuCache = BaseDanmakuCache & {
+export type DDPDanmakuCacheDbModel = BaseDanmakuCache & {
   meta: DDPDanmakuMeta
   /**
    * The params used to fetch the comments
@@ -52,8 +52,20 @@ export type DDPDanmakuCache = BaseDanmakuCache & {
   params: Partial<DanDanCommentAPIParams>
 }
 
-export type CustomDanmakuCache = BaseDanmakuCache & {
+export type CustomDanmakuCacheDbModel = BaseDanmakuCache & {
   meta: CustomDanmakuMeta
+}
+
+export type DanmakuCacheDbModel =
+  | DDPDanmakuCacheDbModel
+  | CustomDanmakuCacheDbModel
+
+export type DDPDanmakuCache = DDPDanmakuCacheDbModel & {
+  type: DanmakuSourceType.DDP
+}
+
+export type CustomDanmakuCache = CustomDanmakuCacheDbModel & {
+  type: DanmakuSourceType.Custom
 }
 
 export type DanmakuCache = DDPDanmakuCache | CustomDanmakuCache
@@ -62,9 +74,7 @@ export type DanmakuCache = DDPDanmakuCache | CustomDanmakuCache
  * A lite version of DanmakuCache, only contains count and meta
  * To reduce the size of the cache for cases where comments are not needed
  */
-export type DanmakuCacheLite = Pick<DanmakuCache, 'count' | 'meta'> & {
-  type: DanmakuSourceType
-}
+export type DanmakuCacheLite = Pick<DanmakuCache, 'count' | 'meta' | 'type'>
 
 export interface DanmakuFetchOptions {
   forceUpdate?: boolean // force update danmaku from server even if it's already in db

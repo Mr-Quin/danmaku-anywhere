@@ -6,17 +6,19 @@ import { match } from 'ts-pattern'
 
 import type {
   CustomDanmakuCreateDto,
+  CustomDanmakuCreateDtoSingle,
   DanmakuDeleteDto,
   DanmakuGetOneDto,
 } from '@/common/danmaku/types/dto'
 import { DanmakuSourceType } from '@/common/danmaku/types/enums'
 import type {
   CustomDanmakuMeta,
-  DanmakuCache,
+  DanmakuCacheDbModel,
   DanmakuCacheLite,
   DanmakuFetchOptions,
   DDPDanmakuMeta,
 } from '@/common/danmaku/types/types'
+import { toDanmakuCache } from '@/common/danmaku/utils'
 import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
@@ -61,7 +63,7 @@ export class DanmakuService {
 
     if (existingDanmaku && !options.forceUpdate) {
       this.logger.debug('Danmaku found in db', existingDanmaku)
-      return existingDanmaku
+      return toDanmakuCache(existingDanmaku)
     }
 
     if (options.forceUpdate) {
@@ -82,7 +84,7 @@ export class DanmakuService {
       existingDanmaku.comments.length >= comments.comments.length
     ) {
       this.logger.debug('New danmaku has less comments, skip caching')
-      return existingDanmaku
+      return toDanmakuCache(existingDanmaku)
     }
 
     const newEntry = {
@@ -122,7 +124,7 @@ export class DanmakuService {
 
     this.logger.debug('Cached danmaku to db')
 
-    return newEntry
+    return toDanmakuCache(newEntry)
   }
 
   async delete(data: DanmakuDeleteDto) {
@@ -139,18 +141,18 @@ export class DanmakuService {
   }
 
   async createCustom(data: CustomDanmakuCreateDto) {
-    const createCache = (dto: CustomDanmakuCreateDto[number]) => {
+    const createCache = (dto: CustomDanmakuCreateDtoSingle) => {
       const { comments, animeTitle, episodeNumber, episodeTitle } = dto
 
       const cache = {
         comments,
         meta: {
-          type: DanmakuSourceType.Custom,
           episodeNumber,
           animeTitle,
           episodeTitle,
           // episodeId is auto generated after creation
         } as CustomDanmakuMeta,
+        type: DanmakuSourceType.Custom,
         version: 1,
         timeUpdated: Date.now(),
         count: comments.length,
@@ -167,7 +169,9 @@ export class DanmakuService {
    * which may cause performance issues or even crash when there are too many danmaku in db
    */
   async getAll() {
-    return this.ddpTable.toArray()
+    return (await this.ddpTable.toArray()).map((item) => {
+      return toDanmakuCache(item)
+    })
   }
 
   /**
@@ -186,18 +190,20 @@ export class DanmakuService {
 
   async getOne(data: DanmakuGetOneDto) {
     return match(data)
-      .with({ type: DanmakuSourceType.DDP }, (data) => {
-        return this.ddpTable.get(data.id)
+      .with({ type: DanmakuSourceType.DDP }, async (data) => {
+        const res = await this.ddpTable.get(data.id)
+        if (res) return toDanmakuCache(res)
       })
-      .with({ type: DanmakuSourceType.Custom }, (data) => {
-        return this.customTable.get(data.id)
+      .with({ type: DanmakuSourceType.Custom }, async (data) => {
+        const res = await this.customTable.get(data.id)
+        if (res) return toDanmakuCache(res)
       })
       .otherwise(() => {
         throw new RpcException(`Unknown danmaku type: ${data.type}`)
       })
   }
 
-  private async _getAllLite(table: Dexie.Table<DanmakuCache>) {
+  private async _getAllLite(table: Dexie.Table<DanmakuCacheDbModel>) {
     const cache: DanmakuCacheLite[] = []
 
     await table.toCollection().each((item) => {

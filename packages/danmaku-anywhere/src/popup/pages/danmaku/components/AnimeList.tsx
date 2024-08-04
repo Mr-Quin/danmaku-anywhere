@@ -32,7 +32,7 @@ const partitionDanmaku = (
   return danmakuTypes
     .map((type) => {
       // filter by type
-      const items = data.filter((item) => item.meta.type === type)
+      const items = data.filter((item) => item.type === type)
 
       // group by anime title
       const grouped = Object.groupBy(items, (item) => item.meta.animeTitle)
