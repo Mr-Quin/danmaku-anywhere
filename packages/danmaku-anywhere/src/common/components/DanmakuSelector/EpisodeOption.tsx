@@ -57,7 +57,7 @@ export const EpisodeOption = (
           {isLoading ? <Skeleton variant="text" width={48} /> : option.count}
         </Typography>
       </Box>
-      {option.meta.type !== DanmakuSourceType.Custom && (
+      {option.type !== DanmakuSourceType.Custom && (
         <IconButton edge="end" disabled={isPending} onClick={handleClick}>
           <Tooltip title="Update" placement="top">
             <Update />

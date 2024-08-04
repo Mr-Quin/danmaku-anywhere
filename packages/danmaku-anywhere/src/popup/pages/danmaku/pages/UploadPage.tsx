@@ -17,7 +17,7 @@ import { Link } from 'react-router-dom'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
-import { customDanmakuCreateSchema } from '@/common/danmaku/schema'
+import { customDanmakuCreateDtoSchema } from '@/common/danmaku/schema/customDanmaku'
 import { Logger } from '@/common/Logger'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { tryCatch } from '@/common/utils/utils'
@@ -56,7 +56,7 @@ export const UploadPage = () => {
         fileHandles.map(async (fileHandle) => {
           const json = await (await fileHandle.getFile()).text()
 
-          const parseResult = customDanmakuCreateSchema.safeParse(
+          const parseResult = customDanmakuCreateDtoSchema.safeParse(
             JSON.parse(json)
           )
 

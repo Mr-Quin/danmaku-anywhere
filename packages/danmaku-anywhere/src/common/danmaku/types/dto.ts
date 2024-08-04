@@ -1,12 +1,17 @@
 import type { DanDanCommentAPIParams } from '@danmaku-anywhere/dandanplay-api'
+import type { z } from 'zod'
 
-import type { CustomDanmakuCreateSchema } from '../schema'
+import type { customDanmakuCreateDtoSchema } from '../schema/customDanmaku'
 
 import type { DanmakuFetchOptions, DDPDanmakuMeta } from './types'
 
 import type { DanmakuSourceType } from '@/common/danmaku/types/enums'
 
-export type CustomDanmakuCreateDto = CustomDanmakuCreateSchema[]
+export type CustomDanmakuCreateDtoSingle = z.infer<
+  typeof customDanmakuCreateDtoSchema
+>
+
+export type CustomDanmakuCreateDto = CustomDanmakuCreateDtoSingle[]
 
 export interface DanmakuGetOneDto {
   type: DanmakuSourceType

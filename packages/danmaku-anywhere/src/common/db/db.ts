@@ -5,14 +5,14 @@ import {
   IntegrationType,
 } from '@/common/danmaku/types/enums'
 import type {
-  CustomDanmakuCache,
-  DDPDanmakuCache,
+  CustomDanmakuCacheDbModel,
+  DDPDanmakuCacheDbModel,
   TitleMapping,
 } from '@/common/danmaku/types/types'
 
 class DanmakuAnywhereDb extends Dexie {
-  danmakuCache!: Dexie.Table<DDPDanmakuCache, number>
-  manualDanmakuCache!: Dexie.Table<CustomDanmakuCache, number>
+  danmakuCache!: Dexie.Table<DDPDanmakuCacheDbModel, number>
+  manualDanmakuCache!: Dexie.Table<CustomDanmakuCacheDbModel, number>
   titleMapping!: Dexie.Table<TitleMapping, string>
 
   isReady = new Promise<boolean>((resolve) => {
@@ -59,7 +59,7 @@ class DanmakuAnywhereDb extends Dexie {
       .upgrade(async (tx) => {
         // add type field to danmakuCache.meta
         await tx
-          .table<DDPDanmakuCache>('danmakuCache')
+          .table<DDPDanmakuCacheDbModel>('danmakuCache')
           .toCollection()
           .modify((item) => {
             item.meta.type = DanmakuSourceType.DDP

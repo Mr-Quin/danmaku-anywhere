@@ -2,7 +2,7 @@ import { DanDanCommentMode } from '@danmaku-anywhere/dandanplay-api'
 import { encodeColor } from '@danmaku-anywhere/danmaku-engine'
 import { z } from 'zod'
 
-export const commentSchema = z
+export const customCommentSchema = z
   .object({
     mode: z
       .union(
@@ -33,12 +33,10 @@ export const commentSchema = z
     }
   })
 
-export type CommentSchema = z.infer<typeof commentSchema>
-
-export const customDanmakuCreateSchema = z
+export const customDanmakuCreateDtoSchema = z
   .object({
     comments: z
-      .array(commentSchema)
+      .array(customCommentSchema)
       .nonempty({ message: 'At least one comment is required' }),
     animeTitle: z.string(),
     episodeTitle: z.string().optional(),
@@ -48,7 +46,3 @@ export const customDanmakuCreateSchema = z
   .refine((data) => {
     return data.episodeTitle !== undefined || data.episodeNumber !== undefined
   }, 'One of episodeTitle or episodeNumber is required')
-
-export type CustomDanmakuCreateSchema = z.infer<
-  typeof customDanmakuCreateSchema
->
