@@ -18,6 +18,7 @@ import { Link } from 'react-router-dom'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
 import { customDanmakuCreateSchema } from '@/common/danmaku/schema'
+import { Logger } from '@/common/Logger'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { tryCatch } from '@/common/utils/utils'
 import { TabToolbar } from '@/popup/component/TabToolbar'
@@ -109,6 +110,7 @@ export const UploadPage = () => {
       })
     },
     onError: (e) => {
+      Logger.debug('Error importing danmaku:', e)
       toast.error(e.message)
     },
   })
