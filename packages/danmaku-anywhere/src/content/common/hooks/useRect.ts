@@ -21,11 +21,14 @@ export const useRect = (node: HTMLElement | null) => {
     })
 
     window.addEventListener('resize', handleResize)
+    // Track scroll since top and left are relative to the viewport thus need to be updated
+    window.addEventListener('scroll', handleResize)
     resizeObserver.observe(node)
 
     return () => {
       resizeObserver.disconnect()
       window.removeEventListener('resize', handleResize)
+      window.removeEventListener('scroll', handleResize)
       setRect(undefined)
     }
   }, [node])
