@@ -4,20 +4,19 @@ import type Dexie from 'dexie'
 import { produce } from 'immer'
 import { match } from 'ts-pattern'
 
+import type { DanmakuDeleteDto, DanmakuGetOneDto } from '@/common/danmaku/dto'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
+import type { DanmakuCacheDbModel } from '@/common/danmaku/models/danmakuCache/db'
+import type { DanmakuCacheLite } from '@/common/danmaku/models/danmakuCache/dto'
 import type {
   CustomDanmakuCreateDto,
   CustomDanmakuCreateDtoSingle,
-  DanmakuDeleteDto,
-  DanmakuGetOneDto,
-} from '@/common/danmaku/types/dto'
-import { DanmakuSourceType } from '@/common/danmaku/types/enums'
+} from '@/common/danmaku/models/danmakuImport/customDanmaku'
 import type {
   CustomDanmakuMeta,
-  DanmakuCacheDbModel,
-  DanmakuCacheLite,
-  DanmakuFetchOptions,
   DDPDanmakuMeta,
-} from '@/common/danmaku/types/types'
+} from '@/common/danmaku/models/danmakuMeta'
+import type { DanmakuFetchOptions } from '@/common/danmaku/types'
 import { toDanmakuCache } from '@/common/danmaku/utils'
 import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'

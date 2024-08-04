@@ -5,9 +5,10 @@ import {
   BaseEpisodeListItem,
   BaseListItemSkeleton,
 } from '@/common/components/AnimeList/BaseEpisodeListItem'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
+import type { DDPDanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
+import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 import { useDanmakuQuerySuspense } from '@/common/danmaku/queries/useDanmakuQuerySuspense'
-import { DanmakuSourceType } from '@/common/danmaku/types/enums'
-import type { DDPDanmakuMeta, TitleMapping } from '@/common/danmaku/types/types'
 import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
 type EpisodeListItemProps = Omit<Required<DDPDanmakuMeta>, 'type'> & {

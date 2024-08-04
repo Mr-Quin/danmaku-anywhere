@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { IntegrationType } from '@/common/danmaku/types/enums'
+import { IntegrationType } from '@/common/danmaku/enums'
 import type { Options } from '@/common/options/OptionsService/types'
 import { getRandomUUID, validateOrigin } from '@/common/utils/utils'
 

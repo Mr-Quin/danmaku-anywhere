@@ -18,7 +18,7 @@ import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import { IntegrationList } from '@/common/danmaku/types/enums'
+import { IntegrationList } from '@/common/danmaku/enums'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { validateOrigin } from '@/common/utils/utils'

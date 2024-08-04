@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { useMouseLocation } from './useMouseLocation'
 
-import { hasIntegration } from '@/common/danmaku/types/enums'
+import { hasIntegration } from '@/common/danmaku/enums'
 import { useStore } from '@/content/store/store'
 
 export const useShowFab = () => {

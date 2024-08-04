@@ -1,15 +1,19 @@
-import { DanmakuSourceType } from '@/common/danmaku/types/enums'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type {
+  CustomDanmakuCacheDbModel,
   DanmakuCacheDbModel,
-  DDPDanmakuCache,
+  DDPDanmakuCacheDbModel,
+} from '@/common/danmaku/models/danmakuCache/db'
+import type {
   CustomDanmakuCache,
   DanmakuCache,
-  DDPDanmakuCacheDbModel,
-  CustomDanmakuCacheDbModel,
+  DDPDanmakuCache,
+} from '@/common/danmaku/models/danmakuCache/dto'
+import type {
   CustomDanmakuMeta,
-  DDPDanmakuMeta,
   DanmakuMeta,
-} from '@/common/danmaku/types/types'
+  DDPDanmakuMeta,
+} from '@/common/danmaku/models/danmakuMeta'
 import { Logger } from '@/common/Logger'
 
 export const getEpisodeId = (animeId: number, episodeNumber: number) => {

@@ -2,7 +2,7 @@ import type { CachedComment } from '@danmaku-anywhere/danmaku-engine'
 
 import type { RPCDef } from '../../rpc/types'
 
-import type { DanmakuMeta } from '@/common/danmaku/types/types'
+import type { DanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
 
 export interface TabDanmakuState {
   meta?: DanmakuMeta

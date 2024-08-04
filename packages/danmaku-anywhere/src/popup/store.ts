@@ -2,8 +2,8 @@ import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/dandanplay-ap
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 
-import type { DanmakuSourceType } from '@/common/danmaku/types/enums'
-import { danmakuSourceTypeList } from '@/common/danmaku/types/enums'
+import type { DanmakuSourceType } from '@/common/danmaku/enums'
+import { danmakuSourceTypeList } from '@/common/danmaku/enums'
 import { createMountConfig } from '@/common/options/mountConfig/constant'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { createSelectors } from '@/common/utils/createSelectors'

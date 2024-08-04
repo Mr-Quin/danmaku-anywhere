@@ -5,7 +5,7 @@ import { useAllDanmakuQuerySuspense } from './useAllDanmakuQuerySuspense'
 import { useDanmakuQuerySuspense } from './useDanmakuQuerySuspense'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { DanmakuMeta } from '@/common/danmaku/types/types'
+import type { DanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 export const useDeleteDanmaku = () => {

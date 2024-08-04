@@ -26,7 +26,7 @@ import { usePopup } from '../../../store/popupStore'
 import { useStore } from '../../../store/store'
 
 import { AnimeTypeIcon } from '@/common/components/AnimeList/AnimeTypeIcon'
-import { DanmakuSourceType, hasIntegration } from '@/common/danmaku/types/enums'
+import { DanmakuSourceType, hasIntegration } from '@/common/danmaku/enums'
 import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
 export const SelectorPanel = () => {

@@ -1,6 +1,6 @@
 import defaultMountConfigJson from './default.json' assert { type: 'json' }
 
-import { IntegrationType } from '@/common/danmaku/types/enums'
+import { IntegrationType } from '@/common/danmaku/enums'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { getRandomUUID } from '@/common/utils/utils'
 
