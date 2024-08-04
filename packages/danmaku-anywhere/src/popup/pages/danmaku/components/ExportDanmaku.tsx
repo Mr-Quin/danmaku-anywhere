@@ -17,7 +17,7 @@ export const ExportDanmaku = () => {
 
   return (
     <MenuItem
-      onClick={() => mutate()}
+      onClick={() => mutate(undefined)}
       disabled={data.length === 0 || isPending || isFetching}
     >
       <ListItemIcon>

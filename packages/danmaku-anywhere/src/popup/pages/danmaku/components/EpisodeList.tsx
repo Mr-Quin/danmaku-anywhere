@@ -1,4 +1,4 @@
-import { Delete, Publish } from '@mui/icons-material'
+import { Delete, Download } from '@mui/icons-material'
 import {
   Box,
   CircularProgress,
@@ -21,8 +21,7 @@ import {
 
 import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
 import { useDeleteDanmaku } from '@/common/danmaku/queries/useDeleteDanmaku'
-import { useIsConnected } from '@/popup/hooks/useIsConnected'
-import { useMountDanmakuPopup } from '@/popup/hooks/useMountDanmakuPopup'
+import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useStore } from '@/popup/store'
 
 interface EpisodeListProps {
@@ -54,8 +53,7 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
   const navigate = useNavigate()
 
   const { mutate: deleteDanmaku, isPending: isDeleting } = useDeleteDanmaku()
-  const { mutateAsync: mount, isPending: isMounting } = useMountDanmakuPopup()
-  const { data: isConnected } = useIsConnected()
+  const { mutate: exportDanmaku, isPending: isExporting } = useExportDanmaku()
 
   useEffect(() => {
     if (episodes.length === 0) {
@@ -96,16 +94,16 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
               ref={virtualizer.measureElement}
               secondaryAction={
                 <>
-                  <Tooltip title={t('danmaku.mount')}>
+                  <Tooltip title={t('danmaku.export')}>
                     <span>
                       <IconButton
-                        onClick={() => mount(episode.meta)}
-                        disabled={!isConnected || isMounting}
+                        onClick={() => exportDanmaku(episode.meta)}
+                        disabled={isExporting}
                       >
-                        {isMounting ? (
+                        {isExporting ? (
                           <CircularProgress size={24} color="inherit" />
                         ) : (
-                          <Publish />
+                          <Download />
                         )}
                       </IconButton>
                     </span>

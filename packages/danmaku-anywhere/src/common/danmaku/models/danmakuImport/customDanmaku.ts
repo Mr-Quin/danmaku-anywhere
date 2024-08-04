@@ -47,8 +47,6 @@ export const customDanmakuCreateDtoSchema = z
     return data.episodeTitle !== undefined || data.episodeNumber !== undefined
   }, 'One of episodeTitle or episodeNumber is required')
 
-export type CustomDanmakuCreateDtoSingle = z.infer<
+export type CustomDanmakuCreateDto = z.infer<
   typeof customDanmakuCreateDtoSchema
 >
-
-export type CustomDanmakuCreateDto = CustomDanmakuCreateDtoSingle[]

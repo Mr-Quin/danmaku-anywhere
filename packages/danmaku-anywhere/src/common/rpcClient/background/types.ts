@@ -12,6 +12,7 @@ import type {
 } from '@/common/danmaku/dto'
 import type {
   DanmakuCache,
+  DanmakuCacheImportDto,
   DanmakuCacheLite,
   DDPDanmakuCache,
 } from '@/common/danmaku/models/danmakuCache/dto'
@@ -49,7 +50,8 @@ type DanmakuMethods = {
   danmakuGetAllLite: RPCDef<void, DanmakuCacheLite[]>
   danmakuGetOne: RPCDef<DanmakuGetOneDto, DanmakuCache | null>
   danmakuFetchDDP: RPCDef<DanmakuFetchDDPDto, DDPDanmakuCache>
-  danmakuCreateCustom: RPCDef<CustomDanmakuCreateDto, void>
+  danmakuCreateCustom: RPCDef<CustomDanmakuCreateDto[], void>
+  danmakuImport: RPCDef<DanmakuCacheImportDto[], void>
   danmakuDelete: RPCDef<DanmakuDeleteDto, void>
 }
 

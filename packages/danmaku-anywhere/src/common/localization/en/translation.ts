@@ -81,6 +81,7 @@ const domain = {
       nextEpisode: 'Only available in manual mode',
     },
     mount: 'Mount',
+    export: 'Export',
     noComments: 'No comments',
     refresh: 'Refresh Danmaku',
     nextEpisode: 'Next Episode',
@@ -144,9 +145,16 @@ const pages = {
       parsedEntries: 'Episodes found: ',
       parseError_one: 'Failed to parse {{count}} Danmaku file',
       parseError_other: 'Failed to parse {{count}} Danmaku files',
-      selectFile: 'Select Danmaku files',
+      importCustom: 'Import Custom Danmaku',
+      importExported: 'Import Danmaku',
       success: 'Import successful',
       upload: 'Import Danmaku',
+      help: {
+        importCustom:
+          'Use this to import custom danmaku. Refer to the documentation for custom danmaku format',
+        importExported:
+          'Use this to import danmaku that was previously exported. If the imported danmaku overlaps with existing danmaku, the existing danmaku will be overwritten',
+      },
     },
   },
   mountPage: {

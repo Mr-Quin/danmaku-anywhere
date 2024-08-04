@@ -72,6 +72,9 @@ export const setupRpc = () => {
     danmakuCreateCustom: async (data) => {
       return danmakuService.createCustom(data)
     },
+    danmakuImport: async (data) => {
+      return danmakuService.import(data)
+    },
     danmakuDelete: async (data) => {
       return danmakuService.delete(data)
     },

@@ -1,4 +1,4 @@
-import { useEffect as useLayoutEffect, useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 
 export const useRect = (node: HTMLElement | null) => {
   const [rect, setRect] = useState<DOMRectReadOnly>()
