@@ -83,6 +83,7 @@ const domain = {
       nextEpisode: '只能在手动模式下使用',
     },
     mount: '装填弹幕',
+    export: '导出弹幕',
     noComments: '弹幕列表为空',
     refresh: '刷新弹幕',
     nextEpisode: '下一集',
@@ -144,9 +145,15 @@ const pages = {
       parsedEntries: '发现剧集：',
       parseError_one: '{{count}}个文件格式不正确',
       parseError_other: '{{count}}个文件格式不正确',
-      selectFile: '选择弹幕文件',
+      importCustom: '导入自定义弹幕',
+      importExported: '导入弹幕',
       success: '导入成功',
       upload: '导入弹幕',
+      help: {
+        importCustom: '导入自定义弹幕。自定义弹幕格式请参考文档',
+        importExported:
+          '导入之前导出的弹幕。如果导入的弹幕与现有的弹幕有重复，现有的弹幕将被覆盖',
+      },
     },
   },
   mountPage: {

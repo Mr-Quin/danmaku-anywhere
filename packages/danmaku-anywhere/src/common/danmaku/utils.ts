@@ -49,6 +49,18 @@ export const danmakuMetaToString = (meta: DanmakuMeta) => {
   return meta.animeTitle
 }
 
+const isDanmakuCacheDDP = (
+  cacheDbModel: DanmakuCacheDbModel
+): cacheDbModel is DDPDanmakuCacheDbModel => {
+  return cacheDbModel.meta.type === DanmakuSourceType.DDP
+}
+
+const isDanmakuCacheCustom = (
+  cacheDbModel: DanmakuCacheDbModel
+): cacheDbModel is CustomDanmakuCacheDbModel => {
+  return cacheDbModel.meta.type === DanmakuSourceType.Custom
+}
+
 export function toDanmakuCache(
   cacheDbModel: DDPDanmakuCacheDbModel
 ): DDPDanmakuCache
@@ -58,16 +70,18 @@ export function toDanmakuCache(
 export function toDanmakuCache(
   cacheDbModel: DanmakuCacheDbModel
 ): DanmakuCache {
-  if (cacheDbModel.meta.type === DanmakuSourceType.DDP) {
+  if (isDanmakuCacheDDP(cacheDbModel)) {
     return {
       ...cacheDbModel,
+      count: cacheDbModel.comments.length,
       type: DanmakuSourceType.DDP,
-    } as DDPDanmakuCache
-  } else if (cacheDbModel.meta.type === DanmakuSourceType.Custom) {
+    } satisfies DDPDanmakuCache
+  } else if (isDanmakuCacheCustom(cacheDbModel)) {
     return {
       ...cacheDbModel,
+      count: cacheDbModel.comments.length,
       type: DanmakuSourceType.Custom,
-    } as CustomDanmakuCache
+    } satisfies CustomDanmakuCache
   }
   Logger.debug('Unknown danmaku cache type', cacheDbModel)
   throw new Error('Unknown danmaku cache type')

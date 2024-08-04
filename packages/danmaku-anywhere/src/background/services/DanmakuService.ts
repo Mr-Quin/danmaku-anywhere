@@ -10,11 +10,12 @@ import type {
   CustomDanmakuCacheDbModelInsert,
   DanmakuCacheDbModel,
 } from '@/common/danmaku/models/danmakuCache/db'
-import type { DanmakuCacheLite } from '@/common/danmaku/models/danmakuCache/dto'
 import type {
-  CustomDanmakuCreateDto,
-  CustomDanmakuCreateDtoSingle,
-} from '@/common/danmaku/models/danmakuImport/customDanmaku'
+  DanmakuCache,
+  DanmakuCacheImportDto,
+  DanmakuCacheLite,
+} from '@/common/danmaku/models/danmakuCache/dto'
+import type { CustomDanmakuCreateDto } from '@/common/danmaku/models/danmakuImport/customDanmaku'
 import type { DDPDanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
 import type { DanmakuFetchOptions } from '@/common/danmaku/types'
 import { toDanmakuCache } from '@/common/danmaku/utils'
@@ -139,8 +140,8 @@ export class DanmakuService {
       })
   }
 
-  async createCustom(data: CustomDanmakuCreateDto) {
-    const createCache = (dto: CustomDanmakuCreateDtoSingle) => {
+  async createCustom(data: CustomDanmakuCreateDto[]) {
+    const createCache = (dto: CustomDanmakuCreateDto) => {
       const { comments, animeTitle, episodeNumber, episodeTitle } = dto
 
       const cache: CustomDanmakuCacheDbModelInsert = {
@@ -162,14 +163,28 @@ export class DanmakuService {
     this.customTable.bulkAdd(data.map(createCache))
   }
 
+  async import(data: DanmakuCacheImportDto[]) {
+    const ddp = data.filter((d) => d.type === DanmakuSourceType.DDP)
+    const custom = data.filter((d) => d.type === DanmakuSourceType.Custom)
+
+    if (ddp.length > 0) await this.ddpTable.bulkPut(ddp)
+    if (custom.length > 0) await this.customTable.bulkPut(custom)
+  }
+
   /**
    * Avoid using this method because it will load all danmaku from db at once
    * which may cause performance issues or even crash when there are too many danmaku in db
    */
   async getAll() {
-    return (await this.ddpTable.toArray()).map((item) => {
-      return toDanmakuCache(item)
-    })
+    const ddpResult = await this.ddpTable.toArray()
+    const customResult = await this.customTable.toArray()
+
+    const danmakuCache: DanmakuCache[] = [
+      ...ddpResult.map((data) => toDanmakuCache(data)),
+      ...customResult.map((data) => toDanmakuCache(data)),
+    ]
+
+    return danmakuCache
   }
 
   /**
