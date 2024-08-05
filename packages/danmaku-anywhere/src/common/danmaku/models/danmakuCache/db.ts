@@ -14,6 +14,11 @@ export type DDPDanmakuCacheDbModel = BaseDanmakuCache & {
   params: Partial<DanDanCommentAPIParams>
 }
 
+// The model used to insert into the database, episodeId is auto generated so is optional
+export type CustomDanmakuCacheDbModelInsert = BaseDanmakuCache & {
+  meta: Omit<CustomDanmakuMeta, 'episodeId'> & { episodeId?: number }
+}
+
 export type CustomDanmakuCacheDbModel = BaseDanmakuCache & {
   meta: CustomDanmakuMeta
 }
