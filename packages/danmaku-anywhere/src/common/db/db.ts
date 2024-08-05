@@ -3,13 +3,18 @@ import Dexie from 'dexie'
 import { DanmakuSourceType, IntegrationType } from '@/common/danmaku/enums'
 import type {
   CustomDanmakuCacheDbModel,
+  CustomDanmakuCacheDbModelInsert,
   DDPDanmakuCacheDbModel,
 } from '@/common/danmaku/models/danmakuCache/db'
 import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 
 class DanmakuAnywhereDb extends Dexie {
   danmakuCache!: Dexie.Table<DDPDanmakuCacheDbModel, number>
-  manualDanmakuCache!: Dexie.Table<CustomDanmakuCacheDbModel, number>
+  manualDanmakuCache!: Dexie.Table<
+    CustomDanmakuCacheDbModel,
+    number,
+    CustomDanmakuCacheDbModelInsert
+  >
   titleMapping!: Dexie.Table<TitleMapping, string>
 
   isReady = new Promise<boolean>((resolve) => {

@@ -6,16 +6,16 @@ import { match } from 'ts-pattern'
 
 import type { DanmakuDeleteDto, DanmakuGetOneDto } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DanmakuCacheDbModel } from '@/common/danmaku/models/danmakuCache/db'
+import type {
+  CustomDanmakuCacheDbModelInsert,
+  DanmakuCacheDbModel,
+} from '@/common/danmaku/models/danmakuCache/db'
 import type { DanmakuCacheLite } from '@/common/danmaku/models/danmakuCache/dto'
 import type {
   CustomDanmakuCreateDto,
   CustomDanmakuCreateDtoSingle,
 } from '@/common/danmaku/models/danmakuImport/customDanmaku'
-import type {
-  CustomDanmakuMeta,
-  DDPDanmakuMeta,
-} from '@/common/danmaku/models/danmakuMeta'
+import type { DDPDanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
 import type { DanmakuFetchOptions } from '@/common/danmaku/types'
 import { toDanmakuCache } from '@/common/danmaku/utils'
 import { db } from '@/common/db/db'
@@ -143,18 +143,17 @@ export class DanmakuService {
     const createCache = (dto: CustomDanmakuCreateDtoSingle) => {
       const { comments, animeTitle, episodeNumber, episodeTitle } = dto
 
-      const cache = {
+      const cache: CustomDanmakuCacheDbModelInsert = {
         comments,
         meta: {
           episodeNumber,
           animeTitle,
           episodeTitle,
+          type: DanmakuSourceType.Custom,
           // episodeId is auto generated after creation
-        } as CustomDanmakuMeta,
-        type: DanmakuSourceType.Custom,
+        },
         version: 1,
         timeUpdated: Date.now(),
-        count: comments.length,
       } as const
 
       return cache
@@ -178,9 +177,28 @@ export class DanmakuService {
    */
   async getAllLite(type?: DanmakuSourceType) {
     const tables = match(type)
-      .with(DanmakuSourceType.DDP, () => [this.ddpTable])
-      .with(DanmakuSourceType.Custom, () => [this.customTable])
-      .otherwise(() => [this.ddpTable, this.customTable])
+      .with(DanmakuSourceType.DDP, () => [
+        {
+          table: this.ddpTable,
+          type: DanmakuSourceType.DDP,
+        },
+      ])
+      .with(DanmakuSourceType.Custom, () => [
+        {
+          table: this.customTable,
+          type: DanmakuSourceType.Custom,
+        },
+      ])
+      .otherwise(() => [
+        {
+          table: this.ddpTable,
+          type: DanmakuSourceType.DDP,
+        },
+        {
+          table: this.customTable,
+          type: DanmakuSourceType.Custom,
+        },
+      ])
 
     const data = await Promise.all(tables.map((type) => this._getAllLite(type)))
 
@@ -202,14 +220,20 @@ export class DanmakuService {
       })
   }
 
-  private async _getAllLite(table: Dexie.Table<DanmakuCacheDbModel>) {
+  private async _getAllLite({
+    table,
+    type,
+  }: {
+    table: Dexie.Table<DanmakuCacheDbModel, any, any>
+    type: DanmakuSourceType
+  }) {
     const cache: DanmakuCacheLite[] = []
 
     await table.toCollection().each((item) => {
       cache.push({
-        count: item.count,
+        count: item.comments.length,
         meta: item.meta,
-        type: item.meta.type,
+        type,
       })
     })
 
