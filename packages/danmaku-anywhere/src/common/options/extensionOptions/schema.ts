@@ -12,7 +12,7 @@ export const danmakuSourcesSchema = z.object({
   }),
 })
 
-export const userThemeSchema = z.object({
+const userThemeSchema = z.object({
   colorMode: z.nativeEnum(ColorMode),
 })
 

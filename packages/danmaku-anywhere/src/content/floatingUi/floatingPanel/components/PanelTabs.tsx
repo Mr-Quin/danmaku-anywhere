@@ -16,7 +16,7 @@ export const PanelTabs = () => {
   const { t } = useTranslation()
   const { tab, setTab } = usePopup()
 
-  const handleTabChange = (_: any, value: PopupTab) => {
+  const handleTabChange = (_: unknown, value: PopupTab) => {
     setTab(value)
   }
 

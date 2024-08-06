@@ -4,7 +4,7 @@ import type { RPCDef } from '../../rpc/types'
 
 import type { DanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
 
-export interface TabDanmakuState {
+interface TabDanmakuState {
   meta?: DanmakuMeta
   count: number
   manual: boolean
