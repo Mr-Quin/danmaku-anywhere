@@ -4,11 +4,16 @@ import type Dexie from 'dexie'
 import { produce } from 'immer'
 import { match } from 'ts-pattern'
 
-import type { DanmakuDeleteDto, DanmakuGetOneDto } from '@/common/danmaku/dto'
+import type {
+  DanmakuDeleteDto,
+  DanmakuGetByAnimeDto,
+  DanmakuGetOneDto,
+} from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type {
   CustomDanmakuCacheDbModelInsert,
   DanmakuCacheDbModel,
+  DDPDanmakuCacheDbModel,
 } from '@/common/danmaku/models/danmakuCache/db'
 import type {
   DanmakuCache,
@@ -164,8 +169,21 @@ export class DanmakuService {
   }
 
   async import(data: DanmakuCacheImportDto[]) {
-    const ddp = data.filter((d) => d.type === DanmakuSourceType.DDP)
-    const custom = data.filter((d) => d.type === DanmakuSourceType.Custom)
+    // Remove the type field from the data
+    const ddp: DDPDanmakuCacheDbModel[] = data
+      .filter((d) => d.type === DanmakuSourceType.DDP)
+      .map((d) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { type, ...rest } = d
+        return rest
+      })
+    const custom: CustomDanmakuCacheDbModelInsert[] = data
+      .filter((d) => d.type === DanmakuSourceType.Custom)
+      .map((d) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { type, ...rest } = d
+        return rest
+      })
 
     if (ddp.length > 0) await this.ddpTable.bulkPut(ddp)
     if (custom.length > 0) await this.customTable.bulkPut(custom)
@@ -233,6 +251,40 @@ export class DanmakuService {
       .otherwise(() => {
         throw new RpcException(`Unknown danmaku type: ${data.type}`)
       })
+  }
+
+  async getMany(data: DanmakuGetOneDto[]) {
+    const groups = Object.groupBy(data, (data) => data.type)
+    const ddpIds = groups[DanmakuSourceType.DDP] ?? []
+    const customIds = groups[DanmakuSourceType.Custom] ?? []
+
+    const results = await Promise.all([
+      this.ddpTable.bulkGet(ddpIds.map((d) => d.id)),
+      this.customTable.bulkGet(customIds.map((d) => d.id)),
+    ])
+
+    return results
+      .flat()
+      .filter((r) => r !== undefined)
+      .map((data) => toDanmakuCache(data))
+  }
+
+  async getByAnimeId(data: DanmakuGetByAnimeDto) {
+    return match(data)
+      .with({ type: DanmakuSourceType.DDP }, async (data) => {
+        const res = await this.ddpTable
+          .filter((d) => d.meta.animeId === data.id)
+          .toArray()
+        return res.map((data) => toDanmakuCache(data))
+      })
+      .otherwise(() => {
+        throw new RpcException(`Unknown danmaku type: ${data.type}`)
+      })
+  }
+
+  async deleteAll() {
+    await this.ddpTable.clear()
+    await this.customTable.clear()
   }
 
   private async _getAllLite({

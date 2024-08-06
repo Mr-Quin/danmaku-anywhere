@@ -8,6 +8,7 @@ import type { RPCDef } from '../../rpc/types'
 import type {
   DanmakuDeleteDto,
   DanmakuFetchDDPDto,
+  DanmakuGetByAnimeDto,
   DanmakuGetOneDto,
 } from '@/common/danmaku/dto'
 import type {
@@ -49,10 +50,13 @@ type DanmakuMethods = {
   danmakuGetAll: RPCDef<void, DanmakuCache[]>
   danmakuGetAllLite: RPCDef<void, DanmakuCacheLite[]>
   danmakuGetOne: RPCDef<DanmakuGetOneDto, DanmakuCache | null>
+  danmakuGetMany: RPCDef<DanmakuGetOneDto[], DanmakuCache[]>
+  danmakuGetByAnime: RPCDef<DanmakuGetByAnimeDto, DanmakuCache[]>
   danmakuFetchDDP: RPCDef<DanmakuFetchDDPDto, DDPDanmakuCache>
   danmakuCreateCustom: RPCDef<CustomDanmakuCreateDto[], void>
   danmakuImport: RPCDef<DanmakuCacheImportDto[], void>
   danmakuDelete: RPCDef<DanmakuDeleteDto, void>
+  danmakuDeleteAll: RPCDef<void, void>
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

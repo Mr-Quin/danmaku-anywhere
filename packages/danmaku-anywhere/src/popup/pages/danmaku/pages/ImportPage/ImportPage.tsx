@@ -1,5 +1,13 @@
 import { ChevronLeft } from '@mui/icons-material'
-import { Box, Button, FormHelperText, IconButton } from '@mui/material'
+import {
+  Box,
+  Button,
+  FormHelperText,
+  IconButton,
+  Paper,
+  Tooltip,
+  useTheme,
+} from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -9,17 +17,26 @@ import { TabToolbar } from '@/popup/component/TabToolbar'
 import { TabLayout } from '@/popup/layout/TabLayout'
 import { ImportCustomDanmaku } from '@/popup/pages/danmaku/pages/ImportPage/components/ImportCustomDanmaku'
 import { ImportExportedDanmaku } from '@/popup/pages/danmaku/pages/ImportPage/components/ImportExportedDanmaku'
-import { useParseCustomDanmaku } from '@/popup/pages/danmaku/pages/ImportPage/useParseCustomDanmaku'
-import { useParseExportedDanmaku } from '@/popup/pages/danmaku/pages/ImportPage/useParseExportedDanmaku'
+import { useParseCustomDanmaku } from '@/popup/pages/danmaku/pages/ImportPage/hooks/useParseCustomDanmaku'
+import { useParseExportedDanmaku } from '@/popup/pages/danmaku/pages/ImportPage/hooks/useParseExportedDanmaku'
+import type { FileContent } from '@/popup/pages/danmaku/pages/ImportPage/hooks/useUploadDanmaku'
+import { useUploadDanmaku } from '@/popup/pages/danmaku/pages/ImportPage/hooks/useUploadDanmaku'
 
 export const ImportPage = () => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
 
+  const theme = useTheme()
+
+  const [fileContent, setFileContent] = useState<FileContent[] | null>(null)
   const [showDialog, setShowDialog] = useState(false)
   const [importType, setImportType] = useState<'exported' | 'custom'>(
     'exported'
   )
+
+  const { selectFiles, bindDrop, isDraggingOver } = useUploadDanmaku({
+    onData: (data) => setFileContent(data),
+  })
 
   const { parse: handleParseCustom, data } = useParseCustomDanmaku({
     onError: (e) => {
@@ -40,14 +57,18 @@ export const ImportPage = () => {
       },
     })
 
-  const handleImportCustom = () => {
-    setImportType('custom')
-    handleParseCustom()
+  const handleSelectFiles = () => {
+    selectFiles()
   }
 
-  const handleImportExported = () => {
+  const handleImportCustom = async () => {
+    setImportType('custom')
+    if (fileContent) handleParseCustom(fileContent)
+  }
+
+  const handleImportExported = async () => {
     setImportType('exported')
-    handleParseExported()
+    if (fileContent) handleParseExported(fileContent)
   }
 
   return (
@@ -60,20 +81,50 @@ export const ImportPage = () => {
           </IconButton>
         }
       />
-      <Box p={2}>
-        <Button onClick={handleImportExported} variant="contained">
-          {t('danmakuPage.upload.importExported')}
+      <Paper
+        {...bindDrop()}
+        sx={{
+          p: 2,
+          flexGrow: 1,
+        }}
+        elevation={isDraggingOver ? 4 : 1}
+      >
+        <Button onClick={handleSelectFiles} variant="contained">
+          {t('danmakuPage.upload.selectFiles')}
         </Button>
         <FormHelperText>
-          {t('danmakuPage.upload.help.importExported')}
+          {t('danmakuPage.upload.help.selectFiles')}
         </FormHelperText>
-        <Button onClick={handleImportCustom} variant="contained" sx={{ mt: 2 }}>
-          {t('danmakuPage.upload.importCustom')}
-        </Button>
-        <FormHelperText>
-          {t('danmakuPage.upload.help.importCustom')}
-        </FormHelperText>
-      </Box>
+        <pre
+          style={{
+            fontSize: theme.typography.body2.fontSize,
+          }}
+        >
+          {fileContent?.map((data) => {
+            return <div key={data.file}>{data.file}</div>
+          })}
+        </pre>
+
+        {fileContent && fileContent.length > 0 && (
+          <Box mt={4}>
+            <Tooltip title={t('danmakuPage.upload.help.importExported')}>
+              <Button onClick={handleImportExported} variant="contained">
+                {t('danmakuPage.upload.importExported')}
+              </Button>
+            </Tooltip>
+
+            <Tooltip title={t('danmakuPage.upload.help.importCustom')}>
+              <Button
+                onClick={handleImportCustom}
+                variant="contained"
+                sx={{ ml: 2 }}
+              >
+                {t('danmakuPage.upload.importCustom')}
+              </Button>
+            </Tooltip>
+          </Box>
+        )}
+      </Paper>
 
       {importType === 'custom' && data && (
         <ImportCustomDanmaku

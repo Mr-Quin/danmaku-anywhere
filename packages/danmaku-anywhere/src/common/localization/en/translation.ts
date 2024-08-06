@@ -11,7 +11,6 @@ const common = {
     delete: 'Delete',
     enable: 'Enable',
     export: 'Export',
-    'export.all': 'Export All',
     filter: 'Filter',
     import: 'Import',
     reset: 'Reset',
@@ -139,17 +138,27 @@ const pages = {
     animeList: 'Anime List',
     noAnime: 'No anime available',
     noResult: "No anime found with title '{{filter}}'",
+    deleteAll: 'Delete all Danmaku',
+    confirmDeleteMessage: 'Are you sure to delete all Danmaku?',
     upload: {
       confirm: 'Confirm Import',
       dialogTitle: 'Import Danmaku',
       parsedEntries: 'Episodes found: ',
       parseError_one: 'Failed to parse {{count}} Danmaku file',
       parseError_other: 'Failed to parse {{count}} Danmaku files',
+      selectFiles: 'Select Danmaku Files',
       importCustom: 'Import Custom Danmaku',
       importExported: 'Import Danmaku',
+      exportAll: 'Export All Danmaku',
+      exportAnime: 'Export All Episodes',
       success: 'Import successful',
       upload: 'Import Danmaku',
+      alert: {
+        parseError: 'Failed to parse files',
+      },
       help: {
+        selectFiles:
+          'Select Danmaku files to import, or drag and drop files here',
         importCustom:
           'Use this to import custom danmaku. Refer to the documentation for custom danmaku format',
         importExported:

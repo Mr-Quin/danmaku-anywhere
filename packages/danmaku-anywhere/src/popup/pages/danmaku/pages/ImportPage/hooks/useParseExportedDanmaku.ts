@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import type { DanmakuCacheImportDto } from '@/common/danmaku/models/danmakuCache/dto'
 import { importDanmakuSchema } from '@/common/danmaku/models/danmakuCache/import'
 import type { ImportParseResult } from '@/common/danmaku/types'
-import { tryCatch } from '@/common/utils/utils'
+import type { FileContent } from '@/popup/pages/danmaku/pages/ImportPage/hooks/useUploadDanmaku'
 
 // IMPORTANT: A type error with ImportedCache means the schema does not match the expected data structure
 type ImportedCache = ImportParseResult<DanmakuCacheImportDto[]>
@@ -17,31 +17,11 @@ export const useParseExportedDanmaku = (
   props: UseParseExportedDanmakuProps
 ) => {
   const { mutate, data } = useMutation({
-    mutationFn: async () => {
-      const [fileHandles, fileErr] = await tryCatch(() =>
-        showOpenFilePicker({
-          types: [
-            {
-              description: 'JSON files',
-              accept: {
-                'application/json': ['.json'],
-              },
-            },
-          ],
-          multiple: true,
-          excludeAcceptAllOption: true,
-        })
-      )
-
-      // ignore error with no file selected
-      if (fileErr) return null
-
+    mutationFn: async (fileContent: FileContent[]) => {
       const res = await Promise.all(
-        fileHandles.map(async (fileHandle) => {
-          const json = await (await fileHandle.getFile()).text()
-
+        fileContent.map(async (fileContent) => {
           // parse each file
-          const parseResult = importDanmakuSchema.safeParse(JSON.parse(json))
+          const parseResult = importDanmakuSchema.safeParse(fileContent.data)
 
           return parseResult
         })

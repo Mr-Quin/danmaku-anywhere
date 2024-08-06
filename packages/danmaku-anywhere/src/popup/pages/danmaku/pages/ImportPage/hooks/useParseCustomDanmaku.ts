@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import type { CustomDanmakuCreateDto } from '@/common/danmaku/models/danmakuImport/customDanmaku'
 import { customDanmakuCreateDtoSchema } from '@/common/danmaku/models/danmakuImport/customDanmaku'
 import type { ImportParseResult } from '@/common/danmaku/types'
-import { tryCatch } from '@/common/utils/utils'
+import type { FileContent } from '@/popup/pages/danmaku/pages/ImportPage/hooks/useUploadDanmaku'
 
 interface UseParseCustomDanmakuProps {
   onSuccess: (data: ImportParseResult<CustomDanmakuCreateDto[]> | null) => void
@@ -12,32 +12,12 @@ interface UseParseCustomDanmakuProps {
 
 export const useParseCustomDanmaku = (props: UseParseCustomDanmakuProps) => {
   const { mutate, data } = useMutation({
-    mutationFn: async () => {
-      const [fileHandles, fileErr] = await tryCatch(() =>
-        showOpenFilePicker({
-          types: [
-            {
-              description: 'JSON files',
-              accept: {
-                'application/json': ['.json'],
-              },
-            },
-          ],
-          multiple: true,
-          excludeAcceptAllOption: true,
-        })
-      )
-
-      // ignore error with no file selected
-      if (fileErr) return null
-
+    mutationFn: async (fileContent: FileContent[]) => {
       const res = await Promise.all(
-        fileHandles.map(async (fileHandle) => {
-          const json = await (await fileHandle.getFile()).text()
-
+        fileContent.map(async (fileContent) => {
           // parse each file
           const parseResult = customDanmakuCreateDtoSchema.safeParse(
-            JSON.parse(json)
+            fileContent.data
           )
 
           return parseResult

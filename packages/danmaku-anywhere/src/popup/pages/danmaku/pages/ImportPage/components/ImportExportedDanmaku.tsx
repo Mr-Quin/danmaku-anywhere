@@ -26,8 +26,8 @@ const sortDanmakuCacheImportDto = (
   b: DanmakuCacheImportDto
 ) => {
   if (a.meta.animeTitle === b.meta.animeTitle) {
-    if (a.meta.episodeTitle && b.meta.episodeTitle) {
-      return a.meta.episodeTitle.localeCompare(b.meta.episodeTitle)
+    if (a.meta.episodeId && b.meta.episodeId) {
+      return a.meta.episodeId - b.meta.episodeId
     }
   }
   return a.meta.animeTitle.localeCompare(b.meta.animeTitle)
@@ -63,18 +63,11 @@ export const ImportExportedDanmaku = ({
   })
 
   const ddpResults: DDPDanmakuCacheImportDto[] = []
-  const ddpIds = new Set<number>()
-  const ddpDuplicates = new Set<number>()
   const customResults: CustomDanmakuCacheImportDto[] = []
 
   data.succeeded?.forEach((result) => {
     if (result.type === DanmakuSourceType.DDP) {
       ddpResults.push(result)
-      if (ddpIds.has(result.meta.episodeId)) {
-        ddpDuplicates.add(result.meta.episodeId)
-      } else {
-        ddpIds.add(result.meta.episodeId)
-      }
     } else {
       customResults.push(result)
     }

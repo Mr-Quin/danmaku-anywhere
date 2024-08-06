@@ -67,6 +67,7 @@ export function toDanmakuCache(
 export function toDanmakuCache(
   cacheDbModel: CustomDanmakuCacheDbModel
 ): CustomDanmakuCache
+export function toDanmakuCache(cacheDbModel: DanmakuCacheDbModel): DanmakuCache
 export function toDanmakuCache(
   cacheDbModel: DanmakuCacheDbModel
 ): DanmakuCache {

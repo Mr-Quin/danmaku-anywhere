@@ -10,20 +10,20 @@ import { useTranslation } from 'react-i18next'
 import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 
-export const ExportDanmaku = () => {
-  const { mutate, isPending } = useExportDanmaku()
+export const ExportAllDanmakuButton = () => {
+  const { exportAll } = useExportDanmaku()
   const { data, isFetching } = useAllDanmakuQuerySuspense()
   const { t } = useTranslation()
 
   return (
     <MenuItem
-      onClick={() => mutate(undefined)}
-      disabled={data.length === 0 || isPending || isFetching}
+      onClick={() => exportAll.mutate()}
+      disabled={data.length === 0 || exportAll.isPending || isFetching}
     >
       <ListItemIcon>
-        {isPending ? <CircularProgress size={24} /> : <Download />}
+        {exportAll.isPending ? <CircularProgress size={24} /> : <Download />}
       </ListItemIcon>
-      <ListItemText>{t('common.export.all')}</ListItemText>
+      <ListItemText>{t('danmakuPage.upload.exportAll')}</ListItemText>
     </MenuItem>
   )
 }
