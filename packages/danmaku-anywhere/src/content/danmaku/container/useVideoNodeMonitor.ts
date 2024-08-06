@@ -72,7 +72,6 @@ export const useVideoNodeMonitor = (
       const listener = videoListeners.get(node)
 
       if (listener) {
-        console.debug('remove listener')
         node.removeEventListener('play', listener)
         node.removeEventListener('pause', listener)
       }
