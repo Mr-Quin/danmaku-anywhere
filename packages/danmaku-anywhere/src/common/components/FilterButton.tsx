@@ -31,7 +31,7 @@ export const FilterButton = ({
   }
 
   const handleClear = () => {
-    onFilter?.('')
+    onChange?.('')
     setOpen(false)
   }
 
