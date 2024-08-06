@@ -7,6 +7,14 @@ import type { DDPDanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
 
 export interface DanmakuGetOneDto {
   type: DanmakuSourceType
+  // Episode id
+  id: number
+}
+
+export interface DanmakuGetByAnimeDto {
+  // Get by anime is unsupported for custom danmaku
+  type: DanmakuSourceType.DDP
+  // Anime id
   id: number
 }
 

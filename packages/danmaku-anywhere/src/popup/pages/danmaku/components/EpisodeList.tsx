@@ -53,7 +53,7 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
   const navigate = useNavigate()
 
   const { mutate: deleteDanmaku, isPending: isDeleting } = useDeleteDanmaku()
-  const { mutate: exportDanmaku, isPending: isExporting } = useExportDanmaku()
+  const { exportMany } = useExportDanmaku()
 
   useEffect(() => {
     if (episodes.length === 0) {
@@ -97,10 +97,17 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
                   <Tooltip title={t('danmaku.export')}>
                     <span>
                       <IconButton
-                        onClick={() => exportDanmaku(episode.meta)}
-                        disabled={isExporting}
+                        onClick={() =>
+                          exportMany.mutate([
+                            {
+                              id: episode.meta.episodeId,
+                              type: episode.meta.type,
+                            },
+                          ])
+                        }
+                        disabled={exportMany.isPending}
                       >
-                        {isExporting ? (
+                        {exportMany.isPending ? (
                           <CircularProgress size={24} color="inherit" />
                         ) : (
                           <Download />

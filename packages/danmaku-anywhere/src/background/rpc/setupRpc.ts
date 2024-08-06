@@ -60,6 +60,14 @@ export const setupRpc = () => {
       const result = await danmakuService.getOne(data)
       return result || null
     },
+    danmakuGetMany: async (data) => {
+      const result = await danmakuService.getMany(data)
+      return result
+    },
+    danmakuGetByAnime: async (data) => {
+      const result = await danmakuService.getByAnimeId(data)
+      return result
+    },
     danmakuFetchDDP: async (data) => {
       const result = await danmakuService.fetchDDP(
         data.meta,
@@ -77,6 +85,9 @@ export const setupRpc = () => {
     },
     danmakuDelete: async (data) => {
       return danmakuService.delete(data)
+    },
+    danmakuDeleteAll: async () => {
+      return danmakuService.deleteAll()
     },
     titleMappingSet: async (input) => {
       return titleMappingService.add(input)

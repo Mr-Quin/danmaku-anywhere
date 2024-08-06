@@ -21,6 +21,8 @@ interface StoreState {
     setSelectedType: (type: DanmakuSourceType[]) => void
     showUploadDialog: boolean
     toggleUploadDialog: (show?: boolean) => void
+    showConfirmDeleteDialog: boolean
+    setShowConfirmDeleteDialog: (show: boolean) => void
   }
   config: {
     editingConfig: MountConfig
@@ -63,6 +65,12 @@ const useStoreBase = create<StoreState>()(
         set((state) => {
           state.danmaku.showUploadDialog =
             show ?? !state.danmaku.showUploadDialog
+        })
+      },
+      showConfirmDeleteDialog: false,
+      setShowConfirmDeleteDialog: (show: boolean) => {
+        set((state) => {
+          state.danmaku.showConfirmDeleteDialog = show
         })
       },
     },

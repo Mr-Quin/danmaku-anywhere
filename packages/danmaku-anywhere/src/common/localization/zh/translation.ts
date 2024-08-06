@@ -13,7 +13,6 @@ const common = {
     delete: '删除',
     enable: '启用',
     export: '导出',
-    'export.all': '导出全部',
     filter: '过滤',
     import: '导入',
     reset: '重置',
@@ -139,17 +138,27 @@ const pages = {
     animeList: '剧集列表',
     noAnime: '没有可用的番剧',
     noResult: "没有找到标题为 '{{filter}}' 的番剧",
+    deleteAll: '删除所有弹幕',
+    confirmDeleteMessage: '确定要删除所有弹幕吗？',
     upload: {
       confirm: '确认导入',
       dialogTitle: '确定要导入这些弹幕吗？',
       parsedEntries: '发现剧集：',
       parseError_one: '{{count}}个文件格式不正确',
       parseError_other: '{{count}}个文件格式不正确',
+      selectFiles: '选择弹幕文件',
       importCustom: '导入自定义弹幕',
       importExported: '导入弹幕',
+      exportAll: '导出所有弹幕',
+      exportAnime: '导出全集弹幕',
       success: '导入成功',
       upload: '导入弹幕',
+      alert: {
+        parseError: '文件解析失败',
+      },
       help: {
+        selectFiles:
+          '选择要导入的弹幕文件，也可以将文件拖放到此区域。文件应为json格式',
         importCustom: '导入自定义弹幕。自定义弹幕格式请参考文档',
         importExported:
           '导入之前导出的弹幕。如果导入的弹幕与现有的弹幕有重复，现有的弹幕将被覆盖',

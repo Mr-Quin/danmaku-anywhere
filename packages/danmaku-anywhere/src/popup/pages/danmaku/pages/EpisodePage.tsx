@@ -5,8 +5,10 @@ import { Link } from 'react-router-dom'
 
 import { EpisodeList } from '../components/EpisodeList'
 
+import { DrilldownMenu } from '@/popup/component/DrilldownMenu'
 import { TabToolbar } from '@/popup/component/TabToolbar'
 import { TabLayout } from '@/popup/layout/TabLayout'
+import { ExportDanmakuButton } from '@/popup/pages/danmaku/components/ExportDanmakuButton'
 import { useStore } from '@/popup/store'
 
 export const EpisodePage = () => {
@@ -23,7 +25,11 @@ export const EpisodePage = () => {
             <ChevronLeft />
           </IconButton>
         }
-      />
+      >
+        <DrilldownMenu ButtonProps={{ edge: 'end' }}>
+          <ExportDanmakuButton />
+        </DrilldownMenu>
+      </TabToolbar>
       <EpisodeList scrollElement={ref as HTMLDivElement} />
     </TabLayout>
   )
