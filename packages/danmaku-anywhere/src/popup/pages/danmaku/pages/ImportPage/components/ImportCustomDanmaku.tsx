@@ -52,6 +52,7 @@ export const ImportCustomDanmaku = ({
       onSave={() => handleUpload()}
       disableSave={data.successCount === 0}
       isLoading={isUploading}
+      errors={data.errors}
     >
       {data.successCount > 0 && (
         <>
@@ -68,15 +69,6 @@ export const ImportCustomDanmaku = ({
             )
           })}
         </>
-      )}
-      {data.errorCount > 0 && (
-        <DialogContentText
-          sx={{
-            color: 'warning.main',
-          }}
-        >
-          {t('danmakuPage.upload.parseError', { count: data.errorCount })}
-        </DialogContentText>
       )}
     </ImportResultDialog>
   )

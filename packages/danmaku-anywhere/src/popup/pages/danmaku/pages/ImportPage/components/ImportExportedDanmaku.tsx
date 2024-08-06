@@ -89,6 +89,7 @@ export const ImportExportedDanmaku = ({
       onSave={() => handleUpload()}
       disableSave={data.successCount === 0}
       isLoading={isUploading}
+      errors={data.errors}
     >
       {ddpResults.length > 0 && (
         <>
@@ -120,15 +121,6 @@ export const ImportExportedDanmaku = ({
               )
             })}
         </>
-      )}
-      {data.errorCount > 0 && (
-        <DialogContentText
-          sx={{
-            color: 'warning.main',
-          }}
-        >
-          {t('danmakuPage.upload.parseError', { count: data.errorCount })}
-        </DialogContentText>
       )}
     </ImportResultDialog>
   )
