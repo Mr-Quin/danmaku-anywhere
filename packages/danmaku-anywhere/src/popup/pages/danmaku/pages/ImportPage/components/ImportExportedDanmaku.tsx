@@ -26,8 +26,17 @@ const sortDanmakuCacheImportDto = (
   b: DanmakuCacheImportDto
 ) => {
   if (a.meta.animeTitle === b.meta.animeTitle) {
-    if (a.meta.episodeId && b.meta.episodeId) {
-      return a.meta.episodeId - b.meta.episodeId
+    // For DDP, sort by episodeId
+    if (a.type === DanmakuSourceType.DDP && b.type === DanmakuSourceType.DDP) {
+      if (a.meta.episodeId && b.meta.episodeId) {
+        return a.meta.episodeId - b.meta.episodeId
+      }
+    }
+    // Otherwise, sort by episodeTitle
+    else if (a.meta.episodeTitle && b.meta.episodeTitle) {
+      return a.meta.episodeTitle.localeCompare(b.meta.episodeTitle)
+    } else {
+      return 0
     }
   }
   return a.meta.animeTitle.localeCompare(b.meta.animeTitle)

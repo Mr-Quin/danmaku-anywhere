@@ -1,13 +1,18 @@
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type {
   CustomDanmakuCacheDbModel,
+  CustomDanmakuCacheDbModelInsert,
   DanmakuCacheDbModel,
+  DanmakuCacheDbModelInsert,
   DDPDanmakuCacheDbModel,
 } from '@/common/danmaku/models/danmakuCache/db'
 import type {
   CustomDanmakuCache,
+  CustomDanmakuCacheImportDto,
   DanmakuCache,
+  DanmakuCacheImportDto,
   DDPDanmakuCache,
+  DDPDanmakuCacheImportDto,
 } from '@/common/danmaku/models/danmakuCache/dto'
 import type {
   CustomDanmakuMeta,
@@ -49,35 +54,51 @@ export const danmakuMetaToString = (meta: DanmakuMeta) => {
   return meta.animeTitle
 }
 
-const isDanmakuCacheDDP = (
-  cacheDbModel: DanmakuCacheDbModel
-): cacheDbModel is DDPDanmakuCacheDbModel => {
-  return cacheDbModel.meta.type === DanmakuSourceType.DDP
+export const danmakuUtils = {
+  isDDPCache: (
+    cacheDbModel: DanmakuCacheDbModel
+  ): cacheDbModel is DDPDanmakuCacheDbModel => {
+    return cacheDbModel.meta.type === DanmakuSourceType.DDP
+  },
+  isCustomCache: (
+    cacheDbModel: DanmakuCacheDbModel
+  ): cacheDbModel is CustomDanmakuCacheDbModel => {
+    return cacheDbModel.meta.type === DanmakuSourceType.Custom
+  },
+  dbModelToCache,
+  importDtoToDbModel,
 }
 
-const isDanmakuCacheCustom = (
-  cacheDbModel: DanmakuCacheDbModel
-): cacheDbModel is CustomDanmakuCacheDbModel => {
-  return cacheDbModel.meta.type === DanmakuSourceType.Custom
+function importDtoToDbModel(
+  dto: CustomDanmakuCacheImportDto
+): CustomDanmakuCacheDbModelInsert
+function importDtoToDbModel(
+  dto: DDPDanmakuCacheImportDto
+): DDPDanmakuCacheDbModel
+function importDtoToDbModel(
+  dto: DanmakuCacheImportDto
+): DanmakuCacheDbModelInsert
+function importDtoToDbModel(
+  dto: DanmakuCacheImportDto
+): DanmakuCacheDbModelInsert {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { type, ...rest } = dto
+  return rest
 }
 
-export function toDanmakuCache(
-  cacheDbModel: DDPDanmakuCacheDbModel
-): DDPDanmakuCache
-export function toDanmakuCache(
+function dbModelToCache(cacheDbModel: DDPDanmakuCacheDbModel): DDPDanmakuCache
+function dbModelToCache(
   cacheDbModel: CustomDanmakuCacheDbModel
 ): CustomDanmakuCache
-export function toDanmakuCache(cacheDbModel: DanmakuCacheDbModel): DanmakuCache
-export function toDanmakuCache(
-  cacheDbModel: DanmakuCacheDbModel
-): DanmakuCache {
-  if (isDanmakuCacheDDP(cacheDbModel)) {
+function dbModelToCache(cacheDbModel: DanmakuCacheDbModel): DanmakuCache
+function dbModelToCache(cacheDbModel: DanmakuCacheDbModel): DanmakuCache {
+  if (danmakuUtils.isDDPCache(cacheDbModel)) {
     return {
       ...cacheDbModel,
       count: cacheDbModel.comments.length,
       type: DanmakuSourceType.DDP,
     } satisfies DDPDanmakuCache
-  } else if (isDanmakuCacheCustom(cacheDbModel)) {
+  } else if (danmakuUtils.isCustomCache(cacheDbModel)) {
     return {
       ...cacheDbModel,
       count: cacheDbModel.comments.length,
