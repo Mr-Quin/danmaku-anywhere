@@ -19,9 +19,12 @@ export const customCommentSchema = z
       .optional()
       .default('rtl'),
     time: z.number(), // in seconds, float
-    color: z.string().refine((data) => {
-      return /^#[0-9A-F]{6}$/i.test(data)
-    }, 'Invalid hex color'), // hex color
+    color: z
+      .string()
+      .toUpperCase()
+      .regex(/^#[0-9A-F]{6}$/, {
+        message: 'Invalid color format',
+      }),
     text: z.string(),
     user: z.string().optional(),
   })

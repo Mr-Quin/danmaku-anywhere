@@ -57,9 +57,9 @@ const customDanmakuCacheSchemaOne = z.discriminatedUnion('type', [
   }),
 ])
 
-export const importDanmakuSchemaOne = z.discriminatedUnion('type', [
-  ...DDPDanmakuCacheSchemaOne.options,
-  ...customDanmakuCacheSchemaOne.options,
-])
-
-export const importDanmakuSchema = z.array(importDanmakuSchemaOne)
+export const importDanmakuSchema = z.array(
+  z.discriminatedUnion('type', [
+    ...DDPDanmakuCacheSchemaOne.options,
+    ...customDanmakuCacheSchemaOne.options,
+  ])
+)

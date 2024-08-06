@@ -13,7 +13,6 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type {
   CustomDanmakuCacheDbModelInsert,
   DanmakuCacheDbModel,
-  DDPDanmakuCacheDbModel,
 } from '@/common/danmaku/models/danmakuCache/db'
 import type {
   DanmakuCache,
@@ -23,7 +22,7 @@ import type {
 import type { CustomDanmakuCreateDto } from '@/common/danmaku/models/danmakuImport/customDanmaku'
 import type { DDPDanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
 import type { DanmakuFetchOptions } from '@/common/danmaku/types'
-import { toDanmakuCache } from '@/common/danmaku/utils'
+import { danmakuUtils } from '@/common/danmaku/utils'
 import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
@@ -68,7 +67,7 @@ export class DanmakuService {
 
     if (existingDanmaku && !options.forceUpdate) {
       this.logger.debug('Danmaku found in db', existingDanmaku)
-      return toDanmakuCache(existingDanmaku)
+      return danmakuUtils.dbModelToCache(existingDanmaku)
     }
 
     if (options.forceUpdate) {
@@ -89,7 +88,7 @@ export class DanmakuService {
       existingDanmaku.comments.length >= comments.comments.length
     ) {
       this.logger.debug('New danmaku has less comments, skip caching')
-      return toDanmakuCache(existingDanmaku)
+      return danmakuUtils.dbModelToCache(existingDanmaku)
     }
 
     const newEntry = {
@@ -129,7 +128,7 @@ export class DanmakuService {
 
     this.logger.debug('Cached danmaku to db')
 
-    return toDanmakuCache(newEntry)
+    return danmakuUtils.dbModelToCache(newEntry)
   }
 
   async delete(data: DanmakuDeleteDto) {
@@ -169,20 +168,15 @@ export class DanmakuService {
   }
 
   async import(data: DanmakuCacheImportDto[]) {
-    // Remove the type field from the data
-    const ddp: DDPDanmakuCacheDbModel[] = data
+    const ddp = data
       .filter((d) => d.type === DanmakuSourceType.DDP)
       .map((d) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { type, ...rest } = d
-        return rest
+        return danmakuUtils.importDtoToDbModel(d)
       })
-    const custom: CustomDanmakuCacheDbModelInsert[] = data
+    const custom = data
       .filter((d) => d.type === DanmakuSourceType.Custom)
       .map((d) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { type, ...rest } = d
-        return rest
+        return danmakuUtils.importDtoToDbModel(d)
       })
 
     if (ddp.length > 0) await this.ddpTable.bulkPut(ddp)
@@ -198,8 +192,8 @@ export class DanmakuService {
     const customResult = await this.customTable.toArray()
 
     const danmakuCache: DanmakuCache[] = [
-      ...ddpResult.map((data) => toDanmakuCache(data)),
-      ...customResult.map((data) => toDanmakuCache(data)),
+      ...ddpResult.map((data) => danmakuUtils.dbModelToCache(data)),
+      ...customResult.map((data) => danmakuUtils.dbModelToCache(data)),
     ]
 
     return danmakuCache
@@ -242,11 +236,11 @@ export class DanmakuService {
     return match(data)
       .with({ type: DanmakuSourceType.DDP }, async (data) => {
         const res = await this.ddpTable.get(data.id)
-        if (res) return toDanmakuCache(res)
+        if (res) return danmakuUtils.dbModelToCache(res)
       })
       .with({ type: DanmakuSourceType.Custom }, async (data) => {
         const res = await this.customTable.get(data.id)
-        if (res) return toDanmakuCache(res)
+        if (res) return danmakuUtils.dbModelToCache(res)
       })
       .otherwise(() => {
         throw new RpcException(`Unknown danmaku type: ${data.type}`)
@@ -266,7 +260,7 @@ export class DanmakuService {
     return results
       .flat()
       .filter((r) => r !== undefined)
-      .map((data) => toDanmakuCache(data))
+      .map((data) => danmakuUtils.dbModelToCache(data))
   }
 
   async getByAnimeId(data: DanmakuGetByAnimeDto) {
@@ -275,7 +269,7 @@ export class DanmakuService {
         const res = await this.ddpTable
           .filter((d) => d.meta.animeId === data.id)
           .toArray()
-        return res.map((data) => toDanmakuCache(data))
+        return res.map((data) => danmakuUtils.dbModelToCache(data))
       })
       .otherwise(() => {
         throw new RpcException(`Unknown danmaku type: ${data.type}`)

@@ -2,9 +2,12 @@ import type { DanDanComment } from '@danmaku-anywhere/dandanplay-api'
 import { produce } from 'immer'
 import { describe, expect, it } from 'vitest'
 
-import { importDanmakuSchemaOne, importCommentSchema } from './import'
+import { importCommentSchema, importDanmakuSchema } from './import'
 
-import type { DDPDanmakuCacheImportDto } from '@/common/danmaku/models/danmakuCache/dto'
+import type {
+  CustomDanmakuCacheImportDto,
+  DDPDanmakuCacheImportDto,
+} from '@/common/danmaku/models/danmakuCache/dto'
 
 const validComment: DanDanComment = {
   cid: 1722521763,
@@ -35,6 +38,23 @@ const ddpDanmaku: DDPDanmakuCacheImportDto = {
   timeUpdated: 1722560604397,
   version: 1,
   type: 1,
+}
+
+const customDanmaku: CustomDanmakuCacheImportDto = {
+  comments: [
+    {
+      p: '0.00,1,16777215',
+      m: '簽',
+    },
+  ],
+  meta: {
+    animeTitle: '败犬女主太多了！',
+    episodeTitle: '第3话 还没上场就输了',
+    type: 0,
+  },
+  timeUpdated: 1722560604397,
+  version: 1,
+  type: 0,
 }
 
 describe('commentSchema', () => {
@@ -81,8 +101,14 @@ describe('commentSchema', () => {
 
 describe('danmakuCacheSchemaOne', () => {
   it('accepts valid DDP danmaku', () => {
-    const res = importDanmakuSchemaOne.parse(ddpDanmaku)
+    const res = importDanmakuSchema.parse([ddpDanmaku])
 
-    expect(res).toEqual(ddpDanmaku)
+    expect(res).toEqual([ddpDanmaku])
+  })
+
+  it('accepts valid custom danmaku', () => {
+    const res = importDanmakuSchema.parse([customDanmaku])
+
+    expect(res).toEqual([customDanmaku])
   })
 })
