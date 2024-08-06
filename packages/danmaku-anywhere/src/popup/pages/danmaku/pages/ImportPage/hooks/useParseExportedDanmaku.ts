@@ -34,15 +34,17 @@ export const useParseExportedDanmaku = (
         })
         .flat()
 
-      const errorCount = res.reduce((acc, result) => {
-        if (result.success) return acc
-        return acc + 1
-      }, 0)
+      const errors = res
+        .filter((result) => !result.success)
+        .map((result) => {
+          return result.error
+        })
 
       return {
         successCount: succeeded.length,
         succeeded,
-        errorCount,
+        errors,
+        errorCount: errors.length,
       } satisfies ImportedCache
     },
     onError: (e) => {

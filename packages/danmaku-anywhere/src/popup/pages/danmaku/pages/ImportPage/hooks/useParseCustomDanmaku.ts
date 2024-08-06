@@ -30,15 +30,17 @@ export const useParseCustomDanmaku = (props: UseParseCustomDanmakuProps) => {
           return result.data
         })
 
-      const errorCount = res.reduce((acc, result) => {
-        if (result.success) return acc
-        return acc + 1
-      }, 0)
+      const errors = res
+        .filter((result) => !result.success)
+        .map((result) => {
+          return result.error
+        })
 
       return {
         successCount: succeeded.length,
         succeeded,
-        errorCount,
+        errorCount: errors.length,
+        errors,
       } satisfies ImportParseResult<CustomDanmakuCreateDto[]>
     },
     onError: (e) => {
