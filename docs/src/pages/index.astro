@@ -1,0 +1,9 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+
+import DanmakuConvert from '../components/DanmakuConvert';
+---
+
+<StarlightPage title="弹幕格式转换" frontmatter={{title: '弹幕格式转换'}}>、
+    <DanmakuConvert client:visible/>
+</StarlightPage>
