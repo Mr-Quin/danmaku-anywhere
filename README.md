@@ -44,7 +44,8 @@ Crunchyroll
 > [!NOTE]
 > 手动安装无法自动更新，如非必要建议通过商店安装
 
-1. 下载对应浏览器[最新发布的版本](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest)然后解压到任意文件夹。除非卸载扩展，请勿删除此文件夹。
+1. 下载对应浏览器[最新发布的版本](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest)
+   然后解压到任意文件夹。除非卸载扩展，请勿删除此文件夹。
 2. 进入扩展页面[chrome://extensions/](chrome://extensions/)并启用开发者模式。
 3. 点击 "加载未打包的扩展" 并选择已解压的扩展文件夹。
 4. 后续的更新直接解压到这个文件夹中并覆盖即可
@@ -59,7 +60,8 @@ Firefox版本相比Chrome版本有更多的限制，并且由于部分API缺失�
 
 手动安装需使用开发者版本的Firefox。
 
-安装详情见[这里](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/)和[这里](https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/)
+安装详情见[这里](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/)
+和[这里](https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/)
 
 ## 使用指南
 
@@ -79,11 +81,11 @@ Firefox版本相比Chrome版本有更多的限制，并且由于部分API缺失�
 - 如果你的网站在预设配置中，点击按钮启用即可。若有已经打开的网站需要刷新。
 - 如果你的网站不在预设列表中，点击“+”并按照提示填写配置信息。
     - URL模式（URL Patterns）： 网站的URL格式，例如：`https://your.website.com/*`
-      - 使用[匹配模式](https://developer.mozilla.org/zh-CN/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)格式。
-      - 如果你的网站的视频元素位于`iframe`中，此处应填写`iframe`的地址，通过查看`iframe`的`src`属性获得。
+        - 使用[匹配模式](https://developer.mozilla.org/zh-CN/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)格式。
+        - 如果你的网站的视频元素位于`iframe`中，此处应填写`iframe`的地址，通过查看`iframe`的`src`属性获得。
     - 视频元素：通常为`video`。
-      - 使用[CSS选择器](https://developer.mozilla.org/zh-CN/docs/Web/API/Document/querySelector)格式。
-      - 一些视频网站比较特殊，例如页面中有多个`video`的情况需要填写更详细的选择器。
+        - 使用[CSS选择器](https://developer.mozilla.org/zh-CN/docs/Web/API/Document/querySelector)格式。
+        - 一些视频网站比较特殊，例如页面中有多个`video`的情况需要填写更详细的选择器。
 
 ### 2. 搜索弹幕（手动模式）
 
@@ -135,11 +137,49 @@ Firefox版本相比Chrome版本有更多的限制，并且由于部分API缺失�
 
 在扩展弹出窗口的“弹幕样式”页中设置
 
-### 关闭插件/隐藏弹幕
+### 自定义弹幕
 
-- 全局开关：关闭弹幕相关的所有功能，在扩展弹出窗口右上角以及在右键菜单中开关
-- “显示弹幕”开关：暂时隐藏弹幕，在扩展弹出窗口的“弹幕样式”页中
-- 禁用装填配置：在装填配置的设置中取消勾选“启用”
+其他来源的弹幕可以在“弹幕列表”-“导入弹幕”中导入
+
+导入前需转换为以下格式
+
+```typescript
+interface CustomComment {
+    mode?: 'ltr' | 'rtl' | 'top' | 'bottom'; // 弹幕模式，默认为 rtl（从右至左）
+    time: number; // 弹幕出现时间，单位为秒
+    color: string; // 弹幕颜色，hex格式，如 #FFFFFF
+    text: string; // 弹幕内容
+}
+
+interface CustomDanmaku {
+    comments: CustomComment[]; // 弹幕列表，至少一条
+    animeTitle: string; // 番剧标题
+    // 单集标题和编号至少填写一个，用于区分同一番剧不同集数的弹幕
+    episodeTitle?: string; // 单集标题
+    episodeNumber?: number; // 单集编号
+}
+
+type CustomDanmakuList = CustomDanmaku[];
+```
+
+例
+
+```json
+[
+  {
+    "comments": [
+      {
+        "mode": "rtl",
+        "time": 10,
+        "color": "#FF5733",
+        "text": "Hello World"
+      }
+    ],
+    "animeTitle": "Anime Title",
+    "episodeTitle": "Episode Title"
+  }
+]
+```
 
 ## 开发
 

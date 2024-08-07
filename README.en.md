@@ -145,13 +145,49 @@ In the Mount Config editor, select Plex from the integration dropdown.
 - The extension cannot distinguish between videos and non-video contents (such as music), so please disable danmaku
   first before playing non-video content.
 
-### Turning off the extension
+### Custom Danmaku
 
-- Global 'Enabled' toggle: Turns off the extension across all pages. This option is also available in the right-click
-  context menu.
-- 'Show Danmaku' toggle (Styles tab): Visually hides danmaku.
-- 'Enable' checkbox (Mount Config): Complete removes the extension from the configured page. Requires a page refresh to
-  take effect.
+You can import custom danmaku by clicking on the "Import" button in the "Danmaku List" tab.
+
+Custom danmaku adhere to the following format:
+
+```typescript
+interface CustomComment {
+    mode?: 'ltr' | 'rtl' | 'top' | 'bottom'; // default 'ltr'
+    time: number; // the time in seconds the comment should appear
+    color: string; // hex color code
+    text: string; // the comment text
+}
+
+interface CustomDanmaku {
+    comments: CustomComment[]; // at least one comment is required
+    animeTitle: string;
+    // One of the following is required
+    episodeTitle?: string;
+    episodeNumber?: number;
+}
+
+type CustomDanmakuList = CustomDanmaku[];
+```
+
+Example
+
+```json
+[
+  {
+    "comments": [
+      {
+        "mode": "rtl",
+        "time": 10,
+        "color": "#FF5733",
+        "text": "Hello World"
+      }
+    ],
+    "animeTitle": "Anime Title",
+    "episodeTitle": "Episode Title"
+  }
+]
+```
 
 ## Development
 
