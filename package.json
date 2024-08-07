@@ -9,7 +9,7 @@
     "danmaku",
     "user script"
   ],
-  "repository": "https://github.com/Mr-Quin/plex-danmaku",
+  "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
   "scripts": {
     "build": "pnpm -r build",
     "format": "pnpm -r format",
