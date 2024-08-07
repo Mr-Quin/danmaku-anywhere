@@ -24,6 +24,7 @@
   "dependencies": {
     "@danmaku-anywhere/dandanplay-api": "workspace:*",
     "@danmaku-anywhere/danmaku-engine": "workspace:*",
+    "@danmaku-anywhere/danmaku-converter": "workspace:*",
     "@emotion/cache": "^11.13.1",
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",

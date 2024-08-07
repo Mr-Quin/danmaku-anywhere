@@ -60,6 +60,9 @@ importers:
       '@danmaku-anywhere/dandanplay-api':
         specifier: workspace:*
         version: link:../dandanplay-api
+      '@danmaku-anywhere/danmaku-converter':
+        specifier: workspace:*
+        version: link:../danmaku-converter
       '@danmaku-anywhere/danmaku-engine':
         specifier: workspace:*
         version: link:../danmaku-engine
@@ -169,6 +172,12 @@ importers:
       vitest:
         specifier: ^2.0.4
         version: 2.0.4(@types/node@20.14.12)(sass@1.62.0)
+
+  packages/danmaku-converter:
+    dependencies:
+      zod:
+        specifier: ^3.23.8
+        version: 3.23.8
 
   packages/danmaku-engine:
     dependencies:

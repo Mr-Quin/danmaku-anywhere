@@ -4,7 +4,7 @@
   "private": true,
   "description": "",
   "author": "Mr-Quin",
-  "repository": "https://github.com/Mr-Quin/plex-danmaku",
+  "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
   "license": "MIT",
   "type": "module",
   "main": "dist/src/index.js",
