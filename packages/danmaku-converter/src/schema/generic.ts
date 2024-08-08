@@ -2,14 +2,14 @@ import { DanDanCommentMode } from '@danmaku-anywhere/dandanplay-api'
 import { encodeColor } from '@danmaku-anywhere/danmaku-engine'
 import { z } from 'zod'
 
-import { hex } from '../validator/hex'
+import { zHex, zTime } from '../validator'
 
 export const wevipSchema = z
   .object({
     danmuku: z.array(
       z
         .tuple([
-          z.coerce.number(), // time
+          zTime, // time
           z.string().refine((mode) => {
             switch (mode) {
               case 'top':
@@ -20,7 +20,7 @@ export const wevipSchema = z
                 return DanDanCommentMode.rtl
             }
           }), // mode
-          hex, // color
+          zHex, // color
           z.string(), // ?
           z.string(), // text
           z.string(), // ip
