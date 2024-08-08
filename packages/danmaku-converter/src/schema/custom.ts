@@ -1,9 +1,10 @@
-import { z } from 'zod'
 import { DanDanCommentMode } from '@danmaku-anywhere/dandanplay-api'
-import { hex } from '../validator/hex'
 import { encodeColor } from '@danmaku-anywhere/danmaku-engine'
+import { z } from 'zod'
 
-const customCommentSchema = z
+import { zHex, zTime } from '../validator'
+
+export const customCommentSchema = z
   .object({
     mode: z
       .union(
@@ -19,12 +20,11 @@ const customCommentSchema = z
       )
       .optional()
       .default('rtl'),
-    time: z.number(), // in seconds, float
-    color: hex,
+    time: zTime, // in seconds, float
+    color: zHex,
     text: z.string(),
     user: z.string().optional(),
   })
-  .strict()
   .transform((data) => {
     return {
       p: `${data.time},${DanDanCommentMode[data.mode]},${encodeColor(data.color)}`,
@@ -34,14 +34,16 @@ const customCommentSchema = z
 
 export const customDanmakuSchema = z
   .object({
-    comments: z
-      .array(customCommentSchema)
-      .nonempty({ message: 'At least one comment is required' }),
+    comments: z.array(customCommentSchema),
     animeTitle: z.string(),
     episodeTitle: z.string().optional(),
     episodeNumber: z.number().optional(),
   })
-  .strict()
-  .refine((data) => {
-    return data.episodeTitle !== undefined || data.episodeNumber !== undefined
-  }, 'One of episodeTitle or episodeNumber is required')
+  .refine(
+    (data) => {
+      return !(
+        data.episodeTitle === undefined && data.episodeNumber === undefined
+      )
+    },
+    { message: 'Either episodeTitle or episodeNumber must be provided' }
+  )

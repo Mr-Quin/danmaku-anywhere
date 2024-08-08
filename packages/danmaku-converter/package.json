@@ -10,7 +10,7 @@
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest",
     "build": "tsc",
     "lint": "tsc && eslint --ext .js,.jsx,.ts,.tsx --fix .",
     "dev": "tsc -w"
@@ -18,7 +18,10 @@
   "dependencies": {
     "@danmaku-anywhere/dandanplay-api": "workspace:*",
     "@danmaku-anywhere/danmaku-engine": "workspace:*",
-    "xml2js": "^0.6.2",
+    "xml-js": "^1.6.11",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "vitest": "^2.0.4"
   }
 }

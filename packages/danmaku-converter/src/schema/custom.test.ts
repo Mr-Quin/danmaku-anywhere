@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  customCommentSchema,
-  customDanmakuCreateDtoSchema,
-} from './customDanmaku'
+import { customCommentSchema, customDanmakuSchema } from './custom'
 
 describe('customCommentSchema', () => {
   it('accepts valid comment', () => {
@@ -45,7 +42,7 @@ describe('customCommentSchema', () => {
   })
 })
 
-describe('customDanmakuCreateDtoSchema', () => {
+describe('customDanmakuSchema', () => {
   it('accepts valid danmaku', () => {
     const dto = {
       comments: [
@@ -60,16 +57,7 @@ describe('customDanmakuCreateDtoSchema', () => {
       episodeTitle: 'Episode Title',
     }
 
-    expect(() => customDanmakuCreateDtoSchema.parse(dto)).not.toThrow()
-  })
-
-  it('rejects if no comments are provided', () => {
-    const dto = {
-      comments: [],
-      animeTitle: 'Anime Title',
-      episodeTitle: 'Episode Title',
-    }
-    expect(() => customDanmakuCreateDtoSchema.parse(dto)).toThrow()
+    expect(() => customDanmakuSchema.parse(dto)).not.toThrow()
   })
 
   it('rejects if neither episodeTitle nor episodeNumber is provided', () => {
@@ -84,7 +72,7 @@ describe('customDanmakuCreateDtoSchema', () => {
       ],
       animeTitle: 'Anime Title',
     }
-    expect(() => customDanmakuCreateDtoSchema.parse(dto)).toThrow()
+    expect(() => customDanmakuSchema.parse(dto)).toThrow()
   })
 
   it('accepts if one of episodeNumber or episodeTitle is provided', () => {
@@ -114,11 +102,7 @@ describe('customDanmakuCreateDtoSchema', () => {
       episodeTitle: 'Episode Title',
     }
 
-    expect(() =>
-      customDanmakuCreateDtoSchema.parse(dtoEpisodeNumber)
-    ).not.toThrow()
-    expect(() =>
-      customDanmakuCreateDtoSchema.parse(dtoEpisodeTitle)
-    ).not.toThrow()
+    expect(() => customDanmakuSchema.parse(dtoEpisodeNumber)).not.toThrow()
+    expect(() => customDanmakuSchema.parse(dtoEpisodeTitle)).not.toThrow()
   })
 })
