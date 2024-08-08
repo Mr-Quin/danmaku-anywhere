@@ -37,3 +37,23 @@ export type DanmakuCacheLite = Pick<DanmakuCache, 'meta' | 'type'> & {
   // The count of comments
   count: number
 }
+
+export interface CustomDanmakuCreateDto {
+  comments: {
+    p: string
+    m: string
+  }[]
+  animeTitle: string
+  episodeTitle?: string
+  episodeNumber?: number
+}
+
+export interface CustomDanmakuParsed {
+  comments: {
+    p: string
+    m: string
+  }[]
+  animeTitle?: string
+  episodeTitle?: string
+  episodeNumber?: number
+}

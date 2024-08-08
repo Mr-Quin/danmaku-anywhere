@@ -12,12 +12,12 @@ import type {
   DanmakuGetOneDto,
 } from '@/common/danmaku/dto'
 import type {
+  CustomDanmakuCreateDto,
   DanmakuCache,
   DanmakuCacheImportDto,
   DanmakuCacheLite,
   DDPDanmakuCache,
 } from '@/common/danmaku/models/danmakuCache/dto'
-import type { CustomDanmakuCreateDto } from '@/common/danmaku/models/danmakuImport/customDanmaku'
 import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 
 type IconSetDto =

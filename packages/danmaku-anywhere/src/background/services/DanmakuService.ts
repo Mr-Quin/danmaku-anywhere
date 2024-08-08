@@ -15,11 +15,11 @@ import type {
   DanmakuCacheDbModel,
 } from '@/common/danmaku/models/danmakuCache/db'
 import type {
+  CustomDanmakuCreateDto,
   DanmakuCache,
   DanmakuCacheImportDto,
   DanmakuCacheLite,
 } from '@/common/danmaku/models/danmakuCache/dto'
-import type { CustomDanmakuCreateDto } from '@/common/danmaku/models/danmakuImport/customDanmaku'
 import type { DDPDanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
 import type { DanmakuFetchOptions } from '@/common/danmaku/types'
 import { danmakuUtils } from '@/common/danmaku/utils'

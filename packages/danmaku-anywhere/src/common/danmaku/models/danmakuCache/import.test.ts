@@ -11,7 +11,7 @@ import type {
 
 const validComment: DanDanComment = {
   cid: 1722521763,
-  p: '0.00,1,16777215,[Gamer]hui0810yong',
+  p: '0.01,1,16777215,[Gamer]hui0810yong',
   m: '簽',
 }
 
@@ -19,7 +19,7 @@ const ddpDanmaku: DDPDanmakuCacheImportDto = {
   comments: [
     {
       cid: 1722521763,
-      p: '0.00,1,16777215,[Gamer]hui0810yong',
+      p: '0.01,1,16777215,[Gamer]hui0810yong',
       m: '簽',
     },
   ],
@@ -43,7 +43,7 @@ const ddpDanmaku: DDPDanmakuCacheImportDto = {
 const customDanmaku: CustomDanmakuCacheImportDto = {
   comments: [
     {
-      p: '0.00,1,16777215',
+      p: '0.01,1,16777215',
       m: '簽',
     },
   ],

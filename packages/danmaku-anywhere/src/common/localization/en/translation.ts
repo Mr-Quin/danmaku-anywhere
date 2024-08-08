@@ -158,7 +158,7 @@ const pages = {
       },
       help: {
         selectFiles:
-          'Select Danmaku files to import, or drag and drop files here',
+          "Select Danmaku files to import, or drag and drop files here. File name will be used as the show's name. Supported formats: JSON, XML",
         importCustom:
           'Use this to import custom danmaku. Refer to the documentation for custom danmaku format',
         importExported:
