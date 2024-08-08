@@ -1,7 +1,7 @@
+import { danmakuConverterSchema } from '@danmaku-anywhere/danmaku-converter'
 import { useMutation } from '@tanstack/react-query'
 
-import type { CustomDanmakuCreateDto } from '@/common/danmaku/models/danmakuImport/customDanmaku'
-import { customDanmakuCreateDtoSchema } from '@/common/danmaku/models/danmakuImport/customDanmaku'
+import type { CustomDanmakuCreateDto } from '@/common/danmaku/models/danmakuCache/dto'
 import type { ImportParseResult } from '@/common/danmaku/types'
 import type { FileContent } from '@/popup/pages/danmaku/pages/ImportPage/hooks/useUploadDanmaku'
 
@@ -16,18 +16,29 @@ export const useParseCustomDanmaku = (props: UseParseCustomDanmakuProps) => {
       const res = await Promise.all(
         fileContent.map(async (fileContent) => {
           // parse each file
-          const parseResult = customDanmakuCreateDtoSchema.safeParse(
-            fileContent.data
-          )
+          const parseResult = danmakuConverterSchema.safeParse(fileContent.data)
 
-          return parseResult
+          return { ...parseResult, file: fileContent.file }
         })
       )
 
       const succeeded = res
         .filter((result) => result.success)
         .map((result) => {
-          return result.data
+          if ('animeTitle' in result.data) {
+            // custom danmaku, return as is
+            return result.data
+          }
+
+          const fileName = result.file.split('.')[0]
+
+          // TODO: refactor
+          // use file name as animeTitle
+          return {
+            ...result.data,
+            animeTitle: fileName,
+            episodeNumber: 1,
+          }
         })
 
       const errors = res

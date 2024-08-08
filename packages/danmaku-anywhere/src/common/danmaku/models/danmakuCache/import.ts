@@ -1,17 +1,51 @@
-import { DanDanChConvert } from '@danmaku-anywhere/dandanplay-api'
-import { parseDanDanCommentParams } from '@danmaku-anywhere/danmaku-engine'
+import {
+  DanDanChConvert,
+  DanDanCommentMode,
+} from '@danmaku-anywhere/dandanplay-api'
+import { zRgb888, zTime } from '@danmaku-anywhere/danmaku-converter'
 import { z } from 'zod'
 
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 
-export const importCommentSchema = z.object({
-  p: z.string().refine((data) => {
-    const { time, color } = parseDanDanCommentParams(data)
-    return time >= 0 && /^#[0-9A-F]{6}$/i.test(color)
-  }),
-  m: z.string(),
-  cid: z.number().optional(),
-})
+export const importCommentSchema = z
+  .object({
+    p: z
+      .string()
+      .transform((data) => {
+        return data.split(',')
+      })
+      .pipe(
+        z
+          .tuple([
+            zTime, // time
+            z.coerce.number().pipe(z.nativeEnum(DanDanCommentMode)),
+            zRgb888, // decimal color
+          ])
+          .rest(z.string())
+      ),
+    m: z.string(),
+    cid: z.number().optional(),
+  })
+  .transform(({ p: pTuple, m, cid }) => {
+    const [time, mode, color, uid] = pTuple
+
+    const p =
+      uid === undefined
+        ? `${time},${mode},${color}`
+        : `${time},${mode},${color},${uid}`
+
+    if (cid === undefined) {
+      return {
+        p,
+        m,
+      }
+    }
+    return {
+      p,
+      m,
+      cid,
+    }
+  })
 
 // Handles importing danmaku that are exported from the extension
 // The schema should satisfy DanmakuCache
