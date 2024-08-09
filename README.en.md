@@ -96,16 +96,16 @@ This extension has two operating modes:
 - In the extension's popup window, go to the "Config" tab.
 - If your website is in the predefined list, enable it.
 - If your website isn't listed:
-    - Click "add" to create a new entry.
-    - URL Patterns: Enter the website's match pattern (
-      e.g., `https://your.website.com/*`).
-        - [Learn more about match patterns](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)
-        - For websites using `iframe` for its video player, the match pattern should be based on the `iframes`'s `src`
-          attribute.
-    - Video element: Enter the video
-      player's [CSS selector](https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector) (often
-      just `video`,
-      unless the website has multiple video players).
+  - Click "add" to create a new entry.
+  - URL Patterns: Enter the website's match pattern (
+    e.g., `https://your.website.com/*`).
+    - [Learn more about match patterns](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)
+    - For websites using `iframe` for its video player, the match pattern should be based on the `iframes`'s `src`
+      attribute.
+  - Video element: Enter the video
+    player's [CSS selector](https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector) (often
+    just `video`,
+    unless the website has multiple video players).
 
 ### 2. Search for danmaku (Manual Mode or Ad-Hoc Use)
 
@@ -153,21 +153,21 @@ Custom danmaku adhere to the following format:
 
 ```typescript
 interface CustomComment {
-    mode?: 'ltr' | 'rtl' | 'top' | 'bottom'; // default 'ltr'
-    time: number; // the time in seconds the comment should appear
-    color: string; // hex color code
-    text: string; // the comment text
+  mode?: 'ltr' | 'rtl' | 'top' | 'bottom' // default 'ltr'
+  time: number // the time in seconds the comment should appear
+  color: string // hex color code
+  text: string // the comment text
 }
 
 interface CustomDanmaku {
-    comments: CustomComment[]; // at least one comment is required
-    animeTitle: string;
-    // One of the following is required
-    episodeTitle?: string;
-    episodeNumber?: number;
+  comments: CustomComment[] // at least one comment is required
+  animeTitle: string
+  // One of the following is required
+  episodeTitle?: string
+  episodeNumber?: number
 }
 
-type CustomDanmakuList = CustomDanmaku[];
+type CustomDanmakuList = CustomDanmaku[]
 ```
 
 Example
