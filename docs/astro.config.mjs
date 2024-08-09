@@ -5,14 +5,24 @@ import starlight from '@astrojs/starlight'
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://danmaku.weeblify.app',
   integrations: [
     react(),
     starlight({
       title: 'Danmaku Anywhere',
       favicon: '/favicon.png',
+      logo: {
+        light: './src/assets/logo.png',
+        dark: './src/assets/logo.png',
+      },
+      lastUpdated: false,
+      editLink: {
+        baseUrl: 'https://github.com/Mr-Quin/danmaku-anywhere/edit/main/docs/',
+      },
       social: {
         github: 'https://github.com/Mr-Quin/danmaku-anywhere',
       },
+      customCss: ['./src/styles/custom.css'],
       sidebar: [
         {
           label: 'getting-started',
@@ -23,10 +33,10 @@ export default defineConfig({
           link: '/getting-started',
         },
         {
-          label: 'details',
+          label: 'docs',
           translations: {
-            'zh-CN': '详细说明',
-            en: 'Details',
+            'zh-CN': '文档',
+            en: 'Docs',
           },
           items: [
             {
@@ -35,7 +45,7 @@ export default defineConfig({
                 'zh-CN': '安装说明',
                 en: 'Installation',
               },
-              link: '/details/install',
+              link: '/docs/install',
             },
             {
               label: 'mount-profile',
@@ -43,15 +53,15 @@ export default defineConfig({
                 'zh-CN': '装填配置',
                 en: 'Mount Profile',
               },
-              link: '/details/mount-profile',
+              link: '/docs/mount-profile',
             },
             {
-              label: 'danmaku-source',
+              label: 'danmaku',
               translations: {
-                'zh-CN': '弹幕来源',
-                en: 'Danmaku Source',
+                'zh-CN': '弹幕管理',
+                en: 'Danmaku Management',
               },
-              link: '/details/danmaku-source',
+              link: '/docs/danmaku',
             },
             {
               label: 'auto-mode',
@@ -59,7 +69,7 @@ export default defineConfig({
                 'zh-CN': '自动模式',
                 en: 'Auto Mode',
               },
-              link: '/details/auto-mode',
+              link: '/docs/auto-mode',
             },
             {
               label: 'limitations',
@@ -67,15 +77,8 @@ export default defineConfig({
                 'zh-CN': '工作原理',
                 en: 'How it works',
               },
-              link: '/details/limitations',
-            }, // {
-            //     label: 'faq',
-            //     translations: {
-            //         'zh-CN': '常见问题',
-            //         en: 'FAQ'
-            //     },
-            //     link: '/details/faq',
-            // },
+              link: '/docs/limitations',
+            },
           ],
         },
         {
@@ -85,6 +88,14 @@ export default defineConfig({
             en: 'Lingo',
           },
           link: '/lingo',
+        },
+        {
+          label: 'plex-danmaku',
+          translations: {
+            'zh-CN': 'Plex Danmaku',
+            en: 'Plex Danmaku',
+          },
+          link: '/plex-danmaku',
         },
       ],
       defaultLocale: 'root',
