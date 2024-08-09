@@ -1,0 +1,29 @@
+{
+  "name": "@danmaku-anywhere/docs",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "",
+  "author": "Mr-Quin",
+  "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
+  "license": "MIT",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.2",
+    "@astrojs/react": "^3.6.1",
+    "@astrojs/starlight": "^0.25.4",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "astro": "^4.13.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sharp": "^0.33.4",
+    "typescript": "^5.5.4"
+  }
+}

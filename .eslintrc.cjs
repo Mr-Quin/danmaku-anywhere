@@ -49,6 +49,6 @@ module.exports = {
     ],
     radix: 'off',
   },
-  ignorePatterns: ['node_modules', 'dist', 'build', 'plex-danmaku'],
+  ignorePatterns: ['node_modules', 'dist', 'build', 'plex-danmaku', 'public'],
   root: true,
 }
