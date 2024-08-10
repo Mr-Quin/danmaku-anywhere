@@ -1,23 +1,23 @@
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type {
-  CustomDanmakuCacheDbModel,
-  CustomDanmakuCacheDbModelInsert,
-  DanmakuCacheDbModel,
-  DanmakuCacheDbModelInsert,
-  DDPDanmakuCacheDbModel,
+  CustomDanmaku,
+  CustomDanmakuInsert,
+  Danmaku,
+  DanmakuInsert,
+  DanDanPlayDanmaku,
 } from '@/common/danmaku/models/danmakuCache/db'
 import type {
   CustomDanmakuCache,
-  CustomDanmakuCacheImportDto,
+  CustomDanmakuImport,
   DanmakuCache,
-  DanmakuCacheImportDto,
-  DDPDanmakuCache,
-  DDPDanmakuCacheImportDto,
+  DanmakuImport,
+  DanDanPlayDanmakuCache,
+  DanDanPlayDanmakuImport,
 } from '@/common/danmaku/models/danmakuCache/dto'
 import type {
-  CustomDanmakuMeta,
+  CustomMeta,
   DanmakuMeta,
-  DDPDanmakuMeta,
+  DanDanPlayMeta,
 } from '@/common/danmaku/models/danmakuMeta'
 import { Logger } from '@/common/Logger'
 
@@ -33,7 +33,7 @@ export const getNextEpisodeId = (episodeId: number) => {
   return episodeId + 1
 }
 
-export const getNextEpisodeMeta = (meta: DDPDanmakuMeta) => {
+export const getNextEpisodeMeta = (meta: DanDanPlayMeta) => {
   return {
     ...meta,
     episodeId: getNextEpisodeId(meta.episodeId),
@@ -41,9 +41,7 @@ export const getNextEpisodeMeta = (meta: DDPDanmakuMeta) => {
   }
 }
 
-export const isCustomDanmaku = (
-  meta: DanmakuMeta
-): meta is CustomDanmakuMeta => {
+export const isCustomDanmaku = (meta: DanmakuMeta): meta is CustomMeta => {
   return meta.type === DanmakuSourceType.Custom
 }
 
@@ -55,49 +53,35 @@ export const danmakuMetaToString = (meta: DanmakuMeta) => {
 }
 
 export const danmakuUtils = {
-  isDDPCache: (
-    cacheDbModel: DanmakuCacheDbModel
-  ): cacheDbModel is DDPDanmakuCacheDbModel => {
+  isDDPCache: (cacheDbModel: Danmaku): cacheDbModel is DanDanPlayDanmaku => {
     return cacheDbModel.meta.type === DanmakuSourceType.DDP
   },
-  isCustomCache: (
-    cacheDbModel: DanmakuCacheDbModel
-  ): cacheDbModel is CustomDanmakuCacheDbModel => {
+  isCustomCache: (cacheDbModel: Danmaku): cacheDbModel is CustomDanmaku => {
     return cacheDbModel.meta.type === DanmakuSourceType.Custom
   },
   dbModelToCache,
   importDtoToDbModel,
 }
 
-function importDtoToDbModel(
-  dto: CustomDanmakuCacheImportDto
-): CustomDanmakuCacheDbModelInsert
-function importDtoToDbModel(
-  dto: DDPDanmakuCacheImportDto
-): DDPDanmakuCacheDbModel
-function importDtoToDbModel(
-  dto: DanmakuCacheImportDto
-): DanmakuCacheDbModelInsert
-function importDtoToDbModel(
-  dto: DanmakuCacheImportDto
-): DanmakuCacheDbModelInsert {
+function importDtoToDbModel(dto: CustomDanmakuImport): CustomDanmakuInsert
+function importDtoToDbModel(dto: DanDanPlayDanmakuImport): DanDanPlayDanmaku
+function importDtoToDbModel(dto: DanmakuImport): DanmakuInsert
+function importDtoToDbModel(dto: DanmakuImport): DanmakuInsert {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { type, ...rest } = dto
   return rest
 }
 
-function dbModelToCache(cacheDbModel: DDPDanmakuCacheDbModel): DDPDanmakuCache
-function dbModelToCache(
-  cacheDbModel: CustomDanmakuCacheDbModel
-): CustomDanmakuCache
-function dbModelToCache(cacheDbModel: DanmakuCacheDbModel): DanmakuCache
-function dbModelToCache(cacheDbModel: DanmakuCacheDbModel): DanmakuCache {
+function dbModelToCache(cacheDbModel: DanDanPlayDanmaku): DanDanPlayDanmakuCache
+function dbModelToCache(cacheDbModel: CustomDanmaku): CustomDanmakuCache
+function dbModelToCache(cacheDbModel: Danmaku): DanmakuCache
+function dbModelToCache(cacheDbModel: Danmaku): DanmakuCache {
   if (danmakuUtils.isDDPCache(cacheDbModel)) {
     return {
       ...cacheDbModel,
       count: cacheDbModel.comments.length,
       type: DanmakuSourceType.DDP,
-    } satisfies DDPDanmakuCache
+    } satisfies DanDanPlayDanmakuCache
   } else if (danmakuUtils.isCustomCache(cacheDbModel)) {
     return {
       ...cacheDbModel,

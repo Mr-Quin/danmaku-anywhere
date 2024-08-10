@@ -1,33 +1,31 @@
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import type {
-  CustomDanmakuCacheDbModel,
-  CustomDanmakuCacheDbModelInsert,
-  DDPDanmakuCacheDbModel,
+  CustomDanmaku,
+  CustomDanmakuInsert,
+  DanDanPlayDanmaku,
 } from '@/common/danmaku/models/danmakuCache/db'
 
-export type DDPDanmakuCache = DDPDanmakuCacheDbModel & {
+export type DanDanPlayDanmakuCache = DanDanPlayDanmaku & {
   type: DanmakuSourceType.DDP
   count: number
 }
 
-export type CustomDanmakuCache = CustomDanmakuCacheDbModel & {
+export type CustomDanmakuCache = CustomDanmaku & {
   type: DanmakuSourceType.Custom
   count: number
 }
 
-export type DanmakuCache = DDPDanmakuCache | CustomDanmakuCache
+export type DanmakuCache = DanDanPlayDanmakuCache | CustomDanmakuCache
 
-export type DDPDanmakuCacheImportDto = DDPDanmakuCacheDbModel & {
+export type DanDanPlayDanmakuImport = DanDanPlayDanmaku & {
   type: DanmakuSourceType.DDP
 }
 
-export type CustomDanmakuCacheImportDto = CustomDanmakuCacheDbModelInsert & {
+export type CustomDanmakuImport = CustomDanmakuInsert & {
   type: DanmakuSourceType.Custom
 }
 
-export type DanmakuCacheImportDto =
-  | DDPDanmakuCacheImportDto
-  | CustomDanmakuCacheImportDto
+export type DanmakuImport = DanDanPlayDanmakuImport | CustomDanmakuImport
 
 /**
  * A lite version of DanmakuCache, only contains count and meta
@@ -38,7 +36,7 @@ export type DanmakuCacheLite = Pick<DanmakuCache, 'meta' | 'type'> & {
   count: number
 }
 
-export interface CustomDanmakuCreateDto {
+export interface CustomDanmakuCreateData {
   comments: {
     p: string
     m: string
@@ -48,7 +46,7 @@ export interface CustomDanmakuCreateDto {
   episodeNumber?: number
 }
 
-export interface CustomDanmakuParsed {
+export interface CustomDanmakuParsedData {
   comments: {
     p: string
     m: string

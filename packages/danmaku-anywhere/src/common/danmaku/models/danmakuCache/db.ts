@@ -1,13 +1,13 @@
 import type { DanDanCommentAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
 
-import type { BaseDanmakuCache } from '@/common/danmaku/models/danmakuCache/base'
+import type { BaseDanmakuEntity } from '@/common/danmaku/models/danmakuCache/base'
 import type {
-  CustomDanmakuMeta,
-  DDPDanmakuMeta,
+  CustomMeta,
+  DanDanPlayMeta,
 } from '@/common/danmaku/models/danmakuMeta'
 
-export type DDPDanmakuCacheDbModel = BaseDanmakuCache & {
-  meta: DDPDanmakuMeta
+export type DanDanPlayDanmaku = BaseDanmakuEntity & {
+  meta: DanDanPlayMeta
   /**
    * The params used to fetch the comments
    */
@@ -15,20 +15,16 @@ export type DDPDanmakuCacheDbModel = BaseDanmakuCache & {
 }
 
 // The model used to insert into the database, episodeId is auto generated so is omitted
-export type CustomDanmakuCacheDbModelInsert = BaseDanmakuCache & {
-  meta: Omit<CustomDanmakuMeta, 'episodeId'>
+export type CustomDanmakuInsert = BaseDanmakuEntity & {
+  meta: Omit<CustomMeta, 'episodeId'>
 }
 
-export type CustomDanmakuCacheDbModel = BaseDanmakuCache & {
-  meta: CustomDanmakuMeta
+export type CustomDanmaku = BaseDanmakuEntity & {
+  meta: CustomMeta
 }
 
 // Capture the type of the model that is stored in the database
-export type DanmakuCacheDbModel =
-  | DDPDanmakuCacheDbModel
-  | CustomDanmakuCacheDbModel
+export type Danmaku = DanDanPlayDanmaku | CustomDanmaku
 
 // Capture the type of the model that can be inserted into the database
-export type DanmakuCacheDbModelInsert =
-  | DDPDanmakuCacheDbModel
-  | CustomDanmakuCacheDbModelInsert
+export type DanmakuInsert = DanDanPlayDanmaku | CustomDanmakuInsert

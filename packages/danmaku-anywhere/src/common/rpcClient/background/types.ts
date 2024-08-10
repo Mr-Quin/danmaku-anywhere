@@ -12,11 +12,11 @@ import type {
   DanmakuGetOneDto,
 } from '@/common/danmaku/dto'
 import type {
-  CustomDanmakuCreateDto,
+  CustomDanmakuCreateData,
   DanmakuCache,
-  DanmakuCacheImportDto,
+  DanmakuImport,
   DanmakuCacheLite,
-  DDPDanmakuCache,
+  DanDanPlayDanmakuCache,
 } from '@/common/danmaku/models/danmakuCache/dto'
 import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 
@@ -52,9 +52,9 @@ type DanmakuMethods = {
   danmakuGetOne: RPCDef<DanmakuGetOneDto, DanmakuCache | null>
   danmakuGetMany: RPCDef<DanmakuGetOneDto[], DanmakuCache[]>
   danmakuGetByAnime: RPCDef<DanmakuGetByAnimeDto, DanmakuCache[]>
-  danmakuFetchDDP: RPCDef<DanmakuFetchDDPDto, DDPDanmakuCache>
-  danmakuCreateCustom: RPCDef<CustomDanmakuCreateDto[], void>
-  danmakuImport: RPCDef<DanmakuCacheImportDto[], void>
+  danmakuFetchDDP: RPCDef<DanmakuFetchDDPDto, DanDanPlayDanmakuCache>
+  danmakuCreateCustom: RPCDef<CustomDanmakuCreateData[], void>
+  danmakuImport: RPCDef<DanmakuImport[], void>
   danmakuDelete: RPCDef<DanmakuDeleteDto, void>
   danmakuDeleteAll: RPCDef<void, void>
 }

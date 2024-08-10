@@ -7,7 +7,7 @@ import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
  * in which case we assume the file is exported from the extension and has the correct schema,
  * and we can import it without modification.
  */
-export interface BaseDanmakuCache {
+export interface BaseDanmakuEntity {
   comments: CommentEntity[]
   // How many times the comments have been updated
   version: number

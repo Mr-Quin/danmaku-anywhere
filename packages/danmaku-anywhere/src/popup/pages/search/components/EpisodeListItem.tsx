@@ -6,11 +6,11 @@ import {
   BaseListItemSkeleton,
 } from '@/common/components/AnimeList/BaseEpisodeListItem'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DDPDanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
+import type { DanDanPlayMeta } from '@/common/danmaku/models/danmakuMeta'
 import { useDanmakuQuerySuspense } from '@/common/danmaku/queries/useDanmakuQuerySuspense'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 
-type EpisodeListItemProps = Omit<Required<DDPDanmakuMeta>, 'type'>
+type EpisodeListItemProps = Omit<Required<DanDanPlayMeta>, 'type'>
 
 const InnerEpisodeListItem = (props: EpisodeListItemProps) => {
   const { t } = useTranslation()

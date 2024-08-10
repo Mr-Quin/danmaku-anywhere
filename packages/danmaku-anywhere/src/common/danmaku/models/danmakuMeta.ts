@@ -4,7 +4,7 @@ interface BaseDanmakuMeta {
   type: DanmakuSourceType
 }
 
-export interface DDPDanmakuMeta extends BaseDanmakuMeta {
+export interface DanDanPlayMeta extends BaseDanmakuMeta {
   type: DanmakuSourceType.DDP
   /**
    * All properties come from DDP API
@@ -15,7 +15,7 @@ export interface DDPDanmakuMeta extends BaseDanmakuMeta {
   animeTitle: string
 }
 
-export interface CustomDanmakuMeta extends BaseDanmakuMeta {
+export interface CustomMeta extends BaseDanmakuMeta {
   type: DanmakuSourceType.Custom
   /**
    * Auto generated id for custom danmaku
@@ -29,4 +29,4 @@ export interface CustomDanmakuMeta extends BaseDanmakuMeta {
   episodeNumber?: number
 }
 
-export type DanmakuMeta = DDPDanmakuMeta | CustomDanmakuMeta
+export type DanmakuMeta = DanDanPlayMeta | CustomMeta
