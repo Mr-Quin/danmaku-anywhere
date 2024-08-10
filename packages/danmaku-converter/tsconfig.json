@@ -3,7 +3,9 @@
   "compilerOptions": {
     "outDir": "./dist/",
     "baseUrl": ".",
-    "composite": true
+    "composite": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext"
   },
   "include": [
     "./src"

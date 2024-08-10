@@ -3,6 +3,8 @@
   "compilerOptions": {
     "outDir": "./dist/",
     "baseUrl": ".",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "paths": {
       "@danmaku-anywhere/danmaku-provider": ["../danmaku-provider/src"]
     },

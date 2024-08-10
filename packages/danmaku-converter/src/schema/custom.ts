@@ -1,10 +1,8 @@
-import {
-  DanDanCommentMode,
-  hexToRgb888,
-} from '@danmaku-anywhere/danmaku-provider'
+import { hexToRgb888 } from '@danmaku-anywhere/danmaku-provider'
+import { DanDanCommentMode } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { z } from 'zod'
 
-import { zHex, zTime } from '../validator'
+import { zHex, zTime } from '../validator/index.js'
 
 export const customCommentSchema = z
   .object({

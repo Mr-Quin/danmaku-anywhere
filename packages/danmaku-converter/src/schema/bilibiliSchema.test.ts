@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { xmlToJSON } from '../xml'
+import { xmlToJSON } from '../xml/index.js'
 
-import { bilibiliSchema } from './bilibiliSchema'
+import { bilibiliSchema } from './bilibiliSchema.js'
 
 const iqyData = {
   i: {

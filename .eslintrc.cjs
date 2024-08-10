@@ -39,7 +39,7 @@ module.exports = {
     'import/no-useless-path-segments': [
       'error',
       {
-        noUselessIndex: true,
+        noUselessIndex: false,
       },
     ],
     'import/no-relative-packages': 'error',
@@ -49,6 +49,14 @@ module.exports = {
     ],
     radix: 'off',
   },
+  overrides: [
+    {
+      files: ['**/*.test.ts'],
+      rules: {
+        '@typescript-eslint/no-explicit-any': 'off', // Allow any in tests
+      },
+    },
+  ],
   ignorePatterns: ['node_modules', 'dist', 'build', 'plex-danmaku', 'public'],
   root: true,
 }

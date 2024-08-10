@@ -1,4 +1,4 @@
-import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider'
+import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { produce } from 'immer'
 
 import { IntegrationType } from '@/common/danmaku/enums'

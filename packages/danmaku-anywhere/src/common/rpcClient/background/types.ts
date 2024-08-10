@@ -1,7 +1,7 @@
 import type {
   DanDanAnime,
   DanDanAnimeSearchAPIParams,
-} from '@danmaku-anywhere/danmaku-provider'
+} from '@danmaku-anywhere/danmaku-provider/ddp'
 
 import type { RPCDef } from '../../rpc/types'
 

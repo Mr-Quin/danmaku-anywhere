@@ -1,4 +1,4 @@
-import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provider'
+import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { useSuspenseQuery } from '@tanstack/react-query'
 
 import { chromeRpcClient } from '@/common/rpcClient/background/client'

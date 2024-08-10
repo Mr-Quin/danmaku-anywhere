@@ -1,3 +1,3 @@
-export * from './api'
-export * from './enums'
-export * from './schema'
+export * from './api.js'
+export * from './enums.js'
+export * from './schema.js'

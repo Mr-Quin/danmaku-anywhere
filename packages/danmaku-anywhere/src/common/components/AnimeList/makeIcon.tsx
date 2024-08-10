@@ -1,4 +1,4 @@
-import type { DanDanAnimeType } from '@danmaku-anywhere/danmaku-provider'
+import type { DanDanAnimeType } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { Icon } from '@mui/material'
 
 const getAnimeIcon = (type: DanDanAnimeType) => {

@@ -1,4 +1,4 @@
-import { ResponseParseException } from '../exceptions/ResponseParseException'
+import { ResponseParseException } from '../exceptions/ResponseParseException.js'
 
 export const handleParseResponse = <T>(parser: () => T): T => {
   try {

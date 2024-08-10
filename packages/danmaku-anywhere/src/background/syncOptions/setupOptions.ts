@@ -1,4 +1,4 @@
-import { configure } from '@danmaku-anywhere/danmaku-provider'
+import { configure } from '@danmaku-anywhere/danmaku-provider/ddp'
 
 import { upgradeOptions } from '@/background/syncOptions/upgradeOptions'
 import { Logger } from '@/common/Logger'

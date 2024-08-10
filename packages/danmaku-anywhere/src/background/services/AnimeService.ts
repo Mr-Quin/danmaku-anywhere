@@ -1,5 +1,5 @@
-import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provider'
-import { searchAnime } from '@danmaku-anywhere/danmaku-provider'
+import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
+import { searchAnime } from '@danmaku-anywhere/danmaku-provider/ddp'
 
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 

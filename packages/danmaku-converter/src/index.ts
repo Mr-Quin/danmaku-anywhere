@@ -1,5 +1,5 @@
-export { danmakuConverterSchema } from './schema'
+export { danmakuConverterSchema } from './schema/index.js'
 
-export * from './validator'
+export * from './validator/index.js'
 
-export * from './xml'
+export * from './xml/index.js'
