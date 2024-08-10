@@ -14,7 +14,7 @@
     "build": "pnpm -r build",
     "format": "pnpm -r format",
     "lint": "pnpm -r lint",
-    "test": "pnpm -r test"
+    "test": "pnpm -r test run"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.17.0",
