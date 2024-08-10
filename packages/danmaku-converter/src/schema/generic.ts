@@ -1,10 +1,10 @@
-import { hexToRgb888 } from '@danmaku-anywhere/danmaku-provider'
-import { DanDanCommentMode } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { z } from 'zod'
 
+import { CommentMode } from '../types.js'
+import { hexToRgb888 } from '../utils/index.js'
 import { zHex, zTime } from '../validator/index.js'
 
-export const wevipSchema = z
+export const wevipDanmakuSchema = z
   .object({
     danmuku: z.array(
       z
@@ -13,11 +13,11 @@ export const wevipSchema = z
           z.string().refine((mode) => {
             switch (mode) {
               case 'top':
-                return DanDanCommentMode.top
+                return CommentMode.top
               case 'bottom':
-                return DanDanCommentMode.bottom
+                return CommentMode.bottom
               default:
-                return DanDanCommentMode.rtl
+                return CommentMode.rtl
             }
           }), // mode
           zHex, // color

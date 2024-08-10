@@ -88,14 +88,15 @@ export class DanmakuService {
       !options.forceUpdate &&
       existingDanmaku &&
       existingDanmaku.comments.length > 0 &&
-      existingDanmaku.comments.length >= comments.comments.length
+      existingDanmaku.comments.length >= comments.length
     ) {
       this.logger.debug('New danmaku has less comments, skip caching')
       return danmakuUtils.dbModelToCache(existingDanmaku)
     }
 
     const newEntry = {
-      ...comments,
+      comments,
+      count: comments.length,
       meta: meta,
       params: paramsCopy,
       timeUpdated: Date.now(),

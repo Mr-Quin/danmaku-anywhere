@@ -1,5 +1,5 @@
-import { rgb888ToHex } from '@danmaku-anywhere/danmaku-provider'
-import { DanDanCommentMode } from '@danmaku-anywhere/danmaku-provider/ddp'
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import { rgb888ToHex, CommentMode } from '@danmaku-anywhere/danmaku-converter'
 
 import type { DanmakuFilter } from './DanmakuManager'
 
@@ -71,7 +71,7 @@ export const parseDanDanCommentParams = (p: string) => {
 
   return {
     time: parseFloat(time),
-    mode: DanDanCommentMode[parseInt(mode)],
+    mode: CommentMode[parseInt(mode)],
     color: rgb888ToHex(parseInt(color)),
     uid, // uid may include string
   }
@@ -85,7 +85,7 @@ export interface DanmakuStyle {
 
 // transform danmaku comments to a format understood by danmaku engine
 export const transformDanDanComments = (
-  comments: CachedComment[],
+  comments: CommentEntity[],
   style: DanmakuStyle,
   offset: number
 ) => {
@@ -114,7 +114,7 @@ export const transformDanDanComments = (
 
 // ratio is a number between 0 and 1 where 0 means we keep 0% of the comments
 // and 1 means we keep 100% of the comments
-export function* sampleComments(comments: CachedComment[], ratio: number) {
+export function* sampleComments(comments: CommentEntity[], ratio: number) {
   if (ratio < 0 || ratio > 1) throw new Error('ratio must be between 0 and 1')
 
   const length = comments.length
@@ -150,7 +150,7 @@ export const applyFilter = (comment: string, filters: DanmakuFilter[]) => {
 }
 
 export const filterComments = (
-  comments: CachedComment[],
+  comments: CommentEntity[],
   filters: DanmakuFilter[]
 ) => {
   return comments.filter((comment) => {

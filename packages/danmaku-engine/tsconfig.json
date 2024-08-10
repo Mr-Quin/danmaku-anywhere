@@ -11,5 +11,5 @@
     "composite": true
   },
   "include": ["./src"],
-  "references": [{ "path": "../danmaku-provider" }]
+  "references": [{ "path": "../danmaku-converter" }]
 }

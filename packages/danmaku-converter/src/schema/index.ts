@@ -1,11 +1,18 @@
 import { z } from 'zod'
 
-import { bilibiliSchema } from './bilibiliSchema.js'
+import { bilibiliCommentSchemaJson } from './bilibiliSchema.js'
 import { customDanmakuSchema } from './custom.js'
-import { wevipSchema } from './generic.js'
+import { danDanCommentResponseSchema } from './ddp.js'
+import { wevipDanmakuSchema } from './generic.js'
 
-export const danmakuConverterSchema = z.union([
-  bilibiliSchema,
+export * from './bilibiliSchema.js'
+export * from './custom.js'
+export * from './generic.js'
+export * from './ddp.js'
+
+export const combinedDanmakuSchema = z.union([
+  bilibiliCommentSchemaJson,
   customDanmakuSchema,
-  wevipSchema,
+  wevipDanmakuSchema,
+  danDanCommentResponseSchema,
 ])

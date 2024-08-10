@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { xmlToJSON } from '../xml/index.js'
+import { xmlToJSON } from '../utils/index.js'
 
-import { bilibiliSchema } from './bilibiliSchema.js'
+import { bilibiliCommentSchemaJson } from './bilibiliSchema.js'
 
 const iqyData = {
   i: {
@@ -58,7 +58,7 @@ const bilibiliData = {
 
 describe('bilibiliSchema', () => {
   it('should parse iqy', () => {
-    const result = bilibiliSchema.parse(iqyData)
+    const result = bilibiliCommentSchemaJson.parse(iqyData)
     expect(result).toEqual({
       comments: [
         {
@@ -70,7 +70,7 @@ describe('bilibiliSchema', () => {
   })
 
   it('should parse bilibili json', () => {
-    const result = bilibiliSchema.parse(bilibiliData)
+    const result = bilibiliCommentSchemaJson.parse(bilibiliData)
     expect(result).toEqual({
       comments: [
         {
@@ -83,7 +83,7 @@ describe('bilibiliSchema', () => {
 
   it('should parse bilibili xml', async () => {
     const data = await xmlToJSON(bilibiliXmlData)
-    const result = bilibiliSchema.parse(data)
+    const result = bilibiliCommentSchemaJson.parse(data)
     expect(result).toEqual({
       comments: [
         {

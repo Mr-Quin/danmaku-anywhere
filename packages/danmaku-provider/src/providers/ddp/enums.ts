@@ -3,10 +3,3 @@ export enum DanDanChConvert {
   Simplified = 1,
   Traditional = 2,
 }
-
-export enum DanDanCommentMode {
-  ltr = 6,
-  rtl = 1,
-  top = 5,
-  bottom = 4,
-}

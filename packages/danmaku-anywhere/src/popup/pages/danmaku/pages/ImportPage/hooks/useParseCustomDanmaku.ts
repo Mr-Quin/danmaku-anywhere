@@ -1,4 +1,4 @@
-import { danmakuConverterSchema } from '@danmaku-anywhere/danmaku-converter'
+import { combinedDanmakuSchema } from '@danmaku-anywhere/danmaku-converter'
 import { useMutation } from '@tanstack/react-query'
 
 import type { CustomDanmakuCreateDto } from '@/common/danmaku/models/danmakuCache/dto'
@@ -16,7 +16,7 @@ export const useParseCustomDanmaku = (props: UseParseCustomDanmakuProps) => {
       const res = await Promise.all(
         fileContent.map(async (fileContent) => {
           // parse each file
-          const parseResult = danmakuConverterSchema.safeParse(fileContent.data)
+          const parseResult = combinedDanmakuSchema.safeParse(fileContent.data)
 
           return { ...parseResult, file: fileContent.file }
         })

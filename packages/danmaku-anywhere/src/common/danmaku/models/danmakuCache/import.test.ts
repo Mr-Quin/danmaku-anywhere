@@ -1,4 +1,3 @@
-import type { DanDanComment } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { produce } from 'immer'
 import { describe, expect, it } from 'vitest'
 
@@ -9,7 +8,7 @@ import type {
   DDPDanmakuCacheImportDto,
 } from '@/common/danmaku/models/danmakuCache/dto'
 
-const validComment: DanDanComment = {
+const validComment = {
   cid: 1722521763,
   p: '0.01,1,16777215,[Gamer]hui0810yong',
   m: '簽',
