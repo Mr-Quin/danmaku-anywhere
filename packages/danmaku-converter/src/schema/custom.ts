@@ -1,5 +1,5 @@
-import { DanDanCommentMode } from '@danmaku-anywhere/dandanplay-api'
 import { encodeColor } from '@danmaku-anywhere/danmaku-engine'
+import { DanDanCommentMode } from '@danmaku-anywhere/danmaku-provider'
 import { z } from 'zod'
 
 import { zHex, zTime } from '../validator'

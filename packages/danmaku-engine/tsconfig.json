@@ -4,10 +4,10 @@
     "outDir": "./dist/",
     "baseUrl": ".",
     "paths": {
-      "@danmaku-anywhere/dandanplay-api": ["../dandanplay-api/src"]
+      "@danmaku-anywhere/danmaku-provider": ["../danmaku-provider/src"]
     },
     "composite": true
   },
   "include": ["./src"],
-  "references": [{ "path": "../dandanplay-api" }]
+  "references": [{ "path": "../danmaku-provider" }]
 }

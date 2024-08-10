@@ -3,7 +3,14 @@
   "compilerOptions": {
     "outDir": "./dist/",
     "baseUrl": ".",
-    "composite": true,
+    "composite": true
   },
-  "include": ["./src"]
+  "include": [
+    "./src"
+  ],
+  "references": [
+    {
+      "path": "../danmaku-provider"
+    }
+  ]
 }

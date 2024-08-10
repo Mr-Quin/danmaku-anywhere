@@ -21,7 +21,7 @@
     "paths": {
       "@danmaku-anywhere/plex-danmaku": ["plex-danmaku/src"],
       "@danmaku-anywhere/danmaku-engine": ["danmaku-engine/src"],
-      "@danmaku-anywhere/dandanplay-api": ["dandanplay-api/src"]
+      "@danmaku-anywhere/danmaku-provider": ["danmaku-provider/src"]
     }
   }
 }

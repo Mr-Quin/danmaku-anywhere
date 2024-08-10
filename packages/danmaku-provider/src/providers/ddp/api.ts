@@ -3,8 +3,8 @@ import { handleParseResponse } from '../../utils/handleParseResponse'
 import { DDPException } from './DDPException'
 import type {
   DanDanAnimeSearchAPIParams,
-  DanDanAnimeSearchResponse,
-  DanDanApiResponse,
+  DanDanAnimeSearchResponseSuccess,
+  DanDanBangumiAnimeResponseSuccess,
   DanDanCommentAPIParams,
   DanDanCommentResponse,
 } from './schema'
@@ -45,7 +45,7 @@ const createUrl = ({
 export const searchAnime = async ({
   anime,
   episode = '',
-}: DanDanAnimeSearchAPIParams): Promise<DanDanAnimeSearchResponse> => {
+}: DanDanAnimeSearchAPIParams) => {
   const url = createUrl({
     path: '/api/v2/search/episodes',
     params: {
@@ -66,13 +66,13 @@ export const searchAnime = async ({
     throw new DDPException(data.errorMessage, data.errorCode)
   }
 
-  return data
+  return data satisfies DanDanAnimeSearchResponseSuccess
 }
 
 export const fetchComments = async (
   episodeId: number,
   params: Partial<DanDanCommentAPIParams> = {}
-): Promise<DanDanCommentResponse> => {
+) => {
   const convertedParams = {
     from: params.from?.toString() ?? '0',
     withRelated: params.withRelated?.toString() ?? 'false',
@@ -88,7 +88,9 @@ export const fetchComments = async (
 
   const json = await res.json()
 
-  return handleParseResponse(() => danDanCommentResponseSchema.parse(json))
+  return handleParseResponse(() =>
+    danDanCommentResponseSchema.parse(json)
+  ) satisfies DanDanCommentResponse
 }
 
 export const getBangumiAnime = async (animeId: number) => {
@@ -107,5 +109,5 @@ export const getBangumiAnime = async (animeId: number) => {
   if (!data.success) {
     throw new DDPException(data.errorMessage, data.errorCode)
   }
-  return data
+  return data satisfies DanDanBangumiAnimeResponseSuccess
 }
