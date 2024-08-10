@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { CommentMode } from '../types.js'
+import { CommentMode } from '../entity/types.js'
 import { xmlToJSON } from '../utils/index.js'
 import { zRgb888, zTime } from '../validator/index.js'
 

@@ -4,4 +4,4 @@ export * from './validator/index.js'
 
 export * from './utils/index.js'
 
-export * from './types.js'
+export * from './entity/index.js'

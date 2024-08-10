@@ -1,5 +1,5 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
-import { rgb888ToHex, CommentMode } from '@danmaku-anywhere/danmaku-converter'
+import { parseCommentEntityP } from '@danmaku-anywhere/danmaku-converter'
 
 import type { DanmakuFilter } from './DanmakuManager'
 
@@ -22,24 +22,6 @@ export interface Comment {
    * When it exists, `text` and `style` will be ignored.
    */
   render?(): HTMLElement | HTMLCanvasElement
-}
-
-export interface CachedComment {
-  /**
-   * Comment id
-   * Undefined for imported comments
-   */
-  cid?: number
-  /**
-   * Comma separated string in format of `time,mode,color,uid`
-   * Uid may be a string
-   * Uid may not be provided
-   */
-  p: string
-  /**
-   * Comment text
-   */
-  m: string
 }
 
 export interface DanmakuOption {
@@ -66,32 +48,21 @@ export interface DanmakuOption {
   speed?: number
 }
 
-export const parseDanDanCommentParams = (p: string) => {
-  const [time, mode, color, uid = ''] = p.split(',')
-
-  return {
-    time: parseFloat(time),
-    mode: CommentMode[parseInt(mode)],
-    color: rgb888ToHex(parseInt(color)),
-    uid, // uid may include string
-  }
-}
-
 export interface DanmakuStyle {
   opacity: number
   fontSize: number
   fontFamily: string
 }
 
-// transform danmaku comments to a format understood by danmaku engine
-export const transformDanDanComments = (
+// transform comments to a format understood by danmaku engine
+export const transformComment = (
   comments: CommentEntity[],
   style: DanmakuStyle,
   offset: number
 ) => {
   return comments.map((comment) => {
     const { p, m } = comment
-    const { time, mode, color } = parseDanDanCommentParams(p)
+    const { time, mode, color } = parseCommentEntityP(p)
     const offsetTime = time + offset / 1000
 
     return {
@@ -109,7 +80,7 @@ export const transformDanDanComments = (
         fontFamily: `${style.fontFamily}`,
       },
     }
-  }) as Comment[]
+  }) satisfies Comment[]
 }
 
 // ratio is a number between 0 and 1 where 0 means we keep 0% of the comments

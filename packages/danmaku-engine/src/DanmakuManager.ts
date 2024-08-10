@@ -1,11 +1,8 @@
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import Danmaku from 'danmaku'
 
-import type { CachedComment, DanmakuStyle } from './parser'
-import {
-  filterComments,
-  sampleComments,
-  transformDanDanComments,
-} from './parser'
+import type { DanmakuStyle } from './parser'
+import { filterComments, sampleComments, transformComment } from './parser'
 
 export interface DanmakuFilter {
   type: 'text' | 'regex'
@@ -48,14 +45,14 @@ export class DanmakuManager {
   instance?: Danmaku
   container?: HTMLElement
   media?: HTMLMediaElement
-  comments: CachedComment[] = []
+  comments: CommentEntity[] = []
   config: DanmakuOptions = configDefaults
   created = false
 
   create(
     container: HTMLElement,
     media: HTMLMediaElement,
-    comments: CachedComment[],
+    comments: CommentEntity[],
     config?: Partial<DanmakuOptions>
   ): void {
     if (this.created) this.destroy()
@@ -72,7 +69,7 @@ export class DanmakuManager {
       filterLevelToRatio(this.config.filterLevel)
     )
 
-    const parsedComments = transformDanDanComments(
+    const parsedComments = transformComment(
       Array.from(sampledComments),
       this.config.style,
       this.config.offset
