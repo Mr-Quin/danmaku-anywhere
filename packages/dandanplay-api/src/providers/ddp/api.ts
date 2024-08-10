@@ -1,10 +1,18 @@
+import { handleParseResponse } from '../../utils/handleParseResponse'
+
+import { DDPException } from './DDPException'
 import type {
   DanDanAnimeSearchAPIParams,
-  DanDanAnimeSearchResult,
-  DanDanBangumiAnimeResult,
+  DanDanAnimeSearchResponse,
+  DanDanApiResponse,
   DanDanCommentAPIParams,
-  DanDanCommentAPIResult,
-} from './types'
+  DanDanCommentResponse,
+} from './schema'
+import {
+  danDanAnimeSearchResponseSchema,
+  danDanBangumiAnimeResponseSchema,
+  danDanCommentResponseSchema,
+} from './schema'
 
 export const API_ROOT = 'https://api.dandanplay.net'
 
@@ -37,7 +45,7 @@ const createUrl = ({
 export const searchAnime = async ({
   anime,
   episode = '',
-}: DanDanAnimeSearchAPIParams): Promise<DanDanAnimeSearchResult> => {
+}: DanDanAnimeSearchAPIParams): Promise<DanDanAnimeSearchResponse> => {
   const url = createUrl({
     path: '/api/v2/search/episodes',
     params: {
@@ -48,19 +56,23 @@ export const searchAnime = async ({
 
   const res = await fetch(url)
 
-  const json = (await res.json()) as DanDanAnimeSearchResult
+  const json = await res.json()
 
-  if (!json.success) {
-    throw new Error(json.errorMessage)
+  const data = handleParseResponse(() =>
+    danDanAnimeSearchResponseSchema.parse(json)
+  )
+
+  if (!data.success) {
+    throw new DDPException(data.errorMessage, data.errorCode)
   }
 
-  return json
+  return data
 }
 
 export const fetchComments = async (
   episodeId: number,
   params: Partial<DanDanCommentAPIParams> = {}
-): Promise<DanDanCommentAPIResult> => {
+): Promise<DanDanCommentResponse> => {
   const convertedParams = {
     from: params.from?.toString() ?? '0',
     withRelated: params.withRelated?.toString() ?? 'false',
@@ -74,23 +86,26 @@ export const fetchComments = async (
 
   const res = await fetch(url)
 
-  const json = (await res.json()) as DanDanCommentAPIResult
+  const json = await res.json()
 
-  return json
+  return handleParseResponse(() => danDanCommentResponseSchema.parse(json))
 }
 
-export const getAnime = async (animeId: number) => {
+export const getBangumiAnime = async (animeId: number) => {
   const url = createUrl({
     path: `/api/v2/bangumi/${animeId}`,
   })
 
   const res = await fetch(url)
 
-  const json = (await res.json()) as DanDanBangumiAnimeResult
+  const json = await res.json()
 
-  if (!json.success) {
-    throw new Error(json.errorMessage)
+  const data = handleParseResponse(() =>
+    danDanBangumiAnimeResponseSchema.parse(json)
+  )
+
+  if (!data.success) {
+    throw new DDPException(data.errorMessage, data.errorCode)
   }
-
-  return json
+  return data
 }

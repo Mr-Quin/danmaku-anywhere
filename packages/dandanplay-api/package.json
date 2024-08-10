@@ -16,5 +16,7 @@
     "dev": "tsc -w"
   },
   "dependencies": {
+    "vitest": "^2.0.4",
+    "zod": "^3.23.8"
   }
 }

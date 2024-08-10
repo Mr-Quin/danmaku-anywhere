@@ -1,5 +1,8 @@
 import type { DanDanCommentAPIParams } from '@danmaku-anywhere/dandanplay-api'
-import { fetchComments, getAnime } from '@danmaku-anywhere/dandanplay-api'
+import {
+  fetchComments,
+  getBangumiAnime,
+} from '@danmaku-anywhere/dandanplay-api'
 import type Dexie from 'dexie'
 import { produce } from 'immer'
 import { match } from 'ts-pattern'
@@ -105,7 +108,9 @@ export class DanmakuService {
         'Episode title not provided, trying to fetch from server'
       )
 
-      const [anime, err] = await tryCatch(async () => getAnime(meta.animeId))
+      const [anime, err] = await tryCatch(async () =>
+        getBangumiAnime(meta.animeId)
+      )
 
       if (err) {
         this.logger.debug('Failed to fetch anime', err)
