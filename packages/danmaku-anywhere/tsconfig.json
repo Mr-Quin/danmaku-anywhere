@@ -13,13 +13,13 @@
     "paths": {
       "@/*": ["src/*"],
       "@danmaku-anywhere/danmaku-engine": ["../danmaku-engine/src"],
-      "@danmaku-anywhere/dandanplay-api": ["../dandanplay-api/src"]
+      "@danmaku-anywhere/danmaku-provider": ["../danmaku-provider/src"]
     }
   },
   "include": ["src"],
   "references": [
     { "path": "./tsconfig.node.json" },
     { "path": "../danmaku-engine" },
-    { "path": "../dandanplay-api" }
+    { "path": "../danmaku-provider" }
   ]
 }

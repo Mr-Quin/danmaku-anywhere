@@ -53,26 +53,17 @@ importers:
         specifier: ^5.5.4
         version: 5.5.4
 
-  packages/dandanplay-api:
-    dependencies:
-      vitest:
-        specifier: ^2.0.4
-        version: 2.0.4(@types/node@20.14.12)(sass@1.62.0)
-      zod:
-        specifier: ^3.23.8
-        version: 3.23.8
-
   packages/danmaku-anywhere:
     dependencies:
-      '@danmaku-anywhere/dandanplay-api':
-        specifier: workspace:*
-        version: link:../dandanplay-api
       '@danmaku-anywhere/danmaku-converter':
         specifier: workspace:*
         version: link:../danmaku-converter
       '@danmaku-anywhere/danmaku-engine':
         specifier: workspace:*
         version: link:../danmaku-engine
+      '@danmaku-anywhere/danmaku-provider':
+        specifier: workspace:*
+        version: link:../danmaku-provider
       '@emotion/cache':
         specifier: ^11.13.1
         version: 11.13.1
@@ -182,12 +173,12 @@ importers:
 
   packages/danmaku-converter:
     dependencies:
-      '@danmaku-anywhere/dandanplay-api':
-        specifier: workspace:*
-        version: link:../dandanplay-api
       '@danmaku-anywhere/danmaku-engine':
         specifier: workspace:*
         version: link:../danmaku-engine
+      '@danmaku-anywhere/danmaku-provider':
+        specifier: workspace:*
+        version: link:../danmaku-provider
       xml-js:
         specifier: ^1.6.11
         version: 1.6.11
@@ -201,9 +192,9 @@ importers:
 
   packages/danmaku-engine:
     dependencies:
-      '@danmaku-anywhere/dandanplay-api':
+      '@danmaku-anywhere/danmaku-provider':
         specifier: workspace:*
-        version: link:../dandanplay-api
+        version: link:../danmaku-provider
       danmaku:
         specifier: 2.0.6
         version: 2.0.6(patch_hash=fbuwt3vj3tnsako7gddftrienm)
@@ -213,6 +204,15 @@ importers:
       react-dom:
         specifier: ^18.2.0
         version: 18.2.0(react@18.2.0)
+
+  packages/danmaku-provider:
+    dependencies:
+      vitest:
+        specifier: ^2.0.4
+        version: 2.0.4(@types/node@20.14.12)(sass@1.62.0)
+      zod:
+        specifier: ^3.23.8
+        version: 3.23.8
 
 packages:
 

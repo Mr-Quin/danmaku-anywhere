@@ -1,7 +1,7 @@
 import type {
   DanDanAnime,
   DanDanEpisode,
-} from '@danmaku-anywhere/dandanplay-api'
+} from '@danmaku-anywhere/danmaku-provider'
 import { Check } from '@mui/icons-material'
 import { LoadingButton } from '@mui/lab'
 import {

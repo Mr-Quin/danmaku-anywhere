@@ -1,4 +1,4 @@
-import type { DanDanComment } from '@danmaku-anywhere/dandanplay-api'
+import type { DanDanComment } from '@danmaku-anywhere/danmaku-provider'
 import { produce } from 'immer'
 import { describe, expect, it } from 'vitest'
 

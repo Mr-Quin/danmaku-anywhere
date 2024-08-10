@@ -19,7 +19,7 @@
     "danmaku": "2.0.6"
   },
   "dependencies": {
-    "@danmaku-anywhere/dandanplay-api": "workspace:*",
+    "@danmaku-anywhere/danmaku-provider": "workspace:*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   }

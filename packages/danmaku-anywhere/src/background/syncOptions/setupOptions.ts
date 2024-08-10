@@ -1,4 +1,4 @@
-import { configure } from '@danmaku-anywhere/dandanplay-api'
+import { configure } from '@danmaku-anywhere/danmaku-provider'
 
 import { upgradeOptions } from '@/background/syncOptions/upgradeOptions'
 import { Logger } from '@/common/Logger'

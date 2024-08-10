@@ -22,7 +22,7 @@
     "tsc": "tsc"
   },
   "dependencies": {
-    "@danmaku-anywhere/dandanplay-api": "workspace:*",
+    "@danmaku-anywhere/danmaku-provider": "workspace:*",
     "@danmaku-anywhere/danmaku-engine": "workspace:*",
     "@danmaku-anywhere/danmaku-converter": "workspace:*",
     "@emotion/cache": "^11.13.1",

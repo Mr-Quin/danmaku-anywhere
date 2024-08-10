@@ -50,11 +50,18 @@ const danDanApiResponseSchema = z.discriminatedUnion('success', [
 
 export type DanDanApiResponse = z.infer<typeof danDanApiResponseSchema>
 
-export const danDanAnimeSearchResponseSchema = z.discriminatedUnion('success', [
+const danDanAnimeSearchResponseSuccessSchema =
   danDanApiResponseSuccessSchema.extend({
     animes: z.array(danDanAnimeSchema),
     hasMore: z.boolean(),
-  }),
+  })
+
+export type DanDanAnimeSearchResponseSuccess = z.infer<
+  typeof danDanAnimeSearchResponseSuccessSchema
+>
+
+export const danDanAnimeSearchResponseSchema = z.discriminatedUnion('success', [
+  danDanAnimeSearchResponseSuccessSchema,
   danDanApiResponseErrorSchema,
 ])
 
@@ -87,34 +94,38 @@ export const danDanCommentResponseSchema = z.object({
 
 export type DanDanCommentResponse = z.infer<typeof danDanCommentResponseSchema>
 
+const danDanCommentResponseSuccessSchema =
+  danDanApiResponseSuccessSchema.extend({
+    bangumi: z.object({
+      type: z.string(),
+      typeDescription: z.string(),
+      titles: z.array(
+        z.object({
+          language: z.string(),
+          title: z.string(),
+        })
+      ),
+      episodes: z.array(
+        z.object({
+          episodeId: z.number(),
+          episodeTitle: z.string(),
+          episodeNumber: z.union([z.coerce.number(), z.string()]), // can be a string, for example "SP1"
+        })
+      ),
+      summary: z.string(),
+      metadata: z.array(z.string()),
+    }),
+  })
+
 // This is a subset of the full response, only including the parts we care about
 export const danDanBangumiAnimeResponseSchema = z.discriminatedUnion(
   'success',
-  [
-    danDanApiResponseSuccessSchema.extend({
-      bangumi: z.object({
-        type: z.string(),
-        typeDescription: z.string(),
-        titles: z.array(
-          z.object({
-            language: z.string(),
-            title: z.string(),
-          })
-        ),
-        episodes: z.array(
-          z.object({
-            episodeId: z.number(),
-            episodeTitle: z.string(),
-            episodeNumber: z.union([z.coerce.number(), z.string()]), // can be a string, for example "SP1"
-          })
-        ),
-        summary: z.string(),
-        metadata: z.array(z.string()),
-      }),
-    }),
-    danDanApiResponseErrorSchema,
-  ]
+  [danDanCommentResponseSuccessSchema, danDanApiResponseErrorSchema]
 )
+
+export type DanDanBangumiAnimeResponseSuccess = z.infer<
+  typeof danDanCommentResponseSuccessSchema
+>
 
 export type DanDanBangumiAnimeResponse = z.infer<
   typeof danDanBangumiAnimeResponseSchema

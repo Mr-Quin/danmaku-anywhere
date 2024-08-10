@@ -1,4 +1,4 @@
-import { DanDanCommentMode } from '@danmaku-anywhere/dandanplay-api'
+import { DanDanCommentMode } from '@danmaku-anywhere/danmaku-provider'
 import { z } from 'zod'
 
 import { zRgb888, zTime } from '../validator'

@@ -1,4 +1,4 @@
-import type { DanDanCommentAPIParams } from '@danmaku-anywhere/dandanplay-api'
+import type { DanDanCommentAPIParams } from '@danmaku-anywhere/danmaku-provider'
 
 import type { DanmakuFetchOptions } from './types'
 

@@ -1,4 +1,4 @@
-import { DanDanChConvert } from '@danmaku-anywhere/dandanplay-api'
+import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider'
 import { z } from 'zod'
 
 import { Language } from '@/common/localization/language'

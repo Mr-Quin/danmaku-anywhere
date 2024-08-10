@@ -1,8 +1,8 @@
+import { zRgb888, zTime } from '@danmaku-anywhere/danmaku-converter'
 import {
   DanDanChConvert,
   DanDanCommentMode,
-} from '@danmaku-anywhere/dandanplay-api'
-import { zRgb888, zTime } from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-provider'
 import { z } from 'zod'
 
 import { DanmakuSourceType } from '@/common/danmaku/enums'

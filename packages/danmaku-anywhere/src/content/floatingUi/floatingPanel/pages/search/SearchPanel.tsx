@@ -1,4 +1,4 @@
-import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/dandanplay-api'
+import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provider'
 import { Search } from '@mui/icons-material'
 import { LoadingButton } from '@mui/lab'
 import {
