@@ -1,5 +1,7 @@
-import { encodeColor } from '@danmaku-anywhere/danmaku-engine'
-import { DanDanCommentMode } from '@danmaku-anywhere/danmaku-provider'
+import {
+  DanDanCommentMode,
+  hexToRgb888,
+} from '@danmaku-anywhere/danmaku-provider'
 import { z } from 'zod'
 
 import { zHex, zTime } from '../validator'
@@ -31,7 +33,7 @@ export const wevipSchema = z
           const [time, mode, color, _, text] = data
 
           return {
-            p: `${time},${mode},${encodeColor(color)}`,
+            p: `${time},${mode},${hexToRgb888(color)}`,
             m: text,
           }
         })

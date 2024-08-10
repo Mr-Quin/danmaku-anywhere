@@ -1,5 +1,7 @@
-import { encodeColor } from '@danmaku-anywhere/danmaku-engine'
-import { DanDanCommentMode } from '@danmaku-anywhere/danmaku-provider'
+import {
+  DanDanCommentMode,
+  hexToRgb888,
+} from '@danmaku-anywhere/danmaku-provider'
 import { z } from 'zod'
 
 import { zHex, zTime } from '../validator'
@@ -27,7 +29,7 @@ export const customCommentSchema = z
   })
   .transform((data) => {
     return {
-      p: `${data.time},${DanDanCommentMode[data.mode]},${encodeColor(data.color)}`,
+      p: `${data.time},${DanDanCommentMode[data.mode]},${hexToRgb888(data.color)}`,
       m: data.text,
     }
   })
