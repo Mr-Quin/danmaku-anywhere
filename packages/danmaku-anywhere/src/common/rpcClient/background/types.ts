@@ -1,3 +1,4 @@
+import type { BilibiliBangumiInfo } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import type {
   DanDanAnime,
   DanDanAnimeSearchAPIParams,
@@ -5,6 +6,10 @@ import type {
 
 import type { RPCDef } from '../../rpc/types'
 
+import type {
+  MediaSearchParamsData,
+  MediaSearchResult,
+} from '@/common/anime/dto'
 import type {
   DanmakuDeleteDto,
   DanmakuFetchDDPDto,
@@ -43,6 +48,8 @@ type IconMethods = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type AnimeMethods = {
   animeSearch: RPCDef<DanDanAnimeSearchAPIParams, DanDanAnime[]>
+  mediaSearch: RPCDef<MediaSearchParamsData, MediaSearchResult[]>
+  getBilibiliEpisode: RPCDef<number, BilibiliBangumiInfo>
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

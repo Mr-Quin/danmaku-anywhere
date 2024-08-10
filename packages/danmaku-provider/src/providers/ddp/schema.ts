@@ -9,15 +9,7 @@ const danDanEpisodeSchema = z.object({
 
 export type DanDanEpisode = z.infer<typeof danDanEpisodeSchema>
 
-export const danDanAnimeTypeSchema = z.enum([
-  'jpdrama',
-  'tvseries',
-  'movie',
-  'ova',
-  'web',
-  'musicvideo',
-  'other',
-])
+export const danDanAnimeTypeSchema = z.string()
 
 export type DanDanAnimeType = z.infer<typeof danDanAnimeTypeSchema>
 
@@ -60,6 +52,8 @@ export type DanDanAnimeSearchResponseSuccess = z.infer<
   typeof danDanAnimeSearchResponseSuccessSchema
 >
 
+export type DanDanAnimeSearchResult = DanDanAnimeSearchResponseSuccess['animes']
+
 export const danDanAnimeSearchResponseSchema = z.discriminatedUnion('success', [
   danDanAnimeSearchResponseSuccessSchema,
   danDanApiResponseErrorSchema,
@@ -98,16 +92,14 @@ export const danDanBangumiAnimeResponseSchema = z.discriminatedUnion(
   [danDanCommentResponseSuccessSchema, danDanApiResponseErrorSchema]
 )
 
-export type DanDanBangumiAnimeResponseSuccess = z.infer<
+type DanDanBangumiAnimeResponseSuccess = z.infer<
   typeof danDanCommentResponseSuccessSchema
 >
 
-export type DanDanBangumiAnimeResponse = z.infer<
-  typeof danDanBangumiAnimeResponseSchema
->
+export type DanDanBangumiAnimeResult =
+  DanDanBangumiAnimeResponseSuccess['bangumi']
 
 // Request types
-
 export interface DanDanAnimeSearchAPIParams {
   anime: string
   episode?: string

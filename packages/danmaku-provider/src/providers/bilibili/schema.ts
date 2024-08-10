@@ -18,6 +18,7 @@ const bilibiliSearchMediaSchema = z.object({
   title: z.string(),
   media_type: z.nativeEnum(BiliBiliMediaType),
   cover: z.string(),
+  season_type_name: z.string(),
 })
 
 export const bilibiliSearchResponseSchema =
@@ -28,6 +29,12 @@ export const bilibiliSearchResponseSchema =
       })
       .optional(),
   })
+
+type BilibiliSearchResponse = z.infer<typeof bilibiliSearchResponseSchema>
+
+export type BilibiliSearchResult = NonNullable<
+  BilibiliSearchResponse['data']
+>['result']
 
 export type BiliBiliSearchType = 'media_ft' | 'media_bangumi'
 
@@ -40,6 +47,7 @@ export interface BiliBiliSearchParams {
 }
 
 const bilibiliEpisodeSchema = z.object({
+  badge: z.string(),
   aid: z.number(),
   bvid: z.string(),
   cid: z.number(),
@@ -48,15 +56,27 @@ const bilibiliEpisodeSchema = z.object({
   // epid
   id: z.number(),
   title: z.string(),
+  long_title: z.string(),
+  share_copy: z.string(), // title for sharing
 })
 
 export const bilibiliBangumiInfoResponseSchema =
   bilibiliApiResponseBaseSchema.extend({
     result: z
       .object({
-        episodes: z.array(bilibiliEpisodeSchema),
+        episodes: z.array(bilibiliEpisodeSchema).transform((episodes) => {
+          return episodes.filter((episode) => {
+            // remove trailers
+            if (/预告/.test(episode.badge)) return false
+            return true
+          })
+        }),
         title: z.string(),
         type: z.nativeEnum(BiliBiliMediaType),
       })
       .optional(),
   })
+
+export type BilibiliBangumiInfo = NonNullable<
+  z.infer<typeof bilibiliBangumiInfoResponseSchema>['result']
+>

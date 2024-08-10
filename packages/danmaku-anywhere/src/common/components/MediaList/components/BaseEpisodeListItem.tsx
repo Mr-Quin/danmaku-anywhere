@@ -5,31 +5,44 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Skeleton,
   Tooltip,
 } from '@mui/material'
+import type { QueryKey } from '@tanstack/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import type { ReactNode } from 'react'
+
+import type { DanmakuCache } from '@/common/danmaku/models/danmakuCache/dto'
 
 export interface BaseEpisodeListItemProps {
   episodeTitle: string
-  isLoading?: boolean
-  isFetched?: boolean
-  secondaryText?: string
+  tooltip?: string
+  secondaryText?: (data: DanmakuCache) => ReactNode
   showIcon?: boolean
   onClick?: () => void
+  queryKey: QueryKey
+  fetchDanmaku: () => Promise<DanmakuCache | null>
+  isUpdating?: boolean
 }
 
 export const BaseEpisodeListItem = ({
   episodeTitle,
+  tooltip,
   secondaryText,
-  isLoading = false,
-  isFetched = false,
   showIcon = false,
   onClick,
+  queryKey,
+  fetchDanmaku,
+  isUpdating,
 }: BaseEpisodeListItemProps) => {
+  const { data, isFetched, isLoading, isFetching } = useSuspenseQuery({
+    queryKey,
+    queryFn: fetchDanmaku,
+  })
+
   const getIcon = () => {
     if (!showIcon) return null
-    if (isLoading) return <CircularProgress size={24} />
-    if (isFetched) return <Update />
+    if (isFetching || isUpdating) return <CircularProgress size={24} />
+    if (isFetched && data) return <Update />
     return <Download />
   }
 
@@ -37,7 +50,11 @@ export const BaseEpisodeListItem = ({
     <ListItem disablePadding>
       <ListItemButton onClick={onClick} disabled={isLoading}>
         <ListItemIcon>{getIcon()}</ListItemIcon>
-        <Tooltip title={episodeTitle} enterDelay={500} placement="top">
+        <Tooltip
+          title={tooltip ?? episodeTitle}
+          enterDelay={500}
+          placement="top"
+        >
           <ListItemText
             primary={episodeTitle}
             primaryTypographyProps={{
@@ -45,23 +62,10 @@ export const BaseEpisodeListItem = ({
               textOverflow: 'ellipsis',
               overflow: 'hidden',
             }}
-            secondary={secondaryText}
+            secondary={data ? secondaryText?.(data) : null}
           />
         </Tooltip>
       </ListItemButton>
-    </ListItem>
-  )
-}
-
-export const BaseListItemSkeleton = () => {
-  return (
-    <ListItem>
-      <Skeleton
-        variant="text"
-        width="100%"
-        height={40}
-        animation="wave"
-      ></Skeleton>
     </ListItem>
   )
 }

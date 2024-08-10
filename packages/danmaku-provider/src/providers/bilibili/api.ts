@@ -6,7 +6,12 @@ import {
   handleParseResponseAsync,
 } from '../utils/index.js'
 
-import type { BiliBiliSearchParams, BiliBiliSearchType } from './schema.js'
+import type {
+  BilibiliBangumiInfo,
+  BiliBiliSearchParams,
+  BilibiliSearchResult,
+  BiliBiliSearchType,
+} from './schema.js'
 import {
   bilibiliBangumiInfoResponseSchema,
   bilibiliSearchResponseSchema,
@@ -33,7 +38,7 @@ const search = async (
 
   ensureData(parsedData, 'data')
 
-  return parsedData.data
+  return parsedData.data.result satisfies BilibiliSearchResult
 }
 
 // search for media by keyword
@@ -45,7 +50,7 @@ export const searchMedia = async (params: BiliBiliSearchParams) => {
 
   return mediaResult
     .map((result) => {
-      return result.result
+      return result
     })
     .flat()
 }
@@ -64,7 +69,7 @@ export const getBangumiInfo = async (seasonId: number) => {
 
   ensureData(parsedData, 'result')
 
-  return parsedData.result
+  return parsedData.result satisfies BilibiliBangumiInfo
 }
 
 export const getDanmakuXml = async (cid: number): Promise<CommentEntity[]> => {

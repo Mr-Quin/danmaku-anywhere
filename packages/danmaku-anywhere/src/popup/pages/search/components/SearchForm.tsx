@@ -15,17 +15,13 @@ export const SearchForm = ({
   const { t } = useTranslation()
 
   const [title, setTitle] = useSessionState('', 'search/title')
-  const [episodeNumber, setEpisodeNumber] = useSessionState(
-    '',
-    'search/episode'
-  )
 
   return (
     <Box
       component="form"
       onSubmit={(e) => {
         e.preventDefault()
-        onSearch({ anime: title.trim(), episode: episodeNumber.trim() })
+        onSearch({ anime: title.trim() })
       }}
     >
       <Stack spacing={2}>
@@ -36,12 +32,7 @@ export const SearchForm = ({
           fullWidth
           required
         />
-        <TextField
-          label={t('searchPage.episode')}
-          value={episodeNumber}
-          onChange={(e) => setEpisodeNumber(e.target.value)}
-          fullWidth
-        />
+
         <LoadingButton
           type="submit"
           loading={isLoading}

@@ -109,7 +109,7 @@ export class DanmakuService {
         'Episode title not provided, trying to fetch from server'
       )
 
-      const [anime, err] = await tryCatch(async () =>
+      const [bangumi, err] = await tryCatch(async () =>
         getBangumiAnime(meta.animeId)
       )
 
@@ -118,7 +118,7 @@ export class DanmakuService {
         throw err
       }
 
-      const episode = anime.bangumi.episodes.find(
+      const episode = bangumi.episodes.find(
         (e) => e.episodeId === meta.episodeId
       )
       if (episode) {

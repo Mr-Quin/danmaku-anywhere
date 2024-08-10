@@ -140,3 +140,8 @@ export const stopKeyboardPropagation = (e: KeyboardEvent) => {
   if (e.key === 'Escape' || e.key === 'Enter') return
   e.stopPropagation()
 }
+
+export const stripHtml = (html: string) => {
+  const doc = new DOMParser().parseFromString(html, 'text/html')
+  return doc.body.textContent || ''
+}

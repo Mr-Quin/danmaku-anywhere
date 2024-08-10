@@ -34,7 +34,10 @@ export const useDeleteDanmaku = () => {
         queryKey: useAllDanmakuQuerySuspense.queryKey(),
       })
       void queryClient.invalidateQueries({
-        queryKey: useDanmakuQuerySuspense.queryKey(id),
+        queryKey: useDanmakuQuerySuspense.queryKey({
+          type: id.type,
+          id: id.episodeId,
+        }),
       })
     },
   })

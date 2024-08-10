@@ -6,8 +6,8 @@ import { handleParseResponse } from '../utils/index.js'
 import { DDPException } from './DDPException.js'
 import type {
   DanDanAnimeSearchAPIParams,
-  DanDanAnimeSearchResponseSuccess,
-  DanDanBangumiAnimeResponseSuccess,
+  DanDanAnimeSearchResult,
+  DanDanBangumiAnimeResult,
   DanDanCommentAPIParams,
 } from './schema.js'
 import {
@@ -67,7 +67,7 @@ export const searchAnime = async ({
     throw new DDPException(data.errorMessage, data.errorCode)
   }
 
-  return data satisfies DanDanAnimeSearchResponseSuccess
+  return data.animes satisfies DanDanAnimeSearchResult
 }
 
 export const fetchComments = async (
@@ -110,5 +110,5 @@ export const getBangumiAnime = async (animeId: number) => {
     throw new DDPException(data.errorMessage, data.errorCode)
   }
 
-  return data satisfies DanDanBangumiAnimeResponseSuccess
+  return data.bangumi satisfies DanDanBangumiAnimeResult
 }

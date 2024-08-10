@@ -21,7 +21,10 @@ export const useFetchDanmaku = () => {
         queryKey: useAllDanmakuQuerySuspense.queryKey(),
       })
       void queryClient.invalidateQueries({
-        queryKey: useDanmakuQuerySuspense.queryKey(v.meta),
+        queryKey: useDanmakuQuerySuspense.queryKey({
+          type: v.meta.type,
+          id: v.meta.episodeId,
+        }),
       })
     },
   })
