@@ -19,7 +19,10 @@ export const useMountDanmakuContent = () => {
   return useMutation({
     mutationFn: async (danmakuMeta: DanmakuMeta) => {
       const data = await queryClient.fetchQuery({
-        queryKey: useDanmakuQuerySuspense.queryKey(danmakuMeta),
+        queryKey: useDanmakuQuerySuspense.queryKey({
+          type: danmakuMeta.type,
+          id: danmakuMeta.episodeId,
+        }),
         queryFn: () =>
           chromeRpcClient.danmakuGetOne({
             type: danmakuMeta.type,

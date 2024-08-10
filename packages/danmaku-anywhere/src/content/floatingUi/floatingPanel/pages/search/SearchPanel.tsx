@@ -23,9 +23,10 @@ import { useTranslation } from 'react-i18next'
 
 import { EpisodeListItem } from './EpisodeListItem'
 
-import { SearchResultList } from '@/common/components/AnimeList/SearchResultList'
+import { DanmakuProviderType } from '@/common/anime/enums'
 import { Center } from '@/common/components/Center'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
+import { SearchResultList } from '@/common/components/MediaList/SearchResultList'
 import { hasIntegration } from '@/common/danmaku/enums'
 import { stopKeyboardPropagation } from '@/common/utils/utils'
 import { AutomaticMode } from '@/content/common/components/AutomaticMode'
@@ -159,20 +160,21 @@ export const SearchPanel = () => {
               onLoad={(data) => {
                 setAnimes(data)
               }}
-              renderEpisodes={(episodes, anime) => {
-                return episodes.map((episode) => (
+              renderEpisode={(provider, episode, meta) => {
+                if (provider === DanmakuProviderType.Bilibili) return null
+
+                const { animeId, animeTitle } = meta
+
+                return (
                   <EpisodeListItem
-                    titleMapping={getTitleMapping(
-                      anime.animeTitle,
-                      anime.animeId
-                    )}
+                    titleMapping={getTitleMapping(animeTitle, animeId)}
                     episodeId={episode.episodeId}
                     episodeTitle={episode.episodeTitle}
-                    animeId={anime.animeId}
-                    animeTitle={anime.animeTitle}
+                    animeId={animeId}
+                    animeTitle={animeTitle}
                     key={episode.episodeId}
                   />
-                ))
+                )
               }}
             />
           </Suspense>

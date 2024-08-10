@@ -25,7 +25,7 @@ import { useTranslation } from 'react-i18next'
 import { usePopup } from '../../../store/popupStore'
 import { useStore } from '../../../store/store'
 
-import { AnimeTypeIcon } from '@/common/components/AnimeList/AnimeTypeIcon'
+import { MediaTypeIcon } from '@/common/components/MediaList/components/MediaTypeIcon'
 import { DanmakuSourceType, hasIntegration } from '@/common/danmaku/enums'
 import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
@@ -97,9 +97,9 @@ export const SelectorPanel = () => {
               onClick={() => handleAnimeSelect(anime)}
               key={anime.animeId}
             >
-              <AnimeTypeIcon
-                type={anime.type}
-                typeDescription={anime.typeDescription}
+              <MediaTypeIcon
+                icon={anime.type}
+                description={anime.typeDescription}
               />
               <ListItemText primary={anime.animeTitle} />
               {anime === selectedAnime && <Check />}

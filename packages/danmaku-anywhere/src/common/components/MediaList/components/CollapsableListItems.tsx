@@ -25,7 +25,14 @@ export const CollapsableListItems = ({
 
   return (
     <>
-      <Paper {...paperProps}>
+      <Paper
+        sx={{
+          top: 32,
+          position: 'sticky',
+          zIndex: 1,
+        }}
+        {...paperProps}
+      >
         <ListItemButton onClick={handleClick} disableRipple {...rest}>
           {listItemChildren}
           {open ? <ExpandLess /> : <ExpandMore />}

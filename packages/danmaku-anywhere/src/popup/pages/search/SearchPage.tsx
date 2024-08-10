@@ -8,13 +8,15 @@ import { Suspense, useEffect, useRef, useState, useTransition } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { useTranslation } from 'react-i18next'
 
-import { EpisodeListItem } from './components/EpisodeListItem'
+import { DanDanPlayEpisode } from './components/DanDanPlayEpisode'
 import { SearchForm } from './components/SearchForm'
 
-import { SearchResultList } from '@/common/components/AnimeList/SearchResultList'
+import { DanmakuProviderType } from '@/common/anime/enums'
 import { Center } from '@/common/components/Center'
+import { SearchResultList } from '@/common/components/MediaList/SearchResultList'
 import { TabToolbar } from '@/popup/component/TabToolbar'
 import { TabLayout } from '@/popup/layout/TabLayout'
+import { BilibiliEpisode } from '@/popup/pages/search/components/BilibiliEpisode'
 import { useStore } from '@/popup/store'
 
 export const SearchPage = () => {
@@ -79,16 +81,28 @@ export const SearchPage = () => {
               pending={pending}
               searchParams={searchParams!}
               dense
-              renderEpisodes={(episodes, result) => {
-                return episodes.map((episode) => (
-                  <EpisodeListItem
+              renderEpisode={(provider, episode, meta) => {
+                if (provider === DanmakuProviderType.Bilibili)
+                  return (
+                    <BilibiliEpisode
+                      tooltip={episode.share_copy}
+                      title={episode.long_title || episode.share_copy}
+                      // meta={episode}
+                      key={episode.cid}
+                    />
+                  )
+
+                const { animeId, animeTitle } = meta
+
+                return (
+                  <DanDanPlayEpisode
                     episodeId={episode.episodeId}
                     episodeTitle={episode.episodeTitle}
-                    animeId={result.animeId}
-                    animeTitle={result.animeTitle}
+                    animeId={animeId}
+                    animeTitle={animeTitle}
                     key={episode.episodeId}
                   />
-                ))
+                )
               }}
             />
           </Suspense>

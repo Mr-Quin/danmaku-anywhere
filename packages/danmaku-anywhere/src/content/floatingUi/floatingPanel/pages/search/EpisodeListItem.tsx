@@ -1,14 +1,13 @@
 import { Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import {
-  BaseEpisodeListItem,
-  BaseListItemSkeleton,
-} from '@/common/components/AnimeList/BaseEpisodeListItem'
+import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
+import { ListItemSkeleton } from '@/common/components/MediaList/components/ListItemSkeleton'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { DanDanPlayMeta } from '@/common/danmaku/models/danmakuMeta'
 import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 import { useDanmakuQuerySuspense } from '@/common/danmaku/queries/useDanmakuQuerySuspense'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
 type EpisodeListItemProps = Omit<Required<DanDanPlayMeta>, 'type'> & {
@@ -22,13 +21,6 @@ const InnerEpisodeListItem = ({
   const { t } = useTranslation()
   const { episodeId, episodeTitle } = rest
   const { fetch, isPending } = useFetchDanmakuMapped()
-
-  const { data: danmakuData } = useDanmakuQuerySuspense({
-    type: DanmakuSourceType.DDP,
-    id: episodeId,
-  })
-
-  const hasDanmaku = !!danmakuData
 
   const handleFetchDanmaku = async () => {
     await fetch({
@@ -44,18 +36,25 @@ const InnerEpisodeListItem = ({
     <BaseEpisodeListItem
       showIcon
       episodeTitle={episodeTitle}
-      isLoading={isPending}
-      isFetched={hasDanmaku}
+      isUpdating={isPending}
       onClick={handleFetchDanmaku}
-      secondaryText={
-        hasDanmaku
-          ? `${new Date(danmakuData.timeUpdated).toLocaleDateString()} - ${t(
-              'danmaku.commentCounted',
-              {
-                count: danmakuData.count,
-              }
-            )}`
-          : ''
+      queryKey={useDanmakuQuerySuspense.queryKey({
+        type: DanmakuSourceType.DDP,
+        id: episodeId,
+      })}
+      fetchDanmaku={async () => {
+        return await chromeRpcClient.danmakuGetOne({
+          type: DanmakuSourceType.DDP,
+          id: episodeId,
+        })
+      }}
+      secondaryText={(data) =>
+        `${new Date(data.timeUpdated).toLocaleDateString()} -  ${t(
+          'danmaku.commentCounted',
+          {
+            count: data.count,
+          }
+        )}`
       }
     />
   )
@@ -63,7 +62,7 @@ const InnerEpisodeListItem = ({
 
 export const EpisodeListItem = (props: EpisodeListItemProps) => {
   return (
-    <Suspense fallback={<BaseListItemSkeleton />}>
+    <Suspense fallback={<ListItemSkeleton />}>
       <InnerEpisodeListItem {...props} />
     </Suspense>
   )

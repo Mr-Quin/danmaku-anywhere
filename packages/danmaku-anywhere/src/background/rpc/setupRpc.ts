@@ -1,8 +1,8 @@
 import { match } from 'ts-pattern'
 
-import { AnimeService } from '../services/AnimeService'
 import { DanmakuService } from '../services/DanmakuService'
 import { IconService } from '../services/IconService'
+import { ProviderService } from '../services/ProviderService'
 import { TitleMappingService } from '../services/TitleMappingService'
 
 import { Logger } from '@/common/Logger'
@@ -11,16 +11,22 @@ import { RpcException } from '@/common/rpc/types'
 import type { BackgroundMethods } from '@/common/rpcClient/background/types'
 
 export const setupRpc = () => {
-  const animeService = new AnimeService()
+  const animeService = new ProviderService()
   const iconService = new IconService()
   const danmakuService = new DanmakuService()
   const titleMappingService = new TitleMappingService()
 
   const rpcServer = createRpcServer<BackgroundMethods>({
     animeSearch: async (input) => {
-      const res = await animeService.search(input)
+      const res = await animeService.searchDanDanPlay(input)
 
-      return res.animes
+      return res
+    },
+    mediaSearch: async (input) => {
+      return animeService.searchByProviders(input.params, input.providers)
+    },
+    getBilibiliEpisode: async (mediaId) => {
+      return animeService.getBiliBiliEpisodes(mediaId)
     },
     iconSet: async (data, sender) => {
       if (sender.tab?.id === undefined) {

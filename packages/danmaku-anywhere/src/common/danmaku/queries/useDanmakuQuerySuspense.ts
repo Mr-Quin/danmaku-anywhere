@@ -15,8 +15,8 @@ export const useDanmakuQuerySuspense = (data: DanmakuGetOneDto) => {
   return query
 }
 
-useDanmakuQuerySuspense.queryKey = (meta: DanmakuMeta) => [
+useDanmakuQuerySuspense.queryKey = (data: DanmakuGetOneDto) => [
   'danmaku',
   'get',
-  meta,
+  data,
 ]

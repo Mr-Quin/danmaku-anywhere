@@ -7,8 +7,9 @@ import { getBangumiInfo, getDanmakuXml, searchMedia } from './api'
 import { BiliBiliException } from './BiliBiliException'
 import {
   mockBilibiliBangumiInfoResponse,
-  mockBilibiliSearchResponse,
+  mockBilibiliBangmumiSearchResponse,
   mockDanmakuXml,
+  mockBilibiliMediaSearchResponse,
 } from './mockData'
 
 describe('Bilibili', () => {
@@ -17,8 +18,15 @@ describe('Bilibili', () => {
   })
 
   describe('search', () => {
-    it('should not throw on valid response', async () => {
-      mockFetchResponse(mockBilibiliSearchResponse)
+    it('should not throw on search bangumi', async () => {
+      mockFetchResponse(mockBilibiliBangmumiSearchResponse)
+
+      // not mocking fetch here to test the actual fetch
+      await expect(searchMedia({ keyword: 'MyGo' })).resolves.not.toThrow()
+    })
+
+    it('should not throw on search media', async () => {
+      mockFetchResponse(mockBilibiliMediaSearchResponse)
 
       // not mocking fetch here to test the actual fetch
       await expect(searchMedia({ keyword: 'MyGo' })).resolves.not.toThrow()
@@ -78,8 +86,8 @@ describe('Bilibili', () => {
 
       const data = await getDanmakuXml(1)
 
-      expect(data.comments).toHaveLength(17)
-      expect(data.comments).toContainEqual({
+      expect(data).toHaveLength(17)
+      expect(data).toContainEqual({
         m: '分多少----、',
         p: '3771.649,1,16777215',
       })
