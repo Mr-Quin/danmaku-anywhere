@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { CustomDanmakuCreateDto } from '@/common/danmaku/models/danmakuCache/dto'
+import type { CustomDanmakuCreateData } from '@/common/danmaku/models/danmakuCache/dto'
 import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
 import type { ImportParseResult } from '@/common/danmaku/types'
 import { Logger } from '@/common/Logger'
@@ -11,7 +11,7 @@ import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ImportResultDialog } from '@/popup/pages/danmaku/pages/ImportPage/components/ImportResultDialog'
 
 interface CustomDanmakuImportResultProps {
-  data: ImportParseResult<CustomDanmakuCreateDto[]>
+  data: ImportParseResult<CustomDanmakuCreateData[]>
   onClose: () => void
   open: boolean
 }

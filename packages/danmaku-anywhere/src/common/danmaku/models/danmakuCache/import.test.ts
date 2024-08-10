@@ -4,8 +4,8 @@ import { describe, expect, it } from 'vitest'
 import { importCommentSchema, importDanmakuSchema } from './import'
 
 import type {
-  CustomDanmakuCacheImportDto,
-  DDPDanmakuCacheImportDto,
+  CustomDanmakuImport,
+  DanDanPlayDanmakuImport,
 } from '@/common/danmaku/models/danmakuCache/dto'
 
 const validComment = {
@@ -14,7 +14,7 @@ const validComment = {
   m: '簽',
 }
 
-const ddpDanmaku: DDPDanmakuCacheImportDto = {
+const ddpDanmaku: DanDanPlayDanmakuImport = {
   comments: [
     {
       cid: 1722521763,
@@ -39,7 +39,7 @@ const ddpDanmaku: DDPDanmakuCacheImportDto = {
   type: 1,
 }
 
-const customDanmaku: CustomDanmakuCacheImportDto = {
+const customDanmaku: CustomDanmakuImport = {
   comments: [
     {
       p: '0.01,1,16777215',

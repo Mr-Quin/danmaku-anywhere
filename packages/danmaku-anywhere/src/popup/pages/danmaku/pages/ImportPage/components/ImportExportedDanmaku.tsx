@@ -5,9 +5,9 @@ import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type {
-  CustomDanmakuCacheImportDto,
-  DanmakuCacheImportDto,
-  DDPDanmakuCacheImportDto,
+  CustomDanmakuImport,
+  DanmakuImport,
+  DanDanPlayDanmakuImport,
 } from '@/common/danmaku/models/danmakuCache/dto'
 import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
 import type { ImportParseResult } from '@/common/danmaku/types'
@@ -16,15 +16,12 @@ import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ImportResultDialog } from '@/popup/pages/danmaku/pages/ImportPage/components/ImportResultDialog'
 
 interface ImportExportedDanmakuProps {
-  data: ImportParseResult<DanmakuCacheImportDto[]>
+  data: ImportParseResult<DanmakuImport[]>
   onClose: () => void
   open: boolean
 }
 
-const sortDanmakuCacheImportDto = (
-  a: DanmakuCacheImportDto,
-  b: DanmakuCacheImportDto
-) => {
+const sortDanmakuCacheImportDto = (a: DanmakuImport, b: DanmakuImport) => {
   if (a.meta.animeTitle === b.meta.animeTitle) {
     // For DDP, sort by episodeId
     if (a.type === DanmakuSourceType.DDP && b.type === DanmakuSourceType.DDP) {
@@ -71,8 +68,8 @@ export const ImportExportedDanmaku = ({
     },
   })
 
-  const ddpResults: DDPDanmakuCacheImportDto[] = []
-  const customResults: CustomDanmakuCacheImportDto[] = []
+  const ddpResults: DanDanPlayDanmakuImport[] = []
+  const customResults: CustomDanmakuImport[] = []
 
   data.succeeded?.forEach((result) => {
     if (result.type === DanmakuSourceType.DDP) {

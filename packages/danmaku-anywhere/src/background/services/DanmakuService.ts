@@ -14,16 +14,16 @@ import type {
 } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type {
-  CustomDanmakuCacheDbModelInsert,
-  DanmakuCacheDbModel,
+  CustomDanmakuInsert,
+  Danmaku,
 } from '@/common/danmaku/models/danmakuCache/db'
 import type {
-  CustomDanmakuCreateDto,
+  CustomDanmakuCreateData,
   DanmakuCache,
-  DanmakuCacheImportDto,
+  DanmakuImport,
   DanmakuCacheLite,
 } from '@/common/danmaku/models/danmakuCache/dto'
-import type { DDPDanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
+import type { DanDanPlayMeta } from '@/common/danmaku/models/danmakuMeta'
 import type { DanmakuFetchOptions } from '@/common/danmaku/types'
 import { danmakuUtils } from '@/common/danmaku/utils'
 import { db } from '@/common/db/db'
@@ -47,7 +47,7 @@ export class DanmakuService {
   }
 
   async fetchDDP(
-    meta: DDPDanmakuMeta,
+    meta: DanDanPlayMeta,
     params: Partial<DanDanCommentAPIParams> = {},
     options: DanmakuFetchOptions = {}
   ) {
@@ -150,11 +150,11 @@ export class DanmakuService {
       })
   }
 
-  async createCustom(data: CustomDanmakuCreateDto[]) {
-    const createCache = (dto: CustomDanmakuCreateDto) => {
+  async createCustom(data: CustomDanmakuCreateData[]) {
+    const createCache = (dto: CustomDanmakuCreateData) => {
       const { comments, animeTitle, episodeNumber, episodeTitle } = dto
 
-      const cache: CustomDanmakuCacheDbModelInsert = {
+      const cache: CustomDanmakuInsert = {
         comments,
         meta: {
           episodeNumber,
@@ -173,7 +173,7 @@ export class DanmakuService {
     this.customTable.bulkAdd(data.map(createCache))
   }
 
-  async import(data: DanmakuCacheImportDto[]) {
+  async import(data: DanmakuImport[]) {
     const ddp = data
       .filter((d) => d.type === DanmakuSourceType.DDP)
       .map((d) => {
@@ -291,7 +291,7 @@ export class DanmakuService {
     table,
     type,
   }: {
-    table: Dexie.Table<DanmakuCacheDbModel, any, any>
+    table: Dexie.Table<Danmaku, any, any>
     type: DanmakuSourceType
   }) {
     const cache: DanmakuCacheLite[] = []

@@ -3,7 +3,7 @@ import type { DanDanCommentAPIParams } from '@danmaku-anywhere/danmaku-provider/
 import type { DanmakuFetchOptions } from './types'
 
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DDPDanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
+import type { DanDanPlayMeta } from '@/common/danmaku/models/danmakuMeta'
 
 export interface DanmakuGetOneDto {
   type: DanmakuSourceType
@@ -19,7 +19,7 @@ export interface DanmakuGetByAnimeDto {
 }
 
 export interface DanmakuFetchDDPDto {
-  meta: DDPDanmakuMeta
+  meta: DanDanPlayMeta
   params?: Partial<DanDanCommentAPIParams>
   options?: DanmakuFetchOptions
 }

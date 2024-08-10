@@ -1,12 +1,12 @@
 import { combinedDanmakuSchema } from '@danmaku-anywhere/danmaku-converter'
 import { useMutation } from '@tanstack/react-query'
 
-import type { CustomDanmakuCreateDto } from '@/common/danmaku/models/danmakuCache/dto'
+import type { CustomDanmakuCreateData } from '@/common/danmaku/models/danmakuCache/dto'
 import type { ImportParseResult } from '@/common/danmaku/types'
 import type { FileContent } from '@/popup/pages/danmaku/pages/ImportPage/hooks/useUploadDanmaku'
 
 interface UseParseCustomDanmakuProps {
-  onSuccess: (data: ImportParseResult<CustomDanmakuCreateDto[]> | null) => void
+  onSuccess: (data: ImportParseResult<CustomDanmakuCreateData[]> | null) => void
   onError: (e: Error) => void
 }
 
@@ -52,7 +52,7 @@ export const useParseCustomDanmaku = (props: UseParseCustomDanmakuProps) => {
         succeeded,
         errorCount: errors.length,
         errors,
-      } satisfies ImportParseResult<CustomDanmakuCreateDto[]>
+      } satisfies ImportParseResult<CustomDanmakuCreateData[]>
     },
     onError: (e) => {
       props.onError(e)
