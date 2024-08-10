@@ -1,4 +1,4 @@
-import type { CachedComment } from '@danmaku-anywhere/danmaku-engine'
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 
 /**
  * Danmaku cache is always created by the background script,
@@ -8,7 +8,7 @@ import type { CachedComment } from '@danmaku-anywhere/danmaku-engine'
  * and we can import it without modification.
  */
 export interface BaseDanmakuCache {
-  comments: CachedComment[]
+  comments: CommentEntity[]
   // How many times the comments have been updated
   version: number
   // The last time the comments were updated

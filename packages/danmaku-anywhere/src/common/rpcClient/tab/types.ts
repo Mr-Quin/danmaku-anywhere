@@ -1,4 +1,4 @@
-import type { CachedComment } from '@danmaku-anywhere/danmaku-engine'
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 
 import type { RPCDef } from '../../rpc/types'
 
@@ -19,7 +19,7 @@ type DanmakuMethods = {
   danmakuMount: RPCDef<
     {
       meta: DanmakuMeta
-      comments: CachedComment[]
+      comments: CommentEntity[]
     },
     void
   >

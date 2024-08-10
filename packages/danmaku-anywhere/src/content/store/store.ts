@@ -1,4 +1,4 @@
-import type { CachedComment } from '@danmaku-anywhere/danmaku-engine'
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { create } from 'zustand'
 
 import type { PlaybackStatus } from '../danmaku/integration/MediaObserver'
@@ -21,9 +21,9 @@ interface StoreState {
   /**
    * Danmaku to be displayed
    */
-  comments: CachedComment[]
+  comments: CommentEntity[]
   hasComments: boolean
-  setComments: (comments: CachedComment[]) => void
+  setComments: (comments: CommentEntity[]) => void
   unsetComments: () => void
 
   /**
@@ -50,7 +50,7 @@ interface StoreState {
    */
   manual: boolean
   toggleManualMode: (manual?: boolean) => void
-  mountManual: (comments: CachedComment[], danmakuMeta: DanmakuMeta) => void
+  mountManual: (comments: CommentEntity[], danmakuMeta: DanmakuMeta) => void
   unmountManual: () => void
 
   /**

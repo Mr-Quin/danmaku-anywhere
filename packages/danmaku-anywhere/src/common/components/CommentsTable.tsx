@@ -1,5 +1,5 @@
-import type { CachedComment } from '@danmaku-anywhere/danmaku-engine'
-import { parseDanDanCommentParams } from '@danmaku-anywhere/danmaku-engine'
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import { parseCommentEntityP } from '@danmaku-anywhere/danmaku-converter'
 import type { BoxProps } from '@mui/material'
 import {
   Box,
@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next'
 import { match } from 'ts-pattern'
 
 interface CommentListProps {
-  comments: CachedComment[]
+  comments: CommentEntity[]
   boxProps?: BoxProps
   isTimeClickable?: boolean
   onTimeClick?: (time: number) => void
@@ -66,8 +66,8 @@ export const CommentsTable = ({
       })
       .with('time', () => {
         return comments.toSorted((a, b) => {
-          const aTime = parseDanDanCommentParams(a.p).time
-          const bTime = parseDanDanCommentParams(b.p).time
+          const aTime = parseCommentEntityP(a.p).time
+          const bTime = parseCommentEntityP(b.p).time
 
           return order === 'asc' ? aTime - bTime : bTime - aTime
         })
@@ -126,7 +126,7 @@ export const CommentsTable = ({
           )}
           {virtualizer.getVirtualItems().map((virtualItem) => {
             const comment = sortedComments[virtualItem.index]
-            const { time } = parseDanDanCommentParams(comment.p)
+            const { time } = parseCommentEntityP(comment.p)
             const isHovering = hoverRow === virtualItem.index
 
             return (
