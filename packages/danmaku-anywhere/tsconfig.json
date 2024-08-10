@@ -3,6 +3,8 @@
   "compilerOptions": {
     "outDir": "./dist/",
     "noEmit": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "types": [
       "chrome",
       "react-dom/canary",

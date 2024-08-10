@@ -1,7 +1,5 @@
-import {
-  DanDanCommentMode,
-  rgb888ToHex,
-} from '@danmaku-anywhere/danmaku-provider'
+import { rgb888ToHex } from '@danmaku-anywhere/danmaku-provider'
+import { DanDanCommentMode } from '@danmaku-anywhere/danmaku-provider/ddp'
 
 import type { DanmakuFilter } from './DanmakuManager'
 

@@ -1,4 +1,4 @@
-import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider'
+import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 
 import { Language } from '@/common/localization/language'
 import type { ExtensionOptions } from '@/common/options/extensionOptions/schema'

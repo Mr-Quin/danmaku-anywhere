@@ -1,8 +1,8 @@
-import type { DanDanCommentAPIParams } from '@danmaku-anywhere/danmaku-provider'
+import type { DanDanCommentAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
 import {
   fetchComments,
   getBangumiAnime,
-} from '@danmaku-anywhere/danmaku-provider'
+} from '@danmaku-anywhere/danmaku-provider/ddp'
 import type Dexie from 'dexie'
 import { produce } from 'immer'
 import { match } from 'ts-pattern'

@@ -4,6 +4,8 @@
     "outDir": "./dist/",
     "baseUrl": ".",
     "composite": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
   },
   "include": ["./src"],
   "exclude": ["**/*.test.ts"]

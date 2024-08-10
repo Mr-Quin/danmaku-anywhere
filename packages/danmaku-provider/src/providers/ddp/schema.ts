@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import type { DanDanChConvert } from './enums'
+import type { DanDanChConvert } from './enums.js'
 
 const danDanEpisodeSchema = z.object({
   episodeId: z.number(),

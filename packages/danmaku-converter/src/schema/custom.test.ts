@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { customCommentSchema, customDanmakuSchema } from './custom'
+import { customCommentSchema, customDanmakuSchema } from './custom.js'
 
 describe('customCommentSchema', () => {
   it('accepts valid comment', () => {

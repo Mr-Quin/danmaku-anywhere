@@ -1,18 +1,18 @@
-import { handleParseResponse } from '../../utils/handleParseResponse'
+import { handleParseResponse } from '../../utils/handleParseResponse.js'
 
-import { DDPException } from './DDPException'
+import { DDPException } from './DDPException.js'
 import type {
   DanDanAnimeSearchAPIParams,
   DanDanAnimeSearchResponseSuccess,
   DanDanBangumiAnimeResponseSuccess,
   DanDanCommentAPIParams,
   DanDanCommentResponse,
-} from './schema'
+} from './schema.js'
 import {
   danDanAnimeSearchResponseSchema,
   danDanBangumiAnimeResponseSchema,
   danDanCommentResponseSchema,
-} from './schema'
+} from './schema.js'
 
 export const API_ROOT = 'https://api.dandanplay.net'
 

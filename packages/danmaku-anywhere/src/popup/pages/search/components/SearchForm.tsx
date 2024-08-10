@@ -1,4 +1,4 @@
-import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provider'
+import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { LoadingButton } from '@mui/lab'
 import { Box, Stack, TextField } from '@mui/material'
 import { useTranslation } from 'react-i18next'

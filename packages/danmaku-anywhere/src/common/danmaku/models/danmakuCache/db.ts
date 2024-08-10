@@ -1,4 +1,4 @@
-import type { DanDanCommentAPIParams } from '@danmaku-anywhere/danmaku-provider'
+import type { DanDanCommentAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
 
 import type { BaseDanmakuCache } from '@/common/danmaku/models/danmakuCache/base'
 import type {

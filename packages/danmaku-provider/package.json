@@ -9,6 +9,16 @@
   "type": "module",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./dist/src/index.js"
+    },
+    "./ddp": {
+      "types": "./dist/src/providers/ddp/index.d.ts",
+      "default": "./dist/src/providers/ddp/index.js"
+    }
+  },
   "scripts": {
     "test": "vitest",
     "build": "tsc",
@@ -16,7 +26,9 @@
     "dev": "tsc -w"
   },
   "dependencies": {
-    "vitest": "^2.0.4",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "vitest": "^2.0.4"
   }
 }

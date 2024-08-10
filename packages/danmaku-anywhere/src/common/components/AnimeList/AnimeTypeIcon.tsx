@@ -1,4 +1,4 @@
-import type { DanDanAnimeType } from '@danmaku-anywhere/danmaku-provider'
+import type { DanDanAnimeType } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { ListItemIcon, Tooltip } from '@mui/material'
 
 import { makeAnimeIcon } from './makeIcon'

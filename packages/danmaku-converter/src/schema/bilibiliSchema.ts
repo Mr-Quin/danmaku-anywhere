@@ -1,7 +1,7 @@
-import { DanDanCommentMode } from '@danmaku-anywhere/danmaku-provider'
+import { DanDanCommentMode } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { z } from 'zod'
 
-import { zRgb888, zTime } from '../validator'
+import { zRgb888, zTime } from '../validator/index.js'
 
 // 	1 2 3：普通弹幕
 // 4：底部弹幕
@@ -53,7 +53,7 @@ const bilibiliComment = z
     _text: z.string(),
   })
   .transform((data) => {
-    const [time, mode, _, color] = data['_attributes'].p
+    const [time, mode, , color] = data['_attributes'].p
 
     return {
       p: `${time},${mode},${color}`,

@@ -1,4 +1,4 @@
-import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provider'
+import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 

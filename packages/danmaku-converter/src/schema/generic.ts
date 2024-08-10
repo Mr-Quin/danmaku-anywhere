@@ -1,10 +1,8 @@
-import {
-  DanDanCommentMode,
-  hexToRgb888,
-} from '@danmaku-anywhere/danmaku-provider'
+import { hexToRgb888 } from '@danmaku-anywhere/danmaku-provider'
+import { DanDanCommentMode } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { z } from 'zod'
 
-import { zHex, zTime } from '../validator'
+import { zHex, zTime } from '../validator/index.js'
 
 export const wevipSchema = z
   .object({
@@ -30,7 +28,7 @@ export const wevipSchema = z
           z.string(), // font size
         ])
         .transform((data) => {
-          const [time, mode, color, _, text] = data
+          const [time, mode, color, , text] = data
 
           return {
             p: `${time},${mode},${hexToRgb888(color)}`,

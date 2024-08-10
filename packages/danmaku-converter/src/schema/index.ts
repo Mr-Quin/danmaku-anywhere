@@ -1,7 +1,8 @@
 import { z } from 'zod'
-import { bilibiliSchema } from './bilibiliSchema'
-import { customDanmakuSchema } from './custom'
-import { wevipSchema } from './generic'
+
+import { bilibiliSchema } from './bilibiliSchema.js'
+import { customDanmakuSchema } from './custom.js'
+import { wevipSchema } from './generic.js'
 
 export const danmakuConverterSchema = z.union([
   bilibiliSchema,

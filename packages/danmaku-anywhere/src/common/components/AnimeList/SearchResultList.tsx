@@ -2,7 +2,7 @@ import type {
   DanDanAnime,
   DanDanAnimeSearchAPIParams,
   DanDanEpisode,
-} from '@danmaku-anywhere/danmaku-provider'
+} from '@danmaku-anywhere/danmaku-provider/ddp'
 import type { ListProps } from '@mui/material'
 import { List, ListItem, ListItemText, ListSubheader } from '@mui/material'
 import type React from 'react'
