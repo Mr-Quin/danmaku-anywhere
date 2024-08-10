@@ -1,8 +1,9 @@
-import { zRgb888, zTime } from '@danmaku-anywhere/danmaku-converter'
 import {
-  DanDanChConvert,
-  DanDanCommentMode,
-} from '@danmaku-anywhere/danmaku-provider/ddp'
+  zRgb888,
+  zTime,
+  CommentMode,
+} from '@danmaku-anywhere/danmaku-converter'
+import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { z } from 'zod'
 
 import { DanmakuSourceType } from '@/common/danmaku/enums'
@@ -18,7 +19,7 @@ export const importCommentSchema = z
         z
           .tuple([
             zTime, // time
-            z.coerce.number().pipe(z.nativeEnum(DanDanCommentMode)),
+            z.coerce.number().pipe(z.nativeEnum(CommentMode)),
             zRgb888, // decimal color
           ])
           .rest(z.string())

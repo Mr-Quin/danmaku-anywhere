@@ -1,4 +1,7 @@
-import { handleParseResponse } from '../../utils/handleParseResponse.js'
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import { danDanCommentResponseSchema } from '@danmaku-anywhere/danmaku-converter'
+
+import { handleParseResponse } from '../utils/index.js'
 
 import { DDPException } from './DDPException.js'
 import type {
@@ -6,12 +9,10 @@ import type {
   DanDanAnimeSearchResponseSuccess,
   DanDanBangumiAnimeResponseSuccess,
   DanDanCommentAPIParams,
-  DanDanCommentResponse,
 } from './schema.js'
 import {
   danDanAnimeSearchResponseSchema,
   danDanBangumiAnimeResponseSchema,
-  danDanCommentResponseSchema,
 } from './schema.js'
 
 export const API_ROOT = 'https://api.dandanplay.net'
@@ -72,7 +73,7 @@ export const searchAnime = async ({
 export const fetchComments = async (
   episodeId: number,
   params: Partial<DanDanCommentAPIParams> = {}
-) => {
+): Promise<CommentEntity[]> => {
   const convertedParams = {
     from: params.from?.toString() ?? '0',
     withRelated: params.withRelated?.toString() ?? 'false',
@@ -88,9 +89,8 @@ export const fetchComments = async (
 
   const json = await res.json()
 
-  return handleParseResponse(() =>
-    danDanCommentResponseSchema.parse(json)
-  ) satisfies DanDanCommentResponse
+  return handleParseResponse(() => danDanCommentResponseSchema.parse(json))
+    .comments
 }
 
 export const getBangumiAnime = async (animeId: number) => {
@@ -109,5 +109,6 @@ export const getBangumiAnime = async (animeId: number) => {
   if (!data.success) {
     throw new DDPException(data.errorMessage, data.errorCode)
   }
+
   return data satisfies DanDanBangumiAnimeResponseSuccess
 }

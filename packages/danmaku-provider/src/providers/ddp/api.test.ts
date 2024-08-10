@@ -1,17 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 import { ResponseParseException } from '../../exceptions/ResponseParseException'
+import { mockFetchResponse } from '../utils/testUtils'
 
 import { searchAnime, fetchComments, getBangumiAnime, configure } from './api'
 import { DDPException } from './DDPException'
-
-const mockFetchResponse = (data: any) => {
-  const mockFetch = vi.spyOn(global, 'fetch').mockResolvedValue({
-    json: vi.fn().mockResolvedValue(data),
-  } as any)
-
-  return mockFetch
-}
+import { mockAnimeSearchResponse, mockCommentResponse } from './mockData'
 
 describe('DandanPlay API', () => {
   beforeEach(() => {
@@ -19,8 +13,9 @@ describe('DandanPlay API', () => {
   })
 
   describe('searchAnime', () => {
-    it.skip('should not throw on fetch', async () => {
-      // not mocking fetch here to test the actual fetch
+    it('should not throw on fetch', async () => {
+      mockFetchResponse(mockAnimeSearchResponse)
+
       await expect(searchAnime({ anime: 'MyGo' })).resolves.not.toThrow()
     })
 
@@ -38,7 +33,7 @@ describe('DandanPlay API', () => {
       await expect(searchAnime({ anime: 'test' })).rejects.toThrow(DDPException)
     })
 
-    it('should throw an error on response parse error', async () => {
+    it('should throw an error on unexpected data', async () => {
       mockFetchResponse({})
 
       await expect(searchAnime({ anime: 'test' })).rejects.toThrow(
@@ -48,12 +43,19 @@ describe('DandanPlay API', () => {
   })
 
   describe('fetchComments', () => {
-    it.skip('should not throw on fetch', async () => {
-      const episodeId = 179810001 // MyGo episode 1
-      await expect(fetchComments(episodeId)).resolves.not.toThrow()
+    it('should parse fetched comments', async () => {
+      mockFetchResponse(mockCommentResponse)
+
+      const data = await fetchComments(1)
+      expect(data).toHaveLength(116)
+      expect(data).toContainEqual({
+        cid: 1723310127,
+        p: '112.48,1,16777215,[5dm]游客',
+        m: '听到纯的第一反应是樱田纯',
+      })
     })
 
-    it('should throw an error on response parse error', async () => {
+    it('should throw an error on unexpected data', async () => {
       mockFetchResponse({})
 
       await expect(fetchComments(1)).rejects.toThrow(ResponseParseException)
@@ -78,7 +80,7 @@ describe('DandanPlay API', () => {
       await expect(getBangumiAnime(1)).rejects.toThrow(DDPException)
     })
 
-    it('should throw an error on response parse error', async () => {
+    it('should throw an error on unexpected data', async () => {
       mockFetchResponse({})
 
       await expect(getBangumiAnime(1)).rejects.toThrow(ResponseParseException)

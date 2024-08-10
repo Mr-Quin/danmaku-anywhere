@@ -10,13 +10,13 @@
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "exports": {
-    ".": {
-      "types": "./dist/src/index.d.ts",
-      "default": "./dist/src/index.js"
-    },
     "./ddp": {
       "types": "./dist/src/providers/ddp/index.d.ts",
       "default": "./dist/src/providers/ddp/index.js"
+    },
+    "./bilibili": {
+      "types": "./dist/src/providers/bilibili/index.d.ts",
+      "default": "./dist/src/providers/bilibili/index.js"
     }
   },
   "scripts": {
@@ -26,7 +26,9 @@
     "dev": "tsc -w"
   },
   "dependencies": {
-    "zod": "^3.23.8"
+    "xml-js": "^1.6.11",
+    "zod": "^3.23.8",
+    "@danmaku-anywhere/danmaku-converter": "workspace:*"
   },
   "devDependencies": {
     "vitest": "^2.0.4"

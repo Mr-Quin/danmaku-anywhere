@@ -1,7 +1,7 @@
-import { hexToRgb888 } from '@danmaku-anywhere/danmaku-provider'
-import { DanDanCommentMode } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { z } from 'zod'
 
+import { CommentMode } from '../types.js'
+import { hexToRgb888 } from '../utils/index.js'
 import { zHex, zTime } from '../validator/index.js'
 
 export const customCommentSchema = z
@@ -27,7 +27,7 @@ export const customCommentSchema = z
   })
   .transform((data) => {
     return {
-      p: `${data.time},${DanDanCommentMode[data.mode]},${hexToRgb888(data.color)}`,
+      p: `${data.time},${CommentMode[data.mode]},${hexToRgb888(data.color)}`,
       m: data.text,
     }
   })

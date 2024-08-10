@@ -69,31 +69,6 @@ export type DanDanAnimeSearchResponse = z.infer<
   typeof danDanAnimeSearchResponseSchema
 >
 
-export const danDanCommentSchema = z.object({
-  /**
-   * Comment id
-   */
-  cid: z.number(),
-  /**
-   * Comma separated string in format of `time,mode,color,uid`
-   * Uid may be a string
-   */
-  p: z.string(),
-  /**
-   * Comment text
-   */
-  m: z.string(),
-})
-
-export type DanDanComment = z.infer<typeof danDanCommentSchema>
-
-export const danDanCommentResponseSchema = z.object({
-  count: z.number(),
-  comments: z.array(danDanCommentSchema),
-})
-
-export type DanDanCommentResponse = z.infer<typeof danDanCommentResponseSchema>
-
 const danDanCommentResponseSuccessSchema =
   danDanApiResponseSuccessSchema.extend({
     bangumi: z.object({

@@ -1,15 +1,8 @@
-import { DanDanCommentMode } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { z } from 'zod'
 
+import { CommentMode } from '../types.js'
+import { xmlToJSON } from '../utils/index.js'
 import { zRgb888, zTime } from '../validator/index.js'
-
-// 	1 2 3：普通弹幕
-// 4：底部弹幕
-// 5：顶部弹幕
-// 6：逆向弹幕
-// 7：高级弹幕
-// 8：代码弹幕
-// 9：BAS弹幕（pool必须为2）
 
 // Schema based on JSON converted from xml,
 // schema may differ depending on the converter used
@@ -22,7 +15,15 @@ const bilibiliComment = z
         .pipe(
           z
             .tuple([
-              zTime, // time
+              // time
+              zTime,
+              // 	1 2 3：普通弹幕
+              // 4：底部弹幕
+              // 5：顶部弹幕
+              // 6：逆向弹幕
+              // 7：高级弹幕
+              // 8：代码弹幕
+              // 9：BAS弹幕（pool必须为2）
               z.coerce
                 .number()
                 .int()
@@ -31,15 +32,15 @@ const bilibiliComment = z
                     case 1:
                     case 2:
                     case 3:
-                      return DanDanCommentMode.rtl
+                      return CommentMode.rtl
                     case 4:
-                      return DanDanCommentMode.bottom
+                      return CommentMode.bottom
                     case 5:
-                      return DanDanCommentMode.top
+                      return CommentMode.top
                     case 6:
-                      return DanDanCommentMode.ltr
+                      return CommentMode.ltr
                     default:
-                      return DanDanCommentMode.rtl
+                      return CommentMode.rtl
                   }
                 }), // mode
               z.coerce.number().int(), // font size.18 - small, 25 - medium, 36 - large
@@ -61,7 +62,7 @@ const bilibiliComment = z
     }
   })
 
-export const bilibiliSchema = z
+export const bilibiliCommentSchemaJson = z
   .object({
     i: z.object({
       d: z.array(bilibiliComment),
@@ -72,3 +73,10 @@ export const bilibiliSchema = z
       comments: data.i.d,
     }
   })
+
+export const bilibiliCommentSchemaXml = z
+  .string()
+  .transform(async (data) => {
+    return xmlToJSON(data)
+  })
+  .pipe(bilibiliCommentSchemaJson)

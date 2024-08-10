@@ -173,9 +173,6 @@ importers:
 
   packages/danmaku-converter:
     dependencies:
-      '@danmaku-anywhere/danmaku-provider':
-        specifier: workspace:*
-        version: link:../danmaku-provider
       xml-js:
         specifier: ^1.6.11
         version: 1.6.11
@@ -189,15 +186,21 @@ importers:
 
   packages/danmaku-engine:
     dependencies:
-      '@danmaku-anywhere/danmaku-provider':
+      '@danmaku-anywhere/danmaku-converter':
         specifier: workspace:*
-        version: link:../danmaku-provider
+        version: link:../danmaku-converter
       danmaku:
         specifier: 2.0.6
         version: 2.0.6(patch_hash=fbuwt3vj3tnsako7gddftrienm)
 
   packages/danmaku-provider:
     dependencies:
+      '@danmaku-anywhere/danmaku-converter':
+        specifier: workspace:*
+        version: link:../danmaku-converter
+      xml-js:
+        specifier: ^1.6.11
+        version: 1.6.11
       zod:
         specifier: ^3.23.8
         version: 3.23.8

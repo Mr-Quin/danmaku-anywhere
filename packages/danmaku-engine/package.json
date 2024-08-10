@@ -19,6 +19,6 @@
     "danmaku": "2.0.6"
   },
   "dependencies": {
-    "@danmaku-anywhere/danmaku-provider": "workspace:*"
+    "@danmaku-anywhere/danmaku-converter": "workspace:*"
   }
 }
