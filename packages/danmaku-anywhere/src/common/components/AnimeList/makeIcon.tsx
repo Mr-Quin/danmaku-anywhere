@@ -1,7 +1,7 @@
-import type { DanDanAnime } from '@danmaku-anywhere/dandanplay-api'
+import type { DanDanAnimeType } from '@danmaku-anywhere/dandanplay-api'
 import { Icon } from '@mui/material'
 
-const getAnimeIcon = (type: DanDanAnime['type']) => {
+const getAnimeIcon = (type: DanDanAnimeType) => {
   switch (type) {
     case 'jpdrama':
       return '🎭'
@@ -19,7 +19,7 @@ const getAnimeIcon = (type: DanDanAnime['type']) => {
       return '❓'
   }
 }
-export const makeAnimeIcon = (type: DanDanAnime['type']) => {
+export const makeAnimeIcon = (type: DanDanAnimeType) => {
   return (
     <Icon
       sx={{

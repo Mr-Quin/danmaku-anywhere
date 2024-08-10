@@ -20,10 +20,6 @@ export const setupRpc = () => {
     animeSearch: async (input) => {
       const res = await animeService.search(input)
 
-      if (!res.success) {
-        throw new RpcException(res.errorMessage)
-      }
-
       return res.animes
     },
     iconSet: async (data, sender) => {
