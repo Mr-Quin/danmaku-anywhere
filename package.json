@@ -13,7 +13,8 @@
   "scripts": {
     "build": "pnpm -r build",
     "format": "pnpm -r format",
-    "lint": "pnpm -r lint"
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.17.0",

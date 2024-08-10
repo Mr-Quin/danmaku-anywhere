@@ -1,4 +1,7 @@
-import { DanDanCommentMode } from '@danmaku-anywhere/danmaku-provider'
+import {
+  DanDanCommentMode,
+  rgb888ToHex,
+} from '@danmaku-anywhere/danmaku-provider'
 
 import type { DanmakuFilter } from './DanmakuManager'
 
@@ -65,21 +68,13 @@ export interface DanmakuOption {
   speed?: number
 }
 
-export const decodeColor = (color: number) => {
-  return `#${`000000${color.toString(16)}`.slice(-6)}`
-}
-
-export const encodeColor = (hexColor: string) => {
-  return parseInt(hexColor.replace('#', '0x'))
-}
-
 export const parseDanDanCommentParams = (p: string) => {
   const [time, mode, color, uid = ''] = p.split(',')
 
   return {
     time: parseFloat(time),
     mode: DanDanCommentMode[parseInt(mode)],
-    color: decodeColor(parseInt(color)),
+    color: rgb888ToHex(parseInt(color)),
     uid, // uid may include string
   }
 }
