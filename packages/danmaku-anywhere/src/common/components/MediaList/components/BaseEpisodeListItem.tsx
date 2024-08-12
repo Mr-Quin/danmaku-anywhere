@@ -8,7 +8,7 @@ import {
   Tooltip,
 } from '@mui/material'
 import type { QueryKey } from '@tanstack/react-query'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 
 import type { DanmakuCache } from '@/common/danmaku/models/danmakuCache/dto'
@@ -18,10 +18,9 @@ export interface BaseEpisodeListItemProps {
   tooltip?: string
   secondaryText?: (data: DanmakuCache) => ReactNode
   showIcon?: boolean
-  onClick?: () => void
   queryKey: QueryKey
-  fetchDanmaku: () => Promise<DanmakuCache | null>
-  isUpdating?: boolean
+  queryDanmaku: () => Promise<DanmakuCache | null>
+  mutateDanmaku: () => Promise<void>
 }
 
 export const BaseEpisodeListItem = ({
@@ -29,26 +28,29 @@ export const BaseEpisodeListItem = ({
   tooltip,
   secondaryText,
   showIcon = false,
-  onClick,
   queryKey,
-  fetchDanmaku,
-  isUpdating,
+  queryDanmaku,
+  mutateDanmaku,
 }: BaseEpisodeListItemProps) => {
   const { data, isFetched, isLoading, isFetching } = useSuspenseQuery({
     queryKey,
-    queryFn: fetchDanmaku,
+    queryFn: queryDanmaku,
+  })
+
+  const { mutate, isPending: isMutating } = useMutation({
+    mutationFn: mutateDanmaku,
   })
 
   const getIcon = () => {
     if (!showIcon) return null
-    if (isFetching || isUpdating) return <CircularProgress size={24} />
+    if (isFetching || isMutating) return <CircularProgress size={24} />
     if (isFetched && data) return <Update />
     return <Download />
   }
 
   return (
     <ListItem disablePadding>
-      <ListItemButton onClick={onClick} disabled={isLoading}>
+      <ListItemButton onClick={() => mutate()} disabled={isLoading}>
         <ListItemIcon>{getIcon()}</ListItemIcon>
         <Tooltip
           title={tooltip ?? episodeTitle}

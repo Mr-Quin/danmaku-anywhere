@@ -1,7 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 
+import type { MediaSearchParamsData } from '@/common/anime/dto'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { MediaSearchParamsData } from '@/common/anime/dto'
 
 export const useMediaSearchSuspense = (params: MediaSearchParamsData) => {
   return useSuspenseQuery({
@@ -9,7 +9,6 @@ export const useMediaSearchSuspense = (params: MediaSearchParamsData) => {
     queryFn: async () => {
       return chromeRpcClient.mediaSearch(params)
     },
-
     staleTime: Infinity,
     retry: false,
   })
@@ -18,5 +17,6 @@ export const useMediaSearchSuspense = (params: MediaSearchParamsData) => {
 useMediaSearchSuspense.queryKey = (params: MediaSearchParamsData) => [
   'media',
   'search',
+
   params,
 ]

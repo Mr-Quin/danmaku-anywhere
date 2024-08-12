@@ -23,6 +23,9 @@ export const setupRpc = () => {
       return res
     },
     mediaSearch: async (input) => {
+      return animeService.searchByProvider(input.provider, input.params)
+    },
+    mediaSearchMultiple: async (input) => {
       return animeService.searchByProviders(input.params, input.providers)
     },
     getBilibiliEpisode: async (mediaId) => {

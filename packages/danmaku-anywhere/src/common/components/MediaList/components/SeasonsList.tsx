@@ -1,23 +1,24 @@
-import { CollapsableListItems } from '@/common/components/MediaList/components/CollapsableListItems'
-import { MediaTypeIcon } from '@/common/components/MediaList/components/MediaTypeIcon'
 import { List, ListItemText } from '@mui/material'
 import { Suspense } from 'react'
-import {
+import { ErrorBoundary } from 'react-error-boundary'
+import { match } from 'ts-pattern'
+
+import type {
   BilibiliMediaSearchResult,
   DanDanPlayMediaSearchResult,
   MediaSearchResult,
 } from '@/common/anime/dto'
 import { DanmakuProviderType } from '@/common/anime/enums'
-import { stripHtml } from '@/common/utils/utils'
 import { BilibiliEpisodeList } from '@/common/components/MediaList/bilibili/BilibiliEpisodeList'
+import { CollapsableListItems } from '@/common/components/MediaList/components/CollapsableListItems'
+import { ListItemSkeleton } from '@/common/components/MediaList/components/ListItemSkeleton'
 import {
   getBilibiliMediaIcon,
   getDanDanPlayMediaIcon,
 } from '@/common/components/MediaList/components/makeIcon'
-import { ListItemSkeleton } from '@/common/components/MediaList/components/ListItemSkeleton'
-import { match } from 'ts-pattern'
-import { ErrorBoundary } from 'react-error-boundary'
-import { RenderEpisode } from '@/common/components/MediaList/types'
+import { MediaTypeIcon } from '@/common/components/MediaList/components/MediaTypeIcon'
+import type { RenderEpisode } from '@/common/components/MediaList/types'
+import { stripHtml } from '@/common/utils/utils'
 
 const renderSeasonContent = <T extends MediaSearchResult>(
   provider: T['provider'],
@@ -42,6 +43,7 @@ const renderSeasonContent = <T extends MediaSearchResult>(
           return (
             <ErrorBoundary
               fallback={<ListItemText primary="An error occurred" />}
+              key={episode.episodeId}
             >
               <Suspense fallback={<ListItemSkeleton />}>
                 {renderEpisodes(

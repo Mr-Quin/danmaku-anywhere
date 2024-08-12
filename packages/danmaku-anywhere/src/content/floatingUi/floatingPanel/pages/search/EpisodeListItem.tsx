@@ -20,7 +20,7 @@ const InnerEpisodeListItem = ({
 }: EpisodeListItemProps) => {
   const { t } = useTranslation()
   const { episodeId, episodeTitle } = rest
-  const { fetch, isPending } = useFetchDanmakuMapped()
+  const { fetch } = useFetchDanmakuMapped()
 
   const handleFetchDanmaku = async () => {
     await fetch({
@@ -36,13 +36,12 @@ const InnerEpisodeListItem = ({
     <BaseEpisodeListItem
       showIcon
       episodeTitle={episodeTitle}
-      isUpdating={isPending}
-      onClick={handleFetchDanmaku}
+      mutateDanmaku={handleFetchDanmaku}
       queryKey={useDanmakuQuerySuspense.queryKey({
         type: DanmakuSourceType.DDP,
         id: episodeId,
       })}
-      fetchDanmaku={async () => {
+      queryDanmaku={async () => {
         return await chromeRpcClient.danmakuGetOne({
           type: DanmakuSourceType.DDP,
           id: episodeId,

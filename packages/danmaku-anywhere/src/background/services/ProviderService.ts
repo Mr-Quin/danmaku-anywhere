@@ -21,7 +21,7 @@ export class ProviderService {
     return bilibili.searchMedia(searchParams)
   }
 
-  private async searchByProvider(
+  async searchByProvider(
     provider: DanmakuProviderType,
     searchParams: MediaSearchParams
   ) {
