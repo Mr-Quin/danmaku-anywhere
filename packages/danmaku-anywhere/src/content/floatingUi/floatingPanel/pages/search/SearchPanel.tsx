@@ -35,13 +35,8 @@ import { useStore } from '@/content/store/store'
 
 export const SearchPanel = () => {
   const { t } = useTranslation()
-  const {
-    searchTitle,
-    saveMapping,
-    setAnimes,
-    setSearchTitle,
-    setSaveMapping,
-  } = usePopup()
+  const { searchTitle, saveMapping, setSearchTitle, setSaveMapping } =
+    usePopup()
   const mediaInfo = useStore((state) => state.mediaInfo)
   const integration = useStore((state) => state.integration)
 
@@ -154,12 +149,10 @@ export const SearchPanel = () => {
           <Suspense fallback={<FullPageSpinner />}>
             <Divider />
             <SearchResultList
+              providers={[DanmakuProviderType.DanDanPlay]}
               searchParams={searchParams!}
               dense
               pending={pending}
-              onLoad={(data) => {
-                setAnimes(data)
-              }}
               renderEpisode={(provider, episode, meta) => {
                 if (provider === DanmakuProviderType.Bilibili) return null
 

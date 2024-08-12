@@ -23,7 +23,7 @@ export const useMediaObserver = () => {
   const config = useActiveConfig()
 
   const { toast } = useToast()
-  const { open } = usePopup()
+  const { open, setAnimes } = usePopup()
 
   const activeObserver = useMatchObserver()
 
@@ -150,6 +150,7 @@ export const useMediaObserver = () => {
             Logger.debug('Multiple anime found, open disambiguation')
 
             // the popup is responsible for setting the danmaku meta
+            setAnimes(anime)
             open({ animes: anime, tab: PopupTab.Selector })
             return
           }

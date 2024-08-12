@@ -11,6 +11,11 @@ export interface MediaSearchParams {
 }
 
 export interface MediaSearchParamsData {
+  provider: DanmakuProviderType
+  params: MediaSearchParams
+}
+
+export interface MediaSearchMultiParamsData {
   providers: DanmakuProviderType[]
   params: MediaSearchParams
 }

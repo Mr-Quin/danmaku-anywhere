@@ -1,5 +1,5 @@
-import type { DanDanAnimeType } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { BiliBiliMediaType } from '@danmaku-anywhere/danmaku-provider/bilibili'
+import type { DanDanAnimeType } from '@danmaku-anywhere/danmaku-provider/ddp'
 
 export const getDanDanPlayMediaIcon = (type: DanDanAnimeType) => {
   switch (type) {

@@ -7,6 +7,7 @@ import type {
 import type { RPCDef } from '../../rpc/types'
 
 import type {
+  MediaSearchMultiParamsData,
   MediaSearchParamsData,
   MediaSearchResult,
 } from '@/common/anime/dto'
@@ -48,7 +49,8 @@ type IconMethods = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type AnimeMethods = {
   animeSearch: RPCDef<DanDanAnimeSearchAPIParams, DanDanAnime[]>
-  mediaSearch: RPCDef<MediaSearchParamsData, MediaSearchResult[]>
+  mediaSearch: RPCDef<MediaSearchParamsData, MediaSearchResult>
+  mediaSearchMultiple: RPCDef<MediaSearchMultiParamsData, MediaSearchResult[]>
   getBilibiliEpisode: RPCDef<number, BilibiliBangumiInfo>
 }
 
