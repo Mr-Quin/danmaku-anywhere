@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import type {
-  DanmakuGetByAnimeDto,
-  DanmakuGetOneDto,
+  DanmakuGetBySeasonDto,
+  DanmakuGetManyDto,
 } from '@/common/danmaku/dto'
 import { danmakuMetaToString } from '@/common/danmaku/utils'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -36,14 +36,14 @@ export const useExportDanmaku = () => {
   })
 
   const exportByAnime = useMutation({
-    mutationFn: async (option: DanmakuGetByAnimeDto) => {
+    mutationFn: async (option: DanmakuGetBySeasonDto) => {
       const res = await chromeRpcClient.danmakuGetByAnime({
-        type: option.type,
+        provider: option.provider,
         id: option.id,
       })
 
       if (res) {
-        const animeTitle = res[0].meta.animeTitle
+        const animeTitle = res[0].meta.seasonTitle
 
         await createDownload(
           new Blob([JSON.stringify(res)], { type: 'text/json' }),
@@ -56,13 +56,13 @@ export const useExportDanmaku = () => {
   })
 
   const exportMany = useMutation({
-    mutationFn: async (option: DanmakuGetOneDto[]) => {
+    mutationFn: async (option: DanmakuGetManyDto) => {
       const res = await chromeRpcClient.danmakuGetMany(option)
 
       if (res.length > 0) {
         const fileName =
           res.length > 1
-            ? res[0].meta.animeTitle
+            ? res[0].meta.seasonTitle
             : danmakuMetaToString(res[0].meta)
 
         await createDownload(

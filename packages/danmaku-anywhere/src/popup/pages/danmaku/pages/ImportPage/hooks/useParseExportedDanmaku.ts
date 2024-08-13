@@ -1,12 +1,12 @@
 import { useMutation } from '@tanstack/react-query'
 
-import type { DanmakuImport } from '@/common/danmaku/models/danmakuCache/dto'
-import { importDanmakuSchema } from '@/common/danmaku/models/danmakuCache/import'
+import type { DanmakuInsert } from '@/common/danmaku/models/danmakuCache/db'
+import { importDanmakuSchema } from '@/common/danmaku/models/import/import'
 import type { ImportParseResult } from '@/common/danmaku/types'
 import type { FileContent } from '@/popup/pages/danmaku/pages/ImportPage/hooks/useUploadDanmaku'
 
 // IMPORTANT: A type error with ImportedCache means the schema does not match the expected data structure
-type ImportedCache = ImportParseResult<DanmakuImport[]>
+type ImportedCache = ImportParseResult<DanmakuInsert[]>
 
 interface UseParseExportedDanmakuProps {
   onSuccess: (data: ImportedCache | null) => void

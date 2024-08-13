@@ -5,16 +5,21 @@ import type { DanmakuFetchOptions } from './types'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { DanDanPlayMeta } from '@/common/danmaku/models/danmakuMeta'
 
-export interface DanmakuGetOneDto {
-  type: DanmakuSourceType
-  // Episode id
-  id: number
-}
+export type DanmakuGetOneDto =
+  | {
+      id: number
+    }
+  | {
+      provider: DanmakuSourceType
+      episodeId: number
+    }
 
-export interface DanmakuGetByAnimeDto {
+export type DanmakuGetManyDto = number[]
+
+export interface DanmakuGetBySeasonDto {
   // Get by anime is unsupported for custom danmaku
-  type: DanmakuSourceType.DDP
-  // Anime id
+  provider: DanmakuSourceType.DDP
+  // Season id
   id: number
 }
 
@@ -24,7 +29,4 @@ export interface DanmakuFetchDDPDto {
   options?: DanmakuFetchOptions
 }
 
-export interface DanmakuDeleteDto {
-  type: DanmakuSourceType
-  id: number
-}
+export type DanmakuDeleteDto = number

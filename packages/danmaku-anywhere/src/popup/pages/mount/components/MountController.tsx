@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 
 import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSelector'
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { DanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
+import type { DanmakuLite } from '@/common/danmaku/models/danmakuCache/db'
 import { Logger } from '@/common/Logger'
 import { tabRpcClient } from '@/common/rpcClient/tab/client'
 import { useSessionState } from '@/common/storage/hooks/useSessionState'
@@ -14,7 +14,7 @@ import { useMountDanmakuPopup } from '@/popup/hooks/useMountDanmakuPopup'
 
 export const MountController = () => {
   const { t } = useTranslation()
-  const [danmakuMeta, setDanmakuMeta] = useSessionState<DanmakuMeta | null>(
+  const [danmakuLite, setDanmakuLite] = useSessionState<DanmakuLite | null>(
     null,
     'controller/danmakuMeta'
   )
@@ -29,20 +29,20 @@ export const MountController = () => {
 
   const [canUnmount, setCanUnmount] = useState<boolean>(false)
 
-  const canMount = danmakuMeta !== null
+  const canMount = danmakuLite !== null
 
   const { mutateAsync: mount, isPending: isMounting } = useMountDanmakuPopup()
 
   useEffect(() => {
-    if (tabDanmakuState.data?.meta) {
-      setDanmakuMeta(tabDanmakuState.data.meta)
+    if (tabDanmakuState.data?.danmaku) {
+      setDanmakuLite(tabDanmakuState.data.danmaku)
       setCanUnmount(tabDanmakuState.data.manual)
     }
   }, [tabDanmakuState.data])
 
   const handleMount = async () => {
-    if (!danmakuMeta) return
-    await mount(danmakuMeta)
+    if (!danmakuLite) return
+    await mount({ id: danmakuLite.id })
     setCanUnmount(true)
   }
 
@@ -68,8 +68,8 @@ export const MountController = () => {
         <Typography>{t('mountPage.instructions')}</Typography>
         <Suspense fallback={<Skeleton height={56} width="100%" />}>
           <DanmakuSelector
-            value={danmakuMeta ?? null}
-            onChange={setDanmakuMeta}
+            value={danmakuLite ?? null}
+            onChange={setDanmakuLite}
           />
         </Suspense>
         <LoadingButton

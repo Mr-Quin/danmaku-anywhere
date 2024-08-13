@@ -13,7 +13,7 @@ export const useTabRpcServer = () => {
 
   const handleGetDanmakuState = useEventCallback(() => {
     return {
-      meta: useStore.getState().danmakuMeta,
+      meta: useStore.getState().danmakuLite,
       count: useStore.getState().comments.length,
       manual: useStore.getState().manual,
     }
@@ -22,8 +22,8 @@ export const useTabRpcServer = () => {
   useEffect(() => {
     const tabRpcServer = createRpcServer<TabMethods>({
       ping: async () => true,
-      danmakuMount: async ({ meta, comments }) => {
-        handleSetDanmaku(meta, comments)
+      danmakuMount: async (danmaku) => {
+        handleSetDanmaku(danmaku)
       },
       danmakuUnmount: async () => {
         handleUnsetDanmaku()

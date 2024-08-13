@@ -1,6 +1,5 @@
 import type { createFilterOptions } from '@mui/material'
 import { Autocomplete, CircularProgress, TextField } from '@mui/material'
-import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { match } from 'ts-pattern'
 
@@ -8,14 +7,14 @@ import { EpisodeOption } from './EpisodeOption'
 
 import { ListboxComponent } from '@/common/components/DanmakuSelector/ListboxComponent'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
+import type { DanmakuLite } from '@/common/danmaku/models/danmakuCache/db'
 import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
 import { matchWithPinyin, stopKeyboardPropagation } from '@/common/utils/utils'
 
-type FilterOptions = ReturnType<typeof createFilterOptions<DanmakuMeta>>
+type FilterOptions = ReturnType<typeof createFilterOptions<DanmakuLite>>
 
-const stringifyDanmakuMeta = (danmakuMeta: DanmakuMeta) => {
-  return `${danmakuMeta.animeTitle} ${danmakuMeta.episodeTitle}`
+const stringifyDanmakuMeta = (danmakuMeta: DanmakuLite) => {
+  return `${danmakuMeta.meta.seasonTitle} ${danmakuMeta.meta.episodeTitle}`
 }
 
 const filterOptions: FilterOptions = (options, { inputValue }) => {
@@ -27,20 +26,26 @@ const filterOptions: FilterOptions = (options, { inputValue }) => {
   })
 }
 
-const isOptionEqualToValue = (option: DanmakuMeta, value: DanmakuMeta) => {
+const isOptionEqualToValue = (option: DanmakuLite, value: DanmakuLite) => {
   return match([option, value])
     .with(
-      [{ type: DanmakuSourceType.DDP }, { type: DanmakuSourceType.DDP }],
+      [
+        { provider: DanmakuSourceType.DDP },
+        { provider: DanmakuSourceType.DDP },
+      ],
       ([option, value]) => {
-        return option.episodeId === value.episodeId
+        return option.meta.episodeId === value.meta.episodeId
       }
     )
     .with(
-      [{ type: DanmakuSourceType.Custom }, { type: DanmakuSourceType.Custom }],
+      [
+        { provider: DanmakuSourceType.Custom },
+        { provider: DanmakuSourceType.Custom },
+      ],
       ([option, value]) => {
         return (
-          option.animeTitle === value.animeTitle &&
-          option.episodeTitle === value.episodeTitle
+          option.meta.seasonTitle === value.meta.seasonTitle &&
+          option.meta.episodeTitle === value.meta.episodeTitle
         )
       }
     )
@@ -48,8 +53,8 @@ const isOptionEqualToValue = (option: DanmakuMeta, value: DanmakuMeta) => {
 }
 
 interface DanmakuSelectorProps {
-  value: DanmakuMeta | null
-  onChange: (value: DanmakuMeta | null) => void
+  value: DanmakuLite | null
+  onChange: (value: DanmakuLite | null) => void
 }
 
 export const DanmakuSelector = ({ value, onChange }: DanmakuSelectorProps) => {
@@ -57,13 +62,11 @@ export const DanmakuSelector = ({ value, onChange }: DanmakuSelectorProps) => {
 
   const { data: options, isFetching } = useAllDanmakuQuerySuspense()
 
-  const metas = useMemo(() => options.map((option) => option.meta), [options])
-
   return (
     <Autocomplete
       value={value} // value must be null when empty so that the component is "controlled"
       loading={isFetching}
-      options={metas}
+      options={options}
       filterOptions={filterOptions}
       isOptionEqualToValue={isOptionEqualToValue}
       onChange={(e, value) => {
@@ -74,22 +77,24 @@ export const DanmakuSelector = ({ value, onChange }: DanmakuSelectorProps) => {
           <EpisodeOption
             {...props}
             key={
-              option.type === DanmakuSourceType.DDP
-                ? option.episodeId
-                : `${option.animeTitle}-${option.episodeTitle}`
+              option.provider === DanmakuSourceType.DDP
+                ? option.meta.episodeId
+                : `${option.meta.seasonTitle}-${option.meta.episodeTitle}`
             }
-            option={options.find((o) => isOptionEqualToValue(o.meta, option))!}
+            option={options.find((o) => isOptionEqualToValue(o, option))!}
             isLoading={isFetching}
           />
         )
       }}
-      getOptionLabel={(option) => option.episodeTitle ?? option.animeTitle}
-      groupBy={(option) => option.animeTitle}
+      getOptionLabel={(option) =>
+        option.meta.episodeTitle ?? option.meta.seasonTitle
+      }
+      groupBy={(option) => option.meta.seasonTitle}
       renderInput={(params) => {
         return (
           <TextField
             {...params}
-            label={value ? value.animeTitle : t('anime.episode.select')}
+            label={value ? value.meta.seasonTitle : t('anime.episode.select')}
             InputProps={{
               ...params.InputProps,
               onKeyDown: (e) => {

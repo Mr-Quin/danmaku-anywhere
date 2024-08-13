@@ -23,7 +23,7 @@ export const FloatingPanelToolbar = () => {
   const { t } = useTranslation()
   const isAnyLoading = useAnyLoading()
   const { toggleOpen } = usePopup()
-  const { toggleManualMode, manual, integration, danmakuMeta } = useStore()
+  const { toggleManualMode, manual, integration, danmakuLite } = useStore()
 
   return (
     <AppBar position="relative">
@@ -35,9 +35,9 @@ export const FloatingPanelToolbar = () => {
         </Fade>
         <HasIntegration
           fallback={
-            danmakuMeta && (
-              <Typography noWrap title={danmakuMetaToString(danmakuMeta)}>
-                {danmakuMetaToString(danmakuMeta)}
+            danmakuLite && (
+              <Typography noWrap title={danmakuMetaToString(danmakuLite.meta)}>
+                {danmakuMetaToString(danmakuLite.meta)}
               </Typography>
             )
           }

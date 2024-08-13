@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { DanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
+import type { DanmakuGetOneDto } from '@/common/danmaku/dto'
 import { useDanmakuQuerySuspense } from '@/common/danmaku/queries/useDanmakuQuerySuspense'
 import { danmakuMetaToString } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
@@ -16,25 +16,15 @@ export const useMountDanmakuPopup = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (danmakuMeta: DanmakuMeta) => {
+    mutationFn: async (id: DanmakuGetOneDto) => {
       const data = await queryClient.fetchQuery({
-        queryKey: useDanmakuQuerySuspense.queryKey({
-          type: danmakuMeta.type,
-          id: danmakuMeta.episodeId,
-        }),
-        queryFn: () =>
-          chromeRpcClient.danmakuGetOne({
-            type: danmakuMeta.type,
-            id: danmakuMeta.episodeId,
-          }),
+        queryKey: useDanmakuQuerySuspense.queryKey(id),
+        queryFn: () => chromeRpcClient.danmakuGetOne(id),
       })
 
       if (!data) throw new Error('No danmaku found')
 
-      await tabRpcClient.danmakuMount({
-        meta: danmakuMeta,
-        comments: data.comments,
-      })
+      await tabRpcClient.danmakuMount(data)
 
       return data
     },

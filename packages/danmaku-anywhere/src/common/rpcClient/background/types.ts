@@ -14,16 +14,17 @@ import type {
 import type {
   DanmakuDeleteDto,
   DanmakuFetchDDPDto,
-  DanmakuGetByAnimeDto,
+  DanmakuGetBySeasonDto,
+  DanmakuGetManyDto,
   DanmakuGetOneDto,
 } from '@/common/danmaku/dto'
 import type {
-  CustomDanmakuCreateData,
-  DanmakuCache,
-  DanmakuImport,
-  DanmakuCacheLite,
-  DanDanPlayDanmakuCache,
-} from '@/common/danmaku/models/danmakuCache/dto'
+  DanDanPlayDanmaku,
+  Danmaku,
+  DanmakuInsert,
+  DanmakuLite,
+} from '@/common/danmaku/models/danmakuCache/db'
+import type { CustomDanmakuCreateData } from '@/common/danmaku/models/danmakuCache/dto'
 import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 
 type IconSetDto =
@@ -56,14 +57,14 @@ type AnimeMethods = {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type DanmakuMethods = {
-  danmakuGetAll: RPCDef<void, DanmakuCache[]>
-  danmakuGetAllLite: RPCDef<void, DanmakuCacheLite[]>
-  danmakuGetOne: RPCDef<DanmakuGetOneDto, DanmakuCache | null>
-  danmakuGetMany: RPCDef<DanmakuGetOneDto[], DanmakuCache[]>
-  danmakuGetByAnime: RPCDef<DanmakuGetByAnimeDto, DanmakuCache[]>
-  danmakuFetchDDP: RPCDef<DanmakuFetchDDPDto, DanDanPlayDanmakuCache>
+  danmakuGetAll: RPCDef<void, Danmaku[]>
+  danmakuGetAllLite: RPCDef<void, DanmakuLite[]>
+  danmakuGetOne: RPCDef<DanmakuGetOneDto, Danmaku | null>
+  danmakuGetMany: RPCDef<DanmakuGetManyDto, Danmaku[]>
+  danmakuGetByAnime: RPCDef<DanmakuGetBySeasonDto, Danmaku[]>
+  danmakuFetchDDP: RPCDef<DanmakuFetchDDPDto, DanDanPlayDanmaku>
   danmakuCreateCustom: RPCDef<CustomDanmakuCreateData[], void>
-  danmakuImport: RPCDef<DanmakuImport[], void>
+  danmakuImport: RPCDef<DanmakuInsert[], void>
   danmakuDelete: RPCDef<DanmakuDeleteDto, void>
   danmakuDeleteAll: RPCDef<void, void>
 }

@@ -1,12 +1,12 @@
-import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
-
 import type { RPCDef } from '../../rpc/types'
 
-import type { DanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
+import type {
+  Danmaku,
+  DanmakuLite,
+} from '@/common/danmaku/models/danmakuCache/db'
 
 interface TabDanmakuState {
-  meta?: DanmakuMeta
-  count: number
+  danmaku?: DanmakuLite
   manual: boolean
 }
 
@@ -16,13 +16,7 @@ type DanmakuMethods = {
    * Ping the tab to check if it's able to receive messages
    */
   ping: RPCDef<void, true>
-  danmakuMount: RPCDef<
-    {
-      meta: DanmakuMeta
-      comments: CommentEntity[]
-    },
-    void
-  >
+  danmakuMount: RPCDef<Danmaku, void>
   danmakuUnmount: RPCDef<void, void>
   danmakuGetState: RPCDef<void, TabDanmakuState | null>
 }

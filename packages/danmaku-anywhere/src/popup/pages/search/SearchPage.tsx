@@ -122,12 +122,12 @@ export const SearchPage = () => {
                     showIcon
                     episodeTitle={episodeTitle}
                     queryKey={useDanmakuQuerySuspense.queryKey({
-                      type: DanmakuSourceType.DDP,
+                      provider: DanmakuSourceType.DDP,
                       id: episodeId,
                     })}
                     queryDanmaku={async () => {
                       return await chromeRpcClient.danmakuGetOne({
-                        type: DanmakuSourceType.DDP,
+                        provider: DanmakuSourceType.DDP,
                         id: episodeId,
                       })
                     }}
@@ -135,16 +135,16 @@ export const SearchPage = () => {
                       handleFetchDanmaku({
                         episodeId,
                         episodeTitle,
-                        animeId,
-                        animeTitle,
-                        type: DanmakuSourceType.DDP,
+                        seasonId: animeId,
+                        seasonTitle: animeTitle,
+                        provider: DanmakuSourceType.DDP,
                       })
                     }
                     secondaryText={(data) =>
                       `${new Date(data.timeUpdated).toLocaleDateString()} -  ${t(
                         'danmaku.commentCounted',
                         {
-                          count: data.count,
+                          count: data.commentCount,
                         }
                       )}`
                     }

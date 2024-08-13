@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSelector'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { getIntegrationLabel } from '@/common/danmaku/enums'
-import type { DanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
+import type { DanmakuLite } from '@/common/danmaku/models/danmakuCache/db'
 import { ManualMode } from '@/content/common/components/ManualMode'
 import { useMountDanmakuContent } from '@/content/common/hooks/useMountDanmakuContent'
 import { useStore } from '@/content/store/store'
@@ -17,23 +17,23 @@ export const MountPage = () => {
 
   const manual = useStore((state) => state.manual)
   const integration = useStore((state) => state.integration)
-  const danmakuMeta = useStore((state) => state.danmakuMeta)
+  const danmakuLite = useStore((state) => state.danmakuLite)
   const hasComments = useStore((state) => state.hasComments)
   const resetMediaState = useStore((state) => state.resetMediaState)
 
-  const [localDanmakuMeta, setLocalDanmakuMeta] = useState<
-    DanmakuMeta | undefined
-  >(danmakuMeta)
+  const [localDanmakuLite, setLocalDanmakuLite] = useState<
+    DanmakuLite | undefined
+  >(danmakuLite)
 
   const { mutateAsync, isPending } = useMountDanmakuContent()
 
-  const handleSelectDanmaku = (meta?: DanmakuMeta) => {
-    setLocalDanmakuMeta(meta)
+  const handleSelectDanmaku = (danmakuLite?: DanmakuLite) => {
+    setLocalDanmakuLite(danmakuLite)
   }
 
   const handleMount = async () => {
-    if (!localDanmakuMeta) return
-    await mutateAsync(localDanmakuMeta)
+    if (!localDanmakuLite) return
+    await mutateAsync(localDanmakuLite)
   }
 
   const handleUnmount = () => {
@@ -56,14 +56,16 @@ export const MountPage = () => {
       >
         <Stack direction="column" spacing={2} height={1}>
           <DanmakuSelector
-            value={localDanmakuMeta ?? null} // convert between undefined and null
-            onChange={(meta) => handleSelectDanmaku(meta ?? undefined)}
+            value={localDanmakuLite ?? null} // convert between undefined and null
+            onChange={(danmakuLite) =>
+              handleSelectDanmaku(danmakuLite ?? undefined)
+            }
           />
           <LoadingButton
             type="submit"
             variant="contained"
             loading={isPending}
-            disabled={!localDanmakuMeta}
+            disabled={!localDanmakuLite}
             onClick={handleMount}
           >
             {t('danmaku.mount')}
@@ -73,7 +75,7 @@ export const MountPage = () => {
             type="button"
             onClick={handleUnmount}
             color="warning"
-            disabled={!manual || !localDanmakuMeta || !hasComments}
+            disabled={!manual || !localDanmakuLite || !hasComments}
           >
             {t('danmaku.unmount')}
           </Button>

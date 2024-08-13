@@ -1,25 +1,17 @@
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type {
   CustomDanmaku,
-  CustomDanmakuInsert,
-  Danmaku,
-  DanmakuInsert,
   DanDanPlayDanmaku,
+  Danmaku,
+  DanmakuLite,
 } from '@/common/danmaku/models/danmakuCache/db'
-import type {
-  CustomDanmakuCache,
-  CustomDanmakuImport,
-  DanmakuCache,
-  DanmakuImport,
-  DanDanPlayDanmakuCache,
-  DanDanPlayDanmakuImport,
-} from '@/common/danmaku/models/danmakuCache/dto'
 import type {
   CustomMeta,
   DanmakuMeta,
   DanDanPlayMeta,
 } from '@/common/danmaku/models/danmakuMeta'
-import { Logger } from '@/common/Logger'
+
+export const CURRENT_SCHEMA_VERSION = 2
 
 export const getEpisodeId = (animeId: number, episodeNumber: number) => {
   return animeId * 10000 + episodeNumber
@@ -42,53 +34,47 @@ export const getNextEpisodeMeta = (meta: DanDanPlayMeta) => {
 }
 
 export const isCustomDanmaku = (meta: DanmakuMeta): meta is CustomMeta => {
-  return meta.type === DanmakuSourceType.Custom
+  return meta.provider === DanmakuSourceType.Custom
 }
 
 export const danmakuMetaToString = (meta: DanmakuMeta) => {
   if (meta.episodeTitle) {
-    return `${meta.animeTitle} - ${meta.episodeTitle}`
+    return `${meta.seasonTitle} - ${meta.episodeTitle}`
   }
-  return meta.animeTitle
+  return meta.seasonTitle
+}
+
+export function assertIsDanmaku<T extends DanmakuSourceType>(
+  danmaku: Danmaku,
+  provider: T
+): asserts danmaku is Extract<Danmaku, { provider: T }> {
+  if (danmaku.provider !== provider) {
+    throw new Error(
+      `Unexpected danmaku provider: ${danmaku.provider}, expected: ${provider}`
+    )
+  }
+}
+
+export function isDanmakuType<T extends DanmakuSourceType>(
+  danmaku: Danmaku,
+  provider: T
+): danmaku is Extract<Danmaku, { provider: T }>
+export function isDanmakuType<T extends DanmakuSourceType>(
+  danmaku: DanmakuLite,
+  provider: T
+): danmaku is Extract<DanmakuLite, { provider: T }>
+export function isDanmakuType<T extends DanmakuSourceType>(
+  danmaku: DanmakuLite,
+  provider: T
+): danmaku is Extract<DanmakuLite, { provider: T }> {
+  return danmaku.provider === provider
 }
 
 export const danmakuUtils = {
-  isDDPCache: (cacheDbModel: Danmaku): cacheDbModel is DanDanPlayDanmaku => {
-    return cacheDbModel.meta.type === DanmakuSourceType.DDP
+  isDanDanPlay(danmaku: DanmakuLite): danmaku is DanDanPlayDanmaku {
+    return danmaku.provider === DanmakuSourceType.DDP
   },
-  isCustomCache: (cacheDbModel: Danmaku): cacheDbModel is CustomDanmaku => {
-    return cacheDbModel.meta.type === DanmakuSourceType.Custom
+  isCustomCache(danmaku: Danmaku): danmaku is CustomDanmaku {
+    return danmaku.provider === DanmakuSourceType.Custom
   },
-  dbModelToCache,
-  importDtoToDbModel,
-}
-
-function importDtoToDbModel(dto: CustomDanmakuImport): CustomDanmakuInsert
-function importDtoToDbModel(dto: DanDanPlayDanmakuImport): DanDanPlayDanmaku
-function importDtoToDbModel(dto: DanmakuImport): DanmakuInsert
-function importDtoToDbModel(dto: DanmakuImport): DanmakuInsert {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { type, ...rest } = dto
-  return rest
-}
-
-function dbModelToCache(cacheDbModel: DanDanPlayDanmaku): DanDanPlayDanmakuCache
-function dbModelToCache(cacheDbModel: CustomDanmaku): CustomDanmakuCache
-function dbModelToCache(cacheDbModel: Danmaku): DanmakuCache
-function dbModelToCache(cacheDbModel: Danmaku): DanmakuCache {
-  if (danmakuUtils.isDDPCache(cacheDbModel)) {
-    return {
-      ...cacheDbModel,
-      count: cacheDbModel.comments.length,
-      type: DanmakuSourceType.DDP,
-    } satisfies DanDanPlayDanmakuCache
-  } else if (danmakuUtils.isCustomCache(cacheDbModel)) {
-    return {
-      ...cacheDbModel,
-      count: cacheDbModel.comments.length,
-      type: DanmakuSourceType.Custom,
-    } satisfies CustomDanmakuCache
-  }
-  Logger.debug('Unknown danmaku cache type', cacheDbModel)
-  throw new Error('Unknown danmaku cache type')
 }

@@ -11,15 +11,15 @@ import type { QueryKey } from '@tanstack/react-query'
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 
-import type { DanmakuCache } from '@/common/danmaku/models/danmakuCache/dto'
+import type { Danmaku } from '@/common/danmaku/models/danmakuCache/db'
 
 export interface BaseEpisodeListItemProps {
   episodeTitle: string
   tooltip?: string
-  secondaryText?: (data: DanmakuCache) => ReactNode
+  secondaryText?: (data: Danmaku) => ReactNode
   showIcon?: boolean
   queryKey: QueryKey
-  queryDanmaku: () => Promise<DanmakuCache | null>
+  queryDanmaku: () => Promise<Danmaku | null>
   mutateDanmaku: () => Promise<void>
 }
 
