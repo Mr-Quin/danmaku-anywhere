@@ -4,10 +4,11 @@ import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store/store'
 
 import { useToast } from '@/common/components/Toast/toastStore'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
 import {
   danmakuMetaToString,
   getNextEpisodeMeta,
-  isCustomDanmaku,
+  isDanmakuType,
 } from '@/common/danmaku/utils'
 import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
@@ -15,7 +16,7 @@ import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMap
 // Only available when integration is None and in manual mode
 export const useFetchNextEpisode = () => {
   const { t } = useTranslation()
-  const danmakuMeta = useStore((state) => state.danmakuMeta)
+  const danmakuLite = useStore((state) => state.danmakuLite)
   const manual = useStore.use.manual()
   const toast = useToast.use.toast()
 
@@ -27,7 +28,7 @@ export const useFetchNextEpisode = () => {
       toast.success(
         t('danmaku.alert.mounted', {
           name: danmakuMetaToString(result.meta),
-          count: result.count,
+          count: result.commentCount,
         })
       )
     },
@@ -37,12 +38,12 @@ export const useFetchNextEpisode = () => {
   })
 
   const canFetchNextEpisode =
-    !!danmakuMeta && !isCustomDanmaku(danmakuMeta) && manual
+    !!danmakuLite && isDanmakuType(danmakuLite, DanmakuSourceType.DDP) && manual
 
   const fetchNextEpisodeComments = useEventCallback(async () => {
     if (!canFetchNextEpisode) return
 
-    const nextMeta = getNextEpisodeMeta(danmakuMeta)
+    const nextMeta = getNextEpisodeMeta(danmakuLite.meta)
 
     mutate({ danmakuMeta: nextMeta })
   })

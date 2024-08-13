@@ -39,9 +39,8 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
   const { setSelectedEpisode, selectedAnime } = useStore.use.danmaku()
 
   const episodes = useMemo(() => {
-    return data
-      .filter((item) => item.meta.animeTitle === selectedAnime)
-      .toSorted((a, b) => a.meta.episodeId - b.meta.episodeId)
+    return data.filter((item) => item.meta.seasonTitle === selectedAnime)
+    // .toSorted((a, b) => a.meta.episodeId - b.meta.episodeId)
   }, [data])
 
   const virtualizer = useVirtualizer({
@@ -74,11 +73,12 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
     >
       <List>
         {virtualizer.getVirtualItems().map((virtualItem) => {
-          const episode = episodes[virtualItem.index]
+          const danmakuLite = episodes[virtualItem.index]
           const {
-            meta: { episodeTitle, episodeId },
-            count,
-          } = episode
+            meta: { episodeTitle },
+            commentCount,
+            id,
+          } = danmakuLite
 
           return (
             <ListItem
@@ -97,14 +97,7 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
                   <Tooltip title={t('danmaku.export')}>
                     <span>
                       <IconButton
-                        onClick={() =>
-                          exportMany.mutate([
-                            {
-                              id: episode.meta.episodeId,
-                              type: episode.meta.type,
-                            },
-                          ])
-                        }
+                        onClick={() => exportMany.mutate([id])}
                         disabled={exportMany.isPending}
                       >
                         {exportMany.isPending ? (
@@ -118,7 +111,7 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
                   <Tooltip title={t('common.delete')}>
                     <span>
                       <IconButton
-                        onClick={() => deleteDanmaku(episode.meta)}
+                        onClick={() => deleteDanmaku(id)}
                         disabled={isDeleting}
                       >
                         {isDeleting ? (
@@ -140,7 +133,7 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
                     search: createSearchParams({
                       type: type,
                       title: selectedAnime,
-                      id: episodeId.toString(),
+                      id: id.toString(),
                       episodeTitle: episodeTitle ?? '',
                     }).toString(),
                   })
@@ -151,7 +144,7 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
                   primary={episodeTitle}
                   secondary={
                     <Typography variant="caption" color="text.secondary">
-                      {t('danmaku.commentCounted', { count })}
+                      {t('danmaku.commentCounted', { count: commentCount })}
                     </Typography>
                   }
                 />

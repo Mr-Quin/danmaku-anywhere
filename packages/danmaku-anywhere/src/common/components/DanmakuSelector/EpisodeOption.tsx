@@ -13,12 +13,12 @@ import { type HTMLAttributes, type SyntheticEvent } from 'react'
 import { isCustomDanmaku } from '../../danmaku/utils'
 
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DanmakuCacheLite } from '@/common/danmaku/models/danmakuCache/dto'
+import type { DanmakuLite } from '@/common/danmaku/models/danmakuCache/db'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 
 export const EpisodeOption = (
   props: {
-    option: DanmakuCacheLite
+    option: DanmakuLite
     isLoading: boolean
   } & HTMLAttributes<HTMLLIElement>
 ) => {
@@ -50,14 +50,18 @@ export const EpisodeOption = (
     >
       <Box>
         <Typography variant="body1">
-          {option.meta.episodeTitle ?? option.meta.animeTitle}
+          {option.meta.episodeTitle ?? option.meta.seasonTitle}
         </Typography>
 
         <Typography variant="caption">
-          {isLoading ? <Skeleton variant="text" width={48} /> : option.count}
+          {isLoading ? (
+            <Skeleton variant="text" width={48} />
+          ) : (
+            option.commentCount
+          )}
         </Typography>
       </Box>
-      {option.type !== DanmakuSourceType.Custom && (
+      {option.provider !== DanmakuSourceType.Custom && (
         <IconButton edge="end" disabled={isPending} onClick={handleClick}>
           <Tooltip title="Update" placement="top">
             <Update />

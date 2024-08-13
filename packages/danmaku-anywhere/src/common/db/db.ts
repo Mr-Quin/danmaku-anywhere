@@ -4,12 +4,13 @@ import { DanmakuSourceType, IntegrationType } from '@/common/danmaku/enums'
 import type {
   CustomDanmaku,
   CustomDanmakuInsert,
-  DanDanPlayDanmaku,
+  Danmaku,
+  DanmakuInsert,
 } from '@/common/danmaku/models/danmakuCache/db'
 import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 
 class DanmakuAnywhereDb extends Dexie {
-  danmakuCache!: Dexie.Table<DanDanPlayDanmaku, number>
+  danmakuCache!: Dexie.Table<Danmaku, number, DanmakuInsert>
   manualDanmakuCache!: Dexie.Table<CustomDanmaku, number, CustomDanmakuInsert>
   titleMapping!: Dexie.Table<TitleMapping, string>
 
@@ -57,7 +58,7 @@ class DanmakuAnywhereDb extends Dexie {
       .upgrade(async (tx) => {
         // add type field to danmakuCache.meta
         await tx
-          .table<DanDanPlayDanmaku>('danmakuCache')
+          .table('danmakuCache')
           .toCollection()
           .modify((item) => {
             item.meta.type = DanmakuSourceType.DDP
@@ -75,13 +76,64 @@ class DanmakuAnywhereDb extends Dexie {
       .upgrade(async (tx) => {
         // Rename source to integration and make it an enum type
         await tx
-          .table<TitleMapping>('titleMapping')
+          .table('titleMapping')
           .toCollection()
           .modify((item) => {
             // At this moment plex is the only source, so we can safely assume it's plex
             item.integration = IntegrationType.Plex
             delete item.source
           })
+      })
+
+    this.version(7)
+      .stores({
+        // change danmakuCache primary key to id and add provider field
+        danmakuCache:
+          '++id, provider, meta.episodeId, meta.seasonId, meta.seasonTitle',
+        // merge manualDanmakuCache to danmakuCache
+        manualDanmakuCache: null,
+        titleMapping: '++id, originalTitle, title, integration',
+      })
+      .upgrade(async (tx) => {
+        // Upgrade danmakuCache
+        await tx
+          .table('danmakuCache')
+          .toCollection()
+          .modify((item) => {
+            // Add provider field, assume DanDanPlay for existing data
+            item.provider = DanmakuSourceType.DDP
+            // Rename meta fields
+            item.meta = {
+              provider: DanmakuSourceType.DDP,
+              episodeId: item.meta.episodeId,
+              seasonId: item.meta.animeId,
+              episodeTitle: item.meta.episodeTitle,
+              seasonTitle: item.meta.animeTitle,
+            }
+            // Add commentCount field
+            item.commentCount = item.comments.length
+            // Add schemaVersion field
+            item.schemaVersion = 2
+          })
+
+        // Merge manualDanmakuCache to danmakuCache
+        await tx.table('manualDanmakuCache').each(async (item) => {
+          await tx.table('danmakuCache').add({
+            provider: DanmakuSourceType.Custom,
+            meta: {
+              // removed episodeId
+              provider: DanmakuSourceType.Custom,
+              episodeTitle: item.meta.episodeTitle,
+              seasonTitle: item.meta.animeTitle,
+              episodeNumber: item.meta.episodeNumber,
+            },
+            comments: item.comments,
+            commentCount: item.comments.length,
+            version: item.version,
+            timeUpdated: item.timeUpdated,
+            schemaVersion: 2,
+          })
+        })
       })
 
     this.open()

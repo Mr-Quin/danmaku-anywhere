@@ -67,9 +67,9 @@ export const SelectorPanel = () => {
         : undefined
     await fetch({
       danmakuMeta: {
-        type: DanmakuSourceType.DDP,
-        animeId: selectedAnime.animeId,
-        animeTitle: selectedAnime.animeTitle,
+        provider: DanmakuSourceType.DDP,
+        seasonId: selectedAnime.animeId,
+        seasonTitle: selectedAnime.animeTitle,
         ...selectedEpisode,
       },
       titleMapping,

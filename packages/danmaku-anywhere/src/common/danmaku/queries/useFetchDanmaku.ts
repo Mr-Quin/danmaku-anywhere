@@ -16,14 +16,14 @@ export const useFetchDanmaku = () => {
 
   const mutation = useMutation({
     mutationFn: chromeRpcClient.danmakuFetchDDP,
-    onSuccess: (_, v) => {
+    onSuccess: (result) => {
+      // TODO: Remove duplicate invalidation
       void queryClient.invalidateQueries({
         queryKey: useAllDanmakuQuerySuspense.queryKey(),
       })
       void queryClient.invalidateQueries({
         queryKey: useDanmakuQuerySuspense.queryKey({
-          type: v.meta.type,
-          id: v.meta.episodeId,
+          id: result.id,
         }),
       })
     },

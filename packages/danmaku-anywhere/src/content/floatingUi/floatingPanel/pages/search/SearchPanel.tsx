@@ -163,8 +163,8 @@ export const SearchPanel = () => {
                     titleMapping={getTitleMapping(animeTitle, animeId)}
                     episodeId={episode.episodeId}
                     episodeTitle={episode.episodeTitle}
-                    animeId={animeId}
-                    animeTitle={animeTitle}
+                    seasonId={animeId}
+                    seasonTitle={animeTitle}
                     key={episode.episodeId}
                   />
                 )

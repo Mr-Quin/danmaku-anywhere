@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { CommentsTable } from '@/common/components/CommentsTable'
-import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import { useDanmakuQuerySuspense } from '@/common/danmaku/queries/useDanmakuQuerySuspense'
 import { TabToolbar } from '@/popup/component/TabToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
@@ -19,13 +18,9 @@ export const DanmakuPage = () => {
   const navigate = useNavigate()
   const goBack = useGoBack()
 
-  const type = parseInt(searchParams.get('type')!) as DanmakuSourceType
   const id = parseInt(searchParams.get('id')!)
 
-  const { data } = useDanmakuQuerySuspense({
-    type,
-    id,
-  })
+  const { data } = useDanmakuQuerySuspense({ id })
 
   const { selectedAnime, selectedEpisode } = useStore.use.danmaku()
 

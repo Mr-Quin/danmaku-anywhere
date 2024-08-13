@@ -4,12 +4,13 @@ import { useTranslation } from 'react-i18next'
 import { useStore } from '../../store/store'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import { isCustomDanmaku } from '@/common/danmaku/utils'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
+import { isDanmakuType } from '@/common/danmaku/utils'
 import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
 export const useRefreshComments = () => {
   const { t } = useTranslation()
-  const danmakuMeta = useStore((state) => state.danmakuMeta)
+  const danmakuLite = useStore((state) => state.danmakuLite)
   const getAnimeName = useStore((state) => state.getAnimeName)
   const toast = useToast.use.toast()
 
@@ -21,21 +22,22 @@ export const useRefreshComments = () => {
       toast.success(
         t('danmaku.alert.refreshed', {
           name: getAnimeName(),
-          count: result.count,
+          count: result.commentCount,
         })
       )
     },
   })
 
   const refreshComments = useEventCallback(async () => {
-    if (!danmakuMeta || isCustomDanmaku(danmakuMeta)) return
+    if (!danmakuLite || !isDanmakuType(danmakuLite, DanmakuSourceType.DDP))
+      return
 
-    mutate({ danmakuMeta, options: { forceUpdate: true } })
+    mutate({ danmakuMeta: danmakuLite.meta, options: { forceUpdate: true } })
   })
 
   return {
     refreshComments,
     isPending,
-    canRefresh: !!danmakuMeta,
+    canRefresh: !!danmakuLite,
   }
 }

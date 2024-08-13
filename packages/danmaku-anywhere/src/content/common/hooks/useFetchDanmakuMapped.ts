@@ -4,7 +4,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useStore } from '../../store/store'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { DanDanPlayDanmakuCache } from '@/common/danmaku/models/danmakuCache/dto'
+import type { DanDanPlayDanmaku } from '@/common/danmaku/models/danmakuCache/db'
 import type { DanDanPlayMeta } from '@/common/danmaku/models/danmakuMeta'
 import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
@@ -20,7 +20,7 @@ interface FetchOptions {
 
 type UseFetchDanmakuMappedOptions = Partial<
   Pick<
-    UseMutationOptions<DanDanPlayDanmakuCache, Error, FetchOptions, void>,
+    UseMutationOptions<DanDanPlayDanmaku, Error, FetchOptions, void>,
     'onSuccess' | 'onError' | 'onMutate'
   >
 >
@@ -28,7 +28,7 @@ type UseFetchDanmakuMappedOptions = Partial<
 export const useFetchDanmakuMapped = (
   options: UseFetchDanmakuMappedOptions = {}
 ) => {
-  const { setComments, setDanmakuMeta } = useStore()
+  const { setComments, setDanmakuLite } = useStore()
   const toast = useToast.use.toast()
 
   const { mutateAsync } = useFetchDanmaku()
@@ -60,7 +60,7 @@ export const useFetchDanmakuMapped = (
     },
     onSuccess: (cache, v) => {
       setComments(cache.comments)
-      setDanmakuMeta(cache.meta)
+      setDanmakuLite(cache)
       options.onSuccess?.(cache, v)
     },
     onError: (err, v) => {

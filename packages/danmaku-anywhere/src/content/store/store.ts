@@ -4,7 +4,10 @@ import { create } from 'zustand'
 import type { PlaybackStatus } from '../danmaku/integration/MediaObserver'
 
 import { IntegrationType } from '@/common/danmaku/enums'
-import type { DanmakuMeta } from '@/common/danmaku/models/danmakuMeta'
+import type {
+  Danmaku,
+  DanmakuLite,
+} from '@/common/danmaku/models/danmakuCache/db'
 import { danmakuMetaToString } from '@/common/danmaku/utils'
 import { createSelectors } from '@/common/utils/createSelectors'
 import type { MediaInfo } from '@/content/danmaku/integration/MediaInfo'
@@ -35,8 +38,8 @@ interface StoreState {
   /**
    * Information about the current danmaku
    */
-  danmakuMeta?: DanmakuMeta
-  setDanmakuMeta: (danmakuMeta: DanmakuMeta | undefined) => void
+  danmakuLite?: DanmakuLite
+  setDanmakuLite: (danmakuMeta: DanmakuLite | undefined) => void
 
   /**
    * Media information for pages with integration
@@ -50,7 +53,7 @@ interface StoreState {
    */
   manual: boolean
   toggleManualMode: (manual?: boolean) => void
-  mountManual: (comments: CommentEntity[], danmakuMeta: DanmakuMeta) => void
+  mountManual: (danmaku: Danmaku) => void
   unmountManual: () => void
 
   /**
@@ -93,11 +96,11 @@ const useStoreBase = create<StoreState>((set, get) => ({
       set({ manual })
     }
   },
-  mountManual: (comments, danmakuMeta) => {
+  mountManual: (danmaku) => {
     get().resetMediaState()
     get().toggleManualMode(true)
-    get().setComments(comments)
-    get().setDanmakuMeta(danmakuMeta)
+    get().setComments(danmaku.comments)
+    get().setDanmakuLite(danmaku)
   },
   unmountManual: () => {
     get().resetMediaState()
@@ -111,25 +114,25 @@ const useStoreBase = create<StoreState>((set, get) => ({
   playbackStatus: 'stopped',
   setPlaybackStatus: (status) => set({ playbackStatus: status }),
 
-  danmakuMeta: undefined,
-  setDanmakuMeta: (danmakuMeta) => set({ danmakuMeta }),
+  danmakuLite: undefined,
+  setDanmakuLite: (danmakuLite) => set({ danmakuLite }),
 
   integration: IntegrationType.None,
   setIntegration: (integration) => set({ integration }),
 
   resetMediaState: (mediaInfo) => {
     get().unsetComments()
-    get().setDanmakuMeta(undefined)
+    get().setDanmakuLite(undefined)
     set({
       mediaInfo: mediaInfo,
     })
   },
 
   getAnimeName: () => {
-    const { mediaInfo, danmakuMeta } = get()
+    const { mediaInfo, danmakuLite } = get()
     if (mediaInfo) return mediaInfo.toString()
-    if (danmakuMeta) {
-      return danmakuMetaToString(danmakuMeta)
+    if (danmakuLite) {
+      return danmakuMetaToString(danmakuLite.meta)
     }
     return 'Unknown anime'
   },

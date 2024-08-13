@@ -5,10 +5,10 @@ import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type {
-  CustomDanmakuImport,
-  DanmakuImport,
-  DanDanPlayDanmakuImport,
-} from '@/common/danmaku/models/danmakuCache/dto'
+  CustomDanmakuInsert,
+  DanDanPlayDanmakuInsert,
+  DanmakuInsert,
+} from '@/common/danmaku/models/danmakuCache/db'
 import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
 import type { ImportParseResult } from '@/common/danmaku/types'
 import { Logger } from '@/common/Logger'
@@ -16,15 +16,18 @@ import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ImportResultDialog } from '@/popup/pages/danmaku/pages/ImportPage/components/ImportResultDialog'
 
 interface ImportExportedDanmakuProps {
-  data: ImportParseResult<DanmakuImport[]>
+  data: ImportParseResult<DanmakuInsert[]>
   onClose: () => void
   open: boolean
 }
 
-const sortDanmakuCacheImportDto = (a: DanmakuImport, b: DanmakuImport) => {
-  if (a.meta.animeTitle === b.meta.animeTitle) {
+const sortDanmakuCacheImportDto = (a: DanmakuInsert, b: DanmakuInsert) => {
+  if (a.meta.seasonTitle === b.meta.seasonTitle) {
     // For DDP, sort by episodeId
-    if (a.type === DanmakuSourceType.DDP && b.type === DanmakuSourceType.DDP) {
+    if (
+      a.provider === DanmakuSourceType.DDP &&
+      b.provider === DanmakuSourceType.DDP
+    ) {
       if (a.meta.episodeId && b.meta.episodeId) {
         return a.meta.episodeId - b.meta.episodeId
       }
@@ -36,7 +39,7 @@ const sortDanmakuCacheImportDto = (a: DanmakuImport, b: DanmakuImport) => {
       return 0
     }
   }
-  return a.meta.animeTitle.localeCompare(b.meta.animeTitle)
+  return a.meta.seasonTitle.localeCompare(b.meta.seasonTitle)
 }
 
 export const ImportExportedDanmaku = ({
@@ -68,11 +71,11 @@ export const ImportExportedDanmaku = ({
     },
   })
 
-  const ddpResults: DanDanPlayDanmakuImport[] = []
-  const customResults: CustomDanmakuImport[] = []
+  const ddpResults: DanDanPlayDanmakuInsert[] = []
+  const customResults: CustomDanmakuInsert[] = []
 
   data.succeeded?.forEach((result) => {
-    if (result.type === DanmakuSourceType.DDP) {
+    if (result.provider === DanmakuSourceType.DDP) {
       ddpResults.push(result)
     } else {
       customResults.push(result)
@@ -94,7 +97,7 @@ export const ImportExportedDanmaku = ({
           {ddpResults
             .toSorted(sortDanmakuCacheImportDto)
             .map((result, index) => {
-              const title = `${result.meta.animeTitle} - ${result.meta.episodeTitle} (${result.comments.length})`
+              const title = `${result.meta.seasonTitle} - ${result.meta.episodeTitle} (${result.comments.length})`
               return (
                 <DialogContentText key={index} noWrap title={title}>
                   {title}
@@ -110,7 +113,7 @@ export const ImportExportedDanmaku = ({
           {customResults
             .toSorted(sortDanmakuCacheImportDto)
             .map((result, index) => {
-              const title = `${result.meta.animeTitle} - ${result.meta.episodeTitle} (${result.comments.length})`
+              const title = `${result.meta.seasonTitle} - ${result.meta.episodeTitle} (${result.comments.length})`
               return (
                 <DialogContentText key={index} noWrap title={title}>
                   {title}

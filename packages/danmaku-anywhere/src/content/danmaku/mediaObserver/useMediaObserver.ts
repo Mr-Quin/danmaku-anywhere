@@ -11,6 +11,7 @@ import { useMatchObserver } from './useMatchObserver'
 import { useAnimeSearchSuspense } from '@/common/anime/queries/useAnimeSearchSuspense'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
+import type { DanDanPlayMeta } from '@/common/danmaku/models/danmakuMeta'
 import { getEpisodeId } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -32,7 +33,7 @@ export const useMediaObserver = () => {
     setMediaInfo,
     playbackStatus,
     setPlaybackStatus,
-    setDanmakuMeta,
+    setDanmakuLite,
     setComments,
     resetMediaState,
   } = useStore(useShallow((state) => state))
@@ -99,15 +100,17 @@ export const useMediaObserver = () => {
           )
         }
 
-        const getDanmakuMeta = async () => {
+        const getDanmakuMeta = async (): Promise<
+          DanDanPlayMeta | undefined
+        > => {
           // if mapping exists, use the mapped animeId and calculate the episodeId
           if (mapping) {
             return {
-              animeId: mapping.animeId,
-              animeTitle: mapping.title,
+              seasonId: mapping.animeId,
+              seasonTitle: mapping.title,
               episodeId: getEpisodeId(mapping.animeId, state.episode),
-              type: DanmakuSourceType.DDP,
-            } as const
+              provider: DanmakuSourceType.DDP,
+            }
           }
 
           // if no mapping, search for anime to get the animeId
@@ -168,12 +171,12 @@ export const useMediaObserver = () => {
           })
 
           return {
-            animeId,
-            animeTitle,
+            seasonId: animeId,
+            seasonTitle: animeTitle,
             episodeId,
             episodeTitle,
-            type: DanmakuSourceType.DDP,
-          } as const
+            provider: DanmakuSourceType.DDP,
+          }
         }
 
         const danmakuMeta = await getDanmakuMeta()
@@ -203,7 +206,7 @@ export const useMediaObserver = () => {
           return
         }
 
-        setDanmakuMeta(res.meta)
+        setDanmakuLite(res)
         setComments(res.comments)
       },
       statusChange: (status) => {

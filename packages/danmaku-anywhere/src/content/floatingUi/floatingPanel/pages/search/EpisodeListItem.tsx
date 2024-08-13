@@ -10,7 +10,7 @@ import { useDanmakuQuerySuspense } from '@/common/danmaku/queries/useDanmakuQuer
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
-type EpisodeListItemProps = Omit<Required<DanDanPlayMeta>, 'type'> & {
+type EpisodeListItemProps = Omit<Required<DanDanPlayMeta>, 'provider'> & {
   titleMapping?: TitleMapping
 }
 
@@ -24,7 +24,7 @@ const InnerEpisodeListItem = ({
 
   const handleFetchDanmaku = async () => {
     await fetch({
-      danmakuMeta: { ...rest, type: DanmakuSourceType.DDP },
+      danmakuMeta: { ...rest, provider: DanmakuSourceType.DDP },
       titleMapping,
       options: {
         forceUpdate: true,
@@ -38,20 +38,20 @@ const InnerEpisodeListItem = ({
       episodeTitle={episodeTitle}
       mutateDanmaku={handleFetchDanmaku}
       queryKey={useDanmakuQuerySuspense.queryKey({
-        type: DanmakuSourceType.DDP,
-        id: episodeId,
+        provider: DanmakuSourceType.DDP,
+        episodeId: episodeId,
       })}
       queryDanmaku={async () => {
         return await chromeRpcClient.danmakuGetOne({
-          type: DanmakuSourceType.DDP,
-          id: episodeId,
+          provider: DanmakuSourceType.DDP,
+          episodeId: episodeId,
         })
       }}
       secondaryText={(data) =>
         `${new Date(data.timeUpdated).toLocaleDateString()} -  ${t(
           'danmaku.commentCounted',
           {
-            count: data.count,
+            count: data.commentCount,
           }
         )}`
       }
