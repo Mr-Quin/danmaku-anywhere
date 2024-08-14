@@ -1,10 +1,6 @@
 import type { DanDanCommentAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
-import {
-  fetchComments,
-  getBangumiAnime,
-} from '@danmaku-anywhere/danmaku-provider/ddp'
-import { produce } from 'immer'
 
+import { ProviderService } from '@/background/services/ProviderService'
 import type {
   DanmakuDeleteDto,
   DanmakuGetBySeasonDto,
@@ -20,18 +16,18 @@ import type {
   DanmakuLite,
 } from '@/common/danmaku/models/entity/db'
 import type { CustomDanmakuCreateData } from '@/common/danmaku/models/entity/dto'
-import type { DanDanPlayMeta } from '@/common/danmaku/models/meta'
+import type { DanDanPlayMetaDto } from '@/common/danmaku/models/meta'
 import type { DanmakuFetchOptions } from '@/common/danmaku/types'
 import { assertIsDanmaku, CURRENT_SCHEMA_VERSION } from '@/common/danmaku/utils'
 import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
-import { invariant, isServiceWorker, tryCatch } from '@/common/utils/utils'
+import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 export class DanmakuService {
   private ddpTable = db.danmakuCache
   private logger: typeof Logger
-  private extensionOptionsService = extensionOptionsService
+  private providerService = new ProviderService()
 
   constructor() {
     invariant(
@@ -41,39 +37,11 @@ export class DanmakuService {
     this.logger = Logger.sub('[DanmakuService]')
   }
 
-  async getEpisodeTitle(meta: DanDanPlayMeta) {
-    const [bangumi, err] = await tryCatch(async () =>
-      getBangumiAnime(meta.animeId)
-    )
-
-    if (err) {
-      this.logger.debug('Failed to get bangumi data', err)
-      throw err
-    }
-
-    const episode = bangumi.episodes.find((e) => e.episodeId === meta.episodeId)
-
-    return episode?.episodeTitle
-  }
-
-  async fetchDDP(
-    meta: DanDanPlayMeta,
+  async upsertDanDanPlay(
+    meta: DanDanPlayMetaDto,
     params: Partial<DanDanCommentAPIParams> = {},
     options: DanmakuFetchOptions = {}
   ): Promise<DanDanPlayDanmaku> {
-    const {
-      danmakuSources: {
-        dandanplay: { chConvert: chConvertPreference },
-      },
-    } = await this.extensionOptionsService.get()
-
-    // apply default params, use chConvert specified in options unless provided in params input
-    const paramsCopy = produce(params, (draft) => {
-      draft.chConvert ??= chConvertPreference
-      draft.withRelated ??= true
-      draft.from ??= 0
-    })
-
     const { episodeId } = meta
 
     const existingDanmaku = await this.ddpTable.get({
@@ -93,51 +61,30 @@ export class DanmakuService {
       this.logger.debug('Danmaku not found in db, fetching from server')
     }
 
-    const comments = await fetchComments(episodeId, paramsCopy)
-
-    this.logger.debug('Danmaku fetched from server', comments)
+    const result = await this.providerService.getDanDanPlayDanmaku(meta, params)
 
     // prevent updating db if new result has fewer comments than the old one
     if (
       !options.forceUpdate &&
       existingDanmaku &&
       existingDanmaku.commentCount > 0 &&
-      existingDanmaku.commentCount >= comments.length
+      existingDanmaku.commentCount >= result.comments.length
     ) {
       this.logger.debug('New danmaku has less comments, skip caching')
       assertIsDanmaku(existingDanmaku, DanmakuSourceType.DDP)
       return existingDanmaku
     }
 
-    const getEpisodeTitle = async () => {
-      if (meta.episodeTitle !== undefined) return meta.episodeTitle
-      // if episode title is not provided, try to get it from the server
-
-      this.logger.debug(
-        'Episode title not provided, trying to fetch from server'
-      )
-      const episodeTitle = await this.getEpisodeTitle(meta)
-
-      if (episodeTitle === undefined) {
-        this.logger.debug('Episode title not found')
-        throw new Error('Episode title not found')
-      }
-      this.logger.debug(`Found episode title: ${episodeTitle}`)
-      return episodeTitle
-    }
-
-    const episodeTitle = await getEpisodeTitle()
-
     const newEntry: DanDanPlayDanmakuInsert = {
       provider: DanmakuSourceType.DDP,
-      comments,
-      commentCount: comments.length,
-      meta: meta,
+      comments: result.comments,
+      commentCount: result.comments.length,
+      meta: result.meta,
       episodeId: episodeId,
-      episodeTitle,
+      episodeTitle: result.meta.episodeTitle,
       seasonId: meta.animeId,
       seasonTitle: meta.animeTitle,
-      params: paramsCopy,
+      params: result.params,
       timeUpdated: Date.now(),
       version: 1 + (existingDanmaku?.version ?? 0),
       schemaVersion: CURRENT_SCHEMA_VERSION,

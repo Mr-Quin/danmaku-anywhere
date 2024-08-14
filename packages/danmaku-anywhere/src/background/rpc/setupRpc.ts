@@ -74,7 +74,7 @@ export const setupRpc = () => {
       return result
     },
     danmakuFetchDDP: async (data) => {
-      const result = await danmakuService.fetchDDP(
+      const result = await danmakuService.upsertDanDanPlay(
         data.meta,
         data.params,
         data.options

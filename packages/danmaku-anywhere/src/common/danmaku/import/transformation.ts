@@ -21,6 +21,8 @@ export function transformV1(
       meta: {
         provider: v1Data.meta.type,
         ...v1Data.meta,
+        episodeTitle:
+          v1Data.meta.episodeTitle ?? v1Data.meta.episodeId.toString(),
       },
       episodeTitle: v1Data.meta.episodeTitle ?? v1Data.meta.animeTitle,
       seasonTitle: v1Data.meta.animeTitle,
