@@ -11,7 +11,7 @@ import type { QueryKey } from '@tanstack/react-query'
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 
-import type { Danmaku } from '@/common/danmaku/models/danmakuCache/db'
+import type { Danmaku } from '@/common/danmaku/models/entity/db'
 
 export interface BaseEpisodeListItemProps {
   episodeTitle: string

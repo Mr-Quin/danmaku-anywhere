@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest'
 
 import { importDanmakuSchema } from './import'
 
-import type { DanmakuInsert } from '@/common/danmaku/models/danmakuCache/db'
-import { importCommentSchema } from '@/common/danmaku/models/import/commentSchema'
+import { importCommentSchema } from '@/common/danmaku/import/commentSchema'
+import type { DanmakuInsert } from '@/common/danmaku/models/entity/db'
 
 const validComment = {
   cid: 1722521763,

@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next'
 
 import { StyledEnableSwitch } from '@/common/components/StyledEnableSwitch'
 import { getIntegrationLabel } from '@/common/danmaku/enums'
-import { danmakuMetaToString } from '@/common/danmaku/utils'
+import { danmakuToString } from '@/common/danmaku/utils'
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { HasIntegration } from '@/content/common/components/HasIntegration'
 import { usePopup } from '@/content/store/popupStore'
@@ -36,8 +36,8 @@ export const FloatingPanelToolbar = () => {
         <HasIntegration
           fallback={
             danmakuLite && (
-              <Typography noWrap title={danmakuMetaToString(danmakuLite.meta)}>
-                {danmakuMetaToString(danmakuLite.meta)}
+              <Typography noWrap title={danmakuToString(danmakuLite)}>
+                {danmakuToString(danmakuLite)}
               </Typography>
             )
           }

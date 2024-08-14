@@ -1,7 +1,7 @@
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { z } from 'zod'
 
-import { importCommentSchema } from '@/common/danmaku/models/import/commentSchema'
+import { importCommentSchema } from '@/common/danmaku/import/commentSchema'
 
 const baseSchemaV1 = z.object({
   type: z.union([

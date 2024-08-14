@@ -18,9 +18,9 @@ import type {
   DanDanPlayDanmakuInsert,
   DanmakuInsert,
   DanmakuLite,
-} from '@/common/danmaku/models/danmakuCache/db'
-import type { CustomDanmakuCreateData } from '@/common/danmaku/models/danmakuCache/dto'
-import type { DanDanPlayMeta } from '@/common/danmaku/models/danmakuMeta'
+} from '@/common/danmaku/models/entity/db'
+import type { CustomDanmakuCreateData } from '@/common/danmaku/models/entity/dto'
+import type { DanDanPlayMeta } from '@/common/danmaku/models/meta'
 import type { DanmakuFetchOptions } from '@/common/danmaku/types'
 import { assertIsDanmaku, CURRENT_SCHEMA_VERSION } from '@/common/danmaku/utils'
 import { db } from '@/common/db/db'
@@ -39,6 +39,21 @@ export class DanmakuService {
       'DanmakuService is only available in service worker'
     )
     this.logger = Logger.sub('[DanmakuService]')
+  }
+
+  async getEpisodeTitle(meta: DanDanPlayMeta) {
+    const [bangumi, err] = await tryCatch(async () =>
+      getBangumiAnime(meta.animeId)
+    )
+
+    if (err) {
+      this.logger.debug('Failed to get bangumi data', err)
+      throw err
+    }
+
+    const episode = bangumi.episodes.find((e) => e.episodeId === meta.episodeId)
+
+    return episode?.episodeTitle
   }
 
   async fetchDDP(
@@ -63,7 +78,7 @@ export class DanmakuService {
 
     const existingDanmaku = await this.ddpTable.get({
       provider: DanmakuSourceType.DDP,
-      'meta.episodeId': episodeId,
+      episodeId: episodeId,
     })
 
     if (existingDanmaku && !options.forceUpdate) {
@@ -86,59 +101,65 @@ export class DanmakuService {
     if (
       !options.forceUpdate &&
       existingDanmaku &&
-      existingDanmaku.comments.length > 0 &&
-      existingDanmaku.comments.length >= comments.length
+      existingDanmaku.commentCount > 0 &&
+      existingDanmaku.commentCount >= comments.length
     ) {
       this.logger.debug('New danmaku has less comments, skip caching')
       assertIsDanmaku(existingDanmaku, DanmakuSourceType.DDP)
       return existingDanmaku
     }
 
+    const getEpisodeTitle = async () => {
+      if (meta.episodeTitle !== undefined) return meta.episodeTitle
+      // if episode title is not provided, try to get it from the server
+
+      this.logger.debug(
+        'Episode title not provided, trying to fetch from server'
+      )
+      const episodeTitle = await this.getEpisodeTitle(meta)
+
+      if (episodeTitle === undefined) {
+        this.logger.debug('Episode title not found')
+        throw new Error('Episode title not found')
+      }
+      this.logger.debug(`Found episode title: ${episodeTitle}`)
+      return episodeTitle
+    }
+
+    const episodeTitle = await getEpisodeTitle()
+
     const newEntry: DanDanPlayDanmakuInsert = {
       provider: DanmakuSourceType.DDP,
       comments,
       commentCount: comments.length,
       meta: meta,
+      episodeId: episodeId,
+      episodeTitle,
+      seasonId: meta.animeId,
+      seasonTitle: meta.animeTitle,
       params: paramsCopy,
       timeUpdated: Date.now(),
       version: 1 + (existingDanmaku?.version ?? 0),
       schemaVersion: CURRENT_SCHEMA_VERSION,
     }
 
-    // if episode title is not provided, try to get it from the server
-    if (meta.episodeTitle === undefined) {
-      this.logger.debug(
-        'Episode title not provided, trying to fetch from server'
-      )
+    if (existingDanmaku) {
+      this.logger.debug('Updating existing danmaku entry')
+      await this.ddpTable.update(existingDanmaku.id, newEntry)
 
-      const [bangumi, err] = await tryCatch(async () =>
-        getBangumiAnime(meta.seasonId)
-      )
-
-      if (err) {
-        this.logger.debug('Failed to fetch anime', err)
-        throw err
+      return {
+        ...newEntry,
+        id: existingDanmaku.id,
       }
+    } else {
+      const id = await this.ddpTable.put(newEntry)
 
-      const episode = bangumi.episodes.find(
-        (e) => e.episodeId === meta.episodeId
-      )
-      if (episode) {
-        this.logger.debug(`Found episode title: ${episode.episodeTitle}`)
-        newEntry.meta.episodeTitle = episode.episodeTitle
-      } else {
-        this.logger.debug('Episode title not found')
-        throw new Error('Episode title not found')
+      this.logger.debug('Cached danmaku to db')
+
+      return {
+        ...newEntry,
+        id: id,
       }
-    }
-
-    const res = await this.ddpTable.put(newEntry)
-
-    this.logger.debug('Cached danmaku to db')
-
-    return {
-      ...newEntry,
-      id: res,
     }
   }
 
@@ -148,19 +169,20 @@ export class DanmakuService {
 
   async createCustom(data: CustomDanmakuCreateData[]) {
     const createCache = (dto: CustomDanmakuCreateData) => {
-      const { comments, animeTitle, episodeNumber, episodeTitle } = dto
+      const { comments, seasonTitle, episodeTitle } = dto
 
       const cache: CustomDanmakuInsert = {
         provider: DanmakuSourceType.Custom,
         comments,
         commentCount: comments.length,
         meta: {
-          episodeNumber,
-          seasonTitle: animeTitle,
+          seasonTitle: seasonTitle,
           episodeTitle,
           provider: DanmakuSourceType.Custom,
           // episodeId is auto generated after creation
         },
+        episodeTitle: episodeTitle,
+        seasonTitle: seasonTitle,
         version: 1,
         timeUpdated: Date.now(),
         schemaVersion: CURRENT_SCHEMA_VERSION,
@@ -181,7 +203,7 @@ export class DanmakuService {
    * which may cause performance issues or even crash when there are too many danmaku in db
    */
   async getAll() {
-    return this.ddpTable.toArray()
+    return this.ddpTable.orderBy(['provider+episodeId']).toArray()
   }
 
   /**
@@ -191,6 +213,7 @@ export class DanmakuService {
     const cache: DanmakuLite[] = []
 
     await this.ddpTable
+      // .orderBy(['provider+episodeId'])
       .filter((d) => {
         if (type) {
           return d.provider === type
@@ -208,14 +231,7 @@ export class DanmakuService {
   }
 
   async getOne(data: DanmakuGetOneDto) {
-    if ('id' in data) {
-      return this.ddpTable.get(data.id)
-    }
-
-    return this.ddpTable.get({
-      provider: data.provider,
-      'meta.episodeId': data.episodeId,
-    })
+    return this.ddpTable.get(data)
   }
 
   async getMany(data: DanmakuGetManyDto) {
@@ -227,7 +243,7 @@ export class DanmakuService {
     return this.ddpTable
       .filter((d) => {
         if (d.provider === DanmakuSourceType.DDP) {
-          return d.meta.seasonId === data.id
+          return d.meta.animeId === data.id
         }
         return false
       })

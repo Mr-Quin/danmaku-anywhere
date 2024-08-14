@@ -16,7 +16,7 @@ import { createSearchParams, useNavigate } from 'react-router-dom'
 import { NoAnime } from './NoAnime'
 
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DanmakuLite } from '@/common/danmaku/models/danmakuCache/db'
+import type { DanmakuLite } from '@/common/danmaku/models/entity/db'
 import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
 import { matchWithPinyin } from '@/common/utils/utils'
 import { useStore } from '@/popup/store'
@@ -34,9 +34,12 @@ const partitionDanmaku = (
       // filter by type
       const items = data.filter((item) => item.provider === type)
 
-      // group by anime title
-      const grouped = Object.groupBy(items, (item) => item.meta.seasonTitle)
+      console.log(items)
 
+      // group by anime title
+      const grouped = Object.groupBy(items, (item) => item.seasonTitle)
+
+      console.log(grouped)
       // map to type and count
       const titles = Object.keys(grouped).map((title) => ({
         title,
@@ -67,7 +70,7 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
   const filteredData = useMemo(() => {
     if (!filter) return data
 
-    return data.filter((item) => matchWithPinyin(item.meta.seasonTitle, filter))
+    return data.filter((item) => matchWithPinyin(item.seasonTitle, filter))
   }, [data, filter])
 
   const titles = useMemo(() => {

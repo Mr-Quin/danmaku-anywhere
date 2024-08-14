@@ -3,7 +3,6 @@ export interface CustomDanmakuCreateData {
     p: string
     m: string
   }[]
-  animeTitle: string
-  episodeTitle?: string
-  episodeNumber?: number
+  seasonTitle: string
+  episodeTitle: string
 }

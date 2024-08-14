@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 
-import type { DanmakuInsert } from '@/common/danmaku/models/danmakuCache/db'
-import { importDanmakuSchema } from '@/common/danmaku/models/import/import'
+import { importDanmakuSchema } from '@/common/danmaku/import/import'
+import type { DanmakuInsert } from '@/common/danmaku/models/entity/db'
 import type { ImportParseResult } from '@/common/danmaku/types'
 import type { FileContent } from '@/popup/pages/danmaku/pages/ImportPage/hooks/useUploadDanmaku'
 

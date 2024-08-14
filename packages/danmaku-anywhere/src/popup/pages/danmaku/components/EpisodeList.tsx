@@ -39,7 +39,7 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
   const { setSelectedEpisode, selectedAnime } = useStore.use.danmaku()
 
   const episodes = useMemo(() => {
-    return data.filter((item) => item.meta.seasonTitle === selectedAnime)
+    return data.filter((item) => item.seasonTitle === selectedAnime)
     // .toSorted((a, b) => a.meta.episodeId - b.meta.episodeId)
   }, [data])
 

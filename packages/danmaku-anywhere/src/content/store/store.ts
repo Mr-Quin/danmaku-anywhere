@@ -4,11 +4,8 @@ import { create } from 'zustand'
 import type { PlaybackStatus } from '../danmaku/integration/MediaObserver'
 
 import { IntegrationType } from '@/common/danmaku/enums'
-import type {
-  Danmaku,
-  DanmakuLite,
-} from '@/common/danmaku/models/danmakuCache/db'
-import { danmakuMetaToString } from '@/common/danmaku/utils'
+import type { Danmaku, DanmakuLite } from '@/common/danmaku/models/entity/db'
+import { danmakuToString } from '@/common/danmaku/utils'
 import { createSelectors } from '@/common/utils/createSelectors'
 import type { MediaInfo } from '@/content/danmaku/integration/MediaInfo'
 
@@ -132,7 +129,7 @@ const useStoreBase = create<StoreState>((set, get) => ({
     const { mediaInfo, danmakuLite } = get()
     if (mediaInfo) return mediaInfo.toString()
     if (danmakuLite) {
-      return danmakuMetaToString(danmakuLite.meta)
+      return danmakuToString(danmakuLite)
     }
     return 'Unknown anime'
   },

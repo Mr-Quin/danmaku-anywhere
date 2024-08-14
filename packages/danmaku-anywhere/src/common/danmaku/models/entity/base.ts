@@ -19,6 +19,14 @@ export interface BaseDanmakuEntity {
   // The last time the comments were updated
   timeUpdated: number
   schemaVersion: number
+
+  // Identifier for the episode, varies between providers
+  episodeId?: number
+  episodeTitle: string
+  // Season id, used for grouping episodes, can be undefined for some providers
+  seasonId?: number
+  seasonTitle: string
+
   // Auto generated id
   id: number
 }

@@ -6,7 +6,7 @@ import { useStore } from '../../store/store'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import {
-  danmakuMetaToString,
+  danmakuToString,
   getNextEpisodeMeta,
   isDanmakuType,
 } from '@/common/danmaku/utils'
@@ -27,7 +27,7 @@ export const useFetchNextEpisode = () => {
     onSuccess: (result) => {
       toast.success(
         t('danmaku.alert.mounted', {
-          name: danmakuMetaToString(result.meta),
+          name: danmakuToString(result),
           count: result.commentCount,
         })
       )

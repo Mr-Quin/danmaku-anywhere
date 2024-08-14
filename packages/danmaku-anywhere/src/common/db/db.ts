@@ -6,7 +6,7 @@ import type {
   CustomDanmakuInsert,
   Danmaku,
   DanmakuInsert,
-} from '@/common/danmaku/models/danmakuCache/db'
+} from '@/common/danmaku/models/entity/db'
 import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 
 class DanmakuAnywhereDb extends Dexie {
@@ -89,7 +89,7 @@ class DanmakuAnywhereDb extends Dexie {
       .stores({
         // change danmakuCache primary key to id and add provider field
         danmakuCache:
-          '++id, provider, meta.episodeId, meta.seasonId, meta.seasonTitle',
+          '++id, [provider+episodeId], provider, episodeId, seasonId',
         // merge manualDanmakuCache to danmakuCache
         manualDanmakuCache: null,
         titleMapping: '++id, originalTitle, title, integration',
@@ -106,14 +106,18 @@ class DanmakuAnywhereDb extends Dexie {
             item.meta = {
               provider: DanmakuSourceType.DDP,
               episodeId: item.meta.episodeId,
-              seasonId: item.meta.animeId,
+              animeId: item.meta.animeId,
               episodeTitle: item.meta.episodeTitle,
-              seasonTitle: item.meta.animeTitle,
+              animeTitle: item.meta.animeTitle,
             }
             // Add commentCount field
             item.commentCount = item.comments.length
             // Add schemaVersion field
             item.schemaVersion = 2
+            item.episodeId = item.meta.episodeId
+            item.seasonId = item.meta.animeId
+            item.episodeTitle = item.meta.episodeTitle
+            item.seasonTitle = item.meta.animeTitle
           })
 
         // Merge manualDanmakuCache to danmakuCache
@@ -132,6 +136,10 @@ class DanmakuAnywhereDb extends Dexie {
             version: item.version,
             timeUpdated: item.timeUpdated,
             schemaVersion: 2,
+            episodeId: undefined,
+            seasonId: undefined,
+            episodeTitle: item.meta.episodeTitle,
+            seasonTitle: item.meta.animeTitle,
           })
         })
       })

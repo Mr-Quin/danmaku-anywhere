@@ -7,14 +7,14 @@ import { EpisodeOption } from './EpisodeOption'
 
 import { ListboxComponent } from '@/common/components/DanmakuSelector/ListboxComponent'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DanmakuLite } from '@/common/danmaku/models/danmakuCache/db'
+import type { DanmakuLite } from '@/common/danmaku/models/entity/db'
 import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
 import { matchWithPinyin, stopKeyboardPropagation } from '@/common/utils/utils'
 
 type FilterOptions = ReturnType<typeof createFilterOptions<DanmakuLite>>
 
-const stringifyDanmakuMeta = (danmakuMeta: DanmakuLite) => {
-  return `${danmakuMeta.meta.seasonTitle} ${danmakuMeta.meta.episodeTitle}`
+const stringifyDanmakuMeta = (danmakuLite: DanmakuLite) => {
+  return `${danmakuLite.seasonTitle} ${danmakuLite.episodeTitle}`
 }
 
 const filterOptions: FilterOptions = (options, { inputValue }) => {
@@ -86,15 +86,13 @@ export const DanmakuSelector = ({ value, onChange }: DanmakuSelectorProps) => {
           />
         )
       }}
-      getOptionLabel={(option) =>
-        option.meta.episodeTitle ?? option.meta.seasonTitle
-      }
-      groupBy={(option) => option.meta.seasonTitle}
+      getOptionLabel={(option) => option.episodeTitle}
+      groupBy={(option) => option.seasonTitle}
       renderInput={(params) => {
         return (
           <TextField
             {...params}
-            label={value ? value.meta.seasonTitle : t('anime.episode.select')}
+            label={value ? value.seasonTitle : t('anime.episode.select')}
             InputProps={{
               ...params.InputProps,
               onKeyDown: (e) => {

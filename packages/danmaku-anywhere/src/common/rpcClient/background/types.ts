@@ -23,8 +23,8 @@ import type {
   Danmaku,
   DanmakuInsert,
   DanmakuLite,
-} from '@/common/danmaku/models/danmakuCache/db'
-import type { CustomDanmakuCreateData } from '@/common/danmaku/models/danmakuCache/dto'
+} from '@/common/danmaku/models/entity/db'
+import type { CustomDanmakuCreateData } from '@/common/danmaku/models/entity/dto'
 import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 
 type IconSetDto =
