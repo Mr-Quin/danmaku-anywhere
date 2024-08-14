@@ -8,7 +8,7 @@ import type {
   CustomDanmakuInsert,
   DanDanPlayDanmakuInsert,
   DanmakuInsert,
-} from '@/common/danmaku/models/danmakuCache/db'
+} from '@/common/danmaku/models/entity/db'
 import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
 import type { ImportParseResult } from '@/common/danmaku/types'
 import { Logger } from '@/common/Logger'
@@ -22,7 +22,7 @@ interface ImportExportedDanmakuProps {
 }
 
 const sortDanmakuCacheImportDto = (a: DanmakuInsert, b: DanmakuInsert) => {
-  if (a.meta.seasonTitle === b.meta.seasonTitle) {
+  if (a.seasonTitle === b.seasonTitle) {
     // For DDP, sort by episodeId
     if (
       a.provider === DanmakuSourceType.DDP &&
@@ -39,7 +39,7 @@ const sortDanmakuCacheImportDto = (a: DanmakuInsert, b: DanmakuInsert) => {
       return 0
     }
   }
-  return a.meta.seasonTitle.localeCompare(b.meta.seasonTitle)
+  return a.seasonTitle.localeCompare(b.seasonTitle)
 }
 
 export const ImportExportedDanmaku = ({
@@ -97,7 +97,7 @@ export const ImportExportedDanmaku = ({
           {ddpResults
             .toSorted(sortDanmakuCacheImportDto)
             .map((result, index) => {
-              const title = `${result.meta.seasonTitle} - ${result.meta.episodeTitle} (${result.comments.length})`
+              const title = `${result.meta.animeTitle} - ${result.meta.episodeTitle} (${result.comments.length})`
               return (
                 <DialogContentText key={index} noWrap title={title}>
                   {title}

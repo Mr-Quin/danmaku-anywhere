@@ -4,12 +4,12 @@ import type {
   DanDanPlayDanmaku,
   Danmaku,
   DanmakuLite,
-} from '@/common/danmaku/models/danmakuCache/db'
+} from '@/common/danmaku/models/entity/db'
 import type {
   CustomMeta,
   DanmakuMeta,
   DanDanPlayMeta,
-} from '@/common/danmaku/models/danmakuMeta'
+} from '@/common/danmaku/models/meta'
 
 export const CURRENT_SCHEMA_VERSION = 2
 
@@ -37,11 +37,8 @@ export const isCustomDanmaku = (meta: DanmakuMeta): meta is CustomMeta => {
   return meta.provider === DanmakuSourceType.Custom
 }
 
-export const danmakuMetaToString = (meta: DanmakuMeta) => {
-  if (meta.episodeTitle) {
-    return `${meta.seasonTitle} - ${meta.episodeTitle}`
-  }
-  return meta.seasonTitle
+export const danmakuToString = (danmaku: DanmakuLite) => {
+  return `${danmaku.seasonTitle} - ${danmaku.episodeTitle}`
 }
 
 export function assertIsDanmaku<T extends DanmakuSourceType>(

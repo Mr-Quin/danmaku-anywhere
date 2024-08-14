@@ -32,18 +32,8 @@ export const customCommentSchema = z
     }
   })
 
-export const customDanmakuSchema = z
-  .object({
-    comments: z.array(customCommentSchema),
-    animeTitle: z.string(),
-    episodeTitle: z.string().optional(),
-    episodeNumber: z.number().optional(),
-  })
-  .refine(
-    (data) => {
-      return !(
-        data.episodeTitle === undefined && data.episodeNumber === undefined
-      )
-    },
-    { message: 'Either episodeTitle or episodeNumber must be provided' }
-  )
+export const customDanmakuSchema = z.object({
+  comments: z.array(customCommentSchema),
+  seasonTitle: z.string(),
+  episodeTitle: z.string(),
+})

@@ -6,7 +6,7 @@ import type {
   DanmakuGetBySeasonDto,
   DanmakuGetManyDto,
 } from '@/common/danmaku/dto'
-import { danmakuMetaToString } from '@/common/danmaku/utils'
+import { danmakuToString } from '@/common/danmaku/utils'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { createDownload } from '@/common/utils/utils'
 
@@ -43,7 +43,7 @@ export const useExportDanmaku = () => {
       })
 
       if (res) {
-        const animeTitle = res[0].meta.seasonTitle
+        const animeTitle = res[0].seasonTitle
 
         await createDownload(
           new Blob([JSON.stringify(res)], { type: 'text/json' }),
@@ -61,9 +61,7 @@ export const useExportDanmaku = () => {
 
       if (res.length > 0) {
         const fileName =
-          res.length > 1
-            ? res[0].meta.seasonTitle
-            : danmakuMetaToString(res[0].meta)
+          res.length > 1 ? res[0].seasonTitle : danmakuToString(res[0])
 
         await createDownload(
           new Blob([JSON.stringify(res)], { type: 'text/json' }),

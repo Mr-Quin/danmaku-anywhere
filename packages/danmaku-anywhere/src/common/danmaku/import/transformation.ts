@@ -1,8 +1,10 @@
 import type { z } from 'zod'
 
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DanmakuInsert } from '@/common/danmaku/models/danmakuCache/db'
-import type { importSchemaV1 } from '@/common/danmaku/models/import/v1'
+import type { importSchemaV1 } from '@/common/danmaku/import/v1'
+import type { importSchemaV2 } from '@/common/danmaku/import/v2'
+import type { DanmakuInsert } from '@/common/danmaku/models/entity/db'
+import { CURRENT_SCHEMA_VERSION } from '@/common/danmaku/utils'
 
 export function transformV1(
   v1Data: z.infer<typeof importSchemaV1>
@@ -14,15 +16,16 @@ export function transformV1(
       commentCount: v1Data.comments.length,
       version: v1Data.version,
       timeUpdated: v1Data.timeUpdated,
-      schemaVersion: v1Data.schemaVersion,
+      schemaVersion: CURRENT_SCHEMA_VERSION,
       params: v1Data.params,
       meta: {
         provider: v1Data.meta.type,
-        episodeId: v1Data.meta.episodeId,
-        seasonId: v1Data.meta.animeId, // Rename animeId to seasonId
-        episodeTitle: v1Data.meta.episodeTitle,
-        seasonTitle: v1Data.meta.animeTitle, // Rename animeTitle to seasonTitle
+        ...v1Data.meta,
       },
+      episodeTitle: v1Data.meta.episodeTitle ?? v1Data.meta.animeTitle,
+      seasonTitle: v1Data.meta.animeTitle,
+      episodeId: v1Data.meta.episodeId,
+      seasonId: v1Data.meta.animeId,
     }
   } else if (v1Data.type === DanmakuSourceType.Custom) {
     return {
@@ -31,15 +34,24 @@ export function transformV1(
       commentCount: v1Data.comments.length,
       version: v1Data.version,
       timeUpdated: v1Data.timeUpdated,
-      schemaVersion: v1Data.schemaVersion,
+      schemaVersion: CURRENT_SCHEMA_VERSION,
       meta: {
         provider: v1Data.meta.type,
         seasonTitle: v1Data.meta.animeTitle, // Rename animeTitle to seasonTitle
-        episodeTitle: v1Data.meta.episodeTitle,
-        episodeNumber: v1Data.meta.episodeNumber,
+        episodeTitle:
+          v1Data.meta.episodeTitle ?? v1Data.meta.episodeNumber!.toString(),
       },
+      episodeTitle:
+        v1Data.meta.episodeTitle ?? v1Data.meta.episodeNumber!.toString(),
+      seasonTitle: v1Data.meta.animeTitle,
     }
   } else {
     throw new Error('Unsupported data type')
   }
+}
+
+export function transformV2(
+  v1Data: z.infer<typeof importSchemaV2>
+): DanmakuInsert {
+  return v1Data
 }

@@ -15,7 +15,7 @@ import { Center } from '@/common/components/Center'
 import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
 import { SearchResultList } from '@/common/components/MediaList/SearchResultList'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DanDanPlayMeta } from '@/common/danmaku/models/danmakuMeta'
+import type { DanDanPlayMeta } from '@/common/danmaku/models/meta'
 import { useDanmakuQuerySuspense } from '@/common/danmaku/queries/useDanmakuQuerySuspense'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -123,20 +123,20 @@ export const SearchPage = () => {
                     episodeTitle={episodeTitle}
                     queryKey={useDanmakuQuerySuspense.queryKey({
                       provider: DanmakuSourceType.DDP,
-                      id: episodeId,
+                      episodeId: episodeId,
                     })}
                     queryDanmaku={async () => {
                       return await chromeRpcClient.danmakuGetOne({
                         provider: DanmakuSourceType.DDP,
-                        id: episodeId,
+                        episodeId: episodeId,
                       })
                     }}
                     mutateDanmaku={() =>
                       handleFetchDanmaku({
                         episodeId,
                         episodeTitle,
-                        seasonId: animeId,
-                        seasonTitle: animeTitle,
+                        animeId: animeId,
+                        animeTitle: animeTitle,
                         provider: DanmakuSourceType.DDP,
                       })
                     }

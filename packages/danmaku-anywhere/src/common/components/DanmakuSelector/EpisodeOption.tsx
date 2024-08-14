@@ -13,7 +13,7 @@ import { type HTMLAttributes, type SyntheticEvent } from 'react'
 import { isCustomDanmaku } from '../../danmaku/utils'
 
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DanmakuLite } from '@/common/danmaku/models/danmakuCache/db'
+import type { DanmakuLite } from '@/common/danmaku/models/entity/db'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 
 export const EpisodeOption = (
@@ -49,9 +49,7 @@ export const EpisodeOption = (
       }}
     >
       <Box>
-        <Typography variant="body1">
-          {option.meta.episodeTitle ?? option.meta.seasonTitle}
-        </Typography>
+        <Typography variant="body1">{option.episodeTitle}</Typography>
 
         <Typography variant="caption">
           {isLoading ? (

@@ -1,7 +1,7 @@
 import { combinedDanmakuSchema } from '@danmaku-anywhere/danmaku-converter'
 import { useMutation } from '@tanstack/react-query'
 
-import type { CustomDanmakuCreateData } from '@/common/danmaku/models/danmakuCache/dto'
+import type { CustomDanmakuCreateData } from '@/common/danmaku/models/entity/dto'
 import type { ImportParseResult } from '@/common/danmaku/types'
 import type { FileContent } from '@/popup/pages/danmaku/pages/ImportPage/hooks/useUploadDanmaku'
 
@@ -25,7 +25,7 @@ export const useParseCustomDanmaku = (props: UseParseCustomDanmakuProps) => {
       const succeeded = res
         .filter((result) => result.success)
         .map((result) => {
-          if ('animeTitle' in result.data) {
+          if ('seasonTitle' in result.data) {
             // custom danmaku, return as is
             return result.data
           }
@@ -36,8 +36,8 @@ export const useParseCustomDanmaku = (props: UseParseCustomDanmakuProps) => {
           // use file name as animeTitle
           return {
             ...result.data,
-            animeTitle: fileName,
-            episodeNumber: 1,
+            seasonTitle: fileName,
+            episodeTitle: fileName,
           }
         })
 

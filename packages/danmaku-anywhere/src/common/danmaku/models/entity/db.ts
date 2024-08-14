@@ -1,11 +1,8 @@
 import type { DanDanCommentAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
 
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { BaseDanmakuEntity } from '@/common/danmaku/models/danmakuCache/base'
-import type {
-  CustomMeta,
-  DanDanPlayMeta,
-} from '@/common/danmaku/models/danmakuMeta'
+import type { BaseDanmakuEntity } from '@/common/danmaku/models/entity/base'
+import type { CustomMeta, DanDanPlayMeta } from '@/common/danmaku/models/meta'
 
 export type DanDanPlayDanmaku = BaseDanmakuEntity & {
   provider: DanmakuSourceType.DDP

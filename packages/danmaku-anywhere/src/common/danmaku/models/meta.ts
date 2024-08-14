@@ -2,6 +2,9 @@ import type { BiliBiliMediaType } from '@danmaku-anywhere/danmaku-provider/bilib
 
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
 
+/**
+ * Meta contains the information needed to fetch the danmaku from their provider
+ */
 interface BaseDanmakuMeta {
   provider: DanmakuSourceType
 }
@@ -12,9 +15,10 @@ export interface DanDanPlayMeta extends BaseDanmakuMeta {
    * All properties come from DDP API
    */
   episodeId: number
-  seasonId: number
+  animeId: number
+  // episode title is undefined when episodeId is computed from the episode number
   episodeTitle?: string
-  seasonTitle: string
+  animeTitle: string
 }
 
 export interface BiliBiliMeta extends BaseDanmakuMeta {
@@ -23,7 +27,7 @@ export interface BiliBiliMeta extends BaseDanmakuMeta {
    * All properties come from Bilibili API
    */
   // cid
-  episodeId: number
+  cid: number
   bvid?: string
   aid: number
   title: string
@@ -34,11 +38,7 @@ export interface BiliBiliMeta extends BaseDanmakuMeta {
 export interface CustomMeta extends BaseDanmakuMeta {
   provider: DanmakuSourceType.Custom
   seasonTitle: string
-  /**
-   * One of episodeTitle or episodeNumber is required
-   */
-  episodeTitle?: string
-  episodeNumber?: number
+  episodeTitle: string
 }
 
 export type DanmakuMeta = DanDanPlayMeta | CustomMeta

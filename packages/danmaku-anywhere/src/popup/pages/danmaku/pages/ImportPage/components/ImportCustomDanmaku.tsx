@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { CustomDanmakuCreateData } from '@/common/danmaku/models/danmakuCache/dto'
+import type { CustomDanmakuCreateData } from '@/common/danmaku/models/entity/dto'
 import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
 import type { ImportParseResult } from '@/common/danmaku/types'
 import { Logger } from '@/common/Logger'
@@ -62,8 +62,7 @@ export const ImportCustomDanmaku = ({
           {data.succeeded?.map((result, index) => {
             return (
               <DialogContentText key={index}>
-                {result.animeTitle} -{' '}
-                {result.episodeTitle ?? result.episodeNumber} (
+                {result.seasonTitle} - {result.episodeTitle} (
                 {result.comments.length})
               </DialogContentText>
             )
