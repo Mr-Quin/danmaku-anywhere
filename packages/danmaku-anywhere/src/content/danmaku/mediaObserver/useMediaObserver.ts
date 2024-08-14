@@ -11,7 +11,7 @@ import { useMatchObserver } from './useMatchObserver'
 import { useAnimeSearchSuspense } from '@/common/anime/queries/useAnimeSearchSuspense'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DanDanPlayMeta } from '@/common/danmaku/models/meta'
+import type { DanDanPlayMetaDto } from '@/common/danmaku/models/meta'
 import { getEpisodeId } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -101,7 +101,7 @@ export const useMediaObserver = () => {
         }
 
         const getDanmakuMeta = async (): Promise<
-          DanDanPlayMeta | undefined
+          DanDanPlayMetaDto | undefined
         > => {
           // if mapping exists, use the mapped animeId and calculate the episodeId
           if (mapping) {

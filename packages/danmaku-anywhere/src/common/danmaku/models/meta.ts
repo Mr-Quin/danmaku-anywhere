@@ -16,10 +16,16 @@ export interface DanDanPlayMeta extends BaseDanmakuMeta {
    */
   episodeId: number
   animeId: number
-  // episode title is undefined when episodeId is computed from the episode number
-  episodeTitle?: string
+  episodeTitle: string
   animeTitle: string
 }
+
+// episode title is undefined when episodeId is computed from the episode number
+export type DanDanPlayMetaComputed = Omit<DanDanPlayMeta, 'episodeTitle'> & {
+  episodeTitle?: string
+}
+
+export type DanDanPlayMetaDto = DanDanPlayMeta | DanDanPlayMetaComputed
 
 export interface BiliBiliMeta extends BaseDanmakuMeta {
   // provider: DanmakuSourceType.Bilibili

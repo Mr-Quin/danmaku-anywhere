@@ -26,7 +26,7 @@ export const v2 = {
         provider: z.literal(DanmakuSourceType.DDP),
         episodeId: z.number(),
         animeId: z.number(),
-        episodeTitle: z.string().optional(),
+        episodeTitle: z.string(),
         animeTitle: z.string(),
       }),
       episodeId: z.number(),

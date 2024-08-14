@@ -5,7 +5,7 @@ import { useStore } from '../../store/store'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanDanPlayDanmaku } from '@/common/danmaku/models/entity/db'
-import type { DanDanPlayMeta } from '@/common/danmaku/models/meta'
+import type { DanDanPlayMetaDto } from '@/common/danmaku/models/meta'
 import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import type { DanmakuFetchOptions } from '@/common/danmaku/types'
@@ -13,7 +13,7 @@ import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { tryCatch } from '@/common/utils/utils'
 
 interface FetchOptions {
-  danmakuMeta: DanDanPlayMeta
+  danmakuMeta: DanDanPlayMetaDto
   titleMapping?: TitleMapping
   options?: DanmakuFetchOptions
 }

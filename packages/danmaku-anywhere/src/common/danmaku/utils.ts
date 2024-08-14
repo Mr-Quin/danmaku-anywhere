@@ -9,6 +9,7 @@ import type {
   CustomMeta,
   DanmakuMeta,
   DanDanPlayMeta,
+  DanDanPlayMetaComputed,
 } from '@/common/danmaku/models/meta'
 
 export const CURRENT_SCHEMA_VERSION = 2
@@ -25,7 +26,9 @@ export const getNextEpisodeId = (episodeId: number) => {
   return episodeId + 1
 }
 
-export const getNextEpisodeMeta = (meta: DanDanPlayMeta) => {
+export const getNextEpisodeMeta = (
+  meta: DanDanPlayMeta
+): DanDanPlayMetaComputed => {
   return {
     ...meta,
     episodeId: getNextEpisodeId(meta.episodeId),

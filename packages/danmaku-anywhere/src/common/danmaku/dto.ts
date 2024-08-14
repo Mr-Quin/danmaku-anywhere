@@ -3,7 +3,7 @@ import type { DanDanCommentAPIParams } from '@danmaku-anywhere/danmaku-provider/
 import type { DanmakuFetchOptions } from './types'
 
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DanDanPlayMeta } from '@/common/danmaku/models/meta'
+import type { DanDanPlayMetaDto } from '@/common/danmaku/models/meta'
 
 export type DanmakuGetOneDto =
   | {
@@ -24,7 +24,7 @@ export interface DanmakuGetBySeasonDto {
 }
 
 export interface DanmakuFetchDDPDto {
-  meta: DanDanPlayMeta
+  meta: DanDanPlayMetaDto
   params?: Partial<DanDanCommentAPIParams>
   options?: DanmakuFetchOptions
 }
