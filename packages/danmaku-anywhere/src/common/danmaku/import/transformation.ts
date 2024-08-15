@@ -3,7 +3,7 @@ import type { z } from 'zod'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { importSchemaV1 } from '@/common/danmaku/import/v1'
 import type { importSchemaV2 } from '@/common/danmaku/import/v2'
-import type { DanmakuInsert } from '@/common/danmaku/models/entity/db'
+import type { DanmakuInsert } from '@/common/danmaku/models/danmaku'
 import { CURRENT_SCHEMA_VERSION } from '@/common/danmaku/utils'
 
 export function transformV1(

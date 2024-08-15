@@ -9,6 +9,7 @@ import type {
   DanmakuFetchDto,
   DanmakuGetManyDto,
   DanmakuGetOneDto,
+  CustomDanmakuCreateData,
 } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type {
@@ -20,8 +21,7 @@ import type {
   Danmaku,
   DanmakuInsert,
   DanmakuLite,
-} from '@/common/danmaku/models/entity/db'
-import type { CustomDanmakuCreateData } from '@/common/danmaku/models/entity/dto'
+} from '@/common/danmaku/models/danmaku'
 import type {
   BiliBiliMeta,
   DanDanPlayMetaDto,
@@ -48,150 +48,6 @@ export class DanmakuService {
       'DanmakuService is only available in service worker'
     )
     this.logger = Logger.sub('[DanmakuService]')
-  }
-
-  async upsertDanDanPlay(
-    meta: DanDanPlayMetaDto,
-    params: Partial<DanDanCommentAPIParams> = {},
-    options: DanmakuFetchOptions = {}
-  ): Promise<DanDanPlayDanmaku> {
-    const { episodeId } = meta
-
-    const existingDanmaku = await this.ddpTable.get({
-      provider: DanmakuSourceType.DDP,
-      episodeId: episodeId,
-    })
-
-    if (existingDanmaku && !options.forceUpdate) {
-      this.logger.debug('Danmaku found in db', existingDanmaku)
-      assertIsDanmaku(existingDanmaku, DanmakuSourceType.DDP)
-      return existingDanmaku
-    }
-
-    if (options.forceUpdate) {
-      this.logger.debug('Force update flag set, bypassed cache')
-    } else {
-      this.logger.debug('Danmaku not found in db, fetching from server')
-    }
-
-    const result = await this.danDanPlayService.getDanmaku(meta, params)
-
-    // prevent updating db if new result has fewer comments than the old one
-    if (
-      !options.forceUpdate &&
-      existingDanmaku &&
-      existingDanmaku.commentCount > 0 &&
-      existingDanmaku.commentCount >= result.comments.length
-    ) {
-      this.logger.debug('New danmaku has less comments, skip caching')
-      assertIsDanmaku(existingDanmaku, DanmakuSourceType.DDP)
-      return existingDanmaku
-    }
-
-    const newEntry: DanDanPlayDanmakuInsert = {
-      provider: DanmakuSourceType.DDP,
-      comments: result.comments,
-      commentCount: result.comments.length,
-      meta: result.meta,
-      episodeId: episodeId,
-      episodeTitle: result.meta.episodeTitle,
-      seasonId: meta.animeId,
-      seasonTitle: meta.animeTitle,
-      params: result.params,
-      timeUpdated: Date.now(),
-      version: 1 + (existingDanmaku?.version ?? 0),
-      schemaVersion: CURRENT_SCHEMA_VERSION,
-    }
-
-    if (existingDanmaku) {
-      this.logger.debug('Updating existing danmaku entry')
-      await this.ddpTable.update(existingDanmaku.id, newEntry)
-
-      return {
-        ...newEntry,
-        id: existingDanmaku.id,
-      }
-    } else {
-      const id = await this.ddpTable.put(newEntry)
-
-      this.logger.debug('Cached danmaku to db')
-
-      return {
-        ...newEntry,
-        id: id,
-      }
-    }
-  }
-
-  async upsertBilibili(
-    meta: BiliBiliMeta,
-    options: DanmakuFetchOptions = {}
-  ): Promise<BiliBiliDanmaku> {
-    const { cid } = meta
-
-    const existingDanmaku = await this.ddpTable.get({
-      provider: DanmakuSourceType.Bilibili,
-      episodeId: cid,
-    })
-
-    if (existingDanmaku && !options.forceUpdate) {
-      this.logger.debug('Danmaku found in db', existingDanmaku)
-      assertIsDanmaku(existingDanmaku, DanmakuSourceType.Bilibili)
-      return existingDanmaku
-    }
-
-    if (options.forceUpdate) {
-      this.logger.debug('Force update flag set, bypassed cache')
-    } else {
-      this.logger.debug('Danmaku not found in db, fetching from server')
-    }
-
-    const result = await this.bilibiliService.getDanmaku(meta.cid, meta.aid)
-
-    // prevent updating db if new result has fewer comments than the old one
-    if (
-      !options.forceUpdate &&
-      existingDanmaku &&
-      existingDanmaku.commentCount > 0 &&
-      existingDanmaku.commentCount >= result.length
-    ) {
-      this.logger.debug('New danmaku has less comments, skip caching')
-      assertIsDanmaku(existingDanmaku, DanmakuSourceType.Bilibili)
-      return existingDanmaku
-    }
-
-    const newEntry: BiliBiliDanmakuInsert = {
-      provider: DanmakuSourceType.Bilibili,
-      comments: result,
-      commentCount: result.length,
-      meta: meta,
-      episodeId: meta.cid,
-      episodeTitle: meta.title,
-      seasonId: meta.seasonId,
-      seasonTitle: meta.seasonTitle,
-      timeUpdated: Date.now(),
-      version: 1 + (existingDanmaku?.version ?? 0),
-      schemaVersion: CURRENT_SCHEMA_VERSION,
-    }
-
-    if (existingDanmaku) {
-      this.logger.debug('Updating existing danmaku entry')
-      await this.ddpTable.update(existingDanmaku.id, newEntry)
-
-      return {
-        ...newEntry,
-        id: existingDanmaku.id,
-      }
-    } else {
-      const id = await this.ddpTable.put(newEntry)
-
-      this.logger.debug('Cached danmaku to db')
-
-      return {
-        ...newEntry,
-        id: id,
-      }
-    }
   }
 
   async getDanmaku(data: DanmakuFetchDto): Promise<Danmaku> {

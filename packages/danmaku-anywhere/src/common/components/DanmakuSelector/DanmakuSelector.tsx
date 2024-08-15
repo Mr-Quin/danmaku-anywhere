@@ -6,9 +6,8 @@ import { EpisodeOption } from './EpisodeOption'
 
 import { ListboxComponent } from '@/common/components/DanmakuSelector/ListboxComponent'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DanmakuLite } from '@/common/danmaku/models/entity/db'
+import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
-import { getKey } from '@/common/danmaku/utils'
 import { matchWithPinyin, stopKeyboardPropagation } from '@/common/utils/utils'
 
 type FilterOptions = ReturnType<typeof createFilterOptions<DanmakuLite>>
@@ -61,7 +60,7 @@ export const DanmakuSelector = ({ value, onChange }: DanmakuSelectorProps) => {
         return (
           <EpisodeOption
             {...props}
-            key={getKey(option)}
+            key={option.id}
             option={options.find((o) => isOptionEqualToValue(o, option))!}
             isLoading={isFetching}
           />

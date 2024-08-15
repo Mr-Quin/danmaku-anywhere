@@ -1,12 +1,9 @@
 import type { BilibiliBangumiInfo } from '@danmaku-anywhere/danmaku-provider/bilibili'
-import type {
-  DanDanAnime,
-  DanDanAnimeSearchAPIParams,
-} from '@danmaku-anywhere/danmaku-provider/ddp'
 
 import type { RPCDef } from '../../rpc/types'
 
 import type {
+  GetEpisodeDto,
   MediaSearchMultiParamsData,
   MediaSearchParamsData,
   MediaSearchResult,
@@ -17,13 +14,13 @@ import type {
   DanmakuFetchDto,
   DanmakuGetManyDto,
   DanmakuGetOneDto,
+  CustomDanmakuCreateData,
 } from '@/common/danmaku/dto'
 import type {
   Danmaku,
   DanmakuInsert,
   DanmakuLite,
-} from '@/common/danmaku/models/entity/db'
-import type { CustomDanmakuCreateData } from '@/common/danmaku/models/entity/dto'
+} from '@/common/danmaku/models/danmaku'
 import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 
 type IconSetDto =
@@ -48,10 +45,9 @@ type IconMethods = {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type AnimeMethods = {
-  animeSearch: RPCDef<DanDanAnimeSearchAPIParams, DanDanAnime[]>
   mediaSearch: RPCDef<MediaSearchParamsData, MediaSearchResult>
   mediaSearchMultiple: RPCDef<MediaSearchMultiParamsData, MediaSearchResult[]>
-  getBilibiliEpisode: RPCDef<number, BilibiliBangumiInfo>
+  episodesGet: RPCDef<GetEpisodeDto, BilibiliBangumiInfo>
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

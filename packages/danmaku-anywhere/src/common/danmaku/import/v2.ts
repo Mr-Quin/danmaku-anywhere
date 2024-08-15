@@ -13,7 +13,7 @@ const baseSchemaV2 = z.object({
   schemaVersion: z.literal(2),
 })
 
-export const v2 = {
+const v2 = {
   dandanPlay: z.discriminatedUnion('provider', [
     baseSchemaV2.extend({
       provider: z.literal(DanmakuSourceType.DDP),

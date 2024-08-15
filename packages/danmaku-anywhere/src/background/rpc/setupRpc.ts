@@ -5,6 +5,7 @@ import { IconService } from '../services/IconService'
 import { ProviderService } from '../services/ProviderService'
 import { TitleMappingService } from '../services/TitleMappingService'
 
+import type { GetEpisodeDto } from '@/common/anime/dto'
 import { Logger } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
 import { RpcException } from '@/common/rpc/types'
@@ -17,19 +18,14 @@ export const setupRpc = () => {
   const titleMappingService = new TitleMappingService()
 
   const rpcServer = createRpcServer<BackgroundMethods>({
-    animeSearch: async (input) => {
-      const res = await providerService.searchDanDanPlay(input)
-
-      return res
-    },
     mediaSearch: async (input) => {
       return providerService.searchByProvider(input.provider, input.params)
     },
     mediaSearchMultiple: async (input) => {
       return providerService.searchByProviders(input.params, input.providers)
     },
-    getBilibiliEpisode: async (mediaId) => {
-      return providerService.getBiliBiliEpisodes(mediaId)
+    episodesGet: async (data: GetEpisodeDto) => {
+      return providerService.getEpisodes(data)
     },
     iconSet: async (data, sender) => {
       if (sender.tab?.id === undefined) {

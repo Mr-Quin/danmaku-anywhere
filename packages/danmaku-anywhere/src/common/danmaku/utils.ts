@@ -1,12 +1,6 @@
 import { DanmakuSourceType } from '@/common/danmaku/enums'
+import type { Danmaku, DanmakuLite } from '@/common/danmaku/models/danmaku'
 import type {
-  CustomDanmaku,
-  DanDanPlayDanmaku,
-  Danmaku,
-  DanmakuLite,
-} from '@/common/danmaku/models/entity/db'
-import type {
-  CustomMeta,
   DanDanPlayMeta,
   DanDanPlayMetaComputed,
   DanDanPlayMetaDto,
@@ -19,11 +13,7 @@ export const computeEpisodeId = (animeId: number, episodeNumber: number) => {
   return animeId * 10000 + episodeNumber
 }
 
-export const episodeIdToEpisodeNumber = (episodeId: number) => {
-  return episodeId % 10000
-}
-
-export const getNextEpisodeId = (episodeId: number) => {
+const getNextEpisodeId = (episodeId: number) => {
   return episodeId + 1
 }
 
@@ -37,10 +27,6 @@ export const getNextEpisodeMeta = (
   }
 }
 
-export const getKey = (danmaku: DanmakuLite) => {
-  return `${danmaku.provider}-${danmaku.episodeId ?? danmaku.episodeTitle}`
-}
-
 export const getEpisodeId = (meta: DanmakuMeta | DanDanPlayMetaDto) => {
   switch (meta.provider) {
     case DanmakuSourceType.DDP:
@@ -50,10 +36,6 @@ export const getEpisodeId = (meta: DanmakuMeta | DanDanPlayMetaDto) => {
     default:
       throw new Error(`Unsupported provider: ${meta.provider}`)
   }
-}
-
-export const isCustomDanmaku = (meta: DanmakuMeta): meta is CustomMeta => {
-  return meta.provider === DanmakuSourceType.Custom
 }
 
 export const danmakuToString = (danmaku: DanmakuLite) => {
@@ -84,13 +66,4 @@ export function isDanmakuType<T extends DanmakuSourceType>(
   provider: T
 ): danmaku is Extract<DanmakuLite, { provider: T }> {
   return danmaku.provider === provider
-}
-
-export const danmakuUtils = {
-  isDanDanPlay(danmaku: DanmakuLite): danmaku is DanDanPlayDanmaku {
-    return danmaku.provider === DanmakuSourceType.DDP
-  },
-  isCustomCache(danmaku: Danmaku): danmaku is CustomDanmaku {
-    return danmaku.provider === DanmakuSourceType.Custom
-  },
 }

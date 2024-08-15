@@ -6,7 +6,7 @@ import type {
   CustomDanmakuInsert,
   Danmaku,
   DanmakuInsert,
-} from '@/common/danmaku/models/entity/db'
+} from '@/common/danmaku/models/danmaku'
 import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 
 class DanmakuAnywhereDb extends Dexie {

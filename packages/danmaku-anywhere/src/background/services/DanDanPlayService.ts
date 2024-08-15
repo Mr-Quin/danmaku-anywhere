@@ -5,7 +5,7 @@ import type {
 import { fetchComments } from '@danmaku-anywhere/danmaku-provider/ddp'
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 
-import type { DanDanPlayDanmaku } from '@/common/danmaku/models/entity/db'
+import type { DanDanPlayDanmaku } from '@/common/danmaku/models/danmaku'
 import type {
   DanDanPlayMeta,
   DanDanPlayMetaDto,
