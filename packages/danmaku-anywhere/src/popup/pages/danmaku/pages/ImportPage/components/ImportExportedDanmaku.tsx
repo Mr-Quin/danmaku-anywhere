@@ -1,14 +1,10 @@
-import { DialogContentText, Divider, Typography } from '@mui/material'
+import { DialogContentText, Typography } from '@mui/material'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type {
-  CustomDanmakuInsert,
-  DanDanPlayDanmakuInsert,
-  DanmakuInsert,
-} from '@/common/danmaku/models/entity/db'
+import type { DanmakuInsert } from '@/common/danmaku/models/entity/db'
 import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
 import type { ImportParseResult } from '@/common/danmaku/types'
 import { Logger } from '@/common/Logger'
@@ -33,11 +29,7 @@ const sortDanmakuCacheImportDto = (a: DanmakuInsert, b: DanmakuInsert) => {
       }
     }
     // Otherwise, sort by episodeTitle
-    else if (a.meta.episodeTitle && b.meta.episodeTitle) {
-      return a.meta.episodeTitle.localeCompare(b.meta.episodeTitle)
-    } else {
-      return 0
-    }
+    return a.episodeTitle.localeCompare(b.episodeTitle)
   }
   return a.seasonTitle.localeCompare(b.seasonTitle)
 }
@@ -71,16 +63,7 @@ export const ImportExportedDanmaku = ({
     },
   })
 
-  const ddpResults: DanDanPlayDanmakuInsert[] = []
-  const customResults: CustomDanmakuInsert[] = []
-
-  data.succeeded?.forEach((result) => {
-    if (result.provider === DanmakuSourceType.DDP) {
-      ddpResults.push(result)
-    } else {
-      customResults.push(result)
-    }
-  })
+  const ddpResults: DanmakuInsert[] = []
 
   return (
     <ImportResultDialog
@@ -97,23 +80,7 @@ export const ImportExportedDanmaku = ({
           {ddpResults
             .toSorted(sortDanmakuCacheImportDto)
             .map((result, index) => {
-              const title = `${result.meta.animeTitle} - ${result.meta.episodeTitle} (${result.comments.length})`
-              return (
-                <DialogContentText key={index} noWrap title={title}>
-                  {title}
-                </DialogContentText>
-              )
-            })}
-        </>
-      )}
-      {customResults.length > 0 && (
-        <>
-          <Divider sx={{ my: 1 }} />
-          <Typography gutterBottom>{t('danmaku.type.Custom')}</Typography>
-          {customResults
-            .toSorted(sortDanmakuCacheImportDto)
-            .map((result, index) => {
-              const title = `${result.meta.seasonTitle} - ${result.meta.episodeTitle} (${result.comments.length})`
+              const title = `${result.seasonTitle} - ${result.episodeTitle} (${result.comments.length})`
               return (
                 <DialogContentText key={index} noWrap title={title}>
                   {title}

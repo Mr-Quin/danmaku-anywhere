@@ -1,33 +1,46 @@
 import type { DanDanCommentAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
+import { match } from 'ts-pattern'
 
-import { ProviderService } from '@/background/services/ProviderService'
+import { BilibiliService } from '@/background/services/BilibiliService'
+import { DanDanPlayService } from '@/background/services/DanDanPlayService'
 import type {
   DanmakuDeleteDto,
   DanmakuGetBySeasonDto,
+  DanmakuFetchDto,
   DanmakuGetManyDto,
   DanmakuGetOneDto,
 } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type {
+  BiliBiliDanmaku,
+  BiliBiliDanmakuInsert,
   CustomDanmakuInsert,
   DanDanPlayDanmaku,
   DanDanPlayDanmakuInsert,
+  Danmaku,
   DanmakuInsert,
   DanmakuLite,
 } from '@/common/danmaku/models/entity/db'
 import type { CustomDanmakuCreateData } from '@/common/danmaku/models/entity/dto'
-import type { DanDanPlayMetaDto } from '@/common/danmaku/models/meta'
+import type {
+  BiliBiliMeta,
+  DanDanPlayMetaDto,
+} from '@/common/danmaku/models/meta'
 import type { DanmakuFetchOptions } from '@/common/danmaku/types'
-import { assertIsDanmaku, CURRENT_SCHEMA_VERSION } from '@/common/danmaku/utils'
+import {
+  assertIsDanmaku,
+  CURRENT_SCHEMA_VERSION,
+  getEpisodeId,
+} from '@/common/danmaku/utils'
 import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
-import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 export class DanmakuService {
   private ddpTable = db.danmakuCache
   private logger: typeof Logger
-  private providerService = new ProviderService()
+  private bilibiliService = new BilibiliService()
+  private danDanPlayService = new DanDanPlayService()
 
   constructor() {
     invariant(
@@ -61,7 +74,7 @@ export class DanmakuService {
       this.logger.debug('Danmaku not found in db, fetching from server')
     }
 
-    const result = await this.providerService.getDanDanPlayDanmaku(meta, params)
+    const result = await this.danDanPlayService.getDanmaku(meta, params)
 
     // prevent updating db if new result has fewer comments than the old one
     if (
@@ -110,11 +123,163 @@ export class DanmakuService {
     }
   }
 
+  async upsertBilibili(
+    meta: BiliBiliMeta,
+    options: DanmakuFetchOptions = {}
+  ): Promise<BiliBiliDanmaku> {
+    const { cid } = meta
+
+    const existingDanmaku = await this.ddpTable.get({
+      provider: DanmakuSourceType.Bilibili,
+      episodeId: cid,
+    })
+
+    if (existingDanmaku && !options.forceUpdate) {
+      this.logger.debug('Danmaku found in db', existingDanmaku)
+      assertIsDanmaku(existingDanmaku, DanmakuSourceType.Bilibili)
+      return existingDanmaku
+    }
+
+    if (options.forceUpdate) {
+      this.logger.debug('Force update flag set, bypassed cache')
+    } else {
+      this.logger.debug('Danmaku not found in db, fetching from server')
+    }
+
+    const result = await this.bilibiliService.getDanmaku(meta.cid, meta.aid)
+
+    // prevent updating db if new result has fewer comments than the old one
+    if (
+      !options.forceUpdate &&
+      existingDanmaku &&
+      existingDanmaku.commentCount > 0 &&
+      existingDanmaku.commentCount >= result.length
+    ) {
+      this.logger.debug('New danmaku has less comments, skip caching')
+      assertIsDanmaku(existingDanmaku, DanmakuSourceType.Bilibili)
+      return existingDanmaku
+    }
+
+    const newEntry: BiliBiliDanmakuInsert = {
+      provider: DanmakuSourceType.Bilibili,
+      comments: result,
+      commentCount: result.length,
+      meta: meta,
+      episodeId: meta.cid,
+      episodeTitle: meta.title,
+      seasonId: meta.seasonId,
+      seasonTitle: meta.seasonTitle,
+      timeUpdated: Date.now(),
+      version: 1 + (existingDanmaku?.version ?? 0),
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+    }
+
+    if (existingDanmaku) {
+      this.logger.debug('Updating existing danmaku entry')
+      await this.ddpTable.update(existingDanmaku.id, newEntry)
+
+      return {
+        ...newEntry,
+        id: existingDanmaku.id,
+      }
+    } else {
+      const id = await this.ddpTable.put(newEntry)
+
+      this.logger.debug('Cached danmaku to db')
+
+      return {
+        ...newEntry,
+        id: id,
+      }
+    }
+  }
+
+  async getDanmaku(data: DanmakuFetchDto): Promise<Danmaku> {
+    const { meta, params = {}, options = {} } = data
+    const episodeId = getEpisodeId(meta)
+    const provider = meta.provider
+
+    const existingDanmaku = await this.ddpTable.get({ provider, episodeId })
+
+    if (existingDanmaku && !options.forceUpdate) {
+      this.logger.debug('Danmaku found in db', existingDanmaku)
+      assertIsDanmaku(existingDanmaku, provider)
+      return existingDanmaku
+    }
+
+    if (options.forceUpdate) {
+      this.logger.debug('Force update flag set, bypassed cache')
+    } else {
+      this.logger.debug('Danmaku not found in db, fetching from server')
+    }
+
+    const danmaku = await match(meta)
+      .with({ provider: DanmakuSourceType.Bilibili }, async (meta) => {
+        const result = await this.bilibiliService.getDanmaku(meta.cid, meta.aid)
+        const danmaku: BiliBiliDanmakuInsert = {
+          provider: meta.provider,
+          comments: result,
+          commentCount: result.length,
+          meta,
+          episodeId,
+          episodeTitle: meta.title,
+          seasonId: meta.seasonId,
+          seasonTitle: meta.seasonTitle,
+          timeUpdated: Date.now(),
+          version: 1 + (existingDanmaku?.version ?? 0),
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+        }
+
+        return danmaku
+      })
+      .with({ provider: DanmakuSourceType.DDP }, async (meta) => {
+        const result = await this.danDanPlayService.getDanmaku(meta, params)
+        const danmaku: DanDanPlayDanmakuInsert = {
+          provider: meta.provider,
+          comments: result.comments,
+          commentCount: result.comments.length,
+          meta: result.meta,
+          episodeId,
+          episodeTitle: result.meta.episodeTitle,
+          seasonId: meta.animeId,
+          seasonTitle: meta.animeTitle,
+          params: result.params,
+          timeUpdated: Date.now(),
+          version: 1 + (existingDanmaku?.version ?? 0),
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+        }
+
+        return danmaku
+      })
+      .otherwise(() => {
+        throw new Error(`Unsupported provider: ${provider}`)
+      })
+
+    if (existingDanmaku) {
+      this.logger.debug('Updating existing danmaku entry')
+      await this.ddpTable.update(existingDanmaku.id, danmaku)
+
+      return {
+        ...danmaku,
+        id: existingDanmaku.id,
+      }
+    } else {
+      const id = await this.ddpTable.put(danmaku)
+
+      this.logger.debug('Cached danmaku to db')
+
+      return {
+        ...danmaku,
+        id: id,
+      }
+    }
+  }
+
   async delete(data: DanmakuDeleteDto) {
     return this.ddpTable.delete(data)
   }
 
-  async createCustom(data: CustomDanmakuCreateData[]) {
+  async insertCustom(data: CustomDanmakuCreateData[]) {
     const createCache = (dto: CustomDanmakuCreateData) => {
       const { comments, seasonTitle, episodeTitle } = dto
 
@@ -150,29 +315,25 @@ export class DanmakuService {
    * which may cause performance issues or even crash when there are too many danmaku in db
    */
   async getAll() {
-    return this.ddpTable.orderBy(['provider+episodeId']).toArray()
+    return this.ddpTable.toArray()
   }
 
   /**
    * Get only the count and metadata of all danmaku in db
    */
-  async getAllLite(type?: DanmakuSourceType) {
+  async getAllLite(provider?: DanmakuSourceType) {
     const cache: DanmakuLite[] = []
 
-    await this.ddpTable
-      // .orderBy(['provider+episodeId'])
-      .filter((d) => {
-        if (type) {
-          return d.provider === type
-        }
-        return true
-      })
-      .each((item) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { comments: _, ...rest } = item
+    const collection = provider
+      ? this.ddpTable.where({ provider })
+      : this.ddpTable
 
-        cache.push(rest)
-      })
+    await collection.each((item) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { comments: _, ...rest } = item
+
+      cache.push(rest)
+    })
 
     return cache
   }

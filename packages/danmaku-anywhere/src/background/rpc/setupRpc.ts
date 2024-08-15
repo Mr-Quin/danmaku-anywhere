@@ -11,25 +11,25 @@ import { RpcException } from '@/common/rpc/types'
 import type { BackgroundMethods } from '@/common/rpcClient/background/types'
 
 export const setupRpc = () => {
-  const animeService = new ProviderService()
+  const providerService = new ProviderService()
   const iconService = new IconService()
   const danmakuService = new DanmakuService()
   const titleMappingService = new TitleMappingService()
 
   const rpcServer = createRpcServer<BackgroundMethods>({
     animeSearch: async (input) => {
-      const res = await animeService.searchDanDanPlay(input)
+      const res = await providerService.searchDanDanPlay(input)
 
       return res
     },
     mediaSearch: async (input) => {
-      return animeService.searchByProvider(input.provider, input.params)
+      return providerService.searchByProvider(input.provider, input.params)
     },
     mediaSearchMultiple: async (input) => {
-      return animeService.searchByProviders(input.params, input.providers)
+      return providerService.searchByProviders(input.params, input.providers)
     },
     getBilibiliEpisode: async (mediaId) => {
-      return animeService.getBiliBiliEpisodes(mediaId)
+      return providerService.getBiliBiliEpisodes(mediaId)
     },
     iconSet: async (data, sender) => {
       if (sender.tab?.id === undefined) {
@@ -73,17 +73,13 @@ export const setupRpc = () => {
       const result = await danmakuService.getByAnimeId(data)
       return result
     },
-    danmakuFetchDDP: async (data) => {
-      const result = await danmakuService.upsertDanDanPlay(
-        data.meta,
-        data.params,
-        data.options
-      )
+    danmakuFetch: async (data) => {
+      const result = await danmakuService.getDanmaku(data)
 
       return result
     },
     danmakuCreateCustom: async (data) => {
-      return danmakuService.createCustom(data)
+      return danmakuService.insertCustom(data)
     },
     danmakuImport: async (data) => {
       return danmakuService.import(data)

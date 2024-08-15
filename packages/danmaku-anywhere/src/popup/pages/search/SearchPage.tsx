@@ -15,7 +15,7 @@ import { Center } from '@/common/components/Center'
 import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
 import { SearchResultList } from '@/common/components/MediaList/SearchResultList'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DanDanPlayMeta } from '@/common/danmaku/models/meta'
+import type { BiliBiliMeta, DanDanPlayMeta } from '@/common/danmaku/models/meta'
 import { useDanmakuQuerySuspense } from '@/common/danmaku/queries/useDanmakuQuerySuspense'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -38,7 +38,7 @@ export const SearchPage = () => {
 
   const { fetch } = useFetchDanmaku()
 
-  const handleFetchDanmaku = async (meta: DanDanPlayMeta) => {
+  const handleFetchDanmaku = async (meta: DanDanPlayMeta | BiliBiliMeta) => {
     await fetch({
       meta,
       options: {
@@ -107,9 +107,35 @@ export const SearchPage = () => {
                       showIcon
                       episodeTitle={episode.long_title || episode.share_copy}
                       tooltip={episode.share_copy}
-                      queryKey={[]}
-                      queryDanmaku={async () => null}
-                      mutateDanmaku={async () => undefined}
+                      queryKey={useDanmakuQuerySuspense.queryKey({
+                        provider: DanmakuSourceType.Bilibili,
+                        episodeId: episode.cid,
+                      })}
+                      queryDanmaku={async () => {
+                        return await chromeRpcClient.danmakuGetOne({
+                          provider: DanmakuSourceType.Bilibili,
+                          episodeId: episode.cid,
+                        })
+                      }}
+                      mutateDanmaku={() =>
+                        handleFetchDanmaku({
+                          cid: episode.cid,
+                          aid: episode.aid,
+                          seasonId: meta.season_id,
+                          title: episode.long_title || episode.share_copy,
+                          seasonTitle: meta.title,
+                          mediaType: meta.type,
+                          provider: DanmakuSourceType.Bilibili,
+                        })
+                      }
+                      secondaryText={(data) =>
+                        `${new Date(data.timeUpdated).toLocaleDateString()} -  ${t(
+                          'danmaku.commentCounted',
+                          {
+                            count: data.commentCount,
+                          }
+                        )}`
+                      }
                       key={episode.cid}
                     />
                   )

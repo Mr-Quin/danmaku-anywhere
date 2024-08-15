@@ -10,7 +10,7 @@ import {
 } from '@mui/material'
 import { type HTMLAttributes, type SyntheticEvent } from 'react'
 
-import { isCustomDanmaku } from '../../danmaku/utils'
+import { isDanmakuType } from '../../danmaku/utils'
 
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { DanmakuLite } from '@/common/danmaku/models/entity/db'
@@ -29,7 +29,7 @@ export const EpisodeOption = (
     e.preventDefault()
     e.stopPropagation()
 
-    if (isCustomDanmaku(option.meta)) return
+    if (isDanmakuType(option, DanmakuSourceType.Custom)) return
 
     void fetch({
       meta: option.meta,

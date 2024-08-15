@@ -73,6 +73,8 @@ export const bilibiliBangumiInfoResponseSchema =
         }),
         title: z.string(),
         type: z.nativeEnum(BiliBiliMediaType),
+        media_id: z.number(),
+        season_id: z.number(),
       })
       .optional(),
   })
