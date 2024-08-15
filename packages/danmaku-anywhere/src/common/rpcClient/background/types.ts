@@ -13,13 +13,12 @@ import type {
 } from '@/common/anime/dto'
 import type {
   DanmakuDeleteDto,
-  DanmakuFetchDDPDto,
   DanmakuGetBySeasonDto,
+  DanmakuFetchDto,
   DanmakuGetManyDto,
   DanmakuGetOneDto,
 } from '@/common/danmaku/dto'
 import type {
-  DanDanPlayDanmaku,
   Danmaku,
   DanmakuInsert,
   DanmakuLite,
@@ -62,7 +61,7 @@ type DanmakuMethods = {
   danmakuGetOne: RPCDef<DanmakuGetOneDto, Danmaku | null>
   danmakuGetMany: RPCDef<DanmakuGetManyDto, Danmaku[]>
   danmakuGetByAnime: RPCDef<DanmakuGetBySeasonDto, Danmaku[]>
-  danmakuFetchDDP: RPCDef<DanmakuFetchDDPDto, DanDanPlayDanmaku>
+  danmakuFetch: RPCDef<DanmakuFetchDto, Danmaku>
   danmakuCreateCustom: RPCDef<CustomDanmakuCreateData[], void>
   danmakuImport: RPCDef<DanmakuInsert[], void>
   danmakuDelete: RPCDef<DanmakuDeleteDto, void>

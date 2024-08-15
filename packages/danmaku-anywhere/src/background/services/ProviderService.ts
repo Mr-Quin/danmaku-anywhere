@@ -1,27 +1,21 @@
 import * as bilibili from '@danmaku-anywhere/danmaku-provider/bilibili'
-import type { BiliBiliSearchParams } from '@danmaku-anywhere/danmaku-provider/bilibili'
-import type {
-  DanDanAnimeSearchAPIParams,
-  DanDanCommentAPIParams,
-} from '@danmaku-anywhere/danmaku-provider/ddp'
-import { fetchComments } from '@danmaku-anywhere/danmaku-provider/ddp'
+import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 import { match } from 'ts-pattern'
 
+import { BilibiliService } from '@/background/services/BilibiliService'
+import { DanDanPlayService } from '@/background/services/DanDanPlayService'
 import type { MediaSearchParams } from '@/common/anime/dto'
 import { DanmakuProviderType } from '@/common/anime/enums'
-import type { DanDanPlayDanmaku } from '@/common/danmaku/models/entity/db'
-import type {
-  DanDanPlayMeta,
-  DanDanPlayMetaDto,
-} from '@/common/danmaku/models/meta'
 import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
-import { invariant, isServiceWorker, tryCatch } from '@/common/utils/utils'
+import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 export class ProviderService {
   private logger: typeof Logger
   private extensionOptionsService = extensionOptionsService
+  private bilibiliService = new BilibiliService()
+  private danDanPlayService = new DanDanPlayService()
 
   constructor() {
     invariant(isServiceWorker(), 'Provider is only available in service worker')
@@ -32,10 +26,6 @@ export class ProviderService {
     return danDanPlay.searchAnime(searchParams)
   }
 
-  async searchBilibili(searchParams: BiliBiliSearchParams) {
-    return bilibili.searchMedia(searchParams)
-  }
-
   async searchByProvider(
     provider: DanmakuProviderType,
     searchParams: MediaSearchParams
@@ -44,7 +34,7 @@ export class ProviderService {
 
     const data = await match(provider)
       .with(DanmakuProviderType.DanDanPlay, async (provider) => {
-        const data = await this.searchDanDanPlay({
+        const data = await this.danDanPlayService.search({
           anime: searchParams.keyword,
         })
         return {
@@ -53,7 +43,7 @@ export class ProviderService {
         }
       })
       .with(DanmakuProviderType.Bilibili, async (provider) => {
-        const data = await this.searchBilibili({
+        const data = await this.bilibiliService.search({
           keyword: searchParams.keyword,
         })
         return {
@@ -81,68 +71,5 @@ export class ProviderService {
 
   async getBiliBiliEpisodes(mediaId: number) {
     return bilibili.getBangumiInfo(mediaId)
-  }
-
-  private async getDanDanPlayEpisodeTitle(meta: DanDanPlayMetaDto) {
-    const [bangumi, err] = await tryCatch(async () =>
-      danDanPlay.getBangumiAnime(meta.animeId)
-    )
-
-    if (err) {
-      this.logger.debug('Failed to get bangumi data', err)
-      throw err
-    }
-
-    const episode = bangumi.episodes.find((e) => e.episodeId === meta.episodeId)
-
-    return episode?.episodeTitle
-  }
-
-  async getDanDanPlayDanmaku(
-    meta: DanDanPlayMetaDto,
-    params: Partial<DanDanCommentAPIParams> = {}
-  ): Promise<{
-    meta: DanDanPlayMeta
-    comments: DanDanPlayDanmaku['comments']
-    params: DanDanCommentAPIParams
-  }> {
-    const {
-      danmakuSources: {
-        dandanplay: { chConvert: chConvertPreference },
-      },
-    } = await this.extensionOptionsService.get()
-
-    // apply default params, use chConvert specified in options unless provided in params input
-    const paramsCopy: DanDanCommentAPIParams = {
-      chConvert: params.chConvert ?? chConvertPreference,
-      withRelated: params.withRelated ?? true,
-      from: params.from ?? 0,
-    }
-
-    // if title is not provided, try to get it from the server
-    const episodeTitle =
-      meta.episodeTitle ?? (await this.getDanDanPlayEpisodeTitle(meta))
-
-    if (!episodeTitle) {
-      this.logger.debug('Failed to get episode title from server')
-      throw new Error('Failed to get episode title from server')
-    }
-
-    const newMeta = {
-      ...meta,
-      episodeTitle,
-    }
-
-    this.logger.debug('Fetching danmaku', meta, paramsCopy)
-
-    const comments = await fetchComments(meta.episodeId, paramsCopy)
-
-    this.logger.debug('Danmaku fetched from server', comments)
-
-    return {
-      meta: newMeta,
-      comments,
-      params: paramsCopy,
-    }
   }
 }

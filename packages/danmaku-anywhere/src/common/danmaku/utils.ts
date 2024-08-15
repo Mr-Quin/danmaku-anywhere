@@ -7,14 +7,15 @@ import type {
 } from '@/common/danmaku/models/entity/db'
 import type {
   CustomMeta,
-  DanmakuMeta,
   DanDanPlayMeta,
   DanDanPlayMetaComputed,
+  DanDanPlayMetaDto,
+  DanmakuMeta,
 } from '@/common/danmaku/models/meta'
 
 export const CURRENT_SCHEMA_VERSION = 2
 
-export const getEpisodeId = (animeId: number, episodeNumber: number) => {
+export const computeEpisodeId = (animeId: number, episodeNumber: number) => {
   return animeId * 10000 + episodeNumber
 }
 
@@ -33,6 +34,21 @@ export const getNextEpisodeMeta = (
     ...meta,
     episodeId: getNextEpisodeId(meta.episodeId),
     episodeTitle: undefined,
+  }
+}
+
+export const getKey = (danmaku: DanmakuLite) => {
+  return `${danmaku.provider}-${danmaku.episodeId ?? danmaku.episodeTitle}`
+}
+
+export const getEpisodeId = (meta: DanmakuMeta | DanDanPlayMetaDto) => {
+  switch (meta.provider) {
+    case DanmakuSourceType.DDP:
+      return meta.episodeId
+    case DanmakuSourceType.Bilibili:
+      return meta.cid
+    default:
+      throw new Error(`Unsupported provider: ${meta.provider}`)
   }
 }
 

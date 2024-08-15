@@ -4,7 +4,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useStore } from '../../store/store'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { DanDanPlayDanmaku } from '@/common/danmaku/models/entity/db'
+import type { Danmaku } from '@/common/danmaku/models/entity/db'
 import type { DanDanPlayMetaDto } from '@/common/danmaku/models/meta'
 import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
@@ -20,7 +20,7 @@ interface FetchOptions {
 
 type UseFetchDanmakuMappedOptions = Partial<
   Pick<
-    UseMutationOptions<DanDanPlayDanmaku, Error, FetchOptions, void>,
+    UseMutationOptions<Danmaku, Error, FetchOptions, void>,
     'onSuccess' | 'onError' | 'onMutate'
   >
 >

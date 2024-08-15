@@ -1,7 +1,6 @@
 import type { createFilterOptions } from '@mui/material'
 import { Autocomplete, CircularProgress, TextField } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { match } from 'ts-pattern'
 
 import { EpisodeOption } from './EpisodeOption'
 
@@ -9,6 +8,7 @@ import { ListboxComponent } from '@/common/components/DanmakuSelector/ListboxCom
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { DanmakuLite } from '@/common/danmaku/models/entity/db'
 import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
+import { getKey } from '@/common/danmaku/utils'
 import { matchWithPinyin, stopKeyboardPropagation } from '@/common/utils/utils'
 
 type FilterOptions = ReturnType<typeof createFilterOptions<DanmakuLite>>
@@ -27,29 +27,14 @@ const filterOptions: FilterOptions = (options, { inputValue }) => {
 }
 
 const isOptionEqualToValue = (option: DanmakuLite, value: DanmakuLite) => {
-  return match([option, value])
-    .with(
-      [
-        { provider: DanmakuSourceType.DDP },
-        { provider: DanmakuSourceType.DDP },
-      ],
-      ([option, value]) => {
-        return option.meta.episodeId === value.meta.episodeId
-      }
+  if (option.provider !== value.provider) return false
+  if (option.provider === DanmakuSourceType.Custom) {
+    return (
+      option.seasonTitle === value.seasonTitle &&
+      option.episodeTitle === value.episodeTitle
     )
-    .with(
-      [
-        { provider: DanmakuSourceType.Custom },
-        { provider: DanmakuSourceType.Custom },
-      ],
-      ([option, value]) => {
-        return (
-          option.meta.seasonTitle === value.meta.seasonTitle &&
-          option.meta.episodeTitle === value.meta.episodeTitle
-        )
-      }
-    )
-    .otherwise(() => false)
+  }
+  return option.episodeId === value.episodeId
 }
 
 interface DanmakuSelectorProps {
@@ -76,11 +61,7 @@ export const DanmakuSelector = ({ value, onChange }: DanmakuSelectorProps) => {
         return (
           <EpisodeOption
             {...props}
-            key={
-              option.provider === DanmakuSourceType.DDP
-                ? option.meta.episodeId
-                : `${option.meta.seasonTitle}-${option.meta.episodeTitle}`
-            }
+            key={getKey(option)}
             option={options.find((o) => isOptionEqualToValue(o, option))!}
             isLoading={isFetching}
           />

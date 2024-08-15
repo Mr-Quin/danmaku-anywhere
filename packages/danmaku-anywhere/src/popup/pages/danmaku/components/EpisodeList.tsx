@@ -74,11 +74,7 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
       <List>
         {virtualizer.getVirtualItems().map((virtualItem) => {
           const danmakuLite = episodes[virtualItem.index]
-          const {
-            meta: { episodeTitle },
-            commentCount,
-            id,
-          } = danmakuLite
+          const { episodeTitle, commentCount, id } = danmakuLite
 
           return (
             <ListItem

@@ -34,12 +34,9 @@ const partitionDanmaku = (
       // filter by type
       const items = data.filter((item) => item.provider === type)
 
-      console.log(items)
-
       // group by anime title
       const grouped = Object.groupBy(items, (item) => item.seasonTitle)
 
-      console.log(grouped)
       // map to type and count
       const titles = Object.keys(grouped).map((title) => ({
         title,

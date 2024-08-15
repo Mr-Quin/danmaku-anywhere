@@ -28,14 +28,20 @@ export type DanDanPlayMetaComputed = Omit<DanDanPlayMeta, 'episodeTitle'> & {
 export type DanDanPlayMetaDto = DanDanPlayMeta | DanDanPlayMetaComputed
 
 export interface BiliBiliMeta extends BaseDanmakuMeta {
-  // provider: DanmakuSourceType.Bilibili
+  provider: DanmakuSourceType.Bilibili
   /**
    * All properties come from Bilibili API
    */
   // cid
   cid: number
+
+  // submission id
   bvid?: string
   aid: number
+
+  // season id
+  seasonId: number
+
   title: string
   seasonTitle: string
   mediaType: BiliBiliMediaType
@@ -47,4 +53,4 @@ export interface CustomMeta extends BaseDanmakuMeta {
   episodeTitle: string
 }
 
-export type DanmakuMeta = DanDanPlayMeta | CustomMeta
+export type DanmakuMeta = DanDanPlayMeta | CustomMeta | BiliBiliMeta

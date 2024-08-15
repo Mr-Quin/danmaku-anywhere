@@ -1,6 +1,7 @@
 export enum DanmakuSourceType {
   Custom,
   DDP,
+  Bilibili,
 }
 
 export const danmakuSourceTypeList = Object.values(DanmakuSourceType).filter(
