@@ -1,6 +1,6 @@
 import type { RPCDef } from '../../rpc/types'
 
-import type { Danmaku, DanmakuLite } from '@/common/danmaku/models/entity/db'
+import type { Danmaku, DanmakuLite } from '@/common/danmaku/models/danmaku'
 
 interface TabDanmakuState {
   danmaku?: DanmakuLite

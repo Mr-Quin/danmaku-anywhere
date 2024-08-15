@@ -13,7 +13,7 @@ import { type HTMLAttributes, type SyntheticEvent } from 'react'
 import { isDanmakuType } from '../../danmaku/utils'
 
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DanmakuLite } from '@/common/danmaku/models/entity/db'
+import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 
 export const EpisodeOption = (

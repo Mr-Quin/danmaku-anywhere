@@ -4,7 +4,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useStore } from '../../store/store'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { Danmaku } from '@/common/danmaku/models/entity/db'
+import type { Danmaku } from '@/common/danmaku/models/danmaku'
 import type { DanDanPlayMetaDto } from '@/common/danmaku/models/meta'
 import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'

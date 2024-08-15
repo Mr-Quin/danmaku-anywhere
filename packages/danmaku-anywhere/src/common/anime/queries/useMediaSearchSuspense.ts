@@ -17,6 +17,5 @@ export const useMediaSearchSuspense = (params: MediaSearchParamsData) => {
 useMediaSearchSuspense.queryKey = (params: MediaSearchParamsData) => [
   'media',
   'search',
-
   params,
 ]

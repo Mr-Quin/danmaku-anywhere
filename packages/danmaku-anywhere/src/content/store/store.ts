@@ -4,7 +4,7 @@ import { create } from 'zustand'
 import type { PlaybackStatus } from '../danmaku/integration/MediaObserver'
 
 import { IntegrationType } from '@/common/danmaku/enums'
-import type { Danmaku, DanmakuLite } from '@/common/danmaku/models/entity/db'
+import type { Danmaku, DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { danmakuToString } from '@/common/danmaku/utils'
 import { createSelectors } from '@/common/utils/createSelectors'
 import type { MediaInfo } from '@/content/danmaku/integration/MediaInfo'

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import { hasIntegration } from '@/common/danmaku/enums'
-import type { Danmaku } from '@/common/danmaku/models/entity/db'
+import type { Danmaku } from '@/common/danmaku/models/danmaku'
 import { Logger } from '@/common/Logger'
 import { useMediaElementStore } from '@/content/store/mediaElementStore'
 import { useStore } from '@/content/store/store'

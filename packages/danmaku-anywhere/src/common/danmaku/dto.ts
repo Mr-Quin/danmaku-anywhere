@@ -41,3 +41,12 @@ export interface BiliBiliFetchDto {
 export type DanmakuFetchDto = DanDanPlayFetchDto | BiliBiliFetchDto
 
 export type DanmakuDeleteDto = number
+
+export interface CustomDanmakuCreateData {
+  comments: {
+    p: string
+    m: string
+  }[]
+  seasonTitle: string
+  episodeTitle: string
+}

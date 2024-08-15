@@ -8,6 +8,7 @@ import type { DanmakuProviderType } from '@/common/anime/enums'
 
 export interface MediaSearchParams {
   keyword: string
+  episode?: string
 }
 
 export interface MediaSearchParamsData {
@@ -48,3 +49,8 @@ export type SeasonSearchResult =
       provider: DanmakuProviderType.DanDanPlay
       data: DanDanAnimeSearchResult[number]
     }
+
+export interface GetEpisodeDto {
+  provider: DanmakuProviderType.Bilibili
+  seasonId: number
+}

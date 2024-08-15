@@ -1,11 +1,8 @@
-import * as bilibili from '@danmaku-anywhere/danmaku-provider/bilibili'
-import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
-import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 import { match } from 'ts-pattern'
 
 import { BilibiliService } from '@/background/services/BilibiliService'
 import { DanDanPlayService } from '@/background/services/DanDanPlayService'
-import type { MediaSearchParams } from '@/common/anime/dto'
+import type { GetEpisodeDto, MediaSearchParams } from '@/common/anime/dto'
 import { DanmakuProviderType } from '@/common/anime/enums'
 import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
@@ -18,12 +15,11 @@ export class ProviderService {
   private danDanPlayService = new DanDanPlayService()
 
   constructor() {
-    invariant(isServiceWorker(), 'Provider is only available in service worker')
+    invariant(
+      isServiceWorker(),
+      'ProviderService is only available in service worker'
+    )
     this.logger = Logger.sub('[ProviderService]')
-  }
-
-  async searchDanDanPlay(searchParams: DanDanAnimeSearchAPIParams) {
-    return danDanPlay.searchAnime(searchParams)
   }
 
   async searchByProvider(
@@ -36,6 +32,7 @@ export class ProviderService {
       .with(DanmakuProviderType.DanDanPlay, async (provider) => {
         const data = await this.danDanPlayService.search({
           anime: searchParams.keyword,
+          episode: searchParams.episode,
         })
         return {
           provider,
@@ -69,7 +66,10 @@ export class ProviderService {
     return Promise.all(searchPromises)
   }
 
-  async getBiliBiliEpisodes(mediaId: number) {
-    return bilibili.getBangumiInfo(mediaId)
+  async getEpisodes(data: GetEpisodeDto) {
+    if (data.provider === DanmakuProviderType.Bilibili) {
+      return this.bilibiliService.getBangumiInfo(data.seasonId)
+    }
+    throw new Error('Provider not supported')
   }
 }

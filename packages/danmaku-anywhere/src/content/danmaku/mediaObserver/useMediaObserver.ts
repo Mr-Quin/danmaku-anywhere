@@ -8,7 +8,8 @@ import { useStore } from '../../store/store'
 
 import { useMatchObserver } from './useMatchObserver'
 
-import { useAnimeSearchSuspense } from '@/common/anime/queries/useAnimeSearchSuspense'
+import { DanmakuProviderType } from '@/common/anime/enums'
+import { useMediaSearchSuspense } from '@/common/anime/queries/useMediaSearchSuspense'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { DanDanPlayMetaDto } from '@/common/danmaku/models/meta'
@@ -114,16 +115,22 @@ export const useMediaObserver = () => {
           }
 
           // if no mapping, search for anime to get the animeId
-          const [anime, searchErr] = await tryCatch(() =>
+          const [searchResult, searchErr] = await tryCatch(() =>
             queryClient.fetchQuery({
-              queryKey: useAnimeSearchSuspense.queryKey({
-                anime: state.title,
-                episode: state.episodic ? state.episode.toString() : '',
+              queryKey: useMediaSearchSuspense.queryKey({
+                provider: DanmakuProviderType.DanDanPlay,
+                params: {
+                  keyword: state.title,
+                  episode: state.episodic ? state.episode.toString() : '',
+                },
               }),
               queryFn: () =>
-                chromeRpcClient.animeSearch({
-                  anime: state.title,
-                  episode: state.episodic ? state.episode.toString() : '',
+                chromeRpcClient.mediaSearch({
+                  provider: DanmakuProviderType.DanDanPlay,
+                  params: {
+                    keyword: state.title,
+                    episode: state.episodic ? state.episode.toString() : '',
+                  },
                 }),
             })
           )
@@ -135,6 +142,10 @@ export const useMediaObserver = () => {
             handleError()
             return
           }
+
+          if (searchResult.provider !== DanmakuProviderType.DanDanPlay) return
+
+          const anime = searchResult.data
 
           if (anime.length === 0) {
             Logger.debug(`No anime found for ${state.toString()}`)
