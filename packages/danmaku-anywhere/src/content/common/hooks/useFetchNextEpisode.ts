@@ -8,7 +8,7 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import {
   danmakuToString,
   getNextEpisodeMeta,
-  isDanmakuType,
+  isDanmakuProvider,
 } from '@/common/danmaku/utils'
 import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
@@ -38,7 +38,9 @@ export const useFetchNextEpisode = () => {
   })
 
   const canFetchNextEpisode =
-    !!danmakuLite && isDanmakuType(danmakuLite, DanmakuSourceType.DDP) && manual
+    !!danmakuLite &&
+    isDanmakuProvider(danmakuLite, DanmakuSourceType.DDP) &&
+    manual
 
   const fetchNextEpisodeComments = useEventCallback(async () => {
     if (!canFetchNextEpisode) return

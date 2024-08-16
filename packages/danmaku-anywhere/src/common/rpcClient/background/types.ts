@@ -4,6 +4,8 @@ import type { RPCDef } from '../../rpc/types'
 
 import type {
   GetEpisodeDto,
+  MatchEpisodeInput,
+  MatchEpisodeResult,
   MediaSearchMultiParamsData,
   MediaSearchParamsData,
   MediaSearchResult,
@@ -48,6 +50,7 @@ type AnimeMethods = {
   mediaSearch: RPCDef<MediaSearchParamsData, MediaSearchResult>
   mediaSearchMultiple: RPCDef<MediaSearchMultiParamsData, MediaSearchResult[]>
   episodesGet: RPCDef<GetEpisodeDto, BilibiliBangumiInfo>
+  episodeMatch: RPCDef<MatchEpisodeInput, MatchEpisodeResult>
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

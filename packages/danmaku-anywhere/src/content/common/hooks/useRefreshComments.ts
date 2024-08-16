@@ -5,7 +5,7 @@ import { useStore } from '../../store/store'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { isDanmakuType } from '@/common/danmaku/utils'
+import { isDanmakuProvider } from '@/common/danmaku/utils'
 import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
 
 export const useRefreshComments = () => {
@@ -29,7 +29,7 @@ export const useRefreshComments = () => {
   })
 
   const refreshComments = useEventCallback(async () => {
-    if (!danmakuLite || !isDanmakuType(danmakuLite, DanmakuSourceType.DDP))
+    if (!danmakuLite || !isDanmakuProvider(danmakuLite, DanmakuSourceType.DDP))
       return
 
     mutate({ danmakuMeta: danmakuLite.meta, options: { forceUpdate: true } })

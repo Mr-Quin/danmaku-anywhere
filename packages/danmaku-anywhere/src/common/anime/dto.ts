@@ -5,6 +5,8 @@ import type {
 import type { DanDanAnimeSearchResult } from '@danmaku-anywhere/danmaku-provider/ddp'
 
 import type { DanmakuProviderType } from '@/common/anime/enums'
+import type { IntegrationType } from '@/common/danmaku/enums'
+import type { DanDanPlayMeta } from '@/common/danmaku/models/meta'
 
 export interface MediaSearchParams {
   keyword: string
@@ -54,3 +56,20 @@ export interface GetEpisodeDto {
   provider: DanmakuProviderType.Bilibili
   seasonId: number
 }
+
+export interface MatchEpisodeInput {
+  mapKey: string
+  title: string
+  episodeNumber: number
+  integration: IntegrationType
+}
+
+export type MatchEpisodeResult =
+  | {
+      status: 'success'
+      data: DanDanPlayMeta
+    }
+  | {
+      status: 'disambiguation'
+      data: DanDanPlayMediaSearchResult
+    }

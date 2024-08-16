@@ -1,4 +1,3 @@
-import type { DanDanCommentAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { match } from 'ts-pattern'
 
 import { BilibiliService } from '@/background/services/BilibiliService'
@@ -13,22 +12,15 @@ import type {
 } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type {
-  BiliBiliDanmaku,
   BiliBiliDanmakuInsert,
   CustomDanmakuInsert,
-  DanDanPlayDanmaku,
   DanDanPlayDanmakuInsert,
   Danmaku,
   DanmakuInsert,
   DanmakuLite,
 } from '@/common/danmaku/models/danmaku'
-import type {
-  BiliBiliMeta,
-  DanDanPlayMetaDto,
-} from '@/common/danmaku/models/meta'
-import type { DanmakuFetchOptions } from '@/common/danmaku/types'
 import {
-  assertIsDanmaku,
+  assertDanmakuProvider,
   CURRENT_SCHEMA_VERSION,
   getEpisodeId,
 } from '@/common/danmaku/utils'
@@ -59,7 +51,7 @@ export class DanmakuService {
 
     if (existingDanmaku && !options.forceUpdate) {
       this.logger.debug('Danmaku found in db', existingDanmaku)
-      assertIsDanmaku(existingDanmaku, provider)
+      assertDanmakuProvider(existingDanmaku, provider)
       return existingDanmaku
     }
 
