@@ -5,7 +5,7 @@ import type {
 import type { DanDanAnimeSearchResult } from '@danmaku-anywhere/danmaku-provider/ddp'
 
 import type { DanmakuProviderType } from '@/common/anime/enums'
-import type { IntegrationType } from '@/common/danmaku/enums'
+import type { HasIntegrationType } from '@/common/danmaku/enums'
 import type { DanDanPlayMeta } from '@/common/danmaku/models/meta'
 
 export interface MediaSearchParams {
@@ -61,7 +61,7 @@ export interface MatchEpisodeInput {
   mapKey: string
   title: string
   episodeNumber: number
-  integration: IntegrationType
+  integration: HasIntegrationType
 }
 
 export type MatchEpisodeResult =

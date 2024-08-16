@@ -8,6 +8,7 @@ import { ListboxComponent } from '@/common/components/DanmakuSelector/ListboxCom
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
+import { isDanmakuProvider } from '@/common/danmaku/utils'
 import { matchWithPinyin, stopKeyboardPropagation } from '@/common/utils/utils'
 
 type FilterOptions = ReturnType<typeof createFilterOptions<DanmakuLite>>
@@ -27,7 +28,7 @@ const filterOptions: FilterOptions = (options, { inputValue }) => {
 
 const isOptionEqualToValue = (option: DanmakuLite, value: DanmakuLite) => {
   if (option.provider !== value.provider) return false
-  if (option.provider === DanmakuSourceType.Custom) {
+  if (isDanmakuProvider(option, DanmakuSourceType.Custom)) {
     return (
       option.seasonTitle === value.seasonTitle &&
       option.episodeTitle === value.episodeTitle

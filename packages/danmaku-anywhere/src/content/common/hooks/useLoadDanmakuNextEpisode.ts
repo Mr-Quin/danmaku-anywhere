@@ -20,22 +20,7 @@ export const useLoadDanmakuNextEpisode = () => {
   const manual = useStore.use.manual()
   const toast = useToast.use.toast()
 
-  const { mutate, isPending } = useLoadDanmaku({
-    onMutate: () => {
-      toast.info(t('danmaku.alert.fetchingNext'))
-    },
-    onSuccess: (result) => {
-      toast.success(
-        t('danmaku.alert.mounted', {
-          name: danmakuToString(result),
-          count: result.commentCount,
-        })
-      )
-    },
-    onError: () => {
-      toast.error(t('danmaku.error.nextEpisodeNotFound'))
-    },
-  })
+  const { mutate, isPending } = useLoadDanmaku()
 
   const canFetchNextEpisode =
     !!danmakuLite &&
@@ -47,7 +32,24 @@ export const useLoadDanmakuNextEpisode = () => {
 
     const nextMeta = getNextEpisodeMeta(danmakuLite.meta)
 
-    mutate({ danmakuMeta: nextMeta })
+    toast.info(t('danmaku.alert.fetchingNext'))
+
+    mutate(
+      { danmakuMeta: nextMeta },
+      {
+        onSuccess: (result) => {
+          toast.success(
+            t('danmaku.alert.mounted', {
+              name: danmakuToString(result),
+              count: result.commentCount,
+            })
+          )
+        },
+        onError: () => {
+          toast.error(t('danmaku.error.nextEpisodeNotFound'))
+        },
+      }
+    )
   })
 
   return {

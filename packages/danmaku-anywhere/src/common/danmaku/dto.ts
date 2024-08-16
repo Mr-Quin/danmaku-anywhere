@@ -2,7 +2,10 @@ import type { DanDanCommentAPIParams } from '@danmaku-anywhere/danmaku-provider/
 
 import type { DanmakuFetchOptions } from './types'
 
-import type { DanmakuSourceType, IntegrationType } from '@/common/danmaku/enums'
+import type {
+  DanmakuSourceType,
+  HasIntegrationType,
+} from '@/common/danmaku/enums'
 import type {
   BiliBiliMeta,
   DanDanPlayMetaDto,
@@ -27,7 +30,7 @@ export interface DanmakuGetBySeasonDto {
 }
 
 export interface DanmakuFetchContext {
-  integration: Exclude<IntegrationType, IntegrationType.None>
+  integration: HasIntegrationType
   // Title mapping key
   key: string
 }

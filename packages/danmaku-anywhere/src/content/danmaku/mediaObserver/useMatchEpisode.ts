@@ -41,6 +41,10 @@ export const useMatchEpisode = () => {
               options: {
                 forceUpdate: false,
               },
+              context: {
+                key: v.mapKey,
+                integration: v.integration,
+              },
             },
             {
               onSuccess: (result) => {

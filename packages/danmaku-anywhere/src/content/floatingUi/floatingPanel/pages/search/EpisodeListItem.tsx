@@ -17,10 +17,10 @@ type EpisodeListItemProps = Omit<Required<DanDanPlayMeta>, 'provider'> & {
 const InnerEpisodeListItem = ({ context, ...rest }: EpisodeListItemProps) => {
   const { t } = useTranslation()
   const { episodeId, episodeTitle } = rest
-  const { fetch } = useLoadDanmaku()
+  const { mutate } = useLoadDanmaku()
 
   const handleFetchDanmaku = async () => {
-    await fetch({
+    mutate({
       danmakuMeta: { ...rest, provider: DanmakuSourceType.DDP },
       context,
       options: {
