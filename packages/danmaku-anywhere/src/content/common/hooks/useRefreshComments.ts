@@ -14,25 +14,26 @@ export const useRefreshComments = () => {
   const getAnimeName = useStore((state) => state.getAnimeName)
   const toast = useToast.use.toast()
 
-  const { mutate, isPending } = useLoadDanmaku({
-    onMutate: () => {
-      toast.info(t('danmaku.alert.refreshingDanmaku'))
-    },
-    onSuccess: (result) => {
-      toast.success(
-        t('danmaku.alert.refreshed', {
-          name: getAnimeName(),
-          count: result.commentCount,
-        })
-      )
-    },
-  })
+  const { mutate, isPending } = useLoadDanmaku()
 
   const refreshComments = useEventCallback(async () => {
     if (!danmakuLite || !isDanmakuProvider(danmakuLite, DanmakuSourceType.DDP))
       return
 
-    mutate({ danmakuMeta: danmakuLite.meta, options: { forceUpdate: true } })
+    toast.info(t('danmaku.alert.refreshingDanmaku'))
+    mutate(
+      { danmakuMeta: danmakuLite.meta, options: { forceUpdate: true } },
+      {
+        onSuccess: (result) => {
+          toast.success(
+            t('danmaku.alert.refreshed', {
+              name: getAnimeName(),
+              count: result.commentCount,
+            })
+          )
+        },
+      }
+    )
   })
 
   return {

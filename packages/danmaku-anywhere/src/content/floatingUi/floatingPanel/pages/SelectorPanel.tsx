@@ -42,7 +42,7 @@ export const SelectorPanel = () => {
 
   const episodes = selectedAnime?.episodes ?? []
 
-  const { fetch, isPending } = useLoadDanmaku()
+  const { mutate, isPending } = useLoadDanmaku()
 
   const handleAnimeSelect = (anime: DanDanAnime) => {
     setSelectedAnime(anime)
@@ -63,7 +63,7 @@ export const SelectorPanel = () => {
             integration,
           }
         : undefined
-    await fetch({
+    mutate({
       danmakuMeta: {
         provider: DanmakuSourceType.DDP,
         animeId: selectedAnime.animeId,

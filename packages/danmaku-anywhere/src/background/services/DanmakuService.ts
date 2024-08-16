@@ -222,7 +222,7 @@ export class DanmakuService {
   async getByAnimeId(data: DanmakuGetBySeasonDto) {
     return this.ddpTable
       .filter((d) => {
-        if (d.provider === DanmakuSourceType.DDP) {
+        if (isDanmakuProvider(d, DanmakuSourceType.DDP)) {
           return d.meta.animeId === data.id
         }
         return false

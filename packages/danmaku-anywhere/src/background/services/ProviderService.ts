@@ -148,7 +148,10 @@ export class ProviderService {
       }
     }
 
-    this.logger.debug('Multiple seasons found', searchResult.data)
+    this.logger.debug(
+      'Multiple seasons found, disambiguation required',
+      searchResult.data
+    )
     return {
       status: 'disambiguation',
       data: searchResult,

@@ -6,11 +6,12 @@ import { useStore } from '../../store/store'
 
 import { useMatchObserver } from './useMatchObserver'
 
-import { useMatchEpisode } from '@/common/anime/queries/useMatchEpisode'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { hasIntegration } from '@/common/danmaku/enums'
 import { Logger } from '@/common/Logger'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
 import type { MediaInfo } from '@/content/danmaku/integration/MediaInfo'
+import { useMatchEpisode } from '@/content/danmaku/mediaObserver/useMatchEpisode'
 
 export const useMediaObserver = () => {
   const { t } = useTranslation()
@@ -36,6 +37,8 @@ export const useMediaObserver = () => {
 
     activeObserver.on({
       mediaChange: async (state: MediaInfo) => {
+        if (!hasIntegration(config.integration)) return
+
         resetMediaState()
         setMediaInfo(state)
 
