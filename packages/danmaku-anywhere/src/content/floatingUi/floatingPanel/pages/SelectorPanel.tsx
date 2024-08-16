@@ -59,7 +59,7 @@ export const SelectorPanel = () => {
     const titleMapping =
       mediaInfo && saveMapping && !hasIntegration(integration)
         ? {
-            originalTitle: mediaInfo.toTitleString(),
+            originalTitle: mediaInfo.key(),
             title: selectedAnime.animeTitle,
             animeId: selectedAnime.animeId,
             integration,
@@ -89,7 +89,7 @@ export const SelectorPanel = () => {
   return (
     <Box flexGrow={1}>
       <Typography variant="body1" p={2}>
-        {t('selectorPage.selectAnime', { name: mediaInfo?.toTitleString() })}
+        {t('selectorPage.selectAnime', { name: mediaInfo?.key() })}
       </Typography>
       <List disablePadding dense>
         {animes.map((anime) => {
@@ -160,7 +160,7 @@ export const SelectorPanel = () => {
             {selectedAnime && (
               <FormHelperText>
                 {t('selectorPage.saveMappingAs', {
-                  originalName: mediaInfo?.toTitleString(),
+                  originalName: mediaInfo?.key(),
                   newName: selectedAnime.animeTitle,
                 })}
               </FormHelperText>

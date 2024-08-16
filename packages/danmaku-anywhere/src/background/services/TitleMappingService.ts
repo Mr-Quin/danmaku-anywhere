@@ -33,8 +33,8 @@ export class TitleMappingService {
     return count > 0
   }
 
-  async getMappedTitle(originalTitle: string, integration: IntegrationType) {
-    const mapping = await this.db.get({ originalTitle, integration })
+  async getMappedTitle(key: string, integration: IntegrationType) {
+    const mapping = await this.db.get({ originalTitle: key, integration })
     return mapping
   }
 

@@ -6,7 +6,7 @@ export class MediaInfo {
     public episodic?: boolean
   ) {}
 
-  toTitleString() {
+  key() {
     if (this.season === undefined) return `${this.title}`
     return `${this.title} S${this.season}`
   }

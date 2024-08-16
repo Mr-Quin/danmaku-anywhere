@@ -73,7 +73,7 @@ export const SearchPanel = () => {
       return undefined
 
     return {
-      originalTitle: mediaInfo.toTitleString(),
+      originalTitle: mediaInfo.key(),
       title: animeTitle,
       animeId: animeId,
       integration,

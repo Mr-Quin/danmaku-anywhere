@@ -26,9 +26,13 @@ export class DanDanPlayService {
     return danDanPlay.searchAnime(searchParams)
   }
 
-  private async getEpisodeTitle(meta: DanDanPlayMetaDto) {
+  computeEpisodeId(animeId: number, episodeNumber: number) {
+    return animeId * 10000 + episodeNumber
+  }
+
+  async getEpisodeTitle(animeId: number, episodeId: number) {
     const [bangumi, err] = await tryCatch(async () =>
-      danDanPlay.getBangumiAnime(meta.animeId)
+      danDanPlay.getBangumiAnime(animeId)
     )
 
     if (err) {
@@ -36,7 +40,7 @@ export class DanDanPlayService {
       throw err
     }
 
-    const episode = bangumi.episodes.find((e) => e.episodeId === meta.episodeId)
+    const episode = bangumi.episodes.find((e) => e.episodeId === episodeId)
 
     return episode?.episodeTitle
   }
@@ -63,7 +67,9 @@ export class DanDanPlayService {
     }
 
     // if title is not provided, try to get it from the server
-    const episodeTitle = meta.episodeTitle ?? (await this.getEpisodeTitle(meta))
+    const episodeTitle =
+      meta.episodeTitle ??
+      (await this.getEpisodeTitle(meta.animeId, meta.episodeId))
 
     if (!episodeTitle) {
       this.logger.debug('Failed to get episode title from server')

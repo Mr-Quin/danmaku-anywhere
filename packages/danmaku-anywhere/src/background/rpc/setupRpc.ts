@@ -27,6 +27,9 @@ export const setupRpc = () => {
     episodesGet: async (data: GetEpisodeDto) => {
       return providerService.getEpisodes(data)
     },
+    episodeMatch: async (data) => {
+      return providerService.findMatchingEpisodes(data)
+    },
     iconSet: async (data, sender) => {
       if (sender.tab?.id === undefined) {
         throw new RpcException('No tab id found')
