@@ -1,10 +1,11 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 
+import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
-export const useAllDanmakuQuerySuspense = () => {
+export const useAllDanmakuSuspense = () => {
   const query = useSuspenseQuery({
-    queryKey: ['danmaku ', 'getAllLite'],
+    queryKey: danmakuKeys.all(),
     queryFn: async () => {
       const res = await chromeRpcClient.danmakuGetAllLite()
       if (!res) throw new Error('Failed to get danmaku from cache')
@@ -15,5 +16,3 @@ export const useAllDanmakuQuerySuspense = () => {
 
   return query
 }
-
-useAllDanmakuQuerySuspense.queryKey = () => ['danmaku ', 'getAllLite']

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuGetOneDto } from '@/common/danmaku/dto'
-import { useDanmakuQuerySuspense } from '@/common/danmaku/queries/useDanmakuQuerySuspense'
+import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
 import { danmakuToString } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -18,7 +18,7 @@ export const useMountDanmakuPopup = () => {
   return useMutation({
     mutationFn: async (id: DanmakuGetOneDto) => {
       const data = await queryClient.fetchQuery({
-        queryKey: useDanmakuQuerySuspense.queryKey(id),
+        queryKey: danmakuKeys.one(id),
         queryFn: () => chromeRpcClient.danmakuGetOne(id),
       })
 

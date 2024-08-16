@@ -19,7 +19,7 @@ import {
   useSearchParams,
 } from 'react-router-dom'
 
-import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
+import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useAllDanmakuSuspense'
 import { useDeleteDanmaku } from '@/common/danmaku/queries/useDeleteDanmaku'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useStore } from '@/popup/store'
@@ -30,7 +30,7 @@ interface EpisodeListProps {
 
 export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
   const { t } = useTranslation()
-  const { data, isFetching } = useAllDanmakuQuerySuspense()
+  const { data, isFetching } = useAllDanmakuSuspense()
 
   const [searchParams] = useSearchParams()
 

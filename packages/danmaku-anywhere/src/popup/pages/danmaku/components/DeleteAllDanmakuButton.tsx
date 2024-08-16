@@ -2,12 +2,12 @@ import { Delete } from '@mui/icons-material'
 import { ListItemIcon, ListItemText, MenuItem } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
-import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
+import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useAllDanmakuSuspense'
 import { useStore } from '@/popup/store'
 
 export const DeleteAllDanmakuButton = () => {
   const { setShowConfirmDeleteDialog } = useStore.use.danmaku()
-  const { data, isFetching } = useAllDanmakuQuerySuspense()
+  const { data, isFetching } = useAllDanmakuSuspense()
   const { t } = useTranslation()
 
   return (

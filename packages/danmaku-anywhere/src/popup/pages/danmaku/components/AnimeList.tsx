@@ -17,7 +17,7 @@ import { NoAnime } from './NoAnime'
 
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
-import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
+import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useAllDanmakuSuspense'
 import { matchWithPinyin } from '@/common/utils/utils'
 import { useStore } from '@/popup/store'
 
@@ -56,7 +56,7 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
   const { t } = useTranslation()
   const navigate = useNavigate()
 
-  const { data, isFetching } = useAllDanmakuQuerySuspense()
+  const { data, isFetching } = useAllDanmakuSuspense()
 
   const {
     animeFilter: filter,

@@ -6,7 +6,7 @@ import { ListItemSkeleton } from '@/common/components/MediaList/components/ListI
 import type { DanmakuFetchContext } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { DanDanPlayMeta } from '@/common/danmaku/models/meta'
-import { useDanmakuQuerySuspense } from '@/common/danmaku/queries/useDanmakuQuerySuspense'
+import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useLoadDanmaku } from '@/content/common/hooks/useLoadDanmaku'
 
@@ -34,7 +34,7 @@ const InnerEpisodeListItem = ({ context, ...rest }: EpisodeListItemProps) => {
       showIcon
       episodeTitle={episodeTitle}
       mutateDanmaku={handleFetchDanmaku}
-      queryKey={useDanmakuQuerySuspense.queryKey({
+      queryKey={danmakuKeys.one({
         provider: DanmakuSourceType.DDP,
         episodeId: episodeId,
       })}

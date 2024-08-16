@@ -12,7 +12,12 @@ export const IsConnected = ({ children }: PropsWithChildren) => {
   const { t } = useTranslation()
 
   const { data: activeTabUrl } = useSuspenseQuery({
-    queryKey: ['chrome', 'tabs', 'query'],
+    queryKey: [
+      {
+        scope: 'chrome',
+        kind: 'tab',
+      },
+    ],
     queryFn: async () => {
       try {
         const tabs = await chrome.tabs.query({

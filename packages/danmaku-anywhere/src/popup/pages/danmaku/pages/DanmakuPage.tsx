@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { CommentsTable } from '@/common/components/CommentsTable'
-import { useDanmakuQuerySuspense } from '@/common/danmaku/queries/useDanmakuQuerySuspense'
+import { useDanmakuSuspense } from '@/common/danmaku/queries/useDanmakuSuspense'
 import { TabToolbar } from '@/popup/component/TabToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 import { TabLayout } from '@/popup/layout/TabLayout'
@@ -20,7 +20,7 @@ export const DanmakuPage = () => {
 
   const id = parseInt(searchParams.get('id')!)
 
-  const { data } = useDanmakuQuerySuspense({ id })
+  const { data } = useDanmakuSuspense({ id })
 
   const { selectedAnime, selectedEpisode } = useStore.use.danmaku()
 

@@ -1,20 +1,17 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-
-import { useAllDanmakuQuerySuspense } from './useAllDanmakuQuerySuspense'
-import { useDanmakuQuerySuspense } from './useDanmakuQuerySuspense'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuDeleteDto } from '@/common/danmaku/dto'
+import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 export const useDeleteDanmaku = () => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
 
-  const queryClient = useQueryClient()
-
   return useMutation({
+    mutationKey: danmakuKeys.all(),
     mutationFn: async (danmakuId: DanmakuDeleteDto) => {
       await chromeRpcClient.danmakuDelete(danmakuId)
     },
@@ -25,14 +22,8 @@ export const useDeleteDanmaku = () => {
         })
       )
     },
-    onSuccess: (_, id) => {
+    onSuccess: () => {
       toast.success(t('danmaku.alert.deleted'))
-      void queryClient.invalidateQueries({
-        queryKey: useAllDanmakuQuerySuspense.queryKey(),
-      })
-      void queryClient.invalidateQueries({
-        queryKey: useDanmakuQuerySuspense.queryKey({ id }),
-      })
     },
   })
 }
