@@ -8,13 +8,13 @@ import {
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
+import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useAllDanmakuSuspense'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useStore } from '@/popup/store'
 
 export const ExportDanmakuButton = () => {
   const { exportMany } = useExportDanmaku()
-  const { data, isFetching } = useAllDanmakuQuerySuspense()
+  const { data, isFetching } = useAllDanmakuSuspense()
   const { t } = useTranslation()
 
   const selectedAnime = useStore.use.danmaku().selectedAnime

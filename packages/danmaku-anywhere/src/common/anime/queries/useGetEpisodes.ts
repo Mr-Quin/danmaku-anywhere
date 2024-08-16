@@ -1,11 +1,12 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 
 import type { GetEpisodeDto } from '@/common/anime/dto'
+import { mediaKeys } from '@/common/anime/queries/mediaQueryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 export const useGetEpisodes = (data: GetEpisodeDto) => {
   return useSuspenseQuery({
-    queryKey: ['media', 'episodes', data.provider, data.seasonId],
+    queryKey: mediaKeys.episodes(data),
     queryFn: async () => {
       return chromeRpcClient.episodesGet(data)
     },
@@ -13,10 +14,3 @@ export const useGetEpisodes = (data: GetEpisodeDto) => {
     retry: false,
   })
 }
-
-useGetEpisodes.queryKey = (data: GetEpisodeDto) => [
-  'media',
-  'episodes',
-  data.provider,
-  data.seasonId,
-]

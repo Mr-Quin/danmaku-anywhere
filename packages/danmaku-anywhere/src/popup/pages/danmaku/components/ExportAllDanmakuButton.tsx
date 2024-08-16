@@ -7,12 +7,12 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
-import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
+import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useAllDanmakuSuspense'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 
 export const ExportAllDanmakuButton = () => {
   const { exportAll } = useExportDanmaku()
-  const { data, isFetching } = useAllDanmakuQuerySuspense()
+  const { data, isFetching } = useAllDanmakuSuspense()
   const { t } = useTranslation()
 
   return (

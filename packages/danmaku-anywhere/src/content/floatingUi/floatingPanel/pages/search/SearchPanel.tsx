@@ -24,6 +24,7 @@ import { useTranslation } from 'react-i18next'
 import { EpisodeListItem } from './EpisodeListItem'
 
 import { DanmakuProviderType } from '@/common/anime/enums'
+import { mediaKeys } from '@/common/anime/queries/mediaQueryKeys'
 import { Center } from '@/common/components/Center'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { SearchResultList } from '@/common/components/MediaList/SearchResultList'
@@ -49,7 +50,7 @@ export const SearchPanel = () => {
 
   const isSearching =
     useIsFetching({
-      queryKey: ['anime', 'search', searchParams],
+      queryKey: mediaKeys.search(),
     }) > 0
 
   useEffect(() => {

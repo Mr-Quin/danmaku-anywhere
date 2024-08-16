@@ -7,24 +7,24 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
+import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useStore } from '@/popup/store'
 
 export const ConfirmDeleteDialog = () => {
   const { t } = useTranslation()
 
-  const queryClient = useQueryClient()
   const { showConfirmDeleteDialog, setShowConfirmDeleteDialog } =
     useStore.use.danmaku()
 
   const toast = useToast.use.toast()
 
   const { mutate, isPending } = useMutation({
+    mutationKey: danmakuKeys.all(),
     mutationFn: async () => {
       return chromeRpcClient.danmakuDeleteAll()
     },
@@ -32,9 +32,6 @@ export const ConfirmDeleteDialog = () => {
       toast.success(t('danmaku.alert.deleted'))
       setShowConfirmDeleteDialog(false)
       handleClose()
-      void queryClient.invalidateQueries({
-        queryKey: useAllDanmakuQuerySuspense.queryKey(),
-      })
     },
     onError: (e) => {
       toast.error(t('danmaku.alert.deleteError', { message: e.message }))

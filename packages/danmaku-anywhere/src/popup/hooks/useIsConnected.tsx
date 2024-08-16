@@ -6,7 +6,12 @@ import { sleep } from '@/common/utils/utils'
 
 export const useIsConnected = () => {
   return useSuspenseQuery({
-    queryKey: ['tab', 'ping'],
+    queryKey: [
+      {
+        scope: 'tab',
+        kind: 'ping',
+      },
+    ],
     queryFn: async () => {
       try {
         const res = await Promise.any([await tabRpcClient.ping(), sleep(1500)])

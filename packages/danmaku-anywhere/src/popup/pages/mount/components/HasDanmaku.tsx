@@ -3,10 +3,10 @@ import type { PropsWithChildren } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
-import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
+import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useAllDanmakuSuspense'
 
 export const HasDanmaku = ({ children }: PropsWithChildren) => {
-  const { data } = useAllDanmakuQuerySuspense()
+  const { data } = useAllDanmakuSuspense()
   const { t } = useTranslation()
 
   if (data.length === 0) {

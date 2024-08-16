@@ -11,12 +11,13 @@ import { useTranslation } from 'react-i18next'
 import { SearchForm } from './components/SearchForm'
 
 import { DanmakuProviderType } from '@/common/anime/enums'
+import { mediaKeys } from '@/common/anime/queries/mediaQueryKeys'
 import { Center } from '@/common/components/Center'
 import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
 import { SearchResultList } from '@/common/components/MediaList/SearchResultList'
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { useDanmakuQuerySuspense } from '@/common/danmaku/queries/useDanmakuQuerySuspense'
+import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import type { DanmakuFetchOptions } from '@/common/danmaku/types'
 import { isDanmakuProvider } from '@/common/danmaku/utils'
@@ -59,7 +60,7 @@ export const SearchPage = () => {
 
   const isSearching =
     useIsFetching({
-      queryKey: ['anime', 'search', searchParams],
+      queryKey: mediaKeys.search(),
     }) > 0
 
   useEffect(() => {
@@ -117,7 +118,7 @@ export const SearchPage = () => {
                       showIcon
                       episodeTitle={episode.long_title || episode.share_copy}
                       tooltip={episode.share_copy}
-                      queryKey={useDanmakuQuerySuspense.queryKey({
+                      queryKey={danmakuKeys.one({
                         provider: DanmakuSourceType.Bilibili,
                         episodeId: episode.cid,
                       })}
@@ -157,7 +158,7 @@ export const SearchPage = () => {
                   <BaseEpisodeListItem
                     showIcon
                     episodeTitle={episodeTitle}
-                    queryKey={useDanmakuQuerySuspense.queryKey({
+                    queryKey={danmakuKeys.one({
                       provider: DanmakuSourceType.DDP,
                       episodeId: episodeId,
                     })}

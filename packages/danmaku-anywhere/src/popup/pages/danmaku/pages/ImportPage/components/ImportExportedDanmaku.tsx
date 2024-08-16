@@ -1,11 +1,11 @@
 import { DialogContentText, Typography } from '@mui/material'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { DanmakuInsert } from '@/common/danmaku/models/danmaku'
-import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
+import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
 import type { ImportParseResult } from '@/common/danmaku/types'
 import { Logger } from '@/common/Logger'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -42,9 +42,8 @@ export const ImportExportedDanmaku = ({
   const { t } = useTranslation()
   const toast = useToast.use.toast()
 
-  const queryClient = useQueryClient()
-
   const { mutate: handleUpload, isPending: isUploading } = useMutation({
+    mutationKey: danmakuKeys.all(),
     mutationFn: async () => {
       if (!data) return
 
@@ -53,9 +52,6 @@ export const ImportExportedDanmaku = ({
     onSuccess: () => {
       toast.success(t('danmakuPage.upload.success'))
       onClose()
-      void queryClient.invalidateQueries({
-        queryKey: useAllDanmakuQuerySuspense.queryKey(),
-      })
     },
     onError: (e) => {
       Logger.debug('Error importing danmaku:', e)

@@ -16,7 +16,12 @@ export const Permissions = () => {
   const { t } = useTranslation()
 
   const { data } = useSuspenseQuery({
-    queryKey: ['permissions'],
+    queryKey: [
+      {
+        scope: 'chrome',
+        kind: 'permissions',
+      },
+    ],
     queryFn: async () => {
       return await chrome.permissions.getAll()
     },

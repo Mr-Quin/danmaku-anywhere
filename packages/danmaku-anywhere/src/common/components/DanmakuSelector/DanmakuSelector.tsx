@@ -7,7 +7,7 @@ import { EpisodeOption } from './EpisodeOption'
 import { ListboxComponent } from '@/common/components/DanmakuSelector/ListboxComponent'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
-import { useAllDanmakuQuerySuspense } from '@/common/danmaku/queries/useAllDanmakuQuerySuspense'
+import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useAllDanmakuSuspense'
 import { isDanmakuProvider } from '@/common/danmaku/utils'
 import { matchWithPinyin, stopKeyboardPropagation } from '@/common/utils/utils'
 
@@ -45,7 +45,7 @@ interface DanmakuSelectorProps {
 export const DanmakuSelector = ({ value, onChange }: DanmakuSelectorProps) => {
   const { t } = useTranslation()
 
-  const { data: options, isFetching } = useAllDanmakuQuerySuspense()
+  const { data: options, isFetching } = useAllDanmakuSuspense()
 
   return (
     <Autocomplete

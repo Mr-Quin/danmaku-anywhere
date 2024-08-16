@@ -1,11 +1,9 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { match } from 'ts-pattern'
-
-import { useAllDanmakuQuerySuspense } from './useAllDanmakuQuerySuspense'
 
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { useDanmakuQuerySuspense } from '@/common/danmaku/queries/useDanmakuQuerySuspense'
+import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 /**
@@ -15,9 +13,8 @@ import { chromeRpcClient } from '@/common/rpcClient/background/client'
  * This is a mutation because it updates the cache
  */
 export const useFetchDanmaku = () => {
-  const queryClient = useQueryClient()
-
   const mutation = useMutation({
+    mutationKey: danmakuKeys.all(),
     mutationFn: (data: DanmakuFetchDto) => {
       return match(data)
         .with(
@@ -39,20 +36,6 @@ export const useFetchDanmaku = () => {
         .otherwise(() => {
           throw new Error('Provider not supported')
         })
-    },
-    onSuccess: (result) => {
-      // TODO: Remove duplicate invalidation
-      void queryClient.invalidateQueries({
-        queryKey: useAllDanmakuQuerySuspense.queryKey(),
-      })
-      if (result.episodeId) {
-        void queryClient.invalidateQueries({
-          queryKey: useDanmakuQuerySuspense.queryKey({
-            provider: result.provider,
-            episodeId: result.episodeId,
-          }),
-        })
-      }
     },
   })
 
