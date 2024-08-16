@@ -28,7 +28,7 @@ import { useStore } from '../../../store/store'
 import { getDanDanPlayMediaIcon } from '@/common/components/MediaList/components/makeIcon'
 import { MediaTypeIcon } from '@/common/components/MediaList/components/MediaTypeIcon'
 import { DanmakuSourceType, hasIntegration } from '@/common/danmaku/enums'
-import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
+import { useLoadDanmaku } from '@/content/common/hooks/useLoadDanmaku'
 
 export const SelectorPanel = () => {
   const { t } = useTranslation()
@@ -42,7 +42,7 @@ export const SelectorPanel = () => {
 
   const episodes = selectedAnime?.episodes ?? []
 
-  const { fetch, isPending } = useFetchDanmakuMapped()
+  const { fetch, isPending } = useLoadDanmaku()
 
   const handleAnimeSelect = (anime: DanDanAnime) => {
     setSelectedAnime(anime)
@@ -56,12 +56,10 @@ export const SelectorPanel = () => {
   const handleApply = async () => {
     if (!selectedAnime || !selectedEpisode) return
 
-    const titleMapping =
-      mediaInfo && saveMapping && !hasIntegration(integration)
+    const context =
+      mediaInfo && saveMapping && hasIntegration(integration)
         ? {
-            originalTitle: mediaInfo.key(),
-            title: selectedAnime.animeTitle,
-            animeId: selectedAnime.animeId,
+            key: mediaInfo.key(),
             integration,
           }
         : undefined
@@ -72,7 +70,7 @@ export const SelectorPanel = () => {
         animeTitle: selectedAnime.animeTitle,
         ...selectedEpisode,
       },
-      titleMapping,
+      context,
     })
 
     toggleOpen(false)

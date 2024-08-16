@@ -18,7 +18,7 @@ import {
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import { useFetchNextEpisode } from '@/content/common/hooks/useFetchNextEpisode'
+import { useLoadDanmakuNextEpisode } from '@/content/common/hooks/useLoadDanmakuNextEpisode'
 import { useRefreshComments } from '@/content/common/hooks/useRefreshComments'
 import { useStore } from '@/content/store/store'
 
@@ -37,7 +37,7 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
     fetchNextEpisodeComments,
     isFetchingNextEpisode,
     canFetchNextEpisode,
-  } = useFetchNextEpisode()
+  } = useLoadDanmakuNextEpisode()
   const {
     refreshComments,
     isPending: isRefreshing,

@@ -14,10 +14,12 @@ import { DanmakuProviderType } from '@/common/anime/enums'
 import { Center } from '@/common/components/Center'
 import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
 import { SearchResultList } from '@/common/components/MediaList/SearchResultList'
+import type { DanmakuFetchDto } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { BiliBiliMeta, DanDanPlayMeta } from '@/common/danmaku/models/meta'
 import { useDanmakuQuerySuspense } from '@/common/danmaku/queries/useDanmakuQuerySuspense'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
+import type { DanmakuFetchOptions } from '@/common/danmaku/types'
+import { isDanmakuProvider } from '@/common/danmaku/utils'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { TabToolbar } from '@/popup/component/TabToolbar'
 import { TabLayout } from '@/popup/layout/TabLayout'
@@ -36,15 +38,23 @@ export const SearchPage = () => {
 
   const [pending, startTransition] = useTransition()
 
-  const { fetch } = useFetchDanmaku()
+  const { mutate: load } = useFetchDanmaku()
 
-  const handleFetchDanmaku = async (meta: DanDanPlayMeta | BiliBiliMeta) => {
-    await fetch({
-      meta,
-      options: {
-        forceUpdate: true,
-      },
-    })
+  const handleFetchDanmaku = async (meta: DanmakuFetchDto['meta']) => {
+    const fetchOption: DanmakuFetchOptions = {
+      forceUpdate: true,
+    }
+    // some useless conditions to make the typescript compiler happy
+    if (isDanmakuProvider(meta, DanmakuSourceType.DDP))
+      return load({
+        meta,
+        options: fetchOption,
+      })
+    if (isDanmakuProvider(meta, DanmakuSourceType.Bilibili))
+      return load({
+        meta,
+        options: fetchOption,
+      })
   }
 
   const isSearching =
