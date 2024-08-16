@@ -18,30 +18,22 @@ export const useFetchDanmaku = () => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
-    mutationFn: (data: {
-      meta: DanmakuFetchDto['meta']
-      params?: DanmakuFetchDto['params']
-      options?: DanmakuFetchDto['options']
-    }) => {
+    mutationFn: (data: DanmakuFetchDto) => {
       return match(data)
         .with(
           {
             meta: { provider: DanmakuSourceType.DDP },
           },
-          ({ meta, params, options }) => {
-            return chromeRpcClient.danmakuFetch({ meta, params, options })
+          (data) => {
+            return chromeRpcClient.danmakuFetch(data)
           }
         )
         .with(
           {
             meta: { provider: DanmakuSourceType.Bilibili },
           },
-          ({ meta, options }) => {
-            return chromeRpcClient.danmakuFetch({
-              meta,
-              params: undefined,
-              options,
-            })
+          (data) => {
+            return chromeRpcClient.danmakuFetch(data)
           }
         )
         .otherwise(() => {

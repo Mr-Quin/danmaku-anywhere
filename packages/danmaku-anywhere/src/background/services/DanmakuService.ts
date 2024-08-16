@@ -2,6 +2,7 @@ import { match } from 'ts-pattern'
 
 import { BilibiliService } from '@/background/services/BilibiliService'
 import { DanDanPlayService } from '@/background/services/DanDanPlayService'
+import { TitleMappingService } from '@/background/services/TitleMappingService'
 import type {
   DanmakuDeleteDto,
   DanmakuGetBySeasonDto,
@@ -23,6 +24,7 @@ import {
   assertDanmakuProvider,
   CURRENT_SCHEMA_VERSION,
   getEpisodeId,
+  isDanmakuProvider,
 } from '@/common/danmaku/utils'
 import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
@@ -33,6 +35,7 @@ export class DanmakuService {
   private logger: typeof Logger
   private bilibiliService = new BilibiliService()
   private danDanPlayService = new DanDanPlayService()
+  private titleMappingService = new TitleMappingService()
 
   constructor() {
     invariant(
@@ -43,9 +46,22 @@ export class DanmakuService {
   }
 
   async getDanmaku(data: DanmakuFetchDto): Promise<Danmaku> {
-    const { meta, params = {}, options = {} } = data
+    const { meta, options = {}, context } = data
     const episodeId = getEpisodeId(meta)
     const provider = meta.provider
+
+    // Save title mapping
+    if (context) {
+      this.logger.debug('Saving title mapping', context)
+      if (isDanmakuProvider(meta, DanmakuSourceType.DDP)) {
+        void this.titleMappingService.add({
+          title: meta.animeTitle,
+          originalTitle: context.key,
+          integration: context.integration,
+          animeId: meta.animeId,
+        })
+      }
+    }
 
     const existingDanmaku = await this.ddpTable.get({ provider, episodeId })
 
@@ -61,44 +77,53 @@ export class DanmakuService {
       this.logger.debug('Danmaku not found in db, fetching from server')
     }
 
-    const danmaku = await match(meta)
-      .with({ provider: DanmakuSourceType.Bilibili }, async (meta) => {
-        const result = await this.bilibiliService.getDanmaku(meta.cid, meta.aid)
-        const danmaku: BiliBiliDanmakuInsert = {
-          provider: meta.provider,
-          comments: result,
-          commentCount: result.length,
-          meta,
-          episodeId,
-          episodeTitle: meta.title,
-          seasonId: meta.seasonId,
-          seasonTitle: meta.seasonTitle,
-          timeUpdated: Date.now(),
-          version: 1 + (existingDanmaku?.version ?? 0),
-          schemaVersion: CURRENT_SCHEMA_VERSION,
-        }
+    const danmaku = await match(data)
+      .with(
+        { meta: { provider: DanmakuSourceType.Bilibili } },
+        async ({ meta }) => {
+          const result = await this.bilibiliService.getDanmaku(
+            meta.cid,
+            meta.aid
+          )
+          const danmaku: BiliBiliDanmakuInsert = {
+            provider: meta.provider,
+            comments: result,
+            commentCount: result.length,
+            meta,
+            episodeId,
+            episodeTitle: meta.title,
+            seasonId: meta.seasonId,
+            seasonTitle: meta.seasonTitle,
+            timeUpdated: Date.now(),
+            version: 1 + (existingDanmaku?.version ?? 0),
+            schemaVersion: CURRENT_SCHEMA_VERSION,
+          }
 
-        return danmaku
-      })
-      .with({ provider: DanmakuSourceType.DDP }, async (meta) => {
-        const result = await this.danDanPlayService.getDanmaku(meta, params)
-        const danmaku: DanDanPlayDanmakuInsert = {
-          provider: meta.provider,
-          comments: result.comments,
-          commentCount: result.comments.length,
-          meta: result.meta,
-          episodeId,
-          episodeTitle: result.meta.episodeTitle,
-          seasonId: meta.animeId,
-          seasonTitle: meta.animeTitle,
-          params: result.params,
-          timeUpdated: Date.now(),
-          version: 1 + (existingDanmaku?.version ?? 0),
-          schemaVersion: CURRENT_SCHEMA_VERSION,
+          return danmaku
         }
+      )
+      .with(
+        { meta: { provider: DanmakuSourceType.DDP } },
+        async ({ meta, params }) => {
+          const result = await this.danDanPlayService.getDanmaku(meta, params)
+          const danmaku: DanDanPlayDanmakuInsert = {
+            provider: meta.provider,
+            comments: result.comments,
+            commentCount: result.comments.length,
+            meta: result.meta,
+            episodeId,
+            episodeTitle: result.meta.episodeTitle,
+            seasonId: meta.animeId,
+            seasonTitle: meta.animeTitle,
+            params: result.params,
+            timeUpdated: Date.now(),
+            version: 1 + (existingDanmaku?.version ?? 0),
+            schemaVersion: CURRENT_SCHEMA_VERSION,
+          }
 
-        return danmaku
-      })
+          return danmaku
+        }
+      )
       .otherwise(() => {
         throw new Error(`Unsupported provider: ${provider}`)
       })
@@ -112,9 +137,8 @@ export class DanmakuService {
         id: existingDanmaku.id,
       }
     } else {
+      this.logger.debug('Saving danmaku to db')
       const id = await this.ddpTable.put(danmaku)
-
-      this.logger.debug('Cached danmaku to db')
 
       return {
         ...danmaku,

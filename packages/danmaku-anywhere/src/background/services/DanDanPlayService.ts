@@ -23,7 +23,10 @@ export class DanDanPlayService {
   }
 
   async search(searchParams: DanDanAnimeSearchAPIParams) {
-    return danDanPlay.searchAnime(searchParams)
+    this.logger.debug('Searching DanDanPlay', searchParams)
+    const result = await danDanPlay.searchAnime(searchParams)
+    this.logger.debug('Search result', result)
+    return result
   }
 
   computeEpisodeId(animeId: number, episodeNumber: number) {

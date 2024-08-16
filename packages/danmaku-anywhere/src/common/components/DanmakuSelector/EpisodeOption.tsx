@@ -23,20 +23,26 @@ export const EpisodeOption = (
   } & HTMLAttributes<HTMLLIElement>
 ) => {
   const { option, isLoading, ...rest } = props
-  const { isPending, fetch } = useFetchDanmaku()
+  const { isPending, mutate: load } = useFetchDanmaku()
 
   const handleClick = (e: SyntheticEvent) => {
     e.preventDefault()
     e.stopPropagation()
 
-    if (isDanmakuProvider(option, DanmakuSourceType.Custom)) return
+    const fetchOption = {
+      forceUpdate: true,
+    }
 
-    void fetch({
-      meta: option.meta,
-      options: {
-        forceUpdate: true,
-      },
-    })
+    if (isDanmakuProvider(option, DanmakuSourceType.DDP))
+      return load({
+        meta: option.meta,
+        options: fetchOption,
+      })
+    if (isDanmakuProvider(option, DanmakuSourceType.Bilibili))
+      return load({
+        meta: option.meta,
+        options: fetchOption,
+      })
   }
 
   return (

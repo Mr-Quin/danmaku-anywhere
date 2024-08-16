@@ -68,14 +68,12 @@ export const SearchPanel = () => {
     })
   }
 
-  const getTitleMapping = (animeTitle: string, animeId: number) => {
+  const getContext = () => {
     if (!mediaInfo || !saveMapping || !hasIntegration(integration))
       return undefined
 
     return {
-      originalTitle: mediaInfo.key(),
-      title: animeTitle,
-      animeId: animeId,
+      key: mediaInfo.key(),
       integration,
     }
   }
@@ -160,7 +158,7 @@ export const SearchPanel = () => {
 
                 return (
                   <EpisodeListItem
-                    titleMapping={getTitleMapping(animeTitle, animeId)}
+                    context={getContext()}
                     episodeId={episode.episodeId}
                     episodeTitle={episode.episodeTitle}
                     animeId={animeId}

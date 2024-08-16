@@ -6,7 +6,7 @@ import { useStore } from '../../store/store'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { isDanmakuProvider } from '@/common/danmaku/utils'
-import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
+import { useLoadDanmaku } from '@/content/common/hooks/useLoadDanmaku'
 
 export const useRefreshComments = () => {
   const { t } = useTranslation()
@@ -14,7 +14,7 @@ export const useRefreshComments = () => {
   const getAnimeName = useStore((state) => state.getAnimeName)
   const toast = useToast.use.toast()
 
-  const { mutate, isPending } = useFetchDanmakuMapped({
+  const { mutate, isPending } = useLoadDanmaku({
     onMutate: () => {
       toast.info(t('danmaku.alert.refreshingDanmaku'))
     },

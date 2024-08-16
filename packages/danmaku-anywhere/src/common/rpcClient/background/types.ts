@@ -23,7 +23,6 @@ import type {
   DanmakuInsert,
   DanmakuLite,
 } from '@/common/danmaku/models/danmaku'
-import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 
 type IconSetDto =
   | {
@@ -67,16 +66,4 @@ type DanmakuMethods = {
   danmakuDeleteAll: RPCDef<void, void>
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-type TitleMappingMethods = {
-  titleMappingSet: RPCDef<TitleMapping, void>
-  titleMappingGet: RPCDef<
-    Pick<TitleMapping, 'originalTitle' | 'integration'>,
-    TitleMapping | null
-  >
-}
-
-export type BackgroundMethods = IconMethods &
-  AnimeMethods &
-  DanmakuMethods &
-  TitleMappingMethods
+export type BackgroundMethods = IconMethods & AnimeMethods & DanmakuMethods

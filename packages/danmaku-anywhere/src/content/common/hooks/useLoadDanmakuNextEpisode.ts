@@ -10,17 +10,17 @@ import {
   getNextEpisodeMeta,
   isDanmakuProvider,
 } from '@/common/danmaku/utils'
-import { useFetchDanmakuMapped } from '@/content/common/hooks/useFetchDanmakuMapped'
+import { useLoadDanmaku } from '@/content/common/hooks/useLoadDanmaku'
 
 // Helper to quickly get the next episode without having to go back to the search page
 // Only available when integration is None and in manual mode
-export const useFetchNextEpisode = () => {
+export const useLoadDanmakuNextEpisode = () => {
   const { t } = useTranslation()
   const danmakuLite = useStore((state) => state.danmakuLite)
   const manual = useStore.use.manual()
   const toast = useToast.use.toast()
 
-  const { mutate, isPending } = useFetchDanmakuMapped({
+  const { mutate, isPending } = useLoadDanmaku({
     onMutate: () => {
       toast.info(t('danmaku.alert.fetchingNext'))
     },

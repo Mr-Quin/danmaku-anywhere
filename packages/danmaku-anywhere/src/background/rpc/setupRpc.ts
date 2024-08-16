@@ -3,7 +3,6 @@ import { match } from 'ts-pattern'
 import { DanmakuService } from '../services/DanmakuService'
 import { IconService } from '../services/IconService'
 import { ProviderService } from '../services/ProviderService'
-import { TitleMappingService } from '../services/TitleMappingService'
 
 import type { GetEpisodeDto } from '@/common/anime/dto'
 import { Logger } from '@/common/Logger'
@@ -15,7 +14,6 @@ export const setupRpc = () => {
   const providerService = new ProviderService()
   const iconService = new IconService()
   const danmakuService = new DanmakuService()
-  const titleMappingService = new TitleMappingService()
 
   const rpcServer = createRpcServer<BackgroundMethods>({
     mediaSearch: async (input) => {
@@ -88,16 +86,6 @@ export const setupRpc = () => {
     },
     danmakuDeleteAll: async () => {
       return danmakuService.deleteAll()
-    },
-    titleMappingSet: async (input) => {
-      return titleMappingService.add(input)
-    },
-    titleMappingGet: async (input) => {
-      const result = await titleMappingService.getMappedTitle(
-        input.originalTitle,
-        input.integration
-      )
-      return result || null
     },
   })
 

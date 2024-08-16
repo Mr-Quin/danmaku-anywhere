@@ -4,17 +4,15 @@ import { useMutation } from '@tanstack/react-query'
 import { useStore } from '../../store/store'
 
 import { useToast } from '@/common/components/Toast/toastStore'
+import type { DanmakuFetchContext } from '@/common/danmaku/dto'
 import type { Danmaku } from '@/common/danmaku/models/danmaku'
 import type { DanDanPlayMetaDto } from '@/common/danmaku/models/meta'
-import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import type { DanmakuFetchOptions } from '@/common/danmaku/types'
-import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { tryCatch } from '@/common/utils/utils'
 
 interface FetchOptions {
   danmakuMeta: DanDanPlayMetaDto
-  titleMapping?: TitleMapping
+  context?: DanmakuFetchContext
   options?: DanmakuFetchOptions
 }
 
@@ -25,9 +23,7 @@ type UseFetchDanmakuMappedOptions = Partial<
   >
 >
 
-export const useFetchDanmakuMapped = (
-  options: UseFetchDanmakuMappedOptions = {}
-) => {
+export const useLoadDanmaku = (options: UseFetchDanmakuMappedOptions = {}) => {
   const { setComments, setDanmakuLite } = useStore()
   const toast = useToast.use.toast()
 
@@ -35,20 +31,28 @@ export const useFetchDanmakuMapped = (
 
   const handleFetch = async ({
     danmakuMeta,
-    titleMapping,
+    context,
     options,
   }: FetchOptions) => {
-    const res = await mutateAsync({
-      meta: danmakuMeta,
-      options: {
-        forceUpdate: false,
-        ...options,
+    const res = await mutateAsync(
+      {
+        meta: danmakuMeta,
+        options: {
+          forceUpdate: false,
+          ...options,
+        },
+        context,
       },
-    })
-
-    if (titleMapping) {
-      await tryCatch(() => chromeRpcClient.titleMappingSet(titleMapping))
-    }
+      {
+        onSuccess: (cache) => {
+          setComments(cache.comments)
+          setDanmakuLite(cache)
+        },
+        onError: (err) => {
+          toast.error(err.message)
+        },
+      }
+    )
 
     return res
   }
