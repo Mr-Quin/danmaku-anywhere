@@ -31,7 +31,11 @@ export const BilibiliEpisodeList = ({
             key={episode.cid}
           >
             <Suspense fallback={<ListItemSkeleton />}>
-              {renderEpisode(DanmakuProviderType.Bilibili, episode, result)}
+              {renderEpisode({
+                provider: DanmakuProviderType.Bilibili,
+                episode,
+                season: result,
+              })}
             </Suspense>
           </ErrorBoundary>
         )

@@ -68,6 +68,7 @@ export const DanmakuSelector = ({ value, onChange }: DanmakuSelectorProps) => {
         )
       }}
       getOptionLabel={(option) => option.episodeTitle}
+      getOptionKey={(option) => option.id}
       groupBy={(option) => option.seasonTitle}
       renderInput={(params) => {
         return (

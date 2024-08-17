@@ -29,7 +29,6 @@ const processFile = async (file: FileSystemFileHandle[]) => {
 
       const data = await getJson(text, fileHandle.name)
 
-      console.debug(data)
       return {
         file: fileHandle.name,
         data,

@@ -16,12 +16,7 @@ import { Center } from '@/common/components/Center'
 import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
 import { SearchResultList } from '@/common/components/MediaList/SearchResultList'
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
-import type { DanmakuFetchOptions } from '@/common/danmaku/types'
-import { isDanmakuProvider } from '@/common/danmaku/utils'
-import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { TabToolbar } from '@/popup/component/TabToolbar'
 import { TabLayout } from '@/popup/layout/TabLayout'
 import { useStore } from '@/popup/store'
@@ -39,23 +34,15 @@ export const SearchPage = () => {
 
   const [pending, startTransition] = useTransition()
 
-  const { mutate: load } = useFetchDanmaku()
+  const { mutateAsync: load } = useFetchDanmaku()
 
   const handleFetchDanmaku = async (meta: DanmakuFetchDto['meta']) => {
-    const fetchOption: DanmakuFetchOptions = {
-      forceUpdate: true,
-    }
-    // some useless conditions to make the typescript compiler happy
-    if (isDanmakuProvider(meta, DanmakuSourceType.DDP))
-      return load({
-        meta,
-        options: fetchOption,
-      })
-    if (isDanmakuProvider(meta, DanmakuSourceType.Bilibili))
-      return load({
-        meta,
-        options: fetchOption,
-      })
+    return await load({
+      meta,
+      options: {
+        forceUpdate: true,
+      },
+    } as DanmakuFetchDto)
   }
 
   const isSearching =
@@ -111,73 +98,13 @@ export const SearchPage = () => {
               pending={pending}
               searchParams={searchParams!}
               dense
-              renderEpisode={(provider, episode, meta) => {
-                if (provider === DanmakuProviderType.Bilibili)
-                  return (
-                    <BaseEpisodeListItem
-                      showIcon
-                      episodeTitle={episode.long_title || episode.share_copy}
-                      tooltip={episode.share_copy}
-                      queryKey={danmakuKeys.one({
-                        provider: DanmakuSourceType.Bilibili,
-                        episodeId: episode.cid,
-                      })}
-                      queryDanmaku={async () => {
-                        return await chromeRpcClient.danmakuGetOne({
-                          provider: DanmakuSourceType.Bilibili,
-                          episodeId: episode.cid,
-                        })
-                      }}
-                      mutateDanmaku={() =>
-                        handleFetchDanmaku({
-                          cid: episode.cid,
-                          aid: episode.aid,
-                          seasonId: meta.season_id,
-                          title: episode.long_title || episode.share_copy,
-                          seasonTitle: meta.title,
-                          mediaType: meta.type,
-                          provider: DanmakuSourceType.Bilibili,
-                        })
-                      }
-                      secondaryText={(data) =>
-                        `${new Date(data.timeUpdated).toLocaleDateString()} -  ${t(
-                          'danmaku.commentCounted',
-                          {
-                            count: data.commentCount,
-                          }
-                        )}`
-                      }
-                      key={episode.cid}
-                    />
-                  )
-
-                const { episodeTitle, episodeId } = episode
-                const { animeId, animeTitle } = meta
-
+              renderEpisode={(data) => {
                 return (
                   <BaseEpisodeListItem
+                    data={data}
                     showIcon
-                    episodeTitle={episodeTitle}
-                    queryKey={danmakuKeys.one({
-                      provider: DanmakuSourceType.DDP,
-                      episodeId: episodeId,
-                    })}
-                    queryDanmaku={async () => {
-                      return await chromeRpcClient.danmakuGetOne({
-                        provider: DanmakuSourceType.DDP,
-                        episodeId: episodeId,
-                      })
-                    }}
-                    mutateDanmaku={() =>
-                      handleFetchDanmaku({
-                        episodeId,
-                        episodeTitle,
-                        animeId: animeId,
-                        animeTitle: animeTitle,
-                        provider: DanmakuSourceType.DDP,
-                      })
-                    }
-                    secondaryText={(data) =>
+                    mutateDanmaku={(meta) => handleFetchDanmaku(meta)}
+                    renderSecondaryText={(data) =>
                       `${new Date(data.timeUpdated).toLocaleDateString()} -  ${t(
                         'danmaku.commentCounted',
                         {
@@ -185,7 +112,6 @@ export const SearchPage = () => {
                         }
                       )}`
                     }
-                    key={episodeId}
                   />
                 )
               }}

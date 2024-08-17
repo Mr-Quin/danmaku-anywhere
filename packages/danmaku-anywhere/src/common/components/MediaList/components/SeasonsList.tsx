@@ -46,11 +46,11 @@ const renderSeasonContent = <T extends MediaSearchResult>(
               key={episode.episodeId}
             >
               <Suspense fallback={<ListItemSkeleton />}>
-                {renderEpisodes(
-                  DanmakuProviderType.DanDanPlay,
+                {renderEpisodes({
+                  provider: DanmakuProviderType.DanDanPlay,
                   episode,
-                  danDanPlaySeason
-                )}
+                  season: danDanPlaySeason,
+                })}
               </Suspense>
             </ErrorBoundary>
           )

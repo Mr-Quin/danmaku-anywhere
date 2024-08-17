@@ -87,7 +87,6 @@ export const useVideoNodeMonitor = (
     }
 
     if (current) {
-      console.debug('Adding initial video node', current)
       handeVideoNodeAdded(current)
     }
 
@@ -97,7 +96,6 @@ export const useVideoNodeMonitor = (
         for (const node of mutation.addedNodes) {
           if (isVideoElement(node)) {
             if (node.matches(selector)) {
-              console.debug('video node added', node)
               handeVideoNodeAdded(node)
             }
           }

@@ -66,7 +66,7 @@ export const ListboxComponent = forwardRef<
               const { group } = item as unknown as OptionGroup
               return (
                 <ListSubheader
-                  key={item.key}
+                  key={`group-${item.key}`}
                   data-index={virtualItem.index}
                   ref={virtualizer.measureElement}
                   style={{

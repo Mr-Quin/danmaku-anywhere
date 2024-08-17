@@ -35,7 +35,7 @@ export const useLoadDanmakuNextEpisode = () => {
     toast.info(t('danmaku.alert.fetchingNext'))
 
     mutate(
-      { danmakuMeta: nextMeta },
+      { meta: nextMeta },
       {
         onSuccess: (result) => {
           toast.success(
