@@ -7,6 +7,8 @@ import {
   useRef,
 } from 'react'
 
+import { DanmakuProviderChip } from '@/common/components/DanmakuProviderChip'
+import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import { useMergeRefs } from '@/common/hooks/useMergeRefs'
 
 interface OptionGroup {
@@ -64,6 +66,9 @@ export const ListboxComponent = forwardRef<
             // the group property is available when the renderGroup prop is passed to AutoComplete
             if (Object.hasOwn(item, 'group')) {
               const { group } = item as unknown as OptionGroup
+
+              const [provider, groupTitle] = group.split('::')
+
               return (
                 <ListSubheader
                   key={`group-${item.key}`}
@@ -76,13 +81,24 @@ export const ListboxComponent = forwardRef<
                     width: '100%',
                     transform: `translateY(${virtualItem.start}px)`,
                     textWrap: 'nowrap',
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
                   }}
                   component="div"
-                  title={group}
+                  title={groupTitle}
                 >
-                  {group}
+                  <span
+                    style={{
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {groupTitle}
+                  </span>
+                  <DanmakuProviderChip
+                    provider={parseInt(provider) as DanmakuSourceType}
+                  />
                 </ListSubheader>
               )
             }

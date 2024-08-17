@@ -90,6 +90,7 @@ const domain = {
     type: {
       Custom: '自定义',
       DDP: '弹弹Play',
+      Bilibili: '哔哩哔哩',
     },
     unmount: '卸载弹幕',
   },

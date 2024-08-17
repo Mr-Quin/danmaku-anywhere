@@ -65,7 +65,8 @@ export const EpisodeOption = (
           )}
         </Typography>
       </Box>
-      {option.provider !== DanmakuSourceType.Custom && (
+
+      {!isDanmakuProvider(option, DanmakuSourceType.Custom) && (
         <IconButton edge="end" disabled={isPending} onClick={handleClick}>
           <Tooltip title="Update" placement="top">
             <Update />
