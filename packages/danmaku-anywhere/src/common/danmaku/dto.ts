@@ -4,7 +4,7 @@ import type { DanmakuFetchOptions } from './types'
 
 import type {
   DanmakuSourceType,
-  HasIntegrationType,
+  IntegrationTypeNotNone,
 } from '@/common/danmaku/enums'
 import type {
   BiliBiliMeta,
@@ -30,7 +30,7 @@ export interface DanmakuGetBySeasonDto {
 }
 
 export interface DanmakuFetchContext {
-  integration: HasIntegrationType
+  integration: IntegrationTypeNotNone
   // Title mapping key
   key: string
 }

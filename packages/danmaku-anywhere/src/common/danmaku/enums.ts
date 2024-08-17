@@ -13,11 +13,14 @@ export enum IntegrationType {
   Plex,
 }
 
-export type HasIntegrationType = Exclude<IntegrationType, IntegrationType.None>
+export type IntegrationTypeNotNone = Exclude<
+  IntegrationType,
+  IntegrationType.None
+>
 
 export function assertHasIntegration(
   type: IntegrationType
-): asserts type is HasIntegrationType {
+): asserts type is IntegrationTypeNotNone {
   if (type === IntegrationType.None) {
     throw new Error('IntegrationType.None is not allowed')
   }
@@ -25,7 +28,7 @@ export function assertHasIntegration(
 
 export const hasIntegration = (
   type: IntegrationType
-): type is HasIntegrationType => type !== IntegrationType.None
+): type is IntegrationTypeNotNone => type !== IntegrationType.None
 
 export const getIntegrationLabel = (type: IntegrationType) =>
   IntegrationType[type]

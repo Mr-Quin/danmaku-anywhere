@@ -22,14 +22,12 @@ export const useMatchEpisode = () => {
 
   const mutation = useMutation({
     mutationFn: chromeRpcClient.episodeMatch,
-    onError: (error, v) => {
+    onError: (_, v) => {
       resetMediaState()
       toast.error(
-        t('integration.alert.searchResultEmpty', { title: v.title }),
-        {
-          actionFn: () => open({ tab: PopupTab.Search }),
-          actionLabel: t('integration.alert.openSearch'),
-        }
+        t('integration.alert.searchError', {
+          message: v.title,
+        })
       )
     },
     onSuccess: (result, v) => {
@@ -67,7 +65,17 @@ export const useMatchEpisode = () => {
           const anime = result.data.data
           setAnimes(anime)
           open({ animes: anime, tab: PopupTab.Selector })
+          break
         }
+        case 'notFound':
+          toast.error(
+            t('integration.alert.searchResultEmpty', { title: v.title }),
+            {
+              actionFn: () => open({ tab: PopupTab.Search }),
+              actionLabel: t('integration.alert.openSearch'),
+            }
+          )
+          break
       }
     },
     retry: false,

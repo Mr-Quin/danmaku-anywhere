@@ -14,14 +14,14 @@ export class BilibiliService {
 
   async search(searchParams: BiliBiliSearchParams) {
     this.logger.debug('Search bilibili', searchParams)
-    const result = bilibili.searchMedia(searchParams)
+    const result = await bilibili.searchMedia(searchParams)
     this.logger.debug('Search result', result)
     return result
   }
 
   async getBangumiInfo(mediaId: number) {
     this.logger.debug('Get bangumi info', mediaId)
-    const result = bilibili.getBangumiInfo(mediaId)
+    const result = await bilibili.getBangumiInfo(mediaId)
     this.logger.debug('Get bangumi info result', result)
     return result
   }
@@ -34,14 +34,14 @@ export class BilibiliService {
 
   private async getDanmakuXml(cid: number) {
     this.logger.debug('Get danmaku xml', cid)
-    const result = bilibili.getDanmakuXml(cid)
+    const result = await bilibili.getDanmakuXml(cid)
     this.logger.debug('Get danmaku xml result', result)
     return result
   }
 
   private async getDanmakuProto() {
     this.logger.debug('Get danmaku proto')
-    const result = bilibili.getDanmakuProto()
+    const result = await bilibili.getDanmakuProto()
     this.logger.debug('Get danmaku proto result', result)
     return result
   }
