@@ -8,7 +8,6 @@ export const useAllDanmakuSuspense = () => {
     queryKey: danmakuKeys.all(),
     queryFn: async () => {
       const res = await chromeRpcClient.danmakuGetAllLite()
-      if (!res) throw new Error('Failed to get danmaku from cache')
       return res
     },
     staleTime: 1000 * 60 * 5, // 5 minutes

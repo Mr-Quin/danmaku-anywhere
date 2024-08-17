@@ -64,7 +64,7 @@ export const SelectorPanel = () => {
           }
         : undefined
     mutate({
-      danmakuMeta: {
+      meta: {
         provider: DanmakuSourceType.DDP,
         animeId: selectedAnime.animeId,
         animeTitle: selectedAnime.animeTitle,

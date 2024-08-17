@@ -22,7 +22,7 @@ export const useRefreshComments = () => {
 
     toast.info(t('danmaku.alert.refreshingDanmaku'))
     mutate(
-      { danmakuMeta: danmakuLite.meta, options: { forceUpdate: true } },
+      { meta: danmakuLite.meta, options: { forceUpdate: true } },
       {
         onSuccess: (result) => {
           toast.success(

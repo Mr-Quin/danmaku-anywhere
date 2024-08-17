@@ -148,25 +148,15 @@ export const SearchPanel = () => {
           <Suspense fallback={<FullPageSpinner />}>
             <Divider />
             <SearchResultList
-              providers={[DanmakuProviderType.DanDanPlay]}
+              providers={[
+                DanmakuProviderType.DanDanPlay,
+                DanmakuProviderType.Bilibili,
+              ]}
               searchParams={searchParams!}
               dense
               pending={pending}
-              renderEpisode={(provider, episode, meta) => {
-                if (provider === DanmakuProviderType.Bilibili) return null
-
-                const { animeId, animeTitle } = meta
-
-                return (
-                  <EpisodeListItem
-                    context={getContext()}
-                    episodeId={episode.episodeId}
-                    episodeTitle={episode.episodeTitle}
-                    animeId={animeId}
-                    animeTitle={animeTitle}
-                    key={episode.episodeId}
-                  />
-                )
+              renderEpisode={(data) => {
+                return <EpisodeListItem context={getContext()} data={data} />
               }}
             />
           </Suspense>

@@ -7,22 +7,22 @@ import type {
 } from '@/common/anime/dto'
 import type { DanmakuProviderType } from '@/common/anime/enums'
 
-export type RenderEpisode = (
-  ...args:
-    | [
-        DanmakuProviderType.Bilibili,
-        BilibiliEpisode,
-        Extract<
-          SeasonSearchResult,
-          { provider: DanmakuProviderType.Bilibili }
-        >['data'],
-      ]
-    | [
-        DanmakuProviderType.DanDanPlay,
-        DanDanPlayEpisode,
-        Extract<
-          SeasonSearchResult,
-          { provider: DanmakuProviderType.DanDanPlay }
-        >['data'],
-      ]
-) => ReactNode
+export type RenderEpisodeData =
+  | {
+      provider: DanmakuProviderType.Bilibili
+      episode: BilibiliEpisode
+      season: Extract<
+        SeasonSearchResult,
+        { provider: DanmakuProviderType.Bilibili }
+      >['data']
+    }
+  | {
+      provider: DanmakuProviderType.DanDanPlay
+      episode: DanDanPlayEpisode
+      season: Extract<
+        SeasonSearchResult,
+        { provider: DanmakuProviderType.DanDanPlay }
+      >['data']
+    }
+
+export type RenderEpisode = (data: RenderEpisodeData) => ReactNode
