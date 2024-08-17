@@ -10,7 +10,7 @@ interface BaseDanmakuMeta {
 }
 
 export interface DanDanPlayMeta extends BaseDanmakuMeta {
-  provider: DanmakuSourceType.DDP
+  provider: DanmakuSourceType.DanDanPlay
   /**
    * All properties come from DDP API
    */

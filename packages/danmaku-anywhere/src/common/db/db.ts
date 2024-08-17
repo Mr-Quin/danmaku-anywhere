@@ -61,7 +61,7 @@ class DanmakuAnywhereDb extends Dexie {
           .table('danmakuCache')
           .toCollection()
           .modify((item) => {
-            item.meta.type = DanmakuSourceType.DDP
+            item.meta.type = DanmakuSourceType.DanDanPlay
           })
       })
 
@@ -101,10 +101,10 @@ class DanmakuAnywhereDb extends Dexie {
           .toCollection()
           .modify((item) => {
             // Add provider field, assume DanDanPlay for existing data
-            item.provider = DanmakuSourceType.DDP
+            item.provider = DanmakuSourceType.DanDanPlay
             // Rename meta fields
             item.meta = {
-              provider: DanmakuSourceType.DDP,
+              provider: DanmakuSourceType.DanDanPlay,
               episodeId: item.meta.episodeId,
               animeId: item.meta.animeId,
               episodeTitle: item.meta.episodeTitle,

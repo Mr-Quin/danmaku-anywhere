@@ -47,11 +47,11 @@ const getRenderData = (data: RenderEpisodeData): EpisodeRenderData =>
           episodeTitle,
           animeId: animeId,
           animeTitle: animeTitle,
-          provider: DanmakuSourceType.DDP,
+          provider: DanmakuSourceType.DanDanPlay,
         } satisfies DanDanPlayMeta
 
         const params = {
-          provider: DanmakuSourceType.DDP,
+          provider: DanmakuSourceType.DanDanPlay,
           episodeId: episode.episodeId,
         }
 

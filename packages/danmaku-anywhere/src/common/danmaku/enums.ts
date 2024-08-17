@@ -1,6 +1,6 @@
 export enum DanmakuSourceType {
   Custom,
-  DDP,
+  DanDanPlay,
   Bilibili,
 }
 

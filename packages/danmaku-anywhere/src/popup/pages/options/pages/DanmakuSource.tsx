@@ -74,7 +74,7 @@ export const DanmakuSource = () => {
     <OptionsPageLayout>
       <OptionsPageToolBar title={t('optionsPage.pages.danmakuSource')} />
       <Box p={2}>
-        <Typography variant="h6">{t('danmaku.type.DDP')}</Typography>
+        <Typography variant="h6">{t('danmaku.type.DanDanPlay')}</Typography>
         <Stack mt={2} gap={2}>
           <Controller
             name="dandanplay.chConvert"

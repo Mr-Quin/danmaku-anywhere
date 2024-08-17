@@ -21,8 +21,8 @@ const sortDanmakuCacheImportDto = (a: DanmakuInsert, b: DanmakuInsert) => {
   if (a.seasonTitle === b.seasonTitle) {
     // For DDP, sort by episodeId
     if (
-      a.provider === DanmakuSourceType.DDP &&
-      b.provider === DanmakuSourceType.DDP
+      a.provider === DanmakuSourceType.DanDanPlay &&
+      b.provider === DanmakuSourceType.DanDanPlay
     ) {
       if (a.meta.episodeId && b.meta.episodeId) {
         return a.meta.episodeId - b.meta.episodeId
@@ -72,7 +72,7 @@ export const ImportExportedDanmaku = ({
     >
       {ddpResults.length > 0 && (
         <>
-          <Typography gutterBottom>{t('danmaku.type.DDP')}</Typography>
+          <Typography gutterBottom>{t('danmaku.type.DanDanPlay')}</Typography>
           {ddpResults
             .toSorted(sortDanmakuCacheImportDto)
             .map((result, index) => {

@@ -24,7 +24,7 @@ export const useLoadDanmakuNextEpisode = () => {
 
   const canFetchNextEpisode =
     !!danmakuLite &&
-    isDanmakuProvider(danmakuLite, DanmakuSourceType.DDP) &&
+    isDanmakuProvider(danmakuLite, DanmakuSourceType.DanDanPlay) &&
     manual
 
   const fetchNextEpisodeComments = useEventCallback(async () => {

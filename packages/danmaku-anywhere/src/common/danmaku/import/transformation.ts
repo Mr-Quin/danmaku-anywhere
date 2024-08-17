@@ -9,7 +9,7 @@ import { CURRENT_SCHEMA_VERSION } from '@/common/danmaku/utils'
 export function transformV1(
   v1Data: z.infer<typeof importSchemaV1>
 ): DanmakuInsert {
-  if (v1Data.type === DanmakuSourceType.DDP) {
+  if (v1Data.type === DanmakuSourceType.DanDanPlay) {
     return {
       provider: v1Data.type,
       comments: v1Data.comments,

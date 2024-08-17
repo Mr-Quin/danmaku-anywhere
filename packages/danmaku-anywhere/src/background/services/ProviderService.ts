@@ -111,7 +111,7 @@ export class ProviderService {
           animeTitle: mapping.title,
           episodeId,
           episodeTitle,
-          provider: DanmakuSourceType.DDP,
+          provider: DanmakuSourceType.DanDanPlay,
         } satisfies DanDanPlayMeta,
       }
     }
@@ -142,7 +142,7 @@ export class ProviderService {
         animeTitle: result.animeTitle,
         episodeId: result.episodes[0].episodeId,
         episodeTitle: result.episodes[0].episodeTitle,
-        provider: DanmakuSourceType.DDP,
+        provider: DanmakuSourceType.DanDanPlay,
       }
 
       return {

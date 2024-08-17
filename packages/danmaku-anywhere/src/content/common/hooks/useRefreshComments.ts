@@ -17,7 +17,10 @@ export const useRefreshComments = () => {
   const { mutate, isPending } = useLoadDanmaku()
 
   const refreshComments = useEventCallback(async () => {
-    if (!danmakuLite || !isDanmakuProvider(danmakuLite, DanmakuSourceType.DDP))
+    if (
+      !danmakuLite ||
+      !isDanmakuProvider(danmakuLite, DanmakuSourceType.DanDanPlay)
+    )
       return
 
     toast.info(t('danmaku.alert.refreshingDanmaku'))
