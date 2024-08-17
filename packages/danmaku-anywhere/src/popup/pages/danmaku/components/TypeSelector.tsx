@@ -77,6 +77,15 @@ export const TypeSelector = () => {
             />
             <FormControlLabel
               control={
+                <Checkbox onChange={handleSelect(DanmakuSourceType.Bilibili)} />
+              }
+              label={t(
+                `danmaku.type.${DanmakuSourceType[DanmakuSourceType.Bilibili]}`
+              )}
+              checked={selectedTypes.includes(DanmakuSourceType.Bilibili)}
+            />
+            <FormControlLabel
+              control={
                 <Checkbox onChange={handleSelect(DanmakuSourceType.Custom)} />
               }
               label={t(

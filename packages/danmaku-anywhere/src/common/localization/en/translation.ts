@@ -88,6 +88,7 @@ const domain = {
     type: {
       Custom: 'Custom',
       DDP: 'DanDanPlay',
+      Bilibili: 'Bilibili',
     },
     unmount: 'Unmount',
   },

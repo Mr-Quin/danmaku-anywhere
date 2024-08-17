@@ -1,7 +1,8 @@
 import { Icon, ListItemIcon, Tooltip } from '@mui/material'
+import type { ReactNode } from 'react'
 
 interface MediaTypeIconProps {
-  icon: string
+  icon: ReactNode
   description: string
 }
 

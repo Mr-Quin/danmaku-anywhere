@@ -1,6 +1,5 @@
 import {
   Box,
-  Chip,
   List,
   ListItemButton,
   ListItemIcon,
@@ -15,7 +14,8 @@ import { createSearchParams, useNavigate } from 'react-router-dom'
 
 import { NoAnime } from './NoAnime'
 
-import { DanmakuSourceType } from '@/common/danmaku/enums'
+import { DanmakuProviderChip } from '@/common/components/DanmakuProviderChip'
+import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useAllDanmakuSuspense'
 import { matchWithPinyin } from '@/common/utils/utils'
@@ -136,10 +136,7 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
                 />
               </Tooltip>
               <ListItemIcon>
-                <Chip
-                  label={t(`danmaku.type.${DanmakuSourceType[type]}`)}
-                  size="small"
-                />
+                <DanmakuProviderChip provider={type} />
               </ListItemIcon>
             </ListItemButton>
           )

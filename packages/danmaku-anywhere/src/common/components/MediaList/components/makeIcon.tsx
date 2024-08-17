@@ -1,6 +1,8 @@
 import { BiliBiliMediaType } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import type { DanDanAnimeType } from '@danmaku-anywhere/danmaku-provider/ddp'
 
+import { CNFlagIcon } from '@/common/components/icons/CNFlagIcon'
+
 export const getDanDanPlayMediaIcon = (type: DanDanAnimeType) => {
   switch (type) {
     case 'jpdrama':
@@ -10,7 +12,7 @@ export const getDanDanPlayMediaIcon = (type: DanDanAnimeType) => {
     case 'movie':
       return '🎬'
     case 'ova':
-      return '📼'
+      return '📀'
     case 'web':
       return '🌐'
     case 'musicvideo':
@@ -23,16 +25,16 @@ export const getDanDanPlayMediaIcon = (type: DanDanAnimeType) => {
 export const getBilibiliMediaIcon = (type: BiliBiliMediaType) => {
   switch (type) {
     case BiliBiliMediaType.Variety:
-      return '🎭'
+      return '🤹‍♀️'
     case BiliBiliMediaType.Bangumi:
     case BiliBiliMediaType.TV:
       return '📺'
     case BiliBiliMediaType.Movie:
       return '🎬'
     case BiliBiliMediaType.Documentary:
-      return '📼'
+      return '🔎'
     case BiliBiliMediaType.Guochuang:
-      return '🇨🇳'
+      return <CNFlagIcon />
     default:
       return '❓'
   }
