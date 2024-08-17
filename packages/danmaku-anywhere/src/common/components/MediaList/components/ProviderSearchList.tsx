@@ -3,11 +3,11 @@ import type { ListProps } from '@mui/material'
 import { ListItem, ListItemText } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
-import type { DanmakuProviderType } from '@/common/anime/enums'
 import { useMediaSearchSuspense } from '@/common/anime/queries/useMediaSearchSuspense'
 import { CollapsibleList } from '@/common/components/MediaList/components/CollapsibleList'
 import { SeasonsList } from '@/common/components/MediaList/components/SeasonsList'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
+import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 
 interface ProviderSearchListProps {
@@ -15,7 +15,7 @@ interface ProviderSearchListProps {
   listProps?: ListProps
   dense?: boolean
   searchParams: DanDanAnimeSearchAPIParams
-  provider: DanmakuProviderType
+  provider: DanmakuSourceType
 }
 
 export const ProviderSearchList = ({

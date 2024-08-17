@@ -4,8 +4,10 @@ import type {
 } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import type { DanDanAnimeSearchResult } from '@danmaku-anywhere/danmaku-provider/ddp'
 
-import type { DanmakuProviderType } from '@/common/anime/enums'
-import type { IntegrationTypeNotNone } from '@/common/danmaku/enums'
+import type {
+  DanmakuSourceType,
+  IntegrationTypeNotNone,
+} from '@/common/danmaku/enums'
 import type { DanDanPlayMeta } from '@/common/danmaku/models/meta'
 
 export interface MediaSearchParams {
@@ -14,22 +16,22 @@ export interface MediaSearchParams {
 }
 
 export interface MediaSearchParamsData {
-  provider: DanmakuProviderType
+  provider: DanmakuSourceType
   params: MediaSearchParams
 }
 
 export interface MediaSearchMultiParamsData {
-  providers: DanmakuProviderType[]
+  providers: DanmakuSourceType[]
   params: MediaSearchParams
 }
 
 export interface DanDanPlayMediaSearchResult {
-  provider: DanmakuProviderType.DanDanPlay
+  provider: DanmakuSourceType.DanDanPlay
   data: DanDanAnimeSearchResult
 }
 
 export interface BilibiliMediaSearchResult {
-  provider: DanmakuProviderType.Bilibili
+  provider: DanmakuSourceType.Bilibili
   data: BilibiliSearchResult
 }
 
@@ -44,16 +46,16 @@ export type DanDanPlayEpisode =
 
 export type SeasonSearchResult =
   | {
-      provider: DanmakuProviderType.Bilibili
+      provider: DanmakuSourceType.Bilibili
       data: BilibiliBangumiInfo
     }
   | {
-      provider: DanmakuProviderType.DanDanPlay
+      provider: DanmakuSourceType.DanDanPlay
       data: DanDanAnimeSearchResult[number]
     }
 
 export interface GetEpisodeDto {
-  provider: DanmakuProviderType.Bilibili
+  provider: DanmakuSourceType.Bilibili
   seasonId: number
 }
 

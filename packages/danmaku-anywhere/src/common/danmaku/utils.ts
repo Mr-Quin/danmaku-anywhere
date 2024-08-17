@@ -6,6 +6,7 @@ import type {
   DanDanPlayMetaDto,
   DanmakuMeta,
 } from '@/common/danmaku/models/meta'
+import { UnsupportedProviderException } from '@/common/danmaku/UnsupportedProviderException'
 
 export const CURRENT_SCHEMA_VERSION = 2
 
@@ -30,7 +31,7 @@ export const getEpisodeId = (meta: DanmakuMeta | DanDanPlayMetaDto) => {
     case DanmakuSourceType.Bilibili:
       return meta.cid
     default:
-      throw new Error(`Unsupported provider: ${meta.provider}`)
+      throw new UnsupportedProviderException(meta.provider)
   }
 }
 
@@ -43,8 +44,9 @@ export function assertDanmakuProvider<
   S extends DanmakuSourceType,
 >(data: T, provider: S): asserts data is Extract<T, { provider: S }> {
   if (data.provider !== provider) {
-    throw new Error(
-      `Unexpected  provider: ${data.provider}, expected: ${provider}`
+    throw new UnsupportedProviderException(
+      data.provider,
+      `expected ${provider}`
     )
   }
 }

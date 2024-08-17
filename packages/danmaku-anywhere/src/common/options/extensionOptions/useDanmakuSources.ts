@@ -1,6 +1,6 @@
 import { produce } from 'immer'
 
-import { DanmakuProviderType } from '@/common/anime/enums'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { DanmakuSources } from '@/common/options/extensionOptions/schema'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 
@@ -12,12 +12,12 @@ export const useDanmakuSources = () => {
   const sourcesList = [
     {
       key: 'dandanplay',
-      provider: DanmakuProviderType.DanDanPlay,
+      provider: DanmakuSourceType.DanDanPlay,
       options: sources.dandanplay,
     },
     {
       key: 'bilibili',
-      provider: DanmakuProviderType.Bilibili,
+      provider: DanmakuSourceType.Bilibili,
       options: sources.bilibili,
     },
   ] as const

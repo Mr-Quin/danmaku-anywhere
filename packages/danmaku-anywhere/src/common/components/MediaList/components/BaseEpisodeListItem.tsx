@@ -11,13 +11,13 @@ import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { match } from 'ts-pattern'
 
-import { DanmakuProviderType } from '@/common/anime/enums'
 import type { RenderEpisodeData } from '@/common/components/MediaList/types'
 import type { DanmakuFetchDto, DanmakuGetOneDto } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { Danmaku } from '@/common/danmaku/models/danmaku'
 import type { BiliBiliMeta, DanDanPlayMeta } from '@/common/danmaku/models/meta'
 import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
+import { UnsupportedProviderException } from '@/common/danmaku/UnsupportedProviderException'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 interface BaseEpisodeListItemProps {
@@ -36,34 +36,31 @@ interface EpisodeRenderData {
 
 const getRenderData = (data: RenderEpisodeData): EpisodeRenderData =>
   match(data)
-    .with(
-      { provider: DanmakuProviderType.DanDanPlay },
-      ({ episode, season }) => {
-        const { episodeTitle, episodeId } = episode
-        const { animeId, animeTitle } = season
+    .with({ provider: DanmakuSourceType.DanDanPlay }, ({ episode, season }) => {
+      const { episodeTitle, episodeId } = episode
+      const { animeId, animeTitle } = season
 
-        const meta = {
-          episodeId,
-          episodeTitle,
-          animeId: animeId,
-          animeTitle: animeTitle,
-          provider: DanmakuSourceType.DanDanPlay,
-        } satisfies DanDanPlayMeta
+      const meta = {
+        episodeId,
+        episodeTitle,
+        animeId: animeId,
+        animeTitle: animeTitle,
+        provider: DanmakuSourceType.DanDanPlay,
+      } satisfies DanDanPlayMeta
 
-        const params = {
-          provider: DanmakuSourceType.DanDanPlay,
-          episodeId: episode.episodeId,
-        }
-
-        return {
-          meta,
-          title: episodeTitle,
-          tooltip: episodeTitle,
-          params,
-        }
+      const params = {
+        provider: DanmakuSourceType.DanDanPlay,
+        episodeId: episode.episodeId,
       }
-    )
-    .with({ provider: DanmakuProviderType.Bilibili }, ({ episode, season }) => {
+
+      return {
+        meta,
+        title: episodeTitle,
+        tooltip: episodeTitle,
+        params,
+      }
+    })
+    .with({ provider: DanmakuSourceType.Bilibili }, ({ episode, season }) => {
       const meta = {
         cid: episode.cid,
         aid: episode.aid,
@@ -86,8 +83,8 @@ const getRenderData = (data: RenderEpisodeData): EpisodeRenderData =>
         params,
       }
     })
-    .otherwise(() => {
-      throw new Error('Invalid provider')
+    .otherwise(({ provider }) => {
+      throw new UnsupportedProviderException(provider)
     })
 
 export const BaseEpisodeListItem = ({

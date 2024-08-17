@@ -3,10 +3,10 @@ import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
 import type { BilibiliMediaSearchResult } from '@/common/anime/dto'
-import { DanmakuProviderType } from '@/common/anime/enums'
 import { useGetEpisodes } from '@/common/anime/queries/useGetEpisodes'
 import { ListItemSkeleton } from '@/common/components/MediaList/components/ListItemSkeleton'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
 
 interface BilibiliSeasonsListItemProps {
   season: BilibiliMediaSearchResult['data'][number]
@@ -18,7 +18,7 @@ export const BilibiliEpisodeList = ({
   renderEpisode,
 }: BilibiliSeasonsListItemProps) => {
   const { data: result } = useGetEpisodes({
-    provider: DanmakuProviderType.Bilibili,
+    provider: DanmakuSourceType.Bilibili,
     seasonId: season.season_id,
   })
 
@@ -32,7 +32,7 @@ export const BilibiliEpisodeList = ({
           >
             <Suspense fallback={<ListItemSkeleton />}>
               {renderEpisode({
-                provider: DanmakuProviderType.Bilibili,
+                provider: DanmakuSourceType.Bilibili,
                 episode,
                 season: result,
               })}

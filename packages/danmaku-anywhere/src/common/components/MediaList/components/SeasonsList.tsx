@@ -8,7 +8,6 @@ import type {
   DanDanPlayMediaSearchResult,
   MediaSearchResult,
 } from '@/common/anime/dto'
-import { DanmakuProviderType } from '@/common/anime/enums'
 import { BilibiliEpisodeList } from '@/common/components/MediaList/bilibili/BilibiliEpisodeList'
 import { CollapsableListItems } from '@/common/components/MediaList/components/CollapsableListItems'
 import { ListItemSkeleton } from '@/common/components/MediaList/components/ListItemSkeleton'
@@ -18,6 +17,8 @@ import {
 } from '@/common/components/MediaList/components/makeIcon'
 import { MediaTypeIcon } from '@/common/components/MediaList/components/MediaTypeIcon'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
+import { UnsupportedProviderException } from '@/common/danmaku/UnsupportedProviderException'
 import { stripHtml } from '@/common/utils/utils'
 
 const renderSeasonContent = <T extends MediaSearchResult>(
@@ -26,7 +27,7 @@ const renderSeasonContent = <T extends MediaSearchResult>(
   renderEpisodes: SeasonListProps['renderEpisode'],
   dense?: boolean
 ) => {
-  if (provider === DanmakuProviderType.Bilibili) {
+  if (provider === DanmakuSourceType.Bilibili) {
     const bilibiliSeason = season as BilibiliMediaSearchResult['data'][number]
     return (
       <BilibiliEpisodeList
@@ -47,7 +48,7 @@ const renderSeasonContent = <T extends MediaSearchResult>(
             >
               <Suspense fallback={<ListItemSkeleton />}>
                 {renderEpisodes({
-                  provider: DanmakuProviderType.DanDanPlay,
+                  provider: DanmakuSourceType.DanDanPlay,
                   episode,
                   season: danDanPlaySeason,
                 })}
@@ -70,7 +71,7 @@ const renderSeasonIcon = (
   season: MediaSearchResult['data'][number]
 ) => {
   const { icon, description, primaryText } = match(provider)
-    .with(DanmakuProviderType.Bilibili, () => {
+    .with(DanmakuSourceType.Bilibili, () => {
       const bilibiliSeason = season as BilibiliMediaSearchResult['data'][number]
 
       return {
@@ -79,7 +80,7 @@ const renderSeasonIcon = (
         primaryText: stripHtml(bilibiliSeason.title),
       }
     })
-    .with(DanmakuProviderType.DanDanPlay, () => {
+    .with(DanmakuSourceType.DanDanPlay, () => {
       const danDanPlaySeason =
         season as DanDanPlayMediaSearchResult['data'][number]
 
@@ -89,8 +90,8 @@ const renderSeasonIcon = (
         primaryText: danDanPlaySeason.animeTitle,
       }
     })
-    .otherwise(() => {
-      throw new Error(`Unknown provider: ${provider}`)
+    .otherwise((provider) => {
+      throw new UnsupportedProviderException(provider)
     })
 
   return (
