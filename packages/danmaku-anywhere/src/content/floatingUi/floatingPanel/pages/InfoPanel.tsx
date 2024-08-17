@@ -1,15 +1,20 @@
 import { Box } from '@mui/material'
+import { produce } from 'immer'
 
 import { useStore } from '../../../store/store'
 
 export const InfoPanel = () => {
   const state = useStore()
 
-  const displayState = {
-    ...state,
-    commentCount: state.comments.length,
-    comments: undefined,
-  }
+  const displayState = produce(state, (draft) => {
+    // @ts-expect-error
+    delete draft.comments
+    if (draft.danmakuLite) {
+      if ('comments' in draft.danmakuLite) {
+        delete draft.danmakuLite.comments
+      }
+    }
+  })
 
   return (
     <Box component="pre" m={0} flexGrow={1}>
