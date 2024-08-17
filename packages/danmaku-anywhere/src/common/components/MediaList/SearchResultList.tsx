@@ -2,9 +2,9 @@ import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provi
 import type { ListProps } from '@mui/material'
 
 import type { MediaSearchResult } from '@/common/anime/dto'
-import type { DanmakuProviderType } from '@/common/anime/enums'
 import { ProviderSearchList } from '@/common/components/MediaList/components/ProviderSearchList'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
+import type { DanmakuSourceType } from '@/common/danmaku/enums'
 
 interface SearchResultListProps {
   renderEpisode: RenderEpisode
@@ -16,7 +16,7 @@ interface SearchResultListProps {
     provider: T,
     data: Extract<MediaSearchResult, { provider: T }>['data']
   ) => void
-  providers: DanmakuProviderType[]
+  providers: DanmakuSourceType[]
 }
 
 export const SearchResultList = ({

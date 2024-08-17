@@ -5,23 +5,23 @@ import type {
   DanDanPlayEpisode,
   SeasonSearchResult,
 } from '@/common/anime/dto'
-import type { DanmakuProviderType } from '@/common/anime/enums'
+import type { DanmakuSourceType } from '@/common/danmaku/enums'
 
 export type RenderEpisodeData =
   | {
-      provider: DanmakuProviderType.Bilibili
+      provider: DanmakuSourceType.Bilibili
       episode: BilibiliEpisode
       season: Extract<
         SeasonSearchResult,
-        { provider: DanmakuProviderType.Bilibili }
+        { provider: DanmakuSourceType.Bilibili }
       >['data']
     }
   | {
-      provider: DanmakuProviderType.DanDanPlay
+      provider: DanmakuSourceType.DanDanPlay
       episode: DanDanPlayEpisode
       season: Extract<
         SeasonSearchResult,
-        { provider: DanmakuProviderType.DanDanPlay }
+        { provider: DanmakuSourceType.DanDanPlay }
       >['data']
     }
 

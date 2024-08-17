@@ -20,6 +20,7 @@ import type {
   DanmakuInsert,
   DanmakuLite,
 } from '@/common/danmaku/models/danmaku'
+import { UnsupportedProviderException } from '@/common/danmaku/UnsupportedProviderException'
 import {
   assertDanmakuProvider,
   CURRENT_SCHEMA_VERSION,
@@ -124,8 +125,8 @@ export class DanmakuService {
           return danmaku
         }
       )
-      .otherwise(() => {
-        throw new Error(`Unsupported provider: ${provider}`)
+      .otherwise(({ meta: { provider } }) => {
+        throw new UnsupportedProviderException(provider)
       })
 
     if (existingDanmaku) {

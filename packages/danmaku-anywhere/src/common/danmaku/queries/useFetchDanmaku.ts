@@ -4,6 +4,7 @@ import { match } from 'ts-pattern'
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
+import { UnsupportedProviderException } from '@/common/danmaku/UnsupportedProviderException'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 /**
@@ -33,8 +34,8 @@ export const useFetchDanmaku = () => {
             return chromeRpcClient.danmakuFetch(data)
           }
         )
-        .otherwise(() => {
-          throw new Error('Provider not supported')
+        .otherwise(({ meta: { provider } }) => {
+          throw new UnsupportedProviderException(provider)
         })
     },
   })
