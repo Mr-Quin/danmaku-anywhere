@@ -127,7 +127,10 @@ export class ProviderService {
 
     if (searchResult.data.length === 0) {
       this.logger.debug(`No season found for title: ${title}`)
-      throw new Error(`No season found for title: ${title}`)
+      return {
+        status: 'notFound',
+        data: null,
+      }
     }
 
     if (searchResult.data.length === 1) {

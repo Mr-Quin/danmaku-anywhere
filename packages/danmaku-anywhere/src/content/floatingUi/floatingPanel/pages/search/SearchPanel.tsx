@@ -115,20 +115,22 @@ export const SearchPanel = () => {
             </LoadingButton>
           </Stack>
           <AutomaticMode>
-            <FormControl>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    inputProps={{ 'aria-label': 'controlled' }}
-                    checked={saveMapping}
-                    onChange={(e) => {
-                      setSaveMapping(e.target.checked)
-                    }}
-                  />
-                }
-                label={t('searchPage.saveMapping')}
-              />
-            </FormControl>
+            {!!mediaInfo && (
+              <FormControl>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      inputProps={{ 'aria-label': 'controlled' }}
+                      checked={saveMapping}
+                      onChange={(e) => {
+                        setSaveMapping(e.target.checked)
+                      }}
+                    />
+                  }
+                  label={t('searchPage.saveMapping')}
+                />
+              </FormControl>
+            )}
           </AutomaticMode>
         </Box>
       </form>
