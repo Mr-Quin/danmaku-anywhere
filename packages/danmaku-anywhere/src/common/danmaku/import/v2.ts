@@ -16,14 +16,14 @@ const baseSchemaV2 = z.object({
 const v2 = {
   dandanPlay: z.discriminatedUnion('provider', [
     baseSchemaV2.extend({
-      provider: z.literal(DanmakuSourceType.DDP),
+      provider: z.literal(DanmakuSourceType.DanDanPlay),
       params: z.object({
         chConvert: z.nativeEnum(DanDanChConvert).optional(),
         withRelated: z.boolean().optional(),
         from: z.number().optional(),
       }),
       meta: z.object({
-        provider: z.literal(DanmakuSourceType.DDP),
+        provider: z.literal(DanmakuSourceType.DanDanPlay),
         episodeId: z.number(),
         animeId: z.number(),
         episodeTitle: z.string(),

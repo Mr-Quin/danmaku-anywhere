@@ -24,7 +24,7 @@ export type DanmakuGetManyDto = number[]
 
 export interface DanmakuGetBySeasonDto {
   // Get by anime is unsupported for custom danmaku
-  provider: DanmakuSourceType.DDP
+  provider: DanmakuSourceType.DanDanPlay
   // Season id
   id: number
 }

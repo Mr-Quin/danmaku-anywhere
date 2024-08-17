@@ -89,7 +89,7 @@ const domain = {
     style: '弹幕样式',
     type: {
       Custom: '自定义',
-      DDP: '弹弹Play',
+      DanDanPlay: '弹弹Play',
       Bilibili: '哔哩哔哩',
     },
     unmount: '卸载弹幕',

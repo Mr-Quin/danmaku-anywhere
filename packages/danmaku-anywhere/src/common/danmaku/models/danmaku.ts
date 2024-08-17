@@ -38,7 +38,7 @@ interface BaseDanmakuEntity {
 }
 
 export type DanDanPlayDanmaku = BaseDanmakuEntity & {
-  provider: DanmakuSourceType.DDP
+  provider: DanmakuSourceType.DanDanPlay
   meta: DanDanPlayMeta
   /**
    * The params used to fetch the comments

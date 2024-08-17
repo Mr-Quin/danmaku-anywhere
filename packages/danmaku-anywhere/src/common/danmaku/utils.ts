@@ -29,7 +29,7 @@ export const getNextEpisodeMeta = (
 
 export const getEpisodeId = (meta: DanmakuMeta | DanDanPlayMetaDto) => {
   switch (meta.provider) {
-    case DanmakuSourceType.DDP:
+    case DanmakuSourceType.DanDanPlay:
       return meta.episodeId
     case DanmakuSourceType.Bilibili:
       return meta.cid

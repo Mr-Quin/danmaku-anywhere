@@ -19,7 +19,7 @@ export const useFetchDanmaku = () => {
       return match(data)
         .with(
           {
-            meta: { provider: DanmakuSourceType.DDP },
+            meta: { provider: DanmakuSourceType.DanDanPlay },
           },
           (data) => {
             return chromeRpcClient.danmakuFetch(data)

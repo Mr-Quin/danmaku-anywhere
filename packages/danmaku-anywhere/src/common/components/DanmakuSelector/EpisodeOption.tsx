@@ -33,7 +33,7 @@ export const EpisodeOption = (
       forceUpdate: true,
     }
 
-    if (isDanmakuProvider(option, DanmakuSourceType.DDP))
+    if (isDanmakuProvider(option, DanmakuSourceType.DanDanPlay))
       return load({
         meta: option.meta,
         options: fetchOption,

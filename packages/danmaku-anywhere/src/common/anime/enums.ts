@@ -1,4 +1,6 @@
+import { DanmakuSourceType } from '@/common/danmaku/enums'
+
 export enum DanmakuProviderType {
-  DanDanPlay,
-  Bilibili,
+  DanDanPlay = DanmakuSourceType.DanDanPlay,
+  Bilibili = DanmakuSourceType.Bilibili,
 }

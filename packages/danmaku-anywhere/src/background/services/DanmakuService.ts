@@ -53,7 +53,7 @@ export class DanmakuService {
     // Save title mapping
     if (context) {
       this.logger.debug('Saving title mapping', context)
-      if (isDanmakuProvider(meta, DanmakuSourceType.DDP)) {
+      if (isDanmakuProvider(meta, DanmakuSourceType.DanDanPlay)) {
         void this.titleMappingService.add({
           title: meta.animeTitle,
           originalTitle: context.key,
@@ -103,7 +103,7 @@ export class DanmakuService {
         }
       )
       .with(
-        { meta: { provider: DanmakuSourceType.DDP } },
+        { meta: { provider: DanmakuSourceType.DanDanPlay } },
         async ({ meta, params }) => {
           const result = await this.danDanPlayService.getDanmaku(meta, params)
           const danmaku: DanDanPlayDanmakuInsert = {
@@ -222,7 +222,7 @@ export class DanmakuService {
   async getByAnimeId(data: DanmakuGetBySeasonDto) {
     return this.ddpTable
       .filter((d) => {
-        if (isDanmakuProvider(d, DanmakuSourceType.DDP)) {
+        if (isDanmakuProvider(d, DanmakuSourceType.DanDanPlay)) {
           return d.meta.animeId === data.id
         }
         return false
