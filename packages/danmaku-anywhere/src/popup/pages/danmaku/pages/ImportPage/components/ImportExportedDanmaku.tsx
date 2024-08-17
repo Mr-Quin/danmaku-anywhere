@@ -3,7 +3,10 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
+import {
+  DanmakuSourceType,
+  localizedDanmakuSourceType,
+} from '@/common/danmaku/enums'
 import type { DanmakuInsert } from '@/common/danmaku/models/danmaku'
 import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
 import type { ImportParseResult } from '@/common/danmaku/types'
@@ -72,7 +75,9 @@ export const ImportExportedDanmaku = ({
     >
       {ddpResults.length > 0 && (
         <>
-          <Typography gutterBottom>{t('danmaku.type.DanDanPlay')}</Typography>
+          <Typography gutterBottom>
+            {t(localizedDanmakuSourceType(DanmakuSourceType.DanDanPlay))}
+          </Typography>
           {ddpResults
             .toSorted(sortDanmakuCacheImportDto)
             .map((result, index) => {

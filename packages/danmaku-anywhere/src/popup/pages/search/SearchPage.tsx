@@ -10,13 +10,13 @@ import { useTranslation } from 'react-i18next'
 
 import { SearchForm } from './components/SearchForm'
 
-import { DanmakuProviderType } from '@/common/anime/enums'
 import { mediaKeys } from '@/common/anime/queries/mediaQueryKeys'
 import { Center } from '@/common/components/Center'
 import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
 import { SearchResultList } from '@/common/components/MediaList/SearchResultList'
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
+import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
 import { TabToolbar } from '@/popup/component/TabToolbar'
 import { TabLayout } from '@/popup/layout/TabLayout'
 import { useStore } from '@/popup/store'
@@ -26,6 +26,8 @@ export const SearchPage = () => {
   // TODO: useTransition does not yet work with useSyncExternalStore (zustand),
   // so we use useState for now and save the state to the store
   const [searchParams, setSearchParams] = useState<DanDanAnimeSearchAPIParams>()
+
+  const { enabledProviders } = useDanmakuSources()
 
   const ref = useRef<ErrorBoundary>(null)
   const { reset } = useQueryErrorResetBoundary()
@@ -67,6 +69,17 @@ export const SearchPage = () => {
     })
   }
 
+  if (!enabledProviders.length) {
+    return (
+      <TabLayout>
+        <TabToolbar title={t('searchPage.name')} />
+        <Center>
+          <Typography>{t('searchPage.noProviders')}</Typography>
+        </Center>
+      </TabLayout>
+    )
+  }
+
   return (
     <TabLayout>
       <TabToolbar title={t('searchPage.name')} />
@@ -91,10 +104,7 @@ export const SearchPage = () => {
         <Collapse in={searchParams !== undefined} unmountOnExit mountOnEnter>
           <Suspense fallback={null}>
             <SearchResultList
-              providers={[
-                DanmakuProviderType.DanDanPlay,
-                DanmakuProviderType.Bilibili,
-              ]}
+              providers={enabledProviders}
               pending={pending}
               searchParams={searchParams!}
               dense

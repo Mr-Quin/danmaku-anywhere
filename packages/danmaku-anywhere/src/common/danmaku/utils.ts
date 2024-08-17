@@ -9,10 +9,6 @@ import type {
 
 export const CURRENT_SCHEMA_VERSION = 2
 
-export const computeEpisodeId = (animeId: number, episodeNumber: number) => {
-  return animeId * 10000 + episodeNumber
-}
-
 const getNextEpisodeId = (episodeId: number) => {
   return episodeId + 1
 }

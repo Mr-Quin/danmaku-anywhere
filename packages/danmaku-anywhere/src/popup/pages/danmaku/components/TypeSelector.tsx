@@ -11,7 +11,10 @@ import type { ChangeEvent } from 'react'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { DanmakuSourceType } from '@/common/danmaku/enums'
+import {
+  DanmakuSourceType,
+  localizedDanmakuSourceType,
+} from '@/common/danmaku/enums'
 import { useStore } from '@/popup/store'
 
 export const TypeSelector = () => {
@@ -73,7 +76,7 @@ export const TypeSelector = () => {
                 />
               }
               label={t(
-                `danmaku.type.${DanmakuSourceType[DanmakuSourceType.DanDanPlay]}`
+                localizedDanmakuSourceType(DanmakuSourceType.DanDanPlay)
               )}
               checked={selectedTypes.includes(DanmakuSourceType.DanDanPlay)}
             />
@@ -81,18 +84,14 @@ export const TypeSelector = () => {
               control={
                 <Checkbox onChange={handleSelect(DanmakuSourceType.Bilibili)} />
               }
-              label={t(
-                `danmaku.type.${DanmakuSourceType[DanmakuSourceType.Bilibili]}`
-              )}
+              label={t(localizedDanmakuSourceType(DanmakuSourceType.Bilibili))}
               checked={selectedTypes.includes(DanmakuSourceType.Bilibili)}
             />
             <FormControlLabel
               control={
                 <Checkbox onChange={handleSelect(DanmakuSourceType.Custom)} />
               }
-              label={t(
-                `danmaku.type.${DanmakuSourceType[DanmakuSourceType.Custom]}`
-              )}
+              label={t(localizedDanmakuSourceType(DanmakuSourceType.Custom))}
               checked={selectedTypes.includes(DanmakuSourceType.Custom)}
             />
           </FormGroup>

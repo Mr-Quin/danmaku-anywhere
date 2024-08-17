@@ -23,12 +23,12 @@ import { useTranslation } from 'react-i18next'
 
 import { EpisodeListItem } from './EpisodeListItem'
 
-import { DanmakuProviderType } from '@/common/anime/enums'
 import { mediaKeys } from '@/common/anime/queries/mediaQueryKeys'
 import { Center } from '@/common/components/Center'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { SearchResultList } from '@/common/components/MediaList/SearchResultList'
 import { hasIntegration } from '@/common/danmaku/enums'
+import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
 import { stopKeyboardPropagation } from '@/common/utils/utils'
 import { AutomaticMode } from '@/content/common/components/AutomaticMode'
 import { usePopup } from '@/content/store/popupStore'
@@ -40,6 +40,8 @@ export const SearchPanel = () => {
     usePopup()
   const mediaInfo = useStore((state) => state.mediaInfo)
   const integration = useStore((state) => state.integration)
+
+  const { enabledProviders } = useDanmakuSources()
 
   const [searchParams, setSearchParams] = useState<DanDanAnimeSearchAPIParams>()
 
@@ -81,6 +83,16 @@ export const SearchPanel = () => {
 
   const handleTextFieldKeyDown = (e: KeyboardEvent) => {
     stopKeyboardPropagation(e)
+  }
+
+  if (!enabledProviders.length) {
+    return (
+      <Box flexGrow={1}>
+        <Center>
+          <Typography>{t('searchPage.noProviders')}</Typography>
+        </Center>
+      </Box>
+    )
   }
 
   return (
@@ -150,10 +162,7 @@ export const SearchPanel = () => {
           <Suspense fallback={<FullPageSpinner />}>
             <Divider />
             <SearchResultList
-              providers={[
-                DanmakuProviderType.DanDanPlay,
-                DanmakuProviderType.Bilibili,
-              ]}
+              providers={enabledProviders}
               searchParams={searchParams!}
               dense
               pending={pending}

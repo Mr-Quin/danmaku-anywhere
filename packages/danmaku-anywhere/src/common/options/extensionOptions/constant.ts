@@ -24,8 +24,12 @@ export const defaultExtensionOptions: ExtensionOptions = {
   lang: Language.zh,
   danmakuSources: {
     dandanplay: {
+      enabled: true,
       baseUrl: 'https://api.dandanplay.net',
       chConvert: DanDanChConvert.None,
+    },
+    bilibili: {
+      enabled: true,
     },
   },
   theme: {

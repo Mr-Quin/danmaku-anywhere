@@ -1,18 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  Box,
-  Button,
-  MenuItem,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material'
+import { Box, Button, MenuItem, Stack, TextField } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { produce } from 'immer'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
+import {
+  DanmakuSourceType,
+  localizedDanmakuSourceType,
+} from '@/common/danmaku/enums'
 import {
   ChConvertList,
   defaultExtensionOptions,
@@ -23,7 +20,7 @@ import { useExtensionOptions } from '@/common/options/extensionOptions/useExtens
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 
-export const DanmakuSource = () => {
+export const DanDanPlayOptions = () => {
   const { t } = useTranslation()
   const { data, partialUpdate } = useExtensionOptions()
 
@@ -72,9 +69,10 @@ export const DanmakuSource = () => {
 
   return (
     <OptionsPageLayout>
-      <OptionsPageToolBar title={t('optionsPage.pages.danmakuSource')} />
+      <OptionsPageToolBar
+        title={t(localizedDanmakuSourceType(DanmakuSourceType.DanDanPlay))}
+      />
       <Box p={2}>
-        <Typography variant="h6">{t('danmaku.type.DanDanPlay')}</Typography>
         <Stack mt={2} gap={2}>
           <Controller
             name="dandanplay.chConvert"
