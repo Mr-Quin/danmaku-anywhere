@@ -207,6 +207,7 @@ const pages = {
     name: '搜索番剧',
     saveMapping: '保存标题映射',
     title: '番剧标题',
+    noProviders: '没有启用的弹幕来源，请在设置中启用',
   },
   selectorPage: {
     noAnimeFound: '没有可供选择的内容',

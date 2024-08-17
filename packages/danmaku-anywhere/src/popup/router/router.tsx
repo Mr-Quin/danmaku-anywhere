@@ -9,12 +9,13 @@ import { ImportPage } from '../pages/danmaku/pages/ImportPage/ImportPage'
 import { Home } from '../pages/home/Home'
 import { MountPage } from '../pages/mount/MountPage'
 import { Options } from '../pages/options/Options'
-import { DanmakuSource } from '../pages/options/pages/DanmakuSource'
+import { DanmakuSource } from '../pages/options/pages/danmakuSource/DanmakuSource'
 import { Permissions } from '../pages/options/pages/Permissions'
 import { SearchPage } from '../pages/search/SearchPage'
 import { FilterPage } from '../pages/styles/FilterPage'
 import { StylesPage } from '../pages/styles/StylesPage'
 
+import { DanDanPlayOptions } from '@/popup/pages/options/pages/danmakuSource/DanDanPlayOptions'
 import { ThemeOptions } from '@/popup/pages/options/pages/theme/ThemeOptions'
 
 export const router = createHashRouter([
@@ -97,6 +98,12 @@ export const router = createHashRouter([
       {
         path: 'danmaku-source',
         Component: DanmakuSource,
+        children: [
+          {
+            path: 'dandanplay',
+            Component: DanDanPlayOptions,
+          },
+        ],
       },
       {
         path: 'theme',

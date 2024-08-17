@@ -52,6 +52,16 @@ extensionOptionsService
         }
       }),
   })
+  .version(6, {
+    upgrade: (data: PrevOptions) =>
+      produce<ExtensionOptions>(data, (draft) => {
+        // Add bilibili danmaku source and disable it by default
+        draft.danmakuSources.dandanplay.enabled = true
+        draft.danmakuSources.bilibili = {
+          enabled: false,
+        }
+      }),
+  })
 
 danmakuOptionsService
   .version(1, {

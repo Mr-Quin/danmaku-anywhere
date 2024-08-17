@@ -8,6 +8,17 @@ export const danmakuSourceTypeList = Object.values(DanmakuSourceType).filter(
   (e): e is DanmakuSourceType => typeof e === 'number'
 )
 
+export function localizedDanmakuSourceType(type: DanmakuSourceType): string {
+  switch (type) {
+    case DanmakuSourceType.Custom:
+      return 'danmaku.type.Custom'
+    case DanmakuSourceType.DanDanPlay:
+      return 'danmaku.type.DanDanPlay'
+    case DanmakuSourceType.Bilibili:
+      return 'danmaku.type.Bilibili'
+  }
+}
+
 export enum IntegrationType {
   None,
   Plex,
