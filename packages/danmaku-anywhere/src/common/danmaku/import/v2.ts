@@ -1,3 +1,4 @@
+import { BiliBiliMediaType } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { z } from 'zod'
 
@@ -35,6 +36,25 @@ const v2 = {
       seasonTitle: z.string(),
     }),
   ]),
+  bilibili: z.discriminatedUnion('provider', [
+    baseSchemaV2.extend({
+      provider: z.literal(DanmakuSourceType.Bilibili),
+      meta: z.object({
+        provider: z.literal(DanmakuSourceType.Bilibili),
+        cid: z.number(),
+        bvid: z.string().optional(),
+        aid: z.number(),
+        seasonId: z.number(),
+        title: z.string(),
+        seasonTitle: z.string(),
+        mediaType: z.nativeEnum(BiliBiliMediaType),
+      }),
+      episodeId: z.number(),
+      seasonId: z.number(),
+      episodeTitle: z.string(),
+      seasonTitle: z.string(),
+    }),
+  ]),
   custom: z.discriminatedUnion('provider', [
     baseSchemaV2.extend({
       provider: z.literal(DanmakuSourceType.Custom),
@@ -52,4 +72,5 @@ const v2 = {
 export const importSchemaV2 = z.discriminatedUnion('provider', [
   ...v2.dandanPlay.options,
   ...v2.custom.options,
+  ...v2.bilibili.options,
 ])

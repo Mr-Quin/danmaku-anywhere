@@ -32,12 +32,10 @@ export const useParseCustomDanmaku = (props: UseParseCustomDanmakuProps) => {
 
           const fileName = result.file.split('.')[0]
 
-          // TODO: refactor
-          // use file name as animeTitle
           return {
             ...result.data,
             seasonTitle: fileName,
-            episodeTitle: fileName,
+            episodeTitle: '',
           }
         })
 
