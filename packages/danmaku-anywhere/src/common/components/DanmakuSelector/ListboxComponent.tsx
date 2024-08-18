@@ -36,6 +36,11 @@ export const ListboxComponent = forwardRef<
 
   const virtualizer = useVirtualizer({
     count: itemData.length,
+    getItemKey: (index) => {
+      const item = itemData[index]
+      if (Object.hasOwn(item, 'group')) return `group-${item.key}`
+      return `${item.key}`
+    },
     getScrollElement: () => scrollElement.current,
     estimateSize: (index) => {
       return Object.hasOwn(itemData[index], 'group') ? 48 : 60
