@@ -45,8 +45,11 @@ export const DanmakuSource = () => {
                 disablePadding
               >
                 <ListItemButton
-                  onClick={() => navigate(key)}
-                  disabled={key !== 'dandanplay'}
+                  onClick={() => {
+                    if (key !== 'bilibili') {
+                      navigate(key)
+                    }
+                  }}
                 >
                   <ListItemText
                     primary={t(localizedDanmakuSourceType(provider))}

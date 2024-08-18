@@ -27,11 +27,13 @@ export const ConfigPage = () => {
   }
 
   return (
-    <TabLayout>
-      <ConfigToolbar onAdd={handleAddConfig} />
-      <MountConfigList onEdit={handleEditConfig} />
+    <>
+      <TabLayout>
+        <ConfigToolbar onAdd={handleAddConfig} />
+        <MountConfigList onEdit={handleEditConfig} />
+        <ConfirmDeleteDialog />
+      </TabLayout>
       <Outlet />
-      <ConfirmDeleteDialog />
-    </TabLayout>
+    </>
   )
 }
