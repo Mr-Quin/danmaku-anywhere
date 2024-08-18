@@ -134,7 +134,8 @@ class DanmakuAnywhereDb extends Dexie {
             schemaVersion: 2,
             episodeId: undefined,
             seasonId: undefined,
-            episodeTitle: item.meta.episodeTitle,
+            episodeTitle:
+              item.meta.episodeTitle ?? item.meta.episodeNumber?.toString(),
             seasonTitle: item.meta.animeTitle,
           })
         })
