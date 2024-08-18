@@ -112,6 +112,12 @@ const domain = {
       playing: '播放中：{{title}}',
     },
   },
+  danmakuSource: {
+    name: '弹幕来源',
+    error: {
+      bilibiliAccess: '访问哔哩哔哩失败',
+    },
+  },
 }
 
 const pages = {

@@ -4,6 +4,7 @@ import { DanmakuService } from '../services/DanmakuService'
 import { IconService } from '../services/IconService'
 import { ProviderService } from '../services/ProviderService'
 
+import { BilibiliService } from '@/background/services/BilibiliService'
 import type { GetEpisodeDto } from '@/common/anime/dto'
 import { Logger } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
@@ -14,6 +15,7 @@ export const setupRpc = () => {
   const providerService = new ProviderService()
   const iconService = new IconService()
   const danmakuService = new DanmakuService()
+  const bilibiliService = new BilibiliService()
 
   const rpcServer = createRpcServer<BackgroundMethods>({
     mediaSearch: async (input) => {
@@ -27,6 +29,9 @@ export const setupRpc = () => {
     },
     episodeMatch: async (data) => {
       return providerService.findMatchingEpisodes(data)
+    },
+    bilibiliSetCookies: async () => {
+      return bilibiliService.setCookies()
     },
     iconSet: async (data, sender) => {
       if (sender.tab?.id === undefined) {

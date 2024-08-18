@@ -20,6 +20,11 @@ import { ensureData } from './utils.js'
 
 const BILIBILI_API_URL_ROOT = 'https://api.bilibili.com'
 
+// Visit bilibili.com to set cookies
+export const setCookies = async () => {
+  await fetch('http://bilibili.com')
+}
+
 const search = async (
   params: BiliBiliSearchParams,
   type: BiliBiliSearchType

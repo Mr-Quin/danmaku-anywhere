@@ -1,5 +1,5 @@
-import * as bilibili from '@danmaku-anywhere/danmaku-provider/bilibili'
 import type { BiliBiliSearchParams } from '@danmaku-anywhere/danmaku-provider/bilibili'
+import * as bilibili from '@danmaku-anywhere/danmaku-provider/bilibili'
 
 import { Logger } from '@/common/Logger'
 
@@ -10,6 +10,11 @@ export class BilibiliService {
 
   constructor() {
     this.logger = Logger.sub('[BilibiliService]')
+  }
+
+  async setCookies() {
+    this.logger.debug('Setting bilibili cookies')
+    await bilibili.setCookies()
   }
 
   async search(searchParams: BiliBiliSearchParams) {

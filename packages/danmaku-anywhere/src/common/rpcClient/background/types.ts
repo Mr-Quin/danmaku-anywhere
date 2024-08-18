@@ -50,6 +50,7 @@ type AnimeMethods = {
   mediaSearchMultiple: RPCDef<MediaSearchMultiParamsData, MediaSearchResult[]>
   episodesGet: RPCDef<GetEpisodeDto, BilibiliBangumiInfo>
   episodeMatch: RPCDef<MatchEpisodeInput, MatchEpisodeResult>
+  bilibiliSetCookies: RPCDef<void, void>
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
