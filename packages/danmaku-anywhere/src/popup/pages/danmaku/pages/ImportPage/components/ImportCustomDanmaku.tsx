@@ -39,6 +39,9 @@ export const ImportCustomDanmaku = ({
       Logger.debug('Error importing danmaku:', e)
       toast.error(e.message)
     },
+    meta: {
+      invalidateOnError: true,
+    },
   })
 
   return (
