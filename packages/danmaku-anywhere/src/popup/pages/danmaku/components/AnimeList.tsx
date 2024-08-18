@@ -25,6 +25,7 @@ interface AnimeListProps {
   scrollElement: HTMLDivElement
 }
 
+// TODO: move to background service
 const partitionDanmaku = (
   danmakuTypes: DanmakuSourceType[],
   data: DanmakuLite[]
@@ -35,21 +36,35 @@ const partitionDanmaku = (
       const items = data.filter((item) => item.provider === type)
 
       // group by anime title
-      const grouped = Object.groupBy(items, (item) => item.seasonTitle)
+      const grouped = Object.groupBy(
+        items,
+        (item) => item.seasonId ?? item.seasonTitle
+      )
 
       // map to type and count
-      const titles = Object.keys(grouped).map((title) => ({
-        title,
-        count: grouped[title]?.length ?? 0,
-        type,
-      }))
+      const titles = Object.keys(grouped).map((title) => {
+        const episodes = grouped[title]
+
+        return {
+          title,
+          count: episodes?.length ?? 0,
+          seasonId: title,
+          seasonTitle: episodes?.[0].seasonTitle ?? title,
+          type,
+        }
+      })
 
       return {
         items: titles,
       }
     })
     .flatMap((item) => item.items)
-    .toSorted((a, b) => a.title.localeCompare(b.title))
+    .toSorted((a, b) => {
+      if (a.type === b.type) {
+        return a.title.localeCompare(b.title)
+      }
+      return a.type - b.type
+    })
 }
 
 export const AnimeList = ({ scrollElement }: AnimeListProps) => {
@@ -78,6 +93,10 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
     count: titles.length,
     getScrollElement: () => scrollElement,
     estimateSize: () => 40,
+    getItemKey: (index) => {
+      const { seasonId } = titles[index]
+      return seasonId
+    },
   })
 
   if (!filteredData.length) return <NoAnime />
@@ -94,11 +113,12 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
     >
       <List>
         {virtualizer.getVirtualItems().map((virtualItem) => {
-          const { title, type, count } = titles[virtualItem.index]
+          const { type, count, seasonId, seasonTitle } =
+            titles[virtualItem.index]
 
           return (
             <ListItemButton
-              key={title}
+              key={seasonId}
               sx={{
                 position: 'absolute',
                 top: 0,
@@ -115,12 +135,12 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
                     type: type.toString(),
                   }).toString(),
                 })
-                setSelectedAnime(title)
+                setSelectedAnime(seasonTitle)
               }}
             >
-              <Tooltip title={title}>
+              <Tooltip title={seasonTitle}>
                 <ListItemText
-                  primary={title}
+                  primary={seasonTitle}
                   secondary={
                     <Typography variant="caption" color="text.secondary">
                       {t('anime.episodeCounted', {
