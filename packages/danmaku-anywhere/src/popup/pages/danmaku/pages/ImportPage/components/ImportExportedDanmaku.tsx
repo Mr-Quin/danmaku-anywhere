@@ -61,6 +61,9 @@ export const ImportExportedDanmaku = ({
       Logger.debug('Error importing danmaku:', e)
       toast.error(e.message)
     },
+    meta: {
+      invalidateOnError: true,
+    },
   })
 
   const resultGroups = Object.groupBy(data.succeeded, (d) =>

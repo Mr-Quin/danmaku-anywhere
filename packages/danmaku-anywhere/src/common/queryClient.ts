@@ -16,5 +16,13 @@ export const queryClient = new QueryClient({
         void queryClient.invalidateQueries({ queryKey: mutationKey })
       }
     },
+    onError: (_, __, ___, mutation) => {
+      const {
+        options: { mutationKey, meta },
+      } = mutation
+      if (mutationKey && meta?.invalidateOnError) {
+        void queryClient.invalidateQueries({ queryKey: mutationKey })
+      }
+    },
   }),
 })
