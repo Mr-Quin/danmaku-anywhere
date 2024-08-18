@@ -32,7 +32,7 @@ import { Logger } from '@/common/Logger'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 export class DanmakuService {
-  private ddpTable = db.danmakuCache
+  private ddpTable = db.danmaku
   private logger: typeof Logger
   private bilibiliService = new BilibiliService()
   private danDanPlayService = new DanDanPlayService()

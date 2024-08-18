@@ -1,17 +1,11 @@
 import Dexie from 'dexie'
 
 import { DanmakuSourceType, IntegrationType } from '@/common/danmaku/enums'
-import type {
-  CustomDanmaku,
-  CustomDanmakuInsert,
-  Danmaku,
-  DanmakuInsert,
-} from '@/common/danmaku/models/danmaku'
+import type { Danmaku, DanmakuInsert } from '@/common/danmaku/models/danmaku'
 import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 
 class DanmakuAnywhereDb extends Dexie {
-  danmakuCache!: Dexie.Table<Danmaku, number, DanmakuInsert>
-  manualDanmakuCache!: Dexie.Table<CustomDanmaku, number, CustomDanmakuInsert>
+  danmaku!: Dexie.Table<Danmaku, number, DanmakuInsert>
   titleMapping!: Dexie.Table<TitleMapping, string>
 
   isReady = new Promise<boolean>((resolve) => {
@@ -87,42 +81,44 @@ class DanmakuAnywhereDb extends Dexie {
 
     this.version(7)
       .stores({
-        // change danmakuCache primary key to id and add provider field
-        danmakuCache:
-          '++id, [provider+episodeId], provider, episodeId, seasonId',
-        // merge manualDanmakuCache to danmakuCache
+        // Add danmaku table
+        danmaku:
+          '++id, provider, episodeId, seasonId, &[provider+episodeId], [provider+seasonId]',
         manualDanmakuCache: null,
+        danmakuCache: null,
         titleMapping: '++id, originalTitle, title, integration',
       })
       .upgrade(async (tx) => {
-        // Upgrade danmakuCache
-        await tx
-          .table('danmakuCache')
-          .toCollection()
-          .modify((item) => {
-            // Add provider field, assume DanDanPlay for existing data
-            item.provider = DanmakuSourceType.DanDanPlay
-            // Rename meta fields
-            item.meta = {
+        // Merge danmakuCache to danmaku
+        await tx.table('danmakuCache').each(async (item) => {
+          // Skip items without episodeTitle, they are invalid under the new schema
+          // This can happen in an early implementation of "automatically getting the next episode" where we did not fetch the episode title
+          if (!item.meta.episodeTitle) return
+
+          await tx.table('danmaku').add({
+            provider: DanmakuSourceType.DanDanPlay,
+            meta: {
               provider: DanmakuSourceType.DanDanPlay,
               episodeId: item.meta.episodeId,
               animeId: item.meta.animeId,
               episodeTitle: item.meta.episodeTitle,
               animeTitle: item.meta.animeTitle,
-            }
-            // Add commentCount field
-            item.commentCount = item.comments.length
-            // Add schemaVersion field
-            item.schemaVersion = 2
-            item.episodeId = item.meta.episodeId
-            item.seasonId = item.meta.animeId
-            item.episodeTitle = item.meta.episodeTitle
-            item.seasonTitle = item.meta.animeTitle
+            },
+            comments: item.comments,
+            commentCount: item.comments.length,
+            version: item.version,
+            timeUpdated: item.timeUpdated,
+            schemaVersion: 2,
+            episodeId: item.meta.episodeId,
+            seasonId: item.meta.animeId,
+            episodeTitle: item.meta.episodeTitle,
+            seasonTitle: item.meta.animeTitle,
           })
+        })
 
-        // Merge manualDanmakuCache to danmakuCache
+        // Merge manualDanmakuCache to danmaku
         await tx.table('manualDanmakuCache').each(async (item) => {
-          await tx.table('danmakuCache').add({
+          await tx.table('danmaku').add({
             provider: DanmakuSourceType.Custom,
             meta: {
               // removed episodeId
