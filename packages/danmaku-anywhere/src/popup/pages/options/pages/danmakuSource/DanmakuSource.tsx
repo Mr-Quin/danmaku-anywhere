@@ -31,8 +31,15 @@ export const DanmakuSource = () => {
                 secondaryAction={
                   <Switch
                     checked={options.enabled}
-                    onChange={(e) => toggleEnabled(key, e.target.checked)}
-                    disabled={isPending || update.isPending}
+                    onChange={(e) => {
+                      toggleEnabled.mutate({
+                        key,
+                        checked: e.target.checked,
+                      })
+                    }}
+                    disabled={
+                      isPending || update.isPending || toggleEnabled.isPending
+                    }
                   />
                 }
                 disablePadding

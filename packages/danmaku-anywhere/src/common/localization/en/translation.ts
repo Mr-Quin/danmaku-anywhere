@@ -111,6 +111,12 @@ const domain = {
     },
     autoMode: 'Auto Mode',
   },
+  danmakuSource: {
+    name: 'Danmaku Source',
+    error: {
+      bilibiliAccess: 'Failed to access Bilibili.',
+    },
+  },
 }
 
 const pages = {
