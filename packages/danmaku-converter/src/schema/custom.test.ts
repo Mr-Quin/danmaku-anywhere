@@ -53,14 +53,14 @@ describe('customDanmakuSchema', () => {
           text: 'Hello World',
         },
       ],
-      animeTitle: 'Anime Title',
+      seasonTitle: 'Season Title',
       episodeTitle: 'Episode Title',
     }
 
     expect(() => customDanmakuSchema.parse(dto)).not.toThrow()
   })
 
-  it('rejects if neither episodeTitle nor episodeNumber is provided', () => {
+  it('rejects if episodeTitle is not provided', () => {
     const dto = {
       comments: [
         {
@@ -70,25 +70,12 @@ describe('customDanmakuSchema', () => {
           text: 'Hello World',
         },
       ],
-      animeTitle: 'Anime Title',
+      seasonTitle: 'Season Title',
     }
     expect(() => customDanmakuSchema.parse(dto)).toThrow()
   })
 
-  it('accepts if one of episodeNumber or episodeTitle is provided', () => {
-    const dtoEpisodeNumber = {
-      comments: [
-        {
-          mode: 'rtl',
-          time: 10.5,
-          color: '#FF5733',
-          text: 'Hello World',
-        },
-      ],
-      animeTitle: 'Anime Title',
-      episodeNumber: 1,
-    }
-
+  it('accepts if episodeTitle is provided', () => {
     const dtoEpisodeTitle = {
       comments: [
         {
@@ -98,11 +85,10 @@ describe('customDanmakuSchema', () => {
           text: 'Hello World',
         },
       ],
-      animeTitle: 'Anime Title',
+      seasonTitle: 'Season Title',
       episodeTitle: 'Episode Title',
     }
 
-    expect(() => customDanmakuSchema.parse(dtoEpisodeNumber)).not.toThrow()
     expect(() => customDanmakuSchema.parse(dtoEpisodeTitle)).not.toThrow()
   })
 })
