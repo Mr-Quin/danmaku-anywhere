@@ -217,7 +217,10 @@ const pages = {
     name: 'Search Anime',
     saveMapping: 'Remember selection',
     title: 'Title',
-    noProviders: 'No danmaku sources enabled, please enable in settings',
+    error: {
+      noProviders: 'No danmaku sources enabled, please enable in settings',
+      noResultFound: 'No results found, try a different search term',
+    },
   },
   selectorPage: {
     noAnimeFound: 'Nothing to select from',

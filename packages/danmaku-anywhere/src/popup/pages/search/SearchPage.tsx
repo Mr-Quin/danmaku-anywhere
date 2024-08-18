@@ -74,7 +74,7 @@ export const SearchPage = () => {
       <TabLayout>
         <TabToolbar title={t('searchPage.name')} />
         <Center>
-          <Typography>{t('searchPage.noProviders')}</Typography>
+          <Typography>{t('searchPage.error.noProviders')}</Typography>
         </Center>
       </TabLayout>
     )

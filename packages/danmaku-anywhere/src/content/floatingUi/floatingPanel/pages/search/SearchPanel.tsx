@@ -89,7 +89,7 @@ export const SearchPanel = () => {
     return (
       <Box flexGrow={1}>
         <Center>
-          <Typography>{t('searchPage.noProviders')}</Typography>
+          <Typography>{t('searchPage.error.noProviders')}</Typography>
         </Center>
       </Box>
     )
