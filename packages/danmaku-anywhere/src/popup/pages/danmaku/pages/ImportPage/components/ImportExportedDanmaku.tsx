@@ -1,5 +1,6 @@
 import { DialogContentText, Typography } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
+import { Fragment } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
@@ -62,7 +63,9 @@ export const ImportExportedDanmaku = ({
     },
   })
 
-  const ddpResults: DanmakuInsert[] = []
+  const resultGroups = Object.groupBy(data.succeeded, (d) =>
+    localizedDanmakuSourceType(d.provider)
+  )
 
   return (
     <ImportResultDialog
@@ -73,23 +76,27 @@ export const ImportExportedDanmaku = ({
       isLoading={isUploading}
       errors={data.errors}
     >
-      {ddpResults.length > 0 && (
-        <>
-          <Typography gutterBottom>
-            {t(localizedDanmakuSourceType(DanmakuSourceType.DanDanPlay))}
-          </Typography>
-          {ddpResults
-            .toSorted(sortDanmakuCacheImportDto)
-            .map((result, index) => {
-              const title = `${result.seasonTitle} - ${result.episodeTitle} (${result.comments.length})`
-              return (
-                <DialogContentText key={index} noWrap title={title}>
-                  {title}
-                </DialogContentText>
-              )
-            })}
-        </>
-      )}
+      {Object.keys(resultGroups).map((provider) => {
+        if (!resultGroups[provider]?.length) return null
+
+        return (
+          <Fragment key={provider}>
+            <Typography key={provider} gutterBottom>
+              {t(provider)} ({resultGroups[provider].length})
+            </Typography>
+            {resultGroups[provider]
+              .toSorted(sortDanmakuCacheImportDto)
+              .map((result, index) => {
+                const title = `${result.seasonTitle} - ${result.episodeTitle} (${result.comments.length})`
+                return (
+                  <DialogContentText key={index} noWrap title={title}>
+                    {title}
+                  </DialogContentText>
+                )
+              })}
+          </Fragment>
+        )
+      })}
     </ImportResultDialog>
   )
 }
