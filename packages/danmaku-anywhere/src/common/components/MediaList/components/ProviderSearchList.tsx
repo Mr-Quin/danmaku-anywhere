@@ -27,12 +27,36 @@ export const ProviderSearchList = ({
 }: ProviderSearchListProps) => {
   const { t } = useTranslation()
 
-  const { data, error, isPending } = useMediaSearchSuspense({
+  const { data: result, isPending } = useMediaSearchSuspense({
     params: {
       keyword: searchParams.anime,
     },
     provider,
   })
+
+  const renderSeasons = () => {
+    if (!result.success) {
+      return (
+        <ListItem>
+          <ListItemText primary={result.error} />
+        </ListItem>
+      )
+    }
+    if (result.data.data.length === 0) {
+      return (
+        <ListItem>
+          <ListItemText primary={t('searchPage.error.noResultFound')} />
+        </ListItem>
+      )
+    }
+    return (
+      <SeasonsList
+        data={result.data}
+        renderEpisode={renderEpisode}
+        dense={dense}
+      />
+    )
+  }
 
   return (
     <CollapsibleList
@@ -50,17 +74,7 @@ export const ProviderSearchList = ({
         </>
       }
     >
-      {error && (
-        <ListItem>
-          <ListItemText primary="An error occurred while searching" />
-        </ListItem>
-      )}
-      {data.data.length === 0 && (
-        <ListItem>
-          <ListItemText primary="No results found, try a different title" />
-        </ListItem>
-      )}
-      <SeasonsList data={data} renderEpisode={renderEpisode} dense={dense} />
+      {renderSeasons()}
     </CollapsibleList>
   )
 }

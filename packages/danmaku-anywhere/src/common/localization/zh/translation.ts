@@ -213,7 +213,10 @@ const pages = {
     name: '搜索番剧',
     saveMapping: '保存标题映射',
     title: '番剧标题',
-    noProviders: '没有启用的弹幕来源，请在设置中启用',
+    error: {
+      noProviders: '没有启用的弹幕来源，请在设置中启用',
+      noResultFound: '没有找到结果, 请尝试其他关键词',
+    },
   },
   selectorPage: {
     noAnimeFound: '没有可供选择的内容',
