@@ -6,6 +6,7 @@ import {
   handleParseResponseAsync,
 } from '../utils/index.js'
 
+import { bilibili as bilibiliProto } from './protobuf/dm.js'
 import type {
   BilibiliBangumiInfo,
   BiliBiliSearchParams,
@@ -15,6 +16,7 @@ import type {
 import {
   bilibiliBangumiInfoResponseSchema,
   bilibiliSearchResponseSchema,
+  bilibiliCommentSchemaProto,
 } from './schema.js'
 import { ensureData } from './utils.js'
 
@@ -91,6 +93,78 @@ export const getDanmakuXml = async (cid: number): Promise<CommentEntity[]> => {
   return comments.comments
 }
 
-export const getDanmakuProto = async () => {
-  throw new Error('Not implemented')
+export async function* getDanmakuProtoSegment(
+  oid: number,
+  pid?: number
+): AsyncGenerator<CommentEntity[]> {
+  const MAX_SEGMENT = 100 // arbitrary number
+
+  let segmentIndex = 1
+
+  const params = new URLSearchParams({
+    type: '1', // 1 for video, 2 for comics
+    oid: oid.toString(),
+    segment_index: segmentIndex.toString(),
+  })
+
+  if (pid) {
+    params.set('pid', pid.toString())
+  }
+
+  while (1) {
+    params.set('segment_index', segmentIndex.toString())
+
+    const url = `${BILIBILI_API_URL_ROOT}/x/v2/dm/web/seg.so?${params}`
+
+    const response = await fetch(url)
+
+    if (response.status === 304) {
+      return null
+    }
+
+    const buffer = await response.arrayBuffer()
+
+    let parsed: bilibiliProto.community.service.dm.v1.IDmSegMobileReply
+
+    try {
+      parsed = bilibiliProto.community.service.dm.v1.DmSegMobileReply.decode(
+        new Uint8Array(buffer)
+      )
+    } catch (e) {
+      if (e instanceof Error) {
+        console.error(e.message)
+      } else {
+        console.error(e)
+      }
+      throw new Error('Failed to decode protobuf', { cause: e })
+    }
+
+    const comments = await handleParseResponseAsync(() =>
+      bilibiliCommentSchemaProto.parseAsync(parsed)
+    )
+
+    yield comments.elems
+
+    segmentIndex++
+
+    if (segmentIndex > MAX_SEGMENT) {
+      return null
+    }
+  }
+}
+
+// oid = cid, pid = avids
+export const getDanmakuProto = async (
+  oid: number,
+  pid?: number
+): Promise<CommentEntity[]> => {
+  const segments = getDanmakuProtoSegment(oid, pid)
+  const comments: CommentEntity[][] = []
+
+  for await (const segment of segments) {
+    console.log(segment)
+    comments.push(segment)
+  }
+
+  return comments.flat()
 }

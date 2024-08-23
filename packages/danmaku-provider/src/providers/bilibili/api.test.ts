@@ -1,16 +1,25 @@
+import { readFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
+
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 import { ResponseParseException } from '../../exceptions/ResponseParseException'
 import { mockFetchResponse } from '../utils/testUtils'
 
-import { getBangumiInfo, getDanmakuXml, searchMedia } from './api'
+import {
+  getBangumiInfo,
+  getDanmakuProto,
+  getDanmakuProtoSegment,
+  getDanmakuXml,
+  searchMedia,
+} from './api'
 import { BiliBiliException } from './BiliBiliException'
 import {
   mockBilibiliBangumiInfoResponse,
   mockBilibiliBangmumiSearchResponse,
   mockDanmakuXml,
   mockBilibiliMediaSearchResponse,
-} from './mockData'
+} from './mockData/mockData'
 
 describe('Bilibili', () => {
   beforeEach(() => {
@@ -97,6 +106,44 @@ describe('Bilibili', () => {
       mockFetchResponse('not xml')
 
       await expect(getDanmakuXml(1)).rejects.toThrow(ResponseParseException)
+    })
+  })
+
+  describe('get danmaku protobuf', () => {
+    it('should stop fetching if response is 304', async () => {
+      const mockProtoResponse = await readFile(
+        resolve(__dirname, './mockData/danmakuProto.dm')
+      )
+
+      mockFetchResponse(mockProtoResponse)
+
+      const generator = getDanmakuProtoSegment(1)
+
+      const first = await generator.next()
+
+      expect(first.value).toHaveLength(937)
+
+      const second = await generator.next()
+
+      expect(second.value).toHaveLength(937)
+
+      mockFetchResponse(mockProtoResponse, 304)
+
+      const third = await generator.next()
+
+      expect(third.done).toBe(true)
+    })
+
+    it('should throw when data is invalid', async () => {
+      mockFetchResponse(new TextEncoder().encode('invalid').buffer)
+
+      const data = await getDanmakuProto(1)
+
+      expect(data).toHaveLength(937)
+      expect(data).toContainEqual({
+        m: '海参三叉戟',
+        p: '344.433,1,16777215',
+      })
     })
   })
 })

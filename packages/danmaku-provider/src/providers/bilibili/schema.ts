@@ -1,3 +1,4 @@
+import { CommentMode, zRgb888 } from '@danmaku-anywhere/danmaku-converter'
 import { z } from 'zod'
 
 import { BiliBiliMediaType } from './enums.js'
@@ -82,3 +83,45 @@ export const bilibiliBangumiInfoResponseSchema =
 export type BilibiliBangumiInfo = NonNullable<
   z.infer<typeof bilibiliBangumiInfoResponseSchema>['result']
 >
+
+export const bilibiliCommentSchemaProto = z.object({
+  elems: z
+    .array(
+      z
+        .object({
+          progress: z.number().int(), // time in milliseconds
+          mode: z
+            .number()
+            .int()
+            .transform((mode) => {
+              switch (mode) {
+                case 1:
+                case 2:
+                case 3:
+                  return CommentMode.rtl
+                case 4:
+                  return CommentMode.bottom
+                case 5:
+                  return CommentMode.top
+                case 6:
+                  return CommentMode.ltr
+                default:
+                  return null
+              }
+            }),
+          fontsize: z.number().int(),
+          color: zRgb888,
+          content: z.string(),
+        })
+        .transform((data) => {
+          // discard other modes
+          if (data.mode === null) return null
+
+          return {
+            p: `${data.progress / 1000},${data.mode},${data.color}`,
+            m: data.content,
+          }
+        })
+    )
+    .transform((elems) => elems.filter((elem) => elem !== null)),
+})
