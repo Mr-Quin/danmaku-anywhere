@@ -40,7 +40,7 @@ const bilibiliComment = z
                     case 6:
                       return CommentMode.ltr
                     default:
-                      return CommentMode.rtl
+                      return null
                   }
                 }), // mode
               z.coerce.number().int(), // font size.18 - small, 25 - medium, 36 - large
@@ -56,6 +56,9 @@ const bilibiliComment = z
   .transform((data) => {
     const [time, mode, , color] = data['_attributes'].p
 
+    // discard other modes
+    if (mode === null) return null
+
     return {
       p: `${time},${mode},${color}`,
       m: data['_text'],
@@ -65,7 +68,11 @@ const bilibiliComment = z
 export const bilibiliCommentSchemaJson = z
   .object({
     i: z.object({
-      d: z.array(bilibiliComment),
+      d: z
+        .array(bilibiliComment)
+        .transform((comments) =>
+          comments.filter((comment) => comment !== null)
+        ),
     }),
   })
   .transform((data) => {
