@@ -81,14 +81,14 @@ export default defineConfig({
             },
           ],
         },
-        {
-          label: 'lingo',
-          translations: {
-            'zh-CN': '用语',
-            en: 'Lingo',
-          },
-          link: '/lingo',
-        },
+        // {
+        //   label: 'lingo',
+        //   translations: {
+        //     'zh-CN': '用语',
+        //     en: 'Lingo',
+        //   },
+        //   link: '/lingo',
+        // },
         {
           label: 'plex-danmaku',
           translations: {
