@@ -21,7 +21,8 @@
   },
   "scripts": {
     "test": "vitest",
-    "build": "tsc",
+    "copy": "copyfiles -u 1 src/**/protobuf/** dist/src",
+    "build": "tsc && pnpm copy",
     "lint": "tsc && eslint --ext .js,.jsx,.ts,.tsx --fix .",
     "dev": "tsc -w"
   },
@@ -31,6 +32,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "copyfiles": "^2.4.1",
     "protobufjs-cli": "^1.1.3",
     "vitest": "^2.0.4"
   }
