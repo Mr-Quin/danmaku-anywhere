@@ -2,11 +2,12 @@ import type { BiliBiliSearchParams } from '@danmaku-anywhere/danmaku-provider/bi
 import * as bilibili from '@danmaku-anywhere/danmaku-provider/bilibili'
 
 import { Logger } from '@/common/Logger'
+import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
 
 export class BilibiliService {
   private logger: typeof Logger
 
-  // private extensionOptionsService = extensionOptionsService
+  private extensionOptionsService = extensionOptionsService
 
   constructor() {
     this.logger = Logger.sub('[BilibiliService]')
@@ -32,9 +33,15 @@ export class BilibiliService {
   }
 
   async getDanmaku(cid: number, aid: number) {
-    // TODO: get xml preference from options
-    aid //?
-    return this.getDanmakuXml(cid)
+    const pref = await this.extensionOptionsService.get()
+
+    const { danmakuTypePreference } = pref.danmakuSources.bilibili
+
+    if (danmakuTypePreference === 'xml') {
+      return this.getDanmakuXml(cid)
+    }
+
+    return this.getDanmakuProto(cid, aid)
   }
 
   private async getDanmakuXml(cid: number) {
@@ -44,9 +51,15 @@ export class BilibiliService {
     return result
   }
 
-  private async getDanmakuProto() {
+  private async getDanmakuProto(cid: number, aid: number) {
+    const pref = await this.extensionOptionsService.get()
+
+    const { protobufLimitPerMin } = pref.danmakuSources.bilibili
+
     this.logger.debug('Get danmaku proto')
-    const result = await bilibili.getDanmakuProto()
+    const result = await bilibili.getDanmakuProto(cid, aid, {
+      limitPerMinute: protobufLimitPerMin,
+    })
     this.logger.debug('Get danmaku proto result', result)
     return result
   }

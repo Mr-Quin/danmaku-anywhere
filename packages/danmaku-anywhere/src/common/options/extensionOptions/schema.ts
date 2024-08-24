@@ -13,6 +13,8 @@ export const danmakuSourcesSchema = z.object({
   }),
   bilibili: z.object({
     enabled: z.boolean(),
+    danmakuTypePreference: z.enum(['xml', 'protobuf']).default('xml'),
+    protobufLimitPerMin: z.number().int().positive().max(1000).default(200),
   }),
 })
 
