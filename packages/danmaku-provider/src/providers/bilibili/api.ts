@@ -166,16 +166,31 @@ export async function* getDanmakuProtoSegment(
   }
 }
 
+// Evenly pick a sample from an array up to a limit
+const sample = <T>(arr: T[], limit: number): T[] => {
+  if (arr.length <= limit) return arr
+
+  const sample: T[] = []
+  const step = Math.ceil(arr.length / limit)
+
+  for (let i = 0; i < arr.length; i += step) {
+    sample.push(arr[i])
+  }
+
+  return sample
+}
+
 // oid = cid, pid = avids
 export const getDanmakuProto = async (
   oid: number,
-  pid?: number
+  pid?: number,
+  { limitPerMinute = 1000 }: { limitPerMinute?: number } = {}
 ): Promise<CommentEntity[]> => {
   const segments = getDanmakuProtoSegment(oid, pid)
   const comments: CommentEntity[][] = []
 
   for await (const segment of segments) {
-    comments.push(segment)
+    comments.push(sample(segment, limitPerMinute * 6)) // each segment is 6 minutes
   }
 
   return comments.flat()
