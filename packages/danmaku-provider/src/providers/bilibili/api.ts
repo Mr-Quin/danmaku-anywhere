@@ -1,6 +1,7 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { bilibiliCommentSchemaXml } from '@danmaku-anywhere/danmaku-converter'
 
+import { createThrottle } from '../utils/createThrottle.js'
 import {
   handleParseResponse,
   handleParseResponseAsync,
@@ -22,6 +23,8 @@ import { ensureData } from './utils.js'
 
 const BILIBILI_API_URL_ROOT = 'https://api.bilibili.com'
 
+const throttle = createThrottle(200)
+
 // Visit bilibili.com to set cookies
 export const setCookies = async () => {
   await fetch('http://bilibili.com')
@@ -31,6 +34,8 @@ const search = async (
   params: BiliBiliSearchParams,
   type: BiliBiliSearchType
 ) => {
+  await throttle()
+
   const keyword = encodeURIComponent(params.keyword)
 
   const url = `${BILIBILI_API_URL_ROOT}/x/web-interface/search/type?keyword=${keyword}&search_type=${type}`
@@ -50,6 +55,8 @@ const search = async (
 
 // search for media by keyword
 export const searchMedia = async (params: BiliBiliSearchParams) => {
+  await throttle()
+
   const mediaResult = await Promise.all([
     search(params, 'media_ft'),
     search(params, 'media_bangumi'),
@@ -64,6 +71,8 @@ export const searchMedia = async (params: BiliBiliSearchParams) => {
 
 // using season id, get a list of episodes
 export const getBangumiInfo = async (seasonId: number) => {
+  await throttle()
+
   const url = `${BILIBILI_API_URL_ROOT}/pgc/view/web/season?season_id=${seasonId}`
 
   const response = await fetch(url)
@@ -80,6 +89,8 @@ export const getBangumiInfo = async (seasonId: number) => {
 }
 
 export const getDanmakuXml = async (cid: number): Promise<CommentEntity[]> => {
+  await throttle()
+
   const url = `${BILIBILI_API_URL_ROOT}/x/v1/dm/list.so?oid=${cid}`
 
   const response = await fetch(url)
@@ -112,6 +123,8 @@ export async function* getDanmakuProtoSegment(
   }
 
   while (1) {
+    await throttle()
+
     params.set('segment_index', segmentIndex.toString())
 
     const url = `${BILIBILI_API_URL_ROOT}/x/v2/dm/web/seg.so?${params}`
@@ -162,7 +175,6 @@ export const getDanmakuProto = async (
   const comments: CommentEntity[][] = []
 
   for await (const segment of segments) {
-    console.log(segment)
     comments.push(segment)
   }
 

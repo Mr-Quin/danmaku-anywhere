@@ -134,16 +134,38 @@ describe('Bilibili', () => {
       expect(third.done).toBe(true)
     })
 
+    it('should fetch multiple segments', async () => {
+      const mockProtoResponse = await readFile(
+        resolve(__dirname, './mockData/danmakuProto.dm')
+      )
+
+      let calledTimes = 0
+      const mockFetch = vi.spyOn(global, 'fetch').mockImplementation(() => {
+        if (calledTimes > 2) {
+          return {
+            status: 304,
+          } as any
+        }
+
+        calledTimes++
+        return {
+          arrayBuffer: vi.fn().mockResolvedValue(mockProtoResponse),
+          status: 200,
+        } as any
+      })
+
+      const promise = getDanmakuProto(1)
+
+      const comments = await promise
+      expect(comments).toHaveLength(937 * 3)
+    })
+
     it('should throw when data is invalid', async () => {
       mockFetchResponse(new TextEncoder().encode('invalid').buffer)
 
-      const data = await getDanmakuProto(1)
+      const promise = getDanmakuProto(1)
 
-      expect(data).toHaveLength(937)
-      expect(data).toContainEqual({
-        m: '海参三叉戟',
-        p: '344.433,1,16777215',
-      })
+      expect(promise).rejects.toThrow()
     })
   })
 })
