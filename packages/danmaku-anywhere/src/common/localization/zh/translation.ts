@@ -202,6 +202,20 @@ const pages = {
         system: '跟随系统',
       },
     },
+    danmakuSource: {
+      bilibili: {
+        danmakuTypePreference: '弹幕获取方式',
+        protobufLimitPerMin: '每分钟最大弹幕数',
+        help: {
+          danmakuTypePreferenceXML:
+            'XML：获取速度快，但是弹幕数量较少。根据视频类型，500-10000条不等。',
+          danmakuTypePreferenceProtobuf:
+            'Protobuf：获取速度较慢，但是弹幕数量多，每分钟可达1000条。视频越长，速度越慢。',
+          protobufLimitPerMin:
+            '可以限制 Protobuf 方式获取弹幕的数量，最大值为1000条（每分钟）',
+        },
+      },
+    },
     pages: {
       danmakuSource: '弹幕来源',
       permissions: '权限设置',

@@ -59,7 +59,15 @@ extensionOptionsService
         draft.danmakuSources.dandanplay.enabled = true
         draft.danmakuSources.bilibili = {
           enabled: false,
-        }
+        } as any
+      }),
+  })
+  .version(7, {
+    upgrade: (data: PrevOptions) =>
+      produce<ExtensionOptions>(data, (draft) => {
+        // Add bilibili danmaku source options
+        draft.danmakuSources.bilibili.danmakuTypePreference = 'xml'
+        draft.danmakuSources.bilibili.protobufLimitPerMin = 200
       }),
   })
 

@@ -30,6 +30,8 @@ export const defaultExtensionOptions: ExtensionOptions = {
     },
     bilibili: {
       enabled: true,
+      danmakuTypePreference: 'xml',
+      protobufLimitPerMin: 200,
     },
   },
   theme: {

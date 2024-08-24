@@ -206,6 +206,20 @@ const pages = {
         system: 'System',
       },
     },
+    danmakuSource: {
+      bilibili: {
+        danmakuTypePreference: 'Danmaku Type Preference',
+        protobufLimitPerMin: 'Max danmaku per minute',
+        help: {
+          danmakuTypePreferenceXML:
+            'XML：Faster but fewer danmaku. 500-10000 danmaku depending on video type.',
+          danmakuTypePreferenceProtobuf:
+            'Protobuf：Slower but more danmaku. Up to 1000 danmaku per minute. Slower for longer videos.',
+          protobufLimitPerMin:
+            'Limit the number of danmaku fetched per minute for Protobuf. Max 1000',
+        },
+      },
+    },
     pages: {
       danmakuSource: 'Danmaku Source',
       permissions: 'Permissions',

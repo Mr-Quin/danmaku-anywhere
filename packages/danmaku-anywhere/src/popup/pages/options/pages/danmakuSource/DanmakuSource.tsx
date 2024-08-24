@@ -46,9 +46,7 @@ export const DanmakuSource = () => {
               >
                 <ListItemButton
                   onClick={() => {
-                    if (key !== 'bilibili') {
-                      navigate(key)
-                    }
+                    navigate(key)
                   }}
                 >
                   <ListItemText
