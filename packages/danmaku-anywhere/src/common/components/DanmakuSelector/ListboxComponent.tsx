@@ -53,17 +53,18 @@ export const ListboxComponent = forwardRef<
         ref={scrollElement}
         style={{
           overflow: 'auto',
-          maxHeight: '40vh', // taken from original ListboxComponent maxHeight
+          maxHeight: '50vh', // taken from original ListboxComponent maxHeight
+          height: other.style?.height,
         }}
       >
         <ul
+          {...other}
           style={{
             height: `${virtualizer.getTotalSize()}px`,
             maxHeight: `${virtualizer.getTotalSize()}px`, // override the maxHeight rule in class
             width: '100%',
             position: 'relative',
           }}
-          {...other}
         >
           {virtualizer.getVirtualItems().map((virtualItem) => {
             const item = itemData[virtualItem.index]
