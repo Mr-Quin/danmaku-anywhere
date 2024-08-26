@@ -1,5 +1,6 @@
 import { FilterList } from '@mui/icons-material'
 import {
+  Badge,
   Box,
   Checkbox,
   FormControlLabel,
@@ -11,8 +12,9 @@ import type { ChangeEvent } from 'react'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import {
-  DanmakuSourceType,
+  danmakuSourceTypeList,
   localizedDanmakuSourceType,
 } from '@/common/danmaku/enums'
 import { useStore } from '@/popup/store'
@@ -43,7 +45,13 @@ export const TypeSelector = () => {
   return (
     <>
       <IconButton ref={anchorRef} onClick={handleOpen} color="primary">
-        <FilterList />
+        <Badge
+          variant="dot"
+          color="secondary"
+          invisible={selectedTypes.length === danmakuSourceTypeList.length}
+        >
+          <FilterList />
+        </Badge>
       </IconButton>
       <Popover
         anchorEl={anchorRef.current}
@@ -69,31 +77,24 @@ export const TypeSelector = () => {
           }}
         >
           <FormGroup>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  onChange={handleSelect(DanmakuSourceType.DanDanPlay)}
+            {danmakuSourceTypeList.map((type) => {
+              return (
+                <FormControlLabel
+                  key={type}
+                  control={
+                    <Checkbox
+                      onChange={handleSelect(type)}
+                      checked={selectedTypes.includes(type)}
+                      disabled={
+                        // Prevent unselecting the last type
+                        selectedTypes.length === 1 && selectedTypes[0] === type
+                      }
+                    />
+                  }
+                  label={t(localizedDanmakuSourceType(type))}
                 />
-              }
-              label={t(
-                localizedDanmakuSourceType(DanmakuSourceType.DanDanPlay)
-              )}
-              checked={selectedTypes.includes(DanmakuSourceType.DanDanPlay)}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox onChange={handleSelect(DanmakuSourceType.Bilibili)} />
-              }
-              label={t(localizedDanmakuSourceType(DanmakuSourceType.Bilibili))}
-              checked={selectedTypes.includes(DanmakuSourceType.Bilibili)}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox onChange={handleSelect(DanmakuSourceType.Custom)} />
-              }
-              label={t(localizedDanmakuSourceType(DanmakuSourceType.Custom))}
-              checked={selectedTypes.includes(DanmakuSourceType.Custom)}
-            />
+              )
+            })}
           </FormGroup>
         </Box>
       </Popover>
