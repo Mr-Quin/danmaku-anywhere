@@ -1,5 +1,6 @@
 import { Close, Search } from '@mui/icons-material'
 import {
+  Badge,
   Box,
   IconButton,
   InputAdornment,
@@ -42,7 +43,9 @@ export const FilterButton = ({
   return (
     <>
       <IconButton ref={anchorRef} onClick={handleOpen} color="primary">
-        <Search />
+        <Badge variant="dot" color="secondary" invisible={!filter}>
+          <Search />
+        </Badge>
       </IconButton>
       <Popover
         anchorEl={anchorRef.current}
