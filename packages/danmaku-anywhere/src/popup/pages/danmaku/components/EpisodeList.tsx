@@ -46,7 +46,7 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
   const virtualizer = useVirtualizer({
     count: episodes.length,
     getScrollElement: () => scrollElement,
-    estimateSize: () => 40,
+    estimateSize: () => 72,
   })
 
   const navigate = useNavigate()

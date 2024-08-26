@@ -92,7 +92,7 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
   const virtualizer = useVirtualizer({
     count: titles.length,
     getScrollElement: () => scrollElement,
-    estimateSize: () => 40,
+    estimateSize: () => 72,
     getItemKey: (index) => {
       const { seasonId } = titles[index]
       return seasonId
