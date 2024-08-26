@@ -75,6 +75,7 @@ export const MountController = () => {
           <DanmakuSelector
             value={danmakuLite ?? null}
             onChange={setDanmakuLite}
+            height={350}
           />
         </Suspense>
         <LoadingButton

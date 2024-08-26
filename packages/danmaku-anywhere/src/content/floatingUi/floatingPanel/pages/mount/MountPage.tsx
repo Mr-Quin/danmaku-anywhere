@@ -60,6 +60,7 @@ export const MountPage = () => {
             onChange={(danmakuLite) =>
               handleSelectDanmaku(danmakuLite ?? undefined)
             }
+            height={350}
           />
           <LoadingButton
             type="submit"

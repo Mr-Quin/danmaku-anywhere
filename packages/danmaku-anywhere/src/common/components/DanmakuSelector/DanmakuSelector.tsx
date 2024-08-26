@@ -40,9 +40,14 @@ const isOptionEqualToValue = (option: DanmakuLite, value: DanmakuLite) => {
 interface DanmakuSelectorProps {
   value: DanmakuLite | null
   onChange: (value: DanmakuLite | null) => void
+  height?: number
 }
 
-export const DanmakuSelector = ({ value, onChange }: DanmakuSelectorProps) => {
+export const DanmakuSelector = ({
+  value,
+  onChange,
+  height,
+}: DanmakuSelectorProps) => {
   const { t } = useTranslation()
 
   const { data: options, isFetching } = useAllDanmakuSuspense()
@@ -94,6 +99,11 @@ export const DanmakuSelector = ({ value, onChange }: DanmakuSelectorProps) => {
       }}
       renderGroup={(params) => params as any}
       ListboxComponent={ListboxComponent}
+      ListboxProps={{
+        style: {
+          height,
+        },
+      }}
       disablePortal
     />
   )
