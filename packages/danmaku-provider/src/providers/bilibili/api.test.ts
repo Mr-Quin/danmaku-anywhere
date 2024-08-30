@@ -8,6 +8,7 @@ import { mockFetchResponse } from '../utils/testUtils'
 
 import {
   getBangumiInfo,
+  getCurrentUser,
   getDanmakuProto,
   getDanmakuProtoSegment,
   getDanmakuXml,
@@ -19,11 +20,31 @@ import {
   mockBilibiliBangmumiSearchResponse,
   mockDanmakuXml,
   mockBilibiliMediaSearchResponse,
+  mockBilibiliUserLoggedInResponse,
+  mockBilibiliUserNotLoggedInResponse,
 } from './mockData/mockData'
 
 describe('Bilibili', () => {
   beforeEach(() => {
     vi.resetAllMocks()
+  })
+
+  describe('user', () => {
+    it('should parse info of logged in user', async () => {
+      mockFetchResponse(mockBilibiliUserLoggedInResponse)
+
+      const res = await getCurrentUser()
+
+      expect(res.data.isLogin).toEqual(true)
+    })
+
+    it('should parse info of not logged in user', async () => {
+      mockFetchResponse(mockBilibiliUserNotLoggedInResponse)
+
+      const res = await getCurrentUser()
+
+      expect(res.data.isLogin).toEqual(false)
+    })
   })
 
   describe('search', () => {

@@ -12,6 +12,12 @@ export type BilibiliApiResponseBase = z.infer<
   typeof bilibiliApiResponseBaseSchema
 >
 
+export const bilibiliUserInfoSchema = bilibiliApiResponseBaseSchema.extend({
+  data: z.object({
+    isLogin: z.boolean(),
+  }),
+})
+
 const bilibiliSearchMediaSchema = z.object({
   type: z.enum(['media_ft', 'media_bangumi']),
   media_id: z.number(), // mdid
