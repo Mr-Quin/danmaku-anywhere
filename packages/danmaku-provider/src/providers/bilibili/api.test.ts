@@ -140,7 +140,7 @@ describe('Bilibili', () => {
       )
 
       let calledTimes = 0
-      const mockFetch = vi.spyOn(global, 'fetch').mockImplementation(() => {
+      vi.spyOn(global, 'fetch').mockImplementation(() => {
         if (calledTimes > 2) {
           return {
             status: 304,

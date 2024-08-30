@@ -1,13 +1,13 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { bilibiliCommentSchemaXml } from '@danmaku-anywhere/danmaku-converter'
 
+import { bilibili as bilibiliProto } from '../../protobuf/protobuf.js'
 import { createThrottle } from '../utils/createThrottle.js'
 import {
   handleParseResponse,
   handleParseResponseAsync,
 } from '../utils/index.js'
 
-import { bilibili as bilibiliProto } from './../../protobuf/protobuf.js'
 import type {
   BilibiliBangumiInfo,
   BiliBiliSearchParams,
