@@ -22,7 +22,8 @@
   "scripts": {
     "test": "vitest",
     "copy": "copyfiles -u 1 src/**/protobuf/** dist/src",
-    "build": "tsc && pnpm copy",
+    "protobuf:compile": "pbjs -t static-module -w es6 -o src/protobuf/protobuf.js src/protobuf/definition/bilibili.dm.proto && pbts -o src/protobuf/protobuf.d.ts src/protobuf/protobuf.js",
+    "build": "pnpm protobuf:compile && tsc && pnpm copy",
     "lint": "tsc && eslint --ext .js,.jsx,.ts,.tsx --fix .",
     "dev": "tsc -w"
   },
