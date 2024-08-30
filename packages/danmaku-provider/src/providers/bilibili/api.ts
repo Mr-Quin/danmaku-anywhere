@@ -15,6 +15,7 @@ import type {
   BiliBiliSearchType,
 } from './schema.js'
 import {
+  bilibiliUserInfoSchema,
   bilibiliBangumiInfoResponseSchema,
   bilibiliSearchResponseSchema,
   bilibiliCommentSchemaProto,
@@ -28,6 +29,24 @@ const throttle = createThrottle(200)
 // Visit bilibili.com to set cookies
 export const setCookies = async () => {
   await fetch('http://bilibili.com')
+}
+
+export const getCurrentUser = async () => {
+  await throttle()
+
+  const url = `${BILIBILI_API_URL_ROOT}/x/web-interface/nav`
+
+  const response = await fetch(url)
+
+  const data: {} = await response.json()
+
+  const parsedData = handleParseResponse(() =>
+    bilibiliUserInfoSchema.parse(data)
+  )
+
+  // data property is always present, even if the user is not logged in
+
+  return parsedData
 }
 
 const search = async (
