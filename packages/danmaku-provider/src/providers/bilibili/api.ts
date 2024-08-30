@@ -7,7 +7,7 @@ import {
   handleParseResponseAsync,
 } from '../utils/index.js'
 
-import { bilibili as bilibiliProto } from './protobuf/dm.js'
+import { bilibili as bilibiliProto } from './../../protobuf/protobuf.js'
 import type {
   BilibiliBangumiInfo,
   BiliBiliSearchParams,
