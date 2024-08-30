@@ -38,7 +38,7 @@ export const getCurrentUser = async () => {
 
   const response = await fetch(url)
 
-  const data: {} = await response.json()
+  const data = await response.json()
 
   const parsedData = handleParseResponse(() =>
     bilibiliUserInfoSchema.parse(data)

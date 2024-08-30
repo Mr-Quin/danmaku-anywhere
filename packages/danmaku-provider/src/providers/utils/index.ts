@@ -6,12 +6,10 @@ export const handleParseResponse = <T>(parser: () => T): T => {
   try {
     return parser()
   } catch (e) {
-    console.error(e)
-    if (e instanceof ZodError) {
-      console.error(e.toString())
-    }
-    // import.meta.env.NODE_ENV === 'test'
-    throw new ResponseParseException()
+    throw new ResponseParseException({
+      cause: e,
+      isZodError: e instanceof ZodError,
+    })
   }
 }
 
@@ -21,11 +19,9 @@ export const handleParseResponseAsync = async <T>(
   try {
     return await parser()
   } catch (e) {
-    // import.meta.env.NODE_ENV === 'test'
-    console.error(e)
-    if (e instanceof ZodError) {
-      console.error(e.toString())
-    }
-    throw new ResponseParseException()
+    throw new ResponseParseException({
+      cause: e,
+      isZodError: e instanceof ZodError,
+    })
   }
 }
