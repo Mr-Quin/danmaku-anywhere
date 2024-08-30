@@ -29,7 +29,7 @@ export const defaultExtensionOptions: ExtensionOptions = {
       chConvert: DanDanChConvert.None,
     },
     bilibili: {
-      enabled: true,
+      enabled: false,
       danmakuTypePreference: 'xml',
       protobufLimitPerMin: 200,
     },
