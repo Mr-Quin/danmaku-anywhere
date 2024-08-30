@@ -46,7 +46,7 @@ export const getCurrentUser = async () => {
 
   // data property is always present, even if the user is not logged in
 
-  return parsedData
+  return parsedData.data
 }
 
 const search = async (

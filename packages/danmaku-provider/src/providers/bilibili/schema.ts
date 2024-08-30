@@ -18,6 +18,8 @@ export const bilibiliUserInfoSchema = bilibiliApiResponseBaseSchema.extend({
   }),
 })
 
+export type BilibiliUserInfo = z.infer<typeof bilibiliUserInfoSchema>['data']
+
 const bilibiliSearchMediaSchema = z.object({
   type: z.enum(['media_ft', 'media_bangumi']),
   media_id: z.number(), // mdid
