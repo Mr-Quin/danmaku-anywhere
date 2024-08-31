@@ -116,6 +116,10 @@ const domain = {
     error: {
       bilibiliAccess: 'Failed to access Bilibili.',
     },
+    tooltip: {
+      bilibiliNotLoggedIn:
+        'You may get reduced search results and danmaku because you are not currently logged in at Bilibili. Please go to <0>bilibili.com</0> and log in.',
+    },
   },
 }
 

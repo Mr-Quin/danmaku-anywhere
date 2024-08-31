@@ -15,8 +15,8 @@ import { SearchPage } from '../pages/search/SearchPage'
 import { FilterPage } from '../pages/styles/FilterPage'
 import { StylesPage } from '../pages/styles/StylesPage'
 
-import { BilibiliOptions } from '@/popup/pages/options/pages/danmakuSource/BilibiliOptions'
-import { DanDanPlayOptions } from '@/popup/pages/options/pages/danmakuSource/DanDanPlayOptions'
+import { BilibiliOptions } from '@/popup/pages/options/pages/danmakuSource/pages/BilibiliOptions'
+import { DanDanPlayOptions } from '@/popup/pages/options/pages/danmakuSource/pages/DanDanPlayOptions'
 import { ThemeOptions } from '@/popup/pages/options/pages/theme/ThemeOptions'
 
 export const router = createHashRouter([

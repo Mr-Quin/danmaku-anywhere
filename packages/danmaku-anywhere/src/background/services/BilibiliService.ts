@@ -18,6 +18,12 @@ export class BilibiliService {
     await bilibili.setCookies()
   }
 
+  async getLoginStatus() {
+    this.logger.debug('Get bilibili login status')
+    const result = await bilibili.getCurrentUser()
+    return result
+  }
+
   async search(searchParams: BiliBiliSearchParams) {
     this.logger.debug('Search bilibili', searchParams)
     const result = await bilibili.searchMedia(searchParams)
