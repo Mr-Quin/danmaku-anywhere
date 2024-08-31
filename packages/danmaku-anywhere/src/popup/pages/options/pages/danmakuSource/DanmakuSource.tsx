@@ -1,4 +1,5 @@
 import {
+  CircularProgress,
   List,
   ListItem,
   ListItemButton,
@@ -12,10 +13,11 @@ import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
+import { BilibiliListItem } from '@/popup/pages/options/pages/danmakuSource/components/BilibiliListItem'
 
 export const DanmakuSource = () => {
   const { t } = useTranslation()
-  const { sourcesList, toggleEnabled, isPending, update } = useDanmakuSources()
+  const { sourcesList, toggle, isPending, update } = useDanmakuSources()
 
   const navigate = useNavigate()
 
@@ -25,23 +27,36 @@ export const DanmakuSource = () => {
         <OptionsPageToolBar title={t('optionsPage.pages.danmakuSource')} />
         <List disablePadding>
           {sourcesList.map(({ key, options, provider }) => {
+            if (key === 'bilibili')
+              return (
+                <BilibiliListItem
+                  key={key}
+                  enabled={options.enabled}
+                  disableToggle={isPending || update.isPending}
+                  onClick={() => {
+                    navigate(key)
+                  }}
+                  text={t(localizedDanmakuSourceType(provider))}
+                />
+              )
+
+            const renderAction = () => {
+              if (update.isPending) return <CircularProgress size={24} />
+              return (
+                <Switch
+                  checked={options.enabled}
+                  onChange={(e) => {
+                    void toggle(key, e.target.checked)
+                  }}
+                  disabled={isPending || update.isPending}
+                />
+              )
+            }
+
             return (
               <ListItem
                 key={key}
-                secondaryAction={
-                  <Switch
-                    checked={options.enabled}
-                    onChange={(e) => {
-                      toggleEnabled.mutate({
-                        key,
-                        checked: e.target.checked,
-                      })
-                    }}
-                    disabled={
-                      isPending || update.isPending || toggleEnabled.isPending
-                    }
-                  />
-                }
+                secondaryAction={renderAction()}
                 disablePadding
               >
                 <ListItemButton

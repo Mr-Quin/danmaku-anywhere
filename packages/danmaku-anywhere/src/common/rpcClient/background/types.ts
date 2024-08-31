@@ -1,4 +1,7 @@
-import type { BilibiliBangumiInfo } from '@danmaku-anywhere/danmaku-provider/bilibili'
+import type {
+  BilibiliBangumiInfo,
+  BilibiliUserInfo,
+} from '@danmaku-anywhere/danmaku-provider/bilibili'
 
 import type { RPCDef } from '../../rpc/types'
 
@@ -51,6 +54,7 @@ type AnimeMethods = {
   episodesGet: RPCDef<GetEpisodeDto, BilibiliBangumiInfo>
   episodeMatch: RPCDef<MatchEpisodeInput, MatchEpisodeResult>
   bilibiliSetCookies: RPCDef<void, void>
+  bilibiliGetLoginStatus: RPCDef<void, BilibiliUserInfo>
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

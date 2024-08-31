@@ -1,18 +1,11 @@
-import { useMutation } from '@tanstack/react-query'
 import { produce } from 'immer'
-import { useTranslation } from 'react-i18next'
 
-import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { DanmakuSources } from '@/common/options/extensionOptions/schema'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
-import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 export const useDanmakuSources = () => {
   const { data, partialUpdate, ...rest } = useExtensionOptions()
-
-  const toast = useToast.use.toast()
-  const { t } = useTranslation()
 
   const sources = data.danmakuSources
 
@@ -51,35 +44,13 @@ export const useDanmakuSources = () => {
     })
   }
 
-  const toggleEnabled = useMutation({
-    mutationFn: async ({
-      key,
-      checked,
-    }: {
-      key: (typeof sourcesList)[number]['key']
-      checked: boolean
-    }) => {
-      if (key === 'bilibili') {
-        if (!checked) return toggle('bilibili', false)
-        await chromeRpcClient.bilibiliSetCookies()
-        await toggle('bilibili', true)
-      }
-      return toggle(key, checked)
-    },
-    onError: (_, v) => {
-      if (v.key === 'bilibili') {
-        toast.error(t('danmakuSource.error.bilibiliAccess'))
-      }
-    },
-  })
-
   return {
     sources,
     sourcesList,
     enabledSources,
     enabledProviders,
     updateSource,
-    toggleEnabled,
+    toggle,
     ...rest,
   }
 }

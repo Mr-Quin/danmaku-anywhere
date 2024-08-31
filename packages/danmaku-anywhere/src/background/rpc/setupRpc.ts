@@ -33,6 +33,9 @@ export const setupRpc = () => {
     bilibiliSetCookies: async () => {
       return bilibiliService.setCookies()
     },
+    bilibiliGetLoginStatus: async () => {
+      return bilibiliService.getLoginStatus()
+    },
     iconSet: async (data, sender) => {
       if (sender.tab?.id === undefined) {
         throw new RpcException('No tab id found')

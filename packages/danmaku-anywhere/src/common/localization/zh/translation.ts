@@ -117,6 +117,10 @@ const domain = {
     error: {
       bilibiliAccess: '访问哔哩哔哩失败',
     },
+    tooltip: {
+      bilibiliNotLoggedIn:
+        '未登录哔哩哔哩，获取的剧集信息和弹幕可能受限。请<0>前往B站</0>登录。',
+    },
   },
 }
 
