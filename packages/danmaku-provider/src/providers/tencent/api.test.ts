@@ -17,8 +17,12 @@ describe('Tencent', () => {
       mockFetchResponse(mockData.mockSearchMediaResponse)
 
       await expect(
-        tencentApi.searchMedia({ query: 'MyGo' })
+        tencentApi.searchMedia({ query: '斗罗大陆' })
       ).resolves.not.toThrow()
+
+      const result = await tencentApi.searchMedia({ query: '斗罗大陆' })
+
+      expect(result).toHaveLength(9)
     })
 
     it('should throw an error on API error', async () => {
@@ -28,26 +32,49 @@ describe('Tencent', () => {
       }
 
       mockFetchResponse(mockResponse)
-      await expect(tencentApi.searchMedia({ query: 'MyGo' })).rejects.toThrow(
-        TencentException
-      )
+      await expect(
+        tencentApi.searchMedia({ query: '斗罗大陆' })
+      ).rejects.toThrow(TencentException)
     })
 
     it('should throw an error on response parse error', async () => {
       mockFetchResponse({})
 
-      await expect(tencentApi.searchMedia({ query: 'MyGo' })).rejects.toThrow(
-        ResponseParseException
-      )
+      await expect(
+        tencentApi.searchMedia({ query: '斗罗大陆' })
+      ).rejects.toThrow(ResponseParseException)
     })
   })
 
   describe('listEpisodes', () => {
-    it('should not throw on valid response', async () => {
-      const generator = tencentApi.listEpisodes('m441e3rjq9kwpsc')
-      mockFetchResponse(mockData.mockEpisodeListResponse)
+    it('should get episode list', async () => {
+      const generator = tencentApi.listEpisodes({ cid: 'm441e3rjq9kwpsc' })
+      const mockFetch = mockFetchResponse(mockData.mockEpisodeListResponse)
       const first = await generator.next()
       expect(first.value).toHaveLength(100)
+      expect(mockFetch).toHaveBeenCalledTimes(1)
+
+      // the payload should have stringified params
+      expect(mockFetch.mock.calls[0][1]).toEqual({
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          has_cache: 1,
+          pageParams: {
+            cid: 'm441e3rjq9kwpsc',
+            lid: '0',
+            vid: '',
+            req_from: 'web_mobile',
+            page_type: 'detail_operation',
+            page_id: 'vsite_episode_list',
+            id_type: '1',
+            page_size: '100',
+            page_context: 'episode_begin=1&episode_end=100&episode_step=100',
+          },
+        }),
+      })
 
       mockFetchResponse(mockData.mockEpisodeListLastResponse)
       const second = await generator.next()
@@ -63,7 +90,7 @@ describe('Tencent', () => {
       mockFetchResponse(mockResponse)
 
       await expect(
-        tencentApi.listEpisodes('m441e3rjq9kwpsc').next()
+        tencentApi.listEpisodes({ cid: 'm441e3rjq9kwpsc' }).next()
       ).rejects.toThrow(TencentException)
     })
 
@@ -71,7 +98,7 @@ describe('Tencent', () => {
       mockFetchResponse({})
 
       await expect(
-        tencentApi.listEpisodes('m441e3rjq9kwpsc').next()
+        tencentApi.listEpisodes({ cid: 'm441e3rjq9kwpsc' }).next()
       ).rejects.toThrow(ResponseParseException)
     })
   })
@@ -87,20 +114,17 @@ describe('Tencent', () => {
 
     it('should fetch comments using segments', async () => {
       mockFetchResponse(mockData.mockBarrageBaseResponse)
-
       const segmentData = await tencentApi.getDanmakuSegments('m00253deqqo')
       const totalSegments = Object.values(segmentData.segment_index).length
 
-      let calledTimes = 0
       vi.spyOn(global, 'fetch').mockImplementation(() => {
-        calledTimes++
         return {
           json: vi.fn().mockResolvedValue(mockData.mockBarrage600000Response),
           status: 200,
         } as any
       })
 
-      const generator = tencentApi.getDanmakuBySegments(
+      const generator = tencentApi.getDanmakuGenerator(
         'm00253deqqo',
         segmentData
       )
@@ -111,7 +135,15 @@ describe('Tencent', () => {
         )
       }
 
-      expect(calledTimes).toEqual(totalSegments)
+      expect(fetch).toHaveBeenCalledTimes(totalSegments)
+      // should call all segments
+      expect(fetch).toHaveBeenNthCalledWith(
+        1,
+        'https://dm.video.qq.com/barrage/segment/m00253deqqo/t/v1/0/30000'
+      )
+      expect(fetch).toHaveBeenLastCalledWith(
+        'https://dm.video.qq.com/barrage/segment/m00253deqqo/t/v1/300000/330000'
+      )
     })
 
     it('should throw when data is invalid', async () => {
@@ -120,7 +152,7 @@ describe('Tencent', () => {
 
       mockFetchResponse(new TextEncoder().encode('invalid').buffer)
 
-      const generator = tencentApi.getDanmakuBySegments(
+      const generator = tencentApi.getDanmakuGenerator(
         'm00253deqqo',
         segmentData
       )

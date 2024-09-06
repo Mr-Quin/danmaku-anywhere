@@ -10,31 +10,28 @@ export type TencentApiResponseBase = z.infer<
   typeof tencentApiResponseBaseSchema
 >
 
-const tencentSearchMediaSchema = z.object({
-  normalList: z.object({
-    itemList: z.array(
-      z.object({
-        doc: z.object({
-          dataType: z.number(),
-          id: z.string(),
-        }),
-        videoInfo: z
-          .object({
-            videoType: z.number(),
-            typeName: z.string(),
-            title: z.string(),
-            year: z.number().optional(),
-          })
-          .optional(),
-      })
-    ),
+const tencentVideoSeasonSchema = z.object({
+  doc: z.object({
+    dataType: z.number(),
+    id: z.string(),
+  }),
+  videoInfo: z.object({
+    videoType: z.number(),
+    typeName: z.string(),
+    title: z.string(),
+    year: z.number().optional().default(0), // year of release, null or 0 for non-seasonal
   }),
 })
 
 export const tencentSearchResponseSchema = tencentApiResponseBaseSchema.extend({
   data: z
     .object({
-      result: z.array(tencentSearchMediaSchema).optional().default([]),
+      normalList: z.object({
+        itemList: z.array(tencentVideoSeasonSchema).transform((items) => {
+          // remove items without year
+          return items.filter((item) => item.videoInfo.year !== 0)
+        }),
+      }),
     })
     .optional(),
 })
@@ -43,7 +40,7 @@ type TencentSearchResponse = z.infer<typeof tencentSearchResponseSchema>
 
 export type TencentSearchResult = NonNullable<
   TencentSearchResponse['data']
->['result']
+>['normalList']['itemList']
 
 export interface TencentSearchParams {
   version?: string
@@ -62,18 +59,16 @@ export interface TencentSearchParams {
 }
 
 export interface TencentEpisodeListParams {
-  pageParams: {
-    // media id
-    cid: string
-    lid: string // numeric string
-    req_from: string
-    page_type: string
-    page_id: string
-    id_type: string // numeric string
-    page_size: string // numeric string
-    page_context: string // provided by the api
-  }
-  has_cache: number
+  // all fields of pageParams need to be converted to string before sending
+  cid: string // media id
+  vid?: string // video id
+  lid?: number
+  req_from?: string
+  page_type?: string
+  page_id?: string
+  id_type?: number
+  page_size?: number
+  page_context?: string // for pagination
 }
 
 const tencentEpisodeListItemSchema = z.object({

@@ -17,6 +17,10 @@
     "./bilibili": {
       "types": "./dist/src/providers/bilibili/index.d.ts",
       "default": "./dist/src/providers/bilibili/index.js"
+    },
+    "./tencent": {
+      "types": "./dist/src/providers/tencent/index.d.ts",
+      "default": "./dist/src/providers/tencent/index.js"
     }
   },
   "scripts": {
