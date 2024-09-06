@@ -7,6 +7,7 @@ import type {
   BilibiliMediaSearchResult,
   DanDanPlayMediaSearchResult,
   MediaSearchResult,
+  TencentMediaSearchResult,
 } from '@/common/anime/dto'
 import { BilibiliEpisodeList } from '@/common/components/MediaList/bilibili/BilibiliEpisodeList'
 import { CollapsableListItems } from '@/common/components/MediaList/components/CollapsableListItems'
@@ -14,8 +15,10 @@ import { ListItemSkeleton } from '@/common/components/MediaList/components/ListI
 import {
   getBilibiliMediaIcon,
   getDanDanPlayMediaIcon,
+  getTencentMediaIcon,
 } from '@/common/components/MediaList/components/makeIcon'
 import { MediaTypeIcon } from '@/common/components/MediaList/components/MediaTypeIcon'
+import { TencentEpisodeList } from '@/common/components/MediaList/tencent/TencentEpisodeList'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { UnsupportedProviderException } from '@/common/danmaku/UnsupportedProviderException'
@@ -32,6 +35,14 @@ const renderSeasonContent = <T extends MediaSearchResult>(
     return (
       <BilibiliEpisodeList
         season={bilibiliSeason}
+        renderEpisode={renderEpisodes}
+      />
+    )
+  } else if (provider === DanmakuSourceType.Tencent) {
+    const tencentSeason = season as TencentMediaSearchResult['data'][number]
+    return (
+      <TencentEpisodeList
+        season={tencentSeason}
         renderEpisode={renderEpisodes}
       />
     )
@@ -88,6 +99,15 @@ const renderSeasonIcon = (
         icon: getDanDanPlayMediaIcon(danDanPlaySeason.type),
         description: danDanPlaySeason.typeDescription,
         primaryText: danDanPlaySeason.animeTitle,
+      }
+    })
+    .with(DanmakuSourceType.Tencent, () => {
+      const tencentSeason = season as TencentMediaSearchResult['data'][number]
+
+      return {
+        icon: getTencentMediaIcon(tencentSeason.videoInfo.videoType),
+        description: tencentSeason.videoInfo.typeName,
+        primaryText: stripHtml(tencentSeason.videoInfo.title),
       }
     })
     .otherwise((provider) => {

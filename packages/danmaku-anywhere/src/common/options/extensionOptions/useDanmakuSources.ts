@@ -20,6 +20,11 @@ export const useDanmakuSources = () => {
       provider: DanmakuSourceType.Bilibili,
       options: sources.bilibili,
     },
+    {
+      key: 'tencent',
+      provider: DanmakuSourceType.Tencent,
+      options: sources.tencent,
+    },
   ] as const
 
   const enabledSources = sourcesList.filter((source) => source.options.enabled)

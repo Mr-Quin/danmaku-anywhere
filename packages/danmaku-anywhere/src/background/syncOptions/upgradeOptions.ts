@@ -70,6 +70,20 @@ extensionOptionsService
         draft.danmakuSources.bilibili.protobufLimitPerMin = 200
       }),
   })
+  .version(8, {
+    upgrade: (data: PrevOptions) =>
+      produce<ExtensionOptions>(data, (draft) => {
+        // Add tencent and iqiyi danmaku source options
+        draft.danmakuSources.tencent = {
+          enabled: false,
+          limitPerMin: 200,
+        }
+        draft.danmakuSources.iqiyi = {
+          enabled: false,
+          limitPerMin: 200,
+        }
+      }),
+  })
 
 danmakuOptionsService
   .version(1, {

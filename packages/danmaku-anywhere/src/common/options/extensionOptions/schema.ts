@@ -16,6 +16,14 @@ export const danmakuSourcesSchema = z.object({
     danmakuTypePreference: z.enum(['xml', 'protobuf']).default('xml'),
     protobufLimitPerMin: z.number().int().positive().max(1000).default(200),
   }),
+  tencent: z.object({
+    enabled: z.boolean(),
+    limitPerMin: z.number().int().positive().max(1000).default(200),
+  }),
+  iqiyi: z.object({
+    enabled: z.boolean(),
+    limitPerMin: z.number().int().positive().max(1000).default(200),
+  }),
 })
 
 const userThemeSchema = z.object({

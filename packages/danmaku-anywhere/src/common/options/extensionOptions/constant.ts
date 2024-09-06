@@ -33,6 +33,14 @@ export const defaultExtensionOptions: ExtensionOptions = {
       danmakuTypePreference: 'xml',
       protobufLimitPerMin: 200,
     },
+    tencent: {
+      enabled: false,
+      limitPerMin: 200,
+    },
+    iqiyi: {
+      enabled: false,
+      limitPerMin: 200,
+    },
   },
   theme: {
     colorMode: ColorMode.System,

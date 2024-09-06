@@ -2,6 +2,7 @@ export enum DanmakuSourceType {
   Custom,
   DanDanPlay,
   Bilibili,
+  Tencent,
 }
 
 export const danmakuSourceTypeList = Object.values(DanmakuSourceType).filter(
@@ -16,6 +17,8 @@ export function localizedDanmakuSourceType(type: DanmakuSourceType): string {
       return 'danmaku.type.DanDanPlay'
     case DanmakuSourceType.Bilibili:
       return 'danmaku.type.Bilibili'
+    case DanmakuSourceType.Tencent:
+      return 'danmaku.type.Tencent'
   }
 }
 

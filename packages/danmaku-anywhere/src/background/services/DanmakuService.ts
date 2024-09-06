@@ -2,6 +2,7 @@ import { match } from 'ts-pattern'
 
 import { BilibiliService } from '@/background/services/BilibiliService'
 import { DanDanPlayService } from '@/background/services/DanDanPlayService'
+import { TencentService } from '@/background/services/TencentService'
 import { TitleMappingService } from '@/background/services/TitleMappingService'
 import type {
   DanmakuDeleteDto,
@@ -19,6 +20,7 @@ import type {
   Danmaku,
   DanmakuInsert,
   DanmakuLite,
+  TencentDanmakuInsert,
 } from '@/common/danmaku/models/danmaku'
 import { UnsupportedProviderException } from '@/common/danmaku/UnsupportedProviderException'
 import {
@@ -36,6 +38,7 @@ export class DanmakuService {
   private logger: typeof Logger
   private bilibiliService = new BilibiliService()
   private danDanPlayService = new DanDanPlayService()
+  private tencentService = new TencentService()
   private titleMappingService = new TitleMappingService()
 
   constructor() {
@@ -117,6 +120,27 @@ export class DanmakuService {
             seasonId: meta.animeId,
             seasonTitle: meta.animeTitle,
             params: result.params,
+            timeUpdated: Date.now(),
+            version: 1 + (existingDanmaku?.version ?? 0),
+            schemaVersion: CURRENT_SCHEMA_VERSION,
+          }
+
+          return danmaku
+        }
+      )
+      .with(
+        { meta: { provider: DanmakuSourceType.Tencent } },
+        async ({ meta }) => {
+          const result = await this.tencentService.getDanmaku(meta.vid)
+          const danmaku: TencentDanmakuInsert = {
+            provider: meta.provider,
+            comments: result,
+            commentCount: result.length,
+            meta: meta,
+            episodeId,
+            episodeTitle: meta.episodeTitle,
+            seasonId: meta.cid,
+            seasonTitle: meta.seasonTitle,
             timeUpdated: Date.now(),
             version: 1 + (existingDanmaku?.version ?? 0),
             schemaVersion: CURRENT_SCHEMA_VERSION,

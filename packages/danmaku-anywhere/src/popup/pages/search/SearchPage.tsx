@@ -92,6 +92,7 @@ export const SearchPage = () => {
       <ErrorBoundary
         ref={ref}
         onReset={reset}
+        onError={console.error}
         fallbackRender={({ error }) => (
           <Center>
             <Typography>There was an error!</Typography>

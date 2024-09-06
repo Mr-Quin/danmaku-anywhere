@@ -47,10 +47,22 @@ export interface BiliBiliMeta extends BaseDanmakuMeta {
   mediaType: BiliBiliMediaType
 }
 
+export interface TencentMeta extends BaseDanmakuMeta {
+  provider: DanmakuSourceType.Tencent
+  cid: string // season id
+  vid: string // episode id
+  episodeTitle: string
+  seasonTitle: string
+}
+
 export interface CustomMeta extends BaseDanmakuMeta {
   provider: DanmakuSourceType.Custom
   seasonTitle: string
   episodeTitle: string
 }
 
-export type DanmakuMeta = DanDanPlayMeta | CustomMeta | BiliBiliMeta
+export type DanmakuMeta =
+  | DanDanPlayMeta
+  | CustomMeta
+  | BiliBiliMeta
+  | TencentMeta

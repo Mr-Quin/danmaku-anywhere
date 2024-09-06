@@ -9,6 +9,7 @@ import type {
 import type {
   BiliBiliMeta,
   DanDanPlayMetaDto,
+  TencentMeta,
 } from '@/common/danmaku/models/meta'
 
 export type DanmakuGetOneDto =
@@ -17,7 +18,7 @@ export type DanmakuGetOneDto =
     }
   | {
       provider: DanmakuSourceType
-      episodeId: number
+      episodeId: number | string
     }
 
 export type DanmakuGetManyDto = number[]
@@ -49,7 +50,14 @@ export interface BiliBiliFetchDto extends BaseDanmakuFetchDto {
   meta: BiliBiliMeta
 }
 
-export type DanmakuFetchDto = DanDanPlayFetchDto | BiliBiliFetchDto
+export interface TencentFetchDto extends BaseDanmakuFetchDto {
+  meta: TencentMeta
+}
+
+export type DanmakuFetchDto =
+  | DanDanPlayFetchDto
+  | BiliBiliFetchDto
+  | TencentFetchDto
 
 export type DanmakuDeleteDto = number
 

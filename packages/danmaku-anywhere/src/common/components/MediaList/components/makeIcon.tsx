@@ -1,5 +1,6 @@
 import { BiliBiliMediaType } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import type { DanDanAnimeType } from '@danmaku-anywhere/danmaku-provider/ddp'
+import { TencentVideoType } from '@danmaku-anywhere/danmaku-provider/tencent'
 
 import { CNFlagIcon } from '@/common/components/icons/CNFlagIcon'
 
@@ -34,6 +35,19 @@ export const getBilibiliMediaIcon = (type: BiliBiliMediaType) => {
     case BiliBiliMediaType.Documentary:
       return '🔎'
     case BiliBiliMediaType.Guochuang:
+      return <CNFlagIcon />
+    default:
+      return '❓'
+  }
+}
+export const getTencentMediaIcon = (type: TencentVideoType) => {
+  switch (type) {
+    case TencentVideoType.Variety:
+      return '🤹‍♀️'
+    case TencentVideoType.Anime:
+    case TencentVideoType.Drama:
+      return '📺'
+    case TencentVideoType.Original:
       return <CNFlagIcon />
     default:
       return '❓'

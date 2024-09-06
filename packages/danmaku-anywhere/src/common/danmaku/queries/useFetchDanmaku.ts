@@ -34,6 +34,14 @@ export const useFetchDanmaku = () => {
             return chromeRpcClient.danmakuFetch(data)
           }
         )
+        .with(
+          {
+            meta: { provider: DanmakuSourceType.Tencent },
+          },
+          (data) => {
+            return chromeRpcClient.danmakuFetch(data)
+          }
+        )
         .otherwise(({ meta: { provider } }) => {
           throw new UnsupportedProviderException(provider)
         })
