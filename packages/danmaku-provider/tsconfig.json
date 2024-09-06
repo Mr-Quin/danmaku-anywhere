@@ -5,9 +5,18 @@
     "baseUrl": ".",
     "composite": true,
     "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "NodeNext"
   },
-  "include": ["./src"],
-  "exclude": ["**/*.test.ts"],
-  "references": [{ "path": "../danmaku-converter" }]
+  "include": [
+    "./src"
+  ],
+  "exclude": [
+    "**/*.test.ts",
+    "**/test"
+  ],
+  "references": [
+    {
+      "path": "../danmaku-converter"
+    }
+  ]
 }

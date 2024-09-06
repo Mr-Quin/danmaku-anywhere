@@ -1,0 +1,31 @@
+{
+  "data": {
+    "has_next_page": false,
+    "next_page_context": {
+      "view_ad_ssp_minigame_flush_num": "1",
+      "view_ad_ssp_ctx_version": "1",
+      "view_ad_ssp_flush_num": "1",
+      "view_ad_ssp_netmovie_ad_count_send": "0",
+      "view_ad_ssp_remaining": "0",
+      "view_ad_ssp_netmovie_remaining": "0",
+      "view_ad_ssp_minigame_cards_consumed": "0",
+      "view_ad_ssp_netmovie_flush_num": "1",
+      "page_index": "1",
+      "view_ad_ssp_minigame_ctx_version": "1",
+      "view_ad_ssp_netmovie_ctx_version": "1",
+      "view_ad_ssp_cards_consumed": "0",
+      "view_ad_ssp_netmovie_cards_consumed": "0",
+      "view_ad_ssp_minigame_remaining": "0",
+      "view_ad_ssp_ad_count_send": "0",
+      "sdk_page_ctx": "{\"page_offset\":1,\"page_size\":1,\"used_module_num\":1}",
+      "view_ad_ssp_minigame_ad_count_send": "0"
+    },
+    "has_pre_page": false,
+    "pre_page_context": {},
+    "request_context": {},
+    "module_list_datas": [],
+    "page_info": {}
+  },
+  "ret": 0,
+  "msg": ""
+}
