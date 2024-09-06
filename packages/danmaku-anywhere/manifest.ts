@@ -25,6 +25,7 @@ export const manifest = defineManifest({
     'activeTab',
     'scripting',
     'contextMenus',
+    'declarativeNetRequestWithHostAccess',
   ],
   host_permissions: ['https://*/*', 'http://*/*'],
   icons: {
