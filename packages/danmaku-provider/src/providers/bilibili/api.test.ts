@@ -22,7 +22,7 @@ import {
   mockBilibiliMediaSearchResponse,
   mockBilibiliUserLoggedInResponse,
   mockBilibiliUserNotLoggedInResponse,
-} from './mockData/mockData'
+} from './test/mockData'
 
 describe('Bilibili', () => {
   beforeEach(() => {
@@ -35,7 +35,7 @@ describe('Bilibili', () => {
 
       const res = await getCurrentUser()
 
-      expect(res.data.isLogin).toEqual(true)
+      expect(res.isLogin).toEqual(true)
     })
 
     it('should parse info of not logged in user', async () => {
@@ -43,7 +43,7 @@ describe('Bilibili', () => {
 
       const res = await getCurrentUser()
 
-      expect(res.data.isLogin).toEqual(false)
+      expect(res.isLogin).toEqual(false)
     })
   })
 
@@ -51,14 +51,12 @@ describe('Bilibili', () => {
     it('should not throw on search bangumi', async () => {
       mockFetchResponse(mockBilibiliBangmumiSearchResponse)
 
-      // not mocking fetch here to test the actual fetch
       await expect(searchMedia({ keyword: 'MyGo' })).resolves.not.toThrow()
     })
 
     it('should not throw on search media', async () => {
       mockFetchResponse(mockBilibiliMediaSearchResponse)
 
-      // not mocking fetch here to test the actual fetch
       await expect(searchMedia({ keyword: 'MyGo' })).resolves.not.toThrow()
     })
 
@@ -88,7 +86,6 @@ describe('Bilibili', () => {
     it('should not throw on valid response', async () => {
       mockFetchResponse(mockBilibiliBangumiInfoResponse)
 
-      // not mocking fetch here to test the actual fetch
       await expect(getBangumiInfo(1)).resolves.not.toThrow()
     })
 

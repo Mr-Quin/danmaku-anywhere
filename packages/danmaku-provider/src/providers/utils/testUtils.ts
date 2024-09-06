@@ -6,6 +6,7 @@ export const mockFetchResponse = (data?: any, status?: number) => {
     text: vi.fn().mockResolvedValue(data),
     arrayBuffer: vi.fn().mockResolvedValue(data),
     status: status || 200,
+    headers: new Map(),
   } as any)
 
   return mockFetch
