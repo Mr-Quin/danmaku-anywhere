@@ -27,6 +27,31 @@ export const setupNetRequest = () => {
           ],
         },
       },
+      {
+        id: 2,
+        action: {
+          type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
+          requestHeaders: [
+            {
+              header: 'Referer',
+              operation: chrome.declarativeNetRequest.HeaderOperation.SET,
+              value: 'https://v.qq.com',
+            },
+            {
+              header: 'Origin',
+              operation: chrome.declarativeNetRequest.HeaderOperation.SET,
+              value: 'https://v.qq.com',
+            },
+          ],
+        },
+        condition: {
+          domains: [chrome.runtime.id],
+          urlFilter: '|https://*.video.qq.com/',
+          resourceTypes: [
+            chrome.declarativeNetRequest.ResourceType.XMLHTTPREQUEST,
+          ],
+        },
+      },
     ]
 
     await chrome.declarativeNetRequest.updateDynamicRules({
