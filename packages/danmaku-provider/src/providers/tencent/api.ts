@@ -9,6 +9,7 @@ import {
 import type {
   TencentCommentSegmentData,
   TencentEpisodeListItem,
+  TencentEpisodeListParams,
   TencentSearchParams,
   TencentSearchResult,
 } from './schema.js'
@@ -29,7 +30,7 @@ export const setCookies = async () => {
   await fetch('https://v.qq.com/')
 }
 
-const searchMediaDefaultParams: TencentSearchParams = {
+const searchMediaDefaultParams = {
   version: '',
   filterValue: 'firstTabid=150',
   retry: 0,
@@ -42,7 +43,7 @@ const searchMediaDefaultParams: TencentSearchParams = {
   sdkRequestInfo: '',
   sceneId: 21,
   platform: '23',
-}
+} satisfies TencentSearchParams
 
 export const searchMedia = async (params: TencentSearchParams) => {
   await throttle()
@@ -54,6 +55,9 @@ export const searchMedia = async (params: TencentSearchParams) => {
   const response = await fetch(url, {
     method: 'POST',
     body: JSON.stringify(params),
+    headers: {
+      'Content-Type': 'application/json',
+    },
   })
 
   const data = await response.json()
@@ -67,49 +71,61 @@ export const searchMedia = async (params: TencentSearchParams) => {
 
   ensureData(parsedData, 'data', errorMsg)
 
-  return parsedData.data.result satisfies TencentSearchResult
+  return parsedData.data.normalList.itemList satisfies TencentSearchResult
 }
 
-// numbers need to be string
 const listEpisodeDefaultParams = {
-  pageParams: {
-    cid: '',
-    lid: '0',
-    req_from: 'web_mobile',
-    page_type: 'detail_operation',
-    page_id: 'vsite_episode_list',
-    id_type: '1',
-    page_size: '100',
-    page_context: '',
-  },
-  has_cache: 1,
-}
+  cid: '',
+  lid: 0,
+  vid: '',
+  req_from: 'web_mobile',
+  page_type: 'detail_operation',
+  page_id: 'vsite_episode_list',
+  id_type: 1,
+  page_size: 100,
+  page_context: '',
+} satisfies TencentEpisodeListParams
 
-export async function* listEpisodes(cid: string) {
+export async function* listEpisodes(params: TencentEpisodeListParams) {
   const MAX_ITERATIONS = 100
+
+  const appliedParams = {
+    ...listEpisodeDefaultParams,
+    ...params,
+  }
 
   const url = `${TENCENT_API_URL_ROOT}/trpc.universal_backend_service.page_server_rpc.PageServer/GetPageData?video_appid=3000010&vplatform=2`
 
-  const pageSize = 100
+  const pageSize = appliedParams.page_size
   let i = 0,
-    start = 1,
-    end = pageSize,
-    pageContext = '',
     lastId = ''
+
+  const getPageContext = () => {
+    return `episode_begin=${i * pageSize + 1}&episode_end=${(i + 1) * pageSize}&episode_step=${pageSize}`
+  }
 
   while (1) {
     await throttle()
 
+    const pageParams = {
+      ...appliedParams,
+      page_context: getPageContext(),
+    }
+
+    // convert all fields to string
+    const requestBody = {
+      has_cache: 1,
+      pageParams: Object.fromEntries(
+        Object.entries(pageParams).map(([key, value]) => [key, String(value)])
+      ),
+    }
+
     const response = await fetch(url, {
       method: 'POST',
-      body: JSON.stringify({
-        ...listEpisodeDefaultParams,
-        pageParams: {
-          ...listEpisodeDefaultParams.pageParams,
-          cid,
-          pageContext,
-        },
-      }),
+      body: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json',
+      },
     })
 
     const data = await response.json()
@@ -135,7 +151,7 @@ export async function* listEpisodes(cid: string) {
         (item) => item.item_params
       )
 
-    // break out of potential infinite loop
+    // we are in a loop, break out
     if (episodes.at(-1)?.vid === lastId) {
       return null
     }
@@ -147,11 +163,7 @@ export async function* listEpisodes(cid: string) {
       return null
     }
 
-    pageContext = `episode_begin=${start}&episode_end=${end}&episode_step=${pageSize}`
-    start += pageSize
-    end += pageSize
     lastId = episodes.at(-1)!.vid
-
     i += 1
     if (i >= MAX_ITERATIONS) {
       return null
@@ -177,7 +189,7 @@ export const getDanmakuSegments = async (
   return segments
 }
 
-export async function* getDanmakuBySegments(
+export async function* getDanmakuGenerator(
   vid: string,
   segmentData: TencentCommentSegmentData
 ): AsyncGenerator<CommentEntity[]> {
@@ -188,7 +200,7 @@ export async function* getDanmakuBySegments(
   for (const segment of segments) {
     await throttle()
 
-    const url = `${DM_API_URL_ROOT}/barrage/base/${vid}/${segment.segment_name}`
+    const url = `${DM_API_URL_ROOT}/barrage/segment/${vid}/${segment.segment_name}`
 
     const response = await fetch(url)
 
@@ -200,4 +212,18 @@ export async function* getDanmakuBySegments(
 
     yield comments.barrage_list
   }
+}
+
+export const getDanmaku = async (vid: string) => {
+  const segmentData = await getDanmakuSegments(vid)
+
+  const generator = getDanmakuGenerator(vid, segmentData)
+
+  const comments: CommentEntity[] = []
+
+  for await (const segmentComments of generator) {
+    comments.push(...segmentComments)
+  }
+
+  return comments
 }
