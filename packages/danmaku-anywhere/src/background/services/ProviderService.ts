@@ -2,9 +2,11 @@ import { match } from 'ts-pattern'
 
 import { BilibiliService } from '@/background/services/BilibiliService'
 import { DanDanPlayService } from '@/background/services/DanDanPlayService'
+import { TencentService } from '@/background/services/TencentService'
 import { TitleMappingService } from '@/background/services/TitleMappingService'
 import type {
   GetEpisodeDto,
+  GetEpisodeResult,
   MatchEpisodeInput,
   MatchEpisodeResult,
   MediaSearchParams,
@@ -22,6 +24,7 @@ export class ProviderService {
   private extensionOptionsService = extensionOptionsService
   private bilibiliService = new BilibiliService()
   private danDanPlayService = new DanDanPlayService()
+  private tencentService = new TencentService()
   private titleMappingService = new TitleMappingService()
 
   constructor() {
@@ -53,6 +56,13 @@ export class ProviderService {
         const data = await this.bilibiliService.search({
           keyword: searchParams.keyword,
         })
+        return {
+          provider,
+          data,
+        }
+      })
+      .with(DanmakuSourceType.Tencent, async (provider) => {
+        const data = await this.tencentService.search(searchParams.keyword)
         return {
           provider,
           data,
@@ -161,10 +171,23 @@ export class ProviderService {
     }
   }
 
-  async getEpisodes(data: GetEpisodeDto) {
-    if (data.provider === DanmakuSourceType.Bilibili) {
-      return this.bilibiliService.getBangumiInfo(data.seasonId)
+  async getEpisodes(data: GetEpisodeDto): Promise<GetEpisodeResult> {
+    switch (data.provider) {
+      case DanmakuSourceType.Bilibili:
+        return {
+          provider: DanmakuSourceType.Bilibili,
+          data: await this.bilibiliService.getBangumiInfo(data.seasonId),
+        }
+      case DanmakuSourceType.Tencent:
+        return {
+          provider: DanmakuSourceType.Tencent,
+          data: await this.tencentService.getEpisodes(data.seasonId),
+        }
+      default:
+        break
     }
-    throw new UnsupportedProviderException(data.provider)
+
+    // should not reach here, but this line makes typescript happy
+    throw new UnsupportedProviderException(DanmakuSourceType.Custom)
   }
 }

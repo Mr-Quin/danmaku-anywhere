@@ -1,12 +1,10 @@
-import type {
-  BilibiliBangumiInfo,
-  BilibiliUserInfo,
-} from '@danmaku-anywhere/danmaku-provider/bilibili'
+import type { BilibiliUserInfo } from '@danmaku-anywhere/danmaku-provider/bilibili'
 
 import type { RPCDef } from '../../rpc/types'
 
 import type {
   GetEpisodeDto,
+  GetEpisodeResult,
   MatchEpisodeInput,
   MatchEpisodeResult,
   MediaSearchMultiParamsData,
@@ -51,10 +49,11 @@ type IconMethods = {
 type AnimeMethods = {
   mediaSearch: RPCDef<MediaSearchParamsData, MediaSearchResult>
   mediaSearchMultiple: RPCDef<MediaSearchMultiParamsData, MediaSearchResult[]>
-  episodesGet: RPCDef<GetEpisodeDto, BilibiliBangumiInfo>
+  episodesGet: RPCDef<GetEpisodeDto, GetEpisodeResult>
   episodeMatch: RPCDef<MatchEpisodeInput, MatchEpisodeResult>
   bilibiliSetCookies: RPCDef<void, void>
   bilibiliGetLoginStatus: RPCDef<void, BilibiliUserInfo>
+  tencentSetCookies: RPCDef<void, void>
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

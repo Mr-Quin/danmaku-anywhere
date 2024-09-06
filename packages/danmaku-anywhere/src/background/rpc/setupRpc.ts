@@ -5,6 +5,7 @@ import { IconService } from '../services/IconService'
 import { ProviderService } from '../services/ProviderService'
 
 import { BilibiliService } from '@/background/services/BilibiliService'
+import { TencentService } from '@/background/services/TencentService'
 import type { GetEpisodeDto } from '@/common/anime/dto'
 import { Logger } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
@@ -16,6 +17,7 @@ export const setupRpc = () => {
   const iconService = new IconService()
   const danmakuService = new DanmakuService()
   const bilibiliService = new BilibiliService()
+  const tencentService = new TencentService()
 
   const rpcServer = createRpcServer<BackgroundMethods>({
     mediaSearch: async (input) => {
@@ -35,6 +37,9 @@ export const setupRpc = () => {
     },
     bilibiliGetLoginStatus: async () => {
       return bilibiliService.getLoginStatus()
+    },
+    tencentSetCookies: async () => {
+      return tencentService.setCookies()
     },
     iconSet: async (data, sender) => {
       if (sender.tab?.id === undefined) {

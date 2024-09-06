@@ -3,6 +3,10 @@ import type {
   BilibiliSearchResult,
 } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import type { DanDanAnimeSearchResult } from '@danmaku-anywhere/danmaku-provider/ddp'
+import type {
+  TencentSearchResult,
+  TencentEpisodeListItem,
+} from '@danmaku-anywhere/danmaku-provider/tencent'
 
 import type {
   DanmakuSourceType,
@@ -35,14 +39,22 @@ export interface BilibiliMediaSearchResult {
   data: BilibiliSearchResult
 }
 
+export interface TencentMediaSearchResult {
+  provider: DanmakuSourceType.Tencent
+  data: TencentSearchResult
+}
+
 export type MediaSearchResult =
   | DanDanPlayMediaSearchResult
   | BilibiliMediaSearchResult
+  | TencentMediaSearchResult
 
 export type BilibiliEpisode = BilibiliBangumiInfo['episodes'][number]
 
 export type DanDanPlayEpisode =
   DanDanAnimeSearchResult[number]['episodes'][number]
+
+export type TencentEpisode = TencentEpisodeListItem
 
 export type SeasonSearchResult =
   | {
@@ -53,11 +65,30 @@ export type SeasonSearchResult =
       provider: DanmakuSourceType.DanDanPlay
       data: DanDanAnimeSearchResult[number]
     }
+  | {
+      provider: DanmakuSourceType.Tencent
+      data: TencentSearchResult[number]
+    }
 
-export interface GetEpisodeDto {
-  provider: DanmakuSourceType.Bilibili
-  seasonId: number
-}
+export type GetEpisodeDto =
+  | {
+      provider: DanmakuSourceType.Bilibili
+      seasonId: number
+    }
+  | {
+      provider: DanmakuSourceType.Tencent
+      seasonId: string // cid
+    }
+
+export type GetEpisodeResult =
+  | {
+      provider: DanmakuSourceType.Bilibili
+      data: BilibiliBangumiInfo
+    }
+  | {
+      provider: DanmakuSourceType.Tencent
+      data: TencentEpisodeListItem[]
+    }
 
 export interface MatchEpisodeInput {
   mapKey: string

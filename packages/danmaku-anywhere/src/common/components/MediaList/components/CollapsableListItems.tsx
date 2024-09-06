@@ -2,7 +2,7 @@ import { ExpandLess, ExpandMore } from '@mui/icons-material'
 import { Collapse, ListItemButton, Paper } from '@mui/material'
 import type { ListItemButtonProps } from '@mui/material/ListItemButton/ListItemButton'
 import type { ComponentProps, MouseEvent, ReactNode } from 'react'
-import { useState } from 'react'
+import { startTransition, useState } from 'react'
 
 interface CollapsableListItemProps extends ListItemButtonProps {
   listItemChildren: ReactNode
@@ -20,7 +20,7 @@ export const CollapsableListItems = ({
 
   const handleClick = (e: MouseEvent<HTMLDivElement>) => {
     onClick?.(e)
-    setOpen(!open)
+    startTransition(() => setOpen(!open))
   }
 
   return (

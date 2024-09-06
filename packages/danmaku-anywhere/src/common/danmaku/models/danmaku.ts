@@ -6,6 +6,7 @@ import type {
   BiliBiliMeta,
   CustomMeta,
   DanDanPlayMeta,
+  TencentMeta,
 } from '@/common/danmaku/models/meta'
 
 /**
@@ -27,10 +28,10 @@ interface BaseDanmakuEntity {
   schemaVersion: number
 
   // Identifier for the episode, varies between providers
-  episodeId?: number
+  episodeId?: number | string
   episodeTitle: string
   // Season id, used for grouping episodes, can be undefined for some providers
-  seasonId?: number
+  seasonId?: number | string
   seasonTitle: string
 
   // Auto generated id
@@ -63,16 +64,29 @@ export type BiliBiliDanmaku = BaseDanmakuEntity & {
 
 export type BiliBiliDanmakuInsert = Omit<BiliBiliDanmaku, 'id'>
 
+export type TencentDanmaku = BaseDanmakuEntity & {
+  provider: DanmakuSourceType.Tencent
+  meta: TencentMeta
+}
+
+export type TencentDanmakuInsert = Omit<TencentDanmaku, 'id'>
+
 // Capture the type of the model that is stored in the database
-export type Danmaku = DanDanPlayDanmaku | CustomDanmaku | BiliBiliDanmaku
+export type Danmaku =
+  | DanDanPlayDanmaku
+  | CustomDanmaku
+  | BiliBiliDanmaku
+  | TencentDanmaku
 
 // Capture the type of the model that can be inserted into the database
 export type DanmakuInsert =
   | DanDanPlayDanmakuInsert
   | CustomDanmakuInsert
   | BiliBiliDanmakuInsert
+  | TencentDanmakuInsert
 
 export type DanmakuLite =
   | Omit<DanDanPlayDanmaku, 'comments'>
   | Omit<CustomDanmaku, 'comments'>
   | Omit<BiliBiliDanmaku, 'comments'>
+  | Omit<TencentDanmaku, 'comments'>

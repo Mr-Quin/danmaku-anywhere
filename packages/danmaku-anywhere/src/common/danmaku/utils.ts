@@ -30,6 +30,8 @@ export const getEpisodeId = (meta: DanmakuMeta | DanDanPlayMetaDto) => {
       return meta.episodeId
     case DanmakuSourceType.Bilibili:
       return meta.cid
+    case DanmakuSourceType.Tencent:
+      return meta.vid
     default:
       throw new UnsupportedProviderException(meta.provider)
   }

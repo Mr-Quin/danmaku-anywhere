@@ -2,39 +2,39 @@ import { List, ListItemText } from '@mui/material'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
-import type { BilibiliMediaSearchResult } from '@/common/anime/dto'
+import type { TencentMediaSearchResult } from '@/common/anime/dto'
 import { useGetEpisodes } from '@/common/anime/queries/useGetEpisodes'
 import { ListItemSkeleton } from '@/common/components/MediaList/components/ListItemSkeleton'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 
-interface BilibiliSeasonsListItemProps {
-  season: BilibiliMediaSearchResult['data'][number]
+interface TencentEpisodeListItemProps {
+  season: TencentMediaSearchResult['data'][number]
   renderEpisode: RenderEpisode
 }
 
-export const BilibiliEpisodeList = ({
+export const TencentEpisodeList = ({
   season,
   renderEpisode,
-}: BilibiliSeasonsListItemProps) => {
+}: TencentEpisodeListItemProps) => {
   const { data: result } = useGetEpisodes({
-    provider: DanmakuSourceType.Bilibili,
-    seasonId: season.season_id,
+    provider: DanmakuSourceType.Tencent,
+    seasonId: season.doc.id,
   })
 
   return (
     <List dense disablePadding>
-      {result.data.episodes.map((episode) => {
+      {result.data.map((episode) => {
         return (
           <ErrorBoundary
             fallback={<ListItemText primary="An error occurred" />}
-            key={episode.cid}
+            key={episode.vid}
           >
             <Suspense fallback={<ListItemSkeleton />}>
               {renderEpisode({
-                provider: DanmakuSourceType.Bilibili,
+                provider: DanmakuSourceType.Tencent,
                 episode,
-                season: result.data,
+                season: season,
               })}
             </Suspense>
           </ErrorBoundary>

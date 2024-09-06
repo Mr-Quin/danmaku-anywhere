@@ -15,7 +15,11 @@ import type { RenderEpisodeData } from '@/common/components/MediaList/types'
 import type { DanmakuFetchDto, DanmakuGetOneDto } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { Danmaku } from '@/common/danmaku/models/danmaku'
-import type { BiliBiliMeta, DanDanPlayMeta } from '@/common/danmaku/models/meta'
+import type {
+  BiliBiliMeta,
+  DanDanPlayMeta,
+  TencentMeta,
+} from '@/common/danmaku/models/meta'
 import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
 import { UnsupportedProviderException } from '@/common/danmaku/UnsupportedProviderException'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -83,6 +87,27 @@ const getRenderData = (data: RenderEpisodeData): EpisodeRenderData =>
         params,
       }
     })
+    .with({ provider: DanmakuSourceType.Tencent }, ({ episode, season }) => {
+      const meta = {
+        vid: episode.vid,
+        episodeTitle: episode.title,
+        cid: season.doc.id,
+        seasonTitle: season.videoInfo.title,
+        provider: DanmakuSourceType.Tencent,
+      } satisfies TencentMeta
+
+      const params = {
+        provider: DanmakuSourceType.Tencent,
+        episodeId: episode.vid,
+      }
+
+      return {
+        meta,
+        title: episode.play_title,
+        tooltip: episode.play_title,
+        params,
+      }
+    })
     .otherwise(({ provider }) => {
       throw new UnsupportedProviderException(provider)
     })
@@ -95,6 +120,7 @@ export const BaseEpisodeListItem = ({
 }: BaseEpisodeListItemProps) => {
   const { meta, params, title, tooltip } = getRenderData(data)
 
+  // TODO: replace with useSuspenseQueries
   const {
     data: danmakuData,
     isFetched,
@@ -103,6 +129,8 @@ export const BaseEpisodeListItem = ({
   } = useSuspenseQuery({
     queryKey: danmakuKeys.one(params),
     queryFn: async () => chromeRpcClient.danmakuGetOne(params),
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   })
 
   const { mutate, isPending: isMutating } = useMutation({
