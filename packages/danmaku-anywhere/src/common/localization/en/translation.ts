@@ -89,6 +89,8 @@ const domain = {
       Custom: 'Custom',
       DanDanPlay: 'DanDanPlay',
       Bilibili: 'Bilibili',
+      Tencent: 'Tencent',
+      Iqiyi: 'Iqiyi',
     },
     unmount: 'Unmount',
   },

@@ -91,6 +91,8 @@ const domain = {
       Custom: '自定义',
       DanDanPlay: '弹弹Play',
       Bilibili: '哔哩哔哩',
+      Tencent: '腾讯',
+      Iqiyi: '爱奇艺',
     },
     unmount: '卸载弹幕',
   },
