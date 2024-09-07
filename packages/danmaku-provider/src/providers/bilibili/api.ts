@@ -89,10 +89,22 @@ export const searchMedia = async (params: BiliBiliSearchParams) => {
 }
 
 // using season id, get a list of episodes
-export const getBangumiInfo = async (seasonId: number) => {
+export const getBangumiInfo = async ({
+  seasonId,
+  episodeId,
+}: {
+  seasonId?: number
+  episodeId?: number
+}) => {
   await throttle()
 
-  const url = `${BILIBILI_API_URL_ROOT}/pgc/view/web/season?season_id=${seasonId}`
+  if (!seasonId && !episodeId) {
+    throw new Error('Either seasonId or episodeId must be provided')
+  }
+
+  const query = seasonId ? `season_id=${seasonId}` : `ep_id=${episodeId}`
+
+  const url = `${BILIBILI_API_URL_ROOT}/pgc/view/web/season?${query}`
 
   const response = await fetch(url)
 
