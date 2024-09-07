@@ -117,6 +117,33 @@ export type TencentEpisodeListItem = z.infer<
   typeof tencentEpisodeListItemSchema
 >
 
+export const tencentPageDetailResponseSchema =
+  tencentApiResponseBaseSchema.extend({
+    data: z
+      .object({
+        has_next_page: z.boolean(),
+        module_list_datas: z.array(
+          z.object({
+            module_datas: z.array(
+              z.object({
+                module_id: z.string(),
+                item_data_lists: z.object({
+                  item_datas: z.array(
+                    z.object({
+                      item_params: z.object({
+                        title: z.string(),
+                      }),
+                    })
+                  ),
+                }),
+              })
+            ),
+          })
+        ),
+      })
+      .optional(),
+  })
+
 export const tencentCommentSegmentSchema = z.object({
   segment_start: z.coerce.number(),
   segment_span: z.coerce.number(),

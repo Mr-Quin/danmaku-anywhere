@@ -14,6 +14,7 @@ import type {
   TencentSearchResult,
 } from './schema.js'
 import {
+  tencentPageDetailResponseSchema,
   tencentCommentSchema,
   tencentEpisodeListResponseSchema,
   tencentSearchResponseSchema,
@@ -72,6 +73,42 @@ export const searchMedia = async (params: TencentSearchParams) => {
   ensureData(parsedData, 'data', errorMsg)
 
   return parsedData.data.normalList.itemList satisfies TencentSearchResult
+}
+
+export const getPageDetails = async (cid: string, vid?: string) => {
+  const url = `${TENCENT_API_URL_ROOT}/trpc.universal_backend_service.page_server_rpc.PageServer/GetPageData?video_appid=3000010&vplatform=2`
+
+  const requestBody = {
+    has_cache: 1,
+    pageParams: {
+      cid,
+      lid: '0',
+      vid: vid || '',
+      req_from: 'web_mobile',
+      page_type: 'detail_operation',
+      page_id: 'detail_page_introduction',
+    },
+  }
+
+  const response = await fetch(url, {
+    method: 'POST',
+    body: JSON.stringify(requestBody),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+
+  const data = await response.json()
+
+  const parsedData = handleParseResponse(() =>
+    tencentPageDetailResponseSchema.parse(data)
+  )
+
+  const errorMsg = response.headers.get('Trpc-Error-Msg') || undefined
+
+  ensureData(parsedData, 'data', errorMsg)
+
+  return parsedData.data
 }
 
 const listEpisodeDefaultParams = {
