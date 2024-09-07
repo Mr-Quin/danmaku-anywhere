@@ -173,15 +173,24 @@ export class ProviderService {
 
   async getEpisodes(data: GetEpisodeDto): Promise<GetEpisodeResult> {
     switch (data.provider) {
-      case DanmakuSourceType.Bilibili:
+      case DanmakuSourceType.Bilibili: {
+        const bilibiliData = await this.bilibiliService.getBangumiInfo(
+          data.seasonId
+        )
         return {
           provider: DanmakuSourceType.Bilibili,
-          data: await this.bilibiliService.getBangumiInfo(data.seasonId),
+          episodes: bilibiliData.episodes,
         }
+      }
       case DanmakuSourceType.Tencent:
         return {
           provider: DanmakuSourceType.Tencent,
-          data: await this.tencentService.getEpisodes(data.seasonId),
+          episodes: await this.tencentService.getEpisodes(data.seasonId),
+        }
+      case DanmakuSourceType.DanDanPlay:
+        return {
+          provider: DanmakuSourceType.DanDanPlay,
+          episodes: data.data.episodes,
         }
       default:
         break

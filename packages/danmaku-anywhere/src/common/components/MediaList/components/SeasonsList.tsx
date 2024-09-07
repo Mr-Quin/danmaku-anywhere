@@ -1,4 +1,4 @@
-import { List, ListItemText } from '@mui/material'
+import { ListItemText } from '@mui/material'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { match } from 'ts-pattern'
@@ -7,9 +7,9 @@ import type {
   BilibiliMediaSearchResult,
   DanDanPlayMediaSearchResult,
   MediaSearchResult,
+  MediaSeason,
   TencentMediaSearchResult,
 } from '@/common/anime/dto'
-import { BilibiliEpisodeList } from '@/common/components/MediaList/bilibili/BilibiliEpisodeList'
 import { CollapsableListItems } from '@/common/components/MediaList/components/CollapsableListItems'
 import { ListItemSkeleton } from '@/common/components/MediaList/components/ListItemSkeleton'
 import {
@@ -18,69 +18,18 @@ import {
   getTencentMediaIcon,
 } from '@/common/components/MediaList/components/makeIcon'
 import { MediaTypeIcon } from '@/common/components/MediaList/components/MediaTypeIcon'
-import { TencentEpisodeList } from '@/common/components/MediaList/tencent/TencentEpisodeList'
+import { SeasonListItem } from '@/common/components/MediaList/components/SeasonListItem'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { UnsupportedProviderException } from '@/common/danmaku/UnsupportedProviderException'
 import { stripHtml } from '@/common/utils/utils'
-
-const renderSeasonContent = <T extends MediaSearchResult>(
-  provider: T['provider'],
-  season: T['data'][number],
-  renderEpisodes: SeasonListProps['renderEpisode'],
-  dense?: boolean
-) => {
-  if (provider === DanmakuSourceType.Bilibili) {
-    const bilibiliSeason = season as BilibiliMediaSearchResult['data'][number]
-    return (
-      <BilibiliEpisodeList
-        season={bilibiliSeason}
-        renderEpisode={renderEpisodes}
-      />
-    )
-  } else if (provider === DanmakuSourceType.Tencent) {
-    const tencentSeason = season as TencentMediaSearchResult['data'][number]
-    return (
-      <TencentEpisodeList
-        season={tencentSeason}
-        renderEpisode={renderEpisodes}
-      />
-    )
-  } else {
-    const danDanPlaySeason =
-      season as DanDanPlayMediaSearchResult['data'][number]
-    return (
-      <List dense={dense} disablePadding>
-        {danDanPlaySeason.episodes.map((episode) => {
-          return (
-            <ErrorBoundary
-              fallback={<ListItemText primary="An error occurred" />}
-              key={episode.episodeId}
-            >
-              <Suspense fallback={<ListItemSkeleton />}>
-                {renderEpisodes({
-                  provider: DanmakuSourceType.DanDanPlay,
-                  episode,
-                  season: danDanPlaySeason,
-                })}
-              </Suspense>
-            </ErrorBoundary>
-          )
-        })}
-      </List>
-    )
-  }
-}
 
 /*
   TODO: unfortunately TypeScript does not seem to support narrowing discriminated union using a literal discriminator,
   so we have to cast the type using 'as'
   https://github.com/microsoft/TypeScript/issues/46899
  */
-const renderSeasonIcon = (
-  provider: MediaSearchResult['provider'],
-  season: MediaSearchResult['data'][number]
-) => {
+const renderSeasonIcon = (provider: DanmakuSourceType, season: MediaSeason) => {
   const { icon, description, primaryText } = match(provider)
     .with(DanmakuSourceType.Bilibili, () => {
       const bilibiliSeason = season as BilibiliMediaSearchResult['data'][number]
@@ -141,7 +90,12 @@ export const SeasonsList = ({
       >
         <ErrorBoundary fallback={<ListItemText primary="An error occurred" />}>
           <Suspense fallback={<ListItemSkeleton />}>
-            {renderSeasonContent(data.provider, season, renderEpisode, dense)}
+            <SeasonListItem
+              provider={data.provider}
+              season={season}
+              renderEpisodes={renderEpisode}
+              dense={dense}
+            />
           </Suspense>
         </ErrorBoundary>
       </CollapsableListItems>

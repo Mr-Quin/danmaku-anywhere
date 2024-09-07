@@ -75,6 +75,10 @@ export const setupRpc = () => {
       const result = await danmakuService.getOne(data)
       return result || null
     },
+    danmakuGetOneLite: async (data) => {
+      const result = await danmakuService.getOneLite(data)
+      return result || null
+    },
     danmakuGetMany: async (data) => {
       const result = await danmakuService.getMany(data)
       return result

@@ -12,20 +12,19 @@ import type { ReactNode } from 'react'
 import { match } from 'ts-pattern'
 
 import type { RenderEpisodeData } from '@/common/components/MediaList/types'
-import type { DanmakuFetchDto, DanmakuGetOneDto } from '@/common/danmaku/dto'
+import type { DanmakuFetchDto } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { Danmaku } from '@/common/danmaku/models/danmaku'
+import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
 import type {
   BiliBiliMeta,
   DanDanPlayMeta,
   TencentMeta,
 } from '@/common/danmaku/models/meta'
-import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
 import { UnsupportedProviderException } from '@/common/danmaku/UnsupportedProviderException'
-import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { stripHtml } from '@/common/utils/utils'
 
 interface BaseEpisodeListItemProps {
-  renderSecondaryText?: (data: Danmaku) => ReactNode
+  renderSecondaryText?: (data: DanmakuLite) => ReactNode
   showIcon?: boolean
   mutateDanmaku: (meta: DanmakuFetchDto['meta']) => Promise<unknown>
   data: RenderEpisodeData
@@ -33,7 +32,6 @@ interface BaseEpisodeListItemProps {
 
 interface EpisodeRenderData {
   meta: DanmakuFetchDto['meta']
-  params: DanmakuGetOneDto
   title: string
   tooltip: string
 }
@@ -52,16 +50,10 @@ const getRenderData = (data: RenderEpisodeData): EpisodeRenderData =>
         provider: DanmakuSourceType.DanDanPlay,
       } satisfies DanDanPlayMeta
 
-      const params = {
-        provider: DanmakuSourceType.DanDanPlay,
-        episodeId: episode.episodeId,
-      }
-
       return {
         meta,
         title: episodeTitle,
         tooltip: episodeTitle,
-        params,
       }
     })
     .with({ provider: DanmakuSourceType.Bilibili }, ({ episode, season }) => {
@@ -71,41 +63,29 @@ const getRenderData = (data: RenderEpisodeData): EpisodeRenderData =>
         seasonId: season.season_id,
         title: episode.long_title || episode.share_copy,
         seasonTitle: season.title,
-        mediaType: season.type,
+        mediaType: season.media_type,
         provider: DanmakuSourceType.Bilibili,
       } satisfies BiliBiliMeta
-
-      const params = {
-        provider: DanmakuSourceType.Bilibili,
-        episodeId: episode.cid,
-      }
 
       return {
         meta,
         title: episode.long_title || episode.share_copy,
         tooltip: episode.share_copy,
-        params,
       }
     })
     .with({ provider: DanmakuSourceType.Tencent }, ({ episode, season }) => {
       const meta = {
         vid: episode.vid,
-        episodeTitle: episode.title,
+        episodeTitle: episode.play_title,
         cid: season.doc.id,
-        seasonTitle: season.videoInfo.title,
+        seasonTitle: stripHtml(season.videoInfo.title),
         provider: DanmakuSourceType.Tencent,
       } satisfies TencentMeta
-
-      const params = {
-        provider: DanmakuSourceType.Tencent,
-        episodeId: episode.vid,
-      }
 
       return {
         meta,
         title: episode.play_title,
         tooltip: episode.play_title,
-        params,
       }
     })
     .otherwise(({ provider }) => {
@@ -118,20 +98,8 @@ export const BaseEpisodeListItem = ({
   mutateDanmaku,
   data,
 }: BaseEpisodeListItemProps) => {
-  const { meta, params, title, tooltip } = getRenderData(data)
-
-  // TODO: replace with useSuspenseQueries
-  const {
-    data: danmakuData,
-    isFetched,
-    isLoading,
-    isFetching,
-  } = useSuspenseQuery({
-    queryKey: danmakuKeys.one(params),
-    queryFn: async () => chromeRpcClient.danmakuGetOne(params),
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-  })
+  const { danmaku, isLoading } = data
+  const { meta, title, tooltip } = getRenderData(data)
 
   const { mutate, isPending: isMutating } = useMutation({
     mutationFn: mutateDanmaku,
@@ -139,8 +107,8 @@ export const BaseEpisodeListItem = ({
 
   const getIcon = () => {
     if (!showIcon) return null
-    if (isFetching || isMutating) return <CircularProgress size={24} />
-    if (isFetched && danmakuData) return <Update />
+    if (isLoading || isMutating) return <CircularProgress size={24} />
+    if (danmaku) return <Update />
     return <Download />
   }
 
@@ -156,7 +124,7 @@ export const BaseEpisodeListItem = ({
               textOverflow: 'ellipsis',
               overflow: 'hidden',
             }}
-            secondary={danmakuData ? renderSecondaryText?.(danmakuData) : null}
+            secondary={danmaku ? renderSecondaryText?.(danmaku) : null}
           />
         </Tooltip>
       </ListItemButton>
