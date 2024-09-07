@@ -239,6 +239,18 @@ export class DanmakuService {
     return this.ddpTable.get(data)
   }
 
+  async getOneLite(data: DanmakuGetOneDto) {
+    const res = await this.ddpTable.get(data)
+
+    if (res) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { comments: _, ...rest } = res
+      return rest satisfies DanmakuLite
+    }
+
+    return undefined
+  }
+
   async getMany(data: DanmakuGetManyDto) {
     const res = await this.ddpTable.bulkGet(data)
     return res.filter((r) => r !== undefined)

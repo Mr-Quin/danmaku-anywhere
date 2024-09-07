@@ -45,8 +45,9 @@ export const getTencentMediaIcon = (type: TencentVideoType) => {
     case TencentVideoType.Variety:
       return '🤹‍♀️'
     case TencentVideoType.Anime:
-    case TencentVideoType.Drama:
       return '📺'
+    case TencentVideoType.Drama:
+      return '🎭'
     case TencentVideoType.Original:
       return <CNFlagIcon />
     default:

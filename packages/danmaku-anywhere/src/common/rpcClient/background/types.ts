@@ -61,6 +61,7 @@ type DanmakuMethods = {
   danmakuGetAll: RPCDef<void, Danmaku[]>
   danmakuGetAllLite: RPCDef<void, DanmakuLite[]>
   danmakuGetOne: RPCDef<DanmakuGetOneDto, Danmaku | null>
+  danmakuGetOneLite: RPCDef<DanmakuGetOneDto, DanmakuLite | null>
   danmakuGetMany: RPCDef<DanmakuGetManyDto, Danmaku[]>
   danmakuGetByAnime: RPCDef<DanmakuGetBySeasonDto, Danmaku[]>
   danmakuFetch: RPCDef<DanmakuFetchDto, Danmaku>
