@@ -134,8 +134,8 @@ export type TencentCommentSegmentData = z.infer<
 >
 
 const commentStyleSchema = z.object({
-  color: z.string(), // color in hex
-  gradient_color: z.tuple([z.string(), z.string()]),
+  color: z.string(), // color in hex, without #
+  gradient_colors: z.tuple([z.string(), z.string()]),
   position: z.number(),
 })
 
@@ -158,7 +158,12 @@ export const tencentCommentSchema = z.object({
         }),
       })
       .transform((data) => {
-        const color = hexToRgb888(data.content_style?.color ?? '#ffffff')
+        const hexString =
+          data.content_style?.gradient_colors[0] ?? // we can't display gradient color, so use the first color
+          data.content_style?.color ??
+          'ffffff'
+
+        const color = hexToRgb888(`#${hexString}`)
 
         return {
           p: `${data.time_offset / 1000},${CommentMode.rtl},${color}`,
