@@ -86,7 +86,7 @@ describe('Bilibili', () => {
     it('should not throw on valid response', async () => {
       mockFetchResponse(mockBilibiliBangumiInfoResponse)
 
-      await expect(getBangumiInfo(1)).resolves.not.toThrow()
+      await expect(getBangumiInfo({ seasonId: 1 })).resolves.not.toThrow()
     })
 
     it('should throw an error on API error', async () => {
@@ -97,13 +97,17 @@ describe('Bilibili', () => {
 
       mockFetchResponse(mockResponse)
 
-      await expect(getBangumiInfo(1)).rejects.toThrow(BiliBiliException)
+      await expect(getBangumiInfo({ seasonId: 1 })).rejects.toThrow(
+        BiliBiliException
+      )
     })
 
     it('should throw an error on unexpected data', async () => {
       mockFetchResponse({})
 
-      await expect(getBangumiInfo(1)).rejects.toThrow(ResponseParseException)
+      await expect(getBangumiInfo({ seasonId: 1 })).rejects.toThrow(
+        ResponseParseException
+      )
     })
   })
 
@@ -130,7 +134,7 @@ describe('Bilibili', () => {
   describe('get danmaku protobuf', () => {
     it('should stop fetching if response is 304', async () => {
       const mockProtoResponse = await readFile(
-        resolve(__dirname, './mockData/danmakuProto.dm')
+        resolve(__dirname, './test/danmakuProto.dm')
       )
 
       mockFetchResponse(mockProtoResponse)
@@ -154,7 +158,7 @@ describe('Bilibili', () => {
 
     it('should fetch multiple segments', async () => {
       const mockProtoResponse = await readFile(
-        resolve(__dirname, './mockData/danmakuProto.dm')
+        resolve(__dirname, './test/danmakuProto.dm')
       )
 
       let calledTimes = 0
