@@ -11,13 +11,13 @@ import { MountPage } from '../pages/mount/MountPage'
 import { Options } from '../pages/options/Options'
 import { DanmakuSource } from '../pages/options/pages/danmakuSource/DanmakuSource'
 import { Permissions } from '../pages/options/pages/Permissions'
-import { SearchPage } from '../pages/search/SearchPage'
 import { FilterPage } from '../pages/styles/FilterPage'
 import { StylesPage } from '../pages/styles/StylesPage'
 
 import { BilibiliOptions } from '@/popup/pages/options/pages/danmakuSource/pages/BilibiliOptions'
 import { DanDanPlayOptions } from '@/popup/pages/options/pages/danmakuSource/pages/DanDanPlayOptions'
 import { ThemeOptions } from '@/popup/pages/options/pages/theme/ThemeOptions'
+import { SearchPage } from '@/popup/pages/search/SearchPage'
 
 export const router = createHashRouter([
   {

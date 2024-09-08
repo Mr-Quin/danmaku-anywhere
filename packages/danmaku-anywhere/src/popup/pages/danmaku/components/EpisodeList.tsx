@@ -40,7 +40,6 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
 
   const episodes = useMemo(() => {
     return data.filter((item) => item.seasonTitle === selectedAnime)
-    // .toSorted((a, b) => a.meta.episodeId - b.meta.episodeId)
   }, [data])
 
   const virtualizer = useVirtualizer({

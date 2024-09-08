@@ -13,7 +13,11 @@ import type {
   MediaSearchResult,
 } from '@/common/anime/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DanDanPlayMeta } from '@/common/danmaku/models/meta'
+import type {
+  BiliBiliMeta,
+  DanDanPlayMeta,
+  TencentMeta,
+} from '@/common/danmaku/models/meta'
 import { UnsupportedProviderException } from '@/common/danmaku/UnsupportedProviderException'
 import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
@@ -174,9 +178,9 @@ export class ProviderService {
   async getEpisodes(data: GetEpisodeDto): Promise<GetEpisodeResult> {
     switch (data.provider) {
       case DanmakuSourceType.Bilibili: {
-        const bilibiliData = await this.bilibiliService.getBangumiInfo(
-          data.seasonId
-        )
+        const bilibiliData = await this.bilibiliService.getBangumiInfo({
+          seasonId: data.seasonId,
+        })
         return {
           provider: DanmakuSourceType.Bilibili,
           episodes: bilibiliData.episodes,
@@ -198,5 +202,70 @@ export class ProviderService {
 
     // should not reach here, but this line makes typescript happy
     throw new UnsupportedProviderException(DanmakuSourceType.Custom)
+  }
+
+  async parseUrl(url: string) {
+    const { hostname, pathname } = new URL(url)
+
+    if (hostname === 'www.bilibili.com') {
+      // https://www.bilibili.com/bangumi/play/ss3421?spm_id_from=333.337.0.0
+      const ssid = pathname.match(/ss(\d+)/)?.[1]
+      const epid = pathname.match(/ep(\d+)/)?.[1]
+
+      // we need one of ssid or epid
+      if (!ssid && !epid) throw new Error('Invalid bilibili url')
+
+      const info = await this.bilibiliService.getBangumiInfo({
+        seasonId: ssid ? parseInt(ssid) : undefined,
+        episodeId: epid ? parseInt(epid) : undefined,
+      })
+
+      // if using season id, get the first episode
+      const episode = epid
+        ? info.episodes.find((episode) => episode.id === parseInt(epid))
+        : info.episodes[0]
+
+      if (!episode) throw new Error('Episode not found')
+
+      return {
+        provider: DanmakuSourceType.Bilibili,
+        cid: episode.cid,
+        bvid: episode.bvid,
+        aid: episode.aid,
+        seasonId: info.season_id,
+        title: episode.long_title || episode.share_copy,
+        seasonTitle: info.title,
+        mediaType: info.type,
+      } satisfies BiliBiliMeta
+    } else if (hostname === 'v.qq.com') {
+      // https://v.qq.com/x/cover/mzc00200ztsl4to/m4100bardal.html
+      const [, cid, vid] = pathname.match(/cover\/(.*)\/(.*)\.html/) ?? []
+
+      if (!cid || !vid) throw new Error('Invalid tencent url')
+
+      // get name of the show
+      const pageDetails = await this.tencentService.getPageDetails(cid, vid)
+      const seasonTitle =
+        pageDetails.module_list_datas[0]?.module_datas[0]?.item_data_lists
+          ?.item_datas[0]?.item_params?.title
+      if (!seasonTitle) throw new Error('Season not found')
+
+      // get the name of the episode
+      const episodes = await this.tencentService.getEpisodes(cid, vid)
+      const matchingEpisode = episodes.find((episode) => episode.vid === vid)
+      if (!matchingEpisode) throw new Error('Episode not found')
+
+      const episodeTitle = matchingEpisode.play_title
+
+      return {
+        provider: DanmakuSourceType.Tencent,
+        cid,
+        vid,
+        seasonTitle,
+        episodeTitle,
+      } satisfies TencentMeta
+    }
+
+    throw new Error('Unknown host')
   }
 }

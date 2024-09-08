@@ -6,4 +6,6 @@ export const mediaKeys = {
     [{ scope: 'media', kind: 'search', ...params }] as const,
   episodes: (data: GetEpisodeDto) =>
     [{ scope: 'media', kind: 'episodes', episodes: data }] as const,
+  parseUrl: (url: string) =>
+    [{ scope: 'media', kind: 'parseUrl', url }] as const,
 }

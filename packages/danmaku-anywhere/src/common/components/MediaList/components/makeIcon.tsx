@@ -50,6 +50,10 @@ export const getTencentMediaIcon = (type: TencentVideoType) => {
       return '🎭'
     case TencentVideoType.Original:
       return <CNFlagIcon />
+    case TencentVideoType.Documentary:
+      return '🔎'
+    case TencentVideoType.Movie:
+      return '🎬'
     default:
       return '❓'
   }

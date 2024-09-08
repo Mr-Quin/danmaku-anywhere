@@ -31,9 +31,9 @@ export class BilibiliService {
     return result
   }
 
-  async getBangumiInfo(mediaId: number) {
-    this.logger.debug('Get bangumi info', mediaId)
-    const result = await bilibili.getBangumiInfo(mediaId)
+  async getBangumiInfo(params: { seasonId?: number; episodeId?: number }) {
+    this.logger.debug('Get bangumi info', params)
+    const result = await bilibili.getBangumiInfo(params)
     this.logger.debug('Get bangumi info result', result)
     return result
   }
