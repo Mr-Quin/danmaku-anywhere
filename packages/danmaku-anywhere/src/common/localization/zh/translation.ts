@@ -213,14 +213,11 @@ const pages = {
     danmakuSource: {
       bilibili: {
         danmakuTypePreference: '弹幕获取方式',
-        protobufLimitPerMin: '每分钟最大弹幕数',
         help: {
           danmakuTypePreferenceXML:
             'XML：获取速度快，但是弹幕数量较少。根据视频类型，500-10000条不等。',
           danmakuTypePreferenceProtobuf:
             'Protobuf：获取速度较慢，但是弹幕数量多，每分钟可达1000条。视频越长，速度越慢。',
-          protobufLimitPerMin:
-            '可以限制 Protobuf 方式获取弹幕的数量，最大值为1000条（每分钟）',
         },
       },
     },
@@ -267,26 +264,25 @@ const pages = {
     selectAnime: '找到多个匹配项：{{name}}，请选择',
   },
   stylePage: {
-    filterLevel: '屏蔽等级',
+    limitPerSecond: '每秒最大弹幕数量',
+    disableLimit: '不限制',
     name: '弹幕设置',
     offset: '时间轴',
     opacity: '不透明度',
     'safeZone.bottom': '底部',
     'safeZone.top': '顶部',
     safeZones: '防挡字幕',
-    show: '显示弹幕',
     size: '字体大小',
     speed: '弹幕速度',
     tooltip: {
-      filterLevel:
-        '限制屏幕上显示的弹幕数量。 "0" 表示显示所有弹幕，每个级别减少20%显示的弹幕数量。',
+      limitPerSecond:
+        '每秒新增显示的弹幕不超过此值。如果弹幕过多导致卡顿，可以适当调低此值。“0”表示不显示弹幕，“不限制”表示显示所有弹幕。',
       name: '弹幕风格',
       offset: '弹幕出现的时间提前量。 正值使弹幕延后出现，负值使弹幕提前出现。',
       opacity: '“0”为透明，“1”为不透明',
       'safeZone.bottom': '视频底部不会包含弹幕的百分比区域',
       'safeZone.top': '视频顶部不会包含弹幕的百分比区域',
       safeZones: '安全区域',
-      show: '显示弹幕',
       size: '弹幕的字体大小。',
       speed: '弹幕飞过屏幕的速度。 “1”最慢，“5”最快。',
     },

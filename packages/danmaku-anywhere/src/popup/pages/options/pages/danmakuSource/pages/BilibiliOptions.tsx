@@ -9,7 +9,6 @@ import {
   Radio,
   RadioGroup,
   Stack,
-  TextField,
 } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { produce } from 'immer'
@@ -35,21 +34,15 @@ export const BilibiliOptions = () => {
   const { toast } = useToast()
 
   const {
-    register,
     control,
     reset: resetForm,
     getValues,
-    resetField,
-    watch,
-    formState: { errors },
   } = useForm<DanmakuSources>({
     resolver: zodResolver(danmakuSourcesSchema),
     values: data.danmakuSources,
     defaultValues: data.danmakuSources,
     mode: 'onChange',
   })
-
-  const isProtobuf = watch('bilibili.danmakuTypePreference') === 'protobuf'
 
   const { mutate: handleApply } = useMutation({
     mutationFn: async () => {
@@ -100,7 +93,6 @@ export const BilibiliOptions = () => {
                     {...field}
                     onChange={(e) => {
                       field.onChange(e)
-                      resetField('bilibili.protobufLimitPerMin')
                     }}
                   >
                     <FormControlLabel
@@ -128,22 +120,6 @@ export const BilibiliOptions = () => {
               )}
             </FormHelperText>
           </FormControl>
-          {isProtobuf && (
-            <TextField
-              {...register('bilibili.protobufLimitPerMin', {
-                valueAsNumber: true,
-              })}
-              margin="normal"
-              label={t(
-                'optionsPage.danmakuSource.bilibili.protobufLimitPerMin'
-              )}
-              error={!!errors.bilibili?.protobufLimitPerMin}
-              helperText={
-                errors.bilibili?.protobufLimitPerMin?.message ??
-                t('optionsPage.danmakuSource.bilibili.help.protobufLimitPerMin')
-              }
-            />
-          )}
           <Box>
             <Button
               onClick={() => handleApply()}

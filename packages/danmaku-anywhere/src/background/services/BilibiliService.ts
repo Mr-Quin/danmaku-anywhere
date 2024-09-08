@@ -58,13 +58,9 @@ export class BilibiliService {
   }
 
   private async getDanmakuProto(cid: number, aid: number) {
-    const pref = await this.extensionOptionsService.get()
-
-    const { protobufLimitPerMin } = pref.danmakuSources.bilibili
-
     this.logger.debug('Get danmaku proto')
     const result = await bilibili.getDanmakuProto(cid, aid, {
-      limitPerMinute: protobufLimitPerMin,
+      limitPerMinute: Infinity,
     })
     this.logger.debug('Get danmaku proto result', result)
     return result

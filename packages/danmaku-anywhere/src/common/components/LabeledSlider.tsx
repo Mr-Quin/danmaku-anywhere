@@ -21,7 +21,7 @@ export const LabeledSlider = ({
   return (
     <Box>
       <Tooltip title={tooltip} sx={{ width: 'fit-content' }}>
-        <Typography id={id} {...typographyProps}>
+        <Typography id={id} gutterBottom {...typographyProps}>
           {label}
         </Typography>
       </Tooltip>
