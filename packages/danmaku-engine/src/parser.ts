@@ -54,56 +54,30 @@ export interface DanmakuStyle {
   fontFamily: string
 }
 
-// transform comments to a format understood by danmaku engine
 export const transformComment = (
-  comments: CommentEntity[],
+  comment: CommentEntity,
   style: DanmakuStyle,
   offset: number
 ) => {
-  return comments.map((comment) => {
-    const { p, m } = comment
-    const { time, mode, color } = parseCommentEntityP(p)
-    const offsetTime = time + offset / 1000
+  const { p, m } = comment
+  const { time, mode, color } = parseCommentEntityP(p)
+  const offsetTime = time + offset / 1000
 
-    return {
-      text: m,
-      mode,
-      time: offsetTime,
-      style: {
-        fontSize: `${style.fontSize}px`,
-        color: `${color}`,
-        opacity: `${style.opacity}`,
-        textShadow:
-          color === '00000'
-            ? '-1px -1px #fff, -1px 1px #fff, 1px -1px #fff, 1px 1px #fff'
-            : '-1px -1px #000, -1px 1px #000, 1px -1px #000, 1px 1px #000',
-        fontFamily: `${style.fontFamily}`,
-      },
-    }
-  }) satisfies Comment[]
-}
-
-// ratio is a number between 0 and 1 where 0 means we keep 0% of the comments
-// and 1 means we keep 100% of the comments
-export function* sampleComments(comments: CommentEntity[], ratio: number) {
-  if (ratio < 0 || ratio > 1) throw new Error('ratio must be between 0 and 1')
-
-  const length = comments.length
-  const filteredLength = Math.floor(length * ratio)
-
-  if (ratio === 0 || length === 0 || filteredLength === 0) return
-
-  if (ratio === 1) {
-    yield* comments
-    return
-  }
-
-  const gap = Math.ceil(length / filteredLength)
-
-  // evenly sample comments, assuming they are sorted by time
-  for (let i = 0; i < filteredLength && i * gap < length; i++) {
-    yield comments[i * gap]
-  }
+  return {
+    text: m,
+    mode,
+    time: offsetTime,
+    style: {
+      fontSize: `${style.fontSize}px`,
+      color: `${color}`,
+      opacity: `${style.opacity}`,
+      textShadow:
+        color === '00000'
+          ? '-1px -1px #fff, -1px 1px #fff, 1px -1px #fff, 1px 1px #fff'
+          : '-1px -1px #000, -1px 1px #000, 1px -1px #000, 1px 1px #000',
+      fontFamily: `${style.fontFamily}`,
+    },
+  } satisfies Comment
 }
 
 // returns true if the comment should be filtered out
