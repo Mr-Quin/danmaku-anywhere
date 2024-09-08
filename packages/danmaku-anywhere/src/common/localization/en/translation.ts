@@ -217,14 +217,11 @@ const pages = {
     danmakuSource: {
       bilibili: {
         danmakuTypePreference: 'Danmaku Type Preference',
-        protobufLimitPerMin: 'Max danmaku per minute',
         help: {
           danmakuTypePreferenceXML:
             'XML：Faster but fewer danmaku. 500-10000 danmaku depending on video type.',
           danmakuTypePreferenceProtobuf:
             'Protobuf：Slower but more danmaku. Up to 1000 danmaku per minute. Slower for longer videos.',
-          protobufLimitPerMin:
-            'Limit the number of danmaku fetched per minute for Protobuf. Max 1000',
         },
       },
     },
@@ -272,18 +269,18 @@ const pages = {
   },
   stylePage: {
     name: 'Danmaku Settings',
-    filterLevel: 'Filter Level',
+    limitPerSecond: 'Maximum Limit Per Second',
+    disableLimit: 'Disable Limit',
     offset: 'Time Offset',
     opacity: 'Opacity',
     'safeZone.bottom': 'Bottom',
     'safeZone.top': 'Top',
     safeZones: 'Safe Zones',
-    show: 'Show Danmaku',
     size: 'Size',
     speed: 'Speed',
     tooltip: {
-      filterLevel:
-        'Limits the amount of danmaku shown on screen. "0" means show all danmaku, each level reduces the amount of danmaku shown by 20%.',
+      limitPerSecond:
+        'No more than this value of danmaku will be added per second. If playback lags due to too many danmaku, try lowering this value. "0" means no danmaku will be shown,"Disable Limit" means all danmaku will be shown.',
       offset:
         'How earlier danmaku appears. Positive values make danmaku appear later, negative values make danmaku appear earlier.',
       opacity: '"0" means transparent, "1" means opaque',

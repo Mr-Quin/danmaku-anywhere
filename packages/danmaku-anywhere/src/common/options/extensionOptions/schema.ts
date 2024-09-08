@@ -14,14 +14,26 @@ export const danmakuSourcesSchema = z.object({
   bilibili: z.object({
     enabled: z.boolean(),
     danmakuTypePreference: z.enum(['xml', 'protobuf']).default('xml'),
+    /**
+     * @deprecated
+     * Deprecated in favor of danmakuOptions.limitPerSec
+     */
     protobufLimitPerMin: z.number().int().positive().max(1000).default(200),
   }),
   tencent: z.object({
     enabled: z.boolean(),
+    /**
+     * @deprecated
+     * Deprecated in favor of danmakuOptions.limitPerSec
+     */
     limitPerMin: z.number().int().positive().max(1000).default(200),
   }),
   iqiyi: z.object({
     enabled: z.boolean(),
+    /**
+     * @deprecated
+     * Deprecated in favor of danmakuOptions.limitPerSec
+     */
     limitPerMin: z.number().int().positive().max(1000).default(200),
   }),
 })

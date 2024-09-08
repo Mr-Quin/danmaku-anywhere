@@ -1,5 +1,14 @@
 import { LoadingButton } from '@mui/lab'
-import { Divider, Grid, Input, Stack, Typography } from '@mui/material'
+import {
+  Checkbox,
+  Divider,
+  FormControl,
+  FormControlLabel,
+  Grid,
+  Input,
+  Stack,
+  Typography,
+} from '@mui/material'
 import type { Draft } from 'immer'
 import { produce } from 'immer'
 import { useEffect, useState } from 'react'
@@ -39,30 +48,14 @@ const fontSizeMarks = [
   },
 ]
 
-const filterMarks = [
+const limitPerSecMarks = [
   {
     value: 0,
     label: '0',
   },
   {
-    value: 1,
-    label: '1',
-  },
-  {
-    value: 2,
-    label: '2',
-  },
-  {
-    value: 3,
-    label: '3',
-  },
-  {
-    value: 4,
-    label: '4',
-  },
-  {
-    value: 5,
-    label: '5',
+    value: 50,
+    label: '50',
   },
 ]
 
@@ -228,21 +221,48 @@ export const DanmakuStylesForm = () => {
           valueLabelFormat={fontSizeValueLabelFormat}
         />
         <LabeledSlider
-          label={t('stylePage.filterLevel')}
-          tooltip={t('stylePage.tooltip.filterLevel')}
-          value={localConfig.filterLevel}
+          label={t('stylePage.limitPerSecond')}
+          tooltip={t('stylePage.tooltip.limitPerSecond')}
+          disabled={localConfig.limitPerSec === -1}
+          value={localConfig.limitPerSec === -1 ? 0 : localConfig.limitPerSec}
           onChange={(e, newValue) =>
             handleLocalUpdate((draft) => {
-              draft.filterLevel = newValue as number
+              draft.limitPerSec = newValue as number
             })
           }
           step={1}
           min={0}
-          max={5}
-          marks={filterMarks}
+          max={50}
+          marks={limitPerSecMarks}
           size="small"
           valueLabelDisplay="auto"
-        />
+        >
+          <Grid item xs={4}>
+            <FormControl>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={localConfig.limitPerSec === -1}
+                    onChange={(e) => {
+                      const checked = e.target.checked
+                      handleLocalUpdate((draft) => {
+                        if (checked) {
+                          // the magic number to represent no limit, because Infinity is not serializable
+                          draft.limitPerSec = -1
+                        } else {
+                          // restore to previous value if it's not -1
+                          draft.limitPerSec =
+                            config.limitPerSec === -1 ? 10 : config.limitPerSec
+                        }
+                      })
+                    }}
+                  />
+                }
+                label={t('stylePage.disableLimit')}
+              />
+            </FormControl>
+          </Grid>
+        </LabeledSlider>
         <LabeledSlider
           label={t('stylePage.speed')}
           tooltip={t('stylePage.tooltip.speed')}

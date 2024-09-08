@@ -102,6 +102,17 @@ danmakuOptionsService
       offset: 0,
     }),
   })
+  .version(3, {
+    upgrade: (data: PrevOptions) => {
+      return produce<any>(data, (draft) => {
+        // remove fields: show, filterLevel
+        // add limitPerSec
+        delete draft.show
+        delete draft.filterLevel
+        draft.limitPerSec = 10
+      })
+    },
+  })
 
 mountConfigService
   .version(1, {
