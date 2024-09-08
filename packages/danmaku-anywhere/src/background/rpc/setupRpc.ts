@@ -41,8 +41,8 @@ export const setupRpc = () => {
     bilibiliGetLoginStatus: async () => {
       return bilibiliService.getLoginStatus()
     },
-    tencentSetCookies: async () => {
-      return tencentService.setCookies()
+    tencentTestCookies: async () => {
+      return tencentService.testCookies()
     },
     iconSet: async (data, sender) => {
       if (sender.tab?.id === undefined) {
