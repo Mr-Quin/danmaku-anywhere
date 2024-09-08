@@ -14,7 +14,7 @@ import {
   getDanmakuXml,
   searchMedia,
 } from './api'
-import { BiliBiliException } from './BiliBiliException'
+import { BiliBiliApiException } from './exceptions'
 import {
   mockBilibiliBangumiInfoResponse,
   mockBilibiliBangmumiSearchResponse,
@@ -69,7 +69,7 @@ describe('Bilibili', () => {
       mockFetchResponse(mockResponse)
 
       await expect(searchMedia({ keyword: 'MyGo' })).rejects.toThrow(
-        BiliBiliException
+        BiliBiliApiException
       )
     })
 
@@ -98,7 +98,7 @@ describe('Bilibili', () => {
       mockFetchResponse(mockResponse)
 
       await expect(getBangumiInfo({ seasonId: 1 })).rejects.toThrow(
-        BiliBiliException
+        BiliBiliApiException
       )
     })
 

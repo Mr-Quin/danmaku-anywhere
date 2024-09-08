@@ -1,4 +1,4 @@
-export class DDPException extends Error {
+export class DanDanPlayApiException extends Error {
   constructor(
     message: string,
     public code: number

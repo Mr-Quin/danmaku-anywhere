@@ -1,4 +1,4 @@
-export class BiliBiliException extends Error {
+export class BiliBiliApiException extends Error {
   constructor(
     message: string,
     public code: number

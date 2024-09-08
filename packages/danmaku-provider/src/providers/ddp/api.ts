@@ -3,7 +3,7 @@ import { danDanCommentResponseSchema } from '@danmaku-anywhere/danmaku-converter
 
 import { handleParseResponse } from '../utils/index.js'
 
-import { DDPException } from './DDPException.js'
+import { DanDanPlayApiException } from './exceptions.js'
 import type {
   DanDanAnimeSearchAPIParams,
   DanDanAnimeSearchResult,
@@ -64,7 +64,7 @@ export const searchAnime = async ({
   )
 
   if (!data.success) {
-    throw new DDPException(data.errorMessage, data.errorCode)
+    throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
   }
 
   return data.animes satisfies DanDanAnimeSearchResult
@@ -107,7 +107,7 @@ export const getBangumiAnime = async (animeId: number) => {
   )
 
   if (!data.success) {
-    throw new DDPException(data.errorMessage, data.errorCode)
+    throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
   }
 
   return data.bangumi satisfies DanDanBangumiAnimeResult
