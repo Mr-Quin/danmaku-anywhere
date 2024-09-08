@@ -192,6 +192,10 @@ importers:
       danmaku:
         specifier: 2.0.6
         version: 2.0.6(patch_hash=fbuwt3vj3tnsako7gddftrienm)
+    devDependencies:
+      vitest:
+        specifier: ^2.0.4
+        version: 2.0.5(@types/node@20.14.12)(sass@1.62.0)
 
   packages/danmaku-provider:
     dependencies:

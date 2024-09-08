@@ -1,8 +1,9 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import Danmaku from 'danmaku'
 
+import { mapIter, sampleByTime } from './iterator'
 import type { DanmakuStyle } from './parser'
-import { filterComments, sampleComments, transformComment } from './parser'
+import { transformComment, filterComments } from './parser'
 
 export interface DanmakuFilter {
   type: 'text' | 'regex'
@@ -14,7 +15,11 @@ export interface DanmakuOptions {
   readonly style: DanmakuStyle
   readonly show: boolean
   readonly filters: DanmakuFilter[]
-  readonly filterLevel: number
+  /**
+   * The maximum number of comments to add to the screen per second.
+   * -1 means no limit since Infinity is not a valid JSON value.
+   */
+  readonly limitPerSec: number
   readonly speed: number
   /**
    * The offset in milliseconds to adjust the time of the comments.
@@ -26,7 +31,7 @@ const configDefaults: DanmakuOptions = {
   show: true,
   filters: [],
   speed: 1,
-  filterLevel: 0,
+  limitPerSec: 10,
   style: {
     opacity: 1,
     fontSize: 25,
@@ -36,10 +41,6 @@ const configDefaults: DanmakuOptions = {
 }
 
 const BASE_SPEED = 144
-
-const filterLevelToRatio = (level: number) => {
-  return (5 - level) / 5
-}
 
 export class DanmakuManager {
   instance?: Danmaku
@@ -63,22 +64,22 @@ export class DanmakuManager {
     this.config = this.#mergeConfig(config)
 
     const filteredComments = filterComments(comments, this.config.filters)
-
-    const sampledComments = sampleComments(
-      filteredComments,
-      filterLevelToRatio(this.config.filterLevel)
+    const commentGenerator = mapIter(filteredComments, (comment) =>
+      transformComment(comment, this.config.style, this.config.offset)
     )
-
-    const parsedComments = transformComment(
-      Array.from(sampledComments),
-      this.config.style,
-      this.config.offset
+    const sampledGenerator = sampleByTime(
+      // TODO: sort should be done upstream
+      Array.from(commentGenerator)
+        .toSorted((a, b) => a.time - b.time)
+        .values(),
+      this.config.limitPerSec === -1 ? Infinity : this.config.limitPerSec,
+      (item) => item.time
     )
 
     this.instance = new Danmaku({
       container: this.container,
       media: this.media,
-      comments: parsedComments,
+      comments: Array.from(sampledGenerator),
       speed: this.config.speed * BASE_SPEED,
     })
 
