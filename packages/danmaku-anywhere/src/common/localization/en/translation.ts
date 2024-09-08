@@ -233,6 +233,26 @@ const pages = {
     },
   },
   searchPage: {
+    parse: {
+      name: 'Parse URL',
+      parse: 'Parse',
+      videoUrl: 'Video URL',
+      parseResult: 'Parse Result',
+      seasonTitle: 'Season Title',
+      episodeTitle: 'Episode Title',
+      import: 'Import Danmaku',
+      tooltip: {
+        videoUrl:
+          'Only supports parsing of anime, drama, movies, and other non-user uploaded videos. Supported sources: Bilibili, Tencent Video',
+      },
+      error: {
+        invalidUrl: 'Invalid URL',
+      },
+      alert: {
+        parseError: 'Parse failed',
+        importSuccess: 'Import successful',
+      },
+    },
     episode: 'Episode',
     name: 'Search Anime',
     saveMapping: 'Remember selection',

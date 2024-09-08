@@ -61,8 +61,6 @@ export interface CustomMeta extends BaseDanmakuMeta {
   episodeTitle: string
 }
 
-export type DanmakuMeta =
-  | DanDanPlayMeta
-  | CustomMeta
-  | BiliBiliMeta
-  | TencentMeta
+export type DanmakuMetaExternal = DanDanPlayMeta | BiliBiliMeta | TencentMeta
+
+export type DanmakuMeta = DanmakuMetaExternal | CustomMeta

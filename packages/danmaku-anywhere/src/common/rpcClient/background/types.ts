@@ -24,6 +24,7 @@ import type {
   DanmakuInsert,
   DanmakuLite,
 } from '@/common/danmaku/models/danmaku'
+import type { DanmakuMetaExternal } from '@/common/danmaku/models/meta'
 
 type IconSetDto =
   | {
@@ -49,6 +50,7 @@ type IconMethods = {
 type AnimeMethods = {
   mediaSearch: RPCDef<MediaSearchParamsData, MediaSearchResult>
   mediaSearchMultiple: RPCDef<MediaSearchMultiParamsData, MediaSearchResult[]>
+  mediaParseUrl: RPCDef<{ url: string }, DanmakuMetaExternal>
   episodesGet: RPCDef<GetEpisodeDto, GetEpisodeResult>
   episodeMatch: RPCDef<MatchEpisodeInput, MatchEpisodeResult>
   bilibiliSetCookies: RPCDef<void, void>

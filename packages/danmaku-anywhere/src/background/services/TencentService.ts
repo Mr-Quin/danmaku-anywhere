@@ -39,6 +39,16 @@ export class TencentService {
     return result.flat()
   }
 
+  async getPageDetails(cid: string, vid: string) {
+    this.logger.debug('Get page details', { cid, vid })
+
+    const result = await tencent.getPageDetails(cid, vid)
+
+    this.logger.debug('Get page details result', result)
+
+    return result
+  }
+
   async getDanmaku(vid: string) {
     // const pref = await this.extensionOptionsService.get()
 

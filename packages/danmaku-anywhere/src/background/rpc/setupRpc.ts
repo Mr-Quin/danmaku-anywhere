@@ -26,6 +26,9 @@ export const setupRpc = () => {
     mediaSearchMultiple: async (input) => {
       return providerService.searchByProviders(input.params, input.providers)
     },
+    mediaParseUrl: async (input) => {
+      return providerService.parseUrl(input.url)
+    },
     episodesGet: async (data: GetEpisodeDto) => {
       return providerService.getEpisodes(data)
     },

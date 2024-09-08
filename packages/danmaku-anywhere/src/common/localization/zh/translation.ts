@@ -229,6 +229,26 @@ const pages = {
     },
   },
   searchPage: {
+    parse: {
+      name: '解析链接',
+      parse: '解析',
+      videoUrl: '视频链接',
+      parseResult: '解析结果',
+      seasonTitle: '剧标题',
+      episodeTitle: '集标题',
+      import: '获取弹幕',
+      tooltip: {
+        videoUrl:
+          '仅支持解析番剧，电影等非用户上传类视频。支持来源：哔哩哔哩、腾讯视频',
+      },
+      error: {
+        invalidUrl: '无效的链接',
+      },
+      alert: {
+        parseError: '解析失败',
+        importSuccess: '导入成功',
+      },
+    },
     episode: '集数',
     name: '搜索番剧',
     saveMapping: '保存标题映射',

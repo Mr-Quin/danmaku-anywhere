@@ -7,7 +7,7 @@ import {
   ListItemText,
   Tooltip,
 } from '@mui/material'
-import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { match } from 'ts-pattern'
 
