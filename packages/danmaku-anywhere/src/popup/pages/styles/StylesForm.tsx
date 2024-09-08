@@ -98,6 +98,10 @@ const safeZoneMarks = [
     value: 50,
     label: '50%',
   },
+  {
+    value: 100,
+    label: '100%',
+  },
 ]
 
 const opacityValueLabelFormat = (value: number) => `${value * 100}%`
@@ -143,6 +147,20 @@ const convertDisplaySpeedToActual = (displaySpeed: number) => {
     default:
       return 1
   }
+}
+
+const distributeSafeZone = (
+  top: number,
+  bottom: number,
+  change: 'top' | 'bottom'
+) => {
+  if (top + bottom <= 100) {
+    return [top, bottom]
+  }
+  if (change === 'top') {
+    return [top, 100 - top]
+  }
+  return [100 - bottom, bottom]
 }
 
 export const DanmakuStylesForm = () => {
@@ -298,12 +316,20 @@ export const DanmakuStylesForm = () => {
           value={localConfig.safeZones.top}
           onChange={(e, newValue) =>
             handleLocalUpdate((draft) => {
-              draft.safeZones.top = newValue as number
+              const value = newValue as number
+              const bottom = localConfig.safeZones.bottom
+              const [newTop, newBottom] = distributeSafeZone(
+                value,
+                bottom,
+                'top'
+              )
+              draft.safeZones.top = newTop
+              draft.safeZones.bottom = newBottom
             })
           }
           step={1}
           min={0}
-          max={50}
+          max={100}
           size="small"
           valueLabelDisplay="auto"
           marks={safeZoneMarks}
@@ -315,12 +341,20 @@ export const DanmakuStylesForm = () => {
           value={localConfig.safeZones.bottom}
           onChange={(e, newValue) =>
             handleLocalUpdate((draft) => {
-              draft.safeZones.bottom = newValue as number
+              const value = newValue as number
+              const top = localConfig.safeZones.top
+              const [newTop, newBottom] = distributeSafeZone(
+                top,
+                value,
+                'bottom'
+              )
+              draft.safeZones.top = newTop
+              draft.safeZones.bottom = newBottom
             })
           }
           step={1}
           min={0}
-          max={50}
+          max={100}
           size="small"
           valueLabelDisplay="auto"
           marks={safeZoneMarks}
