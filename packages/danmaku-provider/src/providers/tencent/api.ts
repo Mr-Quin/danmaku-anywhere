@@ -27,10 +27,6 @@ const DM_API_URL_ROOT = 'https://dm.video.qq.com'
 
 const throttle = createThrottle(100)
 
-export const setCookies = async () => {
-  await fetch('https://v.qq.com/')
-}
-
 const searchMediaDefaultParams = {
   version: '',
   filterValue: 'firstTabid=150',
@@ -67,10 +63,7 @@ export const searchMedia = async (params: TencentSearchParams) => {
     tencentSearchResponseSchema.parse(data)
   )
 
-  // api returns error message in the header
-  const errorMsg = response.headers.get('Trpc-Error-Msg') || undefined
-
-  ensureData(parsedData, 'data', errorMsg)
+  ensureData(parsedData, 'data', response)
 
   return parsedData.data.normalList.itemList satisfies TencentSearchResult
 }
@@ -104,9 +97,7 @@ export const getPageDetails = async (cid: string, vid?: string) => {
     tencentPageDetailResponseSchema.parse(data)
   )
 
-  const errorMsg = response.headers.get('Trpc-Error-Msg') || undefined
-
-  ensureData(parsedData, 'data', errorMsg)
+  ensureData(parsedData, 'data', response)
 
   return parsedData.data
 }
@@ -171,9 +162,7 @@ export async function* listEpisodes(params: TencentEpisodeListParams) {
       tencentEpisodeListResponseSchema.parse(data)
     )
 
-    const errorMsg = response.headers.get('Trpc-Error-Msg') || undefined
-
-    ensureData(parsedData, 'data', errorMsg)
+    ensureData(parsedData, 'data', response)
 
     // check if data is empty, probably only happens on the first page
     if (

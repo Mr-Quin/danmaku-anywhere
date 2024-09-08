@@ -4,7 +4,7 @@ import { ResponseParseException } from '../../exceptions/ResponseParseException'
 import { mockFetchResponse } from '../utils/testUtils'
 
 import * as tencentApi from './api'
-import { TencentException } from './TencentException'
+import { TencentApiException } from './exceptions'
 import * as mockData from './test/mockData'
 
 describe('Tencent', () => {
@@ -34,7 +34,7 @@ describe('Tencent', () => {
       mockFetchResponse(mockResponse)
       await expect(
         tencentApi.searchMedia({ query: '斗罗大陆' })
-      ).rejects.toThrow(TencentException)
+      ).rejects.toThrow(TencentApiException)
     })
 
     it('should throw an error on response parse error', async () => {
@@ -91,7 +91,7 @@ describe('Tencent', () => {
 
       await expect(
         tencentApi.listEpisodes({ cid: 'm441e3rjq9kwpsc' }).next()
-      ).rejects.toThrow(TencentException)
+      ).rejects.toThrow(TencentApiException)
     })
 
     it('should throw an error on unexpected data', async () => {

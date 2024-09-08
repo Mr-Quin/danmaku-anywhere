@@ -1,4 +1,4 @@
-import { BiliBiliException } from './BiliBiliException.js'
+import { BiliBiliApiException } from './exceptions.js'
 import type { BilibiliApiResponseBase } from './schema.js'
 
 export function ensureData<
@@ -6,6 +6,6 @@ export function ensureData<
   K extends keyof T,
 >(data: T, key: K): asserts data is T & { [key in K]-?: NonNullable<T[key]> } {
   if (data.code !== 0 || !data[key]) {
-    throw new BiliBiliException(data.message, data.code)
+    throw new BiliBiliApiException(data.message, data.code)
   }
 }

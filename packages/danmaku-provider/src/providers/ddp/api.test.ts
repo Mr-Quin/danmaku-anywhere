@@ -4,7 +4,7 @@ import { ResponseParseException } from '../../exceptions/ResponseParseException'
 import { mockFetchResponse } from '../utils/testUtils'
 
 import { searchAnime, fetchComments, getBangumiAnime, configure } from './api'
-import { DDPException } from './DDPException'
+import { DanDanPlayApiException } from './exceptions'
 import { mockAnimeSearchResponse, mockCommentResponse } from './mockData'
 
 describe('DandanPlay API', () => {
@@ -30,7 +30,9 @@ describe('DandanPlay API', () => {
 
       mockFetchResponse(mockResponse)
 
-      await expect(searchAnime({ anime: 'test' })).rejects.toThrow(DDPException)
+      await expect(searchAnime({ anime: 'test' })).rejects.toThrow(
+        DanDanPlayApiException
+      )
     })
 
     it('should throw an error on unexpected data', async () => {
@@ -77,7 +79,7 @@ describe('DandanPlay API', () => {
 
       mockFetchResponse(mockResponse)
 
-      await expect(getBangumiAnime(1)).rejects.toThrow(DDPException)
+      await expect(getBangumiAnime(1)).rejects.toThrow(DanDanPlayApiException)
     })
 
     it('should throw an error on unexpected data', async () => {
