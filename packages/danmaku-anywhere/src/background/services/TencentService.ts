@@ -13,9 +13,22 @@ export class TencentService {
     this.logger = Logger.sub('[TencentService]')
   }
 
-  async setCookies() {
-    this.logger.debug('Setting tencent cookies')
-    await tencent.setCookies()
+  // test if the cookies are working
+  async testCookies() {
+    this.logger.debug('Testing tencent cookies')
+    try {
+      await this.getPageDetails('mzc00200xf3rir6', 'i0046sewh4r')
+      return true
+    } catch (e) {
+      if (e instanceof tencent.TencentApiException) {
+        if (e.cookie) {
+          this.logger.debug('Request rejected because of lack of cookies', e)
+        }
+      } else {
+        this.logger.error('Test tencent cookies test failed', e)
+      }
+      return false
+    }
   }
 
   async search(keyword: string) {

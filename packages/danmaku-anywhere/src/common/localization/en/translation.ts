@@ -121,6 +121,8 @@ const domain = {
     tooltip: {
       bilibiliNotLoggedIn:
         'You may get reduced search results and danmaku because you are not currently logged in at Bilibili. Please go to <0>bilibili.com</0> and log in.',
+      tencentCookieMissing:
+        'Tencent cookies are missing. Please go to <0>v.qq.com</0> and open any video to ensure cookies are set.',
     },
   },
 }

@@ -55,7 +55,7 @@ type AnimeMethods = {
   episodeMatch: RPCDef<MatchEpisodeInput, MatchEpisodeResult>
   bilibiliSetCookies: RPCDef<void, void>
   bilibiliGetLoginStatus: RPCDef<void, BilibiliUserInfo>
-  tencentSetCookies: RPCDef<void, void>
+  tencentTestCookies: RPCDef<void, boolean>
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

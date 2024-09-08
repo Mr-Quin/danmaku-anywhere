@@ -122,6 +122,8 @@ const domain = {
     tooltip: {
       bilibiliNotLoggedIn:
         '未登录哔哩哔哩，获取的剧集信息和弹幕可能受限。请<0>前往B站</0>登录。',
+      tencentCookieMissing:
+        '获取腾讯视频失败，可能是缺少 Cookie，请先访问<0>腾讯视频</0>并打开任意视频页面以确保 Cookie 正常。',
     },
   },
 }
