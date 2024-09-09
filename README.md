@@ -12,7 +12,7 @@
 
 ## 功能
 
-- 按动画搜索弹幕
+- 按节目搜索弹幕
 - 将弹幕嵌入视频
 - 自定义弹幕样式
 - 本地弹幕缓存并导出为文件
@@ -29,6 +29,10 @@ Plex
 Crunchyroll
 
 ![Crunchyroll](./assets/danmaku_crunchyroll.png)
+
+YouTube
+
+![YouTube](./assets/danmaku_youtube.png)
 
 ## 安装
 
