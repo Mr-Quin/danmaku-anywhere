@@ -1,6 +1,6 @@
 {
   "name": "@mr-quin/danmaku-anywhere",
-  "version": "0.13.1",
+  "version": "0.14.0",
   "private": true,
   "description": "Browser extension for danmaku-anywhere",
   "keywords": [],
