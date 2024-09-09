@@ -183,7 +183,7 @@ describe('sampleFromBucket', () => {
       const bucketStats = calculateStats(bucket)
 
       // expect std deviation to be close to the bucket std deviation
-      expect(Math.abs(sampleStats.stdDev - bucketStats.stdDev)).toBeLessThan(20)
+      expect(Math.abs(sampleStats.mean - bucketStats.mean)).toBeLessThan(2)
     }
   })
 
