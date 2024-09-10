@@ -42,7 +42,6 @@ export const ProviderSearchList = ({
         </ListItem>
       )
     }
-    console.log(result)
     if (result.data.data.length === 0) {
       return (
         <ListItem>
