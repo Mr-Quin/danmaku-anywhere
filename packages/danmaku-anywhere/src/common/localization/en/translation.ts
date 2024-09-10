@@ -252,6 +252,7 @@ const pages = {
         importSuccess: 'Import successful',
       },
     },
+    retrySearch: 'Retry',
     episode: 'Episode',
     name: 'Search Anime',
     saveMapping: 'Remember selection',
