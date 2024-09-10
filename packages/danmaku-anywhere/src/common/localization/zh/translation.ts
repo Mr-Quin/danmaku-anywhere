@@ -248,6 +248,7 @@ const pages = {
         importSuccess: '导入成功',
       },
     },
+    retrySearch: '重试',
     episode: '集数',
     name: '搜索番剧',
     saveMapping: '保存标题映射',

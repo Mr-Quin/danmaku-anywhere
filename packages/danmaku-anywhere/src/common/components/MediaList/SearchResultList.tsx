@@ -1,10 +1,19 @@
 import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
 import type { ListProps } from '@mui/material'
+import {
+  CircularProgress,
+  List,
+  ListItemText,
+  ListItemButton,
+} from '@mui/material'
+import { Suspense } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import type { MediaSearchResult } from '@/common/anime/dto'
 import { ProviderSearchList } from '@/common/components/MediaList/components/ProviderSearchList'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
+import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 
 interface SearchResultListProps {
   renderEpisode: RenderEpisode
@@ -25,17 +34,43 @@ export const SearchResultList = ({
   searchParams,
   listProps,
   providers,
+  pending,
 }: SearchResultListProps) => {
+  const { t } = useTranslation()
+
   return providers.map((provider) => {
     return (
-      <ProviderSearchList
-        renderEpisode={renderEpisode}
-        dense={dense}
-        searchParams={searchParams}
-        provider={provider}
-        listProps={listProps}
-        key={provider}
-      />
+      <Suspense
+        fallback={
+          <List
+            dense
+            disablePadding
+            sx={{
+              opacity: 0.5,
+            }}
+          >
+            <ListItemButton disableRipple>
+              <ListItemText primary={t(localizedDanmakuSourceType(provider))} />
+              <CircularProgress size={24} />
+            </ListItemButton>
+          </List>
+        }
+      >
+        <div
+          style={{
+            opacity: pending ? 0.5 : 1,
+          }}
+        >
+          <ProviderSearchList
+            renderEpisode={renderEpisode}
+            dense={dense}
+            searchParams={searchParams}
+            provider={provider}
+            listProps={listProps}
+            key={provider}
+          />
+        </div>
+      </Suspense>
     )
   })
 }

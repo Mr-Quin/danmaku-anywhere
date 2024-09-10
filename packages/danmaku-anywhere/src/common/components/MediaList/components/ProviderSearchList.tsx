@@ -1,6 +1,6 @@
 import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
 import type { ListProps } from '@mui/material'
-import { ListItem, ListItemText } from '@mui/material'
+import { Button, ListItem, ListItemText } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
 import { useMediaSearchSuspense } from '@/common/anime/queries/useMediaSearchSuspense'
@@ -27,7 +27,7 @@ export const ProviderSearchList = ({
 }: ProviderSearchListProps) => {
   const { t } = useTranslation()
 
-  const { data: result, isPending } = useMediaSearchSuspense({
+  const { data: result, refetch } = useMediaSearchSuspense({
     params: {
       keyword: searchParams.anime,
     },
@@ -39,6 +39,9 @@ export const ProviderSearchList = ({
       return (
         <ListItem>
           <ListItemText primary={result.error} />
+          <Button onClick={() => refetch()} variant="text">
+            {t('searchPage.retrySearch')}
+          </Button>
         </ListItem>
       )
     }
@@ -63,9 +66,6 @@ export const ProviderSearchList = ({
       listProps={{
         dense,
         disablePadding: true,
-        sx: {
-          opacity: isPending ? 0.5 : 1,
-        },
         ...listProps,
       }}
       listItemChildren={
