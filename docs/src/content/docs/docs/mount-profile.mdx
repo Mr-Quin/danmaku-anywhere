@@ -31,7 +31,7 @@ description: 装填配置
 
 相当于一个白名单，只有在这些网址上插件才会生效。
 
-准确地说，装填配置对应的网址不是单一的地址，而是一个[**模式**](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern/URLPattern)，这个模式可以匹配多个网址。
+准确地说，装填配置对应的网址不是单一的地址，而是一个[**模式**](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)，这个模式可以匹配多个网址。
 
 拿B站为例，如果希望插件在B站上生效，可以使用 `https://www.bilibili.com/*` 这个模式，这个模式可以匹配所有的B站视频网址。
 
@@ -41,13 +41,19 @@ description: 装填配置
 
 如果填写 `https://*.bilibili.com/*`，那么插件会在所有的B站子域名下生效，包括动态、空间、直播等。
 
+其他例子：
+- ip地址：`http://10.0.0.1/*`
+  - 含端口：`http://10.0.0.1:8080/*`
+  - 任意端口：`http://10.0.0.1:*/*`
+- 本地服务器：`http://localhost/*`
+- 本地`mp4`文件（注意三斜杠）：`file:///*.mp4`
+- 任意HTTPS地址：`https://*/*`
+
 :::note
 模式结尾必须包含 `/`，比如 `/`、`/*`、`/abc`，否则会提示格式错误。
 
-同时模式必须是 HTTPS 的地址，不支持非 HTTPS 地址。
+如果存在端口号，需要在模式中指定，比如`http://localhost:8080/*`或`http://localhost:*/*`。
 :::
-
-最宽松的模式是 `https://*/*`，这个模式可以匹配所有的 HTTPS 地址。
 
 一般来说，如果希望匹配的网页是 `https://www.example.com`，那么模式填写 `https://www.example.com/*` 或者 `https://*.example.com/*` 就可以满足需求。如果有特殊情况请按照实际情况填写。
 
