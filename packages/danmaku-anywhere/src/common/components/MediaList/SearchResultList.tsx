@@ -41,6 +41,7 @@ export const SearchResultList = ({
   return providers.map((provider) => {
     return (
       <Suspense
+        key={provider}
         fallback={
           <List
             dense
