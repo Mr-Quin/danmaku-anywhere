@@ -7,7 +7,10 @@ interface NodeMonitorOptions {
   onError?: (err: Error) => void
 }
 
-const isVideoElement = (node: Node) => node instanceof HTMLVideoElement
+const isVideoElement = (node: Node): node is HTMLVideoElement =>
+  node instanceof HTMLVideoElement
+const isElement = (node: Node): node is HTMLElement =>
+  node instanceof HTMLElement
 
 export const useVideoNodeMonitor = (
   selector?: string,
@@ -41,6 +44,7 @@ export const useVideoNodeMonitor = (
         videoStack.find((v) => v.checkVisibility()) ||
         videoStack[0]
 
+      console.debug('Setting active video element', activeVideo)
       setActiveVideoElement(activeVideo)
     }
 
@@ -98,6 +102,13 @@ export const useVideoNodeMonitor = (
             if (node.matches(selector)) {
               handeVideoNodeAdded(node)
             }
+          } else if (isElement(node)) {
+            const videoElements = node.querySelectorAll('video')
+            videoElements.forEach((video) => {
+              if (video.matches(selector)) {
+                handeVideoNodeAdded(video)
+              }
+            })
           }
         }
 
