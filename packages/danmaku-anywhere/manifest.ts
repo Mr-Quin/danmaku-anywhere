@@ -27,7 +27,7 @@ export const manifest = defineManifest({
     'contextMenus',
     'declarativeNetRequestWithHostAccess',
   ],
-  host_permissions: ['https://*/*', 'http://*/*'],
+  host_permissions: ['https://*/*', 'http://*/*', 'file:///*'],
   icons: {
     16: 'normal_16.png',
     32: 'normal_32.png',
