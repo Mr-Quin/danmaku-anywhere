@@ -69,10 +69,10 @@ export class DanDanPlayService {
       from: params.from ?? 0,
     }
 
-    // if title is not provided, try to get it from the server
+    // since title can change, we'll try to update it
     const episodeTitle =
-      meta.episodeTitle ??
-      (await this.getEpisodeTitle(meta.animeId, meta.episodeId))
+      (await this.getEpisodeTitle(meta.animeId, meta.episodeId)) ??
+      meta.episodeTitle // if for some reason we can't get the title, use the one we have
 
     if (!episodeTitle) {
       this.logger.debug('Failed to get episode title from server')
