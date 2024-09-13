@@ -37,11 +37,15 @@ All danmaku is sourced from [弹弹play](https://www.dandanplay.com/)
 
 Plex
 
-![Plex](./assets/danmaku_plex.png)
+![Plex](./assets/screenshot_plex.png)
 
-Crunchyroll
+Jellyfin
 
-![Crunchyroll](./assets/danmaku_crunchyroll.png)
+![Jellyfin](./assets/screenshot_jellyfin.png)
+
+YouTube
+
+![YouTube](./assets/screenshot_youtube.png)
 
 ## Installation
 
