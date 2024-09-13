@@ -24,15 +24,15 @@
 
 Plex
 
-![Plex](./assets/danmaku_plex.png)
+![Plex](./assets/screenshot_plex.png)
 
-Crunchyroll
+Jellyfin
 
-![Crunchyroll](./assets/danmaku_crunchyroll.png)
+![Jellyfin](./assets/screenshot_jellyfin.png)
 
 YouTube
 
-![YouTube](./assets/danmaku_youtube.png)
+![YouTube](./assets/screenshot_youtube.png)
 
 ## 安装
 
