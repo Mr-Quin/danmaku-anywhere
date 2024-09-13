@@ -6,7 +6,6 @@ import { ProviderService } from '../services/ProviderService'
 
 import { BilibiliService } from '@/background/services/BilibiliService'
 import { TencentService } from '@/background/services/TencentService'
-import type { GetEpisodeDto } from '@/common/anime/dto'
 import { Logger } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
 import { RpcException } from '@/common/rpc/types'
@@ -29,8 +28,11 @@ export const setupRpc = () => {
     mediaParseUrl: async (input) => {
       return providerService.parseUrl(input.url)
     },
-    episodesGet: async (data: GetEpisodeDto) => {
-      return providerService.getEpisodes(data)
+    episodesGetBilibili: async (data) => {
+      return providerService.getBilibiliEpisodes(data)
+    },
+    episodesGetTencent: async (data) => {
+      return providerService.getTencentEpisodes(data)
     },
     episodeMatch: async (data) => {
       return providerService.findMatchingEpisodes(data)

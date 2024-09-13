@@ -63,37 +63,6 @@ export type DanDanPlayEpisode = DanDanPlaySeason['episodes'][number]
 
 export type TencentEpisode = TencentEpisodeListItem
 
-export type GetEpisodeDto =
-  | {
-      provider: DanmakuSourceType.Bilibili
-      seasonId: number
-    }
-  | {
-      provider: DanmakuSourceType.Tencent
-      seasonId: string // cid
-    }
-  | {
-      provider: DanmakuSourceType.DanDanPlay
-      // for dandanplay, the episodes are already included in the season,
-      // but for the sake of consistency, we'll still make a call to the backend to get the episodes,
-      // which will just return the episodes from the season
-      data: DanDanPlaySeason
-    }
-
-export type GetEpisodeResult =
-  | {
-      provider: DanmakuSourceType.Bilibili
-      episodes: BilibiliEpisode[]
-    }
-  | {
-      provider: DanmakuSourceType.Tencent
-      episodes: TencentEpisode[]
-    }
-  | {
-      provider: DanmakuSourceType.DanDanPlay
-      episodes: DanDanPlayEpisode[]
-    }
-
 export interface MatchEpisodeInput {
   mapKey: string
   title: string

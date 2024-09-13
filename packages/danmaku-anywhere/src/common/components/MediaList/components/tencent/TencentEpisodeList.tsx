@@ -1,10 +1,10 @@
 import { List, ListItemText } from '@mui/material'
-import { useSuspenseQueries } from '@tanstack/react-query'
+import { useSuspenseQueries, useSuspenseQuery } from '@tanstack/react-query'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
 import type { TencentMediaSearchResult } from '@/common/anime/dto'
-import { useGetEpisodes } from '@/common/anime/queries/useGetEpisodes'
+import { mediaKeys } from '@/common/anime/queries/mediaQueryKeys'
 import { ListItemSkeleton } from '@/common/components/MediaList/components/ListItemSkeleton'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
@@ -20,13 +20,17 @@ export const TencentEpisodeList = ({
   season,
   renderEpisode,
 }: TencentEpisodeListItemProps) => {
-  const { data: result } = useGetEpisodes({
-    provider: DanmakuSourceType.Tencent,
-    seasonId: season.doc.id,
+  const { data: episodes } = useSuspenseQuery({
+    queryKey: mediaKeys.episodes(DanmakuSourceType.Tencent, season.doc.id),
+    queryFn: async () => {
+      return chromeRpcClient.episodesGetTencent(season.doc.id)
+    },
+    staleTime: Infinity,
+    retry: false,
   })
 
   const danmakuResults = useSuspenseQueries({
-    queries: result.episodes.map((episode) => {
+    queries: episodes.map((episode) => {
       const params = {
         provider: DanmakuSourceType.Tencent,
         episodeId: episode.vid,
@@ -43,7 +47,7 @@ export const TencentEpisodeList = ({
 
   return (
     <List dense disablePadding>
-      {result.episodes.map((episode, i) => {
+      {episodes.map((episode, i) => {
         const danmakuResult = danmakuResults[i]
 
         return (

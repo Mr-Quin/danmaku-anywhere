@@ -1,10 +1,10 @@
 import { List, ListItemText } from '@mui/material'
-import { useSuspenseQueries } from '@tanstack/react-query'
+import { useSuspenseQueries, useSuspenseQuery } from '@tanstack/react-query'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
 import type { BilibiliSeason } from '@/common/anime/dto'
-import { useGetEpisodes } from '@/common/anime/queries/useGetEpisodes'
+import { mediaKeys } from '@/common/anime/queries/mediaQueryKeys'
 import { ListItemSkeleton } from '@/common/components/MediaList/components/ListItemSkeleton'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
@@ -20,13 +20,17 @@ export const BilibiliEpisodeList = ({
   season,
   renderEpisode,
 }: BilibiliSeasonsListItemProps) => {
-  const { data: result } = useGetEpisodes({
-    provider: DanmakuSourceType.Bilibili,
-    seasonId: season.season_id,
+  const { data: episodes } = useSuspenseQuery({
+    queryKey: mediaKeys.episodes(DanmakuSourceType.Bilibili, season.season_id),
+    queryFn: async () => {
+      return chromeRpcClient.episodesGetBilibili(season.season_id)
+    },
+    staleTime: Infinity,
+    retry: false,
   })
 
   const danmakuResults = useSuspenseQueries({
-    queries: result.episodes.map((episode) => {
+    queries: episodes.map((episode) => {
       const params = {
         provider: DanmakuSourceType.Bilibili,
         episodeId: episode.cid,
@@ -43,7 +47,7 @@ export const BilibiliEpisodeList = ({
 
   return (
     <List dense disablePadding>
-      {result.episodes.map((episode, i) => {
+      {episodes.map((episode, i) => {
         const danmakuResult = danmakuResults[i]
 
         return (
