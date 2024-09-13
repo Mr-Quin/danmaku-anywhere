@@ -5,8 +5,6 @@ import { DanDanPlayService } from '@/background/services/DanDanPlayService'
 import { TencentService } from '@/background/services/TencentService'
 import { TitleMappingService } from '@/background/services/TitleMappingService'
 import type {
-  GetEpisodeDto,
-  GetEpisodeResult,
   MatchEpisodeInput,
   MatchEpisodeResult,
   MediaSearchParams,
@@ -175,33 +173,13 @@ export class ProviderService {
     }
   }
 
-  async getEpisodes(data: GetEpisodeDto): Promise<GetEpisodeResult> {
-    switch (data.provider) {
-      case DanmakuSourceType.Bilibili: {
-        const bilibiliData = await this.bilibiliService.getBangumiInfo({
-          seasonId: data.seasonId,
-        })
-        return {
-          provider: DanmakuSourceType.Bilibili,
-          episodes: bilibiliData.episodes,
-        }
-      }
-      case DanmakuSourceType.Tencent:
-        return {
-          provider: DanmakuSourceType.Tencent,
-          episodes: await this.tencentService.getEpisodes(data.seasonId),
-        }
-      case DanmakuSourceType.DanDanPlay:
-        return {
-          provider: DanmakuSourceType.DanDanPlay,
-          episodes: data.data.episodes,
-        }
-      default:
-        break
-    }
+  async getBilibiliEpisodes(seasonId: number) {
+    const res = await this.bilibiliService.getBangumiInfo({ seasonId })
+    return res.episodes
+  }
 
-    // should not reach here, but this line makes typescript happy
-    throw new UnsupportedProviderException(DanmakuSourceType.Custom)
+  async getTencentEpisodes(seasonId: string) {
+    return this.tencentService.getEpisodes(seasonId)
   }
 
   async parseUrl(url: string) {

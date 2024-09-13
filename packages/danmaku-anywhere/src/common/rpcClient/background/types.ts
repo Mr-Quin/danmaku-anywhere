@@ -3,13 +3,13 @@ import type { BilibiliUserInfo } from '@danmaku-anywhere/danmaku-provider/bilibi
 import type { RPCDef } from '../../rpc/types'
 
 import type {
-  GetEpisodeDto,
-  GetEpisodeResult,
+  BilibiliEpisode,
   MatchEpisodeInput,
   MatchEpisodeResult,
   MediaSearchMultiParamsData,
   MediaSearchParamsData,
   MediaSearchResult,
+  TencentEpisode,
 } from '@/common/anime/dto'
 import type {
   DanmakuDeleteDto,
@@ -51,7 +51,8 @@ type AnimeMethods = {
   mediaSearch: RPCDef<MediaSearchParamsData, MediaSearchResult>
   mediaSearchMultiple: RPCDef<MediaSearchMultiParamsData, MediaSearchResult[]>
   mediaParseUrl: RPCDef<{ url: string }, DanmakuMetaExternal>
-  episodesGet: RPCDef<GetEpisodeDto, GetEpisodeResult>
+  episodesGetBilibili: RPCDef<number, BilibiliEpisode[]>
+  episodesGetTencent: RPCDef<string, TencentEpisode[]>
   episodeMatch: RPCDef<MatchEpisodeInput, MatchEpisodeResult>
   bilibiliSetCookies: RPCDef<void, void>
   bilibiliGetLoginStatus: RPCDef<void, BilibiliUserInfo>
