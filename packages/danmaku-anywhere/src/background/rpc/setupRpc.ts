@@ -19,11 +19,14 @@ export const setupRpc = () => {
   const tencentService = new TencentService()
 
   const rpcServer = createRpcServer<BackgroundMethods>({
-    mediaSearch: async (input) => {
-      return providerService.searchByProvider(input.provider, input.params)
+    searchDanDanPlay: async (input) => {
+      return providerService.searchDanDanPlay(input)
     },
-    mediaSearchMultiple: async (input) => {
-      return providerService.searchByProviders(input.params, input.providers)
+    searchBilibili: async (input) => {
+      return providerService.searchBilibili(input)
+    },
+    searchTencent: async (input) => {
+      return providerService.searchTencent(input)
     },
     mediaParseUrl: async (input) => {
       return providerService.parseUrl(input.url)

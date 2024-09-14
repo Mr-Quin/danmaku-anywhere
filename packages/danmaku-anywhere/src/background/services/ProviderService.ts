@@ -1,14 +1,14 @@
-import { match } from 'ts-pattern'
-
 import { BilibiliService } from '@/background/services/BilibiliService'
 import { DanDanPlayService } from '@/background/services/DanDanPlayService'
 import { TencentService } from '@/background/services/TencentService'
 import { TitleMappingService } from '@/background/services/TitleMappingService'
 import type {
+  BilibiliMediaSearchResult,
+  DanDanPlayMediaSearchResult,
   MatchEpisodeInput,
   MatchEpisodeResult,
   MediaSearchParams,
-  MediaSearchResult,
+  TencentMediaSearchResult,
 } from '@/common/anime/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type {
@@ -16,14 +16,11 @@ import type {
   DanDanPlayMeta,
   TencentMeta,
 } from '@/common/danmaku/models/meta'
-import { UnsupportedProviderException } from '@/common/danmaku/UnsupportedProviderException'
 import { Logger } from '@/common/Logger'
-import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 export class ProviderService {
   private logger: typeof Logger
-  private extensionOptionsService = extensionOptionsService
   private bilibiliService = new BilibiliService()
   private danDanPlayService = new DanDanPlayService()
   private tencentService = new TencentService()
@@ -37,55 +34,36 @@ export class ProviderService {
     this.logger = Logger.sub('[ProviderService]')
   }
 
-  async searchByProvider<T extends DanmakuSourceType>(
-    provider: T,
+  async searchDanDanPlay(
     searchParams: MediaSearchParams
-  ): Promise<Extract<MediaSearchResult, { provider: T }>> {
-    this.logger.debug('Searching by provider', provider, searchParams)
-
-    const data = await match(provider as DanmakuSourceType)
-      .with(DanmakuSourceType.DanDanPlay, async (provider) => {
-        const data = await this.danDanPlayService.search({
-          anime: searchParams.keyword,
-          episode: searchParams.episode,
-        })
-        return {
-          provider,
-          data,
-        }
-      })
-      .with(DanmakuSourceType.Bilibili, async (provider) => {
-        const data = await this.bilibiliService.search({
-          keyword: searchParams.keyword,
-        })
-        return {
-          provider,
-          data,
-        }
-      })
-      .with(DanmakuSourceType.Tencent, async (provider) => {
-        const data = await this.tencentService.search(searchParams.keyword)
-        return {
-          provider,
-          data,
-        }
-      })
-      .otherwise((type) => {
-        throw new UnsupportedProviderException(type)
-      })
-
-    return data as Extract<MediaSearchResult, { provider: T }>
+  ): Promise<DanDanPlayMediaSearchResult> {
+    return {
+      data: await this.danDanPlayService.search({
+        anime: searchParams.keyword,
+        episode: searchParams.episode,
+      }),
+      provider: DanmakuSourceType.DanDanPlay,
+    }
   }
 
-  async searchByProviders(
-    searchParams: MediaSearchParams,
-    providers: DanmakuSourceType[]
-  ) {
-    const searchPromises = providers.map(async (provider) => {
-      return this.searchByProvider(provider, searchParams)
-    })
+  async searchBilibili(
+    searchParams: MediaSearchParams
+  ): Promise<BilibiliMediaSearchResult> {
+    return {
+      data: await this.bilibiliService.search({
+        keyword: searchParams.keyword,
+      }),
+      provider: DanmakuSourceType.Bilibili,
+    }
+  }
 
-    return Promise.all(searchPromises)
+  async searchTencent(
+    searchParams: MediaSearchParams
+  ): Promise<TencentMediaSearchResult> {
+    return {
+      data: await this.tencentService.search(searchParams.keyword),
+      provider: DanmakuSourceType.Tencent,
+    }
   }
 
   async findMatchingEpisodes({
@@ -129,13 +107,10 @@ export class ProviderService {
     }
 
     this.logger.debug('No mapping found, searching for season')
-    const searchResult = await this.searchByProvider(
-      DanmakuSourceType.DanDanPlay,
-      {
-        keyword: title,
-        episode: episodeNumber.toString(),
-      }
-    )
+    const searchResult = await this.searchDanDanPlay({
+      keyword: title,
+      episode: episodeNumber.toString(),
+    })
 
     if (searchResult.data.length === 0) {
       this.logger.debug(`No season found for title: ${title}`)

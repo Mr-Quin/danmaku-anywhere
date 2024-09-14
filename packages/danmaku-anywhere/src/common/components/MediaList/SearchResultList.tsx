@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next'
 import type { MediaSearchResult } from '@/common/anime/dto'
 import { ProviderSearchList } from '@/common/components/MediaList/components/ProviderSearchList'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
-import type { DanmakuSourceType } from '@/common/danmaku/enums'
+import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
 import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 
 interface SearchResultListProps {
@@ -25,7 +25,7 @@ interface SearchResultListProps {
     provider: T,
     data: Extract<MediaSearchResult, { provider: T }>['data']
   ) => void
-  providers: DanmakuSourceType[]
+  providers: RemoteDanmakuSourceType[]
 }
 
 export const SearchResultList = ({
