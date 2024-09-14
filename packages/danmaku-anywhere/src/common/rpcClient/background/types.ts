@@ -4,12 +4,13 @@ import type { RPCDef } from '../../rpc/types'
 
 import type {
   BilibiliEpisode,
+  BilibiliMediaSearchResult,
+  DanDanPlayMediaSearchResult,
   MatchEpisodeInput,
   MatchEpisodeResult,
-  MediaSearchMultiParamsData,
-  MediaSearchParamsData,
-  MediaSearchResult,
+  MediaSearchParams,
   TencentEpisode,
+  TencentMediaSearchResult,
 } from '@/common/anime/dto'
 import type {
   DanmakuDeleteDto,
@@ -48,9 +49,10 @@ type IconMethods = {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type AnimeMethods = {
-  mediaSearch: RPCDef<MediaSearchParamsData, MediaSearchResult>
-  mediaSearchMultiple: RPCDef<MediaSearchMultiParamsData, MediaSearchResult[]>
   mediaParseUrl: RPCDef<{ url: string }, DanmakuMetaExternal>
+  searchDanDanPlay: RPCDef<MediaSearchParams, DanDanPlayMediaSearchResult>
+  searchBilibili: RPCDef<MediaSearchParams, BilibiliMediaSearchResult>
+  searchTencent: RPCDef<MediaSearchParams, TencentMediaSearchResult>
   episodesGetBilibili: RPCDef<number, BilibiliEpisode[]>
   episodesGetTencent: RPCDef<string, TencentEpisode[]>
   episodeMatch: RPCDef<MatchEpisodeInput, MatchEpisodeResult>

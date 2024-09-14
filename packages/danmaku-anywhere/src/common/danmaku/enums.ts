@@ -5,6 +5,11 @@ export enum DanmakuSourceType {
   Tencent,
 }
 
+export type RemoteDanmakuSourceType = Exclude<
+  DanmakuSourceType,
+  DanmakuSourceType.Custom
+>
+
 export const danmakuSourceTypeList = Object.values(DanmakuSourceType).filter(
   (e): e is DanmakuSourceType => typeof e === 'number'
 )

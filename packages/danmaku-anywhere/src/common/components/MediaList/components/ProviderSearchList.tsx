@@ -3,19 +3,34 @@ import type { ListProps } from '@mui/material'
 import { Button, ListItem, ListItemText } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
+import type { MediaSearchParams, MediaSearchResult } from '@/common/anime/dto'
 import { useMediaSearchSuspense } from '@/common/anime/queries/useMediaSearchSuspense'
 import { CollapsibleList } from '@/common/components/MediaList/components/CollapsibleList'
 import { SeasonsList } from '@/common/components/MediaList/components/SeasonsList'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
-import type { DanmakuSourceType } from '@/common/danmaku/enums'
-import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
+import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
+import {
+  DanmakuSourceType,
+  localizedDanmakuSourceType,
+} from '@/common/danmaku/enums'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 interface ProviderSearchListProps {
   renderEpisode: RenderEpisode
   listProps?: ListProps
   dense?: boolean
   searchParams: DanDanAnimeSearchAPIParams
-  provider: DanmakuSourceType
+  provider: RemoteDanmakuSourceType
+}
+
+const methodMap: {
+  [key in RemoteDanmakuSourceType]: (
+    params: MediaSearchParams
+  ) => Promise<MediaSearchResult>
+} = {
+  [DanmakuSourceType.DanDanPlay]: chromeRpcClient.searchDanDanPlay,
+  [DanmakuSourceType.Bilibili]: chromeRpcClient.searchBilibili,
+  [DanmakuSourceType.Tencent]: chromeRpcClient.searchTencent,
 }
 
 export const ProviderSearchList = ({
@@ -27,12 +42,13 @@ export const ProviderSearchList = ({
 }: ProviderSearchListProps) => {
   const { t } = useTranslation()
 
-  const { data: result, refetch } = useMediaSearchSuspense({
-    params: {
+  const { data: result, refetch } = useMediaSearchSuspense(
+    provider,
+    {
       keyword: searchParams.anime,
     },
-    provider,
-  })
+    methodMap[provider]
+  )
 
   const renderSeasons = () => {
     if (!result.success) {

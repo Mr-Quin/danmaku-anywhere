@@ -19,16 +19,6 @@ export interface MediaSearchParams {
   episode?: string
 }
 
-export interface MediaSearchParamsData {
-  provider: DanmakuSourceType
-  params: MediaSearchParams
-}
-
-export interface MediaSearchMultiParamsData {
-  providers: DanmakuSourceType[]
-  params: MediaSearchParams
-}
-
 export interface DanDanPlayMediaSearchResult {
   provider: DanmakuSourceType.DanDanPlay
   data: DanDanAnimeSearchResult

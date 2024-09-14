@@ -1,38 +1,42 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
-import type {
-  MediaSearchParamsData,
-  MediaSearchResult,
-} from '@/common/anime/dto'
+import type { MediaSearchParams, MediaSearchResult } from '@/common/anime/dto'
 import { mediaKeys } from '@/common/anime/queries/mediaQueryKeys'
+import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
 import { Logger } from '@/common/Logger'
-import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
-export const useMediaSearchSuspense = (params: MediaSearchParamsData) => {
+export const useMediaSearchSuspense = <T extends MediaSearchResult>(
+  provider: RemoteDanmakuSourceType,
+  params: MediaSearchParams,
+  getData: (params: MediaSearchParams) => Promise<T>
+) => {
   const { t } = useTranslation()
 
   return useSuspenseQuery({
-    queryKey: mediaKeys.search(params),
+    queryKey: mediaKeys.search(provider, params),
     queryFn: async (): Promise<
       | {
           success: true
           data: MediaSearchResult
-          params: MediaSearchParamsData
+          params: MediaSearchParams
+          provider: RemoteDanmakuSourceType
         }
       | {
           success: false
           data: null
-          params: MediaSearchParamsData
+          params: MediaSearchParams
+          provider: RemoteDanmakuSourceType
           error: string
         }
     > => {
       try {
-        const data = await chromeRpcClient.mediaSearch(params)
+        const data = await getData(params)
         return {
           success: true,
           data,
           params,
+          provider,
         }
       } catch (error) {
         Logger.debug('useMediaSearchSuspense error', error)
@@ -42,6 +46,7 @@ export const useMediaSearchSuspense = (params: MediaSearchParamsData) => {
           success: false,
           data: null,
           params,
+          provider,
           error: errorMessage,
         }
       }
