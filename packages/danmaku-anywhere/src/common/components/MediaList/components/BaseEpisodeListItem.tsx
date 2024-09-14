@@ -20,7 +20,6 @@ import type {
   DanDanPlayMeta,
   TencentMeta,
 } from '@/common/danmaku/models/meta'
-import { UnsupportedProviderException } from '@/common/danmaku/UnsupportedProviderException'
 import { stripHtml } from '@/common/utils/utils'
 
 interface BaseEpisodeListItemProps {
@@ -88,9 +87,7 @@ const getRenderData = (data: RenderEpisodeData): EpisodeRenderData =>
         tooltip: episode.play_title,
       }
     })
-    .otherwise(({ provider }) => {
-      throw new UnsupportedProviderException(provider)
-    })
+    .exhaustive()
 
 export const BaseEpisodeListItem = ({
   renderSecondaryText,

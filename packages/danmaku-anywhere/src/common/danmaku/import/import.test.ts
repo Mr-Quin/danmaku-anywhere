@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { importDanmakuSchema } from './import'
 
 import { importCommentSchema } from '@/common/danmaku/import/commentSchema'
-import { v2, v1, validComment } from '@/common/danmaku/import/sample'
+import { v2, v1, validComment, v3 } from '@/common/danmaku/import/sample'
 import type { DanmakuInsert } from '@/common/danmaku/models/danmaku'
 
 describe('commentSchema', () => {
@@ -75,20 +75,59 @@ describe('danmakuCacheSchemaOne', () => {
       expect(() => importDanmakuSchema.parse([v2.danDanPlay])).not.toThrow()
 
       const res = importDanmakuSchema.parse([v2.danDanPlay])
+
+      expect(res).toHaveLength(1)
       assertType(res)
     })
 
     it('accepts valid custom danmaku', () => {
       const res = importDanmakuSchema.parse([v2.custom])
 
-      expect(res).toEqual([v2.custom])
+      expect(res).toHaveLength(1)
       assertType(res)
     })
 
     it('accepts valid bilibili danmaku', () => {
       const res = importDanmakuSchema.parse([v2.bilibili])
 
-      expect(res).toEqual([v2.bilibili])
+      expect(res).toHaveLength(1)
+      assertType(res)
+    })
+
+    it('accepts valid tencent danmaku', () => {
+      const res = importDanmakuSchema.parse([v2.tencent])
+
+      expect(res).toHaveLength(1)
+      assertType(res)
+    })
+  })
+
+  describe('v3', () => {
+    it('accepts valid DDP danmaku', () => {
+      const res = importDanmakuSchema.parse([v3.danDanPlay])
+
+      expect(res).toEqual([v3.danDanPlay])
+      assertType(res)
+    })
+
+    it('accepts valid custom danmaku', () => {
+      const res = importDanmakuSchema.parse([v3.custom])
+
+      expect(res).toEqual([v3.custom])
+      assertType(res)
+    })
+
+    it('accepts valid bilibili danmaku', () => {
+      const res = importDanmakuSchema.parse([v3.bilibili])
+
+      expect(res).toEqual([v3.bilibili])
+      assertType(res)
+    })
+
+    it('accepts valid tencent danmaku', () => {
+      const res = importDanmakuSchema.parse([v3.tencent])
+
+      expect(res).toEqual([v3.tencent])
       assertType(res)
     })
   })

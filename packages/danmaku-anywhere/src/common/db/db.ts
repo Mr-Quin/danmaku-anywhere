@@ -1,6 +1,5 @@
 import Dexie from 'dexie'
 
-import { DanmakuSourceType, IntegrationType } from '@/common/danmaku/enums'
 import type { Danmaku, DanmakuInsert } from '@/common/danmaku/models/danmaku'
 import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 
@@ -55,7 +54,7 @@ class DanmakuAnywhereDb extends Dexie {
           .table('danmakuCache')
           .toCollection()
           .modify((item) => {
-            item.meta.type = DanmakuSourceType.DanDanPlay
+            item.meta.type = 1 // Old enum value for dandanplay
           })
       })
 
@@ -74,7 +73,7 @@ class DanmakuAnywhereDb extends Dexie {
           .toCollection()
           .modify((item) => {
             // At this moment plex is the only source, so we can safely assume it's plex
-            item.integration = IntegrationType.Plex
+            item.integration = 1 // Old enum value for plex
             delete item.source
           })
       })
@@ -96,9 +95,9 @@ class DanmakuAnywhereDb extends Dexie {
           if (!item.meta.episodeTitle) return
 
           await tx.table('danmaku').add({
-            provider: DanmakuSourceType.DanDanPlay,
+            provider: 1,
             meta: {
-              provider: DanmakuSourceType.DanDanPlay,
+              provider: 1,
               episodeId: item.meta.episodeId,
               animeId: item.meta.animeId,
               episodeTitle: item.meta.episodeTitle,
@@ -119,10 +118,10 @@ class DanmakuAnywhereDb extends Dexie {
         // Merge manualDanmakuCache to danmaku
         await tx.table('manualDanmakuCache').each(async (item) => {
           await tx.table('danmaku').add({
-            provider: DanmakuSourceType.Custom,
+            provider: 0,
             meta: {
               // removed episodeId
-              provider: DanmakuSourceType.Custom,
+              provider: 0,
               episodeTitle: item.meta.episodeTitle,
               seasonTitle: item.meta.animeTitle,
               episodeNumber: item.meta.episodeNumber,
@@ -139,6 +138,54 @@ class DanmakuAnywhereDb extends Dexie {
             seasonTitle: item.meta.animeTitle,
           })
         })
+      })
+
+    // This version migrates number enum to string enum
+    // Affects danmaku.provider, danmaku.meta.provider, and titleMapping.integration
+    // Increment schemaVersion to 3
+    this.version(8)
+      .stores({
+        danmaku:
+          '++id, provider, episodeId, seasonId, &[provider+episodeId], [provider+seasonId]',
+        manualDanmakuCache: null,
+        danmakuCache: null,
+        titleMapping: '++id, originalTitle, title, integration',
+      })
+      .upgrade(async (tx) => {
+        const mapProvider = (provider: number) => {
+          if (provider === 0) {
+            return 'Custom'
+          } else if (provider === 1) {
+            return 'DanDanPlay'
+          } else if (provider === 2) {
+            return 'Bilibili'
+          } else if (provider === 3) {
+            return 'Tencent'
+          }
+          return provider
+        }
+        await tx
+          .table('danmaku')
+          .toCollection()
+          .modify((item) => {
+            item.provider = mapProvider(item.provider)
+            item.meta.provider = mapProvider(item.meta.provider)
+            // Update schema version
+            item.schemaVersion = 3
+          })
+
+        await tx
+          .table('titleMapping')
+          .toCollection()
+          .modify((item) => {
+            const integration = item.integration as number
+
+            if (integration === 0) {
+              item.integration = 'None'
+            } else if (integration === 1) {
+              item.integration = 'Plex'
+            }
+          })
       })
 
     this.open()

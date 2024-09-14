@@ -44,14 +44,15 @@ export const CommentsTable = ({
   const { t } = useTranslation()
 
   const headerCells = useMemo(
-    () => [
-      { id: 'time', label: t('common.time'), width: 56 },
-      { id: 'comment', label: t('danmaku.commentContent') },
-    ],
+    () =>
+      [
+        { id: 'time', label: t('common.time'), width: 56 },
+        { id: 'comment', label: t('danmaku.commentContent') },
+      ] satisfies { id: 'time' | 'comment'; label: string; width?: number }[],
     [t]
   )
 
-  const [orderBy, setOrderBy] = useState(headerCells[0].id)
+  const [orderBy, setOrderBy] = useState<'time' | 'comment'>(headerCells[0].id)
   const [order, setOrder] = useState<'asc' | 'desc'>('asc')
   const [hoverRow, setHoverRow] = useState<number>()
 
@@ -72,7 +73,7 @@ export const CommentsTable = ({
           return order === 'asc' ? aTime - bTime : bTime - aTime
         })
       })
-      .otherwise(() => comments)
+      .exhaustive()
   }, [comments, orderBy, order])
 
   const ref = useRef<HTMLTableSectionElement>(null)

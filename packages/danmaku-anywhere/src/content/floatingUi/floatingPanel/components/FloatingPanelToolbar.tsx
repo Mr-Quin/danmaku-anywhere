@@ -12,7 +12,6 @@ import {
 import { useTranslation } from 'react-i18next'
 
 import { StyledEnableSwitch } from '@/common/components/StyledEnableSwitch'
-import { getIntegrationLabel } from '@/common/danmaku/enums'
 import { danmakuToString } from '@/common/danmaku/utils'
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { HasIntegration } from '@/content/common/components/HasIntegration'
@@ -42,7 +41,7 @@ export const FloatingPanelToolbar = () => {
             )
           }
         >
-          <Typography>{getIntegrationLabel(integration)}</Typography>
+          <Typography>{integration}</Typography>
           <FormControlLabel
             control={
               <StyledEnableSwitch

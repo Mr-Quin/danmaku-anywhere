@@ -3,15 +3,17 @@ import type { z } from 'zod'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { importSchemaV1 } from '@/common/danmaku/import/v1'
 import type { importSchemaV2 } from '@/common/danmaku/import/v2'
+import type { importSchemaV3 } from '@/common/danmaku/import/v3'
 import type { DanmakuInsert } from '@/common/danmaku/models/danmaku'
 import { CURRENT_SCHEMA_VERSION } from '@/common/danmaku/utils'
 
 export function transformV1(
   v1Data: z.infer<typeof importSchemaV1>
 ): DanmakuInsert {
-  if (v1Data.type === DanmakuSourceType.DanDanPlay) {
+  if (v1Data.type === 1) {
+    // DanDanPlay
     return {
-      provider: v1Data.type,
+      provider: DanmakuSourceType.DanDanPlay,
       comments: v1Data.comments,
       commentCount: v1Data.comments.length,
       version: v1Data.version,
@@ -19,7 +21,7 @@ export function transformV1(
       schemaVersion: CURRENT_SCHEMA_VERSION,
       params: v1Data.params,
       meta: {
-        provider: v1Data.meta.type,
+        provider: DanmakuSourceType.DanDanPlay,
         ...v1Data.meta,
         episodeTitle:
           v1Data.meta.episodeTitle ?? v1Data.meta.episodeId.toString(),
@@ -29,16 +31,17 @@ export function transformV1(
       episodeId: v1Data.meta.episodeId,
       seasonId: v1Data.meta.animeId,
     }
-  } else if (v1Data.type === DanmakuSourceType.Custom) {
+  } else if (v1Data.type === 0) {
+    // Custom
     return {
-      provider: v1Data.type,
+      provider: DanmakuSourceType.Custom,
       comments: v1Data.comments,
       commentCount: v1Data.comments.length,
       version: v1Data.version,
       timeUpdated: v1Data.timeUpdated,
       schemaVersion: CURRENT_SCHEMA_VERSION,
       meta: {
-        provider: v1Data.meta.type,
+        provider: DanmakuSourceType.Custom,
         seasonTitle: v1Data.meta.animeTitle, // Rename animeTitle to seasonTitle
         episodeTitle:
           v1Data.meta.episodeTitle ?? v1Data.meta.episodeNumber!.toString(),
@@ -53,7 +56,57 @@ export function transformV1(
 }
 
 export function transformV2(
-  v1Data: z.infer<typeof importSchemaV2>
+  v2Data: z.infer<typeof importSchemaV2>
 ): DanmakuInsert {
-  return v1Data
+  if (v2Data.provider === 0) {
+    return {
+      ...v2Data,
+      provider: DanmakuSourceType.Custom,
+      meta: {
+        ...v2Data.meta,
+        provider: DanmakuSourceType.Custom,
+      },
+    }
+  } else if (v2Data.provider === 1) {
+    return {
+      ...v2Data,
+      provider: DanmakuSourceType.DanDanPlay,
+      params: v2Data.params ?? {},
+      meta: {
+        ...v2Data.meta,
+        provider: DanmakuSourceType.DanDanPlay,
+      },
+    }
+  } else if (v2Data.provider === 2) {
+    return {
+      ...v2Data,
+      provider: DanmakuSourceType.Bilibili,
+      meta: {
+        ...v2Data.meta,
+        provider: DanmakuSourceType.Bilibili,
+      },
+    }
+  } else if (v2Data.provider === 3) {
+    return {
+      ...v2Data,
+      provider: DanmakuSourceType.Tencent,
+      meta: {
+        ...v2Data.meta,
+        provider: DanmakuSourceType.Tencent,
+      },
+    }
+  }
+  return v2Data
+}
+
+export function transformV3(
+  v3Data: z.infer<typeof importSchemaV3>
+): DanmakuInsert {
+  if (v3Data.provider === 'DanDanPlay') {
+    return {
+      ...v3Data,
+      params: v3Data.params ?? {},
+    }
+  }
+  return v3Data
 }
