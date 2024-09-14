@@ -44,7 +44,6 @@ export const useVideoNodeMonitor = (
         videoStack.find((v) => v.checkVisibility()) ||
         videoStack[0]
 
-      console.debug('Setting active video element', activeVideo)
       setActiveVideoElement(activeVideo)
     }
 
