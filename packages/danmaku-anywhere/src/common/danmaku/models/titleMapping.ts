@@ -1,5 +1,3 @@
-import type { IntegrationType } from '@/common/danmaku/enums'
-
 export interface TitleMapping {
   originalTitle: string
   title: string
@@ -8,6 +6,6 @@ export interface TitleMapping {
    * Use source to identify the source of the title mapping, replaced by integration
    */
   source?: string
-  integration: IntegrationType
+  integration: string
   animeId: number
 }

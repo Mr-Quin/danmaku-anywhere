@@ -109,7 +109,6 @@ const domain = {
     },
     type: {
       None: 'None',
-      Plex: 'Plex',
     },
     autoMode: 'Auto Mode',
   },

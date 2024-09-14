@@ -100,7 +100,6 @@ const domain = {
     name: '适配',
     type: {
       None: '无',
-      Plex: 'Plex',
     },
     autoMode: '自动模式',
     alert: {

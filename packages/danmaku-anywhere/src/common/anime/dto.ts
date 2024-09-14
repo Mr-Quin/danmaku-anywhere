@@ -8,10 +8,7 @@ import type {
   TencentEpisodeListItem,
 } from '@danmaku-anywhere/danmaku-provider/tencent'
 
-import type {
-  DanmakuSourceType,
-  IntegrationTypeNotNone,
-} from '@/common/danmaku/enums'
+import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { DanDanPlayMeta } from '@/common/danmaku/models/meta'
 
 export interface MediaSearchParams {
@@ -57,7 +54,7 @@ export interface MatchEpisodeInput {
   mapKey: string
   title: string
   episodeNumber: number
-  integration: IntegrationTypeNotNone
+  integration: string
 }
 
 export type MatchEpisodeResult =

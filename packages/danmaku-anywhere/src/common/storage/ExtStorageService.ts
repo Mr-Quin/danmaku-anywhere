@@ -1,7 +1,7 @@
 import { Logger } from '../Logger'
 import { invariant, tryCatch } from '../utils/utils'
 
-type ExtStorageType = 'local' | 'sync' | 'session'
+export type ExtStorageType = 'local' | 'sync' | 'session'
 
 export interface ExtStorageServiceOptions {
   storageType?: ExtStorageType

@@ -1,7 +1,7 @@
 import defaultMountConfigJson from './default.json' assert { type: 'json' }
 
-import { IntegrationType } from '@/common/danmaku/enums'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
+import { getDefaultXPathPolicy } from '@/common/options/xpathPolicyStore/consant'
 import { getRandomUUID } from '@/common/utils/utils'
 
 /**
@@ -45,20 +45,19 @@ export const createMountConfig = (url: string): MountConfig => {
     mediaQuery: '',
     enabled: true,
     name: '',
-    integration: IntegrationType.None,
+    integration: undefined,
     id: getRandomUUID(),
   }
 }
 
 export const defaultMountConfig: MountConfig[] = defaultMountConfigJson.map(
   (config) => {
-    const integration =
-      IntegrationType[config.integration as keyof typeof IntegrationType]
+    const integration = getDefaultXPathPolicy(config.name)?.id
 
     const newConfig = {
       ...config,
       id: getRandomUUID(),
-      integration: integration ?? IntegrationType.None,
+      integration: integration,
     }
     Object.freeze(newConfig)
     return newConfig
