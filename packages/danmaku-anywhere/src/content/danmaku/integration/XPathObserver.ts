@@ -1,42 +1,7 @@
-import { z } from 'zod'
-
 import { Logger } from '@/common/Logger'
+import type { XPathPolicy } from '@/common/options/xpathPolicyStore/schema'
 import { MediaInfo } from '@/content/danmaku/integration/MediaInfo'
 import { MediaObserver } from '@/content/danmaku/integration/MediaObserver'
-
-// XPath selectors can be either a string or an array of strings, which we'll transform into an array
-const xpathSelector = z
-  .union([z.string(), z.array(z.string())])
-  .transform((val) => {
-    if (typeof val === 'string') {
-      return [val]
-    }
-    return val
-  })
-
-const xpathPolicySchema = z.object({
-  title: xpathSelector,
-  episode: xpathSelector,
-  season: xpathSelector,
-  titleRegex: z.string().default('.+'),
-  episodeRegex: z.string().default('\\d+'),
-  seasonRegex: z.string().default('\\d+'),
-})
-
-type XPathPolicy = z.infer<typeof xpathPolicySchema>
-
-const plexPolicy: XPathPolicy = {
-  title: ['//*[@id="plex"]/div[4]/div/div[*]/div/div/div[2]/div[1]/div/a'],
-  titleRegex: '.+',
-  episode: [
-    '//*[@id="plex"]/div[4]/div/div[*]/div/div/div[2]/div[1]/div/span/span[1]/span[3]',
-  ],
-  episodeRegex: '\\d+',
-  season: [
-    '//*[@id="plex"]/div[4]/div/div[*]/div/div/div[2]/div[1]/div/span/span[1]/span[1]',
-  ],
-  seasonRegex: '\\d+',
-}
 
 const getElementByXpath = (path: string, parent = window.document) => {
   return document.evaluate(
@@ -160,7 +125,7 @@ interface MediaElements {
   season: Node | null
 }
 
-class XPathObserver extends MediaObserver {
+export class XPathObserver extends MediaObserver {
   private interval?: NodeJS.Timeout
   private logger = Logger.sub('[XPathObserver]')
   private observerMap = new Map<MonitoredElements, MutationObserver>()
@@ -250,7 +215,7 @@ class XPathObserver extends MediaObserver {
 
     this.updateMediaInfo(elements)
 
-    // When the title element is removed, rerun the setup
+    // When the title element is removed, rerun setup
     createRemovalMutationObserver(elements.title, () => {
       this.logger.debug('Title element removed, rerunning setup')
       this.destroy()
@@ -267,5 +232,3 @@ class XPathObserver extends MediaObserver {
     this.observerMap.forEach((observer) => observer.disconnect())
   }
 }
-
-export const plexObserver = new XPathObserver(plexPolicy)

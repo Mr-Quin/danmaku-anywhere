@@ -1,12 +1,13 @@
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { produce } from 'immer'
 
-import { IntegrationType } from '@/common/danmaku/enums'
 import { Language } from '@/common/localization/language'
 import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
 import type { ExtensionOptions } from '@/common/options/extensionOptions/schema'
 import { danmakuOptionsService } from '@/common/options/extensionOptions/service'
 import { mountConfigService } from '@/common/options/mountConfig/service'
+import { getDefaultXPathPolicy } from '@/common/options/xpathPolicyStore/consant'
+import { xPathPolicyStore } from '@/common/options/xpathPolicyStore/service'
 import { ColorMode } from '@/common/theme/enums'
 import { getRandomUUID } from '@/common/utils/utils'
 
@@ -133,9 +134,9 @@ mountConfigService
           draft.id = getRandomUUID()
           // add integration field
           if (draft.name === 'plex') {
-            draft.integration = IntegrationType.Plex
+            draft.integration = 1
           } else {
-            draft.integration = IntegrationType.None
+            draft.integration = 0
           }
         })
       ),
@@ -144,12 +145,9 @@ mountConfigService
     upgrade: (data: PrevOptions) =>
       data.map((config: PrevOptions) =>
         produce(config, (draft: PrevOptions) => {
-          // Change integration field to from number enum to string enum
-          if (draft.integration === 0) {
-            draft.integration = IntegrationType.None
-          } else if (draft.integration === 1) {
-            draft.integration = IntegrationType.Plex
-          }
+          // Try to find the integration id from the default xpath policies
+          // Cannot be hardcoded because the id is dynamically generated
+          draft.integration = getDefaultXPathPolicy(config.name)?.id
         })
       ),
   })
@@ -159,5 +157,6 @@ export const upgradeOptions = async () => {
     extensionOptionsService.upgrade(),
     danmakuOptionsService.upgrade(),
     mountConfigService.upgrade(),
+    xPathPolicyStore.upgrade(),
   ])
 }

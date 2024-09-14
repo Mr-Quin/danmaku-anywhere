@@ -18,9 +18,9 @@ import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import { IntegrationList } from '@/common/danmaku/enums'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
+import { useXPathPolicyStore } from '@/common/options/xpathPolicyStore/useXPathPolicyStore'
 import { validateOrigin } from '@/common/utils/utils'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
@@ -32,10 +32,13 @@ type MountConfigForm = Omit<MountConfig, 'patterns'> & {
   patterns: { value: string }[]
 }
 
+const emptyIntegrationValue = '@@NONE@@'
+
 const toForm = (config: MountConfig): MountConfigForm => {
   return {
     ...config,
     patterns: config.patterns.map((value) => ({ value })),
+    integration: config.integration ?? emptyIntegrationValue,
   }
 }
 
@@ -43,6 +46,8 @@ const fromForm = (form: MountConfigForm): MountConfig => {
   return {
     ...form,
     patterns: form.patterns.map(({ value }) => value),
+    integration:
+      form.integration === emptyIntegrationValue ? undefined : form.integration,
   }
 }
 
@@ -53,7 +58,7 @@ interface MountConfigEditorProps {
 export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
   const { t } = useTranslation()
   const { updateConfig, addConfig } = useMountConfig()
-
+  const { policies } = useXPathPolicyStore()
   const goBack = useGoBack()
 
   const isEdit = mode === 'edit'
@@ -160,11 +165,15 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
                 fullWidth
                 helperText={t('configPage.editor.helper.integration')}
               >
-                {IntegrationList.map((integration) => (
-                  <MenuItem value={integration.value} key={integration.label}>
-                    {t(integration.label)}
+                {policies.map((policy) => (
+                  <MenuItem value={policy.id} key={policy.id}>
+                    {policy.name}
                   </MenuItem>
                 ))}
+                {/*  Extra menu item for 'none', the special string is converted to undefined */}
+                <MenuItem value={emptyIntegrationValue}>
+                  {t('integration.type.None')}
+                </MenuItem>
               </TextField>
             )}
           />

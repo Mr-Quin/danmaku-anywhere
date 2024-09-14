@@ -1,4 +1,3 @@
-import type { IntegrationType } from '@/common/danmaku/enums'
 import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
@@ -33,7 +32,7 @@ export class TitleMappingService {
     return count > 0
   }
 
-  async getMappedTitle(key: string, integration: IntegrationType) {
+  async getMappedTitle(key: string, integration: string) {
     const mapping = await this.db.get({ originalTitle: key, integration })
     return mapping
   }

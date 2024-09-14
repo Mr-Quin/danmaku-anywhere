@@ -3,7 +3,6 @@ import { create } from 'zustand'
 
 import type { PlaybackStatus } from '../danmaku/integration/MediaObserver'
 
-import { IntegrationType } from '@/common/danmaku/enums'
 import type { Danmaku, DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { danmakuToString } from '@/common/danmaku/utils'
 import { createSelectors } from '@/common/utils/createSelectors'
@@ -56,8 +55,8 @@ interface StoreState {
   /**
    * The active integration observer for pages with integration
    */
-  integration: IntegrationType
-  setIntegration: (integration?: IntegrationType) => void
+  integration?: string
+  setIntegration: (integration?: string) => void
 
   /**
    * Reset media related state
@@ -114,7 +113,7 @@ const useStoreBase = create<StoreState>((set, get) => ({
   danmakuLite: undefined,
   setDanmakuLite: (danmakuLite) => set({ danmakuLite }),
 
-  integration: IntegrationType.None,
+  integration: undefined,
   setIntegration: (integration) => set({ integration }),
 
   resetMediaState: (mediaInfo) => {

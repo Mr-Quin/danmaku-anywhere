@@ -1,4 +1,5 @@
 import { Logger } from '../../Logger'
+import type { ExtStorageType } from '../../storage/ExtStorageService'
 import { ExtStorageService } from '../../storage/ExtStorageService'
 
 import { migrateOptions } from './migrationOptions'
@@ -12,10 +13,11 @@ export class OptionsService<T extends OptionsSchema> {
 
   constructor(
     private key: string,
-    private defaultOptions: T
+    private defaultOptions: T,
+    storageType: ExtStorageType = 'sync'
   ) {
     this.storageService = new ExtStorageService<Options<T>>(key, {
-      storageType: 'sync',
+      storageType,
     })
     this.logger = Logger.sub('[OptionsService]').sub(`[${key}]`)
   }
