@@ -1,8 +1,8 @@
 export enum DanmakuSourceType {
-  Custom,
-  DanDanPlay,
-  Bilibili,
-  Tencent,
+  Custom = 'Custom',
+  DanDanPlay = 'DanDanPlay',
+  Bilibili = 'Bilibili',
+  Tencent = 'Tencent',
 }
 
 export type RemoteDanmakuSourceType = Exclude<
@@ -10,26 +10,20 @@ export type RemoteDanmakuSourceType = Exclude<
   DanmakuSourceType.Custom
 >
 
-export const danmakuSourceTypeList = Object.values(DanmakuSourceType).filter(
-  (e): e is DanmakuSourceType => typeof e === 'number'
-)
+export const danmakuSourceTypeList: DanmakuSourceType[] = [
+  DanmakuSourceType.Custom,
+  DanmakuSourceType.DanDanPlay,
+  DanmakuSourceType.Bilibili,
+  DanmakuSourceType.Tencent,
+]
 
 export function localizedDanmakuSourceType(type: DanmakuSourceType): string {
-  switch (type) {
-    case DanmakuSourceType.Custom:
-      return 'danmaku.type.Custom'
-    case DanmakuSourceType.DanDanPlay:
-      return 'danmaku.type.DanDanPlay'
-    case DanmakuSourceType.Bilibili:
-      return 'danmaku.type.Bilibili'
-    case DanmakuSourceType.Tencent:
-      return 'danmaku.type.Tencent'
-  }
+  return `danmaku.type.${type}`
 }
 
 export enum IntegrationType {
-  None,
-  Plex,
+  None = 'None',
+  Plex = 'Plex',
 }
 
 export type IntegrationTypeNotNone = Exclude<
@@ -48,13 +42,6 @@ export function assertHasIntegration(
 export const hasIntegration = (
   type: IntegrationType
 ): type is IntegrationTypeNotNone => type !== IntegrationType.None
-
-export const getIntegrationLabel = (type: IntegrationType) =>
-  IntegrationType[type]
-
-export const integrationTypeList = Object.values(IntegrationType).filter(
-  (e): e is IntegrationType => typeof e === 'number'
-)
 
 export const IntegrationList = [
   {

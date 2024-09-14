@@ -128,7 +128,7 @@ mountConfigService
   .version(3, {
     upgrade: (data: PrevOptions) =>
       data.map((config: PrevOptions) =>
-        produce(config, (draft: any) => {
+        produce(config, (draft: PrevOptions) => {
           // add id field
           draft.id = getRandomUUID()
           // add integration field
@@ -136,6 +136,19 @@ mountConfigService
             draft.integration = IntegrationType.Plex
           } else {
             draft.integration = IntegrationType.None
+          }
+        })
+      ),
+  })
+  .version(4, {
+    upgrade: (data: PrevOptions) =>
+      data.map((config: PrevOptions) =>
+        produce(config, (draft: PrevOptions) => {
+          // Change integration field to from number enum to string enum
+          if (draft.integration === 0) {
+            draft.integration = IntegrationType.None
+          } else if (draft.integration === 1) {
+            draft.integration = IntegrationType.Plex
           }
         })
       ),

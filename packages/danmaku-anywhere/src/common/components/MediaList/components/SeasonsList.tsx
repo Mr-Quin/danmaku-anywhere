@@ -20,8 +20,8 @@ import {
 import { MediaTypeIcon } from '@/common/components/MediaList/components/MediaTypeIcon'
 import { SeasonListItem } from '@/common/components/MediaList/components/SeasonListItem'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
+import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { UnsupportedProviderException } from '@/common/danmaku/UnsupportedProviderException'
 import { stripHtml } from '@/common/utils/utils'
 
 /*
@@ -29,7 +29,10 @@ import { stripHtml } from '@/common/utils/utils'
   so we have to cast the type using 'as'
   https://github.com/microsoft/TypeScript/issues/46899
  */
-const renderSeasonIcon = (provider: DanmakuSourceType, season: MediaSeason) => {
+const renderSeasonIcon = (
+  provider: RemoteDanmakuSourceType,
+  season: MediaSeason
+) => {
   const { icon, description, primaryText } = match(provider)
     .with(DanmakuSourceType.Bilibili, () => {
       const bilibiliSeason = season as BilibiliMediaSearchResult['data'][number]
@@ -59,9 +62,7 @@ const renderSeasonIcon = (provider: DanmakuSourceType, season: MediaSeason) => {
         primaryText: stripHtml(tencentSeason.videoInfo.title),
       }
     })
-    .otherwise((provider) => {
-      throw new UnsupportedProviderException(provider)
-    })
+    .exhaustive()
 
   return (
     <>

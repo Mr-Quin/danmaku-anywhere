@@ -103,7 +103,7 @@ export const ListboxComponent = forwardRef<
                     {groupTitle}
                   </span>
                   <DanmakuProviderChip
-                    provider={parseInt(provider) as DanmakuSourceType}
+                    provider={provider as DanmakuSourceType}
                   />
                 </ListSubheader>
               )

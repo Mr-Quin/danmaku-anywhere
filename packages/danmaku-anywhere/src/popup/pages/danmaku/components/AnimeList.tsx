@@ -63,7 +63,7 @@ const partitionDanmaku = (
       if (a.type === b.type) {
         return a.title.localeCompare(b.title)
       }
-      return a.type - b.type
+      return a.type.localeCompare(b.type)
     })
 }
 
