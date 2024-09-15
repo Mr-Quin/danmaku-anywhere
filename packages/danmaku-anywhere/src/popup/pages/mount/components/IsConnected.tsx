@@ -8,7 +8,7 @@ import { match, P } from 'ts-pattern'
 import { useIsConnected } from '@/popup/hooks/useIsConnected'
 
 export const IsConnected = ({ children }: PropsWithChildren) => {
-  const { data: isTabConnected } = useIsConnected()
+  const isTabConnected = useIsConnected()
   const { t } = useTranslation()
 
   const { data: activeTabUrl } = useSuspenseQuery({

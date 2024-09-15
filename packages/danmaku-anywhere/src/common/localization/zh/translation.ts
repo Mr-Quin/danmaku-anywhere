@@ -148,6 +148,29 @@ const pages = {
     },
     name: '装填配置',
   },
+  integrationPolicyPage: {
+    name: '适配策略',
+    editor: {
+      name: '名称',
+      titleField: '标题XPath',
+      titleRegex: '标题正则',
+      episodeNumber: '集数标题XPath',
+      episodeNumberRegex: '集数正则',
+      seasonNumber: '季数标题XPath',
+      seasonNumberRegex: '季数正则',
+      episodeTitle: '集标题XPath',
+      episodeTitleRegex: '集标题正则',
+      helper: {
+        title: '选择番剧标题的元素',
+        episodeNumber: '用来提取集数',
+        episodeTitle: '用来提取单集标题',
+      },
+      title: {
+        create: '添加适配策略',
+        edit: '编辑适配策略{{name}}',
+      },
+    },
+  },
   danmakuPage: {
     animeList: '剧集列表',
     noAnime: '没有可用的番剧',
@@ -182,8 +205,6 @@ const pages = {
   mountPage: {
     addMountConfig: '添加装填配置以启用控制器',
     instructions: '选择剧集并点击装填。',
-    manualModeOnly:
-      '此页面与“{{integration}}”适配。请先关闭自动模式以使用手动装填。',
     noActiveTab: '当前页面为空',
     noDanmaku: '弹幕列表为空',
     noDanmakuHelp: '搜索弹幕以启用控制器',
