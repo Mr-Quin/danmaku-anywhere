@@ -3,7 +3,8 @@ export class MediaInfo {
     public title: string,
     public episode = 1,
     public season?: number,
-    public episodic?: boolean
+    public episodic?: boolean,
+    public episodeTitle?: string
   ) {}
 
   key() {
@@ -15,5 +16,13 @@ export class MediaInfo {
     if (!this.episodic) return `${this.title}`
     if (this.season === undefined) return `${this.title} E${this.episode}`
     return `${this.title} S${this.season}E${this.episode}`
+  }
+
+  equals(other: MediaInfo) {
+    return (
+      this.title === other.title &&
+      this.episode === other.episode &&
+      this.season === other.season
+    )
   }
 }

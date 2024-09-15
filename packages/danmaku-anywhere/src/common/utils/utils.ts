@@ -145,3 +145,26 @@ export const stripHtml = (html: string) => {
   const doc = new DOMParser().parseFromString(html, 'text/html')
   return doc.body.textContent || ''
 }
+
+export const getElementByXpath = (path: string, parent = window.document) => {
+  return document.evaluate(
+    path,
+    parent,
+    null,
+    XPathResult.FIRST_ORDERED_NODE_TYPE,
+    null
+  ).singleNodeValue
+}
+
+export const getFirstElement = (
+  selectors: string[],
+  parent = window.document
+) => {
+  for (const p of selectors) {
+    const element = getElementByXpath(p, parent)
+    if (element) {
+      return element
+    }
+  }
+  return null
+}

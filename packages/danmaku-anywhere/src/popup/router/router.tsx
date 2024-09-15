@@ -14,6 +14,8 @@ import { Permissions } from '../pages/options/pages/Permissions'
 import { FilterPage } from '../pages/styles/FilterPage'
 import { StylesPage } from '../pages/styles/StylesPage'
 
+import { IntegrationPolicy } from '@/popup/pages/integrationPolicy/pages/IntegrationPolicy'
+import { IntegrationPolicyEditor } from '@/popup/pages/integrationPolicy/pages/IntegrationPolicyEditor'
 import { BilibiliOptions } from '@/popup/pages/options/pages/danmakuSource/pages/BilibiliOptions'
 import { DanDanPlayOptions } from '@/popup/pages/options/pages/danmakuSource/pages/DanDanPlayOptions'
 import { ThemeOptions } from '@/popup/pages/options/pages/theme/ThemeOptions'
@@ -83,6 +85,20 @@ export const router = createHashRouter([
           {
             path: 'upload',
             Component: ImportPage,
+          },
+        ],
+      },
+      {
+        path: 'integration-policy',
+        Component: IntegrationPolicy,
+        children: [
+          {
+            path: 'add',
+            element: <IntegrationPolicyEditor mode="add" />,
+          },
+          {
+            path: 'edit',
+            element: <IntegrationPolicyEditor mode="edit" />,
           },
         ],
       },

@@ -184,8 +184,6 @@ const pages = {
     addMountConfig: 'Add a mount configuration to enable the controller',
     instructions:
       'Select an episode and click Mount to inject it into the current tab.',
-    manualModeOnly:
-      'This page has integration with "{{integration}}". Turn off auto mode first to use manual mounting.',
     noActiveTab: 'No active tab',
     noDanmaku: 'No danmaku found',
     noDanmakuHelp: 'Search and danmaku to enable the controller',

@@ -54,6 +54,12 @@ export const Home = () => {
             component={Link}
           />
           <Tab
+            label={t('tabs.integrationPolicy')}
+            value="/integration-policy"
+            to="/integration-policy"
+            component={Link}
+          />
+          <Tab
             label={t('tabs.config')}
             value="/config"
             to="/config"

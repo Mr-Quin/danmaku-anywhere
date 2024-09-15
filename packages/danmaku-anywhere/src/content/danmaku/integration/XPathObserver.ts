@@ -1,77 +1,104 @@
 import { Logger } from '@/common/Logger'
 import type { XPathPolicy } from '@/common/options/xpathPolicyStore/schema'
+import { getFirstElement } from '@/common/utils/utils'
 import { MediaInfo } from '@/content/danmaku/integration/MediaInfo'
 import { MediaObserver } from '@/content/danmaku/integration/MediaObserver'
 
-const getElementByXpath = (path: string, parent = window.document) => {
-  return document.evaluate(
-    path,
-    parent,
-    null,
-    XPathResult.FIRST_ORDERED_NODE_TYPE,
-    null
-  ).singleNodeValue
-}
+export const parseNumber = (text: string, regex: string) => {
+  const match = text.match(new RegExp(regex, 'i'))
 
-const getFirstElement = (selectors: string[], parent = window.document) => {
-  for (const p of selectors) {
-    const element = getElementByXpath(p, parent)
-    if (element) {
-      return element
-    }
-  }
-  return null
-}
-
-const parseNumber = (text: string, regex?: string) => {
-  if (regex) {
-    const match = text.match(new RegExp(regex, 'ig'))
-
-    if (match === null) {
-      throw new Error(`Regex ${regex} does not match text \`${text}\``)
-    }
-
-    const parsed = parseInt(match[0])
-
-    if (isNaN(parsed)) {
-      throw new Error(
-        `Matched \`${match}\` in \`${text}\` using ${regex}, but parsing it as number resulted in NaN`
-      )
-    }
-
-    return parsed
+  if (match === null) {
+    throw new Error(`Regex ${regex} does not match text \`${text}\``)
   }
 
-  const parsed = parseInt(text)
+  // Prefer the first capture group if it exists
+  const parseIndex = match[1] ? 1 : 0
+  const parsed = parseInt(match[parseIndex])
 
   if (isNaN(parsed)) {
-    throw new Error(`Parsing \`${text}\` resulted in NaN`)
+    throw new Error(
+      `Matched \`${match}\` in \`${text}\` using ${regex}, but parsing at index ${parseIndex} as number resulted in NaN`
+    )
   }
+
   return parsed
 }
 
-const getMediaInfo = (elements: MediaElements, policy: XPathPolicy) => {
-  const title = elements.title.textContent
+export const parseString = (text: string, regex: string) => {
+  const match = text.match(new RegExp(regex, 'i'))
 
-  if (!title) return
+  if (match === null) {
+    throw new Error(`Regex ${regex} does not match text \`${text}\``)
+  }
+
+  // Prefer the first capture group if it exists
+  return match[1] ?? match[0]
+}
+
+const parseMultipleRegex = <T>(
+  parser: (text: string, regex: string) => T,
+  text: string,
+  regex: string[]
+): T => {
+  const errors: string[] = []
+
+  for (const reg of regex) {
+    try {
+      return parser(text, reg)
+    } catch (err) {
+      if (err instanceof Error) {
+        errors.push(err.message)
+      }
+    }
+  }
+
+  throw new Error(errors.join('\n'))
+}
+
+const getMediaInfo = (elements: MediaElements, policy: XPathPolicy) => {
+  const titleText = elements.title.textContent
+
+  if (!titleText) return
+
+  const title = parseMultipleRegex(parseString, titleText, policy.title.regex)
 
   // Default to 1 if the element is not present
   let season = 1
   let episode = 1
+  let episodic = false
+  let episodeTitle = undefined
 
   // If the episode element is not present, assume it's a movie or something that doesn't have episodes
-  if (elements.episode?.textContent) {
-    const episodeText = elements.episode.textContent
-    episode = parseNumber(episodeText, policy.episodeRegex)
+  if (elements.episodeNumber?.textContent) {
+    const episodeText = elements.episodeNumber.textContent
+    episode = parseMultipleRegex(
+      parseNumber,
+      episodeText,
+      policy.episodeNumber.regex
+    )
+    episodic = true
   }
 
   // Same assumption as above
-  if (elements.season?.textContent) {
-    const seasonText = elements.season.textContent
-    season = parseNumber(seasonText, policy.seasonRegex)
+  if (elements.seasonNumber?.textContent) {
+    const seasonText = elements.seasonNumber.textContent
+    season = parseMultipleRegex(
+      parseNumber,
+      seasonText,
+      policy.seasonNumber.regex
+    )
   }
 
-  return new MediaInfo(title, episode, season)
+  if (elements.episodeTitle?.textContent) {
+    const episodeTitleText = elements.episodeTitle.textContent
+    episodeTitle = parseMultipleRegex(
+      parseString,
+      episodeTitleText,
+      policy.episodeTitle.regex
+    )
+  }
+
+  return new MediaInfo(title, episode, season, episodic, episodeTitle)
 }
 
 const createTextMutationObserver = (
@@ -86,8 +113,20 @@ const createTextMutationObserver = (
           onTextChange(text)
         }
       }
+      // see if the added node is a text node
+      if (mutation.type === 'childList') {
+        for (const addedNode of mutation.addedNodes) {
+          if (addedNode.nodeType === Node.TEXT_NODE) {
+            const text = addedNode.textContent
+            if (text) {
+              onTextChange(text)
+            }
+          }
+        }
+      }
     }
   })
+
   observer.observe(element, {
     characterData: true,
     childList: true,
@@ -117,18 +156,18 @@ const createRemovalMutationObserver = (element: Node, onRemove: () => void) => {
   return observer
 }
 
-type MonitoredElements = 'title' | 'episode' | 'season'
-
 interface MediaElements {
   title: Node
-  episode: Node | null
-  season: Node | null
+  episodeNumber: Node | null
+  seasonNumber: Node | null
+  episodeTitle: Node | null
 }
 
 export class XPathObserver extends MediaObserver {
   private interval?: NodeJS.Timeout
   private logger = Logger.sub('[XPathObserver]')
-  private observerMap = new Map<MonitoredElements, MutationObserver>()
+  private observerMap = new Map<string, MutationObserver>()
+  private mediaInfo?: MediaInfo
 
   constructor(public policy: XPathPolicy) {
     super()
@@ -152,13 +191,14 @@ export class XPathObserver extends MediaObserver {
       }
 
       try {
-        const titleElement = getFirstElement(this.policy.title)
+        const titleElement = getFirstElement(this.policy.title.selector)
         if (titleElement) {
           clearInterval(this.interval)
           resolve({
             title: titleElement,
-            episode: getFirstElement(this.policy.episode),
-            season: getFirstElement(this.policy.season),
+            episodeNumber: getFirstElement(this.policy.episodeNumber.selector),
+            seasonNumber: getFirstElement(this.policy.seasonNumber.selector),
+            episodeTitle: getFirstElement(this.policy.episodeTitle.selector),
           })
         }
       } catch (err) {
@@ -173,6 +213,12 @@ export class XPathObserver extends MediaObserver {
     try {
       const mediaInfo = getMediaInfo(elements, this.policy)
       if (mediaInfo) {
+        // Only update if the media info has changed
+        if (this.mediaInfo?.equals(mediaInfo)) {
+          return
+        }
+        this.logger.debug('Media info changed:', mediaInfo)
+        this.mediaInfo = mediaInfo
         this.emit('mediaChange', mediaInfo)
       }
     } catch (err) {
@@ -183,35 +229,16 @@ export class XPathObserver extends MediaObserver {
   private async asyncSetup() {
     this.logger.debug('Discovering elements')
     const elements = await this.discoverElements()
-    this.logger.debug('Elements discovered, setting up observers', elements)
+    this.logger.debug('Elements discovered, setting up observers')
 
-    this.observerMap.set(
-      'title',
-      createTextMutationObserver(elements.title, (text) => {
-        this.emit('titleChange', text)
-        this.updateMediaInfo(elements)
-      })
-    )
-
-    if (elements.episode) {
-      this.observerMap.set(
-        'episode',
-        createTextMutationObserver(elements.episode, (text) => {
-          this.emit('episodeChange', parseInt(text))
+    // Observe each element for text changes
+    ;(Object.keys(elements) as (keyof typeof elements)[]).forEach((key) => {
+      if (elements[key]) {
+        createTextMutationObserver(elements[key], (text) => {
           this.updateMediaInfo(elements)
         })
-      )
-    }
-
-    if (elements.season) {
-      this.observerMap.set(
-        'season',
-        createTextMutationObserver(elements.season, (text) => {
-          this.emit('seasonChange', parseInt(text))
-          this.updateMediaInfo(elements)
-        })
-      )
-    }
+      }
+    })
 
     this.updateMediaInfo(elements)
 
