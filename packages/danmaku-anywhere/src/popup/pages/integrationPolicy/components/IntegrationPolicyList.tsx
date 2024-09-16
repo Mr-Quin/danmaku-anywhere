@@ -9,7 +9,7 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
-import type { XPathPolicyItem } from '@/common/options/integrationPolicyStore/schema'
+import type { IntegrationPolicyItem } from '@/common/options/integrationPolicyStore/schema'
 import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
 import { tryCatch } from '@/common/utils/utils'
 import { DrilldownMenu } from '@/popup/component/DrilldownMenu'
@@ -18,13 +18,13 @@ export const IntegrationPolicyList = ({
   onEdit,
   onDelete,
 }: {
-  onEdit: (config: XPathPolicyItem) => void
-  onDelete: (config: XPathPolicyItem) => void
+  onEdit: (config: IntegrationPolicyItem) => void
+  onDelete: (config: IntegrationPolicyItem) => void
 }) => {
   const { t } = useTranslation()
   const { policies } = useIntegrationPolicyStore()
 
-  const copyToClipboard = async (policy: XPathPolicyItem) => {
+  const copyToClipboard = async (policy: IntegrationPolicyItem) => {
     await tryCatch(() =>
       navigator.clipboard.writeText(JSON.stringify(policy, null, 2))
     )

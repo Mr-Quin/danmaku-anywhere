@@ -27,30 +27,21 @@ const xpathSelector = z
     return val
   })
 
-const regexString = (defaultValue: string) =>
-  z.preprocess((arg) => {
-    if (typeof arg === 'string' && arg === '') {
-      return undefined
-    } else {
-      return arg
+const regexString = z.string().optional().default('')
+
+const regexStringArray = () =>
+  z.union([z.array(regexString), regexString]).transform((val) => {
+    if (typeof val === 'string') {
+      return [val]
     }
-  }, z.string().optional().default(defaultValue))
+    return val
+  })
 
-const regexStringArray = (defaultValue: string) =>
-  z
-    .union([z.array(regexString(defaultValue)), regexString(defaultValue)])
-    .transform((val) => {
-      if (typeof val === 'string') {
-        return [val]
-      }
-      return val
-    })
-
-export const xpathPolicySchema = z.object({
+export const integrationPolicySchema = z.object({
   // Used to search for danmaku, must be present
   title: z.object({
     selector: xpathSelector,
-    regex: regexStringArray('.+'),
+    regex: regexStringArray(),
   }),
   // If true, only the title is used to parse media information
   // This is for cases where the title contains all the necessary information, e.g. file name
@@ -60,29 +51,29 @@ export const xpathPolicySchema = z.object({
   // Optional, default to 1
   episodeNumber: z.object({
     selector: xpathSelector,
-    regex: regexStringArray('\\d+'),
+    regex: regexStringArray(),
   }),
   // Reserved
   // Not used for now because season number is typically part of the title
   // Optional, default to 1
   seasonNumber: z.object({
     selector: xpathSelector,
-    regex: regexStringArray('\\d+'),
+    regex: regexStringArray(),
   }),
   // Used to help determine the correct episode in the search results
   // Optional
   episodeTitle: z.object({
     selector: xpathSelector,
-    regex: regexStringArray('.+'),
+    regex: regexStringArray(),
   }),
 })
 
-export type XPathPolicy = z.infer<typeof xpathPolicySchema>
+export type IntegrationPolicy = z.infer<typeof integrationPolicySchema>
 
-export const xpathPolicyItemSchema = z.object({
+export const integrationPolicyItemSchema = z.object({
   name: z.string().min(1),
-  policy: xpathPolicySchema,
+  policy: integrationPolicySchema,
   id: z.string().uuid().optional().default(getRandomUUID),
 })
 
-export type XPathPolicyItem = z.infer<typeof xpathPolicyItemSchema>
+export type IntegrationPolicyItem = z.infer<typeof integrationPolicyItemSchema>

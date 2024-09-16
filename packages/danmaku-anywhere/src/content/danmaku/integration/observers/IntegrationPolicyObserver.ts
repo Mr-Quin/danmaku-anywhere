@@ -1,5 +1,5 @@
 import { Logger } from '@/common/Logger'
-import type { XPathPolicy } from '@/common/options/integrationPolicyStore/schema'
+import type { IntegrationPolicy } from '@/common/options/integrationPolicyStore/schema'
 import { getFirstElement } from '@/common/utils/utils'
 import { MediaInfo } from '@/content/danmaku/integration/models/MediaInfo'
 import { MediaObserver } from '@/content/danmaku/integration/observers/MediaObserver'
@@ -23,7 +23,7 @@ type MediaElementsText = {
 
 export const parseMediaInfo = (
   elements: MediaElementsText,
-  policy: XPathPolicy
+  policy: IntegrationPolicy
 ) => {
   const titleText = elements.title
 
@@ -146,7 +146,7 @@ export class IntegrationPolicyObserver extends MediaObserver {
   private observerMap = new Map<string, MutationObserver>()
   private mediaInfo?: MediaInfo
 
-  constructor(public policy: XPathPolicy) {
+  constructor(public policy: IntegrationPolicy) {
     super()
   }
 

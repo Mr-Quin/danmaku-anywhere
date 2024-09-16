@@ -6,16 +6,16 @@ import { IntegrationPolicyList } from '../components/IntegrationPolicyList'
 import { Toolbar } from '../components/Toolbar'
 
 import { createXPathPolicy } from '@/common/options/integrationPolicyStore/consant'
-import type { XPathPolicyItem } from '@/common/options/integrationPolicyStore/schema'
+import type { IntegrationPolicyItem } from '@/common/options/integrationPolicyStore/schema'
 import { TabLayout } from '@/popup/layout/TabLayout'
 
 export const IntegrationPolicy = () => {
   const navigate = useNavigate()
 
-  const [editingPolicy, setEditingPolicy] = useState<XPathPolicyItem>()
+  const [editingPolicy, setEditingPolicy] = useState<IntegrationPolicyItem>()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
-  const handleEdit = (item: XPathPolicyItem) => {
+  const handleEdit = (item: IntegrationPolicyItem) => {
     navigate('edit', { state: item })
   }
 
@@ -23,7 +23,7 @@ export const IntegrationPolicy = () => {
     navigate('add', { state: { name: '', policy: createXPathPolicy() } })
   }
 
-  const handleDelete = (item: XPathPolicyItem) => {
+  const handleDelete = (item: IntegrationPolicyItem) => {
     setEditingPolicy(item)
     setShowDeleteDialog(true)
   }
