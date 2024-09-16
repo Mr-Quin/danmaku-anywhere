@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -10,11 +10,17 @@ import { useActiveIntegration } from '@/common/options/integrationPolicyStore/us
 import { useMatchEpisode } from '@/content/danmaku/integration/hooks/useMatchEpisode'
 import type { MediaInfo } from '@/content/danmaku/integration/models/MediaInfo'
 import { IntegrationPolicyObserver } from '@/content/danmaku/integration/observers/IntegrationPolicyObserver'
+import { useMediaElementStore } from '@/content/store/mediaElementStore'
 
 export const useIntegrationPolicy = () => {
   const { t } = useTranslation()
 
   const { toast } = useToast()
+
+  const { videoNode } = useMediaElementStore()
+  const [observer, setObserver] = useState<IntegrationPolicyObserver | null>(
+    null
+  )
 
   const { setMediaInfo, resetMediaState, toggleManualMode, manual } = useStore(
     useShallow((state) => state)
@@ -26,6 +32,13 @@ export const useIntegrationPolicy = () => {
   useEffect(() => {
     if (!integrationPolicy || manual) {
       toggleManualMode(true)
+      resetMediaState()
+      setObserver(null)
+      return
+    }
+
+    if (!videoNode) {
+      observer?.reset()
       return
     }
 
@@ -35,9 +48,10 @@ export const useIntegrationPolicy = () => {
     )
     Logger.debug(`Using integration: ${integrationPolicy.name}`)
 
-    const observer = new IntegrationPolicyObserver(integrationPolicy.policy)
+    const obs = new IntegrationPolicyObserver(integrationPolicy.policy)
+    setObserver(obs)
 
-    observer.on({
+    obs.on({
       mediaChange: async (state: MediaInfo) => {
         resetMediaState()
         setMediaInfo(state)
@@ -52,8 +66,11 @@ export const useIntegrationPolicy = () => {
       },
     })
 
-    observer.setup()
+    obs.setup()
 
-    return () => observer.destroy()
-  }, [integrationPolicy, manual])
+    return () => {
+      obs.destroy()
+      setObserver(null)
+    }
+  }, [integrationPolicy, manual, videoNode])
 }
