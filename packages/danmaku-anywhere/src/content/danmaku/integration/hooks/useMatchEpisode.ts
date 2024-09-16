@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { useLoadDanmaku } from '@/content/common/hooks/useLoadDanmaku'
 import { PopupTab, usePopup } from '@/content/store/popupStore'
 import { useStore } from '@/content/store/store'
 
@@ -14,11 +14,9 @@ export const useMatchEpisode = () => {
   const toast = useToast.use.toast()
   const { open, setAnimes } = usePopup()
 
-  const { setDanmakuLite, setComments, resetMediaState } = useStore(
-    useShallow((state) => state)
-  )
+  const { resetMediaState } = useStore(useShallow((state) => state))
 
-  const fetchDanmakuMutation = useFetchDanmaku()
+  const fetchDanmakuMutation = useLoadDanmaku()
 
   const mutation = useMutation({
     mutationFn: chromeRpcClient.episodeMatch,
@@ -44,10 +42,6 @@ export const useMatchEpisode = () => {
               },
             },
             {
-              onSuccess: (result) => {
-                setDanmakuLite(result)
-                setComments(result.comments)
-              },
               onError: () => {
                 resetMediaState()
                 toast.error(
