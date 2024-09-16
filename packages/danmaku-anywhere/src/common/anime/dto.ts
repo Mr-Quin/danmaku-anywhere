@@ -53,8 +53,7 @@ export type TencentEpisode = TencentEpisodeListItem
 export interface MatchEpisodeInput {
   mapKey: string
   title: string
-  episodeNumber: number
-  integration: string
+  episodeNumber?: number
 }
 
 export type MatchEpisodeResult =

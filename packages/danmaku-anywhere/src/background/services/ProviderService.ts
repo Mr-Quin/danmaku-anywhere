@@ -82,7 +82,7 @@ export class ProviderService {
 
       const episodeId = this.danDanPlayService.computeEpisodeId(
         mapping.animeId,
-        episodeNumber
+        episodeNumber ?? 1
       )
       const episodeTitle = await this.danDanPlayService.getEpisodeTitle(
         mapping.animeId,
@@ -109,7 +109,7 @@ export class ProviderService {
     this.logger.debug('No mapping found, searching for season')
     const searchResult = await this.searchDanDanPlay({
       keyword: title,
-      episode: episodeNumber.toString(),
+      episode: episodeNumber?.toString(),
     })
 
     if (searchResult.data.length === 0) {
