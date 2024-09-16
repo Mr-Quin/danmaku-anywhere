@@ -58,8 +58,7 @@ export const useIntegrationPolicy = () => {
         const episodeMatchPayload = {
           mapKey: state.key(),
           title: state.title,
-          episodeNumber: state.episode,
-          integration: config.integration,
+          episodeNumber: state.episodic ? state.episode : undefined,
         }
 
         matchEpisode.mutate(episodeMatchPayload)
