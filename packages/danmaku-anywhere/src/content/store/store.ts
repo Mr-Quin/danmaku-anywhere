@@ -1,8 +1,6 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { create } from 'zustand'
 
-import type { PlaybackStatus } from '../danmaku/integration/observers/MediaObserver'
-
 import type { Danmaku, DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { danmakuToString } from '@/common/danmaku/utils'
 import { createSelectors } from '@/common/utils/createSelectors'
@@ -26,12 +24,6 @@ interface StoreState {
   unsetComments: () => void
 
   /**
-   * The current video playback status
-   */
-  playbackStatus: PlaybackStatus
-  setPlaybackStatus: (status: PlaybackStatus) => void
-
-  /**
    * Information about the current danmaku
    */
   danmakuLite?: DanmakuLite
@@ -51,12 +43,6 @@ interface StoreState {
   toggleManualMode: (manual?: boolean) => void
   mountManual: (danmaku: Danmaku) => void
   unmountManual: () => void
-
-  /**
-   * The active integration observer for pages with integration
-   */
-  integration?: string
-  setIntegration: (integration?: string) => void
 
   /**
    * Reset media related state
@@ -107,14 +93,8 @@ const useStoreBase = create<StoreState>((set, get) => ({
   mediaInfo: undefined,
   setMediaInfo: (mediaInfo) => set({ mediaInfo }),
 
-  playbackStatus: 'stopped',
-  setPlaybackStatus: (status) => set({ playbackStatus: status }),
-
   danmakuLite: undefined,
   setDanmakuLite: (danmakuLite) => set({ danmakuLite }),
-
-  integration: undefined,
-  setIntegration: (integration) => set({ integration }),
 
   resetMediaState: (mediaInfo) => {
     get().unsetComments()

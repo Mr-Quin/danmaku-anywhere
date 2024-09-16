@@ -27,7 +27,7 @@ import { useStore } from '../../../store/store'
 
 import { getDanDanPlayMediaIcon } from '@/common/components/MediaList/components/makeIcon'
 import { MediaTypeIcon } from '@/common/components/MediaList/components/MediaTypeIcon'
-import { DanmakuSourceType, hasIntegration } from '@/common/danmaku/enums'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { useLoadDanmaku } from '@/content/common/hooks/useLoadDanmaku'
 
 export const SelectorPanel = () => {
@@ -35,7 +35,6 @@ export const SelectorPanel = () => {
   const selectorBoxRef = useRef<HTMLDivElement>()
   const { animes, saveMapping, setSaveMapping, toggleOpen } = usePopup()
   const mediaInfo = useStore((state) => state.mediaInfo)
-  const integration = useStore((state) => state.integration)
 
   const [selectedAnime, setSelectedAnime] = useState<DanDanAnime>()
   const [selectedEpisode, setSelectedEpisode] = useState<DanDanEpisode>()
@@ -57,10 +56,9 @@ export const SelectorPanel = () => {
     if (!selectedAnime || !selectedEpisode) return
 
     const context =
-      mediaInfo && saveMapping && hasIntegration(integration)
+      mediaInfo && saveMapping
         ? {
             key: mediaInfo.key(),
-            integration,
           }
         : undefined
     mutate(

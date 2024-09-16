@@ -22,7 +22,7 @@ export const FloatingPanelToolbar = () => {
   const { t } = useTranslation()
   const isAnyLoading = useAnyLoading()
   const { toggleOpen } = usePopup()
-  const { toggleManualMode, manual, integration, danmakuLite } = useStore()
+  const { toggleManualMode, manual, danmakuLite } = useStore()
 
   return (
     <AppBar position="relative">
@@ -41,24 +41,30 @@ export const FloatingPanelToolbar = () => {
             )
           }
         >
-          <Typography>{integration}</Typography>
-          <FormControlLabel
-            control={
-              <StyledEnableSwitch
-                checked={!manual}
-                onChange={() => toggleManualMode()}
-                size="small"
-              />
-            }
-            label={t('integration.autoMode')}
-            labelPlacement="top"
-            slotProps={{
-              typography: {
-                variant: 'caption',
-              },
-            }}
-            sx={{ m: 0 }}
-          />
+          {(integrationPolicy) => {
+            return (
+              <>
+                <Typography>{integrationPolicy.name}</Typography>
+                <FormControlLabel
+                  control={
+                    <StyledEnableSwitch
+                      checked={!manual}
+                      onChange={() => toggleManualMode()}
+                      size="small"
+                    />
+                  }
+                  label={t('integration.autoMode')}
+                  labelPlacement="top"
+                  slotProps={{
+                    typography: {
+                      variant: 'caption',
+                    },
+                  }}
+                  sx={{ m: 0 }}
+                />
+              </>
+            )
+          }}
         </HasIntegration>
         <IconButton
           edge="end"

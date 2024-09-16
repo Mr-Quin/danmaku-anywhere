@@ -20,6 +20,3 @@ export const danmakuSourceTypeList: DanmakuSourceType[] = [
 export function localizedDanmakuSourceType(type: DanmakuSourceType): string {
   return `danmaku.type.${type}`
 }
-
-export const hasIntegration = (policy: string | undefined): policy is string =>
-  typeof policy === 'string'

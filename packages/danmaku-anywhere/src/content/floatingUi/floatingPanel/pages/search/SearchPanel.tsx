@@ -27,10 +27,8 @@ import { mediaKeys } from '@/common/anime/queries/mediaQueryKeys'
 import { Center } from '@/common/components/Center'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { SearchResultList } from '@/common/components/MediaList/SearchResultList'
-import { hasIntegration } from '@/common/danmaku/enums'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
 import { stopKeyboardPropagation } from '@/common/utils/utils'
-import { AutomaticMode } from '@/content/common/components/AutomaticMode'
 import { usePopup } from '@/content/store/popupStore'
 import { useStore } from '@/content/store/store'
 
@@ -39,7 +37,6 @@ export const SearchPanel = () => {
   const { searchTitle, saveMapping, setSearchTitle, setSaveMapping } =
     usePopup()
   const mediaInfo = useStore((state) => state.mediaInfo)
-  const integration = useStore((state) => state.integration)
 
   const { enabledProviders } = useDanmakuSources()
 
@@ -72,12 +69,10 @@ export const SearchPanel = () => {
   }
 
   const getContext = () => {
-    if (!mediaInfo || !saveMapping || !hasIntegration(integration))
-      return undefined
+    if (!mediaInfo || !saveMapping) return undefined
 
     return {
       key: mediaInfo.key(),
-      integration,
     }
   }
 
@@ -126,24 +121,22 @@ export const SearchPanel = () => {
               <Search />
             </LoadingButton>
           </Stack>
-          <AutomaticMode>
-            {!!mediaInfo && (
-              <FormControl>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      inputProps={{ 'aria-label': 'controlled' }}
-                      checked={saveMapping}
-                      onChange={(e) => {
-                        setSaveMapping(e.target.checked)
-                      }}
-                    />
-                  }
-                  label={t('searchPage.saveMapping')}
-                />
-              </FormControl>
-            )}
-          </AutomaticMode>
+          {!!mediaInfo && (
+            <FormControl>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    inputProps={{ 'aria-label': 'controlled' }}
+                    checked={saveMapping}
+                    onChange={(e) => {
+                      setSaveMapping(e.target.checked)
+                    }}
+                  />
+                }
+                label={t('searchPage.saveMapping')}
+              />
+            </FormControl>
+          )}
         </Box>
       </form>
       <ErrorBoundary

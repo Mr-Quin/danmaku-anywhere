@@ -110,7 +110,6 @@ const domain = {
       searchError: '搜索番剧失败：{{message}}',
       searchResultEmpty: '没有找到标题为 {{title}} 的番剧',
       openSearch: '打开搜索页面',
-      playing: '播放中：{{title}}',
     },
   },
   danmakuSource: {
