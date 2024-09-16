@@ -1,12 +1,12 @@
 import { produce } from 'immer'
 import { useMemo } from 'react'
 
+import type { XPathPolicyItem } from '@/common/options/integrationPolicyStore/schema'
 import type { Options } from '@/common/options/OptionsService/types'
-import type { XPathPolicyItem } from '@/common/options/xpathPolicyStore/schema'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import { createDownload } from '@/common/utils/utils'
 
-export const useXPathPolicyStore = () => {
+export const useIntegrationPolicyStore = () => {
   const {
     data,
     update: updateMutation,

@@ -1,4 +1,4 @@
-import type { MediaInfo } from '@/content/danmaku/integration/MediaInfo'
+import type { MediaInfo } from '@/content/danmaku/integration/models/MediaInfo'
 
 export type PlaybackStatus = 'playing' | 'paused' | 'stopped'
 
@@ -17,9 +17,8 @@ type Fn = (...args: any[]) => void
 
 export abstract class MediaObserver {
   private subscriptions: Map<IntegrationEventKey, Set<Fn>>
-  static observerName = '__media_observer'
 
-  constructor() {
+  protected constructor() {
     this.subscriptions = new Map()
   }
 

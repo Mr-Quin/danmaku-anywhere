@@ -148,6 +148,34 @@ const pages = {
     },
     name: 'Configs',
   },
+  integrationPolicyPage: {
+    name: 'Integration Policy',
+    editor: {
+      name: 'Name',
+      titleSection: 'Select Title',
+      titleSelector: 'Title XPath',
+      titleRegex: 'Title Regex',
+      titleOnly: 'Match title only',
+      season: 'Select Season',
+      seasonSelector: 'Season XPath',
+      seasonRegex: 'Season Regex',
+      episode: 'Select Episode',
+      episodeSelector: 'Episode XPath',
+      episodeRegex: 'Episode Regex',
+      episodeTitle: 'Select Episode Title',
+      episodeTitleSelector: 'Episode Title XPath',
+      episodeTitleRegex: 'Episode Title Regex',
+      helper: {
+        titleOnly:
+          "If checked, only the title element will be used to match the show. Useful if all information is contained in the title, e.g. if the title is the file name. Uncheck if the show's information is spread across different elements.",
+        testDisabled: 'Can only be used on pages with a Mount Config',
+      },
+      title: {
+        create: 'Add Integration Policy',
+        edit: 'Edit {{name}}',
+      },
+    },
+  },
   danmakuPage: {
     animeList: 'Anime List',
     noAnime: 'No anime available',
@@ -316,6 +344,7 @@ const pages = {
     search: 'Search',
     selector: 'Selector',
     style: 'Danmaku Settings',
+    integrationPolicy: 'Integration Policy',
   },
 }
 

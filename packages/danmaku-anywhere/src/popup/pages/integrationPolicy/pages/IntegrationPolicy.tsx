@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 
 import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog'
+import { IntegrationPolicyList } from '../components/IntegrationPolicyList'
 import { Toolbar } from '../components/Toolbar'
-import { XPathPolicyList } from '../components/XPathPolicyList'
 
-import type { XPathPolicyItem } from '@/common/options/xpathPolicyStore/schema'
+import { createXPathPolicy } from '@/common/options/integrationPolicyStore/consant'
+import type { XPathPolicyItem } from '@/common/options/integrationPolicyStore/schema'
 import { TabLayout } from '@/popup/layout/TabLayout'
 
 export const IntegrationPolicy = () => {
@@ -19,7 +20,7 @@ export const IntegrationPolicy = () => {
   }
 
   const handleAdd = () => {
-    navigate('add', { state: { policy: {} } })
+    navigate('add', { state: { name: '', policy: createXPathPolicy() } })
   }
 
   const handleDelete = (item: XPathPolicyItem) => {
@@ -31,7 +32,7 @@ export const IntegrationPolicy = () => {
     <>
       <TabLayout>
         <Toolbar onAdd={handleAdd} />
-        <XPathPolicyList onEdit={handleEdit} onDelete={handleDelete} />
+        <IntegrationPolicyList onEdit={handleEdit} onDelete={handleDelete} />
         {editingPolicy && (
           <ConfirmDeleteDialog
             policy={editingPolicy}

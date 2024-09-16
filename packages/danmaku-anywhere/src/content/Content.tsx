@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 
 import { DanmakuContainer } from './danmaku/container/DanmakuContainer'
 import { DanmakuManager } from './danmaku/danmakuManager/DanmakuManager'
-import { MediaObserver } from './danmaku/mediaObserver/MediaObserver'
+import { RegisterIntegration } from './danmaku/integration/RegisterIntegration'
 import { IconManagerComponent } from './iconManager/IconManagerComponent'
 import { useStore } from './store/store'
 import { TabRpcServer } from './tabRpc/TabRpc'
@@ -23,7 +23,7 @@ export const Content = () => {
             <DanmakuContainer />
             <DanmakuManager />
             <AutomaticMode>
-              <MediaObserver />
+              <RegisterIntegration />
             </AutomaticMode>
           </>
         )}

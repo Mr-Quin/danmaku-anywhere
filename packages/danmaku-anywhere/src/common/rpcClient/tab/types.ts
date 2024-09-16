@@ -1,26 +1,27 @@
 import type { RPCDef } from '../../rpc/types'
 
 import type { Danmaku, DanmakuLite } from '@/common/danmaku/models/danmaku'
-import type { XPathPolicyItem } from '@/common/options/xpathPolicyStore/schema'
-import type { MediaInfo } from '@/content/danmaku/integration/MediaInfo'
+import type { XPathPolicyItem } from '@/common/options/integrationPolicyStore/schema'
+import type { MediaInfo } from '@/content/danmaku/integration/models/MediaInfo'
 
 interface TabDanmakuState {
   danmaku?: DanmakuLite
   manual: boolean
 }
 
-interface IntegrationPolicyTestSingleResult {
-  found: boolean
-  text: string | null
-  parsed: string | number | null
-}
-
-export interface IntegrationPolicyTestResult {
-  title: IntegrationPolicyTestSingleResult
-  episodeNumber: IntegrationPolicyTestSingleResult
-  seasonNumber: IntegrationPolicyTestSingleResult
-  episodeTitle: IntegrationPolicyTestSingleResult
-}
+export type IntegrationPolicyTestResult =
+  | {
+      error: false
+      foundTitle: boolean
+      foundEpisode: boolean
+      foundSeason: boolean
+      foundEpisodeTitle: boolean
+      mediaInfo?: MediaInfo
+    }
+  | {
+      error: true
+      message: string
+    }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type DanmakuMethods = {
