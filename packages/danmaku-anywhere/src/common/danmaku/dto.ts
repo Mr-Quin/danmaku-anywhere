@@ -28,7 +28,6 @@ export interface DanmakuGetBySeasonDto {
 }
 
 export interface DanmakuFetchContext {
-  integration: string
   // Title mapping key
   key: string
 }

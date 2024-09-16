@@ -149,7 +149,7 @@ class DanmakuAnywhereDb extends Dexie {
           '++id, provider, episodeId, seasonId, &[provider+episodeId], [provider+seasonId]',
         manualDanmakuCache: null,
         danmakuCache: null,
-        titleMapping: '++id, originalTitle, title, integration',
+        titleMapping: '++id, originalTitle, title',
       })
       .upgrade(async (tx) => {
         const mapProvider = (provider: number) => {
@@ -172,19 +172,6 @@ class DanmakuAnywhereDb extends Dexie {
             item.meta.provider = mapProvider(item.meta.provider)
             // Update schema version
             item.schemaVersion = 3
-          })
-
-        await tx
-          .table('titleMapping')
-          .toCollection()
-          .modify((item) => {
-            const integration = item.integration as number
-
-            if (integration === 0) {
-              item.integration = 'None'
-            } else if (integration === 1) {
-              item.integration = 'Plex'
-            }
           })
       })
 

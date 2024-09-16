@@ -16,28 +16,30 @@ export class TitleMappingService {
   }
 
   async add(mapping: TitleMapping) {
-    if (await this.mappingExists(mapping)) {
+    // If mapping already exists, remove it first
+    if ((await this.count(mapping.originalTitle)) > 0) {
       this.logger.debug('Title mapping already exists:', mapping)
-      return
+      await this.remove(mapping.originalTitle)
     }
     this.logger.debug('Adding title mapping:', mapping)
     this.db.add(mapping)
   }
 
-  async mappingExists({ title, originalTitle, integration }: TitleMapping) {
-    // The originalTitle might change over time, so we need to check both title and originalTitle
-    const count = await this.db
-      .where({ title, originalTitle, integration })
-      .count()
-    return count > 0
+  async count(key: string) {
+    return this.db.where({ originalTitle: key }).count()
   }
 
-  async getMappedTitle(key: string, integration: string) {
-    const mapping = await this.db.get({ originalTitle: key, integration })
-    return mapping
+  async remove(key: string) {
+    this.logger.debug('Removing title mapping:', key)
+    await this.db.where({ originalTitle: key }).delete()
   }
 
-  async getMappingsBySource(source: string) {
-    return this.db.where({ source }).toArray()
+  async getMappedTitle(key: string) {
+    // Clean up old mappings
+    if ((await this.count(key)) > 1) {
+      await this.remove(key)
+      return
+    }
+    return this.db.get({ originalTitle: key })
   }
 }
