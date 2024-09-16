@@ -222,20 +222,23 @@ export class IntegrationPolicyObserver extends MediaObserver {
     // Observe each element for text changes
     ;(Object.keys(elements) as (keyof typeof elements)[]).forEach((key) => {
       if (elements[key]) {
-        createTextMutationObserver(elements[key], () => {
+        const observer = createTextMutationObserver(elements[key], () => {
           this.updateMediaInfo(elements)
         })
+        this.observerMap.set(key, observer)
       }
     })
 
     this.updateMediaInfo(elements)
 
     // When the title element is removed, rerun setup
-    createRemovalMutationObserver(elements.title, () => {
+    const observer = createRemovalMutationObserver(elements.title, () => {
       this.logger.debug('Title element removed, rerunning setup')
       this.destroy()
       this.setup()
     })
+
+    this.observerMap.set('removal', observer)
   }
 
   setup() {
@@ -244,6 +247,12 @@ export class IntegrationPolicyObserver extends MediaObserver {
 
   destroy() {
     clearInterval(this.interval)
+    this.logger.debug('Destroying observers')
     this.observerMap.forEach((observer) => observer.disconnect())
+    this.observerMap.clear()
+  }
+
+  reset() {
+    this.mediaInfo = undefined
   }
 }
