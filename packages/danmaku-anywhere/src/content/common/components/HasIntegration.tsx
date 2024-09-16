@@ -1,16 +1,17 @@
-import type { PropsWithChildren, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
-import { hasIntegration } from '@/common/danmaku/enums'
-import { useStore } from '@/content/store/store'
+import type { IntegrationPolicyItem } from '@/common/options/integrationPolicyStore/schema'
+import { useActiveIntegration } from '@/common/options/integrationPolicyStore/useActiveIntegration'
 
-type HasIntegrationProps = PropsWithChildren & {
+interface HasIntegrationProps {
   fallback?: ReactNode
+  children: (integrationPolicy: IntegrationPolicyItem) => ReactNode
 }
 
 export const HasIntegration = ({ children, fallback }: HasIntegrationProps) => {
-  const integration = useStore((state) => state.integration)
+  const integrationPolicy = useActiveIntegration()
 
-  if (!hasIntegration(integration)) return fallback
+  if (!integrationPolicy) return fallback
 
-  return children
+  return children(integrationPolicy)
 }

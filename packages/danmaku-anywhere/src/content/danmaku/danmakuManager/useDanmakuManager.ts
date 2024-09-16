@@ -21,9 +21,9 @@ export const useDanmakuManager = () => {
   const { videoNode, containerNode, videoSrc } = useMediaElementStore()
   const { canRefresh, refreshComments } = useRefreshComments()
 
-  const { comments, playbackStatus, hasComments, resetMediaState } = useStore(
-    useShallow(({ comments, playbackStatus, hasComments, resetMediaState }) => {
-      return { comments, playbackStatus, hasComments, resetMediaState }
+  const { comments, hasComments, resetMediaState } = useStore(
+    useShallow(({ comments, hasComments, resetMediaState }) => {
+      return { comments, hasComments, resetMediaState }
     })
   )
 
@@ -59,16 +59,6 @@ export const useDanmakuManager = () => {
       resetMediaState()
     }
   }, [videoNode])
-
-  // in automatic mode, destroy danmaku when playback is stopped
-  useEffect(() => {
-    if (!danmakuEngine.created) return
-
-    if (playbackStatus === 'stopped') {
-      Logger.debug('Destroying danmaku')
-      danmakuEngine.destroy()
-    }
-  }, [playbackStatus])
 
   useEffect(() => {
     if (!danmakuEngine.created) return

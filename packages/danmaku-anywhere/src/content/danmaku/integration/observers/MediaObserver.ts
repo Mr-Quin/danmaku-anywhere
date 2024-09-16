@@ -1,13 +1,10 @@
 import type { MediaInfo } from '@/content/danmaku/integration/models/MediaInfo'
 
-export type PlaybackStatus = 'playing' | 'paused' | 'stopped'
-
 interface IntegrationHandlers {
   titleChange: (title: string) => void
   seasonChange: (season: number) => void
   episodeChange: (episode: number) => void
   mediaChange: (state: MediaInfo) => void
-  statusChange: (status: PlaybackStatus) => void
   error: (err: Error) => void
 }
 

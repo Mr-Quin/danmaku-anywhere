@@ -8,7 +8,6 @@ import { useStore } from './store/store'
 import { TabRpcServer } from './tabRpc/TabRpc'
 
 import { Toast } from '@/common/components/Toast/Toast'
-import { AutomaticMode } from '@/content/common/components/AutomaticMode'
 import { PopupUi } from '@/content/floatingUi/PopupUi'
 
 export const Content = () => {
@@ -22,9 +21,7 @@ export const Content = () => {
           <>
             <DanmakuContainer />
             <DanmakuManager />
-            <AutomaticMode>
-              <RegisterIntegration />
-            </AutomaticMode>
+            <RegisterIntegration />
           </>
         )}
       </Suspense>

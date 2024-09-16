@@ -105,7 +105,6 @@ const domain = {
       searchError: 'Failed to search for anime: {{message}}',
       searchResultEmpty: 'No anime found for {{title}}',
       openSearch: 'Open search page',
-      playing: 'Playing: {{title}}',
     },
     type: {
       None: 'None',
