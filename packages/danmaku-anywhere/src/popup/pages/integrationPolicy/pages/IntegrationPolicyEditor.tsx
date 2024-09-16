@@ -427,7 +427,6 @@ export const IntegrationPolicyEditor = ({
   } = useMutation({
     mutationFn: () => {
       const policyData = integrationPolicyItemSchema.parse(getValues())
-      saveForm(policyData)
       return tabRpcClient.integrationPolicyTest(policyData)
     },
   })
