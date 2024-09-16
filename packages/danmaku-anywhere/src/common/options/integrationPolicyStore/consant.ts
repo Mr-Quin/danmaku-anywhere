@@ -1,6 +1,6 @@
 import type {
-  XPathPolicy,
-  XPathPolicyItem,
+  IntegrationPolicy,
+  IntegrationPolicyItem,
 } from '@/common/options/integrationPolicyStore/schema'
 import { getRandomUUID } from '@/common/utils/utils'
 
@@ -34,10 +34,10 @@ const plexPolicy = {
       ],
     },
     titleOnly: false,
-  } satisfies XPathPolicy,
+  } satisfies IntegrationPolicy,
 }
 
-export const defaultXPathPolicies: XPathPolicyItem[] = [
+export const defaultXPathPolicies: IntegrationPolicyItem[] = [
   {
     ...plexPolicy,
     id: getRandomUUID(),
@@ -48,7 +48,7 @@ export const getDefaultXPathPolicy = (name: string) => {
   return defaultXPathPolicies.find((policy) => policy.name === name)
 }
 
-export const createXPathPolicy = (): XPathPolicy => {
+export const createXPathPolicy = (): IntegrationPolicy => {
   return {
     title: {
       selector: [''],

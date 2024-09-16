@@ -1,7 +1,7 @@
 import { produce } from 'immer'
 import { useMemo } from 'react'
 
-import type { XPathPolicyItem } from '@/common/options/integrationPolicyStore/schema'
+import type { IntegrationPolicyItem } from '@/common/options/integrationPolicyStore/schema'
 import type { Options } from '@/common/options/OptionsService/types'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import { createDownload } from '@/common/utils/utils'
@@ -11,9 +11,12 @@ export const useIntegrationPolicyStore = () => {
     data,
     update: updateMutation,
     ...rest
-  } = useSuspenseExtStorageQuery<Options<XPathPolicyItem[]>>('xpathPolicy', {
-    storageType: 'local',
-  })
+  } = useSuspenseExtStorageQuery<Options<IntegrationPolicyItem[]>>(
+    'xpathPolicy',
+    {
+      storageType: 'local',
+    }
+  )
 
   const methods = useMemo(() => {
     const get = (id: string) => {
@@ -22,7 +25,10 @@ export const useIntegrationPolicyStore = () => {
       return policies.find((item) => item.id === id)
     }
 
-    const update = async (id: string, config: Partial<XPathPolicyItem>) => {
+    const update = async (
+      id: string,
+      config: Partial<IntegrationPolicyItem>
+    ) => {
       const { data: policies, version } = data
 
       const prevPolicy = policies.find((item) => item.id === id)
@@ -41,7 +47,7 @@ export const useIntegrationPolicyStore = () => {
       await updateMutation.mutateAsync({ data: newData, version })
     }
 
-    const add = async (config: XPathPolicyItem) => {
+    const add = async (config: IntegrationPolicyItem) => {
       const { data: policy, version } = data
 
       await updateMutation.mutateAsync({
@@ -82,7 +88,7 @@ export const useIntegrationPolicyStore = () => {
     }
   }, [data, updateMutation.mutateAsync])
 
-  const policies: XPathPolicyItem[] = data.data
+  const policies: IntegrationPolicyItem[] = data.data
 
   return {
     ...rest,

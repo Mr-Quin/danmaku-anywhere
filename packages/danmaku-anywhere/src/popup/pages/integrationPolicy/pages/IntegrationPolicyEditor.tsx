@@ -17,11 +17,13 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
+import type { Optional } from '@tanstack/react-query'
 import { useMutation } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import type { FieldErrors, UseControllerProps } from 'react-hook-form'
 import {
+  useWatch,
   FormProvider,
   Controller,
   useForm,
@@ -31,8 +33,8 @@ import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router-dom'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { XPathPolicyItem } from '@/common/options/integrationPolicyStore/schema'
-import { xpathPolicyItemSchema } from '@/common/options/integrationPolicyStore/schema'
+import type { IntegrationPolicyItem } from '@/common/options/integrationPolicyStore/schema'
+import { integrationPolicyItemSchema } from '@/common/options/integrationPolicyStore/schema'
 import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
 import { tabRpcClient } from '@/common/rpcClient/tab/client'
 import { getRandomUUID } from '@/common/utils/utils'
@@ -52,13 +54,13 @@ const InputFieldArray = ({
   getErrorMessage,
   getInitialValue,
 }: {
-  name: UseControllerProps<XPathPolicyItem>['name']
+  name: UseControllerProps<IntegrationPolicyItem>['name']
   label: string
   getErrorMessage: (
-    errors: FieldErrors<XPathPolicyItem>,
+    errors: FieldErrors<IntegrationPolicyItem>,
     index: number
   ) => string | undefined
-  getInitialValue: (values: XPathPolicyItem) => string[]
+  getInitialValue: (values: IntegrationPolicyItem) => string[]
 }) => {
   const { t } = useTranslation()
 
@@ -67,7 +69,9 @@ const InputFieldArray = ({
     getValues,
     setValue,
     formState: { errors },
-  } = useFormContext<XPathPolicyItem>()
+  } = useFormContext<IntegrationPolicyItem>()
+
+  const fieldValues = useWatch({ control })
 
   const [values, setValues] = useState<{ value: string; id: string }[]>(() =>
     getInitialValue(getValues()).map((value) => ({
@@ -77,15 +81,27 @@ const InputFieldArray = ({
   )
 
   useEffect(() => {
-    // flush the changes to the form
+    // Workaround for react-hook-form not working with primitive array
+    // When the form value changes from elsewhere, update the local state
+    // Very hacky
+    setValues(
+      getInitialValue(getValues()).map((value) => ({
+        value,
+        id: values.find((v) => v.value === value)?.id ?? getRandomUUID(),
+      }))
+    )
+  }, [fieldValues])
+
+  const flushChanges = (newValues: { value: string; id: string }[]) => {
+    setValues(newValues)
     setValue(
       name,
-      values.map((v) => v.value)
+      newValues.map((v) => v.value)
     )
-  }, [values, setValue])
+  }
 
   const append = () => {
-    setValues([
+    flushChanges([
       ...values,
       {
         value: '',
@@ -95,7 +111,7 @@ const InputFieldArray = ({
   }
 
   const remove = (index: number) => {
-    setValues(values.toSpliced(index, 1))
+    flushChanges(values.toSpliced(index, 1))
   }
 
   const handleChange = (index: number, value: string) => {
@@ -103,7 +119,7 @@ const InputFieldArray = ({
       value,
       id: values[index].id,
     })
-    setValues(newValues)
+    flushChanges(newValues)
   }
 
   return (
@@ -169,8 +185,191 @@ const CollapsableSection = ({
           {open ? <ExpandLess /> : <ExpandMore />}
         </IconButton>
       </Stack>
-      <Collapse in={open}>{children}</Collapse>
+      <Collapse in={open} unmountOnExit>
+        {children}
+      </Collapse>
     </Box>
+  )
+}
+
+const JsonForm = () => {
+  type PolicyItemWithoutId = Optional<IntegrationPolicyItem, 'id'>
+
+  const { getValues, reset } = useFormContext<PolicyItemWithoutId>()
+
+  const [jsonValue, setJsonValue] = useState<string>(() => {
+    const values = getValues()
+    delete values.id
+    return JSON.stringify(values, null, 2)
+  })
+
+  const [error, setError] = useState<string>()
+
+  return (
+    <TextField
+      multiline
+      maxRows={15}
+      fullWidth
+      variant="outlined"
+      inputProps={{
+        style: {
+          fontFamily: 'monospace',
+        },
+      }}
+      value={jsonValue}
+      error={!!error}
+      helperText={error}
+      onChange={(e) => {
+        setJsonValue(e.target.value)
+        try {
+          const parsed = JSON.parse(e.target.value)
+          const policy: PolicyItemWithoutId =
+            integrationPolicyItemSchema.parse(parsed)
+          delete policy.id
+
+          reset(policy)
+          setError('')
+        } catch (e) {
+          if (e instanceof Error) {
+            setError(e.message)
+          }
+        }
+      }}
+    />
+  )
+}
+
+const NormalForm = () => {
+  const { t } = useTranslation()
+
+  const {
+    control,
+    register,
+    watch,
+    formState: { errors },
+  } = useFormContext<IntegrationPolicyItem>()
+
+  const titleOnly = watch('policy.titleOnly')
+
+  return (
+    <>
+      <TextField
+        label={t('integrationPolicyPage.editor.name')}
+        variant="standard"
+        fullWidth
+        required
+        {...register('name', { required: true })}
+        error={!!errors.name}
+        helperText={errors.name?.message}
+        margin="none"
+      />
+      <FormControl>
+        <FormControlLabel
+          control={
+            <Controller
+              name="policy.titleOnly"
+              control={control}
+              render={({ field: { value, ref, ...field } }) => (
+                <Checkbox
+                  {...field}
+                  inputRef={ref}
+                  checked={value}
+                  color="primary"
+                />
+              )}
+            />
+          }
+          label={t('integrationPolicyPage.editor.titleOnly')}
+        />
+        <FormHelperText>
+          {t('integrationPolicyPage.editor.helper.titleOnly')}
+        </FormHelperText>
+      </FormControl>
+      {/* Title */}
+      <CollapsableSection
+        name={t('integrationPolicyPage.editor.titleSection')}
+        initialOpen={true}
+      >
+        <InputFieldArray
+          name="policy.title.selector"
+          label={t('integrationPolicyPage.editor.titleSelector')}
+          getInitialValue={(values) => values.policy.title.selector}
+          getErrorMessage={(errors, i) =>
+            errors.policy?.title?.selector?.[i]?.message
+          }
+        />
+        <InputFieldArray
+          name="policy.title.regex"
+          label={t('integrationPolicyPage.editor.titleRegex')}
+          getInitialValue={(values) => values.policy.title.regex}
+          getErrorMessage={(errors, i) =>
+            errors.policy?.title?.regex?.[i]?.message
+          }
+        />
+      </CollapsableSection>
+
+      <Collapse in={!titleOnly} unmountOnExit>
+        {/*Season Number*/}
+        <CollapsableSection name={t('integrationPolicyPage.editor.season')}>
+          <InputFieldArray
+            name="policy.seasonNumber.selector"
+            label={t('integrationPolicyPage.editor.seasonSelector')}
+            getInitialValue={(values) => values.policy.seasonNumber.selector}
+            getErrorMessage={(errors, i) =>
+              errors.policy?.seasonNumber?.selector?.[i]?.message
+            }
+          />
+          <InputFieldArray
+            name="policy.seasonNumber.regex"
+            label={t('integrationPolicyPage.editor.seasonRegex')}
+            getInitialValue={(values) => values.policy.seasonNumber.regex}
+            getErrorMessage={(errors, i) =>
+              errors.policy?.seasonNumber?.regex?.[i]?.message
+            }
+          />
+        </CollapsableSection>
+        {/*Episode Number*/}
+        <CollapsableSection name={t('integrationPolicyPage.editor.episode')}>
+          <InputFieldArray
+            name="policy.episodeNumber.selector"
+            label={t('integrationPolicyPage.editor.episodeSelector')}
+            getInitialValue={(values) => values.policy.episodeNumber.selector}
+            getErrorMessage={(errors, i) =>
+              errors.policy?.episodeNumber?.selector?.[i]?.message
+            }
+          />
+          <InputFieldArray
+            name="policy.episodeNumber.regex"
+            label={t('integrationPolicyPage.editor.episodeRegex')}
+            getInitialValue={(values) => values.policy.episodeNumber.regex}
+            getErrorMessage={(errors, i) =>
+              errors.policy?.episodeNumber?.regex?.[i]?.message
+            }
+          />
+        </CollapsableSection>
+        {/*Episode Title*/}
+        <CollapsableSection
+          name={t('integrationPolicyPage.editor.episodeTitle')}
+        >
+          <InputFieldArray
+            name="policy.episodeTitle.selector"
+            label={t('integrationPolicyPage.editor.episodeTitleSelector')}
+            getInitialValue={(values) => values.policy.episodeTitle.selector}
+            getErrorMessage={(errors, i) =>
+              errors.policy?.episodeTitle?.selector?.[i]?.message
+            }
+          />
+          <InputFieldArray
+            name="policy.episodeTitle.regex"
+            label={t('integrationPolicyPage.editor.episodeTitleRegex')}
+            getInitialValue={(values) => values.policy.episodeTitle.regex}
+            getErrorMessage={(errors, i) =>
+              errors.policy?.episodeTitle?.regex?.[i]?.message
+            }
+          />
+        </CollapsableSection>
+      </Collapse>
+    </>
   )
 }
 
@@ -181,29 +380,28 @@ export const IntegrationPolicyEditor = ({
   const { update, add } = useIntegrationPolicyStore()
   const connected = useIsConnected()
   const goBack = useGoBack()
+  const [preferJson, setPreferJson] = useState(false)
 
   const isEdit = mode === 'edit'
   const config = useLocation().state
 
-  const form = useForm<XPathPolicyItem>({
+  const form = useForm<IntegrationPolicyItem>({
     defaultValues: config,
-    resolver: zodResolver(xpathPolicyItemSchema),
+    resolver: zodResolver(integrationPolicyItemSchema),
   })
 
   const {
     handleSubmit,
-    register,
     getValues,
     trigger,
-    control,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = form
 
   const toast = useToast.use.toast()
 
   const { mutate: saveForm } = useMutation({
-    mutationFn: async (data: XPathPolicyItem) => {
+    mutationFn: async (data: IntegrationPolicyItem) => {
       if (isEdit) {
         return update(config.id, data)
       } else {
@@ -228,7 +426,7 @@ export const IntegrationPolicyEditor = ({
     isPending: isTesting,
   } = useMutation({
     mutationFn: () => {
-      const policyData = xpathPolicyItemSchema.parse(getValues())
+      const policyData = integrationPolicyItemSchema.parse(getValues())
       saveForm(policyData)
       return tabRpcClient.integrationPolicyTest(policyData)
     },
@@ -302,135 +500,12 @@ export const IntegrationPolicyEditor = ({
         />
         <FormProvider {...form}>
           <Box p={2}>
-            <TextField
-              label={t('integrationPolicyPage.editor.name')}
-              variant="standard"
-              fullWidth
-              required
-              {...register('name', { required: true })}
-              error={!!errors.name}
-              helperText={errors.name?.message}
-              margin="none"
-            />
-            <FormControl>
-              <FormControlLabel
-                control={
-                  <Controller
-                    name="policy.titleOnly"
-                    control={control}
-                    render={({ field: { value, ref, ...field } }) => (
-                      <Checkbox
-                        {...field}
-                        inputRef={ref}
-                        checked={value}
-                        color="primary"
-                      />
-                    )}
-                  />
-                }
-                label={t('integrationPolicyPage.editor.titleOnly')}
-              />
-              <FormHelperText>
-                {t('integrationPolicyPage.editor.helper.titleOnly')}
-              </FormHelperText>
-            </FormControl>
-            {/* Title */}
-            <CollapsableSection
-              name={t('integrationPolicyPage.editor.titleSection')}
-              initialOpen={true}
-            >
-              <InputFieldArray
-                name="policy.title.selector"
-                label={t('integrationPolicyPage.editor.titleSelector')}
-                getInitialValue={(values) => values.policy.title.selector}
-                getErrorMessage={(errors, i) =>
-                  errors.policy?.title?.selector?.[i]?.message
-                }
-              />
-              <InputFieldArray
-                name="policy.title.regex"
-                label={t('integrationPolicyPage.editor.titleRegex')}
-                getInitialValue={(values) => values.policy.title.regex}
-                getErrorMessage={(errors, i) =>
-                  errors.policy?.title?.regex?.[i]?.message
-                }
-              />
-            </CollapsableSection>
-
-            <Collapse in={!titleOnly}>
-              {/*Season Number*/}
-              <CollapsableSection
-                name={t('integrationPolicyPage.editor.season')}
-              >
-                <InputFieldArray
-                  name="policy.seasonNumber.selector"
-                  label={t('integrationPolicyPage.editor.seasonSelector')}
-                  getInitialValue={(values) =>
-                    values.policy.seasonNumber.selector
-                  }
-                  getErrorMessage={(errors, i) =>
-                    errors.policy?.seasonNumber?.selector?.[i]?.message
-                  }
-                />
-                <InputFieldArray
-                  name="policy.seasonNumber.regex"
-                  label={t('integrationPolicyPage.editor.seasonRegex')}
-                  getInitialValue={(values) => values.policy.seasonNumber.regex}
-                  getErrorMessage={(errors, i) =>
-                    errors.policy?.seasonNumber?.regex?.[i]?.message
-                  }
-                />
-              </CollapsableSection>
-              {/*Episode Number*/}
-              <CollapsableSection
-                name={t('integrationPolicyPage.editor.episode')}
-              >
-                <InputFieldArray
-                  name="policy.episodeNumber.selector"
-                  label={t('integrationPolicyPage.editor.episodeSelector')}
-                  getInitialValue={(values) =>
-                    values.policy.episodeNumber.selector
-                  }
-                  getErrorMessage={(errors, i) =>
-                    errors.policy?.episodeNumber?.selector?.[i]?.message
-                  }
-                />
-                <InputFieldArray
-                  name="policy.episodeNumber.regex"
-                  label={t('integrationPolicyPage.editor.episodeRegex')}
-                  getInitialValue={(values) =>
-                    values.policy.episodeNumber.regex
-                  }
-                  getErrorMessage={(errors, i) =>
-                    errors.policy?.episodeNumber?.regex?.[i]?.message
-                  }
-                />
-              </CollapsableSection>
-              {/*Episode Title*/}
-              <CollapsableSection
-                name={t('integrationPolicyPage.editor.episodeTitle')}
-              >
-                <InputFieldArray
-                  name="policy.episodeTitle.selector"
-                  label={t('integrationPolicyPage.editor.episodeTitleSelector')}
-                  getInitialValue={(values) =>
-                    values.policy.episodeTitle.selector
-                  }
-                  getErrorMessage={(errors, i) =>
-                    errors.policy?.episodeTitle?.selector?.[i]?.message
-                  }
-                />
-                <InputFieldArray
-                  name="policy.episodeTitle.regex"
-                  label={t('integrationPolicyPage.editor.episodeTitleRegex')}
-                  getInitialValue={(values) => values.policy.episodeTitle.regex}
-                  getErrorMessage={(errors, i) =>
-                    errors.policy?.episodeTitle?.regex?.[i]?.message
-                  }
-                />
-              </CollapsableSection>
-            </Collapse>
-
+            <Button onClick={() => setPreferJson(!preferJson)}>
+              {preferJson
+                ? t('integrationPolicyPage.editor.switchToForm')
+                : t('integrationPolicyPage.editor.switchToJSON')}
+            </Button>
+            {preferJson ? <JsonForm /> : <NormalForm />}
             {testResult && (
               <pre
                 style={{

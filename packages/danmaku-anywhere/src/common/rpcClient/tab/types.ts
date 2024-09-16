@@ -1,7 +1,7 @@
 import type { RPCDef } from '../../rpc/types'
 
 import type { Danmaku, DanmakuLite } from '@/common/danmaku/models/danmaku'
-import type { XPathPolicyItem } from '@/common/options/integrationPolicyStore/schema'
+import type { IntegrationPolicyItem } from '@/common/options/integrationPolicyStore/schema'
 import type { MediaInfo } from '@/content/danmaku/integration/models/MediaInfo'
 
 interface TabDanmakuState {
@@ -32,7 +32,10 @@ type DanmakuMethods = {
   danmakuMount: RPCDef<Danmaku, void>
   danmakuUnmount: RPCDef<void, void>
   danmakuGetState: RPCDef<void, TabDanmakuState | null>
-  integrationPolicyTest: RPCDef<XPathPolicyItem, IntegrationPolicyTestResult>
+  integrationPolicyTest: RPCDef<
+    IntegrationPolicyItem,
+    IntegrationPolicyTestResult
+  >
 }
 
 export type TabMethods = DanmakuMethods

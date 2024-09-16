@@ -152,6 +152,8 @@ const pages = {
     name: 'Integration Policy',
     editor: {
       name: 'Name',
+      switchToJSON: 'Switch to JSON',
+      switchToForm: 'Switch to Form',
       titleSection: 'Select Title',
       titleSelector: 'Title XPath',
       titleRegex: 'Title Regex',
