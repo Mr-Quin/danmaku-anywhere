@@ -145,9 +145,9 @@ mountConfigService
     upgrade: (data: PrevOptions) =>
       data.map((config: PrevOptions) =>
         produce(config, (draft: PrevOptions) => {
-          // Try to find the integration id from the default xpath policies
-          // Cannot be hardcoded because the id is dynamically generated
-          draft.integration = getDefaultXPathPolicy(config.name)?.id
+          // Remove existing integration to migrate to new policy based integration
+          // User has to manually select the integration policy
+          delete draft.integration
         })
       ),
   })
