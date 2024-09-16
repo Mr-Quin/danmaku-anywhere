@@ -10,7 +10,7 @@ const plexPolicy = {
     episodeNumber: {
       regex: ['\\d+'],
       selector: [
-        '//*[@id="plex"]/div[4]/div/div[*]/div/div/div[2]/div[1]/div[2]/span/span[1]/a[2]',
+        '//*[@id="plex"]/div[4]/div/div[*]/div/div/div[2]/div[1]/div[*]/span/span[1]/a[2]',
         '//*[@id="plex"]/div[4]/div/div[*]/div/div/div[2]/div[1]/div/span/span[1]/span[3]',
       ],
     },
@@ -23,7 +23,7 @@ const plexPolicy = {
     seasonNumber: {
       regex: ['\\d+'],
       selector: [
-        '//*[@id="plex"]/div[4]/div/div[*]/div/div/div[2]/div[1]/div[2]/span/span[1]/a[1]',
+        '//*[@id="plex"]/div[4]/div/div[*]/div/div/div[2]/div[1]/div[*]/span/span[1]/a[1]',
         '//*[@id="plex"]/div[4]/div/div[*]/div/div/div[2]/div[1]/div/span/span[1]/span[1]',
       ],
     },
