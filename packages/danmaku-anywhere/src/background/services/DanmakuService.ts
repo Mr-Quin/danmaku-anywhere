@@ -60,7 +60,6 @@ export class DanmakuService {
         void this.titleMappingService.add({
           title: meta.animeTitle,
           originalTitle: context.key,
-          integration: context.integration,
           animeId: meta.animeId,
         })
       }

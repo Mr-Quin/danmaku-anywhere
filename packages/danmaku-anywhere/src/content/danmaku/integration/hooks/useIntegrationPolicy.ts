@@ -5,7 +5,6 @@ import { useShallow } from 'zustand/react/shallow'
 import { useStore } from '../../../store/store'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import { hasIntegration } from '@/common/danmaku/enums'
 import { Logger } from '@/common/Logger'
 import { useMatchIntegrationPolicy } from '@/common/options/integrationPolicyStore/useMatchIntegrationPolicy'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
@@ -44,14 +43,12 @@ export const useIntegrationPolicy = () => {
     toast.info(
       t('integration.alert.usingIntegration', { name: integrationPolicy.name })
     )
-    Logger.debug(`Using integration: ${config.integration}`)
+    Logger.debug(`Using integration: ${integrationPolicy.name}`)
 
     const observer = new IntegrationPolicyObserver(integrationPolicy.policy)
 
     observer.on({
       mediaChange: async (state: MediaInfo) => {
-        if (!hasIntegration(config.integration)) return
-
         resetMediaState()
         setMediaInfo(state)
 

@@ -70,12 +70,8 @@ export class ProviderService {
     mapKey,
     title,
     episodeNumber,
-    integration,
   }: MatchEpisodeInput): Promise<MatchEpisodeResult> {
-    const mapping = await this.titleMappingService.getMappedTitle(
-      mapKey,
-      integration
-    )
+    const mapping = await this.titleMappingService.getMappedTitle(mapKey)
 
     if (mapping) {
       this.logger.debug('Mapping found, using mapped title', mapping)
