@@ -8,12 +8,14 @@ interface OptionsToolbarProps {
   title: string
   leftElement?: ReactNode
   rightElement?: ReactNode
+  sticky?: boolean
 }
 
 export const OptionsPageToolBar = ({
   title,
   leftElement,
   rightElement,
+  sticky = false,
 }: OptionsToolbarProps) => {
   const goBack = useGoBack()
 
@@ -24,7 +26,13 @@ export const OptionsPageToolBar = ({
   )
 
   return (
-    <AppBar position="static" elevation={0}>
+    <AppBar
+      elevation={0}
+      position={sticky ? 'sticky' : 'static'}
+      sx={{
+        zIndex: 1,
+      }}
+    >
       <Toolbar variant="dense" sx={{ justifyContent: 'space-between' }}>
         {leftElement ?? defaultLeftElement}
         <Typography

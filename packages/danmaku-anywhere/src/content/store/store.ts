@@ -1,12 +1,12 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { create } from 'zustand'
 
-import type { PlaybackStatus } from '../danmaku/integration/MediaObserver'
+import type { PlaybackStatus } from '../danmaku/integration/observers/MediaObserver'
 
 import type { Danmaku, DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { danmakuToString } from '@/common/danmaku/utils'
 import { createSelectors } from '@/common/utils/createSelectors'
-import type { MediaInfo } from '@/content/danmaku/integration/MediaInfo'
+import type { MediaInfo } from '@/content/danmaku/integration/models/MediaInfo'
 
 interface StoreState {
   /**

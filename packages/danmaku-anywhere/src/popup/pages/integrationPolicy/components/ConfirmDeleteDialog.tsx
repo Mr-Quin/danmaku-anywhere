@@ -11,8 +11,8 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { XPathPolicyItem } from '@/common/options/xpathPolicyStore/schema'
-import { useXPathPolicyStore } from '@/common/options/xpathPolicyStore/useXPathPolicyStore'
+import type { XPathPolicyItem } from '@/common/options/integrationPolicyStore/schema'
+import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
 
 export const ConfirmDeleteDialog = ({
   open,
@@ -26,7 +26,7 @@ export const ConfirmDeleteDialog = ({
   onClose: () => void
 }) => {
   const { t } = useTranslation()
-  const { remove } = useXPathPolicyStore()
+  const { remove } = useIntegrationPolicyStore()
 
   const toast = useToast.use.toast()
 

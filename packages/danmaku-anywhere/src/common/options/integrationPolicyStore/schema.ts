@@ -14,7 +14,7 @@ const validateXPath = (value: string) => {
   }
 }
 
-const xpathString = z.string().min(1).refine(validateXPath, {
+const xpathString = z.string().refine(validateXPath, {
   message: 'Invalid XPath',
 })
 
@@ -52,6 +52,9 @@ export const xpathPolicySchema = z.object({
     selector: xpathSelector,
     regex: regexStringArray('.+'),
   }),
+  // If true, only the title is used to parse media information
+  // This is for cases where the title contains all the necessary information, e.g. file name
+  titleOnly: z.boolean(),
   // Used to get the correct episode in the search results
   // If not present, the media is assumed to be non-episodic
   // Optional, default to 1
@@ -59,7 +62,8 @@ export const xpathPolicySchema = z.object({
     selector: xpathSelector,
     regex: regexStringArray('\\d+'),
   }),
-  // Used as metadata
+  // Reserved
+  // Not used for now because season number is typically part of the title
   // Optional, default to 1
   seasonNumber: z.object({
     selector: xpathSelector,
@@ -76,7 +80,7 @@ export const xpathPolicySchema = z.object({
 export type XPathPolicy = z.infer<typeof xpathPolicySchema>
 
 export const xpathPolicyItemSchema = z.object({
-  name: z.string(),
+  name: z.string().min(1),
   policy: xpathPolicySchema,
   id: z.string().uuid().optional().default(getRandomUUID),
 })

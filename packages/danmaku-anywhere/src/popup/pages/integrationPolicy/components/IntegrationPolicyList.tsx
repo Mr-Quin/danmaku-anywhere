@@ -9,12 +9,12 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
-import type { XPathPolicyItem } from '@/common/options/xpathPolicyStore/schema'
-import { useXPathPolicyStore } from '@/common/options/xpathPolicyStore/useXPathPolicyStore'
+import type { XPathPolicyItem } from '@/common/options/integrationPolicyStore/schema'
+import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
 import { tryCatch } from '@/common/utils/utils'
 import { DrilldownMenu } from '@/popup/component/DrilldownMenu'
 
-export const XPathPolicyList = ({
+export const IntegrationPolicyList = ({
   onEdit,
   onDelete,
 }: {
@@ -22,7 +22,7 @@ export const XPathPolicyList = ({
   onDelete: (config: XPathPolicyItem) => void
 }) => {
   const { t } = useTranslation()
-  const { policies } = useXPathPolicyStore()
+  const { policies } = useIntegrationPolicyStore()
 
   const copyToClipboard = async (policy: XPathPolicyItem) => {
     await tryCatch(() =>
@@ -66,7 +66,11 @@ export const XPathPolicyList = ({
             <ListItemButton onClick={() => onEdit(policy)}>
               <ListItemText
                 primary={policy.name}
-                secondary={policy.policy.title.selector}
+                secondary={
+                  policy.policy.titleOnly
+                    ? t('integrationPolicyPage.editor.titleOnly')
+                    : ''
+                }
               />
             </ListItemButton>
           </ListItem>

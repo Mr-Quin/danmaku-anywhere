@@ -2,18 +2,18 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 
-import { useStore } from '../../store/store'
+import { useStore } from '../../../store/store'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import { hasIntegration } from '@/common/danmaku/enums'
 import { Logger } from '@/common/Logger'
-import { useMatchXPathPolicy } from '@/common/options/xpathPolicyStore/useMatchXPathPolicy'
+import { useMatchIntegrationPolicy } from '@/common/options/integrationPolicyStore/useMatchIntegrationPolicy'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
-import type { MediaInfo } from '@/content/danmaku/integration/MediaInfo'
-import { XPathObserver } from '@/content/danmaku/integration/XPathObserver'
-import { useMatchEpisode } from '@/content/danmaku/mediaObserver/useMatchEpisode'
+import { useMatchEpisode } from '@/content/danmaku/integration/hooks/useMatchEpisode'
+import type { MediaInfo } from '@/content/danmaku/integration/models/MediaInfo'
+import { IntegrationPolicyObserver } from '@/content/danmaku/integration/observers/IntegrationPolicyObserver'
 
-export const useMediaObserver = () => {
+export const useIntegrationPolicy = () => {
   const { t } = useTranslation()
   const config = useActiveConfig()
 
@@ -30,23 +30,23 @@ export const useMediaObserver = () => {
   } = useStore(useShallow((state) => state))
 
   const matchEpisode = useMatchEpisode()
-  const xpathPolicy = useMatchXPathPolicy(config.integration)
+  const integrationPolicy = useMatchIntegrationPolicy(config.integration)
 
   useEffect(() => {
-    if (!xpathPolicy) {
+    if (!integrationPolicy) {
       toggleManualMode(true)
       setIntegration()
       return
     }
 
     toggleManualMode(false)
-    setIntegration(xpathPolicy.name)
+    setIntegration(integrationPolicy.name)
     toast.info(
-      t('integration.alert.usingIntegration', { name: xpathPolicy.name })
+      t('integration.alert.usingIntegration', { name: integrationPolicy.name })
     )
     Logger.debug(`Using integration: ${config.integration}`)
 
-    const observer = new XPathObserver(xpathPolicy.policy)
+    const observer = new IntegrationPolicyObserver(integrationPolicy.policy)
 
     observer.on({
       mediaChange: async (state: MediaInfo) => {
@@ -72,7 +72,7 @@ export const useMediaObserver = () => {
     observer.setup()
 
     return () => observer.destroy()
-  }, [xpathPolicy])
+  }, [integrationPolicy])
 
   useEffect(() => {
     if (!mediaInfo) return

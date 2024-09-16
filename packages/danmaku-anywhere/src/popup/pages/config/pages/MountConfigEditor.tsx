@@ -18,9 +18,9 @@ import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
+import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
-import { useXPathPolicyStore } from '@/common/options/xpathPolicyStore/useXPathPolicyStore'
 import { validateOrigin } from '@/common/utils/utils'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
@@ -58,7 +58,7 @@ interface MountConfigEditorProps {
 export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
   const { t } = useTranslation()
   const { updateConfig, addConfig } = useMountConfig()
-  const { policies } = useXPathPolicyStore()
+  const { policies } = useIntegrationPolicyStore()
   const goBack = useGoBack()
 
   const isEdit = mode === 'edit'

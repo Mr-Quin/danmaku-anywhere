@@ -18,6 +18,16 @@ export class MediaInfo {
     return `${this.title} S${this.season}E${this.episode}`
   }
 
+  toJSON() {
+    return {
+      title: this.title,
+      episode: this.episode,
+      season: this.season,
+      episodic: this.episodic,
+      episodeTitle: this.episodeTitle,
+    }
+  }
+
   equals(other: MediaInfo) {
     return (
       this.title === other.title &&

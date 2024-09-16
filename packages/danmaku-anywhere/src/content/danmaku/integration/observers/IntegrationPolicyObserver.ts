@@ -1,99 +1,72 @@
 import { Logger } from '@/common/Logger'
-import type { XPathPolicy } from '@/common/options/xpathPolicyStore/schema'
+import type { XPathPolicy } from '@/common/options/integrationPolicyStore/schema'
 import { getFirstElement } from '@/common/utils/utils'
-import { MediaInfo } from '@/content/danmaku/integration/MediaInfo'
-import { MediaObserver } from '@/content/danmaku/integration/MediaObserver'
+import { MediaInfo } from '@/content/danmaku/integration/models/MediaInfo'
+import { MediaObserver } from '@/content/danmaku/integration/observers/MediaObserver'
+import {
+  parseMediaFromTitle,
+  parseMediaNumber,
+  parseMediaString,
+  parseMultipleRegex,
+} from '@/content/danmaku/integration/observers/parse'
 
-export const parseNumber = (text: string, regex: string) => {
-  const match = text.match(new RegExp(regex, 'i'))
-
-  if (match === null) {
-    throw new Error(`Regex ${regex} does not match text \`${text}\``)
-  }
-
-  // Prefer the first capture group if it exists
-  const parseIndex = match[1] ? 1 : 0
-  const parsed = parseInt(match[parseIndex])
-
-  if (isNaN(parsed)) {
-    throw new Error(
-      `Matched \`${match}\` in \`${text}\` using ${regex}, but parsing at index ${parseIndex} as number resulted in NaN`
-    )
-  }
-
-  return parsed
+interface MediaElements {
+  title: Node
+  episode: Node | null
+  season: Node | null
+  episodeTitle: Node | null
 }
 
-export const parseString = (text: string, regex: string) => {
-  const match = text.match(new RegExp(regex, 'i'))
-
-  if (match === null) {
-    throw new Error(`Regex ${regex} does not match text \`${text}\``)
-  }
-
-  // Prefer the first capture group if it exists
-  return match[1] ?? match[0]
+type MediaElementsText = {
+  [Key in keyof MediaElements]: string | null
 }
 
-const parseMultipleRegex = <T>(
-  parser: (text: string, regex: string) => T,
-  text: string,
-  regex: string[]
-): T => {
-  const errors: string[] = []
+export const parseMediaInfo = (
+  elements: MediaElementsText,
+  policy: XPathPolicy
+) => {
+  const titleText = elements.title
 
-  for (const reg of regex) {
-    try {
-      return parser(text, reg)
-    } catch (err) {
-      if (err instanceof Error) {
-        errors.push(err.message)
-      }
-    }
-  }
+  if (!titleText) throw new Error('Title element not found')
 
-  throw new Error(errors.join('\n'))
-}
+  // If titleOnly is true, then try to parse the media info from the title alone
+  if (policy.titleOnly)
+    return parseMediaFromTitle(titleText, policy.title.regex)
 
-const getMediaInfo = (elements: MediaElements, policy: XPathPolicy) => {
-  const titleText = elements.title.textContent
-
-  if (!titleText) return
-
-  const title = parseMultipleRegex(parseString, titleText, policy.title.regex)
+  const title = parseMultipleRegex(
+    parseMediaString,
+    titleText,
+    policy.title.regex
+  )
 
   // Default to 1 if the element is not present
-  let season = 1
   let episode = 1
   let episodic = false
-  let episodeTitle = undefined
+  let episodeTitle = title
+  let season: number | undefined = undefined
 
   // If the episode element is not present, assume it's a movie or something that doesn't have episodes
-  if (elements.episodeNumber?.textContent) {
-    const episodeText = elements.episodeNumber.textContent
+  if (elements.episode) {
     episode = parseMultipleRegex(
-      parseNumber,
-      episodeText,
+      parseMediaNumber,
+      elements.episode,
       policy.episodeNumber.regex
     )
     episodic = true
   }
 
-  // Same assumption as above
-  if (elements.seasonNumber?.textContent) {
-    const seasonText = elements.seasonNumber.textContent
+  if (elements.season) {
     season = parseMultipleRegex(
-      parseNumber,
-      seasonText,
+      parseMediaNumber,
+      elements.season,
       policy.seasonNumber.regex
     )
   }
 
-  if (elements.episodeTitle?.textContent) {
-    const episodeTitleText = elements.episodeTitle.textContent
+  if (elements.episodeTitle) {
     episodeTitle = parseMultipleRegex(
-      parseString,
-      episodeTitleText,
+      parseMediaString,
+      elements.episodeTitle,
       policy.episodeTitle.regex
     )
   }
@@ -156,16 +129,20 @@ const createRemovalMutationObserver = (element: Node, onRemove: () => void) => {
   return observer
 }
 
-interface MediaElements {
-  title: Node
-  episodeNumber: Node | null
-  seasonNumber: Node | null
-  episodeTitle: Node | null
+const getTextFromMediaElements = (
+  elements: MediaElements
+): MediaElementsText => {
+  return {
+    title: elements.title.textContent,
+    episode: elements.episode?.textContent ?? null,
+    season: elements.season?.textContent ?? null,
+    episodeTitle: elements.episodeTitle?.textContent ?? null,
+  }
 }
 
-export class XPathObserver extends MediaObserver {
+export class IntegrationPolicyObserver extends MediaObserver {
   private interval?: NodeJS.Timeout
-  private logger = Logger.sub('[XPathObserver]')
+  private logger = Logger.sub('[IntegrationPolicyObserver]')
   private observerMap = new Map<string, MutationObserver>()
   private mediaInfo?: MediaInfo
 
@@ -192,14 +169,24 @@ export class XPathObserver extends MediaObserver {
 
       try {
         const titleElement = getFirstElement(this.policy.title.selector)
+        // Title is required, the rest are optional
         if (titleElement) {
           clearInterval(this.interval)
-          resolve({
-            title: titleElement,
-            episodeNumber: getFirstElement(this.policy.episodeNumber.selector),
-            seasonNumber: getFirstElement(this.policy.seasonNumber.selector),
-            episodeTitle: getFirstElement(this.policy.episodeTitle.selector),
-          })
+          if (this.policy.titleOnly) {
+            resolve({
+              title: titleElement,
+              episode: null,
+              season: null,
+              episodeTitle: null,
+            })
+          } else {
+            resolve({
+              title: titleElement,
+              episode: getFirstElement(this.policy.episodeNumber.selector),
+              season: getFirstElement(this.policy.seasonNumber.selector),
+              episodeTitle: getFirstElement(this.policy.episodeTitle.selector),
+            })
+          }
         }
       } catch (err) {
         this.logger.debug('Error while discovering title:', err)
@@ -211,16 +198,17 @@ export class XPathObserver extends MediaObserver {
 
   private updateMediaInfo(elements: MediaElements) {
     try {
-      const mediaInfo = getMediaInfo(elements, this.policy)
-      if (mediaInfo) {
-        // Only update if the media info has changed
-        if (this.mediaInfo?.equals(mediaInfo)) {
-          return
-        }
-        this.logger.debug('Media info changed:', mediaInfo)
-        this.mediaInfo = mediaInfo
-        this.emit('mediaChange', mediaInfo)
+      const mediaInfo = parseMediaInfo(
+        getTextFromMediaElements(elements),
+        this.policy
+      )
+      // Only update if the media info has changed
+      if (this.mediaInfo?.equals(mediaInfo)) {
+        return
       }
+      this.logger.debug('Media info changed:', mediaInfo)
+      this.mediaInfo = mediaInfo
+      this.emit('mediaChange', mediaInfo)
     } catch (err) {
       this.logger.debug('Error while getting media info:', err)
     }
@@ -234,7 +222,7 @@ export class XPathObserver extends MediaObserver {
     // Observe each element for text changes
     ;(Object.keys(elements) as (keyof typeof elements)[]).forEach((key) => {
       if (elements[key]) {
-        createTextMutationObserver(elements[key], (text) => {
+        createTextMutationObserver(elements[key], () => {
           this.updateMediaInfo(elements)
         })
       }
