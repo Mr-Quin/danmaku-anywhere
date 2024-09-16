@@ -63,17 +63,22 @@ export const SelectorPanel = () => {
             integration,
           }
         : undefined
-    mutate({
-      meta: {
-        provider: DanmakuSourceType.DanDanPlay,
-        animeId: selectedAnime.animeId,
-        animeTitle: selectedAnime.animeTitle,
-        ...selectedEpisode,
+    mutate(
+      {
+        meta: {
+          provider: DanmakuSourceType.DanDanPlay,
+          animeId: selectedAnime.animeId,
+          animeTitle: selectedAnime.animeTitle,
+          ...selectedEpisode,
+        },
+        context,
       },
-      context,
-    })
-
-    toggleOpen(false)
+      {
+        onSettled: () => {
+          toggleOpen(false)
+        },
+      }
+    )
   }
 
   if (animes.length === 0) {
