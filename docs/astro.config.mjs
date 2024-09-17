@@ -1,7 +1,6 @@
-import { defineConfig } from 'astro/config'
 import react from '@astrojs/react'
-
 import starlight from '@astrojs/starlight'
+import { defineConfig } from 'astro/config'
 
 // https://astro.build/config
 export default defineConfig({
@@ -64,12 +63,12 @@ export default defineConfig({
               link: '/docs/danmaku',
             },
             {
-              label: 'auto-mode',
+              label: 'integration-policy',
               translations: {
-                'zh-CN': '自动模式',
-                en: 'Auto Mode',
+                'zh-CN': '适配配置',
+                en: 'Integration Policy',
               },
-              link: '/docs/auto-mode',
+              link: '/docs/integration-policy',
             },
             {
               label: 'limitations',
