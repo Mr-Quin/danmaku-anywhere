@@ -131,7 +131,8 @@ const pages = {
     editor: {
       helper: {
         mediaQuery: '用来选择视频元素, 一般为“video”',
-        integration: '启用对应的适配。如果你不清楚这是什么，请保持默认设置“无”',
+        integration:
+          '启用对应的适配配置。如果你不清楚这是什么，请保持默认设置“无”',
         urlPattern:
           '用来匹配视频页面，一般为视频网站的网址。格式：https://example.com/*。如果视频处于iframe中，此处需iframe的地址',
       },
@@ -148,7 +149,7 @@ const pages = {
     name: '装填配置',
   },
   integrationPolicyPage: {
-    name: '适配策略',
+    name: '适配配置',
     editor: {
       name: '名称',
       switchToJSON: '切换到JSON',
@@ -172,7 +173,7 @@ const pages = {
         testDisabled: '只能在存在装填配置的页面使用',
       },
       title: {
-        create: '添加适配策略',
+        create: '添加适配配置',
         edit: '编辑{{name}}',
       },
     },
@@ -339,7 +340,7 @@ const pages = {
     search: '搜索番剧',
     selector: '修正匹配',
     style: '弹幕设置',
-    integrationPolicy: '适配策略',
+    integrationPolicy: '适配配置',
   },
 }
 

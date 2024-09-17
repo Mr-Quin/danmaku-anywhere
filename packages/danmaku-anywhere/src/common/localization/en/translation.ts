@@ -131,7 +131,7 @@ const pages = {
       helper: {
         mediaQuery: 'CSS selector for the video element, normally "video"',
         integration:
-          'Enables the selected integration for this configuration. If you are not sure, leave it as None.',
+          'Enables the selected Integration Policy for this configuration. If you are not sure, leave it as None.',
         urlPattern:
           'URL pattern to match the page. Format: https://example.com/*. If the video is in an iframe, use the iframe URL here.',
       },
