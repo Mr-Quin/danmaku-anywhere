@@ -114,6 +114,7 @@ const createTextMutationObserver = (
     characterData: true,
     childList: true,
     subtree: true,
+    attributes: true,
   })
 
   return observer
