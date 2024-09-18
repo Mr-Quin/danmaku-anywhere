@@ -139,6 +139,21 @@ export const useMountConfig = () => {
       await update.mutateAsync({ data: newData, version })
     }
 
+    // Find configs using the integration id, and unset the integration id
+    const unsetIntegration = async (id: string) => {
+      const { data: configs, version } = options
+
+      const newData = produce(configs, (draft) => {
+        draft.forEach((config) => {
+          if (config.integration === id) {
+            delete config.integration
+          }
+        })
+      })
+
+      await update.mutateAsync({ data: newData, version })
+    }
+
     return {
       updateConfig,
       addConfig,
@@ -146,6 +161,7 @@ export const useMountConfig = () => {
       matchByUrl,
       exportConfigs,
       importConfigs,
+      unsetIntegration,
     }
   }, [options, update.mutateAsync])
 

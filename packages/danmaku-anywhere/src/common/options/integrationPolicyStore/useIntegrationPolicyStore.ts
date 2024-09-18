@@ -2,6 +2,7 @@ import { produce } from 'immer'
 import { useMemo } from 'react'
 
 import type { IntegrationPolicyItem } from '@/common/options/integrationPolicyStore/schema'
+import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import type { Options } from '@/common/options/OptionsService/types'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import { createDownload } from '@/common/utils/utils'
@@ -17,6 +18,7 @@ export const useIntegrationPolicyStore = () => {
       storageType: 'local',
     }
   )
+  const { unsetIntegration } = useMountConfig()
 
   const methods = useMemo(() => {
     const get = (id: string) => {
@@ -67,6 +69,7 @@ export const useIntegrationPolicyStore = () => {
         draft.splice(index, 1)
       })
 
+      await unsetIntegration(id)
       await updateMutation.mutateAsync({ data: newData, version })
     }
 
@@ -86,7 +89,7 @@ export const useIntegrationPolicyStore = () => {
       remove,
       exportAll,
     }
-  }, [data, updateMutation.mutateAsync])
+  }, [data, updateMutation.mutateAsync, unsetIntegration])
 
   const policies: IntegrationPolicyItem[] = data.data
 
