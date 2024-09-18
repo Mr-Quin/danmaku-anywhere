@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -18,9 +18,10 @@ export const useIntegrationPolicy = () => {
   const { toast } = useToast()
 
   const { videoNode } = useMediaElementStore()
-  const [observer, setObserver] = useState<IntegrationPolicyObserver | null>(
-    null
-  )
+
+  const [hasVideoNode, setHasVideoNode] = useState(!!videoNode)
+
+  const observer = useRef<IntegrationPolicyObserver>()
 
   const { setMediaInfo, resetMediaState, toggleManualMode, manual } = useStore(
     useShallow((state) => state)
@@ -39,23 +40,38 @@ export const useIntegrationPolicy = () => {
   }, [integrationPolicy])
 
   useEffect(() => {
+    let timeout: NodeJS.Timeout
+    if (!videoNode) {
+      // Set the hasVideoNode to false after a delay to prevent flickering
+      timeout = setTimeout(() => {
+        setHasVideoNode(false)
+      }, 5000)
+    } else {
+      setHasVideoNode(true)
+    }
+    return () => {
+      clearTimeout(timeout)
+    }
+  }, [videoNode])
+
+  useEffect(() => {
     if (!integrationPolicy || manual) {
       toggleManualMode(true)
       resetMediaState()
-      setObserver(null)
+      observer.current = undefined
       return
     }
 
     toggleManualMode(false)
 
     // Only create the observer if the video node is present
-    if (!videoNode) {
-      observer?.reset()
+    if (!hasVideoNode) {
+      observer.current?.reset()
       return
     }
 
     const obs = new IntegrationPolicyObserver(integrationPolicy.policy)
-    setObserver(obs)
+    observer.current = obs
 
     obs.on({
       mediaChange: async (state: MediaInfo) => {
@@ -76,7 +92,7 @@ export const useIntegrationPolicy = () => {
 
     return () => {
       obs.destroy()
-      setObserver(null)
+      observer.current = undefined
     }
-  }, [integrationPolicy, manual, videoNode])
+  }, [integrationPolicy, manual, hasVideoNode])
 }
