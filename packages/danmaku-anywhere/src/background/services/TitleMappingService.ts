@@ -16,13 +16,21 @@ export class TitleMappingService {
   }
 
   async add(mapping: TitleMapping) {
-    // If mapping already exists, remove it first
-    if ((await this.count(mapping.originalTitle)) > 0) {
-      this.logger.debug('Title mapping already exists:', mapping)
+    const existing = await this.count(mapping.originalTitle)
+    // If there are more than 1 mapping for the given key, remove all of them
+    if (existing > 1) {
+      this.logger.debug(
+        'Multiple title mapping already exists for key:',
+        mapping.originalTitle
+      )
       await this.remove(mapping.originalTitle)
+    } else if (existing === 1) {
+      this.logger.debug('Updating title mapping:', mapping)
+      this.db.update(mapping.originalTitle, mapping)
+    } else {
+      this.logger.debug('Adding title mapping:', mapping)
+      this.db.add(mapping)
     }
-    this.logger.debug('Adding title mapping:', mapping)
-    this.db.add(mapping)
   }
 
   async count(key: string) {
