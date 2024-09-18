@@ -171,3 +171,7 @@ export const getFirstElement = (
   }
   return null
 }
+
+export const docsLink = (path: string) => {
+  return `https://danmaku.weeblify.app/docs/${path}`
+}

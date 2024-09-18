@@ -137,7 +137,6 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
             fullWidth
             required
           />
-
           <TextField
             label={t('configPage.editor.mediaQuery')}
             size="small"
@@ -151,7 +150,6 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
             fullWidth
             required
           />
-
           <Controller
             name="integration"
             control={control}
@@ -177,14 +175,12 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
               </TextField>
             )}
           />
-
           <Typography variant="body2" color="textSecondary">
             {t('configPage.editor.urlPatterns')}
           </Typography>
           <FormHelperText>
             {t('configPage.editor.helper.urlPattern')}
           </FormHelperText>
-
           {fields.map((field, index, arr) => (
             <Stack
               direction="row"
@@ -215,11 +211,9 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
               )}
             </Stack>
           ))}
-
           <Button onClick={addPatternField} startIcon={<AddCircleOutline />}>
             {t('configPage.editor.pattern.add')}
           </Button>
-
           <Stack
             direction="row"
             spacing={2}

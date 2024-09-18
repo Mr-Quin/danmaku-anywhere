@@ -23,6 +23,7 @@ const common = {
     regexShort: 'Regex',
     success: 'Success',
     failed: 'Failed',
+    docs: 'Documentation',
   },
   error: {
     unknown: 'Something went wrong.',

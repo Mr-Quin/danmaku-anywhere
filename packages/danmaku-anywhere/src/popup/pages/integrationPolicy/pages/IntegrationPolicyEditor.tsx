@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ExpandLess, ExpandMore } from '@mui/icons-material'
+import { ExpandLess, ExpandMore, OpenInNew } from '@mui/icons-material'
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
 import { LoadingButton } from '@mui/lab'
@@ -8,6 +8,7 @@ import {
   Button,
   Checkbox,
   Collapse,
+  Divider,
   FormControl,
   FormControlLabel,
   FormHelperText,
@@ -36,7 +37,7 @@ import type { IntegrationPolicyItem } from '@/common/options/integrationPolicySt
 import { integrationPolicyItemSchema } from '@/common/options/integrationPolicyStore/schema'
 import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
 import { tabRpcClient } from '@/common/rpcClient/tab/client'
-import { getRandomUUID } from '@/common/utils/utils'
+import { docsLink, getRandomUUID } from '@/common/utils/utils'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 import { useIsConnected } from '@/popup/hooks/useIsConnected'
@@ -485,11 +486,27 @@ export const IntegrationPolicyEditor = ({
         />
         <FormProvider {...form}>
           <Box p={2}>
-            <Button onClick={() => setPreferJson(!preferJson)}>
-              {preferJson
-                ? t('integrationPolicyPage.editor.switchToForm')
-                : t('integrationPolicyPage.editor.switchToJSON')}
-            </Button>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Button onClick={() => setPreferJson(!preferJson)}>
+                {preferJson
+                  ? t('integrationPolicyPage.editor.switchToForm')
+                  : t('integrationPolicyPage.editor.switchToJSON')}
+              </Button>
+              <Button
+                variant="text"
+                component="a"
+                href={docsLink('integration-policy')}
+                target="_blank"
+              >
+                {t('common.docs')}
+                <OpenInNew fontSize="inherit" color="primary" />
+              </Button>
+            </Stack>
+            <Divider sx={{ mb: 2 }} />
             {preferJson ? <JsonForm /> : <NormalForm />}
             {testResult && (
               <pre
