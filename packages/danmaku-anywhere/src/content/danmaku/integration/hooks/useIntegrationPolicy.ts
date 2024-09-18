@@ -84,6 +84,7 @@ export const useIntegrationPolicy = () => {
           episodeNumber: state.episodic ? state.episode : undefined,
         }
 
+        toast.info(t('integration.alert.search', { title: state.toString() }))
         matchEpisode.mutate(episodeMatchPayload)
       },
     })
