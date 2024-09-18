@@ -11,7 +11,7 @@ const plexPolicy = {
       regex: ['\\d+'],
       selector: [
         '//*[@id="plex"]//span[contains(@class, "MetadataPosterTitle-singleLineTitle")]/span[1]/a[2]',
-        '//*[@id="plex"]//span[contains(@class, "MetadataPosterTitle-singleLineTitle")]/span[3]',
+        '//*[@id="plex"]//span[contains(@class, "MetadataPosterTitle-singleLineTitle")]/span[1]/span[3]',
       ],
     },
     episodeTitle: {
@@ -24,7 +24,7 @@ const plexPolicy = {
       regex: ['.+'],
       selector: [
         '//*[@id="plex"]//span[contains(@class, "MetadataPosterTitle-singleLineTitle")]/span[1]/a[1]',
-        '//*[@id="plex"]//span[contains(@class, "MetadataPosterTitle-singleLineTitle")]/span[1]',
+        '//*[@id="plex"]//span[contains(@class, "MetadataPosterTitle-singleLineTitle")]/span[1]/span[1]',
       ],
     },
     title: {
