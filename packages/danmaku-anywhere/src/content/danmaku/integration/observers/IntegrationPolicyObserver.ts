@@ -39,36 +39,46 @@ export const parseMediaInfo = (
     policy.title.regex
   )
 
+  if (title === undefined) {
+    throw new Error('Error parsing title')
+  }
+
   // Default to 1 if the element is not present
   let episode = 1
   let episodic = false
   let episodeTitle = title
-  let season: number | undefined = undefined
+  let season: string | undefined = undefined
 
   // If the episode element is not present, assume it's a movie or something that doesn't have episodes
   if (elements.episode) {
-    episode = parseMultipleRegex(
+    const parsedEpisode = parseMultipleRegex(
       parseMediaNumber,
       elements.episode,
-      policy.episodeNumber.regex
+      policy.episode.regex
     )
-    episodic = true
+    if (parsedEpisode !== undefined) {
+      episode = parsedEpisode
+      episodic = true
+    }
   }
 
   if (elements.season) {
     season = parseMultipleRegex(
-      parseMediaNumber,
+      parseMediaString,
       elements.season,
-      policy.seasonNumber.regex
+      policy.season.regex
     )
   }
 
   if (elements.episodeTitle) {
-    episodeTitle = parseMultipleRegex(
+    const parsedEpisodeTitle = parseMultipleRegex(
       parseMediaString,
       elements.episodeTitle,
       policy.episodeTitle.regex
     )
+    if (parsedEpisodeTitle !== undefined) {
+      episodeTitle = parsedEpisodeTitle
+    }
   }
 
   return new MediaInfo(title, episode, season, episodic, episodeTitle)
@@ -182,8 +192,8 @@ export class IntegrationPolicyObserver extends MediaObserver {
           } else {
             resolve({
               title: titleElement,
-              episode: getFirstElement(this.policy.episodeNumber.selector),
-              season: getFirstElement(this.policy.seasonNumber.selector),
+              episode: getFirstElement(this.policy.episode.selector),
+              season: getFirstElement(this.policy.season.selector),
               episodeTitle: getFirstElement(this.policy.episodeTitle.selector),
             })
           }

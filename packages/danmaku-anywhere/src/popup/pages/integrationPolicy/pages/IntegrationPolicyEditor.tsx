@@ -17,17 +17,16 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import type { Optional } from '@tanstack/react-query'
 import { useMutation } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import type { FieldErrors, UseControllerProps } from 'react-hook-form'
 import {
-  useWatch,
-  FormProvider,
   Controller,
+  FormProvider,
   useForm,
   useFormContext,
+  useWatch,
 } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router-dom'
@@ -42,6 +41,7 @@ import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 import { useIsConnected } from '@/popup/hooks/useIsConnected'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
+import type { IntegrationPolicyItemWithoutId } from '@/popup/pages/integrationPolicy/createXPathPolicyItem'
 
 interface IntegrationPolicyEditorProps {
   mode: 'add' | 'edit'
@@ -193,9 +193,7 @@ const CollapsableSection = ({
 }
 
 const JsonForm = () => {
-  type PolicyItemWithoutId = Optional<IntegrationPolicyItem, 'id'>
-
-  const { getValues, reset } = useFormContext<PolicyItemWithoutId>()
+  const { getValues, reset } = useFormContext<IntegrationPolicyItemWithoutId>()
 
   const [jsonValue, setJsonValue] = useState<string>(() => {
     const values = getValues()
@@ -223,7 +221,7 @@ const JsonForm = () => {
         setJsonValue(e.target.value)
         try {
           const parsed = JSON.parse(e.target.value)
-          const policy: PolicyItemWithoutId =
+          const policy: IntegrationPolicyItemWithoutId =
             integrationPolicyItemSchema.parse(parsed)
           delete policy.id
 
@@ -312,38 +310,38 @@ const NormalForm = () => {
         {/*Season Number*/}
         <CollapsableSection name={t('integrationPolicyPage.editor.season')}>
           <InputFieldArray
-            name="policy.seasonNumber.selector"
+            name="policy.season.selector"
             label={t('integrationPolicyPage.editor.seasonSelector')}
-            getInitialValue={(values) => values.policy.seasonNumber.selector}
+            getInitialValue={(values) => values.policy.season.selector}
             getErrorMessage={(errors, i) =>
-              errors.policy?.seasonNumber?.selector?.[i]?.message
+              errors.policy?.season?.selector?.[i]?.message
             }
           />
           <InputFieldArray
-            name="policy.seasonNumber.regex"
+            name="policy.season.regex"
             label={t('integrationPolicyPage.editor.seasonRegex')}
-            getInitialValue={(values) => values.policy.seasonNumber.regex}
+            getInitialValue={(values) => values.policy.season.regex}
             getErrorMessage={(errors, i) =>
-              errors.policy?.seasonNumber?.regex?.[i]?.message
+              errors.policy?.season?.regex?.[i]?.message
             }
           />
         </CollapsableSection>
         {/*Episode Number*/}
         <CollapsableSection name={t('integrationPolicyPage.editor.episode')}>
           <InputFieldArray
-            name="policy.episodeNumber.selector"
+            name="policy.episode.selector"
             label={t('integrationPolicyPage.editor.episodeSelector')}
-            getInitialValue={(values) => values.policy.episodeNumber.selector}
+            getInitialValue={(values) => values.policy.episode.selector}
             getErrorMessage={(errors, i) =>
-              errors.policy?.episodeNumber?.selector?.[i]?.message
+              errors.policy?.episode?.selector?.[i]?.message
             }
           />
           <InputFieldArray
-            name="policy.episodeNumber.regex"
+            name="policy.episode.regex"
             label={t('integrationPolicyPage.editor.episodeRegex')}
-            getInitialValue={(values) => values.policy.episodeNumber.regex}
+            getInitialValue={(values) => values.policy.episode.regex}
             getErrorMessage={(errors, i) =>
-              errors.policy?.episodeNumber?.regex?.[i]?.message
+              errors.policy?.episode?.regex?.[i]?.message
             }
           />
         </CollapsableSection>
@@ -394,7 +392,6 @@ export const IntegrationPolicyEditor = ({
     handleSubmit,
     getValues,
     trigger,
-    watch,
     formState: { isSubmitting },
   } = form
 
@@ -430,17 +427,6 @@ export const IntegrationPolicyEditor = ({
       return tabRpcClient.integrationPolicyTest(policyData)
     },
   })
-
-  const titleOnly = watch('policy.titleOnly')
-  const titleSelector = watch('policy.title.selector')
-
-  useEffect(() => {
-    if (titleOnly) {
-      form.setValue('policy.episodeNumber.selector', titleSelector)
-      form.setValue('policy.episodeTitle.selector', titleSelector)
-      form.setValue('policy.seasonNumber.selector', titleSelector)
-    }
-  }, [titleSelector])
 
   return (
     <OptionsPageLayout direction="left">

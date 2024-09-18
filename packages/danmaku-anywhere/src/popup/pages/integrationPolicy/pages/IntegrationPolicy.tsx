@@ -5,9 +5,9 @@ import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog'
 import { IntegrationPolicyList } from '../components/IntegrationPolicyList'
 import { Toolbar } from '../components/Toolbar'
 
-import { createXPathPolicy } from '@/common/options/integrationPolicyStore/consant'
 import type { IntegrationPolicyItem } from '@/common/options/integrationPolicyStore/schema'
 import { TabLayout } from '@/popup/layout/TabLayout'
+import { createXPathPolicyItem } from '@/popup/pages/integrationPolicy/createXPathPolicyItem'
 
 export const IntegrationPolicy = () => {
   const navigate = useNavigate()
@@ -16,11 +16,11 @@ export const IntegrationPolicy = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const handleEdit = (item: IntegrationPolicyItem) => {
-    navigate('edit', { state: item })
+    navigate('edit', { state: createXPathPolicyItem(item) })
   }
 
   const handleAdd = () => {
-    navigate('add', { state: { name: '', policy: createXPathPolicy() } })
+    navigate('add', { state: createXPathPolicyItem() })
   }
 
   const handleDelete = (item: IntegrationPolicyItem) => {

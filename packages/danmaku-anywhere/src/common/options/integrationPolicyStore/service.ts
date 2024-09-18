@@ -1,4 +1,4 @@
-import { defaultXPathPolicies } from '@/common/options/integrationPolicyStore/consant'
+import { defaultXPathPolicies } from '@/common/options/integrationPolicyStore/constant'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 
 export const xPathPolicyStore = new OptionsService(

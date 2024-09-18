@@ -4,7 +4,7 @@ import { MediaInfo } from '@/content/danmaku/integration/models/MediaInfo'
  * For parsing numbers like episode and season numbers
  */
 export const parseMediaNumber = (text: string, regex: string) => {
-  const match = text.match(new RegExp(regex, 'i'))
+  const match = text.match(new RegExp(regex, 'im'))
 
   if (match === null) {
     throw new Error(
@@ -29,7 +29,7 @@ export const parseMediaNumber = (text: string, regex: string) => {
  * For parsing strings like season and episode titles
  */
 export const parseMediaString = (text: string, regex: string) => {
-  const match = text.match(new RegExp(regex, 'i'))
+  const match = text.match(new RegExp(regex, 'im'))
 
   if (match === null) {
     throw new Error(
@@ -45,11 +45,12 @@ export const parseMultipleRegex = <T>(
   parser: (text: string, regex: string) => T,
   text: string,
   regex: string[]
-): T => {
+): T | undefined => {
   const errors: string[] = []
 
   for (const reg of regex) {
     try {
+      if (reg === '') return
       return parser(text, reg)
     } catch (err) {
       if (err instanceof Error) {
@@ -93,24 +94,9 @@ export const parseMediaFromTitle = (
         continue
       }
 
-      const seasonNumber = season ? parseInt(season) : undefined
-
-      if (seasonNumber && isNaN(seasonNumber)) {
-        errors.push(
-          `Matched \`${match}\` in \`${title}\` using ${reg}, but parsing season as number resulted in NaN`
-        )
-        continue
-      }
-
       // If the episode is not present, assume this is non-episodic
       if (!episode) {
-        return new MediaInfo(
-          titleText,
-          1,
-          seasonNumber,
-          false,
-          episodeTitle ?? title
-        )
+        return new MediaInfo(titleText, 1, season, false, episodeTitle ?? title)
       }
 
       const episodeNumber = parseInt(episode)
@@ -122,13 +108,7 @@ export const parseMediaFromTitle = (
         continue
       }
 
-      return new MediaInfo(
-        titleText,
-        episodeNumber,
-        seasonNumber,
-        true,
-        episodeTitle
-      )
+      return new MediaInfo(titleText, episodeNumber, season, true, episodeTitle)
     } catch (err) {
       if (err instanceof Error) {
         errors.push(err.message)

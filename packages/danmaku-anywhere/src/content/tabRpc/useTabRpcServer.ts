@@ -38,8 +38,8 @@ export const useTabRpcServer = () => {
       },
       integrationPolicyTest: async ({ policy }) => {
         const titleElement = getFirstElement(policy.title.selector)
-        const episodeElement = getFirstElement(policy.episodeNumber.selector)
-        const seasonElement = getFirstElement(policy.seasonNumber.selector)
+        const episodeElement = getFirstElement(policy.episode.selector)
+        const seasonElement = getFirstElement(policy.season.selector)
         const episodeTitleElement = getFirstElement(
           policy.episodeTitle.selector
         )

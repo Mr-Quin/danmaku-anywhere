@@ -2,70 +2,56 @@ import { z } from 'zod'
 
 import { getElementByXpath, getRandomUUID } from '@/common/utils/utils'
 
-const validateXPath = (value: string) => {
-  // Skip validation in non-browser environments since this method relies on document.evaluate
-  if (typeof window !== 'object') return true
+const validateXPath =
+  ({
+    allowEmptyString,
+  }: {
+    allowEmptyString?: boolean
+  } = {}) =>
+  (value: string) => {
+    // Skip validation in non-browser environments since this method relies on document.evaluate
+    if (typeof window !== 'object') return true
+    if (allowEmptyString) {
+      if (value === '') return true
+    }
 
-  try {
-    getElementByXpath(value)
-    return true
-  } catch (error) {
-    return false
+    try {
+      getElementByXpath(value)
+      return true
+    } catch (error) {
+      return false
+    }
   }
-}
 
-const xpathString = z.string().refine(validateXPath, {
+const xpathString = z
+  .string()
+  .refine(validateXPath({ allowEmptyString: true }), {
+    message: 'Invalid XPath',
+  })
+
+const nonEmptyXPathString = z.string().min(1).refine(validateXPath(), {
   message: 'Invalid XPath',
 })
 
-const xpathSelector = z
-  .union([xpathString, z.array(xpathString)])
-  .transform((val) => {
-    if (typeof val === 'string') {
-      return [val]
-    }
-    return val
-  })
+const regexString = z.string()
 
-const regexString = z.string().optional().default('')
+const xpathArray = z.array(xpathString)
+const regexArray = z.array(regexString)
 
-const regexStringArray = () =>
-  z.union([z.array(regexString), regexString]).transform((val) => {
-    if (typeof val === 'string') {
-      return [val]
-    }
-    return val
-  })
+const matcher = z.object({
+  selector: xpathArray,
+  regex: regexArray,
+})
 
 export const integrationPolicySchema = z.object({
-  // Used to search for danmaku, must be present
   title: z.object({
-    selector: xpathSelector,
-    regex: regexStringArray(),
+    selector: z.array(nonEmptyXPathString).min(1),
+    regex: z.array(z.string().min(1)).min(1),
   }),
-  // If true, only the title is used to parse media information
-  // This is for cases where the title contains all the necessary information, e.g. file name
   titleOnly: z.boolean(),
-  // Used to get the correct episode in the search results
-  // If not present, the media is assumed to be non-episodic
-  // Optional, default to 1
-  episodeNumber: z.object({
-    selector: xpathSelector,
-    regex: regexStringArray(),
-  }),
-  // Reserved
-  // Not used for now because season number is typically part of the title
-  // Optional, default to 1
-  seasonNumber: z.object({
-    selector: xpathSelector,
-    regex: regexStringArray(),
-  }),
-  // Used to help determine the correct episode in the search results
-  // Optional
-  episodeTitle: z.object({
-    selector: xpathSelector,
-    regex: regexStringArray(),
-  }),
+  episode: matcher,
+  season: matcher,
+  episodeTitle: matcher,
 })
 
 export type IntegrationPolicy = z.infer<typeof integrationPolicySchema>

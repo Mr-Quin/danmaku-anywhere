@@ -1,6 +1,6 @@
 import defaultMountConfigJson from './default.json' assert { type: 'json' }
 
-import { getDefaultXPathPolicy } from '@/common/options/integrationPolicyStore/consant'
+import { getDefaultXPathPolicy } from '@/common/options/integrationPolicyStore/constant'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { getRandomUUID } from '@/common/utils/utils'
 
