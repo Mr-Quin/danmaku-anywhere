@@ -31,7 +31,12 @@ export const useIntegrationPolicy = () => {
   const integrationPolicy = useActiveIntegration()
 
   useEffect(() => {
-    if (!integrationPolicy) return
+    if (!integrationPolicy) {
+      toggleManualMode(true)
+      return
+    }
+
+    toggleManualMode(false)
 
     toast.info(
       t('integration.alert.usingIntegration', { name: integrationPolicy.name })
@@ -56,13 +61,10 @@ export const useIntegrationPolicy = () => {
 
   useEffect(() => {
     if (!integrationPolicy || manual) {
-      toggleManualMode(true)
       resetMediaState()
       observer.current = undefined
       return
     }
-
-    toggleManualMode(false)
 
     // Only create the observer if the video node is present
     if (!hasVideoNode) {
