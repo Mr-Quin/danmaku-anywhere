@@ -25,6 +25,7 @@ const common = {
     regexShort: '正则',
     success: '成功',
     failed: '失败',
+    docs: '文档',
   },
   error: {
     unknown: '出了一些问题。',
