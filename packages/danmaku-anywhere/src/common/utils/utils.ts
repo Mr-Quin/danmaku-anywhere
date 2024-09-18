@@ -147,6 +147,9 @@ export const stripHtml = (html: string) => {
 }
 
 export const getElementByXpath = (path: string, parent = window.document) => {
+  // Empty string will throw, return null instead
+  if (path === '') return null
+
   return document.evaluate(
     path,
     parent,

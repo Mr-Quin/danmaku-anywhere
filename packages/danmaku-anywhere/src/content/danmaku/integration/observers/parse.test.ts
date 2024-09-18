@@ -15,19 +15,48 @@ describe('parseMediaNumber', () => {
     expect(result).toBe(12)
   })
 
+  it('should prefer the first capture group if it exists', () => {
+    // Capture first digit
+    const result = parseMediaNumber('a1b2c3d4', 'a(\\d)b(\\d)c(\\d)d(\\d)')
+    expect(result).toBe(1)
+
+    // Capture second digit
+    const result2 = parseMediaNumber('a1b2c3d4', 'a\\db(\\d)c(\\d)d(\\d)')
+    expect(result2).toBe(2)
+
+    // Works with non-capture groups
+    const result3 = parseMediaNumber('a1b2c3d4', 'a\\db(?:\\d)c(\\d)d(\\d)')
+    expect(result3).toBe(3)
+  })
+
   it('should throw an error if regex does not match', () => {
     expect(() => parseMediaNumber('Episode Twelve', '\\d+')).toThrow()
   })
 
   it('should throw an error if parsed result is NaN', () => {
-    expect(() => parseMediaNumber('Episode NaN', 'NaN')).toThrow()
+    // Matches Twelve, which parses to NaN
+    expect(() => parseMediaNumber('Episode Twelve', 'Episode (.+)')).toThrow()
   })
 })
 
 describe('parseMediaString', () => {
   it('should parse a valid string', () => {
+    const result = parseMediaString('MyGo', '.+')
+    expect(result).toBe('MyGo')
+  })
+
+  it('should prefer the first capture group if it exists', () => {
+    // Capture the name
     const result = parseMediaString('Title: MyGo', 'Title: (.+)')
     expect(result).toBe('MyGo')
+
+    // Capture the title
+    const result2 = parseMediaString('Title: MyGo', '(Title): (.+)')
+    expect(result2).toBe('Title')
+
+    // Skip non-capture group
+    const result3 = parseMediaString('Title: MyGo', '(?:Title): (.+)')
+    expect(result3).toBe('MyGo')
   })
 
   it('should throw an error if regex does not match', () => {
@@ -60,14 +89,14 @@ describe('parseMediaFromTitle', () => {
     const result = parseMediaFromTitle(
       "ONIMAI: I'm Now Your Sister! - S1:E12 - Mahiro's Future as a Sister (2023)",
       [
-        '(?<title>.+) - [^\\d]*(?<season>\\d*):[^\\d]*(?<episode>\\d*) - (?<episodeTitle>.+) (\\(\\d+\\))',
+        '(?<title>.+) - (?<season>.+):[^\\d]*(?<episode>\\d*) - (?<episodeTitle>.+) (\\(\\d+\\))',
       ]
     )
     expect(result).toEqual(
       new MediaInfo(
         "ONIMAI: I'm Now Your Sister!",
         12,
-        1,
+        'S1',
         true,
         "Mahiro's Future as a Sister"
       )
@@ -87,9 +116,9 @@ describe('parseMediaFromTitle', () => {
   it('should not throw if other groups are missing', () => {
     // Episode title is omitted
     const result2 = parseMediaFromTitle('MyGo S1E12 GoGoGo', [
-      '(?<title>.+) S(?<season>\\d+)E(?<episode>\\d+)',
+      '(?<title>.+) (?<season>S.+)E(?<episode>\\d+)',
     ])
-    expect(result2).toEqual(new MediaInfo('MyGo', 12, 1, true))
+    expect(result2).toEqual(new MediaInfo('MyGo', 12, 'S1', true))
 
     // Season is omitted
     const result3 = parseMediaFromTitle('MyGo S1E12 GoGoGo', [
@@ -101,9 +130,9 @@ describe('parseMediaFromTitle', () => {
 
     // Episode number is omitted
     const result4 = parseMediaFromTitle('MyGo S1E12 GoGoGo', [
-      '(?<title>.+) S(?<season>\\d+)E(?:\\d+) (?<episodeTitle>.+)',
+      '(?<title>.+) (?<season>S\\d+)E(?:\\d+) (?<episodeTitle>.+)',
     ])
-    expect(result4).toEqual(new MediaInfo('MyGo', 1, 1, false, 'GoGoGo'))
+    expect(result4).toEqual(new MediaInfo('MyGo', 1, 'S1', false, 'GoGoGo'))
   })
 
   it('should use the first matching regex', () => {
