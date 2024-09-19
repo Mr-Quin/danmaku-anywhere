@@ -1,28 +1,25 @@
 import { useEffect, useRef } from 'react'
 
-import { useMediaElementStore } from '../../store/mediaElementStore'
-
-import { useRect } from '@/content/common/hooks/useRect'
-
-export const useFullScreenElement = () => {
+export const useFullScreenElement = (videoRect?: DOMRectReadOnly) => {
   const prevFullScreenElement = useRef<Element | null>(null)
 
-  const videoNode = useMediaElementStore.use.videoNode()
-  const fullScreenElement = useMediaElementStore.use.fullScreenElement()
-  const setFullScreenElement = useMediaElementStore.use.setFullScreenElement()
-
-  const rect = useRect(videoNode)
-
   useEffect(() => {
-    if (!rect) return
+    if (!videoRect) return
 
     const fullScreenElement = document.fullscreenElement
 
     if (prevFullScreenElement.current === fullScreenElement) return
 
-    setFullScreenElement(fullScreenElement)
-    prevFullScreenElement.current = fullScreenElement
-  }, [rect])
+    /**
+     * When the video enters full screen, hide then show the popover
+     * so that it will appear on top of the full screen element,
+     * since the last element in the top layer is shown on top
+     */
+    if (fullScreenElement) {
+      document.getElementById('danmaku-anywhere')?.hidePopover()
+      document.getElementById('danmaku-anywhere')?.showPopover()
+    }
 
-  return fullScreenElement
+    prevFullScreenElement.current = fullScreenElement
+  }, [videoRect])
 }

@@ -2,23 +2,25 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useShallow } from 'zustand/react/shallow'
 
-import { useDanmakuEngine } from '../../store/danmakuEngineStore'
-import { useMediaElementStore } from '../../store/mediaElementStore'
 import { useStore } from '../../store/store'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import { Logger } from '@/common/Logger'
 import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
 import { useRefreshComments } from '@/content/common/hooks/useRefreshComments'
+import { useMediaElementStore } from '@/content/store/mediaElementStore'
 
 // listen to comment changes and mount/unmount the danmaku engine
 // TODO: this should be a state machine
-export const useDanmakuManager = () => {
+export const useDanmakuManager = (
+  videoNode: HTMLVideoElement | null,
+  containerNode: HTMLElement | null,
+  videoSrc?: string
+) => {
   const { t } = useTranslation()
   const { data: options } = useDanmakuOptions()
-  const danmakuEngine = useDanmakuEngine()
   const { toast } = useToast()
-  const { videoNode, containerNode, videoSrc } = useMediaElementStore()
+  const danmakuEngine = useMediaElementStore.use.danmakuEngine()
   const { canRefresh, refreshComments } = useRefreshComments()
 
   const { comments, hasComments, resetMediaState } = useStore(
