@@ -1,9 +1,7 @@
-import { useEffect } from 'react'
-
-import { useMediaElementStore } from '@/content/store/mediaElementStore'
+import { useEffect, useState } from 'react'
 
 export const useVideoSrc = (videoNode: HTMLVideoElement | null) => {
-  const setVideoSrc = useMediaElementStore((state) => state.setVideoSrc)
+  const [videoSrc, setVideoSrc] = useState<string>()
 
   useEffect(() => {
     const observer = new MutationObserver((mutations) => {
@@ -20,11 +18,13 @@ export const useVideoSrc = (videoNode: HTMLVideoElement | null) => {
         attributeFilter: ['src'],
       })
     } else {
-      setVideoSrc(null)
+      setVideoSrc(undefined)
     }
 
     return () => {
       observer.disconnect()
     }
   }, [videoNode])
+
+  return videoSrc
 }

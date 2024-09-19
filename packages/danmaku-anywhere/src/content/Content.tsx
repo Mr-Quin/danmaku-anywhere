@@ -1,7 +1,6 @@
 import { Suspense } from 'react'
 
 import { DanmakuContainer } from './danmaku/container/DanmakuContainer'
-import { DanmakuManager } from './danmaku/danmakuManager/DanmakuManager'
 import { RegisterIntegration } from './danmaku/integration/RegisterIntegration'
 import { IconManagerComponent } from './iconManager/IconManagerComponent'
 import { useStore } from './store/store'
@@ -20,7 +19,6 @@ export const Content = () => {
         {enabled && (
           <>
             <DanmakuContainer />
-            <DanmakuManager />
             <RegisterIntegration />
           </>
         )}

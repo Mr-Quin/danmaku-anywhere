@@ -20,12 +20,8 @@ export const CommentsPanel = () => {
   const { comments } = useStore()
 
   const { refreshComments, isPending, canRefresh } = useRefreshComments()
-  const videoNode = useMediaElementStore.use.videoNode()
-
-  const handleGoToTimestamp = (time: number) => {
-    if (!videoNode) return
-    videoNode.currentTime = time
-  }
+  const seek = useMediaElementStore.use.seek()
+  const hasVideo = useMediaElementStore.use.hasVideo()
 
   return (
     <Stack height="100%" flexGrow={1}>
@@ -51,8 +47,8 @@ export const CommentsPanel = () => {
       </Toolbar>
       <CommentsTable
         comments={comments}
-        onTimeClick={handleGoToTimestamp}
-        isTimeClickable={videoNode !== null}
+        onTimeClick={seek}
+        isTimeClickable={hasVideo}
       />
     </Stack>
   )

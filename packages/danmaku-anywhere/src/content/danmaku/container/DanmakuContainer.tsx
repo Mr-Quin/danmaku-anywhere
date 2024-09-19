@@ -9,8 +9,8 @@ import type { SafeZones } from '@/common/options/danmakuOptions/constant'
 import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
 import { useRect } from '@/content/common/hooks/useRect'
+import { useDanmakuManager } from '@/content/danmaku/container/useDanmakuManager'
 import { useVideoSrc } from '@/content/danmaku/container/useVideoSrc'
-import { useDanmakuEngine } from '@/content/store/danmakuEngineStore'
 
 // returns a padding object for the safe zone
 const calculatePaddings = (safeZones: SafeZones, rect?: DOMRectReadOnly) => {
@@ -39,27 +39,15 @@ export const DanmakuContainer = () => {
 
   const videoNode = useVideoNode(config.mediaQuery)
 
-  useVideoSrc(videoNode)
+  const videoSrc = useVideoSrc(videoNode)
 
   const rect = useRect(videoNode)
 
   const ref = useContainerNode()
 
-  const danmakuEngine = useDanmakuEngine()
+  useFullScreenElement(rect)
 
-  const fullScreenElement = useFullScreenElement()
-
-  useEffect(() => {
-    /**
-     * When the video enters full screen, hide then show the popover
-     * so that it will appear on top of the full screen element,
-     * since the last element in the top layer is shown on top
-     */
-    if (fullScreenElement) {
-      document.getElementById('danmaku-anywhere')?.hidePopover()
-      document.getElementById('danmaku-anywhere')?.showPopover()
-    }
-  }, [fullScreenElement])
+  const danmakuEngine = useDanmakuManager(videoNode, ref.current, videoSrc)
 
   useEffect(() => {
     if (danmakuEngine.created) {
