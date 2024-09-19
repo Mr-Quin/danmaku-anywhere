@@ -475,7 +475,7 @@ export const IntegrationPolicyEditor = ({
               </Tooltip>
               <LoadingButton
                 variant="text"
-                color="primary"
+                color="inherit"
                 type="submit"
                 loading={isSubmitting}
               >
