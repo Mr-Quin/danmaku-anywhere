@@ -1,7 +1,7 @@
 ---
 name: Bug 报告
 about: 都是特性
-title: "[BUG]"
+title: ''
 labels: bug
 assignees: Mr-Quin
 
