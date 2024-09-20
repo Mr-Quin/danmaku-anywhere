@@ -26,7 +26,6 @@ export const manifest = defineManifest({
     'scripting',
     'contextMenus',
     'declarativeNetRequestWithHostAccess',
-    'cookies',
   ],
   host_permissions: ['https://*/*', 'http://*/*', 'file:///*'],
   icons: {
