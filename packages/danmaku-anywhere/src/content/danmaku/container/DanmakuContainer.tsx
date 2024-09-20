@@ -2,7 +2,6 @@ import { Box } from '@mui/material'
 import { useEffect, useState } from 'react'
 
 import { useContainerNode } from './useContainerNode'
-import { useFullScreenElement } from './useFullScreenElement'
 import { useVideoNode } from './useVideoNode'
 
 import type { SafeZones } from '@/common/options/danmakuOptions/constant'
@@ -44,7 +43,6 @@ export const DanmakuContainer = () => {
   const rect = useRect(videoNode)
 
   const ref = useContainerNode()
-  useFullScreenElement(rect)
 
   const danmakuEngine = useDanmakuManager(videoNode, ref.current, videoSrc)
 

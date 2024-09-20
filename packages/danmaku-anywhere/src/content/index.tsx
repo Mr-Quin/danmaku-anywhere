@@ -28,6 +28,17 @@ root.setAttribute('popover', 'manual')
 document.body.append(root)
 root.showPopover()
 
+// Listen to fullscreenchange event and keep popover on top
+document.addEventListener('fullscreenchange', () => {
+  /**
+   * When the video enters full screen, hide then show the popover
+   * so that it will appear on top of the full screen element,
+   * since the last element in the top layer is shown on top
+   */
+  root.hidePopover()
+  root.showPopover()
+})
+
 // create shadow dom
 const shadowContainer = root.attachShadow({ mode: 'closed' })
 const emotionRoot = document.createElement('style')
