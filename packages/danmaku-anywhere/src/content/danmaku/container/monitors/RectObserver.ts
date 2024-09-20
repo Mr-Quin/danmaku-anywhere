@@ -1,5 +1,3 @@
-import { useLayoutEffect, useState } from 'react'
-
 const areRectsEqual = (rect1: DOMRectReadOnly, rect2: DOMRectReadOnly) => {
   return (
     rect1.x === rect2.x &&
@@ -95,22 +93,4 @@ export class RectObserver {
       clearInterval(this.interval)
     }
   }
-}
-
-export const useRect = (node: HTMLElement | null) => {
-  const [rect, setRect] = useState<DOMRectReadOnly | undefined>()
-
-  useLayoutEffect(() => {
-    if (!node) return
-
-    const rectObserver = new RectObserver(node)
-    rectObserver.onRectChange(setRect)
-    setRect(rectObserver.rect)
-
-    return () => {
-      rectObserver.cleanup()
-    }
-  }, [node])
-
-  return rect
 }

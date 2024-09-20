@@ -93,13 +93,11 @@ export class DanmakuManager {
   }
 
   updateConfig(config: Partial<DanmakuOptions>): void {
+    this.config = this.#mergeConfig(config)
+
+    // If already created, recreate the instance
     if (this.created) {
-      this.create(
-        this.container!,
-        this.media!,
-        this.comments,
-        this.#mergeConfig(config)
-      )
+      this.create(this.container!, this.media!, this.comments, this.config)
     }
   }
 
