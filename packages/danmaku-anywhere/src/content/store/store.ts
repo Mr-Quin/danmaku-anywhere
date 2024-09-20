@@ -54,6 +54,12 @@ interface StoreState {
    * Uses the mediaInfo and danmakuMeta to get the name
    */
   getAnimeName: () => string
+
+  /**
+   * Whether the video element is present
+   */
+  hasVideo: boolean
+  setHasVideo: (hasVideo: boolean) => void
 }
 
 const useStoreBase = create<StoreState>((set, get) => ({
@@ -112,6 +118,9 @@ const useStoreBase = create<StoreState>((set, get) => ({
     }
     return 'Unknown anime'
   },
+
+  hasVideo: false,
+  setHasVideo: (hasVideo) => set({ hasVideo }),
 }))
 
 export const useStore = createSelectors(useStoreBase)
