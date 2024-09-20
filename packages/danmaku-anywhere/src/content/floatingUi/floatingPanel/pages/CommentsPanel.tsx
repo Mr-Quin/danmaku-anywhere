@@ -13,15 +13,14 @@ import { useRefreshComments } from '../../../common/hooks/useRefreshComments'
 import { useStore } from '../../../store/store'
 
 import { CommentsTable } from '@/common/components/CommentsTable'
-import { useMediaElementStore } from '@/content/store/mediaElementStore'
+import { useDanmakuManager } from '@/content/store/danmakuManager'
 
 export const CommentsPanel = () => {
   const { t } = useTranslation()
-  const { comments } = useStore()
+  const { comments, hasVideo } = useStore()
 
   const { refreshComments, isPending, canRefresh } = useRefreshComments()
-  const seek = useMediaElementStore.use.seek()
-  const hasVideo = useMediaElementStore.use.hasVideo()
+  const { manager } = useDanmakuManager()
 
   return (
     <Stack height="100%" flexGrow={1}>
@@ -47,7 +46,7 @@ export const CommentsPanel = () => {
       </Toolbar>
       <CommentsTable
         comments={comments}
-        onTimeClick={seek}
+        onTimeClick={manager?.seek}
         isTimeClickable={hasVideo}
       />
     </Stack>

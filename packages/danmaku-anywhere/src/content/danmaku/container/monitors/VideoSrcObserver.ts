@@ -1,5 +1,3 @@
-import { useEffect, useState } from 'react'
-
 export class VideoSrcObserver {
   private videoNode: HTMLVideoElement
   private currentSrc: string
@@ -44,25 +42,4 @@ export class VideoSrcObserver {
   public cleanup() {
     this.observer.disconnect()
   }
-}
-
-export const useVideoSrc = (videoNode: HTMLVideoElement | null) => {
-  const [videoSrc, setVideoSrc] = useState<string>()
-
-  useEffect(() => {
-    if (!videoNode) {
-      setVideoSrc(undefined)
-      return
-    }
-
-    const srcMonitor = new VideoSrcObserver(videoNode)
-    srcMonitor.onSrcChange(setVideoSrc)
-    setVideoSrc(srcMonitor.src)
-
-    return () => {
-      srcMonitor.cleanup()
-    }
-  }, [videoNode])
-
-  return videoSrc
 }

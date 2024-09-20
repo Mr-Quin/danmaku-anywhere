@@ -4,30 +4,25 @@ import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { Danmaku } from '@/common/danmaku/models/danmaku'
 import { Logger } from '@/common/Logger'
-import { useMediaElementStore } from '@/content/store/mediaElementStore'
 import { useStore } from '@/content/store/store'
 
 // listen to comment changes and mount/unmount the danmaku engine
 export const useManualDanmaku = () => {
   const { t } = useTranslation()
-  const { videoNode, containerNode } = useMediaElementStore()
 
   const handleSetDanmaku = useEventCallback((data: Danmaku) => {
-    if (!containerNode || !videoNode) {
-      const logString = videoNode
-        ? t('danmaku.error.containerNotFound')
-        : t('danmaku.error.videoNotFound')
+    // Throws, error is returned to the client
+    try {
+      Logger.debug('Requested manual danmaku')
 
-      useToast.getState().toast.error(logString)
-      Logger.debug(logString)
-
-      // Error is returned to the client
-      throw new Error(logString)
+      useStore.getState().mountManual(data)
+    } catch (err) {
+      Logger.error(err)
+      if (err instanceof Error) {
+        useToast.getState().toast.error(t(err.message))
+      }
+      throw err
     }
-
-    Logger.debug('Requested manual danmaku')
-
-    useStore.getState().mountManual(data)
   })
 
   const handleUnsetDanmaku = useEventCallback(() => {

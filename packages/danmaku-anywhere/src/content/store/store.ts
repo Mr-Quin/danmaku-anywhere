@@ -5,6 +5,7 @@ import type { Danmaku, DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { danmakuToString } from '@/common/danmaku/utils'
 import { createSelectors } from '@/common/utils/createSelectors'
 import type { MediaInfo } from '@/content/danmaku/integration/models/MediaInfo'
+import { useDanmakuManager } from '@/content/store/danmakuManager'
 
 interface StoreState {
   /**
@@ -85,12 +86,14 @@ const useStoreBase = create<StoreState>((set, get) => ({
     }
   },
   mountManual: (danmaku) => {
+    useDanmakuManager.getState().manager.mount(danmaku.comments)
     get().resetMediaState()
     get().toggleManualMode(true)
     get().setComments(danmaku.comments)
     get().setDanmakuLite(danmaku)
   },
   unmountManual: () => {
+    useDanmakuManager.getState().manager.unmount()
     get().resetMediaState()
     get().toggleManualMode(false)
     get().unsetComments()
