@@ -8,9 +8,9 @@ import { useVideoNode } from './useVideoNode'
 import type { SafeZones } from '@/common/options/danmakuOptions/constant'
 import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
-import { useRect } from '@/content/common/hooks/useRect'
+import { useRect } from '@/content/danmaku/container/monitors/useRect'
+import { useVideoSrc } from '@/content/danmaku/container/monitors/useVideoSrc'
 import { useDanmakuManager } from '@/content/danmaku/container/useDanmakuManager'
-import { useVideoSrc } from '@/content/danmaku/container/useVideoSrc'
 
 // returns a padding object for the safe zone
 const calculatePaddings = (safeZones: SafeZones, rect?: DOMRectReadOnly) => {
@@ -44,7 +44,6 @@ export const DanmakuContainer = () => {
   const rect = useRect(videoNode)
 
   const ref = useContainerNode()
-
   useFullScreenElement(rect)
 
   const danmakuEngine = useDanmakuManager(videoNode, ref.current, videoSrc)
