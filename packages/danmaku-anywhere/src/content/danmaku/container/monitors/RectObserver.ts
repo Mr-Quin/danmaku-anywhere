@@ -89,6 +89,7 @@ export class RectObserver {
     this.resizeObserver.disconnect()
     window.removeEventListener('resize', this.handleResize)
     window.removeEventListener('scroll', this.handleResize)
+    this.rectChangeListeners.clear()
     if (this.interval) {
       clearInterval(this.interval)
     }

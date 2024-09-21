@@ -159,6 +159,7 @@ export class IntegrationPolicyObserver extends MediaObserver {
 
   constructor(public policy: IntegrationPolicy) {
     super()
+    this.logger.debug('Creating observer')
   }
 
   private async discoverElements() {

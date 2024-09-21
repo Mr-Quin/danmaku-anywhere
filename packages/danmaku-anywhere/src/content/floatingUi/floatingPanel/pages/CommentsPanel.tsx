@@ -15,12 +15,13 @@ import { useStore } from '../../../store/store'
 import { CommentsTable } from '@/common/components/CommentsTable'
 import { useDanmakuManager } from '@/content/store/danmakuManager'
 
+const manager = useDanmakuManager.getState().manager
+
 export const CommentsPanel = () => {
   const { t } = useTranslation()
   const { comments, hasVideo } = useStore()
 
   const { refreshComments, isPending, canRefresh } = useRefreshComments()
-  const { manager } = useDanmakuManager()
 
   return (
     <Stack height="100%" flexGrow={1}>
@@ -46,7 +47,7 @@ export const CommentsPanel = () => {
       </Toolbar>
       <CommentsTable
         comments={comments}
-        onTimeClick={manager?.seek}
+        onTimeClick={manager.seek}
         isTimeClickable={hasVideo}
       />
     </Stack>

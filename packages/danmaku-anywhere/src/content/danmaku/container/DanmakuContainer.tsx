@@ -1,7 +1,6 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useShallow } from 'zustand/react/shallow'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import { Logger } from '@/common/Logger'
@@ -11,6 +10,8 @@ import { useRefreshComments } from '@/content/common/hooks/useRefreshComments'
 import { useDanmakuManager } from '@/content/store/danmakuManager'
 import { useStore } from '@/content/store/store'
 
+const manager = useDanmakuManager.getState().manager
+
 export const DanmakuContainer = () => {
   const { data: options } = useDanmakuOptions()
 
@@ -19,52 +20,60 @@ export const DanmakuContainer = () => {
 
   const config = useActiveConfig()
 
-  const { comments, hasComments, resetMediaState } = useStore(
-    useShallow(({ comments, hasComments, resetMediaState }) => {
-      return { comments, hasComments, resetMediaState }
-    })
-  )
-  const { canRefresh, refreshComments } = useRefreshComments()
+  const resetMediaState = useStore.use.resetMediaState()
+
+  const { getCanRefresh, refreshComments } = useRefreshComments()
 
   const setHasVideo = useStore.use.setHasVideo()
-  const manager = useDanmakuManager.use.manager()
 
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     let timeout: NodeJS.Timeout
 
-    manager.addEventListener('videoChange', () => {
+    const videoChangeHandler = () => {
+      console.debug('Video changed')
+
       clearTimeout(timeout)
       setHasVideo(true)
-    })
-    manager.addEventListener('videoRemoved', () => {
+    }
+
+    const videoRemovedHandler = () => {
+      console.debug('Video removed')
+
       // Delay setting hasVideo to false to prevent flickering
       timeout = setTimeout(() => {
+        console.debug('Setting hasVideo to false')
         setHasVideo(false)
       }, 1000)
 
       resetMediaState()
-    })
+    }
+
+    manager.addEventListener('videoChange', videoChangeHandler)
+    manager.addEventListener('videoRemoved', videoRemovedHandler)
 
     manager.start(config.mediaQuery)
+    manager.setParent(containerRef.current!)
 
     return () => {
       clearTimeout(timeout)
-      manager.destroy()
+      manager.removeEventListener('videoChange', videoChangeHandler)
+      manager.removeEventListener('videoRemoved', videoRemovedHandler)
+      manager.stop()
     }
-  }, [manager])
+  }, [])
 
   useEffect(() => {
     const listener = (comments: CommentEntity[]) => {
-      Logger.debug('Creating danmaku')
+      Logger.debug('Danmaku created')
       toast.success(
         t('danmaku.alert.mounted', {
           name: useStore.getState().getAnimeName(),
           count: comments.length,
         }),
         {
-          actionFn: canRefresh ? refreshComments : undefined,
+          actionFn: getCanRefresh() ? refreshComments : undefined,
           actionLabel: t('danmaku.refresh'),
         }
       )
@@ -75,18 +84,11 @@ export const DanmakuContainer = () => {
     return () => {
       manager.removeEventListener('danmakuMounted', listener)
     }
-  }, [canRefresh, refreshComments])
-
-  useEffect(() => {
-    if (hasComments) {
-      manager.render(containerRef.current!)
-      manager.mount(comments)
-    }
-  }, [hasComments, manager])
+  }, [getCanRefresh, refreshComments])
 
   useEffect(() => {
     manager.updateConfig(options)
-  }, [options, manager])
+  }, [options])
 
   return <div ref={containerRef}></div>
 }

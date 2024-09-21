@@ -41,5 +41,6 @@ export class VideoSrcObserver {
 
   public cleanup() {
     this.observer.disconnect()
+    this.srcChangeListeners.clear()
   }
 }
