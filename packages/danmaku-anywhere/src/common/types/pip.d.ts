@@ -1,6 +1,6 @@
 interface DocumentPictureInPictureOptions {
-  width: number
-  height: number
+  width?: number
+  height?: number
 }
 
 declare global {
@@ -8,7 +8,9 @@ declare global {
     // Not available in all browsers
     readonly documentPictureInPicture?: {
       window: Window | null
-      requestWindow: DocumentPictureInPictureOptions
+      requestWindow: (
+        options?: DocumentPictureInPictureOptions
+      ) => Promise<Window>
     }
   }
 }

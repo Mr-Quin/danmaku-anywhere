@@ -155,8 +155,8 @@ export class DanmakuManager {
 
   private handleRectChange = (rect: DOMRectReadOnly, notify = true) => {
     this.rect = rect
-    this.engine.resize()
     this.updateContainerStyles()
+    this.engine.resize()
     if (notify) {
       this.rectChangeListeners.forEach((listener) => listener(rect))
     }
