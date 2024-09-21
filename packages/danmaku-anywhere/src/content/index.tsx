@@ -13,18 +13,32 @@ import { Theme } from '@/common/theme/Theme'
 import { tryCatchSync } from '@/common/utils/utils'
 import '@/common/localization/i18n'
 
+const createPopoverRoot = (id: string) => {
+  const root = document.createElement('div')
+  root.id = id
+  root.style.setProperty('position', 'absolute', 'important')
+  root.style.setProperty('z-index', '2147483647', 'important')
+  root.style.setProperty('left', '0', 'important')
+  root.style.setProperty('top', '0', 'important')
+
+  // make the root element a popover, so it can be shown on top of everything
+  root.setAttribute('popover', 'manual')
+
+  // create shadow dom
+  const shadowContainer = root.attachShadow({ mode: 'closed' })
+  const shadowRoot = document.createElement('div')
+
+  shadowContainer.appendChild(shadowRoot)
+
+  return { root, shadowContainer, shadowRoot }
+}
+
 Logger.debug('Danmaku Anywhere content script loaded')
 
 // create root element
-const root = document.createElement('div')
-root.id = 'danmaku-anywhere'
-root.style.setProperty('position', 'absolute', 'important')
-root.style.setProperty('z-index', '2147483647', 'important')
-root.style.setProperty('left', '0', 'important')
-root.style.setProperty('top', '0', 'important')
+const { root, shadowContainer, shadowRoot } =
+  createPopoverRoot('danmaku-anywhere')
 
-// make the root element a popover, so it can be shown on top of everything
-root.setAttribute('popover', 'manual')
 document.body.append(root)
 root.showPopover()
 
@@ -39,13 +53,8 @@ document.addEventListener('fullscreenchange', () => {
   root.showPopover()
 })
 
-// create shadow dom
-const shadowContainer = root.attachShadow({ mode: 'closed' })
 const emotionRoot = document.createElement('style')
-const shadowRootElement = document.createElement('div')
-
 shadowContainer.appendChild(emotionRoot)
-shadowContainer.appendChild(shadowRootElement)
 
 // prevent global styles from leaking into shadow dom
 // TODO: rem unit is still affected by html { font-size }
@@ -77,17 +86,17 @@ const themeOptions: ThemeOptions = {
   components: {
     MuiPopover: {
       defaultProps: {
-        container: shadowRootElement,
+        container: shadowRoot,
       },
     },
     MuiPopper: {
       defaultProps: {
-        container: shadowRootElement,
+        container: shadowRoot,
       },
     },
     MuiModal: {
       defaultProps: {
-        container: shadowRootElement,
+        container: shadowRoot,
       },
     },
     MuiTooltip: {
@@ -100,7 +109,7 @@ const themeOptions: ThemeOptions = {
   },
 }
 
-ReactDOM.createRoot(shadowRootElement).render(
+ReactDOM.createRoot(shadowRoot).render(
   <React.StrictMode>
     <CacheProvider value={cache}>
       <QueryClientProvider client={queryClient}>

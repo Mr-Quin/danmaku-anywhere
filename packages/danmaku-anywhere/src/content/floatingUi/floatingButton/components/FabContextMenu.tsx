@@ -1,5 +1,6 @@
 import {
   Eject,
+  PictureInPicture,
   Refresh,
   SkipNext,
   Visibility,
@@ -32,6 +33,8 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
   const manual = useStore.use.manual()
   const toggleEnabled = useStore.use.toggleEnabled()
   const enabled = useStore.use.enabled()
+  const enterPip = useStore((state) => state.enterPip)
+  const hasVideo = useStore((state) => state.hasVideo)
 
   const {
     fetchNextEpisodeComments,
@@ -98,6 +101,12 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
               <ListItemText>
                 {enabled ? t('danmaku.disable') : t('danmaku.enable')}
               </ListItemText>
+            </MenuItem>
+            <MenuItem disabled={!hasVideo} onClick={enterPip}>
+              <ListItemIcon>
+                <PictureInPicture fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>{t('common.pip')}</ListItemText>
             </MenuItem>
           </MenuList>
         </Paper>
