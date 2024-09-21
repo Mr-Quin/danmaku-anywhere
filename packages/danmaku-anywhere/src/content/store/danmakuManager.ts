@@ -123,6 +123,7 @@ export class DanmakuManager {
     wrapper.style.height = '0'
     wrapper.style.overflow = 'hidden'
     wrapper.style.border = import.meta.env.DEV ? '1px solid red' : 'none'
+    wrapper.style.boxSizing = 'border-box'
 
     const container = document.createElement('div')
     container.style.width = '100%'
