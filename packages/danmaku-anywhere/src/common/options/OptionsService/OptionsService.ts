@@ -20,6 +20,7 @@ export class OptionsService<T extends OptionsSchema> {
       storageType,
     })
     this.logger = Logger.sub('[OptionsService]').sub(`[${key}]`)
+    this.setup()
   }
 
   version(version: number, versionConfig: VersionConfig<T>) {
@@ -98,6 +99,10 @@ export class OptionsService<T extends OptionsSchema> {
       if (!options) return
       listener(options.data)
     })
+  }
+
+  setup() {
+    this.storageService.setup()
   }
 
   destroy() {

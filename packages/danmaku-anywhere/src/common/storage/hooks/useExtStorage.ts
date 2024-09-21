@@ -28,6 +28,7 @@ export const useExtStorage = <T>(
     storageService.subscribe(() => {
       void queryClient.invalidateQueries({ queryKey })
     })
+    storageService.setup()
 
     return () => {
       void queryClient.invalidateQueries({ queryKey })
