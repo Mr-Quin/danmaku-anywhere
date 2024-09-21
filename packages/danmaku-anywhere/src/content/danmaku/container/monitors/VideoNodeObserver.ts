@@ -163,5 +163,7 @@ export class VideoNodeObserver {
 
   public cleanup() {
     this.rootObs.disconnect()
+    this.videoChangeListeners.clear()
+    this.videoRemovedListeners.clear()
   }
 }

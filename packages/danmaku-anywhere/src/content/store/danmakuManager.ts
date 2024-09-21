@@ -48,9 +48,13 @@ export class DanmakuManager {
   private readonly engine = new DanmakuEngine()
   public readonly wrapper: HTMLElement
   private readonly container: HTMLElement
+  private parent?: HTMLElement
 
   public video: HTMLVideoElement | null = null
   private comments: CommentEntity[] = []
+
+  // State
+  public isMounted = false
 
   // Styles
   private rect = new DOMRectReadOnly()
@@ -81,27 +85,29 @@ export class DanmakuManager {
     DanmakuManagerEventCallback['danmakuUnmounted']
   >()
 
-  constructor(private logger = Logger.sub('DanmakuManager')) {
+  constructor(private logger = Logger.sub('[DanmakuManager]')) {
     const { wrapper, container } = this.createContainer()
     this.wrapper = wrapper
     this.container = container
   }
 
   start(videoSelector: string) {
+    this.logger.debug('Starting')
+
     this.videoNodeObs = new VideoNodeObserver(videoSelector)
 
     this.videoNodeObs.onActiveNodeChange((videoNode) => {
       this.video = videoNode
 
-      this.cleanupObs()
-      this.setupObs()
+      this.teardownObs()
+      this.setupObs(videoNode)
 
       this.videoChangeListeners.forEach((listener) => listener(videoNode))
     })
 
     this.videoNodeObs.onVideoRemoved((prev) => {
       this.video = null
-      this.cleanupObs()
+      this.teardownObs()
       this.unmount()
 
       this.videoRemovedListeners.forEach((listener) => listener(prev))
@@ -109,7 +115,9 @@ export class DanmakuManager {
 
     this.video = this.videoNodeObs.activeVideo
 
-    this.setupObs()
+    if (this.video) {
+      this.setupObs(this.video)
+    }
   }
 
   private createContainer() {
@@ -134,19 +142,19 @@ export class DanmakuManager {
     return { wrapper, container }
   }
 
-  private setupObs() {
-    if (this.video) {
-      this.rectObs = new RectObserver(this.video)
-      this.srcObs = new VideoSrcObserver(this.video)
+  private setupObs(video: HTMLVideoElement) {
+    this.rectObs = new RectObserver(video)
+    this.srcObs = new VideoSrcObserver(video)
 
-      this.rectObs.onRectChange(this.handleRectChange)
-      this.srcObs.onSrcChange(this.handleSrcChange)
-    }
+    this.rectObs.onRectChange(this.handleRectChange)
+    this.srcObs.onSrcChange(this.handleSrcChange)
   }
 
-  private cleanupObs() {
+  private teardownObs() {
     this.rectObs?.cleanup()
     this.srcObs?.cleanup()
+    this.rectObs = undefined
+    this.srcObs = undefined
   }
 
   private handleSrcChange = (src: string) => {
@@ -177,23 +185,30 @@ export class DanmakuManager {
 
   mount(comments: CommentEntity[]) {
     if (!this.video) throw new Error('Video node is not ready')
+    this.logger.debug('Mounting danmaku')
+
+    this.show()
     this.comments = comments
 
     this.engine.create(this.container, this.video, comments)
     this.danmakuMountedListeners.forEach((listener) => listener(comments))
+    this.isMounted = true
   }
 
   unmount() {
+    // If the component is not mounted, do nothing
+    if (!this.isMounted) return
+
+    this.logger.debug('Unmounting danmaku')
+    this.hide()
     this.engine.destroy()
     this.comments = []
     this.danmakuUnmountedListeners.forEach((listener) => listener())
-    this.wrapper.remove()
+    this.isMounted = false
   }
 
-  render(parent: HTMLElement) {
-    // If the wrapper is already in the document, do nothing
-    if (this.wrapper.isConnected) return
-    parent.appendChild(this.wrapper)
+  setParent(parent: HTMLElement) {
+    this.parent = parent
   }
 
   updateConfig(config: Partial<DanmakuOptions>) {
@@ -208,15 +223,28 @@ export class DanmakuManager {
     }
   }
 
+  private hide() {
+    this.wrapper.remove()
+  }
+
+  private show() {
+    if (!this.parent) throw new Error('Parent is not set')
+    // If the wrapper is already in the document, do nothing
+    if (this.wrapper.isConnected) return
+    this.parent.appendChild(this.wrapper)
+  }
+
   resize() {
     this.handleRectChange(this.rect, false)
   }
 
-  destroy() {
-    this.cleanupObs()
+  stop() {
+    this.logger.debug('Stopping')
+
+    this.teardownObs()
     this.videoNodeObs?.cleanup()
+    this.videoNodeObs = undefined
     this.unmount()
-    this.clearEventListeners()
   }
 
   // Events
@@ -286,15 +314,6 @@ export class DanmakuManager {
         )
         break
     }
-  }
-
-  clearEventListeners() {
-    this.videoChangeListeners.clear()
-    this.videoRemovedListeners.clear()
-    this.rectChangeListeners.clear()
-    this.srcChangeListeners.clear()
-    this.danmakuMountedListeners.clear()
-    this.danmakuUnmountedListeners.clear()
   }
 }
 

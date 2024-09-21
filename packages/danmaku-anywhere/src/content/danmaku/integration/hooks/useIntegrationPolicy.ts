@@ -40,7 +40,6 @@ export const useIntegrationPolicy = () => {
 
   useEffect(() => {
     if (!integrationPolicy || manual) {
-      resetMediaState()
       observer.current = undefined
       return
     }

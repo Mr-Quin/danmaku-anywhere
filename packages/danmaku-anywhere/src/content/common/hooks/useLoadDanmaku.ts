@@ -16,8 +16,8 @@ export const useLoadDanmaku = () => {
   const load = async (data: DanmakuFetchDto) => {
     const res = await fetchMutation.mutateAsync(data, {
       onSuccess: (cache) => {
-        setComments(cache.comments)
         setDanmakuLite(cache)
+        setComments(cache.comments)
       },
       onError: (err) => {
         toast.error(err.message)

@@ -90,12 +90,14 @@ const useStoreBase = create<StoreState>((set, get) => ({
 
   comments: [],
   hasComments: false,
-  setComments: (comments) => set({ comments, hasComments: true }),
-  unsetComments: () => {
-    useDanmakuManager.getState().manager.unmount()
-    set({ comments: [], hasComments: false })
+  setComments: (comments) => {
+    set({ comments, hasComments: true })
+    useDanmakuManager.getState().manager.mount(comments)
   },
-
+  unsetComments: () => {
+    set({ comments: [], hasComments: false })
+    useDanmakuManager.getState().manager.unmount()
+  },
   manual: false,
   toggleManualMode: (manual) => {
     if (manual === undefined) {
@@ -105,14 +107,12 @@ const useStoreBase = create<StoreState>((set, get) => ({
     }
   },
   mountManual: (danmaku) => {
-    useDanmakuManager.getState().manager.mount(danmaku.comments)
     get().resetMediaState()
     get().toggleManualMode(true)
-    get().setComments(danmaku.comments)
     get().setDanmakuLite(danmaku)
+    get().setComments(danmaku.comments)
   },
   unmountManual: () => {
-    useDanmakuManager.getState().manager.unmount()
     get().resetMediaState()
     get().toggleManualMode(false)
     get().unsetComments()
