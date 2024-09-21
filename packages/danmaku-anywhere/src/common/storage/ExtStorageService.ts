@@ -23,7 +23,9 @@ export class ExtStorageService<T> {
     private options: ExtStorageServiceOptions
   ) {
     this.storage = chrome.storage[options.storageType ?? 'local']
+  }
 
+  setup() {
     this.#listenToStorageChanges()
   }
 
