@@ -86,16 +86,20 @@ export const useTabRpcServer = () => {
       },
     })
 
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    const listener: Parameters<
+      typeof chrome.runtime.onMessage.addListener
+    >[number] = (message, sender, sendResponse) => {
       tabRpcServer
         .onMessage(message, sender)
         .then(sendResponse)
         .catch(Logger.debug)
       return true
-    })
+    }
+
+    chrome.runtime.onMessage.addListener(listener)
 
     return () => {
-      chrome.runtime.onMessage.removeListener(tabRpcServer.onMessage)
+      chrome.runtime.onMessage.removeListener(listener)
     }
   }, [handleSetDanmaku, handleUnsetDanmaku, handleGetDanmakuState])
 
