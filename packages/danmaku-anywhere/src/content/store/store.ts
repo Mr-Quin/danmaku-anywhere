@@ -75,7 +75,10 @@ const useStoreBase = create<StoreState>((set, get) => ({
   comments: [],
   hasComments: false,
   setComments: (comments) => set({ comments, hasComments: true }),
-  unsetComments: () => set({ comments: [], hasComments: false }),
+  unsetComments: () => {
+    useDanmakuManager.getState().manager.unmount()
+    set({ comments: [], hasComments: false })
+  },
 
   manual: false,
   toggleManualMode: (manual) => {
