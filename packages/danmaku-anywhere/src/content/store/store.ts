@@ -4,6 +4,10 @@ import { create } from 'zustand'
 import type { Danmaku, DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { danmakuToString } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
+import {
+  chromeRpcClient,
+  relayRpcClient,
+} from '@/common/rpcClient/background/client'
 import { createSelectors } from '@/common/utils/createSelectors'
 import type { MediaInfo } from '@/content/danmaku/integration/models/MediaInfo'
 import { createPipWindow } from '@/content/pip/pipUtils'
@@ -92,11 +96,13 @@ const useStoreBase = create<StoreState>((set, get) => ({
   hasComments: false,
   setComments: (comments) => {
     set({ comments, hasComments: true })
-    useDanmakuManager.getState().manager.mount(comments)
+    void relayRpcClient.mount(comments)
+    // useDanmakuManager.getState().manager.mount(comments)
   },
   unsetComments: () => {
     set({ comments: [], hasComments: false })
-    useDanmakuManager.getState().manager.unmount()
+    void relayRpcClient.unmount()
+    // useDanmakuManager.getState().manager.unmount()
   },
   manual: false,
   toggleManualMode: (manual) => {
