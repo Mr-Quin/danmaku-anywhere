@@ -25,6 +25,7 @@ export const TencentEpisodeList = ({
     queryFn: async () => {
       return chromeRpcClient.episodesGetTencent(season.doc.id)
     },
+    select: (res) => res.data,
     staleTime: Infinity,
     retry: false,
   })
@@ -37,7 +38,10 @@ export const TencentEpisodeList = ({
       }
       return {
         queryKey: danmakuKeys.one(params),
-        queryFn: async () => chromeRpcClient.danmakuGetOneLite(params),
+        queryFn: async () => {
+          const res = await chromeRpcClient.danmakuGetOneLite(params)
+          return res.data
+        },
         refetchOnMount: false,
         refetchOnWindowFocus: false,
         staleTime: Infinity,

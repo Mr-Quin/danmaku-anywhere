@@ -3,10 +3,13 @@ import { match, P } from 'ts-pattern'
 import { Logger } from '@/common/Logger'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { mountConfigService } from '@/common/options/mountConfig/service'
-// the ?script part gets the file name of the script
+/* eslint-disable import/no-restricted-paths, import/default */
+// the ?script query is used to get the file path for the script after bundling
 // @ts-expect-error
-// eslint-disable-next-line import/no-restricted-paths, import/default
-import contentScript from '@/content?script'
+import contentScript from '@/content/controller?script'
+// @ts-expect-error
+import testScript from '@/content/player?script'
+/* eslint-enable import/no-restricted-paths, import/default */
 
 const contentScriptId = 'main-content'
 
@@ -15,7 +18,7 @@ const mainScript: chrome.scripting.RegisteredContentScript = {
   js: [contentScript],
   matches: [],
   persistAcrossSessions: true,
-  allFrames: true,
+  allFrames: false, // only run in top frame
   runAt: 'document_idle',
   world: 'ISOLATED',
 }
@@ -71,14 +74,24 @@ const handleContentScriptRegistration = async (mountConfigs: MountConfig[]) => {
 
 export const setupScripting = () => {
   chrome.runtime.onStartup.addListener(async () => {
-    const configs = await mountConfigService.get()
-
-    await handleContentScriptRegistration(configs)
+    return chrome.scripting.unregisterContentScripts({
+      ids: [contentScriptId],
+    })
   })
 
   mountConfigService.onChange(async (configs) => {
     if (!configs) return
 
     await handleContentScriptRegistration(configs)
+  })
+}
+
+export const injectVideoScript = async (tabId: number, frameId: number) => {
+  Logger.debug('Injecting player script into tab', { tabId, frameId })
+
+  await chrome.scripting.executeScript({
+    target: { tabId, frameIds: [frameId] },
+    files: [testScript],
+    world: 'ISOLATED',
   })
 }

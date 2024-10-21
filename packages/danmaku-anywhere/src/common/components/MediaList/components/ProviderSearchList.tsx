@@ -26,7 +26,7 @@ interface ProviderSearchListProps {
 const methodMap: {
   [key in RemoteDanmakuSourceType]: (
     params: MediaSearchParams
-  ) => Promise<MediaSearchResult>
+  ) => Promise<{ data: MediaSearchResult }>
 } = {
   [DanmakuSourceType.DanDanPlay]: chromeRpcClient.searchDanDanPlay,
   [DanmakuSourceType.Bilibili]: chromeRpcClient.searchBilibili,

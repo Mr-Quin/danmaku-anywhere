@@ -25,6 +25,7 @@ export const BilibiliEpisodeList = ({
     queryFn: async () => {
       return chromeRpcClient.episodesGetBilibili(season.season_id)
     },
+    select: (data) => data.data,
     staleTime: Infinity,
     retry: false,
   })
@@ -37,7 +38,10 @@ export const BilibiliEpisodeList = ({
       }
       return {
         queryKey: danmakuKeys.one(params),
-        queryFn: async () => chromeRpcClient.danmakuGetOneLite(params),
+        queryFn: async () => {
+          const res = await chromeRpcClient.danmakuGetOneLite(params)
+          return res.data
+        },
         refetchOnMount: false,
         refetchOnWindowFocus: false,
         staleTime: Infinity,

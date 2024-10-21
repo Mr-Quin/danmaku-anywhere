@@ -9,7 +9,7 @@ import { Logger } from '@/common/Logger'
 export const useMediaSearchSuspense = <T extends MediaSearchResult>(
   provider: RemoteDanmakuSourceType,
   params: MediaSearchParams,
-  getData: (params: MediaSearchParams) => Promise<T>
+  getData: (params: MediaSearchParams) => Promise<{ data: T }>
 ) => {
   const { t } = useTranslation()
 
@@ -34,7 +34,7 @@ export const useMediaSearchSuspense = <T extends MediaSearchResult>(
         const data = await getData(params)
         return {
           success: true,
-          data,
+          data: data.data,
           params,
           provider,
         }

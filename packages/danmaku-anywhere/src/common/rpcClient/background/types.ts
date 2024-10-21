@@ -1,3 +1,4 @@
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import type { BilibiliUserInfo } from '@danmaku-anywhere/danmaku-provider/bilibili'
 
 import type { RPCDef } from '../../rpc/types'
@@ -42,12 +43,11 @@ type IconSetDto =
       state: 'unavailable'
     }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+/* eslint-disable @typescript-eslint/consistent-type-definitions */
 type IconMethods = {
   iconSet: RPCDef<IconSetDto, void>
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type AnimeMethods = {
   mediaParseUrl: RPCDef<{ url: string }, DanmakuMetaExternal>
   searchDanDanPlay: RPCDef<MediaSearchParams, DanDanPlayMediaSearchResult>
@@ -61,7 +61,6 @@ type AnimeMethods = {
   tencentTestCookies: RPCDef<void, boolean>
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type DanmakuMethods = {
   danmakuGetAll: RPCDef<void, Danmaku[]>
   danmakuGetAllLite: RPCDef<void, DanmakuLite[]>
@@ -76,4 +75,47 @@ type DanmakuMethods = {
   danmakuDeleteAll: RPCDef<void, void>
 }
 
-export type BackgroundMethods = IconMethods & AnimeMethods & DanmakuMethods
+type ControlMethods = {
+  getFrameId: RPCDef<void, number>
+  getAllFrames: RPCDef<void, chrome.webNavigation.GetAllFrameResultDetails[]>
+  injectScript: RPCDef<number, void>
+}
+
+type InputWithFrameId<TInput> = TInput extends void
+  ? {
+      frameId: number
+    }
+  : {
+      frameId: number
+      data: TInput
+    }
+
+type FrameContext = {
+  frameId: number
+}
+
+// Controller -> Player communication
+// Here the frameId is used to identify the DESTINATION frame
+export type PlayerCommands = {
+  mount: RPCDef<InputWithFrameId<CommentEntity[]>, boolean, FrameContext>
+  unmount: RPCDef<InputWithFrameId<void>, boolean, FrameContext>
+  start: RPCDef<InputWithFrameId<string>, void, FrameContext>
+  seek: RPCDef<InputWithFrameId<number>, void, FrameContext>
+  enterPiP: RPCDef<InputWithFrameId<void>, void, FrameContext>
+  show: RPCDef<InputWithFrameId<boolean>, void, FrameContext>
+}
+
+// Player -> Controller communication
+// Here the frameId is used to identify the SOURCE frame
+export type PlayerEvents = {
+  ready: RPCDef<InputWithFrameId<void>, void>
+  videoChange: RPCDef<InputWithFrameId<void>, void>
+  videoRemoved: RPCDef<InputWithFrameId<void>, void>
+}
+
+/* eslint-enable @typescript-eslint/consistent-type-definitions */
+
+export type BackgroundMethods = IconMethods &
+  AnimeMethods &
+  DanmakuMethods &
+  ControlMethods
