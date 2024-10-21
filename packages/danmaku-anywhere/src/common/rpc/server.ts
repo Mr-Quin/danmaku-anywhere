@@ -13,6 +13,7 @@ export const createRpcServer = <TRecords extends RPCRecord>(
   handlers: RPCServerHandlers<TRecords>
 ) => {
   return {
+    hasHandler: (method: string) => method in handlers,
     onMessage: async (
       message: RPCPayload<any>,
       sender: chrome.runtime.MessageSender

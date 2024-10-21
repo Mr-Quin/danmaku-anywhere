@@ -9,7 +9,12 @@ import { TencentService } from '@/background/services/TencentService'
 import { Logger } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
 import { RpcException } from '@/common/rpc/types'
-import type { BackgroundMethods } from '@/common/rpcClient/background/types'
+import type {
+  BackgroundMethods,
+  ManagerCommands,
+  ManagerEvents,
+} from '@/common/rpcClient/background/types'
+import { relayFrameClient } from '@/common/rpcClient/tab/client'
 
 export const setupRpc = () => {
   const providerService = new ProviderService()
@@ -114,11 +119,36 @@ export const setupRpc = () => {
     },
   })
 
+  const rpcRelay = createRpcServer<ManagerCommands & ManagerEvents>({
+    mount: async (data) => {
+      return relayFrameClient.mount(data)
+    },
+    unmount: async () => {
+      return relayFrameClient.unmount()
+    },
+    start: async (data) => {
+      return relayFrameClient.start(data)
+    },
+    onVideoChange: async () => {
+      return relayFrameClient.onVideoChange()
+    },
+    onVideoRemoved: async () => {
+      return relayFrameClient.onVideoRemoved()
+    },
+  })
+
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    rpcServer
-      .onMessage(message, sender)
-      .then((res) => sendResponse(res))
-      .catch(Logger.debug)
+    if (rpcServer.hasHandler(message.method)) {
+      rpcServer
+        .onMessage(message, sender)
+        .then((res) => sendResponse(res))
+        .catch(Logger.debug)
+    } else if (rpcRelay.hasHandler(message.method)) {
+      rpcRelay
+        .onMessage(message, sender)
+        .then((res) => sendResponse(res))
+        .catch(Logger.debug)
+    }
     return true // return true to indicate that the response will be sent asynchronously
   })
 }

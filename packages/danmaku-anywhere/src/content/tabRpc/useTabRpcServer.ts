@@ -89,11 +89,17 @@ export const useTabRpcServer = () => {
     const listener: Parameters<
       typeof chrome.runtime.onMessage.addListener
     >[number] = (message, sender, sendResponse) => {
-      tabRpcServer
-        .onMessage(message, sender)
-        .then(sendResponse)
-        .catch(Logger.debug)
-      return true
+      if (tabRpcServer.hasHandler(message.method)) {
+        tabRpcServer
+          .onMessage(message, sender)
+          .then((res) => {
+            if (tabRpcServer.hasHandler(message.method)) {
+              sendResponse(res)
+            }
+          })
+          .catch(Logger.debug)
+        return true
+      }
     }
 
     chrome.runtime.onMessage.addListener(listener)
