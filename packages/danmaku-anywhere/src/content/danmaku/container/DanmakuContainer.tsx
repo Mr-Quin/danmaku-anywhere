@@ -5,6 +5,13 @@ import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { Logger } from '@/common/Logger'
 import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
+import { createRpcServer } from '@/common/rpc/server'
+import {
+  chromeRpcClient,
+  relayRpcClient,
+} from '@/common/rpcClient/background/client'
+import type { ManagerEvents } from '@/common/rpcClient/background/types'
+import { ManagerCommands } from '@/common/rpcClient/background/types'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
 import { useRefreshComments } from '@/content/common/hooks/useRefreshComments'
 import { useDanmakuManager } from '@/content/store/danmakuManager'
@@ -53,14 +60,42 @@ export const DanmakuContainer = () => {
     manager.addEventListener('videoChange', videoChangeHandler)
     manager.addEventListener('videoRemoved', videoRemovedHandler)
 
-    manager.start(config.mediaQuery)
-    manager.setParent(containerRef.current!)
+    // manager.start(config.mediaQuery)
+    // manager.setParent(containerRef.current!)
+    relayRpcClient.start(config.mediaQuery)
+
+    const server = createRpcServer<ManagerEvents>({
+      onVideoChange: async () => {
+        videoChangeHandler()
+      },
+      onVideoRemoved: async () => {
+        videoRemovedHandler()
+      },
+    })
+
+    const listener: Parameters<
+      typeof chrome.runtime.onMessage.addListener
+    >[number] = (message, sender, sendResponse) => {
+      if (server.hasHandler(message.method)) {
+        server
+          .onMessage(message, sender)
+          .then((res) => {
+            if (server.hasHandler(message.method)) {
+              sendResponse(res)
+            }
+          })
+          .catch(Logger.debug)
+        return true
+      }
+    }
+    chrome.runtime.onMessage.addListener(listener)
 
     return () => {
       clearTimeout(timeout)
-      manager.removeEventListener('videoChange', videoChangeHandler)
-      manager.removeEventListener('videoRemoved', videoRemovedHandler)
-      manager.stop()
+      // manager.removeEventListener('videoChange', videoChangeHandler)
+      // manager.removeEventListener('videoRemoved', videoRemovedHandler)
+      // manager.stop()
+      chrome.runtime.onMessage.removeListener(listener)
     }
   }, [])
 

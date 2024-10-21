@@ -1,3 +1,4 @@
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import type { BilibiliUserInfo } from '@danmaku-anywhere/danmaku-provider/bilibili'
 
 import type { RPCDef } from '../../rpc/types'
@@ -74,6 +75,18 @@ type DanmakuMethods = {
   danmakuImport: RPCDef<DanmakuInsert[], void>
   danmakuDelete: RPCDef<DanmakuDeleteDto, void>
   danmakuDeleteAll: RPCDef<void, void>
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type ManagerCommands = {
+  mount: RPCDef<CommentEntity[], void>
+  unmount: RPCDef<void, void>
+  start: RPCDef<string, void>
+}
+
+export interface ManagerEvents {
+  onVideoChange: RPCDef<void, void>
+  onVideoRemoved: RPCDef<void, void>
 }
 
 export type BackgroundMethods = IconMethods & AnimeMethods & DanmakuMethods

@@ -3,10 +3,13 @@ import { match, P } from 'ts-pattern'
 import { Logger } from '@/common/Logger'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { mountConfigService } from '@/common/options/mountConfig/service'
+import { matchUrl } from '@/common/utils/matchUrl'
 // the ?script part gets the file name of the script
 // @ts-expect-error
 // eslint-disable-next-line import/no-restricted-paths, import/default
 import contentScript from '@/content?script'
+// @ts-expect-error
+import testScript from '@/scripts/test?script'
 
 const contentScriptId = 'main-content'
 
@@ -71,14 +74,40 @@ const handleContentScriptRegistration = async (mountConfigs: MountConfig[]) => {
 
 export const setupScripting = () => {
   chrome.runtime.onStartup.addListener(async () => {
+    // const configs = await mountConfigService.get()
+    //
+    // await handleContentScriptRegistration(configs)
+    return chrome.scripting.unregisterContentScripts({
+      ids: [contentScriptId],
+    })
+  })
+
+  chrome.webNavigation.onCommitted.addListener(async (details) => {
+    Logger.debug('Web navigation committed', details.url, details)
     const configs = await mountConfigService.get()
 
-    await handleContentScriptRegistration(configs)
+    const matches = configs.some((config) => {
+      const { patterns } = config
+      return patterns.some((pattern) => matchUrl(details.url, pattern))
+    })
+
+    if (matches) {
+      Logger.debug('Injecting content script into the main frame')
+      await chrome.scripting.executeScript({
+        target: { tabId: details.tabId, frameIds: [details.frameId] },
+        files: [contentScript],
+      })
+      Logger.debug('Injecting test script into all frames')
+      await chrome.scripting.executeScript({
+        target: { tabId: details.tabId, allFrames: true },
+        files: [testScript],
+      })
+    }
   })
 
-  mountConfigService.onChange(async (configs) => {
-    if (!configs) return
-
-    await handleContentScriptRegistration(configs)
-  })
+  // mountConfigService.onChange(async (configs) => {
+  //   if (!configs) return
+  //
+  //   await handleContentScriptRegistration(configs)
+  // })
 }
