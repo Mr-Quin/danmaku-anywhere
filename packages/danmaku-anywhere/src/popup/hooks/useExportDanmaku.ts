@@ -37,16 +37,16 @@ export const useExportDanmaku = () => {
 
   const exportByAnime = useMutation({
     mutationFn: async (option: DanmakuGetBySeasonDto) => {
-      const res = await chromeRpcClient.danmakuGetByAnime({
+      const { data } = await chromeRpcClient.danmakuGetByAnime({
         provider: option.provider,
         id: option.id,
       })
 
-      if (res) {
-        const animeTitle = res[0].seasonTitle
+      if (data) {
+        const animeTitle = data[0].seasonTitle
 
         await createDownload(
-          new Blob([JSON.stringify(res)], { type: 'text/json' }),
+          new Blob([JSON.stringify(data)], { type: 'text/json' }),
           `${animeTitle}.json`
         )
       }
@@ -57,14 +57,14 @@ export const useExportDanmaku = () => {
 
   const exportMany = useMutation({
     mutationFn: async (option: DanmakuGetManyDto) => {
-      const res = await chromeRpcClient.danmakuGetMany(option)
+      const { data } = await chromeRpcClient.danmakuGetMany(option)
 
-      if (res.length > 0) {
+      if (data.length > 0) {
         const fileName =
-          res.length > 1 ? res[0].seasonTitle : danmakuToString(res[0])
+          data.length > 1 ? data[0].seasonTitle : danmakuToString(data[0])
 
         await createDownload(
-          new Blob([JSON.stringify(res)], { type: 'text/json' }),
+          new Blob([JSON.stringify(data)], { type: 'text/json' }),
           `${fileName}.json`
         )
       }

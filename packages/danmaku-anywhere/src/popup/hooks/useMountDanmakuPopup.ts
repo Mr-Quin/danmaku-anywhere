@@ -17,16 +17,16 @@ export const useMountDanmakuPopup = () => {
 
   return useMutation({
     mutationFn: async (id: DanmakuGetOneDto) => {
-      const data = await queryClient.fetchQuery({
+      const res = await queryClient.fetchQuery({
         queryKey: danmakuKeys.one(id),
         queryFn: () => chromeRpcClient.danmakuGetOne(id),
       })
 
-      if (!data) throw new Error('No danmaku found')
+      if (!res.data) throw new Error('No danmaku found')
 
-      await tabRpcClient.danmakuMount(data)
+      await tabRpcClient.danmakuMount(res.data)
 
-      return data
+      return res.data
     },
     onSuccess: (data) => {
       toast.success(

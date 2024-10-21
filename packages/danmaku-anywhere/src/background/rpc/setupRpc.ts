@@ -4,12 +4,18 @@ import { DanmakuService } from '../services/DanmakuService'
 import { IconService } from '../services/IconService'
 import { ProviderService } from '../services/ProviderService'
 
+import { injectVideoScript } from '@/background/scripting/setupScripting'
 import { BilibiliService } from '@/background/services/BilibiliService'
 import { TencentService } from '@/background/services/TencentService'
 import { Logger } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
 import { RpcException } from '@/common/rpc/types'
-import type { BackgroundMethods } from '@/common/rpcClient/background/types'
+import type {
+  BackgroundMethods,
+  PlayerCommands,
+  PlayerEvents,
+} from '@/common/rpcClient/background/types'
+import { relayFrameClient } from '@/common/rpcClient/tab/client'
 
 export const setupRpc = () => {
   const providerService = new ProviderService()
@@ -112,13 +118,89 @@ export const setupRpc = () => {
     danmakuDeleteAll: async () => {
       return danmakuService.deleteAll()
     },
+    getAllFrames: async (_, sender) => {
+      if (sender.tab?.id === undefined) {
+        throw new RpcException('No tab id found')
+      }
+
+      const tabId = sender.tab.id
+
+      const frames = await chrome.webNavigation.getAllFrames({ tabId })
+
+      if (!frames) {
+        throw new RpcException('No frames found')
+      }
+
+      return frames
+    },
+    getFrameId: async (_, sender) => {
+      if (sender.frameId === undefined) {
+        throw new RpcException('Sender does not have frame id')
+      }
+
+      return sender.frameId
+    },
+    injectScript: async (frameId, sender) => {
+      Logger.debug('Injecting script into frame', { frameId })
+
+      if (sender.tab?.id === undefined) {
+        throw new RpcException('No tab id found')
+      }
+
+      const tabId = sender.tab.id
+
+      await injectVideoScript(tabId, frameId)
+    },
   })
 
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    rpcServer
-      .onMessage(message, sender)
-      .then((res) => sendResponse(res))
-      .catch(Logger.debug)
-    return true // return true to indicate that the response will be sent asynchronously
+  const rpcRelay = createRpcServer<PlayerCommands & PlayerEvents>({
+    mount: async (data, _, setContext) => {
+      const res = await relayFrameClient.mount(data)
+      setContext(res.context)
+      return res.data
+    },
+    unmount: async (data, __, setContext) => {
+      const res = await relayFrameClient.unmount(data)
+      setContext(res.context)
+      return res.data
+    },
+    start: async (data, _, setContext) => {
+      const res = await relayFrameClient.start(data)
+      setContext(res.context)
+      return res.data
+    },
+    seek: async (data, _, setContext) => {
+      const res = await relayFrameClient.seek(data)
+      setContext(res.context)
+      return res.data
+    },
+    show: async (data, _, setContext) => {
+      const res = await relayFrameClient.show(data)
+      setContext(res.context)
+      return res.data
+    },
+    enterPiP: async (data, _, setContext) => {
+      const res = await relayFrameClient.enterPiP(data)
+      setContext(res.context)
+      return res.data
+    },
+    ready: async (input, _, setContext) => {
+      const res = await relayFrameClient.ready(input)
+      setContext(res.context)
+      return res.data
+    },
+    videoChange: async (input, _, setContext) => {
+      const res = await relayFrameClient.videoChange(input)
+      setContext(res.context)
+      return res.data
+    },
+    videoRemoved: async (input, _, setContext) => {
+      const res = await relayFrameClient.videoRemoved(input)
+      setContext(res.context)
+      return res.data
+    },
   })
+
+  rpcServer.listen()
+  rpcRelay.listen()
 }

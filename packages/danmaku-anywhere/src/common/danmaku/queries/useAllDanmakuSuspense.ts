@@ -7,9 +7,9 @@ export const useAllDanmakuSuspense = () => {
   const query = useSuspenseQuery({
     queryKey: danmakuKeys.all(),
     queryFn: async () => {
-      const res = await chromeRpcClient.danmakuGetAllLite()
-      return res
+      return chromeRpcClient.danmakuGetAllLite()
     },
+    select: (data) => data.data,
     staleTime: 1000 * 60 * 5, // 5 minutes
   })
 

@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-import { useEffect } from 'react'
 
 import packageJson from '../../../../package.json'
 
@@ -23,7 +22,10 @@ export const useLatestReleaseNotes = () => {
       )
 
       if (res.status !== 200) {
-        throw new Error('Failed to get release notes')
+        Logger.warn(`Failed to get release notes for v${packageJson.version}`)
+        throw new Error(
+          `Failed to get release notes for v${packageJson.version}`
+        )
       }
 
       const data: ReleaseNotesResponse = await res.json()
@@ -34,12 +36,6 @@ export const useLatestReleaseNotes = () => {
     staleTime: Infinity,
     retry: false,
   })
-
-  useEffect(() => {
-    if (query.isError) {
-      Logger.error('Failed to get release notes')
-    }
-  }, [query.isError])
 
   return query
 }

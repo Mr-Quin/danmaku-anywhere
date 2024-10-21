@@ -8,6 +8,7 @@ export const useToggleTencent = () => {
 
   const query = useQuery({
     queryFn: () => chromeRpcClient.tencentTestCookies(),
+    select: (res) => res.data,
     queryKey: ['tencent', 'testCookies'],
     refetchOnWindowFocus: false,
   })
