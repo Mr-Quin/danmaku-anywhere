@@ -124,6 +124,9 @@ importers:
       react-hook-form:
         specifier: ^7.52.2
         version: 7.52.2(react@18.3.0-canary-c3048aab4-20240326)
+      react-hotkeys-hook:
+        specifier: ^4.5.1
+        version: 4.5.1(react-dom@18.3.0-canary-c3048aab4-20240326(react@18.3.0-canary-c3048aab4-20240326))(react@18.3.0-canary-c3048aab4-20240326)
       react-i18next:
         specifier: ^15.0.1
         version: 15.0.1(i18next@23.13.0)(react-dom@18.3.0-canary-c3048aab4-20240326(react@18.3.0-canary-c3048aab4-20240326))(react@18.3.0-canary-c3048aab4-20240326)
@@ -2888,6 +2891,12 @@ packages:
     engines: {node: '>=18.0.0'}
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18 || ^19
+
+  react-hotkeys-hook@4.5.1:
+    resolution: {integrity: sha512-scAEJOh3Irm0g95NIn6+tQVf/OICCjsQsC9NBHfQws/Vxw4sfq1tDQut5fhTEvPraXhu/sHxRd9lOtxzyYuNAg==}
+    peerDependencies:
+      react: '>=16.8.1'
+      react-dom: '>=16.8.1'
 
   react-i18next@15.0.1:
     resolution: {integrity: sha512-NwxLqNM6CLbeGA9xPsjits0EnXdKgCRSS6cgkgOdNcPXqL+1fYNl8fBg1wmnnHvFy812Bt4IWTPE9zjoPmFj3w==}
@@ -6821,6 +6830,11 @@ snapshots:
   react-hook-form@7.52.2(react@18.3.0-canary-c3048aab4-20240326):
     dependencies:
       react: 18.3.0-canary-c3048aab4-20240326
+
+  react-hotkeys-hook@4.5.1(react-dom@18.3.0-canary-c3048aab4-20240326(react@18.3.0-canary-c3048aab4-20240326))(react@18.3.0-canary-c3048aab4-20240326):
+    dependencies:
+      react: 18.3.0-canary-c3048aab4-20240326
+      react-dom: 18.3.0-canary-c3048aab4-20240326(react@18.3.0-canary-c3048aab4-20240326)
 
   react-i18next@15.0.1(i18next@23.13.0)(react-dom@18.3.0-canary-c3048aab4-20240326(react@18.3.0-canary-c3048aab4-20240326))(react@18.3.0-canary-c3048aab4-20240326):
     dependencies:

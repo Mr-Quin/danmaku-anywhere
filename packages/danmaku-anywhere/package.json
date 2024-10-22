@@ -45,6 +45,7 @@
     "react-dom": "18.3.0-canary-c3048aab4-20240326",
     "react-error-boundary": "^4.0.13",
     "react-hook-form": "^7.52.2",
+    "react-hotkeys-hook": "^4.5.1",
     "react-i18next": "^15.0.1",
     "react-router-dom": "^6.26.1",
     "ts-pattern": "^5.3.1",
