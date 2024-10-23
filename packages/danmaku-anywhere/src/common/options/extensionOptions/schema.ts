@@ -42,6 +42,15 @@ const userThemeSchema = z.object({
   colorMode: z.nativeEnum(ColorMode),
 })
 
+const hotkeySchema = z.object({
+  key: z.string(),
+  enabled: z.boolean(),
+})
+
+export type Hotkey = z.infer<typeof hotkeySchema>
+
+const hotkeys = z.record(z.string(), hotkeySchema)
+
 export const extensionOptionsSchema = z.object({
   /**
    * Whether the extension is enabled
@@ -64,6 +73,11 @@ export const extensionOptionsSchema = z.object({
    * Configuration for the theme
    */
   theme: userThemeSchema,
+
+  /**
+   * Configuration for hotkeys
+   */
+  hotkeys,
 })
 
 export type ExtensionOptions = z.infer<typeof extensionOptionsSchema>

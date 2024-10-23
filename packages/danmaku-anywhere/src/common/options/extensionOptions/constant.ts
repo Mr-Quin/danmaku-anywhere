@@ -19,6 +19,18 @@ export const ChConvertList = [
   },
 ] as const
 
+const createHotkey = (key: string, enabled = true) => {
+  return {
+    key,
+    enabled,
+  }
+}
+
+export const defaultHotkeys = {
+  togglePip: createHotkey(''),
+  toggleShowDanmaku: createHotkey('shift+b'),
+}
+
 export const defaultExtensionOptions: ExtensionOptions = {
   enabled: true,
   lang: Language.zh,
@@ -45,4 +57,5 @@ export const defaultExtensionOptions: ExtensionOptions = {
   theme: {
     colorMode: ColorMode.System,
   },
+  hotkeys: defaultHotkeys,
 } as const

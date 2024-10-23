@@ -84,6 +84,13 @@ extensionOptionsService
         }
       }),
   })
+  .version(9, {
+    upgrade: (data: PrevOptions) =>
+      produce<ExtensionOptions>(data, (draft) => {
+        // Add hotkeys
+        draft.hotkeys = {}
+      }),
+  })
 
 danmakuOptionsService
   .version(1, {
