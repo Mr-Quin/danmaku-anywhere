@@ -7,20 +7,16 @@ import {
   VisibilityOff,
 } from '@mui/icons-material'
 import type { PopperProps } from '@mui/material'
-import {
-  ListItemIcon,
-  Tooltip,
-  Popper,
-  Paper,
-  MenuList,
-  MenuItem,
-  ListItemText,
-} from '@mui/material'
+import { MenuList, Paper, Popper } from '@mui/material'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
+import { useHotkeyOptions } from '@/common/options/extensionOptions/useHotkeyOptions'
 import { useLoadDanmakuNextEpisode } from '@/content/common/hooks/useLoadDanmakuNextEpisode'
 import { useRefreshComments } from '@/content/common/hooks/useRefreshComments'
+import type { ContextMenuItemProps } from '@/content/floatingUi/floatingButton/components/ContextMenuItem'
+import { ContextMenuItem } from '@/content/floatingUi/floatingButton/components/ContextMenuItem'
 import { useStore } from '@/content/store/store'
 
 type FabContextMenuProps = PopperProps
@@ -41,6 +37,7 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
     isFetchingNextEpisode,
     canFetchNextEpisode,
   } = useLoadDanmakuNextEpisode()
+
   const {
     refreshComments,
     isPending: isRefreshing,
@@ -52,62 +49,68 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
     resetMediaState()
   }
 
+  const { getKeyCombo } = useHotkeyOptions()
+
   const isLoading = isFetchingNextEpisode || isRefreshing
+
+  const menuItems: ContextMenuItemProps[] = [
+    {
+      action: () => fetchNextEpisodeComments(),
+      disabled: () => !canFetchNextEpisode || isLoading,
+      tooltip: () => (manual ? '' : t('danmaku.tooltip.nextEpisode')),
+      icon: () => <SkipNext fontSize="small" />,
+      label: () => t('danmaku.nextEpisode'),
+      hotkey: getKeyCombo('loadNextEpisodeComments'),
+    },
+    {
+      action: () => refreshComments(),
+      disabled: () => !canRefresh || isLoading,
+      icon: () => <Refresh fontSize="small" />,
+      label: () => t('danmaku.refresh'),
+      hotkey: getKeyCombo('refreshComments'),
+    },
+    {
+      action: () => handleUnmount(),
+      disabled: () => !hasComments,
+      icon: () => <Eject fontSize="small" />,
+      label: () => t('danmaku.unmount'),
+      hotkey: getKeyCombo('unmountComments'),
+    },
+    {
+      action: () => toggleEnabled(),
+      icon: () =>
+        enabled ? (
+          <VisibilityOff fontSize="small" />
+        ) : (
+          <Visibility fontSize="small" />
+        ),
+      label: () => (enabled ? t('danmaku.disable') : t('danmaku.enable')),
+      hotkey: getKeyCombo('toggleEnableDanmaku'),
+    },
+    {
+      action: () => enterPip(),
+      disabled: () => !hasVideo,
+      icon: () => <PictureInPicture fontSize="small" />,
+      label: () => t('common.pip'),
+      hotkey: getKeyCombo('togglePip'),
+    },
+  ]
+
+  // register global hotkeys
+  menuItems.forEach((item) => {
+    useHotkeys(item.hotkey ?? '', item.action, {
+      enabled: !!item.hotkey && !item.disabled?.(),
+    })
+  })
 
   return (
     <Paper>
       <Popper placement="top-end" {...props}>
         <Paper>
           <MenuList dense>
-            <Tooltip
-              title={manual ? '' : t('danmaku.tooltip.nextEpisode')}
-              placement="top"
-            >
-              <div>
-                <MenuItem
-                  disabled={!canFetchNextEpisode || isLoading}
-                  onClick={fetchNextEpisodeComments}
-                >
-                  <ListItemIcon>
-                    <SkipNext fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>{t('danmaku.nextEpisode')}</ListItemText>
-                </MenuItem>
-              </div>
-            </Tooltip>
-            <MenuItem
-              disabled={!canRefresh || isLoading}
-              onClick={refreshComments}
-            >
-              <ListItemIcon>
-                <Refresh fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>{t('danmaku.refresh')}</ListItemText>
-            </MenuItem>
-            <MenuItem disabled={!hasComments} onClick={handleUnmount}>
-              <ListItemIcon>
-                <Eject fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>{t('danmaku.unmount')}</ListItemText>
-            </MenuItem>
-            <MenuItem onClick={() => toggleEnabled()}>
-              <ListItemIcon>
-                {enabled ? (
-                  <VisibilityOff fontSize="small" />
-                ) : (
-                  <Visibility fontSize="small" />
-                )}
-              </ListItemIcon>
-              <ListItemText>
-                {enabled ? t('danmaku.disable') : t('danmaku.enable')}
-              </ListItemText>
-            </MenuItem>
-            <MenuItem disabled={!hasVideo} onClick={enterPip}>
-              <ListItemIcon>
-                <PictureInPicture fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>{t('common.pip')}</ListItemText>
-            </MenuItem>
+            {menuItems.map((item, i) => (
+              <ContextMenuItem key={i} {...item} />
+            ))}
           </MenuList>
         </Paper>
       </Popper>

@@ -3,6 +3,7 @@ import { produce } from 'immer'
 
 import { Language } from '@/common/localization/language'
 import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
+import { defaultKeymap } from '@/common/options/extensionOptions/hotkeys'
 import type { ExtensionOptions } from '@/common/options/extensionOptions/schema'
 import { danmakuOptionsService } from '@/common/options/extensionOptions/service'
 import { xPathPolicyStore } from '@/common/options/integrationPolicyStore/service'
@@ -88,7 +89,7 @@ extensionOptionsService
     upgrade: (data: PrevOptions) =>
       produce<ExtensionOptions>(data, (draft) => {
         // Add hotkeys
-        draft.hotkeys = {}
+        draft.hotkeys = defaultKeymap
       }),
   })
 

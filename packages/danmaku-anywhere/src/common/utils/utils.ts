@@ -175,3 +175,15 @@ export const getFirstElement = (
 export const docsLink = (path: string) => {
   return `https://danmaku.weeblify.app/docs/${path}`
 }
+
+export const getOS = () => {
+  const { userAgent } = navigator
+  if (userAgent.includes('Windows')) return 'Windows'
+  if (userAgent.includes('Mac OS')) return 'MacOS'
+  if (userAgent.includes('Linux')) return 'Linux'
+  return 'Unknown'
+}
+
+export const properCase = (str: string) => {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}

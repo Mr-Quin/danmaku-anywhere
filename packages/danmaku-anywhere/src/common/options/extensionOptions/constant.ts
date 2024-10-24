@@ -1,6 +1,7 @@
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 
 import { Language } from '@/common/localization/language'
+import { defaultKeymap } from '@/common/options/extensionOptions/hotkeys'
 import type { ExtensionOptions } from '@/common/options/extensionOptions/schema'
 import { ColorMode } from '@/common/theme/enums'
 
@@ -18,18 +19,6 @@ export const ChConvertList = [
     value: DanDanChConvert.Traditional,
   },
 ] as const
-
-const createHotkey = (key: string, enabled = true) => {
-  return {
-    key,
-    enabled,
-  }
-}
-
-export const defaultHotkeys = {
-  togglePip: createHotkey(''),
-  toggleShowDanmaku: createHotkey('shift+b'),
-}
 
 export const defaultExtensionOptions: ExtensionOptions = {
   enabled: true,
@@ -57,5 +46,5 @@ export const defaultExtensionOptions: ExtensionOptions = {
   theme: {
     colorMode: ColorMode.System,
   },
-  hotkeys: defaultHotkeys,
+  hotkeys: defaultKeymap,
 } as const

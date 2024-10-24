@@ -18,6 +18,7 @@ import { IntegrationPolicy } from '@/popup/pages/integrationPolicy/pages/Integra
 import { IntegrationPolicyEditor } from '@/popup/pages/integrationPolicy/pages/IntegrationPolicyEditor'
 import { BilibiliOptions } from '@/popup/pages/options/pages/danmakuSource/pages/BilibiliOptions'
 import { DanDanPlayOptions } from '@/popup/pages/options/pages/danmakuSource/pages/DanDanPlayOptions'
+import { HotkeyOptions } from '@/popup/pages/options/pages/hotkeyOptions/HotkeyOptions'
 import { ThemeOptions } from '@/popup/pages/options/pages/theme/ThemeOptions'
 import { SearchPage } from '@/popup/pages/search/SearchPage'
 
@@ -129,6 +130,10 @@ export const router = createHashRouter([
       {
         path: 'theme',
         Component: ThemeOptions,
+      },
+      {
+        path: 'hotkeys',
+        Component: HotkeyOptions,
       },
     ],
   },
