@@ -63,6 +63,10 @@ export const Options = () => {
             title={t('optionsPage.pages.theme')}
             onClick={() => navigate('theme')}
           />
+          <OptionsListItem
+            title={t('optionsPage.pages.hotkeys')}
+            onClick={() => navigate('hotkeys')}
+          />
         </List>
       </OptionsPageLayout>
       <Outlet />

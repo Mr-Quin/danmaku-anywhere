@@ -253,10 +253,22 @@ const pages = {
         },
       },
     },
+    hotkeys: {
+      addHotkey: 'Add Hotkey',
+      enterKey: 'Enter key',
+      keymap: {
+        toggleEnableDanmaku: 'Enable/Disable Danmaku',
+        loadNextEpisodeComments: 'Load Next Episode Comments',
+        refreshComments: 'Refresh Comments',
+        unmountComments: 'Unmount Comments',
+        togglePip: 'Enter Picture-in-Picture',
+      },
+    },
     pages: {
       danmakuSource: 'Danmaku Source',
       permissions: 'Permissions',
       theme: 'UI Theme',
+      hotkeys: 'Hotkeys',
     },
   },
   searchPage: {

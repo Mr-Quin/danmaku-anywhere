@@ -250,10 +250,22 @@ const pages = {
         },
       },
     },
+    hotkeys: {
+      addHotkey: '添加快捷键',
+      enterKey: '输入快捷键',
+      keymap: {
+        toggleEnableDanmaku: '显示/隐藏弹幕',
+        loadNextEpisodeComments: '下一集',
+        refreshComments: '刷新弹幕',
+        unmountComments: '卸载弹幕',
+        togglePip: '画中画',
+      },
+    },
     pages: {
       danmakuSource: '弹幕来源',
       permissions: '权限设置',
       theme: 'UI主题',
+      hotkeys: '快捷键',
     },
   },
   searchPage: {

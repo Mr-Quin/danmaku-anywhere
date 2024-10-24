@@ -1,6 +1,7 @@
 import { useQueryErrorResetBoundary } from '@tanstack/react-query'
 import { Suspense, useEffect, useRef } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
+import { HotkeysProvider } from 'react-hotkeys-hook'
 
 import { Content } from './Content'
 import { LoadInitialData } from './LoadInitialData'
@@ -29,7 +30,9 @@ export const App = () => {
     >
       <Suspense fallback={null}>
         <LoadInitialData>
-          <Content />
+          <HotkeysProvider>
+            <Content />
+          </HotkeysProvider>
         </LoadInitialData>
       </Suspense>
     </ErrorBoundary>
