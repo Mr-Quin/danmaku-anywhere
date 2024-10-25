@@ -179,14 +179,13 @@ export const CommentsTable = ({
                   {comment.m}
                 </TableCell>
                 {isHovering && (
-                  <Box
+                  <TableCell
                     sx={{
                       position: 'absolute',
                       right: 2,
                       display: 'flex',
                       gap: 1,
                     }}
-                    component={TableCell}
                   >
                     <Button
                       variant="contained"
@@ -208,7 +207,7 @@ export const CommentsTable = ({
                         {t('common.filter')}
                       </Button>
                     )}
-                  </Box>
+                  </TableCell>
                 )}
               </TableRow>
             )

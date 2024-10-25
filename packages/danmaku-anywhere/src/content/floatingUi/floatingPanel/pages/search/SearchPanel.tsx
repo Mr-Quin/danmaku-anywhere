@@ -145,9 +145,7 @@ export const SearchPanel = () => {
         fallbackRender={({ error }) => (
           <Center>
             <Typography>There was an error!</Typography>
-            <Typography color={(theme) => theme.palette.error.main}>
-              {error.message}
-            </Typography>
+            <Typography color="error">{error.message}</Typography>
           </Center>
         )}
       >
