@@ -57,6 +57,7 @@ describe('sampleByTime', () => {
   })
 
   it('should handle an empty iterator gracefully', () => {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     const iterator = (function* () {})()
 
     const sampledIterator = sampleByTime(iterator, 2, (item) => item)

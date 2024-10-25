@@ -22,7 +22,7 @@ import { HotkeyOptions } from '@/popup/pages/options/pages/hotkeyOptions/HotkeyO
 import { ThemeOptions } from '@/popup/pages/options/pages/theme/ThemeOptions'
 import { SearchPage } from '@/popup/pages/search/SearchPage'
 
-export const router = createHashRouter([
+export const router: ReturnType<typeof createHashRouter> = createHashRouter([
   {
     path: '/',
     Component: Home,
