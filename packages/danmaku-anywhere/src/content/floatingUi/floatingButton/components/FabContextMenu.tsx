@@ -8,7 +8,6 @@ import {
 } from '@mui/icons-material'
 import type { PopperProps } from '@mui/material'
 import { MenuList, Paper, Popper } from '@mui/material'
-import { useHotkeys } from 'react-hotkeys-hook'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
@@ -17,6 +16,7 @@ import { useLoadDanmakuNextEpisode } from '@/content/common/hooks/useLoadDanmaku
 import { useRefreshComments } from '@/content/common/hooks/useRefreshComments'
 import type { ContextMenuItemProps } from '@/content/floatingUi/floatingButton/components/ContextMenuItem'
 import { ContextMenuItem } from '@/content/floatingUi/floatingButton/components/ContextMenuItem'
+import { ContextMenuShortcut } from '@/content/floatingUi/floatingButton/components/ContextMenuShortcut'
 import { useStore } from '@/content/store/store'
 
 type FabContextMenuProps = PopperProps
@@ -96,15 +96,11 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
     },
   ]
 
-  // register global hotkeys
-  menuItems.forEach((item) => {
-    useHotkeys(item.hotkey ?? '', item.action, {
-      enabled: !!item.hotkey && !item.disabled?.(),
-    })
-  })
-
   return (
     <Paper>
+      {menuItems.map((item, i) => (
+        <ContextMenuShortcut key={i} {...item} />
+      ))}
       <Popper placement="top-end" {...props}>
         <Paper>
           <MenuList dense>
