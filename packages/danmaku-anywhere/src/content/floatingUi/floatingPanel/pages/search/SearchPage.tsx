@@ -32,7 +32,7 @@ import { stopKeyboardPropagation } from '@/common/utils/utils'
 import { usePopup } from '@/content/store/popupStore'
 import { useStore } from '@/content/store/store'
 
-export const SearchPanel = () => {
+export const SearchPage = () => {
   const { t } = useTranslation()
   const { searchTitle, saveMapping, setSearchTitle, setSaveMapping } =
     usePopup()

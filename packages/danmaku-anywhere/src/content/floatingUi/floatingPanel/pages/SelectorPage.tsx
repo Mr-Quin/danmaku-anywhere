@@ -30,7 +30,7 @@ import { MediaTypeIcon } from '@/common/components/MediaList/components/MediaTyp
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { useLoadDanmaku } from '@/content/common/hooks/useLoadDanmaku'
 
-export const SelectorPanel = () => {
+export const SelectorPage = () => {
   const { t } = useTranslation()
   const selectorBoxRef = useRef<HTMLDivElement>()
   const { animes, saveMapping, setSaveMapping, toggleOpen } = usePopup()

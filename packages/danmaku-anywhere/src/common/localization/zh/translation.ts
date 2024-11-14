@@ -309,7 +309,7 @@ const pages = {
     limitPerSecond: '每秒最大弹幕数量',
     disableLimit: '不限制',
     name: '弹幕设置',
-    offset: '时间轴',
+    offset: '时间轴（毫秒）',
     opacity: '不透明度',
     'safeZone.bottom': '底部',
     'safeZone.top': '顶部',
