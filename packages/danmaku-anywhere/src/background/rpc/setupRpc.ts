@@ -4,6 +4,7 @@ import { DanmakuService } from '../services/DanmakuService'
 import { IconService } from '../services/IconService'
 import { ProviderService } from '../services/ProviderService'
 
+import { injectVideoScript } from '@/background/scripting/setupScripting'
 import { BilibiliService } from '@/background/services/BilibiliService'
 import { TencentService } from '@/background/services/TencentService'
 import { Logger } from '@/common/Logger'
@@ -116,6 +117,32 @@ export const setupRpc = () => {
     },
     danmakuDeleteAll: async () => {
       return danmakuService.deleteAll()
+    },
+    getAllFrames: async (_, sender) => {
+      if (sender.tab?.id === undefined) {
+        throw new RpcException('No tab id found')
+      }
+
+      const tabId = sender.tab.id
+
+      const frames = await chrome.webNavigation.getAllFrames({ tabId })
+
+      if (!frames) {
+        throw new RpcException('No frames found')
+      }
+
+      return frames
+    },
+    injectScript: async (frameId, sender) => {
+      Logger.debug('Injecting script into frame', { frameId })
+
+      if (sender.tab?.id === undefined) {
+        throw new RpcException('No tab id found')
+      }
+
+      const tabId = sender.tab.id
+
+      await injectVideoScript(tabId, frameId)
     },
   })
 

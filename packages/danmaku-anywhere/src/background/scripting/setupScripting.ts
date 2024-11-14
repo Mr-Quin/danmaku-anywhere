@@ -82,32 +82,41 @@ export const setupScripting = () => {
     })
   })
 
-  chrome.webNavigation.onCommitted.addListener(async (details) => {
-    Logger.debug('Web navigation committed', details.url, details)
-    const configs = await mountConfigService.get()
-
-    const matches = configs.some((config) => {
-      const { patterns } = config
-      return patterns.some((pattern) => matchUrl(details.url, pattern))
-    })
-
-    if (matches) {
-      Logger.debug('Injecting content script into the main frame')
-      await chrome.scripting.executeScript({
-        target: { tabId: details.tabId, frameIds: [details.frameId] },
-        files: [contentScript],
-      })
-      Logger.debug('Injecting test script into all frames')
-      await chrome.scripting.executeScript({
-        target: { tabId: details.tabId, allFrames: true },
-        files: [testScript],
-      })
-    }
-  })
-
-  // mountConfigService.onChange(async (configs) => {
-  //   if (!configs) return
+  // chrome.webNavigation.onCommitted.addListener(async (details) => {
+  //   Logger.debug('Web navigation committed', details.url, details)
+  //   const configs = await mountConfigService.get()
   //
-  //   await handleContentScriptRegistration(configs)
+  //   const matches = configs.some((config) => {
+  //     const { patterns } = config
+  //     return patterns.some((pattern) => matchUrl(details.url, pattern))
+  //   })
+  //
+  //   if (matches) {
+  //     Logger.debug('Injecting content script into the main frame')
+  //     await chrome.scripting.executeScript({
+  //       target: { tabId: details.tabId, frameIds: [details.frameId] },
+  //       files: [contentScript],
+  //     })
+  //     Logger.debug('Injecting test script into all frames')
+  //     await chrome.scripting.executeScript({
+  //       target: { tabId: details.tabId, allFrames: true },
+  //       files: [testScript],
+  //     })
+  //   }
   // })
+
+  mountConfigService.onChange(async (configs) => {
+    if (!configs) return
+
+    await handleContentScriptRegistration(configs)
+  })
+}
+
+export const injectVideoScript = async (tabId: number, frameId: number) => {
+  Logger.debug('Injecting video script into tab', { tabId, frameId })
+
+  await chrome.scripting.executeScript({
+    target: { tabId, frameIds: [frameId] },
+    files: [testScript],
+  })
 }
