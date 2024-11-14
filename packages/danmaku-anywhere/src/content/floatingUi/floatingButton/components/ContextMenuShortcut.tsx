@@ -1,5 +1,6 @@
-import { ContextMenuItemProps } from './ContextMenuItem'
 import { useHotkeys } from 'react-hotkeys-hook'
+
+import type { ContextMenuItemProps } from './ContextMenuItem'
 
 export const ContextMenuShortcut = ({
   hotkey,

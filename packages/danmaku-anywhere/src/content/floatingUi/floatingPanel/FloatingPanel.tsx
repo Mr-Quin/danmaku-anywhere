@@ -1,22 +1,17 @@
 import type { PopperProps } from '@mui/material'
 import { Box, Paper } from '@mui/material'
 import { Suspense } from 'react'
-import { match } from 'ts-pattern'
 
-import { PopupTab, usePopup } from '../../store/popupStore'
+import { usePopup } from '../../store/popupStore'
 
 import { FloatingPanelPopper } from './components/FloatingPanelPopper'
 import { FloatingPanelToolbar } from './components/FloatingPanelToolbar'
 import { PanelTabs } from './components/PanelTabs'
 import { useCloseOnEsc } from './hooks/useCloseOnEsc'
 import { FloatingPanelLayout } from './layout/FloatingPanelLayout'
-import { MountPage } from './pages/mount/MountPage'
 
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
-import { CommentsPanel } from '@/content/floatingUi/floatingPanel/pages/CommentsPanel'
-import { InfoPanel } from '@/content/floatingUi/floatingPanel/pages/InfoPanel'
-import { SearchPanel } from '@/content/floatingUi/floatingPanel/pages/search/SearchPanel'
-import { SelectorPanel } from '@/content/floatingUi/floatingPanel/pages/SelectorPanel'
+import { routes } from '@/content/floatingUi/router/routes'
 
 export const FloatingPanel = ({
   anchorEl,
@@ -48,13 +43,7 @@ export const FloatingPanel = ({
                 </Box>
               }
             >
-              {match(tab)
-                .with(PopupTab.Info, () => <InfoPanel />)
-                .with(PopupTab.Search, () => <SearchPanel />)
-                .with(PopupTab.Selector, () => <SelectorPanel />)
-                .with(PopupTab.Comments, () => <CommentsPanel />)
-                .with(PopupTab.Mount, () => <MountPage />)
-                .exhaustive()}
+              {routes.find((route) => route.tab === tab)?.element}
             </Suspense>
           </Paper>
         </Box>

@@ -4,13 +4,7 @@ import { match } from 'ts-pattern'
 
 import { PopupTab, usePopup } from '../../../store/popupStore'
 
-const tabMap = {
-  [PopupTab.Search]: 'tabs.search',
-  [PopupTab.Selector]: 'tabs.selector',
-  [PopupTab.Comments]: 'tabs.danmaku',
-  [PopupTab.Mount]: 'tabs.mount',
-  [PopupTab.Info]: 'debug',
-}
+import { routes } from '@/content/floatingUi/router/routes'
 
 export const PanelTabs = () => {
   const { t } = useTranslation()
@@ -22,15 +16,16 @@ export const PanelTabs = () => {
 
   const tabs = match(tab)
     .with(PopupTab.Selector, () => {
-      return [PopupTab.Selector]
+      return routes.filter((route) => route.tab === PopupTab.Selector)
     })
     .otherwise(() => {
-      return [
-        PopupTab.Search,
-        PopupTab.Comments,
-        PopupTab.Mount,
-        import.meta.env.DEV && PopupTab.Info,
-      ].filter(Boolean) as PopupTab[]
+      return routes.filter((route) => {
+        if (route.tab === PopupTab.Selector) return false
+        if (route.tab === PopupTab.Debug) {
+          return import.meta.env.DEV
+        }
+        return true
+      })
     })
 
   return (
@@ -49,7 +44,7 @@ export const PanelTabs = () => {
       }}
     >
       {tabs.map((tab) => (
-        <Tab label={t(tabMap[tab])} value={tab} key={tab} />
+        <Tab label={t(tab.name)} value={tab.tab} key={tab.tab} />
       ))}
     </Tabs>
   )

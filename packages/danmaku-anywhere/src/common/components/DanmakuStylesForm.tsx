@@ -104,7 +104,7 @@ const fontSizeValueLabelFormat = (value: number) => `${value}px`
 const safeZoneValueLabelFormat = (value: number) => `${value}%`
 
 const offsetValueLabelFormat = (value: number) => {
-  return `${value > 0 ? '+' : ''}${value / 1000}s`
+  return `${value > 0 ? '+' : ''}${value}ms`
 }
 
 const convertActualSpeedToDisplay = (actualSpeed: number) => {
@@ -240,6 +240,7 @@ export const DanmakuStylesForm = () => {
           <Grid item xs={4}>
             <FormControl>
               <FormControlLabel
+                sx={{ whiteSpace: 'nowrap' }}
                 control={
                   <Checkbox
                     checked={localConfig.limitPerSec === -1}

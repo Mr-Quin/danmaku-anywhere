@@ -312,7 +312,7 @@ const pages = {
     name: 'Danmaku Settings',
     limitPerSecond: 'Maximum Limit Per Second',
     disableLimit: 'Disable Limit',
-    offset: 'Time Offset',
+    offset: 'Time Offset (milliseconds)',
     opacity: 'Opacity',
     'safeZone.bottom': 'Bottom',
     'safeZone.top': 'Top',

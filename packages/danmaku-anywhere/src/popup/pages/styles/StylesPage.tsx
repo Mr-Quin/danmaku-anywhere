@@ -2,8 +2,7 @@ import { Box, ListItemText, MenuItem } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
-import { DanmakuStylesForm } from './StylesForm'
-
+import { DanmakuStylesForm } from '@/common/components/DanmakuStylesForm'
 import { DrilldownMenu } from '@/popup/component/DrilldownMenu'
 import { TabToolbar } from '@/popup/component/TabToolbar'
 import { TabLayout } from '@/popup/layout/TabLayout'

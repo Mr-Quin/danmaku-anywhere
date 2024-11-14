@@ -3,7 +3,7 @@ import { produce } from 'immer'
 
 import { useStore } from '../../../store/store'
 
-export const InfoPanel = () => {
+export const DebugPage = () => {
   const state = useStore()
 
   const displayState = produce(state, (draft) => {

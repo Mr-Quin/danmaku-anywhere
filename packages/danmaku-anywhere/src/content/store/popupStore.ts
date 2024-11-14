@@ -2,11 +2,12 @@ import type { DanDanAnime } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { create } from 'zustand'
 
 export enum PopupTab {
-  Info = 'debug',
+  Debug = 'debug',
   Search = 'search',
   Selector = 'selector',
   Comments = 'comments',
   Mount = 'mount',
+  Styles = 'styles',
 }
 
 interface PopupStoreState {

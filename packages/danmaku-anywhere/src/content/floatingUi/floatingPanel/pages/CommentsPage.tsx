@@ -17,7 +17,7 @@ import { useDanmakuManager } from '@/content/store/danmakuManager'
 
 const manager = useDanmakuManager.getState().manager
 
-export const CommentsPanel = () => {
+export const CommentsPage = () => {
   const { t } = useTranslation()
   const { comments, hasVideo } = useStore()
 
