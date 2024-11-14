@@ -1,7 +1,9 @@
 import { DanmakuManager } from '@/common/danmaku/DanmakuManager'
-import { Logger } from '@/common/Logger'
+import { Logger as _Logger } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
 import type { ManagerCommands } from '@/common/rpcClient/background/types'
+
+const Logger = _Logger.sub('[Frame]')
 
 Logger.debug('Hello, test.ts')
 

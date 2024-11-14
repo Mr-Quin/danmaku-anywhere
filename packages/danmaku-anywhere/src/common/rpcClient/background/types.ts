@@ -75,6 +75,8 @@ type DanmakuMethods = {
   danmakuImport: RPCDef<DanmakuInsert[], void>
   danmakuDelete: RPCDef<DanmakuDeleteDto, void>
   danmakuDeleteAll: RPCDef<void, void>
+  getAllFrames: RPCDef<void, chrome.webNavigation.GetAllFrameResultDetails[]>
+  injectScript: RPCDef<number, void>
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
