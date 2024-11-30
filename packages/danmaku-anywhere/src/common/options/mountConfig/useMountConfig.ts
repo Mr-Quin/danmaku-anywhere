@@ -93,10 +93,12 @@ export const useMountConfig = () => {
     const matchByUrl = (url: string) => {
       const { data: configs } = options
 
-      return configs.find((config) => {
-        const { patterns } = config
-        return patterns.some((pattern) => matchUrl(url, pattern))
-      })
+      return configs
+        .filter((config) => config.enabled)
+        .find((config) => {
+          const { patterns } = config
+          return patterns.some((pattern) => matchUrl(url, pattern))
+        })
     }
 
     const exportConfigs = async () => {
