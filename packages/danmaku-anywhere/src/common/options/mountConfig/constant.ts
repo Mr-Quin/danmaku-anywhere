@@ -1,4 +1,4 @@
-import defaultMountConfigJson from './default.json' assert { type: 'json' }
+import defaultMountConfigJson from './default.json' with { type: 'json' }
 
 import { getDefaultXPathPolicy } from '@/common/options/integrationPolicyStore/constant'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
