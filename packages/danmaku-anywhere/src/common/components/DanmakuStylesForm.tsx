@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next'
 import { LabeledSlider } from '@/common/components/LabeledSlider'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
+import { withStopPropagation } from '@/common/utils/withStopPropagation'
 
 const opacityMarks = [
   {
@@ -300,6 +301,7 @@ export const DanmakuStylesForm = () => {
             <Input
               value={offsetInputActive ? offsetInput : localConfig.offset}
               size="small"
+              {...withStopPropagation()}
               onFocus={() => {
                 setOffsetInputActive(true)
                 setOffsetInput(localConfig.offset.toString())
