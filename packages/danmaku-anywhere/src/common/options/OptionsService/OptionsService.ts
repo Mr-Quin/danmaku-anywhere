@@ -5,6 +5,8 @@ import { ExtStorageService } from '../../storage/ExtStorageService'
 import { migrateOptions } from './migrationOptions'
 import type { Options, OptionsSchema, Version, VersionConfig } from './types'
 
+export type PrevOptions = any
+
 //Handles creating and upgrading options schema
 export class OptionsService<T extends OptionsSchema> {
   private versions: Version<T>[] = []
