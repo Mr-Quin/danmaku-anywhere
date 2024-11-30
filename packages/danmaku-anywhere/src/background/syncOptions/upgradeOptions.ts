@@ -92,6 +92,13 @@ extensionOptionsService
         draft.hotkeys = defaultKeymap
       }),
   })
+  .version(10, {
+    upgrade: (data: PrevOptions) =>
+      produce<ExtensionOptions>(data, (draft) => {
+        // Add showReleaseNotes field
+        draft.showReleaseNotes = false
+      }),
+  })
 
 danmakuOptionsService
   .version(1, {

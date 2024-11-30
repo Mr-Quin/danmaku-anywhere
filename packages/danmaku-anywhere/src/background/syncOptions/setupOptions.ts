@@ -5,14 +5,22 @@ import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
 
 export const setupOptions = async () => {
-  chrome.runtime.onInstalled.addListener(async () => {
+  chrome.runtime.onInstalled.addListener(async (details) => {
     try {
       await upgradeOptions()
+
+      if (details.reason === 'update') {
+        await extensionOptionsService.update({ showReleaseNotes: true })
+      }
     } catch (err) {
       Logger.error(err)
     }
 
-    Logger.info('Danmaku Anywhere Installed')
+    if (details.reason === 'update') {
+      Logger.info('Danmaku Anywhere Updated')
+    } else {
+      Logger.info('Danmaku Anywhere Installed')
+    }
   })
 
   // configure dandanplay api on init and when options change

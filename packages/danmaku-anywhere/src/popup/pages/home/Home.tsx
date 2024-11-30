@@ -6,6 +6,7 @@ import { Link, Outlet, useLocation, useMatches } from 'react-router-dom'
 import { AppToolBar } from './AppToolBar'
 
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
+import { ReleaseNotes } from '@/popup/component/releaseNotes/ReleaseNotes'
 import { TabLayout } from '@/popup/layout/TabLayout'
 
 export const Home = () => {
@@ -76,6 +77,7 @@ export const Home = () => {
         >
           <Outlet />
         </Suspense>
+        <ReleaseNotes />
       </Box>
     </Stack>
   )

@@ -27,6 +27,7 @@ const common = {
     failed: '失败',
     docs: '文档',
     pip: '画中画',
+    acknowledge: '知道了',
   },
   error: {
     unknown: '出了一些问题。',
