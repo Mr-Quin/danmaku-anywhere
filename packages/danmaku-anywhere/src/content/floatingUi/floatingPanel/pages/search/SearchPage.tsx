@@ -16,7 +16,6 @@ import {
   useIsFetching,
   useQueryErrorResetBoundary,
 } from '@tanstack/react-query'
-import type { KeyboardEvent } from 'react'
 import { Suspense, useEffect, useRef, useState, useTransition } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { useTranslation } from 'react-i18next'
@@ -28,7 +27,7 @@ import { Center } from '@/common/components/Center'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { SearchResultList } from '@/common/components/MediaList/SearchResultList'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
-import { stopKeyboardPropagation } from '@/common/utils/utils'
+import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { usePopup } from '@/content/store/popupStore'
 import { useStore } from '@/content/store/store'
 
@@ -76,10 +75,6 @@ export const SearchPage = () => {
     }
   }
 
-  const handleTextFieldKeyDown = (e: KeyboardEvent) => {
-    stopKeyboardPropagation(e)
-  }
-
   if (!enabledProviders.length) {
     return (
       <Box flexGrow={1}>
@@ -104,8 +99,7 @@ export const SearchPage = () => {
               label={t('searchPage.title')}
               variant="outlined"
               value={searchTitle}
-              onKeyDown={handleTextFieldKeyDown}
-              onKeyPress={handleTextFieldKeyDown} // required for stopPropagation
+              {...withStopPropagation()}
               onChange={(e) => {
                 setSearchTitle(e.target.value)
               }}

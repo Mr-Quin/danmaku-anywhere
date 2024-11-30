@@ -9,7 +9,8 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useAllDanmakuSuspense'
 import { isDanmakuProvider } from '@/common/danmaku/utils'
-import { matchWithPinyin, stopKeyboardPropagation } from '@/common/utils/utils'
+import { matchWithPinyin } from '@/common/utils/utils'
+import { withStopPropagation } from '@/common/utils/withStopPropagation'
 
 type FilterOptions = ReturnType<typeof createFilterOptions<DanmakuLite>>
 
@@ -82,9 +83,7 @@ export const DanmakuSelector = ({
             label={value ? value.seasonTitle : t('anime.episode.select')}
             InputProps={{
               ...params.InputProps,
-              onKeyDown: (e) => {
-                stopKeyboardPropagation(e)
-              },
+              ...withStopPropagation(),
               endAdornment: (
                 <>
                   {isFetching ? (
