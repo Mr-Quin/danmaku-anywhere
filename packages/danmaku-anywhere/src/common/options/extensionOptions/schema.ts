@@ -78,6 +78,11 @@ export const extensionOptionsSchema = z.object({
    * Configuration for hotkeys
    */
   hotkeys,
+
+  /**
+   * Whether the "Release Notes" dialog should be shown
+   */
+  showReleaseNotes: z.boolean(),
 })
 
 export type ExtensionOptions = z.infer<typeof extensionOptionsSchema>

@@ -47,4 +47,5 @@ export const defaultExtensionOptions: ExtensionOptions = {
     colorMode: ColorMode.System,
   },
   hotkeys: defaultKeymap,
+  showReleaseNotes: false,
 } as const

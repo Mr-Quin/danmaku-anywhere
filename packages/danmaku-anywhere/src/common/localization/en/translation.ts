@@ -25,6 +25,7 @@ const common = {
     failed: 'Failed',
     docs: 'Documentation',
     pip: 'Picture-in-Picture',
+    acknowledge: 'Ok',
   },
   error: {
     unknown: 'Something went wrong.',
