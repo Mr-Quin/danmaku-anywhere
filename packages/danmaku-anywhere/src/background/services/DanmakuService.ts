@@ -4,6 +4,7 @@ import { BilibiliService } from '@/background/services/BilibiliService'
 import { DanDanPlayService } from '@/background/services/DanDanPlayService'
 import { TencentService } from '@/background/services/TencentService'
 import { TitleMappingService } from '@/background/services/TitleMappingService'
+import { CURRENT_SCHEMA_VERSION } from '@/common/danmaku/constants'
 import type {
   DanmakuDeleteDto,
   DanmakuGetBySeasonDto,
@@ -24,7 +25,6 @@ import type {
 } from '@/common/danmaku/models/danmaku'
 import {
   assertDanmakuProvider,
-  CURRENT_SCHEMA_VERSION,
   getEpisodeId,
   isDanmakuProvider,
 } from '@/common/danmaku/utils'

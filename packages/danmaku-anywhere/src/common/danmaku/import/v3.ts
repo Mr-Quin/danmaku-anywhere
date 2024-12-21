@@ -11,7 +11,10 @@ const baseSchemaV3 = z.object({
   commentCount: z.number(),
   version: z.number(),
   timeUpdated: z.number(),
-  schemaVersion: z.literal(3),
+  schemaVersion: z.union([
+    z.literal(2), // some export data may have schemaVersion 2
+    z.literal(3),
+  ]),
 })
 
 const v3 = {

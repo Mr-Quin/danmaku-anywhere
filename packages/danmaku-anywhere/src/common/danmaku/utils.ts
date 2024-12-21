@@ -8,8 +8,6 @@ import type {
 } from '@/common/danmaku/models/meta'
 import { UnsupportedProviderException } from '@/common/danmaku/UnsupportedProviderException'
 
-export const CURRENT_SCHEMA_VERSION = 2
-
 const getNextEpisodeId = (episodeId: number) => {
   return episodeId + 1
 }
