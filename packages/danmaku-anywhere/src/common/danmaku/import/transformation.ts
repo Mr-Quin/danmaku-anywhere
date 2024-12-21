@@ -1,11 +1,11 @@
 import type { z } from 'zod'
 
+import { CURRENT_SCHEMA_VERSION } from '@/common/danmaku/constants'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { importSchemaV1 } from '@/common/danmaku/import/v1'
 import type { importSchemaV2 } from '@/common/danmaku/import/v2'
 import type { importSchemaV3 } from '@/common/danmaku/import/v3'
 import type { DanmakuInsert } from '@/common/danmaku/models/danmaku'
-import { CURRENT_SCHEMA_VERSION } from '@/common/danmaku/utils'
 
 export function transformV1(
   v1Data: z.infer<typeof importSchemaV1>
