@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 
 import packageJson from '../../../../package.json'
 
-import { useToast } from '@/common/components/Toast/toastStore'
+import { Logger } from '@/common/Logger'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 
 interface ReleaseNotesResponse {
@@ -14,7 +14,6 @@ interface ReleaseNotesResponse {
 }
 
 export const useLatestReleaseNotes = () => {
-  const { toast } = useToast()
   const { isLoading, data } = useExtensionOptions()
 
   const query = useQuery({
@@ -38,7 +37,7 @@ export const useLatestReleaseNotes = () => {
 
   useEffect(() => {
     if (query.isError) {
-      toast.error('Failed to get release notes')
+      Logger.error('Failed to get release notes')
     }
   }, [query.isError])
 
