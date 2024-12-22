@@ -59,48 +59,30 @@ export const DanmakuContainer = () => {
     // manager.start(config.mediaQuery)
     // manager.setParent(containerRef.current!)
 
-    const server = createRpcServer<PlayerEvents>({
-      onReady: async () => {
-        Logger.debug('Reported ready')
-        await playerRpcClient.player.start(config.mediaQuery)
+    const controllerRpcServer = createRpcServer<PlayerEvents>(
+      {
+        onReady: async () => {
+          Logger.debug('Reported ready')
+          await playerRpcClient.player.start(config.mediaQuery)
+        },
+        onVideoChange: async () => {
+          videoChangeHandler()
+        },
+        onVideoRemoved: async () => {
+          videoRemovedHandler()
+        },
       },
-      onVideoChange: async () => {
-        videoChangeHandler()
-      },
-      onVideoRemoved: async () => {
-        videoRemovedHandler()
-      },
-    })
+      { logger: Logger.sub('[Controller]') }
+    )
 
-    const listener: Parameters<
-      typeof chrome.runtime.onMessage.addListener
-    >[number] = (message, sender, sendResponse) => {
-      Logger.debug(
-        'Message received',
-        message,
-        sender,
-        server.hasHandler(message.method)
-      )
-      if (server.hasHandler(message.method)) {
-        server
-          .onMessage(message, sender)
-          .then((res) => {
-            if (server.hasHandler(message.method)) {
-              sendResponse(res)
-            }
-          })
-          .catch(Logger.debug)
-        return true
-      }
-    }
-    chrome.runtime.onMessage.addListener(listener)
+    controllerRpcServer.listen()
 
     return () => {
       clearTimeout(timeout)
       // manager.removeEventListener('videoChange', videoChangeHandler)
       // manager.removeEventListener('videoRemoved', videoRemovedHandler)
       // manager.stop()
-      chrome.runtime.onMessage.removeListener(listener)
+      controllerRpcServer.unlisten()
     }
   }, [])
 

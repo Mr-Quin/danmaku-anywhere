@@ -96,5 +96,6 @@ export const injectVideoScript = async (tabId: number, frameId: number) => {
   await chrome.scripting.executeScript({
     target: { tabId, frameIds: [frameId] },
     files: [testScript],
+    world: 'ISOLATED',
   })
 }

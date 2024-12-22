@@ -49,8 +49,10 @@ export const createRpcClient = <
             throw new RpcException(err.message)
           }
 
-          // if message is not handled, result will be undefined, we treat that as a success
-          if (!result) return undefined
+          // if message is not handled, result will be undefined, we treat that as an error
+          if (!result) {
+            throw new RpcException(`Unhandled method: ${method}`)
+          }
 
           if (!result.success) {
             throw new RpcException(result.error)

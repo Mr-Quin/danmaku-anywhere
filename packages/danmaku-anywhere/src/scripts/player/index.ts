@@ -49,7 +49,7 @@ emotionRoot.textContent = `
 
 manager.setParent(shadowRoot)
 
-const playerServer = createRpcServer<PlayerCommands>(
+const playerRpcServer = createRpcServer<PlayerCommands>(
   {
     mount: async (comments) => {
       manager.mount(comments)
@@ -73,29 +73,6 @@ manager.addEventListener('videoRemoved', () => {
   playerRpcClient.controller.onVideoRemoved()
 })
 
-const listener: Parameters<
-  typeof chrome.runtime.onMessage.addListener
->[number] = (message, sender, sendResponse) => {
-  if (playerServer.hasHandler(message.method)) {
-    Logger.debug(
-      'Message received',
-      message,
-      sender,
-      playerServer.hasHandler(message.method)
-    )
-    playerServer
-      .onMessage(message, sender)
-      .then((res) => {
-        if (playerServer.hasHandler(message.method)) {
-          sendResponse(res)
-        }
-      })
-      .catch(Logger.debug)
-
-    return true
-  }
-}
-
-chrome.runtime.onMessage.addListener(listener)
+playerRpcServer.listen()
 
 await playerRpcClient.controller.onReady()

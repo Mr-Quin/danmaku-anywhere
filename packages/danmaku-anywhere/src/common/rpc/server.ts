@@ -17,7 +17,25 @@ export const createRpcServer = <TRecords extends RPCRecord>(
   handlers: RPCServerHandlers<TRecords>,
   { logger = Logger }: CreateRpcServerOptions = {}
 ) => {
-  return {
+  const listener: Parameters<
+    typeof chrome.runtime.onMessage.addListener
+  >[number] = (message, sender, sendResponse) => {
+    if (methods.hasHandler(message.method)) {
+      methods
+        .onMessage(message, sender)
+        .then((res) => sendResponse(res))
+        .catch(logger.debug)
+      return true
+    }
+  }
+
+  const methods = {
+    listen: () => {
+      chrome.runtime.onMessage.addListener(listener)
+    },
+    unlisten: () => {
+      chrome.runtime.onMessage.removeListener(listener)
+    },
     hasHandler: (method: string) => method in handlers,
     onMessage: async (
       message: RPCPayload<any>,
@@ -75,4 +93,5 @@ export const createRpcServer = <TRecords extends RPCRecord>(
       return output
     },
   }
+  return methods
 }
