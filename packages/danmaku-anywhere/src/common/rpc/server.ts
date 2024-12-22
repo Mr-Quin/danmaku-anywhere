@@ -65,6 +65,7 @@ export const createRpcServer = <TRecords extends RPCRecord>(
         method,
         input,
         output,
+        sender,
       }
 
       const elapsed = Date.now() - time

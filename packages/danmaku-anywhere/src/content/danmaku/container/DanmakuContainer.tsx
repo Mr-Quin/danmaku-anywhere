@@ -6,12 +6,8 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import { Logger } from '@/common/Logger'
 import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
 import { createRpcServer } from '@/common/rpc/server'
-import {
-  chromeRpcClient,
-  relayRpcClient,
-} from '@/common/rpcClient/background/client'
-import type { ManagerEvents } from '@/common/rpcClient/background/types'
-import { ManagerCommands } from '@/common/rpcClient/background/types'
+import { playerRpcClient } from '@/common/rpcClient/background/client'
+import type { PlayerEvents } from '@/common/rpcClient/background/types'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
 import { useRefreshComments } from '@/content/common/hooks/useRefreshComments'
 import { useDanmakuManager } from '@/content/store/danmakuManager'
@@ -62,9 +58,12 @@ export const DanmakuContainer = () => {
 
     // manager.start(config.mediaQuery)
     // manager.setParent(containerRef.current!)
-    relayRpcClient.start(config.mediaQuery)
 
-    const server = createRpcServer<ManagerEvents>({
+    const server = createRpcServer<PlayerEvents>({
+      onReady: async () => {
+        Logger.debug('Reported ready')
+        await playerRpcClient.player.start(config.mediaQuery)
+      },
       onVideoChange: async () => {
         videoChangeHandler()
       },
@@ -76,6 +75,12 @@ export const DanmakuContainer = () => {
     const listener: Parameters<
       typeof chrome.runtime.onMessage.addListener
     >[number] = (message, sender, sendResponse) => {
+      Logger.debug(
+        'Message received',
+        message,
+        sender,
+        server.hasHandler(message.method)
+      )
       if (server.hasHandler(message.method)) {
         server
           .onMessage(message, sender)

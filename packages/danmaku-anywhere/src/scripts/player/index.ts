@@ -1,11 +1,12 @@
 import { DanmakuManager } from '@/common/danmaku/DanmakuManager'
 import { Logger as _Logger } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
-import type { ManagerCommands } from '@/common/rpcClient/background/types'
+import { playerRpcClient } from '@/common/rpcClient/background/client'
+import type { PlayerCommands } from '@/common/rpcClient/background/types'
 
-const logger = _Logger.sub('[Player]')
+const Logger = _Logger.sub('[Player]')
 
-logger.debug('Hello, index.ts')
+Logger.debug('Hello, index.ts')
 
 const createPopoverRoot = (id: string) => {
   const root = document.createElement('div')
@@ -27,15 +28,12 @@ const createPopoverRoot = (id: string) => {
   return { root, shadowContainer, shadowRoot }
 }
 
-const videos = document.querySelectorAll('video')
-
-logger.debug('Videos', videos)
-
-const manager = new DanmakuManager()
+const manager = new DanmakuManager(Logger)
 
 const { root, shadowContainer, shadowRoot } = createPopoverRoot(
   'danmaku-anywhere-danmaku-container'
 )
+
 document.body.append(root)
 root.showPopover()
 
@@ -50,9 +48,8 @@ emotionRoot.textContent = `
   `
 
 manager.setParent(shadowRoot)
-manager.start('video')
 
-const managerServer = createRpcServer<ManagerCommands>(
+const playerServer = createRpcServer<PlayerCommands>(
   {
     mount: async (comments) => {
       manager.mount(comments)
@@ -61,33 +58,44 @@ const managerServer = createRpcServer<ManagerCommands>(
       manager.unmount()
     },
     start: async (query) => {
+      Logger.debug('Starting danmaku manager', query)
       manager.start(query)
     },
   },
-  { logger }
+  { logger: Logger }
 )
+
+manager.addEventListener('videoChange', () => {
+  playerRpcClient.controller.onVideoChange()
+})
+
+manager.addEventListener('videoRemoved', () => {
+  playerRpcClient.controller.onVideoRemoved()
+})
 
 const listener: Parameters<
   typeof chrome.runtime.onMessage.addListener
 >[number] = (message, sender, sendResponse) => {
-  logger.debug(
-    '[Test.ts] Message received',
-    message,
-    sender,
-    managerServer.hasHandler(message.method)
-  )
-  if (managerServer.hasHandler(message.method)) {
-    managerServer
+  if (playerServer.hasHandler(message.method)) {
+    Logger.debug(
+      'Message received',
+      message,
+      sender,
+      playerServer.hasHandler(message.method)
+    )
+    playerServer
       .onMessage(message, sender)
       .then((res) => {
-        if (managerServer.hasHandler(message.method)) {
+        if (playerServer.hasHandler(message.method)) {
           sendResponse(res)
         }
       })
-      .catch(logger.debug)
+      .catch(Logger.debug)
 
     return true
   }
 }
 
 chrome.runtime.onMessage.addListener(listener)
+
+await playerRpcClient.controller.onReady()

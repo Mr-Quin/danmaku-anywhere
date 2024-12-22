@@ -6,7 +6,7 @@ import { danmakuToString } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import {
   chromeRpcClient,
-  relayRpcClient,
+  playerRpcClient,
 } from '@/common/rpcClient/background/client'
 import { createSelectors } from '@/common/utils/createSelectors'
 import type { MediaInfo } from '@/content/danmaku/integration/models/MediaInfo'
@@ -96,12 +96,12 @@ const useStoreBase = create<StoreState>((set, get) => ({
   hasComments: false,
   setComments: (comments) => {
     set({ comments, hasComments: true })
-    void relayRpcClient.mount(comments)
+    void playerRpcClient.player.mount(comments)
     // useDanmakuManager.getState().manager.mount(comments)
   },
   unsetComments: () => {
     set({ comments: [], hasComments: false })
-    void relayRpcClient.unmount()
+    void playerRpcClient.player.unmount()
     // useDanmakuManager.getState().manager.unmount()
   },
   manual: false,

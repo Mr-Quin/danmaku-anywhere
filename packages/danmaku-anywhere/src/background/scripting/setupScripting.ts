@@ -19,7 +19,7 @@ const mainScript: chrome.scripting.RegisteredContentScript = {
   js: [contentScript],
   matches: [],
   persistAcrossSessions: true,
-  allFrames: true,
+  allFrames: false, // only run in top frame
   runAt: 'document_idle',
   world: 'ISOLATED',
 }
@@ -82,29 +82,6 @@ export const setupScripting = () => {
       ids: [contentScriptId],
     })
   })
-
-  // chrome.webNavigation.onCommitted.addListener(async (details) => {
-  //   Logger.debug('Web navigation committed', details.url, details)
-  //   const configs = await mountConfigService.get()
-  //
-  //   const matches = configs.some((config) => {
-  //     const { patterns } = config
-  //     return patterns.some((pattern) => matchUrl(details.url, pattern))
-  //   })
-  //
-  //   if (matches) {
-  //     Logger.debug('Injecting content script into the main frame')
-  //     await chrome.scripting.executeScript({
-  //       target: { tabId: details.tabId, frameIds: [details.frameId] },
-  //       files: [contentScript],
-  //     })
-  //     Logger.debug('Injecting test script into all frames')
-  //     await chrome.scripting.executeScript({
-  //       target: { tabId: details.tabId, allFrames: true },
-  //       files: [testScript],
-  //     })
-  //   }
-  // })
 
   mountConfigService.onChange(async (configs) => {
     if (!configs) return

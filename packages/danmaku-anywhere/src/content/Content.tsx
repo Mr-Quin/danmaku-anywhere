@@ -20,7 +20,7 @@ export const Content = () => {
         <IconManagerComponent />
         {enabled && (
           <>
-            {/*<DanmakuContainer />*/}
+            <DanmakuContainer />
             <RegisterIntegration />
             {/*<Pip />*/}
           </>

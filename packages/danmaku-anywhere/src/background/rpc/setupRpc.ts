@@ -12,8 +12,8 @@ import { createRpcServer } from '@/common/rpc/server'
 import { RpcException } from '@/common/rpc/types'
 import type {
   BackgroundMethods,
-  ManagerCommands,
-  ManagerEvents,
+  PlayerCommands,
+  PlayerEvents,
 } from '@/common/rpcClient/background/types'
 import { relayFrameClient } from '@/common/rpcClient/tab/client'
 
@@ -146,7 +146,7 @@ export const setupRpc = () => {
     },
   })
 
-  const rpcRelay = createRpcServer<ManagerCommands & ManagerEvents>({
+  const rpcRelay = createRpcServer<PlayerCommands & PlayerEvents>({
     mount: async (data) => {
       return relayFrameClient.mount(data)
     },
@@ -155,6 +155,10 @@ export const setupRpc = () => {
     },
     start: async (data) => {
       return relayFrameClient.start(data)
+    },
+    onReady: async () => {
+      console.debug('Relaying ready')
+      return relayFrameClient.onReady()
     },
     onVideoChange: async () => {
       return relayFrameClient.onVideoChange()

@@ -43,12 +43,11 @@ type IconSetDto =
       state: 'unavailable'
     }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+/* eslint-disable @typescript-eslint/consistent-type-definitions */
 type IconMethods = {
   iconSet: RPCDef<IconSetDto, void>
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type AnimeMethods = {
   mediaParseUrl: RPCDef<{ url: string }, DanmakuMetaExternal>
   searchDanDanPlay: RPCDef<MediaSearchParams, DanDanPlayMediaSearchResult>
@@ -62,7 +61,6 @@ type AnimeMethods = {
   tencentTestCookies: RPCDef<void, boolean>
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type DanmakuMethods = {
   danmakuGetAll: RPCDef<void, Danmaku[]>
   danmakuGetAllLite: RPCDef<void, DanmakuLite[]>
@@ -79,16 +77,20 @@ type DanmakuMethods = {
   injectScript: RPCDef<number, void>
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type ManagerCommands = {
+// Controller -> Player communication
+export type PlayerCommands = {
   mount: RPCDef<CommentEntity[], void>
   unmount: RPCDef<void, void>
   start: RPCDef<string, void>
 }
 
-export interface ManagerEvents {
+// Player -> Controller communication
+export type PlayerEvents = {
+  onReady: RPCDef<void, void>
   onVideoChange: RPCDef<void, void>
   onVideoRemoved: RPCDef<void, void>
 }
+
+/* eslint-enable @typescript-eslint/consistent-type-definitions */
 
 export type BackgroundMethods = IconMethods & AnimeMethods & DanmakuMethods
