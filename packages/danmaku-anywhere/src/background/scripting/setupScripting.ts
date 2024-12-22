@@ -9,7 +9,8 @@ import { matchUrl } from '@/common/utils/matchUrl'
 // eslint-disable-next-line import/no-restricted-paths, import/default
 import contentScript from '@/content?script'
 // @ts-expect-error
-import testScript from '@/scripts/test?script'
+// eslint-disable-next-line import/no-restricted-paths, import/default
+import testScript from '@/scripts/player?script'
 
 const contentScriptId = 'main-content'
 

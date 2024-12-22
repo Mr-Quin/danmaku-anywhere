@@ -20,7 +20,7 @@ const createLogger = (prefix: string): Logger => {
   })
 
   logger.sub = (subPrefix: string) => {
-    return createLogger(`${prefix} ${subPrefix}`)
+    return createLogger(`${prefix}${subPrefix}`)
   }
 
   return logger

@@ -9,6 +9,7 @@ export const IframeObserver = () => {
   const injectedFrames = useRef(new Set<number>()).current
 
   const injectScript = async (frameId: number) => {
+    Logger.debug('Injecting script into frame', frameId)
     // ensure we only inject once
     if (injectedFrames.has(frameId)) {
       return

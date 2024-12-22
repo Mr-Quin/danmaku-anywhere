@@ -3,9 +3,9 @@ import { Logger as _Logger } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
 import type { ManagerCommands } from '@/common/rpcClient/background/types'
 
-const Logger = _Logger.sub('[Frame]')
+const logger = _Logger.sub('[Player]')
 
-Logger.debug('Hello, test.ts')
+logger.debug('Hello, index.ts')
 
 const createPopoverRoot = (id: string) => {
   const root = document.createElement('div')
@@ -29,7 +29,7 @@ const createPopoverRoot = (id: string) => {
 
 const videos = document.querySelectorAll('video')
 
-Logger.debug('Videos', videos)
+logger.debug('Videos', videos)
 
 const manager = new DanmakuManager()
 
@@ -50,23 +50,32 @@ emotionRoot.textContent = `
   `
 
 manager.setParent(shadowRoot)
+manager.start('video')
 
-const managerServer = createRpcServer<ManagerCommands>({
-  mount: async (comments) => {
-    manager.mount(comments)
+const managerServer = createRpcServer<ManagerCommands>(
+  {
+    mount: async (comments) => {
+      manager.mount(comments)
+    },
+    unmount: async () => {
+      manager.unmount()
+    },
+    start: async (query) => {
+      manager.start(query)
+    },
   },
-  unmount: async () => {
-    manager.unmount()
-  },
-  start: async (query) => {
-    manager.start(query)
-  },
-})
+  { logger }
+)
 
 const listener: Parameters<
   typeof chrome.runtime.onMessage.addListener
 >[number] = (message, sender, sendResponse) => {
-  Logger.debug('[Test.ts] Message received', message, sender)
+  logger.debug(
+    '[Test.ts] Message received',
+    message,
+    sender,
+    managerServer.hasHandler(message.method)
+  )
   if (managerServer.hasHandler(message.method)) {
     managerServer
       .onMessage(message, sender)
@@ -75,7 +84,7 @@ const listener: Parameters<
           sendResponse(res)
         }
       })
-      .catch(Logger.debug)
+      .catch(logger.debug)
 
     return true
   }

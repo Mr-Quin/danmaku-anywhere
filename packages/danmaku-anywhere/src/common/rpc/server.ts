@@ -9,8 +9,13 @@ type RPCServerHandlers<TRecords extends RPCRecord> = {
   ) => Promise<TRecords[TKey]['output']>
 }
 
+interface CreateRpcServerOptions {
+  logger?: typeof Logger
+}
+
 export const createRpcServer = <TRecords extends RPCRecord>(
-  handlers: RPCServerHandlers<TRecords>
+  handlers: RPCServerHandlers<TRecords>,
+  { logger = Logger }: CreateRpcServerOptions = {}
 ) => {
   return {
     hasHandler: (method: string) => method in handlers,
@@ -20,7 +25,7 @@ export const createRpcServer = <TRecords extends RPCRecord>(
     ): Promise<RPCResponse<any>> => {
       const { method, input } = message
 
-      Logger.debug('Received message:', message)
+      logger.debug('Received message:', message)
 
       const time = Date.now()
 
@@ -64,7 +69,7 @@ export const createRpcServer = <TRecords extends RPCRecord>(
 
       const elapsed = Date.now() - time
 
-      Logger.debug('Sending response:', meta, `(${elapsed}ms)`)
+      logger.debug('Sending response:', meta, `(${elapsed}ms)`)
 
       return output
     },
