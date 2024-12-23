@@ -73,9 +73,15 @@ type DanmakuMethods = {
   danmakuImport: RPCDef<DanmakuInsert[], void>
   danmakuDelete: RPCDef<DanmakuDeleteDto, void>
   danmakuDeleteAll: RPCDef<void, void>
+}
+
+type ControlMethods = {
+  getFrameId: RPCDef<void, number>
   getAllFrames: RPCDef<void, chrome.webNavigation.GetAllFrameResultDetails[]>
   injectScript: RPCDef<number, void>
 }
+
+type WithFrameId<TInput> = { input: TInput } & { frameId: number }
 
 // Controller -> Player communication
 export type PlayerCommands = {
@@ -86,11 +92,14 @@ export type PlayerCommands = {
 
 // Player -> Controller communication
 export type PlayerEvents = {
-  onReady: RPCDef<void, void>
-  onVideoChange: RPCDef<void, void>
-  onVideoRemoved: RPCDef<void, void>
+  onReady: RPCDef<WithFrameId<void>, void>
+  onVideoChange: RPCDef<WithFrameId<void>, void>
+  onVideoRemoved: RPCDef<WithFrameId<void>, void>
 }
 
 /* eslint-enable @typescript-eslint/consistent-type-definitions */
 
-export type BackgroundMethods = IconMethods & AnimeMethods & DanmakuMethods
+export type BackgroundMethods = IconMethods &
+  AnimeMethods &
+  DanmakuMethods &
+  ControlMethods

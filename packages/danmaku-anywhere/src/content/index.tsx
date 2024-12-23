@@ -9,9 +9,12 @@ import { App } from './App'
 
 import { Logger } from '@/common/Logger'
 import { queryClient } from '@/common/queryClient'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { Theme } from '@/common/theme/Theme'
 import { tryCatchSync } from '@/common/utils/utils'
 import '@/common/localization/i18n'
+
+const frameId = await chromeRpcClient.getFrameId()
 
 const createPopoverRoot = (id: string) => {
   const root = document.createElement('div')
@@ -33,7 +36,7 @@ const createPopoverRoot = (id: string) => {
   return { root, shadowContainer, shadowRoot }
 }
 
-Logger.debug('Danmaku Anywhere content script loaded')
+Logger.debug(`Danmaku Anywhere controller script loaded in frame ${frameId}`)
 
 // create root element
 const { root, shadowContainer, shadowRoot } =

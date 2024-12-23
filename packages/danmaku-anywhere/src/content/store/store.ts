@@ -4,14 +4,10 @@ import { create } from 'zustand'
 import type { Danmaku, DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { danmakuToString } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
-import {
-  chromeRpcClient,
-  playerRpcClient,
-} from '@/common/rpcClient/background/client'
+import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { createSelectors } from '@/common/utils/createSelectors'
 import type { MediaInfo } from '@/content/danmaku/integration/models/MediaInfo'
 import { createPipWindow } from '@/content/pip/pipUtils'
-import { useDanmakuManager } from '@/content/store/danmakuManager'
 
 interface PipState {
   // Pip window

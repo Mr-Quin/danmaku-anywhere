@@ -133,6 +133,13 @@ export const setupRpc = () => {
 
       return frames
     },
+    getFrameId: async (_, sender) => {
+      if (sender.frameId === undefined) {
+        throw new RpcException('Sender does not have frame id')
+      }
+
+      return sender.frameId
+    },
     injectScript: async (frameId, sender) => {
       Logger.debug('Injecting script into frame', { frameId })
 
@@ -156,15 +163,14 @@ export const setupRpc = () => {
     start: async (data) => {
       return relayFrameClient.start(data)
     },
-    onReady: async () => {
-      console.debug('Relaying ready')
-      return relayFrameClient.onReady()
+    onReady: async (input) => {
+      return relayFrameClient.onReady(input)
     },
-    onVideoChange: async () => {
-      return relayFrameClient.onVideoChange()
+    onVideoChange: async (input) => {
+      return relayFrameClient.onVideoChange(input)
     },
-    onVideoRemoved: async () => {
-      return relayFrameClient.onVideoRemoved()
+    onVideoRemoved: async (input) => {
+      return relayFrameClient.onVideoRemoved(input)
     },
   })
 

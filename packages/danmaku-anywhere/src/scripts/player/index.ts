@@ -1,12 +1,17 @@
 import { DanmakuManager } from '@/common/danmaku/DanmakuManager'
 import { Logger as _Logger } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
-import { playerRpcClient } from '@/common/rpcClient/background/client'
+import {
+  chromeRpcClient,
+  playerRpcClient,
+} from '@/common/rpcClient/background/client'
 import type { PlayerCommands } from '@/common/rpcClient/background/types'
 
 const Logger = _Logger.sub('[Player]')
 
-Logger.debug('Hello, index.ts')
+const frameId = await chromeRpcClient.getFrameId()
+
+Logger.debug(`Player script loaded in frame ${frameId}`)
 
 const createPopoverRoot = (id: string) => {
   const root = document.createElement('div')
@@ -66,13 +71,13 @@ const playerRpcServer = createRpcServer<PlayerCommands>(
 )
 
 manager.addEventListener('videoChange', () => {
-  playerRpcClient.controller.onVideoChange()
+  playerRpcClient.controller.onVideoChange({ frameId, input: undefined })
 })
 
 manager.addEventListener('videoRemoved', () => {
-  playerRpcClient.controller.onVideoRemoved()
+  playerRpcClient.controller.onVideoRemoved({ frameId, input: undefined })
 })
 
 playerRpcServer.listen()
 
-await playerRpcClient.controller.onReady()
+await playerRpcClient.controller.onReady({ frameId, input: undefined })
