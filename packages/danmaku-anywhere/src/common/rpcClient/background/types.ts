@@ -81,8 +81,6 @@ type ControlMethods = {
   injectScript: RPCDef<number, void>
 }
 
-type WithFrameId<TInput> = { input: TInput } & { frameId: number }
-
 // Controller -> Player communication
 export type PlayerCommands = {
   mount: RPCDef<CommentEntity[], void>
@@ -92,9 +90,9 @@ export type PlayerCommands = {
 
 // Player -> Controller communication
 export type PlayerEvents = {
-  onReady: RPCDef<WithFrameId<void>, void>
-  onVideoChange: RPCDef<WithFrameId<void>, void>
-  onVideoRemoved: RPCDef<WithFrameId<void>, void>
+  onReady: RPCDef<void, void>
+  onVideoChange: RPCDef<void, void>
+  onVideoRemoved: RPCDef<void, void>
 }
 
 /* eslint-enable @typescript-eslint/consistent-type-definitions */

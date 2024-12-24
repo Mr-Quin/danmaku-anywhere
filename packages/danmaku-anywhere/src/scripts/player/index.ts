@@ -71,13 +71,13 @@ const playerRpcServer = createRpcServer<PlayerCommands>(
 )
 
 manager.addEventListener('videoChange', () => {
-  playerRpcClient.controller.onVideoChange({ frameId, input: undefined })
+  playerRpcClient.controller.onVideoChange()
 })
 
 manager.addEventListener('videoRemoved', () => {
-  playerRpcClient.controller.onVideoRemoved({ frameId, input: undefined })
+  playerRpcClient.controller.onVideoRemoved()
 })
 
 playerRpcServer.listen()
 
-await playerRpcClient.controller.onReady({ frameId, input: undefined })
+await playerRpcClient.controller.onReady()

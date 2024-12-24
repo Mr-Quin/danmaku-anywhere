@@ -155,22 +155,28 @@ export const setupRpc = () => {
 
   const rpcRelay = createRpcServer<PlayerCommands & PlayerEvents>({
     mount: async (data) => {
-      return relayFrameClient.mount(data)
+      const res = await relayFrameClient.mount(data)
+      return res.data
     },
     unmount: async () => {
-      return relayFrameClient.unmount()
+      const res = await relayFrameClient.unmount()
+      return res.data
     },
     start: async (data) => {
-      return relayFrameClient.start(data)
+      const res = await relayFrameClient.start(data)
+      return res.data
     },
     onReady: async (input) => {
-      return relayFrameClient.onReady(input)
+      const res = await relayFrameClient.onReady(input)
+      return res.data
     },
     onVideoChange: async (input) => {
-      return relayFrameClient.onVideoChange(input)
+      const res = await relayFrameClient.onVideoChange(input)
+      return res.data
     },
     onVideoRemoved: async (input) => {
-      return relayFrameClient.onVideoRemoved(input)
+      const res = await relayFrameClient.onVideoRemoved(input)
+      return res.data
     },
   })
 

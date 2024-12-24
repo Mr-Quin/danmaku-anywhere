@@ -3,7 +3,6 @@ import { match, P } from 'ts-pattern'
 import { Logger } from '@/common/Logger'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { mountConfigService } from '@/common/options/mountConfig/service'
-import { matchUrl } from '@/common/utils/matchUrl'
 // the ?script part gets the file name of the script
 // @ts-expect-error
 // eslint-disable-next-line import/no-restricted-paths, import/default
@@ -75,9 +74,6 @@ const handleContentScriptRegistration = async (mountConfigs: MountConfig[]) => {
 
 export const setupScripting = () => {
   chrome.runtime.onStartup.addListener(async () => {
-    // const configs = await mountConfigService.get()
-    //
-    // await handleContentScriptRegistration(configs)
     return chrome.scripting.unregisterContentScripts({
       ids: [contentScriptId],
     })

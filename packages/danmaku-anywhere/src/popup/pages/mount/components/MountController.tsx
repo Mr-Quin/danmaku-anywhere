@@ -27,6 +27,7 @@ export const MountController = () => {
       },
     ],
     queryFn: () => tabRpcClient.danmakuGetState(),
+    select: (res) => res.data,
     retry: false,
   })
 

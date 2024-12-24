@@ -15,8 +15,8 @@ import { chromeRpcClient } from '@/common/rpcClient/background/client'
 export const useFetchDanmaku = () => {
   const mutation = useMutation({
     mutationKey: danmakuKeys.all(),
-    mutationFn: (data: DanmakuFetchDto) => {
-      return match(data)
+    mutationFn: async (data: DanmakuFetchDto) => {
+      const res = await match(data)
         .with(
           {
             meta: { provider: DanmakuSourceType.DanDanPlay },
@@ -42,6 +42,8 @@ export const useFetchDanmaku = () => {
           }
         )
         .exhaustive()
+
+      return res.data
     },
   })
 

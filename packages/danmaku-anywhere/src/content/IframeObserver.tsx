@@ -25,7 +25,7 @@ export const IframeObserver = () => {
   }
 
   const handleGetAllFrames = async () => {
-    const frames = await chromeRpcClient.getAllFrames()
+    const { data: frames } = await chromeRpcClient.getAllFrames()
 
     frames
       .filter((frame) => {

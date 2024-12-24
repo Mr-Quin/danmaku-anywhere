@@ -10,6 +10,7 @@ export const useDanmakuSuspense = (data: DanmakuGetOneDto) => {
     queryFn: async () => {
       return await chromeRpcClient.danmakuGetOne(data)
     },
+    select: (res) => res.data,
   })
 
   return query

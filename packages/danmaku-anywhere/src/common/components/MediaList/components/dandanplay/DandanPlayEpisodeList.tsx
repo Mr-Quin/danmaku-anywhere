@@ -37,7 +37,10 @@ export const DandanPlayEpisodeList = ({
       }
       return {
         queryKey: danmakuKeys.one(params),
-        queryFn: async () => chromeRpcClient.danmakuGetOneLite(params),
+        queryFn: async () => {
+          const res = await chromeRpcClient.danmakuGetOneLite(params)
+          return res.data
+        },
         refetchOnMount: false,
         refetchOnWindowFocus: false,
         staleTime: Infinity,

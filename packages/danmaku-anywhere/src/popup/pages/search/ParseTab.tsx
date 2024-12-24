@@ -113,6 +113,7 @@ export const ParseTab = () => {
     queryFn: async () => {
       return chromeRpcClient.mediaParseUrl({ url: getValues().url })
     },
+    select: (res) => res.data,
   })
 
   const mutation = useFetchDanmaku()

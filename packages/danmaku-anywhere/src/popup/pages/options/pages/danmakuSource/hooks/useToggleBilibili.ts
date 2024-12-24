@@ -12,6 +12,7 @@ export const useToggleBilibili = () => {
 
   const query = useQuery({
     queryFn: () => chromeRpcClient.bilibiliGetLoginStatus(),
+    select: (res) => res.data,
     queryKey: ['bilibili', 'loginStatus'],
     enabled: enabledSources.some((s) => s.key === 'bilibili'),
     staleTime: Infinity,

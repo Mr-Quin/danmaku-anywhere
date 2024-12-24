@@ -20,7 +20,10 @@ export const useMountDanmakuContent = () => {
     mutationFn: async (danmaku: DanmakuLite) => {
       const data = await queryClient.fetchQuery({
         queryKey: danmakuKeys.one({ id: danmaku.id }),
-        queryFn: () => chromeRpcClient.danmakuGetOne({ id: danmaku.id }),
+        queryFn: async () => {
+          const res = await chromeRpcClient.danmakuGetOne({ id: danmaku.id })
+          return res.data
+        },
       })
 
       if (!data) throw new Error('No danmaku found')

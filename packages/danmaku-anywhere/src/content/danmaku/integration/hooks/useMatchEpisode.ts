@@ -29,11 +29,11 @@ export const useMatchEpisode = () => {
       )
     },
     onSuccess: (result, v) => {
-      switch (result.status) {
+      switch (result.data.status) {
         case 'success': {
           fetchDanmakuMutation.mutate(
             {
-              meta: result.data,
+              meta: result.data.data,
               options: {
                 forceUpdate: false,
               },
@@ -55,7 +55,7 @@ export const useMatchEpisode = () => {
           break
         }
         case 'disambiguation': {
-          const anime = result.data.data
+          const anime = result.data.data.data
           setAnimes(anime)
           open({ animes: anime, tab: PopupTab.Selector })
           break
