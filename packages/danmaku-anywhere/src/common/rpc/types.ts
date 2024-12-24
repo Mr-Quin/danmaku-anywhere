@@ -1,9 +1,16 @@
 // output must not be undefined because undefined is not treated well by react-query
 type NotUndefined<T> = T extends undefined ? never : T
 
-export interface RPCDef<TInput, TOutput> {
+export type RpcContext = Record<string, any>
+
+export interface RPCDef<
+  TInput,
+  TOutput,
+  TContext extends RpcContext = RpcContext,
+> {
   input: TInput
   output: NotUndefined<TOutput>
+  context: TContext
 }
 
 export type AnyRPCDef = RPCDef<any, any>
@@ -15,9 +22,13 @@ export interface RPCPayload<TInput> {
   input: TInput
 }
 
-interface RPCSuccessResponse<TOutput> {
+interface RPCSuccessResponse<
+  TOutput,
+  TContext extends RpcContext = RpcContext,
+> {
   success: true
   output: TOutput
+  context: TContext
 }
 
 interface RPCErrorResponse {

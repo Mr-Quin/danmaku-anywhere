@@ -1,22 +1,23 @@
 import { tryCatch } from '../utils/utils'
 
-import {
-  RpcException,
-  type RPCPayload,
-  type RPCRecord,
-  type RPCResponse,
-} from './types'
+import { RpcException } from './types'
+import type { AnyRPCDef, RPCPayload, RPCRecord, RPCResponse } from './types'
 
 import { chromeSender } from '@/common/rpc/sender'
 
-type ClientMessageSender<TInput, TOutput> = (
+export type ClientMessageSender<TInput, TOutput> = (
   payload: RPCPayload<TInput>
 ) => Promise<RPCResponse<TOutput>>
+
+export interface RPCClientResponse<TRPCDef extends AnyRPCDef> {
+  data: TRPCDef['output']
+  context: TRPCDef['context']
+}
 
 type RPCClient<TRecords extends RPCRecord> = {
   [TKey in keyof TRecords]: (
     input: TRecords[TKey]['input']
-  ) => Promise<TRecords[TKey]['output']>
+  ) => Promise<RPCClientResponse<TRecords[TKey]>>
 }
 
 const createPayload = <TInput>(
@@ -58,7 +59,10 @@ export const createRpcClient = <
             throw new RpcException(result.error)
           }
 
-          return result.output
+          return {
+            data: result.output,
+            context: result.context,
+          } satisfies RPCClientResponse<TRecords[string]>
         }
       },
     }

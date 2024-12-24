@@ -1,21 +1,26 @@
 import { Logger } from '../Logger'
 
-import type { RPCPayload, RPCRecord, RPCResponse } from './types'
+import type { RpcContext, RPCPayload, RPCRecord, RPCResponse } from './types'
 
 type RPCServerHandlers<TRecords extends RPCRecord> = {
   [TKey in keyof TRecords]: (
     input: TRecords[TKey]['input'],
-    sender: chrome.runtime.MessageSender
+    sender: chrome.runtime.MessageSender,
+    setContext: (context: RpcContext) => void
   ) => Promise<TRecords[TKey]['output']>
 }
 
-interface CreateRpcServerOptions {
+interface CreateRpcServerOptions<TContext extends RpcContext> {
   logger?: typeof Logger
+  context?: TContext
 }
 
-export const createRpcServer = <TRecords extends RPCRecord>(
+export const createRpcServer = <
+  TRecords extends RPCRecord,
+  TContext extends RpcContext = RpcContext,
+>(
   handlers: RPCServerHandlers<TRecords>,
-  { logger = Logger }: CreateRpcServerOptions = {}
+  { logger = Logger, context }: CreateRpcServerOptions<TContext> = {}
 ) => {
   const listener: Parameters<
     typeof chrome.runtime.onMessage.addListener
@@ -24,9 +29,15 @@ export const createRpcServer = <TRecords extends RPCRecord>(
       methods
         .onMessage(message, sender)
         .then((res) => sendResponse(res))
-        .catch(logger.debug)
+        .catch(logger.error)
       return true
     }
+  }
+
+  let baseContext = { ...context }
+
+  const setContext = (newContext: RpcContext) => {
+    baseContext = newContext
   }
 
   const methods = {
@@ -38,9 +49,9 @@ export const createRpcServer = <TRecords extends RPCRecord>(
     },
     hasHandler: (method: string) => method in handlers,
     onMessage: async (
-      message: RPCPayload<any>,
+      message: RPCPayload<unknown>,
       sender: chrome.runtime.MessageSender
-    ): Promise<RPCResponse<any>> => {
+    ): Promise<RPCResponse<unknown>> => {
       const { method, input } = message
 
       logger.debug('Received message:', message)
@@ -49,7 +60,7 @@ export const createRpcServer = <TRecords extends RPCRecord>(
 
       const handler = handlers[method]
 
-      const getResult = async (): Promise<RPCResponse<any>> => {
+      const getResult = async (): Promise<RPCResponse<unknown>> => {
         if (!handler) {
           return {
             success: false,
@@ -60,7 +71,8 @@ export const createRpcServer = <TRecords extends RPCRecord>(
         try {
           return {
             success: true,
-            output: await handler(input, sender),
+            output: await handler(input, sender, setContext),
+            context: baseContext,
           }
         } catch (e: unknown) {
           if (e instanceof Error) {
