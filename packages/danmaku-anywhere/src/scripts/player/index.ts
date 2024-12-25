@@ -9,7 +9,7 @@ import type { PlayerCommands } from '@/common/rpcClient/background/types'
 
 const Logger = _Logger.sub('[Player]')
 
-const frameId = await chromeRpcClient.getFrameId()
+const { data: frameId } = await chromeRpcClient.getFrameId()
 
 Logger.debug(`Player script loaded in frame ${frameId}`)
 
@@ -56,18 +56,25 @@ manager.setParent(shadowRoot)
 
 const playerRpcServer = createRpcServer<PlayerCommands>(
   {
-    mount: async (comments) => {
+    mount: async ({ data: comments, frameId }) => {
       manager.mount(comments)
     },
     unmount: async () => {
       manager.unmount()
     },
-    start: async (query) => {
+    start: async ({ data: query, frameId }) => {
       Logger.debug('Starting danmaku manager', query)
       manager.start(query)
     },
   },
-  { logger: Logger }
+  {
+    logger: Logger,
+    context: { frameId },
+    filter: (data) => {
+      console.debug('Filtering data', data)
+      return false
+    },
+  }
 )
 
 manager.addEventListener('videoChange', () => {
@@ -80,4 +87,4 @@ manager.addEventListener('videoRemoved', () => {
 
 playerRpcServer.listen()
 
-await playerRpcClient.controller.onReady()
+await playerRpcClient.controller.onReady(frameId)

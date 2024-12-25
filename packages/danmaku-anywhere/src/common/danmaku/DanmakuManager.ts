@@ -85,10 +85,11 @@ export class DanmakuManager {
     DanmakuManagerEventCallback['danmakuUnmounted']
   >()
 
-  constructor(private logger = Logger.sub('[DanmakuManager]')) {
+  constructor(private logger = Logger) {
     const { wrapper, container } = this.createContainer()
     this.wrapper = wrapper
     this.container = container
+    this.logger = logger.sub('[DanmakuManager]')
   }
 
   start(videoSelector: string) {

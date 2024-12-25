@@ -81,16 +81,25 @@ type ControlMethods = {
   injectScript: RPCDef<number, void>
 }
 
+type InputWithFrameId<TInput> = {
+  frameId: number
+  data: TInput
+}
+
+type FrameContext = {
+  frameId: number
+}
+
 // Controller -> Player communication
 export type PlayerCommands = {
-  mount: RPCDef<CommentEntity[], void>
-  unmount: RPCDef<void, void>
-  start: RPCDef<string, void>
+  mount: RPCDef<InputWithFrameId<CommentEntity[]>, void, FrameContext>
+  unmount: RPCDef<InputWithFrameId<void>, void, FrameContext>
+  start: RPCDef<InputWithFrameId<string>, void, FrameContext>
 }
 
 // Player -> Controller communication
 export type PlayerEvents = {
-  onReady: RPCDef<void, void>
+  onReady: RPCDef<number, void>
   onVideoChange: RPCDef<void, void>
   onVideoRemoved: RPCDef<void, void>
 }

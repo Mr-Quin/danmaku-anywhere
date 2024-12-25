@@ -13,6 +13,7 @@ type RPCServerHandlers<TRecords extends RPCRecord> = {
 interface CreateRpcServerOptions<TContext extends RpcContext> {
   logger?: typeof Logger
   context?: TContext
+  filter?: (input: any) => boolean
 }
 
 export const createRpcServer = <
@@ -20,11 +21,15 @@ export const createRpcServer = <
   TContext extends RpcContext = RpcContext,
 >(
   handlers: RPCServerHandlers<TRecords>,
-  { logger = Logger, context }: CreateRpcServerOptions<TContext> = {}
+  { logger = Logger, context, filter }: CreateRpcServerOptions<TContext> = {}
 ) => {
   const listener: Parameters<
     typeof chrome.runtime.onMessage.addListener
-  >[number] = (message, sender, sendResponse) => {
+  >[number] = (message: RPCPayload<unknown>, sender, sendResponse) => {
+    if (filter && !filter(message.input)) {
+      return false
+    }
+
     if (methods.hasHandler(message.method)) {
       methods
         .onMessage(message, sender)
@@ -36,10 +41,6 @@ export const createRpcServer = <
 
   let baseContext = { ...context }
 
-  const setContext = (newContext: RpcContext) => {
-    baseContext = newContext
-  }
-
   const methods = {
     listen: () => {
       chrome.runtime.onMessage.addListener(listener)
@@ -48,6 +49,9 @@ export const createRpcServer = <
       chrome.runtime.onMessage.removeListener(listener)
     },
     hasHandler: (method: string) => method in handlers,
+    setContext: (newContext: RpcContext) => {
+      baseContext = newContext
+    },
     onMessage: async (
       message: RPCPayload<unknown>,
       sender: chrome.runtime.MessageSender
@@ -68,11 +72,17 @@ export const createRpcServer = <
           }
         }
 
+        let messageContext = { ...baseContext }
+
+        const setContext = (newContext: RpcContext) => {
+          messageContext = { ...newContext }
+        }
+
         try {
           return {
             success: true,
             output: await handler(input, sender, setContext),
-            context: baseContext,
+            context: messageContext,
           }
         } catch (e: unknown) {
           if (e instanceof Error) {
@@ -96,6 +106,7 @@ export const createRpcServer = <
         input,
         output,
         sender,
+        baseContext,
       }
 
       const elapsed = Date.now() - time

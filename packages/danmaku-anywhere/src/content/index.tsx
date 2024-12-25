@@ -14,7 +14,7 @@ import { Theme } from '@/common/theme/Theme'
 import { tryCatchSync } from '@/common/utils/utils'
 import '@/common/localization/i18n'
 
-const frameId = await chromeRpcClient.getFrameId()
+const { data: frameId } = await chromeRpcClient.getFrameId()
 
 const createPopoverRoot = (id: string) => {
   const root = document.createElement('div')

@@ -10,10 +10,8 @@ import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type { PlayerEvents } from '@/common/rpcClient/background/types'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
 import { useRefreshComments } from '@/content/common/hooks/useRefreshComments'
-import { useDanmakuManager } from '@/content/store/danmakuManager'
+import { useFrames } from '@/content/danmaku/container/useFrames'
 import { useStore } from '@/content/store/store'
-
-const manager = useDanmakuManager.getState().manager
 
 export const DanmakuContainer = () => {
   const { data: options } = useDanmakuOptions()
@@ -28,8 +26,17 @@ export const DanmakuContainer = () => {
   const { getCanRefresh, refreshComments } = useRefreshComments()
 
   const setHasVideo = useStore.use.setHasVideo()
+  const activeFrame = useStore.use.activeFrame()
+  const allFrames = useStore.use.allFrames()
+  const setActiveFrame = useStore.use.setActiveFrame()
+  const addFrame = useStore.use.addFrame()
+  const removeFrame = useStore.use.removeFrame()
 
   const containerRef = useRef<HTMLDivElement>(null)
+
+  const frames = useFrames()
+
+  useEffect(() => {}, [allFrames])
 
   useEffect(() => {
     let timeout: NodeJS.Timeout
@@ -53,17 +60,14 @@ export const DanmakuContainer = () => {
       resetMediaState()
     }
 
-    manager.addEventListener('videoChange', videoChangeHandler)
-    manager.addEventListener('videoRemoved', videoRemovedHandler)
-
-    // manager.start(config.mediaQuery)
-    // manager.setParent(containerRef.current!)
-
     const controllerRpcServer = createRpcServer<PlayerEvents>(
       {
-        onReady: async () => {
-          Logger.debug('Reported ready')
-          await playerRpcClient.player.start(config.mediaQuery)
+        onReady: async (frameId) => {
+          addFrame(frameId)
+          // const res = await playerRpcClient.player.start({
+          //   data: config.mediaQuery,
+          // })
+          // Logger.debug('Manager started', res)
         },
         onVideoChange: async () => {
           videoChangeHandler()
@@ -79,9 +83,7 @@ export const DanmakuContainer = () => {
 
     return () => {
       clearTimeout(timeout)
-      // manager.removeEventListener('videoChange', videoChangeHandler)
-      // manager.removeEventListener('videoRemoved', videoRemovedHandler)
-      // manager.stop()
+
       controllerRpcServer.unlisten()
     }
   }, [])
@@ -101,15 +103,15 @@ export const DanmakuContainer = () => {
       )
     }
 
-    manager.addEventListener('danmakuMounted', listener)
+    // manager.addEventListener('danmakuMounted', listener)
 
     return () => {
-      manager.removeEventListener('danmakuMounted', listener)
+      // manager.removeEventListener('danmakuMounted', listener)
     }
   }, [getCanRefresh, refreshComments])
 
   useEffect(() => {
-    manager.updateConfig(options)
+    // manager.updateConfig(options)
   }, [options])
 
   return <div ref={containerRef}></div>

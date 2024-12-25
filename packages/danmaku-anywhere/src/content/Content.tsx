@@ -8,7 +8,6 @@ import { TabRpcServer } from './tabRpc/TabRpc'
 
 import { Toast } from '@/common/components/Toast/Toast'
 import { PopupUi } from '@/content/floatingUi/PopupUi'
-import { IframeObserver } from '@/content/IframeObserver'
 import { Pip } from '@/content/pip/Pip'
 
 export const Content = () => {
@@ -26,7 +25,6 @@ export const Content = () => {
           </>
         )}
       </Suspense>
-      <IframeObserver />
       <TabRpcServer />
       <PopupUi />
       <Toast />

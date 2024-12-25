@@ -11,4 +11,5 @@ const danmakuManagerStore = create<DanmakuManagerStore>(() => ({
   manager: new DanmakuManager(),
 }))
 
+// TODO: remove
 export const useDanmakuManager = createSelectors(danmakuManagerStore)

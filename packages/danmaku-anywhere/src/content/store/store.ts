@@ -77,6 +77,15 @@ interface StoreState {
   pip?: PipState
   enterPip: () => Promise<PipState>
   exitPip: () => void
+
+  /**
+   * State of each frame in the page
+   */
+  allFrames: Set<number>
+  activeFrame: number // the frameId that has the video we care about
+  setActiveFrame: (frameId: number) => void
+  addFrame: (frameId: number) => void
+  removeFrame: (frameId: number) => void
 }
 
 const useStoreBase = create<StoreState>((set, get) => ({
@@ -92,13 +101,17 @@ const useStoreBase = create<StoreState>((set, get) => ({
   hasComments: false,
   setComments: (comments) => {
     set({ comments, hasComments: true })
-    void playerRpcClient.player.mount(comments)
-    // useDanmakuManager.getState().manager.mount(comments)
+    void playerRpcClient.player.mount({
+      frameId: get().activeFrame,
+      data: comments,
+    })
   },
   unsetComments: () => {
     set({ comments: [], hasComments: false })
-    void playerRpcClient.player.unmount()
-    // useDanmakuManager.getState().manager.unmount()
+    void playerRpcClient.player.unmount({
+      frameId: get().activeFrame,
+      data: undefined,
+    })
   },
   manual: false,
   toggleManualMode: (manual) => {
@@ -164,6 +177,27 @@ const useStoreBase = create<StoreState>((set, get) => ({
   },
   exitPip: () => {
     set({ pip: undefined })
+  },
+
+  allFrames: new Set(),
+  activeFrame: 0, // assume the main frame is the active frame
+  setActiveFrame: (frameId) => {
+    set({ activeFrame: frameId })
+  },
+  addFrame: (frameId) => {
+    set((prev) => ({
+      allFrames: new Set(prev.allFrames).add(frameId),
+    }))
+  },
+  removeFrame: (frameId) => {
+    set((prev) => {
+      const allFrames = new Set(prev.allFrames)
+      allFrames.delete(frameId)
+
+      return {
+        allFrames,
+      }
+    })
   },
 }))
 
