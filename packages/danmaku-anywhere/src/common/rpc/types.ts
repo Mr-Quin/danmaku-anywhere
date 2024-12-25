@@ -26,19 +26,24 @@ interface RPCSuccessResponse<
   TOutput,
   TContext extends RpcContext = RpcContext,
 > {
-  success: true
+  state: 'success'
   output: TOutput
   context: TContext
 }
 
 interface RPCErrorResponse {
-  success: false
+  state: 'errored'
   error: string
+}
+
+interface RPCIgnoreResponse {
+  state: 'ignored'
 }
 
 export type RPCResponse<TOutput> =
   | RPCSuccessResponse<TOutput>
   | RPCErrorResponse
+  | RPCIgnoreResponse
 
 export class RpcException extends Error {
   constructor(public error: string) {

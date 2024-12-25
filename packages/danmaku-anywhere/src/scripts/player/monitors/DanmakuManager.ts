@@ -6,12 +6,12 @@ import type {
   DanmakuOptions,
   SafeZones,
 } from '@/common/options/danmakuOptions/constant'
-import { RectObserver } from '@/content/danmaku/container/monitors/RectObserver'
+import { RectObserver } from '@/scripts/player/monitors/RectObserver'
 import {
   type VideoChangeListener,
   VideoNodeObserver,
-} from '@/content/danmaku/container/monitors/VideoNodeObserver'
-import { VideoSrcObserver } from '@/content/danmaku/container/monitors/VideoSrcObserver'
+} from '@/scripts/player/monitors/VideoNodeObserver'
+import { VideoSrcObserver } from '@/scripts/player/monitors/VideoSrcObserver'
 
 const calculatePaddings = (safeZones: SafeZones, rect?: DOMRectReadOnly) => {
   const { top, bottom } = safeZones
@@ -102,7 +102,6 @@ export class DanmakuManager {
 
       this.teardownObs()
       this.setupObs(videoNode)
-
       this.videoChangeListeners.forEach((listener) => listener(videoNode))
     })
 
@@ -117,6 +116,10 @@ export class DanmakuManager {
     this.video = this.videoNodeObs.activeVideo
 
     if (this.video) {
+      // TODO: https://github.com/microsoft/TypeScript/pull/58729
+      this.videoChangeListeners.forEach((listener) => {
+        if (this.video) listener(this.video)
+      })
       this.setupObs(this.video)
     }
   }
@@ -210,6 +213,7 @@ export class DanmakuManager {
 
   setParent(parent: HTMLElement) {
     this.parent = parent
+    this.attachWrapper()
   }
 
   updateConfig(config: Partial<DanmakuOptions>) {
@@ -225,13 +229,17 @@ export class DanmakuManager {
   }
 
   private hide() {
-    this.wrapper.remove()
+    this.container.remove()
   }
 
   private show() {
-    if (!this.parent) throw new Error('Parent is not set')
     // If the wrapper is already in the document, do nothing
-    if (this.wrapper.isConnected) return
+    if (this.container.isConnected) return
+    this.wrapper.appendChild(this.container)
+  }
+
+  private attachWrapper() {
+    if (!this.parent) throw new Error('Parent is not set')
     this.parent.appendChild(this.wrapper)
   }
 

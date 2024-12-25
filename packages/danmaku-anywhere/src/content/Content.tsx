@@ -8,7 +8,6 @@ import { TabRpcServer } from './tabRpc/TabRpc'
 
 import { Toast } from '@/common/components/Toast/Toast'
 import { PopupUi } from '@/content/floatingUi/PopupUi'
-import { Pip } from '@/content/pip/Pip'
 
 export const Content = () => {
   const enabled = useStore((state) => state.enabled)
@@ -19,11 +18,10 @@ export const Content = () => {
         <IconManagerComponent />
         {enabled && (
           <>
-            <DanmakuContainer />
             <RegisterIntegration />
-            {/*<Pip />*/}
           </>
         )}
+        <DanmakuContainer />
       </Suspense>
       <TabRpcServer />
       <PopupUi />

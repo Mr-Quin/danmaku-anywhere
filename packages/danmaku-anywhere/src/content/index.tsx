@@ -36,11 +36,12 @@ const createPopoverRoot = (id: string) => {
   return { root, shadowContainer, shadowRoot }
 }
 
-Logger.debug(`Danmaku Anywhere controller script loaded in frame ${frameId}`)
+Logger.debug(`Controller script loaded in frame ${frameId}`)
 
 // create root element
-const { root, shadowContainer, shadowRoot } =
-  createPopoverRoot('danmaku-anywhere')
+const { root, shadowContainer, shadowRoot } = createPopoverRoot(
+  'danmaku-anywhere-controller'
+)
 
 document.body.append(root)
 root.showPopover()

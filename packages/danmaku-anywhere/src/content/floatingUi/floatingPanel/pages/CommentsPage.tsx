@@ -13,13 +13,11 @@ import { useRefreshComments } from '../../../common/hooks/useRefreshComments'
 import { useStore } from '../../../store/store'
 
 import { CommentsTable } from '@/common/components/CommentsTable'
-import { useDanmakuManager } from '@/content/store/danmakuManager'
-
-const manager = useDanmakuManager.getState().manager
 
 export const CommentsPage = () => {
   const { t } = useTranslation()
   const { comments, hasVideo } = useStore()
+  const seekToTime = useStore.use.seekToTime()
 
   const { refreshComments, isPending, canRefresh } = useRefreshComments()
 
@@ -47,7 +45,7 @@ export const CommentsPage = () => {
       </Toolbar>
       <CommentsTable
         comments={comments}
-        onTimeClick={manager.seek}
+        onTimeClick={seekToTime}
         isTimeClickable={hasVideo}
       />
     </Stack>

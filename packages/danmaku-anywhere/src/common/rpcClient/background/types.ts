@@ -27,6 +27,7 @@ import type {
   DanmakuLite,
 } from '@/common/danmaku/models/danmaku'
 import type { DanmakuMetaExternal } from '@/common/danmaku/models/meta'
+import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 
 type IconSetDto =
   | {
@@ -81,27 +82,40 @@ type ControlMethods = {
   injectScript: RPCDef<number, void>
 }
 
-type InputWithFrameId<TInput> = {
-  frameId: number
-  data: TInput
-}
+type InputWithFrameId<TInput> = TInput extends void
+  ? {
+      frameId: number
+    }
+  : {
+      frameId: number
+      data: TInput
+    }
 
 type FrameContext = {
   frameId: number
 }
 
 // Controller -> Player communication
+// Here the frameId is used to identify the DESTINATION frame
 export type PlayerCommands = {
   mount: RPCDef<InputWithFrameId<CommentEntity[]>, void, FrameContext>
   unmount: RPCDef<InputWithFrameId<void>, void, FrameContext>
   start: RPCDef<InputWithFrameId<string>, void, FrameContext>
+  updateConfig: RPCDef<
+    InputWithFrameId<Partial<DanmakuOptions>>,
+    void,
+    FrameContext
+  >
+  seek: RPCDef<InputWithFrameId<number>, void, FrameContext>
 }
 
 // Player -> Controller communication
+// Here the frameId is used to identify the SOURCE frame
 export type PlayerEvents = {
-  onReady: RPCDef<number, void>
-  onVideoChange: RPCDef<void, void>
-  onVideoRemoved: RPCDef<void, void>
+  ready: RPCDef<InputWithFrameId<void>, void>
+  videoChange: RPCDef<InputWithFrameId<void>, void>
+  videoRemoved: RPCDef<InputWithFrameId<void>, void>
+  danmakuMounted: RPCDef<InputWithFrameId<CommentEntity[]>, void>
 }
 
 /* eslint-enable @typescript-eslint/consistent-type-definitions */

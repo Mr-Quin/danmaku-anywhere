@@ -169,18 +169,33 @@ export const setupRpc = () => {
       setContext(res.context)
       return res.data
     },
-    onReady: async (input, _, setContext) => {
-      const res = await relayFrameClient.onReady(input)
+    updateConfig: async (data, _, setContext) => {
+      const res = await relayFrameClient.updateConfig(data)
       setContext(res.context)
       return res.data
     },
-    onVideoChange: async (input, _, setContext) => {
-      const res = await relayFrameClient.onVideoChange(input)
+    seek: async (data, _, setContext) => {
+      const res = await relayFrameClient.seek(data)
       setContext(res.context)
       return res.data
     },
-    onVideoRemoved: async (input, _, setContext) => {
-      const res = await relayFrameClient.onVideoRemoved(input)
+    ready: async (input, _, setContext) => {
+      const res = await relayFrameClient.ready(input)
+      setContext(res.context)
+      return res.data
+    },
+    videoChange: async (input, _, setContext) => {
+      const res = await relayFrameClient.videoChange(input)
+      setContext(res.context)
+      return res.data
+    },
+    videoRemoved: async (input, _, setContext) => {
+      const res = await relayFrameClient.videoRemoved(input)
+      setContext(res.context)
+      return res.data
+    },
+    danmakuMounted: async (input, _, setContext) => {
+      const res = await relayFrameClient.danmakuMounted(input)
       setContext(res.context)
       return res.data
     },

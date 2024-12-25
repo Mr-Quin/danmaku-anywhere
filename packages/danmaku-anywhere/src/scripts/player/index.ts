@@ -1,4 +1,3 @@
-import { DanmakuManager } from '@/common/danmaku/DanmakuManager'
 import { Logger as _Logger } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
 import {
@@ -6,6 +5,7 @@ import {
   playerRpcClient,
 } from '@/common/rpcClient/background/client'
 import type { PlayerCommands } from '@/common/rpcClient/background/types'
+import { DanmakuManager } from '@/scripts/player/monitors/DanmakuManager'
 
 const Logger = _Logger.sub('[Player]')
 
@@ -36,11 +36,22 @@ const createPopoverRoot = (id: string) => {
 const manager = new DanmakuManager(Logger)
 
 const { root, shadowContainer, shadowRoot } = createPopoverRoot(
-  'danmaku-anywhere-danmaku-container'
+  'danmaku-anywhere-player'
 )
 
 document.body.append(root)
 root.showPopover()
+
+// Listen to fullscreenchange event and keep popover on top
+document.addEventListener('fullscreenchange', () => {
+  /**
+   * When the video enters full screen, hide then show the popover
+   * so that it will appear on top of the full screen element,
+   * since the last element in the top layer is shown on top
+   */
+  root.hidePopover()
+  root.showPopover()
+})
 
 const emotionRoot = document.createElement('style')
 shadowContainer.appendChild(emotionRoot)
@@ -56,35 +67,50 @@ manager.setParent(shadowRoot)
 
 const playerRpcServer = createRpcServer<PlayerCommands>(
   {
-    mount: async ({ data: comments, frameId }) => {
+    mount: async ({ data: comments }) => {
       manager.mount(comments)
     },
     unmount: async () => {
       manager.unmount()
     },
-    start: async ({ data: query, frameId }) => {
-      Logger.debug('Starting danmaku manager', query)
+    start: async ({ data: query }) => {
       manager.start(query)
+    },
+    updateConfig: async ({ data: config }) => {
+      manager.updateConfig(config)
+    },
+    seek: async ({ data: time }) => {
+      manager.seek(time)
     },
   },
   {
     logger: Logger,
     context: { frameId },
-    filter: (data) => {
-      console.debug('Filtering data', data)
-      return false
+    filter: (method, data) => {
+      console.debug('Filtering data', { method, data })
+      return true
     },
   }
 )
 
+let timeout: NodeJS.Timeout
+
 manager.addEventListener('videoChange', () => {
-  playerRpcClient.controller.onVideoChange()
+  clearTimeout(timeout)
+  playerRpcClient.controller.videoChange({ frameId })
 })
 
 manager.addEventListener('videoRemoved', () => {
-  playerRpcClient.controller.onVideoRemoved()
+  // Add a delay to prevent flickering when the video is removed then added again quickly
+  timeout = setTimeout(() => {
+    playerRpcClient.controller.videoRemoved({ frameId })
+  }, 1000)
+})
+
+manager.addEventListener('danmakuMounted', (comments) => {
+  playerRpcClient.controller.danmakuMounted({ frameId, data: comments })
 })
 
 playerRpcServer.listen()
 
-await playerRpcClient.controller.onReady(frameId)
+await playerRpcClient.controller.ready({ frameId })

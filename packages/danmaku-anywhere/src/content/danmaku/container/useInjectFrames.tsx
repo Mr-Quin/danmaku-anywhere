@@ -3,10 +3,15 @@ import { useEffect, useRef, useState } from 'react'
 
 import { Logger } from '@/common/Logger'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { useStore } from '@/content/store/store'
 
 const urlBlacklist = ['about:blank']
 
-export const useFrames = () => {
+interface UseFramesOptions {
+  onFrameRemoved?: (frameId: number) => void
+}
+
+export const useInjectFrames = (options: UseFramesOptions) => {
   const [prevFrameIds, setPrevFrameIds] = useState<Set<number>>(
     new Set<number>()
   )
@@ -27,18 +32,24 @@ export const useFrames = () => {
         kind: 'getAllFrames',
       },
     ],
-    select: (res) => res.data,
+    select: (res) => {
+      return res.data.filter((frame) => {
+        return !urlBlacklist.includes(frame.url)
+      })
+    },
     staleTime: Infinity,
     refetchInterval: 1000, // poll every 1s
   })
+
+  const frameIds = new Set(frames?.map((frame) => frame.frameId))
 
   const mutation = useMutation({
     mutationFn: async (frameId: number) => {
       // ensure we only inject once into each frame
       if (injectedFrames.has(frameId)) {
-        Logger.debug('Injecting player into frame', frameId)
         return
       }
+      Logger.debug('Injecting player into frame', frameId)
       injectedFrames.add(frameId)
 
       try {
@@ -53,20 +64,23 @@ export const useFrames = () => {
   useEffect(() => {
     if (!isSuccess) return
 
-    frames
-      .filter((frame) => {
-        return !urlBlacklist.includes(frame.url)
-      })
-      .forEach((frame) => {
-        mutation.mutate(frame.frameId)
-      })
+    frames.forEach((frame) => {
+      mutation.mutate(frame.frameId)
+    })
+
+    const deletedIds = prevFrameIds.difference(frameIds)
+    deletedIds.forEach((frameId) => {
+      if (options.onFrameRemoved) {
+        options.onFrameRemoved(frameId)
+      }
+    })
   }, [isSuccess, frames])
 
   const allFrames = frames ?? []
 
   return {
     allFrames,
-    frameIds: new Set(allFrames.map((frame) => frame.frameId)),
+    frameIds: frameIds,
     prevFrameIds,
   }
 }

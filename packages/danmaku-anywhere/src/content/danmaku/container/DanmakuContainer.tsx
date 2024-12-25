@@ -1,4 +1,5 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import { useEventCallback } from '@mui/material'
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -10,7 +11,7 @@ import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type { PlayerEvents } from '@/common/rpcClient/background/types'
 import { useActiveConfig } from '@/content/common/hooks/useActiveConfig'
 import { useRefreshComments } from '@/content/common/hooks/useRefreshComments'
-import { useFrames } from '@/content/danmaku/container/useFrames'
+import { useInjectFrames } from '@/content/danmaku/container/useInjectFrames'
 import { useStore } from '@/content/store/store'
 
 export const DanmakuContainer = () => {
@@ -26,54 +27,79 @@ export const DanmakuContainer = () => {
   const { getCanRefresh, refreshComments } = useRefreshComments()
 
   const setHasVideo = useStore.use.setHasVideo()
-  const activeFrame = useStore.use.activeFrame()
-  const allFrames = useStore.use.allFrames()
-  const setActiveFrame = useStore.use.setActiveFrame()
-  const addFrame = useStore.use.addFrame()
-  const removeFrame = useStore.use.removeFrame()
+  const {
+    activeFrame,
+    allFrames,
+    addFrame,
+    setActiveFrame,
+    removeFrame,
+    updateFrame,
+  } = useStore.use.frame()
 
-  const containerRef = useRef<HTMLDivElement>(null)
+  useInjectFrames({
+    onFrameRemoved: (frameId) => {
+      console.debug('FRAME REMOVED', frameId)
+      removeFrame(frameId)
+    },
+  })
 
-  const frames = useFrames()
+  const danmakuMountHandler = useEventCallback((comments: CommentEntity[]) => {
+    toast.success(
+      t('danmaku.alert.mounted', {
+        name: useStore.getState().getAnimeName(),
+        count: comments.length,
+      }),
+      {
+        actionFn: getCanRefresh() ? refreshComments : undefined,
+        actionLabel: t('danmaku.refresh'),
+      }
+    )
+  })
 
-  useEffect(() => {}, [allFrames])
+  const videoChangeHandler = useEventCallback((frameId: number) => {
+    setHasVideo(true)
 
-  useEffect(() => {
-    let timeout: NodeJS.Timeout
-
-    const videoChangeHandler = () => {
-      console.debug('Video changed')
-
-      clearTimeout(timeout)
-      setHasVideo(true)
+    if (activeFrame !== undefined && activeFrame !== frameId) {
+      toast.warn(t('danmaku.alert.multipleVideos'))
     }
 
-    const videoRemovedHandler = () => {
-      console.debug('Video removed')
+    updateFrame(frameId, { hasVideo: true })
+    setActiveFrame(frameId)
+  })
 
-      // Delay setting hasVideo to false to prevent flickering
-      timeout = setTimeout(() => {
-        console.debug('Setting hasVideo to false')
-        setHasVideo(false)
-      }, 1000)
-
+  const videoRemovedHandler = useEventCallback((frameId: number) => {
+    if (activeFrame === frameId) {
+      setHasVideo(false)
       resetMediaState()
     }
+  })
 
+  useEffect(() => {
+    allFrames.forEach(async (frame) => {
+      if (!frame.started) {
+        await playerRpcClient.player.start({
+          data: config.mediaQuery,
+          frameId: frame.frameId,
+        })
+        updateFrame(frame.frameId, { started: true })
+      }
+    })
+  }, [allFrames])
+
+  useEffect(() => {
     const controllerRpcServer = createRpcServer<PlayerEvents>(
       {
-        onReady: async (frameId) => {
+        ready: async ({ frameId }) => {
           addFrame(frameId)
-          // const res = await playerRpcClient.player.start({
-          //   data: config.mediaQuery,
-          // })
-          // Logger.debug('Manager started', res)
         },
-        onVideoChange: async () => {
-          videoChangeHandler()
+        videoChange: async ({ frameId }) => {
+          videoChangeHandler(frameId)
         },
-        onVideoRemoved: async () => {
-          videoRemovedHandler()
+        videoRemoved: async ({ frameId }) => {
+          videoRemovedHandler(frameId)
+        },
+        danmakuMounted: async ({ data: comments, frameId }) => {
+          danmakuMountHandler(comments)
         },
       },
       { logger: Logger.sub('[Controller]') }
@@ -82,37 +108,20 @@ export const DanmakuContainer = () => {
     controllerRpcServer.listen()
 
     return () => {
-      clearTimeout(timeout)
-
       controllerRpcServer.unlisten()
     }
   }, [])
 
   useEffect(() => {
-    const listener = (comments: CommentEntity[]) => {
-      Logger.debug('Danmaku created')
-      toast.success(
-        t('danmaku.alert.mounted', {
-          name: useStore.getState().getAnimeName(),
-          count: comments.length,
-        }),
-        {
-          actionFn: getCanRefresh() ? refreshComments : undefined,
-          actionLabel: t('danmaku.refresh'),
-        }
-      )
-    }
+    allFrames.forEach(async (frame) => {
+      if (!frame.started) {
+        await playerRpcClient.player.updateConfig({
+          data: options,
+          frameId: frame.frameId,
+        })
+      }
+    })
+  }, [options, allFrames])
 
-    // manager.addEventListener('danmakuMounted', listener)
-
-    return () => {
-      // manager.removeEventListener('danmakuMounted', listener)
-    }
-  }, [getCanRefresh, refreshComments])
-
-  useEffect(() => {
-    // manager.updateConfig(options)
-  }, [options])
-
-  return <div ref={containerRef}></div>
+  return null
 }

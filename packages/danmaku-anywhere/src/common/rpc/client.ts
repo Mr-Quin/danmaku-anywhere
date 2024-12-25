@@ -55,8 +55,14 @@ export const createRpcClient = <
             throw new RpcException(`Unhandled method: ${method}`)
           }
 
-          if (!result.success) {
+          if (result.state === 'errored') {
             throw new RpcException(result.error)
+          }
+
+          if (result.state === 'ignored') {
+            throw new RpcException(
+              `Message explicitly ignored by server: ${method}`
+            )
           }
 
           return {

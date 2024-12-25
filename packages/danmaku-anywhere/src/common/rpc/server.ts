@@ -13,7 +13,8 @@ type RPCServerHandlers<TRecords extends RPCRecord> = {
 interface CreateRpcServerOptions<TContext extends RpcContext> {
   logger?: typeof Logger
   context?: TContext
-  filter?: (input: any) => boolean
+  // Filter based on input, return false to ignore message
+  filter?: (method: string, input: any) => boolean
 }
 
 export const createRpcServer = <
@@ -26,11 +27,13 @@ export const createRpcServer = <
   const listener: Parameters<
     typeof chrome.runtime.onMessage.addListener
   >[number] = (message: RPCPayload<unknown>, sender, sendResponse) => {
-    if (filter && !filter(message.input)) {
-      return false
-    }
-
     if (methods.hasHandler(message.method)) {
+      // Filter out messages that don't pass the filter
+      if (filter && !filter(message.method, message.input)) {
+        ignore(sendResponse)
+        return
+      }
+
       methods
         .onMessage(message, sender)
         .then((res) => sendResponse(res))
@@ -40,6 +43,12 @@ export const createRpcServer = <
   }
 
   let baseContext = { ...context }
+
+  const ignore = (sendResponse: (response: any) => void) => {
+    sendResponse({
+      state: 'ignored',
+    } satisfies RPCResponse<unknown>)
+  }
 
   const methods = {
     listen: () => {
@@ -67,7 +76,7 @@ export const createRpcServer = <
       const getResult = async (): Promise<RPCResponse<unknown>> => {
         if (!handler) {
           return {
-            success: false,
+            state: 'errored',
             error: `Unknown method: ${method}`,
           }
         }
@@ -80,20 +89,20 @@ export const createRpcServer = <
 
         try {
           return {
-            success: true,
+            state: 'success',
             output: await handler(input, sender, setContext),
             context: messageContext,
           }
         } catch (e: unknown) {
           if (e instanceof Error) {
             return {
-              success: false,
+              state: 'errored',
               error: e.message,
             }
           }
 
           return {
-            success: false,
+            state: 'errored',
             error: 'Something went wrong',
           }
         }

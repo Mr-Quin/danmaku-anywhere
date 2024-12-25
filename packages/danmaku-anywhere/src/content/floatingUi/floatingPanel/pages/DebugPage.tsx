@@ -1,19 +1,20 @@
 import { Box } from '@mui/material'
+import { produce } from 'immer'
 
 import { useStore } from '../../../store/store'
 
 export const DebugPage = () => {
   const state = useStore()
 
-  const displayState: any = { ...state }
-
-  delete displayState.comments
-  if (displayState.danmakuLite) {
-    if ('comments' in displayState.danmakuLite) {
-      delete displayState.danmakuLite.comments
+  const displayState = produce(state, (draft: any) => {
+    delete draft.comments
+    if (draft.danmakuLite) {
+      if ('comments' in draft.danmakuLite) {
+        delete draft.danmakuLite.comments
+      }
     }
-  }
-  displayState.allFrames = Array.from(displayState.allFrames)
+    draft.frame.allFrames = Object.fromEntries(draft.frame.allFrames.entries())
+  })
 
   return (
     <Box component="pre" m={0} flexGrow={1}>
