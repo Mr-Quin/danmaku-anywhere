@@ -2,7 +2,7 @@ import type { RPCDef } from '../../rpc/types'
 
 import type { Danmaku, DanmakuLite } from '@/common/danmaku/models/danmaku'
 import type { IntegrationPolicyItem } from '@/common/options/integrationPolicyStore/schema'
-import type { MediaInfo } from '@/content/danmaku/integration/models/MediaInfo'
+import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 
 export interface TabDanmakuState {
   danmaku?: DanmakuLite

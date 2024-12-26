@@ -6,10 +6,10 @@ import { mountConfigService } from '@/common/options/mountConfig/service'
 // the ?script part gets the file name of the script
 // @ts-expect-error
 // eslint-disable-next-line import/no-restricted-paths, import/default
-import contentScript from '@/content?script'
+import contentScript from '@/content/controller?script'
 // @ts-expect-error
 // eslint-disable-next-line import/no-restricted-paths, import/default
-import testScript from '@/scripts/player?script'
+import testScript from 'src/content/player?script'
 
 const contentScriptId = 'main-content'
 
