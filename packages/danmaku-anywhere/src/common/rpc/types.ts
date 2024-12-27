@@ -3,6 +3,10 @@ type NotUndefined<T> = T extends undefined ? never : T
 
 export type RpcContext = Record<string, any>
 
+export interface RpcOptions {
+  silent?: boolean
+}
+
 export interface RPCDef<
   TInput,
   TOutput,
@@ -20,6 +24,7 @@ export type RPCRecord = Record<string, AnyRPCDef>
 export interface RPCPayload<TInput> {
   method: string
   input: TInput
+  options?: RpcOptions
 }
 
 interface RPCSuccessResponse<

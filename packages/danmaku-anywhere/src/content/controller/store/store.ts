@@ -22,8 +22,11 @@ interface PipState {
 
 interface FrameState {
   frameId: number
+  // Whether the danmaku manager has started in this frame
   started: boolean
+  // Whether danmaku is mounted in this frame
   mounted: boolean
+  // Whether a video element is detected in this frame
   hasVideo: boolean
 }
 

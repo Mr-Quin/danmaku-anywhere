@@ -23,7 +23,8 @@ export const useInjectFrames = (options: UseFramesOptions) => {
         setPrevFrameIds(new Set(frames.map((frame) => frame.frameId)))
       }
 
-      return chromeRpcClient.getAllFrames()
+      // Suppress logs for getAllFrames since it's called repeatedly
+      return chromeRpcClient.getAllFrames(undefined, { silent: true })
     },
     queryKey: [
       {

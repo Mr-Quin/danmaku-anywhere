@@ -13,60 +13,15 @@ import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { Theme } from '@/common/theme/Theme'
 import { tryCatchSync } from '@/common/utils/utils'
 import '@/common/localization/i18n'
+import { createPopoverRoot } from '@/content/common/createPopoverRoot'
 
 const { data: frameId } = await chromeRpcClient.getFrameId()
 
-const createPopoverRoot = (id: string) => {
-  const root = document.createElement('div')
-  root.id = id
-  root.style.setProperty('position', 'absolute', 'important')
-  root.style.setProperty('z-index', '2147483647', 'important')
-  root.style.setProperty('left', '0', 'important')
-  root.style.setProperty('top', '0', 'important')
-
-  // make the root element a popover, so it can be shown on top of everything
-  root.setAttribute('popover', 'manual')
-
-  // create shadow dom
-  const shadowContainer = root.attachShadow({ mode: 'closed' })
-  const shadowRoot = document.createElement('div')
-
-  shadowContainer.appendChild(shadowRoot)
-
-  return { root, shadowContainer, shadowRoot }
-}
-
 Logger.debug(`Controller script loaded in frame ${frameId}`)
 
-// create root element
-const { root, shadowContainer, shadowRoot } = createPopoverRoot(
+const { shadowRoot, shadowStyle } = createPopoverRoot(
   'danmaku-anywhere-controller'
 )
-
-document.body.append(root)
-root.showPopover()
-
-// Listen to fullscreenchange event and keep popover on top
-document.addEventListener('fullscreenchange', () => {
-  /**
-   * When the video enters full screen, hide then show the popover
-   * so that it will appear on top of the full screen element,
-   * since the last element in the top layer is shown on top
-   */
-  root.hidePopover()
-  root.showPopover()
-})
-
-const emotionRoot = document.createElement('style')
-shadowContainer.appendChild(emotionRoot)
-
-// prevent global styles from leaking into shadow dom
-// TODO: rem unit is still affected by html { font-size }
-emotionRoot.textContent = `
-:host {
-  all : initial;
-}
-`
 
 // try to get the html font size for rem unit
 // if it fails, use 16 as default
@@ -79,7 +34,7 @@ const htmlFontSize =
 
 const cache = createCache({
   key: 'danmaku-anywhere',
-  container: emotionRoot,
+  container: shadowStyle,
   prepend: true,
 })
 

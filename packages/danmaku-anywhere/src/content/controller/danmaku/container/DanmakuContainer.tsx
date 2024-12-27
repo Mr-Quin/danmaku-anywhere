@@ -114,12 +114,10 @@ export const DanmakuContainer = () => {
 
   useEffect(() => {
     allFrames.forEach(async (frame) => {
-      if (!frame.started) {
-        await playerRpcClient.player.updateConfig({
-          data: options,
-          frameId: frame.frameId,
-        })
-      }
+      await playerRpcClient.player.updateConfig({
+        data: options,
+        frameId: frame.frameId,
+      })
     })
   }, [options, allFrames])
 

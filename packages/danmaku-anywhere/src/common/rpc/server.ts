@@ -65,9 +65,11 @@ export const createRpcServer = <
       message: RPCPayload<unknown>,
       sender: chrome.runtime.MessageSender
     ): Promise<RPCResponse<unknown>> => {
-      const { method, input } = message
+      const { method, input, options } = message
 
-      logger.debug('Received message:', message)
+      if (!options?.silent) {
+        logger.debug('Received message:', message)
+      }
 
       const time = Date.now()
 
@@ -120,7 +122,9 @@ export const createRpcServer = <
 
       const elapsed = Date.now() - time
 
-      logger.debug('Sending response:', meta, `(${elapsed}ms)`)
+      if (!options?.silent) {
+        logger.debug('Sending response:', meta, `(${elapsed}ms)`)
+      }
 
       return output
     },

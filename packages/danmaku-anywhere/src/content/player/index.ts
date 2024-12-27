@@ -5,6 +5,7 @@ import {
   playerRpcClient,
 } from '@/common/rpcClient/background/client'
 import type { PlayerCommands } from '@/common/rpcClient/background/types'
+import { createPopoverRoot } from '@/content/common/createPopoverRoot'
 import { DanmakuManager } from '@/content/player/monitors/DanmakuManager'
 
 const Logger = _Logger.sub('[Player]')
@@ -13,55 +14,9 @@ const { data: frameId } = await chromeRpcClient.getFrameId()
 
 Logger.debug(`Player script loaded in frame ${frameId}`)
 
-const createPopoverRoot = (id: string) => {
-  const root = document.createElement('div')
-  root.id = id
-  root.style.setProperty('position', 'absolute', 'important')
-  root.style.setProperty('z-index', '2147483647', 'important')
-  root.style.setProperty('left', '0', 'important')
-  root.style.setProperty('top', '0', 'important')
-
-  // make the root element a popover, so it can be shown on top of everything
-  root.setAttribute('popover', 'manual')
-
-  // create shadow dom
-  const shadowContainer = root.attachShadow({ mode: 'closed' })
-  const shadowRoot = document.createElement('div')
-
-  shadowContainer.appendChild(shadowRoot)
-
-  return { root, shadowContainer, shadowRoot }
-}
-
 const manager = new DanmakuManager(Logger)
 
-const { root, shadowContainer, shadowRoot } = createPopoverRoot(
-  'danmaku-anywhere-player'
-)
-
-document.body.append(root)
-root.showPopover()
-
-// Listen to fullscreenchange event and keep popover on top
-document.addEventListener('fullscreenchange', () => {
-  /**
-   * When the video enters full screen, hide then show the popover
-   * so that it will appear on top of the full screen element,
-   * since the last element in the top layer is shown on top
-   */
-  root.hidePopover()
-  root.showPopover()
-})
-
-const emotionRoot = document.createElement('style')
-shadowContainer.appendChild(emotionRoot)
-
-// prevent global styles from leaking into shadow dom
-emotionRoot.textContent = `
-  :host {
-  all : initial;
-  }
-  `
+const { shadowRoot } = createPopoverRoot('danmaku-anywhere-player')
 
 manager.setParent(shadowRoot)
 
@@ -88,6 +43,16 @@ const playerRpcServer = createRpcServer<PlayerCommands>(
     context: { frameId },
     filter: (method, data) => {
       console.debug('Filtering data', { method, data })
+      if (import.meta.env.DEV) {
+        // safety check, frameId should always be present
+        if (data.frameId === undefined) throw new Error('frameId is required')
+      }
+      if (data.frameId !== frameId) {
+        Logger.debug(
+          `Ignoring message for frame ${data.frameId} in frame ${frameId}`
+        )
+        return false
+      }
       return true
     },
   }

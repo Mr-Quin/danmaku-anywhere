@@ -9,7 +9,7 @@ import { mountConfigService } from '@/common/options/mountConfig/service'
 import contentScript from '@/content/controller?script'
 // @ts-expect-error
 // eslint-disable-next-line import/no-restricted-paths, import/default
-import testScript from 'src/content/player?script'
+import testScript from '@/content/player?script'
 
 const contentScriptId = 'main-content'
 

@@ -1,7 +1,13 @@
 import { tryCatch } from '../utils/utils'
 
 import { RpcException } from './types'
-import type { AnyRPCDef, RPCPayload, RPCRecord, RPCResponse } from './types'
+import type {
+  AnyRPCDef,
+  RPCPayload,
+  RPCRecord,
+  RPCResponse,
+  RpcOptions,
+} from './types'
 
 import { chromeSender } from '@/common/rpc/sender'
 
@@ -16,17 +22,20 @@ export interface RPCClientResponse<TRPCDef extends AnyRPCDef> {
 
 type RPCClient<TRecords extends RPCRecord> = {
   [TKey in keyof TRecords]: (
-    input: TRecords[TKey]['input']
+    input: TRecords[TKey]['input'],
+    options?: RpcOptions
   ) => Promise<RPCClientResponse<TRecords[TKey]>>
 }
 
 const createPayload = <TInput>(
   method: string,
-  input: TInput
+  input: TInput,
+  options?: RpcOptions
 ): RPCPayload<TInput> => {
   return {
     method,
     input,
+    options,
   }
 }
 
@@ -41,9 +50,9 @@ export const createRpcClient = <
     {},
     {
       get(_, method: string) {
-        return async (input: TInput) => {
+        return async (input: TInput, options?: RpcOptions) => {
           const [result, err] = await tryCatch(() =>
-            messageSender(createPayload(method, input))
+            messageSender(createPayload(method, input, options))
           )
 
           if (err) {
