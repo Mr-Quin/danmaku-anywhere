@@ -189,11 +189,6 @@ export const setupRpc = () => {
       setContext(res.context)
       return res.data
     },
-    danmakuMounted: async (input, _, setContext) => {
-      const res = await relayFrameClient.danmakuMounted(input)
-      setContext(res.context)
-      return res.data
-    },
   })
 
   rpcServer.listen()

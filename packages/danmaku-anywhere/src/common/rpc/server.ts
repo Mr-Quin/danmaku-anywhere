@@ -17,6 +17,18 @@ interface CreateRpcServerOptions<TContext extends RpcContext> {
   filter?: (method: string, input: any) => boolean
 }
 
+const serializeError = (error: unknown) => {
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  try {
+    return JSON.stringify(error)
+  } catch (e) {
+    return 'Unknown error'
+  }
+}
+
 export const createRpcServer = <
   TRecords extends RPCRecord,
   TContext extends RpcContext = RpcContext,
@@ -30,7 +42,6 @@ export const createRpcServer = <
     if (methods.hasHandler(message.method)) {
       // Filter out messages that don't pass the filter
       if (filter && !filter(message.method, message.input)) {
-        ignore(sendResponse)
         return
       }
 
@@ -43,12 +54,6 @@ export const createRpcServer = <
   }
 
   let baseContext = { ...context }
-
-  const ignore = (sendResponse: (response: any) => void) => {
-    sendResponse({
-      state: 'ignored',
-    } satisfies RPCResponse<unknown>)
-  }
 
   const methods = {
     listen: () => {
@@ -96,16 +101,10 @@ export const createRpcServer = <
             context: messageContext,
           }
         } catch (e: unknown) {
-          if (e instanceof Error) {
-            return {
-              state: 'errored',
-              error: e.message,
-            }
-          }
-
+          logger.error('Error in RPC handler:', e)
           return {
             state: 'errored',
-            error: 'Something went wrong',
+            error: serializeError(e),
           }
         }
       }

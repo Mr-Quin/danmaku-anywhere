@@ -4,17 +4,15 @@ import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { Danmaku } from '@/common/danmaku/models/danmaku'
 import { Logger } from '@/common/Logger'
-import {
-  useMountDanmaku,
-  useUnmountDanmaku,
-} from '@/content/controller/common/hooks/useMountDanmaku'
+import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
+import { useUnmountDanmaku } from '@/content/controller/common/hooks/useMountDanmaku'
 import { useStore } from '@/content/controller/store/store'
 
 // listen to comment changes and mount/unmount the danmaku engine
 export const useManualDanmaku = () => {
   const { t } = useTranslation()
 
-  const mountMutation = useMountDanmaku()
+  const { mountDanmaku } = useLoadDanmaku()
   const unMountMutation = useUnmountDanmaku()
 
   const handleSetDanmaku = useEventCallback((data: Danmaku) => {
@@ -23,7 +21,7 @@ export const useManualDanmaku = () => {
       Logger.debug('Requested manual danmaku')
 
       useStore.getState().mountManual()
-      mountMutation.mutate(data)
+      mountDanmaku(data)
     } catch (err) {
       Logger.error(err)
       if (err instanceof Error) {

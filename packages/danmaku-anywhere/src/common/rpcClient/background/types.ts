@@ -109,7 +109,6 @@ export type PlayerEvents = {
   ready: RPCDef<InputWithFrameId<void>, void>
   videoChange: RPCDef<InputWithFrameId<void>, void>
   videoRemoved: RPCDef<InputWithFrameId<void>, void>
-  danmakuMounted: RPCDef<InputWithFrameId<CommentEntity[]>, void>
 }
 
 /* eslint-enable @typescript-eslint/consistent-type-definitions */

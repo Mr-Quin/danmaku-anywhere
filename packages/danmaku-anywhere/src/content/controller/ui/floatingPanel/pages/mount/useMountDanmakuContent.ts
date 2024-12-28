@@ -6,18 +6,17 @@ import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
 import { Logger } from '@/common/Logger'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { useMountDanmaku } from '@/content/controller/common/hooks/useMountDanmaku'
+import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useStore } from '@/content/controller/store/store'
 
 export const useMountDanmakuContent = () => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
   const mountManual = useStore((state) => state.mountManual)
-  const getAnimeName = useStore((state) => state.getAnimeName)
 
   const queryClient = useQueryClient()
 
-  const mountMutation = useMountDanmaku()
+  const { mountDanmaku } = useLoadDanmaku()
 
   return useMutation({
     mutationFn: async (danmaku: DanmakuLite) => {
@@ -35,16 +34,7 @@ export const useMountDanmakuContent = () => {
     },
     onSuccess: (data) => {
       mountManual()
-      mountMutation.mutate(data, {
-        onSuccess: () => {
-          toast.success(
-            t('danmaku.alert.mounted', {
-              name: getAnimeName(),
-              count: data.comments.length,
-            })
-          )
-        },
-      })
+      mountDanmaku(data)
     },
     onError: (e) => {
       toast.error(

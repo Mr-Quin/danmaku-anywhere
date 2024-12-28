@@ -40,8 +40,7 @@ const playerRpcServer = createRpcServer<PlayerCommands>(
   {
     logger: Logger,
     context: { frameId },
-    filter: (method, data) => {
-      console.debug('Filtering data', { method, data })
+    filter: (_, data) => {
       if (import.meta.env.DEV) {
         // safety check, frameId should always be present
         if (data.frameId === undefined) throw new Error('frameId is required')
@@ -72,10 +71,6 @@ manager.addEventListener('videoRemoved', () => {
   timeout = setTimeout(() => {
     playerRpcClient.controller.videoRemoved({ frameId })
   }, 1000)
-})
-
-manager.addEventListener('danmakuMounted', (comments) => {
-  playerRpcClient.controller.danmakuMounted({ frameId, data: comments })
 })
 
 /**

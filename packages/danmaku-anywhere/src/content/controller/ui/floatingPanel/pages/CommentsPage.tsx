@@ -10,7 +10,7 @@ import {
 import { useTranslation } from 'react-i18next'
 
 import { CommentsTable } from '@/common/components/CommentsTable'
-import { useRefreshComments } from '@/content/controller/common/hooks/useRefreshComments'
+import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useStore } from '@/content/controller/store/store'
 
 export const CommentsPage = () => {
@@ -18,7 +18,7 @@ export const CommentsPage = () => {
   const { comments, hasVideo } = useStore()
   const seekToTime = useStore.use.seekToTime()
 
-  const { refreshComments, isPending, canRefresh } = useRefreshComments()
+  const { refreshComments, loadMutation, canRefresh } = useLoadDanmaku()
 
   return (
     <Stack height="100%" flexGrow={1}>
@@ -37,7 +37,11 @@ export const CommentsPage = () => {
         {canRefresh && (
           <Tooltip title={t('danmaku.refresh')}>
             <IconButton color="primary" onClick={refreshComments}>
-              {isPending ? <CircularProgress size={24} /> : <Refresh />}
+              {loadMutation.isPending ? (
+                <CircularProgress size={24} />
+              ) : (
+                <Refresh />
+              )}
             </IconButton>
           </Tooltip>
         )}

@@ -61,7 +61,9 @@ export const createRpcClient = <
 
           // if message is not handled, result will be undefined, we treat that as an error
           if (!result) {
-            throw new RpcException(`Unhandled method: ${method}`)
+            throw new RpcException(
+              `Method ${method} returned undefined. This likely means the method is not handled by the server.`
+            )
           }
 
           if (result.state === 'errored') {
@@ -70,7 +72,7 @@ export const createRpcClient = <
 
           if (result.state === 'ignored') {
             throw new RpcException(
-              `Message explicitly ignored by server: ${method}`
+              `Method ${method} is explicitly ignored by the server.`
             )
           }
 

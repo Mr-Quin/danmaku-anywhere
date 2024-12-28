@@ -1,19 +1,15 @@
 import { useMutation } from '@tanstack/react-query'
-import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { Danmaku } from '@/common/danmaku/models/danmaku'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
-import { useRefreshComments } from '@/content/controller/common/hooks/useRefreshComments'
 import { useStore } from '@/content/controller/store/store'
 
 // Send danmaku to the frame
 export const useMountDanmaku = () => {
   const { toast } = useToast()
 
-  // const { canRefresh, refreshComments } = useRefreshComments()
-
-  const { mustGetActiveFrame } = useStore.use.frame()
+  const { mustGetActiveFrame, updateFrame } = useStore.use.frame()
   const setDanmakuLite = useStore.use.setDanmakuLite()
   const setComments = useStore.use.setComments()
 
@@ -30,6 +26,7 @@ export const useMountDanmaku = () => {
     onSuccess: (_, danmaku) => {
       setDanmakuLite(danmaku)
       setComments(danmaku.comments)
+      updateFrame(mustGetActiveFrame(), { mounted: true })
     },
     onError: (err) => {
       toast.error(err.message)

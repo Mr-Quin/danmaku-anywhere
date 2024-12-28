@@ -16,7 +16,7 @@ export const useMatchEpisode = () => {
 
   const { resetMediaState } = useStore(useShallow((state) => state))
 
-  const fetchDanmakuMutation = useLoadDanmaku()
+  const { loadMutation } = useLoadDanmaku()
 
   const mutation = useMutation({
     mutationFn: chromeRpcClient.episodeMatch,
@@ -31,7 +31,7 @@ export const useMatchEpisode = () => {
     onSuccess: (result, v) => {
       switch (result.data.status) {
         case 'success': {
-          fetchDanmakuMutation.mutate(
+          loadMutation.mutate(
             {
               meta: result.data.data,
               options: {

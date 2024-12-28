@@ -19,7 +19,7 @@ export const useLoadDanmakuNextEpisode = () => {
   const manual = useStore.use.manual()
   const toast = useToast.use.toast()
 
-  const { mutate, isPending } = useLoadDanmaku()
+  const { loadMutation } = useLoadDanmaku()
 
   const canFetchNextEpisode =
     !!danmakuLite &&
@@ -33,7 +33,7 @@ export const useLoadDanmakuNextEpisode = () => {
 
     toast.info(t('danmaku.alert.fetchingNext'))
 
-    mutate(
+    loadMutation.mutate(
       { meta: nextMeta },
       {
         onSuccess: (result) => {
@@ -53,7 +53,7 @@ export const useLoadDanmakuNextEpisode = () => {
 
   return {
     fetchNextEpisodeComments,
-    isFetchingNextEpisode: isPending,
+    isFetchingNextEpisode: loadMutation.isPending,
     canFetchNextEpisode,
   }
 }

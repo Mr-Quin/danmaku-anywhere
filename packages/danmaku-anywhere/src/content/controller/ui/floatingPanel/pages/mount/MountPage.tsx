@@ -7,8 +7,8 @@ import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSele
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useMountDanmaku'
-import { useMountDanmakuContent } from '@/content/controller/common/hooks/useMountDanmakuContent'
 import { useStore } from '@/content/controller/store/store'
+import { useMountDanmakuContent } from '@/content/controller/ui/floatingPanel/pages/mount/useMountDanmakuContent'
 
 export const MountPage = () => {
   const { t } = useTranslation()

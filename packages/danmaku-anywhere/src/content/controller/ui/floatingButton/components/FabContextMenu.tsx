@@ -12,12 +12,12 @@ import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useHotkeyOptions } from '@/common/options/extensionOptions/useHotkeyOptions'
-import { useLoadDanmakuNextEpisode } from '@/content/controller/common/hooks/useLoadDanmakuNextEpisode'
-import { useRefreshComments } from '@/content/controller/common/hooks/useRefreshComments'
+import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useStore } from '@/content/controller/store/store'
 import type { ContextMenuItemProps } from '@/content/controller/ui/floatingButton/components/ContextMenuItem'
 import { ContextMenuItem } from '@/content/controller/ui/floatingButton/components/ContextMenuItem'
 import { ContextMenuShortcut } from '@/content/controller/ui/floatingButton/components/ContextMenuShortcut'
+import { useLoadDanmakuNextEpisode } from '@/content/controller/ui/floatingButton/hooks/useLoadDanmakuNextEpisode'
 
 type FabContextMenuProps = PopperProps
 
@@ -38,11 +38,7 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
     canFetchNextEpisode,
   } = useLoadDanmakuNextEpisode()
 
-  const {
-    refreshComments,
-    isPending: isRefreshing,
-    canRefresh,
-  } = useRefreshComments()
+  const { refreshComments, loadMutation, canRefresh } = useLoadDanmaku()
 
   const handleUnmount = () => {
     toast.info(t('danmaku.alert.unmounted'))
@@ -51,7 +47,7 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
 
   const { getKeyCombo } = useHotkeyOptions()
 
-  const isLoading = isFetchingNextEpisode || isRefreshing
+  const isLoading = isFetchingNextEpisode || loadMutation.isPending
 
   const menuItems: ContextMenuItemProps[] = [
     {

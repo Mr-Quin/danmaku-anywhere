@@ -31,7 +31,6 @@ export const DanmakuContainer = () => {
 
   useInjectFrames({
     onFrameRemoved: (frameId) => {
-      console.debug('FRAME REMOVED', frameId)
       removeFrame(frameId)
     },
   })
@@ -79,7 +78,6 @@ export const DanmakuContainer = () => {
         videoRemoved: async ({ frameId }) => {
           videoRemovedHandler(frameId)
         },
-        danmakuMounted: async ({ data: comments }) => {},
       },
       { logger: Logger.sub('[Controller]') }
     )

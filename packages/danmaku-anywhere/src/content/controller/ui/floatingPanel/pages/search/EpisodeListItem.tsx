@@ -12,10 +12,10 @@ interface EpisodeListItemProps {
 
 export const EpisodeListItem = ({ context, data }: EpisodeListItemProps) => {
   const { t } = useTranslation()
-  const { mutateAsync } = useLoadDanmaku()
+  const { loadMutation } = useLoadDanmaku()
 
   const handleFetchDanmaku = async (meta: DanmakuFetchDto['meta']) => {
-    await mutateAsync({
+    await loadMutation.mutateAsync({
       meta,
       options: {
         forceUpdate: true,

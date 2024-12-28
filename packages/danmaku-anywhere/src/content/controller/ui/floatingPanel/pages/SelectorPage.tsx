@@ -40,7 +40,7 @@ export const SelectorPage = () => {
 
   const episodes = selectedAnime?.episodes ?? []
 
-  const { mutate, isPending } = useLoadDanmaku()
+  const { loadMutation } = useLoadDanmaku()
 
   const handleAnimeSelect = (anime: DanDanAnime) => {
     setSelectedAnime(anime)
@@ -60,7 +60,7 @@ export const SelectorPage = () => {
             key: mediaInfo.key(),
           }
         : undefined
-    mutate(
+    loadMutation.mutate(
       {
         meta: {
           provider: DanmakuSourceType.DanDanPlay,
@@ -135,11 +135,11 @@ export const SelectorPage = () => {
 
           <LoadingButton
             type="submit"
-            loading={isPending}
+            loading={loadMutation.isPending}
             variant="contained"
             size="small"
             onClick={handleApply}
-            disabled={!selectedAnime || isPending}
+            disabled={!selectedAnime || loadMutation.isPending}
           >
             {t('common.apply')}
           </LoadingButton>
