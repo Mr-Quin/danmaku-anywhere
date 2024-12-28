@@ -1,4 +1,5 @@
 import { Logger as _Logger } from '@/common/Logger'
+import { danmakuOptionsService } from '@/common/options/extensionOptions/service'
 import { createRpcServer } from '@/common/rpc/server'
 import {
   chromeRpcClient,
@@ -15,7 +16,6 @@ const { data: frameId } = await chromeRpcClient.getFrameId()
 Logger.debug(`Player script loaded in frame ${frameId}`)
 
 const manager = new DanmakuManager(Logger)
-
 const { shadowRoot } = createPopoverRoot('danmaku-anywhere-player')
 
 manager.setParent(shadowRoot)
@@ -24,15 +24,14 @@ const playerRpcServer = createRpcServer<PlayerCommands>(
   {
     mount: async ({ data: comments }) => {
       manager.mount(comments)
+      return true
     },
     unmount: async () => {
       manager.unmount()
+      return true
     },
     start: async ({ data: query }) => {
       manager.start(query)
-    },
-    updateConfig: async ({ data: config }) => {
-      manager.updateConfig(config)
     },
     seek: async ({ data: time }) => {
       manager.seek(time)
@@ -58,6 +57,9 @@ const playerRpcServer = createRpcServer<PlayerCommands>(
   }
 )
 
+/**
+ * Lifecycle events
+ */
 let timeout: NodeJS.Timeout
 
 manager.addEventListener('videoChange', () => {
@@ -75,6 +77,15 @@ manager.addEventListener('videoRemoved', () => {
 manager.addEventListener('danmakuMounted', (comments) => {
   playerRpcClient.controller.danmakuMounted({ frameId, data: comments })
 })
+
+/**
+ * Storage events
+ */
+danmakuOptionsService.onChange((options) => {
+  manager.updateConfig(options)
+})
+
+manager.updateConfig(await danmakuOptionsService.get())
 
 playerRpcServer.listen()
 

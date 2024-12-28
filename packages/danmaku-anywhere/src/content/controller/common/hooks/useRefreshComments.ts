@@ -38,14 +38,9 @@ export const useRefreshComments = () => {
     )
   })
 
-  const getCanRefresh = useEventCallback(() => {
-    return !!useStore.getState().danmakuLite
-  })
-
   return {
     refreshComments,
     isPending,
     canRefresh: !!danmakuLite,
-    getCanRefresh,
   }
 }

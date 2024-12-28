@@ -8,6 +8,11 @@ const isElement = (node: Node): node is HTMLElement =>
 
 export type VideoChangeListener = (video: HTMLVideoElement) => void
 
+interface VideoNodeObserverOptions {
+  onVideoNodeChange?: VideoChangeListener
+  onVideoNodeRemove?: VideoChangeListener
+}
+
 export class VideoNodeObserver {
   private videoStack: HTMLVideoElement[] = []
   private videoListeners = new WeakMap<HTMLVideoElement, () => void>()
@@ -17,7 +22,14 @@ export class VideoNodeObserver {
   private videoChangeListeners = new Set<VideoChangeListener>()
   private videoRemovedListeners = new Set<VideoChangeListener>()
 
-  constructor(private selector: string) {
+  constructor(
+    private selector: string,
+    options: VideoNodeObserverOptions = {}
+  ) {
+    const { onVideoNodeChange, onVideoNodeRemove } = options
+    if (onVideoNodeChange) this.videoChangeListeners.add(onVideoNodeChange)
+    if (onVideoNodeRemove) this.videoRemovedListeners.add(onVideoNodeRemove)
+
     const [current, err] = tryCatchSync<HTMLVideoElement | null>(() =>
       document.querySelector(selector)
     )
@@ -151,14 +163,6 @@ export class VideoNodeObserver {
   private isNodeInPip(node: HTMLElement) {
     if (!window.documentPictureInPicture?.window) return false
     return window.documentPictureInPicture.window.document.contains(node)
-  }
-
-  public onActiveNodeChange(callback: VideoChangeListener) {
-    this.videoChangeListeners.add(callback)
-  }
-
-  public onVideoRemoved(callback: (video: HTMLVideoElement) => void) {
-    this.videoRemovedListeners.add(callback)
   }
 
   public cleanup() {

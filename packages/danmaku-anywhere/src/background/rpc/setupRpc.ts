@@ -169,11 +169,6 @@ export const setupRpc = () => {
       setContext(res.context)
       return res.data
     },
-    updateConfig: async (data, _, setContext) => {
-      const res = await relayFrameClient.updateConfig(data)
-      setContext(res.context)
-      return res.data
-    },
     seek: async (data, _, setContext) => {
       const res = await relayFrameClient.seek(data)
       setContext(res.context)

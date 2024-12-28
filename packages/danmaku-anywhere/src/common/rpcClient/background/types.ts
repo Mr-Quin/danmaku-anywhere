@@ -27,7 +27,6 @@ import type {
   DanmakuLite,
 } from '@/common/danmaku/models/danmaku'
 import type { DanmakuMetaExternal } from '@/common/danmaku/models/meta'
-import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 
 type IconSetDto =
   | {
@@ -98,14 +97,9 @@ type FrameContext = {
 // Controller -> Player communication
 // Here the frameId is used to identify the DESTINATION frame
 export type PlayerCommands = {
-  mount: RPCDef<InputWithFrameId<CommentEntity[]>, void, FrameContext>
-  unmount: RPCDef<InputWithFrameId<void>, void, FrameContext>
+  mount: RPCDef<InputWithFrameId<CommentEntity[]>, boolean, FrameContext>
+  unmount: RPCDef<InputWithFrameId<void>, boolean, FrameContext>
   start: RPCDef<InputWithFrameId<string>, void, FrameContext>
-  updateConfig: RPCDef<
-    InputWithFrameId<Partial<DanmakuOptions>>,
-    void,
-    FrameContext
-  >
   seek: RPCDef<InputWithFrameId<number>, void, FrameContext>
 }
 

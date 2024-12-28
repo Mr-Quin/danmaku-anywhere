@@ -95,33 +95,24 @@ export class DanmakuManager {
   start(videoSelector: string) {
     this.logger.debug('Starting')
 
-    this.videoNodeObs = new VideoNodeObserver(videoSelector)
+    this.videoNodeObs = new VideoNodeObserver(videoSelector, {
+      onVideoNodeChange: (videoNode) => {
+        this.video = videoNode
 
-    this.videoNodeObs.onActiveNodeChange((videoNode) => {
-      this.video = videoNode
+        this.addDebugStyles()
+        this.teardownObs()
+        this.setupObs(videoNode)
+        this.videoChangeListeners.forEach((listener) => listener(videoNode))
+      },
+      onVideoNodeRemove: (prev) => {
+        this.video = null
+        this.teardownObs()
+        this.unmount()
+        this.removeDebugStyles()
 
-      this.teardownObs()
-      this.setupObs(videoNode)
-      this.videoChangeListeners.forEach((listener) => listener(videoNode))
+        this.videoRemovedListeners.forEach((listener) => listener(prev))
+      },
     })
-
-    this.videoNodeObs.onVideoRemoved((prev) => {
-      this.video = null
-      this.teardownObs()
-      this.unmount()
-
-      this.videoRemovedListeners.forEach((listener) => listener(prev))
-    })
-
-    this.video = this.videoNodeObs.activeVideo
-
-    if (this.video) {
-      // TODO: https://github.com/microsoft/TypeScript/pull/58729
-      this.videoChangeListeners.forEach((listener) => {
-        if (this.video) listener(this.video)
-      })
-      this.setupObs(this.video)
-    }
   }
 
   private createContainer() {
@@ -134,7 +125,7 @@ export class DanmakuManager {
     wrapper.style.width = '0'
     wrapper.style.height = '0'
     wrapper.style.overflow = 'hidden'
-    wrapper.style.border = import.meta.env.DEV ? '1px solid red' : 'none'
+    wrapper.style.border = 'none'
     wrapper.style.boxSizing = 'border-box'
 
     const container = document.createElement('div')
@@ -187,6 +178,18 @@ export class DanmakuManager {
     }
   }
 
+  private addDebugStyles() {
+    if (import.meta.env.DEV) {
+      this.wrapper.style.border = '1px solid red'
+    }
+  }
+
+  private removeDebugStyles() {
+    if (import.meta.env.DEV) {
+      this.wrapper.style.border = 'none'
+    }
+  }
+
   mount(comments: CommentEntity[]) {
     if (!this.video) throw new Error('Video node is not ready')
     this.logger.debug('Mounting danmaku')
@@ -213,7 +216,7 @@ export class DanmakuManager {
 
   setParent(parent: HTMLElement) {
     this.parent = parent
-    this.attachWrapper()
+    this.parent.appendChild(this.wrapper)
   }
 
   updateConfig(config: Partial<DanmakuOptions>) {
@@ -236,11 +239,6 @@ export class DanmakuManager {
     // If the wrapper is already in the document, do nothing
     if (this.container.isConnected) return
     this.wrapper.appendChild(this.container)
-  }
-
-  private attachWrapper() {
-    if (!this.parent) throw new Error('Parent is not set')
-    this.parent.appendChild(this.wrapper)
   }
 
   resize() {

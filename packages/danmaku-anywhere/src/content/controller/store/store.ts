@@ -3,7 +3,7 @@ import { enableMapSet } from 'immer'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 
-import type { Danmaku, DanmakuLite } from '@/common/danmaku/models/danmaku'
+import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { danmakuToString } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
@@ -66,8 +66,7 @@ interface StoreState {
    */
   manual: boolean
   toggleManualMode: (manual?: boolean) => void
-  mountManual: (danmaku: Danmaku) => void
-  unmountManual: () => void
+  mountManual: () => void
 
   /**
    * Reset media related state
@@ -122,23 +121,11 @@ const useStoreBase = create<StoreState>()(
 
     comments: [],
     hasComments: false,
-    setComments: (comments) => {
+    setComments: async (comments) => {
       set({ comments, hasComments: true })
-      void playerRpcClient.player.mount({
-        frameId: get().frame.mustGetActiveFrame(),
-        data: comments,
-      })
     },
-    unsetComments: (frameId?: number) => {
+    unsetComments: async () => {
       set({ comments: [], hasComments: false })
-      const frame = get().frame.activeFrame
-      const targetFrame = frameId ?? frame
-      if (targetFrame === undefined) {
-        throw new Error('No active frame')
-      }
-      void playerRpcClient.player.unmount({
-        frameId: targetFrame,
-      })
     },
     seekToTime: (time) => {
       void playerRpcClient.player.seek({
@@ -155,16 +142,9 @@ const useStoreBase = create<StoreState>()(
         set({ manual })
       }
     },
-    mountManual: (danmaku) => {
+    mountManual: () => {
       get().resetMediaState()
       get().toggleManualMode(true)
-      get().setDanmakuLite(danmaku)
-      get().setComments(danmaku.comments)
-    },
-    unmountManual: () => {
-      get().resetMediaState()
-      get().toggleManualMode(false)
-      get().unsetComments()
     },
 
     mediaInfo: undefined,
