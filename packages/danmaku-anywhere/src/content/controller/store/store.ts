@@ -22,6 +22,8 @@ interface PipState {
 
 interface FrameState {
   frameId: number
+  // The url of the frame
+  url: string
   // Whether the danmaku manager has started in this frame
   started: boolean
   // Whether danmaku is mounted in this frame
@@ -45,7 +47,7 @@ interface StoreState {
   comments: CommentEntity[]
   hasComments: boolean
   setComments: (comments: CommentEntity[]) => void
-  unsetComments: (frameId?: number) => void
+  unsetComments: () => void
   seekToTime: (time: number) => void
 
   /**
@@ -100,7 +102,7 @@ interface StoreState {
     activeFrame?: number // the frameId that has the video we care about
     mustGetActiveFrame: () => number
     setActiveFrame: (frameId: number) => void
-    addFrame: (frameId: number) => void
+    addFrame: (init: Pick<FrameState, 'frameId' | 'url'>) => void
     removeFrame: (frameId: number) => void
     updateFrame: (
       frameId: number,
@@ -208,10 +210,11 @@ const useStoreBase = create<StoreState>()(
           state.frame.activeFrame = frameId
         })
       },
-      addFrame: (frameId) => {
+      addFrame: ({ frameId, url }) => {
         set((state) => {
           state.frame.allFrames.set(frameId, {
             frameId,
+            url,
             started: false,
             mounted: false,
             hasVideo: false,
@@ -219,15 +222,25 @@ const useStoreBase = create<StoreState>()(
         })
       },
       removeFrame: (frameId) => {
+        const frame = get().frame.allFrames.get(frameId)
+
+        if (!frame) {
+          throw new Error(
+            `Failed to remove frame ${frameId}: frame not found in store`
+          )
+        }
+
+        if (frame.mounted) {
+          get().setHasVideo(false)
+          get().resetMediaState()
+        }
+
         set((state) => {
-          const frame = state.frame.allFrames.get(frameId)
-          if (!frame) {
-            throw new Error(`Deleting frame ${frameId} failed. Frame not found`)
-          }
-          if (frame.mounted) {
-            state.unsetComments(frameId)
-          }
           state.frame.allFrames.delete(frameId)
+
+          if (frameId === state.frame.activeFrame) {
+            state.frame.activeFrame = undefined
+          }
         })
       },
       updateFrame: (frameId, nextState) => {

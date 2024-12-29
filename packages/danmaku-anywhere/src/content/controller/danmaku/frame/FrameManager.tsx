@@ -8,10 +8,10 @@ import { createRpcServer } from '@/common/rpc/server'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type { PlayerEvents } from '@/common/rpcClient/background/types'
 import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
-import { useInjectFrames } from '@/content/controller/danmaku/container/useInjectFrames'
+import { useInjectFrames } from '@/content/controller/danmaku/frame/useInjectFrames'
 import { useStore } from '@/content/controller/store/store'
 
-export const DanmakuContainer = () => {
+export const FrameManager = () => {
   const { t } = useTranslation()
   const { toast } = useToast()
 
@@ -20,30 +20,20 @@ export const DanmakuContainer = () => {
   const resetMediaState = useStore.use.resetMediaState()
 
   const setHasVideo = useStore.use.setHasVideo()
-  const {
-    activeFrame,
-    allFrames,
-    addFrame,
-    setActiveFrame,
-    removeFrame,
-    updateFrame,
-  } = useStore.use.frame()
+  const { activeFrame, setActiveFrame, updateFrame } = useStore.use.frame()
 
-  useInjectFrames({
-    onFrameRemoved: (frameId) => {
-      removeFrame(frameId)
-    },
-  })
+  useInjectFrames()
 
   const videoChangeHandler = useEventCallback((frameId: number) => {
     setHasVideo(true)
 
     if (activeFrame !== undefined && activeFrame !== frameId) {
-      toast.warn(t('danmaku.alert.multipleVideos'))
+      // TODO: handle the case where there are multiple frames with video
+      toast.warn(t('danmaku.alert.multipleFrames'))
+    } else {
+      updateFrame(frameId, { hasVideo: true })
+      setActiveFrame(frameId)
     }
-
-    updateFrame(frameId, { hasVideo: true })
-    setActiveFrame(frameId)
   })
 
   const videoRemovedHandler = useEventCallback((frameId: number) => {
@@ -54,23 +44,14 @@ export const DanmakuContainer = () => {
   })
 
   useEffect(() => {
-    // Start the player in all frames that haven't started yet
-    allFrames.forEach(async (frame) => {
-      if (!frame.started) {
-        await playerRpcClient.player.start({
-          data: config.mediaQuery,
-          frameId: frame.frameId,
-        })
-        updateFrame(frame.frameId, { started: true })
-      }
-    })
-  }, [allFrames])
-
-  useEffect(() => {
     const controllerRpcServer = createRpcServer<PlayerEvents>(
       {
         ready: async ({ frameId }) => {
-          addFrame(frameId)
+          await playerRpcClient.player.start({
+            data: config.mediaQuery,
+            frameId,
+          })
+          updateFrame(frameId, { started: true })
         },
         videoChange: async ({ frameId }) => {
           videoChangeHandler(frameId)

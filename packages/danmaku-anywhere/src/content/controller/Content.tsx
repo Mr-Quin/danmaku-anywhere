@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 
 import { Toast } from '@/common/components/Toast/Toast'
-import { DanmakuContainer } from '@/content/controller/danmaku/container/DanmakuContainer'
+import { FrameManager } from '@/content/controller/danmaku/frame/FrameManager'
 import { RegisterIntegration } from '@/content/controller/danmaku/integration/RegisterIntegration'
 import { IconManagerComponent } from '@/content/controller/iconManager/IconManagerComponent'
 import { useStore } from '@/content/controller/store/store'
@@ -20,7 +20,7 @@ export const Content = () => {
             <RegisterIntegration />
           </>
         )}
-        <DanmakuContainer />
+        <FrameManager />
       </Suspense>
       <TabRpcServer />
       <PopupUi />

@@ -44,10 +44,14 @@ export const useUnmountDanmaku = () => {
   return useMutation({
     mutationFn: async (frameId: number | void) => {
       const frame = frameId ?? activeFrame
-      if (frame === undefined) throw new Error('No active frame')
+      if (frame === undefined)
+        throw new Error('Trying to unmount danmaku without an active frame')
+
       await playerRpcClient.player.unmount({
         frameId: frame,
       })
+    },
+    onSuccess: () => {
       unsetComments()
     },
     onError: (err) => {

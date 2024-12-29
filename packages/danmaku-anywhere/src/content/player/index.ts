@@ -9,11 +9,11 @@ import type { PlayerCommands } from '@/common/rpcClient/background/types'
 import { createPopoverRoot } from '@/content/common/createPopoverRoot'
 import { DanmakuManager } from '@/content/player/monitors/DanmakuManager'
 
-const Logger = _Logger.sub('[Player]')
-
 const { data: frameId } = await chromeRpcClient.getFrameId()
 
-Logger.debug(`Player script loaded in frame ${frameId}`)
+const Logger = _Logger.sub(`[Player-${frameId}]`)
+
+Logger.info(`Player script loaded`)
 
 const manager = new DanmakuManager(Logger)
 const { shadowRoot } = createPopoverRoot('danmaku-anywhere-player')
@@ -41,6 +41,7 @@ const playerRpcServer = createRpcServer<PlayerCommands>(
     logger: Logger,
     context: { frameId },
     filter: (_, data) => {
+      Logger.debug('Received message', data)
       if (import.meta.env.DEV) {
         // safety check, frameId should always be present
         if (data.frameId === undefined) throw new Error('frameId is required')
@@ -83,5 +84,7 @@ danmakuOptionsService.onChange((options) => {
 manager.updateConfig(await danmakuOptionsService.get())
 
 playerRpcServer.listen()
+
+Logger.debug('Player script listening')
 
 await playerRpcClient.controller.ready({ frameId })
