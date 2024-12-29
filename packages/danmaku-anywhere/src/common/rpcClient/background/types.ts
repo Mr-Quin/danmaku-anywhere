@@ -101,6 +101,7 @@ export type PlayerCommands = {
   unmount: RPCDef<InputWithFrameId<void>, boolean, FrameContext>
   start: RPCDef<InputWithFrameId<string>, void, FrameContext>
   seek: RPCDef<InputWithFrameId<number>, void, FrameContext>
+  enterPiP: RPCDef<InputWithFrameId<void>, void, FrameContext>
 }
 
 // Player -> Controller communication

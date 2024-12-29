@@ -18,7 +18,7 @@ export const useTabRpcServer = () => {
 
   const handleGetDanmakuState = useEventCallback(() => {
     return {
-      meta: useStore.getState().danmakuLite,
+      danmaku: useStore.getState().danmakuLite,
       count: useStore.getState().comments.length,
       manual: useStore.getState().manual,
     }

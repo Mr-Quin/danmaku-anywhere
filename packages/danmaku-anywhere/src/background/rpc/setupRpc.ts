@@ -165,13 +165,17 @@ export const setupRpc = () => {
       return res.data
     },
     start: async (data, _, setContext) => {
-      console.debug('Starting player', data)
       const res = await relayFrameClient.start(data)
       setContext(res.context)
       return res.data
     },
     seek: async (data, _, setContext) => {
       const res = await relayFrameClient.seek(data)
+      setContext(res.context)
+      return res.data
+    },
+    enterPiP: async (data, _, setContext) => {
+      const res = await relayFrameClient.enterPiP(data)
       setContext(res.context)
       return res.data
     },

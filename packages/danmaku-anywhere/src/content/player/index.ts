@@ -8,6 +8,7 @@ import {
 import type { PlayerCommands } from '@/common/rpcClient/background/types'
 import { createPopoverRoot } from '@/content/common/createPopoverRoot'
 import { DanmakuManager } from '@/content/player/monitors/DanmakuManager'
+import { createPipWindow, moveElement } from '@/content/player/pipUtils'
 
 const { data: frameId } = await chromeRpcClient.getFrameId()
 
@@ -19,6 +20,8 @@ const manager = new DanmakuManager(Logger)
 const { shadowRoot } = createPopoverRoot('danmaku-anywhere-player')
 
 manager.setParent(shadowRoot)
+
+let pipWindow: Window | undefined
 
 const playerRpcServer = createRpcServer<PlayerCommands>(
   {
@@ -36,12 +39,40 @@ const playerRpcServer = createRpcServer<PlayerCommands>(
     seek: async ({ data: time }) => {
       manager.seek(time)
     },
+    enterPiP: async () => {
+      // TODO: https://github.com/WICG/document-picture-in-picture/issues/97
+      pipWindow = await createPipWindow()
+
+      const pipContainer = pipWindow.document.createElement('div')
+      pipContainer.style.setProperty('position', 'absolute', 'important')
+      pipContainer.style.setProperty('z-index', '2147483647', 'important')
+      pipContainer.style.setProperty('left', '0', 'important')
+      pipContainer.style.setProperty('top', '0', 'important')
+
+      pipWindow.document.body.appendChild(pipContainer)
+
+      const delayResize = () => {
+        setTimeout(() => {
+          manager.resize()
+        }, 100)
+      }
+
+      const restoreWrapper = moveElement(manager.wrapper, pipContainer)
+      const restoreVideo = moveElement(manager.video!, pipWindow.document.body)
+
+      delayResize()
+
+      pipWindow.addEventListener('pagehide', () => {
+        restoreVideo()
+        restoreWrapper()
+        delayResize()
+      })
+    },
   },
   {
     logger: Logger,
     context: { frameId },
     filter: (_, data) => {
-      Logger.debug('Received message', data)
       if (import.meta.env.DEV) {
         // safety check, frameId should always be present
         if (data.frameId === undefined) throw new Error('frameId is required')

@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useHotkeyOptions } from '@/common/options/extensionOptions/useHotkeyOptions'
+import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useStore } from '@/content/controller/store/store'
 import type { ContextMenuItemProps } from '@/content/controller/ui/floatingButton/components/ContextMenuItem'
@@ -21,6 +22,19 @@ import { useLoadDanmakuNextEpisode } from '@/content/controller/ui/floatingButto
 
 type FabContextMenuProps = PopperProps
 
+const usePip = () => {
+  const { activeFrame } = useStore.use.frame()
+
+  const enterPip = () => {
+    if (activeFrame === undefined) return
+    playerRpcClient.player.enterPiP({ frameId: activeFrame })
+  }
+
+  return {
+    enterPip,
+  }
+}
+
 export const FabContextMenu = (props: FabContextMenuProps) => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
@@ -29,7 +43,7 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
   const manual = useStore.use.manual()
   const toggleEnabled = useStore.use.toggleEnabled()
   const enabled = useStore.use.enabled()
-  const enterPip = useStore((state) => state.enterPip)
+  const { enterPip } = usePip()
   const hasVideo = useStore((state) => state.hasVideo)
 
   const {

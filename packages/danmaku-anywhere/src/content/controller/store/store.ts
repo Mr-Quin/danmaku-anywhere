@@ -5,20 +5,11 @@ import { immer } from 'zustand/middleware/immer'
 
 import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { danmakuToString } from '@/common/danmaku/utils'
-import { Logger } from '@/common/Logger'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { createSelectors } from '@/common/utils/createSelectors'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
-import { createPipWindow } from '@/content/controller/pip/pipUtils'
 
 enableMapSet()
-
-interface PipState {
-  // Pip window
-  window: Window
-  // Node in the pip window to use as the portal
-  portal: HTMLElement
-}
 
 interface FrameState {
   frameId: number
@@ -86,13 +77,6 @@ interface StoreState {
    */
   hasVideo: boolean
   setHasVideo: (hasVideo: boolean) => void
-
-  /**
-   * Picture-in-picture related state
-   */
-  pip?: PipState
-  enterPip: () => Promise<PipState>
-  exitPip: () => void
 
   /**
    * State of each frame in the page
@@ -174,26 +158,6 @@ const useStoreBase = create<StoreState>()(
 
     hasVideo: false,
     setHasVideo: (hasVideo) => set({ hasVideo }),
-
-    pip: undefined,
-    enterPip: async () => {
-      Logger.debug('Entering pip')
-      const pipWindow = await createPipWindow()
-      const portal = pipWindow.document.createElement('div')
-      portal.style.setProperty('position', 'absolute', 'important')
-      portal.style.setProperty('z-index', '2147483647', 'important')
-      portal.style.setProperty('left', '0', 'important')
-      portal.style.setProperty('top', '0', 'important')
-
-      pipWindow.document.body.appendChild(portal)
-
-      set({ pip: { window: pipWindow, portal } })
-
-      return { window: pipWindow, portal }
-    },
-    exitPip: () => {
-      set({ pip: undefined })
-    },
 
     frame: {
       allFrames: new Map<number, FrameState>(),

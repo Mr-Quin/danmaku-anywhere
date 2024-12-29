@@ -23,7 +23,7 @@ export const MountController = () => {
     queryKey: [
       {
         scope: 'tab',
-        kind: 'danamku',
+        kind: 'danmakuState',
       },
     ],
     queryFn: () => tabRpcClient.danmakuGetState(),
