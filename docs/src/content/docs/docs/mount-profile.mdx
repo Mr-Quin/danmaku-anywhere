@@ -3,9 +3,9 @@ title: 装填配置
 description: 装填配置
 ---
 
-装填配置是插件的核心配置，用于指定插件在哪些网页上生效，以及如何将弹幕装填到视频上。
+装填配置是扩展的核心配置，用于指定扩展在哪些网页上生效，以及如何将弹幕装填到视频上。
 
-同一网址最多只能有一个装填配置生效，如果有多个装填配置匹配到同一个网址，插件会选择第一个匹配到的装填配置。
+同一网址最多只能有一个装填配置生效，如果有多个装填配置匹配到同一个网址，扩展会选择第一个匹配到的装填配置。
 
 装填配置需要以下信息：
 
@@ -15,12 +15,10 @@ description: 装填配置
 
 ## 视频元素
 
-视频元素的选择器，用于指定视频元素。插件会将弹幕覆盖到这个元素上并与其同步。
+视频元素的选择器，用于指定视频元素。扩展会将弹幕覆盖到这个元素上并与其同步。
 
 :::tip
-一般情况下，默认的 `video` 选择器就可以满足大部分网页。
-
-如果发现无法选择到视频或选择的视频不正确，可以尝试在浏览器控制台中输入 `document.querySelectorAll('video')` 查看是否能够选择到视频元素，或[向作者反馈](https://github.com/Mr-Quin/danmaku-anywhere/issues/new)。
+默认为`video`，基本没有改的必要。
 :::
 
 ## 适配
@@ -29,22 +27,32 @@ description: 装填配置
 
 ## 网址（URL模式）
 
-相当于一个白名单，只有在这些网址上插件才会生效。
+:::caution[关于iframe]
+从v0.16.0起，不再区分iframe和非iframe，URL模式一律按主页面地址（即地址栏中的地址）填写。
 
-准确地说，装填配置对应的网址不是单一的地址，而是一个[**模式**](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)，这个模式可以匹配多个网址。
+v0.16.0之前的版本，如果视频嵌套在iframe中，需要填写iframe的地址，而不是网页本身的地址。
+:::
 
-拿B站为例，如果希望插件在B站上生效，可以使用 `https://www.bilibili.com/*` 这个模式，这个模式可以匹配所有的B站视频网址。
+相当于一个白名单，只有在这些网址上扩展才会生效。
 
-如果填写 `https://www.bilibili.com/`，那么插件只会在B站首页生效。
+装填配置对应的网址不是单一的地址，而是一个[**模式**](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns)，可以匹配多个网址。
 
-如果填写 `https://www.bilibili.com/video/*`，那么插件只会在视频播放页生效。
+:::tip
+基本上，如果希望匹扩展在`https://www.example.com`上生效，那么模式填写 `https://www.example.com/*` 或者 `https://*.example.com/*` 即可。
+:::
 
-如果填写 `https://*.bilibili.com/*`，那么插件会在所有的B站子域名下生效，包括动态、空间、直播等。
+拿B站为例，如果希望扩展在B站上生效，可以使用 `https://www.bilibili.com/*` 这个模式，这个模式可以匹配所有的B站视频网址。
+
+如果填写 `https://www.bilibili.com/`，那么扩展只会在B站首页生效。
+
+如果填写 `https://www.bilibili.com/video/*`，那么扩展只会在视频播放页生效。
+
+如果填写 `https://*.bilibili.com/*`，那么扩展会在所有的B站子域名下生效，包括动态、空间、直播等。
 
 其他例子：
 - ip地址：`http://10.0.0.1/*`
-  - 含端口：`http://10.0.0.1:8080/*`
-  - 任意端口：`http://10.0.0.1:*/*`
+- 含端口：`http://10.0.0.1:8080/*`
+- 任意端口：`http://10.0.0.1:*/*`
 - 本地服务器：`http://localhost/*`
 - 本地`mp4`文件（注意三斜杠）：`file:///*.mp4`
 - 任意HTTPS地址：`https://*/*`
@@ -54,8 +62,6 @@ description: 装填配置
 
 如果存在端口号，需要在模式中指定，比如`http://localhost:8080/*`或`http://localhost:*/*`。
 :::
-
-一般来说，如果希望匹配的网页是 `https://www.example.com`，那么模式填写 `https://www.example.com/*` 或者 `https://*.example.com/*` 就可以满足需求。如果有特殊情况请按照实际情况填写。
 
 单个装填配置可以填写多个模式。
 
