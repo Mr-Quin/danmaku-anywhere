@@ -31,7 +31,6 @@ type DanmakuManagerEvents =
   | 'videoChange'
   | 'videoRemoved'
   | 'rectChange'
-  | 'srcChange'
   | 'danmakuMounted'
   | 'danmakuUnmounted'
 
@@ -39,7 +38,6 @@ interface DanmakuManagerEventCallback {
   videoChange: VideoChangeListener
   videoRemoved: VideoChangeListener
   rectChange: (rect: DOMRectReadOnly) => void
-  srcChange: (src: string) => void
   danmakuMounted: (comments: CommentEntity[]) => void
   danmakuUnmounted: () => void
 }
@@ -52,6 +50,7 @@ export class DanmakuManager {
 
   public video: HTMLVideoElement | null = null
   private comments: CommentEntity[] = []
+  private hasComments = false
 
   // State
   public isMounted = false
@@ -75,9 +74,6 @@ export class DanmakuManager {
   private videoRemovedListeners = new Set<
     DanmakuManagerEventCallback['videoChange']
   >()
-  private srcChangeListeners = new Set<
-    DanmakuManagerEventCallback['srcChange']
-  >()
   private danmakuMountedListeners = new Set<
     DanmakuManagerEventCallback['danmakuMounted']
   >()
@@ -96,22 +92,8 @@ export class DanmakuManager {
     this.logger.debug('Starting')
 
     this.videoNodeObs = new VideoNodeObserver(videoSelector, {
-      onVideoNodeChange: (videoNode) => {
-        this.video = videoNode
-
-        this.addDebugStyles()
-        this.teardownObs()
-        this.setupObs(videoNode)
-        this.videoChangeListeners.forEach((listener) => listener(videoNode))
-      },
-      onVideoNodeRemove: (prev) => {
-        this.video = null
-        this.teardownObs()
-        this.unmount()
-        this.removeDebugStyles()
-
-        this.videoRemovedListeners.forEach((listener) => listener(prev))
-      },
+      onVideoNodeChange: this.handleVideoNodeChange,
+      onVideoNodeRemove: this.handleVideoNodeRemove,
     })
   }
 
@@ -152,8 +134,37 @@ export class DanmakuManager {
     this.srcObs = undefined
   }
 
-  private handleSrcChange = (src: string) => {
-    this.srcChangeListeners.forEach((listener) => listener(src))
+  private handleVideoNodeChange = (video: HTMLVideoElement) => {
+    this.video = video
+
+    this.teardownObs()
+    this.setupObs(video)
+    this.addDebugStyles()
+
+    if (this.hasComments) {
+      this.createDanmaku()
+    }
+
+    this.videoChangeListeners.forEach((listener) => listener(video))
+  }
+
+  private handleVideoNodeRemove = (prev: HTMLVideoElement) => {
+    this.video = null
+    this.teardownObs()
+    this.unmount()
+    this.removeDebugStyles()
+
+    this.videoRemovedListeners.forEach((listener) => listener(prev))
+  }
+
+  private handleSrcChange = (src: string, videoNode: HTMLVideoElement) => {
+    // also recreate danmaku if the video src changes
+    if (this.hasComments) {
+      this.createDanmaku()
+    }
+
+    // treat src change as video change and notify listeners
+    this.videoChangeListeners.forEach((listener) => listener(videoNode))
   }
 
   private handleRectChange = (rect: DOMRectReadOnly, notify = true) => {
@@ -190,26 +201,55 @@ export class DanmakuManager {
     }
   }
 
+  private createDanmaku() {
+    if (!this.video || !this.hasComments) return
+
+    if (!this.isMounted) {
+      this.logger.debug('Mounting danmaku')
+
+      this.attachContainer()
+
+      this.engine.create(this.container, this.video, this.comments)
+      this.isMounted = true
+      this.danmakuMountedListeners.forEach((listener) =>
+        listener(this.comments)
+      )
+    } else {
+      // recreate danmaku if it's already mounted
+      // this fixes an issue where danmaku can get "stuck" on the screen
+      if (this.engine.created) this.engine.destroy()
+
+      this.engine.create(this.container, this.video, this.comments)
+    }
+  }
+
   mount(comments: CommentEntity[]) {
-    if (!this.video) throw new Error('Video node is not ready')
-    this.logger.debug('Mounting danmaku')
-
-    this.attachContainer()
     this.comments = comments
-
-    this.engine.create(this.container, this.video, comments)
-    this.danmakuMountedListeners.forEach((listener) => listener(comments))
-    this.isMounted = true
+    this.hasComments = true
+    // Allow deferring the creation of danmaku
+    // if video is not ready, danmaku will be created when video is ready
+    if (this.video) {
+      this.createDanmaku()
+    } else {
+      this.logger.debug('Video is not ready, waiting for video to be ready')
+    }
   }
 
   unmount() {
-    // If the component is not mounted, do nothing
-    if (!this.isMounted) return
+    // If the danmaku is not mounted, only clear the comments
+    if (!this.isMounted) {
+      if (this.hasComments) {
+        this.hasComments = false
+        this.comments = []
+      }
+      return
+    }
 
     this.logger.debug('Unmounting danmaku')
     this.removeContainer()
     this.engine.destroy()
     this.comments = []
+    this.hasComments = false
     this.danmakuUnmountedListeners.forEach((listener) => listener())
     this.isMounted = false
   }
@@ -279,9 +319,6 @@ export class DanmakuManager {
           callback as (rect: DOMRectReadOnly) => void
         )
         break
-      case 'srcChange':
-        this.srcChangeListeners.add(callback as (src: string) => void)
-        break
       case 'danmakuMounted':
         this.danmakuMountedListeners.add(
           callback as (comments: CommentEntity[]) => void
@@ -311,11 +348,6 @@ export class DanmakuManager {
       case 'rectChange':
         this.rectChangeListeners.delete(
           callback as DanmakuManagerEventCallback['rectChange']
-        )
-        break
-      case 'srcChange':
-        this.srcChangeListeners.delete(
-          callback as DanmakuManagerEventCallback['srcChange']
         )
         break
       case 'danmakuMounted':

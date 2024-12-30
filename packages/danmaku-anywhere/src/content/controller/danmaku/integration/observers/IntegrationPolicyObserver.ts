@@ -40,7 +40,12 @@ export const parseMediaInfo = (
   )
 
   if (title === undefined) {
-    throw new Error('Error parsing title')
+    throw new Error(
+      `Error parsing title: ${JSON.stringify({
+        title: titleText,
+        regex: policy.title.regex,
+      })}`
+    )
   }
 
   // Default to 1 if the element is not present

@@ -29,7 +29,7 @@ export const useInjectFrames = () => {
       })
     },
     staleTime: Infinity,
-    refetchInterval: 1000, // poll every 1s
+    refetchInterval: 5000, // poll every 5s
   })
 
   const injectFrameMutation = useMutation({

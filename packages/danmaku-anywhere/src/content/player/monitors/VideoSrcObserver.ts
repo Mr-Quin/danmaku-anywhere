@@ -1,7 +1,9 @@
+type VideoSrcChangeListener = (src: string, video: HTMLVideoElement) => void
+
 export class VideoSrcObserver {
   private videoNode: HTMLVideoElement
   private currentSrc: string
-  private srcChangeListeners: Set<(src: string) => void>
+  private srcChangeListeners: Set<VideoSrcChangeListener>
   private observer: MutationObserver
 
   constructor(videoNode: HTMLVideoElement) {
@@ -17,7 +19,7 @@ export class VideoSrcObserver {
 
         if (this.currentSrc !== target.src) {
           this.srcChangeListeners.forEach((listener) =>
-            listener(this.currentSrc)
+            listener(this.currentSrc, videoNode)
           )
         }
         this.currentSrc = target.src
@@ -34,9 +36,8 @@ export class VideoSrcObserver {
     return this.currentSrc
   }
 
-  public onSrcChange(callback: (src: string) => void) {
-    this.srcChangeListeners.add(callback)
-    callback(this.currentSrc)
+  public onSrcChange(listener: VideoSrcChangeListener) {
+    this.srcChangeListeners.add(listener)
   }
 
   public cleanup() {
