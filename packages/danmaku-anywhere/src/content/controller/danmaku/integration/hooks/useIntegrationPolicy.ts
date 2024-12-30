@@ -15,7 +15,7 @@ export const useIntegrationPolicy = () => {
 
   const { toast } = useToast()
 
-  const observer = useRef<IntegrationPolicyObserver>()
+  const observer = useRef<IntegrationPolicyObserver>(undefined)
 
   const { setMediaInfo, resetMediaState, toggleManualMode, manual, hasVideo } =
     useStore(useShallow((state) => state))

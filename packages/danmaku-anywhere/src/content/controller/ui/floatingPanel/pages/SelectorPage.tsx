@@ -31,7 +31,7 @@ import { useStore } from '@/content/controller/store/store'
 
 export const SelectorPage = () => {
   const { t } = useTranslation()
-  const selectorBoxRef = useRef<HTMLDivElement>()
+  const selectorBoxRef = useRef<HTMLDivElement>(undefined)
   const { animes, saveMapping, setSaveMapping, toggleOpen } = usePopup()
   const mediaInfo = useStore((state) => state.mediaInfo)
 

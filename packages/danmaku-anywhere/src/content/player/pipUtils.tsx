@@ -11,7 +11,7 @@ const copyStyles = (pipWindow: Window) => {
 
       style.textContent = cssRules
       pipWindow.document.head.appendChild(style)
-    } catch (e) {
+    } catch {
       const link = document.createElement('link')
 
       link.rel = 'stylesheet'

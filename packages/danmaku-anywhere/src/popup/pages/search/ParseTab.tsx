@@ -132,8 +132,7 @@ export const ParseTab = () => {
         onSuccess: () => {
           toast.success(t('searchPage.parse.importSuccess'))
         },
-        onError: (_, v) => {
-          v.meta
+        onError: () => {
           toast.error(
             t('danmaku.alert.fetchError', {
               message: normalizeMetaName(query.data).episodeTitle,

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useMouseLocation } from './useMouseLocation'
 
 export const useShowFab = () => {
-  const timeoutRef = useRef<NodeJS.Timeout>()
+  const timeoutRef = useRef<NodeJS.Timeout>(undefined)
 
   const mouseLocation = useMouseLocation()
   const [showFab, setShowFab] = useState(true)
