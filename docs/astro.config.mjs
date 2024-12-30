@@ -16,7 +16,8 @@ export default defineConfig({
       },
       lastUpdated: false,
       editLink: {
-        baseUrl: 'https://github.com/Mr-Quin/danmaku-anywhere/edit/main/docs/',
+        baseUrl:
+          'https://github.com/Mr-Quin/danmaku-anywhere/edit/master/docs/',
       },
       social: {
         github: 'https://github.com/Mr-Quin/danmaku-anywhere',

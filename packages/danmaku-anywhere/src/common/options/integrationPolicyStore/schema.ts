@@ -18,7 +18,7 @@ const validateXPath =
     try {
       getElementByXpath(value)
       return true
-    } catch (error) {
+    } catch {
       return false
     }
   }

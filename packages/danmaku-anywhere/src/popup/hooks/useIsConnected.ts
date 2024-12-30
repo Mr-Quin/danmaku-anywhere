@@ -16,7 +16,7 @@ export const useIsConnected = () => {
         ])) as undefined | Awaited<ReturnType<typeof tabRpcClient.ping>>
         return res?.data === true
       } catch (e) {
-        Logger.debug('Content script is not connected')
+        Logger.debug('Content script is not connected', e)
 
         return false
       }

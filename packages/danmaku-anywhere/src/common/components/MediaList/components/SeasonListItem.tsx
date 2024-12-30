@@ -14,15 +14,12 @@ export const SeasonListItem = <T extends MediaSearchResult>({
   provider,
   season,
   renderEpisodes,
-  dense,
 }: {
   provider: T['provider']
   season: T['data'][number]
   renderEpisodes: RenderEpisode
   dense?: boolean
 }) => {
-  dense // prevent unused variable error
-
   if (provider === DanmakuSourceType.Bilibili) {
     const bilibiliSeason = season as BilibiliMediaSearchResult['data'][number]
     return (

@@ -24,7 +24,7 @@ const serializeError = (error: unknown) => {
 
   try {
     return JSON.stringify(error)
-  } catch (e) {
+  } catch {
     return 'Unknown error'
   }
 }
