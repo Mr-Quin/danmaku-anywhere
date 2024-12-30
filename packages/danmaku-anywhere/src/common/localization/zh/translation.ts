@@ -259,7 +259,7 @@ const pages = {
         loadNextEpisodeComments: '下一集',
         refreshComments: '刷新弹幕',
         unmountComments: '卸载弹幕',
-        togglePip: '画中画',
+        togglePip: '画中画（实验）',
       },
     },
     pages: {

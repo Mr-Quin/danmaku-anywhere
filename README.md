@@ -6,7 +6,7 @@
 </div>
 
 > 没有弹幕怎么看番？
-> Danmaku Anywhere是一个可以在任何视频网站上加载弹幕的浏览器插件
+> Danmaku Anywhere是一个可以在任何视频网站上加载弹幕的浏览器扩展
 
 [中文] [English](./README.en.md)
 

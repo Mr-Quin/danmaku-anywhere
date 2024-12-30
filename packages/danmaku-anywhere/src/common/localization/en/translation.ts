@@ -262,7 +262,7 @@ const pages = {
         loadNextEpisodeComments: 'Load Next Episode Comments',
         refreshComments: 'Refresh Comments',
         unmountComments: 'Unmount Comments',
-        togglePip: 'Enter Picture-in-Picture',
+        togglePip: 'Enter Picture-in-Picture (Experimental)',
       },
     },
     pages: {
