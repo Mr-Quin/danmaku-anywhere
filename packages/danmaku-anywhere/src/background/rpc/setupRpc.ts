@@ -174,6 +174,11 @@ export const setupRpc = () => {
       setContext(res.context)
       return res.data
     },
+    show: async (data, _, setContext) => {
+      const res = await relayFrameClient.show(data)
+      setContext(res.context)
+      return res.data
+    },
     enterPiP: async (data, _, setContext) => {
       const res = await relayFrameClient.enterPiP(data)
       setContext(res.context)

@@ -25,12 +25,10 @@ interface FrameState {
 
 interface StoreState {
   /**
-   * Whether to enable the danmaku feature
-   * If off, the popup will work, but danmaku will not be displayed
-   * This is separate from the extension options
+   * Whether danmaku is visible
    */
-  enabled: boolean
-  toggleEnabled: (enabled?: boolean) => void
+  visible: boolean
+  toggleVisible: (visible?: boolean) => void
 
   /**
    * Danmaku to be displayed
@@ -97,12 +95,12 @@ interface StoreState {
 
 const useStoreBase = create<StoreState>()(
   immer((set, get) => ({
-    enabled: true,
-    toggleEnabled: (enabled) => {
-      if (enabled !== undefined) {
-        set({ enabled })
+    visible: true,
+    toggleVisible: (visible) => {
+      if (visible !== undefined) {
+        set({ visible })
       }
-      set({ enabled: !get().enabled })
+      set({ visible: !get().visible })
     },
 
     comments: [],

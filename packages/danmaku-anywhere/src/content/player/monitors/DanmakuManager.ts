@@ -194,7 +194,7 @@ export class DanmakuManager {
     if (!this.video) throw new Error('Video node is not ready')
     this.logger.debug('Mounting danmaku')
 
-    this.show()
+    this.attachContainer()
     this.comments = comments
 
     this.engine.create(this.container, this.video, comments)
@@ -207,7 +207,7 @@ export class DanmakuManager {
     if (!this.isMounted) return
 
     this.logger.debug('Unmounting danmaku')
-    this.hide()
+    this.removeContainer()
     this.engine.destroy()
     this.comments = []
     this.danmakuUnmountedListeners.forEach((listener) => listener())
@@ -231,14 +231,22 @@ export class DanmakuManager {
     }
   }
 
-  private hide() {
+  private removeContainer() {
     this.container.remove()
   }
 
-  private show() {
+  private attachContainer() {
     // If the wrapper is already in the document, do nothing
     if (this.container.isConnected) return
     this.wrapper.appendChild(this.container)
+  }
+
+  show() {
+    this.engine.show()
+  }
+
+  hide() {
+    this.engine.hide()
   }
 
   resize() {

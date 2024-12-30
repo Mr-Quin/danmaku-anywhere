@@ -35,8 +35,7 @@ export const FloatingButton = forwardRef<
   const [contextMenuAnchor, setContextMenuAnchor] =
     useState<PopoverVirtualElement | null>(null)
 
-  const enabled = useStore((state) => state.enabled)
-  const toggleEnabled = useStore((state) => state.toggleEnabled)
+  const visible = useStore((state) => state.visible)
   const hasComments = useStore((state) => state.hasComments)
 
   const handleOpen: MouseEventHandler<HTMLElement> = (e) => {
@@ -69,7 +68,7 @@ export const FloatingButton = forwardRef<
 
   const mergedFabRefs = useMergeRefs(fabRef, ref)
 
-  const dialColor = !enabled
+  const dialColor = !visible
     ? 'text.disabled'
     : hasComments
       ? 'success.main'
@@ -88,7 +87,6 @@ export const FloatingButton = forwardRef<
                 children: <LoadingRing isLoading />,
                 onContextMenu: handleContextMenu,
                 onClick: handleClick,
-                onDoubleClick: () => toggleEnabled(),
                 ref: mergedFabRefs,
                 sx: {
                   bgcolor: dialColor,

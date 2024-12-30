@@ -102,6 +102,7 @@ export type PlayerCommands = {
   start: RPCDef<InputWithFrameId<string>, void, FrameContext>
   seek: RPCDef<InputWithFrameId<number>, void, FrameContext>
   enterPiP: RPCDef<InputWithFrameId<void>, void, FrameContext>
+  show: RPCDef<InputWithFrameId<boolean>, void, FrameContext>
 }
 
 // Player -> Controller communication

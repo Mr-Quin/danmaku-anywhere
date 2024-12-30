@@ -39,6 +39,13 @@ const playerRpcServer = createRpcServer<PlayerCommands>(
     seek: async ({ data: time }) => {
       manager.seek(time)
     },
+    show: async ({ data: show }) => {
+      if (show) {
+        manager.show()
+      } else {
+        manager.hide()
+      }
+    },
     enterPiP: async () => {
       // TODO: https://github.com/WICG/document-picture-in-picture/issues/97
       pipWindow = await createPipWindow()

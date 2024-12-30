@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSelector'
-import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useMountDanmaku'
 import { useStore } from '@/content/controller/store/store'
@@ -12,12 +11,9 @@ import { useMountDanmakuContent } from '@/content/controller/ui/floatingPanel/pa
 
 export const MountPage = () => {
   const { t } = useTranslation()
-  const toast = useToast.use.toast()
 
-  const manual = useStore((state) => state.manual)
   const danmakuLite = useStore((state) => state.danmakuLite)
   const hasComments = useStore((state) => state.hasComments)
-  const resetMediaState = useStore((state) => state.resetMediaState)
 
   const [localDanmakuLite, setLocalDanmakuLite] = useState<
     DanmakuLite | undefined
@@ -36,8 +32,6 @@ export const MountPage = () => {
   }
 
   const handleUnmount = () => {
-    toast.info(t('danmaku.alert.unmounted'))
-    resetMediaState()
     unmountMutation.mutate()
   }
 
@@ -65,7 +59,7 @@ export const MountPage = () => {
           type="button"
           onClick={handleUnmount}
           color="warning"
-          disabled={!manual || !localDanmakuLite || !hasComments}
+          disabled={!localDanmakuLite || !hasComments}
         >
           {t('danmaku.unmount')}
         </Button>

@@ -13,7 +13,7 @@ export const useManualDanmaku = () => {
   const { t } = useTranslation()
 
   const { mountDanmaku } = useLoadDanmaku()
-  const unMountMutation = useUnmountDanmaku()
+  const unmountMutation = useUnmountDanmaku()
 
   const handleSetDanmaku = useEventCallback((data: Danmaku) => {
     // Throws, error is returned to the client
@@ -32,9 +32,8 @@ export const useManualDanmaku = () => {
   })
 
   const handleUnsetDanmaku = useEventCallback(() => {
-    Logger.debug('Requested to unload danmaku')
-    unMountMutation.mutate()
-    useStore.getState().resetMediaState()
+    Logger.debug('Requested to unmount danmaku')
+    unmountMutation.mutate()
   })
 
   return {

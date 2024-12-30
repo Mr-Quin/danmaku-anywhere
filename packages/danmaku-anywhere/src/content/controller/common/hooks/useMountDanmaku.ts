@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { Danmaku } from '@/common/danmaku/models/danmaku'
@@ -36,10 +37,11 @@ export const useMountDanmaku = () => {
 
 export const useUnmountDanmaku = () => {
   const { toast } = useToast()
+  const { t } = useTranslation()
 
   const { activeFrame } = useStore.use.frame()
 
-  const unsetComments = useStore.use.unsetComments()
+  const resetMediaState = useStore.use.resetMediaState()
 
   return useMutation({
     mutationFn: async (frameId: number | void) => {
@@ -52,7 +54,31 @@ export const useUnmountDanmaku = () => {
       })
     },
     onSuccess: () => {
-      unsetComments()
+      resetMediaState()
+      toast.info(t('danmaku.alert.unmounted'))
+    },
+    onError: (err) => {
+      toast.error(err.message)
+    },
+  })
+}
+
+export const useShowDanmaku = () => {
+  const { toast } = useToast()
+  const toggleVisible = useStore.use.toggleVisible()
+  const visible = useStore.use.visible()
+
+  const { mustGetActiveFrame } = useStore.use.frame()
+
+  return useMutation({
+    mutationFn: async () => {
+      await playerRpcClient.player.show({
+        frameId: mustGetActiveFrame(),
+        data: !visible,
+      })
+    },
+    onSuccess: () => {
+      toggleVisible()
     },
     onError: (err) => {
       toast.error(err.message)
