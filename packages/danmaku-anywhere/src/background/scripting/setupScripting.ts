@@ -34,6 +34,8 @@ const handleContentScriptRegistration = async (mountConfigs: MountConfig[]) => {
     ids: [contentScriptId],
   })
 
+  console.debug({ registeredScript, patterns })
+
   match([registeredScript.length, patterns.length])
     // no registered script, but has patterns, register the script
     .with([0, P.number.positive()], () => {
@@ -74,14 +76,15 @@ const handleContentScriptRegistration = async (mountConfigs: MountConfig[]) => {
 
 export const setupScripting = () => {
   chrome.runtime.onStartup.addListener(async () => {
-    return chrome.scripting.unregisterContentScripts({
-      ids: [contentScriptId],
-    })
+    const configs = await mountConfigService.get()
+
+    await handleContentScriptRegistration(configs)
   })
 
   mountConfigService.onChange(async (configs) => {
     if (!configs) return
 
+    console.debug('Mount configs changed', configs)
     await handleContentScriptRegistration(configs)
   })
 }
