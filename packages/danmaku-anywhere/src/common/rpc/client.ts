@@ -9,7 +9,7 @@ import type {
   RpcOptions,
 } from './types'
 
-import { chromeSender } from '@/common/rpc/sender'
+import { chromeSender, tabSender } from '@/common/rpc/sender'
 
 export type ClientMessageSender<TInput, TOutput> = (
   payload: RPCPayload<TInput>
@@ -20,11 +20,26 @@ export interface RPCClientResponse<TRPCDef extends AnyRPCDef> {
   context: TRPCDef['context']
 }
 
-type RPCClient<TRecords extends RPCRecord> = {
+type ChromeRPCClient<TRecords extends RPCRecord> = {
   [TKey in keyof TRecords]: (
     input: TRecords[TKey]['input'],
     options?: RpcOptions
   ) => Promise<RPCClientResponse<TRecords[TKey]>>
+}
+
+export interface TabOptions {
+  tabInfo?: chrome.tabs.QueryInfo
+  getTab?: (tabs: chrome.tabs.Tab[]) => chrome.tabs.Tab
+}
+
+export type TabRPCClientMethod<TDef extends AnyRPCDef> = (
+  input: TDef['input'],
+  options?: RpcOptions,
+  tabOptions?: TabOptions
+) => Promise<RPCClientResponse<TDef>>
+
+type TabRPCClient<TRecords extends RPCRecord> = {
+  [TKey in keyof TRecords]: TabRPCClientMethod<TRecords[TKey]>
 }
 
 const createPayload = <TInput>(
@@ -39,49 +54,82 @@ const createPayload = <TInput>(
   }
 }
 
-export const createRpcClient = <
+const handleRpcResponse = <TRecords extends RPCRecord>(
+  result: RPCResponse<TRecords[string]['output']> | null,
+  method: string,
+  err: Error | null
+): RPCClientResponse<TRecords[string]> => {
+  if (err) {
+    throw new RpcException(err.message)
+  }
+
+  // if message is not handled, result will be undefined, we treat that as an error
+  if (!result) {
+    throw new RpcException(
+      `Method ${method} returned undefined. This likely means the method is not handled by the server.`
+    )
+  }
+
+  if (result.state === 'errored') {
+    throw new RpcException(result.error)
+  }
+
+  if (result.state === 'ignored') {
+    throw new RpcException(
+      `Method ${method} is explicitly ignored by the server.`
+    )
+  }
+
+  return {
+    data: result.output,
+    context: result.context,
+  } satisfies RPCClientResponse<TRecords[string]>
+}
+
+export const createChromeRpcClient = <
   TRecords extends RPCRecord,
   TInput = TRecords[string]['input'],
-  TOutput = TRecords[string]['output'],
->(
-  messageSender: ClientMessageSender<TInput, TOutput> = chromeSender
-): RPCClient<TRecords> => {
+>(): ChromeRPCClient<TRecords> => {
   return new Proxy(
     {},
     {
       get(_, method: string) {
         return async (input: TInput, options?: RpcOptions) => {
           const [result, err] = await tryCatch(() =>
-            messageSender(createPayload(method, input, options))
+            chromeSender(createPayload(method, input, options))
           )
 
-          if (err) {
-            throw new RpcException(err.message)
-          }
-
-          // if message is not handled, result will be undefined, we treat that as an error
-          if (!result) {
-            throw new RpcException(
-              `Method ${method} returned undefined. This likely means the method is not handled by the server.`
-            )
-          }
-
-          if (result.state === 'errored') {
-            throw new RpcException(result.error)
-          }
-
-          if (result.state === 'ignored') {
-            throw new RpcException(
-              `Method ${method} is explicitly ignored by the server.`
-            )
-          }
-
-          return {
-            data: result.output,
-            context: result.context,
-          } satisfies RPCClientResponse<TRecords[string]>
+          return handleRpcResponse(result, method, err)
         }
       },
     }
-  ) as RPCClient<TRecords>
+  ) as ChromeRPCClient<TRecords>
+}
+
+export const createTabRpcClient = <
+  TRecords extends RPCRecord,
+  TInput = TRecords[string]['input'],
+>(): TabRPCClient<TRecords> => {
+  return new Proxy(
+    {},
+    {
+      get(_, method: string) {
+        return async (
+          input: TInput,
+          options?: RpcOptions,
+          tabInfo: TabOptions = {}
+        ) => {
+          const [result, err] = await tryCatch(() =>
+            tabSender(
+              createPayload(method, input, options),
+              tabInfo.tabInfo ?? {},
+              tabInfo.getTab
+            )
+          )
+
+          return handleRpcResponse(result, method, err)
+        }
+      },
+    }
+  ) as TabRPCClient<TRecords>
 }

@@ -1,14 +1,13 @@
-import { createRpcClient } from '@/common/rpc/client'
-import { chromeSender } from '@/common/rpc/sender'
+import { createChromeRpcClient } from '@/common/rpc/client'
 import type {
   BackgroundMethods,
   PlayerCommands,
   PlayerEvents,
 } from '@/common/rpcClient/background/types'
 
-export const chromeRpcClient = createRpcClient<BackgroundMethods>(chromeSender)
+export const chromeRpcClient = createChromeRpcClient<BackgroundMethods>()
 
 export const playerRpcClient = {
-  player: createRpcClient<PlayerCommands>(chromeSender),
-  controller: createRpcClient<PlayerEvents>(chromeSender),
+  player: createChromeRpcClient<PlayerCommands>(),
+  controller: createChromeRpcClient<PlayerEvents>(),
 }

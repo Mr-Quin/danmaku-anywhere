@@ -1,13 +1,21 @@
 import { Logger } from '../Logger'
 
-import type { RpcContext, RPCPayload, RPCRecord, RPCResponse } from './types'
+import type {
+  AnyRPCDef,
+  RpcContext,
+  RPCPayload,
+  RPCRecord,
+  RPCResponse,
+} from './types'
+
+export type RRPServerHandler<TDef extends AnyRPCDef> = (
+  input: TDef['input'],
+  sender: chrome.runtime.MessageSender,
+  setContext: (context: RpcContext) => void
+) => Promise<TDef['output']>
 
 type RPCServerHandlers<TRecords extends RPCRecord> = {
-  [TKey in keyof TRecords]: (
-    input: TRecords[TKey]['input'],
-    sender: chrome.runtime.MessageSender,
-    setContext: (context: RpcContext) => void
-  ) => Promise<TRecords[TKey]['output']>
+  [TKey in keyof TRecords]: RRPServerHandler<TRecords[TKey]>
 }
 
 interface CreateRpcServerOptions<TContext extends RpcContext> {
@@ -73,7 +81,7 @@ export const createRpcServer = <
       const { method, input, options } = message
 
       if (!options?.silent) {
-        logger.debug('Received message:', message)
+        logger.debug('Received message:', { ...message, sender })
       }
 
       const time = Date.now()

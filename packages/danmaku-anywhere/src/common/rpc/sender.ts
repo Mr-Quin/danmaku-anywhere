@@ -1,7 +1,11 @@
 import type { RPCPayload, RPCResponse } from '@/common/rpc/types'
 import { RpcException } from '@/common/rpc/types'
 
-export const chromeSender = async <TInput, TOutput>(
+type ChromeSender = <TInput, TOutput>(
+  payload: RPCPayload<TInput>
+) => Promise<RPCResponse<TOutput>>
+
+export const chromeSender: ChromeSender = async <TInput, TOutput>(
   payload: RPCPayload<TInput>
 ) => {
   const res = (await chrome.runtime.sendMessage(
@@ -17,13 +21,23 @@ export const chromeSender = async <TInput, TOutput>(
   return res
 }
 
-export const tabSender = async <TInput, TOutput>(
-  payload: RPCPayload<TInput>
+type TabSender = <TInput, TOutput>(
+  payload: RPCPayload<TInput>,
+  tabInfo: chrome.tabs.QueryInfo,
+  getTab?: (tabs: chrome.tabs.Tab[]) => chrome.tabs.Tab
+) => Promise<RPCResponse<TOutput>>
+
+export const tabSender: TabSender = async <TInput, TOutput>(
+  payload: RPCPayload<TInput>,
+  tabInfo: chrome.tabs.QueryInfo = { active: true, currentWindow: true },
+  getTab?: (tabs: chrome.tabs.Tab[]) => chrome.tabs.Tab
 ) => {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+  const tabs = await chrome.tabs.query(tabInfo)
+
+  const tab = getTab ? getTab(tabs) : tabs[0]
 
   if (!tab) {
-    throw new RpcException('No active tab found')
+    throw new RpcException('No matching tab found')
   }
 
   try {

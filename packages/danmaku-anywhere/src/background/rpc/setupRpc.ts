@@ -8,7 +8,10 @@ import { injectVideoScript } from '@/background/scripting/setupScripting'
 import { BilibiliService } from '@/background/services/BilibiliService'
 import { TencentService } from '@/background/services/TencentService'
 import { Logger } from '@/common/Logger'
+import type { TabRPCClientMethod } from '@/common/rpc/client'
+import type { RRPServerHandler } from '@/common/rpc/server'
 import { createRpcServer } from '@/common/rpc/server'
+import type { AnyRPCDef } from '@/common/rpc/types'
 import { RpcException } from '@/common/rpc/types'
 import type {
   BackgroundMethods,
@@ -153,52 +156,32 @@ export const setupRpc = () => {
     },
   })
 
+  const passThrough = <TRPCDef extends AnyRPCDef>(
+    clientMethod: TabRPCClientMethod<TRPCDef>
+  ): RRPServerHandler<TRPCDef> => {
+    return async (data, sender, setContext) => {
+      const res = await clientMethod(
+        data,
+        {},
+        {
+          tabInfo: { windowId: sender.tab?.windowId, index: sender.tab?.index },
+        }
+      )
+      setContext(res.context)
+      return res.data
+    }
+  }
+
   const rpcRelay = createRpcServer<PlayerCommands & PlayerEvents>({
-    mount: async (data, _, setContext) => {
-      const res = await relayFrameClient.mount(data)
-      setContext(res.context)
-      return res.data
-    },
-    unmount: async (data, __, setContext) => {
-      const res = await relayFrameClient.unmount(data)
-      setContext(res.context)
-      return res.data
-    },
-    start: async (data, _, setContext) => {
-      const res = await relayFrameClient.start(data)
-      setContext(res.context)
-      return res.data
-    },
-    seek: async (data, _, setContext) => {
-      const res = await relayFrameClient.seek(data)
-      setContext(res.context)
-      return res.data
-    },
-    show: async (data, _, setContext) => {
-      const res = await relayFrameClient.show(data)
-      setContext(res.context)
-      return res.data
-    },
-    enterPiP: async (data, _, setContext) => {
-      const res = await relayFrameClient.enterPiP(data)
-      setContext(res.context)
-      return res.data
-    },
-    ready: async (input, _, setContext) => {
-      const res = await relayFrameClient.ready(input)
-      setContext(res.context)
-      return res.data
-    },
-    videoChange: async (input, _, setContext) => {
-      const res = await relayFrameClient.videoChange(input)
-      setContext(res.context)
-      return res.data
-    },
-    videoRemoved: async (input, _, setContext) => {
-      const res = await relayFrameClient.videoRemoved(input)
-      setContext(res.context)
-      return res.data
-    },
+    mount: passThrough(relayFrameClient.mount),
+    unmount: passThrough(relayFrameClient.unmount),
+    start: passThrough(relayFrameClient.start),
+    seek: passThrough(relayFrameClient.seek),
+    show: passThrough(relayFrameClient.show),
+    enterPiP: passThrough(relayFrameClient.enterPiP),
+    ready: passThrough(relayFrameClient.ready),
+    videoChange: passThrough(relayFrameClient.videoChange),
+    videoRemoved: passThrough(relayFrameClient.videoRemoved),
   })
 
   rpcServer.listen()
