@@ -41,13 +41,13 @@ v0.16.0之前的版本，如果视频嵌套在iframe中，需要填写iframe的�
 基本上，如果希望匹扩展在`https://www.example.com`上生效，那么模式填写 `https://www.example.com/*` 或者 `https://*.example.com/*` 即可。
 :::
 
-拿B站为例，如果希望扩展在B站上生效，可以使用 `https://www.bilibili.com/*` 这个模式，这个模式可以匹配所有的B站视频网址。
+拿B站举例：
 
-如果填写 `https://www.bilibili.com/`，那么扩展只会在B站首页生效。
-
-如果填写 `https://www.bilibili.com/video/*`，那么扩展只会在视频播放页生效。
-
-如果填写 `https://*.bilibili.com/*`，那么扩展会在所有的B站子域名下生效，包括动态、空间、直播等。
+| 模式                           | 可以匹配的网址                                                                                                                                                | 说明                                   |
+|------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------|
+| `https://www.bilibili.com/`  | `https://www.bilibili.com/`                                                                                                                            | 仅匹配B站首页                              |
+| `https://www.bilibili.com/*` | `https://www.bilibili.com/` <br></br> `https://www.bilibili.com/video/BV1FrCqYXEas`                                                                    | 匹配所有`https://www.bilibili.com/`开头的网址 |
+| `https://*.bilibili.com/*`   | `https://www.bilibili.com/` <br></br> `https://space.bilibili.com/114514` <br></br> `https://live.bilibili.com/35` <br></br> `https://t.bilibili.com/` | 匹配所有B站子域名，包括动态、空间、直播等                |
 
 其他例子：
 - ip地址：`http://10.0.0.1/*`
@@ -55,20 +55,11 @@ v0.16.0之前的版本，如果视频嵌套在iframe中，需要填写iframe的�
 - 任意端口：`http://10.0.0.1:*/*`
 - 本地服务器：`http://localhost/*`
 - 本地`mp4`文件（注意三斜杠）：`file:///*.mp4`
+- 相当于可以把浏览器当作弹幕播放器用
 - 任意HTTPS地址：`https://*/*`
 
 :::note
 模式结尾必须包含 `/`，比如 `/`、`/*`、`/abc`，否则会提示格式错误。
-
-如果存在端口号，需要在模式中指定，比如`http://localhost:8080/*`或`http://localhost:*/*`。
 :::
 
 单个装填配置可以填写多个模式。
-
-### `iframe`
-
-有一个特殊情况是视频元素在 `iframe` 中，这种情况下需要填写 `iframe` 的地址，而不是网页本身的地址。
-
-`iframe` 的地址可以通过使用浏览器的开发者工具查看 `iframe` 元素的 `src` 属性获得。
-
-原因见[工作原理](/docs/limitations#iframe)。
