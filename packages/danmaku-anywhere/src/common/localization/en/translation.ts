@@ -267,7 +267,6 @@ const pages = {
     },
     pages: {
       danmakuSource: 'Danmaku Source',
-      permissions: 'Permissions',
       theme: 'UI Theme',
       hotkeys: 'Hotkeys',
     },

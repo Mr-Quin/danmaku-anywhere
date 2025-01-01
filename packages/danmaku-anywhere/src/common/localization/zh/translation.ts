@@ -264,7 +264,6 @@ const pages = {
     },
     pages: {
       danmakuSource: '弹幕来源',
-      permissions: '权限设置',
       theme: 'UI主题',
       hotkeys: '快捷键',
     },
