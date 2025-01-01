@@ -4,9 +4,9 @@ import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { CustomDanmakuCreateData } from '@/common/danmaku/dto'
-import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
 import type { ImportParseResult } from '@/common/danmaku/types'
 import { Logger } from '@/common/Logger'
+import { danmakuQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ImportResultDialog } from '@/popup/pages/danmaku/pages/ImportPage/components/ImportResultDialog'
 
@@ -25,7 +25,7 @@ export const ImportCustomDanmaku = ({
   const toast = useToast.use.toast()
 
   const { mutate: handleUpload, isPending: isUploading } = useMutation({
-    mutationKey: danmakuKeys.all(),
+    mutationKey: danmakuQueryKeys.all(),
     mutationFn: async () => {
       if (!data) return
 

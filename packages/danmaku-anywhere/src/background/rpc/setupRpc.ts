@@ -154,6 +154,20 @@ export const setupRpc = () => {
 
       await injectVideoScript(tabId, frameId)
     },
+    getActiveTabUrl: async () => {
+      const tabs = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      })
+
+      const activeTab = tabs[0]
+
+      if (!activeTab) {
+        throw new RpcException('No active tab found')
+      }
+
+      return activeTab.url!
+    },
   })
 
   const passThrough = <TRPCDef extends AnyRPCDef>(

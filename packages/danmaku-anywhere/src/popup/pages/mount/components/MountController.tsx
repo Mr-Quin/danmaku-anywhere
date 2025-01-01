@@ -8,6 +8,7 @@ import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSele
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { Logger } from '@/common/Logger'
+import { controlQueryKeys } from '@/common/queries/queryKeys'
 import { tabRpcClient } from '@/common/rpcClient/tab/client'
 import { useSessionState } from '@/common/storage/hooks/useSessionState'
 import { useMountDanmakuPopup } from '@/popup/hooks/useMountDanmakuPopup'
@@ -20,12 +21,7 @@ export const MountController = () => {
   )
 
   const tabDanmakuState = useQuery({
-    queryKey: [
-      {
-        scope: 'tab',
-        kind: 'danmakuState',
-      },
-    ],
+    queryKey: controlQueryKeys.allFrames(),
     queryFn: () => tabRpcClient.danmakuGetState(),
     select: (res) => res.data,
     retry: false,

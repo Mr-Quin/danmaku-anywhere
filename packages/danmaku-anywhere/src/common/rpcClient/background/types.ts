@@ -76,6 +76,7 @@ type DanmakuMethods = {
 }
 
 type ControlMethods = {
+  getActiveTabUrl: RPCDef<void, string>
   getFrameId: RPCDef<void, number>
   getAllFrames: RPCDef<void, chrome.webNavigation.GetAllFrameResultDetails[]>
   injectScript: RPCDef<number, void>

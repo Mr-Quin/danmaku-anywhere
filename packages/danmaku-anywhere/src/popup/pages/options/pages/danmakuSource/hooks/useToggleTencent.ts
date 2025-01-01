@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
+import { sourceQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 export const useToggleTencent = () => {
@@ -9,7 +10,7 @@ export const useToggleTencent = () => {
   const query = useQuery({
     queryFn: () => chromeRpcClient.tencentTestCookies(),
     select: (res) => res.data,
-    queryKey: ['tencent', 'testCookies'],
+    queryKey: sourceQueryKeys.tencent(),
     refetchOnWindowFocus: false,
   })
 

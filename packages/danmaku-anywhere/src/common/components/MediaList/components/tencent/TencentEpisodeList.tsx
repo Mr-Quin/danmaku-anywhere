@@ -4,11 +4,10 @@ import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
 import type { TencentMediaSearchResult } from '@/common/anime/dto'
-import { mediaKeys } from '@/common/anime/queries/mediaQueryKeys'
 import { ListItemSkeleton } from '@/common/components/MediaList/components/ListItemSkeleton'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
+import { danmakuQueryKeys, mediaQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 interface TencentEpisodeListItemProps {
@@ -21,7 +20,7 @@ export const TencentEpisodeList = ({
   renderEpisode,
 }: TencentEpisodeListItemProps) => {
   const { data: episodes } = useSuspenseQuery({
-    queryKey: mediaKeys.episodes(DanmakuSourceType.Tencent, season.doc.id),
+    queryKey: mediaQueryKeys.episodes(DanmakuSourceType.Tencent, season.doc.id),
     queryFn: async () => {
       return chromeRpcClient.episodesGetTencent(season.doc.id)
     },
@@ -37,7 +36,7 @@ export const TencentEpisodeList = ({
         episodeId: episode.vid,
       }
       return {
-        queryKey: danmakuKeys.one(params),
+        queryKey: danmakuQueryKeys.one(params),
         queryFn: async () => {
           const res = await chromeRpcClient.danmakuGetOneLite(params)
           return res.data

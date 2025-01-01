@@ -4,11 +4,10 @@ import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
 import type { BilibiliSeason } from '@/common/anime/dto'
-import { mediaKeys } from '@/common/anime/queries/mediaQueryKeys'
 import { ListItemSkeleton } from '@/common/components/MediaList/components/ListItemSkeleton'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
+import { danmakuQueryKeys, mediaQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 interface BilibiliSeasonsListItemProps {
@@ -21,7 +20,10 @@ export const BilibiliEpisodeList = ({
   renderEpisode,
 }: BilibiliSeasonsListItemProps) => {
   const { data: episodes } = useSuspenseQuery({
-    queryKey: mediaKeys.episodes(DanmakuSourceType.Bilibili, season.season_id),
+    queryKey: mediaQueryKeys.episodes(
+      DanmakuSourceType.Bilibili,
+      season.season_id
+    ),
     queryFn: async () => {
       return chromeRpcClient.episodesGetBilibili(season.season_id)
     },
@@ -37,7 +39,7 @@ export const BilibiliEpisodeList = ({
         episodeId: episode.cid,
       }
       return {
-        queryKey: danmakuKeys.one(params),
+        queryKey: danmakuQueryKeys.one(params),
         queryFn: async () => {
           const res = await chromeRpcClient.danmakuGetOneLite(params)
           return res.data

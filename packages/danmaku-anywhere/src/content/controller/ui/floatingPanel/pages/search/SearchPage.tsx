@@ -22,11 +22,11 @@ import { useTranslation } from 'react-i18next'
 
 import { EpisodeListItem } from './EpisodeListItem'
 
-import { mediaKeys } from '@/common/anime/queries/mediaQueryKeys'
 import { Center } from '@/common/components/Center'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { SearchResultList } from '@/common/components/MediaList/SearchResultList'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
+import { mediaQueryKeys } from '@/common/queries/queryKeys'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
@@ -48,7 +48,7 @@ export const SearchPage = () => {
 
   const isSearching =
     useIsFetching({
-      queryKey: mediaKeys.search(),
+      queryKey: mediaQueryKeys.search(),
     }) > 0
 
   useEffect(() => {

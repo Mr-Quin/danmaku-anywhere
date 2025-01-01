@@ -9,9 +9,9 @@ import {
   localizedDanmakuSourceType,
 } from '@/common/danmaku/enums'
 import type { DanmakuInsert } from '@/common/danmaku/models/danmaku'
-import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
 import type { ImportParseResult } from '@/common/danmaku/types'
 import { Logger } from '@/common/Logger'
+import { danmakuQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ImportResultDialog } from '@/popup/pages/danmaku/pages/ImportPage/components/ImportResultDialog'
 
@@ -47,7 +47,7 @@ export const ImportExportedDanmaku = ({
   const toast = useToast.use.toast()
 
   const { mutate: handleUpload, isPending: isUploading } = useMutation({
-    mutationKey: danmakuKeys.all(),
+    mutationKey: danmakuQueryKeys.all(),
     mutationFn: async () => {
       if (!data) return
 
