@@ -15,7 +15,6 @@ import { DanmakuSource } from '../pages/options/pages/danmakuSource/DanmakuSourc
 import { BilibiliOptions } from '../pages/options/pages/danmakuSource/pages/BilibiliOptions'
 import { DanDanPlayOptions } from '../pages/options/pages/danmakuSource/pages/DanDanPlayOptions'
 import { HotkeyOptions } from '../pages/options/pages/hotkeyOptions/HotkeyOptions'
-import { Permissions } from '../pages/options/pages/Permissions'
 import { ThemeOptions } from '../pages/options/pages/theme/ThemeOptions'
 import { SearchPage } from '../pages/search/SearchPage'
 import { FilterPage } from '../pages/styles/FilterPage'
@@ -108,10 +107,6 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
     path: '/options',
     Component: Options,
     children: [
-      {
-        path: 'permissions',
-        Component: Permissions,
-      },
       {
         path: 'danmaku-source',
         Component: DanmakuSource,
