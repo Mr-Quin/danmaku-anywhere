@@ -12,7 +12,6 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
-import { mediaKeys } from '@/common/anime/queries/mediaQueryKeys'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
 import {
@@ -21,6 +20,7 @@ import {
 } from '@/common/danmaku/enums'
 import type { DanmakuMeta } from '@/common/danmaku/models/meta'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
+import { mediaQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 const validateUrl = (value: string) => {
@@ -108,7 +108,7 @@ export const ParseTab = () => {
 
   const query = useQuery({
     enabled: false,
-    queryKey: mediaKeys.parseUrl(getValues().url),
+    queryKey: mediaQueryKeys.parseUrl(getValues().url),
     retry: false,
     queryFn: async () => {
       return chromeRpcClient.mediaParseUrl({ url: getValues().url })

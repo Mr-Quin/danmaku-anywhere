@@ -6,7 +6,7 @@ import './index.css'
 
 import { App } from './App'
 
-import { queryClient } from '@/common/queryClient'
+import { queryClient } from '@/common/queries/queryClient'
 import { Theme } from '@/common/theme/Theme'
 import '@/common/localization/i18n'
 

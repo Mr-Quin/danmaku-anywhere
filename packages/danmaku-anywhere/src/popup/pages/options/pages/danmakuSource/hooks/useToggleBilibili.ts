@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
+import { sourceQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 export const useToggleBilibili = () => {
@@ -13,7 +14,7 @@ export const useToggleBilibili = () => {
   const query = useQuery({
     queryFn: () => chromeRpcClient.bilibiliGetLoginStatus(),
     select: (res) => res.data,
-    queryKey: ['bilibili', 'loginStatus'],
+    queryKey: sourceQueryKeys.bilibili(),
     enabled: enabledSources.some((s) => s.key === 'bilibili'),
     staleTime: Infinity,
     refetchOnWindowFocus: false,

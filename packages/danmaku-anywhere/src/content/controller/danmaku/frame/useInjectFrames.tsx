@@ -2,6 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 
 import { Logger } from '@/common/Logger'
+import { controlQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useStore } from '@/content/controller/store/store'
 
@@ -17,12 +18,7 @@ export const useInjectFrames = () => {
       // Suppress logs for getAllFrames since it's called repeatedly
       return chromeRpcClient.getAllFrames(undefined, { silent: true })
     },
-    queryKey: [
-      {
-        scope: 'control',
-        kind: 'getAllFrames',
-      },
-    ],
+    queryKey: controlQueryKeys.allFrames(),
     select: (res) => {
       return res.data.filter((frame) => {
         return !urlBlacklist.includes(frame.url)

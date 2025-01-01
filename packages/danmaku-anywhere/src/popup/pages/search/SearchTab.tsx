@@ -10,13 +10,13 @@ import { useTranslation } from 'react-i18next'
 
 import { SearchForm } from './components/SearchForm'
 
-import { mediaKeys } from '@/common/anime/queries/mediaQueryKeys'
 import { Center } from '@/common/components/Center'
 import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
 import { SearchResultList } from '@/common/components/MediaList/SearchResultList'
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
+import { mediaQueryKeys } from '@/common/queries/queryKeys'
 import { useStore } from '@/popup/store'
 
 export const SearchTab = () => {
@@ -47,7 +47,7 @@ export const SearchTab = () => {
 
   const isSearching =
     useIsFetching({
-      queryKey: mediaKeys.search(),
+      queryKey: mediaQueryKeys.search(),
     }) > 0
 
   useEffect(() => {

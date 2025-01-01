@@ -4,11 +4,10 @@ import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
 import type { DanDanPlaySeason } from '@/common/anime/dto'
-import { mediaKeys } from '@/common/anime/queries/mediaQueryKeys'
 import { ListItemSkeleton } from '@/common/components/MediaList/components/ListItemSkeleton'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
+import { danmakuQueryKeys, mediaQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 interface DandanPlaySeasonsListItemProps {
@@ -21,7 +20,10 @@ export const DandanPlayEpisodeList = ({
   renderEpisode,
 }: DandanPlaySeasonsListItemProps) => {
   const { data: episodes } = useSuspenseQuery({
-    queryKey: mediaKeys.episodes(DanmakuSourceType.DanDanPlay, season.animeId),
+    queryKey: mediaQueryKeys.episodes(
+      DanmakuSourceType.DanDanPlay,
+      season.animeId
+    ),
     queryFn: async () => {
       return season.episodes
     },
@@ -36,7 +38,7 @@ export const DandanPlayEpisodeList = ({
         episodeId: episode.episodeId,
       }
       return {
-        queryKey: danmakuKeys.one(params),
+        queryKey: danmakuQueryKeys.one(params),
         queryFn: async () => {
           const res = await chromeRpcClient.danmakuGetOneLite(params)
           return res.data

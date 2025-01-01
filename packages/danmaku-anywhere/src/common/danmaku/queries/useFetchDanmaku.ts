@@ -3,7 +3,7 @@ import { match } from 'ts-pattern'
 
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
+import { danmakuQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 /**
@@ -14,7 +14,7 @@ import { chromeRpcClient } from '@/common/rpcClient/background/client'
  */
 export const useFetchDanmaku = () => {
   const mutation = useMutation({
-    mutationKey: danmakuKeys.all(),
+    mutationKey: danmakuQueryKeys.all(),
     mutationFn: async (data: DanmakuFetchDto) => {
       const res = await match(data)
         .with(

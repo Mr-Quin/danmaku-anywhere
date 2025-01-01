@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuDeleteDto } from '@/common/danmaku/dto'
-import { danmakuKeys } from '@/common/danmaku/queries/danmakuQueryKeys'
+import { danmakuQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 export const useDeleteDanmaku = () => {
@@ -11,7 +11,7 @@ export const useDeleteDanmaku = () => {
   const toast = useToast.use.toast()
 
   return useMutation({
-    mutationKey: danmakuKeys.all(),
+    mutationKey: danmakuQueryKeys.all(),
     mutationFn: async (danmakuId: DanmakuDeleteDto) => {
       await chromeRpcClient.danmakuDelete(danmakuId)
     },
