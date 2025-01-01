@@ -26,6 +26,7 @@ export const Toast = (props: SnackbarProps) => {
       TransitionProps={{
         onExited: unsetAction,
       }}
+      disableWindowBlurListener
       {...props}
     >
       <Alert
