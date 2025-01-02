@@ -3,10 +3,10 @@ import { useEffect } from 'react'
 
 import { Logger } from '@/common/Logger'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
-import { useMatchMountConfig } from '@/common/options/mountConfig/useMatchMountConfig'
+import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 
 export const LoadInitialData = ({ children }: PropsWithChildren) => {
-  const config = useMatchMountConfig(window.location.href)
+  const config = useActiveConfig()
   const { data: options } = useExtensionOptions()
 
   useEffect(() => {

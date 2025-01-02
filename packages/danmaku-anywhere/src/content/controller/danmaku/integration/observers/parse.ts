@@ -76,7 +76,7 @@ export const parseMediaFromTitle = (
 
       if (match === null) {
         errors.push(
-          `Error parsing media from title.\nRegex ${reg} does not match text \`${title}\``
+          `Error parsing media from title.\nRegex \`${reg}\` does not match text \`${title}\``
         )
         continue
       }
@@ -89,21 +89,21 @@ export const parseMediaFromTitle = (
       // Title must be present
       if (!titleText) {
         errors.push(
-          `Matched \`${match}\` in \`${title}\` using ${reg}, but no title is found`
+          `Matched \`${match}\` in \`${title}\` using \`${reg}\`, but the title is not found. Did you forget to name the capture group?`
         )
         continue
       }
 
       // If the episode is not present, assume this is non-episodic
       if (!episode) {
-        return new MediaInfo(titleText, 1, season, false, episodeTitle ?? title)
+        return new MediaInfo(titleText, 1, season, false, episodeTitle)
       }
 
       const episodeNumber = parseInt(episode)
 
       if (isNaN(episodeNumber)) {
         errors.push(
-          `Matched \`${match}\` in \`${title}\` using ${reg}, but parsing episode as number resulted in NaN`
+          `Matched \`${match}\` in \`${title}\` using ${reg}, but parsing episode number resulted in NaN`
         )
         continue
       }

@@ -4,7 +4,7 @@ import { useShallow } from 'zustand/react/shallow'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import { Logger } from '@/common/Logger'
-import { useActiveIntegration } from '@/common/options/integrationPolicyStore/useActiveIntegration'
+import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import { IntegrationPolicyObserver } from '@/content/controller/danmaku/integration/observers/IntegrationPolicyObserver'
@@ -17,8 +17,12 @@ export const useIntegrationPolicy = () => {
 
   const observer = useRef<IntegrationPolicyObserver>(undefined)
 
-  const { setMediaInfo, resetMediaState, toggleManualMode, manual, hasVideo } =
-    useStore(useShallow((state) => state))
+  const { resetMediaState, toggleManualMode, manual, hasVideo } = useStore(
+    useShallow((state) => state)
+  )
+
+  const { setMediaInfo, setErrorMessage, setActive, setFoundElements } =
+    useStore.use.integration()
 
   const matchEpisode = useMatchEpisode()
   const integrationPolicy = useActiveIntegration()
@@ -51,11 +55,12 @@ export const useIntegrationPolicy = () => {
 
     const obs = new IntegrationPolicyObserver(integrationPolicy.policy)
     observer.current = obs
-
+    setActive(true)
     obs.on({
       mediaChange: async (state: MediaInfo) => {
         resetMediaState()
         setMediaInfo(state)
+        setErrorMessage()
 
         const episodeMatchPayload = {
           mapKey: state.key(),
@@ -66,6 +71,13 @@ export const useIntegrationPolicy = () => {
         toast.info(t('integration.alert.search', { title: state.toString() }))
         matchEpisode.mutate(episodeMatchPayload)
       },
+      mediaElementsChange: () => {
+        setFoundElements(true)
+      },
+      error: (error: Error) => {
+        toast.error(error.message)
+        setErrorMessage(error.message)
+      },
     })
 
     obs.setup()
@@ -73,6 +85,7 @@ export const useIntegrationPolicy = () => {
     return () => {
       obs.destroy()
       observer.current = undefined
+      setActive(false)
     }
   }, [integrationPolicy, manual, hasVideo])
 }

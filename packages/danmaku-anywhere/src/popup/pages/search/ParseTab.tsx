@@ -201,13 +201,13 @@ export const ParseTab = () => {
               {t('searchPage.parse.parseResult')}
             </Typography>
             <Typography variant="caption" gutterBottom>
-              {t('searchPage.parse.seasonTitle')}
+              {t('anime.title')}
             </Typography>
             <Typography gutterBottom>
               {normalizeMetaName(query.data).seasonTitle}
             </Typography>
             <Typography variant="caption" gutterBottom>
-              {t('searchPage.parse.episodeTitle')}
+              {t('anime.episodeTitle')}
             </Typography>
             <Typography>
               {normalizeMetaName(query.data).episodeTitle}

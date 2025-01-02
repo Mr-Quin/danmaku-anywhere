@@ -1,6 +1,6 @@
 import type {
   IntegrationPolicy,
-  IntegrationPolicyItem,
+  Integration,
 } from '@/common/options/integrationPolicyStore/schema'
 import { getRandomUUID } from '@/common/utils/utils'
 
@@ -37,7 +37,7 @@ const plexPolicy = {
   } satisfies IntegrationPolicy,
 }
 
-export const defaultXPathPolicies: IntegrationPolicyItem[] = [
+export const defaultXPathPolicies: Integration[] = [
   {
     ...plexPolicy,
     id: getRandomUUID(),

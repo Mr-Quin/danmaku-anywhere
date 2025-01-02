@@ -35,7 +35,7 @@ export const SearchPage = () => {
   const { t } = useTranslation()
   const { searchTitle, saveMapping, setSearchTitle, setSaveMapping } =
     usePopup()
-  const mediaInfo = useStore((state) => state.mediaInfo)
+  const { mediaInfo } = useStore.use.integration()
 
   const { enabledProviders } = useDanmakuSources()
 

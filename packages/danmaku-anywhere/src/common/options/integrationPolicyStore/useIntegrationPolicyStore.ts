@@ -1,24 +1,24 @@
 import { produce } from 'immer'
 import { useMemo } from 'react'
 
-import type { IntegrationPolicyItem } from '@/common/options/integrationPolicyStore/schema'
+import type {
+  Integration,
+  IntegrationInput,
+} from '@/common/options/integrationPolicyStore/schema'
 import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import type { Options } from '@/common/options/OptionsService/types'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
-import { createDownload } from '@/common/utils/utils'
+import { createDownload, getRandomUUID } from '@/common/utils/utils'
 
 export const useIntegrationPolicyStore = () => {
   const {
     data,
     update: updateMutation,
     ...rest
-  } = useSuspenseExtStorageQuery<Options<IntegrationPolicyItem[]>>(
-    'xpathPolicy',
-    {
-      storageType: 'local',
-    }
-  )
-  const { unsetIntegration } = useMountConfig()
+  } = useSuspenseExtStorageQuery<Options<Integration[]>>('xpathPolicy', {
+    storageType: 'local',
+  })
+  const { unsetIntegration, setIntegration } = useMountConfig()
 
   const methods = useMemo(() => {
     const get = (id: string) => {
@@ -27,10 +27,7 @@ export const useIntegrationPolicyStore = () => {
       return policies.find((item) => item.id === id)
     }
 
-    const update = async (
-      id: string,
-      config: Partial<IntegrationPolicyItem>
-    ) => {
+    const update = async (id: string, config: Partial<IntegrationInput>) => {
       const { data: policies, version } = data
 
       const prevPolicy = policies.find((item) => item.id === id)
@@ -49,13 +46,16 @@ export const useIntegrationPolicyStore = () => {
       await updateMutation.mutateAsync({ data: newData, version })
     }
 
-    const add = async (config: IntegrationPolicyItem) => {
+    // Create a new integration and associate it with a mount config
+    const add = async (config: IntegrationInput, mountConfigId: string) => {
       const { data: policy, version } = data
 
+      const id = getRandomUUID()
       await updateMutation.mutateAsync({
-        data: [...policy, config],
+        data: [...policy, { ...config, id }],
         version,
       })
+      await setIntegration(mountConfigId, id)
     }
 
     const remove = async (id: string) => {
@@ -89,9 +89,9 @@ export const useIntegrationPolicyStore = () => {
       remove,
       exportAll,
     }
-  }, [data, updateMutation.mutateAsync, unsetIntegration])
+  }, [data, updateMutation.mutateAsync, unsetIntegration, setIntegration])
 
-  const policies: IntegrationPolicyItem[] = data.data
+  const policies: Integration[] = data.data
 
   return {
     ...rest,

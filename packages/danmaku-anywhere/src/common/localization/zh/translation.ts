@@ -42,6 +42,8 @@ const domain = {
     'episode.select': '选择剧集',
     episodeCounted_one: '{{count}}集',
     episodeCounted_other: '{{count}}集',
+    season: '季',
+    episodeTitle: '集标题',
     name: '番剧',
     title: '标题',
   },
@@ -78,7 +80,7 @@ const domain = {
     enable: '显示弹幕',
     error: {
       containerNotFound: '未找到弹幕容器',
-      videoNotFound: '未找到视频元素',
+      videoNotFound: '未找到视频节点',
       nextEpisodeNotFound: '未找到下一集',
     },
     tooltip: {
@@ -133,13 +135,13 @@ const pages = {
   configPage: {
     editor: {
       helper: {
-        mediaQuery: '用来选择视频元素, 一般为“video”',
+        mediaQuery: '用来选择视频节点, 一般为“video”',
         integration:
           '启用对应的适配配置。如果你不清楚这是什么，请保持默认设置“无”',
         urlPattern:
           '用来匹配视频页面，一般为视频网站的网址。格式：https://example.com/*。如果视频处于iframe中，此处需iframe的地址',
       },
-      mediaQuery: '视频元素',
+      mediaQuery: '视频节点',
       name: '名称',
       pattern: '模式',
       'pattern.add': '添加模式',
@@ -153,10 +155,16 @@ const pages = {
   },
   integrationPolicyPage: {
     name: '适配配置',
+    noIntegration: '当前页面没有可用的适配配置',
+    hasIntegration: '当前页面已启用适配配置："{{name}}"',
+    create: '添加适配配置',
+    edit: '编辑{{name}}',
+    parseComplete: '解析完成',
+    nodesFound: '找到节点',
+    integrationActive: '运行中',
+    integrationInactive: '未运行',
     editor: {
       name: '名称',
-      switchToJSON: '切换到JSON',
-      switchToForm: '切换到表单',
       titleSection: '匹配标题',
       titleSelector: '标题XPath',
       titleRegex: '标题Regex',
@@ -172,12 +180,8 @@ const pages = {
       episodeTitleRegex: '单集标题Regex',
       helper: {
         titleOnly:
-          '勾选后，只使用标题元素匹配番剧。适用与标题包含番剧全部信息的情况，例如标题为文件名。如果番剧信息分散在不同的元素中，请取消勾选。',
+          '勾选后，只使用标题节点匹配番剧。适用与标题包含番剧全部信息的情况，例如标题为文件名。如果番剧信息分散在不同的节点中，请取消勾选。',
         testDisabled: '只能在存在装填配置的页面使用',
-      },
-      title: {
-        create: '添加适配配置',
-        edit: '编辑{{name}}',
       },
     },
   },
@@ -274,8 +278,6 @@ const pages = {
       parse: '解析',
       videoUrl: '视频链接',
       parseResult: '解析结果',
-      seasonTitle: '剧标题',
-      episodeTitle: '集标题',
       import: '获取弹幕',
       tooltip: {
         videoUrl:

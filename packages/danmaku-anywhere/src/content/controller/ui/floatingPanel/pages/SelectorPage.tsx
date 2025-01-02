@@ -33,7 +33,7 @@ export const SelectorPage = () => {
   const { t } = useTranslation()
   const selectorBoxRef = useRef<HTMLDivElement>(undefined)
   const { animes, saveMapping, setSaveMapping, toggleOpen } = usePopup()
-  const mediaInfo = useStore((state) => state.mediaInfo)
+  const { mediaInfo } = useStore.use.integration()
 
   const [selectedAnime, setSelectedAnime] = useState<DanDanAnime>()
   const [selectedEpisode, setSelectedEpisode] = useState<DanDanEpisode>()

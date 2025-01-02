@@ -3,14 +3,8 @@ import { useEffect } from 'react'
 
 import { useManualDanmaku } from './useManualDanmaku'
 
-import { Logger } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
-import type {
-  IntegrationPolicyTestResult,
-  TabMethods,
-} from '@/common/rpcClient/tab/types'
-import { getFirstElement, tryCatchSync } from '@/common/utils/utils'
-import { parseMediaInfo } from '@/content/controller/danmaku/integration/observers/IntegrationPolicyObserver'
+import type { TabMethods } from '@/common/rpcClient/tab/types'
 import { useStore } from '@/content/controller/store/store'
 
 export const useTabRpcServer = () => {
@@ -35,54 +29,6 @@ export const useTabRpcServer = () => {
       },
       danmakuGetState: async () => {
         return handleGetDanmakuState() ?? null
-      },
-      integrationPolicyTest: async ({ policy }) => {
-        const titleElement = getFirstElement(policy.title.selector)
-        const episodeElement = getFirstElement(policy.episode.selector)
-        const seasonElement = getFirstElement(policy.season.selector)
-        const episodeTitleElement = getFirstElement(
-          policy.episodeTitle.selector
-        )
-
-        Logger.debug({
-          titleElement,
-          episodeElement,
-          seasonElement,
-          episodeTitleElement,
-        })
-
-        const title = titleElement?.textContent ?? null
-        const episode = episodeElement?.textContent ?? null
-        const season = seasonElement?.textContent ?? null
-        const episodeTitle = episodeTitleElement?.textContent ?? null
-
-        const [mediaInfo, parseErr] = tryCatchSync(() =>
-          parseMediaInfo(
-            {
-              title,
-              episode,
-              season,
-              episodeTitle: episodeTitle,
-            },
-            policy
-          )
-        )
-
-        if (parseErr) {
-          return {
-            error: true,
-            message: parseErr.message,
-          } satisfies IntegrationPolicyTestResult
-        }
-
-        return {
-          error: false,
-          foundTitle: titleElement !== null,
-          foundEpisode: episodeElement !== null,
-          foundSeason: seasonElement !== null,
-          foundEpisodeTitle: episodeTitleElement !== null,
-          mediaInfo: mediaInfo,
-        } satisfies IntegrationPolicyTestResult
       },
     })
 

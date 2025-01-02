@@ -22,15 +22,6 @@ export const danmakuQueryKeys = {
   one: (params: DanmakuGetOneDto) => [{ scope: 'danmaku', ...params }] as const,
 }
 
-export const tabQueryKeys = {
-  isConnected: () => [
-    {
-      scope: 'tab',
-      kind: 'ping',
-    },
-  ],
-}
-
 export const controlQueryKeys = {
   activeTab: () => [
     {
