@@ -1,6 +1,8 @@
 import type { DanDanAnime } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { create } from 'zustand'
 
+import { createSelectors } from '@/common/utils/createSelectors'
+
 export enum PopupTab {
   Debug = 'debug',
   Search = 'search',
@@ -8,6 +10,7 @@ export enum PopupTab {
   Comments = 'comments',
   Mount = 'mount',
   Styles = 'styles',
+  Policy = 'policy',
 }
 
 interface PopupStoreState {
@@ -26,9 +29,12 @@ interface PopupStoreState {
 
   saveMapping: boolean
   setSaveMapping: (saving: boolean) => void
+
+  highlighterPortal: HTMLElement | null
+  setHighlighterPortal: (portal: HTMLElement) => void
 }
 
-export const usePopup = create<PopupStoreState>((set, get) => ({
+const usePopupStoreBase = create<PopupStoreState>((set, get) => ({
   isOpen: false,
   toggleOpen: (open) => {
     const nextOpen = open ?? !get().isOpen
@@ -59,4 +65,11 @@ export const usePopup = create<PopupStoreState>((set, get) => ({
   setSaveMapping: (saving) => {
     set({ saveMapping: saving })
   },
+
+  highlighterPortal: null,
+  setHighlighterPortal: (portal) => {
+    set({ highlighterPortal: portal })
+  },
 }))
+
+export const usePopup = createSelectors(usePopupStoreBase)

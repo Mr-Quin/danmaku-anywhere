@@ -40,6 +40,8 @@ const domain = {
     'episode.select': 'Select Episode',
     episodeCounted_one: '{{count}} episode',
     episodeCounted_other: '{{count}} episodes',
+    season: 'Season',
+    episodeTitle: 'Episode Title',
     name: 'Anime',
     title: 'Title',
   },
@@ -76,7 +78,7 @@ const domain = {
     enable: 'Show Danmaku',
     error: {
       containerNotFound: 'Danmaku container not found',
-      videoNotFound: 'Video element not found',
+      videoNotFound: 'Video node not found',
       nextEpisodeNotFound: 'Next episode not found',
     },
     tooltip: {
@@ -132,13 +134,13 @@ const pages = {
   configPage: {
     editor: {
       helper: {
-        mediaQuery: 'CSS selector for the video element, normally "video"',
+        mediaQuery: 'CSS selector for the video node, normally "video"',
         integration:
           'Enables the selected Integration Policy for this configuration. If you are not sure, leave it as None.',
         urlPattern:
           'URL pattern to match the page. Format: https://example.com/*. If the video is in an iframe, use the iframe URL here.',
       },
-      mediaQuery: 'Video Element',
+      mediaQuery: 'Video Node',
       name: 'Name',
       pattern: 'Pattern',
       'pattern.add': 'Add Pattern',
@@ -152,10 +154,16 @@ const pages = {
   },
   integrationPolicyPage: {
     name: 'Integration Policy',
+    noIntegration: 'No integration policy available for this page',
+    hasIntegration: 'Using Integration: "{{name}}"',
+    create: 'Add Integration Policy',
+    edit: 'Edit {{name}}',
+    parseComplete: 'Parse Complete',
+    nodesFound: 'Nodes Found',
+    integrationActive: 'Active',
+    integrationInactive: 'Inactive',
     editor: {
       name: 'Name',
-      switchToJSON: 'Switch to JSON',
-      switchToForm: 'Switch to Form',
       titleSection: 'Select Title',
       titleSelector: 'Title XPath',
       titleRegex: 'Title Regex',
@@ -171,12 +179,8 @@ const pages = {
       episodeTitleRegex: 'Episode Title Regex',
       helper: {
         titleOnly:
-          "If checked, only the title element will be used to match the show. Useful if all information is contained in the title, e.g. if the title is the file name. Uncheck if the show's information is spread across different elements.",
+          "If checked, only the title node will be used to match the show. Useful if all information is contained in the title, e.g. if the title is the file name. Uncheck if the show's information is spread across different nodes.",
         testDisabled: 'Can only be used on pages with a Mount Config',
-      },
-      title: {
-        create: 'Add Integration Policy',
-        edit: 'Edit {{name}}',
       },
     },
   },
@@ -277,8 +281,6 @@ const pages = {
       parse: 'Parse',
       videoUrl: 'Video URL',
       parseResult: 'Parse Result',
-      seasonTitle: 'Season Title',
-      episodeTitle: 'Episode Title',
       import: 'Import Danmaku',
       tooltip: {
         videoUrl:

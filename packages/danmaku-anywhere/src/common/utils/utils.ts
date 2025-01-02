@@ -3,6 +3,8 @@ import { match as matchPinyin } from 'pinyin-pro'
 
 import type { NotPromise } from '../types/types'
 
+import { Logger } from '@/common/Logger'
+
 export const toArray = <T>(value: T | T[]): T[] => {
   return Array.isArray(value) ? value : [value]
 }
@@ -131,7 +133,24 @@ export const matchWithPinyin = (inputString: string, searchString: string) => {
 }
 
 export const getRandomUUID = () => {
-  return globalThis.crypto.randomUUID()
+  try {
+    return globalThis.crypto.randomUUID()
+  } catch (e) {
+    Logger.warn(
+      'Failed to generate UUID using crypto.randomUUID, falling back to Math.random',
+      e
+    )
+    // fallback to Math.random if crypto.randomUUID is not available
+    const generateUUID = (): string => {
+      const template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+      return template.replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0
+        const v = c === 'x' ? r : (r & 0x3) | 0x8
+        return v.toString(16)
+      })
+    }
+    return generateUUID()
+  }
 }
 
 export const stripHtml = (html: string) => {
@@ -140,16 +159,17 @@ export const stripHtml = (html: string) => {
 }
 
 export const getElementByXpath = (path: string, parent = window.document) => {
-  // Empty string will throw, return null instead
-  if (path === '') return null
-
-  return document.evaluate(
-    path,
-    parent,
-    null,
-    XPathResult.FIRST_ORDERED_NODE_TYPE,
-    null
-  ).singleNodeValue
+  try {
+    return document.evaluate(
+      path,
+      parent,
+      null,
+      XPathResult.FIRST_ORDERED_NODE_TYPE,
+      null
+    ).singleNodeValue
+  } catch {
+    return null
+  }
 }
 
 export const getFirstElement = (

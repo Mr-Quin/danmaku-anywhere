@@ -11,7 +11,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { IntegrationPolicyItem } from '@/common/options/integrationPolicyStore/schema'
+import type { Integration } from '@/common/options/integrationPolicyStore/schema'
 import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
 
 export const ConfirmDeleteDialog = ({
@@ -21,7 +21,7 @@ export const ConfirmDeleteDialog = ({
   onClose,
 }: {
   open: boolean
-  policy: IntegrationPolicyItem
+  policy: Integration
   onDeleted: () => void
   onClose: () => void
 }) => {

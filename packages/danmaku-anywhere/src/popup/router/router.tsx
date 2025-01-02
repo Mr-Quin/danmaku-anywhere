@@ -92,12 +92,8 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
         Component: IntegrationPolicy,
         children: [
           {
-            path: 'add',
-            element: <IntegrationPolicyEditor mode="add" />,
-          },
-          {
             path: 'edit',
-            element: <IntegrationPolicyEditor mode="edit" />,
+            element: <IntegrationPolicyEditor />,
           },
         ],
       },

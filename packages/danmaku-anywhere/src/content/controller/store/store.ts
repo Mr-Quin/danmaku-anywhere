@@ -5,6 +5,7 @@ import { immer } from 'zustand/middleware/immer'
 
 import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { danmakuToString } from '@/common/danmaku/utils'
+import type { IntegrationInput } from '@/common/options/integrationPolicyStore/schema'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { createSelectors } from '@/common/utils/createSelectors'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
@@ -48,8 +49,16 @@ interface StoreState {
   /**
    * Media information for pages with integration
    */
-  mediaInfo?: MediaInfo
-  setMediaInfo: (mediaInfo: MediaInfo) => void
+  integration: {
+    active: boolean
+    setActive: (active: boolean) => void
+    foundElements: boolean
+    setFoundElements: (foundElements: boolean) => void
+    errorMessage?: string
+    setErrorMessage: (errMessage?: string) => void
+    mediaInfo?: MediaInfo
+    setMediaInfo: (mediaInfo: MediaInfo) => void
+  }
 
   /**
    * Whether the danmaku is manually set
@@ -91,6 +100,16 @@ interface StoreState {
       nextState: Partial<FrameState> | ((prev: FrameState) => FrameState)
     ) => void
   }
+
+  /**
+   * Form state
+   */
+  integrationForm: {
+    showEditor: boolean
+    toggleEditor: (show?: boolean) => void
+    data?: IntegrationInput
+    setData: (data?: IntegrationInput) => void
+  }
 }
 
 const useStoreBase = create<StoreState>()(
@@ -131,8 +150,29 @@ const useStoreBase = create<StoreState>()(
       get().toggleManualMode(true)
     },
 
-    mediaInfo: undefined,
-    setMediaInfo: (mediaInfo) => set({ mediaInfo }),
+    integration: {
+      active: false,
+      setActive: (active) =>
+        set((state) => {
+          state.integration.active = active
+        }),
+      foundElements: false,
+      setFoundElements: (foundElements) =>
+        set((state) => {
+          state.integration.foundElements = foundElements
+        }),
+      errorMessage: undefined,
+      setErrorMessage: (errMessage) => {
+        set((state) => {
+          state.integration.errorMessage = errMessage
+        })
+      },
+      mediaInfo: undefined,
+      setMediaInfo: (mediaInfo) =>
+        set((state) => {
+          state.integration.mediaInfo = mediaInfo
+        }),
+    },
 
     danmakuLite: undefined,
     setDanmakuLite: (danmakuLite) => set({ danmakuLite }),
@@ -140,13 +180,16 @@ const useStoreBase = create<StoreState>()(
     resetMediaState: (mediaInfo) => {
       get().unsetComments()
       get().setDanmakuLite(undefined)
-      set({
-        mediaInfo: mediaInfo,
+      set((state) => {
+        state.integration.mediaInfo = mediaInfo
       })
     },
 
     getAnimeName: () => {
-      const { mediaInfo, danmakuLite } = get()
+      const {
+        integration: { mediaInfo },
+        danmakuLite,
+      } = get()
       if (mediaInfo) return mediaInfo.toString()
       if (danmakuLite) {
         return danmakuToString(danmakuLite)
@@ -216,6 +259,26 @@ const useStoreBase = create<StoreState>()(
           } else {
             prev.frame.allFrames.set(frameId, { ...frame, ...nextState })
           }
+        })
+      },
+    },
+    integrationForm: {
+      showEditor: false,
+      toggleEditor: (show) => {
+        if (show !== undefined) {
+          set((state) => {
+            state.integrationForm.showEditor = show
+          })
+        } else {
+          set((state) => {
+            state.integrationForm.showEditor = !state.integrationForm.showEditor
+          })
+        }
+      },
+      data: undefined,
+      setData: (data) => {
+        set((state) => {
+          state.integrationForm.data = data
         })
       },
     },

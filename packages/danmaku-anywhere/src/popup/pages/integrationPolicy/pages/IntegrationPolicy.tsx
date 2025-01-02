@@ -5,25 +5,20 @@ import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog'
 import { IntegrationPolicyList } from '../components/IntegrationPolicyList'
 import { Toolbar } from '../components/Toolbar'
 
-import type { IntegrationPolicyItem } from '@/common/options/integrationPolicyStore/schema'
+import type { Integration } from '@/common/options/integrationPolicyStore/schema'
 import { TabLayout } from '@/popup/layout/TabLayout'
-import { createXPathPolicyItem } from '@/popup/pages/integrationPolicy/createXPathPolicyItem'
 
 export const IntegrationPolicy = () => {
   const navigate = useNavigate()
 
-  const [editingPolicy, setEditingPolicy] = useState<IntegrationPolicyItem>()
+  const [editingPolicy, setEditingPolicy] = useState<Integration>()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
-  const handleEdit = (item: IntegrationPolicyItem) => {
-    navigate('edit', { state: createXPathPolicyItem(item) })
+  const handleEdit = (item: Integration) => {
+    navigate('edit', { state: item })
   }
 
-  const handleAdd = () => {
-    navigate('add', { state: createXPathPolicyItem() })
-  }
-
-  const handleDelete = (item: IntegrationPolicyItem) => {
+  const handleDelete = (item: Integration) => {
     setEditingPolicy(item)
     setShowDeleteDialog(true)
   }
@@ -31,7 +26,7 @@ export const IntegrationPolicy = () => {
   return (
     <>
       <TabLayout>
-        <Toolbar onAdd={handleAdd} />
+        <Toolbar />
         <IntegrationPolicyList onEdit={handleEdit} onDelete={handleDelete} />
         {editingPolicy && (
           <ConfirmDeleteDialog

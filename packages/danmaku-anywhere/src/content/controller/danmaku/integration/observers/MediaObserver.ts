@@ -1,10 +1,18 @@
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 
+export interface MediaElements {
+  title: Node
+  episode: Node | null
+  season: Node | null
+  episodeTitle: Node | null
+}
+
 interface IntegrationHandlers {
   titleChange: (title: string) => void
   seasonChange: (season: number) => void
   episodeChange: (episode: number) => void
   mediaChange: (state: MediaInfo) => void
+  mediaElementsChange: (elements: MediaElements) => void
   error: (err: Error) => void
 }
 

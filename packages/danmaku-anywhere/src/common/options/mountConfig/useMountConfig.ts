@@ -156,6 +156,17 @@ export const useMountConfig = () => {
       await update.mutateAsync({ data: newData, version })
     }
 
+    const setIntegration = async (id: string, integrationId: string) => {
+      const { data: configs, version } = options
+
+      const newData = produce(configs, (draft) => {
+        const index = draft.findIndex((item) => item.id === id)
+        draft[index].integration = integrationId
+      })
+
+      await update.mutateAsync({ data: newData, version })
+    }
+
     return {
       updateConfig,
       addConfig,
@@ -164,6 +175,7 @@ export const useMountConfig = () => {
       exportConfigs,
       importConfigs,
       unsetIntegration,
+      setIntegration,
     }
   }, [options, update.mutateAsync])
 

@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react'
 
-import type { IntegrationPolicyItem } from '@/common/options/integrationPolicyStore/schema'
-import { useActiveIntegration } from '@/common/options/integrationPolicyStore/useActiveIntegration'
+import type { Integration } from '@/common/options/integrationPolicyStore/schema'
+import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 
 interface HasIntegrationProps {
   fallback?: ReactNode
-  children: (integrationPolicy: IntegrationPolicyItem) => ReactNode
+  children: (integrationPolicy: Integration) => ReactNode
 }
 
 export const HasIntegration = ({ children, fallback }: HasIntegrationProps) => {

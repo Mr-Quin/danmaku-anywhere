@@ -2,6 +2,7 @@ import { Logger } from '@/common/Logger'
 import type { IntegrationPolicy } from '@/common/options/integrationPolicyStore/schema'
 import { getFirstElement } from '@/common/utils/utils'
 import { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
+import type { MediaElements } from '@/content/controller/danmaku/integration/observers/MediaObserver'
 import { MediaObserver } from '@/content/controller/danmaku/integration/observers/MediaObserver'
 import {
   parseMediaFromTitle,
@@ -10,18 +11,11 @@ import {
   parseMultipleRegex,
 } from '@/content/controller/danmaku/integration/observers/parse'
 
-interface MediaElements {
-  title: Node
-  episode: Node | null
-  season: Node | null
-  episodeTitle: Node | null
-}
-
 type MediaElementsText = {
   [Key in keyof MediaElements]: string | null
 }
 
-export const parseMediaInfo = (
+const parseMediaInfo = (
   elements: MediaElementsText,
   policy: IntegrationPolicy
 ) => {
@@ -51,7 +45,7 @@ export const parseMediaInfo = (
   // Default to 1 if the element is not present
   let episode = 1
   let episodic = false
-  let episodeTitle = title
+  let episodeTitle: string | undefined = undefined
   let season: string | undefined = undefined
 
   // If the episode element is not present, assume it's a movie or something that doesn't have episodes
@@ -76,14 +70,11 @@ export const parseMediaInfo = (
   }
 
   if (elements.episodeTitle) {
-    const parsedEpisodeTitle = parseMultipleRegex(
+    episodeTitle = parseMultipleRegex(
       parseMediaString,
       elements.episodeTitle,
       policy.episodeTitle.regex
     )
-    if (parsedEpisodeTitle !== undefined) {
-      episodeTitle = parsedEpisodeTitle
-    }
   }
 
   return new MediaInfo(title, episode, season, episodic, episodeTitle)
@@ -206,6 +197,9 @@ export class IntegrationPolicyObserver extends MediaObserver {
           }
         }
       } catch (err) {
+        if (err instanceof Error) {
+          this.emit('error', err)
+        }
         this.logger.debug('Error while discovering title:', err)
       }
     }, 1000)
@@ -227,6 +221,9 @@ export class IntegrationPolicyObserver extends MediaObserver {
       this.mediaInfo = mediaInfo
       this.emit('mediaChange', mediaInfo)
     } catch (err) {
+      if (err instanceof Error) {
+        this.emit('error', err)
+      }
       this.logger.debug('Error while getting media info:', err)
     }
   }
@@ -234,6 +231,7 @@ export class IntegrationPolicyObserver extends MediaObserver {
   private async asyncSetup() {
     this.logger.debug('Discovering elements')
     const elements = await this.discoverElements()
+    this.emit('mediaElementsChange', elements)
     this.logger.debug('Elements discovered, setting up observers')
 
     // Observe each element for text changes

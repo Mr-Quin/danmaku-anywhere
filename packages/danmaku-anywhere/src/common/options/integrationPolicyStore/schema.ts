@@ -1,52 +1,29 @@
 import { z } from 'zod'
 
-import { getElementByXpath, getRandomUUID } from '@/common/utils/utils'
-
-const validateXPath =
-  ({
-    allowEmptyString,
-  }: {
-    allowEmptyString?: boolean
-  } = {}) =>
-  (value: string) => {
-    // Skip validation in non-browser environments since this method relies on document.evaluate
-    if (typeof window !== 'object') return true
-    if (allowEmptyString) {
-      if (value === '') return true
-    }
-
+const regexString = z.string().refine(
+  (v) => {
+    if (v.length === 0) return true
     try {
-      getElementByXpath(value)
+      new RegExp(v)
       return true
     } catch {
       return false
     }
+  },
+  {
+    message: 'Invalid regex string',
   }
-
-const xpathString = z
-  .string()
-  .refine(validateXPath({ allowEmptyString: true }), {
-    message: 'Invalid XPath',
-  })
-
-const nonEmptyXPathString = z.string().min(1).refine(validateXPath(), {
-  message: 'Invalid XPath',
-})
-
-const regexString = z.string()
-
-const xpathArray = z.array(xpathString)
-const regexArray = z.array(regexString)
+)
 
 const matcher = z.object({
-  selector: xpathArray,
-  regex: regexArray,
+  selector: z.array(z.string()),
+  regex: z.array(regexString),
 })
 
 export const integrationPolicySchema = z.object({
   title: z.object({
-    selector: z.array(nonEmptyXPathString).min(1),
-    regex: z.array(z.string().min(1)).min(1),
+    selector: z.array(z.string().min(1)).min(1),
+    regex: z.array(regexString).min(1),
   }),
   titleOnly: z.boolean(),
   episode: matcher,
@@ -56,10 +33,45 @@ export const integrationPolicySchema = z.object({
 
 export type IntegrationPolicy = z.infer<typeof integrationPolicySchema>
 
-export const integrationPolicyItemSchema = z.object({
+export const integrationInputSchema = z.object({
   name: z.string().min(1),
   policy: integrationPolicySchema,
-  id: z.string().uuid().optional().default(getRandomUUID),
+  // Fields from import
+  author: z.string().optional(),
+  hash: z.string().optional(),
 })
 
-export type IntegrationPolicyItem = z.infer<typeof integrationPolicyItemSchema>
+export type IntegrationInput = z.infer<typeof integrationInputSchema>
+
+export type Integration = IntegrationInput & {
+  id: string
+}
+
+export const createIntegrationInput = (
+  policy?: Integration
+): IntegrationInput => {
+  if (policy) return policy
+
+  return {
+    name: '',
+    policy: {
+      title: {
+        selector: [''],
+        regex: [''],
+      },
+      episode: {
+        selector: [''],
+        regex: [''],
+      },
+      season: {
+        selector: [''],
+        regex: [''],
+      },
+      episodeTitle: {
+        selector: [''],
+        regex: [''],
+      },
+      titleOnly: true,
+    },
+  }
+}
