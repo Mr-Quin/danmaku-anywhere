@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router'
 
 import { ConfigToolbar } from '../components/ConfigToolbar'
 import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog'

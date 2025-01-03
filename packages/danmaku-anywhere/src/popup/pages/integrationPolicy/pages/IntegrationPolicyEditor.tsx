@@ -1,7 +1,7 @@
 import { Box, useTheme } from '@mui/material'
 import { useRef } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router'
 
 import type { Integration } from '@/common/options/integrationPolicyStore/schema'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'

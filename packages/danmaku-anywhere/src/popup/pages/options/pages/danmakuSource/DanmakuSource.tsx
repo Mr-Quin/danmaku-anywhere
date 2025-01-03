@@ -1,6 +1,6 @@
 import { List, Typography } from '@mui/material'
 import { Trans, useTranslation } from 'react-i18next'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router'
 
 import { ExternalLink } from '@/common/components/ExternalLink'
 import { localizedDanmakuSourceType } from '@/common/danmaku/enums'

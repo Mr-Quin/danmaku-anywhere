@@ -35,5 +35,5 @@
       "danmaku@2.0.6": "patches/danmaku@2.0.6.patch"
     }
   },
-  "packageManager": "pnpm@9.5.0+sha256.dbdf5961c32909fb030595a9daa1dae720162e658609a8f92f2fa99835510ca5"
+  "packageManager": "pnpm@9.15.2+sha256.022309bb31359142b65bfa889e0406d2eebd5acfffca47e6944acf29d9d6a66b"
 }

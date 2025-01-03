@@ -12,7 +12,7 @@ import {
 } from '@mui/material'
 import type { ChangeEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 import { StyledEnableSwitch } from '@/common/components/StyledEnableSwitch'
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'

@@ -9,7 +9,7 @@ import {
   Stack,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router'
 
 import { OptionsPageLayout } from '../../layout/OptionsPageLayout'
 

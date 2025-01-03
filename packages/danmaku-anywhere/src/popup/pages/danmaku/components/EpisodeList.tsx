@@ -13,11 +13,7 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  createSearchParams,
-  useNavigate,
-  useSearchParams,
-} from 'react-router-dom'
+import { createSearchParams, useNavigate, useSearchParams } from 'react-router'
 
 import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useAllDanmakuSuspense'
 import { useDeleteDanmaku } from '@/common/danmaku/queries/useDeleteDanmaku'
