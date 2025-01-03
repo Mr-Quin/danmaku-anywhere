@@ -1,6 +1,6 @@
 import { Box, ListItemText, MenuItem } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 import { DanmakuStylesForm } from '@/common/components/DanmakuStylesForm'
 import { DrilldownMenu } from '@/popup/component/DrilldownMenu'

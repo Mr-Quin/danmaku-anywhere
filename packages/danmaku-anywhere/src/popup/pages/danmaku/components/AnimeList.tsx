@@ -10,7 +10,7 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { createSearchParams, useNavigate } from 'react-router-dom'
+import { createSearchParams, useNavigate } from 'react-router'
 
 import { NoAnime } from './NoAnime'
 

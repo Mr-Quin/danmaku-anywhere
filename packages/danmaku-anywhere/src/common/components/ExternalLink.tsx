@@ -1,8 +1,8 @@
 import { OpenInNewTwoTone } from '@mui/icons-material'
 import { Box, Typography } from '@mui/material'
 import type { ReactNode } from 'react'
-import type { LinkProps } from 'react-router-dom'
-import { Link } from 'react-router-dom'
+import type { LinkProps } from 'react-router'
+import { Link } from 'react-router'
 
 type ExternalLinkProps = LinkProps & {
   icon?: ReactNode

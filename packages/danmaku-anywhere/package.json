@@ -49,7 +49,7 @@
     "react-hotkeys-hook": "^4.6.1",
     "react-i18next": "^15.4.0",
     "react-markdown": "^9.0.1",
-    "react-router-dom": "^6.28.1",
+    "react-router": "^7.1.1",
     "ts-pattern": "^5.6.0",
     "urlpattern-polyfill": "^10.0.0",
     "zod": "^3.24.1",

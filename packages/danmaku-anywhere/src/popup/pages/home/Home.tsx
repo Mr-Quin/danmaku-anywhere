@@ -1,7 +1,7 @@
 import { Box, Stack, Tab, Tabs } from '@mui/material'
 import { Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, Outlet, useLocation, useMatches } from 'react-router-dom'
+import { Link, Outlet, useLocation, useMatches } from 'react-router'
 
 import { AppToolBar } from './AppToolBar'
 

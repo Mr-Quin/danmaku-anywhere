@@ -1,7 +1,7 @@
 import { ChevronLeft } from '@mui/icons-material'
 import { Box, IconButton, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router'
 
 import { CommentsTable } from '@/common/components/CommentsTable'
 import { useDanmakuSuspense } from '@/common/danmaku/queries/useDanmakuSuspense'

@@ -1,7 +1,7 @@
 import { ChevronLeft } from '@mui/icons-material'
 import { IconButton } from '@mui/material'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 import { EpisodeList } from '../components/EpisodeList'
 

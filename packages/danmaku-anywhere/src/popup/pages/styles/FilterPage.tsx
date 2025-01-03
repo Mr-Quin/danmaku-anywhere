@@ -18,7 +18,7 @@ import type { Draft } from 'immer'
 import { produce } from 'immer'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router'
 
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
