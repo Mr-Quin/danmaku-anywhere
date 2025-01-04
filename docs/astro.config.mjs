@@ -11,8 +11,8 @@ export default defineConfig({
       title: 'Danmaku Anywhere',
       favicon: '/favicon.png',
       logo: {
-        light: './src/assets/logo.png',
-        dark: './src/assets/logo.png',
+        light: './src/assets/logo-circle.png',
+        dark: './src/assets/logo-circle.png',
       },
       lastUpdated: false,
       editLink: {
@@ -42,7 +42,7 @@ export default defineConfig({
             {
               label: 'install',
               translations: {
-                'zh-CN': '安装说明',
+                'zh-CN': '安装',
                 en: 'Installation',
               },
               link: '/docs/install',
@@ -71,24 +71,33 @@ export default defineConfig({
               },
               link: '/docs/integration-policy',
             },
+          ],
+        },
+        {
+          label: 'development',
+          translations: {
+            'zh-CN': '开发',
+            en: 'Development',
+          },
+          items: [
+            {
+              label: 'structure',
+              translations: {
+                'zh-CN': '项目结构',
+                en: 'Project Structure',
+              },
+              link: '/development/structure',
+            },
             {
               label: 'limitations',
               translations: {
-                'zh-CN': '工作原理',
-                en: 'How it works',
+                'zh-CN': '技术细节',
+                en: 'Implementation Details',
               },
-              link: '/docs/limitations',
+              link: '/development/limitations',
             },
           ],
         },
-        // {
-        //   label: 'lingo',
-        //   translations: {
-        //     'zh-CN': '用语',
-        //     en: 'Lingo',
-        //   },
-        //   link: '/lingo',
-        // },
         {
           label: 'plex-danmaku',
           translations: {

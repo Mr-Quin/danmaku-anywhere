@@ -1,0 +1,85 @@
+---
+title: 项目结构
+description: 项目结构
+---
+
+import { FileTree, Steps, Tabs, TabItem } from '@astrojs/starlight/components'
+
+欢迎各路诸侯来贡献代码
+
+## 仓库地址
+
+https://github.com/Mr-Quin/danmaku-anywhere
+
+## 开发环境
+
+- `Node.js` >= 20
+- `pnpm` >= 9
+
+## 项目结构
+
+本项目为`pnpm`多包管理项目。
+
+完全使用`TypeScript`编写，使用`vite`进行构建。UI 库为`react`。
+
+<FileTree>
+
+- docs/ - 文档（本站）
+- packages/
+  - **danmaku-anywhere/** - 扩展主体
+    - src/
+      - background/ - 后台脚本
+      - content/ - 内容脚本
+        - controller/ - 控件
+        - player/ - 弹幕播放器
+      - popup/ - 弹出窗口
+  - danmaku-converter/ - 各弹幕来源的类型定义和验证
+  - danmaku-engine/ - 弹幕渲染器
+  - danmaku-provider/ - 和弹幕源 API 交互
+- package.json
+
+</FileTree>
+
+## 安装
+
+<Steps>
+
+1. 安装依赖
+   ```bash
+   pnpm i
+   ```
+2. 构建共享库
+   ```bash
+   pnpm build
+   ```
+3. 启动开发服务器
+   ```bash
+   cd packages/danmaku-anywhere
+   pnpm dev
+   ```
+4. 开发构建在 `packages/danmaku-anywhere/dist`，将此文件夹作为未打包的扩展加载
+
+</Steps>
+
+## 构建扩展
+
+<Tabs>
+  <TabItem label="Chrome">
+
+    ```bash
+    cd packages/danmaku-anywhere
+    pnpm package
+    ```
+
+  </TabItem>
+  <TabItem label="Firefox">
+
+    ```bash
+    cd packages/danmaku-anywhere
+    pnpm package:firefox
+    ```
+
+  </TabItem>
+</Tabs>
+
+输出在 `packages/danmaku-anywhere/package`。
