@@ -1,0 +1,14 @@
+[
+  {
+    "comments": [
+      {
+        "mode": "rtl",
+        "time": 10,
+        "color": "#FF5733",
+        "text": "Hello World"
+      }
+    ],
+    "animeTitle": "Anime Title",
+    "episodeTitle": "Episode Title"
+  }
+]
