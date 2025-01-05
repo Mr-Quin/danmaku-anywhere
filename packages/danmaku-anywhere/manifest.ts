@@ -4,6 +4,8 @@ import pkg from './package.json' with { type: 'json' }
 
 const browser = process.env.TARGET_BROWSER ?? 'chrome'
 
+const dev = process.env.NODE_ENV === 'development'
+
 export const manifest = defineManifest({
   manifest_version: 3,
   name: '__MSG_extName__',
@@ -29,6 +31,12 @@ export const manifest = defineManifest({
     'webNavigation',
   ],
   host_permissions: ['https://*/*', 'http://*/*', 'file:///*'],
+  externally_connectable: {
+    matches: [
+      '*://danmaku.weeblify.app/*',
+      ...(dev ? ['http://localhost:4321/*'] : []),
+    ],
+  },
   icons: {
     16: 'normal_16.png',
     32: 'normal_32.png',
