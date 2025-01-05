@@ -11,6 +11,7 @@ import { Logger } from '@/common/Logger'
 import { controlQueryKeys } from '@/common/queries/queryKeys'
 import { tabRpcClient } from '@/common/rpcClient/tab/client'
 import { useSessionState } from '@/common/storage/hooks/useSessionState'
+import { useIsConnected } from '@/popup/hooks/useIsConnected'
 import { useMountDanmakuPopup } from '@/popup/hooks/useMountDanmakuPopup'
 
 export const MountController = () => {
@@ -19,6 +20,8 @@ export const MountController = () => {
     null,
     'controller/danmakuMeta'
   )
+
+  const isConnected = useIsConnected()
 
   const tabDanmakuState = useQuery({
     queryKey: controlQueryKeys.allFrames(),
@@ -30,8 +33,6 @@ export const MountController = () => {
   const toast = useToast.use.toast()
 
   const [canUnmount, setCanUnmount] = useState<boolean>(false)
-
-  const canMount = danmakuLite !== null
 
   const { mutateAsync: mount, isPending: isMounting } = useMountDanmakuPopup()
 
@@ -79,7 +80,7 @@ export const MountController = () => {
           type="submit"
           variant="contained"
           loading={isMounting}
-          disabled={!canMount}
+          disabled={!isConnected || danmakuLite === null}
         >
           {t('danmaku.mount')}
         </LoadingButton>
@@ -88,7 +89,7 @@ export const MountController = () => {
           type="button"
           onClick={handleUnmount}
           color="warning"
-          disabled={!canUnmount}
+          disabled={!isConnected || !canUnmount}
         >
           {t('danmaku.unmount')}
         </Button>
