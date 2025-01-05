@@ -1,9 +1,9 @@
 import { z } from 'zod'
 
 import type { Options } from '@/common/options/OptionsService/types'
-import { getRandomUUID, validateOrigin } from '@/common/utils/utils'
+import { validateOrigin } from '@/common/utils/utils'
 
-export const mountConfigSchema = z.object({
+export const mountConfigInputSchema = z.object({
   patterns: z.array(
     z.string().refine(
       async (value) => {
@@ -35,14 +35,14 @@ export const mountConfigSchema = z.object({
    * The integration to associate with the config
    */
   integration: z.string().optional(),
-  /**
-   * The unique identifier of the config
-   */
-  id: z.string().uuid().optional().default(getRandomUUID),
 })
 
-export const mountConfigListSchema = z.array(mountConfigSchema)
+export const mountConfigInputListSchema = z.array(mountConfigInputSchema)
 
-export type MountConfig = z.infer<typeof mountConfigSchema>
+export type MountConfigInput = z.infer<typeof mountConfigInputSchema>
+
+export type MountConfig = MountConfigInput & {
+  id: string
+}
 
 export type MountConfigOptions = Options<MountConfig[]>

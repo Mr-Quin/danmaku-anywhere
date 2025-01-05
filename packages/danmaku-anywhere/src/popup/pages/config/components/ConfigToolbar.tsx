@@ -9,7 +9,7 @@ import {
 import { useTranslation } from 'react-i18next'
 
 import { Logger } from '@/common/Logger'
-import { mountConfigListSchema } from '@/common/options/mountConfig/schema'
+import { mountConfigInputListSchema } from '@/common/options/mountConfig/schema'
 import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { tryCatch } from '@/common/utils/utils'
 import { DrilldownMenu } from '@/popup/component/DrilldownMenu'
@@ -46,7 +46,7 @@ export const ConfigToolbar = ({ onAdd }: { onAdd: () => void }) => {
     const json = await (await fileHandle.getFile()).text()
 
     const [mountConfigList, parseErr] = await tryCatch(() =>
-      mountConfigListSchema.parseAsync(JSON.parse(json))
+      mountConfigInputListSchema.parseAsync(JSON.parse(json))
     )
 
     if (parseErr) {

@@ -1,11 +1,12 @@
 import { produce } from 'immer'
 
 import { defaultMountConfig } from '@/common/options/mountConfig/constant'
+import type { MountConfig } from '@/common/options/mountConfig/schema'
 import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { getRandomUUID } from '@/common/utils/utils'
 
-export const mountConfigService = new OptionsService(
+export const mountConfigService = new OptionsService<MountConfig[]>(
   'mountConfig',
   defaultMountConfig
 )

@@ -3,9 +3,10 @@ import { useMemo } from 'react'
 
 import type {
   MountConfig,
+  MountConfigInput,
   MountConfigOptions,
 } from '@/common/options/mountConfig/schema'
-import { mountConfigListSchema } from '@/common/options/mountConfig/schema'
+import { mountConfigInputListSchema } from '@/common/options/mountConfig/schema'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import { matchUrl } from '@/common/utils/matchUrl'
 import {
@@ -36,7 +37,10 @@ export const useMountConfig = () => {
   })
 
   const methods = useMemo(() => {
-    const updateConfig = async (id: string, config: Partial<MountConfig>) => {
+    const updateConfig = async (
+      id: string,
+      config: Partial<MountConfigInput>
+    ) => {
       const { data: configs, version } = options
 
       const prevConfig = configs.find((item) => item.id === id)
@@ -63,7 +67,7 @@ export const useMountConfig = () => {
       await update.mutateAsync({ data: newData, version })
     }
 
-    const addConfig = async (config: MountConfig) => {
+    const addConfig = async (config: MountConfigInput) => {
       const { data: configs, version } = options
 
       if (!(await isPermissionGranted(config.patterns))) {
@@ -71,7 +75,13 @@ export const useMountConfig = () => {
       }
 
       await update.mutateAsync({
-        data: [...configs, config],
+        data: [
+          ...configs,
+          {
+            ...config,
+            id: getRandomUUID(),
+          },
+        ],
         version,
       })
     }
@@ -114,10 +124,10 @@ export const useMountConfig = () => {
      * Import the configs
      * Disable all imported configs and regenerate the id
      */
-    const importConfigs = async (configs: MountConfig[]) => {
+    const importConfigs = async (configs: MountConfigInput[]) => {
       const { data: currentConfigs, version } = options
 
-      const parsed = await mountConfigListSchema.parseAsync(configs)
+      const parsed = await mountConfigInputListSchema.parseAsync(configs)
 
       const newData = [
         ...currentConfigs,
