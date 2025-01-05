@@ -11,7 +11,7 @@ import type {
   DanDanPlayMetaDto,
 } from '@/common/danmaku/models/meta'
 import { Logger } from '@/common/Logger'
-import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
+import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { tryCatch } from '@/common/utils/utils'
 
 export class DanDanPlayService {

@@ -1,15 +1,10 @@
 import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
-import { Search } from '@mui/icons-material'
-import { LoadingButton } from '@mui/lab'
 import {
   Box,
-  Checkbox,
   Collapse,
   Divider,
-  FormControl,
   FormControlLabel,
-  Stack,
-  TextField,
+  Switch,
   Typography,
 } from '@mui/material'
 import {
@@ -25,7 +20,9 @@ import { EpisodeListItem } from './EpisodeListItem'
 import { Center } from '@/common/components/Center'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { SearchResultList } from '@/common/components/MediaList/SearchResultList'
+import { SearchForm } from '@/common/components/SearchForm'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
+import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { mediaQueryKeys } from '@/common/queries/queryKeys'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { usePopup } from '@/content/controller/store/popupStore'
@@ -37,8 +34,15 @@ export const SearchPage = () => {
     usePopup()
   const { mediaInfo } = useStore.use.integration()
 
+  const {
+    data: { searchUsingSimplified },
+  } = useExtensionOptions()
+
   const { enabledProviders } = useDanmakuSources()
 
+  const [localSearchUsingSimplified, setLocalSearchUsingSimplified] = useState(
+    searchUsingSimplified
+  )
   const [searchParams, setSearchParams] = useState<DanDanAnimeSearchAPIParams>()
 
   const ref = useRef<ErrorBoundary>(null)
@@ -57,13 +61,13 @@ export const SearchPage = () => {
     setSearchTitle(mediaInfo.title)
   }, [mediaInfo])
 
-  const handleSearch = () => {
+  const handleSearch = (searchTerm: string) => {
     startTransition(() => {
       if (ref.current?.state.didCatch) {
         ref.current.resetErrorBoundary()
       }
 
-      setSearchParams({ anime: searchTitle })
+      setSearchParams({ anime: searchTerm })
     })
   }
 
@@ -87,52 +91,32 @@ export const SearchPage = () => {
 
   return (
     <Box flexGrow={1} sx={{ overflowX: 'hidden' }}>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          handleSearch()
-        }}
-      >
-        <Box py={2} px={2}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <TextField
-              label={t('searchPage.title')}
-              variant="outlined"
-              value={searchTitle}
-              {...withStopPropagation()}
-              onChange={(e) => {
-                setSearchTitle(e.target.value)
-              }}
-              fullWidth
-              required
-            />
-            <LoadingButton
-              type="submit"
-              loading={isSearching || pending}
-              disabled={searchTitle.length === 0}
-              variant="contained"
-            >
-              <Search />
-            </LoadingButton>
-          </Stack>
-          {!!mediaInfo && (
-            <FormControl>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    inputProps={{ 'aria-label': 'controlled' }}
-                    checked={saveMapping}
-                    onChange={(e) => {
-                      setSaveMapping(e.target.checked)
-                    }}
-                  />
-                }
-                label={t('searchPage.saveMapping')}
+      <Box py={2} px={2}>
+        <SearchForm
+          onSearch={handleSearch}
+          isLoading={isSearching || pending}
+          useSimplified={localSearchUsingSimplified}
+          onSimplifiedChange={(on) => {
+            setLocalSearchUsingSimplified(on)
+          }}
+          searchTerm={searchTitle}
+          onSearchTermChange={setSearchTitle}
+          textFieldProps={{ ...withStopPropagation() }}
+        />
+        {!!mediaInfo && (
+          <FormControlLabel
+            control={
+              <Switch
+                checked={saveMapping}
+                onChange={(e) => {
+                  setSaveMapping(e.target.checked)
+                }}
               />
-            </FormControl>
-          )}
-        </Box>
-      </form>
+            }
+            label={t('searchPage.saveMapping')}
+          />
+        )}
+      </Box>
       <ErrorBoundary
         ref={ref}
         onReset={reset}

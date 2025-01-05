@@ -4,11 +4,9 @@ import {
   useIsFetching,
   useQueryErrorResetBoundary,
 } from '@tanstack/react-query'
-import { Suspense, useEffect, useRef, useState, useTransition } from 'react'
+import { Suspense, useRef, useState, useTransition } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { useTranslation } from 'react-i18next'
-
-import { SearchForm } from './components/SearchForm'
 
 import { Center } from '@/common/components/Center'
 import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
@@ -17,20 +15,23 @@ import type { DanmakuFetchDto } from '@/common/danmaku/dto'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
 import { mediaQueryKeys } from '@/common/queries/queryKeys'
+import { PopupSearchForm } from '@/popup/pages/search/components/PopupSearchForm'
 import { useStore } from '@/popup/store'
 
 export const SearchTab = () => {
   const { t } = useTranslation()
+  const search = useStore.use.search()
+
   // TODO: useTransition does not yet work with useSyncExternalStore (zustand),
   // so we use useState for now and save the state to the store
-  const [searchParams, setSearchParams] = useState<DanDanAnimeSearchAPIParams>()
+  const [searchParams, setSearchParams] = useState<
+    DanDanAnimeSearchAPIParams | undefined
+  >(search.searchParams)
 
   const { enabledProviders } = useDanmakuSources()
 
   const ref = useRef<ErrorBoundary>(null)
   const { reset } = useQueryErrorResetBoundary()
-
-  const savedSearchParams = useStore.use.animeSearchParams?.()
 
   const [pending, startTransition] = useTransition()
 
@@ -50,12 +51,6 @@ export const SearchTab = () => {
       queryKey: mediaQueryKeys.search(),
     }) > 0
 
-  useEffect(() => {
-    if (savedSearchParams) {
-      setSearchParams(savedSearchParams)
-    }
-  }, [])
-
   const handleSearch = (params: DanDanAnimeSearchAPIParams) => {
     startTransition(() => {
       if (ref.current?.state.didCatch) {
@@ -63,7 +58,7 @@ export const SearchTab = () => {
       }
 
       setSearchParams(params)
-      useStore.setState({ animeSearchParams: params })
+      search.setSearchParams(params)
     })
   }
 
@@ -78,7 +73,7 @@ export const SearchTab = () => {
   return (
     <>
       <Box p={2}>
-        <SearchForm
+        <PopupSearchForm
           onSearch={handleSearch}
           isLoading={isSearching || pending}
         />

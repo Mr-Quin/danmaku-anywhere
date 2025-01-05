@@ -1,4 +1,5 @@
 import type { PopoverVirtualElement } from '@mui/material'
+import * as OpenCC from 'opencc-js'
 import { match as matchPinyin } from 'pinyin-pro'
 
 import type { NotPromise } from '../types/types'
@@ -199,4 +200,11 @@ export const getOS = () => {
 
 export const properCase = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+const twToCn = OpenCC.Converter({ from: 'tw', to: 'cn' })
+const hkToCn = OpenCC.Converter({ from: 'hk', to: 'cn' })
+
+export const toSimplified = (str: string) => {
+  return twToCn(hkToCn(str))
 }

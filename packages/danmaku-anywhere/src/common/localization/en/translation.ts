@@ -247,6 +247,7 @@ const pages = {
         system: 'System',
       },
     },
+    searchUsingSimplified: 'Search using simplified Chinese',
     danmakuSource: {
       bilibili: {
         danmakuTypePreference: 'Danmaku Type Preference',
@@ -299,6 +300,7 @@ const pages = {
     name: 'Search Anime',
     saveMapping: 'Remember selection',
     title: 'Title',
+    convertedTitle: 'Converted Title',
     error: {
       noProviders: 'No danmaku sources enabled, please enable in settings',
       noResultFound: 'No results found, try a different search term',

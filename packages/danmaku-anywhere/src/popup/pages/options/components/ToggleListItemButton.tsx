@@ -10,10 +10,10 @@ import {
 } from '@mui/material'
 import type { ReactNode } from 'react'
 
-interface SourceOptionListItemProps {
+interface ToggleListItemButtonProps {
   enabled: boolean
-  disableToggle: boolean
-  onClick: () => void
+  disableToggle?: boolean
+  onClick?: () => void
   onToggle: (checked: boolean) => void
   itemText: string
   isLoading?: boolean
@@ -21,7 +21,7 @@ interface SourceOptionListItemProps {
   warningTooltip?: ReactNode
 }
 
-export const SourceOptionListItem = ({
+export const ToggleListItemButton = ({
   itemText,
   onClick,
   onToggle,
@@ -30,7 +30,7 @@ export const SourceOptionListItem = ({
   isLoading,
   showWarning,
   warningTooltip,
-}: SourceOptionListItemProps) => {
+}: ToggleListItemButtonProps) => {
   return (
     <ListItem
       secondaryAction={

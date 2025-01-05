@@ -2,7 +2,7 @@ import type { BiliBiliSearchParams } from '@danmaku-anywhere/danmaku-provider/bi
 import * as bilibili from '@danmaku-anywhere/danmaku-provider/bilibili'
 
 import { Logger } from '@/common/Logger'
-import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
+import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 
 export class BilibiliService {
   private logger: typeof Logger
