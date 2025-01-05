@@ -8,6 +8,7 @@ import { injectVideoScript } from '@/background/scripting/setupScripting'
 import { BilibiliService } from '@/background/services/BilibiliService'
 import { TencentService } from '@/background/services/TencentService'
 import { Logger } from '@/common/Logger'
+import { mountConfigSchema } from '@/common/options/mountConfig/schema'
 import type { TabRPCClientMethod } from '@/common/rpc/client'
 import type { RRPServerHandler } from '@/common/rpc/server'
 import { createRpcServer } from '@/common/rpc/server'
@@ -168,6 +169,9 @@ export const setupRpc = () => {
 
       return activeTab.url!
     },
+    addMountConfig: async (data) => {
+      return mountConfigSchema.parse(data)
+    },
   })
 
   const passThrough = <TRPCDef extends AnyRPCDef>(
@@ -200,4 +204,7 @@ export const setupRpc = () => {
 
   rpcServer.listen()
   rpcRelay.listen()
+
+  // also listen to external messages
+  rpcServer.listen(chrome.runtime.onMessageExternal)
 }

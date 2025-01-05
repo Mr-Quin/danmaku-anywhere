@@ -64,11 +64,17 @@ export const createRpcServer = <
   let baseContext = { ...context }
 
   const methods = {
-    listen: () => {
-      chrome.runtime.onMessage.addListener(listener)
+    listen: (
+      messageEvent: chrome.runtime.ExtensionMessageEvent = chrome.runtime
+        .onMessage
+    ) => {
+      messageEvent.addListener(listener)
     },
-    unlisten: () => {
-      chrome.runtime.onMessage.removeListener(listener)
+    unlisten: (
+      messageEvent: chrome.runtime.ExtensionMessageEvent = chrome.runtime
+        .onMessage
+    ) => {
+      messageEvent.removeListener(listener)
     },
     hasHandler: (method: string) => method in handlers,
     setContext: (newContext: RpcContext) => {

@@ -3,7 +3,7 @@ import { z } from 'zod'
 import type { Options } from '@/common/options/OptionsService/types'
 import { getRandomUUID, validateOrigin } from '@/common/utils/utils'
 
-const mountConfigSchema = z.object({
+export const mountConfigSchema = z.object({
   patterns: z.array(
     z.string().refine(
       async (value) => {
