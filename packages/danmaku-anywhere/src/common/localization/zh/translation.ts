@@ -139,7 +139,7 @@ const pages = {
         integration:
           '启用对应的适配配置。如果你不清楚这是什么，请保持默认设置“无”',
         urlPattern:
-          '用来匹配视频页面，一般为视频网站的网址。格式：https://example.com/*。如果视频处于iframe中，此处需iframe的地址',
+          '用来匹配视频页面，一般为视频网站的网址。格式：https://example.com/*。',
       },
       mediaQuery: '视频节点',
       name: '名称',
