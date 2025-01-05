@@ -2,7 +2,7 @@ import { configure } from '@danmaku-anywhere/danmaku-provider/ddp'
 
 import { upgradeOptions } from '@/background/syncOptions/upgradeOptions'
 import { Logger } from '@/common/Logger'
-import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
+import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 
 export const setupOptions = async () => {
   chrome.runtime.onInstalled.addListener(async (details) => {

@@ -65,6 +65,11 @@ export const extensionOptionsSchema = z.object({
   lang: z.nativeEnum(Language),
 
   /**
+   * Whether to convert traditional Chinese to simplified Chinese when searching for danmaku
+   */
+  searchUsingSimplified: z.boolean(),
+
+  /**
    * Configuration for individual danmaku sources
    */
   danmakuSources: danmakuSourcesSchema,

@@ -9,7 +9,12 @@ import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { createSelectors } from '@/common/utils/createSelectors'
 
 interface StoreState {
-  animeSearchParams?: DanDanAnimeSearchAPIParams
+  search: {
+    searchParams?: DanDanAnimeSearchAPIParams
+    setSearchParams: (params?: DanDanAnimeSearchAPIParams) => void
+    keyword: string
+    setKeyword: (keyword: string) => void
+  }
   danmaku: {
     animeFilter: string
     setAnimeFilter: (filter: string) => void
@@ -34,7 +39,20 @@ interface StoreState {
 
 const useStoreBase = create<StoreState>()(
   immer((set) => ({
-    animeSearchParams: undefined,
+    search: {
+      searchParams: undefined,
+      setSearchParams: (params) => {
+        set((state) => {
+          state.search.searchParams = params
+        })
+      },
+      keyword: '',
+      setKeyword: (keyword: string) => {
+        set((state) => {
+          state.search.keyword = keyword
+        })
+      },
+    },
     danmaku: {
       animeFilter: '',
       setAnimeFilter: (filter: string) => {

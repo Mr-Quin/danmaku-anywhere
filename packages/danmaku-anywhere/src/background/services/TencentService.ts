@@ -2,7 +2,7 @@ import type { TencentEpisodeListItem } from '@danmaku-anywhere/danmaku-provider/
 import * as tencent from '@danmaku-anywhere/danmaku-provider/tencent'
 
 import { Logger } from '@/common/Logger'
-import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
+import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 
 export class TencentService {
   private logger: typeof Logger

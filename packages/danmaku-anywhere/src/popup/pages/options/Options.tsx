@@ -16,6 +16,7 @@ import { OptionsPageLayout } from '../../layout/OptionsPageLayout'
 import { LanguageListItem } from './components/LanguageListItem'
 
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
+import { SimplifiedSearchListItem } from '@/popup/pages/options/components/SimplifiedSearchListItem'
 import { Version } from '@/popup/pages/options/components/Version'
 
 const OptionsListItem = ({
@@ -55,6 +56,7 @@ export const Options = () => {
         <Version />
         <List disablePadding>
           <LanguageListItem />
+          <SimplifiedSearchListItem />
           <OptionsListItem
             title={t('optionsPage.pages.danmakuSource')}
             onClick={() => navigate('danmaku-source')}

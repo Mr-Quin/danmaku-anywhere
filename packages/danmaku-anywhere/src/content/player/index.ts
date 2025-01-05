@@ -1,5 +1,5 @@
 import { Logger as _Logger } from '@/common/Logger'
-import { danmakuOptionsService } from '@/common/options/extensionOptions/service'
+import { danmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { createRpcServer } from '@/common/rpc/server'
 import {
   chromeRpcClient,

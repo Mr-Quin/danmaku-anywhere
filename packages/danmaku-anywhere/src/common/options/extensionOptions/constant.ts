@@ -23,6 +23,7 @@ export const ChConvertList = [
 export const defaultExtensionOptions: ExtensionOptions = {
   enabled: true,
   lang: Language.zh,
+  searchUsingSimplified: false,
   danmakuSources: {
     dandanplay: {
       enabled: true,

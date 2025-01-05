@@ -7,7 +7,7 @@ import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
-import { SourceOptionListItem } from '@/popup/pages/options/pages/danmakuSource/components/SourceOptionListItem'
+import { ToggleListItemButton } from '@/popup/pages/options/components/ToggleListItemButton'
 import { useToggleBilibili } from '@/popup/pages/options/pages/danmakuSource/hooks/useToggleBilibili'
 import { useToggleTencent } from '@/popup/pages/options/pages/danmakuSource/hooks/useToggleTencent'
 
@@ -59,7 +59,6 @@ export const DanmakuSource = () => {
       return {
         isLoading: isTencentLoading,
         onToggle: toggleTencent,
-        onClick: () => void 0,
         disableToggle: !canEnable || isAnyLoading,
         showWarning: !canEnable,
         warningTooltip: (
@@ -87,7 +86,7 @@ export const DanmakuSource = () => {
         <List disablePadding>
           {sourcesList.map(({ key, options, provider }) => {
             return (
-              <SourceOptionListItem
+              <ToggleListItemButton
                 key={key}
                 enabled={options.enabled}
                 disableToggle={isAnyLoading}

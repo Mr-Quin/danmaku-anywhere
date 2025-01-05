@@ -1,7 +1,7 @@
 import { match } from 'ts-pattern'
 
 import { Logger } from '@/common/Logger'
-import { extensionOptionsService } from '@/common/options/danmakuOptions/service'
+import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { tryCatch } from '@/common/utils/utils'
 
 enum ContextMenuId {
