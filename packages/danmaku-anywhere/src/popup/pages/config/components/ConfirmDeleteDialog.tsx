@@ -25,6 +25,8 @@ export const ConfirmDeleteDialog = () => {
 
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
+      if (!editingConfig.id)
+        throw new Error('Trying to delete a config without id')
       return deleteConfig(editingConfig.id)
     },
     onSuccess: () => {

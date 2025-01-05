@@ -19,7 +19,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
-import type { MountConfig } from '@/common/options/mountConfig/schema'
+import type { MountConfigInput } from '@/common/options/mountConfig/schema'
 import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { validateOrigin } from '@/common/utils/utils'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
@@ -28,13 +28,13 @@ import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 import { useStore } from '@/popup/store'
 
 // react-hook-form does not allow primitive arrays, so we need to convert the array to an object
-type MountConfigForm = Omit<MountConfig, 'patterns'> & {
+type MountConfigForm = Omit<MountConfigInput, 'patterns'> & {
   patterns: { value: string }[]
 }
 
 const emptyIntegrationValue = '@@NONE@@'
 
-const toForm = (config: MountConfig): MountConfigForm => {
+const toForm = (config: MountConfigInput): MountConfigForm => {
   return {
     ...config,
     patterns: config.patterns.map((value) => ({ value })),
@@ -42,7 +42,7 @@ const toForm = (config: MountConfig): MountConfigForm => {
   }
 }
 
-const fromForm = (form: MountConfigForm): MountConfig => {
+const fromForm = (form: MountConfigForm): MountConfigInput => {
   return {
     ...form,
     patterns: form.patterns.map(({ value }) => value),
@@ -97,7 +97,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
 
       const toUpdate = fromForm(data)
 
-      if (isEdit) {
+      if (isEdit && config.id) {
         return updateConfig(config.id, toUpdate)
       } else {
         return addConfig(toUpdate)

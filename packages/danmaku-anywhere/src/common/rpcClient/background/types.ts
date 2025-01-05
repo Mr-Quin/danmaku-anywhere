@@ -27,7 +27,7 @@ import type {
   DanmakuLite,
 } from '@/common/danmaku/models/danmaku'
 import type { DanmakuMetaExternal } from '@/common/danmaku/models/meta'
-import type { MountConfig } from '@/common/options/mountConfig/schema'
+import type { MountConfigInput } from '@/common/options/mountConfig/schema'
 
 type IconSetDto =
   | {
@@ -77,7 +77,7 @@ type DanmakuMethods = {
 }
 
 type ControlMethods = {
-  addMountConfig: RPCDef<unknown, MountConfig>
+  addMountConfig: RPCDef<unknown, MountConfigInput>
   getActiveTabUrl: RPCDef<void, string>
   getFrameId: RPCDef<void, number>
   getAllFrames: RPCDef<void, chrome.webNavigation.GetAllFrameResultDetails[]>

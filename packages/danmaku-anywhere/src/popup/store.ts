@@ -5,7 +5,7 @@ import { immer } from 'zustand/middleware/immer'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import { danmakuSourceTypeList } from '@/common/danmaku/enums'
 import { createMountConfig } from '@/common/options/mountConfig/constant'
-import type { MountConfig } from '@/common/options/mountConfig/schema'
+import type { MountConfigInput } from '@/common/options/mountConfig/schema'
 import { createSelectors } from '@/common/utils/createSelectors'
 
 interface StoreState {
@@ -30,8 +30,8 @@ interface StoreState {
     setShowConfirmDeleteDialog: (show: boolean) => void
   }
   config: {
-    editingConfig: MountConfig
-    setEditingConfig: (config: MountConfig) => void
+    editingConfig: MountConfigInput & { id?: string }
+    setEditingConfig: (config: MountConfigInput & { id?: string }) => void
     showConfirmDeleteDialog: boolean
     setShowConfirmDeleteDialog: (show: boolean) => void
   }
@@ -94,7 +94,7 @@ const useStoreBase = create<StoreState>()(
     },
     config: {
       editingConfig: createMountConfig(''),
-      setEditingConfig: (config: MountConfig) => {
+      setEditingConfig: (config: MountConfigInput) => {
         set((state) => {
           state.config.editingConfig = config
         })

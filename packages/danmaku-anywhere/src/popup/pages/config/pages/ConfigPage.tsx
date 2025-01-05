@@ -6,7 +6,7 @@ import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog'
 import { MountConfigList } from '../components/MountConfigList'
 
 import { createMountConfig } from '@/common/options/mountConfig/constant'
-import type { MountConfig } from '@/common/options/mountConfig/schema'
+import type { MountConfigInput } from '@/common/options/mountConfig/schema'
 import { controlQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { TabLayout } from '@/popup/layout/TabLayout'
@@ -35,7 +35,7 @@ export const ConfigPage = () => {
     },
   })
 
-  const handleEditConfig = (config: MountConfig) => {
+  const handleEditConfig = (config: MountConfigInput) => {
     navigate('edit')
     setEditingConfig(config)
   }
