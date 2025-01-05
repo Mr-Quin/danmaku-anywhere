@@ -7,10 +7,12 @@ import { Content } from './Content'
 import { LoadInitialData } from './LoadInitialData'
 
 import { Logger } from '@/common/Logger'
+import { useSwitchLanguage } from '@/content/controller/common/hooks/useSwitchLanguage'
 
 export const App = () => {
   const ref = useRef<ErrorBoundary>(null)
   const { reset } = useQueryErrorResetBoundary()
+  useSwitchLanguage()
 
   useEffect(() => {
     if (ref.current?.state.didCatch) {
