@@ -1,5 +1,6 @@
 import type { createFilterOptions } from '@mui/material'
 import { Autocomplete, CircularProgress, TextField } from '@mui/material'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { EpisodeOption } from './EpisodeOption'
@@ -44,6 +45,9 @@ interface DanmakuSelectorProps {
   height?: number
 }
 
+const groupBy = (option: DanmakuLite) =>
+  `${option.provider}::${option.seasonTitle}`
+
 export const DanmakuSelector = ({
   value,
   onChange,
@@ -53,11 +57,31 @@ export const DanmakuSelector = ({
 
   const { data: options, isFetching } = useAllDanmakuSuspense()
 
+  const sortedOptions = useMemo(() => {
+    return options.sort((a, b) => {
+      const aGroup = groupBy(a)
+      const bGroup = groupBy(b)
+
+      if (aGroup === bGroup) {
+        if (a.episodeId !== undefined && b.episodeId !== undefined) {
+          if (a.episodeId === b.episodeId) {
+            return 0
+          } else {
+            return a.episodeId > b.episodeId ? 1 : -1
+          }
+        }
+        return a.episodeTitle.localeCompare(b.episodeTitle)
+      }
+
+      return aGroup.localeCompare(bGroup)
+    })
+  }, [options])
+
   return (
     <Autocomplete
       value={value} // value must be null when empty so that the component is "controlled"
       loading={isFetching}
-      options={options}
+      options={sortedOptions}
       filterOptions={filterOptions}
       isOptionEqualToValue={isOptionEqualToValue}
       onChange={(e, value) => {
@@ -68,41 +92,45 @@ export const DanmakuSelector = ({
           <EpisodeOption
             {...props}
             key={option.id}
-            option={options.find((o) => isOptionEqualToValue(o, option))!}
+            option={sortedOptions.find((o) => isOptionEqualToValue(o, option))!}
             isLoading={isFetching}
           />
         )
       }}
       getOptionLabel={(option) => option.episodeTitle}
       getOptionKey={(option) => option.id}
-      groupBy={(option) => `${option.provider}::${option.seasonTitle}`}
+      groupBy={groupBy}
       renderInput={(params) => {
         return (
           <TextField
             {...params}
             label={value ? value.seasonTitle : t('anime.episode.select')}
-            InputProps={{
-              ...params.InputProps,
-              ...withStopPropagation(),
-              endAdornment: (
-                <>
-                  {isFetching ? (
-                    <CircularProgress color="inherit" size={20} />
-                  ) : null}
-                  {params.InputProps.endAdornment}
-                </>
-              ),
+            slotProps={{
+              input: {
+                ...params.InputProps,
+                ...withStopPropagation(),
+                endAdornment: (
+                  <>
+                    {isFetching ? (
+                      <CircularProgress color="inherit" size={20} />
+                    ) : null}
+                    {params.InputProps.endAdornment}
+                  </>
+                ),
+              },
             }}
           />
         )
       }}
-      renderGroup={(params) => params as any}
-      ListboxComponent={ListboxComponent}
-      ListboxProps={{
-        style: {
-          height,
+      slotProps={{
+        listbox: {
+          style: {
+            height,
+          },
+          component: ListboxComponent,
         },
       }}
+      renderGroup={(params) => params as any}
       disablePortal
     />
   )
