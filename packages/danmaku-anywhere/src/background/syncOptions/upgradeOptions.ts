@@ -7,7 +7,7 @@ export const upgradeOptions = async () => {
   await Promise.all([
     extensionOptionsService.upgrade(),
     danmakuOptionsService.upgrade(),
-    mountConfigService.upgrade(),
+    mountConfigService.options.upgrade(),
     xPathPolicyStore.upgrade(),
   ])
 }

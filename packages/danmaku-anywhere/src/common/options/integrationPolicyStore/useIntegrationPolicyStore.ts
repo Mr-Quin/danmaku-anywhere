@@ -5,7 +5,7 @@ import type {
   Integration,
   IntegrationInput,
 } from '@/common/options/integrationPolicyStore/schema'
-import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
+import { mountConfigService } from '@/common/options/mountConfig/service'
 import type { Options } from '@/common/options/OptionsService/types'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import { createDownload, getRandomUUID } from '@/common/utils/utils'
@@ -18,7 +18,6 @@ export const useIntegrationPolicyStore = () => {
   } = useSuspenseExtStorageQuery<Options<Integration[]>>('xpathPolicy', {
     storageType: 'local',
   })
-  const { unsetIntegration, setIntegration } = useMountConfig()
 
   const methods = useMemo(() => {
     const get = (id: string) => {
@@ -55,7 +54,7 @@ export const useIntegrationPolicyStore = () => {
         data: [...policy, { ...config, id }],
         version,
       })
-      await setIntegration(mountConfigId, id)
+      await mountConfigService.setIntegration(mountConfigId, id)
     }
 
     const remove = async (id: string) => {
@@ -69,7 +68,7 @@ export const useIntegrationPolicyStore = () => {
         draft.splice(index, 1)
       })
 
-      await unsetIntegration(id)
+      await mountConfigService.unsetIntegration(id)
       await updateMutation.mutateAsync({ data: newData, version })
     }
 
@@ -89,7 +88,7 @@ export const useIntegrationPolicyStore = () => {
       remove,
       exportAll,
     }
-  }, [data, updateMutation.mutateAsync, unsetIntegration, setIntegration])
+  }, [data, updateMutation.mutateAsync, mountConfigService])
 
   const policies: Integration[] = data.data
 

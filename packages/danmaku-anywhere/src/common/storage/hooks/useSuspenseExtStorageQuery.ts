@@ -9,6 +9,7 @@ import { useEffect, useMemo } from 'react'
 import type { ExtStorageServiceOptions } from '../ExtStorageService'
 import { ExtStorageService } from '../ExtStorageService'
 
+import { storageQueryKeys } from '@/common/queries/queryKeys'
 import { toArray } from '@/common/utils/utils'
 
 interface UseSuspenseExtStorageOptions<T> extends ExtStorageServiceOptions {
@@ -32,13 +33,14 @@ export const useSuspenseExtStorageQuery = <T>(
     deleteMutationOptions,
   }: UseSuspenseExtStorageOptions<T> = {}
 ) => {
-  const queryKey = ['ext-storage', storageType, ...toArray(key)]
+  const effectKey = ['ext-storage', storageType, ...toArray(key)]
+  const queryKey = storageQueryKeys.external(storageType, toArray(key))
 
   const queryClient = useQueryClient()
 
   const storageService = useMemo(
     () => new ExtStorageService<T>(key, { storageType }),
-    [...queryKey]
+    [...effectKey]
   )
 
   useEffect(() => {

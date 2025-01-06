@@ -8,7 +8,7 @@ import { injectVideoScript } from '@/background/scripting/setupScripting'
 import { BilibiliService } from '@/background/services/BilibiliService'
 import { TencentService } from '@/background/services/TencentService'
 import { Logger } from '@/common/Logger'
-import { mountConfigInputSchema } from '@/common/options/mountConfig/schema'
+import { mountConfigService } from '@/common/options/mountConfig/service'
 import type { TabRPCClientMethod } from '@/common/rpc/client'
 import type { RRPServerHandler } from '@/common/rpc/server'
 import { createRpcServer } from '@/common/rpc/server'
@@ -169,8 +169,11 @@ export const setupRpc = () => {
 
       return activeTab.url!
     },
-    addMountConfig: async (data) => {
-      return mountConfigInputSchema.parse(data)
+    mountConfigGetAll: async () => {
+      return mountConfigService.getAll()
+    },
+    mountConfigCreate: async (data) => {
+      return mountConfigService.create(data)
     },
   })
 

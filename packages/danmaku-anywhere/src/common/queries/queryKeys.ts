@@ -2,6 +2,19 @@ import type { MediaSearchParams } from '@/common/anime/dto'
 import type { DanmakuGetOneDto } from '@/common/danmaku/dto'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
 
+export const storageQueryKeys = {
+  external: (storageType: string, key: string | null | (string | null)[]) => {
+    return [
+      {
+        scope: 'storage',
+        kind: 'external',
+        storageType,
+        key,
+      },
+    ] as const
+  },
+}
+
 export const mediaQueryKeys = {
   all: () => [{ scope: 'media' }] as const,
   search: (provider?: DanmakuSourceType, params?: MediaSearchParams) =>

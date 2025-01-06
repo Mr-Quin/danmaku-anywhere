@@ -27,7 +27,7 @@ import type {
   DanmakuLite,
 } from '@/common/danmaku/models/danmaku'
 import type { DanmakuMetaExternal } from '@/common/danmaku/models/meta'
-import type { MountConfigInput } from '@/common/options/mountConfig/schema'
+import type { MountConfig } from '@/common/options/mountConfig/schema'
 
 type IconSetDto =
   | {
@@ -77,11 +77,15 @@ type DanmakuMethods = {
 }
 
 type ControlMethods = {
-  addMountConfig: RPCDef<unknown, MountConfigInput>
   getActiveTabUrl: RPCDef<void, string>
   getFrameId: RPCDef<void, number>
   getAllFrames: RPCDef<void, chrome.webNavigation.GetAllFrameResultDetails[]>
   injectScript: RPCDef<number, void>
+}
+
+type MountConfigMethods = {
+  mountConfigCreate: RPCDef<unknown, MountConfig>
+  mountConfigGetAll: RPCDef<void, MountConfig[]>
 }
 
 type InputWithFrameId<TInput> = TInput extends void
@@ -121,4 +125,5 @@ export type PlayerEvents = {
 export type BackgroundMethods = IconMethods &
   AnimeMethods &
   DanmakuMethods &
-  ControlMethods
+  ControlMethods &
+  MountConfigMethods

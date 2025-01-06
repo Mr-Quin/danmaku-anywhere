@@ -1,12 +1,19 @@
 import { produce } from 'immer'
 
 import { defaultMountConfig } from '@/common/options/mountConfig/constant'
-import type { MountConfig } from '@/common/options/mountConfig/schema'
+import type {
+  MountConfig,
+  MountConfigInput,
+} from '@/common/options/mountConfig/schema'
+import {
+  mountConfigInputListSchema,
+  mountConfigInputSchema,
+} from '@/common/options/mountConfig/schema'
 import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { getRandomUUID } from '@/common/utils/utils'
 
-export const mountConfigService = new OptionsService<MountConfig[]>(
+const mountConfigOptions = new OptionsService<MountConfig[]>(
   'mountConfig',
   defaultMountConfig
 )
@@ -45,3 +52,107 @@ export const mountConfigService = new OptionsService<MountConfig[]>(
         })
       ),
   })
+
+class MountConfigService {
+  public readonly options = mountConfigOptions
+
+  async create(input: unknown) {
+    const config = {
+      ...(await mountConfigInputSchema.parseAsync(input)),
+      id: getRandomUUID(),
+    } satisfies MountConfig
+
+    const configs = await this.options.get()
+
+    await this.options.set([...configs, config])
+
+    return config
+  }
+
+  async get(id: string) {
+    const configs = await this.options.get()
+
+    return configs.find((item) => item.id === id)
+  }
+
+  async getAll() {
+    return this.options.get()
+  }
+
+  async update(id: string, config: Partial<MountConfig>) {
+    const configs = await this.options.get()
+
+    const prevConfig = configs.find((item) => item.id === id)
+
+    if (!prevConfig) throw new Error(`Config not found: "${id}"`)
+
+    const newConfig = { ...prevConfig, ...config }
+
+    const newConfigs = produce(configs, (draft) => {
+      const index = draft.findIndex((item) => item.id === id)
+      draft[index] = newConfig
+    })
+
+    await this.options.set(newConfigs)
+
+    return newConfig
+  }
+
+  async delete(id: string) {
+    const configs = await this.options.get()
+
+    const index = configs.findIndex((item) => item.id === id)
+
+    if (index === -1) throw new Error(`Config not found: "${id}" when deleting`)
+
+    const newData = produce(configs, (draft) => {
+      draft.splice(index, 1)
+    })
+
+    await this.options.set(newData)
+  }
+
+  async import(configs: MountConfigInput[]) {
+    const currentConfigs = await this.options.get()
+
+    const parsed = await mountConfigInputListSchema.parseAsync(configs)
+
+    const newData = [
+      ...currentConfigs,
+      ...parsed.map((config) => ({
+        ...config,
+        enabled: false,
+        id: getRandomUUID(),
+      })),
+    ]
+
+    await this.options.set(newData)
+  }
+
+  async unsetIntegration(id: string) {
+    const configs = await this.options.get()
+
+    const newData = produce(configs, (draft) => {
+      draft.forEach((config) => {
+        if (config.integration === id) {
+          delete config.integration
+        }
+      })
+    })
+
+    await this.options.set(newData)
+  }
+
+  async setIntegration(configId: string, integrationId: string) {
+    const configs = await this.options.get()
+
+    const newData = produce(configs, (draft) => {
+      const index = draft.findIndex((item) => item.id === configId)
+      draft[index].integration = integrationId
+    })
+
+    await this.options.set(newData)
+  }
+}
+
+export const mountConfigService = new MountConfigService()
