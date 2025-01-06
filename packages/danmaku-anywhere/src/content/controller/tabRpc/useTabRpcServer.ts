@@ -22,10 +22,12 @@ export const useTabRpcServer = () => {
     const tabRpcServer = createRpcServer<TabMethods>({
       ping: async () => true,
       danmakuMount: async (danmaku) => {
-        handleSetDanmaku(danmaku)
+        const success = await handleSetDanmaku(danmaku)
+        if (!success) throw new Error('Failed to mount danmaku')
       },
       danmakuUnmount: async () => {
-        handleUnsetDanmaku()
+        const success = handleUnsetDanmaku()
+        if (!success) throw new Error('Failed to unmount danmaku')
       },
       danmakuGetState: async () => {
         return handleGetDanmakuState() ?? null

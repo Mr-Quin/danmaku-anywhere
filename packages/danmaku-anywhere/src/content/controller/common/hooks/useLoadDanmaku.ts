@@ -27,7 +27,7 @@ export const useLoadDanmaku = () => {
     isDanmakuProvider(danmakuLite, DanmakuSourceType.DanDanPlay)
 
   const mountDanmaku = useEventCallback((danmaku: Danmaku) => {
-    mountMutation.mutate(danmaku, {
+    return mountMutation.mutateAsync(danmaku, {
       // This is called in addition to the onSuccess of mountMutation
       onSuccess: () => {
         toast.success(
