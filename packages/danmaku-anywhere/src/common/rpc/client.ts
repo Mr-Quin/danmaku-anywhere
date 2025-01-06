@@ -122,7 +122,7 @@ export const createTabRpcClient = <
           const [result, err] = await tryCatch(() =>
             tabSender(
               createPayload(method, input, options),
-              tabInfo.tabInfo ?? {},
+              tabInfo.tabInfo,
               tabInfo.getTab
             )
           )

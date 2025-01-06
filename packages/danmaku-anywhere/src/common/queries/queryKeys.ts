@@ -31,8 +31,9 @@ export const sourceQueryKeys = {
 }
 
 export const danmakuQueryKeys = {
-  all: () => [{ scope: 'danmaku' }] as const,
-  one: (params: DanmakuGetOneDto) => [{ scope: 'danmaku', ...params }] as const,
+  all: () => [{ scope: 'danmaku', kind: 'getAll' }] as const,
+  one: (params: DanmakuGetOneDto) =>
+    [{ scope: 'danmaku', kind: 'getOne', ...params }] as const,
 }
 
 export const tabQueryKeys = {
@@ -40,6 +41,12 @@ export const tabQueryKeys = {
     {
       scope: 'tab',
       kind: 'isConnected',
+    },
+  ],
+  getState: () => [
+    {
+      scope: 'tab',
+      kind: 'getState',
     },
   ],
 }
