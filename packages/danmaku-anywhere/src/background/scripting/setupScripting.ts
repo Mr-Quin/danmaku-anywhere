@@ -76,12 +76,12 @@ const handleContentScriptRegistration = async (mountConfigs: MountConfig[]) => {
 
 export const setupScripting = () => {
   chrome.runtime.onStartup.addListener(async () => {
-    const configs = await mountConfigService.get()
+    const configs = await mountConfigService.getAll()
 
     await handleContentScriptRegistration(configs)
   })
 
-  mountConfigService.onChange(async (configs) => {
+  mountConfigService.options.onChange(async (configs) => {
     if (!configs) return
 
     console.debug('Mount configs changed', configs)

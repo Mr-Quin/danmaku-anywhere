@@ -7,37 +7,34 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material'
-import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
+import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { useStore } from '@/popup/store'
 
 export const ConfirmDeleteDialog = () => {
   const { t } = useTranslation()
-  const { deleteConfig } = useMountConfig()
+  const { remove } = useEditMountConfig()
 
   const { showConfirmDeleteDialog, setShowConfirmDeleteDialog, editingConfig } =
     useStore.use.config()
 
   const toast = useToast.use.toast()
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: async () => {
-      if (!editingConfig.id)
-        throw new Error('Trying to delete a config without id')
-      return deleteConfig(editingConfig.id)
-    },
-    onSuccess: () => {
-      toast.success(t('configs.alert.deleted'))
-      setShowConfirmDeleteDialog(false)
-      handleClose()
-    },
-    onError: (e) => {
-      toast.error(t('configs.alert.deleteError', { message: e.message }))
-    },
-  })
+  const handleDelete = () => {
+    if (!editingConfig.id) return
+    remove.mutate(editingConfig.id, {
+      onSuccess: () => {
+        toast.success(t('configs.alert.deleted'))
+        setShowConfirmDeleteDialog(false)
+        handleClose()
+      },
+      onError: (e) => {
+        toast.error(t('configs.alert.deleteError', { message: e.message }))
+      },
+    })
+  }
 
   const handleClose = () => {
     setShowConfirmDeleteDialog(false)
@@ -52,13 +49,13 @@ export const ConfirmDeleteDialog = () => {
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} autoFocus disabled={isPending}>
+        <Button onClick={handleClose} autoFocus disabled={remove.isPending}>
           {t('common.cancel')}
         </Button>
         <LoadingButton
-          onClick={() => mutate()}
+          onClick={handleDelete}
           color="error"
-          loading={isPending}
+          loading={remove.isPending}
         >
           {t('common.delete')}
         </LoadingButton>

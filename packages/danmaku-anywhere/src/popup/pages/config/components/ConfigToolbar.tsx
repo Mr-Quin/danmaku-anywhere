@@ -10,7 +10,10 @@ import { useTranslation } from 'react-i18next'
 
 import { Logger } from '@/common/Logger'
 import { mountConfigInputListSchema } from '@/common/options/mountConfig/schema'
-import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
+import {
+  useEditMountConfig,
+  useMountConfig,
+} from '@/common/options/mountConfig/useMountConfig'
 import { tryCatch } from '@/common/utils/utils'
 import { DrilldownMenu } from '@/popup/component/DrilldownMenu'
 import { TabToolbar } from '@/popup/component/TabToolbar'
@@ -19,7 +22,8 @@ const CAN_IMPORT = typeof window.showOpenFilePicker === 'function'
 
 export const ConfigToolbar = ({ onAdd }: { onAdd: () => void }) => {
   const { t } = useTranslation()
-  const { exportConfigs, importConfigs } = useMountConfig()
+  const { createMultiple } = useEditMountConfig()
+  const { exportConfigs } = useMountConfig()
 
   const handleImportConfigs = async () => {
     // TODO: showOpenFilePicker is not available in Firefox
@@ -54,7 +58,7 @@ export const ConfigToolbar = ({ onAdd }: { onAdd: () => void }) => {
       return
     }
 
-    await importConfigs(mountConfigList)
+    await createMultiple.mutateAsync(mountConfigList)
   }
 
   return (

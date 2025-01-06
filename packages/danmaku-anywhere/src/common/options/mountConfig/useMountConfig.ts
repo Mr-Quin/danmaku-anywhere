@@ -1,31 +1,15 @@
-import { produce } from 'immer'
+import { useMutation } from '@tanstack/react-query'
 import { useMemo } from 'react'
 
 import type {
   MountConfig,
-  MountConfigInput,
   MountConfigOptions,
 } from '@/common/options/mountConfig/schema'
-import { mountConfigInputListSchema } from '@/common/options/mountConfig/schema'
+import { mountConfigService } from '@/common/options/mountConfig/service'
+import { storageQueryKeys } from '@/common/queries/queryKeys'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import { matchUrl } from '@/common/utils/matchUrl'
-import {
-  createDownload,
-  getRandomUUID,
-  hasOriginPermission,
-  requestOriginPermission,
-} from '@/common/utils/utils'
-
-const isPermissionGranted = async (patterns: string[]) => {
-  if (!(await hasOriginPermission(patterns))) {
-    // Request permission if not granted.
-    // If the user denies permission, do not save
-    if (!(await requestOriginPermission(patterns))) {
-      return false
-    }
-  }
-  return true
-}
+import { createDownload } from '@/common/utils/utils'
 
 export const useMountConfig = () => {
   const {
@@ -37,69 +21,6 @@ export const useMountConfig = () => {
   })
 
   const methods = useMemo(() => {
-    const updateConfig = async (
-      id: string,
-      config: Partial<MountConfigInput>
-    ) => {
-      const { data: configs, version } = options
-
-      const prevConfig = configs.find((item) => item.id === id)
-
-      if (!prevConfig) throw new Error(`Config not found: "${id}"`)
-
-      const newConfig = produce(prevConfig, (draft) => {
-        Object.assign(draft, config)
-      })
-
-      // replace the stored config with the new one
-      const newData = produce(configs, (draft) => {
-        const index = draft.findIndex((item) => item.id === id)
-        draft[index] = {
-          ...draft[index],
-          ...config,
-        }
-      })
-
-      if (!(await isPermissionGranted(newConfig.patterns))) {
-        return
-      }
-
-      await update.mutateAsync({ data: newData, version })
-    }
-
-    const addConfig = async (config: MountConfigInput) => {
-      const { data: configs, version } = options
-
-      if (!(await isPermissionGranted(config.patterns))) {
-        return
-      }
-
-      await update.mutateAsync({
-        data: [
-          ...configs,
-          {
-            ...config,
-            id: getRandomUUID(),
-          },
-        ],
-        version,
-      })
-    }
-
-    const deleteConfig = async (id: string) => {
-      const { data: configs, version } = options
-
-      const index = configs.findIndex((item) => item.id === id)
-
-      if (index === -1) throw new Error(`Config not found: "${id}"`)
-
-      const newData = produce(configs, (draft) => {
-        draft.splice(index, 1)
-      })
-
-      await update.mutateAsync({ data: newData, version })
-    }
-
     const matchByUrl = (url: string) => {
       const { data: configs } = options
 
@@ -120,72 +41,9 @@ export const useMountConfig = () => {
       )
     }
 
-    /**
-     * Import the configs
-     * Disable all imported configs and regenerate the id
-     */
-    const importConfigs = async (configs: MountConfigInput[]) => {
-      const { data: currentConfigs, version } = options
-
-      const parsed = await mountConfigInputListSchema.parseAsync(configs)
-
-      const newData = [
-        ...currentConfigs,
-        ...parsed.map((config) => ({
-          ...config,
-          enabled: false,
-          id: getRandomUUID(),
-        })),
-      ]
-
-      // check permission for all imported configs
-      // it should only ask for permission for the ones that are not already granted
-      if (
-        !(await isPermissionGranted(
-          newData.flatMap((config) => config.patterns)
-        ))
-      ) {
-        return
-      }
-
-      await update.mutateAsync({ data: newData, version })
-    }
-
-    // Find configs using the integration id, and unset the integration id
-    const unsetIntegration = async (id: string) => {
-      const { data: configs, version } = options
-
-      const newData = produce(configs, (draft) => {
-        draft.forEach((config) => {
-          if (config.integration === id) {
-            delete config.integration
-          }
-        })
-      })
-
-      await update.mutateAsync({ data: newData, version })
-    }
-
-    const setIntegration = async (id: string, integrationId: string) => {
-      const { data: configs, version } = options
-
-      const newData = produce(configs, (draft) => {
-        const index = draft.findIndex((item) => item.id === id)
-        draft[index].integration = integrationId
-      })
-
-      await update.mutateAsync({ data: newData, version })
-    }
-
     return {
-      updateConfig,
-      addConfig,
-      deleteConfig,
       matchByUrl,
       exportConfigs,
-      importConfigs,
-      unsetIntegration,
-      setIntegration,
     }
   }, [options, update.mutateAsync])
 
@@ -196,5 +54,40 @@ export const useMountConfig = () => {
     update,
     configs,
     ...methods,
+  }
+}
+
+export const useEditMountConfig = () => {
+  const createMutation = useMutation({
+    mutationKey: storageQueryKeys.external('sync', ['mountConfig']),
+    mutationFn: mountConfigService.create.bind(mountConfigService),
+  })
+
+  const updateMutation = useMutation({
+    mutationKey: storageQueryKeys.external('sync', ['mountConfig']),
+    mutationFn: ({
+      id,
+      config,
+    }: {
+      id: string
+      config: Partial<MountConfig>
+    }) => mountConfigService.update(id, config),
+  })
+
+  const deleteMutation = useMutation({
+    mutationKey: storageQueryKeys.external('sync', ['mountConfig']),
+    mutationFn: mountConfigService.delete.bind(mountConfigService),
+  })
+
+  const importMutation = useMutation({
+    mutationKey: storageQueryKeys.external('sync', ['mountConfig']),
+    mutationFn: mountConfigService.import.bind(mountConfigService),
+  })
+
+  return {
+    create: createMutation,
+    update: updateMutation,
+    remove: deleteMutation,
+    createMultiple: importMutation,
   }
 }

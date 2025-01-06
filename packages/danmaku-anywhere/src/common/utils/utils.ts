@@ -10,12 +10,6 @@ export const toArray = <T>(value: T | T[]): T[] => {
   return Array.isArray(value) ? value : [value]
 }
 
-export const hasOriginPermission = async (origins: string[]) => {
-  return chrome.permissions.contains({
-    origins,
-  })
-}
-
 export const validateOrigin = async (origin: string) => {
   try {
     await chrome.permissions.contains({
@@ -27,12 +21,6 @@ export const validateOrigin = async (origin: string) => {
     }
     return 'invalid pattern'
   }
-}
-
-export const requestOriginPermission = async (origins: string[]) => {
-  return chrome.permissions.request({
-    origins,
-  })
 }
 
 // golang style error handling

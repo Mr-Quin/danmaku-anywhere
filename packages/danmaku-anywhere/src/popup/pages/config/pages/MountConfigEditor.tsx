@@ -13,14 +13,13 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { useMutation } from '@tanstack/react-query'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
 import type { MountConfigInput } from '@/common/options/mountConfig/schema'
-import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
+import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { validateOrigin } from '@/common/utils/utils'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
@@ -57,7 +56,7 @@ interface MountConfigEditorProps {
 
 export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
   const { t } = useTranslation()
-  const { updateConfig, addConfig } = useMountConfig()
+  const { update, create } = useEditMountConfig()
   const { policies } = useIntegrationPolicyStore()
   const goBack = useGoBack()
 
@@ -89,34 +88,39 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
     remove(index)
   }
 
-  const { mutateAsync } = useMutation({
-    mutationFn: async (data: MountConfigForm) => {
-      if (data.patterns.length === 0) {
-        throw new Error('At least one pattern is required')
-      }
+  const handleSave = async (data: MountConfigForm) => {
+    if (data.patterns.length === 0) {
+      toast.error('At least one pattern is required')
+      return
+    }
 
-      const toUpdate = fromForm(data)
+    const toUpdate = fromForm(data)
 
-      if (isEdit && config.id) {
-        return updateConfig(config.id, toUpdate)
-      } else {
-        return addConfig(toUpdate)
-      }
-    },
-    onSuccess: () => {
-      if (isEdit) {
-        toast.success(t('configs.alert.updated'))
-      } else {
-        toast.success(t('configs.alert.created'))
-      }
-      goBack()
-    },
-    onError: (error) => {
-      toast.error(error.message)
-    },
-  })
-
-  const handleSave = async (data: MountConfigForm) => mutateAsync(data)
+    if (isEdit && config.id) {
+      return update.mutate(
+        { id: config.id, config: toUpdate },
+        {
+          onSuccess: () => {
+            toast.success(t('configs.alert.updated'))
+            goBack()
+          },
+          onError: (error) => {
+            toast.error(error.message)
+          },
+        }
+      )
+    } else {
+      return create.mutate(toUpdate, {
+        onSuccess: () => {
+          toast.success(t('configs.alert.created'))
+          goBack()
+        },
+        onError: (error) => {
+          toast.error(error.message)
+        },
+      })
+    }
+  }
 
   return (
     <OptionsPageLayout direction="left">
