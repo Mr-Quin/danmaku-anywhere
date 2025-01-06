@@ -90,8 +90,8 @@ interface StoreState {
    */
   frame: {
     allFrames: Map<number, FrameState>
-    activeFrame?: number // the frameId that has the video we care about
-    mustGetActiveFrame: () => number
+    activeFrame?: FrameState
+    mustGetActiveFrame: () => FrameState
     setActiveFrame: (frameId: number) => void
     addFrame: (init: Pick<FrameState, 'frameId' | 'url'>) => void
     removeFrame: (frameId: number) => void
@@ -132,7 +132,7 @@ const useStoreBase = create<StoreState>()(
     },
     seekToTime: (time) => {
       void playerRpcClient.player.seek({
-        frameId: get().frame.mustGetActiveFrame(),
+        frameId: get().frame.mustGetActiveFrame().frameId,
         data: time,
       })
     },
@@ -211,8 +211,16 @@ const useStoreBase = create<StoreState>()(
         return activeFrame
       },
       setActiveFrame: (frameId) => {
+        const selectedFrame = get().frame.allFrames.get(frameId)
+
+        if (!selectedFrame) {
+          throw new Error(
+            `Error setting active frame: Frame ${frameId} not found`
+          )
+        }
+
         set((state) => {
-          state.frame.activeFrame = frameId
+          state.frame.activeFrame = selectedFrame
         })
       },
       addFrame: ({ frameId, url }) => {
@@ -243,7 +251,7 @@ const useStoreBase = create<StoreState>()(
         set((state) => {
           state.frame.allFrames.delete(frameId)
 
-          if (frameId === state.frame.activeFrame) {
+          if (frameId === state.frame.activeFrame?.frameId) {
             state.frame.activeFrame = undefined
           }
         })
@@ -251,13 +259,20 @@ const useStoreBase = create<StoreState>()(
       updateFrame: (frameId, nextState) => {
         set((prev) => {
           const frame = prev.frame.allFrames.get(frameId)
+
           if (!frame) {
             throw new Error(`Updating frame ${frameId} failed. Frame not found`)
           }
-          if (typeof nextState === 'function') {
-            prev.frame.allFrames.set(frameId, nextState(frame))
-          } else {
-            prev.frame.allFrames.set(frameId, { ...frame, ...nextState })
+
+          const nextFrame =
+            typeof nextState === 'function'
+              ? nextState(frame)
+              : { ...frame, ...nextState }
+
+          prev.frame.allFrames.set(frameId, nextFrame)
+
+          if (frameId === prev.frame.activeFrame?.frameId) {
+            prev.frame.activeFrame = nextFrame
           }
         })
       },

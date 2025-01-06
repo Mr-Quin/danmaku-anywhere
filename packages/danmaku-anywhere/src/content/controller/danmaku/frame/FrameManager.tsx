@@ -1,5 +1,5 @@
 import { useEventCallback } from '@mui/material'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
@@ -8,6 +8,8 @@ import { createRpcServer } from '@/common/rpc/server'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type { PlayerEvents } from '@/common/rpcClient/background/types'
 import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
+import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
+import { useUnmountDanmaku } from '@/content/controller/common/hooks/useMountDanmaku'
 import { useInjectFrames } from '@/content/controller/danmaku/frame/useInjectFrames'
 import { useStore } from '@/content/controller/store/store'
 
@@ -18,30 +20,75 @@ export const FrameManager = () => {
   const config = useActiveConfig()
 
   const resetMediaState = useStore.use.resetMediaState()
+  const comments = useStore.use.comments()
+  const danmakuLite = useStore.use.danmakuLite?.()
 
   const setHasVideo = useStore.use.setHasVideo()
-  const { activeFrame, setActiveFrame, updateFrame } = useStore.use.frame()
+  const { allFrames, activeFrame, setActiveFrame, updateFrame } =
+    useStore.use.frame()
+
+  const prevActiveFrameId = useRef<number>(activeFrame?.frameId)
+
+  const { mountDanmaku } = useLoadDanmaku()
+  const unmountDanmaku = useUnmountDanmaku()
 
   useInjectFrames()
 
   const videoChangeHandler = useEventCallback((frameId: number) => {
     setHasVideo(true)
 
-    if (activeFrame !== undefined && activeFrame !== frameId) {
-      // TODO: handle the case where there are multiple frames with video
+    /**
+     * If there is an active frame, and it has video,
+     * it means there are multiple frames with video.
+     *
+     * TODO: need some heuristic to handle this case
+     */
+    if (activeFrame?.hasVideo && activeFrame.frameId !== frameId) {
       toast.warn(t('danmaku.alert.multipleFrames'))
-    } else {
-      updateFrame(frameId, { hasVideo: true })
-      setActiveFrame(frameId)
+      return
     }
+
+    updateFrame(frameId, { hasVideo: true })
+    setActiveFrame(frameId)
   })
 
   const videoRemovedHandler = useEventCallback((frameId: number) => {
-    if (activeFrame === frameId) {
+    // Reset state if video is removed from the active frame,
+    // but keep the current active frame even when the video is removed
+    if (activeFrame?.frameId === frameId) {
       setHasVideo(false)
       resetMediaState()
     }
+    updateFrame(frameId, { hasVideo: false })
   })
+
+  useEffect(() => {
+    if (!activeFrame) {
+      prevActiveFrameId.current = undefined
+      return
+    }
+
+    if (activeFrame.frameId === prevActiveFrameId.current) return
+
+    /**
+     * If the active frame changes, "migrate" danmaku to the new frame if there are comments
+     *
+     * If the previous active frame is mounted, unmount the danmaku,
+     * then mount it to the new active frame
+     */
+    if (
+      prevActiveFrameId.current &&
+      allFrames.get(prevActiveFrameId.current)?.mounted
+    ) {
+      unmountDanmaku.mutate(prevActiveFrameId.current)
+    }
+
+    if (comments.length && danmakuLite) {
+      mountDanmaku({ ...danmakuLite, comments })
+    }
+
+    prevActiveFrameId.current = activeFrame.frameId
+  }, [activeFrame])
 
   useEffect(() => {
     const controllerRpcServer = createRpcServer<PlayerEvents>(
