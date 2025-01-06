@@ -1,8 +1,17 @@
 import starlightPlugin from '@astrojs/starlight-tailwind'
+import daisyui from 'daisyui'
+import daisyTheme from 'daisyui/src/theming/themes'
 
 const accent = {
+  50: '#fde6d9',
+  100: '#fdd0c1',
   200: '#fdb3a7',
+  300: '#fca08d',
+  400: '#fb8e73',
+  500: '#fa7b59',
   600: '#a60a00',
+  700: '#7d0800',
+  800: '#6b0700',
   900: '#640300',
   950: '#450c06',
 }
@@ -25,5 +34,29 @@ export default {
       colors: { accent, gray },
     },
   },
-  plugins: [starlightPlugin()],
+  daisyui: {
+    themes: [
+      {
+        dark: {
+          ...daisyTheme.dark,
+          primary: accent[200],
+          secondary: accent[300],
+          accent: accent[600],
+          neutral: gray[700],
+          'base-100': gray[800],
+        },
+      },
+      {
+        light: {
+          ...daisyTheme.light,
+          primary: accent[600],
+          secondary: accent[500],
+          accent: accent[200],
+          neutral: gray[500],
+          'base-100': gray[100],
+        },
+      },
+    ],
+  },
+  plugins: [starlightPlugin(), daisyui],
 }
