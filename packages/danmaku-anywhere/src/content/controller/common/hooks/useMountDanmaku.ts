@@ -23,6 +23,7 @@ export const useMountDanmaku = () => {
       if (!res.data) {
         throw new Error('Failed to mount danmaku')
       }
+      return true
     },
     onSuccess: (_, danmaku) => {
       setDanmakuLite(danmaku)
@@ -52,6 +53,8 @@ export const useUnmountDanmaku = () => {
       await playerRpcClient.player.unmount({
         frameId: frame,
       })
+
+      return true
     },
     onSuccess: () => {
       resetMediaState()
