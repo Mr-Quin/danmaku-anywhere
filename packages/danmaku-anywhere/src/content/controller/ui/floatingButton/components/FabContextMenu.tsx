@@ -30,7 +30,7 @@ const usePip = () => {
 
   const enterPip = () => {
     if (activeFrame === undefined) return
-    playerRpcClient.player.enterPiP({ frameId: activeFrame })
+    playerRpcClient.player.enterPiP({ frameId: activeFrame.frameId })
   }
 
   return {

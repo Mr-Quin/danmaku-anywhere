@@ -9,7 +9,8 @@ import { useStore } from '@/content/controller/store/store'
 const urlBlacklist = ['about:blank']
 
 export const useInjectFrames = () => {
-  const { allFrames, addFrame, removeFrame } = useStore.use.frame()
+  const { allFrames, addFrame, removeFrame, activeFrame, setActiveFrame } =
+    useStore.use.frame()
 
   const injectedFrames = useRef(new Set<number>(allFrames.keys())).current
 
@@ -44,6 +45,8 @@ export const useInjectFrames = () => {
         frameId: frame.frameId,
         url: frame.url,
       })
+      // If there is no active frame, set the first frame as active
+      if (!activeFrame) setActiveFrame(frame.frameId)
       injectedFrames.add(frame.frameId)
     },
     onError: (e, frame) => {

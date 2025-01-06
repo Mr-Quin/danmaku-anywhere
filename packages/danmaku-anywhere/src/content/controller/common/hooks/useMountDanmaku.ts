@@ -17,7 +17,7 @@ export const useMountDanmaku = () => {
   return useMutation({
     mutationFn: async (danmaku: Danmaku) => {
       const res = await playerRpcClient.player.mount({
-        frameId: mustGetActiveFrame(),
+        frameId: mustGetActiveFrame().frameId,
         data: danmaku.comments,
       })
       if (!res.data) {
@@ -28,7 +28,7 @@ export const useMountDanmaku = () => {
     onSuccess: (_, danmaku) => {
       setDanmakuLite(danmaku)
       setComments(danmaku.comments)
-      updateFrame(mustGetActiveFrame(), { mounted: true })
+      updateFrame(mustGetActiveFrame().frameId, { mounted: true })
     },
     onError: (err) => {
       toast.error(err.message)
@@ -40,13 +40,14 @@ export const useUnmountDanmaku = () => {
   const { toast } = useToast()
   const { t } = useTranslation()
 
-  const { activeFrame } = useStore.use.frame()
+  const { activeFrame, updateFrame } = useStore.use.frame()
 
   const resetMediaState = useStore.use.resetMediaState()
 
   return useMutation({
     mutationFn: async (frameId: number | void) => {
-      const frame = frameId ?? activeFrame
+      const frame = frameId ?? activeFrame?.frameId
+
       if (frame === undefined)
         throw new Error('Trying to unmount danmaku without an active frame')
 
@@ -56,7 +57,8 @@ export const useUnmountDanmaku = () => {
 
       return true
     },
-    onSuccess: () => {
+    onSuccess: (_, frameId) => {
+      if (frameId) updateFrame(frameId, { mounted: false })
       resetMediaState()
       toast.info(t('danmaku.alert.unmounted'))
     },
@@ -76,7 +78,7 @@ export const useShowDanmaku = () => {
   return useMutation({
     mutationFn: async () => {
       await playerRpcClient.player.show({
-        frameId: mustGetActiveFrame(),
+        frameId: mustGetActiveFrame().frameId,
         data: !visible,
       })
     },
