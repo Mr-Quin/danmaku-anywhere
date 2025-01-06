@@ -1,5 +1,6 @@
 import react from '@astrojs/react'
 import starlight from '@astrojs/starlight'
+import tailwind from '@astrojs/tailwind'
 import { defineConfig } from 'astro/config'
 
 // https://astro.build/config
@@ -9,6 +10,7 @@ export default defineConfig({
     react(),
     starlight({
       title: 'Danmaku Anywhere',
+      customCss: ['./src/tailwind.css'],
       favicon: '/favicon.png',
       logo: {
         light: './src/assets/logo-circle.png',
@@ -22,7 +24,6 @@ export default defineConfig({
       social: {
         github: 'https://github.com/Mr-Quin/danmaku-anywhere',
       },
-      customCss: ['./src/styles/custom.css'],
       sidebar: [
         {
           label: 'getting-started',
@@ -118,6 +119,9 @@ export default defineConfig({
           lang: 'zh-CN',
         },
       },
+    }),
+    tailwind({
+      applyBaseStyles: false,
     }),
   ],
 })
