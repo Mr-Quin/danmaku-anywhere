@@ -23,15 +23,17 @@ export const chromeSender: ChromeSender = async <TInput, TOutput>(
 
 type TabSender = <TInput, TOutput>(
   payload: RPCPayload<TInput>,
-  tabInfo: chrome.tabs.QueryInfo,
+  tabInfoParam?: chrome.tabs.QueryInfo,
   getTab?: (tabs: chrome.tabs.Tab[]) => chrome.tabs.Tab
 ) => Promise<RPCResponse<TOutput>>
 
 export const tabSender: TabSender = async <TInput, TOutput>(
   payload: RPCPayload<TInput>,
-  tabInfo: chrome.tabs.QueryInfo = { active: true, currentWindow: true },
+  tabInfoParam?: chrome.tabs.QueryInfo,
   getTab?: (tabs: chrome.tabs.Tab[]) => chrome.tabs.Tab
 ) => {
+  const tabInfo = tabInfoParam ?? { active: true, currentWindow: true }
+
   const tabs = await chrome.tabs.query(tabInfo)
 
   const tab = getTab ? getTab(tabs) : tabs[0]
