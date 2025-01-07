@@ -1,12 +1,10 @@
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { useShallow } from 'zustand/react/shallow'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
-import { useStore } from '@/content/controller/store/store'
 
 export const useMatchEpisode = () => {
   const { t } = useTranslation()
@@ -14,14 +12,11 @@ export const useMatchEpisode = () => {
   const toast = useToast.use.toast()
   const { open, setAnimes } = usePopup()
 
-  const { resetMediaState } = useStore(useShallow((state) => state))
-
   const { loadMutation } = useLoadDanmaku()
 
   const mutation = useMutation({
     mutationFn: chromeRpcClient.episodeMatch,
     onError: (_, v) => {
-      resetMediaState()
       toast.error(
         t('integration.alert.searchError', {
           message: v.title,
@@ -43,7 +38,6 @@ export const useMatchEpisode = () => {
             },
             {
               onError: () => {
-                resetMediaState()
                 toast.error(
                   t('danmaku.alert.fetchError', {
                     message: v.title,

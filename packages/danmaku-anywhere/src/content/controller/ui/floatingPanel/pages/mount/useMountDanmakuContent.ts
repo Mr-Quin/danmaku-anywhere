@@ -12,7 +12,7 @@ import { useStore } from '@/content/controller/store/store'
 export const useMountDanmakuContent = () => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
-  const mountManual = useStore((state) => state.mountManual)
+  const { toggleManualMode } = useStore.use.danmaku()
 
   const queryClient = useQueryClient()
 
@@ -33,8 +33,8 @@ export const useMountDanmakuContent = () => {
       return data
     },
     onSuccess: (data) => {
-      mountManual()
-      mountDanmaku(data)
+      toggleManualMode(true)
+      void mountDanmaku(data)
     },
     onError: (e) => {
       toast.error(

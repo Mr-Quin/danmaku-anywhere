@@ -35,8 +35,7 @@ export const FloatingButton = forwardRef<
   const [contextMenuAnchor, setContextMenuAnchor] =
     useState<PopoverVirtualElement | null>(null)
 
-  const visible = useStore((state) => state.visible)
-  const hasComments = useStore((state) => state.hasComments)
+  const { isMounted, isVisible } = useStore.use.danmaku()
 
   const handleOpen: MouseEventHandler<HTMLElement> = (e) => {
     const virtualElement = createVirtualElement(e.clientX, e.clientY)
@@ -68,9 +67,9 @@ export const FloatingButton = forwardRef<
 
   const mergedFabRefs = useMergeRefs(fabRef, ref)
 
-  const dialColor = !visible
+  const dialColor = !isVisible
     ? 'text.disabled'
-    : hasComments
+    : isMounted
       ? 'success.main'
       : 'primary.main'
 

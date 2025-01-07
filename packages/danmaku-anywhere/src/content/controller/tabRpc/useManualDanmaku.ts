@@ -3,7 +3,7 @@ import { useEventCallback } from '@mui/material'
 import type { Danmaku } from '@/common/danmaku/models/danmaku'
 import { Logger } from '@/common/Logger'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
-import { useUnmountDanmaku } from '@/content/controller/common/hooks/useMountDanmaku'
+import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { useStore } from '@/content/controller/store/store'
 
 // listen to comment changes and mount/unmount the danmaku engine
@@ -13,7 +13,7 @@ export const useManualDanmaku = () => {
 
   const handleSetDanmaku = useEventCallback(async (data: Danmaku) => {
     Logger.debug('Requested manual danmaku')
-    useStore.getState().mountManual()
+    useStore.getState().danmaku.toggleManualMode(true)
     return mountDanmaku(data)
   })
 

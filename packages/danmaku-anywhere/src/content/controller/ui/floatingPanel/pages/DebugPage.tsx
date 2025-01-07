@@ -7,10 +7,10 @@ export const DebugPage = () => {
   const state = useStore()
 
   const displayState = produce(state, (draft: any) => {
-    delete draft.comments
-    if (draft.danmakuLite) {
-      if ('comments' in draft.danmakuLite) {
-        delete draft.danmakuLite.comments
+    delete draft.danmaku.comments
+    if (draft.danmaku.danmakuLite) {
+      if ('comments' in draft.danmaku.danmakuLite) {
+        delete draft.danmaku.danmakuLite.comments
       }
     }
     draft.frame.allFrames = Object.fromEntries(draft.frame.allFrames.entries())

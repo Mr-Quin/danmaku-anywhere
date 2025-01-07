@@ -9,7 +9,7 @@ import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type { PlayerEvents } from '@/common/rpcClient/background/types'
 import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
-import { useUnmountDanmaku } from '@/content/controller/common/hooks/useMountDanmaku'
+import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { useInjectFrames } from '@/content/controller/danmaku/frame/useInjectFrames'
 import { useStore } from '@/content/controller/store/store'
 
@@ -19,9 +19,7 @@ export const FrameManager = () => {
 
   const config = useActiveConfig()
 
-  const resetMediaState = useStore.use.resetMediaState()
-  const comments = useStore.use.comments()
-  const danmakuLite = useStore.use.danmakuLite?.()
+  const { unmount, comments, danmakuLite } = useStore.use.danmaku()
 
   const setHasVideo = useStore.use.setHasVideo()
   const { allFrames, activeFrame, setActiveFrame, updateFrame } =
@@ -57,7 +55,7 @@ export const FrameManager = () => {
     // but keep the current active frame even when the video is removed
     if (activeFrame?.frameId === frameId) {
       setHasVideo(false)
-      resetMediaState()
+      unmount()
     }
     updateFrame(frameId, { hasVideo: false })
   })

@@ -15,8 +15,7 @@ import { useStore } from '@/content/controller/store/store'
 // Only available when integration is None and in manual mode
 export const useLoadDanmakuNextEpisode = () => {
   const { t } = useTranslation()
-  const danmakuLite = useStore((state) => state.danmakuLite)
-  const manual = useStore.use.manual()
+  const { danmakuLite, isManual } = useStore.use.danmaku()
   const toast = useToast.use.toast()
 
   const { loadMutation } = useLoadDanmaku()
@@ -24,7 +23,7 @@ export const useLoadDanmakuNextEpisode = () => {
   const canFetchNextEpisode =
     !!danmakuLite &&
     isDanmakuProvider(danmakuLite, DanmakuSourceType.DanDanPlay) &&
-    manual
+    isManual
 
   const fetchNextEpisodeComments = useEventCallback(async () => {
     if (!canFetchNextEpisode) return
