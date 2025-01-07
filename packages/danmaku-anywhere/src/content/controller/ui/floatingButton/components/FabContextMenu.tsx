@@ -13,10 +13,8 @@ import { useTranslation } from 'react-i18next'
 import { useHotkeyOptions } from '@/common/options/extensionOptions/useHotkeyOptions'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
-import {
-  useShowDanmaku,
-  useUnmountDanmaku,
-} from '@/content/controller/common/hooks/useMountDanmaku'
+import { useShowDanmaku } from '@/content/controller/common/hooks/useShowDanmaku'
+import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { useStore } from '@/content/controller/store/store'
 import type { ContextMenuItemProps } from '@/content/controller/ui/floatingButton/components/ContextMenuItem'
 import { ContextMenuItem } from '@/content/controller/ui/floatingButton/components/ContextMenuItem'
@@ -40,9 +38,7 @@ const usePip = () => {
 
 export const FabContextMenu = (props: FabContextMenuProps) => {
   const { t } = useTranslation()
-  const hasComments = useStore.use.hasComments()
-  const manual = useStore.use.manual()
-  const visible = useStore.use.visible()
+  const { isMounted, isVisible, isManual } = useStore.use.danmaku()
   const { enterPip } = usePip()
   const hasVideo = useStore((state) => state.hasVideo)
   const unmountMutation = useUnmountDanmaku()
@@ -64,7 +60,7 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
     {
       action: () => fetchNextEpisodeComments(),
       disabled: () => !canFetchNextEpisode || isLoading,
-      tooltip: () => (manual ? '' : t('danmaku.tooltip.nextEpisode')),
+      tooltip: () => (isManual ? '' : t('danmaku.tooltip.nextEpisode')),
       icon: () => <SkipNext fontSize="small" />,
       label: () => t('danmaku.nextEpisode'),
       hotkey: getKeyCombo('loadNextEpisodeComments'),
@@ -78,7 +74,7 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
     },
     {
       action: () => unmountMutation.mutate(),
-      disabled: () => !hasComments,
+      disabled: () => !isMounted,
       icon: () => <Eject fontSize="small" />,
       label: () => t('danmaku.unmount'),
       hotkey: getKeyCombo('unmountComments'),
@@ -86,12 +82,12 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
     {
       action: () => showDanmakuMutation.mutate(),
       icon: () =>
-        visible ? (
+        isVisible ? (
           <VisibilityOff fontSize="small" />
         ) : (
           <Visibility fontSize="small" />
         ),
-      label: () => (visible ? t('danmaku.disable') : t('danmaku.enable')),
+      label: () => (isVisible ? t('danmaku.disable') : t('danmaku.enable')),
       hotkey: getKeyCombo('toggleEnableDanmaku'),
     },
     {

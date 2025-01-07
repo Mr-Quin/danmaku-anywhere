@@ -10,7 +10,7 @@ import { TabRpcServer } from '@/content/controller/tabRpc/TabRpc'
 import { PopupUi } from '@/content/controller/ui/PopupUi'
 
 export const Content = () => {
-  const isVisible = useStore.use.visible()
+  const isVisible = useStore((state) => state.danmaku.isVisible)
   const setHighlighterPortal = usePopup.use.setHighlighterPortal()
 
   return (

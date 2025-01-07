@@ -22,7 +22,7 @@ export const FloatingPanelToolbar = () => {
   const { t } = useTranslation()
   const isAnyLoading = useAnyLoading()
   const { toggleOpen } = usePopup()
-  const { toggleManualMode, manual, danmakuLite } = useStore()
+  const { toggleManualMode, isManual, danmakuLite } = useStore.use.danmaku()
 
   return (
     <AppBar position="relative">
@@ -48,7 +48,7 @@ export const FloatingPanelToolbar = () => {
                 <FormControlLabel
                   control={
                     <StyledEnableSwitch
-                      checked={!manual}
+                      checked={!isManual}
                       onChange={() => toggleManualMode()}
                       size="small"
                     />

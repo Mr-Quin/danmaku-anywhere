@@ -17,7 +17,7 @@ export const useLoadDanmaku = () => {
   const toast = useToast.use.toast()
 
   const getAnimeName = useStore.use.getAnimeName()
-  const danmakuLite = useStore((state) => state.danmakuLite)
+  const { danmakuLite } = useStore.use.danmaku()
 
   const fetchMutation = useFetchDanmaku()
   const mountMutation = useMountDanmaku()

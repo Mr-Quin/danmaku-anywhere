@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useShallow } from 'zustand/react/shallow'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import { Logger } from '@/common/Logger'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
+import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import { IntegrationPolicyObserver } from '@/content/controller/danmaku/integration/observers/IntegrationPolicyObserver'
@@ -17,10 +17,9 @@ export const useIntegrationPolicy = () => {
 
   const observer = useRef<IntegrationPolicyObserver>(undefined)
 
-  const { resetMediaState, toggleManualMode, manual, hasVideo } = useStore(
-    useShallow((state) => state)
-  )
-
+  const hasVideo = useStore.use.hasVideo()
+  const { toggleManualMode, isManual } = useStore.use.danmaku()
+  const unmountDanmaku = useUnmountDanmaku()
   const { setMediaInfo, setErrorMessage, setActive, setFoundElements } =
     useStore.use.integration()
 
@@ -42,7 +41,7 @@ export const useIntegrationPolicy = () => {
   }, [integrationPolicy])
 
   useEffect(() => {
-    if (!integrationPolicy || manual) {
+    if (!integrationPolicy || isManual) {
       observer.current = undefined
       return
     }
@@ -58,7 +57,9 @@ export const useIntegrationPolicy = () => {
     setActive(true)
     obs.on({
       mediaChange: async (state: MediaInfo) => {
-        resetMediaState()
+        if (useStore.getState().danmaku.isMounted) {
+          unmountDanmaku.mutate()
+        }
         setMediaInfo(state)
         setErrorMessage()
 
@@ -87,5 +88,5 @@ export const useIntegrationPolicy = () => {
       observer.current = undefined
       setActive(false)
     }
-  }, [integrationPolicy, manual, hasVideo])
+  }, [integrationPolicy, isManual, hasVideo])
 }

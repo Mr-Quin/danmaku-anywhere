@@ -15,7 +15,8 @@ import { useStore } from '@/content/controller/store/store'
 
 export const CommentsPage = () => {
   const { t } = useTranslation()
-  const { comments, hasVideo } = useStore()
+  const hasVideo = useStore.use.hasVideo()
+  const { comments } = useStore.use.danmaku()
   const seekToTime = useStore.use.seekToTime()
 
   const { refreshComments, loadMutation, canRefresh } = useLoadDanmaku()

@@ -25,26 +25,37 @@ interface FrameState {
 }
 
 interface StoreState {
-  /**
-   * Whether danmaku is visible
-   */
-  visible: boolean
-  toggleVisible: (visible?: boolean) => void
+  danmaku: {
+    isMounted: boolean
+    mount: (danmaku: DanmakuLite, comments: CommentEntity[]) => void
+    unmount: () => void
 
-  /**
-   * Danmaku to be displayed
-   */
-  comments: CommentEntity[]
-  hasComments: boolean
-  setComments: (comments: CommentEntity[]) => void
-  unsetComments: () => void
+    /**
+     * Whether danmaku should be visible
+     */
+    isVisible: boolean
+    toggleVisible: (visible?: boolean) => void
+
+    /**
+     * Danmaku to be displayed
+     */
+    comments: CommentEntity[]
+
+    /**
+     * Information about the current danmaku
+     */
+    danmakuLite?: DanmakuLite
+    setDanmakuLite: (danmakuMeta: DanmakuLite | undefined) => void
+
+    /**
+     * Whether the danmaku is manually set
+     * When true, integration will not be used
+     */
+    isManual: boolean
+    toggleManualMode: (manual?: boolean) => void
+  }
+
   seekToTime: (time: number) => void
-
-  /**
-   * Information about the current danmaku
-   */
-  danmakuLite?: DanmakuLite
-  setDanmakuLite: (danmakuMeta: DanmakuLite | undefined) => void
 
   /**
    * Media information for pages with integration
@@ -58,21 +69,8 @@ interface StoreState {
     setErrorMessage: (errMessage?: string) => void
     mediaInfo?: MediaInfo
     setMediaInfo: (mediaInfo: MediaInfo) => void
+    unsetMediaInfo: () => void
   }
-
-  /**
-   * Whether the danmaku is manually set
-   * When true, automatic danmaku fetching is disabled
-   */
-  manual: boolean
-  toggleManualMode: (manual?: boolean) => void
-  mountManual: () => void
-
-  /**
-   * Reset media related state
-   * Includes comments, mediaInfo, and danmakuMeta
-   */
-  resetMediaState: (mediaInfo?: MediaInfo) => void
 
   /**
    * Uses the mediaInfo and danmakuMeta to get the name
@@ -114,40 +112,62 @@ interface StoreState {
 
 const useStoreBase = create<StoreState>()(
   immer((set, get) => ({
-    visible: true,
-    toggleVisible: (visible) => {
-      if (visible !== undefined) {
-        set({ visible })
-      }
-      set({ visible: !get().visible })
+    danmaku: {
+      isMounted: false,
+      mount: (danmaku, comments) => {
+        set((state) => {
+          state.danmaku.isMounted = true
+          state.danmaku.danmakuLite = danmaku
+          state.danmaku.comments = comments
+        })
+      },
+      unmount: () => {
+        set((state) => {
+          state.danmaku.isMounted = false
+          state.danmaku.danmakuLite = undefined
+          state.danmaku.comments = []
+        })
+      },
+      isVisible: true,
+      toggleVisible: (visible) => {
+        if (visible === undefined) {
+          set((state) => {
+            state.danmaku.isVisible = !state.danmaku.isVisible
+          })
+        } else {
+          set((state) => {
+            state.danmaku.isVisible = visible
+          })
+        }
+      },
+
+      comments: [],
+      danmakuLite: undefined,
+      setDanmakuLite: (danmakuMeta) => {
+        set((state) => {
+          state.danmaku.danmakuLite = danmakuMeta
+        })
+      },
+
+      isManual: false,
+      toggleManualMode: (manual) => {
+        if (manual !== undefined) {
+          set((state) => {
+            state.danmaku.isManual = manual
+          })
+        } else {
+          set((state) => {
+            state.danmaku.isManual = !state.danmaku.isManual
+          })
+        }
+      },
     },
 
-    comments: [],
-    hasComments: false,
-    setComments: async (comments) => {
-      set({ comments, hasComments: true })
-    },
-    unsetComments: async () => {
-      set({ comments: [], hasComments: false })
-    },
     seekToTime: (time) => {
       void playerRpcClient.player.seek({
         frameId: get().frame.mustGetActiveFrame().frameId,
         data: time,
       })
-    },
-
-    manual: false,
-    toggleManualMode: (manual) => {
-      if (manual === undefined) {
-        set((state) => ({ manual: !state.manual }))
-      } else {
-        set({ manual })
-      }
-    },
-    mountManual: () => {
-      get().resetMediaState()
-      get().toggleManualMode(true)
     },
 
     integration: {
@@ -172,23 +192,17 @@ const useStoreBase = create<StoreState>()(
         set((state) => {
           state.integration.mediaInfo = mediaInfo
         }),
-    },
-
-    danmakuLite: undefined,
-    setDanmakuLite: (danmakuLite) => set({ danmakuLite }),
-
-    resetMediaState: (mediaInfo) => {
-      get().unsetComments()
-      get().setDanmakuLite(undefined)
-      set((state) => {
-        state.integration.mediaInfo = mediaInfo
-      })
+      unsetMediaInfo: () => {
+        set((state) => {
+          state.integration.mediaInfo = undefined
+        })
+      },
     },
 
     getAnimeName: () => {
       const {
         integration: { mediaInfo },
-        danmakuLite,
+        danmaku: { danmakuLite },
       } = get()
       if (mediaInfo) return mediaInfo.toString()
       if (danmakuLite) {
@@ -245,7 +259,7 @@ const useStoreBase = create<StoreState>()(
 
         if (frame.mounted) {
           get().setHasVideo(false)
-          get().resetMediaState()
+          get().danmaku.unmount()
         }
 
         set((state) => {
