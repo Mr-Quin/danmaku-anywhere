@@ -48,6 +48,7 @@ export const FloatingPanelPopper = ({
       anchorEl={anchorEl}
       transition
       modifiers={popperModifiers}
+      sx={{ zIndex: 1402 }} // 1 above the floating button
     >
       {({ TransitionProps }) => {
         return <Fade {...TransitionProps}>{children}</Fade>
