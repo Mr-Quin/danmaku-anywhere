@@ -32,6 +32,8 @@ const htmlFontSize =
     )
   })[0] ?? 16
 
+shadowRoot.id = 'danmaku-anywhere-controller-root'
+
 const cache = createCache({
   key: 'danmaku-anywhere',
   container: shadowStyle,

@@ -24,22 +24,21 @@ export const PopupUi = () => {
         toggleOpen(false)
       }}
     >
-      <div>
+      <Box
+        position="fixed"
+        bottom={(theme) => theme.spacing(12)}
+        left={(theme) => theme.spacing(3)}
+        zIndex={1401} // 1 above the snackbar
+      >
         <FloatingPanel anchorEl={anchorEl ?? fallbackAnchorEl.current} />
-        <Box
-          position="fixed"
-          bottom={(theme) => theme.spacing(12)}
-          left={(theme) => theme.spacing(3)}
-        >
-          <FloatingButton
-            color="primary"
-            size="small"
-            onOpen={handleOpen}
-            isOpen={isOpen}
-            ref={fallbackAnchorEl}
-          />
-        </Box>
-      </div>
+        <FloatingButton
+          color="primary"
+          size="small"
+          onOpen={handleOpen}
+          isOpen={isOpen}
+          ref={fallbackAnchorEl}
+        />
+      </Box>
     </ClickAwayListener>
   )
 }
