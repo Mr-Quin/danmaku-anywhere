@@ -8,6 +8,18 @@ interface ToastOptions {
   actionLabel?: string
 }
 
+type Severity = 'success' | 'info' | 'warning' | 'error'
+
+interface Notification {
+  message: string
+  severity: Severity
+  duration?: number
+  actionFn?: () => void
+  actionLabel?: string
+  key: number
+  open: boolean
+}
+
 interface Toast {
   info: (message: string, options?: ToastOptions) => void
   success: (message: string, options?: ToastOptions) => void
@@ -16,72 +28,69 @@ interface Toast {
 }
 
 interface ToastStoreState {
-  isOpen: boolean
-  message: string
-  severity: 'success' | 'info' | 'warning' | 'error'
-  actionFn?: () => void
-  actionLabel?: string
-  duration: number
-  key: number
-  close: () => void
-  show: ({
-    message,
-    duration,
-    severity,
-    actionFn,
-    actionLabel,
-  }: {
-    message: string
-    duration?: number
-    severity?: 'success' | 'info' | 'warning' | 'error'
-    actionFn?: () => void
-    actionLabel?: string
-  }) => void
-  unsetAction: () => void
+  notifications: Notification[]
+  // Add a new notification to the list
+  enqueue: (
+    notification: Omit<Notification, 'key' | 'open' | 'position'>
+  ) => void
+  // Mark the notification as closed without removing it from the list
+  close: (key: number) => void
+  // Remove the notification from the list
+  dequeue: (key: number) => void
   toast: Toast
 }
 
 const toastStore = create<ToastStoreState>((set, get) => ({
-  isOpen: false,
-  message: '',
-  severity: 'info' as const,
-  duration: 3000,
-  key: 0,
-  close: () => {
-    set({ isOpen: false })
+  notifications: [],
+  close: (key) => {
+    const index = get().notifications.findIndex(
+      (notification) => notification.key === key
+    )
+    if (index === -1) return
+
+    const notifications = get().notifications.toSpliced(index, 1, {
+      ...get().notifications[index],
+      open: false,
+    })
+    set({ notifications })
   },
-  show: ({
+  dequeue: (key) => {
+    set({ notifications: get().notifications.filter((n) => n.key !== key) })
+  },
+  enqueue: ({
     message,
-    duration = 3000,
+    duration = 3500,
     severity = 'info',
     actionFn,
     actionLabel,
   }) => {
     set({
-      message,
-      severity,
-      duration,
-      isOpen: true,
-      key: Date.now(),
-      actionFn,
-      actionLabel,
+      notifications: [
+        ...get().notifications,
+        {
+          message,
+          severity,
+          duration,
+          actionFn,
+          actionLabel,
+          key: Date.now(),
+          open: true,
+        },
+      ],
     })
-  },
-  unsetAction: () => {
-    set({ actionFn: undefined, actionLabel: undefined })
   },
   toast: {
     info: (message, options) => {
-      get().show({ message, severity: 'info', ...options })
+      get().enqueue({ message, severity: 'info', ...options })
     },
     success: (message, options) => {
-      get().show({ message, severity: 'success', ...options })
+      get().enqueue({ message, severity: 'success', ...options })
     },
     warn: (message, options) => {
-      get().show({ message, severity: 'warning', ...options })
+      get().enqueue({ message, severity: 'warning', ...options })
     },
     error: (message, options) => {
-      get().show({ message, severity: 'error', ...options })
+      get().enqueue({ message, severity: 'error', ...options })
     },
   },
 }))
