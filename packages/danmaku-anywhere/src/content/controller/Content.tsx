@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 
 import { Toast } from '@/common/components/Toast/Toast'
+import { SwitchLanguage } from '@/content/controller/common/components/SwitchLanguage'
 import { FrameManager } from '@/content/controller/danmaku/frame/FrameManager'
 import { RegisterIntegration } from '@/content/controller/danmaku/integration/RegisterIntegration'
 import { IconManagerComponent } from '@/content/controller/iconManager/IconManagerComponent'
@@ -23,6 +24,7 @@ export const Content = () => {
       <TabRpcServer />
       <PopupUi />
       <Toast />
+      <SwitchLanguage />
       <div
         id="danmaku-anywhere-highlighter-portal"
         ref={(element) => {
