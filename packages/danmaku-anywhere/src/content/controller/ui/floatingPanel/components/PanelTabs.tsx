@@ -2,12 +2,14 @@ import { Tab, Tabs } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { match } from 'ts-pattern'
 
+import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 import { routes } from '@/content/controller/ui/router/routes'
 
 export const PanelTabs = () => {
   const { t } = useTranslation()
   const { tab, setTab } = usePopup()
+  const { data: options } = useExtensionOptions()
 
   const handleTabChange = (_: unknown, value: PopupTab) => {
     setTab(value)
@@ -21,7 +23,7 @@ export const PanelTabs = () => {
       return routes.filter((route) => {
         if (route.tab === PopupTab.Selector) return false
         if (route.tab === PopupTab.Debug) {
-          return import.meta.env.DEV
+          return options.debug
         }
         return true
       })

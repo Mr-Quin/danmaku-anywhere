@@ -16,6 +16,7 @@ import { OptionsPageLayout } from '../../layout/OptionsPageLayout'
 import { LanguageListItem } from './components/LanguageListItem'
 
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
+import { DebugOption } from '@/popup/pages/options/components/DebugOption'
 import { SimplifiedSearchListItem } from '@/popup/pages/options/components/SimplifiedSearchListItem'
 import { Version } from '@/popup/pages/options/components/Version'
 
@@ -69,6 +70,7 @@ export const Options = () => {
             title={t('optionsPage.pages.hotkeys')}
             onClick={() => navigate('hotkeys')}
           />
+          <DebugOption />
         </List>
       </OptionsPageLayout>
       <Outlet />

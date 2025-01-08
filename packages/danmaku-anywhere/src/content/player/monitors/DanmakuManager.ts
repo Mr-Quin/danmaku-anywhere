@@ -6,6 +6,7 @@ import type {
   DanmakuOptions,
   SafeZones,
 } from '@/common/options/danmakuOptions/constant'
+import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { RectObserver } from '@/content/player/monitors/RectObserver'
 import {
   type VideoChangeListener,
@@ -189,16 +190,15 @@ export class DanmakuManager {
     }
   }
 
-  private addDebugStyles() {
-    if (import.meta.env.DEV) {
+  private async addDebugStyles() {
+    const options = await extensionOptionsService.get()
+    if (options.debug) {
       this.wrapper.style.border = '1px solid red'
     }
   }
 
   private removeDebugStyles() {
-    if (import.meta.env.DEV) {
-      this.wrapper.style.border = 'none'
-    }
+    this.wrapper.style.border = 'none'
   }
 
   private createDanmaku() {
