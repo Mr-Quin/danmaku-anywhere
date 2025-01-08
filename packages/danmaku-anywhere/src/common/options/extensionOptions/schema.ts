@@ -60,6 +60,11 @@ export const extensionOptionsSchema = z.object({
   enabled: z.boolean(),
 
   /**
+   * Whether to show debug information
+   */
+  debug: z.boolean(),
+
+  /**
    * Language of the extension
    */
   lang: z.nativeEnum(Language),

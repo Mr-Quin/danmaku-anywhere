@@ -105,3 +105,10 @@ export const extensionOptionsService = new OptionsService(
         draft.searchUsingSimplified = false
       }),
   })
+  .version(12, {
+    upgrade: (data: PrevOptions) =>
+      produce<ExtensionOptions>(data, (draft) => {
+        // Add debug field
+        draft.debug = false
+      }),
+  })

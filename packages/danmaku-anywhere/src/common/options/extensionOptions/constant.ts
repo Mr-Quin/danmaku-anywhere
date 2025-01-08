@@ -22,6 +22,7 @@ export const ChConvertList = [
 
 export const defaultExtensionOptions: ExtensionOptions = {
   enabled: true,
+  debug: false,
   lang: Language.zh,
   searchUsingSimplified: false,
   danmakuSources: {
