@@ -181,11 +181,21 @@ export const setupRpc = () => {
     clientMethod: TabRPCClientMethod<TRPCDef>
   ): RRPServerHandler<TRPCDef> => {
     return async (data, sender, setContext) => {
+      // Apparently tab.index can be -1 in some cases, this will cause an error so we need to handle it
+      const tabIndex = sender.tab?.index === -1 ? undefined : sender.tab?.index
+
       const res = await clientMethod(
         data,
         {},
         {
-          tabInfo: { windowId: sender.tab?.windowId, index: sender.tab?.index },
+          tabInfo: { windowId: sender.tab?.windowId, index: tabIndex },
+          getTab: (tabs) => {
+            const tab = tabs.find((tab) => tab.id === sender.tab?.id)
+            if (!tab) {
+              throw new RpcException('Tab not found')
+            }
+            return tab
+          },
         }
       )
       setContext(res.context)
