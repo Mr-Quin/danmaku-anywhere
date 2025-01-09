@@ -1,11 +1,13 @@
 import type { FabProps, PopoverVirtualElement } from '@mui/material'
 import {
-  ClickAwayListener,
   Box,
+  useTheme,
+  ClickAwayListener,
   Fade,
   SpeedDial,
   SpeedDialIcon,
 } from '@mui/material'
+import { useDrag } from '@use-gesture/react'
 import type { MouseEventHandler } from 'react'
 import { forwardRef, useRef, useState } from 'react'
 
@@ -37,10 +39,28 @@ export const FloatingButton = forwardRef<
 
   const { isMounted, isVisible } = useStore.use.danmaku()
 
-  const handleOpen: MouseEventHandler<HTMLElement> = (e) => {
-    const virtualElement = createVirtualElement(e.clientX, e.clientY)
-    onOpen(virtualElement)
-  }
+  const theme = useTheme()
+
+  const [bottom, setBottom] = useState(parseInt(theme.spacing(12), 10))
+  const [left, setLeft] = useState(parseInt(theme.spacing(3), 10))
+
+  const bind = useDrag(
+    ({ down, tap, delta: [mx, my], event }) => {
+      if (tap) {
+        handleCloseContextMenu()
+        const virtualElement = createVirtualElement(
+          (event as PointerEvent).clientX,
+          (event as PointerEvent).clientY
+        )
+        onOpen(virtualElement)
+      }
+      if (down) {
+        setBottom((prev) => prev - my)
+        setLeft((prev) => prev + mx)
+      }
+    },
+    { delay: 200 }
+  )
 
   const handleCloseContextMenu = () => {
     setContextMenuAnchor(null)
@@ -57,12 +77,6 @@ export const FloatingButton = forwardRef<
     setContextMenuAnchor(virtualElement)
   }
 
-  // reserved for touch devices
-  const handleClick: MouseEventHandler<HTMLElement> = (e) => {
-    handleOpen(e)
-    handleCloseContextMenu()
-  }
-
   const fabRef = useRef<HTMLButtonElement>(null)
 
   const mergedFabRefs = useMergeRefs(fabRef, ref)
@@ -75,9 +89,17 @@ export const FloatingButton = forwardRef<
 
   return (
     <ClickAwayListener onClickAway={handleCloseContextMenu}>
-      <Box>
-        <Fade in={isLoading || showFab || isOpen || !!contextMenuAnchor}>
-          <div>
+      <Fade in={isLoading || showFab || isOpen || !!contextMenuAnchor}>
+        <div>
+          <Box
+            position="fixed"
+            bottom={`${bottom}px`}
+            left={`${left}px`}
+            zIndex={1401} // 1 above the snackbar
+            sx={{
+              touchAction: 'none',
+            }}
+          >
             <SpeedDial
               ariaLabel="SpeedDial"
               icon={<SpeedDialIcon />}
@@ -85,11 +107,11 @@ export const FloatingButton = forwardRef<
                 size: 'small',
                 children: <LoadingRing isLoading />,
                 onContextMenu: handleContextMenu,
-                onClick: handleClick,
                 ref: mergedFabRefs,
                 sx: {
                   bgcolor: dialColor,
                 },
+                ...bind(),
               }}
             />
             {fabRef.current && (
@@ -101,10 +123,11 @@ export const FloatingButton = forwardRef<
             <FabContextMenu
               open={contextMenuAnchor !== null}
               anchorEl={contextMenuAnchor}
+              sx={{ zIndex: 1402 }}
             />
-          </div>
-        </Fade>
-      </Box>
+          </Box>
+        </div>
+      </Fade>
     </ClickAwayListener>
   )
 })

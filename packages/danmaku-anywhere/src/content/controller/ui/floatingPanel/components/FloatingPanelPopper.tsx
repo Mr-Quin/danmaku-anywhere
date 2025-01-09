@@ -1,9 +1,10 @@
 import type { PopperProps } from '@mui/material'
-import { Fade, Popper } from '@mui/material'
+import { SwipeableDrawer, useMediaQuery, Fade, Popper } from '@mui/material'
 import type { ReactElement } from 'react'
 
+import { usePopup } from '@/content/controller/store/popupStore'
+
 interface FloatingPanelPopperProps {
-  isOpen: boolean
   anchorEl: PopperProps['anchorEl']
   children: ReactElement<any, any>
 }
@@ -38,10 +39,29 @@ const popperModifiers = [
 ]
 
 export const FloatingPanelPopper = ({
-  isOpen,
   anchorEl,
   children,
 }: FloatingPanelPopperProps) => {
+  const { toggleOpen, isOpen } = usePopup()
+
+  const sm = useMediaQuery('(max-width:600px)')
+
+  if (sm) {
+    return (
+      <SwipeableDrawer
+        anchor="bottom"
+        open={isOpen}
+        disableSwipeToOpen
+        hideBackdrop
+        sx={{ zIndex: 1402 }}
+        onOpen={() => toggleOpen(true)}
+        onClose={() => toggleOpen(false)}
+      >
+        {children}
+      </SwipeableDrawer>
+    )
+  }
+
   return (
     <Popper
       open={isOpen}

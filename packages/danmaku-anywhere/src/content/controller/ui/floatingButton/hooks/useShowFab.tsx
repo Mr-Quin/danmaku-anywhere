@@ -1,24 +1,50 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { useMouseLocation } from './useMouseLocation'
+import { useIsTouchDevice } from '@/content/controller/common/hooks/useIsTouchDevice'
 
 export const useShowFab = () => {
   const timeoutRef = useRef<NodeJS.Timeout>(undefined)
 
-  const mouseLocation = useMouseLocation()
+  const isTouch = useIsTouchDevice()
   const [showFab, setShowFab] = useState(true)
 
+  const handleShowFab = useMemo(() => {
+    return () => {
+      setShowFab(true)
+      clearTimeout(timeoutRef.current)
+
+      // hide after 3 seconds
+      timeoutRef.current = setTimeout(() => {
+        setShowFab(false)
+      }, 3000)
+    }
+  }, [])
+
   useEffect(() => {
-    setShowFab(true)
-    clearTimeout(timeoutRef.current)
+    const handleMouseMove = () => {
+      handleShowFab()
+    }
 
-    // hide after 3 seconds if no mouse movement
-    timeoutRef.current = setTimeout(() => {
-      setShowFab(false)
-    }, 3000)
+    window.addEventListener('mousemove', handleMouseMove)
 
-    return
-  }, [mouseLocation])
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isTouch) return
+
+    const handleTouchStart = () => {
+      handleShowFab()
+    }
+
+    window.addEventListener('touchstart', handleTouchStart)
+
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart)
+    }
+  }, [isTouch])
 
   return showFab
 }
