@@ -34,8 +34,6 @@ const handleContentScriptRegistration = async (mountConfigs: MountConfig[]) => {
     ids: [contentScriptId],
   })
 
-  console.debug({ registeredScript, patterns })
-
   match([registeredScript.length, patterns.length])
     // no registered script, but has patterns, register the script
     .with([0, P.number.positive()], () => {
@@ -84,7 +82,6 @@ export const setupScripting = () => {
   mountConfigService.options.onChange(async (configs) => {
     if (!configs) return
 
-    console.debug('Mount configs changed', configs)
     await handleContentScriptRegistration(configs)
   })
 }
