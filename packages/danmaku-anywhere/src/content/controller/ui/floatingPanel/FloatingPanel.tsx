@@ -1,6 +1,6 @@
 import type { PopperProps } from '@mui/material'
 import { Box, Paper } from '@mui/material'
-import { Suspense } from 'react'
+import { memo, Suspense } from 'react'
 
 import { FloatingPanelPopper } from './components/FloatingPanelPopper'
 import { FloatingPanelToolbar } from './components/FloatingPanelToolbar'
@@ -12,16 +12,16 @@ import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { usePopup } from '@/content/controller/store/popupStore'
 import { routes } from '@/content/controller/ui/router/routes'
 
-export const FloatingPanel = ({
+const BaseFloatingPanel = ({
   anchorEl,
 }: {
   anchorEl: PopperProps['anchorEl']
 }) => {
   useCloseOnEsc()
-  const { tab, isOpen } = usePopup()
+  const { tab } = usePopup()
 
   return (
-    <FloatingPanelPopper isOpen={isOpen} anchorEl={anchorEl}>
+    <FloatingPanelPopper anchorEl={anchorEl}>
       <FloatingPanelLayout>
         <FloatingPanelToolbar />
         <Box display="flex" flexGrow={1} minHeight={0}>
@@ -50,3 +50,6 @@ export const FloatingPanel = ({
     </FloatingPanelPopper>
   )
 }
+
+export const FloatingPanel = memo(BaseFloatingPanel)
+FloatingPanel.displayName = 'FloatingPanel'
