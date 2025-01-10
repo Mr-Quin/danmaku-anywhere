@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
+  '@mui/system@6.3.0':
+    hash: k6bdwnkrryyqmnz7uegyzzjlza
+    path: patches/@mui__system@6.3.0.patch
   danmaku@2.0.6:
     hash: fbuwt3vj3tnsako7gddftrienm
     path: patches/danmaku@2.0.6.patch
@@ -87,7 +90,7 @@ importers:
         version: 6.3.0(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@mui/system':
         specifier: ^6.3.0
-        version: 6.3.0(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react@19.0.0)
+        version: 6.3.0(patch_hash=k6bdwnkrryyqmnz7uegyzzjlza)(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react@19.0.0)
       '@tanstack/react-query':
         specifier: ^5.62.11
         version: 5.62.11(react@19.0.0)
@@ -4892,7 +4895,7 @@ snapshots:
       '@babel/runtime': 7.26.0
       '@mui/base': 5.0.0-beta.68(@types/react@19.0.2)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@mui/material': 6.3.0(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@mui/system': 6.3.0(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react@19.0.0)
+      '@mui/system': 6.3.0(patch_hash=k6bdwnkrryyqmnz7uegyzzjlza)(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react@19.0.0)
       '@mui/types': 7.2.20(@types/react@19.0.2)
       '@mui/utils': 6.3.0(@types/react@19.0.2)(react@19.0.0)
       clsx: 2.1.1
@@ -4908,7 +4911,7 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.26.0
       '@mui/core-downloads-tracker': 6.3.0
-      '@mui/system': 6.3.0(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react@19.0.0)
+      '@mui/system': 6.3.0(patch_hash=k6bdwnkrryyqmnz7uegyzzjlza)(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react@19.0.0)
       '@mui/types': 7.2.20(@types/react@19.0.2)
       '@mui/utils': 6.3.0(@types/react@19.0.2)(react@19.0.0)
       '@popperjs/core': 2.11.8
@@ -4947,7 +4950,7 @@ snapshots:
       '@emotion/react': 11.14.0(@types/react@19.0.2)(react@19.0.0)
       '@emotion/styled': 11.14.0(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react@19.0.0)
 
-  '@mui/system@6.3.0(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react@19.0.0)':
+  '@mui/system@6.3.0(patch_hash=k6bdwnkrryyqmnz7uegyzzjlza)(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react@19.0.0))(@types/react@19.0.2)(react@19.0.0)':
     dependencies:
       '@babel/runtime': 7.26.0
       '@mui/private-theming': 6.3.0(@types/react@19.0.2)(react@19.0.0)
