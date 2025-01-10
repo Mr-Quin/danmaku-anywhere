@@ -1,0 +1,39 @@
+diff --git a/esm/useMediaQuery/useMediaQuery.js b/esm/useMediaQuery/useMediaQuery.js
+index c020b8eb1900903bf8e52d6b057ed1aa725a970b..b939208955e8d800661e1c08c1c1b6a0fd88eb1d 100644
+--- a/esm/useMediaQuery/useMediaQuery.js
++++ b/esm/useMediaQuery/useMediaQuery.js
+@@ -87,7 +87,7 @@ export function unstable_createUseMediaQuery(params = {}) {
+     const supportMatchMedia = typeof window !== 'undefined' && typeof window.matchMedia !== 'undefined';
+     const {
+       defaultMatches = false,
+-      matchMedia = supportMatchMedia ? window.matchMedia : null,
++      matchMedia = supportMatchMedia ? window.matchMedia.bind(window) : null,
+       ssrMatchMedia = null,
+       noSsr = false
+     } = getThemeProps({
+diff --git a/modern/useMediaQuery/useMediaQuery.js b/modern/useMediaQuery/useMediaQuery.js
+index c020b8eb1900903bf8e52d6b057ed1aa725a970b..b939208955e8d800661e1c08c1c1b6a0fd88eb1d 100644
+--- a/modern/useMediaQuery/useMediaQuery.js
++++ b/modern/useMediaQuery/useMediaQuery.js
+@@ -87,7 +87,7 @@ export function unstable_createUseMediaQuery(params = {}) {
+     const supportMatchMedia = typeof window !== 'undefined' && typeof window.matchMedia !== 'undefined';
+     const {
+       defaultMatches = false,
+-      matchMedia = supportMatchMedia ? window.matchMedia : null,
++      matchMedia = supportMatchMedia ? window.matchMedia.bind(window) : null,
+       ssrMatchMedia = null,
+       noSsr = false
+     } = getThemeProps({
+diff --git a/useMediaQuery/useMediaQuery.js b/useMediaQuery/useMediaQuery.js
+index 3c503ef365f0610f1d8af8dc944a67a297f8e698..1722deac302c9c447411b14f70443fe668aa0018 100644
+--- a/useMediaQuery/useMediaQuery.js
++++ b/useMediaQuery/useMediaQuery.js
+@@ -95,7 +95,7 @@ function unstable_createUseMediaQuery(params = {}) {
+     const supportMatchMedia = typeof window !== 'undefined' && typeof window.matchMedia !== 'undefined';
+     const {
+       defaultMatches = false,
+-      matchMedia = supportMatchMedia ? window.matchMedia : null,
++      matchMedia = supportMatchMedia ? window.matchMedia.bind(window) : null,
+       ssrMatchMedia = null,
+       noSsr = false
+     } = (0, _useThemeProps.getThemeProps)({
