@@ -7,13 +7,11 @@ const danDanEpisodeSchema = z.object({
   episodeTitle: z.string(),
 })
 
-export type DanDanEpisode = z.infer<typeof danDanEpisodeSchema>
-
 export const danDanAnimeTypeSchema = z.string()
 
 export type DanDanAnimeType = z.infer<typeof danDanAnimeTypeSchema>
 
-export const danDanAnimeSchema = z.object({
+export const danDanSearchEpisodesAnimeSchema = z.object({
   animeId: z.number(),
   animeTitle: z.string(),
   type: danDanAnimeTypeSchema,
@@ -21,7 +19,26 @@ export const danDanAnimeSchema = z.object({
   episodes: z.array(danDanEpisodeSchema),
 })
 
-export type DanDanAnime = z.infer<typeof danDanAnimeSchema>
+export type DanDanSearchEpisodesAnime = z.infer<
+  typeof danDanSearchEpisodesAnimeSchema
+>
+
+export const danDanSearchAnimeDetailsSchema = z.object({
+  animeId: z.number(),
+  bangumiId: z.string(),
+  animeTitle: z.string(),
+  type: z.string(),
+  typeDescription: z.string(),
+  imageUrl: z.string(),
+  startDate: z.string(),
+  episodeCount: z.number(),
+  rating: z.number(),
+  isFavorited: z.boolean(),
+})
+
+export type DanDanSearchAnimeDetails = z.infer<
+  typeof danDanSearchAnimeDetailsSchema
+>
 
 const danDanApiResponseSuccessSchema = z.object({
   errorCode: z.literal(0),
@@ -35,37 +52,53 @@ const danDanApiResponseErrorSchema = z.object({
   success: z.literal(false),
 })
 
-const danDanApiResponseSchema = z.discriminatedUnion('success', [
+export const danDanApiResponseSchema = z.discriminatedUnion('success', [
   danDanApiResponseSuccessSchema,
   danDanApiResponseErrorSchema,
 ])
 
 export type DanDanApiResponse = z.infer<typeof danDanApiResponseSchema>
 
-const danDanAnimeSearchResponseSuccessSchema =
+const danDanSearchEpisodesResponseSuccessSchema =
   danDanApiResponseSuccessSchema.extend({
-    animes: z.array(danDanAnimeSchema),
+    animes: z.array(danDanSearchEpisodesAnimeSchema),
     hasMore: z.boolean(),
   })
 
-export type DanDanAnimeSearchResponseSuccess = z.infer<
-  typeof danDanAnimeSearchResponseSuccessSchema
+export type DanDanSearchEpisodesResponseSuccess = z.infer<
+  typeof danDanSearchEpisodesResponseSuccessSchema
 >
 
-export type DanDanAnimeSearchResult = DanDanAnimeSearchResponseSuccess['animes']
+export type DanDanSearchEpisodesResult =
+  DanDanSearchEpisodesResponseSuccess['animes']
 
-export const danDanAnimeSearchResponseSchema = z.discriminatedUnion('success', [
-  danDanAnimeSearchResponseSuccessSchema,
-  danDanApiResponseErrorSchema,
-])
+export const danDanSearchEpisodesResponseSchema = z.discriminatedUnion(
+  'success',
+  [danDanSearchEpisodesResponseSuccessSchema, danDanApiResponseErrorSchema]
+)
 
-export type DanDanAnimeSearchResponse = z.infer<
-  typeof danDanAnimeSearchResponseSchema
+export type DanDanSearchEpisodesResponse = z.infer<
+  typeof danDanSearchEpisodesResponseSchema
 >
+
+const danDanSearchAnimeDetailsResponseSuccessSchema =
+  danDanApiResponseSuccessSchema.extend({
+    animes: z.array(danDanSearchAnimeDetailsSchema),
+  })
+
+export const danDanSearchAnimeDetailsResponseSchema = z.discriminatedUnion(
+  'success',
+  [danDanSearchAnimeDetailsResponseSuccessSchema, danDanApiResponseErrorSchema]
+)
 
 const danDanCommentResponseSuccessSchema =
   danDanApiResponseSuccessSchema.extend({
     bangumi: z.object({
+      animeId: z.number(),
+      bangumiId: z.string(),
+      animeTitle: z.string(),
+      imageUrl: z.string(),
+      bangumiUrl: z.string(),
       type: z.string(),
       typeDescription: z.string(),
       titles: z.array(
@@ -100,7 +133,7 @@ export type DanDanBangumiAnimeResult =
   DanDanBangumiAnimeResponseSuccess['bangumi']
 
 // Request types
-export interface DanDanAnimeSearchAPIParams {
+export interface DanDanSearchEpisodesAPIParams {
   anime: string
   episode?: string
 }

@@ -1,11 +1,7 @@
-import type {
-  DanDanAnime,
-  DanDanEpisode,
-} from '@danmaku-anywhere/danmaku-provider/ddp'
+import type { DanDanSearchAnimeDetails } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { Check } from '@mui/icons-material'
 import { LoadingButton } from '@mui/lab'
 import {
-  Autocomplete,
   Box,
   Checkbox,
   Divider,
@@ -16,7 +12,6 @@ import {
   ListItemButton,
   ListItemText,
   Stack,
-  TextField,
   Typography,
 } from '@mui/material'
 import { useRef, useState } from 'react'
@@ -24,8 +19,8 @@ import { useTranslation } from 'react-i18next'
 
 import { getDanDanPlayMediaIcon } from '@/common/components/MediaList/components/makeIcon'
 import { MediaTypeIcon } from '@/common/components/MediaList/components/MediaTypeIcon'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
+import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'
 import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
 
@@ -35,16 +30,14 @@ export const SelectorPage = () => {
   const { animes, saveMapping, setSaveMapping, toggleOpen } = usePopup()
   const { mediaInfo } = useStore.use.integration()
 
-  const [selectedAnime, setSelectedAnime] = useState<DanDanAnime>()
-  const [selectedEpisode, setSelectedEpisode] = useState<DanDanEpisode>()
-
-  const episodes = selectedAnime?.episodes ?? []
+  const [selectedAnime, setSelectedAnime] = useState<DanDanSearchAnimeDetails>()
 
   const { loadMutation } = useLoadDanmaku()
 
-  const handleAnimeSelect = (anime: DanDanAnime) => {
+  const matchEpisode = useMatchEpisode()
+
+  const handleAnimeSelect = (anime: DanDanSearchAnimeDetails) => {
     setSelectedAnime(anime)
-    setSelectedEpisode(anime.episodes[0])
     selectorBoxRef.current?.scrollIntoView({
       behavior: 'smooth',
       block: 'end',
@@ -52,30 +45,23 @@ export const SelectorPage = () => {
   }
 
   const handleApply = async () => {
-    if (!selectedAnime || !selectedEpisode) return
+    if (!selectedAnime || !mediaInfo) return
 
-    const context =
-      mediaInfo && saveMapping
-        ? {
-            key: mediaInfo.key(),
-          }
-        : undefined
-    loadMutation.mutate(
-      {
-        meta: {
-          provider: DanmakuSourceType.DanDanPlay,
-          animeId: selectedAnime.animeId,
-          animeTitle: selectedAnime.animeTitle,
-          ...selectedEpisode,
-        },
-        context,
+    const episodeMatchPayload = {
+      mapKey: mediaInfo.key(),
+      title: selectedAnime.animeTitle,
+      episodeNumber: mediaInfo.episodic ? mediaInfo.episode : undefined,
+      seasonId: selectedAnime.animeId,
+    }
+
+    matchEpisode.mutate(episodeMatchPayload, {
+      onSettled: () => {
+        // delay closing the popup so that mutation lifecycle hooks can run
+        setTimeout(() => {
+          toggleOpen()
+        }, 1000)
       },
-      {
-        onSettled: () => {
-          toggleOpen(false)
-        },
-      }
-    )
+    })
   }
 
   if (animes.length === 0) {
@@ -112,27 +98,6 @@ export const SelectorPage = () => {
 
       <Box my={2} px={2} ref={selectorBoxRef}>
         <Stack direction="column" alignItems="flex-start" spacing={2}>
-          {episodes.length > 1 && (
-            <Autocomplete
-              value={selectedEpisode} // value must be null when empty so that the component is "controlled"
-              options={episodes}
-              isOptionEqualToValue={(option, value) => {
-                return option.episodeId === value.episodeId
-              }}
-              onChange={(e, value) => {
-                if (value) {
-                  setSelectedEpisode(value)
-                }
-              }}
-              getOptionLabel={(option) => option.episodeTitle}
-              renderInput={(params) => {
-                return <TextField {...params} label={t('anime.episode')} />
-              }}
-              disableClearable
-              fullWidth
-            />
-          )}
-
           <LoadingButton
             type="submit"
             loading={loadMutation.isPending}

@@ -116,10 +116,12 @@ export const BaseEpisodeListItem = ({
         <Tooltip title={tooltip} enterDelay={500} placement="top">
           <ListItemText
             primary={title}
-            primaryTypographyProps={{
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              overflow: 'hidden',
+            slotProps={{
+              primary: {
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
+                overflow: 'hidden',
+              },
             }}
             secondary={danmaku ? renderSecondaryText?.(danmaku) : null}
           />

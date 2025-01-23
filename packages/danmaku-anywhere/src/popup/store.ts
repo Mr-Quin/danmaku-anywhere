@@ -1,4 +1,4 @@
-import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
+import type { DanDanSearchEpisodesAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 
@@ -10,8 +10,8 @@ import { createSelectors } from '@/common/utils/createSelectors'
 
 interface StoreState {
   search: {
-    searchParams?: DanDanAnimeSearchAPIParams
-    setSearchParams: (params?: DanDanAnimeSearchAPIParams) => void
+    searchParams?: DanDanSearchEpisodesAPIParams
+    setSearchParams: (params?: DanDanSearchEpisodesAPIParams) => void
     keyword: string
     setKeyword: (keyword: string) => void
   }

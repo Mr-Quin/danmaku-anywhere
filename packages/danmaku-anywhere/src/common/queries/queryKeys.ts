@@ -31,7 +31,7 @@ export const sourceQueryKeys = {
 }
 
 export const danmakuQueryKeys = {
-  all: () => [{ scope: 'danmaku', kind: 'getAll' }] as const,
+  all: () => [{ scope: 'danmaku' }] as const,
   one: (params: DanmakuGetOneDto) =>
     [{ scope: 'danmaku', kind: 'getOne', ...params }] as const,
 }

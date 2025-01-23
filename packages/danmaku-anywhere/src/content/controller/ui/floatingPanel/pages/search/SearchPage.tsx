@@ -1,4 +1,4 @@
-import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
+import type { DanDanSearchEpisodesAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
 import {
   Box,
   Collapse,
@@ -43,7 +43,8 @@ export const SearchPage = () => {
   const [localSearchUsingSimplified, setLocalSearchUsingSimplified] = useState(
     searchUsingSimplified
   )
-  const [searchParams, setSearchParams] = useState<DanDanAnimeSearchAPIParams>()
+  const [searchParams, setSearchParams] =
+    useState<DanDanSearchEpisodesAPIParams>()
 
   const ref = useRef<ErrorBoundary>(null)
   const { reset } = useQueryErrorResetBoundary()

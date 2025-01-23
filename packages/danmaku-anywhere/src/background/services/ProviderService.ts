@@ -70,6 +70,7 @@ export class ProviderService {
     mapKey,
     title,
     episodeNumber,
+    seasonId,
   }: MatchEpisodeInput): Promise<MatchEpisodeResult> {
     const mapping = await this.titleMappingService.getMappedTitle(mapKey)
 
@@ -116,9 +117,8 @@ export class ProviderService {
       }
     }
 
-    if (searchResult.data.length === 1) {
-      this.logger.debug('Single season found', searchResult.data[0])
-      const result = searchResult.data[0]
+    const getMetaFromAnimeId = async (animeId: number) => {
+      const result = await this.danDanPlayService.getAnimeDetails(animeId)
 
       const meta: DanDanPlayMeta = {
         animeId: result.animeId,
@@ -128,9 +128,31 @@ export class ProviderService {
         provider: DanmakuSourceType.DanDanPlay,
       }
 
+      return meta
+    }
+
+    if (searchResult.data.length === 1) {
+      this.logger.debug('Single season found', searchResult.data[0])
+
       return {
         status: 'success',
-        data: meta,
+        data: await getMetaFromAnimeId(searchResult.data[0].animeId),
+      }
+    }
+
+    // Try to disambiguate using seasonId
+    if (seasonId !== undefined) {
+      const disambiguatedResult = searchResult.data.filter(
+        (season) => season.animeId === seasonId
+      )
+
+      if (disambiguatedResult.length === 1) {
+        this.logger.debug('Disambiguated season', disambiguatedResult[0])
+
+        return {
+          status: 'success',
+          data: await getMetaFromAnimeId(disambiguatedResult[0].animeId),
+        }
       }
     }
 
@@ -142,6 +164,10 @@ export class ProviderService {
       status: 'disambiguation',
       data: searchResult,
     }
+  }
+
+  async getDanDanPlayEpisodes(animeId: number) {
+    return (await this.danDanPlayService.getAnimeDetails(animeId)).episodes
   }
 
   async getBilibiliEpisodes(seasonId: number) {

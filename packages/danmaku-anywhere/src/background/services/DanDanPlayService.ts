@@ -1,5 +1,5 @@
 import type {
-  DanDanAnimeSearchAPIParams,
+  DanDanSearchEpisodesAPIParams,
   DanDanCommentAPIParams,
 } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { fetchComments } from '@danmaku-anywhere/danmaku-provider/ddp'
@@ -22,10 +22,17 @@ export class DanDanPlayService {
     this.logger = Logger.sub('[DDPService]')
   }
 
-  async search(searchParams: DanDanAnimeSearchAPIParams) {
+  async search(searchParams: DanDanSearchEpisodesAPIParams) {
     this.logger.debug('Searching DanDanPlay', searchParams)
-    const result = await danDanPlay.searchAnime(searchParams)
+    const result = await danDanPlay.searchAnime(searchParams.anime)
     this.logger.debug('Search result', result)
+    return result
+  }
+
+  async getAnimeDetails(animeId: number) {
+    this.logger.debug('Getting DanDanPlay episodes', animeId)
+    const result = await danDanPlay.getBangumiAnime(animeId)
+    this.logger.debug('DanDanPlay Episodes fetched', result)
     return result
   }
 

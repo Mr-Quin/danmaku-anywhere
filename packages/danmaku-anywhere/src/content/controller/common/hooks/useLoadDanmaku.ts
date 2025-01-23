@@ -14,6 +14,7 @@ import { useStore } from '@/content/controller/store/store'
 // Wrapper around useFetchDanmaku and useMountDanmaku
 export const useLoadDanmaku = () => {
   const { t } = useTranslation()
+
   const toast = useToast.use.toast()
 
   const getAnimeName = useStore.use.getAnimeName()
