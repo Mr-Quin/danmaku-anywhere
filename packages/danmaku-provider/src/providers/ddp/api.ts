@@ -5,13 +5,15 @@ import { handleParseResponse } from '../utils/index.js'
 
 import { DanDanPlayApiException } from './exceptions.js'
 import type {
-  DanDanAnimeSearchAPIParams,
-  DanDanAnimeSearchResult,
+  DanDanSearchEpisodesAPIParams,
+  DanDanSearchEpisodesResult,
   DanDanBangumiAnimeResult,
   DanDanCommentAPIParams,
+  DanDanSearchAnimeDetails,
 } from './schema.js'
 import {
-  danDanAnimeSearchResponseSchema,
+  danDanSearchAnimeDetailsResponseSchema,
+  danDanSearchEpisodesResponseSchema,
   danDanBangumiAnimeResponseSchema,
 } from './schema.js'
 
@@ -43,10 +45,33 @@ const createUrl = ({
   return `${baseUrl}${path}?${new URLSearchParams(params)}`
 }
 
-export const searchAnime = async ({
+export const searchAnime = async (keyword: string) => {
+  const url = createUrl({
+    path: '/api/v2/search/anime',
+    params: {
+      keyword,
+    },
+  })
+
+  const res = await fetch(url)
+
+  const json = await res.json()
+
+  const data = handleParseResponse(() =>
+    danDanSearchAnimeDetailsResponseSchema.parse(json)
+  )
+
+  if (!data.success) {
+    throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
+  }
+
+  return data.animes satisfies DanDanSearchAnimeDetails[]
+}
+
+export const searchEpisodes = async ({
   anime,
   episode = '',
-}: DanDanAnimeSearchAPIParams) => {
+}: DanDanSearchEpisodesAPIParams) => {
   const url = createUrl({
     path: '/api/v2/search/episodes',
     params: {
@@ -60,14 +85,14 @@ export const searchAnime = async ({
   const json = await res.json()
 
   const data = handleParseResponse(() =>
-    danDanAnimeSearchResponseSchema.parse(json)
+    danDanSearchEpisodesResponseSchema.parse(json)
   )
 
   if (!data.success) {
     throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
   }
 
-  return data.animes satisfies DanDanAnimeSearchResult
+  return data.animes satisfies DanDanSearchEpisodesResult
 }
 
 export const fetchComments = async (

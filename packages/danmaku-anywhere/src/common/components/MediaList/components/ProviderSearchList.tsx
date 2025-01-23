@@ -1,4 +1,4 @@
-import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
+import type { DanDanSearchEpisodesAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
 import type { ListProps } from '@mui/material'
 import { Button, ListItem, ListItemText } from '@mui/material'
 import { useTranslation } from 'react-i18next'
@@ -19,7 +19,7 @@ interface ProviderSearchListProps {
   renderEpisode: RenderEpisode
   listProps?: ListProps
   dense?: boolean
-  searchParams: DanDanAnimeSearchAPIParams
+  searchParams: DanDanSearchEpisodesAPIParams
   provider: RemoteDanmakuSourceType
 }
 

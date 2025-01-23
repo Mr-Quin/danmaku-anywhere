@@ -25,8 +25,9 @@ export const DandanPlayEpisodeList = ({
       season.animeId
     ),
     queryFn: async () => {
-      return season.episodes
+      return chromeRpcClient.episodesGetDanDanPlay(season.animeId)
     },
+    select: (data) => data.data,
     staleTime: Infinity,
     retry: false,
   })

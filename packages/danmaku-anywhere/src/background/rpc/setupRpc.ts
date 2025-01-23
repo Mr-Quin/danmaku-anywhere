@@ -41,6 +41,9 @@ export const setupRpc = () => {
     mediaParseUrl: async (input) => {
       return providerService.parseUrl(input.url)
     },
+    episodesGetDanDanPlay: async (data) => {
+      return providerService.getDanDanPlayEpisodes(data)
+    },
     episodesGetBilibili: async (data) => {
       return providerService.getBilibiliEpisodes(data)
     },

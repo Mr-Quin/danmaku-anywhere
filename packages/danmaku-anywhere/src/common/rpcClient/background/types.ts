@@ -6,6 +6,7 @@ import type { RPCDef } from '../../rpc/types'
 import type {
   BilibiliEpisode,
   BilibiliMediaSearchResult,
+  DanDanPlayEpisode,
   DanDanPlayMediaSearchResult,
   MatchEpisodeInput,
   MatchEpisodeResult,
@@ -54,6 +55,7 @@ type AnimeMethods = {
   searchDanDanPlay: RPCDef<MediaSearchParams, DanDanPlayMediaSearchResult>
   searchBilibili: RPCDef<MediaSearchParams, BilibiliMediaSearchResult>
   searchTencent: RPCDef<MediaSearchParams, TencentMediaSearchResult>
+  episodesGetDanDanPlay: RPCDef<number, DanDanPlayEpisode[]>
   episodesGetBilibili: RPCDef<number, BilibiliEpisode[]>
   episodesGetTencent: RPCDef<string, TencentEpisode[]>
   episodeMatch: RPCDef<MatchEpisodeInput, MatchEpisodeResult>

@@ -1,4 +1,4 @@
-import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
+import type { DanDanSearchEpisodesAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { useState } from 'react'
 
 import { SearchForm } from '@/common/components/SearchForm'
@@ -6,7 +6,7 @@ import { useExtensionOptions } from '@/common/options/extensionOptions/useExtens
 import { useStore } from '@/popup/store'
 
 interface PopupSearchFormProps {
-  onSearch: (params: DanDanAnimeSearchAPIParams) => void
+  onSearch: (params: DanDanSearchEpisodesAPIParams) => void
   isLoading: boolean
 }
 

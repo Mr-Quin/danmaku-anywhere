@@ -1,4 +1,4 @@
-import type { DanDanAnimeSearchAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
+import type { DanDanSearchEpisodesAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { Box, Collapse, Typography } from '@mui/material'
 import {
   useIsFetching,
@@ -25,7 +25,7 @@ export const SearchTab = () => {
   // TODO: useTransition does not yet work with useSyncExternalStore (zustand),
   // so we use useState for now and save the state to the store
   const [searchParams, setSearchParams] = useState<
-    DanDanAnimeSearchAPIParams | undefined
+    DanDanSearchEpisodesAPIParams | undefined
   >(search.searchParams)
 
   const { enabledProviders } = useDanmakuSources()
@@ -51,7 +51,7 @@ export const SearchTab = () => {
       queryKey: mediaQueryKeys.search(),
     }) > 0
 
-  const handleSearch = (params: DanDanAnimeSearchAPIParams) => {
+  const handleSearch = (params: DanDanSearchEpisodesAPIParams) => {
     startTransition(() => {
       if (ref.current?.state.didCatch) {
         ref.current.resetErrorBoundary()
