@@ -1,0 +1,13 @@
+{
+  "name": "danmaku-anywhere-proxy",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-01-24",
+  "vars": {
+    "DANDANPLAY_API_HOST": "https://api.dandanplay.net",
+    "BASE_URL": "/proxy",
+    "ALLOWED_ORIGIN": "https://danmaku.weeblify.app"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "@danmaku-anywhere/proxy",
+  "version": "0.0.1",
+  "private": true,
+  "description": "",
+  "author": "Mr-Quin",
+  "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "start": "wrangler dev",
+    "test": "vitest",
+    "cf-typegen": "wrangler types --experimental-include-runtime"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.6.7",
+    "typescript": "^5.7.3",
+    "vitest": "2.1.8",
+    "wrangler": "^3.105.1"
+  }
+}
