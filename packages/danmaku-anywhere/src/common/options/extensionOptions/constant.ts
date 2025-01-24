@@ -28,7 +28,7 @@ export const defaultExtensionOptions: ExtensionOptions = {
   danmakuSources: {
     dandanplay: {
       enabled: true,
-      baseUrl: 'https://api.dandanplay.net',
+      useProxy: true,
       chConvert: DanDanChConvert.None,
     },
     bilibili: {

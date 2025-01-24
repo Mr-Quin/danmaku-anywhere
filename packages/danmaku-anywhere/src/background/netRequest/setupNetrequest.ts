@@ -52,6 +52,31 @@ export const setupNetRequest = () => {
           ],
         },
       },
+      {
+        id: 3,
+        action: {
+          type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
+          requestHeaders: [
+            {
+              header: 'Origin',
+              operation: chrome.declarativeNetRequest.HeaderOperation.SET,
+              value: import.meta.env.VITE_PROXY_ORIGIN,
+            },
+            {
+              header: 'Referer',
+              operation: chrome.declarativeNetRequest.HeaderOperation.SET,
+              value: chrome.runtime.id,
+            },
+          ],
+        },
+        condition: {
+          domains: [chrome.runtime.id],
+          urlFilter: `|${import.meta.env.VITE_PROXY_URL}`,
+          resourceTypes: [
+            chrome.declarativeNetRequest.ResourceType.XMLHTTPREQUEST,
+          ],
+        },
+      },
     ]
 
     await chrome.declarativeNetRequest.updateDynamicRules({

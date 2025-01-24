@@ -1,7 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Box, Button, MenuItem, Stack, TextField } from '@mui/material'
+import {
+  Box,
+  FormControlLabel,
+  MenuItem,
+  Stack,
+  Switch,
+  TextField,
+} from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { produce } from 'immer'
+import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
@@ -10,10 +18,7 @@ import {
   DanmakuSourceType,
   localizedDanmakuSourceType,
 } from '@/common/danmaku/enums'
-import {
-  ChConvertList,
-  defaultExtensionOptions,
-} from '@/common/options/extensionOptions/constant'
+import { ChConvertList } from '@/common/options/extensionOptions/constant'
 import type { DanmakuSources } from '@/common/options/extensionOptions/schema'
 import { danmakuSourcesSchema } from '@/common/options/extensionOptions/schema'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
@@ -27,23 +32,21 @@ export const DanDanPlayOptions = () => {
   const { toast } = useToast()
 
   const {
-    register,
     control,
-    reset: resetForm,
-    getValues,
+    watch,
+    handleSubmit,
     formState: { errors },
   } = useForm<DanmakuSources>({
     resolver: zodResolver(danmakuSourcesSchema),
-    values: data.danmakuSources,
     defaultValues: data.danmakuSources,
     mode: 'onChange',
   })
 
   const { mutate: handleApply } = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (update: DanmakuSources) => {
       await partialUpdate(
         produce(data, (draft) => {
-          draft.danmakuSources.dandanplay = getValues().dandanplay
+          draft.danmakuSources.dandanplay = update.dandanplay
         })
       )
     },
@@ -52,20 +55,13 @@ export const DanDanPlayOptions = () => {
     },
   })
 
-  const { mutate: handleReset } = useMutation({
-    mutationFn: async () => {
-      resetForm()
-      await partialUpdate(
-        produce(data, (draft) => {
-          draft.danmakuSources.dandanplay =
-            defaultExtensionOptions.danmakuSources.dandanplay
-        })
-      )
-    },
-    onSuccess: () => {
-      toast.success(t('common.success'))
-    },
-  })
+  useEffect(() => {
+    const subscription = watch(() => {
+      handleSubmit((update) => handleApply(update))()
+    })
+
+    return () => subscription.unsubscribe()
+  }, [handleSubmit, watch])
 
   return (
     <OptionsPageLayout>
@@ -96,25 +92,18 @@ export const DanDanPlayOptions = () => {
               )
             }}
           />
-          <TextField
-            fullWidth
-            label={t('common.apiEndpoint')}
-            error={!!errors.dandanplay?.baseUrl}
-            helperText={errors.dandanplay?.baseUrl?.message}
-            {...register('dandanplay.baseUrl')}
+          <Controller
+            name="dandanplay.useProxy"
+            control={control}
+            render={({ field: { onChange, value } }) => {
+              return (
+                <FormControlLabel
+                  control={<Switch checked={value} onChange={onChange} />}
+                  label={t('optionsPage.danmakuSource.dandanplay.useProxy')}
+                />
+              )
+            }}
           />
-          <Box>
-            <Button
-              onClick={() => handleApply()}
-              variant="contained"
-              sx={{
-                mr: 1,
-              }}
-            >
-              {t('common.apply')}
-            </Button>
-            <Button onClick={() => handleReset()}>{t('common.reset')}</Button>
-          </Box>
         </Stack>
       </Box>
     </OptionsPageLayout>

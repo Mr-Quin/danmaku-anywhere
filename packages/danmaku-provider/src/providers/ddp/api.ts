@@ -21,22 +21,29 @@ export const API_ROOT = 'https://api.dandanplay.net'
 
 const store = {
   baseUrl: API_ROOT,
+  APP_ID: '',
+  APP_SECRET: '',
 }
 
-export const configure = (options: { baseUrl: string }) => {
-  store.baseUrl = options.baseUrl
+export const configure = (options: Partial<typeof store>) => {
+  Object.assign(store, options)
 }
 
-const createUrl = ({
-  path,
-  params,
-  baseUrl: baseUrlProp,
-}: {
+const sha256 = async (message: string) => {
+  const msgBuffer = new TextEncoder().encode(message)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  const hash = hashArray.map((b) => String.fromCharCode(b)).join('')
+  return btoa(hash)
+}
+
+interface DanDanPlayInit {
   path: string
   params?: Record<string, string>
-  baseUrl?: string
-}) => {
-  const baseUrl = baseUrlProp || store.baseUrl
+}
+
+const createUrl = ({ path, params }: DanDanPlayInit) => {
+  const { baseUrl } = store
 
   if (!params) {
     return `${baseUrl}${path}`
@@ -45,17 +52,60 @@ const createUrl = ({
   return `${baseUrl}${path}?${new URLSearchParams(params)}`
 }
 
+const getHeaders = async (path: string) => {
+  // if either APP_ID or APP_SECRET is not set, continue without headers
+  if (!store.APP_ID || !store.APP_SECRET) {
+    return {}
+  }
+
+  const timestamp = Math.floor(Date.now() / 1000).toString()
+
+  const hash = await sha256(
+    `${store.APP_ID}${timestamp}${path}${store.APP_SECRET}`
+  )
+
+  const headers = {
+    'X-AppId': store.APP_ID,
+    'X-Timestamp': timestamp,
+    'X-Signature': hash,
+    'X-Auth': '1',
+  }
+
+  return headers
+}
+
+const fetchDanDanPlay = async (init: DanDanPlayInit) => {
+  const { path } = init
+
+  const url = createUrl(init)
+
+  const headers = await getHeaders(path)
+
+  const res = await fetch(url, {
+    headers: {
+      ...headers,
+    },
+  })
+
+  if (res.status >= 400) {
+    throw new Error(
+      `Request failed with status ${res.status}: ${res.statusText}
+      ${await res.text()}`
+    )
+  }
+
+  const json: unknown = await res.json()
+
+  return json
+}
+
 export const searchAnime = async (keyword: string) => {
-  const url = createUrl({
+  const json = await fetchDanDanPlay({
     path: '/api/v2/search/anime',
     params: {
       keyword,
     },
   })
-
-  const res = await fetch(url)
-
-  const json = await res.json()
 
   const data = handleParseResponse(() =>
     danDanSearchAnimeDetailsResponseSchema.parse(json)
@@ -72,17 +122,13 @@ export const searchEpisodes = async ({
   anime,
   episode = '',
 }: DanDanSearchEpisodesAPIParams) => {
-  const url = createUrl({
+  const json = await fetchDanDanPlay({
     path: '/api/v2/search/episodes',
     params: {
       anime,
       episode,
     },
   })
-
-  const res = await fetch(url)
-
-  const json = await res.json()
 
   const data = handleParseResponse(() =>
     danDanSearchEpisodesResponseSchema.parse(json)
@@ -105,27 +151,19 @@ export const fetchComments = async (
     chConvert: params.chConvert?.toString() ?? '0',
   }
 
-  const url = createUrl({
+  const json = await fetchDanDanPlay({
     path: `/api/v2/comment/${episodeId.toString()}`,
     params: convertedParams,
   })
-
-  const res = await fetch(url)
-
-  const json = await res.json()
 
   return handleParseResponse(() => danDanCommentResponseSchema.parse(json))
     .comments
 }
 
 export const getBangumiAnime = async (animeId: number) => {
-  const url = createUrl({
+  const json = await fetchDanDanPlay({
     path: `/api/v2/bangumi/${animeId}`,
   })
-
-  const res = await fetch(url)
-
-  const json = await res.json()
 
   const data = handleParseResponse(() =>
     danDanBangumiAnimeResponseSchema.parse(json)
