@@ -4,20 +4,29 @@ import { useShallow } from 'zustand/react/shallow'
 
 import { useToast } from './toastStore'
 
-export const Toast = (props: SnackbarProps) => {
+interface ToastProps {
+  snackbarProps?: SnackbarProps
+  stackable?: boolean
+}
+
+export const Toast = (props: ToastProps) => {
   const { close, dequeue, notifications } = useToast(
     useShallow((state) => state)
   )
 
   return notifications.map(
     ({ key, message, duration, severity, actionLabel, actionFn, open }, i) => {
+      const sx = props.stackable
+        ? {
+            '&.MuiSnackbar-root': { bottom: `${20 + i * 60}px` },
+          }
+        : undefined
+
       return (
         <Snackbar
           open={open}
           key={key}
-          sx={{
-            '&.MuiSnackbar-root': { bottom: `${20 + i * 60}px` },
-          }}
+          sx={sx}
           autoHideDuration={duration}
           onClose={(_, reason) => {
             if (reason === 'clickaway') return
@@ -29,7 +38,7 @@ export const Toast = (props: SnackbarProps) => {
             },
           }}
           disableWindowBlurListener
-          {...props}
+          {...props.snackbarProps}
         >
           <Alert
             onClose={() => close(key)}
