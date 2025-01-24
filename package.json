@@ -11,10 +11,10 @@
   ],
   "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
   "scripts": {
-    "build": "pnpm -r build",
-    "format": "pnpm -r format",
-    "lint": "pnpm -r lint",
-    "test": "pnpm -r test run"
+    "build": "pnpm -r -F ./packages/** build",
+    "format": "pnpm -r -F ./packages/** format",
+    "lint": "pnpm -r -F ./packages/** lint",
+    "test": "pnpm -r -F ./packages/** test run"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.19.0",
