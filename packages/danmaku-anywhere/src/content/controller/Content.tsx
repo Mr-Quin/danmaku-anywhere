@@ -23,7 +23,7 @@ export const Content = () => {
       </Suspense>
       <TabRpcServer />
       <PopupUi />
-      <Toast />
+      <Toast stackable />
       <SwitchLanguage />
       <div
         id="danmaku-anywhere-highlighter-portal"

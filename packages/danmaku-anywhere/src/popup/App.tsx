@@ -32,9 +32,11 @@ export const App = () => {
         <Suspense fallback={<FullPageSpinner />}>
           <LoadInitialData>
             <Toast
-              anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'center',
+              snackbarProps={{
+                anchorOrigin: {
+                  vertical: 'top',
+                  horizontal: 'center',
+                },
               }}
             />
             <RootRouter />
