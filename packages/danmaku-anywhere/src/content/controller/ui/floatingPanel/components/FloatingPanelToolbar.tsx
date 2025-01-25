@@ -1,4 +1,4 @@
-import { Close } from '@mui/icons-material'
+import { Close, Lock, LockOpen } from '@mui/icons-material'
 import {
   AppBar,
   Box,
@@ -21,7 +21,7 @@ import { useStore } from '@/content/controller/store/store'
 export const FloatingPanelToolbar = () => {
   const { t } = useTranslation()
   const isAnyLoading = useAnyLoading()
-  const { toggleOpen } = usePopup()
+  const { toggleOpen, lock, toggleLock } = usePopup()
   const { toggleManualMode, isManual, danmakuLite } = useStore.use.danmaku()
 
   return (
@@ -68,9 +68,12 @@ export const FloatingPanelToolbar = () => {
         </HasIntegration>
         <IconButton
           edge="end"
-          onClick={() => toggleOpen(false)}
-          sx={{ ml: 'auto' }}
+          onClick={() => toggleLock()}
+          sx={{ ml: 'auto', color: lock ? 'success.main' : 'text.main' }}
         >
+          {lock ? <Lock /> : <LockOpen />}
+        </IconButton>
+        <IconButton edge="end" onClick={() => toggleOpen(false)}>
           <Close />
         </IconButton>
       </Toolbar>
