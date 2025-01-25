@@ -2,11 +2,10 @@ import type { PopoverVirtualElement } from '@mui/material'
 import { Box, Paper } from '@mui/material'
 import { memo, Suspense } from 'react'
 
-import { FloatingPanelToolbar } from './components/FloatingPanelToolbar'
+import { ControlWindowToolbar } from './components/ControlWindowToolbar'
 import { PanelTabs } from './components/PanelTabs'
-import { PopperWindow } from './components/PopperWindow'
 import { useCloseOnEsc } from './hooks/useCloseOnEsc'
-import { FloatingPanelLayout } from './layout/FloatingPanelLayout'
+import { PopperWindow } from './layout/PopperWindow'
 
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { usePopup } from '@/content/controller/store/popupStore'
@@ -50,7 +49,7 @@ const BaseControlWindow = ({
     <PopperWindow anchorEl={anchorEl} open={isOpen}>
       {({ bind }) => {
         return (
-          <FloatingPanelLayout>
+          <>
             <div
               {...bind()}
               style={{
@@ -58,10 +57,10 @@ const BaseControlWindow = ({
                 touchAction: 'none',
               }}
             >
-              <FloatingPanelToolbar />
+              <ControlWindowToolbar />
             </div>
             {content}
-          </FloatingPanelLayout>
+          </>
         )
       }}
     </PopperWindow>
