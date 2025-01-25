@@ -3,12 +3,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ResponseParseException } from '../../exceptions/ResponseParseException'
 import { mockFetchResponse } from '../utils/testUtils'
 
-import {
-  searchEpisodes,
-  fetchComments,
-  getBangumiAnime,
-  configure,
-} from './api'
+import { searchEpisodes, getComments, getBangumiAnime, configure } from './api'
 import { DanDanPlayApiException } from './exceptions'
 import { mockAnimeSearchResponse, mockCommentResponse } from './mockData'
 
@@ -53,7 +48,7 @@ describe('DandanPlay API', () => {
     it('should parse fetched comments', async () => {
       mockFetchResponse(mockCommentResponse)
 
-      const data = await fetchComments(1)
+      const data = await getComments(1)
       expect(data).toHaveLength(116)
       expect(data).toContainEqual({
         cid: 1723310127,
@@ -65,7 +60,7 @@ describe('DandanPlay API', () => {
     it('should throw an error on unexpected data', async () => {
       mockFetchResponse({})
 
-      await expect(fetchComments(1)).rejects.toThrow(ResponseParseException)
+      await expect(getComments(1)).rejects.toThrow(ResponseParseException)
     })
   })
 
@@ -110,7 +105,7 @@ describe('DandanPlay API', () => {
 
     await searchEpisodes({ anime: 'test' })
 
-    expect(mockFetch).toHaveBeenCalledWith(
+    expect(mockFetch.mock.calls[0][0]).toEqual(
       `${customRoot}/api/v2/search/episodes?anime=test&episode=`
     )
   })

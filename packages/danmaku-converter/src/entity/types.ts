@@ -21,3 +21,10 @@ export interface CommentEntity {
    */
   m: string
 }
+
+export interface CommentOptions {
+  time: number
+  mode: keyof typeof CommentMode
+  color: string
+  uid?: string
+}
