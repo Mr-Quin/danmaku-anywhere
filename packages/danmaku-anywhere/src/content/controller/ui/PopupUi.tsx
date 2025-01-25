@@ -8,7 +8,7 @@ import { ControlWindow } from './floatingPanel/ControlWindow'
 import { usePopup } from '@/content/controller/store/popupStore'
 
 export const PopupUi = () => {
-  const { isOpen, toggleOpen } = usePopup()
+  const { isOpen, toggleOpen, lock } = usePopup()
   const fallbackAnchorEl = useRef<HTMLButtonElement | null>(null)
   const [anchorEl, setAnchorEl] = useState<PopoverVirtualElement | null>(null)
 
@@ -22,7 +22,9 @@ export const PopupUi = () => {
   return (
     <ClickAwayListener
       onClickAway={() => {
-        toggleOpen(false)
+        if (!lock) {
+          toggleOpen(false)
+        }
       }}
     >
       <div>
