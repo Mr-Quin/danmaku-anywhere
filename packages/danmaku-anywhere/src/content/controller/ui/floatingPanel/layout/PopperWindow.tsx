@@ -5,6 +5,7 @@ import type { ReactElement, RefObject } from 'react'
 import { useState, useEffect, useRef } from 'react'
 
 import { useIsSmallScreen } from '@/content/controller/common/hooks/useIsSmallScreen'
+import { WindowPaneLayout } from '@/content/controller/ui/floatingPanel/layout/WindowPaneLayout'
 
 interface RenderProps {
   bind: ReturnType<typeof useDrag>
@@ -83,7 +84,7 @@ export const PopperWindow = ({
     // When overflowing, the translate values will not reflect the actual position, so we need to adjust it by the overflow amount
     if (state.modifiersData?.preventOverflow) {
       translate.current.x += state.modifiersData.preventOverflow.x
-      translate.current.y += state.modifiersData.preventOverflow.y
+      translate.current.y -= state.modifiersData.preventOverflow.y
     }
   }
 
@@ -97,7 +98,7 @@ export const PopperWindow = ({
     ({ down, delta: [mx, my] }) => {
       if (down) {
         setIsDragging(true)
-        void updatePosition(translate.current.x + mx, translate.current.y + my)
+        void updatePosition(translate.current.x + mx, translate.current.y - my)
       } else {
         setIsDragging(false)
       }
@@ -108,7 +109,7 @@ export const PopperWindow = ({
   if (sm) {
     return (
       <Drawer anchor="bottom" open={open} hideBackdrop sx={{ zIndex: 1402 }}>
-        {children({ bind, isDragging })}
+        <WindowPaneLayout>{children({ bind, isDragging })}</WindowPaneLayout>
       </Drawer>
     )
   }
@@ -119,6 +120,7 @@ export const PopperWindow = ({
       anchorEl={anchorEl}
       transition
       popperRef={setPopperInst}
+      placement="top-start"
       sx={{
         zIndex: 1402, // 1 above the floating button
         userSelect: isDragging ? 'none' : 'auto',
@@ -127,7 +129,11 @@ export const PopperWindow = ({
     >
       {({ TransitionProps }) => {
         return (
-          <Fade {...TransitionProps}>{children({ bind, isDragging })}</Fade>
+          <Fade {...TransitionProps}>
+            <WindowPaneLayout>
+              {children({ bind, isDragging })}
+            </WindowPaneLayout>
+          </Fade>
         )
       }}
     </Popper>
