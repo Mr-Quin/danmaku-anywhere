@@ -175,6 +175,15 @@ class DanmakuAnywhereDb extends Dexie {
           })
       })
 
+    // This version indexes timeUpdated field
+    this.version(9).stores({
+      danmaku:
+        '++id, provider, episodeId, seasonId, &[provider+episodeId], [provider+seasonId], timeUpdated',
+      manualDanmakuCache: null,
+      danmakuCache: null,
+      titleMapping: '++id, originalTitle, title',
+    })
+
     this.open()
   }
 }

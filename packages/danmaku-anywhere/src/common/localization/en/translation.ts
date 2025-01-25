@@ -26,6 +26,10 @@ const common = {
     docs: 'Documentation',
     pip: 'Picture-in-Picture',
     acknowledge: 'Ok',
+    duration: {
+      day_one: 'Day',
+      day_other: 'Days',
+    },
   },
   error: {
     unknown: 'Something went wrong.',
@@ -262,6 +266,19 @@ const pages = {
         useProxy: 'Use Proxy',
       },
     },
+    retentionPolicy: {
+      enabled: 'Enable Retention Policy',
+      purgeNow: 'Purge Now',
+      deleteCommentsAfter: 'Delete comments older than',
+      tooltip: {
+        nextPurge: 'Next purge at {{time}}',
+        deleteCommentsAfter:
+          'Delete comments older than this number of days. Set to 0 to disable.',
+      },
+      alert: {
+        nDanmakuDeleted: '{{count}} danmaku deleted',
+      },
+    },
     hotkeys: {
       addHotkey: 'Add Hotkey',
       enterKey: 'Enter key',
@@ -277,6 +294,7 @@ const pages = {
       danmakuSource: 'Danmaku Source',
       theme: 'UI Theme',
       hotkeys: 'Hotkeys',
+      retentionPolicy: 'Retention Policy',
     },
   },
   searchPage: {

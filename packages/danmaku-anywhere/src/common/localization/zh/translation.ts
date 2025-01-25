@@ -28,6 +28,10 @@ const common = {
     docs: '文档',
     pip: '画中画',
     acknowledge: '知道了',
+    duration: {
+      day_one: '天',
+      day_other: '天',
+    },
   },
   error: {
     unknown: '出了一些问题。',
@@ -259,6 +263,18 @@ const pages = {
         useProxy: '使用代理',
       },
     },
+    retentionPolicy: {
+      enabled: '启用缓存策略',
+      purgeNow: '立即清理',
+      deleteCommentsAfter: '弹幕缓存时间',
+      tooltip: {
+        nextPurge: '下次清理时间：{{time}}',
+        deleteCommentsAfter: '超过指定天数的弹幕将被删除。0表示从不删除。',
+      },
+      alert: {
+        nDanmakuDeleted: '已删除{{count}}条弹幕',
+      },
+    },
     hotkeys: {
       addHotkey: '添加快捷键',
       enterKey: '输入快捷键',
@@ -274,6 +290,7 @@ const pages = {
       danmakuSource: '弹幕来源',
       theme: 'UI主题',
       hotkeys: '快捷键',
+      retentionPolicy: '缓存策略',
     },
   },
   searchPage: {

@@ -29,6 +29,7 @@ export const manifest = defineManifest({
     'contextMenus',
     'declarativeNetRequestWithHostAccess',
     'webNavigation',
+    'alarms',
   ],
   host_permissions: ['https://*/*', 'http://*/*', 'file:///*'],
   externally_connectable: {

@@ -8,6 +8,7 @@ import { injectVideoScript } from '@/background/scripting/setupScripting'
 import { BilibiliService } from '@/background/services/BilibiliService'
 import { TencentService } from '@/background/services/TencentService'
 import { Logger } from '@/common/Logger'
+import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { mountConfigService } from '@/common/options/mountConfig/service'
 import type { TabRPCClientMethod } from '@/common/rpc/client'
 import type { RRPServerHandler } from '@/common/rpc/server'
@@ -124,6 +125,11 @@ export const setupRpc = () => {
     },
     danmakuDeleteAll: async () => {
       return danmakuService.deleteAll()
+    },
+    danmakuPurgeCache: async () => {
+      const { retentionPolicy } = await extensionOptionsService.get()
+
+      return danmakuService.purgeOlderThan(retentionPolicy.deleteCommentsAfter)
     },
     getAllFrames: async (_, sender) => {
       if (sender.tab?.id === undefined) {
