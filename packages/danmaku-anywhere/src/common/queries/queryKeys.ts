@@ -77,3 +77,12 @@ export const controlQueryKeys = {
     },
   ],
 }
+
+export const alarmQueryKeys = {
+  danmakuPurge: () => [
+    {
+      scope: 'alarm',
+      kind: 'danmakuPurge',
+    },
+  ],
+}

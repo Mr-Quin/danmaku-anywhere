@@ -57,19 +57,23 @@ export const Options = () => {
         <Version />
         <List disablePadding>
           <LanguageListItem />
-          <SimplifiedSearchListItem />
           <OptionsListItem
             title={t('optionsPage.pages.danmakuSource')}
             onClick={() => navigate('danmaku-source')}
           />
           <OptionsListItem
-            title={t('optionsPage.pages.theme')}
-            onClick={() => navigate('theme')}
+            title={t('optionsPage.pages.retentionPolicy')}
+            onClick={() => navigate('retention-policy')}
           />
           <OptionsListItem
             title={t('optionsPage.pages.hotkeys')}
             onClick={() => navigate('hotkeys')}
           />
+          <OptionsListItem
+            title={t('optionsPage.pages.theme')}
+            onClick={() => navigate('theme')}
+          />
+          <SimplifiedSearchListItem />
           <DebugOption />
         </List>
       </OptionsPageLayout>

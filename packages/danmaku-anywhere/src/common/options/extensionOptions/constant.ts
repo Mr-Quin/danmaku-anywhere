@@ -25,6 +25,10 @@ export const defaultExtensionOptions: ExtensionOptions = {
   debug: false,
   lang: Language.zh,
   searchUsingSimplified: false,
+  retentionPolicy: {
+    enabled: false,
+    deleteCommentsAfter: 30,
+  },
   danmakuSources: {
     dandanplay: {
       enabled: true,

@@ -20,7 +20,7 @@ const configureDandanplay = (useProxy: boolean) => {
   }
 }
 
-export const setupOptions = async () => {
+export const setupOptions = () => {
   chrome.runtime.onInstalled.addListener(async (details) => {
     try {
       await upgradeOptions()

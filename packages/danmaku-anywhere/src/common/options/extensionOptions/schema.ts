@@ -38,6 +38,18 @@ export const danmakuSourcesSchema = z.object({
   }),
 })
 
+export const retentionPolicySchema = z.object({
+  /**
+   * Enable retention policy
+   */
+  enabled: z.boolean(),
+  /**
+   * Comments older than this number of days will be deleted
+   * 0 will disable this feature
+   */
+  deleteCommentsAfter: z.coerce.number().int().min(0),
+})
+
 const userThemeSchema = z.object({
   colorMode: z.nativeEnum(ColorMode),
 })
@@ -80,6 +92,11 @@ export const extensionOptionsSchema = z.object({
   danmakuSources: danmakuSourcesSchema,
 
   /**
+   * Configuration for retention policy
+   */
+  retentionPolicy: retentionPolicySchema,
+
+  /**
    * Configuration for the theme
    */
   theme: userThemeSchema,
@@ -98,6 +115,8 @@ export const extensionOptionsSchema = z.object({
 export type ExtensionOptions = z.infer<typeof extensionOptionsSchema>
 
 export type DanmakuSources = z.infer<typeof danmakuSourcesSchema>
+
+export type RetentionPolicy = z.infer<typeof retentionPolicySchema>
 
 export type UserTheme = z.infer<typeof userThemeSchema>
 

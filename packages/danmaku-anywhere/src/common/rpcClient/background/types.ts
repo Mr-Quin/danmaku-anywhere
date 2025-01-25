@@ -76,6 +76,7 @@ type DanmakuMethods = {
   danmakuImport: RPCDef<DanmakuInsert[], void>
   danmakuDelete: RPCDef<DanmakuDeleteDto, void>
   danmakuDeleteAll: RPCDef<void, void>
+  danmakuPurgeCache: RPCDef<void, number>
 }
 
 type ControlMethods = {

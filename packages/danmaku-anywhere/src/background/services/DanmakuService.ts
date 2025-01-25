@@ -266,4 +266,24 @@ export class DanmakuService {
   async deleteAll() {
     await this.ddpTable.clear()
   }
+
+  async purgeOlderThan(days: number) {
+    if (days <= 0) return 0
+
+    const now = Date.now()
+    const threshold = now - days * 24 * 60 * 60 * 1000
+
+    // delete danmaku older than threshold, ignoring custom danmaku
+    const deleteCount = await this.ddpTable
+      .where('timeUpdated')
+      .below(threshold)
+      .and((d) => d.provider !== DanmakuSourceType.Custom)
+      .delete()
+
+    this.logger.log(
+      `Purged ${deleteCount} danmaku older than ${new Date(threshold).toLocaleString()}`
+    )
+
+    return deleteCount
+  }
 }

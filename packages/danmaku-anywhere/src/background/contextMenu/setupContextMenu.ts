@@ -9,7 +9,7 @@ enum ContextMenuId {
 }
 
 // add menu item to disable danmaku
-export const setupContextMenu = async () => {
+export const setupContextMenu = () => {
   chrome.runtime.onInstalled.addListener(async () => {
     const extensionOptions = await extensionOptionsService.get()
 
@@ -37,7 +37,7 @@ export const setupContextMenu = async () => {
   extensionOptionsService.onChange((extensionOptions) => {
     if (!extensionOptions) return
     // try block in case the context menu is not created yet
-    tryCatch(async () =>
+    void tryCatch(async () =>
       chrome.contextMenus.update(ContextMenuId.ENABLED, {
         checked: extensionOptions.enabled,
       })
