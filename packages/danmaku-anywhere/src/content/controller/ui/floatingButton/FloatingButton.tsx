@@ -1,7 +1,6 @@
 import type { FabProps, PopoverVirtualElement } from '@mui/material'
 import {
   Box,
-  useTheme,
   ClickAwayListener,
   Fade,
   SpeedDial,
@@ -39,10 +38,8 @@ export const FloatingButton = forwardRef<
 
   const { isMounted, isVisible } = useStore.use.danmaku()
 
-  const theme = useTheme()
-
-  const [bottom, setBottom] = useState(parseInt(theme.spacing(12), 10))
-  const [left, setLeft] = useState(parseInt(theme.spacing(3), 10))
+  const translate = useRef({ x: 0, y: 0 })
+  const buttonRef = useRef<HTMLButtonElement>(null)
 
   const bind = useDrag(
     ({ down, tap, delta: [mx, my], event }) => {
@@ -54,9 +51,10 @@ export const FloatingButton = forwardRef<
         )
         onOpen(virtualElement)
       }
-      if (down) {
-        setBottom((prev) => prev - my)
-        setLeft((prev) => prev + mx)
+      if (down && buttonRef.current) {
+        translate.current.x += mx
+        translate.current.y += my
+        buttonRef.current.style.transform = `translate(${translate.current.x}px, ${translate.current.y}px)`
       }
     },
     { delay: 200 }
@@ -92,12 +90,14 @@ export const FloatingButton = forwardRef<
       <Fade in={isLoading || showFab || isOpen || !!contextMenuAnchor}>
         <div>
           <Box
+            ref={buttonRef}
             position="fixed"
-            bottom={`${bottom}px`}
-            left={`${left}px`}
+            bottom={(theme) => theme.spacing(12)}
+            left={(theme) => theme.spacing(3)}
             zIndex={1401} // 1 above the snackbar
             sx={{
               touchAction: 'none',
+              willChange: 'transform',
             }}
           >
             <SpeedDial
