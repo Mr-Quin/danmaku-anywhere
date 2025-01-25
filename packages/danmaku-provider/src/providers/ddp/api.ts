@@ -1,5 +1,10 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
-import { danDanCommentResponseSchema } from '@danmaku-anywhere/danmaku-converter'
+import {
+  commentOptionsToString,
+  parseCommentEntityP,
+  danDanCommentResponseSchema,
+} from '@danmaku-anywhere/danmaku-converter'
+import type { ZodSchema } from 'zod'
 
 import { handleParseResponse } from '../utils/index.js'
 
@@ -10,8 +15,10 @@ import type {
   DanDanBangumiAnimeResult,
   DanDanCommentAPIParams,
   DanDanSearchAnimeDetails,
+  DanDanRelatedItem,
 } from './schema.js'
 import {
+  danDanRelatedSchema,
   danDanSearchAnimeDetailsResponseSchema,
   danDanSearchEpisodesResponseSchema,
   danDanBangumiAnimeResponseSchema,
@@ -37,9 +44,10 @@ const sha256 = async (message: string) => {
   return btoa(hash)
 }
 
-interface DanDanPlayInit {
+interface DanDanPlayInit<T = unknown> {
   path: string
   params?: Record<string, string>
+  schema: ZodSchema<T>
 }
 
 const createUrl = ({ path, params }: DanDanPlayInit) => {
@@ -74,8 +82,8 @@ const getHeaders = async (path: string) => {
   return headers
 }
 
-const fetchDanDanPlay = async (init: DanDanPlayInit) => {
-  const { path } = init
+const fetchDanDanPlay = async <T extends object>(init: DanDanPlayInit<T>) => {
+  const { path, schema } = init
 
   const url = createUrl(init)
 
@@ -96,52 +104,50 @@ const fetchDanDanPlay = async (init: DanDanPlayInit) => {
 
   const json: unknown = await res.json()
 
-  return json
+  const data = handleParseResponse(() => schema.parse(json))
+
+  return data
 }
 
-export const searchAnime = async (keyword: string) => {
-  const json = await fetchDanDanPlay({
+export const searchAnime = async (
+  keyword: string
+): Promise<DanDanSearchAnimeDetails[]> => {
+  const data = await fetchDanDanPlay({
     path: '/api/v2/search/anime',
     params: {
       keyword,
     },
+    schema: danDanSearchAnimeDetailsResponseSchema,
   })
-
-  const data = handleParseResponse(() =>
-    danDanSearchAnimeDetailsResponseSchema.parse(json)
-  )
 
   if (!data.success) {
     throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
   }
 
-  return data.animes satisfies DanDanSearchAnimeDetails[]
+  return data.animes
 }
 
 export const searchEpisodes = async ({
   anime,
   episode = '',
-}: DanDanSearchEpisodesAPIParams) => {
-  const json = await fetchDanDanPlay({
+}: DanDanSearchEpisodesAPIParams): Promise<DanDanSearchEpisodesResult> => {
+  const data = await fetchDanDanPlay({
     path: '/api/v2/search/episodes',
     params: {
       anime,
       episode,
     },
+    schema: danDanSearchEpisodesResponseSchema,
   })
-
-  const data = handleParseResponse(() =>
-    danDanSearchEpisodesResponseSchema.parse(json)
-  )
 
   if (!data.success) {
     throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
   }
 
-  return data.animes satisfies DanDanSearchEpisodesResult
+  return data.animes
 }
 
-export const fetchComments = async (
+export const getComments = async (
   episodeId: number,
   params: Partial<DanDanCommentAPIParams> = {}
 ): Promise<CommentEntity[]> => {
@@ -151,23 +157,84 @@ export const fetchComments = async (
     chConvert: params.chConvert?.toString() ?? '0',
   }
 
-  const json = await fetchDanDanPlay({
+  const data = await fetchDanDanPlay({
     path: `/api/v2/comment/${episodeId.toString()}`,
     params: convertedParams,
+    schema: danDanCommentResponseSchema,
   })
 
-  return handleParseResponse(() => danDanCommentResponseSchema.parse(json))
-    .comments
+  return data.comments
 }
 
-export const getBangumiAnime = async (animeId: number) => {
-  const json = await fetchDanDanPlay({
-    path: `/api/v2/bangumi/${animeId}`,
+export const getCommentsWithRelated = async (
+  episodeId: number,
+  params: Partial<DanDanCommentAPIParams> = {}
+): Promise<CommentEntity[]> => {
+  const comments = await getComments(episodeId, {
+    ...params,
+    withRelated: false, // disable this flag to fetch related comments manually
   })
 
-  const data = handleParseResponse(() =>
-    danDanBangumiAnimeResponseSchema.parse(json)
-  )
+  if (params.withRelated) {
+    try {
+      const relatedData = await getRelated(episodeId)
+
+      for (const entry of relatedData) {
+        const additionalComments = await getExtComments(entry.url)
+
+        additionalComments.forEach((comment) => {
+          // if the shift is not 0, we need to adjust the time of the comments
+          if (entry.shift !== 0) {
+            const options = parseCommentEntityP(comment.p)
+            options.time += entry.shift
+            comment.p = commentOptionsToString(options)
+          }
+
+          comments.push(comment)
+        })
+      }
+    } catch (e: unknown) {
+      console.error(e)
+    }
+  }
+
+  return comments
+}
+
+export const getExtComments = async (url: string): Promise<CommentEntity[]> => {
+  const data = await fetchDanDanPlay({
+    path: `/api/v2/extcomment`,
+    params: {
+      url,
+    },
+    schema: danDanCommentResponseSchema,
+  })
+
+  return data.comments
+}
+
+export const getRelated = async (
+  episodeId: number
+): Promise<DanDanRelatedItem[]> => {
+  const data = await fetchDanDanPlay({
+    path: `/api/v2/related/${episodeId.toString()}`,
+    schema: danDanRelatedSchema,
+  })
+
+  if (!data.success) {
+    throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
+  }
+
+  return data.relateds
+}
+
+export const getBangumiAnime = async (
+  animeId: number
+): Promise<DanDanBangumiAnimeResult> => {
+  const data = await fetchDanDanPlay({
+    path: `/api/v2/bangumi/${animeId}`,
+    schema: danDanBangumiAnimeResponseSchema,
+  })
 
   if (!data.success) {
     throw new DanDanPlayApiException(data.errorMessage, data.errorCode)

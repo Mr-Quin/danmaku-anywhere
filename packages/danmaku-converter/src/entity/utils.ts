@@ -1,9 +1,10 @@
-import { rgb888ToHex } from '../utils/index.js'
+import { hexToRgb888, rgb888ToHex } from '../utils/index.js'
 
+import type { CommentOptions } from './types.js'
 import { CommentMode } from './types.js'
 
 // convert string to object
-export const parseCommentEntityP = (p: string) => {
+export const parseCommentEntityP = (p: string): CommentOptions => {
   const [time, mode, color, uid = ''] = p.split(',')
 
   if (!CommentMode[parseInt(mode)]) {
@@ -16,4 +17,18 @@ export const parseCommentEntityP = (p: string) => {
     color: rgb888ToHex(parseInt(color)),
     uid, // uid may include string
   }
+}
+
+export const commentOptionsToString = (
+  commentOptions: CommentOptions
+): string => {
+  const { time, mode, color, uid } = commentOptions
+
+  let p = `${time.toFixed(2)},${CommentMode[mode]},${hexToRgb888(color)}`
+
+  if (uid) {
+    p += `,${uid}`
+  }
+
+  return p
 }

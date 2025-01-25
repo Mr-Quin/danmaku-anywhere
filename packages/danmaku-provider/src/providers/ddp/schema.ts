@@ -2,26 +2,26 @@ import { z } from 'zod'
 
 import type { DanDanChConvert } from './enums.js'
 
+const danDanApiResponseSuccessSchema = z.object({
+  errorCode: z.literal(0),
+  errorMessage: z.string(),
+  success: z.literal(true),
+})
+
+const danDanApiResponseErrorSchema = z.object({
+  errorCode: z.number(),
+  errorMessage: z.string(),
+  success: z.literal(false),
+})
+
 const danDanEpisodeSchema = z.object({
   episodeId: z.number(),
   episodeTitle: z.string(),
 })
 
-export const danDanAnimeTypeSchema = z.string()
+const danDanAnimeTypeSchema = z.string()
 
 export type DanDanAnimeType = z.infer<typeof danDanAnimeTypeSchema>
-
-export const danDanSearchEpisodesAnimeSchema = z.object({
-  animeId: z.number(),
-  animeTitle: z.string(),
-  type: danDanAnimeTypeSchema,
-  typeDescription: z.string(),
-  episodes: z.array(danDanEpisodeSchema),
-})
-
-export type DanDanSearchEpisodesAnime = z.infer<
-  typeof danDanSearchEpisodesAnimeSchema
->
 
 export const danDanSearchAnimeDetailsSchema = z.object({
   animeId: z.number(),
@@ -40,24 +40,13 @@ export type DanDanSearchAnimeDetails = z.infer<
   typeof danDanSearchAnimeDetailsSchema
 >
 
-const danDanApiResponseSuccessSchema = z.object({
-  errorCode: z.literal(0),
-  errorMessage: z.string(),
-  success: z.literal(true),
+const danDanSearchEpisodesAnimeSchema = z.object({
+  animeId: z.number(),
+  animeTitle: z.string(),
+  type: danDanAnimeTypeSchema,
+  typeDescription: z.string(),
+  episodes: z.array(danDanEpisodeSchema),
 })
-
-const danDanApiResponseErrorSchema = z.object({
-  errorCode: z.number(),
-  errorMessage: z.string(),
-  success: z.literal(false),
-})
-
-export const danDanApiResponseSchema = z.discriminatedUnion('success', [
-  danDanApiResponseSuccessSchema,
-  danDanApiResponseErrorSchema,
-])
-
-export type DanDanApiResponse = z.infer<typeof danDanApiResponseSchema>
 
 const danDanSearchEpisodesResponseSuccessSchema =
   danDanApiResponseSuccessSchema.extend({
@@ -152,3 +141,21 @@ export interface DanDanCommentAPIParams {
    */
   chConvert: DanDanChConvert
 }
+
+const danDanRelatedItemSchema = z.object({
+  url: z.string(),
+  shift: z.number(),
+})
+
+export type DanDanRelatedItem = z.infer<typeof danDanRelatedItemSchema>
+
+export const danDanRelatedSuccessSchema = danDanApiResponseSuccessSchema.extend(
+  {
+    relateds: z.array(danDanRelatedItemSchema),
+  }
+)
+
+export const danDanRelatedSchema = z.discriminatedUnion('success', [
+  danDanRelatedSuccessSchema,
+  danDanApiResponseErrorSchema,
+])

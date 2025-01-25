@@ -2,7 +2,7 @@ import type {
   DanDanSearchEpisodesAPIParams,
   DanDanCommentAPIParams,
 } from '@danmaku-anywhere/danmaku-provider/ddp'
-import { fetchComments } from '@danmaku-anywhere/danmaku-provider/ddp'
+import { getCommentsWithRelated } from '@danmaku-anywhere/danmaku-provider/ddp'
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 
 import type { DanDanPlayDanmaku } from '@/common/danmaku/models/danmaku'
@@ -93,7 +93,7 @@ export class DanDanPlayService {
 
     this.logger.debug('Fetching danmaku', meta, paramsCopy)
 
-    const comments = await fetchComments(meta.episodeId, paramsCopy)
+    const comments = await getCommentsWithRelated(meta.episodeId, paramsCopy)
 
     this.logger.debug('Danmaku fetched from server', comments)
 
