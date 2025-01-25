@@ -1,7 +1,9 @@
 import type { PaperProps } from '@mui/material'
-import { useMediaQuery, Paper } from '@mui/material'
+import { Paper } from '@mui/material'
 import type { PropsWithChildren } from 'react'
 import { forwardRef } from 'react'
+
+import { useIsSmallScreen } from '@/content/controller/common/hooks/useIsSmallScreen'
 
 type FloatingPanelLayout = PropsWithChildren & PaperProps
 
@@ -9,7 +11,7 @@ export const FloatingPanelLayout = forwardRef<
   HTMLDivElement,
   PropsWithChildren
 >(({ children, ...rest }: FloatingPanelLayout, ref) => {
-  const sm = useMediaQuery('(max-width:600px)')
+  const sm = useIsSmallScreen()
 
   return (
     <Paper

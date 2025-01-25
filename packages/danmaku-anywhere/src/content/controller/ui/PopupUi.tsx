@@ -3,7 +3,7 @@ import { ClickAwayListener } from '@mui/material'
 import { useRef, useState } from 'react'
 
 import { FloatingButton } from './floatingButton/FloatingButton'
-import { FloatingPanel } from './floatingPanel/FloatingPanel'
+import { ControlWindow } from './floatingPanel/ControlWindow'
 
 import { usePopup } from '@/content/controller/store/popupStore'
 
@@ -13,7 +13,9 @@ export const PopupUi = () => {
   const [anchorEl, setAnchorEl] = useState<PopoverVirtualElement | null>(null)
 
   const handleOpen = (virtualElement: PopoverVirtualElement) => {
-    setAnchorEl(virtualElement)
+    if (!isOpen) {
+      setAnchorEl(virtualElement)
+    }
     toggleOpen()
   }
 
@@ -24,7 +26,7 @@ export const PopupUi = () => {
       }}
     >
       <div>
-        <FloatingPanel anchorEl={anchorEl ?? fallbackAnchorEl.current} />
+        <ControlWindow anchorEl={anchorEl ?? fallbackAnchorEl.current} />
         <FloatingButton
           color="primary"
           size="small"
