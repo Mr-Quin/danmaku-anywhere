@@ -96,7 +96,6 @@ export const FloatingButton = forwardRef<
             left={(theme) => theme.spacing(3)}
             zIndex={1401} // 1 above the snackbar
             sx={{
-              touchAction: 'none',
               willChange: 'transform',
             }}
           >
@@ -110,6 +109,7 @@ export const FloatingButton = forwardRef<
                 ref: mergedFabRefs,
                 sx: {
                   bgcolor: dialColor,
+                  touchAction: 'none',
                 },
                 ...bind(),
               }}
