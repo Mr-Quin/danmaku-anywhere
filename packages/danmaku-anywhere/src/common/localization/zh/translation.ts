@@ -262,7 +262,7 @@ const pages = {
         },
       },
       dandanplay: {
-        useProxy: '使用代理',
+        useProxy: '使用新API',
       },
     },
     retentionPolicy: {
