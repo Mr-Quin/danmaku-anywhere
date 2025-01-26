@@ -130,9 +130,11 @@ export const PopperWindow = ({
       {({ TransitionProps }) => {
         return (
           <Fade {...TransitionProps}>
-            <WindowPaneLayout>
-              {children({ bind, isDragging })}
-            </WindowPaneLayout>
+            <div>
+              <WindowPaneLayout>
+                {children({ bind, isDragging })}
+              </WindowPaneLayout>
+            </div>
           </Fade>
         )
       }}
