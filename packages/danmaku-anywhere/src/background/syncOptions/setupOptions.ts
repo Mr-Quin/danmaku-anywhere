@@ -20,19 +20,20 @@ const configureDandanplay = (useProxy: boolean) => {
   }
 }
 
+const tryUpgradeOptions = async () => {
+  try {
+    await upgradeOptions()
+  } catch (err) {
+    Logger.error(err)
+  }
+}
+
 export const setupOptions = () => {
   chrome.runtime.onInstalled.addListener(async (details) => {
-    try {
-      await upgradeOptions()
-
-      if (details.reason === 'update') {
-        await extensionOptionsService.update({ showReleaseNotes: true })
-      }
-    } catch (err) {
-      Logger.error(err)
-    }
+    await tryUpgradeOptions()
 
     if (details.reason === 'update') {
+      await extensionOptionsService.update({ showReleaseNotes: true })
       Logger.info('Danmaku Anywhere Updated')
     } else {
       Logger.info('Danmaku Anywhere Installed')
@@ -44,6 +45,9 @@ export const setupOptions = () => {
 
   // configure dandanplay api on init and when options change
   chrome.runtime.onStartup.addListener(async () => {
+    // Try to upgrade options on startup in case the onInstalled one failed
+    await tryUpgradeOptions()
+
     const options = await extensionOptionsService.get()
     configureDandanplay(options.danmakuSources.dandanplay.useProxy)
   })
