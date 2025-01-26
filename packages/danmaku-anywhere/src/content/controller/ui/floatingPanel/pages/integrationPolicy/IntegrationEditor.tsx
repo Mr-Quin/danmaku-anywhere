@@ -103,7 +103,6 @@ export const IntegrationEditor = () => {
     <>
       <form
         onSubmit={handleSubmit((data) => {
-          console.log('Submit', data)
           saveForm(data)
         })}
       >
