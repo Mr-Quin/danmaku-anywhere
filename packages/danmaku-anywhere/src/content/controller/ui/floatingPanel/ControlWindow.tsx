@@ -1,5 +1,5 @@
 import type { PopoverVirtualElement } from '@mui/material'
-import { Box, Paper } from '@mui/material'
+import { SwipeableDrawer, Box, Paper } from '@mui/material'
 import { memo, Suspense } from 'react'
 
 import { ControlWindowToolbar } from './components/ControlWindowToolbar'
@@ -8,7 +8,9 @@ import { useCloseOnEsc } from './hooks/useCloseOnEsc'
 import { PopperWindow } from './layout/PopperWindow'
 
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
+import { useIsSmallScreen } from '@/content/controller/common/hooks/useIsSmallScreen'
 import { usePopup } from '@/content/controller/store/popupStore'
+import { WindowPaneLayout } from '@/content/controller/ui/floatingPanel/layout/WindowPaneLayout'
 import { routes } from '@/content/controller/ui/router/routes'
 
 const BaseControlWindow = ({
@@ -18,7 +20,9 @@ const BaseControlWindow = ({
 }) => {
   useCloseOnEsc()
 
-  const { tab, isOpen } = usePopup()
+  const sm = useIsSmallScreen()
+
+  const { tab, isOpen, toggleOpen } = usePopup()
 
   const content = (
     <Box display="flex" flexGrow={1} minHeight={0}>
@@ -44,6 +48,27 @@ const BaseControlWindow = ({
       </Paper>
     </Box>
   )
+
+  if (sm) {
+    return (
+      <SwipeableDrawer
+        anchor="bottom"
+        open={isOpen}
+        onOpen={() => toggleOpen(true)}
+        onClose={() => toggleOpen(false)}
+        disableSwipeToOpen
+        hideBackdrop
+        sx={{ zIndex: 1402 }}
+      >
+        <WindowPaneLayout>
+          <>
+            <ControlWindowToolbar />
+            {content}
+          </>
+        </WindowPaneLayout>
+      </SwipeableDrawer>
+    )
+  }
 
   return (
     <PopperWindow anchorEl={anchorEl} open={isOpen}>
