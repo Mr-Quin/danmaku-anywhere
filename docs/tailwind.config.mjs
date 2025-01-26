@@ -35,6 +35,7 @@ export default {
     },
   },
   daisyui: {
+    prefix: 'daisy-',
     themes: [
       {
         dark: {
