@@ -1,0 +1,69 @@
+name: Bug 报告 🐛
+description: 汇报一个BUG
+labels: [ "bug" ]
+assignees:
+  - Mr-Quin
+body:
+  - type: markdown
+    attributes:
+      value: 感谢汇报BUG ❤️
+
+  - type: checkboxes
+    attributes:
+      label: 最新版本
+      description: 请确认您使用的是最新版本，问题可能已经被修复。
+      options:
+        - label: 我使用的是最新版本
+          required: true
+
+  - type: textarea
+    attributes:
+      label: 问题描述
+      description: 请提供尽可能详细的问题描述
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 复现步骤
+      description: 如何复现这个问题？
+      value: |
+        1.
+        2.
+        3.
+
+  - type: textarea
+    attributes:
+      label: 网络请求与日志
+      description: |
+        请供网络请求与日志信息
+        参考[获取方法](https://github.com/Mr-Quin/danmaku-anywhere/discussions/60)获得日志文件后在此上传
+
+  - type: markdown
+    attributes:
+      value: "## 运行环境"
+
+  - type: dropdown
+    attributes:
+      label: 浏览器类型
+      description: 请选择您的浏览器类型
+      options:
+        - Chrome
+        - Firefox
+        - Edge
+        - 其他
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: 其他浏览器
+      description: 如果选择了“其他”，请在此输入您的浏览器类型
+    validations:
+      required: false
+
+  - type: checkboxes
+    attributes:
+      label: 是否为移动设备
+      options:
+        - label: 是
