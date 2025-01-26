@@ -265,7 +265,7 @@ const pages = {
         },
       },
       dandanplay: {
-        useProxy: 'Use Proxy',
+        useProxy: 'Use new API',
       },
     },
     retentionPolicy: {
