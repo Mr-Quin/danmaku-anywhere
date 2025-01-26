@@ -1,10 +1,9 @@
 import type { PopperProps } from '@mui/material'
-import { Drawer, Fade, Popper } from '@mui/material'
+import { Fade, Popper } from '@mui/material'
 import { useDrag } from '@use-gesture/react'
 import type { ReactElement, RefObject } from 'react'
 import { useState, useEffect, useRef } from 'react'
 
-import { useIsSmallScreen } from '@/content/controller/common/hooks/useIsSmallScreen'
 import { WindowPaneLayout } from '@/content/controller/ui/floatingPanel/layout/WindowPaneLayout'
 
 interface RenderProps {
@@ -56,8 +55,6 @@ export const PopperWindow = ({
   children,
   open,
 }: PopperWindowProps) => {
-  const sm = useIsSmallScreen()
-
   const [isDragging, setIsDragging] = useState(false)
   const [popperInst, setPopperInst] = useState<PopperInstance | null>(null)
   const translate = useRef({ x: 0, y: 12 })
@@ -103,16 +100,8 @@ export const PopperWindow = ({
         setIsDragging(false)
       }
     },
-    { delay: 1000, enabled: !sm }
+    { delay: 1000 }
   )
-
-  if (sm) {
-    return (
-      <Drawer anchor="bottom" open={open} hideBackdrop sx={{ zIndex: 1402 }}>
-        <WindowPaneLayout>{children({ bind, isDragging })}</WindowPaneLayout>
-      </Drawer>
-    )
-  }
 
   return (
     <Popper
