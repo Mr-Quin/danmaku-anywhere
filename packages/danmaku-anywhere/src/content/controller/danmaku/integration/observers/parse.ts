@@ -1,4 +1,29 @@
+import { getElementByXpath } from '@/common/utils/utils'
 import { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
+
+export interface Selector {
+  value: string
+  quick: boolean
+}
+
+export const sortSelectors = (selectors: Selector[]) => {
+  const quick = selectors.filter((s) => s.quick)
+  const slow = selectors.filter((s) => !s.quick)
+  return [...quick, ...slow].map((s) => s.value)
+}
+
+export const getFirstElement = (
+  selectors: Selector[],
+  parent = window.document
+) => {
+  for (const p of sortSelectors(selectors)) {
+    const element = getElementByXpath(p, parent)
+    if (element) {
+      return element
+    }
+  }
+  return null
+}
 
 /**
  * For parsing numbers like episode and season numbers
@@ -44,11 +69,11 @@ export const parseMediaString = (text: string, regex: string) => {
 export const parseMultipleRegex = <T>(
   parser: (text: string, regex: string) => T,
   text: string,
-  regex: string[]
+  regex: Selector[]
 ): T | undefined => {
   const errors: string[] = []
 
-  for (const reg of regex) {
+  for (const reg of sortSelectors(regex)) {
     try {
       if (reg === '') return
       return parser(text, reg)
@@ -66,11 +91,11 @@ export const parseMultipleRegex = <T>(
 // Expect regex to use named capture groups
 export const parseMediaFromTitle = (
   title: string,
-  regex: string[]
+  regex: Selector[]
 ): MediaInfo => {
   const errors: string[] = []
 
-  for (const reg of regex) {
+  for (const reg of sortSelectors(regex)) {
     try {
       const match = title.match(new RegExp(reg, 'i'))
 

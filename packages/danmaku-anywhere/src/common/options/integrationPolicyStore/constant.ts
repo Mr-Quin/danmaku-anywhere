@@ -8,32 +8,81 @@ const plexPolicy = {
   name: 'Plex',
   policy: {
     episode: {
-      regex: ['\\d+'],
+      regex: [
+        {
+          value: '\\d+',
+          quick: false,
+        },
+      ],
       selector: [
-        '//*[@id="plex"]//span[contains(@class, "MetadataPosterTitle-singleLineTitle")]/span[1]/a[2]',
-        '//*[@id="plex"]//span[contains(@class, "MetadataPosterTitle-singleLineTitle")]/span[1]/span[3]',
+        {
+          value:
+            '//*[@id="plex"]//span[contains(@class, "MetadataPosterTitle-singleLineTitle")]/span[1]/a[2]',
+          quick: false,
+        },
+        {
+          value:
+            '//*[@id="plex"]//span[contains(@class, "MetadataPosterTitle-singleLineTitle")]/span[1]/span[3]',
+          quick: false,
+        },
       ],
     },
     episodeTitle: {
-      regex: ['.+'],
+      regex: [
+        {
+          value: '.+',
+          quick: false,
+        },
+      ],
       selector: [
-        '//*[@id="plex"]//span[contains(@class, "MetadataPosterTitle-singleLineTitle")]/a[1]',
+        {
+          value:
+            '//*[@id="plex"]//span[contains(@class, "MetadataPosterTitle-singleLineTitle")]/a[1]',
+          quick: false,
+        },
       ],
     },
+    options: {
+      dandanplay: {
+        useMatchApi: false,
+      },
+      titleOnly: false,
+    },
     season: {
-      regex: ['.+'],
+      regex: [
+        {
+          value: '.+',
+          quick: false,
+        },
+      ],
       selector: [
-        '//*[@id="plex"]//span[contains(@class, "MetadataPosterTitle-singleLineTitle")]/span[1]/a[1]',
-        '//*[@id="plex"]//span[contains(@class, "MetadataPosterTitle-singleLineTitle")]/span[1]/span[1]',
+        {
+          value:
+            '//*[@id="plex"]//span[contains(@class, "MetadataPosterTitle-singleLineTitle")]/span[1]/a[1]',
+          quick: false,
+        },
+        {
+          value:
+            '//*[@id="plex"]//span[contains(@class, "MetadataPosterTitle-singleLineTitle")]/span[1]/span[1]',
+          quick: false,
+        },
       ],
     },
     title: {
-      regex: ['.+'],
+      regex: [
+        {
+          value: '.+',
+          quick: false,
+        },
+      ],
       selector: [
-        '//*[@id="plex"]//a[contains(@class, "MetadataPosterTitle-singleLineTitle")]',
+        {
+          value:
+            '//*[@id="plex"]//a[contains(@class, "MetadataPosterTitle-singleLineTitle")]',
+          quick: false,
+        },
       ],
     },
-    titleOnly: false,
   } satisfies IntegrationPolicy,
 }
 

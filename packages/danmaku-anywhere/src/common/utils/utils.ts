@@ -161,19 +161,6 @@ export const getElementByXpath = (path: string, parent = window.document) => {
   }
 }
 
-export const getFirstElement = (
-  selectors: string[],
-  parent = window.document
-) => {
-  for (const p of selectors) {
-    const element = getElementByXpath(p, parent)
-    if (element) {
-      return element
-    }
-  }
-  return null
-}
-
 export const docsLink = (path: string) => {
   return `https://danmaku.weeblify.app/docs/${path}`
 }

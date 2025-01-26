@@ -5,7 +5,6 @@ import { immer } from 'zustand/middleware/immer'
 
 import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { danmakuToString } from '@/common/danmaku/utils'
-import type { IntegrationInput } from '@/common/options/integrationPolicyStore/schema'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { createSelectors } from '@/common/utils/createSelectors'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
@@ -105,8 +104,6 @@ interface StoreState {
   integrationForm: {
     showEditor: boolean
     toggleEditor: (show?: boolean) => void
-    data?: IntegrationInput
-    setData: (data?: IntegrationInput) => void
   }
 }
 
@@ -303,12 +300,6 @@ const useStoreBase = create<StoreState>()(
             state.integrationForm.showEditor = !state.integrationForm.showEditor
           })
         }
-      },
-      data: undefined,
-      setData: (data) => {
-        set((state) => {
-          state.integrationForm.data = data
-        })
       },
     },
   }))
