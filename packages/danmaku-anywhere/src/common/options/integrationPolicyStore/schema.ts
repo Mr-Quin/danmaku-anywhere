@@ -15,20 +15,37 @@ const regexString = z.string().refine(
   }
 )
 
-const matcher = z.object({
-  selector: z.array(z.string()),
-  regex: z.array(regexString),
+const selectorSchema = z.object({
+  value: z.string(),
+  quick: z.boolean().default(false),
+})
+
+const regexSchema = z.object({
+  value: regexString,
+  quick: z.boolean().default(false),
+})
+
+const matcherSchema = z.object({
+  selector: z.array(selectorSchema),
+  regex: z.array(regexSchema),
+})
+
+const optionsSchema = z.object({
+  titleOnly: z.boolean(),
+  dandanplay: z.object({
+    useMatchApi: z.boolean(),
+  }),
 })
 
 export const integrationPolicySchema = z.object({
   title: z.object({
-    selector: z.array(z.string().min(1)).min(1),
-    regex: z.array(regexString).min(1),
+    selector: z.array(selectorSchema).min(1),
+    regex: z.array(regexSchema).min(1),
   }),
-  titleOnly: z.boolean(),
-  episode: matcher,
-  season: matcher,
-  episodeTitle: matcher,
+  episode: matcherSchema,
+  season: matcherSchema,
+  episodeTitle: matcherSchema,
+  options: optionsSchema,
 })
 
 export type IntegrationPolicy = z.infer<typeof integrationPolicySchema>
@@ -47,6 +64,30 @@ export type Integration = IntegrationInput & {
   id: string
 }
 
+export interface IntegrationV1 {
+  name: string
+  id: string
+  policy: {
+    title: {
+      selector: string[]
+      regex: string[]
+    }
+    episode: {
+      selector: string[]
+      regex: string[]
+    }
+    season: {
+      selector: string[]
+      regex: string[]
+    }
+    episodeTitle: {
+      selector: string[]
+      regex: string[]
+    }
+    titleOnly: boolean
+  }
+}
+
 export const createIntegrationInput = (
   policy?: Integration
 ): IntegrationInput => {
@@ -56,22 +97,27 @@ export const createIntegrationInput = (
     name: '',
     policy: {
       title: {
-        selector: [''],
-        regex: [''],
+        selector: [{ value: '', quick: false }],
+        regex: [{ value: '', quick: false }],
       },
       episode: {
-        selector: [''],
-        regex: [''],
+        selector: [{ value: '', quick: false }],
+        regex: [{ value: '', quick: false }],
       },
       season: {
-        selector: [''],
-        regex: [''],
+        selector: [{ value: '', quick: false }],
+        regex: [{ value: '', quick: false }],
       },
       episodeTitle: {
-        selector: [''],
-        regex: [''],
+        selector: [{ value: '', quick: false }],
+        regex: [{ value: '', quick: false }],
       },
-      titleOnly: true,
+      options: {
+        titleOnly: false,
+        dandanplay: {
+          useMatchApi: false,
+        },
+      },
     },
   }
 }

@@ -5,9 +5,9 @@ export interface Options<T> {
   version: number
 }
 
-export interface Version<T> {
+export interface Version {
   version: number
-  upgrade: (prevSchema: unknown) => T // previous schema's type is unknown
+  upgrade: (prevSchema: unknown) => unknown // previous schema's type is unknown
 }
 
-export type VersionConfig<T> = Omit<Version<T>, 'version'>
+export type VersionConfig = Omit<Version, 'version'>

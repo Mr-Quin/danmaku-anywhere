@@ -7,10 +7,10 @@ import type {
 
 export function migrateOptions<T extends OptionsSchema>(
   fromOption: Options<T>,
-  versions: Version<T>[],
+  versions: Version[],
   logger: typeof Logger
 ): Options<T> {
-  const getNextVersion = (version: number): Version<T> | undefined => {
+  const getNextVersion = (version: number): Version | undefined => {
     const biggerVersions = versions.filter((v) => v.version > version)
 
     return biggerVersions.length > 0
@@ -27,7 +27,7 @@ export function migrateOptions<T extends OptionsSchema>(
     )
 
     currentOptions = {
-      data: nextVersion.upgrade(currentOptions.data),
+      data: nextVersion.upgrade(currentOptions.data) as T, // only the last upgrade will be of type T
       version: nextVersion.version,
     }
 

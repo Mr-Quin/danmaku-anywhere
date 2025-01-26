@@ -17,7 +17,7 @@ describe('migrateOptions', () => {
   it('should not upgrade if already at latest version', () => {
     const options = createOptions({ foo: 'bar' }, 2)
 
-    const versions: Version<any>[] = [
+    const versions: Version[] = [
       { version: 1, upgrade: (d) => d },
       { version: 2, upgrade: (d) => d },
     ]
@@ -29,7 +29,7 @@ describe('migrateOptions', () => {
 
   it('should upgrade through multiple versions', () => {
     const options = createOptions({ foo: 'bar' }, 0)
-    const versions: Version<any>[] = [
+    const versions: Version[] = [
       { version: 1, upgrade: (d: any) => ({ ...d, bar: 'baz' }) },
       { version: 2, upgrade: (d: any) => ({ ...d, baz: 'qux' }) },
     ]
@@ -43,7 +43,7 @@ describe('migrateOptions', () => {
 
   it('should handle partial upgrades', () => {
     const options = createOptions({ foo: 'bar' }, 1)
-    const versions: Version<any>[] = [
+    const versions: Version[] = [
       { version: 1, upgrade: (d: any) => d }, // No change in version 1
       { version: 2, upgrade: (d: any) => ({ ...d, bar: 'baz' }) },
     ]
@@ -55,7 +55,7 @@ describe('migrateOptions', () => {
 
   it('should operate on the return of the previous version', () => {
     const options = createOptions({ foo: 'bar' }, 0)
-    const versions: Version<any>[] = [
+    const versions: Version[] = [
       { version: 1, upgrade: (d: any) => ({ ...d, bar: { baz: 1 } }) },
       {
         version: 2,
@@ -78,7 +78,7 @@ describe('migrateOptions', () => {
 
   it('should handle deeply nested options', () => {
     const options = createOptions({ foo: { bar: { baz: 'qux' } } }, 1)
-    const versions: Version<any>[] = [
+    const versions: Version[] = [
       {
         version: 2,
         upgrade: (d) =>
@@ -98,7 +98,7 @@ describe('migrateOptions', () => {
 
   it('should remove nested options', () => {
     const options = createOptions({ foo: { bar: { baz: 'qux' } } }, 1)
-    const versions: Version<any>[] = [
+    const versions: Version[] = [
       {
         version: 2,
         upgrade: (d) =>
@@ -115,7 +115,7 @@ describe('migrateOptions', () => {
 
   it('should handle complex nested changes (add, remove, update)', () => {
     const options = createOptions({ a: { b: 1, c: 2 }, d: 3 }, 1)
-    const versions: Version<any>[] = [
+    const versions: Version[] = [
       {
         version: 2,
         upgrade: (d) =>

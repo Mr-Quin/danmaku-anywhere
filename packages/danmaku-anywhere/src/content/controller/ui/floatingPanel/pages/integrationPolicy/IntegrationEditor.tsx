@@ -4,7 +4,6 @@ import { LoadingButton } from '@mui/lab'
 import { Button, Divider, IconButton, Stack } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import type { UseControllerProps } from 'react-hook-form'
 import { FormProvider, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
@@ -20,6 +19,7 @@ import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConf
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useStore } from '@/content/controller/store/store'
 import { ElementSelector } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/ElementSelector'
+import type { ArrayFieldNames } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/InputFieldArray'
 import { IntegrationForm } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/IntegrationForm'
 
 export const IntegrationEditor = () => {
@@ -30,39 +30,39 @@ export const IntegrationEditor = () => {
 
   const [showSelector, setShowSelector] = useState(false)
   const [selectedField, setSelectedField] = useState<{
-    name: UseControllerProps<IntegrationInput>['name']
+    name: ArrayFieldNames
     index: number
   }>()
 
   const isEdit = !!activePolicy
 
   // Save form data to store so that it can be restored when the user comes back
-  const { setData, data } = useStore.use.integrationForm()
   const { toggleEditor } = useStore.use.integrationForm()
 
+  const defaultValues = activePolicy ?? createIntegrationInput()
+
   const form = useForm<IntegrationInput>({
-    values: data,
-    defaultValues: activePolicy ?? createIntegrationInput(),
+    defaultValues,
     resolver: zodResolver(integrationInputSchema),
     mode: 'onChange',
   })
 
-  useEffect(() => {
-    const { unsubscribe } = form.watch((values) => {
-      const result = integrationInputSchema.safeParse(values)
-      if (result.success) {
-        setData(result.data)
-      }
-    })
-
-    return unsubscribe
-  }, [form.watch])
-
   const {
     handleSubmit,
     getValues,
-    formState: { isSubmitting },
+    reset,
+    formState: { isSubmitting, isDirty },
   } = form
+
+  const handleReset = () => {
+    reset(defaultValues)
+  }
+
+  useEffect(() => {
+    if (activePolicy) {
+      reset(activePolicy)
+    }
+  }, [activePolicy])
 
   const toast = useToast.use.toast()
 
@@ -86,10 +86,7 @@ export const IntegrationEditor = () => {
     },
   })
 
-  const handleOpenSelector = (
-    name: UseControllerProps<IntegrationInput>['name'],
-    index: number
-  ) => {
+  const handleOpenSelector = (name: ArrayFieldNames, index: number) => {
     setShowSelector(true)
     setSelectedField({ name, index })
   }
@@ -97,14 +94,19 @@ export const IntegrationEditor = () => {
   const handleSelectElement = (xPath: string) => {
     if (!selectedField) return
     const { name, index } = selectedField
-    const values = getValues(name) as string[]
-    const newValues = values.toSpliced(index, 1, xPath)
+    const values = getValues(name)
+    const newValues = values.toSpliced(index, 1, { value: xPath, quick: false })
     form.setValue(name, newValues)
   }
 
   return (
     <>
-      <form onSubmit={handleSubmit((data) => saveForm(data))}>
+      <form
+        onSubmit={handleSubmit((data) => {
+          console.log('Submit', data)
+          saveForm(data)
+        })}
+      >
         <FormProvider {...form}>
           <Stack
             direction="row"
@@ -129,9 +131,18 @@ export const IntegrationEditor = () => {
                 loading={isSubmitting}
                 variant="contained"
                 color="primary"
+                disabled={!isDirty}
               >
                 {t('common.save')}
               </LoadingButton>
+              <Button
+                type="reset"
+                onClick={() => handleReset()}
+                variant="outlined"
+                color="primary"
+              >
+                {t('common.reset')}
+              </Button>
             </div>
           </Stack>
           <Divider sx={{ mb: 2 }} />

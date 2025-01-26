@@ -67,7 +67,7 @@ export const IntegrationPolicyList = ({
               <ListItemText
                 primary={policy.name}
                 secondary={
-                  policy.policy.titleOnly
+                  policy.policy.options.titleOnly
                     ? t('integrationPolicyPage.editor.titleOnly')
                     : ''
                 }

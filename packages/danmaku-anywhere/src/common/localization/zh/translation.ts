@@ -182,6 +182,8 @@ const pages = {
       episodeTitle: '匹配单集标题',
       episodeTitleSelector: '单集标题XPath',
       episodeTitleRegex: '单集标题Regex',
+      advanced: '高级选项',
+      quick: '优先',
       helper: {
         titleOnly:
           '勾选后，只使用标题节点匹配番剧。适用与标题包含番剧全部信息的情况，例如标题为文件名。如果番剧信息分散在不同的节点中，请取消勾选。',

@@ -1,10 +1,10 @@
 import { Logger } from '@/common/Logger'
 import type { IntegrationPolicy } from '@/common/options/integrationPolicyStore/schema'
-import { getFirstElement } from '@/common/utils/utils'
 import { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import type { MediaElements } from '@/content/controller/danmaku/integration/observers/MediaObserver'
 import { MediaObserver } from '@/content/controller/danmaku/integration/observers/MediaObserver'
 import {
+  getFirstElement,
   parseMediaFromTitle,
   parseMediaNumber,
   parseMediaString,
@@ -24,7 +24,7 @@ const parseMediaInfo = (
   if (!titleText) throw new Error('Title element not found')
 
   // If titleOnly is true, then try to parse the media info from the title alone
-  if (policy.titleOnly)
+  if (policy.options.titleOnly)
     return parseMediaFromTitle(titleText, policy.title.regex)
 
   const title = parseMultipleRegex(
@@ -180,7 +180,7 @@ export class IntegrationPolicyObserver extends MediaObserver {
         // Title is required, the rest are optional
         if (titleElement) {
           clearInterval(this.interval)
-          if (this.policy.titleOnly) {
+          if (this.policy.options.titleOnly) {
             resolve({
               title: titleElement,
               episode: null,

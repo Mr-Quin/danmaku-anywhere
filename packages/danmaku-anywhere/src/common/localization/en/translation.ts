@@ -181,6 +181,8 @@ const pages = {
       episodeTitle: 'Select Episode Title',
       episodeTitleSelector: 'Episode Title XPath',
       episodeTitleRegex: 'Episode Title Regex',
+      advanced: 'Advanced Options',
+      quick: 'Priority',
       helper: {
         titleOnly:
           "If checked, only the title node will be used to match the show. Useful if all information is contained in the title, e.g. if the title is the file name. Uncheck if the show's information is spread across different nodes.",

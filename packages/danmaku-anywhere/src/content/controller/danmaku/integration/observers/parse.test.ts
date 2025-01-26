@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
+import type { Selector } from './parse'
 import {
   parseMediaNumber,
   parseMediaString,
@@ -64,20 +65,44 @@ describe('parseMediaString', () => {
   })
 })
 
+const createSelector = (value: string, quick?: boolean): Selector => ({
+  value,
+  quick: quick ?? false,
+})
+
 describe('parseMultipleRegex', () => {
-  it('should parse using the first matching regex', () => {
+  it('should parse using the first matching regex if quick is false', () => {
     const result = parseMultipleRegex(parseMediaString, 'Title: MyGo', [
-      'Name: (.+)',
-      'Title: (.+)',
+      createSelector('Name: (.+)'),
+      createSelector('Title: (.+)'), // this should match
+      createSelector('(.+)'),
     ])
     expect(result).toBe('MyGo')
+  })
+
+  it('should prefer selector with the quick flag', () => {
+    const result = parseMultipleRegex(parseMediaString, 'Title: MyGo', [
+      createSelector('(.+)'),
+      createSelector('Title: (.+)', true), // this should match
+    ])
+
+    expect(result).toBe('MyGo')
+  })
+
+  it('should preserve order if multiple quick selectors are present', () => {
+    const result = parseMultipleRegex(parseMediaString, 'Title: MyGo', [
+      createSelector('(.+)', true), // this should match
+      createSelector('Title: (.+)', true),
+    ])
+
+    expect(result).toBe('Title: MyGo')
   })
 
   it('should throw an error if all regex fail', () => {
     expect(() =>
       parseMultipleRegex(parseMediaString, 'Title: MyGo', [
-        'Name: (.+)',
-        'Anime: (.+)',
+        createSelector('Name: (.+)'),
+        createSelector('Anime: (.+)'),
       ])
     ).toThrow()
   })
@@ -89,7 +114,9 @@ describe('parseMediaFromTitle', () => {
     const result = parseMediaFromTitle(
       "ONIMAI: I'm Now Your Sister! - S1:E12 - Mahiro's Future as a Sister (2023)",
       [
-        '(?<title>.+) - (?<season>.+):[^\\d]*(?<episode>\\d*) - (?<episodeTitle>.+) (\\(\\d+\\))',
+        createSelector(
+          '(?<title>.+) - (?<season>.+):[^\\d]*(?<episode>\\d*) - (?<episodeTitle>.+) (\\(\\d+\\))'
+        ),
       ]
     )
     expect(result).toEqual(
@@ -105,24 +132,28 @@ describe('parseMediaFromTitle', () => {
 
   it('should throw is title is not present', () => {
     // No groups in regex
-    expect(() => parseMediaFromTitle('S1E12', ['.+'])).toThrow()
+    expect(() => parseMediaFromTitle('S1E12', [createSelector('.+')])).toThrow()
 
     // Title group missing in regex
     expect(() =>
-      parseMediaFromTitle('S1E12', ['S(?<season>\\d+)E(?<episode>\\d+)'])
+      parseMediaFromTitle('S1E12', [
+        createSelector('S(?<season>\\d+)E(?<episode>\\d+)'),
+      ])
     ).toThrow()
   })
 
   it('should not throw if other groups are missing', () => {
     // Episode title is omitted
     const result2 = parseMediaFromTitle('MyGo S1E12 GoGoGo', [
-      '(?<title>.+) (?<season>S.+)E(?<episode>\\d+)',
+      createSelector('(?<title>.+) (?<season>S.+)E(?<episode>\\d+)'),
     ])
     expect(result2).toEqual(new MediaInfo('MyGo', 12, 'S1', true))
 
     // Season is omitted
     const result3 = parseMediaFromTitle('MyGo S1E12 GoGoGo', [
-      '(?<title>.+) S(\\d)E(?<episode>\\d+ (?<episodeTitle>.+))',
+      createSelector(
+        '(?<title>.+) S(\\d)E(?<episode>\\d+ (?<episodeTitle>.+))'
+      ),
     ])
     expect(result3).toEqual(
       new MediaInfo('MyGo', 12, undefined, true, 'GoGoGo')
@@ -130,29 +161,41 @@ describe('parseMediaFromTitle', () => {
 
     // Episode number is omitted
     const result4 = parseMediaFromTitle('MyGo S1E12 GoGoGo', [
-      '(?<title>.+) (?<season>S\\d+)E(?:\\d+) (?<episodeTitle>.+)',
+      createSelector(
+        '(?<title>.+) (?<season>S\\d+)E(?:\\d+) (?<episodeTitle>.+)'
+      ),
     ])
     expect(result4).toEqual(new MediaInfo('MyGo', 1, 'S1', false, 'GoGoGo'))
   })
 
   it('should use the first matching regex', () => {
     const result = parseMediaFromTitle('MyGo', [
-      '(?<title>.+) S(?<season>\\d+)E(?<episode>\\d+)', // should not match
-      '(.+)', // matches, but not used because it's not named
-      '(?<title>.+)', // should match
+      createSelector('(?<title>.+) S(?<season>\\d+)E(?<episode>\\d+)'), // should not match
+      createSelector('(.+)'), // matches, but not used because it's not named
+      createSelector('(?<title>.+)'), // should match
     ])
-    expect(result).toEqual(new MediaInfo('MyGo', 1, undefined, false, 'MyGo'))
+    expect(result).toEqual(new MediaInfo('MyGo', 1, undefined, false))
+  })
+
+  it('should use the first matching quick regex', () => {
+    const result = parseMediaFromTitle('MyGo', [
+      createSelector('(?<title>.+) S(?<season>\\d+)E(?<episode>\\d+)'), // should not match
+      createSelector('(.+)'), // matches, but not used because it's not named
+      createSelector('(?<title>.+)'), // should match, but not used because it's not quick
+      createSelector('(?<title>.)', true), // should match the letter 'M'
+    ])
+    expect(result).toEqual(new MediaInfo('M', 1, undefined, false))
   })
 
   it('should assume non-episodic if episode is not present', () => {
-    const result = parseMediaFromTitle('MyGo', ['(?<title>.+)'])
-    expect(result).toEqual(new MediaInfo('MyGo', 1, undefined, false, 'MyGo'))
+    const result = parseMediaFromTitle('MyGo', [createSelector('(?<title>.+)')])
+    expect(result).toEqual(new MediaInfo('MyGo', 1, undefined, false))
   })
 
   it('should throw an error if regex does not match', () => {
     expect(() =>
       parseMediaFromTitle('MyGo Season 1 Episode 12', [
-        '(?<title>.+) S(?<season>\\d+)E(?<episode>\\d+)',
+        createSelector('(?<title>.+) S(?<season>\\d+)E(?<episode>\\d+)'),
       ])
     ).toThrow()
   })
@@ -161,21 +204,21 @@ describe('parseMediaFromTitle', () => {
     // Season is NaN
     expect(() =>
       parseMediaFromTitle('MyGo S一E12', [
-        '(?<title>.+) S(?<season>\\d+)E(?<episode>\\d+)',
+        createSelector('(?<title>.+) S(?<season>\\d+)E(?<episode>\\d+)'),
       ])
     ).toThrow()
 
     // Season is NaN but omitted in regex, should not throw
     expect(() =>
       parseMediaFromTitle('MyGo S一E12', [
-        '(?<title>.+) S(.*)E(?<episode>\\d+)',
+        createSelector('(?<title>.+) S(.*)E(?<episode>\\d+)'),
       ])
     ).not.toThrow()
 
     // Episode is NaN
     expect(() =>
       parseMediaFromTitle('MyGo S1E一二', [
-        '(?<title>.+) S(?<season>\\d+)E(?<episode>\\d+)',
+        createSelector('(?<title>.+) S(?<season>\\d+)E(?<episode>\\d+)'),
       ])
     ).toThrow()
   })

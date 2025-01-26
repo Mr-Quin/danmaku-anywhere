@@ -9,7 +9,7 @@ export type PrevOptions = any
 
 //Handles creating and upgrading options schema
 export class OptionsService<T extends OptionsSchema> {
-  private versions: Version<T>[] = []
+  private versions: Version[] = []
   private readonly logger: typeof Logger
   private storageService: ExtStorageService<Options<T>>
 
@@ -25,7 +25,7 @@ export class OptionsService<T extends OptionsSchema> {
     this.setup()
   }
 
-  version(version: number, versionConfig: VersionConfig<T>) {
+  version(version: number, versionConfig: VersionConfig) {
     if (version <= 0) {
       throw new Error(`Version must be larger than 0`)
     }

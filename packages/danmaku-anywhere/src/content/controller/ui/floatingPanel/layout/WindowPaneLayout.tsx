@@ -13,7 +13,7 @@ interface WindowPaneLayoutProps {
 }
 
 export const WindowPaneLayout = (props: WindowPaneLayoutProps) => {
-  const { ref, width = 450, height = 450 } = props
+  const { ref, width = 500, height = 550 } = props
   const sm = useIsSmallScreen()
 
   return (
