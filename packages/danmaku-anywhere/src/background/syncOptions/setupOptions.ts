@@ -38,22 +38,20 @@ export const setupOptions = () => {
     } else {
       Logger.info('Danmaku Anywhere Installed')
     }
-
-    const options = await extensionOptionsService.get()
-    configureDandanplay(options.danmakuSources.dandanplay.useProxy)
   })
 
   // configure dandanplay api on init and when options change
   chrome.runtime.onStartup.addListener(async () => {
     // Try to upgrade options on startup in case the onInstalled one failed
     await tryUpgradeOptions()
-
-    const options = await extensionOptionsService.get()
-    configureDandanplay(options.danmakuSources.dandanplay.useProxy)
   })
 
   extensionOptionsService.onChange((options) => {
     if (!options) return
+    configureDandanplay(options.danmakuSources.dandanplay.useProxy)
+  })
+
+  extensionOptionsService.get().then((options) => {
     configureDandanplay(options.danmakuSources.dandanplay.useProxy)
   })
 }
