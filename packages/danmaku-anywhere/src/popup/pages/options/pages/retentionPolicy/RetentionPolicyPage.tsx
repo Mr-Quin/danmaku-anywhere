@@ -11,7 +11,7 @@ import {
   TextField,
   InputAdornment,
 } from '@mui/material'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { produce } from 'immer'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -30,7 +30,8 @@ import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 export const RetentionPolicyPage = () => {
   const { t } = useTranslation()
   const { data, partialUpdate } = useExtensionOptions()
-  const queryClient = useQueryClient()
+
+  const { retentionPolicy } = data
 
   const { toast } = useToast()
 
@@ -41,11 +42,12 @@ export const RetentionPolicyPage = () => {
     formState: { errors, isDirty },
   } = useForm<RetentionPolicy>({
     resolver: zodResolver(retentionPolicySchema),
-    defaultValues: data.retentionPolicy,
+    defaultValues: retentionPolicy,
     mode: 'onChange',
   })
 
   const { mutate: handleApply, isPending } = useMutation({
+    mutationKey: alarmQueryKeys.danmakuPurge(),
     mutationFn: async (update: RetentionPolicy) => {
       await partialUpdate(
         produce(data, (draft) => {
@@ -53,9 +55,6 @@ export const RetentionPolicyPage = () => {
         })
       )
       reset(update)
-      await queryClient.resetQueries({
-        queryKey: alarmQueryKeys.danmakuPurge(),
-      })
     },
     onSuccess: () => {
       toast.success(t('common.success'))
@@ -79,7 +78,7 @@ export const RetentionPolicyPage = () => {
   const { data: nextPurgeTime } = useQuery({
     queryKey: alarmQueryKeys.danmakuPurge(),
     queryFn: async () => {
-      const alarm = await chrome.alarms.get(alarmKeys.danmakuPurge)
+      const alarm = await chrome.alarms.get(alarmKeys.PURGE_DANMAKU)
       return alarm || null
     },
     select: (data) => {
@@ -161,7 +160,7 @@ export const RetentionPolicyPage = () => {
                         'optionsPage.retentionPolicy.tooltip.deleteCommentsAfter'
                       )}
                     </div>
-                    {nextPurgeTime && (
+                    {retentionPolicy.enabled && nextPurgeTime && (
                       <div>
                         {t('optionsPage.retentionPolicy.tooltip.nextPurge', {
                           time: nextPurgeTime,

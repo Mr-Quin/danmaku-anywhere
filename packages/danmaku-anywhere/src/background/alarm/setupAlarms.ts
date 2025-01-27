@@ -18,27 +18,27 @@ const createDanmakuPurgeAlarm = async () => {
     return
   }
 
-  const alarm = await chrome.alarms.get(alarmKeys.danmakuPurge)
+  const alarm = await chrome.alarms.get(alarmKeys.PURGE_DANMAKU)
 
   if (alarm) {
     return
   }
 
   Logger.debug('Creating danmaku purge alarm')
-  await chrome.alarms.create(alarmKeys.danmakuPurge, {
+  await chrome.alarms.create(alarmKeys.PURGE_DANMAKU, {
     periodInMinutes: 60 * 24, // 1 day
     // run at next midnight
-    when: Date.now() + 1000 * 60 * 60 * (24 - new Date().getHours()),
+    when: new Date().setHours(24, 0, 0, 0),
   })
 }
 
 const clearDanmakuPurgeAlarm = async () => {
   Logger.debug('Clearing danmaku purge alarm')
-  await chrome.alarms.clear(alarmKeys.danmakuPurge)
+  await chrome.alarms.clear(alarmKeys.PURGE_DANMAKU)
 }
 
 const handleDanmakuPurgeAlarm = async (alarm: chrome.alarms.Alarm) => {
-  if (alarm.name !== alarmKeys.danmakuPurge) {
+  if (alarm.name !== alarmKeys.PURGE_DANMAKU) {
     return
   }
 
@@ -51,18 +51,7 @@ const handleDanmakuPurgeAlarm = async (alarm: chrome.alarms.Alarm) => {
   await danmakuService.purgeOlderThan(days)
 }
 
-export const setupAlarms = () => {
-  chrome.runtime.onInstalled.addListener(async ({ reason }) => {
-    // don't create alarm on install
-    if (reason === 'install') return
-
-    await createDanmakuPurgeAlarm()
-  })
-
-  chrome.runtime.onStartup.addListener(async () => {
-    await createDanmakuPurgeAlarm()
-  })
-
+export const setupAlarms = async () => {
   extensionOptionsService.onChange(async (extensionOptions) => {
     if (!extensionOptions) return
 
@@ -74,6 +63,10 @@ export const setupAlarms = () => {
       await clearDanmakuPurgeAlarm()
     }
   })
+
+  // doc says to check for alarms on script start because alarms are not guaranteed to be persistent
+  // if this happens we may miss an alarm
+  void createDanmakuPurgeAlarm()
 
   if (!chrome.alarms.onAlarm.hasListener(handleDanmakuPurgeAlarm)) {
     chrome.alarms.onAlarm.addListener(handleDanmakuPurgeAlarm)

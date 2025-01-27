@@ -1,3 +1,3 @@
 export const alarmKeys = {
-  danmakuPurge: 'purge-danmaku',
+  PURGE_DANMAKU: 'purge-danmaku' as const,
 }
