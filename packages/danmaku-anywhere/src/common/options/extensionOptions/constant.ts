@@ -32,7 +32,6 @@ export const defaultExtensionOptions: ExtensionOptions = {
   danmakuSources: {
     dandanplay: {
       enabled: true,
-      useProxy: true,
       chConvert: DanDanChConvert.None,
     },
     bilibili: {

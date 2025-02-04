@@ -9,7 +9,6 @@ export const danmakuSourcesSchema = z.object({
   dandanplay: z.object({
     enabled: z.boolean(),
     chConvert: z.nativeEnum(DanDanChConvert),
-    useProxy: z.boolean(),
   }),
   bilibili: z.object({
     enabled: z.boolean(),

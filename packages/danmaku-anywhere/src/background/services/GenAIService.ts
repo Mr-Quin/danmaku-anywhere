@@ -6,15 +6,9 @@ import {
 
 import { Logger } from '@/common/Logger'
 
-if (import.meta.env.DEV) {
-  configure({
-    baseUrl: 'http://127.0.0.1:8787',
-  })
-} else {
-  configure({
-    baseUrl: import.meta.env.VITE_PROXY_URL,
-  })
-}
+configure({
+  baseUrl: import.meta.env.VITE_PROXY_URL,
+})
 
 export class GenAIService {
   private logger: typeof Logger

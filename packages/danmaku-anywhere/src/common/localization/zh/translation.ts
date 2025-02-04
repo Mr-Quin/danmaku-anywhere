@@ -268,9 +268,6 @@ const pages = {
             'Protobuf：获取速度较慢，但是弹幕数量多，每分钟可达1000条。视频越长，速度越慢。',
         },
       },
-      dandanplay: {
-        useProxy: '使用新API',
-      },
     },
     retentionPolicy: {
       enabled: '启用缓存策略',

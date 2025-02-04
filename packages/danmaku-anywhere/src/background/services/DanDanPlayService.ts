@@ -1,4 +1,5 @@
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
+import { configure } from '@danmaku-anywhere/danmaku-provider/ddp'
 
 import type { DanDanPlayDanmaku } from '@/common/danmaku/models/danmaku'
 import type {
@@ -8,6 +9,10 @@ import type {
 import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { tryCatch } from '@/common/utils/utils'
+
+configure({
+  baseUrl: import.meta.env.VITE_PROXY_URL,
+})
 
 export class DanDanPlayService {
   private logger: typeof Logger

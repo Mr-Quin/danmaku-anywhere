@@ -115,8 +115,6 @@ export const extensionOptionsService = new OptionsService(
   .version(13, {
     upgrade: (data: PrevOptions) =>
       produce<ExtensionOptions>(data, (draft) => {
-        // Add useProxy option for dandanplay
-        draft.danmakuSources.dandanplay.useProxy = true
         draft.retentionPolicy = {
           enabled: false,
           deleteCommentsAfter: 30,
