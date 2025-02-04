@@ -1,4 +1,4 @@
-import type { DanDanSearchAnimeDetails } from '@danmaku-anywhere/danmaku-provider/ddp'
+import type { SearchAnimeDetails } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { Check } from '@mui/icons-material'
 import { LoadingButton } from '@mui/lab'
 import {
@@ -30,13 +30,13 @@ export const SelectorPage = () => {
   const { animes, saveMapping, setSaveMapping, toggleOpen } = usePopup()
   const { mediaInfo } = useStore.use.integration()
 
-  const [selectedAnime, setSelectedAnime] = useState<DanDanSearchAnimeDetails>()
+  const [selectedAnime, setSelectedAnime] = useState<SearchAnimeDetails>()
 
   const { loadMutation } = useLoadDanmaku()
 
   const matchEpisode = useMatchEpisode()
 
-  const handleAnimeSelect = (anime: DanDanSearchAnimeDetails) => {
+  const handleAnimeSelect = (anime: SearchAnimeDetails) => {
     setSelectedAnime(anime)
     selectorBoxRef.current?.scrollIntoView({
       behavior: 'smooth',

@@ -1,5 +1,5 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
-import type { DanDanCommentAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
+import type { GetCommentQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
 
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import type {
@@ -44,7 +44,7 @@ export type DanDanPlayDanmaku = BaseDanmakuEntity & {
   /**
    * The params used to fetch the comments
    */
-  params: Partial<DanDanCommentAPIParams>
+  params: Partial<GetCommentQuery>
 }
 
 export type DanDanPlayDanmakuInsert = Omit<DanDanPlayDanmaku, 'id'>

@@ -1,4 +1,4 @@
-import type { DanDanSearchAnimeDetails } from '@danmaku-anywhere/danmaku-provider/ddp'
+import type { SearchAnimeDetails } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { create } from 'zustand'
 
 import { createSelectors } from '@/common/utils/createSelectors'
@@ -19,13 +19,10 @@ interface PopupStoreState {
   lock: boolean
   toggleLock: (lock?: boolean) => void
 
-  open: (params?: {
-    animes?: DanDanSearchAnimeDetails[]
-    tab?: PopupTab
-  }) => void
+  open: (params?: { animes?: SearchAnimeDetails[]; tab?: PopupTab }) => void
 
-  animes: DanDanSearchAnimeDetails[]
-  setAnimes: (animes: DanDanSearchAnimeDetails[]) => void
+  animes: SearchAnimeDetails[]
+  setAnimes: (animes: SearchAnimeDetails[]) => void
 
   searchTitle: string
   setSearchTitle: (title: string) => void

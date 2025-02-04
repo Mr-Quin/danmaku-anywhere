@@ -3,8 +3,8 @@ import type {
   BilibiliSearchResult,
 } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import type {
-  DanDanBangumiAnimeResult,
-  DanDanSearchAnimeDetails,
+  BangumiDetails,
+  SearchAnimeDetails,
 } from '@danmaku-anywhere/danmaku-provider/ddp'
 import type {
   TencentSearchResult,
@@ -21,7 +21,7 @@ export interface MediaSearchParams {
 
 export interface DanDanPlayMediaSearchResult {
   provider: DanmakuSourceType.DanDanPlay
-  data: DanDanSearchAnimeDetails[]
+  data: SearchAnimeDetails[]
 }
 
 export interface BilibiliMediaSearchResult {
@@ -41,7 +41,7 @@ export type MediaSearchResult =
 
 export type BilibiliSeason = BilibiliSearchResult[number]
 
-export type DanDanPlaySeason = DanDanSearchAnimeDetails
+export type DanDanPlaySeason = SearchAnimeDetails
 
 export type TencentSeason = TencentSearchResult[number]
 
@@ -49,7 +49,7 @@ export type MediaSeason = BilibiliSeason | DanDanPlaySeason | TencentSeason
 
 export type BilibiliEpisode = BilibiliBangumiInfo['episodes'][number]
 
-export type DanDanPlayEpisode = DanDanBangumiAnimeResult['episodes'][number]
+export type DanDanPlayEpisode = BangumiDetails['episodes'][number]
 
 export type TencentEpisode = TencentEpisodeListItem
 

@@ -1,10 +1,10 @@
 import { BiliBiliMediaType } from '@danmaku-anywhere/danmaku-provider/bilibili'
-import type { DanDanAnimeType } from '@danmaku-anywhere/danmaku-provider/ddp'
+import type { AnimeType } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { TencentVideoType } from '@danmaku-anywhere/danmaku-provider/tencent'
 
 import { CNFlagIcon } from '@/common/components/icons/CNFlagIcon'
 
-export const getDanDanPlayMediaIcon = (type: DanDanAnimeType) => {
+export const getDanDanPlayMediaIcon = (type: AnimeType) => {
   switch (type) {
     case 'jpdrama':
       return '🎭'

@@ -1,4 +1,4 @@
 module.exports = {
   extends: ['../../.eslintrc.cjs'],
-  ignorePatterns: ['protobuf'],
+  ignorePatterns: ['protobuf', 'code-gen'],
 }
