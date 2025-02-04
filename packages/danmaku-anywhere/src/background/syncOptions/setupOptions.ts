@@ -1,20 +1,6 @@
-import { configure } from '@danmaku-anywhere/danmaku-provider/ddp'
-
 import { upgradeOptions } from '@/background/syncOptions/upgradeOptions'
 import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
-
-const configureDandanplay = (useProxy: boolean) => {
-  if (useProxy) {
-    configure({
-      baseUrl: import.meta.env.VITE_PROXY_URL,
-    })
-  } else {
-    configure({
-      baseUrl: 'https://api.dandanplay.net',
-    })
-  }
-}
 
 const tryUpgradeOptions = async () => {
   try {
@@ -40,14 +26,5 @@ export const setupOptions = () => {
   chrome.runtime.onStartup.addListener(async () => {
     // Try to upgrade options on startup in case the onInstalled one failed
     await tryUpgradeOptions()
-  })
-
-  extensionOptionsService.onChange((options) => {
-    if (!options) return
-    configureDandanplay(options.danmakuSources.dandanplay.useProxy)
-  })
-
-  extensionOptionsService.get().then((options) => {
-    configureDandanplay(options.danmakuSources.dandanplay.useProxy)
   })
 }

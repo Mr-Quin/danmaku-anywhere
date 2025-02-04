@@ -1,12 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  Box,
-  FormControlLabel,
-  MenuItem,
-  Stack,
-  Switch,
-  TextField,
-} from '@mui/material'
+import { Box, MenuItem, Stack, TextField } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { produce } from 'immer'
 import { useEffect } from 'react'
@@ -89,18 +82,6 @@ export const DanDanPlayOptions = () => {
                     </MenuItem>
                   ))}
                 </TextField>
-              )
-            }}
-          />
-          <Controller
-            name="dandanplay.useProxy"
-            control={control}
-            render={({ field: { onChange, value } }) => {
-              return (
-                <FormControlLabel
-                  control={<Switch checked={value} onChange={onChange} />}
-                  label={t('optionsPage.danmakuSource.dandanplay.useProxy')}
-                />
               )
             }}
           />
