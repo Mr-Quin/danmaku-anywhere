@@ -1,4 +1,4 @@
-import type { DanDanSearchEpisodesAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
+import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
 import type { ListProps } from '@mui/material'
 import {
   CircularProgress,
@@ -19,7 +19,7 @@ interface SearchResultListProps {
   renderEpisode: RenderEpisode
   listProps?: ListProps
   dense?: boolean
-  searchParams: DanDanSearchEpisodesAPIParams
+  searchParams: SearchEpisodesQuery
   pending?: boolean
   onLoad?: <T extends MediaSearchResult['provider']>(
     provider: T,

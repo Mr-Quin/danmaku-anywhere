@@ -3,7 +3,12 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ResponseParseException } from '../../exceptions/ResponseParseException'
 import { mockFetchResponse } from '../utils/testUtils'
 
-import { searchEpisodes, getComments, getBangumiAnime, configure } from './api'
+import {
+  searchSearchEpisodes,
+  commentGetComment,
+  getBangumiAnime,
+  configure,
+} from './api'
 import { DanDanPlayApiException } from './exceptions'
 import { mockAnimeSearchResponse, mockCommentResponse } from './mockData'
 
@@ -16,7 +21,9 @@ describe('DandanPlay API', () => {
     it('should not throw on fetch', async () => {
       mockFetchResponse(mockAnimeSearchResponse)
 
-      await expect(searchEpisodes({ anime: 'MyGo' })).resolves.not.toThrow()
+      await expect(
+        searchSearchEpisodes({ anime: 'MyGo' })
+      ).resolves.not.toThrow()
     })
 
     it('should throw an error on API error', async () => {
@@ -30,7 +37,7 @@ describe('DandanPlay API', () => {
 
       mockFetchResponse(mockResponse)
 
-      await expect(searchEpisodes({ anime: 'test' })).rejects.toThrow(
+      await expect(searchSearchEpisodes({ anime: 'test' })).rejects.toThrow(
         DanDanPlayApiException
       )
     })
@@ -38,7 +45,7 @@ describe('DandanPlay API', () => {
     it('should throw an error on unexpected data', async () => {
       mockFetchResponse({})
 
-      await expect(searchEpisodes({ anime: 'test' })).rejects.toThrow(
+      await expect(searchSearchEpisodes({ anime: 'test' })).rejects.toThrow(
         ResponseParseException
       )
     })
@@ -48,7 +55,7 @@ describe('DandanPlay API', () => {
     it('should parse fetched comments', async () => {
       mockFetchResponse(mockCommentResponse)
 
-      const data = await getComments(1)
+      const data = await commentGetComment(1)
       expect(data).toHaveLength(116)
       expect(data).toContainEqual({
         cid: 1723310127,
@@ -60,7 +67,7 @@ describe('DandanPlay API', () => {
     it('should throw an error on unexpected data', async () => {
       mockFetchResponse({})
 
-      await expect(getComments(1)).rejects.toThrow(ResponseParseException)
+      await expect(commentGetComment(1)).rejects.toThrow(ResponseParseException)
     })
   })
 
@@ -103,7 +110,7 @@ describe('DandanPlay API', () => {
     const customRoot = 'https://example.com'
     configure({ baseUrl: customRoot })
 
-    await searchEpisodes({ anime: 'test' })
+    await searchSearchEpisodes({ anime: 'test' })
 
     expect(mockFetch.mock.calls[0][0]).toEqual(
       `${customRoot}/api/v2/search/episodes?anime=test&episode=`

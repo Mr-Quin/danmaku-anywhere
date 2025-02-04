@@ -5,14 +5,16 @@
     "baseUrl": ".",
     "composite": true,
     "module": "NodeNext",
-    "moduleResolution": "NodeNext"
+    "moduleResolution": "NodeNext",
+    "noImplicitAny": false
   },
   "include": [
     "./src"
   ],
   "exclude": [
     "**/*.test.ts",
-    "**/test"
+    "**/test",
+    "**/code-gen"
   ],
   "references": [
     {

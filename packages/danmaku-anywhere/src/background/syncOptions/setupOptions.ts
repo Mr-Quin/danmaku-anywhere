@@ -8,14 +8,10 @@ const configureDandanplay = (useProxy: boolean) => {
   if (useProxy) {
     configure({
       baseUrl: import.meta.env.VITE_PROXY_URL,
-      APP_ID: '',
-      APP_SECRET: '',
     })
   } else {
     configure({
       baseUrl: 'https://api.dandanplay.net',
-      APP_ID: import.meta.env.VITE_DANDANPLAY_APP_ID,
-      APP_SECRET: import.meta.env.VITE_DANDANPLAY_APP_SECRET,
     })
   }
 }

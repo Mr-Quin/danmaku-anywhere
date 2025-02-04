@@ -1,4 +1,4 @@
-import type { DanDanCommentAPIParams } from '@danmaku-anywhere/danmaku-provider/ddp'
+import type { GetCommentQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
 
 import type { DanmakuFetchOptions } from './types'
 
@@ -39,7 +39,7 @@ interface BaseDanmakuFetchDto {
 
 export interface DanDanPlayFetchDto extends BaseDanmakuFetchDto {
   meta: DanDanPlayMetaDto
-  params?: Partial<DanDanCommentAPIParams>
+  params?: Partial<GetCommentQuery>
 }
 
 export interface BiliBiliFetchDto extends BaseDanmakuFetchDto {

@@ -1,7 +1,3 @@
-import type {
-  DanDanSearchEpisodesAPIParams,
-  DanDanCommentAPIParams,
-} from '@danmaku-anywhere/danmaku-provider/ddp'
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 
 import type { DanDanPlayDanmaku } from '@/common/danmaku/models/danmaku'
@@ -21,9 +17,9 @@ export class DanDanPlayService {
     this.logger = Logger.sub('[DDPService]')
   }
 
-  async search(searchParams: DanDanSearchEpisodesAPIParams) {
+  async search(searchParams: danDanPlay.SearchEpisodesQuery) {
     this.logger.debug('Searching DanDanPlay', searchParams)
-    const result = await danDanPlay.searchAnime(searchParams.anime)
+    const result = await danDanPlay.searchSearchAnime(searchParams.anime)
     this.logger.debug('Search result', result)
     return result
   }
@@ -56,11 +52,11 @@ export class DanDanPlayService {
 
   async getDanmaku(
     meta: DanDanPlayMetaDto,
-    params: Partial<DanDanCommentAPIParams> = {}
+    params: Partial<danDanPlay.GetCommentQuery> = {}
   ): Promise<{
     meta: DanDanPlayMeta
     comments: DanDanPlayDanmaku['comments']
-    params: DanDanCommentAPIParams
+    params: danDanPlay.GetCommentQuery
   }> {
     const {
       danmakuSources: {
@@ -69,7 +65,7 @@ export class DanDanPlayService {
     } = await this.extensionOptionsService.get()
 
     // apply default params, use chConvert specified in options unless provided in params input
-    const paramsCopy: DanDanCommentAPIParams = {
+    const paramsCopy: danDanPlay.GetCommentQuery = {
       chConvert: params.chConvert ?? chConvertPreference,
       withRelated: params.withRelated ?? true,
       from: params.from ?? 0,
@@ -92,7 +88,10 @@ export class DanDanPlayService {
 
     this.logger.debug('Fetching danmaku', meta, paramsCopy)
 
-    const comments = await danDanPlay.getComments(meta.episodeId, paramsCopy)
+    const comments = await danDanPlay.commentGetComment(
+      meta.episodeId,
+      paramsCopy
+    )
 
     this.logger.debug('Danmaku fetched from server', comments)
 
@@ -101,5 +100,31 @@ export class DanDanPlayService {
       comments,
       params: paramsCopy,
     }
+  }
+
+  async sendComment(request: danDanPlay.SendCommentRequest) {
+    return danDanPlay.commentSendComment(request)
+  }
+
+  async register(request: danDanPlay.RegisterRequestV2) {
+    this.logger.debug('Registering user', request)
+
+    const res = danDanPlay.registerRegisterMainUser(request)
+
+    this.logger.debug('Registered user', res)
+
+    return res
+  }
+
+  async login(request: danDanPlay.LoginRequest) {
+    this.logger.debug('Logging in')
+
+    return danDanPlay.loginLogin(request)
+  }
+
+  async renew() {
+    this.logger.debug('Renewing token')
+
+    return danDanPlay.loginRenewToken()
   }
 }
