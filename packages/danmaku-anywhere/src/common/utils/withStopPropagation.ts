@@ -1,8 +1,8 @@
 import type { KeyboardEvent, KeyboardEventHandler } from 'react'
 
 interface WithStopPropagationHandlers<T extends Element> {
-  onKeyPress?: KeyboardEventHandler<T>
-  onKeyDown?: KeyboardEventHandler<T>
+  onKeyPressCapture?: KeyboardEventHandler<T>
+  onKeyDownCapture?: KeyboardEventHandler<T>
 }
 
 export const withStopPropagation = <T extends Element>(
@@ -26,11 +26,11 @@ export const withStopPropagation = <T extends Element>(
   }
 
   return {
-    onKeyDown: (e) => {
-      intercept(e, handlers.onKeyDown)
+    onKeyDownCapture: (e) => {
+      intercept(e, handlers.onKeyDownCapture)
     },
-    onKeyPress: (e) => {
-      intercept(e, handlers.onKeyPress)
+    onKeyPressCapture: (e) => {
+      intercept(e, handlers.onKeyPressCapture)
     },
   }
 }
