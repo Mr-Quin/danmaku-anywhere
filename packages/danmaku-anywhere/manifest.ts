@@ -32,12 +32,16 @@ export const manifest = defineManifest({
     'alarms',
   ],
   host_permissions: ['https://*/*', 'http://*/*', 'file:///*'],
-  externally_connectable: {
-    matches: [
-      '*://danmaku.weeblify.app/*',
-      ...(dev ? ['http://localhost:4321/*'] : []),
-    ],
-  },
+  externally_connectable:
+    // not supported in firefox
+    browser === 'firefox'
+      ? undefined
+      : {
+          matches: [
+            '*://danmaku.weeblify.app/*',
+            ...(dev ? ['http://localhost:4321/*'] : []),
+          ],
+        },
   icons: {
     16: 'normal_16.png',
     32: 'normal_32.png',
