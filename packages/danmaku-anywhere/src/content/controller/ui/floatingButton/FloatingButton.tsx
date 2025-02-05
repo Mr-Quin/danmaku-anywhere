@@ -85,9 +85,17 @@ export const FloatingButton = forwardRef<
       ? 'success.main'
       : 'primary.main'
 
+  const isIn = isLoading || showFab || isOpen || !!contextMenuAnchor
+
   return (
     <ClickAwayListener onClickAway={handleCloseContextMenu}>
-      <Fade in={isLoading || showFab || isOpen || !!contextMenuAnchor}>
+      <Fade
+        in={isIn}
+        unmountOnExit={false}
+        style={{
+          pointerEvents: isIn ? 'auto' : 'none',
+        }}
+      >
         <div>
           <Box
             ref={buttonRef}

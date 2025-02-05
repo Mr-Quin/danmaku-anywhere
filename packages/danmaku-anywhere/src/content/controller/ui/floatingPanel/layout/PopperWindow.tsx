@@ -105,28 +105,22 @@ export const PopperWindow = ({
 
   return (
     <Popper
-      open={open}
+      open={true}
       anchorEl={anchorEl}
-      transition
       popperRef={setPopperInst}
       placement="top-start"
       sx={{
         zIndex: 1402, // 1 above the floating button
         userSelect: isDragging ? 'none' : 'auto',
         willChange: 'transform',
+        pointerEvents: open ? 'auto' : 'none',
       }}
     >
-      {({ TransitionProps }) => {
-        return (
-          <Fade {...TransitionProps}>
-            <div>
-              <WindowPaneLayout>
-                {children({ bind, isDragging })}
-              </WindowPaneLayout>
-            </div>
-          </Fade>
-        )
-      }}
+      <Fade in={open} unmountOnExit={false}>
+        <div>
+          <WindowPaneLayout>{children({ bind, isDragging })}</WindowPaneLayout>
+        </div>
+      </Fade>
     </Popper>
   )
 }
