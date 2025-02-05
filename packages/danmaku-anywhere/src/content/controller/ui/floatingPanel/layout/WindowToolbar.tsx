@@ -1,5 +1,5 @@
 import { Close, Lock, LockOpen } from '@mui/icons-material'
-import { AppBar, IconButton, Toolbar } from '@mui/material'
+import { AppBar, IconButton, Stack, Toolbar } from '@mui/material'
 import type { ReactNode } from 'react'
 
 interface WindowToolbarProps {
@@ -33,11 +33,7 @@ export const WindowToolbar = (props: WindowToolbarProps) => {
     <AppBar position="relative">
       <Toolbar variant="dense" sx={{ gap: 2 }}>
         {children}
-        <div
-          style={{
-            marginLeft: 'auto',
-          }}
-        >
+        <Stack direction="row" ml="auto">
           {showLock && (
             <IconButton
               onClick={handleLock}
@@ -51,7 +47,7 @@ export const WindowToolbar = (props: WindowToolbarProps) => {
           <IconButton edge="end" onClick={onClose}>
             <Close />
           </IconButton>
-        </div>
+        </Stack>
       </Toolbar>
     </AppBar>
   )

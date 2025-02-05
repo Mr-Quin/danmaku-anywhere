@@ -47,7 +47,13 @@ export const ControlWindowToolbar = () => {
           {(integrationPolicy) => {
             return (
               <>
-                <Typography>{integrationPolicy.name}</Typography>
+                <Typography
+                  overflow="hidden"
+                  textOverflow="ellipsis"
+                  title={integrationPolicy.name}
+                >
+                  {integrationPolicy.name}
+                </Typography>
                 <FormControlLabel
                   control={
                     <StyledEnableSwitch
@@ -63,7 +69,7 @@ export const ControlWindowToolbar = () => {
                       variant: 'caption',
                     },
                   }}
-                  sx={{ m: 0 }}
+                  sx={{ m: 0, minWidth: 'max-content' }}
                 />
               </>
             )
