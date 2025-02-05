@@ -12,6 +12,7 @@ import {
 import { useTranslation } from 'react-i18next'
 
 import { toSimplified } from '@/common/utils/utils'
+import { withStopPropagation } from '@/common/utils/withStopPropagation'
 
 interface SearchFormProps {
   onSearch: (searchTerm: string) => void
@@ -66,6 +67,7 @@ export const SearchForm = ({
           fullWidth
           required
           {...textFieldProps}
+          {...withStopPropagation()}
         />
         <LoadingButton
           type="submit"
