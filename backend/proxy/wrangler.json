@@ -2,6 +2,9 @@
   "name": "danmaku-anywhere-proxy",
   "main": "src/index.ts",
   "compatibility_date": "2025-01-24",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "vars": {
     "DANDANPLAY_API_HOST": "https://api.dandanplay.net",
     "BASE_URL": "/proxy",
