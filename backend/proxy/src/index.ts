@@ -232,7 +232,7 @@ function handleProxyDanDanPlay(
     const response = yield* Effect.promise(() => fetch(newRequest))
     const newRes = new Response(response.body, response)
 
-    if (newRequest.method === 'GET') {
+    if (newRequest.method === 'GET' && newRes.status === 200) {
       const cacheControl = newRes.headers.get('Cache-Control')
       const cacheTime = cacheControl
         ? (getCacheTime(cacheControl) ?? 1800)
