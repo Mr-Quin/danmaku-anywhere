@@ -17,13 +17,13 @@
     "cf-typegen": "wrangler types --experimental-include-runtime"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.6.7",
+    "@cloudflare/vitest-pool-workers": "^0.6.12",
     "@types/node": "^22.13.1",
     "typescript": "^5.7.3",
-    "vitest": "2.1.8",
-    "wrangler": "^3.105.1"
+    "vitest": "3.0.5",
+    "wrangler": "^3.107.3"
   },
   "dependencies": {
-    "effect": "^3.12.9"
+    "effect": "^3.12.10"
   }
 }
