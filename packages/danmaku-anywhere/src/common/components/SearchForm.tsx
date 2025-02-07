@@ -1,8 +1,8 @@
 import { Search } from '@mui/icons-material'
-import { LoadingButton } from '@mui/lab'
 import type { TextFieldProps } from '@mui/material'
 import {
   Box,
+  Button,
   FormControlLabel,
   FormHelperText,
   Stack,
@@ -69,14 +69,14 @@ export const SearchForm = ({
           {...textFieldProps}
           {...withStopPropagation()}
         />
-        <LoadingButton
+        <Button
           type="submit"
           loading={isLoading}
           variant="contained"
           disabled={!searchTerm}
         >
           <Search />
-        </LoadingButton>
+        </Button>
       </Stack>
       <FormControlLabel
         control={

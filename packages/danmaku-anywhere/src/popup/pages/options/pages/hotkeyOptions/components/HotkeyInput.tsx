@@ -88,17 +88,19 @@ export const HotkeyInput = ({ onKeyChange, value }: HotkeyInputProps) => {
       placeholder={t('optionsPage.hotkeys.enterKey')}
       autoComplete="off"
       size="small"
-      InputProps={{
-        endAdornment: [
-          <IconButton
-            key="clear"
-            onClick={() => {
-              handleKeyChange('')
-            }}
-          >
-            <Clear />
-          </IconButton>,
-        ],
+      slotProps={{
+        input: {
+          endAdornment: [
+            <IconButton
+              key="clear"
+              onClick={() => {
+                handleKeyChange('')
+              }}
+            >
+              <Clear />
+            </IconButton>,
+          ],
+        },
       }}
     />
   )

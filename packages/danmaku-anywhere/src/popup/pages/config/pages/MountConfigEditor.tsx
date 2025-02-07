@@ -1,5 +1,4 @@
 import { AddCircleOutline, RemoveCircleOutline } from '@mui/icons-material'
-import { LoadingButton } from '@mui/lab'
 import {
   Box,
   Button,
@@ -254,14 +253,14 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
                   {t('common.reset')}
                 </Button>
               )}
-              <LoadingButton
+              <Button
                 variant="contained"
                 color="primary"
                 type="submit"
                 loading={isSubmitting}
               >
                 {t('common.save')}
-              </LoadingButton>
+              </Button>
             </div>
           </Stack>
         </Stack>

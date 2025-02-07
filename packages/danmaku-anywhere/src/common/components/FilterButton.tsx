@@ -77,14 +77,16 @@ export const FilterButton = ({
             value={filter}
             onChange={handleChange}
             autoFocus
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={handleClear} edge="end">
-                    <Close />
-                  </IconButton>
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={handleClear} edge="end">
+                      <Close />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
             }}
           />
         </Box>

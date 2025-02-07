@@ -148,10 +148,12 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
                       })}
                     </Typography>
                   }
-                  primaryTypographyProps={{
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
+                  slotProps={{
+                    primary: {
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    },
                   }}
                 />
               </Tooltip>

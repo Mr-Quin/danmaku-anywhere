@@ -53,13 +53,15 @@ export const ToggleListItemButton = ({
         {showWarning && (
           <ListItemIcon>
             <Tooltip
-              PopperProps={{
-                // prevent clicks being propagated to the parent
-                onMouseDown(e) {
-                  e.stopPropagation()
-                },
-                onClick(e) {
-                  e.stopPropagation()
+              slotProps={{
+                popper: {
+                  // prevent clicks being propagated to the parent
+                  onMouseDown(e) {
+                    e.stopPropagation()
+                  },
+                  onClick(e) {
+                    e.stopPropagation()
+                  },
                 },
               }}
               title={warningTooltip}

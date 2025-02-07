@@ -1,4 +1,3 @@
-import { LoadingButton } from '@mui/lab'
 import { Box, Button, Stack } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -44,7 +43,7 @@ export const MountPage = () => {
           }
           height={350}
         />
-        <LoadingButton
+        <Button
           type="submit"
           variant="contained"
           loading={isPending}
@@ -52,7 +51,7 @@ export const MountPage = () => {
           onClick={handleMount}
         >
           {t('danmaku.mount')}
-        </LoadingButton>
+        </Button>
         <Button
           variant="outlined"
           type="button"

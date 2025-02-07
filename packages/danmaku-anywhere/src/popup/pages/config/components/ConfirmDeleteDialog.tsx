@@ -1,4 +1,3 @@
-import { LoadingButton } from '@mui/lab'
 import {
   Button,
   Dialog,
@@ -52,13 +51,9 @@ export const ConfirmDeleteDialog = () => {
         <Button onClick={handleClose} autoFocus disabled={remove.isPending}>
           {t('common.cancel')}
         </Button>
-        <LoadingButton
-          onClick={handleDelete}
-          color="error"
-          loading={remove.isPending}
-        >
+        <Button onClick={handleDelete} color="error" loading={remove.isPending}>
           {t('common.delete')}
-        </LoadingButton>
+        </Button>
       </DialogActions>
     </Dialog>
   )

@@ -1,6 +1,5 @@
 import type { SearchAnimeDetails } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { Check } from '@mui/icons-material'
-import { LoadingButton } from '@mui/lab'
 import {
   Box,
   Checkbox,
@@ -12,6 +11,7 @@ import {
   ListItemButton,
   ListItemText,
   Stack,
+  Button,
   Typography,
 } from '@mui/material'
 import { useRef, useState } from 'react'
@@ -98,7 +98,7 @@ export const SelectorPage = () => {
 
       <Box my={2} px={2} ref={selectorBoxRef}>
         <Stack direction="column" alignItems="flex-start" spacing={2}>
-          <LoadingButton
+          <Button
             type="submit"
             loading={loadMutation.isPending}
             variant="contained"
@@ -107,7 +107,7 @@ export const SelectorPage = () => {
             disabled={!selectedAnime || loadMutation.isPending}
           >
             {t('common.apply')}
-          </LoadingButton>
+          </Button>
           <FormControl>
             <FormControlLabel
               control={

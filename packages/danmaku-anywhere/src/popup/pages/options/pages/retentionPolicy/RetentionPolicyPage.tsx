@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { LoadingButton } from '@mui/lab'
 import {
   Divider,
   List,
@@ -10,6 +9,7 @@ import {
   Switch,
   TextField,
   InputAdornment,
+  Button,
 } from '@mui/material'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { produce } from 'immer'
@@ -173,15 +173,15 @@ export const RetentionPolicyPage = () => {
             </ListItem>
           </List>
           <Stack direction="row">
-            <LoadingButton
+            <Button
               onClick={handleSubmit((update) => handleApply(update))}
               loading={isPending}
               variant="contained"
               disabled={!isDirty}
             >
               {t('common.apply')}
-            </LoadingButton>
-            <LoadingButton
+            </Button>
+            <Button
               onClick={() => purgeDanmaku()}
               loading={isPurgingDanmaku}
               variant="contained"
@@ -190,7 +190,7 @@ export const RetentionPolicyPage = () => {
               disabled={!data.retentionPolicy.enabled || isDirty}
             >
               {t('optionsPage.retentionPolicy.purgeNow')}
-            </LoadingButton>
+            </Button>
           </Stack>
         </Box>
       </OptionsPageLayout>
