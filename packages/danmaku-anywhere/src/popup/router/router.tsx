@@ -21,6 +21,8 @@ import { SearchPage } from '../pages/search/SearchPage'
 import { FilterPage } from '../pages/styles/FilterPage'
 import { StylesPage } from '../pages/styles/StylesPage'
 
+import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
+
 export const router: ReturnType<typeof createHashRouter> = createHashRouter([
   {
     path: '/',
@@ -129,6 +131,10 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
       {
         path: 'retention-policy',
         Component: RetentionPolicyPage,
+      },
+      {
+        path: 'advanced',
+        Component: AdvancedOptions,
       },
     ],
   },

@@ -1,6 +1,14 @@
-import { ChevronRight } from '@mui/icons-material'
+import {
+  ChevronRight,
+  DarkMode,
+  DarkModeTwoTone,
+  GitHub,
+  Keyboard,
+  KeyboardTwoTone,
+} from '@mui/icons-material'
 import type { ListItemButtonProps } from '@mui/material'
 import {
+  Divider,
   Icon,
   List,
   ListItem,
@@ -8,6 +16,7 @@ import {
   ListItemText,
   Stack,
 } from '@mui/material'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Outlet, useNavigate } from 'react-router'
 
@@ -16,14 +25,13 @@ import { OptionsPageLayout } from '../../layout/OptionsPageLayout'
 import { LanguageListItem } from './components/LanguageListItem'
 
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
-import { DebugOption } from '@/popup/pages/options/components/DebugOption'
-import { SimplifiedSearchListItem } from '@/popup/pages/options/components/SimplifiedSearchListItem'
 import { Version } from '@/popup/pages/options/components/Version'
 
 const OptionsListItem = ({
   title,
+  icon,
   ...rest
-}: { title: string } & ListItemButtonProps) => {
+}: { icon?: ReactNode; title: string } & ListItemButtonProps) => {
   return (
     <ListItem disablePadding>
       <ListItemButton {...rest}>
@@ -34,7 +42,10 @@ const OptionsListItem = ({
               alignItems="center"
               justifyContent="space-between"
             >
-              <>{title}</>
+              <Stack direction="row" gap={1} alignItems="center">
+                {icon && <Icon>{icon}</Icon>}
+                {title}
+              </Stack>
               <Icon>
                 <ChevronRight />
               </Icon>
@@ -73,8 +84,10 @@ export const Options = () => {
             title={t('optionsPage.pages.theme')}
             onClick={() => navigate('theme')}
           />
-          <SimplifiedSearchListItem />
-          <DebugOption />
+          <OptionsListItem
+            title={t('optionsPage.pages.advanced')}
+            onClick={() => navigate('advanced')}
+          />
         </List>
       </OptionsPageLayout>
       <Outlet />

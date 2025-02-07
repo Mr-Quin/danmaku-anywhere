@@ -22,7 +22,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import type { RetentionPolicy } from '@/common/options/extensionOptions/schema'
 import { retentionPolicySchema } from '@/common/options/extensionOptions/schema'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
-import { alarmQueryKeys } from '@/common/queries/queryKeys'
+import { alarmQueryKeys, danmakuQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
@@ -39,6 +39,7 @@ export const RetentionPolicyPage = () => {
     control,
     handleSubmit,
     reset,
+    getValues,
     formState: { errors, isDirty },
   } = useForm<RetentionPolicy>({
     resolver: zodResolver(retentionPolicySchema),
@@ -62,8 +63,11 @@ export const RetentionPolicyPage = () => {
   })
 
   const { mutate: purgeDanmaku, isPending: isPurgingDanmaku } = useMutation({
+    mutationKey: danmakuQueryKeys.all(),
     mutationFn: async () => {
-      const res = await chromeRpcClient.danmakuPurgeCache()
+      const res = await chromeRpcClient.danmakuPurgeCache(
+        getValues().deleteCommentsAfter
+      )
       return res.data
     },
     onSuccess: (count) => {
@@ -187,7 +191,7 @@ export const RetentionPolicyPage = () => {
               variant="contained"
               color="error"
               sx={{ ml: 'auto' }}
-              disabled={!data.retentionPolicy.enabled || isDirty}
+              disabled={isDirty}
             >
               {t('optionsPage.retentionPolicy.purgeNow')}
             </Button>
