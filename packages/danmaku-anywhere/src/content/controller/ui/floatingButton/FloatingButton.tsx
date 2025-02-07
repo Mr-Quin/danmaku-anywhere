@@ -85,7 +85,7 @@ export const FloatingButton = forwardRef<
       ? 'success.main'
       : 'primary.main'
 
-  const isIn = isLoading || showFab || isOpen || !!contextMenuAnchor
+  const isIn = showFab || isOpen || !!contextMenuAnchor
 
   return (
     <ClickAwayListener onClickAway={handleCloseContextMenu}>
