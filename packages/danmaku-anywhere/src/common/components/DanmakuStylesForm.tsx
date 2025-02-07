@@ -1,13 +1,13 @@
-import { LoadingButton } from '@mui/lab'
 import {
   Checkbox,
   Divider,
   FormControl,
   FormControlLabel,
-  Grid,
+  Button,
   Input,
   Stack,
   Typography,
+  Grid2,
 } from '@mui/material'
 import type { Draft } from 'immer'
 import { produce } from 'immer'
@@ -231,6 +231,7 @@ export const DanmakuStylesForm = () => {
               draft.limitPerSec = newValue as number
             })
           }
+          gridSize={8}
           step={1}
           min={0}
           max={50}
@@ -238,7 +239,7 @@ export const DanmakuStylesForm = () => {
           size="small"
           valueLabelDisplay="auto"
         >
-          <Grid item xs={4}>
+          <Grid2 size={4}>
             <FormControl>
               <FormControlLabel
                 sx={{ whiteSpace: 'nowrap' }}
@@ -263,7 +264,7 @@ export const DanmakuStylesForm = () => {
                 label={t('stylePage.disableLimit')}
               />
             </FormControl>
-          </Grid>
+          </Grid2>
         </LabeledSlider>
         <LabeledSlider
           label={t('stylePage.speed')}
@@ -290,6 +291,7 @@ export const DanmakuStylesForm = () => {
               draft.offset = newValue as number
             })
           }}
+          gridSize={8}
           step={10}
           min={-5000}
           max={5000}
@@ -297,7 +299,7 @@ export const DanmakuStylesForm = () => {
           valueLabelDisplay="auto"
           valueLabelFormat={offsetValueLabelFormat}
         >
-          <Grid item xs={4}>
+          <Grid2 size={4}>
             <Input
               value={offsetInputActive ? offsetInput : localConfig.offset}
               size="small"
@@ -324,7 +326,7 @@ export const DanmakuStylesForm = () => {
                 type: 'number',
               }}
             />
-          </Grid>
+          </Grid2>
         </LabeledSlider>
       </Stack>
 
@@ -385,7 +387,7 @@ export const DanmakuStylesForm = () => {
         />
       </Stack>
 
-      <LoadingButton
+      <Button
         variant="contained"
         onClick={() => flushUpdate(localConfig)}
         disabled={localConfig === config}
@@ -395,7 +397,7 @@ export const DanmakuStylesForm = () => {
         }}
       >
         {t('common.apply')}
-      </LoadingButton>
+      </Button>
     </>
   )
 }

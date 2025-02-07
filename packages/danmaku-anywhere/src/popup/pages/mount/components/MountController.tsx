@@ -1,4 +1,3 @@
-import { LoadingButton } from '@mui/lab'
 import { Box, Button, Skeleton, Stack, Typography } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { Suspense, useEffect, useState } from 'react'
@@ -76,14 +75,14 @@ export const MountController = () => {
             height={350}
           />
         </Suspense>
-        <LoadingButton
+        <Button
           type="submit"
           variant="contained"
           loading={isMounting}
           disabled={!isConnected || danmakuLite === null}
         >
           {t('danmaku.mount')}
-        </LoadingButton>
+        </Button>
         <Button
           variant="outlined"
           type="button"

@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ChevronLeft, OpenInNew } from '@mui/icons-material'
-import { LoadingButton } from '@mui/lab'
 import { Button, Divider, IconButton, Stack } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
@@ -125,7 +124,7 @@ export const IntegrationEditor = () => {
                 {t('common.docs')}
                 <OpenInNew fontSize="inherit" color="primary" />
               </Button>
-              <LoadingButton
+              <Button
                 type="submit"
                 loading={isSubmitting}
                 variant="contained"
@@ -133,7 +132,7 @@ export const IntegrationEditor = () => {
                 disabled={!isDirty}
               >
                 {t('common.save')}
-              </LoadingButton>
+              </Button>
               <Button
                 type="reset"
                 onClick={() => handleReset()}

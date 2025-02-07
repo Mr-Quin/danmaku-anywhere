@@ -1,4 +1,3 @@
-import { LoadingButton } from '@mui/lab'
 import {
   Box,
   Divider,
@@ -6,6 +5,7 @@ import {
   Stack,
   TextField,
   Typography,
+  Button,
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
@@ -176,21 +176,23 @@ export const ParseTab = () => {
             }
             fullWidth
             required
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">{t(urlType)}</InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">{t(urlType)}</InputAdornment>
+                ),
+              },
             }}
           />
 
-          <LoadingButton
+          <Button
             type="submit"
             loading={query.isLoading}
             variant="contained"
             disabled={!isValid || mutation.isPending}
           >
             {t('searchPage.parse.parse')}
-          </LoadingButton>
+          </Button>
         </Stack>
       </Box>
       {query.data && (
@@ -212,7 +214,7 @@ export const ParseTab = () => {
             <Typography>
               {normalizeMetaName(query.data).episodeTitle}
             </Typography>
-            <LoadingButton
+            <Button
               sx={{
                 mt: 2,
               }}
@@ -221,7 +223,7 @@ export const ParseTab = () => {
               variant="contained"
             >
               {t('searchPage.parse.import')}
-            </LoadingButton>
+            </Button>
           </Box>
         </>
       )}

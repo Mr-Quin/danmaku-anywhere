@@ -1,5 +1,4 @@
 import { ExpandLess, ExpandMore } from '@mui/icons-material'
-import { LoadingButton } from '@mui/lab'
 import {
   Button,
   Collapse,
@@ -89,7 +88,7 @@ export const ImportResultDialog = ({
         <Button onClick={onClose} autoFocus disabled={isLoading}>
           {t('common.cancel')}
         </Button>
-        <LoadingButton
+        <Button
           onClick={onSave}
           variant="contained"
           color="success"
@@ -97,7 +96,7 @@ export const ImportResultDialog = ({
           disabled={disableSave}
         >
           {t('danmakuPage.upload.confirm')}
-        </LoadingButton>
+        </Button>
       </DialogActions>
     </Dialog>
   )
