@@ -297,6 +297,7 @@ const pages = {
       theme: 'UI Theme',
       hotkeys: 'Hotkeys',
       retentionPolicy: 'Retention Policy',
+      advanced: 'Advanced',
     },
   },
   searchPage: {

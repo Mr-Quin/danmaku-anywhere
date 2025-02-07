@@ -293,6 +293,7 @@ const pages = {
       theme: 'UI主题',
       hotkeys: '快捷键',
       retentionPolicy: '缓存策略',
+      advanced: '高级设置',
     },
   },
   searchPage: {

@@ -126,10 +126,8 @@ export const setupRpc = () => {
     danmakuDeleteAll: async () => {
       return danmakuService.deleteAll()
     },
-    danmakuPurgeCache: async () => {
-      const { retentionPolicy } = await extensionOptionsService.get()
-
-      return danmakuService.purgeOlderThan(retentionPolicy.deleteCommentsAfter)
+    danmakuPurgeCache: async (days) => {
+      return danmakuService.purgeOlderThan(days)
     },
     getAllFrames: async (_, sender) => {
       if (sender.tab?.id === undefined) {

@@ -1,4 +1,5 @@
-import { Box, Typography } from '@mui/material'
+import { GitHub } from '@mui/icons-material'
+import { Box, IconButton, Stack, Typography } from '@mui/material'
 
 import packageJson from '../../../../../package.json'
 
@@ -9,9 +10,22 @@ export const Version = () => {
       bottom={(theme) => theme.spacing(1)}
       left={(theme) => theme.spacing(1)}
     >
-      <Typography variant="caption" color="text.disabled">
-        v{packageJson.version}
-      </Typography>
+      <Stack direction="row" alignItems="flex-end">
+        <Typography variant="caption" color="text.disabled">
+          v{packageJson.version}
+        </Typography>
+        <IconButton
+          sx={{
+            color: 'text.disabled',
+          }}
+          size="small"
+          onClick={() => {
+            window.open(packageJson.repository, '_blank')
+          }}
+        >
+          <GitHub />
+        </IconButton>
+      </Stack>
     </Box>
   )
 }
