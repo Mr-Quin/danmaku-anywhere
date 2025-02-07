@@ -19,6 +19,10 @@ export const zResponseBase = z.discriminatedUnion('success', [
   zResponseError,
 ])
 
+const createResponseType = <T extends z.ZodObject<any>>(success: T) => {
+  return z.discriminatedUnion('success', [success, zResponseError])
+}
+
 const zSearchEpisodeDetails = z.object({
   episodeId: z.number(),
   episodeTitle: z.string(),
@@ -51,8 +55,8 @@ const zSearchEpisodesAnime = z.object({
   episodes: z.array(zSearchEpisodeDetails),
 })
 
-export const zSearchEpisodesResponse = zResponseBase.and(
-  z.object({
+export const zSearchEpisodesResponse = createResponseType(
+  zResponseSuccess.extend({
     animes: z.array(zSearchEpisodesAnime),
     hasMore: z.boolean(),
   })
@@ -62,8 +66,8 @@ export type SearchEpisodesResponse = z.infer<typeof zSearchEpisodesResponse>
 
 export type SearchEpisodesAnime = z.infer<typeof zSearchEpisodesAnime>
 
-export const zSearchAnimeResponse = zResponseBase.and(
-  z.object({
+export const zSearchAnimeResponse = createResponseType(
+  zResponseSuccess.extend({
     animes: z.array(zSearchAnimeDetails),
   })
 )
@@ -95,14 +99,16 @@ const zBangumiDetails = z.object({
 
 export type BangumiDetails = z.infer<typeof zBangumiDetails>
 
-export const zBangumiDetailsResponse = zResponseBase.and(
-  z.object({ bangumi: zBangumiDetails })
+export const zBangumiDetailsResponse = createResponseType(
+  zResponseSuccess.extend({ bangumi: zBangumiDetails })
 )
 
-export interface SearchEpisodesQuery {
-  anime: string
-  episode?: string
-}
+export const zSearchEpisodeQuery = z.object({
+  anime: z.string(),
+  episode: z.string().optional(),
+})
+
+export type SearchEpisodesQuery = z.input<typeof zSearchEpisodeQuery>
 
 // comments
 export const zCommentData = z.object({
@@ -124,31 +130,32 @@ export const zGetCommentQuery = z.object({
   /**
    * 起始弹幕编号，忽略此编号以前的弹幕。默认值为0
    */
-  from: z.number().optional(),
+  from: z.number().optional().default(0),
   /**
    * 是否同时获取关联的第三方弹幕。默认值为false
    */
-  withRelated: z.boolean().optional(),
+  withRelated: z.boolean().optional().default(false),
   /**
    * 中文简繁转换。0-不转换，1-转换为简体，2-转换为繁体。
    */
-  chConvert: z.nativeEnum(DanDanChConvert).optional(),
+  chConvert: z
+    .nativeEnum(DanDanChConvert)
+    .optional()
+    .default(DanDanChConvert.None),
 })
 
-export type GetCommentQuery = z.infer<typeof zGetCommentQuery>
+export type GetCommentQuery = z.input<typeof zGetCommentQuery>
 
 export const zGetExtCommentQuery = z.object({
   url: z.string(),
   chConvert: z.nativeEnum(DanDanChConvert).optional(),
 })
 
-export type GetExtCommentQuery = z.infer<typeof zGetExtCommentQuery>
+export type GetExtCommentQuery = z.input<typeof zGetExtCommentQuery>
 
-export const zSendCommentResponseV2 = zResponseBase.and(
-  z.object({
-    cid: z.number(),
-  })
-)
+export const zSendCommentResponseV2 = zResponseSuccess.extend({
+  cid: z.number(),
+})
 
 export type SendCommentResponse = z.infer<typeof zSendCommentResponseV2>
 
@@ -180,8 +187,8 @@ const zRelatedItemV2 = z.object({
 
 export type RelatedItemV2 = z.infer<typeof zRelatedItemV2>
 
-export const zRelatedResponseV2 = zResponseBase.and(
-  z.object({
+export const zRelatedResponseV2 = createResponseType(
+  zResponseSuccess.extend({
     relateds: z.array(zRelatedItemV2),
   })
 )
@@ -228,22 +235,20 @@ export const zUserPrivileges = z.object({
   resmonitor: z.union([z.string().datetime(), z.null()]),
 })
 
-export const zLoginResponse = zResponseBase.and(
-  z.object({
-    registerRequired: z.boolean(),
-    userId: z.number().int(),
-    userName: z.string().nullish(),
-    token: z.string(),
-    tokenExpireTime: z.string().datetime(),
-    userType: z.string(),
-    screenName: z.string(),
-    profileImage: z.string(),
-    appScope: z.string(),
-    privileges: zUserPrivileges,
-    code: z.string(),
-    ts: z.number(),
-  })
-)
+export const zLoginResponse = zResponseSuccess.extend({
+  registerRequired: z.boolean(),
+  userId: z.number().int(),
+  userName: z.string().nullish(),
+  token: z.string(),
+  tokenExpireTime: z.string().datetime(),
+  userType: z.string(),
+  screenName: z.string(),
+  profileImage: z.string(),
+  appScope: z.string(),
+  privileges: zUserPrivileges,
+  code: z.string(),
+  ts: z.number(),
+})
 
 export type LoginResponse = z.infer<typeof zLoginResponse>
 

@@ -11,3 +11,24 @@ export const mockFetchResponse = (data?: any, status?: number) => {
 
   return mockFetch
 }
+
+export const createFetchOverride = () => {
+  const originalFetch = global.fetch
+
+  return (headers: Record<string, string>) => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (...args) => {
+        const url = args[0]
+        const init = args[1] || {}
+
+        init.headers = {
+          ...init.headers,
+          ...headers,
+        }
+
+        return originalFetch(url, init)
+      })
+    )
+  }
+}

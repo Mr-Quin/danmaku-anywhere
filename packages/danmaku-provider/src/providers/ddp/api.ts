@@ -25,6 +25,7 @@ import type {
   FindMyIdRequestV2,
 } from './schema.js'
 import {
+  zSearchEpisodeQuery,
   zResponseBase,
   zResetPasswordRequestV2,
   zFindMyIdRequestV2,
@@ -64,13 +65,21 @@ interface DanDanPlayInit<T = unknown> {
   method?: 'GET' | 'POST'
 }
 
-const validateRequest = ({ requestSchema, body, query }: DanDanPlayInit) => {
+const validateRequest = <T extends DanDanPlayInit>(init: T) => {
+  const clone: T = {
+    ...init,
+  }
+
+  const { requestSchema, body, query } = clone
+
   if (requestSchema?.body) {
-    requestSchema.body.parse(body)
+    clone.body = requestSchema.body.parse(body)
   }
-  if (requestSchema?.query) {
-    requestSchema.query.parse(query)
+  if (requestSchema?.query && query) {
+    clone.query = requestSchema.query.parse(query)
   }
+
+  return clone
 }
 
 const createUrl = ({ path, query }: DanDanPlayInit) => {
@@ -98,12 +107,13 @@ const getHeaders = async ({ body }: DanDanPlayInit) => {
 }
 
 const fetchDanDanPlay = async <T extends object>(init: DanDanPlayInit<T>) => {
-  const { responseSchema, method = 'GET', body } = init
+  const validatedInit = validateRequest(init)
 
-  validateRequest(init)
-  const url = createUrl(init)
+  const { responseSchema, method = 'GET', body } = validatedInit
 
-  const headers = await getHeaders(init)
+  const url = createUrl(validatedInit)
+
+  const headers = await getHeaders(validatedInit)
 
   const res = await fetch(url, {
     headers: {
@@ -150,17 +160,16 @@ export const searchSearchAnime = async (
   return data.animes
 }
 
-export const searchSearchEpisodes = async ({
-  anime,
-  episode = '',
-}: SearchEpisodesQuery): Promise<SearchEpisodesAnime[]> => {
+export const searchSearchEpisodes = async (
+  query: SearchEpisodesQuery
+): Promise<SearchEpisodesAnime[]> => {
   const data = await fetchDanDanPlay({
     path: '/api/v2/search/episodes',
-    query: {
-      anime,
-      episode,
-    },
+    query,
     responseSchema: zSearchEpisodesResponse,
+    requestSchema: {
+      query: zSearchEpisodeQuery,
+    },
   })
 
   if (!data.success) {
@@ -216,7 +225,7 @@ export const commentGetExtComment = async (
 
 export const commentGetCommentManualWithRelated = async (
   episodeId: number,
-  params: Partial<GetCommentQuery> = {}
+  params: GetCommentQuery = {}
 ): Promise<CommentData[]> => {
   const comments = await commentGetComment(episodeId, {
     ...params,
