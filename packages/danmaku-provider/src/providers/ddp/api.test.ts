@@ -1,25 +1,32 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 import { ResponseParseException } from '../../exceptions/ResponseParseException'
-import { mockFetchResponse } from '../utils/testUtils'
+import { createFetchOverride, mockFetchResponse } from '../utils/testUtils'
 
 import {
   searchSearchEpisodes,
   commentGetComment,
   getBangumiAnime,
   configure,
+  searchSearchAnime,
 } from './api'
 import { DanDanPlayApiException } from './exceptions'
-import { mockAnimeSearchResponse, mockCommentResponse } from './mockData'
 
-describe('DandanPlay API', () => {
+const fetchHeaders = {
+  Origin: 'https://danmaku.weeblify.app',
+}
+
+const overrideFetchArgs = createFetchOverride()
+
+describe('DanDanPlay API', () => {
   beforeEach(() => {
+    configure({ baseUrl: 'https://danmaku.weeblify.app/proxy' })
     vi.resetAllMocks()
   })
 
-  describe('searchAnime', () => {
+  describe('searchSearchEpisodes', () => {
     it('should not throw on fetch', async () => {
-      mockFetchResponse(mockAnimeSearchResponse)
+      overrideFetchArgs(fetchHeaders)
 
       await expect(
         searchSearchEpisodes({ anime: 'MyGo' })
@@ -51,17 +58,42 @@ describe('DandanPlay API', () => {
     })
   })
 
-  describe('fetchComments', () => {
-    it('should parse fetched comments', async () => {
-      mockFetchResponse(mockCommentResponse)
+  describe('searchSearchAnime', () => {
+    it('should not throw on fetch', async () => {
+      overrideFetchArgs(fetchHeaders)
 
-      const data = await commentGetComment(1)
-      expect(data).toHaveLength(116)
-      expect(data).toContainEqual({
-        cid: 1723310127,
-        p: '112.48,1,16777215,[5dm]游客',
-        m: '听到纯的第一反应是樱田纯',
-      })
+      await expect(searchSearchAnime('MyGo')).resolves.not.toThrow()
+    })
+
+    it('should throw an error on API error', async () => {
+      const mockResponse = {
+        errorCode: 1,
+        errorMessage: 'Error',
+        success: false,
+      }
+
+      mockFetchResponse(mockResponse)
+
+      await expect(searchSearchAnime('MyGo')).rejects.toThrow(
+        DanDanPlayApiException
+      )
+    })
+
+    it('should throw an error on unexpected data', async () => {
+      mockFetchResponse({})
+
+      await expect(searchSearchAnime('MyGo')).rejects.toThrow(
+        ResponseParseException
+      )
+    })
+  })
+
+  describe('commentGetComment', () => {
+    it('should parse fetched comments', async () => {
+      overrideFetchArgs(fetchHeaders)
+
+      const episodeId = 180300001 // 金牌得主 Ep1
+      await expect(commentGetComment(episodeId)).resolves.not.toThrow()
     })
 
     it('should throw an error on unexpected data', async () => {
@@ -72,7 +104,9 @@ describe('DandanPlay API', () => {
   })
 
   describe('getBangumiAnime', () => {
-    it.skip('should not throw on fetch', async () => {
+    it('should not throw on fetch', async () => {
+      overrideFetchArgs(fetchHeaders)
+
       const animeId = 17981 // MyGo anime id
       await expect(getBangumiAnime(animeId)).resolves.not.toThrow()
     })
@@ -113,7 +147,7 @@ describe('DandanPlay API', () => {
     await searchSearchEpisodes({ anime: 'test' })
 
     expect(mockFetch.mock.calls[0][0]).toEqual(
-      `${customRoot}/api/v2/search/episodes?anime=test&episode=`
+      `${customRoot}/api/v2/search/episodes?anime=test`
     )
   })
 })
