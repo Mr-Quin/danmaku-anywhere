@@ -15,7 +15,7 @@ import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
 import { WindowToolbar } from '@/content/controller/ui/floatingPanel/layout/WindowToolbar'
 
-export const ControlWindowToolbar = () => {
+export const ControllerToolbar = () => {
   const { t } = useTranslation()
   const isAnyLoading = useAnyLoading()
   const { toggleOpen, lock, toggleLock } = usePopup()

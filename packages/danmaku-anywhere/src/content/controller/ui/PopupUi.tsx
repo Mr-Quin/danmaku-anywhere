@@ -3,9 +3,9 @@ import { ClickAwayListener } from '@mui/material'
 import { useRef, useState } from 'react'
 
 import { FloatingButton } from './floatingButton/FloatingButton'
-import { ControlWindow } from './floatingPanel/ControlWindow'
 
 import { usePopup } from '@/content/controller/store/popupStore'
+import { ControllerWindow } from '@/content/controller/ui/floatingPanel/ControllerWindow'
 
 export const PopupUi = () => {
   const { isOpen, toggleOpen, lock } = usePopup()
@@ -28,7 +28,7 @@ export const PopupUi = () => {
       }}
     >
       <div>
-        <ControlWindow anchorEl={anchorEl ?? fallbackAnchorEl.current} />
+        <ControllerWindow anchorEl={anchorEl ?? fallbackAnchorEl.current} />
         <FloatingButton
           color="primary"
           size="small"

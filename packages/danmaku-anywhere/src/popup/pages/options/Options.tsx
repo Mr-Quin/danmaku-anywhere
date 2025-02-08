@@ -1,14 +1,6 @@
-import {
-  ChevronRight,
-  DarkMode,
-  DarkModeTwoTone,
-  GitHub,
-  Keyboard,
-  KeyboardTwoTone,
-} from '@mui/icons-material'
+import { ChevronRight } from '@mui/icons-material'
 import type { ListItemButtonProps } from '@mui/material'
 import {
-  Divider,
   Icon,
   List,
   ListItem,
