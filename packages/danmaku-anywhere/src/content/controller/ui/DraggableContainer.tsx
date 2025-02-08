@@ -1,20 +1,25 @@
 import type { PopperProps } from '@mui/material'
-import { Fade, Popper } from '@mui/material'
+import { Popper } from '@mui/material'
 import { useDrag } from '@use-gesture/react'
-import type { ReactElement, RefObject } from 'react'
-import { useState, useEffect, useRef } from 'react'
-
-import { WindowPaneLayout } from '@/content/controller/ui/floatingPanel/layout/WindowPaneLayout'
+import type { ReactElement, Ref, RefObject } from 'react'
+import { useImperativeHandle, useState, useRef } from 'react'
 
 interface RenderProps {
   bind: ReturnType<typeof useDrag>
   isDragging: boolean
 }
 
-interface PopperWindowProps {
+export interface DraggableContainerMethods {
+  resetOffset: () => void
+}
+
+interface DraggableContainerProps {
   anchorEl: PopperProps['anchorEl']
   children: (props: RenderProps) => ReactElement<unknown, string>
-  open: boolean
+  sx?: PopperProps['sx']
+  initialOffset: { x: number; y: number }
+  ref?: Ref<DraggableContainerMethods>
+  onTap?: (event: PointerEvent) => void
 }
 
 type RefOf<T> = T extends RefObject<infer U> ? U : never
@@ -50,14 +55,17 @@ const popperModifiers = [
   },
 ]
 
-export const PopperWindow = ({
+export const DraggableContainer = ({
   anchorEl,
   children,
-  open,
-}: PopperWindowProps) => {
+  sx,
+  initialOffset,
+  ref,
+  onTap,
+}: DraggableContainerProps) => {
   const [isDragging, setIsDragging] = useState(false)
   const [popperInst, setPopperInst] = useState<PopperInstance | null>(null)
-  const translate = useRef({ x: 0, y: 12 })
+  const translate = useRef(initialOffset)
   const modifierRef = useRef(popperModifiers)
 
   const updatePosition = async (x: number, y: number) => {
@@ -85,14 +93,23 @@ export const PopperWindow = ({
     }
   }
 
-  useEffect(() => {
-    if (open) {
-      void updatePosition(0, 12)
-    }
-  }, [open, popperInst])
+  const resetOffset = () => {
+    void updatePosition(initialOffset.x, initialOffset.y)
+  }
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      resetOffset,
+    }),
+    [resetOffset]
+  )
 
   const bind = useDrag(
-    ({ down, delta: [mx, my] }) => {
+    ({ down, tap, event, delta: [mx, my] }) => {
+      if (tap) {
+        onTap?.(event as PointerEvent)
+      }
       if (down) {
         setIsDragging(true)
         void updatePosition(translate.current.x + mx, translate.current.y - my)
@@ -110,17 +127,13 @@ export const PopperWindow = ({
       popperRef={setPopperInst}
       placement="top-start"
       sx={{
-        zIndex: 1402, // 1 above the floating button
+        zIndex: 1402,
         userSelect: isDragging ? 'none' : 'auto',
         willChange: 'transform',
-        pointerEvents: open ? 'auto' : 'none',
+        ...sx,
       }}
     >
-      <Fade in={open} unmountOnExit={false}>
-        <div>
-          <WindowPaneLayout>{children({ bind, isDragging })}</WindowPaneLayout>
-        </div>
-      </Fade>
+      {children({ bind, isDragging })}
     </Popper>
   )
 }

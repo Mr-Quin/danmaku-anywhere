@@ -1,12 +1,11 @@
 import type { FabProps, PopoverVirtualElement } from '@mui/material'
 import {
-  Box,
+  styled,
+  Fab,
   ClickAwayListener,
   Fade,
-  SpeedDial,
   SpeedDialIcon,
 } from '@mui/material'
-import { useDrag } from '@use-gesture/react'
 import type { MouseEventHandler } from 'react'
 import { forwardRef, useRef, useState } from 'react'
 
@@ -17,12 +16,31 @@ import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { useMergeRefs } from '@/common/hooks/useMergeRefs'
 import { createVirtualElement } from '@/common/utils/utils'
 import { useStore } from '@/content/controller/store/store'
+import { DraggableContainer } from '@/content/controller/ui/DraggableContainer'
 import { FabContextMenu } from '@/content/controller/ui/floatingButton/components/FabContextMenu'
 import { FabLoadingIndicator } from '@/content/controller/ui/floatingButton/components/FabLoadingIndicator'
 
 interface FloatingButtonProps extends FabProps {
   onOpen: (virtualElement: PopoverVirtualElement) => void
   isOpen: boolean
+}
+
+const StyledFab = styled(Fab, {
+  shouldForwardProp: (prop) => prop !== 'hover',
+})<{ hover: boolean }>(({ hover }) => {
+  return {
+    transition: 'transform 0.2s ease-in-out',
+    transform: hover ? 'rotate(45deg)' : 'rotate(0deg)',
+    touchAction: 'none',
+  }
+})
+
+const useInitialAnchor = () => {
+  // bottom 12, left 3
+  const left = 24
+  const bottom = window.innerHeight - 96
+
+  return useRef(createVirtualElement(left, bottom))
 }
 
 export const FloatingButton = forwardRef<
@@ -35,30 +53,17 @@ export const FloatingButton = forwardRef<
 
   const [contextMenuAnchor, setContextMenuAnchor] =
     useState<PopoverVirtualElement | null>(null)
+  const [fabHover, setFabHover] = useState(false)
 
   const { isMounted, isVisible } = useStore.use.danmaku()
 
-  const translate = useRef({ x: 0, y: 0 })
-  const buttonRef = useRef<HTMLButtonElement>(null)
+  const fabAnchor = useInitialAnchor()
 
-  const bind = useDrag(
-    ({ down, tap, delta: [mx, my], event }) => {
-      if (tap) {
-        handleCloseContextMenu()
-        const virtualElement = createVirtualElement(
-          (event as PointerEvent).clientX,
-          (event as PointerEvent).clientY
-        )
-        onOpen(virtualElement)
-      }
-      if (down && buttonRef.current) {
-        translate.current.x += mx
-        translate.current.y += my
-        buttonRef.current.style.transform = `translate(${translate.current.x}px, ${translate.current.y}px)`
-      }
-    },
-    { delay: 200 }
-  )
+  const handleTap = (x: number, y: number) => {
+    handleCloseContextMenu()
+    const virtualElement = createVirtualElement(x, y)
+    onOpen(virtualElement)
+  }
 
   const handleCloseContextMenu = () => {
     setContextMenuAnchor(null)
@@ -79,63 +84,65 @@ export const FloatingButton = forwardRef<
 
   const mergedFabRefs = useMergeRefs(fabRef, ref)
 
-  const dialColor = !isVisible
-    ? 'text.disabled'
-    : isMounted
-      ? 'success.main'
-      : 'primary.main'
+  const dialColor = !isVisible ? undefined : isMounted ? 'success' : 'primary'
 
   const isIn = showFab || isOpen || !!contextMenuAnchor
 
   return (
     <ClickAwayListener onClickAway={handleCloseContextMenu}>
-      <Fade
-        in={isIn}
-        unmountOnExit={false}
-        style={{
-          pointerEvents: isIn ? 'auto' : 'none',
+      <DraggableContainer
+        anchorEl={fabAnchor.current}
+        initialOffset={{ x: 0, y: 0 }}
+        sx={{
+          zIndex: 1401,
+        }}
+        onTap={(e) => {
+          handleTap(e.clientX, e.clientY)
         }}
       >
-        <div>
-          <Box
-            ref={buttonRef}
-            position="fixed"
-            bottom={(theme) => theme.spacing(12)}
-            left={(theme) => theme.spacing(3)}
-            zIndex={1401} // 1 above the snackbar
-            sx={{
-              willChange: 'transform',
-            }}
-          >
-            <SpeedDial
-              ariaLabel="SpeedDial"
-              icon={<SpeedDialIcon />}
-              FabProps={{
-                size: 'small',
-                children: <LoadingRing isLoading />,
-                onContextMenu: handleContextMenu,
-                ref: mergedFabRefs,
-                sx: {
-                  bgcolor: dialColor,
-                  touchAction: 'none',
-                },
-                ...bind(),
+        {({ bind }) => {
+          return (
+            <Fade
+              in={isIn}
+              unmountOnExit={false}
+              style={{
+                pointerEvents: isIn ? 'auto' : 'none',
               }}
-            />
-            {fabRef.current && (
-              <FabLoadingIndicator
-                anchor={fabRef.current}
-                isLoading={isLoading}
-              />
-            )}
-            <FabContextMenu
-              open={contextMenuAnchor !== null}
-              anchorEl={contextMenuAnchor}
-              sx={{ zIndex: 1402 }}
-            />
-          </Box>
-        </div>
-      </Fade>
+            >
+              <div
+                {...bind()}
+                style={{
+                  touchAction: 'none',
+                }}
+              >
+                <StyledFab
+                  size="small"
+                  onContextMenu={handleContextMenu}
+                  ref={mergedFabRefs}
+                  color={dialColor}
+                  hover={fabHover}
+                  onMouseOver={() => setFabHover(true)}
+                  onMouseOut={() => setFabHover(false)}
+                >
+                  <SpeedDialIcon />
+                  <LoadingRing isLoading={isLoading} />
+                </StyledFab>
+                {fabRef.current && (
+                  <FabLoadingIndicator
+                    anchor={fabRef.current}
+                    isLoading={isLoading}
+                  />
+                )}
+                <FabContextMenu
+                  open={contextMenuAnchor !== null}
+                  anchorEl={contextMenuAnchor}
+                  sx={{ zIndex: 1402 }}
+                />
+              </div>
+            </Fade>
+          )
+        }}
+      </DraggableContainer>
     </ClickAwayListener>
   )
 })
