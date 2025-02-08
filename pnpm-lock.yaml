@@ -46,6 +46,9 @@ importers:
 
   backend/proxy:
     dependencies:
+      '@google/generative-ai':
+        specifier: ^0.21.0
+        version: 0.21.0
       effect:
         specifier: ^3.12.10
         version: 3.12.10
@@ -915,6 +918,10 @@ packages:
 
   '@fontsource/roboto@5.1.1':
     resolution: {integrity: sha512-XwVVXtERDQIM7HPUIbyDe0FP4SRovpjF7zMI8M7pbqFp3ahLJsJTd18h+E6pkar6UbV3btbwkKjYARr5M+SQow==}
+
+  '@google/generative-ai@0.21.0':
+    resolution: {integrity: sha512-7XhUbtnlkSEZK15kN3t+tzIMxsbKm/dSkKBFalj+20NvPKe1kBY7mR2P7vuijEn+f06z5+A8bVGKO0v39cr6Wg==}
+    engines: {node: '>=18.0.0'}
 
   '@hey-api/client-fetch@0.8.1':
     resolution: {integrity: sha512-AaVNVLBl7N9Fun7QDnb00YDubAFjB9ICi5U6kmzcJSnnQTQGRMsuBBRupQV5ERdMMFt71zjSDym7Z+gLVe8m3A==}
@@ -4338,6 +4345,8 @@ snapshots:
   '@floating-ui/utils@0.2.9': {}
 
   '@fontsource/roboto@5.1.1': {}
+
+  '@google/generative-ai@0.21.0': {}
 
   '@hey-api/client-fetch@0.8.1': {}
 

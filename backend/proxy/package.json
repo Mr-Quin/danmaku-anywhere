@@ -24,6 +24,7 @@
     "wrangler": "^3.107.3"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
     "effect": "^3.12.10"
   }
 }
