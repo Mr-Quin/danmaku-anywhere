@@ -8,7 +8,8 @@
   "vars": {
     "DANDANPLAY_API_HOST": "https://api.dandanplay.net",
     "BASE_URL": "/proxy",
-    "ALLOWED_ORIGIN": "https://danmaku.weeblify.app"
+    "ALLOWED_ORIGIN": "https://danmaku.weeblify.app",
+    "LOCAL": "0"
   },
   "observability": {
     "enabled": true
