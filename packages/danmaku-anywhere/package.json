@@ -10,15 +10,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:firefox": "TARGET_BROWSER=firefox pnpm run dev",
+    "dev:firefox": "VITE_TARGET_BROWSER=firefox pnpm run dev",
     "build": "tsc && vite build --outDir build --emptyOutDir",
-    "build:firefox": "TARGET_BROWSER=firefox pnpm run build",
+    "build:firefox": "VITE_TARGET_BROWSER=firefox pnpm run build",
     "test": "vitest",
     "preview": "vite preview",
     "lint": "tsc && eslint --ext .js,.jsx,.ts,.tsx --fix .",
     "format": "prettier --write . --ignore-path ../../.prettierignore",
     "package": "node ./scripts/package.js",
-    "package:firefox": "TARGET_BROWSER=firefox pnpm run package",
+    "package:firefox": "VITE_TARGET_BROWSER=firefox pnpm run package",
     "tsc": "tsc"
   },
   "dependencies": {

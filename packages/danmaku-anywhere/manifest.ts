@@ -2,9 +2,14 @@ import { defineManifest } from '@crxjs/vite-plugin'
 
 import pkg from './package.json' with { type: 'json' }
 
-const browser = process.env.TARGET_BROWSER ?? 'chrome'
+const browser = process.env.VITE_TARGET_BROWSER ?? 'chrome'
 
 const dev = process.env.NODE_ENV === 'development'
+
+console.log('Building for', {
+  browser,
+  dev,
+})
 
 export const manifest = defineManifest({
   manifest_version: 3,

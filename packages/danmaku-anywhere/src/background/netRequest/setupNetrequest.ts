@@ -32,6 +32,18 @@ enum ResourceType {
   OTHER = 'other',
 }
 
+const getSelfDomain = () => {
+  const url = chrome.runtime.getURL('')
+  try {
+    return new URL(url).host
+  } catch (e) {
+    Logger.error('Failed to get self domain', e)
+    return chrome.runtime.id
+  }
+}
+
+const selfDomain = getSelfDomain()
+
 const rules: chrome.declarativeNetRequest.Rule[] = [
   // Set origin and referer to bilibili.com
   {
@@ -52,6 +64,7 @@ const rules: chrome.declarativeNetRequest.Rule[] = [
       ],
     },
     condition: {
+      initiatorDomains: [selfDomain],
       urlFilter: '|https://*.bilibili.com/',
       resourceTypes: [ResourceType.XMLHTTPREQUEST],
     },
@@ -75,6 +88,7 @@ const rules: chrome.declarativeNetRequest.Rule[] = [
       ],
     },
     condition: {
+      initiatorDomains: [selfDomain],
       urlFilter: '|https://*.video.qq.com/',
       resourceTypes: [ResourceType.XMLHTTPREQUEST],
     },
@@ -93,11 +107,12 @@ const rules: chrome.declarativeNetRequest.Rule[] = [
         {
           header: 'Referer',
           operation: HeaderOperation.SET,
-          value: chrome.runtime.id,
+          value: selfDomain,
         },
       ],
     },
     condition: {
+      initiatorDomains: [selfDomain],
       urlFilter: `|${import.meta.env.VITE_PROXY_URL}`,
       resourceTypes: [ResourceType.XMLHTTPREQUEST],
     },
@@ -106,11 +121,14 @@ const rules: chrome.declarativeNetRequest.Rule[] = [
 
 export const setupNetRequest = () => {
   chrome.runtime.onInstalled.addListener(async () => {
-    await chrome.declarativeNetRequest.updateDynamicRules({
-      removeRuleIds: rules.map((r) => r.id),
-      addRules: rules,
-    })
-
-    Logger.debug('Updated net request dynamic rules')
+    try {
+      await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: rules.map((r) => r.id),
+        addRules: rules,
+      })
+      Logger.debug('Updated net request dynamic rules')
+    } catch (e) {
+      Logger.error('Failed to update net request dynamic rules', e)
+    }
   })
 }
