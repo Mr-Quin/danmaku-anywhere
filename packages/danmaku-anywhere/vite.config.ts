@@ -30,9 +30,12 @@ export default defineConfig({
         app: 'pages/popup.html',
       },
     },
-    minify: false,
+    minify: true,
     // the minimum to support top-level await
     target: ['es2022', 'edge89', 'firefox89', 'chrome89', 'safari15'],
+  },
+  legacy: {
+    skipWebSocketTokenCheck: true,
   },
   test: {
     setupFiles: ['src/tests/mockChromeApis.ts'],
