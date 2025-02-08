@@ -5,7 +5,7 @@ import { defineConfig } from 'vite'
 
 import { manifest } from './manifest'
 
-const browser = process.env.TARGET_BROWSER ?? 'chrome'
+const browser = process.env.VITE_TARGET_BROWSER ?? 'chrome'
 
 // eslint-disable-next-line import/no-unused-modules
 export default defineConfig({

@@ -16,7 +16,7 @@ const packagePath = path.resolve(__dirname, '../package')
 // create package folder
 await fs.promises.mkdir(packagePath, { recursive: true })
 
-const target = process.env.TARGET_BROWSER || 'chrome'
+const target = process.env.VITE_TARGET_BROWSER || 'chrome'
 
 const tarFileName = `${packageName}-${packageVersion}-${target}.tar.gz`
 const zipFileName = `${packageName}-${packageVersion}-${target}.zip`
