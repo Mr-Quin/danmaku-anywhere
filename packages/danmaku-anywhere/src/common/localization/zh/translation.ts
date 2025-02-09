@@ -50,6 +50,8 @@ const domain = {
     episodeTitle: '集标题',
     name: '番剧',
     title: '标题',
+    numericEpisode: '第{{episode}}集',
+    numericSeason: '第{{season}}季',
   },
   configs: {
     alert: {
@@ -106,19 +108,21 @@ const domain = {
     unmount: '卸载弹幕',
   },
   integration: {
-    name: '适配',
+    name: '适配规则',
     type: {
       None: '无',
     },
     autoMode: '自动模式',
     alert: {
-      usingIntegration: '以适配{{name}}',
+      usingIntegration: '使用适配规则：{{name}}',
       titleMapping: '获取映射标题：{{originalTitle}} -> {{mappedTitle}}',
       titleMappingError: '获取标题映射失败：{{title}}，跳过',
       search: '搜索番剧：{{title}}',
       searchError: '搜索番剧失败：{{message}}',
       searchResultEmpty: '没有找到标题为 {{title}} 的番剧',
       openSearch: '打开搜索页面',
+      usingAI: '正在使用AI解析',
+      AIResult: 'AI解析结果：{{title}}',
     },
   },
   danmakuSource: {
@@ -141,7 +145,7 @@ const pages = {
       helper: {
         mediaQuery: '用来选择视频节点, 一般为“video”',
         integration:
-          '启用对应的适配配置。如果你不清楚这是什么，请保持默认设置“无”',
+          '启用对应的适配规则。如果你不清楚这是什么，请保持默认设置“无”',
         urlPattern:
           '用来匹配视频页面，一般为视频网站的网址。格式：https://example.com/*。',
       },
@@ -158,15 +162,16 @@ const pages = {
     name: '装填配置',
   },
   integrationPolicyPage: {
-    name: '适配配置',
-    noIntegration: '当前页面没有可用的适配配置',
-    hasIntegration: '当前页面已启用适配配置："{{name}}"',
-    create: '添加适配配置',
+    name: '适配规则',
+    noIntegration: '当前页面没有启用的适配规则, 请从规则列表中选择或者添加新的',
+    hasIntegration: '当前页面已启用适配规则："{{name}}"',
+    create: '添加适配规则',
     edit: '编辑{{name}}',
     parseComplete: '解析完成',
     nodesFound: '找到节点',
     integrationActive: '运行中',
     integrationInactive: '未运行',
+    aiParsing: 'AI解析',
     editor: {
       name: '名称',
       titleSection: '匹配标题',
@@ -184,10 +189,12 @@ const pages = {
       episodeTitleRegex: '单集标题Regex',
       advanced: '高级选项',
       quick: '优先',
+      useAI: '使用AI（实验）',
       helper: {
         titleOnly:
           '勾选后，只使用标题节点匹配番剧。适用与标题包含番剧全部信息的情况，例如标题为文件名。如果番剧信息分散在不同的节点中，请取消勾选。',
         testDisabled: '只能在存在装填配置的页面使用',
+        useAI: '尝试使用AI来解析番剧信息。如果解析失败，请尝试手动配置。',
       },
     },
   },
@@ -381,7 +388,7 @@ const pages = {
     search: '搜索番剧',
     selector: '修正匹配',
     style: '弹幕设置',
-    integrationPolicy: '适配配置',
+    integrationPolicy: '适配规则',
   },
 }
 

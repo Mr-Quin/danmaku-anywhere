@@ -1,19 +1,33 @@
 import { CheckOutlined, CloseOutlined } from '@mui/icons-material'
-import { Box, Button, Divider, Icon, Stack, Typography } from '@mui/material'
+import { Box, Divider, Icon, Stack, styled, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useStore } from '@/content/controller/store/store'
+import { IntegrationControl } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/IntegrationControl'
 
 interface StatusIndicatorProps {
   text: string
   active: boolean
+  fancy?: boolean
 }
 
-const StatusIndicator = ({ text, active }: StatusIndicatorProps) => {
+const FancyTypography = styled(Typography, {
+  shouldForwardProp: (prop) => prop !== 'fancy',
+})<{ fancy?: boolean }>(({ fancy }) => ({
+  ...(fancy && {
+    // backgroundImage: 'linear-gradient(72deg, #000000, #000000)',
+    WebkitBackgroundClip: 'text',
+    backgroundClip: 'text',
+    // color: 'transparent',
+    fontWeight: 'bold',
+  }),
+}))
+
+const StatusIndicator = ({ text, active, fancy }: StatusIndicatorProps) => {
   return (
     <Stack direction="row" justifyContent="space-between">
-      <Typography>{text}</Typography>
+      <FancyTypography fancy={fancy}>{text}</FancyTypography>
       <Icon color={active ? 'success' : 'error'}>
         {active ? <CheckOutlined /> : <CloseOutlined />}
       </Icon>
@@ -24,7 +38,6 @@ const StatusIndicator = ({ text, active }: StatusIndicatorProps) => {
 export const IntegrationInfo = () => {
   const { t } = useTranslation()
 
-  const { toggleEditor } = useStore.use.integrationForm()
   const { mediaInfo, active, errorMessage, foundElements } =
     useStore.use.integration()
 
@@ -32,31 +45,35 @@ export const IntegrationInfo = () => {
 
   return (
     <Box height={1}>
-      <Typography>
+      <Typography mb={1}>
         {activeIntegration
           ? t('integrationPolicyPage.hasIntegration', {
               name: activeIntegration.name,
             })
           : t('integrationPolicyPage.noIntegration')}
       </Typography>
-      <Button variant="contained" onClick={() => toggleEditor()}>
-        {activeIntegration
-          ? t('integrationPolicyPage.edit', {
-              name: activeIntegration.name,
-            })
-          : t('integrationPolicyPage.create')}
-      </Button>
+      <IntegrationControl />
       <Divider sx={{ mt: 2, mb: 2 }} />
       {activeIntegration && (
         <div>
-          <StatusIndicator
-            text={t('integrationPolicyPage.nodesFound')}
-            active={foundElements}
-          />
-          <StatusIndicator
-            text={t('integrationPolicyPage.parseComplete')}
-            active={!!mediaInfo}
-          />
+          {activeIntegration.policy.options.useAI ? (
+            <StatusIndicator
+              text={t('integrationPolicyPage.aiParsing')}
+              active={!!mediaInfo}
+              fancy
+            />
+          ) : (
+            <>
+              <StatusIndicator
+                text={t('integrationPolicyPage.nodesFound')}
+                active={foundElements}
+              />
+              <StatusIndicator
+                text={t('integrationPolicyPage.parseComplete')}
+                active={!!mediaInfo}
+              />
+            </>
+          )}
           <Divider sx={{ mt: 2, mb: 2 }} />
           {mediaInfo && (
             <>

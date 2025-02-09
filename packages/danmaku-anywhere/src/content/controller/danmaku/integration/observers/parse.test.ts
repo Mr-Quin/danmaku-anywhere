@@ -124,7 +124,6 @@ describe('parseMediaFromTitle', () => {
         "ONIMAI: I'm Now Your Sister!",
         12,
         'S1',
-        true,
         "Mahiro's Future as a Sister"
       )
     )
@@ -147,7 +146,7 @@ describe('parseMediaFromTitle', () => {
     const result2 = parseMediaFromTitle('MyGo S1E12 GoGoGo', [
       createSelector('(?<title>.+) (?<season>S.+)E(?<episode>\\d+)'),
     ])
-    expect(result2).toEqual(new MediaInfo('MyGo', 12, 'S1', true))
+    expect(result2).toEqual(new MediaInfo('MyGo', 12, 'S1'))
 
     // Season is omitted
     const result3 = parseMediaFromTitle('MyGo S1E12 GoGoGo', [
@@ -155,9 +154,7 @@ describe('parseMediaFromTitle', () => {
         '(?<title>.+) S(\\d)E(?<episode>\\d+ (?<episodeTitle>.+))'
       ),
     ])
-    expect(result3).toEqual(
-      new MediaInfo('MyGo', 12, undefined, true, 'GoGoGo')
-    )
+    expect(result3).toEqual(new MediaInfo('MyGo', 12, undefined, 'GoGoGo'))
 
     // Episode number is omitted
     const result4 = parseMediaFromTitle('MyGo S1E12 GoGoGo', [
@@ -165,7 +162,7 @@ describe('parseMediaFromTitle', () => {
         '(?<title>.+) (?<season>S\\d+)E(?:\\d+) (?<episodeTitle>.+)'
       ),
     ])
-    expect(result4).toEqual(new MediaInfo('MyGo', 1, 'S1', false, 'GoGoGo'))
+    expect(result4).toEqual(new MediaInfo('MyGo', 1, 'S1', 'GoGoGo'))
   })
 
   it('should use the first matching regex', () => {
@@ -174,7 +171,7 @@ describe('parseMediaFromTitle', () => {
       createSelector('(.+)'), // matches, but not used because it's not named
       createSelector('(?<title>.+)'), // should match
     ])
-    expect(result).toEqual(new MediaInfo('MyGo', 1, undefined, false))
+    expect(result).toEqual(new MediaInfo('MyGo', 1, undefined))
   })
 
   it('should use the first matching quick regex', () => {
@@ -184,12 +181,12 @@ describe('parseMediaFromTitle', () => {
       createSelector('(?<title>.+)'), // should match, but not used because it's not quick
       createSelector('(?<title>.)', true), // should match the letter 'M'
     ])
-    expect(result).toEqual(new MediaInfo('M', 1, undefined, false))
+    expect(result).toEqual(new MediaInfo('M', 1, undefined))
   })
 
   it('should assume non-episodic if episode is not present', () => {
     const result = parseMediaFromTitle('MyGo', [createSelector('(?<title>.+)')])
-    expect(result).toEqual(new MediaInfo('MyGo', 1, undefined, false))
+    expect(result).toEqual(new MediaInfo('MyGo', 1, undefined))
   })
 
   it('should throw an error if regex does not match', () => {

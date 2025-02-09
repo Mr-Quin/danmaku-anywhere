@@ -121,7 +121,7 @@ export const parseMediaFromTitle = (
 
       // If the episode is not present, assume this is non-episodic
       if (!episode) {
-        return new MediaInfo(titleText, 1, season, false, episodeTitle)
+        return new MediaInfo(titleText, 1, season, episodeTitle)
       }
 
       const episodeNumber = parseInt(episode)
@@ -133,7 +133,7 @@ export const parseMediaFromTitle = (
         continue
       }
 
-      return new MediaInfo(titleText, episodeNumber, season, true, episodeTitle)
+      return new MediaInfo(titleText, episodeNumber, season, episodeTitle)
     } catch (err) {
       if (err instanceof Error) {
         errors.push(err.message)

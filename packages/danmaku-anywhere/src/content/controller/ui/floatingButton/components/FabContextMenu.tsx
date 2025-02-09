@@ -92,7 +92,7 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
     },
     {
       action: () => enterPip(),
-      disabled: () => !hasVideo,
+      disabled: () => !hasVideo(),
       icon: () => <PictureInPicture fontSize="small" />,
       label: () => t('common.pip'),
       hotkey: getKeyCombo('togglePip'),

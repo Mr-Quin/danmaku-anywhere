@@ -84,10 +84,21 @@ export const useEditMountConfig = () => {
     mutationFn: mountConfigService.import.bind(mountConfigService),
   })
 
+  const setIntegrationMutation = useMutation({
+    mutationKey: storageQueryKeys.external('sync', ['mountConfig']),
+    mutationFn: (input: { configId: string; integrationId?: string }) => {
+      return mountConfigService.setIntegration(
+        input.configId,
+        input.integrationId
+      )
+    },
+  })
+
   return {
     create: createMutation,
     update: updateMutation,
     remove: deleteMutation,
     createMultiple: importMutation,
+    setIntegration: setIntegrationMutation,
   }
 }

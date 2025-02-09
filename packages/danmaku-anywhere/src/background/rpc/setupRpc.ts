@@ -6,6 +6,7 @@ import { ProviderService } from '../services/ProviderService'
 
 import { injectVideoScript } from '@/background/scripting/setupScripting'
 import { BilibiliService } from '@/background/services/BilibiliService'
+import { GenAIService } from '@/background/services/GenAIService'
 import { TencentService } from '@/background/services/TencentService'
 import { Logger } from '@/common/Logger'
 import { mountConfigService } from '@/common/options/mountConfig/service'
@@ -27,6 +28,7 @@ export const setupRpc = () => {
   const danmakuService = new DanmakuService()
   const bilibiliService = new BilibiliService()
   const tencentService = new TencentService()
+  const aiService = new GenAIService()
 
   const rpcServer = createRpcServer<BackgroundMethods>({
     searchDanDanPlay: async (input) => {
@@ -161,6 +163,9 @@ export const setupRpc = () => {
 
       await injectVideoScript(tabId, frameId)
     },
+    remoteLog: async (data) => {
+      Logger.debug('Remote log:', data)
+    },
     getActiveTabUrl: async () => {
       const tabs = await chrome.tabs.query({
         active: true,
@@ -180,6 +185,9 @@ export const setupRpc = () => {
     },
     mountConfigCreate: async (data) => {
       return mountConfigService.create(data)
+    },
+    extractTitle: async (input) => {
+      return aiService.extractTitle(input)
     },
   })
 

@@ -1,5 +1,9 @@
 import { Logger } from '@/common/Logger'
 import type { IntegrationPolicy } from '@/common/options/integrationPolicyStore/schema'
+import { queryClient } from '@/common/queries/queryClient'
+import { genAIQueryKeys } from '@/common/queries/queryKeys'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { sleep } from '@/common/utils/utils'
 import { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import type { MediaElements } from '@/content/controller/danmaku/integration/observers/MediaObserver'
 import { MediaObserver } from '@/content/controller/danmaku/integration/observers/MediaObserver'
@@ -44,7 +48,6 @@ const parseMediaInfo = (
 
   // Default to 1 if the element is not present
   let episode = 1
-  let episodic = false
   let episodeTitle: string | undefined = undefined
   let season: string | undefined = undefined
 
@@ -57,7 +60,6 @@ const parseMediaInfo = (
     )
     if (parsedEpisode !== undefined) {
       episode = parsedEpisode
-      episodic = true
     }
   }
 
@@ -77,7 +79,7 @@ const parseMediaInfo = (
     )
   }
 
-  return new MediaInfo(title, episode, season, episodic, episodeTitle)
+  return new MediaInfo(title, episode, season, episodeTitle)
 }
 
 const createTextMutationObserver = (
@@ -147,11 +149,73 @@ const getTextFromMediaElements = (
   }
 }
 
+const truncateString = (value: string, maxLength: number) => {
+  if (value.length > maxLength) {
+    return value.substring(0, maxLength) + '...'
+  }
+  return value
+}
+
+const getHtmlByTag = (tag: string) => {
+  const html: string[] = []
+  const nodes = document.querySelectorAll(tag)
+
+  // Filter out bloated information to reduce the size of the message
+  const filterNodeAttributes = (node: Element): string => {
+    if (!(node instanceof HTMLElement)) return node.outerHTML
+
+    const element = node
+    const clone = element.cloneNode(true) as HTMLElement
+
+    if (element.hasAttributes()) {
+      for (const attr of Array.from(element.attributes)) {
+        if (
+          attr.name.toLowerCase() === 'href' ||
+          attr.name.toLowerCase() === 'src' ||
+          attr.name.toLowerCase() === 'class'
+        ) {
+          clone.setAttribute(attr.name, truncateString(attr.value, 20))
+        } else if (attr.name.toLowerCase().startsWith('data-')) {
+          clone.setAttribute(attr.name, truncateString(attr.value, 5))
+        }
+      }
+    }
+
+    if (element.children.length > 0) {
+      const filteredChildrenHTML: string[] = []
+
+      for (const child of element.children) {
+        filteredChildrenHTML.push(filterNodeAttributes(child))
+      }
+
+      clone.innerHTML = filteredChildrenHTML.join('')
+    }
+
+    return clone.outerHTML
+  }
+
+  nodes.forEach((node) => {
+    if (node instanceof Element) {
+      html.push(filterNodeAttributes(node))
+    }
+  })
+
+  return html
+}
+
+const getPageMeta = () => {
+  const tags = ['meta', 'title', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
+
+  const html = tags.flatMap(getHtmlByTag).join('')
+  return truncateString(html, 4000)
+}
+
 export class IntegrationPolicyObserver extends MediaObserver {
   private interval?: NodeJS.Timeout
   private logger = Logger.sub('[IntegrationPolicyObserver]')
   private observerMap = new Map<string, MutationObserver>()
   private mediaInfo?: MediaInfo
+  private abortController = new AbortController()
 
   constructor(public policy: IntegrationPolicy) {
     super()
@@ -207,19 +271,23 @@ export class IntegrationPolicyObserver extends MediaObserver {
     return promise
   }
 
-  private updateMediaInfo(elements: MediaElements) {
+  private updateMediaInfo(mediaInfo: MediaInfo) {
+    // Only update if the media info has changed
+    if (this.mediaInfo?.equals(mediaInfo)) {
+      return
+    }
+    this.logger.debug('Media info changed:', mediaInfo)
+    this.mediaInfo = mediaInfo
+    this.emit('mediaChange', mediaInfo)
+  }
+
+  private parseMediaElements(elements: MediaElements) {
     try {
       const mediaInfo = parseMediaInfo(
         getTextFromMediaElements(elements),
         this.policy
       )
-      // Only update if the media info has changed
-      if (this.mediaInfo?.equals(mediaInfo)) {
-        return
-      }
-      this.logger.debug('Media info changed:', mediaInfo)
-      this.mediaInfo = mediaInfo
-      this.emit('mediaChange', mediaInfo)
+      this.updateMediaInfo(mediaInfo)
     } catch (err) {
       if (err instanceof Error) {
         this.emit('error', err)
@@ -238,13 +306,13 @@ export class IntegrationPolicyObserver extends MediaObserver {
     ;(Object.keys(elements) as (keyof typeof elements)[]).forEach((key) => {
       if (elements[key]) {
         const observer = createTextMutationObserver(elements[key], () => {
-          this.updateMediaInfo(elements)
+          this.parseMediaElements(elements)
         })
         this.observerMap.set(key, observer)
       }
     })
 
-    this.updateMediaInfo(elements)
+    this.parseMediaElements(elements)
 
     // When the title element is removed, rerun setup
     const observer = createRemovalMutationObserver(elements.title, () => {
@@ -256,12 +324,51 @@ export class IntegrationPolicyObserver extends MediaObserver {
     this.observerMap.set('removal', observer)
   }
 
+  private async handleAi() {
+    // Some pages take a while to load the title, so wait a bit before checking
+    await sleep(2000)
+
+    if (this.abortController.signal.aborted) {
+      this.logger.debug('Aborted AI handling')
+      return
+    }
+
+    const meta = getPageMeta()
+    try {
+      this.logger.debug('Extracting title from', {
+        meta,
+      })
+
+      const { data } = await queryClient.fetchQuery({
+        queryKey: genAIQueryKeys.extractTitle(),
+        queryFn: () => chromeRpcClient.extractTitle(meta),
+      })
+
+      this.logger.debug('Matched result:', {
+        result: data,
+      })
+      const mediaInfo = new MediaInfo(data.title, data.episode, data.season)
+      this.updateMediaInfo(mediaInfo)
+    } catch (err) {
+      if (err instanceof Error) {
+        this.emit('error', err)
+      }
+      this.logger.debug('Error while extracting title:', err)
+    }
+  }
+
   setup() {
-    void this.asyncSetup()
+    this.logger.debug('Setup obs')
+    if (this.policy.options.useAI) {
+      void this.handleAi()
+    } else {
+      void this.asyncSetup()
+    }
   }
 
   destroy() {
     clearInterval(this.interval)
+    this.abortController.abort()
     this.logger.debug('Destroying observers')
     this.observerMap.forEach((observer) => observer.disconnect())
     this.observerMap.clear()

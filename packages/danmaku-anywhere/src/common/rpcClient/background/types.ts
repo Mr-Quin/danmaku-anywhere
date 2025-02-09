@@ -1,5 +1,6 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import type { BilibiliUserInfo } from '@danmaku-anywhere/danmaku-provider/bilibili'
+import type { ExtractTitleResponse } from '@danmaku-anywhere/danmaku-provider/genAi'
 
 import type { RPCDef } from '../../rpc/types'
 
@@ -84,11 +85,16 @@ type ControlMethods = {
   getFrameId: RPCDef<void, number>
   getAllFrames: RPCDef<void, chrome.webNavigation.GetAllFrameResultDetails[]>
   injectScript: RPCDef<number, void>
+  remoteLog: RPCDef<any, void>
 }
 
 type MountConfigMethods = {
   mountConfigCreate: RPCDef<unknown, MountConfig>
   mountConfigGetAll: RPCDef<void, MountConfig[]>
+}
+
+type AIMethods = {
+  extractTitle: RPCDef<string, ExtractTitleResponse['result']>
 }
 
 type InputWithFrameId<TInput> = TInput extends void
@@ -128,5 +134,6 @@ export type PlayerEvents = {
 export type BackgroundMethods = IconMethods &
   AnimeMethods &
   DanmakuMethods &
+  AIMethods &
   ControlMethods &
   MountConfigMethods

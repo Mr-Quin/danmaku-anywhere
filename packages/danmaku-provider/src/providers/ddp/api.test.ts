@@ -20,7 +20,7 @@ const overrideFetchArgs = createFetchOverride()
 
 describe('DanDanPlay API', () => {
   beforeEach(() => {
-    configure({ baseUrl: 'https://danmaku.weeblify.app/proxy' })
+    configure({ baseUrl: 'http://127.0.0.1:8787' })
     vi.resetAllMocks()
   })
 

@@ -38,7 +38,7 @@ export const IntegrationEditor = () => {
   // Save form data to store so that it can be restored when the user comes back
   const { toggleEditor } = useStore.use.integrationForm()
 
-  const defaultValues = activePolicy ?? createIntegrationInput()
+  const defaultValues = activePolicy ?? createIntegrationInput(mountConfig.name)
 
   const form = useForm<IntegrationInput>({
     defaultValues,
@@ -50,7 +50,7 @@ export const IntegrationEditor = () => {
     handleSubmit,
     getValues,
     reset,
-    formState: { isSubmitting, isDirty },
+    formState: { isSubmitting },
   } = form
 
   const handleReset = () => {
@@ -129,7 +129,6 @@ export const IntegrationEditor = () => {
                 loading={isSubmitting}
                 variant="contained"
                 color="primary"
-                disabled={!isDirty}
               >
                 {t('common.save')}
               </Button>

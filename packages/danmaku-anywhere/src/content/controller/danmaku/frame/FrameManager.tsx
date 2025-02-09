@@ -21,7 +21,7 @@ export const FrameManager = () => {
 
   const { unmount, comments, danmakuLite } = useStore.use.danmaku()
 
-  const setHasVideo = useStore.use.setHasVideo()
+  const setVideoId = useStore.use.setVideoId()
   const { allFrames, activeFrame, setActiveFrame, updateFrame } =
     useStore.use.frame()
 
@@ -33,8 +33,7 @@ export const FrameManager = () => {
   useInjectFrames()
 
   const videoChangeHandler = useEventCallback((frameId: number) => {
-    setHasVideo(true)
-
+    setVideoId(`${frameId}-${Date.now()}`)
     /**
      * If there is an active frame, and it has video,
      * it means there are multiple frames with video.
@@ -54,7 +53,7 @@ export const FrameManager = () => {
     // Reset state if video is removed from the active frame,
     // but keep the current active frame even when the video is removed
     if (activeFrame?.frameId === frameId) {
-      setHasVideo(false)
+      setVideoId(undefined)
       unmount()
     }
     updateFrame(frameId, { hasVideo: false })
