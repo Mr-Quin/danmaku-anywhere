@@ -50,7 +50,7 @@ export const CommentsPage = () => {
       <CommentsTable
         comments={comments}
         onTimeClick={seekToTime}
-        isTimeClickable={hasVideo}
+        isTimeClickable={hasVideo()}
       />
     </Stack>
   )

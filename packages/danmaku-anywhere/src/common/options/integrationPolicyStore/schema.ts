@@ -32,6 +32,7 @@ const matcherSchema = z.object({
 
 const optionsSchema = z.object({
   titleOnly: z.boolean(),
+  useAI: z.boolean(),
   dandanplay: z.object({
     useMatchApi: z.boolean(),
   }),
@@ -88,13 +89,38 @@ export interface IntegrationV1 {
   }
 }
 
-export const createIntegrationInput = (
-  policy?: Integration
-): IntegrationInput => {
-  if (policy) return policy
+export interface IntegrationV2 {
+  name: string
+  id: string
+  policy: {
+    title: {
+      selector: { value: string; quick: boolean }[]
+      regex: { value: string; quick: boolean }[]
+    }
+    episode: {
+      selector: { value: string; quick: boolean }[]
+      regex: { value: string; quick: boolean }[]
+    }
+    season: {
+      selector: { value: string; quick: boolean }[]
+      regex: { value: string; quick: boolean }[]
+    }
+    episodeTitle: {
+      selector: { value: string; quick: boolean }[]
+      regex: { value: string; quick: boolean }[]
+    }
+    options: {
+      titleOnly: boolean
+      dandanplay: {
+        useMatchApi: boolean
+      }
+    }
+  }
+}
 
+export const createIntegrationInput = (name = ''): IntegrationInput => {
   return {
-    name: '',
+    name: name,
     policy: {
       title: {
         selector: [{ value: '', quick: false }],
@@ -114,6 +140,7 @@ export const createIntegrationInput = (
       },
       options: {
         titleOnly: false,
+        useAI: true,
         dandanplay: {
           useMatchApi: false,
         },

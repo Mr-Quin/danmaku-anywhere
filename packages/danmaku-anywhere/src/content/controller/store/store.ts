@@ -79,8 +79,9 @@ interface StoreState {
   /**
    * Whether the video element is present
    */
-  hasVideo: boolean
-  setHasVideo: (hasVideo: boolean) => void
+  hasVideo: () => boolean
+  videoId?: string
+  setVideoId: (videoId?: string) => void
 
   /**
    * State of each frame in the page
@@ -208,8 +209,15 @@ const useStoreBase = create<StoreState>()(
       return 'Unknown anime'
     },
 
-    hasVideo: false,
-    setHasVideo: (hasVideo) => set({ hasVideo }),
+    hasVideo: () => {
+      return get().videoId !== undefined
+    },
+    videoId: undefined,
+    setVideoId: (videoId) => {
+      set((state) => {
+        state.videoId = videoId
+      })
+    },
 
     frame: {
       allFrames: new Map<number, FrameState>(),
@@ -255,7 +263,7 @@ const useStoreBase = create<StoreState>()(
         }
 
         if (frame.mounted) {
-          get().setHasVideo(false)
+          get().setVideoId(undefined)
           get().danmaku.unmount()
         }
 

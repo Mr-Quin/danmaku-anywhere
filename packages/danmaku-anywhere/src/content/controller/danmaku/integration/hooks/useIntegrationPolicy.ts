@@ -17,7 +17,7 @@ export const useIntegrationPolicy = () => {
 
   const observer = useRef<IntegrationPolicyObserver>(undefined)
 
-  const hasVideo = useStore.use.hasVideo()
+  const videoId = useStore.use.videoId?.()
   const { toggleManualMode, isManual } = useStore.use.danmaku()
   const unmountDanmaku = useUnmountDanmaku()
   const { setMediaInfo, setErrorMessage, setActive, setFoundElements } =
@@ -47,7 +47,7 @@ export const useIntegrationPolicy = () => {
     }
 
     // Only create the observer if the video node is present
-    if (!hasVideo) {
+    if (!videoId) {
       observer.current?.reset()
       return
     }
@@ -57,6 +57,12 @@ export const useIntegrationPolicy = () => {
     setActive(true)
     obs.on({
       mediaChange: async (state: MediaInfo) => {
+        if (integrationPolicy.policy.options.useAI) {
+          toast.success(
+            t('integration.alert.AIResult', { title: state.toString() })
+          )
+        }
+
         if (useStore.getState().danmaku.isMounted) {
           unmountDanmaku.mutate()
         }
@@ -66,7 +72,7 @@ export const useIntegrationPolicy = () => {
         const episodeMatchPayload = {
           mapKey: state.key(),
           title: state.title,
-          episodeNumber: state.episodic ? state.episode : undefined,
+          episodeNumber: state.episode,
         }
 
         toast.info(t('integration.alert.search', { title: state.toString() }))
@@ -81,6 +87,9 @@ export const useIntegrationPolicy = () => {
       },
     })
 
+    if (integrationPolicy.policy.options.useAI) {
+      toast.info(t('integration.alert.usingAI'))
+    }
     obs.setup()
 
     return () => {
@@ -88,5 +97,5 @@ export const useIntegrationPolicy = () => {
       observer.current = undefined
       setActive(false)
     }
-  }, [integrationPolicy, isManual, hasVideo])
+  }, [integrationPolicy, isManual, videoId])
 }

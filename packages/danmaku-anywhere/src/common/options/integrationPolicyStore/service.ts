@@ -1,7 +1,8 @@
 import { defaultXPathPolicies } from '@/common/options/integrationPolicyStore/constant'
 import type {
-  Integration,
   IntegrationV1,
+  IntegrationV2,
+  Integration,
 } from '@/common/options/integrationPolicyStore/schema'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 
@@ -45,6 +46,23 @@ export const xPathPolicyStore = new OptionsService(
               dandanplay: {
                 useMatchApi: false,
               },
+            },
+          },
+        } satisfies IntegrationV2
+      })
+    },
+  })
+  .version(3, {
+    upgrade: (data) => {
+      return (data as IntegrationV2[]).map((policy) => {
+        return {
+          ...policy,
+          policy: {
+            ...policy.policy,
+            options: {
+              ...policy.policy.options,
+              // add useAi field
+              useAI: false,
             },
           },
         } satisfies Integration

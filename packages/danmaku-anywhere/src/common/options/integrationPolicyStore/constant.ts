@@ -46,6 +46,7 @@ const plexPolicy = {
       dandanplay: {
         useMatchApi: false,
       },
+      useAI: false,
       titleOnly: false,
     },
     season: {

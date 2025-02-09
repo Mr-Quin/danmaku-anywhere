@@ -48,6 +48,8 @@ const domain = {
     episodeTitle: 'Episode Title',
     name: 'Anime',
     title: 'Title',
+    numericEpisode: 'Episode {{episode}}',
+    numericSeason: 'Season {{season}}',
   },
   configs: {
     alert: {
@@ -114,6 +116,8 @@ const domain = {
       searchError: 'Failed to search for anime: {{message}}',
       searchResultEmpty: 'No anime found for {{title}}',
       openSearch: 'Open search page',
+      usingAI: 'Using AI to parse show information',
+      AIResult: 'AI Parsing Result: {{title}}',
     },
     type: {
       None: 'None',
@@ -158,7 +162,8 @@ const pages = {
   },
   integrationPolicyPage: {
     name: 'Integration Policy',
-    noIntegration: 'No integration policy available for this page',
+    noIntegration:
+      'No integration policy is enabled for this page. Please select from existing policies or create a new one.',
     hasIntegration: 'Using Integration: "{{name}}"',
     create: 'Add Integration Policy',
     edit: 'Edit {{name}}',
@@ -166,6 +171,7 @@ const pages = {
     nodesFound: 'Nodes Found',
     integrationActive: 'Active',
     integrationInactive: 'Inactive',
+    aiParsing: 'AI Parsing',
     editor: {
       name: 'Name',
       titleSection: 'Select Title',
@@ -183,10 +189,13 @@ const pages = {
       episodeTitleRegex: 'Episode Title Regex',
       advanced: 'Advanced Options',
       quick: 'Priority',
+      useAI: 'Use AI (Experimental)',
       helper: {
         titleOnly:
           "If checked, only the title node will be used to match the show. Useful if all information is contained in the title, e.g. if the title is the file name. Uncheck if the show's information is spread across different nodes.",
         testDisabled: 'Can only be used on pages with a Mount Config',
+        useAI:
+          'Try to use AI to parse show information. If parsing fails, try manual configuration.',
       },
     },
   },

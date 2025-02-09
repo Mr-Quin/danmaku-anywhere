@@ -50,7 +50,7 @@ export const SelectorPage = () => {
     const episodeMatchPayload = {
       mapKey: mediaInfo.key(),
       title: selectedAnime.animeTitle,
-      episodeNumber: mediaInfo.episodic ? mediaInfo.episode : undefined,
+      episodeNumber: mediaInfo.episode,
       seasonId: selectedAnime.animeId,
     }
 

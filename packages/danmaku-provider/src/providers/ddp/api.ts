@@ -2,10 +2,9 @@ import {
   commentOptionsToString,
   parseCommentEntityP,
 } from '@danmaku-anywhere/danmaku-converter'
-import type { ZodSchema } from 'zod'
 
-import { HttpException } from '../../exceptions/HttpException.js'
-import { handleParseResponse } from '../utils/index.js'
+import type { FetchOptions } from '../utils/fetchData.js'
+import { fetchData } from '../utils/fetchData.js'
 
 import { DanDanPlayApiException } from './exceptions.js'
 import type {
@@ -53,49 +52,13 @@ export const configure = (options: Partial<typeof store>) => {
   Object.assign(store, options)
 }
 
-interface DanDanPlayInit<T = unknown> {
-  path: string
-  query?: Record<string, unknown>
-  body?: Record<string, unknown>
-  requestSchema?: {
-    body?: ZodSchema
-    query?: ZodSchema
-  }
-  responseSchema: ZodSchema<T>
-  method?: 'GET' | 'POST'
-}
+// Reimplement fetchDanDanPlay using fetchData
+const fetchDanDanPlay = async <T extends object>(
+  options: Omit<FetchOptions<T>, 'url' | 'headers'> & { path: string }
+) => {
+  const headers: Record<string, string> = {}
 
-const validateRequest = <T extends DanDanPlayInit>(init: T) => {
-  const clone: T = {
-    ...init,
-  }
-
-  const { requestSchema, body, query } = clone
-
-  if (requestSchema?.body) {
-    clone.body = requestSchema.body.parse(body)
-  }
-  if (requestSchema?.query && query) {
-    clone.query = requestSchema.query.parse(query)
-  }
-
-  return clone
-}
-
-const createUrl = ({ path, query }: DanDanPlayInit) => {
-  const { baseUrl } = store
-
-  if (!query) {
-    return `${baseUrl}${path}`
-  }
-
-  return `${baseUrl}${path}?${new URLSearchParams(query as never)}`
-}
-
-const getHeaders = async ({ body }: DanDanPlayInit) => {
-  const headers = {}
-
-  if (body) {
+  if (options.body) {
     headers['Content-Type'] = 'application/json'
   }
 
@@ -103,43 +66,11 @@ const getHeaders = async ({ body }: DanDanPlayInit) => {
     headers['Authorization'] = `Bearer ${store.token}`
   }
 
-  return headers
-}
-
-const fetchDanDanPlay = async <T extends object>(init: DanDanPlayInit<T>) => {
-  const validatedInit = validateRequest(init)
-
-  const { responseSchema, method = 'GET', body } = validatedInit
-
-  const url = createUrl(validatedInit)
-
-  const headers = await getHeaders(validatedInit)
-
-  const res = await fetch(url, {
-    headers: {
-      ...headers,
-    },
-    method,
-    body: body ? JSON.stringify(body) : undefined,
+  return fetchData<T>({
+    url: `${store.baseUrl}${options.path}`,
+    ...options,
+    headers,
   })
-
-  if (res.status >= 400) {
-    const errorMessage =
-      res.headers.get('X-Error-Message') ?? (await res.text())
-
-    throw new HttpException(
-      `Request failed with status ${res.status}: ${res.statusText}
-      ${errorMessage}`,
-      res.status,
-      res.statusText
-    )
-  }
-
-  const json: unknown = await res.json()
-
-  const data = handleParseResponse(() => responseSchema.parse(json))
-
-  return data
 }
 
 export const searchSearchAnime = async (

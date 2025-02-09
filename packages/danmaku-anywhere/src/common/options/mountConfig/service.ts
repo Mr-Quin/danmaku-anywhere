@@ -129,12 +129,12 @@ class MountConfigService {
     await this.options.set(newData)
   }
 
-  async unsetIntegration(id: string) {
+  async unsetIntegration(integrationId: string) {
     const configs = await this.options.get()
 
     const newData = produce(configs, (draft) => {
       draft.forEach((config) => {
-        if (config.integration === id) {
+        if (config.integration === integrationId) {
           delete config.integration
         }
       })
@@ -143,7 +143,7 @@ class MountConfigService {
     await this.options.set(newData)
   }
 
-  async setIntegration(configId: string, integrationId: string) {
+  async setIntegration(configId: string, integrationId?: string) {
     const configs = await this.options.get()
 
     const newData = produce(configs, (draft) => {

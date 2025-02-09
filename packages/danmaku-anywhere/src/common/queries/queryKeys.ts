@@ -86,3 +86,12 @@ export const alarmQueryKeys = {
     },
   ],
 }
+
+export const genAIQueryKeys = {
+  extractTitle: () => [
+    {
+      scope: 'genAI',
+      kind: 'extractTitle',
+    },
+  ],
+}
