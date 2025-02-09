@@ -11,7 +11,8 @@
     "composite": true,
     "types": [
       "node",
-      "./.wrangler/types/runtime"
+      "./.wrangler/types/runtime",
+      "./worker-configuration.d.ts"
     ]
   },
   "include": [

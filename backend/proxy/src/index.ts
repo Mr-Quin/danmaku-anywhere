@@ -1,9 +1,9 @@
 import { Cause, Console, Effect, Match, Ref } from 'effect'
 
 import { handleProxyDanDanPlay } from './danDanPlay'
-import { handleGemini } from './gemini'
+import { handleGemini } from './gemini/router'
 import { State, Store } from './state'
-import { uriDecode } from './utils'
+import { HTTPError, uriDecode } from './utils'
 
 class InvalidOriginError {
   readonly _tag = 'InvalidOriginError'
@@ -29,22 +29,30 @@ export default {
         return yield* Effect.succeed(new Response(null, { status: 204 }))
       }
 
-      const cached = yield* Effect.promise(() => caches.default.match(request))
+      // Globally cache GET requests
+      if (request.method === 'GET') {
+        const cached = yield* Effect.promise(() =>
+          caches.default.match(request)
+        )
 
-      if (cached) {
-        yield* Console.debug(`Cache hit!`)
-        yield* state.setCacheHit(true)
-        return cached
+        if (cached) {
+          yield* Console.debug(`Cache hit!`)
+          yield* state.setCacheHit(true)
+          return cached
+        }
+
+        yield* Console.debug(`Cache miss!`)
       }
-
-      yield* Console.debug(`Cache miss!`)
 
       const url = new URL(request.url)
 
-      const path = url.pathname.includes(env.BASE_URL)
-        ? url.pathname.replace(env.BASE_URL, '')
-        : url.pathname
+      if (url.pathname.startsWith(env.BASE_URL)) {
+        url.pathname = url.pathname.replace(env.BASE_URL, '')
+      }
 
+      const path = url.pathname
+
+      yield* Console.debug(`Processing request for ${uriDecode(path)}`)
       yield* state.setPath(path)
 
       return yield* Match.value({
@@ -52,24 +60,35 @@ export default {
         method: request.method,
       }).pipe(
         Match.when(
-          { method: (m) => m === 'POST', path: (p) => p.startsWith('/gemini') },
-          () => handleGemini(request, env)
+          {
+            method: (method) => method === 'POST',
+            path: (p) => p.startsWith('/gemini'),
+          },
+          () => handleGemini
         ),
-        Match.when({ path: (p) => p.startsWith('/api') }, () =>
-          handleProxyDanDanPlay(request, env)
+        Match.when(
+          { path: (p) => p.startsWith('/api') },
+          () => handleProxyDanDanPlay
         ),
-        Match.orElse(() => Effect.succeed(new Response(null, { status: 404 })))
+        Match.orElse(() => Effect.fail(new HTTPError(400, 'Bad Request')))
       )
     }).pipe(
+      Effect.tap(() => Console.log('Finished processing request')),
+      Effect.scoped,
       // Handle errors
       Effect.tapError((err) => {
-        switch (err._tag) {
-          case 'InvalidOriginError':
-            return Console.error('Invalid origin')
-        }
+        return Console.error('Error processing request', err)
       }),
-      Effect.catchAll(() => {
-        return Effect.succeed(new Response(null, { status: 400 }))
+      Effect.catchAll((err) => {
+        const message = err instanceof HTTPError ? err.message : 'Bad request'
+        const status = err instanceof HTTPError ? err.status : 400
+
+        return Effect.succeed(
+          new Response(JSON.stringify({ message, success: false }), {
+            status,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        )
       })
     )
 
@@ -81,9 +100,7 @@ export default {
 
         if (shouldCache) {
           yield* Console.log(`Caching response for ${uriDecode(request.url)}`)
-          yield* Effect.tryPromise(() =>
-            caches.default.put(request, updatedRes.clone())
-          ).pipe(Effect.catchAllCause(() => Console.error('Failed to cache')))
+          ctx.waitUntil(caches.default.put(request, updatedRes.clone()))
         }
 
         return updatedRes
@@ -138,7 +155,7 @@ export default {
     )
 
     const programLive = program.pipe(
-      Effect.provideServiceEffect(State, Store.Create())
+      Effect.provideServiceEffect(State, Store.Create(request, env, ctx))
     )
 
     return await Effect.runPromise(programLive)
@@ -146,12 +163,14 @@ export default {
 }
 
 const setCorsHeaders = (response: Response, origin: string) => {
-  response.headers.set('Access-Control-Allow-Origin', origin)
-  response.headers.set(
+  const newRes = new Response(response.body, response)
+
+  newRes.headers.set('Access-Control-Allow-Origin', origin)
+  newRes.headers.set(
     'Access-Control-Allow-Methods',
     'GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS'
   )
-  response.headers.set('Access-Control-Max-Age', '86400')
+  newRes.headers.set('Access-Control-Max-Age', '86400')
 
-  return response
+  return newRes
 }

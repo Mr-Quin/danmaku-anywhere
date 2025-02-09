@@ -3,6 +3,9 @@ import { Context, Effect, Ref } from 'effect'
 interface StoreState {
   path: string
   cacheHit: boolean
+  request: Request
+  env: Env
+  ctx: ExecutionContext
 }
 
 export class Store {
@@ -20,11 +23,14 @@ export class Store {
     return Ref.update(this.ref, (v) => ({ ...v, cacheHit }))
   }
 
-  static Create() {
+  static Create(request: Request, env: Env, ctx: ExecutionContext) {
     return Effect.andThen(
       Ref.make({
         path: '',
         cacheHit: false,
+        request,
+        env,
+        ctx,
       }),
       (v) => new Store(v)
     )
