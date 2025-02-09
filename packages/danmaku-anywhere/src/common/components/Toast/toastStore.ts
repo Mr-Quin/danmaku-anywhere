@@ -16,7 +16,7 @@ interface Notification {
   duration?: number
   actionFn?: () => void
   actionLabel?: string
-  key: number
+  key: string
   open: boolean
 }
 
@@ -34,23 +34,20 @@ interface ToastStoreState {
     notification: Omit<Notification, 'key' | 'open' | 'position'>
   ) => void
   // Mark the notification as closed without removing it from the list
-  close: (key: number) => void
+  close: (key: string) => void
   // Remove the notification from the list
-  dequeue: (key: number) => void
+  dequeue: (key: string) => void
   toast: Toast
 }
 
 const toastStore = create<ToastStoreState>((set, get) => ({
   notifications: [],
   close: (key) => {
-    const index = get().notifications.findIndex(
-      (notification) => notification.key === key
-    )
-    if (index === -1) return
-
-    const notifications = get().notifications.toSpliced(index, 1, {
-      ...get().notifications[index],
-      open: false,
+    const notifications = get().notifications.map((n) => {
+      if (n.key === key) {
+        return { ...n, open: false }
+      }
+      return n
     })
     set({ notifications })
   },
@@ -73,7 +70,7 @@ const toastStore = create<ToastStoreState>((set, get) => ({
           duration,
           actionFn,
           actionLabel,
-          key: Date.now(),
+          key: `${Date.now()}-${Math.random()}`,
           open: true,
         },
       ],
