@@ -1,11 +1,14 @@
 import crypto from 'crypto'
 
+import type { Scope } from 'effect'
 import { Console, Effect, pipe } from 'effect'
 
 import { State } from './state'
 import { uriDecode } from './utils'
 
-const getCacheTime = (cacheControl: string) => {
+const getCacheTime = (cacheControl?: string | null) => {
+  if (!cacheControl) return null
+
   const parts = cacheControl.split(',')
 
   const maxAge = parts.find((part) => part.includes('max-age'))
@@ -63,61 +66,60 @@ const updateRequestBody = async (
   })
 }
 
-export const handleProxyDanDanPlay = (
-  request: Request,
-  env: Env
-): Effect.Effect<Response, never, State> => {
-  return Effect.gen(function* () {
-    const state = yield* State
-    const { path } = yield* state.get
+export const handleProxyDanDanPlay: Effect.Effect<
+  Response,
+  never,
+  State | Scope.Scope
+> = Effect.gen(function* () {
+  yield* Effect.annotateLogsScoped({ path: 'danDanPlay' })
 
-    const url = new URL(request.url)
+  const state = yield* State
+  const { path, request, env } = yield* state.get
 
-    const targetUrl = `${env.DANDANPLAY_API_HOST}${path}${url.search}`
+  const url = new URL(request.url)
 
-    yield* Console.log(`DanDanPlay: ${uriDecode(targetUrl)}`)
+  const targetUrl = `${env.DANDANPLAY_API_HOST}${path}${url.search}`
 
-    const newRequest = yield* pipe(
-      Effect.succeed(
-        new Request(targetUrl, {
-          method: request.method,
-          headers: request.headers,
-          body: request.body,
-        })
-      ),
-      Effect.andThen((req) => {
-        return Effect.gen(function* () {
-          if (request.method === 'POST' && isRegisterEndpoint(path)) {
-            yield* Console.log(`Updating request body for ${path}`)
-            return yield* Effect.promise(() =>
-              updateRequestBody(req, env, path !== 'findmyid')
-            )
-          }
-          return req
-        })
+  yield* Console.log(`DanDanPlay: ${uriDecode(targetUrl)}`)
+
+  const newRequest = yield* pipe(
+    Effect.succeed(
+      new Request(targetUrl, {
+        method: request.method,
+        headers: request.headers,
+        body: request.body,
       })
-    )
+    ),
+    Effect.andThen((req) => {
+      return Effect.gen(function* () {
+        if (request.method === 'POST' && isRegisterEndpoint(path)) {
+          yield* Console.log(`Updating request body for ${path}`)
+          return yield* Effect.promise(() =>
+            updateRequestBody(req, env, path !== 'findmyid')
+          )
+        }
+        return req
+      })
+    })
+  )
 
-    newRequest.headers.set('X-AppId', env.DANDANPLAY_APP_ID)
-    newRequest.headers.set('X-AppSecret', env.DANDANPLAY_APP_SECRET)
+  newRequest.headers.set('X-AppId', env.DANDANPLAY_APP_ID)
+  newRequest.headers.set('X-AppSecret', env.DANDANPLAY_APP_SECRET)
 
-    const response = yield* Effect.promise(() => fetch(newRequest))
-    const newRes = new Response(response.body, response)
+  const response = yield* Effect.promise(() => fetch(newRequest))
+  const newRes = new Response(response.body, response)
 
-    if (newRequest.method === 'GET' && newRes.status === 200) {
-      const cacheControl = newRes.headers.get('Cache-Control')
-      const cacheTime = cacheControl
-        ? (getCacheTime(cacheControl) ?? 1800)
-        : 1800
+  if (newRequest.method === 'GET' && newRes.status === 200) {
+    const cacheControl = newRes.headers.get('Cache-Control')
+    const cacheTime = getCacheTime(cacheControl) ?? 1800
 
-      if (cacheControl) {
-        yield* Console.log(`Origin Cache-Control: ${cacheControl}`)
-      }
-
-      yield* Console.log(`Setting cache time to ${cacheTime}`)
-      newRes.headers.set('Cache-Control', `s-maxage=${cacheTime}`)
+    if (cacheControl) {
+      yield* Console.log(`Origin Cache-Control: ${cacheControl}`)
     }
 
-    return newRes
-  })
-}
+    yield* Console.log(`Setting cache time to ${cacheTime}`)
+    newRes.headers.set('Cache-Control', `s-maxage=${cacheTime}`)
+  }
+
+  return newRes
+})
