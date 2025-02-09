@@ -26,7 +26,7 @@ export const IntegrationControl = () => {
         )}
         loading={setIntegration.isPending}
         options={policies}
-        value={activeIntegration}
+        value={activeIntegration || null}
         getOptionLabel={(option) => option.name}
         isOptionEqualToValue={(option, value) => option.id === value?.id}
         onChange={(_, value) => {
