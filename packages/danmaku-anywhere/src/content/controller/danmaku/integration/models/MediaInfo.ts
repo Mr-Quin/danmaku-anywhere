@@ -22,9 +22,9 @@ export class MediaInfo {
   }
 
   key() {
-    if (this.season === undefined) return `${this.title}`
+    if (this.season === undefined) return `${this.title.trim()}`
 
-    return `${this.title} ${this.season}`
+    return `${this.title.trim()} ${this.season.trim()}`
   }
 
   toString() {
