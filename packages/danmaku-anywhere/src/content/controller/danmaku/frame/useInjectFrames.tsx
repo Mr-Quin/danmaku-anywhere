@@ -6,7 +6,7 @@ import { controlQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useStore } from '@/content/controller/store/store'
 
-const urlBlacklist = ['about:blank']
+const urlBlacklist = ['about:blank', 'google.com']
 
 export const useInjectFrames = () => {
   const { allFrames, addFrame, removeFrame, activeFrame, setActiveFrame } =
@@ -22,7 +22,7 @@ export const useInjectFrames = () => {
     queryKey: controlQueryKeys.allFrames(),
     select: (res) => {
       return res.data.filter((frame) => {
-        return !urlBlacklist.includes(frame.url)
+        return !urlBlacklist.some((url) => frame.url.includes(url))
       })
     },
     staleTime: Infinity,
@@ -44,6 +44,7 @@ export const useInjectFrames = () => {
       addFrame({
         frameId: frame.frameId,
         url: frame.url,
+        documentId: frame.documentId,
       })
       // If there is no active frame, set the first frame as active
       if (!activeFrame) setActiveFrame(frame.frameId)
@@ -60,7 +61,22 @@ export const useInjectFrames = () => {
 
     // inject script into all frames
     frames.forEach((frame) => {
-      if (injectedFrames.has(frame.frameId)) return
+      if (injectedFrames.has(frame.frameId)) {
+        // if documentId is different, it means the frame has been reloaded, we need to re-inject
+        const existingFrame = allFrames.get(frame.frameId)
+        if (existingFrame?.documentId !== frame.documentId) {
+          Logger.debug('Frame reloaded, re-injecting', frame)
+          injectFrameMutation.mutate(frame)
+          // remove and re-add the frame to update the documentId
+          removeFrame(frame.frameId)
+          addFrame({
+            frameId: frame.frameId,
+            url: frame.url,
+            documentId: frame.documentId,
+          })
+          return
+        }
+      }
       injectFrameMutation.mutate(frame)
     })
 

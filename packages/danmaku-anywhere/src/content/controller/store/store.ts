@@ -13,6 +13,7 @@ enableMapSet()
 
 interface FrameState {
   frameId: number
+  documentId: string
   // The url of the frame
   url: string
   // Whether the danmaku manager has started in this frame
@@ -91,7 +92,7 @@ interface StoreState {
     activeFrame?: FrameState
     mustGetActiveFrame: () => FrameState
     setActiveFrame: (frameId: number) => void
-    addFrame: (init: Pick<FrameState, 'frameId' | 'url'>) => void
+    addFrame: (init: Pick<FrameState, 'frameId' | 'url' | 'documentId'>) => void
     removeFrame: (frameId: number) => void
     updateFrame: (
       frameId: number,
@@ -242,11 +243,12 @@ const useStoreBase = create<StoreState>()(
           state.frame.activeFrame = selectedFrame
         })
       },
-      addFrame: ({ frameId, url }) => {
+      addFrame: ({ frameId, url, documentId }) => {
         set((state) => {
           state.frame.allFrames.set(frameId, {
             frameId,
             url,
+            documentId,
             started: false,
             mounted: false,
             hasVideo: false,
