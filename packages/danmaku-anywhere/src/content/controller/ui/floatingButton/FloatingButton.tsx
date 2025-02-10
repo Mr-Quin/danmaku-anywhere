@@ -90,59 +90,61 @@ export const FloatingButton = forwardRef<
 
   return (
     <ClickAwayListener onClickAway={handleCloseContextMenu}>
-      <DraggableContainer
-        anchorEl={fabAnchor.current}
-        initialOffset={{ x: 0, y: 0 }}
-        sx={{
-          zIndex: 1401,
-        }}
-        onTap={(e) => {
-          handleTap(e.clientX, e.clientY)
-        }}
-      >
-        {({ bind }) => {
-          return (
-            <Fade
-              in={isIn}
-              unmountOnExit={false}
-              style={{
-                pointerEvents: isIn ? 'auto' : 'none',
-              }}
-            >
-              <div
-                {...bind()}
+      <div>
+        <DraggableContainer
+          anchorEl={fabAnchor.current}
+          initialOffset={{ x: 0, y: 0 }}
+          sx={{
+            zIndex: 1401,
+          }}
+          onTap={(e) => {
+            handleTap(e.clientX, e.clientY)
+          }}
+        >
+          {({ bind }) => {
+            return (
+              <Fade
+                in={isIn}
+                unmountOnExit={false}
                 style={{
-                  touchAction: 'none',
+                  pointerEvents: isIn ? 'auto' : 'none',
                 }}
               >
-                <StyledFab
-                  size="small"
-                  onContextMenu={handleContextMenu}
-                  ref={mergedFabRefs}
-                  color={dialColor}
-                  hover={fabHover}
-                  onMouseOver={() => setFabHover(true)}
-                  onMouseOut={() => setFabHover(false)}
+                <div
+                  {...bind()}
+                  style={{
+                    touchAction: 'none',
+                  }}
                 >
-                  <SpeedDialIcon />
-                  <LoadingRing isLoading={isLoading} />
-                </StyledFab>
-                {fabRef.current && (
-                  <FabLoadingIndicator
-                    anchor={fabRef.current}
-                    isLoading={isLoading}
-                  />
-                )}
-                <FabContextMenu
-                  open={contextMenuAnchor !== null}
-                  anchorEl={contextMenuAnchor}
-                  sx={{ zIndex: 1402 }}
-                />
-              </div>
-            </Fade>
-          )
-        }}
-      </DraggableContainer>
+                  <StyledFab
+                    size="small"
+                    onContextMenu={handleContextMenu}
+                    ref={mergedFabRefs}
+                    color={dialColor}
+                    hover={fabHover}
+                    onMouseOver={() => setFabHover(true)}
+                    onMouseOut={() => setFabHover(false)}
+                  >
+                    <SpeedDialIcon />
+                    <LoadingRing isLoading={isLoading} />
+                  </StyledFab>
+                  {fabRef.current && (
+                    <FabLoadingIndicator
+                      anchor={fabRef.current}
+                      isLoading={isLoading}
+                    />
+                  )}
+                </div>
+              </Fade>
+            )
+          }}
+        </DraggableContainer>
+        <FabContextMenu
+          open={contextMenuAnchor !== null}
+          anchorEl={contextMenuAnchor}
+          sx={{ zIndex: 1402 }}
+        />
+      </div>
     </ClickAwayListener>
   )
 })
