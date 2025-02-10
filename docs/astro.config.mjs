@@ -67,7 +67,7 @@ export default defineConfig({
             {
               label: 'integration-policy',
               translations: {
-                'zh-CN': '适配配置',
+                'zh-CN': '适配规则',
                 en: 'Integration Policy',
               },
               link: '/docs/integration-policy',
@@ -98,6 +98,11 @@ export default defineConfig({
               link: '/development/limitations',
             },
           ],
+        },
+        {
+          label: 'change-log',
+          translations: { 'zh-CN': '更新日志', en: 'Change Log' },
+          link: '/change-log',
         },
         {
           label: 'plex-danmaku',

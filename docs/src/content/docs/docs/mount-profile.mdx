@@ -21,14 +21,14 @@ description: 装填配置
 
 ## 适配
 
-用于关联[适配配置](/docs/integration-policy)。
+用于关联[适配规则](/docs/integration-policy)。
 
-## 网址（URL模式）
+## 网址（URL 模式）
 
-:::caution[关于iframe]
-从v0.16.0起，不再区分iframe和非iframe，URL模式一律按主页面地址（即地址栏中的地址）填写。
+:::caution[关于 iframe]
+从 v0.16.0 起，不再区分 iframe 和非 iframe，URL 模式一律按主页面地址（即地址栏中的地址）填写。
 
-v0.16.0之前的版本，如果视频嵌套在iframe中，需要填写iframe的地址，而不是网页本身的地址。
+v0.16.0 之前的版本，如果视频嵌套在 iframe 中，需要填写 iframe 的地址，而不是网页本身的地址。
 :::
 
 相当于一个白名单，只有在这些网址上扩展才会生效。
@@ -39,22 +39,23 @@ v0.16.0之前的版本，如果视频嵌套在iframe中，需要填写iframe的�
 基本上，如果希望匹扩展在`https://www.example.com`上生效，那么模式填写 `https://www.example.com/*` 或者 `https://*.example.com/*` 即可。
 :::
 
-拿B站举例：
+拿 B站举例：
 
-| 模式                           | 可以匹配的网址                                                                                                                                                | 说明                                   |
-|------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------|
-| `https://www.bilibili.com/`  | `https://www.bilibili.com/`                                                                                                                            | 仅匹配B站首页                              |
+| 模式                         | 可以匹配的网址                                                                                                                                         | 说明                                          |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------- |
+| `https://www.bilibili.com/`  | `https://www.bilibili.com/`                                                                                                                            | 仅匹配 B站首页                               |
 | `https://www.bilibili.com/*` | `https://www.bilibili.com/` <br></br> `https://www.bilibili.com/video/BV1FrCqYXEas`                                                                    | 匹配所有`https://www.bilibili.com/`开头的网址 |
-| `https://*.bilibili.com/*`   | `https://www.bilibili.com/` <br></br> `https://space.bilibili.com/114514` <br></br> `https://live.bilibili.com/35` <br></br> `https://t.bilibili.com/` | 匹配所有B站子域名，包括动态、空间、直播等                |
+| `https://*.bilibili.com/*`   | `https://www.bilibili.com/` <br></br> `https://space.bilibili.com/114514` <br></br> `https://live.bilibili.com/35` <br></br> `https://t.bilibili.com/` | 匹配所有 B站子域名，包括动态、空间、直播等   |
 
 其他例子：
-- ip地址：`http://10.0.0.1/*`
+
+- ip 地址：`http://10.0.0.1/*`
 - 含端口：`http://10.0.0.1:8080/*`
 - 任意端口：`http://10.0.0.1:*/*`
 - 本地服务器：`http://localhost/*`
 - 本地`mp4`文件（注意三斜杠）：`file:///*.mp4`
   - 需要在扩展的设置中启用本地文件访问权限
-- 任意HTTPS地址：`https://*/*`
+- 任意 HTTPS 地址：`https://*/*`
 
 :::note
 模式结尾必须包含 `/`，比如 `/`、`/*`、`/abc`，否则会提示格式错误。

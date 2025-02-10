@@ -9,15 +9,13 @@ description: 弹幕管理
 
 有三种方式可以获取弹幕：
 
-### 内置搜索
+### 弹幕搜索
 
-扩展的搜索功能可以从第三方弹幕源中获取弹幕。
+搜索功能依赖以下弹幕源
 
-支持的第三方弹幕源有：
-
-- [弹弹 Play](https://www.dandanplay.com/)（默认）
-- [B站](https://www.bilibili.com/)
-- [腾讯](https://v.qq.com/)
+##### [弹弹Play](https://www.dandanplay.com/)（默认）
+#####  [B站](https://www.bilibili.com/)
+#####  [腾讯](https://v.qq.com/)
 
 搜索结果只包含影视类视频，不包含其他如用户上传的视频。
 
@@ -26,7 +24,8 @@ description: 弹幕管理
 未来会添加对更多弹幕源的支持。
 
 :::caution[关于搜索]
-除**弹弹Play**外，其他弹幕源的搜索使用的是非公开的接口，可能会受到以下因素的影响：
+除**弹弹Play**外，其他弹幕源的搜索使用的是非开放的接口，可能会受到以下因素的影响：
+
 - 对应网站的登录状态
 - 地域、代理、VPN 等网络因素
 
@@ -40,6 +39,7 @@ description: 弹幕管理
 扩展可以解析视频地址，从而获取该视频的弹幕。
 
 支持的视频地址格式
+
 - B站:
 - https://www.bilibili.com/bangumi/play/ss12345
 - https://www.bilibili.com/bangumi/play/ep12345
@@ -47,7 +47,6 @@ description: 弹幕管理
 - https://v.qq.com/x/cover/abc123/def456.html
 
 受到与**内置搜索**相同的限制，只支持影视类视频。
-
 
 ### 用户上传
 
