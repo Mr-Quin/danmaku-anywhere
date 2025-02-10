@@ -1,7 +1,27 @@
 ---
-title: 适配配置
-description: 适配配置
+title: 适配规则
+description: 适配规则
 ---
+
+:::note
+v0.19.0 起可以使用 AI 自动适配功能，无需手动编写规则。
+:::
+
+## AI 自动适配
+
+使用 AI 从网页中提取正在播放的番剧信息。
+
+目前测试下来效果还不错，但是受网页结构影响较大，可能需要修正标题和集数。如果匹配结果一直有问题，请反馈问题。
+
+**注意事项：**
+
+- 向服务器发送的信息中可能包含当前网页的 URL，如果是私人网站可能会暴露地址，请注意隐私。
+- 服务器端保留 7 天内的请求记录，用于调试和分析。
+- 由于使用的是免费的 AI 服务，调用次数限制较低，可能会出现调用失败的情况。
+
+如果无法使用 AI 自动适配，也可以手动编写适配规则。
+
+## XPath 规则
 
 基于规则的，可自定义的适配方案，用于在网页上采集番剧信息从而实现弹幕的自动匹配。
 
@@ -9,13 +29,13 @@ description: 适配配置
 编写规则有一定门槛，请确保您对`XPath`和正则表达式`regex`有基础的了解。
 :::
 
-## 基本概念
+### 基本概念
 
-### 番剧信息
+#### 番剧信息
 
-弹幕的自动匹配需要4个基本信息
+弹幕的自动匹配需要 4 个基本信息
 
-适配配置允许用户为单独为每个信息提供`XPath`和`regex`
+适配规则允许用户为单独为每个信息提供`XPath`和`regex`
 
 ##### 番剧标题
 
@@ -27,7 +47,7 @@ description: 适配配置
 
 **必须**
 
-当前播放的是第几集。非分集视频（如电影）可忽略。默认为1。分集视频则**必须**提供，否则无法正确匹配弹幕。
+当前播放的是第几集。非分集视频（如电影）可忽略。默认为 1。分集视频则**必须**提供，否则无法正确匹配弹幕。
 
 必须为阿拉伯数字，不支持非数字的集数，如“第一集”。
 
@@ -63,12 +83,14 @@ description: 适配配置
 ```
 
 四个信息分别为：
+
 - 番剧标题：【我推的孩子】
 - 季：第二季
-- 集数：01（转换为数字时为1）
+- 集数：01（转换为数字时为 1）
 - 单集标题：情感演技
 
 或者
+
 - 番剧标题：【我推的孩子】 第二季
 - 季：(空)
 - 集数：01
@@ -84,16 +106,12 @@ description: 适配配置
 
 扩展会监视选择到的节点，当节点的文本发生变化时，扩展会重新提取信息，以此判断是否需要更新弹幕。
 
-一个适配配置可以包含至多4个规则，分别对应上述4个番剧信息。每个规则可以包含多条`XPath`和`regex`。
-
-:::tip
-节点不一定是元素`Node.ELEMENT_NODE`，也可以是属性`Node.ATTRIBUTE_NODE`
-:::
-
+一个适配规则可以包含至多 4 个规则，分别对应上述 4 个番剧信息。每个规则可以包含多条`XPath`和`regex`。
 
 **注意事项**
-- 适配配置需要和装填配置关联（装填配置中选择）
-- 适配配置只在存在视频时生效
+
+- 适配规则需要和装填配置关联（装填配置中选择）
+- 适配规则只在存在视频时生效
 - `regex`固定包含`i`标志，表示忽略大小写
 - `XPath`和`regex`存在多个时，取第一个成功匹配的
 - 如果`XPath`选择到多个节点，取第一个
@@ -102,7 +120,7 @@ description: 适配配置
 
 ## 编写规则
 
-由于网页的结构各不相同，适配配置需要根据网页的结构编写。
+由于网页的结构各不相同，适配规则需要根据网页的结构编写。
 
 这里考虑两种情况：信息全部在**一个节点**中和信息分散在**多个节点**中。
 
@@ -110,20 +128,26 @@ description: 适配配置
 
 默认，也是最普遍的情况。所有信息都存在于一个节点中，这个节点通常是标题。
 
-在表单中表现为勾选 *仅使用标题匹配* 选项。
+在表单中表现为勾选 _仅使用标题匹配_ 选项。
 
 #### 举个简单的例子
 
 假设网页上有这样一个标题：
 
 <div>
-  <p id="anime-title-1" class='title' style={{
-    backgroundColor: '#e6e6e6',
-    color: '#000',
-    padding: '10px',
-    borderRadius: '5px',
-    width: 'fit-content',
-  }}>败犬女主太多了！ 第03集 在战斗开始前就输了</p>
+  <p
+    id="anime-title-1"
+    class="title"
+    style={{
+      backgroundColor: '#e6e6e6',
+      color: '#000',
+      padding: '10px',
+      borderRadius: '5px',
+      width: 'fit-content',
+    }}
+  >
+    败犬女主太多了！ 第03集 在战斗开始前就输了
+  </p>
 </div>
 
 对应`HTML`
@@ -137,15 +161,19 @@ description: 适配配置
 这个标题包含了番剧标题、集数和单集标题。
 
 从这个标题中提取信息可以使用以下`XPath`：
+
 ```text
 //*[@id="anime-title-1"]
 ```
 
 和以下`regex`：
+
 ```regex
 (?<title>.+) 第(?<episode>\d+)集 (?<episodeTitle>.*)
 ```
+
 提取的信息为：
+
 ```json
 {
   "title": "败犬女主太多了！",
@@ -157,28 +185,35 @@ description: 适配配置
 :::note
 此处用到了命名捕获组。在单个节点的情况下，必须使用命名捕获组来告诉扩展哪个捕获组对应哪个信息。
 
-| **信息类型** | **命名捕获组** |
-|--------------|----------------|
-| 番剧标题     |  `(?<title>)` |
-| 集数         |  `(?<episode>)` |
-| 季         |  `(?<season>)` |
-| 单集标题     |  `(?<episodeTitle>)` |
+| **信息类型** | **命名捕获组**      |
+| ------------ | ------------------- |
+| 番剧标题     | `(?<title>)`        |
+| 集数         | `(?<episode>)`      |
+| 季           | `(?<season>)`       |
+| 单集标题     | `(?<episodeTitle>)` |
+
 :::
 
 <hr />
 
 #### 再举一个稍复杂的例子：
 
-<div id='anime-title-2' className='anime-title' data-title={'败犬女主太多了！ 第03集 在战斗开始前就输了'}>
-  <p style={{
-    backgroundColor: '#e6e6e6',
-    color: '#000',
-    padding: '10px',
-    borderRadius: '5px',
-    display: 'inline-flex',
-    gap: '4px',
-  }}>
-    <span style={{ fontWeight: 'bold', }}>败犬女主太多了！</span>
+<div
+  id="anime-title-2"
+  className="anime-title"
+  data-title={'败犬女主太多了！ 第03集 在战斗开始前就输了'}
+>
+  <p
+    style={{
+      backgroundColor: '#e6e6e6',
+      color: '#000',
+      padding: '10px',
+      borderRadius: '5px',
+      display: 'inline-flex',
+      gap: '4px',
+    }}
+  >
+    <span style={{ fontWeight: 'bold' }}>败犬女主太多了！</span>
     <span style={{ color: '#999' }}>第03集</span>
     <span>在战斗开始前就输了</span>
   </p>
@@ -187,7 +222,11 @@ description: 适配配置
 对应`HTML`
 
 ```html
-<div id="anime-title-2" class="anime-title" data-title="败犬女主太多了！ 第03集 在战斗开始前就输了">
+<div
+  id="anime-title-2"
+  class="anime-title"
+  data-title="败犬女主太多了！ 第03集 在战斗开始前就输了"
+>
   <p>
     <span>败犬女主太多了！</span>
     <span>第03集</span>
@@ -200,6 +239,7 @@ description: 适配配置
 和上面的例子的区别在于这里的空格并非空格符，而是`CSS`样式，需调整`regex`。
 
 另外可以发现`div`中有一个`data-title`属性，这个属性包含了所有信息，也可以选择这个属性。
+
 ```
 //div/@data-title
 ```
@@ -211,12 +251,16 @@ description: 适配配置
 
 即信息分散在多个节点中，这种情况下可以单独提供每个信息的`XPath`和`regex`。
 
-在表单中表现为取消勾选 *仅使用标题匹配* 选项。
+在表单中表现为取消勾选 _仅使用标题匹配_ 选项。
 
 接着用上面的例子
 
 ```html
-<div id="anime-title-2" class="anime-title" data-title="败犬女主太多了！ 第03集 在战斗开始前就输了">
+<div
+  id="anime-title-2"
+  class="anime-title"
+  data-title="败犬女主太多了！ 第03集 在战斗开始前就输了"
+>
   <p>
     <span>败犬女主太多了！</span>
     <span>第03集</span>
@@ -232,6 +276,7 @@ description: 适配配置
 ```text
 //*[@id="anime-title-2"]/p/span[1]
 ```
+
 ```regex
 .*
 ```
@@ -241,6 +286,7 @@ description: 适配配置
 ```text
 //*[@id="anime-title-2"]/p/span[2]
 ```
+
 ```regex
 第(\d+)集
 ```
@@ -250,6 +296,7 @@ description: 适配配置
 ```text
 //*[@id="anime-title-2"]/p/span[3]
 ```
+
 ```regex
 .*
 ```

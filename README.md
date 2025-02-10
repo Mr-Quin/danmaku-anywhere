@@ -49,3 +49,5 @@ Firefox和更详细的说明请看 [快速上手](https://danmaku.weeblify.app/g
 见[开发文档](https://danmaku.weeblify.app/development/structure/)
 
 **本项目以学习扩展开发为目的，非商业用途。本项目与任何视频网站无关。**
+
+群 531237584
