@@ -42,6 +42,9 @@ jobs:
           pnpm package
           pnpm build:firefox
           pnpm package:firefox
+        env:
+          VITE_PROXY_ORIGIN: ${{ vars.VITE_PROXY_ORIGIN }}
+          VITE_PROXY_URL: ${{ vars.VITE_PROXY_URL }}
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
