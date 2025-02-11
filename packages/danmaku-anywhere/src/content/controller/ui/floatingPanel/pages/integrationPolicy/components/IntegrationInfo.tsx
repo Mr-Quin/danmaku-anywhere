@@ -1,7 +1,8 @@
 import { CheckOutlined, CloseOutlined } from '@mui/icons-material'
-import { Box, Divider, Icon, Stack, styled, Typography } from '@mui/material'
+import { Box, Divider, Icon, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
+import { FancyTypography } from '@/common/components/FancyTypography'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useStore } from '@/content/controller/store/store'
 import { IntegrationControl } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/IntegrationControl'
@@ -11,18 +12,6 @@ interface StatusIndicatorProps {
   active: boolean
   fancy?: boolean
 }
-
-const FancyTypography = styled(Typography, {
-  shouldForwardProp: (prop) => prop !== 'fancy',
-})<{ fancy?: boolean }>(({ fancy }) => ({
-  ...(fancy && {
-    // backgroundImage: 'linear-gradient(72deg, #000000, #000000)',
-    WebkitBackgroundClip: 'text',
-    backgroundClip: 'text',
-    // color: 'transparent',
-    fontWeight: 'bold',
-  }),
-}))
 
 const StatusIndicator = ({ text, active, fancy }: StatusIndicatorProps) => {
   return (
