@@ -18,6 +18,7 @@ interface Notification {
   actionLabel?: string
   key: string
   open: boolean
+  paused: boolean
 }
 
 interface Toast {
@@ -31,12 +32,14 @@ interface ToastStoreState {
   notifications: Notification[]
   // Add a new notification to the list
   enqueue: (
-    notification: Omit<Notification, 'key' | 'open' | 'position'>
+    notification: Omit<Notification, 'key' | 'open' | 'position' | 'paused'>
   ) => void
   // Mark the notification as closed without removing it from the list
   close: (key: string) => void
   // Remove the notification from the list
   dequeue: (key: string) => void
+  pause: (key: string) => void
+  unpause: (key: string) => void
   toast: Toast
 }
 
@@ -50,6 +53,26 @@ const toastStore = create<ToastStoreState>((set, get) => ({
       return n
     })
     set({ notifications })
+  },
+  pause: (key) => {
+    set({
+      notifications: get().notifications.map((n) => {
+        if (n.key === key) {
+          return { ...n, paused: true }
+        }
+        return n
+      }),
+    })
+  },
+  unpause: (key) => {
+    set({
+      notifications: get().notifications.map((n) => {
+        if (n.key === key) {
+          return { ...n, paused: false }
+        }
+        return n
+      }),
+    })
   },
   dequeue: (key) => {
     set({ notifications: get().notifications.filter((n) => n.key !== key) })
@@ -70,8 +93,9 @@ const toastStore = create<ToastStoreState>((set, get) => ({
           duration,
           actionFn,
           actionLabel,
-          key: `${Date.now()}-${Math.random()}`,
+          key: `${performance.now()}-${Math.random()}`,
           open: true,
+          paused: false,
         },
       ],
     })
