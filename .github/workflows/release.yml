@@ -33,8 +33,6 @@ jobs:
           pnpm install
           pnpm build
         env:
-          VITE_DANDANPLAY_APP_ID: ${{ secrets.VITE_DANDANPLAY_APP_ID }}
-          VITE_DANDANPLAY_APP_SECRET: ${{ secrets.VITE_DANDANPLAY_APP_SECRET }}
           VITE_PROXY_ORIGIN: ${{ vars.VITE_PROXY_ORIGIN }}
           VITE_PROXY_URL: ${{ vars.VITE_PROXY_URL }}
 
