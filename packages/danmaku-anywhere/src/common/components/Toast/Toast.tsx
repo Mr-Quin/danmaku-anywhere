@@ -7,15 +7,18 @@ import { useToast } from './toastStore'
 interface ToastProps {
   snackbarProps?: SnackbarProps
   stackable?: boolean
+  disableCloseOnClickAway?: boolean
 }
 
 interface AlertWithIndicatorProps {
   duration?: number
+  pause?: boolean
 }
 
 const AlertWithIndicator = styled(Alert)<AlertWithIndicatorProps>(({
   severity,
   duration,
+  pause,
   theme,
 }) => {
   if (!duration) return {}
@@ -42,13 +45,14 @@ const AlertWithIndicator = styled(Alert)<AlertWithIndicatorProps>(({
             return theme.palette.action.disabled
         }
       })(),
-      opacity: 0.5,
+      opacity: pause ? 0.2 : 0.5,
       transition: 'width linear',
       transitionDuration: `${duration}ms`,
       animation: 'reduceWidth',
       animationDuration: `${duration}ms`,
       animationTimingFunction: 'linear',
       animationFillMode: 'forwards',
+      animationPlayState: pause ? 'paused' : 'running',
     },
 
     '@keyframes reduceWidth': {
@@ -58,27 +62,44 @@ const AlertWithIndicator = styled(Alert)<AlertWithIndicatorProps>(({
   }
 })
 
+interface StackableSnackbarProps {
+  stackable?: boolean
+  index?: number
+}
+
+const StackableSnackbar = styled(Snackbar)<StackableSnackbarProps>(({
+  stackable,
+  index,
+}) => {
+  if (!stackable || index === undefined) return {}
+  return {
+    '&.MuiSnackbar-root': {
+      bottom: `${20 + index * 60}px`,
+      transition: 'bottom 0.3s ease-in-out',
+    },
+  }
+})
+
 export const Toast = (props: ToastProps) => {
-  const { close, dequeue, notifications } = useToast(
+  const { close, dequeue, notifications, pause, unpause } = useToast(
     useShallow((state) => state)
   )
+  console.log(notifications)
 
   return notifications.map(
-    ({ key, message, duration, severity, actionLabel, actionFn, open }, i) => {
-      const sx = props.stackable
-        ? {
-            '&.MuiSnackbar-root': { bottom: `${20 + i * 60}px` },
-          }
-        : undefined
-
+    (
+      { key, message, duration, severity, actionLabel, actionFn, open, paused },
+      i
+    ) => {
       return (
-        <Snackbar
+        <StackableSnackbar
+          stackable={props.stackable}
+          index={i}
           open={open}
           key={key}
-          sx={sx}
           autoHideDuration={duration}
           onClose={(_, reason) => {
-            if (reason === 'clickaway') return
+            if (reason === 'clickaway' && props.disableCloseOnClickAway) return
             close(key)
           }}
           TransitionProps={{
@@ -92,6 +113,9 @@ export const Toast = (props: ToastProps) => {
           <AlertWithIndicator
             duration={duration}
             onClose={() => close(key)}
+            onMouseOver={() => pause(key)}
+            onMouseLeave={() => unpause(key)}
+            pause={paused}
             severity={severity}
             sx={{ width: '100%' }}
             action={
@@ -113,7 +137,7 @@ export const Toast = (props: ToastProps) => {
           >
             {message}
           </AlertWithIndicator>
-        </Snackbar>
+        </StackableSnackbar>
       )
     }
   )
