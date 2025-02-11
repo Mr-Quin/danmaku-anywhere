@@ -9,6 +9,7 @@ import {
 import { Controller, useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
+import { FancyTypography } from '@/common/components/FancyTypography'
 import type { IntegrationInput } from '@/common/options/integrationPolicyStore/schema'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import type { ArrayFieldNames } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/InputFieldArray'
@@ -66,6 +67,9 @@ export const IntegrationForm = ({ onOpenSelector }: IntegrationFormProps) => {
               )}
             />
           }
+          slots={{
+            typography: FancyTypography,
+          }}
           label={t('integrationPolicyPage.editor.useAI')}
         />
         <FormHelperText>
