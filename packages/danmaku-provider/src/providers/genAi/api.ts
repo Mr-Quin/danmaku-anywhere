@@ -29,5 +29,9 @@ export const extractTitle = async (
     throw new Error(res.message)
   }
 
+  if (res.result.title.trim().length === 0) {
+    throw new Error('No title found')
+  }
+
   return res.result
 }
