@@ -6,11 +6,6 @@ const browser = process.env.VITE_TARGET_BROWSER ?? 'chrome'
 
 const dev = process.env.NODE_ENV === 'development'
 
-console.log('Building for', {
-  browser,
-  dev,
-})
-
 export const manifest = defineManifest({
   manifest_version: 3,
   name: '__MSG_extName__',
