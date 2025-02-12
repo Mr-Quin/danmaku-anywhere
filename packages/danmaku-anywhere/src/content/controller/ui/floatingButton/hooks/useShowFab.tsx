@@ -21,28 +21,20 @@ export const useShowFab = () => {
   }, [])
 
   useEffect(() => {
-    const handleMouseMove = () => {
+    const handleTouch: EventListener = () => {
       handleShowFab()
     }
 
-    window.addEventListener('mousemove', handleMouseMove)
+    if (!isTouch) {
+      window.addEventListener('mousemove', handleTouch)
+    }
+    window.addEventListener('touchmove', handleTouch, { capture: true })
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!isTouch) return
-
-    const handleTouchStart = () => {
-      handleShowFab()
-    }
-
-    window.addEventListener('touchstart', handleTouchStart)
-
-    return () => {
-      window.removeEventListener('touchstart', handleTouchStart)
+      if (!isTouch) {
+        window.removeEventListener('mousemove', handleTouch)
+      }
+      window.removeEventListener('touchmove', handleTouch, { capture: true })
     }
   }, [isTouch])
 

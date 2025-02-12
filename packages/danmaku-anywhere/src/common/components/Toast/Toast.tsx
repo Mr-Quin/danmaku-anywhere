@@ -84,7 +84,6 @@ export const Toast = (props: ToastProps) => {
   const { close, dequeue, notifications, pause, unpause } = useToast(
     useShallow((state) => state)
   )
-  console.log(notifications)
 
   return notifications.map(
     (
