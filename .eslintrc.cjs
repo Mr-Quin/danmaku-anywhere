@@ -57,6 +57,13 @@ module.exports = {
       },
     },
   ],
-  ignorePatterns: ['node_modules', 'dist', 'build', 'plex-danmaku', 'public'],
+  ignorePatterns: [
+    'node_modules',
+    'dist',
+    'build',
+    'plex-danmaku',
+    'public',
+    'dev',
+  ],
   root: true,
 }

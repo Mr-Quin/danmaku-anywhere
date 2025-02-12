@@ -7,6 +7,13 @@ import { manifest } from './manifest'
 
 const browser = process.env.VITE_TARGET_BROWSER ?? 'chrome'
 
+const dev = process.env.NODE_ENV === 'development'
+
+console.log('Building for', {
+  browser,
+  dev,
+})
+
 // eslint-disable-next-line import/no-unused-modules
 export default defineConfig({
   // @ts-ignore
@@ -30,6 +37,7 @@ export default defineConfig({
         app: 'pages/popup.html',
       },
     },
+    outDir: `./dev/${browser}`,
     minify: true,
     // the minimum to support top-level await
     target: ['es2022', 'edge89', 'firefox89', 'chrome89', 'safari15'],
