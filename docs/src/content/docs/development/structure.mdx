@@ -20,11 +20,11 @@ https://github.com/Mr-Quin/danmaku-anywhere
 
 本项目为`pnpm`多包管理项目。
 
-完全使用`TypeScript`编写，使用`vite`进行构建。UI 库为`react`。
-
 <FileTree>
 
 - docs/ - 文档（本站）
+- backend
+  - proxy/ - Cloudflare Worker，用于与弹弹Play API交互，以及提供AI服务
 - packages/
   - **danmaku-anywhere/** - 扩展主体
     - src/
@@ -35,7 +35,7 @@ https://github.com/Mr-Quin/danmaku-anywhere
       - popup/ - 弹出窗口
   - danmaku-converter/ - 各弹幕来源的类型定义和验证
   - danmaku-engine/ - 弹幕渲染器
-  - danmaku-provider/ - 和弹幕源 API 交互
+  - danmaku-provider/ - 和弹幕源API交互
 - package.json
 
 </FileTree>
