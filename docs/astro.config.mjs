@@ -64,13 +64,38 @@ export default defineConfig({
               },
               link: '/docs/danmaku',
             },
+          ],
+        },
+        {
+          label: 'integration-policy',
+          translations: {
+            'zh-CN': '适配规则',
+            en: 'Integration Policy',
+          },
+          items: [
             {
-              label: 'integration-policy',
+              label: 'overview',
               translations: {
-                'zh-CN': '适配规则',
-                en: 'Integration Policy',
+                'zh-CN': '概览',
+                en: 'Overview',
               },
-              link: '/docs/integration-policy',
+              link: '/integration-policy/overview',
+            },
+            {
+              label: 'ai',
+              translations: {
+                'zh-CN': 'AI自动适配',
+                en: 'AI',
+              },
+              link: '/integration-policy/ai',
+            },
+            {
+              label: 'xpath',
+              translations: {
+                'zh-CN': 'XPath规则',
+                en: 'XPath Policy',
+              },
+              link: '/integration-policy/xpath',
             },
           ],
         },
