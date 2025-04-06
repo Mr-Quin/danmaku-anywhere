@@ -1,12 +1,12 @@
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 import { configure } from '@danmaku-anywhere/danmaku-provider/ddp'
 
+import { Logger } from '@/common/Logger'
 import type { DanDanPlayDanmaku } from '@/common/danmaku/models/danmaku'
 import type {
   DanDanPlayMeta,
   DanDanPlayMetaDto,
 } from '@/common/danmaku/models/meta'
-import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { tryCatch } from '@/common/utils/utils'
 

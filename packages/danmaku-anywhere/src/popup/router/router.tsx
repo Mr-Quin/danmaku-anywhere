@@ -1,4 +1,4 @@
-import { createHashRouter, Navigate } from 'react-router'
+import { Navigate, createHashRouter } from 'react-router'
 
 import { ConfigPage } from '../pages/config/pages/ConfigPage'
 import { MountConfigEditor } from '../pages/config/pages/MountConfigEditor'

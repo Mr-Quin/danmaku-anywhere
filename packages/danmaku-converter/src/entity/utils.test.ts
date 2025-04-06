@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import type { CommentEntity, CommentMode } from './types.js'
 import { commentOptionsToString, parseCommentEntityP } from './utils.js'

@@ -6,7 +6,6 @@ export const useMergeRefs = <T>(...refs: Ref<T>[]): Ref<T> => {
       if (typeof ref === 'function') {
         ref(value)
       } else if (ref) {
-        // eslint-disable-next-line no-extra-semi
         ;(ref as MutableRefObject<T | null>).current = value
       }
     })

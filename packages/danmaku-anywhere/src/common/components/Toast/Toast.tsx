@@ -15,70 +15,66 @@ interface AlertWithIndicatorProps {
   pause?: boolean
 }
 
-const AlertWithIndicator = styled(Alert)<AlertWithIndicatorProps>(({
-  severity,
-  duration,
-  pause,
-  theme,
-}) => {
-  if (!duration) return {}
+const AlertWithIndicator = styled(Alert)<AlertWithIndicatorProps>(
+  ({ severity, duration, pause, theme }) => {
+    if (!duration) return {}
 
-  return {
-    '&::after': {
-      content: '""',
-      position: 'absolute',
-      left: 0,
-      bottom: 0,
-      width: '100%',
-      height: '3px',
-      backgroundColor: (() => {
-        switch (severity) {
-          case 'success':
-            return theme.palette.success.main
-          case 'info':
-            return theme.palette.info.main
-          case 'warning':
-            return theme.palette.warning.main
-          case 'error':
-            return theme.palette.error.main
-          default:
-            return theme.palette.action.disabled
-        }
-      })(),
-      opacity: pause ? 0.2 : 0.5,
-      transition: 'width linear',
-      transitionDuration: `${duration}ms`,
-      animation: 'reduceWidth',
-      animationDuration: `${duration}ms`,
-      animationTimingFunction: 'linear',
-      animationFillMode: 'forwards',
-      animationPlayState: pause ? 'paused' : 'running',
-    },
+    return {
+      '&::after': {
+        content: '""',
+        position: 'absolute',
+        left: 0,
+        bottom: 0,
+        width: '100%',
+        height: '3px',
+        backgroundColor: (() => {
+          switch (severity) {
+            case 'success':
+              return theme.palette.success.main
+            case 'info':
+              return theme.palette.info.main
+            case 'warning':
+              return theme.palette.warning.main
+            case 'error':
+              return theme.palette.error.main
+            default:
+              return theme.palette.action.disabled
+          }
+        })(),
+        opacity: pause ? 0.2 : 0.5,
+        transition: 'width linear',
+        transitionDuration: `${duration}ms`,
+        animation: 'reduceWidth',
+        animationDuration: `${duration}ms`,
+        animationTimingFunction: 'linear',
+        animationFillMode: 'forwards',
+        animationPlayState: pause ? 'paused' : 'running',
+      },
 
-    '@keyframes reduceWidth': {
-      '0%': { width: '100%' },
-      '100%': { width: '0%' },
-    },
+      '@keyframes reduceWidth': {
+        '0%': { width: '100%' },
+        '100%': { width: '0%' },
+      },
+    }
   }
-})
+)
 
 interface StackableSnackbarProps {
   stackable?: boolean
   index?: number
 }
 
-const StackableSnackbar = styled(Snackbar)<StackableSnackbarProps>(({
-  stackable,
-  index,
-}) => {
-  if (!stackable || index === undefined) return {}
-  return {
-    '&.MuiSnackbar-root': {
-      bottom: `${20 + index * 60}px`,
-      transition: 'bottom 0.3s ease-in-out',
-    },
+const StackableSnackbar = styled(Snackbar)<StackableSnackbarProps>(
+  ({ stackable, index }) => {
+    if (!stackable || index === undefined) return {}
+    return {
+      '&.MuiSnackbar-root': {
+        bottom: `${20 + index * 60}px`,
+        transition: 'bottom 0.3s ease-in-out',
+      },
+    }
   }
-})
+)
 
 export const Toast = (props: ToastProps) => {
   const { close, dequeue, notifications, pause, unpause } = useToast(

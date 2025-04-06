@@ -4,8 +4,8 @@ import type { DragEventHandler } from 'react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useToast } from '@/common/components/Toast/toastStore'
 import { Logger } from '@/common/Logger'
+import { useToast } from '@/common/components/Toast/toastStore'
 import { tryCatch } from '@/common/utils/utils'
 
 export interface FileContent {

@@ -7,8 +7,8 @@ import type {
   SearchAnimeDetails,
 } from '@danmaku-anywhere/danmaku-provider/ddp'
 import type {
-  TencentSearchResult,
   TencentEpisodeListItem,
+  TencentSearchResult,
 } from '@danmaku-anywhere/danmaku-provider/tencent'
 
 import type { DanmakuSourceType } from '@/common/danmaku/enums'

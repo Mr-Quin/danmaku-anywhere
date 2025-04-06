@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { Fragment } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { Logger } from '@/common/Logger'
 import { useToast } from '@/common/components/Toast/toastStore'
 import {
   DanmakuSourceType,
@@ -10,7 +11,6 @@ import {
 } from '@/common/danmaku/enums'
 import type { DanmakuInsert } from '@/common/danmaku/models/danmaku'
 import type { ImportParseResult } from '@/common/danmaku/types'
-import { Logger } from '@/common/Logger'
 import { danmakuQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ImportResultDialog } from '@/popup/pages/danmaku/pages/ImportPage/components/ImportResultDialog'

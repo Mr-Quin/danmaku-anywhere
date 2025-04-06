@@ -4,7 +4,7 @@ export default defineConfig({
   input: 'https://api.dandanplay.net/swagger/v2/swagger.json',
   output: {
     path: 'src/providers/ddp/code-gen',
-    format: 'prettier',
+    format: 'biome',
   },
   plugins: [
     {

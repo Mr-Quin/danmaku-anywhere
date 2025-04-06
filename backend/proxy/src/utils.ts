@@ -17,7 +17,7 @@ export const md5 = (message: string) => {
 }
 
 // https://developers.cloudflare.com/workers/examples/cache-post-request/
-export const getCacheKey = (request: Request, env: Env, message: string) => {
+export const getCacheKey = (request: Request, _env: Env, message: string) => {
   const hash = sha256(message)
   const cacheUrl = new URL(request.url)
 

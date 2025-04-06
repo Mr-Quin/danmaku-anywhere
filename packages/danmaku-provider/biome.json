@@ -1,0 +1,6 @@
+{
+  "extends": ["../../biome.base.json"],
+  "files": {
+    "ignore": ["**/code-gen", "**/protobuf.d.ts", "dist"]
+  }
+}

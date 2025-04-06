@@ -6,8 +6,8 @@ import {
 import { Box, ButtonGroup, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
-import { ColorMode } from '@/common/theme/enums'
 import { useThemeContext } from '@/common/theme/Theme'
+import { ColorMode } from '@/common/theme/enums'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 import { ThemeButton } from '@/popup/pages/options/pages/theme/ThemeButton'

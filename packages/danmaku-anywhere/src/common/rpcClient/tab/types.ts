@@ -7,7 +7,6 @@ export interface TabDanmakuState {
   manual: boolean
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type DanmakuMethods = {
   /**
    * Ping the tab to check if it's able to receive messages

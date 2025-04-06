@@ -1,4 +1,4 @@
-import Dexie from 'dexie'
+import { Dexie } from 'dexie'
 
 import type { Danmaku, DanmakuInsert } from '@/common/danmaku/models/danmaku'
 import type { TitleMapping } from '@/common/danmaku/models/titleMapping'

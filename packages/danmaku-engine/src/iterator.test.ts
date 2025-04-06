@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { sampleByTime, sampleFromBucket } from './iterator'
 
@@ -57,7 +57,6 @@ describe('sampleByTime', () => {
   })
 
   it('should handle an empty iterator gracefully', () => {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
     const iterator = (function* () {})()
 
     const sampledIterator = sampleByTime(iterator, 2, (item) => item)

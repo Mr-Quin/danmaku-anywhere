@@ -9,16 +9,16 @@ import {
 } from '../utils/index.js'
 
 import type {
-  BilibiliBangumiInfo,
   BiliBiliSearchParams,
-  BilibiliSearchResult,
   BiliBiliSearchType,
+  BilibiliBangumiInfo,
+  BilibiliSearchResult,
 } from './schema.js'
 import {
-  bilibiliUserInfoSchema,
   bilibiliBangumiInfoResponseSchema,
-  bilibiliSearchResponseSchema,
   bilibiliCommentSchemaProto,
+  bilibiliSearchResponseSchema,
+  bilibiliUserInfoSchema,
 } from './schema.js'
 import { ensureData } from './utils.js'
 

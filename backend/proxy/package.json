@@ -14,6 +14,7 @@
     "dev": "wrangler dev",
     "start": "wrangler dev",
     "test": "vitest",
+    "lint": "biome check --fix",
     "cf-typegen": "wrangler types --experimental-include-runtime"
   },
   "devDependencies": {

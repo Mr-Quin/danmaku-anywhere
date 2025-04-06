@@ -1,12 +1,12 @@
 import { produce } from 'immer'
 import { useMemo } from 'react'
 
+import type { Options } from '@/common/options/OptionsService/types'
 import type {
   Integration,
   IntegrationInput,
 } from '@/common/options/integrationPolicyStore/schema'
 import { mountConfigService } from '@/common/options/mountConfig/service'
-import type { Options } from '@/common/options/OptionsService/types'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import { createDownload, getRandomUUID } from '@/common/utils/utils'
 

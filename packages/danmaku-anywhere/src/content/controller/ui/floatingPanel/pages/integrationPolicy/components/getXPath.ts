@@ -108,7 +108,7 @@ const xPathIndex = function (node: Node): number {
     return 0
   } // Root node - no siblings.
   let hasSameNamedElements
-  // eslint-disable-next-line @typescript-eslint/prefer-for-of
+  // biome-ignore lint/style/useForOf: copied code
   for (let i = 0; i < siblings.length; ++i) {
     if (areNodesSimilar(node, siblings[i]) && siblings[i] !== node) {
       hasSameNamedElements = true
@@ -119,7 +119,7 @@ const xPathIndex = function (node: Node): number {
     return 0
   }
   let ownIndex = 1 // XPath indices start with 1.
-  // eslint-disable-next-line @typescript-eslint/prefer-for-of
+  // biome-ignore lint/style/useForOf: copied code
   for (let i = 0; i < siblings.length; ++i) {
     if (areNodesSimilar(node, siblings[i])) {
       if (siblings[i] === node) {

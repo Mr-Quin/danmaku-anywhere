@@ -1,7 +1,7 @@
 import {
+  CommentMode,
   zRgb888,
   zTime,
-  CommentMode,
 } from '@danmaku-anywhere/danmaku-converter'
 import { z } from 'zod'
 

@@ -1,4 +1,4 @@
-import { styled, Typography } from '@mui/material'
+import { Typography, styled } from '@mui/material'
 
 export const FancyTypography = styled(Typography, {
   shouldForwardProp: (prop) => prop !== 'fancy',

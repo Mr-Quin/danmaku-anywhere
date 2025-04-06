@@ -1,3 +1,4 @@
+import { UnsupportedProviderException } from '@/common/danmaku/UnsupportedProviderException'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
 import type {
@@ -6,7 +7,6 @@ import type {
   DanDanPlayMetaDto,
   DanmakuMeta,
 } from '@/common/danmaku/models/meta'
-import { UnsupportedProviderException } from '@/common/danmaku/UnsupportedProviderException'
 
 const getNextEpisodeId = (episodeId: number) => {
   return episodeId + 1

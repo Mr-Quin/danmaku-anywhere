@@ -4,14 +4,15 @@ import { BilibiliService } from '@/background/services/BilibiliService'
 import { DanDanPlayService } from '@/background/services/DanDanPlayService'
 import { TencentService } from '@/background/services/TencentService'
 import { TitleMappingService } from '@/background/services/TitleMappingService'
+import { Logger } from '@/common/Logger'
 import { CURRENT_SCHEMA_VERSION } from '@/common/danmaku/constants'
 import type {
+  CustomDanmakuCreateData,
   DanmakuDeleteDto,
-  DanmakuGetBySeasonDto,
   DanmakuFetchDto,
+  DanmakuGetBySeasonDto,
   DanmakuGetManyDto,
   DanmakuGetOneDto,
-  CustomDanmakuCreateData,
 } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type {
@@ -29,7 +30,6 @@ import {
   isDanmakuProvider,
 } from '@/common/danmaku/utils'
 import { db } from '@/common/db/db'
-import { Logger } from '@/common/Logger'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 export class DanmakuService {
@@ -222,7 +222,6 @@ export class DanmakuService {
       : this.ddpTable
 
     await collection.each((item) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { comments: _, ...rest } = item
 
       cache.push(rest)
@@ -239,7 +238,6 @@ export class DanmakuService {
     const res = await this.ddpTable.get(data)
 
     if (res) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { comments: _, ...rest } = res
       return rest satisfies DanmakuLite
     }

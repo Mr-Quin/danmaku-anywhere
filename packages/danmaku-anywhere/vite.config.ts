@@ -14,7 +14,6 @@ console.log('Building for', {
   dev,
 })
 
-// eslint-disable-next-line import/no-unused-modules
 export default defineConfig({
   // @ts-ignore
   plugins: [react({}), crx({ manifest, browser: browser })],
@@ -38,7 +37,7 @@ export default defineConfig({
       },
     },
     outDir: `./dev/${browser}`,
-    minify: true,
+    minify: browser !== 'firefox',
     // the minimum to support top-level await
     target: ['es2022', 'edge89', 'firefox89', 'chrome89', 'safari15'],
   },

@@ -8,14 +8,8 @@
     "moduleResolution": "NodeNext",
     "noImplicitAny": false
   },
-  "include": [
-    "./src"
-  ],
-  "exclude": [
-    "**/*.test.ts",
-    "**/test",
-    "**/code-gen"
-  ],
+  "include": ["./src"],
+  "exclude": ["**/*.test.ts", "**/test", "**/code-gen"],
   "references": [
     {
       "path": "../danmaku-converter"

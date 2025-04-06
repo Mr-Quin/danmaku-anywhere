@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
+import { Logger } from '@/common/Logger'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuGetOneDto } from '@/common/danmaku/dto'
 import { danmakuToString } from '@/common/danmaku/utils'
-import { Logger } from '@/common/Logger'
 import { danmakuQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { tabRpcClient } from '@/common/rpcClient/tab/client'

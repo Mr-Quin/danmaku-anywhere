@@ -1,0 +1,9 @@
+{
+  "extends": ["../../biome.base.json"],
+  "files": {
+    "ignore": ["dist"]
+  },
+  "javascript": {
+    "globals": ["ExecutionContext", "Env", "Request"]
+  }
+}

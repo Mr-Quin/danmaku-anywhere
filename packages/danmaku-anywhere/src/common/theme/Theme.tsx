@@ -1,8 +1,8 @@
 import { useMediaQuery } from '@mui/material'
 import type { ThemeOptions } from '@mui/material/styles'
-import { createTheme, ThemeProvider } from '@mui/material/styles'
+import { ThemeProvider, createTheme } from '@mui/material/styles'
 import { produce } from 'immer'
-import { createContext, type PropsWithChildren, use, useMemo } from 'react'
+import { type PropsWithChildren, createContext, use, useMemo } from 'react'
 
 import { tryCatchSync } from '../utils/utils'
 

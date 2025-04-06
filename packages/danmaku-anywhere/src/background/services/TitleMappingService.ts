@@ -1,6 +1,6 @@
+import { Logger } from '@/common/Logger'
 import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
 import { db } from '@/common/db/db'
-import { Logger } from '@/common/Logger'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 export class TitleMappingService {

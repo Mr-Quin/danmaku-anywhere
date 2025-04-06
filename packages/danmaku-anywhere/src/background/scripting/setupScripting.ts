@@ -1,15 +1,13 @@
-import { match, P } from 'ts-pattern'
+import { P, match } from 'ts-pattern'
 
 import { Logger } from '@/common/Logger'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { mountConfigService } from '@/common/options/mountConfig/service'
-/* eslint-disable import/no-restricted-paths, import/default */
 // the ?script query is used to get the file path for the script after bundling
 // @ts-expect-error
 import contentScript from '@/content/controller?script'
 // @ts-expect-error
 import testScript from '@/content/player?script'
-/* eslint-enable import/no-restricted-paths, import/default */
 
 const contentScriptId = 'main-content'
 

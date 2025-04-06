@@ -1,10 +1,10 @@
+import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { defaultXPathPolicies } from '@/common/options/integrationPolicyStore/constant'
 import type {
+  Integration,
   IntegrationV1,
   IntegrationV2,
-  Integration,
 } from '@/common/options/integrationPolicyStore/schema'
-import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 
 export const xPathPolicyStore = new OptionsService(
   'xpathPolicy',

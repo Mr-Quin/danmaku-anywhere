@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useToast } from '@/common/components/Toast/toastStore'
 import { Logger } from '@/common/Logger'
+import { useToast } from '@/common/components/Toast/toastStore'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'

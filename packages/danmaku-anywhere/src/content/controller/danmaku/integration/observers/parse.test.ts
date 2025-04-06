@@ -1,11 +1,11 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import type { Selector } from './parse'
 import {
+  parseMediaFromTitle,
   parseMediaNumber,
   parseMediaString,
   parseMultipleRegex,
-  parseMediaFromTitle,
 } from './parse'
 
 import { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'

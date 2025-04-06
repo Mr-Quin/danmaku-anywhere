@@ -1,0 +1,6 @@
+{
+  "extends": ["./biome.base.json"],
+  "files": {
+    "ignore": ["backend", "packages", "docs", "patches"]
+  }
+}

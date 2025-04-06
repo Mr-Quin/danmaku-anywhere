@@ -16,12 +16,12 @@ import type {
   TencentMediaSearchResult,
 } from '@/common/anime/dto'
 import type {
+  CustomDanmakuCreateData,
   DanmakuDeleteDto,
-  DanmakuGetBySeasonDto,
   DanmakuFetchDto,
+  DanmakuGetBySeasonDto,
   DanmakuGetManyDto,
   DanmakuGetOneDto,
-  CustomDanmakuCreateData,
 } from '@/common/danmaku/dto'
 import type {
   Danmaku,
@@ -46,7 +46,6 @@ type IconSetDto =
       state: 'unavailable'
     }
 
-/* eslint-disable @typescript-eslint/consistent-type-definitions */
 type IconMethods = {
   iconSet: RPCDef<IconSetDto, void>
 }
@@ -128,8 +127,6 @@ export type PlayerEvents = {
   videoChange: RPCDef<InputWithFrameId<void>, void>
   videoRemoved: RPCDef<InputWithFrameId<void>, void>
 }
-
-/* eslint-enable @typescript-eslint/consistent-type-definitions */
 
 export type BackgroundMethods = IconMethods &
   AnimeMethods &
