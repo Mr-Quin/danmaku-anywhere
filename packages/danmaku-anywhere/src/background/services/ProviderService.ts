@@ -2,6 +2,7 @@ import { BilibiliService } from '@/background/services/BilibiliService'
 import { DanDanPlayService } from '@/background/services/DanDanPlayService'
 import { TencentService } from '@/background/services/TencentService'
 import { TitleMappingService } from '@/background/services/TitleMappingService'
+import { Logger } from '@/common/Logger'
 import type {
   BilibiliMediaSearchResult,
   DanDanPlayMediaSearchResult,
@@ -16,7 +17,6 @@ import type {
   DanDanPlayMeta,
   TencentMeta,
 } from '@/common/danmaku/models/meta'
-import { Logger } from '@/common/Logger'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 export class ProviderService {

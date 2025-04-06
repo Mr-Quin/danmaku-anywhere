@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { importDanmakuSchema } from './import'
 
 import { importCommentSchema } from '@/common/danmaku/import/commentSchema'
-import { v2, v1, validComment, v3 } from '@/common/danmaku/import/sample'
+import { v1, v2, v3, validComment } from '@/common/danmaku/import/sample'
 import type { DanmakuInsert } from '@/common/danmaku/models/danmaku'
 
 describe('commentSchema', () => {

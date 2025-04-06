@@ -7,9 +7,6 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext"
   },
-  "include": [
-    "./src"
-  ],
-  "references": [
-  ]
+  "include": ["./src"],
+  "references": []
 }

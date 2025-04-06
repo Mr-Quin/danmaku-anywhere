@@ -6,11 +6,11 @@ import { ErrorBoundary } from 'react-error-boundary'
 import { PopupLayout } from './layout/PopupLayout'
 import { RootRouter } from './router/RootRouter'
 
+import { Logger } from '@/common/Logger'
 import { Center } from '@/common/components/Center'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { Toast } from '@/common/components/Toast/Toast'
 import { db } from '@/common/db/db'
-import { Logger } from '@/common/Logger'
 
 const LoadInitialData = ({ children }: PropsWithChildren) => {
   use(db.isReady)

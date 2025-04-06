@@ -20,7 +20,7 @@
     "baseUrl": "./packages",
     "paths": {
       "@danmaku-anywhere/danmaku-engine": ["danmaku-engine/src"],
-      "@danmaku-anywhere/danmaku-provider": ["danmaku-provider/src"],
+      "@danmaku-anywhere/danmaku-provider": ["danmaku-provider/src"]
     }
   }
 }

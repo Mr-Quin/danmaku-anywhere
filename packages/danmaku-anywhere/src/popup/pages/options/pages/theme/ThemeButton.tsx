@@ -8,31 +8,30 @@ interface ThemeButtonProps {
   onClick: () => void
 }
 
-const StyledButton = styled(Button)<{ selected: boolean }>(({
-  theme,
-  selected,
-}) => {
-  if (selected) {
+const StyledButton = styled(Button)<{ selected: boolean }>(
+  ({ theme, selected }) => {
+    if (selected) {
+      return {
+        display: 'flex',
+        gap: theme.spacing(1),
+        color: theme.palette.primary.contrastText,
+        backgroundColor: theme.palette.primary.main,
+        '&:hover': {
+          backgroundColor: theme.palette.primary.dark,
+        },
+      }
+    }
     return {
       display: 'flex',
       gap: theme.spacing(1),
-      color: theme.palette.primary.contrastText,
-      backgroundColor: theme.palette.primary.main,
+      color: theme.palette.text.primary,
+      backgroundColor: theme.palette.background.paper,
       '&:hover': {
-        backgroundColor: theme.palette.primary.dark,
+        backgroundColor: theme.palette.action.hover,
       },
     }
   }
-  return {
-    display: 'flex',
-    gap: theme.spacing(1),
-    color: theme.palette.text.primary,
-    backgroundColor: theme.palette.background.paper,
-    '&:hover': {
-      backgroundColor: theme.palette.action.hover,
-    },
-  }
-})
+)
 
 export const ThemeButton = ({
   icon,

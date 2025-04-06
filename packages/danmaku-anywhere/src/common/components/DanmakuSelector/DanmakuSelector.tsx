@@ -84,7 +84,7 @@ export const DanmakuSelector = ({
       options={sortedOptions}
       filterOptions={filterOptions}
       isOptionEqualToValue={isOptionEqualToValue}
-      onChange={(e, value) => {
+      onChange={(_e, value) => {
         onChange(value ?? null)
       }}
       renderOption={(props, option) => {

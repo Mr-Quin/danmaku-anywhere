@@ -1,5 +1,5 @@
 import type { SliderProps, TypographyProps } from '@mui/material'
-import { Grid, Box, Slider, Tooltip, Typography } from '@mui/material'
+import { Box, Grid, Slider, Tooltip, Typography } from '@mui/material'
 import type { ReactNode } from 'react'
 import { useId } from 'react'
 

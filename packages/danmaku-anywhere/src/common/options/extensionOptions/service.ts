@@ -2,11 +2,11 @@ import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { produce } from 'immer'
 
 import { Language } from '@/common/localization/language'
+import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
+import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { defaultExtensionOptions } from '@/common/options/extensionOptions/constant'
 import { defaultKeymap } from '@/common/options/extensionOptions/hotkeys'
 import type { ExtensionOptions } from '@/common/options/extensionOptions/schema'
-import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
-import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { ColorMode } from '@/common/theme/enums'
 
 export const extensionOptionsService = new OptionsService(

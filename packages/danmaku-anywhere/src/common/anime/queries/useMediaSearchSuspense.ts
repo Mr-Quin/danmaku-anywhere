@@ -1,9 +1,9 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
+import { Logger } from '@/common/Logger'
 import type { MediaSearchParams, MediaSearchResult } from '@/common/anime/dto'
 import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
-import { Logger } from '@/common/Logger'
 import { mediaQueryKeys } from '@/common/queries/queryKeys'
 
 export const useMediaSearchSuspense = <T extends MediaSearchResult>(

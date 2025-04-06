@@ -3,11 +3,8 @@
   "compilerOptions": {
     "outDir": "./dist/",
     "baseUrl": ".",
-    "lib": [
-      "ESNext"
-    ],
-    "paths": {
-    },
+    "lib": ["ESNext"],
+    "paths": {},
     "composite": true,
     "types": [
       "node",
@@ -15,7 +12,5 @@
       "./worker-configuration.d.ts"
     ]
   },
-  "include": [
-    "./src"
-  ]
+  "include": ["./src"]
 }

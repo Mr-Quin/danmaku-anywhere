@@ -36,7 +36,6 @@ export const XPathEditor = ({ onOpenSelector }: XPathEditorProps) => {
   const renderXPathValidation = (name: ArrayFieldNames) => {
     const values = getValues(name)
 
-    // eslint-disable-next-line react/display-name
     return (index: number) => {
       const xPath = values[index]
       const element = getElementByXpath(xPath.value)
@@ -59,7 +58,6 @@ export const XPathEditor = ({ onOpenSelector }: XPathEditorProps) => {
     const values = getValues(name)
     const isTitleOnly = getValues('policy.options.titleOnly')
 
-    // eslint-disable-next-line react/display-name
     return (index: number) => {
       const regex = values[index]
       const element = getFirstElement(selectors)

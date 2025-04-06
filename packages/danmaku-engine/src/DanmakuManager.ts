@@ -3,7 +3,7 @@ import Danmaku from 'danmaku'
 
 import { mapIter, sampleByTime } from './iterator'
 import type { DanmakuStyle } from './parser'
-import { transformComment, filterComments } from './parser'
+import { filterComments, transformComment } from './parser'
 
 export interface DanmakuFilter {
   type: 'text' | 'regex'

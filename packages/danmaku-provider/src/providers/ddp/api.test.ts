@@ -1,14 +1,14 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ResponseParseException } from '../../exceptions/ResponseParseException'
 import { createFetchOverride, mockFetchResponse } from '../utils/testUtils'
 
 import {
-  searchSearchEpisodes,
   commentGetComment,
-  getBangumiAnime,
   configure,
+  getBangumiAnime,
   searchSearchAnime,
+  searchSearchEpisodes,
 } from './api'
 import { DanDanPlayApiException } from './exceptions'
 

@@ -6,7 +6,7 @@ import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai'
 import { Console, Effect, Schema } from 'effect'
 
 import { State } from '../state'
-import { getCacheKey, HTTPError } from '../utils'
+import { HTTPError, getCacheKey } from '../utils'
 
 const prompt =
   'Given the HTML below, infer the currently playing show, and return the following information about the show:\ntitle: The title of the show, do not include season or episode number\nseason: The season of the show, if available. The season may not be numeric.\nepisode: The episode number. Return 1 if not available.\naltTitles: Any known alternative titles of the show, for example in other languages\nepisodeTitle: The title of the single episode, if available\n\nIf no show is detected, return an empty title'

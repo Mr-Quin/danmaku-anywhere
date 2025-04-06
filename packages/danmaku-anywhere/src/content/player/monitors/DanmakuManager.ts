@@ -158,7 +158,7 @@ export class DanmakuManager {
     this.videoRemovedListeners.forEach((listener) => listener(prev))
   }
 
-  private handleSrcChange = (src: string, videoNode: HTMLVideoElement) => {
+  private handleSrcChange = (_src: string, videoNode: HTMLVideoElement) => {
     // also recreate danmaku if the video src changes
     if (this.hasComments) {
       this.createDanmaku()

@@ -1,11 +1,11 @@
 import { PopupTab } from '@/content/controller/store/popupStore'
 import { CommentsPage } from '@/content/controller/ui/floatingPanel/pages/CommentsPage'
 import { DebugPage } from '@/content/controller/ui/floatingPanel/pages/DebugPage'
+import { SelectorPage } from '@/content/controller/ui/floatingPanel/pages/SelectorPage'
+import { StylesPage } from '@/content/controller/ui/floatingPanel/pages/StylesPage'
 import { IntegrationPage } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/IntegrationPage'
 import { MountPage } from '@/content/controller/ui/floatingPanel/pages/mount/MountPage'
 import { SearchPage } from '@/content/controller/ui/floatingPanel/pages/search/SearchPage'
-import { SelectorPage } from '@/content/controller/ui/floatingPanel/pages/SelectorPage'
-import { StylesPage } from '@/content/controller/ui/floatingPanel/pages/StylesPage'
 
 export const routes = [
   {

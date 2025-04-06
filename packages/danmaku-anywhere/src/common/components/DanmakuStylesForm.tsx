@@ -1,13 +1,13 @@
 import {
+  Button,
   Checkbox,
   Divider,
   FormControl,
   FormControlLabel,
-  Button,
+  Grid,
   Input,
   Stack,
   Typography,
-  Grid,
 } from '@mui/material'
 import type { Draft } from 'immer'
 import { produce } from 'immer'
@@ -191,7 +191,7 @@ export const DanmakuStylesForm = () => {
           label={t('stylePage.opacity')}
           tooltip={t('stylePage.tooltip.opacity')}
           value={localConfig.style.opacity}
-          onChange={(e, newValue) =>
+          onChange={(_e, newValue) =>
             handleLocalUpdate((draft) => {
               draft.style.opacity = newValue as number
             })
@@ -208,7 +208,7 @@ export const DanmakuStylesForm = () => {
           label={t('stylePage.size')}
           tooltip={t('stylePage.tooltip.size')}
           value={localConfig.style.fontSize}
-          onChange={(e, newValue) =>
+          onChange={(_e, newValue) =>
             handleLocalUpdate((draft) => {
               draft.style.fontSize = newValue as number
             })
@@ -226,7 +226,7 @@ export const DanmakuStylesForm = () => {
           tooltip={t('stylePage.tooltip.limitPerSecond')}
           disabled={localConfig.limitPerSec === -1}
           value={localConfig.limitPerSec === -1 ? 0 : localConfig.limitPerSec}
-          onChange={(e, newValue) =>
+          onChange={(_e, newValue) =>
             handleLocalUpdate((draft) => {
               draft.limitPerSec = newValue as number
             })
@@ -270,7 +270,7 @@ export const DanmakuStylesForm = () => {
           label={t('stylePage.speed')}
           tooltip={t('stylePage.tooltip.speed')}
           value={convertActualSpeedToDisplay(localConfig.speed)}
-          onChange={(e, newValue) => {
+          onChange={(_e, newValue) => {
             handleLocalUpdate((draft) => {
               draft.speed = convertDisplaySpeedToActual(newValue as number)
             })
@@ -286,7 +286,7 @@ export const DanmakuStylesForm = () => {
           label={t('stylePage.offset')}
           tooltip={t('stylePage.tooltip.offset')}
           value={localConfig.offset}
-          onChange={(e, newValue) => {
+          onChange={(_e, newValue) => {
             handleLocalUpdate((draft) => {
               draft.offset = newValue as number
             })
@@ -339,7 +339,7 @@ export const DanmakuStylesForm = () => {
           label={t('stylePage.safeZone.top')}
           tooltip={t('stylePage.tooltip.safeZone.top')}
           value={localConfig.safeZones.top}
-          onChange={(e, newValue) =>
+          onChange={(_e, newValue) =>
             handleLocalUpdate((draft) => {
               const value = newValue as number
               const bottom = localConfig.safeZones.bottom
@@ -364,7 +364,7 @@ export const DanmakuStylesForm = () => {
           label={t('stylePage.safeZone.bottom')}
           tooltip={t('stylePage.tooltip.safeZone.bottom')}
           value={localConfig.safeZones.bottom}
-          onChange={(e, newValue) =>
+          onChange={(_e, newValue) =>
             handleLocalUpdate((draft) => {
               const value = newValue as number
               const top = localConfig.safeZones.top

@@ -17,8 +17,8 @@
     "build:firefox": "VITE_TARGET_BROWSER=firefox pnpm run build",
     "test": "vitest",
     "preview": "vite preview",
-    "lint": "tsc && eslint --ext .js,.jsx,.ts,.tsx --fix .",
-    "format": "prettier --write . --ignore-path ../../.prettierignore",
+    "lint": "tsc && biome check --fix",
+    "format": "biome format --write",
     "package": "node ./scripts/package.js",
     "package:firefox": "VITE_TARGET_BROWSER=firefox pnpm run package",
     "tsc": "tsc"
@@ -66,7 +66,6 @@
     "@types/wicg-file-system-access": "^2023.10.6",
     "@vitejs/plugin-react": "^4.3.4",
     "vite": "^6.2.5",
-    "vite-plugin-eslint": "^1.8.1",
     "vitest": "^3.1.1",
     "web-ext": "^8.5.0"
   }

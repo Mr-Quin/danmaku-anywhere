@@ -3,8 +3,8 @@ import type { ListProps } from '@mui/material'
 import {
   CircularProgress,
   List,
-  ListItemText,
   ListItemButton,
+  ListItemText,
 } from '@mui/material'
 import { Suspense } from 'react'
 import { useTranslation } from 'react-i18next'

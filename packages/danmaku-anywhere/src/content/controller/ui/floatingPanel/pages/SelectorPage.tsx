@@ -2,6 +2,7 @@ import type { SearchAnimeDetails } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { Check } from '@mui/icons-material'
 import {
   Box,
+  Button,
   Checkbox,
   Divider,
   FormControl,
@@ -11,14 +12,13 @@ import {
   ListItemButton,
   ListItemText,
   Stack,
-  Button,
   Typography,
 } from '@mui/material'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { getDanDanPlayMediaIcon } from '@/common/components/MediaList/components/makeIcon'
 import { MediaTypeIcon } from '@/common/components/MediaList/components/MediaTypeIcon'
+import { getDanDanPlayMediaIcon } from '@/common/components/MediaList/components/makeIcon'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'
 import { usePopup } from '@/content/controller/store/popupStore'

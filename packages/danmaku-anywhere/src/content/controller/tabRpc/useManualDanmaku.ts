@@ -1,7 +1,7 @@
 import { useEventCallback } from '@mui/material'
 
-import type { Danmaku } from '@/common/danmaku/models/danmaku'
 import { Logger } from '@/common/Logger'
+import type { Danmaku } from '@/common/danmaku/models/danmaku'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { useStore } from '@/content/controller/store/store'

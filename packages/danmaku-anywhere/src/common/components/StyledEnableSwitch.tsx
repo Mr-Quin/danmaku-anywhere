@@ -1,4 +1,4 @@
-import { styled, Switch } from '@mui/material'
+import { Switch, styled } from '@mui/material'
 
 // The thumb and track color of the switch are invisible in light mode, so we need to set the color
 export const StyledEnableSwitch = styled(Switch)(({ theme }) => {

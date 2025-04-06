@@ -136,12 +136,8 @@
             "checkupTime": "",
             "imgTag": "{\"tag_1\":{},\"tag_2\":{\"id\":\"20009\",\"param\":\"https://vfiles-raw.gtimg.cn/vupload/20201015/tag_only_x2.png\",\"text\":\"独播-3.0\"},\"tag_3\":{\"text\":\"全265集\"},\"tag_4\":{}}",
             "area": "内地",
-            "language": [
-              "普通话版"
-            ],
-            "directors": [
-              "唐宏宁"
-            ],
+            "language": ["普通话版"],
+            "directors": ["唐宏宁"],
             "actors": [
               "唐三",
               "小舞",
@@ -499,12 +495,8 @@
             "checkupTime": "",
             "imgTag": "{\"tag_1\":{},\"tag_2\":{\"id\":\"20012\",\"param\":\"https://vfiles.gtimg.cn/vupload/20201015/tag_vip_x2.png\",\"text\":\"VIP-包月only-3.0\"},\"tag_3\":{\"text\":\"更新至34集\"},\"tag_4\":{}}",
             "area": "内地",
-            "language": [
-              "普通话版"
-            ],
-            "directors": [
-              "沈乐平"
-            ],
+            "language": ["普通话版"],
+            "directors": ["沈乐平"],
             "actors": [
               "唐三",
               "小舞",
@@ -888,12 +880,8 @@
             "checkupTime": "",
             "imgTag": "{\"tag_1\":{},\"tag_2\":{\"id\":\"20009\",\"param\":\"https://vfiles-raw.gtimg.cn/vupload/20201015/tag_only_x2.png\",\"text\":\"独播-3.0\"},\"tag_3\":{\"text\":\"更新至64集\"},\"tag_4\":{}}",
             "area": "内地",
-            "language": [
-              "普通话版"
-            ],
-            "directors": [
-              "沈乐平"
-            ],
+            "language": ["普通话版"],
+            "directors": ["沈乐平"],
             "actors": [
               "霍雨浩",
               "唐舞桐",
@@ -1251,12 +1239,8 @@
             "checkupTime": "",
             "imgTag": "{\"tag_1\":{},\"tag_2\":{\"id\":\"20042\",\"param\":\"http://puui.qpic.cn/media_img/lena/PICdmsw5o_48_114/0\",\"text\":\"个人专辑-3.0\"},\"tag_3\":{\"text\":\"全78集\"},\"tag_4\":{}}",
             "area": "内地",
-            "language": [
-              "方言版"
-            ],
-            "directors": [
-              "沈乐平"
-            ],
+            "language": ["方言版"],
+            "directors": ["沈乐平"],
             "actors": [
               "唐三",
               "小舞",
@@ -1614,12 +1598,8 @@
             "checkupTime": "",
             "imgTag": "{\"tag_1\":{},\"tag_2\":{\"id\":\"20009\",\"param\":\"https://vfiles-raw.gtimg.cn/vupload/20201015/tag_only_x2.png\",\"text\":\"独播-3.0\"},\"tag_3\":{\"text\":\"全40集\"},\"tag_4\":{}}",
             "area": "内地",
-            "language": [
-              "普通话"
-            ],
-            "directors": [
-              "杨振宇"
-            ],
+            "language": ["普通话"],
+            "directors": ["杨振宇"],
             "actors": [
               "肖战",
               "吴宣仪",
@@ -1982,16 +1962,9 @@
             "checkupTime": "",
             "imgTag": "{\"tag_1\":{},\"tag_2\":{\"id\":\"20012\",\"param\":\"https://vfiles.gtimg.cn/vupload/20201015/tag_vip_x2.png\",\"text\":\"VIP-包月only-3.0\"},\"tag_3\":{\"text\":\"全26集\"},\"tag_4\":{}}",
             "area": "内地",
-            "language": [
-              "普通话版"
-            ],
-            "directors": [
-              "吴扬茂"
-            ],
-            "actors": [
-              "唐舞麟",
-              "古月娜"
-            ],
+            "language": ["普通话版"],
+            "directors": ["吴扬茂"],
+            "actors": ["唐舞麟", "古月娜"],
             "episodeSites": [
               {
                 "uiType": 1,
@@ -2340,16 +2313,9 @@
             "checkupTime": "",
             "imgTag": "{\"tag_1\":{},\"tag_2\":{\"id\":\"20012\",\"param\":\"https://vfiles.gtimg.cn/vupload/20201015/tag_vip_x2.png\",\"text\":\"VIP-包月only-3.0\"},\"tag_3\":{\"text\":\"全64集\"},\"tag_4\":{}}",
             "area": "内地",
-            "language": [
-              "普通话版"
-            ],
-            "directors": [
-              "卢文淞+吴扬茂"
-            ],
-            "actors": [
-              "唐舞麟",
-              "古月娜"
-            ],
+            "language": ["普通话版"],
+            "directors": ["卢文淞+吴扬茂"],
+            "actors": ["唐舞麟", "古月娜"],
             "episodeSites": [
               {
                 "uiType": 1,
@@ -6980,16 +6946,9 @@
             "checkupTime": "",
             "imgTag": "{\"tag_1\":{},\"tag_2\":{\"id\":\"20012\",\"param\":\"https://vfiles.gtimg.cn/vupload/20201015/tag_vip_x2.png\",\"text\":\"VIP-包月only-3.0\"},\"tag_3\":{\"text\":\"全28集\"},\"tag_4\":{}}",
             "area": "内地",
-            "language": [
-              "普通话版"
-            ],
-            "directors": [
-              "苏华平"
-            ],
-            "actors": [
-              "霍雨浩",
-              "唐舞桐"
-            ],
+            "language": ["普通话版"],
+            "directors": ["苏华平"],
+            "actors": ["霍雨浩", "唐舞桐"],
             "episodeSites": [
               {
                 "uiType": 1,
@@ -7338,15 +7297,9 @@
             "checkupTime": "",
             "imgTag": "{\"tag_1\":{},\"tag_2\":{\"id\":\"20012\",\"param\":\"https://vfiles.gtimg.cn/vupload/20201015/tag_vip_x2.png\",\"text\":\"VIP-包月only-3.0\"},\"tag_3\":{\"text\":\"全52集\"},\"tag_4\":{}}",
             "area": "内地",
-            "language": [
-              "普通话版"
-            ],
-            "directors": [
-              "刘礼佳"
-            ],
-            "actors": [
-              "唐轩宇"
-            ],
+            "language": ["普通话版"],
+            "directors": ["刘礼佳"],
+            "actors": ["唐轩宇"],
             "episodeSites": [
               {
                 "uiType": 1,

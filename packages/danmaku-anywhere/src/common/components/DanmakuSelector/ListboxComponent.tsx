@@ -1,9 +1,9 @@
 import { ListSubheader } from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import {
-  forwardRef,
   type HTMLAttributes,
   type ReactElement,
+  forwardRef,
   useRef,
 } from 'react'
 
@@ -24,7 +24,6 @@ export const ListboxComponent = forwardRef<
   const { children, ...other } = props
 
   const itemData: ReactElement[] = []
-
   ;(children as ReactElement[]).forEach(
     (item: ReactElement & { children?: ReactElement[] }) => {
       itemData.push(item)

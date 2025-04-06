@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ResponseParseException } from '../../exceptions/ResponseParseException'
 import { mockFetchResponse } from '../utils/testUtils'
@@ -16,12 +16,12 @@ import {
 } from './api'
 import { BiliBiliApiException } from './exceptions'
 import {
-  mockBilibiliBangumiInfoResponse,
   mockBilibiliBangmumiSearchResponse,
-  mockDanmakuXml,
+  mockBilibiliBangumiInfoResponse,
   mockBilibiliMediaSearchResponse,
   mockBilibiliUserLoggedInResponse,
   mockBilibiliUserNotLoggedInResponse,
+  mockDanmakuXml,
 } from './test/mockData'
 
 describe('Bilibili', () => {

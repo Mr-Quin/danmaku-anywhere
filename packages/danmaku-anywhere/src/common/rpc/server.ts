@@ -2,10 +2,10 @@ import { Logger } from '../Logger'
 
 import type {
   AnyRPCDef,
-  RpcContext,
   RPCPayload,
   RPCRecord,
   RPCResponse,
+  RpcContext,
 } from './types'
 
 export type RRPServerHandler<TDef extends AnyRPCDef> = (

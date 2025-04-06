@@ -13,7 +13,6 @@ export const mockStorage = {
   },
 }
 
-// eslint-disable-next-line no-undef
 global.chrome = {
   storage: {
     local: mockStorage,

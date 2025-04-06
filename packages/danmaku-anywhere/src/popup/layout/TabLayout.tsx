@@ -1,6 +1,6 @@
 import type { BoxProps } from '@mui/material'
 import { Box } from '@mui/material'
-import { forwardRef, type PropsWithChildren } from 'react'
+import { type PropsWithChildren, forwardRef } from 'react'
 
 type TabLayoutProps = PropsWithChildren & BoxProps
 

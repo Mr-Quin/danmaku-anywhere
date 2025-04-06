@@ -2,7 +2,7 @@ import type { PopperProps } from '@mui/material'
 import { Popper } from '@mui/material'
 import { useDrag } from '@use-gesture/react'
 import type { ReactElement, Ref, RefObject } from 'react'
-import { useImperativeHandle, useState, useRef } from 'react'
+import { useImperativeHandle, useRef, useState } from 'react'
 
 interface RenderProps {
   bind: ReturnType<typeof useDrag>

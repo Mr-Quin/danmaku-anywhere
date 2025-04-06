@@ -1,6 +1,6 @@
 import type {
-  IntegrationPolicy,
   Integration,
+  IntegrationPolicy,
 } from '@/common/options/integrationPolicyStore/schema'
 import { getRandomUUID } from '@/common/utils/utils'
 
