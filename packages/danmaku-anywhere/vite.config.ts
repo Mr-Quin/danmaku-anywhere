@@ -31,6 +31,7 @@ export default defineConfig({
     open: false,
   },
   build: {
+    emptyOutDir: true,
     rollupOptions: {
       input: {
         app: 'pages/popup.html',
