@@ -36,19 +36,19 @@ export const BilibiliOptions = () => {
   const {
     control,
     reset: resetForm,
-    getValues,
-  } = useForm<DanmakuSources>({
+    handleSubmit,
+  } = useForm({
     resolver: zodResolver(danmakuSourcesSchema),
     values: data.danmakuSources,
     defaultValues: data.danmakuSources,
     mode: 'onChange',
   })
 
-  const { mutate: handleApply } = useMutation({
-    mutationFn: async () => {
+  const submitMutation = useMutation({
+    mutationFn: async (update: DanmakuSources) => {
       await partialUpdate(
         produce(data, (draft) => {
-          draft.danmakuSources.bilibili = getValues().bilibili
+          draft.danmakuSources.bilibili = update.bilibili
         })
       )
     },
@@ -56,6 +56,10 @@ export const BilibiliOptions = () => {
       toast.success(t('common.success'))
     },
   })
+
+  const handleApply = () => {
+    handleSubmit((d) => submitMutation.mutate(d))
+  }
 
   const { mutate: handleReset } = useMutation({
     mutationFn: async () => {

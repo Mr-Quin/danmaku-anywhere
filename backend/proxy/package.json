@@ -22,10 +22,10 @@
     "@types/node": "^22.14.0",
     "typescript": "^5.8.3",
     "vitest": "3.1.1",
-    "wrangler": "^3.114.4"
+    "wrangler": "^4.7.2"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.21.0",
+    "@google/generative-ai": "^0.24.0",
     "effect": "^3.14.6"
   }
 }

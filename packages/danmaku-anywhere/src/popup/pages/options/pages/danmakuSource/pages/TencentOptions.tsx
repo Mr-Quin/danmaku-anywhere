@@ -26,20 +26,20 @@ export const TencentOptions = () => {
   const {
     register,
     reset: resetForm,
-    getValues,
+    handleSubmit,
     formState: { errors },
-  } = useForm<DanmakuSources>({
+  } = useForm({
     resolver: zodResolver(danmakuSourcesSchema),
     values: data.danmakuSources,
     defaultValues: data.danmakuSources,
     mode: 'onChange',
   })
 
-  const { mutate: handleApply } = useMutation({
-    mutationFn: async () => {
+  const submitMutation = useMutation({
+    mutationFn: async (update: DanmakuSources) => {
       await partialUpdate(
         produce(data, (draft) => {
-          draft.danmakuSources.tencent = getValues().tencent
+          draft.danmakuSources.tencent = update.tencent
         })
       )
     },
@@ -47,6 +47,10 @@ export const TencentOptions = () => {
       toast.success(t('common.success'))
     },
   })
+
+  const handleApply = () => {
+    handleSubmit((d) => submitMutation.mutate(d))
+  }
 
   const { mutate: handleReset } = useMutation({
     mutationFn: async () => {
