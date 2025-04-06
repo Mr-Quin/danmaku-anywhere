@@ -40,7 +40,7 @@ export const IntegrationEditor = () => {
 
   const defaultValues = activePolicy ?? createIntegrationInput(mountConfig.name)
 
-  const form = useForm<IntegrationInput>({
+  const form = useForm({
     defaultValues,
     resolver: zodResolver(integrationInputSchema),
     mode: 'onChange',

@@ -29,7 +29,7 @@ export const DanDanPlayOptions = () => {
     watch,
     handleSubmit,
     formState: { errors },
-  } = useForm<DanmakuSources>({
+  } = useForm({
     resolver: zodResolver(danmakuSourcesSchema),
     defaultValues: data.danmakuSources,
     mode: 'onChange',
