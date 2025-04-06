@@ -17,14 +17,14 @@
     "cf-typegen": "wrangler types --experimental-include-runtime"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.6.12",
-    "@types/node": "^22.13.1",
-    "typescript": "^5.7.3",
-    "vitest": "3.0.5",
-    "wrangler": "^3.107.3"
+    "@cloudflare/vitest-pool-workers": "^0.6.16",
+    "@types/node": "^22.14.0",
+    "typescript": "^5.8.3",
+    "vitest": "3.1.1",
+    "wrangler": "^3.114.4"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
-    "effect": "^3.12.10"
+    "effect": "^3.14.6"
   }
 }

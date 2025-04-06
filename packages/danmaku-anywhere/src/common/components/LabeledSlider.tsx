@@ -1,5 +1,5 @@
 import type { SliderProps, TypographyProps } from '@mui/material'
-import { Grid2, Box, Slider, Tooltip, Typography } from '@mui/material'
+import { Grid, Box, Slider, Tooltip, Typography } from '@mui/material'
 import type { ReactNode } from 'react'
 import { useId } from 'react'
 
@@ -27,12 +27,12 @@ export const LabeledSlider = ({
           {label}
         </Typography>
       </Tooltip>
-      <Grid2 container spacing={2}>
-        <Grid2 size={gridSize}>
+      <Grid container spacing={2}>
+        <Grid size={gridSize}>
           <Slider aria-labelledby={id} {...rest} />
-        </Grid2>
+        </Grid>
         {children}
-      </Grid2>
+      </Grid>
     </Box>
   )
 }

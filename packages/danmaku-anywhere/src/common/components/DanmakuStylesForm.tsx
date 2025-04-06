@@ -7,7 +7,7 @@ import {
   Input,
   Stack,
   Typography,
-  Grid2,
+  Grid,
 } from '@mui/material'
 import type { Draft } from 'immer'
 import { produce } from 'immer'
@@ -239,7 +239,7 @@ export const DanmakuStylesForm = () => {
           size="small"
           valueLabelDisplay="auto"
         >
-          <Grid2 size={4}>
+          <Grid size={4}>
             <FormControl>
               <FormControlLabel
                 sx={{ whiteSpace: 'nowrap' }}
@@ -264,7 +264,7 @@ export const DanmakuStylesForm = () => {
                 label={t('stylePage.disableLimit')}
               />
             </FormControl>
-          </Grid2>
+          </Grid>
         </LabeledSlider>
         <LabeledSlider
           label={t('stylePage.speed')}
@@ -299,7 +299,7 @@ export const DanmakuStylesForm = () => {
           valueLabelDisplay="auto"
           valueLabelFormat={offsetValueLabelFormat}
         >
-          <Grid2 size={4}>
+          <Grid size={4}>
             <Input
               value={offsetInputActive ? offsetInput : localConfig.offset}
               size="small"
@@ -326,7 +326,7 @@ export const DanmakuStylesForm = () => {
                 type: 'number',
               }}
             />
-          </Grid2>
+          </Grid>
         </LabeledSlider>
       </Stack>
 
