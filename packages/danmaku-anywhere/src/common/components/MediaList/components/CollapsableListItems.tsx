@@ -1,6 +1,6 @@
 import { ExpandLess, ExpandMore } from '@mui/icons-material'
 import { Collapse, ListItemButton, Paper } from '@mui/material'
-import type { ListItemButtonProps } from '@mui/material/ListItemButton/ListItemButton'
+import type { ListItemButtonProps } from '@mui/material/ListItemButton'
 import type { ComponentProps, MouseEvent, ReactNode } from 'react'
 import { startTransition, useState } from 'react'
 
