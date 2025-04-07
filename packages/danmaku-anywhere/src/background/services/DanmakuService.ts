@@ -158,7 +158,7 @@ export class DanmakuService {
         id: existingDanmaku.id,
       }
     } else {
-      this.logger.debug('Saving danmaku to db')
+      this.logger.debug('Saving danmaku to db', { danmaku })
       const id = await this.ddpTable.put(danmaku)
 
       return {

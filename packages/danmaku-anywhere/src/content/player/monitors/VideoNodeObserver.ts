@@ -1,4 +1,5 @@
 import { tryCatchSync } from '@/common/utils/utils'
+import { VideoSrcObserver } from './VideoSrcObserver'
 
 const isVideoElement = (node: Node): node is HTMLVideoElement =>
   node instanceof HTMLVideoElement
@@ -18,6 +19,7 @@ export class VideoNodeObserver {
   private videoListeners = new WeakMap<HTMLVideoElement, () => void>()
   private activeVideoElement: HTMLVideoElement | null = null
   private rootObs: MutationObserver
+  private srcObs = new VideoSrcObserver()
 
   private videoChangeListeners = new Set<VideoChangeListener>()
   private videoRemovedListeners = new Set<VideoChangeListener>()
@@ -27,7 +29,10 @@ export class VideoNodeObserver {
     options: VideoNodeObserverOptions = {}
   ) {
     const { onVideoNodeChange, onVideoNodeRemove } = options
-    if (onVideoNodeChange) this.videoChangeListeners.add(onVideoNodeChange)
+    if (onVideoNodeChange) {
+      this.srcObs.onSrcChange((_src, video) => onVideoNodeChange(video))
+      this.videoChangeListeners.add(onVideoNodeChange)
+    }
     if (onVideoNodeRemove) this.videoRemovedListeners.add(onVideoNodeRemove)
 
     const [current, err] = tryCatchSync<HTMLVideoElement | null>(() =>
@@ -111,17 +116,20 @@ export class VideoNodeObserver {
   private setActiveVideoElement(video: HTMLVideoElement | null) {
     if (this.activeVideoElement === video) return
 
+    const prevVideo = this.activeVideoElement
+    this.activeVideoElement = video
+    this.srcObs.disconnect()
+
     // Emit video removed event if the video changed from a non-null value to null
     if (video === null) {
-      this.videoRemovedListeners.forEach((listener) => {
-        if (this.activeVideoElement) {
-          listener(this.activeVideoElement)
-        }
-      })
-    }
-    this.activeVideoElement = video
-    // Emit video change event if the video changed to a non-null value
-    if (video) {
+      if (prevVideo) {
+        this.videoRemovedListeners.forEach((listener) => {
+          listener(prevVideo)
+        })
+      }
+    } else {
+      // Emit video change event if the video changed to a non-null value
+      // this.srcObs.observe(video)
       this.videoChangeListeners.forEach((listener) => listener(video))
     }
   }
@@ -167,6 +175,7 @@ export class VideoNodeObserver {
 
   public cleanup() {
     this.rootObs.disconnect()
+    this.srcObs.cleanup()
     this.videoChangeListeners.clear()
     this.videoRemovedListeners.clear()
   }

@@ -19,7 +19,7 @@ export const FrameManager = () => {
 
   const config = useActiveConfig()
 
-  const { unmount, comments, danmakuLite } = useStore.use.danmaku()
+  const { comments, danmakuLite } = useStore.use.danmaku()
 
   const setVideoId = useStore.use.setVideoId()
   const { allFrames, activeFrame, setActiveFrame, updateFrame } =
@@ -54,9 +54,11 @@ export const FrameManager = () => {
     // but keep the current active frame even when the video is removed
     if (activeFrame?.frameId === frameId) {
       setVideoId(undefined)
-      unmount()
+      if (activeFrame.mounted) {
+        unmountDanmaku.mutate(frameId)
+      }
     }
-    updateFrame(frameId, { hasVideo: false })
+    updateFrame(frameId, { hasVideo: false, mounted: false })
   })
 
   useEffect(() => {

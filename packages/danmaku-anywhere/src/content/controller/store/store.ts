@@ -62,14 +62,14 @@ interface StoreState {
    */
   integration: {
     active: boolean
-    setActive: (active: boolean) => void
+    activate: () => void
+    deactivate: () => void
     foundElements: boolean
     setFoundElements: (foundElements: boolean) => void
     errorMessage?: string
     setErrorMessage: (errMessage?: string) => void
     mediaInfo?: MediaInfo
     setMediaInfo: (mediaInfo: MediaInfo) => void
-    unsetMediaInfo: () => void
   }
 
   /**
@@ -171,10 +171,18 @@ const useStoreBase = create<StoreState>()(
 
     integration: {
       active: false,
-      setActive: (active) =>
+      activate: () =>
         set((state) => {
-          state.integration.active = active
+          state.integration.active = true
         }),
+      deactivate: () => {
+        set((state) => {
+          state.integration.active = false
+          state.integration.mediaInfo = undefined
+          state.integration.foundElements = false
+          state.integration.errorMessage = undefined
+        })
+      },
       foundElements: false,
       setFoundElements: (foundElements) =>
         set((state) => {
@@ -191,11 +199,6 @@ const useStoreBase = create<StoreState>()(
         set((state) => {
           state.integration.mediaInfo = mediaInfo
         }),
-      unsetMediaInfo: () => {
-        set((state) => {
-          state.integration.mediaInfo = undefined
-        })
-      },
     },
 
     getAnimeName: () => {

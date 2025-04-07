@@ -20,8 +20,13 @@ export const useIntegrationPolicy = () => {
   const videoId = useStore.use.videoId?.()
   const { toggleManualMode, isManual } = useStore.use.danmaku()
   const unmountDanmaku = useUnmountDanmaku()
-  const { setMediaInfo, setErrorMessage, setActive, setFoundElements } =
-    useStore.use.integration()
+  const {
+    setMediaInfo,
+    setErrorMessage,
+    activate,
+    deactivate,
+    setFoundElements,
+  } = useStore.use.integration()
 
   const matchEpisode = useMatchEpisode()
   const integrationPolicy = useActiveIntegration()
@@ -46,56 +51,61 @@ export const useIntegrationPolicy = () => {
       return
     }
 
-    // Only create the observer if the video node is present
     if (!videoId) {
-      observer.current?.reset()
+      // when video id changes to nullish, destroy the observer
+      observer.current?.destroy()
+      observer.current = undefined
+      deactivate()
       return
     }
 
-    const obs = new IntegrationPolicyObserver(integrationPolicy.policy)
-    observer.current = obs
-    setActive(true)
-    obs.on({
-      mediaChange: async (state: MediaInfo) => {
-        if (integrationPolicy.policy.options.useAI) {
-          toast.success(
-            t('integration.alert.AIResult', { title: state.toString() })
-          )
-        }
+    // Only create the observer if the video node is present
 
-        if (useStore.getState().danmaku.isMounted) {
-          unmountDanmaku.mutate()
-        }
-        setMediaInfo(state)
-        setErrorMessage()
+    if (!observer.current) {
+      activate()
+      observer.current = new IntegrationPolicyObserver(integrationPolicy.policy)
 
-        const episodeMatchPayload = {
-          mapKey: state.key(),
-          title: state.title,
-          episodeNumber: state.episode,
-        }
+      observer.current.on({
+        mediaChange: async (state: MediaInfo) => {
+          if (observer.current?.policy.options.useAI) {
+            toast.success(
+              t('integration.alert.AIResult', { title: state.toString() })
+            )
+          }
 
-        toast.info(t('integration.alert.search', { title: state.toString() }))
-        matchEpisode.mutate(episodeMatchPayload)
-      },
-      mediaElementsChange: () => {
-        setFoundElements(true)
-      },
-      error: (error: Error) => {
-        toast.error(error.message)
-        setErrorMessage(error.message)
-      },
-    })
+          if (useStore.getState().danmaku.isMounted) {
+            unmountDanmaku.mutate()
+          }
+          setMediaInfo(state)
+          setErrorMessage()
 
-    if (integrationPolicy.policy.options.useAI) {
-      toast.info(t('integration.alert.usingAI'))
+          const episodeMatchPayload = {
+            mapKey: state.key(),
+            title: state.title,
+            episodeNumber: state.episode,
+          }
+
+          toast.info(t('integration.alert.search', { title: state.toString() }))
+          matchEpisode.mutate(episodeMatchPayload)
+        },
+        mediaElementsChange: () => {
+          setFoundElements(true)
+        },
+        error: (error: Error) => {
+          toast.error(error.message)
+          setErrorMessage(error.message)
+        },
+      })
+
+      if (integrationPolicy.policy.options.useAI) {
+        toast.info(t('integration.alert.usingAI'))
+      }
     }
-    obs.setup()
+
+    observer.current.setup(integrationPolicy.policy)
 
     return () => {
-      obs.destroy()
-      observer.current = undefined
-      setActive(false)
+      observer.current?.reset()
     }
   }, [integrationPolicy, isManual, videoId])
 }

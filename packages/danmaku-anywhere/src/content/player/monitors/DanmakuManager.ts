@@ -12,7 +12,6 @@ import {
   type VideoChangeListener,
   VideoNodeObserver,
 } from '@/content/player/monitors/VideoNodeObserver'
-import { VideoSrcObserver } from '@/content/player/monitors/VideoSrcObserver'
 
 const calculatePaddings = (safeZones: SafeZones, rect?: DOMRectReadOnly) => {
   const { top, bottom } = safeZones
@@ -63,7 +62,6 @@ export class DanmakuManager {
   // Observers
   private videoNodeObs?: VideoNodeObserver
   private rectObs?: RectObserver
-  private srcObs?: VideoSrcObserver
 
   // Listeners
   private rectChangeListeners = new Set<
@@ -122,17 +120,13 @@ export class DanmakuManager {
 
   private setupObs(video: HTMLVideoElement) {
     this.rectObs = new RectObserver(video)
-    this.srcObs = new VideoSrcObserver(video)
 
     this.rectObs.onRectChange(this.handleRectChange)
-    this.srcObs.onSrcChange(this.handleSrcChange)
   }
 
   private teardownObs() {
     this.rectObs?.cleanup()
-    this.srcObs?.cleanup()
     this.rectObs = undefined
-    this.srcObs = undefined
   }
 
   private handleVideoNodeChange = (video: HTMLVideoElement) => {
@@ -156,16 +150,6 @@ export class DanmakuManager {
     this.removeDebugStyles()
 
     this.videoRemovedListeners.forEach((listener) => listener(prev))
-  }
-
-  private handleSrcChange = (_src: string, videoNode: HTMLVideoElement) => {
-    // also recreate danmaku if the video src changes
-    if (this.hasComments) {
-      this.createDanmaku()
-    }
-
-    // treat src change as video change and notify listeners
-    this.videoChangeListeners.forEach((listener) => listener(videoNode))
   }
 
   private handleRectChange = (rect: DOMRectReadOnly, notify = true) => {
