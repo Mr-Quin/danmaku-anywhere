@@ -215,14 +215,14 @@ export class IntegrationPolicyObserver extends MediaObserver {
   private logger = Logger.sub('[IntegrationPolicyObserver]')
   private observerMap = new Map<string, MutationObserver>()
   private mediaInfo?: MediaInfo
-  private abortController = new AbortController()
+  private abortControllerQueue: AbortController[] = []
 
   constructor(public policy: IntegrationPolicy) {
     super()
     this.logger.debug('Creating observer')
   }
 
-  private async discoverElements() {
+  private async discoverElementsXpath() {
     if (this.interval) {
       clearInterval(this.interval)
     }
@@ -296,9 +296,9 @@ export class IntegrationPolicyObserver extends MediaObserver {
     }
   }
 
-  private async asyncSetup() {
-    this.logger.debug('Discovering elements')
-    const elements = await this.discoverElements()
+  private async setupXpath() {
+    this.logger.debug('Discovering elements using XPath')
+    const elements = await this.discoverElementsXpath()
     this.emit('mediaElementsChange', elements)
     this.logger.debug('Elements discovered, setting up observers')
 
@@ -324,11 +324,14 @@ export class IntegrationPolicyObserver extends MediaObserver {
     this.observerMap.set('removal', observer)
   }
 
-  private async handleAi() {
+  private async setupAi() {
+    const abortController = new AbortController()
+    this.abortControllerQueue.push(abortController)
+
     // Some pages take a while to load the title, so wait a bit before checking
     await sleep(2000)
 
-    if (this.abortController.signal.aborted) {
+    if (abortController.signal.aborted) {
       this.logger.debug('Aborted AI handling')
       return
     }
@@ -344,6 +347,11 @@ export class IntegrationPolicyObserver extends MediaObserver {
         queryFn: () => chromeRpcClient.extractTitle(meta),
       })
 
+      if (abortController.signal.aborted) {
+        this.logger.debug('Aborted AI handling')
+        return
+      }
+
       this.logger.debug('Matched result:', {
         result: data,
       })
@@ -357,24 +365,30 @@ export class IntegrationPolicyObserver extends MediaObserver {
     }
   }
 
-  setup() {
-    this.logger.debug('Setup obs')
+  setup(policy?: IntegrationPolicy) {
+    if (policy) {
+      this.policy = policy
+    }
     if (this.policy.options.useAI) {
-      void this.handleAi()
+      this.logger.debug('Setting up using AI')
+      void this.setupAi()
     } else {
-      void this.asyncSetup()
+      this.logger.debug('Setting up using XPath')
+      void this.setupXpath()
     }
   }
 
   destroy() {
-    clearInterval(this.interval)
-    this.abortController.abort()
-    this.logger.debug('Destroying observers')
-    this.observerMap.forEach((observer) => observer.disconnect())
-    this.observerMap.clear()
+    this.reset()
+    super.destroy()
   }
 
   reset() {
-    this.mediaInfo = undefined
+    this.logger.debug('Resetting')
+    clearInterval(this.interval)
+    this.abortControllerQueue.forEach((controller) => controller.abort())
+    this.abortControllerQueue = []
+    this.observerMap.forEach((observer) => observer.disconnect())
+    this.observerMap.clear()
   }
 }

@@ -1,14 +1,12 @@
 type VideoSrcChangeListener = (src: string, video: HTMLVideoElement) => void
 
 export class VideoSrcObserver {
-  private videoNode: HTMLVideoElement
-  private currentSrc: string
+  private videoNode: HTMLVideoElement | null = null
+  private currentSrc = ''
   private srcChangeListeners: Set<VideoSrcChangeListener>
   private observer: MutationObserver
 
-  constructor(videoNode: HTMLVideoElement) {
-    this.videoNode = videoNode
-    this.currentSrc = videoNode.src
+  constructor() {
     this.srcChangeListeners = new Set()
 
     this.observer = new MutationObserver((mutations) => {
@@ -18,17 +16,14 @@ export class VideoSrcObserver {
         if (!(target instanceof HTMLVideoElement)) continue
 
         if (this.currentSrc !== target.src) {
-          this.srcChangeListeners.forEach((listener) =>
-            listener(this.currentSrc, videoNode)
-          )
+          this.srcChangeListeners.forEach((listener) => {
+            if (this.videoNode) {
+              listener(this.currentSrc, this.videoNode)
+            }
+          })
         }
         this.currentSrc = target.src
       }
-    })
-
-    this.observer.observe(videoNode, {
-      attributes: true,
-      attributeFilter: ['src'],
     })
   }
 
@@ -40,8 +35,21 @@ export class VideoSrcObserver {
     this.srcChangeListeners.add(listener)
   }
 
-  public cleanup() {
+  public observe(videoNode: HTMLVideoElement) {
+    this.currentSrc = videoNode.src
+    this.videoNode = videoNode
+    this.observer.observe(videoNode, {
+      attributes: true,
+      attributeFilter: ['src'],
+    })
+  }
+
+  public disconnect() {
     this.observer.disconnect()
+  }
+
+  public cleanup() {
+    this.disconnect()
     this.srcChangeListeners.clear()
   }
 }
