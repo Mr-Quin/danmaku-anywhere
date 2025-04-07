@@ -64,17 +64,18 @@ interface StackableSnackbarProps {
   index?: number
 }
 
-const StackableSnackbar = styled(Snackbar)<StackableSnackbarProps>(
-  ({ stackable, index }) => {
-    if (!stackable || index === undefined) return {}
-    return {
-      '&.MuiSnackbar-root': {
-        bottom: `${20 + index * 60}px`,
-        transition: 'bottom 0.3s ease-in-out',
-      },
-    }
+const StackableSnackbar = styled(Snackbar, {
+  shouldForwardProp: (prop) =>
+    !['stackable', 'pause'].some((key) => key === prop),
+})<StackableSnackbarProps>(({ stackable, index }) => {
+  if (!stackable || index === undefined) return {}
+  return {
+    '&.MuiSnackbar-root': {
+      bottom: `${20 + index * 60}px`,
+      transition: 'bottom 0.3s ease-in-out',
+    },
   }
-)
+})
 
 export const Toast = (props: ToastProps) => {
   const { close, dequeue, notifications, pause, unpause } = useToast(
