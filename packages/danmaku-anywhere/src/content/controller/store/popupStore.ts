@@ -1,6 +1,6 @@
-import type { SearchAnimeDetails } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { create } from 'zustand'
 
+import { SeasonV1 } from '@/common/anime/types/v1/schema'
 import { createSelectors } from '@/common/utils/createSelectors'
 
 export enum PopupTab {
@@ -19,10 +19,10 @@ interface PopupStoreState {
   lock: boolean
   toggleLock: (lock?: boolean) => void
 
-  open: (params?: { animes?: SearchAnimeDetails[]; tab?: PopupTab }) => void
+  open: (params?: { animes?: SeasonV1[]; tab?: PopupTab }) => void
 
-  animes: SearchAnimeDetails[]
-  setAnimes: (animes: SearchAnimeDetails[]) => void
+  animes: SeasonV1[]
+  setAnimes: (animes: SeasonV1[]) => void
 
   searchTitle: string
   setSearchTitle: (title: string) => void

@@ -67,10 +67,10 @@ export const IntegrationInfo = () => {
           {mediaInfo && (
             <>
               <Typography variant="body2">
-                {t('anime.title')}: {mediaInfo.title}
+                {t('anime.title')}: {mediaInfo.seasonTitle}
               </Typography>
               <Typography variant="body2">
-                {t('anime.season')}: {mediaInfo.season ?? 'NULL'}
+                {t('anime.season')}: {mediaInfo.seasonDecorator ?? 'NULL'}
               </Typography>
               <Typography variant="body2">
                 {t('anime.episode')}: {mediaInfo.episode}

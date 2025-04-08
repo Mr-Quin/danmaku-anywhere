@@ -2,7 +2,7 @@ import type { PopoverVirtualElement } from '@mui/material'
 import * as OpenCC from 'opencc-js'
 import { match as matchPinyin } from 'pinyin-pro'
 
-import type { NotPromise } from '../types/types'
+import type { NotPromise } from '../types/utils'
 
 import { Logger } from '@/common/Logger'
 
@@ -182,4 +182,18 @@ const hkToCn = OpenCC.Converter({ from: 'hk', to: 'cn' })
 
 export const toSimplified = (str: string) => {
   return twToCn(hkToCn(str))
+}
+
+export const zip = <T, K, R>(
+  a: T[],
+  b: K[],
+  combinator: (a: T, b: K) => R
+): R[] => {
+  if (a.length !== b.length) {
+    throw new Error('cannot zip 2 arrays of different sizes')
+  }
+
+  return a.map((item, i) => {
+    return combinator(item, b[i])
+  })
 }
