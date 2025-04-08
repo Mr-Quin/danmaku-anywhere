@@ -3,15 +3,16 @@ import { useSuspenseQueries, useSuspenseQuery } from '@tanstack/react-query'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
-import type { DanDanPlaySeason } from '@/common/anime/dto'
+import { SeasonV1 } from '@/common/anime/types/v1/schema'
 import { ListItemSkeleton } from '@/common/components/MediaList/components/ListItemSkeleton'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
+import { QueryEpisodeFilter } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { danmakuQueryKeys, mediaQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 interface DandanPlaySeasonsListItemProps {
-  season: DanDanPlaySeason
+  season: SeasonV1
   renderEpisode: RenderEpisode
 }
 
@@ -20,12 +21,9 @@ export const DandanPlayEpisodeList = ({
   renderEpisode,
 }: DandanPlaySeasonsListItemProps) => {
   const { data: episodes } = useSuspenseQuery({
-    queryKey: mediaQueryKeys.episodes(
-      DanmakuSourceType.DanDanPlay,
-      season.animeId
-    ),
+    queryKey: mediaQueryKeys.episodes(DanmakuSourceType.DanDanPlay, season.id),
     queryFn: async () => {
-      return chromeRpcClient.episodesGetDanDanPlay(season.animeId)
+      return chromeRpcClient.episodeSearchDanDanPlay(season.id)
     },
     select: (data) => data.data,
     staleTime: Infinity,
@@ -36,12 +34,13 @@ export const DandanPlayEpisodeList = ({
     queries: episodes.map((episode) => {
       const params = {
         provider: DanmakuSourceType.DanDanPlay,
-        episodeId: episode.episodeId,
-      }
+        indexedId: episode.providerIds.episodeId.toString(),
+      } satisfies QueryEpisodeFilter
+
       return {
         queryKey: danmakuQueryKeys.one(params),
         queryFn: async () => {
-          const res = await chromeRpcClient.danmakuGetOneLite(params)
+          const res = await chromeRpcClient.episodeGetOneLite(params)
           return res.data
         },
         refetchOnMount: false,
@@ -59,11 +58,10 @@ export const DandanPlayEpisodeList = ({
         return (
           <ErrorBoundary
             fallback={<ListItemText primary="An error occurred" />}
-            key={episode.episodeId}
+            key={episode.providerIds.episodeId}
           >
             <Suspense fallback={<ListItemSkeleton />}>
               {renderEpisode({
-                provider: DanmakuSourceType.DanDanPlay,
                 episode,
                 season,
                 danmaku: danmakuResult.data,

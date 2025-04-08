@@ -80,8 +80,8 @@ export const useIntegrationPolicy = () => {
           setErrorMessage()
 
           const episodeMatchPayload = {
-            mapKey: state.key(),
-            title: state.title,
+            mapKey: state.fullSeason(),
+            title: state.seasonTitle,
             episodeNumber: state.episode,
           }
 

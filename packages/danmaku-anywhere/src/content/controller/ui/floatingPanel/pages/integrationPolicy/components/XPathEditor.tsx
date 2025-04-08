@@ -71,10 +71,10 @@ export const XPathEditor = ({ onOpenSelector }: XPathEditorProps) => {
 
         if (isTitle && isTitleOnly) {
           const [tooltip, err] = tryCatchSync(() => {
-            const { title, episodeTitle, episode, season } =
+            const { seasonTitle, episodeTitle, episode, seasonDecorator } =
               parseMediaFromTitle(element.textContent!, [regex])
 
-            return `Title: ${title}, Episode: ${episode}, Season: ${season}, Episode Title: ${episodeTitle}`
+            return `Title: ${seasonTitle}, Episode: ${episode}, Season: ${seasonDecorator}, Episode Title: ${episodeTitle}`
           })
 
           return {

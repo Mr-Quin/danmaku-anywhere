@@ -4,14 +4,14 @@ import { useTranslation } from 'react-i18next'
 
 import { Logger } from '@/common/Logger'
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { CustomDanmakuCreateData } from '@/common/danmaku/dto'
 import type { ImportParseResult } from '@/common/danmaku/types'
+import { CustomEpisodeInsertV4 } from '@/common/danmaku/types/v4/schema'
 import { danmakuQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ImportResultDialog } from '@/popup/pages/danmaku/pages/ImportPage/components/ImportResultDialog'
 
 interface CustomDanmakuImportResultProps {
-  data: ImportParseResult<CustomDanmakuCreateData[]>
+  data: ImportParseResult<CustomEpisodeInsertV4[]>
   onClose: () => void
   open: boolean
 }
@@ -61,8 +61,7 @@ export const ImportCustomDanmaku = ({
           {data.succeeded?.map((result, index) => {
             return (
               <DialogContentText key={index}>
-                {result.seasonTitle} - {result.episodeTitle} (
-                {result.comments.length})
+                {result.title} ({result.comments.length})
               </DialogContentText>
             )
           })}

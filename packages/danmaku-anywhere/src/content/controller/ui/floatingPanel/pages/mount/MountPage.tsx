@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSelector'
-import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
+import { EpisodeLiteV4, WithSeason } from '@/common/danmaku/types/v4/schema'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { useStore } from '@/content/controller/store/store'
 import { useMountDanmakuContent } from '@/content/controller/ui/floatingPanel/pages/mount/useMountDanmakuContent'
@@ -14,13 +14,13 @@ export const MountPage = () => {
   const { isMounted, danmakuLite } = useStore.use.danmaku()
 
   const [localDanmakuLite, setLocalDanmakuLite] = useState<
-    DanmakuLite | undefined
+    WithSeason<EpisodeLiteV4> | undefined
   >(danmakuLite)
 
   const { mutateAsync, isPending } = useMountDanmakuContent()
   const unmountMutation = useUnmountDanmaku()
 
-  const handleSelectDanmaku = (danmakuLite?: DanmakuLite) => {
+  const handleSelectDanmaku = (danmakuLite?: WithSeason<EpisodeLiteV4>) => {
     setLocalDanmakuLite(danmakuLite)
   }
 

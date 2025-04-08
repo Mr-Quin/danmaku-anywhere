@@ -6,7 +6,6 @@ import { MountConfigEditor } from '../pages/config/pages/MountConfigEditor'
 import { AnimePage } from '../pages/danmaku/pages/AnimePage'
 import { DanmakuPage } from '../pages/danmaku/pages/DanmakuPage'
 import { EpisodePage } from '../pages/danmaku/pages/EpisodePage'
-import { ImportPage } from '../pages/danmaku/pages/ImportPage/ImportPage'
 import { Home } from '../pages/home/Home'
 import { IntegrationPolicy } from '../pages/integrationPolicy/pages/IntegrationPolicy'
 import { IntegrationPolicyEditor } from '../pages/integrationPolicy/pages/IntegrationPolicyEditor'
@@ -84,10 +83,10 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
               },
             ],
           },
-          {
-            path: 'upload',
-            Component: ImportPage,
-          },
+          // {
+          //   path: 'upload',
+          //   Component: ImportPage,
+          // },
         ],
       },
       {

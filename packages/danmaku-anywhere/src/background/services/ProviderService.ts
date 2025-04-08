@@ -4,29 +4,40 @@ import { TencentService } from '@/background/services/TencentService'
 import { TitleMappingService } from '@/background/services/TitleMappingService'
 import { Logger } from '@/common/Logger'
 import type {
-  BilibiliMediaSearchResult,
-  DanDanPlayMediaSearchResult,
   MatchEpisodeInput,
   MatchEpisodeResult,
-  MediaSearchParams,
-  TencentMediaSearchResult,
+  SeasonSearchParams,
 } from '@/common/anime/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type {
-  BiliBiliMeta,
+
+import { DanmakuService } from '@/background/services/DanmakuService'
+import { SeasonService } from '@/background/services/SeasonService'
+import {
+  BilibiliSeasonV1,
+  DanDanPlaySeasonV1,
+  TencentSeasonV1,
+} from '@/common/anime/types/v1/schema'
+import type { DanmakuFetchDto } from '@/common/danmaku/dto'
+import {
   DanDanPlayMeta,
-  TencentMeta,
-} from '@/common/danmaku/models/meta'
+  EpisodeV4,
+  WithSeason,
+} from '@/common/danmaku/types/v4/schema'
+import { assertProvider, isProvider } from '@/common/danmaku/utils'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
+import { match } from 'ts-pattern'
 
 export class ProviderService {
   private logger: typeof Logger
-  private bilibiliService = new BilibiliService()
-  private danDanPlayService = new DanDanPlayService()
-  private tencentService = new TencentService()
-  private titleMappingService = new TitleMappingService()
 
-  constructor() {
+  constructor(
+    private titleMappingService: TitleMappingService,
+    private danmakuService: DanmakuService,
+    private seasonService: SeasonService,
+    private danDanPlayService: DanDanPlayService,
+    private bilibiliService: BilibiliService,
+    private tencentService: TencentService
+  ) {
     invariant(
       isServiceWorker(),
       'ProviderService is only available in service worker'
@@ -35,35 +46,109 @@ export class ProviderService {
   }
 
   async searchDanDanPlay(
-    searchParams: MediaSearchParams
-  ): Promise<DanDanPlayMediaSearchResult> {
-    return {
-      data: await this.danDanPlayService.search({
-        anime: searchParams.keyword,
-        episode: searchParams.episode,
-      }),
-      provider: DanmakuSourceType.DanDanPlay,
-    }
+    searchParams: SeasonSearchParams
+  ): Promise<DanDanPlaySeasonV1[]> {
+    const results = await this.danDanPlayService.search({
+      anime: searchParams.keyword,
+      episode: searchParams.episode,
+    })
+
+    return this.seasonService.bulkUpsert(results)
   }
 
   async searchBilibili(
-    searchParams: MediaSearchParams
-  ): Promise<BilibiliMediaSearchResult> {
-    return {
-      data: await this.bilibiliService.search({
-        keyword: searchParams.keyword,
-      }),
-      provider: DanmakuSourceType.Bilibili,
-    }
+    searchParams: SeasonSearchParams
+  ): Promise<BilibiliSeasonV1[]> {
+    const results = await this.bilibiliService.search({
+      keyword: searchParams.keyword,
+    })
+
+    return this.seasonService.bulkUpsert(results)
   }
 
   async searchTencent(
-    searchParams: MediaSearchParams
-  ): Promise<TencentMediaSearchResult> {
-    return {
-      data: await this.tencentService.search(searchParams.keyword),
-      provider: DanmakuSourceType.Tencent,
+    searchParams: SeasonSearchParams
+  ): Promise<TencentSeasonV1[]> {
+    const results = await this.tencentService.search(searchParams.keyword)
+
+    return this.seasonService.bulkUpsert(results)
+  }
+
+  async getDanmaku(data: DanmakuFetchDto): Promise<WithSeason<EpisodeV4>> {
+    const { meta, options = {}, context={} } = data
+    const provider = meta.provider
+
+    // Save title mapping
+    if (context.seasonMapKey) {
+      this.logger.debug('Saving title mapping', meta)
+      if (isProvider(meta, DanmakuSourceType.DanDanPlay)) {
+        void this.titleMappingService.add(context.seasonMapKey, meta.season.id)
+      }
     }
+
+    const existingDanmaku = await this.danmakuService.getOne({
+      provider,
+      indexedId: meta.indexedId,
+    })
+
+    if (existingDanmaku && !options.forceUpdate) {
+      this.logger.debug('Danmaku found in db', existingDanmaku)
+      assertProvider(existingDanmaku, provider)
+      const season = await this.seasonService.mustGetById(
+        existingDanmaku.seasonId
+      )
+      assertProvider(season, provider)
+      return {
+        ...existingDanmaku,
+        season,
+      } as WithSeason<EpisodeV4>
+    }
+
+    if (options.forceUpdate) {
+      this.logger.debug('Force update flag set, bypassed cache')
+    } else {
+      this.logger.debug('Danmaku not found in db, fetching from server')
+    }
+
+    const danmaku = (await match(data)
+      .with(
+        { meta: { provider: DanmakuSourceType.Bilibili } },
+        async ({ meta }) => {
+          const episode = await this.bilibiliService.saveEpisode(meta)
+          return {
+            ...episode,
+            season: meta.season,
+          }
+        }
+      )
+      .with(
+        { meta: { provider: DanmakuSourceType.Tencent } },
+        async ({ meta }) => {
+          const episode = await this.tencentService.saveEpisode(meta)
+          return {
+            ...episode,
+            season: meta.season,
+          }
+        }
+      )
+      .with(
+        { meta: { provider: DanmakuSourceType.DanDanPlay } },
+        async ({ meta }) => {
+          const { season, params, ...rest } = meta
+          const episode = await this.danDanPlayService.saveEpisode(
+            rest,
+            meta.season,
+            meta.params
+          )
+          return {
+            ...episode,
+            season,
+          }
+        }
+      )
+      .exhaustive()) satisfies EpisodeV4
+
+    return danmaku
   }
 
   async findMatchingEpisodes({
@@ -72,17 +157,20 @@ export class ProviderService {
     episodeNumber,
     seasonId,
   }: MatchEpisodeInput): Promise<MatchEpisodeResult> {
-    const mapping = await this.titleMappingService.getMappedTitle(mapKey)
+    const mapping = await this.titleMappingService.get(mapKey)
 
     if (mapping) {
       this.logger.debug('Mapping found, using mapped title', mapping)
 
+      const season = await this.seasonService.mustGetById(mapping.seasonId)
+      assertProvider(season, DanmakuSourceType.DanDanPlay)
+
       const episodeId = this.danDanPlayService.computeEpisodeId(
-        mapping.animeId,
+        season.providerIds.animeId,
         episodeNumber ?? 1
       )
-      const episodeTitle = await this.danDanPlayService.getEpisodeTitle(
-        mapping.animeId,
+      const episodeTitle = await this.danDanPlayService.findEpisode(
+        season.providerIds.animeId,
         episodeId
       )
 
@@ -94,22 +182,27 @@ export class ProviderService {
       return {
         status: 'success',
         data: {
-          animeId: mapping.animeId,
-          animeTitle: mapping.title,
-          episodeId,
-          episodeTitle,
           provider: DanmakuSourceType.DanDanPlay,
-        } satisfies DanDanPlayMeta,
+          seasonId: mapping.seasonId,
+          season,
+          title: episodeTitle,
+          indexedId: episodeId.toString(),
+          schemaVersion: 4,
+          lastChecked: Date.now(),
+          providerIds: {
+            episodeId: episodeId,
+          },
+        } satisfies WithSeason<DanDanPlayMeta>,
       }
     }
 
     this.logger.debug('No mapping found, searching for season')
-    const searchResult = await this.searchDanDanPlay({
+    const foundSeasons = await this.searchDanDanPlay({
       keyword: title,
       episode: episodeNumber?.toString(),
     })
 
-    if (searchResult.data.length === 0) {
+    if (foundSeasons.length === 0) {
       this.logger.debug(`No season found for title: ${title}`)
       return {
         status: 'notFound',
@@ -118,32 +211,34 @@ export class ProviderService {
     }
 
     const getMetaFromAnimeId = async (animeId: number) => {
-      const result = await this.danDanPlayService.getAnimeDetails(animeId)
+      const episodes = await this.danDanPlayService.getAnimeDetails(animeId)
 
-      const meta: DanDanPlayMeta = {
-        animeId: result.animeId,
-        animeTitle: result.animeTitle,
-        episodeId: result.episodes[0].episodeId,
-        episodeTitle: result.episodes[0].episodeTitle,
-        provider: DanmakuSourceType.DanDanPlay,
+      if (episodes.length === 0) {
+        throw new Error(`No episodes found for animeId: ${animeId}`)
       }
 
-      return meta
+      const season = await this.seasonService.mustGetById(episodes[0].seasonId)
+      assertProvider(season, DanmakuSourceType.DanDanPlay)
+
+      return {
+        ...episodes[0],
+        season,
+      }
     }
 
-    if (searchResult.data.length === 1) {
-      this.logger.debug('Single season found', searchResult.data[0])
+    if (foundSeasons.length === 1) {
+      this.logger.debug('Single season found', foundSeasons[0])
 
       return {
         status: 'success',
-        data: await getMetaFromAnimeId(searchResult.data[0].animeId),
+        data: await getMetaFromAnimeId(foundSeasons[0].id),
       }
     }
 
     // Try to disambiguate using seasonId
     if (seasonId !== undefined) {
-      const disambiguatedResult = searchResult.data.filter(
-        (season) => season.animeId === seasonId
+      const disambiguatedResult = foundSeasons.filter(
+        (season) => season.id === seasonId
       )
 
       if (disambiguatedResult.length === 1) {
@@ -151,31 +246,30 @@ export class ProviderService {
 
         return {
           status: 'success',
-          data: await getMetaFromAnimeId(disambiguatedResult[0].animeId),
+          data: await getMetaFromAnimeId(disambiguatedResult[0].id),
         }
       }
     }
 
     this.logger.debug(
       'Multiple seasons found, disambiguation required',
-      searchResult.data
+      foundSeasons
     )
     return {
       status: 'disambiguation',
-      data: searchResult,
+      data: foundSeasons,
     }
   }
 
-  async getDanDanPlayEpisodes(animeId: number) {
-    return (await this.danDanPlayService.getAnimeDetails(animeId)).episodes
+  async getDanDanPlayEpisodes(seasonId: number) {
+    return this.danDanPlayService.getAnimeDetails(seasonId)
   }
 
   async getBilibiliEpisodes(seasonId: number) {
-    const res = await this.bilibiliService.getBangumiInfo({ seasonId })
-    return res.episodes
+    return this.bilibiliService.getEpisodes(seasonId)
   }
 
-  async getTencentEpisodes(seasonId: string) {
+  async getTencentEpisodes(seasonId: number) {
     return this.tencentService.getEpisodes(seasonId)
   }
 
@@ -183,62 +277,7 @@ export class ProviderService {
     const { hostname, pathname } = new URL(url)
 
     if (hostname === 'www.bilibili.com') {
-      // https://www.bilibili.com/bangumi/play/ss3421?spm_id_from=333.337.0.0
-      const ssid = pathname.match(/ss(\d+)/)?.[1]
-      const epid = pathname.match(/ep(\d+)/)?.[1]
-
-      // we need one of ssid or epid
-      if (!ssid && !epid) throw new Error('Invalid bilibili url')
-
-      const info = await this.bilibiliService.getBangumiInfo({
-        seasonId: ssid ? parseInt(ssid) : undefined,
-        episodeId: epid ? parseInt(epid) : undefined,
-      })
-
-      // if using season id, get the first episode
-      const episode = epid
-        ? info.episodes.find((episode) => episode.id === parseInt(epid))
-        : info.episodes[0]
-
-      if (!episode) throw new Error('Episode not found')
-
-      return {
-        provider: DanmakuSourceType.Bilibili,
-        cid: episode.cid,
-        bvid: episode.bvid,
-        aid: episode.aid,
-        seasonId: info.season_id,
-        title: episode.long_title || episode.share_copy,
-        seasonTitle: info.title,
-        mediaType: info.type,
-      } satisfies BiliBiliMeta
-    } else if (hostname === 'v.qq.com') {
-      // https://v.qq.com/x/cover/mzc00200ztsl4to/m4100bardal.html
-      const [, cid, vid] = pathname.match(/cover\/(.*)\/(.*)\.html/) ?? []
-
-      if (!cid || !vid) throw new Error('Invalid tencent url')
-
-      // get name of the show
-      const pageDetails = await this.tencentService.getPageDetails(cid, vid)
-      const seasonTitle =
-        pageDetails.module_list_datas[0]?.module_datas[0]?.item_data_lists
-          ?.item_datas[0]?.item_params?.title
-      if (!seasonTitle) throw new Error('Season not found')
-
-      // get the name of the episode
-      const episodes = await this.tencentService.getEpisodes(cid, vid)
-      const matchingEpisode = episodes.find((episode) => episode.vid === vid)
-      if (!matchingEpisode) throw new Error('Episode not found')
-
-      const episodeTitle = matchingEpisode.play_title
-
-      return {
-        provider: DanmakuSourceType.Tencent,
-        cid,
-        vid,
-        seasonTitle,
-        episodeTitle,
-      } satisfies TencentMeta
+      return await this.bilibiliService.getEpisodeByUrl(url)
     }
 
     throw new Error('Unknown host')

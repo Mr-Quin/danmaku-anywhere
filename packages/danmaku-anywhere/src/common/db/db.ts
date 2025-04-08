@@ -1,11 +1,30 @@
 import { Dexie } from 'dexie'
 
-import type { Danmaku, DanmakuInsert } from '@/common/danmaku/models/danmaku'
-import type { TitleMapping } from '@/common/danmaku/models/titleMapping'
+import { SeasonV1 } from '@/common/anime/types/v1/schema'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
+import { DanmakuV3 } from '@/common/danmaku/types/v3/schema'
+import { episodeV4Migration } from '@/common/danmaku/types/v4/migration'
+import { CustomEpisodeV4, EpisodeV4 } from '@/common/danmaku/types/v4/schema'
+
+type WithoutId<T> = Omit<T, 'id'>
+
+/**
+ * Maps a key to a seasonId, where the key is generated from website-specific information
+ */
+export interface SeasonMap {
+  key: string
+  seasonId: number
+}
 
 class DanmakuAnywhereDb extends Dexie {
-  danmaku!: Dexie.Table<Danmaku, number, DanmakuInsert>
-  titleMapping!: Dexie.Table<TitleMapping, string>
+  episode!: Dexie.Table<EpisodeV4, number, WithoutId<EpisodeV4>>
+  customEpisode!: Dexie.Table<
+    CustomEpisodeV4,
+    number,
+    WithoutId<CustomEpisodeV4>
+  >
+  season!: Dexie.Table<SeasonV1, number, WithoutId<SeasonV1>>
+  seasonMap!: Dexie.Table<SeasonMap, string>
 
   isReady = new Promise<boolean>((resolve) => {
     this.on('ready', () => resolve(true))
@@ -183,6 +202,148 @@ class DanmakuAnywhereDb extends Dexie {
       danmakuCache: null,
       titleMapping: '++id, originalTitle, title',
     })
+
+    /**
+     * 1. Migrate danmaku schema from v3 to v4, rename danmaku to episode
+     * 2. Separate season data from each episode, create a separate season table (FK: episode -> season)
+     * 3. Separate (again) custom danmaku into its own table
+     */
+    this.version(10)
+      .stores({
+        episode:
+          '++id, provider, indexedId, &[provider+indexedId], seasonId, timeUpdated, lastChecked',
+        season: '++id, provider, indexedId, &[provider+indexedId]',
+        customEpisode: '++id, title',
+        danmaku: null,
+        manualDanmakuCache: null,
+        danmakuCache: null,
+        titleMapping: null,
+        seasonMap: 'key, seasonId',
+      })
+      .upgrade(async (tx) => {
+        const getSeason = (
+          item: Extract<
+            DanmakuV3,
+            {
+              provider:
+                | DanmakuSourceType.DanDanPlay
+                | DanmakuSourceType.Bilibili
+                | DanmakuSourceType.Tencent
+            }
+          >
+        ): WithoutId<SeasonV1> => {
+          switch (item.provider) {
+            case DanmakuSourceType.DanDanPlay: {
+              return {
+                provider: DanmakuSourceType.DanDanPlay,
+                providerIds: {
+                  animeId: item.meta.animeId,
+                },
+                title: item.seasonTitle,
+                type: 'unknown',
+                indexedId: item.meta.animeId.toString(),
+                schemaVersion: 1,
+                version: 1,
+                timeUpdated: Date.now(),
+              } satisfies WithoutId<SeasonV1>
+            }
+            case DanmakuSourceType.Bilibili: {
+              return {
+                provider: DanmakuSourceType.Bilibili,
+                providerIds: {
+                  seasonId: item.meta.seasonId,
+                },
+                title: item.seasonTitle,
+                type: 'unknown',
+                indexedId: item.meta.seasonId.toString(),
+                schemaVersion: 1,
+                version: 1,
+                timeUpdated: Date.now(),
+              } satisfies WithoutId<SeasonV1>
+            }
+            case DanmakuSourceType.Tencent: {
+              return {
+                provider: DanmakuSourceType.Tencent,
+                providerIds: {
+                  cid: item.meta.cid,
+                },
+                title: item.seasonTitle,
+                type: 'unknown',
+                indexedId: item.meta.cid.toString(),
+                schemaVersion: 1,
+                version: 1,
+                timeUpdated: Date.now(),
+              } satisfies WithoutId<SeasonV1>
+            }
+          }
+        }
+
+        await tx.table('danmaku').each(async (item: DanmakuV3) => {
+          /**
+           * 1. move custom danmaku to a separate table
+           */
+          if (item.provider === 'Custom') {
+            await tx
+              .table('customEpisode')
+              .add(episodeV4Migration.migrateCustomV3ToV4(item))
+            return
+          }
+
+          const seasonIdMap = new Map<string, number>()
+
+          /**
+           * 2. for other danmaku types, first create a season for the danmaku
+           */
+          const getSeasonId = async () => {
+            const key = JSON.stringify([
+              item.provider,
+              item.seasonId ?? item.seasonTitle,
+            ])
+
+            /**
+             * the combination of provider and the item's original season id should be unique,
+             * if the season is already in the table, don't add again
+             */
+            const cachedSeasonId = seasonIdMap.get(key)
+
+            if (cachedSeasonId !== undefined) {
+              return cachedSeasonId
+            }
+
+            const seasonInsert = getSeason(item)
+
+            try {
+              /**
+               * Try-catch in case adding a season fails
+               */
+              const seasonId: number = await tx
+                .table('season')
+                .add(seasonInsert)
+              seasonIdMap.set(key, seasonId)
+              return seasonId
+            } catch (error) {
+              console.debug(error)
+              return
+            }
+          }
+          const seasonId = await getSeasonId()
+
+          /**
+           * if season id creation failed, we cannot use this entry, so skip it
+           */
+          if (seasonId === undefined) {
+            console.error('skipped danmaku during migration', item)
+            return
+          }
+
+          /**
+           * 3. with the season id, move the danmaku to a separate episode table
+           */
+          tx.table('episode').add(
+            episodeV4Migration.migrateV3ToV4(item, seasonId)
+          )
+        })
+      })
 
     this.open()
   }

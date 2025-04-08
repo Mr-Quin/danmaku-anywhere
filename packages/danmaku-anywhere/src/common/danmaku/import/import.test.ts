@@ -5,7 +5,7 @@ import { importDanmakuSchema } from './import'
 
 import { importCommentSchema } from '@/common/danmaku/import/commentSchema'
 import { v1, v2, v3, validComment } from '@/common/danmaku/import/sample'
-import type { DanmakuInsert } from '@/common/danmaku/models/danmaku'
+import type { DanmakuInsertV3 } from '@/common/danmaku/types/v3/schema'
 
 describe('commentSchema', () => {
   it('accepts valid comment', () => {
@@ -49,7 +49,9 @@ describe('commentSchema', () => {
   })
 })
 
-function assertType(input: DanmakuInsert[]): asserts input is DanmakuInsert[] {
+function assertType(
+  input: DanmakuInsertV3[]
+): asserts input is DanmakuInsertV3[] {
   return
 }
 

@@ -7,18 +7,17 @@ import {
   handleParseResponse,
   handleParseResponseAsync,
 } from '../utils/index.js'
-
 import type {
   BiliBiliSearchParams,
   BiliBiliSearchType,
   BilibiliBangumiInfo,
-  BilibiliSearchResult,
+  BilibiliMedia,
 } from './schema.js'
 import {
-  bilibiliBangumiInfoResponseSchema,
-  bilibiliCommentSchemaProto,
-  bilibiliSearchResponseSchema,
-  bilibiliUserInfoSchema,
+  zBilibiliBangumiInfoResponse,
+  zBilibiliCommentProto,
+  zBilibiliSearchResponse,
+  zBilibiliUserInfo,
 } from './schema.js'
 import { ensureData } from './utils.js'
 
@@ -40,9 +39,7 @@ export const getCurrentUser = async () => {
 
   const data = await response.json()
 
-  const parsedData = handleParseResponse(() =>
-    bilibiliUserInfoSchema.parse(data)
-  )
+  const parsedData = handleParseResponse(() => zBilibiliUserInfo.parse(data))
 
   // data property is always present, even if the user is not logged in
 
@@ -51,7 +48,7 @@ export const getCurrentUser = async () => {
 
 const search = async (
   params: BiliBiliSearchParams,
-  type: BiliBiliSearchType
+  type: BiliBiliSearchType,
 ) => {
   await throttle()
 
@@ -64,16 +61,18 @@ const search = async (
   const data = await response.json()
 
   const parsedData = handleParseResponse(() =>
-    bilibiliSearchResponseSchema.parse(data)
+    zBilibiliSearchResponse.parse(data),
   )
 
   ensureData(parsedData, 'data')
 
-  return parsedData.data.result satisfies BilibiliSearchResult
+  return parsedData.data.result satisfies BilibiliMedia[]
 }
 
 // search for media by keyword
-export const searchMedia = async (params: BiliBiliSearchParams) => {
+export const searchMedia = async (
+  params: BiliBiliSearchParams,
+): Promise<BilibiliMedia[]> => {
   await throttle()
 
   const mediaResult = await Promise.all([
@@ -90,9 +89,9 @@ export const searchMedia = async (params: BiliBiliSearchParams) => {
 
 // using season id, get a list of episodes
 export const getBangumiInfo = async ({
-  seasonId,
-  episodeId,
-}: {
+                                       seasonId,
+                                       episodeId,
+                                     }: {
   seasonId?: number
   episodeId?: number
 }) => {
@@ -111,7 +110,7 @@ export const getBangumiInfo = async ({
   const data = await response.json()
 
   const parsedData = handleParseResponse(() =>
-    bilibiliBangumiInfoResponseSchema.parse(data)
+    zBilibiliBangumiInfoResponse.parse(data),
   )
 
   ensureData(parsedData, 'result')
@@ -129,7 +128,7 @@ export const getDanmakuXml = async (cid: number): Promise<CommentEntity[]> => {
   const xmlData = await response.text()
 
   const comments = await handleParseResponseAsync(() =>
-    bilibiliCommentSchemaXml.parseAsync(xmlData)
+    bilibiliCommentSchemaXml.parseAsync(xmlData),
   )
 
   return comments.comments
@@ -137,7 +136,7 @@ export const getDanmakuXml = async (cid: number): Promise<CommentEntity[]> => {
 
 export async function* getDanmakuProtoSegment(
   oid: number,
-  pid?: number
+  pid?: number,
 ): AsyncGenerator<CommentEntity[]> {
   const MAX_SEGMENT = 100 // arbitrary number
 
@@ -172,7 +171,7 @@ export async function* getDanmakuProtoSegment(
 
     try {
       parsed = bilibiliProto.community.service.dm.v1.DmSegMobileReply.decode(
-        new Uint8Array(buffer)
+        new Uint8Array(buffer),
       )
     } catch (e) {
       if (e instanceof Error) {
@@ -184,7 +183,7 @@ export async function* getDanmakuProtoSegment(
     }
 
     const comments = await handleParseResponseAsync(() =>
-      bilibiliCommentSchemaProto.parseAsync(parsed)
+      zBilibiliCommentProto.parseAsync(parsed),
     )
 
     yield comments.elems
@@ -215,7 +214,7 @@ const sample = <T>(arr: T[], limit: number): T[] => {
 export const getDanmakuProto = async (
   oid: number,
   pid?: number,
-  { limitPerMinute = 1000 }: { limitPerMinute?: number } = {}
+  { limitPerMinute = 1000 }: { limitPerMinute?: number } = {},
 ): Promise<CommentEntity[]> => {
   const segments = getDanmakuProtoSegment(oid, pid)
   const comments: CommentEntity[][] = []

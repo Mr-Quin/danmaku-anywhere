@@ -1,5 +1,5 @@
-import type { MediaSearchParams } from '@/common/anime/dto'
-import type { DanmakuGetOneDto } from '@/common/danmaku/dto'
+import type { SeasonSearchParams } from '@/common/anime/dto'
+import type { QueryEpisodeFilter } from '@/common/danmaku/dto'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
 
 export const storageQueryKeys = {
@@ -17,7 +17,7 @@ export const storageQueryKeys = {
 
 export const mediaQueryKeys = {
   all: () => [{ scope: 'media' }] as const,
-  search: (provider?: DanmakuSourceType, params?: MediaSearchParams) =>
+  search: (provider?: DanmakuSourceType, params?: SeasonSearchParams) =>
     [{ scope: 'media', kind: 'search', provider, params }] as const,
   episodes: (provider: DanmakuSourceType, seasonId: string | number) =>
     [{ scope: 'media', kind: 'episodes', provider, seasonId }] as const,
@@ -32,7 +32,7 @@ export const sourceQueryKeys = {
 
 export const danmakuQueryKeys = {
   all: () => [{ scope: 'danmaku' }] as const,
-  one: (params: DanmakuGetOneDto) =>
+  one: (params: QueryEpisodeFilter) =>
     [{ scope: 'danmaku', kind: 'getOne', ...params }] as const,
 }
 

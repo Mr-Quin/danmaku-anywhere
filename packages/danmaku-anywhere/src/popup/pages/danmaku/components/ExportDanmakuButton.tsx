@@ -21,7 +21,7 @@ export const ExportDanmakuButton = () => {
 
   const episodes = useMemo(() => {
     return data
-      .filter((item) => item.seasonTitle === selectedAnime)
+      .filter((item) => item.season.title === selectedAnime)
       .map((item) => item.id)
   }, [data])
 
