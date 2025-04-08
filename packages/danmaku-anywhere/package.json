@@ -11,8 +11,8 @@
   "scripts": {
     "dev": "vite",
     "dev:firefox": "VITE_TARGET_BROWSER=firefox pnpm run dev",
-    "start:firefox": "web-ext run --source-dir ./build --devtools",
-    "start:firefox-android": "web-ext run -t firefox-android --firefox-apk org.mozilla.firefox_beta --source-dir ./build",
+    "start:firefox": "web-ext run --source-dir ./build --devtools -p ./extention-profile --profile-create-if-missing --keep-profile-changes",
+    "start:firefox-android": "pnpm run start:firefox -t firefox-android --firefox-apk org.mozilla.firefox_beta",
     "build": "vite build --outDir build --emptyOutDir",
     "build:firefox": "VITE_TARGET_BROWSER=firefox pnpm run build",
     "test": "vitest",

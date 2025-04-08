@@ -7,7 +7,18 @@ import { manifest } from './manifest'
 
 const browser = process.env.VITE_TARGET_BROWSER ?? 'chrome'
 
+if (!['chrome', 'firefox'].includes(browser)) {
+  throw new Error(
+    `Browser target must be either 'chrome' or 'firefox', but got ${browser}`
+  )
+}
+
+const isChrome = browser === 'chrome'
+const isFirefox = browser === 'firefox'
+
 const dev = process.env.NODE_ENV === 'development'
+
+const port = isChrome ? 3000 : 3001
 
 console.log('Building for', {
   browser,
@@ -24,9 +35,9 @@ export default defineConfig({
   },
   server: {
     strictPort: true,
-    port: 3000,
+    port: port,
     hmr: {
-      clientPort: 3000,
+      clientPort: port,
     },
     open: false,
   },
@@ -38,7 +49,7 @@ export default defineConfig({
       },
     },
     outDir: `./dev/${browser}`,
-    minify: browser !== 'firefox',
+    minify: isFirefox, // don't minify for Firefox, so they can review the code
     // the minimum to support top-level await
     target: ['es2022', 'edge89', 'firefox89', 'chrome89', 'safari15'],
   },
