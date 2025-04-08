@@ -25,7 +25,7 @@ export const ConfirmDeleteDialog = () => {
   const { mutate, isPending } = useMutation({
     mutationKey: danmakuQueryKeys.all(),
     mutationFn: async () => {
-      return chromeRpcClient.danmakuDeleteAll()
+      return chromeRpcClient.episodeDeleteAll()
     },
     onSuccess: () => {
       toast.success(t('danmaku.alert.deleted'))

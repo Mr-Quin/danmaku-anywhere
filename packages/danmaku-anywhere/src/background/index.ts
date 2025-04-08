@@ -1,4 +1,14 @@
+import { BilibiliService } from '@/background/services/BilibiliService'
+import { DanDanPlayService } from '@/background/services/DanDanPlayService'
+import { DanmakuService } from '@/background/services/DanmakuService'
+import { GenAIService } from '@/background/services/GenAIService'
+import { IconService } from '@/background/services/IconService'
+import { ProviderService } from '@/background/services/ProviderService'
+import { SeasonService } from '@/background/services/SeasonService'
+import { TencentService } from '@/background/services/TencentService'
+import { TitleMappingService } from '@/background/services/TitleMappingService'
 import { IS_FIREFOX } from '@/common/constants'
+import { db } from '@/common/db/db'
 import { setupAlarms } from './alarm/setupAlarms'
 import { setupContextMenu } from './contextMenu/setupContextMenu'
 import { setupNetRequest } from './netRequest/setupNetrequest'
@@ -6,11 +16,44 @@ import { setupRpc } from './rpc/setupRpc'
 import { setupScripting } from './scripting/setupScripting'
 import { setupOptions } from './syncOptions/setupOptions'
 
+// dependency injection
+const seasonService = new SeasonService(db.season)
+const danmakuService = new DanmakuService(
+  seasonService,
+  db.episode,
+  db.customEpisode
+)
+
+const danDanPlayService = new DanDanPlayService(seasonService, danmakuService)
+const tencentService = new TencentService(seasonService, danmakuService)
+const bilibiliService = new BilibiliService(seasonService, danmakuService)
+
+const titleMappingService = new TitleMappingService(db.seasonMap)
+const providerService = new ProviderService(
+  titleMappingService,
+  danmakuService,
+  seasonService,
+  danDanPlayService,
+  bilibiliService,
+  tencentService
+)
+const iconService = new IconService()
+const aiService = new GenAIService()
+
 setupOptions()
 setupScripting()
-setupRpc()
+setupRpc(
+  providerService,
+  iconService,
+  danmakuService,
+  seasonService,
+  aiService,
+  bilibiliService,
+  tencentService
+)
 setupNetRequest()
-setupAlarms()
+setupAlarms(danmakuService)
+
 chrome.runtime.getPlatformInfo().then((platformInfo) => {
   if (platformInfo.os === 'android' || IS_FIREFOX) {
     return

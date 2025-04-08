@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Logger } from '@/common/Logger'
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { DanmakuGetOneDto } from '@/common/danmaku/dto'
+import type { QueryEpisodeFilter } from '@/common/danmaku/dto'
 import { danmakuToString } from '@/common/danmaku/utils'
 import { danmakuQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -16,10 +16,10 @@ export const useMountDanmakuPopup = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (id: DanmakuGetOneDto) => {
+    mutationFn: async (data: QueryEpisodeFilter) => {
       const res = await queryClient.fetchQuery({
-        queryKey: danmakuQueryKeys.one(id),
-        queryFn: () => chromeRpcClient.danmakuGetOne(id),
+        queryKey: danmakuQueryKeys.one(data),
+        queryFn: () => chromeRpcClient.episodeGetOne({ id: data.id }),
       })
 
       if (!res.data) throw new Error('No danmaku found')

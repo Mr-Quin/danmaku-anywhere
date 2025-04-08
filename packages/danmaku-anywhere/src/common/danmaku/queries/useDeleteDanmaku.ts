@@ -2,7 +2,6 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { DanmakuDeleteDto } from '@/common/danmaku/dto'
 import { danmakuQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
@@ -12,8 +11,8 @@ export const useDeleteDanmaku = () => {
 
   return useMutation({
     mutationKey: danmakuQueryKeys.all(),
-    mutationFn: async (danmakuId: DanmakuDeleteDto) => {
-      await chromeRpcClient.danmakuDelete(danmakuId)
+    mutationFn: async (danmakuId: number) => {
+      await chromeRpcClient.episodeDelete({ id: danmakuId })
     },
     onError: (e) => {
       toast.error(

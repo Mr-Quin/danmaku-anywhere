@@ -35,7 +35,7 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
   const { setSelectedEpisode, selectedAnime } = useStore.use.danmaku()
 
   const episodes = useMemo(() => {
-    return data.filter((item) => item.seasonTitle === selectedAnime)
+    return data.filter((item) => item.season.title === selectedAnime)
   }, [data])
 
   const virtualizer = useVirtualizer({
@@ -68,12 +68,12 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
     >
       <List>
         {virtualizer.getVirtualItems().map((virtualItem) => {
-          const danmakuLite = episodes[virtualItem.index]
-          const { episodeTitle, commentCount, id } = danmakuLite
+          const episodeLite = episodes[virtualItem.index]
+          const { title, commentCount, id } = episodeLite
 
           return (
             <ListItem
-              key={episodeTitle}
+              key={title}
               sx={{
                 position: 'absolute',
                 top: 0,
@@ -125,14 +125,14 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
                       type: type,
                       title: selectedAnime,
                       id: id.toString(),
-                      episodeTitle: episodeTitle ?? '',
+                      episodeTitle: title ?? '',
                     }).toString(),
                   })
-                  setSelectedEpisode(episodeTitle ?? '')
+                  setSelectedEpisode(title ?? '')
                 }}
               >
                 <ListItemText
-                  primary={episodeTitle}
+                  primary={title}
                   secondary={
                     <Typography variant="caption" color="text.secondary">
                       {t('danmaku.commentCounted', { count: commentCount })}

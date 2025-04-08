@@ -9,7 +9,7 @@ import {
 import { Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { MediaSearchResult } from '@/common/anime/dto'
+import { SeasonV1 } from '@/common/anime/types/v1/schema'
 import { ProviderSearchList } from '@/common/components/MediaList/components/ProviderSearchList'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
 import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
@@ -21,9 +21,9 @@ interface SearchResultListProps {
   dense?: boolean
   searchParams: SearchEpisodesQuery
   pending?: boolean
-  onLoad?: <T extends MediaSearchResult['provider']>(
+  onLoad?: <T extends RemoteDanmakuSourceType>(
     provider: T,
-    data: Extract<MediaSearchResult, { provider: T }>['data']
+    data: SeasonV1[]
   ) => void
   providers: RemoteDanmakuSourceType[]
 }

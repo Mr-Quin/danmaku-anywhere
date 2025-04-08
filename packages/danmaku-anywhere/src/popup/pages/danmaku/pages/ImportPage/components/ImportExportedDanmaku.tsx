@@ -9,33 +9,36 @@ import {
   DanmakuSourceType,
   localizedDanmakuSourceType,
 } from '@/common/danmaku/enums'
-import type { DanmakuInsert } from '@/common/danmaku/models/danmaku'
 import type { ImportParseResult } from '@/common/danmaku/types'
+import { EpisodeInsertV4, WithSeason } from '@/common/danmaku/types/v4/schema'
 import { danmakuQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ImportResultDialog } from '@/popup/pages/danmaku/pages/ImportPage/components/ImportResultDialog'
 
 interface ImportExportedDanmakuProps {
-  data: ImportParseResult<DanmakuInsert[]>
+  data: ImportParseResult<WithSeason<EpisodeInsertV4>[]>
   onClose: () => void
   open: boolean
 }
 
-const sortDanmakuCacheImportDto = (a: DanmakuInsert, b: DanmakuInsert) => {
-  if (a.seasonTitle === b.seasonTitle) {
+const sortDanmakuCacheImportDto = (
+  a: WithSeason<EpisodeInsertV4>,
+  b: WithSeason<EpisodeInsertV4>
+) => {
+  if (a.season.title === b.season.title) {
     // For DDP, sort by episodeId
     if (
       a.provider === DanmakuSourceType.DanDanPlay &&
       b.provider === DanmakuSourceType.DanDanPlay
     ) {
-      if (a.meta.episodeId && b.meta.episodeId) {
-        return a.meta.episodeId - b.meta.episodeId
+      if (a.providerIds.episodeId && b.providerIds.episodeId) {
+        return a.providerIds.episodeId - b.providerIds.episodeId
       }
     }
     // Otherwise, sort by episodeTitle
-    return a.episodeTitle.localeCompare(b.episodeTitle)
+    return a.title.localeCompare(b.title)
   }
-  return a.seasonTitle.localeCompare(b.seasonTitle)
+  return a.season.title.localeCompare(b.season.title)
 }
 
 export const ImportExportedDanmaku = ({
@@ -90,7 +93,7 @@ export const ImportExportedDanmaku = ({
             {resultGroups[provider]
               .toSorted(sortDanmakuCacheImportDto)
               .map((result, index) => {
-                const title = `${result.seasonTitle} - ${result.episodeTitle} (${result.comments.length})`
+                const title = `${result.season.title} - ${result.title} (${result.comments.length})`
                 return (
                   <DialogContentText key={index} noWrap title={title}>
                     {title}

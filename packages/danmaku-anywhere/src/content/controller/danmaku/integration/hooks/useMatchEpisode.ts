@@ -32,9 +32,6 @@ export const useMatchEpisode = () => {
               options: {
                 forceUpdate: false,
               },
-              context: {
-                key: v.mapKey,
-              },
             },
             {
               onError: () => {
@@ -49,7 +46,7 @@ export const useMatchEpisode = () => {
           break
         }
         case 'disambiguation': {
-          const anime = result.data.data.data
+          const anime = result.data.data
           setAnimes(anime)
           open({ animes: anime, tab: PopupTab.Selector })
           break

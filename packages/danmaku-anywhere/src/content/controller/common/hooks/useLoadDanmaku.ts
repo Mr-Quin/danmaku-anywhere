@@ -5,9 +5,9 @@ import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { Danmaku } from '@/common/danmaku/models/danmaku'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
-import { isDanmakuProvider } from '@/common/danmaku/utils'
+import { EpisodeV4, WithSeason } from '@/common/danmaku/types/v4/schema'
+import { isProvider } from '@/common/danmaku/utils'
 import { useMountDanmaku } from '@/content/controller/common/hooks/useMountDanmaku'
 import { useStore } from '@/content/controller/store/store'
 
@@ -24,10 +24,9 @@ export const useLoadDanmaku = () => {
   const mountMutation = useMountDanmaku()
 
   const canRefresh =
-    !!danmakuLite &&
-    isDanmakuProvider(danmakuLite, DanmakuSourceType.DanDanPlay)
+    !!danmakuLite && isProvider(danmakuLite, DanmakuSourceType.DanDanPlay)
 
-  const mountDanmaku = useEventCallback((danmaku: Danmaku) => {
+  const mountDanmaku = useEventCallback((danmaku: WithSeason<EpisodeV4>) => {
     return mountMutation.mutateAsync(danmaku, {
       // This is called in addition to the onSuccess of mountMutation
       onSuccess: () => {
@@ -37,7 +36,7 @@ export const useLoadDanmaku = () => {
             count: danmaku.commentCount,
           }),
           {
-            actionFn: isDanmakuProvider(danmaku, DanmakuSourceType.DanDanPlay)
+            actionFn: isProvider(danmaku, DanmakuSourceType.DanDanPlay)
               ? refreshComments
               : undefined,
             actionLabel: t('danmaku.refresh'),
@@ -65,7 +64,7 @@ export const useLoadDanmaku = () => {
 
     toast.info(t('danmaku.alert.refreshingDanmaku'))
     loadMutation.mutate(
-      { meta: danmakuLite.meta, options: { forceUpdate: true } },
+      { meta: danmakuLite, options: { forceUpdate: true } },
       {
         onSuccess: (result) => {
           toast.success(

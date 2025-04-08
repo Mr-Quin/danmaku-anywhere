@@ -37,21 +37,20 @@ const clearDanmakuPurgeAlarm = async () => {
   await chrome.alarms.clear(alarmKeys.PURGE_DANMAKU)
 }
 
-const handleDanmakuPurgeAlarm = async (alarm: chrome.alarms.Alarm) => {
-  if (alarm.name !== alarmKeys.PURGE_DANMAKU) {
-    return
+const createHandleDanmakuPurgeAlarm =
+  (danmakuService: DanmakuService) => async (alarm: chrome.alarms.Alarm) => {
+    if (alarm.name !== alarmKeys.PURGE_DANMAKU) {
+      return
+    }
+
+    const extensionOptions = await extensionOptionsService.get()
+
+    const days = extensionOptions.retentionPolicy.deleteCommentsAfter
+
+    await danmakuService.purgeOlderThan(days)
   }
 
-  const extensionOptions = await extensionOptionsService.get()
-
-  const days = extensionOptions.retentionPolicy.deleteCommentsAfter
-
-  const danmakuService = new DanmakuService()
-
-  await danmakuService.purgeOlderThan(days)
-}
-
-export const setupAlarms = async () => {
+export const setupAlarms = (danmakuService: DanmakuService) => {
   extensionOptionsService.onChange(async (extensionOptions) => {
     if (!extensionOptions) return
 
@@ -65,8 +64,10 @@ export const setupAlarms = async () => {
   })
 
   // doc says to check for alarms on script start because alarms are not guaranteed to be persistent
-  // if this happens we may miss an alarm
+  // if this happens, we may miss an alarm
   void createDanmakuPurgeAlarm()
+
+  const handleDanmakuPurgeAlarm = createHandleDanmakuPurgeAlarm(danmakuService)
 
   if (!chrome.alarms.onAlarm.hasListener(handleDanmakuPurgeAlarm)) {
     chrome.alarms.onAlarm.addListener(handleDanmakuPurgeAlarm)

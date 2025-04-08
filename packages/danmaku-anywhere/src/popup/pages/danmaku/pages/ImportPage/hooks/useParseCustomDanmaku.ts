@@ -1,12 +1,13 @@
 import { combinedDanmakuSchema } from '@danmaku-anywhere/danmaku-converter'
 import { useMutation } from '@tanstack/react-query'
 
-import type { CustomDanmakuCreateData } from '@/common/danmaku/dto'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { ImportParseResult } from '@/common/danmaku/types'
+import { CustomEpisodeInsertV4 } from '@/common/danmaku/types/v4/schema'
 import type { FileContent } from '@/popup/pages/danmaku/pages/ImportPage/hooks/useUploadDanmaku'
 
 interface UseParseCustomDanmakuProps {
-  onSuccess: (data: ImportParseResult<CustomDanmakuCreateData[]> | null) => void
+  onSuccess: (data: ImportParseResult<CustomEpisodeInsertV4[]> | null) => void
   onError: (e: Error) => void
 }
 
@@ -25,18 +26,14 @@ export const useParseCustomDanmaku = (props: UseParseCustomDanmakuProps) => {
       const succeeded = res
         .filter((result) => result.success)
         .map((result) => {
-          if ('seasonTitle' in result.data) {
-            // custom danmaku, return as is
-            return result.data
-          }
-
           const fileName = result.file.split('.')[0]
 
           return {
-            ...result.data,
-            seasonTitle: fileName,
-            episodeTitle: '',
-          }
+            comments: result.data.comments,
+            title: fileName,
+            provider: DanmakuSourceType.Custom,
+            commentCount: result.data.comments.length,
+          } satisfies CustomEpisodeInsertV4
         })
 
       const errors = res
@@ -50,7 +47,7 @@ export const useParseCustomDanmaku = (props: UseParseCustomDanmakuProps) => {
         succeeded,
         errorCount: errors.length,
         errors,
-      } satisfies ImportParseResult<CustomDanmakuCreateData[]>
+      } satisfies ImportParseResult<CustomEpisodeInsertV4[]>
     },
     onError: (e) => {
       props.onError(e)
