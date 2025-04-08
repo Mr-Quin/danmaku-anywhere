@@ -18,9 +18,11 @@ const LoadInitialData = ({ children }: PropsWithChildren) => {
   return children
 }
 
+const platformInfoPromise = chrome.runtime.getPlatformInfo()
+
 export const App = () => {
   return (
-    <PopupLayout>
+    <PopupLayout platformInfoPromise={platformInfoPromise}>
       <ErrorBoundary
         onError={Logger.error}
         fallback={
