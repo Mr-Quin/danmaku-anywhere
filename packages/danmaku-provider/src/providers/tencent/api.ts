@@ -14,11 +14,11 @@ import type {
   TencentSearchResult,
 } from './schema.js'
 import {
-  tencentCommentSchema,
-  tencentCommentSegmentSchema,
-  tencentEpisodeListResponseSchema,
-  tencentPageDetailResponseSchema,
-  tencentSearchResponseSchema,
+  zTencentComment,
+  zTencentCommentSegment,
+  zTencentEpisodeListResponse,
+  zTencentPageDetailResponse,
+  zTencentSearchResponse,
 } from './schema.js'
 import { ensureData } from './utils.js'
 
@@ -60,7 +60,7 @@ export const searchMedia = async (params: TencentSearchParams) => {
   const data = await response.json()
 
   const parsedData = handleParseResponse(() =>
-    tencentSearchResponseSchema.parse(data)
+    zTencentSearchResponse.parse(data)
   )
 
   ensureData(parsedData, 'data', response)
@@ -94,7 +94,7 @@ export const getPageDetails = async (cid: string, vid?: string) => {
   const data = await response.json()
 
   const parsedData = handleParseResponse(() =>
-    tencentPageDetailResponseSchema.parse(data)
+    zTencentPageDetailResponse.parse(data)
   )
 
   ensureData(parsedData, 'data', response)
@@ -159,7 +159,7 @@ export async function* listEpisodes(params: TencentEpisodeListParams) {
     const data = await response.json()
 
     const parsedData = handleParseResponse(() =>
-      tencentEpisodeListResponseSchema.parse(data)
+      zTencentEpisodeListResponse.parse(data)
     )
 
     ensureData(parsedData, 'data', response)
@@ -209,7 +209,7 @@ export const getDanmakuSegments = async (
   const json = await response.json()
 
   const segments = await handleParseResponseAsync(() =>
-    tencentCommentSegmentSchema.parseAsync(json)
+    zTencentCommentSegment.parseAsync(json)
   )
 
   return segments
@@ -233,7 +233,7 @@ export async function* getDanmakuGenerator(
     const json = await response.json()
 
     const comments = await handleParseResponseAsync(() =>
-      tencentCommentSchema.parseAsync(json)
+      zTencentComment.parseAsync(json)
     )
 
     yield comments.barrage_list

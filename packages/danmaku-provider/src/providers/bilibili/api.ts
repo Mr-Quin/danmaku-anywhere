@@ -15,10 +15,10 @@ import type {
   BilibiliSearchResult,
 } from './schema.js'
 import {
-  bilibiliBangumiInfoResponseSchema,
-  bilibiliCommentSchemaProto,
-  bilibiliSearchResponseSchema,
-  bilibiliUserInfoSchema,
+  zBilibiliBangumiInfoResponse,
+  zBilibiliCommentProto,
+  zBilibiliSearchResponse,
+  zBilibiliUserInfo,
 } from './schema.js'
 import { ensureData } from './utils.js'
 
@@ -40,9 +40,7 @@ export const getCurrentUser = async () => {
 
   const data = await response.json()
 
-  const parsedData = handleParseResponse(() =>
-    bilibiliUserInfoSchema.parse(data)
-  )
+  const parsedData = handleParseResponse(() => zBilibiliUserInfo.parse(data))
 
   // data property is always present, even if the user is not logged in
 
@@ -64,7 +62,7 @@ const search = async (
   const data = await response.json()
 
   const parsedData = handleParseResponse(() =>
-    bilibiliSearchResponseSchema.parse(data)
+    zBilibiliSearchResponse.parse(data)
   )
 
   ensureData(parsedData, 'data')
@@ -111,7 +109,7 @@ export const getBangumiInfo = async ({
   const data = await response.json()
 
   const parsedData = handleParseResponse(() =>
-    bilibiliBangumiInfoResponseSchema.parse(data)
+    zBilibiliBangumiInfoResponse.parse(data)
   )
 
   ensureData(parsedData, 'result')
@@ -184,7 +182,7 @@ export async function* getDanmakuProtoSegment(
     }
 
     const comments = await handleParseResponseAsync(() =>
-      bilibiliCommentSchemaProto.parseAsync(parsed)
+      zBilibiliCommentProto.parseAsync(parsed)
     )
 
     yield comments.elems

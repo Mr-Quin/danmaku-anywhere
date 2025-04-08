@@ -1,16 +1,14 @@
 import { CommentMode, hexToRgb888 } from '@danmaku-anywhere/danmaku-converter'
 import { z } from 'zod'
 
-const tencentApiResponseBaseSchema = z.object({
+const zTencentApiResponseBase = z.object({
   ret: z.number(),
   msg: z.string(),
 })
 
-export type TencentApiResponseBase = z.infer<
-  typeof tencentApiResponseBaseSchema
->
+export type TencentApiResponseBase = z.infer<typeof zTencentApiResponseBase>
 
-const tencentVideoSeasonSchema = z.object({
+const zTencentVideoSeason = z.object({
   doc: z.object({
     dataType: z.number(),
     id: z.string(),
@@ -23,11 +21,11 @@ const tencentVideoSeasonSchema = z.object({
   }),
 })
 
-export const tencentSearchResponseSchema = tencentApiResponseBaseSchema.extend({
+export const zTencentSearchResponse = zTencentApiResponseBase.extend({
   data: z
     .object({
       normalList: z.object({
-        itemList: z.array(tencentVideoSeasonSchema).transform((items) => {
+        itemList: z.array(zTencentVideoSeason).transform((items) => {
           // remove items without year
           return items.filter((item) => item.videoInfo.year !== 0)
         }),
@@ -36,7 +34,7 @@ export const tencentSearchResponseSchema = tencentApiResponseBaseSchema.extend({
     .optional(),
 })
 
-type TencentSearchResponse = z.infer<typeof tencentSearchResponseSchema>
+type TencentSearchResponse = z.infer<typeof zTencentSearchResponse>
 
 export type TencentSearchResult = NonNullable<
   TencentSearchResponse['data']
@@ -71,7 +69,7 @@ export interface TencentEpisodeListParams {
   page_context?: string // for pagination
 }
 
-const tencentEpisodeListItemSchema = z.object({
+const zTencentEpisodeListItem = z.object({
   vid: z.string(),
   cid: z.string(), // cid of the media, same as the cid in the request
   is_trailer: z.string(), // "0" or "1"
@@ -80,71 +78,67 @@ const tencentEpisodeListItemSchema = z.object({
   union_title: z.string(),
 })
 
-export const tencentEpisodeListResponseSchema =
-  tencentApiResponseBaseSchema.extend({
-    data: z
-      .object({
-        has_next_page: z.boolean(),
-        module_list_datas: z.array(
-          z.object({
-            module_datas: z.array(
-              z.object({
-                module_id: z.string(),
-                item_data_lists: z.object({
-                  item_datas: z
-                    .array(
-                      z.object({
-                        item_id: z.string(),
-                        item_params: tencentEpisodeListItemSchema,
-                      })
-                    )
-                    .transform((items) => {
-                      return items.filter(
-                        // filter out trailers
-                        (item) => item.item_params.is_trailer !== '1'
-                      )
-                    }),
-                }),
-              })
-            ),
-          })
-        ),
-      })
-      .optional(),
-  })
-
-export type TencentEpisodeListItem = z.infer<
-  typeof tencentEpisodeListItemSchema
->
-
-export const tencentPageDetailResponseSchema =
-  tencentApiResponseBaseSchema.extend({
-    data: z
-      .object({
-        has_next_page: z.boolean(),
-        module_list_datas: z.array(
-          z.object({
-            module_datas: z.array(
-              z.object({
-                module_id: z.string(),
-                item_data_lists: z.object({
-                  item_datas: z.array(
+export const zTencentEpisodeListResponse = zTencentApiResponseBase.extend({
+  data: z
+    .object({
+      has_next_page: z.boolean(),
+      module_list_datas: z.array(
+        z.object({
+          module_datas: z.array(
+            z.object({
+              module_id: z.string(),
+              item_data_lists: z.object({
+                item_datas: z
+                  .array(
                     z.object({
-                      item_params: z.object({
-                        title: z.string(),
-                      }),
+                      item_id: z.string(),
+                      item_params: zTencentEpisodeListItem,
                     })
-                  ),
-                }),
-              })
-            ),
-          })
-        ),
-      })
-      .optional(),
-  })
+                  )
+                  .transform((items) => {
+                    return items.filter(
+                      // filter out trailers
+                      (item) => item.item_params.is_trailer !== '1'
+                    )
+                  }),
+              }),
+            })
+          ),
+        })
+      ),
+    })
+    .optional(),
+})
 
-export const tencentCommentSegmentSchema = z.object({
+export type TencentEpisodeListItem = z.infer<typeof zTencentEpisodeListItem>
+
+export const zTencentPageDetailResponse = zTencentApiResponseBase.extend({
+  data: z
+    .object({
+      has_next_page: z.boolean(),
+      module_list_datas: z.array(
+        z.object({
+          module_datas: z.array(
+            z.object({
+              module_id: z.string(),
+              item_data_lists: z.object({
+                item_datas: z.array(
+                  z.object({
+                    item_params: z.object({
+                      title: z.string(),
+                    }),
+                  })
+                ),
+              }),
+            })
+          ),
+        })
+      ),
+    })
+    .optional(),
+})
+
+export const zTencentCommentSegment = z.object({
   segment_start: z.coerce.number(),
   segment_span: z.coerce.number(),
   segment_index: z.record(
@@ -156,17 +150,15 @@ export const tencentCommentSegmentSchema = z.object({
   ),
 })
 
-export type TencentCommentSegmentData = z.infer<
-  typeof tencentCommentSegmentSchema
->
+export type TencentCommentSegmentData = z.infer<typeof zTencentCommentSegment>
 
-const commentStyleSchema = z.object({
+const zCommentStyle = z.object({
   color: z.string(), // color in hex, without #
   gradient_colors: z.tuple([z.string(), z.string()]),
   position: z.number(),
 })
 
-export const tencentCommentSchema = z.object({
+export const zTencentComment = z.object({
   barrage_list: z.array(
     z
       .object({
@@ -178,7 +170,7 @@ export const tencentCommentSchema = z.object({
         content_style: z.string().transform((str) => {
           try {
             const json = JSON.parse(str)
-            return commentStyleSchema.parse(json)
+            return zCommentStyle.parse(json)
           } catch {
             return undefined
           }
