@@ -1,46 +1,27 @@
-import { match } from 'ts-pattern'
-
-import { BilibiliService } from '@/background/services/BilibiliService'
-import { DanDanPlayService } from '@/background/services/DanDanPlayService'
-import { TencentService } from '@/background/services/TencentService'
-import { TitleMappingService } from '@/background/services/TitleMappingService'
+import { SeasonService } from '@/background/services/SeasonService'
 import { Logger } from '@/common/Logger'
-import { CURRENT_SCHEMA_VERSION } from '@/common/danmaku/constants'
-import type {
-  CustomDanmakuCreateData,
-  DanmakuDeleteDto,
-  DanmakuFetchDto,
-  DanmakuGetBySeasonDto,
-  DanmakuGetManyDto,
-  DanmakuGetOneDto,
-} from '@/common/danmaku/dto'
+import type { QueryEpisodeFilter } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type {
-  BiliBiliDanmakuInsert,
-  CustomDanmakuInsert,
-  DanDanPlayDanmakuInsert,
-  Danmaku,
-  DanmakuInsert,
-  DanmakuLite,
-  TencentDanmakuInsert,
-} from '@/common/danmaku/models/danmaku'
 import {
-  assertDanmakuProvider,
-  getEpisodeId,
-  isDanmakuProvider,
-} from '@/common/danmaku/utils'
+  CustomEpisodeInsertV4,
+  CustomEpisodeV4,
+  EpisodeInsertV4,
+  EpisodeLiteV4,
+  EpisodeV4,
+  WithSeason,
+} from '@/common/danmaku/types/v4/schema'
 import { db } from '@/common/db/db'
+import { DbEntity } from '@/common/types/dbEntity'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 export class DanmakuService {
-  private ddpTable = db.danmaku
   private logger: typeof Logger
-  private bilibiliService = new BilibiliService()
-  private danDanPlayService = new DanDanPlayService()
-  private tencentService = new TencentService()
-  private titleMappingService = new TitleMappingService()
 
-  constructor() {
+  constructor(
+    private seasonService: SeasonService,
+    private ddpTable: typeof db.episode,
+    private customTable: typeof db.customEpisode
+  ) {
     invariant(
       isServiceWorker(),
       'DanmakuService is only available in service worker'
@@ -48,174 +29,107 @@ export class DanmakuService {
     this.logger = Logger.sub('[DanmakuService]')
   }
 
-  async getDanmaku(data: DanmakuFetchDto): Promise<Danmaku> {
-    const { meta, options = {}, context } = data
-    const episodeId = getEpisodeId(meta)
-    const provider = meta.provider
-
-    // Save title mapping
-    if (context) {
-      this.logger.debug('Saving title mapping', context)
-      if (isDanmakuProvider(meta, DanmakuSourceType.DanDanPlay)) {
-        void this.titleMappingService.add({
-          title: meta.animeTitle,
-          originalTitle: context.key,
-          animeId: meta.animeId,
-        })
-      }
+  async addCustom(data: CustomEpisodeInsertV4): Promise<CustomEpisodeV4> {
+    const toAdd = {
+      ...data,
+      timeUpdated: Date.now(),
+      version: 1,
     }
+    const id = await this.customTable.add(toAdd)
 
-    const existingDanmaku = await this.ddpTable.get({ provider, episodeId })
-
-    if (existingDanmaku && !options.forceUpdate) {
-      this.logger.debug('Danmaku found in db', existingDanmaku)
-      assertDanmakuProvider(existingDanmaku, provider)
-      return existingDanmaku
-    }
-
-    if (options.forceUpdate) {
-      this.logger.debug('Force update flag set, bypassed cache')
-    } else {
-      this.logger.debug('Danmaku not found in db, fetching from server')
-    }
-
-    const danmaku = await match(data)
-      .with(
-        { meta: { provider: DanmakuSourceType.Bilibili } },
-        async ({ meta }) => {
-          const result = await this.bilibiliService.getDanmaku(
-            meta.cid,
-            meta.aid
-          )
-          const danmaku: BiliBiliDanmakuInsert = {
-            provider: meta.provider,
-            comments: result,
-            commentCount: result.length,
-            meta,
-            episodeId,
-            episodeTitle: meta.title,
-            seasonId: meta.seasonId,
-            seasonTitle: meta.seasonTitle,
-            timeUpdated: Date.now(),
-            version: 1 + (existingDanmaku?.version ?? 0),
-            schemaVersion: CURRENT_SCHEMA_VERSION,
-          }
-
-          return danmaku
-        }
-      )
-      .with(
-        { meta: { provider: DanmakuSourceType.DanDanPlay } },
-        async ({ meta, params }) => {
-          const result = await this.danDanPlayService.getDanmaku(meta, params)
-          const danmaku: DanDanPlayDanmakuInsert = {
-            provider: meta.provider,
-            comments: result.comments,
-            commentCount: result.comments.length,
-            meta: result.meta,
-            episodeId,
-            episodeTitle: result.meta.episodeTitle,
-            seasonId: meta.animeId,
-            seasonTitle: meta.animeTitle,
-            params: result.params,
-            timeUpdated: Date.now(),
-            version: 1 + (existingDanmaku?.version ?? 0),
-            schemaVersion: CURRENT_SCHEMA_VERSION,
-          }
-
-          return danmaku
-        }
-      )
-      .with(
-        { meta: { provider: DanmakuSourceType.Tencent } },
-        async ({ meta }) => {
-          const result = await this.tencentService.getDanmaku(meta.vid)
-          const danmaku: TencentDanmakuInsert = {
-            provider: meta.provider,
-            comments: result,
-            commentCount: result.length,
-            meta: meta,
-            episodeId,
-            episodeTitle: meta.episodeTitle,
-            seasonId: meta.cid,
-            seasonTitle: meta.seasonTitle,
-            timeUpdated: Date.now(),
-            version: 1 + (existingDanmaku?.version ?? 0),
-            schemaVersion: CURRENT_SCHEMA_VERSION,
-          }
-
-          return danmaku
-        }
-      )
-      .exhaustive()
-
-    if (existingDanmaku) {
-      this.logger.debug('Updating existing danmaku entry')
-      await this.ddpTable.update(existingDanmaku.id, danmaku)
-
-      return {
-        ...danmaku,
-        id: existingDanmaku.id,
-      }
-    } else {
-      this.logger.debug('Saving danmaku to db', { danmaku })
-      const id = await this.ddpTable.put(danmaku)
-
-      return {
-        ...danmaku,
-        id: id,
-      }
+    return {
+      id,
+      ...toAdd,
     }
   }
 
-  async delete(data: DanmakuDeleteDto) {
-    return this.ddpTable.delete(data)
+  async bulkAddCustom(
+    data: CustomEpisodeInsertV4[]
+  ): Promise<CustomEpisodeV4[]> {
+    const results: CustomEpisodeV4[] = []
+    for (const item of data) {
+      results.push(await this.addCustom(item))
+    }
+    return results
   }
 
-  async insertCustom(data: CustomDanmakuCreateData[]) {
-    const createCache = (dto: CustomDanmakuCreateData) => {
-      const { comments, seasonTitle, episodeTitle } = dto
+  async bulkUpsert(data: EpisodeInsertV4[]): Promise<EpisodeV4[]> {
+    const results: EpisodeV4[] = []
+    for (const item of data) {
+      results.push(await this.upsert(item))
+    }
+    return results
+  }
 
-      const cache: CustomDanmakuInsert = {
-        provider: DanmakuSourceType.Custom,
-        comments,
-        commentCount: comments.length,
-        meta: {
-          seasonTitle: seasonTitle,
-          episodeTitle,
-          provider: DanmakuSourceType.Custom,
-          // episodeId is auto generated after creation
-        },
-        episodeTitle: episodeTitle,
-        seasonTitle: seasonTitle,
-        version: 1,
-        timeUpdated: Date.now(),
-        schemaVersion: CURRENT_SCHEMA_VERSION,
-      }
+  async upsert<T extends EpisodeInsertV4>(data: T): Promise<DbEntity<T>> {
+    const existing = await this.ddpTable.get({
+      provider: data.provider,
+      indexedId: data.indexedId,
+    })
 
-      return cache
+    if (existing) {
+      return (await this.update(existing)) as DbEntity<T>
     }
 
-    this.ddpTable.bulkAdd(data.map(createCache))
+    return this.add(data)
   }
 
-  async import(data: DanmakuInsert[]) {
-    await this.ddpTable.bulkPut(data)
+  async add<T extends EpisodeInsertV4>(data: T): Promise<DbEntity<T>> {
+    const toInsert = {
+      ...data,
+      timeUpdated: Date.now(),
+      version: 1,
+    }
+    const id = await this.ddpTable.add(toInsert)
+
+    return {
+      ...toInsert,
+      id,
+    }
+  }
+
+  async update<T extends EpisodeV4>(data: T): Promise<T> {
+    const toUpdate: T = {
+      ...data,
+      timeUpdated: Date.now(),
+      version: data.version + 1,
+    }
+
+    await this.ddpTable.update(data.id, toUpdate as Omit<T, 'id'>)
+
+    return toUpdate
+  }
+
+  /**
+   * This is an arrow function so that the "this" keyword is bound to the class instance
+   */
+  private joinSeason = async <T extends EpisodeLiteV4>(
+    episode: T
+  ): Promise<WithSeason<T>> => {
+    const season = await this.seasonService.mustGetById(episode.seasonId)
+
+    return {
+      ...episode,
+      season,
+    } as WithSeason<T>
   }
 
   /**
    * Avoid using this method because it will load all danmaku from db at once
    * which may cause performance issues or even crash when there are too many danmaku in db
    */
-  async getAll() {
-    return this.ddpTable.toArray()
+  async getAll(): Promise<WithSeason<EpisodeV4>[]> {
+    const res = await this.ddpTable.toArray()
+    return Promise.all(res.map(this.joinSeason))
   }
 
   /**
    * Get only the count and metadata of all danmaku in db
    */
-  async getAllLite(provider?: DanmakuSourceType) {
-    const cache: DanmakuLite[] = []
+  async getAllLite(
+    provider?: DanmakuSourceType
+  ): Promise<WithSeason<EpisodeLiteV4>[]> {
+    const cache: EpisodeLiteV4[] = []
 
     const collection = provider
       ? this.ddpTable.where({ provider })
@@ -227,38 +141,47 @@ export class DanmakuService {
       cache.push(rest)
     })
 
-    return cache
+    return Promise.all(cache.map(this.joinSeason))
   }
 
-  async getOne(data: DanmakuGetOneDto) {
-    return this.ddpTable.get(data)
-  }
-
-  async getOneLite(data: DanmakuGetOneDto) {
-    const res = await this.ddpTable.get(data)
+  async getOne(
+    filter: QueryEpisodeFilter
+  ): Promise<WithSeason<EpisodeV4> | undefined> {
+    const res = await this.ddpTable.get(filter)
 
     if (res) {
-      const { comments: _, ...rest } = res
-      return rest satisfies DanmakuLite
+      return this.joinSeason(res)
     }
 
     return undefined
   }
 
-  async getMany(data: DanmakuGetManyDto) {
-    const res = await this.ddpTable.bulkGet(data)
-    return res.filter((r) => r !== undefined)
+  async getOneLite(
+    filter: QueryEpisodeFilter
+  ): Promise<WithSeason<EpisodeLiteV4> | undefined> {
+    const res = await this.ddpTable.get(filter)
+
+    if (res) {
+      const { comments: _, ...rest } = await this.joinSeason(res)
+      return rest
+    }
+
+    return undefined
   }
 
-  async getByAnimeId(data: DanmakuGetBySeasonDto) {
-    return this.ddpTable
-      .filter((d) => {
-        if (isDanmakuProvider(d, DanmakuSourceType.DanDanPlay)) {
-          return d.meta.animeId === data.id
-        }
-        return false
-      })
-      .toArray()
+  async getMany(ids: number[]): Promise<WithSeason<EpisodeV4>[]> {
+    const res = await this.ddpTable.bulkGet(ids)
+    const filtered = res.filter((r) => r !== undefined)
+    return Promise.all(filtered.map(this.joinSeason))
+  }
+
+  async filter(filter: QueryEpisodeFilter): Promise<WithSeason<EpisodeV4>[]> {
+    const res = await this.ddpTable.where(filter).toArray()
+    return Promise.all(res.map(this.joinSeason))
+  }
+
+  async delete(filter: QueryEpisodeFilter) {
+    return this.ddpTable.where(filter).delete()
   }
 
   async deleteAll() {
@@ -275,7 +198,6 @@ export class DanmakuService {
     const deleteCount = await this.ddpTable
       .where('timeUpdated')
       .below(threshold)
-      .and((d) => d.provider !== DanmakuSourceType.Custom)
       .delete()
 
     this.logger.log(

@@ -1,49 +1,29 @@
-import type {
-  BilibiliMediaSearchResult,
-  DanDanPlayMediaSearchResult,
-  MediaSearchResult,
-  TencentMediaSearchResult,
-} from '@/common/anime/dto'
+import { SeasonV1 } from '@/common/anime/types/v1/schema'
 import { BilibiliEpisodeList } from '@/common/components/MediaList/components/bilibili/BilibiliEpisodeList'
 import { DandanPlayEpisodeList } from '@/common/components/MediaList/components/dandanplay/DandanPlayEpisodeList'
 import { TencentEpisodeList } from '@/common/components/MediaList/components/tencent/TencentEpisodeList'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 
-export const SeasonListItem = <T extends MediaSearchResult>({
+export const SeasonListItem = <T extends SeasonV1>({
   provider,
   season,
   renderEpisodes,
 }: {
   provider: T['provider']
-  season: T['data'][number]
+  season: T
   renderEpisodes: RenderEpisode
   dense?: boolean
 }) => {
   if (provider === DanmakuSourceType.Bilibili) {
-    const bilibiliSeason = season as BilibiliMediaSearchResult['data'][number]
     return (
-      <BilibiliEpisodeList
-        season={bilibiliSeason}
-        renderEpisode={renderEpisodes}
-      />
+      <BilibiliEpisodeList season={season} renderEpisode={renderEpisodes} />
     )
   } else if (provider === DanmakuSourceType.Tencent) {
-    const tencentSeason = season as TencentMediaSearchResult['data'][number]
-    return (
-      <TencentEpisodeList
-        season={tencentSeason}
-        renderEpisode={renderEpisodes}
-      />
-    )
+    return <TencentEpisodeList season={season} renderEpisode={renderEpisodes} />
   } else {
-    const danDanPlaySeason =
-      season as DanDanPlayMediaSearchResult['data'][number]
     return (
-      <DandanPlayEpisodeList
-        season={danDanPlaySeason}
-        renderEpisode={renderEpisodes}
-      />
+      <DandanPlayEpisodeList season={season} renderEpisode={renderEpisodes} />
     )
   }
 }

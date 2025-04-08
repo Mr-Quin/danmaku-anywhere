@@ -18,7 +18,6 @@ import {
   DanmakuSourceType,
   localizedDanmakuSourceType,
 } from '@/common/danmaku/enums'
-import type { DanmakuMeta } from '@/common/danmaku/models/meta'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { mediaQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -50,39 +49,6 @@ const getUrlType = (url: string) => {
 
 interface ParseUrlForm {
   url: string
-}
-
-const normalizeMetaName = (
-  meta: DanmakuMeta
-): {
-  seasonTitle: string
-  episodeTitle: string
-} => {
-  switch (meta.provider) {
-    case DanmakuSourceType.Bilibili:
-      return {
-        seasonTitle: meta.seasonTitle,
-        episodeTitle: meta.title,
-      }
-    case DanmakuSourceType.Tencent:
-      return {
-        seasonTitle: meta.seasonTitle,
-        episodeTitle: meta.episodeTitle,
-      }
-    case DanmakuSourceType.DanDanPlay:
-      return {
-        seasonTitle: meta.animeTitle,
-        episodeTitle: meta.episodeTitle,
-      }
-    default:
-      break
-  }
-
-  // should not be reachable
-  return {
-    seasonTitle: '',
-    episodeTitle: '',
-  }
 }
 
 export const ParseTab = () => {
@@ -135,7 +101,7 @@ export const ParseTab = () => {
         onError: () => {
           toast.error(
             t('danmaku.alert.fetchError', {
-              message: normalizeMetaName(query.data).episodeTitle,
+              message: query.data.title,
             })
           )
         },
@@ -205,15 +171,11 @@ export const ParseTab = () => {
             <Typography variant="caption" gutterBottom>
               {t('anime.title')}
             </Typography>
-            <Typography gutterBottom>
-              {normalizeMetaName(query.data).seasonTitle}
-            </Typography>
+            <Typography gutterBottom>{query.data.season.title}</Typography>
             <Typography variant="caption" gutterBottom>
               {t('anime.episodeTitle')}
             </Typography>
-            <Typography>
-              {normalizeMetaName(query.data).episodeTitle}
-            </Typography>
+            <Typography>{query.data.title}</Typography>
             <Button
               sx={{
                 mt: 2,

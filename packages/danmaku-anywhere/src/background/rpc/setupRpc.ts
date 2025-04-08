@@ -7,6 +7,7 @@ import { ProviderService } from '../services/ProviderService'
 import { injectVideoScript } from '@/background/scripting/setupScripting'
 import { BilibiliService } from '@/background/services/BilibiliService'
 import { GenAIService } from '@/background/services/GenAIService'
+import { SeasonService } from '@/background/services/SeasonService'
 import { TencentService } from '@/background/services/TencentService'
 import { Logger } from '@/common/Logger'
 import { mountConfigService } from '@/common/options/mountConfig/service'
@@ -22,35 +23,36 @@ import type {
 } from '@/common/rpcClient/background/types'
 import { relayFrameClient } from '@/common/rpcClient/tab/client'
 
-export const setupRpc = () => {
-  const providerService = new ProviderService()
-  const iconService = new IconService()
-  const danmakuService = new DanmakuService()
-  const bilibiliService = new BilibiliService()
-  const tencentService = new TencentService()
-  const aiService = new GenAIService()
-
+export const setupRpc = (
+  providerService: ProviderService,
+  iconService: IconService,
+  danmakuService: DanmakuService,
+  seasonService: SeasonService,
+  aiService: GenAIService,
+  bilibiliService: BilibiliService,
+  tencentService: TencentService
+) => {
   const rpcServer = createRpcServer<BackgroundMethods>({
-    searchDanDanPlay: async (input) => {
+    seasonSearchDanDanPlay: async (input) => {
       return providerService.searchDanDanPlay(input)
     },
-    searchBilibili: async (input) => {
+    seasonSearchBilibili: async (input) => {
       return providerService.searchBilibili(input)
     },
-    searchTencent: async (input) => {
+    seasonSearchTencent: async (input) => {
       return providerService.searchTencent(input)
     },
     mediaParseUrl: async (input) => {
       return providerService.parseUrl(input.url)
     },
-    episodesGetDanDanPlay: async (data) => {
-      return providerService.getDanDanPlayEpisodes(data)
+    episodeSearchDanDanPlay: async (seasonId) => {
+      return providerService.getDanDanPlayEpisodes(seasonId)
     },
-    episodesGetBilibili: async (data) => {
-      return providerService.getBilibiliEpisodes(data)
+    episodeSearchBilibili: async (seasonId) => {
+      return providerService.getBilibiliEpisodes(seasonId)
     },
-    episodesGetTencent: async (data) => {
-      return providerService.getTencentEpisodes(data)
+    episodeSearchTencent: async (seasonId) => {
+      return providerService.getTencentEpisodes(seasonId)
     },
     episodeMatch: async (data) => {
       return providerService.findMatchingEpisodes(data)
@@ -88,43 +90,47 @@ export const setupRpc = () => {
 
       Logger.debug('Icon state set to:', data.state)
     },
-    danmakuGetAll: async () => {
+    episodeGetAll: async () => {
       return danmakuService.getAll()
     },
-    danmakuGetAllLite: async () => {
+    episodeGetAllLite: async () => {
       return danmakuService.getAllLite()
     },
-    danmakuGetOne: async (data) => {
-      const result = await danmakuService.getOne(data)
+    episodeGetOne: async (filter) => {
+      const result = await danmakuService.getOne(filter)
       return result || null
     },
-    danmakuGetOneLite: async (data) => {
-      const result = await danmakuService.getOneLite(data)
+    episodeGetOneLite: async (filter) => {
+      const result = await danmakuService.getOneLite(filter)
       return result || null
     },
-    danmakuGetMany: async (data) => {
-      const result = await danmakuService.getMany(data)
+    episodeGetMany: async (filter) => {
+      const result = await danmakuService.getMany(filter)
       return result
     },
-    danmakuGetByAnime: async (data) => {
-      const result = await danmakuService.getByAnimeId(data)
+    seasonGetAll: async () => {
+      const result = await seasonService.getAll()
       return result
     },
-    danmakuFetch: async (data) => {
-      const result = await danmakuService.getDanmaku(data)
+    episodeFilter: async (filter) => {
+      const result = await danmakuService.filter(filter)
+      return result
+    },
+    episodeFetch: async (data) => {
+      const result = await providerService.getDanmaku(data)
 
       return result
     },
     danmakuCreateCustom: async (data) => {
-      return danmakuService.insertCustom(data)
+      return danmakuService.bulkAddCustom(data)
     },
     danmakuImport: async (data) => {
-      return danmakuService.import(data)
+      await danmakuService.bulkUpsert(data)
     },
-    danmakuDelete: async (data) => {
-      return danmakuService.delete(data)
+    episodeDelete: async (filter) => {
+      return danmakuService.delete(filter)
     },
-    danmakuDeleteAll: async () => {
+    episodeDeleteAll: async () => {
       return danmakuService.deleteAll()
     },
     danmakuPurgeCache: async (days) => {

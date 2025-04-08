@@ -1,45 +1,12 @@
 import { UnsupportedProviderException } from '@/common/danmaku/UnsupportedProviderException'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
-import type {
-  DanDanPlayMeta,
-  DanDanPlayMetaComputed,
-  DanDanPlayMetaDto,
-  DanmakuMeta,
-} from '@/common/danmaku/models/meta'
+import { EpisodeLiteV4, WithSeason } from '@/common/danmaku/types/v4/schema'
 
-const getNextEpisodeId = (episodeId: number) => {
-  return episodeId + 1
+export const danmakuToString = (danmaku: WithSeason<EpisodeLiteV4>) => {
+  return `${danmaku.season.title} - ${danmaku.title}`
 }
 
-export const getNextEpisodeMeta = (
-  meta: DanDanPlayMeta
-): DanDanPlayMetaComputed => {
-  return {
-    ...meta,
-    episodeId: getNextEpisodeId(meta.episodeId),
-    episodeTitle: undefined,
-  }
-}
-
-export const getEpisodeId = (meta: DanmakuMeta | DanDanPlayMetaDto) => {
-  switch (meta.provider) {
-    case DanmakuSourceType.DanDanPlay:
-      return meta.episodeId
-    case DanmakuSourceType.Bilibili:
-      return meta.cid
-    case DanmakuSourceType.Tencent:
-      return meta.vid
-    default:
-      throw new UnsupportedProviderException(meta.provider)
-  }
-}
-
-export const danmakuToString = (danmaku: DanmakuLite) => {
-  return `${danmaku.seasonTitle} - ${danmaku.episodeTitle}`
-}
-
-export function assertDanmakuProvider<
+export function assertProvider<
   T extends { provider: DanmakuSourceType },
   S extends DanmakuSourceType,
 >(data: T, provider: S): asserts data is Extract<T, { provider: S }> {
@@ -51,7 +18,7 @@ export function assertDanmakuProvider<
   }
 }
 
-export function isDanmakuProvider<
+export function isProvider<
   T extends { provider: DanmakuSourceType },
   S extends DanmakuSourceType,
 >(data: T, provider: S): data is Extract<T, { provider: S }> {

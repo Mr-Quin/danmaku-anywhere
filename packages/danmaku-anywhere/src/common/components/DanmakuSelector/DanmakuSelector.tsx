@@ -6,17 +6,17 @@ import { useTranslation } from 'react-i18next'
 import { EpisodeOption } from './EpisodeOption'
 
 import { ListboxComponent } from '@/common/components/DanmakuSelector/ListboxComponent'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useAllDanmakuSuspense'
-import { isDanmakuProvider } from '@/common/danmaku/utils'
+import { EpisodeLiteV4, WithSeason } from '@/common/danmaku/types/v4/schema'
 import { matchWithPinyin } from '@/common/utils/utils'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 
-type FilterOptions = ReturnType<typeof createFilterOptions<DanmakuLite>>
+type SelectableEpisode = WithSeason<EpisodeLiteV4>
 
-const stringifyDanmakuMeta = (danmakuLite: DanmakuLite) => {
-  return `${danmakuLite.seasonTitle} ${danmakuLite.episodeTitle}`
+type FilterOptions = ReturnType<typeof createFilterOptions<SelectableEpisode>>
+
+const stringifyDanmakuMeta = (danmakuLite: SelectableEpisode) => {
+  return `${danmakuLite.season.title} ${danmakuLite.title}`
 }
 
 const filterOptions: FilterOptions = (options, { inputValue }) => {
@@ -28,25 +28,22 @@ const filterOptions: FilterOptions = (options, { inputValue }) => {
   })
 }
 
-const isOptionEqualToValue = (option: DanmakuLite, value: DanmakuLite) => {
+const isOptionEqualToValue = (
+  option: SelectableEpisode,
+  value: SelectableEpisode
+) => {
   if (option.provider !== value.provider) return false
-  if (isDanmakuProvider(option, DanmakuSourceType.Custom)) {
-    return (
-      option.seasonTitle === value.seasonTitle &&
-      option.episodeTitle === value.episodeTitle
-    )
-  }
-  return option.episodeId === value.episodeId
+  return option.indexedId === value.indexedId
 }
 
 interface DanmakuSelectorProps {
-  value: DanmakuLite | null
-  onChange: (value: DanmakuLite | null) => void
+  value: SelectableEpisode | null
+  onChange: (value: SelectableEpisode | null) => void
   height?: number
 }
 
-const groupBy = (option: DanmakuLite) =>
-  `${option.provider}::${option.seasonTitle}`
+const groupBy = (option: SelectableEpisode) =>
+  `${option.provider}::${option.title}`
 
 export const DanmakuSelector = ({
   value,
@@ -63,14 +60,14 @@ export const DanmakuSelector = ({
       const bGroup = groupBy(b)
 
       if (aGroup === bGroup) {
-        if (a.episodeId !== undefined && b.episodeId !== undefined) {
-          if (a.episodeId === b.episodeId) {
+        if (a.indexedId !== undefined && b.indexedId !== undefined) {
+          if (a.indexedId === b.indexedId) {
             return 0
           } else {
-            return a.episodeId > b.episodeId ? 1 : -1
+            return a.indexedId > b.indexedId ? 1 : -1
           }
         }
-        return a.episodeTitle.localeCompare(b.episodeTitle)
+        return a.title.localeCompare(b.title)
       }
 
       return aGroup.localeCompare(bGroup)
@@ -97,14 +94,14 @@ export const DanmakuSelector = ({
           />
         )
       }}
-      getOptionLabel={(option) => option.episodeTitle}
+      getOptionLabel={(option) => option.title}
       getOptionKey={(option) => option.id}
       groupBy={groupBy}
       renderInput={(params) => {
         return (
           <TextField
             {...params}
-            label={value ? value.seasonTitle : t('anime.episode.select')}
+            label={value ? value.season.title : t('anime.episode.select')}
             slotProps={{
               input: {
                 ...params.InputProps,

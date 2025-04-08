@@ -41,7 +41,7 @@ export const SearchPage = () => {
   const { enabledProviders } = useDanmakuSources()
 
   const [localSearchUsingSimplified, setLocalSearchUsingSimplified] = useState(
-    searchUsingSimplified
+    searchUsingSimplified,
   )
   const [searchParams, setSearchParams] = useState<SearchEpisodesQuery>()
 
@@ -58,7 +58,7 @@ export const SearchPage = () => {
   useEffect(() => {
     if (!mediaInfo) return
 
-    setSearchTitle(mediaInfo.title)
+    setSearchTitle(mediaInfo.seasonTitle)
   }, [mediaInfo])
 
   const handleSearch = (searchTerm: string) => {
@@ -71,12 +71,10 @@ export const SearchPage = () => {
     })
   }
 
-  const getContext = () => {
+  const getSeasonMapKey = () => {
     if (!mediaInfo || !saveMapping) return undefined
 
-    return {
-      key: mediaInfo.key(),
-    }
+    return `${mediaInfo.fullSeason()}`
   }
 
   if (!enabledProviders.length) {
@@ -136,7 +134,7 @@ export const SearchPage = () => {
               dense
               pending={pending}
               renderEpisode={(data) => {
-                return <EpisodeListItem context={getContext()} data={data} />
+                return <EpisodeListItem seasonMapKey={getSeasonMapKey()} data={data} />
               }}
             />
           </Suspense>

@@ -3,15 +3,16 @@ import { useSuspenseQueries, useSuspenseQuery } from '@tanstack/react-query'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
-import type { TencentMediaSearchResult } from '@/common/anime/dto'
+import { SeasonV1 } from '@/common/anime/types/v1/schema'
 import { ListItemSkeleton } from '@/common/components/MediaList/components/ListItemSkeleton'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
+import { QueryEpisodeFilter } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { danmakuQueryKeys, mediaQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 interface TencentEpisodeListItemProps {
-  season: TencentMediaSearchResult['data'][number]
+  season: SeasonV1
   renderEpisode: RenderEpisode
 }
 
@@ -20,9 +21,9 @@ export const TencentEpisodeList = ({
   renderEpisode,
 }: TencentEpisodeListItemProps) => {
   const { data: episodes } = useSuspenseQuery({
-    queryKey: mediaQueryKeys.episodes(DanmakuSourceType.Tencent, season.doc.id),
+    queryKey: mediaQueryKeys.episodes(DanmakuSourceType.Tencent, season.id),
     queryFn: async () => {
-      return chromeRpcClient.episodesGetTencent(season.doc.id)
+      return chromeRpcClient.episodeSearchTencent(season.id)
     },
     select: (res) => res.data,
     staleTime: Infinity,
@@ -33,12 +34,12 @@ export const TencentEpisodeList = ({
     queries: episodes.map((episode) => {
       const params = {
         provider: DanmakuSourceType.Tencent,
-        episodeId: episode.vid,
-      }
+        indexedId: episode.indexedId.toString(),
+      } satisfies QueryEpisodeFilter
       return {
         queryKey: danmakuQueryKeys.one(params),
         queryFn: async () => {
-          const res = await chromeRpcClient.danmakuGetOneLite(params)
+          const res = await chromeRpcClient.episodeGetOneLite(params)
           return res.data
         },
         refetchOnMount: false,
@@ -56,11 +57,10 @@ export const TencentEpisodeList = ({
         return (
           <ErrorBoundary
             fallback={<ListItemText primary="An error occurred" />}
-            key={episode.vid}
+            key={episode.indexedId}
           >
             <Suspense fallback={<ListItemSkeleton />}>
               {renderEpisode({
-                provider: DanmakuSourceType.Tencent,
                 episode,
                 season: season,
                 danmaku: danmakuResult.data,

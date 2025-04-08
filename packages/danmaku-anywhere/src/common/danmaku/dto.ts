@@ -1,59 +1,29 @@
-import type { GetCommentQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
+import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
+import { EpisodeMeta, WithSeason } from '@/common/danmaku/types/v4/schema'
 
-import type { DanmakuFetchOptions } from './types'
-
-import type { DanmakuSourceType } from '@/common/danmaku/enums'
-import type {
-  BiliBiliMeta,
-  DanDanPlayMetaDto,
-  TencentMeta,
-} from '@/common/danmaku/models/meta'
-
-export type DanmakuGetOneDto =
-  | {
-      id: number
-    }
-  | {
-      provider: DanmakuSourceType
-      episodeId: number | string
-    }
-
-export type DanmakuGetManyDto = number[]
-
-export interface DanmakuGetBySeasonDto {
-  // Get by anime is unsupported for custom danmaku
-  provider: DanmakuSourceType.DanDanPlay
-  // Season id
-  id: number
+export type QueryEpisodeFilter = {
+  id?: number
+  seasonId?: number
+  provider?: RemoteDanmakuSourceType
+  indexedId?: string
 }
 
 export interface DanmakuFetchContext {
-  // Title mapping key
-  key: string
+  seasonMapKey?: string
+}
+
+interface DanmakuFetchOptions {
+  forceUpdate?: boolean // force update danmaku from the provider even if it's already in db
 }
 
 interface BaseDanmakuFetchDto {
-  context?: DanmakuFetchContext
   options?: DanmakuFetchOptions
+  context?: DanmakuFetchContext
 }
 
-export interface DanDanPlayFetchDto extends BaseDanmakuFetchDto {
-  meta: DanDanPlayMetaDto
-  params?: Partial<GetCommentQuery>
-}
-
-export interface BiliBiliFetchDto extends BaseDanmakuFetchDto {
-  meta: BiliBiliMeta
-}
-
-export interface TencentFetchDto extends BaseDanmakuFetchDto {
-  meta: TencentMeta
-}
-
-export type DanmakuFetchDto =
-  | DanDanPlayFetchDto
-  | BiliBiliFetchDto
-  | TencentFetchDto
+export type DanmakuFetchDto = {
+  meta: WithSeason<EpisodeMeta>
+} & BaseDanmakuFetchDto
 
 export type DanmakuDeleteDto = number
 

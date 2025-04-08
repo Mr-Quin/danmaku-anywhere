@@ -3,15 +3,16 @@ import { useSuspenseQueries, useSuspenseQuery } from '@tanstack/react-query'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
-import type { BilibiliSeason } from '@/common/anime/dto'
+import { SeasonV1 } from '@/common/anime/types/v1/schema'
 import { ListItemSkeleton } from '@/common/components/MediaList/components/ListItemSkeleton'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
+import { QueryEpisodeFilter } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { danmakuQueryKeys, mediaQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 interface BilibiliSeasonsListItemProps {
-  season: BilibiliSeason
+  season: SeasonV1
   renderEpisode: RenderEpisode
 }
 
@@ -20,12 +21,9 @@ export const BilibiliEpisodeList = ({
   renderEpisode,
 }: BilibiliSeasonsListItemProps) => {
   const { data: episodes } = useSuspenseQuery({
-    queryKey: mediaQueryKeys.episodes(
-      DanmakuSourceType.Bilibili,
-      season.season_id
-    ),
+    queryKey: mediaQueryKeys.episodes(DanmakuSourceType.Bilibili, season.id),
     queryFn: async () => {
-      return chromeRpcClient.episodesGetBilibili(season.season_id)
+      return chromeRpcClient.episodeSearchBilibili(season.id)
     },
     select: (data) => data.data,
     staleTime: Infinity,
@@ -36,12 +34,12 @@ export const BilibiliEpisodeList = ({
     queries: episodes.map((episode) => {
       const params = {
         provider: DanmakuSourceType.Bilibili,
-        episodeId: episode.cid,
-      }
+        indexedId: episode.providerIds.cid.toString(),
+      } satisfies QueryEpisodeFilter
       return {
         queryKey: danmakuQueryKeys.one(params),
         queryFn: async () => {
-          const res = await chromeRpcClient.danmakuGetOneLite(params)
+          const res = await chromeRpcClient.episodeGetOneLite(params)
           return res.data
         },
         refetchOnMount: false,
@@ -59,11 +57,10 @@ export const BilibiliEpisodeList = ({
         return (
           <ErrorBoundary
             fallback={<ListItemText primary="An error occurred" />}
-            key={episode.cid}
+            key={episode.indexedId}
           >
             <Suspense fallback={<ListItemSkeleton />}>
               {renderEpisode({
-                provider: DanmakuSourceType.Bilibili,
                 episode,
                 season,
                 danmaku: danmakuResult.data,

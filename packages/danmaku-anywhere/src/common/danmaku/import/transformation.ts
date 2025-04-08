@@ -1,15 +1,14 @@
 import type { z } from 'zod'
 
-import { CURRENT_SCHEMA_VERSION } from '@/common/danmaku/constants'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { importSchemaV1 } from '@/common/danmaku/import/v1'
 import type { importSchemaV2 } from '@/common/danmaku/import/v2'
 import type { importSchemaV3 } from '@/common/danmaku/import/v3'
-import type { DanmakuInsert } from '@/common/danmaku/models/danmaku'
+import type { DanmakuInsertV3 } from '@/common/danmaku/types/v3/schema'
 
 export function transformV1(
   v1Data: z.infer<typeof importSchemaV1>
-): DanmakuInsert {
+): DanmakuInsertV3 {
   if (v1Data.type === 1) {
     // DanDanPlay
     return {
@@ -18,7 +17,7 @@ export function transformV1(
       commentCount: v1Data.comments.length,
       version: v1Data.version,
       timeUpdated: v1Data.timeUpdated,
-      schemaVersion: CURRENT_SCHEMA_VERSION,
+      schemaVersion: 3,
       params: v1Data.params,
       meta: {
         provider: DanmakuSourceType.DanDanPlay,
@@ -39,7 +38,7 @@ export function transformV1(
       commentCount: v1Data.comments.length,
       version: v1Data.version,
       timeUpdated: v1Data.timeUpdated,
-      schemaVersion: CURRENT_SCHEMA_VERSION,
+      schemaVersion: 3,
       meta: {
         provider: DanmakuSourceType.Custom,
         seasonTitle: v1Data.meta.animeTitle, // Rename animeTitle to seasonTitle
@@ -57,7 +56,7 @@ export function transformV1(
 
 export function transformV2(
   v2Data: z.infer<typeof importSchemaV2>
-): DanmakuInsert {
+): DanmakuInsertV3 {
   if (v2Data.provider === 0) {
     return {
       ...v2Data,
@@ -101,7 +100,7 @@ export function transformV2(
 
 export function transformV3(
   v3Data: z.infer<typeof importSchemaV3>
-): DanmakuInsert {
+): DanmakuInsertV3 {
   if (v3Data.provider === 'DanDanPlay') {
     return {
       ...v3Data,

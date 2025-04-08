@@ -2,14 +2,15 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { Logger } from '@/common/Logger'
-import type { MediaSearchParams, MediaSearchResult } from '@/common/anime/dto'
+import type { SeasonSearchParams } from '@/common/anime/dto'
+import { SeasonV1 } from '@/common/anime/types/v1/schema'
 import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
 import { mediaQueryKeys } from '@/common/queries/queryKeys'
 
-export const useMediaSearchSuspense = <T extends MediaSearchResult>(
+export const useMediaSearchSuspense = <T extends SeasonV1>(
   provider: RemoteDanmakuSourceType,
-  params: MediaSearchParams,
-  getData: (params: MediaSearchParams) => Promise<{ data: T }>
+  params: SeasonSearchParams,
+  getData: (params: SeasonSearchParams) => Promise<{ data: T[] }>
 ) => {
   const { t } = useTranslation()
 
@@ -18,14 +19,14 @@ export const useMediaSearchSuspense = <T extends MediaSearchResult>(
     queryFn: async (): Promise<
       | {
           success: true
-          data: MediaSearchResult
-          params: MediaSearchParams
+          data: SeasonV1[]
+          params: SeasonSearchParams
           provider: RemoteDanmakuSourceType
         }
       | {
           success: false
           data: null
-          params: MediaSearchParams
+          params: SeasonSearchParams
           provider: RemoteDanmakuSourceType
           error: string
         }

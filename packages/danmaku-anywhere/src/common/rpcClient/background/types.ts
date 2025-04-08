@@ -5,30 +5,29 @@ import type { ExtractTitleResponse } from '@danmaku-anywhere/danmaku-provider/ge
 import type { RPCDef } from '../../rpc/types'
 
 import type {
-  BilibiliEpisode,
-  BilibiliMediaSearchResult,
-  DanDanPlayEpisode,
-  DanDanPlayMediaSearchResult,
   MatchEpisodeInput,
   MatchEpisodeResult,
-  MediaSearchParams,
-  TencentEpisode,
-  TencentMediaSearchResult,
+  SeasonSearchParams,
 } from '@/common/anime/dto'
-import type {
-  CustomDanmakuCreateData,
-  DanmakuDeleteDto,
-  DanmakuFetchDto,
-  DanmakuGetBySeasonDto,
-  DanmakuGetManyDto,
-  DanmakuGetOneDto,
-} from '@/common/danmaku/dto'
-import type {
-  Danmaku,
-  DanmakuInsert,
-  DanmakuLite,
-} from '@/common/danmaku/models/danmaku'
-import type { DanmakuMetaExternal } from '@/common/danmaku/models/meta'
+import {
+  BilibiliSeasonV1,
+  DanDanPlaySeasonV1,
+  SeasonV1,
+  TencentSeasonV1,
+} from '@/common/anime/types/v1/schema'
+import type { DanmakuFetchDto, QueryEpisodeFilter } from '@/common/danmaku/dto'
+import {
+  BiliBiliMeta,
+  CustomEpisodeInsertV4,
+  CustomEpisodeV4,
+  DanDanPlayMeta,
+  EpisodeInsertV4,
+  EpisodeLiteV4,
+  EpisodeMeta,
+  EpisodeV4,
+  TencentMeta,
+  WithSeason,
+} from '@/common/danmaku/types/v4/schema'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 
 type IconSetDto =
@@ -50,32 +49,36 @@ type IconMethods = {
   iconSet: RPCDef<IconSetDto, void>
 }
 
-type AnimeMethods = {
-  mediaParseUrl: RPCDef<{ url: string }, DanmakuMetaExternal>
-  searchDanDanPlay: RPCDef<MediaSearchParams, DanDanPlayMediaSearchResult>
-  searchBilibili: RPCDef<MediaSearchParams, BilibiliMediaSearchResult>
-  searchTencent: RPCDef<MediaSearchParams, TencentMediaSearchResult>
-  episodesGetDanDanPlay: RPCDef<number, DanDanPlayEpisode[]>
-  episodesGetBilibili: RPCDef<number, BilibiliEpisode[]>
-  episodesGetTencent: RPCDef<string, TencentEpisode[]>
+type SeasonMethods = {
+  mediaParseUrl: RPCDef<{ url: string }, WithSeason<EpisodeMeta>>
+  seasonSearchDanDanPlay: RPCDef<SeasonSearchParams, DanDanPlaySeasonV1[]>
+  seasonSearchBilibili: RPCDef<SeasonSearchParams, BilibiliSeasonV1[]>
+  seasonSearchTencent: RPCDef<SeasonSearchParams, TencentSeasonV1[]>
+  episodeSearchDanDanPlay: RPCDef<number, WithSeason<DanDanPlayMeta>[]>
+  episodeSearchBilibili: RPCDef<number, WithSeason<BiliBiliMeta>[]>
+  episodeSearchTencent: RPCDef<number, WithSeason<TencentMeta>[]>
   episodeMatch: RPCDef<MatchEpisodeInput, MatchEpisodeResult>
   bilibiliSetCookies: RPCDef<void, void>
   bilibiliGetLoginStatus: RPCDef<void, BilibiliUserInfo>
   tencentTestCookies: RPCDef<void, boolean>
+  seasonGetAll: RPCDef<void, SeasonV1[]>
 }
 
-type DanmakuMethods = {
-  danmakuGetAll: RPCDef<void, Danmaku[]>
-  danmakuGetAllLite: RPCDef<void, DanmakuLite[]>
-  danmakuGetOne: RPCDef<DanmakuGetOneDto, Danmaku | null>
-  danmakuGetOneLite: RPCDef<DanmakuGetOneDto, DanmakuLite | null>
-  danmakuGetMany: RPCDef<DanmakuGetManyDto, Danmaku[]>
-  danmakuGetByAnime: RPCDef<DanmakuGetBySeasonDto, Danmaku[]>
-  danmakuFetch: RPCDef<DanmakuFetchDto, Danmaku>
-  danmakuCreateCustom: RPCDef<CustomDanmakuCreateData[], void>
-  danmakuImport: RPCDef<DanmakuInsert[], void>
-  danmakuDelete: RPCDef<DanmakuDeleteDto, void>
-  danmakuDeleteAll: RPCDef<void, void>
+type EpisodeMethods = {
+  episodeGetAll: RPCDef<void, WithSeason<EpisodeV4>[]>
+  episodeGetAllLite: RPCDef<void, WithSeason<EpisodeLiteV4>[]>
+  episodeGetOne: RPCDef<QueryEpisodeFilter, WithSeason<EpisodeV4> | null>
+  episodeGetOneLite: RPCDef<
+    QueryEpisodeFilter,
+    WithSeason<EpisodeLiteV4> | null
+  >
+  episodeGetMany: RPCDef<number[], WithSeason<EpisodeV4>[]>
+  episodeFilter: RPCDef<QueryEpisodeFilter, WithSeason<EpisodeV4>[]>
+  episodeFetch: RPCDef<DanmakuFetchDto, WithSeason<EpisodeV4>>
+  episodeDelete: RPCDef<QueryEpisodeFilter, number>
+  episodeDeleteAll: RPCDef<void, void>
+  danmakuCreateCustom: RPCDef<CustomEpisodeInsertV4[], CustomEpisodeV4[]>
+  danmakuImport: RPCDef<EpisodeInsertV4[], void>
   danmakuPurgeCache: RPCDef<number, number>
 }
 
@@ -131,8 +134,8 @@ export type PlayerEvents = {
 }
 
 export type BackgroundMethods = IconMethods &
-  AnimeMethods &
-  DanmakuMethods &
+  SeasonMethods &
+  EpisodeMethods &
   AIMethods &
   ControlMethods &
   MountConfigMethods

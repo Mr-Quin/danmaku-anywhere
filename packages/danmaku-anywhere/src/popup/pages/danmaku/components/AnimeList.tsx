@@ -14,10 +14,10 @@ import { createSearchParams, useNavigate } from 'react-router'
 
 import { NoAnime } from './NoAnime'
 
+import { useAllSeasonsSuspense } from '@/common/anime/queries/useAllSeasonsSuspense'
 import { DanmakuProviderChip } from '@/common/components/DanmakuProviderChip'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
-import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useAllDanmakuSuspense'
+import { EpisodeLiteV4, WithSeason } from '@/common/danmaku/types/v4/schema'
 import { matchWithPinyin } from '@/common/utils/utils'
 import { useStore } from '@/popup/store'
 
@@ -28,7 +28,7 @@ interface AnimeListProps {
 // TODO: move to background service
 const partitionDanmaku = (
   danmakuTypes: DanmakuSourceType[],
-  data: DanmakuLite[]
+  data: WithSeason<EpisodeLiteV4>[]
 ) => {
   return danmakuTypes
     .map((type) => {
@@ -36,20 +36,17 @@ const partitionDanmaku = (
       const items = data.filter((item) => item.provider === type)
 
       // group by anime title
-      const grouped = Object.groupBy(
-        items,
-        (item) => item.seasonId ?? item.seasonTitle
-      )
+      const grouped = Object.groupBy(items, (item) => item.seasonId.toString())
 
       // map to type and count
-      const titles = Object.keys(grouped).map((title) => {
-        const episodes = grouped[title]
+      const titles = Object.keys(grouped).map((seasonId) => {
+        const episodes = grouped[seasonId]
 
         return {
-          title,
+          title: seasonId,
           count: episodes?.length ?? 0,
-          seasonId: title,
-          seasonTitle: episodes?.[0].seasonTitle ?? title,
+          seasonId: seasonId,
+          seasonTitle: episodes?.[0].season.title ?? seasonId,
           type,
         }
       })
@@ -71,7 +68,7 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
   const { t } = useTranslation()
   const navigate = useNavigate()
 
-  const { data, isFetching } = useAllDanmakuSuspense()
+  const { data, isFetching } = useAllSeasonsSuspense()
 
   const {
     animeFilter: filter,
@@ -82,11 +79,11 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
   const filteredData = useMemo(() => {
     if (!filter) return data
 
-    return data.filter((item) => matchWithPinyin(item.seasonTitle, filter))
+    return data.filter((item) => matchWithPinyin(item.title, filter))
   }, [data, filter])
 
   const titles = useMemo(() => {
-    return partitionDanmaku(selectedTypes, filteredData)
+    return data.filter((item) => selectedTypes.includes(item.provider))
   }, [selectedTypes, filteredData])
 
   const virtualizer = useVirtualizer({
@@ -94,8 +91,7 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
     getScrollElement: () => scrollElement,
     estimateSize: () => 72,
     getItemKey: (index) => {
-      const { seasonId } = titles[index]
-      return seasonId
+      return titles[index].id
     },
   })
 
@@ -113,12 +109,11 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
     >
       <List>
         {virtualizer.getVirtualItems().map((virtualItem) => {
-          const { type, count, seasonId, seasonTitle } =
-            titles[virtualItem.index]
+          const { provider, id, title } = titles[virtualItem.index]
 
           return (
             <ListItemButton
-              key={seasonId}
+              key={id}
               sx={{
                 position: 'absolute',
                 top: 0,
@@ -132,19 +127,19 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
                 navigate({
                   pathname: 'anime',
                   search: createSearchParams({
-                    type: type.toString(),
+                    type: provider.toString(),
                   }).toString(),
                 })
-                setSelectedAnime(seasonTitle)
+                setSelectedAnime(title)
               }}
             >
-              <Tooltip title={seasonTitle}>
+              <Tooltip title={title}>
                 <ListItemText
-                  primary={seasonTitle}
+                  primary={title}
                   secondary={
                     <Typography variant="caption" color="text.secondary">
                       {t('anime.episodeCounted', {
-                        count,
+                        count: 0,
                       })}
                     </Typography>
                   }
@@ -158,7 +153,7 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
                 />
               </Tooltip>
               <ListItemIcon>
-                <DanmakuProviderChip provider={type} />
+                <DanmakuProviderChip provider={provider} />
               </ListItemIcon>
             </ListItemButton>
           )

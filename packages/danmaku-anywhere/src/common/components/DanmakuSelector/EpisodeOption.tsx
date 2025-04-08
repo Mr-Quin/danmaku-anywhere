@@ -10,15 +10,15 @@ import {
 } from '@mui/material'
 import { type HTMLAttributes, type SyntheticEvent } from 'react'
 
-import { isDanmakuProvider } from '../../danmaku/utils'
+import { isProvider } from '../../danmaku/utils'
 
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
+import { EpisodeLiteV4, WithSeason } from '@/common/danmaku/types/v4/schema'
 
 export const EpisodeOption = (
   props: {
-    option: DanmakuLite
+    option: WithSeason<EpisodeLiteV4>
     isLoading: boolean
   } & HTMLAttributes<HTMLLIElement>
 ) => {
@@ -33,14 +33,14 @@ export const EpisodeOption = (
       forceUpdate: true,
     }
 
-    if (isDanmakuProvider(option, DanmakuSourceType.DanDanPlay))
+    if (isProvider(option, DanmakuSourceType.DanDanPlay))
       return load({
-        meta: option.meta,
+        meta: option,
         options: fetchOption,
       })
-    if (isDanmakuProvider(option, DanmakuSourceType.Bilibili))
+    if (isProvider(option, DanmakuSourceType.Bilibili))
       return load({
-        meta: option.meta,
+        meta: option,
         options: fetchOption,
       })
   }
@@ -55,7 +55,7 @@ export const EpisodeOption = (
       }}
     >
       <Box>
-        <Typography variant="body1">{option.episodeTitle}</Typography>
+        <Typography variant="body1">{option.title}</Typography>
 
         <Typography variant="caption">
           {isLoading ? (
@@ -66,7 +66,7 @@ export const EpisodeOption = (
         </Typography>
       </Box>
 
-      {!isDanmakuProvider(option, DanmakuSourceType.Custom) && (
+      {!isProvider(option, DanmakuSourceType.Custom) && (
         <IconButton edge="end" disabled={isPending} onClick={handleClick}>
           <Tooltip title="Update" placement="top">
             <Update />

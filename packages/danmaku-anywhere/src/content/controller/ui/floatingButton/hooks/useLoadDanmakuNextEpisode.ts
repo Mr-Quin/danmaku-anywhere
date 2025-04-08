@@ -6,7 +6,7 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import {
   danmakuToString,
   getNextEpisodeMeta,
-  isDanmakuProvider,
+  isProvider,
 } from '@/common/danmaku/utils'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useStore } from '@/content/controller/store/store'
@@ -22,7 +22,7 @@ export const useLoadDanmakuNextEpisode = () => {
 
   const canFetchNextEpisode =
     !!danmakuLite &&
-    isDanmakuProvider(danmakuLite, DanmakuSourceType.DanDanPlay) &&
+    isProvider(danmakuLite, DanmakuSourceType.DanDanPlay) &&
     isManual
 
   const fetchNextEpisodeComments = useEventCallback(async () => {

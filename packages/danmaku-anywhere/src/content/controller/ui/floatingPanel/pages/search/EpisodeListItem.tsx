@@ -6,11 +6,11 @@ import type { DanmakuFetchContext, DanmakuFetchDto } from '@/common/danmaku/dto'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 
 interface EpisodeListItemProps {
-  context?: DanmakuFetchContext
   data: RenderEpisodeData
+  seasonMapKey?: string
 }
 
-export const EpisodeListItem = ({ context, data }: EpisodeListItemProps) => {
+export const EpisodeListItem = ({ seasonMapKey, data }: EpisodeListItemProps) => {
   const { t } = useTranslation()
   const { loadMutation } = useLoadDanmaku()
 
@@ -20,8 +20,10 @@ export const EpisodeListItem = ({ context, data }: EpisodeListItemProps) => {
       options: {
         forceUpdate: true,
       },
-      context,
-    } as DanmakuFetchDto)
+      context: {
+        seasonMapKey,
+      },
+    })
   }
 
   return (
@@ -34,7 +36,7 @@ export const EpisodeListItem = ({ context, data }: EpisodeListItemProps) => {
           'danmaku.commentCounted',
           {
             count: data.commentCount,
-          }
+          },
         )}`
       }
     />

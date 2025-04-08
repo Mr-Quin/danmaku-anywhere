@@ -2,7 +2,6 @@ import {
   Eject,
   PictureInPicture,
   Refresh,
-  SkipNext,
   Visibility,
   VisibilityOff,
 } from '@mui/icons-material'

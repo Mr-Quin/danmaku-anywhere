@@ -1,4 +1,3 @@
-import type { SearchAnimeDetails } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { Check } from '@mui/icons-material'
 import {
   Box,
@@ -17,6 +16,7 @@ import {
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { SeasonV1 } from '@/common/anime/types/v1/schema'
 import { MediaTypeIcon } from '@/common/components/MediaList/components/MediaTypeIcon'
 import { getDanDanPlayMediaIcon } from '@/common/components/MediaList/components/makeIcon'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
@@ -30,14 +30,14 @@ export const SelectorPage = () => {
   const { animes, saveMapping, setSaveMapping, toggleOpen } = usePopup()
   const { mediaInfo } = useStore.use.integration()
 
-  const [selectedAnime, setSelectedAnime] = useState<SearchAnimeDetails>()
+  const [selectedSeason, setSelectedSeason] = useState<SeasonV1>()
 
   const { loadMutation } = useLoadDanmaku()
 
   const matchEpisode = useMatchEpisode()
 
-  const handleAnimeSelect = (anime: SearchAnimeDetails) => {
-    setSelectedAnime(anime)
+  const handleAnimeSelect = (anime: SeasonV1) => {
+    setSelectedSeason(anime)
     selectorBoxRef.current?.scrollIntoView({
       behavior: 'smooth',
       block: 'end',
@@ -45,13 +45,13 @@ export const SelectorPage = () => {
   }
 
   const handleApply = async () => {
-    if (!selectedAnime || !mediaInfo) return
+    if (!selectedSeason || !mediaInfo) return
 
     const episodeMatchPayload = {
-      mapKey: mediaInfo.key(),
-      title: selectedAnime.animeTitle,
+      mapKey: mediaInfo.fullSeason(),
+      title: selectedSeason.title,
       episodeNumber: mediaInfo.episode,
-      seasonId: selectedAnime.animeId,
+      seasonId: selectedSeason.indexedId,
     }
 
     matchEpisode.mutate(episodeMatchPayload, {
@@ -75,21 +75,21 @@ export const SelectorPage = () => {
   return (
     <Box flexGrow={1}>
       <Typography variant="body1" p={2}>
-        {t('selectorPage.selectAnime', { name: mediaInfo?.key() })}
+        {t('selectorPage.selectAnime', { name: mediaInfo?.fullSeason() })}
       </Typography>
       <List disablePadding dense>
-        {animes.map((anime) => {
+        {animes.map((season) => {
           return (
             <ListItemButton
-              onClick={() => handleAnimeSelect(anime)}
-              key={anime.animeId}
+              onClick={() => handleAnimeSelect(season)}
+              key={season.id}
             >
               <MediaTypeIcon
-                icon={getDanDanPlayMediaIcon(anime.type)}
-                description={anime.typeDescription}
+                icon={getDanDanPlayMediaIcon(season.type)}
+                description={season.type}
               />
-              <ListItemText primary={anime.animeTitle} />
-              {anime === selectedAnime && <Check />}
+              <ListItemText primary={season.title} />
+              {season === selectedSeason && <Check />}
             </ListItemButton>
           )
         })}
@@ -104,7 +104,7 @@ export const SelectorPage = () => {
             variant="contained"
             size="small"
             onClick={handleApply}
-            disabled={!selectedAnime || loadMutation.isPending}
+            disabled={!selectedSeason || loadMutation.isPending}
           >
             {t('common.apply')}
           </Button>
@@ -117,16 +117,16 @@ export const SelectorPage = () => {
                   onChange={(e) => {
                     setSaveMapping(e.target.checked)
                   }}
-                  disabled={!selectedAnime}
+                  disabled={!selectedSeason}
                 />
               }
               label={t('selectorPage.saveMapping')}
             />
-            {selectedAnime && (
+            {selectedSeason && (
               <FormHelperText>
                 {t('selectorPage.saveMappingAs', {
-                  originalName: mediaInfo?.key(),
-                  newName: selectedAnime.animeTitle,
+                  originalName: mediaInfo?.fullSeason(),
+                  newName: selectedSeason.title,
                 })}
               </FormHelperText>
             )}

@@ -3,8 +3,9 @@ import type { ListProps } from '@mui/material'
 import { Button, ListItem, ListItemText } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
-import type { MediaSearchParams, MediaSearchResult } from '@/common/anime/dto'
+import type { SeasonSearchParams } from '@/common/anime/dto'
 import { useMediaSearchSuspense } from '@/common/anime/queries/useMediaSearchSuspense'
+import { SeasonV1 } from '@/common/anime/types/v1/schema'
 import { CollapsibleList } from '@/common/components/MediaList/components/CollapsibleList'
 import { SeasonsList } from '@/common/components/MediaList/components/SeasonsList'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
@@ -25,11 +26,11 @@ interface ProviderSearchListProps {
 
 const methodMap: Record<
   RemoteDanmakuSourceType,
-  (params: MediaSearchParams) => Promise<{ data: MediaSearchResult }>
+  (params: SeasonSearchParams) => Promise<{ data: SeasonV1[] }>
 > = {
-  [DanmakuSourceType.DanDanPlay]: chromeRpcClient.searchDanDanPlay,
-  [DanmakuSourceType.Bilibili]: chromeRpcClient.searchBilibili,
-  [DanmakuSourceType.Tencent]: chromeRpcClient.searchTencent,
+  [DanmakuSourceType.DanDanPlay]: chromeRpcClient.seasonSearchDanDanPlay,
+  [DanmakuSourceType.Bilibili]: chromeRpcClient.seasonSearchBilibili,
+  [DanmakuSourceType.Tencent]: chromeRpcClient.seasonSearchTencent,
 }
 
 export const ProviderSearchList = ({
@@ -60,7 +61,7 @@ export const ProviderSearchList = ({
         </ListItem>
       )
     }
-    if (result.data.data.length === 0) {
+    if (result.data.length === 0) {
       return (
         <ListItem>
           <ListItemText primary={t('searchPage.error.noResultFound')} />

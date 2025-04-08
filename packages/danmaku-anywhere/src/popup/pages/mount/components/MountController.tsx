@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { Logger } from '@/common/Logger'
 import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSelector'
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { DanmakuLite } from '@/common/danmaku/models/danmaku'
+import { EpisodeLiteV4, WithSeason } from '@/common/danmaku/types/v4/schema'
 import { tabQueryKeys } from '@/common/queries/queryKeys'
 import { tabRpcClient } from '@/common/rpcClient/tab/client'
 import { useSessionState } from '@/common/storage/hooks/useSessionState'
@@ -15,10 +15,11 @@ import { useMountDanmakuPopup } from '@/popup/hooks/useMountDanmakuPopup'
 
 export const MountController = () => {
   const { t } = useTranslation()
-  const [danmakuLite, setDanmakuLite] = useSessionState<DanmakuLite | null>(
-    null,
-    'controller/danmakuMeta'
-  )
+  const [danmakuLite, setDanmakuLite] =
+    useSessionState<WithSeason<EpisodeLiteV4> | null>(
+      null,
+      'controller/danmakuMeta'
+    )
 
   const isConnected = useIsConnected()
 

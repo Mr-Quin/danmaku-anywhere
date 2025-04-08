@@ -3,24 +3,22 @@ import { z } from 'zod'
 
 import { BiliBiliMediaType } from './enums.js'
 
-const bilibiliApiResponseBaseSchema = z.object({
+const zBilibiliApiResponseBase = z.object({
   code: z.number(),
   message: z.string(),
 })
 
-export type BilibiliApiResponseBase = z.infer<
-  typeof bilibiliApiResponseBaseSchema
->
+export type BilibiliApiResponseBase = z.infer<typeof zBilibiliApiResponseBase>
 
-export const bilibiliUserInfoSchema = bilibiliApiResponseBaseSchema.extend({
+export const zBilibiliUserInfo = zBilibiliApiResponseBase.extend({
   data: z.object({
     isLogin: z.boolean(),
   }),
 })
 
-export type BilibiliUserInfo = z.infer<typeof bilibiliUserInfoSchema>['data']
+export type BilibiliUserInfo = z.infer<typeof zBilibiliUserInfo>['data']
 
-const bilibiliSearchMediaSchema = z.object({
+const zBilibiliSearchMedia = z.object({
   type: z.enum(['media_ft', 'media_bangumi']),
   media_id: z.number(), // mdid
   season_id: z.number(), // ssid
@@ -30,16 +28,17 @@ const bilibiliSearchMediaSchema = z.object({
   season_type_name: z.string(),
 })
 
-export const bilibiliSearchResponseSchema =
-  bilibiliApiResponseBaseSchema.extend({
-    data: z
-      .object({
-        result: z.array(bilibiliSearchMediaSchema).optional().default([]),
-      })
-      .optional(),
-  })
+export type BilibiliMedia = z.infer<typeof zBilibiliSearchMedia>
 
-type BilibiliSearchResponse = z.infer<typeof bilibiliSearchResponseSchema>
+export const zBilibiliSearchResponse = zBilibiliApiResponseBase.extend({
+  data: z
+    .object({
+      result: z.array(zBilibiliSearchMedia).optional().default([]),
+    })
+    .optional(),
+})
+
+type BilibiliSearchResponse = z.infer<typeof zBilibiliSearchResponse>
 
 export type BilibiliSearchResult = NonNullable<
   BilibiliSearchResponse['data']
@@ -55,44 +54,46 @@ export interface BiliBiliSearchParams {
   page?: number
 }
 
-const bilibiliEpisodeSchema = z.object({
+const zBilibiliEpisode = z.object({
   badge: z.string(),
   aid: z.number(),
   bvid: z.string(),
   cid: z.number(),
   // cover image url
   cover: z.string(),
+  link: z.string(),
   // epid
   id: z.number(),
   title: z.string(),
   long_title: z.string(),
+  show_title: z.string(),
   share_copy: z.string(), // title for sharing
 })
 
-export const bilibiliBangumiInfoResponseSchema =
-  bilibiliApiResponseBaseSchema.extend({
-    result: z
-      .object({
-        episodes: z.array(bilibiliEpisodeSchema).transform((episodes) => {
-          return episodes.filter((episode) => {
-            // remove trailers
-            if (/预告/.test(episode.badge)) return false
-            return true
-          })
-        }),
-        title: z.string(),
-        type: z.nativeEnum(BiliBiliMediaType),
-        media_id: z.number(),
-        season_id: z.number(),
-      })
-      .optional(),
-  })
+export const zBilibiliBangumiInfoResponse = zBilibiliApiResponseBase.extend({
+  result: z
+    .object({
+      episodes: z.array(zBilibiliEpisode).transform((episodes) => {
+        return episodes.filter((episode) => {
+          // remove trailers
+          if (/预告/.test(episode.badge)) return false
+          return true
+        })
+      }),
+      title: z.string(),
+      type: z.nativeEnum(BiliBiliMediaType),
+      media_id: z.number(),
+      season_id: z.number(),
+      cover: z.string(),
+    })
+    .optional(),
+})
 
 export type BilibiliBangumiInfo = NonNullable<
-  z.infer<typeof bilibiliBangumiInfoResponseSchema>['result']
+  z.infer<typeof zBilibiliBangumiInfoResponse>['result']
 >
 
-export const bilibiliCommentSchemaProto = z.object({
+export const zBilibiliCommentProto = z.object({
   elems: z
     .array(
       z
@@ -129,7 +130,7 @@ export const bilibiliCommentSchemaProto = z.object({
             p: `${data.progress / 1000},${data.mode},${data.color}`,
             m: data.content,
           }
-        })
+        }),
     )
     .transform((elems) => elems.filter((elem) => elem !== null)),
 })

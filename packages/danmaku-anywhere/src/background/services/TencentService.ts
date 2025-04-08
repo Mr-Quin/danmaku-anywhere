@@ -1,7 +1,19 @@
-import type { TencentEpisodeListItem } from '@danmaku-anywhere/danmaku-provider/tencent'
+import type {
+  TencentEpisodeListItem,
+  TencentVideoSeason,
+} from '@danmaku-anywhere/danmaku-provider/tencent'
 import * as tencent from '@danmaku-anywhere/danmaku-provider/tencent'
 
+import { DanmakuService } from '@/background/services/DanmakuService'
+import { SeasonService } from '@/background/services/SeasonService'
 import { Logger } from '@/common/Logger'
+import {
+  TencentSeasonInsertV1,
+  TencentSeasonV1,
+} from '@/common/anime/types/v1/schema'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
+import { TencentMeta, WithSeason } from '@/common/danmaku/types/v4/schema'
+import { assertProvider } from '@/common/danmaku/utils'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 
 export class TencentService {
@@ -9,7 +21,10 @@ export class TencentService {
 
   private extensionOptionsService = extensionOptionsService
 
-  constructor() {
+  constructor(
+    private seasonService: SeasonService,
+    private danmakuService: DanmakuService
+  ) {
     this.logger = Logger.sub('[TencentService]')
   }
 
@@ -31,17 +46,37 @@ export class TencentService {
     }
   }
 
-  async search(keyword: string) {
+  private mapToSeason(data: TencentVideoSeason): TencentSeasonInsertV1 {
+    return {
+      provider: DanmakuSourceType.Tencent,
+      title: data.videoInfo.title,
+      type: data.videoInfo.videoType.toString(),
+      imageUrl: data.videoInfo.imgUrl,
+      providerIds: {
+        cid: data.doc.id,
+      },
+      indexedId: data.doc.id,
+      schemaVersion: 1,
+    }
+  }
+
+  async search(keyword: string): Promise<TencentSeasonV1[]> {
     this.logger.debug('Search tencent', keyword)
     const result = await tencent.searchMedia({ query: keyword })
     this.logger.debug('Search result', result)
-    return result
+    const seasons = result.map(this.mapToSeason)
+    return this.seasonService.bulkUpsert(seasons)
   }
 
-  async getEpisodes(cid: string, vid?: string) {
-    this.logger.debug('Get episode', { cid, vid })
+  async getEpisodes(seasonId: number): Promise<WithSeason<TencentMeta>[]> {
+    this.logger.debug('Get episode', seasonId)
+    const season = await this.seasonService.mustGetById(seasonId)
+    assertProvider(season, DanmakuSourceType.Tencent)
 
-    const generator = tencent.listEpisodes({ cid, vid: vid ?? '' })
+    const generator = tencent.listEpisodes({
+      cid: season.providerIds.cid,
+      vid: '',
+    })
 
     const result: TencentEpisodeListItem[][] = []
     for await (const items of generator) {
@@ -49,7 +84,22 @@ export class TencentService {
     }
 
     this.logger.debug('Get episode result', result)
-    return result.flat()
+
+    return result.flat().map((item) => {
+      return {
+        provider: DanmakuSourceType.Tencent,
+        title: item.play_title,
+        alternativeTitle: [item.title, item.union_title],
+        providerIds: {
+          vid: item.vid,
+        },
+        season,
+        seasonId,
+        indexedId: item.vid.toString(),
+        schemaVersion: 4,
+        lastChecked: Date.now(),
+      } satisfies WithSeason<TencentMeta>
+    })
   }
 
   async getPageDetails(cid: string, vid: string) {
@@ -62,9 +112,55 @@ export class TencentService {
     return result
   }
 
-  async getDanmaku(vid: string) {
-    // const pref = await this.extensionOptionsService.get()
+  async saveEpisode(meta: TencentMeta) {
+    const comments = await this.getDanmaku(meta.providerIds.vid)
+    return this.danmakuService.upsert({
+      ...meta,
+      comments,
+      commentCount: comments.length,
+    })
+  }
 
+  async getDanmaku(vid: string) {
     return await tencent.getDanmaku(vid)
+  }
+
+  /**
+   * Don't use
+   *
+   * @deprecated
+   */
+  async getEpisodeByUrl(url: string) {
+    const { pathname } = new URL(url)
+
+    // https://v.qq.com/x/cover/mzc00200ztsl4to/m4100bardal.html
+    const [, cid, vid] = pathname.match(/cover\/(.*)\/(.*)\.html/) ?? []
+
+    if (!cid || !vid) throw new Error('Invalid tencent url')
+
+    // get the name of the show
+    const pageDetails = await this.getPageDetails(cid, vid)
+    const foundSeason =
+      pageDetails.module_list_datas[0]?.module_datas[0]?.item_data_lists
+        ?.item_datas[0]
+
+    if (!foundSeason) throw new Error('Season not found')
+
+    const season = await this.seasonService.upsert({
+      provider: DanmakuSourceType.Tencent,
+      title: foundSeason.item_params.play_title,
+      type: foundSeason.item_type.toString(),
+      imageUrl: foundSeason.item_params.image_url,
+      providerIds: {
+        cid: foundSeason.item_params.cid,
+      },
+      indexedId: foundSeason.item_params.cid.toString(),
+      schemaVersion: 1,
+    })
+
+    // get the name of the episode
+    // const episodes = await this.getEpisodes(season.id)
+    // const matchingEpisode = episodes.find((episode) => episode.vid === vid)
+    // if (!matchingEpisode) throw new Error('Episode not found')
   }
 }
