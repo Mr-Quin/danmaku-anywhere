@@ -18,8 +18,11 @@ const zTencentVideoSeason = z.object({
     typeName: z.string(),
     title: z.string(),
     year: z.number().optional().default(0), // year of release, null or 0 for non-seasonal
+    imgUrl: z.string().url(),
   }),
 })
+
+export type TencentVideoSeason = z.infer<typeof zTencentVideoSeason>
 
 export const zTencentSearchResponse = zTencentApiResponseBase.extend({
   data: z
@@ -34,11 +37,7 @@ export const zTencentSearchResponse = zTencentApiResponseBase.extend({
     .optional(),
 })
 
-type TencentSearchResponse = z.infer<typeof zTencentSearchResponse>
-
-export type TencentSearchResult = NonNullable<
-  TencentSearchResponse['data']
->['normalList']['itemList']
+export type TencentSearchResult = TencentVideoSeason[]
 
 export interface TencentSearchParams {
   version?: string

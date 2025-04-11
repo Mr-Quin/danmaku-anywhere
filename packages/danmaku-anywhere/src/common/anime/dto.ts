@@ -1,6 +1,7 @@
 import type {
   BilibiliBangumiInfo,
   BilibiliSearchResult,
+  BilibiliSeason,
 } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import type {
   BangumiDetails,
@@ -39,7 +40,7 @@ export type MediaSearchResult =
   | BilibiliMediaSearchResult
   | TencentMediaSearchResult
 
-export type BilibiliSeason = BilibiliSearchResult[number]
+export type { BilibiliSeason }
 
 export type DanDanPlaySeason = SearchAnimeDetails
 

@@ -28,6 +28,8 @@ const zBilibiliSearchMedia = z.object({
   season_type_name: z.string(),
 })
 
+export type BilibiliMedia = z.infer<typeof zBilibiliSearchMedia>
+
 export const zBilibiliSearchResponse = zBilibiliApiResponseBase.extend({
   data: z
     .object({

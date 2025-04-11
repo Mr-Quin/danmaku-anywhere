@@ -6,12 +6,12 @@ import {
   handleParseResponseAsync,
 } from '../utils/index.js'
 
-import type {
+import {
   TencentCommentSegmentData,
   TencentEpisodeListItem,
   TencentEpisodeListParams,
   TencentSearchParams,
-  TencentSearchResult,
+  TencentVideoSeason,
 } from './schema.js'
 import {
   zTencentComment,
@@ -65,7 +65,7 @@ export const searchMedia = async (params: TencentSearchParams) => {
 
   ensureData(parsedData, 'data', response)
 
-  return parsedData.data.normalList.itemList satisfies TencentSearchResult
+  return parsedData.data.normalList.itemList satisfies TencentVideoSeason[]
 }
 
 export const getPageDetails = async (cid: string, vid?: string) => {
