@@ -193,9 +193,9 @@ importers:
       '@danmaku-anywhere/danmaku-converter':
         specifier: workspace:*
         version: link:../danmaku-converter
-      danmaku:
-        specifier: 2.0.8
-        version: 2.0.8
+      danmu:
+        specifier: ^0.15.0
+        version: 0.15.0
     devDependencies:
       vitest:
         specifier: ^3.1.1
@@ -1691,6 +1691,9 @@ packages:
     resolution: {integrity: sha512-jRR5wdylq8CkOe6hei19GGZnxM6rBGwFl3Bg0YItGDimvjGtAvdZk4Pu6Cl4u4Igsws4a1fd1Vq3ezrhn4KmFw==}
     engines: {node: '>= 14'}
 
+  aidly@1.15.0:
+    resolution: {integrity: sha512-xL3yGSvrWEvkRCKIJVfXFS7D56rUhG5qGbk7Fk7PyPMVfIn4oVHWTuhSJftCXnrzADl/rmVAllV/UJVoeDqDYA==}
+
   ajv@6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
 
@@ -2033,8 +2036,8 @@ packages:
   csstype@3.1.3:
     resolution: {integrity: sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==}
 
-  danmaku@2.0.8:
-    resolution: {integrity: sha512-nawwVo51E/W53uKQqChse9OuVwpUTxajjbHojuaexqXXOCNI8ypLEk7nG0uKwIZQcBKRptP+svN3hODD8vMs2g==}
+  danmu@0.15.0:
+    resolution: {integrity: sha512-7l/Hgrr4SWZb9m8dS7nHqR/hhaeIt41T3Ns3VhQfNcp6FXusgFMbP+hG1DV5F8abPHKFpskRlMBIfetfyhgnhA==}
 
   data-uri-to-buffer@2.0.2:
     resolution: {integrity: sha512-ND9qDTLc6diwj+Xe5cdAgVTbLVdXbtxTJRXRhli8Mowuaan+0EJOtdqJ0QCHNSSPyoXGx9HX2/VMnKeC34AChA==}
@@ -2503,6 +2506,9 @@ packages:
 
   hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
+
+  hooks-plugin@1.3.2:
+    resolution: {integrity: sha512-jGrb+sQFE889/LnsOvLjKTJbO1o0iK6N09+QY/m7wsHIBnDH6U2HkwhfpEUJIIKHmurOMx/Bkn3Q+SI/kQ/q8A==}
 
   html-parse-stringify@3.0.1:
     resolution: {integrity: sha512-KknJ50kTInJ7qIScF3jeaFRpMpE8/lfiTdzf/twXyPBLAGrLRTmkz3AdTnKeh40X8k9L2fdYwEp/42WGXIRGcg==}
@@ -3558,6 +3564,9 @@ packages:
 
   simple-swizzle@0.2.2:
     resolution: {integrity: sha512-JA//kQgZtbuY83m+xT+tXJkmJncGMTFT+C+g2h2R9uxkYIrE2yy9sgmcLhCnw57/WSD+Eh3J97FPEDFnbXnDUg==}
+
+  small-queue@1.1.2:
+    resolution: {integrity: sha512-K6zQPh7cRjkzv+upcwrOTbR4kU3neY3KZR2F1nc8Fuez8uJyh4BguOUs4KGKHcuzU1LJmK8yfCkMUZbconLe8Q==}
 
   sonic-boom@3.8.1:
     resolution: {integrity: sha512-y4Z8LCDBuum+PBP3lSV7RHrXscqksve/bi0as7mhwVnBW+/wUqKT/2Kb7um8yqcFy0duYbbPxzt89Zy2nOCaxg==}
@@ -5398,6 +5407,10 @@ snapshots:
 
   agent-base@7.1.3: {}
 
+  aidly@1.15.0:
+    dependencies:
+      small-queue: 1.1.2
+
   ajv@6.12.6:
     dependencies:
       fast-deep-equal: 3.1.3
@@ -5782,7 +5795,10 @@ snapshots:
 
   csstype@3.1.3: {}
 
-  danmaku@2.0.8: {}
+  danmu@0.15.0:
+    dependencies:
+      aidly: 1.15.0
+      hooks-plugin: 1.3.2
 
   data-uri-to-buffer@2.0.2: {}
 
@@ -6347,6 +6363,10 @@ snapshots:
   hoist-non-react-statics@3.3.2:
     dependencies:
       react-is: 16.13.1
+
+  hooks-plugin@1.3.2:
+    dependencies:
+      aidly: 1.15.0
 
   html-parse-stringify@3.0.1:
     dependencies:
@@ -7592,6 +7612,8 @@ snapshots:
     dependencies:
       is-arrayish: 0.3.2
     optional: true
+
+  small-queue@1.1.2: {}
 
   sonic-boom@3.8.1:
     dependencies:

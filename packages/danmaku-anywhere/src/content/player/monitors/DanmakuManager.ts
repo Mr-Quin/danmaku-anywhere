@@ -1,5 +1,5 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
-import { DanmakuManager as DanmakuEngine } from '@danmaku-anywhere/danmaku-engine'
+import { DanmakuRenderer } from '@danmaku-anywhere/danmaku-engine'
 
 import { Logger } from '@/common/Logger'
 import type {
@@ -7,11 +7,14 @@ import type {
   SafeZones,
 } from '@/common/options/danmakuOptions/constant'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
+import { DanmakuComponent } from '@/content/player/monitors/DanmakuComponent'
 import { RectObserver } from '@/content/player/monitors/RectObserver'
 import {
   type VideoChangeListener,
   VideoNodeObserver,
 } from '@/content/player/monitors/VideoNodeObserver'
+import { createElement } from 'react'
+import ReactDOM from 'react-dom/client'
 
 const calculatePaddings = (safeZones: SafeZones, rect?: DOMRectReadOnly) => {
   const { top, bottom } = safeZones
@@ -43,7 +46,9 @@ interface DanmakuManagerEventCallback {
 }
 
 export class DanmakuManager {
-  private readonly engine = new DanmakuEngine()
+  private readonly renderer = new DanmakuRenderer((node, props) => {
+    ReactDOM.createRoot(node).render(createElement(DanmakuComponent, props))
+  })
   public readonly wrapper: HTMLElement
   private readonly container: HTMLElement
   private parent?: HTMLElement
@@ -155,7 +160,7 @@ export class DanmakuManager {
   private handleRectChange = (rect: DOMRectReadOnly, notify = true) => {
     this.rect = rect
     this.updateContainerStyles()
-    this.engine.resize()
+    this.renderer.resize()
     if (notify) {
       this.rectChangeListeners.forEach((listener) => listener(rect))
     }
@@ -193,7 +198,7 @@ export class DanmakuManager {
 
       this.attachContainer()
 
-      this.engine.create(this.container, this.video, this.comments)
+      this.renderer.create(this.container, this.video, this.comments)
       this.isMounted = true
       this.danmakuMountedListeners.forEach((listener) =>
         listener(this.comments)
@@ -201,9 +206,9 @@ export class DanmakuManager {
     } else {
       // recreate danmaku if it's already mounted
       // this fixes an issue where danmaku can get "stuck" on the screen
-      if (this.engine.created) this.engine.destroy()
+      if (this.renderer.created) this.renderer.destroy()
 
-      this.engine.create(this.container, this.video, this.comments)
+      this.renderer.create(this.container, this.video, this.comments)
     }
   }
 
@@ -231,7 +236,7 @@ export class DanmakuManager {
 
     this.logger.debug('Unmounting danmaku')
     this.removeContainer()
-    this.engine.destroy()
+    this.renderer.destroy()
     this.comments = []
     this.hasComments = false
     this.danmakuUnmountedListeners.forEach((listener) => listener())
@@ -245,7 +250,7 @@ export class DanmakuManager {
 
   updateConfig(config: Partial<DanmakuOptions>) {
     this.safeZones = config.safeZones
-    this.engine.updateConfig(config)
+    this.renderer.updateConfig(config)
     this.updateContainerStyles()
   }
 
@@ -266,11 +271,11 @@ export class DanmakuManager {
   }
 
   show() {
-    this.engine.show()
+    this.renderer.show()
   }
 
   hide() {
-    this.engine.hide()
+    this.renderer.hide()
   }
 
   resize() {

@@ -1,14 +1,27 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
-import Danmaku from 'danmaku'
-
+import { Manager, create } from 'danmu'
+import { bindVideo } from './bindVideo'
 import { mapIter, sampleByTime } from './iterator'
-import type { DanmakuStyle } from './parser'
-import { filterComments, transformComment } from './parser'
+import { ParsedComment, applyFilter, transformComment } from './parser'
 
 export interface DanmakuFilter {
   type: 'text' | 'regex'
   value: string
   enabled: boolean
+}
+
+export interface DanmakuStyle {
+  opacity: number
+  fontSize: number
+  fontFamily: string
+}
+
+const getStyle = (style: DanmakuStyle) => {
+  return {
+    opacity: style.opacity.toString(),
+    fontSize: `${style.fontSize}px`,
+    fontFamily: style.fontFamily,
+  }
 }
 
 export interface DanmakuOptions {
@@ -40,15 +53,23 @@ const configDefaults: DanmakuOptions = {
   offset: 0,
 }
 
-const BASE_SPEED = 144
+export type DanmakuRenderProps = {
+  text: string
+  styles: Record<string, string>
+  mode: ParsedComment['mode']
+}
 
-export class DanmakuManager {
-  instance?: Danmaku
+export class DanmakuRenderer {
+  manager?: Manager<ParsedComment>
   container?: HTMLElement
   media?: HTMLMediaElement
   comments: CommentEntity[] = []
   config: DanmakuOptions = configDefaults
   created = false
+
+  constructor(
+    public render: (node: HTMLElement, renderProps: DanmakuRenderProps) => void
+  ) {}
 
   create(
     container: HTMLElement,
@@ -63,10 +84,10 @@ export class DanmakuManager {
     this.comments = comments
     this.config = this.#mergeConfig(config)
 
-    const filteredComments = filterComments(comments, this.config.filters)
-    const commentGenerator = mapIter(filteredComments, (comment) =>
-      transformComment(comment, this.config.style, this.config.offset)
+    const commentGenerator = mapIter(comments, (comment) =>
+      transformComment(comment, this.config.offset)
     )
+
     const sampledGenerator = sampleByTime(
       // TODO: sort should be done upstream
       Array.from(commentGenerator)
@@ -76,28 +97,60 @@ export class DanmakuManager {
       (item) => item.time
     )
 
-    this.instance = new Danmaku({
-      container: this.container,
-      media: this.media,
-      comments: Array.from(sampledGenerator),
-      speed: this.config.speed * BASE_SPEED,
+    const parsedComments = Array.from(sampledGenerator)
+
+    const manager = create<ParsedComment>({
+      trackHeight: 40,
+      durationRange: [5000, 5000],
+      rate: 0.5,
+      mode: 'adaptive',
+      plugin: {
+        init: bindVideo(this.media, parsedComments),
+        $createNode: (danmaku, node) => {
+          this.render(node, {
+            text: danmaku.data.text,
+            styles: { ...getStyle(this.config.style), ...danmaku.data.style },
+            mode: danmaku.data.mode,
+          })
+        },
+        willRender: (ref) => {
+          if (applyFilter(ref.danmaku.data.text, this.config.filters)) {
+            ref.prevent = true
+          }
+          return ref
+        },
+      },
     })
 
+    this.manager = manager
+
+    manager.mount(container)
+
+    if (!this.media.paused) {
+      manager.startPlaying()
+    }
+
     if (this.config.show) {
-      this.instance.show()
+      void manager.show()
     } else {
-      this.instance.hide()
+      void manager.hide()
     }
 
     this.created = true
   }
 
   updateConfig(config: Partial<DanmakuOptions>): void {
+    const prevConfig = this.config
     this.config = this.#mergeConfig(config)
 
-    // If already created, recreate the instance
-    if (this.created) {
-      this.create(this.container!, this.media!, this.comments, this.config)
+    if (
+      !Object.is(this.config.offset, prevConfig.offset) ||
+      !Object.is(this.config.limitPerSec, prevConfig.limitPerSec)
+    ) {
+      // Recreate if offset changed
+      if (this.created) {
+        this.create(this.container!, this.media!, this.comments, this.config)
+      }
     }
   }
 
@@ -110,8 +163,9 @@ export class DanmakuManager {
   }
 
   destroy(): void {
-    this.instance?.destroy()
-    this.instance = undefined
+    this.manager?.stopPlaying()
+    this.manager?.unmount()
+    this.manager = undefined
     this.container = undefined
     this.media = undefined
     this.comments = []
@@ -120,18 +174,18 @@ export class DanmakuManager {
 
   // Pass through methods
   show(): void {
-    this.instance?.show()
+    this.manager?.show()
   }
 
   hide(): void {
-    this.instance?.hide()
+    this.manager?.hide()
   }
 
   clear(): void {
-    this.instance?.clear()
+    this.manager?.clear()
   }
 
   resize(): void {
-    this.instance?.resize()
+    this.manager?.format()
   }
 }
