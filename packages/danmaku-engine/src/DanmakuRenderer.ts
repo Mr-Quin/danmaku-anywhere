@@ -152,6 +152,15 @@ export class DanmakuRenderer {
           }
           return ref
         },
+        $beforeMove: (ref) => {
+          // TODO: remove this when the pointerEvents set on the manager is respected
+          ref.setStyle('pointerEvents', 'inherit')
+        },
+        format: () => {
+          manager.each((d) => {
+            d.updateDuration(5000)
+          })
+        },
       },
     })
     this.manager = manager

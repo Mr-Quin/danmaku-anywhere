@@ -32,8 +32,12 @@ export class DanmakuManager {
   private readonly renderer = new DanmakuRenderer((node, props) => {
     ReactDOM.createRoot(node).render(createElement(DanmakuComponent, props))
   })
-  public readonly wrapper: HTMLElement
-  private readonly container: HTMLElement
+  private readonly nodes: {
+    wrapper: HTMLElement
+    container: HTMLElement
+    stats: HTMLElement
+  }
+
   private parent?: HTMLElement
 
   public video: HTMLVideoElement | null = null
@@ -42,6 +46,7 @@ export class DanmakuManager {
 
   // State
   public isMounted = false
+  private isDebug = false
 
   // Styles
   private rect = new DOMRectReadOnly()
@@ -49,6 +54,8 @@ export class DanmakuManager {
   // Observers
   private videoNodeObs?: VideoNodeObserver
   private rectObs?: RectObserver
+
+  private readonly DEBUG_PLUGIN_NAME = 'danmaku-stats'
 
   // Listeners
   private rectChangeListeners = new Set<
@@ -68,10 +75,24 @@ export class DanmakuManager {
   >()
 
   constructor(private logger = Logger) {
-    const { wrapper, container } = this.createContainer()
-    this.wrapper = wrapper
-    this.container = container
+    const { wrapper, container, stats } = this.createContainers()
+    this.nodes = { wrapper, container, stats }
     this.logger = logger.sub('[DanmakuManager]')
+
+    // Setup debugging
+    extensionOptionsService.get().then((options) => {
+      this.isDebug = options.debug
+    })
+    extensionOptionsService.onChange((options) => {
+      this.isDebug = options.debug
+      if (this.isDebug) {
+        this.addDebugHighlight()
+        this.addDebugStats()
+      } else {
+        this.removeDebugHighlight()
+        this.removeDebugStats()
+      }
+    })
   }
 
   start(videoSelector: string) {
@@ -83,9 +104,9 @@ export class DanmakuManager {
     })
   }
 
-  private createContainer() {
+  private createContainers() {
     const wrapper = document.createElement('div')
-    wrapper.id = 'danmaku-anywhere-container'
+    wrapper.id = 'danmaku-anywhere-manager-container'
     wrapper.style.position = 'absolute'
     wrapper.style.pointerEvents = 'none'
     wrapper.style.top = '0'
@@ -100,9 +121,23 @@ export class DanmakuManager {
     container.style.width = '100%'
     container.style.height = '100%'
 
+    const stats = document.createElement('div')
+    stats.style.position = 'absolute'
+    stats.style.top = '0'
+    stats.style.left = '0'
+    stats.style.background = 'rgba(0, 0, 0, 0.5)'
+    stats.style.color = 'white'
+    stats.style.fontFamily = 'monospace'
+    stats.style.padding = '8px 16px'
+    stats.id = 'danmaku-anywhere-manager-stats'
+
     wrapper.appendChild(container)
 
-    return { wrapper, container }
+    return { wrapper, container, stats }
+  }
+
+  public getWrapper() {
+    return this.nodes.wrapper
   }
 
   private setupObs(video: HTMLVideoElement) {
@@ -121,7 +156,8 @@ export class DanmakuManager {
 
     this.teardownObs()
     this.setupObs(video)
-    this.addDebugStyles()
+    this.addDebugHighlight()
+    this.nodes.wrapper.style.visibility = 'visible'
 
     if (this.hasComments) {
       this.createDanmaku()
@@ -134,7 +170,8 @@ export class DanmakuManager {
     this.video = null
     this.teardownObs()
     this.unmount()
-    this.removeDebugStyles()
+    this.nodes.wrapper.style.visibility = 'hidden'
+    this.removeDebugHighlight()
 
     this.videoRemovedListeners.forEach((listener) => listener(prev))
   }
@@ -149,21 +186,54 @@ export class DanmakuManager {
   }
 
   private updateContainerStyles() {
-    this.wrapper.style.top = `${this.rect.top}px`
-    this.wrapper.style.left = `${this.rect.left}px`
-    this.wrapper.style.width = `${this.rect.width}px`
-    this.wrapper.style.height = `${this.rect.height}px`
+    this.nodes.wrapper.style.top = `${this.rect.top}px`
+    this.nodes.wrapper.style.left = `${this.rect.left}px`
+    this.nodes.wrapper.style.width = `${this.rect.width}px`
+    this.nodes.wrapper.style.height = `${this.rect.height}px`
   }
 
-  private async addDebugStyles() {
-    const options = await extensionOptionsService.get()
-    if (options.debug) {
-      this.wrapper.style.border = '1px solid red'
+  private addDebugHighlight() {
+    if (!this.isDebug) return
+    this.nodes.wrapper.style.border = '1px solid red'
+  }
+
+  private removeDebugHighlight() {
+    this.nodes.wrapper.style.border = 'none'
+  }
+
+  private addDebugStats() {
+    const manager = this.renderer.manager
+    if (!manager) return
+    if (!this.isDebug) return
+
+    this.nodes.container.appendChild(this.nodes.stats)
+    const updateDebugStats = (all: number, stash: number, view: number) => {
+      this.nodes.stats.innerHTML = `
+      <div>All: ${all}</div>
+      <div>Stash: ${stash}</div>
+      <div>View: ${view}</div>
+    `
     }
+
+    const update = () => {
+      const { all, view, stash } = manager.len()
+      updateDebugStats(all, stash, view)
+    }
+
+    manager.use({
+      name: this.DEBUG_PLUGIN_NAME,
+      push: () => update(),
+      clear: () => update(),
+      $destroyed: () => update(),
+      $beforeMove: () => update(),
+    })
   }
 
-  private removeDebugStyles() {
-    this.wrapper.style.border = 'none'
+  private removeDebugStats() {
+    this.nodes.stats.remove()
+    const manager = this.renderer.manager
+    if (!manager) return
+    manager.remove(this.DEBUG_PLUGIN_NAME)
   }
 
   private createDanmaku() {
@@ -174,7 +244,7 @@ export class DanmakuManager {
 
       this.attachContainer()
 
-      this.renderer.create(this.container, this.video, this.comments)
+      this.renderer.create(this.nodes.container, this.video, this.comments)
       this.isMounted = true
       this.danmakuMountedListeners.forEach((listener) =>
         listener(this.comments)
@@ -184,7 +254,7 @@ export class DanmakuManager {
       // this fixes an issue where danmaku can get "stuck" on the screen
       if (this.renderer.created) this.renderer.destroy()
 
-      this.renderer.create(this.container, this.video, this.comments)
+      this.renderer.create(this.nodes.container, this.video, this.comments)
     }
   }
 
@@ -195,6 +265,7 @@ export class DanmakuManager {
     // if video is not ready, danmaku will be created when video is ready
     if (this.video) {
       this.createDanmaku()
+      this.addDebugStats()
     } else {
       this.logger.debug('Video is not ready, waiting for video to be ready')
     }
@@ -211,6 +282,7 @@ export class DanmakuManager {
     }
 
     this.logger.debug('Unmounting danmaku')
+    this.removeDebugStats()
     this.removeContainer()
     this.renderer.destroy()
     this.comments = []
@@ -221,7 +293,7 @@ export class DanmakuManager {
 
   setParent(parent: HTMLElement) {
     this.parent = parent
-    this.parent.appendChild(this.wrapper)
+    this.parent.appendChild(this.nodes.wrapper)
   }
 
   updateConfig(config: Partial<DanmakuOptions>) {
@@ -236,13 +308,13 @@ export class DanmakuManager {
   }
 
   private removeContainer() {
-    this.container.remove()
+    this.nodes.container.remove()
   }
 
   private attachContainer() {
     // If the wrapper is already in the document, do nothing
-    if (this.container.isConnected) return
-    this.wrapper.appendChild(this.container)
+    if (this.nodes.container.isConnected) return
+    this.nodes.wrapper.appendChild(this.nodes.container)
   }
 
   show() {
