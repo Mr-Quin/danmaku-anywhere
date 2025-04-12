@@ -1,4 +1,5 @@
 import { Manager } from 'danmu'
+import { DanmakuOptions } from './DanmakuRenderer'
 import { useFixedDanmaku } from './fixedDanmaku'
 import { ParsedComment } from './parser'
 
@@ -22,7 +23,11 @@ const binarySearch = (comments: ParsedComment[], time: number): number => {
 }
 
 export const bindVideo =
-  (video: HTMLMediaElement, comments: ParsedComment[]) =>
+  (
+    video: HTMLMediaElement,
+    comments: ParsedComment[],
+    getConfig: () => DanmakuOptions['specialComments']
+  ) =>
   (manager: Manager<ParsedComment>) => {
     // index of the next comment
     let cursor = binarySearch(comments, video.currentTime)
@@ -50,11 +55,12 @@ export const bindVideo =
 
         switch (comment.mode) {
           case 'rtl': {
-            manager.push(comment)
+            // since comments are time-sensitive, use unshift to prioritize the latest comment
+            manager.unshift(comment)
             break
           }
           case 'ltr': {
-            manager.push(comment, { direction: 'right' })
+            manager.unshift(comment, { direction: 'right' })
             break
           }
           case 'top':
@@ -63,11 +69,17 @@ export const bindVideo =
               break
             }
 
-            manager.pushFlexibleDanmaku(comment, {
-              duration: 5000,
-              direction: 'none',
-              ...getDanmakuOptions(comment.mode),
-            })
+            // check the render mode for the comment
+            const config = getConfig()[comment.mode]
+            if (config === 'normal') {
+              manager.pushFlexibleDanmaku(comment, {
+                duration: 5000,
+                direction: 'none',
+                ...getDanmakuOptions(comment.mode),
+              })
+            } else if (config === 'scroll') {
+              manager.unshift({ ...comment, mode: 'rtl' })
+            }
 
             break
           }

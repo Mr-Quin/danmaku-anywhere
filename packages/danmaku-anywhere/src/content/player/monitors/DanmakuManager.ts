@@ -2,10 +2,7 @@ import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { DanmakuRenderer } from '@danmaku-anywhere/danmaku-engine'
 
 import { Logger } from '@/common/Logger'
-import type {
-  DanmakuOptions,
-  SafeZones,
-} from '@/common/options/danmakuOptions/constant'
+import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { DanmakuComponent } from '@/content/player/monitors/DanmakuComponent'
 import { RectObserver } from '@/content/player/monitors/RectObserver'
@@ -15,20 +12,6 @@ import {
 } from '@/content/player/monitors/VideoNodeObserver'
 import { createElement } from 'react'
 import ReactDOM from 'react-dom/client'
-
-const calculatePaddings = (safeZones: SafeZones, rect?: DOMRectReadOnly) => {
-  const { top, bottom } = safeZones
-
-  if (!rect) return { paddingTop: '0px', paddingBottom: '0px' }
-
-  const paddingTop = (rect.height * top) / 100
-  const paddingBottom = (rect.height * bottom) / 100
-
-  return {
-    paddingTop: `${paddingTop}px`,
-    paddingBottom: `${paddingBottom}px`,
-  }
-}
 
 type DanmakuManagerEvents =
   | 'videoChange'
@@ -62,7 +45,6 @@ export class DanmakuManager {
 
   // Styles
   private rect = new DOMRectReadOnly()
-  private safeZones?: SafeZones
 
   // Observers
   private videoNodeObs?: VideoNodeObserver
@@ -171,12 +153,6 @@ export class DanmakuManager {
     this.wrapper.style.left = `${this.rect.left}px`
     this.wrapper.style.width = `${this.rect.width}px`
     this.wrapper.style.height = `${this.rect.height}px`
-
-    if (this.safeZones) {
-      const paddings = calculatePaddings(this.safeZones, this.rect)
-      this.wrapper.style.paddingTop = paddings.paddingTop
-      this.wrapper.style.paddingBottom = paddings.paddingBottom
-    }
   }
 
   private async addDebugStyles() {
@@ -249,7 +225,6 @@ export class DanmakuManager {
   }
 
   updateConfig(config: Partial<DanmakuOptions>) {
-    this.safeZones = config.safeZones
     this.renderer.updateConfig(config)
     this.updateContainerStyles()
   }

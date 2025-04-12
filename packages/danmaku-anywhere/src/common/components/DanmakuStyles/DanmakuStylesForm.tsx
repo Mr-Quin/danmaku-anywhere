@@ -1,23 +1,14 @@
-import {
-  Button,
-  Checkbox,
-  Divider,
-  FormControl,
-  FormControlLabel,
-  Grid,
-  Input,
-  Stack,
-  Typography,
-} from '@mui/material'
+import { Button, Divider, Grid, Input, Stack, Typography } from '@mui/material'
 import type { Draft } from 'immer'
 import { produce } from 'immer'
-import { useEffect, useState } from 'react'
+import { Ref, useEffect, useImperativeHandle, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { LabeledSlider } from '@/common/components/LabeledSlider'
+import { LabeledSwitch } from '@/common/components/DanmakuStyles/LabeledSwitch'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
+import { LabeledSlider } from './LabeledSlider'
 
 const opacityMarks = [
   {
@@ -49,14 +40,25 @@ const fontSizeMarks = [
   },
 ]
 
-const limitPerSecMarks = [
+const maxOnScreenMarks = [
   {
     value: 0,
     label: '0',
   },
   {
-    value: 50,
-    label: '50',
+    value: 1000,
+    label: '1000',
+  },
+]
+
+const trackHeightMarks = [
+  {
+    value: 12,
+    label: '12',
+  },
+  {
+    value: 60,
+    label: '60',
   },
 ]
 
@@ -143,21 +145,15 @@ const convertDisplaySpeedToActual = (displaySpeed: number) => {
   }
 }
 
-const distributeSafeZone = (
-  top: number,
-  bottom: number,
-  change: 'top' | 'bottom'
-) => {
-  if (top + bottom <= 100) {
-    return [top, bottom]
-  }
-  if (change === 'top') {
-    return [top, 100 - top]
-  }
-  return [100 - bottom, bottom]
+export type DanmakuStylesFormApi = {
+  save: () => Promise<void>
 }
 
-export const DanmakuStylesForm = () => {
+export type DanmakuStylesFormProps = {
+  apiRef: Ref<DanmakuStylesFormApi>
+}
+
+export const DanmakuStylesForm = ({ apiRef }: DanmakuStylesFormProps) => {
   const { t } = useTranslation()
   const {
     data: config,
@@ -174,9 +170,22 @@ export const DanmakuStylesForm = () => {
   }, [config])
 
   const flushUpdate = async (newConfig: DanmakuOptions) => {
+    console.debug('flushUpdate', newConfig)
     // flush config to storage
     return partialUpdate(newConfig)
   }
+
+  useImperativeHandle(
+    apiRef,
+    () => {
+      return {
+        save: async () => {
+          await flushUpdate(localConfig)
+        },
+      }
+    },
+    [localConfig]
+  )
 
   const handleLocalUpdate = (
     updater: (draft: Draft<DanmakuOptions>) => void
@@ -184,12 +193,13 @@ export const DanmakuStylesForm = () => {
     setLocalConfig(produce(localConfig, updater))
   }
 
+  console.debug(config)
+
   return (
     <>
       <Stack spacing={1} mt={2}>
         <LabeledSlider
           label={t('stylePage.opacity')}
-          tooltip={t('stylePage.tooltip.opacity')}
           value={localConfig.style.opacity}
           onChange={(_e, newValue) =>
             handleLocalUpdate((draft) => {
@@ -206,7 +216,6 @@ export const DanmakuStylesForm = () => {
         />
         <LabeledSlider
           label={t('stylePage.size')}
-          tooltip={t('stylePage.tooltip.size')}
           value={localConfig.style.fontSize}
           onChange={(_e, newValue) =>
             handleLocalUpdate((draft) => {
@@ -222,53 +231,7 @@ export const DanmakuStylesForm = () => {
           valueLabelFormat={fontSizeValueLabelFormat}
         />
         <LabeledSlider
-          label={t('stylePage.limitPerSecond')}
-          tooltip={t('stylePage.tooltip.limitPerSecond')}
-          disabled={localConfig.limitPerSec === -1}
-          value={localConfig.limitPerSec === -1 ? 0 : localConfig.limitPerSec}
-          onChange={(_e, newValue) =>
-            handleLocalUpdate((draft) => {
-              draft.limitPerSec = newValue as number
-            })
-          }
-          gridSize={8}
-          step={1}
-          min={0}
-          max={50}
-          marks={limitPerSecMarks}
-          size="small"
-          valueLabelDisplay="auto"
-        >
-          <Grid size={4}>
-            <FormControl>
-              <FormControlLabel
-                sx={{ whiteSpace: 'nowrap' }}
-                control={
-                  <Checkbox
-                    checked={localConfig.limitPerSec === -1}
-                    onChange={(e) => {
-                      const checked = e.target.checked
-                      handleLocalUpdate((draft) => {
-                        if (checked) {
-                          // the magic number to represent no limit, because Infinity is not serializable
-                          draft.limitPerSec = -1
-                        } else {
-                          // restore to previous value if it's not -1
-                          draft.limitPerSec =
-                            config.limitPerSec === -1 ? 10 : config.limitPerSec
-                        }
-                      })
-                    }}
-                  />
-                }
-                label={t('stylePage.disableLimit')}
-              />
-            </FormControl>
-          </Grid>
-        </LabeledSlider>
-        <LabeledSlider
           label={t('stylePage.speed')}
-          tooltip={t('stylePage.tooltip.speed')}
           value={convertActualSpeedToDisplay(localConfig.speed)}
           onChange={(_e, newValue) => {
             handleLocalUpdate((draft) => {
@@ -331,27 +294,32 @@ export const DanmakuStylesForm = () => {
       </Stack>
 
       <Stack spacing={1} mt={2}>
-        <Typography variant="h6" component="div">
+        <Typography variant="h6" fontSize={18} component="div">
           {t('stylePage.safeZones')}
         </Typography>
         <Divider />
         <LabeledSlider
-          label={t('stylePage.safeZone.top')}
-          tooltip={t('stylePage.tooltip.safeZone.top')}
-          value={localConfig.safeZones.top}
-          onChange={(_e, newValue) =>
+          label={t('stylePage.safeZone.y')}
+          tooltip={t('stylePage.tooltip.safeZone.y')}
+          value={[localConfig.area.yStart, localConfig.area.yEnd]}
+          onChange={(_e, newValue, activeThumb) => {
+            if (typeof newValue === 'number') {
+              return
+            }
+            const currentValue = [
+              localConfig.area.yStart,
+              localConfig.area.yEnd,
+            ]
+            const v =
+              activeThumb === 0
+                ? [Math.min(newValue[0], currentValue[1] - 10), currentValue[1]]
+                : [currentValue[0], Math.max(newValue[1], currentValue[0] + 10)]
+
             handleLocalUpdate((draft) => {
-              const value = newValue as number
-              const bottom = localConfig.safeZones.bottom
-              const [newTop, newBottom] = distributeSafeZone(
-                value,
-                bottom,
-                'top'
-              )
-              draft.safeZones.top = newTop
-              draft.safeZones.bottom = newBottom
+              draft.area.yStart = v[0]
+              draft.area.yEnd = v[1]
             })
-          }
+          }}
           step={1}
           min={0}
           max={100}
@@ -361,29 +329,81 @@ export const DanmakuStylesForm = () => {
           valueLabelFormat={safeZoneValueLabelFormat}
         />
         <LabeledSlider
-          label={t('stylePage.safeZone.bottom')}
-          tooltip={t('stylePage.tooltip.safeZone.bottom')}
-          value={localConfig.safeZones.bottom}
+          label={t('stylePage.trackHeight')}
+          tooltip={t('stylePage.tooltip.trackHeight')}
+          value={localConfig.trackHeight}
           onChange={(_e, newValue) =>
             handleLocalUpdate((draft) => {
-              const value = newValue as number
-              const top = localConfig.safeZones.top
-              const [newTop, newBottom] = distributeSafeZone(
-                top,
-                value,
-                'bottom'
-              )
-              draft.safeZones.top = newTop
-              draft.safeZones.bottom = newBottom
+              draft.trackHeight = newValue as number
+            })
+          }
+          step={1}
+          min={12}
+          max={60}
+          marks={trackHeightMarks}
+          size="small"
+          valueLabelDisplay="auto"
+        />
+        <LabeledSlider
+          label={t('stylePage.maxOnScreen')}
+          tooltip={t('stylePage.tooltip.maxOnScreen')}
+          value={localConfig.maxOnScreen}
+          onChange={(_e, newValue) =>
+            handleLocalUpdate((draft) => {
+              draft.maxOnScreen = newValue as number
             })
           }
           step={1}
           min={0}
-          max={100}
+          max={1000}
+          marks={maxOnScreenMarks}
           size="small"
           valueLabelDisplay="auto"
-          marks={safeZoneMarks}
-          valueLabelFormat={safeZoneValueLabelFormat}
+        />
+        <LabeledSwitch
+          label={t('stylePage.allowOverlap')}
+          tooltip={t('stylePage.tooltip.allowOverlap')}
+          checked={localConfig.allowOverlap}
+          onChange={(e) => {
+            handleLocalUpdate((draft) => {
+              draft.allowOverlap = e.target.checked
+            })
+          }}
+        />
+      </Stack>
+
+      <Stack spacing={1} mt={2}>
+        <Typography variant="h6" fontSize={18} component="div">
+          {t('stylePage.specialDanmaku')}
+        </Typography>
+        <Divider />
+        <LabeledSwitch
+          label={t('stylePage.specialDanmaku.showTop')}
+          tooltip={t('stylePage.tooltip.specialDanmaku')}
+          checked={localConfig.specialComments.top === 'normal'}
+          onChange={(e) => {
+            handleLocalUpdate((draft) => {
+              if (e.target.checked) {
+                draft.specialComments.top = 'normal'
+              } else {
+                draft.specialComments.top = 'scroll'
+              }
+            })
+          }}
+        />
+        <LabeledSwitch
+          label={t('stylePage.specialDanmaku.showBottom')}
+          tooltip={t('stylePage.tooltip.specialDanmaku')}
+          checked={localConfig.specialComments.bottom === 'normal'}
+          onChange={(e) => {
+            handleLocalUpdate((draft) => {
+              if (e.target.checked) {
+                draft.specialComments.bottom = 'normal'
+              } else {
+                draft.specialComments.bottom = 'scroll'
+              }
+            })
+          }}
         />
       </Stack>
 

@@ -1,5 +1,5 @@
 import { MoreVert } from '@mui/icons-material'
-import type { BoxProps, IconButtonProps } from '@mui/material'
+import type { BoxProps, IconButtonProps, MenuProps } from '@mui/material'
 import { Box, IconButton, Menu } from '@mui/material'
 import type { MouseEvent, PropsWithChildren } from 'react'
 import { useId, useState } from 'react'
@@ -7,12 +7,14 @@ import { useId, useState } from 'react'
 type DrilldownMenuProps = PropsWithChildren & {
   ButtonProps?: IconButtonProps
   BoxProps?: BoxProps
+  MenuProps?: Partial<MenuProps>
 }
 
 export const DrilldownMenu = ({
   children,
   ButtonProps,
   BoxProps,
+  MenuProps,
 }: DrilldownMenuProps) => {
   const buttonId = useId()
   const menuId = useId()
@@ -38,9 +40,12 @@ export const DrilldownMenu = ({
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
-        MenuListProps={{
-          'aria-labelledby': buttonId,
+        slotProps={{
+          list: {
+            'aria-labelledby': buttonId,
+          },
         }}
+        {...MenuProps}
       >
         {children}
       </Menu>

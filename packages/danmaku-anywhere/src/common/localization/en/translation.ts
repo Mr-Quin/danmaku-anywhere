@@ -348,24 +348,30 @@ const pages = {
     disableLimit: 'Disable Limit',
     offset: 'Time Offset (milliseconds)',
     opacity: 'Opacity',
-    'safeZone.bottom': 'Bottom',
-    'safeZone.top': 'Top',
-    safeZones: 'Safe Zones',
+    'safeZone.y': 'Y-axis display range',
+    'safeZone.x': 'X-axis display range',
+    styles: 'Danmaku Styles',
+    safeZones: 'Display Area',
+    specialDanmaku: 'Special Danmaku',
+    'specialDanmaku.showTop': '顶部弹幕',
+    'specialDanmaku.showBottom': '底部弹幕',
+    maxOnScreen: 'Maximum Limit',
+    allowOverlap: 'Allow Overlap',
+    trackHeight: 'Track Height',
     size: 'Size',
     speed: 'Speed',
     tooltip: {
-      limitPerSecond:
-        'No more than this value of danmaku will be added per second. If playback lags due to too many danmaku, try lowering this value. "0" means no danmaku will be shown,"Disable Limit" means all danmaku will be shown.',
+      trackHeight: 'Higher values makes danmaku farther apart',
+      allowOverlap:
+        'Allow danmaku to overlap, does not affect top or bottom fixed danmaku',
+      maxOnScreen:
+        'The maximum number of danmaku that can be displayed on the screen at the same time.',
       offset:
         'How earlier danmaku appears. Positive values make danmaku appear later, negative values make danmaku appear earlier.',
-      opacity: '"0" means transparent, "1" means opaque',
-      'safeZone.bottom':
-        'The percentage of the bottom of the video that will not contain danmaku',
-      'safeZone.top':
-        'The percentage of the top of the video that will not contain danmaku',
-      size: 'Font size of danmaku.',
-      speed:
-        'How fast danmaku flies across the screen. "1" being the slowest, "5" being the fastest.',
+      'safeZone.y': 'Y-axis (up and down) display range',
+      'safeZone.x': 'X-axis (left and right) display range',
+      specialDanmaku:
+        'When off, danmaku will be shown as normal scrolling danmaku',
     },
     filtering: {
       name: 'Filter Settings',

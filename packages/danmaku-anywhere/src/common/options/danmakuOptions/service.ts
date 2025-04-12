@@ -35,3 +35,23 @@ export const danmakuOptionsService = new OptionsService(
       })
     },
   })
+  .version(4, {
+    upgrade: (data: PrevOptions) => {
+      return produce<any>(data, (draft) => {
+        draft.maxOnScreen = 500
+        draft.trackLimit = 32
+        draft.trackHeight = 38
+        draft.allowOverlap = false
+        draft.area = {
+          yStart: 0,
+          yEnd: 100,
+          xStart: 0,
+          xEnd: 100,
+        }
+        draft.specialComments = {
+          top: 'normal',
+          bottom: 'normal',
+        }
+      })
+    },
+  })

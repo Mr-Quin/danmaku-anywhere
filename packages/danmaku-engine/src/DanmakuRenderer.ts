@@ -24,33 +24,88 @@ const getStyle = (style: DanmakuStyle) => {
   }
 }
 
+export type FixedCommentMode = 'normal' | 'hidden' | 'scroll'
+
 export interface DanmakuOptions {
   readonly style: DanmakuStyle
   readonly show: boolean
+  readonly trackHeight: number
+  readonly allowOverlap: boolean
   readonly filters: DanmakuFilter[]
   /**
-   * The maximum number of comments to add to the screen per second.
-   * -1 means no limit since Infinity is not a valid JSON value.
+   * The maximum number of comments to show on the screen at the same time
    */
-  readonly limitPerSec: number
+  readonly maxOnScreen: number
   readonly speed: number
   /**
-   * The offset in milliseconds to adjust the time of the comments.
+   * The area to show the comments in percentage
+   */
+  readonly area: {
+    yStart: number
+    yEnd: number
+    xStart: number
+    xEnd: number
+  }
+  /**
+   * The maximum number of tracks
+   * -1 means no limit
+   */
+  readonly trackLimit: number
+  /**
+   * The offset in milliseconds to adjust the time of the comments
    */
   readonly offset: number
+  /**
+   * How to handle special comments
+   */
+  readonly specialComments: {
+    top: FixedCommentMode
+    bottom: FixedCommentMode
+  }
 }
 
 const configDefaults: DanmakuOptions = {
   show: true,
+  allowOverlap: false,
+  trackHeight: 38,
   filters: [],
   speed: 1,
-  limitPerSec: 10,
+  maxOnScreen: 500,
+  trackLimit: -1,
   style: {
     opacity: 1,
     fontSize: 25,
     fontFamily: 'sans-serif',
   },
+  area: {
+    yStart: 0,
+    yEnd: 100,
+    xStart: 0,
+    xEnd: 100,
+  },
+  specialComments: {
+    top: 'normal',
+    bottom: 'scroll',
+  },
   offset: 0,
+}
+
+const deepEqual = <T>(a: T, b: T): boolean => {
+  if (a === b) return true
+  if (typeof a !== 'object' || typeof b !== 'object') return false
+  if (a === null || b === null) return false
+
+  const keysA = Object.keys(a)
+  const keysB = Object.keys(b)
+
+  if (keysA.length !== keysB.length) return false
+
+  for (const key of keysA) {
+    if (!keysB.includes(key)) return false
+    if (!deepEqual((a as any)[key], (b as any)[key])) return false
+  }
+
+  return true
 }
 
 export type DanmakuRenderProps = {
@@ -82,30 +137,36 @@ export class DanmakuRenderer {
     this.container = container
     this.media = media
     this.comments = comments
-    this.config = this.#mergeConfig(config)
+    this.config = this.mergeConfig(config)
 
     const commentGenerator = mapIter(comments, (comment) =>
       transformComment(comment, this.config.offset)
     )
 
     const sampledGenerator = sampleByTime(
-      // TODO: sort should be done upstream
       Array.from(commentGenerator)
         .toSorted((a, b) => a.time - b.time)
         .values(),
-      this.config.limitPerSec === -1 ? Infinity : this.config.limitPerSec,
+      Infinity,
       (item) => item.time
     )
 
     const parsedComments = Array.from(sampledGenerator)
 
     const manager = create<ParsedComment>({
-      trackHeight: 40,
-      durationRange: [5000, 5000],
-      rate: 0.5,
-      mode: 'adaptive',
+      trackHeight: this.config.trackHeight,
+      rate: this.config.speed / 2,
+      mode: this.config.allowOverlap ? 'adaptive' : 'strict',
+      limits: {
+        view: this.config.maxOnScreen,
+        stash: this.config.maxOnScreen * 2,
+      },
       plugin: {
-        init: bindVideo(this.media, parsedComments),
+        init: bindVideo(
+          this.media,
+          parsedComments,
+          () => this.config.specialComments
+        ),
         $createNode: (danmaku, node) => {
           this.render(node, {
             text: danmaku.data.text,
@@ -121,10 +182,11 @@ export class DanmakuRenderer {
         },
       },
     })
-
     this.manager = manager
 
     manager.mount(container)
+
+    this.setArea()
 
     if (!this.media.paused) {
       manager.startPlaying()
@@ -141,20 +203,46 @@ export class DanmakuRenderer {
 
   updateConfig(config: Partial<DanmakuOptions>): void {
     const prevConfig = this.config
-    this.config = this.#mergeConfig(config)
+    this.config = this.mergeConfig(config)
 
-    if (
-      !Object.is(this.config.offset, prevConfig.offset) ||
-      !Object.is(this.config.limitPerSec, prevConfig.limitPerSec)
-    ) {
+    if (!this.manager) return
+
+    if (!Object.is(this.config.offset, prevConfig.offset)) {
       // Recreate if offset changed
       if (this.created) {
         this.create(this.container!, this.media!, this.comments, this.config)
       }
     }
+
+    if (!deepEqual(prevConfig.area, this.config.area)) {
+      this.setArea()
+    }
+
+    this.manager.updateOptions({
+      trackHeight: this.config.trackHeight,
+      mode: this.config.allowOverlap ? 'adaptive' : 'strict',
+      limits: {
+        view: this.config.maxOnScreen,
+        stash: this.config.maxOnScreen * 2,
+      },
+      rate: this.config.speed / 2,
+    })
   }
 
-  #mergeConfig = (config?: Partial<DanmakuOptions>): DanmakuOptions => {
+  private setArea = () => {
+    this.manager?.setArea({
+      y: {
+        start: `${this.config.area.yStart}%`,
+        end: `${this.config.area.yEnd}%`,
+      },
+      x: {
+        start: `${this.config.area.xStart}%`,
+        end: `${this.config.area.xEnd}%`,
+      },
+    })
+  }
+
+  private mergeConfig = (config?: Partial<DanmakuOptions>): DanmakuOptions => {
     if (!config) return this.config
 
     // manually merge styles
