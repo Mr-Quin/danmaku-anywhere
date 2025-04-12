@@ -50,7 +50,7 @@ export const danmakuOptionsService = new OptionsService(
         }
         draft.specialComments = {
           top: 'normal',
-          bottom: 'normal',
+          bottom: 'scroll',
         }
       })
     },

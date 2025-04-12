@@ -9,12 +9,13 @@ import {
 import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 
 export const StylesPage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const api = useRef<DanmakuStylesFormApi>(null)
+  const [canSave, setCanSave] = useState(false)
 
   return (
     <TabLayout>
@@ -23,6 +24,7 @@ export const StylesPage = () => {
           variant="contained"
           size="small"
           onClick={() => api.current?.save()}
+          disabled={!canSave}
         >
           {t('common.apply')}
         </Button>
@@ -41,7 +43,12 @@ export const StylesPage = () => {
         </DrilldownMenu>
       </TabToolbar>
       <Box px={3} pb={2} maxWidth="100%" sx={{ overflowX: 'hidden' }}>
-        <DanmakuStylesForm apiRef={api} />
+        <DanmakuStylesForm
+          apiRef={api}
+          onDirtyChange={(isDirty) => {
+            setCanSave(isDirty)
+          }}
+        />
       </Box>
     </TabLayout>
   )

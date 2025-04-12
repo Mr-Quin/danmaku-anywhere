@@ -76,6 +76,12 @@ export const controlQueryKeys = {
       kind: 'permissions',
     },
   ],
+  getPlatformInfo: () => [
+    {
+      scope: 'control',
+      kind: 'getPlatformInfo',
+    },
+  ],
 }
 
 export const alarmQueryKeys = {

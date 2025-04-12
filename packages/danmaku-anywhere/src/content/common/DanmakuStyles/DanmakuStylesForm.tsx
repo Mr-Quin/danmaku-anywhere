@@ -1,14 +1,15 @@
 import { Divider, Grid, Input, Stack, Typography } from '@mui/material'
-import type { Draft } from 'immer'
-import { produce } from 'immer'
 import { Ref, useEffect, useImperativeHandle, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { IS_CHROME, IS_FIREFOX } from '@/common/constants'
+import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { FontSelector } from '@/content/common/DanmakuStyles/FontSelector'
 import { LabeledSwitch } from '@/content/common/DanmakuStyles/LabeledSwitch'
+import { Controller, useForm } from 'react-hook-form'
 import { LabeledSlider } from './LabeledSlider'
 
 const opacityMarks = [
@@ -152,148 +153,203 @@ export type DanmakuStylesFormApi = {
 
 export type DanmakuStylesFormProps = {
   apiRef: Ref<DanmakuStylesFormApi>
+  onDirtyChange: (isDirty: boolean) => void
 }
 
-export const DanmakuStylesForm = ({ apiRef }: DanmakuStylesFormProps) => {
+export const DanmakuStylesForm = ({
+  apiRef,
+  onDirtyChange,
+}: DanmakuStylesFormProps) => {
   const { t } = useTranslation()
   const { data: config, partialUpdate } = useDanmakuOptions()
+  const platform = usePlatformInfo()
 
-  const [localConfig, setLocalConfig] = useState<DanmakuOptions>(config)
-  const [offsetInput, setOffsetInput] = useState<string>('')
-  const [offsetInputActive, setOffsetInputActive] = useState(false)
+  const {
+    control,
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    getValues,
+    formState: { isDirty },
+  } = useForm<DanmakuOptions>({
+    defaultValues: config,
+    mode: 'onChange',
+  })
+
+  console.log(platform, IS_CHROME, IS_FIREFOX, import.meta.env)
 
   useEffect(() => {
-    setLocalConfig(config)
-  }, [config])
+    reset(config)
+  }, [config, reset])
 
-  const flushUpdate = async (newConfig: DanmakuOptions) => {
-    // flush config to storage
-    return partialUpdate(newConfig)
+  useEffect(() => {
+    onDirtyChange(isDirty)
+  }, [isDirty, onDirtyChange])
+
+  const onSave = async (formData: DanmakuOptions) => {
+    await partialUpdate(formData)
+    reset(formData)
   }
 
   useImperativeHandle(
     apiRef,
-    () => {
-      return {
-        save: async () => {
-          await flushUpdate(localConfig)
-        },
-      }
-    },
-    [localConfig]
+    () => ({
+      save: () => handleSubmit(onSave)(),
+    }),
+    [handleSubmit, onSave]
   )
 
-  const handleLocalUpdate = (
-    updater: (draft: Draft<DanmakuOptions>) => void
-  ) => {
-    setLocalConfig(produce(localConfig, updater))
-  }
+  const yStart = watch('area.yStart', config.area.yStart)
+  const yEnd = watch('area.yEnd', config.area.yEnd)
 
   return (
     <>
       <Stack spacing={1} mt={2}>
-        <LabeledSlider
-          label={t('stylePage.opacity')}
-          value={localConfig.style.opacity}
-          onChange={(_e, newValue) =>
-            handleLocalUpdate((draft) => {
-              draft.style.opacity = newValue as number
-            })
-          }
-          step={0.01}
-          min={0}
-          max={1}
-          size="small"
-          valueLabelDisplay="auto"
-          marks={opacityMarks}
-          valueLabelFormat={opacityValueLabelFormat}
-        />
-        <LabeledSlider
-          label={t('stylePage.size')}
-          value={localConfig.style.fontSize}
-          onChange={(_e, newValue) =>
-            handleLocalUpdate((draft) => {
-              draft.style.fontSize = newValue as number
-            })
-          }
-          step={1}
-          min={4}
-          max={48}
-          size="small"
-          valueLabelDisplay="auto"
-          marks={fontSizeMarks}
-          valueLabelFormat={fontSizeValueLabelFormat}
-        />
-        <LabeledSlider
-          label={t('stylePage.speed')}
-          value={convertActualSpeedToDisplay(localConfig.speed)}
-          onChange={(_e, newValue) => {
-            handleLocalUpdate((draft) => {
-              draft.speed = convertDisplaySpeedToActual(newValue as number)
-            })
-          }}
-          step={1}
-          min={1}
-          max={5}
-          marks={speedMarks}
-          size="small"
-          valueLabelDisplay="auto"
-        />
-        <LabeledSlider
-          label={t('stylePage.offset')}
-          tooltip={t('stylePage.tooltip.offset')}
-          value={localConfig.offset}
-          onChange={(_e, newValue) => {
-            handleLocalUpdate((draft) => {
-              draft.offset = newValue as number
-            })
-          }}
-          gridSize={8}
-          step={10}
-          min={-5000}
-          max={5000}
-          size="small"
-          valueLabelDisplay="auto"
-          valueLabelFormat={offsetValueLabelFormat}
-        >
-          <Grid size={4}>
-            <Input
-              value={offsetInputActive ? offsetInput : localConfig.offset}
+        <Controller
+          name="style.opacity"
+          control={control}
+          render={({ field }) => (
+            <LabeledSlider
+              label={t('stylePage.opacity')}
+              value={field.value}
+              onChange={(_e, newValue) => field.onChange(newValue as number)}
+              step={0.01}
+              min={0}
+              max={1}
               size="small"
-              {...withStopPropagation()}
-              onFocus={() => {
-                setOffsetInputActive(true)
-                setOffsetInput(localConfig.offset.toString())
-              }}
-              onBlur={() => {
-                setOffsetInputActive(false)
-                handleLocalUpdate((draft) => {
-                  if (offsetInput === '') {
-                    draft.offset = 0
-                  } else {
-                    draft.offset = parseInt(offsetInput, 10)
-                  }
-                })
-              }}
-              onChange={(e) => {
-                setOffsetInput(e.target.value)
-              }}
-              inputProps={{
-                step: 1,
-                type: 'number',
-              }}
+              valueLabelDisplay="auto"
+              marks={opacityMarks}
+              valueLabelFormat={opacityValueLabelFormat}
             />
-          </Grid>
-        </LabeledSlider>
-        <FontSelector
-          value={localConfig.style.fontFamily}
-          onChange={(font) => {
-            handleLocalUpdate((draft) => {
-              draft.style.fontFamily = font
-            })
-          }}
-          label={t('stylePage.font')}
+          )}
         />
+        <Controller
+          name="style.fontSize"
+          control={control}
+          render={({ field }) => (
+            <LabeledSlider
+              label={t('stylePage.size')}
+              value={field.value}
+              onChange={(_e, newValue) => field.onChange(newValue as number)}
+              step={1}
+              min={4}
+              max={48}
+              size="small"
+              valueLabelDisplay="auto"
+              marks={fontSizeMarks}
+              valueLabelFormat={fontSizeValueLabelFormat}
+            />
+          )}
+        />
+        <Controller
+          name="speed"
+          control={control}
+          render={({ field }) => (
+            <LabeledSlider
+              label={t('stylePage.speed')}
+              value={convertActualSpeedToDisplay(field.value)}
+              onChange={(_e, newValue) => {
+                field.onChange(convertDisplaySpeedToActual(newValue as number))
+              }}
+              step={1}
+              min={1}
+              max={5}
+              marks={speedMarks}
+              size="small"
+              valueLabelDisplay="auto"
+            />
+          )}
+        />
+        <Controller
+          name="offset"
+          control={control}
+          render={({ field }) => {
+            const [isEditingOffset, setIsEditingOffset] = useState(false)
+            const [editOffsetValue, setEditOffsetValue] = useState<string>(
+              field.value.toString()
+            )
+
+            useEffect(() => {
+              if (!isEditingOffset) {
+                setEditOffsetValue(field.value.toString())
+              }
+            }, [field.value, isEditingOffset])
+
+            const handleOffsetBlur = () => {
+              setIsEditingOffset(false)
+              let numericValue = parseInt(editOffsetValue, 10)
+              if (isNaN(numericValue)) {
+                numericValue = field.value ?? 0
+              }
+              if (numericValue !== field.value) {
+                field.onChange(numericValue)
+              }
+              setEditOffsetValue(numericValue.toString())
+            }
+
+            return (
+              <LabeledSlider
+                label={t('stylePage.offset')}
+                tooltip={t('stylePage.tooltip.offset')}
+                value={field.value}
+                onChange={(_e, newValue) => {
+                  const numericValue = newValue as number
+                  field.onChange(numericValue)
+                  if (!isEditingOffset) {
+                    setEditOffsetValue(numericValue.toString())
+                  }
+                }}
+                gridSize={8}
+                step={10}
+                min={-5000}
+                max={5000}
+                size="small"
+                valueLabelDisplay="auto"
+                valueLabelFormat={offsetValueLabelFormat}
+              >
+                <Grid size={4}>
+                  <Input
+                    value={isEditingOffset ? editOffsetValue : field.value}
+                    size="small"
+                    {...withStopPropagation()}
+                    onFocus={() => {
+                      setIsEditingOffset(true)
+                      setEditOffsetValue(field.value.toString())
+                    }}
+                    onBlur={handleOffsetBlur}
+                    onChange={(e) => {
+                      setEditOffsetValue(e.target.value)
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleOffsetBlur()
+                        ;(e.target as HTMLInputElement).blur()
+                      }
+                    }}
+                    inputProps={{
+                      step: 1,
+                      type: 'number',
+                    }}
+                  />
+                </Grid>
+              </LabeledSlider>
+            )
+          }}
+        />
+        {platform.os !== 'android' && IS_CHROME && (
+          <Controller
+            name="style.fontFamily"
+            control={control}
+            render={({ field }) => (
+              <FontSelector
+                value={field.value}
+                onChange={(font) => field.onChange(font)}
+                label={t('stylePage.font')}
+              />
+            )}
+          />
+        )}
       </Stack>
 
       <Stack spacing={1} mt={2}>
@@ -304,24 +360,30 @@ export const DanmakuStylesForm = ({ apiRef }: DanmakuStylesFormProps) => {
         <LabeledSlider
           label={t('stylePage.safeZone.y')}
           tooltip={t('stylePage.tooltip.safeZone.y')}
-          value={[localConfig.area.yStart, localConfig.area.yEnd]}
+          value={[yStart, yEnd]}
           onChange={(_e, newValue, activeThumb) => {
-            if (typeof newValue === 'number') {
-              return
-            }
-            const currentValue = [
-              localConfig.area.yStart,
-              localConfig.area.yEnd,
-            ]
-            const v =
-              activeThumb === 0
-                ? [Math.min(newValue[0], currentValue[1] - 10), currentValue[1]]
-                : [currentValue[0], Math.max(newValue[1], currentValue[0] + 10)]
+            if (!Array.isArray(newValue)) return
 
-            handleLocalUpdate((draft) => {
-              draft.area.yStart = v[0]
-              draft.area.yEnd = v[1]
-            })
+            const minDist = 10
+            const minVal = 0
+            const maxVal = 100
+
+            const currentYStart = getValues('area.yStart')
+            const currentYEnd = getValues('area.yEnd')
+
+            if (activeThumb === 0) {
+              const updatedYStart = Math.max(
+                minVal,
+                Math.min(newValue[0], currentYEnd - minDist)
+              )
+              setValue('area.yStart', updatedYStart, { shouldDirty: true })
+            } else {
+              const updatedYEnd = Math.min(
+                maxVal,
+                Math.max(newValue[1], currentYStart + minDist)
+              )
+              setValue('area.yEnd', updatedYEnd, { shouldDirty: true })
+            }
           }}
           step={1}
           min={0}
@@ -330,48 +392,55 @@ export const DanmakuStylesForm = ({ apiRef }: DanmakuStylesFormProps) => {
           valueLabelDisplay="auto"
           marks={safeZoneMarks}
           valueLabelFormat={safeZoneValueLabelFormat}
+          disableSwap
         />
-        <LabeledSlider
-          label={t('stylePage.trackHeight')}
-          tooltip={t('stylePage.tooltip.trackHeight')}
-          value={localConfig.trackHeight}
-          onChange={(_e, newValue) =>
-            handleLocalUpdate((draft) => {
-              draft.trackHeight = newValue as number
-            })
-          }
-          step={1}
-          min={12}
-          max={60}
-          marks={trackHeightMarks}
-          size="small"
-          valueLabelDisplay="auto"
+        <Controller
+          name="trackHeight"
+          control={control}
+          render={({ field }) => (
+            <LabeledSlider
+              label={t('stylePage.trackHeight')}
+              tooltip={t('stylePage.tooltip.trackHeight')}
+              value={field.value}
+              onChange={(_e, newValue) => field.onChange(newValue as number)}
+              step={1}
+              min={12}
+              max={60}
+              marks={trackHeightMarks}
+              size="small"
+              valueLabelDisplay="auto"
+            />
+          )}
         />
-        <LabeledSlider
-          label={t('stylePage.maxOnScreen')}
-          tooltip={t('stylePage.tooltip.maxOnScreen')}
-          value={localConfig.maxOnScreen}
-          onChange={(_e, newValue) =>
-            handleLocalUpdate((draft) => {
-              draft.maxOnScreen = newValue as number
-            })
-          }
-          step={1}
-          min={0}
-          max={1000}
-          marks={maxOnScreenMarks}
-          size="small"
-          valueLabelDisplay="auto"
+        <Controller
+          name="maxOnScreen"
+          control={control}
+          render={({ field }) => (
+            <LabeledSlider
+              label={t('stylePage.maxOnScreen')}
+              tooltip={t('stylePage.tooltip.maxOnScreen')}
+              value={field.value}
+              onChange={(_e, newValue) => field.onChange(newValue as number)}
+              step={1}
+              min={0}
+              max={1000}
+              marks={maxOnScreenMarks}
+              size="small"
+              valueLabelDisplay="auto"
+            />
+          )}
         />
-        <LabeledSwitch
-          label={t('stylePage.allowOverlap')}
-          tooltip={t('stylePage.tooltip.allowOverlap')}
-          checked={localConfig.allowOverlap}
-          onChange={(e) => {
-            handleLocalUpdate((draft) => {
-              draft.allowOverlap = e.target.checked
-            })
-          }}
+        <Controller
+          name="allowOverlap"
+          control={control}
+          render={({ field }) => (
+            <LabeledSwitch
+              label={t('stylePage.allowOverlap')}
+              tooltip={t('stylePage.tooltip.allowOverlap')}
+              checked={field.value}
+              onChange={(e) => field.onChange(e.target.checked)}
+            />
+          )}
         />
       </Stack>
 
@@ -380,33 +449,33 @@ export const DanmakuStylesForm = ({ apiRef }: DanmakuStylesFormProps) => {
           {t('stylePage.specialDanmaku')}
         </Typography>
         <Divider />
-        <LabeledSwitch
-          label={t('stylePage.specialDanmaku.showTop')}
-          tooltip={t('stylePage.tooltip.specialDanmaku')}
-          checked={localConfig.specialComments.top === 'normal'}
-          onChange={(e) => {
-            handleLocalUpdate((draft) => {
-              if (e.target.checked) {
-                draft.specialComments.top = 'normal'
-              } else {
-                draft.specialComments.top = 'scroll'
-              }
-            })
-          }}
+        <Controller
+          name="specialComments.top"
+          control={control}
+          render={({ field }) => (
+            <LabeledSwitch
+              label={t('stylePage.specialDanmaku.showTop')}
+              tooltip={t('stylePage.tooltip.specialDanmaku')}
+              checked={field.value === 'normal'}
+              onChange={(e) => {
+                field.onChange(e.target.checked ? 'normal' : 'scroll')
+              }}
+            />
+          )}
         />
-        <LabeledSwitch
-          label={t('stylePage.specialDanmaku.showBottom')}
-          tooltip={t('stylePage.tooltip.specialDanmaku')}
-          checked={localConfig.specialComments.bottom === 'normal'}
-          onChange={(e) => {
-            handleLocalUpdate((draft) => {
-              if (e.target.checked) {
-                draft.specialComments.bottom = 'normal'
-              } else {
-                draft.specialComments.bottom = 'scroll'
-              }
-            })
-          }}
+        <Controller
+          name="specialComments.bottom"
+          control={control}
+          render={({ field }) => (
+            <LabeledSwitch
+              label={t('stylePage.specialDanmaku.showBottom')}
+              tooltip={t('stylePage.tooltip.specialDanmaku')}
+              checked={field.value === 'normal'}
+              onChange={(e) => {
+                field.onChange(e.target.checked ? 'normal' : 'scroll')
+              }}
+            />
+          )}
         />
       </Stack>
     </>

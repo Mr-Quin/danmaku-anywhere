@@ -16,6 +16,7 @@ export const StylesPage = () => {
   const api = useRef<DanmakuStylesFormApi>(null)
 
   const [showFilterPage, setShowFilterPage] = useState(false)
+  const [canSave, setCanSave] = useState(false)
 
   if (showFilterPage) {
     return <FilterPage onGoBack={() => setShowFilterPage(false)} />
@@ -28,6 +29,7 @@ export const StylesPage = () => {
           variant="contained"
           size="small"
           onClick={() => api.current?.save()}
+          disabled={!canSave}
         >
           {t('common.apply')}
         </Button>
@@ -53,7 +55,12 @@ export const StylesPage = () => {
       </TabToolbar>
       <Divider />
       <Box px={3} pb={2} flexGrow={1} sx={{ overflowX: 'hidden' }}>
-        <DanmakuStylesForm apiRef={api} />
+        <DanmakuStylesForm
+          apiRef={api}
+          onDirtyChange={(isDirty) => {
+            setCanSave(isDirty)
+          }}
+        />
       </Box>
     </TabLayout>
   )

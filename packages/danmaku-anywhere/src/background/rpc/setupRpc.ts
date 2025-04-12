@@ -192,6 +192,9 @@ export const setupRpc = () => {
     getFontList: async () => {
       return chrome.fontSettings.getFontList()
     },
+    getPlatformInfo: async () => {
+      return chrome.runtime.getPlatformInfo()
+    },
   })
 
   const passThrough = <TRPCDef extends AnyRPCDef>(

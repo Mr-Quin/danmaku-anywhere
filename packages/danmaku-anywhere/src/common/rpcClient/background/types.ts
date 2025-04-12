@@ -86,6 +86,7 @@ type ControlMethods = {
   injectScript: RPCDef<number, void>
   remoteLog: RPCDef<any, void>
   getFontList: RPCDef<void, chrome.fontSettings.FontName[]>
+  getPlatformInfo: RPCDef<void, chrome.runtime.PlatformInfo>
 }
 
 type MountConfigMethods = {
