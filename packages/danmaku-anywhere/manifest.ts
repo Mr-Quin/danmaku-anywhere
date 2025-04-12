@@ -2,9 +2,27 @@ import { defineManifest } from '@crxjs/vite-plugin'
 
 import pkg from './package.json' with { type: 'json' }
 
-const browser = process.env.VITE_TARGET_BROWSER ?? 'chrome'
+const BROWSER = process.env.VITE_TARGET_BROWSER ?? 'chrome'
 
 const dev = process.env.NODE_ENV === 'development'
+
+const IS_CHROME = BROWSER === 'chrome'
+const IS_FIREFOX = BROWSER === 'firefox'
+
+const permissions: chrome.runtime.ManifestPermissions[] = [
+  'storage',
+  'unlimitedStorage',
+  'activeTab',
+  'scripting',
+  'declarativeNetRequestWithHostAccess',
+  'webNavigation',
+  'alarms',
+]
+
+if (IS_CHROME) {
+  permissions.push('fontSettings')
+  permissions.push('contextMenus')
+}
 
 export const manifest = defineManifest({
   manifest_version: 3,
@@ -21,20 +39,11 @@ export const manifest = defineManifest({
     scripts: ['src/background/index.ts'],
     type: 'module',
   },
-  permissions: [
-    'storage',
-    'unlimitedStorage',
-    'activeTab',
-    'scripting',
-    'contextMenus',
-    'declarativeNetRequestWithHostAccess',
-    'webNavigation',
-    'alarms',
-  ],
+  permissions,
   host_permissions: ['https://*/*', 'http://*/*', 'file:///*'],
   externally_connectable:
     // not supported in firefox
-    browser === 'firefox'
+    IS_FIREFOX
       ? undefined
       : {
           matches: [
@@ -49,7 +58,7 @@ export const manifest = defineManifest({
     512: 'normal_512.png',
   },
   default_locale: 'en',
-  ...(browser === 'firefox' && {
+  ...(BROWSER === 'firefox' && {
     browser_specific_settings: {
       gecko: {
         id: 'danmakuanywhere@quin.fish',

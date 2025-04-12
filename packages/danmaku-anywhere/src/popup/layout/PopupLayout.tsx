@@ -1,13 +1,9 @@
+import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { Container, Paper } from '@mui/material'
-import { PropsWithChildren, use } from 'react'
+import { PropsWithChildren } from 'react'
 
-export const PopupLayout = ({
-  children,
-  platformInfoPromise,
-}: PropsWithChildren<{
-  platformInfoPromise: Promise<chrome.runtime.PlatformInfo>
-}>) => {
-  const platformInfo = use(platformInfoPromise)
+export const PopupLayout = ({ children }: PropsWithChildren<{}>) => {
+  const platformInfo = usePlatformInfo()
 
   const isMobile = platformInfo.os === 'android'
 

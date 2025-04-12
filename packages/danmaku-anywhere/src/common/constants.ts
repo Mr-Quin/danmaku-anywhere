@@ -7,6 +7,10 @@ export const EXTERNALLY_CONNECTABLE_PATTERNS = [
 
 export const IS_EXTERNALLY_CONNECTABLE = EXTERNALLY_CONNECTABLE_PATTERNS.some(
   (pattern) => {
+    if (typeof window === 'undefined') return false
     return matchUrl(window.location.href, pattern)
   }
 )
+
+export const IS_FIREFOX = import.meta.env.VITE_TARGET_BROWSER === 'firefox'
+export const IS_CHROME = import.meta.env.VITE_TARGET_BROWSER === 'chrome'

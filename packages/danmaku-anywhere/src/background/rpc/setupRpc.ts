@@ -189,6 +189,12 @@ export const setupRpc = () => {
     extractTitle: async (input) => {
       return aiService.extractTitle(input)
     },
+    getFontList: async () => {
+      return chrome.fontSettings.getFontList()
+    },
+    getPlatformInfo: async () => {
+      return chrome.runtime.getPlatformInfo()
+    },
   })
 
   const passThrough = <TRPCDef extends AnyRPCDef>(

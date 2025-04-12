@@ -5,29 +5,29 @@ import { defineConfig } from 'vite'
 
 import { manifest } from './manifest'
 
-const browser = process.env.VITE_TARGET_BROWSER ?? 'chrome'
+const BROWSER = process.env.VITE_TARGET_BROWSER ?? 'chrome'
 
-if (!['chrome', 'firefox'].includes(browser)) {
+if (!['chrome', 'firefox'].includes(BROWSER)) {
   throw new Error(
-    `Browser target must be either 'chrome' or 'firefox', but got ${browser}`
+    `Browser target must be either 'chrome' or 'firefox', but got ${BROWSER}`
   )
 }
 
-const isChrome = browser === 'chrome'
-const isFirefox = browser === 'firefox'
+const IS_CHROME = BROWSER === 'chrome'
+const IS_FIREFOX = BROWSER === 'firefox'
 
 const dev = process.env.NODE_ENV === 'development'
 
-const port = isChrome ? 3000 : 3001
+const port = IS_CHROME ? 3000 : 3001
 
 console.log('Building for', {
-  browser,
+  browser: BROWSER,
   dev,
 })
 
 export default defineConfig({
   // @ts-ignore
-  plugins: [react({}), crx({ manifest, browser: browser })],
+  plugins: [react({}), crx({ manifest, browser: BROWSER })],
   resolve: {
     alias: {
       '@': '/src',
@@ -41,6 +41,9 @@ export default defineConfig({
     },
     open: false,
   },
+  define: {
+    'import.meta.env.VITE_TARGET_BROWSER': JSON.stringify(BROWSER),
+  },
   build: {
     emptyOutDir: true,
     rollupOptions: {
@@ -48,8 +51,8 @@ export default defineConfig({
         app: 'pages/popup.html',
       },
     },
-    outDir: `./dev/${browser}`,
-    minify: isFirefox, // don't minify for Firefox, so they can review the code
+    outDir: `./dev/${BROWSER}`,
+    minify: IS_FIREFOX, // don't minify for Firefox, so they can review the code
     // the minimum to support top-level await
     target: ['es2022', 'edge89', 'firefox89', 'chrome89', 'safari15'],
   },

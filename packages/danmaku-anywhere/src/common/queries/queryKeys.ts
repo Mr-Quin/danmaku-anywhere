@@ -76,6 +76,12 @@ export const controlQueryKeys = {
       kind: 'permissions',
     },
   ],
+  getPlatformInfo: () => [
+    {
+      scope: 'control',
+      kind: 'getPlatformInfo',
+    },
+  ],
 }
 
 export const alarmQueryKeys = {
@@ -92,6 +98,15 @@ export const genAIQueryKeys = {
     {
       scope: 'genAI',
       kind: 'extractTitle',
+    },
+  ],
+}
+
+export const fontQueryKeys = {
+  listAll: () => [
+    {
+      scope: 'font',
+      kind: 'listAll',
     },
   ],
 }
