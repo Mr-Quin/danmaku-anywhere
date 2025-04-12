@@ -15,8 +15,8 @@ import {
   useMountConfig,
 } from '@/common/options/mountConfig/useMountConfig'
 import { tryCatch } from '@/common/utils/utils'
-import { DrilldownMenu } from '@/popup/component/DrilldownMenu'
-import { TabToolbar } from '@/popup/component/TabToolbar'
+import { DrilldownMenu } from '@/content/common/DrilldownMenu'
+import { TabToolbar } from '@/content/common/TabToolbar'
 
 const CAN_IMPORT = typeof window.showOpenFilePicker === 'function'
 

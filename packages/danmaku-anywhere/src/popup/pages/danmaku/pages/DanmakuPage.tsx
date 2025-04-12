@@ -5,9 +5,9 @@ import { useNavigate, useSearchParams } from 'react-router'
 
 import { CommentsTable } from '@/common/components/CommentsTable'
 import { useDanmakuSuspense } from '@/common/danmaku/queries/useDanmakuSuspense'
-import { TabToolbar } from '@/popup/component/TabToolbar'
+import { TabLayout } from '@/content/common/TabLayout'
+import { TabToolbar } from '@/content/common/TabToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
-import { TabLayout } from '@/popup/layout/TabLayout'
 import { useStore } from '@/popup/store'
 
 export const DanmakuPage = () => {

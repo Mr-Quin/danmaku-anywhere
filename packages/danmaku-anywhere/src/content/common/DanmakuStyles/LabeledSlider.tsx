@@ -1,5 +1,5 @@
 import type { SliderProps, TypographyProps } from '@mui/material'
-import { Box, Grid, Slider, Tooltip, Typography } from '@mui/material'
+import { Box, Grid, Slider, Typography } from '@mui/material'
 import type { ReactNode } from 'react'
 import { useId } from 'react'
 
@@ -22,11 +22,14 @@ export const LabeledSlider = ({
   const id = useId()
   return (
     <Box>
-      <Tooltip title={tooltip} sx={{ width: 'fit-content' }}>
+      <div>
         <Typography id={id} gutterBottom {...typographyProps}>
           {label}
         </Typography>
-      </Tooltip>
+        <Typography variant="caption" color="text.secondary">
+          {tooltip}
+        </Typography>
+      </div>
       <Grid container spacing={2}>
         <Grid size={gridSize}>
           <Slider aria-labelledby={id} {...rest} />

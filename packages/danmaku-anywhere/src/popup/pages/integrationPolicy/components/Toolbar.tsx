@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
-import { TabToolbar } from '@/popup/component/TabToolbar'
+import { TabToolbar } from '@/content/common/TabToolbar'
 
 export const Toolbar = () => {
   const { t } = useTranslation()

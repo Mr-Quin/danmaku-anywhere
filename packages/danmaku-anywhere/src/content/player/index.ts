@@ -64,7 +64,7 @@ const playerRpcServer = createRpcServer<PlayerCommands>(
         }, 100)
       }
 
-      const restoreWrapper = moveElement(manager.wrapper, pipContainer)
+      const restoreWrapper = moveElement(manager.getWrapper(), pipContainer)
       const restoreVideo = moveElement(manager.video!, pipWindow.document.body)
 
       delayResize()

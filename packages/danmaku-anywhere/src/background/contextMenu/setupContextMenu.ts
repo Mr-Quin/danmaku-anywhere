@@ -9,15 +9,9 @@ enum ContextMenuId {
 }
 
 // add menu item to disable danmaku
-export const setupContextMenu = async () => {
+export const setupContextMenu = () => {
   chrome.runtime.onInstalled.addListener(async () => {
     const extensionOptions = await extensionOptionsService.get()
-
-    const platformInfo = await chrome.runtime.getPlatformInfo()
-
-    if (platformInfo.os === 'android') {
-      return
-    }
 
     Logger.debug('Registering context menu: enabled')
 
@@ -29,12 +23,6 @@ export const setupContextMenu = async () => {
       contexts: ['action', 'page', 'video'],
     })
   })
-
-  const platformInfo = await chrome.runtime.getPlatformInfo()
-
-  if (platformInfo.os === 'android') {
-    return
-  }
 
   chrome.contextMenus.onClicked.addListener(async (info) => {
     match(info.menuItemId)

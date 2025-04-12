@@ -1,27 +1,21 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { parseCommentEntityP } from '@danmaku-anywhere/danmaku-converter'
 
-import type { DanmakuFilter } from './DanmakuManager'
+import type { DanmakuFilter } from './DanmakuRenderer'
 
 // copied from danmaku
-export interface Comment {
-  text?: string
+export interface ParsedComment {
+  text: string
   /**
    * @default rtl
    */
-  mode?: 'ltr' | 'rtl' | 'top' | 'bottom'
+  mode: 'ltr' | 'rtl' | 'top' | 'bottom'
   /**
    * Specified in seconds. Not required in live mode.
    * @default media?.currentTime
    */
-  time?: number
-  style?: Partial<CSSStyleDeclaration> | CanvasRenderingContext2D
-
-  /**
-   * A custom render to draw comment.
-   * When it exists, `text` and `style` will be ignored.
-   */
-  render?(): HTMLElement | HTMLCanvasElement
+  time: number
+  style: Record<string, string>
 }
 
 export interface DanmakuOption {
@@ -36,7 +30,7 @@ export interface DanmakuOption {
   /**
    * Preset comments, used in media mode
    */
-  comments?: Comment[]
+  comments?: ParsedComment[]
   /**
    * Canvas engine may more efficient than DOM however it costs more memory.
    * @default dom
@@ -48,17 +42,10 @@ export interface DanmakuOption {
   speed?: number
 }
 
-export interface DanmakuStyle {
-  opacity: number
-  fontSize: number
-  fontFamily: string
-}
-
 export const transformComment = (
   comment: CommentEntity,
-  style: DanmakuStyle,
   offset: number
-) => {
+): ParsedComment => {
   const { p, m } = comment
   const { time, mode, color } = parseCommentEntityP(p)
   const offsetTime = time + offset / 1000
@@ -68,16 +55,13 @@ export const transformComment = (
     mode,
     time: offsetTime,
     style: {
-      fontSize: `${style.fontSize}px`,
       color: `${color}`,
-      opacity: `${style.opacity}`,
       textShadow:
         color === '00000'
           ? '-1px -1px #fff, -1px 1px #fff, 1px -1px #fff, 1px 1px #fff'
           : '-1px -1px #000, -1px 1px #000, 1px -1px #000, 1px 1px #000',
-      fontFamily: `${style.fontFamily}`,
     },
-  } satisfies Comment
+  } satisfies ParsedComment
 }
 
 // returns true if the comment should be filtered out
