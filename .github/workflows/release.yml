@@ -79,7 +79,7 @@ jobs:
           allowUpdates: true
           artifacts: "packages/*"
           generateReleaseNotes: true
-          prerelease: true
+          makeLatest: true
 
   publish-chrome:
     runs-on: ubuntu-latest
@@ -110,3 +110,28 @@ jobs:
           refresh-token: ${{ secrets.REFRESH_TOKEN }}
           glob: true
           publish: false
+
+  publish-firefox:
+    runs-on: ubuntu-latest
+    needs: build
+    environment: firefox-addon-publish
+    steps:
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: package-files
+          path: packages
+
+      - name: Print current directory
+        run: |
+          ls -al
+          pwd
+
+      - uses: wdzeng/firefox-addon@v1
+        name: Upload to Mozilla Add-ons
+        with:
+          addon-guid: ${{ vars.ADDON_ID }}
+          xpi-path: "packages/*firefox.zip"
+          self-hosted: false
+          jwt-issuer: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          jwt-secret: ${{ secrets.FIREFOX_JWT_SECRET }}
