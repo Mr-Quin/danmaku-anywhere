@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next'
 import type { Integration } from '@/common/options/integrationPolicyStore/schema'
 import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
 import { tryCatch } from '@/common/utils/utils'
-import { DrilldownMenu } from '@/popup/component/DrilldownMenu'
+import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 
 export const IntegrationPolicyList = ({
   onEdit,

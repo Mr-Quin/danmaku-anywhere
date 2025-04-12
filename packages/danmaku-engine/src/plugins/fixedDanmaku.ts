@@ -1,5 +1,5 @@
 import { Manager, ManagerPlugin, PushFlexOptions } from 'danmu'
-import { ParsedComment } from './parser'
+import { ParsedComment } from '../parser'
 
 type Placement = 'top' | 'bottom'
 
@@ -11,7 +11,6 @@ class DanmakuStack {
   private bottomLen = 0
 
   constructor(private _trackCount: number) {
-    console.debug('Initialized DanmakuStack with trackCount', _trackCount)
     this.trackCount = _trackCount
   }
 
@@ -79,11 +78,11 @@ class DanmakuStack {
     const slot = this.not(track, placement)
 
     if (placement === 'top') {
-      this.topStack[slot] -= 1
-      this.topLen -= 1
+      this.topStack[slot] = Math.max(this.topStack[slot] - 1, 0)
+      this.topLen = Math.max(this.topLen - 1, 0)
     } else {
-      this.bottomStack[slot] -= 1
-      this.bottomLen -= 1
+      this.bottomStack[slot] = Math.max(this.bottomStack[slot] - 1, 0)
+      this.bottomLen = Math.max(this.bottomLen - 1, 0)
     }
   }
 
@@ -99,8 +98,6 @@ export const useFixedDanmaku = (manager: Manager<ParsedComment>) => {
   const trackCount = manager.trackCount
   const stack = new DanmakuStack(trackCount)
 
-  console.debug('DanmakuManager: useFixed', stack)
-
   const getDanmakuOptions = (
     placement: Placement
   ): PushFlexOptions<ParsedComment> => {
@@ -109,15 +106,13 @@ export const useFixedDanmaku = (manager: Manager<ParsedComment>) => {
       position(danmaku, container) {
         const track = manager.getTrack(slot)
 
-        console.debug('rendering in track', { slot, track })
         return {
           x: (container.width - danmaku.getWidth()) * 0.5,
-          y: track.location.middle - danmaku.getHeight() / 2,
+          y: track.location.middle - danmaku.getHeight() * 0.5,
         }
       },
       plugin: {
-        destroyed: (d) => {
-          console.log('destroyed', slot, d.data)
+        destroyed: () => {
           stack.remove(slot, placement)
         },
       },
@@ -145,7 +140,6 @@ export const useFixedDanmaku = (manager: Manager<ParsedComment>) => {
       })
     },
     clear() {
-      console.debug('DanmakuManager: clear')
       stack.clear()
     },
   }

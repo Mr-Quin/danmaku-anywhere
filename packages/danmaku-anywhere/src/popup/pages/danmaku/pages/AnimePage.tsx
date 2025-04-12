@@ -7,9 +7,9 @@ import { ExportAllDanmakuButton } from '../components/ExportAllDanmakuButton'
 import { TypeSelector } from '../components/TypeSelector'
 import { UploadDanmaku } from '../components/UploadDanmaku'
 
-import { DrilldownMenu } from '@/popup/component/DrilldownMenu'
-import { TabToolbar } from '@/popup/component/TabToolbar'
-import { TabLayout } from '@/popup/layout/TabLayout'
+import { DrilldownMenu } from '@/content/common/DrilldownMenu'
+import { TabLayout } from '@/content/common/TabLayout'
+import { TabToolbar } from '@/content/common/TabToolbar'
 import { ConfirmDeleteDialog } from '@/popup/pages/danmaku/components/ConfirmDeleteDialog'
 import { DeleteAllDanmakuButton } from '@/popup/pages/danmaku/components/DeleteAllDanmakuButton'
 

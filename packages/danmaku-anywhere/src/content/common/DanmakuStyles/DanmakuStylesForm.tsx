@@ -1,13 +1,14 @@
-import { Button, Divider, Grid, Input, Stack, Typography } from '@mui/material'
+import { Divider, Grid, Input, Stack, Typography } from '@mui/material'
 import type { Draft } from 'immer'
 import { produce } from 'immer'
 import { Ref, useEffect, useImperativeHandle, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { LabeledSwitch } from '@/common/components/DanmakuStyles/LabeledSwitch'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
+import { FontSelector } from '@/content/common/DanmakuStyles/FontSelector'
+import { LabeledSwitch } from '@/content/common/DanmakuStyles/LabeledSwitch'
 import { LabeledSlider } from './LabeledSlider'
 
 const opacityMarks = [
@@ -155,11 +156,7 @@ export type DanmakuStylesFormProps = {
 
 export const DanmakuStylesForm = ({ apiRef }: DanmakuStylesFormProps) => {
   const { t } = useTranslation()
-  const {
-    data: config,
-    partialUpdate,
-    update: { isPending },
-  } = useDanmakuOptions()
+  const { data: config, partialUpdate } = useDanmakuOptions()
 
   const [localConfig, setLocalConfig] = useState<DanmakuOptions>(config)
   const [offsetInput, setOffsetInput] = useState<string>('')
@@ -170,7 +167,6 @@ export const DanmakuStylesForm = ({ apiRef }: DanmakuStylesFormProps) => {
   }, [config])
 
   const flushUpdate = async (newConfig: DanmakuOptions) => {
-    console.debug('flushUpdate', newConfig)
     // flush config to storage
     return partialUpdate(newConfig)
   }
@@ -192,8 +188,6 @@ export const DanmakuStylesForm = ({ apiRef }: DanmakuStylesFormProps) => {
   ) => {
     setLocalConfig(produce(localConfig, updater))
   }
-
-  console.debug(config)
 
   return (
     <>
@@ -291,6 +285,15 @@ export const DanmakuStylesForm = ({ apiRef }: DanmakuStylesFormProps) => {
             />
           </Grid>
         </LabeledSlider>
+        <FontSelector
+          value={localConfig.style.fontFamily}
+          onChange={(font) => {
+            handleLocalUpdate((draft) => {
+              draft.style.fontFamily = font
+            })
+          }}
+          label={t('stylePage.font')}
+        />
       </Stack>
 
       <Stack spacing={1} mt={2}>
@@ -406,18 +409,6 @@ export const DanmakuStylesForm = ({ apiRef }: DanmakuStylesFormProps) => {
           }}
         />
       </Stack>
-
-      <Button
-        variant="contained"
-        onClick={() => flushUpdate(localConfig)}
-        disabled={localConfig === config}
-        loading={isPending}
-        sx={{
-          mt: 2,
-        }}
-      >
-        {t('common.apply')}
-      </Button>
     </>
   )
 }

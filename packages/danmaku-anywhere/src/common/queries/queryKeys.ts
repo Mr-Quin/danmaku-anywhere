@@ -95,3 +95,12 @@ export const genAIQueryKeys = {
     },
   ],
 }
+
+export const fontQueryKeys = {
+  listAll: () => [
+    {
+      scope: 'font',
+      kind: 'listAll',
+    },
+  ],
+}

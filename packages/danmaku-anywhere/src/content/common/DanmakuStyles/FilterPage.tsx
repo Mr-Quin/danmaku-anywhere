@@ -18,12 +18,13 @@ import type { Draft } from 'immer'
 import { produce } from 'immer'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
-import { TabToolbar } from '@/popup/component/TabToolbar'
-import { TabLayout } from '@/popup/layout/TabLayout'
+import { withStopPropagation } from '@/common/utils/withStopPropagation'
+import { TabLayout } from '@/content/common/TabLayout'
+import { TabToolbar } from '@/content/common/TabToolbar'
 
 const isRegex = (pattern: string) => {
   if (pattern.startsWith('/') && pattern.endsWith('/')) {
@@ -90,7 +91,12 @@ const validatePattern = (
   }
 }
 
-export const FilterPage = () => {
+type FilterPageProps = {
+  onGoBack: () => void
+  initialFilter?: string
+}
+
+export const FilterPage = ({ onGoBack, initialFilter }: FilterPageProps) => {
   const { t } = useTranslation()
   const {
     data: config,
@@ -98,10 +104,8 @@ export const FilterPage = () => {
     update: { isPending },
   } = useDanmakuOptions()
 
-  const { state } = useLocation()
-
   const [filterPattern, setFilterPattern] = useState(
-    typeof state === 'string' ? state : ''
+    typeof initialFilter === 'string' ? initialFilter : ''
   )
   const [filterError, setFilterError] = useState('')
 
@@ -157,7 +161,7 @@ export const FilterPage = () => {
       <TabToolbar
         title={t('stylePage.filtering.name')}
         leftElement={
-          <IconButton edge="start" component={Link} to="..">
+          <IconButton edge="start" onClick={onGoBack}>
             <ChevronLeft />
           </IconButton>
         }
@@ -177,6 +181,7 @@ export const FilterPage = () => {
               setFilterError('')
               setFilterPattern(e.target.value)
             }}
+            {...withStopPropagation()}
             sx={{
               flexGrow: 1,
             }}
@@ -206,6 +211,7 @@ export const FilterPage = () => {
                 : ''
             }
             value={filterTestString}
+            {...withStopPropagation()}
             onChange={(e) => {
               setFilterTestString(e.target.value)
               setFilterTestResult({
@@ -276,5 +282,21 @@ export const FilterPage = () => {
         })}
       </List>
     </TabLayout>
+  )
+}
+
+export const FilterPageWithRouter = () => {
+  const { state } = useLocation()
+  const navigate = useNavigate()
+
+  const handleGoBack = () => {
+    navigate(-1)
+  }
+
+  return (
+    <FilterPage
+      onGoBack={handleGoBack}
+      initialFilter={typeof state === 'string' ? state : undefined}
+    />
   )
 }

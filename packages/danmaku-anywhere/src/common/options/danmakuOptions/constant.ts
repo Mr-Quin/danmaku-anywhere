@@ -8,7 +8,7 @@ export type DanmakuOptionsOptions = Options<DanmakuOptions>
 
 export const defaultDanmakuOptions: DanmakuOptions = {
   filters: [],
-  trackHeight: 38,
+  trackHeight: 32,
   allowOverlap: false,
   speed: 1,
   style: {

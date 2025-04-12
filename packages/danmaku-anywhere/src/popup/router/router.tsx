@@ -1,5 +1,6 @@
 import { Navigate, createHashRouter } from 'react-router'
 
+import { FilterPageWithRouter } from '@/content/common/DanmakuStyles/FilterPage'
 import { ConfigPage } from '../pages/config/pages/ConfigPage'
 import { MountConfigEditor } from '../pages/config/pages/MountConfigEditor'
 import { AnimePage } from '../pages/danmaku/pages/AnimePage'
@@ -18,7 +19,6 @@ import { HotkeyOptions } from '../pages/options/pages/hotkeyOptions/HotkeyOption
 import { RetentionPolicyPage } from '../pages/options/pages/retentionPolicy/RetentionPolicyPage'
 import { ThemeOptions } from '../pages/options/pages/theme/ThemeOptions'
 import { SearchPage } from '../pages/search/SearchPage'
-import { FilterPage } from '../pages/styles/FilterPage'
 import { StylesPage } from '../pages/styles/StylesPage'
 
 import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
@@ -49,7 +49,7 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
           },
           {
             path: 'filtering',
-            Component: FilterPage,
+            Component: FilterPageWithRouter,
           },
         ],
       },

@@ -85,6 +85,7 @@ type ControlMethods = {
   getAllFrames: RPCDef<void, chrome.webNavigation.GetAllFrameResultDetails[]>
   injectScript: RPCDef<number, void>
   remoteLog: RPCDef<any, void>
+  getFontList: RPCDef<void, chrome.fontSettings.FontName[]>
 }
 
 type MountConfigMethods = {

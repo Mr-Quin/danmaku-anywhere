@@ -5,10 +5,10 @@ import { useNavigate } from 'react-router'
 import {
   DanmakuStylesForm,
   DanmakuStylesFormApi,
-} from '@/common/components/DanmakuStyles/DanmakuStylesForm'
-import { DrilldownMenu } from '@/popup/component/DrilldownMenu'
-import { TabToolbar } from '@/popup/component/TabToolbar'
-import { TabLayout } from '@/popup/layout/TabLayout'
+} from '@/content/common/DanmakuStyles/DanmakuStylesForm'
+import { DrilldownMenu } from '@/content/common/DrilldownMenu'
+import { TabLayout } from '@/content/common/TabLayout'
+import { TabToolbar } from '@/content/common/TabToolbar'
 import { useRef } from 'react'
 
 export const StylesPage = () => {

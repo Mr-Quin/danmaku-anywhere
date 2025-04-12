@@ -6,7 +6,7 @@ import { IntegrationPolicyList } from '../components/IntegrationPolicyList'
 import { Toolbar } from '../components/Toolbar'
 
 import type { Integration } from '@/common/options/integrationPolicyStore/schema'
-import { TabLayout } from '@/popup/layout/TabLayout'
+import { TabLayout } from '@/content/common/TabLayout'
 
 export const IntegrationPolicy = () => {
   const navigate = useNavigate()

@@ -40,7 +40,7 @@ export const danmakuOptionsService = new OptionsService(
       return produce<any>(data, (draft) => {
         draft.maxOnScreen = 500
         draft.trackLimit = 32
-        draft.trackHeight = 38
+        draft.trackHeight = 32
         draft.allowOverlap = false
         draft.area = {
           yStart: 0,

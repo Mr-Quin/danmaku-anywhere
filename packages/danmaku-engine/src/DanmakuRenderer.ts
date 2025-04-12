@@ -1,8 +1,9 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { Manager, create } from 'danmu'
-import { bindVideo } from './bindVideo'
 import { mapIter, sampleByTime } from './iterator'
 import { ParsedComment, applyFilter, transformComment } from './parser'
+import { bindVideo } from './plugins/bindVideo'
+import { deepEqual } from './utils'
 
 export interface DanmakuFilter {
   type: 'text' | 'regex'
@@ -14,14 +15,6 @@ export interface DanmakuStyle {
   opacity: number
   fontSize: number
   fontFamily: string
-}
-
-const getStyle = (style: DanmakuStyle) => {
-  return {
-    opacity: style.opacity.toString(),
-    fontSize: `${style.fontSize}px`,
-    fontFamily: style.fontFamily,
-  }
 }
 
 export type FixedCommentMode = 'normal' | 'hidden' | 'scroll'
@@ -67,7 +60,7 @@ export interface DanmakuOptions {
 const configDefaults: DanmakuOptions = {
   show: true,
   allowOverlap: false,
-  trackHeight: 38,
+  trackHeight: 32,
   filters: [],
   speed: 1,
   maxOnScreen: 500,
@@ -88,24 +81,6 @@ const configDefaults: DanmakuOptions = {
     bottom: 'scroll',
   },
   offset: 0,
-}
-
-const deepEqual = <T>(a: T, b: T): boolean => {
-  if (a === b) return true
-  if (typeof a !== 'object' || typeof b !== 'object') return false
-  if (a === null || b === null) return false
-
-  const keysA = Object.keys(a)
-  const keysB = Object.keys(b)
-
-  if (keysA.length !== keysB.length) return false
-
-  for (const key of keysA) {
-    if (!keysB.includes(key)) return false
-    if (!deepEqual((a as any)[key], (b as any)[key])) return false
-  }
-
-  return true
 }
 
 export type DanmakuRenderProps = {
@@ -140,7 +115,7 @@ export class DanmakuRenderer {
     this.config = this.mergeConfig(config)
 
     const commentGenerator = mapIter(comments, (comment) =>
-      transformComment(comment, this.config.offset)
+      transformComment(comment, 0)
     )
 
     const sampledGenerator = sampleByTime(
@@ -156,21 +131,18 @@ export class DanmakuRenderer {
     const manager = create<ParsedComment>({
       trackHeight: this.config.trackHeight,
       rate: this.config.speed / 2,
+      durationRange: [5000, 5000],
       mode: this.config.allowOverlap ? 'adaptive' : 'strict',
       limits: {
         view: this.config.maxOnScreen,
         stash: this.config.maxOnScreen * 2,
       },
       plugin: {
-        init: bindVideo(
-          this.media,
-          parsedComments,
-          () => this.config.specialComments
-        ),
+        init: bindVideo(this.media, parsedComments, () => this.config),
         $createNode: (danmaku, node) => {
           this.render(node, {
             text: danmaku.data.text,
-            styles: { ...getStyle(this.config.style), ...danmaku.data.style },
+            styles: { ...danmaku.data.style },
             mode: danmaku.data.mode,
           })
         },
@@ -187,6 +159,7 @@ export class DanmakuRenderer {
     manager.mount(container)
 
     this.setArea()
+    this.updateOptions()
 
     if (!this.media.paused) {
       manager.startPlaying()
@@ -207,16 +180,15 @@ export class DanmakuRenderer {
 
     if (!this.manager) return
 
-    if (!Object.is(this.config.offset, prevConfig.offset)) {
-      // Recreate if offset changed
-      if (this.created) {
-        this.create(this.container!, this.media!, this.comments, this.config)
-      }
-    }
-
     if (!deepEqual(prevConfig.area, this.config.area)) {
       this.setArea()
     }
+
+    this.updateOptions()
+  }
+
+  private updateOptions = () => {
+    if (!this.manager) return
 
     this.manager.updateOptions({
       trackHeight: this.config.trackHeight,
@@ -227,10 +199,16 @@ export class DanmakuRenderer {
       },
       rate: this.config.speed / 2,
     })
+    this.manager.setStyle('opacity', this.config.style.opacity.toString())
+    this.manager.setStyle('fontSize', `${this.config.style.fontSize}px`)
+    this.manager.setStyle('fontFamily', this.config.style.fontFamily)
+    this.manager.setStyle('pointerEvents', 'none')
   }
 
   private setArea = () => {
-    this.manager?.setArea({
+    if (!this.manager) return
+
+    this.manager.setArea({
       y: {
         start: `${this.config.area.yStart}%`,
         end: `${this.config.area.yEnd}%`,

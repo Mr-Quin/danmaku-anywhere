@@ -1,37 +1,29 @@
-import {
-  Box,
-  Button,
-  Divider,
-  ListItemText,
-  MenuItem,
-  Toolbar,
-  Typography,
-} from '@mui/material'
+import { Box, Button, Divider, ListItemText, MenuItem } from '@mui/material'
 
 import {
   DanmakuStylesForm,
   DanmakuStylesFormApi,
-} from '@/common/components/DanmakuStyles/DanmakuStylesForm'
-import { DrilldownMenu } from '@/popup/component/DrilldownMenu'
-import { useRef } from 'react'
+} from '@/content/common/DanmakuStyles/DanmakuStylesForm'
+import { FilterPage } from '@/content/common/DanmakuStyles/FilterPage'
+import { DrilldownMenu } from '@/content/common/DrilldownMenu'
+import { TabLayout } from '@/content/common/TabLayout'
+import { TabToolbar } from '@/content/common/TabToolbar'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 export const StylesPage = () => {
   const { t } = useTranslation()
   const api = useRef<DanmakuStylesFormApi>(null)
 
+  const [showFilterPage, setShowFilterPage] = useState(false)
+
+  if (showFilterPage) {
+    return <FilterPage onGoBack={() => setShowFilterPage(false)} />
+  }
+
   return (
-    <Box
-      flexGrow={1}
-      position="relative"
-      overflow="auto"
-      display="flex"
-      flexDirection="column"
-    >
-      <Toolbar>
-        <Typography variant="h2" fontSize={18} sx={{ flexGrow: 1 }} noWrap>
-          {t('stylePage.name')}
-        </Typography>
+    <TabLayout>
+      <TabToolbar title={t('stylePage.name')}>
         <Button
           variant="contained"
           size="small"
@@ -52,17 +44,17 @@ export const StylesPage = () => {
           <MenuItem
             popover="manual"
             onClick={() => {
-              // navigate('filtering')
+              setShowFilterPage(true)
             }}
           >
             <ListItemText>{t('stylePage.filtering.name')}</ListItemText>
           </MenuItem>
         </DrilldownMenu>
-      </Toolbar>
+      </TabToolbar>
       <Divider />
       <Box px={3} pb={2} flexGrow={1} sx={{ overflowX: 'hidden' }}>
         <DanmakuStylesForm apiRef={api} />
       </Box>
-    </Box>
+    </TabLayout>
   )
 }

@@ -6,8 +6,8 @@ import { Link, Outlet, useLocation, useMatches } from 'react-router'
 import { AppToolBar } from './AppToolBar'
 
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
+import { TabLayout } from '@/content/common/TabLayout'
 import { ReleaseNotes } from '@/popup/component/releaseNotes/ReleaseNotes'
-import { TabLayout } from '@/popup/layout/TabLayout'
 
 export const Home = () => {
   // the tab path should be the second element of the array

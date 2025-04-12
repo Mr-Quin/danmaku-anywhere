@@ -5,9 +5,9 @@ import { Link } from 'react-router'
 
 import { EpisodeList } from '../components/EpisodeList'
 
-import { DrilldownMenu } from '@/popup/component/DrilldownMenu'
-import { TabToolbar } from '@/popup/component/TabToolbar'
-import { TabLayout } from '@/popup/layout/TabLayout'
+import { DrilldownMenu } from '@/content/common/DrilldownMenu'
+import { TabLayout } from '@/content/common/TabLayout'
+import { TabToolbar } from '@/content/common/TabToolbar'
 import { ExportDanmakuButton } from '@/popup/pages/danmaku/components/ExportDanmakuButton'
 import { useStore } from '@/popup/store'
 

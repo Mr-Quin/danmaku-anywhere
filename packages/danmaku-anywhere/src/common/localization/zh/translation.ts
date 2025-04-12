@@ -354,6 +354,7 @@ const pages = {
     trackHeight: '弹幕行高',
     size: '字体大小',
     speed: '弹幕速度',
+    font: '字体',
     tooltip: {
       trackHeight: '行高越高，弹幕之间的间距越大',
       allowOverlap: '允许滚动弹幕重叠，不影响顶部/底部弹幕',

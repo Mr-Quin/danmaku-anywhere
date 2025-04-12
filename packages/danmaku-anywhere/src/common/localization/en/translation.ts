@@ -359,6 +359,7 @@ const pages = {
     allowOverlap: 'Allow Overlap',
     trackHeight: 'Track Height',
     size: 'Size',
+    font: 'Font',
     speed: 'Speed',
     tooltip: {
       trackHeight: 'Higher values makes danmaku farther apart',

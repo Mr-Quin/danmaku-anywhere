@@ -1,7 +1,7 @@
 import { Manager } from 'danmu'
-import { DanmakuOptions } from './DanmakuRenderer'
+import { DanmakuOptions } from '../DanmakuRenderer'
+import { ParsedComment } from '../parser'
 import { useFixedDanmaku } from './fixedDanmaku'
-import { ParsedComment } from './parser'
 
 const binarySearch = (comments: ParsedComment[], time: number): number => {
   let low = 0
@@ -26,16 +26,24 @@ export const bindVideo =
   (
     video: HTMLMediaElement,
     comments: ParsedComment[],
-    getConfig: () => DanmakuOptions['specialComments']
+    getConfig: () => DanmakuOptions
   ) =>
   (manager: Manager<ParsedComment>) => {
     // index of the next comment
-    let cursor = binarySearch(comments, video.currentTime)
+    let cursor = 0
+    let offset = 0
+
+    const updateCursor = () => {
+      offset = getConfig().offset / 1000
+      cursor = binarySearch(comments, video.currentTime - offset)
+    }
+
+    updateCursor()
 
     const { plugin, getDanmakuOptions } = useFixedDanmaku(manager)
 
     const handleTimeupdate = () => {
-      const currentTime = video.currentTime
+      const currentTime = video.currentTime - offset
 
       if (cursor >= comments.length) {
         return
@@ -70,7 +78,7 @@ export const bindVideo =
             }
 
             // check the render mode for the comment
-            const config = getConfig()[comment.mode]
+            const config = getConfig().specialComments[comment.mode]
             if (config === 'normal') {
               manager.pushFlexibleDanmaku(comment, {
                 duration: 5000,
@@ -90,9 +98,8 @@ export const bindVideo =
     }
 
     const handleSeek = () => {
-      const seekTime = video.currentTime
       manager.clear()
-      cursor = binarySearch(comments, seekTime)
+      updateCursor()
       handleTimeupdate()
     }
 
@@ -125,6 +132,12 @@ export const bindVideo =
         video.removeEventListener('playing', handlePlay)
         video.removeEventListener('pause', handlePause)
         video.removeEventListener('waiting', handlePause)
+      },
+      updateOptions() {
+        // the offset changes only when the config changes
+        if (getConfig().offset !== offset) {
+          updateCursor()
+        }
       },
     })
     manager.use(plugin)
