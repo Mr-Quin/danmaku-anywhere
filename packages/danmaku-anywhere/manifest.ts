@@ -14,7 +14,6 @@ const permissions: chrome.runtime.ManifestPermissions[] = [
   'unlimitedStorage',
   'activeTab',
   'scripting',
-  'contextMenus',
   'declarativeNetRequestWithHostAccess',
   'webNavigation',
   'alarms',
