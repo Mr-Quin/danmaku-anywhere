@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ChevronLeft, OpenInNew } from '@mui/icons-material'
-import { Button, Divider, IconButton, Stack } from '@mui/material'
+import { Box, Button, IconButton } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
@@ -14,6 +14,8 @@ import {
 } from '@/common/options/integrationPolicyStore/schema'
 import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
 import { docsLink } from '@/common/utils/utils'
+import { TabLayout } from '@/content/common/TabLayout'
+import { TabToolbar } from '@/content/common/TabToolbar'
 import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useStore } from '@/content/controller/store/store'
@@ -100,52 +102,56 @@ export const IntegrationEditor = () => {
 
   return (
     <>
-      <form
-        onSubmit={handleSubmit((data) => {
-          saveForm(data)
-        })}
-      >
-        <FormProvider {...form}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <IconButton onClick={() => toggleEditor()}>
-              <ChevronLeft />
-            </IconButton>
-            <div>
-              <Button
-                variant="text"
-                component="a"
-                href={docsLink('integration-policy')}
-                target="_blank"
-              >
-                {t('common.docs')}
-                <OpenInNew fontSize="inherit" color="primary" />
-              </Button>
-              <Button
-                type="submit"
-                loading={isSubmitting}
-                variant="contained"
-                color="primary"
-              >
-                {t('common.save')}
-              </Button>
-              <Button
-                type="reset"
-                onClick={() => handleReset()}
-                variant="outlined"
-                color="primary"
-              >
-                {t('common.reset')}
-              </Button>
-            </div>
-          </Stack>
-          <Divider sx={{ mb: 2 }} />
-          <IntegrationForm onOpenSelector={handleOpenSelector} />
-        </FormProvider>
-      </form>
+      <TabLayout>
+        <form
+          onSubmit={handleSubmit((data) => {
+            saveForm(data)
+          })}
+        >
+          <FormProvider {...form}>
+            <TabToolbar
+              title=" "
+              leftElement={
+                <IconButton edge="start" onClick={() => toggleEditor()}>
+                  <ChevronLeft />
+                </IconButton>
+              }
+            >
+              <div>
+                <Button
+                  variant="text"
+                  component="a"
+                  href={docsLink('integration-policy')}
+                  target="_blank"
+                >
+                  {t('common.docs')}
+                  <OpenInNew fontSize="inherit" color="primary" />
+                </Button>
+                <Button
+                  type="submit"
+                  loading={isSubmitting}
+                  variant="contained"
+                  color="primary"
+                >
+                  {t('common.save')}
+                </Button>
+                <Button
+                  type="reset"
+                  onClick={() => handleReset()}
+                  variant="outlined"
+                  color="primary"
+                >
+                  {t('common.reset')}
+                </Button>
+              </div>
+            </TabToolbar>
+            <Box p={2}>
+              <IntegrationForm onOpenSelector={handleOpenSelector} />
+            </Box>
+          </FormProvider>
+        </form>
+      </TabLayout>
+
       <ElementSelector
         enable={showSelector}
         onExit={() => setShowSelector(false)}
