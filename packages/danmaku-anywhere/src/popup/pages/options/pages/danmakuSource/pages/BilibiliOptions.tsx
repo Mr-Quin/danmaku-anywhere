@@ -20,7 +20,6 @@ import {
   DanmakuSourceType,
   localizedDanmakuSourceType,
 } from '@/common/danmaku/enums'
-import { defaultExtensionOptions } from '@/common/options/extensionOptions/constant'
 import type { DanmakuSources } from '@/common/options/extensionOptions/schema'
 import { danmakuSourcesSchema } from '@/common/options/extensionOptions/schema'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
@@ -33,11 +32,7 @@ export const BilibiliOptions = () => {
 
   const { toast } = useToast()
 
-  const {
-    control,
-    reset: resetForm,
-    handleSubmit,
-  } = useForm({
+  const { control, handleSubmit, formState } = useForm({
     resolver: zodResolver(danmakuSourcesSchema),
     values: data.danmakuSources,
     defaultValues: data.danmakuSources,
@@ -49,25 +44,6 @@ export const BilibiliOptions = () => {
       await partialUpdate(
         produce(data, (draft) => {
           draft.danmakuSources.bilibili = update.bilibili
-        })
-      )
-    },
-    onSuccess: () => {
-      toast.success(t('common.success'))
-    },
-  })
-
-  const handleApply = () => {
-    handleSubmit((d) => submitMutation.mutate(d))
-  }
-
-  const { mutate: handleReset } = useMutation({
-    mutationFn: async () => {
-      resetForm()
-      await partialUpdate(
-        produce(data, (draft) => {
-          draft.danmakuSources.bilibili =
-            defaultExtensionOptions.danmakuSources.bilibili
         })
       )
     },
@@ -126,15 +102,17 @@ export const BilibiliOptions = () => {
           </FormControl>
           <Box>
             <Button
-              onClick={() => handleApply()}
+              onClick={handleSubmit((d) => {
+                submitMutation.mutate(d)
+              })}
               variant="contained"
               sx={{
                 mr: 1,
               }}
+              disabled={!formState.isDirty}
             >
               {t('common.apply')}
             </Button>
-            <Button onClick={() => handleReset()}>{t('common.reset')}</Button>
           </Box>
         </Stack>
       </Box>
