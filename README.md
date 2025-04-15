@@ -51,16 +51,17 @@ YouTube
 
 ## 安装
 
-### Chrome
+### Chrome（Chromium内核浏览器）
 
-直接通过[商店](https://chromewebstore.google.com/detail/danmaku-anywhere/jnflbkkmffognjjhibkjnomjedogmdpo?hl=zh)安装
+直接通过[Chrome Web Store](https://chromewebstore.google.com/detail/danmaku-anywhere/jnflbkkmffognjjhibkjnomjedogmdpo?hl=zh)安装
 
-Firefox和更详细的说明请看 [快速上手](https://danmaku.weeblify.app/getting-started/)
+### Firefox（含安卓）
+
+直接通过[Firefox Add-ons](https://addons.mozilla.org/zh-CN/firefox/addon/danmaku-anywhere/)安装
+
+手动安装及更详细的说明请看 [快速上手](https://danmaku.weeblify.app/getting-started/)
 
 ## 开发
 
 见[开发文档](https://danmaku.weeblify.app/development/structure/)
 
-**本项目以学习扩展开发为目的，非商业用途。本项目与任何视频网站无关。**
-
-群 531237584
