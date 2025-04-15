@@ -24,18 +24,21 @@ export const DanDanPlayOptions = () => {
 
   const { toast } = useToast()
 
+  const form = useForm({
+    resolver: zodResolver(danmakuSourcesSchema),
+    defaultValues: data.danmakuSources,
+    values: data.danmakuSources,
+    mode: 'onChange',
+  })
+
   const {
     control,
     watch,
     handleSubmit,
     formState: { errors },
-  } = useForm({
-    resolver: zodResolver(danmakuSourcesSchema),
-    defaultValues: data.danmakuSources,
-    mode: 'onChange',
-  })
+  } = form
 
-  const { mutate: handleApply } = useMutation({
+  const { mutate } = useMutation({
     mutationFn: async (update: DanmakuSources) => {
       await partialUpdate(
         produce(data, (draft) => {
@@ -48,13 +51,15 @@ export const DanDanPlayOptions = () => {
     },
   })
 
-  useEffect(() => {
-    const subscription = watch(() => {
-      handleSubmit((update) => handleApply(update))()
-    })
+  const formData = watch()
 
-    return () => subscription.unsubscribe()
-  }, [handleSubmit, watch])
+  useEffect(() => {
+    if (form.formState.isDirty && !form.formState.isSubmitted) {
+      handleSubmit((data) => {
+        mutate(data)
+      })()
+    }
+  }, [formData])
 
   return (
     <OptionsPageLayout>
