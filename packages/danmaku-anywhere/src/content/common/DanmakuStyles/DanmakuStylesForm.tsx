@@ -2,7 +2,7 @@ import { Divider, Grid, Input, Stack, Typography } from '@mui/material'
 import { Ref, useEffect, useImperativeHandle, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { IS_CHROME, IS_FIREFOX } from '@/common/constants'
+import { IS_CHROME } from '@/common/constants'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
@@ -176,8 +176,6 @@ export const DanmakuStylesForm = ({
     defaultValues: config,
     mode: 'onChange',
   })
-
-  console.log(platform, IS_CHROME, IS_FIREFOX, import.meta.env)
 
   useEffect(() => {
     reset(config)
