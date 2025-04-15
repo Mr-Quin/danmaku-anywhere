@@ -91,6 +91,7 @@ export const DanmakuSource = () => {
                 enabled={options.enabled}
                 disableToggle={isAnyLoading}
                 onClick={() => {
+                  if (key === 'tencent') return
                   navigate(key)
                 }}
                 onToggle={(checked) => {
