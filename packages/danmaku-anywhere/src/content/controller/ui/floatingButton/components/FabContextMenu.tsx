@@ -18,7 +18,6 @@ import { useStore } from '@/content/controller/store/store'
 import type { ContextMenuItemProps } from '@/content/controller/ui/floatingButton/components/ContextMenuItem'
 import { ContextMenuItem } from '@/content/controller/ui/floatingButton/components/ContextMenuItem'
 import { ContextMenuShortcut } from '@/content/controller/ui/floatingButton/components/ContextMenuShortcut'
-import { useLoadDanmakuNextEpisode } from '@/content/controller/ui/floatingButton/hooks/useLoadDanmakuNextEpisode'
 
 type FabContextMenuProps = PopperProps
 
@@ -43,27 +42,13 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
   const unmountMutation = useUnmountDanmaku()
   const showDanmakuMutation = useShowDanmaku()
 
-  const {
-    fetchNextEpisodeComments,
-    isFetchingNextEpisode,
-    canFetchNextEpisode,
-  } = useLoadDanmakuNextEpisode()
-
   const { refreshComments, loadMutation, canRefresh } = useLoadDanmaku()
 
   const { getKeyCombo } = useHotkeyOptions()
 
-  const isLoading = isFetchingNextEpisode || loadMutation.isPending
+  const isLoading = loadMutation.isPending
 
   const menuItems: ContextMenuItemProps[] = [
-    {
-      action: () => fetchNextEpisodeComments(),
-      disabled: () => !canFetchNextEpisode || isLoading,
-      tooltip: () => (isManual ? '' : t('danmaku.tooltip.nextEpisode')),
-      icon: () => <SkipNext fontSize="small" />,
-      label: () => t('danmaku.nextEpisode'),
-      hotkey: getKeyCombo('loadNextEpisodeComments'),
-    },
     {
       action: () => refreshComments(),
       disabled: () => !canRefresh || isLoading,

@@ -12,7 +12,6 @@ export const allHotkeys = [
   'togglePip',
   'refreshComments',
   'unmountComments',
-  'loadNextEpisodeComments',
 ] as const
 
 export type AllHotkeys = (typeof allHotkeys)[number]
@@ -23,7 +22,6 @@ export const defaultKeymap: Keymap = {
   toggleEnableDanmaku: createHotkey('shift+b'),
   refreshComments: createHotkey('shift+r'),
   unmountComments: createHotkey('shift+u'),
-  loadNextEpisodeComments: createHotkey('shift+n'),
   togglePip: createHotkey('shift+p'),
 } as const
 
