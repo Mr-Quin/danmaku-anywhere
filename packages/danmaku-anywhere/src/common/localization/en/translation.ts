@@ -85,16 +85,11 @@ const domain = {
     error: {
       containerNotFound: 'Danmaku container not found',
       videoNotFound: 'Video node not found',
-      nextEpisodeNotFound: 'Next episode not found',
-    },
-    tooltip: {
-      nextEpisode: 'Only available in manual mode',
     },
     mount: 'Mount',
     export: 'Export',
     noComments: 'No comments',
     refresh: 'Refresh Danmaku',
-    nextEpisode: 'Next Episode',
     style: 'Style',
     type: {
       Custom: 'Custom',
@@ -292,7 +287,6 @@ const pages = {
       enterKey: 'Enter key',
       keymap: {
         toggleEnableDanmaku: 'Enable/Disable Danmaku',
-        loadNextEpisodeComments: 'Load Next Episode Comments',
         refreshComments: 'Refresh Comments',
         unmountComments: 'Unmount Comments',
         togglePip: 'Enter Picture-in-Picture (Experimental)',
