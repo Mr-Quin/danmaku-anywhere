@@ -87,16 +87,11 @@ const domain = {
     error: {
       containerNotFound: '未找到弹幕容器',
       videoNotFound: '未找到视频节点',
-      nextEpisodeNotFound: '未找到下一集',
-    },
-    tooltip: {
-      nextEpisode: '只能在手动模式下使用',
     },
     mount: '装填弹幕',
     export: '导出弹幕',
     noComments: '弹幕列表为空',
     refresh: '刷新弹幕',
-    nextEpisode: '下一集',
     style: '弹幕样式',
     type: {
       Custom: '自定义',
@@ -286,7 +281,6 @@ const pages = {
       enterKey: '输入快捷键',
       keymap: {
         toggleEnableDanmaku: '显示/隐藏弹幕',
-        loadNextEpisodeComments: '下一集',
         refreshComments: '刷新弹幕',
         unmountComments: '卸载弹幕',
         togglePip: '画中画（实验）',
