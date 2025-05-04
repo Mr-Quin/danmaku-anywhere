@@ -3,7 +3,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { danmakuQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
-export const useAllSeasonsSuspense = () => {
+export const useGetAllSeasonsSuspense = () => {
   const query = useSuspenseQuery({
     queryKey: danmakuQueryKeys.all(),
     queryFn: async () => {

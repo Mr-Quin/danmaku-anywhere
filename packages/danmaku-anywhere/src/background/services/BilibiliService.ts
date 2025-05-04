@@ -44,20 +44,6 @@ export class BilibiliService {
     return result
   }
 
-  private mapToSeason(data: BilibiliMedia): BilibiliSeasonInsertV1 {
-    return {
-      provider: DanmakuSourceType.Bilibili,
-      title: data.title,
-      type: data.media_type.toString(),
-      imageUrl: data.cover,
-      providerIds: {
-        seasonId: data.season_id,
-      },
-      indexedId: data.season_id.toString(),
-      schemaVersion: 1,
-    }
-  }
-
   private mapToEpisode(
     data: BilibiliBangumiInfo['episodes'][number],
     season: BilibiliSeasonV1
@@ -86,7 +72,26 @@ export class BilibiliService {
     this.logger.debug('Search bilibili', searchParams)
     const result = await bilibili.searchMedia(searchParams)
     this.logger.debug('Search result', result)
-    const seasons = result.map(this.mapToSeason)
+
+    const mapToSeason = (data: BilibiliMedia): BilibiliSeasonInsertV1 => {
+      return {
+        provider: DanmakuSourceType.Bilibili,
+        title: data.title,
+        type: data.season_type_name,
+        imageUrl: data.cover,
+        providerIds: {
+          seasonId: data.season_id,
+        },
+        year:
+          data.pubtime > 0
+            ? new Date(data.pubtime * 1000).getFullYear()
+            : undefined,
+        episodeCount: data.ep_size,
+        indexedId: data.season_id.toString(),
+        schemaVersion: 1,
+      }
+    }
+    const seasons = result.map(mapToSeason)
     return this.seasonService.bulkUpsert(seasons)
   }
 

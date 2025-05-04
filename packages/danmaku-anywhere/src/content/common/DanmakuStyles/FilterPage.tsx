@@ -1,5 +1,5 @@
 import { applyFilter } from '@danmaku-anywhere/danmaku-engine'
-import { ChevronLeft, Delete } from '@mui/icons-material'
+import { Delete } from '@mui/icons-material'
 import {
   Box,
   Button,
@@ -160,11 +160,8 @@ export const FilterPage = ({ onGoBack, initialFilter }: FilterPageProps) => {
     <TabLayout>
       <TabToolbar
         title={t('stylePage.filtering.name')}
-        leftElement={
-          <IconButton edge="start" onClick={onGoBack}>
-            <ChevronLeft />
-          </IconButton>
-        }
+        showBackButton
+        onGoBack={onGoBack}
       />
       <Box p={2}>
         <Typography mb={2}>

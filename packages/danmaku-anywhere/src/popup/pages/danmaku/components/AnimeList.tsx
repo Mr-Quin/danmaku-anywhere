@@ -14,7 +14,7 @@ import { createSearchParams, useNavigate } from 'react-router'
 
 import { NoAnime } from './NoAnime'
 
-import { useAllSeasonsSuspense } from '@/common/anime/queries/useAllSeasonsSuspense'
+import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
 import { DanmakuProviderChip } from '@/common/components/DanmakuProviderChip'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import { EpisodeLiteV4, WithSeason } from '@/common/danmaku/types/v4/schema'
@@ -68,7 +68,7 @@ export const AnimeList = ({ scrollElement }: AnimeListProps) => {
   const { t } = useTranslation()
   const navigate = useNavigate()
 
-  const { data, isFetching } = useAllSeasonsSuspense()
+  const { data, isFetching } = useGetAllSeasonsSuspense()
 
   const {
     animeFilter: filter,
