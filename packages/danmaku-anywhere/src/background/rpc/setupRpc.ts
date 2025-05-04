@@ -201,6 +201,22 @@ export const setupRpc = (
     getPlatformInfo: async () => {
       return chrome.runtime.getPlatformInfo()
     },
+    fetchImage: async (src) => {
+      const res = await fetch(src)
+      const blob = await res.blob()
+
+      const { promise, resolve, reject } = Promise.withResolvers<string>()
+      const reader = new FileReader()
+      reader.readAsDataURL(blob)
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result)
+        } else {
+          reject('failed to convert image to base64')
+        }
+      }
+      return promise
+    },
   })
 
   const passThrough = <TRPCDef extends AnyRPCDef>(

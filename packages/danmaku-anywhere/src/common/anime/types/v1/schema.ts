@@ -12,6 +12,8 @@ interface BaseSeasonV1 {
   externalLink?: string
   alternativeTitles?: string[]
   indexedId: string
+  episodeCount?: number
+  year?: number
   schemaVersion: 1
 }
 

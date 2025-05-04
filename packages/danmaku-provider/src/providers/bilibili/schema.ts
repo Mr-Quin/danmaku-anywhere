@@ -24,8 +24,12 @@ const zBilibiliSearchMedia = z.object({
   season_id: z.number(), // ssid
   title: z.string(),
   media_type: z.nativeEnum(BiliBiliMediaType),
-  cover: z.string(),
+  cover: z.string().url(),
   season_type_name: z.string(),
+  season_type: z.number(),
+  ep_size: z.number(),
+  desc: z.string(),
+  pubtime: z.number(),
 })
 
 export type BilibiliMedia = z.infer<typeof zBilibiliSearchMedia>
@@ -37,12 +41,6 @@ export const zBilibiliSearchResponse = zBilibiliApiResponseBase.extend({
     })
     .optional(),
 })
-
-type BilibiliSearchResponse = z.infer<typeof zBilibiliSearchResponse>
-
-export type BilibiliSearchResult = NonNullable<
-  BilibiliSearchResponse['data']
->['result']
 
 export type BiliBiliSearchType = 'media_ft' | 'media_bangumi'
 
@@ -60,8 +58,8 @@ const zBilibiliEpisode = z.object({
   bvid: z.string(),
   cid: z.number(),
   // cover image url
-  cover: z.string(),
-  link: z.string(),
+  cover: z.string().url(),
+  link: z.string().url(),
   // epid
   id: z.number(),
   title: z.string(),

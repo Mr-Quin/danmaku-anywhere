@@ -17,9 +17,8 @@ export class MediaInfo {
     /**
      * The title of the episode
      */
-    public episodeTitle?: string,
-  ) {
-  }
+    public episodeTitle?: string
+  ) {}
 
   private isNumber(value: string) {
     return !isNaN(parseInt(value))
@@ -43,7 +42,8 @@ export class MediaInfo {
   toString() {
     const episode = i18n.t('anime.numericEpisode', { episode: this.episode })
 
-    if (this.seasonDecorator === undefined) return `${this.seasonTitle} ${episode}`
+    if (this.seasonDecorator === undefined)
+      return `${this.seasonTitle} ${episode}`
 
     return `${this.seasonTitle} ${this.formatSeason()} ${episode}`
   }

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 
 import { SeasonV1 } from '@/common/anime/types/v1/schema'
+import { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
 import { createSelectors } from '@/common/utils/createSelectors'
 
 export enum PopupTab {
@@ -35,6 +36,12 @@ interface PopupStoreState {
 
   highlighterPortal: HTMLElement | null
   setHighlighterPortal: (portal: HTMLElement) => void
+
+  providerTab?: RemoteDanmakuSourceType
+  setProviderTab: (tab: RemoteDanmakuSourceType) => void
+
+  selectedSeason?: SeasonV1
+  setSelectedSeason: (season?: SeasonV1) => void
 }
 
 const usePopupStoreBase = create<PopupStoreState>((set, get) => ({
@@ -76,6 +83,16 @@ const usePopupStoreBase = create<PopupStoreState>((set, get) => ({
   highlighterPortal: null,
   setHighlighterPortal: (portal) => {
     set({ highlighterPortal: portal })
+  },
+
+  providerTab: undefined,
+  setProviderTab: (tab) => {
+    set({ providerTab: tab })
+  },
+
+  selectedSeason: undefined,
+  setSelectedSeason: (season) => {
+    set({ selectedSeason: season })
   },
 }))
 
