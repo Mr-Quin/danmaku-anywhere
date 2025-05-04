@@ -2,7 +2,11 @@ import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 
-import type { DanmakuSourceType } from '@/common/danmaku/enums'
+import { SeasonV1 } from '@/common/anime/types/v1/schema'
+import type {
+  DanmakuSourceType,
+  RemoteDanmakuSourceType,
+} from '@/common/danmaku/enums'
 import { danmakuSourceTypeList } from '@/common/danmaku/enums'
 import { createMountConfig } from '@/common/options/mountConfig/constant'
 import type { MountConfigInput } from '@/common/options/mountConfig/schema'
@@ -14,6 +18,12 @@ interface StoreState {
     setSearchParams: (params?: SearchEpisodesQuery) => void
     keyword: string
     setKeyword: (keyword: string) => void
+    season?: SeasonV1
+    setSeason: (season: SeasonV1) => void
+    tab?: RemoteDanmakuSourceType
+    setTab: (tab: RemoteDanmakuSourceType) => void
+    scrollTop: number
+    setScrollTop: (scrollTop: number) => void
   }
   danmaku: {
     animeFilter: string
@@ -52,6 +62,21 @@ const useStoreBase = create<StoreState>()(
           state.search.keyword = keyword
         })
       },
+      season: undefined,
+      setSeason: (season: SeasonV1) =>
+        set((state) => {
+          state.search.season = season
+        }),
+      tab: undefined,
+      setTab: (tab: RemoteDanmakuSourceType) =>
+        set((state) => {
+          state.search.tab = tab
+        }),
+      scrollTop: 0,
+      setScrollTop: (scrollTop: number) =>
+        set((state) => {
+          state.search.scrollTop = scrollTop
+        }),
     },
     danmaku: {
       animeFilter: '',

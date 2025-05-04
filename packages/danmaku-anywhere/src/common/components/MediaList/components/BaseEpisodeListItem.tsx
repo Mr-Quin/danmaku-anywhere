@@ -1,24 +1,23 @@
 import { Download, Update } from '@mui/icons-material'
 import {
+  Box,
   CircularProgress,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Skeleton,
   Tooltip,
 } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
-import type { ReactNode } from 'react'
+import { Suspense } from 'react'
 
+import { CoverImage } from '@/common/components/MediaList/components/CoverImage'
 import type { RenderEpisodeData } from '@/common/components/MediaList/types'
-import {
-  EpisodeLiteV4,
-  EpisodeMeta,
-  WithSeason,
-} from '@/common/danmaku/types/v4/schema'
+import { EpisodeMeta, WithSeason } from '@/common/danmaku/types/v4/schema'
+import { useTranslation } from 'react-i18next'
 
 interface BaseEpisodeListItemProps {
-  renderSecondaryText?: (data: EpisodeLiteV4) => ReactNode
   showIcon?: boolean
   mutateDanmaku: (meta: WithSeason<EpisodeMeta>) => Promise<unknown>
   data: RenderEpisodeData
@@ -39,11 +38,11 @@ const getRenderData = (data: RenderEpisodeData): EpisodeRenderData => {
 }
 
 export const BaseEpisodeListItem = ({
-  renderSecondaryText,
   showIcon = false,
   mutateDanmaku,
   data,
 }: BaseEpisodeListItemProps) => {
+  const { t } = useTranslation()
   const { danmaku, isLoading } = data
   const { meta, title, tooltip } = getRenderData(data)
 
@@ -61,7 +60,13 @@ export const BaseEpisodeListItem = ({
   return (
     <ListItem disablePadding>
       <ListItemButton onClick={() => mutate(meta)} disabled={isLoading}>
-        <ListItemIcon>{getIcon()}</ListItemIcon>
+        {meta.imageUrl && (
+          <Box width={40} mr={2} flexShrink={0}>
+            <Suspense fallback={<Skeleton width={40} height={40} />}>
+              <CoverImage src={meta.imageUrl} widthRatio={1} heightRatio={1} />
+            </Suspense>
+          </Box>
+        )}
         <Tooltip title={tooltip} enterDelay={500} placement="top">
           <ListItemText
             primary={title}
@@ -72,9 +77,21 @@ export const BaseEpisodeListItem = ({
                 overflow: 'hidden',
               },
             }}
-            secondary={danmaku ? renderSecondaryText?.(danmaku) : null}
+            secondary={
+              danmaku
+                ? `${new Date(danmaku.timeUpdated).toLocaleDateString()} -  ${t(
+                    'danmaku.commentCounted',
+                    {
+                      count: danmaku.commentCount,
+                    }
+                  )}`
+                : null
+            }
           />
         </Tooltip>
+        <ListItemIcon sx={{ justifyContent: 'flex-end' }}>
+          {getIcon()}
+        </ListItemIcon>
       </ListItemButton>
     </ListItem>
   )

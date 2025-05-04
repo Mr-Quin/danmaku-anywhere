@@ -1,5 +1,4 @@
-import { ChevronLeft } from '@mui/icons-material'
-import { Box, IconButton, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router'
 
@@ -28,11 +27,8 @@ export const DanmakuPage = () => {
     <TabLayout>
       <TabToolbar
         title={`${selectedAnime} - ${selectedEpisode}`}
-        leftElement={
-          <IconButton edge="start" onClick={goBack}>
-            <ChevronLeft />
-          </IconButton>
-        }
+        showBackButton
+        onGoBack={goBack}
       />
       {data ? (
         <CommentsTable

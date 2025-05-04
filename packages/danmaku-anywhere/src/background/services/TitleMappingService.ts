@@ -8,7 +8,7 @@ export class TitleMappingService {
   constructor(private table: typeof db.seasonMap) {
     invariant(
       isServiceWorker(),
-      'TitleMappingService is only available in service worker',
+      'TitleMappingService is only available in service worker'
     )
     this.logger = Logger.sub('[TitleMappingService]')
   }

@@ -2,7 +2,6 @@ import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp
 import {
   Box,
   Collapse,
-  Divider,
   FormControlLabel,
   Switch,
   Typography,
@@ -11,14 +10,12 @@ import {
   useIsFetching,
   useQueryErrorResetBoundary,
 } from '@tanstack/react-query'
-import { Suspense, useEffect, useRef, useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { useTranslation } from 'react-i18next'
 
-import { EpisodeListItem } from './EpisodeListItem'
-
 import { Center } from '@/common/components/Center'
-import { FullPageSpinner } from '@/common/components/FullPageSpinner'
+import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { SearchResultList } from '@/common/components/MediaList/SearchResultList'
 import { SearchForm } from '@/common/components/SearchForm'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
@@ -27,11 +24,20 @@ import { mediaQueryKeys } from '@/common/queries/queryKeys'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
+import { SeasonDetailsPage } from '@/content/controller/ui/floatingPanel/pages/search/SeasonDetailsPage'
 
 export const SearchPage = () => {
   const { t } = useTranslation()
-  const { searchTitle, saveMapping, setSearchTitle, setSaveMapping } =
-    usePopup()
+  const {
+    searchTitle,
+    saveMapping,
+    setSearchTitle,
+    setSaveMapping,
+    providerTab,
+    setProviderTab,
+    selectedSeason,
+    setSelectedSeason,
+  } = usePopup()
   const { mediaInfo } = useStore.use.integration()
 
   const {
@@ -41,14 +47,29 @@ export const SearchPage = () => {
   const { enabledProviders } = useDanmakuSources()
 
   const [localSearchUsingSimplified, setLocalSearchUsingSimplified] = useState(
-    searchUsingSimplified,
+    searchUsingSimplified
   )
   const [searchParams, setSearchParams] = useState<SearchEpisodesQuery>()
+  const [scrollTop, setScrollTop] = useState(0)
 
-  const ref = useRef<ErrorBoundary>(null)
+  const boxRef = useRef<HTMLDivElement>(null)
+  const errorRef = useRef<ErrorBoundary>(null)
   const { reset } = useQueryErrorResetBoundary()
 
   const [pending, startTransition] = useTransition()
+
+  useEffect(() => {
+    if (providerTab === undefined || !enabledProviders.includes(providerTab)) {
+      setProviderTab(enabledProviders[0])
+    }
+  }, enabledProviders)
+
+  useEffect(() => {
+    if (!selectedSeason) {
+      console.log('scrolling to ', scrollTop)
+      boxRef.current?.scrollTo(0, scrollTop)
+    }
+  }, [selectedSeason])
 
   const isSearching =
     useIsFetching({
@@ -63,8 +84,8 @@ export const SearchPage = () => {
 
   const handleSearch = (searchTerm: string) => {
     startTransition(() => {
-      if (ref.current?.state.didCatch) {
-        ref.current.resetErrorBoundary()
+      if (errorRef.current?.state.didCatch) {
+        errorRef.current.resetErrorBoundary()
       }
 
       setSearchParams({ anime: searchTerm })
@@ -87,8 +108,13 @@ export const SearchPage = () => {
     )
   }
 
+  if (!providerTab) return null
+
+  if (selectedSeason)
+    return <SeasonDetailsPage seasonMapKey={getSeasonMapKey()} />
+
   return (
-    <Box flexGrow={1} sx={{ overflowX: 'hidden' }}>
+    <Box ref={boxRef} flexGrow={1} sx={{ overflowX: 'hidden' }}>
       <Box py={2} px={2}>
         <SearchForm
           onSearch={handleSearch}
@@ -116,28 +142,26 @@ export const SearchPage = () => {
         )}
       </Box>
       <ErrorBoundary
-        ref={ref}
+        ref={errorRef}
         onReset={reset}
-        fallbackRender={({ error }) => (
-          <Center>
-            <Typography>There was an error!</Typography>
-            <Typography color="error">{error.message}</Typography>
-          </Center>
-        )}
+        fallbackRender={({ error }) => <ErrorMessage message={error.message} />}
       >
-        <Collapse in={searchParams !== undefined} unmountOnExit>
-          <Suspense fallback={<FullPageSpinner />}>
-            <Divider />
+        <Collapse in={!!searchParams} unmountOnExit>
+          {searchParams && (
             <SearchResultList
               providers={enabledProviders}
-              searchParams={searchParams!}
-              dense
+              searchParams={searchParams}
               pending={pending}
-              renderEpisode={(data) => {
-                return <EpisodeListItem seasonMapKey={getSeasonMapKey()} data={data} />
+              onSeasonClick={(season) => {
+                if (boxRef.current) {
+                  setScrollTop(boxRef.current.scrollTop)
+                }
+                setSelectedSeason(season)
               }}
+              selectedTab={providerTab}
+              onTabChange={setProviderTab}
             />
-          </Suspense>
+          )}
         </Collapse>
       </ErrorBoundary>
     </Box>

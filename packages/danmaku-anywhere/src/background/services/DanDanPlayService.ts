@@ -52,6 +52,8 @@ export class DanDanPlayService {
           bangumiId: item.bangumiId,
         },
         indexedId: item.animeId.toString(),
+        year: new Date(item.startDate).getFullYear(),
+        episodeCount: item.episodeCount,
         schemaVersion: 1,
       } satisfies DanDanPlaySeasonInsertV1
     })
@@ -66,15 +68,13 @@ export class DanDanPlayService {
     const season = await this.seasonService.mustGetById(seasonId)
     assertProvider(season, DanmakuSourceType.DanDanPlay)
 
-    const result = await danDanPlay.getBangumiAnime(seasonId)
+    const result = await danDanPlay.getBangumiAnime(season.providerIds.animeId)
     this.logger.debug('DanDanPlay Episodes fetched', result)
 
     return result.episodes.map((item) => {
       return {
         provider: DanmakuSourceType.DanDanPlay,
         episodeNumber: item.episodeNumber,
-        imageUrl: result.imageUrl,
-        externalLink: result.bangumiUrl,
         title: item.episodeTitle,
         providerIds: {
           episodeId: item.episodeId,

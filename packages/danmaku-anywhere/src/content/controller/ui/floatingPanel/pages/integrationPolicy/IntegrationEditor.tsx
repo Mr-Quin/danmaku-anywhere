@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ChevronLeft, OpenInNew } from '@mui/icons-material'
-import { Box, Button, IconButton } from '@mui/material'
+import { OpenInNew } from '@mui/icons-material'
+import { Box, Button } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
@@ -111,11 +111,8 @@ export const IntegrationEditor = () => {
           <FormProvider {...form}>
             <TabToolbar
               title=" "
-              leftElement={
-                <IconButton edge="start" onClick={() => toggleEditor()}>
-                  <ChevronLeft />
-                </IconButton>
-              }
+              showBackButton
+              onGoBack={() => toggleEditor()}
             >
               <div>
                 <Button

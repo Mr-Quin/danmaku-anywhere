@@ -46,25 +46,26 @@ export class TencentService {
     }
   }
 
-  private mapToSeason(data: TencentVideoSeason): TencentSeasonInsertV1 {
-    return {
-      provider: DanmakuSourceType.Tencent,
-      title: data.videoInfo.title,
-      type: data.videoInfo.videoType.toString(),
-      imageUrl: data.videoInfo.imgUrl,
-      providerIds: {
-        cid: data.doc.id,
-      },
-      indexedId: data.doc.id,
-      schemaVersion: 1,
-    }
-  }
-
   async search(keyword: string): Promise<TencentSeasonV1[]> {
     this.logger.debug('Search tencent', keyword)
     const result = await tencent.searchMedia({ query: keyword })
     this.logger.debug('Search result', result)
-    const seasons = result.map(this.mapToSeason)
+    const mapToSeason = (data: TencentVideoSeason): TencentSeasonInsertV1 => {
+      return {
+        provider: DanmakuSourceType.Tencent,
+        title: data.videoInfo.title,
+        type: data.videoInfo.videoType.toString(),
+        imageUrl: data.videoInfo.imgUrl,
+        providerIds: {
+          cid: data.doc.id,
+        },
+        indexedId: data.doc.id,
+        episodeCount: data.videoInfo.episodeSites[0].totalEpisode,
+        year: data.videoInfo.year,
+        schemaVersion: 1,
+      }
+    }
+    const seasons = result.map(mapToSeason)
     return this.seasonService.bulkUpsert(seasons)
   }
 
@@ -93,6 +94,7 @@ export class TencentService {
         providerIds: {
           vid: item.vid,
         },
+        imageUrl: item.image_url,
         season,
         seasonId,
         indexedId: item.vid.toString(),

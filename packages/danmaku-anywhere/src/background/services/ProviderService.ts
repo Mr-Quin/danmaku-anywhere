@@ -75,7 +75,7 @@ export class ProviderService {
   }
 
   async getDanmaku(data: DanmakuFetchDto): Promise<WithSeason<EpisodeV4>> {
-    const { meta, options = {}, context={} } = data
+    const { meta, options = {}, context = {} } = data
     const provider = meta.provider
 
     // Save title mapping
@@ -210,15 +210,12 @@ export class ProviderService {
       }
     }
 
-    const getMetaFromAnimeId = async (animeId: number) => {
-      const episodes = await this.danDanPlayService.getAnimeDetails(animeId)
+    const getMetaFromSeason = async (season: DanDanPlaySeasonV1) => {
+      const episodes = await this.danDanPlayService.getAnimeDetails(season.id)
 
       if (episodes.length === 0) {
-        throw new Error(`No episodes found for animeId: ${animeId}`)
+        throw new Error(`No episodes found for season: ${season}`)
       }
-
-      const season = await this.seasonService.mustGetById(episodes[0].seasonId)
-      assertProvider(season, DanmakuSourceType.DanDanPlay)
 
       return {
         ...episodes[0],
@@ -231,7 +228,7 @@ export class ProviderService {
 
       return {
         status: 'success',
-        data: await getMetaFromAnimeId(foundSeasons[0].id),
+        data: await getMetaFromSeason(foundSeasons[0]),
       }
     }
 
@@ -246,7 +243,7 @@ export class ProviderService {
 
         return {
           status: 'success',
-          data: await getMetaFromAnimeId(disambiguatedResult[0].id),
+          data: await getMetaFromSeason(disambiguatedResult[0]),
         }
       }
     }

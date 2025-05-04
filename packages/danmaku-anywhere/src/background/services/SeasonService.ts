@@ -24,22 +24,16 @@ export class SeasonService {
       indexedId: data.indexedId,
     })
     if (existing) {
-      return (await this.update(existing)) as DbEntity<T>
+      const toInsert = {
+        ...existing,
+        ...data,
+        timeUpdated: Date.now(),
+        version: existing.version + 1,
+      }
+      await this.table.update(existing.id, toInsert)
+      return toInsert
     }
-    return this.add(data)
-  }
 
-  async update<T extends SeasonV1>(data: T): Promise<T> {
-    const toInsert = {
-      ...data,
-      timeUpdated: Date.now(),
-      version: data.version + 1,
-    }
-    await this.table.update(data.id, toInsert)
-    return toInsert
-  }
-
-  async add<T extends SeasonInsertV1>(data: T): Promise<DbEntity<T>> {
     const toInsert = {
       ...data,
       timeUpdated: Date.now(),

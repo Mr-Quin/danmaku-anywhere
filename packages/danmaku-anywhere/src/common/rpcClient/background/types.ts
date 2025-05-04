@@ -62,6 +62,7 @@ type SeasonMethods = {
   bilibiliGetLoginStatus: RPCDef<void, BilibiliUserInfo>
   tencentTestCookies: RPCDef<void, boolean>
   seasonGetAll: RPCDef<void, SeasonV1[]>
+  fetchImage: RPCDef<string, string>
 }
 
 type EpisodeMethods = {

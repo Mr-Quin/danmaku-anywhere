@@ -7,7 +7,7 @@ import { SeasonV1 } from '@/common/anime/types/v1/schema'
 import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
 import { mediaQueryKeys } from '@/common/queries/queryKeys'
 
-export const useMediaSearchSuspense = <T extends SeasonV1>(
+export const useSeasonSearchSuspense = <T extends SeasonV1>(
   provider: RemoteDanmakuSourceType,
   params: SeasonSearchParams,
   getData: (params: SeasonSearchParams) => Promise<{ data: T[] }>

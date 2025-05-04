@@ -1,25 +1,26 @@
 import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
-import { Box, Collapse, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import {
   useIsFetching,
   useQueryErrorResetBoundary,
 } from '@tanstack/react-query'
-import { Suspense, useRef, useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { useTranslation } from 'react-i18next'
 
 import { Center } from '@/common/components/Center'
+import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { SearchResultList } from '@/common/components/MediaList/SearchResultList'
-import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
-import type { DanmakuFetchDto } from '@/common/danmaku/dto'
-import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
 import { mediaQueryKeys } from '@/common/queries/queryKeys'
 import { PopupSearchForm } from '@/popup/pages/search/components/PopupSearchForm'
 import { useStore } from '@/popup/store'
+import { Outlet, useNavigate } from 'react-router'
 
 export const SearchTab = () => {
   const { t } = useTranslation()
+  const navigate = useNavigate()
+
   const search = useStore.use.search()
 
   // TODO: useTransition does not yet work with useSyncExternalStore (zustand),
@@ -35,16 +36,11 @@ export const SearchTab = () => {
 
   const [pending, startTransition] = useTransition()
 
-  const { mutateAsync: load } = useFetchDanmaku()
-
-  const handleFetchDanmaku = async (meta: DanmakuFetchDto['meta']) => {
-    return await load({
-      meta,
-      options: {
-        forceUpdate: true,
-      },
-    } as DanmakuFetchDto)
-  }
+  useEffect(() => {
+    if (search.tab === undefined || !enabledProviders.includes(search.tab)) {
+      search.setTab(enabledProviders[0])
+    }
+  }, enabledProviders)
 
   const isSearching =
     useIsFetching({
@@ -70,6 +66,8 @@ export const SearchTab = () => {
     )
   }
 
+  if (search.tab === undefined) return null
+
   return (
     <>
       <Box p={2}>
@@ -82,40 +80,22 @@ export const SearchTab = () => {
         ref={ref}
         onReset={reset}
         onError={console.error}
-        fallbackRender={({ error }) => (
-          <Center>
-            <Typography>There was an error!</Typography>
-            <Typography color="error">{error.message}</Typography>
-          </Center>
-        )}
+        fallbackRender={({ error }) => <ErrorMessage message={error.message} />}
       >
-        <Collapse in={searchParams !== undefined} unmountOnExit mountOnEnter>
-          <Suspense fallback={null}>
-            <SearchResultList
-              providers={enabledProviders}
-              pending={pending}
-              searchParams={searchParams!}
-              dense
-              renderEpisode={(data) => {
-                return (
-                  <BaseEpisodeListItem
-                    data={data}
-                    showIcon
-                    mutateDanmaku={(meta) => handleFetchDanmaku(meta)}
-                    renderSecondaryText={(data) =>
-                      `${new Date(data.timeUpdated).toLocaleDateString()} -  ${t(
-                        'danmaku.commentCounted',
-                        {
-                          count: data.commentCount,
-                        }
-                      )}`
-                    }
-                  />
-                )
-              }}
-            />
-          </Suspense>
-        </Collapse>
+        {searchParams && (
+          <SearchResultList
+            providers={enabledProviders}
+            pending={pending}
+            searchParams={searchParams!}
+            selectedTab={search.tab}
+            onTabChange={search.setTab}
+            onSeasonClick={(season) => {
+              search.setSeason(season)
+              navigate('season')
+            }}
+          />
+        )}
+        <Outlet />
       </ErrorBoundary>
     </>
   )
