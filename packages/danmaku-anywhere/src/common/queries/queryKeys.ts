@@ -16,6 +16,7 @@ export const storageQueryKeys = {
 }
 
 export const mediaQueryKeys = {
+  image: (src: string) => [{ scope: 'media', kind: 'image', src }] as const,
   all: () => [{ scope: 'media' }] as const,
   search: (provider?: DanmakuSourceType, params?: SeasonSearchParams) =>
     [{ scope: 'media', kind: 'search', provider, params }] as const,

@@ -38,7 +38,7 @@ export const zSearchAnimeDetails = z.object({
   animeTitle: z.string(),
   type: z.string(),
   typeDescription: z.string(),
-  imageUrl: z.string(),
+  imageUrl: z.string().url(),
   startDate: z.string(),
   episodeCount: z.number(),
   rating: z.number(),
@@ -77,7 +77,7 @@ const zBangumiDetails = z.object({
   bangumiId: z.string(),
   animeTitle: z.string(),
   imageUrl: z.string(),
-  bangumiUrl: z.string(),
+  bangumiUrl: z.string().url(),
   type: z.string(),
   typeDescription: z.string(),
   titles: z.array(
