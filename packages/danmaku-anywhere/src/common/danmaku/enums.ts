@@ -1,14 +1,9 @@
-export enum DanmakuSourceType {
-  Custom = 'Custom',
-  DanDanPlay = 'DanDanPlay',
-  Bilibili = 'Bilibili',
-  Tencent = 'Tencent',
-}
-
-export type RemoteDanmakuSourceType = Exclude<
+import {
   DanmakuSourceType,
-  DanmakuSourceType.Custom
->
+  type RemoteDanmakuSourceType,
+} from '@danmaku-anywhere/danmaku-converter'
+
+export { DanmakuSourceType, type RemoteDanmakuSourceType }
 
 export const danmakuSourceTypeList: DanmakuSourceType[] = [
   DanmakuSourceType.Custom,

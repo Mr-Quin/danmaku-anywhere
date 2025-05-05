@@ -1,18 +1,26 @@
-import { SeasonService } from '@/background/services/SeasonService'
+import type { SeasonService } from '@/background/services/SeasonService'
 import { Logger } from '@/common/Logger'
-import type { EpisodeQueryFilter } from '@/common/danmaku/dto'
+import type {
+  CustomDanmakuImportData,
+  CustomDanmakuImportResult,
+  EpisodeQueryFilter,
+  ImportError,
+} from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import {
-  CustomEpisodeInsertV4,
-  CustomEpisodeV4,
-  EpisodeInsertV4,
-  EpisodeLiteV4,
-  EpisodeV4,
-  WithSeason,
-} from '@/common/danmaku/types/v4/schema'
-import { db } from '@/common/db/db'
-import { DbEntity } from '@/common/types/dbEntity'
+import type { db } from '@/common/db/db'
+import type { DbEntity } from '@/common/types/dbEntity'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
+import {
+  type CustomEpisode,
+  type CustomEpisodeInsert,
+  EPISODE_SCHEMA_VERSION,
+  type Episode,
+  type EpisodeInsert,
+  type EpisodeLite,
+  type WithSeason,
+  parseBackup,
+  parseCustomDanmaku,
+} from '@danmaku-anywhere/danmaku-converter'
 
 export class DanmakuService {
   private logger: typeof Logger
@@ -29,7 +37,7 @@ export class DanmakuService {
     this.logger = Logger.sub('[DanmakuService]')
   }
 
-  async addCustom(data: CustomEpisodeInsertV4): Promise<CustomEpisodeV4> {
+  async addCustom(data: CustomEpisodeInsert): Promise<CustomEpisode> {
     const toAdd = {
       ...data,
       timeUpdated: Date.now(),
@@ -43,25 +51,66 @@ export class DanmakuService {
     }
   }
 
-  async bulkAddCustom(
-    data: CustomEpisodeInsertV4[]
-  ): Promise<CustomEpisodeV4[]> {
-    const results: CustomEpisodeV4[] = []
+  async bulkAddCustom(data: CustomEpisodeInsert[]): Promise<CustomEpisode[]> {
+    const results: CustomEpisode[] = []
     for (const item of data) {
       results.push(await this.addCustom(item))
     }
     return results
   }
 
-  async bulkUpsert(data: EpisodeInsertV4[]): Promise<EpisodeV4[]> {
-    const results: EpisodeV4[] = []
+  async importCustom(
+    importData: CustomDanmakuImportData[]
+  ): Promise<CustomDanmakuImportResult> {
+    const commentsData = importData.map((d) => d.comments)
+    const results = parseCustomDanmaku(commentsData)
+
+    const errors: ImportError[] = []
+    const succeeded: string[] = []
+
+    results.skipped.forEach(([i, err]) => {
+      errors.push({
+        title: importData[i].title,
+        index: i,
+        error: err,
+      })
+    })
+
+    for (const [i, comments] of results.imported) {
+      const originalData = importData[i]
+      try {
+        await this.addCustom({
+          provider: DanmakuSourceType.Custom,
+          comments,
+          commentCount: comments.length,
+          title: originalData.title,
+          schemaVersion: EPISODE_SCHEMA_VERSION,
+        })
+        succeeded.push(originalData.title)
+      } catch (e) {
+        errors.push({
+          title: originalData.title,
+          index: i,
+          error: e as Error,
+        })
+      }
+    }
+
+    return {
+      succeeded,
+      errors,
+    }
+  }
+
+  async bulkUpsert(data: EpisodeInsert[]): Promise<Episode[]> {
+    const results: Episode[] = []
     for (const item of data) {
       results.push(await this.upsert(item))
     }
     return results
   }
 
-  async upsert<T extends EpisodeInsertV4>(data: T): Promise<DbEntity<T>> {
+  async upsert<T extends EpisodeInsert>(data: T): Promise<DbEntity<T>> {
     const existing = await this.ddpTable.get({
       provider: data.provider,
       indexedId: data.indexedId,
@@ -74,7 +123,7 @@ export class DanmakuService {
     return this.add(data)
   }
 
-  async add<T extends EpisodeInsertV4>(data: T): Promise<DbEntity<T>> {
+  async add<T extends EpisodeInsert>(data: T): Promise<DbEntity<T>> {
     const toInsert = {
       ...data,
       timeUpdated: Date.now(),
@@ -88,7 +137,7 @@ export class DanmakuService {
     }
   }
 
-  async update<T extends EpisodeV4>(data: T): Promise<T> {
+  async update<T extends Episode>(data: T): Promise<T> {
     const toUpdate: T = {
       ...data,
       timeUpdated: Date.now(),
@@ -103,7 +152,7 @@ export class DanmakuService {
   /**
    * This is an arrow function so that the "this" keyword is bound to the class instance
    */
-  private joinSeason = async <T extends EpisodeLiteV4>(
+  private joinSeason = async <T extends EpisodeLite>(
     episode: T
   ): Promise<WithSeason<T>> => {
     const season = await this.seasonService.mustGetById(episode.seasonId)
@@ -118,7 +167,7 @@ export class DanmakuService {
    * Avoid using this method because it will load all danmaku from db at once
    * which may cause performance issues or even crash when there are too many danmaku in db
    */
-  async getAll(): Promise<WithSeason<EpisodeV4>[]> {
+  async getAll(): Promise<WithSeason<Episode>[]> {
     const res = await this.ddpTable.toArray()
     return Promise.all(res.map(this.joinSeason))
   }
@@ -128,8 +177,8 @@ export class DanmakuService {
    */
   async getAllLite(
     provider?: DanmakuSourceType
-  ): Promise<WithSeason<EpisodeLiteV4>[]> {
-    const cache: EpisodeLiteV4[] = []
+  ): Promise<WithSeason<EpisodeLite>[]> {
+    const cache: EpisodeLite[] = []
 
     const collection = provider
       ? this.ddpTable.where({ provider })
@@ -146,7 +195,7 @@ export class DanmakuService {
 
   async getOne(
     filter: EpisodeQueryFilter
-  ): Promise<WithSeason<EpisodeV4> | undefined> {
+  ): Promise<WithSeason<Episode> | undefined> {
     const res = await this.ddpTable.get(filter)
 
     if (res) {
@@ -158,7 +207,7 @@ export class DanmakuService {
 
   async getOneLite(
     filter: EpisodeQueryFilter
-  ): Promise<WithSeason<EpisodeLiteV4> | undefined> {
+  ): Promise<WithSeason<EpisodeLite> | undefined> {
     const res = await this.ddpTable.get(filter)
 
     if (res) {
@@ -169,13 +218,13 @@ export class DanmakuService {
     return undefined
   }
 
-  async getMany(ids: number[]): Promise<WithSeason<EpisodeV4>[]> {
+  async getMany(ids: number[]): Promise<WithSeason<Episode>[]> {
     const res = await this.ddpTable.bulkGet(ids)
     const filtered = res.filter((r) => r !== undefined)
     return Promise.all(filtered.map(this.joinSeason))
   }
 
-  async filter(filter: EpisodeQueryFilter): Promise<WithSeason<EpisodeV4>[]> {
+  async filter(filter: EpisodeQueryFilter): Promise<WithSeason<Episode>[]> {
     const res = await this.ddpTable.where(filter).toArray()
     return Promise.all(
       res
@@ -190,6 +239,38 @@ export class DanmakuService {
 
   async deleteAll() {
     await this.ddpTable.clear()
+  }
+
+  async importBackup(data: unknown[]) {
+    const results = parseBackup(data)
+
+    const skipped = results.skipped
+
+    for (const [i, item] of results.imported) {
+      try {
+        if (item.type === 'Custom') {
+          await this.addCustom(item.episode)
+        } else {
+          let [existingSeason] = await this.seasonService.filter({
+            provider: item.season.provider,
+            indexedId: item.season.indexedId,
+          })
+          // if the season does not exist, add it
+          if (!existingSeason) {
+            existingSeason = await this.seasonService.upsert(item.season)
+          }
+          await this.upsert({
+            ...item.episode,
+            seasonId: existingSeason.id,
+          })
+        }
+      } catch (e) {
+        this.logger.error(`Failed to import backup item ${i}`, e)
+        skipped.push(i)
+      }
+    }
+
+    return skipped.toSorted()
   }
 
   async purgeOlderThan(days: number) {

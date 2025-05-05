@@ -1,18 +1,35 @@
-import { z } from 'zod'
+import { type ZodError, z } from 'zod'
 
-import { bilibiliCommentSchemaJson } from './bilibiliSchema.js'
-import { customDanmakuSchema } from './custom.js'
-import { danDanCommentResponseSchema } from './ddp.js'
-import { wevipDanmakuSchema } from './generic.js'
+import type { CommentEntity } from '../canonical/index.js'
+import { zXmlParsedJson } from './genericXml.js'
+import { zWevipDanmaku } from './weVip.js'
 
-export * from './bilibiliSchema.js'
-export * from './custom.js'
-export * from './generic.js'
-export * from './ddp.js'
+export * from './genericXml.js'
 
-export const combinedDanmakuSchema = z.union([
-  bilibiliCommentSchemaJson,
-  customDanmakuSchema,
-  wevipDanmakuSchema,
-  danDanCommentResponseSchema,
-])
+export const zCombinedDanmaku = z.union([zXmlParsedJson, zWevipDanmaku])
+
+export type CustomImportResult = {
+  // indexed
+  imported: [number, CommentEntity[]][]
+  // array of indices of skipped items and the associated error
+  skipped: [number, ZodError][]
+}
+
+export const parseCustomDanmaku = (data: unknown[]): CustomImportResult => {
+  const imported: [number, CommentEntity[]][] = []
+  const skipped: [number, ZodError][] = []
+
+  for (const [i, item] of data.entries()) {
+    const parse = zCombinedDanmaku.safeParse(item)
+    if (parse.success) {
+      imported.push([i, parse.data])
+    } else {
+      skipped.push([i, parse.error])
+    }
+  }
+
+  return {
+    imported,
+    skipped,
+  }
+}

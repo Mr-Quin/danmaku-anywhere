@@ -5,21 +5,20 @@ import type {
 } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import * as bilibili from '@danmaku-anywhere/danmaku-provider/bilibili'
 
-import { DanmakuService } from '@/background/services/DanmakuService'
-import { SeasonService } from '@/background/services/SeasonService'
+import type { DanmakuService } from '@/background/services/DanmakuService'
+import type { SeasonService } from '@/background/services/SeasonService'
 import { Logger } from '@/common/Logger'
-import {
-  BilibiliSeasonInsertV1,
-  BilibiliSeasonV1,
-} from '@/common/anime/types/v1/schema'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import {
-  BiliBiliEpisodeV4,
-  BiliBiliMeta,
-  WithSeason,
-} from '@/common/danmaku/types/v4/schema'
 import { assertProvider } from '@/common/danmaku/utils'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
+import type {
+  BilibiliOf,
+  Episode,
+  EpisodeMeta,
+  Season,
+  SeasonInsert,
+} from '@danmaku-anywhere/danmaku-converter'
+import type { WithSeason } from '@danmaku-anywhere/danmaku-converter'
 
 export class BilibiliService {
   private logger: typeof Logger
@@ -46,8 +45,8 @@ export class BilibiliService {
 
   private mapToEpisode(
     data: BilibiliBangumiInfo['episodes'][number],
-    season: BilibiliSeasonV1
-  ): WithSeason<BiliBiliMeta> {
+    season: BilibiliOf<Season>
+  ): WithSeason<BilibiliOf<EpisodeMeta>> {
     return {
       provider: DanmakuSourceType.Bilibili,
       imageUrl: data.cover,
@@ -68,12 +67,12 @@ export class BilibiliService {
 
   async search(
     searchParams: BiliBiliSearchParams
-  ): Promise<BilibiliSeasonV1[]> {
+  ): Promise<BilibiliOf<Season>[]> {
     this.logger.debug('Search bilibili', searchParams)
     const result = await bilibili.searchMedia(searchParams)
     this.logger.debug('Search result', result)
 
-    const mapToSeason = (data: BilibiliMedia): BilibiliSeasonInsertV1 => {
+    const mapToSeason = (data: BilibiliMedia): BilibiliOf<SeasonInsert> => {
       return {
         provider: DanmakuSourceType.Bilibili,
         title: data.title,
@@ -95,7 +94,9 @@ export class BilibiliService {
     return this.seasonService.bulkUpsert(seasons)
   }
 
-  async getEpisodeByUrl(url: string): Promise<WithSeason<BiliBiliMeta>> {
+  async getEpisodeByUrl(
+    url: string
+  ): Promise<WithSeason<BilibiliOf<EpisodeMeta>>> {
     this.logger.debug('Get episode by url', url)
 
     const { pathname } = new URL(url)
@@ -134,7 +135,9 @@ export class BilibiliService {
     return this.mapToEpisode(episode, season)
   }
 
-  async getEpisodes(dbSeasonId: number): Promise<WithSeason<BiliBiliMeta>[]> {
+  async getEpisodes(
+    dbSeasonId: number
+  ): Promise<WithSeason<BilibiliOf<EpisodeMeta>>[]> {
     this.logger.debug('Get bangumi info', dbSeasonId)
     const season = await this.seasonService.mustGetById(dbSeasonId)
     assertProvider(season, DanmakuSourceType.Bilibili)
@@ -151,7 +154,9 @@ export class BilibiliService {
     })
   }
 
-  async saveEpisode(meta: BiliBiliMeta): Promise<BiliBiliEpisodeV4> {
+  async saveEpisode(
+    meta: BilibiliOf<EpisodeMeta>
+  ): Promise<BilibiliOf<Episode>> {
     const comments = await this.getDanmaku(meta)
     return this.danmakuService.upsert({
       ...meta,
@@ -160,7 +165,7 @@ export class BilibiliService {
     })
   }
 
-  async getDanmaku(meta: BiliBiliMeta) {
+  async getDanmaku(meta: BilibiliOf<EpisodeMeta>) {
     const pref = await this.extensionOptionsService.get()
 
     const { danmakuTypePreference } = pref.danmakuSources.bilibili

@@ -1,5 +1,5 @@
 import { Divider, Grid, Input, Stack, Typography } from '@mui/material'
-import { Ref, useEffect, useImperativeHandle, useState } from 'react'
+import { type Ref, useEffect, useImperativeHandle, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { IS_CHROME } from '@/common/constants'

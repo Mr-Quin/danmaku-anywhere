@@ -4,7 +4,7 @@ import {
   SeasonGridSkeleton,
 } from '@/common/components/MediaList/components/SeasonGrid'
 import type { HandleSeasonClick } from '@/common/components/MediaList/types'
-import { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
+import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
 import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { Box, Button, ListItem, ListItemText } from '@mui/material'
 import { Suspense } from 'react'

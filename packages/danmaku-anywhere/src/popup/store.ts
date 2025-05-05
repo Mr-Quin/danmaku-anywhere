@@ -2,7 +2,6 @@ import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 
-import { SeasonV1 } from '@/common/anime/types/v1/schema'
 import type {
   DanmakuSourceType,
   RemoteDanmakuSourceType,
@@ -11,6 +10,7 @@ import { danmakuSourceTypeList } from '@/common/danmaku/enums'
 import { createMountConfig } from '@/common/options/mountConfig/constant'
 import type { MountConfigInput } from '@/common/options/mountConfig/schema'
 import { createSelectors } from '@/common/utils/createSelectors'
+import type { Season } from '@danmaku-anywhere/danmaku-converter'
 
 interface StoreState {
   mount: {
@@ -24,8 +24,8 @@ interface StoreState {
     setSearchParams: (params?: SearchEpisodesQuery) => void
     keyword: string
     setKeyword: (keyword: string) => void
-    season?: SeasonV1
-    setSeason: (season: SeasonV1) => void
+    season?: Season
+    setSeason: (season: Season) => void
     tab?: RemoteDanmakuSourceType
     setTab: (tab: RemoteDanmakuSourceType) => void
     scrollTop: number
@@ -79,7 +79,7 @@ const useStoreBase = create<StoreState>()(
         })
       },
       season: undefined,
-      setSeason: (season: SeasonV1) =>
+      setSeason: (season: Season) =>
         set((state) => {
           state.search.season = season
         }),
