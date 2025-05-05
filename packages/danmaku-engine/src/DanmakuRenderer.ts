@@ -1,7 +1,7 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
-import { Manager, create } from 'danmu'
+import { type Manager, create } from 'danmu'
 import { mapIter, sampleByTime } from './iterator'
-import { ParsedComment, applyFilter, transformComment } from './parser'
+import { type ParsedComment, applyFilter, transformComment } from './parser'
 import { bindVideo } from './plugins/bindVideo'
 import { deepEqual } from './utils'
 

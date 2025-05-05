@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router'
 
 import {
   DanmakuStylesForm,
-  DanmakuStylesFormApi,
+  type DanmakuStylesFormApi,
 } from '@/content/common/DanmakuStyles/DanmakuStylesForm'
 import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import { TabLayout } from '@/content/common/TabLayout'

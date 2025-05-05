@@ -1,7 +1,7 @@
-import { SeasonQueryFilter } from '@/common/anime/dto'
-import { SeasonInsertV1, SeasonV1 } from '@/common/anime/types/v1/schema'
-import { db } from '@/common/db/db'
-import { DbEntity } from '@/common/types/dbEntity'
+import type { SeasonQueryFilter } from '@/common/anime/dto'
+import type { db } from '@/common/db/db'
+import type { DbEntity } from '@/common/types/dbEntity'
+import type { Season, SeasonInsert } from '@danmaku-anywhere/danmaku-converter'
 
 export class SeasonService {
   constructor(
@@ -9,9 +9,7 @@ export class SeasonService {
     private episodeTable: typeof db.episode
   ) {}
 
-  async bulkUpsert<T extends SeasonInsertV1>(
-    data: T[]
-  ): Promise<DbEntity<T>[]> {
+  async bulkUpsert<T extends SeasonInsert>(data: T[]): Promise<DbEntity<T>[]> {
     const results: DbEntity<T>[] = []
 
     for (const item of data) {
@@ -21,7 +19,7 @@ export class SeasonService {
     return results
   }
 
-  async upsert<T extends SeasonInsertV1>(data: T): Promise<DbEntity<T>> {
+  async upsert<T extends SeasonInsert>(data: T): Promise<DbEntity<T>> {
     const existing = await this.table.get({
       provider: data.provider,
       indexedId: data.indexedId,
@@ -58,7 +56,7 @@ export class SeasonService {
   }
 
   async getAll() {
-    const seasons: SeasonV1[] = []
+    const seasons: Season[] = []
 
     const episodeTable = this.episodeTable
 

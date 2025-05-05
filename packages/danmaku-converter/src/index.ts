@@ -1,7 +1,5 @@
 export * from './schema/index.js'
 
-export * from './validator/index.js'
-
 export * from './utils/index.js'
 
-export * from './entity/index.js'
+export * from './canonical/index.js'

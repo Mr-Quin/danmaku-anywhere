@@ -19,10 +19,12 @@ const zTencentVideoSeason = z.object({
     title: z.string(),
     year: z.number().optional().default(0), // year of release, null or 0 for non-seasonal
     imgUrl: z.string().url(),
-    episodeSites: z.array(z.object({
-      showName: z.string(),
-      totalEpisode: z.number(),
-    })),
+    episodeSites: z.array(
+      z.object({
+        showName: z.string(),
+        totalEpisode: z.number(),
+      })
+    ),
   }),
 })
 
@@ -34,7 +36,11 @@ export const zTencentSearchResponse = zTencentApiResponseBase.extend({
       normalList: z.object({
         itemList: z.array(zTencentVideoSeason).transform((items) => {
           // remove items without year
-          return items.filter((item) => item.videoInfo.year !== 0 && item.videoInfo.episodeSites.length > 0)
+          return items.filter(
+            (item) =>
+              item.videoInfo.year !== 0 &&
+              item.videoInfo.episodeSites.length > 0
+          )
         }),
       }),
     })
@@ -97,18 +103,18 @@ export const zTencentEpisodeListResponse = zTencentApiResponseBase.extend({
                     z.object({
                       item_id: z.string(),
                       item_params: zTencentEpisodeListItem,
-                    }),
+                    })
                   )
                   .transform((items) => {
                     return items.filter(
                       // filter out trailers
-                      (item) => item.item_params.is_trailer !== '1',
+                      (item) => item.item_params.is_trailer !== '1'
                     )
                   }),
               }),
-            }),
+            })
           ),
-        }),
+        })
       ),
     })
     .optional(),
@@ -137,12 +143,12 @@ export const zTencentPageDetailResponse = zTencentApiResponseBase.extend({
                       cid: z.string(),
                     }),
                     item_type: z.string(),
-                  }),
+                  })
                 ),
               }),
-            }),
+            })
           ),
-        }),
+        })
       ),
     })
     .optional(),
@@ -156,7 +162,7 @@ export const zTencentCommentSegment = z.object({
     z.object({
       segment_start: z.coerce.number(),
       segment_name: z.string(),
-    }),
+    })
   ),
 })
 
@@ -198,6 +204,6 @@ export const zTencentComment = z.object({
           p: `${data.time_offset / 1000},${CommentMode.rtl},${color}`,
           m: data.content,
         }
-      }),
+      })
   ),
 })

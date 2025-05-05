@@ -6,7 +6,7 @@ import {
   handleParseResponseAsync,
 } from '../utils/index.js'
 
-import {
+import type {
   TencentCommentSegmentData,
   TencentEpisodeListItem,
   TencentEpisodeListParams,
@@ -42,7 +42,9 @@ const searchMediaDefaultParams = {
   platform: '23',
 } satisfies TencentSearchParams
 
-export const searchMedia = async (params: TencentSearchParams): Promise<TencentVideoSeason[]> => {
+export const searchMedia = async (
+  params: TencentSearchParams
+): Promise<TencentVideoSeason[]> => {
   await throttle()
 
   params = { ...searchMediaDefaultParams, ...params }
@@ -60,7 +62,7 @@ export const searchMedia = async (params: TencentSearchParams): Promise<TencentV
   const data = await response.json()
 
   const parsedData = handleParseResponse(() =>
-    zTencentSearchResponse.parse(data),
+    zTencentSearchResponse.parse(data)
   )
 
   ensureData(parsedData, 'data', response)
@@ -94,7 +96,7 @@ export const getPageDetails = async (cid: string, vid?: string) => {
   const data = await response.json()
 
   const parsedData = handleParseResponse(() =>
-    zTencentPageDetailResponse.parse(data),
+    zTencentPageDetailResponse.parse(data)
   )
 
   ensureData(parsedData, 'data', response)
@@ -144,7 +146,7 @@ export async function* listEpisodes(params: TencentEpisodeListParams) {
     const requestBody = {
       has_cache: 1,
       pageParams: Object.fromEntries(
-        Object.entries(pageParams).map(([key, value]) => [key, String(value)]),
+        Object.entries(pageParams).map(([key, value]) => [key, String(value)])
       ),
     }
 
@@ -159,7 +161,7 @@ export async function* listEpisodes(params: TencentEpisodeListParams) {
     const data = await response.json()
 
     const parsedData = handleParseResponse(() =>
-      zTencentEpisodeListResponse.parse(data),
+      zTencentEpisodeListResponse.parse(data)
     )
 
     ensureData(parsedData, 'data', response)
@@ -174,7 +176,7 @@ export async function* listEpisodes(params: TencentEpisodeListParams) {
 
     const episodes =
       parsedData.data.module_list_datas[0].module_datas[0].item_data_lists.item_datas.map(
-        (item) => item.item_params,
+        (item) => item.item_params
       )
 
     // we are in a loop, break out
@@ -198,7 +200,7 @@ export async function* listEpisodes(params: TencentEpisodeListParams) {
 }
 
 export const getDanmakuSegments = async (
-  vid: string,
+  vid: string
 ): Promise<TencentCommentSegmentData> => {
   await throttle()
 
@@ -209,7 +211,7 @@ export const getDanmakuSegments = async (
   const json = await response.json()
 
   const segments = await handleParseResponseAsync(() =>
-    zTencentCommentSegment.parseAsync(json),
+    zTencentCommentSegment.parseAsync(json)
   )
 
   return segments
@@ -217,7 +219,7 @@ export const getDanmakuSegments = async (
 
 export async function* getDanmakuGenerator(
   vid: string,
-  segmentData: TencentCommentSegmentData,
+  segmentData: TencentCommentSegmentData
 ): AsyncGenerator<CommentEntity[]> {
   const segments = Object.values(segmentData.segment_index)
 
@@ -233,7 +235,7 @@ export async function* getDanmakuGenerator(
     const json = await response.json()
 
     const comments = await handleParseResponseAsync(() =>
-      zTencentComment.parseAsync(json),
+      zTencentComment.parseAsync(json)
     )
 
     yield comments.barrage_list

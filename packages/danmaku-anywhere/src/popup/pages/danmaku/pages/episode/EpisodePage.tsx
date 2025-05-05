@@ -6,8 +6,8 @@ import { useGetSeasonSuspense } from '@/common/anime/queries/useSeasonsSuspense'
 import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
-import { ExportDanmakuButton } from '@/popup/pages/danmaku/components/ExportDanmakuButton'
 import { useGoBack } from '@/popup/hooks/useGoBack'
+import { ExportDanmakuButton } from '@/popup/pages/danmaku/components/ExportDanmakuButton'
 
 export const EpisodePage = () => {
   const goBack = useGoBack()
