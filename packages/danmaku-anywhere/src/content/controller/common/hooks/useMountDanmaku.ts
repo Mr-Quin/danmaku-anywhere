@@ -1,9 +1,9 @@
 import { useMutation } from '@tanstack/react-query'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import { EpisodeV4, WithSeason } from '@/common/danmaku/types/v4/schema'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { useStore } from '@/content/controller/store/store'
+import type { Episode, WithSeason } from '@danmaku-anywhere/danmaku-converter'
 
 // Send danmaku to the frame
 export const useMountDanmaku = () => {
@@ -13,7 +13,7 @@ export const useMountDanmaku = () => {
   const { mount } = useStore.use.danmaku()
 
   return useMutation({
-    mutationFn: async (danmaku: WithSeason<EpisodeV4>) => {
+    mutationFn: async (danmaku: WithSeason<Episode>) => {
       const res = await playerRpcClient.player.mount({
         frameId: mustGetActiveFrame().frameId,
         data: danmaku.comments,

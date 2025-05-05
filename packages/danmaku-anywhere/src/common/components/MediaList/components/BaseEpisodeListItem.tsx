@@ -9,19 +9,19 @@ import {
   Skeleton,
   Tooltip,
 } from '@mui/material'
-import { ReactNode, Suspense } from 'react'
+import { type ReactNode, Suspense } from 'react'
 
 import { CoverImage } from '@/common/components/MediaList/components/CoverImage'
-import {
-  EpisodeLiteV4,
+import type {
+  EpisodeLite,
   EpisodeMeta,
   WithSeason,
-} from '@/common/danmaku/types/v4/schema'
+} from '@danmaku-anywhere/danmaku-converter'
 import { useTranslation } from 'react-i18next'
 
 const isEpisodeLite = (
   episode: WithSeason<EpisodeMeta>
-): episode is WithSeason<EpisodeLiteV4> => {
+): episode is WithSeason<EpisodeLite> => {
   return 'id' in episode
 }
 

@@ -15,13 +15,15 @@
     "paths": {
       "@/*": ["src/*"],
       "@danmaku-anywhere/danmaku-engine": ["../danmaku-engine/src"],
-      "@danmaku-anywhere/danmaku-provider": ["../danmaku-provider/src"]
+      "@danmaku-anywhere/danmaku-provider": ["../danmaku-provider/src"],
+      "@danmaku-anywhere/danmaku-converter": ["../danmaku-converter/src"]
     }
   },
   "include": ["src"],
   "references": [
     { "path": "./tsconfig.node.json" },
     { "path": "../danmaku-engine" },
-    { "path": "../danmaku-provider" }
+    { "path": "../danmaku-provider" },
+    { "path": "../danmaku-converter" }
   ]
 }

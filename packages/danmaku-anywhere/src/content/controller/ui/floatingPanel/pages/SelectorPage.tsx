@@ -16,13 +16,13 @@ import {
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { SeasonV1 } from '@/common/anime/types/v1/schema'
 import { MediaTypeIcon } from '@/common/components/MediaList/components/MediaTypeIcon'
 import { getDanDanPlayMediaIcon } from '@/common/components/MediaList/components/makeIcon'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'
 import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
+import type { Season } from '@danmaku-anywhere/danmaku-converter'
 
 export const SelectorPage = () => {
   const { t } = useTranslation()
@@ -30,13 +30,13 @@ export const SelectorPage = () => {
   const { animes, saveMapping, setSaveMapping, toggleOpen } = usePopup()
   const { mediaInfo } = useStore.use.integration()
 
-  const [selectedSeason, setSelectedSeason] = useState<SeasonV1>()
+  const [selectedSeason, setSelectedSeason] = useState<Season>()
 
   const { loadMutation } = useLoadDanmaku()
 
   const matchEpisode = useMatchEpisode()
 
-  const handleAnimeSelect = (anime: SeasonV1) => {
+  const handleAnimeSelect = (anime: Season) => {
     setSelectedSeason(anime)
     selectorBoxRef.current?.scrollIntoView({
       behavior: 'smooth',

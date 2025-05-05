@@ -1,17 +1,17 @@
-import { SeasonV1 } from '@/common/anime/types/v1/schema'
-import {
-  EpisodeLiteV4,
+import type { Season } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  EpisodeLite,
   EpisodeMeta,
   WithSeason,
-} from '@/common/danmaku/types/v4/schema'
+} from '@danmaku-anywhere/danmaku-converter'
 import type { ReactNode } from 'react'
 
 export type RenderEpisodeData = {
   episode: WithSeason<EpisodeMeta>
-  danmaku: WithSeason<EpisodeLiteV4> | null
+  danmaku: WithSeason<EpisodeLite> | null
   isLoading: boolean
 }
 
 export type RenderEpisode = (data: RenderEpisodeData) => ReactNode
 
-export type HandleSeasonClick = (season: SeasonV1) => void
+export type HandleSeasonClick = (season: Season) => void

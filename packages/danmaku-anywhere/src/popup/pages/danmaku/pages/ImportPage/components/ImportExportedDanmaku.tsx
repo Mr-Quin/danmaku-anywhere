@@ -10,20 +10,23 @@ import {
   localizedDanmakuSourceType,
 } from '@/common/danmaku/enums'
 import type { ImportParseResult } from '@/common/danmaku/types'
-import { EpisodeInsertV4, WithSeason } from '@/common/danmaku/types/v4/schema'
 import { episodeQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ImportResultDialog } from '@/popup/pages/danmaku/pages/ImportPage/components/ImportResultDialog'
+import type {
+  EpisodeInsert,
+  WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
 
 interface ImportExportedDanmakuProps {
-  data: ImportParseResult<WithSeason<EpisodeInsertV4>[]>
+  data: ImportParseResult<WithSeason<EpisodeInsert>[]>
   onClose: () => void
   open: boolean
 }
 
 const sortDanmakuCacheImportDto = (
-  a: WithSeason<EpisodeInsertV4>,
-  b: WithSeason<EpisodeInsertV4>
+  a: WithSeason<EpisodeInsert>,
+  b: WithSeason<EpisodeInsert>
 ) => {
   if (a.season.title === b.season.title) {
     // For DDP, sort by episodeId

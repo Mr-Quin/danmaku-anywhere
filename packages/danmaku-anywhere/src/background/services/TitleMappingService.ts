@@ -1,5 +1,5 @@
 import { Logger } from '@/common/Logger'
-import { db } from '@/common/db/db'
+import type { db } from '@/common/db/db'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 export class TitleMappingService {

@@ -1,5 +1,7 @@
-import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
-import { bilibiliCommentSchemaXml } from '@danmaku-anywhere/danmaku-converter'
+import {
+  type CommentEntity,
+  zGenericXml,
+} from '@danmaku-anywhere/danmaku-converter'
 
 import { bilibili as bilibiliProto } from '../../protobuf/protobuf.js'
 import { createThrottle } from '../utils/createThrottle.js'
@@ -48,7 +50,7 @@ export const getCurrentUser = async () => {
 
 const search = async (
   params: BiliBiliSearchParams,
-  type: BiliBiliSearchType,
+  type: BiliBiliSearchType
 ) => {
   await throttle()
 
@@ -61,7 +63,7 @@ const search = async (
   const data = await response.json()
 
   const parsedData = handleParseResponse(() =>
-    zBilibiliSearchResponse.parse(data),
+    zBilibiliSearchResponse.parse(data)
   )
 
   ensureData(parsedData, 'data')
@@ -71,7 +73,7 @@ const search = async (
 
 // search for media by keyword
 export const searchMedia = async (
-  params: BiliBiliSearchParams,
+  params: BiliBiliSearchParams
 ): Promise<BilibiliMedia[]> => {
   await throttle()
 
@@ -89,9 +91,9 @@ export const searchMedia = async (
 
 // using season id, get a list of episodes
 export const getBangumiInfo = async ({
-                                       seasonId,
-                                       episodeId,
-                                     }: {
+  seasonId,
+  episodeId,
+}: {
   seasonId?: number
   episodeId?: number
 }) => {
@@ -110,7 +112,7 @@ export const getBangumiInfo = async ({
   const data = await response.json()
 
   const parsedData = handleParseResponse(() =>
-    zBilibiliBangumiInfoResponse.parse(data),
+    zBilibiliBangumiInfoResponse.parse(data)
   )
 
   ensureData(parsedData, 'result')
@@ -128,15 +130,15 @@ export const getDanmakuXml = async (cid: number): Promise<CommentEntity[]> => {
   const xmlData = await response.text()
 
   const comments = await handleParseResponseAsync(() =>
-    bilibiliCommentSchemaXml.parseAsync(xmlData),
+    zGenericXml.parseAsync(xmlData)
   )
 
-  return comments.comments
+  return comments
 }
 
 export async function* getDanmakuProtoSegment(
   oid: number,
-  pid?: number,
+  pid?: number
 ): AsyncGenerator<CommentEntity[]> {
   const MAX_SEGMENT = 100 // arbitrary number
 
@@ -171,7 +173,7 @@ export async function* getDanmakuProtoSegment(
 
     try {
       parsed = bilibiliProto.community.service.dm.v1.DmSegMobileReply.decode(
-        new Uint8Array(buffer),
+        new Uint8Array(buffer)
       )
     } catch (e) {
       if (e instanceof Error) {
@@ -183,7 +185,7 @@ export async function* getDanmakuProtoSegment(
     }
 
     const comments = await handleParseResponseAsync(() =>
-      zBilibiliCommentProto.parseAsync(parsed),
+      zBilibiliCommentProto.parseAsync(parsed)
     )
 
     yield comments.elems
@@ -214,7 +216,7 @@ const sample = <T>(arr: T[], limit: number): T[] => {
 export const getDanmakuProto = async (
   oid: number,
   pid?: number,
-  { limitPerMinute = 1000 }: { limitPerMinute?: number } = {},
+  { limitPerMinute = 1000 }: { limitPerMinute?: number } = {}
 ): Promise<CommentEntity[]> => {
   const segments = getDanmakuProtoSegment(oid, pid)
   const comments: CommentEntity[][] = []

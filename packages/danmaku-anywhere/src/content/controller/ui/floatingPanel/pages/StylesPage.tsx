@@ -2,7 +2,7 @@ import { Box, Button, Divider, ListItemText, MenuItem } from '@mui/material'
 
 import {
   DanmakuStylesForm,
-  DanmakuStylesFormApi,
+  type DanmakuStylesFormApi,
 } from '@/content/common/DanmakuStyles/DanmakuStylesForm'
 import { FilterPage } from '@/content/common/DanmakuStyles/FilterPage'
 import { DrilldownMenu } from '@/content/common/DrilldownMenu'

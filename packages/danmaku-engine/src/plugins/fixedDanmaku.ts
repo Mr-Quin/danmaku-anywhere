@@ -1,5 +1,5 @@
-import { Manager, ManagerPlugin, PushFlexOptions } from 'danmu'
-import { ParsedComment } from '../parser'
+import type { Manager, ManagerPlugin, PushFlexOptions } from 'danmu'
+import type { ParsedComment } from '../parser'
 
 type Placement = 'top' | 'bottom'
 

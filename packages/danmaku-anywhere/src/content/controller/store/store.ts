@@ -3,11 +3,14 @@ import { enableMapSet } from 'immer'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 
-import { EpisodeLiteV4, WithSeason } from '@/common/danmaku/types/v4/schema'
 import { danmakuToString } from '@/common/danmaku/utils'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { createSelectors } from '@/common/utils/createSelectors'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
+import type {
+  EpisodeLite,
+  WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
 
 enableMapSet()
 
@@ -33,10 +36,7 @@ interface StoreState {
     filter: string
     setFilter: (filter: string) => void
 
-    mount: (
-      danmaku: WithSeason<EpisodeLiteV4>,
-      comments: CommentEntity[]
-    ) => void
+    mount: (danmaku: WithSeason<EpisodeLite>, comments: CommentEntity[]) => void
     unmount: () => void
 
     /**
@@ -53,8 +53,8 @@ interface StoreState {
     /**
      * Information about the current danmaku
      */
-    danmakuLite?: WithSeason<EpisodeLiteV4>
-    setDanmakuLite: (danmakuMeta: WithSeason<EpisodeLiteV4> | undefined) => void
+    danmakuLite?: WithSeason<EpisodeLite>
+    setDanmakuLite: (danmakuMeta: WithSeason<EpisodeLite> | undefined) => void
 
     /**
      * Whether the danmaku is manually set

@@ -1,10 +1,10 @@
-import { combinedDanmakuSchema } from '@danmaku-anywhere/danmaku-converter'
+import { zCombinedDanmaku } from '@danmaku-anywhere/danmaku-converter'
 import { useMutation } from '@tanstack/react-query'
 
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { ImportParseResult } from '@/common/danmaku/types'
-import { CustomEpisodeInsertV4 } from '@/common/danmaku/types/v4/schema'
 import type { FileContent } from '@/popup/pages/danmaku/pages/ImportPage/hooks/useUploadDanmaku'
+import type { CustomEpisodeInsertV4 } from '@danmaku-anywhere/danmaku-converter'
 
 interface UseParseCustomDanmakuProps {
   onSuccess: (data: ImportParseResult<CustomEpisodeInsertV4[]> | null) => void
@@ -17,7 +17,7 @@ export const useParseCustomDanmaku = (props: UseParseCustomDanmakuProps) => {
       const res = await Promise.all(
         fileContent.map(async (fileContent) => {
           // parse each file
-          const parseResult = combinedDanmakuSchema.safeParse(fileContent.data)
+          const parseResult = zCombinedDanmaku.safeParse(fileContent.data)
 
           return { ...parseResult, file: fileContent.file }
         })

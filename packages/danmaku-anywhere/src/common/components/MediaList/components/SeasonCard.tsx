@@ -1,12 +1,12 @@
-import { SeasonV1 } from '@/common/anime/types/v1/schema'
 import {
   CoverImage,
   CoverImageSkeleton,
 } from '@/common/components/MediaList/components/CoverImage'
-import { HandleSeasonClick } from '@/common/components/MediaList/types'
+import type { HandleSeasonClick } from '@/common/components/MediaList/types'
 import { ProviderLogo } from '@/common/components/ProviderLogo'
+import type { Season } from '@danmaku-anywhere/danmaku-converter'
 import {
-  CSSProperties,
+  type CSSProperties,
   Card,
   CardActionArea,
   CardContent,
@@ -71,7 +71,7 @@ const Logo = styled('div')(({ theme }) => {
 })
 
 type SeasonCardProps = {
-  season: SeasonV1
+  season: Season
   onClick: HandleSeasonClick
 }
 

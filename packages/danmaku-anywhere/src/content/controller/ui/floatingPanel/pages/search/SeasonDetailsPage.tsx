@@ -1,11 +1,14 @@
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
 import { SeasonEpisodeList } from '@/common/components/MediaList/components/SeasonEpisodeList'
-import { EpisodeMeta, WithSeason } from '@/common/danmaku/types/v4/schema'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { usePopup } from '@/content/controller/store/popupStore'
+import type {
+  EpisodeMeta,
+  WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 

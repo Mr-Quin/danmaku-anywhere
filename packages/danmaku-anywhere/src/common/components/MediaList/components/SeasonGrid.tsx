@@ -1,14 +1,14 @@
-import { SeasonV1 } from '@/common/anime/types/v1/schema'
 import {
   SeasonCard,
   SeasonCardSkeleton,
 } from '@/common/components/MediaList/components/SeasonCard'
-import { HandleSeasonClick } from '@/common/components/MediaList/types'
+import type { HandleSeasonClick } from '@/common/components/MediaList/types'
+import type { Season } from '@danmaku-anywhere/danmaku-converter'
 import {
   Box,
-  Breakpoint,
+  type Breakpoint,
   Grid,
-  GridProps,
+  type GridProps,
   useMediaQuery,
   useTheme,
 } from '@mui/material'
@@ -49,7 +49,7 @@ const SeasonGridLayout = (props: GridProps) => {
 }
 
 interface SeasonListProps {
-  data: SeasonV1[]
+  data: Season[]
   onSeasonClick: HandleSeasonClick
   virtualize?: boolean
 }

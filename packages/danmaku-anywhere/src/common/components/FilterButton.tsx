@@ -8,7 +8,7 @@ import {
   Popover,
   TextField,
 } from '@mui/material'
-import { ChangeEvent, useEffect } from 'react'
+import { type ChangeEvent, useEffect } from 'react'
 import { useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useTranslation } from 'react-i18next'

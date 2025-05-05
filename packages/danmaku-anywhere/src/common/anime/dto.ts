@@ -1,6 +1,10 @@
-import { DanDanPlaySeasonV1 } from '@/common/anime/types/v1/schema'
 import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
-import { DanDanPlayMeta, WithSeason } from '@/common/danmaku/types/v4/schema'
+import type {
+  DanDanPlayOf,
+  EpisodeMeta,
+  Season,
+} from '@danmaku-anywhere/danmaku-converter'
+import type { WithSeason } from '@danmaku-anywhere/danmaku-converter'
 
 export interface SeasonSearchParams {
   keyword: string
@@ -24,11 +28,11 @@ export interface MatchEpisodeInput {
 export type MatchEpisodeResult =
   | {
       status: 'success'
-      data: WithSeason<DanDanPlayMeta>
+      data: WithSeason<DanDanPlayOf<EpisodeMeta>>
     }
   | {
       status: 'disambiguation'
-      data: DanDanPlaySeasonV1[]
+      data: DanDanPlayOf<Season>[]
     }
   | {
       status: 'notFound'

@@ -1,4 +1,4 @@
-import { DanmakuRenderProps } from '@danmaku-anywhere/danmaku-engine'
+import type { DanmakuRenderProps } from '@danmaku-anywhere/danmaku-engine'
 
 type DanmakuComponentProps = DanmakuRenderProps
 

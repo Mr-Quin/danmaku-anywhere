@@ -10,17 +10,17 @@ import {
 import { useMemo } from 'react'
 
 import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
-import { SeasonV1 } from '@/common/anime/types/v1/schema'
 import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
 import { ProviderLogo } from '@/common/components/ProviderLogo'
 import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useAllDanmakuSuspense'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
-import {
-  EpisodeLiteV4,
+import { matchWithPinyin } from '@/common/utils/utils'
+import type { Season } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  EpisodeLite,
   EpisodeMeta,
   WithSeason,
-} from '@/common/danmaku/types/v4/schema'
-import { matchWithPinyin } from '@/common/utils/utils'
+} from '@danmaku-anywhere/danmaku-converter'
 import { Refresh } from '@mui/icons-material'
 
 type ListItemProps = {
@@ -102,16 +102,16 @@ const filterOptions = (options: SelectableEpisode[], filter: string) => {
   })
 }
 
-type SelectableEpisode = WithSeason<EpisodeLiteV4>
+type SelectableEpisode = WithSeason<EpisodeLite>
 
 type FlattenedOption =
   | {
       kind: 'season'
-      season: SeasonV1
+      season: Season
     }
   | {
       kind: 'episode'
-      episode: WithSeason<EpisodeLiteV4>
+      episode: WithSeason<EpisodeLite>
     }
 
 interface DanmakuSelectorProps {

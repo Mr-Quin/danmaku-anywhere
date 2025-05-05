@@ -1,4 +1,4 @@
-import { DanmakuService } from '@/background/services/DanmakuService'
+import type { DanmakuService } from '@/background/services/DanmakuService'
 import { Logger } from '@/common/Logger'
 import { alarmKeys } from '@/common/alarms/constants'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'

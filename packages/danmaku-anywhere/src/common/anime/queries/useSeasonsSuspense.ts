@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 
-import { SeasonQueryFilter } from '@/common/anime/dto'
+import type { SeasonQueryFilter } from '@/common/anime/dto'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 

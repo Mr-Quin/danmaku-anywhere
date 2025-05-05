@@ -1,4 +1,4 @@
-import { ComponentProps, ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { useImageSuspense } from './useImageSuspense'
 
 type ImageProps = {

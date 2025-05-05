@@ -1,4 +1,4 @@
-import { DanmakuSourceType } from '@/common/danmaku/enums'
+import type { DanmakuSourceType } from '@/common/danmaku/enums'
 
 export type NotPromise<T> = T extends Promise<never> ? never : T
 

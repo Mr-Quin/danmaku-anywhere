@@ -1,5 +1,5 @@
 import {
-  RemoteDanmakuSourceType,
+  type RemoteDanmakuSourceType,
   localizedDanmakuSourceType,
 } from '@/common/danmaku/enums'
 import { Tab, Tabs } from '@mui/material'

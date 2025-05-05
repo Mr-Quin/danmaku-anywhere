@@ -1,6 +1,6 @@
-import { Manager } from 'danmu'
-import { DanmakuOptions } from '../DanmakuRenderer'
-import { ParsedComment } from '../parser'
+import type { Manager } from 'danmu'
+import type { DanmakuOptions } from '../DanmakuRenderer'
+import type { ParsedComment } from '../parser'
 import { useFixedDanmaku } from './fixedDanmaku'
 
 const binarySearch = (comments: ParsedComment[], time: number): number => {

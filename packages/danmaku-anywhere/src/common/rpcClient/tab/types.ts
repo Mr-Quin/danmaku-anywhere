@@ -1,13 +1,13 @@
 import type { RPCDef } from '../../rpc/types'
 
-import {
-  EpisodeLiteV4,
-  EpisodeV4,
+import type {
+  Episode,
+  EpisodeLite,
   WithSeason,
-} from '@/common/danmaku/types/v4/schema'
+} from '@danmaku-anywhere/danmaku-converter'
 
 export interface TabDanmakuState {
-  danmaku?: WithSeason<EpisodeLiteV4>
+  danmaku?: WithSeason<EpisodeLite>
   manual: boolean
 }
 
@@ -16,7 +16,7 @@ type DanmakuMethods = {
    * Ping the tab to check if it's able to receive messages
    */
   ping: RPCDef<void, true>
-  danmakuMount: RPCDef<WithSeason<EpisodeV4>, void>
+  danmakuMount: RPCDef<WithSeason<Episode>, void>
   danmakuUnmount: RPCDef<void, void>
   danmakuGetState: RPCDef<void, TabDanmakuState | null>
 }

@@ -1,6 +1,7 @@
-import { CommentMode, zRgb888 } from '@danmaku-anywhere/danmaku-converter'
 import { z } from 'zod'
 
+import { CommentMode } from '@danmaku-anywhere/danmaku-converter'
+import { zRgb888 } from '@danmaku-anywhere/danmaku-converter'
 import { BiliBiliMediaType } from './enums.js'
 
 const zBilibiliApiResponseBase = z.object({
@@ -128,7 +129,7 @@ export const zBilibiliCommentProto = z.object({
             p: `${data.progress / 1000},${data.mode},${data.color}`,
             m: data.content,
           }
-        }),
+        })
     )
     .transform((elems) => elems.filter((elem) => elem !== null)),
 })
