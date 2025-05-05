@@ -1,11 +1,11 @@
 import {
   Stack,
   Switch,
-  SwitchProps,
+  type SwitchProps,
   Typography,
   type TypographyProps,
 } from '@mui/material'
-import { ReactNode, useId } from 'react'
+import { type ReactNode, useId } from 'react'
 
 interface LabeledSwitchProps extends SwitchProps {
   label: string

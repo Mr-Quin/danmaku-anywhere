@@ -1,8 +1,16 @@
-import { UnsupportedProviderException } from '@/common/danmaku/UnsupportedProviderException'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { EpisodeLiteV4, WithSeason } from '@/common/danmaku/types/v4/schema'
+import type { DanmakuSourceType } from '@/common/danmaku/enums'
+import type {
+  EpisodeLite,
+  WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
 
-export const danmakuToString = (danmaku: WithSeason<EpisodeLiteV4>) => {
+class UnsupportedProviderException extends Error {
+  constructor(provider: DanmakuSourceType, message?: string) {
+    super(`Unsupported provider: ${provider}${message ? `: ${message}` : ''}`)
+  }
+}
+
+export const danmakuToString = (danmaku: WithSeason<EpisodeLite>) => {
   return `${danmaku.season.title} - ${danmaku.title}`
 }
 

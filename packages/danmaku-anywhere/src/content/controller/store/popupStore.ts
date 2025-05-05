@@ -1,8 +1,8 @@
 import { create } from 'zustand'
 
-import { SeasonV1 } from '@/common/anime/types/v1/schema'
-import { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
+import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
 import { createSelectors } from '@/common/utils/createSelectors'
+import type { Season } from '@danmaku-anywhere/danmaku-converter'
 
 export enum PopupTab {
   Debug = 'debug',
@@ -20,10 +20,10 @@ interface PopupStoreState {
   lock: boolean
   toggleLock: (lock?: boolean) => void
 
-  open: (params?: { animes?: SeasonV1[]; tab?: PopupTab }) => void
+  open: (params?: { animes?: Season[]; tab?: PopupTab }) => void
 
-  animes: SeasonV1[]
-  setAnimes: (animes: SeasonV1[]) => void
+  animes: Season[]
+  setAnimes: (animes: Season[]) => void
 
   searchTitle: string
   setSearchTitle: (title: string) => void
@@ -40,8 +40,8 @@ interface PopupStoreState {
   providerTab?: RemoteDanmakuSourceType
   setProviderTab: (tab: RemoteDanmakuSourceType) => void
 
-  selectedSeason?: SeasonV1
-  setSelectedSeason: (season?: SeasonV1) => void
+  selectedSeason?: Season
+  setSelectedSeason: (season?: Season) => void
 }
 
 const usePopupStoreBase = create<PopupStoreState>((set, get) => ({

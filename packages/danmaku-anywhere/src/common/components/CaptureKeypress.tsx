@@ -1,7 +1,7 @@
 import { getOS } from '@/common/utils/utils'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
-import { Box, BoxProps, Typography, styled } from '@mui/material'
-import { ReactNode, memo, useRef } from 'react'
+import { Box, type BoxProps, Typography, styled } from '@mui/material'
+import { type ReactNode, memo, useRef } from 'react'
 
 const KeyOverlay = styled('div')(() => {
   return {

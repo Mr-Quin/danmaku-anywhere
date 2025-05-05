@@ -1,17 +1,17 @@
-import { SeasonV1 } from '@/common/anime/types/v1/schema'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
-import { EpisodeQueryFilter } from '@/common/danmaku/dto'
+import type { EpisodeQueryFilter } from '@/common/danmaku/dto'
 import { useEpisodeSearch } from '@/common/danmaku/queries/useEpisodeSearch'
 import { episodeQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import type { Season } from '@danmaku-anywhere/danmaku-converter'
 import { List, ListItem, ListItemText, Skeleton } from '@mui/material'
 import { useSuspenseQueries } from '@tanstack/react-query'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
 interface SeasonListItemProps {
-  season: SeasonV1
+  season: Season
   renderEpisode: RenderEpisode
 }
 

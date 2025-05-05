@@ -79,7 +79,8 @@
         "noNonNullAssertion": "warn",
         "noArguments": "error",
         "noVar": "error",
-        "useConst": "error"
+        "useConst": "error",
+        "useImportType": "error"
       },
       "suspicious": {
         "noAsyncPromiseExecutor": "error",

@@ -4,17 +4,19 @@ import type {
 } from '@danmaku-anywhere/danmaku-provider/tencent'
 import * as tencent from '@danmaku-anywhere/danmaku-provider/tencent'
 
-import { DanmakuService } from '@/background/services/DanmakuService'
-import { SeasonService } from '@/background/services/SeasonService'
+import type { DanmakuService } from '@/background/services/DanmakuService'
+import type { SeasonService } from '@/background/services/SeasonService'
 import { Logger } from '@/common/Logger'
-import {
-  TencentSeasonInsertV1,
-  TencentSeasonV1,
-} from '@/common/anime/types/v1/schema'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { TencentMeta, WithSeason } from '@/common/danmaku/types/v4/schema'
 import { assertProvider } from '@/common/danmaku/utils'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
+import type {
+  EpisodeMeta,
+  Season,
+  SeasonInsert,
+  TencentOf,
+} from '@danmaku-anywhere/danmaku-converter'
+import type { WithSeason } from '@danmaku-anywhere/danmaku-converter'
 
 export class TencentService {
   private logger: typeof Logger
@@ -46,11 +48,11 @@ export class TencentService {
     }
   }
 
-  async search(keyword: string): Promise<TencentSeasonV1[]> {
+  async search(keyword: string): Promise<TencentOf<Season>[]> {
     this.logger.debug('Search tencent', keyword)
     const result = await tencent.searchMedia({ query: keyword })
     this.logger.debug('Search result', result)
-    const mapToSeason = (data: TencentVideoSeason): TencentSeasonInsertV1 => {
+    const mapToSeason = (data: TencentVideoSeason): TencentOf<SeasonInsert> => {
       return {
         provider: DanmakuSourceType.Tencent,
         title: data.videoInfo.title,
@@ -69,7 +71,9 @@ export class TencentService {
     return this.seasonService.bulkUpsert(seasons)
   }
 
-  async getEpisodes(seasonId: number): Promise<WithSeason<TencentMeta>[]> {
+  async getEpisodes(
+    seasonId: number
+  ): Promise<WithSeason<TencentOf<EpisodeMeta>>[]> {
     this.logger.debug('Get episode', seasonId)
     const season = await this.seasonService.mustGetById(seasonId)
     assertProvider(season, DanmakuSourceType.Tencent)
@@ -100,7 +104,7 @@ export class TencentService {
         indexedId: item.vid.toString(),
         schemaVersion: 4,
         lastChecked: Date.now(),
-      } satisfies WithSeason<TencentMeta>
+      } satisfies WithSeason<TencentOf<EpisodeMeta>>
     })
   }
 
@@ -114,7 +118,7 @@ export class TencentService {
     return result
   }
 
-  async saveEpisode(meta: TencentMeta) {
+  async saveEpisode(meta: TencentOf<EpisodeMeta>) {
     const comments = await this.getDanmaku(meta.providerIds.vid)
     return this.danmakuService.upsert({
       ...meta,

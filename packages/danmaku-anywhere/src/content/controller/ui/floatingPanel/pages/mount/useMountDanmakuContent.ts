@@ -3,11 +3,11 @@ import { useTranslation } from 'react-i18next'
 
 import { Logger } from '@/common/Logger'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { EpisodeLiteV4 } from '@/common/danmaku/types/v4/schema'
 import { episodeQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useStore } from '@/content/controller/store/store'
+import type { EpisodeLite } from '@danmaku-anywhere/danmaku-converter'
 
 export const useMountDanmakuContent = () => {
   const { t } = useTranslation()
@@ -19,7 +19,7 @@ export const useMountDanmakuContent = () => {
   const { mountDanmaku } = useLoadDanmaku()
 
   return useMutation({
-    mutationFn: async (danmaku: EpisodeLiteV4) => {
+    mutationFn: async (danmaku: EpisodeLite) => {
       const data = await queryClient.fetchQuery({
         queryKey: episodeQueryKeys.one({ id: danmaku.id }),
         queryFn: async () => {

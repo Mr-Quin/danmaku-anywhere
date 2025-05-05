@@ -1,5 +1,8 @@
 import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
-import { EpisodeMeta, WithSeason } from '@/common/danmaku/types/v4/schema'
+import type {
+  EpisodeMeta,
+  WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
 
 export type EpisodeQueryFilter = {
   id?: number
@@ -27,11 +30,19 @@ export type DanmakuFetchDto = {
 
 export type DanmakuDeleteDto = number
 
-export interface CustomDanmakuCreateData {
-  comments: {
-    p: string
-    m: string
-  }[]
-  seasonTitle: string
-  episodeTitle: string
+export interface CustomDanmakuImportData {
+  comments: unknown
+  title: string
+}
+
+export type ImportError = {
+  title: string
+  index: number
+  error: Error
+}
+
+export type CustomDanmakuImportResult = {
+  // titles that are successfully imported
+  succeeded: string[]
+  errors: ImportError[]
 }

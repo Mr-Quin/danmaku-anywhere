@@ -1,23 +1,23 @@
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 import { configure } from '@danmaku-anywhere/danmaku-provider/ddp'
 
-import { DanmakuService } from '@/background/services/DanmakuService'
-import { SeasonService } from '@/background/services/SeasonService'
+import type { DanmakuService } from '@/background/services/DanmakuService'
+import type { SeasonService } from '@/background/services/SeasonService'
 import { Logger } from '@/common/Logger'
-import {
-  DanDanPlaySeasonInsertV1,
-  DanDanPlaySeasonV1,
-} from '@/common/anime/types/v1/schema'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import {
-  DanDanPlayEpisodeV4,
-  DanDanPlayMeta,
-  WithSeason,
-} from '@/common/danmaku/types/v4/schema'
 import { assertProvider } from '@/common/danmaku/utils'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { tryCatch } from '@/common/utils/utils'
-import { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  DanDanPlayOf,
+  Episode,
+  EpisodeMeta,
+  Season,
+  SeasonInsert,
+} from '@danmaku-anywhere/danmaku-converter'
+import type { WithSeason } from '@danmaku-anywhere/danmaku-converter'
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import {} from '@danmaku-anywhere/danmaku-converter'
 
 configure({
   baseUrl: import.meta.env.VITE_PROXY_URL,
@@ -36,7 +36,7 @@ export class DanDanPlayService {
 
   async search(
     searchParams: danDanPlay.SearchEpisodesQuery
-  ): Promise<DanDanPlaySeasonV1[]> {
+  ): Promise<DanDanPlayOf<Season>[]> {
     this.logger.debug('Searching DanDanPlay', searchParams)
     const result = await danDanPlay.searchSearchAnime(searchParams.anime)
     this.logger.debug('Search result', result)
@@ -55,7 +55,7 @@ export class DanDanPlayService {
         year: new Date(item.startDate).getFullYear(),
         episodeCount: item.episodeCount,
         schemaVersion: 1,
-      } satisfies DanDanPlaySeasonInsertV1
+      } satisfies DanDanPlayOf<SeasonInsert>
     })
 
     return this.seasonService.bulkUpsert(seasons)
@@ -63,7 +63,7 @@ export class DanDanPlayService {
 
   async getAnimeDetails(
     seasonId: number
-  ): Promise<WithSeason<DanDanPlayMeta>[]> {
+  ): Promise<WithSeason<DanDanPlayOf<EpisodeMeta>>[]> {
     this.logger.debug('Getting DanDanPlay episodes', seasonId)
     const season = await this.seasonService.mustGetById(seasonId)
     assertProvider(season, DanmakuSourceType.DanDanPlay)
@@ -84,7 +84,7 @@ export class DanDanPlayService {
         indexedId: item.episodeId.toString(),
         lastChecked: Date.now(),
         schemaVersion: 4,
-      } satisfies WithSeason<DanDanPlayMeta>
+      } satisfies WithSeason<DanDanPlayOf<EpisodeMeta>>
     })
   }
 
@@ -108,10 +108,10 @@ export class DanDanPlayService {
   }
 
   async saveEpisode(
-    meta: DanDanPlayMeta,
-    season: DanDanPlaySeasonV1,
+    meta: DanDanPlayOf<EpisodeMeta>,
+    season: DanDanPlayOf<Season>,
     params: Partial<danDanPlay.GetCommentQuery> = {}
-  ): Promise<DanDanPlayEpisodeV4> {
+  ): Promise<DanDanPlayOf<Episode>> {
     const { comments } = await this.getDanmaku(meta, season, params)
 
     return this.danmakuService.upsert({
@@ -123,11 +123,11 @@ export class DanDanPlayService {
   }
 
   async getDanmaku(
-    meta: DanDanPlayMeta,
-    season: DanDanPlaySeasonV1,
+    meta: DanDanPlayOf<EpisodeMeta>,
+    season: DanDanPlayOf<Season>,
     params: Partial<danDanPlay.GetCommentQuery> = {}
   ): Promise<{
-    meta: DanDanPlayMeta
+    meta: DanDanPlayOf<EpisodeMeta>
     comments: CommentEntity[]
     params: danDanPlay.GetCommentQuery
   }> {

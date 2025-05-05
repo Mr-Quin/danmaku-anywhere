@@ -1,10 +1,13 @@
 import {
   DanmakuSourceType,
-  RemoteDanmakuSourceType,
+  type RemoteDanmakuSourceType,
 } from '@/common/danmaku/enums'
-import { EpisodeMeta, WithSeason } from '@/common/danmaku/types/v4/schema'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import type {
+  EpisodeMeta,
+  WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
 import { useSuspenseQuery } from '@tanstack/react-query'
 
 const queryFnMap: Record<

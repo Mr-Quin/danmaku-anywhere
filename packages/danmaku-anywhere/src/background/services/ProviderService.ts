@@ -1,7 +1,7 @@
-import { BilibiliService } from '@/background/services/BilibiliService'
-import { DanDanPlayService } from '@/background/services/DanDanPlayService'
-import { TencentService } from '@/background/services/TencentService'
-import { TitleMappingService } from '@/background/services/TitleMappingService'
+import type { BilibiliService } from '@/background/services/BilibiliService'
+import type { DanDanPlayService } from '@/background/services/DanDanPlayService'
+import type { TencentService } from '@/background/services/TencentService'
+import type { TitleMappingService } from '@/background/services/TitleMappingService'
 import { Logger } from '@/common/Logger'
 import type {
   MatchEpisodeInput,
@@ -10,21 +10,21 @@ import type {
 } from '@/common/anime/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 
-import { DanmakuService } from '@/background/services/DanmakuService'
-import { SeasonService } from '@/background/services/SeasonService'
-import {
-  BilibiliSeasonV1,
-  DanDanPlaySeasonV1,
-  TencentSeasonV1,
-} from '@/common/anime/types/v1/schema'
+import type { DanmakuService } from '@/background/services/DanmakuService'
+import type { SeasonService } from '@/background/services/SeasonService'
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
-import {
-  DanDanPlayMeta,
-  EpisodeV4,
-  WithSeason,
-} from '@/common/danmaku/types/v4/schema'
 import { assertProvider, isProvider } from '@/common/danmaku/utils'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
+
+import type {
+  BilibiliOf,
+  DanDanPlayOf,
+  Episode,
+  EpisodeMeta,
+  Season,
+  TencentOf,
+  WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
 import { match } from 'ts-pattern'
 
 export class ProviderService {
@@ -47,7 +47,7 @@ export class ProviderService {
 
   async searchDanDanPlay(
     searchParams: SeasonSearchParams
-  ): Promise<DanDanPlaySeasonV1[]> {
+  ): Promise<DanDanPlayOf<Season>[]> {
     const results = await this.danDanPlayService.search({
       anime: searchParams.keyword,
       episode: searchParams.episode,
@@ -58,7 +58,7 @@ export class ProviderService {
 
   async searchBilibili(
     searchParams: SeasonSearchParams
-  ): Promise<BilibiliSeasonV1[]> {
+  ): Promise<BilibiliOf<Season>[]> {
     const results = await this.bilibiliService.search({
       keyword: searchParams.keyword,
     })
@@ -68,7 +68,7 @@ export class ProviderService {
 
   async searchTencent(
     searchParams: SeasonSearchParams
-  ): Promise<TencentSeasonV1[]> {
+  ): Promise<TencentOf<Season>[]> {
     const results = await this.tencentService.search(searchParams.keyword)
 
     return this.seasonService.bulkUpsert(results)
@@ -86,7 +86,7 @@ export class ProviderService {
     return this.tencentService.getEpisodes(seasonId)
   }
 
-  async getDanmaku(data: DanmakuFetchDto): Promise<WithSeason<EpisodeV4>> {
+  async getDanmaku(data: DanmakuFetchDto): Promise<WithSeason<Episode>> {
     const { meta, options = {}, context = {} } = data
     const provider = meta.provider
 
@@ -113,7 +113,7 @@ export class ProviderService {
       return {
         ...existingDanmaku,
         season,
-      } as WithSeason<EpisodeV4>
+      } as WithSeason<Episode>
     }
 
     if (options.forceUpdate) {
@@ -158,7 +158,7 @@ export class ProviderService {
           }
         }
       )
-      .exhaustive()) satisfies EpisodeV4
+      .exhaustive()) satisfies Episode
 
     return danmaku
   }
@@ -204,7 +204,7 @@ export class ProviderService {
           providerIds: {
             episodeId: episodeId,
           },
-        } satisfies WithSeason<DanDanPlayMeta>,
+        } satisfies WithSeason<DanDanPlayOf<EpisodeMeta>>,
       }
     }
 
@@ -222,7 +222,7 @@ export class ProviderService {
       }
     }
 
-    const getMetaFromSeason = async (season: DanDanPlaySeasonV1) => {
+    const getMetaFromSeason = async (season: DanDanPlayOf<Season>) => {
       const episodes = await this.danDanPlayService.getAnimeDetails(season.id)
 
       if (episodes.length === 0) {
@@ -271,7 +271,7 @@ export class ProviderService {
   }
 
   async parseUrl(url: string) {
-    const { hostname, pathname } = new URL(url)
+    const { hostname } = new URL(url)
 
     if (hostname === 'www.bilibili.com') {
       return await this.bilibiliService.getEpisodeByUrl(url)

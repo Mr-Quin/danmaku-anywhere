@@ -5,10 +5,10 @@ import { useTranslation } from 'react-i18next'
 import { Logger } from '@/common/Logger'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { ImportParseResult } from '@/common/danmaku/types'
-import { CustomEpisodeInsertV4 } from '@/common/danmaku/types/v4/schema'
 import { episodeQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ImportResultDialog } from '@/popup/pages/danmaku/pages/ImportPage/components/ImportResultDialog'
+import type { CustomEpisodeInsertV4 } from '@danmaku-anywhere/danmaku-converter'
 
 interface CustomDanmakuImportResultProps {
   data: ImportParseResult<CustomEpisodeInsertV4[]>

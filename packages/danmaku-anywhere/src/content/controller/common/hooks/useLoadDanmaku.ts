@@ -6,10 +6,10 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
-import { EpisodeV4, WithSeason } from '@/common/danmaku/types/v4/schema'
 import { isProvider } from '@/common/danmaku/utils'
 import { useMountDanmaku } from '@/content/controller/common/hooks/useMountDanmaku'
 import { useStore } from '@/content/controller/store/store'
+import type { Episode, WithSeason } from '@danmaku-anywhere/danmaku-converter'
 
 // Wrapper around useFetchDanmaku and useMountDanmaku
 export const useLoadDanmaku = () => {
@@ -26,7 +26,7 @@ export const useLoadDanmaku = () => {
   const canRefresh =
     !!danmakuLite && isProvider(danmakuLite, DanmakuSourceType.DanDanPlay)
 
-  const mountDanmaku = useEventCallback((danmaku: WithSeason<EpisodeV4>) => {
+  const mountDanmaku = useEventCallback((danmaku: WithSeason<Episode>) => {
     return mountMutation.mutateAsync(danmaku, {
       // This is called in addition to the onSuccess of mountMutation
       onSuccess: () => {
