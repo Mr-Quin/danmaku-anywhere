@@ -53,7 +53,7 @@ const bilibiliComment = z
             .rest(z.string())
         ),
     }),
-    _text: z.string(),
+    _text: z.string().optional().default(''),
   })
   .transform((data) => {
     const [time, mode, , color] = data['_attributes'].p
@@ -70,11 +70,12 @@ const bilibiliComment = z
 export const bilibiliCommentSchemaJson = z
   .object({
     i: z.object({
-      d: z
-        .array(bilibiliComment)
-        .transform((comments) =>
-          comments.filter((comment) => comment !== null)
-        ),
+      d: z.array(bilibiliComment).transform((comments) =>
+        comments.filter((comment): comment is { p: string; m: string } => {
+          if (comment === null) return false
+          return comment.m !== ''
+        })
+      ),
     }),
   })
   .transform((data) => {
