@@ -228,8 +228,6 @@ const pages = {
   },
   mountPage: {
     addMountConfig: 'Add a mount configuration to enable the controller',
-    instructions:
-      'Select an episode and click Mount to inject it into the current tab.',
     noActiveTab: 'No active tab',
     noDanmaku: 'No danmaku found',
     noDanmakuHelp: 'Search and danmaku to enable the controller',

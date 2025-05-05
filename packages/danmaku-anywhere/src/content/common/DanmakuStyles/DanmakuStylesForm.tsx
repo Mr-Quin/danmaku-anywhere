@@ -162,7 +162,7 @@ export const DanmakuStylesForm = ({
 }: DanmakuStylesFormProps) => {
   const { t } = useTranslation()
   const { data: config, partialUpdate } = useDanmakuOptions()
-  const platform = usePlatformInfo()
+  const { isMobile } = usePlatformInfo()
 
   const {
     control,
@@ -335,7 +335,7 @@ export const DanmakuStylesForm = ({
             )
           }}
         />
-        {platform.os !== 'android' && IS_CHROME && (
+        {!isMobile && IS_CHROME && (
           <Controller
             name="style.fontFamily"
             control={control}

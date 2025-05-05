@@ -27,6 +27,12 @@ interface FrameState {
 interface StoreState {
   danmaku: {
     isMounted: boolean
+    /**
+     * For filtering the episode list in the mount controller
+     */
+    filter: string
+    setFilter: (filter: string) => void
+
     mount: (
       danmaku: WithSeason<EpisodeLiteV4>,
       comments: CommentEntity[]
@@ -116,6 +122,14 @@ const useStoreBase = create<StoreState>()(
   immer((set, get) => ({
     danmaku: {
       isMounted: false,
+
+      filter: '',
+      setFilter: (filter) => {
+        set((state) => {
+          state.danmaku.filter = filter
+        })
+      },
+
       mount: (danmaku, comments) => {
         set((state) => {
           state.danmaku.isMounted = true

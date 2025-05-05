@@ -1,6 +1,4 @@
-import { ChevronLeft } from '@mui/icons-material'
-import { IconButton } from '@mui/material'
-import { Link, useParams } from 'react-router'
+import { useParams } from 'react-router'
 
 import { EpisodeList } from './EpisodeList'
 
@@ -9,8 +7,11 @@ import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { ExportDanmakuButton } from '@/popup/pages/danmaku/components/ExportDanmakuButton'
+import { useGoBack } from '@/popup/hooks/useGoBack'
 
 export const EpisodePage = () => {
+  const goBack = useGoBack()
+
   const params = useParams()
 
   const seasonId = params.seasonId ? parseInt(params.seasonId) : 0
@@ -23,14 +24,7 @@ export const EpisodePage = () => {
 
   return (
     <TabLayout>
-      <TabToolbar
-        title={season.title}
-        leftElement={
-          <IconButton edge="start" component={Link} to="..">
-            <ChevronLeft />
-          </IconButton>
-        }
-      >
+      <TabToolbar title={season.title} showBackButton onGoBack={goBack}>
         <DrilldownMenu ButtonProps={{ edge: 'end' }}>
           <ExportDanmakuButton />
         </DrilldownMenu>

@@ -1,9 +1,11 @@
 import { ErrorMessage } from '@/common/components/ErrorMessage'
-import { SeasonDetails } from '@/common/components/MediaList/components/SeasonDetails'
+import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
+import { SeasonEpisodeList } from '@/common/components/MediaList/components/SeasonEpisodeList'
+import { EpisodeMeta, WithSeason } from '@/common/danmaku/types/v4/schema'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
+import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { usePopup } from '@/content/controller/store/popupStore'
-import { EpisodeListItem } from '@/content/controller/ui/floatingPanel/pages/search/EpisodeListItem'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
@@ -27,10 +29,32 @@ export const SeasonDetailsPage = ({ seasonMapKey }: SeasonDetailsPageProps) => {
         fallbackRender={({ error }) => <ErrorMessage message={error.message} />}
       >
         <Suspense fallback={null}>
-          <SeasonDetails
+          <SeasonEpisodeList
             season={selectedSeason}
             renderEpisode={(data) => {
-              return <EpisodeListItem seasonMapKey={seasonMapKey} data={data} />
+              const { loadMutation } = useLoadDanmaku()
+
+              const handleFetchDanmaku = async (
+                meta: WithSeason<EpisodeMeta>
+              ) => {
+                await loadMutation.mutateAsync({
+                  meta,
+                  options: {
+                    forceUpdate: true,
+                  },
+                  context: {
+                    seasonMapKey,
+                  },
+                })
+              }
+
+              return (
+                <BaseEpisodeListItem
+                  episode={data.danmaku ?? data.episode}
+                  isLoading={loadMutation.isPending || data.isLoading}
+                  onClick={handleFetchDanmaku}
+                />
+              )
             }}
           />
         </Suspense>

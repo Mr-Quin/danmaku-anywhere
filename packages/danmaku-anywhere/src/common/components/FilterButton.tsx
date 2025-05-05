@@ -1,3 +1,4 @@
+import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { Close, Search } from '@mui/icons-material'
 import {
   Badge,
@@ -7,33 +8,51 @@ import {
   Popover,
   TextField,
 } from '@mui/material'
-import type { ChangeEvent } from 'react'
+import { ChangeEvent, useEffect } from 'react'
 import { useRef, useState } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { useTranslation } from 'react-i18next'
 
 interface FilterButtonProps {
   filter: string
   onFilter?: (filter: string) => void
   onChange?: (filter: string) => void
+  open?: boolean
+  onOpen?: () => void
+  onClose?: () => void
 }
 
 export const FilterButton = ({
   filter,
   onFilter,
   onChange,
+  onOpen,
+  onClose,
+  open: openProp = false,
 }: FilterButtonProps) => {
   const { t } = useTranslation()
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(openProp)
+
+  useEffect(() => {
+    setOpen(openProp)
+  }, [openProp])
 
   const anchorRef = useRef<HTMLButtonElement>(null)
 
   const handleOpen = () => {
     setOpen(true)
+    onOpen?.()
   }
+
+  const handleClose = () => {
+    setOpen(false)
+    onClose?.()
+  }
+
+  useHotkeys('esc', handleClose)
 
   const handleClear = () => {
     onChange?.('')
-    setOpen(false)
   }
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -49,7 +68,7 @@ export const FilterButton = ({
       </IconButton>
       <Popover
         anchorEl={anchorRef.current}
-        onClose={() => setOpen(false)}
+        onClose={handleClose}
         open={open}
         anchorOrigin={{
           vertical: 'bottom',
@@ -59,6 +78,7 @@ export const FilterButton = ({
           vertical: 'top',
           horizontal: 'right',
         }}
+        sx={{ zIndex: 1403 }}
       >
         <Box
           component="form"
@@ -72,6 +92,14 @@ export const FilterButton = ({
         >
           <TextField
             label={t('common.search')}
+            ref={(node) => {
+              if (node) {
+                setTimeout(() => {
+                  // somehow autoFocus doesn't work, so we manually focus the input
+                  node.querySelector('input')?.focus()
+                }, 0)
+              }
+            }}
             variant="filled"
             size="small"
             value={filter}
@@ -79,6 +107,7 @@ export const FilterButton = ({
             autoFocus
             slotProps={{
               input: {
+                ...withStopPropagation(),
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton onClick={handleClear} edge="end">

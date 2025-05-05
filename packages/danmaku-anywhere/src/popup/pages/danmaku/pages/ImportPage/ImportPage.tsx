@@ -1,16 +1,13 @@
-import { ChevronLeft } from '@mui/icons-material'
 import {
   Box,
   Button,
   FormHelperText,
-  IconButton,
   Paper,
   Tooltip,
   useTheme,
 } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import { TabLayout } from '@/content/common/TabLayout'
@@ -73,14 +70,7 @@ export const ImportPage = () => {
 
   return (
     <TabLayout>
-      <TabToolbar
-        title={t('danmakuPage.upload.upload')}
-        leftElement={
-          <IconButton edge="start" component={Link} to="..">
-            <ChevronLeft />
-          </IconButton>
-        }
-      />
+      <TabToolbar title={t('danmakuPage.upload.upload')} />
       <Paper
         {...bindDrop()}
         sx={{
