@@ -28,10 +28,6 @@ interface StoreState {
   danmaku: {
     animeFilter: string
     setAnimeFilter: (filter: string) => void
-    selectedAnime: string
-    setSelectedAnime: (anime: string) => void
-    selectedEpisode: string
-    setSelectedEpisode: (episode: string) => void
     selectedTypes: DanmakuSourceType[]
     setSelectedType: (type: DanmakuSourceType[]) => void
     showUploadDialog: boolean
@@ -83,18 +79,6 @@ const useStoreBase = create<StoreState>()(
       setAnimeFilter: (filter: string) => {
         set((state) => {
           state.danmaku.animeFilter = filter
-        })
-      },
-      selectedAnime: '',
-      setSelectedAnime: (anime: string) => {
-        set((state) => {
-          state.danmaku.selectedAnime = anime
-        })
-      },
-      selectedEpisode: '',
-      setSelectedEpisode: (episode: string) => {
-        set((state) => {
-          state.danmaku.selectedEpisode = episode
         })
       },
       selectedTypes: danmakuSourceTypeList,

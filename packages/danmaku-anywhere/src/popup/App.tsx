@@ -1,4 +1,3 @@
-import { Typography } from '@mui/material'
 import type { PropsWithChildren } from 'react'
 import { Suspense, use } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
@@ -7,7 +6,7 @@ import { PopupLayout } from './layout/PopupLayout'
 import { RootRouter } from './router/RootRouter'
 
 import { Logger } from '@/common/Logger'
-import { Center } from '@/common/components/Center'
+import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { Toast } from '@/common/components/Toast/Toast'
 import { db } from '@/common/db/db'
@@ -23,11 +22,9 @@ export const App = () => {
     <PopupLayout>
       <ErrorBoundary
         onError={Logger.error}
-        fallback={
-          <Center>
-            <Typography>Something went horribly wrong</Typography>
-          </Center>
-        }
+        fallbackRender={({ error }) => {
+          return <ErrorMessage message={error.message} />
+        }}
       >
         <Suspense fallback={<FullPageSpinner />}>
           <LoadInitialData>

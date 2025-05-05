@@ -1,5 +1,7 @@
 import { Center } from '@/common/components/Center'
+import { SuspenseImage } from '@/common/components/image/SuspenseImage'
 import { Typography } from '@mui/material'
+import { Suspense } from 'react'
 
 type ErrorMessageProps = {
   message: string
@@ -8,8 +10,11 @@ type ErrorMessageProps = {
 export const ErrorMessage = ({ message }: ErrorMessageProps) => {
   return (
     <Center>
-      <Typography>There was an error!</Typography>
+      <Typography>Something went wrong</Typography>
       <Typography color="error">{message}</Typography>
+      <Suspense fallback={null}>
+        <SuspenseImage src="/danmaku_apologize.png" width={200} height={200} />
+      </Suspense>
     </Center>
   )
 }
