@@ -1,38 +1,45 @@
 import { Box, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { useNavigate, useSearchParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 
+import { useGetSeasonSuspense } from '@/common/anime/queries/useSeasonsSuspense'
 import { CommentsTable } from '@/common/components/CommentsTable'
-import { useDanmakuSuspense } from '@/common/danmaku/queries/useDanmakuSuspense'
+import { useDanmakuManySuspense } from '@/common/danmaku/queries/useDanmakuManySuspense'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
-import { useStore } from '@/popup/store'
 
-export const DanmakuPage = () => {
+export const CommentPage = () => {
   const { t } = useTranslation()
-
-  const [searchParams] = useSearchParams()
 
   const navigate = useNavigate()
   const goBack = useGoBack()
 
-  const id = parseInt(searchParams.get('id')!)
+  const params = useParams()
 
-  const { data } = useDanmakuSuspense({ id })
+  const seasonId = params.seasonId ? parseInt(params.seasonId) : 0
+  const episodeId = params.episodeId ? parseInt(params.episodeId) : 0
 
-  const { selectedAnime, selectedEpisode } = useStore.use.danmaku()
+  const {
+    data: [season],
+  } = useGetSeasonSuspense({
+    id: seasonId,
+  })
+
+  const {
+    data: [episode],
+  } = useDanmakuManySuspense({ id: episodeId })
 
   return (
     <TabLayout>
       <TabToolbar
-        title={`${selectedAnime} - ${selectedEpisode}`}
+        title={`${season.title} - ${episode.title}`}
         showBackButton
         onGoBack={goBack}
       />
-      {data ? (
+      {episode ? (
         <CommentsTable
-          comments={data.comments}
+          comments={episode.comments}
           boxProps={{
             flexGrow: 1,
             height: 'initial',

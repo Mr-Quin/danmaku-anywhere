@@ -19,7 +19,7 @@ import {
   localizedDanmakuSourceType,
 } from '@/common/danmaku/enums'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
-import { mediaQueryKeys } from '@/common/queries/queryKeys'
+import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 const validateUrl = (value: string) => {
@@ -74,7 +74,7 @@ export const ParseTab = () => {
 
   const query = useQuery({
     enabled: false,
-    queryKey: mediaQueryKeys.parseUrl(getValues().url),
+    queryKey: seasonQueryKeys.parseUrl(getValues().url),
     retry: false,
     queryFn: async () => {
       return chromeRpcClient.mediaParseUrl({ url: getValues().url })

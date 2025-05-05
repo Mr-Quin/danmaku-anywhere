@@ -1,9 +1,16 @@
 import { DanDanPlaySeasonV1 } from '@/common/anime/types/v1/schema'
+import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
 import { DanDanPlayMeta, WithSeason } from '@/common/danmaku/types/v4/schema'
 
 export interface SeasonSearchParams {
   keyword: string
   episode?: string
+}
+
+export type SeasonQueryFilter = {
+  id?: number
+  provider?: RemoteDanmakuSourceType
+  indexedId?: string
 }
 
 export interface MatchEpisodeInput {

@@ -74,6 +74,18 @@ export class ProviderService {
     return this.seasonService.bulkUpsert(results)
   }
 
+  async getDanDanPlayEpisodes(seasonId: number) {
+    return this.danDanPlayService.getAnimeDetails(seasonId)
+  }
+
+  async getBilibiliEpisodes(seasonId: number) {
+    return this.bilibiliService.getEpisodes(seasonId)
+  }
+
+  async getTencentEpisodes(seasonId: number) {
+    return this.tencentService.getEpisodes(seasonId)
+  }
+
   async getDanmaku(data: DanmakuFetchDto): Promise<WithSeason<EpisodeV4>> {
     const { meta, options = {}, context = {} } = data
     const provider = meta.provider
@@ -256,18 +268,6 @@ export class ProviderService {
       status: 'disambiguation',
       data: foundSeasons,
     }
-  }
-
-  async getDanDanPlayEpisodes(seasonId: number) {
-    return this.danDanPlayService.getAnimeDetails(seasonId)
-  }
-
-  async getBilibiliEpisodes(seasonId: number) {
-    return this.bilibiliService.getEpisodes(seasonId)
-  }
-
-  async getTencentEpisodes(seasonId: number) {
-    return this.tencentService.getEpisodes(seasonId)
   }
 
   async parseUrl(url: string) {

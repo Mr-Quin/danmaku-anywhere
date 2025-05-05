@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import { danmakuQueryKeys } from '@/common/queries/queryKeys'
+import { episodeQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 export const useDeleteDanmaku = () => {
@@ -10,7 +10,7 @@ export const useDeleteDanmaku = () => {
   const toast = useToast.use.toast()
 
   return useMutation({
-    mutationKey: danmakuQueryKeys.all(),
+    mutationKey: episodeQueryKeys.all(),
     mutationFn: async (danmakuId: number) => {
       await chromeRpcClient.episodeDelete({ id: danmakuId })
     },

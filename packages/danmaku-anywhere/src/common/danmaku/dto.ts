@@ -1,7 +1,7 @@
 import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
 import { EpisodeMeta, WithSeason } from '@/common/danmaku/types/v4/schema'
 
-export type QueryEpisodeFilter = {
+export type EpisodeQueryFilter = {
   id?: number
   seasonId?: number
   provider?: RemoteDanmakuSourceType

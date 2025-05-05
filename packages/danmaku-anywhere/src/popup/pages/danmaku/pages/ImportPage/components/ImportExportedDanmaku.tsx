@@ -11,7 +11,7 @@ import {
 } from '@/common/danmaku/enums'
 import type { ImportParseResult } from '@/common/danmaku/types'
 import { EpisodeInsertV4, WithSeason } from '@/common/danmaku/types/v4/schema'
-import { danmakuQueryKeys } from '@/common/queries/queryKeys'
+import { episodeQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ImportResultDialog } from '@/popup/pages/danmaku/pages/ImportPage/components/ImportResultDialog'
 
@@ -50,7 +50,7 @@ export const ImportExportedDanmaku = ({
   const toast = useToast.use.toast()
 
   const { mutate: handleUpload, isPending: isUploading } = useMutation({
-    mutationKey: danmakuQueryKeys.all(),
+    mutationKey: episodeQueryKeys.all(),
     mutationFn: async () => {
       if (!data) return
 

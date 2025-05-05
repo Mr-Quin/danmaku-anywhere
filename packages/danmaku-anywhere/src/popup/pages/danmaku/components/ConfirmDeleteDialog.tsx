@@ -10,7 +10,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import { danmakuQueryKeys } from '@/common/queries/queryKeys'
+import { episodeQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useStore } from '@/popup/store'
 
@@ -23,7 +23,7 @@ export const ConfirmDeleteDialog = () => {
   const toast = useToast.use.toast()
 
   const { mutate, isPending } = useMutation({
-    mutationKey: danmakuQueryKeys.all(),
+    mutationKey: episodeQueryKeys.all(),
     mutationFn: async () => {
       return chromeRpcClient.episodeDeleteAll()
     },

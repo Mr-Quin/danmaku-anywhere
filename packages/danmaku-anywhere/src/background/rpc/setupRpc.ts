@@ -112,6 +112,9 @@ export const setupRpc = (
       const result = await seasonService.getAll()
       return result
     },
+    seasonFilter: async (data) => {
+      return seasonService.filter(data)
+    },
     episodeFilter: async (filter) => {
       const result = await danmakuService.filter(filter)
       return result

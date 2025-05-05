@@ -42,7 +42,7 @@ const migrateV3ToV4 = (
         providerIds: {
           episodeId: item.meta.episodeId,
         },
-        indexedId: item.meta.animeId.toString(),
+        indexedId: item.meta.episodeId.toString(),
         params: item.params || {},
       } satisfies WithoutId<DanDanPlayEpisodeV4>
     } else if (item.provider === 'Bilibili') {

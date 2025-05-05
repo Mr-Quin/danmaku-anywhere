@@ -5,9 +5,11 @@ import { Link, Outlet, useLocation, useMatches } from 'react-router'
 
 import { AppToolBar } from './AppToolBar'
 
+import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { TabLayout } from '@/content/common/TabLayout'
 import { ReleaseNotes } from '@/popup/component/releaseNotes/ReleaseNotes'
+import { ErrorBoundary } from 'react-error-boundary'
 
 export const Home = () => {
   // the tab path should be the second element of the array
@@ -67,16 +69,27 @@ export const Home = () => {
             component={Link}
           />
         </Tabs>
-        <Suspense
-          fallback={
-            <TabLayout>
-              <FullPageSpinner />
-            </TabLayout>
-          }
+        <ErrorBoundary
+          fallbackRender={({ error }) => {
+            return (
+              <TabLayout>
+                <ErrorMessage message={error.message} />
+              </TabLayout>
+            )
+          }}
           key={location.key}
         >
-          <Outlet />
-        </Suspense>
+          <Suspense
+            fallback={
+              <TabLayout>
+                <FullPageSpinner />
+              </TabLayout>
+            }
+            key={location.key}
+          >
+            <Outlet />
+          </Suspense>
+        </ErrorBoundary>
         <ReleaseNotes />
       </Box>
     </Stack>

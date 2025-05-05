@@ -1,5 +1,5 @@
-import type { SeasonSearchParams } from '@/common/anime/dto'
-import type { QueryEpisodeFilter } from '@/common/danmaku/dto'
+import type { SeasonQueryFilter, SeasonSearchParams } from '@/common/anime/dto'
+import type { EpisodeQueryFilter } from '@/common/danmaku/dto'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
 
 export const storageQueryKeys = {
@@ -15,26 +15,30 @@ export const storageQueryKeys = {
   },
 }
 
-export const mediaQueryKeys = {
-  image: (src: string) => [{ scope: 'media', kind: 'image', src }] as const,
-  all: () => [{ scope: 'media' }] as const,
+export const seasonQueryKeys = {
+  image: (src: string) => [{ scope: 'season', kind: 'image', src }] as const,
+  all: () => [{ scope: 'season' }] as const,
+  many: (data: SeasonQueryFilter) =>
+    [{ scope: 'season', kind: 'getMany', ...data }] as const,
   search: (provider?: DanmakuSourceType, params?: SeasonSearchParams) =>
-    [{ scope: 'media', kind: 'search', provider, params }] as const,
+    [{ scope: 'season', kind: 'search', provider, params }] as const,
   episodes: (provider: DanmakuSourceType, seasonId: string | number) =>
-    [{ scope: 'media', kind: 'episodes', provider, seasonId }] as const,
+    [{ scope: 'season', kind: 'episodes', provider, seasonId }] as const,
   parseUrl: (url: string) =>
-    [{ scope: 'media', kind: 'parseUrl', url }] as const,
+    [{ scope: 'season', kind: 'parseUrl', url }] as const,
+}
+
+export const episodeQueryKeys = {
+  all: () => [{ scope: 'episode' }] as const,
+  one: (params: EpisodeQueryFilter) =>
+    [{ scope: 'episode', kind: 'getOne', ...params }] as const,
+  many: (params: EpisodeQueryFilter) =>
+    [{ scope: 'episode', kind: 'getMany', ...params }] as const,
 }
 
 export const sourceQueryKeys = {
   bilibili: () => [{ scope: 'source', kind: 'bilibili' }] as const,
   tencent: () => [{ scope: 'source', kind: 'tencent' }] as const,
-}
-
-export const danmakuQueryKeys = {
-  all: () => [{ scope: 'danmaku' }] as const,
-  one: (params: QueryEpisodeFilter) =>
-    [{ scope: 'danmaku', kind: 'getOne', ...params }] as const,
 }
 
 export const tabQueryKeys = {

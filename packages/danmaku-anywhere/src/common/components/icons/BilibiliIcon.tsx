@@ -2,7 +2,7 @@ import { SvgIcon } from '@mui/material'
 
 export const BiliBiliIcon = () => {
   return (
-    <SvgIcon color="primary">
+    <SvgIcon sx={{ color: '#00aeec' }} fill="currentColor">
       <svg
         width="800px"
         height="800px"

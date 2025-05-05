@@ -16,11 +16,12 @@ import { useTranslation } from 'react-i18next'
 
 import { Center } from '@/common/components/Center'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
-import { SearchResultList } from '@/common/components/MediaList/SearchResultList'
+import { SeasonSearchResult } from '@/common/components/MediaList/SeasonSearchResult'
+import { SeasonSearchTabs } from '@/common/components/MediaList/SeasonSearchTabs'
 import { SearchForm } from '@/common/components/SearchForm'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
-import { mediaQueryKeys } from '@/common/queries/queryKeys'
+import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
@@ -73,7 +74,7 @@ export const SearchPage = () => {
 
   const isSearching =
     useIsFetching({
-      queryKey: mediaQueryKeys.search(),
+      queryKey: seasonQueryKeys.search(),
     }) > 0
 
   useEffect(() => {
@@ -148,19 +149,24 @@ export const SearchPage = () => {
       >
         <Collapse in={!!searchParams} unmountOnExit>
           {searchParams && (
-            <SearchResultList
-              providers={enabledProviders}
-              searchParams={searchParams}
-              pending={pending}
-              onSeasonClick={(season) => {
-                if (boxRef.current) {
-                  setScrollTop(boxRef.current.scrollTop)
-                }
-                setSelectedSeason(season)
-              }}
-              selectedTab={providerTab}
-              onTabChange={setProviderTab}
-            />
+            <>
+              <SeasonSearchTabs
+                providers={enabledProviders}
+                selectedTab={providerTab}
+                onTabChange={setProviderTab}
+              />
+              <SeasonSearchResult
+                searchParams={searchParams}
+                onSeasonClick={(season) => {
+                  if (boxRef.current) {
+                    setScrollTop(boxRef.current.scrollTop)
+                  }
+                  setSelectedSeason(season)
+                }}
+                provider={providerTab}
+                stale={pending}
+              />
+            </>
           )}
         </Collapse>
       </ErrorBoundary>

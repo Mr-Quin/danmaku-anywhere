@@ -22,7 +22,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import type { RetentionPolicy } from '@/common/options/extensionOptions/schema'
 import { retentionPolicySchema } from '@/common/options/extensionOptions/schema'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
-import { alarmQueryKeys, danmakuQueryKeys } from '@/common/queries/queryKeys'
+import { alarmQueryKeys, episodeQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
@@ -63,7 +63,7 @@ export const RetentionPolicyPage = () => {
   })
 
   const { mutate: purgeDanmaku, isPending: isPurgingDanmaku } = useMutation({
-    mutationKey: danmakuQueryKeys.all(),
+    mutationKey: episodeQueryKeys.all(),
     mutationFn: async () => {
       const res = await chromeRpcClient.danmakuPurgeCache(
         getValues().deleteCommentsAfter

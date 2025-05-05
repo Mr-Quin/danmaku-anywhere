@@ -1,3 +1,6 @@
+import { useDanmakuManySuspense } from '@/common/danmaku/queries/useDanmakuManySuspense'
+import { useDeleteDanmaku } from '@/common/danmaku/queries/useDeleteDanmaku'
+import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { Delete, Download } from '@mui/icons-material'
 import {
   Box,
@@ -11,36 +14,26 @@ import {
   Typography,
 } from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { createSearchParams, useNavigate, useSearchParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 
-import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useAllDanmakuSuspense'
-import { useDeleteDanmaku } from '@/common/danmaku/queries/useDeleteDanmaku'
-import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
-import { useStore } from '@/popup/store'
-
-interface EpisodeListProps {
-  scrollElement: HTMLDivElement
-}
-
-export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
+export const EpisodeList = () => {
   const { t } = useTranslation()
-  const { data, isFetching } = useAllDanmakuSuspense()
 
-  const [searchParams] = useSearchParams()
+  const ref = useRef<HTMLDivElement>(null)
 
-  const type = searchParams.get('type')!
+  const params = useParams()
 
-  const { setSelectedEpisode, selectedAnime } = useStore.use.danmaku()
+  const seasonId = params.seasonId ? parseInt(params.seasonId) : 0
 
-  const episodes = useMemo(() => {
-    return data.filter((item) => item.season.title === selectedAnime)
-  }, [data])
+  const { data: episodes } = useDanmakuManySuspense({
+    seasonId,
+  })
 
   const virtualizer = useVirtualizer({
     count: episodes.length,
-    getScrollElement: () => scrollElement,
+    getScrollElement: () => ref.current,
     estimateSize: () => 72,
   })
 
@@ -63,13 +56,13 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
         height: `${virtualizer.getTotalSize()}px`,
         width: '100%',
         position: 'relative',
-        opacity: isFetching ? 0.5 : 1,
       }}
+      ref={ref}
     >
       <List>
         {virtualizer.getVirtualItems().map((virtualItem) => {
-          const episodeLite = episodes[virtualItem.index]
-          const { title, commentCount, id } = episodeLite
+          const episode = episodes[virtualItem.index]
+          const { title, commentCount, id } = episode
 
           return (
             <ListItem
@@ -120,15 +113,8 @@ export const EpisodeList = ({ scrollElement }: EpisodeListProps) => {
               <ListItemButton
                 onClick={() => {
                   navigate({
-                    pathname: 'comment',
-                    search: createSearchParams({
-                      type: type,
-                      title: selectedAnime,
-                      id: id.toString(),
-                      episodeTitle: title ?? '',
-                    }).toString(),
+                    pathname: `${episode.id}`,
                   })
-                  setSelectedEpisode(title ?? '')
                 }}
               >
                 <ListItemText
