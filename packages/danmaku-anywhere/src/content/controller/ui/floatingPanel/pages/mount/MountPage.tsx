@@ -1,67 +1,91 @@
-import { Box, Button, Stack } from '@mui/material'
+import { Button } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { CaptureKeypress } from '@/common/components/CaptureKeypress'
 import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSelector'
+import { FilterButton } from '@/common/components/FilterButton'
 import { EpisodeLiteV4, WithSeason } from '@/common/danmaku/types/v4/schema'
+import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
+import { TabLayout } from '@/content/common/TabLayout'
+import { TabToolbar } from '@/content/common/TabToolbar'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { useStore } from '@/content/controller/store/store'
 import { useMountDanmakuContent } from '@/content/controller/ui/floatingPanel/pages/mount/useMountDanmakuContent'
+import { Keyboard } from '@mui/icons-material'
 
 export const MountPage = () => {
   const { t } = useTranslation()
 
-  const { isMounted, danmakuLite } = useStore.use.danmaku()
+  const { isMounted, danmakuLite, filter, setFilter } = useStore.use.danmaku()
 
-  const [localDanmakuLite, setLocalDanmakuLite] = useState<
-    WithSeason<EpisodeLiteV4> | undefined
-  >(danmakuLite)
+  const { isMobile } = usePlatformInfo()
 
-  const { mutateAsync, isPending } = useMountDanmakuContent()
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [isFocus, setIsFocus] = useState(false)
+
+  const { mutate, isPending } = useMountDanmakuContent()
   const unmountMutation = useUnmountDanmaku()
 
-  const handleSelectDanmaku = (danmakuLite?: WithSeason<EpisodeLiteV4>) => {
-    setLocalDanmakuLite(danmakuLite)
-  }
-
-  const handleMount = async () => {
-    if (!localDanmakuLite) return
-    await mutateAsync(localDanmakuLite)
+  const handleSelectDanmaku = (danmakuLite: WithSeason<EpisodeLiteV4>) => {
+    mutate(danmakuLite, {
+      onSuccess: () => {
+        setFilter(danmakuLite.title)
+        setIsFilterOpen(true)
+      },
+    })
   }
 
   const handleUnmount = () => {
-    unmountMutation.mutate()
+    unmountMutation.mutate(undefined, {
+      onSuccess: () => {
+        setFilter('')
+        setIsFilterOpen(false)
+      },
+    })
   }
 
   return (
-    <Box p={2} flexGrow={1}>
-      <Stack direction="column" spacing={2} height={1}>
+    <TabLayout>
+      <CaptureKeypress
+        onChange={setFilter}
+        value={filter}
+        disabled={isFilterOpen}
+        boxProps={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          onFocus: () => setIsFocus(true),
+          onBlur: () => setIsFocus(false),
+        }}
+      >
+        <TabToolbar title={t('mountPage.pageTitle')}>
+          {!isMobile && isFocus && (
+            <Keyboard color={isFilterOpen ? 'disabled' : 'success'} />
+          )}
+          <FilterButton
+            filter={filter}
+            onChange={setFilter}
+            open={isFilterOpen}
+            onOpen={() => setIsFilterOpen(true)}
+            onClose={() => setIsFilterOpen(false)}
+          />
+          <Button
+            variant="outlined"
+            type="button"
+            onClick={handleUnmount}
+            color="warning"
+            disabled={!danmakuLite || !isMounted}
+          >
+            {t('danmaku.unmount')}
+          </Button>
+        </TabToolbar>
         <DanmakuSelector
-          value={localDanmakuLite ?? null} // convert between undefined and null
-          onChange={(danmakuLite) =>
-            handleSelectDanmaku(danmakuLite ?? undefined)
-          }
-          height={350}
+          filter={filter}
+          onSelect={handleSelectDanmaku}
+          disabled={isPending}
         />
-        <Button
-          type="submit"
-          variant="contained"
-          loading={isPending}
-          disabled={!localDanmakuLite}
-          onClick={handleMount}
-        >
-          {t('danmaku.mount')}
-        </Button>
-        <Button
-          variant="outlined"
-          type="button"
-          onClick={handleUnmount}
-          color="warning"
-          disabled={!localDanmakuLite || !isMounted}
-        >
-          {t('danmaku.unmount')}
-        </Button>
-      </Stack>
-    </Box>
+      </CaptureKeypress>
+    </TabLayout>
   )
 }

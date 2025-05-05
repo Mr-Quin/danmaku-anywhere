@@ -42,76 +42,86 @@ export const sourceQueryKeys = {
 }
 
 export const tabQueryKeys = {
-  isConnected: () => [
-    {
-      scope: 'tab',
-      kind: 'isConnected',
-    },
-  ],
-  getState: () => [
-    {
-      scope: 'tab',
-      kind: 'getState',
-    },
-  ],
+  isConnected: () =>
+    [
+      {
+        scope: 'tab',
+        kind: 'isConnected',
+      },
+    ] as const,
+  getState: () =>
+    [
+      {
+        scope: 'tab',
+        kind: 'getState',
+      },
+    ] as const,
 }
 
 export const controlQueryKeys = {
-  activeTab: () => [
-    {
-      scope: 'control',
-      kind: 'activeTab',
-    },
-  ],
-  allFrames: () => [
-    {
-      scope: 'control',
-      kind: 'allFrames',
-    },
-  ],
-  releaseNotes: () => [
-    {
-      scope: 'control',
-      kind: 'releaseNotes',
-    },
-  ],
-  permissions: () => [
-    {
-      scope: 'control',
-      kind: 'permissions',
-    },
-  ],
-  getPlatformInfo: () => [
-    {
-      scope: 'control',
-      kind: 'getPlatformInfo',
-    },
-  ],
+  activeTab: () =>
+    [
+      {
+        scope: 'control',
+        kind: 'activeTab',
+      },
+    ] as const,
+  allFrames: () =>
+    [
+      {
+        scope: 'control',
+        kind: 'allFrames',
+      },
+    ] as const,
+  releaseNotes: () =>
+    [
+      {
+        scope: 'control',
+        kind: 'releaseNotes',
+      },
+    ] as const,
+  permissions: () =>
+    [
+      {
+        scope: 'control',
+        kind: 'permissions',
+      },
+    ] as const,
+  getPlatformInfo: () =>
+    [
+      {
+        scope: 'control',
+        kind: 'getPlatformInfo',
+      },
+    ] as const,
 }
 
 export const alarmQueryKeys = {
-  danmakuPurge: () => [
-    {
-      scope: 'alarm',
-      kind: 'danmakuPurge',
-    },
-  ],
+  danmakuPurge: () =>
+    [
+      {
+        scope: 'alarm',
+        kind: 'danmakuPurge',
+      },
+    ] as const,
 }
 
 export const genAIQueryKeys = {
-  extractTitle: () => [
-    {
-      scope: 'genAI',
-      kind: 'extractTitle',
-    },
-  ],
+  extractTitle: () =>
+    [
+      {
+        scope: 'genAI',
+        kind: 'extractTitle',
+      },
+    ] as const,
 }
 
 export const fontQueryKeys = {
-  listAll: () => [
-    {
-      scope: 'font',
-      kind: 'listAll',
-    },
-  ],
+  listAll: () =>
+    [
+      {
+        scope: 'font',
+        kind: 'listAll',
+      },
+    ] as const,
 }

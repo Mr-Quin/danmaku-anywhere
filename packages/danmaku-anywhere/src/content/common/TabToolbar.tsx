@@ -18,7 +18,7 @@ export const TabToolbar = ({
   onGoBack,
 }: PageToolbarProps) => {
   const backButton = showBackButton && (
-    <IconButton edge="start" onClick={() => onGoBack?.()}>
+    <IconButton edge="start" onClick={onGoBack}>
       <ChevronLeft />
     </IconButton>
   )

@@ -1,55 +1,47 @@
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
-import { SeasonDetails } from '@/common/components/MediaList/components/SeasonDetails'
-import type { DanmakuFetchDto } from '@/common/danmaku/dto'
+import { SeasonEpisodeList } from '@/common/components/MediaList/components/SeasonEpisodeList'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
+import { EpisodeMeta, WithSeason } from '@/common/danmaku/types/v4/schema'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { useStore } from '@/popup/store'
-import { ChevronLeft } from '@mui/icons-material'
-import { IconButton } from '@mui/material'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
-import { Link } from 'react-router'
 
 export const SeasonDetailsPage = () => {
   const { season } = useStore.use.search()
 
-  const { mutateAsync: load } = useFetchDanmaku()
-
   if (!season) return null
-
-  const handleFetchDanmaku = async (meta: DanmakuFetchDto['meta']) => {
-    return await load({
-      meta,
-      options: {
-        forceUpdate: true,
-      },
-    } as DanmakuFetchDto)
-  }
 
   return (
     <TabLayout>
-      <TabToolbar
-        title={season.title}
-        leftElement={
-          <IconButton edge="start" component={Link} to="..">
-            <ChevronLeft />
-          </IconButton>
-        }
-      />
+      <TabToolbar title={season.title} />
       <ErrorBoundary
         fallbackRender={({ error }) => <ErrorMessage message={error.message} />}
       >
         <Suspense fallback={null}>
-          <SeasonDetails
+          <SeasonEpisodeList
             season={season}
             renderEpisode={(data) => {
+              const { mutateAsync: load, isPending } = useFetchDanmaku()
+
+              const handleFetchDanmaku = async (
+                meta: WithSeason<EpisodeMeta>
+              ) => {
+                return await load({
+                  meta,
+                  options: {
+                    forceUpdate: true,
+                  },
+                })
+              }
+
               return (
                 <BaseEpisodeListItem
-                  data={data}
-                  showIcon
-                  mutateDanmaku={(meta) => handleFetchDanmaku(meta)}
+                  isLoading={isPending || data.isLoading}
+                  episode={data.danmaku ?? data.episode}
+                  onClick={(meta) => handleFetchDanmaku(meta)}
                 />
               )
             }}

@@ -3,9 +3,7 @@ import { Container, Paper } from '@mui/material'
 import { PropsWithChildren } from 'react'
 
 export const PopupLayout = ({ children }: PropsWithChildren<{}>) => {
-  const platformInfo = usePlatformInfo()
-
-  const isMobile = platformInfo.os === 'android'
+  const { isMobile } = usePlatformInfo()
 
   const width = isMobile ? '100vw' : 500
   const height = isMobile ? '100vh' : 600

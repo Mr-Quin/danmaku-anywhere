@@ -1,27 +1,101 @@
-import { Box } from '@mui/material'
-import { Suspense } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { MountController } from './components/MountController'
 
+import { CaptureKeypress } from '@/common/components/CaptureKeypress'
+import { FilterButton } from '@/common/components/FilterButton'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
+import { useToast } from '@/common/components/Toast/toastStore'
+import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
+import { tabQueryKeys } from '@/common/queries/queryKeys'
+import { tabRpcClient } from '@/common/rpcClient/tab/client'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { HasDanmaku } from '@/popup/pages/mount/components/HasDanmaku'
+import { useStore } from '@/popup/store'
+import { Keyboard } from '@mui/icons-material'
+import { Button } from '@mui/material'
+import { useMutation, useQuery } from '@tanstack/react-query'
 
 export const MountPage = () => {
   const { t } = useTranslation()
+  const toast = useToast.use.toast()
+  const { setFilter, filter, setIsMounted, isMounted } = useStore.use.mount()
+
+  const { isMobile } = usePlatformInfo()
+
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [isFocus, setIsFocus] = useState(false)
+
+  const tabDanmakuState = useQuery({
+    queryKey: tabQueryKeys.getState(),
+    queryFn: () => tabRpcClient.danmakuGetState(),
+    select: (res) => res.data,
+    retry: false,
+  })
+
+  useEffect(() => {
+    if (tabDanmakuState.data?.danmaku) {
+      setFilter(tabDanmakuState.data.danmaku.title)
+      setIsMounted(tabDanmakuState.data.manual)
+    }
+  }, [tabDanmakuState.data])
+
+  const { mutate: unmount } = useMutation({
+    mutationFn: tabRpcClient.danmakuUnmount,
+    mutationKey: tabQueryKeys.getState(),
+    onSuccess: () => {
+      setIsMounted(false)
+      setFilter('')
+      toast.success(t('danmaku.alert.unmounted'))
+    },
+    onError: (e) => {
+      toast.error(`${(e as Error).message}`)
+    },
+  })
 
   return (
     <TabLayout>
-      <Suspense fallback={<FullPageSpinner />}>
-        <TabToolbar title={t('mountPage.pageTitle')} />
-        <HasDanmaku>
-          <Box p={2}>
+      <CaptureKeypress
+        onChange={setFilter}
+        value={filter}
+        disabled={isFilterOpen}
+        boxProps={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          onFocus: () => setIsFocus(true),
+          onBlur: () => setIsFocus(false),
+        }}
+      >
+        <TabToolbar title={t('mountPage.pageTitle')}>
+          {!isMobile && isFocus && (
+            <Keyboard color={isFilterOpen ? 'disabled' : 'success'} />
+          )}{' '}
+          <FilterButton
+            onChange={setFilter}
+            filter={filter}
+            open={isFilterOpen}
+            onOpen={() => setIsFilterOpen(true)}
+            onClose={() => setIsFilterOpen(false)}
+          />
+          <Button
+            variant="outlined"
+            type="button"
+            onClick={() => unmount()}
+            color="warning"
+            disabled={!isMounted}
+          >
+            {t('danmaku.unmount')}
+          </Button>
+        </TabToolbar>
+        <Suspense fallback={<FullPageSpinner />}>
+          <HasDanmaku>
             <MountController />
-          </Box>
-        </HasDanmaku>
-      </Suspense>
+          </HasDanmaku>
+        </Suspense>
+      </CaptureKeypress>
     </TabLayout>
   )
 }

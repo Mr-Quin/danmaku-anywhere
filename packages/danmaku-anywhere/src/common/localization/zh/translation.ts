@@ -226,7 +226,6 @@ const pages = {
   },
   mountPage: {
     addMountConfig: '添加装填配置以启用控制器',
-    instructions: '选择剧集并点击装填。',
     noActiveTab: '当前页面为空',
     noDanmaku: '弹幕列表为空',
     noDanmakuHelp: '搜索弹幕以启用控制器',

@@ -9,67 +9,70 @@ import {
   Skeleton,
   Tooltip,
 } from '@mui/material'
-import { useMutation } from '@tanstack/react-query'
-import { Suspense } from 'react'
+import { ReactNode, Suspense } from 'react'
 
 import { CoverImage } from '@/common/components/MediaList/components/CoverImage'
-import type { RenderEpisodeData } from '@/common/components/MediaList/types'
-import { EpisodeMeta, WithSeason } from '@/common/danmaku/types/v4/schema'
+import {
+  EpisodeLiteV4,
+  EpisodeMeta,
+  WithSeason,
+} from '@/common/danmaku/types/v4/schema'
 import { useTranslation } from 'react-i18next'
 
-interface BaseEpisodeListItemProps {
-  showIcon?: boolean
-  mutateDanmaku: (meta: WithSeason<EpisodeMeta>) => Promise<unknown>
-  data: RenderEpisodeData
+const isEpisodeLite = (
+  episode: WithSeason<EpisodeMeta>
+): episode is WithSeason<EpisodeLiteV4> => {
+  return 'id' in episode
 }
 
-interface EpisodeRenderData {
-  meta: WithSeason<EpisodeMeta>
-  title: string
-  tooltip: string
+type BaseEpisodeListItemProps<T extends WithSeason<EpisodeMeta>> = {
+  showImage?: boolean
+  isLoading?: boolean
+  onClick: (meta: T) => void
+  episode: T
+  renderIcon?: () => ReactNode
+  disabled?: boolean
 }
 
-const getRenderData = (data: RenderEpisodeData): EpisodeRenderData => {
-  return {
-    meta: data.episode,
-    title: data.episode.title,
-    tooltip: data.episode.title,
-  }
-}
-
-export const BaseEpisodeListItem = ({
-  showIcon = false,
-  mutateDanmaku,
-  data,
-}: BaseEpisodeListItemProps) => {
+export const BaseEpisodeListItem = <T extends WithSeason<EpisodeMeta>>({
+  showImage = true,
+  isLoading,
+  onClick,
+  renderIcon,
+  episode,
+  disabled,
+}: BaseEpisodeListItemProps<T>) => {
   const { t } = useTranslation()
-  const { danmaku, isLoading } = data
-  const { meta, title, tooltip } = getRenderData(data)
 
-  const { mutate, isPending: isMutating } = useMutation({
-    mutationFn: mutateDanmaku,
-  })
+  const isLite = isEpisodeLite(episode)
+  const episodeLite = isLite ? episode : undefined
 
   const getIcon = () => {
-    if (!showIcon) return null
-    if (isLoading || isMutating) return <CircularProgress size={24} />
-    if (danmaku) return <Update />
+    if (isLoading) return <CircularProgress size={24} />
+    if (episodeLite) return <Update />
     return <Download />
   }
 
   return (
     <ListItem disablePadding>
-      <ListItemButton onClick={() => mutate(meta)} disabled={isLoading}>
-        {meta.imageUrl && (
+      <ListItemButton
+        onClick={() => onClick(episode)}
+        disabled={isLoading || disabled}
+      >
+        {showImage && episode.imageUrl && (
           <Box width={40} mr={2} flexShrink={0}>
             <Suspense fallback={<Skeleton width={40} height={40} />}>
-              <CoverImage src={meta.imageUrl} widthRatio={1} heightRatio={1} />
+              <CoverImage
+                src={episode.imageUrl}
+                widthRatio={1}
+                heightRatio={1}
+              />
             </Suspense>
           </Box>
         )}
-        <Tooltip title={tooltip} enterDelay={500} placement="top">
+        <Tooltip title={episode.title} enterDelay={500} placement="top">
           <ListItemText
-            primary={title}
+            primary={episode.title}
             slotProps={{
               primary: {
                 whiteSpace: 'nowrap',
@@ -78,20 +81,24 @@ export const BaseEpisodeListItem = ({
               },
             }}
             secondary={
-              danmaku
-                ? `${new Date(danmaku.timeUpdated).toLocaleDateString()} -  ${t(
+              episodeLite
+                ? `${new Date(episodeLite.timeUpdated).toLocaleDateString()} -  ${t(
                     'danmaku.commentCounted',
                     {
-                      count: danmaku.commentCount,
+                      count: episodeLite.commentCount,
                     }
                   )}`
                 : null
             }
           />
         </Tooltip>
-        <ListItemIcon sx={{ justifyContent: 'flex-end' }}>
-          {getIcon()}
-        </ListItemIcon>
+        {renderIcon ? (
+          renderIcon()
+        ) : (
+          <ListItemIcon sx={{ justifyContent: 'flex-end' }}>
+            {getIcon()}
+          </ListItemIcon>
+        )}
       </ListItemButton>
     </ListItem>
   )
