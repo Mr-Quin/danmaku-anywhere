@@ -52,7 +52,7 @@ export default defineConfig({
       },
     },
     outDir: `./dev/${BROWSER}`,
-    minify: IS_FIREFOX, // don't minify for Firefox, so they can review the code
+    minify: !IS_FIREFOX, // don't minify for Firefox, so they can review the code
     // the minimum to support top-level await
     target: ['es2022', 'edge89', 'firefox89', 'chrome89', 'safari15'],
   },
