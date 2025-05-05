@@ -66,6 +66,7 @@ export const SearchForm = ({
           onChange={(e) => handleKeywordChange(e.target.value)}
           fullWidth
           required
+          autoFocus
           {...textFieldProps}
           {...withStopPropagation()}
         />

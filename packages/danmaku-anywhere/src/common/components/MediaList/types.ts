@@ -8,7 +8,7 @@ import type { ReactNode } from 'react'
 
 export type RenderEpisodeData = {
   episode: WithSeason<EpisodeMeta>
-  danmaku: EpisodeLiteV4 | null
+  danmaku: WithSeason<EpisodeLiteV4> | null
   isLoading: boolean
 }
 

@@ -59,6 +59,17 @@ const CardCornerInfo = styled('div', {
   return styles
 })
 
+const Logo = styled('div')(({ theme }) => {
+  return {
+    position: 'absolute',
+    backgroundColor: alpha(theme.palette.background.paper, 0.8),
+    top: 0,
+    left: 0,
+    width: 24,
+    height: 24,
+  }
+})
+
 type SeasonCardProps = {
   season: SeasonV1
   onClick: HandleSeasonClick
@@ -79,7 +90,9 @@ export const SeasonCard = ({ season, onClick }: SeasonCardProps) => {
               {season.year}
             </CardCornerInfo>
           )}
-          <ProviderLogo provider={season.provider} />
+          <Logo>
+            <ProviderLogo provider={season.provider} />
+          </Logo>
         </CoverImage>
         <CardContent sx={{ py: 1.5, px: 1 }}>
           <Tooltip title={season.title} enterDelay={500} placement="top">
