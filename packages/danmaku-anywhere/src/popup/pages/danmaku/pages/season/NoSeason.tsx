@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useStore } from '@/popup/store'
 
-export const NoAnime = () => {
+export const NoSeason = () => {
   const { t } = useTranslation()
   const { animeFilter } = useStore.use.danmaku()
 

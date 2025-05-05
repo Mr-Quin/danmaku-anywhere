@@ -4,6 +4,7 @@ import {
   CoverImageSkeleton,
 } from '@/common/components/MediaList/components/CoverImage'
 import { HandleSeasonClick } from '@/common/components/MediaList/types'
+import { ProviderLogo } from '@/common/components/ProviderLogo'
 import {
   CSSProperties,
   Card,
@@ -26,7 +27,7 @@ const CardCornerInfo = styled('div', {
   const styles: CSSProperties = {
     position: 'absolute',
     backgroundColor: alpha(theme.palette.background.paper, 0.8),
-    padding: theme.spacing(1, 1),
+    padding: theme.spacing(1),
     color: theme.palette.text.primary,
     boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
   }
@@ -74,8 +75,11 @@ export const SeasonCard = ({ season, onClick }: SeasonCardProps) => {
             </CardCornerInfo>
           )}
           {season.year && (
-            <CardCornerInfo position="top-left">{season.year}</CardCornerInfo>
+            <CardCornerInfo position="bottom-left">
+              {season.year}
+            </CardCornerInfo>
           )}
+          <ProviderLogo provider={season.provider} />
         </CoverImage>
         <CardContent sx={{ py: 1.5, px: 1 }}>
           <Tooltip title={season.title} enterDelay={500} placement="top">
@@ -93,7 +97,7 @@ export const SeasonCardSkeleton = () => {
   return (
     <Card>
       <CoverImageSkeleton />
-      <CardContent>
+      <CardContent sx={{ py: 1.5, px: 1 }}>
         <Typography component="div">
           <Skeleton />
         </Typography>

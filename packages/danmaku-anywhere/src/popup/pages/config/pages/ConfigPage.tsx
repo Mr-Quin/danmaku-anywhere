@@ -28,10 +28,15 @@ export const ConfigPage = () => {
     },
     queryKey: controlQueryKeys.activeTab(),
     select: (data) => {
-      // convert url to a pattern
-      // https://www.example.com/abc -> https://www.example.com/*
-      const url = new URL(data)
-      return url.origin + '/*'
+      try {
+        // try to convert url to a pattern
+        // https://www.example.com/abc -> https://www.example.com/*
+        const url = new URL(data)
+        return url.origin + '/*'
+      } catch (e) {
+        // fallback to empty string if the url is invalid
+        return ''
+      }
     },
   })
 

@@ -10,9 +10,10 @@ import { useTranslation } from 'react-i18next'
 
 import { Center } from '@/common/components/Center'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
-import { SearchResultList } from '@/common/components/MediaList/SearchResultList'
+import { SeasonSearchResult } from '@/common/components/MediaList/SeasonSearchResult'
+import { SeasonSearchTabs } from '@/common/components/MediaList/SeasonSearchTabs'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
-import { mediaQueryKeys } from '@/common/queries/queryKeys'
+import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { PopupSearchForm } from '@/popup/pages/search/components/PopupSearchForm'
 import { useStore } from '@/popup/store'
 import { Outlet, useNavigate } from 'react-router'
@@ -44,7 +45,7 @@ export const SearchTab = () => {
 
   const isSearching =
     useIsFetching({
-      queryKey: mediaQueryKeys.search(),
+      queryKey: seasonQueryKeys.search(),
     }) > 0
 
   const handleSearch = (params: SearchEpisodesQuery) => {
@@ -83,17 +84,22 @@ export const SearchTab = () => {
         fallbackRender={({ error }) => <ErrorMessage message={error.message} />}
       >
         {searchParams && (
-          <SearchResultList
-            providers={enabledProviders}
-            pending={pending}
-            searchParams={searchParams!}
-            selectedTab={search.tab}
-            onTabChange={search.setTab}
-            onSeasonClick={(season) => {
-              search.setSeason(season)
-              navigate('season')
-            }}
-          />
+          <>
+            <SeasonSearchTabs
+              providers={enabledProviders}
+              selectedTab={search.tab}
+              onTabChange={search.setTab}
+            />
+            <SeasonSearchResult
+              searchParams={searchParams}
+              provider={search.tab}
+              onSeasonClick={(season) => {
+                search.setSeason(season)
+                navigate('season')
+              }}
+              stale={pending}
+            />
+          </>
         )}
         <Outlet />
       </ErrorBoundary>

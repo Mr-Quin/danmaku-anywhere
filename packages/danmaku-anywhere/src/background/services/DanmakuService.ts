@@ -1,6 +1,6 @@
 import { SeasonService } from '@/background/services/SeasonService'
 import { Logger } from '@/common/Logger'
-import type { QueryEpisodeFilter } from '@/common/danmaku/dto'
+import type { EpisodeQueryFilter } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import {
   CustomEpisodeInsertV4,
@@ -145,7 +145,7 @@ export class DanmakuService {
   }
 
   async getOne(
-    filter: QueryEpisodeFilter
+    filter: EpisodeQueryFilter
   ): Promise<WithSeason<EpisodeV4> | undefined> {
     const res = await this.ddpTable.get(filter)
 
@@ -157,7 +157,7 @@ export class DanmakuService {
   }
 
   async getOneLite(
-    filter: QueryEpisodeFilter
+    filter: EpisodeQueryFilter
   ): Promise<WithSeason<EpisodeLiteV4> | undefined> {
     const res = await this.ddpTable.get(filter)
 
@@ -175,12 +175,16 @@ export class DanmakuService {
     return Promise.all(filtered.map(this.joinSeason))
   }
 
-  async filter(filter: QueryEpisodeFilter): Promise<WithSeason<EpisodeV4>[]> {
+  async filter(filter: EpisodeQueryFilter): Promise<WithSeason<EpisodeV4>[]> {
     const res = await this.ddpTable.where(filter).toArray()
-    return Promise.all(res.map(this.joinSeason))
+    return Promise.all(
+      res
+        .toSorted((a, b) => a.indexedId.localeCompare(b.indexedId))
+        .map(this.joinSeason)
+    )
   }
 
-  async delete(filter: QueryEpisodeFilter) {
+  async delete(filter: EpisodeQueryFilter) {
     return this.ddpTable.where(filter).delete()
   }
 

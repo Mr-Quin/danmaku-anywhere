@@ -1,10 +1,13 @@
+import { SeasonQueryFilter } from '@/common/anime/dto'
 import { SeasonInsertV1, SeasonV1 } from '@/common/anime/types/v1/schema'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { db } from '@/common/db/db'
 import { DbEntity } from '@/common/types/dbEntity'
 
 export class SeasonService {
-  constructor(private table: typeof db.season) {}
+  constructor(
+    private table: typeof db.season,
+    private episodeTable: typeof db.episode
+  ) {}
 
   async bulkUpsert<T extends SeasonInsertV1>(
     data: T[]
@@ -54,37 +57,26 @@ export class SeasonService {
     return result
   }
 
-  async mustGetByProviderId<T extends DanmakuSourceType>(
-    provider: T,
-    seasonId: string
-  ): Promise<
-    Extract<
-      SeasonV1,
-      {
-        provider: T
+  async getAll() {
+    const seasons: SeasonV1[] = []
+
+    const episodeTable = this.episodeTable
+
+    const allSeasons = await this.table.toArray()
+
+    for (const season of allSeasons) {
+      const episodeCount = await episodeTable
+        .where({ seasonId: season.id })
+        .count()
+      if (episodeCount > 0) {
+        seasons.push(season)
       }
-    >
-  > {
-    const results = await this.table
-      .where({ provider, indexedId: seasonId })
-      .toArray()
-    if (results.length < 1) {
-      throw new Error(`No season found for ${provider} ${seasonId}`)
     }
-    if (results.length > 1) {
-      throw new Error(
-        `Multiple seasons found for ${provider} ${seasonId}, this is likely a bug.`
-      )
-    }
-    return results[0] as Extract<
-      SeasonV1,
-      {
-        provider: T
-      }
-    >
+
+    return seasons
   }
 
-  async getAll() {
-    return this.table.toArray()
+  async filter(filter: SeasonQueryFilter) {
+    return this.table.where(filter).toArray()
   }
 }

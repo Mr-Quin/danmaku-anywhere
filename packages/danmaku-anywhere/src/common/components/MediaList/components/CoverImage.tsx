@@ -1,8 +1,8 @@
-import { mediaQueryKeys } from '@/common/queries/queryKeys'
-import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { SuspenseImage } from '@/common/components/image/SuspenseImage'
+import { useImageSuspense } from '@/common/components/image/useImageSuspense'
 import { CardMedia, Skeleton, styled } from '@mui/material'
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { ReactNode } from 'react'
+import { ReactNode, Suspense } from 'react'
+import { ErrorBoundary } from 'react-error-boundary'
 
 type ImageAspectRatioProps = {
   widthRatio?: number
@@ -57,37 +57,42 @@ type CoverImageProps = {
   children?: ReactNode
 } & ImageAspectRatioProps
 
-export const CoverImage = ({
-  src,
-  alt,
-  heightRatio,
-  widthRatio,
-  children,
-}: CoverImageProps) => {
-  const image = useSuspenseQuery({
-    queryKey: mediaQueryKeys.image(src ?? ''),
-    queryFn: async () => {
-      if (!src) return null
-      const res = await chromeRpcClient.fetchImage(src, { silent: true })
-      return res.data
-    },
-    staleTime: Infinity,
-    retry: false,
-  })
+const CoverImageLoader = (props: CoverImageProps) => {
+  const image = useImageSuspense(props.src ?? '')
 
-  if (!image.data) return null
+  if (!image.data)
+    return (
+      <StackingContext>
+        <SuspenseImage src="/cover_fallback.png" />
+      </StackingContext>
+    )
 
   return (
+    <StackingContext>
+      <BackgroundImage src={image.data} />
+      <CardMedia
+        component="img"
+        src={image.data}
+        alt={props.alt}
+        sx={{ maxHeight: '100%', position: 'relative' }}
+      />
+    </StackingContext>
+  )
+}
+
+export const CoverImage = ({
+  widthRatio,
+  heightRatio,
+  children,
+  ...rest
+}: CoverImageProps) => {
+  return (
     <ImageAspectRatio widthRatio={widthRatio} heightRatio={heightRatio}>
-      <StackingContext>
-        <BackgroundImage src={image.data} />
-        <CardMedia
-          component="img"
-          src={image.data}
-          alt={alt}
-          sx={{ maxHeight: '100%', position: 'relative' }}
-        />
-      </StackingContext>
+      <ErrorBoundary fallback={<div>Failed to load image</div>}>
+        <Suspense fallback={<Skeleton width={'100%'} height={600} />}>
+          <CoverImageLoader {...rest} />
+        </Suspense>
+      </ErrorBoundary>
       {children}
     </ImageAspectRatio>
   )

@@ -7,6 +7,7 @@ import type { RPCDef } from '../../rpc/types'
 import type {
   MatchEpisodeInput,
   MatchEpisodeResult,
+  SeasonQueryFilter,
   SeasonSearchParams,
 } from '@/common/anime/dto'
 import {
@@ -15,7 +16,7 @@ import {
   SeasonV1,
   TencentSeasonV1,
 } from '@/common/anime/types/v1/schema'
-import type { DanmakuFetchDto, QueryEpisodeFilter } from '@/common/danmaku/dto'
+import type { DanmakuFetchDto, EpisodeQueryFilter } from '@/common/danmaku/dto'
 import {
   BiliBiliMeta,
   CustomEpisodeInsertV4,
@@ -54,6 +55,8 @@ type SeasonMethods = {
   seasonSearchDanDanPlay: RPCDef<SeasonSearchParams, DanDanPlaySeasonV1[]>
   seasonSearchBilibili: RPCDef<SeasonSearchParams, BilibiliSeasonV1[]>
   seasonSearchTencent: RPCDef<SeasonSearchParams, TencentSeasonV1[]>
+  seasonFilter: RPCDef<SeasonQueryFilter, SeasonV1[]>
+  seasonGetAll: RPCDef<void, SeasonV1[]>
   episodeSearchDanDanPlay: RPCDef<number, WithSeason<DanDanPlayMeta>[]>
   episodeSearchBilibili: RPCDef<number, WithSeason<BiliBiliMeta>[]>
   episodeSearchTencent: RPCDef<number, WithSeason<TencentMeta>[]>
@@ -61,22 +64,21 @@ type SeasonMethods = {
   bilibiliSetCookies: RPCDef<void, void>
   bilibiliGetLoginStatus: RPCDef<void, BilibiliUserInfo>
   tencentTestCookies: RPCDef<void, boolean>
-  seasonGetAll: RPCDef<void, SeasonV1[]>
   fetchImage: RPCDef<string, string>
 }
 
 type EpisodeMethods = {
   episodeGetAll: RPCDef<void, WithSeason<EpisodeV4>[]>
   episodeGetAllLite: RPCDef<void, WithSeason<EpisodeLiteV4>[]>
-  episodeGetOne: RPCDef<QueryEpisodeFilter, WithSeason<EpisodeV4> | null>
+  episodeGetOne: RPCDef<EpisodeQueryFilter, WithSeason<EpisodeV4> | null>
   episodeGetOneLite: RPCDef<
-    QueryEpisodeFilter,
+    EpisodeQueryFilter,
     WithSeason<EpisodeLiteV4> | null
   >
   episodeGetMany: RPCDef<number[], WithSeason<EpisodeV4>[]>
-  episodeFilter: RPCDef<QueryEpisodeFilter, WithSeason<EpisodeV4>[]>
+  episodeFilter: RPCDef<EpisodeQueryFilter, WithSeason<EpisodeV4>[]>
   episodeFetch: RPCDef<DanmakuFetchDto, WithSeason<EpisodeV4>>
-  episodeDelete: RPCDef<QueryEpisodeFilter, number>
+  episodeDelete: RPCDef<EpisodeQueryFilter, number>
   episodeDeleteAll: RPCDef<void, void>
   danmakuCreateCustom: RPCDef<CustomEpisodeInsertV4[], CustomEpisodeV4[]>
   danmakuImport: RPCDef<EpisodeInsertV4[], void>
