@@ -265,8 +265,8 @@ export class DanmakuRenderer {
     this.manager.format()
     if (!this.manager.isFreeze()) {
       // Freezing and unfreezing the manager to force danmaku position to be recalculated
-    this.manager.freeze()
-    this.manager.unfreeze()
+      this.manager.freeze()
+      this.manager.unfreeze()
     }
   }
 }
