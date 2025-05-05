@@ -13,6 +13,12 @@ import type { MountConfigInput } from '@/common/options/mountConfig/schema'
 import { createSelectors } from '@/common/utils/createSelectors'
 
 interface StoreState {
+  mount: {
+    filter: string
+    setFilter: (filter: string) => void
+    isMounted: boolean
+    setIsMounted: (isMounted: boolean) => void
+  }
   search: {
     searchParams?: SearchEpisodesQuery
     setSearchParams: (params?: SearchEpisodesQuery) => void
@@ -45,6 +51,20 @@ interface StoreState {
 
 const useStoreBase = create<StoreState>()(
   immer((set) => ({
+    mount: {
+      filter: '',
+      setFilter: (filter: string) => {
+        set((state) => {
+          state.mount.filter = filter
+        })
+      },
+      isMounted: false,
+      setIsMounted: (isMounted: boolean) => {
+        set((state) => {
+          state.mount.isMounted = isMounted
+        })
+      },
+    },
     search: {
       searchParams: undefined,
       setSearchParams: (params) => {

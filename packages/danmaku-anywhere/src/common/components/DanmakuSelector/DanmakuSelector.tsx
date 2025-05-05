@@ -1,134 +1,181 @@
-import type { createFilterOptions } from '@mui/material'
-import { Autocomplete, CircularProgress, TextField } from '@mui/material'
+import {
+  Box,
+  CircularProgress,
+  IconButton,
+  List,
+  ListItemIcon,
+  ListSubheader,
+  Stack,
+} from '@mui/material'
 import { useMemo } from 'react'
-import { useTranslation } from 'react-i18next'
 
-import { EpisodeOption } from './EpisodeOption'
-
-import { ListboxComponent } from '@/common/components/DanmakuSelector/ListboxComponent'
+import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
+import { SeasonV1 } from '@/common/anime/types/v1/schema'
+import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
+import { ProviderLogo } from '@/common/components/ProviderLogo'
 import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useAllDanmakuSuspense'
-import { EpisodeLiteV4, WithSeason } from '@/common/danmaku/types/v4/schema'
+import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
+import {
+  EpisodeLiteV4,
+  EpisodeMeta,
+  WithSeason,
+} from '@/common/danmaku/types/v4/schema'
 import { matchWithPinyin } from '@/common/utils/utils'
-import { withStopPropagation } from '@/common/utils/withStopPropagation'
+import { Refresh } from '@mui/icons-material'
 
-type SelectableEpisode = WithSeason<EpisodeLiteV4>
+type ListItemProps = {
+  item: FlattenedOption
+  onSelect: (value: SelectableEpisode) => void
+  disabled?: boolean
+}
+const ListItem = ({ item, onSelect, disabled }: ListItemProps) => {
+  const { mutateAsync: load, isPending } = useFetchDanmaku()
 
-type FilterOptions = ReturnType<typeof createFilterOptions<SelectableEpisode>>
+  const handleFetchDanmaku = async (meta: WithSeason<EpisodeMeta>) => {
+    return await load({
+      meta,
+      options: {
+        forceUpdate: true,
+      },
+    })
+  }
+
+  if (item.kind === 'season') {
+    return (
+      <ListSubheader title={item.season.title}>
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          <Box
+            component="span"
+            overflow="hidden"
+            textOverflow="ellipsis"
+            whiteSpace="nowrap"
+          >
+            {item.season.title}
+          </Box>
+          <ProviderLogo provider={item.season.provider} />
+        </Stack>
+      </ListSubheader>
+    )
+  }
+
+  return (
+    <BaseEpisodeListItem
+      showImage={false}
+      disabled={disabled}
+      episode={item.episode}
+      onClick={(meta) => {
+        onSelect(meta)
+      }}
+      renderIcon={() => {
+        return (
+          <ListItemIcon sx={{ justifyContent: 'flex-end' }}>
+            {isPending ? (
+              <CircularProgress size={24} />
+            ) : (
+              <IconButton onClick={() => handleFetchDanmaku(item.episode)}>
+                <Refresh />
+              </IconButton>
+            )}
+          </ListItemIcon>
+        )
+      }}
+    />
+  )
+}
 
 const stringifyDanmakuMeta = (danmakuLite: SelectableEpisode) => {
   return `${danmakuLite.season.title} ${danmakuLite.title}`
 }
 
-const filterOptions: FilterOptions = (options, { inputValue }) => {
+const filterOptions = (options: SelectableEpisode[], filter: string) => {
+  if (!filter) return options
   return options.filter((option) => {
     return matchWithPinyin(
       stringifyDanmakuMeta(option),
-      inputValue.toLocaleLowerCase()
+      filter.toLocaleLowerCase()
     )
   })
 }
 
-const isOptionEqualToValue = (
-  option: SelectableEpisode,
-  value: SelectableEpisode
-) => {
-  if (option.provider !== value.provider) return false
-  return option.indexedId === value.indexedId
-}
+type SelectableEpisode = WithSeason<EpisodeLiteV4>
+
+type FlattenedOption =
+  | {
+      kind: 'season'
+      season: SeasonV1
+    }
+  | {
+      kind: 'episode'
+      episode: WithSeason<EpisodeLiteV4>
+    }
 
 interface DanmakuSelectorProps {
-  value: SelectableEpisode | null
-  onChange: (value: SelectableEpisode | null) => void
-  height?: number
+  filter: string
+  onSelect: (value: SelectableEpisode) => void
+  disabled?: boolean
 }
 
-const groupBy = (option: SelectableEpisode) =>
-  `${option.provider}::${option.title}`
-
 export const DanmakuSelector = ({
-  value,
-  onChange,
-  height,
+  filter,
+  onSelect,
+  disabled,
 }: DanmakuSelectorProps) => {
-  const { t } = useTranslation()
+  const { data: episodes } = useAllDanmakuSuspense()
+  const { data: seasons } = useGetAllSeasonsSuspense()
 
-  const { data: options, isFetching } = useAllDanmakuSuspense()
+  const flattened = useMemo(() => {
+    const filteredEpisodes = filterOptions(episodes, filter)
+    const groupedBySeason = Object.groupBy(
+      filteredEpisodes,
+      (item) => item.seasonId
+    )
 
-  const sortedOptions = useMemo(() => {
-    return options.sort((a, b) => {
-      const aGroup = groupBy(a)
-      const bGroup = groupBy(b)
+    const flattened: FlattenedOption[] = []
 
-      if (aGroup === bGroup) {
-        if (a.indexedId !== undefined && b.indexedId !== undefined) {
-          if (a.indexedId === b.indexedId) {
-            return 0
-          } else {
-            return a.indexedId > b.indexedId ? 1 : -1
-          }
-        }
-        return a.title.localeCompare(b.title)
-      }
+    Object.entries(groupedBySeason).forEach(([seasonId, episodeGroup]) => {
+      const season = seasons.find((season) => season.id.toString() === seasonId)
 
-      return aGroup.localeCompare(bGroup)
+      if (!season) return
+
+      flattened.push({
+        kind: 'season',
+        season: season,
+      })
+      episodeGroup?.forEach((episode) => {
+        flattened.push({
+          kind: 'episode',
+          episode: episode,
+        })
+      })
     })
-  }, [options])
+
+    return flattened
+  }, [episodes, filter])
 
   return (
-    <Autocomplete
-      value={value} // value must be null when empty so that the component is "controlled"
-      loading={isFetching}
-      options={sortedOptions}
-      filterOptions={filterOptions}
-      isOptionEqualToValue={isOptionEqualToValue}
-      onChange={(_e, value) => {
-        onChange(value ?? null)
-      }}
-      renderOption={(props, option) => {
-        return (
-          <EpisodeOption
-            {...props}
-            key={option.id}
-            option={sortedOptions.find((o) => isOptionEqualToValue(o, option))!}
-            isLoading={isFetching}
-          />
-        )
-      }}
-      getOptionLabel={(option) => option.title}
-      getOptionKey={(option) => option.id}
-      groupBy={groupBy}
-      renderInput={(params) => {
-        return (
-          <TextField
-            {...params}
-            label={value ? value.season.title : t('anime.episode.select')}
-            slotProps={{
-              input: {
-                ...params.InputProps,
-                ...withStopPropagation(),
-                endAdornment: (
-                  <>
-                    {isFetching ? (
-                      <CircularProgress color="inherit" size={20} />
-                    ) : null}
-                    {params.InputProps.endAdornment}
-                  </>
-                ),
-              },
-            }}
-          />
-        )
-      }}
-      slotProps={{
-        listbox: {
-          style: {
-            height,
-          },
-          component: ListboxComponent,
-        },
-      }}
-      renderGroup={(params) => params as any}
-      disablePortal
-    />
+    <Box height="100%" overflow="auto">
+      <List disablePadding>
+        {flattened.map((item) => {
+          const key =
+            item.kind === 'season'
+              ? `season${item.season.id}`
+              : `episode${item.episode.id}`
+
+          return (
+            <ListItem
+              item={item}
+              onSelect={onSelect}
+              disabled={disabled}
+              key={key}
+            />
+          )
+        })}
+      </List>
+    </Box>
   )
 }
