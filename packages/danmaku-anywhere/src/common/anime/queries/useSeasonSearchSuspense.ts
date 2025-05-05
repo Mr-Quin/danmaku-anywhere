@@ -4,18 +4,32 @@ import { useTranslation } from 'react-i18next'
 import { Logger } from '@/common/Logger'
 import type { SeasonSearchParams } from '@/common/anime/dto'
 import { SeasonV1 } from '@/common/anime/types/v1/schema'
-import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
-import { mediaQueryKeys } from '@/common/queries/queryKeys'
+import {
+  DanmakuSourceType,
+  RemoteDanmakuSourceType,
+} from '@/common/danmaku/enums'
+import { seasonQueryKeys } from '@/common/queries/queryKeys'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
+
+const methodMap: Record<
+  RemoteDanmakuSourceType,
+  (params: SeasonSearchParams) => Promise<{ data: SeasonV1[] }>
+> = {
+  [DanmakuSourceType.DanDanPlay]: chromeRpcClient.seasonSearchDanDanPlay,
+  [DanmakuSourceType.Bilibili]: chromeRpcClient.seasonSearchBilibili,
+  [DanmakuSourceType.Tencent]: chromeRpcClient.seasonSearchTencent,
+}
 
 export const useSeasonSearchSuspense = <T extends SeasonV1>(
   provider: RemoteDanmakuSourceType,
-  params: SeasonSearchParams,
-  getData: (params: SeasonSearchParams) => Promise<{ data: T[] }>
+  keyword: string
 ) => {
   const { t } = useTranslation()
 
+  const params = { keyword }
+
   return useSuspenseQuery({
-    queryKey: mediaQueryKeys.search(provider, params),
+    queryKey: seasonQueryKeys.search(provider, params),
     queryFn: async (): Promise<
       | {
           success: true
@@ -32,7 +46,7 @@ export const useSeasonSearchSuspense = <T extends SeasonV1>(
         }
     > => {
       try {
-        const data = await getData(params)
+        const data = await methodMap[provider](params)
         return {
           success: true,
           data: data.data,

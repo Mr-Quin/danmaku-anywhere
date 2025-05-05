@@ -1,16 +1,12 @@
 import { SeasonV1 } from '@/common/anime/types/v1/schema'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
-import { QueryEpisodeFilter } from '@/common/danmaku/dto'
-import {
-  DanmakuSourceType,
-  type RemoteDanmakuSourceType,
-} from '@/common/danmaku/enums'
-import { EpisodeMeta, WithSeason } from '@/common/danmaku/types/v4/schema'
-import { danmakuQueryKeys, mediaQueryKeys } from '@/common/queries/queryKeys'
+import { EpisodeQueryFilter } from '@/common/danmaku/dto'
+import { useEpisodeSearch } from '@/common/danmaku/queries/useEpisodeSearch'
+import { episodeQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { List, ListItem, ListItemText, Skeleton } from '@mui/material'
-import { useSuspenseQueries, useSuspenseQuery } from '@tanstack/react-query'
+import { useSuspenseQueries } from '@tanstack/react-query'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
@@ -42,35 +38,19 @@ const FallbackEpisodeList = () => {
   )
 }
 
-const queryFnMap: Record<
-  RemoteDanmakuSourceType,
-  (seasonId: number) => Promise<{ data: WithSeason<EpisodeMeta>[] }>
-> = {
-  [DanmakuSourceType.DanDanPlay]: chromeRpcClient.episodeSearchDanDanPlay,
-  [DanmakuSourceType.Bilibili]: chromeRpcClient.episodeSearchBilibili,
-  [DanmakuSourceType.Tencent]: chromeRpcClient.episodeSearchTencent,
-}
-
 const SeasonEpisodeListInner = ({
   season,
   renderEpisode,
 }: SeasonListItemProps) => {
-  const { data: episodes } = useSuspenseQuery({
-    queryKey: mediaQueryKeys.episodes(season.provider, season.id),
-    queryFn: () => queryFnMap[season.provider](season.id),
-    select: (data) => data.data,
-    staleTime: Infinity,
-    retry: false,
-  })
-
+  const { data: episodes } = useEpisodeSearch(season.provider, season.id)
   const danmakuResults = useSuspenseQueries({
     queries: episodes.map((episode) => {
       const params = {
         provider: episode.provider,
         indexedId: episode.indexedId,
-      } satisfies QueryEpisodeFilter
+      } satisfies EpisodeQueryFilter
       return {
-        queryKey: danmakuQueryKeys.one(params),
+        queryKey: episodeQueryKeys.one(params),
         queryFn: async () => {
           const res = await chromeRpcClient.episodeGetOneLite(params)
           return res.data

@@ -3,9 +3,9 @@ import { Navigate, createHashRouter } from 'react-router'
 import { FilterPageWithRouter } from '@/content/common/DanmakuStyles/FilterPage'
 import { ConfigPage } from '../pages/config/pages/ConfigPage'
 import { MountConfigEditor } from '../pages/config/pages/MountConfigEditor'
-import { AnimePage } from '../pages/danmaku/pages/AnimePage'
-import { DanmakuPage } from '../pages/danmaku/pages/DanmakuPage'
-import { EpisodePage } from '../pages/danmaku/pages/EpisodePage'
+import { CommentPage } from '../pages/danmaku/pages/comments/CommentPage'
+import { EpisodePage } from '../pages/danmaku/pages/episode/EpisodePage'
+import { SeasonPage } from '../pages/danmaku/pages/season/SeasonPage'
 import { Home } from '../pages/home/Home'
 import { IntegrationPolicy } from '../pages/integrationPolicy/pages/IntegrationPolicy'
 import { IntegrationPolicyEditor } from '../pages/integrationPolicy/pages/IntegrationPolicyEditor'
@@ -75,15 +75,15 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
         children: [
           {
             index: true,
-            Component: AnimePage,
+            Component: SeasonPage,
           },
           {
-            path: 'anime',
+            path: ':seasonId',
             children: [
               { index: true, Component: EpisodePage },
               {
-                path: 'comment',
-                Component: DanmakuPage,
+                path: ':episodeId',
+                Component: CommentPage,
               },
             ],
           },

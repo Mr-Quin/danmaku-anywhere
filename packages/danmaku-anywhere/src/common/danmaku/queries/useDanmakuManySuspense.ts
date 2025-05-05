@@ -1,16 +1,16 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 
+import type { EpisodeQueryFilter } from '@/common/danmaku/dto'
 import { episodeQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
-export const useAllDanmakuSuspense = () => {
+export const useDanmakuManySuspense = (data: EpisodeQueryFilter) => {
   const query = useSuspenseQuery({
-    queryKey: episodeQueryKeys.all(),
+    queryKey: episodeQueryKeys.many(data),
     queryFn: async () => {
-      return chromeRpcClient.episodeGetAllLite()
+      return await chromeRpcClient.episodeFilter(data)
     },
-    select: (data) => data.data,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    select: (res) => res.data,
   })
 
   return query

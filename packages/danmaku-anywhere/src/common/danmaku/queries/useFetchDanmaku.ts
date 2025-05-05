@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
-import { danmakuQueryKeys } from '@/common/queries/queryKeys'
+import { episodeQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 /**
@@ -12,7 +12,7 @@ import { chromeRpcClient } from '@/common/rpcClient/background/client'
  */
 export const useFetchDanmaku = () => {
   const mutation = useMutation({
-    mutationKey: danmakuQueryKeys.all(),
+    mutationKey: episodeQueryKeys.all(),
     mutationFn: async (data: DanmakuFetchDto) => {
       const res = await chromeRpcClient.episodeFetch(data)
       return res.data

@@ -17,7 +17,7 @@ import { setupScripting } from './scripting/setupScripting'
 import { setupOptions } from './syncOptions/setupOptions'
 
 // dependency injection
-const seasonService = new SeasonService(db.season)
+const seasonService = new SeasonService(db.season, db.episode)
 const danmakuService = new DanmakuService(
   seasonService,
   db.episode,

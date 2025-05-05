@@ -29,7 +29,13 @@ export const TabToolbar = ({
         {showBackButton && backButton}
         {leftElement}
         {title && (
-          <Typography variant="h2" fontSize={18} sx={{ flexGrow: 1 }} noWrap>
+          <Typography
+            variant="h2"
+            fontSize={18}
+            sx={{ flexGrow: 1 }}
+            noWrap
+            title={title}
+          >
             {title}
           </Typography>
         )}
