@@ -51,14 +51,6 @@ export class DanmakuService {
     }
   }
 
-  async bulkAddCustom(data: CustomEpisodeInsert[]): Promise<CustomEpisode[]> {
-    const results: CustomEpisode[] = []
-    for (const item of data) {
-      results.push(await this.addCustom(item))
-    }
-    return results
-  }
-
   async importCustom(
     importData: CustomDanmakuImportData[]
   ): Promise<CustomDanmakuImportResult> {
@@ -72,7 +64,7 @@ export class DanmakuService {
       errors.push({
         title: importData[i].title,
         index: i,
-        error: err,
+        error: err.message,
       })
     })
 
@@ -91,7 +83,7 @@ export class DanmakuService {
         errors.push({
           title: originalData.title,
           index: i,
-          error: e as Error,
+          error: (e as Error).message,
         })
       }
     }

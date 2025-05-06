@@ -22,7 +22,7 @@ export const ConfigPage = () => {
       try {
         const res = await chromeRpcClient.getActiveTabUrl()
         return res.data
-      } catch {
+      } catch (_) {
         return ''
       }
     },
@@ -33,7 +33,7 @@ export const ConfigPage = () => {
         // https://www.example.com/abc -> https://www.example.com/*
         const url = new URL(data)
         return url.origin + '/*'
-      } catch (e) {
+      } catch (_) {
         // fallback to empty string if the url is invalid
         return ''
       }
