@@ -20,6 +20,7 @@ import { ThemeOptions } from '../pages/options/pages/theme/ThemeOptions'
 import { SearchPage } from '../pages/search/SearchPage'
 import { StylesPage } from '../pages/styles/StylesPage'
 
+import { ImportPage } from '@/popup/pages/import/ImportPage'
 import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
 import { SeasonDetailsPage } from '@/popup/pages/search/seasonDetails/SeasonDetailsPage'
 
@@ -71,6 +72,10 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
         ],
       },
       {
+        path: 'import',
+        Component: ImportPage,
+      },
+      {
         path: 'danmaku',
         children: [
           {
@@ -87,10 +92,6 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
               },
             ],
           },
-          // {
-          //   path: 'upload',
-          //   Component: ImportPage,
-          // },
         ],
       },
       {

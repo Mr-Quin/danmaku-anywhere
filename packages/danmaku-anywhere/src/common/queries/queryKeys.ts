@@ -15,8 +15,11 @@ export const storageQueryKeys = {
   },
 }
 
+export const imageQueryKeys = {
+  image: (src: string) => [{ scope: 'image', src }] as const,
+}
+
 export const seasonQueryKeys = {
-  image: (src: string) => [{ scope: 'season', kind: 'image', src }] as const,
   all: () => [{ scope: 'season' }] as const,
   many: (data: SeasonQueryFilter) =>
     [{ scope: 'season', kind: 'getMany', ...data }] as const,
@@ -34,6 +37,12 @@ export const episodeQueryKeys = {
     [{ scope: 'episode', kind: 'getOne', ...params }] as const,
   many: (params: EpisodeQueryFilter) =>
     [{ scope: 'episode', kind: 'getMany', ...params }] as const,
+}
+
+export const customEpisodeQueryKeys = {
+  all: () => [{ scope: 'customEpisode' }] as const,
+  one: (params: EpisodeQueryFilter) =>
+    [{ scope: 'customEpisode', kind: 'getOne', ...params }] as const,
 }
 
 export const sourceQueryKeys = {

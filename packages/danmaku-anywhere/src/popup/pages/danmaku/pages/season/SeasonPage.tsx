@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
 import { ExportAllDanmakuButton } from '../../components/ExportAllDanmakuButton'
-import { UploadDanmaku } from '../../components/UploadDanmaku'
 import { SeasonFilter } from './SeasonFilter'
 import { SeasonList } from './SeasonList'
 import { TypeSelector } from './TypeSelector'
@@ -21,7 +20,6 @@ export const SeasonPage = () => {
         <SeasonFilter />
         <TypeSelector />
         <DrilldownMenu ButtonProps={{ edge: 'end' }}>
-          <UploadDanmaku />
           <ExportAllDanmakuButton />
           <DeleteAllDanmakuButton />
         </DrilldownMenu>

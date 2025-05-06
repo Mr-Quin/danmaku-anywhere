@@ -152,7 +152,7 @@ export class TencentService {
 
     if (!foundSeason) throw new Error('Season not found')
 
-    const season = await this.seasonService.upsert({
+    const _ = await this.seasonService.upsert({
       provider: DanmakuSourceType.Tencent,
       title: foundSeason.item_params.play_title,
       type: foundSeason.item_type.toString(),

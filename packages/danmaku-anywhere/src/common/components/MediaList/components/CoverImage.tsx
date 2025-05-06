@@ -63,7 +63,9 @@ const CoverImageLoader = (props: CoverImageProps) => {
   if (!image.data)
     return (
       <StackingContext>
-        <SuspenseImage src="/cover_fallback.png" />
+        <ErrorBoundary fallback={null}>
+          <SuspenseImage src="/cover_fallback.png" />
+        </ErrorBoundary>
       </StackingContext>
     )
 

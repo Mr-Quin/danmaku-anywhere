@@ -4,6 +4,7 @@ const common = {
     apiEndpoint: 'API Endpoint',
     apply: 'Apply',
     cancel: 'Cancel',
+    close: 'Close',
     confirmDeleteMessage: 'Are you sure you want to delete "{{name}}"?',
     confirmDeleteTitle: 'Confirm delete',
     copyToClipboard: 'Copy to Clipboard',
@@ -200,30 +201,22 @@ const pages = {
     noResult: "No anime found with title '{{filter}}'",
     deleteAll: 'Delete all Danmaku',
     confirmDeleteMessage: 'Are you sure to delete all Danmaku?',
-    upload: {
-      confirm: 'Confirm Import',
-      dialogTitle: 'Import Danmaku',
-      parsedEntries: 'Episodes found: ',
-      parseError_one: 'Failed to parse {{count}} Danmaku file',
-      parseError_other: 'Failed to parse {{count}} Danmaku files',
-      selectFiles: 'Select Danmaku Files',
-      importCustom: 'Import Custom Danmaku',
-      importExported: 'Import Danmaku',
-      exportAll: 'Export All Danmaku',
-      exportAnime: 'Export All Episodes',
-      success: 'Import successful',
-      upload: 'Import Danmaku',
-      alert: {
-        parseError: 'Failed to parse files',
-      },
-      help: {
-        selectFiles:
-          "Select Danmaku files to import, or drag and drop files here. File name will be used as the show's name. Supported formats: JSON, XML",
-        importCustom:
-          'Use this to import custom danmaku. Refer to the documentation for custom danmaku format',
-        importExported:
-          'Use this to import danmaku that was previously exported. If the imported danmaku overlaps with existing danmaku, the existing danmaku will be overwritten',
-      },
+  },
+  importPage: {
+    confirm: 'Confirm Import',
+    importLocal: 'Import Local Danmaku',
+    importLocalDesc:
+      'File names will be used as danmaku names. Supports .json and .xml files',
+    willImport_one: 'Will import {{count}} file',
+    willImport_other: 'Will import {{count}} files',
+    importSuccess_one: 'Successfully imported {{count}} file',
+    importSuccess_other: 'Successfully imported {{count}} files',
+    importError_one: 'Failed to import {{count}} file',
+    importError_other: 'Failed to import {{count}} files',
+    parseError: 'Failed to parse file',
+    help: {
+      dragNDrop1: 'Drag and drop files here',
+      dragNDrop2: 'Or click to select files',
     },
   },
   mountPage: {
@@ -392,6 +385,7 @@ const pages = {
     search: 'Search',
     selector: 'Selector',
     style: 'Danmaku Settings',
+    import: 'Import/Export',
     integrationPolicy: 'Integration Policy',
   },
 }

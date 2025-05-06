@@ -125,7 +125,7 @@ export const setupRpc = (
       return result
     },
     danmakuCreateCustom: async (data) => {
-      return danmakuService.bulkAddCustom(data)
+      return danmakuService.importCustom(data)
     },
     danmakuImport: async (data) => {
       await danmakuService.bulkUpsert(data)

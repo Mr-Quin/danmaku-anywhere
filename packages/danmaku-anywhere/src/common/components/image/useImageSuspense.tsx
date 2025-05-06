@@ -1,4 +1,4 @@
-import { seasonQueryKeys } from '@/common/queries/queryKeys'
+import { imageQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useSuspenseQuery } from '@tanstack/react-query'
 
@@ -8,7 +8,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
  */
 export const useImageSuspense = (src: string) => {
   return useSuspenseQuery({
-    queryKey: seasonQueryKeys.image(src),
+    queryKey: imageQueryKeys.image(src),
     queryFn: async () => {
       if (!src) return null
       const res = await chromeRpcClient.fetchImage(src, { silent: true })
