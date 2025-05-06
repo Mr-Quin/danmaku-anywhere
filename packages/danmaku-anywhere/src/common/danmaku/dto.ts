@@ -38,7 +38,8 @@ export interface CustomDanmakuImportData {
 export type ImportError = {
   title: string
   index: number
-  error: Error
+  // serialized error message
+  error: string
 }
 
 export type CustomDanmakuImportResult = {

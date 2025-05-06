@@ -20,7 +20,7 @@ const methodMap: Record<
   [DanmakuSourceType.Tencent]: chromeRpcClient.seasonSearchTencent,
 }
 
-export const useSeasonSearchSuspense = <T extends Season>(
+export const useSeasonSearchSuspense = (
   provider: RemoteDanmakuSourceType,
   keyword: string
 ) => {

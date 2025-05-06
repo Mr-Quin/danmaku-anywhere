@@ -6,6 +6,7 @@ const common = {
     apiEndpoint: 'API 接口',
     apply: '应用',
     cancel: '取消',
+    close: '关闭',
     confirmDeleteMessage: '确定要删除 "{{name}}" 吗？',
     confirmDeleteTitle: '确认删除',
     copyToClipboard: '复制到剪贴板',
@@ -199,29 +200,21 @@ const pages = {
     noResult: "没有找到标题为 '{{filter}}' 的番剧",
     deleteAll: '删除所有弹幕',
     confirmDeleteMessage: '确定要删除所有弹幕吗？',
-    upload: {
-      confirm: '确认导入',
-      dialogTitle: '确定要导入这些弹幕吗？',
-      parsedEntries: '发现剧集：',
-      parseError_one: '{{count}}个文件格式不正确',
-      parseError_other: '{{count}}个文件格式不正确',
-      selectFiles: '选择弹幕文件',
-      importCustom: '导入自定义弹幕',
-      importExported: '导入弹幕',
-      exportAll: '导出所有弹幕',
-      exportAnime: '导出全集弹幕',
-      success: '导入成功',
-      upload: '导入弹幕',
-      alert: {
-        parseError: '文件解析失败',
-      },
-      help: {
-        selectFiles:
-          '选择要导入的弹幕文件，也可以将文件拖放到此区域。文件名将用为番剧名称。支持.json和.xml文件',
-        importCustom: '导入自定义弹幕。自定义弹幕格式请参考文档',
-        importExported:
-          '导入之前导出的弹幕。如果导入的弹幕与现有的弹幕有重复，现有的弹幕将被覆盖',
-      },
+  },
+  importPage: {
+    confirm: '确认导入',
+    importLocal: '导入本地弹幕',
+    importLocalDesc: '文件名将用为弹幕名称。支持.json和.xml文件',
+    willImport_one: '将导入{{count}}个文件',
+    willImport_other: '将导入{{count}}个文件',
+    importSuccess_one: '成功导入{{count}}个文件',
+    importSuccess_other: '成功导入{{count}}个文件',
+    importError_one: '{{count}}个文件导入失败',
+    importError_other: '{{count}}个文件导入失败',
+    parseError: '文件解析失败',
+    help: {
+      dragNDrop1: '拖拽文件到此处',
+      dragNDrop2: '或点击此处选择文件',
     },
   },
   mountPage: {
@@ -383,6 +376,7 @@ const pages = {
     search: '搜索番剧',
     selector: '修正匹配',
     style: '弹幕设置',
+    import: '导入/导出',
     integrationPolicy: '适配规则',
   },
 }
