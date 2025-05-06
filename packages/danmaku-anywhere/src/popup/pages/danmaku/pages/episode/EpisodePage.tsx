@@ -7,7 +7,6 @@ import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
-import { ExportDanmakuButton } from '@/popup/pages/danmaku/components/ExportDanmakuButton'
 
 export const EpisodePage = () => {
   const goBack = useGoBack()
@@ -25,9 +24,7 @@ export const EpisodePage = () => {
   return (
     <TabLayout>
       <TabToolbar title={season.title} showBackButton onGoBack={goBack}>
-        <DrilldownMenu ButtonProps={{ edge: 'end' }}>
-          <ExportDanmakuButton />
-        </DrilldownMenu>
+        <DrilldownMenu ButtonProps={{ edge: 'end' }}></DrilldownMenu>
       </TabToolbar>
       <EpisodeList />
     </TabLayout>

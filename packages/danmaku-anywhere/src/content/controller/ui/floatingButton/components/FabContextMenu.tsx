@@ -36,7 +36,7 @@ const usePip = () => {
 
 export const FabContextMenu = (props: FabContextMenuProps) => {
   const { t } = useTranslation()
-  const { isMounted, isVisible, isManual } = useStore.use.danmaku()
+  const { isMounted, isVisible } = useStore.use.danmaku()
   const { enterPip } = usePip()
   const hasVideo = useStore((state) => state.hasVideo)
   const unmountMutation = useUnmountDanmaku()

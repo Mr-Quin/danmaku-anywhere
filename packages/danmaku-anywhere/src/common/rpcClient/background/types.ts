@@ -1,8 +1,6 @@
 import type {
   BilibiliOf,
   CommentEntity,
-  CustomEpisode,
-  CustomEpisodeInsert,
   DanDanPlayOf,
   TencentOf,
 } from '@danmaku-anywhere/danmaku-converter'
@@ -20,7 +18,12 @@ import type {
 
 import type { Season } from '@danmaku-anywhere/danmaku-converter'
 
-import type { DanmakuFetchDto, EpisodeQueryFilter } from '@/common/danmaku/dto'
+import type {
+  CustomDanmakuImportData,
+  CustomDanmakuImportResult,
+  DanmakuFetchDto,
+  EpisodeQueryFilter,
+} from '@/common/danmaku/dto'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import type {
   Episode,
@@ -79,7 +82,10 @@ type EpisodeMethods = {
   episodeFetch: RPCDef<DanmakuFetchDto, WithSeason<Episode>>
   episodeDelete: RPCDef<EpisodeQueryFilter, number>
   episodeDeleteAll: RPCDef<void, void>
-  danmakuCreateCustom: RPCDef<CustomEpisodeInsert[], CustomEpisode[]>
+  danmakuCreateCustom: RPCDef<
+    CustomDanmakuImportData[],
+    CustomDanmakuImportResult
+  >
   danmakuImport: RPCDef<EpisodeInsert[], void>
   danmakuPurgeCache: RPCDef<number, number>
 }
