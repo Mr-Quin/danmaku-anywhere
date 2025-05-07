@@ -29,13 +29,14 @@ const common = {
     docs: '文档',
     pip: '画中画',
     acknowledge: '知道了',
+    itsEmpty: '这里什么都没有...',
     duration: {
       day_one: '天',
       day_other: '天',
     },
   },
   error: {
-    unknown: '出了一些问题。',
+    unknown: '出！错！啦！',
   },
 }
 
@@ -102,6 +103,7 @@ const domain = {
       Iqiyi: '爱奇艺',
     },
     unmount: '卸载弹幕',
+    local: '本地弹幕',
   },
   integration: {
     name: '适配规则',
@@ -199,7 +201,7 @@ const pages = {
     noAnime: '没有可用的番剧',
     noResult: "没有找到标题为 '{{filter}}' 的番剧",
     deleteAll: '删除所有弹幕',
-    confirmDeleteMessage: '确定要删除所有弹幕吗？',
+    confirmDeleteMessage: '确定要删除选中的弹幕吗？',
   },
   importPage: {
     confirm: '确认导入',

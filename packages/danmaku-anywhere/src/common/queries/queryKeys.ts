@@ -1,5 +1,8 @@
 import type { SeasonQueryFilter, SeasonSearchParams } from '@/common/anime/dto'
-import type { EpisodeQueryFilter } from '@/common/danmaku/dto'
+import type {
+  CustomEpisodeQueryFilter,
+  EpisodeQueryFilter,
+} from '@/common/danmaku/dto'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
 
 export const storageQueryKeys = {
@@ -33,16 +36,14 @@ export const seasonQueryKeys = {
 
 export const episodeQueryKeys = {
   all: () => [{ scope: 'episode' }] as const,
-  one: (params: EpisodeQueryFilter) =>
-    [{ scope: 'episode', kind: 'getOne', ...params }] as const,
-  many: (params: EpisodeQueryFilter) =>
-    [{ scope: 'episode', kind: 'getMany', ...params }] as const,
+  filter: (params: EpisodeQueryFilter) =>
+    [{ scope: 'episode', kind: 'filter', ...params }] as const,
 }
 
 export const customEpisodeQueryKeys = {
   all: () => [{ scope: 'customEpisode' }] as const,
-  one: (params: EpisodeQueryFilter) =>
-    [{ scope: 'customEpisode', kind: 'getOne', ...params }] as const,
+  filter: (params: CustomEpisodeQueryFilter) =>
+    [{ scope: 'customEpisode', kind: 'filter', ...params }] as const,
 }
 
 export const sourceQueryKeys = {
