@@ -19,6 +19,7 @@ import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { SeasonSearchResult } from '@/common/components/MediaList/SeasonSearchResult'
 import { SeasonSearchTabs } from '@/common/components/MediaList/SeasonSearchTabs'
 import { SearchForm } from '@/common/components/SearchForm'
+import { isProvider } from '@/common/danmaku/utils'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
@@ -26,6 +27,7 @@ import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
 import { SeasonDetailsPage } from '@/content/controller/ui/floatingPanel/pages/search/SeasonDetailsPage'
+import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 
 export const SearchPage = () => {
   const { t } = useTranslation()
@@ -161,7 +163,9 @@ export const SearchPage = () => {
                   if (boxRef.current) {
                     setScrollTop(boxRef.current.scrollTop)
                   }
-                  setSelectedSeason(season)
+                  if (!isProvider(season, DanmakuSourceType.Custom)) {
+                    setSelectedSeason(season)
+                  }
                 }}
                 provider={providerTab}
                 stale={pending}

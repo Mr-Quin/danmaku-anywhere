@@ -14,6 +14,8 @@ export const zBaseSeasonV1 = z.object({
   alternativeTitles: z.array(z.string()).optional(),
   indexedId: z.string(),
   episodeCount: z.number().optional(),
+  // the number of episodes for this season that are actually available locally
+  localEpisodeCount: z.number().optional(),
   year: z.number().optional(),
   schemaVersion: z.literal(1),
 })

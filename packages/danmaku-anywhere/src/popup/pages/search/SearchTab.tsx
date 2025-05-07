@@ -12,10 +12,12 @@ import { Center } from '@/common/components/Center'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { SeasonSearchResult } from '@/common/components/MediaList/SeasonSearchResult'
 import { SeasonSearchTabs } from '@/common/components/MediaList/SeasonSearchTabs'
+import { isProvider } from '@/common/danmaku/utils'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { PopupSearchForm } from '@/popup/pages/search/components/PopupSearchForm'
 import { useStore } from '@/popup/store'
+import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { Outlet, useNavigate } from 'react-router'
 
 export const SearchTab = () => {
@@ -94,8 +96,10 @@ export const SearchTab = () => {
               searchParams={searchParams}
               provider={search.tab}
               onSeasonClick={(season) => {
-                search.setSeason(season)
-                navigate('season')
+                if (!isProvider(season, DanmakuSourceType.Custom)) {
+                  search.setSeason(season)
+                  navigate('season')
+                }
               }}
               stale={pending}
             />

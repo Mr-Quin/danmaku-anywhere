@@ -9,6 +9,14 @@ export type EpisodeQueryFilter = {
   seasonId?: number
   provider?: RemoteDanmakuSourceType
   indexedId?: string
+  ids?: number[]
+  all?: boolean
+}
+
+export type CustomEpisodeQueryFilter = {
+  id?: number
+  ids?: number[]
+  all?: boolean
 }
 
 export interface DanmakuFetchContext {

@@ -40,6 +40,10 @@ interface StoreState {
     toggleUploadDialog: (show?: boolean) => void
     showConfirmDeleteDialog: boolean
     setShowConfirmDeleteDialog: (show: boolean) => void
+    selectedEpisodes: number[]
+    setSelectedEpisodes: (episodes: number[]) => void
+    enableEpisodeSelection: boolean
+    toggleEpisodeSelection: (enable?: boolean) => void
   }
   config: {
     editingConfig: MountConfigInput & { id?: string }
@@ -118,6 +122,19 @@ const useStoreBase = create<StoreState>()(
       setShowConfirmDeleteDialog: (show: boolean) => {
         set((state) => {
           state.danmaku.showConfirmDeleteDialog = show
+        })
+      },
+      enableEpisodeSelection: false,
+      toggleEpisodeSelection: (enable?: boolean) => {
+        set((state) => {
+          state.danmaku.enableEpisodeSelection =
+            enable ?? !state.danmaku.enableEpisodeSelection
+        })
+      },
+      selectedEpisodes: [],
+      setSelectedEpisodes: (episodes: number[]) => {
+        set((state) => {
+          state.danmaku.selectedEpisodes = episodes
         })
       },
     },

@@ -50,10 +50,11 @@ const SeasonEpisodeListInner = ({
         indexedId: episode.indexedId,
       } satisfies EpisodeQueryFilter
       return {
-        queryKey: episodeQueryKeys.one(params),
+        queryKey: episodeQueryKeys.filter(params),
         queryFn: async () => {
-          const res = await chromeRpcClient.episodeGetOneLite(params)
-          return res.data
+          const res = await chromeRpcClient.episodeFilterLite(params)
+          if (res.data.length === 0) return null
+          return res.data[0]
         },
         refetchOnMount: false,
         refetchOnWindowFocus: false,

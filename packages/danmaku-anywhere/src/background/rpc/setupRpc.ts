@@ -90,23 +90,13 @@ export const setupRpc = (
 
       Logger.debug('Icon state set to:', data.state)
     },
-    episodeGetAll: async () => {
-      return danmakuService.getAll()
-    },
-    episodeGetAllLite: async () => {
-      return danmakuService.getAllLite()
-    },
-    episodeGetOne: async (filter) => {
-      const result = await danmakuService.getOne(filter)
-      return result || null
-    },
-    episodeGetOneLite: async (filter) => {
-      const result = await danmakuService.getOneLite(filter)
-      return result || null
-    },
-    episodeGetMany: async (filter) => {
-      const result = await danmakuService.getMany(filter)
+    episodeFilter: async (filter) => {
+      const result = await danmakuService.filter(filter)
       return result
+    },
+    episodeFilterLite: async (filter) => {
+      const result = await danmakuService.filterLite(filter)
+      return result || null
     },
     seasonGetAll: async () => {
       const result = await seasonService.getAll()
@@ -114,10 +104,6 @@ export const setupRpc = (
     },
     seasonFilter: async (data) => {
       return seasonService.filter(data)
-    },
-    episodeFilter: async (filter) => {
-      const result = await danmakuService.filter(filter)
-      return result
     },
     episodeFetch: async (data) => {
       const result = await providerService.getDanmaku(data)
@@ -133,8 +119,11 @@ export const setupRpc = (
     episodeDelete: async (filter) => {
       return danmakuService.delete(filter)
     },
-    episodeDeleteAll: async () => {
-      return danmakuService.deleteAll()
+    episodeFilterCustom: async (filter) => {
+      return danmakuService.filterCustom(filter)
+    },
+    episodeDeleteCustom: async (filter) => {
+      return danmakuService.deleteCustom(filter)
     },
     danmakuPurgeCache: async (days) => {
       return danmakuService.purgeOlderThan(days)
