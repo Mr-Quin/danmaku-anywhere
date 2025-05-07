@@ -1,6 +1,7 @@
 import type {
   BilibiliOf,
   CommentEntity,
+  CustomEpisode,
   DanDanPlayOf,
   TencentOf,
 } from '@danmaku-anywhere/danmaku-converter'
@@ -21,6 +22,7 @@ import type { Season } from '@danmaku-anywhere/danmaku-converter'
 import type {
   CustomDanmakuImportData,
   CustomDanmakuImportResult,
+  CustomEpisodeQueryFilter,
   DanmakuFetchDto,
   EpisodeQueryFilter,
 } from '@/common/danmaku/dto'
@@ -73,15 +75,12 @@ type SeasonMethods = {
 }
 
 type EpisodeMethods = {
-  episodeGetAll: RPCDef<void, WithSeason<Episode>[]>
-  episodeGetAllLite: RPCDef<void, WithSeason<EpisodeLite>[]>
-  episodeGetOne: RPCDef<EpisodeQueryFilter, WithSeason<Episode> | null>
-  episodeGetOneLite: RPCDef<EpisodeQueryFilter, WithSeason<EpisodeLite> | null>
-  episodeGetMany: RPCDef<number[], WithSeason<Episode>[]>
+  episodeFilterLite: RPCDef<EpisodeQueryFilter, WithSeason<EpisodeLite>[]>
   episodeFilter: RPCDef<EpisodeQueryFilter, WithSeason<Episode>[]>
   episodeFetch: RPCDef<DanmakuFetchDto, WithSeason<Episode>>
-  episodeDelete: RPCDef<EpisodeQueryFilter, number>
-  episodeDeleteAll: RPCDef<void, void>
+  episodeDelete: RPCDef<EpisodeQueryFilter, void>
+  episodeFilterCustom: RPCDef<CustomEpisodeQueryFilter, CustomEpisode[]>
+  episodeDeleteCustom: RPCDef<CustomEpisodeQueryFilter, void>
   danmakuCreateCustom: RPCDef<
     CustomDanmakuImportData[],
     CustomDanmakuImportResult

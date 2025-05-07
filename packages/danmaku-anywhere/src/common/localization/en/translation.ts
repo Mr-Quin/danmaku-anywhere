@@ -27,6 +27,7 @@ const common = {
     docs: 'Documentation',
     pip: 'Picture-in-Picture',
     acknowledge: 'Ok',
+    itsEmpty: "There's nothing here...",
     duration: {
       day_one: 'Day',
       day_other: 'Days',
@@ -100,6 +101,7 @@ const domain = {
       Iqiyi: 'Iqiyi',
     },
     unmount: 'Unmount',
+    local: 'Local Danmaku',
   },
   integration: {
     name: 'Integration',
@@ -200,7 +202,7 @@ const pages = {
     noAnime: 'No anime available',
     noResult: "No anime found with title '{{filter}}'",
     deleteAll: 'Delete all Danmaku',
-    confirmDeleteMessage: 'Are you sure to delete all Danmaku?',
+    confirmDeleteMessage: 'Are you sure to delete the selected Danmaku?',
   },
   importPage: {
     confirm: 'Confirm Import',

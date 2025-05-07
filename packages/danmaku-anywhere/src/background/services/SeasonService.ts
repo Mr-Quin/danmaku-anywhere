@@ -67,7 +67,10 @@ export class SeasonService {
         .where({ seasonId: season.id })
         .count()
       if (episodeCount > 0) {
-        seasons.push(season)
+        seasons.push({
+          ...season,
+          localEpisodeCount: episodeCount,
+        })
       }
     }
 

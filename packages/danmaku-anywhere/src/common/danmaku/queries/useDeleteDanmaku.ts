@@ -1,18 +1,42 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import { episodeQueryKeys } from '@/common/queries/queryKeys'
+import type {
+  CustomEpisodeQueryFilter,
+  EpisodeQueryFilter,
+} from '@/common/danmaku/dto'
+import {
+  customEpisodeQueryKeys,
+  episodeQueryKeys,
+  seasonQueryKeys,
+} from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+
+export type DeleteDanmakuData =
+  | {
+      isCustom: false
+      filter: EpisodeQueryFilter
+    }
+  | {
+      isCustom: true
+      filter: CustomEpisodeQueryFilter
+    }
 
 export const useDeleteDanmaku = () => {
   const { t } = useTranslation()
+
   const toast = useToast.use.toast()
 
+  const queryClient = useQueryClient()
+
   return useMutation({
-    mutationKey: episodeQueryKeys.all(),
-    mutationFn: async (danmakuId: number) => {
-      await chromeRpcClient.episodeDelete({ id: danmakuId })
+    mutationFn: async (data: DeleteDanmakuData) => {
+      if (!data.isCustom) {
+        await chromeRpcClient.episodeDelete(data.filter)
+      } else {
+        await chromeRpcClient.episodeDeleteCustom(data.filter)
+      }
     },
     onError: (e) => {
       toast.error(
@@ -21,8 +45,16 @@ export const useDeleteDanmaku = () => {
         })
       )
     },
-    onSuccess: () => {
+    onSuccess: (_, input) => {
       toast.success(t('danmaku.alert.deleted'))
+      void queryClient.invalidateQueries({
+        queryKey: seasonQueryKeys.all(),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: !input.isCustom
+          ? episodeQueryKeys.all()
+          : customEpisodeQueryKeys.all(),
+      })
     },
   })
 }

@@ -3,7 +3,7 @@ import {
   SeasonCardSkeleton,
 } from '@/common/components/MediaList/components/SeasonCard'
 import type { HandleSeasonClick } from '@/common/components/MediaList/types'
-import type { Season } from '@danmaku-anywhere/danmaku-converter'
+import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import {
   Box,
   type Breakpoint,
@@ -49,7 +49,7 @@ const SeasonGridLayout = (props: GridProps) => {
 }
 
 interface SeasonListProps {
-  data: Season[]
+  data: (Season | CustomSeason)[]
   onSeasonClick: HandleSeasonClick
   virtualize?: boolean
 }

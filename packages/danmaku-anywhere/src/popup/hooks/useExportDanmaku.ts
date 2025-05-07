@@ -20,7 +20,7 @@ export const useExportDanmaku = () => {
 
   const exportAll = useMutation({
     mutationFn: async () => {
-      const danmakuList = await chromeRpcClient.episodeGetAll()
+      const danmakuList = await chromeRpcClient.episodeFilter({ all: true })
 
       await createDownload(
         new Blob([JSON.stringify(danmakuList.data)], { type: 'text/json' }),
@@ -50,7 +50,7 @@ export const useExportDanmaku = () => {
 
   const exportMany = useMutation({
     mutationFn: async (option: number[]) => {
-      const { data } = await chromeRpcClient.episodeGetMany(option)
+      const { data } = await chromeRpcClient.episodeFilter({ ids: option })
 
       if (data.length > 0) {
         const fileName =

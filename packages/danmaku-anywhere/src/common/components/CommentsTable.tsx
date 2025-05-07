@@ -1,9 +1,11 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { parseCommentEntityP } from '@danmaku-anywhere/danmaku-converter'
+import { ContentCopy, FilterList } from '@mui/icons-material'
 import type { BoxProps } from '@mui/material'
 import {
   Box,
-  Button,
+  IconButton,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -11,6 +13,8 @@ import {
   TableHead,
   TableRow,
   TableSortLabel,
+  Tooltip,
+  Typography,
 } from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useMemo, useRef, useState } from 'react'
@@ -142,6 +146,7 @@ export const CommentsTable = ({
                   width: '100%',
                   transform: `translateY(${virtualItem.start}px)`,
                   display: 'flex',
+                  height: 32,
                 }}
                 onMouseOver={() => setHoverRow(virtualItem.index)}
               >
@@ -173,42 +178,47 @@ export const CommentsTable = ({
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     flexGrow: 1,
+                    display: 'flex',
                   }}
                   title={comment.m}
                 >
-                  {comment.m}
-                </TableCell>
-                {isHovering && (
-                  <TableCell
+                  <Typography
+                    variant="body2"
                     sx={{
-                      position: 'absolute',
-                      right: 2,
-                      display: 'flex',
-                      gap: 1,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
                     }}
+                    title={comment.m}
+                    flexGrow={1}
                   >
-                    <Button
-                      variant="contained"
-                      size="small"
-                      sx={{ height: 0.75 }}
-                      onClick={() =>
-                        void navigator.clipboard.writeText(comment.m)
-                      }
-                    >
-                      {t('common.copy')}
-                    </Button>
-                    {onFilterComment && (
-                      <Button
-                        variant="contained"
-                        size="small"
-                        sx={{ height: 0.75 }}
-                        onClick={() => onFilterComment(comment.m)}
-                      >
-                        {t('common.filter')}
-                      </Button>
-                    )}
-                  </TableCell>
-                )}
+                    {comment.m}
+                  </Typography>
+                  {isHovering && (
+                    <Stack direction="row" spacing={0.5}>
+                      <Tooltip title={t('common.copy')}>
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            navigator.clipboard.writeText(comment.m)
+                          }
+                        >
+                          <ContentCopy fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      {onFilterComment && (
+                        <Tooltip title={t('common.filter')}>
+                          <IconButton
+                            size="small"
+                            onClick={() => onFilterComment(comment.m)}
+                          >
+                            <FilterList fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </Stack>
+                  )}
+                </TableCell>
               </TableRow>
             )
           })}

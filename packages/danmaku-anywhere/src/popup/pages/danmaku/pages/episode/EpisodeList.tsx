@@ -1,135 +1,149 @@
-import { useDanmakuManySuspense } from '@/common/danmaku/queries/useDanmakuManySuspense'
-import { useDeleteDanmaku } from '@/common/danmaku/queries/useDeleteDanmaku'
-import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
-import { Delete, Download } from '@mui/icons-material'
+import { NothingHere } from '@/common/components/NothingHere'
+import { useAllCustomEpisodes } from '@/common/danmaku/queries/useAllCustomEpisodes'
+import { useDanmakuMany } from '@/common/danmaku/queries/useDanmakuMany'
+import { isProvider } from '@/common/danmaku/utils'
+import { useStore } from '@/popup/store'
 import {
-  Box,
-  CircularProgress,
-  IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
-  Tooltip,
-  Typography,
-} from '@mui/material'
-import { useVirtualizer } from '@tanstack/react-virtual'
-import { useEffect, useRef } from 'react'
+  type CustomEpisode,
+  DanmakuSourceType,
+  type Episode,
+} from '@danmaku-anywhere/danmaku-converter'
+import { Box, Stack, Typography } from '@mui/material'
+import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import { useTranslation } from 'react-i18next'
-import { useNavigate, useParams } from 'react-router'
+import {
+  createSearchParams,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router'
 
 export const EpisodeList = () => {
   const { t } = useTranslation()
 
-  const ref = useRef<HTMLDivElement>(null)
-
   const params = useParams()
+
+  const [searchParams] = useSearchParams()
+
+  const isCustom = searchParams.get('type') === 'custom'
 
   const seasonId = params.seasonId ? parseInt(params.seasonId) : 0
 
-  const { data: episodes } = useDanmakuManySuspense({
-    seasonId,
-  })
+  const {
+    data: episodes,
+    isLoading,
+    error,
+  } = isCustom
+    ? useAllCustomEpisodes()
+    : useDanmakuMany({
+        seasonId,
+      })
 
-  const virtualizer = useVirtualizer({
-    count: episodes.length,
-    getScrollElement: () => ref.current,
-    estimateSize: () => 72,
-  })
+  // rely on ErrorBoundary to catch errors
+  if (error) {
+    throw error
+  }
 
   const navigate = useNavigate()
 
-  const { mutate: deleteDanmaku, isPending: isDeleting } = useDeleteDanmaku()
-  const { exportMany } = useExportDanmaku()
+  const { enableEpisodeSelection, setSelectedEpisodes } = useStore.use.danmaku()
 
-  useEffect(() => {
-    if (episodes.length === 0) {
-      navigate('..')
-    }
-  }, [episodes])
+  type EpisodeRow = Episode | CustomEpisode
 
-  if (!episodes.length) return <Typography>No danmaku</Typography>
+  const columns: GridColDef<EpisodeRow>[] = [
+    {
+      field: 'title',
+      headerName: t('anime.title'),
+      flex: 1,
+      minWidth: 200,
+      renderCell: (params) => {
+        const episode = params.row
+
+        return (
+          <Box
+            height="100%"
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+          >
+            <Typography
+              variant="body2"
+              component="a"
+              title={episode.title}
+              overflow="hidden"
+              textOverflow="ellipsis"
+              color="inherit"
+              href={`${episode.id}`}
+              onClick={(e) => {
+                e.preventDefault()
+                navigate({
+                  pathname: `${episode.id}`,
+                  search: createSearchParams({
+                    type: isProvider(episode, DanmakuSourceType.Custom)
+                      ? 'custom'
+                      : 'remote',
+                  }).toString(),
+                })
+              }}
+            >
+              {params.row.title}
+            </Typography>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              component="div"
+            >
+              {t('danmaku.commentCounted', {
+                count: episode.commentCount,
+              })}
+            </Typography>
+          </Box>
+        )
+      },
+    },
+  ]
 
   return (
-    <Box
-      style={{
-        height: `${virtualizer.getTotalSize()}px`,
-        width: '100%',
-        position: 'relative',
-      }}
-      ref={ref}
-    >
-      <List>
-        {virtualizer.getVirtualItems().map((virtualItem) => {
-          const episode = episodes[virtualItem.index]
-          const { title, commentCount, id } = episode
-
-          return (
-            <ListItem
-              key={title}
-              sx={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                transform: `translateY(${virtualItem.start}px)`,
-              }}
-              data-index={virtualItem.index}
-              ref={virtualizer.measureElement}
-              secondaryAction={
-                <>
-                  <Tooltip title={t('danmaku.export')}>
-                    <span>
-                      <IconButton
-                        onClick={() => exportMany.mutate([id])}
-                        disabled={exportMany.isPending}
-                      >
-                        {exportMany.isPending ? (
-                          <CircularProgress size={24} color="inherit" />
-                        ) : (
-                          <Download />
-                        )}
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                  <Tooltip title={t('common.delete')}>
-                    <span>
-                      <IconButton
-                        onClick={() => deleteDanmaku(id)}
-                        disabled={isDeleting}
-                      >
-                        {isDeleting ? (
-                          <CircularProgress size={24} color="inherit" />
-                        ) : (
-                          <Delete />
-                        )}
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                </>
-              }
-              disablePadding
-            >
-              <ListItemButton
-                onClick={() => {
-                  navigate({
-                    pathname: `${episode.id}`,
-                  })
-                }}
-              >
-                <ListItemText
-                  primary={title}
-                  secondary={
-                    <Typography variant="caption" color="text.secondary">
-                      {t('danmaku.commentCounted', { count: commentCount })}
-                    </Typography>
-                  }
-                />
-              </ListItemButton>
-            </ListItem>
-          )
-        })}
-      </List>
+    <Box flexGrow={1} position="relative">
+      <Stack
+        height="100%"
+        width="100%"
+        position="absolute"
+        flexDirection="column"
+      >
+        <DataGrid
+          rows={episodes}
+          columns={columns}
+          rowHeight={60}
+          checkboxSelection={enableEpisodeSelection}
+          getRowId={(row) => row.id}
+          onRowSelectionModelChange={(model) => {
+            setSelectedEpisodes(Array.from(model.ids) as number[])
+          }}
+          disableColumnSelector
+          disableRowSelectionOnClick={!enableEpisodeSelection}
+          loading={isLoading}
+          slots={{
+            noRowsOverlay: () => <NothingHere />,
+          }}
+          slotProps={{
+            loadingOverlay: {
+              variant: 'linear-progress',
+              noRowsVariant: 'skeleton',
+            },
+          }}
+          sx={{
+            background: 'none',
+            border: 'none',
+            '& .MuiDataGrid-cell:focus': {
+              outline: 'none',
+            },
+            '& .MuiDataGrid-cell:focus-within': {
+              outline: 'none',
+            },
+          }}
+        />
+      </Stack>
     </Box>
   )
 }
