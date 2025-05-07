@@ -4,6 +4,7 @@ import {
   SeasonGridSkeleton,
 } from '@/common/components/MediaList/components/SeasonGrid'
 import type { HandleSeasonClick } from '@/common/components/MediaList/types'
+import { NothingHere } from '@/common/components/NothingHere'
 import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
 import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { Box, Button, ListItem, ListItemText } from '@mui/material'
@@ -24,6 +25,7 @@ export const SeasonSearchResult = (props: SeasonSearchResultProps) => {
       sx={{
         opacity: props.stale ? 0.5 : 1,
       }}
+      flexGrow={1}
     >
       <Suspense key={props.provider} fallback={<SeasonGridSkeleton />}>
         <SeasonSearchResultSuspense {...props} />
@@ -55,11 +57,7 @@ const SeasonSearchResultSuspense = ({
     )
   }
   if (result.data.length === 0) {
-    return (
-      <ListItem>
-        <ListItemText primary={t('searchPage.error.noResultFound')} />
-      </ListItem>
-    )
+    return <NothingHere message={t('searchPage.error.noResultFound')} />
   }
   return <SeasonGrid onSeasonClick={onSeasonClick} data={result.data} />
 }

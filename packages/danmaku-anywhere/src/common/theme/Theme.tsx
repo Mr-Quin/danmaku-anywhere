@@ -9,6 +9,9 @@ import { tryCatchSync } from '../utils/utils'
 import type { UserTheme } from '@/common/options/extensionOptions/schema'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { ColorMode } from '@/common/theme/enums'
+import type { Localization } from '@mui/x-data-grid/internals'
+import { enUS, zhCN } from '@mui/x-data-grid/locales'
+import { useTranslation } from 'react-i18next'
 
 const defaultThemeOptions: ThemeOptions = {
   palette: {
@@ -36,6 +39,8 @@ export const Theme = ({ children, options = {} }: ThemeProps) => {
     useMediaQuery('(prefers-color-scheme: dark)')
   )
 
+  const { i18n } = useTranslation()
+
   const { data, partialUpdate } = useExtensionOptions()
   const colorMode = data.theme.colorMode
 
@@ -50,15 +55,21 @@ export const Theme = ({ children, options = {} }: ThemeProps) => {
   const theme = useMemo(() => {
     const preferredColorScheme = (prefersDarkMode ?? true) ? 'dark' : 'light'
 
+    const languageMap: Record<string, Localization> = {
+      zh: zhCN,
+      en: enUS,
+    }
+
     return createTheme(
       produce(defaultThemeOptions, (draft) => {
         Object.assign(draft, options)
         if (!draft.palette) draft.palette = {}
         draft.palette.mode =
           colorMode === 'system' ? preferredColorScheme : colorMode
-      })
+      }),
+      languageMap[i18n.language]
     )
-  }, [colorMode, options])
+  }, [colorMode, options, i18n.language])
 
   const themeContextValue = useMemo(
     () => ({

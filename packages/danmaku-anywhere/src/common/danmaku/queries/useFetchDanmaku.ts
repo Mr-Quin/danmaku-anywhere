@@ -1,7 +1,7 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
-import { episodeQueryKeys } from '@/common/queries/queryKeys'
+import { episodeQueryKeys, seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 /**
@@ -11,11 +11,18 @@ import { chromeRpcClient } from '@/common/rpcClient/background/client'
  * This is a mutation because it updates the cache
  */
 export const useFetchDanmaku = () => {
+  const queryClient = useQueryClient()
+
   const mutation = useMutation({
     mutationKey: episodeQueryKeys.all(),
     mutationFn: async (data: DanmakuFetchDto) => {
       const res = await chromeRpcClient.episodeFetch(data)
       return res.data
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: seasonQueryKeys.all(),
+      })
     },
   })
 

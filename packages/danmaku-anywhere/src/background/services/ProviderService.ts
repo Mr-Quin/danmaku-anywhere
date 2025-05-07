@@ -98,7 +98,7 @@ export class ProviderService {
       }
     }
 
-    const existingDanmaku = await this.danmakuService.getOne({
+    const [existingDanmaku] = await this.danmakuService.filter({
       provider,
       indexedId: meta.indexedId,
     })

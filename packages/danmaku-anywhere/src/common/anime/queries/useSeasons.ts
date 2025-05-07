@@ -1,4 +1,4 @@
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 
 import type { SeasonQueryFilter } from '@/common/anime/dto'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
@@ -11,7 +11,19 @@ export const useGetSeasonSuspense = (filter: SeasonQueryFilter) => {
       return chromeRpcClient.seasonFilter(filter)
     },
     select: (data) => data.data,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+  })
+
+  return query
+}
+
+export const useGetSeason = (filter: SeasonQueryFilter) => {
+  const query = useQuery({
+    queryKey: seasonQueryKeys.many(filter),
+    queryFn: async () => {
+      return chromeRpcClient.seasonFilter(filter)
+    },
+    select: (data) => data.data,
+    throwOnError: true,
   })
 
   return query

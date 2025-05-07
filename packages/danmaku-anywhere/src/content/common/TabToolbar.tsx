@@ -3,7 +3,7 @@ import { Divider, IconButton, Toolbar, Typography } from '@mui/material'
 import type { PropsWithChildren, ReactNode } from 'react'
 
 type PageToolbarProps = {
-  title?: string
+  title?: ReactNode
   childrenPlacement?: 'start' | 'end'
   leftElement?: ReactNode
   showBackButton?: boolean
@@ -34,7 +34,7 @@ export const TabToolbar = ({
             fontSize={18}
             sx={{ flexGrow: 1 }}
             noWrap
-            title={title}
+            title={typeof title === 'string' ? title : undefined}
           >
             {title}
           </Typography>

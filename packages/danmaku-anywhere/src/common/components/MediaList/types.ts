@@ -1,4 +1,4 @@
-import type { Season } from '@danmaku-anywhere/danmaku-converter'
+import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import type {
   EpisodeLite,
   EpisodeMeta,
@@ -14,4 +14,4 @@ export type RenderEpisodeData = {
 
 export type RenderEpisode = (data: RenderEpisodeData) => ReactNode
 
-export type HandleSeasonClick = (season: Season) => void
+export type HandleSeasonClick = (season: Season | CustomSeason) => void

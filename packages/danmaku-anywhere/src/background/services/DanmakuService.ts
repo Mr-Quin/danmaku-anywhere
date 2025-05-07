@@ -3,6 +3,7 @@ import { Logger } from '@/common/Logger'
 import type {
   CustomDanmakuImportData,
   CustomDanmakuImportResult,
+  CustomEpisodeQueryFilter,
   EpisodeQueryFilter,
   ImportError,
 } from '@/common/danmaku/dto'
@@ -49,6 +50,31 @@ export class DanmakuService {
       id,
       ...toAdd,
     }
+  }
+
+  async filterCustom(
+    filter: CustomEpisodeQueryFilter
+  ): Promise<CustomEpisode[]> {
+    if (filter.all) {
+      return this.customTable.toArray()
+    }
+    if (filter.ids) {
+      const res = await this.customTable.bulkGet(filter.ids)
+      return res.filter((item) => item !== undefined)
+    }
+    return this.customTable.where(filter).toArray()
+  }
+
+  async deleteCustom(filter: CustomEpisodeQueryFilter) {
+    if (filter.all) {
+      await this.customTable.clear()
+      return
+    }
+    if (filter.ids) {
+      await this.customTable.bulkDelete(filter.ids)
+      return
+    }
+    await this.customTable.where(filter).delete()
   }
 
   async importCustom(
@@ -155,69 +181,34 @@ export class DanmakuService {
     } as WithSeason<T>
   }
 
-  /**
-   * Avoid using this method because it will load all danmaku from db at once
-   * which may cause performance issues or even crash when there are too many danmaku in db
-   */
-  async getAll(): Promise<WithSeason<Episode>[]> {
-    const res = await this.ddpTable.toArray()
-    return Promise.all(res.map(this.joinSeason))
-  }
-
-  /**
-   * Get only the count and metadata of all danmaku in db
-   */
-  async getAllLite(
-    provider?: DanmakuSourceType
+  async filterLite(
+    filter: EpisodeQueryFilter
   ): Promise<WithSeason<EpisodeLite>[]> {
-    const cache: EpisodeLite[] = []
+    const res = await this.filter(filter)
 
-    const collection = provider
-      ? this.ddpTable.where({ provider })
-      : this.ddpTable
-
-    await collection.each((item) => {
+    return res.map((item) => {
       const { comments: _, ...rest } = item
-
-      cache.push(rest)
-    })
-
-    return Promise.all(cache.map(this.joinSeason))
-  }
-
-  async getOne(
-    filter: EpisodeQueryFilter
-  ): Promise<WithSeason<Episode> | undefined> {
-    const res = await this.ddpTable.get(filter)
-
-    if (res) {
-      return this.joinSeason(res)
-    }
-
-    return undefined
-  }
-
-  async getOneLite(
-    filter: EpisodeQueryFilter
-  ): Promise<WithSeason<EpisodeLite> | undefined> {
-    const res = await this.ddpTable.get(filter)
-
-    if (res) {
-      const { comments: _, ...rest } = await this.joinSeason(res)
       return rest
-    }
-
-    return undefined
-  }
-
-  async getMany(ids: number[]): Promise<WithSeason<Episode>[]> {
-    const res = await this.ddpTable.bulkGet(ids)
-    const filtered = res.filter((r) => r !== undefined)
-    return Promise.all(filtered.map(this.joinSeason))
+    })
   }
 
   async filter(filter: EpisodeQueryFilter): Promise<WithSeason<Episode>[]> {
+    if (filter.all) {
+      const res = await this.ddpTable.toArray()
+      return Promise.all(res.map(this.joinSeason))
+    }
+
+    if (filter.ids) {
+      const getMany = async (ids: number[]): Promise<WithSeason<Episode>[]> => {
+        const res = await this.ddpTable.bulkGet(ids)
+        const filtered = res.filter((r) => r !== undefined)
+        return Promise.all(filtered.map(this.joinSeason))
+      }
+      return getMany(filter.ids)
+    }
+
     const res = await this.ddpTable.where(filter).toArray()
+
     return Promise.all(
       res
         .toSorted((a, b) => a.indexedId.localeCompare(b.indexedId))
@@ -226,11 +217,15 @@ export class DanmakuService {
   }
 
   async delete(filter: EpisodeQueryFilter) {
-    return this.ddpTable.where(filter).delete()
-  }
-
-  async deleteAll() {
-    await this.ddpTable.clear()
+    if (filter.all) {
+      // don't delete everything at once
+      return
+    }
+    if (filter.ids) {
+      await this.ddpTable.bulkDelete(filter.ids)
+      return
+    }
+    await this.ddpTable.where(filter).delete()
   }
 
   async importBackup(data: unknown[]) {

@@ -21,10 +21,10 @@ export const useMountDanmakuContent = () => {
   return useMutation({
     mutationFn: async (danmaku: EpisodeLite) => {
       const data = await queryClient.fetchQuery({
-        queryKey: episodeQueryKeys.one({ id: danmaku.id }),
+        queryKey: episodeQueryKeys.filter({ id: danmaku.id }),
         queryFn: async () => {
-          const res = await chromeRpcClient.episodeGetOne({ id: danmaku.id })
-          return res.data
+          const res = await chromeRpcClient.episodeFilter({ id: danmaku.id })
+          return res.data[0] || null
         },
       })
 

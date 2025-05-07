@@ -27,6 +27,7 @@ export const SeasonDetailsPage = () => {
           <SeasonEpisodeList
             season={season}
             renderEpisode={(data) => {
+              // Calling hooks inside a render prop, but since the list never changes this shouldn't violate the rule of hooks
               const { mutateAsync: load, isPending } = useFetchDanmaku()
 
               const handleFetchDanmaku = async (

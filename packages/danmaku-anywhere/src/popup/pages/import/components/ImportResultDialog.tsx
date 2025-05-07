@@ -91,7 +91,7 @@ export const ImportResultDialog = <T,>({
   const renderParams = { status, error, result: data || null }
 
   return (
-    <Dialog open={open} maxWidth="md" fullWidth>
+    <Dialog open={open} maxWidth="md" fullWidth onClose={handleClose}>
       <DialogTitle>{title}</DialogTitle>
       <DialogContent dividers>
         {children?.(renderParams as ImportResultRenderParams<T>)}

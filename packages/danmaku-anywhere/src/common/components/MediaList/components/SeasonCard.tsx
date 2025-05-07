@@ -4,7 +4,12 @@ import {
 } from '@/common/components/MediaList/components/CoverImage'
 import type { HandleSeasonClick } from '@/common/components/MediaList/types'
 import { ProviderLogo } from '@/common/components/ProviderLogo'
-import type { Season } from '@danmaku-anywhere/danmaku-converter'
+import { isProvider } from '@/common/danmaku/utils'
+import {
+  type CustomSeason,
+  DanmakuSourceType,
+  type Season,
+} from '@danmaku-anywhere/danmaku-converter'
 import {
   type CSSProperties,
   Card,
@@ -71,7 +76,7 @@ const Logo = styled('div')(({ theme }) => {
 })
 
 type SeasonCardProps = {
-  season: Season
+  season: Season | CustomSeason
   onClick: HandleSeasonClick
 }
 
@@ -82,7 +87,9 @@ export const SeasonCard = ({ season, onClick }: SeasonCardProps) => {
         <CoverImage src={season.imageUrl} alt={season.title}>
           {(season.episodeCount ?? 0) > 0 && (
             <CardCornerInfo position="top-right">
-              {season.episodeCount}
+              {season.localEpisodeCount === undefined
+                ? season.episodeCount
+                : `${season.localEpisodeCount} / ${season.episodeCount}`}
             </CardCornerInfo>
           )}
           {season.year && (
@@ -90,9 +97,11 @@ export const SeasonCard = ({ season, onClick }: SeasonCardProps) => {
               {season.year}
             </CardCornerInfo>
           )}
-          <Logo>
-            <ProviderLogo provider={season.provider} />
-          </Logo>
+          {!isProvider(season, DanmakuSourceType.Custom) && (
+            <Logo>
+              <ProviderLogo provider={season.provider} />
+            </Logo>
+          )}
         </CoverImage>
         <CardContent sx={{ py: 1.5, px: 1 }}>
           <Tooltip title={season.title} enterDelay={500} placement="top">
