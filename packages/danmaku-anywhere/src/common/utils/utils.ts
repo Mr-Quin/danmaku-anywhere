@@ -64,6 +64,10 @@ export const sleep = async (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+export const sanitizeFilename = (filename: string) => {
+  return filename.replace(/[<>:"\/|?*]+/g, '_')
+}
+
 // TODO: replace with wicg-file-system-access when it's available in Firefox
 export const createDownload = (data: Blob, filename?: string) => {
   const url = URL.createObjectURL(data)
@@ -74,7 +78,7 @@ export const createDownload = (data: Blob, filename?: string) => {
 
   const link = document.createElement('a')
   link.href = url
-  link.download = filename ?? defaultFileName
+  link.download = sanitizeFilename(filename ?? defaultFileName)
 
   document.body.appendChild(link)
 
