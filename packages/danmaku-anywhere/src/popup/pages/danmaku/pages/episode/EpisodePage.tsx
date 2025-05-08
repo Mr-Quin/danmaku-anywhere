@@ -68,6 +68,13 @@ export const EpisodePage = () => {
     )
   }
 
+  const handleExport = () => {
+    exportMany.mutate({
+      isCustom,
+      filter: { ids: selectedEpisodes },
+    })
+  }
+
   const getTitle = () => {
     if (isCustom) return t('danmaku.local')
 
@@ -102,7 +109,7 @@ export const EpisodePage = () => {
             <Tooltip title={t('danmaku.export')}>
               <span>
                 <IconButton
-                  onClick={() => exportMany.mutate(selectedEpisodes)}
+                  onClick={handleExport}
                   disabled={selectedEpisodes.length === 0}
                 >
                   <Download />

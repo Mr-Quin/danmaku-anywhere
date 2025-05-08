@@ -124,7 +124,7 @@ const processUploadedFiles = async (files: File[]) => {
       const text = await file.text()
       const data = await getJson(text, file.name)
       return {
-        title: file.name,
+        title: file.name.substring(0, file.name.lastIndexOf('.')), // remove extension
         comments: data,
       } satisfies CustomDanmakuImportData
     })

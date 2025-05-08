@@ -1,13 +1,49 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import JSZip from 'jszip'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import { danmakuToString } from '@/common/danmaku/utils'
+import type {
+  CustomEpisodeQueryFilter,
+  EpisodeQueryFilter,
+} from '@/common/danmaku/dto'
+import {
+  customEpisodeQueryKeys,
+  episodeQueryKeys,
+} from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { createDownload } from '@/common/utils/utils'
 
+const downloadZip = async (
+  fileName: string,
+  files: {
+    name: string
+    data: Blob | string
+  }[]
+) => {
+  const zip = new JSZip()
+
+  files.forEach((file) => {
+    zip.file(file.name, file.data)
+  })
+
+  const zipBlob = await zip.generateAsync({ type: 'blob' })
+  await createDownload(zipBlob, `${fileName}.zip`)
+}
+
+export type ExportDanmakuData =
+  | {
+      isCustom: false
+      filter: EpisodeQueryFilter
+    }
+  | {
+      isCustom: true
+      filter: CustomEpisodeQueryFilter
+    }
+
 export const useExportDanmaku = () => {
   const { t } = useTranslation()
+  const queryClient = useQueryClient()
   const toast = useToast.use.toast()
 
   const handleSuccess = () => {
@@ -20,11 +56,18 @@ export const useExportDanmaku = () => {
 
   const exportAll = useMutation({
     mutationFn: async () => {
-      const danmakuList = await chromeRpcClient.episodeFilter({ all: true })
+      const { data: episodes } = await chromeRpcClient.episodeFilter({
+        all: true,
+      })
 
-      await createDownload(
-        new Blob([JSON.stringify(danmakuList.data)], { type: 'text/json' }),
-        `all-danmaku.json`
+      await downloadZip(
+        `all-danmaku-collection`,
+        episodes.map((ep) => {
+          return {
+            name: `${ep.title}.json`,
+            data: JSON.stringify(ep, null, 2),
+          }
+        })
       )
     },
     onSuccess: handleSuccess,
@@ -35,12 +78,15 @@ export const useExportDanmaku = () => {
     mutationFn: async (seasonId: number) => {
       const { data } = await chromeRpcClient.episodeFilter({ seasonId })
 
-      if (data) {
-        const animeTitle = data[0].title
-
-        await createDownload(
-          new Blob([JSON.stringify(data)], { type: 'text/json' }),
-          `${animeTitle}.json`
+      if (data && data.length > 0) {
+        await downloadZip(
+          `${data[0].season.title}`,
+          data.map((ep) => {
+            return {
+              name: `${ep.title}.json`,
+              data: JSON.stringify(ep, null, 2),
+            }
+          })
         )
       }
     },
@@ -49,16 +95,36 @@ export const useExportDanmaku = () => {
   })
 
   const exportMany = useMutation({
-    mutationFn: async (option: number[]) => {
-      const { data } = await chromeRpcClient.episodeFilter({ ids: option })
+    mutationFn: async (data: ExportDanmakuData) => {
+      const getData = async () => {
+        if (data.isCustom) {
+          const { data: episodes } = await queryClient.fetchQuery({
+            queryKey: customEpisodeQueryKeys.filter(data.filter),
+            queryFn: () => chromeRpcClient.episodeFilterCustom(data.filter),
+          })
 
-      if (data.length > 0) {
-        const fileName =
-          data.length > 1 ? data[0].title : danmakuToString(data[0])
+          return episodes
+        } else {
+          const { data: episodes } = await queryClient.fetchQuery({
+            queryKey: episodeQueryKeys.filter(data.filter),
+            queryFn: () => chromeRpcClient.episodeFilter(data.filter),
+          })
 
-        await createDownload(
-          new Blob([JSON.stringify(data)], { type: 'text/json' }),
-          `${fileName}.json`
+          return episodes
+        }
+      }
+
+      const episodes = await getData()
+
+      if (episodes && episodes.length > 0) {
+        await downloadZip(
+          `${episodes[0].title}-collection`,
+          episodes.map((ep) => {
+            return {
+              name: `${ep.title}.json`,
+              data: JSON.stringify(ep, null, 2),
+            }
+          })
         )
       }
     },
