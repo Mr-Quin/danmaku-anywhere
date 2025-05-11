@@ -3,8 +3,8 @@ import { useIsConnected } from '@/popup/hooks/useIsConnected'
 import { useMountDanmakuPopup } from '@/popup/pages/mount/useMountDanmakuPopup'
 import { useStore } from '@/popup/store'
 import type {
+  CustomEpisodeLite,
   EpisodeLite,
-  WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 
 export const MountController = () => {
@@ -14,7 +14,7 @@ export const MountController = () => {
 
   const { mutate, isPending: isMounting } = useMountDanmakuPopup()
 
-  const handleMount = async (episode: WithSeason<EpisodeLite>) => {
+  const handleMount = async (episode: EpisodeLite | CustomEpisodeLite) => {
     mutate(
       { id: episode.id },
       {

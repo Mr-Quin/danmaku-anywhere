@@ -4,6 +4,11 @@ import type {
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 
+export type EpisodeSearchParams = {
+  seasonId: number
+  provider: RemoteDanmakuSourceType
+}
+
 export type EpisodeQueryFilter = {
   id?: number
   seasonId?: number

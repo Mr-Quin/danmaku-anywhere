@@ -54,6 +54,7 @@ const domain = {
     title: '标题',
     numericEpisode: '第{{episode}}集',
     numericSeason: '第{{season}}季',
+    refresh: '刷新',
   },
   configs: {
     alert: {
@@ -206,8 +207,8 @@ const pages = {
   },
   importPage: {
     confirm: '确认导入',
-    importLocal: '导入本地弹幕',
-    importLocalDesc: '文件名将用为弹幕名称。支持.json和.xml文件',
+    import: '导入弹幕',
+    importDesc: '导入本地弹幕时文件名将用为弹幕名称。支持.json和.xml文件',
     willImport_one: '将导入{{count}}个文件',
     willImport_other: '将导入{{count}}个文件',
     importSuccess_one: '成功导入{{count}}个文件',

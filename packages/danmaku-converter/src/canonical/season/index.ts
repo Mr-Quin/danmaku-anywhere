@@ -1,6 +1,6 @@
-import { z } from 'zod'
-import { DanmakuSourceType, DbEntity } from '../provider/provider.js'
-import { SeasonInsertV1, SeasonV1, zBaseSeasonV1 } from './v1/schema.js'
+import type { z } from 'zod'
+import type { DanmakuSourceType, DbEntity } from '../provider/provider.js'
+import type { SeasonInsertV1, SeasonV1, zBaseSeasonV1 } from './v1/schema.js'
 
 export * from './v1/schema.js'
 

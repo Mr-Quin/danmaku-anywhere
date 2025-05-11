@@ -4,23 +4,31 @@ import {
 } from '@/common/components/MediaList/components/CoverImage'
 import type { HandleSeasonClick } from '@/common/components/MediaList/types'
 import { ProviderLogo } from '@/common/components/ProviderLogo'
+import { useToast } from '@/common/components/Toast/toastStore'
 import { isProvider } from '@/common/danmaku/utils'
+import { episodeQueryKeys, seasonQueryKeys } from '@/common/queries/queryKeys'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import {
   type CustomSeason,
   DanmakuSourceType,
   type Season,
 } from '@danmaku-anywhere/danmaku-converter'
+import { Delete, Refresh } from '@mui/icons-material'
 import {
   type CSSProperties,
   Card,
   CardActionArea,
   CardContent,
+  Link,
   Skeleton,
   Tooltip,
   Typography,
   alpha,
   styled,
 } from '@mui/material'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 
 interface CardCornerInfoProps {
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
@@ -78,39 +86,130 @@ const Logo = styled('div')(({ theme }) => {
 type SeasonCardProps = {
   season: Season | CustomSeason
   onClick: HandleSeasonClick
+  disableMenu?: boolean
+  disableSelection?: boolean
 }
 
-export const SeasonCard = ({ season, onClick }: SeasonCardProps) => {
+export const SeasonCard = ({
+  season,
+  onClick,
+  disableMenu = false,
+}: SeasonCardProps) => {
+  const { t } = useTranslation()
+  const { toast } = useToast()
+
+  const queryClient = useQueryClient()
+
+  const deleteMutation = useMutation({
+    mutationKey: seasonQueryKeys.all(),
+    mutationFn: (id: number) => chromeRpcClient.seasonDelete({ id }),
+    onSuccess: () => {
+      toast.success(t('common.success'))
+      void queryClient.invalidateQueries({
+        queryKey: episodeQueryKeys.all(),
+      })
+    },
+    onError: () => {
+      toast.error(t('common.failed'))
+    },
+  })
+
+  const refreshMutation = useMutation({
+    mutationKey: seasonQueryKeys.all(),
+    mutationFn: (id: number) => chromeRpcClient.seasonRefresh({ id }),
+    onSuccess: () => {
+      toast.success(t('common.success'))
+    },
+    onError: () => {
+      toast.error(t('common.failed'))
+    },
+  })
+
+  const renderEpisodeCount = () => {
+    if (season.localEpisodeCount) {
+      const totalEpisodes = season.episodeCount?.toString() ?? '?'
+      return (
+        <CardCornerInfo position="top-right">
+          {`${season.localEpisodeCount} / ${totalEpisodes}`}
+        </CardCornerInfo>
+      )
+    } else if (season.episodeCount) {
+      return (
+        <CardCornerInfo position="top-right">
+          {season.episodeCount}
+        </CardCornerInfo>
+      )
+    }
+    return null
+  }
+
   return (
     <Card>
-      <CardActionArea onClick={() => onClick(season)}>
-        <CoverImage src={season.imageUrl} alt={season.title}>
-          {(season.episodeCount ?? 0) > 0 && (
-            <CardCornerInfo position="top-right">
-              {season.localEpisodeCount === undefined
-                ? season.episodeCount
-                : `${season.localEpisodeCount} / ${season.episodeCount}`}
-            </CardCornerInfo>
-          )}
-          {season.year && (
-            <CardCornerInfo position="bottom-left">
-              {season.year}
-            </CardCornerInfo>
-          )}
-          {!isProvider(season, DanmakuSourceType.Custom) && (
-            <Logo>
-              <ProviderLogo provider={season.provider} />
-            </Logo>
-          )}
-        </CoverImage>
-        <CardContent sx={{ py: 1.5, px: 1 }}>
-          <Tooltip title={season.title} enterDelay={500} placement="top">
-            <Typography component="div" variant="subtitle2" noWrap>
-              {season.title}
-            </Typography>
-          </Tooltip>
-        </CardContent>
-      </CardActionArea>
+      <div
+        style={{
+          position: 'relative',
+        }}
+      >
+        <CardActionArea onClick={() => onClick(season)}>
+          <CoverImage src={season.imageUrl} alt={season.title}></CoverImage>
+        </CardActionArea>
+        {renderEpisodeCount()}
+        {season.year && (
+          <CardCornerInfo position="bottom-left">{season.year}</CardCornerInfo>
+        )}
+        {!isProvider(season, DanmakuSourceType.Custom) && (
+          <Logo>
+            <ProviderLogo provider={season.provider} />
+          </Logo>
+        )}
+        {!isProvider(season, DanmakuSourceType.Custom) && !disableMenu && (
+          <CardCornerInfo position="bottom-right" sx={{ p: 0 }}>
+            <DrilldownMenu
+              ButtonProps={{
+                size: 'small',
+              }}
+              items={[
+                {
+                  id: 'refresh',
+                  label: t('anime.refresh'),
+                  icon: <Refresh />,
+                  onClick: () => {
+                    refreshMutation.mutate(season.id)
+                  },
+                },
+                {
+                  id: 'delete',
+                  label: t('common.delete'),
+                  icon: <Delete />,
+                  loading: deleteMutation.isPending,
+                  onClick: () => {
+                    deleteMutation.mutate(season.id)
+                  },
+                },
+              ]}
+            />
+          </CardCornerInfo>
+        )}
+      </div>
+      <CardContent sx={{ py: 1.5, px: 1 }}>
+        <Tooltip title={season.title} enterDelay={500} placement="top">
+          <Link
+            color="inherit"
+            variant="subtitle2"
+            underline="hover"
+            display="block"
+            noWrap
+            sx={{
+              cursor: 'pointer',
+            }}
+            onClick={() => {
+              onClick(season)
+            }}
+          >
+            {season.title}
+          </Link>
+        </Tooltip>
+      </CardContent>
     </Card>
   )
 }

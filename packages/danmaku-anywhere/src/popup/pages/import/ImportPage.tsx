@@ -298,10 +298,10 @@ export const ImportPage = () => {
 
   return (
     <TabLayout>
-      <TabToolbar title={t('importPage.importLocal')} />
+      <TabToolbar title={t('importPage.import')} />
       <Box p={2}>
         <Typography variant="subtitle2" gutterBottom>
-          {t('importPage.importLocalDesc')}
+          {t('importPage.importDesc')}
         </Typography>
         <FileUpload
           onFilesSelected={handleFilesSelected}

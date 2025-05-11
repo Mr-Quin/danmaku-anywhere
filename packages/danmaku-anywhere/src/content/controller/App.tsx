@@ -7,8 +7,11 @@ import { Content } from './Content'
 import { LoadInitialData } from './LoadInitialData'
 
 import { Logger } from '@/common/Logger'
+import { usePreloadImages } from '@/common/components/image/PreloadImages'
 
 export const App = () => {
+  usePreloadImages()
+
   const ref = useRef<ErrorBoundary>(null)
   const { reset } = useQueryErrorResetBoundary()
 

@@ -9,6 +9,7 @@ import { Logger } from '@/common/Logger'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { Toast } from '@/common/components/Toast/Toast'
+import { usePreloadImages } from '@/common/components/image/PreloadImages'
 import { db } from '@/common/db/db'
 
 const LoadInitialData = ({ children }: PropsWithChildren) => {
@@ -18,6 +19,8 @@ const LoadInitialData = ({ children }: PropsWithChildren) => {
 }
 
 export const App = () => {
+  usePreloadImages()
+
   return (
     <PopupLayout>
       <ErrorBoundary

@@ -33,7 +33,12 @@ export class MediaInfo {
     return this.seasonDecorator
   }
 
-  fullSeason() {
+  /**
+   * The key is used to map a season to an id in the db.
+   * The key only includes the season title (and related information like numeric season number)
+   * We assume that the same key represents the same season even on different sites.
+   */
+  getKey() {
     if (this.seasonDecorator === undefined) return `${this.seasonTitle.trim()}`
 
     return `${this.seasonTitle.trim()}%%${this.seasonDecorator.trim()}`

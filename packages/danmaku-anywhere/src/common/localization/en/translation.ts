@@ -52,6 +52,7 @@ const domain = {
     title: 'Title',
     numericEpisode: 'Episode {{episode}}',
     numericSeason: 'Season {{season}}',
+    refresh: 'Refresh',
   },
   configs: {
     alert: {
@@ -207,9 +208,9 @@ const pages = {
   },
   importPage: {
     confirm: 'Confirm Import',
-    importLocal: 'Import Local Danmaku',
-    importLocalDesc:
-      'File names will be used as danmaku names. Supports .json and .xml files',
+    import: 'Import Danmaku',
+    importDesc:
+      'When importing local danmaku, file names will be used as episode names. Supports .json and .xml files',
     willImport_one: 'Will import {{count}} file',
     willImport_other: 'Will import {{count}} files',
     importSuccess_one: 'Successfully imported {{count}} file',

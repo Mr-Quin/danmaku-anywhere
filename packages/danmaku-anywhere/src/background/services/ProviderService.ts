@@ -6,23 +6,22 @@ import { Logger } from '@/common/Logger'
 import type {
   MatchEpisodeInput,
   MatchEpisodeResult,
+  SeasonQueryFilter,
   SeasonSearchParams,
 } from '@/common/anime/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import type { SeasonService } from '@/background/services/SeasonService'
-import type { DanmakuFetchDto } from '@/common/danmaku/dto'
+import type { DanmakuFetchDto, EpisodeSearchParams } from '@/common/danmaku/dto'
 import { assertProvider, isProvider } from '@/common/danmaku/utils'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 import type {
-  BilibiliOf,
   DanDanPlayOf,
   Episode,
   EpisodeMeta,
   Season,
-  TencentOf,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { match } from 'ts-pattern'
@@ -45,45 +44,60 @@ export class ProviderService {
     this.logger = Logger.sub('[ProviderService]')
   }
 
-  async searchDanDanPlay(
-    searchParams: SeasonSearchParams
-  ): Promise<DanDanPlayOf<Season>[]> {
-    const results = await this.danDanPlayService.search({
-      anime: searchParams.keyword,
-      episode: searchParams.episode,
-    })
-
-    return this.seasonService.bulkUpsert(results)
+  async searchSeason(params: SeasonSearchParams) {
+    switch (params.provider) {
+      case DanmakuSourceType.DanDanPlay: {
+        return this.danDanPlayService.search({
+          anime: params.keyword,
+          episode: params.episode,
+        })
+      }
+      case DanmakuSourceType.Bilibili: {
+        return this.bilibiliService.search({
+          keyword: params.keyword,
+        })
+      }
+      case DanmakuSourceType.Tencent: {
+        return this.tencentService.search(params.keyword)
+      }
+    }
   }
 
-  async searchBilibili(
-    searchParams: SeasonSearchParams
-  ): Promise<BilibiliOf<Season>[]> {
-    const results = await this.bilibiliService.search({
-      keyword: searchParams.keyword,
-    })
-
-    return this.seasonService.bulkUpsert(results)
+  async searchEpisodes(params: EpisodeSearchParams) {
+    const { seasonId, provider } = params
+    switch (provider) {
+      case DanmakuSourceType.DanDanPlay: {
+        return this.danDanPlayService.getAnimeDetails(seasonId)
+      }
+      case DanmakuSourceType.Bilibili: {
+        return this.bilibiliService.getEpisodes(seasonId)
+      }
+      case DanmakuSourceType.Tencent: {
+        return this.tencentService.getEpisodes(seasonId)
+      }
+    }
   }
 
-  async searchTencent(
-    searchParams: SeasonSearchParams
-  ): Promise<TencentOf<Season>[]> {
-    const results = await this.tencentService.search(searchParams.keyword)
+  async refreshSeason(filter: SeasonQueryFilter) {
+    const [season] = await this.seasonService.filter(filter)
 
-    return this.seasonService.bulkUpsert(results)
-  }
-
-  async getDanDanPlayEpisodes(seasonId: number) {
-    return this.danDanPlayService.getAnimeDetails(seasonId)
-  }
-
-  async getBilibiliEpisodes(seasonId: number) {
-    return this.bilibiliService.getEpisodes(seasonId)
-  }
-
-  async getTencentEpisodes(seasonId: number) {
-    return this.tencentService.getEpisodes(seasonId)
+    switch (season.provider) {
+      case DanmakuSourceType.DanDanPlay: {
+        await this.danDanPlayService.getBangumiDetails(
+          season.providerIds.bangumiId
+        )
+        break
+      }
+      case DanmakuSourceType.Bilibili: {
+        await this.bilibiliService.getBangumiInfo({
+          seasonId: season.providerIds.seasonId,
+        })
+        break
+      }
+      case DanmakuSourceType.Tencent: {
+        break
+      }
+    }
   }
 
   async getDanmaku(data: DanmakuFetchDto): Promise<WithSeason<Episode>> {
@@ -182,7 +196,7 @@ export class ProviderService {
         episodeNumber ?? 1
       )
       const episodeTitle = await this.danDanPlayService.findEpisode(
-        season.providerIds.animeId,
+        season.providerIds.bangumiId,
         episodeId
       )
 
@@ -209,9 +223,9 @@ export class ProviderService {
     }
 
     this.logger.debug('No mapping found, searching for season')
-    const foundSeasons = await this.searchDanDanPlay({
-      keyword: title,
-      episode: episodeNumber?.toString(),
+
+    const foundSeasons = await this.danDanPlayService.search({
+      anime: title,
     })
 
     if (foundSeasons.length === 0) {
@@ -229,14 +243,32 @@ export class ProviderService {
         throw new Error(`No episodes found for season: ${season}`)
       }
 
+      const episodeId = this.danDanPlayService.computeEpisodeId(
+        season.providerIds.animeId,
+        episodeNumber ?? 1
+      )
+
+      const episode = episodes.find(
+        (ep) => ep.providerIds.episodeId === episodeId
+      )
+
+      if (!episode) {
+        throw new Error(
+          `Episode id ${episodeId} not found for season: ${season}`
+        )
+      }
+
       return {
-        ...episodes[0],
+        ...episode,
         season,
       }
     }
 
     if (foundSeasons.length === 1) {
       this.logger.debug('Single season found', foundSeasons[0])
+      const meta = await getMetaFromSeason(foundSeasons[0])
+
+      await this.titleMappingService.add(mapKey, meta.seasonId)
 
       return {
         status: 'success',

@@ -1,11 +1,5 @@
 import { AddCircle, Download, Upload } from '@mui/icons-material'
-import {
-  IconButton,
-  ListItemIcon,
-  ListItemText,
-  MenuItem,
-  Tooltip,
-} from '@mui/material'
+import { IconButton, Tooltip } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
 import { Logger } from '@/common/Logger'
@@ -74,27 +68,27 @@ export const ConfigToolbar = ({ onAdd }: { onAdd: () => void }) => {
           <AddCircle />
         </Tooltip>
       </IconButton>
-      <DrilldownMenu ButtonProps={{ edge: 'end' }}>
-        <Tooltip
-          title={CAN_IMPORT ? '' : 'Importing is not available in this browser'}
-        >
-          {/* A div is needed for the tooltip to show up for a disabled element  */}
-          <div>
-            <MenuItem onClick={handleImportConfigs} disabled={!CAN_IMPORT}>
-              <ListItemIcon>
-                <Upload />
-              </ListItemIcon>
-              <ListItemText>{t('common.import')}</ListItemText>
-            </MenuItem>
-          </div>
-        </Tooltip>
-        <MenuItem onClick={exportConfigs}>
-          <ListItemIcon>
-            <Download />
-          </ListItemIcon>
-          <ListItemText>{t('common.export')}</ListItemText>
-        </MenuItem>
-      </DrilldownMenu>
+      <DrilldownMenu
+        ButtonProps={{ edge: 'end' }}
+        items={[
+          {
+            id: 'canImport',
+            label: t('common.import'),
+            icon: <Upload />,
+            onClick: handleImportConfigs,
+            disabled: !CAN_IMPORT,
+            tooltip: CAN_IMPORT
+              ? ''
+              : 'Importing is not available in this browser',
+          },
+          {
+            id: 'export',
+            label: t('common.export'),
+            onClick: exportConfigs,
+            icon: <Download />,
+          },
+        ]}
+      />
     </TabToolbar>
   )
 }
