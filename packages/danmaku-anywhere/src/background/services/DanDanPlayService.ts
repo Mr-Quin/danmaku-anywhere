@@ -61,6 +61,32 @@ export class DanDanPlayService {
     return this.seasonService.bulkUpsert(seasons)
   }
 
+  async getBangumiDetails(bangumiId: string) {
+    const bangumiDetails = await danDanPlay.getBangumiAnime(bangumiId)
+
+    const seasonData: DanDanPlayOf<SeasonInsert> = {
+      provider: DanmakuSourceType.DanDanPlay,
+      title: bangumiDetails.animeTitle,
+      alternativeTitles: bangumiDetails.titles.map((t) => t.title),
+      type: bangumiDetails.type,
+      imageUrl: bangumiDetails.imageUrl,
+      providerIds: {
+        animeId: bangumiDetails.animeId,
+        bangumiId: bangumiDetails.bangumiId,
+      },
+      indexedId: bangumiDetails.animeId.toString(),
+      episodeCount: bangumiDetails.episodes.length,
+      schemaVersion: 1,
+    }
+
+    const season = await this.seasonService.upsert(seasonData)
+
+    return {
+      bangumiDetails,
+      season,
+    }
+  }
+
   async getAnimeDetails(
     seasonId: number
   ): Promise<WithSeason<DanDanPlayOf<EpisodeMeta>>[]> {
@@ -68,10 +94,13 @@ export class DanDanPlayService {
     const season = await this.seasonService.mustGetById(seasonId)
     assertProvider(season, DanmakuSourceType.DanDanPlay)
 
-    const result = await danDanPlay.getBangumiAnime(season.providerIds.animeId)
-    this.logger.debug('DanDanPlay Episodes fetched', result)
+    const { bangumiDetails } = await this.getBangumiDetails(
+      season.providerIds.bangumiId ?? season.providerIds.animeId.toString()
+    )
 
-    return result.episodes.map((item) => {
+    this.logger.debug('DanDanPlay Episodes fetched', bangumiDetails)
+
+    return bangumiDetails.episodes.map((item) => {
       return {
         provider: DanmakuSourceType.DanDanPlay,
         episodeNumber: item.episodeNumber,
@@ -92,9 +121,9 @@ export class DanDanPlayService {
     return animeId * 10000 + episodeNumber
   }
 
-  async findEpisode(animeId: number, episodeId: number) {
-    const [bangumi, err] = await tryCatch(async () =>
-      danDanPlay.getBangumiAnime(animeId)
+  async findEpisode(bangumiId: string, episodeId: number) {
+    const [result, err] = await tryCatch(async () =>
+      this.getBangumiDetails(bangumiId)
     )
 
     if (err) {
@@ -102,7 +131,9 @@ export class DanDanPlayService {
       throw err
     }
 
-    const episode = bangumi.episodes.find((e) => e.episodeId === episodeId)
+    const episode = result.bangumiDetails.episodes.find(
+      (e) => e.episodeId === episodeId
+    )
 
     return episode?.episodeTitle
   }
@@ -148,7 +179,7 @@ export class DanDanPlayService {
     // since the title can change, we'll try to update it
     const episodeTitle =
       (await this.findEpisode(
-        season.providerIds.animeId,
+        season.providerIds.bangumiId ?? season.providerIds.animeId.toString(),
         providerIds.episodeId
       )) ?? title // if for some reason we can't get the title, use the one we have
 

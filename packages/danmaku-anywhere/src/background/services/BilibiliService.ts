@@ -94,6 +94,36 @@ export class BilibiliService {
     return this.seasonService.bulkUpsert(seasons)
   }
 
+  async getBangumiInfo({
+    seasonId,
+    episodeId,
+  }: {
+    seasonId?: number
+    episodeId?: number
+  }) {
+    const seasonInfo = await bilibili.getBangumiInfo({
+      seasonId,
+      episodeId,
+    })
+
+    const season = await this.seasonService.upsert({
+      provider: DanmakuSourceType.Bilibili,
+      title: seasonInfo.title,
+      type: seasonInfo.type.toString(),
+      imageUrl: seasonInfo.cover,
+      providerIds: {
+        seasonId: seasonInfo.season_id,
+      },
+      indexedId: seasonInfo.season_id.toString(),
+      schemaVersion: 1,
+    })
+
+    return {
+      seasonInfo,
+      season,
+    }
+  }
+
   async getEpisodeByUrl(
     url: string
   ): Promise<WithSeason<BilibiliOf<EpisodeMeta>>> {
@@ -108,7 +138,7 @@ export class BilibiliService {
     // we need one of ssid or epid
     if (!ssid && !epid) throw new Error('Invalid bilibili url')
 
-    const seasonInfo = await bilibili.getBangumiInfo({
+    const { seasonInfo, season } = await this.getBangumiInfo({
       seasonId: ssid ? parseInt(ssid) : undefined,
       episodeId: epid ? parseInt(epid) : undefined,
     })
@@ -119,18 +149,6 @@ export class BilibiliService {
       : seasonInfo.episodes[0]
 
     if (!episode) throw new Error('Episode not found')
-
-    const season = await this.seasonService.upsert({
-      provider: DanmakuSourceType.Bilibili,
-      title: seasonInfo.title,
-      type: seasonInfo.type.toString(),
-      imageUrl: seasonInfo.cover,
-      providerIds: {
-        seasonId: seasonInfo.season_id,
-      },
-      indexedId: seasonInfo.season_id.toString(),
-      schemaVersion: 1,
-    })
 
     return this.mapToEpisode(episode, season)
   }

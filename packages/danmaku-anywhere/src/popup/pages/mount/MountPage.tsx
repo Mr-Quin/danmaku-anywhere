@@ -37,7 +37,6 @@ export const MountPage = () => {
 
   useEffect(() => {
     if (tabDanmakuState.data?.danmaku) {
-      setFilter(tabDanmakuState.data.danmaku.title)
       setIsMounted(tabDanmakuState.data.manual)
     }
   }, [tabDanmakuState.data])
@@ -70,9 +69,11 @@ export const MountPage = () => {
         }}
       >
         <TabToolbar title={t('mountPage.pageTitle')}>
-          {!isMobile && isFocus && (
-            <Keyboard color={isFilterOpen ? 'disabled' : 'success'} />
-          )}{' '}
+          {!isMobile && (
+            <Keyboard
+              color={isFilterOpen || !isFocus ? 'disabled' : 'action'}
+            />
+          )}
           <FilterButton
             onChange={setFilter}
             filter={filter}

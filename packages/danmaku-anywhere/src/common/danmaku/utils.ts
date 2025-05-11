@@ -1,4 +1,4 @@
-import type { DanmakuSourceType } from '@/common/danmaku/enums'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type {
   EpisodeLite,
   WithSeason,
@@ -31,4 +31,10 @@ export function isProvider<
   S extends DanmakuSourceType,
 >(data: T, provider: S): data is Extract<T, { provider: S }> {
   return data.provider === provider
+}
+
+export function isNotCustom<T extends { provider: DanmakuSourceType }>(
+  data: T
+): data is Exclude<T, { provider: DanmakuSourceType.Custom }> {
+  return data.provider !== DanmakuSourceType.Custom
 }

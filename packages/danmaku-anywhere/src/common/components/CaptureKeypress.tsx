@@ -18,7 +18,6 @@ const KeyOverlay = styled('div')(() => {
     justifyContent: 'center',
     zIndex: 9999,
     animation: 'fade-out 1s linear forwards',
-    animationPlayState: 'finished',
 
     '@keyframes fade-out': {
       from: {
@@ -48,6 +47,8 @@ export const CaptureKeypress = ({
   const overlayRef = useRef<HTMLDivElement>(null)
 
   const timeout = useRef<NodeJS.Timeout>(null)
+  const resetTimeout = useRef<NodeJS.Timeout>(null)
+  const resetDelay = useRef(true)
 
   const handleAnimation = () => {
     overlayRef.current?.getAnimations().forEach((animation) => {
@@ -66,6 +67,24 @@ export const CaptureKeypress = ({
     })
   }
 
+  const updateValue = (key: string) => {
+    handleAnimation()
+
+    if (resetTimeout.current) {
+      clearTimeout(resetTimeout.current)
+    }
+
+    if (resetDelay.current) {
+      onChange(key)
+      resetDelay.current = false
+    } else {
+      onChange(value + key)
+      resetTimeout.current = setTimeout(() => {
+        resetDelay.current = true
+      }, 2000)
+    }
+  }
+
   return (
     <Box
       tabIndex={-1}
@@ -73,9 +92,9 @@ export const CaptureKeypress = ({
         onKeyDownCapture: (e) => {
           if (disabled) return
 
-          handleAnimation()
-
           if (e.key === 'Backspace') {
+            handleAnimation()
+
             // hold cmd/ctrl to delete all
             if (getOS() === 'MacOS') {
               if (e.metaKey) {
@@ -95,7 +114,7 @@ export const CaptureKeypress = ({
           // no leading spaces
           if (!value && e.key === ' ') return
 
-          onChange(value + e.key)
+          updateValue(e.key)
         },
       })}
       {...boxProps}

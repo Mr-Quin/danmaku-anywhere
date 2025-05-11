@@ -30,6 +30,7 @@ export class TitleMappingService {
   }
 
   async get(key: string) {
+    console.log(await this.table.toArray())
     return this.table.get({ key })
   }
 }

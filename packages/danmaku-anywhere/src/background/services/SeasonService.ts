@@ -80,4 +80,16 @@ export class SeasonService {
   async filter(filter: SeasonQueryFilter) {
     return this.table.where(filter).toArray()
   }
+
+  async delete(filter: SeasonQueryFilter) {
+    if (filter.id === undefined)
+      throw new Error('id must be provided for delete operation')
+
+    await this.episodeTable
+      .where({
+        seasonId: filter.id,
+      })
+      .delete()
+    await this.table.delete(filter.id)
+  }
 }

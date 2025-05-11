@@ -98,41 +98,31 @@ export const EpisodePage = () => {
   return (
     <TabLayout>
       <TabToolbar title={getTitle()} showBackButton onGoBack={goBack}>
-        <Tooltip
-          title={t(
-            enableEpisodeSelection
-              ? 'danmaku.disableSelection'
-              : 'danmaku.enableSelection'
-          )}
-        >
-          <>
-            <Tooltip title={t('danmaku.export')}>
-              <span>
-                <IconButton
-                  onClick={handleExport}
-                  disabled={selectedEpisodes.length === 0}
-                >
-                  <Download />
-                </IconButton>
-              </span>
-            </Tooltip>
+        <Tooltip title={t('danmaku.export')}>
+          <span>
             <IconButton
-              onClick={() => {
-                setShowDialog(true)
-              }}
+              onClick={handleExport}
               disabled={selectedEpisodes.length === 0}
             >
-              <Delete />
+              <Download />
             </IconButton>
-
-            <IconButton
-              onClick={() => toggleEpisodeSelection()}
-              color={enableEpisodeSelection ? 'primary' : 'default'}
-            >
-              <Checklist />
-            </IconButton>
-          </>
+          </span>
         </Tooltip>
+        <IconButton
+          onClick={() => {
+            setShowDialog(true)
+          }}
+          disabled={selectedEpisodes.length === 0}
+        >
+          <Delete />
+        </IconButton>
+
+        <IconButton
+          onClick={() => toggleEpisodeSelection()}
+          color={enableEpisodeSelection ? 'primary' : 'default'}
+        >
+          <Checklist />
+        </IconButton>
       </TabToolbar>
       <EpisodeList />
       <Dialog open={showDialog} onClose={handleClose}>

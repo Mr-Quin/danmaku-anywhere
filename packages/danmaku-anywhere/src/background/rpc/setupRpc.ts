@@ -10,6 +10,7 @@ import type { GenAIService } from '@/background/services/GenAIService'
 import type { SeasonService } from '@/background/services/SeasonService'
 import type { TencentService } from '@/background/services/TencentService'
 import { Logger } from '@/common/Logger'
+import type { EpisodeSearchParams } from '@/common/danmaku/dto'
 import { mountConfigService } from '@/common/options/mountConfig/service'
 import type { TabRPCClientMethod } from '@/common/rpc/client'
 import type { RRPServerHandler } from '@/common/rpc/server'
@@ -33,26 +34,14 @@ export const setupRpc = (
   tencentService: TencentService
 ) => {
   const rpcServer = createRpcServer<BackgroundMethods>({
-    seasonSearchDanDanPlay: async (input) => {
-      return providerService.searchDanDanPlay(input)
-    },
-    seasonSearchBilibili: async (input) => {
-      return providerService.searchBilibili(input)
-    },
-    seasonSearchTencent: async (input) => {
-      return providerService.searchTencent(input)
+    seasonSearch: async (input) => {
+      return providerService.searchSeason(input)
     },
     mediaParseUrl: async (input) => {
       return providerService.parseUrl(input.url)
     },
-    episodeSearchDanDanPlay: async (seasonId) => {
-      return providerService.getDanDanPlayEpisodes(seasonId)
-    },
-    episodeSearchBilibili: async (seasonId) => {
-      return providerService.getBilibiliEpisodes(seasonId)
-    },
-    episodeSearchTencent: async (seasonId) => {
-      return providerService.getTencentEpisodes(seasonId)
+    episodeSearch: async (input: EpisodeSearchParams) => {
+      return providerService.searchEpisodes(input)
     },
     episodeMatch: async (data) => {
       return providerService.findMatchingEpisodes(data)
@@ -104,6 +93,12 @@ export const setupRpc = (
     },
     seasonFilter: async (data) => {
       return seasonService.filter(data)
+    },
+    seasonDelete: async (data) => {
+      return seasonService.delete(data)
+    },
+    seasonRefresh: async (data) => {
+      return providerService.refreshSeason(data)
     },
     episodeFetch: async (data) => {
       const result = await providerService.getDanmaku(data)
