@@ -1,17 +1,18 @@
 import type { SeasonService } from '@/background/services/SeasonService'
 import { Logger } from '@/common/Logger'
 import type {
-  CustomDanmakuImportData,
-  CustomDanmakuImportResult,
   CustomEpisodeQueryFilter,
+  DanmakuImportData,
+  DanmakuImportResult,
   EpisodeQueryFilter,
-  ImportError,
 } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { db } from '@/common/db/db'
 import type { DbEntity } from '@/common/types/dbEntity'
-import { invariant, isServiceWorker } from '@/common/utils/utils'
+import { invariant, isServiceWorker, tryCatch } from '@/common/utils/utils'
 import {
+  type BackupParseResult,
+  type CommentEntity,
   type CustomEpisode,
   type CustomEpisodeInsert,
   EPISODE_SCHEMA_VERSION,
@@ -19,8 +20,8 @@ import {
   type EpisodeInsert,
   type EpisodeLite,
   type WithSeason,
-  parseBackup,
-  parseCustomDanmaku,
+  parseBackupMany,
+  zCombinedDanmaku,
 } from '@danmaku-anywhere/danmaku-converter'
 
 export class DanmakuService {
@@ -75,49 +76,6 @@ export class DanmakuService {
       return
     }
     await this.customTable.where(filter).delete()
-  }
-
-  async importCustom(
-    importData: CustomDanmakuImportData[]
-  ): Promise<CustomDanmakuImportResult> {
-    const commentsData = importData.map((d) => d.comments)
-    const results = parseCustomDanmaku(commentsData)
-
-    const errors: ImportError[] = []
-    const succeeded: string[] = []
-
-    results.skipped.forEach(([i, err]) => {
-      errors.push({
-        title: importData[i].title,
-        index: i,
-        error: err.message,
-      })
-    })
-
-    for (const [i, comments] of results.imported) {
-      const originalData = importData[i]
-      try {
-        await this.addCustom({
-          provider: DanmakuSourceType.Custom,
-          comments,
-          commentCount: comments.length,
-          title: originalData.title,
-          schemaVersion: EPISODE_SCHEMA_VERSION,
-        })
-        succeeded.push(originalData.title)
-      } catch (e) {
-        errors.push({
-          title: originalData.title,
-          index: i,
-          error: (e as Error).message,
-        })
-      }
-    }
-
-    return {
-      succeeded,
-      errors,
-    }
   }
 
   async bulkUpsert(data: EpisodeInsert[]): Promise<Episode[]> {
@@ -228,36 +186,94 @@ export class DanmakuService {
     await this.ddpTable.where(filter).delete()
   }
 
-  async importBackup(data: unknown[]) {
-    const results = parseBackup(data)
+  async import(importData: DanmakuImportData[]): Promise<DanmakuImportResult> {
+    const importCustom = async (importData: {
+      title: string
+      comments: CommentEntity[]
+    }): Promise<CustomEpisode> => {
+      return this.addCustom({
+        provider: DanmakuSourceType.Custom,
+        comments: importData.comments,
+        commentCount: importData.comments.length,
+        title: importData.title,
+        schemaVersion: EPISODE_SCHEMA_VERSION,
+      })
+    }
 
-    const skipped = results.skipped
+    const importBackup = async (data: BackupParseResult) => {
+      let skipped = data.skipped.length
+      let imported = 0
 
-    for (const [i, item] of results.imported) {
-      try {
-        if (item.type === 'Custom') {
-          await this.addCustom(item.episode)
-        } else {
-          let [existingSeason] = await this.seasonService.filter({
-            provider: item.season.provider,
-            indexedId: item.season.indexedId,
-          })
-          // if the season does not exist, add it
-          if (!existingSeason) {
-            existingSeason = await this.seasonService.upsert(item.season)
+      for (const [i, item] of data.parsed) {
+        try {
+          if (item.type === 'Custom') {
+            await this.addCustom(item.episode)
+          } else {
+            let [existingSeason] = await this.seasonService.filter({
+              provider: item.season.provider,
+              indexedId: item.season.indexedId,
+            })
+            // if the season does not exist, add it
+            if (!existingSeason) {
+              existingSeason = await this.seasonService.upsert(item.season)
+            }
+            await this.upsert({
+              ...item.episode,
+              seasonId: existingSeason.id,
+            })
           }
-          await this.upsert({
-            ...item.episode,
-            seasonId: existingSeason.id,
-          })
+          imported += 1
+        } catch (e) {
+          this.logger.error(`Failed to import backup item ${i}`, e)
+          skipped += 1
         }
-      } catch (e) {
-        this.logger.error(`Failed to import backup item ${i}`, e)
-        skipped.push(i)
+      }
+
+      return {
+        skipped,
+        imported,
       }
     }
 
-    return skipped.toSorted()
+    const results: DanmakuImportResult = {
+      success: [],
+      error: [],
+    }
+
+    for (const { title, data } of importData) {
+      const [, err] = await tryCatch(async () => {
+        const customParse = zCombinedDanmaku.safeParse(data)
+        if (customParse.success) {
+          await importCustom({
+            comments: customParse.data,
+            title,
+          })
+          results.success.push({
+            title,
+            type: 'Custom',
+          })
+          return
+        }
+        const backupParseResult = parseBackupMany(
+          Array.isArray(data) ? data : [data]
+        )
+        const importResult = await importBackup(backupParseResult)
+
+        results.success.push({
+          title,
+          type: 'Backup',
+          result: importResult,
+        })
+      })
+      if (err) {
+        results.error.push({
+          title,
+          message: err.message,
+        })
+      }
+    }
+
+    return results
   }
 
   async purgeOlderThan(days: number) {

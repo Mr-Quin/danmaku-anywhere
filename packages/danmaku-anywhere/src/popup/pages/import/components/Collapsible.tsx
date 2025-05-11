@@ -31,16 +31,20 @@ export const Collapsible = ({
           cursor: 'pointer',
         }}
       >
-        <IconButton size="small" sx={{ mr: 0.5 }}>
-          {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-        </IconButton>
         {typeof title === 'string' ? (
-          <Typography variant="body2" component="div" sx={{ flexGrow: 1 }}>
+          <Typography
+            variant="body2"
+            component="div"
+            sx={{ flexGrow: 1, font: 'inherit' }}
+          >
             {title}
           </Typography>
         ) : (
           title
         )}
+        <IconButton size="small" sx={{ mr: 0.5 }}>
+          {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+        </IconButton>
       </Box>
       <Collapse in={open} unmountOnExit={false}>
         <Box

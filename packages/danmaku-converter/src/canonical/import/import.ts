@@ -18,7 +18,7 @@ const zImportV3 = z
     zEpisodeImportV2.transform(episodeMigration.v2ToV3),
     zEpisodeImportV3.transform(episodeMigration.v3ToV3),
   ])
-  .transform((data): BackupImportData => {
+  .transform((data): BackupParseData => {
     if (data.provider === DanmakuSourceType.Custom) {
       return {
         type: 'Custom',
@@ -35,7 +35,7 @@ const zImportV3 = z
     }
   })
 
-export type BackupImportData =
+export type BackupParseData =
   | {
       type: 'Custom'
       episode: CustomEpisodeInsertV4
@@ -46,19 +46,18 @@ export type BackupImportData =
       episode: EpisodeImportV4
     }
 
-export type BackupImportResult = {
+export type BackupParseResult = {
   // indexed
-  imported: [number, BackupImportData][]
+  parsed: [number, BackupParseData][]
   // array of indices of skipped items
   skipped: number[]
 }
 
-const parseSingle = (data: unknown): BackupImportData | undefined => {
+export const parseBackup = (data: unknown): BackupParseData | undefined => {
   // first see if data is v3
   {
     const parse = zImportV3.safeParse(data)
     if (parse.success) {
-      // custom episodes are used as-is
       return parse.data
     }
   }
@@ -87,12 +86,12 @@ const parseSingle = (data: unknown): BackupImportData | undefined => {
   }
 }
 
-export const parseBackup = (data: unknown[]): BackupImportResult => {
-  const imported: [number, BackupImportData][] = []
+export const parseBackupMany = (data: unknown[]): BackupParseResult => {
+  const imported: [number, BackupParseData][] = []
   const skipped: number[] = []
 
   for (const [i, item] of data.entries()) {
-    const result = parseSingle(item)
+    const result = parseBackup(item)
     if (!result) {
       skipped.push(i)
     } else {
@@ -101,7 +100,7 @@ export const parseBackup = (data: unknown[]): BackupImportResult => {
   }
 
   return {
-    imported,
+    parsed: imported,
     skipped,
   }
 }

@@ -36,22 +36,28 @@ export type DanmakuFetchDto = {
   meta: WithSeason<EpisodeMeta>
 } & BaseDanmakuFetchDto
 
-export type DanmakuDeleteDto = number
-
-export interface CustomDanmakuImportData {
-  comments: unknown
+export type DanmakuImportData = {
   title: string
+  data: unknown
 }
 
-export type ImportError = {
-  title: string
-  index: number
-  // serialized error message
-  error: string
-}
-
-export type CustomDanmakuImportResult = {
-  // titles that are successfully imported
-  succeeded: string[]
-  errors: ImportError[]
+export type DanmakuImportResult = {
+  success: (
+    | {
+        type: 'Custom'
+        title: string
+      }
+    | {
+        type: 'Backup'
+        title: string
+        result: {
+          skipped: number
+          imported: number
+        }
+      }
+  )[]
+  error: {
+    title: string
+    message: string
+  }[]
 }
