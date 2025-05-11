@@ -1,9 +1,12 @@
-import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  CommentEntity,
+  CustomEpisodeLite,
+} from '@danmaku-anywhere/danmaku-converter'
 import { enableMapSet } from 'immer'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 
-import { danmakuToString } from '@/common/danmaku/utils'
+import { episodeToString } from '@/common/danmaku/utils'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { createSelectors } from '@/common/utils/createSelectors'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
@@ -36,7 +39,10 @@ interface StoreState {
     filter: string
     setFilter: (filter: string) => void
 
-    mount: (danmaku: WithSeason<EpisodeLite>, comments: CommentEntity[]) => void
+    mount: (
+      danmaku: WithSeason<EpisodeLite> | CustomEpisodeLite,
+      comments: CommentEntity[]
+    ) => void
     unmount: () => void
 
     /**
@@ -53,8 +59,10 @@ interface StoreState {
     /**
      * Information about the current danmaku
      */
-    danmakuLite?: WithSeason<EpisodeLite>
-    setDanmakuLite: (danmakuMeta: WithSeason<EpisodeLite> | undefined) => void
+    danmakuLite?: WithSeason<EpisodeLite> | CustomEpisodeLite
+    setDanmakuLite: (
+      danmakuMeta: WithSeason<EpisodeLite> | CustomEpisodeLite | undefined
+    ) => void
 
     /**
      * Whether the danmaku is manually set
@@ -225,7 +233,7 @@ const useStoreBase = create<StoreState>()(
       } = get()
       if (mediaInfo) return mediaInfo.toString()
       if (danmakuLite) {
-        return danmakuToString(danmakuLite)
+        return episodeToString(danmakuLite)
       }
       return 'Unknown anime'
     },

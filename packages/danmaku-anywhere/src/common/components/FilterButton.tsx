@@ -1,5 +1,5 @@
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
-import { Close, Search } from '@mui/icons-material'
+import { Backspace, Search } from '@mui/icons-material'
 import {
   Badge,
   Box,
@@ -111,7 +111,7 @@ export const FilterButton = ({
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton onClick={handleClear} edge="end">
-                      <Close />
+                      <Backspace />
                     </IconButton>
                   </InputAdornment>
                 ),
