@@ -1,7 +1,7 @@
 import { produce } from 'immer'
 import { describe, expect, it } from 'vitest'
 
-import { parseBackup } from './import.js'
+import { parseBackupMany } from './import.js'
 
 import validCommentData from './test-data/common/validComment.json' with {
   type: 'json',
@@ -102,21 +102,21 @@ function assertIsImportedDataArray(input: any): asserts input is Array<{
 describe('importBackup with legacy data (V1-V3)', () => {
   describe('v1', () => {
     it('accepts valid DDP danmaku', () => {
-      const result = parseBackup([v1DanDanPlayData])
-      expect(result.imported).toHaveLength(1)
+      const result = parseBackupMany([v1DanDanPlayData])
+      expect(result.parsed).toHaveLength(1)
       expect(result.skipped).toHaveLength(0)
-      assertIsImportedDataArray(result.imported)
-      const [, importedItem] = result.imported[0]
+      assertIsImportedDataArray(result.parsed)
+      const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Regular')
       expect(importedItem.episode.provider).toBe(DanmakuSourceType.DanDanPlay)
     })
 
     it('accepts valid custom danmaku', () => {
-      const result = parseBackup([v1CustomData])
-      expect(result.imported).toHaveLength(1)
+      const result = parseBackupMany([v1CustomData])
+      expect(result.parsed).toHaveLength(1)
       expect(result.skipped).toHaveLength(0)
-      assertIsImportedDataArray(result.imported)
-      const [, importedItem] = result.imported[0]
+      assertIsImportedDataArray(result.parsed)
+      const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Custom')
       expect(importedItem.episode.provider).toBe(DanmakuSourceType.Custom)
     })
@@ -124,41 +124,41 @@ describe('importBackup with legacy data (V1-V3)', () => {
 
   describe('v2', () => {
     it('accepts valid DDP danmaku', () => {
-      const result = parseBackup([v2DanDanPlayData])
-      expect(result.imported).toHaveLength(1)
+      const result = parseBackupMany([v2DanDanPlayData])
+      expect(result.parsed).toHaveLength(1)
       expect(result.skipped).toHaveLength(0)
-      assertIsImportedDataArray(result.imported)
-      const [, importedItem] = result.imported[0]
+      assertIsImportedDataArray(result.parsed)
+      const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Regular')
       expect(importedItem.episode.provider).toBe(DanmakuSourceType.DanDanPlay)
     })
 
     it('accepts valid custom danmaku', () => {
-      const result = parseBackup([v2CustomData])
-      expect(result.imported).toHaveLength(1)
+      const result = parseBackupMany([v2CustomData])
+      expect(result.parsed).toHaveLength(1)
       expect(result.skipped).toHaveLength(0)
-      assertIsImportedDataArray(result.imported)
-      const [, importedItem] = result.imported[0]
+      assertIsImportedDataArray(result.parsed)
+      const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Custom')
       expect(importedItem.episode.provider).toBe(DanmakuSourceType.Custom)
     })
 
     it('accepts valid bilibili danmaku', () => {
-      const result = parseBackup([v2BilibiliData])
-      expect(result.imported).toHaveLength(1)
+      const result = parseBackupMany([v2BilibiliData])
+      expect(result.parsed).toHaveLength(1)
       expect(result.skipped).toHaveLength(0)
-      assertIsImportedDataArray(result.imported)
-      const [, importedItem] = result.imported[0]
+      assertIsImportedDataArray(result.parsed)
+      const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Regular')
       expect(importedItem.episode.provider).toBe(DanmakuSourceType.Bilibili)
     })
 
     it('accepts valid tencent danmaku', () => {
-      const result = parseBackup([v2TencentData])
-      expect(result.imported).toHaveLength(1)
+      const result = parseBackupMany([v2TencentData])
+      expect(result.parsed).toHaveLength(1)
       expect(result.skipped).toHaveLength(0)
-      assertIsImportedDataArray(result.imported)
-      const [, importedItem] = result.imported[0]
+      assertIsImportedDataArray(result.parsed)
+      const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Regular')
       expect(importedItem.episode.provider).toBe(DanmakuSourceType.Tencent)
     })
@@ -166,11 +166,11 @@ describe('importBackup with legacy data (V1-V3)', () => {
 
   describe('v3', () => {
     it('accepts valid DDP danmaku', () => {
-      const result = parseBackup([v3DanDanPlayData])
-      expect(result.imported).toHaveLength(1)
+      const result = parseBackupMany([v3DanDanPlayData])
+      expect(result.parsed).toHaveLength(1)
       expect(result.skipped).toHaveLength(0)
-      assertIsImportedDataArray(result.imported)
-      const [, importedItem] = result.imported[0]
+      assertIsImportedDataArray(result.parsed)
+      const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Regular')
       if (importedItem.type !== 'Regular') throw new Error('Unexpected type')
       expect(importedItem.episode.provider).toBe(DanmakuSourceType.DanDanPlay)
@@ -180,11 +180,11 @@ describe('importBackup with legacy data (V1-V3)', () => {
     })
 
     it('accepts valid custom danmaku', () => {
-      const result = parseBackup([v3CustomData])
-      expect(result.imported).toHaveLength(1)
+      const result = parseBackupMany([v3CustomData])
+      expect(result.parsed).toHaveLength(1)
       expect(result.skipped).toHaveLength(0)
-      assertIsImportedDataArray(result.imported)
-      const [, importedItem] = result.imported[0]
+      assertIsImportedDataArray(result.parsed)
+      const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Custom')
       expect(importedItem.episode.provider).toBe(DanmakuSourceType.Custom)
       // v3CustomData.episodeTitle is "", meta.episodeTitle is "第3话 还没上场就输了"
@@ -193,11 +193,11 @@ describe('importBackup with legacy data (V1-V3)', () => {
     })
 
     it('accepts valid bilibili danmaku', () => {
-      const result = parseBackup([v3BilibiliData])
-      expect(result.imported).toHaveLength(1)
+      const result = parseBackupMany([v3BilibiliData])
+      expect(result.parsed).toHaveLength(1)
       expect(result.skipped).toHaveLength(0)
-      assertIsImportedDataArray(result.imported)
-      const [, importedItem] = result.imported[0]
+      assertIsImportedDataArray(result.parsed)
+      const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Regular')
       if (importedItem.type !== 'Regular') throw new Error('Unexpected type')
       expect(importedItem.episode.provider).toBe(DanmakuSourceType.Bilibili)
@@ -206,11 +206,11 @@ describe('importBackup with legacy data (V1-V3)', () => {
     })
 
     it('accepts valid tencent danmaku', () => {
-      const result = parseBackup([v3TencentData])
-      expect(result.imported).toHaveLength(1)
+      const result = parseBackupMany([v3TencentData])
+      expect(result.parsed).toHaveLength(1)
       expect(result.skipped).toHaveLength(0)
-      assertIsImportedDataArray(result.imported)
-      const [, importedItem] = result.imported[0]
+      assertIsImportedDataArray(result.parsed)
+      const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Regular')
       if (importedItem.type !== 'Regular') throw new Error('Unexpected type')
       expect(importedItem.episode.provider).toBe(DanmakuSourceType.Tencent)
@@ -222,31 +222,31 @@ describe('importBackup with legacy data (V1-V3)', () => {
 
 describe('importBackup with V4 and mixed data', () => {
   it('should correctly import valid V3 DanDanPlay data array', () => {
-    const backupResult = parseBackup([v3DanDanPlayData])
+    const backupResult = parseBackupMany([v3DanDanPlayData])
 
-    expect(backupResult.imported).toHaveLength(1)
+    expect(backupResult.parsed).toHaveLength(1)
     expect(backupResult.skipped).toHaveLength(0)
-    const [, importedItem] = backupResult.imported[0]
+    const [, importedItem] = backupResult.parsed[0]
     expect(importedItem.type).toBe('Regular')
     expect(importedItem.episode.provider).toBe(DanmakuSourceType.DanDanPlay)
   })
 
   it('should correctly import valid V3 Custom data array', () => {
-    const backupResult = parseBackup([v3CustomData])
+    const backupResult = parseBackupMany([v3CustomData])
 
-    expect(backupResult.imported).toHaveLength(1)
+    expect(backupResult.parsed).toHaveLength(1)
     expect(backupResult.skipped).toHaveLength(0)
-    const [, importedItem] = backupResult.imported[0]
+    const [, importedItem] = backupResult.parsed[0]
     expect(importedItem.type).toBe('Custom')
     expect(importedItem.episode.provider).toBe(DanmakuSourceType.Custom)
   })
 
   it('should correctly import valid V4 CustomEpisode data array', () => {
-    const backupResult = parseBackup([customV4EpisodeData])
+    const backupResult = parseBackupMany([customV4EpisodeData])
 
-    expect(backupResult.imported).toHaveLength(1)
+    expect(backupResult.parsed).toHaveLength(1)
     expect(backupResult.skipped).toHaveLength(0)
-    const [, importedItem] = backupResult.imported[0]
+    const [, importedItem] = backupResult.parsed[0]
     expect(importedItem.type).toBe('Custom')
     expect(importedItem.episode.provider).toBe(DanmakuSourceType.Custom)
     expect(importedItem.episode.title).toBe(customV4EpisodeData.title)
@@ -255,10 +255,10 @@ describe('importBackup with V4 and mixed data', () => {
   })
 
   it('should correctly import valid V4 Regular Episode with Season data array', () => {
-    const backupResult = parseBackup([regularV4EpisodeData])
-    expect(backupResult.imported).toHaveLength(1)
+    const backupResult = parseBackupMany([regularV4EpisodeData])
+    expect(backupResult.parsed).toHaveLength(1)
     expect(backupResult.skipped).toHaveLength(0)
-    const [, importedItem] = backupResult.imported[0]
+    const [, importedItem] = backupResult.parsed[0]
     expect(importedItem.type).toBe('Regular')
     if (importedItem.type !== 'Regular') throw new Error('Unexpected type')
 
@@ -270,55 +270,51 @@ describe('importBackup with V4 and mixed data', () => {
   })
 
   it('should skip invalid data in an array', () => {
-    const backupResult = parseBackup([invalidV4Data])
-    expect(backupResult.imported).toHaveLength(0)
+    const backupResult = parseBackupMany([invalidV4Data])
+    expect(backupResult.parsed).toHaveLength(0)
     expect(backupResult.skipped).toEqual([0]) // Index of the skipped item
   })
 
   it('should skip completely invalid non-object data in an array', () => {
-    const backupResult = parseBackup(['not an object'])
-    expect(backupResult.imported).toHaveLength(0)
+    const backupResult = parseBackupMany(['not an object'])
+    expect(backupResult.parsed).toHaveLength(0)
     expect(backupResult.skipped).toEqual([0])
   })
 
   it('should handle an empty array input', () => {
-    const backupResult = parseBackup([])
-    expect(backupResult.imported).toHaveLength(0)
+    const backupResult = parseBackupMany([])
+    expect(backupResult.parsed).toHaveLength(0)
     expect(backupResult.skipped).toHaveLength(0)
   })
 
   it('should handle a mix of valid and invalid data', () => {
-    const backupResult = parseBackup([
+    const backupResult = parseBackupMany([
       v3DanDanPlayData, // valid
       invalidV4Data, // invalid
       customV4EpisodeData, // valid
       'not an object', // invalid
       v3CustomData, // valid
     ])
-    expect(backupResult.imported).toHaveLength(3)
+    expect(backupResult.parsed).toHaveLength(3)
     expect(backupResult.skipped).toEqual([1, 3]) // Indices of invalidData and "not an object"
 
-    assertIsImportedDataArray(backupResult.imported)
+    assertIsImportedDataArray(backupResult.parsed)
 
     // Check first imported item (v3DanDanPlayData)
-    expect(backupResult.imported[0].type).toBe('Regular')
-    expect(backupResult.imported[0].episode.provider).toBe(
+    expect(backupResult.parsed[0].type).toBe('Regular')
+    expect(backupResult.parsed[0].episode.provider).toBe(
       DanmakuSourceType.DanDanPlay
     )
-    expect(backupResult.imported[0].episode.title).toBe(
+    expect(backupResult.parsed[0].episode.title).toBe(
       v3DanDanPlayData.episodeTitle
     )
 
     // Check second imported item (customV4EpisodeData)
-    expect(backupResult.imported[1].type).toBe('Custom')
-    expect(backupResult.imported[1].episode.title).toBe(
-      customV4EpisodeData.title
-    )
+    expect(backupResult.parsed[1].type).toBe('Custom')
+    expect(backupResult.parsed[1].episode.title).toBe(customV4EpisodeData.title)
 
     // Check third imported item (v3CustomData)
-    expect(backupResult.imported[2].type).toBe('Custom')
-    expect(backupResult.imported[2].episode.title).toBe(
-      v3CustomData.episodeTitle
-    )
+    expect(backupResult.parsed[2].type).toBe('Custom')
+    expect(backupResult.parsed[2].episode.title).toBe(v3CustomData.episodeTitle)
   })
 })
