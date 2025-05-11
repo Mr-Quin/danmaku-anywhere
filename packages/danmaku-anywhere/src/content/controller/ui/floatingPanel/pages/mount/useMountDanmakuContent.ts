@@ -53,9 +53,7 @@ export const useMountDanmakuContent = () => {
     },
     onSuccess: (data) => {
       toggleManualMode(true)
-      if (isNotCustom(data)) {
-        void mountDanmaku(data)
-      }
+      void mountDanmaku(data)
     },
     onError: (e) => {
       toast.error(
