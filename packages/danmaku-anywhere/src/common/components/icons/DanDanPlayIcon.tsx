@@ -1,4 +1,4 @@
-import { useImageSuspense } from '@/common/components/image/useImageSuspense'
+import { useImageSuspense } from '@/common/components/image/useImage'
 
 export const DanDanPlayIcon = () => {
   const image = useImageSuspense('/dandanplay_logo.png')

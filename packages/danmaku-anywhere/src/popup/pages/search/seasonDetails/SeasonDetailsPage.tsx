@@ -4,6 +4,7 @@ import { SeasonEpisodeList } from '@/common/components/MediaList/components/Seas
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
+import { useGoBack } from '@/popup/hooks/useGoBack'
 import { useStore } from '@/popup/store'
 import type {
   EpisodeMeta,
@@ -15,11 +16,13 @@ import { ErrorBoundary } from 'react-error-boundary'
 export const SeasonDetailsPage = () => {
   const { season } = useStore.use.search()
 
+  const goBack = useGoBack()
+
   if (!season) return null
 
   return (
     <TabLayout>
-      <TabToolbar title={season.title} />
+      <TabToolbar title={season.title} showBackButton onGoBack={goBack} />
       <ErrorBoundary
         fallbackRender={({ error }) => <ErrorMessage message={error.message} />}
       >

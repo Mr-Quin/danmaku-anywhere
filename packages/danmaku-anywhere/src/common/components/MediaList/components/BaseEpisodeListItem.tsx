@@ -12,7 +12,9 @@ import {
 import { type ReactNode, Suspense } from 'react'
 
 import { CoverImage } from '@/common/components/MediaList/components/CoverImage'
+import { isNotCustom } from '@/common/danmaku/utils'
 import type {
+  CustomEpisode,
   EpisodeLite,
   EpisodeMeta,
   WithSeason,
@@ -20,12 +22,15 @@ import type {
 import { useTranslation } from 'react-i18next'
 
 const isEpisodeLite = (
-  episode: WithSeason<EpisodeMeta>
+  episode: WithSeason<EpisodeMeta> | CustomEpisode
 ): episode is WithSeason<EpisodeLite> => {
+  if (!isNotCustom(episode)) return false
   return 'id' in episode
 }
 
-type BaseEpisodeListItemProps<T extends WithSeason<EpisodeMeta>> = {
+type BaseEpisodeListItemProps<
+  T extends WithSeason<EpisodeMeta> | CustomEpisode,
+> = {
   showImage?: boolean
   isLoading?: boolean
   onClick: (meta: T) => void
@@ -34,7 +39,9 @@ type BaseEpisodeListItemProps<T extends WithSeason<EpisodeMeta>> = {
   disabled?: boolean
 }
 
-export const BaseEpisodeListItem = <T extends WithSeason<EpisodeMeta>>({
+export const BaseEpisodeListItem = <
+  T extends WithSeason<EpisodeMeta> | CustomEpisode,
+>({
   showImage = true,
   isLoading,
   onClick,
@@ -45,6 +52,8 @@ export const BaseEpisodeListItem = <T extends WithSeason<EpisodeMeta>>({
   const { t } = useTranslation()
 
   const isLite = isEpisodeLite(episode)
+  const isCustom = !isNotCustom(episode)
+
   const episodeLite = isLite ? episode : undefined
 
   const getIcon = () => {
@@ -59,7 +68,7 @@ export const BaseEpisodeListItem = <T extends WithSeason<EpisodeMeta>>({
         onClick={() => onClick(episode)}
         disabled={isLoading || disabled}
       >
-        {showImage && episode.imageUrl && (
+        {showImage && !isCustom && episode.imageUrl && (
           <Box width={40} mr={2} flexShrink={0}>
             <Suspense fallback={<Skeleton width={40} height={40} />}>
               <CoverImage

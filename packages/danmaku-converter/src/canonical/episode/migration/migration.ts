@@ -123,6 +123,7 @@ const v3ExtractSeason = (
         provider: DanmakuSourceType.DanDanPlay,
         providerIds: {
           animeId: item.meta.animeId,
+          bangumiId: item.meta.animeId.toString(),
         },
         title: item.seasonTitle,
         type: '',

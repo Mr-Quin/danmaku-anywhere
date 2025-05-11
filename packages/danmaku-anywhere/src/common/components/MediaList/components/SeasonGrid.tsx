@@ -6,6 +6,7 @@ import type { HandleSeasonClick } from '@/common/components/MediaList/types'
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import {
   Box,
+  type BoxProps,
   type Breakpoint,
   Grid,
   type GridProps,
@@ -48,17 +49,23 @@ const SeasonGridLayout = (props: GridProps) => {
   )
 }
 
-interface SeasonListProps {
+interface SeasonGridProps {
   data: (Season | CustomSeason)[]
   onSeasonClick: HandleSeasonClick
   virtualize?: boolean
+  disableMenu?: boolean
+  disableSelection?: boolean
+  boxProps?: BoxProps
 }
 
 export const SeasonGrid = ({
   data,
   onSeasonClick,
   virtualize = false,
-}: SeasonListProps) => {
+  disableMenu,
+  disableSelection,
+  boxProps,
+}: SeasonGridProps) => {
   const ref = useRef<HTMLDivElement>(null)
   const theme = useTheme()
 
@@ -95,7 +102,11 @@ export const SeasonGrid = ({
         {data.map((season) => {
           return (
             <Grid size={gridSize} key={season.id}>
-              <SeasonCard season={season} onClick={onSeasonClick} />
+              <SeasonCard
+                season={season}
+                onClick={onSeasonClick}
+                disableMenu={disableMenu}
+              />
             </Grid>
           )
         })}
@@ -104,7 +115,13 @@ export const SeasonGrid = ({
   }
 
   return (
-    <Box height="100%" overflow="auto" position="relative" p={2} ref={ref}>
+    <Box
+      height="100%"
+      overflow="auto"
+      position="relative"
+      ref={ref}
+      {...boxProps}
+    >
       <SeasonGridLayout height={virtualizer.getTotalSize()} position="relative">
         {virtualizer.getVirtualItems().map((virtualItem) => {
           const season = data[virtualItem.index]
@@ -114,14 +131,18 @@ export const SeasonGrid = ({
               sx={{
                 position: 'absolute',
                 top: 0,
-                // left: `calc(${virtualItem.lane * (100 / lanes)}% + ${virtualItem.lane * parseInt(spacing)}px)`,
                 transform: `translateY(${virtualItem.start}px) translateX(calc(${virtualItem.lane * 100}% + ${virtualItem.lane * parseInt(spacing)}px))`,
               }}
               key={season.id}
               data-index={virtualItem.index}
               ref={virtualizer.measureElement}
             >
-              <SeasonCard season={season} onClick={onSeasonClick} />
+              <SeasonCard
+                season={season}
+                onClick={onSeasonClick}
+                disableMenu={disableMenu}
+                disableSelection={disableSelection}
+              />
             </Grid>
           )
         })}

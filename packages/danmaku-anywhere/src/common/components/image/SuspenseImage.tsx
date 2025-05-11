@@ -1,5 +1,5 @@
 import type { ComponentProps, ReactNode } from 'react'
-import { useImageSuspense } from './useImageSuspense'
+import { useImageSuspense } from './useImage'
 
 type ImageProps = {
   fallback?: ReactNode
