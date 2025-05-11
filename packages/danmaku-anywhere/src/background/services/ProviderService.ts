@@ -95,6 +95,7 @@ export class ProviderService {
         break
       }
       case DanmakuSourceType.Tencent: {
+        await this.tencentService.refreshSeason(season.id)
         break
       }
     }
@@ -306,7 +307,9 @@ export class ProviderService {
     const { hostname } = new URL(url)
 
     if (hostname === 'www.bilibili.com') {
-      return await this.bilibiliService.getEpisodeByUrl(url)
+      return this.bilibiliService.getEpisodeByUrl(url)
+    } else if (hostname === 'v.qq.com') {
+      return this.tencentService.getEpisodeByUrl(url)
     }
 
     throw new Error('Unknown host')
