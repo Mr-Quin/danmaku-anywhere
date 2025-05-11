@@ -134,15 +134,15 @@ export const zTencentPageDetailResponse = zTencentApiResponseBase.extend({
               item_data_lists: z.object({
                 item_datas: z.array(
                   z.object({
+                    item_type: z.string(),
                     item_params: z.object({
                       title: z.string(),
-                      image_url: z.string().url(),
-                      play_title: z.string(),
-                      union_title: z.string(),
-                      vid: z.string(),
-                      cid: z.string(),
+                      new_pic_vt: z.string().url(),
+                      new_pic_hz: z.string().url(),
+                      'report.cid': z.string(),
+                      episode_all: z.coerce.number(),
+                      year: z.coerce.number(),
                     }),
-                    item_type: z.string(),
                   })
                 ),
               }),
