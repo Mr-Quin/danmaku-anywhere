@@ -20,16 +20,15 @@ import type {
 import type { Season } from '@danmaku-anywhere/danmaku-converter'
 
 import type {
-  CustomDanmakuImportData,
-  CustomDanmakuImportResult,
   CustomEpisodeQueryFilter,
   DanmakuFetchDto,
+  DanmakuImportData,
+  DanmakuImportResult,
   EpisodeQueryFilter,
 } from '@/common/danmaku/dto'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import type {
   Episode,
-  EpisodeInsert,
   EpisodeLite,
   EpisodeMeta,
   WithSeason,
@@ -81,11 +80,7 @@ type EpisodeMethods = {
   episodeDelete: RPCDef<EpisodeQueryFilter, void>
   episodeFilterCustom: RPCDef<CustomEpisodeQueryFilter, CustomEpisode[]>
   episodeDeleteCustom: RPCDef<CustomEpisodeQueryFilter, void>
-  danmakuCreateCustom: RPCDef<
-    CustomDanmakuImportData[],
-    CustomDanmakuImportResult
-  >
-  danmakuImport: RPCDef<EpisodeInsert[], void>
+  episodeImport: RPCDef<DanmakuImportData[], DanmakuImportResult>
   danmakuPurgeCache: RPCDef<number, number>
 }
 

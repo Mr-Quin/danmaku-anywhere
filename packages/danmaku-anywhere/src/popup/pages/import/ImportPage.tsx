@@ -1,16 +1,29 @@
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import type {
-  CustomDanmakuImportData,
-  CustomDanmakuImportResult,
+  DanmakuImportData,
+  DanmakuImportResult,
 } from '@/common/danmaku/dto'
-import { customEpisodeQueryKeys } from '@/common/queries/queryKeys'
+import {
+  customEpisodeQueryKeys,
+  episodeQueryKeys,
+  seasonQueryKeys,
+} from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { Collapsible } from '@/popup/pages/import/components/Collapsible'
 import { xmlToJSON } from '@danmaku-anywhere/danmaku-converter'
 import { ContentCopy } from '@mui/icons-material'
-import { Box, IconButton, Typography, styled, useTheme } from '@mui/material'
+import {
+  Box,
+  Chip,
+  IconButton,
+  List,
+  ListItem,
+  Typography,
+  styled,
+  useTheme,
+} from '@mui/material'
 import type { SxProps, Theme } from '@mui/material/styles'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { type KeyboardEvent, type ReactNode, useRef, useState } from 'react'
@@ -112,9 +125,9 @@ const PreFormat = ({ variant, sx, children }: PreFormatProps) => {
   )
 }
 
-const getJson = async (text: string, fileName: string) => {
+const getJson = (text: string, fileName: string) => {
   const isXml = fileName.endsWith('.xml')
-  const data: unknown = isXml ? await xmlToJSON(text) : JSON.parse(text)
+  const data: unknown = isXml ? xmlToJSON(text) : JSON.parse(text)
   return data
 }
 
@@ -122,11 +135,11 @@ const processUploadedFiles = async (files: File[]) => {
   return Promise.all(
     files.map(async (file) => {
       const text = await file.text()
-      const data = await getJson(text, file.name)
+      const data = getJson(text, file.name)
       return {
         title: file.name.substring(0, file.name.lastIndexOf('.')), // remove extension
-        comments: data,
-      } satisfies CustomDanmakuImportData
+        data,
+      } satisfies DanmakuImportData
     })
   )
 }
@@ -159,8 +172,14 @@ export const ImportPage = () => {
     if (!data || data.length === 0) {
       throw new Error('No files to import')
     }
-    const { data: results } = await chromeRpcClient.danmakuCreateCustom(data)
+    const { data: results } = await chromeRpcClient.episodeImport(data)
 
+    void queryClient.invalidateQueries({
+      queryKey: seasonQueryKeys.all(),
+    })
+    void queryClient.invalidateQueries({
+      queryKey: episodeQueryKeys.all(),
+    })
     void queryClient.invalidateQueries({
       queryKey: customEpisodeQueryKeys.all(),
     })
@@ -172,7 +191,7 @@ export const ImportPage = () => {
     status,
     error: importError,
     result,
-  }: ImportResultRenderParams<CustomDanmakuImportResult>) => {
+  }: ImportResultRenderParams<DanmakuImportResult>) => {
     switch (status) {
       case 'uploading':
       case 'confirmUpload': {
@@ -211,36 +230,52 @@ export const ImportPage = () => {
       case 'uploadSuccess': {
         return (
           <>
-            {result.succeeded.length > 0 && (
+            {result.success.length > 0 && (
               <>
                 <Typography color="success.main" variant="subtitle1">
                   {t('importPage.importSuccess', {
-                    count: result.succeeded.length,
+                    count: result.success.length,
                   })}
                 </Typography>
                 <PreFormat>
-                  <ul>
-                    {result.succeeded.map((item, i) => {
-                      return <li key={i}>{item}</li>
+                  <List>
+                    {result.success.map((item, i) => {
+                      return (
+                        <ListItem key={i}>
+                          <Chip
+                            size="small"
+                            label={t(`danmaku.type.${item.type}`)}
+                            sx={{ font: 'inherit', mr: 1 }}
+                          />
+                          {item.type === 'Custom' ? (
+                            <span>{item.title}</span>
+                          ) : (
+                            <Collapsible title={item.title}>
+                              Skipped {item.result.skipped}
+                              Imported {item.result.imported}
+                            </Collapsible>
+                          )}
+                        </ListItem>
+                      )
                     })}
-                  </ul>
+                  </List>
                 </PreFormat>
               </>
             )}
-            {result.errors.length > 0 && (
+            {result.error.length > 0 && (
               <>
                 <Typography color="error.main" variant="subtitle1">
-                  {t('importPage.importError', { count: result.errors.length })}
+                  {t('importPage.importError', { count: result.error.length })}
                 </Typography>
-                {result.errors.map((item, i) => {
-                  return (
-                    <PreFormat variant="error" key={i}>
-                      <Collapsible title={item.title} defaultOpen>
-                        {item.error}
+                <PreFormat variant="error">
+                  {result.error.map((item, i) => {
+                    return (
+                      <Collapsible key={i} title={item.title} defaultOpen>
+                        {item.message}
                       </Collapsible>
-                    </PreFormat>
-                  )
-                })}
+                    )
+                  })}
+                </PreFormat>
               </>
             )}
           </>
