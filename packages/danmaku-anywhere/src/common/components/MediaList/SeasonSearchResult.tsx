@@ -59,5 +59,12 @@ const SeasonSearchResultSuspense = ({
   if (result.data.length === 0) {
     return <NothingHere message={t('searchPage.error.noResultFound')} />
   }
-  return <SeasonGrid onSeasonClick={onSeasonClick} data={result.data} />
+  return (
+    <SeasonGrid
+      onSeasonClick={onSeasonClick}
+      data={result.data}
+      disableMenu
+      disableSelection
+    />
+  )
 }

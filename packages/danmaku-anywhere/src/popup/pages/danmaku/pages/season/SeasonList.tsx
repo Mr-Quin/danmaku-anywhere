@@ -1,13 +1,12 @@
 import { Suspense, useMemo } from 'react'
 import { createSearchParams, useNavigate } from 'react-router'
 
-import { NoSeason } from './NoSeason'
-
 import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
 import {
   SeasonGrid,
   SeasonGridSkeleton,
 } from '@/common/components/MediaList/components/SeasonGrid'
+import { NothingHere } from '@/common/components/NothingHere'
 import { useAllCustomEpisodesSuspense } from '@/common/danmaku/queries/useAllCustomEpisodes'
 import { isProvider } from '@/common/danmaku/utils'
 import { matchWithPinyin } from '@/common/utils/utils'
@@ -16,6 +15,7 @@ import {
   type CustomSeason,
   DanmakuSourceType,
 } from '@danmaku-anywhere/danmaku-converter'
+import { Box } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
 const SeasonListSuspense = () => {
@@ -57,10 +57,23 @@ const SeasonListSuspense = () => {
       .filter((item) => selectedTypes.includes(item.provider))
   }, [seasonsWithCustom, filter, selectedTypes])
 
-  if (!filteredSeasons.length) return <NoSeason />
+  if (!filteredSeasons.length) {
+    return (
+      <Box p={2} flexGrow={1}>
+        <NothingHere
+          message={
+            filter
+              ? t('danmakuPage.noResult', { filter: filter })
+              : t('danmakuPage.noAnime')
+          }
+        />
+      </Box>
+    )
+  }
 
   return (
     <SeasonGrid
+      boxProps={{ p: 2 }}
       data={filteredSeasons}
       onSeasonClick={(season) => {
         navigate({
@@ -79,7 +92,13 @@ const SeasonListSuspense = () => {
 
 export const SeasonList = () => {
   return (
-    <Suspense fallback={<SeasonGridSkeleton count={10} />}>
+    <Suspense
+      fallback={
+        <Box p={2}>
+          <SeasonGridSkeleton count={10} />
+        </Box>
+      }
+    >
       <SeasonListSuspense />
     </Suspense>
   )

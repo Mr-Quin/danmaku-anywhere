@@ -1,9 +1,6 @@
 import type {
-  BilibiliOf,
   CommentEntity,
   CustomEpisode,
-  DanDanPlayOf,
-  TencentOf,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { BilibiliUserInfo } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import type { ExtractTitleResponse } from '@danmaku-anywhere/danmaku-provider/genAi'
@@ -25,6 +22,7 @@ import type {
   DanmakuImportData,
   DanmakuImportResult,
   EpisodeQueryFilter,
+  EpisodeSearchParams,
 } from '@/common/danmaku/dto'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import type {
@@ -55,17 +53,12 @@ type IconMethods = {
 
 type SeasonMethods = {
   mediaParseUrl: RPCDef<{ url: string }, WithSeason<EpisodeMeta>>
-  seasonSearchDanDanPlay: RPCDef<SeasonSearchParams, DanDanPlayOf<Season>[]>
-  seasonSearchBilibili: RPCDef<SeasonSearchParams, BilibiliOf<Season>[]>
-  seasonSearchTencent: RPCDef<SeasonSearchParams, TencentOf<Season>[]>
+  seasonSearch: RPCDef<SeasonSearchParams, Season[]>
   seasonFilter: RPCDef<SeasonQueryFilter, Season[]>
   seasonGetAll: RPCDef<void, Season[]>
-  episodeSearchDanDanPlay: RPCDef<
-    number,
-    WithSeason<DanDanPlayOf<EpisodeMeta>>[]
-  >
-  episodeSearchBilibili: RPCDef<number, WithSeason<BilibiliOf<EpisodeMeta>>[]>
-  episodeSearchTencent: RPCDef<number, WithSeason<TencentOf<EpisodeMeta>>[]>
+  seasonDelete: RPCDef<SeasonQueryFilter, void>
+  seasonRefresh: RPCDef<SeasonQueryFilter, void>
+  episodeSearch: RPCDef<EpisodeSearchParams, WithSeason<EpisodeMeta>[]>
   episodeMatch: RPCDef<MatchEpisodeInput, MatchEpisodeResult>
   bilibiliSetCookies: RPCDef<void, void>
   bilibiliGetLoginStatus: RPCDef<void, BilibiliUserInfo>

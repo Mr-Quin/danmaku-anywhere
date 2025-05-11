@@ -12,8 +12,8 @@ import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountD
 import { useStore } from '@/content/controller/store/store'
 import { useMountDanmakuContent } from '@/content/controller/ui/floatingPanel/pages/mount/useMountDanmakuContent'
 import type {
+  CustomEpisodeLite,
   EpisodeLite,
-  WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Keyboard } from '@mui/icons-material'
 
@@ -30,10 +30,11 @@ export const MountPage = () => {
   const { mutate, isPending } = useMountDanmakuContent()
   const unmountMutation = useUnmountDanmaku()
 
-  const handleSelectDanmaku = (danmakuLite: WithSeason<EpisodeLite>) => {
+  const handleSelectDanmaku = (
+    danmakuLite: EpisodeLite | CustomEpisodeLite
+  ) => {
     mutate(danmakuLite, {
       onSuccess: () => {
-        setFilter(danmakuLite.title)
         setIsFilterOpen(true)
       },
     })
@@ -42,7 +43,6 @@ export const MountPage = () => {
   const handleUnmount = () => {
     unmountMutation.mutate(undefined, {
       onSuccess: () => {
-        setFilter('')
         setIsFilterOpen(false)
       },
     })
@@ -64,7 +64,7 @@ export const MountPage = () => {
       >
         <TabToolbar title={t('mountPage.pageTitle')}>
           {!isMobile && isFocus && (
-            <Keyboard color={isFilterOpen ? 'disabled' : 'success'} />
+            <Keyboard color={isFilterOpen ? 'disabled' : 'inherit'} />
           )}
           <FilterButton
             filter={filter}

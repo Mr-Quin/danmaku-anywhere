@@ -22,7 +22,7 @@ export const zBaseSeasonV1 = z.object({
 
 export const zDanDanPlaySeasonProviderIds = z.object({
   animeId: z.number(),
-  bangumiId: z.string().optional(),
+  bangumiId: z.string(),
 })
 
 export const zBilibiliSeasonProviderIds = z.object({

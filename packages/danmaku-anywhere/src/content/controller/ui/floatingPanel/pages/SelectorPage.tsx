@@ -48,10 +48,10 @@ export const SelectorPage = () => {
     if (!selectedSeason || !mediaInfo) return
 
     const episodeMatchPayload = {
-      mapKey: mediaInfo.fullSeason(),
+      mapKey: mediaInfo.getKey(),
       title: selectedSeason.title,
       episodeNumber: mediaInfo.episode,
-      seasonId: selectedSeason.indexedId,
+      seasonId: selectedSeason.id,
     }
 
     matchEpisode.mutate(episodeMatchPayload, {
@@ -75,7 +75,7 @@ export const SelectorPage = () => {
   return (
     <Box flexGrow={1}>
       <Typography variant="body1" p={2}>
-        {t('selectorPage.selectAnime', { name: mediaInfo?.fullSeason() })}
+        {t('selectorPage.selectAnime', { name: mediaInfo?.getKey() })}
       </Typography>
       <List disablePadding dense>
         {animes.map((season) => {
@@ -125,7 +125,7 @@ export const SelectorPage = () => {
             {selectedSeason && (
               <FormHelperText>
                 {t('selectorPage.saveMappingAs', {
-                  originalName: mediaInfo?.fullSeason(),
+                  originalName: mediaInfo?.getKey(),
                   newName: selectedSeason.title,
                 })}
               </FormHelperText>

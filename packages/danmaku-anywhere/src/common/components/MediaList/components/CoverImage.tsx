@@ -1,5 +1,5 @@
 import { SuspenseImage } from '@/common/components/image/SuspenseImage'
-import { useImageSuspense } from '@/common/components/image/useImageSuspense'
+import { useImageSuspense } from '@/common/components/image/useImage'
 import { CardMedia, Skeleton, styled } from '@mui/material'
 import { type ReactNode, Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'

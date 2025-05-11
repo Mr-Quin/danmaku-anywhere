@@ -207,10 +207,10 @@ export const relatedGetRelated = async (
 }
 
 export const getBangumiAnime = async (
-  animeId: number
+  bangumiId: string
 ): Promise<BangumiDetails> => {
   const data = await fetchDanDanPlay({
-    path: `/api/v2/bangumi/${animeId.toString()}`,
+    path: `/api/v2/bangumi/${bangumiId}`,
     responseSchema: zBangumiDetailsResponse,
   })
 

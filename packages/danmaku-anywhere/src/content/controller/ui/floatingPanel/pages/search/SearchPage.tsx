@@ -98,7 +98,7 @@ export const SearchPage = () => {
   const getSeasonMapKey = () => {
     if (!mediaInfo || !saveMapping) return undefined
 
-    return `${mediaInfo.fullSeason()}`
+    return `${mediaInfo.getKey()}`
   }
 
   if (!enabledProviders.length) {

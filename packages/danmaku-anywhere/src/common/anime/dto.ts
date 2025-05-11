@@ -9,6 +9,7 @@ import type { WithSeason } from '@danmaku-anywhere/danmaku-converter'
 export interface SeasonSearchParams {
   keyword: string
   episode?: string
+  provider: RemoteDanmakuSourceType
 }
 
 export type SeasonQueryFilter = {
@@ -22,7 +23,7 @@ export interface MatchEpisodeInput {
   title: string
   episodeNumber?: number
   // if available, use seasonId to disambiguate
-  seasonId?: string | number
+  seasonId?: number
 }
 
 export type MatchEpisodeResult =
