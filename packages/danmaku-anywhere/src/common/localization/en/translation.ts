@@ -95,6 +95,7 @@ const domain = {
     style: 'Style',
     type: {
       Custom: 'Custom',
+      Backup: 'Backup',
       DanDanPlay: 'DanDanPlay',
       Bilibili: 'Bilibili',
       Tencent: 'Tencent',

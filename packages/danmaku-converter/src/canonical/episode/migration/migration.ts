@@ -223,7 +223,7 @@ const v3ToV4 = (
 const customV3ToV4 = (item: CustomDanmakuInsertV3): CustomEpisodeInsertV4 => {
   return {
     provider: item.provider,
-    title: item.episodeTitle,
+    title: item.episodeTitle || item.seasonTitle,
     comments: item.comments,
     commentCount: item.commentCount,
     schemaVersion: 4,

@@ -110,11 +110,8 @@ export const setupRpc = (
 
       return result
     },
-    danmakuCreateCustom: async (data) => {
-      return danmakuService.importCustom(data)
-    },
-    danmakuImport: async (data) => {
-      await danmakuService.bulkUpsert(data)
+    episodeImport: async (data) => {
+      return danmakuService.import(data)
     },
     episodeDelete: async (filter) => {
       return danmakuService.delete(filter)
