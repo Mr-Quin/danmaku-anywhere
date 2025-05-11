@@ -1,5 +1,6 @@
 import { SuspenseImage } from '@/common/components/image/SuspenseImage'
 import { useImageSuspense } from '@/common/components/image/useImage'
+import { images } from '@/common/components/image/usePreloadImages'
 import { CardMedia, Skeleton, styled } from '@mui/material'
 import { type ReactNode, Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
@@ -64,7 +65,7 @@ const CoverImageLoader = (props: CoverImageProps) => {
     return (
       <StackingContext>
         <ErrorBoundary fallback={null}>
-          <SuspenseImage src="/cover_fallback.png" />
+          <SuspenseImage src={images.Fallback} />
         </ErrorBoundary>
       </StackingContext>
     )

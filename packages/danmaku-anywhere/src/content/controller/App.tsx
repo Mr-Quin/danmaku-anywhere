@@ -7,7 +7,7 @@ import { Content } from './Content'
 import { LoadInitialData } from './LoadInitialData'
 
 import { Logger } from '@/common/Logger'
-import { usePreloadImages } from '@/common/components/image/PreloadImages'
+import { usePreloadImages } from '@/common/components/image/usePreloadImages'
 
 export const App = () => {
   usePreloadImages()
