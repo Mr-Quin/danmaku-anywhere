@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Logger } from '@/common/Logger'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { EpisodeQueryFilter } from '@/common/danmaku/dto'
-import { danmakuToString } from '@/common/danmaku/utils'
+import { episodeToString } from '@/common/danmaku/utils'
 import { episodeQueryKeys, tabQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { tabRpcClient } from '@/common/rpcClient/tab/client'
@@ -32,7 +32,7 @@ export const useMountDanmakuPopup = () => {
     onSuccess: (data) => {
       toast.success(
         t('danmaku.alert.mounted', {
-          name: danmakuToString(data),
+          name: episodeToString(data),
           count: data.comments.length,
         })
       )

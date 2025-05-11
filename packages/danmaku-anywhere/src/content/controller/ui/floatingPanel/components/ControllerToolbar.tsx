@@ -8,7 +8,7 @@ import {
 import { useTranslation } from 'react-i18next'
 
 import { StyledEnableSwitch } from '@/common/components/StyledEnableSwitch'
-import { danmakuToString } from '@/common/danmaku/utils'
+import { episodeToString } from '@/common/danmaku/utils'
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { HasIntegration } from '@/content/controller/common/components/HasIntegration'
 import { usePopup } from '@/content/controller/store/popupStore'
@@ -38,8 +38,8 @@ export const ControllerToolbar = () => {
         <HasIntegration
           fallback={
             danmakuLite && (
-              <Typography noWrap title={danmakuToString(danmakuLite)}>
-                {danmakuToString(danmakuLite)}
+              <Typography noWrap title={episodeToString(danmakuLite)}>
+                {episodeToString(danmakuLite)}
               </Typography>
             )
           }

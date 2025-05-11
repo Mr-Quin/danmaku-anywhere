@@ -79,7 +79,12 @@ export const BaseEpisodeListItem = <
             </Suspense>
           </Box>
         )}
-        <Tooltip title={episode.title} enterDelay={500} placement="top">
+        <Tooltip
+          title={episode.title}
+          enterDelay={1000}
+          enterNextDelay={1000}
+          placement="top"
+        >
           <ListItemText
             primary={episode.title}
             slotProps={{

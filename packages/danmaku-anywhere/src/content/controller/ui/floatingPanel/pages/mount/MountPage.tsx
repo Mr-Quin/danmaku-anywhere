@@ -33,19 +33,11 @@ export const MountPage = () => {
   const handleSelectDanmaku = (
     danmakuLite: EpisodeLite | CustomEpisodeLite
   ) => {
-    mutate(danmakuLite, {
-      onSuccess: () => {
-        setIsFilterOpen(true)
-      },
-    })
+    mutate(danmakuLite)
   }
 
   const handleUnmount = () => {
-    unmountMutation.mutate(undefined, {
-      onSuccess: () => {
-        setIsFilterOpen(false)
-      },
-    })
+    unmountMutation.mutate(undefined)
   }
 
   return (
@@ -53,7 +45,7 @@ export const MountPage = () => {
       <CaptureKeypress
         onChange={setFilter}
         value={filter}
-        disabled={isFilterOpen}
+        disabled={isFilterOpen || isMobile}
         boxProps={{
           display: 'flex',
           flexDirection: 'column',

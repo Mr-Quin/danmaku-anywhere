@@ -1,5 +1,6 @@
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type {
+  CustomEpisodeLite,
   EpisodeLite,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
@@ -8,10 +9,6 @@ class UnsupportedProviderException extends Error {
   constructor(provider: DanmakuSourceType, message?: string) {
     super(`Unsupported provider: ${provider}${message ? `: ${message}` : ''}`)
   }
-}
-
-export const danmakuToString = (danmaku: WithSeason<EpisodeLite>) => {
-  return `${danmaku.season.title} - ${danmaku.title}`
 }
 
 export function assertProvider<
@@ -37,4 +34,13 @@ export function isNotCustom<T extends { provider: DanmakuSourceType }>(
   data: T
 ): data is Exclude<T, { provider: DanmakuSourceType.Custom }> {
   return data.provider !== DanmakuSourceType.Custom
+}
+
+export const episodeToString = (
+  episode: WithSeason<EpisodeLite> | CustomEpisodeLite
+) => {
+  if (isNotCustom(episode)) {
+    return `${episode.season.title} - ${episode.title}`
+  }
+  return episode.title
 }
