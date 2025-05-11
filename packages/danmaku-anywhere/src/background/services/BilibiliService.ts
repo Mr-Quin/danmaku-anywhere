@@ -111,6 +111,7 @@ export class BilibiliService {
       title: seasonInfo.title,
       type: seasonInfo.type.toString(),
       imageUrl: seasonInfo.cover,
+      episodeCount: seasonInfo.episodes.length,
       providerIds: {
         seasonId: seasonInfo.season_id,
       },

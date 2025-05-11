@@ -34,7 +34,7 @@ export class TencentService {
   async testCookies() {
     this.logger.debug('Testing tencent cookies')
     try {
-      await this.getPageDetails('mzc00200xf3rir6', 'i0046sewh4r')
+      await tencent.getPageDetails('mzc00200xf3rir6', 'i0046sewh4r')
       return true
     } catch (e) {
       if (e instanceof tencent.TencentApiException) {
@@ -108,14 +108,64 @@ export class TencentService {
     })
   }
 
+  /**
+   * We need both the cid and vid to refresh the season info.
+   * We can get the cid from the season info.
+   * We can get the vid from the episode info, so there must be at least one episode in the season.
+   */
+  async refreshSeason(id: number) {
+    const season = await this.seasonService.mustGetById(id)
+    assertProvider(season, DanmakuSourceType.Tencent)
+
+    const episodes = await this.danmakuService.filter({
+      provider: DanmakuSourceType.Tencent,
+      seasonId: id,
+    })
+
+    if (!episodes.length) {
+      throw new Error(
+        'There must be at least one episode in the season to refresh'
+      )
+    }
+
+    const episode = episodes[0]
+    assertProvider(episode, DanmakuSourceType.Tencent)
+
+    await this.getPageDetails(season.providerIds.cid, '')
+  }
+
   async getPageDetails(cid: string, vid: string) {
     this.logger.debug('Get page details', { cid, vid })
 
-    const result = await tencent.getPageDetails(cid, vid)
+    const pageDetails = await tencent.getPageDetails(cid, vid)
 
-    this.logger.debug('Get page details result', result)
+    this.logger.debug('Get page details result', pageDetails)
 
-    return result
+    const foundSeason =
+      pageDetails.module_list_datas[0]?.module_datas[0]?.item_data_lists
+        ?.item_datas[0]
+
+    if (foundSeason) {
+      const season = await this.seasonService.upsert({
+        provider: DanmakuSourceType.Tencent,
+        title: foundSeason.item_params.title,
+        type: foundSeason.item_type.toString(),
+        imageUrl: foundSeason.item_params.new_pic_vt,
+        providerIds: {
+          cid: foundSeason.item_params['report.cid'],
+        },
+        episodeCount: foundSeason.item_params.episode_all,
+        indexedId: foundSeason.item_params['report.cid'],
+        schemaVersion: 1,
+      })
+
+      return {
+        pageDetails,
+        season,
+      }
+    }
+
+    return { pageDetails }
   }
 
   async saveEpisode(meta: TencentOf<EpisodeMeta>) {
@@ -131,12 +181,9 @@ export class TencentService {
     return await tencent.getDanmaku(vid)
   }
 
-  /**
-   * Don't use
-   *
-   * @deprecated
-   */
-  async getEpisodeByUrl(url: string) {
+  async getEpisodeByUrl(
+    url: string
+  ): Promise<WithSeason<TencentOf<EpisodeMeta>>> {
     const { pathname } = new URL(url)
 
     // https://v.qq.com/x/cover/mzc00200ztsl4to/m4100bardal.html
@@ -145,28 +192,17 @@ export class TencentService {
     if (!cid || !vid) throw new Error('Invalid tencent url')
 
     // get the name of the show
-    const pageDetails = await this.getPageDetails(cid, vid)
-    const foundSeason =
-      pageDetails.module_list_datas[0]?.module_datas[0]?.item_data_lists
-        ?.item_datas[0]
+    const { season } = await this.getPageDetails(cid, vid)
 
-    if (!foundSeason) throw new Error('Season not found')
-
-    const _ = await this.seasonService.upsert({
-      provider: DanmakuSourceType.Tencent,
-      title: foundSeason.item_params.play_title,
-      type: foundSeason.item_type.toString(),
-      imageUrl: foundSeason.item_params.image_url,
-      providerIds: {
-        cid: foundSeason.item_params.cid,
-      },
-      indexedId: foundSeason.item_params.cid.toString(),
-      schemaVersion: 1,
-    })
+    if (!season) throw new Error('Season not found')
 
     // get the name of the episode
-    // const episodes = await this.getEpisodes(season.id)
-    // const matchingEpisode = episodes.find((episode) => episode.vid === vid)
-    // if (!matchingEpisode) throw new Error('Episode not found')
+    const episodes = await this.getEpisodes(season.id)
+    const matchingEpisode = episodes.find(
+      (episode) => episode.providerIds.vid === vid
+    )
+    if (!matchingEpisode) throw new Error('Episode not found')
+
+    return matchingEpisode
   }
 }
