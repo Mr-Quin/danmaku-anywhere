@@ -1,5 +1,6 @@
 import { Center } from '@/common/components/Center'
 import { SuspenseImage } from '@/common/components/image/SuspenseImage'
+import { images } from '@/common/components/image/usePreloadImages'
 import { Typography } from '@mui/material'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
@@ -18,7 +19,7 @@ export const NothingHere = ({ message, size = 150 }: NothingHereProps) => {
       <Typography>{message ?? t('common.itsEmpty')}</Typography>
       <ErrorBoundary fallback={null}>
         <Suspense fallback={null}>
-          <SuspenseImage src="/danmaku_empty.png" width={size} height={size} />
+          <SuspenseImage src={images.Empty} width={size} height={size} />
         </Suspense>
       </ErrorBoundary>
     </Center>

@@ -9,7 +9,7 @@ import { Logger } from '@/common/Logger'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { Toast } from '@/common/components/Toast/Toast'
-import { usePreloadImages } from '@/common/components/image/PreloadImages'
+import { usePreloadImages } from '@/common/components/image/usePreloadImages'
 import { db } from '@/common/db/db'
 
 const LoadInitialData = ({ children }: PropsWithChildren) => {
