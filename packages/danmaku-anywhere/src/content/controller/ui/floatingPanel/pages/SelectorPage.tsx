@@ -1,4 +1,11 @@
-import { Check } from '@mui/icons-material'
+import { SeasonGrid } from '@/common/components/MediaList/components/SeasonGrid'
+import { useToast } from '@/common/components/Toast/toastStore'
+import { isNotCustom } from '@/common/danmaku/utils'
+import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
+import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'
+import { usePopup } from '@/content/controller/store/popupStore'
+import { useStore } from '@/content/controller/store/store'
+import type { Season } from '@danmaku-anywhere/danmaku-converter'
 import {
   Box,
   Button,
@@ -6,26 +13,16 @@ import {
   Divider,
   FormControl,
   FormControlLabel,
-  FormHelperText,
-  List,
-  ListItemButton,
-  ListItemText,
   Stack,
   Typography,
 } from '@mui/material'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { MediaTypeIcon } from '@/common/components/MediaList/components/MediaTypeIcon'
-import { getDanDanPlayMediaIcon } from '@/common/components/MediaList/components/makeIcon'
-import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
-import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'
-import { usePopup } from '@/content/controller/store/popupStore'
-import { useStore } from '@/content/controller/store/store'
-import type { Season } from '@danmaku-anywhere/danmaku-converter'
-
 export const SelectorPage = () => {
   const { t } = useTranslation()
+  const { toast } = useToast()
+
   const selectorBoxRef = useRef<HTMLDivElement>(undefined)
   const { animes, saveMapping, setSaveMapping, toggleOpen } = usePopup()
   const { mediaInfo } = useStore.use.integration()
@@ -55,11 +52,30 @@ export const SelectorPage = () => {
     }
 
     matchEpisode.mutate(episodeMatchPayload, {
-      onSettled: () => {
-        // delay closing the popup so that mutation lifecycle hooks can run
-        setTimeout(() => {
-          toggleOpen()
-        }, 1000)
+      onSuccess: (result) => {
+        if (result.data.status !== 'success') {
+          return
+        }
+        loadMutation.mutate(
+          {
+            meta: result.data.data,
+            options: {
+              forceUpdate: false,
+            },
+          },
+          {
+            onSettled: () => {
+              toggleOpen()
+            },
+            onError: () => {
+              toast.error(
+                t('danmaku.alert.fetchError', {
+                  message: selectedSeason.title,
+                })
+              )
+            },
+          }
+        )
       },
     })
   }
@@ -74,37 +90,33 @@ export const SelectorPage = () => {
 
   return (
     <Box flexGrow={1}>
-      <Typography variant="body1" p={2}>
-        {t('selectorPage.selectAnime', { name: mediaInfo?.getKey() })}
-      </Typography>
-      <List disablePadding dense>
-        {animes.map((season) => {
-          return (
-            <ListItemButton
-              onClick={() => handleAnimeSelect(season)}
-              key={season.id}
-            >
-              <MediaTypeIcon
-                icon={getDanDanPlayMediaIcon(season.type)}
-                description={season.type}
-              />
-              <ListItemText primary={season.title} />
-              {season === selectedSeason && <Check />}
-            </ListItemButton>
-          )
-        })}
-      </List>
+      <Box p={2}>
+        <Typography variant="body1">
+          {t('selectorPage.selectAnime', { name: mediaInfo?.toString() })}
+        </Typography>
+        <SeasonGrid
+          data={animes}
+          onSelectionChange={([season]) => {
+            if (isNotCustom(season)) {
+              handleAnimeSelect(season)
+            }
+          }}
+          disableMenu
+          enableSelection
+          singleSelect
+        />
+      </Box>
       <Divider />
 
       <Box my={2} px={2} ref={selectorBoxRef}>
         <Stack direction="column" alignItems="flex-start" spacing={2}>
           <Button
             type="submit"
-            loading={loadMutation.isPending}
+            loading={loadMutation.isPending || matchEpisode.isPending}
             variant="contained"
             size="small"
             onClick={handleApply}
-            disabled={!selectedSeason || loadMutation.isPending}
+            disabled={!selectedSeason}
           >
             {t('common.apply')}
           </Button>
@@ -122,14 +134,6 @@ export const SelectorPage = () => {
               }
               label={t('selectorPage.saveMapping')}
             />
-            {selectedSeason && (
-              <FormHelperText>
-                {t('selectorPage.saveMappingAs', {
-                  originalName: mediaInfo?.getKey(),
-                  newName: selectedSeason.title,
-                })}
-              </FormHelperText>
-            )}
           </FormControl>
         </Stack>
       </Box>

@@ -2,7 +2,6 @@ import {
   SeasonCard,
   SeasonCardSkeleton,
 } from '@/common/components/MediaList/components/SeasonCard'
-import type { HandleSeasonClick } from '@/common/components/MediaList/types'
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import {
   Box,
@@ -14,7 +13,7 @@ import {
   useTheme,
 } from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 
 const useBreakpointValue = <T,>(values: Partial<Record<Breakpoint, T>>) => {
   const theme = useTheme()
@@ -51,10 +50,13 @@ const SeasonGridLayout = (props: GridProps) => {
 
 interface SeasonGridProps {
   data: (Season | CustomSeason)[]
-  onSeasonClick: HandleSeasonClick
+  onSeasonClick?: (season: Season | CustomSeason) => void
+  onSelectionChange?: (selection: (Season | CustomSeason)[]) => void
+  selectionModel?: (Season | CustomSeason)[]
+  singleSelect?: boolean
   virtualize?: boolean
   disableMenu?: boolean
-  disableSelection?: boolean
+  enableSelection?: boolean
   boxProps?: BoxProps
 }
 
@@ -63,9 +65,16 @@ export const SeasonGrid = ({
   onSeasonClick,
   virtualize = false,
   disableMenu,
-  disableSelection,
+  enableSelection,
+  onSelectionChange,
+  singleSelect,
+  selectionModel: selectionModelProp,
   boxProps,
 }: SeasonGridProps) => {
+  const [selectionModel, setSelectionModel] = useState<
+    (Season | CustomSeason)[]
+  >(selectionModelProp ?? [])
+
   const ref = useRef<HTMLDivElement>(null)
   const theme = useTheme()
 
@@ -96,6 +105,20 @@ export const SeasonGrid = ({
 
   const gridSize = { xs: 2, sm: 4, md: 4 }
 
+  const handleSelect = (season: Season | CustomSeason) => {
+    if (selectionModel.includes(season)) {
+      const selection = singleSelect
+        ? []
+        : selectionModel.filter((s) => s !== season)
+      setSelectionModel(selection)
+      onSelectionChange?.(selection)
+    } else {
+      const selection = singleSelect ? [season] : [...selectionModel, season]
+      setSelectionModel(selection)
+      onSelectionChange?.(selection)
+    }
+  }
+
   if (!virtualize) {
     return (
       <SeasonGridLayout>
@@ -106,6 +129,9 @@ export const SeasonGrid = ({
                 season={season}
                 onClick={onSeasonClick}
                 disableMenu={disableMenu}
+                enableSelection={enableSelection}
+                onSelect={handleSelect}
+                isSelected={selectionModel.includes(season)}
               />
             </Grid>
           )
@@ -141,7 +167,9 @@ export const SeasonGrid = ({
                 season={season}
                 onClick={onSeasonClick}
                 disableMenu={disableMenu}
-                disableSelection={disableSelection}
+                enableSelection={enableSelection}
+                onSelect={handleSelect}
+                isSelected={selectionModel.includes(season)}
               />
             </Grid>
           )

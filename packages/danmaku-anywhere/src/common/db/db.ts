@@ -16,7 +16,9 @@ type WithoutId<T> = Omit<T, 'id'>
  */
 export interface SeasonMap {
   key: string
-  seasonId: number
+  DanDanPlay?: number
+  Bilibili?: number
+  Tencent?: number
 }
 
 class DanmakuAnywhereDb extends Dexie {
@@ -217,7 +219,7 @@ class DanmakuAnywhereDb extends Dexie {
         manualDanmakuCache: null,
         danmakuCache: null,
         titleMapping: null,
-        seasonMap: 'key, seasonId',
+        seasonMap: 'key',
       })
       .upgrade(async (tx) => {
         await tx.table('danmaku').each(async (item: DanmakuV3) => {

@@ -14,13 +14,12 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import type { SeasonService } from '@/background/services/SeasonService'
 import type { DanmakuFetchDto, EpisodeSearchParams } from '@/common/danmaku/dto'
-import { assertProvider, isProvider } from '@/common/danmaku/utils'
+import { assertProvider } from '@/common/danmaku/utils'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 import type {
   DanDanPlayOf,
   Episode,
-  EpisodeMeta,
   Season,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
@@ -108,9 +107,10 @@ export class ProviderService {
     // Save title mapping
     if (context.seasonMapKey) {
       this.logger.debug('Saving title mapping', meta)
-      if (isProvider(meta, DanmakuSourceType.DanDanPlay)) {
-        void this.titleMappingService.add(context.seasonMapKey, meta.season.id)
-      }
+      void this.titleMappingService.add({
+        key: context.seasonMapKey,
+        DanDanPlay: meta.season.id,
+      })
     }
 
     const [existingDanmaku] = await this.danmakuService.filter({
@@ -184,59 +184,6 @@ export class ProviderService {
     episodeNumber,
     seasonId,
   }: MatchEpisodeInput): Promise<MatchEpisodeResult> {
-    const mapping = await this.titleMappingService.get(mapKey)
-
-    if (mapping) {
-      this.logger.debug('Mapping found, using mapped title', mapping)
-
-      const season = await this.seasonService.mustGetById(mapping.seasonId)
-      assertProvider(season, DanmakuSourceType.DanDanPlay)
-
-      const episodeId = this.danDanPlayService.computeEpisodeId(
-        season.providerIds.animeId,
-        episodeNumber ?? 1
-      )
-      const episodeTitle = await this.danDanPlayService.findEpisode(
-        season.providerIds.bangumiId,
-        episodeId
-      )
-
-      if (!episodeTitle) {
-        this.logger.debug('Failed to get episode title from server')
-        throw new Error('Failed to get episode title from server')
-      }
-
-      return {
-        status: 'success',
-        data: {
-          provider: DanmakuSourceType.DanDanPlay,
-          seasonId: mapping.seasonId,
-          season,
-          title: episodeTitle,
-          indexedId: episodeId.toString(),
-          schemaVersion: 4,
-          lastChecked: Date.now(),
-          providerIds: {
-            episodeId: episodeId,
-          },
-        } satisfies WithSeason<DanDanPlayOf<EpisodeMeta>>,
-      }
-    }
-
-    this.logger.debug('No mapping found, searching for season')
-
-    const foundSeasons = await this.danDanPlayService.search({
-      anime: title,
-    })
-
-    if (foundSeasons.length === 0) {
-      this.logger.debug(`No season found for title: ${title}`)
-      return {
-        status: 'notFound',
-        data: null,
-      }
-    }
-
     const getMetaFromSeason = async (season: DanDanPlayOf<Season>) => {
       const episodes = await this.danDanPlayService.getAnimeDetails(season.id)
 
@@ -265,31 +212,60 @@ export class ProviderService {
       }
     }
 
+    const mapping = await this.titleMappingService.get(mapKey)
+
+    if (mapping || seasonId) {
+      if (mapping) {
+        this.logger.debug('Mapping found, using mapped title', mapping)
+      } else if (seasonId) {
+        this.logger.debug('Using provided season id')
+        await this.titleMappingService.add({
+          key: mapKey,
+          DanDanPlay: seasonId,
+        })
+      }
+
+      const sid = seasonId ?? mapping?.DanDanPlay
+
+      if (!sid) {
+        throw new Error('No season id provided')
+      }
+
+      const season = await this.seasonService.mustGetById(sid)
+      assertProvider(season, DanmakuSourceType.DanDanPlay)
+
+      return {
+        status: 'success',
+        data: await getMetaFromSeason(season),
+      }
+    }
+
+    this.logger.debug('No mapping found, searching for season')
+
+    const foundSeasons = await this.danDanPlayService.search({
+      anime: title,
+    })
+
+    if (foundSeasons.length === 0) {
+      this.logger.debug(`No season found for title: ${title}`)
+      return {
+        status: 'notFound',
+        data: null,
+      }
+    }
+
     if (foundSeasons.length === 1) {
       this.logger.debug('Single season found', foundSeasons[0])
       const meta = await getMetaFromSeason(foundSeasons[0])
 
-      await this.titleMappingService.add(mapKey, meta.seasonId)
+      await this.titleMappingService.add({
+        key: mapKey,
+        DanDanPlay: meta.seasonId,
+      })
 
       return {
         status: 'success',
         data: await getMetaFromSeason(foundSeasons[0]),
-      }
-    }
-
-    // Try to disambiguate using seasonId
-    if (seasonId !== undefined) {
-      const disambiguatedResult = foundSeasons.filter(
-        (season) => season.id === seasonId
-      )
-
-      if (disambiguatedResult.length === 1) {
-        this.logger.debug('Disambiguated season', disambiguatedResult[0])
-
-        return {
-          status: 'success',
-          data: await getMetaFromSeason(disambiguatedResult[0]),
-        }
       }
     }
 

@@ -12,7 +12,7 @@ import {
   episodeQueryKeys,
 } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { createDownload } from '@/common/utils/utils'
+import { createDownload, sanitizeFilename } from '@/common/utils/utils'
 
 const downloadZip = async (
   fileName: string,
@@ -59,16 +59,28 @@ export const useExportDanmaku = () => {
       const { data: episodes } = await chromeRpcClient.episodeFilter({
         all: true,
       })
+      const { data: customEpisodes } =
+        await chromeRpcClient.episodeFilterCustom({
+          all: true,
+        })
 
-      await downloadZip(
-        `all-danmaku-collection`,
-        episodes.map((ep) => {
+      const files = episodes
+        .map((ep) => {
           return {
-            name: `${ep.title}.json`,
+            name: `${ep.season.title}/${sanitizeFilename(ep.title)}.json`,
             data: JSON.stringify(ep, null, 2),
           }
         })
-      )
+        .concat(
+          customEpisodes.map((ep) => {
+            return {
+              name: `custom/${sanitizeFilename(ep.title)}.json`,
+              data: JSON.stringify(ep, null, 2),
+            }
+          })
+        )
+
+      await downloadZip(`all-danmaku-collection`, files)
     },
     onSuccess: handleSuccess,
     onError: handleError,

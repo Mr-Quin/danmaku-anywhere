@@ -69,7 +69,6 @@ export const SearchPage = () => {
 
   useEffect(() => {
     if (!selectedSeason) {
-      console.log('scrolling to ', scrollTop)
       boxRef.current?.scrollTo(0, scrollTop)
     }
   }, [selectedSeason])

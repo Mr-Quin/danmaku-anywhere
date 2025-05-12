@@ -1,9 +1,9 @@
-import { Box, Typography } from '@mui/material'
-import { useTranslation } from 'react-i18next'
+import { Box } from '@mui/material'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 
 import { useGetSeasonSuspense } from '@/common/anime/queries/useSeasons'
 import { CommentsTable } from '@/common/components/CommentsTable'
+import { NothingHere } from '@/common/components/NothingHere'
 import { useAllCustomEpisodesSuspense } from '@/common/danmaku/queries/useAllCustomEpisodes'
 import { useDanmakuManySuspense } from '@/common/danmaku/queries/useDanmakuMany'
 import { TabLayout } from '@/content/common/TabLayout'
@@ -11,8 +11,6 @@ import { TabToolbar } from '@/content/common/TabToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 
 export const CommentPage = () => {
-  const { t } = useTranslation()
-
   const navigate = useNavigate()
   const goBack = useGoBack()
 
@@ -76,8 +74,8 @@ export const CommentPage = () => {
           }
         />
       ) : (
-        <Box p={2}>
-          <Typography>{t('error.unknown')}</Typography>
+        <Box p={2} flexGrow={1}>
+          <NothingHere />
         </Box>
       )}
     </TabLayout>

@@ -36,7 +36,7 @@ const common = {
     },
   },
   error: {
-    unknown: '出！错！啦！',
+    unknown: '出错啦!',
   },
 }
 
@@ -202,8 +202,8 @@ const pages = {
     animeList: '剧集列表',
     noAnime: '没有可用的番剧',
     noResult: "没有找到标题为 '{{filter}}' 的番剧",
-    deleteAll: '删除所有弹幕',
     confirmDeleteMessage: '确定要删除选中的弹幕吗？',
+    exportAll: '导出所有弹幕',
   },
   importPage: {
     confirm: '确认导入',
@@ -225,11 +225,8 @@ const pages = {
     addMountConfig: '添加装填配置以启用控制器',
     noActiveTab: '当前页面为空',
     noDanmaku: '弹幕列表为空',
-    noDanmakuHelp: '搜索弹幕以启用控制器',
+    noDanmakuHelp: '前往搜索',
     pageTitle: '装填控制器',
-    unavailable: '当前页面没有装填配置。可能配置已禁用，或者配置不正确。',
-    unavailableTips: '如果在更新扩展后出现此问题，请尝试重启浏览器。',
-    unsupported: '不支持内置页面',
   },
   optionsPage: {
     language: '语言',
@@ -323,7 +320,6 @@ const pages = {
   selectorPage: {
     noAnimeFound: '没有可供选择的内容',
     saveMapping: '记住我的选择',
-    saveMappingAs: '将“{{originalName}}”记录为“{{newName}}”',
     selectAnime: '找到多个匹配项：{{name}}，请选择',
   },
   stylePage: {
@@ -380,7 +376,7 @@ const pages = {
     search: '搜索番剧',
     selector: '修正匹配',
     style: '弹幕设置',
-    import: '导入/导出',
+    import: '导入弹幕',
     integrationPolicy: '适配规则',
   },
 }

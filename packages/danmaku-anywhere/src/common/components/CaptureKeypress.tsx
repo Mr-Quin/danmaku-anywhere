@@ -1,7 +1,7 @@
 import { getOS } from '@/common/utils/utils'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { Box, type BoxProps, Typography, styled } from '@mui/material'
-import { type ReactNode, memo, useRef } from 'react'
+import { type ReactNode, memo, useEffect, useRef, useState } from 'react'
 
 const KeyOverlay = styled('div')(() => {
   return {
@@ -30,25 +30,50 @@ const KeyOverlay = styled('div')(() => {
   }
 })
 const KeyOverlayMemo = memo(KeyOverlay)
+
+type CaptureKeypressRenderProps = {
+  focused: boolean
+  disabled: boolean
+}
+
 type CaptureKeydownProps = {
   onChange: (value: string) => void
   value: string
   disabled?: boolean
-  children?: ReactNode
+  autoFocus?: boolean
+  children?: ReactNode | ((props: CaptureKeypressRenderProps) => ReactNode)
   boxProps?: BoxProps
 }
 export const CaptureKeypress = ({
   onChange,
   value,
   disabled,
+  autoFocus,
   children,
   boxProps,
 }: CaptureKeydownProps) => {
+  const [focused, setFocused] = useState(false)
+
+  const boxRef = useRef<HTMLDivElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
 
   const timeout = useRef<NodeJS.Timeout>(null)
   const resetTimeout = useRef<NodeJS.Timeout>(null)
   const resetDelay = useRef(true)
+
+  useEffect(() => {
+    if (autoFocus) {
+      boxRef.current?.focus()
+    }
+  }, [])
+
+  const handleFocus = () => {
+    setFocused(true)
+  }
+
+  const handleBlur = () => {
+    setFocused(false)
+  }
 
   const handleAnimation = () => {
     overlayRef.current?.getAnimations().forEach((animation) => {
@@ -88,6 +113,9 @@ export const CaptureKeypress = ({
   return (
     <Box
       tabIndex={-1}
+      ref={boxRef}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
       {...withStopPropagation({
         onKeyDownCapture: (e) => {
           if (disabled) return
@@ -126,7 +154,9 @@ export const CaptureKeypress = ({
           </Typography>
         </KeyOverlayMemo>
       )}
-      {children}
+      {typeof children === 'function'
+        ? children({ focused, disabled: !!disabled })
+        : children}
     </Box>
   )
 }
