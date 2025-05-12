@@ -95,7 +95,7 @@ export class DanDanPlayService {
     assertProvider(season, DanmakuSourceType.DanDanPlay)
 
     const { bangumiDetails } = await this.getBangumiDetails(
-      season.providerIds.bangumiId ?? season.providerIds.animeId.toString()
+      season.providerIds.bangumiId
     )
 
     this.logger.debug('DanDanPlay Episodes fetched', bangumiDetails)
@@ -119,23 +119,6 @@ export class DanDanPlayService {
 
   computeEpisodeId(animeId: number, episodeNumber: number) {
     return animeId * 10000 + episodeNumber
-  }
-
-  async findEpisode(bangumiId: string, episodeId: number) {
-    const [result, err] = await tryCatch(async () =>
-      this.getBangumiDetails(bangumiId)
-    )
-
-    if (err) {
-      this.logger.debug('Failed to get bangumi data', err)
-      throw err
-    }
-
-    const episode = result.bangumiDetails.episodes.find(
-      (e) => e.episodeId === episodeId
-    )
-
-    return episode?.episodeTitle
   }
 
   async saveEpisode(
@@ -162,6 +145,23 @@ export class DanDanPlayService {
     comments: CommentEntity[]
     params: danDanPlay.GetCommentQuery
   }> {
+    const findEpisode = async (bangumiId: string, episodeId: number) => {
+      const [result, err] = await tryCatch(async () =>
+        this.getBangumiDetails(bangumiId)
+      )
+
+      if (err) {
+        this.logger.debug('Failed to get bangumi data', err)
+        throw err
+      }
+
+      const episode = result.bangumiDetails.episodes.find(
+        (e) => e.episodeId === episodeId
+      )
+
+      return episode?.episodeTitle
+    }
+
     const { providerIds, title } = meta
     const {
       danmakuSources: {
@@ -178,7 +178,7 @@ export class DanDanPlayService {
 
     // since the title can change, we'll try to update it
     const episodeTitle =
-      (await this.findEpisode(
+      (await findEpisode(
         season.providerIds.bangumiId ?? season.providerIds.animeId.toString(),
         providerIds.episodeId
       )) ?? title // if for some reason we can't get the title, use the one we have
