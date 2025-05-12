@@ -7,6 +7,8 @@ import { HTTPError, uriDecode } from './utils'
 
 class InvalidOriginError {
   readonly _tag = 'InvalidOriginError'
+
+  constructor(public readonly origin: string | null) {}
 }
 
 export default {
@@ -22,7 +24,9 @@ export default {
         env.LOCAL === '0' &&
         request.headers.get('Origin') !== env.ALLOWED_ORIGIN
       ) {
-        return yield* Effect.fail(new InvalidOriginError())
+        return yield* Effect.fail(
+          new InvalidOriginError(request.headers.get('Origin'))
+        )
       }
 
       if (request.method === 'OPTIONS') {
@@ -77,7 +81,15 @@ export default {
       Effect.scoped,
       // Handle errors
       Effect.tapError((err) => {
-        return Console.error('Error processing request', err)
+        if (err instanceof InvalidOriginError) {
+          return Console.error(
+            `Error processing request: Invalid origin: ${err.origin}, allowed origin: ${env.ALLOWED_ORIGIN}`
+          )
+        } else {
+          return Console.error(
+            `Error processing request: HTTP Error: ${err.status} ${err.message}`
+          )
+        }
       }),
       Effect.catchAll((err) => {
         const message = err instanceof HTTPError ? err.message : 'Bad request'

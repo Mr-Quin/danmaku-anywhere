@@ -109,7 +109,7 @@ export const extractTitle: Effect.Effect<
     return session.sendMessage(input)
   })
 
-  yield* Console.log('Response:', {
+  yield* Console.log('Model response:', {
     meta: result.response.usageMetadata,
     response: result.response.text(),
   })
