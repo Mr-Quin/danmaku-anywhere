@@ -1,5 +1,5 @@
 import { Logger } from '@/common/Logger'
-import type { db } from '@/common/db/db'
+import type { SeasonMap, db } from '@/common/db/db'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 export class TitleMappingService {
@@ -13,14 +13,14 @@ export class TitleMappingService {
     this.logger = Logger.sub('[TitleMappingService]')
   }
 
-  async add(key: string, seasonId: number) {
-    const existing = await this.table.get({ key })
+  async add(map: SeasonMap) {
+    const existing = await this.table.get({ key: map.key })
     if (existing) {
-      this.logger.debug('Updating title mapping:', key)
-      this.table.put({ key, seasonId }, existing.key)
+      this.logger.debug('Updating title mapping:', map)
+      this.table.put(map, existing.key)
     } else {
-      this.logger.debug('Adding title mapping:', key, seasonId)
-      this.table.add({ key, seasonId })
+      this.logger.debug('Adding title mapping:', map)
+      this.table.add(map)
     }
   }
 
@@ -30,7 +30,6 @@ export class TitleMappingService {
   }
 
   async get(key: string) {
-    console.log(await this.table.toArray())
     return this.table.get({ key })
   }
 }

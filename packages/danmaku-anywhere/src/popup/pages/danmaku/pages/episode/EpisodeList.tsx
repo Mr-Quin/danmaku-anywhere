@@ -76,6 +76,7 @@ export const EpisodeList = () => {
               href={`${episode.id}`}
               onClick={(e) => {
                 e.preventDefault()
+                if (enableEpisodeSelection) return
                 navigate({
                   pathname: `${episode.id}`,
                   search: createSearchParams({

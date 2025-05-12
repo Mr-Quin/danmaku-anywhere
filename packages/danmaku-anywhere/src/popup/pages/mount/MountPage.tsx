@@ -26,7 +26,6 @@ export const MountPage = () => {
   const { isMobile } = usePlatformInfo()
 
   const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const [isFocus, setIsFocus] = useState(false)
 
   const tabDanmakuState = useQuery({
     queryKey: tabQueryKeys.getState(),
@@ -60,42 +59,47 @@ export const MountPage = () => {
         onChange={setFilter}
         value={filter}
         disabled={isFilterOpen}
+        autoFocus
         boxProps={{
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
-          onFocus: () => setIsFocus(true),
-          onBlur: () => setIsFocus(false),
         }}
       >
-        <TabToolbar title={t('mountPage.pageTitle')}>
-          {!isMobile && (
-            <Keyboard
-              color={isFilterOpen || !isFocus ? 'disabled' : 'action'}
-            />
-          )}
-          <FilterButton
-            onChange={setFilter}
-            filter={filter}
-            open={isFilterOpen}
-            onOpen={() => setIsFilterOpen(true)}
-            onClose={() => setIsFilterOpen(false)}
-          />
-          <Button
-            variant="outlined"
-            type="button"
-            onClick={() => unmount()}
-            color="warning"
-            disabled={!isMounted}
-          >
-            {t('danmaku.unmount')}
-          </Button>
-        </TabToolbar>
-        <Suspense fallback={<FullPageSpinner />}>
-          <HasDanmaku>
-            <MountController />
-          </HasDanmaku>
-        </Suspense>
+        {({ focused, disabled }) => {
+          return (
+            <>
+              <TabToolbar title={t('mountPage.pageTitle')}>
+                {!isMobile && (
+                  <Keyboard
+                    color={disabled || !focused ? 'disabled' : 'action'}
+                  />
+                )}
+                <FilterButton
+                  onChange={setFilter}
+                  filter={filter}
+                  open={isFilterOpen}
+                  onOpen={() => setIsFilterOpen(true)}
+                  onClose={() => setIsFilterOpen(false)}
+                />
+                <Button
+                  variant="outlined"
+                  type="button"
+                  onClick={() => unmount()}
+                  color="warning"
+                  disabled={!isMounted}
+                >
+                  {t('danmaku.unmount')}
+                </Button>
+              </TabToolbar>
+              <Suspense fallback={<FullPageSpinner />}>
+                <HasDanmaku>
+                  <MountController />
+                </HasDanmaku>
+              </Suspense>
+            </>
+          )
+        }}
       </CaptureKeypress>
     </TabLayout>
   )

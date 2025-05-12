@@ -203,8 +203,8 @@ const pages = {
     animeList: 'Anime List',
     noAnime: 'No anime available',
     noResult: "No anime found with title '{{filter}}'",
-    deleteAll: 'Delete all Danmaku',
     confirmDeleteMessage: 'Are you sure to delete the selected Danmaku?',
+    exportAll: 'Export All',
   },
   importPage: {
     confirm: 'Confirm Import',
@@ -227,13 +227,8 @@ const pages = {
     addMountConfig: 'Add a mount configuration to enable the controller',
     noActiveTab: 'No active tab',
     noDanmaku: 'No danmaku found',
-    noDanmakuHelp: 'Search and danmaku to enable the controller',
+    noDanmakuHelp: 'Go to Search',
     pageTitle: 'Mount Controller',
-    unavailable:
-      'The current page does not have a mount configuration, or the configuration is disabled, or is not configured correctly.',
-    unavailableTips:
-      'If this happens after updating the extension, try restarting the browser.',
-    unsupported: 'Chrome internal pages are not supported',
   },
   optionsPage: {
     language: 'Language',
@@ -328,7 +323,6 @@ const pages = {
   selectorPage: {
     noAnimeFound: 'Nothing to select from',
     saveMapping: 'Remember selection',
-    saveMappingAs: 'Remember {{originalName}} as {{newName}}',
     selectAnime: 'Multiple matches found for {{name}}, please select',
   },
   stylePage: {
@@ -389,7 +383,7 @@ const pages = {
     search: 'Search',
     selector: 'Selector',
     style: 'Danmaku Settings',
-    import: 'Import/Export',
+    import: 'Import Danmaku',
     integrationPolicy: 'Integration Policy',
   },
 }

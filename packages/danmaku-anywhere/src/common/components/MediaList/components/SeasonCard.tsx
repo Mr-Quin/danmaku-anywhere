@@ -20,6 +20,7 @@ import {
   Card,
   CardActionArea,
   CardContent,
+  Checkbox,
   Link,
   Skeleton,
   Tooltip,
@@ -28,6 +29,7 @@ import {
   styled,
 } from '@mui/material'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import type { MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface CardCornerInfoProps {
@@ -38,6 +40,7 @@ const CardCornerInfo = styled('div', {
   shouldForwardProp: (prop) => prop !== 'position',
 })<CardCornerInfoProps>(({ theme, position = 'top-left' }) => {
   const styles: CSSProperties = {
+    ...theme.typography.subtitle2,
     position: 'absolute',
     backgroundColor: alpha(theme.palette.background.paper, 0.8),
     padding: theme.spacing(1),
@@ -85,15 +88,33 @@ const Logo = styled('div')(({ theme }) => {
 
 type SeasonCardProps = {
   season: Season | CustomSeason
-  onClick: HandleSeasonClick
+  onClick?: HandleSeasonClick
   disableMenu?: boolean
-  disableSelection?: boolean
+  enableSelection?: boolean
+  isSelected?: boolean
+  onSelect?: (season: Season | CustomSeason, selected: boolean) => void
 }
+
+const SelectionOverlay = styled('div')(() => ({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: alpha('#000', 0.4),
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  zIndex: 1,
+}))
 
 export const SeasonCard = ({
   season,
   onClick,
   disableMenu = false,
+  enableSelection = false,
+  isSelected = false,
+  onSelect,
 }: SeasonCardProps) => {
   const { t } = useTranslation()
   const { toast } = useToast()
@@ -143,6 +164,15 @@ export const SeasonCard = ({
     return null
   }
 
+  const handleCardClick = (e: MouseEvent) => {
+    if (enableSelection && onSelect) {
+      e.preventDefault()
+      onSelect(season, !isSelected)
+    } else if (onClick) {
+      onClick(season)
+    }
+  }
+
   return (
     <Card>
       <div
@@ -150,8 +180,26 @@ export const SeasonCard = ({
           position: 'relative',
         }}
       >
-        <CardActionArea onClick={() => onClick(season)}>
+        <CardActionArea onClick={handleCardClick}>
           <CoverImage src={season.imageUrl} alt={season.title}></CoverImage>
+          {enableSelection && (
+            <SelectionOverlay>
+              <Checkbox
+                checked={isSelected}
+                onClick={(e) => e.stopPropagation()}
+                onChange={(e) => onSelect?.(season, e.target.checked)}
+                sx={{
+                  color: 'white',
+                  '&.Mui-checked': {
+                    color: 'white',
+                  },
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                }}
+              />
+            </SelectionOverlay>
+          )}
         </CardActionArea>
         {renderEpisodeCount()}
         {season.year && (
@@ -162,34 +210,36 @@ export const SeasonCard = ({
             <ProviderLogo provider={season.provider} />
           </Logo>
         )}
-        {!isProvider(season, DanmakuSourceType.Custom) && !disableMenu && (
-          <CardCornerInfo position="bottom-right" sx={{ p: 0 }}>
-            <DrilldownMenu
-              ButtonProps={{
-                size: 'small',
-              }}
-              items={[
-                {
-                  id: 'refresh',
-                  label: t('anime.refresh'),
-                  icon: <Refresh />,
-                  onClick: () => {
-                    refreshMutation.mutate(season.id)
+        {!isProvider(season, DanmakuSourceType.Custom) &&
+          !disableMenu &&
+          !enableSelection && (
+            <CardCornerInfo position="bottom-right" sx={{ p: 0 }}>
+              <DrilldownMenu
+                ButtonProps={{
+                  size: 'small',
+                }}
+                items={[
+                  {
+                    id: 'refresh',
+                    label: t('anime.refresh'),
+                    icon: <Refresh />,
+                    onClick: () => {
+                      refreshMutation.mutate(season.id)
+                    },
                   },
-                },
-                {
-                  id: 'delete',
-                  label: t('common.delete'),
-                  icon: <Delete />,
-                  loading: deleteMutation.isPending,
-                  onClick: () => {
-                    deleteMutation.mutate(season.id)
+                  {
+                    id: 'delete',
+                    label: t('common.delete'),
+                    icon: <Delete />,
+                    loading: deleteMutation.isPending,
+                    onClick: () => {
+                      deleteMutation.mutate(season.id)
+                    },
                   },
-                },
-              ]}
-            />
-          </CardCornerInfo>
-        )}
+                ]}
+              />
+            </CardCornerInfo>
+          )}
       </div>
       <CardContent sx={{ py: 1.5, px: 1 }}>
         <Tooltip title={season.title} enterDelay={500} placement="top">
@@ -202,9 +252,7 @@ export const SeasonCard = ({
             sx={{
               cursor: 'pointer',
             }}
-            onClick={() => {
-              onClick(season)
-            }}
+            onClick={(e) => handleCardClick(e)}
           >
             {season.title}
           </Link>

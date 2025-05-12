@@ -207,10 +207,23 @@ export const DanmakuSelector = ({
     return flattened
   }, [episodes, customEpisodes, seasons, filter])
 
+  const getKey = (item: FlattenedOption) => {
+    if (item.kind === 'season') {
+      return `season-${item.season.id}`
+    }
+    const episode = item.episode
+    if (isNotCustom(episode)) {
+      return `season-${episode.season.id}-episode-${episode.id}`
+    } else {
+      return `season-custom-episode-${episode.id}`
+    }
+  }
+
   const virtualizer = useVirtualizer({
     count: flattened.length,
     getScrollElement: () => scrollRef.current,
     estimateSize: () => 72,
+    getItemKey: (i) => getKey(flattened[i]),
   })
 
   return (
@@ -220,10 +233,7 @@ export const DanmakuSelector = ({
           {virtualizer.getVirtualItems().map((virtualItem) => {
             const item = flattened[virtualItem.index]
 
-            const key =
-              item.kind === 'season'
-                ? `season${item.season.id}`
-                : `episode${item.episode.id}`
+            const key = getKey(item)
 
             return (
               <div

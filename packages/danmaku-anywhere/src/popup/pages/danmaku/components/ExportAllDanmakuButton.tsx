@@ -23,7 +23,7 @@ export const ExportAllDanmakuButton = () => {
       <ListItemIcon>
         {exportAll.isPending ? <CircularProgress size={24} /> : <Download />}
       </ListItemIcon>
-      <ListItemText>{t('danmakuPage.upload.exportAll')}</ListItemText>
+      <ListItemText>{t('danmakuPage.exportAll')}</ListItemText>
     </MenuItem>
   )
 }

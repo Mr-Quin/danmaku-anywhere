@@ -4,6 +4,7 @@ import { images } from '@/common/components/image/usePreloadImages'
 import { Typography } from '@mui/material'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
+import { useTranslation } from 'react-i18next'
 
 type ErrorMessageProps = {
   message: string
@@ -11,9 +12,11 @@ type ErrorMessageProps = {
 }
 
 export const ErrorMessage = ({ message, size = 200 }: ErrorMessageProps) => {
+  const { t } = useTranslation()
+
   return (
     <Center>
-      <Typography>Something went wrong</Typography>
+      <Typography>{t('error.unknown')}</Typography>
       <Typography color="error">{message}</Typography>
       <ErrorBoundary fallback={null}>
         <Suspense fallback={null}>
