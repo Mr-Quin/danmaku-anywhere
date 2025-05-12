@@ -27,7 +27,7 @@ export const useExportDanmaku = () => {
       const danmakuList = await chromeRpcClient.danmakuGetAll()
 
       await createDownload(
-        new Blob([JSON.stringify(danmakuList)], { type: 'text/json' }),
+        new Blob([JSON.stringify(danmakuList.data)], { type: 'text/json' }),
         `all-danmaku.json`
       )
     },
