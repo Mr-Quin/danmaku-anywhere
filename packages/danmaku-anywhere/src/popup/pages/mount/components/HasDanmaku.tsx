@@ -3,6 +3,7 @@ import type { PropsWithChildren } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
+import { NothingHere } from '@/common/components/NothingHere'
 import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useAllDanmakuSuspense'
 
 export const HasDanmaku = ({ children }: PropsWithChildren) => {
@@ -11,13 +12,14 @@ export const HasDanmaku = ({ children }: PropsWithChildren) => {
 
   if (data.length === 0) {
     return (
-      <Box p={2}>
-        <Typography>{t('mountPage.noDanmaku')}</Typography>
-        <Box mt={2}>
-          <Typography color="primary" to="/search" component={Link}>
-            {t('mountPage.noDanmakuHelp')}
-          </Typography>
-        </Box>
+      <Box flexGrow={1}>
+        <NothingHere message={t('mountPage.noDanmaku')}>
+          <Box mt={2}>
+            <Typography color="primary" to="/search" component={Link}>
+              {t('mountPage.noDanmakuHelp')}
+            </Typography>
+          </Box>
+        </NothingHere>
       </Box>
     )
   }

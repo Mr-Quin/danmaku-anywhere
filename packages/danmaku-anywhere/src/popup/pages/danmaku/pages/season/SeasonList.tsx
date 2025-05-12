@@ -20,11 +20,14 @@ import { useTranslation } from 'react-i18next'
 
 const SeasonListSuspense = () => {
   const navigate = useNavigate()
+
   const { t } = useTranslation()
 
   const { data: seasons } = useGetAllSeasonsSuspense()
 
   const { data: customEpisodes } = useAllCustomEpisodesSuspense()
+
+  const { animeFilter: filter, selectedTypes } = useStore.use.danmaku()
 
   // TODO: find a better way to display custom episodes, injecting a custom season is not ideal
   const seasonsWithCustom = useMemo(() => {
@@ -47,10 +50,8 @@ const SeasonListSuspense = () => {
     return [customSeason, ...seasons]
   }, [seasons, customEpisodes])
 
-  const { animeFilter: filter, selectedTypes } = useStore.use.danmaku()
-
   const filteredSeasons = useMemo(() => {
-    if (!filter) return seasonsWithCustom
+    if (!filter && selectedTypes.length === 0) return seasonsWithCustom
 
     return seasonsWithCustom
       .filter((item) => matchWithPinyin(item.title, filter))

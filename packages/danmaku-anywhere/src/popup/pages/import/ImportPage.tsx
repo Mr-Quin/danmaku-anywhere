@@ -285,7 +285,7 @@ export const ImportPage = () => {
         return (
           <>
             <Typography color="error.main" variant="subtitle1">
-              {t('common.error.unknown')}
+              {t('error.unknown')}
             </Typography>
             <PreFormat variant="error">{importError.message}</PreFormat>
           </>

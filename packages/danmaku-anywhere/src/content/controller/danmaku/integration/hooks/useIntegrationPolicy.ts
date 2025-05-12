@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Logger } from '@/common/Logger'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
+import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
@@ -29,6 +30,8 @@ export const useIntegrationPolicy = () => {
   } = useStore.use.integration()
 
   const matchEpisode = useMatchEpisode()
+  const { loadMutation } = useLoadDanmaku()
+
   const integrationPolicy = useActiveIntegration()
 
   useEffect(() => {
@@ -86,7 +89,31 @@ export const useIntegrationPolicy = () => {
           }
 
           toast.info(t('integration.alert.search', { title: state.toString() }))
-          matchEpisode.mutate(episodeMatchPayload)
+
+          matchEpisode.mutate(episodeMatchPayload, {
+            onSuccess: (result) => {
+              if (result.data.status !== 'success') {
+                return
+              }
+              loadMutation.mutate(
+                {
+                  meta: result.data.data,
+                  options: {
+                    forceUpdate: false,
+                  },
+                },
+                {
+                  onError: () => {
+                    toast.error(
+                      t('danmaku.alert.fetchError', {
+                        message: episodeMatchPayload.title,
+                      })
+                    )
+                  },
+                }
+              )
+            },
+          })
         },
         mediaElementsChange: () => {
           setFoundElements(true)

@@ -6,6 +6,7 @@ export const usePlatformInfo = () => {
   const platformInfo = useSuspenseQuery({
     queryKey: controlQueryKeys.getPlatformInfo(),
     queryFn: () => chromeRpcClient.getPlatformInfo(),
+    staleTime: Infinity,
   }).data.data
 
   return {

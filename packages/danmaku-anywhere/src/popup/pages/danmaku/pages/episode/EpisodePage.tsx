@@ -45,6 +45,15 @@ export const EpisodePage = () => {
     setSelectedEpisodes([])
   }, [])
 
+  const handleToggleEpisodeSelection = () => {
+    if (enableEpisodeSelection) {
+      toggleEpisodeSelection(false)
+      setSelectedEpisodes([])
+    } else {
+      toggleEpisodeSelection(true)
+    }
+  }
+
   const { exportMany } = useExportDanmaku()
   const deleteMutation = useDeleteDanmaku()
 
@@ -118,7 +127,7 @@ export const EpisodePage = () => {
         </IconButton>
 
         <IconButton
-          onClick={() => toggleEpisodeSelection()}
+          onClick={handleToggleEpisodeSelection}
           color={enableEpisodeSelection ? 'primary' : 'default'}
         >
           <Checklist />
