@@ -1,4 +1,4 @@
-import { ContentCopy, Delete } from '@mui/icons-material'
+import { Delete } from '@mui/icons-material'
 import {
   List,
   ListItem,
@@ -9,9 +9,9 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
+import { NothingHere } from '@/common/components/NothingHere'
 import type { Integration } from '@/common/options/integrationPolicyStore/schema'
 import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
-import { tryCatch } from '@/common/utils/utils'
 import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 
 export const IntegrationPolicyList = ({
@@ -24,11 +24,7 @@ export const IntegrationPolicyList = ({
   const { t } = useTranslation()
   const { policies } = useIntegrationPolicyStore()
 
-  const copyToClipboard = async (policy: Integration) => {
-    await tryCatch(() =>
-      navigator.clipboard.writeText(JSON.stringify(policy, null, 2))
-    )
-  }
+  if (policies.length === 0) return <NothingHere />
 
   return (
     <List dense disablePadding>
@@ -47,16 +43,6 @@ export const IntegrationPolicyList = ({
                       <Delete />
                     </ListItemIcon>
                     <ListItemText>{t('common.delete')}</ListItemText>
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      void copyToClipboard(policy)
-                    }}
-                  >
-                    <ListItemIcon>
-                      <ContentCopy />
-                    </ListItemIcon>
-                    <ListItemText>{t('common.copyToClipboard')}</ListItemText>
                   </MenuItem>
                 </DrilldownMenu>
               </>

@@ -24,6 +24,7 @@ type MenuItemProps = {
 }
 
 type DrilldownMenuProps = PropsWithChildren & {
+  icon?: ReactNode
   ButtonProps?: IconButtonProps
   BoxProps?: BoxProps
   MenuProps?: Partial<MenuProps>
@@ -36,6 +37,7 @@ export const DrilldownMenu = ({
   BoxProps,
   MenuProps,
   items,
+  icon,
 }: DrilldownMenuProps) => {
   const buttonId = useId()
   const menuId = useId()
@@ -54,7 +56,7 @@ export const DrilldownMenu = ({
   return (
     <Box {...BoxProps}>
       <IconButton id={buttonId} onClick={handleClick} {...ButtonProps}>
-        <MoreVert />
+        {icon ?? <MoreVert />}
       </IconButton>
       <Menu
         id={menuId}
@@ -73,7 +75,10 @@ export const DrilldownMenu = ({
           return (
             <Tooltip title={item.tooltip} key={item.id}>
               <div>
-                <MenuItem onClick={item.onClick} disabled={item.disabled}>
+                <MenuItem
+                  onClick={item.onClick}
+                  disabled={item.disabled || item.loading}
+                >
                   <ListItemIcon>
                     {item.loading ? <CircularProgress size={24} /> : item.icon}
                   </ListItemIcon>

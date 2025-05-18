@@ -150,6 +150,8 @@ const pages = {
       },
       mediaQuery: 'Video Node',
       name: 'Name',
+      author: 'Author',
+      description: 'Description',
       pattern: 'Pattern',
       'pattern.add': 'Add Pattern',
       title: {
@@ -158,7 +160,16 @@ const pages = {
       },
       urlPatterns: 'URL Patterns',
     },
+    import: {
+      name: 'Import Config',
+      fileUpload: 'Upload File',
+      presets: 'Presets',
+      hasIntegration: 'Includes Integration',
+    },
     name: 'Configs',
+    createConfig: 'Create Config',
+    exportAll: 'Export All',
+    showIntegration: 'View Integration Policy',
   },
   integrationPolicyPage: {
     name: 'Integration Policy',

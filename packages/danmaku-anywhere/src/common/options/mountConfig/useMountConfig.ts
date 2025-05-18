@@ -9,7 +9,6 @@ import { mountConfigService } from '@/common/options/mountConfig/service'
 import { storageQueryKeys } from '@/common/queries/queryKeys'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import { matchUrl } from '@/common/utils/matchUrl'
-import { createDownload } from '@/common/utils/utils'
 
 export const useMountConfig = () => {
   const {
@@ -32,20 +31,10 @@ export const useMountConfig = () => {
         })
     }
 
-    const exportConfigs = async () => {
-      const { data: configs } = options
-
-      return createDownload(
-        new Blob([JSON.stringify(configs, null, 2)], { type: 'text/json' }),
-        'config.json'
-      )
-    }
-
     return {
       matchByUrl,
-      exportConfigs,
     }
-  }, [options, update.mutateAsync])
+  }, [options])
 
   const configs: MountConfig[] = options.data
 
@@ -79,11 +68,6 @@ export const useEditMountConfig = () => {
     mutationFn: mountConfigService.delete.bind(mountConfigService),
   })
 
-  const importMutation = useMutation({
-    mutationKey: storageQueryKeys.external('sync', ['mountConfig']),
-    mutationFn: mountConfigService.import.bind(mountConfigService),
-  })
-
   const setIntegrationMutation = useMutation({
     mutationKey: storageQueryKeys.external('sync', ['mountConfig']),
     mutationFn: (input: { configId: string; integrationId?: string }) => {
@@ -98,7 +82,6 @@ export const useEditMountConfig = () => {
     create: createMutation,
     update: updateMutation,
     remove: deleteMutation,
-    createMultiple: importMutation,
     setIntegration: setIntegrationMutation,
   }
 }

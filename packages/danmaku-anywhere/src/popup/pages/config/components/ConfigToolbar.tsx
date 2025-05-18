@@ -1,91 +1,84 @@
-import { AddCircle, Download, Upload } from '@mui/icons-material'
-import { IconButton, Tooltip } from '@mui/material'
-import { useTranslation } from 'react-i18next'
-
-import { Logger } from '@/common/Logger'
-import { mountConfigInputListSchema } from '@/common/options/mountConfig/schema'
-import {
-  useEditMountConfig,
-  useMountConfig,
-} from '@/common/options/mountConfig/useMountConfig'
-import { tryCatch } from '@/common/utils/utils'
+import { combinedPolicyService } from '@/common/options/combinedPolicy'
+import { downloadZip, sanitizeFilename } from '@/common/utils/utils'
 import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import { TabToolbar } from '@/content/common/TabToolbar'
+import {
+  AddCircle,
+  Download,
+  Edit,
+  Upload,
+  Visibility,
+} from '@mui/icons-material'
+import { useMutation } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router'
 
-const CAN_IMPORT = typeof window.showOpenFilePicker === 'function'
+type ConfigToolbarProps = {
+  onAdd: () => void
+  onShowIntegration: () => void
+}
 
-export const ConfigToolbar = ({ onAdd }: { onAdd: () => void }) => {
+export const ConfigToolbar = ({
+  onAdd,
+  onShowIntegration,
+}: ConfigToolbarProps) => {
   const { t } = useTranslation()
-  const { createMultiple } = useEditMountConfig()
-  const { exportConfigs } = useMountConfig()
+  const navigate = useNavigate()
+
+  const exportAll = useMutation({
+    mutationFn: async () => {
+      const configs = await combinedPolicyService.exportAll()
+      await downloadZip(
+        'configs',
+        configs.map((config) => {
+          return {
+            name: `${sanitizeFilename(config.name)}.json`,
+            data: JSON.stringify(config, null, 2),
+          }
+        })
+      )
+    },
+  })
 
   const handleImportConfigs = async () => {
-    // TODO: showOpenFilePicker is not available in Firefox
-    // throws DOMException when user closes the file picker, ignore this error
-    const [fileHandles, fileErr] = await tryCatch(() =>
-      showOpenFilePicker({
-        types: [
-          {
-            description: 'JSON files',
-            accept: {
-              'application/json': ['.json'],
-            },
-          },
-        ],
-        multiple: false,
-        excludeAcceptAllOption: true,
-      })
-    )
-
-    if (fileErr) return
-
-    const [fileHandle] = fileHandles
-
-    const json = await (await fileHandle.getFile()).text()
-
-    const [mountConfigList, parseErr] = await tryCatch(() =>
-      mountConfigInputListSchema.parseAsync(JSON.parse(json))
-    )
-
-    if (parseErr) {
-      Logger.error('Failed to parse imported config', parseErr)
-      return
-    }
-
-    await createMultiple.mutateAsync(mountConfigList)
+    navigate('import')
   }
 
   return (
     <TabToolbar title={t('configPage.name')}>
-      <IconButton
-        aria-label={t('common.add')}
-        onClick={() => {
-          onAdd()
-        }}
-        color="primary"
-      >
-        <Tooltip title={t('common.add')}>
-          <AddCircle />
-        </Tooltip>
-      </IconButton>
+      <DrilldownMenu
+        icon={<AddCircle />}
+        ButtonProps={{ color: 'primary' }}
+        items={[
+          {
+            id: 'add',
+            label: t('configPage.createConfig'),
+            onClick: onAdd,
+            icon: <Edit />,
+          },
+          {
+            id: 'import',
+            label: t('configPage.import.name'),
+            icon: <Upload />,
+            onClick: handleImportConfigs,
+          },
+        ]}
+      />
       <DrilldownMenu
         ButtonProps={{ edge: 'end' }}
         items={[
           {
-            id: 'canImport',
-            label: t('common.import'),
-            icon: <Upload />,
-            onClick: handleImportConfigs,
-            disabled: !CAN_IMPORT,
-            tooltip: CAN_IMPORT
-              ? ''
-              : 'Importing is not available in this browser',
+            id: 'export',
+            label: t('configPage.exportAll'),
+            onClick: () => exportAll.mutate(),
+            loading: exportAll.isPending,
+            icon: <Download />,
           },
           {
-            id: 'export',
-            label: t('common.export'),
-            onClick: exportConfigs,
-            icon: <Download />,
+            id: 'showIntegration',
+            label: t('configPage.showIntegration'),
+            onClick: onShowIntegration,
+            icon: <Visibility />,
           },
         ]}
       />

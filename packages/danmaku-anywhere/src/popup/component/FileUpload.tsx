@@ -1,7 +1,7 @@
 import CloudUploadIcon from '@mui/icons-material/CloudUpload' // MUI icon
 import { Box, Typography } from '@mui/material'
 import { type SxProps, type Theme, styled } from '@mui/material/styles'
-import type React from 'react'
+import type { ChangeEvent, DragEvent, KeyboardEvent, ReactNode } from 'react'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -10,6 +10,7 @@ interface FileUploadProps {
   accept?: string
   multiple?: boolean
   sx?: SxProps<Theme>
+  children?: ReactNode
 }
 
 interface StyledDropZoneProps {
@@ -48,13 +49,14 @@ export const FileUpload = ({
   accept,
   multiple = true,
   sx,
+  children,
 }: FileUploadProps) => {
   const { t } = useTranslation()
 
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       onFilesSelected(Array.from(event.target.files))
     }
@@ -67,13 +69,13 @@ export const FileUpload = ({
     fileInputRef.current?.click()
   }
 
-  const handleDragEnter = (event: React.DragEvent<HTMLDivElement>) => {
+  const handleDragEnter = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault()
     event.stopPropagation()
     setIsDragging(true)
   }
 
-  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+  const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault()
     event.stopPropagation()
     const relatedTarget = event.relatedTarget as Node
@@ -82,7 +84,7 @@ export const FileUpload = ({
     }
   }
 
-  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault()
     event.stopPropagation()
     event.dataTransfer.dropEffect = 'copy'
@@ -91,7 +93,7 @@ export const FileUpload = ({
     }
   }
 
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault()
     event.stopPropagation()
     setIsDragging(false)
@@ -112,7 +114,7 @@ export const FileUpload = ({
       onDrop={handleDrop}
       role="button"
       tabIndex={0}
-      onKeyDown={(e: React.KeyboardEvent) => {
+      onKeyDown={(e: KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {
           handleClick()
         }
@@ -133,6 +135,7 @@ export const FileUpload = ({
           color: 'primary.main',
         }}
       />
+      {children}
       <Typography
         variant="h6"
         color={isDragging ? 'primary.main' : 'textSecondary'}

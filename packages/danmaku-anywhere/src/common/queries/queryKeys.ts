@@ -135,3 +135,13 @@ export const fontQueryKeys = {
       },
     ] as const,
 }
+
+export const configQueryKeys = {
+  presets: () =>
+    [
+      {
+        scope: 'config',
+        kind: 'presets',
+      },
+    ] as const,
+}

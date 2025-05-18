@@ -3,13 +3,18 @@ import { Outlet, useNavigate } from 'react-router'
 
 import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog'
 import { IntegrationPolicyList } from '../components/IntegrationPolicyList'
-import { Toolbar } from '../components/Toolbar'
 
 import type { Integration } from '@/common/options/integrationPolicyStore/schema'
 import { TabLayout } from '@/content/common/TabLayout'
+import { TabToolbar } from '@/content/common/TabToolbar'
+import { useGoBack } from '@/popup/hooks/useGoBack'
+import { useTranslation } from 'react-i18next'
 
 export const IntegrationPolicy = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
+
+  const goBack = useGoBack()
 
   const [editingPolicy, setEditingPolicy] = useState<Integration>()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -26,7 +31,11 @@ export const IntegrationPolicy = () => {
   return (
     <>
       <TabLayout>
-        <Toolbar />
+        <TabToolbar
+          title={t('integrationPolicyPage.name')}
+          showBackButton
+          onGoBack={goBack}
+        />
         <IntegrationPolicyList onEdit={handleEdit} onDelete={handleDelete} />
         {editingPolicy && (
           <ConfirmDeleteDialog

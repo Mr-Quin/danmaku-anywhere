@@ -1,9 +1,12 @@
 import { z } from 'zod'
 
 import type { Options } from '@/common/options/OptionsService/types'
-import { validateOrigin } from '@/common/utils/utils'
+import { getRandomUUID, validateOrigin } from '@/common/utils/utils'
 
 export const mountConfigInputSchema = z.object({
+  id: z.string().uuid().optional().default(getRandomUUID()),
+  author: z.string().optional(),
+  description: z.string().optional(),
   patterns: z.array(
     z.string().refine(
       async (value) => {
@@ -39,10 +42,8 @@ export const mountConfigInputSchema = z.object({
 
 export const mountConfigInputListSchema = z.array(mountConfigInputSchema)
 
-export type MountConfigInput = z.infer<typeof mountConfigInputSchema>
+export type MountConfigInput = z.input<typeof mountConfigInputSchema>
 
-export type MountConfig = MountConfigInput & {
-  id: string
-}
+export type MountConfig = z.output<typeof mountConfigInputSchema>
 
 export type MountConfigOptions = Options<MountConfig[]>

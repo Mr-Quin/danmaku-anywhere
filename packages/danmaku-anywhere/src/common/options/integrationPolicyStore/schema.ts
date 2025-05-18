@@ -1,3 +1,4 @@
+import { getRandomUUID } from '@/common/utils/utils'
 import { z } from 'zod'
 
 const regexString = z.string().refine(
@@ -17,12 +18,12 @@ const regexString = z.string().refine(
 
 const selectorSchema = z.object({
   value: z.string(),
-  quick: z.boolean().default(false),
+  quick: z.boolean(),
 })
 
 const regexSchema = z.object({
   value: regexString,
-  quick: z.boolean().default(false),
+  quick: z.boolean(),
 })
 
 const matcherSchema = z.object({
@@ -38,7 +39,7 @@ const optionsSchema = z.object({
   }),
 })
 
-export const integrationPolicySchema = z.object({
+export const zIntegrationPolicy = z.object({
   title: z.object({
     selector: z.array(selectorSchema).min(1),
     regex: z.array(regexSchema).min(1),
@@ -49,21 +50,17 @@ export const integrationPolicySchema = z.object({
   options: optionsSchema,
 })
 
-export type IntegrationPolicy = z.infer<typeof integrationPolicySchema>
+export type IntegrationPolicy = z.infer<typeof zIntegrationPolicy>
 
-export const integrationInputSchema = z.object({
+export const zIntegration = z.object({
+  id: z.string().uuid().optional().default(getRandomUUID()),
   name: z.string().min(1),
-  policy: integrationPolicySchema,
-  // Fields from import
-  author: z.string().optional(),
-  hash: z.string().optional(),
+  policy: zIntegrationPolicy,
 })
 
-export type IntegrationInput = z.infer<typeof integrationInputSchema>
+export type IntegrationInput = z.input<typeof zIntegration>
 
-export type Integration = IntegrationInput & {
-  id: string
-}
+export type Integration = z.output<typeof zIntegration>
 
 export interface IntegrationV1 {
   name: string

@@ -8,7 +8,7 @@ import type {
 } from '@/common/options/integrationPolicyStore/schema'
 import { mountConfigService } from '@/common/options/mountConfig/service'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
-import { createDownload, getRandomUUID } from '@/common/utils/utils'
+import { createDownload } from '@/common/utils/utils'
 
 export const useIntegrationPolicyStore = () => {
   const {
@@ -46,15 +46,14 @@ export const useIntegrationPolicyStore = () => {
     }
 
     // Create a new integration and associate it with a mount config
-    const add = async (config: IntegrationInput, mountConfigId: string) => {
+    const add = async (config: Integration, mountConfigId: string) => {
       const { data: policy, version } = data
 
-      const id = getRandomUUID()
       await updateMutation.mutateAsync({
-        data: [...policy, { ...config, id }],
+        data: [...policy, config],
         version,
       })
-      await mountConfigService.setIntegration(mountConfigId, id)
+      await mountConfigService.setIntegration(mountConfigId, config.id)
     }
 
     const remove = async (id: string) => {

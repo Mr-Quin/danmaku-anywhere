@@ -3,14 +3,8 @@ import { produce } from 'immer'
 import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { defaultMountConfig } from '@/common/options/mountConfig/constant'
-import type {
-  MountConfig,
-  MountConfigInput,
-} from '@/common/options/mountConfig/schema'
-import {
-  mountConfigInputListSchema,
-  mountConfigInputSchema,
-} from '@/common/options/mountConfig/schema'
+import type { MountConfig } from '@/common/options/mountConfig/schema'
+import { mountConfigInputSchema } from '@/common/options/mountConfig/schema'
 import { getRandomUUID } from '@/common/utils/utils'
 
 const mountConfigOptions = new OptionsService<MountConfig[]>(
@@ -57,10 +51,7 @@ class MountConfigService {
   public readonly options = mountConfigOptions
 
   async create(input: unknown) {
-    const config = {
-      ...(await mountConfigInputSchema.parseAsync(input)),
-      id: getRandomUUID(),
-    } satisfies MountConfig
+    const config = await mountConfigInputSchema.parseAsync(input)
 
     const configs = await this.options.get()
 
@@ -112,21 +103,24 @@ class MountConfigService {
     await this.options.set(newData)
   }
 
-  async import(configs: MountConfigInput[]) {
-    const currentConfigs = await this.options.get()
+  async import(config: MountConfig) {
+    const configs = await this.options.get()
 
-    const parsed = await mountConfigInputListSchema.parseAsync(configs)
+    const existing = configs.find((item) => {
+      return item.id === config.id
+    })
 
-    const newData = [
-      ...currentConfigs,
-      ...parsed.map((config) => ({
-        ...config,
-        enabled: false,
-        id: getRandomUUID(),
-      })),
-    ]
+    if (existing) {
+      await this.options.set([
+        ...configs.filter((item) => item.id !== existing.id),
+        config,
+      ])
+      return existing
+    }
 
-    await this.options.set(newData)
+    // disable the imported config by default
+    await this.options.set([...configs, { ...config, enabled: false }])
+    return config
   }
 
   async unsetIntegration(integrationId: string) {

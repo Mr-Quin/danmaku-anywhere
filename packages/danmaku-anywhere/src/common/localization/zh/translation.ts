@@ -151,6 +151,8 @@ const pages = {
       },
       mediaQuery: '视频节点',
       name: '名称',
+      author: '作者',
+      description: '说明',
       pattern: '模式',
       'pattern.add': '添加模式',
       title: {
@@ -159,7 +161,16 @@ const pages = {
       },
       urlPatterns: 'URL 模式',
     },
+    import: {
+      name: '导入配置',
+      fileUpload: '上传文件',
+      presets: '预设',
+      hasIntegration: '含适配规则',
+    },
     name: '装填配置',
+    createConfig: '编写配置',
+    exportAll: '导出所有配置',
+    showIntegration: '查看适配规则',
   },
   integrationPolicyPage: {
     name: '适配规则',
