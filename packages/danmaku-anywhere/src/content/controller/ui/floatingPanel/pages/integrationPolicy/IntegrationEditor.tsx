@@ -7,10 +7,10 @@ import { FormProvider, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { IntegrationInput } from '@/common/options/integrationPolicyStore/schema'
+import type { Integration } from '@/common/options/integrationPolicyStore/schema'
 import {
   createIntegrationInput,
-  integrationInputSchema,
+  zIntegration,
 } from '@/common/options/integrationPolicyStore/schema'
 import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
 import { docsLink } from '@/common/utils/utils'
@@ -44,7 +44,7 @@ export const IntegrationEditor = () => {
 
   const form = useForm({
     defaultValues,
-    resolver: zodResolver(integrationInputSchema),
+    resolver: zodResolver(zIntegration),
     mode: 'onChange',
   })
 
@@ -68,7 +68,7 @@ export const IntegrationEditor = () => {
   const toast = useToast.use.toast()
 
   const { mutate: saveForm } = useMutation({
-    mutationFn: async (data: IntegrationInput) => {
+    mutationFn: async (data: Integration) => {
       if (activePolicy) {
         return update(activePolicy.id, data)
       } else {

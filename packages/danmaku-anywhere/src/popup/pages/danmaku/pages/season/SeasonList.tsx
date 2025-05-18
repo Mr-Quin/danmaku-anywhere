@@ -1,4 +1,4 @@
-import { Suspense, useMemo } from 'react'
+import { Suspense, memo, useMemo } from 'react'
 import { createSearchParams, useNavigate } from 'react-router'
 
 import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
@@ -91,7 +91,7 @@ const SeasonListSuspense = () => {
   )
 }
 
-export const SeasonList = () => {
+const SeasonListBase = () => {
   return (
     <Suspense
       fallback={
@@ -104,3 +104,5 @@ export const SeasonList = () => {
     </Suspense>
   )
 }
+
+export const SeasonList = memo(SeasonListBase)
