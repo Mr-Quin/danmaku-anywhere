@@ -11,6 +11,7 @@ import { useMemo, useRef } from 'react'
 
 import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
 import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
+import { NothingHere } from '@/common/components/NothingHere'
 import { ProviderLogo } from '@/common/components/ProviderLogo'
 import { useAllCustomEpisodesSuspense } from '@/common/danmaku/queries/useAllCustomEpisodes'
 import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useAllDanmakuSuspense'
@@ -225,6 +226,10 @@ export const DanmakuSelector = ({
     estimateSize: () => 72,
     getItemKey: (i) => getKey(flattened[i]),
   })
+
+  if (flattened.length === 0) {
+    return <NothingHere />
+  }
 
   return (
     <Box height="100%" overflow="auto">

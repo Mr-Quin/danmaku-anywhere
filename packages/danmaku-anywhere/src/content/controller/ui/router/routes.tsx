@@ -9,6 +9,11 @@ import { SearchPage } from '@/content/controller/ui/floatingPanel/pages/search/S
 
 export const routes = [
   {
+    tab: PopupTab.Mount,
+    name: 'tabs.mount',
+    element: <MountPage />,
+  },
+  {
     tab: PopupTab.Search,
     name: 'tabs.search',
     element: <SearchPage />,
@@ -22,11 +27,6 @@ export const routes = [
     tab: PopupTab.Comments,
     name: 'tabs.danmaku',
     element: <CommentsPage />,
-  },
-  {
-    tab: PopupTab.Mount,
-    name: 'tabs.mount',
-    element: <MountPage />,
   },
   {
     tab: PopupTab.Styles,
