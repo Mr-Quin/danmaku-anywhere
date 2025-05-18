@@ -73,7 +73,7 @@ export const MountConfigList = ({
                     <ListItemIcon>
                       <ContentCopy />
                     </ListItemIcon>
-                    <ListItemText>{t('common.copyToClipboard')}</ListItemText>
+                    <ListItemText>{t('common.export')}</ListItemText>
                   </MenuItem>
                 </DrilldownMenu>
               </>
