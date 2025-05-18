@@ -1,3 +1,4 @@
+import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import {
   CoverImage,
   CoverImageSkeleton,
@@ -200,6 +201,11 @@ export const SeasonCard = ({
               />
             </SelectionOverlay>
           )}
+          {refreshMutation.isPending && (
+            <SelectionOverlay>
+              <FullPageSpinner />
+            </SelectionOverlay>
+          )}
         </CardActionArea>
         {renderEpisodeCount()}
         {season.year && (
@@ -226,6 +232,7 @@ export const SeasonCard = ({
                     onClick: () => {
                       refreshMutation.mutate(season.id)
                     },
+                    loading: refreshMutation.isPending,
                   },
                   {
                     id: 'delete',
