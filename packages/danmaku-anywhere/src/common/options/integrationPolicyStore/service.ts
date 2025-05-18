@@ -1,14 +1,13 @@
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
-import { defaultXPathPolicies } from '@/common/options/integrationPolicyStore/constant'
 import type {
   Integration,
   IntegrationV1,
   IntegrationV2,
 } from '@/common/options/integrationPolicyStore/schema'
 
-export const xPathPolicyStore = new OptionsService(
+export const xPathPolicyStore = new OptionsService<Integration[]>(
   'xpathPolicy',
-  defaultXPathPolicies,
+  [],
   'local'
 )
   .version(1, {
@@ -69,3 +68,39 @@ export const xPathPolicyStore = new OptionsService(
       })
     },
   })
+
+class IntegrationPolicyService {
+  public readonly options = xPathPolicyStore
+
+  async get(id: string): Promise<Integration | undefined> {
+    const configs = await this.options.get()
+
+    return configs.find((item) => item.id === id)
+  }
+
+  async getAll(): Promise<Integration[]> {
+    return this.options.get()
+  }
+
+  async import(policy: Integration) {
+    const configs = await this.options.get()
+
+    const existing = configs.find((item) => {
+      return item.id === policy.id
+    })
+
+    // if the policy already exists, update it
+    if (existing) {
+      await this.options.set([
+        ...configs.filter((item) => item.id !== existing.id),
+        policy,
+      ])
+      return existing
+    }
+
+    await this.options.set([...configs, policy])
+    return policy
+  }
+}
+
+export const integrationPolicyService = new IntegrationPolicyService()

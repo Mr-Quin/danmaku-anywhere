@@ -5,6 +5,7 @@ import { match as matchPinyin } from 'pinyin-pro'
 import type { NotPromise } from '../types/utils'
 
 import { Logger } from '@/common/Logger'
+import JSZip from 'jszip'
 
 export const toArray = <T>(value: T | T[]): T[] => {
   return Array.isArray(value) ? value : [value]
@@ -91,6 +92,23 @@ export const createDownload = (data: Blob, filename?: string) => {
       resolve()
     }, 100)
   })
+}
+
+export const downloadZip = async (
+  fileName: string,
+  files: {
+    name: string
+    data: Blob | string
+  }[]
+) => {
+  const zip = new JSZip()
+
+  files.forEach((file) => {
+    zip.file(file.name, file.data)
+  })
+
+  const zipBlob = await zip.generateAsync({ type: 'blob' })
+  await createDownload(zipBlob, `${fileName}.zip`)
 }
 
 export const createVirtualElement = (

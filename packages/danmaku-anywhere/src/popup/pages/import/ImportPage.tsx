@@ -11,138 +11,19 @@ import {
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
+import { PreFormat } from '@/popup/component/PreFormat'
 import { Collapsible } from '@/popup/pages/import/components/Collapsible'
 import { xmlToJSON } from '@danmaku-anywhere/danmaku-converter'
-import { ContentCopy } from '@mui/icons-material'
-import {
-  Box,
-  Chip,
-  IconButton,
-  List,
-  ListItem,
-  Typography,
-  styled,
-  useTheme,
-} from '@mui/material'
-import type { SxProps, Theme } from '@mui/material/styles'
+import { Box, Chip, List, ListItem, Typography } from '@mui/material'
+import type {} from '@mui/material/styles'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { type KeyboardEvent, type ReactNode, useRef, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { FileUpload } from './components/FileUpload'
+import { FileUpload } from '../../component/FileUpload'
 import {
   ImportResultDialog,
   type ImportResultRenderParams,
-} from './components/ImportResultDialog'
-
-type PreFormatProps = {
-  variant?: 'normal' | 'error'
-  children: ReactNode
-  sx?: SxProps<Theme>
-}
-
-const StyledPreFormatBox = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'variant',
-})<{
-  variant?: 'normal' | 'error'
-}>(({ theme, variant }) => ({
-  position: 'relative',
-  padding: theme.spacing(2),
-  overflow: 'auto',
-  maxHeight: 200,
-  backgroundColor:
-    theme.palette.mode === 'dark'
-      ? theme.palette.grey[900]
-      : theme.palette.grey[100],
-  border:
-    variant === 'error' ? `1px solid ${theme.palette.error.main}` : 'none',
-  borderRadius: theme.shape.borderRadius,
-
-  '&:focus, &:focus-within': {
-    outline: `2px solid ${theme.palette.primary.main}`,
-    boxShadow: `0 0 0 2px ${theme.palette.primary.light}`,
-  },
-}))
-
-const PreFormat = ({ variant, sx, children }: PreFormatProps) => {
-  const theme = useTheme()
-  const preRef = useRef<HTMLPreElement>(null)
-
-  const handleCopy = async () => {
-    if (preRef.current) {
-      try {
-        await navigator.clipboard.writeText(preRef.current.innerText)
-      } catch (_) {
-        // ignore error
-      }
-    }
-  }
-
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if ((event.ctrlKey || event.metaKey) && event.key === 'a') {
-      event.preventDefault()
-      if (preRef.current) {
-        const selection = window.getSelection()
-        const range = document.createRange()
-        range.selectNodeContents(preRef.current)
-        selection?.removeAllRanges()
-        selection?.addRange(range)
-      }
-    }
-  }
-
-  return (
-    <StyledPreFormatBox
-      variant={variant}
-      sx={sx}
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
-    >
-      <IconButton
-        onClick={handleCopy}
-        size="small"
-        sx={{
-          position: 'absolute',
-          zIndex: 1,
-          top: theme.spacing(0.5),
-          right: theme.spacing(0.5),
-          p: 1,
-        }}
-      >
-        <ContentCopy fontSize="small" />
-      </IconButton>
-      <pre
-        ref={preRef}
-        style={{
-          fontSize: theme.typography.caption.fontSize,
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-all',
-          color: variant === 'error' ? 'red' : 'inherit',
-        }}
-      >
-        {children}
-      </pre>
-    </StyledPreFormatBox>
-  )
-}
-
-const getJson = (text: string, fileName: string) => {
-  const isXml = fileName.endsWith('.xml')
-  const data: unknown = isXml ? xmlToJSON(text) : JSON.parse(text)
-  return data
-}
-
-const processUploadedFiles = async (files: File[]) => {
-  return Promise.all(
-    files.map(async (file) => {
-      const text = await file.text()
-      const data = getJson(text, file.name)
-      return {
-        title: file.name.substring(0, file.name.lastIndexOf('.')), // remove extension
-        data,
-      } satisfies DanmakuImportData
-    })
-  )
-}
+} from '../../component/ImportResultDialog'
 
 export const ImportPage = () => {
   const { t } = useTranslation()
@@ -154,7 +35,22 @@ export const ImportPage = () => {
   // not actually a mutation, just using this to manage state
   const { mutate, data, error, reset, isError, isPending } = useMutation({
     mutationFn: async (files: File[]) => {
-      return processUploadedFiles(files)
+      const getJson = (text: string, fileName: string) => {
+        const isXml = fileName.endsWith('.xml')
+        const data: unknown = isXml ? xmlToJSON(text) : JSON.parse(text)
+        return data
+      }
+
+      return Promise.all(
+        files.map(async (file) => {
+          const text = await file.text()
+          const data = getJson(text, file.name)
+          return {
+            title: file.name.substring(0, file.name.lastIndexOf('.')), // remove extension
+            data,
+          } satisfies DanmakuImportData
+        })
+      )
     },
   })
 

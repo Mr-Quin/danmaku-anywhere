@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import JSZip from 'jszip'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
@@ -12,24 +11,7 @@ import {
   episodeQueryKeys,
 } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { createDownload, sanitizeFilename } from '@/common/utils/utils'
-
-const downloadZip = async (
-  fileName: string,
-  files: {
-    name: string
-    data: Blob | string
-  }[]
-) => {
-  const zip = new JSZip()
-
-  files.forEach((file) => {
-    zip.file(file.name, file.data)
-  })
-
-  const zipBlob = await zip.generateAsync({ type: 'blob' })
-  await createDownload(zipBlob, `${fileName}.zip`)
-}
+import { downloadZip, sanitizeFilename } from '@/common/utils/utils'
 
 export type ExportDanmakuData =
   | {

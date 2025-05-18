@@ -56,7 +56,10 @@ export const ConfigPage = () => {
   return (
     <>
       <TabLayout>
-        <ConfigToolbar onAdd={handleAddConfig} />
+        <ConfigToolbar
+          onAdd={handleAddConfig}
+          onShowIntegration={() => navigate('integration-policy')}
+        />
         <MountConfigList onEdit={handleEditConfig} />
         <ConfirmDeleteDialog />
       </TabLayout>
