@@ -71,7 +71,7 @@ const usePopupStoreBase = create<PopupStoreState>((set, get) => ({
   setSearchTitle: (title) => {
     set({ searchTitle: title })
   },
-  tab: PopupTab.Search,
+  tab: PopupTab.Mount,
   setTab: (tab) => {
     set({ tab })
   },
