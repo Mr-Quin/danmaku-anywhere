@@ -4,7 +4,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { useGetSeasonSuspense } from '@/common/anime/queries/useSeasons'
 import { CommentsTable } from '@/common/components/CommentsTable'
 import { NothingHere } from '@/common/components/NothingHere'
-import { useAllCustomEpisodesSuspense } from '@/common/danmaku/queries/useAllCustomEpisodes'
+import { useCustomEpisodeSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
 import { useDanmakuManySuspense } from '@/common/danmaku/queries/useDanmakuMany'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
@@ -24,9 +24,9 @@ export const CommentPage = () => {
 
   const getData = () => {
     if (isCustom) {
-      const episodes = useAllCustomEpisodesSuspense()
+      const episodes = useCustomEpisodeSuspense({ id: episodeId })
 
-      const episode = episodes.data.find((episode) => episode.id === episodeId)
+      const episode = episodes.data[0]
 
       if (!episode) {
         return {
