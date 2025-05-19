@@ -14,9 +14,10 @@
   "commentCount": 1,
   "params": { "chConvert": 0, "withRelated": true, "from": 0 },
   "schemaVersion": 4,
+  "lastChecked": 0,
   "season": {
     "provider": "DanDanPlay",
-    "providerIds": { "animeId": 17981 },
+    "providerIds": { "animeId": 17981, "bangumiId": "17981" },
     "title": "败犬女主太多了！",
     "type": "",
     "indexedId": "17981",
