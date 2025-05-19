@@ -172,7 +172,7 @@ const v3ToV4 = (
   const baseUpdate = {
     comments: item.comments,
     commentCount: item.commentCount,
-    lastChecked: Date.now(),
+    lastChecked: item.timeUpdated,
     schemaVersion: 4,
   } as const
 
