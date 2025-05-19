@@ -164,11 +164,6 @@ export const getRandomUUID = () => {
   }
 }
 
-export const stripHtml = (html: string) => {
-  const doc = new DOMParser().parseFromString(html, 'text/html')
-  return doc.body.textContent || ''
-}
-
 export const getElementByXpath = (path: string, parent = window.document) => {
   try {
     return document.evaluate(

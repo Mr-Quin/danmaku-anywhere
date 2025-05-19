@@ -202,12 +202,18 @@ export class DanmakuService {
 
     const importBackup = async (data: BackupParseResult) => {
       let skipped = data.skipped.length
-      let imported = 0
+      const imported = []
 
       for (const [i, item] of data.parsed) {
         try {
           if (item.type === 'Custom') {
             await this.addCustom(item.episode)
+            imported.push({
+              type: DanmakuSourceType.Custom,
+              title: item.episode.title,
+              seasonId: -1,
+              seasonTitle: 'Custom',
+            })
           } else {
             let [existingSeason] = await this.seasonService.filter({
               provider: item.season.provider,
@@ -221,17 +227,35 @@ export class DanmakuService {
               ...item.episode,
               seasonId: existingSeason.id,
             })
+            imported.push({
+              type: item.season.provider,
+              title: item.episode.title,
+              seasonId: existingSeason.id,
+              seasonTitle: existingSeason.title,
+            })
           }
-          imported += 1
         } catch (e) {
           this.logger.error(`Failed to import backup item ${i}`, e)
           skipped += 1
         }
       }
 
+      const grouped = Object.groupBy(
+        imported,
+        (item) => item.seasonTitle
+      ) as Record<
+        string,
+        {
+          type: DanmakuSourceType
+          title: string
+          seasonId: number
+          seasonTitle: string
+        }[]
+      >
+
       return {
         skipped,
-        imported,
+        imported: grouped,
       }
     }
 
@@ -257,6 +281,15 @@ export class DanmakuService {
         const backupParseResult = parseBackupMany(
           Array.isArray(data) ? data : [data]
         )
+
+        if (backupParseResult.parsed.length === 0) {
+          results.error.push({
+            title,
+            message: 'No valid danmaku found',
+          })
+          return
+        }
+
         const importResult = await importBackup(backupParseResult)
 
         results.success.push({

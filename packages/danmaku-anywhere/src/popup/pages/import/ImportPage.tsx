@@ -14,7 +14,7 @@ import { TabToolbar } from '@/content/common/TabToolbar'
 import { PreFormat } from '@/popup/component/PreFormat'
 import { Collapsible } from '@/popup/pages/import/components/Collapsible'
 import { xmlToJSON } from '@danmaku-anywhere/danmaku-converter'
-import { Box, Chip, List, ListItem, Typography } from '@mui/material'
+import { Box, List, ListItem, Typography } from '@mui/material'
 import type {} from '@mui/material/styles'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -133,22 +133,34 @@ export const ImportPage = () => {
                     count: result.success.length,
                   })}
                 </Typography>
-                <PreFormat>
+                <PreFormat disableCopy>
                   <List>
                     {result.success.map((item, i) => {
                       return (
                         <ListItem key={i}>
-                          <Chip
-                            size="small"
-                            label={t(`danmaku.type.${item.type}`)}
-                            sx={{ font: 'inherit', mr: 1 }}
-                          />
                           {item.type === 'Custom' ? (
                             <span>{item.title}</span>
                           ) : (
                             <Collapsible title={item.title}>
-                              Skipped {item.result.skipped}
-                              Imported {item.result.imported}
+                              {item.result.skipped > 0 && (
+                                <p>Skipped {item.result.skipped}</p>
+                              )}
+                              {Object.entries(item.result.imported).map(
+                                ([seasonTitle, episodes], i) => {
+                                  return (
+                                    <>
+                                      {seasonTitle}
+                                      <ul key={i}>
+                                        {episodes.map((episode, j) => {
+                                          return (
+                                            <li key={j}>{episode.title}</li>
+                                          )
+                                        })}
+                                      </ul>
+                                    </>
+                                  )
+                                }
+                              )}
                             </Collapsible>
                           )}
                         </ListItem>
@@ -207,7 +219,7 @@ export const ImportPage = () => {
       </Box>
       <ImportResultDialog
         open={showDialog}
-        title={t('importPage.importLocal')}
+        title={t('importPage.import')}
         onClose={handleDialogClose}
         onImport={handleImportClick}
         disableImport={isPending || isError}
