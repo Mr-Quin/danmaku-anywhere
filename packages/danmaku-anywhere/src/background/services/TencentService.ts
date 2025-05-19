@@ -10,11 +10,12 @@ import { Logger } from '@/common/Logger'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProvider } from '@/common/danmaku/utils'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
-import type {
-  EpisodeMeta,
-  Season,
-  SeasonInsert,
-  TencentOf,
+import {
+  type EpisodeMeta,
+  type Season,
+  type SeasonInsert,
+  type TencentOf,
+  stripHtml,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { WithSeason } from '@danmaku-anywhere/danmaku-converter'
 
@@ -55,7 +56,7 @@ export class TencentService {
     const mapToSeason = (data: TencentVideoSeason): TencentOf<SeasonInsert> => {
       return {
         provider: DanmakuSourceType.Tencent,
-        title: data.videoInfo.title,
+        title: stripHtml(data.videoInfo.title),
         type: data.videoInfo.videoType.toString(),
         imageUrl: data.videoInfo.imgUrl,
         providerIds: {
@@ -93,7 +94,7 @@ export class TencentService {
     return result.flat().map((item) => {
       return {
         provider: DanmakuSourceType.Tencent,
-        title: item.play_title,
+        title: stripHtml(item.play_title),
         alternativeTitle: [item.title, item.union_title],
         providerIds: {
           vid: item.vid,
@@ -148,7 +149,7 @@ export class TencentService {
     if (foundSeason) {
       const season = await this.seasonService.upsert({
         provider: DanmakuSourceType.Tencent,
-        title: foundSeason.item_params.title,
+        title: stripHtml(foundSeason.item_params.title),
         type: foundSeason.item_type.toString(),
         imageUrl: foundSeason.item_params.new_pic_vt,
         providerIds: {

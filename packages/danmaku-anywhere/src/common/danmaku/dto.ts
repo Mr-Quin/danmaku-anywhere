@@ -1,4 +1,7 @@
-import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
+import type {
+  DanmakuSourceType,
+  RemoteDanmakuSourceType,
+} from '@/common/danmaku/enums'
 import type {
   EpisodeMeta,
   WithSeason,
@@ -57,7 +60,15 @@ export type DanmakuImportResult = {
         title: string
         result: {
           skipped: number
-          imported: number
+          imported: Record<
+            string,
+            {
+              type: DanmakuSourceType
+              title: string
+              seasonId: number
+              seasonTitle: string
+            }[]
+          >
         }
       }
   )[]
