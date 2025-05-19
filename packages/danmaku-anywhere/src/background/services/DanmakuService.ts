@@ -15,6 +15,7 @@ import {
   type CommentEntity,
   type CustomEpisode,
   type CustomEpisodeInsert,
+  type CustomEpisodeLite,
   EPISODE_SCHEMA_VERSION,
   type Episode,
   type EpisodeInsert,
@@ -64,6 +65,16 @@ export class DanmakuService {
       return res.filter((item) => item !== undefined)
     }
     return this.customTable.where(filter).toArray()
+  }
+
+  async filterCustomLite(
+    filter: CustomEpisodeQueryFilter
+  ): Promise<CustomEpisodeLite[]> {
+    const episodes = await this.filterCustom(filter)
+    return episodes.map((episode) => {
+      const { comments: _, ...rest } = episode
+      return rest
+    })
   }
 
   async deleteCustom(filter: CustomEpisodeQueryFilter) {

@@ -16,13 +16,25 @@ export const useDanmakuManySuspense = (data: EpisodeQueryFilter) => {
   return query
 }
 
-export const useDanmakuMany = (data: EpisodeQueryFilter) => {
+export const useDanmakuManyLite = (data: EpisodeQueryFilter) => {
   const query = useQuery({
-    queryKey: episodeQueryKeys.filter(data),
+    queryKey: episodeQueryKeys.filterLite(data),
     queryFn: async () => {
-      return await chromeRpcClient.episodeFilter(data)
+      return await chromeRpcClient.episodeFilterLite(data)
     },
     select: (res) => res.data,
+  })
+
+  return query
+}
+
+export const useAllDanmakuSuspense = () => {
+  const query = useSuspenseQuery({
+    queryKey: episodeQueryKeys.filterLite({ all: true }),
+    queryFn: async () => {
+      return chromeRpcClient.episodeFilterLite({ all: true })
+    },
+    select: (data) => data.data,
   })
 
   return query

@@ -14,7 +14,7 @@ import { type ReactNode, Suspense } from 'react'
 import { CoverImage } from '@/common/components/MediaList/components/CoverImage'
 import { isNotCustom } from '@/common/danmaku/utils'
 import type {
-  CustomEpisode,
+  CustomEpisodeLite,
   EpisodeLite,
   EpisodeMeta,
   WithSeason,
@@ -22,14 +22,14 @@ import type {
 import { useTranslation } from 'react-i18next'
 
 const isEpisodeLite = (
-  episode: WithSeason<EpisodeMeta> | CustomEpisode
+  episode: WithSeason<EpisodeMeta> | CustomEpisodeLite
 ): episode is WithSeason<EpisodeLite> => {
   if (!isNotCustom(episode)) return false
   return 'id' in episode
 }
 
 type BaseEpisodeListItemProps<
-  T extends WithSeason<EpisodeMeta> | CustomEpisode,
+  T extends WithSeason<EpisodeMeta> | CustomEpisodeLite,
 > = {
   showImage?: boolean
   isLoading?: boolean
@@ -40,7 +40,7 @@ type BaseEpisodeListItemProps<
 }
 
 export const BaseEpisodeListItem = <
-  T extends WithSeason<EpisodeMeta> | CustomEpisode,
+  T extends WithSeason<EpisodeMeta> | CustomEpisodeLite,
 >({
   showImage = true,
   isLoading,

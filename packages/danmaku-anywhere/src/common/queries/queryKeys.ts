@@ -38,12 +38,16 @@ export const episodeQueryKeys = {
   all: () => [{ scope: 'episode' }] as const,
   filter: (params: EpisodeQueryFilter) =>
     [{ scope: 'episode', kind: 'filter', ...params }] as const,
+  filterLite: (params: EpisodeQueryFilter) =>
+    [{ scope: 'episode', kind: 'filterLite', ...params }] as const,
 }
 
 export const customEpisodeQueryKeys = {
   all: () => [{ scope: 'customEpisode' }] as const,
   filter: (params: CustomEpisodeQueryFilter) =>
     [{ scope: 'customEpisode', kind: 'filter', ...params }] as const,
+  filterLite: (params: CustomEpisodeQueryFilter) =>
+    [{ scope: 'customEpisode', kind: 'filterLite', ...params }] as const,
 }
 
 export const sourceQueryKeys = {
