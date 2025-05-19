@@ -18,7 +18,7 @@ const ImageAspectRatio = styled('div', {
     aspectRatio: `${widthRatio}/${heightRatio}`,
     display: 'flex',
     alignItems: 'center',
-    contain: 'strict',
+    contain: 'paint',
     isolation: 'isolate',
   }
 })
@@ -27,7 +27,7 @@ const StackingContext = styled('div')(() => {
   return {
     width: '100%',
     height: '100%',
-    contain: 'strict',
+    contain: 'paint ',
     isolation: 'isolate',
     display: 'flex',
     flexDirection: 'column',
@@ -92,7 +92,9 @@ export const CoverImage = ({
   return (
     <ImageAspectRatio widthRatio={widthRatio} heightRatio={heightRatio}>
       <ErrorBoundary fallback={<div>Failed to load image</div>}>
-        <Suspense fallback={<Skeleton width={'100%'} height={600} />}>
+        <Suspense
+          fallback={<Skeleton width="100%" height="100%" variant="rounded" />}
+        >
           <CoverImageLoader {...rest} />
         </Suspense>
       </ErrorBoundary>
@@ -104,7 +106,7 @@ export const CoverImage = ({
 export const CoverImageSkeleton = () => {
   return (
     <ImageAspectRatio>
-      <Skeleton width={'100%'} height={600} />
+      <Skeleton width="100%" height="100%" variant="rounded" />
     </ImageAspectRatio>
   )
 }
