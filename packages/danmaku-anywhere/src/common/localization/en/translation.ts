@@ -293,12 +293,16 @@ const pages = {
         togglePip: 'Enter Picture-in-Picture (Experimental)',
       },
     },
+    help: {
+      docs: 'Documentation',
+    },
     pages: {
       danmakuSource: 'Danmaku Source',
       theme: 'UI Theme',
       hotkeys: 'Hotkeys',
       retentionPolicy: 'Retention Policy',
       advanced: 'Advanced',
+      help: 'Help & Feedback',
     },
   },
   searchPage: {

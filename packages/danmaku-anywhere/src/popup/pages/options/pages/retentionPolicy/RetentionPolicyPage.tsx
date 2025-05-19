@@ -159,17 +159,17 @@ export const RetentionPolicyPage = () => {
                 }
                 secondary={
                   <>
-                    <div>
+                    <>
                       {t(
                         'optionsPage.retentionPolicy.tooltip.deleteCommentsAfter'
                       )}
-                    </div>
+                    </>
                     {retentionPolicy.enabled && nextPurgeTime && (
-                      <div>
+                      <>
                         {t('optionsPage.retentionPolicy.tooltip.nextPurge', {
                           time: nextPurgeTime,
                         })}
-                      </div>
+                      </>
                     )}
                   </>
                 }

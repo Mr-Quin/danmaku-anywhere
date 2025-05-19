@@ -148,16 +148,16 @@ export const ImportPage = () => {
                               {Object.entries(item.result.imported).map(
                                 ([seasonTitle, episodes], i) => {
                                   return (
-                                    <>
+                                    <div key={i}>
                                       {seasonTitle}
-                                      <ul key={i}>
+                                      <ul>
                                         {episodes.map((episode, j) => {
                                           return (
                                             <li key={j}>{episode.title}</li>
                                           )
                                         })}
                                       </ul>
-                                    </>
+                                    </div>
                                   )
                                 }
                               )}

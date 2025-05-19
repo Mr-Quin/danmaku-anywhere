@@ -118,7 +118,7 @@ export const IntegrationEditor = () => {
                 <Button
                   variant="text"
                   component="a"
-                  href={docsLink('integration-policy')}
+                  href={docsLink('integration-policy/overview')}
                   target="_blank"
                 >
                   {t('common.docs')}

@@ -23,6 +23,7 @@ import { StylesPage } from '../pages/styles/StylesPage'
 import { ImportConfigPage } from '@/popup/pages/config/pages/import/ImportConfigPage'
 import { ImportPage } from '@/popup/pages/import/ImportPage'
 import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
+import { HelpOptions } from '@/popup/pages/options/pages/help/HelpOptions'
 import { SeasonDetailsPage } from '@/popup/pages/search/seasonDetails/SeasonDetailsPage'
 
 export const router: ReturnType<typeof createHashRouter> = createHashRouter([
@@ -144,6 +145,10 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
       {
         path: 'advanced',
         Component: AdvancedOptions,
+      },
+      {
+        path: 'help',
+        Component: HelpOptions,
       },
     ],
   },
