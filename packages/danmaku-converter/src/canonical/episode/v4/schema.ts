@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { stripHtml } from '../../../utils/index.js'
 import { zCommentEntity } from '../../comment/index.js'
 import {
   type ByProvider,
@@ -18,7 +19,7 @@ import {
  */
 export const zCustomEpisodeInsertV4 = z.object({
   provider: z.literal(DanmakuSourceType.Custom),
-  title: z.string(),
+  title: z.string().refine(stripHtml),
   comments: z.array(zCommentEntity),
   commentCount: z.number(),
   schemaVersion: z.literal(4),
@@ -35,7 +36,7 @@ export type CustomEpisodeLiteV4 = Omit<CustomEpisodeV4, 'comments'>
  */
 const zBaseEpisodeV4 = z.object({
   // Episode title
-  title: z.string(),
+  title: z.string().refine(stripHtml),
   // Episode number
   episodeNumber: z.union([z.number(), z.string()]).optional(),
   // Cover image url

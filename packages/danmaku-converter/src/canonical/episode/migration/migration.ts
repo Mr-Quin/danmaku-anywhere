@@ -1,4 +1,5 @@
 import type { z } from 'zod'
+import { stripHtml } from '../../../utils/index.js'
 import { type ByProvider, DanmakuSourceType } from '../../provider/provider.js'
 import type { SeasonInsertV1 } from '../../season/index.js'
 import type { zEpisodeImportV1 } from '../v1/schema.js'
@@ -125,7 +126,7 @@ const v3ExtractSeason = (
           animeId: item.meta.animeId,
           bangumiId: item.meta.animeId.toString(),
         },
-        title: item.seasonTitle,
+        title: stripHtml(item.seasonTitle),
         type: '',
         indexedId: item.meta.animeId.toString(),
         schemaVersion: 1,
@@ -137,7 +138,7 @@ const v3ExtractSeason = (
         providerIds: {
           seasonId: item.meta.seasonId,
         },
-        title: item.seasonTitle,
+        title: stripHtml(item.seasonTitle),
         type: '',
         indexedId: item.meta.seasonId.toString(),
         schemaVersion: 1,
@@ -149,7 +150,7 @@ const v3ExtractSeason = (
         providerIds: {
           cid: item.meta.cid,
         },
-        title: item.seasonTitle,
+        title: stripHtml(item.seasonTitle),
         type: '',
         indexedId: item.meta.cid.toString(),
         schemaVersion: 1,
@@ -194,7 +195,7 @@ const v3ToV4 = (
     } else if (item.provider === 'Bilibili') {
       return {
         ...baseUpdate,
-        title: item.meta.title,
+        title: stripHtml(item.meta.title),
         provider: item.provider,
         seasonId,
         providerIds: {
@@ -207,7 +208,7 @@ const v3ToV4 = (
     } else {
       return {
         ...baseUpdate,
-        title: item.episodeTitle,
+        title: stripHtml(item.episodeTitle),
         provider: item.provider,
         seasonId,
         providerIds: {
@@ -224,7 +225,7 @@ const v3ToV4 = (
 const customV3ToV4 = (item: CustomDanmakuInsertV3): CustomEpisodeInsertV4 => {
   return {
     provider: item.provider,
-    title: item.episodeTitle || item.seasonTitle,
+    title: stripHtml(item.episodeTitle || item.seasonTitle),
     comments: item.comments,
     commentCount: item.commentCount,
     schemaVersion: 4,

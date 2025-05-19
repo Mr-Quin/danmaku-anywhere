@@ -1,6 +1,11 @@
 import { xml2json } from 'xml-js'
 import { z } from 'zod'
 
+export const stripHtml = (html: string) => {
+  const reg = /<(?:"[^"]*"['"]*|'[^']*'['"]*|[^'">])+>/g
+  return html.replace(reg, '')
+}
+
 export const hexToRgb888 = (hex: string) => {
   return parseInt(hex.replace('#', '0x'))
 }

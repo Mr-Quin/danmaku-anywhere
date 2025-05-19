@@ -11,12 +11,13 @@ import { Logger } from '@/common/Logger'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProvider } from '@/common/danmaku/utils'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
-import type {
-  BilibiliOf,
-  Episode,
-  EpisodeMeta,
-  Season,
-  SeasonInsert,
+import {
+  type BilibiliOf,
+  type Episode,
+  type EpisodeMeta,
+  type Season,
+  type SeasonInsert,
+  stripHtml,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { WithSeason } from '@danmaku-anywhere/danmaku-converter'
 
@@ -50,7 +51,7 @@ export class BilibiliService {
     return {
       provider: DanmakuSourceType.Bilibili,
       imageUrl: data.cover,
-      title: data.show_title,
+      title: stripHtml(data.show_title),
       alternativeTitle: [data.long_title, data.share_copy],
       externalLink: data.link,
       providerIds: {
@@ -75,7 +76,7 @@ export class BilibiliService {
     const mapToSeason = (data: BilibiliMedia): BilibiliOf<SeasonInsert> => {
       return {
         provider: DanmakuSourceType.Bilibili,
-        title: data.title,
+        title: stripHtml(data.title),
         type: data.season_type_name,
         imageUrl: data.cover,
         providerIds: {
@@ -108,7 +109,7 @@ export class BilibiliService {
 
     const season = await this.seasonService.upsert({
       provider: DanmakuSourceType.Bilibili,
-      title: seasonInfo.title,
+      title: stripHtml(seasonInfo.title),
       type: seasonInfo.type.toString(),
       imageUrl: seasonInfo.cover,
       episodeCount: seasonInfo.episodes.length,
