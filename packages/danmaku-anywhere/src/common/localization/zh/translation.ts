@@ -290,12 +290,16 @@ const pages = {
         togglePip: '画中画（实验）',
       },
     },
+    help: {
+      docs: '说明文档',
+    },
     pages: {
       danmakuSource: '弹幕来源',
       theme: 'UI主题',
       hotkeys: '快捷键',
       retentionPolicy: '缓存策略',
       advanced: '高级设置',
+      help: '帮助与反馈',
     },
   },
   searchPage: {
