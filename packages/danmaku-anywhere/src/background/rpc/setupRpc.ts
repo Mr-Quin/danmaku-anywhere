@@ -114,6 +114,9 @@ export const setupRpc = (
     episodeFilterCustom: async (filter) => {
       return danmakuService.filterCustom(filter)
     },
+    episodeFilterCustomLite: async (filter) => {
+      return danmakuService.filterCustomLite(filter)
+    },
     episodeDeleteCustom: async (filter) => {
       return danmakuService.deleteCustom(filter)
     },

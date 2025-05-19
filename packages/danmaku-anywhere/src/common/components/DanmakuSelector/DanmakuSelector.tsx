@@ -13,13 +13,13 @@ import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeason
 import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
 import { NothingHere } from '@/common/components/NothingHere'
 import { ProviderLogo } from '@/common/components/ProviderLogo'
-import { useAllCustomEpisodesSuspense } from '@/common/danmaku/queries/useAllCustomEpisodes'
-import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useAllDanmakuSuspense'
+import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
+import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useDanmakuMany'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { isNotCustom, isProvider } from '@/common/danmaku/utils'
 import { matchWithPinyin } from '@/common/utils/utils'
 import {
-  type CustomEpisode,
+  type CustomEpisodeLite,
   type CustomSeason,
   DanmakuSourceType,
   type EpisodeLite,
@@ -124,7 +124,7 @@ const filterOptions = <T extends SelectableEpisode>(
   })
 }
 
-export type SelectableEpisode = WithSeason<EpisodeLite> | CustomEpisode
+export type SelectableEpisode = WithSeason<EpisodeLite> | CustomEpisodeLite
 
 type FlattenedOption =
   | {
@@ -133,7 +133,7 @@ type FlattenedOption =
     }
   | {
       kind: 'episode'
-      episode: WithSeason<EpisodeLite> | CustomEpisode
+      episode: WithSeason<EpisodeLite> | CustomEpisodeLite
     }
 
 interface DanmakuSelectorProps {
@@ -152,7 +152,7 @@ export const DanmakuSelector = ({
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const { data: episodes } = useAllDanmakuSuspense()
-  const { data: customEpisodes } = useAllCustomEpisodesSuspense()
+  const { data: customEpisodes } = useCustomEpisodeLiteSuspense({ all: true })
   const { data: seasons } = useGetAllSeasonsSuspense()
 
   const flattened = useMemo(() => {

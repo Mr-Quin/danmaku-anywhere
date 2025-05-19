@@ -7,7 +7,7 @@ import {
   SeasonGridSkeleton,
 } from '@/common/components/MediaList/components/SeasonGrid'
 import { NothingHere } from '@/common/components/NothingHere'
-import { useAllCustomEpisodesSuspense } from '@/common/danmaku/queries/useAllCustomEpisodes'
+import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
 import { isProvider } from '@/common/danmaku/utils'
 import { matchWithPinyin } from '@/common/utils/utils'
 import { useStore } from '@/popup/store'
@@ -25,7 +25,7 @@ const SeasonListSuspense = () => {
 
   const { data: seasons } = useGetAllSeasonsSuspense()
 
-  const { data: customEpisodes } = useAllCustomEpisodesSuspense()
+  const { data: customEpisodes } = useCustomEpisodeLiteSuspense({ all: true })
 
   const { animeFilter: filter, selectedTypes } = useStore.use.danmaku()
 

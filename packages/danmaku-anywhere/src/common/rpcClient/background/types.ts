@@ -1,6 +1,7 @@
 import type {
   CommentEntity,
   CustomEpisode,
+  CustomEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { BilibiliUserInfo } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import type { ExtractTitleResponse } from '@danmaku-anywhere/danmaku-provider/genAi'
@@ -72,6 +73,7 @@ type EpisodeMethods = {
   episodeFetch: RPCDef<DanmakuFetchDto, WithSeason<Episode>>
   episodeDelete: RPCDef<EpisodeQueryFilter, void>
   episodeFilterCustom: RPCDef<CustomEpisodeQueryFilter, CustomEpisode[]>
+  episodeFilterCustomLite: RPCDef<CustomEpisodeQueryFilter, CustomEpisodeLite[]>
   episodeDeleteCustom: RPCDef<CustomEpisodeQueryFilter, void>
   episodeImport: RPCDef<DanmakuImportData[], DanmakuImportResult>
   danmakuPurgeCache: RPCDef<number, number>

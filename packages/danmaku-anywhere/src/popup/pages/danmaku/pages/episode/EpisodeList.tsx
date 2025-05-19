@@ -1,13 +1,13 @@
 import { NothingHere } from '@/common/components/NothingHere'
-import { useAllCustomEpisodes } from '@/common/danmaku/queries/useAllCustomEpisodes'
-import { useDanmakuMany } from '@/common/danmaku/queries/useDanmakuMany'
+import { useCustomEpisodeLite } from '@/common/danmaku/queries/useCustomEpisodes'
+import { useDanmakuManyLite } from '@/common/danmaku/queries/useDanmakuMany'
 import { isProvider } from '@/common/danmaku/utils'
 import { useStore } from '@/popup/store'
 import {
-  type CustomEpisode,
+  type CustomEpisodeLite,
   DanmakuSourceType,
-  type Episode,
 } from '@danmaku-anywhere/danmaku-converter'
+import type { EpisodeLite } from '@danmaku-anywhere/danmaku-converter'
 import { Box, Stack, Typography } from '@mui/material'
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import { useTranslation } from 'react-i18next'
@@ -34,8 +34,8 @@ export const EpisodeList = () => {
     isLoading,
     error,
   } = isCustom
-    ? useAllCustomEpisodes()
-    : useDanmakuMany({
+    ? useCustomEpisodeLite({ all: true })
+    : useDanmakuManyLite({
         seasonId,
       })
 
@@ -48,7 +48,7 @@ export const EpisodeList = () => {
 
   const { enableEpisodeSelection, setSelectedEpisodes } = useStore.use.danmaku()
 
-  type EpisodeRow = Episode | CustomEpisode
+  type EpisodeRow = EpisodeLite | CustomEpisodeLite
 
   const columns: GridColDef<EpisodeRow>[] = [
     {
