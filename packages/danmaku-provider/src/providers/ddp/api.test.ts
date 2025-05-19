@@ -107,7 +107,7 @@ describe('DanDanPlay API', () => {
     it('should not throw on fetch', async () => {
       overrideFetchArgs(fetchHeaders)
 
-      const animeId = 17981 // MyGo anime id
+      const animeId = '17981' // MyGo anime id
       await expect(getBangumiAnime(animeId)).resolves.not.toThrow()
     })
 
@@ -120,13 +120,13 @@ describe('DanDanPlay API', () => {
 
       mockFetchResponse(mockResponse)
 
-      await expect(getBangumiAnime(1)).rejects.toThrow(DanDanPlayApiException)
+      await expect(getBangumiAnime('1')).rejects.toThrow(DanDanPlayApiException)
     })
 
     it('should throw an error on unexpected data', async () => {
       mockFetchResponse({})
 
-      await expect(getBangumiAnime(1)).rejects.toThrow(ResponseParseException)
+      await expect(getBangumiAnime('1')).rejects.toThrow(ResponseParseException)
     })
   })
 
