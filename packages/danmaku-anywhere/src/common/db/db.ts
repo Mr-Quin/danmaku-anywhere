@@ -3,6 +3,7 @@ import { Dexie } from 'dexie'
 import {
   type CustomEpisode,
   type DanmakuV3,
+  type EpisodeV4,
   type Season,
   type SeasonV1,
   episodeMigration,
@@ -233,31 +234,29 @@ class DanmakuAnywhereDb extends Dexie {
             return
           }
 
-          const seasonIdMap = new Map<string, number>()
-
           /**
            * 2. for other danmaku types, first create a season for the danmaku
            */
           const getSeasonId = async () => {
-            const key = JSON.stringify([
-              item.provider,
-              item.seasonId ?? item.seasonTitle,
-            ])
+            const seasonInsert: WithoutId<SeasonV1> = {
+              ...episodeMigration.v3ExtractSeason(item),
+              version: item.version,
+              timeUpdated: Date.now(),
+            }
 
             /**
              * the combination of provider and the item's original season id should be unique,
              * if the season is already in the table, don't add again
              */
-            const cachedSeasonId = seasonIdMap.get(key)
+            {
+              const existingSeason = await tx.table('season').get({
+                provider: item.provider,
+                indexedId: seasonInsert.indexedId,
+              })
 
-            if (cachedSeasonId !== undefined) {
-              return cachedSeasonId
-            }
-
-            const seasonInsert: WithoutId<SeasonV1> = {
-              ...episodeMigration.v3ExtractSeason(item),
-              version: item.version,
-              timeUpdated: Date.now(),
+              if (existingSeason) {
+                return existingSeason.id
+              }
             }
 
             try {
@@ -267,7 +266,6 @@ class DanmakuAnywhereDb extends Dexie {
               const seasonId: number = await tx
                 .table('season')
                 .add(seasonInsert)
-              seasonIdMap.set(key, seasonId)
               return seasonId
             } catch (error) {
               console.debug(error)
@@ -284,10 +282,16 @@ class DanmakuAnywhereDb extends Dexie {
             return
           }
 
+          const episode: WithoutId<EpisodeV4> = {
+            ...episodeMigration.v3ToV4(item, seasonId),
+            version: item.version,
+            timeUpdated: Date.now(),
+          }
+
           /**
            * 3. with the season id, move the danmaku to a separate episode table
            */
-          tx.table('episode').add(episodeMigration.v3ToV4(item, seasonId))
+          tx.table('episode').add(episode)
         })
       })
 
