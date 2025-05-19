@@ -187,9 +187,8 @@ describe('importBackup with legacy data (V1-V3)', () => {
       const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Custom')
       expect(importedItem.episode.provider).toBe(DanmakuSourceType.Custom)
-      // v3CustomData.episodeTitle is "", meta.episodeTitle is "第3话 还没上场就输了"
-      // customV3ToV4 uses item.episodeTitle, so it should be ""
-      expect(importedItem.episode.title).toBe(v3CustomData.episodeTitle)
+      // episodeTitle is empty, fallback to seasonTitle
+      expect(importedItem.episode.title).toBe(v3CustomData.seasonTitle)
     })
 
     it('accepts valid bilibili danmaku', () => {
@@ -301,20 +300,24 @@ describe('importBackup with V4 and mixed data', () => {
     assertIsImportedDataArray(backupResult.parsed)
 
     // Check first imported item (v3DanDanPlayData)
-    expect(backupResult.parsed[0].type).toBe('Regular')
-    expect(backupResult.parsed[0].episode.provider).toBe(
+    expect(backupResult.parsed[0][1].type).toBe('Regular')
+    expect(backupResult.parsed[0][1].episode.provider).toBe(
       DanmakuSourceType.DanDanPlay
     )
-    expect(backupResult.parsed[0].episode.title).toBe(
+    expect(backupResult.parsed[0][1].episode.title).toBe(
       v3DanDanPlayData.episodeTitle
     )
 
     // Check second imported item (customV4EpisodeData)
-    expect(backupResult.parsed[1].type).toBe('Custom')
-    expect(backupResult.parsed[1].episode.title).toBe(customV4EpisodeData.title)
+    expect(backupResult.parsed[1][1].type).toBe('Custom')
+    expect(backupResult.parsed[1][1].episode.title).toBe(
+      customV4EpisodeData.title
+    )
 
     // Check third imported item (v3CustomData)
-    expect(backupResult.parsed[2].type).toBe('Custom')
-    expect(backupResult.parsed[2].episode.title).toBe(v3CustomData.episodeTitle)
+    expect(backupResult.parsed[2][1].type).toBe('Custom')
+    expect(backupResult.parsed[2][1].episode.title).toBe(
+      v3CustomData.seasonTitle
+    )
   })
 })
