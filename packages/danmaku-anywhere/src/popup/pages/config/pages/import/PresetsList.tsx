@@ -190,7 +190,9 @@ export const PresetsList = () => {
                 {t('configPage.editor.urlPatterns')}
               </Typography>
               <PreFormat disableCopy>
-                {selectedPreset.patterns.map((pattern) => pattern)}
+                {selectedPreset.patterns.map((pattern, i) => (
+                  <li key={i}>{pattern}</li>
+                ))}
               </PreFormat>
             </DialogContent>
             <DialogActions>
