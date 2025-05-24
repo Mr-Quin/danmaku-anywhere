@@ -9,6 +9,7 @@ import type {
 
 export const MountController = () => {
   const { filter, setIsMounted } = useStore.use.mount()
+  const { selectedTypes } = useStore.use.danmaku()
 
   const isConnected = useIsConnected()
 
@@ -28,6 +29,7 @@ export const MountController = () => {
   return (
     <DanmakuSelector
       filter={filter}
+      typeFilter={selectedTypes}
       onSelect={handleMount}
       disabled={!isConnected || isMounting}
     />

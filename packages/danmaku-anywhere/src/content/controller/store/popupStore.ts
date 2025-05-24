@@ -1,6 +1,10 @@
 import { create } from 'zustand'
 
-import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
+import {
+  type DanmakuSourceType,
+  type RemoteDanmakuSourceType,
+  danmakuSourceTypeList,
+} from '@/common/danmaku/enums'
 import { createSelectors } from '@/common/utils/createSelectors'
 import type { Season } from '@danmaku-anywhere/danmaku-converter'
 
@@ -24,6 +28,9 @@ interface PopupStoreState {
 
   animes: Season[]
   setAnimes: (animes: Season[]) => void
+
+  selectedProviders: DanmakuSourceType[]
+  setSelectedProviders: (providers: DanmakuSourceType[]) => void
 
   searchTitle: string
   setSearchTitle: (title: string) => void
@@ -67,6 +74,12 @@ const usePopupStoreBase = create<PopupStoreState>((set, get) => ({
   setAnimes: (animes) => {
     set({ animes })
   },
+
+  selectedProviders: danmakuSourceTypeList,
+  setSelectedProviders: (providers) => {
+    set({ selectedProviders: providers })
+  },
+
   searchTitle: '',
   setSearchTitle: (title) => {
     set({ searchTitle: title })

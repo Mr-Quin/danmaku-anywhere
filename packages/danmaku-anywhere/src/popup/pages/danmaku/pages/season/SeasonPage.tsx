@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next'
 
+import { TypeSelector } from '../../../../../common/components/TypeSelector'
 import { ExportAllDanmakuButton } from '../../components/ExportAllDanmakuButton'
 import { SeasonList } from './SeasonList'
-import { TypeSelector } from './TypeSelector'
 
 import { CaptureKeypress } from '@/common/components/CaptureKeypress'
 import { FilterButton } from '@/common/components/FilterButton'
@@ -18,7 +18,8 @@ import { useState } from 'react'
 export const SeasonPage = () => {
   const { t } = useTranslation()
 
-  const { setAnimeFilter, animeFilter } = useStore.use.danmaku()
+  const { setAnimeFilter, animeFilter, selectedTypes, setSelectedType } =
+    useStore.use.danmaku()
 
   const { isMobile } = usePlatformInfo()
 
@@ -53,7 +54,10 @@ export const SeasonPage = () => {
                   onOpen={() => setIsFilterOpen(true)}
                   onClose={() => setIsFilterOpen(false)}
                 />
-                <TypeSelector />
+                <TypeSelector
+                  selectedTypes={selectedTypes}
+                  setSelectedType={setSelectedType}
+                />
                 <DrilldownMenu ButtonProps={{ edge: 'end' }}>
                   <ExportAllDanmakuButton />
                 </DrilldownMenu>
