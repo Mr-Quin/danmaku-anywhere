@@ -24,6 +24,10 @@ if (IS_CHROME) {
   permissions.push('contextMenus')
 }
 
+if (dev) {
+  permissions.push('declarativeNetRequestFeedback')
+}
+
 export const manifest = defineManifest({
   manifest_version: 3,
   name: '__MSG_extName__',

@@ -64,7 +64,7 @@ const rules: chrome.declarativeNetRequest.Rule[] = [
       ],
     },
     condition: {
-      initiatorDomains: [selfDomain],
+      excludedInitiatorDomains: ['bilibili.com'],
       urlFilter: '|https://*.bilibili.com/',
       resourceTypes: [ResourceType.XMLHTTPREQUEST],
     },
@@ -88,7 +88,7 @@ const rules: chrome.declarativeNetRequest.Rule[] = [
       ],
     },
     condition: {
-      initiatorDomains: [selfDomain],
+      excludedInitiatorDomains: ['qq.com'],
       urlFilter: '|https://*.video.qq.com/',
       resourceTypes: [ResourceType.XMLHTTPREQUEST],
     },
@@ -112,7 +112,6 @@ const rules: chrome.declarativeNetRequest.Rule[] = [
       ],
     },
     condition: {
-      initiatorDomains: [selfDomain],
       urlFilter: `|${import.meta.env.VITE_PROXY_URL}`,
       resourceTypes: [ResourceType.XMLHTTPREQUEST],
     },
