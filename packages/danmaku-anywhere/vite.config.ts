@@ -49,6 +49,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         app: 'pages/popup.html',
+        dashboard: 'pages/dashboard.html',
       },
     },
     outDir: `./dev/${BROWSER}`,
