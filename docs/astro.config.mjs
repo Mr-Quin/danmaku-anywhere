@@ -1,11 +1,12 @@
 import react from '@astrojs/react'
 import starlight from '@astrojs/starlight'
-import tailwind from '@astrojs/tailwind'
 import { defineConfig } from 'astro/config'
+import tailwindcss from '@tailwindcss/vite'
 
 // https://astro.build/config
 export default defineConfig({
   site: 'https://danmaku.weeblify.app',
+
   integrations: [
     react(),
     starlight({
@@ -21,9 +22,9 @@ export default defineConfig({
         baseUrl:
           'https://github.com/Mr-Quin/danmaku-anywhere/edit/master/docs/',
       },
-      social: {
-        github: 'https://github.com/Mr-Quin/danmaku-anywhere',
-      },
+      social: [
+        { icon: 'github', label: 'GitHub', href: 'https://github.com/Mr-Quin/danmaku-anywhere' },
+      ],
       sidebar: [
         {
           label: 'getting-started',
@@ -150,8 +151,8 @@ export default defineConfig({
         },
       },
     }),
-    tailwind({
-      applyBaseStyles: false,
-    }),
   ],
+  vite: {
+    plugins: [tailwindcss()],
+  },
 })
