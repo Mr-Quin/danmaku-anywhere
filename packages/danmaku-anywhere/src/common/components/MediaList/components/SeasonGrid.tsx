@@ -2,6 +2,7 @@ import {
   SeasonCard,
   SeasonCardSkeleton,
 } from '@/common/components/MediaList/components/SeasonCard'
+import { useMergeRefs } from '@/common/hooks/useMergeRefs'
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import {
   Box,
@@ -13,7 +14,7 @@ import {
   useTheme,
 } from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useRef, useState } from 'react'
+import { type RefObject, useRef, useState } from 'react'
 
 const useBreakpointValue = <T,>(values: Partial<Record<Breakpoint, T>>) => {
   const theme = useTheme()
@@ -58,6 +59,7 @@ interface SeasonGridProps {
   disableMenu?: boolean
   enableSelection?: boolean
   boxProps?: BoxProps
+  ref?: RefObject<HTMLDivElement | null>
 }
 
 export const SeasonGrid = ({
@@ -70,12 +72,16 @@ export const SeasonGrid = ({
   singleSelect,
   selectionModel: selectionModelProp,
   boxProps,
+  ref: refProp,
 }: SeasonGridProps) => {
   const [selectionModel, setSelectionModel] = useState<
     (Season | CustomSeason)[]
   >(selectionModelProp ?? [])
 
   const ref = useRef<HTMLDivElement>(null)
+
+  const mergedRefs = useMergeRefs(ref, refProp)
+
   const theme = useTheme()
 
   const lanes =
@@ -145,7 +151,7 @@ export const SeasonGrid = ({
       height="100%"
       overflow="auto"
       position="relative"
-      ref={ref}
+      ref={mergedRefs}
       {...boxProps}
     >
       <SeasonGridLayout height={virtualizer.getTotalSize()} position="relative">
