@@ -39,6 +39,7 @@ export const manifest = defineManifest({
     scripts: ['src/background/index.ts'],
     type: 'module',
   },
+  options_page: 'pages/dashboard.html',
   permissions,
   host_permissions: ['https://*/*', 'http://*/*', 'file:///*'],
   externally_connectable:
