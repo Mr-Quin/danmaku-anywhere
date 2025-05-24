@@ -7,6 +7,7 @@ import { CaptureKeypress } from '@/common/components/CaptureKeypress'
 import { FilterButton } from '@/common/components/FilterButton'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { TypeSelector } from '@/common/components/TypeSelector'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { tabQueryKeys } from '@/common/queries/queryKeys'
 import { tabRpcClient } from '@/common/rpcClient/tab/client'
@@ -22,6 +23,7 @@ export const MountPage = () => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
   const { setFilter, filter, setIsMounted, isMounted } = useStore.use.mount()
+  const { selectedTypes, setSelectedType } = useStore.use.danmaku()
 
   const { isMobile } = usePlatformInfo()
 
@@ -81,6 +83,10 @@ export const MountPage = () => {
                   open={isFilterOpen}
                   onOpen={() => setIsFilterOpen(true)}
                   onClose={() => setIsFilterOpen(false)}
+                />
+                <TypeSelector
+                  selectedTypes={selectedTypes}
+                  setSelectedType={setSelectedType}
                 />
                 <Button
                   variant="outlined"

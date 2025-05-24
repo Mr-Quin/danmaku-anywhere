@@ -7,7 +7,7 @@ import {
   ListSubheader,
   Stack,
 } from '@mui/material'
-import { useMemo, useRef } from 'react'
+import { memo, useMemo, useRef } from 'react'
 
 import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
 import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
@@ -36,6 +36,7 @@ type EpisodeListItemProps = {
   onSelect: (value: SelectableEpisode) => void
   disabled?: boolean
 }
+
 const EpisodeListItem = ({
   item,
   onSelect,
@@ -104,6 +105,8 @@ const EpisodeListItem = ({
   )
 }
 
+const EpisodeListItemMemo = memo(EpisodeListItem)
+
 const stringifyDanmakuMeta = (episode: SelectableEpisode) => {
   if (isProvider(episode, DanmakuSourceType.Custom)) {
     return episode.title
@@ -113,10 +116,17 @@ const stringifyDanmakuMeta = (episode: SelectableEpisode) => {
 
 const filterOptions = <T extends SelectableEpisode>(
   options: T[],
-  filter: string
+  filter: string,
+  typeFilter: DanmakuSourceType[]
 ) => {
-  if (!filter) return options
+  if (!filter) {
+    return options.filter((option) => {
+      return typeFilter.includes(option.provider)
+    })
+  }
+
   return options.filter((option) => {
+    if (!typeFilter.includes(option.provider)) return false
     return matchWithPinyin(
       stringifyDanmakuMeta(option),
       filter.toLocaleLowerCase()
@@ -138,12 +148,14 @@ type FlattenedOption =
 
 interface DanmakuSelectorProps {
   filter: string
+  typeFilter: DanmakuSourceType[]
   onSelect: (value: SelectableEpisode) => void
   disabled?: boolean
 }
 
 export const DanmakuSelector = ({
   filter,
+  typeFilter,
   onSelect,
   disabled,
 }: DanmakuSelectorProps) => {
@@ -156,7 +168,7 @@ export const DanmakuSelector = ({
   const { data: seasons } = useGetAllSeasonsSuspense()
 
   const flattened = useMemo(() => {
-    const filteredEpisodes = filterOptions(episodes, filter)
+    const filteredEpisodes = filterOptions(episodes, filter, typeFilter)
     const groupedBySeason = Object.groupBy(
       filteredEpisodes,
       (item) => item.seasonId
@@ -164,7 +176,11 @@ export const DanmakuSelector = ({
 
     const flattened: FlattenedOption[] = []
 
-    const filteredCustomEpisodes = filterOptions(customEpisodes, filter)
+    const filteredCustomEpisodes = filterOptions(
+      customEpisodes,
+      filter,
+      typeFilter
+    )
     if (filteredCustomEpisodes.length) {
       flattened.push({
         kind: 'season',
@@ -206,7 +222,7 @@ export const DanmakuSelector = ({
     })
 
     return flattened
-  }, [episodes, customEpisodes, seasons, filter])
+  }, [episodes, customEpisodes, seasons, filter, typeFilter])
 
   const getKey = (item: FlattenedOption) => {
     if (item.kind === 'season') {
@@ -253,7 +269,7 @@ export const DanmakuSelector = ({
                 }}
                 ref={virtualizer.measureElement}
               >
-                <EpisodeListItem
+                <EpisodeListItemMemo
                   item={item}
                   onSelect={onSelect}
                   disabled={disabled}

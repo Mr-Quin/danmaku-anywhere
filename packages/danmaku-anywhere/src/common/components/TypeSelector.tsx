@@ -17,15 +17,20 @@ import {
   danmakuSourceTypeList,
   localizedDanmakuSourceType,
 } from '@/common/danmaku/enums'
-import { useStore } from '@/popup/store'
 
-export const TypeSelector = () => {
+type TypeSelectorProps = {
+  selectedTypes: DanmakuSourceType[]
+  setSelectedType: (types: DanmakuSourceType[]) => void
+}
+
+export const TypeSelector = ({
+  selectedTypes,
+  setSelectedType,
+}: TypeSelectorProps) => {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
 
   const anchorRef = useRef<HTMLButtonElement>(null)
-
-  const { selectedTypes, setSelectedType } = useStore.use.danmaku()
 
   const handleOpen = () => {
     setOpen(true)
@@ -65,6 +70,7 @@ export const TypeSelector = () => {
           vertical: 'top',
           horizontal: 'right',
         }}
+        sx={{ zIndex: 1403 }}
       >
         <Box
           component="form"

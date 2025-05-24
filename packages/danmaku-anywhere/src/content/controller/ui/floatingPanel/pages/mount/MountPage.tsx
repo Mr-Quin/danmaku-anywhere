@@ -5,10 +5,12 @@ import { useTranslation } from 'react-i18next'
 import { CaptureKeypress } from '@/common/components/CaptureKeypress'
 import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSelector'
 import { FilterButton } from '@/common/components/FilterButton'
+import { TypeSelector } from '@/common/components/TypeSelector'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
+import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
 import { useMountDanmakuContent } from '@/content/controller/ui/floatingPanel/pages/mount/useMountDanmakuContent'
 import type {
@@ -21,6 +23,8 @@ export const MountPage = () => {
   const { t } = useTranslation()
 
   const { isMounted, danmakuLite, filter, setFilter } = useStore.use.danmaku()
+  const selectedProviders = usePopup.use.selectedProviders()
+  const setSelectedProviders = usePopup.use.setSelectedProviders()
 
   const { isMobile } = usePlatformInfo()
 
@@ -68,6 +72,10 @@ export const MountPage = () => {
                   onOpen={() => setIsFilterOpen(true)}
                   onClose={() => setIsFilterOpen(false)}
                 />
+                <TypeSelector
+                  selectedTypes={selectedProviders}
+                  setSelectedType={setSelectedProviders}
+                />
                 <Button
                   variant="outlined"
                   type="button"
@@ -80,6 +88,7 @@ export const MountPage = () => {
               </TabToolbar>
               <DanmakuSelector
                 filter={filter}
+                typeFilter={selectedProviders}
                 onSelect={handleSelectDanmaku}
                 disabled={isPending}
               />
