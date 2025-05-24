@@ -77,7 +77,7 @@ const zBangumiDetails = z.object({
   bangumiId: z.string(),
   animeTitle: z.string(),
   imageUrl: z.string(),
-  bangumiUrl: z.string().url(),
+  bangumiUrl: z.union([z.literal(''), z.string().url()]),
   type: z.string(),
   typeDescription: z.string(),
   titles: z.array(
