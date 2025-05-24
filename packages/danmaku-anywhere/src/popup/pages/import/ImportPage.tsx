@@ -32,7 +32,10 @@ export const ImportPage = () => {
 
   const queryClient = useQueryClient()
 
-  // not actually a mutation, just using this to manage state
+  /**
+   * not a mutation, just using this to manage state
+   * converts the input files into JSON, checking for parse errors
+   */
   const { mutate, data, error, reset, isError, isPending } = useMutation({
     mutationFn: async (files: File[]) => {
       const getJson = (text: string, fileName: string) => {
@@ -46,7 +49,7 @@ export const ImportPage = () => {
           const text = await file.text()
           const data = getJson(text, file.name)
           return {
-            title: file.name.substring(0, file.name.lastIndexOf('.')), // remove extension
+            title: file.name,
             data,
           } satisfies DanmakuImportData
         })

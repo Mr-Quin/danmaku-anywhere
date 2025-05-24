@@ -46,19 +46,29 @@ export type BackupParseData =
       episode: EpisodeImportV4
     }
 
+type BackupParseError = {
+  type: 'Error'
+  errors: unknown[]
+}
+
 export type BackupParseResult = {
   // indexed
   parsed: [number, BackupParseData][]
-  // array of indices of skipped items
-  skipped: number[]
+  // array of indices of errored items
+  skipped: [number, unknown[]][]
 }
 
-export const parseBackup = (data: unknown): BackupParseData | undefined => {
+export const parseBackup = (
+  data: unknown
+): BackupParseData | BackupParseError => {
+  const errors = []
   // first see if data is v3
   {
     const parse = zImportV3.safeParse(data)
     if (parse.success) {
       return parse.data
+    } else {
+      errors.push(parse.error)
     }
   }
 
@@ -70,6 +80,8 @@ export const parseBackup = (data: unknown): BackupParseData | undefined => {
         type: 'Custom',
         episode: parse.data,
       }
+    } else {
+      errors.push(parse.error)
     }
   }
 
@@ -82,18 +94,25 @@ export const parseBackup = (data: unknown): BackupParseData | undefined => {
         season: parse.data.season,
         episode: parse.data,
       }
+    } else {
+      errors.push(parse.error)
     }
+  }
+
+  return {
+    type: 'Error',
+    errors,
   }
 }
 
 export const parseBackupMany = (data: unknown[]): BackupParseResult => {
   const imported: [number, BackupParseData][] = []
-  const skipped: number[] = []
+  const skipped: [number, unknown[]][] = []
 
   for (const [i, item] of data.entries()) {
     const result = parseBackup(item)
-    if (!result) {
-      skipped.push(i)
+    if (result.type === 'Error') {
+      skipped.push([i, result.errors])
     } else {
       imported.push([i, result])
     }
