@@ -24,7 +24,17 @@ export const zHex = z
   .regex(/^#[0-9A-F]{6}$/, {
     message: 'Invalid hex color format',
   })
-export const zRgb888 = z.coerce.number().int().min(0).max(16777215)
+export const zRgb888 = z.coerce
+  .number()
+  .int()
+  .transform((n) => {
+    /**
+     * sometimes this number is malformed, so instead of rejecting the input,
+     * we just force it to be within this range
+     * n is between (0) and (16777215)
+     */
+    return Math.max(Math.min(n, 16777215), 0)
+  })
 
 export const zTime = z.coerce.number().min(0)
 

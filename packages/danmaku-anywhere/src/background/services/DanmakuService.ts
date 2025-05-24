@@ -277,7 +277,12 @@ export class DanmakuService {
 
     for (const { title, data } of importData) {
       const [, err] = await tryCatch(async () => {
+        // aggregate errors
+        const errors: unknown[] = []
+
+        // 1. parse as custom
         const customParse = zCombinedDanmaku.safeParse(data)
+
         if (customParse.success) {
           await importCustom({
             comments: customParse.data,
@@ -288,26 +293,34 @@ export class DanmakuService {
             type: 'Custom',
           })
           return
+        } else {
+          errors.push(customParse.error)
         }
+
+        // 2. parse as backup
         const backupParseResult = parseBackupMany(
           Array.isArray(data) ? data : [data]
         )
 
-        if (backupParseResult.parsed.length === 0) {
-          results.error.push({
+        if (backupParseResult.parsed.length > 0) {
+          const importResult = await importBackup(backupParseResult)
+
+          results.success.push({
             title,
-            message: 'No valid danmaku found',
+            type: 'Backup',
+            result: importResult,
           })
           return
         }
 
-        const importResult = await importBackup(backupParseResult)
+        // 3. unable to import, return aggregated errors
+        errors.push(backupParseResult.skipped)
 
-        results.success.push({
+        results.error.push({
           title,
-          type: 'Backup',
-          result: importResult,
+          message: JSON.stringify(errors, null, 2),
         })
+        return
       })
       if (err) {
         results.error.push({
