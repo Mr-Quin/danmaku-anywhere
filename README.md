@@ -35,7 +35,7 @@
 
 ## 截图
 
-![UI](./assets/ui_tour_cn.gif)
+<video src="https://github.com/user-attachments/assets/81703fe1-d04f-42cb-b9ed-35213c75f2e0"></video>
 
 Plex
 
