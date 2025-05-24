@@ -271,13 +271,13 @@ describe('importBackup with V4 and mixed data', () => {
   it('should skip invalid data in an array', () => {
     const backupResult = parseBackupMany([invalidV4Data])
     expect(backupResult.parsed).toHaveLength(0)
-    expect(backupResult.skipped).toEqual([0]) // Index of the skipped item
+    expect(backupResult.skipped[0][0]).toEqual(0) // Index of the skipped item
   })
 
   it('should skip completely invalid non-object data in an array', () => {
     const backupResult = parseBackupMany(['not an object'])
     expect(backupResult.parsed).toHaveLength(0)
-    expect(backupResult.skipped).toEqual([0])
+    expect(backupResult.skipped[0][0]).toEqual(0)
   })
 
   it('should handle an empty array input', () => {
@@ -295,7 +295,8 @@ describe('importBackup with V4 and mixed data', () => {
       v3CustomData, // valid
     ])
     expect(backupResult.parsed).toHaveLength(3)
-    expect(backupResult.skipped).toEqual([1, 3]) // Indices of invalidData and "not an object"
+    expect(backupResult.skipped[0][0]).toEqual(1) // 1,3 Indices of invalidData and "not an object"
+    expect(backupResult.skipped[1][0]).toEqual(3)
 
     assertIsImportedDataArray(backupResult.parsed)
 
