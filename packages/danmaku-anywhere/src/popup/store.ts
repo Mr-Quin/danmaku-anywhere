@@ -28,8 +28,6 @@ interface StoreState {
     setSeason: (season: Season) => void
     tab?: RemoteDanmakuSourceType
     setTab: (tab: RemoteDanmakuSourceType) => void
-    scrollTop: number
-    setScrollTop: (scrollTop: number) => void
   }
   danmaku: {
     animeFilter: string
@@ -91,11 +89,6 @@ const useStoreBase = create<StoreState>()(
       setTab: (tab: RemoteDanmakuSourceType) =>
         set((state) => {
           state.search.tab = tab
-        }),
-      scrollTop: 0,
-      setScrollTop: (scrollTop: number) =>
-        set((state) => {
-          state.search.scrollTop = scrollTop
         }),
     },
     danmaku: {

@@ -1,12 +1,12 @@
-import type { MutableRefObject, Ref } from 'react'
+import type { Ref, RefObject } from 'react'
 
-export const useMergeRefs = <T>(...refs: Ref<T>[]): Ref<T> => {
+export const useMergeRefs = <T>(...refs: (Ref<T> | undefined)[]): Ref<T> => {
   return (value) => {
     refs.forEach((ref) => {
       if (typeof ref === 'function') {
         ref(value)
       } else if (ref) {
-        ;(ref as MutableRefObject<T | null>).current = value
+        ;(ref as RefObject<T | null>).current = value
       }
     })
   }

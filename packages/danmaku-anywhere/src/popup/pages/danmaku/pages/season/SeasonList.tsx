@@ -9,6 +9,7 @@ import {
 import { NothingHere } from '@/common/components/NothingHere'
 import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
 import { isProvider } from '@/common/danmaku/utils'
+import { useStoreScrollPosition } from '@/common/hooks/useStoreScrollPosition'
 import { matchWithPinyin } from '@/common/utils/utils'
 import { useStore } from '@/popup/store'
 import {
@@ -26,6 +27,8 @@ const SeasonListSuspense = () => {
   const { data: seasons } = useGetAllSeasonsSuspense()
 
   const { data: customEpisodes } = useCustomEpisodeLiteSuspense({ all: true })
+
+  const ref = useStoreScrollPosition<HTMLDivElement>('seasonList')
 
   const { animeFilter: filter, selectedTypes } = useStore.use.danmaku()
 
@@ -87,6 +90,7 @@ const SeasonListSuspense = () => {
         })
       }}
       virtualize
+      ref={ref}
     />
   )
 }
