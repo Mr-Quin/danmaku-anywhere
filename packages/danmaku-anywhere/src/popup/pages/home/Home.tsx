@@ -68,6 +68,12 @@ export const Home = () => {
             to="/import"
             component={Link}
           />
+          <Tab
+            label={t('tabs.player')}
+            value="/player"
+            to="/player"
+            component={Link}
+          />
         </Tabs>
         <ErrorBoundary
           fallbackRender={({ error }) => {
