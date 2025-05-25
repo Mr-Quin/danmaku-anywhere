@@ -10,6 +10,7 @@ import { danmakuSourceTypeList } from '@/common/danmaku/enums'
 import { createMountConfig } from '@/common/options/mountConfig/constant'
 import type { MountConfigInput } from '@/common/options/mountConfig/schema'
 import { createSelectors } from '@/common/utils/createSelectors'
+import type { KazumiPolicy } from '@/popup/pages/player/useKazumiPolicies'
 import type { Season } from '@danmaku-anywhere/danmaku-converter'
 
 interface StoreState {
@@ -48,6 +49,12 @@ interface StoreState {
     setEditingConfig: (config: MountConfigInput & { id?: string }) => void
     showConfirmDeleteDialog: boolean
     setShowConfirmDeleteDialog: (show: boolean) => void
+  }
+  player: {
+    keyword: string
+    setKeyword: (keyword: string) => void
+    kazumiPolicy?: KazumiPolicy
+    setKazumiPolicy: (policy: KazumiPolicy) => void
   }
 }
 
@@ -142,6 +149,20 @@ const useStoreBase = create<StoreState>()(
       setShowConfirmDeleteDialog: (show: boolean) => {
         set((state) => {
           state.config.showConfirmDeleteDialog = show
+        })
+      },
+    },
+    player: {
+      keyword: '',
+      setKeyword: (keyword: string) => {
+        set((state) => {
+          state.player.keyword = keyword
+        })
+      },
+      kazumiPolicy: undefined,
+      setKazumiPolicy: (policy: KazumiPolicy) => {
+        set((state) => {
+          state.player.kazumiPolicy = policy
         })
       },
     },

@@ -149,3 +149,45 @@ export const configQueryKeys = {
       },
     ] as const,
 }
+
+export const kazumiQueryKeys = {
+  policyManifest: () =>
+    [
+      {
+        scope: 'kazumi',
+        kind: 'policyManifest',
+      },
+    ] as const,
+  policy: (name?: string) =>
+    [
+      {
+        scope: 'kazumi',
+        kind: 'policy',
+        name,
+      },
+    ] as const,
+  search: (keyword: string, policyName: string) =>
+    [
+      {
+        scope: 'kazumi',
+        kind: 'search',
+        keyword,
+        policyName,
+      },
+    ] as const,
+  chapters: (url: string, policyName: string) => [
+    {
+      scope: 'kazumi',
+      kind: 'chapters',
+      url,
+      policyName,
+    },
+  ],
+  videoUrl: (pageUrl: string) => [
+    {
+      scope: 'kazumi',
+      kind: 'videoUrl',
+      pageUrl,
+    },
+  ],
+}

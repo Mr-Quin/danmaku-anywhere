@@ -18,6 +18,7 @@ export const DPlayerComponent = ({
   const dpInstanceRef = useRef<DPlayer | null>(null)
 
   useEffect(() => {
+    // biome-ignore lint/suspicious/noExplicitAny: DPlayer requires Hls to be globally available
     ;(window as any).Hls = Hls
     const options: DPlayerOptions = {
       container: playerRef.current,
