@@ -1,4 +1,5 @@
-import type { VideoScraperPolicy } from '../options/videoScraperPolicy/schema'
+import { getVideoUrlFromResponse } from '@/common/scraper/cat-catch'
+import type { KazumiPolicy } from '@/popup/pages/player/useKazumiPolicies'
 
 export interface SearchResult {
   name: string
@@ -10,25 +11,106 @@ export interface ChapterResult {
   url: string
 }
 
-const waitForTab = async (tabId: number) => {
-  const { promise, resolve } = Promise.withResolvers()
+const waitForTab = async (tabId: number, timeout = 30000) => {
+  const { promise, resolve, reject } = Promise.withResolvers()
+
+  // biome-ignore lint/style/useConst: deferred initialization
+  let t: NodeJS.Timeout
 
   const navListener = (
     details: chrome.webNavigation.WebNavigationFramedCallbackDetails
   ) => {
     if (details.tabId === tabId && details.frameId === 0) {
       resolve(undefined)
+      clearTimeout(t)
       chrome.webNavigation.onCompleted.removeListener(navListener)
     }
   }
   chrome.webNavigation.onCompleted.addListener(navListener)
 
+  t = setTimeout(() => {
+    chrome.webNavigation.onCompleted.removeListener(navListener)
+    reject(new Error('Timeout'))
+  }, timeout)
+
   return promise
 }
 
+type CreateTabOptions = {
+  tabId?: number
+  waitForNavigation?: boolean
+}
+
+const createTab = async (
+  url: string,
+  { tabId, waitForNavigation }: CreateTabOptions = {}
+) => {
+  // if tabId is given, reused the tab
+  if (tabId) {
+    const tab = await chrome.tabs.get(tabId)
+
+    if (!tab.id) {
+      throw new Error('Failed to update tab')
+    }
+
+    await chrome.tabs.update(tabId, { url })
+
+    if (waitForNavigation) {
+      await waitForTab(tabId)
+    }
+
+    return {
+      tab,
+      tabId: tab.id,
+      closeTab: () => {
+        chrome.tabs.remove(tabId)
+      },
+    }
+  }
+
+  const win = await chrome.windows.create({
+    state: 'minimized',
+  })
+
+  const tab = win.tabs?.at(0)
+
+  if (tab?.id === undefined) {
+    throw new Error('Failed to create window')
+  }
+
+  await chrome.tabs.update(tab.id, {
+    url,
+    active: true,
+  })
+
+  // const tab = await chrome.tabs.create({
+  //   url,
+  //   active: false,
+  // })
+
+  if (!tab.id) {
+    throw new Error('Failed to create tab')
+  }
+
+  const _tabId = tab.id
+
+  if (waitForNavigation) {
+    await waitForTab(_tabId)
+  }
+
+  return {
+    tab,
+    tabId: _tabId,
+    window: win,
+    closeTab: async () => {
+      await chrome.tabs.remove(_tabId)
+    },
+  }
+}
+
 export const searchContent = async (
-  policy: VideoScraperPolicy,
-  keyword: string
+  keyword: string,
+  policy: KazumiPolicy
 ): Promise<SearchResult[]> => {
   // Replace @keyword in the search URL with the actual keyword
   const searchUrl = policy.searchURL.replace(
@@ -36,18 +118,9 @@ export const searchContent = async (
     encodeURIComponent(keyword)
   )
 
-  const tab = await chrome.tabs.create({
-    url: searchUrl,
-    active: false,
+  const { tabId, closeTab } = await createTab(searchUrl, {
+    waitForNavigation: true,
   })
-
-  if (!tab.id) {
-    throw new Error('Failed to create tab')
-  }
-
-  const tabId = tab.id
-
-  await waitForTab(tabId)
 
   const results = await chrome.scripting.executeScript<
     string[],
@@ -98,26 +171,27 @@ export const searchContent = async (
 
       const searchListNodes = evaluateXPath(searchList)
 
-      const results: { name: string; url: string }[] = []
+      return searchListNodes
+        .map((listNode) => {
+          // prepend "." to match from the current node instead of document root
+          const nameNode = evaluateXpathSingle(`.${searchName}`, listNode)
+          const resultNode = evaluateXpathSingle(`.${searchResult}`, listNode)
 
-      searchListNodes.forEach((listNode) => {
-        // prepend "." to match from the current node instead of document root
-        const nameNode = evaluateXpathSingle(`.${searchName}`, listNode)
-        const resultNode = evaluateXpathSingle(`.${searchResult}`, listNode)
+          const name = nameNode?.textContent?.trim() || ''
+          const url =
+            resultNode instanceof HTMLAnchorElement ? resultNode.href : ''
 
-        const name = nameNode?.textContent?.trim() || ''
-        const url =
-          resultNode instanceof HTMLAnchorElement ? resultNode.href : ''
-
-        results.push({ name, url })
-      })
-
-      return results
+          if (!name || !url) {
+            return null
+          }
+          return { name, url }
+        })
+        .filter((result) => result !== null) satisfies SearchResult[]
     },
     args: [policy.searchList, policy.searchName, policy.searchResult],
   })
 
-  await chrome.tabs.remove(tabId)
+  await closeTab()
 
   if (results[0].result) {
     return results[0].result
@@ -127,21 +201,12 @@ export const searchContent = async (
 }
 
 export const getChapters = async (
-  policy: VideoScraperPolicy,
-  contentUrl: string
+  contentUrl: string,
+  policy: KazumiPolicy
 ): Promise<ChapterResult[][]> => {
-  const tab = await chrome.tabs.create({
-    url: contentUrl,
-    active: false,
+  const { tabId, closeTab } = await createTab(contentUrl, {
+    waitForNavigation: true,
   })
-
-  if (!tab.id) {
-    throw new Error('Failed to create tab')
-  }
-
-  const tabId = tab.id
-
-  await waitForTab(tabId)
 
   const results = await chrome.scripting.executeScript<
     string[],
@@ -178,22 +243,27 @@ export const getChapters = async (
       return chapterRoadNodes.map((roadNode) => {
         const chapterNodes = evaluateXPath(`.${chapterResult}`, roadNode)
 
-        return chapterNodes.map((chapterNode) => {
-          const name = chapterNode.textContent?.trim() || ''
-          const url =
-            chapterNode instanceof HTMLAnchorElement ? chapterNode.href : ''
+        return chapterNodes
+          .map((chapterNode) => {
+            const name = chapterNode.textContent?.trim() || ''
+            const url =
+              chapterNode instanceof HTMLAnchorElement ? chapterNode.href : ''
 
-          return {
-            name,
-            url,
-          }
-        })
+            if (!name || !url) {
+              return null
+            }
+            return {
+              name,
+              url,
+            }
+          })
+          .filter((result) => result !== null) satisfies ChapterResult[]
       })
     },
     args: [policy.chapterRoads, policy.chapterResult],
   })
 
-  await chrome.tabs.remove(tabId)
+  await closeTab()
 
   if (results[0].result) {
     return results[0].result
@@ -204,137 +274,132 @@ export const getChapters = async (
 
 // Function to extract video URL from a chapter page
 export const extractVideoUrl = async (
-  policy: VideoScraperPolicy,
   chapterUrl: string
-): Promise<string> => {
-  // Create a tab to load the chapter page
-  const tab = await chrome.tabs.create({
-    url: chapterUrl,
-    active: false,
-  })
+): Promise<string[]> => {
+  const { tabId, tab, closeTab } = await createTab(chapterUrl)
 
-  if (!tab.id) {
-    throw new Error('Failed to create tab')
-  }
+  const getVideoUrl = async () => {
+    const { promise, resolve, reject } = Promise.withResolvers<Set<string>>()
 
-  // Wait for the tab to load
-  return new Promise<string>((resolve, reject) => {
-    const tabId = tab.id!
+    setTimeout(() => {
+      reject(new Error('Timeout'))
+    }, 30000)
 
-    // Listen for tab to complete loading
-    const listener = (
-      details: chrome.webNavigation.WebNavigationFramedCallbackDetails
-    ) => {
-      if (details.tabId === tabId && details.frameId === 0) {
-        // Remove the listener
-        chrome.webNavigation.onCompleted.removeListener(listener)
+    const videoUrls = new Set<string>()
+    const cleanUpCb: (() => void)[] = []
 
-        // Set up network request listener to capture video URLs
-        const videoUrls: string[] = []
-
-        const requestListener = (
-          details: chrome.webRequest.WebRequestBodyDetails
-        ) => {
-          const url = details.url
-          // Check if the URL is a video URL (mp4, m3u8, etc.)
-          if (/\.(mp4|m3u8|flv|webm)($|\?)/.test(url)) {
-            videoUrls.push(url)
-          }
-        }
-
-        chrome.webRequest.onBeforeRequest.addListener(
-          requestListener,
-          { tabId, urls: ['<all_urls>'] },
-          ['requestBody']
-        )
-
-        // Execute script to find video elements
-        const checkForVideo = () => {
-          chrome.scripting
-            .executeScript({
-              target: { tabId },
-              func: () => {
-                // Try to find video elements
-                const videos = document.querySelectorAll('video')
-                const sources: string[] = []
-
-                videos.forEach((video) => {
-                  if (video.src && !video.src.startsWith('blob:')) {
-                    sources.push(video.src)
-                  }
-
-                  // Check for source elements
-                  const sourceElements = video.querySelectorAll('source')
-                  sourceElements.forEach((source) => {
-                    if (source.src) {
-                      sources.push(source.src)
-                    }
-                  })
-                })
-
-                // Try to find video URLs in global variables
-                const w = window as any
-                if (w.player_aaaa && w.player_aaaa.url) {
-                  sources.push(w.player_aaaa.url)
-                }
-
-                return sources
-              },
-            })
-            .then((results) => {
-              if (results && results.length > 0 && results[0].result) {
-                const sources = results[0].result as string[]
-                if (sources.length > 0) {
-                  // Remove listeners and close tab
-                  chrome.webRequest.onBeforeRequest.removeListener(
-                    requestListener
-                  )
-                  clearInterval(intervalId)
-                  chrome.tabs.remove(tabId)
-
-                  resolve(sources[0])
-                }
-              }
-
-              // If we have captured video URLs from network requests, use the first one
-              if (videoUrls.length > 0) {
-                // Remove listeners and close tab
-                chrome.webRequest.onBeforeRequest.removeListener(
-                  requestListener
-                )
-                clearInterval(intervalId)
-                chrome.tabs.remove(tabId)
-
-                resolve(videoUrls[0])
-              }
-            })
-        }
-
-        // Check periodically for video elements
-        const intervalId = setInterval(checkForVideo, 1000)
-
-        // Set a timeout to prevent hanging
-        setTimeout(() => {
-          chrome.webRequest.onBeforeRequest.removeListener(requestListener)
-          clearInterval(intervalId)
-          chrome.tabs.remove(tabId)
-
-          if (videoUrls.length > 0) {
-            resolve(videoUrls[0])
-          } else {
-            reject(new Error('Could not find video URL'))
-          }
-        }, 30000)
-      }
+    const cleanUp = () => {
+      cleanUpCb.forEach((cb) => cb())
+      cleanUpCb.length = 0
     }
 
-    chrome.webNavigation.onCompleted.addListener(listener)
+    const handleWebRequest = () => {
+      // listen for network requests to get video URLs
+      const requestListener = (
+        details: chrome.webRequest.WebRequestHeadersDetails
+      ) => {
+        const url = details.url
+        console.log('Found video URL:', url, details)
+        // Check if the URL is a video URL (mp4, m3u8, etc.)
+        // if (/\.(mp4|m3u8|flv|webm)($|\?)/.test(url)) {
+        //   videoUrls.add(url)
+        // }
+      }
 
-    // Set a timeout to prevent hanging
-    setTimeout(() => {
-      chrome.webNavigation.onCompleted.removeListener(listener)
-      chrome.tabs.remove(tabId)
-      reject(new Error('Timeout while loading chapter page'))
-    }, 30000)
-  })
+      const responseListener = (
+        details: chrome.webRequest.WebResponseHeadersDetails
+      ) => {
+        const videoUrl = getVideoUrlFromResponse(details)
+
+        if (videoUrl) {
+          videoUrls.add(videoUrl)
+          resolve(videoUrls)
+          cleanUp()
+          console.log('Response:', videoUrl)
+        }
+      }
+
+      chrome.webRequest.onSendHeaders.addListener(
+        requestListener,
+        { tabId, urls: ['<all_urls>'] },
+        ['requestHeaders']
+      )
+
+      chrome.webRequest.onResponseStarted.addListener(
+        responseListener,
+        {
+          tabId,
+          urls: ['<all_urls>'],
+        },
+        ['responseHeaders']
+      )
+
+      cleanUpCb.push(() => {
+        chrome.webRequest.onSendHeaders.removeListener(requestListener)
+        chrome.webRequest.onResponseStarted.removeListener(responseListener)
+      })
+
+      const tabRemovedListener = (tabId: number) => {
+        if (tabId === tab.id) {
+          reject(new Error('Tab closed'))
+          cleanUp()
+        }
+      }
+
+      chrome.tabs.onRemoved.addListener(tabRemovedListener)
+
+      cleanUpCb.push(() => {
+        chrome.tabs.onRemoved.removeListener(tabRemovedListener)
+      })
+    }
+
+    handleWebRequest()
+
+    await waitForTab(tabId)
+
+    // const checkForVideo = async () => {
+    //   const results = await chrome.scripting.executeScript({
+    //     target: { tabId, allFrames: true },
+    //     func: () => {
+    //       const sources: string[] = []
+    //
+    //       // biome-ignore lint/suspicious/noExplicitAny: look for variables set by video players
+    //       // const w = window as any
+    //       // if (w.player_aaaa && w.player_aaaa.url) {
+    //       //   videoUrls.add(w.player_aaaa.url)
+    //       // }
+    //
+    //       // Try to find video elements
+    //       const videos = document.querySelectorAll('video')
+    //
+    //       videos.forEach((video) => {
+    //         if (video.src && !video.src.startsWith('blob:')) {
+    //           videoUrls.add(video.src)
+    //         }
+    //       })
+    //
+    //       return sources
+    //     },
+    //     world: 'MAIN',
+    //   })
+    //
+    //   console.log(results)
+    //
+    //   return results
+    //     .filter((result) => result.result)
+    //     .flatMap((result) => result.result)
+    // }
+    //
+    // await checkForVideo()
+
+    console.log('script finished')
+
+    return promise
+  }
+
+  const videoUrls = await getVideoUrl()
+
+  await closeTab()
+
+  return Array.from(videoUrls)
 }
