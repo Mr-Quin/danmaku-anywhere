@@ -17,6 +17,7 @@ const permissions: chrome.runtime.ManifestPermissions[] = [
   'declarativeNetRequestWithHostAccess',
   'webNavigation',
   'alarms',
+  'webRequest',
 ]
 
 if (IS_CHROME) {
