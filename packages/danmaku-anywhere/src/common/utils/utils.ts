@@ -164,7 +164,10 @@ export const getRandomUUID = () => {
   }
 }
 
-export const getElementByXpath = (path: string, parent = window.document) => {
+export const getElementByXpath = (
+  path: string,
+  parent: Node = window.document
+) => {
   try {
     return document.evaluate(
       path,

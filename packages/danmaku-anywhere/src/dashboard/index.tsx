@@ -4,7 +4,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import './index.css'
 
-import { App } from './App'
+import { App } from '@/popup/App'
 
 import { queryClient } from '@/common/queries/queryClient'
 import { Theme } from '@/common/theme/Theme'
@@ -15,11 +15,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <Theme>
-        <environment.Provider
-          value={{
-            isPopup: true,
-          }}
-        >
+        <environment.Provider value={{ isPopup: false }}>
           <App />
         </environment.Provider>
         <ReactQueryDevtools />

@@ -1,12 +1,14 @@
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
+import { useEnvironment } from '@/popup/context/Environment'
 import { Container, Paper } from '@mui/material'
 import type { PropsWithChildren } from 'react'
 
 export const PopupLayout = ({ children }: PropsWithChildren<{}>) => {
   const { isMobile } = usePlatformInfo()
+  const { isPopup } = useEnvironment()
 
-  const width = isMobile ? '100vw' : 500
-  const height = isMobile ? '100vh' : 600
+  const width = isMobile || !isPopup ? '100vw' : 500
+  const height = isMobile || !isPopup ? '100vh' : 600
 
   return (
     <Container
