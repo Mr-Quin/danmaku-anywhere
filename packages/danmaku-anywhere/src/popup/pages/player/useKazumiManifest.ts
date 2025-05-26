@@ -1,5 +1,5 @@
 import { kazumiQueryKeys } from '@/common/queries/queryKeys'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 
 const KAZUMI_RULES_BASE_URL =
@@ -36,14 +36,13 @@ const zKazumiPolicy = z.object({
 
 export type KazumiPolicy = z.output<typeof zKazumiPolicy>
 
-export const useKazumiPolicies = () => {
-  return useQuery({
+export const useKazumiManifest = () => {
+  return useSuspenseQuery({
     queryKey: kazumiQueryKeys.policyManifest(),
     queryFn: async () => {
       const res = await fetch(`${KAZUMI_RULES_BASE_URL}/index.json`)
       return (await res.json()) as KazumiPolicyManifest[]
     },
-    enabled: true,
   })
 }
 

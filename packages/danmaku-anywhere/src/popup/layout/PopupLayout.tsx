@@ -20,7 +20,8 @@ export const PopupLayout = ({ children }: PropsWithChildren<{}>) => {
         maxHeight: height,
         overflow: 'hidden',
       }}
-      fixed
+      disableGutters
+      maxWidth={isPopup ? 'xl' : false}
     >
       <Paper
         sx={{

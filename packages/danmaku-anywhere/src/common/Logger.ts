@@ -34,6 +34,9 @@ const getEnv = () => {
     if (location.href.includes('popup')) {
       return 'Popup'
     }
+    if (location.href.includes('dashboard')) {
+      return 'Dashboard'
+    }
     return 'Background'
   }
   return 'Content'
