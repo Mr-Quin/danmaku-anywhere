@@ -1,5 +1,5 @@
-import { Box, Stack, Tab, Tabs } from '@mui/material'
-import { Suspense } from 'react'
+import { Box, Container, Stack, Tab, Tabs } from '@mui/material'
+import { Suspense, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Outlet, useLocation, useMatches } from 'react-router'
 
@@ -9,6 +9,7 @@ import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { TabLayout } from '@/content/common/TabLayout'
 import { ReleaseNotes } from '@/popup/component/releaseNotes/ReleaseNotes'
+import { useEnvironment } from '@/popup/context/Environment'
 import { ErrorBoundary } from 'react-error-boundary'
 
 export const Home = () => {
@@ -16,11 +17,44 @@ export const Home = () => {
   const currentTab = useMatches()[1].pathname
   const location = useLocation()
   const { t } = useTranslation()
+  const { isPopup } = useEnvironment()
 
-  return (
-    <Stack direction="column" spacing={0} height={1}>
-      <AppToolBar />
-      <Box display="flex" flexGrow={1} height={1} minHeight={0}>
+  const tabs = useMemo(() => {
+    return [
+      {
+        label: 'danmaku.mount',
+        path: '/mount',
+      },
+      {
+        label: 'tabs.search',
+        path: '/search',
+      },
+      {
+        label: 'tabs.danmaku',
+        path: '/danmaku',
+      },
+      {
+        label: 'tabs.style',
+        path: '/styles',
+      },
+      {
+        label: 'tabs.config',
+        path: '/config',
+      },
+      {
+        label: 'tabs.import',
+        path: '/import',
+      },
+      {
+        label: 'tabs.player',
+        path: '/player',
+      },
+    ]
+  }, [])
+
+  const renderPopupTabs = () => {
+    return (
+      <>
         <Tabs
           value={currentTab === '/' ? '/mount' : currentTab}
           orientation="vertical"
@@ -32,72 +66,58 @@ export const Home = () => {
             flexShrink: 0,
           }}
         >
-          <Tab
-            label={t('danmaku.mount')}
-            value="/mount"
-            to="/mount"
-            component={Link}
-          />
-          <Tab
-            label={t('tabs.search')}
-            value="/search"
-            to="/search"
-            component={Link}
-          />
-          <Tab
-            label={t('tabs.danmaku')}
-            value="/danmaku"
-            to="/danmaku"
-            component={Link}
-          />
-          <Tab
-            label={t('tabs.style')}
-            value="/styles"
-            to="/styles"
-            component={Link}
-          />
-          <Tab
-            label={t('tabs.config')}
-            value="/config"
-            to="/config"
-            component={Link}
-          />
-          <Tab
-            label={t('tabs.import')}
-            value="/import"
-            to="/import"
-            component={Link}
-          />
-          <Tab
-            label={t('tabs.player')}
-            value="/player"
-            to="/player"
-            component={Link}
-          />
-        </Tabs>
-        <ErrorBoundary
-          fallbackRender={({ error }) => {
+          {tabs.map((tab) => {
             return (
-              <TabLayout>
-                <ErrorMessage message={error.message} />
-              </TabLayout>
+              <Tab
+                label={t(tab.label)}
+                value={tab.path}
+                to={tab.path}
+                component={Link}
+                key={tab.path}
+              />
             )
-          }}
-          key={location.key}
-        >
-          <Suspense
-            fallback={
-              <TabLayout>
-                <FullPageSpinner />
-              </TabLayout>
-            }
+          })}
+        </Tabs>
+      </>
+    )
+  }
+
+  return (
+    <Stack direction="column" spacing={0} height={1}>
+      <AppToolBar />
+      <Container
+        sx={{
+          minHeight: 0,
+          height: '100%',
+        }}
+        disableGutters
+      >
+        <Box display="flex" flexGrow={1} height={1} maxWidth="xl">
+          {isPopup && renderPopupTabs()}
+          <ErrorBoundary
+            fallbackRender={({ error }) => {
+              return (
+                <TabLayout>
+                  <ErrorMessage message={error.message} />
+                </TabLayout>
+              )
+            }}
             key={location.key}
           >
-            <Outlet />
-          </Suspense>
-        </ErrorBoundary>
-        <ReleaseNotes />
-      </Box>
+            <Suspense
+              fallback={
+                <TabLayout>
+                  <FullPageSpinner />
+                </TabLayout>
+              }
+              key={location.key}
+            >
+              <Outlet />
+            </Suspense>
+          </ErrorBoundary>
+          <ReleaseNotes />
+        </Box>
+      </Container>
     </Stack>
   )
 }

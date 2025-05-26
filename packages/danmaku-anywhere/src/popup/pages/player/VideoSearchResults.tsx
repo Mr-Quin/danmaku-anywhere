@@ -1,14 +1,16 @@
+import { ErrorMessage } from '@/common/components/ErrorMessage'
+import { NothingHere } from '@/common/components/NothingHere'
 import { kazumiQueryKeys } from '@/common/queries/queryKeys'
-import type { SearchResult } from '@/common/scraper/videoScraper'
-import { searchContent } from '@/common/scraper/videoScraper'
+import type { KazumiSearchResult } from '@/popup/pages/player/scraper/videoScraper'
+import { searchContent } from '@/popup/pages/player/scraper/videoScraper'
 import { useStore } from '@/popup/store'
 import {
   Box,
-  CircularProgress,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
+  Skeleton,
   Typography,
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
@@ -29,10 +31,11 @@ export const VideoSearchResults = () => {
     },
     enabled: !!kazumiPolicy && !!keyword,
     staleTime: Infinity,
+    retry: false,
   })
 
-  const handleContentSelect = (content: SearchResult) => {
-    navigate(`/player/chapters`, {
+  const handleContentSelect = (content: KazumiSearchResult) => {
+    navigate(`chapters`, {
       state: {
         content,
       },
@@ -45,31 +48,43 @@ export const VideoSearchResults = () => {
         Search Results for "{keyword}"
       </Typography>
 
-      {/* Loading and Error */}
-      {searchQuery.isFetching && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
-          <CircularProgress />
-        </Box>
+      {searchQuery.error && (
+        <ErrorMessage message={searchQuery.error.message} />
       )}
 
-      {/* No Results */}
-      {!searchQuery.isFetching &&
-        searchQuery.data &&
-        searchQuery.data.length === 0 && (
-          <Typography variant="body1" sx={{ my: 2 }}>
-            No results found for "{keyword}". Try a different search term.
-          </Typography>
-        )}
+      {searchQuery.isLoading && (
+        <List>
+          {Array.from({ length: 5 }).map((_, index) => (
+            <ListItem key={index} disablePadding>
+              <ListItemText
+                primary={
+                  <Skeleton
+                    variant="text"
+                    width={Math.max(0.5, Math.random()) * 800}
+                  />
+                }
+                secondary={
+                  <Skeleton
+                    variant="text"
+                    width={Math.max(0.5, Math.random()) * 800}
+                  />
+                }
+              ></ListItemText>
+            </ListItem>
+          ))}
+        </List>
+      )}
+
+      {searchQuery.data && searchQuery.data.length === 0 && (
+        <NothingHere message={`No results found for "${keyword}"`} />
+      )}
 
       {searchQuery.data && searchQuery.data.length > 0 && (
         <List>
           {searchQuery.data.map((result, index) => (
             <ListItem key={index} disablePadding>
               <ListItemButton onClick={() => handleContentSelect(result)}>
-                <ListItemText
-                  primary={result.name}
-                  secondary={`Click to view chapters`}
-                />
+                <ListItemText primary={result.name} secondary={result.url} />
               </ListItemButton>
             </ListItem>
           ))}

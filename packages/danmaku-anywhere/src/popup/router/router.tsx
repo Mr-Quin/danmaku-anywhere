@@ -24,7 +24,7 @@ import { ImportConfigPage } from '@/popup/pages/config/pages/import/ImportConfig
 import { ImportPage } from '@/popup/pages/import/ImportPage'
 import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
 import { HelpOptions } from '@/popup/pages/options/pages/help/HelpOptions'
-import { ChaptersPage } from '@/popup/pages/player/ChaptersPage'
+import { ChapterSelector } from '@/popup/pages/player/ChapterSelector'
 import { PlayerPage } from '@/popup/pages/player/PlayerPage'
 import { VideoSearchResults } from '@/popup/pages/player/VideoSearchResults'
 import { SeasonDetailsPage } from '@/popup/pages/search/seasonDetails/SeasonDetailsPage'
@@ -119,15 +119,11 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
         children: [
           {
             index: true,
-            element: <Navigate to="search" />,
-          },
-          {
-            path: 'search',
             Component: VideoSearchResults,
           },
           {
             path: 'chapters',
-            Component: ChaptersPage,
+            Component: ChapterSelector,
           },
         ],
       },
