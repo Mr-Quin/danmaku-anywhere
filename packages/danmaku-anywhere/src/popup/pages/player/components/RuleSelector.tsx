@@ -86,10 +86,6 @@ export const RuleSelector = () => {
           />
         )}
       />
-
-      {kazumiPolicy.data && (
-        <PreFormat>{JSON.stringify(kazumiPolicy.data, null, 2)}</PreFormat>
-      )}
     </Box>
   )
 }
