@@ -96,7 +96,7 @@ export const AppToolBar = ({ drawerOpen, setDrawerOpen }: AppToolBarProps) => {
   }
 
   return (
-    <AppBar position="static">
+    <AppBar position="sticky">
       <Toolbar sx={{ justifyContent: 'space-between' }}>
         <Fade in={isAnyLoading} unmountOnExit>
           <Box position="absolute" top={0} left={0} width={1}>
