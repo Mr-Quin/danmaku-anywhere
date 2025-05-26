@@ -10,6 +10,18 @@ export const PopupLayout = ({ children }: PropsWithChildren<{}>) => {
   const width = isMobile || !isPopup ? '100vw' : 500
   const height = isMobile || !isPopup ? '100vh' : 600
 
+  if (!isPopup) {
+    return (
+      <Paper
+        sx={{
+          minHeight: '100vh',
+        }}
+      >
+        {children}
+      </Paper>
+    )
+  }
+
   return (
     <Container
       sx={{
