@@ -1,6 +1,7 @@
+import { NothingHere } from '@/common/components/NothingHere'
 import { kazumiQueryKeys } from '@/common/queries/queryKeys'
 import { useGoBack } from '@/popup/hooks/useGoBack'
-import { DPlayerComponent } from '@/popup/pages/player/DPlayerComponent'
+import { VideoPlayer } from '@/popup/pages/player/VideoPlayer'
 import type {
   KazumiChapterResult,
   KazumiSearchResult,
@@ -15,7 +16,6 @@ import {
   Card,
   CardActionArea,
   CardContent,
-  CircularProgress,
   Grid,
   Tab,
   Tabs,
@@ -89,22 +89,19 @@ export const ChapterSelector = () => {
         {getTitle()}
       </Typography>
 
-      <DPlayerComponent
+      <VideoPlayer
         playerProps={{
           videoUrl: videoUrlQuery?.data?.[0],
-          autoplay: false,
+          autoplay: true,
         }}
+        loading={chaptersQuery.isLoading || videoUrlQuery.isLoading}
+        error={videoUrlQuery.error?.message}
         title={getTitle()}
         pageUrl={selectedChapter?.url}
       />
 
-      {(chaptersQuery.isLoading || videoUrlQuery.isLoading) && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
-          <CircularProgress />
-        </Box>
-      )}
-
-      {chaptersQuery.data && chaptersQuery.data.length > 0 ? (
+      {chaptersQuery.data && chaptersQuery.data.length === 0 && <NothingHere />}
+      {chaptersQuery.data && chaptersQuery.data.length > 0 && (
         <>
           <Tabs value={playList} onChange={(_, v) => setPlayList(v)}>
             {chaptersQuery.data.map((_, index) => {
@@ -151,12 +148,6 @@ export const ChapterSelector = () => {
             })}
           </Grid>
         </>
-      ) : (
-        <Typography variant="body2" color="text.secondary">
-          {chaptersQuery.isFetching
-            ? 'Loading chapters...'
-            : 'No chapters found'}
-        </Typography>
       )}
     </Box>
   )

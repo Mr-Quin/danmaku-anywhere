@@ -1,3 +1,5 @@
+import { ErrorMessage } from '@/common/components/ErrorMessage'
+import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { Close, Info } from '@mui/icons-material'
 import {
   Dialog,
@@ -33,9 +35,24 @@ const TopWrapper = styled('div')<{ in: boolean }>(({ in: inProp, theme }) => {
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: theme.spacing(2, 4),
+    background: `linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.5) 100%)`,
     transition: 'opacity 0.3s',
     opacity: inProp ? 1 : 0,
     boxSizing: 'border-box',
+  }
+})
+
+const LoadingWrapper = styled('div')(() => {
+  return {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 1,
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
   }
 })
 
@@ -45,12 +62,16 @@ type DPlayerComponentProps = {
   }
   title?: string
   pageUrl?: string
+  loading?: boolean
+  error?: string
 }
 
-export const DPlayerComponent = ({
+export const VideoPlayer = ({
   playerProps: { videoUrl, picUrl, thumbnailsUrl, deps, ...otherOptions },
   title,
   pageUrl,
+  loading,
+  error,
 }: DPlayerComponentProps) => {
   const playerRef = useRef<HTMLDivElement | null>(null)
   const dpInstanceRef = useRef<DPlayer | null>(null)
@@ -101,14 +122,26 @@ export const DPlayerComponent = ({
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <TopWrapper in={hover}>
-          <Typography variant="h6">{title}</Typography>
-          {videoUrl && (
-            <IconButton onClick={handleOpenInfo} disableRipple>
-              <Info />
-            </IconButton>
-          )}
-        </TopWrapper>
+        {loading && (
+          <LoadingWrapper>
+            <FullPageSpinner />
+          </LoadingWrapper>
+        )}
+        {error && (
+          <LoadingWrapper>
+            <ErrorMessage message={error} />
+          </LoadingWrapper>
+        )}
+        {videoUrl && (
+          <TopWrapper in={hover}>
+            <Typography variant="h6">{title}</Typography>
+            {
+              <IconButton onClick={handleOpenInfo} disableRipple>
+                <Info />
+              </IconButton>
+            }
+          </TopWrapper>
+        )}
         <Dialog
           open={showInfo}
           onClose={() => setShowInfo(false)}

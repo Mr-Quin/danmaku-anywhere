@@ -1,4 +1,4 @@
-import { Search as SearchIcon, Settings } from '@mui/icons-material'
+import { Menu, Search as SearchIcon, Settings } from '@mui/icons-material'
 import {
   AppBar,
   Box,
@@ -66,7 +66,12 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }))
 
-export const AppToolBar = () => {
+type AppToolBarProps = {
+  drawerOpen: boolean
+  setDrawerOpen: (open: boolean) => void
+}
+
+export const AppToolBar = ({ drawerOpen, setDrawerOpen }: AppToolBarProps) => {
   const { partialUpdate, data: options } = useExtensionOptions()
   const { isPopup } = useEnvironment()
 
@@ -98,9 +103,25 @@ export const AppToolBar = () => {
             <LinearProgress sx={{ height: '1px' }} />
           </Box>
         </Fade>
-        <Typography variant="h1" fontSize={20}>
-          Danmaku Anywhere
-        </Typography>
+        <Stack direction="row">
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            onClick={() => setDrawerOpen(!drawerOpen)}
+            edge="start"
+            sx={[
+              {
+                mr: 2,
+              },
+              drawerOpen && { display: 'none' },
+            ]}
+          >
+            <Menu />
+          </IconButton>
+          <Typography variant="h1" fontSize={20}>
+            Danmaku Anywhere
+          </Typography>
+        </Stack>
         {!isPopup && (
           <form
             onSubmit={(e) => {

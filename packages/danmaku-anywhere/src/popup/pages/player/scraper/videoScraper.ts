@@ -50,6 +50,11 @@ const waitForTab = async (
     details: chrome.webNavigation.WebNavigationFramedCallbackDetails
   ) => {
     if (details.tabId === tabId && details.frameId === 0) {
+      if (/chrome:\/\//.test(details.url)) {
+        Logger.debug('Tab navigated to internal page, ignoring', details)
+        return
+      }
+
       Logger.debug('Tab navigation complete', details)
       resolve(undefined)
       clearTimeout(t)
@@ -103,23 +108,20 @@ const createTab = async (
       }
     }
 
+    Logger.debug('Creating window')
+
     const win = await chrome.windows.create({
       state: 'minimized',
     })
 
-    if (!win.id) {
+    if (!win.id || !win.tabs || !win.tabs[0].id) {
       throw new Error('Failed to create window')
     }
 
-    const tab = await chrome.tabs.create({
+    const tab = await chrome.tabs.update(win.tabs[0].id, {
       url,
       active: true,
-      windowId: win.id,
     })
-
-    // await chrome.windows.update(win.id, {
-    //   state: 'minimized',
-    // })
 
     if (tab?.id === undefined) {
       throw new Error('Failed to create tab')
@@ -151,10 +153,10 @@ const createTab = async (
     tabId: newTabId,
     closeTab: async () => {
       Logger.debug('Closing tab', newTabId)
-      await chrome.tabs.remove(newTabId)
-      if (window?.id) {
-        await chrome.windows.remove(window.id)
-      }
+      // await chrome.tabs.remove(newTabId)
+      // if (window?.id) {
+      //   await chrome.windows.remove(window.id)
+      // }
     },
   }
 }
@@ -299,25 +301,31 @@ export const getChapters = async (
 
         const chapterRoadNodes = evaluateXPath(chapterRoads)
 
-        return chapterRoadNodes.map((roadNode) => {
-          const chapterNodes = evaluateXPath(`.${chapterResult}`, roadNode)
+        return chapterRoadNodes
+          .map((roadNode) => {
+            const chapterNodes = evaluateXPath(`.${chapterResult}`, roadNode)
 
-          return chapterNodes
-            .map((chapterNode) => {
-              const name = chapterNode.textContent?.trim() || ''
-              const url =
-                chapterNode instanceof HTMLAnchorElement ? chapterNode.href : ''
+            return chapterNodes
+              .map((chapterNode) => {
+                const name = chapterNode.textContent?.trim() || ''
+                const url =
+                  chapterNode instanceof HTMLAnchorElement
+                    ? chapterNode.href
+                    : ''
 
-              if (!name || !url) {
-                return null
-              }
-              return {
-                name,
-                url,
-              }
-            })
-            .filter((result) => result !== null) satisfies KazumiChapterResult[]
-        })
+                if (!name || !url) {
+                  return null
+                }
+                return {
+                  name,
+                  url,
+                }
+              })
+              .filter(
+                (result) => result !== null
+              ) satisfies KazumiChapterResult[]
+          })
+          .filter((playList) => playList.length > 0)
       },
       args: [policy.chapterRoads, policy.chapterResult],
     })
