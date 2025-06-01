@@ -70,4 +70,11 @@ export const manifest = defineManifest({
       },
     },
   }),
+  web_accessible_resources: [
+    {
+      matches: ['<all_urls>', 'file:///*'],
+      resources: ['**/*', '*'],
+      use_dynamic_url: false,
+    },
+  ],
 })
