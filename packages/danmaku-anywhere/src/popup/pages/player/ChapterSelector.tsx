@@ -23,9 +23,12 @@ import {
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
 
 export const ChapterSelector = () => {
+  const { t } = useTranslation()
+
   const location = useLocation()
 
   const goBack = useGoBack()
@@ -62,6 +65,14 @@ export const ChapterSelector = () => {
   })
 
   useEffect(() => {
+    const playList = chaptersQuery.data
+    // set default selected chapter
+    if (!selectedChapter && playList?.[0]?.length) {
+      setSelectedChapter(playList[0][0])
+    }
+  }, [chaptersQuery.data])
+
+  useEffect(() => {
     if (selectedChapter) {
       void videoUrlQuery.refetch()
     }
@@ -72,6 +83,9 @@ export const ChapterSelector = () => {
     return null
   }
 
+  const hasChapter =
+    chaptersQuery.isSuccess && !!chaptersQuery.data?.[0]?.length
+
   const handleChapterSelect = (chapter: KazumiChapterResult) => {
     setSelectedChapter(chapter)
   }
@@ -81,6 +95,26 @@ export const ChapterSelector = () => {
       return `${content.name} - ${selectedChapter.name}`
     }
     return content.name
+  }
+
+  const getStatusText = () => {
+    if (chaptersQuery.isLoading) {
+      return t('videoSearchPage.status.chaptersLoading')
+    }
+    if (chaptersQuery.isSuccess) {
+      if (videoUrlQuery.isLoading) {
+        return t('videoSearchPage.status.videoLoading')
+      }
+    }
+  }
+
+  const getErrorMessage = () => {
+    if (chaptersQuery.isError) {
+      return `${t('videoSearchPage.status.chaptersError')}: ${chaptersQuery.error.message}`
+    }
+    if (videoUrlQuery.isError) {
+      return `${t('videoSearchPage.status.videoError')}: ${videoUrlQuery.error.message}`
+    }
   }
 
   return (
@@ -95,20 +129,24 @@ export const ChapterSelector = () => {
           autoplay: true,
         }}
         loading={chaptersQuery.isLoading || videoUrlQuery.isLoading}
-        error={videoUrlQuery.error?.message}
+        statusText={getStatusText()}
+        error={getErrorMessage()}
         title={getTitle()}
         pageUrl={selectedChapter?.url}
       />
 
-      {chaptersQuery.data && chaptersQuery.data.length === 0 && <NothingHere />}
-      {chaptersQuery.data && chaptersQuery.data.length > 0 && (
+      {chaptersQuery.isSuccess && chaptersQuery.data.length === 0 && (
+        <NothingHere />
+      )}
+
+      {hasChapter && (
         <>
           <Tabs value={playList} onChange={(_, v) => setPlayList(v)}>
             {chaptersQuery.data.map((_, index) => {
               return (
                 <Tab
                   key={index}
-                  label={`List ${index + 1}`}
+                  label={t('videoSearchPage.playlist', { index: index + 1 })}
                   value={index}
                 ></Tab>
               )
@@ -137,7 +175,12 @@ export const ChapterSelector = () => {
                         <Typography variant="body1" component="div">
                           {chapter.name}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          noWrap
+                          component="div"
+                        >
                           {chapter.url}
                         </Typography>
                       </CardContent>

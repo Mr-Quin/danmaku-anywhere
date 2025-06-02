@@ -7,13 +7,10 @@ import type {
   RemoteDanmakuSourceType,
 } from '@/common/danmaku/enums'
 import { danmakuSourceTypeList } from '@/common/danmaku/enums'
+import type { KazumiPolicy } from '@/common/options/kazumiPolicy/schema'
 import { createMountConfig } from '@/common/options/mountConfig/constant'
 import type { MountConfigInput } from '@/common/options/mountConfig/schema'
 import { createSelectors } from '@/common/utils/createSelectors'
-import type {
-  KazumiPolicy,
-  KazumiPolicyManifest,
-} from '@/popup/pages/player/useKazumiManifest'
 import type { Season } from '@danmaku-anywhere/danmaku-converter'
 
 interface StoreState {
@@ -56,8 +53,6 @@ interface StoreState {
   player: {
     keyword: string
     setKeyword: (keyword: string) => void
-    kazumiManifest?: KazumiPolicyManifest
-    setKazumiManifest: (manifest: KazumiPolicyManifest) => void
     kazumiPolicy?: KazumiPolicy
     setKazumiPolicy: (policy: KazumiPolicy) => void
   }
@@ -162,12 +157,6 @@ const useStoreBase = create<StoreState>()(
       setKeyword: (keyword: string) => {
         set((state) => {
           state.player.keyword = keyword
-        })
-      },
-      kazumiManifest: undefined,
-      setKazumiManifest: (manifest: KazumiPolicyManifest) => {
-        set((state) => {
-          state.player.kazumiManifest = manifest
         })
       },
       kazumiPolicy: undefined,

@@ -7,9 +7,6 @@ export const PopupLayout = ({ children }: PropsWithChildren<{}>) => {
   const { isMobile } = usePlatformInfo()
   const { isPopup } = useEnvironment()
 
-  const width = isMobile || !isPopup ? '100vw' : 500
-  const height = isMobile || !isPopup ? '100vh' : 600
-
   if (!isPopup) {
     return (
       <Paper
@@ -22,6 +19,9 @@ export const PopupLayout = ({ children }: PropsWithChildren<{}>) => {
     )
   }
 
+  const width = isMobile ? '100vw' : 500
+  const height = isMobile ? '100vh' : 600
+
   return (
     <Container
       sx={{
@@ -33,7 +33,7 @@ export const PopupLayout = ({ children }: PropsWithChildren<{}>) => {
         overflow: 'hidden',
       }}
       disableGutters
-      maxWidth={isPopup ? 'xl' : false}
+      maxWidth={false}
     >
       <Paper
         sx={{

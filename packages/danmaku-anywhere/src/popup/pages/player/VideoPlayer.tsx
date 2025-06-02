@@ -61,6 +61,7 @@ type DPlayerComponentProps = {
     deps?: unknown[]
   }
   title?: string
+  statusText?: string
   pageUrl?: string
   loading?: boolean
   error?: string
@@ -69,6 +70,7 @@ type DPlayerComponentProps = {
 export const VideoPlayer = ({
   playerProps: { videoUrl, picUrl, thumbnailsUrl, deps, ...otherOptions },
   title,
+  statusText,
   pageUrl,
   loading,
   error,
@@ -124,6 +126,7 @@ export const VideoPlayer = ({
       >
         {loading && (
           <LoadingWrapper>
+            {statusText && <Typography>{statusText}</Typography>}
             <FullPageSpinner />
           </LoadingWrapper>
         )}

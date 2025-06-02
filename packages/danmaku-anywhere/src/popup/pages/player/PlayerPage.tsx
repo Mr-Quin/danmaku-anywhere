@@ -4,7 +4,7 @@ import { useEnvironment } from '@/popup/context/Environment'
 import { Box, Button } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { Outlet } from 'react-router'
-import { RuleSelector } from './components/RuleSelector'
+import { PolicySelector } from './components/PolicySelector'
 
 export const PlayerPage = () => {
   const { t } = useTranslation()
@@ -17,7 +17,7 @@ export const PlayerPage = () => {
   if (isPopup) {
     return (
       <TabLayout>
-        <TabToolbar title={t('tabs.player')} />
+        <TabToolbar title={t('tabs.videoSearch')} />
         <Box>
           <Button variant="contained" onClick={openOptions}>
             Open Options
@@ -26,10 +26,11 @@ export const PlayerPage = () => {
       </TabLayout>
     )
   }
+
   return (
     <TabLayout>
-      <TabToolbar title={t('tabs.player')} />
-      <RuleSelector />
+      <TabToolbar title={t('tabs.videoSearch')} />
+      <PolicySelector />
       <Outlet />
     </TabLayout>
   )

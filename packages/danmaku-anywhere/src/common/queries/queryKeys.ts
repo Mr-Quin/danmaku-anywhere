@@ -158,12 +158,19 @@ export const kazumiQueryKeys = {
         kind: 'policyManifest',
       },
     ] as const,
-  policy: (name?: string) =>
+  remotePolicy: (name?: string) =>
     [
       {
         scope: 'kazumi',
-        kind: 'policy',
+        kind: 'remotePolicy',
         name,
+      },
+    ] as const,
+  policies: () =>
+    [
+      {
+        scope: 'kazumi',
+        kind: 'policies',
       },
     ] as const,
   search: (keyword: string, policyName: string) =>

@@ -1,6 +1,7 @@
 import { danmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { xPathPolicyStore } from '@/common/options/integrationPolicyStore/service'
+import { kazumiPolicyService } from '@/common/options/kazumiPolicy/service'
 import { mountConfigService } from '@/common/options/mountConfig/service'
 
 export const upgradeOptions = async () => {
@@ -9,5 +10,6 @@ export const upgradeOptions = async () => {
     danmakuOptionsService.upgrade(),
     mountConfigService.options.upgrade(),
     xPathPolicyStore.upgrade(),
+    kazumiPolicyService.options.upgrade(),
   ])
 }
