@@ -1,4 +1,8 @@
-import { Menu, Search as SearchIcon, Settings } from '@mui/icons-material'
+import {
+  Menu as MenuIcon,
+  Search as SearchIcon,
+  Settings,
+} from '@mui/icons-material'
 import {
   AppBar,
   Box,
@@ -9,20 +13,24 @@ import {
   IconButton,
   InputBase,
   LinearProgress,
+  Menu,
+  MenuItem,
   Stack,
   Toolbar,
   Typography,
   alpha,
   styled,
 } from '@mui/material'
-import { type ChangeEvent, useState } from 'react'
+import { type ChangeEvent, type MouseEvent, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
 import { StyledEnableSwitch } from '@/common/components/StyledEnableSwitch'
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
+import { useIsSmallScreen } from '@/content/controller/common/hooks/useIsSmallScreen'
 import { useEnvironment } from '@/popup/context/Environment'
+import { tabs } from '@/popup/pages/home/tabs'
 import { useStore } from '@/popup/store'
 
 const Search = styled('div')(({ theme }) => ({
@@ -105,11 +113,28 @@ const SearchBar = () => {
 export const AppToolBar = () => {
   const { partialUpdate, data: options } = useExtensionOptions()
   const { isPopup } = useEnvironment()
+  const isSmallScreen = useIsSmallScreen()
+
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null)
+  const menuOpen = Boolean(menuAnchorEl)
 
   const navigate = useNavigate()
   const isAnyLoading = useAnyLoading()
 
   const { t } = useTranslation()
+
+  const handleMenuOpen = (event: MouseEvent<HTMLElement>) => {
+    setMenuAnchorEl(event.currentTarget)
+  }
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null)
+  }
+
+  const handleTabClick = (path: string) => {
+    navigate(path)
+    handleMenuClose()
+  }
 
   const handleEnable = async (event: ChangeEvent<HTMLInputElement>) => {
     await partialUpdate({
@@ -124,23 +149,55 @@ export const AppToolBar = () => {
           <LinearProgress sx={{ height: '1px' }} />
         </Box>
       </Fade>
-      <Container disableGutters>
-        <Toolbar sx={{ justifyContent: 'space-between' }}>
+      <Container disableGutters={!isPopup && !isSmallScreen}>
+        <Toolbar sx={{ justifyContent: 'space-between' }} disableGutters>
           <Stack direction="row" alignItems="center">
             {!isPopup && (
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                onClick={() => {}}
-                edge="start"
-                sx={[
-                  {
-                    mr: 2,
-                  },
-                ]}
-              >
-                <Menu />
-              </IconButton>
+              <>
+                <IconButton
+                  color="inherit"
+                  aria-label="open drawer"
+                  onClick={handleMenuOpen}
+                  onMouseEnter={handleMenuOpen}
+                  // onMouseLeave={handleMenuClose}
+                  edge="start"
+                  sx={[
+                    {
+                      mr: 2,
+                    },
+                  ]}
+                >
+                  <MenuIcon />
+                </IconButton>
+                <Menu
+                  anchorEl={menuAnchorEl}
+                  open={menuOpen}
+                  onClose={handleMenuClose}
+                  disableScrollLock
+                  disableAutoFocus
+                  disableEnforceFocus
+                  // disablePortal
+                  hideBackdrop
+                  // hidden
+                  sx={{
+                    '& .MuiPaper-root': {
+                      width: isSmallScreen ? 'calc(100% - 32px)' : 'auto',
+                      maxWidth: '100%',
+                      marginLeft: isSmallScreen ? '16px' : '0',
+                      marginRight: isSmallScreen ? '16px' : '0',
+                    },
+                  }}
+                >
+                  {tabs.map((tab) => (
+                    <MenuItem
+                      key={tab.path}
+                      onClick={() => handleTabClick(tab.path)}
+                    >
+                      {t(tab.label)}
+                    </MenuItem>
+                  ))}
+                </Menu>
+              </>
             )}
             <Typography variant="h1" fontSize={20}>
               Danmaku Anywhere

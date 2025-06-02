@@ -62,7 +62,6 @@ export const Home = () => {
       >
         <Box display="flex" flexGrow={1} height={1} maxWidth="xl">
           {isPopup && renderPopupTabs()}
-          {!isPopup && renderPopupTabs()}
           <ErrorBoundary
             fallbackRender={({ error }) => {
               return (
