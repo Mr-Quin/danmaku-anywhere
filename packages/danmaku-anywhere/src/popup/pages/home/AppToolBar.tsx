@@ -1,27 +1,20 @@
-import {
-  Menu as MenuIcon,
-  Search as SearchIcon,
-  Settings,
-} from '@mui/icons-material'
+import { Menu, Search as SearchIcon, Settings } from '@mui/icons-material'
 import {
   AppBar,
   Box,
-  Container,
   Fade,
   FormControlLabel,
   FormGroup,
   IconButton,
   InputBase,
   LinearProgress,
-  Menu,
-  MenuItem,
   Stack,
   Toolbar,
   Typography,
   alpha,
   styled,
 } from '@mui/material'
-import { type ChangeEvent, type MouseEvent, useState } from 'react'
+import { type ChangeEvent, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
@@ -30,7 +23,6 @@ import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { useIsSmallScreen } from '@/content/controller/common/hooks/useIsSmallScreen'
 import { useEnvironment } from '@/popup/context/Environment'
-import { tabs } from '@/popup/pages/home/tabs'
 import { useStore } from '@/popup/store'
 
 const Search = styled('div')(({ theme }) => ({
@@ -48,24 +40,17 @@ const Search = styled('div')(({ theme }) => ({
   },
 }))
 
-const SearchIconWrapper = styled('div')(({ theme }) => ({
-  padding: theme.spacing(0, 2),
-  height: '100%',
-  position: 'absolute',
-  pointerEvents: 'none',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-}))
-
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
   color: 'inherit',
   width: '100%',
   '& .MuiInputBase-input': {
-    padding: theme.spacing(1, 1, 1, 0),
-    // vertical padding + font size from searchIcon
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    transition: theme.transitions.create('width'),
+    padding: theme.spacing(1, 2),
+
+    transition: theme.transitions.create(['width', 'color']),
+    color: theme.palette.text.secondary,
+    '&:focus': {
+      color: 'inherit',
+    },
     [theme.breakpoints.up('sm')]: {
       width: '24ch',
       '&:focus': {
@@ -77,12 +62,10 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 const SearchBar = () => {
   const { t } = useTranslation()
-
   const { setKeyword, keyword } = useStore.use.player()
-
   const navigate = useNavigate()
-
   const [searchTerm, setSearchTerm] = useState(keyword)
+  const [isFocused, setIsFocused] = useState(false)
 
   const handleSearch = (keyword: string) => {
     navigate('/videoSearch')
@@ -97,44 +80,40 @@ const SearchBar = () => {
       }}
     >
       <Search>
-        <SearchIconWrapper>
-          <SearchIcon />
-        </SearchIconWrapper>
         <StyledInputBase
           placeholder={t('tabs.videoSearch')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
         />
+        <IconButton
+          type="submit"
+          disabled={!searchTerm}
+          sx={{
+            position: 'absolute',
+            right: 0,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: isFocused ? 'inherit' : 'text.secondary',
+            transition: (theme) => theme.transitions.create(['color']),
+          }}
+        >
+          <SearchIcon />
+        </IconButton>
       </Search>
     </form>
   )
 }
 
 export const AppToolBar = () => {
+  const { t } = useTranslation()
   const { partialUpdate, data: options } = useExtensionOptions()
   const { isPopup } = useEnvironment()
   const isSmallScreen = useIsSmallScreen()
-
-  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null)
-  const menuOpen = Boolean(menuAnchorEl)
-
   const navigate = useNavigate()
   const isAnyLoading = useAnyLoading()
-
-  const { t } = useTranslation()
-
-  const handleMenuOpen = (event: MouseEvent<HTMLElement>) => {
-    setMenuAnchorEl(event.currentTarget)
-  }
-
-  const handleMenuClose = () => {
-    setMenuAnchorEl(null)
-  }
-
-  const handleTabClick = (path: string) => {
-    navigate(path)
-    handleMenuClose()
-  }
+  const { setOpen } = useStore.use.drawer()
 
   const handleEnable = async (event: ChangeEvent<HTMLInputElement>) => {
     await partialUpdate({
@@ -142,102 +121,78 @@ export const AppToolBar = () => {
     })
   }
 
+  const showDrawerMenu = !isPopup && isSmallScreen
+
   return (
-    <AppBar position="sticky">
+    <AppBar
+      position="sticky"
+      sx={{
+        zIndex: (theme) =>
+          // in desktop mode, the app bar shows on top of the drawer,
+          // but in mobile mode, the app bar shows on top of a drawer menu
+          showDrawerMenu ? theme.zIndex.appBar : theme.zIndex.drawer + 1,
+      }}
+    >
       <Fade in={isAnyLoading} unmountOnExit>
         <Box position="absolute" top={0} left={0} width={1}>
           <LinearProgress sx={{ height: '1px' }} />
         </Box>
       </Fade>
-      <Container disableGutters={!isPopup && !isSmallScreen}>
-        <Toolbar sx={{ justifyContent: 'space-between' }} disableGutters>
-          <Stack direction="row" alignItems="center">
-            {!isPopup && (
-              <>
-                <IconButton
-                  color="inherit"
-                  aria-label="open drawer"
-                  onClick={handleMenuOpen}
-                  onMouseEnter={handleMenuOpen}
-                  // onMouseLeave={handleMenuClose}
-                  edge="start"
-                  sx={[
-                    {
-                      mr: 2,
-                    },
-                  ]}
-                >
-                  <MenuIcon />
-                </IconButton>
-                <Menu
-                  anchorEl={menuAnchorEl}
-                  open={menuOpen}
-                  onClose={handleMenuClose}
-                  disableScrollLock
-                  disableAutoFocus
-                  disableEnforceFocus
-                  // disablePortal
-                  hideBackdrop
-                  // hidden
-                  sx={{
-                    '& .MuiPaper-root': {
-                      width: isSmallScreen ? 'calc(100% - 32px)' : 'auto',
-                      maxWidth: '100%',
-                      marginLeft: isSmallScreen ? '16px' : '0',
-                      marginRight: isSmallScreen ? '16px' : '0',
-                    },
-                  }}
-                >
-                  {tabs.map((tab) => (
-                    <MenuItem
-                      key={tab.path}
-                      onClick={() => handleTabClick(tab.path)}
-                    >
-                      {t(tab.label)}
-                    </MenuItem>
-                  ))}
-                </Menu>
-              </>
-            )}
-            <Typography variant="h1" fontSize={20}>
-              Danmaku Anywhere
-            </Typography>
-          </Stack>
-          {!isPopup && <SearchBar />}
-          <Stack direction="row">
-            {isPopup && (
-              <FormGroup>
-                <FormControlLabel
-                  control={
-                    <StyledEnableSwitch
-                      checked={options.enabled}
-                      onChange={handleEnable}
-                      size="small"
-                    />
-                  }
-                  label={t('common.enable')}
-                  labelPlacement="top"
-                  slotProps={{
-                    typography: {
-                      variant: 'caption',
-                    },
-                  }}
-                  sx={{ m: 0 }}
-                />
-              </FormGroup>
-            )}
+      <Toolbar sx={{ justifyContent: 'space-between' }}>
+        <Stack direction="row" alignItems="center">
+          {showDrawerMenu && (
             <IconButton
-              sx={{ ml: 2 }}
-              onClick={() => {
-                navigate('/options')
-              }}
-              edge="end"
+              color="inherit"
+              aria-label="open drawer"
+              onClick={() => setOpen(true)}
+              edge="start"
+              sx={[
+                {
+                  mr: 2,
+                },
+              ]}
             >
-              <Settings />
+              <Menu />
             </IconButton>
-          </Stack>
-        </Toolbar>
-      </Container>
+          )}
+          <Typography variant="h1" fontSize={20}>
+            Danmaku Anywhere
+          </Typography>
+        </Stack>
+        {!isPopup && <SearchBar />}
+        <Stack direction="row">
+          {isPopup && (
+            <FormGroup>
+              <FormControlLabel
+                control={
+                  <StyledEnableSwitch
+                    checked={options.enabled}
+                    onChange={handleEnable}
+                    size="small"
+                  />
+                }
+                label={t('common.enable')}
+                labelPlacement="top"
+                slotProps={{
+                  typography: {
+                    variant: 'caption',
+                  },
+                }}
+                sx={{ m: 0 }}
+              />
+            </FormGroup>
+          )}
+          <IconButton
+            sx={{ ml: 2 }}
+            onClick={() => {
+              navigate('/options')
+            }}
+            edge="end"
+          >
+            <Settings />
+          </IconButton>
+        </Stack>
+      </Toolbar>
     </AppBar>
   )
 }

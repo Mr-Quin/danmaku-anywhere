@@ -20,6 +20,10 @@ interface StoreState {
     isMounted: boolean
     setIsMounted: (isMounted: boolean) => void
   }
+  drawer: {
+    open: boolean
+    setOpen: (open: boolean) => void
+  }
   search: {
     searchParams?: SearchEpisodesQuery
     setSearchParams: (params?: SearchEpisodesQuery) => void
@@ -71,6 +75,14 @@ const useStoreBase = create<StoreState>()(
       setIsMounted: (isMounted: boolean) => {
         set((state) => {
           state.mount.isMounted = isMounted
+        })
+      },
+    },
+    drawer: {
+      open: true,
+      setOpen: (open: boolean) => {
+        set((state) => {
+          state.drawer.open = open
         })
       },
     },
