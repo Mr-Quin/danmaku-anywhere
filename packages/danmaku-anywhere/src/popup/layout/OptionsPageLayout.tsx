@@ -1,9 +1,10 @@
-import type { SlideProps } from '@mui/material'
+import { Container, type SlideProps } from '@mui/material'
 import { Paper, Slide } from '@mui/material'
 import type { ElementType, PropsWithChildren } from 'react'
 import { Suspense } from 'react'
 
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
+import { useEnvironment } from '@/popup/context/Environment'
 
 type OptionsPageProps = PropsWithChildren<{
   direction?: SlideProps['direction']
@@ -15,6 +16,26 @@ export const OptionsPageLayout = ({
   direction = 'up',
   component = 'div',
 }: OptionsPageProps) => {
+  const { isPopup } = useEnvironment()
+
+  if (!isPopup) {
+    return (
+      <Paper
+        sx={{
+          position: 'absolute',
+          top: 0,
+          zIndex: 1,
+          width: 1,
+          height: 1,
+        }}
+      >
+        <Container maxWidth="sm" disableGutters>
+          <Suspense fallback={<FullPageSpinner />}>{children}</Suspense>
+        </Container>
+      </Paper>
+    )
+  }
+
   return (
     <Slide direction={direction} in mountOnEnter unmountOnExit>
       <Paper

@@ -53,7 +53,7 @@ export const MountPage = () => {
         boxProps={{
           display: 'flex',
           flexDirection: 'column',
-          height: '100%',
+          // height: '100%',
         }}
       >
         {({ focused }) => {

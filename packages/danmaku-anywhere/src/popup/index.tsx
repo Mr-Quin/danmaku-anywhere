@@ -9,19 +9,15 @@ import { App } from './App'
 import { queryClient } from '@/common/queries/queryClient'
 import { Theme } from '@/common/theme/Theme'
 import '@/common/localization/i18n'
-import { environment } from '@/popup/context/Environment'
+import { EnvironmentProvider } from '@/popup/context/Environment'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <Theme>
-        <environment.Provider
-          value={{
-            isPopup: true,
-          }}
-        >
+        <EnvironmentProvider isPopup>
           <App />
-        </environment.Provider>
+        </EnvironmentProvider>
         <ReactQueryDevtools />
       </Theme>
     </QueryClientProvider>

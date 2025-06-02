@@ -3,6 +3,7 @@ import {
   SeasonCardSkeleton,
 } from '@/common/components/MediaList/components/SeasonCard'
 import { useMergeRefs } from '@/common/hooks/useMergeRefs'
+import { useEnvironment } from '@/popup/context/Environment'
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import {
   Box,
@@ -13,7 +14,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material'
-import { useVirtualizer } from '@tanstack/react-virtual'
+import { useVirtualizer, useWindowVirtualizer } from '@tanstack/react-virtual'
 import { type RefObject, useRef, useState } from 'react'
 
 const useBreakpointValue = <T,>(values: Partial<Record<Breakpoint, T>>) => {
@@ -74,6 +75,8 @@ export const SeasonGrid = ({
   boxProps,
   ref: refProp,
 }: SeasonGridProps) => {
+  const { isPopup } = useEnvironment()
+
   const [selectionModel, setSelectionModel] = useState<
     (Season | CustomSeason)[]
   >(selectionModelProp ?? [])
@@ -97,17 +100,28 @@ export const SeasonGrid = ({
       md: theme.spacing(3),
     }) ?? '8px'
 
-  const virtualizer = useVirtualizer({
-    count: data.length,
-    getScrollElement: () => ref.current || null,
-    estimateSize: () => 250,
-    getItemKey: (index) => {
-      return data[index].id
-    },
-    gap: parseInt(spacing),
-    lanes,
-    overscan: 3,
-  })
+  const virtualizer = isPopup
+    ? useVirtualizer({
+        count: data.length,
+        getScrollElement: () => ref.current || null,
+        estimateSize: () => 250,
+        getItemKey: (index) => {
+          return data[index].id
+        },
+        gap: parseInt(spacing),
+        lanes,
+        overscan: 3,
+      })
+    : useWindowVirtualizer({
+        count: data.length,
+        estimateSize: () => 250,
+        getItemKey: (index) => {
+          return data[index].id
+        },
+        gap: parseInt(spacing),
+        lanes,
+        overscan: 3,
+      })
 
   const gridSize = { xs: 2, sm: 4, md: 4 }
 

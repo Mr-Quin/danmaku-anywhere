@@ -1,8 +1,6 @@
-import { kazumiQueryKeys } from '@/common/queries/queryKeys'
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 
-const KAZUMI_RULES_BASE_URL =
+export const KAZUMI_RULES_BASE_URL =
   'https://raw.githubusercontent.com/Predidit/KazumiRules/main'
 
 export type KazumiPolicyManifest = {
@@ -13,7 +11,7 @@ export type KazumiPolicyManifest = {
   lastUpdate: number
 }
 
-const zKazumiPolicy = z.object({
+export const zKazumiPolicy = z.object({
   api: z.string(),
   type: z.string(),
   name: z.string().min(1),
@@ -35,24 +33,3 @@ const zKazumiPolicy = z.object({
 })
 
 export type KazumiPolicy = z.output<typeof zKazumiPolicy>
-
-export const useKazumiManifest = () => {
-  return useSuspenseQuery({
-    queryKey: kazumiQueryKeys.policyManifest(),
-    queryFn: async () => {
-      const res = await fetch(`${KAZUMI_RULES_BASE_URL}/index.json`)
-      return (await res.json()) as KazumiPolicyManifest[]
-    },
-  })
-}
-
-export const useKazumiPolicy = (name?: string) => {
-  return useQuery({
-    queryKey: kazumiQueryKeys.policy(name),
-    queryFn: async () => {
-      const res = await fetch(`${KAZUMI_RULES_BASE_URL}/${name}.json`)
-      return zKazumiPolicy.parse(await res.json())
-    },
-    enabled: !!name,
-  })
-}

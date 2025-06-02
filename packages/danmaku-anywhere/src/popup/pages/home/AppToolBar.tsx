@@ -2,6 +2,7 @@ import { Menu, Search as SearchIcon, Settings } from '@mui/icons-material'
 import {
   AppBar,
   Box,
+  Container,
   Fade,
   FormControlLabel,
   FormGroup,
@@ -66,21 +67,47 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }))
 
-type AppToolBarProps = {
-  drawerOpen: boolean
-  setDrawerOpen: (open: boolean) => void
+const SearchBar = () => {
+  const { t } = useTranslation()
+
+  const { setKeyword, keyword } = useStore.use.player()
+
+  const navigate = useNavigate()
+
+  const [searchTerm, setSearchTerm] = useState(keyword)
+
+  const handleSearch = (keyword: string) => {
+    navigate('/videoSearch')
+    setKeyword(keyword)
+  }
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        handleSearch(searchTerm)
+      }}
+    >
+      <Search>
+        <SearchIconWrapper>
+          <SearchIcon />
+        </SearchIconWrapper>
+        <StyledInputBase
+          placeholder={t('tabs.videoSearch')}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </Search>
+    </form>
+  )
 }
 
-export const AppToolBar = ({ drawerOpen, setDrawerOpen }: AppToolBarProps) => {
+export const AppToolBar = () => {
   const { partialUpdate, data: options } = useExtensionOptions()
   const { isPopup } = useEnvironment()
 
   const navigate = useNavigate()
   const isAnyLoading = useAnyLoading()
-
-  const [searchTerm, setSearchTerm] = useState('')
-
-  const { setKeyword } = useStore.use.player()
 
   const { t } = useTranslation()
 
@@ -90,91 +117,70 @@ export const AppToolBar = ({ drawerOpen, setDrawerOpen }: AppToolBarProps) => {
     })
   }
 
-  const handleSearch = (keyword: string) => {
-    navigate('/player')
-    setKeyword(keyword)
-  }
-
   return (
     <AppBar position="sticky">
-      <Toolbar sx={{ justifyContent: 'space-between' }}>
-        <Fade in={isAnyLoading} unmountOnExit>
-          <Box position="absolute" top={0} left={0} width={1}>
-            <LinearProgress sx={{ height: '1px' }} />
-          </Box>
-        </Fade>
-        <Stack direction="row">
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            onClick={() => setDrawerOpen(!drawerOpen)}
-            edge="start"
-            sx={[
-              {
-                mr: 2,
-              },
-              drawerOpen && { display: 'none' },
-            ]}
-          >
-            <Menu />
-          </IconButton>
-          <Typography variant="h1" fontSize={20}>
-            Danmaku Anywhere
-          </Typography>
-        </Stack>
-        {!isPopup && (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              handleSearch(searchTerm)
-            }}
-          >
-            <Search>
-              <SearchIconWrapper>
-                <SearchIcon />
-              </SearchIconWrapper>
-              <StyledInputBase
-                placeholder="Search…"
-                inputProps={{ 'aria-label': 'search' }}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </Search>
-          </form>
-        )}
-        <Stack direction="row">
-          {isPopup && (
-            <FormGroup>
-              <FormControlLabel
-                control={
-                  <StyledEnableSwitch
-                    checked={options.enabled}
-                    onChange={handleEnable}
-                    size="small"
-                  />
-                }
-                label={t('common.enable')}
-                labelPlacement="top"
-                slotProps={{
-                  typography: {
-                    variant: 'caption',
+      <Fade in={isAnyLoading} unmountOnExit>
+        <Box position="absolute" top={0} left={0} width={1}>
+          <LinearProgress sx={{ height: '1px' }} />
+        </Box>
+      </Fade>
+      <Container disableGutters>
+        <Toolbar sx={{ justifyContent: 'space-between' }}>
+          <Stack direction="row" alignItems="center">
+            {!isPopup && (
+              <IconButton
+                color="inherit"
+                aria-label="open drawer"
+                onClick={() => {}}
+                edge="start"
+                sx={[
+                  {
+                    mr: 2,
                   },
-                }}
-                sx={{ m: 0 }}
-              />
-            </FormGroup>
-          )}
-          <IconButton
-            sx={{ ml: 2 }}
-            onClick={() => {
-              navigate('/options')
-            }}
-            edge="end"
-          >
-            <Settings />
-          </IconButton>
-        </Stack>
-      </Toolbar>
+                ]}
+              >
+                <Menu />
+              </IconButton>
+            )}
+            <Typography variant="h1" fontSize={20}>
+              Danmaku Anywhere
+            </Typography>
+          </Stack>
+          {!isPopup && <SearchBar />}
+          <Stack direction="row">
+            {isPopup && (
+              <FormGroup>
+                <FormControlLabel
+                  control={
+                    <StyledEnableSwitch
+                      checked={options.enabled}
+                      onChange={handleEnable}
+                      size="small"
+                    />
+                  }
+                  label={t('common.enable')}
+                  labelPlacement="top"
+                  slotProps={{
+                    typography: {
+                      variant: 'caption',
+                    },
+                  }}
+                  sx={{ m: 0 }}
+                />
+              </FormGroup>
+            )}
+            <IconButton
+              sx={{ ml: 2 }}
+              onClick={() => {
+                navigate('/options')
+              }}
+              edge="end"
+            >
+              <Settings />
+            </IconButton>
+          </Stack>
+        </Toolbar>
+      </Container>
     </AppBar>
   )
 }

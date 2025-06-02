@@ -21,7 +21,7 @@ export const ConfigPage = () => {
       // this must not throw for any reason so the page doesn't break
       try {
         const res = await chromeRpcClient.getActiveTabUrl()
-        return res.data
+        return res.data ?? ''
       } catch (_) {
         return ''
       }

@@ -163,7 +163,7 @@ const pages = {
     import: {
       name: 'Import Config',
       fileUpload: 'Upload File',
-      presets: 'Presets',
+      presets: 'Repository',
       hasIntegration: 'Includes Integration',
     },
     name: 'Configs',
@@ -391,6 +391,25 @@ const pages = {
       },
     },
   },
+  kazumiPage: {
+    name: 'Kazumi',
+    import: {
+      name: 'Import Rules',
+      repo: 'Repository',
+    },
+  },
+  videoSearchPage: {
+    name: 'Video Search',
+    enterSearchTerm: 'Enter search term',
+    noResults: 'No results found for "{{keyword}}"',
+    playlist: 'Playlist {{index}}',
+    status: {
+      chaptersLoading: 'Getting chapters...',
+      chaptersError: 'Failed to get chapters',
+      videoLoading: 'Getting video...',
+      videoError: 'Failed to get video',
+    },
+  },
   tabs: {
     config: 'Config',
     danmaku: 'Danmaku',
@@ -400,6 +419,9 @@ const pages = {
     style: 'Danmaku Settings',
     import: 'Import Danmaku',
     integrationPolicy: 'Integration Policy',
+    kazumi: 'Kazumi',
+    videoSearch: 'Video Search',
+    player: 'Video Player',
   },
 }
 

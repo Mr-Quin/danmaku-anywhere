@@ -18,6 +18,7 @@ import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useDanmakuMany'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { isNotCustom, isProvider } from '@/common/danmaku/utils'
 import { matchWithPinyin } from '@/common/utils/utils'
+import { useEnvironment } from '@/popup/context/Environment'
 import {
   type CustomEpisodeLite,
   type CustomSeason,
@@ -28,7 +29,7 @@ import {
   type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Refresh } from '@mui/icons-material'
-import { useVirtualizer } from '@tanstack/react-virtual'
+import { useVirtualizer, useWindowVirtualizer } from '@tanstack/react-virtual'
 import { useTranslation } from 'react-i18next'
 
 type EpisodeListItemProps = {
@@ -160,6 +161,7 @@ export const DanmakuSelector = ({
   disabled,
 }: DanmakuSelectorProps) => {
   const { t } = useTranslation()
+  const { isPopup } = useEnvironment()
 
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -236,12 +238,18 @@ export const DanmakuSelector = ({
     }
   }
 
-  const virtualizer = useVirtualizer({
-    count: flattened.length,
-    getScrollElement: () => scrollRef.current,
-    estimateSize: () => 72,
-    getItemKey: (i) => getKey(flattened[i]),
-  })
+  const virtualizer = isPopup
+    ? useVirtualizer({
+        count: flattened.length,
+        getScrollElement: () => scrollRef.current,
+        estimateSize: () => 72,
+        getItemKey: (i) => getKey(flattened[i]),
+      })
+    : useWindowVirtualizer({
+        count: flattened.length,
+        estimateSize: () => 72,
+        getItemKey: (i) => getKey(flattened[i]),
+      })
 
   if (flattened.length === 0) {
     return <NothingHere />

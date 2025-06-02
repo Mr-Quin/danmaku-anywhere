@@ -22,11 +22,13 @@ import { StylesPage } from '../pages/styles/StylesPage'
 
 import { ImportConfigPage } from '@/popup/pages/config/pages/import/ImportConfigPage'
 import { ImportPage } from '@/popup/pages/import/ImportPage'
+import { KazumiPage } from '@/popup/pages/kazumi/pages/KazumiPage'
+import { ImportKazumiPolicyPage } from '@/popup/pages/kazumi/pages/import/ImportKazumiPolicyPage'
 import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
 import { HelpOptions } from '@/popup/pages/options/pages/help/HelpOptions'
 import { ChapterSelector } from '@/popup/pages/player/ChapterSelector'
 import { PlayerPage } from '@/popup/pages/player/PlayerPage'
-import { VideoSearchResults } from '@/popup/pages/player/VideoSearchResults'
+import { SearchResultPage } from '@/popup/pages/player/SearchResultPage'
 import { SeasonDetailsPage } from '@/popup/pages/search/seasonDetails/SeasonDetailsPage'
 
 export const router: ReturnType<typeof createHashRouter> = createHashRouter([
@@ -114,12 +116,22 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
         ],
       },
       {
-        path: 'player',
+        path: 'kazumi',
+        children: [
+          {
+            index: true,
+            Component: KazumiPage,
+          },
+          { path: 'import', Component: ImportKazumiPolicyPage },
+        ],
+      },
+      {
+        path: 'videoSearch',
         Component: PlayerPage,
         children: [
           {
             index: true,
-            Component: VideoSearchResults,
+            Component: SearchResultPage,
           },
           {
             path: 'chapters',

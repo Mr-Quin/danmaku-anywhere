@@ -164,7 +164,7 @@ const pages = {
     import: {
       name: '导入配置',
       fileUpload: '上传文件',
-      presets: '预设',
+      presets: '仓库',
       hasIntegration: '含适配规则',
     },
     name: '装填配置',
@@ -384,6 +384,25 @@ const pages = {
       },
     },
   },
+  kazumiPage: {
+    name: 'Kazumi',
+    import: {
+      name: '导入规则',
+      repo: '规则仓库',
+    },
+  },
+  videoSearchPage: {
+    name: '搜索视频',
+    enterSearchTerm: '请输入搜索关键词',
+    noResults: '没有找到含有“{{keyword}}”的结果',
+    playlist: '播放列表 {{index}}',
+    status: {
+      chaptersLoading: '获取播放列表中...',
+      chaptersError: '获取播放列表失败',
+      videoLoading: '获取视频资源中...',
+      videoError: '获取视频资源失败',
+    },
+  },
   tabs: {
     config: '装填配置',
     danmaku: '弹幕列表',
@@ -393,6 +412,9 @@ const pages = {
     style: '弹幕设置',
     import: '导入弹幕',
     integrationPolicy: '适配规则',
+    kazumi: 'Kazumi',
+    videoSearch: '搜索视频',
+    player: '本地视频',
   },
 }
 
