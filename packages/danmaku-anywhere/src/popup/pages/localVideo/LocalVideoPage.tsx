@@ -29,6 +29,7 @@ export const LocalVideoPage = () => {
         videoUrl={fileUrl}
         videoType="video/mp4"
         title={file?.type}
+        statusText={!file ? 'No file selected' : undefined}
       />
     </TabLayout>
   )
