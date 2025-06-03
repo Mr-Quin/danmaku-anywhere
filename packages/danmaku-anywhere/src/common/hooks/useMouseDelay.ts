@@ -2,7 +2,15 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useIsTouchDevice } from '@/content/controller/common/hooks/useIsTouchDevice'
 
-export const useShowFab = () => {
+type UseMouseDelayProps = {
+  enabled?: boolean
+  timeout?: number
+}
+
+export const useMouseDelay = ({
+  enabled = true,
+  timeout = 3000,
+}: UseMouseDelayProps = {}) => {
   const timeoutRef = useRef<NodeJS.Timeout>(undefined)
 
   const isTouch = useIsTouchDevice()
@@ -16,11 +24,13 @@ export const useShowFab = () => {
       // hide after 3 seconds
       timeoutRef.current = setTimeout(() => {
         setShowFab(false)
-      }, 3000)
+      }, timeout)
     }
-  }, [])
+  }, [timeout])
 
   useEffect(() => {
+    if (!enabled) return
+
     const handleTouch: EventListener = () => {
       handleShowFab()
     }
@@ -36,7 +46,7 @@ export const useShowFab = () => {
       }
       window.removeEventListener('touchmove', handleTouch, { capture: true })
     }
-  }, [isTouch])
+  }, [handleShowFab, enabled, isTouch])
 
   return showFab
 }

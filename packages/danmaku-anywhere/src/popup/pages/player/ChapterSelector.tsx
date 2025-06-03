@@ -59,6 +59,7 @@ export const ChapterSelector = () => {
       if (!selectedChapter) return null
       return extractVideoUrl(selectedChapter.url)
     },
+    select: (res) => res?.[0],
     enabled: !!selectedChapter,
     staleTime: Infinity,
     retry: false,
@@ -111,8 +112,6 @@ export const ChapterSelector = () => {
     }
   }
 
-  console.log(videoUrlQuery.data)
-
   return (
     <Box sx={{ p: 2 }}>
       <Typography variant="h6" gutterBottom>
@@ -120,13 +119,29 @@ export const ChapterSelector = () => {
       </Typography>
 
       <VideoPlayer
-        videoUrl={videoUrlQuery.data?.[0].src}
-        videoType={videoUrlQuery.data?.[0].type}
+        videoUrl={videoUrlQuery.data?.src}
+        videoType={videoUrlQuery.data?.type}
         loading={chaptersQuery.isLoading || videoUrlQuery.isLoading}
-        statusText={getStatusText()}
-        error={getErrorMessage()}
+        statusText={getErrorMessage() || getStatusText()}
         title={getTitle()}
-        pageUrl={selectedChapter?.url}
+        renderInfo={() => {
+          return (
+            <>
+              {videoUrlQuery.data?.src && (
+                <>
+                  <Typography>Video URL</Typography>
+                  <Typography>{videoUrlQuery.data?.src}</Typography>
+                </>
+              )}
+              {selectedChapter?.url && (
+                <>
+                  <Typography>Page url</Typography>
+                  <Typography>{selectedChapter?.url}</Typography>
+                </>
+              )}
+            </>
+          )
+        }}
       />
 
       {chaptersQuery.isSuccess && chaptersQuery.data.length === 0 && (
