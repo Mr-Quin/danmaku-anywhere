@@ -9,8 +9,8 @@ import {
 import type { MouseEventHandler } from 'react'
 import { forwardRef, useRef, useState } from 'react'
 
+import { useMouseDelay } from '../../../../common/hooks/useMouseDelay'
 import { LoadingRing } from './components/LoadingRing'
-import { useShowFab } from './hooks/useShowFab'
 
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { useMergeRefs } from '@/common/hooks/useMergeRefs'
@@ -49,7 +49,7 @@ export const FloatingButton = forwardRef<
 >(({ onOpen, isOpen }: FloatingButtonProps, ref) => {
   const isLoading = useAnyLoading()
 
-  const showFab = useShowFab()
+  const showFab = useMouseDelay()
 
   const [contextMenuAnchor, setContextMenuAnchor] =
     useState<PopoverVirtualElement | null>(null)

@@ -10,6 +10,7 @@ import {
 import videojs from 'video.js'
 import 'video.js/dist/video-js.css'
 import './VideoPlayer.css'
+import { useMouseDelay } from '@/common/hooks/useMouseDelay'
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
@@ -75,46 +76,95 @@ const PauseIndicator = ({
 
 const PlaybackSpeedButton = ({
   player,
-  rates = [0.5, 1, 1.5, 2],
+  rates = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
 }: {
   player: any
   rates?: number[]
 }) => {
   const [currentRate, setCurrentRate] = useState(1)
+  const [showDropdown, setShowDropdown] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const handleClick = () => {
-    const currentIndex = rates.indexOf(currentRate)
-    const nextRate = rates[(currentIndex + 1) % rates.length]
-    player.playbackRate(nextRate)
-    setCurrentRate(nextRate)
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowDropdown(false)
+      }
+    }
+
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showDropdown])
+
+  const handleButtonClick = () => {
+    setShowDropdown(!showDropdown)
+  }
+
+  const handleRateSelect = (rate: number) => {
+    player.playbackRate(rate)
+    setCurrentRate(rate)
+    setShowDropdown(false)
   }
 
   return (
-    <ControlBarButton
-      className="vjs-playback-speed-button"
-      title="Playback Speed"
-      onClick={handleClick}
-    >
-      {currentRate}x
-    </ControlBarButton>
+    <div className="vjs-playback-speed-container" ref={dropdownRef}>
+      <ControlBarButton
+        className="vjs-playback-speed-button"
+        title="Playback Speed"
+        onClick={handleButtonClick}
+      >
+        {currentRate}x
+      </ControlBarButton>
+
+      {showDropdown && (
+        <div className="vjs-playback-speed-dropdown">
+          {rates.map((rate) => (
+            <div
+              key={rate}
+              className={`vjs-playback-speed-item ${rate === currentRate ? 'active' : ''}`}
+              onClick={() => handleRateSelect(rate)}
+            >
+              {rate}x
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
 const HoverHeader = ({
   title,
   onInfoClick,
+  showInfoButton,
   visible,
 }: {
   title: string
+  showInfoButton: boolean
   onInfoClick: () => void
   visible: boolean
 }) => {
+  const show = useMouseDelay({ enabled: visible, timeout: 2000 })
+
   return (
-    <div className={`vjs-hover-header ${visible ? 'visible' : 'hidden'}`}>
+    <div
+      className={`vjs-hover-header ${visible && show ? 'visible' : 'hidden'}`}
+    >
       <div className="vjs-title">{title}</div>
-      <button className="vjs-info-button" onClick={onInfoClick}>
-        <Info />
-      </button>
+      {showInfoButton && (
+        <button className="vjs-info-button" onClick={onInfoClick}>
+          <Info />
+        </button>
+      )}
     </div>
   )
 }
@@ -162,9 +212,8 @@ type VideoPlayerProps = {
   poster?: string
   title?: string
   statusText?: string
-  pageUrl?: string
   loading?: boolean
-  error?: string
+  renderInfo?: () => ReactNode
 }
 
 // Register portal containers
@@ -180,17 +229,17 @@ export const VideoPlayer = ({
   poster,
   title,
   statusText,
-  pageUrl,
   loading,
-  error,
+  renderInfo,
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLDivElement>(null)
   const playerRef = useRef<ReturnType<typeof videojs>>(null)
   const [showInfo, setShowInfo] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
 
-  // Ref for portal containers
   const portalRefs = useRef<{
     hoverHeader: Element | null
     statusText: Element | null
@@ -204,10 +253,6 @@ export const VideoPlayer = ({
     pauseIndicator: null,
     timeDisplay: null,
   })
-
-  // State for time display
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
 
   const handleMouseEnter = () => {
     setIsHovered(true)
@@ -331,6 +376,7 @@ export const VideoPlayer = ({
           createPortal(
             <HoverHeader
               title={title}
+              showInfoButton={!!renderInfo}
               onInfoClick={handleOpenInfo}
               visible={isHovered}
             />,
@@ -338,12 +384,9 @@ export const VideoPlayer = ({
           )}
 
         {portalRefs.current.statusText &&
-          (loading !== undefined || statusText || error) &&
+          (loading !== undefined || statusText) &&
           createPortal(
-            <StatusText
-              message={error || statusText || ''}
-              loading={!!loading}
-            />,
+            <StatusText message={statusText || ''} loading={!!loading} />,
             portalRefs.current.statusText
           )}
 
@@ -404,20 +447,7 @@ export const VideoPlayer = ({
               <Close />
             </IconButton>
           </DialogTitle>
-          <DialogContent>
-            {videoUrl && (
-              <>
-                <Typography>Video URL</Typography>
-                <Typography>{videoUrl}</Typography>
-              </>
-            )}
-            {pageUrl && (
-              <>
-                <Typography>Page url</Typography>
-                <Typography>{pageUrl}</Typography>
-              </>
-            )}
-          </DialogContent>
+          <DialogContent>{renderInfo?.()}</DialogContent>
         </Dialog>
         <div data-vjs-player={true}>
           <div ref={videoRef} />

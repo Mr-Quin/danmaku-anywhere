@@ -162,3 +162,55 @@
 .vjs-time-divider {
   margin: 0 4px;
 }
+
+/* Playback speed dropdown styles */
+.vjs-playback-speed-container {
+  position: relative;
+}
+
+.vjs-playback-speed-dropdown {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  background-color: rgba(43, 51, 63, 0.9);
+  border-radius: 4px;
+  overflow: hidden;
+  z-index: 10;
+  margin-bottom: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  min-width: 80px;
+}
+
+.vjs-playback-speed-item {
+  padding: 8px 12px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.2s;
+}
+
+.vjs-playback-speed-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.vjs-playback-speed-item.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  font-weight: bold;
+}
+
+.video-js .vjs-big-play-button {
+  width: 80px;
+  height: 80px;
+  background-color: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: 50%;
+  line-height: 80px;
+  font-size: 40px;
+  transition: all 0.3s;
+}
+
+.video-js .vjs-big-play-button:hover {
+  background-color: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
