@@ -102,45 +102,67 @@ const ccTypeMap = new Map<string, (typeof ccTypeList)[number]>(
   ccTypeList.map((item) => [item.type, item])
 )
 
-function ccCheckExtension(ext: string, size?: number) {
+type CheckStatus =
+  | { status: 'accept'; type: string }
+  | { status: 'break' }
+  | { status: 'reject' }
+
+function ccCheckExtension(ext: string, size?: number): CheckStatus {
   const Ext = ccExtMap.get(ext)
   if (!Ext) {
-    return 'reject'
+    return { status: 'reject' }
   }
   if (!Ext.state) {
-    return 'break'
+    return { status: 'break' }
   }
   if (Ext.size != 0 && size != undefined && size <= Ext.size * 1024) {
-    return 'break'
+    return { status: 'break' }
   }
-  return 'accept'
+
+  const getContentType = (ext: string) => {
+    switch (ext) {
+      case 'm3u8':
+        return 'application/x-mpegurl'
+      case 'mp4':
+        return 'video/mp4'
+      default:
+        return `video/${ext}`
+    }
+  }
+
+  return { status: 'accept', type: getContentType(Ext.ext) }
 }
 
-function ccCheckType(dataType: string, dataSize?: number) {
+function ccCheckType(dataType: string, dataSize?: number): CheckStatus {
   const typeInfo =
     ccTypeMap.get(dataType.split('/')[0] + '/*') || ccTypeMap.get(dataType)
 
   if (!typeInfo) {
-    return 'reject'
+    return { status: 'reject' }
   }
   if (!typeInfo.state) {
-    return 'break'
+    return { status: 'break' }
   }
   if (
     typeInfo.size != 0 &&
     dataSize != undefined &&
     dataSize <= typeInfo.size * 1024
   ) {
-    return 'break'
+    return { status: 'break' }
   }
-  return 'accept'
+  return { status: 'accept', type: dataType }
 }
 
 const ccReFilename = /filename="?([^"]+)"?/
 
+type VideoInfo = {
+  src: string
+  type: string
+}
+
 export const getVideoUrlFromResponse = (
   res: chrome.webRequest.WebResponseHeadersDetails
-): string | undefined => {
+): VideoInfo | undefined => {
   const url = new URL(res.url)
   const [_, ext] = ccFileNameParse(url.pathname)
 
@@ -148,19 +170,25 @@ export const getVideoUrlFromResponse = (
 
   if (ext) {
     const check = ccCheckExtension(ext, headers.size)
-    if (check === 'accept') {
-      return res.url
+    if (check.status === 'accept') {
+      return {
+        src: res.url,
+        type: check.type,
+      }
     }
-    if (check === 'break') {
+    if (check.status === 'break') {
       return
     }
   }
   if (headers.type !== undefined) {
     const check = ccCheckType(headers.type, headers.size)
-    if (check === 'accept') {
-      return res.url
+    if (check.status === 'accept') {
+      return {
+        src: res.url,
+        type: check.type,
+      }
     }
-    if (check === 'break') {
+    if (check.status === 'break') {
       return
     }
   }
@@ -170,16 +198,24 @@ export const getVideoUrlFromResponse = (
       const [_, ext] = ccFileNameParse(decodeURIComponent(match[1]))
       if (ext) {
         const check = ccCheckExtension(ext, 0)
-        if (check === 'accept') {
-          return res.url
+        if (check.status === 'accept') {
+          return {
+            src: res.url,
+            type: check.type,
+          }
         }
-        if (check === 'break') {
+        if (check.status === 'break') {
           return
         }
       }
     }
   }
   if (res.type === 'media') {
-    return res.url
+    return {
+      src: res.url,
+      type:
+        res.responseHeaders?.find((h) => h.name.toLowerCase() === 'content-type')
+          ?.value || 'video/mp4',
+    }
   }
 }

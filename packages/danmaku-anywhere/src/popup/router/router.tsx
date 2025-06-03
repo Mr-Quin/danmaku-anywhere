@@ -24,6 +24,7 @@ import { ImportConfigPage } from '@/popup/pages/config/pages/import/ImportConfig
 import { ImportPage } from '@/popup/pages/import/ImportPage'
 import { KazumiPage } from '@/popup/pages/kazumi/pages/KazumiPage'
 import { ImportKazumiPolicyPage } from '@/popup/pages/kazumi/pages/import/ImportKazumiPolicyPage'
+import { LocalVideoPage } from '@/popup/pages/localVideo/LocalVideoPage'
 import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
 import { HelpOptions } from '@/popup/pages/options/pages/help/HelpOptions'
 import { ChapterSelector } from '@/popup/pages/player/ChapterSelector'
@@ -138,6 +139,10 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
             Component: ChapterSelector,
           },
         ],
+      },
+      {
+        path: 'localVideo',
+        Component: LocalVideoPage,
       },
     ],
   },

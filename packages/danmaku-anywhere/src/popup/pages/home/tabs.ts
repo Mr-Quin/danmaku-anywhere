@@ -31,4 +31,8 @@ export const tabs = [
     label: 'tabs.videoSearch',
     path: '/videoSearch',
   },
+  {
+    label: 'tabs.localVideo',
+    path: '/localVideo',
+  },
 ] as const
