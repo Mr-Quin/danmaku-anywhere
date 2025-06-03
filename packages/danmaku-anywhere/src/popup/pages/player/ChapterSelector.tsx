@@ -1,7 +1,7 @@
 import { NothingHere } from '@/common/components/NothingHere'
 import { kazumiQueryKeys } from '@/common/queries/queryKeys'
+import { VideoPlayer } from '@/popup/component/videoPlayer/VideoPlayer'
 import { useGoBack } from '@/popup/hooks/useGoBack'
-import { VideoPlayer } from '@/popup/pages/player/VideoPlayer'
 import type {
   KazumiChapterResult,
   KazumiSearchResult,
@@ -59,7 +59,7 @@ export const ChapterSelector = () => {
       if (!selectedChapter) return null
       return extractVideoUrl(selectedChapter.url)
     },
-    enabled: false,
+    enabled: !!selectedChapter,
     staleTime: Infinity,
     retry: false,
   })
@@ -71,12 +71,6 @@ export const ChapterSelector = () => {
       setSelectedChapter(playList[0][0])
     }
   }, [chaptersQuery.data])
-
-  useEffect(() => {
-    if (selectedChapter) {
-      void videoUrlQuery.refetch()
-    }
-  }, [selectedChapter])
 
   if (!content || !kazumiPolicy) {
     goBack()
@@ -117,6 +111,8 @@ export const ChapterSelector = () => {
     }
   }
 
+  console.log(videoUrlQuery.data)
+
   return (
     <Box sx={{ p: 2 }}>
       <Typography variant="h6" gutterBottom>
@@ -124,10 +120,8 @@ export const ChapterSelector = () => {
       </Typography>
 
       <VideoPlayer
-        playerProps={{
-          videoUrl: videoUrlQuery?.data?.[0],
-          autoplay: true,
-        }}
+        videoUrl={videoUrlQuery.data?.[0].src}
+        videoType={videoUrlQuery.data?.[0].type}
         loading={chaptersQuery.isLoading || videoUrlQuery.isLoading}
         statusText={getStatusText()}
         error={getErrorMessage()}

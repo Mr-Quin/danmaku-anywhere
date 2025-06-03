@@ -42,8 +42,6 @@
     "@tanstack/react-virtual": "^3.13.9",
     "@use-gesture/react": "^10.3.1",
     "dexie": "^4.0.11",
-    "dplayer": "^1.27.1",
-    "hls.js": "^1.6.4",
     "i18next": "^24.2.3",
     "immer": "^10.1.1",
     "jszip": "^3.10.1",
@@ -59,6 +57,7 @@
     "react-router": "^7.6.1",
     "ts-pattern": "^5.7.1",
     "urlpattern-polyfill": "^10.1.0",
+    "video.js": "^8.22.0",
     "zod": "^3.25.46",
     "zustand": "5.0.3"
   },

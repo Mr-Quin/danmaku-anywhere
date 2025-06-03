@@ -251,7 +251,6 @@ export const searchContent = async (
     },
     args: [policy.searchList, policy.searchName, policy.searchResult],
   })
-  console.log(results)
 
   if (results[0].result) {
     return results[0].result
@@ -336,10 +335,15 @@ export const getChapters = async (
   throw new Error('No chapters found')
 }
 
+type VideoInfo = {
+  src: string
+  type: string
+}
+
 // Function to extract video URL from a chapter page
 export const extractVideoUrl = async (
   chapterUrl: string
-): Promise<string[]> => {
+): Promise<VideoInfo[]> => {
   await using tabResource = await createTab(chapterUrl, {
     waitForNavigation: false,
   })
@@ -349,13 +353,13 @@ export const extractVideoUrl = async (
   Logger.debug('Looking for video URL in page', chapterUrl)
 
   const getVideoUrlFromNetRequest = async () => {
-    const { promise, resolve, reject } = Promise.withResolvers<Set<string>>()
+    const { promise, resolve, reject } = Promise.withResolvers<Set<VideoInfo>>()
 
     const timeout = setTimeout(() => {
       reject(new Error('Timeout'))
     }, 30000)
 
-    const videoUrls = new Set<string>()
+    const videoInfos = new Set<VideoInfo>()
     const cleanUpCb: (() => void)[] = []
 
     using cleanup = new DisposableStack()
@@ -373,19 +377,18 @@ export const extractVideoUrl = async (
       details: chrome.webRequest.WebRequestHeadersDetails
     ) => {
       const _ = details.url
-      console.log(details.url, details)
       // maybe we need the request headers later
     }
 
     const responseListener = (
       details: chrome.webRequest.WebResponseHeadersDetails
     ) => {
-      const videoUrl = getVideoUrlFromResponse(details)
+      const videoInfo = getVideoUrlFromResponse(details)
 
-      if (videoUrl) {
-        Logger.debug('Found video URL from response:', videoUrl, details)
-        videoUrls.add(videoUrl)
-        resolve(videoUrls)
+      if (videoInfo) {
+        Logger.debug('Found video URL from response:', videoInfo, details)
+        videoInfos.add(videoInfo)
+        resolve(videoInfos)
       }
     }
 
@@ -424,11 +427,11 @@ export const extractVideoUrl = async (
     // TODO: inject a content script to look for video URLs in the page
     await promise
 
-    if (videoUrls.size === 0) {
+    if (videoInfos.size === 0) {
       throw new Error('No video URLs found')
     }
 
-    return videoUrls
+    return videoInfos
   }
 
   const videoUrls = await getVideoUrlFromNetRequest()
