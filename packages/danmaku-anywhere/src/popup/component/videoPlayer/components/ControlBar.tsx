@@ -1,13 +1,21 @@
 import { useMouseDelay } from '@/common/hooks/useMouseDelay'
 import {
   Fullscreen,
+  FullscreenExit,
   Pause,
   PlayArrow,
   VolumeOff,
   VolumeUp,
 } from '@mui/icons-material'
-import { Box, IconButton, Slider, Typography, styled } from '@mui/material'
-import { useEffect, useState } from 'react'
+import {
+  Box,
+  IconButton,
+  Slider,
+  Tooltip,
+  Typography,
+  styled,
+} from '@mui/material'
+import { type MouseEvent, useEffect, useRef, useState } from 'react'
 import { useVideoPlayer } from '../VideoPlayerContext'
 import { PlaybackSpeedButton } from './PlaybackSpeedButton'
 import { TimeDisplay } from './TimeDisplay'
@@ -41,7 +49,6 @@ const ProgressSlider = styled(Slider)(({ theme }) => ({
   '& .MuiSlider-thumb': {
     width: 12,
     height: 12,
-    transition: '0.3s cubic-bezier(.47,1.64,.41,.8)',
     '&:hover, &.Mui-focusVisible': {
       boxShadow: `0px 0px 0px 8px ${theme.palette.primary.main}33`,
     },
@@ -97,64 +104,111 @@ const Spacer = styled(Box)({
   flexGrow: 1,
 })
 
+const formatTime = (seconds: number): string => {
+  if (!isFinite(seconds) || seconds < 0) return '0:00'
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = Math.floor(seconds % 60)
+  return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`
+}
+
 interface ControlBarProps {
   visible: boolean
 }
 
 export const ControlBar = ({ visible }: ControlBarProps) => {
   const {
-    player,
-    isPlaying,
     isPaused,
     isMuted,
+    isSeeking,
+    isFullscreen,
     volume,
     currentTime,
     duration,
     togglePlay,
     toggleMute,
+    toggleFullscreen,
     setVolume,
     seek,
   } = useVideoPlayer()
-  const show = useMouseDelay({ enabled: visible, timeout: 2000 })
 
+  const show = useMouseDelay({ enabled: visible, timeout: 2000 })
   const [showVolumeSlider, setShowVolumeSlider] = useState(false)
   const [sliderValue, setSliderValue] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const [isHovering, setIsHovering] = useState(false)
+  const [hoverValue, setHoverValue] = useState<number | null>(null)
+  const sliderRef = useRef<HTMLSpanElement>(null)
 
-  // Update slider value when currentTime changes
   useEffect(() => {
+    if (isSeeking || isDragging) return
     if (duration > 0) {
       setSliderValue((currentTime / duration) * 100)
-    } else {
+    } else if (duration <= 0) {
       setSliderValue(0)
     }
-  }, [currentTime, duration])
+  }, [currentTime, duration, isDragging, isSeeking])
 
-  const handleProgressChange = (_event: Event, newValue: number | number[]) => {
+  const handleProgressChange = (_: unknown, newValue: number | number[]) => {
+    const value = newValue as number
+    setSliderValue(value)
+  }
+
+  const handleProgressChangeCommitted = (
+    _: unknown,
+    newValue: number | number[]
+  ) => {
     const value = newValue as number
     if (duration > 0) {
       seek((value / 100) * duration)
     }
+    setIsDragging(false)
   }
 
-  const handleVolumeChange = (_event: Event, newValue: number | number[]) => {
+  const handleSliderMouseMove = (event: MouseEvent) => {
+    if (!sliderRef.current || duration <= 0) return
+
+    const rect = sliderRef.current.getBoundingClientRect()
+    const percent = Math.min(
+      Math.max((event.clientX - rect.left) / rect.width, 0),
+      1
+    )
+    setHoverValue(percent * 100)
+  }
+
+  const handleSliderMouseDown = () => {
+    setIsDragging(true)
+  }
+
+  const handleVolumeChange = (_: unknown, newValue: number | number[]) => {
     const value = newValue as number
     setVolume(value / 100)
   }
 
-  const handleFullscreen = () => {
-    if (player) {
-      if (player.isFullscreen()) {
-        player.exitFullscreen()
-      } else {
-        player.requestFullscreen()
-      }
-    }
-  }
-
   return (
-    <ControlBarContainer sx={{ opacity: visible && show ? 1 : 0 }}>
+    <ControlBarContainer sx={{ opacity: show && visible ? 1 : 0 }}>
       <ControlBarRow>
-        <ProgressSlider value={sliderValue} onChange={handleProgressChange} />
+        <Tooltip
+          title={
+            hoverValue !== null ? formatTime((hoverValue / 100) * duration) : ''
+          }
+          enterDelay={100}
+          leaveDelay={100}
+          open={isHovering}
+          arrow
+          placement="top"
+          followCursor
+        >
+          <ProgressSlider
+            ref={sliderRef}
+            value={sliderValue}
+            onChange={handleProgressChange}
+            onChangeCommitted={handleProgressChangeCommitted}
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseMove={handleSliderMouseMove}
+            onMouseLeave={() => setIsHovering(false)}
+            onMouseDown={handleSliderMouseDown}
+          />
+        </Tooltip>
       </ControlBarRow>
       <ControlBarRow>
         <IconButton onClick={togglePlay} disableRipple>
@@ -188,12 +242,8 @@ export const ControlBar = ({ visible }: ControlBarProps) => {
         <TimeDisplay />
         <Spacer />
         <PlaybackSpeedButton />
-        <IconButton
-          onClick={handleFullscreen}
-          sx={{ color: 'white', padding: 1 }}
-          aria-label="Fullscreen"
-        >
-          <Fullscreen />
+        <IconButton onClick={toggleFullscreen} aria-label="Fullscreen">
+          {isFullscreen ? <FullscreenExit /> : <Fullscreen />}
         </IconButton>
       </ControlBarRow>
     </ControlBarContainer>
