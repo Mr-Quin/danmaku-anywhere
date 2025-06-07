@@ -40,12 +40,24 @@ const VideoPlayerContext = createContext<VideoPlayerContextType>({
   currentTime: 0,
   duration: 0,
   playbackRate: 1,
-  togglePlay: () => {},
-  toggleMute: () => {},
-  toggleFullscreen: () => {},
-  setVolume: () => {},
-  seek: () => {},
-  setPlaybackRate: () => {},
+  togglePlay: () => {
+    //
+  },
+  toggleMute: () => {
+    //
+  },
+  toggleFullscreen: () => {
+    //
+  },
+  setVolume: () => {
+    //
+  },
+  seek: () => {
+    //
+  },
+  setPlaybackRate: () => {
+    //
+  },
 })
 
 export const useVideoPlayer = () => useContext(VideoPlayerContext)
@@ -83,20 +95,20 @@ export const VideoPlayerProvider = ({
     }
 
     const onVolumeChange = () => {
-      setIsMuted(player.muted())
-      setVolumeState(player.volume())
+      setIsMuted(player.muted()!)
+      setVolumeState(player.volume()!)
     }
 
     const onTimeUpdate = () => {
-      setCurrentTime(player.currentTime())
+      setCurrentTime(player.currentTime()!)
     }
 
     const onDurationChange = () => {
-      setDuration(player.duration())
+      setDuration(player.duration()!)
     }
 
     const onRateChange = () => {
-      setPlaybackRateState(player.playbackRate())
+      setPlaybackRateState(player.playbackRate()!)
     }
 
     const onSeeking = () => {
@@ -126,12 +138,12 @@ export const VideoPlayerProvider = ({
     player.on('enterFullWindow', onEnterFullWindow)
     player.on('exitFullWindow', onExitFullWindow)
 
-    setIsMuted(player.muted())
-    setVolumeState(player.volume())
-    setPlaybackRateState(player.playbackRate())
+    setIsMuted(player.muted()!)
+    setVolumeState(player.volume()!)
+    setPlaybackRateState(player.playbackRate()!)
     setIsPlaying(!player.paused())
     setIsPaused(player.paused())
-    setIsFullscreen(player.isFullscreen())
+    setIsFullscreen(player.isFullscreen()!)
 
     return () => {
       player.off('play', onPlay)

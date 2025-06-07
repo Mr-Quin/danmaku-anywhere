@@ -1,5 +1,4 @@
 import { useMouseDelay } from '@/common/hooks/useMouseDelay'
-import { useVideoPlayer } from '@/popup/component/videoPlayer/VideoPlayerContext'
 import { Info } from '@mui/icons-material'
 import { Box, Fade, IconButton, Typography } from '@mui/material'
 import {} from 'react'
@@ -17,8 +16,6 @@ export const HoverHeader = ({
   onInfoClick,
   visible,
 }: HoverHeaderProps) => {
-  const { player } = useVideoPlayer()
-  // Use the useMouseDelay hook to hide the header after inactivity
   const show = useMouseDelay({ enabled: visible, timeout: 2000 })
 
   return (

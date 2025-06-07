@@ -33,7 +33,6 @@ export const PlaybackSpeedButton = ({
         ref={buttonRef}
         onClick={handleClick}
         title="Playback Speed"
-        sx={{ minWidth: 40 }}
       >
         {playbackRate}x
       </ControlBarButton>
@@ -52,7 +51,6 @@ export const PlaybackSpeedButton = ({
         }}
         sx={{
           '& .MuiPaper-root': {
-            backgroundColor: 'rgba(43, 51, 63, 0.9)',
             color: 'white',
             minWidth: 80,
             boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)',

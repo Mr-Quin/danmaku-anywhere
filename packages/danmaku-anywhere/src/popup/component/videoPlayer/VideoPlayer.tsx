@@ -18,12 +18,13 @@ import { HoverHeader } from './components/HoverHeader'
 import { PauseIndicator } from './components/PauseIndicator'
 import { StatusText } from './components/StatusText'
 
-// Create videojs component containers for portals
+type VideoJsPlayer = ReturnType<typeof videojs>
+
 const createPortalContainer = (name: string) => {
   const Component = videojs.getComponent('Component')
 
   class PortalContainer extends Component {
-    constructor(player: any, options: any = {}) {
+    constructor(player: VideoJsPlayer, options = {}) {
       super(player, options)
       this.addClass(`vjs-portal-${name.toLowerCase()}`)
     }
@@ -43,7 +44,6 @@ createPortalContainer('StatusText')
 createPortalContainer('PauseIndicator')
 createPortalContainer('ControlBar')
 
-// Styled components
 const VideoPlayerWrapper = styled(Box)(() => ({
   position: 'relative',
   isolation: 'isolate',
@@ -84,10 +84,8 @@ export const VideoPlayer = ({
 }: VideoPlayerProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const playerRef = useRef<ReturnType<typeof videojs>>(null)
-  const [playerInst, setPlayerInst] = useState<ReturnType<
-    typeof videojs
-  > | null>(null)
+  const playerRef = useRef<VideoJsPlayer>(null)
+  const [playerInst, setPlayerInst] = useState<VideoJsPlayer | null>(null)
 
   const [showInfo, setShowInfo] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
@@ -108,28 +106,10 @@ export const VideoPlayer = ({
     controlBar: null,
   })
 
-  const handleMouseEnter = () => {
-    setIsHovered(true)
-  }
-
-  const handleMouseLeave = () => {
-    setIsHovered(false)
-  }
-
-  const handleOpenInfo = () => {
-    setShowInfo(true)
-  }
-
   useEffect(() => {
     if (!containerRef.current) return
 
-    // create the player
     const videoElement = document.createElement('video-js')
-
-    // Only add big play button when video is available
-    if (videoUrl) {
-      videoElement.classList.add('vjs-big-play-centered')
-    }
 
     containerRef.current.appendChild(videoElement)
 
@@ -186,12 +166,27 @@ export const VideoPlayer = ({
     portalRefs.current.controlBar = controlBarContainer.el()
   }, [playerInst])
 
+  const isReady = !!videoUrl && !!videoType
+
+  const handleMouseEnter = () => {
+    setIsHovered(true)
+  }
+
+  const handleMouseLeave = () => {
+    setIsHovered(false)
+  }
+
+  const handleOpenInfo = () => {
+    setShowInfo(true)
+  }
+
   const renderPortals = () => {
     if (!playerInst) return null
 
     return (
       <VideoPlayerProvider player={playerInst}>
         {portalRefs.current.hoverHeader &&
+          isReady &&
           title &&
           createPortal(
             <HoverHeader
@@ -211,9 +206,11 @@ export const VideoPlayer = ({
           )}
 
         {portalRefs.current.pauseIndicator &&
+          isReady &&
           createPortal(<PauseIndicator />, portalRefs.current.pauseIndicator)}
 
         {portalRefs.current.controlBar &&
+          isReady &&
           createPortal(
             <ControlBar visible={isHovered} />,
             portalRefs.current.controlBar
