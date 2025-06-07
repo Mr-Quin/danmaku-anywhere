@@ -214,8 +214,9 @@ export const getVideoUrlFromResponse = (
     return {
       src: res.url,
       type:
-        res.responseHeaders?.find((h) => h.name.toLowerCase() === 'content-type')
-          ?.value || 'video/mp4',
+        res.responseHeaders?.find(
+          (h) => h.name.toLowerCase() === 'content-type'
+        )?.value || 'video/mp4',
     }
   }
 }
