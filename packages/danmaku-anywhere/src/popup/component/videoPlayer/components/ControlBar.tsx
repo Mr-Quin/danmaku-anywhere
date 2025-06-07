@@ -1,4 +1,5 @@
 import { useMouseDelay } from '@/common/hooks/useMouseDelay'
+import { ControlBarButton } from '@/popup/component/videoPlayer/components/ControlBarButton'
 import {
   Fullscreen,
   FullscreenExit,
@@ -242,9 +243,9 @@ export const ControlBar = ({ visible }: ControlBarProps) => {
         <TimeDisplay />
         <Spacer />
         <PlaybackSpeedButton />
-        <IconButton onClick={toggleFullscreen} aria-label="Fullscreen">
+        <ControlBarButton onClick={toggleFullscreen}>
           {isFullscreen ? <FullscreenExit /> : <Fullscreen />}
-        </IconButton>
+        </ControlBarButton>
       </ControlBarRow>
     </ControlBarContainer>
   )
