@@ -68,7 +68,7 @@ const SearchBar = () => {
   const [isFocused, setIsFocused] = useState(false)
 
   const handleSearch = (keyword: string) => {
-    navigate('/videoSearch')
+    navigate('/video/search')
     setKeyword(keyword)
   }
 
