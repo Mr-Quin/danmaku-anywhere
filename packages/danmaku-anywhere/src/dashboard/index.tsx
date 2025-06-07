@@ -15,7 +15,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <Theme>
-        <EnvironmentProvider isPopup={false}>
+        <EnvironmentProvider env="dashboard">
           <App />
           <ReactQueryDevtools />
         </EnvironmentProvider>
