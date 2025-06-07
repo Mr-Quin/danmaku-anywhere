@@ -22,7 +22,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material'
-import { Suspense } from 'react'
+import { Suspense, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Outlet, useLocation, useMatches } from 'react-router'
 
@@ -33,11 +33,52 @@ import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { TabLayout } from '@/content/common/TabLayout'
 import { ReleaseNotes } from '@/popup/component/releaseNotes/ReleaseNotes'
 import { useEnvironment } from '@/popup/context/Environment'
-import { tabs } from '@/popup/pages/home/tabs'
 import { useStore } from '@/popup/store'
 import { ErrorBoundary } from 'react-error-boundary'
 
 const DRAWER_WIDTH = 240
+
+const commonPages = [
+  {
+    label: 'danmaku.mount',
+    path: '/mount',
+  },
+  {
+    label: 'tabs.search',
+    path: '/search',
+  },
+  {
+    label: 'tabs.danmaku',
+    path: '/danmaku',
+  },
+  {
+    label: 'tabs.style',
+    path: '/styles',
+  },
+  {
+    label: 'tabs.config',
+    path: '/config',
+  },
+  {
+    label: 'tabs.import',
+    path: '/import',
+  },
+] as const
+
+const dashboardPages = [
+  {
+    label: 'tabs.kazumi',
+    path: '/kazumi',
+  },
+  {
+    label: 'tabs.videoSearch',
+    path: '/videoSearch',
+  },
+  {
+    label: 'tabs.localVideo',
+    path: '/localVideo',
+  },
+] as const
 
 export const Home = () => {
   const currentTab = useMatches()[1].pathname
@@ -47,6 +88,13 @@ export const Home = () => {
   const theme = useTheme()
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
   const { open: drawerOpen, setOpen: setDrawerOpen } = useStore.use.drawer()
+
+  const pages = useMemo(() => {
+    if (isPopup) {
+      return commonPages
+    }
+    return [...commonPages, ...dashboardPages]
+  }, [isPopup])
 
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen)
@@ -66,7 +114,7 @@ export const Home = () => {
             flexShrink: 0,
           }}
         >
-          {tabs.map((tab) => {
+          {pages.map((tab) => {
             return (
               <Tab
                 label={t(tab.label)}
@@ -120,7 +168,7 @@ export const Home = () => {
           )}
         </Toolbar>
         <List>
-          {tabs.map((tab) => (
+          {pages.map((tab) => (
             <ListItem key={tab.path} disablePadding>
               <ListItemButton
                 component={Link}
