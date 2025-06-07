@@ -38,7 +38,13 @@ import { ErrorBoundary } from 'react-error-boundary'
 
 const DRAWER_WIDTH = 240
 
-const commonPages = [
+interface NavItem {
+  label: string
+  path: string
+  children?: NavItem[]
+}
+
+const commonPages: NavItem[] = [
   {
     label: 'danmaku.mount',
     path: '/mount',
@@ -65,18 +71,24 @@ const commonPages = [
   },
 ] as const
 
-const dashboardPages = [
+const dashboardPages: NavItem[] = [
   {
-    label: 'tabs.kazumi',
-    path: '/video/kazumi',
-  },
-  {
-    label: 'tabs.videoSearch',
-    path: '/video/search',
-  },
-  {
-    label: 'tabs.localVideo',
-    path: '/video/local',
+    label: 'tabs.video',
+    path: '/video',
+    children: [
+      {
+        label: 'tabs.kazumi',
+        path: '/video/kazumi',
+      },
+      {
+        label: 'tabs.videoSearch',
+        path: '/video/search',
+      },
+      {
+        label: 'tabs.localVideo',
+        path: '/video/local',
+      },
+    ],
   },
 ] as const
 
@@ -101,6 +113,10 @@ export const Home = () => {
   }
 
   const renderPopupTabs = () => {
+    const flatPages = pages.flatMap((item) => {
+      return item.children || [item]
+    })
+
     return (
       <>
         <Tabs
@@ -114,7 +130,7 @@ export const Home = () => {
             flexShrink: 0,
           }}
         >
-          {pages.map((tab) => {
+          {flatPages.map((tab) => {
             return (
               <Tab
                 label={t(tab.label)}
@@ -135,7 +151,9 @@ export const Home = () => {
       switch (path) {
         case '/mount':
           return <HomeIcon />
-        case '/videoSearch':
+        case '/video':
+          return <VideoLibraryIcon />
+        case '/search':
           return <SearchIcon />
         case '/danmaku':
           return <VideoLibraryIcon />
@@ -144,6 +162,42 @@ export const Home = () => {
         default:
           return <HomeIcon />
       }
+    }
+
+    const isPathActive = (path: string) => {
+      if (location.pathname === path) return true
+      return path !== '/' && location.pathname.startsWith(path + '/')
+    }
+
+    const renderNavItems = (items: NavItem[], level = 0) => {
+      return items.map((item) => {
+        const isActive = isPathActive(item.path)
+        const hasChildren = item.children && item.children.length > 0
+
+        return (
+          <Box key={item.path}>
+            <ListItem disablePadding>
+              <ListItemButton
+                component={Link}
+                to={item.path}
+                selected={isActive}
+                sx={{
+                  pl: 2 + level,
+                }}
+              >
+                <ListItemIcon>{getIconForPath(item.path)}</ListItemIcon>
+                <ListItemText primary={t(item.label)} />
+              </ListItemButton>
+            </ListItem>
+
+            {hasChildren && item.children && (
+              <List disablePadding>
+                {renderNavItems(item.children, level + 1)}
+              </List>
+            )}
+          </Box>
+        )
+      })
     }
 
     return (
@@ -167,20 +221,7 @@ export const Home = () => {
             </IconButton>
           )}
         </Toolbar>
-        <List>
-          {pages.map((tab) => (
-            <ListItem key={tab.path} disablePadding>
-              <ListItemButton
-                component={Link}
-                to={tab.path}
-                selected={currentTab === tab.path}
-              >
-                <ListItemIcon>{getIconForPath(tab.path)}</ListItemIcon>
-                <ListItemText primary={t(tab.label)} />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
+        <List>{renderNavItems(pages)}</List>
       </Drawer>
     )
   }
