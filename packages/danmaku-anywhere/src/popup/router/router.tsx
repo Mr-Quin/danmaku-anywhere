@@ -117,32 +117,41 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
         ],
       },
       {
-        path: 'kazumi',
+        path: 'video',
         children: [
           {
             index: true,
-            Component: KazumiPage,
-          },
-          { path: 'import', Component: ImportKazumiPolicyPage },
-        ],
-      },
-      {
-        path: 'videoSearch',
-        Component: PlayerPage,
-        children: [
-          {
-            index: true,
-            Component: SearchResultPage,
+            element: <Navigate to="local" />,
           },
           {
-            path: 'chapters',
-            Component: ChapterSelector,
+            path: 'kazumi',
+            children: [
+              {
+                index: true,
+                Component: KazumiPage,
+              },
+              { path: 'import', Component: ImportKazumiPolicyPage },
+            ],
+          },
+          {
+            path: 'search',
+            Component: PlayerPage,
+            children: [
+              {
+                index: true,
+                Component: SearchResultPage,
+              },
+              {
+                path: 'chapters',
+                Component: ChapterSelector,
+              },
+            ],
+          },
+          {
+            path: 'local',
+            Component: LocalVideoPage,
           },
         ],
-      },
-      {
-        path: 'localVideo',
-        Component: LocalVideoPage,
       },
     ],
   },

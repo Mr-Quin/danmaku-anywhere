@@ -68,15 +68,15 @@ const commonPages = [
 const dashboardPages = [
   {
     label: 'tabs.kazumi',
-    path: '/kazumi',
+    path: '/video/kazumi',
   },
   {
     label: 'tabs.videoSearch',
-    path: '/videoSearch',
+    path: '/video/search',
   },
   {
     label: 'tabs.localVideo',
-    path: '/localVideo',
+    path: '/video/local',
   },
 ] as const
 
