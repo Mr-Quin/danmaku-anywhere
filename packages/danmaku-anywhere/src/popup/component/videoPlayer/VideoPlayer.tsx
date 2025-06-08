@@ -232,18 +232,7 @@ export const VideoPlayer = ({
       >
         {portalRefs.current.children &&
           children &&
-          createPortal(
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-              }}
-            >
-              {children}
-            </Box>,
-            portalRefs.current.children
-          )}
+          createPortal(children, portalRefs.current.children)}
 
         {portalRefs.current.hoverHeader &&
           isReady &&

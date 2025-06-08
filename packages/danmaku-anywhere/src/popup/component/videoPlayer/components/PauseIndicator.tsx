@@ -21,7 +21,6 @@ export const PauseIndicator = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 2,
       }}
       {...bind()}
     >

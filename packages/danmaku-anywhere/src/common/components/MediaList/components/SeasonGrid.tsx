@@ -3,7 +3,6 @@ import {
   SeasonCardSkeleton,
 } from '@/common/components/MediaList/components/SeasonCard'
 import { useMergeRefs } from '@/common/hooks/useMergeRefs'
-import { useEnvironment } from '@/popup/context/Environment'
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import {
   Box,
@@ -61,6 +60,7 @@ interface SeasonGridProps {
   enableSelection?: boolean
   boxProps?: BoxProps
   ref?: RefObject<HTMLDivElement | null>
+  windowVirtualizer?: boolean
 }
 
 export const SeasonGrid = ({
@@ -74,9 +74,8 @@ export const SeasonGrid = ({
   selectionModel: selectionModelProp,
   boxProps,
   ref: refProp,
+  windowVirtualizer = false,
 }: SeasonGridProps) => {
-  const { isPopup } = useEnvironment()
-
   const [selectionModel, setSelectionModel] = useState<
     (Season | CustomSeason)[]
   >(selectionModelProp ?? [])
@@ -100,10 +99,9 @@ export const SeasonGrid = ({
       md: theme.spacing(3),
     }) ?? '8px'
 
-  const virtualizer = isPopup
-    ? useVirtualizer({
+  const virtualizer = windowVirtualizer
+    ? useWindowVirtualizer({
         count: data.length,
-        getScrollElement: () => ref.current || null,
         estimateSize: () => 250,
         getItemKey: (index) => {
           return data[index].id
@@ -112,8 +110,9 @@ export const SeasonGrid = ({
         lanes,
         overscan: 3,
       })
-    : useWindowVirtualizer({
+    : useVirtualizer({
         count: data.length,
+        getScrollElement: () => ref.current || null,
         estimateSize: () => 250,
         getItemKey: (index) => {
           return data[index].id

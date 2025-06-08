@@ -11,6 +11,7 @@ import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustom
 import { isProvider } from '@/common/danmaku/utils'
 import { useStoreScrollPosition } from '@/common/hooks/useStoreScrollPosition'
 import { matchWithPinyin } from '@/common/utils/utils'
+import { useEnvironment } from '@/popup/context/Environment'
 import { useStore } from '@/popup/store'
 import {
   type CustomSeason,
@@ -21,6 +22,8 @@ import { useTranslation } from 'react-i18next'
 
 const SeasonListSuspense = () => {
   const navigate = useNavigate()
+
+  const { isPopup } = useEnvironment()
 
   const { t } = useTranslation()
 
@@ -89,6 +92,7 @@ const SeasonListSuspense = () => {
           }).toString(),
         })
       }}
+      windowVirtualizer={!isPopup}
       virtualize
       ref={ref}
     />

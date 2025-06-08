@@ -1,16 +1,33 @@
 import type { SelectableEpisode } from '@/common/components/DanmakuSelector/DanmakuSelector'
+import { useToast } from '@/common/components/Toast/toastStore'
+import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFilterDanmaku } from '@/common/danmaku/queries/useFilterDanmaku'
 import { useMatchEpisode } from '@/common/danmaku/queries/useMatchEpisode'
 import { TabLayout } from '@/content/common/TabLayout'
 import { FileUpload } from '@/popup/component/FileUpload'
 import { VideoPlayer } from '@/popup/component/videoPlayer/VideoPlayer'
-import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import { DisambiguationSelector } from '@/popup/pages/video/local/DisambiguationSelector'
+import type {
+  CommentEntity,
+  DanDanPlayOf,
+  EpisodeMeta,
+  Season,
+  WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
+import { Paper } from '@mui/material'
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export const LocalVideoPage = () => {
+  const { t } = useTranslation()
   const [[file], setFiles] = useState<File[]>([])
   const [comments, setComments] = useState<CommentEntity[]>()
   const [showDisambiguation, setShowDisambiguation] = useState(false)
+  const [disambiguationResults, setDisambiguationResults] = useState<Season[]>(
+    []
+  )
+
+  const toast = useToast.use.toast()
 
   const { fileUrl, fileName } = useMemo(() => {
     if (!file) {
@@ -24,6 +41,7 @@ export const LocalVideoPage = () => {
   }, [file])
 
   const matchEpisode = useMatchEpisode()
+  const fetchMutation = useFetchDanmaku()
   const filterDanmaku = useFilterDanmaku()
 
   useEffect(() => {
@@ -36,27 +54,84 @@ export const LocalVideoPage = () => {
 
   useEffect(() => {
     if (!fileName) return
-    matchEpisode.mutate({
-      title: fileName,
-    }, {
-      onSuccess: ({ data }) => {
-        switch (data.status) {
-          case 'success':
-            break
-          case 'disambiguation':
-            setShowDisambiguation(true)
-            break
-          case 'notFound':
-            break
-        }
+    toast.info(t('anime.alert.searching', { title: fileName }))
+    matchEpisode.mutate(
+      {
+        title: fileName,
+      },
+      {
+        onSuccess: ({ data }) => {
+          switch (data.status) {
+            case 'success':
+              handleFetchDanmaku(data.data)
+              break
+            case 'disambiguation':
+              toast.warn(
+                t('anime.alert.searchDisambiguate', { title: fileName })
+              )
+              setDisambiguationResults(data.data)
+              setShowDisambiguation(true)
+              break
+            case 'notFound':
+              toast.warn(t('anime.alert.searchEmpty', { title: fileName }))
+              break
+          }
+        },
+        onError: (e) => {
+          toast.error(
+            t('anime.alert.searchError', {
+              message: e.message,
+            })
+          )
+        },
       }
-    })
+    )
   }, [fileName])
+
+  const handleFetchDanmaku = (
+    episode: WithSeason<DanDanPlayOf<EpisodeMeta>>
+  ) => {
+    toast.info(t('danmaku.alert.fetching', { title: episode.title }))
+    fetchMutation.mutate(
+      {
+        meta: episode,
+      },
+      {
+        onSuccess: (data) => {
+          setComments(data.comments)
+        },
+        onError: (e) => {
+          toast.error(
+            t('danmaku.alert.fetchError', {
+              message: e.message,
+            })
+          )
+        },
+      }
+    )
+  }
 
   const handleSelect = (episode: SelectableEpisode) => {
     filterDanmaku.mutate(episode, {
       onSuccess: (data) => {
         setComments(data.comments)
+      },
+    })
+  }
+
+  const handleSeasonSelect = (season: Season) => {
+    setShowDisambiguation(false)
+
+    const episodeMatchPayload = {
+      title: season.title,
+      seasonId: season.id,
+    }
+
+    matchEpisode.mutate(episodeMatchPayload, {
+      onSuccess: (result) => {
+        if (result.data.status === 'success') {
+          handleFetchDanmaku(result.data.data)
+        }
       },
     })
   }
@@ -76,6 +151,22 @@ export const LocalVideoPage = () => {
             onFilesSelected={setFiles}
             multiple={false}
           />
+        )}
+        {showDisambiguation && (
+          <Paper
+            sx={{
+              height: '100%',
+              width: 400,
+              overflow: 'auto',
+            }}
+          >
+            <DisambiguationSelector
+              seasons={disambiguationResults}
+              title={fileName || ''}
+              onApply={handleSeasonSelect}
+              isLoading={matchEpisode.isPending || fetchMutation.isPending}
+            />
+          </Paper>
         )}
       </VideoPlayer>
     </TabLayout>

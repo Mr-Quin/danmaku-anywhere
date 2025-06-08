@@ -29,7 +29,6 @@ export const HoverHeader = ({
           top: 0,
           left: 0,
           width: '100%',
-          zIndex: 1,
           display: 'flex',
           flexDirection: 'row',
           alignItems: 'center',
