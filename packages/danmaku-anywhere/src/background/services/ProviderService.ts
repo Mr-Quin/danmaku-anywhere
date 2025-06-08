@@ -212,17 +212,21 @@ export class ProviderService {
       }
     }
 
-    const mapping = await this.titleMappingService.get(mapKey)
+    const mapping = mapKey
+      ? await this.titleMappingService.get(mapKey)
+      : undefined
 
     if (mapping || seasonId) {
       if (mapping) {
         this.logger.debug('Mapping found, using mapped title', mapping)
       } else if (seasonId) {
         this.logger.debug('Using provided season id')
-        await this.titleMappingService.add({
-          key: mapKey,
-          DanDanPlay: seasonId,
-        })
+        if (mapKey) {
+          await this.titleMappingService.add({
+            key: mapKey,
+            DanDanPlay: seasonId,
+          })
+        }
       }
 
       const sid = seasonId ?? mapping?.DanDanPlay
@@ -258,10 +262,12 @@ export class ProviderService {
       this.logger.debug('Single season found', foundSeasons[0])
       const meta = await getMetaFromSeason(foundSeasons[0])
 
-      await this.titleMappingService.add({
-        key: mapKey,
-        DanDanPlay: meta.seasonId,
-      })
+      if (mapKey) {
+        await this.titleMappingService.add({
+          key: mapKey,
+          DanDanPlay: meta.seasonId,
+        })
+      }
 
       return {
         status: 'success',

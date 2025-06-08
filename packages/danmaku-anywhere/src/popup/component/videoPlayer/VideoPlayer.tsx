@@ -9,9 +9,14 @@ import {
 } from '@mui/material'
 import videojs from 'video.js'
 import 'video.js/dist/video-js.css'
-import { useEffect, useRef, useState } from 'react'
+import './VideoPlayer.css'
+import { DanmakuComponent } from '@/content/player/monitors/DanmakuComponent'
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import { DanmakuRenderer } from '@danmaku-anywhere/danmaku-engine'
+import { createElement, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import ReactDOM from 'react-dom/client'
 import { VideoPlayerProvider } from './VideoPlayerContext'
 import { ControlBar } from './components/ControlBar'
 import { HoverHeader } from './components/HoverHeader'
@@ -43,6 +48,8 @@ createPortalContainer('HoverHeader')
 createPortalContainer('StatusText')
 createPortalContainer('PauseIndicator')
 createPortalContainer('ControlBar')
+createPortalContainer('Children')
+createPortalContainer('Danmaku')
 
 const VideoPlayerWrapper = styled(Box)(() => ({
   position: 'relative',
@@ -71,6 +78,8 @@ type VideoPlayerProps = {
   statusText?: string
   loading?: boolean
   renderInfo?: () => ReactNode
+  comments?: CommentEntity[]
+  children?: ReactNode
 }
 
 export const VideoPlayer = ({
@@ -81,10 +90,16 @@ export const VideoPlayer = ({
   statusText,
   loading,
   renderInfo,
+  comments,
+  children,
 }: VideoPlayerProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
+  const rendererRef = useRef<DanmakuRenderer>(
+    new DanmakuRenderer((node, props) => {
+      ReactDOM.createRoot(node).render(createElement(DanmakuComponent, props))
+    })
+  )
 
-  const playerRef = useRef<VideoJsPlayer>(null)
   const [playerInst, setPlayerInst] = useState<VideoJsPlayer | null>(null)
 
   const [showInfo, setShowInfo] = useState(false)
@@ -97,6 +112,8 @@ export const VideoPlayer = ({
     pauseIndicator: Element | null
     timeDisplay: Element | null
     controlBar: Element | null
+    children: Element | null
+    danmaku: Element | null
   }>({
     hoverHeader: null,
     statusText: null,
@@ -104,7 +121,29 @@ export const VideoPlayer = ({
     pauseIndicator: null,
     timeDisplay: null,
     controlBar: null,
+    children: null,
+    danmaku: null,
   })
+
+  const createContainers = (playerInst: VideoJsPlayer) => {
+    const danmakuContainer = playerInst.addChild('PortalDanmaku')
+    portalRefs.current.danmaku = danmakuContainer.el()
+
+    const hoverHeaderContainer = playerInst.addChild('PortalHoverHeader')
+    portalRefs.current.hoverHeader = hoverHeaderContainer.el()
+
+    const statusTextContainer = playerInst.addChild('PortalStatusText')
+    portalRefs.current.statusText = statusTextContainer.el()
+
+    const pauseIndicatorContainer = playerInst.addChild('PortalPauseIndicator')
+    portalRefs.current.pauseIndicator = pauseIndicatorContainer.el()
+
+    const controlBarContainer = playerInst.addChild('PortalControlBar')
+    portalRefs.current.controlBar = controlBarContainer.el()
+
+    const childrenContainer = playerInst.addChild('PortalChildren')
+    portalRefs.current.children = childrenContainer.el()
+  }
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -128,15 +167,12 @@ export const VideoPlayer = ({
       enableSmoothSeeking: true,
     })
 
-    playerRef.current = player
     setPlayerInst(player)
+    createContainers(player)
 
     return () => {
-      const player = playerRef.current
-
       if (player && !player.isDisposed()) {
         player.dispose()
-        playerRef.current = null
         setPlayerInst(null)
         portalRefs.current = {
           hoverHeader: null,
@@ -145,26 +181,28 @@ export const VideoPlayer = ({
           pauseIndicator: null,
           timeDisplay: null,
           controlBar: null,
+          children: null,
+          danmaku: null,
         }
       }
     }
   }, [videoUrl, videoType, poster])
 
   useEffect(() => {
-    if (!playerInst) return
+    if (!playerInst || !comments || !portalRefs.current.danmaku) return
 
-    const hoverHeaderContainer = playerInst.addChild('PortalHoverHeader')
-    portalRefs.current.hoverHeader = hoverHeaderContainer.el()
+    console.log(playerInst.el().querySelector('video'))
 
-    const statusTextContainer = playerInst.addChild('PortalStatusText')
-    portalRefs.current.statusText = statusTextContainer.el()
+    rendererRef.current.create(
+      portalRefs.current.danmaku as HTMLElement,
+      playerInst.el().querySelector('video')!,
+      comments
+    )
 
-    const pauseIndicatorContainer = playerInst.addChild('PortalPauseIndicator')
-    portalRefs.current.pauseIndicator = pauseIndicatorContainer.el()
-
-    const controlBarContainer = playerInst.addChild('PortalControlBar')
-    portalRefs.current.controlBar = controlBarContainer.el()
-  }, [playerInst])
+    return () => {
+      rendererRef.current.destroy()
+    }
+  }, [playerInst, comments])
 
   const isReady = !!videoUrl && !!videoType
 
@@ -184,7 +222,22 @@ export const VideoPlayer = ({
     if (!playerInst) return null
 
     return (
-      <VideoPlayerProvider player={playerInst}>
+      <VideoPlayerProvider player={playerInst} renderer={rendererRef.current}>
+        {portalRefs.current.children &&
+          children &&
+          createPortal(
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+              }}
+            >
+              {children}
+            </Box>,
+            portalRefs.current.children
+          )}
+
         {portalRefs.current.hoverHeader &&
           isReady &&
           title &&

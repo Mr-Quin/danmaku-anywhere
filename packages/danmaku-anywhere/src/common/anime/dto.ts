@@ -19,7 +19,7 @@ export type SeasonQueryFilter = {
 }
 
 export interface MatchEpisodeInput {
-  mapKey: string
+  mapKey?: string
   title: string
   episodeNumber?: number
   // if available, use seasonId to disambiguate

@@ -18,7 +18,6 @@ import { useEpisodesLiteSuspense } from '@/common/danmaku/queries/useEpisodes'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { isNotCustom, isProvider } from '@/common/danmaku/utils'
 import { matchWithPinyin } from '@/common/utils/utils'
-import { useEnvironment } from '@/popup/context/Environment'
 import {
   type CustomEpisodeLite,
   type CustomSeason,
@@ -148,20 +147,21 @@ type FlattenedOption =
     }
 
 interface DanmakuSelectorProps {
-  filter: string
+  filter?: string
   typeFilter: DanmakuSourceType[]
   onSelect: (value: SelectableEpisode) => void
   disabled?: boolean
+  windowVirtualizer?: boolean
 }
 
 export const DanmakuSelector = ({
-  filter,
+  filter = '',
   typeFilter,
   onSelect,
   disabled,
+  windowVirtualizer = false,
 }: DanmakuSelectorProps) => {
   const { t } = useTranslation()
-  const { isPopup } = useEnvironment()
 
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -238,15 +238,15 @@ export const DanmakuSelector = ({
     }
   }
 
-  const virtualizer = isPopup
-    ? useVirtualizer({
+  const virtualizer = windowVirtualizer
+    ? useWindowVirtualizer({
         count: flattened.length,
-        getScrollElement: () => scrollRef.current,
         estimateSize: () => 72,
         getItemKey: (i) => getKey(flattened[i]),
       })
-    : useWindowVirtualizer({
+    : useVirtualizer({
         count: flattened.length,
+        getScrollElement: () => scrollRef.current,
         estimateSize: () => 72,
         getItemKey: (i) => getKey(flattened[i]),
       })

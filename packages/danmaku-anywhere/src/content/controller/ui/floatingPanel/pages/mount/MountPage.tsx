@@ -2,17 +2,20 @@ import { Button } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { Logger } from '@/common/Logger'
 import { CaptureKeypress } from '@/common/components/CaptureKeypress'
 import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSelector'
 import { FilterButton } from '@/common/components/FilterButton'
+import { useToast } from '@/common/components/Toast/toastStore'
 import { TypeSelector } from '@/common/components/TypeSelector'
+import { useFilterDanmaku } from '@/common/danmaku/queries/useFilterDanmaku'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
+import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
-import { useMountDanmakuContent } from '@/content/controller/ui/floatingPanel/pages/mount/useMountDanmakuContent'
 import type {
   CustomEpisodeLite,
   EpisodeLite,
@@ -21,8 +24,10 @@ import { Keyboard } from '@mui/icons-material'
 
 export const MountPage = () => {
   const { t } = useTranslation()
+  const toast = useToast.use.toast()
 
-  const { isMounted, danmakuLite, filter, setFilter } = useStore.use.danmaku()
+  const { isMounted, danmakuLite, filter, setFilter, toggleManualMode } =
+    useStore.use.danmaku()
   const selectedProviders = usePopup.use.selectedProviders()
   const setSelectedProviders = usePopup.use.setSelectedProviders()
 
@@ -30,13 +35,28 @@ export const MountPage = () => {
 
   const [isFilterOpen, setIsFilterOpen] = useState(false)
 
-  const { mutate, isPending } = useMountDanmakuContent()
+  const { mountDanmaku } = useLoadDanmaku()
+
+  const { mutate, isPending } = useFilterDanmaku()
   const unmountMutation = useUnmountDanmaku()
 
   const handleSelectDanmaku = (
     danmakuLite: EpisodeLite | CustomEpisodeLite
   ) => {
-    mutate(danmakuLite)
+    mutate(danmakuLite, {
+      onSuccess: (data) => {
+        toggleManualMode(true)
+        void mountDanmaku(data)
+      },
+      onError: (e) => {
+        toast.error(
+          t('danmaku.alert.mountError', {
+            message: (e as Error).message,
+          })
+        )
+        Logger.debug(e)
+      },
+    })
   }
 
   const handleUnmount = () => {

@@ -1,4 +1,5 @@
 import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSelector'
+import { useEnvironment } from '@/popup/context/Environment'
 import { useIsConnected } from '@/popup/hooks/useIsConnected'
 import { useMountDanmakuPopup } from '@/popup/pages/mount/useMountDanmakuPopup'
 import { useStore } from '@/popup/store'
@@ -12,6 +13,7 @@ export const MountController = () => {
   const { selectedTypes } = useStore.use.danmaku()
 
   const isConnected = useIsConnected()
+  const { isPopup } = useEnvironment()
 
   const { mutate, isPending: isMounting } = useMountDanmakuPopup()
 
@@ -32,6 +34,7 @@ export const MountController = () => {
       typeFilter={selectedTypes}
       onSelect={handleMount}
       disabled={!isConnected || isMounting}
+      windowVirtualizer={!isPopup}
     />
   )
 }

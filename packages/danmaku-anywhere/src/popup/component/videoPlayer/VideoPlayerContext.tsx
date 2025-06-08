@@ -1,3 +1,4 @@
+import type { DanmakuRenderer } from '@danmaku-anywhere/danmaku-engine'
 import {
   type ReactNode,
   createContext,
@@ -11,6 +12,7 @@ type Player = ReturnType<typeof videojs>
 
 interface VideoPlayerContextType {
   player: Player | null
+  renderer: DanmakuRenderer | null
   isPlaying: boolean
   isPaused: boolean
   isMuted: boolean
@@ -31,6 +33,7 @@ interface VideoPlayerContextType {
 // Create the context with default values
 const VideoPlayerContext = createContext<VideoPlayerContextType>({
   player: null,
+  renderer: null,
   isPlaying: false,
   isPaused: true,
   isMuted: false,
@@ -64,11 +67,13 @@ export const useVideoPlayer = () => useContext(VideoPlayerContext)
 
 interface VideoPlayerProviderProps {
   player: Player | null
+  renderer: DanmakuRenderer
   children: ReactNode
 }
 
 export const VideoPlayerProvider = ({
   player,
+  renderer,
   children,
 }: VideoPlayerProviderProps) => {
   const [isPlaying, setIsPlaying] = useState(false)
@@ -199,6 +204,7 @@ export const VideoPlayerProvider = ({
 
   const value = {
     player,
+    renderer,
     isPlaying,
     isPaused,
     isMuted,

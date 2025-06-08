@@ -19,7 +19,7 @@ import {
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-export const SelectorPage = () => {
+export const DisambiguationSelector = () => {
   const { t } = useTranslation()
   const { toast } = useToast()
 

@@ -8,14 +8,7 @@ import {
   VolumeOff,
   VolumeUp,
 } from '@mui/icons-material'
-import {
-  Box,
-  IconButton,
-  Slider,
-  Tooltip,
-  Typography,
-  styled,
-} from '@mui/material'
+import { Box, Slider, Tooltip, Typography, styled } from '@mui/material'
 import { type MouseEvent, useEffect, useRef, useState } from 'react'
 import { useVideoPlayer } from '../VideoPlayerContext'
 import { PlaybackSpeedButton } from './PlaybackSpeedButton'
@@ -79,28 +72,6 @@ const VolumeSlider = styled(Slider)(({ theme }) => ({
   },
 }))
 
-const VolumeControlContainer = styled(Box)({
-  display: 'flex',
-  alignItems: 'center',
-  position: 'relative',
-})
-
-const VolumeSliderContainer = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  width: '3em',
-  bottom: '100%',
-  left: '50%',
-  transform: 'translateX(-50%)',
-  padding: theme.spacing(1),
-  backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  borderRadius: theme.shape.borderRadius,
-  marginBottom: theme.spacing(1),
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(1),
-  alignItems: 'center',
-}))
-
 const Spacer = styled(Box)({
   flexGrow: 1,
 })
@@ -133,7 +104,6 @@ export const ControlBar = ({ visible }: ControlBarProps) => {
   } = useVideoPlayer()
 
   const show = useMouseDelay({ enabled: visible, timeout: 2000 })
-  const [showVolumeSlider, setShowVolumeSlider] = useState(false)
   const [sliderValue, setSliderValue] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
@@ -212,38 +182,42 @@ export const ControlBar = ({ visible }: ControlBarProps) => {
         </Tooltip>
       </ControlBarRow>
       <ControlBarRow>
-        <IconButton onClick={togglePlay} disableRipple>
-          {isPaused ? <PlayArrow /> : <Pause />}
-        </IconButton>
-        <VolumeControlContainer
-          onMouseEnter={() => setShowVolumeSlider(true)}
-          // onMouseLeave={() => setShowVolumeSlider(false)}
+        <ControlBarButton
+          onClick={togglePlay}
+          tooltip={isPaused ? 'Play' : 'Pause'}
         >
-          <IconButton onClick={toggleMute} disableRipple>
-            {isMuted || volume === 0 ? <VolumeOff /> : <VolumeUp />}
-          </IconButton>
-          {showVolumeSlider && (
-            <VolumeSliderContainer
-            // onMouseEnter={() => setShowVolumeSlider(true)}
-            // onMouseLeave={() => setShowVolumeSlider(false)}
-            >
-              <Typography variant="caption">
-                {Math.floor(isMuted ? 0 : volume * 100)}
-              </Typography>
-
-              <VolumeSlider
-                orientation="vertical"
-                value={isMuted ? 0 : volume * 100}
-                onChange={handleVolumeChange}
-                sx={{ height: 80 }}
-              />
-            </VolumeSliderContainer>
-          )}
-        </VolumeControlContainer>
+          {isPaused ? <PlayArrow /> : <Pause />}
+        </ControlBarButton>
+        <ControlBarButton
+          onClick={toggleMute}
+          menu={{
+            content: (
+              <>
+                <Typography
+                  variant="caption"
+                  sx={{ textAlign: 'center', display: 'block', mb: 1 }}
+                >
+                  {Math.floor(isMuted ? 0 : volume * 100)}
+                </Typography>
+                <VolumeSlider
+                  orientation="vertical"
+                  value={isMuted ? 0 : volume * 100}
+                  onChange={handleVolumeChange}
+                  sx={{ height: 80 }}
+                />
+              </>
+            ),
+          }}
+        >
+          {isMuted || volume === 0 ? <VolumeOff /> : <VolumeUp />}
+        </ControlBarButton>
         <TimeDisplay />
         <Spacer />
         <PlaybackSpeedButton />
-        <ControlBarButton onClick={toggleFullscreen}>
+        <ControlBarButton
+          onClick={toggleFullscreen}
+          tooltip={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+        >
           {isFullscreen ? <FullscreenExit /> : <Fullscreen />}
         </ControlBarButton>
       </ControlBarRow>
