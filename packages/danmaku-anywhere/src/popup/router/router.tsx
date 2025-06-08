@@ -22,15 +22,15 @@ import { StylesPage } from '../pages/styles/StylesPage'
 
 import { ImportConfigPage } from '@/popup/pages/config/pages/import/ImportConfigPage'
 import { ImportPage } from '@/popup/pages/import/ImportPage'
-import { KazumiPage } from '@/popup/pages/kazumi/pages/KazumiPage'
-import { ImportKazumiPolicyPage } from '@/popup/pages/kazumi/pages/import/ImportKazumiPolicyPage'
 import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
 import { HelpOptions } from '@/popup/pages/options/pages/help/HelpOptions'
-import { ChapterSelector } from '@/popup/pages/player/ChapterSelector'
-import { PlayerPage } from '@/popup/pages/player/PlayerPage'
-import { SearchResultPage } from '@/popup/pages/player/SearchResultPage'
 import { SeasonDetailsPage } from '@/popup/pages/search/seasonDetails/SeasonDetailsPage'
+import { KazumiPage } from '@/popup/pages/video/kazumi/pages/KazumiPage'
+import { ImportKazumiPolicyPage } from '@/popup/pages/video/kazumi/pages/import/ImportKazumiPolicyPage'
 import { LocalVideoPage } from '@/popup/pages/video/local/LocalVideoPage'
+import { ChapterSelector } from '@/popup/pages/video/player/ChapterSelector'
+import { PlayerPage } from '@/popup/pages/video/player/PlayerPage'
+import { SearchResultPage } from '@/popup/pages/video/player/SearchResultPage'
 
 export const router: ReturnType<typeof createHashRouter> = createHashRouter([
   {
