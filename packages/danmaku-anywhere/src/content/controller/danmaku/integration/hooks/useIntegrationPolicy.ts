@@ -6,10 +6,11 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
-import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'
+import { useMatchEpisode } from '@/common/danmaku/queries/useMatchEpisode'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import { IntegrationPolicyObserver } from '@/content/controller/danmaku/integration/observers/IntegrationPolicyObserver'
 import { useStore } from '@/content/controller/store/store'
+import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 
 export const useIntegrationPolicy = () => {
   const { t } = useTranslation()
@@ -28,6 +29,7 @@ export const useIntegrationPolicy = () => {
     deactivate,
     setFoundElements,
   } = useStore.use.integration()
+  const { open, setAnimes } = usePopup()
 
   const matchEpisode = useMatchEpisode()
   const { loadMutation } = useLoadDanmaku()
@@ -92,26 +94,43 @@ export const useIntegrationPolicy = () => {
 
           matchEpisode.mutate(episodeMatchPayload, {
             onSuccess: (result) => {
-              if (result.data.status !== 'success') {
-                return
-              }
-              loadMutation.mutate(
-                {
-                  meta: result.data.data,
-                  options: {
-                    forceUpdate: false,
-                  },
-                },
-                {
-                  onError: () => {
-                    toast.error(
-                      t('danmaku.alert.fetchError', {
-                        message: episodeMatchPayload.title,
-                      })
-                    )
-                  },
+              switch (result.data.status) {
+                case 'success': {
+                  loadMutation.mutate(
+                    {
+                      meta: result.data.data,
+                      options: {
+                        forceUpdate: false,
+                      },
+                    },
+                    {
+                      onError: () => {
+                        toast.error(
+                          t('danmaku.alert.fetchError', {
+                            message: episodeMatchPayload.title,
+                          })
+                        )
+                      },
+                    }
+                  )
+                  break
                 }
-              )
+                case 'disambiguation': {
+                  const anime = result.data.data
+                  setAnimes(anime)
+                  open({ animes: anime, tab: PopupTab.Selector })
+                  break
+                }
+                case 'notFound':
+                  toast.error(
+                    t('integration.alert.searchResultEmpty', { title: state.seasonTitle }),
+                    {
+                      actionFn: () => open({ tab: PopupTab.Search }),
+                      actionLabel: t('integration.alert.openSearch'),
+                    }
+                  )
+                  break
+              }
             },
           })
         },
