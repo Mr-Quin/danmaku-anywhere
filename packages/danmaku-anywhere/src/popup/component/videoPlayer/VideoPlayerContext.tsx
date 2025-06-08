@@ -1,3 +1,4 @@
+import type { SelectableEpisode } from '@/common/components/DanmakuSelector/DanmakuSelector'
 import type { DanmakuRenderer } from '@danmaku-anywhere/danmaku-engine'
 import {
   type ReactNode,
@@ -18,16 +19,19 @@ interface VideoPlayerContextType {
   isMuted: boolean
   isSeeking: boolean
   isFullscreen: boolean
+  isHovering: boolean
   volume: number
   currentTime: number
   duration: number
   playbackRate: number
+  setIsHovering: (isHovering: boolean) => void
   togglePlay: () => void
   toggleMute: () => void
   toggleFullscreen: () => void
   setVolume: (volume: number) => void
   seek: (time: number) => void
   setPlaybackRate: (rate: number) => void
+  onSelectEpisode: (episode: SelectableEpisode) => void
 }
 
 // Create the context with default values
@@ -39,10 +43,14 @@ const VideoPlayerContext = createContext<VideoPlayerContextType>({
   isMuted: false,
   isSeeking: false,
   isFullscreen: false,
+  isHovering: false,
   volume: 1,
   currentTime: 0,
   duration: 0,
   playbackRate: 1,
+  setIsHovering: () => {
+    //
+  },
   togglePlay: () => {
     //
   },
@@ -61,6 +69,9 @@ const VideoPlayerContext = createContext<VideoPlayerContextType>({
   setPlaybackRate: () => {
     //
   },
+  onSelectEpisode: () => {
+    //
+  },
 })
 
 export const useVideoPlayer = () => useContext(VideoPlayerContext)
@@ -68,12 +79,14 @@ export const useVideoPlayer = () => useContext(VideoPlayerContext)
 interface VideoPlayerProviderProps {
   player: Player | null
   renderer: DanmakuRenderer
+  onSelectEpisode: (episode: SelectableEpisode) => void
   children: ReactNode
 }
 
 export const VideoPlayerProvider = ({
   player,
   renderer,
+  onSelectEpisode,
   children,
 }: VideoPlayerProviderProps) => {
   const [isPlaying, setIsPlaying] = useState(false)
@@ -81,6 +94,7 @@ export const VideoPlayerProvider = ({
   const [isMuted, setIsMuted] = useState(false)
   const [isSeeking, setIsSeeking] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [isHovering, setIsHovering] = useState(false)
   const [volume, setVolumeState] = useState(1)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -207,19 +221,22 @@ export const VideoPlayerProvider = ({
     renderer,
     isPlaying,
     isPaused,
+    togglePlay,
     isMuted,
+    toggleMute,
     isSeeking,
     isFullscreen,
+    toggleFullscreen,
+    isHovering,
+    setIsHovering,
     volume,
+    setVolume,
     currentTime,
+    seek,
     duration,
     playbackRate,
-    togglePlay,
-    toggleMute,
-    toggleFullscreen,
-    setVolume,
-    seek,
     setPlaybackRate,
+    onSelectEpisode,
   }
 
   return (

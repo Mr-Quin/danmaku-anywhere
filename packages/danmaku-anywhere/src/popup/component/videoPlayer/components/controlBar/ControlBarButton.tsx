@@ -1,14 +1,8 @@
-import {
-  Box,
-  Button,
-  type ButtonProps,
-  ClickAwayListener,
-  Paper,
-  Popper,
-  Tooltip,
-  styled,
-} from '@mui/material'
+import { useVideoPlayer } from '@/popup/component/videoPlayer/VideoPlayerContext'
+import { Box, Button, type ButtonProps, Popper, styled } from '@mui/material'
 import { type MouseEvent, type ReactNode, useRef, useState } from 'react'
+import { PopoverPaper } from './PopoverPaper'
+import { StyledTooltip } from './StyledTooltip'
 
 const StyledControlBarButton = styled(Button)(({ theme }) => ({
   minWidth: 40,
@@ -27,16 +21,8 @@ const StyledControlBarButton = styled(Button)(({ theme }) => ({
   },
 }))
 
-const StyledMenuPaper = styled(Paper)(({ theme }) => ({
-  color: 'white',
-  backgroundColor: 'rgba(0, 0, 0, 0.8)',
-  boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)',
-  padding: theme.spacing(1),
-}))
-
-export interface ControlBarButtonProps extends Omit<ButtonProps, 'sx'> {
+export interface ControlBarButtonProps extends ButtonProps {
   children: ReactNode
-  sx?: ButtonProps['sx']
   tooltip?: string
   menu?: {
     content: ReactNode
@@ -50,6 +36,7 @@ export const ControlBarButton = ({
   menu,
   ...props
 }: ControlBarButtonProps) => {
+  const { setIsHovering } = useVideoPlayer()
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
@@ -58,6 +45,7 @@ export const ControlBarButton = ({
   const handleMouseEnter = () => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current)
+      setIsHovering(true)
     }
     setMenuAnchorEl(buttonRef.current)
   }
@@ -65,6 +53,7 @@ export const ControlBarButton = ({
   const handleMouseLeave = () => {
     hoverTimeoutRef.current = setTimeout(() => {
       setMenuAnchorEl(null)
+      setIsHovering(false)
     }, 1000)
   }
 
@@ -77,13 +66,10 @@ export const ControlBarButton = ({
     }
   }
 
-  const handleMenuClose = () => {
-    setMenuAnchorEl(null)
-  }
-
   const handleMenuMouseEnter = () => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current)
+      setIsHovering(true)
     }
   }
 
@@ -108,9 +94,9 @@ export const ControlBarButton = ({
   return (
     <Box>
       {showTooltip ? (
-        <Tooltip title={tooltip} arrow placement="top">
+        <StyledTooltip title={tooltip} arrow placement="top">
           {button}
-        </Tooltip>
+        </StyledTooltip>
       ) : (
         button
       )}
@@ -130,14 +116,12 @@ export const ControlBarButton = ({
             },
           ]}
         >
-          <ClickAwayListener onClickAway={handleMenuClose}>
-            <StyledMenuPaper
-              onMouseEnter={handleMenuMouseEnter}
-              onMouseLeave={handleMouseLeave}
-            >
-              {menu.content}
-            </StyledMenuPaper>
-          </ClickAwayListener>
+          <PopoverPaper
+            onMouseEnter={handleMenuMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            {menu.content}
+          </PopoverPaper>
         </Popper>
       )}
     </Box>

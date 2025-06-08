@@ -24,8 +24,6 @@ export const DisambiguationSelector = () => {
   const { toast } = useToast()
 
   const selectorBoxRef = useRef<HTMLDivElement>(undefined)
-  const { animes, saveMapping, setSaveMapping, toggleOpen } = usePopup()
-  const { mediaInfo } = useStore.use.integration()
 
   const [selectedSeason, setSelectedSeason] = useState<Season>()
 
@@ -42,12 +40,10 @@ export const DisambiguationSelector = () => {
   }
 
   const handleApply = async () => {
-    if (!selectedSeason || !mediaInfo) return
+    if (!selectedSeason) return
 
     const episodeMatchPayload = {
-      mapKey: mediaInfo.getKey(),
       title: selectedSeason.title,
-      episodeNumber: mediaInfo.episode,
       seasonId: selectedSeason.id,
     }
 

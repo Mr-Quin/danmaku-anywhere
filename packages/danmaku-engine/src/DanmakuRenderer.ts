@@ -247,6 +247,10 @@ export class DanmakuRenderer {
     this.created = false
   }
 
+  isVisible() {
+    return this.manager?.isShow() ?? false
+  }
+
   // Pass through methods
   show(): void {
     this.manager?.show()
