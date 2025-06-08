@@ -22,7 +22,6 @@ const ControlBarContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   gap: theme.spacing(1),
-  zIndex: 2,
   transition: 'opacity 0.3s ease',
 }))
 

@@ -55,6 +55,12 @@ const domain = {
     numericEpisode: '第{{episode}}集',
     numericSeason: '第{{season}}季',
     refresh: '刷新',
+    alert: {
+      searching: '正在搜索关于"{{title}}"的番剧',
+      searchDisambiguate: '找到多个关于"{{title}}"的番剧',
+      searchEmpty: '没有找到关于"{{title}}"的番剧',
+      searchError: '搜索失败：{{message}}',
+    },
   },
   configs: {
     alert: {
@@ -76,6 +82,7 @@ const domain = {
       mountError: '装填弹幕失败：{{message}}',
       refreshed: '弹幕已刷新：{{name}} ({{count}})',
       unmounted: '弹幕已卸载',
+      fetching: '正在获取关于"{{title}}"的弹幕',
       fetchError: '获取弹幕失败：{{message}}',
       fetchingNext: '正在获取下一集弹幕',
       refreshingDanmaku: '正在刷新弹幕',
