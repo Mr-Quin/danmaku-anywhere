@@ -194,16 +194,21 @@ export const VideoPlayer = ({
   useEffect(() => {
     if (!playerInst || !comments || !portalRefs.current.danmaku) return
 
-    console.log(playerInst.el().querySelector('video'))
-
     rendererRef.current.create(
       portalRefs.current.danmaku as HTMLElement,
       playerInst.el().querySelector('video')!,
       comments
     )
 
+    const handleResize = () => {
+      rendererRef.current.resize()
+    }
+
+    playerInst.on('fullscreenchange', handleResize)
+
     return () => {
       rendererRef.current.destroy()
+      playerInst.off('fullscreenchange', handleResize)
     }
   }, [playerInst, comments])
 
