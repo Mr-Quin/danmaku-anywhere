@@ -14,7 +14,7 @@ import type {
   Season,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Paper } from '@mui/material'
+import { Box, Slide } from '@mui/material'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -99,6 +99,12 @@ export const LocalVideoPage = () => {
       {
         onSuccess: (data) => {
           setComments(data.comments)
+          toast.success(
+            t('danmaku.alert.mounted', {
+              name: data.title,
+              count: data.comments.length,
+            })
+          )
         },
         onError: (e) => {
           toast.error(
@@ -136,6 +142,10 @@ export const LocalVideoPage = () => {
     })
   }
 
+  const handleCloseDisambiguation = () => {
+    setShowDisambiguation(false)
+  }
+
   return (
     <TabLayout>
       <VideoPlayer
@@ -152,22 +162,30 @@ export const LocalVideoPage = () => {
             multiple={false}
           />
         )}
-        {showDisambiguation && (
-          <Paper
-            sx={{
-              height: '100%',
-              width: 400,
-              overflow: 'auto',
-            }}
-          >
-            <DisambiguationSelector
-              seasons={disambiguationResults}
-              title={fileName || ''}
-              onApply={handleSeasonSelect}
-              isLoading={matchEpisode.isPending || fetchMutation.isPending}
-            />
-          </Paper>
-        )}
+        <Slide
+          in={showDisambiguation}
+          direction="right"
+          mountOnEnter
+          unmountOnExit
+        >
+          <Box p={2} height={1}>
+            <Box
+              width={400}
+              overflow="auto"
+              bgcolor="background.paper"
+              height={1}
+              borderRadius={1}
+            >
+              <DisambiguationSelector
+                seasons={disambiguationResults}
+                title={fileName || ''}
+                onApply={handleSeasonSelect}
+                onClose={handleCloseDisambiguation}
+                isLoading={matchEpisode.isPending || fetchMutation.isPending}
+              />
+            </Box>
+          </Box>
+        </Slide>
       </VideoPlayer>
     </TabLayout>
   )

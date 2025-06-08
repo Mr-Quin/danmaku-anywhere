@@ -14,7 +14,6 @@ type Player = ReturnType<typeof videojs>
 interface VideoPlayerContextType {
   player: Player | null
   renderer: DanmakuRenderer | null
-  isPlaying: boolean
   isPaused: boolean
   isMuted: boolean
   isSeeking: boolean
@@ -38,7 +37,6 @@ interface VideoPlayerContextType {
 const VideoPlayerContext = createContext<VideoPlayerContextType>({
   player: null,
   renderer: null,
-  isPlaying: false,
   isPaused: true,
   isMuted: false,
   isSeeking: false,
@@ -89,7 +87,6 @@ export const VideoPlayerProvider = ({
   onSelectEpisode,
   children,
 }: VideoPlayerProviderProps) => {
-  const [isPlaying, setIsPlaying] = useState(false)
   const [isPaused, setIsPaused] = useState(true)
   const [isMuted, setIsMuted] = useState(false)
   const [isSeeking, setIsSeeking] = useState(false)
@@ -104,12 +101,10 @@ export const VideoPlayerProvider = ({
     if (!player) return
 
     const onPlay = () => {
-      setIsPlaying(true)
       setIsPaused(false)
     }
 
     const onPause = () => {
-      setIsPlaying(false)
       setIsPaused(true)
     }
 
@@ -138,12 +133,12 @@ export const VideoPlayerProvider = ({
       setIsSeeking(false)
     }
 
-    const onEnterFullWindow = () => {
-      setIsFullscreen(true)
-    }
-
-    const onExitFullWindow = () => {
-      setIsFullscreen(false)
+    const onFullscreenChange = () => {
+      if (player.isFullscreen()) {
+        setIsFullscreen(true)
+      } else {
+        setIsFullscreen(false)
+      }
     }
 
     player.on('play', onPlay)
@@ -154,13 +149,11 @@ export const VideoPlayerProvider = ({
     player.on('ratechange', onRateChange)
     player.on('seeking', onSeeking)
     player.on('seeked', onSeeked)
-    player.on('enterFullWindow', onEnterFullWindow)
-    player.on('exitFullWindow', onExitFullWindow)
+    player.on('fullscreenchange', onFullscreenChange)
 
     setIsMuted(player.muted()!)
     setVolumeState(player.volume()!)
     setPlaybackRateState(player.playbackRate()!)
-    setIsPlaying(!player.paused())
     setIsPaused(player.paused())
     setIsFullscreen(player.isFullscreen()!)
 
@@ -173,8 +166,7 @@ export const VideoPlayerProvider = ({
       player.off('ratechange', onRateChange)
       player.off('seeking', onSeeking)
       player.off('seeked', onSeeked)
-      player.off('enterFullWindow', onEnterFullWindow)
-      player.off('exitFullWindow', onExitFullWindow)
+      player.off('fullscreenchange', onFullscreenChange)
     }
   }, [player])
 
@@ -219,7 +211,6 @@ export const VideoPlayerProvider = ({
   const value = {
     player,
     renderer,
-    isPlaying,
     isPaused,
     togglePlay,
     isMuted,
