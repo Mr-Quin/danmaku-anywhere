@@ -194,9 +194,11 @@ export const VideoPlayer = ({
   useEffect(() => {
     if (!playerInst || !comments || !portalRefs.current.danmaku) return
 
+    const videoElt = playerInst.el().querySelector('video')!
+
     rendererRef.current.create(
       portalRefs.current.danmaku as HTMLElement,
-      playerInst.el().querySelector('video')!,
+      videoElt,
       comments
     )
 
@@ -204,11 +206,17 @@ export const VideoPlayer = ({
       rendererRef.current.resize()
     }
 
+    const obs = new ResizeObserver(() => {
+      handleResize()
+    })
+
     playerInst.on('fullscreenchange', handleResize)
+    obs.observe(videoElt)
 
     return () => {
       rendererRef.current.destroy()
       playerInst.off('fullscreenchange', handleResize)
+      obs.unobserve(videoElt)
     }
   }, [playerInst, comments])
 

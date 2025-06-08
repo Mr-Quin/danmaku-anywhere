@@ -1,6 +1,6 @@
 import { Logger } from '@/common/Logger'
 import type { KazumiPolicy } from '@/common/options/kazumiPolicy/schema'
-import { getVideoUrlFromResponse } from '@/popup/pages/player/scraper/cat-catch'
+import { getVideoUrlFromResponse } from '@/popup/pages/video/player/scraper/cat-catch'
 
 export interface KazumiSearchResult {
   name: string

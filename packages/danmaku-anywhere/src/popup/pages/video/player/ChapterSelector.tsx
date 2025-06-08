@@ -5,11 +5,11 @@ import { useGoBack } from '@/popup/hooks/useGoBack'
 import type {
   KazumiChapterResult,
   KazumiSearchResult,
-} from '@/popup/pages/player/scraper/videoScraper'
+} from '@/popup/pages/video/player/scraper/videoScraper'
 import {
   extractVideoUrl,
   getChapters,
-} from '@/popup/pages/player/scraper/videoScraper'
+} from '@/popup/pages/video/player/scraper/videoScraper'
 import { useStore } from '@/popup/store'
 import {
   Box,
@@ -124,6 +124,9 @@ export const ChapterSelector = () => {
         loading={chaptersQuery.isLoading || videoUrlQuery.isLoading}
         statusText={getErrorMessage() || getStatusText()}
         title={getTitle()}
+        onSelectEpisode={() => {
+          //
+        }}
         renderInfo={() => {
           return (
             <>

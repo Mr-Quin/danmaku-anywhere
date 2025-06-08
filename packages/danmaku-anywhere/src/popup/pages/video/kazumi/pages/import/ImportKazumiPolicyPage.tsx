@@ -1,7 +1,7 @@
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
-import { PolicyRepo } from '@/popup/pages/kazumi/pages/import/PolicyRepo'
+import { PolicyRepo } from '@/popup/pages/video/kazumi/pages/import/PolicyRepo'
 import { Divider, Tab, Tabs } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'

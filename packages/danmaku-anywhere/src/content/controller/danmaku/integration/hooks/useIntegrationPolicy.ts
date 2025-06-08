@@ -3,14 +3,14 @@ import { useTranslation } from 'react-i18next'
 
 import { Logger } from '@/common/Logger'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { useMatchEpisode } from '@/common/danmaku/queries/useMatchEpisode'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
-import { useMatchEpisode } from '@/common/danmaku/queries/useMatchEpisode'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import { IntegrationPolicyObserver } from '@/content/controller/danmaku/integration/observers/IntegrationPolicyObserver'
-import { useStore } from '@/content/controller/store/store'
 import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
+import { useStore } from '@/content/controller/store/store'
 
 export const useIntegrationPolicy = () => {
   const { t } = useTranslation()
@@ -123,7 +123,9 @@ export const useIntegrationPolicy = () => {
                 }
                 case 'notFound':
                   toast.error(
-                    t('integration.alert.searchResultEmpty', { title: state.seasonTitle }),
+                    t('integration.alert.searchResultEmpty', {
+                      title: state.seasonTitle,
+                    }),
                     {
                       actionFn: () => open({ tab: PopupTab.Search }),
                       actionLabel: t('integration.alert.openSearch'),

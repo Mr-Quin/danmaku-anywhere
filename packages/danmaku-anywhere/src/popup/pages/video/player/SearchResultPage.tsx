@@ -2,8 +2,8 @@ import { Center } from '@/common/components/Center'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { NothingHere } from '@/common/components/NothingHere'
 import { kazumiQueryKeys } from '@/common/queries/queryKeys'
-import type { KazumiSearchResult } from '@/popup/pages/player/scraper/videoScraper'
-import { searchContent } from '@/popup/pages/player/scraper/videoScraper'
+import type { KazumiSearchResult } from '@/popup/pages/video/player/scraper/videoScraper'
+import { searchContent } from '@/popup/pages/video/player/scraper/videoScraper'
 import { useStore } from '@/popup/store'
 import {
   Box,
