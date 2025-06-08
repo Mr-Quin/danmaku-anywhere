@@ -1,18 +1,15 @@
 import { useMouseDelay } from '@/common/hooks/useMouseDelay'
-import { ControlBarButton } from '@/popup/component/videoPlayer/components/ControlBarButton'
-import {
-  Fullscreen,
-  FullscreenExit,
-  Pause,
-  PlayArrow,
-  VolumeOff,
-  VolumeUp,
-} from '@mui/icons-material'
-import { Box, Slider, Tooltip, Typography, styled } from '@mui/material'
+import { Box, Slider, styled } from '@mui/material'
 import { type MouseEvent, useEffect, useRef, useState } from 'react'
-import { useVideoPlayer } from '../VideoPlayerContext'
+import { useVideoPlayer } from '../../VideoPlayerContext'
+import { TimeDisplay } from '../TimeDisplay'
+import { DanmakuToggleButton } from './DanmakuToggleButton'
+import { FullscreenButton } from './FullscreenButton'
+import { PlayButton } from './PlayButton'
 import { PlaybackSpeedButton } from './PlaybackSpeedButton'
-import { TimeDisplay } from './TimeDisplay'
+import { SelectDanmakuButton } from './SelectDanmakuButton'
+import { StyledTooltip } from './StyledTooltip'
+import { VolumeButton } from './VolumeButton'
 
 const ControlBarContainer = styled(Box)(({ theme }) => ({
   position: 'absolute',
@@ -56,22 +53,6 @@ const ProgressSlider = styled(Slider)(({ theme }) => ({
   },
 }))
 
-const VolumeSlider = styled(Slider)(({ theme }) => ({
-  color: 'white',
-  height: 4,
-  padding: 0,
-  '& .MuiSlider-thumb': {
-    width: 10,
-    height: 10,
-    '&:hover, &.Mui-focusVisible': {
-      boxShadow: `0px 0px 0px 8px ${theme.palette.common.white}33`,
-    },
-  },
-  '& .MuiSlider-rail': {
-    opacity: 0.28,
-  },
-}))
-
 const Spacer = styled(Box)({
   flexGrow: 1,
 })
@@ -88,36 +69,23 @@ interface ControlBarProps {
 }
 
 export const ControlBar = ({ visible }: ControlBarProps) => {
-  const {
-    isPaused,
-    isMuted,
-    isSeeking,
-    isFullscreen,
-    volume,
-    currentTime,
-    duration,
-    togglePlay,
-    toggleMute,
-    toggleFullscreen,
-    setVolume,
-    seek,
-  } = useVideoPlayer()
+  const { currentTime, duration, seek, isHovering } = useVideoPlayer()
 
   const show = useMouseDelay({ enabled: visible, timeout: 2000 })
   const [sliderValue, setSliderValue] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
-  const [isHovering, setIsHovering] = useState(false)
+  const [isSliderHover, setIsSliderHover] = useState(false)
   const [hoverValue, setHoverValue] = useState<number | null>(null)
   const sliderRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
-    if (isSeeking || isDragging) return
+    if (isDragging) return
     if (duration > 0) {
       setSliderValue((currentTime / duration) * 100)
     } else if (duration <= 0) {
       setSliderValue(0)
     }
-  }, [currentTime, duration, isDragging, isSeeking])
+  }, [currentTime, duration, isDragging])
 
   const handleProgressChange = (_: unknown, newValue: number | number[]) => {
     const value = newValue as number
@@ -150,21 +118,18 @@ export const ControlBar = ({ visible }: ControlBarProps) => {
     setIsDragging(true)
   }
 
-  const handleVolumeChange = (_: unknown, newValue: number | number[]) => {
-    const value = newValue as number
-    setVolume(value / 100)
-  }
-
   return (
-    <ControlBarContainer sx={{ opacity: show && visible ? 1 : 0 }}>
+    <ControlBarContainer
+      sx={{ opacity: (show || isHovering) && visible ? 1 : 0 }}
+    >
       <ControlBarRow>
-        <Tooltip
+        <StyledTooltip
           title={
             hoverValue !== null ? formatTime((hoverValue / 100) * duration) : ''
           }
           enterDelay={100}
           leaveDelay={100}
-          open={isHovering}
+          open={isSliderHover}
           arrow
           placement="top"
           followCursor
@@ -174,52 +139,22 @@ export const ControlBar = ({ visible }: ControlBarProps) => {
             value={sliderValue}
             onChange={handleProgressChange}
             onChangeCommitted={handleProgressChangeCommitted}
-            onMouseEnter={() => setIsHovering(true)}
+            onMouseEnter={() => setIsSliderHover(true)}
             onMouseMove={handleSliderMouseMove}
-            onMouseLeave={() => setIsHovering(false)}
+            onMouseLeave={() => setIsSliderHover(false)}
             onMouseDown={handleSliderMouseDown}
           />
-        </Tooltip>
+        </StyledTooltip>
       </ControlBarRow>
       <ControlBarRow>
-        <ControlBarButton
-          onClick={togglePlay}
-          tooltip={isPaused ? 'Play' : 'Pause'}
-        >
-          {isPaused ? <PlayArrow /> : <Pause />}
-        </ControlBarButton>
-        <ControlBarButton
-          onClick={toggleMute}
-          menu={{
-            content: (
-              <>
-                <Typography
-                  variant="caption"
-                  sx={{ textAlign: 'center', display: 'block', mb: 1 }}
-                >
-                  {Math.floor(isMuted ? 0 : volume * 100)}
-                </Typography>
-                <VolumeSlider
-                  orientation="vertical"
-                  value={isMuted ? 0 : volume * 100}
-                  onChange={handleVolumeChange}
-                  sx={{ height: 80 }}
-                />
-              </>
-            ),
-          }}
-        >
-          {isMuted || volume === 0 ? <VolumeOff /> : <VolumeUp />}
-        </ControlBarButton>
+        <PlayButton />
+        <VolumeButton />
         <TimeDisplay />
         <Spacer />
+        <DanmakuToggleButton />
+        <SelectDanmakuButton />
         <PlaybackSpeedButton />
-        <ControlBarButton
-          onClick={toggleFullscreen}
-          tooltip={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
-        >
-          {isFullscreen ? <FullscreenExit /> : <Fullscreen />}
-        </ControlBarButton>
+        <FullscreenButton />
       </ControlBarRow>
     </ControlBarContainer>
   )

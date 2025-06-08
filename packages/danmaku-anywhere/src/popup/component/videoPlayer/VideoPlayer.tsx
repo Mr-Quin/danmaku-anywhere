@@ -10,6 +10,7 @@ import {
 import videojs from 'video.js'
 import 'video.js/dist/video-js.css'
 import './VideoPlayer.css'
+import type { SelectableEpisode } from '@/common/components/DanmakuSelector/DanmakuSelector'
 import { DanmakuComponent } from '@/content/player/monitors/DanmakuComponent'
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { DanmakuRenderer } from '@danmaku-anywhere/danmaku-engine'
@@ -18,10 +19,10 @@ import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import ReactDOM from 'react-dom/client'
 import { VideoPlayerProvider } from './VideoPlayerContext'
-import { ControlBar } from './components/ControlBar'
 import { HoverHeader } from './components/HoverHeader'
 import { PauseIndicator } from './components/PauseIndicator'
 import { StatusText } from './components/StatusText'
+import { ControlBar } from './components/controlBar/ControlBar'
 
 type VideoJsPlayer = ReturnType<typeof videojs>
 
@@ -78,6 +79,7 @@ type VideoPlayerProps = {
   statusText?: string
   loading?: boolean
   renderInfo?: () => ReactNode
+  onSelectEpisode: (episode: SelectableEpisode) => void
   comments?: CommentEntity[]
   children?: ReactNode
 }
@@ -91,6 +93,7 @@ export const VideoPlayer = ({
   loading,
   renderInfo,
   comments,
+  onSelectEpisode,
   children,
 }: VideoPlayerProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -222,7 +225,11 @@ export const VideoPlayer = ({
     if (!playerInst) return null
 
     return (
-      <VideoPlayerProvider player={playerInst} renderer={rendererRef.current}>
+      <VideoPlayerProvider
+        player={playerInst}
+        renderer={rendererRef.current}
+        onSelectEpisode={onSelectEpisode}
+      >
         {portalRefs.current.children &&
           children &&
           createPortal(
@@ -274,7 +281,6 @@ export const VideoPlayer = ({
 
   return (
     <>
-      {/*<VideoPlayerStyles />*/}
       <VideoPlayerWrapper
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}

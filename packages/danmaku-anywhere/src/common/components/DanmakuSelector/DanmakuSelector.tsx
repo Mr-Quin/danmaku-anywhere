@@ -256,8 +256,8 @@ export const DanmakuSelector = ({
   }
 
   return (
-    <Box height="100%" overflow="auto">
-      <Box height={virtualizer.getTotalSize()} ref={scrollRef}>
+    <Box height="100%" overflow="auto" ref={scrollRef}>
+      <Box height={virtualizer.getTotalSize()}>
         <List disablePadding>
           {virtualizer.getVirtualItems().map((virtualItem) => {
             const item = flattened[virtualItem.index]

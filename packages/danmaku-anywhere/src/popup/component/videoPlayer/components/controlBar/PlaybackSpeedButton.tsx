@@ -1,5 +1,5 @@
 import { MenuItem } from '@mui/material'
-import { useVideoPlayer } from '../VideoPlayerContext'
+import { useVideoPlayer } from '../../VideoPlayerContext'
 import { ControlBarButton } from './ControlBarButton'
 
 interface PlaybackSpeedButtonProps {

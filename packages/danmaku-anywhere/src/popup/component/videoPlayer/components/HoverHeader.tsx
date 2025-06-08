@@ -1,4 +1,5 @@
 import { useMouseDelay } from '@/common/hooks/useMouseDelay'
+import { useVideoPlayer } from '@/popup/component/videoPlayer/VideoPlayerContext'
 import { Info } from '@mui/icons-material'
 import { Box, Fade, IconButton, Typography } from '@mui/material'
 import {} from 'react'
@@ -16,10 +17,12 @@ export const HoverHeader = ({
   onInfoClick,
   visible,
 }: HoverHeaderProps) => {
+  const { isHovering } = useVideoPlayer()
+
   const show = useMouseDelay({ enabled: visible, timeout: 2000 })
 
   return (
-    <Fade in={visible && show} timeout={300}>
+    <Fade in={visible && (show || isHovering)} timeout={300}>
       <Box
         sx={{
           position: 'absolute',

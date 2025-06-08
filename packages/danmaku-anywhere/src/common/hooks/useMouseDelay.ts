@@ -14,16 +14,16 @@ export const useMouseDelay = ({
   const timeoutRef = useRef<NodeJS.Timeout>(undefined)
 
   const isTouch = useIsTouchDevice()
-  const [showFab, setShowFab] = useState(true)
+  const [show, setShow] = useState(true)
 
-  const handleShowFab = useMemo(() => {
+  const handleShow = useMemo(() => {
     return () => {
-      setShowFab(true)
+      setShow(true)
       clearTimeout(timeoutRef.current)
 
       // hide after 3 seconds
       timeoutRef.current = setTimeout(() => {
-        setShowFab(false)
+        setShow(false)
       }, timeout)
     }
   }, [timeout])
@@ -32,7 +32,7 @@ export const useMouseDelay = ({
     if (!enabled) return
 
     const handleTouch: EventListener = () => {
-      handleShowFab()
+      handleShow()
     }
 
     if (!isTouch) {
@@ -46,7 +46,7 @@ export const useMouseDelay = ({
       }
       window.removeEventListener('touchmove', handleTouch, { capture: true })
     }
-  }, [handleShowFab, enabled, isTouch])
+  }, [handleShow, enabled, isTouch])
 
-  return showFab
+  return show
 }
