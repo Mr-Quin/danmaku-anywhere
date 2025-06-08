@@ -23,7 +23,7 @@ export type DeleteDanmakuData =
       filter: CustomEpisodeQueryFilter
     }
 
-export const useDeleteDanmaku = () => {
+export const useDeleteEpisode = () => {
   const { t } = useTranslation()
 
   const toast = useToast.use.toast()

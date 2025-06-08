@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from 'react-router'
 import { EpisodeList } from './EpisodeList'
 
 import { useGetSeason } from '@/common/anime/queries/useSeasons'
-import { useDeleteDanmaku } from '@/common/danmaku/queries/useDeleteDanmaku'
+import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
@@ -55,7 +55,7 @@ export const EpisodePage = () => {
   }
 
   const { exportMany } = useExportDanmaku()
-  const deleteMutation = useDeleteDanmaku()
+  const deleteMutation = useDeleteEpisode()
 
   const [showDialog, setShowDialog] = useState(false)
 

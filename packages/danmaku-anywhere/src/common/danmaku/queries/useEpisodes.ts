@@ -4,7 +4,7 @@ import type { EpisodeQueryFilter } from '@/common/danmaku/dto'
 import { episodeQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
-export const useDanmakuManySuspense = (data: EpisodeQueryFilter) => {
+export const useEpisodesSuspense = (data: EpisodeQueryFilter) => {
   const query = useSuspenseQuery({
     queryKey: episodeQueryKeys.filter(data),
     queryFn: async () => {
@@ -16,7 +16,7 @@ export const useDanmakuManySuspense = (data: EpisodeQueryFilter) => {
   return query
 }
 
-export const useDanmakuManyLite = (data: EpisodeQueryFilter) => {
+export const useEpisodesLite = (data: EpisodeQueryFilter) => {
   const query = useQuery({
     queryKey: episodeQueryKeys.filterLite(data),
     queryFn: async () => {
@@ -28,7 +28,7 @@ export const useDanmakuManyLite = (data: EpisodeQueryFilter) => {
   return query
 }
 
-export const useAllDanmakuSuspense = () => {
+export const useEpisodesLiteSuspense = () => {
   const query = useSuspenseQuery({
     queryKey: episodeQueryKeys.filterLite({ all: true }),
     queryFn: async () => {

@@ -4,7 +4,7 @@ import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import type {} from '@danmaku-anywhere/danmaku-converter'
 import { useSuspenseQuery } from '@tanstack/react-query'
 
-export const useEpisodeSearch = (
+export const useSearchEpisode = (
   provider: RemoteDanmakuSourceType,
   seasonId: number
 ) => {

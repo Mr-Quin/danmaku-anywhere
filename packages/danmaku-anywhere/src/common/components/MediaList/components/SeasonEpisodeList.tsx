@@ -1,7 +1,7 @@
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
 import type { EpisodeQueryFilter } from '@/common/danmaku/dto'
-import { useEpisodeSearch } from '@/common/danmaku/queries/useEpisodeSearch'
+import { useSearchEpisode } from '@/common/danmaku/queries/useSearchEpisode'
 import { episodeQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import type { Season } from '@danmaku-anywhere/danmaku-converter'
@@ -42,7 +42,7 @@ const SeasonEpisodeListInner = ({
   season,
   renderEpisode,
 }: SeasonListItemProps) => {
-  const { data: episodes } = useEpisodeSearch(season.provider, season.id)
+  const { data: episodes } = useSearchEpisode(season.provider, season.id)
   const danmakuResults = useSuspenseQueries({
     queries: episodes.map((episode) => {
       const params = {

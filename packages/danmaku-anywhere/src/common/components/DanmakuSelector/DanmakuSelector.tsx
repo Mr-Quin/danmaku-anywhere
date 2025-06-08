@@ -14,7 +14,7 @@ import { BaseEpisodeListItem } from '@/common/components/MediaList/components/Ba
 import { NothingHere } from '@/common/components/NothingHere'
 import { ProviderLogo } from '@/common/components/ProviderLogo'
 import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
-import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useDanmakuMany'
+import { useEpisodesLiteSuspense } from '@/common/danmaku/queries/useEpisodes'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { isNotCustom, isProvider } from '@/common/danmaku/utils'
 import { matchWithPinyin } from '@/common/utils/utils'
@@ -163,7 +163,7 @@ export const DanmakuSelector = ({
 
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  const { data: episodes } = useAllDanmakuSuspense()
+  const { data: episodes } = useEpisodesLiteSuspense()
   const { data: customEpisodes } = useCustomEpisodeLiteSuspense({ all: true })
   const { data: seasons } = useGetAllSeasonsSuspense()
 

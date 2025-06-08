@@ -5,7 +5,7 @@ import { useGetSeasonSuspense } from '@/common/anime/queries/useSeasons'
 import { CommentsTable } from '@/common/components/CommentsTable'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useCustomEpisodeSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
-import { useDanmakuManySuspense } from '@/common/danmaku/queries/useDanmakuMany'
+import { useEpisodesSuspense } from '@/common/danmaku/queries/useEpisodes'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
@@ -52,7 +52,7 @@ export const CommentPage = () => {
 
       const {
         data: [episode],
-      } = useDanmakuManySuspense({ id: episodeId })
+      } = useEpisodesSuspense({ id: episodeId })
 
       return {
         title: `${season.title} - ${episode.title}`,

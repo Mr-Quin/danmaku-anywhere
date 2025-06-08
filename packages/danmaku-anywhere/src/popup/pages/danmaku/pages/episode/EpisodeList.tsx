@@ -1,6 +1,6 @@
 import { NothingHere } from '@/common/components/NothingHere'
 import { useCustomEpisodeLite } from '@/common/danmaku/queries/useCustomEpisodes'
-import { useDanmakuManyLite } from '@/common/danmaku/queries/useDanmakuMany'
+import { useEpisodesLite } from '@/common/danmaku/queries/useEpisodes'
 import { isProvider } from '@/common/danmaku/utils'
 import { useStore } from '@/popup/store'
 import {
@@ -35,7 +35,7 @@ export const EpisodeList = () => {
     error,
   } = isCustom
     ? useCustomEpisodeLite({ all: true })
-    : useDanmakuManyLite({
+    : useEpisodesLite({
         seasonId,
       })
 

@@ -5,13 +5,15 @@ import { Link } from 'react-router'
 
 import { NothingHere } from '@/common/components/NothingHere'
 
-import { useAllDanmakuSuspense } from '@/common/danmaku/queries/useDanmakuMany'
+import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
+import { useEpisodesLiteSuspense } from '@/common/danmaku/queries/useEpisodes'
 
 export const HasDanmaku = ({ children }: PropsWithChildren) => {
-  const { data } = useAllDanmakuSuspense()
+  const { data } = useEpisodesLiteSuspense()
+  const { data: custom } = useCustomEpisodeLiteSuspense({ all: true })
   const { t } = useTranslation()
 
-  if (data.length === 0) {
+  if (data.length === 0 && custom.length === 0) {
     return (
       <Box flexGrow={1}>
         <NothingHere message={t('mountPage.noDanmaku')}>
