@@ -1,7 +1,7 @@
-import Fallback from '@/assets/cover_fallback.png'
-import DanDanPlayLogo from '@/assets/dandanplay_logo.png'
-import Apologize from '@/assets/danmaku_apologize.png'
-import Empty from '@/assets/danmaku_empty.png'
+import Fallback from '@/assets/cover_fallback.webp'
+import DanDanPlayLogo from '@/assets/dandanplay_logo.webp'
+import Apologize from '@/assets/danmaku_apologize.webp'
+import Empty from '@/assets/danmaku_empty.webp'
 import { useImage } from '@/common/components/image/useImage'
 
 export const images = {
