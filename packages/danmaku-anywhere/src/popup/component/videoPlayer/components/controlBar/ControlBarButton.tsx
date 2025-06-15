@@ -1,6 +1,6 @@
 import { useVideoPlayer } from '@/popup/component/videoPlayer/VideoPlayerContext'
 import { Box, Button, type ButtonProps, Popper, styled } from '@mui/material'
-import { type MouseEvent, type ReactNode, useRef, useState } from 'react'
+import { type MouseEvent, type ReactNode, useEffect, useRef } from 'react'
 import { PopoverPaper } from './PopoverPaper'
 import { StyledTooltip } from './StyledTooltip'
 
@@ -24,6 +24,7 @@ const StyledControlBarButton = styled(Button)(({ theme }) => ({
 export interface ControlBarButtonProps extends ButtonProps {
   children: ReactNode
   tooltip?: string
+  buttonId?: string
   menu?: {
     content: ReactNode
   }
@@ -34,42 +35,56 @@ export const ControlBarButton = ({
   sx,
   tooltip,
   menu,
+  buttonId,
   ...props
 }: ControlBarButtonProps) => {
-  const { setIsHovering } = useVideoPlayer()
-  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null)
+  const {
+    setIsButtonHovering,
+    menuAnchorEl,
+    menuId,
+    showButtonMenu,
+    hideButtonMenu,
+  } = useVideoPlayer()
   const buttonRef = useRef<HTMLButtonElement>(null)
 
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  useEffect(() => {
+    if (hoverTimeoutRef.current) {
+      if (menuId !== buttonId) {
+        clearTimeout(hoverTimeoutRef.current)
+      }
+    }
+  }, [menuId, buttonId])
+
   const handleMouseEnter = () => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current)
-      setIsHovering(true)
+      setIsButtonHovering(true)
     }
-    setMenuAnchorEl(buttonRef.current)
+    showButtonMenu(buttonRef.current, buttonId ?? '')
   }
 
   const handleMouseLeave = () => {
     hoverTimeoutRef.current = setTimeout(() => {
-      setMenuAnchorEl(null)
-      setIsHovering(false)
+      hideButtonMenu()
+      setIsButtonHovering(false)
     }, 1000)
   }
 
-  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+  const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
     if (menu) {
-      setMenuAnchorEl(menuAnchorEl ? null : event.currentTarget)
+      showButtonMenu(menuAnchorEl ? null : buttonRef.current, buttonId ?? '')
     }
     if (props.onClick) {
-      props.onClick(event)
+      props.onClick(e)
     }
   }
 
   const handleMenuMouseEnter = () => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current)
-      setIsHovering(true)
+      setIsButtonHovering(true)
     }
   }
 
@@ -90,6 +105,7 @@ export const ControlBarButton = ({
   )
 
   const showTooltip = tooltip && !menu
+  const showPopper = menu && !!menuAnchorEl && menuId === buttonId
 
   return (
     <Box>
@@ -101,9 +117,9 @@ export const ControlBarButton = ({
         button
       )}
 
-      {menu && (
+      {showPopper && (
         <Popper
-          open={Boolean(menuAnchorEl)}
+          open={!!menuAnchorEl}
           anchorEl={menuAnchorEl}
           disablePortal
           placement="top"

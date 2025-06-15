@@ -11,6 +11,7 @@ import videojs from 'video.js'
 import 'video.js/dist/video-js.css'
 import './VideoPlayer.css'
 import type { SelectableEpisode } from '@/common/components/DanmakuSelector/DanmakuSelector'
+import { danmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { DanmakuComponent } from '@/content/player/monitors/DanmakuComponent'
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { DanmakuRenderer } from '@danmaku-anywhere/danmaku-engine'
@@ -19,10 +20,9 @@ import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import ReactDOM from 'react-dom/client'
 import { VideoPlayerProvider } from './VideoPlayerContext'
-import { HoverHeader } from './components/HoverHeader'
+import { HeaderControlBarContainer } from './components/HeaderControlBarContainer'
 import { PauseIndicator } from './components/PauseIndicator'
 import { StatusText } from './components/StatusText'
-import { ControlBar } from './components/controlBar/ControlBar'
 
 type VideoJsPlayer = ReturnType<typeof videojs>
 
@@ -45,10 +45,9 @@ const createPortalContainer = (name: string) => {
   videojs.registerComponent(`Portal${name}`, PortalContainer)
 }
 
-createPortalContainer('HoverHeader')
+createPortalContainer('HeaderControlBar')
 createPortalContainer('StatusText')
 createPortalContainer('PauseIndicator')
-createPortalContainer('ControlBar')
 createPortalContainer('Children')
 createPortalContainer('Danmaku')
 
@@ -106,34 +105,30 @@ export const VideoPlayer = ({
   const [playerInst, setPlayerInst] = useState<VideoJsPlayer | null>(null)
 
   const [showInfo, setShowInfo] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
+  const [isHovering, setIsHovering] = useState(false)
 
   const portalRefs = useRef<{
-    hoverHeader: Element | null
+    headerControlBar: Element | null
     statusText: Element | null
     playbackSpeed: Element | null
     pauseIndicator: Element | null
     timeDisplay: Element | null
-    controlBar: Element | null
     children: Element | null
     danmaku: Element | null
   }>({
-    hoverHeader: null,
+    headerControlBar: null,
     statusText: null,
     playbackSpeed: null,
     pauseIndicator: null,
     timeDisplay: null,
-    controlBar: null,
     children: null,
     danmaku: null,
   })
 
   const createContainers = (playerInst: VideoJsPlayer) => {
+    // the order of creation here determines their order in the dom
     const danmakuContainer = playerInst.addChild('PortalDanmaku')
     portalRefs.current.danmaku = danmakuContainer.el()
-
-    const hoverHeaderContainer = playerInst.addChild('PortalHoverHeader')
-    portalRefs.current.hoverHeader = hoverHeaderContainer.el()
 
     const statusTextContainer = playerInst.addChild('PortalStatusText')
     portalRefs.current.statusText = statusTextContainer.el()
@@ -141,8 +136,10 @@ export const VideoPlayer = ({
     const pauseIndicatorContainer = playerInst.addChild('PortalPauseIndicator')
     portalRefs.current.pauseIndicator = pauseIndicatorContainer.el()
 
-    const controlBarContainer = playerInst.addChild('PortalControlBar')
-    portalRefs.current.controlBar = controlBarContainer.el()
+    const headerControlBarContainer = playerInst.addChild(
+      'PortalHeaderControlBar'
+    )
+    portalRefs.current.headerControlBar = headerControlBarContainer.el()
 
     const childrenContainer = playerInst.addChild('PortalChildren')
     portalRefs.current.children = childrenContainer.el()
@@ -178,12 +175,11 @@ export const VideoPlayer = ({
         player.dispose()
         setPlayerInst(null)
         portalRefs.current = {
-          hoverHeader: null,
+          headerControlBar: null,
           statusText: null,
           playbackSpeed: null,
           pauseIndicator: null,
           timeDisplay: null,
-          controlBar: null,
           children: null,
           danmaku: null,
         }
@@ -210,6 +206,13 @@ export const VideoPlayer = ({
       handleResize()
     })
 
+    danmakuOptionsService.get().then((options) => {
+      rendererRef.current.updateConfig(options)
+    })
+    const unsubscribe = danmakuOptionsService.onChange((options) => {
+      rendererRef.current.updateConfig(options)
+    })
+
     playerInst.on('fullscreenchange', handleResize)
     obs.observe(videoElt)
 
@@ -217,17 +220,18 @@ export const VideoPlayer = ({
       rendererRef.current.destroy()
       playerInst.off('fullscreenchange', handleResize)
       obs.unobserve(videoElt)
+      unsubscribe()
     }
   }, [playerInst, comments])
 
   const isReady = !!videoUrl && !!videoType
 
   const handleMouseEnter = () => {
-    setIsHovered(true)
+    setIsHovering(true)
   }
 
   const handleMouseLeave = () => {
-    setIsHovered(false)
+    setIsHovering(false)
   }
 
   const handleOpenInfo = () => {
@@ -238,26 +242,20 @@ export const VideoPlayer = ({
     if (!playerInst) return null
 
     return (
-      <VideoPlayerProvider
-        player={playerInst}
-        renderer={rendererRef.current}
-        onSelectEpisode={onSelectEpisode}
-      >
+      <>
         {portalRefs.current.children &&
           children &&
           createPortal(children, portalRefs.current.children)}
 
-        {portalRefs.current.hoverHeader &&
+        {portalRefs.current.headerControlBar &&
           isReady &&
-          title &&
           createPortal(
-            <HoverHeader
+            <HeaderControlBarContainer
               title={title}
               showInfoButton={!!renderInfo}
               onInfoClick={handleOpenInfo}
-              visible={isHovered}
             />,
-            portalRefs.current.hoverHeader
+            portalRefs.current.headerControlBar
           )}
 
         {portalRefs.current.statusText &&
@@ -270,14 +268,7 @@ export const VideoPlayer = ({
         {portalRefs.current.pauseIndicator &&
           isReady &&
           createPortal(<PauseIndicator />, portalRefs.current.pauseIndicator)}
-
-        {portalRefs.current.controlBar &&
-          isReady &&
-          createPortal(
-            <ControlBar visible={isHovered} />,
-            portalRefs.current.controlBar
-          )}
-      </VideoPlayerProvider>
+      </>
     )
   }
 
@@ -287,40 +278,47 @@ export const VideoPlayer = ({
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <Dialog
-          open={showInfo}
-          onClose={() => setShowInfo(false)}
-          fullWidth
-          hideBackdrop
-          maxWidth="sm"
-          disablePortal
-          slotProps={{
-            paper: {
-              sx: {
-                background: 'rgba(0, 0, 0, 0.4)',
-              },
-            },
-          }}
-        >
-          <DialogTitle>
-            Video Info
-            <IconButton
-              sx={{
-                float: 'right',
-                p: 0,
-              }}
-              onClick={() => setShowInfo(false)}
-              disableRipple
-            >
-              <Close />
-            </IconButton>
-          </DialogTitle>
-          <DialogContent>{renderInfo?.()}</DialogContent>
-        </Dialog>
         <PlayerContainer data-vjs-player={true}>
           <VideoContainer ref={containerRef} />
         </PlayerContainer>
-        {renderPortals()}
+        <VideoPlayerProvider
+          player={playerInst}
+          renderer={rendererRef.current}
+          onSelectEpisode={onSelectEpisode}
+          isHovering={isHovering}
+        >
+          <Dialog
+            open={showInfo}
+            onClose={() => setShowInfo(false)}
+            fullWidth
+            hideBackdrop
+            maxWidth="sm"
+            disablePortal
+            slotProps={{
+              paper: {
+                sx: {
+                  background: 'rgba(0, 0, 0, 0.4)',
+                },
+              },
+            }}
+          >
+            <DialogTitle>
+              Video Info
+              <IconButton
+                sx={{
+                  float: 'right',
+                  p: 0,
+                }}
+                onClick={() => setShowInfo(false)}
+                disableRipple
+              >
+                <Close />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent>{renderInfo?.()}</DialogContent>
+          </Dialog>
+          {renderPortals()}
+        </VideoPlayerProvider>
       </VideoPlayerWrapper>
     </>
   )

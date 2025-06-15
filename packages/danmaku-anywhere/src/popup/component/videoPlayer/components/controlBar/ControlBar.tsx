@@ -1,4 +1,4 @@
-import { useMouseDelay } from '@/common/hooks/useMouseDelay'
+import { DanmakuStyleButton } from '@/popup/component/videoPlayer/components/controlBar/DanmakuStyleButton'
 import { Box, Slider, styled } from '@mui/material'
 import { type MouseEvent, useEffect, useRef, useState } from 'react'
 import { useVideoPlayer } from '../../VideoPlayerContext'
@@ -63,14 +63,9 @@ const formatTime = (seconds: number): string => {
   return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`
 }
 
-interface ControlBarProps {
-  visible: boolean
-}
+export const ControlBar = () => {
+  const { currentTime, duration, seek } = useVideoPlayer()
 
-export const ControlBar = ({ visible }: ControlBarProps) => {
-  const { currentTime, duration, seek, isHovering } = useVideoPlayer()
-
-  const show = useMouseDelay({ enabled: visible, timeout: 2000 })
   const [sliderValue, setSliderValue] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [isSliderHover, setIsSliderHover] = useState(false)
@@ -118,9 +113,7 @@ export const ControlBar = ({ visible }: ControlBarProps) => {
   }
 
   return (
-    <ControlBarContainer
-      sx={{ opacity: (show || isHovering) && visible ? 1 : 0 }}
-    >
+    <ControlBarContainer>
       <ControlBarRow>
         <StyledTooltip
           title={
@@ -150,6 +143,7 @@ export const ControlBar = ({ visible }: ControlBarProps) => {
         <VolumeButton />
         <TimeDisplay />
         <Spacer />
+        <DanmakuStyleButton />
         <DanmakuToggleButton />
         <SelectDanmakuButton />
         <PlaybackSpeedButton />

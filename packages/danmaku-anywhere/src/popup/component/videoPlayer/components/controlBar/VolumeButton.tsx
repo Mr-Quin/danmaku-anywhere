@@ -29,6 +29,7 @@ export const VolumeButton = () => {
 
   return (
     <ControlBarButton
+      buttonId="volume-button"
       onClick={toggleMute}
       menu={{
         content: (

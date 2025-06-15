@@ -43,6 +43,7 @@ export const PlaybackSpeedButton = ({
 
   return (
     <ControlBarButton
+      buttonId="playback-speed-button"
       tooltip="Playback Speed"
       menu={{
         content: menuContent,

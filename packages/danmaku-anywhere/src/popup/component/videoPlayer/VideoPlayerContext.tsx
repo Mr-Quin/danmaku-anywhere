@@ -14,16 +14,17 @@ type Player = ReturnType<typeof videojs>
 interface VideoPlayerContextType {
   player: Player | null
   renderer: DanmakuRenderer | null
+  isHovering: boolean
   isPaused: boolean
   isMuted: boolean
   isSeeking: boolean
   isFullscreen: boolean
-  isHovering: boolean
+  isButtonHovering: boolean
   volume: number
   currentTime: number
   duration: number
   playbackRate: number
-  setIsHovering: (isHovering: boolean) => void
+  setIsButtonHovering: (isButtonHovering: boolean) => void
   togglePlay: () => void
   toggleMute: () => void
   toggleFullscreen: () => void
@@ -31,22 +32,35 @@ interface VideoPlayerContextType {
   seek: (time: number) => void
   setPlaybackRate: (rate: number) => void
   onSelectEpisode: (episode: SelectableEpisode) => void
+  menuAnchorEl: null | HTMLElement
+  menuId: string
+  showButtonMenu: (anchor: HTMLElement | null, id: string) => void
+  hideButtonMenu: () => void
 }
 
 // Create the context with default values
 const VideoPlayerContext = createContext<VideoPlayerContextType>({
   player: null,
   renderer: null,
+  isHovering: false,
   isPaused: true,
   isMuted: false,
   isSeeking: false,
   isFullscreen: false,
-  isHovering: false,
+  isButtonHovering: false,
   volume: 1,
   currentTime: 0,
   duration: 0,
   playbackRate: 1,
-  setIsHovering: () => {
+  menuAnchorEl: null,
+  menuId: '',
+  showButtonMenu: () => {
+    //
+  },
+  hideButtonMenu: () => {
+    //
+  },
+  setIsButtonHovering: () => {
     //
   },
   togglePlay: () => {
@@ -78,6 +92,7 @@ interface VideoPlayerProviderProps {
   player: Player | null
   renderer: DanmakuRenderer
   onSelectEpisode: (episode: SelectableEpisode) => void
+  isHovering: boolean
   children: ReactNode
 }
 
@@ -85,17 +100,20 @@ export const VideoPlayerProvider = ({
   player,
   renderer,
   onSelectEpisode,
+  isHovering,
   children,
 }: VideoPlayerProviderProps) => {
   const [isPaused, setIsPaused] = useState(true)
   const [isMuted, setIsMuted] = useState(false)
   const [isSeeking, setIsSeeking] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [isHovering, setIsHovering] = useState(false)
+  const [isButtonHovering, setIsButtonHovering] = useState(false)
   const [volume, setVolumeState] = useState(1)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [playbackRate, setPlaybackRateState] = useState(1)
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null)
+  const [menuId, setMenuId] = useState<string>('')
 
   useEffect(() => {
     if (!player) return
@@ -208,9 +226,20 @@ export const VideoPlayerProvider = ({
     player.playbackRate(rate)
   }
 
+  const showButtonMenu = (anchor: HTMLElement | null, id: string) => {
+    setMenuAnchorEl(anchor)
+    setMenuId(id)
+  }
+
+  const hideButtonMenu = () => {
+    setMenuAnchorEl(null)
+    setMenuId('')
+  }
+
   const value = {
     player,
     renderer,
+    isHovering,
     isPaused,
     togglePlay,
     isMuted,
@@ -218,8 +247,8 @@ export const VideoPlayerProvider = ({
     isSeeking,
     isFullscreen,
     toggleFullscreen,
-    isHovering,
-    setIsHovering,
+    isButtonHovering,
+    setIsButtonHovering,
     volume,
     setVolume,
     currentTime,
@@ -228,6 +257,10 @@ export const VideoPlayerProvider = ({
     playbackRate,
     setPlaybackRate,
     onSelectEpisode,
+    menuAnchorEl,
+    menuId,
+    showButtonMenu,
+    hideButtonMenu,
   }
 
   return (

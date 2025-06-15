@@ -96,6 +96,9 @@ export class ExtStorageService<T> {
 
   subscribe(listener: ExtStorageServiceListener<T>) {
     this.listeners.add(listener)
+    return () => {
+      this.listeners.delete(listener)
+    }
   }
 
   unsubscribe(listener: ExtStorageServiceListener<T>) {

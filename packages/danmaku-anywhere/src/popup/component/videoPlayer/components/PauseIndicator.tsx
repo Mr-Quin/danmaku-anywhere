@@ -1,14 +1,29 @@
 import { Pause, PlayArrow } from '@mui/icons-material'
 import { Box, Fade } from '@mui/material'
-import { useGesture } from '@use-gesture/react'
+import { useRef } from 'react'
 import { useVideoPlayer } from '../VideoPlayerContext'
 
 export const PauseIndicator = () => {
   const { isPaused, togglePlay, toggleFullscreen } = useVideoPlayer()
-  const bind = useGesture({
-    onDoubleClick: toggleFullscreen,
-    onClick: togglePlay,
-  })
+
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const handleClick = () => {
+    // for single clicks, trigger pause after a small delay to differentiate from double click
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current)
+    }
+    clickTimeoutRef.current = setTimeout(() => {
+      togglePlay()
+    }, 150)
+  }
+
+  const handleDoubleClick = () => {
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current)
+    }
+    toggleFullscreen()
+  }
 
   return (
     <Box
@@ -22,7 +37,8 @@ export const PauseIndicator = () => {
         alignItems: 'center',
         justifyContent: 'center',
       }}
-      {...bind()}
+      onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
     >
       <Fade in={isPaused} timeout={300} unmountOnExit={false}>
         <Box

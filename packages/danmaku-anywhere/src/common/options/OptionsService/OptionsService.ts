@@ -97,7 +97,7 @@ export class OptionsService<T extends OptionsSchema> {
   }
 
   onChange(listener: (data: T) => void) {
-    this.storageService.subscribe((options) => {
+    return this.storageService.subscribe((options) => {
       if (!options) return
       listener(options.data)
     })

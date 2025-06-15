@@ -1,4 +1,11 @@
-import { Divider, Grid, Input, Stack, Typography } from '@mui/material'
+import {
+  Divider,
+  Grid,
+  Input,
+  Stack,
+  Typography,
+  debounce,
+} from '@mui/material'
 import { type Ref, useEffect, useImperativeHandle, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -152,43 +159,37 @@ export type DanmakuStylesFormApi = {
 }
 
 export type DanmakuStylesFormProps = {
-  apiRef: Ref<DanmakuStylesFormApi>
-  onDirtyChange: (isDirty: boolean) => void
+  apiRef?: Ref<DanmakuStylesFormApi>
+  autoSave?: boolean
 }
 
 export const DanmakuStylesForm = ({
   apiRef,
-  onDirtyChange,
+  autoSave = true,
 }: DanmakuStylesFormProps) => {
   const { t } = useTranslation()
   const { data: config, partialUpdate } = useDanmakuOptions()
   const { isMobile } = usePlatformInfo()
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-    watch,
-    setValue,
-    getValues,
-    formState: { isDirty },
-  } = useForm<DanmakuOptions>({
-    defaultValues: config,
-    mode: 'onChange',
-  })
+  const { control, handleSubmit, reset, watch, setValue, getValues } =
+    useForm<DanmakuOptions>({
+      defaultValues: config,
+      mode: 'onChange',
+    })
 
   useEffect(() => {
     reset(config)
   }, [config, reset])
 
-  useEffect(() => {
-    onDirtyChange(isDirty)
-  }, [isDirty, onDirtyChange])
-
   const onSave = async (formData: DanmakuOptions) => {
     await partialUpdate(formData)
     reset(formData)
   }
+
+  useEffect(() => {
+    // debounce save
+    return watch(debounce(() => handleSubmit(onSave)(), 500)).unsubscribe
+  }, [autoSave, watch])
 
   useImperativeHandle(
     apiRef,

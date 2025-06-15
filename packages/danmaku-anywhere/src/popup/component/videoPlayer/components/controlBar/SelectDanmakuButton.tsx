@@ -1,23 +1,21 @@
 import { useVideoPlayer } from '@/popup/component/videoPlayer/VideoPlayerContext'
 import { CommentBank } from '@mui/icons-material'
-import { useState } from 'react'
+import { Box } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { SelectDanmaku } from '../SelectDanmaku'
 import { ControlBarButton } from './ControlBarButton'
-import { PopoverPaper } from './PopoverPaper'
 
 export const SelectDanmakuButton = () => {
   const { t } = useTranslation()
   const { onSelectEpisode } = useVideoPlayer()
-  const [menuOpen, setMenuOpen] = useState(false)
 
   return (
     <ControlBarButton
+      buttonId="danmaku-select-button"
       tooltip={t('danmaku.select')}
-      onClick={() => setMenuOpen(!menuOpen)}
       menu={{
         content: (
-          <PopoverPaper
+          <Box
             sx={{
               width: 400,
               height: 600,
@@ -26,7 +24,7 @@ export const SelectDanmakuButton = () => {
             }}
           >
             <SelectDanmaku onSelect={onSelectEpisode} />
-          </PopoverPaper>
+          </Box>
         ),
       }}
     >
