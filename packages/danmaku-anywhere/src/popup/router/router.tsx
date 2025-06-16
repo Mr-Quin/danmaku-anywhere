@@ -2,7 +2,6 @@ import { Navigate, createHashRouter } from 'react-router'
 
 import { FilterPageWithRouter } from '@/content/common/DanmakuStyles/FilterPage'
 import { ConfigPage } from '../pages/config/pages/ConfigPage'
-import { MountConfigEditor } from '../pages/config/pages/MountConfigEditor'
 import { CommentPage } from '../pages/danmaku/pages/comments/CommentPage'
 import { EpisodePage } from '../pages/danmaku/pages/episode/EpisodePage'
 import { SeasonPage } from '../pages/danmaku/pages/season/SeasonPage'
@@ -26,7 +25,6 @@ import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOp
 import { HelpOptions } from '@/popup/pages/options/pages/help/HelpOptions'
 import { SeasonDetailsPage } from '@/popup/pages/search/seasonDetails/SeasonDetailsPage'
 import { KazumiPage } from '@/popup/pages/video/kazumi/pages/KazumiPage'
-import { ImportKazumiPolicyPage } from '@/popup/pages/video/kazumi/pages/import/ImportKazumiPolicyPage'
 import { LocalVideoPage } from '@/popup/pages/video/local/LocalVideoPage'
 import { ChapterSelector } from '@/popup/pages/video/player/ChapterSelector'
 import { PlayerPage } from '@/popup/pages/video/player/PlayerPage'
@@ -69,14 +67,6 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
         path: 'config',
         children: [
           { index: true, Component: ConfigPage },
-          {
-            path: 'add',
-            element: <MountConfigEditor mode="add" />,
-          },
-          {
-            path: 'edit',
-            element: <MountConfigEditor mode="edit" />,
-          },
           {
             path: 'import',
             Component: ImportConfigPage,
@@ -130,7 +120,6 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
                 index: true,
                 Component: KazumiPage,
               },
-              { path: 'import', Component: ImportKazumiPolicyPage },
             ],
           },
           {

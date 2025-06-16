@@ -1,13 +1,7 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-} from '@mui/material'
+import { Button } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
+import { ModalDialog } from '@/common/components/ModalDialog'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { useStore } from '@/popup/store'
@@ -40,21 +34,25 @@ export const ConfirmDeleteDialog = () => {
   }
 
   return (
-    <Dialog open={showConfirmDeleteDialog} onClose={handleClose}>
-      <DialogTitle>{t('common.confirmDeleteTitle')}</DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          {t('common.confirmDeleteMessage', { name: editingConfig.name })}
-        </DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} autoFocus disabled={remove.isPending}>
-          {t('common.cancel')}
-        </Button>
-        <Button onClick={handleDelete} color="error" loading={remove.isPending}>
-          {t('common.delete')}
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <ModalDialog
+      open={showConfirmDeleteDialog}
+      onClose={handleClose}
+      dialogTitle={t('common.confirmDeleteTitle')}
+      content={t('common.confirmDeleteMessage', { name: editingConfig.name })}
+      actions={
+        <>
+          <Button onClick={handleClose} autoFocus disabled={remove.isPending}>
+            {t('common.cancel')}
+          </Button>
+          <Button
+            onClick={handleDelete}
+            color="error"
+            loading={remove.isPending}
+          >
+            {t('common.delete')}
+          </Button>
+        </>
+      }
+    />
   )
 }

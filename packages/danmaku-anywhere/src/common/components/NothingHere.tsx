@@ -20,7 +20,7 @@ export const NothingHere = ({
   const { t } = useTranslation()
 
   return (
-    <Center>
+    <Center p={2} gap={2}>
       <Typography>{message ?? t('common.itsEmpty')}</Typography>
       {children}
       <ErrorBoundary fallback={null}>

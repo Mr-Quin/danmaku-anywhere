@@ -15,14 +15,12 @@ import {
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
+import { ModalDialog } from '@/common/components/ModalDialog'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
 import type { MountConfigInput } from '@/common/options/mountConfig/schema'
 import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { validateOrigin } from '@/common/utils/utils'
-import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
-import { useGoBack } from '@/popup/hooks/useGoBack'
-import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 import { useStore } from '@/popup/store'
 
 // react-hook-form does not allow primitive arrays, so we need to convert the array to an object
@@ -51,13 +49,18 @@ const fromForm = (form: MountConfigForm): MountConfigInput => {
 
 interface MountConfigEditorProps {
   mode: 'add' | 'edit'
+  onClose: () => void
+  open: boolean
 }
 
-export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
+export const MountConfigEditor = ({
+  open,
+  mode,
+  onClose,
+}: MountConfigEditorProps) => {
   const { t } = useTranslation()
   const { update, create } = useEditMountConfig()
   const { policies } = useIntegrationPolicyStore()
-  const goBack = useGoBack()
 
   const isEdit = mode === 'edit'
   const { editingConfig: config } = useStore.use.config()
@@ -101,7 +104,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
         {
           onSuccess: () => {
             toast.success(t('configs.alert.updated'))
-            goBack()
+            onClose()
           },
           onError: (error) => {
             toast.error(error.message)
@@ -112,7 +115,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
       return create.mutate(toUpdate, {
         onSuccess: () => {
           toast.success(t('configs.alert.created'))
-          goBack()
+          onClose()
         },
         onError: (error) => {
           toast.error(error.message)
@@ -122,149 +125,159 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
   }
 
   return (
-    <OptionsPageLayout direction="left">
-      <OptionsPageToolBar
-        title={
-          isEdit
-            ? t('configPage.editor.title.edit', { name: config.name })
-            : t('configPage.editor.title.create')
-        }
-      />
-      <Box p={2} component="form" onSubmit={handleSubmit(handleSave)}>
-        <Stack direction="column" spacing={2} alignItems="flex-start">
-          <TextField
-            label={t('configPage.editor.name')}
-            size="small"
-            error={!!errors.name}
-            {...register('name', { required: true })}
-            fullWidth
-            required
-          />
-          <TextField
-            label={t('configPage.editor.mediaQuery')}
-            size="small"
-            error={!!errors.mediaQuery}
-            helperText={
-              errors.mediaQuery
-                ? errors.mediaQuery?.message
-                : t('configPage.editor.helper.mediaQuery')
-            }
-            {...register('mediaQuery', { required: true })}
-            fullWidth
-            required
-          />
-          <Controller
-            name="integration"
-            control={control}
-            render={({ field: { ref, ...field } }) => (
-              <TextField
-                {...field}
-                label={t('integration.name')}
-                size="small"
-                select
-                inputRef={ref}
-                fullWidth
-                helperText={t('configPage.editor.helper.integration')}
-              >
-                {policies.map((policy) => (
-                  <MenuItem value={policy.id} key={policy.id}>
-                    {policy.name}
+    <ModalDialog
+      open={open}
+      onClose={onClose}
+      dialogTitle={
+        isEdit
+          ? t('configPage.editor.title.edit', { name: config.name })
+          : t('configPage.editor.title.create')
+      }
+      slotProps={{
+        paper: {
+          component: 'form',
+          onSubmit: handleSubmit(handleSave),
+        },
+      }}
+      content={
+        <Box p={2}>
+          <Stack direction="column" spacing={2} alignItems="flex-start">
+            <TextField
+              label={t('configPage.editor.name')}
+              size="small"
+              error={!!errors.name}
+              {...register('name', { required: true })}
+              fullWidth
+              required
+            />
+            <TextField
+              label={t('configPage.editor.mediaQuery')}
+              size="small"
+              error={!!errors.mediaQuery}
+              helperText={
+                errors.mediaQuery
+                  ? errors.mediaQuery?.message
+                  : t('configPage.editor.helper.mediaQuery')
+              }
+              {...register('mediaQuery', { required: true })}
+              fullWidth
+              required
+            />
+            <Controller
+              name="integration"
+              control={control}
+              render={({ field: { ref, ...field } }) => (
+                <TextField
+                  {...field}
+                  label={t('integration.name')}
+                  size="small"
+                  select
+                  inputRef={ref}
+                  fullWidth
+                  helperText={t('configPage.editor.helper.integration')}
+                >
+                  {policies.map((policy) => (
+                    <MenuItem value={policy.id} key={policy.id}>
+                      {policy.name}
+                    </MenuItem>
+                  ))}
+                  {/*  Extra menu item for 'none', the special string is converted to undefined */}
+                  <MenuItem value={emptyIntegrationValue}>
+                    {t('integration.type.None')}
                   </MenuItem>
-                ))}
-                {/*  Extra menu item for 'none', the special string is converted to undefined */}
-                <MenuItem value={emptyIntegrationValue}>
-                  {t('integration.type.None')}
-                </MenuItem>
-              </TextField>
-            )}
-          />
-          <Typography variant="body2" color="textSecondary">
-            {t('configPage.editor.urlPatterns')}
-          </Typography>
-          <FormHelperText>
-            {t('configPage.editor.helper.urlPattern')}
-          </FormHelperText>
-          {fields.map((field, index, arr) => (
+                </TextField>
+              )}
+            />
+            <Typography variant="body2" color="textSecondary">
+              {t('configPage.editor.urlPatterns')}
+            </Typography>
+            <FormHelperText>
+              {t('configPage.editor.helper.urlPattern')}
+            </FormHelperText>
+            {fields.map((field, index, arr) => (
+              <Stack
+                direction="row"
+                spacing={2}
+                alignItems="center"
+                key={field.id}
+                sx={{ alignSelf: 'stretch' }}
+              >
+                <TextField
+                  label={`${t('configPage.editor.pattern')} ${index + 1}`}
+                  error={!!errors.patterns?.[index]}
+                  helperText={errors.patterns?.[index]?.value?.message}
+                  size="small"
+                  {...register(`patterns.${index}.value`, {
+                    validate: validateOrigin,
+                  })}
+                  fullWidth
+                  required
+                />
+                {arr.length > 1 ? (
+                  <Box>
+                    <IconButton onClick={() => removePatternField(index)}>
+                      <RemoveCircleOutline />
+                    </IconButton>
+                  </Box>
+                ) : (
+                  <Box />
+                )}
+              </Stack>
+            ))}
+            <Button onClick={addPatternField} startIcon={<AddCircleOutline />}>
+              {t('configPage.editor.pattern.add')}
+            </Button>
             <Stack
               direction="row"
               spacing={2}
-              alignItems="center"
-              key={field.id}
-              sx={{ alignSelf: 'stretch' }}
+              width={1}
+              justifyContent="space-between"
             >
-              <TextField
-                label={`${t('configPage.editor.pattern')} ${index + 1}`}
-                error={!!errors.patterns?.[index]}
-                helperText={errors.patterns?.[index]?.value?.message}
-                size="small"
-                {...register(`patterns.${index}.value`, {
-                  validate: validateOrigin,
-                })}
-                fullWidth
-                required
-              />
-              {arr.length > 1 ? (
-                <Box>
-                  <IconButton onClick={() => removePatternField(index)}>
-                    <RemoveCircleOutline />
-                  </IconButton>
-                </Box>
-              ) : (
-                <Box />
-              )}
+              <FormControl>
+                <FormControlLabel
+                  control={
+                    <Controller
+                      name="enabled"
+                      control={control}
+                      render={({ field: { value, ref, ...field } }) => (
+                        <Checkbox
+                          {...field}
+                          inputRef={ref}
+                          checked={value}
+                          color="primary"
+                        />
+                      )}
+                    />
+                  }
+                  label={t('common.enable')}
+                />
+              </FormControl>
             </Stack>
-          ))}
-          <Button onClick={addPatternField} startIcon={<AddCircleOutline />}>
-            {t('configPage.editor.pattern.add')}
-          </Button>
-          <Stack
-            direction="row"
-            spacing={2}
-            width={1}
-            justifyContent="space-between"
-          >
-            <FormControl>
-              <FormControlLabel
-                control={
-                  <Controller
-                    name="enabled"
-                    control={control}
-                    render={({ field: { value, ref, ...field } }) => (
-                      <Checkbox
-                        {...field}
-                        inputRef={ref}
-                        checked={value}
-                        color="primary"
-                      />
-                    )}
-                  />
-                }
-                label={t('common.enable')}
-              />
-            </FormControl>
-            <div>
-              {isEdit && (
-                <Button
-                  variant="outlined"
-                  onClick={() => resetForm()}
-                  disabled={isSubmitting}
-                  sx={{ mr: 2 }}
-                >
-                  {t('common.reset')}
-                </Button>
-              )}
-              <Button
-                variant="contained"
-                color="primary"
-                type="submit"
-                loading={isSubmitting}
-              >
-                {t('common.save')}
-              </Button>
-            </div>
           </Stack>
-        </Stack>
-      </Box>
-    </OptionsPageLayout>
+        </Box>
+      }
+      actions={
+        <div>
+          {isEdit && (
+            <Button
+              variant="outlined"
+              onClick={() => resetForm()}
+              disabled={isSubmitting}
+              sx={{ mr: 2 }}
+            >
+              {t('common.reset')}
+            </Button>
+          )}
+          <Button
+            variant="contained"
+            color="primary"
+            type="submit"
+            loading={isSubmitting}
+          >
+            {t('common.save')}
+          </Button>
+        </div>
+      }
+    />
   )
 }

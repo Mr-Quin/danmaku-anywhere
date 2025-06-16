@@ -394,12 +394,14 @@ const pages = {
   kazumiPage: {
     name: 'Kazumi',
     import: {
-      name: 'Import Rules',
-      repo: 'Repository',
+      fromRepo: 'Import from repository',
     },
   },
   videoSearchPage: {
     name: 'Video Search',
+    noPolicy:
+      'Kazumi rules are missing, please go to the Import page to import',
+    goToImport: 'Go to Import',
     enterSearchTerm: 'Enter search term',
     noResults: 'No results found for "{{keyword}}"',
     playlist: 'Playlist {{index}}',

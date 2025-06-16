@@ -394,12 +394,13 @@ const pages = {
   kazumiPage: {
     name: 'Kazumi',
     import: {
-      name: '导入规则',
-      repo: '规则仓库',
+      fromRepo: '从仓库导入',
     },
   },
   videoSearchPage: {
     name: '搜索视频',
+    noPolicy: '缺少Kazumi规则，请先前往导入',
+    goToImport: '前往导入',
     enterSearchTerm: '请输入搜索关键词',
     noResults: '没有找到含有“{{keyword}}”的结果',
     playlist: '播放列表 {{index}}',

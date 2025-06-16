@@ -1,13 +1,14 @@
-import { PreFormat } from '@/popup/component/PreFormat'
-
+import { NothingHere } from '@/common/components/NothingHere'
 import type { KazumiPolicy } from '@/common/options/kazumiPolicy/schema'
 import { useKazumiPolicies } from '@/common/options/kazumiPolicy/useKazumiManifest'
 import { useStore } from '@/popup/store'
-import { Box, Tab, Tabs } from '@mui/material'
+import { Box, Button, Tab, Tabs } from '@mui/material'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router'
 
 export const PolicySelector = () => {
+  const { t } = useTranslation()
   const { setKazumiPolicy, kazumiPolicy } = useStore.use.player()
 
   const navigate = useNavigate()
@@ -28,14 +29,18 @@ export const PolicySelector = () => {
     }
   }
 
-  if (policies.length === 0)
+  if (policies.length === 0) {
     return (
-      <Box>
-        <PreFormat>
-          No Kazumi manifests found. Please install the Kazumi extension.
-        </PreFormat>
-      </Box>
+      <NothingHere message={t('videoSearchPage.noPolicy')}>
+        <Button
+          variant="contained"
+          onClick={() => navigate('../kazumi', { relative: 'path' })}
+        >
+          {t('videoSearchPage.goToImport')}
+        </Button>
+      </NothingHere>
     )
+  }
 
   return (
     <Box>

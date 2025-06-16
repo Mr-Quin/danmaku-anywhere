@@ -1,5 +1,6 @@
 import { Delete } from '@mui/icons-material'
 import {
+  Button,
   List,
   ListItem,
   ListItemIcon,
@@ -15,7 +16,11 @@ import { kazumiQueryKeys } from '@/common/queries/queryKeys'
 import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import { useMutation } from '@tanstack/react-query'
 
-export const KazumiPolicyList = () => {
+type KazumiPolicyListProps = {
+  onOpenImport: () => void
+}
+
+export const KazumiPolicyList = ({ onOpenImport }: KazumiPolicyListProps) => {
   const { t } = useTranslation()
   const { data: policies } = useKazumiPolicies()
 
@@ -24,7 +29,14 @@ export const KazumiPolicyList = () => {
     mutationFn: (name: string) => kazumiPolicyService.delete(name),
   })
 
-  if (policies.length === 0) return <NothingHere />
+  if (policies.length === 0)
+    return (
+      <NothingHere>
+        <Button onClick={onOpenImport} variant="contained">
+          {t('kazumiPage.import.fromRepo')}
+        </Button>
+      </NothingHere>
+    )
 
   return (
     <List dense disablePadding>

@@ -1,20 +1,22 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Outlet, useNavigate } from 'react-router'
 
-import { ConfigToolbar } from '../components/ConfigToolbar'
-import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog'
-import { MountConfigList } from '../components/MountConfigList'
-
 import { createMountConfig } from '@/common/options/mountConfig/constant'
 import type { MountConfigInput } from '@/common/options/mountConfig/schema'
 import { controlQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { TabLayout } from '@/content/common/TabLayout'
+import { MountConfigEditor } from '@/popup/pages/config/pages/MountConfigEditor'
 import { useStore } from '@/popup/store'
+import { useState } from 'react'
+import { ConfigToolbar } from '../components/ConfigToolbar'
+import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog'
+import { MountConfigList } from '../components/MountConfigList'
 
 export const ConfigPage = () => {
   const { setEditingConfig } = useStore.use.config()
   const navigate = useNavigate()
+  const [modal, setModal] = useState<'add' | 'edit'>()
 
   const { data } = useSuspenseQuery({
     queryFn: async () => {
@@ -41,12 +43,12 @@ export const ConfigPage = () => {
   })
 
   const handleEditConfig = (config: MountConfigInput) => {
-    navigate('edit')
+    setModal('edit')
     setEditingConfig(config)
   }
 
   const handleAddConfig = async () => {
-    navigate('add')
+    setModal('add')
     setEditingConfig({
       ...createMountConfig(data),
       mediaQuery: 'video',
@@ -62,6 +64,11 @@ export const ConfigPage = () => {
         />
         <MountConfigList onEdit={handleEditConfig} />
         <ConfirmDeleteDialog />
+        <MountConfigEditor
+          open={modal === 'add' || modal === 'edit'}
+          mode={modal}
+          onClose={() => setModal(undefined)}
+        />
       </TabLayout>
       <Outlet />
     </>
