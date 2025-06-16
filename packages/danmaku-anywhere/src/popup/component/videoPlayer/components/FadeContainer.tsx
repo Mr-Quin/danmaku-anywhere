@@ -1,7 +1,7 @@
 import { useMouseDelay } from '@/common/hooks/useMouseDelay'
 import { useVideoPlayer } from '@/popup/component/videoPlayer/VideoPlayerContext'
 import { Fade } from '@mui/material'
-import { HoverHeader } from './HoverHeader'
+import { VideoHeader } from './VideoHeader'
 import { ControlBar } from './controlBar/ControlBar'
 
 interface HeaderControlBarContainerProps {
@@ -10,7 +10,7 @@ interface HeaderControlBarContainerProps {
   onInfoClick?: () => void
 }
 
-export const HeaderControlBarContainer = ({
+export const FadeContainer = ({
   title,
   showInfoButton = false,
   onInfoClick,
@@ -22,7 +22,7 @@ export const HeaderControlBarContainer = ({
     <Fade in={(show && isHovering) || isButtonHovering} timeout={300}>
       <div>
         {title && (
-          <HoverHeader
+          <VideoHeader
             title={title}
             showInfoButton={showInfoButton}
             onInfoClick={onInfoClick}

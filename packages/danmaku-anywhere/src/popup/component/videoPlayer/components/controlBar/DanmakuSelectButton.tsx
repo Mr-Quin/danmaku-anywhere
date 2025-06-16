@@ -5,9 +5,9 @@ import { useTranslation } from 'react-i18next'
 import { SelectDanmaku } from '../SelectDanmaku'
 import { ControlBarButton } from './ControlBarButton'
 
-export const SelectDanmakuButton = () => {
+export const DanmakuSelectButton = () => {
   const { t } = useTranslation()
-  const { onSelectEpisode } = useVideoPlayer()
+  const { onSelectEpisode, size } = useVideoPlayer()
 
   return (
     <ControlBarButton
@@ -18,7 +18,7 @@ export const SelectDanmakuButton = () => {
           <Box
             sx={{
               width: 400,
-              height: 600,
+              height: size[1] - 84,
               display: 'flex',
               flexDirection: 'column',
             }}

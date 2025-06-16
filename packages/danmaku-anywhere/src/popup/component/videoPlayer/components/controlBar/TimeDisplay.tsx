@@ -1,8 +1,9 @@
+import { useDuration } from '@/popup/component/videoPlayer/hooks/useDuration'
 import { Box, Typography } from '@mui/material'
-import { useVideoPlayer } from '../VideoPlayerContext'
+import {} from 'react'
 
 export const TimeDisplay = () => {
-  const { currentTime, duration } = useVideoPlayer()
+  const { currentTime, duration } = useDuration()
 
   const formatTime = (seconds: number): string => {
     if (!isFinite(seconds) || seconds < 0) return '0:00'

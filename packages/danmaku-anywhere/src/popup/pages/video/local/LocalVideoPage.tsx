@@ -6,7 +6,7 @@ import { useMatchEpisode } from '@/common/danmaku/queries/useMatchEpisode'
 import { TabLayout } from '@/content/common/TabLayout'
 import { FileUpload } from '@/popup/component/FileUpload'
 import { VideoPlayer } from '@/popup/component/videoPlayer/VideoPlayer'
-import { DisambiguationSelector } from '@/popup/pages/video/local/DisambiguationSelector'
+import { DisambiguationSlide } from '@/popup/pages/video/local/DisambiguationSlide'
 import type {
   CommentEntity,
   DanDanPlayOf,
@@ -14,7 +14,6 @@ import type {
   Season,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Box, Slide } from '@mui/material'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -22,7 +21,7 @@ export const LocalVideoPage = () => {
   const { t } = useTranslation()
   const [[file], setFiles] = useState<File[]>([])
   const [comments, setComments] = useState<CommentEntity[]>()
-  const [showDisambiguation, setShowDisambiguation] = useState(false)
+  const [hasDisambiguation, setHasDisambiguation] = useState(false)
   const [disambiguationResults, setDisambiguationResults] = useState<Season[]>(
     []
   )
@@ -70,7 +69,7 @@ export const LocalVideoPage = () => {
                 t('anime.alert.searchDisambiguate', { title: fileName })
               )
               setDisambiguationResults(data.data)
-              setShowDisambiguation(true)
+              setHasDisambiguation(true)
               break
             case 'notFound':
               toast.warn(t('anime.alert.searchEmpty', { title: fileName }))
@@ -126,7 +125,7 @@ export const LocalVideoPage = () => {
   }
 
   const handleSeasonSelect = (season: Season) => {
-    setShowDisambiguation(false)
+    setHasDisambiguation(false)
 
     const episodeMatchPayload = {
       title: season.title,
@@ -143,7 +142,7 @@ export const LocalVideoPage = () => {
   }
 
   const handleCloseDisambiguation = () => {
-    setShowDisambiguation(false)
+    setHasDisambiguation(false)
   }
 
   return (
@@ -155,37 +154,31 @@ export const LocalVideoPage = () => {
         comments={comments}
         onSelectEpisode={handleSelect}
       >
-        {!file && (
-          <FileUpload
-            accept=".mp4"
-            onFilesSelected={setFiles}
-            multiple={false}
-          />
-        )}
-        <Slide
-          in={showDisambiguation}
-          direction="right"
-          mountOnEnter
-          unmountOnExit
-        >
-          <Box p={2} height={1}>
-            <Box
-              width={400}
-              overflow="auto"
-              bgcolor="background.paper"
-              height={1}
-              borderRadius={1}
-            >
-              <DisambiguationSelector
+        {({ size }) => {
+          return (
+            <>
+              {!file && (
+                <FileUpload
+                  accept=".mp4"
+                  onFilesSelected={setFiles}
+                  multiple={false}
+                  sx={{
+                    width: size[0],
+                    height: size[1],
+                  }}
+                />
+              )}
+              <DisambiguationSlide
+                hasDisambiguation={hasDisambiguation}
                 seasons={disambiguationResults}
                 title={fileName || ''}
                 onApply={handleSeasonSelect}
                 onClose={handleCloseDisambiguation}
                 isLoading={matchEpisode.isPending || fetchMutation.isPending}
               />
-            </Box>
-          </Box>
-        </Slide>
+            </>
+          )
+        }}
       </VideoPlayer>
     </TabLayout>
   )

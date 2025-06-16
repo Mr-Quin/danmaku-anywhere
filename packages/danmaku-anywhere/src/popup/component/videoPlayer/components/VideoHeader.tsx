@@ -7,7 +7,7 @@ interface HoverHeaderProps {
   onInfoClick?: () => void
 }
 
-export const HoverHeader = ({
+export const VideoHeader = ({
   title,
   showInfoButton = false,
   onInfoClick,

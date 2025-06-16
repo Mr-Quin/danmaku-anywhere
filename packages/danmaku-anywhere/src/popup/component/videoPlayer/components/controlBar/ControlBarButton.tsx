@@ -1,7 +1,14 @@
 import { useVideoPlayer } from '@/popup/component/videoPlayer/VideoPlayerContext'
-import { Box, Button, type ButtonProps, Popper, styled } from '@mui/material'
+import {
+  Box,
+  Button,
+  type ButtonProps,
+  Fade,
+  Popper,
+  styled,
+} from '@mui/material'
 import { type MouseEvent, type ReactNode, useEffect, useRef } from 'react'
-import { PopoverPaper } from './PopoverPaper'
+import { VideoPopoverSurface } from '../VideoPopoverSurface'
 import { StyledTooltip } from './StyledTooltip'
 
 const StyledControlBarButton = styled(Button)(({ theme }) => ({
@@ -46,7 +53,6 @@ export const ControlBarButton = ({
     hideButtonMenu,
   } = useVideoPlayer()
   const buttonRef = useRef<HTMLButtonElement>(null)
-
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
@@ -121,6 +127,7 @@ export const ControlBarButton = ({
         <Popper
           open={!!menuAnchorEl}
           anchorEl={menuAnchorEl}
+          transition
           disablePortal
           placement="top"
           modifiers={[
@@ -132,12 +139,18 @@ export const ControlBarButton = ({
             },
           ]}
         >
-          <PopoverPaper
-            onMouseEnter={handleMenuMouseEnter}
-            onMouseLeave={handleMouseLeave}
-          >
-            {menu.content}
-          </PopoverPaper>
+          {({ TransitionProps }) => {
+            return (
+              <Fade {...TransitionProps}>
+                <VideoPopoverSurface
+                  onMouseEnter={handleMenuMouseEnter}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  {menu.content}
+                </VideoPopoverSurface>
+              </Fade>
+            )
+          }}
         </Popper>
       )}
     </Box>

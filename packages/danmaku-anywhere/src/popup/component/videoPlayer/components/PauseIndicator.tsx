@@ -3,12 +3,12 @@ import { Box, Fade } from '@mui/material'
 import { useRef } from 'react'
 import { useVideoPlayer } from '../VideoPlayerContext'
 
-export const PauseIndicator = () => {
-  const { isPaused, togglePlay, toggleFullscreen } = useVideoPlayer()
+const usePause = () => {
+  const { togglePlay, toggleFullscreen } = useVideoPlayer()
 
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  const handleClick = () => {
+  const onClick = () => {
     // for single clicks, trigger pause after a small delay to differentiate from double click
     if (clickTimeoutRef.current) {
       clearTimeout(clickTimeoutRef.current)
@@ -18,12 +18,22 @@ export const PauseIndicator = () => {
     }, 150)
   }
 
-  const handleDoubleClick = () => {
+  const onDoubleClick = () => {
     if (clickTimeoutRef.current) {
       clearTimeout(clickTimeoutRef.current)
     }
     toggleFullscreen()
   }
+
+  return {
+    onClick,
+    onDoubleClick,
+  }
+}
+
+export const PauseIndicator = () => {
+  const { isPaused } = useVideoPlayer()
+  const bind = usePause()
 
   return (
     <Box
@@ -37,8 +47,7 @@ export const PauseIndicator = () => {
         alignItems: 'center',
         justifyContent: 'center',
       }}
-      onClick={handleClick}
-      onDoubleClick={handleDoubleClick}
+      {...bind}
     >
       <Fade in={isPaused} timeout={300} unmountOnExit={false}>
         <Box

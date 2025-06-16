@@ -13,18 +13,21 @@ import './VideoPlayer.css'
 import type { SelectableEpisode } from '@/common/components/DanmakuSelector/DanmakuSelector'
 import { danmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { DanmakuComponent } from '@/content/player/monitors/DanmakuComponent'
+import {
+  VideoChildren,
+  type VideoChildrenRenderProp,
+} from '@/popup/component/videoPlayer/components/VideoChildren'
+import { VideoPlayerWrapper } from '@/popup/component/videoPlayer/components/VideoPlayerWrapper'
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { DanmakuRenderer } from '@danmaku-anywhere/danmaku-engine'
-import { createElement, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { createElement, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import ReactDOM from 'react-dom/client'
-import { VideoPlayerProvider } from './VideoPlayerContext'
-import { HeaderControlBarContainer } from './components/HeaderControlBarContainer'
+import { type VideoJsPlayer, VideoPlayerProvider } from './VideoPlayerContext'
+import { FadeContainer } from './components/FadeContainer'
 import { PauseIndicator } from './components/PauseIndicator'
 import { StatusText } from './components/StatusText'
-
-type VideoJsPlayer = ReturnType<typeof videojs>
 
 const createPortalContainer = (name: string) => {
   const Component = videojs.getComponent('Component')
@@ -51,13 +54,6 @@ createPortalContainer('PauseIndicator')
 createPortalContainer('Children')
 createPortalContainer('Danmaku')
 
-const VideoPlayerWrapper = styled(Box)(() => ({
-  position: 'relative',
-  isolation: 'isolate',
-  contain: 'layout',
-  color: 'white',
-}))
-
 const PlayerContainer = styled(Box)({
   '&[data-vjs-player="true"]': {
     width: '100%',
@@ -80,7 +76,7 @@ type VideoPlayerProps = {
   renderInfo?: () => ReactNode
   onSelectEpisode: (episode: SelectableEpisode) => void
   comments?: CommentEntity[]
-  children?: ReactNode
+  children?: ReactNode | VideoChildrenRenderProp
 }
 
 export const VideoPlayer = ({
@@ -101,11 +97,9 @@ export const VideoPlayer = ({
       ReactDOM.createRoot(node).render(createElement(DanmakuComponent, props))
     })
   )
-
   const [playerInst, setPlayerInst] = useState<VideoJsPlayer | null>(null)
 
   const [showInfo, setShowInfo] = useState(false)
-  const [isHovering, setIsHovering] = useState(false)
 
   const portalRefs = useRef<{
     headerControlBar: Element | null
@@ -226,14 +220,6 @@ export const VideoPlayer = ({
 
   const isReady = !!videoUrl && !!videoType
 
-  const handleMouseEnter = () => {
-    setIsHovering(true)
-  }
-
-  const handleMouseLeave = () => {
-    setIsHovering(false)
-  }
-
   const handleOpenInfo = () => {
     setShowInfo(true)
   }
@@ -245,12 +231,15 @@ export const VideoPlayer = ({
       <>
         {portalRefs.current.children &&
           children &&
-          createPortal(children, portalRefs.current.children)}
+          createPortal(
+            <VideoChildren>{children}</VideoChildren>,
+            portalRefs.current.children
+          )}
 
         {portalRefs.current.headerControlBar &&
           isReady &&
           createPortal(
-            <HeaderControlBarContainer
+            <FadeContainer
               title={title}
               showInfoButton={!!renderInfo}
               onInfoClick={handleOpenInfo}
@@ -274,19 +263,15 @@ export const VideoPlayer = ({
 
   return (
     <>
-      <VideoPlayerWrapper
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+      <VideoPlayerProvider
+        player={playerInst}
+        renderer={rendererRef.current}
+        onSelectEpisode={onSelectEpisode}
       >
-        <PlayerContainer data-vjs-player={true}>
-          <VideoContainer ref={containerRef} />
-        </PlayerContainer>
-        <VideoPlayerProvider
-          player={playerInst}
-          renderer={rendererRef.current}
-          onSelectEpisode={onSelectEpisode}
-          isHovering={isHovering}
-        >
+        <VideoPlayerWrapper>
+          <PlayerContainer data-vjs-player={true}>
+            <VideoContainer ref={containerRef} />
+          </PlayerContainer>
           <Dialog
             open={showInfo}
             onClose={() => setShowInfo(false)}
@@ -318,8 +303,8 @@ export const VideoPlayer = ({
             <DialogContent>{renderInfo?.()}</DialogContent>
           </Dialog>
           {renderPortals()}
-        </VideoPlayerProvider>
-      </VideoPlayerWrapper>
+        </VideoPlayerWrapper>
+      </VideoPlayerProvider>
     </>
   )
 }
