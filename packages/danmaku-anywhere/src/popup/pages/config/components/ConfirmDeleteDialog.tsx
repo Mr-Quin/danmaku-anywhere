@@ -38,7 +38,7 @@ export const ConfirmDeleteDialog = () => {
       open={showConfirmDeleteDialog}
       onClose={handleClose}
       dialogTitle={t('common.confirmDeleteTitle')}
-      content={t('common.confirmDeleteMessage', { name: editingConfig.name })}
+      isTextContent
       actions={
         <>
           <Button onClick={handleClose} autoFocus disabled={remove.isPending}>
@@ -53,6 +53,8 @@ export const ConfirmDeleteDialog = () => {
           </Button>
         </>
       }
-    />
+    >
+      {t('common.confirmDeleteMessage', { name: editingConfig.name })}
+    </ModalDialog>
   )
 }

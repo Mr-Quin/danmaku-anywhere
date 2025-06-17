@@ -4,26 +4,27 @@ import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import {
   AddCircle,
+  Description,
   Download,
   Edit,
-  Upload,
+  GitHub,
   Visibility,
 } from '@mui/icons-material'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
 
 type ConfigToolbarProps = {
-  onAdd: () => void
+  onOpenAdd: () => void
+  onOpenImport: (kind: 'repo' | 'file') => void
   onShowIntegration: () => void
 }
 
 export const ConfigToolbar = ({
-  onAdd,
+  onOpenAdd,
+  onOpenImport,
   onShowIntegration,
 }: ConfigToolbarProps) => {
   const { t } = useTranslation()
-  const navigate = useNavigate()
 
   const exportAll = useMutation({
     mutationFn: async () => {
@@ -40,10 +41,6 @@ export const ConfigToolbar = ({
     },
   })
 
-  const handleImportConfigs = async () => {
-    navigate('import')
-  }
-
   return (
     <TabToolbar title={t('configPage.name')}>
       <DrilldownMenu
@@ -53,14 +50,20 @@ export const ConfigToolbar = ({
           {
             id: 'add',
             label: t('configPage.createConfig'),
-            onClick: onAdd,
+            onClick: onOpenAdd,
             icon: <Edit />,
           },
           {
-            id: 'import',
-            label: t('configPage.import.name'),
-            icon: <Upload />,
-            onClick: handleImportConfigs,
+            id: 'importRepo',
+            label: t('configPage.import.fromRepo'),
+            icon: <GitHub />,
+            onClick: () => onOpenImport('repo'),
+          },
+          {
+            id: 'importFile',
+            label: t('configPage.import.fromFile'),
+            icon: <Description />,
+            onClick: () => onOpenImport('file'),
           },
         ]}
       />

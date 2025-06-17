@@ -1,15 +1,13 @@
+import { ModalDialog } from '@/common/components/ModalDialog'
 import { combinedPolicyService } from '@/common/options/combinedPolicy'
-import { TabLayout } from '@/content/common/TabLayout'
-import { TabToolbar } from '@/content/common/TabToolbar'
 import { FileUpload } from '@/popup/component/FileUpload'
 import {
   ImportResultDialog,
   type ImportResultRenderParams,
 } from '@/popup/component/ImportResultDialog'
 import { PreFormat } from '@/popup/component/PreFormat'
-import { useGoBack } from '@/popup/hooks/useGoBack'
-import { PresetsList } from '@/popup/pages/config/pages/import/PresetsList'
-import { Box, Divider, Tab, Tabs, Typography } from '@mui/material'
+import { RepoConfigList } from '@/popup/pages/config/pages/import/RepoConfigList'
+import { Box, Divider, Typography } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -19,11 +17,21 @@ type ImportResult = {
   errored: string[]
 }
 
-export const ImportConfigPage = () => {
-  const { t } = useTranslation()
-  const goBack = useGoBack()
+export type ImportKind = 'file' | 'repo'
 
-  const [tabValue, setTabValue] = useState('presets')
+type ImportConfigPageProps = {
+  open: boolean
+  onClose: () => void
+  importKind: ImportKind
+}
+
+export const ImportConfigDialog = ({
+  open,
+  onClose,
+  importKind = 'repo',
+}: ImportConfigPageProps) => {
+  const { t } = useTranslation()
+
   const [showDialog, setShowDialog] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
 
@@ -135,23 +143,18 @@ export const ImportConfigPage = () => {
     }
   }
 
-  const handleTabChange = (_: any, newValue: string) => {
-    setTabValue(newValue)
-  }
-
   return (
-    <TabLayout>
-      <TabToolbar
-        title={t('configPage.import.name')}
-        showBackButton
-        onGoBack={goBack}
-      />
-      <Tabs value={tabValue} onChange={handleTabChange}>
-        <Tab label={t('configPage.import.presets')} value="presets" />
-        <Tab label={t('configPage.import.fileUpload')} value="upload" />
-      </Tabs>
+    <ModalDialog
+      open={open}
+      dialogTitle={
+        importKind === 'repo'
+          ? t('configPage.import.fromRepo')
+          : t('configPage.import.fromFile')
+      }
+      onClose={onClose}
+    >
       <Divider />
-      {tabValue === 'upload' && (
+      {importKind === 'file' && (
         <Box p={2}>
           <FileUpload
             onFilesSelected={handleSelectFiles}
@@ -160,7 +163,7 @@ export const ImportConfigPage = () => {
           />
         </Box>
       )}
-      {tabValue === 'presets' && <PresetsList />}
+      {importKind === 'repo' && <RepoConfigList />}
       <ImportResultDialog
         open={showDialog}
         title={t('configPage.import.name')}
@@ -170,6 +173,6 @@ export const ImportConfigPage = () => {
       >
         {renderDialogContent}
       </ImportResultDialog>
-    </TabLayout>
+    </ModalDialog>
   )
 }

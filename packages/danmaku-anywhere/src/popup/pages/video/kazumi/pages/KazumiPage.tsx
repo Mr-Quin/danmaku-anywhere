@@ -3,15 +3,17 @@ import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { PolicyRepo } from '@/popup/pages/video/kazumi/pages/import/PolicyRepo'
-import { AddCircle, Upload } from '@mui/icons-material'
+import { AddCircle, GitHub } from '@mui/icons-material'
 import {} from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useLocation } from 'react-router'
 import { KazumiPolicyList } from '../components/KazumiPolicyList'
 
 export const KazumiPage = () => {
   const { t } = useTranslation()
-  const [showImportDialog, setShowImportDialog] = useState(false)
+  const { state } = useLocation()
+  const [showImportDialog, setShowImportDialog] = useState(state === 'import')
 
   const handleImportConfigs = async () => {
     setShowImportDialog(true)
@@ -27,7 +29,7 @@ export const KazumiPage = () => {
             {
               id: 'import',
               label: t('kazumiPage.import.fromRepo'),
-              icon: <Upload />,
+              icon: <GitHub />,
               onClick: handleImportConfigs,
             },
           ]}
@@ -38,8 +40,9 @@ export const KazumiPage = () => {
         open={showImportDialog}
         onClose={() => setShowImportDialog(false)}
         dialogTitle={t('kazumiPage.import.fromRepo')}
-        content={<PolicyRepo />}
-      />
+      >
+        <PolicyRepo />
+      </ModalDialog>
     </TabLayout>
   )
 }

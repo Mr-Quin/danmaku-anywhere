@@ -5,7 +5,7 @@ interface StatusTextProps {
   loading?: boolean
 }
 
-export const StatusText = ({ message, loading = false }: StatusTextProps) => {
+export const VideoStatus = ({ message, loading = false }: StatusTextProps) => {
   return (
     <Box
       sx={{

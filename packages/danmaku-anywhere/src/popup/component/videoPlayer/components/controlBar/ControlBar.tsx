@@ -40,7 +40,7 @@ export const ControlBar = () => {
       <ControlBarRow>
         <ProgressBar />
       </ControlBarRow>
-      <ControlBarRow>
+      <ControlBarRow pt={0.5}>
         <PlayButton />
         <VolumeButton />
         <TimeDisplay />

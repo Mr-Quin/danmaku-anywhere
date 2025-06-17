@@ -108,7 +108,7 @@ export const SeasonGrid = ({
         },
         gap: parseInt(spacing),
         lanes,
-        overscan: 3,
+        overscan: 2,
       })
     : useVirtualizer({
         count: data.length,
@@ -119,7 +119,7 @@ export const SeasonGrid = ({
         },
         gap: parseInt(spacing),
         lanes,
-        overscan: 3,
+        overscan: 1,
       })
 
   const gridSize = { xs: 2, sm: 4, md: 4 }

@@ -8,11 +8,13 @@ import { useCustomEpisodeSuspense } from '@/common/danmaku/queries/useCustomEpis
 import { useEpisodesSuspense } from '@/common/danmaku/queries/useEpisodes'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
+import { useEnvironment } from '@/popup/context/Environment'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 
 export const CommentPage = () => {
   const navigate = useNavigate()
   const goBack = useGoBack()
+  const { env } = useEnvironment()
 
   const [searchParams] = useSearchParams()
 
@@ -72,6 +74,7 @@ export const CommentPage = () => {
           onFilterComment={(comment) =>
             navigate('/styles/filtering', { state: comment })
           }
+          windowVirtualizer={env === 'dashboard'}
         />
       ) : (
         <Box p={2} flexGrow={1}>

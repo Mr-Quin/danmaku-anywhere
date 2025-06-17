@@ -34,7 +34,9 @@ export const PolicySelector = () => {
       <NothingHere message={t('videoSearchPage.noPolicy')}>
         <Button
           variant="contained"
-          onClick={() => navigate('../kazumi', { relative: 'path' })}
+          onClick={() =>
+            navigate('../kazumi', { relative: 'path', state: 'import' })
+          }
         >
           {t('videoSearchPage.goToImport')}
         </Button>

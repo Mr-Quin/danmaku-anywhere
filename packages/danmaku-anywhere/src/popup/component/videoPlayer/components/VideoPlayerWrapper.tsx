@@ -11,7 +11,7 @@ const StyledVideoPlayerWrapper = styled(Box)(() => ({
 }))
 
 export const VideoPlayerWrapper = ({ children }: PropsWithChildren) => {
-  const { setIsHovering, isHovering, setSize } = useVideoPlayer()
+  const { setIsHovering, isHovering, setSize, player } = useVideoPlayer()
   const isTouchDevice = useIsTouchDevice()
   const ref = useRef<HTMLDivElement>(null)
 
@@ -20,7 +20,11 @@ export const VideoPlayerWrapper = ({ children }: PropsWithChildren) => {
     setSize([ref.current.clientWidth, ref.current.clientHeight])
 
     const obs = new ResizeObserver(([entry]) => {
-      setSize([entry.contentRect.width, entry.contentRect.height])
+      if (player?.isFullscreen()) {
+        setSize([window.innerWidth, window.innerHeight])
+      } else {
+        setSize([entry.contentRect.width, entry.contentRect.height])
+      }
     })
 
     obs.observe(ref.current)
@@ -28,7 +32,7 @@ export const VideoPlayerWrapper = ({ children }: PropsWithChildren) => {
     return () => {
       obs.disconnect()
     }
-  }, [setSize])
+  }, [setSize, player])
 
   const handleMouseEnter = () => {
     setIsHovering(true)

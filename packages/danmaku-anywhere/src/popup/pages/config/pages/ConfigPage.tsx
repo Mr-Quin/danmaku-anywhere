@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { Outlet, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 
 import { createMountConfig } from '@/common/options/mountConfig/constant'
 import type { MountConfigInput } from '@/common/options/mountConfig/schema'
@@ -7,6 +7,7 @@ import { controlQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { TabLayout } from '@/content/common/TabLayout'
 import { MountConfigEditor } from '@/popup/pages/config/pages/MountConfigEditor'
+import { ImportConfigDialog } from '@/popup/pages/config/pages/import/ImportConfigDialog'
 import { useStore } from '@/popup/store'
 import { useState } from 'react'
 import { ConfigToolbar } from '../components/ConfigToolbar'
@@ -16,7 +17,9 @@ import { MountConfigList } from '../components/MountConfigList'
 export const ConfigPage = () => {
   const { setEditingConfig } = useStore.use.config()
   const navigate = useNavigate()
-  const [modal, setModal] = useState<'add' | 'edit'>()
+  const [showDialog, setShowDialog] = useState<'edit' | 'import'>()
+  const [editType, setEditType] = useState<'add' | 'edit'>('add')
+  const [importKind, setImportKind] = useState<'file' | 'repo'>('repo')
 
   const { data } = useSuspenseQuery({
     queryFn: async () => {
@@ -43,12 +46,14 @@ export const ConfigPage = () => {
   })
 
   const handleEditConfig = (config: MountConfigInput) => {
-    setModal('edit')
+    setEditType('edit')
+    setShowDialog('edit')
     setEditingConfig(config)
   }
 
   const handleAddConfig = async () => {
-    setModal('add')
+    setEditType('add')
+    setShowDialog('edit')
     setEditingConfig({
       ...createMountConfig(data),
       mediaQuery: 'video',
@@ -56,21 +61,27 @@ export const ConfigPage = () => {
   }
 
   return (
-    <>
-      <TabLayout>
-        <ConfigToolbar
-          onAdd={handleAddConfig}
-          onShowIntegration={() => navigate('integration-policy')}
-        />
-        <MountConfigList onEdit={handleEditConfig} />
-        <ConfirmDeleteDialog />
-        <MountConfigEditor
-          open={modal === 'add' || modal === 'edit'}
-          mode={modal}
-          onClose={() => setModal(undefined)}
-        />
-      </TabLayout>
-      <Outlet />
-    </>
+    <TabLayout>
+      <ConfigToolbar
+        onOpenAdd={handleAddConfig}
+        onOpenImport={(kind) => {
+          setImportKind(kind)
+          setShowDialog('import')
+        }}
+        onShowIntegration={() => navigate('integration-policy')}
+      />
+      <MountConfigList onEdit={handleEditConfig} />
+      <ConfirmDeleteDialog />
+      <MountConfigEditor
+        open={showDialog === 'edit'}
+        mode={editType}
+        onClose={() => setShowDialog(undefined)}
+      />
+      <ImportConfigDialog
+        open={showDialog === 'import'}
+        importKind={importKind}
+        onClose={() => setShowDialog(undefined)}
+      />
+    </TabLayout>
   )
 }

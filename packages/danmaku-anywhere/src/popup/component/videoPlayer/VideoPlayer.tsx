@@ -27,7 +27,6 @@ import ReactDOM from 'react-dom/client'
 import { type VideoJsPlayer, VideoPlayerProvider } from './VideoPlayerContext'
 import { FadeContainer } from './components/FadeContainer'
 import { PauseIndicator } from './components/PauseIndicator'
-import { StatusText } from './components/StatusText'
 
 const createPortalContainer = (name: string) => {
   const Component = videojs.getComponent('Component')
@@ -49,7 +48,6 @@ const createPortalContainer = (name: string) => {
 }
 
 createPortalContainer('HeaderControlBar')
-createPortalContainer('StatusText')
 createPortalContainer('PauseIndicator')
 createPortalContainer('Children')
 createPortalContainer('Danmaku')
@@ -66,13 +64,11 @@ const VideoContainer = styled(Box)({
   height: 'auto',
 })
 
-type VideoPlayerProps = {
+export type VideoPlayerProps = {
   videoUrl?: string
   videoType?: string
   poster?: string
   title?: string
-  statusText?: string
-  loading?: boolean
   renderInfo?: () => ReactNode
   onSelectEpisode: (episode: SelectableEpisode) => void
   comments?: CommentEntity[]
@@ -84,8 +80,6 @@ export const VideoPlayer = ({
   videoType,
   poster,
   title,
-  statusText,
-  loading,
   renderInfo,
   comments,
   onSelectEpisode,
@@ -103,7 +97,6 @@ export const VideoPlayer = ({
 
   const portalRefs = useRef<{
     headerControlBar: Element | null
-    statusText: Element | null
     playbackSpeed: Element | null
     pauseIndicator: Element | null
     timeDisplay: Element | null
@@ -111,7 +104,6 @@ export const VideoPlayer = ({
     danmaku: Element | null
   }>({
     headerControlBar: null,
-    statusText: null,
     playbackSpeed: null,
     pauseIndicator: null,
     timeDisplay: null,
@@ -123,9 +115,6 @@ export const VideoPlayer = ({
     // the order of creation here determines their order in the dom
     const danmakuContainer = playerInst.addChild('PortalDanmaku')
     portalRefs.current.danmaku = danmakuContainer.el()
-
-    const statusTextContainer = playerInst.addChild('PortalStatusText')
-    portalRefs.current.statusText = statusTextContainer.el()
 
     const pauseIndicatorContainer = playerInst.addChild('PortalPauseIndicator')
     portalRefs.current.pauseIndicator = pauseIndicatorContainer.el()
@@ -170,7 +159,6 @@ export const VideoPlayer = ({
         setPlayerInst(null)
         portalRefs.current = {
           headerControlBar: null,
-          statusText: null,
           playbackSpeed: null,
           pauseIndicator: null,
           timeDisplay: null,
@@ -247,13 +235,6 @@ export const VideoPlayer = ({
             portalRefs.current.headerControlBar
           )}
 
-        {portalRefs.current.statusText &&
-          (loading || statusText) &&
-          createPortal(
-            <StatusText message={statusText || ''} loading={!!loading} />,
-            portalRefs.current.statusText
-          )}
-
         {portalRefs.current.pauseIndicator &&
           isReady &&
           createPortal(<PauseIndicator />, portalRefs.current.pauseIndicator)}
@@ -282,7 +263,7 @@ export const VideoPlayer = ({
             slotProps={{
               paper: {
                 sx: {
-                  background: 'rgba(0, 0, 0, 0.4)',
+                  background: 'rgba(0, 0, 0, 0.9)',
                 },
               },
             }}

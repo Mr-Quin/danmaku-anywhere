@@ -9,6 +9,8 @@ const common = {
     close: '关闭',
     confirmDeleteMessage: '确定要删除 "{{name}}" 吗？',
     confirmDeleteTitle: '确认删除',
+    confirmLeaveUnsavedChanges: '有未保存的内容，确认离开吗？',
+    confirm: '确认',
     copyToClipboard: '复制到剪贴板',
     copy: '复制',
     delete: '删除',
@@ -169,9 +171,8 @@ const pages = {
       urlPatterns: 'URL 模式',
     },
     import: {
-      name: '导入配置',
-      fileUpload: '上传文件',
-      presets: '仓库',
+      fromRepo: '从仓库导入',
+      fromFile: '从文件导入',
       hasIntegration: '含适配规则',
     },
     name: '装填配置',
@@ -297,7 +298,7 @@ const pages = {
         togglePip: '画中画（实验）',
       },
     },
-    help: {
+    about: {
       docs: '说明文档',
     },
     pages: {
@@ -306,7 +307,7 @@ const pages = {
       hotkeys: '快捷键',
       retentionPolicy: '缓存策略',
       advanced: '高级设置',
-      help: '帮助与反馈',
+      about: '关于',
     },
   },
   searchPage: {

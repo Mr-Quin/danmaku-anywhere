@@ -13,8 +13,14 @@ import {
 } from '@/common/options/kazumiPolicy/useKazumiManifest'
 import { kazumiQueryKeys } from '@/common/queries/queryKeys'
 import { CheckCircle, Download } from '@mui/icons-material'
-import { Icon, IconButton, List, ListItem, ListItemText } from '@mui/material'
-import {} from '@mui/x-data-grid'
+import {
+  Icon,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+} from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
@@ -64,6 +70,7 @@ export const PolicyRepo = () => {
           return (
             <ListItem
               key={manifest.name}
+              disablePadding
               secondaryAction={
                 exists(manifest.name) ? (
                   <Icon color="success">
@@ -83,10 +90,18 @@ export const PolicyRepo = () => {
                 )
               }
             >
-              <ListItemText
-                primary={manifest.name}
-                secondary={manifest.version}
-              />
+              <ListItemButton
+                onClick={() => importMutation.mutate(manifest.name)}
+                disabled={
+                  importMutation.isPending &&
+                  importMutation.variables === manifest.name
+                }
+              >
+                <ListItemText
+                  primary={manifest.name}
+                  secondary={manifest.version}
+                />
+              </ListItemButton>
             </ListItem>
           )
         })}

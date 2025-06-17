@@ -16,7 +16,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import { useVirtualizer } from '@tanstack/react-virtual'
+import { useVirtualizer, useWindowVirtualizer } from '@tanstack/react-virtual'
 import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { match } from 'ts-pattern'
@@ -27,6 +27,7 @@ interface CommentListProps {
   isTimeClickable?: boolean
   onTimeClick?: (time: number) => void
   onFilterComment?: (comment: string) => void
+  windowVirtualizer?: boolean
 }
 
 const formatTime = (seconds: number) => {
@@ -44,6 +45,7 @@ export const CommentsTable = ({
   isTimeClickable,
   onFilterComment,
   onTimeClick,
+  windowVirtualizer = false,
 }: CommentListProps) => {
   const { t } = useTranslation()
 
@@ -82,11 +84,17 @@ export const CommentsTable = ({
 
   const ref = useRef<HTMLTableSectionElement>(null)
 
-  const virtualizer = useVirtualizer({
-    count: sortedComments.length,
-    getScrollElement: () => ref.current,
-    estimateSize: () => 32,
-  })
+  const virtualizer = windowVirtualizer
+    ? useWindowVirtualizer({
+        count: sortedComments.length,
+        estimateSize: () => 32,
+        overscan: 5,
+      })
+    : useVirtualizer({
+        count: sortedComments.length,
+        getScrollElement: () => ref.current,
+        estimateSize: () => 32,
+      })
 
   return (
     <TableContainer

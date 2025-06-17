@@ -11,19 +11,19 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
-export const HelpOptions = () => {
+export const AboutOptions = () => {
   const { t } = useTranslation()
 
   return (
     <OptionsPageLayout>
-      <OptionsPageToolBar title={t('optionsPage.pages.help')} />
+      <OptionsPageToolBar title={t('optionsPage.pages.about')} />
       <ListItem disablePadding>
         <ListItemButton
           component="a"
           href={docsLink('getting-started')}
           target="_blank"
         >
-          <ListItemText>{t('optionsPage.help.docs')}</ListItemText>
+          <ListItemText>{t('optionsPage.about.docs')}</ListItemText>
           <Launch />
         </ListItemButton>
       </ListItem>

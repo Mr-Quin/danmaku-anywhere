@@ -23,7 +23,7 @@ export const DanmakuStyleButton = () => {
               overflowX: 'hidden',
               overflowY: 'auto',
               width: 400,
-              height: size[1] - 84,
+              maxHeight: size[1] - 84,
             }}
           >
             <Suspense fallback={<FullPageSpinner />}>

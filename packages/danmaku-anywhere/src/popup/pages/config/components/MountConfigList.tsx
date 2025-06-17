@@ -1,4 +1,4 @@
-import { ContentCopy, Delete } from '@mui/icons-material'
+import { Delete, FileDownload } from '@mui/icons-material'
 import {
   List,
   ListItem,
@@ -71,7 +71,7 @@ export const MountConfigList = ({
                     }}
                   >
                     <ListItemIcon>
-                      <ContentCopy />
+                      <FileDownload />
                     </ListItemIcon>
                     <ListItemText>{t('common.export')}</ListItemText>
                   </MenuItem>

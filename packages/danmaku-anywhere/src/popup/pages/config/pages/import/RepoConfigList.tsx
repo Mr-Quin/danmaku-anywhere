@@ -1,5 +1,6 @@
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
+import { ModalDialog } from '@/common/components/ModalDialog'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useToast } from '@/common/components/Toast/toastStore'
 import {
@@ -12,8 +13,6 @@ import { CheckCircle } from '@mui/icons-material'
 import {
   Box,
   Button,
-  Dialog,
-  DialogActions,
   DialogContent,
   DialogTitle,
   Typography,
@@ -32,7 +31,7 @@ type ConfigPresets = {
   }
 }
 
-export const PresetsList = () => {
+export const RepoConfigList = () => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
 
@@ -151,11 +150,23 @@ export const PresetsList = () => {
         />
       </Box>
 
-      <Dialog
+      <ModalDialog
         open={dialogOpen}
         onClose={handleCloseDialog}
-        maxWidth="md"
-        fullWidth
+        maxWidth="sm"
+        actions={
+          <>
+            <Button onClick={handleCloseDialog}>{t('common.cancel')}</Button>
+            <Button
+              onClick={handleImport}
+              variant="contained"
+              color="primary"
+              disabled={importMutation.isPending}
+            >
+              {t('common.import')}
+            </Button>
+          </>
+        }
       >
         {selectedPreset && (
           <>
@@ -195,20 +206,9 @@ export const PresetsList = () => {
                 ))}
               </PreFormat>
             </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseDialog}>{t('common.cancel')}</Button>
-              <Button
-                onClick={handleImport}
-                variant="contained"
-                color="primary"
-                disabled={importMutation.isPending}
-              >
-                {t('common.import')}
-              </Button>
-            </DialogActions>
           </>
         )}
-      </Dialog>
+      </ModalDialog>
     </>
   )
 }

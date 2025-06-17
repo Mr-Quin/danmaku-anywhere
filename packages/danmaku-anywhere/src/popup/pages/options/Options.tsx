@@ -81,8 +81,8 @@ export const Options = () => {
             onClick={() => navigate('advanced')}
           />
           <OptionsListItem
-            title={t('optionsPage.pages.help')}
-            onClick={() => navigate('help')}
+            title={t('optionsPage.pages.about')}
+            onClick={() => navigate('about')}
           />
         </List>
       </OptionsPageLayout>

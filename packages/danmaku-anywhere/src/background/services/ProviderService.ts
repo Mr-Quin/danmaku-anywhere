@@ -188,7 +188,7 @@ export class ProviderService {
       const episodes = await this.danDanPlayService.getAnimeDetails(season.id)
 
       if (episodes.length === 0) {
-        throw new Error(`No episodes found for season: ${season}`)
+        throw new Error(`No episodes found for season: ${season.title}`)
       }
 
       const episodeId = this.danDanPlayService.computeEpisodeId(
@@ -202,7 +202,7 @@ export class ProviderService {
 
       if (!episode) {
         throw new Error(
-          `Episode id ${episodeId} not found for season: ${season}`
+          `Episode id ${episodeId} not found for season: ${season.title}`
         )
       }
 

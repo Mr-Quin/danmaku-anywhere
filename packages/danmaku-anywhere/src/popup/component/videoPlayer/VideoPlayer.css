@@ -10,3 +10,7 @@
   width: 100%;
   isolation: isolate;
 }
+
+.vjs-portal-headercontrolbar {
+  user-select: none;
+}

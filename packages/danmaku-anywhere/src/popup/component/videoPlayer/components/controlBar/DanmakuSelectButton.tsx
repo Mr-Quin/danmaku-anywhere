@@ -18,7 +18,7 @@ export const DanmakuSelectButton = () => {
           <Box
             sx={{
               width: 400,
-              height: size[1] - 84,
+              maxHeight: size[1] - 84,
               display: 'flex',
               flexDirection: 'column',
             }}

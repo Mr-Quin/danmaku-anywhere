@@ -1,6 +1,15 @@
 import { Navigate, createHashRouter } from 'react-router'
 
 import { FilterPageWithRouter } from '@/content/common/DanmakuStyles/FilterPage'
+import { ImportPage } from '@/popup/pages/import/ImportPage'
+import { AboutOptions } from '@/popup/pages/options/pages/about/AboutOptions'
+import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
+import { SeasonDetailsPage } from '@/popup/pages/search/seasonDetails/SeasonDetailsPage'
+import { KazumiPage } from '@/popup/pages/video/kazumi/pages/KazumiPage'
+import { LocalVideoPage } from '@/popup/pages/video/local/LocalVideoPage'
+import { ChapterSelector } from '@/popup/pages/video/player/ChapterSelector'
+import { PlayerPage } from '@/popup/pages/video/player/PlayerPage'
+import { SearchResultPage } from '@/popup/pages/video/player/SearchResultPage'
 import { ConfigPage } from '../pages/config/pages/ConfigPage'
 import { CommentPage } from '../pages/danmaku/pages/comments/CommentPage'
 import { EpisodePage } from '../pages/danmaku/pages/episode/EpisodePage'
@@ -18,17 +27,6 @@ import { RetentionPolicyPage } from '../pages/options/pages/retentionPolicy/Rete
 import { ThemeOptions } from '../pages/options/pages/theme/ThemeOptions'
 import { SearchPage } from '../pages/search/SearchPage'
 import { StylesPage } from '../pages/styles/StylesPage'
-
-import { ImportConfigPage } from '@/popup/pages/config/pages/import/ImportConfigPage'
-import { ImportPage } from '@/popup/pages/import/ImportPage'
-import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
-import { HelpOptions } from '@/popup/pages/options/pages/help/HelpOptions'
-import { SeasonDetailsPage } from '@/popup/pages/search/seasonDetails/SeasonDetailsPage'
-import { KazumiPage } from '@/popup/pages/video/kazumi/pages/KazumiPage'
-import { LocalVideoPage } from '@/popup/pages/video/local/LocalVideoPage'
-import { ChapterSelector } from '@/popup/pages/video/player/ChapterSelector'
-import { PlayerPage } from '@/popup/pages/video/player/PlayerPage'
-import { SearchResultPage } from '@/popup/pages/video/player/SearchResultPage'
 
 export const router: ReturnType<typeof createHashRouter> = createHashRouter([
   {
@@ -67,10 +65,6 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
         path: 'config',
         children: [
           { index: true, Component: ConfigPage },
-          {
-            path: 'import',
-            Component: ImportConfigPage,
-          },
           {
             path: 'integration-policy',
             Component: IntegrationPolicy,
@@ -179,8 +173,8 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
         Component: AdvancedOptions,
       },
       {
-        path: 'help',
-        Component: HelpOptions,
+        path: 'about',
+        Component: AboutOptions,
       },
     ],
   },

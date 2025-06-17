@@ -1,12 +1,6 @@
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
-import {
-  Backdrop,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-} from '@mui/material'
+import { ModalDialog } from '@/common/components/ModalDialog'
+import { Backdrop, Button, DialogContent } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
@@ -91,38 +85,45 @@ export const ImportResultDialog = <T,>({
   const renderParams = { status, error, result: data || null }
 
   return (
-    <Dialog open={open} maxWidth="md" fullWidth onClose={handleClose}>
-      <DialogTitle>{title}</DialogTitle>
+    <ModalDialog
+      open={open}
+      // maxWidth="sm"
+      // fullWidth
+      onClose={handleClose}
+      dialogTitle={title}
+      actions={
+        <>
+          <Button
+            onClick={handleClose}
+            color="primary"
+            disabled={status === 'uploading'}
+          >
+            {status === 'uploadSuccess' || status === 'error'
+              ? t('common.close')
+              : t('common.cancel')}
+          </Button>
+          {(status === 'confirmUpload' || status === 'uploading') && (
+            <>
+              <Button
+                onClick={() => mutate()}
+                variant="contained"
+                color="primary"
+                disabled={disableImport || status === 'uploading'}
+                loading={status === 'uploading'}
+              >
+                {t('importPage.confirm')}
+              </Button>
+            </>
+          )}
+        </>
+      }
+    >
       <DialogContent dividers>
         {children?.(renderParams as ImportResultRenderParams<T>)}
         <Backdrop open={status === 'uploading'}>
           <FullPageSpinner />
         </Backdrop>
       </DialogContent>
-      <DialogActions>
-        <Button
-          onClick={handleClose}
-          color="primary"
-          disabled={status === 'uploading'}
-        >
-          {status === 'uploadSuccess' || status === 'error'
-            ? t('common.close')
-            : t('common.cancel')}
-        </Button>
-        {(status === 'confirmUpload' || status === 'uploading') && (
-          <>
-            <Button
-              onClick={() => mutate()}
-              variant="contained"
-              color="primary"
-              disabled={disableImport || status === 'uploading'}
-              loading={status === 'uploading'}
-            >
-              {t('importPage.confirm')}
-            </Button>
-          </>
-        )}
-      </DialogActions>
-    </Dialog>
+    </ModalDialog>
   )
 }

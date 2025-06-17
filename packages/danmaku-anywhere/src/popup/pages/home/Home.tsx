@@ -227,7 +227,7 @@ export const Home = () => {
   }
 
   return (
-    <Stack direction="column" spacing={0} height={1}>
+    <Stack direction="column" spacing={0} height={1} flexGrow={1} flexBasis={0}>
       <AppToolBar />
       <Stack direction="row" height={1} minHeight={0}>
         {!isPopup && renderDrawer()}

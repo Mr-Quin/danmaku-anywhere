@@ -7,6 +7,9 @@ const common = {
     close: 'Close',
     confirmDeleteMessage: 'Are you sure you want to delete "{{name}}"?',
     confirmDeleteTitle: 'Confirm delete',
+    confirmLeaveUnsavedChanges:
+      'There are unsaved changes, are you sure to leave?',
+    confirm: 'Confirm',
     copyToClipboard: 'Copy to Clipboard',
     copy: 'copy',
     delete: 'Delete',
@@ -161,9 +164,8 @@ const pages = {
       urlPatterns: 'URL Patterns',
     },
     import: {
-      name: 'Import Config',
-      fileUpload: 'Upload File',
-      presets: 'Repository',
+      fromRepo: 'Import from repository',
+      fromFile: 'Import from file',
       hasIntegration: 'Includes Integration',
     },
     name: 'Configs',
@@ -293,7 +295,7 @@ const pages = {
         togglePip: 'Enter Picture-in-Picture (Experimental)',
       },
     },
-    help: {
+    about: {
       docs: 'Documentation',
     },
     pages: {
@@ -302,7 +304,7 @@ const pages = {
       hotkeys: 'Hotkeys',
       retentionPolicy: 'Retention Policy',
       advanced: 'Advanced',
-      help: 'Help & Feedback',
+      about: 'About',
     },
   },
   searchPage: {

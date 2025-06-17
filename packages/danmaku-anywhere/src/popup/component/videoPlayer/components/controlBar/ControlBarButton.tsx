@@ -12,9 +12,9 @@ import { VideoPopoverSurface } from '../VideoPopoverSurface'
 import { StyledTooltip } from './StyledTooltip'
 
 const StyledControlBarButton = styled(Button)(({ theme }) => ({
-  minWidth: 40,
+  minWidth: 32,
   height: '100%',
-  padding: theme.spacing(1),
+  padding: theme.spacing(0.5),
   color: 'white',
   backgroundColor: 'transparent',
   fontSize: '14px',
@@ -134,7 +134,7 @@ export const ControlBarButton = ({
             {
               name: 'offset',
               options: {
-                offset: [0, 20],
+                offset: [0, 32],
               },
             },
           ]}

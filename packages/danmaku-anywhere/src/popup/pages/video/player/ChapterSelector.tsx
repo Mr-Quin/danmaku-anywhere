@@ -1,7 +1,8 @@
 import { NothingHere } from '@/common/components/NothingHere'
 import { kazumiQueryKeys } from '@/common/queries/queryKeys'
-import { VideoPlayer } from '@/popup/component/videoPlayer/VideoPlayer'
+import { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import { useGoBack } from '@/popup/hooks/useGoBack'
+import { LocalVideoPlayer } from '@/popup/pages/video/local/LocalVideoPlayer'
 import type {
   KazumiChapterResult,
   KazumiSearchResult,
@@ -22,7 +23,7 @@ import {
   Typography,
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
 
@@ -35,12 +36,13 @@ export const ChapterSelector = () => {
 
   const { kazumiPolicy } = useStore.use.player()
 
-  const [selectedChapter, setSelectedChapter] = useState<KazumiChapterResult>()
+  const [selectedEpisode, setSelectedEpisode] = useState<KazumiChapterResult>()
+  const [episodeNumber, setEpisodeNumber] = useState(1)
   const [playList, setPlayList] = useState(0)
 
   const content = location.state?.content as KazumiSearchResult
 
-  const chaptersQuery = useQuery({
+  const episodesQuery = useQuery({
     queryKey: kazumiQueryKeys.chapters(content.url, kazumiPolicy?.name ?? ''),
     queryFn: async () => {
       if (!kazumiPolicy) {
@@ -54,49 +56,55 @@ export const ChapterSelector = () => {
   })
 
   const videoUrlQuery = useQuery({
-    queryKey: kazumiQueryKeys.videoUrl(selectedChapter?.url ?? ''),
+    queryKey: kazumiQueryKeys.videoUrl(selectedEpisode?.url ?? ''),
     queryFn: async () => {
-      if (!selectedChapter) return null
-      return extractVideoUrl(selectedChapter.url)
+      if (!selectedEpisode) return null
+      return extractVideoUrl(selectedEpisode.url)
     },
     select: (res) => res?.[0],
-    enabled: !!selectedChapter,
+    enabled: !!selectedEpisode,
     staleTime: Infinity,
     retry: false,
   })
 
   useEffect(() => {
-    const playList = chaptersQuery.data
+    const playList = episodesQuery.data
     // set default selected chapter
-    if (!selectedChapter && playList?.[0]?.length) {
-      setSelectedChapter(playList[0][0])
+    if (!selectedEpisode && playList?.[0]?.length) {
+      setSelectedEpisode(playList[0][0])
     }
-  }, [chaptersQuery.data])
+  }, [episodesQuery.data])
 
   if (!content || !kazumiPolicy) {
     goBack()
     return null
   }
 
-  const hasChapter =
-    chaptersQuery.isSuccess && !!chaptersQuery.data?.[0]?.length
-
-  const handleChapterSelect = (chapter: KazumiChapterResult) => {
-    setSelectedChapter(chapter)
-  }
-
-  const getTitle = () => {
-    if (selectedChapter) {
-      return `${content.name} - ${selectedChapter.name}`
+  const mediaInfo = useMemo(() => {
+    if (selectedEpisode) {
+      return new MediaInfo(
+        content.name,
+        episodeNumber,
+        undefined,
+        selectedEpisode.name
+      )
     }
-    return content.name
+    return new MediaInfo(content.name, episodeNumber)
+  }, [selectedEpisode, episodeNumber, content])
+
+  const hasEpisodes =
+    episodesQuery.isSuccess && !!episodesQuery.data?.[0]?.length
+
+  const handleChapterSelect = (index: number, chapter: KazumiChapterResult) => {
+    setSelectedEpisode(chapter)
+    setEpisodeNumber(index + 1)
   }
 
   const getStatusText = () => {
-    if (chaptersQuery.isLoading) {
+    if (episodesQuery.isLoading) {
       return t('videoSearchPage.status.chaptersLoading')
     }
-    if (chaptersQuery.isSuccess) {
+    if (episodesQuery.isSuccess) {
       if (videoUrlQuery.isLoading) {
         return t('videoSearchPage.status.videoLoading')
       }
@@ -104,8 +112,8 @@ export const ChapterSelector = () => {
   }
 
   const getErrorMessage = () => {
-    if (chaptersQuery.isError) {
-      return `${t('videoSearchPage.status.chaptersError')}: ${chaptersQuery.error.message}`
+    if (episodesQuery.isError) {
+      return `${t('videoSearchPage.status.chaptersError')}: ${episodesQuery.error.message}`
     }
     if (videoUrlQuery.isError) {
       return `${t('videoSearchPage.status.videoError')}: ${videoUrlQuery.error.message}`
@@ -115,18 +123,17 @@ export const ChapterSelector = () => {
   return (
     <Box sx={{ p: 2 }}>
       <Typography variant="h6" gutterBottom>
-        {getTitle()}
+        {mediaInfo.toString()}
       </Typography>
 
-      <VideoPlayer
+      <LocalVideoPlayer
         videoUrl={videoUrlQuery.data?.src}
         videoType={videoUrlQuery.data?.type}
-        loading={chaptersQuery.isLoading || videoUrlQuery.isLoading}
+        loading={episodesQuery.isLoading || videoUrlQuery.isLoading}
         statusText={getErrorMessage() || getStatusText()}
-        title={getTitle()}
-        onSelectEpisode={() => {
-          //
-        }}
+        title={mediaInfo.toString()}
+        matchDanmaku={!!selectedEpisode}
+        mediaInfo={mediaInfo}
         renderInfo={() => {
           return (
             <>
@@ -136,10 +143,10 @@ export const ChapterSelector = () => {
                   <Typography>{videoUrlQuery.data?.src}</Typography>
                 </>
               )}
-              {selectedChapter?.url && (
+              {selectedEpisode?.url && (
                 <>
                   <Typography>Page url</Typography>
-                  <Typography>{selectedChapter?.url}</Typography>
+                  <Typography>{selectedEpisode?.url}</Typography>
                 </>
               )}
             </>
@@ -147,14 +154,14 @@ export const ChapterSelector = () => {
         }}
       />
 
-      {chaptersQuery.isSuccess && chaptersQuery.data.length === 0 && (
+      {episodesQuery.isSuccess && episodesQuery.data.length === 0 && (
         <NothingHere />
       )}
 
-      {hasChapter && (
+      {hasEpisodes && (
         <>
           <Tabs value={playList} onChange={(_, v) => setPlayList(v)}>
-            {chaptersQuery.data.map((_, index) => {
+            {episodesQuery.data.map((_, index) => {
               return (
                 <Tab
                   key={index}
@@ -165,13 +172,13 @@ export const ChapterSelector = () => {
             })}
           </Tabs>
           <Grid container spacing={2}>
-            {chaptersQuery.data[playList].map((chapter, i) => {
+            {episodesQuery.data[playList].map((chapter, i) => {
               return (
                 <Grid key={i} size={2}>
                   <Card>
                     <CardActionArea
-                      onClick={() => handleChapterSelect(chapter)}
-                      data-active={selectedChapter === chapter ? '' : undefined}
+                      onClick={() => handleChapterSelect(i, chapter)}
+                      data-active={selectedEpisode === chapter ? '' : undefined}
                       disabled={videoUrlQuery.isLoading}
                       sx={{
                         height: '100%',
