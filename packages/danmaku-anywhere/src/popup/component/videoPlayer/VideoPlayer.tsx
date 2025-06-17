@@ -11,6 +11,7 @@ import videojs from 'video.js'
 import 'video.js/dist/video-js.css'
 import './VideoPlayer.css'
 import type { SelectableEpisode } from '@/common/components/DanmakuSelector/DanmakuSelector'
+import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { danmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { DanmakuComponent } from '@/content/player/monitors/DanmakuComponent'
 import {
@@ -24,6 +25,7 @@ import type { ReactNode } from 'react'
 import { createElement, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import ReactDOM from 'react-dom/client'
+import { ErrorBoundary } from 'react-error-boundary'
 import { type VideoJsPlayer, VideoPlayerProvider } from './VideoPlayerContext'
 import { FadeContainer } from './components/FadeContainer'
 import { PauseIndicator } from './components/PauseIndicator'
@@ -243,7 +245,9 @@ export const VideoPlayer = ({
   }
 
   return (
-    <>
+    <ErrorBoundary
+      fallbackRender={({ error }) => <ErrorMessage message={error.message} />}
+    >
       <VideoPlayerProvider
         player={playerInst}
         renderer={rendererRef.current}
@@ -286,6 +290,6 @@ export const VideoPlayer = ({
           {renderPortals()}
         </VideoPlayerWrapper>
       </VideoPlayerProvider>
-    </>
+    </ErrorBoundary>
   )
 }

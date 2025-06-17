@@ -6,10 +6,8 @@ import { AboutOptions } from '@/popup/pages/options/pages/about/AboutOptions'
 import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
 import { SeasonDetailsPage } from '@/popup/pages/search/seasonDetails/SeasonDetailsPage'
 import { KazumiPage } from '@/popup/pages/video/kazumi/pages/KazumiPage'
-import { LocalVideoPage } from '@/popup/pages/video/local/LocalVideoPage'
-import { ChapterSelector } from '@/popup/pages/video/player/ChapterSelector'
-import { PlayerPage } from '@/popup/pages/video/player/PlayerPage'
-import { SearchResultPage } from '@/popup/pages/video/player/SearchResultPage'
+import { VideoPlayerPage } from '@/popup/pages/video/player/VideoPlayerPage'
+import { VideoSearchPage } from '@/popup/pages/video/player/VideoSearchPage'
 import { ConfigPage } from '../pages/config/pages/ConfigPage'
 import { CommentPage } from '../pages/danmaku/pages/comments/CommentPage'
 import { EpisodePage } from '../pages/danmaku/pages/episode/EpisodePage'
@@ -118,21 +116,11 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
           },
           {
             path: 'search',
-            Component: PlayerPage,
-            children: [
-              {
-                index: true,
-                Component: SearchResultPage,
-              },
-              {
-                path: 'chapters',
-                Component: ChapterSelector,
-              },
-            ],
+            Component: VideoSearchPage,
           },
           {
-            path: 'local',
-            Component: LocalVideoPage,
+            path: 'player',
+            Component: VideoPlayerPage,
           },
         ],
       },

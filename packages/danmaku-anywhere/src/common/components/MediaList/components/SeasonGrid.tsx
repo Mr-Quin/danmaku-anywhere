@@ -3,6 +3,7 @@ import {
   SeasonCardSkeleton,
 } from '@/common/components/MediaList/components/SeasonCard'
 import { useMergeRefs } from '@/common/hooks/useMergeRefs'
+import { useMeasure } from '@/content/common/hooks/useMeasure'
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import {
   Box,
@@ -49,6 +50,8 @@ const SeasonGridLayout = (props: GridProps) => {
   )
 }
 
+const defaultGridSize = { xs: 2, sm: 2, md: 2 } as const
+
 interface SeasonGridProps {
   data: (Season | CustomSeason)[]
   onSeasonClick?: (season: Season | CustomSeason) => void
@@ -79,18 +82,19 @@ export const SeasonGrid = ({
   const [selectionModel, setSelectionModel] = useState<
     (Season | CustomSeason)[]
   >(selectionModelProp ?? [])
+  const [measureRef, [width]] = useMeasure()
 
   const ref = useRef<HTMLDivElement>(null)
 
-  const mergedRefs = useMergeRefs(ref, refProp)
+  const mergedRefs = useMergeRefs(ref, refProp, measureRef)
 
   const theme = useTheme()
 
   const lanes =
     useBreakpointValue({
       xs: 2,
-      sm: 2,
-      md: 3,
+      sm: 4,
+      md: 6,
     }) ?? 2
 
   const spacing =
@@ -122,8 +126,6 @@ export const SeasonGrid = ({
         overscan: 1,
       })
 
-  const gridSize = { xs: 2, sm: 4, md: 4 }
-
   const handleSelect = (season: Season | CustomSeason) => {
     if (selectionModel.includes(season)) {
       const selection = singleSelect
@@ -143,7 +145,7 @@ export const SeasonGrid = ({
       <SeasonGridLayout>
         {data.map((season) => {
           return (
-            <Grid size={gridSize} key={season.id}>
+            <Grid size={defaultGridSize} key={season.id}>
               <SeasonCard
                 season={season}
                 onClick={onSeasonClick}
@@ -172,7 +174,7 @@ export const SeasonGrid = ({
           const season = data[virtualItem.index]
           return (
             <Grid
-              size={{ xs: 2, sm: 4, md: 4 }}
+              size={defaultGridSize}
               sx={{
                 position: 'absolute',
                 top: 0,
@@ -206,7 +208,7 @@ export const SeasonGridSkeleton = ({ count = 4 }: SeasonGridSkeletonProps) => {
     <SeasonGridLayout>
       {Array.from({ length: count }).map((_, index) => {
         return (
-          <Grid size={{ xs: 2, sm: 4, md: 4 }} key={index}>
+          <Grid size={defaultGridSize} key={index}>
             <SeasonCardSkeleton />
           </Grid>
         )

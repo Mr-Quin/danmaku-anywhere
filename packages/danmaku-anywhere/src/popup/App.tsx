@@ -1,7 +1,7 @@
 import { Toast } from '@/common/components/Toast/Toast'
 import { useThemeContext } from '@/common/theme/Theme'
+import { useEnvironment } from '@/content/common/context/Environment'
 import { LoadInitialData } from '@/popup/component/LoadInitialData'
-import { useEnvironment } from '@/popup/context/Environment'
 import { PopupLayout } from './layout/PopupLayout'
 import { RootRouter } from './router/RootRouter'
 

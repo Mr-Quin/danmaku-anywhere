@@ -1,18 +1,11 @@
-import { NothingHere } from '@/common/components/NothingHere'
 import type { KazumiPolicy } from '@/common/options/kazumiPolicy/schema'
 import { useKazumiPolicies } from '@/common/options/kazumiPolicy/useKazumiManifest'
 import { useStore } from '@/popup/store'
-import { Box, Button, Tab, Tabs } from '@mui/material'
+import { Box, Tab, Tabs } from '@mui/material'
 import { useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
-import { useLocation, useNavigate } from 'react-router'
 
 export const PolicySelector = () => {
-  const { t } = useTranslation()
   const { setKazumiPolicy, kazumiPolicy } = useStore.use.player()
-
-  const navigate = useNavigate()
-  const location = useLocation()
 
   const { data: policies } = useKazumiPolicies()
 
@@ -24,24 +17,6 @@ export const PolicySelector = () => {
 
   const handleSelect = (policy: KazumiPolicy) => {
     setKazumiPolicy(policy)
-    if (location.pathname !== '/videoSearch') {
-      navigate('/videoSearch')
-    }
-  }
-
-  if (policies.length === 0) {
-    return (
-      <NothingHere message={t('videoSearchPage.noPolicy')}>
-        <Button
-          variant="contained"
-          onClick={() =>
-            navigate('../kazumi', { relative: 'path', state: 'import' })
-          }
-        >
-          {t('videoSearchPage.goToImport')}
-        </Button>
-      </NothingHere>
-    )
   }
 
   return (

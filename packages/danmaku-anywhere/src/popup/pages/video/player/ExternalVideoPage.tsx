@@ -1,8 +1,10 @@
 import { NothingHere } from '@/common/components/NothingHere'
 import { kazumiQueryKeys } from '@/common/queries/queryKeys'
+import { TabLayout } from '@/content/common/TabLayout'
+import { TabToolbar } from '@/content/common/TabToolbar'
 import { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import { useGoBack } from '@/popup/hooks/useGoBack'
-import { LocalVideoPlayer } from '@/popup/pages/video/local/LocalVideoPlayer'
+import { LocalVideoPlayer } from '@/popup/pages/video/local/components/LocalVideoPlayer'
 import type {
   KazumiChapterResult,
   KazumiSearchResult,
@@ -13,7 +15,6 @@ import {
 } from '@/popup/pages/video/player/scraper/videoScraper'
 import { useStore } from '@/popup/store'
 import {
-  Box,
   Card,
   CardActionArea,
   CardContent,
@@ -25,12 +26,13 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation } from 'react-router'
 
-export const ChapterSelector = () => {
+type ExternalVideoPageProps = {
+  content: KazumiSearchResult
+}
+
+export const ExternalVideoPage = ({content}:ExternalVideoPageProps) => {
   const { t } = useTranslation()
-
-  const location = useLocation()
 
   const goBack = useGoBack()
 
@@ -39,8 +41,6 @@ export const ChapterSelector = () => {
   const [selectedEpisode, setSelectedEpisode] = useState<KazumiChapterResult>()
   const [episodeNumber, setEpisodeNumber] = useState(1)
   const [playList, setPlayList] = useState(0)
-
-  const content = location.state?.content as KazumiSearchResult
 
   const episodesQuery = useQuery({
     queryKey: kazumiQueryKeys.chapters(content.url, kazumiPolicy?.name ?? ''),
@@ -75,7 +75,7 @@ export const ChapterSelector = () => {
     }
   }, [episodesQuery.data])
 
-  if (!content || !kazumiPolicy) {
+  if (!kazumiPolicy) {
     goBack()
     return null
   }
@@ -121,11 +121,12 @@ export const ChapterSelector = () => {
   }
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="h6" gutterBottom>
-        {mediaInfo.toString()}
-      </Typography>
-
+    <TabLayout>
+      <TabToolbar
+        title={mediaInfo.toString()}
+        showBackButton
+        onGoBack={goBack}
+      />
       <LocalVideoPlayer
         videoUrl={videoUrlQuery.data?.src}
         videoType={videoUrlQuery.data?.type}
@@ -211,6 +212,6 @@ export const ChapterSelector = () => {
           </Grid>
         </>
       )}
-    </Box>
+    </TabLayout>
   )
 }

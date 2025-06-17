@@ -117,7 +117,7 @@ export const VideoPlayerProvider = ({
   const [size, setSize] = useState<[number, number]>([0, 0])
 
   useEffect(() => {
-    if (!player) return
+    if (!player || player.isDisposed()) return
 
     const onPlay = () => {
       setIsPaused(false)

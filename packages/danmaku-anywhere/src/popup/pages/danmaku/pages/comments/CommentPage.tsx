@@ -8,7 +8,7 @@ import { useCustomEpisodeSuspense } from '@/common/danmaku/queries/useCustomEpis
 import { useEpisodesSuspense } from '@/common/danmaku/queries/useEpisodes'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
-import { useEnvironment } from '@/popup/context/Environment'
+import { useEnvironment } from '@/content/common/context/Environment'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 
 export const CommentPage = () => {

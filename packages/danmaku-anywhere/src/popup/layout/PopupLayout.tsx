@@ -1,5 +1,5 @@
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
-import { useEnvironment } from '@/popup/context/Environment'
+import { useEnvironment } from '@/content/common/context/Environment'
 import { Container, Paper } from '@mui/material'
 import type { PropsWithChildren } from 'react'
 

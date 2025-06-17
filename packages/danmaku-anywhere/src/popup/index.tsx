@@ -9,7 +9,7 @@ import { App } from './App'
 import { queryClient } from '@/common/queries/queryClient'
 import { Theme } from '@/common/theme/Theme'
 import '@/common/localization/i18n'
-import { EnvironmentProvider } from '@/popup/context/Environment'
+import { EnvironmentProvider } from '@/content/common/context/Environment'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

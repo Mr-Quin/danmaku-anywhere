@@ -1,5 +1,5 @@
 import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSelector'
-import { useEnvironment } from '@/popup/context/Environment'
+import { useEnvironment } from '@/content/common/context/Environment'
 import { useIsConnected } from '@/popup/hooks/useIsConnected'
 import { useMountDanmakuPopup } from '@/popup/pages/mount/useMountDanmakuPopup'
 import { useStore } from '@/popup/store'

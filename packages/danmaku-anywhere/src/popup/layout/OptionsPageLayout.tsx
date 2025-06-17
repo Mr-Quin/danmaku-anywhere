@@ -4,7 +4,7 @@ import type { ElementType, PropsWithChildren } from 'react'
 import { Suspense } from 'react'
 
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
-import { useEnvironment } from '@/popup/context/Environment'
+import { useEnvironment } from '@/content/common/context/Environment'
 
 type OptionsPageProps = PropsWithChildren<{
   direction?: SlideProps['direction']

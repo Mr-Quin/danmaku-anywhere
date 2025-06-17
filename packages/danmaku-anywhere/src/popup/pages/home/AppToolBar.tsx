@@ -21,8 +21,8 @@ import { useNavigate } from 'react-router'
 import { StyledEnableSwitch } from '@/common/components/StyledEnableSwitch'
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
+import { useEnvironment } from '@/content/common/context/Environment'
 import { useIsSmallScreen } from '@/content/controller/common/hooks/useIsSmallScreen'
-import { useEnvironment } from '@/popup/context/Environment'
 import { useStore } from '@/popup/store'
 
 const Search = styled('div')(({ theme }) => ({

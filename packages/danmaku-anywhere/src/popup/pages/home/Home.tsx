@@ -31,8 +31,8 @@ import { AppToolBar } from './AppToolBar'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { TabLayout } from '@/content/common/TabLayout'
+import { useEnvironment } from '@/content/common/context/Environment'
 import { ReleaseNotes } from '@/popup/component/releaseNotes/ReleaseNotes'
-import { useEnvironment } from '@/popup/context/Environment'
 import { useStore } from '@/popup/store'
 import { ErrorBoundary } from 'react-error-boundary'
 
@@ -86,7 +86,7 @@ const dashboardPages: NavItem[] = [
       },
       {
         label: 'tabs.localVideo',
-        path: '/video/local',
+        path: '/video/player',
       },
     ],
   },

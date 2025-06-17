@@ -7,7 +7,7 @@ export const Center = ({
 }: PropsWithChildren<StackProps>) => {
   return (
     <Stack
-      height={1}
+      flexGrow={1}
       direction="column"
       justifyContent="center"
       alignItems="center"

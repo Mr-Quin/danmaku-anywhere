@@ -18,7 +18,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
-export const SearchResultPage = () => {
+export const VideoSearchResults = () => {
   const { t } = useTranslation()
 
   const navigate = useNavigate()
@@ -39,7 +39,7 @@ export const SearchResultPage = () => {
   })
 
   const handleContentSelect = (content: KazumiSearchResult) => {
-    navigate(`chapters`, {
+    navigate(`../player`, {
       state: {
         content,
       },

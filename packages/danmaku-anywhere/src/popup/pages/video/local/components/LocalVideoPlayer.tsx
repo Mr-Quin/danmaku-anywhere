@@ -9,8 +9,8 @@ import {
   VideoPlayer,
   type VideoPlayerProps,
 } from '@/popup/component/videoPlayer/VideoPlayer'
-import { DisambiguationSlide } from '@/popup/pages/video/local/DisambiguationSlide'
-import { VideoStatus } from '@/popup/pages/video/local/VideoStatus'
+import { DisambiguationSlide } from '@/popup/pages/video/local/components/DisambiguationSlide'
+import { VideoStatus } from '@/popup/pages/video/local/components/VideoStatus'
 import type {
   CommentEntity,
   DanDanPlayOf,
