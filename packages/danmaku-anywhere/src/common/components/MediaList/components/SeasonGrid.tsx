@@ -11,38 +11,45 @@ import {
   type Breakpoint,
   Grid,
   type GridProps,
-  useMediaQuery,
   useTheme,
 } from '@mui/material'
 import { useVirtualizer, useWindowVirtualizer } from '@tanstack/react-virtual'
 import { type RefObject, useRef, useState } from 'react'
 
-const useBreakpointValue = <T,>(values: Partial<Record<Breakpoint, T>>) => {
+function useBreakpointValue<T>(
+  values: Partial<Record<Breakpoint, T>>,
+  width: number,
+  fallback: T
+): T {
   const theme = useTheme()
 
-  const mediaQueryResults = {
-    xs: useMediaQuery(theme.breakpoints.up('xs')),
-    sm: useMediaQuery(theme.breakpoints.up('sm')),
-    md: useMediaQuery(theme.breakpoints.up('md')),
-    lg: useMediaQuery(theme.breakpoints.up('lg')),
-    xl: useMediaQuery(theme.breakpoints.up('xl')),
-  }
+  const breakpointWidths = {
+    xs: 0,
+    sm: theme.breakpoints.values.sm,
+    md: theme.breakpoints.values.md,
+    lg: theme.breakpoints.values.lg,
+    xl: theme.breakpoints.values.xl,
+  } satisfies Record<Breakpoint, number>
 
-  const breakpointKeys = theme.breakpoints.keys.toReversed()
+  const breakpointKeys = [...theme.breakpoints.keys].reverse()
 
   for (const key of breakpointKeys) {
-    if (values[key] !== undefined && mediaQueryResults[key]) {
+    if (values[key] !== undefined && width >= breakpointWidths[key]) {
       return values[key]
     }
   }
+
+  return fallback
 }
+
+const GRID_COLUMNS = 12
 
 const SeasonGridLayout = (props: GridProps) => {
   return (
     <Grid
       container
       spacing={{ xs: 2, md: 3 }}
-      columns={{ xs: 4, sm: 8, md: 12 }}
+      columns={GRID_COLUMNS}
       {...props}
     >
       {props.children}
@@ -50,7 +57,35 @@ const SeasonGridLayout = (props: GridProps) => {
   )
 }
 
-const defaultGridSize = { xs: 2, sm: 2, md: 2 } as const
+const useGridLayout = () => {
+  const theme = useTheme()
+  const [ref, [width]] = useMeasure()
+
+  const lanes = useBreakpointValue(
+    {
+      xs: 2,
+      sm: 4,
+      md: 6,
+    },
+    width,
+    2
+  )
+
+  const spacing = useBreakpointValue(
+    {
+      xs: theme.spacing(20),
+      md: theme.spacing(3),
+    },
+    width,
+    '8px'
+  )
+
+  return {
+    lanes,
+    spacing,
+    ref,
+  }
+}
 
 interface SeasonGridProps {
   data: (Season | CustomSeason)[]
@@ -82,26 +117,12 @@ export const SeasonGrid = ({
   const [selectionModel, setSelectionModel] = useState<
     (Season | CustomSeason)[]
   >(selectionModelProp ?? [])
-  const [measureRef, [width]] = useMeasure()
-
+  const { ref: measureRef, lanes, spacing } = useGridLayout()
   const ref = useRef<HTMLDivElement>(null)
 
-  const mergedRefs = useMergeRefs(ref, refProp, measureRef)
+  const mergedRefs = useMergeRefs(ref, refProp)
 
-  const theme = useTheme()
-
-  const lanes =
-    useBreakpointValue({
-      xs: 2,
-      sm: 4,
-      md: 6,
-    }) ?? 2
-
-  const spacing =
-    useBreakpointValue({
-      xs: theme.spacing(2),
-      md: theme.spacing(3),
-    }) ?? '8px'
+  const gridSize = GRID_COLUMNS / lanes
 
   const virtualizer = windowVirtualizer
     ? useWindowVirtualizer({
@@ -142,10 +163,10 @@ export const SeasonGrid = ({
 
   if (!virtualize) {
     return (
-      <SeasonGridLayout>
+      <SeasonGridLayout ref={measureRef} spacing={spacing}>
         {data.map((season) => {
           return (
-            <Grid size={defaultGridSize} key={season.id}>
+            <Grid size={gridSize} key={season.id}>
               <SeasonCard
                 season={season}
                 onClick={onSeasonClick}
@@ -169,12 +190,17 @@ export const SeasonGrid = ({
       ref={mergedRefs}
       {...boxProps}
     >
-      <SeasonGridLayout height={virtualizer.getTotalSize()} position="relative">
+      <SeasonGridLayout
+        ref={measureRef}
+        spacing={spacing}
+        height={virtualizer.getTotalSize()}
+        position="relative"
+      >
         {virtualizer.getVirtualItems().map((virtualItem) => {
           const season = data[virtualItem.index]
           return (
             <Grid
-              size={defaultGridSize}
+              size={gridSize}
               sx={{
                 position: 'absolute',
                 top: 0,
@@ -204,11 +230,15 @@ type SeasonGridSkeletonProps = {
   count?: number
 }
 export const SeasonGridSkeleton = ({ count = 4 }: SeasonGridSkeletonProps) => {
+  const { ref, lanes, spacing } = useGridLayout()
+
+  const gridSize = GRID_COLUMNS / lanes
+
   return (
-    <SeasonGridLayout>
+    <SeasonGridLayout ref={ref} spacing={spacing}>
       {Array.from({ length: count }).map((_, index) => {
         return (
-          <Grid size={defaultGridSize} key={index}>
+          <Grid size={gridSize} key={index}>
             <SeasonCardSkeleton />
           </Grid>
         )
