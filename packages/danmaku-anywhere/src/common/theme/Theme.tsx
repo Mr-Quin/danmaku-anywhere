@@ -19,10 +19,12 @@ const defaultThemeOptions: ThemeOptions = {
 
 type ThemeContext = UserTheme & {
   setColorMode: (colorScheme: ColorMode) => void
+  colorScheme: 'dark' | 'light'
 }
 
 const context = createContext<ThemeContext>({
   colorMode: ColorMode.System,
+  colorScheme: 'dark',
   setColorMode: () => void 0,
 })
 
@@ -40,7 +42,6 @@ export const Theme = ({ children, options = {} }: ThemeProps) => {
   const { i18n } = useTranslation()
 
   const { data, partialUpdate } = useExtensionOptions()
-  const colorMode = data.theme.colorMode
 
   const setColorMode = async (colorScheme: ColorMode) => {
     await partialUpdate(
@@ -50,9 +51,12 @@ export const Theme = ({ children, options = {} }: ThemeProps) => {
     )
   }
 
-  const theme = useMemo(() => {
-    const preferredColorScheme = (prefersDarkMode ?? true) ? 'dark' : 'light'
+  const colorMode = data.theme.colorMode
+  const preferredColorScheme = (prefersDarkMode ?? true) ? 'dark' : 'light'
+  const colorScheme: 'dark' | 'light' =
+    colorMode === 'system' ? preferredColorScheme : colorMode
 
+  const theme = useMemo(() => {
     const languageMap: Record<string, Localization> = {
       zh: zhCN,
       en: enUS,
@@ -62,19 +66,19 @@ export const Theme = ({ children, options = {} }: ThemeProps) => {
       produce(defaultThemeOptions, (draft) => {
         Object.assign(draft, options)
         if (!draft.palette) draft.palette = {}
-        draft.palette.mode =
-          colorMode === 'system' ? preferredColorScheme : colorMode
+        draft.palette.mode = colorScheme
       }),
       languageMap[i18n.language]
     )
-  }, [colorMode, options, i18n.language])
+  }, [colorScheme, options, i18n.language])
 
   const themeContextValue = useMemo(
     () => ({
       colorMode,
+      colorScheme,
       setColorMode,
     }),
-    [colorMode, setColorMode]
+    [colorScheme, colorMode, setColorMode]
   )
 
   return (

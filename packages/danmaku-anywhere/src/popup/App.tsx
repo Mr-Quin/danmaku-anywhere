@@ -7,6 +7,7 @@ import { usePreloadImages } from '@/common/components/image/usePreloadImages'
 import { Toast } from '@/common/components/Toast/Toast'
 import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
+import { useThemeContext } from '@/common/theme/Theme'
 import { PopupLayout } from './layout/PopupLayout'
 import { RootRouter } from './router/RootRouter'
 
@@ -18,6 +19,7 @@ const LoadInitialData = ({ children }: PropsWithChildren) => {
 
 export const App = () => {
   usePreloadImages()
+  const { colorScheme } = useThemeContext()
 
   return (
     <PopupLayout>
@@ -29,6 +31,7 @@ export const App = () => {
       >
         <Suspense fallback={<FullPageSpinner />}>
           <LoadInitialData>
+            <meta name="color-scheme" content={colorScheme} />
             <Toast
               snackbarProps={{
                 anchorOrigin: {
