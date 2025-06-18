@@ -1,9 +1,32 @@
 {
-  "extends": ["../../biome.base.json"],
+  "root": false,
   "files": {
-    "ignore": ["dev", "build", "extension-profile", "node_modules", "patches"]
+    "includes": [
+      "**",
+      "!**/dev",
+      "!**/build",
+      "!**/extension-profile",
+      "!**/node_modules",
+      "!**/patches"
+    ]
   },
   "javascript": {
     "globals": ["chrome"]
+  },
+  "linter": {
+    "rules": {
+      "style": {
+        "noParameterAssign": "error",
+        "useAsConstAssertion": "error",
+        "useDefaultParameterLast": "error",
+        "useEnumInitializers": "error",
+        "useSelfClosingElements": "error",
+        "useSingleVarDeclarator": "error",
+        "noUnusedTemplateLiteral": "error",
+        "useNumberNamespace": "error",
+        "noInferrableTypes": "error",
+        "noUselessElse": "error"
+      }
+    }
   }
 }
