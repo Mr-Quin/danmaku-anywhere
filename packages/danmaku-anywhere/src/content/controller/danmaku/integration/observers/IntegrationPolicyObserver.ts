@@ -303,6 +303,7 @@ export class IntegrationPolicyObserver extends MediaObserver {
     this.logger.debug('Elements discovered, setting up observers')
 
     // Observe each element for text changes
+
     ;(Object.keys(elements) as (keyof typeof elements)[]).forEach((key) => {
       if (elements[key]) {
         const observer = createTextMutationObserver(elements[key], () => {

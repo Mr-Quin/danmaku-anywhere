@@ -1,8 +1,8 @@
+import { Autocomplete, Stack, TextField, Typography } from '@mui/material'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { fontQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
-import { Autocomplete, Stack, TextField, Typography } from '@mui/material'
-import { useSuspenseQuery } from '@tanstack/react-query'
 
 type FontSelectorProps = {
   onChange: (value: string) => void

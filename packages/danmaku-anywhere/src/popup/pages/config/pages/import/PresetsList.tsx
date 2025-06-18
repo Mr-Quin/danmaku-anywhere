@@ -1,13 +1,3 @@
-import { ErrorMessage } from '@/common/components/ErrorMessage'
-import { FullPageSpinner } from '@/common/components/FullPageSpinner'
-import { NothingHere } from '@/common/components/NothingHere'
-import { useToast } from '@/common/components/Toast/toastStore'
-import {
-  type CombinedPolicy,
-  combinedPolicyService,
-} from '@/common/options/combinedPolicy'
-import { configQueryKeys } from '@/common/queries/queryKeys'
-import { PreFormat } from '@/popup/component/PreFormat'
 import { CheckCircle } from '@mui/icons-material'
 import {
   Box,
@@ -22,6 +12,16 @@ import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { ErrorMessage } from '@/common/components/ErrorMessage'
+import { FullPageSpinner } from '@/common/components/FullPageSpinner'
+import { NothingHere } from '@/common/components/NothingHere'
+import { useToast } from '@/common/components/Toast/toastStore'
+import {
+  type CombinedPolicy,
+  combinedPolicyService,
+} from '@/common/options/combinedPolicy'
+import { configQueryKeys } from '@/common/queries/queryKeys'
+import { PreFormat } from '@/popup/component/PreFormat'
 
 type MountConfigPreset = { config: CombinedPolicy; hash: string; file: string }
 

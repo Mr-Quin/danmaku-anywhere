@@ -2,20 +2,20 @@ import type {
   CommentEntity,
   CustomEpisode,
   CustomEpisodeLite,
+  Episode,
+  EpisodeLite,
+  EpisodeMeta,
+  Season,
+  WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { BilibiliUserInfo } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import type { ExtractTitleResponse } from '@danmaku-anywhere/danmaku-provider/genAi'
-
-import type { RPCDef } from '../../rpc/types'
-
 import type {
   MatchEpisodeInput,
   MatchEpisodeResult,
   SeasonQueryFilter,
   SeasonSearchParams,
 } from '@/common/anime/dto'
-
-import type { Season } from '@danmaku-anywhere/danmaku-converter'
 
 import type {
   CustomEpisodeQueryFilter,
@@ -26,12 +26,7 @@ import type {
   EpisodeSearchParams,
 } from '@/common/danmaku/dto'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
-import type {
-  Episode,
-  EpisodeLite,
-  EpisodeMeta,
-  WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
+import type { RPCDef } from '../../rpc/types'
 
 type IconSetDto =
   | {

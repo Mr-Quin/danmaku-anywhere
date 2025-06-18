@@ -14,7 +14,7 @@ const { data: frameId } = await chromeRpcClient.getFrameId()
 
 const Logger = _Logger.sub(`[Player-${frameId}]`)
 
-Logger.info(`Player script loaded`)
+Logger.info('Player script loaded')
 
 const manager = new DanmakuManager(Logger)
 const { shadowRoot } = createPopoverRoot('danmaku-anywhere-player')

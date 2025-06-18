@@ -1,7 +1,7 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
-import { type Manager, create } from 'danmu'
+import { create, type Manager } from 'danmu'
 import { mapIter, sampleByTime } from './iterator'
-import { type ParsedComment, applyFilter, transformComment } from './parser'
+import { applyFilter, type ParsedComment, transformComment } from './parser'
 import { bindVideo } from './plugins/bindVideo'
 import { deepEqual } from './utils'
 
@@ -122,7 +122,7 @@ export class DanmakuRenderer {
       Array.from(commentGenerator)
         .toSorted((a, b) => a.time - b.time)
         .values(),
-      Infinity,
+      Number.POSITIVE_INFINITY,
       (item) => item.time
     )
 

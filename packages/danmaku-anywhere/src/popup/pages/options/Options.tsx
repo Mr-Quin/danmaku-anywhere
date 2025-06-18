@@ -11,13 +11,10 @@ import {
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Outlet, useNavigate } from 'react-router'
-
-import { OptionsPageLayout } from '../../layout/OptionsPageLayout'
-
-import { LanguageListItem } from './components/LanguageListItem'
-
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { Version } from '@/popup/pages/options/components/Version'
+import { OptionsPageLayout } from '../../layout/OptionsPageLayout'
+import { LanguageListItem } from './components/LanguageListItem'
 
 const OptionsListItem = ({
   title,

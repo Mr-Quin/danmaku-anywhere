@@ -1,24 +1,4 @@
 import {
-  Box,
-  CircularProgress,
-  IconButton,
-  List,
-  ListItemIcon,
-  ListSubheader,
-  Stack,
-} from '@mui/material'
-import { memo, useMemo, useRef } from 'react'
-
-import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
-import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
-import { NothingHere } from '@/common/components/NothingHere'
-import { ProviderLogo } from '@/common/components/ProviderLogo'
-import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
-import { useEpisodesLiteSuspense } from '@/common/danmaku/queries/useEpisodes'
-import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
-import { isNotCustom, isProvider } from '@/common/danmaku/utils'
-import { matchWithPinyin } from '@/common/utils/utils'
-import {
   type CustomEpisodeLite,
   type CustomSeason,
   DanmakuSourceType,
@@ -28,8 +8,27 @@ import {
   type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Refresh } from '@mui/icons-material'
+import {
+  Box,
+  CircularProgress,
+  IconButton,
+  List,
+  ListItemIcon,
+  ListSubheader,
+  Stack,
+} from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import { memo, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
+import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
+import { NothingHere } from '@/common/components/NothingHere'
+import { ProviderLogo } from '@/common/components/ProviderLogo'
+import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
+import { useEpisodesLiteSuspense } from '@/common/danmaku/queries/useEpisodes'
+import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
+import { isNotCustom, isProvider } from '@/common/danmaku/utils'
+import { matchWithPinyin } from '@/common/utils/utils'
 
 type EpisodeListItemProps = {
   item: FlattenedOption
@@ -231,9 +230,8 @@ export const DanmakuSelector = ({
     const episode = item.episode
     if (isNotCustom(episode)) {
       return `season-${episode.season.id}-episode-${episode.id}`
-    } else {
-      return `season-custom-episode-${episode.id}`
     }
+    return `season-custom-episode-${episode.id}`
   }
 
   const virtualizer = useVirtualizer({

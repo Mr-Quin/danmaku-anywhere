@@ -16,7 +16,7 @@ export function* sampleByTime<T>(
   if (maxPerSecond === 0) return
 
   // if maxPerSecond is Infinity, just return all comments
-  if (maxPerSecond === Infinity) {
+  if (maxPerSecond === Number.POSITIVE_INFINITY) {
     while (true) {
       const next = iterator.next()
       if (next.done) return

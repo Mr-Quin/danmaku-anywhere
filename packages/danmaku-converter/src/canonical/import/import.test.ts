@@ -1,8 +1,8 @@
 import { produce } from 'immer'
 import { describe, expect, it } from 'vitest'
-
+import { zCommentImport } from '../comment'
+import { DanmakuSourceType } from '../provider/provider'
 import { parseBackupMany } from './import.js'
-
 import validCommentData from './test-data/common/validComment.json' with {
   type: 'json',
 }
@@ -22,7 +22,6 @@ import v3DanDanPlayData from './test-data/v3/danDanPlay.json' with {
   type: 'json',
 }
 import v3TencentData from './test-data/v3/tencent.json' with { type: 'json' }
-
 import customV4EpisodeData from './test-data/v4/customEpisodeV4.json' with {
   type: 'json',
 }
@@ -32,9 +31,6 @@ import invalidV4Data from './test-data/v4/invalidData.json' with {
 import regularV4EpisodeData from './test-data/v4/regularEpisodeWithSeasonV4.json' with {
   type: 'json',
 }
-
-import { zCommentImport } from '../comment'
-import { DanmakuSourceType } from '../provider/provider'
 
 describe('commentSchema', () => {
   it('accepts valid comment', () => {

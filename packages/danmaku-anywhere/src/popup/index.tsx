@@ -4,10 +4,9 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import './index.css'
 
-import { App } from './App'
-
 import { queryClient } from '@/common/queries/queryClient'
 import { Theme } from '@/common/theme/Theme'
+import { App } from './App'
 import '@/common/localization/i18n'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

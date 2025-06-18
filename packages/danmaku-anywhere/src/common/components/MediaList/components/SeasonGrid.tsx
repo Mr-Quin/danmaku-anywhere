@@ -1,8 +1,3 @@
-import {
-  SeasonCard,
-  SeasonCardSkeleton,
-} from '@/common/components/MediaList/components/SeasonCard'
-import { useMergeRefs } from '@/common/hooks/useMergeRefs'
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import {
   Box,
@@ -15,6 +10,11 @@ import {
 } from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { type RefObject, useRef, useState } from 'react'
+import {
+  SeasonCard,
+  SeasonCardSkeleton,
+} from '@/common/components/MediaList/components/SeasonCard'
+import { useMergeRefs } from '@/common/hooks/useMergeRefs'
 
 const useBreakpointValue = <T,>(values: Partial<Record<Breakpoint, T>>) => {
   const theme = useTheme()
@@ -104,7 +104,7 @@ export const SeasonGrid = ({
     getItemKey: (index) => {
       return data[index].id
     },
-    gap: parseInt(spacing),
+    gap: Number.parseInt(spacing),
     lanes,
     overscan: 3,
   })
@@ -163,7 +163,7 @@ export const SeasonGrid = ({
               sx={{
                 position: 'absolute',
                 top: 0,
-                transform: `translateY(${virtualItem.start}px) translateX(calc(${virtualItem.lane * 100}% + ${virtualItem.lane * parseInt(spacing)}px))`,
+                transform: `translateY(${virtualItem.start}px) translateX(calc(${virtualItem.lane * 100}% + ${virtualItem.lane * Number.parseInt(spacing)}px))`,
               }}
               key={season.id}
               data-index={virtualItem.index}

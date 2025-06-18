@@ -24,14 +24,13 @@ const zImportV3 = z
         type: 'Custom',
         episode: episodeMigration.customV3ToV4(data),
       }
-    } else {
-      // remove the seasonId
-      const { seasonId, ...rest } = episodeMigration.v3ToV4(data, 0)
-      return {
-        type: 'Regular',
-        season: episodeMigration.v3ExtractSeason(data),
-        episode: rest,
-      }
+    }
+    // biome-ignore lint/correctness/noUnusedVariables: remove the seasonId
+    const { seasonId, ...rest } = episodeMigration.v3ToV4(data, 0)
+    return {
+      type: 'Regular',
+      season: episodeMigration.v3ExtractSeason(data),
+      episode: rest,
     }
   })
 
@@ -67,9 +66,8 @@ export const parseBackup = (
     const parse = zImportV3.safeParse(data)
     if (parse.success) {
       return parse.data
-    } else {
-      errors.push(parse.error)
     }
+    errors.push(parse.error)
   }
 
   // try custom v4
@@ -80,9 +78,8 @@ export const parseBackup = (
         type: 'Custom',
         episode: parse.data,
       }
-    } else {
-      errors.push(parse.error)
     }
+    errors.push(parse.error)
   }
 
   // try regular v4
@@ -94,9 +91,8 @@ export const parseBackup = (
         season: parse.data.season,
         episode: parse.data,
       }
-    } else {
-      errors.push(parse.error)
     }
+    errors.push(parse.error)
   }
 
   return {

@@ -1,8 +1,8 @@
+import { Keyboard } from '@mui/icons-material'
+import { Button } from '@mui/material'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { Suspense, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-
-import { MountController } from './components/MountController'
-
 import { CaptureKeypress } from '@/common/components/CaptureKeypress'
 import { FilterButton } from '@/common/components/FilterButton'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
@@ -15,9 +15,7 @@ import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { HasDanmaku } from '@/popup/pages/mount/components/HasDanmaku'
 import { useStore } from '@/popup/store'
-import { Keyboard } from '@mui/icons-material'
-import { Button } from '@mui/material'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { MountController } from './components/MountController'
 
 export const MountPage = () => {
   const { t } = useTranslation()

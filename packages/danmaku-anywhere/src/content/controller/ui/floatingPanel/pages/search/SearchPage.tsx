@@ -1,3 +1,4 @@
+import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
 import {
   Box,
@@ -13,7 +14,6 @@ import {
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { useTranslation } from 'react-i18next'
-
 import { Center } from '@/common/components/Center'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { SeasonSearchResult } from '@/common/components/MediaList/SeasonSearchResult'
@@ -27,7 +27,6 @@ import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
 import { SeasonDetailsPage } from '@/content/controller/ui/floatingPanel/pages/search/SeasonDetailsPage'
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 
 export const SearchPage = () => {
   const { t } = useTranslation()

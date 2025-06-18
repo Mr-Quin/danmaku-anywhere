@@ -39,7 +39,7 @@ export const parseMediaNumber = (text: string, regex: string) => {
 
   // Prefer the first capture group if it exists
   const parseIndex = match[1] ? 1 : 0
-  const parsed = parseInt(match[parseIndex])
+  const parsed = Number.parseInt(match[parseIndex])
 
   if (isNaN(parsed)) {
     throw new Error(
@@ -124,7 +124,7 @@ export const parseMediaFromTitle = (
         return new MediaInfo(titleText, 1, season, episodeTitle)
       }
 
-      const episodeNumber = parseInt(episode)
+      const episodeNumber = Number.parseInt(episode)
 
       if (isNaN(episodeNumber)) {
         errors.push(

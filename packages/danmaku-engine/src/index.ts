@@ -1,10 +1,8 @@
 export * from './DanmakuRenderer'
+export { mapIter, sampleByTime, sampleFromBucket } from './iterator'
 export * from './parser'
-export { sampleFromBucket } from './iterator'
-export { sampleByTime } from './iterator'
-export { mapIter } from './iterator'
-export { useFixedDanmaku } from './plugins/fixedDanmaku'
 export { bindVideo } from './plugins/bindVideo'
+export { useFixedDanmaku } from './plugins/fixedDanmaku'
 
 import { DanmakuRenderer } from './DanmakuRenderer'
 

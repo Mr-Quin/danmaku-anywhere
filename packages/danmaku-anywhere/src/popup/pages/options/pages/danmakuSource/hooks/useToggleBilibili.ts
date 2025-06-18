@@ -16,7 +16,7 @@ export const useToggleBilibili = () => {
     select: (res) => res.data,
     queryKey: sourceQueryKeys.bilibili(),
     enabled: enabledSources.some((s) => s.key === 'bilibili'),
-    staleTime: Infinity,
+    staleTime: Number.POSITIVE_INFINITY,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   })

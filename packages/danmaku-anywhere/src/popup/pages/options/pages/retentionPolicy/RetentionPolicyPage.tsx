@@ -142,7 +142,7 @@ export const RetentionPolicyPage = () => {
                                 endAdornment: (
                                   <InputAdornment position="end">
                                     {t('common.duration.day', {
-                                      count: parseInt(`${field.value}`),
+                                      count: Number.parseInt(`${field.value}`),
                                     })}
                                   </InputAdornment>
                                 ),

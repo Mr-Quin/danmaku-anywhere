@@ -1,3 +1,9 @@
+import type {
+  CustomEpisodeLite,
+  EpisodeLite,
+  EpisodeMeta,
+  WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
 import { Download, Update } from '@mui/icons-material'
 import {
   Box,
@@ -10,16 +16,9 @@ import {
   Tooltip,
 } from '@mui/material'
 import { type ReactNode, Suspense } from 'react'
-
+import { useTranslation } from 'react-i18next'
 import { CoverImage } from '@/common/components/MediaList/components/CoverImage'
 import { isNotCustom } from '@/common/danmaku/utils'
-import type {
-  CustomEpisodeLite,
-  EpisodeLite,
-  EpisodeMeta,
-  WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
-import { useTranslation } from 'react-i18next'
 
 const isEpisodeLite = (
   episode: WithSeason<EpisodeMeta> | CustomEpisodeLite

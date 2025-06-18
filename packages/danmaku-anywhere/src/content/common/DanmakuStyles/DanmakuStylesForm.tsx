@@ -1,7 +1,7 @@
 import { Divider, Grid, Input, Stack, Typography } from '@mui/material'
 import { type Ref, useEffect, useImperativeHandle, useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-
 import { IS_CHROME } from '@/common/constants'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
@@ -9,7 +9,6 @@ import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOpt
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { FontSelector } from '@/content/common/DanmakuStyles/FontSelector'
 import { LabeledSwitch } from '@/content/common/DanmakuStyles/LabeledSwitch'
-import { Controller, useForm } from 'react-hook-form'
 import { LabeledSlider } from './LabeledSlider'
 
 const opacityMarks = [
@@ -276,7 +275,7 @@ export const DanmakuStylesForm = ({
 
             const handleOffsetBlur = () => {
               setIsEditingOffset(false)
-              let numericValue = parseInt(editOffsetValue, 10)
+              let numericValue = Number.parseInt(editOffsetValue, 10)
               if (isNaN(numericValue)) {
                 numericValue = field.value ?? 0
               }

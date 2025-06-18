@@ -81,15 +81,14 @@ export const XPathEditor = ({ onOpenSelector }: XPathEditorProps) => {
             success: !err,
             tooltip: err ? err.message : tooltip,
           }
-        } else {
-          const [tooltip, err] = tryCatchSync(() =>
-            parseMultipleRegex(parseMediaString, element.textContent!, [regex])
-          )
+        }
+        const [tooltip, err] = tryCatchSync(() =>
+          parseMultipleRegex(parseMediaString, element.textContent!, [regex])
+        )
 
-          return {
-            success: !err && !!tooltip,
-            tooltip: err ? err.message : tooltip ? tooltip : 'No match',
-          }
+        return {
+          success: !err && !!tooltip,
+          tooltip: err ? err.message : tooltip ? tooltip : 'No match',
         }
       }
 

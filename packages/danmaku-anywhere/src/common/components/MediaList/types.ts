@@ -1,7 +1,8 @@
-import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import type {
+  CustomSeason,
   EpisodeLite,
   EpisodeMeta,
+  Season,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { ReactNode } from 'react'

@@ -1,15 +1,14 @@
 import { Box, Stack, Tab, Tabs } from '@mui/material'
 import { Suspense } from 'react'
+import { ErrorBoundary } from 'react-error-boundary'
 import { useTranslation } from 'react-i18next'
 import { Link, Outlet, useLocation, useMatches } from 'react-router'
-
-import { AppToolBar } from './AppToolBar'
 
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { TabLayout } from '@/content/common/TabLayout'
 import { ReleaseNotes } from '@/popup/component/releaseNotes/ReleaseNotes'
-import { ErrorBoundary } from 'react-error-boundary'
+import { AppToolBar } from './AppToolBar'
 
 export const Home = () => {
   // the tab path should be the second element of the array

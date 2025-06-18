@@ -1,6 +1,6 @@
 import type { DanmakuService } from '@/background/services/DanmakuService'
-import { Logger } from '@/common/Logger'
 import { alarmKeys } from '@/common/alarms/constants'
+import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 
 // Create an alarm to purge old data

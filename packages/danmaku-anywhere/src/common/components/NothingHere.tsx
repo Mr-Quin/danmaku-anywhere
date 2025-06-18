@@ -1,10 +1,10 @@
-import { Center } from '@/common/components/Center'
-import { SuspenseImage } from '@/common/components/image/SuspenseImage'
-import { images } from '@/common/components/image/usePreloadImages'
 import { Typography } from '@mui/material'
 import { type ReactNode, Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { useTranslation } from 'react-i18next'
+import { Center } from '@/common/components/Center'
+import { SuspenseImage } from '@/common/components/image/SuspenseImage'
+import { images } from '@/common/components/image/usePreloadImages'
 
 type NothingHereProps = {
   message?: string

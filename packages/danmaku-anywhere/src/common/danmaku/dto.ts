@@ -1,11 +1,11 @@
 import type {
-  DanmakuSourceType,
-  RemoteDanmakuSourceType,
-} from '@/common/danmaku/enums'
-import type {
   EpisodeMeta,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  DanmakuSourceType,
+  RemoteDanmakuSourceType,
+} from '@/common/danmaku/enums'
 
 export type EpisodeSearchParams = {
   seasonId: number

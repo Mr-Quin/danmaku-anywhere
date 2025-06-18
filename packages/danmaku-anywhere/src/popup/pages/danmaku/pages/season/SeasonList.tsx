@@ -1,6 +1,11 @@
-import { Suspense, memo, useMemo } from 'react'
+import {
+  type CustomSeason,
+  DanmakuSourceType,
+} from '@danmaku-anywhere/danmaku-converter'
+import { Box } from '@mui/material'
+import { memo, Suspense, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { createSearchParams, useNavigate } from 'react-router'
-
 import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
 import {
   SeasonGrid,
@@ -12,12 +17,6 @@ import { isProvider } from '@/common/danmaku/utils'
 import { useStoreScrollPosition } from '@/common/hooks/useStoreScrollPosition'
 import { matchWithPinyin } from '@/common/utils/utils'
 import { useStore } from '@/popup/store'
-import {
-  type CustomSeason,
-  DanmakuSourceType,
-} from '@danmaku-anywhere/danmaku-converter'
-import { Box } from '@mui/material'
-import { useTranslation } from 'react-i18next'
 
 const SeasonListSuspense = () => {
   const navigate = useNavigate()

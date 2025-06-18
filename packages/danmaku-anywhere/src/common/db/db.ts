@@ -1,14 +1,14 @@
-import { Dexie } from 'dexie'
+import type { Episode } from '@danmaku-anywhere/danmaku-converter'
 
 import {
   type CustomEpisode,
   type DanmakuV3,
   type EpisodeV4,
+  episodeMigration,
   type Season,
   type SeasonV1,
-  episodeMigration,
 } from '@danmaku-anywhere/danmaku-converter'
-import type { Episode } from '@danmaku-anywhere/danmaku-converter'
+import { Dexie } from 'dexie'
 
 type WithoutId<T> = Omit<T, 'id'>
 
@@ -176,11 +176,14 @@ class DanmakuAnywhereDb extends Dexie {
         const mapProvider = (provider: number) => {
           if (provider === 0) {
             return 'Custom'
-          } else if (provider === 1) {
+          }
+          if (provider === 1) {
             return 'DanDanPlay'
-          } else if (provider === 2) {
+          }
+          if (provider === 2) {
             return 'Bilibili'
-          } else if (provider === 3) {
+          }
+          if (provider === 3) {
             return 'Tencent'
           }
           return provider

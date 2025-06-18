@@ -1,6 +1,3 @@
-import { docsLink } from '@/common/utils/utils'
-import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
-import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 import { GitHub, Launch } from '@mui/icons-material'
 import {
   ListItem,
@@ -10,6 +7,9 @@ import {
   Typography,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
+import { docsLink } from '@/common/utils/utils'
+import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
+import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 
 export const HelpOptions = () => {
   const { t } = useTranslation()

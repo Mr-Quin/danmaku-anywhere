@@ -1,5 +1,5 @@
+import type { db, SeasonMap } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
-import type { SeasonMap, db } from '@/common/db/db'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 export class TitleMappingService {

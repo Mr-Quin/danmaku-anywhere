@@ -1,3 +1,7 @@
+import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
+import { Box, Button, ListItem, ListItemText } from '@mui/material'
+import { Suspense } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSeasonSearchSuspense } from '@/common/anime/queries/useSeasonSearchSuspense'
 import {
   SeasonGrid,
@@ -6,10 +10,6 @@ import {
 import type { HandleSeasonClick } from '@/common/components/MediaList/types'
 import { NothingHere } from '@/common/components/NothingHere'
 import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
-import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
-import { Box, Button, ListItem, ListItemText } from '@mui/material'
-import { Suspense } from 'react'
-import { useTranslation } from 'react-i18next'
 
 interface SeasonSearchResultProps {
   searchParams: SearchEpisodesQuery

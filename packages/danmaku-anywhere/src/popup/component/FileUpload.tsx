@@ -1,6 +1,6 @@
 import CloudUploadIcon from '@mui/icons-material/CloudUpload' // MUI icon
 import { Box, Typography } from '@mui/material'
-import { type SxProps, type Theme, styled } from '@mui/material/styles'
+import { type SxProps, styled, type Theme } from '@mui/material/styles'
 import type { ChangeEvent, DragEvent, KeyboardEvent, ReactNode } from 'react'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'

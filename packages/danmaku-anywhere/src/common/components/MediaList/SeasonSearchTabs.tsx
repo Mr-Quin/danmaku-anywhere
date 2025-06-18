@@ -1,9 +1,9 @@
-import {
-  type RemoteDanmakuSourceType,
-  localizedDanmakuSourceType,
-} from '@/common/danmaku/enums'
 import { Tab, Tabs } from '@mui/material'
 import { useTranslation } from 'react-i18next'
+import {
+  localizedDanmakuSourceType,
+  type RemoteDanmakuSourceType,
+} from '@/common/danmaku/enums'
 
 interface SeasonSearchTabsProps {
   providers: RemoteDanmakuSourceType[]

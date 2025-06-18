@@ -1,8 +1,6 @@
 import { memo } from 'react'
-
-import { useTabRpcServer } from './useTabRpcServer'
-
 import { useExternalConnection } from '@/content/controller/tabRpc/useExternalConnection'
+import { useTabRpcServer } from './useTabRpcServer'
 
 export const TabRpcServer = memo(() => {
   useTabRpcServer()

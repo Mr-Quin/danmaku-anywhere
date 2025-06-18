@@ -6,14 +6,14 @@ import { CommentMode } from './types.js'
 export const parseCommentEntityP = (p: string): CommentOptions => {
   const [time, mode, color, uid = ''] = p.split(',')
 
-  if (!CommentMode[parseInt(mode)]) {
+  if (!CommentMode[Number.parseInt(mode)]) {
     throw new Error(`Invalid mode: ${mode}`)
   }
 
   return {
-    time: parseFloat(time),
-    mode: CommentMode[parseInt(mode)] as keyof typeof CommentMode,
-    color: rgb888ToHex(parseInt(color)),
+    time: Number.parseFloat(time),
+    mode: CommentMode[Number.parseInt(mode)] as keyof typeof CommentMode,
+    color: rgb888ToHex(Number.parseInt(color)),
     uid, // uid may include string
   }
 }

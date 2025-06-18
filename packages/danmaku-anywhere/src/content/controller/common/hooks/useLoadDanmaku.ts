@@ -1,7 +1,11 @@
+import type {
+  CustomEpisode,
+  Episode,
+  WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
 import { useEventCallback } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
@@ -9,11 +13,6 @@ import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { isProvider } from '@/common/danmaku/utils'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { useStore } from '@/content/controller/store/store'
-import type {
-  CustomEpisode,
-  Episode,
-  WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
 
 export const useMountDanmaku = () => {
   const { toast } = useToast()

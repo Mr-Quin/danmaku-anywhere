@@ -1,5 +1,6 @@
 import { Box, Button, Divider, ListItemText, MenuItem } from '@mui/material'
-
+import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   DanmakuStylesForm,
   type DanmakuStylesFormApi,
@@ -8,8 +9,6 @@ import { FilterPage } from '@/content/common/DanmakuStyles/FilterPage'
 import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
-import { useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
 
 export const StylesPage = () => {
   const { t } = useTranslation()

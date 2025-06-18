@@ -71,9 +71,8 @@ export const IntegrationEditor = () => {
     mutationFn: async (data: Integration) => {
       if (activePolicy) {
         return update(activePolicy.id, data)
-      } else {
-        return add(data, mountConfig.id)
       }
+      return add(data, mountConfig.id)
     },
     onSuccess: () => {
       if (isEdit) {

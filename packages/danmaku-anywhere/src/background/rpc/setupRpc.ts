@@ -1,16 +1,11 @@
 import { match } from 'ts-pattern'
-
-import type { DanmakuService } from '../services/DanmakuService'
-import type { IconService } from '../services/IconService'
-import type { ProviderService } from '../services/ProviderService'
-
 import { injectVideoScript } from '@/background/scripting/setupScripting'
 import type { BilibiliService } from '@/background/services/BilibiliService'
 import type { GenAIService } from '@/background/services/GenAIService'
 import type { SeasonService } from '@/background/services/SeasonService'
 import type { TencentService } from '@/background/services/TencentService'
-import { Logger } from '@/common/Logger'
 import type { EpisodeSearchParams } from '@/common/danmaku/dto'
+import { Logger } from '@/common/Logger'
 import { mountConfigService } from '@/common/options/mountConfig/service'
 import type { TabRPCClientMethod } from '@/common/rpc/client'
 import type { RRPServerHandler } from '@/common/rpc/server'
@@ -23,6 +18,9 @@ import type {
   PlayerEvents,
 } from '@/common/rpcClient/background/types'
 import { relayFrameClient } from '@/common/rpcClient/tab/client'
+import type { DanmakuService } from '../services/DanmakuService'
+import type { IconService } from '../services/IconService'
+import type { ProviderService } from '../services/ProviderService'
 
 export const setupRpc = (
   providerService: ProviderService,

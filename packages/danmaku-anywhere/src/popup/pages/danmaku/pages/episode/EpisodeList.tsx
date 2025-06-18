@@ -1,13 +1,8 @@
-import { NothingHere } from '@/common/components/NothingHere'
-import { useCustomEpisodeLite } from '@/common/danmaku/queries/useCustomEpisodes'
-import { useEpisodesLite } from '@/common/danmaku/queries/useEpisodes'
-import { isProvider } from '@/common/danmaku/utils'
-import { useStore } from '@/popup/store'
+import type { EpisodeLite } from '@danmaku-anywhere/danmaku-converter'
 import {
   type CustomEpisodeLite,
   DanmakuSourceType,
 } from '@danmaku-anywhere/danmaku-converter'
-import type { EpisodeLite } from '@danmaku-anywhere/danmaku-converter'
 import { Box, Stack, Typography } from '@mui/material'
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import { useTranslation } from 'react-i18next'
@@ -17,6 +12,11 @@ import {
   useParams,
   useSearchParams,
 } from 'react-router'
+import { NothingHere } from '@/common/components/NothingHere'
+import { useCustomEpisodeLite } from '@/common/danmaku/queries/useCustomEpisodes'
+import { useEpisodesLite } from '@/common/danmaku/queries/useEpisodes'
+import { isProvider } from '@/common/danmaku/utils'
+import { useStore } from '@/popup/store'
 
 export const EpisodeList = () => {
   const { t } = useTranslation()
@@ -27,7 +27,7 @@ export const EpisodeList = () => {
 
   const isCustom = searchParams.get('type') === 'custom'
 
-  const seasonId = params.seasonId ? parseInt(params.seasonId) : 0
+  const seasonId = params.seasonId ? Number.parseInt(params.seasonId) : 0
 
   const {
     data: episodes,

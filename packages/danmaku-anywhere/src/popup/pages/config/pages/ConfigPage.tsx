@@ -1,16 +1,14 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Outlet, useNavigate } from 'react-router'
-
-import { ConfigToolbar } from '../components/ConfigToolbar'
-import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog'
-import { MountConfigList } from '../components/MountConfigList'
-
 import { createMountConfig } from '@/common/options/mountConfig/constant'
 import type { MountConfigInput } from '@/common/options/mountConfig/schema'
 import { controlQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { TabLayout } from '@/content/common/TabLayout'
 import { useStore } from '@/popup/store'
+import { ConfigToolbar } from '../components/ConfigToolbar'
+import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog'
+import { MountConfigList } from '../components/MountConfigList'
 
 export const ConfigPage = () => {
   const { setEditingConfig } = useStore.use.config()

@@ -1,9 +1,7 @@
 import { Box } from '@mui/material'
-
-import { IntegrationEditor } from './IntegrationEditor'
-
 import { useStore } from '@/content/controller/store/store'
 import { IntegrationInfo } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/IntegrationInfo'
+import { IntegrationEditor } from './IntegrationEditor'
 
 export const IntegrationPage = () => {
   const { showEditor } = useStore.use.integrationForm()

@@ -1,12 +1,9 @@
 import { use } from 'i18next'
 import { initReactI18next } from 'react-i18next'
-
+import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { Logger } from '../Logger'
 import { defaultExtensionOptions } from '../options/extensionOptions/constant'
-
 import { resources } from './resources'
-
-import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 
 export const i18n = use(initReactI18next)
 

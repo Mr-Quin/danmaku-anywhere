@@ -1,7 +1,7 @@
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import type { CustomEpisodeQueryFilter } from '@/common/danmaku/dto'
 import { customEpisodeQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 
 export const useCustomEpisodeSuspense = (filter: CustomEpisodeQueryFilter) => {
   return useSuspenseQuery({

@@ -1,14 +1,14 @@
+import type { Season } from '@danmaku-anywhere/danmaku-converter'
+import { List, ListItem, ListItemText, Skeleton } from '@mui/material'
+import { useSuspenseQueries } from '@tanstack/react-query'
+import { Suspense } from 'react'
+import { ErrorBoundary } from 'react-error-boundary'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import type { RenderEpisode } from '@/common/components/MediaList/types'
 import type { EpisodeQueryFilter } from '@/common/danmaku/dto'
 import { useSearchEpisode } from '@/common/danmaku/queries/useSearchEpisode'
 import { episodeQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import type { Season } from '@danmaku-anywhere/danmaku-converter'
-import { List, ListItem, ListItemText, Skeleton } from '@mui/material'
-import { useSuspenseQueries } from '@tanstack/react-query'
-import { Suspense } from 'react'
-import { ErrorBoundary } from 'react-error-boundary'
 
 interface SeasonListItemProps {
   season: Season
@@ -18,12 +18,7 @@ interface SeasonListItemProps {
 const EpisodeSkeleton = () => {
   return (
     <ListItem>
-      <Skeleton
-        variant="text"
-        width="100%"
-        height={40}
-        animation="wave"
-      ></Skeleton>
+      <Skeleton variant="text" width="100%" height={40} animation="wave" />
     </ListItem>
   )
 }
@@ -58,7 +53,7 @@ const SeasonEpisodeListInner = ({
         },
         refetchOnMount: false,
         refetchOnWindowFocus: false,
-        staleTime: Infinity,
+        staleTime: Number.POSITIVE_INFINITY,
       }
     }),
   })

@@ -25,7 +25,7 @@ export const useInjectFrames = () => {
         return !urlBlacklist.some((url) => frame.url.includes(url))
       })
     },
-    staleTime: Infinity,
+    staleTime: Number.POSITIVE_INFINITY,
     refetchInterval: 5000, // poll every 5s
   })
 

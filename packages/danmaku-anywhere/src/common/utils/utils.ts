@@ -1,11 +1,10 @@
 import type { PopoverVirtualElement } from '@mui/material'
+import JSZip from 'jszip'
 import * as OpenCC from 'opencc-js'
 import { match as matchPinyin } from 'pinyin-pro'
 
-import type { NotPromise } from '../types/utils'
-
 import { Logger } from '@/common/Logger'
-import JSZip from 'jszip'
+import type { NotPromise } from '../types/utils'
 
 export const toArray = <T>(value: T | T[]): T[] => {
   return Array.isArray(value) ? value : [value]

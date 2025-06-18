@@ -1,12 +1,11 @@
+import type { Season } from '@danmaku-anywhere/danmaku-converter'
 import { create } from 'zustand'
-
 import {
   type DanmakuSourceType,
-  type RemoteDanmakuSourceType,
   danmakuSourceTypeList,
+  type RemoteDanmakuSourceType,
 } from '@/common/danmaku/enums'
 import { createSelectors } from '@/common/utils/createSelectors'
-import type { Season } from '@danmaku-anywhere/danmaku-converter'
 
 export enum PopupTab {
   Debug = 'debug',

@@ -47,13 +47,13 @@ export const searchMedia = async (
 ): Promise<TencentVideoSeason[]> => {
   await throttle()
 
-  params = { ...searchMediaDefaultParams, ...params }
+  const newParams = { ...searchMediaDefaultParams, ...params }
 
   const url = `${TENCENT_API_URL_ROOT}/trpc.videosearch.mobile_search.HttpMobileRecall/MbSearchHttp`
 
   const response = await fetch(url, {
     method: 'POST',
-    body: JSON.stringify(params),
+    body: JSON.stringify(newParams),
     headers: {
       'Content-Type': 'application/json',
     },
@@ -127,8 +127,8 @@ export async function* listEpisodes(params: TencentEpisodeListParams) {
   const url = `${TENCENT_API_URL_ROOT}/trpc.universal_backend_service.page_server_rpc.PageServer/GetPageData?video_appid=3000010&vplatform=2`
 
   const pageSize = appliedParams.page_size
-  let i = 0,
-    lastId = ''
+  let i = 0
+  let lastId = ''
 
   const getPageContext = () => {
     return `episode_begin=${i * pageSize + 1}&episode_end=${(i + 1) * pageSize}&episode_step=${pageSize}`

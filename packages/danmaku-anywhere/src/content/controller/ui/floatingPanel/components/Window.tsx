@@ -2,11 +2,9 @@ import type { PopoverVirtualElement } from '@mui/material'
 import { SwipeableDrawer } from '@mui/material'
 import type { ReactNode } from 'react'
 import { memo } from 'react'
-
-import { WindowPopper } from './WindowPopper'
-
 import { useIsSmallScreen } from '@/content/controller/common/hooks/useIsSmallScreen'
 import { WindowPaneLayout } from '@/content/controller/ui/floatingPanel/layout/WindowPaneLayout'
+import { WindowPopper } from './WindowPopper'
 
 interface ControlWindowProps {
   anchorEl: HTMLElement | PopoverVirtualElement | null

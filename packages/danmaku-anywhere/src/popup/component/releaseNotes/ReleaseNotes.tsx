@@ -11,11 +11,9 @@ import {
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Markdown from 'react-markdown'
-
-import { useLatestReleaseNotes } from './useLatestReleaseNotes'
-
 import { ExternalLink } from '@/common/components/ExternalLink'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
+import { useLatestReleaseNotes } from './useLatestReleaseNotes'
 
 export const ReleaseNotes = () => {
   const { t } = useTranslation()

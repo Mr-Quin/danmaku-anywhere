@@ -1,11 +1,9 @@
 import { useEventCallback } from '@mui/material'
 import { useEffect } from 'react'
-
-import { useManualDanmaku } from './useManualDanmaku'
-
 import { createRpcServer } from '@/common/rpc/server'
 import type { TabMethods } from '@/common/rpcClient/tab/types'
 import { useStore } from '@/content/controller/store/store'
+import { useManualDanmaku } from './useManualDanmaku'
 
 export const useTabRpcServer = () => {
   const { handleUnsetDanmaku, handleSetDanmaku } = useManualDanmaku()

@@ -1,12 +1,10 @@
 import type { UseQueryOptions } from '@tanstack/react-query'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo } from 'react'
-
-import type { ExtStorageServiceOptions } from '../ExtStorageService'
-import { ExtStorageService } from '../ExtStorageService'
-
 import { storageQueryKeys } from '@/common/queries/queryKeys'
 import { toArray } from '@/common/utils/utils'
+import type { ExtStorageServiceOptions } from '../ExtStorageService'
+import { ExtStorageService } from '../ExtStorageService'
 
 interface UseExtStorageOptions<T> extends ExtStorageServiceOptions {
   queryOptions?: Omit<UseQueryOptions<T>, 'queryKey' | 'queryFn'>

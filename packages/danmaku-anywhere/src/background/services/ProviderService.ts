@@ -1,22 +1,3 @@
-import type { BilibiliService } from '@/background/services/BilibiliService'
-import type { DanDanPlayService } from '@/background/services/DanDanPlayService'
-import type { TencentService } from '@/background/services/TencentService'
-import type { TitleMappingService } from '@/background/services/TitleMappingService'
-import { Logger } from '@/common/Logger'
-import type {
-  MatchEpisodeInput,
-  MatchEpisodeResult,
-  SeasonQueryFilter,
-  SeasonSearchParams,
-} from '@/common/anime/dto'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
-
-import type { DanmakuService } from '@/background/services/DanmakuService'
-import type { SeasonService } from '@/background/services/SeasonService'
-import type { DanmakuFetchDto, EpisodeSearchParams } from '@/common/danmaku/dto'
-import { assertProvider } from '@/common/danmaku/utils'
-import { invariant, isServiceWorker } from '@/common/utils/utils'
-
 import type {
   DanDanPlayOf,
   Episode,
@@ -24,6 +5,23 @@ import type {
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { match } from 'ts-pattern'
+import type { BilibiliService } from '@/background/services/BilibiliService'
+import type { DanDanPlayService } from '@/background/services/DanDanPlayService'
+import type { DanmakuService } from '@/background/services/DanmakuService'
+import type { SeasonService } from '@/background/services/SeasonService'
+import type { TencentService } from '@/background/services/TencentService'
+import type { TitleMappingService } from '@/background/services/TitleMappingService'
+import type {
+  MatchEpisodeInput,
+  MatchEpisodeResult,
+  SeasonQueryFilter,
+  SeasonSearchParams,
+} from '@/common/anime/dto'
+import type { DanmakuFetchDto, EpisodeSearchParams } from '@/common/danmaku/dto'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
+import { assertProvider } from '@/common/danmaku/utils'
+import { Logger } from '@/common/Logger'
+import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 export class ProviderService {
   private logger: typeof Logger
@@ -161,7 +159,7 @@ export class ProviderService {
       .with(
         { meta: { provider: DanmakuSourceType.DanDanPlay } },
         async ({ meta }) => {
-          const { season, params, ...rest } = meta
+          const { season, ...rest } = meta
           const episode = await this.danDanPlayService.saveEpisode(
             rest,
             meta.season,
@@ -284,7 +282,8 @@ export class ProviderService {
 
     if (hostname === 'www.bilibili.com') {
       return this.bilibiliService.getEpisodeByUrl(url)
-    } else if (hostname === 'v.qq.com') {
+    }
+    if (hostname === 'v.qq.com') {
       return this.tencentService.getEpisodeByUrl(url)
     }
 

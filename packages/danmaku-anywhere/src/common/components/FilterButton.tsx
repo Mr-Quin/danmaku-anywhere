@@ -1,4 +1,3 @@
-import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { Backspace, Search } from '@mui/icons-material'
 import {
   Badge,
@@ -8,10 +7,10 @@ import {
   Popover,
   TextField,
 } from '@mui/material'
-import { type ChangeEvent, useEffect } from 'react'
-import { useRef, useState } from 'react'
+import { type ChangeEvent, useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useTranslation } from 'react-i18next'
+import { withStopPropagation } from '@/common/utils/withStopPropagation'
 
 interface FilterButtonProps {
   filter: string

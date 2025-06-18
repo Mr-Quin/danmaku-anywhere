@@ -1,14 +1,3 @@
-import { useParams, useSearchParams } from 'react-router'
-
-import { EpisodeList } from './EpisodeList'
-
-import { useGetSeason } from '@/common/anime/queries/useSeasons'
-import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
-import { TabLayout } from '@/content/common/TabLayout'
-import { TabToolbar } from '@/content/common/TabToolbar'
-import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
-import { useGoBack } from '@/popup/hooks/useGoBack'
-import { useStore } from '@/popup/store'
 import { Checklist, Delete, Download } from '@mui/icons-material'
 import {
   Button,
@@ -23,6 +12,15 @@ import {
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useParams, useSearchParams } from 'react-router'
+import { useGetSeason } from '@/common/anime/queries/useSeasons'
+import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
+import { TabLayout } from '@/content/common/TabLayout'
+import { TabToolbar } from '@/content/common/TabToolbar'
+import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
+import { useGoBack } from '@/popup/hooks/useGoBack'
+import { useStore } from '@/popup/store'
+import { EpisodeList } from './EpisodeList'
 
 export const EpisodePage = () => {
   const { t } = useTranslation()
@@ -93,7 +91,7 @@ export const EpisodePage = () => {
      */
     const params = useParams()
 
-    const seasonId = params.seasonId ? parseInt(params.seasonId) : 0
+    const seasonId = params.seasonId ? Number.parseInt(params.seasonId) : 0
 
     const { data: seasons, isLoading } = useGetSeason({
       id: seasonId,

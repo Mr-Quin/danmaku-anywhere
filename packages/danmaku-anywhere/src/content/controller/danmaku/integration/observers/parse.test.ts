@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-
+import { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import type { Selector } from './parse'
 import {
   parseMediaFromTitle,
@@ -7,8 +7,6 @@ import {
   parseMediaString,
   parseMultipleRegex,
 } from './parse'
-
-import { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 
 describe('parseMediaNumber', () => {
   it('should parse a valid number', () => {

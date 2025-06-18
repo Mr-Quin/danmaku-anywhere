@@ -40,12 +40,12 @@ export default {
         )
 
         if (cached) {
-          yield* Console.debug(`Cache hit!`)
+          yield* Console.debug('Cache hit!')
           yield* state.setCacheHit(true)
           return cached
         }
 
-        yield* Console.debug(`Cache miss!`)
+        yield* Console.debug('Cache miss!')
       }
 
       const url = new URL(request.url)
@@ -85,11 +85,10 @@ export default {
           return Console.error(
             `Error processing request: Invalid origin: ${err.origin}, allowed origin: ${env.ALLOWED_ORIGIN}`
           )
-        } else {
-          return Console.error(
-            `Error processing request: HTTP Error: ${err.status} ${err.message}`
-          )
         }
+        return Console.error(
+          `Error processing request: HTTP Error: ${err.status} ${err.message}`
+        )
       }),
       Effect.catchAll((err) => {
         const message = err instanceof HTTPError ? err.message : 'Bad request'

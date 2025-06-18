@@ -108,17 +108,16 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
           },
         }
       )
-    } else {
-      return create.mutate(toUpdate, {
-        onSuccess: () => {
-          toast.success(t('configs.alert.created'))
-          goBack()
-        },
-        onError: (error) => {
-          toast.error(error.message)
-        },
-      })
     }
+    return create.mutate(toUpdate, {
+      onSuccess: () => {
+        toast.success(t('configs.alert.created'))
+        goBack()
+      },
+      onError: (error) => {
+        toast.error(error.message)
+      },
+    })
   }
 
   return (

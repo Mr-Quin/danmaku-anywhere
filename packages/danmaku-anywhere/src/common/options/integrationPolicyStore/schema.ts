@@ -1,5 +1,5 @@
-import { getRandomUUID } from '@/common/utils/utils'
 import { z } from 'zod'
+import { getRandomUUID } from '@/common/utils/utils'
 
 const regexString = z.string().refine(
   (v) => {

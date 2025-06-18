@@ -1,19 +1,16 @@
 import type {
   CommentEntity,
   CustomEpisodeLite,
+  EpisodeLite,
+  WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { enableMapSet } from 'immer'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
-
 import { episodeToString } from '@/common/danmaku/utils'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { createSelectors } from '@/common/utils/createSelectors'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
-import type {
-  EpisodeLite,
-  WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
 
 enableMapSet()
 

@@ -45,19 +45,17 @@ class DanmakuStack {
 
     if (placement === 'top') {
       return this.topLen % this._trackCount
-    } else {
-      return this.bottomLen % this._trackCount
     }
+    return this.bottomLen % this._trackCount
   }
 
   private not(slot: number, placement: Placement) {
     if (placement === 'top') {
       return slot
-    } else {
-      // 0 -> -1, 1 -> -2
-      // -1 -> 0, -2 -> 1
-      return ~slot
     }
+    // 0 -> -1, 1 -> -2
+    // -1 -> 0, -2 -> 1
+    return ~slot
   }
 
   push(placement: Placement) {

@@ -1,8 +1,8 @@
+import type { z } from 'zod'
 import { zIntegration } from '@/common/options/integrationPolicyStore/schema'
 import { integrationPolicyService } from '@/common/options/integrationPolicyStore/service'
 import { mountConfigInputSchema } from '@/common/options/mountConfig/schema'
 import { mountConfigService } from '@/common/options/mountConfig/service'
-import type { z } from 'zod'
 
 export const zCombinedPolicy = mountConfigInputSchema.extend({
   integration: zIntegration.optional(),

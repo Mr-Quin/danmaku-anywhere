@@ -1,8 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-
-import { Logger } from '@/common/Logger'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { Logger } from '@/common/Logger'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'

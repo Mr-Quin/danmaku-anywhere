@@ -1,9 +1,8 @@
 import { useEventCallback } from '@mui/material'
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-
-import { Logger } from '@/common/Logger'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { Logger } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type { PlayerEvents } from '@/common/rpcClient/background/types'

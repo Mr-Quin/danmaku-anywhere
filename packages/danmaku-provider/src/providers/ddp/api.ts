@@ -146,7 +146,7 @@ export const commentGetExtComment = async (
   query: GetExtCommentQuery
 ): Promise<CommentData[]> => {
   const data = await fetchDanDanPlay({
-    path: `/api/v2/extcomment`,
+    path: '/api/v2/extcomment',
     query,
     responseSchema: zCommentResponseV2,
   })
@@ -225,7 +225,7 @@ export const registerRegisterMainUser = async (
   request: RegisterRequestV2
 ): Promise<LoginResponse> => {
   const data = await fetchDanDanPlay({
-    path: `/api/v2/register`,
+    path: '/api/v2/register',
     responseSchema: zLoginResponse,
     requestSchema: {
       body: zRegisterRequestV2,
@@ -245,7 +245,7 @@ export const registerResetPassword = async (
   request: ResetPasswordRequestV2
 ): Promise<null> => {
   const data = await fetchDanDanPlay({
-    path: `/api/v2/register/resetpassword`,
+    path: '/api/v2/register/resetpassword',
     responseSchema: zResponseBase,
     requestSchema: {
       body: zResetPasswordRequestV2,
@@ -265,7 +265,7 @@ export const registerFindMyId = async (
   request: FindMyIdRequestV2
 ): Promise<null> => {
   const data = await fetchDanDanPlay({
-    path: `/api/v2/register/findmyid`,
+    path: '/api/v2/register/findmyid',
     responseSchema: zResponseBase,
     requestSchema: {
       body: zFindMyIdRequestV2,
@@ -285,7 +285,7 @@ export const loginLogin = async (
   request: LoginRequest
 ): Promise<LoginResponse> => {
   const data = await fetchDanDanPlay({
-    path: `/api/v2/login`,
+    path: '/api/v2/login',
     responseSchema: zLoginResponse,
     requestSchema: {
       body: zLoginRequest,
@@ -303,7 +303,7 @@ export const loginLogin = async (
 
 export const loginRenewToken = async (): Promise<LoginResponse> => {
   const data = await fetchDanDanPlay({
-    path: `/api/v2/login`,
+    path: '/api/v2/login',
     responseSchema: zLoginResponse,
     method: 'GET',
   })

@@ -1,11 +1,9 @@
 import type { PopoverVirtualElement } from '@mui/material'
 import { ClickAwayListener } from '@mui/material'
 import { useRef, useState } from 'react'
-
-import { FloatingButton } from './floatingButton/FloatingButton'
-
 import { usePopup } from '@/content/controller/store/popupStore'
 import { ControllerWindow } from '@/content/controller/ui/floatingPanel/ControllerWindow'
+import { FloatingButton } from './floatingButton/FloatingButton'
 
 export const PopupUi = () => {
   const { isOpen, toggleOpen, lock } = usePopup()

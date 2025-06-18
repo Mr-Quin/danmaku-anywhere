@@ -1,8 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest'
-
-import { ExtStorageService } from './ExtStorageService'
-
 import { mockStorage } from '@/tests/mockChromeApis'
+import { ExtStorageService } from './ExtStorageService'
 
 describe('ExtStorageService', () => {
   let service: ExtStorageService<any>

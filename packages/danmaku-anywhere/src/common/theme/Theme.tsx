@@ -1,17 +1,15 @@
 import { useMediaQuery } from '@mui/material'
 import type { ThemeOptions } from '@mui/material/styles'
-import { ThemeProvider, createTheme } from '@mui/material/styles'
+import { createTheme, ThemeProvider } from '@mui/material/styles'
+import type { Localization } from '@mui/x-data-grid/internals'
+import { enUS, zhCN } from '@mui/x-data-grid/locales'
 import { produce } from 'immer'
-import { type PropsWithChildren, createContext, use, useMemo } from 'react'
-
-import { tryCatchSync } from '../utils/utils'
-
+import { createContext, type PropsWithChildren, use, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { UserTheme } from '@/common/options/extensionOptions/schema'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { ColorMode } from '@/common/theme/enums'
-import type { Localization } from '@mui/x-data-grid/internals'
-import { enUS, zhCN } from '@mui/x-data-grid/locales'
-import { useTranslation } from 'react-i18next'
+import { tryCatchSync } from '../utils/utils'
 
 const defaultThemeOptions: ThemeOptions = {
   palette: {

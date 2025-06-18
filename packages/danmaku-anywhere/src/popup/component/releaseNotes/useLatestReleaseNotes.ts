@@ -1,10 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-
-import packageJson from '../../../../package.json'
-
 import { Logger } from '@/common/Logger'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { controlQueryKeys } from '@/common/queries/queryKeys'
+import packageJson from '../../../../package.json'
 
 interface ReleaseNotesResponse {
   name: string
@@ -34,7 +32,7 @@ export const useLatestReleaseNotes = () => {
     },
     queryKey: controlQueryKeys.releaseNotes(),
     enabled: !isLoading && data.showReleaseNotes,
-    staleTime: Infinity,
+    staleTime: Number.POSITIVE_INFINITY,
     retry: false,
   })
 

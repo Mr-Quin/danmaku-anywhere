@@ -1,4 +1,4 @@
-import { P, match } from 'ts-pattern'
+import { match, P } from 'ts-pattern'
 
 import { Logger } from '@/common/Logger'
 import type { MountConfig } from '@/common/options/mountConfig/schema'

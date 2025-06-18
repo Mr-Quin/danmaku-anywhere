@@ -20,7 +20,7 @@ export const CommentPage = () => {
 
   const params = useParams()
 
-  const episodeId = params.episodeId ? parseInt(params.episodeId) : 0
+  const episodeId = params.episodeId ? Number.parseInt(params.episodeId) : 0
 
   const getData = () => {
     if (isCustom) {
@@ -39,25 +39,24 @@ export const CommentPage = () => {
         title: episode.title,
         comments: episode.comments,
       }
-    } else {
-      const params = useParams()
+    }
+    const params = useParams()
 
-      const seasonId = params.seasonId ? parseInt(params.seasonId) : 0
+    const seasonId = params.seasonId ? Number.parseInt(params.seasonId) : 0
 
-      const {
-        data: [season],
-      } = useGetSeasonSuspense({
-        id: seasonId,
-      })
+    const {
+      data: [season],
+    } = useGetSeasonSuspense({
+      id: seasonId,
+    })
 
-      const {
-        data: [episode],
-      } = useEpisodesSuspense({ id: episodeId })
+    const {
+      data: [episode],
+    } = useEpisodesSuspense({ id: episodeId })
 
-      return {
-        title: `${season.title} - ${episode.title}`,
-        comments: episode.comments,
-      }
+    return {
+      title: `${season.title} - ${episode.title}`,
+      comments: episode.comments,
     }
   }
 

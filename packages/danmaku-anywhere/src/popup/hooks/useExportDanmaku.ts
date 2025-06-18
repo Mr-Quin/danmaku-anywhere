@@ -62,7 +62,7 @@ export const useExportDanmaku = () => {
           })
         )
 
-      await downloadZip(`all-danmaku-collection`, files)
+      await downloadZip('all-danmaku-collection', files)
     },
     onSuccess: handleSuccess,
     onError: handleError,
@@ -98,14 +98,13 @@ export const useExportDanmaku = () => {
           })
 
           return episodes
-        } else {
-          const { data: episodes } = await queryClient.fetchQuery({
-            queryKey: episodeQueryKeys.filter(data.filter),
-            queryFn: () => chromeRpcClient.episodeFilter(data.filter),
-          })
-
-          return episodes
         }
+        const { data: episodes } = await queryClient.fetchQuery({
+          queryKey: episodeQueryKeys.filter(data.filter),
+          queryFn: () => chromeRpcClient.episodeFilter(data.filter),
+        })
+
+        return episodes
       }
 
       const episodes = await getData()

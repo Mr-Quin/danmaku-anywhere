@@ -4,14 +4,12 @@ import type { ThemeOptions } from '@mui/material'
 import { QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-
-import { App } from './App'
-
 import { Logger } from '@/common/Logger'
 import { queryClient } from '@/common/queries/queryClient'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { Theme } from '@/common/theme/Theme'
 import { tryCatchSync } from '@/common/utils/utils'
+import { App } from './App'
 import '@/common/localization/i18n'
 import { createPopoverRoot } from '@/content/common/createPopoverRoot'
 
@@ -27,7 +25,7 @@ const { shadowRoot, shadowStyle } = createPopoverRoot(
 // if it fails, use 16 as default
 const htmlFontSize =
   tryCatchSync(() => {
-    return parseFloat(
+    return Number.parseFloat(
       window.getComputedStyle(document.documentElement).fontSize
     )
   })[0] ?? 16

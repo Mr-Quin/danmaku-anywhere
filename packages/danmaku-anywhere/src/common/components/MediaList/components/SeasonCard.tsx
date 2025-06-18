@@ -1,3 +1,25 @@
+import {
+  type CustomSeason,
+  DanmakuSourceType,
+  type Season,
+} from '@danmaku-anywhere/danmaku-converter'
+import { Delete, Refresh } from '@mui/icons-material'
+import {
+  alpha,
+  Card,
+  CardActionArea,
+  CardContent,
+  Checkbox,
+  type CSSProperties,
+  Link,
+  Skeleton,
+  styled,
+  Tooltip,
+  Typography,
+} from '@mui/material'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import type { MouseEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import {
   CoverImage,
@@ -10,28 +32,6 @@ import { isProvider } from '@/common/danmaku/utils'
 import { episodeQueryKeys, seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { DrilldownMenu } from '@/content/common/DrilldownMenu'
-import {
-  type CustomSeason,
-  DanmakuSourceType,
-  type Season,
-} from '@danmaku-anywhere/danmaku-converter'
-import { Delete, Refresh } from '@mui/icons-material'
-import {
-  type CSSProperties,
-  Card,
-  CardActionArea,
-  CardContent,
-  Checkbox,
-  Link,
-  Skeleton,
-  Tooltip,
-  Typography,
-  alpha,
-  styled,
-} from '@mui/material'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import type { MouseEvent } from 'react'
-import { useTranslation } from 'react-i18next'
 
 interface CardCornerInfoProps {
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
@@ -155,7 +155,8 @@ export const SeasonCard = ({
           {`${season.localEpisodeCount} / ${totalEpisodes}`}
         </CardCornerInfo>
       )
-    } else if (season.episodeCount) {
+    }
+    if (season.episodeCount) {
       return (
         <CardCornerInfo position="top-right">
           {season.episodeCount}
@@ -182,7 +183,7 @@ export const SeasonCard = ({
         }}
       >
         <CardActionArea onClick={handleCardClick}>
-          <CoverImage src={season.imageUrl} alt={season.title}></CoverImage>
+          <CoverImage src={season.imageUrl} alt={season.title} />
           {enableSelection && (
             <SelectionOverlay>
               <Checkbox

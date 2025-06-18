@@ -1,3 +1,8 @@
+import { xmlToJSON } from '@danmaku-anywhere/danmaku-converter'
+import { Box, List, ListItem, Typography } from '@mui/material'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import type {
   DanmakuImportData,
@@ -13,12 +18,6 @@ import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { PreFormat } from '@/popup/component/PreFormat'
 import { Collapsible } from '@/popup/pages/import/components/Collapsible'
-import { xmlToJSON } from '@danmaku-anywhere/danmaku-converter'
-import { Box, List, ListItem, Typography } from '@mui/material'
-import type {} from '@mui/material/styles'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import { FileUpload } from '../../component/FileUpload'
 import {
   ImportResultDialog,

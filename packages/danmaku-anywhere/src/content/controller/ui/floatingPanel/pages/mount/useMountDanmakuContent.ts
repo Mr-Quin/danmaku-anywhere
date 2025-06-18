@@ -1,9 +1,12 @@
+import type {
+  CustomEpisodeLite,
+  EpisodeLite,
+} from '@danmaku-anywhere/danmaku-converter'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-
-import { Logger } from '@/common/Logger'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { isNotCustom } from '@/common/danmaku/utils'
+import { Logger } from '@/common/Logger'
 import {
   customEpisodeQueryKeys,
   episodeQueryKeys,
@@ -11,10 +14,6 @@ import {
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useStore } from '@/content/controller/store/store'
-import type {
-  CustomEpisodeLite,
-  EpisodeLite,
-} from '@danmaku-anywhere/danmaku-converter'
 
 export const useMountDanmakuContent = () => {
   const { t } = useTranslation()
@@ -37,19 +36,18 @@ export const useMountDanmakuContent = () => {
         })
         if (!data) throw new Error('No danmaku found')
         return data
-      } else {
-        const data = await queryClient.fetchQuery({
-          queryKey: customEpisodeQueryKeys.filter({ id: danmaku.id }),
-          queryFn: async () => {
-            const res = await chromeRpcClient.episodeFilterCustom({
-              id: danmaku.id,
-            })
-            return res.data[0] || null
-          },
-        })
-        if (!data) throw new Error('No danmaku found')
-        return data
       }
+      const data = await queryClient.fetchQuery({
+        queryKey: customEpisodeQueryKeys.filter({ id: danmaku.id }),
+        queryFn: async () => {
+          const res = await chromeRpcClient.episodeFilterCustom({
+            id: danmaku.id,
+          })
+          return res.data[0] || null
+        },
+      })
+      if (!data) throw new Error('No danmaku found')
+      return data
     },
     onSuccess: (data) => {
       toggleManualMode(true)

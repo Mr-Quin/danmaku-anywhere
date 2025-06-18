@@ -1,4 +1,3 @@
-import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import {
   Backdrop,
   Button,
@@ -11,6 +10,7 @@ import { useMutation } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 
 export type UploadDialogStatus =
   | 'confirmUpload'

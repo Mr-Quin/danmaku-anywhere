@@ -16,7 +16,11 @@ describe('sampleByTime', () => {
     const array = Array.from({ length: 1000 }, (_, i) => i + 1)
     const iterator = array.values()
 
-    const sampledIterator = sampleByTime(iterator, Infinity, (item) => item)
+    const sampledIterator = sampleByTime(
+      iterator,
+      Number.POSITIVE_INFINITY,
+      (item) => item
+    )
     const result = Array.from(sampledIterator)
 
     expect(result).toEqual(array)

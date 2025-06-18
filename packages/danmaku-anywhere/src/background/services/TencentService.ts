@@ -1,23 +1,22 @@
+import type { WithSeason } from '@danmaku-anywhere/danmaku-converter'
+import {
+  type EpisodeMeta,
+  type Season,
+  type SeasonInsert,
+  stripHtml,
+  type TencentOf,
+} from '@danmaku-anywhere/danmaku-converter'
 import type {
   TencentEpisodeListItem,
   TencentVideoSeason,
 } from '@danmaku-anywhere/danmaku-provider/tencent'
 import * as tencent from '@danmaku-anywhere/danmaku-provider/tencent'
-
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import type { SeasonService } from '@/background/services/SeasonService'
-import { Logger } from '@/common/Logger'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProvider } from '@/common/danmaku/utils'
+import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
-import {
-  type EpisodeMeta,
-  type Season,
-  type SeasonInsert,
-  type TencentOf,
-  stripHtml,
-} from '@danmaku-anywhere/danmaku-converter'
-import type { WithSeason } from '@danmaku-anywhere/danmaku-converter'
 
 export class TencentService {
   private logger: typeof Logger

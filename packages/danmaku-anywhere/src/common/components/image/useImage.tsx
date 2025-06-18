@@ -1,6 +1,6 @@
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { imageQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 
 /**
  * Fetching images from the content script has issues with the same-origin policy and images in the extension assets.
@@ -14,7 +14,7 @@ export const useImageSuspense = (src: string) => {
       const res = await chromeRpcClient.fetchImage(src, { silent: true })
       return res.data
     },
-    staleTime: Infinity,
+    staleTime: Number.POSITIVE_INFINITY,
     retry: false,
   })
 }
@@ -27,7 +27,7 @@ export const useImage = (src: string) => {
       const res = await chromeRpcClient.fetchImage(src, { silent: true })
       return res.data
     },
-    staleTime: Infinity,
+    staleTime: Number.POSITIVE_INFINITY,
     retry: false,
   })
 }

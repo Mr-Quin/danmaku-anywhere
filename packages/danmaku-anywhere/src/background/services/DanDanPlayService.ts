@@ -1,23 +1,21 @@
-import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
-import { configure } from '@danmaku-anywhere/danmaku-provider/ddp'
-
-import type { DanmakuService } from '@/background/services/DanmakuService'
-import type { SeasonService } from '@/background/services/SeasonService'
-import { Logger } from '@/common/Logger'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { assertProvider } from '@/common/danmaku/utils'
-import { extensionOptionsService } from '@/common/options/extensionOptions/service'
-import { tryCatch } from '@/common/utils/utils'
 import type {
+  CommentEntity,
   DanDanPlayOf,
   Episode,
   EpisodeMeta,
   Season,
   SeasonInsert,
+  WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import type { WithSeason } from '@danmaku-anywhere/danmaku-converter'
-import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
-import {} from '@danmaku-anywhere/danmaku-converter'
+import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
+import { configure } from '@danmaku-anywhere/danmaku-provider/ddp'
+import type { DanmakuService } from '@/background/services/DanmakuService'
+import type { SeasonService } from '@/background/services/SeasonService'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
+import { assertProvider } from '@/common/danmaku/utils'
+import { Logger } from '@/common/Logger'
+import { extensionOptionsService } from '@/common/options/extensionOptions/service'
+import { tryCatch } from '@/common/utils/utils'
 
 configure({
   baseUrl: import.meta.env.VITE_PROXY_URL,

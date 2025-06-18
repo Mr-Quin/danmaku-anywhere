@@ -18,7 +18,7 @@ const getCacheTime = (cacheControl?: string | null) => {
   }
 
   try {
-    return parseInt(maxAge.split('=')[1])
+    return Number.parseInt(maxAge.split('=')[1])
   } catch {
     return null
   }

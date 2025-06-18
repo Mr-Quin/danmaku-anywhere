@@ -1,9 +1,6 @@
+import { Keyboard } from '@mui/icons-material'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-
-import { TypeSelector } from '../../../../../common/components/TypeSelector'
-import { ExportAllDanmakuButton } from '../../components/ExportAllDanmakuButton'
-import { SeasonList } from './SeasonList'
-
 import { CaptureKeypress } from '@/common/components/CaptureKeypress'
 import { FilterButton } from '@/common/components/FilterButton'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
@@ -12,8 +9,9 @@ import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { ConfirmDeleteDialog } from '@/popup/pages/danmaku/components/ConfirmDeleteDialog'
 import { useStore } from '@/popup/store'
-import { Keyboard } from '@mui/icons-material'
-import { useState } from 'react'
+import { TypeSelector } from '../../../../../common/components/TypeSelector'
+import { ExportAllDanmakuButton } from '../../components/ExportAllDanmakuButton'
+import { SeasonList } from './SeasonList'
 
 export const SeasonPage = () => {
   const { t } = useTranslation()

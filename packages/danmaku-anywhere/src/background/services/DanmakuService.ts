@@ -1,15 +1,3 @@
-import type { SeasonService } from '@/background/services/SeasonService'
-import { Logger } from '@/common/Logger'
-import type {
-  CustomEpisodeQueryFilter,
-  DanmakuImportData,
-  DanmakuImportResult,
-  EpisodeQueryFilter,
-} from '@/common/danmaku/dto'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { db } from '@/common/db/db'
-import type { DbEntity } from '@/common/types/dbEntity'
-import { invariant, isServiceWorker, tryCatch } from '@/common/utils/utils'
 import {
   type BackupParseResult,
   type CommentEntity,
@@ -20,10 +8,22 @@ import {
   type Episode,
   type EpisodeInsert,
   type EpisodeLite,
-  type WithSeason,
   parseBackupMany,
+  type WithSeason,
   zCombinedDanmaku,
 } from '@danmaku-anywhere/danmaku-converter'
+import type { SeasonService } from '@/background/services/SeasonService'
+import type {
+  CustomEpisodeQueryFilter,
+  DanmakuImportData,
+  DanmakuImportResult,
+  EpisodeQueryFilter,
+} from '@/common/danmaku/dto'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
+import type { db } from '@/common/db/db'
+import { Logger } from '@/common/Logger'
+import type { DbEntity } from '@/common/types/dbEntity'
+import { invariant, isServiceWorker, tryCatch } from '@/common/utils/utils'
 
 export class DanmakuService {
   private logger: typeof Logger
@@ -293,9 +293,8 @@ export class DanmakuService {
             type: 'Custom',
           })
           return
-        } else {
-          errors.push(customParse.error)
         }
+        errors.push(customParse.error)
 
         // 2. parse as backup
         const backupParseResult = parseBackupMany(

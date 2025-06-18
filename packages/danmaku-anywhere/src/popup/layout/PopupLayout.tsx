@@ -1,6 +1,6 @@
-import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { Container, Paper } from '@mui/material'
 import type { PropsWithChildren } from 'react'
+import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 
 export const PopupLayout = ({ children }: PropsWithChildren<{}>) => {
   const { isMobile } = usePlatformInfo()

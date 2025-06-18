@@ -1,16 +1,4 @@
-import type {
-  BiliBiliSearchParams,
-  BilibiliBangumiInfo,
-  BilibiliMedia,
-} from '@danmaku-anywhere/danmaku-provider/bilibili'
-import * as bilibili from '@danmaku-anywhere/danmaku-provider/bilibili'
-
-import type { DanmakuService } from '@/background/services/DanmakuService'
-import type { SeasonService } from '@/background/services/SeasonService'
-import { Logger } from '@/common/Logger'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { assertProvider } from '@/common/danmaku/utils'
-import { extensionOptionsService } from '@/common/options/extensionOptions/service'
+import type { WithSeason } from '@danmaku-anywhere/danmaku-converter'
 import {
   type BilibiliOf,
   type Episode,
@@ -19,7 +7,18 @@ import {
   type SeasonInsert,
   stripHtml,
 } from '@danmaku-anywhere/danmaku-converter'
-import type { WithSeason } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  BiliBiliSearchParams,
+  BilibiliBangumiInfo,
+  BilibiliMedia,
+} from '@danmaku-anywhere/danmaku-provider/bilibili'
+import * as bilibili from '@danmaku-anywhere/danmaku-provider/bilibili'
+import type { DanmakuService } from '@/background/services/DanmakuService'
+import type { SeasonService } from '@/background/services/SeasonService'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
+import { assertProvider } from '@/common/danmaku/utils'
+import { Logger } from '@/common/Logger'
+import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 
 export class BilibiliService {
   private logger: typeof Logger
@@ -141,13 +140,15 @@ export class BilibiliService {
     if (!ssid && !epid) throw new Error('Invalid bilibili url')
 
     const { seasonInfo, season } = await this.getBangumiInfo({
-      seasonId: ssid ? parseInt(ssid) : undefined,
-      episodeId: epid ? parseInt(epid) : undefined,
+      seasonId: ssid ? Number.parseInt(ssid) : undefined,
+      episodeId: epid ? Number.parseInt(epid) : undefined,
     })
 
     // if using season id, get the first episode
     const episode = epid
-      ? seasonInfo.episodes.find((episode) => episode.id === parseInt(epid))
+      ? seasonInfo.episodes.find(
+          (episode) => episode.id === Number.parseInt(epid)
+        )
       : seasonInfo.episodes[0]
 
     if (!episode) throw new Error('Episode not found')
@@ -213,7 +214,7 @@ export class BilibiliService {
   private async getDanmakuProto(cid: number, aid: number) {
     this.logger.debug('Get danmaku proto')
     const result = await bilibili.getDanmakuProto(cid, aid, {
-      limitPerMinute: Infinity,
+      limitPerMinute: Number.POSITIVE_INFINITY,
     })
     this.logger.debug('Get danmaku proto result', result)
     return result

@@ -1,6 +1,7 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { DanmakuRenderer } from '@danmaku-anywhere/danmaku-engine'
-
+import { createElement } from 'react'
+import ReactDOM from 'react-dom/client'
 import { Logger } from '@/common/Logger'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
@@ -10,8 +11,6 @@ import {
   type VideoChangeListener,
   VideoNodeObserver,
 } from '@/content/player/monitors/VideoNodeObserver'
-import { createElement } from 'react'
-import ReactDOM from 'react-dom/client'
 
 type DanmakuManagerEvents =
   | 'videoChange'

@@ -1,11 +1,10 @@
-import type { RPCDef } from '../../rpc/types'
-
 import type {
   CustomEpisodeLite,
   Episode,
   EpisodeLite,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
+import type { RPCDef } from '../../rpc/types'
 
 export interface TabDanmakuState {
   danmaku?: WithSeason<EpisodeLite> | CustomEpisodeLite

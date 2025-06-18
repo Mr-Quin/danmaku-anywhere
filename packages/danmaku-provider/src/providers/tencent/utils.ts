@@ -27,5 +27,5 @@ export const parseHeader = (response: Response) => {
   const errorMsg = response.headers.get('Trpc-Error-Msg') || undefined
   const retCode = response.headers.get('trpc-func-ret')
 
-  return { errorMsg, retCode: retCode ? parseInt(retCode) : undefined }
+  return { errorMsg, retCode: retCode ? Number.parseInt(retCode) : undefined }
 }

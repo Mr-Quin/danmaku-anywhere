@@ -27,10 +27,10 @@ export class OptionsService<T extends OptionsSchema> {
 
   version(version: number, versionConfig: VersionConfig) {
     if (version <= 0) {
-      throw new Error(`Version must be larger than 0`)
+      throw new Error('Version must be larger than 0')
     }
     if (this.versions.some((v) => v.version >= version)) {
-      throw new Error(`New version must be bigger than existing ones`)
+      throw new Error('New version must be bigger than existing ones')
     }
 
     // keep versions sorted
@@ -50,7 +50,7 @@ export class OptionsService<T extends OptionsSchema> {
 
     if (!options) {
       // if no options, set default options as the latest version
-      this.logger.debug(`No existing options found, using default options`)
+      this.logger.debug('No existing options found, using default options')
 
       return await this.reset()
     }
@@ -69,16 +69,17 @@ export class OptionsService<T extends OptionsSchema> {
   }
 
   async set(data: T, version?: number) {
-    if (!version) {
+    let currentVersion = version
+    if (!currentVersion) {
       const options = await this.storageService.read()
       if (!options) {
         throw new Error('Cannot set options without existing options')
       }
-      version = options.version
+      currentVersion = options.version
     }
     return this.storageService.set({
       data,
-      version,
+      version: currentVersion,
     })
   }
 

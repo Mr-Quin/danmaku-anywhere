@@ -1,7 +1,7 @@
+import type { Season } from '@danmaku-anywhere/danmaku-converter'
 import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
-
 import type {
   DanmakuSourceType,
   RemoteDanmakuSourceType,
@@ -10,7 +10,6 @@ import { danmakuSourceTypeList } from '@/common/danmaku/enums'
 import { createMountConfig } from '@/common/options/mountConfig/constant'
 import type { MountConfigInput } from '@/common/options/mountConfig/schema'
 import { createSelectors } from '@/common/utils/createSelectors'
-import type { Season } from '@danmaku-anywhere/danmaku-converter'
 
 interface StoreState {
   mount: {

@@ -8,10 +8,6 @@ import {
 } from '@mui/material'
 import type { MouseEventHandler } from 'react'
 import { forwardRef, useRef, useState } from 'react'
-
-import { LoadingRing } from './components/LoadingRing'
-import { useShowFab } from './hooks/useShowFab'
-
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { useMergeRefs } from '@/common/hooks/useMergeRefs'
 import { createVirtualElement } from '@/common/utils/utils'
@@ -19,6 +15,8 @@ import { useStore } from '@/content/controller/store/store'
 import { DraggableContainer } from '@/content/controller/ui/DraggableContainer'
 import { FabContextMenu } from '@/content/controller/ui/floatingButton/components/FabContextMenu'
 import { FabLoadingIndicator } from '@/content/controller/ui/floatingButton/components/FabLoadingIndicator'
+import { LoadingRing } from './components/LoadingRing'
+import { useShowFab } from './hooks/useShowFab'
 
 interface FloatingButtonProps extends FabProps {
   onOpen: (virtualElement: PopoverVirtualElement) => void

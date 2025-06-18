@@ -5,12 +5,10 @@ import {
   useSuspenseQuery,
 } from '@tanstack/react-query'
 import { useEffect, useMemo } from 'react'
-
-import type { ExtStorageServiceOptions } from '../ExtStorageService'
-import { ExtStorageService } from '../ExtStorageService'
-
 import { storageQueryKeys } from '@/common/queries/queryKeys'
 import { toArray } from '@/common/utils/utils'
+import type { ExtStorageServiceOptions } from '../ExtStorageService'
+import { ExtStorageService } from '../ExtStorageService'
 
 interface UseSuspenseExtStorageOptions<T> extends ExtStorageServiceOptions {
   queryOptions?: Omit<UseSuspenseQueryOptions<T>, 'queryKey' | 'queryFn'>

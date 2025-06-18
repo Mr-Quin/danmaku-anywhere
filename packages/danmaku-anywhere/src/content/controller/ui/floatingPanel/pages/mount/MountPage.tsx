@@ -1,7 +1,11 @@
+import type {
+  CustomEpisodeLite,
+  EpisodeLite,
+} from '@danmaku-anywhere/danmaku-converter'
+import { Keyboard } from '@mui/icons-material'
 import { Button } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-
 import { CaptureKeypress } from '@/common/components/CaptureKeypress'
 import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSelector'
 import { FilterButton } from '@/common/components/FilterButton'
@@ -13,11 +17,6 @@ import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountD
 import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
 import { useMountDanmakuContent } from '@/content/controller/ui/floatingPanel/pages/mount/useMountDanmakuContent'
-import type {
-  CustomEpisodeLite,
-  EpisodeLite,
-} from '@danmaku-anywhere/danmaku-converter'
-import { Keyboard } from '@mui/icons-material'
 
 export const MountPage = () => {
   const { t } = useTranslation()

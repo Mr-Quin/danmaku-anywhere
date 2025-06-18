@@ -1,11 +1,9 @@
 import { Popover, Typography } from '@mui/material'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-
-import { xPath } from './getXPath'
-
 import { createVirtualElement } from '@/common/utils/utils'
 import { usePopup } from '@/content/controller/store/popupStore'
+import { xPath } from './getXPath'
 
 interface HighlightElementProps {
   enable: boolean

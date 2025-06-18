@@ -1,14 +1,12 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Outlet, useNavigate } from 'react-router'
-
-import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog'
-import { IntegrationPolicyList } from '../components/IntegrationPolicyList'
-
 import type { Integration } from '@/common/options/integrationPolicyStore/schema'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
-import { useTranslation } from 'react-i18next'
+import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog'
+import { IntegrationPolicyList } from '../components/IntegrationPolicyList'
 
 export const IntegrationPolicy = () => {
   const { t } = useTranslation()

@@ -1,8 +1,7 @@
 import { produce } from 'immer'
-
+import { defaultDanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
-import { defaultDanmakuOptions } from '@/common/options/danmakuOptions/constant'
 
 export const danmakuOptionsService = new OptionsService(
   'danmakuOptions',

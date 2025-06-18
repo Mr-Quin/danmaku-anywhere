@@ -1,3 +1,7 @@
+import { Box, Divider, Tab, Tabs, Typography } from '@mui/material'
+import { useMutation } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { combinedPolicyService } from '@/common/options/combinedPolicy'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
@@ -9,10 +13,6 @@ import {
 import { PreFormat } from '@/popup/component/PreFormat'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 import { PresetsList } from '@/popup/pages/config/pages/import/PresetsList'
-import { Box, Divider, Tab, Tabs, Typography } from '@mui/material'
-import { useMutation } from '@tanstack/react-query'
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 
 type ImportResult = {
   succeeded: string[]

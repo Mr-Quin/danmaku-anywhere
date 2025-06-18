@@ -75,7 +75,8 @@ const validatePattern = (
       success: false,
       error: 'stylePage.filtering.validation.patternEmpty',
     }
-  } else if (
+  }
+  if (
     filters.some(
       (filter) => filter.type === 'text' && filter.value === trimmedPattern
     )

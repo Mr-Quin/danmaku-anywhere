@@ -1,9 +1,9 @@
-import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type {
   CustomEpisodeLite,
   EpisodeLite,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
 
 class UnsupportedProviderException extends Error {
   constructor(provider: DanmakuSourceType, message?: string) {

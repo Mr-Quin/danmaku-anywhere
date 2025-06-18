@@ -1,7 +1,7 @@
 import { Box, Button, ListItemText, MenuItem } from '@mui/material'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
-
 import {
   DanmakuStylesForm,
   type DanmakuStylesFormApi,
@@ -9,7 +9,6 @@ import {
 import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
-import { useRef, useState } from 'react'
 
 export const StylesPage = () => {
   const { t } = useTranslation()

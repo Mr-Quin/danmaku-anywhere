@@ -1,10 +1,3 @@
-import { SeasonGrid } from '@/common/components/MediaList/components/SeasonGrid'
-import { useToast } from '@/common/components/Toast/toastStore'
-import { isNotCustom } from '@/common/danmaku/utils'
-import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
-import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'
-import { usePopup } from '@/content/controller/store/popupStore'
-import { useStore } from '@/content/controller/store/store'
 import type { Season } from '@danmaku-anywhere/danmaku-converter'
 import {
   Box,
@@ -18,6 +11,13 @@ import {
 } from '@mui/material'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { SeasonGrid } from '@/common/components/MediaList/components/SeasonGrid'
+import { useToast } from '@/common/components/Toast/toastStore'
+import { isNotCustom } from '@/common/danmaku/utils'
+import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
+import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'
+import { usePopup } from '@/content/controller/store/popupStore'
+import { useStore } from '@/content/controller/store/store'
 
 export const SelectorPage = () => {
   const { t } = useTranslation()

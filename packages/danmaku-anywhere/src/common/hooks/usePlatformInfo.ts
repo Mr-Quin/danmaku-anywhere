@@ -1,12 +1,12 @@
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { controlQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { useSuspenseQuery } from '@tanstack/react-query'
 
 export const usePlatformInfo = () => {
   const platformInfo = useSuspenseQuery({
     queryKey: controlQueryKeys.getPlatformInfo(),
     queryFn: () => chromeRpcClient.getPlatformInfo(),
-    staleTime: Infinity,
+    staleTime: Number.POSITIVE_INFINITY,
   }).data.data
 
   return {

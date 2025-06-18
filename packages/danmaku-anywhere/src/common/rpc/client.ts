@@ -1,6 +1,5 @@
+import { chromeSender, tabSender } from '@/common/rpc/sender'
 import { tryCatch } from '../utils/utils'
-
-import { RpcException } from './types'
 import type {
   AnyRPCDef,
   RPCPayload,
@@ -8,8 +7,7 @@ import type {
   RPCResponse,
   RpcOptions,
 } from './types'
-
-import { chromeSender, tabSender } from '@/common/rpc/sender'
+import { RpcException } from './types'
 
 export type ClientMessageSender<TInput, TOutput> = (
   payload: RPCPayload<TInput>

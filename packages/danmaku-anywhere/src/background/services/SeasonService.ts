@@ -1,7 +1,7 @@
+import type { Season, SeasonInsert } from '@danmaku-anywhere/danmaku-converter'
 import type { SeasonQueryFilter } from '@/common/anime/dto'
 import type { db } from '@/common/db/db'
 import type { DbEntity } from '@/common/types/dbEntity'
-import type { Season, SeasonInsert } from '@danmaku-anywhere/danmaku-converter'
 
 export class SeasonService {
   constructor(

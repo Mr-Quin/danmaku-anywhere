@@ -1,10 +1,8 @@
 import { produce } from 'immer'
 import { describe, expect, it } from 'vitest' // Assuming you're using Vitest
-
+import { Logger } from '@/common/Logger'
 import { migrateOptions } from './migrationOptions'
 import type { Options, Version } from './types' // Replace with your actual path
-
-import { Logger } from '@/common/Logger'
 
 const createOptions = <T>(data: T, version: number): Options<T> => ({
   data,

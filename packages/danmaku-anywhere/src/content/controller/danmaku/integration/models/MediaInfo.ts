@@ -21,7 +21,7 @@ export class MediaInfo {
   ) {}
 
   private isNumber(value: string) {
-    return !isNaN(parseInt(value))
+    return !isNaN(Number.parseInt(value))
   }
 
   private formatSeason() {

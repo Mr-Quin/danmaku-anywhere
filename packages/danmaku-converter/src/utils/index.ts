@@ -7,7 +7,7 @@ export const stripHtml = (html: string) => {
 }
 
 export const hexToRgb888 = (hex: string) => {
-  return parseInt(hex.replace('#', '0x'))
+  return Number.parseInt(hex.replace('#', '0x'))
 }
 
 export const rgb888ToHex = (rgb: number) => {

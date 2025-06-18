@@ -1,4 +1,4 @@
-const prefix = `[Danmaku]`
+const prefix = '[Danmaku]'
 
 type Logger = {
   [Key in keyof Console]: Console[Key]

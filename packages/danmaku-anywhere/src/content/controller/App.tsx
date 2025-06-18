@@ -2,12 +2,10 @@ import { useQueryErrorResetBoundary } from '@tanstack/react-query'
 import { Suspense, useEffect, useRef } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { HotkeysProvider } from 'react-hotkeys-hook'
-
+import { usePreloadImages } from '@/common/components/image/usePreloadImages'
+import { Logger } from '@/common/Logger'
 import { Content } from './Content'
 import { LoadInitialData } from './LoadInitialData'
-
-import { Logger } from '@/common/Logger'
-import { usePreloadImages } from '@/common/components/image/usePreloadImages'
 
 export const App = () => {
   usePreloadImages()

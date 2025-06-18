@@ -1,7 +1,3 @@
-import { combinedPolicyService } from '@/common/options/combinedPolicy'
-import { downloadZip, sanitizeFilename } from '@/common/utils/utils'
-import { DrilldownMenu } from '@/content/common/DrilldownMenu'
-import { TabToolbar } from '@/content/common/TabToolbar'
 import {
   AddCircle,
   Download,
@@ -12,6 +8,10 @@ import {
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
+import { combinedPolicyService } from '@/common/options/combinedPolicy'
+import { downloadZip, sanitizeFilename } from '@/common/utils/utils'
+import { DrilldownMenu } from '@/content/common/DrilldownMenu'
+import { TabToolbar } from '@/content/common/TabToolbar'
 
 type ConfigToolbarProps = {
   onAdd: () => void

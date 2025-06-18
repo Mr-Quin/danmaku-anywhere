@@ -1,10 +1,9 @@
+import type { Episode, WithSeason } from '@danmaku-anywhere/danmaku-converter'
 import { useEventCallback } from '@mui/material'
-
 import { Logger } from '@/common/Logger'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { useStore } from '@/content/controller/store/store'
-import type { Episode, WithSeason } from '@danmaku-anywhere/danmaku-converter'
 
 // listen to comment changes and mount/unmount the danmaku engine
 export const useManualDanmaku = () => {
