@@ -17,9 +17,9 @@
   },
   "dependencies": {
     "xml-js": "^1.6.11",
-    "zod": "^3.25.46"
+    "zod": "^3.25.67"
   },
   "devDependencies": {
-    "vitest": "^3.1.4"
+    "vitest": "^3.2.4"
   }
 }
