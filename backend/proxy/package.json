@@ -12,20 +12,22 @@
   "scripts": {
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
-    "start": "wrangler dev",
+    "dev:remote": "pnpm dev --remote",
     "test": "vitest",
     "lint": "biome check --fix",
-    "cf-typegen": "wrangler types --experimental-include-runtime"
+    "cf-typegen": "wrangler types"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.8.39",
+    "@cloudflare/vitest-pool-workers": "^0.8.41",
     "@types/node": "^24.0.3",
     "typescript": "^5.8.3",
-    "vitest": "3.2.4",
-    "wrangler": "^4.20.1"
+    "vitest": "3.1.0",
+    "wrangler": "^4.20.3"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
-    "effect": "^3.16.8"
+    "zod": "^3.22.4",
+    "@hono/zod-validator": "^0.7.0",
+    "hono": "^4.7.11"
   }
 }

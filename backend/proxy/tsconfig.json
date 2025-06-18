@@ -5,12 +5,11 @@
     "baseUrl": ".",
     "lib": ["ESNext"],
     "paths": {},
-    "composite": true,
     "types": [
       "node",
-      "./.wrangler/types/runtime",
-      "./worker-configuration.d.ts"
+      "./worker-configuration.d.ts",
+      "@cloudflare/vitest-pool-workers"
     ]
   },
-  "include": ["./src"]
+  "include": ["./src", "./worker-configuration.d.ts"]
 }

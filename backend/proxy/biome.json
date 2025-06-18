@@ -2,7 +2,7 @@
   "root": false,
   "extends": "//",
   "files": {
-    "includes": ["**", "!**/dist"]
+    "includes": ["**", "!**/dist", "!worker-configuration.d.ts"]
   },
   "javascript": {
     "globals": ["ExecutionContext", "Env", "Request"]
