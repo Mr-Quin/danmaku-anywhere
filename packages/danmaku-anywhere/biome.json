@@ -1,7 +1,14 @@
 {
   "extends": ["../../biome.base.json"],
   "files": {
-    "ignore": ["dev", "build", "extension-profile", "node_modules", "patches"]
+    "ignore": [
+      "dev",
+      "build",
+      "extension-profile",
+      "node_modules",
+      "patches",
+      "lib"
+    ]
   },
   "javascript": {
     "globals": ["chrome"]

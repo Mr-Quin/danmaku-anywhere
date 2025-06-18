@@ -8,6 +8,8 @@
   "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
   "license": "AGPL-3.0",
   "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
     "dev": "vite",
     "dev:firefox": "VITE_TARGET_BROWSER=firefox pnpm run dev",
@@ -15,6 +17,7 @@
     "start:firefox-android": "pnpm run start:firefox -t firefox-android --firefox-apk org.mozilla.firefox_beta --pref extensions.dnr.feedback=true",
     "build": "vite build --outDir build --emptyOutDir",
     "build:firefox": "VITE_TARGET_BROWSER=firefox pnpm run build",
+    "build:lib": "tsup",
     "test": "vitest",
     "preview": "vite preview",
     "lint": "tsc && biome check --fix",
@@ -69,6 +72,7 @@
     "@types/react-dom": "^19.1.5",
     "@types/wicg-file-system-access": "^2023.10.6",
     "@vitejs/plugin-react": "^4.5.0",
+    "tsup": "^8.5.0",
     "vite": "^6.3.5",
     "vitest": "^3.1.4",
     "web-ext": "^8.7.1"

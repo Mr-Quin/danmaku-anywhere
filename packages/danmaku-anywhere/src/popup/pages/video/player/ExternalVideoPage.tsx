@@ -31,7 +31,7 @@ type ExternalVideoPageProps = {
   content: KazumiSearchResult
 }
 
-export const ExternalVideoPage = ({content}:ExternalVideoPageProps) => {
+export const ExternalVideoPage = ({ content }: ExternalVideoPageProps) => {
   const { t } = useTranslation()
 
   const goBack = useGoBack()

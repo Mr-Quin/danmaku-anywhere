@@ -14,9 +14,6 @@
       ],
       "@danmaku-anywhere/danmaku-converter": [
         "../packages/danmaku-converter/src"
-      ],
-      "@danmaku-anywhere/danmaku-anywhere-extension": [
-        "../packages/danmaku-anywhere/src"
       ]
     }
   },
@@ -25,7 +22,6 @@
     { "path": "./tsconfig.node.json" },
     { "path": "../packages/danmaku-engine" },
     { "path": "../packages/danmaku-provider" },
-    { "path": "../packages/danmaku-converter" },
-    { "path": "../packages/danmaku-anywhere" }
+    { "path": "../packages/danmaku-converter" }
   ]
 }

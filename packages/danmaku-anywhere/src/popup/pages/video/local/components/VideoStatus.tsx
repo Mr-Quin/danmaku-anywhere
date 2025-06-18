@@ -7,7 +7,12 @@ interface StatusTextProps {
   height: number
 }
 
-export const VideoStatus = ({ width,height, message, loading = false }: StatusTextProps) => {
+export const VideoStatus = ({
+  width,
+  height,
+  message,
+  loading = false,
+}: StatusTextProps) => {
   return (
     <Box
       sx={{
