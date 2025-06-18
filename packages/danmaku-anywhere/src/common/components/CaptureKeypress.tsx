@@ -146,6 +146,12 @@ export const CaptureKeypress = ({
         },
       })}
       {...boxProps}
+      sx={{
+        ...boxProps?.sx,
+        '&:focus': {
+          outline: 'none',
+        },
+      }}
     >
       {!disabled && (
         <KeyOverlayMemo ref={overlayRef}>
