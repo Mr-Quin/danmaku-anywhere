@@ -1,0 +1,6 @@
+{
+  "extends": ["../biome.base.json"],
+  "files": {
+    "ignore": ["dev", "build", "extension-profile", "node_modules", "patches"]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "noEmit": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["react-dom", "react", "@types/wicg-file-system-access"],
+    "baseUrl": ".",
+    "paths": {
+      "@danmaku-anywhere/danmaku-engine": ["../packages/danmaku-engine/src"],
+      "@danmaku-anywhere/danmaku-provider": [
+        "../packages/danmaku-provider/src"
+      ],
+      "@danmaku-anywhere/danmaku-converter": [
+        "../packages/danmaku-converter/src"
+      ],
+      "@danmaku-anywhere/danmaku-anywhere-extension": [
+        "../packages/danmaku-anywhere/src"
+      ]
+    }
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "./tsconfig.node.json" },
+    { "path": "../packages/danmaku-engine" },
+    { "path": "../packages/danmaku-provider" },
+    { "path": "../packages/danmaku-converter" },
+    { "path": "../packages/danmaku-anywhere" }
+  ]
+}

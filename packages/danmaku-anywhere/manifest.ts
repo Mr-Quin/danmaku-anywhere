@@ -44,6 +44,12 @@ export const manifest = defineManifest({
     scripts: ['src/background/index.ts'],
     type: 'module',
   },
+  content_scripts: [
+    {
+      js:['src/content/app/index.ts'],
+      matches: dev ? ['http://localhost:3123/*'] : ['*://danmaku.weeblify.app/*'],
+    }
+  ],
   options_page: 'pages/dashboard.html',
   permissions,
   host_permissions: ['https://*/*', 'http://*/*', 'file:///*'],

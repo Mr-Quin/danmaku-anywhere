@@ -1,8 +1,8 @@
 {
-  "name": "@danmaku-anywhere/danmaku-anywhere-extension",
-  "version": "1.0.2",
+  "name": "@mr-quin/danmaku-anywhere-app",
+  "version": "1.0.0",
   "private": true,
-  "description": "Browser extension for danmaku-anywhere",
+  "description": "App for danmaku-anywhere",
   "keywords": [],
   "author": "Mr-Quin",
   "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
@@ -10,11 +10,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:firefox": "VITE_TARGET_BROWSER=firefox pnpm run dev",
-    "start:firefox": "web-ext run --source-dir ./build --devtools -p ./extention-profile --profile-create-if-missing --keep-profile-changes --pref extensions.dnr.feedback=true",
-    "start:firefox-android": "pnpm run start:firefox -t firefox-android --firefox-apk org.mozilla.firefox_beta --pref extensions.dnr.feedback=true",
     "build": "vite build --outDir build --emptyOutDir",
-    "build:firefox": "VITE_TARGET_BROWSER=firefox pnpm run build",
     "test": "vitest",
     "preview": "vite preview",
     "lint": "tsc && biome check --fix",
@@ -24,6 +20,7 @@
     "tsc": "tsc"
   },
   "dependencies": {
+    "@danmaku-anywhere/danmaku-anywhere-extension": "workspace:*",
     "@danmaku-anywhere/danmaku-converter": "workspace:*",
     "@danmaku-anywhere/danmaku-engine": "workspace:*",
     "@danmaku-anywhere/danmaku-provider": "workspace:*",
@@ -37,6 +34,7 @@
     "@mui/material": "^7.1.0",
     "@mui/system": "^7.1.0",
     "@mui/x-data-grid": "^8.5.0",
+    "@tailwindcss/vite": "^4.1.10",
     "@tanstack/react-query": "^5.79.0",
     "@tanstack/react-query-devtools": "^5.79.0",
     "@tanstack/react-virtual": "^3.13.9",
@@ -44,9 +42,6 @@
     "dexie": "^4.0.11",
     "i18next": "^24.2.3",
     "immer": "^10.1.1",
-    "jszip": "^3.10.1",
-    "opencc-js": "^1.0.5",
-    "pinyin-pro": "^3.26.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-error-boundary": "^5.0.0",
@@ -55,6 +50,7 @@
     "react-i18next": "^15.5.2",
     "react-markdown": "^10.1.0",
     "react-router": "^7.6.1",
+    "tailwindcss": "^4.1.10",
     "ts-pattern": "^5.7.1",
     "urlpattern-polyfill": "^10.1.0",
     "video.js": "^8.22.0",
@@ -62,15 +58,12 @@
     "zustand": "5.0.3"
   },
   "devDependencies": {
-    "@crxjs/vite-plugin": "2.0.0-beta.26",
-    "@types/chrome": "^0.0.313",
     "@types/dplayer": "^1.25.5",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",
     "@types/wicg-file-system-access": "^2023.10.6",
     "@vitejs/plugin-react": "^4.5.0",
     "vite": "^6.3.5",
-    "vitest": "^3.1.4",
-    "web-ext": "^8.7.1"
+    "vitest": "^3.1.4"
   }
 }
