@@ -246,37 +246,40 @@ export const DanmakuSelector = ({
   }
 
   return (
-    <Box height="100%" overflow="auto">
-      <Box height={virtualizer.getTotalSize()} ref={scrollRef}>
-        <List disablePadding>
-          {virtualizer.getVirtualItems().map((virtualItem) => {
-            const item = flattened[virtualItem.index]
+    <Box height="100%" overflow="auto" ref={scrollRef}>
+      <List
+        sx={{
+          height: virtualizer.getTotalSize(),
+        }}
+        disablePadding
+      >
+        {virtualizer.getVirtualItems().map((virtualItem) => {
+          const item = flattened[virtualItem.index]
 
-            const key = getKey(item)
+          const key = getKey(item)
 
-            return (
-              <div
-                key={key}
-                data-index={virtualItem.index}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  transform: `translateY(${virtualItem.start}px)`,
-                }}
-                ref={virtualizer.measureElement}
-              >
-                <EpisodeListItemMemo
-                  item={item}
-                  onSelect={onSelect}
-                  disabled={disabled}
-                />
-              </div>
-            )
-          })}
-        </List>
-      </Box>
+          return (
+            <div
+              key={key}
+              data-index={virtualItem.index}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                transform: `translateY(${virtualItem.start}px)`,
+              }}
+              ref={virtualizer.measureElement}
+            >
+              <EpisodeListItemMemo
+                item={item}
+                onSelect={onSelect}
+                disabled={disabled}
+              />
+            </div>
+          )
+        })}
+      </List>
     </Box>
   )
 }
