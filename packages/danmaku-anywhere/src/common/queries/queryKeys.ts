@@ -121,11 +121,12 @@ export const alarmQueryKeys = {
 }
 
 export const genAIQueryKeys = {
-  extractTitle: () =>
+  extractTitle: (data: string) =>
     [
       {
         scope: 'genAI',
         kind: 'extractTitle',
+        data,
       },
     ] as const,
 }

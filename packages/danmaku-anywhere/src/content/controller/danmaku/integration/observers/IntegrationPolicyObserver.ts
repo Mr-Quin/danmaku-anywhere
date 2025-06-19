@@ -344,7 +344,7 @@ export class IntegrationPolicyObserver extends MediaObserver {
       })
 
       const { data } = await queryClient.fetchQuery({
-        queryKey: genAIQueryKeys.extractTitle(),
+        queryKey: genAIQueryKeys.extractTitle(meta),
         queryFn: () => chromeRpcClient.extractTitle(meta),
       })
 
