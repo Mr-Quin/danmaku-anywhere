@@ -71,7 +71,7 @@ export const searchMedia = async (
 }
 
 export const getPageDetails = async (cid: string, vid?: string) => {
-  const url = `${TENCENT_API_URL_ROOT}/trpc.universal_backend_service.page_server_rpc.PageServer/GetPageData?video_appid=3000010&vplatform=2`
+  const url = `${TENCENT_API_URL_ROOT}/trpc.universal_backend_service.page_server_rpc.PageServer/GetPageData?video_appid=3000010&vversion_name=8.2.96&vversion_platform=2`
 
   const requestBody = {
     has_cache: 1,
@@ -124,7 +124,7 @@ export async function* listEpisodes(params: TencentEpisodeListParams) {
     ...params,
   }
 
-  const url = `${TENCENT_API_URL_ROOT}/trpc.universal_backend_service.page_server_rpc.PageServer/GetPageData?video_appid=3000010&vplatform=2`
+  const url = `${TENCENT_API_URL_ROOT}/trpc.universal_backend_service.page_server_rpc.PageServer/GetPageData?video_appid=3000010&vversion_name=8.2.96&vversion_platform=2`
 
   const pageSize = appliedParams.page_size
   let i = 0
