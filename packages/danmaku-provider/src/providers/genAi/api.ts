@@ -21,6 +21,9 @@ export const extractTitle = async (
     body: {
       input,
     },
+    headers: {
+      'Content-Type': 'application/json',
+    },
     responseSchema: zExtractTitleResponse,
     method: 'POST',
   })
