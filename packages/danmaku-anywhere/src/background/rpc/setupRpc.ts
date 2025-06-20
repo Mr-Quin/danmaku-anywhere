@@ -169,7 +169,7 @@ export const setupRpc = (
         throw new RpcException('No active tab found')
       }
 
-      return activeTab.url!
+      return activeTab.url ?? null
     },
     mountConfigGetAll: async () => {
       return mountConfigService.getAll()

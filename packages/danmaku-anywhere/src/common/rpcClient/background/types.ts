@@ -75,7 +75,7 @@ type EpisodeMethods = {
 }
 
 type ControlMethods = {
-  getActiveTabUrl: RPCDef<void, string>
+  getActiveTabUrl: RPCDef<void, string | null>
   getFrameId: RPCDef<void, number>
   getAllFrames: RPCDef<void, chrome.webNavigation.GetAllFrameResultDetails[]>
   injectScript: RPCDef<number, void>
