@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@import "material-symbols";
+@plugin "tailwindcss-primeui";
+
+@custom-variant dark (&:where(.da-dark, .da-dark *));
+
+:root {
+  interpolate-size: allow-keywords;
+}

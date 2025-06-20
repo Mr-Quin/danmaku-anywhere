@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "baseUrl": ".",
+    "composite": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noImplicitAny": false,
+    "types": ["chrome"]
+  },
+  "include": ["./src"],
+  "exclude": ["**/*.test.ts", "**/test"],
+  "references": [
+    {
+      "path": "../danmaku-converter"
+    }
+  ]
+}

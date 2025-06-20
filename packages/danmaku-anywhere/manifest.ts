@@ -17,6 +17,7 @@ const permissions: chrome.runtime.ManifestPermissions[] = [
   'declarativeNetRequestWithHostAccess',
   'webNavigation',
   'alarms',
+  'webRequest',
 ]
 
 if (IS_CHROME) {
@@ -43,6 +44,15 @@ export const manifest = defineManifest({
     scripts: ['src/background/index.ts'],
     type: 'module',
   },
+  content_scripts: [
+    {
+      matches: dev
+        ? ['http://localhost:4200/*']
+        : ['https://danmaku.weeblify.app/*'],
+      js: ['src/content/app/index.ts'],
+      run_at: 'document_start',
+    },
+  ],
   permissions,
   host_permissions: ['https://*/*', 'http://*/*', 'file:///*'],
   externally_connectable:
@@ -76,4 +86,13 @@ export const manifest = defineManifest({
       use_dynamic_url: false,
     },
   ],
+  declarative_net_request: {
+    rule_resources: [
+      {
+        id: 'bgm-next',
+        enabled: true,
+        path: 'rules/bgm.json',
+      },
+    ],
+  },
 })

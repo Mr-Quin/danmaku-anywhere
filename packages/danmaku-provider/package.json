@@ -10,6 +10,10 @@
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./dist/src/index.js"
+    },
     "./ddp": {
       "types": "./dist/src/providers/ddp/index.d.ts",
       "default": "./dist/src/providers/ddp/index.js"
@@ -25,6 +29,10 @@
     "./genAi": {
       "types": "./dist/src/providers/genAi/index.d.ts",
       "default": "./dist/src/providers/genAi/index.js"
+    },
+    "./kazumi": {
+      "types": "./dist/src/providers/kazumi/index.d.ts",
+      "default": "./dist/src/providers/kazumi/index.js"
     }
   },
   "scripts": {

@@ -1,0 +1,20 @@
+{
+  "root": false,
+  "extends": "//",
+  "files": {
+    "includes": ["**", "!**/node_modules", "!**/.angular", "!**/bangumi-api/**"]
+  },
+  "javascript": {
+    "globals": [
+      "afterEach",
+      "afterAll",
+      "beforeEach",
+      "beforeAll",
+      "describe",
+      "expect",
+      "it",
+      "test",
+      "jest"
+    ]
+  }
+}
