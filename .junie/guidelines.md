@@ -40,8 +40,6 @@ The project uses React for UI components with the following patterns:
 
 For angular, follow the below best practices
 
-- Use Tailwind CSS and DaisyUI for styling
-
 ### TypeScript Best Practices
 
 - Use strict type checking
@@ -58,6 +56,7 @@ For angular, follow the below best practices
 
 ### Components
 
+- Use Tailwind CSS and PrimeNG for styling
 - Keep components small and focused on a single responsibility
 - Use `input()` and `output()` functions instead of decorators
 - Use `computed()` for derived state
@@ -66,6 +65,10 @@ For angular, follow the below best practices
 - Prefer Reactive forms instead of Template-driven ones
 - Do NOT use `ngClass`, use `class` bindings instead
 - DO NOT use `ngStyle`, use `style` bindings instead
+
+### Queries and Mutations
+
+- Use `injectQuery` and `injectMutation` from @tanstack/angular-query-experimental
 
 ### State Management
 

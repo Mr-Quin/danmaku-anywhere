@@ -1,14 +1,7 @@
 import type { ExtractTitleResponse } from '@danmaku-anywhere/danmaku-provider/genAi'
-import {
-  configure,
-  extractTitle,
-} from '@danmaku-anywhere/danmaku-provider/genAi'
+import { extractTitle } from '@danmaku-anywhere/danmaku-provider/genAi'
 
 import { Logger } from '@/common/Logger'
-
-configure({
-  baseUrl: import.meta.env.VITE_PROXY_URL,
-})
 
 export class GenAIService {
   private logger: typeof Logger

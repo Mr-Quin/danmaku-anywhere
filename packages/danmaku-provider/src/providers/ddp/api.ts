@@ -2,10 +2,9 @@ import {
   commentOptionsToString,
   parseCommentEntityP,
 } from '@danmaku-anywhere/danmaku-converter'
-
+import type { ZodType } from 'zod'
 import type { FetchOptions } from '../utils/fetchData.js'
 import { fetchData } from '../utils/fetchData.js'
-
 import { DanDanPlayApiException } from './exceptions.js'
 import type {
   BangumiDetails,
@@ -53,7 +52,7 @@ export const configure = (options: Partial<typeof store>) => {
 }
 
 // Reimplement fetchDanDanPlay using fetchData
-const fetchDanDanPlay = async <T extends object>(
+const fetchDanDanPlay = async <T extends ZodType>(
   options: Omit<FetchOptions<T>, 'url' | 'headers'> & { path: string }
 ) => {
   const headers: Record<string, string> = {}

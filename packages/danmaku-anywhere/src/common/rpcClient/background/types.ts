@@ -11,12 +11,18 @@ import type {
 import type { BilibiliUserInfo } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import type { ExtractTitleResponse } from '@danmaku-anywhere/danmaku-provider/genAi'
 import type {
+  KazumiChapterPayload,
+  KazumiChapterResult,
+  KazumiSearchPayload,
+  KazumiSearchResult,
+  SetHeaderRule,
+} from '@danmaku-anywhere/web-scraper'
+import type {
   MatchEpisodeInput,
   MatchEpisodeResult,
   SeasonQueryFilter,
   SeasonSearchParams,
 } from '@/common/anime/dto'
-
 import type {
   CustomEpisodeQueryFilter,
   DanmakuFetchDto,
@@ -89,6 +95,12 @@ type MountConfigMethods = {
   mountConfigGetAll: RPCDef<void, MountConfig[]>
 }
 
+type KazumiMethods = {
+  kazumiSearchContent: RPCDef<KazumiSearchPayload, KazumiSearchResult[]>
+  kazumiGetChapters: RPCDef<KazumiChapterPayload, KazumiChapterResult[][]>
+  setHeaders: RPCDef<SetHeaderRule, void>
+}
+
 type AIMethods = {
   extractTitle: RPCDef<string, ExtractTitleResponse['result']>
 }
@@ -130,4 +142,5 @@ export type BackgroundMethods = IconMethods &
   EpisodeMethods &
   AIMethods &
   ControlMethods &
-  MountConfigMethods
+  MountConfigMethods &
+  KazumiMethods

@@ -1,23 +1,23 @@
-import type { ZodSchema } from 'zod'
+import type { ZodType, z } from 'zod'
 
 import { HttpException } from '../../exceptions/HttpException.js'
 
 import { handleParseResponse } from './index.js'
 
-export interface FetchOptions<T = unknown> {
+export interface FetchOptions<T extends ZodType> {
   url: string
   method?: 'GET' | 'POST'
   query?: Record<string, unknown>
   body?: Record<string, unknown>
   requestSchema?: {
-    body?: ZodSchema
-    query?: ZodSchema
+    body?: ZodType
+    query?: ZodType
   }
-  responseSchema: ZodSchema<T>
+  responseSchema: T
   headers?: Record<string, string> // Add headers property
 }
 
-const validateRequest = <T extends FetchOptions>(options: T) => {
+const validateRequest = <T extends FetchOptions<any>>(options: T) => {
   const clone: T = { ...options }
 
   const { requestSchema, body, query } = clone
@@ -39,7 +39,9 @@ const createUrl = (url: string, query?: Record<string, unknown>) => {
   return `${url}?${new URLSearchParams(query as never)}`
 }
 
-export const fetchData = async <T extends object>(options: FetchOptions<T>) => {
+export const fetchData = async <OutSchema extends ZodType>(
+  options: FetchOptions<OutSchema>
+): Promise<z.output<OutSchema>> => {
   const validatedOptions = validateRequest(options)
 
   const {
@@ -77,7 +79,5 @@ export const fetchData = async <T extends object>(options: FetchOptions<T>) => {
   }
 
   const json: unknown = await res.json()
-  const data = handleParseResponse(() => responseSchema.parse(json))
-
-  return data
+  return handleParseResponse(() => responseSchema.parse(json))
 }

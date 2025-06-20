@@ -1,8 +1,10 @@
+import { configureCf } from '@danmaku-anywhere/danmaku-provider'
 import { BilibiliService } from '@/background/services/BilibiliService'
 import { DanDanPlayService } from '@/background/services/DanDanPlayService'
 import { DanmakuService } from '@/background/services/DanmakuService'
 import { GenAIService } from '@/background/services/GenAIService'
 import { IconService } from '@/background/services/IconService'
+import { KazumiService } from '@/background/services/KazumiService'
 import { ProviderService } from '@/background/services/ProviderService'
 import { SeasonService } from '@/background/services/SeasonService'
 import { TencentService } from '@/background/services/TencentService'
@@ -37,8 +39,13 @@ const providerService = new ProviderService(
   bilibiliService,
   tencentService
 )
+const kazumiService = new KazumiService()
 const iconService = new IconService()
 const aiService = new GenAIService()
+
+configureCf({
+  baseUrl: import.meta.env.VITE_PROXY_URL,
+})
 
 setupOptions()
 setupScripting()
@@ -49,7 +56,8 @@ setupRpc(
   seasonService,
   aiService,
   bilibiliService,
-  tencentService
+  tencentService,
+  kazumiService
 )
 setupNetRequest()
 setupAlarms(danmakuService)

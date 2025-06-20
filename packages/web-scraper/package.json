@@ -1,0 +1,26 @@
+{
+  "name": "@danmaku-anywhere/web-scraper",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Scrape websites from browser extension context",
+  "author": "Mr-Quin",
+  "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "scripts": {
+    "test": "vitest",
+    "build": "tsc",
+    "lint": "biome check --fix"
+  },
+  "dependencies": {
+    "@danmaku-anywhere/danmaku-provider": "workspace:*",
+    "zod": "^3.25.67",
+    "core-js": "^3.43.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4",
+    "@types/chrome": "^0.0.325"
+  }
+}
