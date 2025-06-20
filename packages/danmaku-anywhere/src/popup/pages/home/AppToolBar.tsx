@@ -1,4 +1,4 @@
-import { Settings } from '@mui/icons-material'
+import { OpenInNew, Settings } from '@mui/icons-material'
 import {
   AppBar,
   Box,
@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router'
 
 import { StyledEnableSwitch } from '@/common/components/StyledEnableSwitch'
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
+import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 
 export const AppToolBar = () => {
@@ -29,8 +30,18 @@ export const AppToolBar = () => {
 
   const navigate = useNavigate()
   const isAnyLoading = useAnyLoading()
+  const { isMobile } = usePlatformInfo()
 
   const { t } = useTranslation()
+
+  const openInWindow = async () => {
+    void chrome.windows.create({
+      url: window.location.href,
+      type: 'popup',
+      width: document.body.scrollWidth + 50,
+      height: document.body.scrollHeight + 50,
+    })
+  }
 
   return (
     <AppBar position="static">
@@ -67,10 +78,15 @@ export const AppToolBar = () => {
           onClick={() => {
             navigate('/options')
           }}
-          edge="end"
+          edge={isMobile ? 'end' : 'start'}
         >
           <Settings />
         </IconButton>
+        {!isMobile && (
+          <IconButton onClick={openInWindow} edge="end">
+            <OpenInNew />
+          </IconButton>
+        )}
       </Toolbar>
     </AppBar>
   )
