@@ -48,21 +48,17 @@ export const useIntegrationPolicy = () => {
   }, [integrationPolicy])
 
   useEffect(() => {
-    if (!integrationPolicy || isManual) {
-      observer.current = undefined
+    if (!videoId || !integrationPolicy || isManual) {
+      if (observer.current) {
+        Logger.debug('Destroying integration observer')
+        observer.current?.destroy()
+        observer.current = undefined
+        deactivate()
+      }
       return
     }
 
-    if (!videoId) {
-      // when video id changes to nullish, destroy the observer
-      observer.current?.destroy()
-      observer.current = undefined
-      deactivate()
-      return
-    }
-
-    // Only create the observer if the video node is present
-
+    // Create the observer if it hasn't been created yet
     if (!observer.current) {
       activate()
       observer.current = new IntegrationPolicyObserver(integrationPolicy.policy)
@@ -74,7 +70,6 @@ export const useIntegrationPolicy = () => {
               t('integration.alert.AIResult', { title: state.toString() })
             )
           }
-
           if (useStore.getState().danmaku.isMounted) {
             unmountDanmaku.mutate()
           }

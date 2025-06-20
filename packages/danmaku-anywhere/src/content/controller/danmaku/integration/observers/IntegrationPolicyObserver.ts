@@ -318,7 +318,7 @@ export class IntegrationPolicyObserver extends MediaObserver {
     // When the title element is removed, rerun setup
     const observer = createRemovalMutationObserver(elements.title, () => {
       this.logger.debug('Title element removed, rerunning setup')
-      this.destroy()
+      this.reset()
       this.setup()
     })
 
@@ -385,7 +385,7 @@ export class IntegrationPolicyObserver extends MediaObserver {
   }
 
   reset() {
-    this.logger.debug('Resetting')
+    this.logger.debug('Resetting observer')
     clearInterval(this.interval)
     this.abortControllerQueue.forEach((controller) => controller.abort())
     this.abortControllerQueue = []
