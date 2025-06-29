@@ -10,19 +10,20 @@ import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
 import { injectQuery } from '@tanstack/angular-query-experimental'
 import { Button } from 'primeng/button'
 import { Divider } from 'primeng/divider'
-import { ProgressSpinner } from 'primeng/progressspinner'
+import { Skeleton } from 'primeng/skeleton'
+import { MaterialIcon } from '../../../shared/components/material-icon'
 import { KazumiService } from '../services/kazumi.service'
 
 @Component({
   selector: 'da-kazumi-search-results',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ProgressSpinner, Divider, JsonPipe, Button],
+  imports: [Divider, JsonPipe, Button, Skeleton, MaterialIcon],
   template: `
     <div>
       @if (searchQuery.isFetching()) {
-        <div class="text-center p-4">
-          <p-progress-spinner />
-        </div>
+        @for (i of [1, 2, 3]; track i) {
+          <p-skeleton styleClass="my-2" width="100%" height="76px" />
+        }
       }
 
       @if (searchQuery.isError()) {
@@ -43,12 +44,20 @@ import { KazumiService } from '../services/kazumi.service'
             <p class="p-4">无结果</p>
           } @else {
             @for (item of results; track item.url) {
-              <div
-                class="rounded p-4 cursor-pointer dark:bg-surface-900 dark:hover:bg-surface-800"
-                (click)="itemClick.emit(item)"
-              >
-                <h4 class="font-medium">{{ item.name }}</h4>
-                <p class="text-sm">{{ item.url }}</p>
+              <div class="relative">
+                <div
+                  role="button"
+                  class="rounded p-4 cursor-pointer dark:bg-surface-900 dark:hover:bg-surface-800 transition-[background]"
+                  (click)="itemClick.emit(item)"
+                >
+                  <h4 class="font-medium">{{ item.name }}</h4>
+                  <p class="text-sm text-gray-500 overflow-hidden overflow-ellipsis">{{ item.url }}</p>
+                </div>
+                <a class="absolute right-0 top-0 translate-y-1/2 p-button p-button-text p-button-secondary"
+                   [href]="item.url" target="_blank" rel="noreferrer"
+                >
+                  <da-mat-icon icon="open_in_new" />
+                </a>
               </div>
               @if (!$last) {
                 <p-divider styleClass="m-1" />

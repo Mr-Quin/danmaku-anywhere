@@ -4,6 +4,7 @@ import {
   noExtension,
 } from './core/extension-service/extension.guard'
 import { noSearchDetails } from './features/kazumi/guards/kazumi-policy.guard'
+import { PAGE_TITLE } from './shared/constants'
 
 export const routes: Routes = [
   {
@@ -15,7 +16,7 @@ export const routes: Routes = [
     path: 'no-extension',
     loadComponent: () =>
       import('./core/pages/no-extension').then((m) => m.NoExtension),
-    title: 'No Extension',
+    title: PAGE_TITLE,
     canActivate: [noExtension],
   },
   {
@@ -25,6 +26,7 @@ export const routes: Routes = [
         (m) => m.KazumiLayout
       ),
     canActivateChild: [hasExtension],
+    title: PAGE_TITLE,
     children: [
       {
         path: '',
@@ -37,7 +39,6 @@ export const routes: Routes = [
           import('./features/kazumi/pages/kazumi-search-page').then(
             (m) => m.KazumiSearchPage
           ),
-        title: 'Search Content - Kazumi',
         data: { showBackButton: false },
       },
       {
@@ -46,7 +47,6 @@ export const routes: Routes = [
           import('./features/kazumi/pages/kazumi-detail-page').then(
             (m) => m.KazumiDetailPage
           ),
-        title: 'Show Details - Kazumi',
         canActivate: [noSearchDetails],
       },
     ],

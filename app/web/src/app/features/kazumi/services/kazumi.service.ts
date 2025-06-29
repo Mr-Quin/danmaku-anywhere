@@ -279,9 +279,14 @@ export class KazumiService {
   getChaptersQueryOptions(url: string, policy: KazumiPolicy) {
     return queryOptions({
       queryFn: async () => {
-        return lastValueFrom(
+        const playlists = await lastValueFrom(
           this.extensionService.single('kazumiGetChapters', { url, policy })
         )
+        return playlists.map((playlist) => {
+          return playlist.toSorted((a, b) => {
+            return a.name.localeCompare(b.name)
+          })
+        })
       },
       queryKey: queryKeys.kazumi.getChapters(policy.name, url),
       staleTime: Number.POSITIVE_INFINITY,
