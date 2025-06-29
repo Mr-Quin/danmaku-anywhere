@@ -1,12 +1,14 @@
 import {
   type ApplicationConfig,
   inject,
+  isDevMode,
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
   provideZoneChangeDetection,
 } from '@angular/core'
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async'
 import { provideRouter } from '@angular/router'
+import { provideServiceWorker } from '@angular/service-worker'
 import { definePreset } from '@primeng/themes'
 import Aura from '@primeng/themes/aura'
 import { provideQueryClient } from '@tanstack/angular-query-experimental'
@@ -57,6 +59,10 @@ export const appConfig: ApplicationConfig = {
       const extensionService = inject(ExtensionService)
       await extensionService.init()
       console.log('App initialized')
+    }),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
     }),
   ],
 }
