@@ -49,7 +49,16 @@ import { KazumiService } from '../services/kazumi.service'
       @let mediaDetails = $searchDetails();
       <div class="mb-10 flex">
         <div class="flex flex-1 items-center gap-2">
-          <h1 class="text-2xl font-semibold">{{ $videoFullName() }}</h1>
+          <h1 class="text-2xl font-semibold">
+            <span id="media-title">{{ $searchDetails().title }}</span>
+            @let selectedEpisode = $selectedEpisode();
+            @if (selectedEpisode) {
+              <span> - </span>
+            }
+            <span id="media-episode">@if (selectedEpisode) {
+              {{ selectedEpisode.name }}
+            }</span>
+          </h1>
           <p-tag [value]="mediaDetails.policy.name" severity="secondary" />
         </div>
       </div>
