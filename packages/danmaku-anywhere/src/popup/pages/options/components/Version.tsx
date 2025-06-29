@@ -1,7 +1,6 @@
 import { GitHub } from '@mui/icons-material'
 import { Box, IconButton, Stack, Typography } from '@mui/material'
-
-import packageJson from '../../../../../package.json'
+import { EXTENSION_REPO, EXTENSION_VERSION } from '@/common/constants'
 
 export const Version = () => {
   return (
@@ -12,7 +11,7 @@ export const Version = () => {
     >
       <Stack direction="row" alignItems="flex-end">
         <Typography variant="caption" color="text.disabled">
-          v{packageJson.version}
+          v{EXTENSION_VERSION}
         </Typography>
         <IconButton
           sx={{
@@ -20,7 +19,7 @@ export const Version = () => {
           }}
           size="small"
           onClick={() => {
-            window.open(packageJson.repository, '_blank')
+            window.open(EXTENSION_REPO, '_blank')
           }}
         >
           <GitHub />

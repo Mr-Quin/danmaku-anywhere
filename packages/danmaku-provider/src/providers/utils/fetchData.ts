@@ -1,7 +1,7 @@
 import type { ZodType, z } from 'zod'
 
 import { HttpException } from '../../exceptions/HttpException.js'
-
+import { getApiStore } from '../../shared/store.js'
 import { handleParseResponse } from './index.js'
 
 export interface FetchOptions<T extends ZodType> {
@@ -52,7 +52,14 @@ export const fetchData = async <OutSchema extends ZodType>(
     headers = {},
   } = validatedOptions
 
-  const finalUrl = createUrl(url, validatedOptions.query) // Always use DanDanPlay baseUrl
+  const finalUrl = createUrl(url, validatedOptions.query)
+
+  const store = getApiStore()
+
+  // inject version header
+  if (store.daVersion && url.startsWith(store.baseUrl)) {
+    headers['DA-Version'] = store.daVersion
+  }
 
   const res = await fetch(finalUrl, {
     headers: { ...headers },

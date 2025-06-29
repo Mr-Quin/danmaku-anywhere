@@ -3,6 +3,7 @@ import {
   parseCommentEntityP,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { ZodType } from 'zod'
+import { getApiStore } from '../../shared/store.js'
 import type { FetchOptions } from '../utils/fetchData.js'
 import { fetchData } from '../utils/fetchData.js'
 import { DanDanPlayApiException } from './exceptions.js'
@@ -40,29 +41,19 @@ import {
   zSendCommentResponseV2,
 } from './schema.js'
 
-export const API_ROOT = 'https://api.dandanplay.net'
-
-const store = {
-  baseUrl: API_ROOT,
-  token: '',
-}
-
-export const configure = (options: Partial<typeof store>) => {
-  Object.assign(store, options)
-}
-
-// Reimplement fetchDanDanPlay using fetchData
 const fetchDanDanPlay = async <T extends ZodType>(
   options: Omit<FetchOptions<T>, 'url' | 'headers'> & { path: string }
 ) => {
   const headers: Record<string, string> = {}
 
+  const store = getApiStore()
+
   if (options.body) {
     headers['Content-Type'] = 'application/json'
   }
 
-  if (store.token) {
-    headers['Authorization'] = `Bearer ${store.token}`
+  if (store.ddpToken) {
+    headers['Authorization'] = `Bearer ${store.ddpToken}`
   }
 
   return fetchData<T>({

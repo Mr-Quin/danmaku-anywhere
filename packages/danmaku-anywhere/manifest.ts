@@ -47,7 +47,7 @@ export const manifest = defineManifest({
   content_scripts: [
     {
       matches: dev
-        ? ['http://localhost:4200/*']
+        ? ['http://localhost:4200/*', 'https://danmaku.weeblify.app/*']
         : ['https://danmaku.weeblify.app/*'],
       js: ['src/content/app/index.ts'],
       run_at: 'document_start',

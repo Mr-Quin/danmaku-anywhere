@@ -7,11 +7,12 @@ import {
   type ExtResponse,
   setExtensionAttr,
 } from '@danmaku-anywhere/web-scraper'
+import { EXTENSION_VERSION } from '@/common/constants'
 import type { RPCClientResponse } from '@/common/rpc/client'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { tryCatch } from '@/common/utils/utils'
 
-setExtensionAttr(chrome.runtime.getManifest().version)
+setExtensionAttr(EXTENSION_VERSION)
 
 const sendResponse = (message: ExtResponse) => {
   window.postMessage(message, window.origin)

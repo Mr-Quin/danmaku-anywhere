@@ -1,11 +1,9 @@
+import { configureApiStore } from '@danmaku-anywhere/danmaku-provider'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-
 import { ResponseParseException } from '../../exceptions/ResponseParseException'
 import { createFetchOverride, mockFetchResponse } from '../utils/testUtils'
-
 import {
   commentGetComment,
-  configure,
   getBangumiAnime,
   searchSearchAnime,
   searchSearchEpisodes,
@@ -20,7 +18,7 @@ const overrideFetchArgs = createFetchOverride()
 
 describe('DanDanPlay API', () => {
   beforeEach(() => {
-    configure({ baseUrl: 'http://127.0.0.1:8787' })
+    configureApiStore({ baseUrl: 'http://127.0.0.1:8787' })
     vi.resetAllMocks()
   })
 
@@ -142,7 +140,7 @@ describe('DanDanPlay API', () => {
     const mockFetch = mockFetchResponse(mockResponse)
 
     const customRoot = 'https://example.com'
-    configure({ baseUrl: customRoot })
+    configureApiStore({ baseUrl: customRoot })
 
     await searchSearchEpisodes({ anime: 'test' })
 

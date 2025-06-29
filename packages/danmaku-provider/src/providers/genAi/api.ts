@@ -1,4 +1,4 @@
-import { cfStore } from '../../shared/cf.js'
+import { getApiStore } from '../../shared/store.js'
 import { fetchData } from '../utils/fetchData.js'
 import type { ExtractTitleResponse } from './schema.js'
 import { zExtractTitleResponse } from './schema.js'
@@ -7,7 +7,7 @@ export const extractTitle = async (
   input: string
 ): Promise<ExtractTitleResponse['result']> => {
   const res = await fetchData({
-    url: `${cfStore}/gemini/extractTitle`,
+    url: `${getApiStore().baseUrl}/gemini/extractTitle`,
     body: {
       input,
     },

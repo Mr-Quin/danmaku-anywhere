@@ -1,4 +1,4 @@
-import { configureCf } from '@danmaku-anywhere/danmaku-provider'
+import { configureApiStore } from '@danmaku-anywhere/danmaku-provider'
 import { BilibiliService } from '@/background/services/BilibiliService'
 import { DanDanPlayService } from '@/background/services/DanDanPlayService'
 import { DanmakuService } from '@/background/services/DanmakuService'
@@ -43,7 +43,7 @@ const kazumiService = new KazumiService()
 const iconService = new IconService()
 const aiService = new GenAIService()
 
-configureCf({
+configureApiStore({
   baseUrl: import.meta.env.VITE_PROXY_URL,
 })
 
