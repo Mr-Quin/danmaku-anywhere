@@ -178,7 +178,7 @@ export const getElementByXpath = (path: string, parent = window.document) => {
 }
 
 export const docsLink = (path: string) => {
-  return `https://danmaku.weeblify.app/${path}`
+  return `https://docs.danmaku.weeblify.app/${path}`
 }
 
 export const getOS = () => {
