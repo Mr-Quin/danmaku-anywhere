@@ -13,8 +13,8 @@ import { AppBar } from './app-bar'
       @if (layoutService.$showBanner()) {
         <div class="bg-primary p-1 flex justify-center">
           <p class="text-sm text-black">
-            Danmaku Anywhere说明文档转移至<a class="bold underline" href="https://danmaku.weeblify.app/docs"
-                                             target="_blank">danmaku.weeblify.app/docs</a>
+            Danmaku Anywhere说明文档转移至<a class="bold underline" href="https://docs.danmaku.weeblify.app"
+                                             target="_blank">docs.danmaku.weeblify.app</a>
           </p>
           <button class="cursor-pointer text-black absolute right-0 mr-4" (click)="layoutService.hideBanner()">
             <da-mat-icon icon="close" />

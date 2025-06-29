@@ -15,7 +15,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FaIconComponent, Button],
   template: `
-    <div class="flex flex-col justify-center items-center h-screen">
+    <div class="flex flex-col justify-center items-center h-full">
       <h1 class="text-2xl font-bold mb-4">此应用需要Danmaku Anywhere扩展v1.0.4或以上版本</h1>
       <p-button class="hidden"></p-button>
       @if (isChromium) {

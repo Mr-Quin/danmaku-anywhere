@@ -3,13 +3,15 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   linkedSignal,
   signal,
 } from '@angular/core'
 import { toObservable } from '@angular/core/rxjs-interop'
 import { FormsModule } from '@angular/forms'
-import { Router } from '@angular/router'
+import { Title } from '@angular/platform-browser'
+import type { MediaInfo } from '@danmaku-anywhere/web-scraper'
 import { injectQuery } from '@tanstack/angular-query-experimental'
 import { Button } from 'primeng/button'
 import { Card } from 'primeng/card'
@@ -21,6 +23,7 @@ import { Skeleton } from 'primeng/skeleton'
 import { Tag } from 'primeng/tag'
 import { EMPTY, finalize, switchMap, tap } from 'rxjs'
 import { MaterialIcon } from '../../../shared/components/material-icon'
+import { PAGE_TITLE } from '../../../shared/constants'
 import { VideoPlayer } from '../../../shared/video-player/video-player'
 import { KazumiService } from '../services/kazumi.service'
 
@@ -46,27 +49,30 @@ import { KazumiService } from '../services/kazumi.service'
       @let mediaDetails = $searchDetails();
       <div class="mb-10 flex">
         <div class="flex flex-1 items-center gap-2">
-          <h1 class="text-2xl font-semibold">{{ mediaDetails.title }}</h1>
+          <h1 class="text-2xl font-semibold">{{ $videoFullName() }}</h1>
           <p-tag [value]="mediaDetails.policy.name" severity="secondary" />
         </div>
       </div>
 
       <div class="grid grid-cols-1 xl:grid-cols-[1fr_424px] gap-8">
+        @let isLoading = episodesQuery.isPending() || $isVideoUrlLoading();
         <da-video-player
           [videoUrl]="$videoUrl()"
           [title]=""
-          class="w-full"
+          [showOverlay]="isLoading || !$videoUrl()"
         >
           <ng-template #content>
             <div class="size-full flex flex-col justify-center items-center">
-              @if (episodesQuery.isPending() || $isVideoUrlLoading()) {
+              @if (isLoading) {
                 <p-progress-spinner />
-                @if (episodesQuery.isPending()) {
-                  正在获取剧集列表
-                }
-                @if ($isVideoUrlLoading()) {
-                  正在获取视频链接
-                }
+                <p>
+                  @if (episodesQuery.isPending()) {
+                    正在获取剧集列表
+                  }
+                  @if ($isVideoUrlLoading()) {
+                    正在获取视频链接
+                  }
+                </p>
               } @else if (episodesQuery.isError()) {
                 <div class="text-center flex flex-col gap-4">
                   <p>获取剧集失败</p>
@@ -80,12 +86,15 @@ import { KazumiService } from '../services/kazumi.service'
                       <da-mat-icon icon="refresh" />
                     </ng-template>
                   </p-button>
-
                 </div>
               } @else if ($isVideoUrlError()) {
                 <div class="text-center flex flex-col gap-4">
                   <p>获取视频链接失败</p>
                 </div>
+              } @else if (!$selectedEpisode()) {
+                <p>
+                  请选集
+                </p>
               }
             </div>
           </ng-template>
@@ -165,15 +174,15 @@ import { KazumiService } from '../services/kazumi.service'
           </p-card>
         </div>
       </div>
-
     </div>
   `,
 })
 export class KazumiDetailPage {
-  private router = inject(Router)
   private kazumiService = inject(KazumiService)
+  private title = inject(Title)
 
   protected $searchDetails = computed(
+    // biome-ignore lint/style/noNonNullAssertion: checked using guard
     () => this.kazumiService.$searchDetails()!
   )
   protected $selectedEpisode = signal<{ name: string; url: string } | null>(
@@ -183,6 +192,27 @@ export class KazumiDetailPage {
   protected $isVideoUrlLoading = signal(false)
   protected $isVideoUrlError = signal(false)
 
+  protected $videoFullName = computed(() => {
+    const selectedEpisode = this.$selectedEpisode()
+    const searchDetails = this.$searchDetails()
+
+    if (selectedEpisode) {
+      return `${searchDetails.title} - ${selectedEpisode.name}`
+    }
+    return searchDetails.title
+  })
+
+  // set page title
+  #_ = effect(() => {
+    const selectedEpisode = this.$selectedEpisode()
+
+    if (selectedEpisode) {
+      this.title.setTitle(`${PAGE_TITLE} - ${this.$videoFullName()}`)
+    } else {
+      this.title.setTitle(PAGE_TITLE)
+    }
+  })
+
   protected episodesQuery = injectQuery(() => {
     const { url, policy } = this.$searchDetails()
 
@@ -190,18 +220,32 @@ export class KazumiDetailPage {
   })
 
   media$ = toObservable(this.$selectedEpisode).pipe(
+    tap(() => {
+      this.$isVideoUrlLoading.set(true)
+      this.$isVideoUrlError.set(false)
+      this.$videoUrl.set(undefined)
+    }),
     switchMap((episode) => {
-      if (!episode) return EMPTY
+      if (!episode) {
+        this.$isVideoUrlLoading.set(false)
+        return EMPTY
+      }
+
+      let isFirstItem = true
+      let lastValue: MediaInfo[] = []
+
       return this.kazumiService.getMediaInfoStream(episode.url).pipe(
         tap((media) => {
-          this.$isVideoUrlLoading.set(true)
-          if (!this.$videoUrl() && media.length > 0) {
+          if (media.length > 0 && isFirstItem) {
+            // only set the videoUrl once
             this.$videoUrl.set(media[0].src)
+            isFirstItem = false
           }
+          lastValue = media
         }),
         finalize(() => {
           this.$isVideoUrlLoading.set(false)
-          if (!this.$videoUrl()) {
+          if (!lastValue.length) {
             this.$isVideoUrlError.set(true)
           }
         })
@@ -232,10 +276,5 @@ export class KazumiDetailPage {
 
   protected onEpisodeClick(episode: { name: string; url: string }) {
     this.$selectedEpisode.set(episode)
-    // void this.router.navigate(['/kazumi/watch'])
-  }
-
-  protected goBack() {
-    this.router.navigate(['/kazumi/search'])
   }
 }
