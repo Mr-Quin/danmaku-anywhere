@@ -59,9 +59,9 @@ YouTube
 
 直接通过[Firefox Add-ons](https://addons.mozilla.org/zh-CN/firefox/addon/danmaku-anywhere/)安装
 
-手动安装及更详细的说明请看 [快速上手](https://danmaku.weeblify.app/getting-started/)
+手动安装及更详细的说明请看 [快速上手](https://docs.danmaku.weeblify.app/getting-started/)
 
 ## 开发
 
-见[开发文档](https://danmaku.weeblify.app/development/structure/)
+见[开发文档](https://docs.danmaku.weeblify.app/development/structure/)
 
