@@ -111,7 +111,7 @@ export class ExtensionService {
         data,
         action,
       }),
-      '*'
+      window.location.origin
     )
     return id
   }
