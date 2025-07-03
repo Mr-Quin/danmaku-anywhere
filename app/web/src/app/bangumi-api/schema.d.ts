@@ -21,23 +21,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/search/subject/{keywords}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** 条目搜索 */
-        get: operations["searchSubjectByKeywords"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v0/search/subjects": {
         parameters: {
             query?: never;
@@ -54,7 +37,7 @@ export interface paths {
          *     目前支持的筛选条件包括:
          *     - `type`: 条目类型，参照 `SubjectType` enum， `或`。
          *     - `tag`: 标签，可以多次出现。`且` 关系。
-         *     - `airdate`: 播出日期/发售日期。`且` 关系。
+         *     - `air_date`: 播出日期/发售日期。`且` 关系。
          *     - `rating`: 用于搜索指定评分的条目。`且` 关系。
          *     - `rank`: 用于搜索指定排名的条目。`且` 关系。
          *     - `nsfw`: 使用 `include` 包含NSFW搜索结果。默认排除搜索NSFW条目。无权限情况下忽略此选项，不会返回NSFW条目。
@@ -2806,53 +2789,6 @@ export interface operations {
                         };
                         items?: components["schemas"]["Legacy_SubjectSmall"][];
                     }[];
-                };
-            };
-        };
-    };
-    searchSubjectByKeywords: {
-        parameters: {
-            query?: {
-                /** @description 条目类型，参考 [SubjectType](#model-Legacy_SubjectType) */
-                type?: components["schemas"]["Legacy_SubjectType"];
-                /** @description 返回数据大小 <br> 默认为 small */
-                responseGroup?: "small" | "medium" | "large";
-                /** @description 开始条数 */
-                start?: number;
-                /** @description 每页条数 <br> 最多 25 */
-                max_results?: number;
-            };
-            header?: never;
-            path: {
-                /** @description 关键词 <br> 需要 URL Encode */
-                keywords: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 搜索结果 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description 总条数 */
-                        results?: number;
-                        /** @description 结果列表 */
-                        list?: components["schemas"]["Legacy_SubjectSmall"][];
-                    } | {
-                        /** @description 总条数 */
-                        results?: number;
-                        /** @description 结果列表 */
-                        list?: components["schemas"]["Legacy_SubjectMedium"][];
-                    } | {
-                        /** @description 总条数 */
-                        results?: number;
-                        /** @description 结果列表 */
-                        list?: components["schemas"]["Legacy_SubjectLarge"][];
-                    };
                 };
             };
         };
