@@ -1,33 +1,22 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { ChangeDetectionStrategy, Component } from '@angular/core'
 import { RouterOutlet } from '@angular/router'
-import { MaterialIcon } from '../../shared/components/material-icon'
-import { LayoutService } from '../layout.service'
 import { AppBar } from './app-bar'
+import { Banner } from './banner'
+import { CookieConsentFooter } from './cookie-consent-footer'
 
 @Component({
   selector: 'da-app-layout',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AppBar, RouterOutlet, MaterialIcon],
+  imports: [AppBar, RouterOutlet, Banner, CookieConsentFooter],
   template: `
     <div class="flex flex-col min-h-screen">
-      @if (layoutService.$showBanner()) {
-        <div class="bg-primary p-1 flex justify-center">
-          <p class="text-sm text-black">
-            Danmaku Anywhere说明文档转移至<a class="bold underline" href="https://docs.danmaku.weeblify.app"
-                                             target="_blank">docs.danmaku.weeblify.app</a>
-          </p>
-          <button class="cursor-pointer text-black absolute right-0 mr-4" (click)="layoutService.hideBanner()">
-            <da-mat-icon icon="close" />
-          </button>
-        </div>
-      }
+      <da-banner></da-banner>
       <da-app-bar></da-app-bar>
       <div class="grow basis-0">
         <router-outlet></router-outlet>
       </div>
+      <da-cookie-consent-footer></da-cookie-consent-footer>
     </div>
   `,
 })
-export class Layout {
-  protected layoutService = inject(LayoutService)
-}
+export class Layout {}
