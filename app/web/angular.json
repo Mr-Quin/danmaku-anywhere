@@ -29,7 +29,10 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.css"]
+            "styles": ["src/styles.css"],
+            "define": {
+              "GIT_HASH": "\"dev\""
+            }
           },
           "configurations": {
             "production": {
