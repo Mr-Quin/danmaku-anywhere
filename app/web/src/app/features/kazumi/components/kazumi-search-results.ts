@@ -12,12 +12,20 @@ import { Button } from 'primeng/button'
 import { Divider } from 'primeng/divider'
 import { Skeleton } from 'primeng/skeleton'
 import { MaterialIcon } from '../../../shared/components/material-icon'
+import { UnescapePipePipe } from '../../../shared/pipes/UrlDecodePipe'
 import { KazumiService } from '../services/kazumi.service'
 
 @Component({
   selector: 'da-kazumi-search-results',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Divider, JsonPipe, Button, Skeleton, MaterialIcon],
+  imports: [
+    Divider,
+    JsonPipe,
+    Button,
+    Skeleton,
+    MaterialIcon,
+    UnescapePipePipe,
+  ],
   template: `
     <div>
       @if (searchQuery.isFetching()) {
@@ -50,7 +58,7 @@ import { KazumiService } from '../services/kazumi.service'
                   class="rounded p-4 cursor-pointer dark:bg-surface-900 dark:hover:bg-surface-800 transition-[background]"
                   (click)="itemClick.emit(item)"
                 >
-                  <h4 class="font-medium">{{ item.name }}</h4>
+                  <h4 class="font-medium">{{ item.name | unescape }}</h4>
                   <p class="text-sm text-gray-500 overflow-hidden overflow-ellipsis">{{ item.url }}</p>
                 </div>
                 <a class="absolute right-0 top-0 translate-y-1/2 p-button p-button-text p-button-secondary"

@@ -25,6 +25,7 @@ import { EMPTY, finalize, switchMap, tap } from 'rxjs'
 import { VideoPlayer } from '../../../core/video-player/video-player'
 import { MaterialIcon } from '../../../shared/components/material-icon'
 import { PAGE_TITLE } from '../../../shared/constants'
+import { UnescapePipePipe } from '../../../shared/pipes/UrlDecodePipe'
 import { KazumiService } from '../services/kazumi.service'
 
 @Component({
@@ -43,6 +44,7 @@ import { KazumiService } from '../services/kazumi.service'
     ProgressSpinner,
     Card,
     Panel,
+    UnescapePipePipe,
   ],
   template: `
     <div class="container mx-auto p-6 2xl:px-0 flex flex-col">
@@ -50,7 +52,7 @@ import { KazumiService } from '../services/kazumi.service'
       <div class="mb-10 flex">
         <div class="flex flex-1 items-center gap-2">
           <h1 class="text-2xl font-semibold">
-            <span id="media-title">{{ $searchDetails().title }}</span>
+            <span id="media-title">{{ $searchDetails().title | unescape }}</span>
             @let selectedEpisode = $selectedEpisode();
             @if (selectedEpisode) {
               <span> - </span>
