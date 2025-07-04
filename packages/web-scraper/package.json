@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@danmaku-anywhere/danmaku-provider": "workspace:*",
+    "@danmaku-anywhere/danmaku-converter": "workspace:*",
     "zod": "^3.25.67",
     "core-js": "^3.43.0"
   },
