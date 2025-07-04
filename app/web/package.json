@@ -40,8 +40,7 @@
     "tailwindcss": "^4.1.10",
     "tailwindcss-primeui": "^0.6.1",
     "tslib": "^2.3.0",
-    "ua-parser-js": "^2.0.4",
-    "zone.js": "~0.15.0"
+    "ua-parser-js": "^2.0.4"
   },
   "devDependencies": {
     "@angular/build": "^20.0.3",

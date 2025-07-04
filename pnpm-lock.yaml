@@ -112,9 +112,6 @@ importers:
       ua-parser-js:
         specifier: ^2.0.4
         version: 2.0.4(encoding@0.1.13)
-      zone.js:
-        specifier: ~0.15.0
-        version: 0.15.1
     devDependencies:
       '@angular/build':
         specifier: ^20.0.3
@@ -12522,7 +12519,8 @@ snapshots:
 
   zod@3.25.67: {}
 
-  zone.js@0.15.1: {}
+  zone.js@0.15.1:
+    optional: true
 
   zustand@5.0.5(@types/react@19.1.8)(immer@10.1.1)(react@19.1.0)(use-sync-external-store@1.5.0(react@19.1.0)):
     optionalDependencies:
