@@ -24,4 +24,82 @@ export const queryKeys = {
     ],
     scrapeVideos: (url: string) => ['kazumi', 'scrapeVideos', url],
   },
+  bangumi: {
+    calendar: () => ['bangumi', 'calendar'],
+    trending: (limit?: number, offset?: number) => [
+      'bangumi',
+      'trending',
+      limit,
+      offset,
+    ],
+    trendingInfinite: () => ['bangumi', 'trending', 'infinite'],
+    subject: {
+      details: (subjectId: number) => [
+        'bangumi',
+        'subject',
+        'details',
+        subjectId,
+      ],
+      episodes: (subjectId: number) => [
+        'bangumi',
+        'subject',
+        'episodes',
+        subjectId,
+      ],
+      characters: (subjectId: number) => [
+        'bangumi',
+        'subject',
+        'characters',
+        subjectId,
+      ],
+      relations: (subjectId: number) => [
+        'bangumi',
+        'subject',
+        'relations',
+        subjectId,
+      ],
+      staffPersons: (subjectId: number) => [
+        'bangumi',
+        'subject',
+        'staff-persons',
+        subjectId,
+      ],
+      staffPositions: (subjectId: number) => [
+        'bangumi',
+        'subject',
+        'staff-positions',
+        subjectId,
+      ],
+      recommendations: (subjectId: number) => [
+        'bangumi',
+        'subject',
+        'recommendations',
+        subjectId,
+      ],
+      reviews: (subjectId: number) => [
+        'bangumi',
+        'subject',
+        'reviews',
+        subjectId,
+      ],
+      topics: (subjectId: number) => [
+        'bangumi',
+        'subject',
+        'topics',
+        subjectId,
+      ],
+      comments: (subjectId: number) => [
+        'bangumi',
+        'subject',
+        'comments',
+        subjectId,
+      ],
+      collects: (subjectId: number) => [
+        'bangumi',
+        'subject',
+        'collects',
+        subjectId,
+      ],
+    },
+  },
 }

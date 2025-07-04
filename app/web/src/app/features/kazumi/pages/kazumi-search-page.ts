@@ -3,23 +3,26 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
+  input,
   linkedSignal,
   signal,
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
-import { Router } from '@angular/router'
+import { ActivatedRoute, Router } from '@angular/router'
 import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
 import { injectQuery } from '@tanstack/angular-query-experimental'
+import { AutoCompleteModule } from 'primeng/autocomplete'
 import { AutoFocus } from 'primeng/autofocus'
 import { Button } from 'primeng/button'
 import { Card } from 'primeng/card'
-import { InputText } from 'primeng/inputtext'
+import { InputTextModule } from 'primeng/inputtext'
 import { ProgressSpinner } from 'primeng/progressspinner'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'primeng/tabs'
-import { bangumiNextClient } from '../../../bangumi-api/client'
 import { MaterialIcon } from '../../../shared/components/material-icon'
 import { randomFrom } from '../../../shared/utils/utils'
+import { BangumiService } from '../../bangumi/services/bangumi.service'
 import { KazumiPolicyImportDialog } from '../components/kazumi-policy-readme'
 import { KazumiPolicyTab } from '../components/kazumi-policy-tab'
 import { SearchResultsComponent } from '../components/kazumi-search-results'
@@ -32,20 +35,21 @@ import { KazumiLayoutService } from '../services/kazumi-layout.service'
   imports: [
     CommonModule,
     FormsModule,
+    AutoCompleteModule,
+    InputTextModule,
+    ProgressSpinner,
+    Card,
     Button,
-    InputText,
     Tabs,
     TabList,
     Tab,
     TabPanels,
     TabPanel,
-    SearchResultsComponent,
-    KazumiPolicyTab,
-    Card,
     MaterialIcon,
+    KazumiPolicyTab,
+    SearchResultsComponent,
     AutoFocus,
     KazumiPolicyImportDialog,
-    ProgressSpinner,
   ],
   styles: `
       #search-results {
@@ -161,35 +165,29 @@ import { KazumiLayoutService } from '../services/kazumi-layout.service'
         </p-button>
       }
     </div>
-    <da-kazumi-policy-readme [(visible)]="$showPolicy" [accepted]="kazumiService.$acceptedPolicy()"
-                             (onAccept)="acceptPolicy()" />
+    <da-kazumi-policy-readme [(visible)]="$showPolicy" [accepted]="true"
+    />
   `,
 })
 export class KazumiSearchPage {
+  // query param
+  q = input<string>()
+
   protected kazumiService = inject(KazumiService)
   protected router = inject(Router)
+  protected route = inject(ActivatedRoute)
   protected kazumiLayoutService = inject(KazumiLayoutService)
+  protected bangumiService = inject(BangumiService)
 
   protected $showPolicy = signal(false)
 
   private trendingQuery = injectQuery(() => {
-    return {
-      queryKey: ['bangumi'],
-      queryFn: () => {
-        return bangumiNextClient.GET('/p1/trending/subjects', {
-          params: {
-            query: {
-              type: 2,
-            },
-          },
-        })
-      },
-    }
+    return this.bangumiService.getTrendingQueryOptions()
   })
 
   protected $searchPlaceholder = computed(() => {
     if (this.trendingQuery.isSuccess()) {
-      const data = this.trendingQuery.data().data?.data
+      const data = this.trendingQuery.data()
       if (data && data.length > 0) {
         const item = randomFrom(data)
         return item.subject.nameCN
@@ -220,10 +218,6 @@ export class KazumiSearchPage {
   })
 
   protected triggerSearch() {
-    if (!this.kazumiService.$acceptedPolicy()) {
-      this.$showPolicy.set(true)
-      return
-    }
     // use user-entered string for search
     const keyword = this.$localKeyword().trim()
     if (keyword) {
@@ -236,12 +230,6 @@ export class KazumiSearchPage {
       this.kazumiService.updateQuery(placeholder)
       return
     }
-  }
-
-  protected acceptPolicy() {
-    this.kazumiService.acceptPolicy()
-    this.$showPolicy.set(false)
-    this.triggerSearch()
   }
 
   protected onTabClick(policy: KazumiPolicy) {
@@ -258,5 +246,14 @@ export class KazumiSearchPage {
       policy,
     })
     void this.router.navigate(['/kazumi/detail'])
+  }
+
+  constructor() {
+    effect(() => {
+      const query = this.q()
+      if (query) {
+        this.kazumiService.updateQuery(query)
+      }
+    })
   }
 }

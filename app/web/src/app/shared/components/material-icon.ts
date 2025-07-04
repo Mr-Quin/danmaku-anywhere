@@ -4,7 +4,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core'
   selector: 'da-mat-icon',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <i [class]="iconClass">{{ icon() }}</i>
+    <i [class]="iconClass" [style.font-variation-settings]="fontVariationSettings">{{ icon() }}</i>
   `,
   host: {
     class: 'inline-flex',
@@ -13,8 +13,13 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 export class MaterialIcon {
   icon = input.required<string>()
   variant = input<'rounded' | 'outlined' | 'sharp'>('rounded')
+  filled = input<boolean>(false)
   size = input<'small' | 'medium' | 'large'>('medium')
   styleClass = input<string>()
+
+  protected get fontVariationSettings() {
+    return this.filled() ? `'FILL' 1` : `'FILL' 0`
+  }
 
   protected get iconClass() {
     const getVariant = () => {
@@ -29,16 +34,16 @@ export class MaterialIcon {
     }
 
     const getSize = () => {
-      if (this.styleClass) {
-        return this.styleClass
+      if (this.styleClass()) {
+        return this.styleClass()
       }
       switch (this.size()) {
         case 'small':
           return 'text-sm'
         case 'large':
           return 'text-lg'
-        default:
-          return 'text-md'
+        case 'medium':
+          return 'text-base'
       }
     }
 

@@ -9,3 +9,11 @@ export const bangumiClient = createClient<paths>({
 export const bangumiNextClient = createClient<nextPaths>({
   baseUrl: 'https://next.bgm.tv/',
 })
+
+bangumiNextClient.use({
+  onResponse: (res) => {
+    if (!res.response.ok) {
+      throw new Error(res.response.statusText)
+    }
+  }
+})

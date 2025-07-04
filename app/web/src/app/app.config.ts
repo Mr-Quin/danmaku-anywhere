@@ -4,14 +4,15 @@ import {
   isDevMode,
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
-  provideZoneChangeDetection, provideZonelessChangeDetection,
+  provideZonelessChangeDetection,
 } from '@angular/core'
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async'
-import { provideRouter } from '@angular/router'
+import { provideRouter, withComponentInputBinding } from '@angular/router'
 import { provideServiceWorker } from '@angular/service-worker'
 import { definePreset } from '@primeng/themes'
 import Aura from '@primeng/themes/aura'
 import { provideQueryClient } from '@tanstack/angular-query-experimental'
+import { MessageService } from 'primeng/api'
 import { providePrimeNG } from 'primeng/config'
 import { routes } from './app.routes'
 import { ExtensionService } from './core/extension/extension.service'
@@ -40,8 +41,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideQueryClient(queryClient),
     provideZonelessChangeDetection(),
-    // provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
+    provideRouter(routes, withComponentInputBinding()),
     provideAnimationsAsync(),
     providePrimeNG({
       theme: {
@@ -56,6 +56,7 @@ export const appConfig: ApplicationConfig = {
         },
       },
     }),
+    MessageService,
     provideAppInitializer(async () => {
       const extensionService = inject(ExtensionService)
       await extensionService.init()

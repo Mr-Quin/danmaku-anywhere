@@ -74,8 +74,6 @@ export interface MediaSearchDetails {
   policy: KazumiPolicy
 }
 
-const ACCEPTED_POLICY_KEY = 'accepted-policy'
-
 @Injectable({
   providedIn: 'root',
 })
@@ -106,11 +104,6 @@ export class KazumiService {
   )
   readonly $searchDetails = this.$_mediaSearchDetails.asReadonly()
   readonly $hasSearchDetails = computed(() => this.$searchDetails() !== null)
-
-  private readonly $_acceptedPolicy = signal(
-    !!localStorage.getItem(ACCEPTED_POLICY_KEY)
-  )
-  readonly $acceptedPolicy = this.$_acceptedPolicy.asReadonly()
 
   readonly $hasOutdatedPolicy = computed(() => {
     if (
@@ -177,7 +170,10 @@ export class KazumiService {
 
   readonly orderQuery = injectQuery(() => {
     return {
-      queryFn: () => this.db.getOrders(),
+      queryFn: async () => {
+        const order = await this.db.getOrders()
+        return order || []
+      },
       queryKey: queryKeys.kazumi.settings.order(),
     }
   })
@@ -320,6 +316,7 @@ export class KazumiService {
 
     // return cached observable if there is one
     if (this.mediaStreamCache.has(url)) {
+      // biome-ignore lint/style/noNonNullAssertion: checked above
       return this.mediaStreamCache.get(url)!
     }
 
@@ -348,11 +345,6 @@ export class KazumiService {
 
   setActivePolicy(policy: KazumiPolicy | null) {
     this.$_activePolicy.set(policy)
-  }
-
-  acceptPolicy() {
-    this.$_acceptedPolicy.set(true)
-    localStorage.setItem(ACCEPTED_POLICY_KEY, '1')
   }
 
   updateQuery(query: string) {
