@@ -11,9 +11,9 @@
   "types": "dist/src/index.d.ts",
   "scripts": {
     "test": "vitest",
-    "build": "tsc",
-    "lint": "tsc && biome check --fix",
-    "dev": "tsc -w"
+    "build": "tsgo",
+    "lint": "tsgo&& biome check --fix",
+    "dev": "tsgo-w"
   },
   "dependencies": {
     "xml-js": "^1.6.11",

@@ -7,10 +7,11 @@
     "moduleResolution": "Bundler",
     "types": [
       "chrome",
-      "react-dom/canary",
-      "react/canary",
+      "react-dom",
+      "react",
       "@types/wicg-file-system-access"
     ],
+    "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],

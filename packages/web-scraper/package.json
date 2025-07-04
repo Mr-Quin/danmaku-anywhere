@@ -11,7 +11,7 @@
   "types": "dist/src/index.d.ts",
   "scripts": {
     "test": "vitest",
-    "build": "tsc",
+    "build": "tsgo",
     "lint": "biome check --fix"
   },
   "dependencies": {
