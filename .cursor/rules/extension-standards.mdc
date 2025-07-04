@@ -1,0 +1,37 @@
+﻿---
+globs: "packages/danmaku-anywhere/**/*.ts,packages/danmaku-anywhere/**/*.tsx"
+---
+# Browser Extension Development
+
+## Extension Best Practices
+- Follow Chrome extension best practices
+- Use proper manifest structure
+- Handle permissions appropriately
+- Test in different browsers
+- Use content scripts for page injection
+- Use background scripts for persistent logic
+
+## Security
+- Validate all user inputs
+- Use proper CSP (Content Security Policy)
+- Be careful with eval() and innerHTML
+- Sanitize data from web pages
+- Follow extension security guidelines
+
+## Performance
+- Minimize content script injection
+- Use efficient DOM manipulation
+- Optimize background script performance
+- Use proper caching strategies
+
+## User Experience
+- Provide clear error messages
+- Handle offline scenarios gracefully
+- Use proper loading states
+- Follow browser UI guidelines
+
+## Testing
+- Test in multiple browsers
+- Test with different user permissions
+- Test extension updates
+- Test uninstall scenarios

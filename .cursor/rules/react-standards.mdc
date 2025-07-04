@@ -1,0 +1,37 @@
+﻿---
+globs: "packages/danmaku-anywhere/**/*.tsx,packages/danmaku-anywhere/**/*.ts"
+---
+# React Best Practices
+
+## Component Development
+- Use functional components with hooks
+- Keep components small and focused
+- Use proper TypeScript types for props and state
+- Follow the existing patterns in the codebase
+- Use React Query for server state management
+- Use Zustand for client state management
+
+## State Management
+- Use React Query for server state
+- Use Zustand for global client state
+- Use useState for local component state
+- Use useReducer for complex local state
+- Keep state minimal and normalized
+
+## Performance
+- Use React.memo for expensive components
+- Use useMemo and useCallback appropriately
+- Use lazy loading for routes
+- Optimize bundle sizes
+
+## Testing
+- Use Vitest for unit testing
+- Test components in isolation
+- Mock dependencies appropriately
+- Test both success and error scenarios
+
+## Error Handling
+- Use error boundaries for component error handling
+- Provide meaningful error messages
+- Log errors appropriately
+- Handle loading and error states gracefully

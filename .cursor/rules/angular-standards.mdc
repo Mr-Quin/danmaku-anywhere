@@ -1,0 +1,38 @@
+﻿---
+globs: "app/web/**/*.ts,app/web/**/*.html"
+---
+# Angular Best Practices
+
+## Component Development
+- Always use standalone components (no NgModules)
+- Don't use explicit standalone: true (implied by default)
+- Use signals for state management
+- Use input() and output() functions instead of decorators
+- Use computed() for derived state
+- Set changeDetection: ChangeDetectionStrategy.OnPush
+- Prefer inline templates for small components
+- Use Reactive forms instead of Template-driven forms
+- Use native control flow (@if, @for, @switch) instead of structural directives
+- Use injectQuery and injectMutation from @tanstack/angular-query-experimental
+- Use NgOptimizedImage for static images
+- Do NOT use 
+gClass or 
+gStyle - use class and style bindings instead
+
+## State Management
+- Use signals for local component state
+- Use TanStack Query for server state
+- Use RxJS for reactive programming patterns
+- Keep state minimal and normalized
+
+## Performance
+- Use OnPush change detection strategy
+- Use trackBy functions in @for loops
+- Use async pipe for observables
+- Lazy load routes and modules
+
+## Testing
+- Use Jasmine for unit testing
+- Test components in isolation
+- Mock dependencies appropriately
+- Test both success and error scenarios

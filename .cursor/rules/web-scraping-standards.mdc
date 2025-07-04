@@ -1,0 +1,30 @@
+﻿---
+globs: "packages/web-scraper/**/*.ts"
+---
+# Web Scraping Guidelines
+
+## Ethical Scraping
+- Be respectful of target websites
+- Use proper rate limiting
+- Handle errors gracefully
+- Follow robots.txt guidelines
+- Respect website terms of service
+
+## Technical Implementation
+- Use proper error handling
+- Implement retry logic with backoff
+- Use user agents appropriately
+- Handle different response formats
+- Cache results when possible
+
+## Performance
+- Use efficient selectors
+- Minimize requests
+- Use streaming when possible
+- Implement proper timeouts
+
+## Data Processing
+- Validate scraped data
+- Handle missing or malformed data
+- Use proper data structures
+- Implement data transformation pipelines

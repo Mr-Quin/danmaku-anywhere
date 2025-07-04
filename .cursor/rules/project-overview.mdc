@@ -1,0 +1,53 @@
+﻿---
+alwaysApply: true
+---
+# Danmaku Anywhere - Project Overview
+
+This is a monorepo for Danmaku Anywhere, a browser extension and web application for displaying danmaku (bullet comments) on various video platforms. The project uses pnpm workspaces and contains multiple packages with different technologies.
+
+## Project Structure
+- packages/: Core packages (TypeScript libraries)
+  - danmaku-anywhere/: Browser extension (React + Vite)
+  - danmaku-converter/: Danmaku conversion utilities
+  - danmaku-engine/: Danmaku rendering engine
+  - danmaku-provider/: Danmaku data provider and API wrappers
+  - web-scraper/: Web scraping utilities
+  - shared-ui/: Shared UI components
+- pp/web/: Angular web application
+- ackend/: Cloudflare Workers backend
+- docs/: Astro-based documentation
+- legacy/: Legacy code
+
+## Technology Stack
+
+### Angular (app/web/)
+- Angular 20+ with standalone components
+- PrimeNG for UI components
+- Tailwind CSS for styling
+- TanStack Query for data fetching
+- Signals for state management
+- RxJS for reactive programming
+
+### React (packages/danmaku-anywhere/)
+- React 19+ with functional components and hooks
+- Material-UI (MUI) for UI components
+- React Router for routing
+- TanStack Query for data fetching
+- Zustand for state management
+- Vite for build tooling
+
+### Backend (backend/)
+- Cloudflare Workers
+- TypeScript
+- Biome for linting and formatting
+
+### Core Packages
+- TypeScript with strict type checking
+- Biome for linting and formatting
+- pnpm for package management
+
+## Key Configuration Files
+- [package.json](mdc:package.json) - Root package configuration
+- [pnpm-workspace.yaml](mdc:pnpm-workspace.yaml) - Workspace configuration
+- [biome.json](mdc:biome.json) - Linting and formatting configuration
+- [tsconfig.base.json](mdc:tsconfig.base.json) - Base TypeScript configuration

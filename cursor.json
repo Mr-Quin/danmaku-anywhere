@@ -1,0 +1,161 @@
+{
+  "projectName": "danmaku-anywhere",
+  "description": "A browser extension and web application for displaying danmaku (bullet comments) on various video platforms",
+  "defaultLanguage": "typescript",
+  "frameworks": [
+    "angular",
+    "react",
+    "typescript",
+    "vite",
+    "tailwindcss",
+    "primeng",
+    "material-ui"
+  ],
+  "ai": {
+    "model": "claude-3.5-sonnet",
+    "temperature": 0.1,
+    "maxTokens": 4000,
+    "contextWindow": 200000,
+    "systemPrompt": "You are an expert TypeScript developer working on the Danmaku Anywhere project. This is a monorepo with Angular, React, and TypeScript packages. Follow the coding standards and patterns established in the project. Always use strict TypeScript, follow the existing code style, and respect the framework-specific best practices outlined in the .cursor/rules files.",
+    "includeFiles": [
+      "package.json",
+      "pnpm-workspace.yaml",
+      "biome.json",
+      "tsconfig.base.json",
+      "app/web/package.json",
+      "packages/danmaku-anywhere/package.json"
+    ],
+    "excludeFiles": [
+      "node_modules/**",
+      "dist/**",
+      "build/**",
+      "*.log",
+      "*.lock"
+    ]
+  },
+  "editor": {
+    "formatOnSave": true,
+    "formatOnPaste": true,
+    "insertSpaces": true,
+    "tabSize": 2,
+    "rulers": [80],
+    "wordWrap": "bounded",
+    "wordWrapColumn": 80,
+    "trimTrailingWhitespace": true,
+    "insertFinalNewline": true,
+    "files": {
+      "associations": {
+        "*.ts": "typescript",
+        "*.tsx": "typescriptreact",
+        "*.js": "javascript",
+        "*.jsx": "javascriptreact",
+        "*.html": "html",
+        "*.css": "css",
+        "*.scss": "scss",
+        "*.json": "json",
+        "*.md": "markdown",
+        "*.yaml": "yaml",
+        "*.yml": "yaml"
+      }
+    }
+  },
+  "linting": {
+    "enabled": true,
+    "useBiome": true,
+    "biomeConfig": "biome.json"
+  },
+  "testing": {
+    "frameworks": [
+      "vitest",
+      "jasmine",
+      "karma"
+    ],
+    "testPatterns": [
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/*.spec.ts",
+      "**/*.spec.tsx"
+    ]
+  },
+  "build": {
+    "packageManager": "pnpm",
+    "scripts": {
+      "dev": "pnpm -r -F \"./packages/**\" dev",
+      "build": "pnpm -r -F \"./packages/**\" build",
+      "test": "pnpm -r -F \"./packages/**\" test",
+      "lint": "pnpm -r -F \"./packages/**\" lint",
+      "format": "pnpm -r -F \"./packages/**\" format"
+    }
+  },
+  "workspaces": {
+    "packages": [
+      "packages/danmaku-anywhere",
+      "packages/danmaku-converter",
+      "packages/danmaku-engine",
+      "packages/danmaku-provider",
+      "packages/web-scraper",
+      "packages/shared-ui",
+      "app/web",
+      "backend/proxy",
+      "docs"
+    ]
+  },
+  "recommendations": {
+    "extensions": [
+      "biomejs.biome",
+      "angular.ng-template",
+      "bradlc.vscode-tailwindcss",
+      "esbenp.prettier-vscode",
+      "ms-vscode.vscode-typescript-next",
+      "formulahendry.auto-rename-tag",
+      "christian-kohler.path-intellisense",
+      "ms-vscode.vscode-json"
+    ],
+    "settings": {
+      "typescript.preferences.importModuleSpecifier": "relative",
+      "typescript.suggest.autoImports": true,
+      "typescript.updateImportsOnFileMove.enabled": "always",
+      "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit",
+        "source.fixAll": "explicit"
+      },
+      "files.associations": {
+        "*.component.ts": "typescript",
+        "*.service.ts": "typescript",
+        "*.pipe.ts": "typescript",
+        "*.directive.ts": "typescript"
+      }
+    }
+  },
+  "search": {
+    "excludePatterns": [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/*.log",
+      "**/coverage/**",
+      "**/.git/**"
+    ],
+    "includePatterns": [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.js",
+      "**/*.jsx",
+      "**/*.html",
+      "**/*.css",
+      "**/*.scss",
+      "**/*.json",
+      "**/*.md"
+    ]
+  },
+  "git": {
+    "ignorePatterns": [
+      "node_modules/",
+      "dist/",
+      "build/",
+      "*.log",
+      "coverage/"
+    ],
+    "commitMessageFormat": "conventional"
+  }
+} 

@@ -1,0 +1,37 @@
+﻿---
+globs: "backend/**/*.ts"
+---
+# Backend Development Standards
+
+## Cloudflare Workers
+- Use TypeScript for all backend code
+- Follow Cloudflare Workers best practices
+- Use proper error handling and logging
+- Implement proper rate limiting
+- Use environment variables for configuration
+
+## API Design
+- Use consistent API patterns
+- Handle loading and error states
+- Use proper HTTP status codes
+- Follow RESTful conventions
+- Validate all inputs
+
+## Security
+- Validate all user inputs
+- Use proper authentication and authorization
+- Follow security best practices
+- Be careful with third-party dependencies
+- Implement proper CORS policies
+
+## Performance
+- Use proper caching strategies
+- Optimize database queries
+- Use CDN for static assets
+- Monitor performance metrics
+
+## Testing
+- Write unit tests for critical functionality
+- Test API endpoints thoroughly
+- Mock external dependencies
+- Test error scenarios

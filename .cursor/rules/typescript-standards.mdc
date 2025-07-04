@@ -1,0 +1,54 @@
+﻿---
+globs: "*.ts,*.tsx"
+---
+# TypeScript Coding Standards
+
+## TypeScript Best Practices
+- Use strict type checking
+- Prefer type inference when obvious
+- Avoid ny type; use unknown when uncertain
+- Use proper type annotations for function parameters and return types
+- Follow the existing [tsconfig.base.json](mdc:tsconfig.base.json) configuration
+
+## General Code Style
+- Use [Biome](mdc:biome.json) for formatting and linting
+- Follow the existing code style patterns
+- Use meaningful variable and function names
+- Write clear, descriptive comments
+- Keep functions small and focused
+- Use proper error handling
+
+## File Organization
+- Group related files together
+- Use consistent naming conventions
+- Follow the existing directory structure
+- Keep imports organized and clean
+
+## Testing
+- Write unit tests for critical functionality
+- Use the existing testing frameworks (Jasmine for Angular, Vitest for React)
+- Follow testing best practices
+
+## Performance
+- Use lazy loading for routes
+- Optimize bundle sizes
+- Use proper caching strategies
+- Follow performance best practices for each framework
+
+## Error Handling
+- Use proper error boundaries in React
+- Handle errors gracefully in Angular
+- Provide meaningful error messages
+- Log errors appropriately
+
+## State Management
+- Use appropriate state management for each framework
+- Keep state minimal and normalized
+- Use immutable updates
+- Follow existing patterns
+
+## API Design
+- Use consistent API patterns
+- Handle loading and error states
+- Use proper HTTP status codes
+- Follow RESTful conventions
