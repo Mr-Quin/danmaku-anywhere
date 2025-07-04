@@ -148,8 +148,16 @@ import { KazumiLayoutService } from '../services/kazumi-layout.service'
       } @else {
         当前不存在Kazumi规则，请先导入
         <p-button
+          (onClick)="kazumiService.addRecommendedPolicyMutation.mutate()"
+          [loading]="kazumiService.addRecommendedPolicyMutation.isPending() || kazumiService.manifestsQuery.isPending()"
+        >
+          一键使用推荐规则
+        </p-button>
+        <p-button
+          severity="secondary"
+          text
           (onClick)="kazumiLayoutService.$showManageDialog.set(true);kazumiLayoutService.$showImportDialog.set(true)">
-          导入规则
+          手动导入规则
         </p-button>
       }
     </div>

@@ -239,6 +239,24 @@ export class KazumiService {
     },
   }))
 
+  readonly addRecommendedPolicyMutation = injectMutation(() => ({
+    mutationKey: queryKeys.kazumi.local.all(),
+    mutationFn: async () => {
+      if (!this.manifestsQuery.isSuccess()) {
+        return
+      }
+
+      const manifest = this.manifestsQuery.data()
+      const recommendedKeys = ['dlma', '7sefun', 'ffdm', 'yinghua']
+
+      for (const policy of manifest.filter((m) =>
+        recommendedKeys.includes(m.name)
+      )) {
+        await this.addPolicyMutation.mutateAsync(policy.name)
+      }
+    },
+  }))
+
   readonly updatePolicyOrderMutation = injectMutation(() => ({
     mutationFn: async (order: PolicyOrder) => {
       return this.db.setOrder(order)

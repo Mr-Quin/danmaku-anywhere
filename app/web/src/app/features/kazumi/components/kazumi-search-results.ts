@@ -41,7 +41,7 @@ import { KazumiService } from '../services/kazumi.service'
       @if (searchQuery.data(); as results) {
         <div>
           @if (results.length === 0) {
-            <p class="p-4">无结果</p>
+            <p class="p-4">无结果，请尝试其他规则</p>
           } @else {
             @for (item of results; track item.url) {
               <div class="relative">
