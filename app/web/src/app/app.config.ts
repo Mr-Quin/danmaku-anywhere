@@ -14,7 +14,7 @@ import Aura from '@primeng/themes/aura'
 import { provideQueryClient } from '@tanstack/angular-query-experimental'
 import { providePrimeNG } from 'primeng/config'
 import { routes } from './app.routes'
-import { ExtensionService } from './core/extension-service/extension.service'
+import { ExtensionService } from './core/extension/extension.service'
 import { queryClient } from './shared/query/queryClient'
 
 const preset = definePreset(Aura, {

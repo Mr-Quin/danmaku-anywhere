@@ -22,9 +22,9 @@ import { Select } from 'primeng/select'
 import { Skeleton } from 'primeng/skeleton'
 import { Tag } from 'primeng/tag'
 import { EMPTY, finalize, switchMap, tap } from 'rxjs'
+import { VideoPlayer } from '../../../core/video-player/video-player'
 import { MaterialIcon } from '../../../shared/components/material-icon'
 import { PAGE_TITLE } from '../../../shared/constants'
-import { VideoPlayer } from '../../../shared/video-player/video-player'
 import { KazumiService } from '../services/kazumi.service'
 
 @Component({

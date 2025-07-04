@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core'
 import { RouterOutlet } from '@angular/router'
-import { AppFooter } from '../../shared/components/app-footer'
 import { AppBar } from './app-bar'
+import { AppFooter } from './app-footer'
 import { Banner } from './banner'
 import { CookieConsentFooter } from './cookie-consent-footer'
 

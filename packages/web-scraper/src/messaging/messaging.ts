@@ -1,3 +1,7 @@
+import type {
+  CustomEpisodeLite,
+  EpisodeLite,
+} from '@danmaku-anywhere/danmaku-converter'
 import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
 import type { MediaInfo } from '../extractMedia.js'
 import type { HTTPHeader } from '../types.js'
@@ -59,7 +63,7 @@ export type ExtAction = {
     },
     MediaInfo
   >
-  episodeGetAll: ExtActionDef<void, any[]>
+  episodeGetAll: ExtActionDef<void, (EpisodeLite | CustomEpisodeLite)[]>
   danmakuGet: ExtActionDef<any, any>
   setRequestHeaders: ExtActionDef<SetHeaderRule, void>
 }

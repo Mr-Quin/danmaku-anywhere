@@ -45,7 +45,7 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
   $artPlayerDiv = viewChild.required<ElementRef<HTMLDivElement>>('artPlayer')
   $overlayLayer = viewChild.required<ElementRef<HTMLDivElement>>('overlay')
 
-  $contentTemplate = contentChild<TemplateRef<any>>('content')
+  $contentTemplate = contentChild<TemplateRef<unknown>>('content')
 
   videoUrl = input<string>()
   poster = input<string>()

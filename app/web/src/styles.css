@@ -1,5 +1,7 @@
+@layer base, utility, material-symbols;
+
 @import "tailwindcss";
-@import "material-symbols";
+@import "material-symbols" layer(material-symbols);
 @plugin "tailwindcss-primeui";
 
 @custom-variant dark (&:where(.da-dark, .da-dark *));

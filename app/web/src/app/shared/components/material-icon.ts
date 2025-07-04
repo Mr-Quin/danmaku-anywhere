@@ -13,15 +13,35 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 export class MaterialIcon {
   icon = input.required<string>()
   variant = input<'rounded' | 'outlined' | 'sharp'>('rounded')
+  size = input<'small' | 'medium' | 'large'>('medium')
+  styleClass = input<string>()
 
   protected get iconClass() {
-    switch (this.variant()) {
-      case 'outlined':
-        return 'material-symbols-outlined'
-      case 'sharp':
-        return 'material-symbols-sharp'
-      default:
-        return 'material-symbols-rounded'
+    const getVariant = () => {
+      switch (this.variant()) {
+        case 'outlined':
+          return 'material-symbols-outlined'
+        case 'sharp':
+          return 'material-symbols-sharp'
+        default:
+          return 'material-symbols-rounded'
+      }
     }
+
+    const getSize = () => {
+      if (this.styleClass) {
+        return this.styleClass
+      }
+      switch (this.size()) {
+        case 'small':
+          return 'text-sm'
+        case 'large':
+          return 'text-lg'
+        default:
+          return 'text-md'
+      }
+    }
+
+    return `${getVariant()} ${getSize()}`
   }
 }

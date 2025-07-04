@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core'
-import { PrivacyPolicyDialog } from './privacy-policy-dialog'
+import { PrivacyPolicyDialog } from '../../shared/components/privacy-policy-dialog'
 
 @Component({
   selector: 'da-app-footer',

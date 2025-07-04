@@ -28,7 +28,7 @@ import {
   startWith,
   tap,
 } from 'rxjs'
-import { ExtensionService } from '../../../core/extension-service/extension.service'
+import { ExtensionService } from '../../../core/extension/extension.service'
 import { queryKeys } from '../../../shared/query/queryKeys'
 import { sortArrayByOrder } from '../../../shared/utils/utils'
 

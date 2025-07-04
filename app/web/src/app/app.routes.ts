@@ -1,8 +1,5 @@
 import type { Routes } from '@angular/router'
-import {
-  hasExtension,
-  noExtension,
-} from './core/extension-service/extension.guard'
+import { hasExtension, noExtension } from './core/extension/extension.guard'
 import { noSearchDetails } from './features/kazumi/guards/kazumi-policy.guard'
 import { PAGE_TITLE } from './shared/constants'
 
