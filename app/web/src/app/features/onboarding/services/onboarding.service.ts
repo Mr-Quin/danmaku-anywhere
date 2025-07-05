@@ -14,7 +14,7 @@ export class OnboardingService {
   protected messageService = inject(MessageService)
 
   private readonly $_acceptedPolicy = signal(
-    !!localStorage.getItem(ACCEPTED_POLICY_KEY)
+    !!localStorage.getItem(ACCEPTED_POLICY_KEY),
   )
   readonly $acceptedPolicy = this.$_acceptedPolicy.asReadonly()
 
@@ -28,11 +28,11 @@ export class OnboardingService {
 
       this.acceptPolicy()
 
-      await this.router.navigate([''])
+      await this.router.navigate([''], { replaceUrl: true })
     } catch (_) {
       this.messageService.add({
         severity: 'error',
-        detail: '添加失败',
+        detail: '添加规则失败',
         life: 3000,
       })
     }
