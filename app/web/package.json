@@ -22,6 +22,7 @@
     "@angular/router": "^20.0.0",
     "@angular/service-worker": "^20.0.0",
     "@danmaku-anywhere/danmaku-provider": "workspace:*",
+    "@danmaku-anywhere/danmaku-converter": "workspace:*",
     "@danmaku-anywhere/web-scraper": "workspace:*",
     "@fortawesome/angular-fontawesome": "^2.0.1",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
