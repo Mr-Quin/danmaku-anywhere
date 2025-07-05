@@ -82,6 +82,9 @@ importers:
       '@tanstack/angular-query-experimental':
         specifier: ^5.81.2
         version: 5.81.2(@angular/common@20.0.4(@angular/core@20.0.4(@angular/compiler@20.0.4)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.0.4(@angular/compiler@20.0.4)(rxjs@7.8.2)(zone.js@0.15.1))
+      '@tanstack/angular-virtual':
+        specifier: ^3.13.12
+        version: 3.13.12(@angular/core@20.0.4(@angular/compiler@20.0.4)(rxjs@7.8.2)(zone.js@0.15.1))
       artplayer:
         specifier: ^5.2.3
         version: 5.2.3
@@ -2399,6 +2402,12 @@ packages:
       '@angular/common': '>=16.0.0'
       '@angular/core': '>=16.0.0'
 
+  '@tanstack/angular-virtual@3.13.12':
+    resolution: {integrity: sha512-aYFCEW4AA5QzTJ2ph0wVOwNebA321+sml9tYyjkshb2syS5Z7Jc7z4cUHkQVD0S7eLZnoWPP1cMrFzgOAI9YJA==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      '@angular/core': '>=17'
+
   '@tanstack/query-core@5.80.7':
     resolution: {integrity: sha512-s09l5zeUKC8q7DCCCIkVSns8zZrK4ZDT6ryEjxNBFi68G4z2EBobBS7rdOY3r6W1WbUDpc1fe5oY+YO/+2UVUg==}
 
@@ -2430,6 +2439,9 @@ packages:
 
   '@tanstack/virtual-core@3.13.10':
     resolution: {integrity: sha512-sPEDhXREou5HyZYqSWIqdU580rsF6FGeN7vpzijmP3KTiOGjOMZASz4Y6+QKjiFQwhWrR58OP8izYaNGVxvViA==}
+
+  '@tanstack/virtual-core@3.13.12':
+    resolution: {integrity: sha512-1YBOJfRHV4sXUmWsFSf5rQor4Ss82G8dQWLRbnk3GA4jeP8hQt1hxXh0tmflpC0dz3VgEv/1+qwPyLeWkQuPFA==}
 
   '@tufjs/canonical-json@2.0.0':
     resolution: {integrity: sha512-yVtV8zsdo8qFHe+/3kw81dSLyF7D576A5cCFCi4X7B39tWT7SekaEFUnvnWJHz+9qO7qJTah1JbrDjWKqFtdWA==}
@@ -8099,6 +8111,12 @@ snapshots:
       '@tanstack/query-core': 5.81.2
       '@tanstack/query-devtools': 5.81.2
 
+  '@tanstack/angular-virtual@3.13.12(@angular/core@20.0.4(@angular/compiler@20.0.4)(rxjs@7.8.2)(zone.js@0.15.1))':
+    dependencies:
+      '@angular/core': 20.0.4(@angular/compiler@20.0.4)(rxjs@7.8.2)(zone.js@0.15.1)
+      '@tanstack/virtual-core': 3.13.12
+      tslib: 2.8.1
+
   '@tanstack/query-core@5.80.7': {}
 
   '@tanstack/query-core@5.81.2': {}
@@ -8125,6 +8143,8 @@ snapshots:
       react-dom: 19.1.0(react@19.1.0)
 
   '@tanstack/virtual-core@3.13.10': {}
+
+  '@tanstack/virtual-core@3.13.12': {}
 
   '@tufjs/canonical-json@2.0.0': {}
 

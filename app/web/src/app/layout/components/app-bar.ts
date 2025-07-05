@@ -30,7 +30,7 @@ interface NavigationItem {
     class: 'basis-0 sticky z-100 top-0',
   },
   template: `
-    <da-banner/>
+    <da-banner />
     <div class="backdrop-blur-sm bg-transparent border-b-surface-800 border-b">
       <div class="max-w-[96rem] h-[56px] mx-auto px-4 py-2 flex items-center justify-between">
         <div class="flex items-center gap-2">
