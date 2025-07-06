@@ -61,7 +61,7 @@ import { KazumiService } from '../services/kazumi.service'
           @let hasNew = hasNewVersion(policy);
           <li class="p-4 flex gap-2" cdkDrag [cdkDragDisabled]="$count === 1">
             @if ($count > 1) {
-              <da-mat-icon icon="reorder" class="cursor-pointer self-center" cdkDragHandle styleClass="text-2xl" />
+              <da-mat-icon icon="reorder" class="cursor-pointer self-center" cdkDragHandle size="2xl" />
             }
             <div class="h-[76px]" *cdkDragPlaceholder></div>
             <div class="flex justify-between items-center grow-1">

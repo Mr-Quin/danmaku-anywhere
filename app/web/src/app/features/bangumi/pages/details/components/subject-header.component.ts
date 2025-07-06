@@ -146,7 +146,7 @@ import type { BgmSubject } from '../../../types/bangumi.types'
               severity="primary"
               size="large"
             >
-              <da-mat-icon size="large" icon="play_arrow" class="mr-2" />
+              <da-mat-icon size="lg" icon="play_arrow" class="mr-2" />
             </p-button>
             <p-button
               label="返回"

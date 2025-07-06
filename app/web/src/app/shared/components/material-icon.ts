@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 
+type SizeVariant = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
+
 @Component({
   selector: 'da-mat-icon',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -14,7 +16,7 @@ export class MaterialIcon {
   icon = input.required<string>()
   variant = input<'rounded' | 'outlined' | 'sharp'>('rounded')
   filled = input<boolean>(false)
-  size = input<'small' | 'medium' | 'large'>('medium')
+  size = input<SizeVariant>('md')
   styleClass = input<string>()
 
   protected get fontVariationSettings() {
@@ -38,11 +40,17 @@ export class MaterialIcon {
         return this.styleClass()
       }
       switch (this.size()) {
-        case 'small':
+        case 'xs':
+          return 'text-xs'
+        case 'sm':
           return 'text-sm'
-        case 'large':
+        case 'lg':
           return 'text-lg'
-        case 'medium':
+        case 'xl':
+          return 'text-xl'
+        case '2xl':
+          return 'text-2xl'
+        case 'md':
           return 'text-base'
       }
     }

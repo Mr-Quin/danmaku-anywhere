@@ -14,7 +14,7 @@ export class OnboardingService {
   protected messageService = inject(MessageService)
 
   private readonly $_acceptedPolicy = signal(
-    !!localStorage.getItem(ACCEPTED_POLICY_KEY),
+    !!localStorage.getItem(ACCEPTED_POLICY_KEY)
   )
   readonly $acceptedPolicy = this.$_acceptedPolicy.asReadonly()
 

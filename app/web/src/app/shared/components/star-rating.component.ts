@@ -13,7 +13,7 @@ import { MaterialIcon } from './material-icon'
           [icon]="star.icon"
           [class]="star.color"
           [filled]="star.filled"
-          size="large"
+          size="lg"
         />
       }
     </div>

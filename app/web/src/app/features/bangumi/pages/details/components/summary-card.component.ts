@@ -34,7 +34,7 @@ import { MaterialIcon } from '../../../../../shared/components/material-icon'
                 <ng-template #icon>
                   <da-mat-icon
                     [icon]="summaryExpanded() ? 'expand_less' : 'expand_more'"
-                    size="large"
+                    size="lg"
                   />
                 </ng-template>
               </p-button>

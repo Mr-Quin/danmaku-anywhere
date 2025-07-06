@@ -103,7 +103,7 @@ export interface ShowCardData {
             size="small"
           >
             <ng-template #icon>
-              <da-mat-icon size="small" icon="play_arrow" />
+              <da-mat-icon size="sm" icon="play_arrow" />
             </ng-template>
           </p-button>
         </div>
