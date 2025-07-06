@@ -20,54 +20,54 @@ export interface ShowCardGridItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, TabView, TabPanel, ShowCard, ShowCardSkeleton],
   template: `
-      <div class="hidden xl:block">
-        <div class="grid grid-cols-7 gap-6">
-          @for (weekday of weekdays(); track $index) {
-            @if (weekday.length > 0) {
-              <div>
-                <h3 class="text-2xl mb-4">
-                  {{ WEEKDAYS[$index] }}
-                </h3>
-                <div class="space-y-3">
-                  @for (item of weekday; track item.id; ) {
-                    @if (item.isSkeleton) {
-                      <da-show-card-skeleton />
-                    } @else if (item.data) {
-                      <da-show-card [show]="item.data" [hideAltTitle]="true" />
-                    }
+    <div class="hidden xl:block">
+      <div class="grid grid-cols-7 gap-6">
+        @for (weekday of weekdays(); track $index) {
+          @if (weekday.length > 0) {
+            <div>
+              <h3 class="text-2xl mb-4">
+                {{ WEEKDAYS[$index] }}
+              </h3>
+              <div class="space-y-3">
+                @for (item of weekday; track item.id; ) {
+                  @if (item.isSkeleton) {
+                    <da-show-card-skeleton hideFooter hideAltTitle />
+                  } @else if (item.data) {
+                    <da-show-card [show]="item.data" hideFooter hideAltTitle />
                   }
-                </div>
+                }
               </div>
-            }
+            </div>
           }
-        </div>
+        }
       </div>
+    </div>
 
-      <div class="xl:hidden">
-        <p-tabView
-          [activeIndex]="activeTabIndex()"
-          (onChange)="activeTabIndex.set($event.index)"
-          styleClass="calendar-tabs">
-          @for (weekday of weekdays(); track $index) {
-            @if (weekday.length > 0) {
-              <p-tabPanel
-                [header]="getTabHeader(WEEKDAYS[$index], weekday.length)"
-                [closable]="false">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  @for (item of weekday; track item.id; ) {
-                    @if (item.isSkeleton) {
-                      <da-show-card-skeleton />
-                    } @else if (item.data) {
-                      <da-show-card [show]="item.data" [hideAltTitle]="true" />
-                    }
+    <div class="xl:hidden">
+      <p-tabView
+        [activeIndex]="activeTabIndex()"
+        (onChange)="activeTabIndex.set($event.index)"
+        styleClass="calendar-tabs">
+        @for (weekday of weekdays(); track $index) {
+          @if (weekday.length > 0) {
+            <p-tabPanel
+              [header]="getTabHeader(WEEKDAYS[$index], weekday.length)"
+              [closable]="false">
+              <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                @for (item of weekday; track item.id; ) {
+                  @if (item.isSkeleton) {
+                    <da-show-card-skeleton hideFooter hideAltTitle />
+                  } @else if (item.data) {
+                    <da-show-card [show]="item.data" hideFooter hideAltTitle />
                   }
-                </div>
-              </p-tabPanel>
-            }
+                }
+              </div>
+            </p-tabPanel>
           }
-        </p-tabView>
-      </div>
-    
+        }
+      </p-tabView>
+    </div>
+
   `,
 })
 export class ShowCalendarGrid {

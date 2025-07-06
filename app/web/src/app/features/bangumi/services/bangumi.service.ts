@@ -8,7 +8,7 @@ import { queryKeys } from '../../../shared/query/queryKeys'
 import type {
   BgmCalendar,
   BgmSubject,
-  BgmTrendingSubject,
+  BgmTrendingQueryResponse,
 } from '../types/bangumi.types'
 
 @Injectable({
@@ -30,28 +30,10 @@ export class BangumiService {
       },
     })
 
-  getTrendingQueryOptions = (limit = 20, offset = 0) =>
-    queryOptions({
-      queryKey: queryKeys.bangumi.trending(limit, offset),
-      queryFn: async (): Promise<BgmTrendingSubject[]> => {
-        const res = await bangumiNextClient.GET('/p1/trending/subjects', {
-          params: {
-            query: {
-              type: 2,
-              limit,
-              offset,
-            },
-          },
-        })
-        // biome-ignore lint/style/noNonNullAssertion: checked in middleware
-        return res.data!.data
-      },
-    })
-
   getTrendingInfiniteQueryOptions = () =>
     infiniteQueryOptions({
       queryKey: queryKeys.bangumi.trendingInfinite(),
-      queryFn: async ({ pageParam = 0 }): Promise<BgmTrendingSubject[]> => {
+      queryFn: async ({ pageParam = 0 }): Promise<BgmTrendingQueryResponse> => {
         const limit = 20
         const offset = pageParam * limit
         const res = await bangumiNextClient.GET('/p1/trending/subjects', {
@@ -64,15 +46,21 @@ export class BangumiService {
           },
         })
         // biome-ignore lint/style/noNonNullAssertion: checked in middleware
-        return res.data!.data
+        return res.data!
       },
       initialPageParam: 0,
       getNextPageParam: (
-        lastPage: BgmTrendingSubject[],
-        allPages: BgmTrendingSubject[][]
+        lastPage: BgmTrendingQueryResponse,
+        allPages: BgmTrendingQueryResponse[]
       ) => {
-        // how many pages we already have
-        return lastPage.length < 20 ? undefined : allPages.length
+        let totalSize = 0
+        for (const page of allPages) {
+          for (const _ of page.data) {
+            totalSize += 1
+          }
+        }
+        // return the offset if there are pages remaining
+        return totalSize < lastPage.total ? allPages.length : undefined
       },
     })
 

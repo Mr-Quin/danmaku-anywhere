@@ -12,7 +12,7 @@ import {
 import { FormsModule } from '@angular/forms'
 import { ActivatedRoute, Router } from '@angular/router'
 import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
-import { injectQuery } from '@tanstack/angular-query-experimental'
+import { injectInfiniteQuery } from '@tanstack/angular-query-experimental'
 import { AutoCompleteModule } from 'primeng/autocomplete'
 import { AutoFocus } from 'primeng/autofocus'
 import { Button } from 'primeng/button'
@@ -181,15 +181,15 @@ export class KazumiSearchPage {
 
   protected $showPolicy = signal(false)
 
-  private trendingQuery = injectQuery(() => {
-    return this.bangumiService.getTrendingQueryOptions()
+  private trendingQuery = injectInfiniteQuery(() => {
+    return this.bangumiService.getTrendingInfiniteQueryOptions()
   })
 
   protected $searchPlaceholder = computed(() => {
     if (this.trendingQuery.isSuccess()) {
-      const data = this.trendingQuery.data()
-      if (data && data.length > 0) {
-        const item = randomFrom(data)
+      const { pages } = this.trendingQuery.data()
+      if (pages.length > 0) {
+        const item = randomFrom(pages[0].data)
         return item.subject.nameCN
       }
     } else if (this.trendingQuery.isPending()) {

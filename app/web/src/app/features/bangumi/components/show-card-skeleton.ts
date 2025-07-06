@@ -1,5 +1,10 @@
 import { CommonModule } from '@angular/common'
-import { ChangeDetectionStrategy, Component } from '@angular/core'
+import {
+  booleanAttribute,
+  ChangeDetectionStrategy,
+  Component,
+  input,
+} from '@angular/core'
 import { Card } from 'primeng/card'
 import { Skeleton } from 'primeng/skeleton'
 
@@ -16,23 +21,22 @@ import { Skeleton } from 'primeng/skeleton'
       </ng-template>
 
       <ng-template #content>
-        <div class="space-y-2">
+        <div class="flex flex-col">
           <p-skeleton width="80%" height="24px" />
-          <p-skeleton width="60%" height="16px" />
-          <div class="flex flex-wrap gap-1">
-            <p-skeleton width="40%" height="12px" />
-            <p-skeleton width="30%" height="12px" />
-            <p-skeleton width="50%" height="12px" />
-          </div>
+          @if (!hideAltTitle()) {
+            <p-skeleton width="60%" height="16px" class="mt-2" />
+          }
         </div>
       </ng-template>
 
-      <ng-template #footer>
-        <div class="flex justify-between">
-          <p-skeleton width="60px" height="32px" />
-          <p-skeleton width="60px" height="32px" />
-        </div>
-      </ng-template>
+      @if (!hideFooter()) {
+        <ng-template #footer>
+          <div class="flex justify-between">
+            <p-skeleton width="60px" height="32px" />
+            <p-skeleton width="60px" height="32px" />
+          </div>
+        </ng-template>
+      }
     </p-card>
   `,
   styles: `
@@ -42,4 +46,7 @@ import { Skeleton } from 'primeng/skeleton'
     }
   `,
 })
-export class ShowCardSkeleton {}
+export class ShowCardSkeleton {
+  hideAltTitle = input(false, { transform: booleanAttribute })
+  hideFooter = input(false, { transform: booleanAttribute })
+}

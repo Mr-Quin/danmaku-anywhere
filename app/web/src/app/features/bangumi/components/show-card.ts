@@ -1,5 +1,6 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common'
 import {
+  booleanAttribute,
   ChangeDetectionStrategy,
   Component,
   inject,
@@ -87,39 +88,42 @@ export interface ShowCardData {
         </div>
       </ng-template>
 
-      <ng-template #footer>
-        <div class="flex justify-between">
-          <p-button
-            [routerLink]="['/details', showData.id]"
-            label="详情"
-            severity="secondary"
-            size="small"
-          />
-          <p-button
-            [routerLink]="['/kazumi/search']"
-            [queryParams]="{ q: showData.title || showData.altTitle, id: showData.id, type: 'bangumi' }"
-            label="观看"
-            severity="primary"
-            size="small"
-          >
-            <ng-template #icon>
-              <da-mat-icon size="sm" icon="play_arrow" />
-            </ng-template>
-          </p-button>
-        </div>
-      </ng-template>
+      @if (!hideFooter()) {
+        <ng-template #footer>
+          <div class="flex justify-between">
+            <p-button
+              [routerLink]="['/details', showData.id]"
+              label="详情"
+              severity="secondary"
+              size="small"
+            />
+            <p-button
+              [routerLink]="['/kazumi/search']"
+              [queryParams]="{ q: showData.title || showData.altTitle, id: showData.id, type: 'bangumi' }"
+              label="观看"
+              severity="primary"
+              size="small"
+            >
+              <ng-template #icon>
+                <da-mat-icon size="sm" icon="play_arrow" />
+              </ng-template>
+            </p-button>
+          </div>
+        </ng-template>
+      }
     </p-card>
   `,
   styles: `
-    :host {
-      display: block;
-      height: 100%;
-    }
+      :host {
+          display: block;
+          height: 100%;
+      }
   `,
 })
 export class ShowCard {
   show = input.required<ShowCardData>()
-  hideAltTitle = input<boolean>(false)
+  hideAltTitle = input(false, { transform: booleanAttribute })
+  hideFooter = input(false, { transform: booleanAttribute })
 
   private router = inject(Router)
 
