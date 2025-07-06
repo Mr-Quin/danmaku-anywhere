@@ -43,12 +43,13 @@ import { MaterialIcon } from '../../../../../shared/components/material-icon'
           <div
             #summaryElement
             class="relative overflow-hidden transition-all duration-300 ease-in-out"
-            [style.height.px]="currentHeight()"
+            [style.max-height.px]="maxHeight()"
           >
             <p class="whitespace-pre-line">{{ summary() }}</p>
             @if (needsExpansion() && !summaryExpanded()) {
               <div
-                class="absolute bottom-0 left-0 right-0 h-8 pointer-events-none"
+                class="absolute bottom-0 left-0 right-0 h-8 cursor-pointer"
+                (click)="toggleSummaryExpanded()"
                 style="background: linear-gradient(to top, var(--p-card-background) 0%, var(--p-card-background) 0%, transparent 100%);">
               </div>
             }
@@ -59,19 +60,20 @@ import { MaterialIcon } from '../../../../../shared/components/material-icon'
   `,
 })
 export class SummaryCardComponent implements AfterViewInit {
-  private readonly collapsedHeight = 96
+  private readonly previewHeight = 96
 
   summary = input<string>('')
 
   protected summaryExpanded = signal(false)
-  protected currentHeight = signal<number>(0)
+
+  protected maxHeight = signal<number>(this.previewHeight)
   protected fullHeight = signal<number>(0)
 
   private summaryElement =
     viewChild<ElementRef<HTMLDivElement>>('summaryElement')
 
   protected needsExpansion = computed(() => {
-    return this.fullHeight() > this.collapsedHeight
+    return this.fullHeight() > this.previewHeight
   })
 
   constructor() {
@@ -80,9 +82,9 @@ export class SummaryCardComponent implements AfterViewInit {
       const full = this.fullHeight()
 
       if (expanded) {
-        this.currentHeight.set(full)
+        this.maxHeight.set(full)
       } else {
-        this.currentHeight.set(Math.min(full, this.collapsedHeight))
+        this.maxHeight.set(this.previewHeight)
       }
     })
   }
@@ -101,7 +103,5 @@ export class SummaryCardComponent implements AfterViewInit {
 
     const fullHeight = element.scrollHeight
     this.fullHeight.set(fullHeight)
-
-    this.currentHeight.set(Math.min(fullHeight, this.collapsedHeight))
   }
 }
