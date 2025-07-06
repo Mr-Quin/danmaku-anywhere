@@ -82,16 +82,37 @@ export const queryKeys = {
         'reviews',
         subjectId,
       ],
+      reviewsInfinite: (subjectId: number) => [
+        'bangumi',
+        'subject',
+        'reviews',
+        'infinite',
+        subjectId,
+      ],
       topics: (subjectId: number) => [
         'bangumi',
         'subject',
         'topics',
         subjectId,
       ],
+      topicsInfinite: (subjectId: number) => [
+        'bangumi',
+        'subject',
+        'topics',
+        'infinite',
+        subjectId,
+      ],
       comments: (subjectId: number) => [
         'bangumi',
         'subject',
         'comments',
+        subjectId,
+      ],
+      commentsInfinite: (subjectId: number) => [
+        'bangumi',
+        'subject',
+        'comments',
+        'infinite',
         subjectId,
       ],
       collects: (subjectId: number) => [

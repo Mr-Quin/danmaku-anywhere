@@ -7,6 +7,9 @@ import { bangumiNextClient } from '../../../bangumi-api/client'
 import { queryKeys } from '../../../shared/query/queryKeys'
 import type {
   BgmCalendar,
+  BgmGetSubjectCommentResponse,
+  BgmGetSubjectReviewResponse,
+  BgmGetTopicResponse,
   BgmSubject,
   BgmTrendingQueryResponse,
 } from '../types/bangumi.types'
@@ -221,6 +224,84 @@ export class BangumiService {
       enabled: !!subjectId,
     })
 
+  getSubjectTopicsInfiniteQueryOptions = (subjectId: number) =>
+    infiniteQueryOptions({
+      queryKey: queryKeys.bangumi.subject.topicsInfinite(subjectId),
+      queryFn: async ({ pageParam = 0 }): Promise<BgmGetTopicResponse> => {
+        const limit = 20
+        const offset = pageParam * limit
+        const res = await bangumiNextClient.GET(
+          '/p1/subjects/{subjectID}/topics',
+          {
+            params: {
+              path: {
+                subjectID: subjectId,
+              },
+              query: {
+                limit,
+                offset,
+              },
+            },
+          }
+        )
+        // biome-ignore lint/style/noNonNullAssertion: checked in middleware
+        return res.data!
+      },
+      initialPageParam: 0,
+      getNextPageParam: (
+        lastPage: BgmGetTopicResponse,
+        allPages: BgmGetTopicResponse[]
+      ) => {
+        let totalSize = 0
+        for (const page of allPages) {
+          totalSize += page.data.length
+        }
+        // return the offset if there are pages remaining
+        return totalSize < lastPage.total ? allPages.length : undefined
+      },
+      enabled: !!subjectId,
+    })
+
+  getSubjectReviewsInfiniteQueryOptions = (subjectId: number) =>
+    infiniteQueryOptions({
+      queryKey: queryKeys.bangumi.subject.reviewsInfinite(subjectId),
+      queryFn: async ({
+        pageParam = 0,
+      }): Promise<BgmGetSubjectReviewResponse> => {
+        const limit = 20
+        const offset = pageParam * limit
+        const res = await bangumiNextClient.GET(
+          '/p1/subjects/{subjectID}/reviews',
+          {
+            params: {
+              path: {
+                subjectID: subjectId,
+              },
+              query: {
+                limit,
+                offset,
+              },
+            },
+          }
+        )
+        // biome-ignore lint/style/noNonNullAssertion: checked in middleware
+        return res.data!
+      },
+      initialPageParam: 0,
+      getNextPageParam: (
+        lastPage: BgmGetSubjectReviewResponse,
+        allPages: BgmGetSubjectReviewResponse[]
+      ) => {
+        let totalSize = 0
+        for (const page of allPages) {
+          totalSize += page.data.length
+        }
+        // return the offset if there are pages remaining
+        return totalSize < lastPage.total ? allPages.length : undefined
+      },
+      enabled: !!subjectId,
+    })
+
   getSubjectCommentsQueryOptions = (subjectId: number) =>
     queryOptions({
       queryKey: queryKeys.bangumi.subject.comments(subjectId),
@@ -237,6 +318,46 @@ export class BangumiService {
         )
         // biome-ignore lint/style/noNonNullAssertion: checked in middleware
         return res.data!
+      },
+      enabled: !!subjectId,
+    })
+
+  getSubjectCommentsInfiniteQueryOptions = (subjectId: number) =>
+    infiniteQueryOptions({
+      queryKey: queryKeys.bangumi.subject.commentsInfinite(subjectId),
+      queryFn: async ({
+        pageParam = 0,
+      }): Promise<BgmGetSubjectCommentResponse> => {
+        const limit = 20
+        const offset = pageParam * limit
+        const res = await bangumiNextClient.GET(
+          '/p1/subjects/{subjectID}/comments',
+          {
+            params: {
+              path: {
+                subjectID: subjectId,
+              },
+              query: {
+                limit,
+                offset,
+              },
+            },
+          }
+        )
+        // biome-ignore lint/style/noNonNullAssertion: checked in middleware
+        return res.data!
+      },
+      initialPageParam: 0,
+      getNextPageParam: (
+        lastPage: BgmGetSubjectCommentResponse,
+        allPages: BgmGetSubjectCommentResponse[]
+      ) => {
+        let totalSize = 0
+        for (const page of allPages) {
+          totalSize += page.data.length
+        }
+        // return the offset if there are pages remaining
+        return totalSize < lastPage.total ? allPages.length : undefined
       },
       enabled: !!subjectId,
     })
