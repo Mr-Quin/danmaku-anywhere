@@ -5,12 +5,7 @@
     "noEmit": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "types": [
-      "chrome",
-      "react-dom",
-      "react",
-      "@types/wicg-file-system-access"
-    ],
+    "types": ["chrome", "react-dom", "react", "@types/wicg-file-system-access"],
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {

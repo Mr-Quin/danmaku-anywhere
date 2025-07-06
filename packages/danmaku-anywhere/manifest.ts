@@ -29,6 +29,12 @@ if (dev) {
   permissions.push('declarativeNetRequestFeedback')
 }
 
+const APP_URLS = [
+  'https://danmaku.weeblify.app/*', // prod
+  'https://*.quinfish.workers.dev/*', // staging
+  'http://localhost:4200/*', // local dev
+]
+
 export const manifest = defineManifest({
   manifest_version: 3,
   name: '__MSG_extName__',
@@ -46,9 +52,7 @@ export const manifest = defineManifest({
   },
   content_scripts: [
     {
-      matches: dev
-        ? ['http://localhost:4200/*', 'https://danmaku.weeblify.app/*']
-        : ['https://danmaku.weeblify.app/*'],
+      matches: APP_URLS,
       js: ['src/content/app/index.ts'],
       run_at: 'document_start',
     },
