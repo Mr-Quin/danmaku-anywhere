@@ -58,7 +58,7 @@ import { BangumiService } from '../services/bangumi.service'
     }
   `,
 })
-export class EpisodesTabComponent {
+export class EpisodesTab {
   subjectId = input.required<number>()
   visited = input<boolean>(false)
 

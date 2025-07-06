@@ -11,17 +11,17 @@ import { ActivatedRoute, Router } from '@angular/router'
 import { injectQuery } from '@tanstack/angular-query-experimental'
 import { ProgressSpinner } from 'primeng/progressspinner'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'primeng/tabs'
-import { CharactersTabComponent } from '../../components/characters-tab.component'
-import { CommentsTabComponent } from '../../components/comments-tab.component'
-import { EpisodesTabComponent } from '../../components/episodes-tab.component'
-import { RecommendationsTabComponent } from '../../components/recommendations-tab.component'
-import { RelationsTabComponent } from '../../components/relations-tab.component'
-import { ReviewsTabComponent } from '../../components/reviews-tab.component'
-import { StaffTabComponent } from '../../components/staff-tab.component'
-import { TopicsTabComponent } from '../../components/topics-tab.component'
+import { CharactersTab } from '../../components/characters-tab'
+import { CommentsTab } from '../../components/comments-tab'
+import { EpisodesTab } from '../../components/episodes-tab'
+import { RecommendationsTab } from '../../components/recommendations-tab'
+import { RelationsTab } from '../../components/relations-tab'
+import { ReviewsTab } from '../../components/reviews-tab'
+import { StaffTab } from '../../components/staff-tab'
+import { TopicsTab } from '../../components/topics-tab'
 import { BangumiService } from '../../services/bangumi.service'
-import { SubjectHeaderComponent } from './components/subject-header.component'
-import { SummaryCardComponent } from './components/summary-card.component'
+import { SubjectHeader } from './components/subject-header'
+import { SummaryCard } from './components/summary-card'
 
 @Component({
   selector: 'da-details-page',
@@ -34,16 +34,16 @@ import { SummaryCardComponent } from './components/summary-card.component'
     Tab,
     TabPanels,
     TabPanel,
-    SubjectHeaderComponent,
-    SummaryCardComponent,
-    EpisodesTabComponent,
-    CharactersTabComponent,
-    StaffTabComponent,
-    RelationsTabComponent,
-    RecommendationsTabComponent,
-    ReviewsTabComponent,
-    TopicsTabComponent,
-    CommentsTabComponent,
+    SubjectHeader,
+    SummaryCard,
+    EpisodesTab,
+    CharactersTab,
+    StaffTab,
+    RelationsTab,
+    RecommendationsTab,
+    ReviewsTab,
+    TopicsTab,
+    CommentsTab,
   ],
   template: `
     <div class="max-w-7xl mx-auto p-4">

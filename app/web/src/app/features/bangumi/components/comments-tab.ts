@@ -7,22 +7,15 @@ import {
   input,
 } from '@angular/core'
 import { injectInfiniteQuery } from '@tanstack/angular-query-experimental'
-import { Divider } from 'primeng/divider'
-import { StarRatingComponent } from '../../../shared/components/star-rating.component'
 import { VirtualizedGrid } from '../../../shared/components/virtualized-grid'
 import { BangumiService } from '../services/bangumi.service'
-import { CommentSkeletonComponent } from './comment-skeleton.component'
+import { CommentItem } from './comment-item'
+import { CommentItemSkeleton } from './comment-item-skeleton'
 
 @Component({
   selector: 'da-comments-tab',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    StarRatingComponent,
-    Divider,
-    VirtualizedGrid,
-    CommentSkeletonComponent,
-  ],
+  imports: [CommonModule, VirtualizedGrid, CommentItemSkeleton, CommentItem],
   template: `
     <da-virtualized-grid
       [items]="comments()"
@@ -40,30 +33,7 @@ import { CommentSkeletonComponent } from './comment-skeleton.component'
       </ng-template>
 
       <ng-template #body let-comment="$implicit">
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <img
-                [src]="comment.user.avatar.large"
-                [alt]="comment.user.nickname"
-                class="w-10 h-10 rounded-full object-cover"
-              />
-              <div>
-                <p class="font-medium">{{ comment.user.nickname }}</p>
-                <p class="text-sm text-gray-500">
-                  {{ comment.updatedAt * 1000 | date:'yyyy-MM-dd HH:mm' }}
-                </p>
-              </div>
-            </div>
-            <div class="flex items-center gap-2">
-              @if (comment.rate) {
-                <da-star-rating [rating]="comment.rate" />
-              }
-            </div>
-          </div>
-          <p class="whitespace-pre-line">{{ comment.comment }}</p>
-        </div>
-        <p-divider />
+        <da-comment-item [comment]="comment" />
       </ng-template>
 
       <ng-template #error>
@@ -80,7 +50,7 @@ import { CommentSkeletonComponent } from './comment-skeleton.component'
     </da-virtualized-grid>
   `,
 })
-export class CommentsTabComponent {
+export class CommentsTab {
   subjectId = input.required<number>()
   visited = input<boolean>(false)
 

@@ -1,4 +1,4 @@
-import { CommonModule, NgOptimizedImage } from '@angular/common'
+import { CommonModule } from '@angular/common'
 import {
   ChangeDetectionStrategy,
   Component,
@@ -7,23 +7,15 @@ import {
   input,
 } from '@angular/core'
 import { injectInfiniteQuery } from '@tanstack/angular-query-experimental'
-import { Divider } from 'primeng/divider'
-import { Tag } from 'primeng/tag'
 import { VirtualizedGrid } from '../../../shared/components/virtualized-grid'
 import { BangumiService } from '../services/bangumi.service'
-import { ReviewSkeletonComponent } from './review-skeleton.component'
+import { ReviewItem } from './review-item'
+import { ReviewItemSkeleton } from './review-item-skeleton'
 
 @Component({
   selector: 'da-reviews-tab',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    NgOptimizedImage,
-    Divider,
-    Tag,
-    VirtualizedGrid,
-    ReviewSkeletonComponent,
-  ],
+  imports: [CommonModule, VirtualizedGrid, ReviewItemSkeleton, ReviewItem],
   template: `
     <da-virtualized-grid
       [items]="reviews()"
@@ -41,35 +33,7 @@ import { ReviewSkeletonComponent } from './review-skeleton.component'
       </ng-template>
 
       <ng-template #body let-review="$implicit">
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <img
-                [ngSrc]="review.user.avatar.large"
-                [alt]="review.user.nickname"
-                class="rounded-full object-cover"
-                width="40"
-                height="40"
-              />
-              <div>
-                <p class="font-medium">{{ review.user.nickname }}</p>
-                <p class="text-sm text-gray-500">
-                  {{ (review.entry.createdAt * 1000) | date:'yyyy-MM-dd HH:mm' }}
-                </p>
-              </div>
-            </div>
-            <div class="flex items-center gap-2">
-              @if (review.entry.replies) {
-                <p-tag [value]="'回复 ' + review.entry.replies" severity="info" />
-              }
-            </div>
-          </div>
-          <h3 class="text-lg font-semibold">{{ review.entry.title }}</h3>
-          <div class="max-w-none">
-            <p class="whitespace-pre-line line-clamp-4">{{ review.entry.summary }}</p>
-          </div>
-        </div>
-        <p-divider />
+        <da-review-item [review]="review" />
       </ng-template>
 
       <ng-template #error>
@@ -86,7 +50,7 @@ import { ReviewSkeletonComponent } from './review-skeleton.component'
     </da-virtualized-grid>
   `,
 })
-export class ReviewsTabComponent {
+export class ReviewsTab {
   subjectId = input.required<number>()
   visited = input<boolean>(false)
 

@@ -59,7 +59,7 @@ import { MaterialIcon } from '../../../../../shared/components/material-icon'
     }
   `,
 })
-export class SummaryCardComponent implements AfterViewInit {
+export class SummaryCard implements AfterViewInit {
   private readonly previewHeight = 96
 
   summary = input<string>('')

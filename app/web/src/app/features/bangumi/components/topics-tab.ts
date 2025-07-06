@@ -7,22 +7,15 @@ import {
   input,
 } from '@angular/core'
 import { injectInfiniteQuery } from '@tanstack/angular-query-experimental'
-import { Divider } from 'primeng/divider'
-import { Tag } from 'primeng/tag'
 import { VirtualizedGrid } from '../../../shared/components/virtualized-grid'
 import { BangumiService } from '../services/bangumi.service'
-import { TopicSkeletonComponent } from './topic-skeleton.component'
+import { TopicItem } from './topic-item'
+import { TopicItemSkeleton } from './topic-item-skeleton'
 
 @Component({
   selector: 'da-topics-tab',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    Tag,
-    Divider,
-    VirtualizedGrid,
-    TopicSkeletonComponent,
-  ],
+  imports: [CommonModule, VirtualizedGrid, TopicItemSkeleton, TopicItem],
   template: `
     <da-virtualized-grid
       [items]="topics()"
@@ -40,32 +33,7 @@ import { TopicSkeletonComponent } from './topic-skeleton.component'
       </ng-template>
 
       <ng-template #body let-topic="$implicit">
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <img
-                [src]="topic.creator?.avatar?.large"
-                [alt]="topic.creator?.nickname"
-                class="w-10 h-10 rounded-full object-cover"
-              />
-              <div>
-                <p class="font-medium">{{ topic.creator?.nickname }}</p>
-                <p class="text-sm text-gray-500">
-                  {{ (topic.createdAt * 1000) | date:'yyyy-MM-dd HH:mm' }}
-                </p>
-              </div>
-            </div>
-            <div class="flex items-center gap-2">
-              @if (topic.replyCount) {
-                <p-tag [value]="'回复 ' + topic.replyCount" severity="info" />
-              }
-            </div>
-          </div>
-          <h3 class="text-lg font-semibold">
-            {{ topic.title }}
-          </h3>
-        </div>
-        <p-divider />
+        <da-topic-item [topic]="topic" />
       </ng-template>
 
       <ng-template #error>
@@ -82,7 +50,7 @@ import { TopicSkeletonComponent } from './topic-skeleton.component'
     </da-virtualized-grid>
   `,
 })
-export class TopicsTabComponent {
+export class TopicsTab {
   subjectId = input.required<number>()
   visited = input<boolean>(false)
 

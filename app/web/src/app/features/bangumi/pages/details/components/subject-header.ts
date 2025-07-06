@@ -160,7 +160,7 @@ import type { BgmSubject } from '../../../types/bangumi.types'
     </div>
   `,
 })
-export class SubjectHeaderComponent {
+export class SubjectHeader {
   subject = input.required<BgmSubject>()
   protected tagsExpanded = signal(false)
 

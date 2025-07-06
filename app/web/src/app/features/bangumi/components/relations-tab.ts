@@ -68,7 +68,7 @@ import { HorizontalCardSkeletonGrid } from './horizontal-card-skeleton-grid'
     }
   `,
 })
-export class RelationsTabComponent {
+export class RelationsTab {
   subjectId = input.required<number>()
   visited = input<boolean>(false)
 
