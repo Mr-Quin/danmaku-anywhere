@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common'
+import { CommonModule, NgOptimizedImage } from '@angular/common'
 import {
   ChangeDetectionStrategy,
   Component,
@@ -14,7 +14,7 @@ import { BangumiService } from '../services/bangumi.service'
 @Component({
   selector: 'da-staff-tab',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ProgressSpinner, Card, Tag],
+  imports: [CommonModule, ProgressSpinner, Card, Tag, NgOptimizedImage],
   template: `
     @if (staffQuery.isPending()) {
       <div class="flex justify-center py-8">
@@ -26,11 +26,17 @@ import { BangumiService } from '../services/bangumi.service'
         <div class="grid grid-cols-2 gap-4">
           @for (staffMember of response.data; track staffMember.staff.id) {
             <div class="flex gap-4">
-              <img
-                [src]="staffMember.staff.images?.medium"
-                [alt]="staffMember.staff.name"
-                class="w-16 h-16 object-cover rounded"
-              />
+              @if (staffMember.staff.images?.medium) {
+                <img
+                  [ngSrc]="staffMember.staff.images!.medium!"
+                  [width]="64"
+                  [height]="64"
+                  [alt]="staffMember.staff.name"
+                  class="w-24 h-24 object-cover rounded"
+                />
+              } @else {
+                <div class="w-24 h-24 bg-surface-800 rounded"></div>
+              }
               <div class="flex-1">
                 <h4 class="font-semibold">{{ staffMember.staff.nameCN || staffMember.staff.name }}</h4>
                 @if (staffMember.staff.nameCN && staffMember.staff.name !== staffMember.staff.nameCN) {

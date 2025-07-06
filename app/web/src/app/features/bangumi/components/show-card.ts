@@ -11,6 +11,7 @@ import { Button } from 'primeng/button'
 import { Card } from 'primeng/card'
 import { Tag } from 'primeng/tag'
 import { MaterialIcon } from '../../../shared/components/material-icon'
+import { IMAGE_PLACEHOLDER_DATA } from '../../../shared/placeholder-data'
 
 export interface ShowCardData {
   id: number
@@ -43,13 +44,13 @@ export interface ShowCardData {
     <p-card styleClass="overflow-hidden">
       @let showData = show();
       <ng-template #header>
-        <div class="relative aspect-[2/3]">
+        <div class="relative aspect-[2/3] overflow-hidden">
           <img
             [ngSrc]="showData.cover ?? ''"
             [alt]="showData.altTitle"
             class="object-cover cursor-pointer hover:opacity-80 transition-opacity"
-            priority
             fill
+            priority
             (click)="navigateToDetails(showData.id)" />
           @if (showData.rating?.score !== undefined) {
             <div class="absolute top-2 right-2">
@@ -130,4 +131,6 @@ export class ShowCard {
   navigateToDetails(id: number): void {
     void this.router.navigate(['/details', id])
   }
+
+  protected readonly IMAGE_PLACEHOLDER_DATA = IMAGE_PLACEHOLDER_DATA
 }

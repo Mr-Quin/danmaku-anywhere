@@ -26,7 +26,7 @@ import { HorizontalCardSkeletonGrid } from './horizontal-card-skeleton-grid'
           @for (relation of response.data; track relation.subject.id) {
             <div class="flex gap-4">
               <img
-                [src]="relation.subject.images?.medium || 'assets/cover_fallback.webp'"
+                [src]="relation.subject.images?.medium"
                 [alt]="relation.subject.name"
                 class="w-20 h-28 object-cover rounded"
               />

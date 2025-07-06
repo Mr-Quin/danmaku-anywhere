@@ -3,19 +3,21 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 import { Divider } from 'primeng/divider'
 import { Tag } from 'primeng/tag'
 import type { BgmTopic } from '../types/bangumi.types'
+import { UserAvatar } from './user-avatar'
 
 @Component({
   selector: 'da-topic-item',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, Tag, Divider],
+  imports: [CommonModule, Tag, Divider, UserAvatar],
   template: `
     <div class="space-y-3">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <img
-            [src]="topic().creator?.avatar?.large"
-            [alt]="topic().creator?.nickname"
-            class="w-10 h-10 rounded-full object-cover"
+          <da-user-avatar
+            [imageUrl]="topic().creator?.avatar?.large"
+            [altText]="topic().creator?.nickname"
+            size="medium"
+            [useOptimizedImage]="false"
           />
           <div>
             <p class="font-medium">{{ topic().creator?.nickname }}</p>

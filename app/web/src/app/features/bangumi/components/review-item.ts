@@ -1,23 +1,22 @@
-import { CommonModule, NgOptimizedImage } from '@angular/common'
+import { CommonModule } from '@angular/common'
 import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 import { Divider } from 'primeng/divider'
 import { Tag } from 'primeng/tag'
 import type { BgmSubjectReview } from '../types/bangumi.types'
+import { UserAvatar } from './user-avatar'
 
 @Component({
   selector: 'da-review-item',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, NgOptimizedImage, Divider, Tag],
+  imports: [CommonModule, Divider, Tag, UserAvatar],
   template: `
     <div class="space-y-3">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <img
-            [ngSrc]="review().user.avatar.large"
-            [alt]="review().user.nickname"
-            class="rounded-full object-cover"
-            width="40"
-            height="40"
+          <da-user-avatar
+            [imageUrl]="review().user.avatar.large"
+            [altText]="review().user.nickname"
+            size="medium"
           />
           <div>
             <p class="font-medium">{{ review().user.nickname }}</p>
