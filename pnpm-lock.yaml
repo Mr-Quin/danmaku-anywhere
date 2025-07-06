@@ -8,6 +8,9 @@ patchedDependencies:
   '@mui/system':
     hash: 90842ece9932266d40d17f7702a0dd1a202cb9cbf9c0ecff6d5de1adea842f9b
     path: patches/@mui__system.patch
+  '@tanstack/angular-virtual':
+    hash: afad7fa1daf3340260df8e124c3daaef70d93dda0eb2bfdc3e35671000c0cd41
+    path: patches/@tanstack__angular-virtual.patch
 
 importers:
 
@@ -84,7 +87,7 @@ importers:
         version: 5.81.2(@angular/common@20.0.4(@angular/core@20.0.4(@angular/compiler@20.0.4)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.0.4(@angular/compiler@20.0.4)(rxjs@7.8.2)(zone.js@0.15.1))
       '@tanstack/angular-virtual':
         specifier: ^3.13.12
-        version: 3.13.12(@angular/core@20.0.4(@angular/compiler@20.0.4)(rxjs@7.8.2)(zone.js@0.15.1))
+        version: 3.13.12(patch_hash=afad7fa1daf3340260df8e124c3daaef70d93dda0eb2bfdc3e35671000c0cd41)(@angular/core@20.0.4(@angular/compiler@20.0.4)(rxjs@7.8.2)(zone.js@0.15.1))
       artplayer:
         specifier: ^5.2.3
         version: 5.2.3
@@ -8111,7 +8114,7 @@ snapshots:
       '@tanstack/query-core': 5.81.2
       '@tanstack/query-devtools': 5.81.2
 
-  '@tanstack/angular-virtual@3.13.12(@angular/core@20.0.4(@angular/compiler@20.0.4)(rxjs@7.8.2)(zone.js@0.15.1))':
+  '@tanstack/angular-virtual@3.13.12(patch_hash=afad7fa1daf3340260df8e124c3daaef70d93dda0eb2bfdc3e35671000c0cd41)(@angular/core@20.0.4(@angular/compiler@20.0.4)(rxjs@7.8.2)(zone.js@0.15.1))':
     dependencies:
       '@angular/core': 20.0.4(@angular/compiler@20.0.4)(rxjs@7.8.2)(zone.js@0.15.1)
       '@tanstack/virtual-core': 3.13.12

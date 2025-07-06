@@ -1,0 +1,42 @@
+diff --git a/build/esm2022/index.mjs b/build/esm2022/index.mjs
+index 0cc447d3d2ef8bb02c5a85ba6977282709893920..6689ad09991b58325c4af623fcf629a31fbc9c81 100644
+--- a/build/esm2022/index.mjs
++++ b/build/esm2022/index.mjs
+@@ -1,4 +1,4 @@
+-import { AfterRenderPhase, DestroyRef, afterNextRender, computed, effect, inject, signal, untracked, } from '@angular/core';
++import { DestroyRef, afterNextRender, computed, effect, inject, signal, untracked, } from '@angular/core';
+ import { Virtualizer, elementScroll, observeElementOffset, observeElementRect, observeWindowOffset, observeWindowRect, windowScroll, } from '@tanstack/virtual-core';
+ import { proxyVirtualizer } from './proxy';
+ export * from '@tanstack/virtual-core';
+@@ -35,8 +35,8 @@ function createVirtualizerBase(options) {
+         }
+     }, { allowSignalWrites: true });
+     let cleanup;
+-    afterNextRender(() => (virtualizer ?? lazyInit())._didMount(), {
+-        phase: AfterRenderPhase.Read,
++    afterNextRender({
++        read: () => (virtualizer ?? lazyInit())._didMount()
+     });
+     inject(DestroyRef).onDestroy(() => cleanup?.());
+     return proxyVirtualizer(virtualizerSignal, lazyInit);
+diff --git a/build/fesm2022/tanstack-angular-virtual.mjs b/build/fesm2022/tanstack-angular-virtual.mjs
+index a24d2dc9af842a15c8c664a9f73d865980f3b1eb..e433b11cbe8934a6d7636882ea7d3cf3cc038f18 100644
+--- a/build/fesm2022/tanstack-angular-virtual.mjs
++++ b/build/fesm2022/tanstack-angular-virtual.mjs
+@@ -1,4 +1,4 @@
+-import { untracked, computed, signal, effect, afterNextRender, AfterRenderPhase, inject, DestroyRef } from '@angular/core';
++import { untracked, computed, signal, effect, afterNextRender, inject, DestroyRef } from '@angular/core';
+ import { Virtualizer, elementScroll, observeElementOffset, observeElementRect, windowScroll, observeWindowOffset, observeWindowRect } from '@tanstack/virtual-core';
+ export * from '@tanstack/virtual-core';
+ 
+@@ -124,8 +124,8 @@ function createVirtualizerBase(options) {
+         }
+     }, { allowSignalWrites: true });
+     let cleanup;
+-    afterNextRender(() => (virtualizer ?? lazyInit())._didMount(), {
+-        phase: AfterRenderPhase.Read,
++    afterNextRender({
++        read: () => (virtualizer ?? lazyInit())._didMount()
+     });
+     inject(DestroyRef).onDestroy(() => cleanup?.());
+     return proxyVirtualizer(virtualizerSignal, lazyInit);

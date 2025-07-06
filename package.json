@@ -5,7 +5,11 @@
   "author": "Mr-Quin",
   "description": "Danmaku anywhere",
   "type": "module",
-  "keywords": ["plex", "danmaku", "user script"],
+  "keywords": [
+    "plex",
+    "danmaku",
+    "user script"
+  ],
   "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
   "scripts": {
     "build": "pnpm -r -F \"./packages/**\" build",
@@ -15,12 +19,13 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",
-    "typescript": "^5.8.3",
-    "@typescript/native-preview": "^7.0.0-dev.20250703.1"
+    "@typescript/native-preview": "^7.0.0-dev.20250703.1",
+    "typescript": "^5.8.3"
   },
   "pnpm": {
     "patchedDependencies": {
-      "@mui/system": "patches/@mui__system.patch"
+      "@mui/system": "patches/@mui__system.patch",
+      "@tanstack/angular-virtual": "patches/@tanstack__angular-virtual.patch"
     }
   },
   "packageManager": "pnpm@10.11.0+sha256.a69e9cb077da419d47d18f1dd52e207245b29cac6e076acedbeb8be3b1a67bd7"

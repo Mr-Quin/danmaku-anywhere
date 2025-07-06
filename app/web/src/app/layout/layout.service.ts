@@ -1,14 +1,18 @@
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout'
 import { computed, effect, Injectable, inject, signal } from '@angular/core'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { type ActivatedRouteSnapshot, Router } from '@angular/router'
 
 const BANNER_KEY = 'hide-banner'
 
+export type ScreenSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+
 @Injectable({
   providedIn: 'root',
 })
 export class LayoutService {
   private router = inject(Router)
+  private breakpointObserver = inject(BreakpointObserver)
 
   private $routerEvent = toSignal(this.router.events)
 
@@ -23,6 +27,35 @@ export class LayoutService {
 
   $disableSidebar = computed(() => {
     return this.hasHideNavigationFlag(this.$currentRoute())
+  })
+
+  private screenSizeMap = new Map<string, ScreenSize>([
+    [Breakpoints.XSmall, 'xs'],
+    [Breakpoints.Small, 'sm'],
+    [Breakpoints.Medium, 'md'],
+    [Breakpoints.Large, 'lg'],
+    [Breakpoints.XLarge, 'xl'],
+  ])
+
+  private $breakpoints = toSignal(
+    this.breakpointObserver.observe([
+      Breakpoints.XSmall,
+      Breakpoints.Small,
+      Breakpoints.Medium,
+      Breakpoints.Large,
+      Breakpoints.XLarge,
+    ])
+  )
+
+  $screenSize = computed((): ScreenSize => {
+    const result = this.$breakpoints()
+    if (!result) return 'xs'
+    for (const query of Object.keys(result.breakpoints)) {
+      if (result.breakpoints[query]) {
+        return this.screenSizeMap.get(query) ?? 'xs'
+      }
+    }
+    return 'xs'
   })
 
   constructor() {

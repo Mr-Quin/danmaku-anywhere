@@ -53,7 +53,7 @@ export class BangumiService {
       queryKey: queryKeys.bangumi.trendingInfinite(),
       queryFn: async ({ pageParam = 0 }): Promise<BgmTrendingSubject[]> => {
         const limit = 20
-        const offset = (pageParam as number) * limit
+        const offset = pageParam * limit
         const res = await bangumiNextClient.GET('/p1/trending/subjects', {
           params: {
             query: {
@@ -71,7 +71,7 @@ export class BangumiService {
         lastPage: BgmTrendingSubject[],
         allPages: BgmTrendingSubject[][]
       ) => {
-        // If we get less than the limit, we've reached the end
+        // how many pages we already have
         return lastPage.length < 20 ? undefined : allPages.length
       },
     })
