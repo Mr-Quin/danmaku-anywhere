@@ -24,8 +24,8 @@ import { Banner } from './banner'
   },
   template: `
     <da-banner />
-    <div class="backdrop-blur-sm bg-transparent border-b-surface-800 border-b">
-      <div class="h-[56px] mx-auto px-4 py-2 flex items-center justify-between">
+    <div class="backdrop-blur-sm bg-transparent border-b-surface-800 border-b h-[56px]">
+      <div class="h-full mx-auto px-4 py-2 flex items-center justify-between">
         <div class="flex items-center gap-4">
           <div class="flex items-center gap-2">
             <h1 class="text-2xl font-bold"><a routerLink="/">

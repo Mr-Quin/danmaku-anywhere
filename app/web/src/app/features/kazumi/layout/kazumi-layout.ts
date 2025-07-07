@@ -5,9 +5,6 @@ import { RouterOutlet } from '@angular/router'
   selector: 'da-kazumi-layout',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterOutlet],
-  host: {
-    class: 'h-full block',
-  },
   template: `
     <div class="container mx-auto">
       <main class="h-full">

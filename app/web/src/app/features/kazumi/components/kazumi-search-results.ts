@@ -8,7 +8,7 @@ import {
 } from '@angular/core'
 import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
 import { injectQuery } from '@tanstack/angular-query-experimental'
-import { Button } from 'primeng/button'
+import { Button, ButtonDirective } from 'primeng/button'
 import { Divider } from 'primeng/divider'
 import { Skeleton } from 'primeng/skeleton'
 import { MaterialIcon } from '../../../shared/components/material-icon'
@@ -25,6 +25,7 @@ import { KazumiService } from '../services/kazumi.service'
     Skeleton,
     MaterialIcon,
     UnescapePipePipe,
+    ButtonDirective,
   ],
   template: `
     <div>
@@ -61,10 +62,10 @@ import { KazumiService } from '../services/kazumi.service'
                   <h4 class="font-medium">{{ item.name | unescape }}</h4>
                   <p class="text-sm text-gray-500 overflow-hidden overflow-ellipsis">{{ item.url }}</p>
                 </div>
-                <a class="absolute right-0 top-0 translate-y-1/2 p-button p-button-text p-button-secondary"
-                   [href]="item.url" target="_blank" rel="noreferrer"
+                <a class="absolute right-0 top-0"
+                   [href]="item.url" pButton text rounded severity="secondary" target="_blank" rel="noreferrer"
                 >
-                  <da-mat-icon icon="open_in_new" />
+                  <da-mat-icon icon="open_in_new" size="xl" />
                 </a>
               </div>
               @if (!$last) {

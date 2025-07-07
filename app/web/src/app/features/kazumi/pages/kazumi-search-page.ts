@@ -72,7 +72,7 @@ import { KazumiService } from '../services/kazumi.service'
       } @else if (kazumiService.$hasPolicies()) {
         <p-card>
           <form (submit)="$event.preventDefault();triggerSearch()">
-            <div class="md:w-xl flex gap-4 p-2">
+            <div class="md:w-xl flex gap-4 p-2 items-center">
               <div class="flex-1">
                 <input
                   [pAutoFocus]="true"
@@ -89,7 +89,7 @@ import { KazumiService } from '../services/kazumi.service'
                 [severity]="!$canSearch() ? 'secondary' : 'primary'"
                 [disabled]="!$canSearch()"
               >
-                <da-mat-icon icon="send" />
+                <da-mat-icon icon="send" size="lg" />
               </p-button>
             </div>
           </form>

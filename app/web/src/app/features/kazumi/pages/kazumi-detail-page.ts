@@ -107,6 +107,7 @@ import { KazumiService } from '../services/kazumi.service'
                     {{ episodesQuery.error() | json }}
                   </p>
                   <p-button
+                    class="pointer-events-auto"
                     (click)="episodesQuery.refetch()"
                     label="重试">
                     <ng-template #icon>
@@ -117,6 +118,7 @@ import { KazumiService } from '../services/kazumi.service'
               } @else if ($isVideoUrlError()) {
                 <div class="text-center flex flex-col gap-4">
                   <p>获取视频链接失败</p>
+                  <p>请尝试其他播放列表或其他Kazumi规则</p>
                 </div>
               } @else if (!$selectedEpisode()) {
                 <p>
@@ -231,16 +233,6 @@ export class KazumiDetailPage {
   protected $videoUrl = signal<string | undefined>(undefined)
   protected $isVideoUrlLoading = signal(false)
   protected $isVideoUrlError = signal(false)
-
-  protected $videoFullName = computed(() => {
-    const selectedEpisode = this.$selectedEpisode()
-    const searchDetails = this.$searchDetails()
-
-    if (selectedEpisode) {
-      return `${searchDetails.title} - ${selectedEpisode.name}`
-    }
-    return searchDetails.title
-  })
 
   protected episodesQuery = injectQuery(() => {
     const { url, policy } = this.$searchDetails()
