@@ -5,6 +5,7 @@ import {
   computed,
   effect,
   inject,
+  input,
   linkedSignal,
   signal,
 } from '@angular/core'
@@ -18,6 +19,7 @@ import { Card } from 'primeng/card'
 import { Panel } from 'primeng/panel'
 import { ProgressSpinner } from 'primeng/progressspinner'
 import { ScrollPanel } from 'primeng/scrollpanel'
+import { ScrollTop } from 'primeng/scrolltop'
 import { Select } from 'primeng/select'
 import { Skeleton } from 'primeng/skeleton'
 import { Tag } from 'primeng/tag'
@@ -26,6 +28,7 @@ import { VideoPlayer } from '../../../core/video-player/video-player'
 import { MaterialIcon } from '../../../shared/components/material-icon'
 import { PAGE_TITLE } from '../../../shared/constants'
 import { UnescapePipePipe } from '../../../shared/pipes/UrlDecodePipe'
+import { CommentsTab } from '../../bangumi/components/comments-tab'
 import { KazumiService } from '../services/kazumi.service'
 
 @Component({
@@ -45,8 +48,25 @@ import { KazumiService } from '../services/kazumi.service'
     Card,
     Panel,
     UnescapePipePipe,
+    CommentsTab,
+    ScrollTop,
   ],
   template: `
+    <ng-template #commentSection>
+      @if (type() === 'bangumi') {
+        @let bgmId = id();
+        @if (bgmId) {
+          <p-panel styleClass="border-0">
+            <ng-template #header>
+              <h3 class="text-lg bold">
+                吐槽
+              </h3>
+            </ng-template>
+            <da-comments-tab [subjectId]="bgmId" [visited]="true" />
+          </p-panel>
+        }
+      }
+    </ng-template>
     <div class="container mx-auto p-6 2xl:px-0 flex flex-col">
       @let mediaDetails = $searchDetails();
       <div class="mb-10 flex">
@@ -184,6 +204,7 @@ import { KazumiService } from '../services/kazumi.service'
             </div>
           </p-card>
         </div>
+        <ng-container [ngTemplateOutlet]="commentSection"></ng-container>
       </div>
     </div>
   `,
@@ -191,6 +212,19 @@ import { KazumiService } from '../services/kazumi.service'
 export class KazumiDetailPage {
   private kazumiService = inject(KazumiService)
   private title = inject(Title)
+
+  // query params
+  id = input<number>()
+  type = input<string>()
+
+  _ = effect(() => {
+    const id = this.id()
+    const type = this.type()
+    console.log({
+      id,
+      type,
+    })
+  })
 
   protected $searchDetails = computed(
     // biome-ignore lint/style/noNonNullAssertion: checked using guard

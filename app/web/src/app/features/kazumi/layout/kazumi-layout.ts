@@ -44,7 +44,8 @@ import { KazumiLayoutService } from '../services/kazumi-layout.service'
             severity="secondary"
             label="返回搜索"
             text
-            routerLink="/kazumi/search"
+            routerLink="/kazumi"
+            [queryParamsHandling]="'preserve'"
           >
             <ng-template #icon>
               <da-mat-icon icon="arrow_back" />

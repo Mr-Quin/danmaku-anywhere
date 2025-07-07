@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import { RouterOutlet } from '@angular/router'
+import { ScrollTop } from 'primeng/scrolltop'
 import { Toast } from 'primeng/toast'
 import { UpdateService } from '../../core/update/update.service'
 import { AppBar } from './app-bar'
@@ -19,6 +20,7 @@ import { UpdateBanner } from './update-banner'
     Toast,
     UpdateBanner,
     AppSidebar,
+    ScrollTop,
   ],
   template: `
     <p-toast position="top-left" />
@@ -37,6 +39,7 @@ import { UpdateBanner } from './update-banner'
         </div>
       </div>
     </div>
+    <p-scroll-top />
   `,
 })
 export class Layout {

@@ -218,16 +218,17 @@ export class KazumiSearchPage {
   })
 
   protected triggerSearch() {
-    // use user-entered string for search
-    const keyword = this.$localKeyword().trim()
-    if (keyword) {
-      this.kazumiService.updateQuery(keyword)
-      return
-    }
+    // use user-entered string for search,
     // or if there's a queried placeholder, use that as the search string
-    const placeholder = this.$searchPlaceholder()
-    if (placeholder) {
-      this.kazumiService.updateQuery(placeholder)
+    const searchTerm = this.$localKeyword().trim() || this.$searchPlaceholder()
+    if (searchTerm) {
+      this.kazumiService.updateQuery(searchTerm)
+      void this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { q: searchTerm },
+        queryParamsHandling: 'replace',
+        replaceUrl: true,
+      })
       return
     }
   }
@@ -245,7 +246,9 @@ export class KazumiSearchPage {
       title: item.name,
       policy,
     })
-    void this.router.navigate(['/kazumi/detail'])
+    void this.router.navigate(['/kazumi/detail'], {
+      queryParamsHandling: 'merge',
+    })
   }
 
   constructor() {
