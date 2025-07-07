@@ -11,7 +11,6 @@ import {
 } from '@angular/core'
 import { toObservable } from '@angular/core/rxjs-interop'
 import { FormsModule } from '@angular/forms'
-import { Title } from '@angular/platform-browser'
 import type { MediaInfo } from '@danmaku-anywhere/web-scraper'
 import { injectQuery } from '@tanstack/angular-query-experimental'
 import { Button } from 'primeng/button'
@@ -19,14 +18,12 @@ import { Card } from 'primeng/card'
 import { Panel } from 'primeng/panel'
 import { ProgressSpinner } from 'primeng/progressspinner'
 import { ScrollPanel } from 'primeng/scrollpanel'
-import { ScrollTop } from 'primeng/scrolltop'
 import { Select } from 'primeng/select'
 import { Skeleton } from 'primeng/skeleton'
 import { Tag } from 'primeng/tag'
 import { EMPTY, finalize, switchMap, tap } from 'rxjs'
 import { VideoPlayer } from '../../../core/video-player/video-player'
 import { MaterialIcon } from '../../../shared/components/material-icon'
-import { PAGE_TITLE } from '../../../shared/constants'
 import { UnescapePipePipe } from '../../../shared/pipes/UrlDecodePipe'
 import { CommentsTab } from '../../bangumi/components/comments-tab'
 import { KazumiService } from '../services/kazumi.service'
@@ -49,7 +46,6 @@ import { KazumiService } from '../services/kazumi.service'
     Panel,
     UnescapePipePipe,
     CommentsTab,
-    ScrollTop,
   ],
   template: `
     <ng-template #commentSection>
@@ -211,7 +207,6 @@ import { KazumiService } from '../services/kazumi.service'
 })
 export class KazumiDetailPage {
   private kazumiService = inject(KazumiService)
-  private title = inject(Title)
 
   // query params
   id = input<number>()
@@ -245,17 +240,6 @@ export class KazumiDetailPage {
       return `${searchDetails.title} - ${selectedEpisode.name}`
     }
     return searchDetails.title
-  })
-
-  // set page title
-  #_ = effect(() => {
-    const selectedEpisode = this.$selectedEpisode()
-
-    if (selectedEpisode) {
-      this.title.setTitle(`${PAGE_TITLE} - ${this.$videoFullName()}`)
-    } else {
-      this.title.setTitle(PAGE_TITLE)
-    }
   })
 
   protected episodesQuery = injectQuery(() => {

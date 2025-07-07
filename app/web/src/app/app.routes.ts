@@ -20,7 +20,7 @@ export const routes: Routes = [
           import('./features/bangumi/pages/trending/trending-page').then(
             (m) => m.TrendingPage
           ),
-        title: `${PAGE_TITLE} - 热门动画`,
+        title: `热门动画 | ${PAGE_TITLE}`,
       },
       {
         path: 'calendar',
@@ -28,7 +28,7 @@ export const routes: Routes = [
           import('./features/bangumi/pages/calendar/calendar-page').then(
             (m) => m.CalendarPage
           ),
-        title: `${PAGE_TITLE} - 放送日历`,
+        title: `放送日历 | ${PAGE_TITLE}`,
       },
       {
         path: 'details/:id',
@@ -36,7 +36,7 @@ export const routes: Routes = [
           import('./features/bangumi/pages/details/details-page').then(
             (m) => m.DetailsPage
           ),
-        title: `${PAGE_TITLE} - 详情`,
+        title: `详情 | ${PAGE_TITLE}`,
       },
       {
         path: 'kazumi',
@@ -44,7 +44,6 @@ export const routes: Routes = [
           import('./features/kazumi/layout/kazumi-layout').then(
             (m) => m.KazumiLayout
           ),
-        title: PAGE_TITLE,
         children: [
           {
             path: '',
@@ -57,7 +56,6 @@ export const routes: Routes = [
               import('./features/kazumi/pages/kazumi-search-page').then(
                 (m) => m.KazumiSearchPage
               ),
-            data: { showBackButton: false } satisfies RouteData,
           },
           {
             path: 'detail',

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import { RouterOutlet } from '@angular/router'
 import { ScrollTop } from 'primeng/scrolltop'
 import { Toast } from 'primeng/toast'
+import { TitleService } from '../../core/services/title.service'
 import { UpdateService } from '../../core/update/update.service'
 import { Settings } from '../../features/settings/settings.component'
 import { AppBar } from './app-bar'
@@ -46,6 +47,8 @@ import { UpdateBanner } from './update-banner'
   `,
 })
 export class Layout {
-  // initialize update service
-  _ = inject(UpdateService)
+  constructor() {
+    inject(UpdateService)
+    inject(TitleService)
+  }
 }

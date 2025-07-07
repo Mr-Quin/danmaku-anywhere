@@ -64,7 +64,7 @@ import { KazumiService } from '../services/kazumi.service'
   `,
   template: `
     <div
-      class="max-w-6xl mx-auto p-2 flex flex-col gap-4 items-center pt-[10vh] md:pt-[20vh] h-full transition-[padding] delay-150 duration-500"
+      class="max-w-6xl mx-auto mt-16 p-2 flex flex-col gap-4 items-center pt-[10vh] md:pt-[20vh] h-full transition-[padding] delay-150 duration-500"
       [class.!pt-0]="$hasQuery()"
     >
       @if (kazumiService.localPoliciesQuery.isPending()) {

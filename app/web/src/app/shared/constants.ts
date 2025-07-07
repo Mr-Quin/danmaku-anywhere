@@ -1,4 +1,4 @@
-export const PAGE_TITLE = 'Danmaku Somewhere'
+export const PAGE_TITLE = 'Danmaku Anywhere'
 
 export const GITHUB_REPO_URL = 'https://github.com/Mr-Quin/danmaku-anywhere'
 export const CHROME_STORE_URL =

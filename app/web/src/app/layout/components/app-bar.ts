@@ -5,7 +5,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome'
 import { faGithub } from '@fortawesome/free-brands-svg-icons'
 import { ButtonDirective } from 'primeng/button'
 import { Tag } from 'primeng/tag'
-import { GITHUB_REPO_URL } from '../../shared/constants'
+import { GITHUB_REPO_URL, PAGE_TITLE } from '../../shared/constants'
 import { Banner } from './banner'
 
 @Component({
@@ -29,7 +29,7 @@ import { Banner } from './banner'
         <div class="flex items-center gap-4">
           <div class="flex items-center gap-2">
             <h1 class="text-2xl font-bold"><a routerLink="/">
-              Danmaku Somewhere
+              {{ PAGE_TITLE }}
             </a></h1>
             <p-tag value="预览" severity="info" />
           </div>
@@ -44,4 +44,5 @@ import { Banner } from './banner'
 export class AppBar {
   protected readonly githubUrl = GITHUB_REPO_URL
   protected readonly github = faGithub
+  protected readonly PAGE_TITLE = PAGE_TITLE
 }

@@ -49,7 +49,8 @@ export interface ShowCardData {
             [ngSrc]="showData.cover ?? ''"
             [alt]="showData.altTitle"
             class="object-cover cursor-pointer hover:opacity-80 transition-opacity"
-            fill
+            [width]="400"
+            [height]="600"
             priority
             (click)="navigateToDetails(showData.id)" />
           @if (showData.rating?.score !== undefined) {
