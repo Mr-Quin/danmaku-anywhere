@@ -1,3 +1,4 @@
+import { Platform } from '@angular/cdk/platform'
 import { inject } from '@angular/core'
 import {
   type ActivatedRouteSnapshot,
@@ -14,7 +15,10 @@ export const hasExtension: CanActivateFn = (
 ) => {
   const router = inject(Router)
   const extensionService = inject(ExtensionService)
-  if (extensionService.$isExtensionInstalled()) {
+  const platform = inject(Platform)
+  const isMobile = platform.IOS || platform.ANDROID
+
+  if (extensionService.$isExtensionInstalled() && !isMobile) {
     return true
   }
   return new RedirectCommand(router.parseUrl('/no-extension'))
@@ -26,7 +30,10 @@ export const noExtension: CanActivateFn = (
 ) => {
   const router = inject(Router)
   const extensionService = inject(ExtensionService)
-  if (!extensionService.$isExtensionInstalled()) {
+  const platform = inject(Platform)
+  const isMobile = platform.IOS || platform.ANDROID
+
+  if (!extensionService.$isExtensionInstalled() || isMobile) {
     return true
   }
   return new RedirectCommand(router.parseUrl('/'))

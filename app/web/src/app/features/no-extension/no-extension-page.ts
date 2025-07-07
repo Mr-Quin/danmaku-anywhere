@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { Platform } from '@angular/cdk/platform'
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import { FaIconComponent } from '@fortawesome/angular-fontawesome'
 import { faChrome, faFirefoxBrowser } from '@fortawesome/free-brands-svg-icons'
 import { Button, ButtonDirective } from 'primeng/button'
@@ -17,28 +18,33 @@ import { ExternalLinkDirective } from '../../shared/directives/external-link.dir
   imports: [FaIconComponent, Button, ButtonDirective, ExternalLinkDirective],
   template: `
     <div class="flex flex-col justify-center items-center h-full">
-      <h1 class="text-2xl font-bold mb-4">此应用需要Danmaku Anywhere扩展v1.1.0或以上版本</h1>
-      <p-button class="hidden"></p-button>
-      @if (isChromium) {
-        <a pButton target="_blank" [href]="chromeStoreUrl">
-          安装Chrome扩展
-          <fa-icon [icon]="chrome" />
-        </a>
-      } @else if (isFirefox) {
-        <a pButton target="_blank" [href]="firefoxStoreUrl">
-          安装Firefox扩展
-          <fa-icon [icon]="firefox" />
-        </a>
+      @if (isMobile) {
+        <h1 class="text-2xl font-bold mb-4">暂时只支持桌面端使用</h1>
       } @else {
-        不支持Chromium和Fire以外的浏览器
+        <h1 class="text-2xl font-bold mb-4">此应用需要Danmaku Anywhere扩展v1.1.0或以上版本</h1>
+        <p-button class="hidden"></p-button>
+        @if (isChromium) {
+          <a pButton target="_blank" [href]="chromeStoreUrl">
+            安装Chrome扩展
+            <fa-icon [icon]="chrome" />
+          </a>
+        } @else if (isFirefox) {
+          <a pButton target="_blank" [href]="firefoxStoreUrl">
+            安装Firefox扩展
+            <fa-icon [icon]="firefox" />
+          </a>
+        } @else {
+          不支持Chromium和Fire以外的浏览器
+        }
+        <a daExternalLink class="text-gray-500 mt-8" target="_blank" [href]="githubUrl">
+          其他安装方式
+        </a>
       }
-      <a daExternalLink class="text-gray-500 mt-8" target="_blank" [href]="githubUrl">
-        其他安装方式
-      </a>
     </div>
   `,
 })
-export class NoExtension {
+export class NoExtensionPage {
+  private platform = inject(Platform)
   private ua = UAParser(navigator.userAgent)
   protected chrome = faChrome
   protected firefox = faFirefoxBrowser
@@ -50,4 +56,6 @@ export class NoExtension {
   protected isChromium = isChromeFamily(this.ua)
   protected isFirefox =
     this.ua.browser.name?.toLowerCase().includes('firefox') ?? false
+
+  protected isMobile = this.platform.IOS || this.platform.ANDROID
 }

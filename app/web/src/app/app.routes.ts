@@ -72,7 +72,9 @@ export const routes: Routes = [
   {
     path: 'no-extension',
     loadComponent: () =>
-      import('./core/pages/no-extension').then((m) => m.NoExtension),
+      import('./features/no-extension/no-extension-page').then(
+        (m) => m.NoExtensionPage
+      ),
     title: PAGE_TITLE,
     canActivate: [noExtension],
     data: { hideNavigation: true } satisfies RouteData,
