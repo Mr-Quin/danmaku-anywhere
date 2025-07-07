@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms'
 import { Button } from 'primeng/button'
 import { InputTextModule } from 'primeng/inputtext'
 import { TextareaModule } from 'primeng/textarea'
-import { MaterialIcon } from '../../../shared/components/material-icon'
 
 @Component({
   selector: 'da-kazumi-policy-create',
@@ -15,7 +14,6 @@ import { MaterialIcon } from '../../../shared/components/material-icon'
     FormsModule,
     InputTextModule,
     TextareaModule,
-    MaterialIcon,
   ],
   template: `
     <div class="space-y-6">

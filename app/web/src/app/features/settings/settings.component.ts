@@ -8,7 +8,6 @@ import {
 } from '@angular/core'
 import { Dialog } from 'primeng/dialog'
 import { MaterialIcon } from '../../shared/components/material-icon'
-import { KazumiPolicyCreate } from '../kazumi/components/kazumi-policy-create'
 import { KazumiPolicyImport } from '../kazumi/components/kazumi-policy-import'
 import { KazumiPolicyManage } from '../kazumi/components/kazumi-policy-manage'
 import { type SettingsRoute, SettingsService } from './settings.service'
@@ -22,7 +21,6 @@ import { type SettingsRoute, SettingsService } from './settings.service'
     MaterialIcon,
     KazumiPolicyManage,
     KazumiPolicyImport,
-    KazumiPolicyCreate,
   ],
   template: `
     <p-dialog
@@ -137,7 +135,6 @@ export class Settings implements OnInit {
   private $_expandedRoutes = signal<Set<string>>(new Set())
 
   ngOnInit() {
-    // Initialize routes
     this.settingsService.setRoutes([
       {
         id: 'general',
