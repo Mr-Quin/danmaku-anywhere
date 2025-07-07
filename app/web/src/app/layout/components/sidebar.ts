@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common'
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import { RouterLink, RouterLinkActive } from '@angular/router'
 import { Button } from 'primeng/button'
+import { SettingsService } from '../../features/settings/settings.service'
 import { MaterialIcon } from '../../shared/components/material-icon'
 import { LayoutService } from '../layout.service'
 
@@ -57,6 +58,8 @@ interface NavigationSection {
               severity="secondary"
               (onClick)="openSettings()"
               styleClass="w-full"
+              [badge]="settingsService.$showBadge() ? ' ' : undefined"
+              badgeSeverity="info"
             >
               <ng-template #icon>
                 <da-mat-icon icon="settings" size="lg" />
@@ -70,6 +73,7 @@ interface NavigationSection {
 })
 export class AppSidebar {
   protected layoutService = inject(LayoutService)
+  protected settingsService = inject(SettingsService)
 
   protected readonly navigationSections: NavigationSection[] = [
     {
@@ -100,6 +104,6 @@ export class AppSidebar {
   ]
 
   openSettings() {
-    console.log('Settings clicked')
+    this.settingsService.show()
   }
 }

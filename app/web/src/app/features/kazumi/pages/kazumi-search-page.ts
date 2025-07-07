@@ -23,11 +23,11 @@ import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'primeng/tabs'
 import { MaterialIcon } from '../../../shared/components/material-icon'
 import { randomFrom } from '../../../shared/utils/utils'
 import { BangumiService } from '../../bangumi/services/bangumi.service'
+import { SettingsService } from '../../settings/settings.service'
 import { KazumiPolicyImportDialog } from '../components/kazumi-policy-readme'
 import { KazumiPolicyTab } from '../components/kazumi-policy-tab'
 import { SearchResultsComponent } from '../components/kazumi-search-results'
 import { KazumiService } from '../services/kazumi.service'
-import { KazumiLayoutService } from '../services/kazumi-layout.service'
 
 @Component({
   selector: 'da-kazumi-search-page',
@@ -160,7 +160,7 @@ import { KazumiLayoutService } from '../services/kazumi-layout.service'
         <p-button
           severity="secondary"
           text
-          (onClick)="kazumiLayoutService.$showManageDialog.set(true);kazumiLayoutService.$showImportDialog.set(true)">
+          (onClick)="openSettings()">
           手动导入规则
         </p-button>
       }
@@ -176,7 +176,7 @@ export class KazumiSearchPage {
   protected kazumiService = inject(KazumiService)
   protected router = inject(Router)
   protected route = inject(ActivatedRoute)
-  protected kazumiLayoutService = inject(KazumiLayoutService)
+  private settingsService = inject(SettingsService)
   protected bangumiService = inject(BangumiService)
 
   protected $showPolicy = signal(false)
@@ -258,5 +258,9 @@ export class KazumiSearchPage {
         this.kazumiService.updateQuery(query)
       }
     })
+  }
+
+  protected openSettings() {
+    this.settingsService.show('kazumi-import')
   }
 }

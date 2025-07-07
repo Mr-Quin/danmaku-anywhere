@@ -3,6 +3,7 @@ import { RouterOutlet } from '@angular/router'
 import { ScrollTop } from 'primeng/scrolltop'
 import { Toast } from 'primeng/toast'
 import { UpdateService } from '../../core/update/update.service'
+import { Settings } from '../../features/settings/settings.component'
 import { AppBar } from './app-bar'
 import { AppFooter } from './app-footer'
 import { CookieConsentFooter } from './cookie-consent-footer'
@@ -21,6 +22,7 @@ import { UpdateBanner } from './update-banner'
     UpdateBanner,
     AppSidebar,
     ScrollTop,
+    Settings,
   ],
   template: `
     <p-toast position="top-left" />
@@ -40,6 +42,7 @@ import { UpdateBanner } from './update-banner'
       </div>
     </div>
     <p-scroll-top />
+    <da-settings />
   `,
 })
 export class Layout {
