@@ -7,13 +7,14 @@ import {
   contentChild,
   type ElementRef,
   effect,
+  inject,
   input,
   type OnDestroy,
   signal,
   type TemplateRef,
   viewChild,
 } from '@angular/core'
-import Artplayer from 'artplayer'
+import { type VideoPlayerConfig, VideoService } from './video.service'
 
 @Component({
   selector: 'da-video-player',
@@ -31,19 +32,31 @@ import Artplayer from 'artplayer'
       }
   `,
   template: `
-    <div class="bg-black w-full aspect-video relative">
+    <div class="bg-black w-full aspect-video relative"
+         (mouseenter)="onMouseEnter()"
+         (mouseleave)="onMouseLeave()">
       <div #artPlayer class="w-full h-full absolute"></div>
     </div>
-    <div #overlay class="size-full">
+    <div #overlayLayer class="size-full">
       @if ($showLoadingOverlay() && $contentTemplate(); as template) {
         <ng-container *ngTemplateOutlet="template"></ng-container>
+      }
+    </div>
+    <div #titleLayer class="absolute top-0 left-0 w-full p-4 pointer-events-none">
+      @if ($showTitle() && title()) {
+        <div class="bg-black/50 text-white px-4 py-2 rounded-lg inline-block">
+          <h2 class="text-lg font-semibold">{{ title() }}</h2>
+        </div>
       }
     </div>
   `,
 })
 export class VideoPlayer implements AfterViewInit, OnDestroy {
+  private readonly videoService = inject(VideoService)
+
   $artPlayerDiv = viewChild.required<ElementRef<HTMLDivElement>>('artPlayer')
-  $overlayLayer = viewChild.required<ElementRef<HTMLDivElement>>('overlay')
+  $overlayLayer = viewChild.required<ElementRef<HTMLDivElement>>('overlayLayer')
+  $titleLayer = viewChild.required<ElementRef<HTMLDivElement>>('titleLayer')
 
   $contentTemplate = contentChild<TemplateRef<unknown>>('content')
 
@@ -52,103 +65,102 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
   title = input<string>()
   showOverlay = input<boolean>(false)
 
-  protected $loadedMetadata = signal(false)
+  private $isHovering = signal(false)
+
   protected $showLoadingOverlay = computed(() => {
-    return !this.$loadedMetadata() && this.showOverlay()
+    return !this.videoService.$isVideoReady() || this.showOverlay()
   })
 
-  protected $isVideoReady = signal(false)
-
-  private $player = signal<Artplayer | null>(null)
-
-  // update player url
-  #_ = effect(() => {
-    const url = this.videoUrl()
-    const player = this.$player()
-    if (player) {
-      player.url = url ?? ''
-    }
+  protected $showTitle = computed(() => {
+    const isFullscreen =
+      this.videoService.$isFullscreen() || this.videoService.$isFullscreenWeb()
+    const isHovering = this.$isHovering()
+    const hasTitle = !!this.title()
+    return (
+      isFullscreen &&
+      isHovering &&
+      hasTitle &&
+      this.videoService.$isVideoReady()
+    )
   })
 
-  // add overlay layer to player
-  #__ = effect(() => {
-    const layer = this.$overlayLayer()
-    const player = this.$player()
-    if (player) {
-      player.layers.add({
-        index: 0,
-        name: 'overlay',
-        style: {
-          position: 'absolute',
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none',
-        },
-        html: layer.nativeElement,
-      })
-    }
-  })
+  constructor() {
+    // update video url separately
+    effect(() => {
+      const url = this.videoUrl()
+      if (url !== undefined) {
+        this.videoService.updateUrl(url)
+      }
+    })
+
+    // update poster separately
+    effect(() => {
+      const poster = this.poster()
+      if (poster !== undefined) {
+        this.videoService.updatePoster(poster)
+      }
+    })
+  }
 
   ngAfterViewInit() {
     this.initializePlayer()
   }
 
   ngOnDestroy() {
-    this.destroyPlayer()
+    this.videoService.destroy()
+  }
+
+  protected onMouseEnter() {
+    this.$isHovering.set(true)
+  }
+
+  protected onMouseLeave() {
+    this.$isHovering.set(false)
+  }
+
+  private addOverlayLayer() {
+    const overlayLayer = this.$overlayLayer()
+    this.videoService.addLayer({
+      index: 0,
+      name: 'overlay',
+      style: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+      },
+      html: overlayLayer.nativeElement,
+    })
+  }
+
+  private addTitleLayer() {
+    const titleLayer = this.$titleLayer()
+    this.videoService.addLayer({
+      index: 10,
+      name: 'title',
+      style: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+      },
+      html: titleLayer.nativeElement,
+    })
   }
 
   private initializePlayer() {
     const url = this.videoUrl() ?? ''
+    const poster = this.poster()
+    const title = this.title()
 
-    const player = new Artplayer({
-      container: this.$artPlayerDiv().nativeElement,
+    const config: VideoPlayerConfig = {
       url,
-      volume: 0.7,
-      isLive: false,
-      muted: false,
-      autoplay: true,
-      pip: true,
-      autoSize: true,
-      autoMini: true,
-      screenshot: true,
-      setting: true,
-      loop: false,
-      flip: true,
-      playbackRate: true,
-      aspectRatio: true,
-      fullscreen: true,
-      fullscreenWeb: true,
-      subtitleOffset: true,
-      miniProgressBar: true,
-      mutex: true,
-      backdrop: true,
-      playsInline: true,
-      autoPlayback: true,
-      airplay: false,
-      lang: 'zh-cn',
-      theme: '#f472b6',
-      ...(this.poster() ? { poster: this.poster() } : {}),
-    })
-
-    player.on('video:loadedmetadata', () => {
-      this.$loadedMetadata.set(true)
-      console.log('loaded metadata')
-    })
-
-    player.on('resize', () => {
-      this.$artPlayerDiv().nativeElement.getClientRects()
-    })
-
-    this.$player.set(player)
-    this.$isVideoReady.set(true)
-  }
-
-  private destroyPlayer() {
-    const player = this.$player()
-    if (player) {
-      player.destroy()
-      this.$player.set(null)
-      this.$isVideoReady.set(false)
+      poster,
+      title,
     }
+
+    this.videoService.initialize(this.$artPlayerDiv(), config)
+    this.addTitleLayer()
+    this.addOverlayLayer()
   }
 }

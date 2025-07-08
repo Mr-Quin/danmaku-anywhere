@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common'
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import { RouterLink, RouterLinkActive } from '@angular/router'
 import { Button } from 'primeng/button'
+import { environment } from '../../../environments/environment'
 import { SettingsService } from '../../features/settings/settings.service'
 import { MaterialIcon } from '../../shared/components/material-icon'
 import { LayoutService } from '../layout.service'
@@ -99,6 +100,15 @@ export class AppSidebar {
           label: 'Kazumi',
           icon: 'search',
         },
+        ...(environment.production
+          ? []
+          : [
+              {
+                path: '/kazumi/debug',
+                label: 'Video Debug',
+                icon: 'bug_report',
+              },
+            ]),
       ],
     },
   ]
