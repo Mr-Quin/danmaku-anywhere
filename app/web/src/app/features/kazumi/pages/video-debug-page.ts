@@ -61,6 +61,10 @@ interface DebugVideoSource {
           [title]="selectedEpisode?.name || ''"
           [poster]="selectedEpisode?.poster || ''"
           [showOverlay]="$showOverlay() || $isLoading()"
+          [hasPrevious]="$hasPrevious()"
+          [hasNext]="$hasNext()"
+          (previousEpisode)="onPreviousEpisode()"
+          (nextEpisode)="onNextEpisode()"
         >
           <ng-template #content>
             <div class="size-full flex flex-col justify-center items-center gap-4">
@@ -123,6 +127,20 @@ interface DebugVideoSource {
                 size="small"
                 severity="secondary"
               />
+              <p-button
+                label="上一集"
+                (onClick)="onPreviousEpisode()"
+                size="small"
+                severity="help"
+                [disabled]="!$hasPrevious()"
+              />
+              <p-button
+                label="下一集"
+                (onClick)="onNextEpisode()"
+                size="small"
+                severity="help"
+                [disabled]="!$hasNext()"
+              />
             </div>
             <div class="mt-4 mb-4">
               <label class="block text-sm font-medium mb-2">加载延迟 (ms)</label>
@@ -158,6 +176,9 @@ interface DebugVideoSource {
                 <div>静音: {{ videoService.$muted() ? '✓' : '✗' }}</div>
                 <div>加载中: {{ $isLoading() ? '✓' : '✗' }}</div>
                 <div>覆盖层: {{ $showOverlay() ? '✓' : '✗' }}</div>
+                <div>当前集数: {{ $currentEpisodeIndex() + 1 }}/{{ $episodes().length }}</div>
+                <div>有上一集: {{ $hasPrevious() ? '✓' : '✗' }}</div>
+                <div>有下一集: {{ $hasNext() ? '✓' : '✗' }}</div>
               </div>
             </div>
           </p-panel>
@@ -277,6 +298,24 @@ export class VideoDebugPage {
     return source?.episodes || []
   })
 
+  protected $currentEpisodeIndex = computed(() => {
+    const selectedEpisode = this.$selectedEpisode()
+    const episodes = this.$episodes()
+    if (!selectedEpisode) return -1
+    return episodes.findIndex((ep) => ep.url === selectedEpisode.url)
+  })
+
+  protected $hasPrevious = computed(() => {
+    const currentIndex = this.$currentEpisodeIndex()
+    return currentIndex > 0
+  })
+
+  protected $hasNext = computed(() => {
+    const currentIndex = this.$currentEpisodeIndex()
+    const episodes = this.$episodes()
+    return currentIndex >= 0 && currentIndex < episodes.length - 1
+  })
+
   protected onEpisodeClick(episode: DebugEpisode) {
     // Simulate async loading behavior
     this.$isLoading.set(true)
@@ -287,6 +326,24 @@ export class VideoDebugPage {
       this.$videoUrl.set(episode.url)
       this.$isLoading.set(false)
     }, this.$loadingTimeout())
+  }
+
+  protected onPreviousEpisode() {
+    const currentIndex = this.$currentEpisodeIndex()
+    const episodes = this.$episodes()
+    if (currentIndex > 0) {
+      const previousEpisode = episodes[currentIndex - 1]
+      this.onEpisodeClick(previousEpisode)
+    }
+  }
+
+  protected onNextEpisode() {
+    const currentIndex = this.$currentEpisodeIndex()
+    const episodes = this.$episodes()
+    if (currentIndex >= 0 && currentIndex < episodes.length - 1) {
+      const nextEpisode = episodes[currentIndex + 1]
+      this.onEpisodeClick(nextEpisode)
+    }
   }
 
   protected playVideo() {

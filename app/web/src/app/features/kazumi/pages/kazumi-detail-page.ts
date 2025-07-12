@@ -3,13 +3,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
   inject,
   input,
   linkedSignal,
   signal,
 } from '@angular/core'
-import { toObservable } from '@angular/core/rxjs-interop'
 import { FormsModule } from '@angular/forms'
 import type { MediaInfo } from '@danmaku-anywhere/web-scraper'
 import { injectQuery } from '@tanstack/angular-query-experimental'
@@ -21,12 +19,18 @@ import { ScrollPanel } from 'primeng/scrollpanel'
 import { Select } from 'primeng/select'
 import { Skeleton } from 'primeng/skeleton'
 import { Tag } from 'primeng/tag'
-import { EMPTY, finalize, switchMap, tap } from 'rxjs'
+import { defer, type Subscription, tap } from 'rxjs'
 import { VideoPlayer } from '../../../core/video-player/video-player'
 import { MaterialIcon } from '../../../shared/components/material-icon'
 import { UnescapePipePipe } from '../../../shared/pipes/UrlDecodePipe'
 import { CommentsTab } from '../../bangumi/components/comments-tab'
+import { BangumiService } from '../../bangumi/services/bangumi.service'
 import { KazumiService } from '../services/kazumi.service'
+
+interface Episode {
+  name: string
+  url: string
+}
 
 @Component({
   selector: 'da-kazumi-detail-page',
@@ -82,14 +86,19 @@ import { KazumiService } from '../services/kazumi.service'
       </div>
 
       <div class="grid grid-cols-1 xl:grid-cols-[1fr_424px] gap-8">
-        @let isLoading = episodesQuery.isPending() || $isVideoUrlLoading();
         <da-video-player
           [videoUrl]="$videoUrl()"
-          [title]=""
-          [showOverlay]="isLoading || !$videoUrl()"
+          [title]="$fullTitle()"
+          [poster]="$posterUrl()"
+          [showOverlay]="$showOverlay()"
+          [hasPrevious]="$hasPrevious()"
+          [hasNext]="$hasNext()"
+          (previousEpisode)="onPreviousEpisode()"
+          (nextEpisode)="onNextEpisode()"
         >
           <ng-template #content>
             <div class="size-full flex flex-col justify-center items-center">
+              @let isLoading = episodesQuery.isPending() || $isVideoUrlLoading();
               @if (isLoading) {
                 <p-progress-spinner />
                 <p>
@@ -130,7 +139,7 @@ import { KazumiService } from '../services/kazumi.service'
         </da-video-player>
         <div class="flex flex-col gap-4">
           <p-panel toggler="header" toggleable="true" collapsed="true" styleClass="border-0">
-            @let mediaList = media$ | async;
+            @let mediaList = $mediaList();
             <ng-template #header>
               <div class="flex items-center gap-2">
                 <h3 class="font-bold">资源列表
@@ -143,7 +152,7 @@ import { KazumiService } from '../services/kazumi.service'
               </div>
             </ng-template>
             @if (mediaList?.length) {
-              @for (media of media$ | async; track $index) {
+              @for (media of mediaList; track $index) {
                 <p-button class="flex"
                           [styleClass]="media.src === $videoUrl() ? 'border-primary border' : ''"
                           severity="secondary" (onClick)="$videoUrl.set(media.src)">
@@ -183,7 +192,7 @@ import { KazumiService } from '../services/kazumi.service'
                         <div
                           class="p-4 p-button p-button-secondary transition-all hover:border-primary hover:border"
                           [class.border-primary]="isSelected"
-                          (click)="onEpisodeClick(episode)"
+                          (click)="changeEpisode(episode)"
                         >
                           <div class="flex-1 flex items-center">
                             <p
@@ -209,27 +218,19 @@ import { KazumiService } from '../services/kazumi.service'
 })
 export class KazumiDetailPage {
   private kazumiService = inject(KazumiService)
+  private bangumiService = inject(BangumiService)
 
   // query params
   id = input<number>()
   type = input<string>()
 
-  _ = effect(() => {
-    const id = this.id()
-    const type = this.type()
-    console.log({
-      id,
-      type,
-    })
-  })
-
   protected $searchDetails = computed(
     // biome-ignore lint/style/noNonNullAssertion: checked using guard
     () => this.kazumiService.$searchDetails()!
   )
-  protected $selectedEpisode = signal<{ name: string; url: string } | null>(
-    null
-  )
+
+  protected $mediaList = signal<MediaInfo[]>([])
+  protected $selectedEpisode = signal<Episode | null>(null)
   protected $videoUrl = signal<string | undefined>(undefined)
   protected $isVideoUrlLoading = signal(false)
   protected $isVideoUrlError = signal(false)
@@ -240,39 +241,60 @@ export class KazumiDetailPage {
     return this.kazumiService.getChaptersQueryOptions(url, policy)
   })
 
-  media$ = toObservable(this.$selectedEpisode).pipe(
-    tap(() => {
-      this.$isVideoUrlLoading.set(true)
-      this.$isVideoUrlError.set(false)
-      this.$videoUrl.set(undefined)
-    }),
-    switchMap((episode) => {
-      if (!episode) {
-        this.$isVideoUrlLoading.set(false)
-        return EMPTY
-      }
+  protected bangumiSubjectQuery = injectQuery(() => {
+    const id = this.id()
+    const type = this.type()
+    return {
+      // biome-ignore lint/style/noNonNullAssertion: checked in 'enabled'
+      ...this.bangumiService.getSubjectDetailsQueryOptions(id!),
+      enabled: type === 'bangumi' && !!id,
+    }
+  })
 
-      let isFirstItem = true
-      let lastValue: MediaInfo[] = []
+  protected $posterUrl = computed(() => {
+    const type = this.type()
+    if (type === 'bangumi' && this.bangumiSubjectQuery.isSuccess()) {
+      const subject = this.bangumiSubjectQuery.data()
+      return subject?.images?.large || subject?.images?.common
+    }
+    return ''
+  })
 
-      return this.kazumiService.getMediaInfoStream(episode.url).pipe(
-        tap((media) => {
-          if (media.length > 0 && isFirstItem) {
-            // only set the videoUrl once
-            this.$videoUrl.set(media[0].src)
-            isFirstItem = false
-          }
-          lastValue = media
-        }),
-        finalize(() => {
-          this.$isVideoUrlLoading.set(false)
-          if (!lastValue.length) {
-            this.$isVideoUrlError.set(true)
-          }
-        })
-      )
-    })
-  )
+  protected $fullTitle = computed(() => {
+    const title = this.$searchDetails().title
+    const episodeTitle = this.$selectedEpisode()?.name
+    if (episodeTitle) {
+      return `${title} - ${episodeTitle}`
+    }
+    return title
+  })
+
+  protected $showOverlay = computed(() => {
+    return (
+      this.$isVideoUrlLoading() ||
+      this.$isVideoUrlError() ||
+      !this.$selectedEpisode() ||
+      this.episodesQuery.isPending()
+    )
+  })
+
+  protected $currentEpisodeIndex = computed(() => {
+    const selectedEpisode = this.$selectedEpisode()
+    const playlist = this.$playlist()
+    if (!selectedEpisode) return -1
+    return playlist.findIndex((ep) => ep.url === selectedEpisode.url)
+  })
+
+  protected $hasPrevious = computed(() => {
+    const currentIndex = this.$currentEpisodeIndex()
+    return currentIndex > 0
+  })
+
+  protected $hasNext = computed(() => {
+    const currentIndex = this.$currentEpisodeIndex()
+    const playlist = this.$playlist()
+    return currentIndex >= 0 && currentIndex < playlist.length - 1
+  })
 
   protected $playlistOptions = computed(
     () =>
@@ -295,7 +317,64 @@ export class KazumiDetailPage {
     return []
   })
 
-  protected onEpisodeClick(episode: { name: string; url: string }) {
+  protected changeEpisode(episode: Episode) {
     this.$selectedEpisode.set(episode)
+    this.subscribeMediaStream(episode.url)
+    this.$isVideoUrlLoading.set(true)
+    this.$isVideoUrlError.set(false)
+    this.$mediaList.set([])
+    // set url to empty string to unload the current video
+    this.$videoUrl.set('')
+  }
+
+  protected onPreviousEpisode() {
+    const currentIndex = this.$currentEpisodeIndex()
+    const playlist = this.$playlist()
+    if (currentIndex > 0) {
+      const previousEpisode = playlist[currentIndex - 1]
+      this.changeEpisode(previousEpisode)
+    }
+  }
+
+  protected onNextEpisode() {
+    const currentIndex = this.$currentEpisodeIndex()
+    const playlist = this.$playlist()
+    if (currentIndex >= 0 && currentIndex < playlist.length - 1) {
+      const nextEpisode = playlist[currentIndex + 1]
+      this.changeEpisode(nextEpisode)
+    }
+  }
+
+  private mediaSubscription: Subscription | null = null
+
+  private subscribeMediaStream(url: string) {
+    if (this.mediaSubscription) {
+      this.mediaSubscription.unsubscribe()
+    }
+
+    this.mediaSubscription = defer(() => {
+      return this.kazumiService.getMediaInfoStream(url).pipe(
+        tap((mediaInfo) => {
+          // if no video is available yet, set it to the first one found
+          if (mediaInfo[0] && !this.$videoUrl()) {
+            this.$videoUrl.set(mediaInfo[0].src)
+          }
+          this.$mediaList.update((prev) => {
+            return [...prev, ...mediaInfo]
+          })
+        })
+      )
+    }).subscribe({
+      complete: () => {
+        this.$isVideoUrlLoading.set(false)
+        if (
+          this.$selectedEpisode()?.url === url &&
+          this.$mediaList().length === 0
+        ) {
+          // the episode might have changed, but if we are still on the same episode, and there are no media found, then set the error
+          this.$isVideoUrlError.set(true)
+        }
+      },
+    })
   }
 }

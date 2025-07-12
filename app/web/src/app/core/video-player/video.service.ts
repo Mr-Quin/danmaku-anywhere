@@ -6,6 +6,7 @@ import {
   untracked,
 } from '@angular/core'
 import Artplayer from 'artplayer'
+import type { ComponentOption } from 'artplayer/types/component'
 
 export interface VideoPlayerConfig {
   url: string
@@ -30,18 +31,28 @@ export interface VideoPlayerState {
   isFullscreenWeb: boolean
 }
 
-interface VideoPlayerLayer {
-  index: number
-  name: string
-  style: Record<string, string>
-  html: HTMLElement
+const defaultPlayerState = {
+  isReady: false,
+  isPlaying: false,
+  isPaused: false,
+  isEnded: false,
+  isVideoReady: false,
+  currentTime: 0,
+  duration: 0,
+  volume: 0.7,
+  muted: false,
+  isFullscreen: false,
+  isFullscreenWeb: false,
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class VideoService {
-  private layers: VideoPlayerLayer[] = []
+  private layers: ComponentOption[] = []
+  private layerNames = new Set<string>()
+  private controls: ComponentOption[] = []
+  private controlNames = new Set<string>()
 
   private $player = signal<Artplayer | null>(null)
   private $container = signal<ElementRef<HTMLDivElement> | null>(null)
@@ -51,19 +62,7 @@ export class VideoService {
     return this.$player.asReadonly()
   }
 
-  private readonly $state = signal<VideoPlayerState>({
-    isReady: false,
-    isPlaying: false,
-    isPaused: false,
-    isEnded: false,
-    isVideoReady: false,
-    currentTime: 0,
-    duration: 0,
-    volume: 0.7,
-    muted: false,
-    isFullscreen: false,
-    isFullscreenWeb: false,
-  })
+  private readonly $state = signal<VideoPlayerState>(defaultPlayerState)
 
   readonly $url = computed(() => this.$config()?.url)
   readonly $title = computed(() => this.$config()?.title)
@@ -122,23 +121,18 @@ export class VideoService {
     this.layers.forEach((layer) => {
       player.layers.add(layer)
     })
+    this.controls.forEach((control) => {
+      player.controls.add(control)
+    })
 
     return player
   }
 
   updateUrl(url: string): void {
     this.updateConfig({ url })
-    this.updateState({ isVideoReady: false })
-    const player = untracked(() => this.$player())
-    if (player) {
-      player.destroy()
-      this.initialize(
-        // biome-ignore lint/style/noNonNullAssertion: not null since player already exists
-        untracked(() => this.$container())!,
-        // biome-ignore lint/style/noNonNullAssertion: not null since player already exists
-        untracked(() => this.$config())!
-      )
-    }
+    // when the url changes, recreate the player to show the poster
+    console.log('updateUrl', url)
+    this.recreate()
   }
 
   updatePoster(poster: string): void {
@@ -149,8 +143,14 @@ export class VideoService {
     }
   }
 
-  addLayer(layer: VideoPlayerLayer): void {
+  addLayer(layer: ComponentOption): void {
+    if (layer.name && this.layerNames.has(layer.name)) {
+      return
+    }
     this.layers.push(layer)
+    if (layer.name) {
+      this.layerNames.add(layer.name)
+    }
     const player = this.$player()
     if (player) {
       player.layers.add(layer)
@@ -158,9 +158,41 @@ export class VideoService {
   }
 
   removeLayer(name: string): void {
+    if (!this.layerNames.has(name)) {
+      return
+    }
+    this.layerNames.delete(name)
+    this.layers = this.layers.filter((l) => l.name !== name)
+    this.layerNames.delete(name)
     const player = this.$player()
     if (player) {
       player.layers.remove(name)
+    }
+  }
+
+  addControl(control: ComponentOption): void {
+    if (control.name && this.controlNames.has(control.name)) {
+      return
+    }
+    this.controls.push(control)
+    if (control.name) {
+      this.controlNames.add(control.name)
+    }
+    const player = this.$player()
+    if (player) {
+      player.controls.add(control)
+    }
+  }
+
+  removeControl(name: string): void {
+    if (!this.controlNames.has(name)) {
+      return
+    }
+    this.controls = this.controls.filter((c) => c.name !== name)
+    this.controlNames.delete(name)
+    const player = this.$player()
+    if (player) {
+      player.controls.remove(name)
     }
   }
 
@@ -171,19 +203,11 @@ export class VideoService {
       this.$player.set(null)
       this.$container.set(null)
       this.$config.set(null)
-      this.updateState({
-        isReady: false,
-        isPlaying: false,
-        isPaused: false,
-        isEnded: false,
-        currentTime: 0,
-        duration: 0,
-        volume: 0.7,
-        muted: false,
-        isVideoReady: false,
-        isFullscreen: false,
-        isFullscreenWeb: false,
-      })
+      this.layers = []
+      this.controls = []
+      this.layerNames.clear()
+      this.controlNames.clear()
+      this.updateState(defaultPlayerState)
     }
   }
 
@@ -227,6 +251,20 @@ export class VideoService {
     player.on('fullscreenWeb', (isFullscreenWeb: boolean) => {
       this.updateState({ isFullscreenWeb })
     })
+  }
+
+  private recreate() {
+    const player = untracked(() => this.$player())
+    if (player) {
+      this.updateState({ isVideoReady: false })
+      player.destroy(true)
+      this.initialize(
+        // biome-ignore lint/style/noNonNullAssertion: not null since player already exists
+        untracked(() => this.$container())!,
+        // biome-ignore lint/style/noNonNullAssertion: not null since player already exists
+        untracked(() => this.$config())!
+      )
+    }
   }
 
   private updateConfig(config: Partial<VideoPlayerConfig>): void {

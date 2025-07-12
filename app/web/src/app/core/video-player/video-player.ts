@@ -10,6 +10,7 @@ import {
   inject,
   input,
   type OnDestroy,
+  output,
   signal,
   type TemplateRef,
   viewChild,
@@ -23,18 +24,41 @@ import { type VideoPlayerConfig, VideoService } from './video.service'
   host: {
     '[class.hide-art-loading]': 'showOverlay()',
   },
-  // hide artplayer's default loader
+  // hide artplayer's default loader and add title animations
   styles: `
       :host(.hide-art-loading) {
           ::ng-deep .art-loading {
               display: none;
           }
       }
+      
+      :host {
+          ::ng-deep .art-poster {
+              opacity: 40%;
+          }
+      }
+      
+      .title-container {
+          transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+          opacity: 0;
+          transform: translateY(-10px);
+      }
+      
+      .title-container.show {
+          opacity: 1;
+          transform: translateY(0);
+      }
+      
+      .title-container.hide {
+          opacity: 0;
+          transform: translateY(-10px);
+      }
   `,
   template: `
     <div class="bg-black w-full aspect-video relative"
          (mouseenter)="onMouseEnter()"
-         (mouseleave)="onMouseLeave()">
+         (mouseleave)="onMouseLeave()"
+         (mousemove)="onMouseMove()">
       <div #artPlayer class="w-full h-full absolute"></div>
     </div>
     <div #overlayLayer class="size-full">
@@ -43,9 +67,11 @@ import { type VideoPlayerConfig, VideoService } from './video.service'
       }
     </div>
     <div #titleLayer class="absolute top-0 left-0 w-full p-4 pointer-events-none">
-      @if ($showTitle() && title()) {
-        <div class="bg-black/50 text-white px-4 py-2 rounded-lg inline-block">
-          <h2 class="text-lg font-semibold">{{ title() }}</h2>
+      @if (title()) {
+        <div class="title-container" [class.show]="$showTitle()" [class.hide]="!$showTitle()">
+          <div class="bg-black/70 text-white px-4 py-2 rounded-lg inline-block backdrop-blur-sm">
+            <h2 class="text-lg font-semibold">{{ title() }}</h2>
+          </div>
         </div>
       }
     </div>
@@ -64,21 +90,32 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
   poster = input<string>()
   title = input<string>()
   showOverlay = input<boolean>(false)
+  hasPrevious = input<boolean>(false)
+  hasNext = input<boolean>(false)
+
+  previousEpisode = output<void>()
+  nextEpisode = output<void>()
 
   private $isHovering = signal(false)
+  private $shouldShowTitle = signal(false)
+  private hideTimer: ReturnType<typeof setTimeout> | null = null
+  private mouseMoveTimer: ReturnType<typeof setTimeout> | null = null
 
   protected $showLoadingOverlay = computed(() => {
-    return !this.videoService.$isVideoReady() || this.showOverlay()
+    if (this.videoService.$isVideoReady()) {
+      return false
+    }
+    return this.showOverlay()
   })
 
   protected $showTitle = computed(() => {
     const isFullscreen =
       this.videoService.$isFullscreen() || this.videoService.$isFullscreenWeb()
-    const isHovering = this.$isHovering()
+    const shouldShow = this.$shouldShowTitle()
     const hasTitle = !!this.title()
     return (
       isFullscreen &&
-      isHovering &&
+      shouldShow &&
       hasTitle &&
       this.videoService.$isVideoReady()
     )
@@ -100,22 +137,109 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
         this.videoService.updatePoster(poster)
       }
     })
+
+    // update controls
+    effect(() => {
+      if (this.hasPrevious()) {
+        this.addPreviousEpisodeControl()
+      } else {
+        this.removePreviousEpisodeControl()
+      }
+    })
+    effect(() => {
+      if (this.hasNext()) {
+        this.addNextEpisodeControl()
+      } else {
+        this.removeNextEpisodeControl()
+      }
+    })
   }
 
   ngAfterViewInit() {
     this.initializePlayer()
+    this.setupMediaSession()
   }
 
   ngOnDestroy() {
+    this.clearTimers()
+    this.clearMediaSession()
     this.videoService.destroy()
   }
 
   protected onMouseEnter() {
     this.$isHovering.set(true)
+    this.clearTimers()
+    this.$shouldShowTitle.set(true)
   }
 
   protected onMouseLeave() {
     this.$isHovering.set(false)
+    this.startHideTimer()
+  }
+
+  protected onMouseMove() {
+    this.clearMouseMoveTimer()
+
+    if (this.$isHovering() && this.title()) {
+      this.$shouldShowTitle.set(true)
+    }
+
+    this.startMouseMoveTimer()
+  }
+
+  private startHideTimer() {
+    this.clearTimers()
+    this.hideTimer = setTimeout(() => {
+      this.$shouldShowTitle.set(false)
+    }, 3000)
+  }
+
+  private startMouseMoveTimer() {
+    this.mouseMoveTimer = setTimeout(() => {
+      this.$shouldShowTitle.set(false)
+    }, 3000)
+  }
+
+  private clearTimers() {
+    if (this.hideTimer) {
+      clearTimeout(this.hideTimer)
+      this.hideTimer = null
+    }
+    this.clearMouseMoveTimer()
+  }
+
+  private clearMouseMoveTimer() {
+    if (this.mouseMoveTimer) {
+      clearTimeout(this.mouseMoveTimer)
+      this.mouseMoveTimer = null
+    }
+  }
+
+  private setupMediaSession() {
+    if (!('mediaSession' in navigator)) {
+      return
+    }
+
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+      if (this.hasPrevious()) {
+        this.previousEpisode.emit()
+      }
+    })
+
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+      if (this.hasNext()) {
+        this.nextEpisode.emit()
+      }
+    })
+  }
+
+  private clearMediaSession() {
+    if (!('mediaSession' in navigator)) {
+      return
+    }
+
+    navigator.mediaSession.setActionHandler('previoustrack', null)
+    navigator.mediaSession.setActionHandler('nexttrack', null)
   }
 
   private addOverlayLayer() {
@@ -148,6 +272,40 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
     })
   }
 
+  private addPreviousEpisodeControl() {
+    this.videoService.addControl({
+      index: 9,
+      name: 'previous-episode',
+      position: 'left',
+      html: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" fill="currentColor"/></svg>',
+      tooltip: '上一集',
+      click: () => {
+        this.previousEpisode.emit()
+      },
+    })
+  }
+
+  private removePreviousEpisodeControl() {
+    this.videoService.removeControl('previous-episode')
+  }
+
+  private addNextEpisodeControl() {
+    this.videoService.addControl({
+      index: 11,
+      name: 'next-episode',
+      position: 'left',
+      html: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 18h2V6h-2zm-3.5-6L4 6v12z" fill="currentColor"/></svg>',
+      tooltip: '下一集',
+      click: () => {
+        this.nextEpisode.emit()
+      },
+    })
+  }
+
+  private removeNextEpisodeControl() {
+    this.videoService.removeControl('next-episode')
+  }
+
   private initializePlayer() {
     const url = this.videoUrl() ?? ''
     const poster = this.poster()
@@ -162,5 +320,7 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
     this.videoService.initialize(this.$artPlayerDiv(), config)
     this.addTitleLayer()
     this.addOverlayLayer()
+    this.addPreviousEpisodeControl()
+    this.removePreviousEpisodeControl()
   }
 }
