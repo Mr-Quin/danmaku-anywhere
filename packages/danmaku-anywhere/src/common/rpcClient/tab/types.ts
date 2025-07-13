@@ -1,4 +1,5 @@
 import type {
+  CustomEpisode,
   CustomEpisodeLite,
   Episode,
   EpisodeLite,
@@ -16,7 +17,7 @@ type DanmakuMethods = {
    * Ping the tab to check if it's able to receive messages
    */
   ping: RPCDef<void, true>
-  danmakuMount: RPCDef<WithSeason<Episode>, void>
+  danmakuMount: RPCDef<WithSeason<Episode> | CustomEpisode, void>
   danmakuUnmount: RPCDef<void, void>
   danmakuGetState: RPCDef<void, TabDanmakuState | null>
 }

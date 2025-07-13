@@ -17,7 +17,7 @@ export const MountController = () => {
 
   const handleMount = async (episode: EpisodeLite | CustomEpisodeLite) => {
     mutate(
-      { id: episode.id },
+      { filter: { id: episode.id }, provider: episode.provider },
       {
         onSuccess: () => {
           setIsMounted(true)

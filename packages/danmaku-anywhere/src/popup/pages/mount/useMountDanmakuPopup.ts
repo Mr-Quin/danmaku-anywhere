@@ -1,12 +1,33 @@
+import {
+  DanmakuSourceType,
+  type RemoteDanmakuSourceType,
+} from '@danmaku-anywhere/danmaku-converter'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { EpisodeQueryFilter } from '@/common/danmaku/dto'
+import type {
+  CustomEpisodeQueryFilter,
+  EpisodeQueryFilter,
+} from '@/common/danmaku/dto'
 import { episodeToString } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
-import { episodeQueryKeys, tabQueryKeys } from '@/common/queries/queryKeys'
+import {
+  customEpisodeQueryKeys,
+  episodeQueryKeys,
+  tabQueryKeys,
+} from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { tabRpcClient } from '@/common/rpcClient/tab/client'
+
+export type MountDanmakuPopupInput =
+  | {
+      provider: DanmakuSourceType.Custom
+      filter: CustomEpisodeQueryFilter
+    }
+  | {
+      provider: RemoteDanmakuSourceType
+      filter: EpisodeQueryFilter
+    }
 
 export const useMountDanmakuPopup = () => {
   const { t } = useTranslation()
@@ -16,7 +37,18 @@ export const useMountDanmakuPopup = () => {
 
   return useMutation({
     mutationKey: tabQueryKeys.getState(),
-    mutationFn: async (filter: EpisodeQueryFilter) => {
+    mutationFn: async ({ provider, filter }: MountDanmakuPopupInput) => {
+      if (provider === DanmakuSourceType.Custom) {
+        const res = await queryClient.fetchQuery({
+          queryKey: customEpisodeQueryKeys.filter(filter),
+          queryFn: () => chromeRpcClient.episodeFilterCustom(filter),
+        })
+        if (res.data.length === 0) throw new Error('No danmaku found')
+        await tabRpcClient.danmakuMount(res.data[0])
+
+        return res.data[0]
+      }
+
       const res = await queryClient.fetchQuery({
         queryKey: episodeQueryKeys.filter(filter),
         queryFn: () => chromeRpcClient.episodeFilter(filter),
