@@ -1,3 +1,4 @@
+import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import {
   createExtResponse,
   DA_EXT_SOURCE_APP,
@@ -8,6 +9,7 @@ import {
   setExtensionAttr,
 } from '@danmaku-anywhere/web-scraper'
 import { EXTENSION_VERSION } from '@/common/constants'
+import { isProvider } from '@/common/danmaku/utils'
 import type { RPCClientResponse } from '@/common/rpc/client'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { tryCatch } from '@/common/utils/utils'
@@ -134,8 +136,9 @@ window.addEventListener(
         }
       }
       case 'danmakuGet': {
-        const { id, type } = request.data
-        if (type === 'custom') {
+        const data = request.data
+        const { id } = data
+        if (isProvider(data, DanmakuSourceType.Custom)) {
           return wrapRpc(() =>
             chromeRpcClient.episodeFilterCustom({
               id,
