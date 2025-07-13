@@ -1,9 +1,19 @@
-import type { EpisodeLite } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  EpisodeLite,
+  WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
 import {
   type CustomEpisodeLite,
   DanmakuSourceType,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Box, Stack, Typography } from '@mui/material'
+import { Refresh } from '@mui/icons-material'
+import {
+  Box,
+  CircularProgress,
+  IconButton,
+  Stack,
+  Typography,
+} from '@mui/material'
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import { useTranslation } from 'react-i18next'
 import {
@@ -16,6 +26,7 @@ import { NothingHere } from '@/common/components/NothingHere'
 import { useCustomEpisodeLite } from '@/common/danmaku/queries/useCustomEpisodes'
 import { useEpisodesLite } from '@/common/danmaku/queries/useEpisodes'
 import { isProvider } from '@/common/danmaku/utils'
+import { useRefreshDanmaku } from '@/popup/hooks/useRefreshDanmaku'
 import { useStore } from '@/popup/store'
 
 export const EpisodeList = () => {
@@ -48,7 +59,48 @@ export const EpisodeList = () => {
 
   const { enableEpisodeSelection, setSelectedEpisodes } = useStore.use.danmaku()
 
-  type EpisodeRow = EpisodeLite | CustomEpisodeLite
+  const { isPending, refreshDanmaku } = useRefreshDanmaku()
+
+  const handleFetchDanmaku = async (episode: EpisodeRow) => {
+    if (isProvider(episode, DanmakuSourceType.Custom)) return
+    return refreshDanmaku(episode)
+  }
+
+  type EpisodeRow = WithSeason<EpisodeLite> | CustomEpisodeLite
+
+  const actionColumn: GridColDef<EpisodeRow>[] = [
+    {
+      field: 'actions',
+      headerName: '',
+      width: 60,
+      sortable: false,
+      disableColumnMenu: true,
+      renderCell: (params) => {
+        const episode = params.row
+
+        return (
+          <Box
+            height="100%"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            {isPending ? (
+              <CircularProgress size={24} />
+            ) : (
+              <IconButton
+                onClick={() => handleFetchDanmaku(episode)}
+                size="small"
+                title={t('danmaku.refresh')}
+              >
+                <Refresh />
+              </IconButton>
+            )}
+          </Box>
+        )
+      },
+    },
+  ]
 
   const columns: GridColDef<EpisodeRow>[] = [
     {
@@ -102,6 +154,7 @@ export const EpisodeList = () => {
         )
       },
     },
+    ...(!isCustom ? actionColumn : []),
   ]
 
   return (
