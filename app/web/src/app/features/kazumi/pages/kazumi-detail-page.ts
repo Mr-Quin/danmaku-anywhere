@@ -3,12 +3,14 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   input,
   linkedSignal,
   signal,
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
+import { ActivatedRoute, Router } from '@angular/router'
 import type { MediaInfo } from '@danmaku-anywhere/web-scraper'
 import { injectQuery } from '@tanstack/angular-query-experimental'
 import { Button } from 'primeng/button'
@@ -69,21 +71,31 @@ interface Episode {
     </ng-template>
     <div class="container mx-auto p-6 2xl:px-0 flex flex-col">
       @let mediaDetails = $searchDetails();
-      <div class="mb-10 flex">
-        <div class="flex flex-1 items-center gap-2">
-          <h1 class="text-2xl font-semibold">
-            <span id="media-title">{{ $searchDetails().title | unescape }}</span>
-            @let selectedEpisode = $selectedEpisode();
-            @if (selectedEpisode) {
-              <span> - </span>
-            }
-            <span id="media-episode">@if (selectedEpisode) {
-              {{ selectedEpisode.name }}
-            }</span>
-          </h1>
-          <p-tag [value]="mediaDetails.policy.name" severity="secondary" />
+      @if (mediaDetails) {
+        <div class="mb-10 flex">
+          <div class="flex flex-1 items-center gap-2">
+            <h1 class="text-2xl font-semibold">
+              <span id="media-title">{{ mediaDetails.title | unescape }}</span>
+              @let selectedEpisode = $selectedEpisode();
+              @if (selectedEpisode) {
+                <span> - </span>
+              }
+              <span id="media-episode">@if (selectedEpisode) {
+                {{ selectedEpisode.name }}
+              }</span>
+            </h1>
+            <p-tag [value]="mediaDetails.policy.name" severity="secondary" />
+          </div>
         </div>
-      </div>
+      } @else {
+        <div class="mb-10 flex">
+          <div class="flex flex-1 items-center gap-2">
+            <h1 class="text-2xl font-semibold">
+              <span>加载中...</span>
+            </h1>
+          </div>
+        </div>
+      }
 
       <div class="grid grid-cols-1 xl:grid-cols-[1fr_424px] gap-8">
         <da-video-player
@@ -219,15 +231,41 @@ interface Episode {
 export class KazumiDetailPage {
   private kazumiService = inject(KazumiService)
   private bangumiService = inject(BangumiService)
+  private router = inject(Router)
+  private route = inject(ActivatedRoute)
 
   // query params
   id = input<number>()
   type = input<string>()
+  q = input<string>()
+  url = input<string>()
+  policyName = input<string>()
+  p = input<number>()
+  e = input<number>()
 
-  protected $searchDetails = computed(
-    // biome-ignore lint/style/noNonNullAssertion: checked using guard
-    () => this.kazumiService.$searchDetails()!
-  )
+  protected $policy = computed(() => {
+    const policyName = this.policyName()
+    if (!policyName) return null
+
+    const policies = this.kazumiService.localPoliciesQuery.data()
+    if (!policies) return null
+
+    return policies.find((p) => p.name === policyName) || null
+  })
+
+  protected $searchDetails = computed(() => {
+    const title = this.q()
+    const url = this.url()
+    const policy = this.$policy()
+
+    if (!title || !url || !policy) return null
+
+    return {
+      title,
+      url,
+      policy,
+    }
+  })
 
   protected $mediaList = signal<MediaInfo[]>([])
   protected $selectedEpisode = signal<Episode | null>(null)
@@ -236,8 +274,17 @@ export class KazumiDetailPage {
   protected $isVideoUrlError = signal(false)
 
   protected episodesQuery = injectQuery(() => {
-    const { url, policy } = this.$searchDetails()
+    const searchDetails = this.$searchDetails()
 
+    if (!searchDetails) {
+      return {
+        queryKey: ['kazumi', 'chapters', 'disabled'],
+        queryFn: () => Promise.resolve([]),
+        enabled: false,
+      }
+    }
+
+    const { url, policy } = searchDetails
     return this.kazumiService.getChaptersQueryOptions(url, policy)
   })
 
@@ -261,7 +308,8 @@ export class KazumiDetailPage {
   })
 
   protected $fullTitle = computed(() => {
-    const title = this.$searchDetails().title
+    const searchDetails = this.$searchDetails()
+    const title = searchDetails?.title || ''
     const episodeTitle = this.$selectedEpisode()?.name
     if (episodeTitle) {
       return `${title} - ${episodeTitle}`
@@ -305,7 +353,14 @@ export class KazumiDetailPage {
   )
 
   protected $playlistOption = linkedSignal(() => {
-    return this.$playlistOptions()[0]
+    const options = this.$playlistOptions()
+    const paramIndex = this.p()
+
+    if (paramIndex !== undefined && options[paramIndex]) {
+      return options[paramIndex]
+    }
+
+    return options[0]
   })
 
   protected $playlist = computed(() => {
@@ -317,6 +372,58 @@ export class KazumiDetailPage {
     return []
   })
 
+  constructor() {
+    // Handle initial episode selection from URL parameter
+    effect(() => {
+      const episodeIndex = this.e()
+      const playlist = this.$playlist()
+      const currentSelected = this.$selectedEpisode()
+
+      // Only set initial episode if we have an index param, playlist is loaded, and current selection doesn't match
+      if (
+        episodeIndex !== undefined &&
+        playlist.length > 0 &&
+        episodeIndex >= 0 &&
+        episodeIndex < playlist.length &&
+        !currentSelected
+      ) {
+        const episode = playlist[episodeIndex]
+        if (episode) {
+          this.changeEpisode(episode)
+        }
+      }
+    })
+
+    // Sync playlist index from URL parameter
+    effect(() => {
+      const playlistOption = this.$playlistOption()
+      const currentPlaylistIndex = this.p()
+
+      if (playlistOption && currentPlaylistIndex !== playlistOption.value) {
+        this.updateUrlParams({
+          p: playlistOption.value,
+        })
+      }
+    })
+
+    // Sync selected episode from URL parameter
+    effect(() => {
+      const selectedEpisode = this.$selectedEpisode()
+      const currentEpisodeIndex = this.e()
+      const episodeIndex = this.$currentEpisodeIndex()
+
+      if (
+        selectedEpisode &&
+        episodeIndex >= 0 &&
+        currentEpisodeIndex !== episodeIndex
+      ) {
+        this.updateUrlParams({
+          e: episodeIndex,
+        })
+      }
+    })
+  }
+
   protected changeEpisode(episode: Episode) {
     this.$selectedEpisode.set(episode)
     this.subscribeMediaStream(episode.url)
@@ -325,6 +432,15 @@ export class KazumiDetailPage {
     this.$mediaList.set([])
     // set url to empty string to unload the current video
     this.$videoUrl.set('')
+  }
+
+  private updateUrlParams(params: { p?: number; e?: number }) {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: params,
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    })
   }
 
   protected onPreviousEpisode() {

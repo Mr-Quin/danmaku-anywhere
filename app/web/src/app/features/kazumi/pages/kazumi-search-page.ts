@@ -241,12 +241,12 @@ export class KazumiSearchPage {
     item: { name: string; url: string },
     policy: KazumiPolicy
   ) {
-    this.kazumiService.updateSearchDetails({
-      url: item.url,
-      title: item.name,
-      policy,
-    })
     void this.router.navigate(['/kazumi/detail'], {
+      queryParams: {
+        q: item.name,
+        url: item.url,
+        policyName: policy.name,
+      },
       queryParamsHandling: 'merge',
     })
   }

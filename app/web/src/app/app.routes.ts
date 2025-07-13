@@ -1,7 +1,7 @@
 import type { Routes } from '@angular/router'
 import { hasExtension, noExtension } from './core/extension/extension.guard'
 import { developmentOnly } from './features/kazumi/guards/development.guard'
-import { noSearchDetails } from './features/kazumi/guards/kazumi-policy.guard'
+import { validateKazumiPolicy } from './features/kazumi/guards/kazumi-policy-validation.guard'
 import {
   noOnboarding,
   requireOnboarding,
@@ -64,7 +64,7 @@ export const routes: Routes = [
               import('./features/kazumi/pages/kazumi-detail-page').then(
                 (m) => m.KazumiDetailPage
               ),
-            canActivate: [noSearchDetails],
+            canActivate: [validateKazumiPolicy],
           },
           {
             path: 'debug',

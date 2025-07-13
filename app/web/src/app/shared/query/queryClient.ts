@@ -9,6 +9,7 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       staleTime: Number.POSITIVE_INFINITY,
       retry: false,
+      experimental_prefetchInRender: true,
     },
   },
   mutationCache: new MutationCache({
