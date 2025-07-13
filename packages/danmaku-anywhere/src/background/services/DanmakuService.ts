@@ -104,7 +104,7 @@ export class DanmakuService {
     })
 
     if (existing) {
-      return (await this.update(existing)) as DbEntity<T>
+      return (await this.update({ ...existing, ...data })) as DbEntity<T>
     }
 
     return this.add(data)
