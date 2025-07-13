@@ -1,5 +1,5 @@
+import type { ShowCardData } from '../components/show-card'
 import type { BgmSlimSubject } from '../types/bangumi.types'
-import type { ShowCardData } from './show-card'
 
 export const transformToShowCardData = (
   subject: BgmSlimSubject

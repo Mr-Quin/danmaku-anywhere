@@ -7,10 +7,10 @@ import {
 } from '@angular/core'
 import { injectInfiniteQuery } from '@tanstack/angular-query-experimental'
 import { VirtualizedGrid } from '../../../../shared/components/virtualized-grid'
-import { ShowCard, type ShowCardData } from '../../components/show-card'
+import { ShowCard } from '../../components/show-card'
 import { ShowCardSkeleton } from '../../components/show-card-skeleton'
 import { BangumiService } from '../../services/bangumi.service'
-import type { BgmSlimSubject } from '../../types/bangumi.types'
+import { transformToShowCardData } from '../../utils/transform-to-show-card-data'
 
 @Component({
   selector: 'da-trending-page',
@@ -79,7 +79,7 @@ export class TrendingPage {
       .data()
       .pages.map((page) => page.data)
       .flat()
-    return data.map((item) => this.transformToShowCardData(item.subject))
+    return data.map((item) => transformToShowCardData(item.subject))
   })
 
   protected handleLoadMore(): void {
@@ -88,17 +88,6 @@ export class TrendingPage {
       !this.trendingQuery.isFetchingNextPage()
     ) {
       void this.trendingQuery.fetchNextPage()
-    }
-  }
-
-  protected transformToShowCardData(subject: BgmSlimSubject): ShowCardData {
-    return {
-      id: subject.id,
-      altTitle: subject.name,
-      title: subject.nameCN || subject.name,
-      rating: subject.rating,
-      rank: subject.rating.rank,
-      cover: subject.images?.large,
     }
   }
 }

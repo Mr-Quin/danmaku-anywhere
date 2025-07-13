@@ -2,7 +2,8 @@ import { CommonModule } from '@angular/common'
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import { injectQuery } from '@tanstack/angular-query-experimental'
 import { BangumiService } from '../../services/bangumi.service'
-import type { BgmCalendar, BgmSlimSubject } from '../../types/bangumi.types'
+import type { BgmCalendar } from '../../types/bangumi.types'
+import { transformToShowCardData } from '../../utils/transform-to-show-card-data'
 import {
   ShowCalendarGrid,
   type ShowCardGridItem,
@@ -58,19 +59,8 @@ export class CalendarPage {
     return weeks.map((week) =>
       week.map((show) => ({
         id: show.subject.id,
-        data: this.transformToShowCardData(show.subject),
+        data: transformToShowCardData(show.subject),
       }))
     )
-  }
-
-  protected transformToShowCardData(subject: BgmSlimSubject) {
-    return {
-      id: subject.id,
-      altTitle: subject.name,
-      title: subject.nameCN || subject.name,
-      rating: subject.rating,
-      rank: subject.rating.rank,
-      cover: subject.images?.large,
-    }
   }
 }

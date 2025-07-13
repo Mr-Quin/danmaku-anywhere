@@ -1,4 +1,4 @@
-import { CommonModule, NgOptimizedImage } from '@angular/common'
+import { CommonModule } from '@angular/common'
 import {
   booleanAttribute,
   ChangeDetectionStrategy,
@@ -31,27 +31,18 @@ export interface ShowCardData {
 @Component({
   selector: 'da-show-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    RouterLink,
-    Card,
-    Button,
-    Tag,
-    MaterialIcon,
-    NgOptimizedImage,
-  ],
+  imports: [CommonModule, RouterLink, Card, Button, Tag, MaterialIcon],
   template: `
     <p-card styleClass="overflow-hidden">
       @let showData = show();
       <ng-template #header>
-        <div class="relative aspect-[2/3] overflow-hidden">
+        <div class="relative aspect-[17/24] contain-strict overflow-hidden">
           <img
-            [ngSrc]="showData.cover ?? ''"
+            [src]="showData.cover ?? ''"
             [alt]="showData.altTitle"
             class="object-cover cursor-pointer hover:opacity-80 transition-opacity"
-            [width]="400"
-            [height]="600"
-            priority
+            width="340"
+            height="480"
             (click)="navigateToDetails(showData.id)" />
           @if (showData.rating?.score !== undefined) {
             <div class="absolute top-2 right-2">
