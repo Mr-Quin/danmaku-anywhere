@@ -146,6 +146,17 @@ class MountConfigService {
 
     await this.options.set(newData)
   }
+
+  async reorder(sourceIndex: number, destinationIndex: number) {
+    const configs = await this.options.get()
+
+    const newData = produce(configs, (draft) => {
+      const [removed] = draft.splice(sourceIndex, 1)
+      draft.splice(destinationIndex, 0, removed)
+    })
+
+    await this.options.set(newData)
+  }
 }
 
 export const mountConfigService = new MountConfigService()
