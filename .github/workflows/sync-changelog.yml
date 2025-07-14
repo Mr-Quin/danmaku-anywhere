@@ -1,0 +1,62 @@
+name: Sync Changelog from Release
+
+on:
+  release:
+    types:
+      - released # does not trigger on draft releases
+
+jobs:
+  sync-changelog:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run sync script
+        run: npm run sync-changelog
+
+      - name: Check for changes
+        id: check-changes
+        run: |
+          if git diff --quiet docs/src/content/docs/change-log.mdx; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        if: steps.check-changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "docs: sync changelog from release ${{ github.event.release.tag_name }}"
+          title: "docs: sync changelog from release ${{ github.event.release.tag_name }}"
+          body: |
+            This PR was automatically created to sync the changelog with the latest release notes.
+            
+            **Release:** ${{ github.event.release.tag_name }}
+            **Published:** ${{ github.event.release.published_at }}
+            
+            The changelog has been updated with the content from the GitHub release.
+          branch: sync-changelog-${{ github.event.release.tag_name }}
+          base: master
+          labels: |
+            documentation
+            automated
+          reviewers: ${{ github.actor }}
+
+      - name: No changes detected
+        if: steps.check-changes.outputs.changed == 'false'
+        run: echo "No changes detected in changelog - it may already be up to date." 

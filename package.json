@@ -16,6 +16,7 @@
     "format": "pnpm -r -F \"./packages/**\" format",
     "lint": "pnpm -r -F \"./packages/**\" lint",
     "test": "pnpm -r -F \"./packages/**\" test run",
+    "sync-changelog": "node --experimental-strip-types scripts/sync-changelog.ts Mr-Quin/danmaku-anywhere docs/src/content/docs/change-log.mdx",
     "prepare": "lefthook install"
   },
   "devDependencies": {

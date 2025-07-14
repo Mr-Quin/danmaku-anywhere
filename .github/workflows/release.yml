@@ -80,6 +80,7 @@ jobs:
           artifacts: "packages/*"
           generateReleaseNotes: true
           makeLatest: true
+          draft: true
 
   publish-chrome:
     runs-on: ubuntu-latest
