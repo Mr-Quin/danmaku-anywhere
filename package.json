@@ -15,11 +15,13 @@
     "build": "pnpm -r -F \"./packages/**\" build",
     "format": "pnpm -r -F \"./packages/**\" format",
     "lint": "pnpm -r -F \"./packages/**\" lint",
-    "test": "pnpm -r -F \"./packages/**\" test run"
+    "test": "pnpm -r -F \"./packages/**\" test run",
+    "prepare": "lefthook install"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",
     "@typescript/native-preview": "^7.0.0-dev.20250703.1",
+    "lefthook": "^1.9.2",
     "typescript": "^5.8.3"
   },
   "pnpm": {
