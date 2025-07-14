@@ -13,8 +13,8 @@ https://github.com/Mr-Quin/danmaku-anywhere
 
 ## 开发环境
 
-- `Node.js` >= 20
-- `pnpm` >= 9
+- `Node.js` >= 22
+- `pnpm` >= 10
 
 ## 项目结构
 
@@ -23,10 +23,12 @@ https://github.com/Mr-Quin/danmaku-anywhere
 <FileTree>
 
 - docs/ - 文档（本站）
+- app/
+  - **web/** - Web应用，基于 Kazumi 规则的看番网站 (Angular)
 - backend
   - proxy/ - Cloudflare Worker，用于与弹弹Play API交互，以及提供AI服务
 - packages/
-  - **danmaku-anywhere/** - 扩展主体
+  - **danmaku-anywhere/** - 扩展主体 (React)
     - src/
       - background/ - 后台脚本
       - content/ - 内容脚本
@@ -50,24 +52,49 @@ https://github.com/Mr-Quin/danmaku-anywhere
    ```
 2. 构建共享库
    ```bash
-   pnpm build
+   pnpm -r build
    ```
-3. 启动开发服务器
-   ```bash
-   cd packages/danmaku-anywhere
-   pnpm dev
-   ```
-4. 开发构建在 `packages/danmaku-anywhere/dist`，将此文件夹作为未打包的扩展加载
-
 </Steps>
 
-## 构建扩展
+## 开发
+
+### 浏览器扩展
+
+扩展位于 `packages/danmaku-anywhere`
 
 <Tabs>
   <TabItem label="Chrome">
 
     ```bash
-    cd packages/danmaku-anywhere
+    pnpm dev
+    ```
+    输出在 `packages/danmaku-anywhere/dev/chrome`
+
+    `chrome://extensions`，启用开发者模式，加载已解压的扩展。
+
+  </TabItem>
+  <TabItem label="Firefox">
+    Firefox开发需要`web-ext`，每次改动后需要重新构建
+
+    用`--watch`选项运行构建命令
+    ```bash
+    pnpm build:firefox --watch
+    ```
+
+    另开一个终端运行
+    ```bash
+    pnpm start:firefox
+    ```
+
+  </TabItem>
+</Tabs>
+
+#### 构建
+
+<Tabs>
+  <TabItem label="Chrome">
+
+    ```bash
     pnpm package
     ```
 
@@ -75,7 +102,6 @@ https://github.com/Mr-Quin/danmaku-anywhere
   <TabItem label="Firefox">
 
     ```bash
-    cd packages/danmaku-anywhere
     pnpm package:firefox
     ```
 
@@ -83,3 +109,12 @@ https://github.com/Mr-Quin/danmaku-anywhere
 </Tabs>
 
 输出在 `packages/danmaku-anywhere/package`。
+
+
+### Web App
+
+Web应用位于 `app/web`
+
+```bash
+pnpm start
+```
