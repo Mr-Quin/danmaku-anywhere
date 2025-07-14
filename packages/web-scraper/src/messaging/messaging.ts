@@ -25,13 +25,7 @@ export type ExtMessageSource =
   | typeof DA_EXT_SOURCE_CONTENT
   | typeof DA_EXT_SOURCE_APP
 
-export type ExtActionType =
-  | 'kazumiSearch'
-  | 'kazumiGetChapters'
-  | 'extractMedia'
-  | 'episodeGetAll'
-  | 'danmakuGet'
-  | 'setRequestHeaders'
+export type ExtActionType = keyof ExtAction
 
 export type ExtActionDef<TIn, TOut> = {
   input: TIn

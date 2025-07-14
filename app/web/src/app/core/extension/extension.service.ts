@@ -89,7 +89,7 @@ export class ExtensionService {
         // complete the stream when isLast is true
         takeWhile((message) => !message.isLast, true),
         filter((message) => message.success),
-        map((message) => message.data as ExtAction[T])
+        map((message) => message.data as ExtAction[T]['output'])
       )
     })
   }
