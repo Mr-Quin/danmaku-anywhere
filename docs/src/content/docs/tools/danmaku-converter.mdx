@@ -3,11 +3,226 @@ title: 弹幕格式转换器
 description: 将 JSON 格式弹幕文件转换为 XML 格式
 ---
 
-import { DanmakuConverter } from '../../../components/danmakuConverter/DanmakuConverter.tsx'
-
 此工具可以将 Danmaku Anywhere 浏览器扩展导出的 JSON 格式弹幕文件转换为 XML 格式，以便在弹弹Play Android版等应用中使用。
 
-<DanmakuConverter />
+<div class="danmaku-converter" style="max-width: 800px; margin: 0 auto; padding: 1.5rem;">
+  
+  <div style="margin-bottom: 1.5rem;">
+    <h2 style="color: #1f2937; margin-bottom: 1rem;">弹幕格式转换器</h2>
+    <p style="color: #6b7280; margin-bottom: 1rem;">
+      将 Danmaku Anywhere 导出的 JSON 格式弹幕文件转换为 XML 格式，供弹弹Play等应用使用。
+    </p>
+  </div>
+
+  <div id="upload-area" style="border: 2px dashed #d1d5db; border-radius: 0.5rem; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 1.5rem;">
+    <input type="file" id="file-input" accept=".json" multiple style="display: none;" />
+    <div style="margin-bottom: 1rem;">
+      <svg style="width: 3rem; height: 3rem; margin: 0 auto; color: #9ca3af;" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"></path>
+      </svg>
+    </div>
+    <p style="font-size: 1.125rem; font-weight: 500; color: #1f2937; margin-bottom: 0.25rem;">
+      点击选择 JSON 文件或拖拽到此处
+    </p>
+    <p style="font-size: 0.875rem; color: #6b7280;">
+      支持单个或多个 JSON 文件
+    </p>
+  </div>
+
+  <div id="results" style="display: none; margin-top: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h3 style="font-size: 1.125rem; font-weight: 500; margin: 0;">转换结果 (<span id="file-count">0</span> 个文件)</h3>
+      <div>
+        <button id="download-all" style="background: #2563eb; color: white; padding: 0.5rem 1rem; border: none; border-radius: 0.25rem; margin-right: 0.5rem; cursor: pointer;">下载全部</button>
+        <button id="clear-all" style="background: #6b7280; color: white; padding: 0.5rem 1rem; border: none; border-radius: 0.25rem; cursor: pointer;">清空</button>
+      </div>
+    </div>
+    <div id="file-list" style="max-height: 16rem; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 0.25rem;">
+    </div>
+  </div>
+
+  <div style="margin-top: 2rem; padding: 1rem; background: #eff6ff; border-radius: 0.5rem;">
+    <h4 style="font-weight: 500; margin-bottom: 0.5rem;">使用说明：</h4>
+    <ol style="font-size: 0.875rem; color: #374151; margin: 0; padding-left: 1.25rem;">
+      <li>在 Danmaku Anywhere 浏览器扩展中导出弹幕（JSON 格式）</li>
+      <li>将导出的 JSON 文件上传到此转换器</li>
+      <li>下载转换后的 XML 文件</li>
+      <li>将 XML 文件导入到弹弹Play等应用中使用</li>
+    </ol>
+  </div>
+
+</div>
+
+<script type="text/javascript">
+// Simple commentsToXml function for client-side use
+function commentsToXml(comments) {
+  var xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>';
+  var commentElements = comments
+    .map(function(comment) {
+      // Escape XML special characters in comment text
+      var escapedText = comment.m
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+      
+      return '    <d p="' + comment.p + '">' + escapedText + '</d>';
+    })
+    .join('\n');
+
+  return xmlHeader + '\n<i>\n    <chatserver>chat.bilibili.com</chatserver>\n    <chatid>0</chatid>\n    <mission>0</mission>\n    <maxlimit>1500</maxlimit>\n    <state>0</state>\n    <real_name>0</real_name>\n    <source>k-v</source>\n' + commentElements + '\n</i>';
+}
+
+// Converter functionality
+var convertedFiles = [];
+
+function convertJsonToXml(jsonContent, fileName) {
+  try {
+    var episodeData = JSON.parse(jsonContent);
+    
+    if (!episodeData.comments || !Array.isArray(episodeData.comments)) {
+      throw new Error('Invalid format: missing comments array');
+    }
+
+    // Convert to the format expected by commentsToXml
+    var formattedComments = episodeData.comments.map(function(comment) {
+      return {
+        p: comment.p,
+        m: comment.m
+      };
+    });
+
+    var xmlContent = commentsToXml(formattedComments);
+    
+    // Generate XML filename
+    var baseName = fileName.replace(/\.json$/i, '');
+    var xmlFileName = baseName + '.xml';
+
+    return {
+      name: xmlFileName,
+      xmlContent: xmlContent,
+      originalName: fileName
+    };
+  } catch (error) {
+    console.error('Error converting file:', fileName, error);
+    return null;
+  }
+}
+
+function downloadFile(file) {
+  var blob = new Blob([file.xmlContent], { type: 'application/xml' });
+  var url = URL.createObjectURL(blob);
+  
+  var link = document.createElement('a');
+  link.href = url;
+  link.download = file.name;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  URL.revokeObjectURL(url);
+}
+
+function updateResults() {
+  var resultsDiv = document.getElementById('results');
+  var fileCountSpan = document.getElementById('file-count');
+  var fileListDiv = document.getElementById('file-list');
+  
+  if (convertedFiles.length > 0) {
+    resultsDiv.style.display = 'block';
+    fileCountSpan.textContent = convertedFiles.length;
+    
+    var htmlContent = '';
+    for (var i = 0; i < convertedFiles.length; i++) {
+      var file = convertedFiles[i];
+      htmlContent += '<div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; border-bottom: 1px solid #f3f4f6;">' +
+        '<div style="flex: 1;">' +
+        '<p style="font-weight: 500; font-size: 0.875rem; margin: 0;">' + file.name + '</p>' +
+        '<p style="font-size: 0.75rem; color: #6b7280; margin: 0;">从 ' + file.originalName + ' 转换</p>' +
+        '</div>' +
+        '<button onclick="downloadFile(convertedFiles[' + i + '])" style="background: #059669; color: white; padding: 0.25rem 0.75rem; border: none; border-radius: 0.25rem; font-size: 0.875rem; cursor: pointer;">下载</button>' +
+        '</div>';
+    }
+    fileListDiv.innerHTML = htmlContent;
+  } else {
+    resultsDiv.style.display = 'none';
+  }
+}
+
+function handleFiles(files) {
+  for (var i = 0; i < files.length; i++) {
+    var file = files[i];
+    if (file.type === 'application/json' || file.name.endsWith('.json')) {
+      (function(currentFile) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var converted = convertJsonToXml(e.target.result, currentFile.name);
+          if (converted) {
+            convertedFiles.push(converted);
+            updateResults();
+          }
+        };
+        reader.readAsText(currentFile);
+      })(file);
+    }
+  }
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+  var uploadArea = document.getElementById('upload-area');
+  var fileInput = document.getElementById('file-input');
+  var downloadAllBtn = document.getElementById('download-all');
+  var clearAllBtn = document.getElementById('clear-all');
+
+  // File input handling
+  uploadArea.addEventListener('click', function() {
+    fileInput.click();
+  });
+  
+  fileInput.addEventListener('change', function(e) {
+    if (e.target.files && e.target.files.length > 0) {
+      handleFiles(e.target.files);
+    }
+  });
+
+  // Drag and drop handling
+  uploadArea.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    uploadArea.style.borderColor = '#2563eb';
+    uploadArea.style.backgroundColor = '#eff6ff';
+  });
+
+  uploadArea.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    uploadArea.style.borderColor = '#d1d5db';
+    uploadArea.style.backgroundColor = 'transparent';
+  });
+
+  uploadArea.addEventListener('drop', function(e) {
+    e.preventDefault();
+    uploadArea.style.borderColor = '#d1d5db';
+    uploadArea.style.backgroundColor = 'transparent';
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files);
+    }
+  });
+
+  // Button handlers
+  downloadAllBtn.addEventListener('click', function() {
+    for (var i = 0; i < convertedFiles.length; i++) {
+      downloadFile(convertedFiles[i]);
+    }
+  });
+
+  clearAllBtn.addEventListener('click', function() {
+    convertedFiles = [];
+    updateResults();
+  });
+});
+</script>
 
 ## 技术说明
 
