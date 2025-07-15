@@ -1,4 +1,4 @@
-import { xml2json } from 'xml-js'
+import { json2xml, xml2json } from 'xml-js'
 import { z } from 'zod'
 
 export const stripHtml = (html: string) => {
@@ -39,35 +39,51 @@ export const zRgb888 = z.coerce
 export const zTime = z.coerce.number().min(0)
 
 /**
- * Convert comments to XML format compatible with DanDanPlay
+ * Convert comments to XML format compatible with DanDanPlay using json2xml
  */
 export const commentsToXml = (comments: Array<{ p: string; m: string }>) => {
-  const xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>'
-  const commentElements = comments
-    .map((comment) => {
-      // Escape XML special characters in comment text
-      const escapedText = comment.m
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&apos;')
+  const xmlStructure = {
+    _declaration: {
+      _attributes: {
+        version: '1.0',
+        encoding: 'UTF-8',
+      },
+    },
+    i: {
+      chatserver: { _text: 'chat.bilibili.com' },
+      chatid: { _text: '0' },
+      mission: { _text: '0' },
+      maxlimit: { _text: '1500' },
+      state: { _text: '0' },
+      real_name: { _text: '0' },
+      source: { _text: 'k-v' },
+      d: comments.map((comment) => ({
+        _attributes: { p: comment.p },
+        _text: comment.m,
+      })),
+    },
+  }
 
-      return `    <d p="${comment.p}">${escapedText}</d>`
-    })
-    .join('\n')
+  return json2xml(xmlStructure as any, { compact: true, spaces: 4 })
+}
 
-  return `${xmlHeader}
-<i>
-    <chatserver>chat.bilibili.com</chatserver>
-    <chatid>0</chatid>
-    <mission>0</mission>
-    <maxlimit>1500</maxlimit>
-    <state>0</state>
-    <real_name>0</real_name>
-    <source>k-v</source>
-${commentElements}
-</i>`
+/**
+ * Convert XML danmaku format back to comments array
+ */
+export const xmlToComments = (xml: string): Array<{ p: string; m: string }> => {
+  const parsed = JSON.parse(xml2json(xml, { compact: true }))
+
+  if (!parsed.i || !parsed.i.d) {
+    return []
+  }
+
+  // Handle single comment case (not an array)
+  const dElements = Array.isArray(parsed.i.d) ? parsed.i.d : [parsed.i.d]
+
+  return dElements.map((comment: any) => ({
+    p: comment._attributes?.p || '',
+    m: comment._text || '',
+  }))
 }
 
 /**

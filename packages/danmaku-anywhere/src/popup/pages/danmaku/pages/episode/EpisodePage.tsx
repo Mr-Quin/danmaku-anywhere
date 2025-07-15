@@ -1,4 +1,4 @@
-import { Checklist, Delete, Download } from '@mui/icons-material'
+import { Checklist, Delete, Download, MoreVert } from '@mui/icons-material'
 import {
   Button,
   Dialog,
@@ -7,6 +7,10 @@ import {
   DialogContentText,
   DialogTitle,
   IconButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   Skeleton,
   Tooltip,
 } from '@mui/material'
@@ -18,6 +22,7 @@ import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
+import { useExportXml } from '@/popup/hooks/useExportXml'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 import { useStore } from '@/popup/store'
 import { EpisodeList } from './EpisodeList'
@@ -53,12 +58,24 @@ export const EpisodePage = () => {
   }
 
   const { exportMany } = useExportDanmaku()
+  const { exportXml } = useExportXml()
   const deleteMutation = useDeleteEpisode()
 
   const [showDialog, setShowDialog] = useState(false)
+  const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(
+    null
+  )
 
   const handleClose = () => {
     setShowDialog(false)
+  }
+
+  const handleExportMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setExportMenuAnchor(event.currentTarget)
+  }
+
+  const handleExportMenuClose = () => {
+    setExportMenuAnchor(null)
   }
 
   const handleDelete = () => {
@@ -75,11 +92,20 @@ export const EpisodePage = () => {
     )
   }
 
-  const handleExport = () => {
+  const handleBackup = () => {
     exportMany.mutate({
       isCustom,
       filter: { ids: selectedEpisodes },
     })
+    handleExportMenuClose()
+  }
+
+  const handleExportXml = () => {
+    exportXml.mutate({
+      isCustom,
+      filter: { ids: selectedEpisodes },
+    })
+    handleExportMenuClose()
   }
 
   const getTitle = () => {
@@ -108,13 +134,31 @@ export const EpisodePage = () => {
         <Tooltip title={t('danmaku.export')}>
           <span>
             <IconButton
-              onClick={handleExport}
+              onClick={handleExportMenuOpen}
               disabled={selectedEpisodes.length === 0}
             >
-              <Download />
+              <MoreVert />
             </IconButton>
           </span>
         </Tooltip>
+        <Menu
+          anchorEl={exportMenuAnchor}
+          open={Boolean(exportMenuAnchor)}
+          onClose={handleExportMenuClose}
+        >
+          <MenuItem onClick={handleBackup} disabled={exportMany.isPending}>
+            <ListItemIcon>
+              <Download />
+            </ListItemIcon>
+            <ListItemText>{t('danmaku.backup')}</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={handleExportXml} disabled={exportXml.isPending}>
+            <ListItemIcon>
+              <Download />
+            </ListItemIcon>
+            <ListItemText>{t('danmaku.exportXml')}</ListItemText>
+          </MenuItem>
+        </Menu>
         <IconButton
           onClick={() => {
             setShowDialog(true)
