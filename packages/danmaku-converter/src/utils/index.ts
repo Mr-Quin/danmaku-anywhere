@@ -64,6 +64,7 @@ export const commentsToXml = (comments: Array<{ p: string; m: string }>) => {
     },
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return json2xml(xmlStructure as any, { compact: true, spaces: 4 })
 }
 
@@ -80,6 +81,7 @@ export const xmlToComments = (xml: string): Array<{ p: string; m: string }> => {
   // Handle single comment case (not an array)
   const dElements = Array.isArray(parsed.i.d) ? parsed.i.d : [parsed.i.d]
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return dElements.map((comment: any) => ({
     p: comment._attributes?.p || '',
     m: comment._text || '',
