@@ -1,7 +1,7 @@
 import react from '@astrojs/react'
 import starlight from '@astrojs/starlight'
-import { defineConfig } from 'astro/config'
 import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from 'astro/config'
 
 // https://astro.build/config
 export default defineConfig({
@@ -23,7 +23,11 @@ export default defineConfig({
           'https://github.com/Mr-Quin/danmaku-anywhere/edit/master/docs/',
       },
       social: [
-        { icon: 'github', label: 'GitHub', href: 'https://github.com/Mr-Quin/danmaku-anywhere' },
+        {
+          icon: 'github',
+          label: 'GitHub',
+          href: 'https://github.com/Mr-Quin/danmaku-anywhere',
+        },
       ],
       sidebar: [
         {
@@ -126,6 +130,23 @@ export default defineConfig({
           ],
         },
         {
+          label: 'tools',
+          translations: {
+            'zh-CN': '工具',
+            en: 'Tools',
+          },
+          items: [
+            {
+              label: 'danmaku-converter',
+              translations: {
+                'zh-CN': '弹幕格式转换器',
+                en: 'Danmaku Converter',
+              },
+              link: '/tools/danmaku-converter',
+            },
+          ],
+        },
+        {
           label: 'change-log',
           translations: { 'zh-CN': '更新日志', en: 'Change Log' },
           link: '/change-log',
@@ -139,15 +160,15 @@ export default defineConfig({
           link: '/plex-danmaku',
         },
       ],
-      defaultLocale: 'root',
+      defaultLocale: 'zh-CN',
       locales: {
+        'zh-CN': {
+          label: '简体中文',
+          lang: 'zh-CN',
+        },
         en: {
           label: 'English',
           lang: 'en',
-        },
-        root: {
-          label: '简体中文',
-          lang: 'zh-CN',
         },
       },
     }),

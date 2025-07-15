@@ -19,6 +19,7 @@
     "@astrojs/react": "^4.3.0",
     "@astrojs/starlight": "^0.34.3",
     "@astrojs/starlight-tailwind": "^4.0.1",
+    "@danmaku-anywhere/danmaku-converter": "workspace:*",
     "@tailwindcss/vite": "^4.1.7",
     "@types/chrome": "^0.0.287",
     "@types/react": "^18.3.12",

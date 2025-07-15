@@ -39,6 +39,38 @@ export const zRgb888 = z.coerce
 export const zTime = z.coerce.number().min(0)
 
 /**
+ * Convert comments to XML format compatible with DanDanPlay
+ */
+export const commentsToXml = (comments: Array<{ p: string; m: string }>) => {
+  const xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>'
+  const commentElements = comments
+    .map((comment) => {
+      // Escape XML special characters in comment text
+      const escapedText = comment.m
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;')
+
+      return `    <d p="${comment.p}">${escapedText}</d>`
+    })
+    .join('\n')
+
+  return `${xmlHeader}
+<i>
+    <chatserver>chat.bilibili.com</chatserver>
+    <chatid>0</chatid>
+    <mission>0</mission>
+    <maxlimit>1500</maxlimit>
+    <state>0</state>
+    <real_name>0</real_name>
+    <source>k-v</source>
+${commentElements}
+</i>`
+}
+
+/**
  * Copied from danmaku-provider
  */
 export enum BiliBiliMediaType {

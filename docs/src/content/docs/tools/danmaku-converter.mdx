@@ -1,0 +1,58 @@
+---
+title: 弹幕格式转换器
+description: 将 JSON 格式弹幕文件转换为 XML 格式
+---
+
+import { DanmakuConverter } from '../../../components/danmakuConverter/DanmakuConverter.tsx'
+
+此工具可以将 Danmaku Anywhere 浏览器扩展导出的 JSON 格式弹幕文件转换为 XML 格式，以便在弹弹Play Android版等应用中使用。
+
+<DanmakuConverter />
+
+## 技术说明
+
+### 支持的输入格式
+
+转换器支持 Danmaku Anywhere 扩展导出的标准 JSON 格式：
+
+```json
+{
+  "title": "剧集标题",
+  "comments": [
+    {
+      "p": "时间,模式,颜色",
+      "m": "弹幕内容"
+    }
+  ],
+  "season": {
+    "title": "番剧标题"
+  }
+}
+```
+
+### 输出格式
+
+转换后的 XML 文件采用通用的弹幕 XML 格式，兼容大多数弹幕播放器：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<i>
+    <chatserver>chat.bilibili.com</chatserver>
+    <chatid>0</chatid>
+    <mission>0</mission>
+    <maxlimit>1500</maxlimit>
+    <state>0</state>
+    <real_name>0</real_name>
+    <source>k-v</source>
+    <d p="时间,模式,颜色">弹幕内容</d>
+</i>
+```
+
+### 弹幕模式说明
+
+- `1` - 普通滚动弹幕（从右到左）
+- `4` - 底部弹幕
+- `5` - 顶部弹幕
+- `6` - 逆向滚动弹幕（从左到右）
+
+颜色使用十进制RGB值表示，例如 `16777215` 表示白色。
