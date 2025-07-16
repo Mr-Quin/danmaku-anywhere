@@ -70,13 +70,20 @@ export type ExtAction = {
   setRequestHeaders: ExtActionDef<SetHeaderRule, void>
 }
 
-export type ExtRequest<T extends ExtActionType = ExtActionType> = {
+type ExtRequestBase<T extends ExtActionType> = {
   id: string
   type: 'request'
   action: T
   data: ExtAction[T]['input']
   source: ExtMessageSource
 }
+
+// mapped type to create discriminated union
+type ExtRequestMap = {
+  [K in ExtActionType]: ExtRequestBase<K>
+}
+
+export type ExtRequest = ExtRequestMap[ExtActionType]
 
 export type ExtResponseSuccess<T extends ExtActionType = ExtActionType> = {
   id: string
@@ -102,16 +109,17 @@ export type ExtResponse<T extends ExtActionType = ExtActionType> =
   | ExtResponseSuccess<T>
   | ExtResponseError
 
-export type ExtMessage<T extends ExtActionType = ExtActionType> =
-  | ExtRequest<T>
-  | ExtResponse<T>
+export type ExtMessage = ExtRequest | ExtResponse
 
-export const createExtRequest = <T extends ExtActionType>(
-  req: Omit<ExtRequest<T>, 'type'>
-): ExtRequest<T> => {
+export const createExtRequest = <T extends ExtActionType>(req: {
+  id: string
+  action: T
+  data: ExtAction[T]['input']
+  source: ExtMessageSource
+}): ExtRequestBase<T> => {
   return {
-    type: 'request',
     ...req,
+    type: 'request',
   }
 }
 

@@ -152,8 +152,7 @@ window.addEventListener(
         )
       }
       case 'setRequestHeaders': {
-        const setHeader = request.data
-        return wrapRpc(() => chromeRpcClient.setHeaders(setHeader))
+        return wrapRpc(() => chromeRpcClient.setHeaders(request.data))
       }
     }
   }
