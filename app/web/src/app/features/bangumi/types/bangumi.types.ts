@@ -1,13 +1,12 @@
-import type { components as nextComponents } from '../../../bangumi-api/schema-next'
+import type { components } from '@danmaku-anywhere/bangumi-api/next'
 
-export type BgmTrendingSubject = nextComponents['schemas']['TrendingSubject']
-export type BgmSlimSubject = nextComponents['schemas']['SlimSubject']
-export type BgmSubject = nextComponents['schemas']['Subject']
-export type BgmCalendar = nextComponents['schemas']['Calendar'][string][]
-export type BgmSubjectComment =
-  nextComponents['schemas']['SubjectInterestComment']
-export type BgmTopic = nextComponents['schemas']['Topic']
-export type BgmSubjectReview = nextComponents['schemas']['SubjectReview']
+export type BgmTrendingSubject = components['schemas']['TrendingSubject']
+export type BgmSlimSubject = components['schemas']['SlimSubject']
+export type BgmSubject = components['schemas']['Subject']
+export type BgmCalendar = components['schemas']['Calendar'][string][]
+export type BgmSubjectComment = components['schemas']['SubjectInterestComment']
+export type BgmTopic = components['schemas']['Topic']
+export type BgmSubjectReview = components['schemas']['SubjectReview']
 
 export type BgmTrendingQueryResponse = {
   data: BgmTrendingSubject[]

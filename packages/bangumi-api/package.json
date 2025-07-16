@@ -1,0 +1,32 @@
+{
+  "name": "@danmaku-anywhere/bangumi-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bangumi API client with auto-generated schemas",
+  "author": "Mr-Quin",
+  "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/schema.d.ts"
+    },
+    "./next": {
+      "types": "./dist/schema-next.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsgo && pnpm copy:schemas",
+    "copy:schemas": "node scripts/copy-schemas.js",
+    "lint": "biome check --fix",
+    "lint:ci": "biome ci",
+    "type-check": "tsgo --noEmit",
+    "generate:schemas": "pnpx openapi-typescript https://next.bgm.tv/p1/openapi.yaml -o ./src/schema-next.d.ts && pnpx openapi-typescript https://bangumi.github.io/api/dist.json -o ./src/schema.d.ts"
+  },
+  "peerDependencies": {
+    "openapi-fetch": "^0.14.0"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.8.0"
+  }
+}

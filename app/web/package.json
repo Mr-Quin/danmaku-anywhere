@@ -4,13 +4,12 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --hmr",
-    "build": "pnpm generate:open-api && ng build",
+    "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test:ng": "ng test",
     "lint": "biome check --fix",
     "lint:ci": "biome ci",
-    "type-check": "tsgo --noEmit",
-    "generate:open-api": "pnpx openapi-typescript https://next.bgm.tv/p1/openapi.yaml -o ./src/app/bangumi-api/schema-next.d.ts && pnpx openapi-typescript https://bangumi.github.io/api/dist.json -o ./src/app/bangumi-api/schema.d.ts"
+    "type-check": "tsgo --noEmit"
   },
   "private": false,
   "dependencies": {
@@ -23,6 +22,7 @@
     "@angular/platform-browser": "^20.0.0",
     "@angular/router": "^20.0.0",
     "@angular/service-worker": "^20.0.0",
+    "@danmaku-anywhere/bangumi-api": "workspace:*",
     "@danmaku-anywhere/danmaku-converter": "workspace:*",
     "@danmaku-anywhere/danmaku-provider": "workspace:*",
     "@danmaku-anywhere/web-scraper": "workspace:*",
@@ -56,7 +56,6 @@
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.1.0",
-    "openapi-typescript": "^7.8.0"
+    "karma-jasmine-html-reporter": "~2.1.0"
   }
 }

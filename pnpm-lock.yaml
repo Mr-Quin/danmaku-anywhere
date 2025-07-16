@@ -58,6 +58,9 @@ importers:
       '@angular/service-worker':
         specifier: ^20.0.0
         version: 20.1.0(@angular/core@20.1.0(@angular/compiler@20.1.0)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
+      '@danmaku-anywhere/bangumi-api':
+        specifier: workspace:*
+        version: link:../../packages/bangumi-api
       '@danmaku-anywhere/danmaku-converter':
         specifier: workspace:*
         version: link:../../packages/danmaku-converter
@@ -155,9 +158,6 @@ importers:
       karma-jasmine-html-reporter:
         specifier: ~2.1.0
         version: 2.1.0(jasmine-core@5.7.1)(karma-jasmine@5.1.0(karma@6.4.4))(karma@6.4.4)
-      openapi-typescript:
-        specifier: ^7.8.0
-        version: 7.8.0(typescript@5.8.3)
 
   backend/proxy:
     dependencies:
@@ -189,6 +189,16 @@ importers:
       wrangler:
         specifier: ^4.24.3
         version: 4.24.3
+
+  packages/bangumi-api:
+    dependencies:
+      openapi-fetch:
+        specifier: ^0.14.0
+        version: 0.14.0
+    devDependencies:
+      openapi-typescript:
+        specifier: ^7.8.0
+        version: 7.8.0(typescript@5.8.3)
 
   packages/danmaku-anywhere:
     dependencies:
