@@ -7,7 +7,8 @@ import { zValidator } from '@hono/zod-validator'
 import type { MiddlewareHandler } from 'hono'
 import { z } from 'zod'
 import { factory } from '@/factory'
-import { HTTPError, sha256, tryCatch } from '@/utils'
+import { useCache } from '@/middleware/cache'
+import { HTTPError } from '@/utils'
 import {
   v1GenerationConfig,
   v1Prompt,
@@ -36,47 +37,6 @@ export const useLLMLogger = factory.createMiddleware(async (c, next) => {
   if (!c.res || c.res.status !== 200) return
   console.log('[LLM Output]', await c.res.clone().json())
 })
-
-export const useLLMCache = () =>
-  factory.createMiddleware(async (c, next) => {
-    const [body, err] = await tryCatch(() => c.req.json())
-    if (err) {
-      // skip caching if json parsing fails
-      return await next()
-    }
-
-    // https://developers.cloudflare.com/workers/examples/cache-post-request/
-    const getCacheKey = () => {
-      // hash the request body
-      const hash = sha256(JSON.stringify(body))
-      const cacheUrl = new URL(c.req.raw.url)
-
-      cacheUrl.pathname = cacheUrl.pathname + hash
-
-      return new Request(cacheUrl.toString(), {
-        headers: c.req.raw.headers,
-        method: 'GET',
-      })
-    }
-
-    const cacheKey = getCacheKey()
-
-    const cache = caches.default
-    const cachedResponse = await cache.match(cacheKey)
-
-    if (cachedResponse) {
-      console.log(`${c.req.path} Cache hit!`)
-      return cachedResponse
-    }
-
-    await next()
-
-    // Only set cache control if the response exists and is successful
-    if (c.res && c.res.status === 200) {
-      c.res.headers.set('Cache-Control', `max-age=${60 * 60 * 24}`)
-    }
-    c.executionCtx.waitUntil(caches.default.put(cacheKey, c.res.clone()))
-  })
 
 const interactWithGemini = async (
   env: Env,
@@ -143,8 +103,13 @@ export const handleExtractTitle = (
 export const llmLegacy = factory.createApp()
 export const llm = factory.createApp()
 
-llmLegacy.use('*', useLLMLogger, useLLMCache())
-llm.use('*', useLLMLogger, useLLMCache())
+const useLLMCache = useCache({
+  methods: ['POST'],
+  maxAge: 60 * 60 * 24,
+})
+
+llmLegacy.use('*', useLLMLogger, useLLMCache)
+llm.use('*', useLLMLogger, useLLMCache)
 
 llmLegacy.post(
   '/extractTitle',

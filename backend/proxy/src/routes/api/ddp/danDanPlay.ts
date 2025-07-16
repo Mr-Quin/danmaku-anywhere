@@ -1,4 +1,5 @@
 import { factory } from '@/factory'
+import { type SetCacheControlFn, useCache } from '@/middleware'
 import { md5, uriDecode } from '@/utils'
 
 const registerEndpoints = [
@@ -60,7 +61,23 @@ const updateRequestBody = async (
   })
 }
 
+const setCacheHeaders: SetCacheControlFn = (req, response) => {
+  if (req.method === 'GET' && response.status === 200) {
+    const cacheControl = response.headers.get('Cache-Control')
+    const cacheTime = getCacheTime(cacheControl) ?? 1800
+
+    if (cacheControl) {
+      console.log(`Origin Cache-Control: ${cacheControl}`)
+    }
+
+    console.log(`Setting cache time to ${cacheTime}`)
+    response.headers.set('Cache-Control', `s-maxage=${cacheTime}`)
+  }
+}
+
 export const danDanPlay = factory.createApp()
+
+danDanPlay.use('*', useCache({ setCacheControl: setCacheHeaders }))
 
 danDanPlay.all('/:target{.+}', async (c) => {
   const env = c.env
@@ -92,20 +109,5 @@ danDanPlay.all('/:target{.+}', async (c) => {
   ddpRequest.headers.set('X-AppSecret', env.DANDANPLAY_APP_SECRET)
 
   // Fetch from DanDanPlay API
-  const response = await fetch(ddpRequest)
-
-  // Set cache headers for GET requests
-  if (c.req.method === 'GET' && response.status === 200) {
-    const cacheControl = response.headers.get('Cache-Control')
-    const cacheTime = getCacheTime(cacheControl) ?? 1800
-
-    if (cacheControl) {
-      console.log(`Origin Cache-Control: ${cacheControl}`)
-    }
-
-    console.log(`Setting cache time to ${cacheTime}`)
-    c.header('Cache-Control', `s-maxage=${cacheTime}`)
-  }
-
-  return response
+  return fetch(ddpRequest)
 })
