@@ -1,7 +1,7 @@
-import { configureApiStore } from '@danmaku-anywhere/danmaku-provider'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ResponseParseException } from '../../exceptions/ResponseParseException'
-import { createFetchOverride, mockFetchResponse } from '../utils/testUtils'
+import { configureApiStore } from '../../shared/store'
+import { mockFetchResponse } from '../utils/testUtils'
 import {
   commentGetComment,
   getBangumiAnime,
@@ -10,27 +10,12 @@ import {
 } from './api'
 import { DanDanPlayApiException } from './exceptions'
 
-const fetchHeaders = {
-  Origin: 'https://danmaku.weeblify.app',
-}
-
-const overrideFetchArgs = createFetchOverride()
-
 describe('DanDanPlay API', () => {
   beforeEach(() => {
-    configureApiStore({ baseUrl: 'http://127.0.0.1:8787' })
     vi.resetAllMocks()
   })
 
   describe('searchSearchEpisodes', () => {
-    it('should not throw on fetch', async () => {
-      overrideFetchArgs(fetchHeaders)
-
-      await expect(
-        searchSearchEpisodes({ anime: 'MyGo' })
-      ).resolves.not.toThrow()
-    })
-
     it('should throw an error on API error', async () => {
       const mockResponse = {
         errorCode: 1,
@@ -57,12 +42,6 @@ describe('DanDanPlay API', () => {
   })
 
   describe('searchSearchAnime', () => {
-    it('should not throw on fetch', async () => {
-      overrideFetchArgs(fetchHeaders)
-
-      await expect(searchSearchAnime('MyGo')).resolves.not.toThrow()
-    })
-
     it('should throw an error on API error', async () => {
       const mockResponse = {
         errorCode: 1,
@@ -87,13 +66,6 @@ describe('DanDanPlay API', () => {
   })
 
   describe('commentGetComment', () => {
-    it('should parse fetched comments', async () => {
-      overrideFetchArgs(fetchHeaders)
-
-      const episodeId = 180300001 // 金牌得主 Ep1
-      await expect(commentGetComment(episodeId)).resolves.not.toThrow()
-    })
-
     it('should throw an error on unexpected data', async () => {
       mockFetchResponse({})
 
@@ -102,13 +74,6 @@ describe('DanDanPlay API', () => {
   })
 
   describe('getBangumiAnime', () => {
-    it('should not throw on fetch', async () => {
-      overrideFetchArgs(fetchHeaders)
-
-      const animeId = '17981' // MyGo anime id
-      await expect(getBangumiAnime(animeId)).resolves.not.toThrow()
-    })
-
     it('should throw an error on API error', async () => {
       const mockResponse = {
         errorCode: 1,

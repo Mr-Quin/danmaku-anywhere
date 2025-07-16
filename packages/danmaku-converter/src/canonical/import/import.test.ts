@@ -1,4 +1,3 @@
-import { produce } from 'immer'
 import { describe, expect, it } from 'vitest'
 import { zCommentImport } from '../comment'
 import { DanmakuSourceType } from '../provider/provider'
@@ -37,9 +36,9 @@ describe('commentSchema', () => {
     const result = zCommentImport.parse(validCommentData)
     expect(result).toEqual(validCommentData)
 
-    const removedCid = produce<any>(validCommentData, (draft) => {
-      delete draft.cid
-    })
+    const removedCid = { ...validCommentData }
+    // @ts-ignore
+    delete removedCid.cid
 
     expect(zCommentImport.parse(removedCid)).toEqual({
       ...removedCid,
@@ -48,26 +47,29 @@ describe('commentSchema', () => {
   })
 
   it('rejects comment with missing properties', () => {
-    const noM = produce<any>(validCommentData, (draft) => {
-      delete draft.p
-    })
-    const noP = produce<any>(validCommentData, (draft) => {
-      delete draft.p
-    })
+    const noM = { ...validCommentData }
+    // @ts-ignore
+    delete noM.m
+    const noP = { ...validCommentData }
+    // @ts-ignore
+    delete noP.p
     expect(() => zCommentImport.parse(noM)).toThrow()
     expect(() => zCommentImport.parse(noP)).toThrow()
   })
 
   it('rejects comment with invalid properties', () => {
-    const invalidP = produce<any>(validCommentData, (draft) => {
-      draft.p = 'invalid'
-    })
-    const invalidTime = produce<any>(validCommentData, (draft) => {
-      draft.p = '-1,1,16777215'
-    })
-    const invalidColor = produce<any>(validCommentData, (draft) => {
-      draft.p = '0.00,1,abcde'
-    })
+    const invalidP = {
+      ...validCommentData,
+      p: 'invalid',
+    }
+    const invalidTime = {
+      ...validCommentData,
+      p: '-1,1,16777215',
+    }
+    const invalidColor = {
+      ...validCommentData,
+      p: '0.00,1,abcde',
+    }
     expect(() => zCommentImport.parse(invalidP)).toThrow()
     expect(() => zCommentImport.parse(invalidTime)).toThrow()
     expect(() => zCommentImport.parse(invalidColor)).toThrow()

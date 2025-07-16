@@ -157,7 +157,7 @@ describe('Tencent', () => {
         segmentData
       )
 
-      expect(generator.next()).rejects.toThrow()
+      await expect(generator.next()).rejects.toThrow()
     })
   })
 })

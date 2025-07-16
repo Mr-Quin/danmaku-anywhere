@@ -187,7 +187,7 @@ describe('Bilibili', () => {
 
       const promise = getDanmakuProto(1)
 
-      expect(promise).rejects.toThrow()
+      await expect(promise).rejects.toThrow()
     })
   })
 })
