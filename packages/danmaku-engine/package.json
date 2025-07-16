@@ -14,6 +14,7 @@
     "build": "tsgo",
     "lint": "tsgo&& biome check --fix",
     "lint:ci": "biome ci",
+    "type-check": "tsgo --noEmit",
     "dev": "tsgo -w"
   },
   "dependencies": {

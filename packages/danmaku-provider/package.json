@@ -42,6 +42,7 @@
     "build": "pnpm protobuf:compile && tsgo && pnpm copy",
     "lint": "tsgo && biome check --fix",
     "lint:ci": "biome ci",
+    "type-check": "tsgo --noEmit",
     "dev": "tsgo -w",
     "openapi-ts": "openapi-ts"
   },

@@ -6,9 +6,10 @@
     "start": "ng serve --hmr",
     "build": "pnpm generate:open-api && ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test",
+    "test:ng": "ng test",
     "lint": "biome check --fix",
     "lint:ci": "biome ci",
+    "type-check": "tsgo --noEmit",
     "generate:open-api": "pnpx openapi-typescript https://next.bgm.tv/p1/openapi.yaml -o ./src/app/bangumi-api/schema-next.d.ts && pnpx openapi-typescript https://bangumi.github.io/api/dist.json -o ./src/app/bangumi-api/schema.d.ts"
   },
   "private": false,

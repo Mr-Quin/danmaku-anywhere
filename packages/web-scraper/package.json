@@ -10,9 +10,9 @@
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
-    "test": "vitest",
     "build": "tsgo",
-    "lint": "biome check --fix"
+    "lint": "biome check --fix",
+    "type-check": "tsgo --noEmit"
   },
   "dependencies": {
     "@danmaku-anywhere/danmaku-provider": "workspace:*",
