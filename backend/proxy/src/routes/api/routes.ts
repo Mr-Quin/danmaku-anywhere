@@ -3,10 +3,6 @@ import { danDanPlay } from './ddp/danDanPlay'
 import { llm } from './llm/llm'
 import { repo } from './repo/repo'
 
-export * from './ddp/danDanPlay'
-export * from './llm/llm'
-export * from './repo/repo'
-
 export const api = factory.createApp()
 
 api.route('/ddp', danDanPlay)

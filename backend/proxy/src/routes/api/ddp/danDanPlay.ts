@@ -1,5 +1,5 @@
 import { factory } from '@/factory'
-import { type SetCacheControlFn, useCache } from '@/middleware'
+import { type SetCacheControlFn, useCache } from '@/middleware/cache'
 import { md5, uriDecode } from '@/utils'
 
 const registerEndpoints = [

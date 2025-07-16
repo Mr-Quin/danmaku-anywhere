@@ -2,9 +2,12 @@ import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { poweredBy } from 'hono/powered-by'
 import { prettyJSON } from 'hono/pretty-json'
+import { useCache } from '@/middleware/cache'
+import { useError } from '@/middleware/error'
+import { danDanPlay } from '@/routes/api/ddp/danDanPlay'
+import { llmLegacy } from '@/routes/api/llm/llm'
 import { factory } from './factory'
-import { useCache, useError } from './middleware'
-import { api, danDanPlay, llmLegacy } from './routes/api'
+import { api } from './routes/api/routes'
 
 const app = factory.createApp()
 
