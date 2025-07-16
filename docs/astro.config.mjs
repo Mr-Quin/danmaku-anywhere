@@ -1,7 +1,7 @@
 import react from '@astrojs/react'
 import starlight from '@astrojs/starlight'
-import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'astro/config'
+import tailwindcss from '@tailwindcss/vite'
 
 // https://astro.build/config
 export default defineConfig({
@@ -23,11 +23,7 @@ export default defineConfig({
           'https://github.com/Mr-Quin/danmaku-anywhere/edit/master/docs/',
       },
       social: [
-        {
-          icon: 'github',
-          label: 'GitHub',
-          href: 'https://github.com/Mr-Quin/danmaku-anywhere',
-        },
+        { icon: 'github', label: 'GitHub', href: 'https://github.com/Mr-Quin/danmaku-anywhere' },
       ],
       sidebar: [
         {
