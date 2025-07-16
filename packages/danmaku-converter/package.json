@@ -12,8 +12,9 @@
   "scripts": {
     "test": "vitest",
     "build": "tsgo",
-    "lint": "tsgo&& biome check --fix",
-    "dev": "tsgo-w"
+    "lint": "tsgo && biome check --fix",
+    "lint:ci": "biome ci",
+    "dev": "tsgo -w"
   },
   "dependencies": {
     "xml-js": "^1.6.11",

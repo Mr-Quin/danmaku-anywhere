@@ -15,6 +15,7 @@
     "dev:remote": "pnpm dev --remote",
     "test": "vitest",
     "lint": "biome check --fix",
+    "lint:ci": "biome ci",
     "cf-typegen": "wrangler types"
   },
   "devDependencies": {

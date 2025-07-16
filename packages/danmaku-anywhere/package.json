@@ -18,6 +18,7 @@
     "test": "vitest",
     "preview": "vite preview",
     "lint": "tsc && biome check --fix",
+    "lint:ci": "biome ci",
     "format": "biome format --write",
     "package": "node ./scripts/package.js",
     "package:firefox": "VITE_TARGET_BROWSER=firefox pnpm run package",

@@ -41,6 +41,7 @@
     "protobuf:compile": "pbjs -t static-module -w es6 -o src/protobuf/protobuf.js src/protobuf/definition/bilibili.dm.proto && pbts -o src/protobuf/protobuf.d.ts src/protobuf/protobuf.js",
     "build": "pnpm protobuf:compile && tsgo && pnpm copy",
     "lint": "tsgo && biome check --fix",
+    "lint:ci": "biome ci",
     "dev": "tsgo -w",
     "openapi-ts": "openapi-ts"
   },
