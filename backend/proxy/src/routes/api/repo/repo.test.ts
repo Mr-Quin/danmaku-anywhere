@@ -7,7 +7,6 @@ describe('Repo API', () => {
   const mockFetch = vi.fn()
 
   beforeEach(() => {
-    // @ts-ignore
     global.fetch = mockFetch
   })
 

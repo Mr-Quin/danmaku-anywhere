@@ -7,7 +7,6 @@ describe('DanDanPlay API', () => {
   const mockFetch = vi.fn()
 
   beforeEach(() => {
-    // @ts-ignore
     global.fetch = mockFetch
   })
 

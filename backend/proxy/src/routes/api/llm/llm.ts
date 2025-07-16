@@ -5,10 +5,10 @@ import {
 } from '@google/generative-ai'
 import { zValidator } from '@hono/zod-validator'
 import type { MiddlewareHandler } from 'hono'
+import { HTTPException } from 'hono/http-exception'
 import { z } from 'zod'
 import { factory } from '@/factory'
 import { useCache } from '@/middleware/cache'
-import { HTTPError } from '@/utils'
 import {
   v1GenerationConfig,
   v1Prompt,
@@ -87,15 +87,22 @@ export const handleExtractTitle = (
       )
     } catch (error) {
       if (error instanceof GoogleGenerativeAIFetchError) {
-        console.error(`Error from Google Generative AI: ${error.message}`)
+        console.error('Error from Google Generative AI:')
+        console.error(error.message)
         console.error(JSON.stringify(error.errorDetails, null, 2))
-        throw new HTTPError(error.status || 500, error.message)
+        if (error.status === 429) {
+          console.error('Rate limit exceeded')
+          throw new HTTPException(429, {
+            message: 'Rate limit exceeded, please try again later.',
+          })
+        }
+        throw new HTTPException(500, { message: 'Failed to extract title' })
       }
       if (error instanceof Error) {
-        throw new HTTPError(500, error.message)
+        throw new HTTPException(500, { message: error.message })
       }
 
-      throw new HTTPError(500, 'Failed to extract title')
+      throw new HTTPException(500, { message: 'Failed to extract title' })
     }
   })
 }

@@ -1,9 +1,9 @@
 import { cors } from 'hono/cors'
+import { HTTPException } from 'hono/http-exception'
 import { logger } from 'hono/logger'
 import { poweredBy } from 'hono/powered-by'
 import { prettyJSON } from 'hono/pretty-json'
 import { useCache } from '@/middleware/cache'
-import { useError } from '@/middleware/error'
 import { danDanPlay } from '@/routes/api/ddp/danDanPlay'
 import { llmLegacy } from '@/routes/api/llm/llm'
 import { factory } from './factory'
@@ -15,7 +15,6 @@ app.use(
   '*',
   logger(),
   prettyJSON(),
-  useError(),
   cors({
     origin: (_, c) => c.env.ALLOWED_ORIGIN,
     allowMethods: ['POST', 'GET', 'OPTIONS'],
@@ -34,6 +33,28 @@ app.route('/proxy/gemini', llmLegacy)
 
 app.notFound((c) => {
   return c.json({ message: 'Not Found', success: false }, { status: 404 })
+})
+
+app.onError((error, c) => {
+  console.error('Error processing request:', error)
+
+  if (error instanceof HTTPException) {
+    return c.json(
+      {
+        message: error.message,
+        success: false,
+      },
+      {
+        status: error.status,
+      }
+    )
+  }
+
+  // Handle other types of errors
+  const message = error.message
+  const status = 500
+
+  return c.json({ message, success: false }, { status })
 })
 
 export default {
