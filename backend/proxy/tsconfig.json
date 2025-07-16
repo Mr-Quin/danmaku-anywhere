@@ -4,7 +4,9 @@
     "outDir": "./dist/",
     "baseUrl": ".",
     "lib": ["ESNext"],
-    "paths": {},
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "types": [
       "node",
       "./worker-configuration.d.ts",

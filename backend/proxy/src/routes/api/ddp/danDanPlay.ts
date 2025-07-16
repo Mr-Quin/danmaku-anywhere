@@ -1,5 +1,5 @@
-import { factory } from '../../../factory'
-import { md5, uriDecode } from '../../../utils'
+import { factory } from '@/factory'
+import { md5, uriDecode } from '@/utils'
 
 const registerEndpoints = [
   'register',

@@ -6,8 +6,8 @@ import {
 import { zValidator } from '@hono/zod-validator'
 import type { MiddlewareHandler } from 'hono'
 import { z } from 'zod'
-import { factory } from '../../../factory'
-import { HTTPError, sha256, tryCatch } from '../../../utils'
+import { factory } from '@/factory'
+import { HTTPError, sha256, tryCatch } from '@/utils'
 import {
   v1GenerationConfig,
   v1Prompt,

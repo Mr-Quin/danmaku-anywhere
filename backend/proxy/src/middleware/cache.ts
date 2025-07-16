@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import { factory } from '../factory'
+import { factory } from '@/factory'
 
 export const useCache = () => {
   return factory.createMiddleware(async (c: Context, next) => {

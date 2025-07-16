@@ -1,6 +1,6 @@
 import type { ContentfulStatusCode } from 'hono/dist/types/utils/http-status'
-import { factory } from '../factory'
-import { HTTPError } from '../utils'
+import { factory } from '@/factory'
+import { HTTPError } from '@/utils'
 
 export const useError = () => {
   return factory.createMiddleware(async (c, next) => {

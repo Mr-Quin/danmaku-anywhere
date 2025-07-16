@@ -1,5 +1,5 @@
-import { factory } from '../../factory'
-import { useCache } from '../../middleware'
+import { factory } from '@/factory'
+import { useCache } from '@/middleware'
 import { danDanPlay } from './ddp/danDanPlay'
 import { llm } from './llm/llm'
 import { repo } from './repo/repo'
