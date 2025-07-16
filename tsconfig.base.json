@@ -16,11 +16,6 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": false,
-    "jsx": "react-jsx",
-    "baseUrl": "./packages",
-    "paths": {
-      "@danmaku-anywhere/danmaku-engine": ["danmaku-engine/src"],
-      "@danmaku-anywhere/danmaku-provider": ["danmaku-provider/src"]
-    }
+    "jsx": "react-jsx"
   }
 }

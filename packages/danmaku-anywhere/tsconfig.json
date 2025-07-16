@@ -7,9 +7,8 @@
     "moduleResolution": "Bundler",
     "types": ["chrome", "react-dom", "react", "@types/wicg-file-system-access"],
     "jsx": "react-jsx",
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
+      "@/*": ["./src/*"],
       "@danmaku-anywhere/danmaku-engine": ["../danmaku-engine/src"],
       "@danmaku-anywhere/danmaku-provider": ["../danmaku-provider/src"],
       "@danmaku-anywhere/danmaku-converter": ["../danmaku-converter/src"],
