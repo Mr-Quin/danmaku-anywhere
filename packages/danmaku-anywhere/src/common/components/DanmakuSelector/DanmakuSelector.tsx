@@ -8,15 +8,7 @@ import {
   type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Refresh } from '@mui/icons-material'
-import {
-  Box,
-  CircularProgress,
-  IconButton,
-  List,
-  ListItemIcon,
-  ListSubheader,
-  Stack,
-} from '@mui/material'
+import { Box, IconButton, List, ListSubheader, Stack } from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { memo, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -83,21 +75,19 @@ const EpisodeListItem = ({
       onClick={(meta) => {
         onSelect(meta)
       }}
-      renderIcon={() => {
+      renderSecondaryAction={() => {
         const { episode } = item
 
         if (!isNotCustom(episode)) return null
 
         return (
-          <ListItemIcon sx={{ justifyContent: 'flex-end' }}>
-            {isPending ? (
-              <CircularProgress size={24} />
-            ) : (
-              <IconButton onClick={() => handleFetchDanmaku(episode)}>
-                <Refresh />
-              </IconButton>
-            )}
-          </ListItemIcon>
+          <IconButton
+            disabled={isPending}
+            loading={isPending}
+            onClick={() => handleFetchDanmaku(episode)}
+          >
+            <Refresh />
+          </IconButton>
         )
       }}
     />

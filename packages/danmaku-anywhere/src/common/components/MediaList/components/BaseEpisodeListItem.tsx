@@ -4,13 +4,10 @@ import type {
   EpisodeMeta,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Download, Update } from '@mui/icons-material'
 import {
   Box,
-  CircularProgress,
   ListItem,
   ListItemButton,
-  ListItemIcon,
   ListItemText,
   Skeleton,
   Tooltip,
@@ -33,8 +30,8 @@ type BaseEpisodeListItemProps<
   showImage?: boolean
   isLoading?: boolean
   onClick: (meta: T) => void
+  renderSecondaryAction?: () => ReactNode
   episode: T
-  renderIcon?: () => ReactNode
   disabled?: boolean
 }
 
@@ -44,7 +41,7 @@ export const BaseEpisodeListItem = <
   showImage = true,
   isLoading,
   onClick,
-  renderIcon,
+  renderSecondaryAction: renderSecondaryActionProp,
   episode,
   disabled,
 }: BaseEpisodeListItemProps<T>) => {
@@ -55,14 +52,15 @@ export const BaseEpisodeListItem = <
 
   const episodeLite = isLite ? episode : undefined
 
-  const getIcon = () => {
-    if (isLoading) return <CircularProgress size={24} />
-    if (episodeLite) return <Update />
-    return <Download />
+  const renderSecondaryAction = () => {
+    if (renderSecondaryActionProp) {
+      return renderSecondaryActionProp()
+    }
+    return null
   }
 
   return (
-    <ListItem disablePadding>
+    <ListItem disablePadding secondaryAction={renderSecondaryAction()}>
       <ListItemButton
         onClick={() => onClick(episode)}
         disabled={isLoading || disabled}
@@ -105,13 +103,6 @@ export const BaseEpisodeListItem = <
             }
           />
         </Tooltip>
-        {renderIcon ? (
-          renderIcon()
-        ) : (
-          <ListItemIcon sx={{ justifyContent: 'flex-end' }}>
-            {getIcon()}
-          </ListItemIcon>
-        )}
       </ListItemButton>
     </ListItem>
   )
