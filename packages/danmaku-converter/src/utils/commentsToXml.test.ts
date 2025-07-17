@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { commentsToXml, xmlToComments } from './index.js'
+import { zGenericXml } from '../schema'
+import { commentsToXml } from './commentsToXml'
 
 describe('commentsToXml', () => {
   it('should convert comments to XML format', () => {
@@ -60,7 +61,7 @@ describe('xmlToComments', () => {
     <d p="10.5,5,255">Top comment</d>
 </i>`
 
-    const result = xmlToComments(xml)
+    const result = zGenericXml.parse(xml)
 
     expect(result).toHaveLength(3)
     expect(result[0]).toEqual({ p: '661.759,1,16777215', m: '战歌起' })
@@ -79,7 +80,7 @@ describe('xmlToComments', () => {
     <d p="1.0,1,16777215">Text with &lt;tag&gt; &amp; "quotes" &amp; 'apostrophes'</d>
 </i>`
 
-    const result = xmlToComments(xml)
+    const result = zGenericXml.parse(xml)
 
     expect(result).toHaveLength(1)
     expect(result[0]).toEqual({
@@ -96,7 +97,7 @@ describe('xmlToComments', () => {
     <d p="1.0,1,16777215">Single comment</d>
 </i>`
 
-    const result = xmlToComments(xml)
+    const result = zGenericXml.parse(xml)
 
     expect(result).toHaveLength(1)
     expect(result[0]).toEqual({ p: '1.0,1,16777215', m: 'Single comment' })
@@ -109,7 +110,7 @@ describe('xmlToComments', () => {
     <chatid>0</chatid>
 </i>`
 
-    const result = xmlToComments(xml)
+    const result = zGenericXml.parse(xml)
 
     expect(result).toHaveLength(0)
   })
@@ -122,7 +123,7 @@ describe('xmlToComments', () => {
     ]
 
     const xml = commentsToXml(originalComments)
-    const convertedComments = xmlToComments(xml)
+    const convertedComments = zGenericXml.parse(xml)
 
     expect(convertedComments).toEqual(originalComments)
   })

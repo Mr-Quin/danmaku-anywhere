@@ -58,7 +58,7 @@ export const EpisodePage = () => {
   }
 
   const { exportMany } = useExportDanmaku()
-  const { exportXml } = useExportXml()
+  const { exportMany: exportXml } = useExportXml()
   const deleteMutation = useDeleteEpisode()
 
   const [showDialog, setShowDialog] = useState(false)
