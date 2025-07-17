@@ -356,7 +356,12 @@ export class IntegrationPolicyObserver extends MediaObserver {
       this.logger.debug('Matched result:', {
         result: data,
       })
-      const mediaInfo = new MediaInfo(data.title, data.episode, data.season)
+
+      if (!data.isShow) {
+        return
+      }
+
+      const mediaInfo = new MediaInfo(data.title, data.episode)
       this.updateMediaInfo(mediaInfo)
     } catch (err) {
       if (err instanceof Error) {

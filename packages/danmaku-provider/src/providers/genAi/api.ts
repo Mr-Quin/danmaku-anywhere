@@ -7,7 +7,7 @@ export const extractTitle = async (
   input: string
 ): Promise<ExtractTitleResponse['result']> => {
   const res = await fetchData({
-    url: `${getApiStore().baseUrl}/gemini/extractTitle`,
+    url: `${getApiStore().baseUrl}/v1/llm/extractTitle`,
     body: {
       input,
     },

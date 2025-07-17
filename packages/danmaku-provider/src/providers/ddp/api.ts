@@ -57,7 +57,7 @@ const fetchDanDanPlay = async <T extends ZodType>(
   }
 
   return fetchData<T>({
-    url: `${store.baseUrl}${options.path}`,
+    url: `${store.baseUrl}/v1/ddp${options.path}`,
     ...options,
     headers,
   })
@@ -67,7 +67,7 @@ export const searchSearchAnime = async (
   keyword: string
 ): Promise<SearchAnimeDetails[]> => {
   const data = await fetchDanDanPlay({
-    path: '/api/v2/search/anime',
+    path: '/v2/search/anime',
     query: {
       keyword,
     },
@@ -85,7 +85,7 @@ export const searchSearchEpisodes = async (
   query: SearchEpisodesQuery
 ): Promise<SearchEpisodesAnime[]> => {
   const data = await fetchDanDanPlay({
-    path: '/api/v2/search/episodes',
+    path: '/v2/search/episodes',
     query,
     responseSchema: zSearchEpisodesResponse,
     requestSchema: {
@@ -105,7 +105,7 @@ export const commentGetComment = async (
   query: GetCommentQuery = {}
 ): Promise<CommentData[]> => {
   const data = await fetchDanDanPlay({
-    path: `/api/v2/comment/${episodeId.toString()}`,
+    path: `/v2/comment/${episodeId.toString()}`,
     query,
     responseSchema: zCommentResponseV2,
     requestSchema: { query: zGetCommentQuery },
@@ -116,7 +116,7 @@ export const commentGetComment = async (
 
 export const commentSendComment = async (request: SendCommentRequest) => {
   const data = await fetchDanDanPlay({
-    path: '/api/v2/search/episodes',
+    path: '/v2/search/episodes',
     body: request,
     responseSchema: zSendCommentResponseV2,
     requestSchema: {
@@ -136,7 +136,7 @@ export const commentGetExtComment = async (
   query: GetExtCommentQuery
 ): Promise<CommentData[]> => {
   const data = await fetchDanDanPlay({
-    path: '/api/v2/extcomment',
+    path: '/v2/extcomment',
     query,
     responseSchema: zCommentResponseV2,
   })
@@ -185,7 +185,7 @@ export const relatedGetRelated = async (
   episodeId: number
 ): Promise<RelatedItemV2[]> => {
   const data = await fetchDanDanPlay({
-    path: `/api/v2/related/${episodeId.toString()}`,
+    path: `/v2/related/${episodeId.toString()}`,
     responseSchema: zRelatedResponseV2,
   })
 
@@ -200,7 +200,7 @@ export const getBangumiAnime = async (
   bangumiId: string
 ): Promise<BangumiDetails> => {
   const data = await fetchDanDanPlay({
-    path: `/api/v2/bangumi/${bangumiId}`,
+    path: `/v2/bangumi/${bangumiId}`,
     responseSchema: zBangumiDetailsResponse,
   })
 
@@ -215,7 +215,7 @@ export const registerRegisterMainUser = async (
   request: RegisterRequestV2
 ): Promise<LoginResponse> => {
   const data = await fetchDanDanPlay({
-    path: '/api/v2/register',
+    path: '/v2/register',
     responseSchema: zLoginResponse,
     requestSchema: {
       body: zRegisterRequestV2,
@@ -235,7 +235,7 @@ export const registerResetPassword = async (
   request: ResetPasswordRequestV2
 ): Promise<null> => {
   const data = await fetchDanDanPlay({
-    path: '/api/v2/register/resetpassword',
+    path: '/v2/register/resetpassword',
     responseSchema: zResponseBase,
     requestSchema: {
       body: zResetPasswordRequestV2,
@@ -255,7 +255,7 @@ export const registerFindMyId = async (
   request: FindMyIdRequestV2
 ): Promise<null> => {
   const data = await fetchDanDanPlay({
-    path: '/api/v2/register/findmyid',
+    path: '/v2/register/findmyid',
     responseSchema: zResponseBase,
     requestSchema: {
       body: zFindMyIdRequestV2,
@@ -275,7 +275,7 @@ export const loginLogin = async (
   request: LoginRequest
 ): Promise<LoginResponse> => {
   const data = await fetchDanDanPlay({
-    path: '/api/v2/login',
+    path: '/v2/login',
     responseSchema: zLoginResponse,
     requestSchema: {
       body: zLoginRequest,
@@ -293,7 +293,7 @@ export const loginLogin = async (
 
 export const loginRenewToken = async (): Promise<LoginResponse> => {
   const data = await fetchDanDanPlay({
-    path: '/api/v2/login',
+    path: '/v2/login',
     responseSchema: zLoginResponse,
     method: 'GET',
   })

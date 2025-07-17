@@ -12,11 +12,11 @@ const zGeminiErrorResponse = z.object({
 export const zExtractTitleSuccessResponse = zGeminiSuccessResponse.extend({
   success: z.literal(true),
   result: z.object({
+    isShow: z.boolean(),
     title: z.string(),
     episode: z.number(),
-    season: z.string().optional(),
-    episodeTitle: z.string().optional(),
-    altTitles: z.array(z.string()).optional(),
+    episodeTitle: z.string(),
+    altTitles: z.array(z.string()),
   }),
 })
 
