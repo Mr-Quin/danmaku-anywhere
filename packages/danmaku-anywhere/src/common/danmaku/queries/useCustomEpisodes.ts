@@ -25,7 +25,7 @@ export const useCustomEpisode = (filter: CustomEpisodeQueryFilter) => {
 
 export const useCustomEpisodeLite = (filter: CustomEpisodeQueryFilter) => {
   return useQuery({
-    queryKey: customEpisodeQueryKeys.filter(filter),
+    queryKey: customEpisodeQueryKeys.filterLite(filter),
     queryFn: async () => {
       return chromeRpcClient.episodeFilterCustomLite(filter)
     },
@@ -37,7 +37,7 @@ export const useCustomEpisodeLiteSuspense = (
   filter: CustomEpisodeQueryFilter
 ) => {
   return useSuspenseQuery({
-    queryKey: customEpisodeQueryKeys.filter(filter),
+    queryKey: customEpisodeQueryKeys.filterLite(filter),
     queryFn: async () => {
       return chromeRpcClient.episodeFilterCustomLite(filter)
     },

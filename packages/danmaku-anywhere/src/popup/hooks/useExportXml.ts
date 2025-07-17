@@ -3,7 +3,7 @@ import { type ExportFormatter, useExportWithFormat } from './useExportBase'
 
 const xmlFormatter: ExportFormatter = {
   formatEpisode: (episode) => {
-    const formattedComments = episode.comments.map((comment: any) => ({
+    const formattedComments = episode.comments.map((comment) => ({
       p: comment.p,
       m: comment.m,
     }))

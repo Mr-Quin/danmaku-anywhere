@@ -173,7 +173,7 @@ const pages = {
     },
     name: 'Configs',
     createConfig: 'Create Config',
-    exportAll: 'Backup All',
+    backupAll: 'Backup All',
     showIntegration: 'View Integration Policy',
   },
   integrationPolicyPage: {
@@ -220,7 +220,8 @@ const pages = {
     noAnime: 'No anime available',
     noResult: "No anime found with title '{{filter}}'",
     confirmDeleteMessage: 'Are you sure to delete the selected Danmaku?',
-    exportAll: 'Backup All',
+    backupAll: 'Backup All',
+    exportAllXml: 'Export as XML',
   },
   importPage: {
     confirm: 'Confirm Import',

@@ -148,9 +148,9 @@ const pages = {
   configPage: {
     editor: {
       helper: {
-        mediaQuery: '用来选择视频节点, 一般为“video”',
+        mediaQuery: '用来选择视频节点, 一般为"video"',
         integration:
-          '启用对应的适配规则。如果你不清楚这是什么，请保持默认设置“无”',
+          '启用对应的适配规则。如果你不清楚这是什么，请保持默认设置"无"',
         urlPattern:
           '用来匹配视频页面，一般为视频网站的网址。格式：https://example.com/*。',
       },
@@ -174,7 +174,7 @@ const pages = {
     },
     name: '装填配置',
     createConfig: '编写配置',
-    exportAll: '备份所有配置',
+    backupAll: '备份所有配置',
     showIntegration: '查看适配规则',
   },
   integrationPolicyPage: {
@@ -219,7 +219,8 @@ const pages = {
     noAnime: '没有可用的番剧',
     noResult: "没有找到标题为 '{{filter}}' 的番剧",
     confirmDeleteMessage: '确定要删除选中的弹幕吗？',
-    exportAll: '备份所有弹幕',
+    backupAll: '备份所有弹幕',
+    exportAllXml: '导出为XML',
   },
   importPage: {
     confirm: '确认导入',

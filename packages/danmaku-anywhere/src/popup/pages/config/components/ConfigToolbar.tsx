@@ -69,7 +69,7 @@ export const ConfigToolbar = ({
         items={[
           {
             id: 'export',
-            label: t('configPage.exportAll'),
+            label: t('configPage.backupAll'),
             onClick: () => exportAll.mutate(),
             loading: exportAll.isPending,
             icon: <Download />,
