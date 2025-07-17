@@ -1,6 +1,10 @@
+import type {
+  CustomEpisode,
+  Episode,
+  WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-
 import { useToast } from '@/common/components/Toast/toastStore'
 import type {
   CustomEpisodeQueryFilter,
@@ -11,17 +15,16 @@ import {
   episodeQueryKeys,
 } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { downloadZip, sanitizeFilename } from '@/common/utils/utils'
+import {
+  createDownload,
+  downloadZip,
+  sanitizeFilename,
+} from '@/common/utils/utils'
 
-export type ExportData =
-  | {
-      isCustom: false
-      filter: EpisodeQueryFilter
-    }
-  | {
-      isCustom: true
-      filter: CustomEpisodeQueryFilter
-    }
+export type ExportFilter = {
+  filter?: EpisodeQueryFilter
+  customFilter?: CustomEpisodeQueryFilter
+}
 
 export interface ExportFile {
   name: string
@@ -29,10 +32,15 @@ export interface ExportFile {
 }
 
 export interface ExportFormatter {
-  formatEpisode: (episode: any) => ExportFile
+  formatEpisode: (episode: WithSeason<Episode> | CustomEpisode) => ExportFile
   fileExtension: string
   successMessageKey: string
   errorMessageKey: string
+}
+
+const downloadSingleFile = (file: ExportFile) => {
+  const blob = new Blob([file.data], { type: 'text/plain' })
+  void createDownload(blob, file.name)
 }
 
 export const useExportWithFormat = (formatter: ExportFormatter) => {
@@ -40,118 +48,63 @@ export const useExportWithFormat = (formatter: ExportFormatter) => {
   const queryClient = useQueryClient()
   const toast = useToast.use.toast()
 
-  const fetchEpisodes = async (data: ExportData) => {
-    if (data.isCustom) {
-      const { data: episodes } = await queryClient.fetchQuery({
-        queryKey: customEpisodeQueryKeys.filter(data.filter),
-        queryFn: () => chromeRpcClient.episodeFilterCustom(data.filter),
-      })
-      return episodes
-    }
+  const exportEpisodes = useMutation({
+    mutationFn: async ({ filter, customFilter }: ExportFilter) => {
+      let episodes: WithSeason<Episode>[] = []
+      let customEpisodes: CustomEpisode[] = []
 
-    const { data: episodes } = await queryClient.fetchQuery({
-      queryKey: episodeQueryKeys.filter(data.filter),
-      queryFn: () => chromeRpcClient.episodeFilter(data.filter),
-    })
-    return episodes
-  }
-
-  const fetchAllEpisodes = async () => {
-    const { data: episodes } = await chromeRpcClient.episodeFilter({
-      all: true,
-    })
-    const { data: customEpisodes } = await chromeRpcClient.episodeFilterCustom({
-      all: true,
-    })
-    return { episodes, customEpisodes }
-  }
-
-  const fetchEpisodesByAnime = async (seasonId: number) => {
-    const { data } = await chromeRpcClient.episodeFilter({ seasonId })
-    return data
-  }
-
-  const handleSuccess = () => {
-    toast.success(t(formatter.successMessageKey))
-  }
-
-  const handleError = (e: Error) => {
-    toast.error(t(formatter.errorMessageKey, { message: e.message }))
-  }
-
-  const exportAll = useMutation({
-    mutationFn: async () => {
-      const { episodes, customEpisodes } = await fetchAllEpisodes()
-
-      const files: ExportFile[] = episodes
-        .map((ep) => {
-          const formatted = formatter.formatEpisode(ep)
-          return {
-            name: `${ep.season.title}/${sanitizeFilename(formatted.name)}`,
-            data: formatted.data,
-          }
+      if (customFilter) {
+        const { data: fetchedEpisodes } = await queryClient.fetchQuery({
+          queryKey: customEpisodeQueryKeys.filter(customFilter),
+          queryFn: () => chromeRpcClient.episodeFilterCustom(customFilter),
         })
-        .concat(
-          customEpisodes.map((ep) => {
-            const formatted = formatter.formatEpisode(ep)
-            return {
-              name: `custom/${sanitizeFilename(formatted.name)}`,
-              data: formatted.data,
-            }
-          })
-        )
+        customEpisodes = fetchedEpisodes
+      }
 
-      await downloadZip('all-danmaku-collection', files)
-    },
-    onSuccess: handleSuccess,
-    onError: handleError,
-  })
+      if (filter) {
+        const { data: fetchedEpisodes } = await queryClient.fetchQuery({
+          queryKey: episodeQueryKeys.filter(filter),
+          queryFn: () => chromeRpcClient.episodeFilter(filter),
+        })
+        episodes = fetchedEpisodes
+      }
 
-  const exportByAnime = useMutation({
-    mutationFn: async (seasonId: number) => {
-      const data = await fetchEpisodesByAnime(seasonId)
+      const files: ExportFile[] = []
 
-      if (data && data.length > 0) {
-        await downloadZip(
-          `${data[0].season.title}`,
-          data.map((ep) => {
-            const formatted = formatter.formatEpisode(ep)
-            return {
-              name: sanitizeFilename(formatted.name),
-              data: formatted.data,
-            }
-          })
-        )
+      // Add regular episodes
+      episodes.forEach((ep) => {
+        const formatted = formatter.formatEpisode(ep)
+        const fileName = `${sanitizeFilename(ep.season.title)}/${sanitizeFilename(formatted.name)}`
+
+        files.push({
+          name: fileName,
+          data: formatted.data,
+        })
+      })
+
+      // Add custom episodes
+      customEpisodes.forEach((ep) => {
+        const formatted = formatter.formatEpisode(ep)
+        files.push({
+          name: `custom/${sanitizeFilename(formatted.name)}`,
+          data: formatted.data,
+        })
+      })
+
+      if (files.length === 1) {
+        downloadSingleFile(files[0])
+      } else if (files.length > 1) {
+        const collectionName = `export-${new Date().toLocaleDateString()}-${new Date().toLocaleTimeString()}`
+        await downloadZip(collectionName, files)
       }
     },
-    onSuccess: handleSuccess,
-    onError: handleError,
-  })
-
-  const exportMany = useMutation({
-    mutationFn: async (data: ExportData) => {
-      const episodes = await fetchEpisodes(data)
-
-      if (episodes && episodes.length > 0) {
-        await downloadZip(
-          `${episodes[0].title}-collection`,
-          episodes.map((ep) => {
-            const formatted = formatter.formatEpisode(ep)
-            return {
-              name: sanitizeFilename(formatted.name),
-              data: formatted.data,
-            }
-          })
-        )
-      }
+    onSuccess: () => {
+      toast.success(t(formatter.successMessageKey))
     },
-    onSuccess: handleSuccess,
-    onError: handleError,
+    onError: (e: Error) => {
+      toast.error(t(formatter.errorMessageKey, { message: e.message }))
+    },
   })
 
-  return {
-    exportAll,
-    exportMany,
-    exportByAnime,
-  }
+  return exportEpisodes
 }

@@ -1,7 +1,7 @@
 import { type ExportFormatter, useExportWithFormat } from './useExportBase'
 
 const jsonFormatter: ExportFormatter = {
-  formatEpisode: (episode: any) => ({
+  formatEpisode: (episode) => ({
     name: `${episode.title}.json`,
     data: JSON.stringify(episode, null, 2),
   }),

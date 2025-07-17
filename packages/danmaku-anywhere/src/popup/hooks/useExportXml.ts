@@ -2,7 +2,7 @@ import { commentsToXml } from '@danmaku-anywhere/danmaku-converter'
 import { type ExportFormatter, useExportWithFormat } from './useExportBase'
 
 const xmlFormatter: ExportFormatter = {
-  formatEpisode: (episode: any) => {
+  formatEpisode: (episode) => {
     const formattedComments = episode.comments.map((comment: any) => ({
       p: comment.p,
       m: comment.m,

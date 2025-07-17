@@ -11,17 +11,26 @@ import { useEpisodesLiteSuspense } from '@/common/danmaku/queries/useEpisodes'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 
 export const ExportAllDanmakuButton = () => {
-  const { exportAll } = useExportDanmaku()
+  const exportDanmaku = useExportDanmaku()
   const { data, isFetching } = useEpisodesLiteSuspense()
   const { t } = useTranslation()
 
   return (
     <MenuItem
-      onClick={() => exportAll.mutate()}
-      disabled={data.length === 0 || exportAll.isPending || isFetching}
+      onClick={() =>
+        exportDanmaku.mutate({
+          filter: { all: true },
+          customFilter: { all: true },
+        })
+      }
+      disabled={data.length === 0 || exportDanmaku.isPending || isFetching}
     >
       <ListItemIcon>
-        {exportAll.isPending ? <CircularProgress size={24} /> : <Download />}
+        {exportDanmaku.isPending ? (
+          <CircularProgress size={24} />
+        ) : (
+          <Download />
+        )}
       </ListItemIcon>
       <ListItemText>{t('danmakuPage.exportAll')}</ListItemText>
     </MenuItem>
