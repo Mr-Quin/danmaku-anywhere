@@ -93,20 +93,21 @@ danDanPlay.all('/:target{.+}', async (c) => {
     body: c.req.raw.body,
   })
 
+  const DANDANPLAY_APP_SECRET = await env.DANDANPLAY_APP_SECRET.get()
   // Update request body for register endpoints
   if (c.req.method === 'POST' && isRegisterEndpoint(path)) {
     console.log(`Updating request body for ${path}`)
     ddpRequest = await updateRequestBody(
       ddpRequest,
       env.DANDANPLAY_APP_ID,
-      env.DANDANPLAY_APP_SECRET,
+      DANDANPLAY_APP_SECRET,
       path !== 'findmyid'
     )
   }
 
   // Add DanDanPlay API credentials
   ddpRequest.headers.set('X-AppId', env.DANDANPLAY_APP_ID)
-  ddpRequest.headers.set('X-AppSecret', env.DANDANPLAY_APP_SECRET)
+  ddpRequest.headers.set('X-AppSecret', DANDANPLAY_APP_SECRET)
 
   // Fetch from DanDanPlay API
   return fetch(ddpRequest)

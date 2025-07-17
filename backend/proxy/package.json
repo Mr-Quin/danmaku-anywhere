@@ -16,7 +16,9 @@
     "test": "vitest",
     "lint": "biome check --fix",
     "lint:ci": "biome ci",
-    "cf-typegen": "wrangler types"
+    "type-check:local": "tsgo --noEmit",
+    "cf-typegen": "wrangler types",
+    "wrangler": "wrangler"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.8.53",

@@ -3,13 +3,87 @@
   "main": "src/index.ts",
   "compatibility_date": "2025-05-05",
   "compatibility_flags": ["nodejs_compat"],
+  "secrets_store_secrets": [
+    {
+      "binding": "DANDANPLAY_APP_SECRET",
+      "store_id": "4a9ca50edba84431879f34b0b67f9998",
+      "secret_name": "DANDANPLAY_APP_SECRET"
+    },
+    {
+      "binding": "DANMAKU_GEMINI_API_KEY",
+      "store_id": "4a9ca50edba84431879f34b0b67f9998",
+      "secret_name": "DANMAKU_GEMINI_API_KEY"
+    }
+  ],
   "vars": {
+    "ENVIRONMENT": "dev",
     "DANDANPLAY_API_HOST": "https://api.dandanplay.net",
     "BASE_URL": "/proxy",
     "ALLOWED_ORIGIN": "https://danmaku.weeblify.app",
-    "LOCAL": "0"
+    "DANDANPLAY_APP_ID": "64fw9qcpfb"
   },
   "observability": {
     "enabled": true
+  },
+  "route": "danmaku.weeblify.app/proxy/*",
+  "env": {
+    "staging": {
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "DANDANPLAY_API_HOST": "https://api.dandanplay.net",
+        "BASE_URL": "/proxy",
+        "ALLOWED_ORIGIN": "https://danmaku.weeblify.app",
+        "DANDANPLAY_APP_ID": "64fw9qcpfb"
+      },
+      "secrets_store_secrets": [
+        {
+          "binding": "DANDANPLAY_APP_SECRET",
+          "store_id": "4a9ca50edba84431879f34b0b67f9998",
+          "secret_name": "DANDANPLAY_APP_SECRET"
+        },
+        {
+          "binding": "DANMAKU_GEMINI_API_KEY",
+          "store_id": "4a9ca50edba84431879f34b0b67f9998",
+          "secret_name": "DANMAKU_GEMINI_API_KEY"
+        }
+      ],
+      "routes": [
+        {
+          "pattern": "danmaku-staging.weeblify.app",
+          "custom_domain": true
+        },
+        {
+          "pattern": "danmaku-staging.weeblify.app/api/*",
+          "zone_name": "weeblify.app"
+        }
+      ]
+    },
+    "production": {
+      "vars": {
+        "ENVIRONMENT": "production",
+        "DANDANPLAY_API_HOST": "https://api.dandanplay.net",
+        "BASE_URL": "/proxy",
+        "ALLOWED_ORIGIN": "https://danmaku.weeblify.app",
+        "DANDANPLAY_APP_ID": "64fw9qcpfb"
+      },
+      "secrets_store_secrets": [
+        {
+          "binding": "DANDANPLAY_APP_SECRET",
+          "store_id": "4a9ca50edba84431879f34b0b67f9998",
+          "secret_name": "DANDANPLAY_APP_SECRET"
+        },
+        {
+          "binding": "DANMAKU_GEMINI_API_KEY",
+          "store_id": "4a9ca50edba84431879f34b0b67f9998",
+          "secret_name": "DANMAKU_GEMINI_API_KEY"
+        }
+      ],
+      "routes": [
+        {
+          "pattern": "danmaku.weeblify.app/api/*",
+          "zone_name": "weeblify.app"
+        }
+      ]
+    }
   }
 }
