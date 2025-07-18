@@ -102,7 +102,6 @@ export const useExportWithFormat = (formatter: ExportFormatter) => {
       toast.success(t(formatter.successMessageKey))
     },
     onError: (e) => {
-      console.error(e)
       toast.error(t(formatter.errorMessageKey, { message: e.message }))
     },
   })
