@@ -6,6 +6,7 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import {
   Box,
+  CircularProgress,
   ListItem,
   ListItemButton,
   ListItemText,
@@ -103,6 +104,9 @@ export const BaseEpisodeListItem = <
             }
           />
         </Tooltip>
+        {!renderSecondaryActionProp && isLoading && (
+          <CircularProgress size={24} sx={{ color: 'text.primary' }} />
+        )}
       </ListItemButton>
     </ListItem>
   )
