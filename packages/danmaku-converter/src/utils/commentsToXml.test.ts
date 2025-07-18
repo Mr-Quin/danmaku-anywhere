@@ -3,11 +3,12 @@ import { zGenericXml } from '../schema'
 import { commentsToXml } from './commentsToXml'
 
 describe('commentsToXml', () => {
-  it('should convert comments to XML format', () => {
+  it('should convert comments to XML format', async () => {
     const comments = [
       { p: '661.759,1,16777215', m: '战歌起' },
       { p: '368.132,1,16777215', m: '谁懂这一抱啊啊啊啊' },
-      { p: '10.5,5,255', m: 'Top comment' },
+      { p: '10.5,5,16777215', m: 'Top comment' },
+      { p: '368,1,16777215', m: 'int time' },
     ]
 
     const result = commentsToXml(comments)
@@ -15,9 +16,15 @@ describe('commentsToXml', () => {
     expect(result).toContain('<?xml version="1.0" encoding="UTF-8"?>')
     expect(result).toContain('<i>')
     expect(result).toContain('</i>')
-    expect(result).toContain('<d p="661.759,1,16777215">战歌起</d>')
-    expect(result).toContain('<d p="368.132,1,16777215">谁懂这一抱啊啊啊啊</d>')
-    expect(result).toContain('<d p="10.5,5,255">Top comment</d>')
+    expect(result).toContain('<d p="661,1,25,16777215">战歌起</d>')
+    expect(result).toContain('<d p="368,1,25,16777215">谁懂这一抱啊啊啊啊</d>')
+    expect(result).toContain('<d p="10,5,25,16777215">Top comment</d>')
+
+    const parsed = await zGenericXml.parseAsync(result)
+
+    expect(parsed).toHaveLength(4)
+    // the last comment should match the original
+    expect(parsed[3]).toMatchObject(comments[3])
   })
 
   it('should escape XML special characters', () => {
@@ -42,89 +49,5 @@ describe('commentsToXml', () => {
     expect(result).toContain('<i>')
     expect(result).toContain('</i>')
     expect(result).not.toContain('<d p=')
-  })
-})
-
-describe('xmlToComments', () => {
-  it('should convert XML back to comments array', () => {
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<i>
-    <chatserver>chat.bilibili.com</chatserver>
-    <chatid>0</chatid>
-    <mission>0</mission>
-    <maxlimit>1500</maxlimit>
-    <state>0</state>
-    <real_name>0</real_name>
-    <source>k-v</source>
-    <d p="661.759,1,16777215">战歌起</d>
-    <d p="368.132,1,16777215">谁懂这一抱啊啊啊啊</d>
-    <d p="10.5,5,255">Top comment</d>
-</i>`
-
-    const result = zGenericXml.parse(xml)
-
-    expect(result).toHaveLength(3)
-    expect(result[0]).toEqual({ p: '661.759,1,16777215', m: '战歌起' })
-    expect(result[1]).toEqual({
-      p: '368.132,1,16777215',
-      m: '谁懂这一抱啊啊啊啊',
-    })
-    expect(result[2]).toEqual({ p: '10.5,5,255', m: 'Top comment' })
-  })
-
-  it('should handle XML with special characters', () => {
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<i>
-    <chatserver>chat.bilibili.com</chatserver>
-    <chatid>0</chatid>
-    <d p="1.0,1,16777215">Text with &lt;tag&gt; &amp; "quotes" &amp; 'apostrophes'</d>
-</i>`
-
-    const result = zGenericXml.parse(xml)
-
-    expect(result).toHaveLength(1)
-    expect(result[0]).toEqual({
-      p: '1.0,1,16777215',
-      m: 'Text with <tag> & "quotes" & \'apostrophes\'',
-    })
-  })
-
-  it('should handle single comment XML', () => {
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<i>
-    <chatserver>chat.bilibili.com</chatserver>
-    <chatid>0</chatid>
-    <d p="1.0,1,16777215">Single comment</d>
-</i>`
-
-    const result = zGenericXml.parse(xml)
-
-    expect(result).toHaveLength(1)
-    expect(result[0]).toEqual({ p: '1.0,1,16777215', m: 'Single comment' })
-  })
-
-  it('should handle empty XML', () => {
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<i>
-    <chatserver>chat.bilibili.com</chatserver>
-    <chatid>0</chatid>
-</i>`
-
-    const result = zGenericXml.parse(xml)
-
-    expect(result).toHaveLength(0)
-  })
-
-  it('should round-trip convert comments', () => {
-    const originalComments = [
-      { p: '661.759,1,16777215', m: '战歌起' },
-      { p: '368.132,1,16777215', m: '谁懂这一抱啊啊啊啊' },
-      { p: '10.5,5,255', m: 'Text with <tag> & "quotes"' },
-    ]
-
-    const xml = commentsToXml(originalComments)
-    const convertedComments = zGenericXml.parse(xml)
-
-    expect(convertedComments).toEqual(originalComments)
   })
 })

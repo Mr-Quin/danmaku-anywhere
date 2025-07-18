@@ -1,8 +1,8 @@
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import type React from 'react'
 import { useCallback, useState } from 'react'
 
-// Simple commentsToXml function for client-side use
-const commentsToXml = (comments: Array<{ p: string; m: string }>) => {
+const commentsToXml = (comments: CommentEntity[]) => {
   const xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>'
   const commentElements = comments
     .map((comment) => {
