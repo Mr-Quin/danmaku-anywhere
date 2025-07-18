@@ -111,15 +111,6 @@ temp/
 *.pem
 *.zip
 
-# Test files
-*.test.js
-*.test.ts
-*.spec.js
-*.spec.ts
-__tests__/
-test/
-tests/
-
 # Documentation build
 docs/dist/
 
