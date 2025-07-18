@@ -15,7 +15,6 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { produce } from 'immer'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { Outlet } from 'react-router'
 
 import { alarmKeys } from '@/common/alarms/constants'
 import { useToast } from '@/common/components/Toast/toastStore'
@@ -92,113 +91,110 @@ export const RetentionPolicyPage = () => {
   })
 
   return (
-    <>
-      <OptionsPageLayout>
-        <OptionsPageToolBar title={t('optionsPage.pages.retentionPolicy')} />
-        <Box px={2}>
-          <List>
-            <ListItem disablePadding>
-              <ListItemText
-                primary={
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                  >
-                    <>{t('optionsPage.retentionPolicy.enabled')}</>
-                    <Controller
-                      name="enabled"
-                      control={control}
-                      render={({ field: { onChange, value } }) => {
-                        return <Switch checked={value} onChange={onChange} />
-                      }}
-                    />
-                  </Stack>
-                }
-              />
-            </ListItem>
-            <Divider />
-            <ListItem disablePadding>
-              <ListItemText
-                primary={
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                  >
-                    <>{t('optionsPage.retentionPolicy.deleteCommentsAfter')}</>
-                    <Controller
-                      name="deleteCommentsAfter"
-                      control={control}
-                      render={({ field }) => {
-                        return (
-                          <TextField
-                            {...field}
-                            sx={{ width: 150 }}
-                            size="small"
-                            autoComplete="off"
-                            slotProps={{
-                              input: {
-                                endAdornment: (
-                                  <InputAdornment position="end">
-                                    {t('common.duration.day', {
-                                      count: Number.parseInt(`${field.value}`),
-                                    })}
-                                  </InputAdornment>
-                                ),
-                              },
-                            }}
-                            type="number"
-                            error={!!errors.deleteCommentsAfter}
-                            helperText={errors.deleteCommentsAfter?.message}
-                          />
-                        )
-                      }}
-                    />
-                  </Stack>
-                }
-                secondary={
+    <OptionsPageLayout>
+      <OptionsPageToolBar title={t('optionsPage.pages.retentionPolicy')} />
+      <Box px={2}>
+        <List>
+          <ListItem disablePadding>
+            <ListItemText
+              primary={
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                >
+                  <>{t('optionsPage.retentionPolicy.enabled')}</>
+                  <Controller
+                    name="enabled"
+                    control={control}
+                    render={({ field: { onChange, value } }) => {
+                      return <Switch checked={value} onChange={onChange} />
+                    }}
+                  />
+                </Stack>
+              }
+            />
+          </ListItem>
+          <Divider />
+          <ListItem disablePadding>
+            <ListItemText
+              primary={
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                >
+                  <>{t('optionsPage.retentionPolicy.deleteCommentsAfter')}</>
+                  <Controller
+                    name="deleteCommentsAfter"
+                    control={control}
+                    render={({ field }) => {
+                      return (
+                        <TextField
+                          {...field}
+                          sx={{ width: 150 }}
+                          size="small"
+                          autoComplete="off"
+                          slotProps={{
+                            input: {
+                              endAdornment: (
+                                <InputAdornment position="end">
+                                  {t('common.duration.day', {
+                                    count: Number.parseInt(`${field.value}`),
+                                  })}
+                                </InputAdornment>
+                              ),
+                            },
+                          }}
+                          type="number"
+                          error={!!errors.deleteCommentsAfter}
+                          helperText={errors.deleteCommentsAfter?.message}
+                        />
+                      )
+                    }}
+                  />
+                </Stack>
+              }
+              secondary={
+                <>
                   <>
-                    <>
-                      {t(
-                        'optionsPage.retentionPolicy.tooltip.deleteCommentsAfter'
-                      )}
-                    </>
-                    {retentionPolicy.enabled && nextPurgeTime && (
-                      <>
-                        {t('optionsPage.retentionPolicy.tooltip.nextPurge', {
-                          time: nextPurgeTime,
-                        })}
-                      </>
+                    {t(
+                      'optionsPage.retentionPolicy.tooltip.deleteCommentsAfter'
                     )}
                   </>
-                }
-              />
-            </ListItem>
-          </List>
-          <Stack direction="row">
-            <Button
-              onClick={handleSubmit((update) => handleApply(update))}
-              loading={isPending}
-              variant="contained"
-              disabled={!isDirty}
-            >
-              {t('common.apply')}
-            </Button>
-            <Button
-              onClick={() => purgeDanmaku()}
-              loading={isPurgingDanmaku}
-              variant="contained"
-              color="error"
-              sx={{ ml: 'auto' }}
-              disabled={isDirty}
-            >
-              {t('optionsPage.retentionPolicy.purgeNow')}
-            </Button>
-          </Stack>
-        </Box>
-      </OptionsPageLayout>
-      <Outlet />
-    </>
+                  {retentionPolicy.enabled && nextPurgeTime && (
+                    <>
+                      {t('optionsPage.retentionPolicy.tooltip.nextPurge', {
+                        time: nextPurgeTime,
+                      })}
+                    </>
+                  )}
+                </>
+              }
+            />
+          </ListItem>
+        </List>
+        <Stack direction="row">
+          <Button
+            onClick={handleSubmit((update) => handleApply(update))}
+            loading={isPending}
+            variant="contained"
+            disabled={!isDirty}
+          >
+            {t('common.apply')}
+          </Button>
+          <Button
+            onClick={() => purgeDanmaku()}
+            loading={isPurgingDanmaku}
+            variant="contained"
+            color="error"
+            sx={{ ml: 'auto' }}
+            disabled={isDirty}
+          >
+            {t('optionsPage.retentionPolicy.purgeNow')}
+          </Button>
+        </Stack>
+      </Box>
+    </OptionsPageLayout>
   )
 }
