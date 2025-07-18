@@ -3,7 +3,7 @@ import {
   DanmakuSourceType,
   type Season,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Delete, Refresh } from '@mui/icons-material'
+import { Delete, FileDownload, Refresh } from '@mui/icons-material'
 import {
   alpha,
   Card,
@@ -28,10 +28,13 @@ import {
 import type { HandleSeasonClick } from '@/common/components/MediaList/types'
 import { ProviderLogo } from '@/common/components/ProviderLogo'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { isProvider } from '@/common/danmaku/utils'
 import { episodeQueryKeys, seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { DrilldownMenu } from '@/content/common/DrilldownMenu'
+import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
+import { useExportXml } from '@/popup/hooks/useExportXml'
 
 interface CardCornerInfoProps {
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
@@ -122,6 +125,10 @@ export const SeasonCard = ({
 
   const queryClient = useQueryClient()
 
+  const exportXml = useExportXml()
+  const exportDanmaku = useExportDanmaku()
+  const deleteEpisode = useDeleteEpisode()
+
   const deleteMutation = useMutation({
     mutationKey: seasonQueryKeys.all(),
     mutationFn: (id: number) => chromeRpcClient.seasonDelete({ id }),
@@ -149,17 +156,9 @@ export const SeasonCard = ({
 
   const renderEpisodeCount = () => {
     if (season.localEpisodeCount) {
-      const totalEpisodes = season.episodeCount?.toString() ?? '?'
       return (
         <CardCornerInfo position="top-right">
-          {`${season.localEpisodeCount} / ${totalEpisodes}`}
-        </CardCornerInfo>
-      )
-    }
-    if (season.episodeCount) {
-      return (
-        <CardCornerInfo position="top-right">
-          {season.episodeCount}
+          {season.localEpisodeCount}
         </CardCornerInfo>
       )
     }
@@ -173,6 +172,120 @@ export const SeasonCard = ({
     } else if (onClick) {
       onClick(season)
     }
+  }
+
+  const renderMenu = () => {
+    if (disableMenu || enableSelection) {
+      return null
+    }
+    if (isProvider(season, DanmakuSourceType.Custom)) {
+      return (
+        <CardCornerInfo position="bottom-right" sx={{ p: 0 }}>
+          <DrilldownMenu
+            ButtonProps={{
+              size: 'small',
+            }}
+            items={[
+              {
+                id: 'export',
+                label: t('danmaku.backup'),
+                icon: <FileDownload />,
+                onClick: () => {
+                  exportDanmaku.mutate({
+                    customFilter: {
+                      all: true,
+                    },
+                  })
+                },
+                loading: exportDanmaku.isPending,
+              },
+              {
+                id: 'exportXml',
+                label: t('danmaku.exportXml'),
+                icon: <FileDownload />,
+                onClick: () => {
+                  exportXml.mutate({
+                    customFilter: {
+                      all: true,
+                    },
+                  })
+                },
+                loading: exportXml.isPending,
+              },
+              {
+                id: 'delete',
+                label: t('common.delete'),
+                icon: <Delete />,
+                loading: deleteEpisode.isPending,
+                onClick: () => {
+                  deleteEpisode.mutate({
+                    isCustom: true,
+                    filter: {
+                      all: true,
+                    },
+                  })
+                },
+              },
+            ]}
+          />
+        </CardCornerInfo>
+      )
+    }
+    return (
+      <CardCornerInfo position="bottom-right" sx={{ p: 0 }}>
+        <DrilldownMenu
+          ButtonProps={{
+            size: 'small',
+          }}
+          items={[
+            {
+              id: 'refresh',
+              label: t('anime.refreshMetadata'),
+              icon: <Refresh />,
+              onClick: () => {
+                refreshMutation.mutate(season.id)
+              },
+              loading: refreshMutation.isPending,
+            },
+            {
+              id: 'export',
+              label: t('danmaku.backup'),
+              icon: <FileDownload />,
+              onClick: () => {
+                exportDanmaku.mutate({
+                  filter: {
+                    seasonId: season.id,
+                  },
+                })
+              },
+              loading: exportDanmaku.isPending,
+            },
+            {
+              id: 'exportXml',
+              label: t('danmaku.exportXml'),
+              icon: <FileDownload />,
+              onClick: () => {
+                exportXml.mutate({
+                  filter: {
+                    seasonId: season.id,
+                  },
+                })
+              },
+              loading: exportXml.isPending,
+            },
+            {
+              id: 'delete',
+              label: t('common.delete'),
+              icon: <Delete />,
+              loading: deleteMutation.isPending,
+              onClick: () => {
+                deleteMutation.mutate(season.id)
+              },
+            },
+          ]}
+        />
+      </CardCornerInfo>
+    )
   }
 
   return (
@@ -217,37 +330,7 @@ export const SeasonCard = ({
             <ProviderLogo provider={season.provider} />
           </Logo>
         )}
-        {!isProvider(season, DanmakuSourceType.Custom) &&
-          !disableMenu &&
-          !enableSelection && (
-            <CardCornerInfo position="bottom-right" sx={{ p: 0 }}>
-              <DrilldownMenu
-                ButtonProps={{
-                  size: 'small',
-                }}
-                items={[
-                  {
-                    id: 'refresh',
-                    label: t('anime.refresh'),
-                    icon: <Refresh />,
-                    onClick: () => {
-                      refreshMutation.mutate(season.id)
-                    },
-                    loading: refreshMutation.isPending,
-                  },
-                  {
-                    id: 'delete',
-                    label: t('common.delete'),
-                    icon: <Delete />,
-                    loading: deleteMutation.isPending,
-                    onClick: () => {
-                      deleteMutation.mutate(season.id)
-                    },
-                  },
-                ]}
-              />
-            </CardCornerInfo>
-          )}
+        {renderMenu()}
       </div>
       <CardContent sx={{ py: 1.5, px: 1 }}>
         <Tooltip title={season.title} enterDelay={500} placement="top">

@@ -53,7 +53,7 @@ const domain = {
     title: 'Title',
     numericEpisode: 'Episode {{episode}}',
     numericSeason: 'Season {{season}}',
-    refresh: 'Refresh',
+    refreshMetadata: 'Refresh Metadata',
   },
   configs: {
     alert: {
@@ -69,8 +69,8 @@ const domain = {
     alert: {
       deleted: 'Danmaku Deleted',
       deleteError: 'Failed to delete danmaku: {{message}}',
-      exported: 'Danmaku Backed Up',
-      exportError: 'Failed to backup danmaku: {{message}}',
+      exported: 'Backup Exported',
+      exportError: 'Failed to export backup: {{message}}',
       xmlExported: 'XML Exported',
       xmlExportError: 'Failed to export XML: {{message}}',
       mounted: 'Danmaku Mounted: {{name}} ({{count}})',
@@ -93,8 +93,7 @@ const domain = {
       videoNotFound: 'Video node not found',
     },
     mount: 'Mount',
-    export: 'Export',
-    backup: 'Backup Danmaku',
+    backup: 'Export Backup',
     exportXml: 'Export XML',
     noComments: 'No comments',
     refresh: 'Refresh Danmaku',
@@ -220,8 +219,8 @@ const pages = {
     noAnime: 'No anime available',
     noResult: "No anime found with title '{{filter}}'",
     confirmDeleteMessage: 'Are you sure to delete the selected Danmaku?',
-    backupAll: 'Backup All',
-    exportAllXml: 'Export as XML',
+    backupAll: 'Export All as Backup',
+    exportAllXml: 'Export All as XML',
   },
   importPage: {
     confirm: 'Confirm Import',
