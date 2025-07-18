@@ -1,36 +1,27 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { fetchMock } from 'cloudflare:test'
+import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
 
-const IncomingRequest = Request
-
 describe('Repo API', () => {
-  const mockFetch = vi.fn()
-
-  beforeEach(() => {
-    global.fetch = mockFetch
+  beforeAll(() => {
+    fetchMock.activate()
+    fetchMock.disableNetConnect()
   })
 
-  afterEach(() => {
-    vi.clearAllMocks()
-  })
+  afterEach(() => fetchMock.assertNoPendingInterceptors())
 
   it('returns kazumi index.json', async () => {
-    // Mock the GitHub API response
     const mockKazumiData = [
       { name: 'rule1', url: 'https://example.com/rule1.json' },
       { name: 'rule2', url: 'https://example.com/rule2.json' },
     ]
 
-    mockFetch.mockResolvedValueOnce(
-      new Response(JSON.stringify(mockKazumiData), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-    )
+    fetchMock
+      .get('https://raw.githubusercontent.com')
+      .intercept({ path: '/Predidit/KazumiRules/main/index.json' })
+      .reply(200, JSON.stringify(mockKazumiData))
 
-    const request = new IncomingRequest(
+    const request = new Request(
       'http://example.com/api/v1/repo/kazumi/index.json'
     )
     const response = await makeUnitTestRequest(request)
@@ -40,10 +31,5 @@ describe('Repo API', () => {
     const content: any = await response.json()
     expect(content).toBeTruthy()
     expect(content.length).toBeGreaterThan(0)
-
-    // Check that the GitHub API was called with correct URL
-    expect(mockFetch).toHaveBeenCalledWith(
-      'https://raw.githubusercontent.com/Predidit/KazumiRules/main/index.json'
-    )
   })
 })

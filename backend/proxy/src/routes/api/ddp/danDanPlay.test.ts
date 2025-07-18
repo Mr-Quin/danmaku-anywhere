@@ -1,17 +1,15 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { fetchMock } from 'cloudflare:test'
+import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
 import '@/test-utils/mockBindings'
 
 describe('DanDanPlay API', () => {
-  const mockFetch = vi.fn()
-
-  beforeEach(() => {
-    global.fetch = mockFetch
+  beforeAll(() => {
+    fetchMock.activate()
+    fetchMock.disableNetConnect()
   })
 
-  afterEach(() => {
-    vi.clearAllMocks()
-  })
+  afterEach(() => fetchMock.assertNoPendingInterceptors())
 
   it('proxies GET requests successfully', async () => {
     // Mock the DanDanPlay API response
@@ -21,15 +19,16 @@ describe('DanDanPlay API', () => {
         { title: 'Nichijou Special', id: 2 },
       ],
     }
-    mockFetch.mockResolvedValueOnce(
-      new Response(JSON.stringify(mockResponse), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'max-age=1800',
+
+    fetchMock
+      .get('https://api.dandanplay.net')
+      .intercept({
+        path: '/api/v2/search/anime',
+        query: {
+          keyword: 'nichijou',
         },
       })
-    )
+      .reply(200, JSON.stringify(mockResponse))
 
     const request = new Request(
       'http://example.com/api/v1/ddp/v2/search/anime?keyword=nichijou'
@@ -41,17 +40,9 @@ describe('DanDanPlay API', () => {
     expect(data).toHaveProperty('animes')
     expect(data.animes.length).toBeGreaterThan(0)
 
-    // Check that the API was called with correct URL
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        url: 'https://api.dandanplay.net/api/v2/search/anime?keyword=nichijou',
-      })
-    )
-
-    // Check caching headers
     const cacheControl = response.headers.get('Cache-Control')
     expect(cacheControl).toBeDefined()
-    expect(cacheControl).toContain('s-maxage=1800')
+    expect(cacheControl).toContain('s-maxage=1800') // default cache time
   })
 
   it('should cache GET requests - second request should not call fetch again', async () => {
@@ -59,16 +50,21 @@ describe('DanDanPlay API', () => {
       animes: [{ title: 'Test Anime', id: 123 }],
     }
 
-    // Mock the API response for the first request
-    mockFetch.mockResolvedValue(
-      new Response(JSON.stringify(mockResponse), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'max-age=3600',
+    // should only be called once due to caching
+    fetchMock
+      .get('https://api.dandanplay.net')
+      .intercept({
+        path: '/api/v2/search/anime',
+        query: {
+          keyword: 'test',
         },
       })
-    )
+      .reply(200, JSON.stringify(mockResponse), {
+        headers: {
+          'Cache-Control': 'max-age=3600', // max age should be respected when cached
+        },
+      })
+      .times(1)
 
     const url = 'http://example.com/api/v1/ddp/v2/search/anime?keyword=test'
 
@@ -77,14 +73,12 @@ describe('DanDanPlay API', () => {
     const response1 = await makeUnitTestRequest(request1)
 
     expect(response1.status).toBe(200)
-    expect(mockFetch).toHaveBeenCalledTimes(1)
 
     // Second identical request - should hit cache, not call fetch again
     const request2 = new Request(url)
     const response2 = await makeUnitTestRequest(request2)
 
     expect(response2.status).toBe(200)
-    expect(mockFetch).toHaveBeenCalledTimes(1) // Still only called once
 
     // Both responses should have the same data
     const data1 = await response1.json()
@@ -101,21 +95,27 @@ describe('DanDanPlay API', () => {
     const mockResponse1 = { animes: [{ title: 'Anime 1', id: 1 }] }
     const mockResponse2 = { animes: [{ title: 'Anime 2', id: 2 }] }
 
-    mockFetch
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify(mockResponse1), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
-      )
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify(mockResponse2), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
-      )
+    fetchMock
+      .get('https://api.dandanplay.net')
+      .intercept({
+        path: '/api/v2/search/anime',
+        query: {
+          keyword: 'test1',
+        },
+      })
+      .reply(200, JSON.stringify(mockResponse1))
 
-    // Two different requests should both call fetch
+    fetchMock
+      .get('https://api.dandanplay.net')
+      .intercept({
+        path: '/api/v2/search/anime',
+        query: {
+          keyword: 'test2',
+        },
+      })
+      .reply(200, JSON.stringify(mockResponse2))
+
+    // two different requests should both call fetch
     const request1 = new Request(
       'http://example.com/api/v1/ddp/v2/search/anime?keyword=test1'
     )
@@ -125,17 +125,16 @@ describe('DanDanPlay API', () => {
 
     await makeUnitTestRequest(request1)
     await makeUnitTestRequest(request2)
-
-    expect(mockFetch).toHaveBeenCalledTimes(2)
   })
 
   it('should not cache non-GET requests', async () => {
-    mockFetch.mockResolvedValue(
-      new Response(JSON.stringify({ success: true }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      })
-    )
+    const mock1 = fetchMock
+      .get('https://api.dandanplay.net')
+      .intercept({ path: '/api/v2/user/login', method: 'POST' })
+      .reply(200, JSON.stringify({ success: true }))
+
+    // call twice
+    mock1.times(2)
 
     const url = 'http://example.com/api/v1/ddp/v2/user/login'
     const requestOptions = {
@@ -145,11 +144,12 @@ describe('DanDanPlay API', () => {
     }
 
     // Make two identical POST requests
-    await makeUnitTestRequest(new Request(url, requestOptions))
-    await makeUnitTestRequest(new Request(url, requestOptions))
+    const res1 = await makeUnitTestRequest(new Request(url, requestOptions))
+    const res2 = await makeUnitTestRequest(new Request(url, requestOptions))
 
-    // Both should call fetch (no caching for POST)
-    expect(mockFetch).toHaveBeenCalledTimes(2)
+    expect(res1.status).toBe(200)
+    expect(res2.status).toBe(200)
+    expect(await res1.json()).toEqual(await res2.json())
   })
 
   it('returns 404 for invalid DDP endpoints', async () => {
