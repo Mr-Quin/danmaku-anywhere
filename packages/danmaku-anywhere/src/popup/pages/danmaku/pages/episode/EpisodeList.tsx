@@ -6,14 +6,8 @@ import {
   type CustomEpisodeLite,
   DanmakuSourceType,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Refresh } from '@mui/icons-material'
-import {
-  Box,
-  CircularProgress,
-  IconButton,
-  Stack,
-  Typography,
-} from '@mui/material'
+import { Delete, Download, Refresh } from '@mui/icons-material'
+import { Box, Stack, Typography } from '@mui/material'
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import { useTranslation } from 'react-i18next'
 import {
@@ -24,8 +18,12 @@ import {
 } from 'react-router'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useCustomEpisodeLite } from '@/common/danmaku/queries/useCustomEpisodes'
+import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { useEpisodesLite } from '@/common/danmaku/queries/useEpisodes'
 import { isProvider } from '@/common/danmaku/utils'
+import { DrilldownMenu } from '@/content/common/DrilldownMenu'
+import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
+import { useExportXml } from '@/popup/hooks/useExportXml'
 import { useRefreshDanmaku } from '@/popup/hooks/useRefreshDanmaku'
 import { useStore } from '@/popup/store'
 
@@ -60,47 +58,47 @@ export const EpisodeList = () => {
   const { enableEpisodeSelection, setSelectedEpisodes } = useStore.use.danmaku()
 
   const { isPending, refreshDanmaku } = useRefreshDanmaku()
+  const exportDanmaku = useExportDanmaku()
+  const exportXml = useExportXml()
+  const deleteMutation = useDeleteEpisode()
 
   const handleFetchDanmaku = async (episode: EpisodeRow) => {
     if (isProvider(episode, DanmakuSourceType.Custom)) return
     return refreshDanmaku(episode)
   }
 
+  const handleDelete = (episode: EpisodeRow) => {
+    deleteMutation.mutate({
+      isCustom,
+      filter: { ids: [episode.id] },
+    })
+  }
+
+  const handleBackup = (episode: EpisodeRow) => {
+    if (isCustom) {
+      exportDanmaku.mutate({
+        customFilter: { ids: [episode.id] },
+      })
+    } else {
+      exportDanmaku.mutate({
+        filter: { ids: [episode.id] },
+      })
+    }
+  }
+
+  const handleExportXml = (episode: EpisodeRow) => {
+    if (isCustom) {
+      exportXml.mutate({
+        customFilter: { ids: [episode.id] },
+      })
+    } else {
+      exportXml.mutate({
+        filter: { ids: [episode.id] },
+      })
+    }
+  }
+
   type EpisodeRow = WithSeason<EpisodeLite> | CustomEpisodeLite
-
-  const actionColumn: GridColDef<EpisodeRow>[] = [
-    {
-      field: 'actions',
-      headerName: '',
-      width: 60,
-      sortable: false,
-      disableColumnMenu: true,
-      renderCell: (params) => {
-        const episode = params.row
-
-        return (
-          <Box
-            height="100%"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-          >
-            {isPending ? (
-              <CircularProgress size={24} />
-            ) : (
-              <IconButton
-                onClick={() => handleFetchDanmaku(episode)}
-                size="small"
-                title={t('danmaku.refresh')}
-              >
-                <Refresh />
-              </IconButton>
-            )}
-          </Box>
-        )
-      },
-    },
-  ]
 
   const columns: GridColDef<EpisodeRow>[] = [
     {
@@ -154,7 +152,67 @@ export const EpisodeList = () => {
         )
       },
     },
-    ...(!isCustom ? actionColumn : []),
+    {
+      field: 'actions',
+      headerName: '',
+      width: 60,
+      sortable: false,
+      disableColumnMenu: true,
+      renderCell: (params) => {
+        const episode = params.row
+
+        return (
+          <Box
+            height="100%"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <DrilldownMenu
+              ButtonProps={{ size: 'small' }}
+              items={[
+                ...(isProvider(episode, DanmakuSourceType.Custom)
+                  ? []
+                  : [
+                      {
+                        id: 'refresh',
+                        label: t('danmaku.refresh'),
+                        icon: <Refresh />,
+                        onClick: () => handleFetchDanmaku(episode),
+                        disabled: isPending,
+                        loading: isPending,
+                      },
+                    ]),
+                {
+                  id: 'backup',
+                  label: t('danmaku.backup'),
+                  icon: <Download />,
+                  onClick: () => handleBackup(episode),
+                  disabled: exportDanmaku.isPending,
+                  loading: exportDanmaku.isPending,
+                },
+                {
+                  id: 'exportXml',
+                  label: t('danmaku.exportXml'),
+                  icon: <Download />,
+                  onClick: () => handleExportXml(episode),
+                  disabled: exportXml.isPending,
+                  loading: exportXml.isPending,
+                },
+                {
+                  id: 'delete',
+                  label: t('common.delete'),
+                  icon: <Delete />,
+                  onClick: () => handleDelete(episode),
+                  disabled: deleteMutation.isPending,
+                  loading: deleteMutation.isPending,
+                },
+              ]}
+            />
+          </Box>
+        )
+      },
+    },
   ]
 
   return (

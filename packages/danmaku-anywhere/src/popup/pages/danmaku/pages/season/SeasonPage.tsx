@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { CaptureKeypress } from '@/common/components/CaptureKeypress'
 import { FilterButton } from '@/common/components/FilterButton'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
-import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { ConfirmDeleteDialog } from '@/popup/pages/danmaku/components/ConfirmDeleteDialog'
@@ -56,9 +55,7 @@ export const SeasonPage = () => {
                   selectedTypes={selectedTypes}
                   setSelectedType={setSelectedType}
                 />
-                <DrilldownMenu ButtonProps={{ edge: 'end' }}>
-                  <ExportAllDanmakuButton />
-                </DrilldownMenu>
+                <ExportAllDanmakuButton />
               </TabToolbar>
               <SeasonList />
             </>

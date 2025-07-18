@@ -8,16 +8,17 @@ import {
   DialogTitle,
   IconButton,
   Skeleton,
-  Tooltip,
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams, useSearchParams } from 'react-router'
 import { useGetSeason } from '@/common/anime/queries/useSeasons'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
+import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
+import { useExportXml } from '@/popup/hooks/useExportXml'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 import { useStore } from '@/popup/store'
 import { EpisodeList } from './EpisodeList'
@@ -52,7 +53,8 @@ export const EpisodePage = () => {
     }
   }
 
-  const { exportMany } = useExportDanmaku()
+  const exportDanmaku = useExportDanmaku()
+  const exportXml = useExportXml()
   const deleteMutation = useDeleteEpisode()
 
   const [showDialog, setShowDialog] = useState(false)
@@ -75,11 +77,28 @@ export const EpisodePage = () => {
     )
   }
 
-  const handleExport = () => {
-    exportMany.mutate({
-      isCustom,
-      filter: { ids: selectedEpisodes },
-    })
+  const handleBackup = () => {
+    if (isCustom) {
+      exportDanmaku.mutate({
+        customFilter: { ids: selectedEpisodes },
+      })
+    } else {
+      exportDanmaku.mutate({
+        filter: { ids: selectedEpisodes },
+      })
+    }
+  }
+
+  const handleExportXml = () => {
+    if (isCustom) {
+      exportXml.mutate({
+        customFilter: { ids: selectedEpisodes },
+      })
+    } else {
+      exportXml.mutate({
+        filter: { ids: selectedEpisodes },
+      })
+    }
   }
 
   const getTitle = () => {
@@ -105,16 +124,30 @@ export const EpisodePage = () => {
   return (
     <TabLayout>
       <TabToolbar title={getTitle()} showBackButton onGoBack={goBack}>
-        <Tooltip title={t('danmaku.export')}>
-          <span>
-            <IconButton
-              onClick={handleExport}
-              disabled={selectedEpisodes.length === 0}
-            >
-              <Download />
-            </IconButton>
-          </span>
-        </Tooltip>
+        <DrilldownMenu
+          icon={<Download />}
+          ButtonProps={{
+            disabled: selectedEpisodes.length === 0,
+          }}
+          items={[
+            {
+              id: 'backup',
+              label: t('danmaku.backup'),
+              icon: <Download />,
+              onClick: handleBackup,
+              disabled: exportDanmaku.isPending,
+              loading: exportDanmaku.isPending,
+            },
+            {
+              id: 'exportXml',
+              label: t('danmaku.exportXml'),
+              icon: <Download />,
+              onClick: handleExportXml,
+              disabled: exportXml.isPending,
+              loading: exportXml.isPending,
+            },
+          ]}
+        />
         <IconButton
           onClick={() => {
             setShowDialog(true)

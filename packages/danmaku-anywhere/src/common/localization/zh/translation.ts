@@ -14,6 +14,7 @@ const common = {
     delete: '删除',
     enable: '启用',
     export: '导出',
+    backup: '备份',
     filter: '过滤',
     import: '导入',
     reset: '重置',
@@ -70,8 +71,10 @@ const domain = {
     alert: {
       deleted: '弹幕已删除',
       deleteError: '弹幕删除失败：{{message}}',
-      exported: '弹幕已导出',
-      exportError: '弹幕导出失败：{{message}}',
+      exported: '弹幕已备份',
+      exportError: '弹幕备份失败：{{message}}',
+      xmlExported: 'XML已导出',
+      xmlExportError: 'XML导出失败：{{message}}',
       mounted: '弹幕已装填：{{name}} ({{count}})',
       mountError: '装填弹幕失败：{{message}}',
       refreshed: '弹幕已刷新：{{name}} ({{count}})',
@@ -92,7 +95,9 @@ const domain = {
       videoNotFound: '未找到视频节点',
     },
     mount: '装填弹幕',
-    export: '导出弹幕',
+    export: '导出',
+    backup: '备份弹幕',
+    exportXml: '导出XML',
     noComments: '弹幕列表为空',
     refresh: '刷新弹幕',
     style: '弹幕样式',
@@ -143,9 +148,9 @@ const pages = {
   configPage: {
     editor: {
       helper: {
-        mediaQuery: '用来选择视频节点, 一般为“video”',
+        mediaQuery: '用来选择视频节点, 一般为"video"',
         integration:
-          '启用对应的适配规则。如果你不清楚这是什么，请保持默认设置“无”',
+          '启用对应的适配规则。如果你不清楚这是什么，请保持默认设置"无"',
         urlPattern:
           '用来匹配视频页面，一般为视频网站的网址。格式：https://example.com/*。',
       },
@@ -169,7 +174,7 @@ const pages = {
     },
     name: '装填配置',
     createConfig: '编写配置',
-    exportAll: '导出所有配置',
+    backupAll: '备份所有配置',
     showIntegration: '查看适配规则',
   },
   integrationPolicyPage: {
@@ -214,7 +219,8 @@ const pages = {
     noAnime: '没有可用的番剧',
     noResult: "没有找到标题为 '{{filter}}' 的番剧",
     confirmDeleteMessage: '确定要删除选中的弹幕吗？',
-    exportAll: '导出所有弹幕',
+    backupAll: '备份所有弹幕',
+    exportAllXml: '导出为XML',
   },
   importPage: {
     confirm: '确认导入',
