@@ -218,7 +218,7 @@ const pages = {
     noAnime: '没有可用的番剧',
     noResult: "没有找到标题为 '{{filter}}' 的番剧",
     confirmDeleteMessage: '确定要删除选中的弹幕吗？',
-    backupAll: '备份所有弹幕',
+    backupAll: '全部导出为备份',
     exportAllXml: '全部导出为XML',
   },
   importPage: {

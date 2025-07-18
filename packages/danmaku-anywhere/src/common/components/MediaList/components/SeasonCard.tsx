@@ -127,6 +127,7 @@ export const SeasonCard = ({
 
   const exportXml = useExportXml()
   const exportDanmaku = useExportDanmaku()
+  const deleteEpisode = useDeleteEpisode()
 
   const deleteMutation = useMutation({
     mutationKey: seasonQueryKeys.all(),
@@ -155,17 +156,9 @@ export const SeasonCard = ({
 
   const renderEpisodeCount = () => {
     if (season.localEpisodeCount) {
-      const totalEpisodes = season.episodeCount?.toString() ?? '?'
       return (
         <CardCornerInfo position="top-right">
-          {`${season.localEpisodeCount} / ${totalEpisodes}`}
-        </CardCornerInfo>
-      )
-    }
-    if (season.episodeCount) {
-      return (
-        <CardCornerInfo position="top-right">
-          {season.episodeCount}
+          {season.localEpisodeCount}
         </CardCornerInfo>
       )
     }
@@ -199,8 +192,8 @@ export const SeasonCard = ({
                 icon: <FileDownload />,
                 onClick: () => {
                   exportDanmaku.mutate({
-                    filter: {
-                      seasonId: season.id,
+                    customFilter: {
+                      all: true,
                     },
                   })
                 },
@@ -212,8 +205,8 @@ export const SeasonCard = ({
                 icon: <FileDownload />,
                 onClick: () => {
                   exportXml.mutate({
-                    filter: {
-                      seasonId: season.id,
+                    customFilter: {
+                      all: true,
                     },
                   })
                 },
@@ -223,9 +216,14 @@ export const SeasonCard = ({
                 id: 'delete',
                 label: t('common.delete'),
                 icon: <Delete />,
-                loading: deleteMutation.isPending,
+                loading: deleteEpisode.isPending,
                 onClick: () => {
-                  deleteMutation.mutate(season.id)
+                  deleteEpisode.mutate({
+                    isCustom: true,
+                    filter: {
+                      all: true,
+                    },
+                  })
                 },
               },
             ]}
@@ -332,63 +330,7 @@ export const SeasonCard = ({
             <ProviderLogo provider={season.provider} />
           </Logo>
         )}
-        {!isProvider(season, DanmakuSourceType.Custom) &&
-          !disableMenu &&
-          !enableSelection && (
-            <CardCornerInfo position="bottom-right" sx={{ p: 0 }}>
-              <DrilldownMenu
-                ButtonProps={{
-                  size: 'small',
-                }}
-                items={[
-                  {
-                    id: 'refresh',
-                    label: t('anime.refreshMetadata'),
-                    icon: <Refresh />,
-                    onClick: () => {
-                      refreshMutation.mutate(season.id)
-                    },
-                    loading: refreshMutation.isPending,
-                  },
-                  {
-                    id: 'export',
-                    label: t('danmaku.backup'),
-                    icon: <FileDownload />,
-                    onClick: () => {
-                      exportDanmaku.mutate({
-                        filter: {
-                          seasonId: season.id,
-                        },
-                      })
-                    },
-                    loading: exportDanmaku.isPending,
-                  },
-                  {
-                    id: 'exportXml',
-                    label: t('danmaku.exportXml'),
-                    icon: <FileDownload />,
-                    onClick: () => {
-                      exportXml.mutate({
-                        filter: {
-                          seasonId: season.id,
-                        },
-                      })
-                    },
-                    loading: exportXml.isPending,
-                  },
-                  {
-                    id: 'delete',
-                    label: t('common.delete'),
-                    icon: <Delete />,
-                    loading: deleteMutation.isPending,
-                    onClick: () => {
-                      deleteMutation.mutate(season.id)
-                    },
-                  },
-                ]}
-              />
-            </CardCornerInfo>
-          )}
+        {renderMenu()}
       </div>
       <CardContent sx={{ py: 1.5, px: 1 }}>
         <Tooltip title={season.title} enterDelay={500} placement="top">

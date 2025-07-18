@@ -219,8 +219,8 @@ const pages = {
     noAnime: 'No anime available',
     noResult: "No anime found with title '{{filter}}'",
     confirmDeleteMessage: 'Are you sure to delete the selected Danmaku?',
-    backupAll: 'Backup All',
-    exportAllXml: 'Export as XML',
+    backupAll: 'Export All as Backup',
+    exportAllXml: 'Export All as XML',
   },
   importPage: {
     confirm: 'Confirm Import',
