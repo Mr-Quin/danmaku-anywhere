@@ -1,5 +1,12 @@
-import { Divider, Grid, Input, Stack, Typography } from '@mui/material'
-import { type Ref, useEffect, useImperativeHandle, useState } from 'react'
+import {
+  Divider,
+  debounce,
+  Grid,
+  Input,
+  Stack,
+  Typography,
+} from '@mui/material'
+import { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { IS_CHROME } from '@/common/constants'
@@ -146,56 +153,75 @@ const convertDisplaySpeedToActual = (displaySpeed: number) => {
   }
 }
 
-export type DanmakuStylesFormApi = {
-  save: () => Promise<void>
-}
+export type SaveStatus = 'idle' | 'saving' | 'saved'
 
 export type DanmakuStylesFormProps = {
-  apiRef: Ref<DanmakuStylesFormApi>
-  onDirtyChange: (isDirty: boolean) => void
+  onSaveStatusChange?: (status: SaveStatus) => void
 }
 
 export const DanmakuStylesForm = ({
-  apiRef,
-  onDirtyChange,
+  onSaveStatusChange,
 }: DanmakuStylesFormProps) => {
   const { t } = useTranslation()
   const { data: config, partialUpdate } = useDanmakuOptions()
   const { isMobile } = usePlatformInfo()
 
+  const resetFlag = useRef(false)
+
   const {
     control,
-    handleSubmit,
     reset,
-    watch,
     setValue,
     getValues,
-    formState: { isDirty },
+    watch,
+    handleSubmit,
+    subscribe,
   } = useForm<DanmakuOptions>({
     defaultValues: config,
     mode: 'onChange',
   })
 
+  const onSave = async (formData: DanmakuOptions) => {
+    onSaveStatusChange?.('saving')
+
+    await partialUpdate(formData)
+
+    onSaveStatusChange?.('saved')
+  }
+
   useEffect(() => {
+    resetFlag.current = true
     reset(config)
+    // Resetting the form can trigger the subscription which will submit the form again,
+    // set a small timeout to prevent this
+    setTimeout(() => {
+      resetFlag.current = false
+    }, 100)
   }, [config, reset])
 
   useEffect(() => {
-    onDirtyChange(isDirty)
-  }, [isDirty, onDirtyChange])
+    const debouncedSave = debounce(() => {
+      handleSubmit(onSave)()
+    }, 500)
 
-  const onSave = async (formData: DanmakuOptions) => {
-    await partialUpdate(formData)
-    reset(formData)
-  }
+    const unsubscribe = subscribe({
+      formState: {
+        values: true,
+        isDirty: true,
+      },
+      callback: ({ isDirty }) => {
+        if (!isDirty || resetFlag.current) {
+          return
+        }
+        onSaveStatusChange?.('saving')
+        debouncedSave()
+      },
+    })
 
-  useImperativeHandle(
-    apiRef,
-    () => ({
-      save: () => handleSubmit(onSave)(),
-    }),
-    [handleSubmit, onSave]
-  )
+    return () => {
+      unsubscribe()
+    }
+  }, [subscribe])
 
   const yStart = watch('area.yStart', config.area.yStart)
   const yEnd = watch('area.yEnd', config.area.yEnd)
