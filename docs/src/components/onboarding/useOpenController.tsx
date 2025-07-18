@@ -5,19 +5,15 @@ export const useOpenController = (enable: boolean) => {
   const hasControllerRef = useRef(hasController)
 
   useEffect(() => {
-    const interval: { current: ReturnType<typeof setInterval> | undefined } = {
-      current: undefined,
-    }
-
     const pollController = () => {
       if (hasControllerRef.current) {
-        if (interval.current) clearInterval(interval.current)
+        clearInterval(interval)
         return
       }
       window.postMessage({ type: 'danmaku-anywhere', method: 'hello' }, '*')
     }
 
-    interval.current = setInterval(pollController, 500)
+    const interval = setInterval(pollController, 500)
 
     const listener = (event: MessageEvent) => {
       if (event.source !== window) return
@@ -32,7 +28,7 @@ export const useOpenController = (enable: boolean) => {
 
     return () => {
       window.removeEventListener('message', listener)
-      if (interval.current) clearInterval(interval.current)
+      clearInterval(interval)
     }
   }, [])
 
