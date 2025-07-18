@@ -3,8 +3,6 @@ import { createHashRouter, Navigate } from 'react-router'
 import { FilterPageWithRouter } from '@/content/common/DanmakuStyles/FilterPage'
 import { ImportConfigPage } from '@/popup/pages/config/pages/import/ImportConfigPage'
 import { ImportPage } from '@/popup/pages/import/ImportPage'
-import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
-import { HelpOptions } from '@/popup/pages/options/pages/help/HelpOptions'
 import { SeasonDetailsPage } from '@/popup/pages/search/seasonDetails/SeasonDetailsPage'
 import { ConfigPage } from '../pages/config/pages/ConfigPage'
 import { MountConfigEditor } from '../pages/config/pages/MountConfigEditor'
@@ -16,12 +14,6 @@ import { IntegrationPolicy } from '../pages/integrationPolicy/pages/IntegrationP
 import { IntegrationPolicyEditor } from '../pages/integrationPolicy/pages/IntegrationPolicyEditor'
 import { MountPage } from '../pages/mount/MountPage'
 import { Options } from '../pages/options/Options'
-import { DanmakuSource } from '../pages/options/pages/danmakuSource/DanmakuSource'
-import { BilibiliOptions } from '../pages/options/pages/danmakuSource/pages/BilibiliOptions'
-import { DanDanPlayOptions } from '../pages/options/pages/danmakuSource/pages/DanDanPlayOptions'
-import { HotkeyOptions } from '../pages/options/pages/hotkeyOptions/HotkeyOptions'
-import { RetentionPolicyPage } from '../pages/options/pages/retentionPolicy/RetentionPolicyPage'
-import { ThemeOptions } from '../pages/options/pages/theme/ThemeOptions'
 import { SearchPage } from '../pages/search/SearchPage'
 import { StylesPage } from '../pages/styles/StylesPage'
 
@@ -114,41 +106,5 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
   {
     path: '/options',
     Component: Options,
-    children: [
-      {
-        path: 'danmaku-source',
-        Component: DanmakuSource,
-        children: [
-          {
-            path: 'dandanplay',
-            Component: DanDanPlayOptions,
-          },
-          {
-            path: 'bilibili',
-            Component: BilibiliOptions,
-          },
-        ],
-      },
-      {
-        path: 'theme',
-        Component: ThemeOptions,
-      },
-      {
-        path: 'hotkeys',
-        Component: HotkeyOptions,
-      },
-      {
-        path: 'retention-policy',
-        Component: RetentionPolicyPage,
-      },
-      {
-        path: 'advanced',
-        Component: AdvancedOptions,
-      },
-      {
-        path: 'help',
-        Component: HelpOptions,
-      },
-    ],
   },
 ])
