@@ -18,7 +18,6 @@
   "vars": {
     "ENVIRONMENT": "dev",
     "DANDANPLAY_API_HOST": "https://api.dandanplay.net",
-    "BASE_URL": "/proxy",
     "ALLOWED_ORIGIN": "https://danmaku.weeblify.app",
     "DANDANPLAY_APP_ID": "64fw9qcpfb"
   },
@@ -31,8 +30,7 @@
       "vars": {
         "ENVIRONMENT": "staging",
         "DANDANPLAY_API_HOST": "https://api.dandanplay.net",
-        "BASE_URL": "/proxy",
-        "ALLOWED_ORIGIN": "https://danmaku.weeblify.app",
+        "ALLOWED_ORIGIN": "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app",
         "DANDANPLAY_APP_ID": "64fw9qcpfb"
       },
       "secrets_store_secrets": [
@@ -49,12 +47,8 @@
       ],
       "routes": [
         {
-          "pattern": "danmaku-staging.weeblify.app",
+          "pattern": "api.danmaku-staging.weeblify.app",
           "custom_domain": true
-        },
-        {
-          "pattern": "danmaku-staging.weeblify.app/api/*",
-          "zone_name": "weeblify.app"
         }
       ]
     },
@@ -62,7 +56,6 @@
       "vars": {
         "ENVIRONMENT": "production",
         "DANDANPLAY_API_HOST": "https://api.dandanplay.net",
-        "BASE_URL": "/proxy",
         "ALLOWED_ORIGIN": "https://danmaku.weeblify.app",
         "DANDANPLAY_APP_ID": "64fw9qcpfb"
       },
@@ -80,8 +73,8 @@
       ],
       "routes": [
         {
-          "pattern": "danmaku.weeblify.app/api/*",
-          "zone_name": "weeblify.app"
+          "pattern": "api.danmaku.weeblify.app",
+          "custom_domain": true
         }
       ]
     }

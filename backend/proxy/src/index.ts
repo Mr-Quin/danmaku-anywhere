@@ -16,7 +16,13 @@ app.use(
   logger(),
   prettyJSON(),
   cors({
-    origin: (_, c) => c.env.ALLOWED_ORIGIN,
+    origin: (origin, c) => {
+      const allowedOrigins = c.env.ALLOWED_ORIGIN.split(',')
+      if (allowedOrigins.includes(origin)) {
+        return origin
+      }
+      return allowedOrigins[0]
+    },
     allowMethods: ['POST', 'GET', 'OPTIONS'],
   }),
   poweredBy({
@@ -24,7 +30,7 @@ app.use(
   })
 )
 
-app.route('/api/v1', api)
+app.route('/v1', api)
 
 // legacy routes
 app.use('/proxy/api/*', useCache())
