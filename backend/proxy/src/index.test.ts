@@ -1,6 +1,6 @@
 import { env } from 'cloudflare:test'
 import { describe, expect, it } from 'vitest'
-import { makeUnitTestRequest } from '@/test-tuils/makeUnitTestRequest'
+import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
 
 describe('Basic functionality', () => {
   it('returns 404 for root path', async () => {

@@ -1,6 +1,7 @@
 import type { GoogleGenerativeAI } from '@google/generative-ai'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { makeUnitTestRequest } from '@/test-tuils/makeUnitTestRequest'
+import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
+import '@/test-utils/mockBindings'
 
 const IncomingRequest = Request
 

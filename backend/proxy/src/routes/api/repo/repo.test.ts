@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { makeUnitTestRequest } from '@/test-tuils/makeUnitTestRequest'
+import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
 
 const IncomingRequest = Request
 

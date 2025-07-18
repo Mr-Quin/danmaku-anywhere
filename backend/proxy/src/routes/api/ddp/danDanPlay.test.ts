@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { makeUnitTestRequest } from '@/test-tuils/makeUnitTestRequest'
-
-const IncomingRequest = Request
+import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
+import '@/test-utils/mockBindings'
 
 describe('DanDanPlay API', () => {
   const mockFetch = vi.fn()
@@ -22,7 +21,6 @@ describe('DanDanPlay API', () => {
         { title: 'Nichijou Special', id: 2 },
       ],
     }
-
     mockFetch.mockResolvedValueOnce(
       new Response(JSON.stringify(mockResponse), {
         status: 200,
@@ -33,7 +31,7 @@ describe('DanDanPlay API', () => {
       })
     )
 
-    const request = new IncomingRequest(
+    const request = new Request(
       'http://example.com/api/v1/ddp/v2/search/anime?keyword=nichijou'
     )
     const response = await makeUnitTestRequest(request)
@@ -75,14 +73,14 @@ describe('DanDanPlay API', () => {
     const url = 'http://example.com/api/v1/ddp/v2/search/anime?keyword=test'
 
     // First request - should call fetch
-    const request1 = new IncomingRequest(url)
+    const request1 = new Request(url)
     const response1 = await makeUnitTestRequest(request1)
 
     expect(response1.status).toBe(200)
     expect(mockFetch).toHaveBeenCalledTimes(1)
 
     // Second identical request - should hit cache, not call fetch again
-    const request2 = new IncomingRequest(url)
+    const request2 = new Request(url)
     const response2 = await makeUnitTestRequest(request2)
 
     expect(response2.status).toBe(200)
@@ -118,10 +116,10 @@ describe('DanDanPlay API', () => {
       )
 
     // Two different requests should both call fetch
-    const request1 = new IncomingRequest(
+    const request1 = new Request(
       'http://example.com/api/v1/ddp/v2/search/anime?keyword=test1'
     )
-    const request2 = new IncomingRequest(
+    const request2 = new Request(
       'http://example.com/api/v1/ddp/v2/search/anime?keyword=test2'
     )
 
@@ -147,15 +145,15 @@ describe('DanDanPlay API', () => {
     }
 
     // Make two identical POST requests
-    await makeUnitTestRequest(new IncomingRequest(url, requestOptions))
-    await makeUnitTestRequest(new IncomingRequest(url, requestOptions))
+    await makeUnitTestRequest(new Request(url, requestOptions))
+    await makeUnitTestRequest(new Request(url, requestOptions))
 
     // Both should call fetch (no caching for POST)
     expect(mockFetch).toHaveBeenCalledTimes(2)
   })
 
   it('returns 404 for invalid DDP endpoints', async () => {
-    const request = new IncomingRequest('http://example.com/api/ddp/invalid')
+    const request = new Request('http://example.com/api/ddp/invalid')
     const response = await makeUnitTestRequest(request)
 
     expect(response.status).toBe(404)
