@@ -3,7 +3,7 @@ import {
   DanmakuSourceType,
   type Season,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Delete, Refresh } from '@mui/icons-material'
+import { Delete, FileDownload, Refresh } from '@mui/icons-material'
 import {
   alpha,
   Card,
@@ -32,6 +32,9 @@ import { isProvider } from '@/common/danmaku/utils'
 import { episodeQueryKeys, seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { DrilldownMenu } from '@/content/common/DrilldownMenu'
+import { useExportXml } from '@/popup/hooks/useExportXml'
+import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
+import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 
 interface CardCornerInfoProps {
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
@@ -110,17 +113,20 @@ const SelectionOverlay = styled('div')(() => ({
 }))
 
 export const SeasonCard = ({
-  season,
-  onClick,
-  disableMenu = false,
-  enableSelection = false,
-  isSelected = false,
-  onSelect,
-}: SeasonCardProps) => {
+                             season,
+                             onClick,
+                             disableMenu = false,
+                             enableSelection = false,
+                             isSelected = false,
+                             onSelect,
+                           }: SeasonCardProps) => {
   const { t } = useTranslation()
   const { toast } = useToast()
 
   const queryClient = useQueryClient()
+
+  const exportXml = useExportXml()
+  const exportDanmaku = useExportDanmaku()
 
   const deleteMutation = useMutation({
     mutationKey: seasonQueryKeys.all(),
@@ -173,6 +179,115 @@ export const SeasonCard = ({
     } else if (onClick) {
       onClick(season)
     }
+  }
+
+  const renderMenu = () => {
+    if (disableMenu || enableSelection) {
+      return null
+    }
+    if (isProvider(season, DanmakuSourceType.Custom)) {
+      return <CardCornerInfo position="bottom-right" sx={{ p: 0 }}>
+        <DrilldownMenu
+          ButtonProps={{
+            size: 'small',
+          }}
+          items={[
+            {
+              id: 'export',
+              label: t('danmaku.backup'),
+              icon: <FileDownload />,
+              onClick: () => {
+                exportDanmaku.mutate(
+                  {
+                    filter: {
+                      seasonId: season.id,
+                    },
+                  },
+                )
+              },
+              loading: exportDanmaku.isPending,
+            },
+            {
+              id: 'exportXml',
+              label: t('danmaku.exportXml'),
+              icon: <FileDownload />,
+              onClick: () => {
+                exportXml.mutate({
+                  filter: {
+                    seasonId: season.id,
+                  },
+                })
+              },
+              loading: exportXml.isPending,
+            },
+            {
+              id: 'delete',
+              label: t('common.delete'),
+              icon: <Delete />,
+              loading: deleteMutation.isPending,
+              onClick: () => {
+                deleteMutation.mutate(season.id)
+              },
+            },
+          ]}
+        />
+      </CardCornerInfo>
+    }
+    return <CardCornerInfo position="bottom-right" sx={{ p: 0 }}>
+      <DrilldownMenu
+        ButtonProps={{
+          size: 'small',
+        }}
+        items={[
+          {
+            id: 'refresh',
+            label: t('anime.refreshMetadata'),
+            icon: <Refresh />,
+            onClick: () => {
+              refreshMutation.mutate(season.id)
+            },
+            loading: refreshMutation.isPending,
+          },
+          {
+            id: 'export',
+            label: t('danmaku.backup'),
+            icon: <FileDownload />,
+            onClick: () => {
+              exportDanmaku.mutate(
+                {
+                  filter: {
+                    seasonId: season.id,
+                  },
+                },
+              )
+            },
+            loading: exportDanmaku.isPending,
+          },
+          {
+            id: 'exportXml',
+            label: t('danmaku.exportXml'),
+            icon: <FileDownload />,
+            onClick: () => {
+              exportXml.mutate({
+                filter: {
+                  seasonId: season.id,
+                },
+              })
+            },
+            loading: exportXml.isPending,
+          },
+          {
+            id: 'delete',
+            label: t('common.delete'),
+            icon: <Delete />,
+            loading: deleteMutation.isPending,
+            onClick: () => {
+              deleteMutation.mutate(season.id)
+            },
+          },
+        ]}
+      />
+    </CardCornerInfo>
   }
 
   return (
@@ -228,12 +343,40 @@ export const SeasonCard = ({
                 items={[
                   {
                     id: 'refresh',
-                    label: t('anime.refresh'),
+                    label: t('anime.refreshMetadata'),
                     icon: <Refresh />,
                     onClick: () => {
                       refreshMutation.mutate(season.id)
                     },
                     loading: refreshMutation.isPending,
+                  },
+                  {
+                    id: 'export',
+                    label: t('danmaku.backup'),
+                    icon: <FileDownload />,
+                    onClick: () => {
+                      exportDanmaku.mutate(
+                        {
+                          filter: {
+                            seasonId: season.id,
+                          },
+                        },
+                      )
+                    },
+                    loading: exportDanmaku.isPending,
+                  },
+                  {
+                    id: 'exportXml',
+                    label: t('danmaku.exportXml'),
+                    icon: <FileDownload />,
+                    onClick: () => {
+                      exportXml.mutate({
+                        filter: {
+                          seasonId: season.id,
+                        },
+                      })
+                    },
+                    loading: exportXml.isPending,
                   },
                   {
                     id: 'delete',

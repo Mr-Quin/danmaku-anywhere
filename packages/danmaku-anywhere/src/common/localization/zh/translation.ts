@@ -55,7 +55,7 @@ const domain = {
     title: '标题',
     numericEpisode: '第{{episode}}集',
     numericSeason: '第{{season}}季',
-    refresh: '刷新',
+    refreshMetadata: '刷新元数据',
   },
   configs: {
     alert: {
@@ -71,10 +71,10 @@ const domain = {
     alert: {
       deleted: '弹幕已删除',
       deleteError: '弹幕删除失败：{{message}}',
-      exported: '弹幕已备份',
-      exportError: '弹幕备份失败：{{message}}',
-      xmlExported: 'XML已导出',
-      xmlExportError: 'XML导出失败：{{message}}',
+      exported: '导出备份成功',
+      exportError: '导出备份失败：{{message}}',
+      xmlExported: '导出XML成功',
+      xmlExportError: '导出XML失败：{{message}}',
       mounted: '弹幕已装填：{{name}} ({{count}})',
       mountError: '装填弹幕失败：{{message}}',
       refreshed: '弹幕已刷新：{{name}} ({{count}})',
@@ -95,8 +95,7 @@ const domain = {
       videoNotFound: '未找到视频节点',
     },
     mount: '装填弹幕',
-    export: '导出',
-    backup: '备份弹幕',
+    backup: '导出备份',
     exportXml: '导出XML',
     noComments: '弹幕列表为空',
     refresh: '刷新弹幕',
@@ -220,7 +219,7 @@ const pages = {
     noResult: "没有找到标题为 '{{filter}}' 的番剧",
     confirmDeleteMessage: '确定要删除选中的弹幕吗？',
     backupAll: '备份所有弹幕',
-    exportAllXml: '导出为XML',
+    exportAllXml: '全部导出为XML',
   },
   importPage: {
     confirm: '确认导入',
