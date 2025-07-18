@@ -1,11 +1,12 @@
 import { Divider, Grid, Input, Stack, Typography } from '@mui/material'
-import { type Ref, useEffect, useImperativeHandle, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { IS_CHROME } from '@/common/constants'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
+import { debounce } from '@/common/utils/debounce'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { FontSelector } from '@/content/common/DanmakuStyles/FontSelector'
 import { LabeledSwitch } from '@/content/common/DanmakuStyles/LabeledSwitch'
@@ -146,26 +147,22 @@ const convertDisplaySpeedToActual = (displaySpeed: number) => {
   }
 }
 
-export type DanmakuStylesFormApi = {
-  save: () => Promise<void>
-}
+export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 
 export type DanmakuStylesFormProps = {
-  apiRef: Ref<DanmakuStylesFormApi>
-  onDirtyChange: (isDirty: boolean) => void
+  onSaveStatusChange?: (status: SaveStatus) => void
 }
 
 export const DanmakuStylesForm = ({
-  apiRef,
-  onDirtyChange,
+  onSaveStatusChange,
 }: DanmakuStylesFormProps) => {
   const { t } = useTranslation()
   const { data: config, partialUpdate } = useDanmakuOptions()
   const { isMobile } = usePlatformInfo()
+  const [_saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
 
   const {
     control,
-    handleSubmit,
     reset,
     watch,
     setValue,
@@ -180,22 +177,45 @@ export const DanmakuStylesForm = ({
     reset(config)
   }, [config, reset])
 
-  useEffect(() => {
-    onDirtyChange(isDirty)
-  }, [isDirty, onDirtyChange])
-
   const onSave = async (formData: DanmakuOptions) => {
-    await partialUpdate(formData)
-    reset(formData)
+    try {
+      setSaveStatus('saving')
+      onSaveStatusChange?.('saving')
+
+      await partialUpdate(formData)
+      reset(formData)
+
+      setSaveStatus('saved')
+      onSaveStatusChange?.('saved')
+
+      // Reset to idle after a short delay
+      setTimeout(() => {
+        setSaveStatus('idle')
+        onSaveStatusChange?.('idle')
+      }, 2000)
+    } catch (error) {
+      setSaveStatus('error')
+      onSaveStatusChange?.('error')
+      console.error('Failed to save danmaku styles:', error)
+    }
   }
 
-  useImperativeHandle(
-    apiRef,
-    () => ({
-      save: () => handleSubmit(onSave)(),
-    }),
-    [handleSubmit, onSave]
-  )
+  // Create debounced save function
+  const debouncedSave = useRef(
+    debounce((formData: DanmakuOptions) => {
+      onSave(formData)
+    }, 500)
+  ).current
+
+  // Auto-save when form changes
+  useEffect(() => {
+    if (isDirty) {
+      const subscription = watch((data) => {
+        debouncedSave(data as DanmakuOptions)
+      })
+      return subscription.unsubscribe
+    }
+  }, [isDirty, watch, debouncedSave])
 
   const yStart = watch('area.yStart', config.area.yStart)
   const yEnd = watch('area.yEnd', config.area.yEnd)
