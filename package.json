@@ -12,7 +12,8 @@
   ],
   "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
   "scripts": {
-    "build": "pnpm -r -F \"./packages/**\" build",
+    "build": "pnpm -r build",
+    "build:packages": "pnpm -r -F \"./packages/**\" build",
     "format": "pnpm -r -F \"./packages/**\" format",
     "lint": "pnpm -r -F \"./packages/**\" lint",
     "lint:ci": "pnpm -r lint:ci",
