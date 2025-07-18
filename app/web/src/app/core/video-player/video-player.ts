@@ -95,6 +95,7 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
 
   previousEpisode = output<void>()
   nextEpisode = output<void>()
+  clickPlay = output<void>()
 
   private $isHovering = signal(false)
   private $shouldShowTitle = signal(false)

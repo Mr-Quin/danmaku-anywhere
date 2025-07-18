@@ -8,6 +8,7 @@ import {
   input,
   linkedSignal,
   signal,
+  untracked,
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import { ActivatedRoute, Router } from '@angular/router'
@@ -420,6 +421,18 @@ export class KazumiDetailPage {
         this.updateUrlParams({
           e: episodeIndex,
         })
+      }
+    })
+
+    // Set initial video URL after episode query is successful
+    // TODO: Show be set according to the watch history
+    effect(() => {
+      const playlist = this.$playlist()
+      if (playlist.length > 0) {
+        if (!untracked(() => this.$selectedEpisode())) {
+          // if no episode is selected, set the first one
+          this.changeEpisode(playlist[0])
+        }
       }
     })
   }
