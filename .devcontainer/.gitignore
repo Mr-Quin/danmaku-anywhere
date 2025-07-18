@@ -1,0 +1,16 @@
+# Dev container temporary files
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# VS Code workspace specific files
+.vscode/settings.json.backup
+
+# Local development overrides
+devcontainer.local.json
+docker-compose.override.yml
+
+# Container build artifacts
+.container-build/
+build-output/ 

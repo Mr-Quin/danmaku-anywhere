@@ -1,0 +1,160 @@
+{
+  "name": "Danmaku Anywhere Development",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-20-bullseye",
+
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true,
+      "username": "vscode",
+      "userUid": "automatic",
+      "userGid": "automatic"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "ppa": true,
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "installDirectlyFromGitHubRelease": true,
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "moby": true,
+      "azureDnsAutoDetection": true,
+      "installDockerBuildx": true,
+      "version": "latest",
+      "dockerDashComposeVersion": "v2"
+    }
+  },
+
+  "customizations": {
+    "jetbrains": {
+      "settings": {
+        "Git4Idea:app:Git-Application-Settings.staging_area_enabled": true,
+        "com.intellij:app:BaseRefactoringSettings.safe_delete_when_delete": false,
+        "com.intellij:app:BaseRefactoringSettings.rename_search_in_comments_for_file": false,
+        "com.intellij:app:BaseRefactoringSettings.rename_search_for_references_for_directory": false
+      }
+    },
+    "vscode": {
+      "extensions": [
+        // TypeScript and JavaScript
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "biomejs.biome",
+
+        // Angular
+        "Angular.ng-template",
+        "ms-vscode.vscode-json",
+        "nrwl.angular-console",
+
+        // React
+        "ms-vscode.vscode-react-refactor",
+        "formulahendry.auto-rename-tag",
+
+        // Extension Development
+        "ms-vscode.vscode-web-extension-tester",
+
+        // Git and GitHub
+        "GitHub.vscode-pull-request-github",
+        "eamodio.gitlens",
+
+        // Utilities
+        "ms-vscode.vscode-yaml",
+        "redhat.vscode-xml",
+        "ms-vscode.vscode-markdown",
+        "yzhang.markdown-all-in-one",
+        "ms-vsliveshare.vsliveshare",
+        "ms-vscode.hexdump",
+
+        // Package Management
+        "mskelton.npm-outdated",
+
+        // Testing
+        "ms-vscode.test-adapter-converter",
+        "hbenl.vscode-test-explorer",
+
+        // DevOps
+        "ms-azuretools.vscode-docker",
+        "ms-vscode-remote.remote-containers"
+      ],
+
+      "settings": {
+        "typescript.preferences.preferTypeOnlyAutoImports": true,
+        "typescript.suggest.autoImports": true,
+        "typescript.updateImportsOnFileMove.enabled": "always",
+        "editor.defaultFormatter": "biomejs.biome",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports.biome": "explicit",
+          "source.fixAll.biome": "explicit"
+        },
+        "files.associations": {
+          "*.ts": "typescript",
+          "*.tsx": "typescriptreact"
+        },
+        "emmet.includeLanguages": {
+          "typescript": "html",
+          "typescriptreact": "html"
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "git.autofetch": true,
+        "git.enableSmartCommit": true,
+        "extensions.ignoreRecommendations": false
+      }
+    }
+  },
+
+  // Forward ports for development servers
+  "forwardPorts": [
+    3000, // React dev server
+    4200, // Angular dev server
+    4321, // Astro dev server
+    8787, // Cloudflare Workers dev server
+    8080, // General purpose
+    9000 // General purpose
+  ],
+
+  "portsAttributes": {
+    "3000": {
+      "label": "React Extension App",
+      "onAutoForward": "notify"
+    },
+    "4200": {
+      "label": "Angular Web App",
+      "onAutoForward": "notify"
+    },
+    "4321": {
+      "label": "Astro Documentation",
+      "onAutoForward": "notify"
+    },
+    "8787": {
+      "label": "Cloudflare Workers",
+      "onAutoForward": "notify"
+    }
+  },
+
+  // Use 'postCreateCommand' to run commands after the container is created
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+
+  // Use 'postStartCommand' to run commands after the container starts
+  "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
+
+  // Set environment variables
+  "containerEnv": {
+    "NODE_ENV": "development",
+    "FORCE_COLOR": "1",
+    "NPM_CONFIG_COLOR": "always"
+  },
+
+  // Configure tool-specific properties
+  "otherPortsAttributes": {
+    "onAutoForward": "silent"
+  },
+
+  // Use 'remoteUser' to change the default user
+  "remoteUser": "vscode"
+}
