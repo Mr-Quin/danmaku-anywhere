@@ -30,7 +30,11 @@ const common = {
     docs: '文档',
     pip: '画中画',
     acknowledge: '知道了',
+    saving: '正在保存...',
+    saved: '已保存',
+    autoSave: '自动保存',
     itsEmpty: '这里什么都没有...',
+
     duration: {
       day_one: '天',
       day_other: '天',

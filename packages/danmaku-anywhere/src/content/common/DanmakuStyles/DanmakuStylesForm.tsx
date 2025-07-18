@@ -1,4 +1,11 @@
-import { Divider, Grid, Input, Stack, Typography } from '@mui/material'
+import {
+  Divider,
+  debounce,
+  Grid,
+  Input,
+  Stack,
+  Typography,
+} from '@mui/material'
 import { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -6,7 +13,6 @@ import { IS_CHROME } from '@/common/constants'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
-import { debounce } from '@/common/utils/debounce'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { FontSelector } from '@/content/common/DanmakuStyles/FontSelector'
 import { LabeledSwitch } from '@/content/common/DanmakuStyles/LabeledSwitch'
@@ -147,7 +153,7 @@ const convertDisplaySpeedToActual = (displaySpeed: number) => {
   }
 }
 
-export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
+export type SaveStatus = 'idle' | 'saving' | 'saved'
 
 export type DanmakuStylesFormProps = {
   onSaveStatusChange?: (status: SaveStatus) => void
@@ -159,63 +165,63 @@ export const DanmakuStylesForm = ({
   const { t } = useTranslation()
   const { data: config, partialUpdate } = useDanmakuOptions()
   const { isMobile } = usePlatformInfo()
-  const [_saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+
+  const resetFlag = useRef(false)
 
   const {
     control,
     reset,
-    watch,
     setValue,
     getValues,
-    formState: { isDirty },
+    watch,
+    handleSubmit,
+    subscribe,
   } = useForm<DanmakuOptions>({
     defaultValues: config,
     mode: 'onChange',
   })
 
-  useEffect(() => {
-    reset(config)
-  }, [config, reset])
-
   const onSave = async (formData: DanmakuOptions) => {
-    try {
-      setSaveStatus('saving')
-      onSaveStatusChange?.('saving')
+    onSaveStatusChange?.('saving')
 
-      await partialUpdate(formData)
-      reset(formData)
+    await partialUpdate(formData)
 
-      setSaveStatus('saved')
-      onSaveStatusChange?.('saved')
-
-      // Reset to idle after a short delay
-      setTimeout(() => {
-        setSaveStatus('idle')
-        onSaveStatusChange?.('idle')
-      }, 2000)
-    } catch (error) {
-      setSaveStatus('error')
-      onSaveStatusChange?.('error')
-      console.error('Failed to save danmaku styles:', error)
-    }
+    onSaveStatusChange?.('saved')
   }
 
-  // Create debounced save function
-  const debouncedSave = useRef(
-    debounce((formData: DanmakuOptions) => {
-      onSave(formData)
-    }, 500)
-  ).current
-
-  // Auto-save when form changes
   useEffect(() => {
-    if (isDirty) {
-      const subscription = watch((data) => {
-        debouncedSave(data as DanmakuOptions)
-      })
-      return subscription.unsubscribe
+    resetFlag.current = true
+    reset(config)
+    // Resetting the form can trigger the subscription which will submit the form again,
+    // set a small timeout to prevent this
+    setTimeout(() => {
+      resetFlag.current = false
+    }, 100)
+  }, [config, reset])
+
+  useEffect(() => {
+    const debouncedSave = debounce(() => {
+      handleSubmit(onSave)()
+    }, 500)
+
+    const unsubscribe = subscribe({
+      formState: {
+        values: true,
+        isDirty: true,
+      },
+      callback: ({ isDirty }) => {
+        if (!isDirty || resetFlag.current) {
+          return
+        }
+        onSaveStatusChange?.('saving')
+        debouncedSave()
+      },
+    })
+
+    return () => {
+      unsubscribe()
     }
-  }, [isDirty, watch, debouncedSave])
+  }, [subscribe])
 
   const yStart = watch('area.yStart', config.area.yStart)
   const yEnd = watch('area.yEnd', config.area.yEnd)

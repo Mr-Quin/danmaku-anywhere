@@ -1,5 +1,6 @@
-import { CheckCircle, ErrorOutline, Save, Sync } from '@mui/icons-material'
+import { CheckCircle, Save, Sync } from '@mui/icons-material'
 import { Box, Typography } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import type { SaveStatus } from './DanmakuStylesForm'
 
 export type SaveStatusIndicatorProps = {
@@ -7,6 +8,8 @@ export type SaveStatusIndicatorProps = {
 }
 
 export const SaveStatusIndicator = ({ status }: SaveStatusIndicatorProps) => {
+  const { t } = useTranslation()
+
   const getStatusConfig = () => {
     switch (status) {
       case 'saving':
@@ -14,25 +17,19 @@ export const SaveStatusIndicator = ({ status }: SaveStatusIndicatorProps) => {
           icon: (
             <Sync sx={{ fontSize: 16, animation: 'spin 1s linear infinite' }} />
           ),
-          text: 'Saving...',
+          text: t('common.saving'),
           color: 'primary.main',
         }
       case 'saved':
         return {
           icon: <CheckCircle sx={{ fontSize: 16 }} />,
-          text: 'Saved',
+          text: t('common.saved'),
           color: 'success.main',
-        }
-      case 'error':
-        return {
-          icon: <ErrorOutline sx={{ fontSize: 16 }} />,
-          text: 'Error',
-          color: 'error.main',
         }
       default:
         return {
           icon: <Save sx={{ fontSize: 16 }} />,
-          text: 'Auto-save',
+          text: t('common.autoSave'),
           color: 'text.secondary',
         }
     }

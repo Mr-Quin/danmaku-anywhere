@@ -28,6 +28,9 @@ const common = {
     docs: 'Documentation',
     pip: 'Picture-in-Picture',
     acknowledge: 'Ok',
+    saving: 'Saving...',
+    saved: 'Saved',
+    autoSave: 'Auto-save',
     itsEmpty: "There's nothing here...",
     duration: {
       day_one: 'Day',
