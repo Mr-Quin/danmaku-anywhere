@@ -1,13 +1,13 @@
-import { List, Typography } from '@mui/material'
+import { Box, Collapse, Divider, List, Typography } from '@mui/material'
 import { Trans, useTranslation } from 'react-i18next'
-import { Outlet, useNavigate } from 'react-router'
-
 import { ExternalLink } from '@/common/components/ExternalLink'
 import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 import { ToggleListItemButton } from '@/popup/pages/options/components/ToggleListItemButton'
+import { BilibiliOptions } from '@/popup/pages/options/pages/danmakuSource/components/BilibiliOptions'
+import { DanDanPlayOptions } from '@/popup/pages/options/pages/danmakuSource/components/DanDanPlayOptions'
 import { useToggleBilibili } from '@/popup/pages/options/pages/danmakuSource/hooks/useToggleBilibili'
 import { useToggleTencent } from '@/popup/pages/options/pages/danmakuSource/hooks/useToggleTencent'
 
@@ -27,15 +27,12 @@ export const DanmakuSource = () => {
     canEnable,
   } = useToggleTencent()
 
-  const isAnyLoading =
-    isPending || update.isPending || isBilibiliLoading || isTencentLoading
-
-  const navigate = useNavigate()
+  const isAnyLoading = isPending || update.isPending
 
   const getOptionProps = (key: string) => {
     if (key === 'bilibili') {
       return {
-        isLoading: isBilibiliLoading,
+        isLoading: isAnyLoading || isBilibiliLoading,
         onToggle: toggleBilibili,
         showWarning: loginStatus?.isLogin === false,
         warningTooltip: (
@@ -57,9 +54,9 @@ export const DanmakuSource = () => {
     }
     if (key === 'tencent') {
       return {
-        isLoading: isTencentLoading,
+        isLoading: isAnyLoading || isTencentLoading,
         onToggle: toggleTencent,
-        disableToggle: !canEnable || isAnyLoading,
+        disableToggle: !canEnable,
         showWarning: !canEnable,
         warningTooltip: (
           <Typography variant="subtitle2">
@@ -76,36 +73,45 @@ export const DanmakuSource = () => {
         ),
       }
     }
-    return {}
+    return {
+      isLoading: isAnyLoading,
+    }
+  }
+
+  const renderSectionHeader = (key: string) => {
+    if (key === 'bilibili') {
+      return <BilibiliOptions />
+    }
+    if (key === 'dandanplay') {
+      return <DanDanPlayOptions />
+    }
+    return null
   }
 
   return (
-    <>
-      <OptionsPageLayout>
-        <OptionsPageToolBar title={t('optionsPage.pages.danmakuSource')} />
-        <List disablePadding>
-          {sourcesList.map(({ key, options, provider }) => {
-            return (
+    <OptionsPageLayout>
+      <OptionsPageToolBar title={t('optionsPage.pages.danmakuSource')} />
+      <List disablePadding>
+        {sourcesList.map(({ key, options, provider }) => {
+          return (
+            <>
+              <Divider />
               <ToggleListItemButton
                 key={key}
                 enabled={options.enabled}
-                disableToggle={isAnyLoading}
-                onClick={() => {
-                  if (key === 'tencent') return
-                  navigate(key)
-                }}
                 onToggle={(checked) => {
                   void toggle(key, checked)
                 }}
                 itemText={t(localizedDanmakuSourceType(provider))}
-                isLoading={isPending}
                 {...getOptionProps(key)}
               />
-            )
-          })}
-        </List>
-      </OptionsPageLayout>
-      <Outlet />
-    </>
+              <Box px={2} my={1}>
+                <Collapse in>{renderSectionHeader(key)}</Collapse>
+              </Box>
+            </>
+          )
+        })}
+      </List>
+    </OptionsPageLayout>
   )
 }

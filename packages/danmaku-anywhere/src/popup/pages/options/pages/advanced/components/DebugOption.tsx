@@ -12,7 +12,6 @@ export const DebugOption = () => {
     <ToggleListItemButton
       enabled={data.debug}
       onToggle={handleToggle}
-      onClick={handleToggle}
       itemText="Debug"
       isLoading={isLoading}
     />

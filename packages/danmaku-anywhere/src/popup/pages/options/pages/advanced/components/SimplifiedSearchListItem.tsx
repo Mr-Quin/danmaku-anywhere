@@ -15,7 +15,6 @@ export const SimplifiedSearchListItem = () => {
     <ToggleListItemButton
       enabled={data.searchUsingSimplified}
       onToggle={handleToggle}
-      onClick={handleToggle}
       itemText={t('optionsPage.searchUsingSimplified')}
       isLoading={isLoading}
     />
