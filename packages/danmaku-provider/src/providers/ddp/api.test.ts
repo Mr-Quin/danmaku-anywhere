@@ -110,7 +110,7 @@ describe('DanDanPlay API', () => {
     await searchSearchEpisodes({ anime: 'test' })
 
     expect(mockFetch.mock.calls[0][0]).toEqual(
-      `${customRoot}/v1/ddp/v2/search/episodes?anime=test`
+      `${customRoot}/ddp/v1?path=${encodeURIComponent('/v2/search/episodes?anime=test')}`
     )
   })
 })

@@ -12,6 +12,16 @@ describe('DanDanPlay API', () => {
 
   afterEach(() => fetchMock.assertNoPendingInterceptors())
 
+  it('returns 400 when path parameter is missing', async () => {
+    const request = new Request(createTestUrl('/ddp/v1?keyword=test'))
+    const response = await makeUnitTestRequest(request)
+
+    expect(response.status).toBe(400)
+    const data: any = await response.json()
+    expect(data).toHaveProperty('error')
+    expect(data.error).toBe('Missing required "path" query parameter')
+  })
+
   it('proxies GET requests successfully', async () => {
     // Mock the DanDanPlay API response
     const mockResponse = {
@@ -32,7 +42,11 @@ describe('DanDanPlay API', () => {
       .reply(200, JSON.stringify(mockResponse))
 
     const request = new Request(
-      createTestUrl('/ddp/v1/v2/search/anime?keyword=nichijou')
+      createTestUrl('/ddp/v1', {
+        query: {
+          path: '/v2/search/anime?keyword=nichijou',
+        },
+      })
     )
     const response = await makeUnitTestRequest(request)
 
@@ -67,7 +81,11 @@ describe('DanDanPlay API', () => {
       })
       .times(1)
 
-    const url = createTestUrl('/ddp/v1/v2/search/anime?keyword=test')
+    const url = createTestUrl('/ddp/v1', {
+      query: {
+        path: '/v2/search/anime?keyword=test',
+      },
+    })
 
     // First request - should call fetch
     const request1 = new Request(url)
@@ -118,10 +136,18 @@ describe('DanDanPlay API', () => {
 
     // two different requests should both call fetch
     const request1 = new Request(
-      createTestUrl('/ddp/v1/v2/search/anime?keyword=test1')
+      createTestUrl('/ddp/v1', {
+        query: {
+          path: '/v2/search/anime?keyword=test1',
+        },
+      })
     )
     const request2 = new Request(
-      createTestUrl('/ddp/v1/v2/search/anime?keyword=test2')
+      createTestUrl('/ddp/v1', {
+        query: {
+          path: '/v2/search/anime?keyword=test2',
+        },
+      })
     )
 
     await makeUnitTestRequest(request1)
@@ -137,7 +163,11 @@ describe('DanDanPlay API', () => {
     // call twice
     mock1.times(2)
 
-    const url = createTestUrl('/ddp/v1/v2/user/login')
+    const url = createTestUrl('/ddp/v1', {
+      query: {
+        path: '/v2/user/login',
+      },
+    })
     const requestOptions = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -153,10 +183,31 @@ describe('DanDanPlay API', () => {
     expect(await res1.json()).toEqual(await res2.json())
   })
 
-  it('returns 404 for invalid DDP endpoints', async () => {
-    const request = new Request('http://example.com/api/ddp/invalid')
+  it('handles URL encoded path parameters correctly', async () => {
+    const mockResponse = { success: true }
+
+    fetchMock
+      .get('https://api.dandanplay.net')
+      .intercept({
+        path: '/api/v2/comment/12345',
+        query: {
+          from: '0',
+          withRelated: 'true',
+        },
+      })
+      .reply(200, JSON.stringify(mockResponse))
+
+    const request = new Request(
+      createTestUrl('/ddp/v1', {
+        query: {
+          path: '/v2/comment/12345?from=0&withRelated=true',
+        },
+      })
+    )
     const response = await makeUnitTestRequest(request)
 
-    expect(response.status).toBe(404)
+    expect(response.status).toBe(200)
+    const data = await response.json()
+    expect(data).toEqual(mockResponse)
   })
 })

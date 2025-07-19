@@ -1,3 +1,4 @@
+import type { Context } from 'hono'
 import { factory } from '@/factory'
 import { type SetCacheControlFn, useCache } from '@/middleware/cache'
 import { md5, uriDecode } from '@/utils'
@@ -75,16 +76,28 @@ const setCacheHeaders: SetCacheControlFn = (req, response) => {
   }
 }
 
+const verifyPathQuery = factory.createMiddleware(async (c: Context, next) => {
+  const path = c.req.query('path')
+
+  if (!path) {
+    return c.json({ error: 'Missing required "path" query parameter' }, 400)
+  }
+
+  return next()
+})
+
 export const danDanPlay = factory.createApp()
 
 danDanPlay.use('*', useCache({ setCacheControl: setCacheHeaders }))
 
-danDanPlay.all('/:target{.+}', async (c) => {
+danDanPlay.all('*', verifyPathQuery, async (c) => {
   const env = c.env
-  const path = c.req.param().target
-  const url = new URL(c.req.url)
 
-  const targetUrl = `${env.DANDANPLAY_API_HOST}/api/${path}${url.search}`
+  const encodedPath = c.req.query('path') as string
+
+  const path = decodeURIComponent(encodedPath).replace(/^\/+/, '')
+
+  const targetUrl = `${env.DANDANPLAY_API_HOST}/api/${path}`
   console.log(`DanDanPlay: ${uriDecode(targetUrl)}`)
 
   let ddpRequest = new Request(targetUrl, {

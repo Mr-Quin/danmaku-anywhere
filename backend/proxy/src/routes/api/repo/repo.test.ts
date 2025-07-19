@@ -27,7 +27,7 @@ describe('Repo API', () => {
 
     expect(response.status).toBe(200)
 
-    const content = await response.json()
+    const content: any = await response.json()
     expect(content).toBeTruthy()
     expect(content.length).toBeGreaterThan(0)
   })

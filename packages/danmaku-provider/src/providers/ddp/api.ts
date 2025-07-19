@@ -56,9 +56,23 @@ const fetchDanDanPlay = async <T extends ZodType>(
     headers['Authorization'] = `Bearer ${store.ddpToken}`
   }
 
+  // parse query early
+  if (options.requestSchema?.query) {
+    options.query = options.requestSchema.query.parse(options.query)
+    options.requestSchema.query = undefined
+  }
+  // append query to path
+  let path = options.path
+  if (options.query) {
+    path += `?${new URLSearchParams(options.query as Record<string, string>).toString()}`
+  }
+
   return fetchData<T>({
-    url: `${store.baseUrl}/v1/ddp${options.path}`,
+    url: `${store.baseUrl}/ddp/v1`,
     ...options,
+    query: {
+      path,
+    },
     headers,
   })
 }
