@@ -27,6 +27,12 @@ interface FrameState {
 }
 
 interface StoreState {
+  /**
+   * Is the page disconnected from the background?
+   */
+  isDisconnected: boolean
+  setIsDisconnected: (disconnected: boolean) => void
+
   danmaku: {
     isMounted: boolean
     /**
@@ -119,6 +125,13 @@ interface StoreState {
 
 const useStoreBase = create<StoreState>()(
   immer((set, get) => ({
+    isDisconnected: false,
+    setIsDisconnected: (disconnected) => {
+      set((state) => {
+        state.isDisconnected = disconnected
+      })
+    },
+
     danmaku: {
       isMounted: false,
 

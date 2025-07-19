@@ -53,7 +53,8 @@ export const FloatingButton = forwardRef<
     useState<PopoverVirtualElement | null>(null)
   const [fabHover, setFabHover] = useState(false)
 
-  const { isMounted, isVisible } = useStore.use.danmaku()
+  const { isMounted } = useStore.use.danmaku()
+  const isDisconnected = useStore.use.isDisconnected()
 
   const fabAnchor = useInitialAnchor()
 
@@ -82,7 +83,7 @@ export const FloatingButton = forwardRef<
 
   const mergedFabRefs = useMergeRefs(fabRef, ref)
 
-  const dialColor = !isVisible ? undefined : isMounted ? 'success' : 'primary'
+  const dialColor = isDisconnected ? 'error' : isMounted ? 'success' : 'primary'
 
   const isIn = showFab || isOpen || !!contextMenuAnchor
 
@@ -124,7 +125,7 @@ export const FloatingButton = forwardRef<
                     onMouseOut={() => setFabHover(false)}
                   >
                     <SpeedDialIcon />
-                    <LoadingRing isLoading={isLoading} />
+                    <LoadingRing isLoading={isLoading && !isDisconnected} />
                   </StyledFab>
                   {fabRef.current && (
                     <FabLoadingIndicator
