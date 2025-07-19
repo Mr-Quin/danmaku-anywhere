@@ -277,12 +277,6 @@ const pages = {
             'Protobuf：获取速度较慢，但是弹幕数量多，每分钟可达1000条。视频越长，速度越慢。',
         },
       },
-      tencent: {
-        limitPerMin: '限频（每分钟）',
-        help: {
-          limitPerMin: '每分钟最大弹幕请求数量，避免触发限频。',
-        },
-      },
     },
     retentionPolicy: {
       enabled: '启用缓存策略',
@@ -308,6 +302,7 @@ const pages = {
     },
     help: {
       docs: '说明文档',
+      version: '版本',
     },
     pages: {
       danmakuSource: '弹幕来源',

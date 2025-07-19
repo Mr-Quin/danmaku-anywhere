@@ -9,6 +9,7 @@ export const images = {
   DanDanPlayLogo,
   Empty,
   Apologize,
+  Logo: '/normal_192.png',
 } as const
 
 export const usePreloadImages = () => {
