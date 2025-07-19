@@ -311,7 +311,7 @@ const pages = {
       hotkeys: 'Hotkeys',
       retentionPolicy: 'Retention Policy',
       advanced: 'Advanced',
-      help: 'Help & Feedback',
+      help: '关于',
     },
   },
   searchPage: {

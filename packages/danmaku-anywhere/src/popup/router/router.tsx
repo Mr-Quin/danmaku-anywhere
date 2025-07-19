@@ -21,7 +21,7 @@ import { BilibiliOptions } from '../pages/options/pages/danmakuSource/pages/Bili
 import { DanDanPlayOptions } from '../pages/options/pages/danmakuSource/pages/DanDanPlayOptions'
 import { HotkeyOptions } from '../pages/options/pages/hotkeyOptions/HotkeyOptions'
 import { RetentionPolicyPage } from '../pages/options/pages/retentionPolicy/RetentionPolicyPage'
-import { ThemeOptions } from '../pages/options/pages/theme/ThemeOptions'
+
 import { SearchPage } from '../pages/search/SearchPage'
 import { StylesPage } from '../pages/styles/StylesPage'
 
@@ -129,10 +129,7 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
           },
         ],
       },
-      {
-        path: 'theme',
-        Component: ThemeOptions,
-      },
+
       {
         path: 'hotkeys',
         Component: HotkeyOptions,
