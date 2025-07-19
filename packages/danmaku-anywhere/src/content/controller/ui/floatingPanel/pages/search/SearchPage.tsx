@@ -1,10 +1,11 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
 import {
   Box,
   Collapse,
   FormControlLabel,
   Switch,
+  Tab,
+  Tabs,
   Typography,
 } from '@mui/material'
 import {
@@ -18,12 +19,17 @@ import { Center } from '@/common/components/Center'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { SeasonSearchResult } from '@/common/components/MediaList/SeasonSearchResult'
 import { SeasonSearchTabs } from '@/common/components/MediaList/SeasonSearchTabs'
+import { ParseTabCore } from '@/common/components/ParseTabCore/ParseTabCore'
 import { SearchForm } from '@/common/components/SearchForm'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { isProvider } from '@/common/danmaku/utils'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
+import { TabLayout } from '@/content/common/TabLayout'
+import { TabToolbar } from '@/content/common/TabToolbar'
+import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
 import { SeasonDetailsPage } from '@/content/controller/ui/floatingPanel/pages/search/SeasonDetailsPage'
@@ -47,12 +53,14 @@ export const SearchPage = () => {
   } = useExtensionOptions()
 
   const { enabledProviders } = useDanmakuSources()
+  const { mountDanmaku } = useLoadDanmaku()
 
   const [localSearchUsingSimplified, setLocalSearchUsingSimplified] = useState(
     searchUsingSimplified
   )
   const [searchParams, setSearchParams] = useState<SearchEpisodesQuery>()
   const [scrollTop, setScrollTop] = useState(0)
+  const [tab, setTab] = useState('search')
 
   const boxRef = useRef<HTMLDivElement>(null)
   const errorRef = useRef<ErrorBoundary>(null)
@@ -115,63 +123,76 @@ export const SearchPage = () => {
     return <SeasonDetailsPage seasonMapKey={getSeasonMapKey()} />
 
   return (
-    <Box ref={boxRef} flexGrow={1} sx={{ overflowX: 'hidden' }}>
-      <Box py={2} px={2}>
-        <SearchForm
-          onSearch={handleSearch}
-          isLoading={isSearching || pending}
-          useSimplified={localSearchUsingSimplified}
-          onSimplifiedChange={(on) => {
-            setLocalSearchUsingSimplified(on)
-          }}
-          searchTerm={searchTitle}
-          onSearchTermChange={setSearchTitle}
-          textFieldProps={{ ...withStopPropagation() }}
-        />
-        {!!mediaInfo && (
-          <FormControlLabel
-            control={
-              <Switch
-                checked={saveMapping}
-                onChange={(e) => {
-                  setSaveMapping(e.target.checked)
-                }}
+    <TabLayout>
+      <TabToolbar>
+        <Tabs value={tab} onChange={(_, newValue) => setTab(newValue)}>
+          <Tab label={t('searchPage.name')} value="search" />
+          <Tab label={t('searchPage.parse.name')} value="parse" />
+        </Tabs>
+      </TabToolbar>
+      {tab === 'search' && (
+        <Box ref={boxRef} flexGrow={1} sx={{ overflowX: 'hidden' }}>
+          <Box py={2} px={2}>
+            <SearchForm
+              onSearch={handleSearch}
+              isLoading={isSearching || pending}
+              useSimplified={localSearchUsingSimplified}
+              onSimplifiedChange={(on) => {
+                setLocalSearchUsingSimplified(on)
+              }}
+              searchTerm={searchTitle}
+              onSearchTermChange={setSearchTitle}
+              textFieldProps={{ ...withStopPropagation() }}
+            />
+            {!!mediaInfo && (
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={saveMapping}
+                    onChange={(e) => {
+                      setSaveMapping(e.target.checked)
+                    }}
+                  />
+                }
+                label={t('searchPage.saveMapping')}
               />
-            }
-            label={t('searchPage.saveMapping')}
-          />
-        )}
-      </Box>
-      <ErrorBoundary
-        ref={errorRef}
-        onReset={reset}
-        fallbackRender={({ error }) => <ErrorMessage message={error.message} />}
-      >
-        <Collapse in={!!searchParams} unmountOnExit>
-          {searchParams && (
-            <>
-              <SeasonSearchTabs
-                providers={enabledProviders}
-                selectedTab={providerTab}
-                onTabChange={setProviderTab}
-              />
-              <SeasonSearchResult
-                searchParams={searchParams}
-                onSeasonClick={(season) => {
-                  if (boxRef.current) {
-                    setScrollTop(boxRef.current.scrollTop)
-                  }
-                  if (!isProvider(season, DanmakuSourceType.Custom)) {
-                    setSelectedSeason(season)
-                  }
-                }}
-                provider={providerTab}
-                stale={pending}
-              />
-            </>
-          )}
-        </Collapse>
-      </ErrorBoundary>
-    </Box>
+            )}
+          </Box>
+          <ErrorBoundary
+            ref={errorRef}
+            onReset={reset}
+            fallbackRender={({ error }) => (
+              <ErrorMessage message={error.message} />
+            )}
+          >
+            <Collapse in={!!searchParams} unmountOnExit>
+              {searchParams && (
+                <>
+                  <SeasonSearchTabs
+                    providers={enabledProviders}
+                    selectedTab={providerTab}
+                    onTabChange={setProviderTab}
+                  />
+                  <SeasonSearchResult
+                    searchParams={searchParams}
+                    onSeasonClick={(season) => {
+                      if (boxRef.current) {
+                        setScrollTop(boxRef.current.scrollTop)
+                      }
+                      if (!isProvider(season, DanmakuSourceType.Custom)) {
+                        setSelectedSeason(season)
+                      }
+                    }}
+                    provider={providerTab}
+                    stale={pending}
+                  />
+                </>
+              )}
+            </Collapse>
+          </ErrorBoundary>
+        </Box>
+      )}
+      {tab === 'parse' && <ParseTabCore onImportSuccess={mountDanmaku} />}
+    </TabLayout>
   )
 }

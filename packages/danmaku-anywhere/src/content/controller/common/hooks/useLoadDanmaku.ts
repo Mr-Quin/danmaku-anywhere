@@ -10,7 +10,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
-import { isProvider } from '@/common/danmaku/utils'
+import { episodeToString, isProvider } from '@/common/danmaku/utils'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { useStore } from '@/content/controller/store/store'
 
@@ -47,7 +47,6 @@ export const useLoadDanmaku = () => {
 
   const toast = useToast.use.toast()
 
-  const getAnimeName = useStore.use.getAnimeName()
   const { danmakuLite } = useStore.use.danmaku()
 
   const fetchMutation = useFetchDanmaku()
@@ -57,17 +56,17 @@ export const useLoadDanmaku = () => {
     !!danmakuLite && isProvider(danmakuLite, DanmakuSourceType.DanDanPlay)
 
   const mountDanmaku = useEventCallback(
-    (danmaku: WithSeason<Episode> | CustomEpisode) => {
-      return mountMutation.mutateAsync(danmaku, {
+    (episode: WithSeason<Episode> | CustomEpisode) => {
+      return mountMutation.mutateAsync(episode, {
         // This is called in addition to the onSuccess of mountMutation
         onSuccess: () => {
           toast.success(
             t('danmaku.alert.mounted', {
-              name: getAnimeName(),
-              count: danmaku.commentCount,
+              name: episodeToString(episode),
+              count: episode.commentCount,
             }),
             {
-              actionFn: isProvider(danmaku, DanmakuSourceType.DanDanPlay)
+              actionFn: isProvider(episode, DanmakuSourceType.DanDanPlay)
                 ? refreshComments
                 : undefined,
               actionLabel: t('danmaku.refresh'),
@@ -101,7 +100,7 @@ export const useLoadDanmaku = () => {
         onSuccess: (result) => {
           toast.success(
             t('danmaku.alert.refreshed', {
-              name: getAnimeName(),
+              name: episodeToString(result),
               count: result.commentCount,
             })
           )
