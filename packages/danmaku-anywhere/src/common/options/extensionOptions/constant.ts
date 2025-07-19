@@ -53,4 +53,5 @@ export const defaultExtensionOptions: ExtensionOptions = {
   },
   hotkeys: defaultKeymap,
   showReleaseNotes: false,
+  enableAnalytics: true,
 } as const
