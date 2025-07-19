@@ -32,7 +32,7 @@ describe('DanDanPlay API', () => {
       .reply(200, JSON.stringify(mockResponse))
 
     const request = new Request(
-      createTestUrl('/v1/ddp/v2/search/anime?keyword=nichijou')
+      createTestUrl('/ddp/v1/v2/search/anime?keyword=nichijou')
     )
     const response = await makeUnitTestRequest(request)
 
@@ -67,7 +67,7 @@ describe('DanDanPlay API', () => {
       })
       .times(1)
 
-    const url = createTestUrl('/v1/ddp/v2/search/anime?keyword=test')
+    const url = createTestUrl('/ddp/v1/v2/search/anime?keyword=test')
 
     // First request - should call fetch
     const request1 = new Request(url)
@@ -118,10 +118,10 @@ describe('DanDanPlay API', () => {
 
     // two different requests should both call fetch
     const request1 = new Request(
-      createTestUrl('/v1/ddp/v2/search/anime?keyword=test1')
+      createTestUrl('/ddp/v1/v2/search/anime?keyword=test1')
     )
     const request2 = new Request(
-      createTestUrl('/v1/ddp/v2/search/anime?keyword=test2')
+      createTestUrl('/ddp/v1/v2/search/anime?keyword=test2')
     )
 
     await makeUnitTestRequest(request1)
@@ -137,7 +137,7 @@ describe('DanDanPlay API', () => {
     // call twice
     mock1.times(2)
 
-    const url = createTestUrl('/v1/ddp/v2/user/login')
+    const url = createTestUrl('/ddp/v1/v2/user/login')
     const requestOptions = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

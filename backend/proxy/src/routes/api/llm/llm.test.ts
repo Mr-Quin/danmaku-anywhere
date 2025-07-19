@@ -93,7 +93,7 @@ describe('LLM API', () => {
       isShow: true,
     })
 
-    const request = new IncomingRequest(createTestUrl('/v1/llm/extractTitle'), {
+    const request = new IncomingRequest(createTestUrl('/llm/v1/extractTitle'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -130,7 +130,7 @@ describe('LLM API', () => {
 
     // First request - should call LLM
     const request1 = new IncomingRequest(
-      createTestUrl('/v1/llm/extractTitle'),
+      createTestUrl('/llm/v1/extractTitle'),
       {
         method: 'POST',
         headers: {
@@ -146,7 +146,7 @@ describe('LLM API', () => {
 
     // Second identical request - should hit cache, not call LLM again
     const request2 = new IncomingRequest(
-      createTestUrl('/v1/llm/extractTitle'),
+      createTestUrl('/llm/v1/extractTitle'),
       {
         method: 'POST',
         headers: {
@@ -173,7 +173,7 @@ describe('LLM API', () => {
 
     // First request
     const request1 = new IncomingRequest(
-      createTestUrl('/v1/llm/extractTitle'),
+      createTestUrl('/llm/v1/extractTitle'),
       {
         method: 'POST',
         headers: {
@@ -190,7 +190,7 @@ describe('LLM API', () => {
 
     // Second request with different input
     const request2 = new IncomingRequest(
-      createTestUrl('/v1/llm/extractTitle'),
+      createTestUrl('/llm/v1/extractTitle'),
       {
         method: 'POST',
         headers: {
@@ -244,7 +244,7 @@ describe('LLM API', () => {
     'rejects $name',
     async ({ body, expectedStatus, expectsSuccessProperty }) => {
       const request = new IncomingRequest(
-        createTestUrl('/v1/llm/extractTitle'),
+        createTestUrl('/llm/v1/extractTitle'),
         {
           method: 'POST',
           headers: {

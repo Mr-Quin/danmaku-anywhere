@@ -1,10 +1,10 @@
 import { factory } from '@/factory'
-import { danDanPlay } from './ddp/danDanPlay'
-import { llm } from './llm/llm'
-import { repo } from './repo/repo'
+import { ddpRouter } from './ddp/router'
+import { llmRouter } from './llm/router'
+import { repoRouter } from './repo/router'
 
 export const api = factory.createApp()
 
-api.route('/ddp', danDanPlay)
-api.route('/repo', repo)
-api.route('/llm', llm)
+api.route('/ddp', ddpRouter)
+api.route('/llm', llmRouter)
+api.route('/repo', repoRouter)

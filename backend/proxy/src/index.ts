@@ -30,9 +30,8 @@ app.use(
   })
 )
 
-app.route('/v1', api)
+app.route('/', api)
 
-// legacy routes
 app.use('/proxy/api/*', useCache())
 app.route('/proxy/api', danDanPlay)
 app.route('/proxy/gemini', llmLegacy)

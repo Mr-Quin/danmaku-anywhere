@@ -22,12 +22,12 @@ describe('Repo API', () => {
       .intercept({ path: '/Predidit/KazumiRules/main/index.json' })
       .reply(200, JSON.stringify(mockKazumiData))
 
-    const request = new Request(createTestUrl('/v1/repo/kazumi/index.json'))
+    const request = new Request(createTestUrl('/repo/v1/kazumi/index.json'))
     const response = await makeUnitTestRequest(request)
 
     expect(response.status).toBe(200)
 
-    const content: any = await response.json()
+    const content = await response.json()
     expect(content).toBeTruthy()
     expect(content.length).toBeGreaterThan(0)
   })
