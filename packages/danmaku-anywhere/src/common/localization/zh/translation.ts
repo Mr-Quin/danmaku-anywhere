@@ -330,6 +330,8 @@ const pages = {
         parseError: '解析失败',
         importSuccess: '导入成功',
       },
+      importAndMount: '导入并挂载',
+      importAndMountSuccess: '导入并挂载成功',
     },
     retrySearch: '重试',
     episode: '集数',

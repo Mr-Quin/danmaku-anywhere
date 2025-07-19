@@ -332,6 +332,8 @@ const pages = {
         parseError: 'Parse failed',
         importSuccess: 'Import successful',
       },
+      importAndMount: 'Import & Mount',
+      importAndMountSuccess: 'Import and mount successful',
     },
     retrySearch: 'Retry',
     episode: 'Episode',

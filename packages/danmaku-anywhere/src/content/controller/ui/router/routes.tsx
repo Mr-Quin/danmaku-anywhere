@@ -1,6 +1,7 @@
 import { PopupTab } from '@/content/controller/store/popupStore'
 import { CommentsPage } from '@/content/controller/ui/floatingPanel/pages/CommentsPage'
 import { DebugPage } from '@/content/controller/ui/floatingPanel/pages/DebugPage'
+import { ImportPage } from '@/content/controller/ui/floatingPanel/pages/import/ImportPage'
 import { IntegrationPage } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/IntegrationPage'
 import { MountPage } from '@/content/controller/ui/floatingPanel/pages/mount/MountPage'
 import { SelectorPage } from '@/content/controller/ui/floatingPanel/pages/SelectorPage'
@@ -17,6 +18,11 @@ export const routes = [
     tab: PopupTab.Search,
     name: 'tabs.search',
     element: <SearchPage />,
+  },
+  {
+    tab: PopupTab.Import,
+    name: 'tabs.import',
+    element: <ImportPage />,
   },
   {
     tab: PopupTab.Selector,
