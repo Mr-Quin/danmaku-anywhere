@@ -302,6 +302,7 @@ const pages = {
     },
     help: {
       docs: '说明文档',
+      version: '版本',
     },
     pages: {
       danmakuSource: '弹幕来源',
@@ -309,7 +310,7 @@ const pages = {
       hotkeys: '快捷键',
       retentionPolicy: '缓存策略',
       advanced: '高级设置',
-      help: '帮助与反馈',
+      help: '关于',
     },
   },
   searchPage: {

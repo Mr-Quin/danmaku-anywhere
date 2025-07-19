@@ -2,7 +2,6 @@ import { Warning } from '@mui/icons-material'
 import {
   CircularProgress,
   ListItem,
-  ListItemButton,
   ListItemIcon,
   ListItemText,
   Switch,
@@ -13,17 +12,16 @@ import type { ReactNode } from 'react'
 interface ToggleListItemButtonProps {
   enabled: boolean
   disableToggle?: boolean
-  onClick?: () => void
   onToggle: (checked: boolean) => void
   itemText: string
   isLoading?: boolean
   showWarning?: boolean
   warningTooltip?: ReactNode
+  prefix?: ReactNode
 }
 
 export const ToggleListItemButton = ({
   itemText,
-  onClick,
   onToggle,
   enabled,
   disableToggle,
@@ -35,7 +33,7 @@ export const ToggleListItemButton = ({
     <ListItem
       secondaryAction={
         isLoading ? (
-          <CircularProgress size={24} />
+          <CircularProgress size={24} sx={{ mr: 2 }} />
         ) : (
           <Switch
             checked={enabled}
@@ -46,31 +44,28 @@ export const ToggleListItemButton = ({
           />
         )
       }
-      disablePadding
     >
-      <ListItemButton onClick={onClick}>
-        <ListItemText primary={itemText} />
-        {showWarning && (
-          <ListItemIcon>
-            <Tooltip
-              slotProps={{
-                popper: {
-                  // prevent clicks being propagated to the parent
-                  onMouseDown(e) {
-                    e.stopPropagation()
-                  },
-                  onClick(e) {
-                    e.stopPropagation()
-                  },
+      <ListItemText primary={itemText} />
+      {showWarning && (
+        <ListItemIcon>
+          <Tooltip
+            slotProps={{
+              popper: {
+                // prevent clicks being propagated to the parent
+                onMouseDown(e) {
+                  e.stopPropagation()
                 },
-              }}
-              title={warningTooltip}
-            >
-              <Warning color="warning" />
-            </Tooltip>
-          </ListItemIcon>
-        )}
-      </ListItemButton>
+                onClick(e) {
+                  e.stopPropagation()
+                },
+              },
+            }}
+            title={warningTooltip}
+          >
+            <Warning color="warning" />
+          </Tooltip>
+        </ListItemIcon>
+      )}
     </ListItem>
   )
 }

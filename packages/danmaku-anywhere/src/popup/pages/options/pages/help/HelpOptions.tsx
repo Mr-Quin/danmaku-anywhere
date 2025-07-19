@@ -1,4 +1,4 @@
-import { GitHub, Launch } from '@mui/icons-material'
+import { Article, GitHub, Launch, Numbers } from '@mui/icons-material'
 import {
   ListItem,
   ListItemButton,
@@ -17,12 +17,22 @@ export const HelpOptions = () => {
   return (
     <OptionsPageLayout>
       <OptionsPageToolBar title={t('optionsPage.pages.help')} />
+      <ListItem>
+        <ListItemIcon>
+          <Numbers />
+        </ListItemIcon>
+        <ListItemText>{t('optionsPage.help.version')}</ListItemText>
+        <Typography>{chrome.runtime.getManifest().version}</Typography>
+      </ListItem>
       <ListItem disablePadding>
         <ListItemButton
           component="a"
           href={docsLink('getting-started')}
           target="_blank"
         >
+          <ListItemIcon>
+            <Article />
+          </ListItemIcon>
           <ListItemText>{t('optionsPage.help.docs')}</ListItemText>
           <Launch />
         </ListItemButton>
@@ -32,7 +42,6 @@ export const HelpOptions = () => {
           component="a"
           href="https://github.com/Mr-Quin/danmaku-anywhere"
           target="_blank"
-          rel="noreferrer"
         >
           <ListItemIcon>
             <GitHub />
@@ -42,6 +51,7 @@ export const HelpOptions = () => {
         </ListItemButton>
       </ListItem>
       <ListItem>
+        <ListItemIcon />
         <ListItemText>QQ</ListItemText>
         <Typography>531237584</Typography>
       </ListItem>

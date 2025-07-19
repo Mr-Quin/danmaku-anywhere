@@ -1,10 +1,10 @@
 import { ChevronRight } from '@mui/icons-material'
-import type { ListItemButtonProps } from '@mui/material'
 import {
   Icon,
   List,
   ListItem,
   ListItemButton,
+  type ListItemButtonProps,
   ListItemText,
   Stack,
 } from '@mui/material'
@@ -69,10 +69,7 @@ export const Options = () => {
             title={t('optionsPage.pages.hotkeys')}
             onClick={() => navigate('hotkeys')}
           />
-          <OptionsListItem
-            title={t('optionsPage.pages.theme')}
-            onClick={() => navigate('theme')}
-          />
+
           <OptionsListItem
             title={t('optionsPage.pages.advanced')}
             onClick={() => navigate('advanced')}
