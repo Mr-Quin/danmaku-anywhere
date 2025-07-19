@@ -1,5 +1,6 @@
 import { fetchMock } from 'cloudflare:test'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { createTestUrl } from '@/test-utils/createTestUrl'
 import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
 
 describe('Repo API', () => {
@@ -21,9 +22,7 @@ describe('Repo API', () => {
       .intercept({ path: '/Predidit/KazumiRules/main/index.json' })
       .reply(200, JSON.stringify(mockKazumiData))
 
-    const request = new Request(
-      'http://example.com/api/v1/repo/kazumi/index.json'
-    )
+    const request = new Request(createTestUrl('/v1/repo/kazumi/index.json'))
     const response = await makeUnitTestRequest(request)
 
     expect(response.status).toBe(200)

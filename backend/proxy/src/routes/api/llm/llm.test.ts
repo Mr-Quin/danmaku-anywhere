@@ -2,6 +2,7 @@ import type { GoogleGenerativeAI } from '@google/generative-ai'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
 import '@/test-utils/mockBindings'
+import { createTestUrl } from '@/test-utils/createTestUrl'
 
 const IncomingRequest = Request
 
@@ -92,18 +93,15 @@ describe('LLM API', () => {
       isShow: true,
     })
 
-    const request = new IncomingRequest(
-      'http://example.com/api/v1/llm/extractTitle',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          input: extraTitleInput,
-        }),
-      }
-    )
+    const request = new IncomingRequest(createTestUrl('/v1/llm/extractTitle'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        input: extraTitleInput,
+      }),
+    })
     const response = await makeUnitTestRequest(request)
 
     expect(response.status).toBe(200)
@@ -132,7 +130,7 @@ describe('LLM API', () => {
 
     // First request - should call LLM
     const request1 = new IncomingRequest(
-      'http://example.com/api/v1/llm/extractTitle',
+      createTestUrl('/v1/llm/extractTitle'),
       {
         method: 'POST',
         headers: {
@@ -148,7 +146,7 @@ describe('LLM API', () => {
 
     // Second identical request - should hit cache, not call LLM again
     const request2 = new IncomingRequest(
-      'http://example.com/api/v1/llm/extractTitle',
+      createTestUrl('/v1/llm/extractTitle'),
       {
         method: 'POST',
         headers: {
@@ -175,7 +173,7 @@ describe('LLM API', () => {
 
     // First request
     const request1 = new IncomingRequest(
-      'http://example.com/api/v1/llm/extractTitle',
+      createTestUrl('/v1/llm/extractTitle'),
       {
         method: 'POST',
         headers: {
@@ -192,7 +190,7 @@ describe('LLM API', () => {
 
     // Second request with different input
     const request2 = new IncomingRequest(
-      'http://example.com/api/v1/llm/extractTitle',
+      createTestUrl('/v1/llm/extractTitle'),
       {
         method: 'POST',
         headers: {
@@ -246,7 +244,7 @@ describe('LLM API', () => {
     'rejects $name',
     async ({ body, expectedStatus, expectsSuccessProperty }) => {
       const request = new IncomingRequest(
-        'http://example.com/api/v1/llm/extractTitle',
+        createTestUrl('/v1/llm/extractTitle'),
         {
           method: 'POST',
           headers: {

@@ -2,6 +2,7 @@ import { fetchMock } from 'cloudflare:test'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
 import '@/test-utils/mockBindings'
+import { createTestUrl } from '@/test-utils/createTestUrl'
 
 describe('DanDanPlay API', () => {
   beforeAll(() => {
@@ -31,7 +32,7 @@ describe('DanDanPlay API', () => {
       .reply(200, JSON.stringify(mockResponse))
 
     const request = new Request(
-      'http://example.com/api/v1/ddp/v2/search/anime?keyword=nichijou'
+      createTestUrl('/v1/ddp/v2/search/anime?keyword=nichijou')
     )
     const response = await makeUnitTestRequest(request)
 
@@ -66,7 +67,7 @@ describe('DanDanPlay API', () => {
       })
       .times(1)
 
-    const url = 'http://example.com/api/v1/ddp/v2/search/anime?keyword=test'
+    const url = createTestUrl('/v1/ddp/v2/search/anime?keyword=test')
 
     // First request - should call fetch
     const request1 = new Request(url)
@@ -117,10 +118,10 @@ describe('DanDanPlay API', () => {
 
     // two different requests should both call fetch
     const request1 = new Request(
-      'http://example.com/api/v1/ddp/v2/search/anime?keyword=test1'
+      createTestUrl('/v1/ddp/v2/search/anime?keyword=test1')
     )
     const request2 = new Request(
-      'http://example.com/api/v1/ddp/v2/search/anime?keyword=test2'
+      createTestUrl('/v1/ddp/v2/search/anime?keyword=test2')
     )
 
     await makeUnitTestRequest(request1)
@@ -136,7 +137,7 @@ describe('DanDanPlay API', () => {
     // call twice
     mock1.times(2)
 
-    const url = 'http://example.com/api/v1/ddp/v2/user/login'
+    const url = createTestUrl('/v1/ddp/v2/user/login')
     const requestOptions = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
