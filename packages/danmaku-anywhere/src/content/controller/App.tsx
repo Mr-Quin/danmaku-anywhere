@@ -3,12 +3,14 @@ import { Suspense, useEffect, useRef } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { HotkeysProvider } from 'react-hotkeys-hook'
 import { usePreloadImages } from '@/common/components/image/usePreloadImages'
+import { useSetupClarity } from '@/common/hooks/useSetupClarity'
 import { Logger } from '@/common/Logger'
 import { Content } from './Content'
 import { LoadInitialData } from './LoadInitialData'
 
 export const App = () => {
   usePreloadImages()
+  useSetupClarity(import.meta.env.VITE_CLARITY_PROJECT_ID_CONTENT)
 
   const ref = useRef<ErrorBoundary>(null)
   const { reset } = useQueryErrorResetBoundary()

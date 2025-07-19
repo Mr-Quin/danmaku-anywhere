@@ -265,6 +265,9 @@ importers:
       '@use-gesture/react':
         specifier: ^10.3.1
         version: 10.3.1(react@19.1.0)
+      clarity-js:
+        specifier: ^0.8.20
+        version: 0.8.20
       core-js:
         specifier: ^3.43.0
         version: 3.43.0
@@ -3068,6 +3071,9 @@ packages:
 
   cjs-module-lexer@1.4.3:
     resolution: {integrity: sha512-9z8TZaGM1pfswYeXrUpzPrkx8UnWYdhJclsiYMm6x/w5+nN+8Tf/LnAgfLGQCm59qAOxU8WwHEq2vNwF6i4j+Q==}
+
+  clarity-js@0.8.20:
+    resolution: {integrity: sha512-tvJYQXsad8J4PvbyY0aCmcsHjzHk2z7MhVetcNADIClIorKWvyinoZ7h3Ne870sU2O12Pi3OD7tGaYh2Ogceew==}
 
   cli-boxes@3.0.0:
     resolution: {integrity: sha512-/lzGpEWL/8PfI0BmBOPRwp0c/wFNX1RdUML3jK/RcSBA9T8mZDdQpqYBKtCFTOfQbwPqWEOpjqW+Fnayc0969g==}
@@ -8860,6 +8866,8 @@ snapshots:
       consola: 3.4.2
 
   cjs-module-lexer@1.4.3: {}
+
+  clarity-js@0.8.20: {}
 
   cli-boxes@3.0.0: {}
 

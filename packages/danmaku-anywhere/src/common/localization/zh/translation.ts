@@ -266,6 +266,7 @@ const pages = {
       },
     },
     searchUsingSimplified: '使用简体中文搜索',
+    enableAnalytics: '匿名数据收集',
     danmakuSource: {
       bilibili: {
         danmakuTypePreference: '弹幕获取方式',

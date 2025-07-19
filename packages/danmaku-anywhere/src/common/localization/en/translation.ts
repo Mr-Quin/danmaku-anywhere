@@ -266,6 +266,7 @@ const pages = {
         system: 'System',
       },
     },
+    enableAnalytics: 'Collect Anonymous Data',
     searchUsingSimplified: 'Search using simplified Chinese',
     danmakuSource: {
       bilibili: {

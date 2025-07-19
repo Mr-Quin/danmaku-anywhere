@@ -121,3 +121,10 @@ export const extensionOptionsService = new OptionsService(
         }
       }),
   })
+  .version(14, {
+    upgrade: (data: PrevOptions) =>
+      produce<ExtensionOptions>(data, (draft) => {
+        // Add analytics field
+        draft.enableAnalytics = true
+      }),
+  })

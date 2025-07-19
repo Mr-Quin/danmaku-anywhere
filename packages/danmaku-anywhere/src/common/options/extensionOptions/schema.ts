@@ -106,6 +106,11 @@ export const extensionOptionsSchema = z.object({
   hotkeys,
 
   /**
+   * If analytics data should be collected
+   */
+  enableAnalytics: z.boolean(),
+
+  /**
    * Whether the "Release Notes" dialog should be shown
    */
   showReleaseNotes: z.boolean(),
