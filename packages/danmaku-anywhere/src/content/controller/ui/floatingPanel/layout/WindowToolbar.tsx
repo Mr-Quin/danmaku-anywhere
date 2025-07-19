@@ -1,5 +1,5 @@
 import { Close, Lock, LockOpen } from '@mui/icons-material'
-import { AppBar, IconButton, Stack, Toolbar } from '@mui/material'
+import { AppBar, IconButton, Stack, Toolbar, useTheme } from '@mui/material'
 import type { ReactNode } from 'react'
 
 import { useIsSmallScreen } from '@/content/controller/common/hooks/useIsSmallScreen'
@@ -25,6 +25,11 @@ export const WindowToolbar = (props: WindowToolbarProps) => {
 
   const sm = useIsSmallScreen()
 
+  const theme = useTheme()
+
+  const lockedColor =
+    theme.palette.mode === 'light' ? 'success.light' : 'success.dark'
+
   const handleLock = () => {
     if (isLocked) {
       onUnlock?.()
@@ -42,13 +47,19 @@ export const WindowToolbar = (props: WindowToolbarProps) => {
             <IconButton
               onClick={handleLock}
               sx={{
-                color: isLocked ? 'success.main' : 'text.main',
+                color: isLocked ? lockedColor : 'inherit',
               }}
             >
               {isLocked ? <Lock /> : <LockOpen />}
             </IconButton>
           )}
-          <IconButton edge="end" onClick={onClose}>
+          <IconButton
+            edge="end"
+            onClick={onClose}
+            sx={{
+              color: 'inherit',
+            }}
+          >
             <Close />
           </IconButton>
         </Stack>

@@ -1,4 +1,4 @@
-import { GitHub, Launch } from '@mui/icons-material'
+import { Article, GitHub, Launch } from '@mui/icons-material'
 import {
   ListItem,
   ListItemButton,
@@ -23,6 +23,9 @@ export const HelpOptions = () => {
           href={docsLink('getting-started')}
           target="_blank"
         >
+          <ListItemIcon>
+            <Article />
+          </ListItemIcon>
           <ListItemText>{t('optionsPage.help.docs')}</ListItemText>
           <Launch />
         </ListItemButton>
@@ -32,7 +35,6 @@ export const HelpOptions = () => {
           component="a"
           href="https://github.com/Mr-Quin/danmaku-anywhere"
           target="_blank"
-          rel="noreferrer"
         >
           <ListItemIcon>
             <GitHub />
@@ -42,6 +44,7 @@ export const HelpOptions = () => {
         </ListItemButton>
       </ListItem>
       <ListItem>
+        <ListItemIcon></ListItemIcon>
         <ListItemText>QQ</ListItemText>
         <Typography>531237584</Typography>
       </ListItem>
