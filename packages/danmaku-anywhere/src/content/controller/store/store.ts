@@ -7,7 +7,6 @@ import type {
 import { enableMapSet } from 'immer'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
-import { episodeToString } from '@/common/danmaku/utils'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { createSelectors } from '@/common/utils/createSelectors'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
@@ -85,11 +84,6 @@ interface StoreState {
     mediaInfo?: MediaInfo
     setMediaInfo: (mediaInfo: MediaInfo) => void
   }
-
-  /**
-   * Uses the mediaInfo and danmakuMeta to get the name
-   */
-  getAnimeName: () => string
 
   /**
    * Whether the video element is present
@@ -221,18 +215,6 @@ const useStoreBase = create<StoreState>()(
         set((state) => {
           state.integration.mediaInfo = mediaInfo
         }),
-    },
-
-    getAnimeName: () => {
-      const {
-        integration: { mediaInfo },
-        danmaku: { danmakuLite },
-      } = get()
-      if (mediaInfo) return mediaInfo.toString()
-      if (danmakuLite) {
-        return episodeToString(danmakuLite)
-      }
-      return 'Unknown anime'
     },
 
     hasVideo: () => {
