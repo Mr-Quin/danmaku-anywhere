@@ -304,6 +304,7 @@ const pages = {
     },
     help: {
       docs: 'Documentation',
+      version: 'Version',
     },
     pages: {
       danmakuSource: 'Danmaku Source',
@@ -311,7 +312,7 @@ const pages = {
       hotkeys: 'Hotkeys',
       retentionPolicy: 'Retention Policy',
       advanced: 'Advanced',
-      help: 'Help & Feedback',
+      help: '关于',
     },
   },
   searchPage: {

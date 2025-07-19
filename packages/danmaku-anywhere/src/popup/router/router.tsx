@@ -17,11 +17,9 @@ import { IntegrationPolicyEditor } from '../pages/integrationPolicy/pages/Integr
 import { MountPage } from '../pages/mount/MountPage'
 import { Options } from '../pages/options/Options'
 import { DanmakuSource } from '../pages/options/pages/danmakuSource/DanmakuSource'
-import { BilibiliOptions } from '../pages/options/pages/danmakuSource/pages/BilibiliOptions'
-import { DanDanPlayOptions } from '../pages/options/pages/danmakuSource/pages/DanDanPlayOptions'
 import { HotkeyOptions } from '../pages/options/pages/hotkeyOptions/HotkeyOptions'
 import { RetentionPolicyPage } from '../pages/options/pages/retentionPolicy/RetentionPolicyPage'
-import { ThemeOptions } from '../pages/options/pages/theme/ThemeOptions'
+
 import { SearchPage } from '../pages/search/SearchPage'
 import { StylesPage } from '../pages/styles/StylesPage'
 
@@ -118,21 +116,8 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
       {
         path: 'danmaku-source',
         Component: DanmakuSource,
-        children: [
-          {
-            path: 'dandanplay',
-            Component: DanDanPlayOptions,
-          },
-          {
-            path: 'bilibili',
-            Component: BilibiliOptions,
-          },
-        ],
       },
-      {
-        path: 'theme',
-        Component: ThemeOptions,
-      },
+
       {
         path: 'hotkeys',
         Component: HotkeyOptions,

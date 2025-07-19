@@ -18,6 +18,7 @@ import { StyledEnableSwitch } from '@/common/components/StyledEnableSwitch'
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
+import { ThemeToggle } from '@/popup/component/ThemeToggle'
 
 export const AppToolBar = () => {
   const { partialUpdate, data: options } = useExtensionOptions()
@@ -70,20 +71,28 @@ export const AppToolBar = () => {
                 variant: 'caption',
               },
             }}
-            sx={{ m: 0 }}
           />
         </FormGroup>
+        <ThemeToggle />
         <IconButton
-          sx={{ ml: 2 }}
           onClick={() => {
             navigate('/options')
           }}
-          edge={isMobile ? 'end' : 'start'}
+          edge={isMobile ? 'end' : undefined}
+          sx={{
+            color: 'inherit',
+          }}
         >
           <Settings />
         </IconButton>
         {!isMobile && (
-          <IconButton onClick={openInWindow} edge="end">
+          <IconButton
+            onClick={openInWindow}
+            edge="end"
+            sx={{
+              color: 'inherit',
+            }}
+          >
             <OpenInNew />
           </IconButton>
         )}
