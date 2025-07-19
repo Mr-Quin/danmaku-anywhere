@@ -1,4 +1,4 @@
-import { Article, GitHub, Launch } from '@mui/icons-material'
+import { Article, GitHub, Launch, Numbers } from '@mui/icons-material'
 import {
   ListItem,
   ListItemButton,
@@ -17,6 +17,13 @@ export const HelpOptions = () => {
   return (
     <OptionsPageLayout>
       <OptionsPageToolBar title={t('optionsPage.pages.help')} />
+      <ListItem>
+        <ListItemIcon>
+          <Numbers />
+        </ListItemIcon>
+        <ListItemText>{t('optionsPage.help.version')}</ListItemText>
+        <Typography>{chrome.runtime.getManifest().version}</Typography>
+      </ListItem>
       <ListItem disablePadding>
         <ListItemButton
           component="a"
@@ -44,7 +51,7 @@ export const HelpOptions = () => {
         </ListItemButton>
       </ListItem>
       <ListItem>
-        <ListItemIcon></ListItemIcon>
+        <ListItemIcon />
         <ListItemText>QQ</ListItemText>
         <Typography>531237584</Typography>
       </ListItem>
