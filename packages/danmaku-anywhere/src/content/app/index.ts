@@ -10,6 +10,7 @@ import {
 } from '@danmaku-anywhere/web-scraper'
 import { EXTENSION_VERSION } from '@/common/constants'
 import { isProvider } from '@/common/danmaku/utils'
+import { portNames } from '@/common/ports/portNames'
 import type { RPCClientResponse } from '@/common/rpc/client'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { tryCatch } from '@/common/utils/utils'
@@ -66,7 +67,7 @@ window.addEventListener(
         return wrapRpc(() => chromeRpcClient.kazumiGetChapters(request.data))
       }
       case 'extractMedia': {
-        const port = chrome.runtime.connect({ name: 'media-extraction' })
+        const port = chrome.runtime.connect({ name: portNames.extractMedia })
 
         // relay messages to window
         port.onMessage.addListener((response) => {

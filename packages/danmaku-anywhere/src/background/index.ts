@@ -1,4 +1,5 @@
 import { configureApiStore } from '@danmaku-anywhere/danmaku-provider'
+import { setupPorts } from '@/background/ports/setupPorts'
 import { BilibiliService } from '@/background/services/BilibiliService'
 import { DanDanPlayService } from '@/background/services/DanDanPlayService'
 import { DanmakuService } from '@/background/services/DanmakuService'
@@ -61,6 +62,7 @@ setupRpc(
 )
 setupNetRequest()
 setupAlarms(danmakuService)
+setupPorts()
 
 chrome.runtime.getPlatformInfo().then((platformInfo) => {
   if (platformInfo.os === 'android' || IS_FIREFOX) {

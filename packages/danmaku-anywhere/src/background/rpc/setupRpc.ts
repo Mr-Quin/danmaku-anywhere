@@ -1,7 +1,4 @@
-import {
-  extractMedia,
-  setRequestHeaderRule,
-} from '@danmaku-anywhere/web-scraper'
+import { setRequestHeaderRule } from '@danmaku-anywhere/web-scraper'
 import { match } from 'ts-pattern'
 import { injectVideoScript } from '@/background/scripting/setupScripting'
 import type { BilibiliService } from '@/background/services/BilibiliService'
@@ -26,70 +23,6 @@ import { relayFrameClient } from '@/common/rpcClient/tab/client'
 import type { DanmakuService } from '../services/DanmakuService'
 import type { IconService } from '../services/IconService'
 import type { ProviderService } from '../services/ProviderService'
-
-// cleanup keyed by tab id
-const portCleanupCallbacks = new Map<number, () => void>()
-
-chrome.runtime.onConnect.addListener((port) => {
-  if (port.name !== 'media-extraction') return
-
-  port.onMessage.addListener(async (message) => {
-    if (message.action === 'extractMedia' && port.sender?.tab?.id) {
-      const tabId = port.sender.tab.id
-      const { url } = message.data
-
-      try {
-        const cleanup = await extractMedia(url, {
-          onMediaFound: (mediaInfo) => {
-            port.postMessage({
-              action: 'extractMedia',
-              success: true,
-              data: mediaInfo,
-              isLast: false,
-            })
-          },
-          onError: (error) => {
-            port.postMessage({
-              action: 'extractMedia',
-              success: false,
-              err: error.message,
-              isLast: true,
-            })
-          },
-          onComplete: () => {
-            port.disconnect()
-          },
-        })
-
-        // abort after 30 seconds
-        setTimeout(() => {
-          cleanup()
-        }, 30000)
-
-        portCleanupCallbacks.set(tabId, cleanup)
-      } catch (err) {
-        port.postMessage({
-          action: 'extractMedia',
-          success: false,
-          err: err instanceof Error ? err.message : 'Unknown error',
-          isLast: true,
-        })
-        port.disconnect()
-      }
-    }
-  })
-
-  port.onDisconnect.addListener((port) => {
-    if (port.sender?.tab?.id) {
-      const tabId = port.sender.tab.id
-      const cleanup = portCleanupCallbacks.get(tabId)
-      if (cleanup) {
-        cleanup()
-        portCleanupCallbacks.delete(tabId)
-      }
-    }
-  })
-})
 
 export const setupRpc = (
   providerService: ProviderService,
