@@ -142,8 +142,9 @@ export const setRequestHeaderRule = async (headerRule: SetHeaderRule) => {
 
   const lastId = lastRule?.id ?? 1
 
-  // biome-ignore lint/suspicious/noExplicitAny: testing for global variable
-  const isChrome = typeof (window as any).browser === 'undefined'
+  // @ts-expect-error
+  // biome-ignore lint/correctness/noUndeclaredVariables: browser is defined in firefox
+  const isChrome = typeof browser === 'undefined'
 
   const resourceTypes: (
     | 'object'
