@@ -21,6 +21,8 @@ export const ControllerToolbar = () => {
   const { toggleOpen, lock, toggleLock } = usePopup()
   const { toggleManualMode, isManual, danmakuLite } = useStore.use.danmaku()
 
+  const episode = danmakuLite?.length === 1 ? danmakuLite[0] : undefined
+
   return (
     <WindowToolbar
       showLock
@@ -37,9 +39,9 @@ export const ControllerToolbar = () => {
         </Fade>
         <HasIntegration
           fallback={
-            danmakuLite && (
-              <Typography noWrap title={episodeToString(danmakuLite)}>
-                {episodeToString(danmakuLite)}
+            episode && (
+              <Typography noWrap title={episodeToString(episode)}>
+                {episodeToString(episode)}
               </Typography>
             )
           }

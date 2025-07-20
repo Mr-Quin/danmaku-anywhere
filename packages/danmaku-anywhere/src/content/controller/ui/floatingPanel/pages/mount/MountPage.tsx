@@ -34,8 +34,8 @@ export const MountPage = () => {
   const { mutate, isPending } = useMountDanmakuContent()
   const unmountMutation = useUnmountDanmaku()
 
-  const handleSelectDanmaku = (danmakuLite: GenericEpisodeLite) => {
-    mutate(danmakuLite)
+  const handleSelectDanmaku = (episodesLite: GenericEpisodeLite) => {
+    mutate([episodesLite])
   }
 
   const handleMountSelected = async () => {
@@ -44,9 +44,7 @@ export const MountPage = () => {
     const selectedEpisodes = selectorRef.current.getSelectedEpisodes()
     if (selectedEpisodes.length === 0) return
 
-    // Mount the first selected episode (you might want to handle multiple mounts differently)
-    const episode = selectedEpisodes[0]
-    handleSelectDanmaku(episode)
+    mutate(selectedEpisodes)
 
     // Clear selection after mounting
     selectorRef.current.clearSelection()

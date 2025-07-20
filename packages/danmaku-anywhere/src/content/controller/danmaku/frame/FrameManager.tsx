@@ -1,3 +1,4 @@
+import type { GenericEpisode } from '@danmaku-anywhere/danmaku-converter'
 import { useEventCallback } from '@mui/material'
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -81,8 +82,10 @@ export const FrameManager = () => {
       unmountDanmaku.mutate(prevActiveFrameId.current)
     }
 
-    if (comments.length && danmakuLite) {
-      mountDanmaku({ ...danmakuLite, comments })
+    if (comments.length && danmakuLite && danmakuLite.length > 0) {
+      if ('comments' in danmakuLite[0]) {
+        void mountDanmaku(danmakuLite as GenericEpisode[])
+      }
     }
 
     prevActiveFrameId.current = activeFrame.frameId

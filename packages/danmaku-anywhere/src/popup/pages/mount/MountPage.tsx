@@ -72,23 +72,14 @@ export const MountPage = () => {
   const { mutate, isPending: isMounting } = useMountDanmakuPopup()
 
   const handleMount = async (episode: GenericEpisodeLite) => {
-    mutate(
-      { filter: { id: episode.id }, provider: episode.provider },
-      {
-        onSuccess: () => {
-          setIsMounted(true)
-        },
-      }
-    )
+    mutate([episode])
   }
 
   const handleMountMultiple = async () => {
     if (!selectorRef.current || !multiselect) return
 
     const episodes = selectorRef.current.getSelectedEpisodes()
-    if (episodes.length > 0) {
-      void handleMount(episodes[0])
-    }
+    mutate(episodes)
     selectorRef.current.clearSelection()
     toggleMultiselect()
   }

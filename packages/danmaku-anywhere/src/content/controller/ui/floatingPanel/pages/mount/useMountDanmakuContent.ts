@@ -12,6 +12,7 @@ import {
   episodeQueryKeys,
 } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { concatArr } from '@/common/utils/utils'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useStore } from '@/content/controller/store/store'
 
@@ -26,30 +27,46 @@ export const useMountDanmakuContent = () => {
 
   return useMutation({
     mutationFn: async (
-      danmaku: GenericEpisodeLite
-    ): Promise<GenericEpisode> => {
-      if (isNotCustom(danmaku)) {
+      episodesLite: GenericEpisodeLite[]
+    ): Promise<GenericEpisode[]> => {
+      const partition = Object.groupBy(episodesLite, (e) => {
+        if (isNotCustom(e)) {
+          return 'other'
+        }
+        return 'custom'
+      })
+
+      const episodes: GenericEpisode[] = []
+
+      if (partition.custom) {
+        const ids = partition.custom.map((e) => e.id)
         const data = await queryClient.fetchQuery({
-          queryKey: episodeQueryKeys.filter({ id: danmaku.id }),
+          queryKey: customEpisodeQueryKeys.filter({ ids }),
           queryFn: async () => {
-            const res = await chromeRpcClient.episodeFilter({ id: danmaku.id })
-            return res.data[0] || null
+            const res = await chromeRpcClient.episodeFilterCustom({ ids })
+            return res.data
           },
         })
-        if (!data) throw new Error('No danmaku found')
-        return data
+        concatArr(episodes, data)
       }
-      const data = await queryClient.fetchQuery({
-        queryKey: customEpisodeQueryKeys.filter({ id: danmaku.id }),
-        queryFn: async () => {
-          const res = await chromeRpcClient.episodeFilterCustom({
-            id: danmaku.id,
-          })
-          return res.data[0] || null
-        },
-      })
-      if (!data) throw new Error('No danmaku found')
-      return data
+
+      if (partition.other) {
+        const ids = partition.other.map((e) => e.id)
+        const data = await queryClient.fetchQuery({
+          queryKey: episodeQueryKeys.filter({ ids }),
+          queryFn: async () => {
+            const res = await chromeRpcClient.episodeFilter({ ids })
+            return res.data
+          },
+        })
+        concatArr(episodes, data)
+      }
+
+      if (episodes.length === 0) {
+        throw new Error('No danmaku found')
+      }
+
+      return episodes
     },
     onSuccess: (data) => {
       toggleManualMode(true)

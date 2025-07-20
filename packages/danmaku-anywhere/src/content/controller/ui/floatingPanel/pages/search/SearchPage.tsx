@@ -192,7 +192,9 @@ export const SearchPage = () => {
           </ErrorBoundary>
         </Box>
       )}
-      {tab === 'parse' && <ParseTabCore onImportSuccess={mountDanmaku} />}
+      {tab === 'parse' && (
+        <ParseTabCore onImportSuccess={(episode) => mountDanmaku([episode])} />
+      )}
     </TabLayout>
   )
 }

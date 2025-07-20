@@ -213,3 +213,10 @@ export const zip = <T, K, R>(
     return combinator(item, b[i])
   })
 }
+
+export const concatArr = <T>(a: T[], b: T[]): T[] => {
+  for (const item of b) {
+    a.push(item)
+  }
+  return a
+}

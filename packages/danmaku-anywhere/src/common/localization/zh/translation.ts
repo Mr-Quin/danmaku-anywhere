@@ -80,6 +80,7 @@ const domain = {
       xmlExported: '导出XML成功',
       xmlExportError: '导出XML失败：{{message}}',
       mounted: '弹幕已装填：{{name}} ({{count}})',
+      mountedMultiple: '已装填{{count}}个多选弹幕',
       mountError: '装填弹幕失败：{{message}}',
       refreshed: '弹幕已刷新：{{name}} ({{count}})',
       unmounted: '弹幕已卸载',
