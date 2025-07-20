@@ -5,7 +5,7 @@ import type { TabMethods } from '@/common/rpcClient/tab/types'
 import { useStore } from '@/content/controller/store/store'
 import { useManualDanmaku } from './useManualDanmaku'
 
-export const useTabRpcServer = () => {
+export const useControllerRpcServer = () => {
   const { handleUnsetDanmaku, handleSetDanmaku } = useManualDanmaku()
 
   const handleGetDanmakuState = useEventCallback(() => {
