@@ -39,7 +39,7 @@ interface StoreState {
     filter: string
     setFilter: (filter: string) => void
 
-    mount: (danmaku: GenericEpisode[], comments: CommentEntity[]) => void
+    mount: (episodes: GenericEpisode[]) => void
     unmount: () => void
 
     /**
@@ -57,7 +57,7 @@ interface StoreState {
      * Information about the current danmaku
      */
     episodes?: GenericEpisode[]
-    setEpisodes: (danmakuMeta: GenericEpisode[] | undefined) => void
+    setEpisodes: (episodes: GenericEpisode[] | undefined) => void
 
     /**
      * Whether the danmaku is manually set
@@ -135,11 +135,13 @@ const useStoreBase = create<StoreState>()(
         })
       },
 
-      mount: (danmaku, comments) => {
+      mount: (episodes) => {
         set((state) => {
           state.danmaku.isMounted = true
-          state.danmaku.episodes = danmaku
-          state.danmaku.comments = comments
+          state.danmaku.episodes = episodes
+          state.danmaku.comments = episodes.flatMap((episode) => {
+            return episode.comments
+          })
         })
       },
       unmount: () => {
@@ -164,9 +166,9 @@ const useStoreBase = create<StoreState>()(
 
       comments: [],
       episodes: undefined,
-      setEpisodes: (episodeLite) => {
+      setEpisodes: (episodes) => {
         set((state) => {
-          state.danmaku.episodes = episodeLite
+          state.danmaku.episodes = episodes
         })
       },
 

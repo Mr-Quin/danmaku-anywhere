@@ -2,7 +2,7 @@ import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
 import type { RPCDef } from '../../rpc/types'
 
 export interface ControllerDanmakuState {
-  danmaku?: GenericEpisodeLite[]
+  isMounted: boolean
   manual: boolean
 }
 

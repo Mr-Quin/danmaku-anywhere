@@ -51,7 +51,7 @@ export const MountPage = () => {
   })
 
   useEffect(() => {
-    if (tabDanmakuState.data?.danmaku) {
+    if (tabDanmakuState.data?.isMounted) {
       setIsMounted(tabDanmakuState.data.manual)
     }
   }, [tabDanmakuState.data])
@@ -123,6 +123,7 @@ export const MountPage = () => {
                       selectorRef.current?.clearSelection()
                       toggleMultiselect()
                     }}
+                    disabled={!isConnected}
                     color={multiselect ? 'primary' : 'default'}
                   >
                     <ChecklistRtl />

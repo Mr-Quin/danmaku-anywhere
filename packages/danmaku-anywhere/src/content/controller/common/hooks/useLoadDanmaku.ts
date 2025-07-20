@@ -21,9 +21,7 @@ const useMountDanmaku = () => {
   const { mount } = useStore.use.danmaku()
 
   return useMutation({
-    mutationFn: async (
-      episodes: GenericEpisode[]
-    ): Promise<CommentEntity[]> => {
+    mutationFn: async (episodes: GenericEpisode[]) => {
       const comments: CommentEntity[] = []
 
       episodes.forEach((episode) => {
@@ -38,11 +36,9 @@ const useMountDanmaku = () => {
       if (!res.data) {
         throw new Error('Failed to mount danmaku')
       }
-
-      return comments
     },
-    onSuccess: (comments, danmaku) => {
-      mount(danmaku, comments)
+    onSuccess: (_, danmaku) => {
+      mount(danmaku)
       updateFrame(mustGetActiveFrame().frameId, { mounted: true })
     },
     onError: (err) => {
