@@ -17,8 +17,8 @@ export const useLatestReleaseNotes = () => {
   const query = useQuery({
     queryFn: async () => {
       let version = EXTENSION_VERSION
-      if (version === '1.2.1') {
-        version = '1.2.0' // Special case for 1.2.1, which is actually 1.2.0 in GitHub
+      if (version === '1.2.1' || version === '1.2.2') {
+        version = '1.2.0' // Special case versions
       }
       const res = await fetch(
         `https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/tags/v${version}`
