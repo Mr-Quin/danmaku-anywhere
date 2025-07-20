@@ -1,7 +1,7 @@
 import { useEventCallback } from '@mui/material'
 import { useEffect } from 'react'
 import { createRpcServer } from '@/common/rpc/server'
-import type { TabMethods } from '@/common/rpcClient/tab/types'
+import type { ControllerMethods } from '@/common/rpcClient/controller/types'
 import { useStore } from '@/content/controller/store/store'
 import { useManualDanmaku } from './useManualDanmaku'
 
@@ -17,7 +17,7 @@ export const useControllerRpcServer = () => {
   })
 
   useEffect(() => {
-    const tabRpcServer = createRpcServer<TabMethods>({
+    const tabRpcServer = createRpcServer<ControllerMethods>({
       ping: async () => true,
       danmakuMount: async (danmaku) => {
         const success = await handleSetDanmaku(danmaku)

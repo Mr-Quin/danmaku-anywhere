@@ -10,7 +10,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import { TypeSelector } from '@/common/components/TypeSelector'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { tabQueryKeys } from '@/common/queries/queryKeys'
-import { tabRpcClient } from '@/common/rpcClient/tab/client'
+import { controllerRpcClient } from '@/common/rpcClient/controller/client'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { HasDanmaku } from '@/popup/pages/mount/components/HasDanmaku'
@@ -29,7 +29,7 @@ export const MountPage = () => {
 
   const tabDanmakuState = useQuery({
     queryKey: tabQueryKeys.getState(),
-    queryFn: () => tabRpcClient.danmakuGetState(),
+    queryFn: () => controllerRpcClient.danmakuGetState(),
     select: (res) => res.data,
     retry: false,
   })
@@ -41,7 +41,7 @@ export const MountPage = () => {
   }, [tabDanmakuState.data])
 
   const { mutate: unmount } = useMutation({
-    mutationFn: tabRpcClient.danmakuUnmount,
+    mutationFn: controllerRpcClient.danmakuUnmount,
     mutationKey: tabQueryKeys.getState(),
     onSuccess: () => {
       setIsMounted(false)

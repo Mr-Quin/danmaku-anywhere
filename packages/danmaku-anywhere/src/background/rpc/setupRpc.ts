@@ -19,7 +19,7 @@ import type {
   PlayerRelayCommands,
   PlayerRelayEvents,
 } from '@/common/rpcClient/background/types'
-import { relayFrameClient } from '@/common/rpcClient/tab/client'
+import { relayFrameClient } from '@/common/rpcClient/controller/client'
 import type { DanmakuService } from '../services/DanmakuService'
 import type { IconService } from '../services/IconService'
 import type { ProviderService } from '../services/ProviderService'

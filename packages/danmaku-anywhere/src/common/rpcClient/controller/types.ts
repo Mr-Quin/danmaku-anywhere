@@ -7,7 +7,7 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import type { RPCDef } from '../../rpc/types'
 
-export interface TabDanmakuState {
+export interface ControllerDanmakuState {
   danmaku?: WithSeason<EpisodeLite> | CustomEpisodeLite
   manual: boolean
 }
@@ -19,7 +19,7 @@ type DanmakuMethods = {
   ping: RPCDef<void, true>
   danmakuMount: RPCDef<WithSeason<Episode> | CustomEpisode, void>
   danmakuUnmount: RPCDef<void, void>
-  danmakuGetState: RPCDef<void, TabDanmakuState | null>
+  danmakuGetState: RPCDef<void, ControllerDanmakuState | null>
 }
 
-export type TabMethods = DanmakuMethods
+export type ControllerMethods = DanmakuMethods
