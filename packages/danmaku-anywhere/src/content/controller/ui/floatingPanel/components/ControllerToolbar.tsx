@@ -19,9 +19,9 @@ export const ControllerToolbar = () => {
   const { t } = useTranslation()
   const isAnyLoading = useAnyLoading()
   const { toggleOpen, lock, toggleLock } = usePopup()
-  const { toggleManualMode, isManual, danmakuLite } = useStore.use.danmaku()
+  const { toggleManualMode, isManual, episodes } = useStore.use.danmaku()
 
-  const episode = danmakuLite?.length === 1 ? danmakuLite[0] : undefined
+  const episode = episodes?.length === 1 ? episodes[0] : undefined
 
   return (
     <WindowToolbar

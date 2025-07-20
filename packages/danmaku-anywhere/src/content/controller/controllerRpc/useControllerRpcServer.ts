@@ -13,7 +13,7 @@ export const useControllerRpcServer = () => {
 
   const handleGetDanmakuState = useEventCallback(() => {
     return {
-      danmaku: useStore.getState().danmaku.danmakuLite,
+      danmaku: useStore.getState().danmaku.episodes,
       count: useStore.getState().danmaku.comments.length,
       manual: useStore.getState().danmaku.isManual,
     }

@@ -57,15 +57,15 @@ export const useLoadDanmaku = () => {
 
   const toast = useToast.use.toast()
 
-  const { danmakuLite } = useStore.use.danmaku()
+  const { episodes } = useStore.use.danmaku()
 
   const fetchMutation = useFetchDanmaku()
   const mountMutation = useMountDanmaku()
 
   const canRefresh =
-    !!danmakuLite &&
-    danmakuLite.length === 1 &&
-    isProvider(danmakuLite[0], DanmakuSourceType.DanDanPlay)
+    !!episodes &&
+    episodes.length === 1 &&
+    isProvider(episodes[0], DanmakuSourceType.DanDanPlay)
 
   const mountDanmaku = useEventCallback((episodes: GenericEpisode[]) => {
     return mountMutation.mutateAsync(episodes, {
@@ -111,7 +111,7 @@ export const useLoadDanmaku = () => {
 
   const refreshComments = useEventCallback(async () => {
     if (!canRefresh) return
-    const episode = danmakuLite[0]
+    const episode = episodes[0]
     // check again to narrow the type
     if (!isProvider(episode, DanmakuSourceType.DanDanPlay)) return
 

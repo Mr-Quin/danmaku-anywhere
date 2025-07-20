@@ -21,7 +21,7 @@ import { useMountDanmakuContent } from '@/content/controller/ui/floatingPanel/pa
 export const MountPage = () => {
   const { t } = useTranslation()
 
-  const { isMounted, danmakuLite, filter, setFilter } = useStore.use.danmaku()
+  const { isMounted, episodes, filter, setFilter } = useStore.use.danmaku()
   const selectedProviders = usePopup.use.selectedProviders()
   const setSelectedProviders = usePopup.use.setSelectedProviders()
 
@@ -119,7 +119,7 @@ export const MountPage = () => {
                     type="button"
                     onClick={handleUnmount}
                     color="warning"
-                    disabled={!danmakuLite || !isMounted}
+                    disabled={!episodes || !isMounted}
                   >
                     {t('danmaku.unmount')}
                   </Button>

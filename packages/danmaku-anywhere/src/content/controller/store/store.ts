@@ -1,7 +1,6 @@
 import type {
   CommentEntity,
   GenericEpisode,
-  GenericEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
 import { enableMapSet } from 'immer'
 import { create } from 'zustand'
@@ -40,7 +39,7 @@ interface StoreState {
     filter: string
     setFilter: (filter: string) => void
 
-    mount: (danmaku: GenericEpisodeLite[], comments: CommentEntity[]) => void
+    mount: (danmaku: GenericEpisode[], comments: CommentEntity[]) => void
     unmount: () => void
 
     /**
@@ -57,10 +56,8 @@ interface StoreState {
     /**
      * Information about the current danmaku
      */
-    danmakuLite?: GenericEpisodeLite[] | GenericEpisode[]
-    setDanmakuLite: (
-      danmakuMeta: (GenericEpisodeLite[] | GenericEpisode[]) | undefined
-    ) => void
+    episodes?: GenericEpisode[]
+    setEpisodes: (danmakuMeta: GenericEpisode[] | undefined) => void
 
     /**
      * Whether the danmaku is manually set
@@ -141,14 +138,14 @@ const useStoreBase = create<StoreState>()(
       mount: (danmaku, comments) => {
         set((state) => {
           state.danmaku.isMounted = true
-          state.danmaku.danmakuLite = danmaku
+          state.danmaku.episodes = danmaku
           state.danmaku.comments = comments
         })
       },
       unmount: () => {
         set((state) => {
           state.danmaku.isMounted = false
-          state.danmaku.danmakuLite = undefined
+          state.danmaku.episodes = undefined
           state.danmaku.comments = []
         })
       },
@@ -166,10 +163,10 @@ const useStoreBase = create<StoreState>()(
       },
 
       comments: [],
-      danmakuLite: undefined,
-      setDanmakuLite: (episodeLite) => {
+      episodes: undefined,
+      setEpisodes: (episodeLite) => {
         set((state) => {
-          state.danmaku.danmakuLite = episodeLite
+          state.danmaku.episodes = episodeLite
         })
       },
 
