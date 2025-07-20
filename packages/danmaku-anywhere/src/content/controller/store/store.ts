@@ -1,8 +1,6 @@
 import type {
   CommentEntity,
-  CustomEpisodeLite,
-  EpisodeLite,
-  WithSeason,
+  GenericEpisode,
 } from '@danmaku-anywhere/danmaku-converter'
 import { enableMapSet } from 'immer'
 import { create } from 'zustand'
@@ -41,10 +39,7 @@ interface StoreState {
     filter: string
     setFilter: (filter: string) => void
 
-    mount: (
-      danmaku: WithSeason<EpisodeLite> | CustomEpisodeLite,
-      comments: CommentEntity[]
-    ) => void
+    mount: (episodes: GenericEpisode[]) => void
     unmount: () => void
 
     /**
@@ -61,10 +56,8 @@ interface StoreState {
     /**
      * Information about the current danmaku
      */
-    danmakuLite?: WithSeason<EpisodeLite> | CustomEpisodeLite
-    setDanmakuLite: (
-      danmakuMeta: WithSeason<EpisodeLite> | CustomEpisodeLite | undefined
-    ) => void
+    episodes?: GenericEpisode[]
+    setEpisodes: (episodes: GenericEpisode[] | undefined) => void
 
     /**
      * Whether the danmaku is manually set
@@ -142,17 +135,19 @@ const useStoreBase = create<StoreState>()(
         })
       },
 
-      mount: (danmaku, comments) => {
+      mount: (episodes) => {
         set((state) => {
           state.danmaku.isMounted = true
-          state.danmaku.danmakuLite = danmaku
-          state.danmaku.comments = comments
+          state.danmaku.episodes = episodes
+          state.danmaku.comments = episodes.flatMap((episode) => {
+            return episode.comments
+          })
         })
       },
       unmount: () => {
         set((state) => {
           state.danmaku.isMounted = false
-          state.danmaku.danmakuLite = undefined
+          state.danmaku.episodes = undefined
           state.danmaku.comments = []
         })
       },
@@ -170,10 +165,10 @@ const useStoreBase = create<StoreState>()(
       },
 
       comments: [],
-      danmakuLite: undefined,
-      setDanmakuLite: (danmakuMeta) => {
+      episodes: undefined,
+      setEpisodes: (episodes) => {
         set((state) => {
-          state.danmaku.danmakuLite = danmakuMeta
+          state.danmaku.episodes = episodes
         })
       },
 

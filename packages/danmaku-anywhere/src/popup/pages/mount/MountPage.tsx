@@ -1,9 +1,14 @@
-import { Keyboard } from '@mui/icons-material'
-import { Button } from '@mui/material'
+import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
+import { ChecklistRtl, Keyboard } from '@mui/icons-material'
+import { Button, IconButton, Tooltip } from '@mui/material'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CaptureKeypress } from '@/common/components/CaptureKeypress'
+import {
+  DanmakuSelector,
+  type DanmakuSelectorApi,
+} from '@/common/components/DanmakuSelector/DanmakuSelector'
 import { FilterButton } from '@/common/components/FilterButton'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { useToast } from '@/common/components/Toast/toastStore'
@@ -13,19 +18,30 @@ import { tabQueryKeys } from '@/common/queries/queryKeys'
 import { controllerRpcClient } from '@/common/rpcClient/controller/client'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
+import { useIsConnected } from '@/popup/hooks/useIsConnected'
 import { HasDanmaku } from '@/popup/pages/mount/components/HasDanmaku'
+import { useMountDanmakuPopup } from '@/popup/pages/mount/useMountDanmakuPopup'
 import { useStore } from '@/popup/store'
-import { MountController } from './components/MountController'
 
 export const MountPage = () => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
-  const { setFilter, filter, setIsMounted, isMounted } = useStore.use.mount()
+  const {
+    setFilter,
+    filter,
+    setIsMounted,
+    isMounted,
+    toggleMultiselect,
+    multiselect,
+  } = useStore.use.mount()
   const { selectedTypes, setSelectedType } = useStore.use.danmaku()
 
   const { isMobile } = usePlatformInfo()
 
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+
+  const isConnected = useIsConnected()
+  const selectorRef = useRef<DanmakuSelectorApi>(null)
 
   const tabDanmakuState = useQuery({
     queryKey: tabQueryKeys.getState(),
@@ -35,7 +51,7 @@ export const MountPage = () => {
   })
 
   useEffect(() => {
-    if (tabDanmakuState.data?.danmaku) {
+    if (tabDanmakuState.data?.isMounted) {
       setIsMounted(tabDanmakuState.data.manual)
     }
   }, [tabDanmakuState.data])
@@ -52,6 +68,21 @@ export const MountPage = () => {
       toast.error(`${(e as Error).message}`)
     },
   })
+
+  const { mutate, isPending: isMounting } = useMountDanmakuPopup()
+
+  const handleMount = async (episode: GenericEpisodeLite) => {
+    mutate([episode])
+  }
+
+  const handleMountMultiple = async () => {
+    if (!selectorRef.current || !multiselect) return
+
+    const episodes = selectorRef.current.getSelectedEpisodes()
+    mutate(episodes)
+    selectorRef.current.clearSelection()
+    toggleMultiselect()
+  }
 
   return (
     <TabLayout>
@@ -86,19 +117,50 @@ export const MountPage = () => {
                   selectedTypes={selectedTypes}
                   setSelectedType={setSelectedType}
                 />
-                <Button
-                  variant="outlined"
-                  type="button"
-                  onClick={() => unmount()}
-                  color="warning"
-                  disabled={!isMounted}
-                >
-                  {t('danmaku.unmount')}
-                </Button>
+                <Tooltip title={t('common.multiselect')}>
+                  <IconButton
+                    onClick={() => {
+                      selectorRef.current?.clearSelection()
+                      toggleMultiselect()
+                    }}
+                    disabled={!isConnected}
+                    color={multiselect ? 'primary' : 'default'}
+                  >
+                    <ChecklistRtl />
+                  </IconButton>
+                </Tooltip>
+                {multiselect ? (
+                  <Button
+                    variant="contained"
+                    type="button"
+                    onClick={() => handleMountMultiple()}
+                    color="primary"
+                    disabled={!multiselect}
+                  >
+                    {t('danmaku.mount')}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outlined"
+                    type="button"
+                    onClick={() => unmount()}
+                    color="warning"
+                    disabled={!isMounted}
+                  >
+                    {t('danmaku.unmount')}
+                  </Button>
+                )}
               </TabToolbar>
               <Suspense fallback={<FullPageSpinner />}>
                 <HasDanmaku>
-                  <MountController />
+                  <DanmakuSelector
+                    ref={selectorRef}
+                    filter={filter}
+                    typeFilter={selectedTypes}
+                    onSelect={handleMount}
+                    disabled={!isConnected || isMounting}
+                    multiselect={multiselect}
+                  />
                 </HasDanmaku>
               </Suspense>
             </>

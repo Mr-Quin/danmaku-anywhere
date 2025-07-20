@@ -1,7 +1,6 @@
 import type {
-  CustomEpisode,
-  Episode,
-  WithSeason,
+  CommentEntity,
+  GenericEpisode,
 } from '@danmaku-anywhere/danmaku-converter'
 import { useEventCallback } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
@@ -12,27 +11,34 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { episodeToString, isProvider } from '@/common/danmaku/utils'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
+import { concatArr } from '@/common/utils/utils'
 import { useStore } from '@/content/controller/store/store'
 
-export const useMountDanmaku = () => {
+const useMountDanmaku = () => {
   const { toast } = useToast()
 
   const { mustGetActiveFrame, updateFrame } = useStore.use.frame()
   const { mount } = useStore.use.danmaku()
 
   return useMutation({
-    mutationFn: async (danmaku: WithSeason<Episode> | CustomEpisode) => {
+    mutationFn: async (episodes: GenericEpisode[]) => {
+      const comments: CommentEntity[] = []
+
+      episodes.forEach((episode) => {
+        concatArr(comments, episode.comments)
+      })
+
       const res = await playerRpcClient.player['relay:command:mount']({
         frameId: mustGetActiveFrame().frameId,
-        data: danmaku.comments,
+        data: comments,
       })
+
       if (!res.data) {
         throw new Error('Failed to mount danmaku')
       }
-      return true
     },
     onSuccess: (_, danmaku) => {
-      mount(danmaku, danmaku.comments)
+      mount(danmaku)
       updateFrame(mustGetActiveFrame().frameId, { mounted: true })
     },
     onError: (err) => {
@@ -47,19 +53,22 @@ export const useLoadDanmaku = () => {
 
   const toast = useToast.use.toast()
 
-  const { danmakuLite } = useStore.use.danmaku()
+  const { episodes } = useStore.use.danmaku()
 
   const fetchMutation = useFetchDanmaku()
   const mountMutation = useMountDanmaku()
 
   const canRefresh =
-    !!danmakuLite && isProvider(danmakuLite, DanmakuSourceType.DanDanPlay)
+    !!episodes &&
+    episodes.length === 1 &&
+    isProvider(episodes[0], DanmakuSourceType.DanDanPlay)
 
-  const mountDanmaku = useEventCallback(
-    (episode: WithSeason<Episode> | CustomEpisode) => {
-      return mountMutation.mutateAsync(episode, {
-        // This is called in addition to the onSuccess of mountMutation
-        onSuccess: () => {
+  const mountDanmaku = useEventCallback((episodes: GenericEpisode[]) => {
+    return mountMutation.mutateAsync(episodes, {
+      // This is called in addition to the onSuccess of mountMutation
+      onSuccess: () => {
+        if (episodes.length === 1) {
+          const episode = episodes[0]
           toast.success(
             t('danmaku.alert.mounted', {
               name: episodeToString(episode),
@@ -72,16 +81,22 @@ export const useLoadDanmaku = () => {
               actionLabel: t('danmaku.refresh'),
             }
           )
-        },
-      })
-    }
-  )
+        } else {
+          toast.success(
+            t('danmaku.alert.mountedMultiple', {
+              count: episodes.length,
+            })
+          )
+        }
+      },
+    })
+  })
 
   const loadMutation = useMutation({
     mutationFn: async (data: DanmakuFetchDto) => {
       return fetchMutation.mutateAsync(data, {
         onSuccess: (cache) => {
-          mountDanmaku(cache)
+          mountDanmaku([cache])
         },
         onError: (err) => {
           toast.error(err.message)
@@ -92,10 +107,13 @@ export const useLoadDanmaku = () => {
 
   const refreshComments = useEventCallback(async () => {
     if (!canRefresh) return
+    const episode = episodes[0]
+    // check again to narrow the type
+    if (!isProvider(episode, DanmakuSourceType.DanDanPlay)) return
 
     toast.info(t('danmaku.alert.refreshingDanmaku'))
     loadMutation.mutate(
-      { meta: danmakuLite, options: { forceUpdate: true } },
+      { meta: episode, options: { forceUpdate: true } },
       {
         onSuccess: (result) => {
           toast.success(

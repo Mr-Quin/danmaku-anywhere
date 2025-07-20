@@ -25,3 +25,6 @@ export type WithSeason<T> = WithSeasonV1<T>
 export type CustomEpisode = CustomEpisodeV4
 export type CustomEpisodeInsert = CustomEpisodeInsertV4
 export type CustomEpisodeLite = CustomEpisodeLiteV4
+
+export type GenericEpisode = WithSeason<Episode> | CustomEpisode
+export type GenericEpisodeLite = WithSeason<EpisodeLite> | CustomEpisodeLite

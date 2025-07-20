@@ -32,6 +32,7 @@ const common = {
     saved: 'Saved',
     autoSave: 'Auto-save',
     itsEmpty: "There's nothing here...",
+    multiselect: 'Multiselect',
     duration: {
       day_one: 'Day',
       day_other: 'Days',
@@ -77,6 +78,7 @@ const domain = {
       xmlExported: 'XML Exported',
       xmlExportError: 'Failed to export XML: {{message}}',
       mounted: 'Danmaku Mounted: {{name}} ({{count}})',
+      mountedMultiple: 'Mounted {{count}} selected danmaku',
       mountError: 'Failed to mount danmaku: {{message}}',
       refreshed: 'Danmaku Refreshed: {{name}} ({{count}})',
       unmounted: 'Danmaku Unmounted',

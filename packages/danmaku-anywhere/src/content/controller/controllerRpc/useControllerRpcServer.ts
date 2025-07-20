@@ -13,17 +13,16 @@ export const useControllerRpcServer = () => {
 
   const handleGetDanmakuState = useEventCallback(() => {
     return {
-      danmaku: useStore.getState().danmaku.danmakuLite,
-      count: useStore.getState().danmaku.comments.length,
       manual: useStore.getState().danmaku.isManual,
+      isMounted: useStore.getState().danmaku.isMounted,
     }
   })
 
   useEffect(() => {
     const tabRpcServer = createRpcServer<ControllerMethods>({
       ping: async () => true,
-      danmakuMount: async (danmaku) => {
-        const success = await handleSetDanmaku(danmaku)
+      danmakuMount: async (episodes) => {
+        const success = await handleSetDanmaku(episodes)
         if (!success) throw new Error('Failed to mount danmaku')
       },
       danmakuUnmount: async () => {

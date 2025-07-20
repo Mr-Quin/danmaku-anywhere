@@ -8,11 +8,14 @@ export const DebugPage = () => {
   const state = useStore()
   const toastState = useToast()
 
+  // biome-ignore lint/suspicious/noExplicitAny: debug page does not need strict typing
   const displayState = produce(state, (draft: any) => {
     delete draft.danmaku.comments
-    if (draft.danmaku.danmakuLite) {
-      if ('comments' in draft.danmaku.danmakuLite) {
-        delete draft.danmaku.danmakuLite.comments
+    if (draft.danmaku.episodes) {
+      for (const item of draft.danmaku.episodes) {
+        if ('comments' in item) {
+          delete item.comments
+        }
       }
     }
     draft.frame.allFrames = Object.fromEntries(draft.frame.allFrames.entries())

@@ -1,72 +1,38 @@
-import {
-  DanmakuSourceType,
-  type RemoteDanmakuSourceType,
-} from '@danmaku-anywhere/danmaku-converter'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
+import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
-import type {
-  CustomEpisodeQueryFilter,
-  EpisodeQueryFilter,
-} from '@/common/danmaku/dto'
+
 import { episodeToString } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
-import {
-  customEpisodeQueryKeys,
-  episodeQueryKeys,
-  tabQueryKeys,
-} from '@/common/queries/queryKeys'
-import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { tabQueryKeys } from '@/common/queries/queryKeys'
 import { controllerRpcClient } from '@/common/rpcClient/controller/client'
-
-export type MountDanmakuPopupInput =
-  | {
-      provider: DanmakuSourceType.Custom
-      filter: CustomEpisodeQueryFilter
-    }
-  | {
-      provider: RemoteDanmakuSourceType
-      filter: EpisodeQueryFilter
-    }
 
 export const useMountDanmakuPopup = () => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
 
-  const queryClient = useQueryClient()
-
   return useMutation({
     mutationKey: tabQueryKeys.getState(),
-    mutationFn: async ({ provider, filter }: MountDanmakuPopupInput) => {
-      if (provider === DanmakuSourceType.Custom) {
-        const res = await queryClient.fetchQuery({
-          queryKey: customEpisodeQueryKeys.filter(filter),
-          queryFn: () => chromeRpcClient.episodeFilterCustom(filter),
-        })
-        if (res.data.length === 0) throw new Error('No danmaku found')
-        await controllerRpcClient.danmakuMount(res.data[0])
-
-        return res.data[0]
-      }
-
-      const res = await queryClient.fetchQuery({
-        queryKey: episodeQueryKeys.filter(filter),
-        queryFn: () => chromeRpcClient.episodeFilter(filter),
-      })
-
-      if (res.data.length === 0) throw new Error('No danmaku found')
-
-      await controllerRpcClient.danmakuMount(res.data[0])
-
-      return res.data[0]
+    mutationFn: async (episodes: GenericEpisodeLite[]) => {
+      await controllerRpcClient.danmakuMount(episodes)
     },
-    onSuccess: (data) => {
-      toast.success(
-        t('danmaku.alert.mounted', {
-          name: episodeToString(data),
-          count: data.comments.length,
-        })
-      )
+    onSuccess: (_, episodes) => {
+      if (episodes.length === 1) {
+        const episode = episodes[0]
+        toast.success(
+          t('danmaku.alert.mounted', {
+            name: episodeToString(episode),
+            count: episode.commentCount,
+          })
+        )
+      } else {
+        toast.success(
+          t('danmaku.alert.mountedMultiple', {
+            count: episodes.length,
+          })
+        )
+      }
     },
     onError: (e) => {
       toast.error(

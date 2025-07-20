@@ -1,16 +1,29 @@
 import {
-  type CustomEpisodeLite,
   type CustomSeason,
   DanmakuSourceType,
-  type EpisodeLite,
   type EpisodeMeta,
+  type GenericEpisodeLite,
   type Season,
   type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Refresh } from '@mui/icons-material'
-import { Box, IconButton, List, ListSubheader, Stack } from '@mui/material'
+import {
+  Box,
+  Checkbox,
+  IconButton,
+  List,
+  ListSubheader,
+  Stack,
+} from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { memo, useMemo, useRef } from 'react'
+import {
+  memo,
+  type Ref,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
 import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
@@ -22,16 +35,27 @@ import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { isNotCustom, isProvider } from '@/common/danmaku/utils'
 import { matchWithPinyin } from '@/common/utils/utils'
 
+export interface DanmakuSelectorApi {
+  getSelectedEpisodes: () => GenericEpisodeLite[]
+  clearSelection: () => void
+}
+
 type EpisodeListItemProps = {
   item: FlattenedOption
-  onSelect: (value: SelectableEpisode) => void
+  onSelect: (value: GenericEpisodeLite) => void
   disabled?: boolean
+  multiselect: boolean
+  isSelected: boolean
+  onToggleSelection: (episode: GenericEpisodeLite) => void
 }
 
 const EpisodeListItem = ({
   item,
   onSelect,
   disabled,
+  multiselect = false,
+  isSelected = false,
+  onToggleSelection,
 }: EpisodeListItemProps) => {
   const { mutateAsync: load, isPending } = useFetchDanmaku()
 
@@ -73,10 +97,25 @@ const EpisodeListItem = ({
       disabled={disabled}
       episode={item.episode}
       onClick={(meta) => {
-        onSelect(meta)
+        if (multiselect) {
+          onToggleSelection(meta)
+        } else {
+          onSelect(meta)
+        }
       }}
       renderSecondaryAction={() => {
         const { episode } = item
+
+        if (multiselect) {
+          return (
+            <Checkbox
+              checked={isSelected}
+              onChange={() => onToggleSelection?.(episode)}
+              onClick={(e) => e.stopPropagation()}
+              disabled={disabled}
+            />
+          )
+        }
 
         if (!isNotCustom(episode)) return null
 
@@ -96,14 +135,14 @@ const EpisodeListItem = ({
 
 const EpisodeListItemMemo = memo(EpisodeListItem)
 
-const stringifyDanmakuMeta = (episode: SelectableEpisode) => {
+const stringifyDanmakuMeta = (episode: GenericEpisodeLite) => {
   if (isProvider(episode, DanmakuSourceType.Custom)) {
     return episode.title
   }
   return `${episode.season.title} ${episode.title}`
 }
 
-const filterOptions = <T extends SelectableEpisode>(
+const filterOptions = <T extends GenericEpisodeLite>(
   options: T[],
   filter: string,
   typeFilter: DanmakuSourceType[]
@@ -123,8 +162,6 @@ const filterOptions = <T extends SelectableEpisode>(
   })
 }
 
-export type SelectableEpisode = WithSeason<EpisodeLite> | CustomEpisodeLite
-
 type FlattenedOption =
   | {
       kind: 'season'
@@ -132,14 +169,16 @@ type FlattenedOption =
     }
   | {
       kind: 'episode'
-      episode: WithSeason<EpisodeLite> | CustomEpisodeLite
+      episode: GenericEpisodeLite
     }
 
 interface DanmakuSelectorProps {
   filter: string
   typeFilter: DanmakuSourceType[]
-  onSelect: (value: SelectableEpisode) => void
+  onSelect: (value: GenericEpisodeLite) => void
   disabled?: boolean
+  multiselect?: boolean
+  ref: Ref<DanmakuSelectorApi>
 }
 
 export const DanmakuSelector = ({
@@ -147,14 +186,45 @@ export const DanmakuSelector = ({
   typeFilter,
   onSelect,
   disabled,
+  multiselect = false,
+  ref,
 }: DanmakuSelectorProps) => {
   const { t } = useTranslation()
 
   const scrollRef = useRef<HTMLDivElement>(null)
+  const [selectedEpisodes, setSelectedEpisodes] = useState<
+    Set<GenericEpisodeLite>
+  >(new Set())
 
   const { data: episodes } = useEpisodesLiteSuspense()
   const { data: customEpisodes } = useCustomEpisodeLiteSuspense({ all: true })
   const { data: seasons } = useGetAllSeasonsSuspense()
+
+  const handleToggleSelection = (episode: GenericEpisodeLite) => {
+    setSelectedEpisodes((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(episode)) {
+        newSet.delete(episode)
+      } else {
+        newSet.add(episode)
+      }
+      return newSet
+    })
+  }
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      getSelectedEpisodes: () => {
+        const allEpisodes = [...episodes, ...customEpisodes]
+        return allEpisodes.filter((episode) => selectedEpisodes.has(episode))
+      },
+      clearSelection: () => {
+        setSelectedEpisodes(new Set())
+      },
+    }),
+    [episodes, customEpisodes, selectedEpisodes]
+  )
 
   const flattened = useMemo(() => {
     const filteredEpisodes = filterOptions(episodes, filter, typeFilter)
@@ -224,6 +294,13 @@ export const DanmakuSelector = ({
     return `season-custom-episode-${episode.id}`
   }
 
+  const getIsSelected = (item: FlattenedOption) => {
+    if (item.kind === 'season') {
+      return false
+    }
+    return selectedEpisodes.has(item.episode)
+  }
+
   const virtualizer = useVirtualizer({
     count: flattened.length,
     getScrollElement: () => scrollRef.current,
@@ -265,6 +342,9 @@ export const DanmakuSelector = ({
                 item={item}
                 onSelect={onSelect}
                 disabled={disabled}
+                multiselect={multiselect}
+                isSelected={getIsSelected(item)}
+                onToggleSelection={handleToggleSelection}
               />
             </div>
           )
