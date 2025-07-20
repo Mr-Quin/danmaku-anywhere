@@ -1,8 +1,6 @@
 import type {
   CommentEntity,
-  CustomEpisodeLite,
-  EpisodeLite,
-  WithSeason,
+  GenericEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
 import type { MediaInfo } from '../extractMedia.js'
@@ -59,14 +57,8 @@ export type ExtAction = {
     },
     MediaInfo
   >
-  episodeGetAll: ExtActionDef<
-    void,
-    (WithSeason<EpisodeLite> | CustomEpisodeLite)[]
-  >
-  danmakuGet: ExtActionDef<
-    WithSeason<EpisodeLite> | CustomEpisodeLite,
-    CommentEntity[]
-  >
+  episodeGetAll: ExtActionDef<void, GenericEpisodeLite[]>
+  danmakuGet: ExtActionDef<GenericEpisodeLite, CommentEntity[]>
   setRequestHeaders: ExtActionDef<SetHeaderRule, void>
 }
 

@@ -1,6 +1,7 @@
 import type {
   CustomEpisode,
   Episode,
+  GenericEpisode,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -32,7 +33,7 @@ export interface ExportFile {
 }
 
 export interface ExportFormatter {
-  formatEpisode: (episode: WithSeason<Episode> | CustomEpisode) => ExportFile
+  formatEpisode: (episode: GenericEpisode) => ExportFile
   fileExtension: string
   successMessageKey: string
   errorMessageKey: string

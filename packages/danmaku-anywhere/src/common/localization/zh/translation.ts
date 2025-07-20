@@ -34,7 +34,7 @@ const common = {
     saved: '已保存',
     autoSave: '自动保存',
     itsEmpty: '这里什么都没有...',
-
+    multiselect: '多选',
     duration: {
       day_one: '天',
       day_other: '天',

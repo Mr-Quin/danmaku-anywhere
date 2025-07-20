@@ -32,6 +32,7 @@ const common = {
     saved: 'Saved',
     autoSave: 'Auto-save',
     itsEmpty: "There's nothing here...",
+    multiselect: 'Multiselect',
     duration: {
       day_one: 'Day',
       day_other: 'Days',

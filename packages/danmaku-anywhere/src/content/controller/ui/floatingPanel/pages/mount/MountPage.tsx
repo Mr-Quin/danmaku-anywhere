@@ -1,13 +1,13 @@
-import type {
-  CustomEpisodeLite,
-  EpisodeLite,
-} from '@danmaku-anywhere/danmaku-converter'
-import { Keyboard } from '@mui/icons-material'
-import { Button } from '@mui/material'
-import { useState } from 'react'
+import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
+import { ChecklistRtl, Keyboard } from '@mui/icons-material'
+import { Button, IconButton, Tooltip } from '@mui/material'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CaptureKeypress } from '@/common/components/CaptureKeypress'
-import { DanmakuSelector } from '@/common/components/DanmakuSelector/DanmakuSelector'
+import {
+  DanmakuSelector,
+  type DanmakuSelectorApi,
+} from '@/common/components/DanmakuSelector/DanmakuSelector'
 import { FilterButton } from '@/common/components/FilterButton'
 import { TypeSelector } from '@/common/components/TypeSelector'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
@@ -28,18 +28,40 @@ export const MountPage = () => {
   const { isMobile } = usePlatformInfo()
 
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [multiselect, setMultiselect] = useState(false)
+  const selectorRef = useRef<DanmakuSelectorApi>(null)
 
   const { mutate, isPending } = useMountDanmakuContent()
   const unmountMutation = useUnmountDanmaku()
 
-  const handleSelectDanmaku = (
-    danmakuLite: EpisodeLite | CustomEpisodeLite
-  ) => {
+  const handleSelectDanmaku = (danmakuLite: GenericEpisodeLite) => {
     mutate(danmakuLite)
   }
 
+  const handleMountSelected = async () => {
+    if (!selectorRef.current) return
+
+    const selectedEpisodes = selectorRef.current.getSelectedEpisodes()
+    if (selectedEpisodes.length === 0) return
+
+    // Mount the first selected episode (you might want to handle multiple mounts differently)
+    const episode = selectedEpisodes[0]
+    handleSelectDanmaku(episode)
+
+    // Clear selection after mounting
+    selectorRef.current.clearSelection()
+    setMultiselect(false)
+  }
+
   const handleUnmount = () => {
-    unmountMutation.mutate(undefined)
+    unmountMutation.mutate()
+  }
+
+  const toggleMultiselect = () => {
+    setMultiselect(!multiselect)
+    if (selectorRef.current) {
+      selectorRef.current.clearSelection()
+    }
   }
 
   return (
@@ -75,21 +97,43 @@ export const MountPage = () => {
                   selectedTypes={selectedProviders}
                   setSelectedType={setSelectedProviders}
                 />
-                <Button
-                  variant="outlined"
-                  type="button"
-                  onClick={handleUnmount}
-                  color="warning"
-                  disabled={!danmakuLite || !isMounted}
-                >
-                  {t('danmaku.unmount')}
-                </Button>
+                <Tooltip title={t('common.multiselect')}>
+                  <IconButton
+                    onClick={toggleMultiselect}
+                    color={multiselect ? 'primary' : 'default'}
+                  >
+                    <ChecklistRtl />
+                  </IconButton>
+                </Tooltip>
+                {multiselect ? (
+                  <Button
+                    variant="outlined"
+                    type="button"
+                    onClick={handleMountSelected}
+                    color="primary"
+                    disabled={isPending}
+                  >
+                    {t('danmaku.mount')}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outlined"
+                    type="button"
+                    onClick={handleUnmount}
+                    color="warning"
+                    disabled={!danmakuLite || !isMounted}
+                  >
+                    {t('danmaku.unmount')}
+                  </Button>
+                )}
               </TabToolbar>
               <DanmakuSelector
+                ref={selectorRef}
                 filter={filter}
                 typeFilter={selectedProviders}
                 onSelect={handleSelectDanmaku}
                 disabled={isPending}
+                multiselect={multiselect}
               />
             </>
           )

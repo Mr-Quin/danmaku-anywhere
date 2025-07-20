@@ -1,8 +1,4 @@
-import type {
-  CustomEpisode,
-  Episode,
-  WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
+import type { GenericEpisode } from '@danmaku-anywhere/danmaku-converter'
 import { useEventCallback } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -21,7 +17,7 @@ export const useMountDanmaku = () => {
   const { mount } = useStore.use.danmaku()
 
   return useMutation({
-    mutationFn: async (danmaku: WithSeason<Episode> | CustomEpisode) => {
+    mutationFn: async (danmaku: GenericEpisode) => {
       const res = await playerRpcClient.player['relay:command:mount']({
         frameId: mustGetActiveFrame().frameId,
         data: danmaku.comments,
@@ -55,27 +51,25 @@ export const useLoadDanmaku = () => {
   const canRefresh =
     !!danmakuLite && isProvider(danmakuLite, DanmakuSourceType.DanDanPlay)
 
-  const mountDanmaku = useEventCallback(
-    (episode: WithSeason<Episode> | CustomEpisode) => {
-      return mountMutation.mutateAsync(episode, {
-        // This is called in addition to the onSuccess of mountMutation
-        onSuccess: () => {
-          toast.success(
-            t('danmaku.alert.mounted', {
-              name: episodeToString(episode),
-              count: episode.commentCount,
-            }),
-            {
-              actionFn: isProvider(episode, DanmakuSourceType.DanDanPlay)
-                ? refreshComments
-                : undefined,
-              actionLabel: t('danmaku.refresh'),
-            }
-          )
-        },
-      })
-    }
-  )
+  const mountDanmaku = useEventCallback((episode: GenericEpisode) => {
+    return mountMutation.mutateAsync(episode, {
+      // This is called in addition to the onSuccess of mountMutation
+      onSuccess: () => {
+        toast.success(
+          t('danmaku.alert.mounted', {
+            name: episodeToString(episode),
+            count: episode.commentCount,
+          }),
+          {
+            actionFn: isProvider(episode, DanmakuSourceType.DanDanPlay)
+              ? refreshComments
+              : undefined,
+            actionLabel: t('danmaku.refresh'),
+          }
+        )
+      },
+    })
+  })
 
   const loadMutation = useMutation({
     mutationFn: async (data: DanmakuFetchDto) => {

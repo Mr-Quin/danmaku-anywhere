@@ -1,6 +1,6 @@
 import type {
-  CustomEpisodeLite,
-  EpisodeLite,
+  GenericEpisode,
+  GenericEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -25,7 +25,9 @@ export const useMountDanmakuContent = () => {
   const { mountDanmaku } = useLoadDanmaku()
 
   return useMutation({
-    mutationFn: async (danmaku: EpisodeLite | CustomEpisodeLite) => {
+    mutationFn: async (
+      danmaku: GenericEpisodeLite
+    ): Promise<GenericEpisode> => {
       if (isNotCustom(danmaku)) {
         const data = await queryClient.fetchQuery({
           queryKey: episodeQueryKeys.filter({ id: danmaku.id }),

@@ -17,6 +17,8 @@ interface StoreState {
     setFilter: (filter: string) => void
     isMounted: boolean
     setIsMounted: (isMounted: boolean) => void
+    multiselect: boolean
+    toggleMultiselect: (multiSelect?: boolean) => void
   }
   search: {
     searchParams?: SearchEpisodesQuery
@@ -63,6 +65,12 @@ const useStoreBase = create<StoreState>()(
       setIsMounted: (isMounted: boolean) => {
         set((state) => {
           state.mount.isMounted = isMounted
+        })
+      },
+      multiselect: false,
+      toggleMultiselect: (multiSelect?: boolean) => {
+        set((state) => {
+          state.mount.multiselect = multiSelect ?? !state.mount.multiselect
         })
       },
     },

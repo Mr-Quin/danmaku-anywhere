@@ -1,8 +1,4 @@
-import type {
-  CustomEpisode,
-  Episode,
-  WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
+import type { GenericEpisode } from '@danmaku-anywhere/danmaku-converter'
 import { useEventCallback } from '@mui/material'
 import { Logger } from '@/common/Logger'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
@@ -14,13 +10,11 @@ export const useManualDanmaku = () => {
   const { mountDanmaku } = useLoadDanmaku()
   const unmountMutation = useUnmountDanmaku()
 
-  const handleSetDanmaku = useEventCallback(
-    async (data: WithSeason<Episode> | CustomEpisode) => {
-      Logger.debug('Requested manual danmaku')
-      useStore.getState().danmaku.toggleManualMode(true)
-      return mountDanmaku(data)
-    }
-  )
+  const handleSetDanmaku = useEventCallback(async (data: GenericEpisode) => {
+    Logger.debug('Requested manual danmaku')
+    useStore.getState().danmaku.toggleManualMode(true)
+    return mountDanmaku(data)
+  })
 
   const handleUnsetDanmaku = useEventCallback(() => {
     Logger.debug('Requested to unmount danmaku')

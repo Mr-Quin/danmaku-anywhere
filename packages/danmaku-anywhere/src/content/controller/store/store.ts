@@ -1,8 +1,6 @@
 import type {
   CommentEntity,
-  CustomEpisodeLite,
-  EpisodeLite,
-  WithSeason,
+  GenericEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
 import { enableMapSet } from 'immer'
 import { create } from 'zustand'
@@ -41,10 +39,7 @@ interface StoreState {
     filter: string
     setFilter: (filter: string) => void
 
-    mount: (
-      danmaku: WithSeason<EpisodeLite> | CustomEpisodeLite,
-      comments: CommentEntity[]
-    ) => void
+    mount: (danmaku: GenericEpisodeLite, comments: CommentEntity[]) => void
     unmount: () => void
 
     /**
@@ -61,10 +56,8 @@ interface StoreState {
     /**
      * Information about the current danmaku
      */
-    danmakuLite?: WithSeason<EpisodeLite> | CustomEpisodeLite
-    setDanmakuLite: (
-      danmakuMeta: WithSeason<EpisodeLite> | CustomEpisodeLite | undefined
-    ) => void
+    danmakuLite?: GenericEpisodeLite
+    setDanmakuLite: (danmakuMeta: GenericEpisodeLite | undefined) => void
 
     /**
      * Whether the danmaku is manually set
