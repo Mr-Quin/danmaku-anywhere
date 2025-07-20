@@ -105,7 +105,7 @@ export const MountPage = () => {
                 </Tooltip>
                 {multiselect ? (
                   <Button
-                    variant="outlined"
+                    variant="contained"
                     type="button"
                     onClick={handleMountSelected}
                     color="primary"
