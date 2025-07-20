@@ -17,8 +17,8 @@ import {
 } from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import {
-  forwardRef,
   memo,
+  type Ref,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -178,12 +178,17 @@ interface DanmakuSelectorProps {
   onSelect: (value: GenericEpisodeLite) => void
   disabled?: boolean
   multiselect?: boolean
+  ref: Ref<DanmakuSelectorApi>
 }
 
-export const DanmakuSelector = forwardRef<
-  DanmakuSelectorApi,
-  DanmakuSelectorProps
->(({ filter, typeFilter, onSelect, disabled, multiselect = false }, ref) => {
+export const DanmakuSelector = ({
+  filter,
+  typeFilter,
+  onSelect,
+  disabled,
+  multiselect = false,
+  ref,
+}: DanmakuSelectorProps) => {
   const { t } = useTranslation()
 
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -347,6 +352,4 @@ export const DanmakuSelector = forwardRef<
       </List>
     </Box>
   )
-})
-
-DanmakuSelector.displayName = 'DanmakuSelector'
+}

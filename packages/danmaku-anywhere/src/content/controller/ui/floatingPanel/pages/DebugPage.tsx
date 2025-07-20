@@ -11,8 +11,8 @@ export const DebugPage = () => {
   // biome-ignore lint/suspicious/noExplicitAny: debug page does not need strict typing
   const displayState = produce(state, (draft: any) => {
     delete draft.danmaku.comments
-    if (draft.danmaku.danmakuLite) {
-      for (const item of draft.danmaku.danmakuLite) {
+    if (draft.danmaku.episodes) {
+      for (const item of draft.danmaku.episodes) {
         if ('comments' in item) {
           delete item.comments
         }
