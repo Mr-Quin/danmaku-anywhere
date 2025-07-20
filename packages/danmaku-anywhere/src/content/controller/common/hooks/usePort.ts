@@ -1,5 +1,4 @@
 import { useEffect } from 'react'
-import { Logger } from '@/common/Logger'
 import { portNames } from '@/common/ports/portNames'
 import { useStore } from '@/content/controller/store/store'
 
@@ -12,8 +11,8 @@ export const usePort = () => {
 
   useEffect(() => {
     const handleDisconnect = () => {
-      setDisconnected(true)
-      Logger.warn('Extension context disconnected.')
+      // setDisconnected(true)
+      // Logger.warn('Extension context disconnected.')
     }
 
     port.onDisconnect.addListener(handleDisconnect)
