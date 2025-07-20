@@ -135,12 +135,53 @@ export const setRequestHeaderRule = async (headerRule: SetHeaderRule) => {
 
   // check if url exists, if it does, remove the rule
   const prevRule = existingRules.find((rule) => {
-    return rule.condition.urlFilter === headerRule.url
+    return rule.condition.urlFilter?.includes(headerRule.url)
   })
 
   const lastRule = existingRules.sort((a, b) => a.id - b.id).at(-1)
 
   const lastId = lastRule?.id ?? 1
+
+  // biome-ignore lint/suspicious/noExplicitAny: testing for global variable
+  const isChrome = typeof (window as any).browser === 'undefined'
+
+  const resourceTypes: (
+    | 'object'
+    | 'main_frame'
+    | 'sub_frame'
+    | 'stylesheet'
+    | 'xmlhttprequest'
+    | 'csp_report'
+    | 'font'
+    | 'image'
+    | 'ping'
+    | 'script'
+    | 'media'
+    | 'websocket'
+    | 'webbundle'
+    | 'other'
+    | 'webtransport'
+  )[] = [
+    'main_frame',
+    'sub_frame',
+    'stylesheet',
+    'xmlhttprequest',
+    'csp_report',
+    'font',
+    'image',
+    'ping',
+    'script',
+    'object',
+    'media',
+    'websocket',
+    'other',
+  ]
+
+  if (isChrome) {
+    // not supported in Firefox
+    resourceTypes.push('webtransport')
+    resourceTypes.push('webbundle')
+  }
 
   const headersToSet =
     headerRule.headers?.map(
@@ -170,23 +211,7 @@ export const setRequestHeaderRule = async (headerRule: SetHeaderRule) => {
         },
         condition: {
           urlFilter: `|${headerRule.url}`,
-          resourceTypes: [
-            'main_frame',
-            'sub_frame',
-            'stylesheet',
-            'xmlhttprequest',
-            'csp_report',
-            'font',
-            'image',
-            'ping',
-            'script',
-            'object',
-            'media',
-            'websocket',
-            'webtransport',
-            'webbundle',
-            'other',
-          ], // include all resource types
+          resourceTypes: resourceTypes,
         },
       },
     ],
