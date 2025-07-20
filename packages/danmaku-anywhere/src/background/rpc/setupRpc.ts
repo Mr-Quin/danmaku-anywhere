@@ -16,8 +16,8 @@ import type { AnyRPCDef } from '@/common/rpc/types'
 import { RpcException } from '@/common/rpc/types'
 import type {
   BackgroundMethods,
-  PlayerCommands,
-  PlayerEvents,
+  PlayerRelayCommands,
+  PlayerRelayEvents,
 } from '@/common/rpcClient/background/types'
 import { relayFrameClient } from '@/common/rpcClient/tab/client'
 import type { DanmakuService } from '../services/DanmakuService'
@@ -242,16 +242,26 @@ export const setupRpc = (
     }
   }
 
-  const rpcRelay = createRpcServer<PlayerCommands & PlayerEvents>({
-    mount: passThrough(relayFrameClient.mount),
-    unmount: passThrough(relayFrameClient.unmount),
-    start: passThrough(relayFrameClient.start),
-    seek: passThrough(relayFrameClient.seek),
-    show: passThrough(relayFrameClient.show),
-    enterPiP: passThrough(relayFrameClient.enterPiP),
-    ready: passThrough(relayFrameClient.ready),
-    videoChange: passThrough(relayFrameClient.videoChange),
-    videoRemoved: passThrough(relayFrameClient.videoRemoved),
+  const rpcRelay = createRpcServer<PlayerRelayCommands & PlayerRelayEvents>({
+    'relay:command:mount': passThrough(relayFrameClient['relay:command:mount']),
+    'relay:command:unmount': passThrough(
+      relayFrameClient['relay:command:unmount']
+    ),
+    'relay:command:start': passThrough(relayFrameClient['relay:command:start']),
+    'relay:command:seek': passThrough(relayFrameClient['relay:command:seek']),
+    'relay:command:show': passThrough(relayFrameClient['relay:command:show']),
+    'relay:command:enterPip': passThrough(
+      relayFrameClient['relay:command:enterPip']
+    ),
+    'relay:event:playerReady': passThrough(
+      relayFrameClient['relay:event:playerReady']
+    ),
+    'relay:event:videoChange': passThrough(
+      relayFrameClient['relay:event:videoChange']
+    ),
+    'relay:event:videoRemoved': passThrough(
+      relayFrameClient['relay:event:videoRemoved']
+    ),
   })
 
   rpcServer.listen()

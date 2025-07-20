@@ -120,21 +120,25 @@ type FrameContext = {
 
 // Controller -> Player communication
 // Here the frameId is used to identify the DESTINATION frame
-export type PlayerCommands = {
-  mount: RPCDef<InputWithFrameId<CommentEntity[]>, boolean, FrameContext>
-  unmount: RPCDef<InputWithFrameId<void>, boolean, FrameContext>
-  start: RPCDef<InputWithFrameId<string>, void, FrameContext>
-  seek: RPCDef<InputWithFrameId<number>, void, FrameContext>
-  enterPiP: RPCDef<InputWithFrameId<void>, void, FrameContext>
-  show: RPCDef<InputWithFrameId<boolean>, void, FrameContext>
+export type PlayerRelayCommands = {
+  'relay:command:mount': RPCDef<
+    InputWithFrameId<CommentEntity[]>,
+    boolean,
+    FrameContext
+  >
+  'relay:command:unmount': RPCDef<InputWithFrameId<void>, boolean, FrameContext>
+  'relay:command:start': RPCDef<InputWithFrameId<string>, void, FrameContext>
+  'relay:command:seek': RPCDef<InputWithFrameId<number>, void, FrameContext>
+  'relay:command:enterPip': RPCDef<InputWithFrameId<void>, void, FrameContext>
+  'relay:command:show': RPCDef<InputWithFrameId<boolean>, void, FrameContext>
 }
 
 // Player -> Controller communication
 // Here the frameId is used to identify the SOURCE frame
-export type PlayerEvents = {
-  ready: RPCDef<InputWithFrameId<void>, void>
-  videoChange: RPCDef<InputWithFrameId<void>, void>
-  videoRemoved: RPCDef<InputWithFrameId<void>, void>
+export type PlayerRelayEvents = {
+  'relay:event:playerReady': RPCDef<InputWithFrameId<void>, void>
+  'relay:event:videoChange': RPCDef<InputWithFrameId<void>, void>
+  'relay:event:videoRemoved': RPCDef<InputWithFrameId<void>, void>
 }
 
 export type BackgroundMethods = IconMethods &

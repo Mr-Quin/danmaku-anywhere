@@ -192,7 +192,7 @@ const useStoreBase = create<StoreState>()(
     },
 
     seekToTime: (time) => {
-      void playerRpcClient.player.seek({
+      void playerRpcClient.player['relay:command:seek']({
         frameId: get().frame.mustGetActiveFrame().frameId,
         data: time,
       })

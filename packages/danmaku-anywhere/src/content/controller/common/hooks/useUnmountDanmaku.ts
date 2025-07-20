@@ -20,7 +20,7 @@ export const useUnmountDanmaku = () => {
       if (frame === undefined)
         throw new Error('Trying to unmount danmaku without an active frame')
 
-      await playerRpcClient.player.unmount({
+      await playerRpcClient.player['relay:command:unmount']({
         frameId: frame,
       })
 

@@ -22,7 +22,7 @@ export const useMountDanmaku = () => {
 
   return useMutation({
     mutationFn: async (danmaku: WithSeason<Episode> | CustomEpisode) => {
-      const res = await playerRpcClient.player.mount({
+      const res = await playerRpcClient.player['relay:command:mount']({
         frameId: mustGetActiveFrame().frameId,
         data: danmaku.comments,
       })
