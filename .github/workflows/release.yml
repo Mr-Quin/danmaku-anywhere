@@ -31,7 +31,7 @@ jobs:
       - name: Install and build dependencies
         run: |
           pnpm install
-          pnpm build
+          pnpm build:packages
         env:
           VITE_PROXY_ORIGIN: ${{ vars.VITE_PROXY_ORIGIN }}
           VITE_PROXY_URL: ${{ vars.VITE_PROXY_URL }}

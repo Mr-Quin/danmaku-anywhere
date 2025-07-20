@@ -42,7 +42,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "docs: sync changelog from release ${{ github.event.release.tag_name }}"
-          title: "docs: sync changelog from release ${{ github.event.release.tag_name }}"
+          title: "(chore): sync changelog from release ${{ github.event.release.tag_name }}"
           body: |
             This PR was automatically created to sync the changelog with the latest release notes.
             
@@ -52,9 +52,6 @@ jobs:
             The changelog has been updated with the content from the GitHub release.
           branch: sync-changelog-${{ github.event.release.tag_name }}
           base: master
-          labels: |
-            documentation
-            automated
           reviewers: ${{ github.actor }}
 
       - name: No changes detected
