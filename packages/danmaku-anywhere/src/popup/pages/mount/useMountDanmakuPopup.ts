@@ -17,7 +17,7 @@ import {
   tabQueryKeys,
 } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { tabRpcClient } from '@/common/rpcClient/tab/client'
+import { controllerRpcClient } from '@/common/rpcClient/controller/client'
 
 export type MountDanmakuPopupInput =
   | {
@@ -44,7 +44,7 @@ export const useMountDanmakuPopup = () => {
           queryFn: () => chromeRpcClient.episodeFilterCustom(filter),
         })
         if (res.data.length === 0) throw new Error('No danmaku found')
-        await tabRpcClient.danmakuMount(res.data[0])
+        await controllerRpcClient.danmakuMount(res.data[0])
 
         return res.data[0]
       }
@@ -56,7 +56,7 @@ export const useMountDanmakuPopup = () => {
 
       if (res.data.length === 0) throw new Error('No danmaku found')
 
-      await tabRpcClient.danmakuMount(res.data[0])
+      await controllerRpcClient.danmakuMount(res.data[0])
 
       return res.data[0]
     },

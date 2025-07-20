@@ -26,7 +26,9 @@ const usePip = () => {
 
   const enterPip = () => {
     if (activeFrame === undefined) return
-    playerRpcClient.player.enterPiP({ frameId: activeFrame.frameId })
+    playerRpcClient.player['relay:command:enterPip']({
+      frameId: activeFrame.frameId,
+    })
   }
 
   return {

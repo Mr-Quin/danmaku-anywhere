@@ -1,5 +1,4 @@
-import type { PropsWithChildren } from 'react'
-import { Suspense, use } from 'react'
+import { type PropsWithChildren, Suspense, use } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'

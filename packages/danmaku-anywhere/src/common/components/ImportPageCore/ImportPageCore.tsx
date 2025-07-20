@@ -1,6 +1,6 @@
 import { xmlToJSON } from '@danmaku-anywhere/danmaku-converter'
 import { Box, List, ListItem, Typography } from '@mui/material'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
@@ -8,11 +8,7 @@ import type {
   DanmakuImportData,
   DanmakuImportResult,
 } from '@/common/danmaku/dto'
-import {
-  customEpisodeQueryKeys,
-  episodeQueryKeys,
-  seasonQueryKeys,
-} from '@/common/queries/queryKeys'
+import { useInvalidateSeasonAndEpisode } from '@/common/hooks/useInvalidateSeasonAndEpisode'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
@@ -29,7 +25,7 @@ export const ImportPageCore = () => {
 
   const [showDialog, setShowDialog] = useState(false)
 
-  const queryClient = useQueryClient()
+  const invalidateSeasonAndEpisode = useInvalidateSeasonAndEpisode()
 
   /**
    * not a mutation, just using this to manage state
@@ -73,15 +69,7 @@ export const ImportPageCore = () => {
 
     const { data: results } = await chromeRpcClient.episodeImport(data)
 
-    void queryClient.invalidateQueries({
-      queryKey: seasonQueryKeys.all(),
-    })
-    void queryClient.invalidateQueries({
-      queryKey: episodeQueryKeys.all(),
-    })
-    void queryClient.invalidateQueries({
-      queryKey: customEpisodeQueryKeys.all(),
-    })
+    invalidateSeasonAndEpisode()
 
     return results
   }

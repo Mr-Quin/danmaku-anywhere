@@ -49,11 +49,8 @@ type IconSetDto =
       state: 'unavailable'
     }
 
-type IconMethods = {
+export type BackgroundMethods = {
   iconSet: RPCDef<IconSetDto, void>
-}
-
-type SeasonMethods = {
   mediaParseUrl: RPCDef<{ url: string }, WithSeason<EpisodeMeta>>
   seasonSearch: RPCDef<SeasonSearchParams, Season[]>
   seasonFilter: RPCDef<SeasonQueryFilter, Season[]>
@@ -62,13 +59,6 @@ type SeasonMethods = {
   seasonRefresh: RPCDef<SeasonQueryFilter, void>
   episodeSearch: RPCDef<EpisodeSearchParams, WithSeason<EpisodeMeta>[]>
   episodeMatch: RPCDef<MatchEpisodeInput, MatchEpisodeResult>
-  bilibiliSetCookies: RPCDef<void, void>
-  bilibiliGetLoginStatus: RPCDef<void, BilibiliUserInfo>
-  tencentTestCookies: RPCDef<void, boolean>
-  fetchImage: RPCDef<string, string>
-}
-
-type EpisodeMethods = {
   episodeFilterLite: RPCDef<EpisodeQueryFilter, WithSeason<EpisodeLite>[]>
   episodeFilter: RPCDef<EpisodeQueryFilter, WithSeason<Episode>[]>
   episodeFetch: RPCDef<DanmakuFetchDto, WithSeason<Episode>>
@@ -78,30 +68,22 @@ type EpisodeMethods = {
   episodeDeleteCustom: RPCDef<CustomEpisodeQueryFilter, void>
   episodeImport: RPCDef<DanmakuImportData[], DanmakuImportResult>
   danmakuPurgeCache: RPCDef<number, number>
-}
-
-type ControlMethods = {
+  bilibiliSetCookies: RPCDef<void, void>
+  bilibiliGetLoginStatus: RPCDef<void, BilibiliUserInfo>
+  tencentTestCookies: RPCDef<void, boolean>
+  fetchImage: RPCDef<string, string>
   getActiveTabUrl: RPCDef<void, string | null>
   getFrameId: RPCDef<void, number>
   getAllFrames: RPCDef<void, chrome.webNavigation.GetAllFrameResultDetails[]>
   injectScript: RPCDef<number, void>
-  remoteLog: RPCDef<any, void>
+  remoteLog: RPCDef<unknown, void>
   getFontList: RPCDef<void, chrome.fontSettings.FontName[]>
   getPlatformInfo: RPCDef<void, chrome.runtime.PlatformInfo>
-}
-
-type MountConfigMethods = {
   mountConfigCreate: RPCDef<unknown, MountConfig>
   mountConfigGetAll: RPCDef<void, MountConfig[]>
-}
-
-type KazumiMethods = {
   kazumiSearchContent: RPCDef<KazumiSearchPayload, KazumiSearchResult[]>
   kazumiGetChapters: RPCDef<KazumiChapterPayload, KazumiChapterResult[][]>
   setHeaders: RPCDef<SetHeaderRule, void>
-}
-
-type AIMethods = {
   extractTitle: RPCDef<string, ExtractTitleResponse['result']>
 }
 
@@ -120,27 +102,23 @@ type FrameContext = {
 
 // Controller -> Player communication
 // Here the frameId is used to identify the DESTINATION frame
-export type PlayerCommands = {
-  mount: RPCDef<InputWithFrameId<CommentEntity[]>, boolean, FrameContext>
-  unmount: RPCDef<InputWithFrameId<void>, boolean, FrameContext>
-  start: RPCDef<InputWithFrameId<string>, void, FrameContext>
-  seek: RPCDef<InputWithFrameId<number>, void, FrameContext>
-  enterPiP: RPCDef<InputWithFrameId<void>, void, FrameContext>
-  show: RPCDef<InputWithFrameId<boolean>, void, FrameContext>
+export type PlayerRelayCommands = {
+  'relay:command:mount': RPCDef<
+    InputWithFrameId<CommentEntity[]>,
+    boolean,
+    FrameContext
+  >
+  'relay:command:unmount': RPCDef<InputWithFrameId<void>, boolean, FrameContext>
+  'relay:command:start': RPCDef<InputWithFrameId<string>, void, FrameContext>
+  'relay:command:seek': RPCDef<InputWithFrameId<number>, void, FrameContext>
+  'relay:command:enterPip': RPCDef<InputWithFrameId<void>, void, FrameContext>
+  'relay:command:show': RPCDef<InputWithFrameId<boolean>, void, FrameContext>
 }
 
 // Player -> Controller communication
 // Here the frameId is used to identify the SOURCE frame
-export type PlayerEvents = {
-  ready: RPCDef<InputWithFrameId<void>, void>
-  videoChange: RPCDef<InputWithFrameId<void>, void>
-  videoRemoved: RPCDef<InputWithFrameId<void>, void>
+export type PlayerRelayEvents = {
+  'relay:event:playerReady': RPCDef<InputWithFrameId<void>, void>
+  'relay:event:videoChange': RPCDef<InputWithFrameId<void>, void>
+  'relay:event:videoRemoved': RPCDef<InputWithFrameId<void>, void>
 }
-
-export type BackgroundMethods = IconMethods &
-  SeasonMethods &
-  EpisodeMethods &
-  AIMethods &
-  ControlMethods &
-  MountConfigMethods &
-  KazumiMethods

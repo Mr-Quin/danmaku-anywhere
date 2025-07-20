@@ -12,7 +12,7 @@ export const useShowDanmaku = () => {
 
   return useMutation({
     mutationFn: async () => {
-      await playerRpcClient.player.show({
+      await playerRpcClient.player['relay:command:show']({
         frameId: mustGetActiveFrame().frameId,
         data: !isVisible,
       })

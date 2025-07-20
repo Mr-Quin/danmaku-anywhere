@@ -5,7 +5,7 @@ import {
   chromeRpcClient,
   playerRpcClient,
 } from '@/common/rpcClient/background/client'
-import type { PlayerCommands } from '@/common/rpcClient/background/types'
+import type { PlayerRelayCommands } from '@/common/rpcClient/background/types'
 import { createPopoverRoot } from '@/content/common/createPopoverRoot'
 import { DanmakuManager } from '@/content/player/monitors/DanmakuManager'
 import { createPipWindow, moveElement } from '@/content/player/pipUtils'
@@ -23,30 +23,30 @@ manager.setParent(shadowRoot)
 
 let pipWindow: Window | undefined
 
-const playerRpcServer = createRpcServer<PlayerCommands>(
+const playerRpcServer = createRpcServer<PlayerRelayCommands>(
   {
-    mount: async ({ data: comments }) => {
+    'relay:command:mount': async ({ data: comments }) => {
       manager.mount(comments)
       return true
     },
-    unmount: async () => {
+    'relay:command:unmount': async () => {
       manager.unmount()
       return true
     },
-    start: async ({ data: query }) => {
+    'relay:command:start': async ({ data: query }) => {
       manager.start(query)
     },
-    seek: async ({ data: time }) => {
+    'relay:command:seek': async ({ data: time }) => {
       manager.seek(time)
     },
-    show: async ({ data: show }) => {
+    'relay:command:show': async ({ data: show }) => {
       if (show) {
         manager.show()
       } else {
         manager.hide()
       }
     },
-    enterPiP: async () => {
+    'relay:command:enterPip': async () => {
       // TODO: https://github.com/WICG/document-picture-in-picture/issues/97
       pipWindow = await createPipWindow()
 
@@ -102,13 +102,13 @@ let timeout: NodeJS.Timeout
 
 manager.addEventListener('videoChange', () => {
   clearTimeout(timeout)
-  playerRpcClient.controller.videoChange({ frameId })
+  playerRpcClient.controller['relay:event:videoChange']({ frameId })
 })
 
 manager.addEventListener('videoRemoved', () => {
   // Add a delay to prevent flickering when the video is removed then added again quickly
   timeout = setTimeout(() => {
-    playerRpcClient.controller.videoRemoved({ frameId })
+    playerRpcClient.controller['relay:event:videoRemoved']({ frameId })
   }, 1000)
 })
 
@@ -125,4 +125,4 @@ playerRpcServer.listen()
 
 Logger.debug('Player script listening')
 
-await playerRpcClient.controller.ready({ frameId })
+await playerRpcClient.controller['relay:event:playerReady']({ frameId })

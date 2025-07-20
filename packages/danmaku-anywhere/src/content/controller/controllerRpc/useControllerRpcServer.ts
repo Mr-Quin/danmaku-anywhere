@@ -1,12 +1,15 @@
 import { useEventCallback } from '@mui/material'
 import { useEffect } from 'react'
+import { useInvalidateSeasonAndEpisode } from '@/common/hooks/useInvalidateSeasonAndEpisode'
 import { createRpcServer } from '@/common/rpc/server'
-import type { TabMethods } from '@/common/rpcClient/tab/types'
+import type { ControllerMethods } from '@/common/rpcClient/controller/types'
 import { useStore } from '@/content/controller/store/store'
 import { useManualDanmaku } from './useManualDanmaku'
 
-export const useTabRpcServer = () => {
+export const useControllerRpcServer = () => {
   const { handleUnsetDanmaku, handleSetDanmaku } = useManualDanmaku()
+
+  const invalidateSeasonAndEpisode = useInvalidateSeasonAndEpisode()
 
   const handleGetDanmakuState = useEventCallback(() => {
     return {
@@ -17,7 +20,7 @@ export const useTabRpcServer = () => {
   })
 
   useEffect(() => {
-    const tabRpcServer = createRpcServer<TabMethods>({
+    const tabRpcServer = createRpcServer<ControllerMethods>({
       ping: async () => true,
       danmakuMount: async (danmaku) => {
         const success = await handleSetDanmaku(danmaku)
@@ -29,6 +32,9 @@ export const useTabRpcServer = () => {
       },
       danmakuGetState: async () => {
         return handleGetDanmakuState() ?? null
+      },
+      invalidateCache: async () => {
+        invalidateSeasonAndEpisode()
       },
     })
 

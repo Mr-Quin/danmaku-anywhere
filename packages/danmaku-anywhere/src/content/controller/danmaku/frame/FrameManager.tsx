@@ -5,7 +5,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import { Logger } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
-import type { PlayerEvents } from '@/common/rpcClient/background/types'
+import type { PlayerRelayEvents } from '@/common/rpcClient/background/types'
 import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
@@ -89,19 +89,19 @@ export const FrameManager = () => {
   }, [activeFrame])
 
   useEffect(() => {
-    const controllerRpcServer = createRpcServer<PlayerEvents>(
+    const controllerRpcServer = createRpcServer<PlayerRelayEvents>(
       {
-        ready: async ({ frameId }) => {
-          await playerRpcClient.player.start({
+        'relay:event:playerReady': async ({ frameId }) => {
+          await playerRpcClient.player['relay:command:start']({
             data: config.mediaQuery,
             frameId,
           })
           updateFrame(frameId, { started: true })
         },
-        videoChange: async ({ frameId }) => {
+        'relay:event:videoChange': async ({ frameId }) => {
           videoChangeHandler(frameId)
         },
-        videoRemoved: async ({ frameId }) => {
+        'relay:event:videoRemoved': async ({ frameId }) => {
           videoRemovedHandler(frameId)
         },
       },

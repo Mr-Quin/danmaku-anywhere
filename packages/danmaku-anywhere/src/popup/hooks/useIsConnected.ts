@@ -2,7 +2,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 
 import { Logger } from '@/common/Logger'
 import { tabQueryKeys } from '@/common/queries/queryKeys'
-import { tabRpcClient } from '@/common/rpcClient/tab/client'
+import { controllerRpcClient } from '@/common/rpcClient/controller/client'
 import { sleep } from '@/common/utils/utils'
 
 export const useIsConnected = () => {
@@ -11,9 +11,9 @@ export const useIsConnected = () => {
     queryFn: async () => {
       try {
         const res = (await Promise.any([
-          await tabRpcClient.ping(),
+          await controllerRpcClient.ping(),
           sleep(1500),
-        ])) as undefined | Awaited<ReturnType<typeof tabRpcClient.ping>>
+        ])) as undefined | Awaited<ReturnType<typeof controllerRpcClient.ping>>
         return res?.data === true
       } catch (e) {
         Logger.debug('Content script is not connected', e)
