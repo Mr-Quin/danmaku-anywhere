@@ -6,6 +6,7 @@ import type { GenAIService } from '@/background/services/GenAIService'
 import type { KazumiService } from '@/background/services/KazumiService'
 import type { SeasonService } from '@/background/services/SeasonService'
 import type { TencentService } from '@/background/services/TencentService'
+import { invalidateContentScriptData } from '@/background/utils/invalidateContentScriptData'
 import type { EpisodeSearchParams } from '@/common/danmaku/dto'
 import { Logger } from '@/common/Logger'
 import { mountConfigService } from '@/common/options/mountConfig/service'
@@ -101,16 +102,20 @@ export const setupRpc = (
     seasonRefresh: async (data) => {
       return providerService.refreshSeason(data)
     },
-    episodeFetch: async (data) => {
+    episodeFetch: async (data, sender) => {
       const result = await providerService.getDanmaku(data)
-
+      void invalidateContentScriptData(sender.tab?.id)
       return result
     },
-    episodeImport: async (data) => {
-      return danmakuService.import(data)
+    episodeImport: async (data, sender) => {
+      const result = await danmakuService.import(data)
+      void invalidateContentScriptData(sender.tab?.id)
+      return result
     },
-    episodeDelete: async (filter) => {
-      return danmakuService.delete(filter)
+    episodeDelete: async (filter, sender) => {
+      const result = await danmakuService.delete(filter)
+      void invalidateContentScriptData(sender.tab?.id)
+      return result
     },
     episodeFilterCustom: async (filter) => {
       return danmakuService.filterCustom(filter)
@@ -118,11 +123,15 @@ export const setupRpc = (
     episodeFilterCustomLite: async (filter) => {
       return danmakuService.filterCustomLite(filter)
     },
-    episodeDeleteCustom: async (filter) => {
-      return danmakuService.deleteCustom(filter)
+    episodeDeleteCustom: async (filter, sender) => {
+      const result = await danmakuService.deleteCustom(filter)
+      void invalidateContentScriptData(sender.tab?.id)
+      return result
     },
-    danmakuPurgeCache: async (days) => {
-      return danmakuService.purgeOlderThan(days)
+    danmakuPurgeCache: async (days, sender) => {
+      const result = await danmakuService.purgeOlderThan(days)
+      void invalidateContentScriptData(sender.tab?.id)
+      return result
     },
     getAllFrames: async (_, sender) => {
       if (sender.tab?.id === undefined) {

@@ -12,7 +12,7 @@ export interface ControllerDanmakuState {
   manual: boolean
 }
 
-type DanmakuMethods = {
+export type ControllerMethods = {
   /**
    * Ping the tab to check if it's able to receive messages
    */
@@ -20,6 +20,5 @@ type DanmakuMethods = {
   danmakuMount: RPCDef<WithSeason<Episode> | CustomEpisode, void>
   danmakuUnmount: RPCDef<void, void>
   danmakuGetState: RPCDef<void, ControllerDanmakuState | null>
+  invalidateCache: RPCDef<void, void>
 }
-
-export type ControllerMethods = DanmakuMethods

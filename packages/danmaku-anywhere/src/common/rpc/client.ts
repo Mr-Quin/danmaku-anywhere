@@ -104,7 +104,7 @@ export const createChromeRpcClient = <
   ) as ChromeRPCClient<TRecords>
 }
 
-export const createTabRpcClient = <
+export const createContentRpcClient = <
   TRecords extends RPCRecord,
   TInput = TRecords[string]['input'],
 >(): TabRPCClient<TRecords> => {

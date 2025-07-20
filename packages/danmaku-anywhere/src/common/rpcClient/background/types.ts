@@ -49,11 +49,8 @@ type IconSetDto =
       state: 'unavailable'
     }
 
-type IconMethods = {
+export type BackgroundMethods = {
   iconSet: RPCDef<IconSetDto, void>
-}
-
-type SeasonMethods = {
   mediaParseUrl: RPCDef<{ url: string }, WithSeason<EpisodeMeta>>
   seasonSearch: RPCDef<SeasonSearchParams, Season[]>
   seasonFilter: RPCDef<SeasonQueryFilter, Season[]>
@@ -62,13 +59,6 @@ type SeasonMethods = {
   seasonRefresh: RPCDef<SeasonQueryFilter, void>
   episodeSearch: RPCDef<EpisodeSearchParams, WithSeason<EpisodeMeta>[]>
   episodeMatch: RPCDef<MatchEpisodeInput, MatchEpisodeResult>
-  bilibiliSetCookies: RPCDef<void, void>
-  bilibiliGetLoginStatus: RPCDef<void, BilibiliUserInfo>
-  tencentTestCookies: RPCDef<void, boolean>
-  fetchImage: RPCDef<string, string>
-}
-
-type EpisodeMethods = {
   episodeFilterLite: RPCDef<EpisodeQueryFilter, WithSeason<EpisodeLite>[]>
   episodeFilter: RPCDef<EpisodeQueryFilter, WithSeason<Episode>[]>
   episodeFetch: RPCDef<DanmakuFetchDto, WithSeason<Episode>>
@@ -78,30 +68,22 @@ type EpisodeMethods = {
   episodeDeleteCustom: RPCDef<CustomEpisodeQueryFilter, void>
   episodeImport: RPCDef<DanmakuImportData[], DanmakuImportResult>
   danmakuPurgeCache: RPCDef<number, number>
-}
-
-type ControlMethods = {
+  bilibiliSetCookies: RPCDef<void, void>
+  bilibiliGetLoginStatus: RPCDef<void, BilibiliUserInfo>
+  tencentTestCookies: RPCDef<void, boolean>
+  fetchImage: RPCDef<string, string>
   getActiveTabUrl: RPCDef<void, string | null>
   getFrameId: RPCDef<void, number>
   getAllFrames: RPCDef<void, chrome.webNavigation.GetAllFrameResultDetails[]>
   injectScript: RPCDef<number, void>
-  remoteLog: RPCDef<any, void>
+  remoteLog: RPCDef<unknown, void>
   getFontList: RPCDef<void, chrome.fontSettings.FontName[]>
   getPlatformInfo: RPCDef<void, chrome.runtime.PlatformInfo>
-}
-
-type MountConfigMethods = {
   mountConfigCreate: RPCDef<unknown, MountConfig>
   mountConfigGetAll: RPCDef<void, MountConfig[]>
-}
-
-type KazumiMethods = {
   kazumiSearchContent: RPCDef<KazumiSearchPayload, KazumiSearchResult[]>
   kazumiGetChapters: RPCDef<KazumiChapterPayload, KazumiChapterResult[][]>
   setHeaders: RPCDef<SetHeaderRule, void>
-}
-
-type AIMethods = {
   extractTitle: RPCDef<string, ExtractTitleResponse['result']>
 }
 
@@ -140,11 +122,3 @@ export type PlayerRelayEvents = {
   'relay:event:videoChange': RPCDef<InputWithFrameId<void>, void>
   'relay:event:videoRemoved': RPCDef<InputWithFrameId<void>, void>
 }
-
-export type BackgroundMethods = IconMethods &
-  SeasonMethods &
-  EpisodeMethods &
-  AIMethods &
-  ControlMethods &
-  MountConfigMethods &
-  KazumiMethods

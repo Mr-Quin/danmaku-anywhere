@@ -1,4 +1,4 @@
-import { createTabRpcClient } from '@/common/rpc/client'
+import { createContentRpcClient } from '@/common/rpc/client'
 import type {
   PlayerRelayCommands,
   PlayerRelayEvents,
@@ -6,9 +6,9 @@ import type {
 import type { ControllerMethods } from '@/common/rpcClient/controller/types'
 
 // For sending messages to the controller
-export const controllerRpcClient = createTabRpcClient<ControllerMethods>()
+export const controllerRpcClient = createContentRpcClient<ControllerMethods>()
 
 // For relaying messages from the tab to other frames
-export const relayFrameClient = createTabRpcClient<
+export const relayFrameClient = createContentRpcClient<
   PlayerRelayCommands & PlayerRelayEvents
 >()
