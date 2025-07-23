@@ -5,16 +5,27 @@ import { ExtStorageService } from '../../storage/ExtStorageService'
 import { migrateOptions } from './migrationOptions'
 import type { Options, OptionsSchema, Version, VersionConfig } from './types'
 
+// biome-ignore lint/suspicious/noExplicitAny: used for data migration where the previous options type is lost
 export type PrevOptions = any
+
+type QueuedOperation<T> = {
+  operation: () => Promise<T>
+  promise: {
+    resolve: (value: T) => void
+    reject: (reason?: unknown) => void
+  }
+}
 
 //Handles creating and upgrading options schema
 export class OptionsService<T extends OptionsSchema> {
   private versions: Version[] = []
   private readonly logger: typeof Logger
   private storageService: ExtStorageService<Options<T>>
+  private operationQueue: QueuedOperation<unknown>[] = []
+  private isProcessingQueue = false
 
   constructor(
-    private key: string,
+    key: string,
     private defaultOptions: T,
     storageType: ExtStorageType = 'sync'
   ) {
@@ -69,31 +80,38 @@ export class OptionsService<T extends OptionsSchema> {
   }
 
   async set(data: T, version?: number) {
-    let currentVersion = version
-    if (!currentVersion) {
-      const options = await this.storageService.read()
-      if (!options) {
-        throw new Error('Cannot set options without existing options')
+    return this.#queueOperation(async () => {
+      let currentVersion = version
+      if (!currentVersion) {
+        const options = await this.storageService.read()
+        if (!options) {
+          throw new Error('Cannot set options without existing options')
+        }
+        currentVersion = options.version
       }
-      currentVersion = options.version
-    }
-    return this.storageService.set({
-      data,
-      version: currentVersion,
+      return this.storageService.set({
+        data,
+        version: currentVersion,
+      })
     })
   }
 
   // allow partial update
   async update(data: Partial<T>) {
-    const options = await this.get()
-    return this.set({ ...options, ...data })
+    return this.#queueOperation(async () => {
+      const options = await this.get()
+      const mergedData = { ...options, ...data }
+      return this.#setInternal(mergedData)
+    })
   }
 
   // reset options to default
   async reset() {
-    return this.storageService.set({
-      data: this.defaultOptions,
-      version: this.#getLatestVersion().version,
+    return this.#queueOperation(async () => {
+      return this.storageService.set({
+        data: this.defaultOptions,
+        version: this.#getLatestVersion().version,
+      })
     })
   }
 
@@ -110,6 +128,62 @@ export class OptionsService<T extends OptionsSchema> {
 
   destroy() {
     this.storageService.destroy()
+    // Clear the queue and reject any pending operations
+    this.operationQueue.forEach((operation) => {
+      operation.promise.reject(new Error('OptionsService was destroyed'))
+    })
+    this.operationQueue = []
+  }
+
+  // Internal set method that doesn't queue (used within queued operations)
+  async #setInternal(data: T, version?: number) {
+    let currentVersion = version
+    if (!currentVersion) {
+      const options = await this.storageService.read()
+      if (!options) {
+        throw new Error('Cannot set options without existing options')
+      }
+      currentVersion = options.version
+    }
+    return this.storageService.set({
+      data,
+      version: currentVersion,
+    })
+  }
+
+  #queueOperation<R>(operation: () => Promise<R>): Promise<R> {
+    const { promise, resolve, reject } = Promise.withResolvers<R>()
+
+    this.operationQueue.push({
+      operation,
+      promise: { resolve: resolve as (value: unknown) => void, reject },
+    })
+
+    void this.#processQueue()
+
+    return promise
+  }
+
+  async #processQueue() {
+    if (this.isProcessingQueue || this.operationQueue.length === 0) {
+      return
+    }
+
+    this.isProcessingQueue = true
+
+    while (this.operationQueue.length > 0) {
+      // biome-ignore lint/style/noNonNullAssertion: length is checked above
+      const queuedOperation = this.operationQueue.shift()!
+
+      try {
+        const result = await queuedOperation.operation()
+        queuedOperation.promise.resolve(result)
+      } catch (error) {
+        queuedOperation.promise.reject(error)
+      }
+    }
+
+    this.isProcessingQueue = false
   }
 
   #getLatestVersion() {

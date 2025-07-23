@@ -7,12 +7,14 @@ import {
   Typography,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
+import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { docsLink } from '@/common/utils/utils'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 
 export const HelpOptions = () => {
   const { t } = useTranslation()
+  const { data } = useExtensionOptions()
 
   return (
     <OptionsPageLayout>
@@ -24,6 +26,15 @@ export const HelpOptions = () => {
         <ListItemText>{t('optionsPage.help.version')}</ListItemText>
         <Typography>{chrome.runtime.getManifest().version}</Typography>
       </ListItem>
+      {data.id && (
+        <ListItem>
+          <ListItemIcon>
+            <Numbers />
+          </ListItemIcon>
+          <ListItemText>ID</ListItemText>
+          <Typography>{data.id}</Typography>
+        </ListItem>
+      )}
       <ListItem disablePadding>
         <ListItemButton
           component="a"

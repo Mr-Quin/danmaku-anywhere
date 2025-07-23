@@ -61,6 +61,13 @@ export const fetchData = async <OutSchema extends ZodType>(
     headers['DA-Version'] = store.daVersion
   }
 
+  // add additional headers from the store
+  if (store.headers) {
+    Object.entries(store.headers).forEach(([key, value]) => {
+      headers[key] = value
+    })
+  }
+
   const res = await fetch(finalUrl, {
     headers: { ...headers },
     method,

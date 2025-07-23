@@ -114,6 +114,11 @@ export const extensionOptionsSchema = z.object({
    * Whether the "Release Notes" dialog should be shown
    */
   showReleaseNotes: z.boolean(),
+
+  /**
+   * Auto generated user id
+   */
+  id: z.string().optional(),
 })
 
 export type ExtensionOptions = z.infer<typeof extensionOptionsSchema>

@@ -1,6 +1,13 @@
 export const API_ROOT = 'https://danmaku.weeblify.app/proxy'
 
-const apiStore = {
+interface ApiStore {
+  baseUrl: string
+  ddpToken: string
+  daVersion: string
+  headers?: Record<string, string>
+}
+
+const apiStore: ApiStore = {
   baseUrl: API_ROOT,
   ddpToken: '',
   daVersion: '',
