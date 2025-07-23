@@ -118,16 +118,18 @@ export const MountPage = () => {
                   setSelectedType={setSelectedType}
                 />
                 <Tooltip title={t('common.multiselect')}>
-                  <IconButton
-                    onClick={() => {
-                      selectorRef.current?.clearSelection()
-                      toggleMultiselect()
-                    }}
-                    disabled={!isConnected}
-                    color={multiselect ? 'primary' : 'default'}
-                  >
-                    <ChecklistRtl />
-                  </IconButton>
+                  <div>
+                    <IconButton
+                      onClick={() => {
+                        selectorRef.current?.clearSelection()
+                        toggleMultiselect()
+                      }}
+                      disabled={!isConnected}
+                      color={multiselect ? 'primary' : 'default'}
+                    >
+                      <ChecklistRtl />
+                    </IconButton>
+                  </div>
                 </Tooltip>
                 {multiselect ? (
                   <Button
