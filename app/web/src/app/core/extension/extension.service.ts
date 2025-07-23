@@ -8,6 +8,7 @@ import {
   type ExtResponse,
   getExtensionAttr,
 } from '@danmaku-anywhere/web-scraper'
+import Clarity from '@microsoft/clarity'
 import {
   defer,
   filter,
@@ -120,11 +121,15 @@ export class ExtensionService {
     const { promise, resolve } = Promise.withResolvers()
     // sometimes the extension script initializes late, so we poll for a small duration
     const interval = setInterval(() => {
-      const extensionVersion = getExtensionAttr()
+      const { version, id } = getExtensionAttr()
 
-      if (extensionVersion) {
-        console.log('Extension version:', extensionVersion)
-        this.$extensionVersion.set(extensionVersion)
+      if (id) {
+        Clarity.identify(id)
+      }
+
+      if (version) {
+        console.log('Extension version:', version)
+        this.$extensionVersion.set(version)
         this.$_isLoading.set(false)
         clearInterval(interval)
         clearTimeout(timeout)
