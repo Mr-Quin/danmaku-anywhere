@@ -1,4 +1,4 @@
-import { ChevronRight } from '@mui/icons-material'
+import { ChevronRight, Launch } from '@mui/icons-material'
 import {
   Icon,
   List,
@@ -78,6 +78,26 @@ export const Options = () => {
             title={t('optionsPage.pages.help')}
             onClick={() => navigate('help')}
           />
+          <ListItem disablePadding>
+            <ListItemButton
+              component="a"
+              href="https://forms.clickup.com/90131020449/f/2ky3men1-933/ULQ3OZ8QYRXIJ5HACI"
+              target="_blank"
+            >
+              <ListItemText>{t('optionsPage.help.reportBug')}</ListItemText>
+              <Launch />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton
+              component="a"
+              href="https://forms.clickup.com/90131020449/f/2ky3men1-873/D9MSB7XJYAFS02Q9NO"
+              target="_blank"
+            >
+              <ListItemText>{t('optionsPage.help.feedback')}</ListItemText>
+              <Launch />
+            </ListItemButton>
+          </ListItem>
         </List>
       </OptionsPageLayout>
       <Outlet />
