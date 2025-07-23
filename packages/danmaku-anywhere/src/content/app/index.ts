@@ -10,12 +10,18 @@ import {
 } from '@danmaku-anywhere/web-scraper'
 import { EXTENSION_VERSION } from '@/common/constants'
 import { isProvider } from '@/common/danmaku/utils'
+import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { portNames } from '@/common/ports/portNames'
 import type { RPCClientResponse } from '@/common/rpc/client'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { tryCatch } from '@/common/utils/utils'
 
-setExtensionAttr(EXTENSION_VERSION)
+extensionOptionsService.get().then((options) => {
+  setExtensionAttr({
+    version: EXTENSION_VERSION,
+    id: options.id,
+  })
+})
 
 const sendResponse = (message: ExtResponse) => {
   window.postMessage(message, window.origin)
