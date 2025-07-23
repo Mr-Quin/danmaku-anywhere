@@ -307,6 +307,7 @@ const pages = {
     help: {
       docs: 'Documentation',
       version: 'Version',
+      feedback: 'Bug & Suggestion',
     },
     pages: {
       danmakuSource: 'Danmaku Source',

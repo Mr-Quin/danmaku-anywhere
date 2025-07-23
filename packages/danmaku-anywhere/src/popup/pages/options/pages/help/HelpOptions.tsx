@@ -1,4 +1,4 @@
-import { Article, GitHub, Launch, Numbers } from '@mui/icons-material'
+import { Article, GitHub, Launch, Numbers, Reviews } from '@mui/icons-material'
 import {
   ListItem,
   ListItemButton,
@@ -38,6 +38,19 @@ export const HelpOptions = () => {
       <ListItem disablePadding>
         <ListItemButton
           component="a"
+          href="https://github.com/Mr-Quin/danmaku-anywhere"
+          target="_blank"
+        >
+          <ListItemIcon>
+            <GitHub />
+          </ListItemIcon>
+          <ListItemText>Github</ListItemText>
+          <Launch />
+        </ListItemButton>
+      </ListItem>
+      <ListItem disablePadding>
+        <ListItemButton
+          component="a"
           href={docsLink('getting-started')}
           target="_blank"
         >
@@ -51,13 +64,13 @@ export const HelpOptions = () => {
       <ListItem disablePadding>
         <ListItemButton
           component="a"
-          href="https://github.com/Mr-Quin/danmaku-anywhere"
+          href="https://forms.clickup.com/90131020449/f/2ky3men1-873/D9MSB7XJYAFS02Q9NO"
           target="_blank"
         >
           <ListItemIcon>
-            <GitHub />
+            <Reviews />
           </ListItemIcon>
-          <ListItemText>Github</ListItemText>
+          <ListItemText>{t('optionsPage.help.feedback')}</ListItemText>
           <Launch />
         </ListItemButton>
       </ListItem>

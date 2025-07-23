@@ -304,6 +304,7 @@ const pages = {
     help: {
       docs: '说明文档',
       version: '版本',
+      feedback: '反馈Bug或建议',
     },
     pages: {
       danmakuSource: '弹幕来源',
