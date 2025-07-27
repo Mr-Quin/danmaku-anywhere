@@ -281,43 +281,66 @@ const pages = {
         },
       },
     },
-    retentionPolicy: {
-      enabled: 'Enable Retention Policy',
-      purgeNow: 'Purge Now',
-      deleteCommentsAfter: 'Delete comments older than',
-      tooltip: {
-        nextPurge: 'Next purge at {{time}}',
-        deleteCommentsAfter:
-          'Delete comments older than this number of days. Set to 0 to disable.',
-      },
-      alert: {
-        nDanmakuDeleted: '{{count}} danmaku deleted',
-      },
+    pages: {
+      danmakuSource: 'Danmaku Source',
+      retentionPolicy: 'Retention Policy',
+      hotkeys: 'Hotkeys',
+      advanced: 'Advanced',
+      help: 'Help',
     },
     hotkeys: {
       addHotkey: 'Add Hotkey',
-      enterKey: 'Enter key',
+      enterKey: 'Enter key combination',
       keymap: {
-        toggleEnableDanmaku: 'Enable/Disable Danmaku',
-        refreshComments: 'Refresh Comments',
-        unmountComments: 'Unmount Comments',
-        togglePip: 'Enter Picture-in-Picture (Experimental)',
+        openOrCloseController: 'Toggle Controller',
+        loadDanmaku: 'Load Danmaku',
+        toggleDanmaku: 'Toggle Danmaku',
+        toggleCommentBlock: 'Toggle Comment Filter',
+        toggleMountDanmaku: 'Toggle All Danmaku',
+        toggleGlobalDanmaku: 'Toggle Global Danmaku',
+        nextComment: 'Next Comment',
+        prevComment: 'Previous Comment',
+        nextFrame: 'Next Frame',
+        prevFrame: 'Previous Frame',
+        resumeOrPause: 'Play/Pause',
+        reloadTab: 'Reload Tab',
+        insertDanmaku: 'Send Comment',
+        fullscreen: 'Fullscreen',
+        pictureInPicture: 'Picture in Picture',
+        volumeUp: 'Volume Up',
+        volumeDown: 'Volume Down',
+        speedUp: 'Speed Up',
+        speedDown: 'Speed Down',
+        speedReset: 'Reset Speed',
+        seekForward: 'Seek Forward',
+        seekBackward: 'Seek Backward',
+      },
+    },
+    retentionPolicy: {
+      enabled: 'Enabled',
+      deleteCommentsAfter: 'Delete comments after',
+      purgeNow: 'Delete all comments older than set time',
+      tooltip: {
+        deleteCommentsAfter: 'Delete comments older than this time',
+        nextPurge: 'Next purge: {{time}}',
+      },
+      alert: {
+        nDanmakuDeleted: 'Deleted {{count}} comments',
       },
     },
     help: {
-      docs: 'Documentation',
       version: 'Version',
-      feedback: 'Provide feedback',
       reportBug: 'Report Bug',
+      feedback: 'Feedback',
+      docs: 'Documentation',
     },
-    pages: {
-      danmakuSource: 'Danmaku Source',
-      theme: 'UI Theme',
-      hotkeys: 'Hotkeys',
-      retentionPolicy: 'Retention Policy',
-      advanced: 'Advanced',
-      help: '关于',
+  },
+  additionalSettings: {
+    description: {
+      mobile: 'Access additional settings and options in a new tab.',
+      desktop: 'Access additional settings and options in a new window.',
     },
+    button: 'Open Settings',
   },
   searchPage: {
     parse: {
@@ -414,6 +437,7 @@ const pages = {
     style: 'Danmaku Settings',
     import: 'Import Danmaku',
     integrationPolicy: 'Integration Policy',
+    additionalSettings: 'Additional Settings',
   },
 }
 

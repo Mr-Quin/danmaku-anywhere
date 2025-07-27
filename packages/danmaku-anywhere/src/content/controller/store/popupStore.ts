@@ -16,6 +16,7 @@ export enum PopupTab {
   Styles = 'styles',
   Policy = 'policy',
   Import = 'import',
+  AdditionalSettings = 'additionalSettings',
 }
 
 interface PopupStoreState {

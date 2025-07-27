@@ -266,8 +266,8 @@ const pages = {
         system: '跟随系统',
       },
     },
-    searchUsingSimplified: '使用简体中文搜索',
     enableAnalytics: '匿名数据收集',
+    searchUsingSimplified: '使用简体中文搜索',
     danmakuSource: {
       bilibili: {
         danmakuTypePreference: '弹幕获取方式',
@@ -279,42 +279,66 @@ const pages = {
         },
       },
     },
-    retentionPolicy: {
-      enabled: '启用缓存策略',
-      purgeNow: '立即清理',
-      deleteCommentsAfter: '弹幕缓存时间',
-      tooltip: {
-        nextPurge: '下次清理时间：{{time}}',
-        deleteCommentsAfter: '超过指定天数的弹幕将被删除。0表示从不删除。',
-      },
-      alert: {
-        nDanmakuDeleted: '已删除{{count}}条弹幕',
-      },
-    },
-    hotkeys: {
-      addHotkey: '添加快捷键',
-      enterKey: '输入快捷键',
-      keymap: {
-        toggleEnableDanmaku: '显示/隐藏弹幕',
-        refreshComments: '刷新弹幕',
-        unmountComments: '卸载弹幕',
-        togglePip: '画中画（实验）',
-      },
-    },
-    help: {
-      docs: '说明文档',
-      version: '版本',
-      feedback: '提交意见或建议',
-      reportBug: '报告Bug',
-    },
     pages: {
       danmakuSource: '弹幕来源',
-      theme: 'UI主题',
-      hotkeys: '快捷键',
       retentionPolicy: '缓存策略',
+      hotkeys: '快捷键',
       advanced: '高级设置',
       help: '关于',
     },
+    hotkeys: {
+      addHotkey: '添加快捷键',
+      enterKey: '输入按键组合',
+      keymap: {
+        openOrCloseController: '切换控制面板',
+        loadDanmaku: '加载弹幕',
+        toggleDanmaku: '切换弹幕',
+        toggleCommentBlock: '切换评论过滤',
+        toggleMountDanmaku: '切换所有弹幕',
+        toggleGlobalDanmaku: '切换全局弹幕',
+        nextComment: '下一条评论',
+        prevComment: '上一条评论',
+        nextFrame: '下一帧',
+        prevFrame: '上一帧',
+        resumeOrPause: '播放/暂停',
+        reloadTab: '重新加载标签页',
+        insertDanmaku: '发送评论',
+        fullscreen: '全屏',
+        pictureInPicture: '画中画',
+        volumeUp: '音量增加',
+        volumeDown: '音量减少',
+        speedUp: '加速',
+        speedDown: '减速',
+        speedReset: '重置速度',
+        seekForward: '快进',
+        seekBackward: '快退',
+      },
+    },
+    retentionPolicy: {
+      enabled: '启用',
+      deleteCommentsAfter: '删除早于多少天的弹幕',
+      purgeNow: '删除所有早于设置时间的弹幕',
+      tooltip: {
+        deleteCommentsAfter: '删除早于这个时间的弹幕',
+        nextPurge: '下次清理时间：{{time}}',
+      },
+      alert: {
+        nDanmakuDeleted: '已删除 {{count}} 条弹幕',
+      },
+    },
+    help: {
+      version: '版本',
+      reportBug: '报告Bug',
+      feedback: '反馈',
+      docs: '说明文档',
+    },
+  },
+  additionalSettings: {
+    description: {
+      mobile: '在新标签页中访问更多设置和选项。',
+      desktop: '在新窗口中访问更多设置和选项。',
+    },
+    button: '打开设置',
   },
   searchPage: {
     parse: {
@@ -407,6 +431,7 @@ const pages = {
     style: '弹幕设置',
     import: '导入弹幕',
     integrationPolicy: '适配规则',
+    additionalSettings: '更多设置',
   },
 }
 

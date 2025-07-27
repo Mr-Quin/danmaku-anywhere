@@ -1,4 +1,5 @@
 import { PopupTab } from '@/content/controller/store/popupStore'
+import { AdditionalSettingsPage } from '@/content/controller/ui/floatingPanel/pages/AdditionalSettingsPage'
 import { CommentsPage } from '@/content/controller/ui/floatingPanel/pages/CommentsPage'
 import { DebugPage } from '@/content/controller/ui/floatingPanel/pages/DebugPage'
 import { ImportPage } from '@/content/controller/ui/floatingPanel/pages/import/ImportPage'
@@ -43,6 +44,11 @@ export const routes = [
     tab: PopupTab.Import,
     name: 'tabs.import',
     element: <ImportPage />,
+  },
+  {
+    tab: PopupTab.AdditionalSettings,
+    name: 'tabs.additionalSettings',
+    element: <AdditionalSettingsPage />,
   },
   {
     tab: PopupTab.Debug,
