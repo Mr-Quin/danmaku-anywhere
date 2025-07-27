@@ -6,7 +6,8 @@ import { faGithub } from '@fortawesome/free-brands-svg-icons'
 import { ButtonDirective } from 'primeng/button'
 import { Tag } from 'primeng/tag'
 import { GITHUB_REPO_URL, PAGE_TITLE } from '../../shared/constants'
-import { Banner } from './banner.component'
+import { DocMigrationBanner } from './doc-migration-banner.component'
+import { ExtensionUpdateBanner } from './extension-update-banner.component'
 
 @Component({
   selector: 'da-app-bar',
@@ -15,15 +16,17 @@ import { Banner } from './banner.component'
     CommonModule,
     RouterLink,
     Tag,
-    Banner,
     FaIconComponent,
     ButtonDirective,
+    DocMigrationBanner,
+    ExtensionUpdateBanner,
   ],
   host: {
     class: 'basis-0 sticky z-100 top-0',
   },
   template: `
-    <da-banner />
+    <da-doc-migration-banner />
+    <da-extension-update-banner />
     <div class="backdrop-blur-sm bg-transparent border-b-surface-800 border-b h-[56px]">
       <div class="h-full mx-auto px-4 py-2 flex items-center justify-between">
         <div class="flex items-center gap-4">

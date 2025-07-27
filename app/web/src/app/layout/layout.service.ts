@@ -3,7 +3,7 @@ import { computed, effect, Injectable, inject, signal } from '@angular/core'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { type ActivatedRouteSnapshot, Router } from '@angular/router'
 
-const BANNER_KEY = 'hide-banner'
+const DOC_MIGRATION_BANNER_KEY = 'hide-doc-migration-banner'
 
 export type ScreenSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 
@@ -18,7 +18,9 @@ export class LayoutService {
 
   private $currentRoute = signal(this.router.routerState.snapshot.root)
 
-  $showBanner = signal(!localStorage.getItem(BANNER_KEY))
+  $showDocMigrationBanner = signal(
+    !localStorage.getItem(DOC_MIGRATION_BANNER_KEY)
+  )
   private $_showSidebar = signal(false)
 
   get $showSidebar() {
@@ -83,9 +85,9 @@ export class LayoutService {
     return false
   }
 
-  hideBanner() {
-    localStorage.setItem(BANNER_KEY, '1')
-    this.$showBanner.set(false)
+  hideDocMigrationBanner() {
+    localStorage.setItem(DOC_MIGRATION_BANNER_KEY, '1')
+    this.$showDocMigrationBanner.set(false)
   }
 
   toggleSidebar() {
