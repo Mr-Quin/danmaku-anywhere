@@ -372,9 +372,9 @@ importers:
       '@danmaku-anywhere/danmaku-converter':
         specifier: workspace:*
         version: link:../danmaku-converter
-      danmu:
-        specifier: ^0.15.1
-        version: 0.15.1
+      '@mr-quin/danmu':
+        specifier: 0.16.0
+        version: 0.16.0
     devDependencies:
       vitest:
         specifier: ^3.2.4
@@ -1637,6 +1637,9 @@ packages:
 
   '@microsoft/clarity@1.0.0':
     resolution: {integrity: sha512-2QY6SmXnqRj6dWhNY8NYCN3e53j4zCFebH4wGnNhdGV1mqAsQwql2fT0w8TISxCvwwfVp8idsWLIdrRHOms1PQ==}
+
+  '@mr-quin/danmu@0.16.0':
+    resolution: {integrity: sha512-c00QhMddQJtrj3nyBtq1M/gUMcrd+s4QhOO656bJxrmRRrkS52ABytVTKurhffFKrwhtJsxk3ui+8dFDoLJ8qw==, tarball: https://npm.pkg.github.com/download/@mr-quin/danmu/0.16.0/b6b0478be0046b79bef8856c8130130360796933}
 
   '@msgpackr-extract/msgpackr-extract-darwin-arm64@3.0.3':
     resolution: {integrity: sha512-QZHtlVgbAdy2zAqNA9Gu1UpIuI8Xvsd1v8ic6B2pZmeFnFcMWiPLfWXh7TVw4eGEZ/C9TH281KwhVoeQUKbyjw==}
@@ -3246,9 +3249,6 @@ packages:
 
   custom-event@1.0.1:
     resolution: {integrity: sha512-GAj5FOq0Hd+RsCGVJxZuKaIDXDf3h6GQoNEjFgbLLI/trgtavwUbSnZ5pVfg27DVCaWjIohryS0JFwIJyT2cMg==}
-
-  danmu@0.15.1:
-    resolution: {integrity: sha512-1XvZCTn/8mxZpi+c6ATJgJvjNxWcO6UHkQCze7cyvacN+FF9Ievrsrql21UvPDGzEHIYgbjA1DAHWdVkCN2/4w==}
 
   data-urls@5.0.0:
     resolution: {integrity: sha512-ZYP5VBHshaDAiVZxjbRVcFJpc+4xGgT0bK3vzy1HLN8jTO975HEbuYzZJcHoQEY5K1a0z8YayJkyVETa08eNTg==}
@@ -7506,6 +7506,11 @@ snapshots:
 
   '@microsoft/clarity@1.0.0': {}
 
+  '@mr-quin/danmu@0.16.0':
+    dependencies:
+      aidly: 1.22.0
+      hooks-plugin: 1.3.3
+
   '@msgpackr-extract/msgpackr-extract-darwin-arm64@3.0.3':
     optional: true
 
@@ -9045,11 +9050,6 @@ snapshots:
   csstype@3.1.3: {}
 
   custom-event@1.0.1: {}
-
-  danmu@0.15.1:
-    dependencies:
-      aidly: 1.22.0
-      hooks-plugin: 1.3.3
 
   data-urls@5.0.0:
     dependencies:

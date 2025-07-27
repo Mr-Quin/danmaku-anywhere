@@ -1,4 +1,4 @@
-import type { Manager } from 'danmu'
+import type { Manager } from '@mr-quin/danmu'
 import type { DanmakuOptions } from '../DanmakuRenderer'
 import type { ParsedComment } from '../parser'
 import { useFixedDanmaku } from './fixedDanmaku'
@@ -22,6 +22,9 @@ const binarySearch = (comments: ParsedComment[], time: number): number => {
   return ans
 }
 
+const DURATION_MS = 5000
+const DURATION_S = DURATION_MS / 1000
+
 export const bindVideo =
   (
     video: HTMLMediaElement,
@@ -31,11 +34,13 @@ export const bindVideo =
   (manager: Manager<ParsedComment>) => {
     // index of the next comment
     let cursor = 0
-    let offset = 0
+    // user-defined offset in seconds
+    let offset = getConfig().offset / 1000
 
     const updateCursor = () => {
-      offset = getConfig().offset / 1000
-      cursor = binarySearch(comments, video.currentTime - offset)
+      // include danmaku that are within the duration range
+      // so that we can "catch up" with the last
+      cursor = binarySearch(comments, video.currentTime - offset - DURATION_S)
     }
 
     updateCursor()
@@ -43,13 +48,13 @@ export const bindVideo =
     const { plugin, getDanmakuOptions } = useFixedDanmaku(manager)
 
     const handleTimeupdate = () => {
-      const currentTime = video.currentTime - offset
+      const offsetTime = video.currentTime - offset
 
       if (cursor >= comments.length) {
         return
       }
 
-      if (comments[cursor].time > currentTime) {
+      if (comments[cursor].time > offsetTime) {
         return
       }
 
@@ -57,18 +62,27 @@ export const bindVideo =
         const comment = comments[cursor]
 
         // return early if we haven't reached the comment time
-        if (comment.time > currentTime) {
+        if (comment.time > offsetTime) {
           return
+        }
+
+        // for danmaku that are in the "past", set the progress so that they can start in the middle of the screen
+        let progress = (offsetTime - comment.time) / DURATION_S
+        if (progress < 0.1) {
+          progress = 0
         }
 
         switch (comment.mode) {
           case 'rtl': {
             // since comments are time-sensitive, use unshift to prioritize the latest comment
-            manager.unshift(comment)
+            manager.push(comment, { progress })
             break
           }
           case 'ltr': {
-            manager.unshift(comment, { direction: 'right' })
+            manager.unshift(comment, {
+              direction: 'right',
+              progress,
+            })
             break
           }
           case 'top':
@@ -81,7 +95,7 @@ export const bindVideo =
             const config = getConfig().specialComments[comment.mode]
             if (config === 'normal') {
               manager.pushFlexibleDanmaku(comment, {
-                duration: 5000,
+                duration: DURATION_MS,
                 direction: 'none',
                 ...getDanmakuOptions(comment.mode),
               })
@@ -136,7 +150,9 @@ export const bindVideo =
       updateOptions() {
         // the offset changes only when the config changes
         if (getConfig().offset !== offset) {
+          offset = getConfig().offset / 1000
           updateCursor()
+          manager.clear()
         }
       },
     })

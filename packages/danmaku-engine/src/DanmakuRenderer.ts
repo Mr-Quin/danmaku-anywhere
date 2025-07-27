@@ -1,5 +1,5 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
-import { create, type Manager } from 'danmu'
+import { create, type Manager } from '@mr-quin/danmu'
 import { mapIter, sampleByTime } from './iterator'
 import { applyFilter, type ParsedComment, transformComment } from './parser'
 import { bindVideo } from './plugins/bindVideo'
@@ -151,15 +151,6 @@ export class DanmakuRenderer {
             ref.prevent = true
           }
           return ref
-        },
-        $beforeMove: (ref) => {
-          // TODO: remove this when the pointerEvents set on the manager is respected
-          ref.setStyle('pointerEvents', 'inherit')
-        },
-        format: () => {
-          manager.each((d) => {
-            d.updateDuration(5000)
-          })
         },
       },
     })
