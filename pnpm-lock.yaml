@@ -1639,7 +1639,7 @@ packages:
     resolution: {integrity: sha512-2QY6SmXnqRj6dWhNY8NYCN3e53j4zCFebH4wGnNhdGV1mqAsQwql2fT0w8TISxCvwwfVp8idsWLIdrRHOms1PQ==}
 
   '@mr-quin/danmu@0.16.0':
-    resolution: {integrity: sha512-c00QhMddQJtrj3nyBtq1M/gUMcrd+s4QhOO656bJxrmRRrkS52ABytVTKurhffFKrwhtJsxk3ui+8dFDoLJ8qw==, tarball: https://npm.pkg.github.com/download/@mr-quin/danmu/0.16.0/b6b0478be0046b79bef8856c8130130360796933}
+    resolution: {integrity: sha512-PEwbYCisJ72Yo6vmLuGE6KRAiF1lzRCcG8vuz3Ervni0sfdBi+WEyrCg9UOksDcmKMQNjCtQ/GI4ohVRKz6Xrw==}
 
   '@msgpackr-extract/msgpackr-extract-darwin-arm64@3.0.3':
     resolution: {integrity: sha512-QZHtlVgbAdy2zAqNA9Gu1UpIuI8Xvsd1v8ic6B2pZmeFnFcMWiPLfWXh7TVw4eGEZ/C9TH281KwhVoeQUKbyjw==}
