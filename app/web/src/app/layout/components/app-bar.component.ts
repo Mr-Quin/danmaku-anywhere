@@ -6,7 +6,7 @@ import { faGithub } from '@fortawesome/free-brands-svg-icons'
 import { ButtonDirective } from 'primeng/button'
 import { Tag } from 'primeng/tag'
 import { GITHUB_REPO_URL, PAGE_TITLE } from '../../shared/constants'
-import { Banner } from './banner'
+import { Banner } from './banner.component'
 
 @Component({
   selector: 'da-app-bar',

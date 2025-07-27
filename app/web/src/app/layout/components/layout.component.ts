@@ -5,11 +5,11 @@ import { Toast } from 'primeng/toast'
 import { TitleService } from '../../core/services/title.service'
 import { UpdateService } from '../../core/update/update.service'
 import { Settings } from '../../features/settings/settings.component'
-import { AppBar } from './app-bar'
-import { AppFooter } from './app-footer'
-import { CookieConsentFooter } from './cookie-consent-footer'
-import { AppSidebar } from './sidebar'
-import { UpdateBanner } from './update-banner'
+import { AppBar } from './app-bar.component'
+import { AppFooter } from './app-footer.component'
+import { CookieConsentFooter } from './cookie-consent-footer.component'
+import { AppSidebar } from './sidebar.component'
+import { UpdateBanner } from './update-banner.component'
 
 @Component({
   selector: 'da-app-layout',

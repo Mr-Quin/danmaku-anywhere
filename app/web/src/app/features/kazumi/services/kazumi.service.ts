@@ -28,7 +28,7 @@ import {
   startWith,
   tap,
 } from 'rxjs'
-import { ExtensionService } from '../../../core/extension/extension.service'
+import { ExtensionMessagingService } from '../../../core/extension/extension-messaging.service'
 import { queryKeys } from '../../../shared/query/queryKeys'
 import { sortArrayByOrder } from '../../../shared/utils/utils'
 
@@ -79,7 +79,7 @@ export interface MediaSearchDetails {
 })
 export class KazumiService {
   private readonly db = new KazumiDb()
-  private readonly extensionService = inject(ExtensionService)
+  private readonly extensionMessagingService = inject(ExtensionMessagingService)
   private readonly queryClient = inject(QueryClient)
 
   // active policy for tab
@@ -270,7 +270,7 @@ export class KazumiService {
   readonly setHeadersMutation = injectMutation(() => ({
     mutationFn: (headerRule: SetHeaderRule) =>
       lastValueFrom(
-        this.extensionService.single('setRequestHeaders', headerRule)
+        this.extensionMessagingService.single('setRequestHeaders', headerRule)
       ),
   }))
 
@@ -278,7 +278,7 @@ export class KazumiService {
     return queryOptions({
       queryFn: async () => {
         return lastValueFrom(
-          this.extensionService.single('kazumiSearch', {
+          this.extensionMessagingService.single('kazumiSearch', {
             keyword,
             policy,
           })
@@ -294,7 +294,10 @@ export class KazumiService {
     return queryOptions({
       queryFn: async () => {
         const playlists = await lastValueFrom(
-          this.extensionService.single('kazumiGetChapters', { url, policy })
+          this.extensionMessagingService.single('kazumiGetChapters', {
+            url,
+            policy,
+          })
         )
         return playlists.map((playlist) => {
           return playlist.toSorted((a, b) => {
@@ -320,7 +323,7 @@ export class KazumiService {
       return this.mediaStreamCache.get(url)!
     }
 
-    const newStream$ = this.extensionService
+    const newStream$ = this.extensionMessagingService
       .stream('extractMedia', { url })
       .pipe(
         tap(async (info: MediaInfo) => {

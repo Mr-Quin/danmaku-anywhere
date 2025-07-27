@@ -19,6 +19,7 @@ import { provideQueryClient } from '@tanstack/angular-query-experimental'
 import { MessageService } from 'primeng/api'
 import { providePrimeNG } from 'primeng/config'
 import { routes } from './app.routes'
+import { ClarityService } from './core/clarity.service'
 import { ExtensionService } from './core/extension/extension.service'
 import { queryClient } from './shared/query/queryClient'
 
@@ -68,6 +69,8 @@ export const appConfig: ApplicationConfig = {
     }),
     MessageService,
     provideAppInitializer(async () => {
+      const clarityService = inject(ClarityService)
+      clarityService.init()
       const extensionService = inject(ExtensionService)
       await extensionService.init()
       console.log('App initialized')

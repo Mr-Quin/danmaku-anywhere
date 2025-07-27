@@ -1,6 +1,11 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core'
-import Clarity from '@microsoft/clarity'
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from '@angular/core'
 import { Button } from 'primeng/button'
+import { ClarityService } from '../../core/clarity.service'
 
 const COOKIE_CONSENT_KEY = 'cookie-consent'
 
@@ -33,6 +38,8 @@ const COOKIE_CONSENT_KEY = 'cookie-consent'
   `,
 })
 export class CookieConsentFooter {
+  private clarityService = inject(ClarityService)
+
   $showConsent = signal(this.shouldShowConsent())
 
   private shouldShowConsent(): boolean {
@@ -43,11 +50,12 @@ export class CookieConsentFooter {
   accept() {
     localStorage.setItem(COOKIE_CONSENT_KEY, '1')
     this.$showConsent.set(false)
-    Clarity.consent(true)
+    this.clarityService.cookieConsent(true)
   }
 
   decline() {
     localStorage.setItem(COOKIE_CONSENT_KEY, '0')
     this.$showConsent.set(false)
+    this.clarityService.cookieConsent(false)
   }
 }

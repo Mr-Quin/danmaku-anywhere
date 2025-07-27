@@ -1,10 +1,8 @@
 import { Injectable } from '@angular/core'
-import type { paths } from '@danmaku-anywhere/bangumi-api/next'
 import {
   infiniteQueryOptions,
   queryOptions,
 } from '@tanstack/angular-query-experimental'
-import createClient from 'openapi-fetch'
 import { queryKeys } from '../../../shared/query/queryKeys'
 import type {
   BgmCalendar,
@@ -14,18 +12,7 @@ import type {
   BgmSubject,
   BgmTrendingQueryResponse,
 } from '../types/bangumi.types'
-
-export const bangumiNextClient = createClient<paths>({
-  baseUrl: 'https://next.bgm.tv/',
-})
-
-bangumiNextClient.use({
-  onResponse: (res: any) => {
-    if (!res.response.ok) {
-      throw new Error(res.response.statusText)
-    }
-  },
-})
+import { bangumiNextClient } from './bangumiNextClient'
 
 @Injectable({
   providedIn: 'root',

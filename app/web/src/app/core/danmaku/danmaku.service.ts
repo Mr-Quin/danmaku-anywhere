@@ -1,13 +1,13 @@
 import { Injectable, inject } from '@angular/core'
 import { injectQuery } from '@tanstack/angular-query-experimental'
 import { lastValueFrom } from 'rxjs'
-import { ExtensionService } from '../extension/extension.service'
+import { ExtensionMessagingService } from '../extension/extension-messaging.service'
 
 @Injectable({
   providedIn: 'root',
 })
 export class DanmakuService {
-  private readonly extensionService = inject(ExtensionService)
+  private readonly extensionMessagingService = inject(ExtensionMessagingService)
 
   readonly episodesQuery = injectQuery(() => ({
     queryKey: ['episodes'],
@@ -16,7 +16,7 @@ export class DanmakuService {
 
   private getEpisodes() {
     return lastValueFrom(
-      this.extensionService.single('episodeGetAll', undefined)
+      this.extensionMessagingService.single('episodeGetAll', undefined)
     )
   }
 }
