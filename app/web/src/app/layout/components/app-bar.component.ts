@@ -3,11 +3,12 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
 import { RouterLink } from '@angular/router'
 import { FaIconComponent } from '@fortawesome/angular-fontawesome'
 import { faGithub } from '@fortawesome/free-brands-svg-icons'
-import { ButtonDirective } from 'primeng/button'
+import { Button, ButtonDirective } from 'primeng/button'
 import { Tag } from 'primeng/tag'
 import { GITHUB_REPO_URL, PAGE_TITLE } from '../../shared/constants'
 import { DocMigrationBanner } from './doc-migration-banner.component'
 import { ExtensionUpdateBanner } from './extension-update-banner.component'
+import { FeedbackFormButton } from './feedback-form-button.component'
 
 @Component({
   selector: 'da-app-bar',
@@ -20,6 +21,8 @@ import { ExtensionUpdateBanner } from './extension-update-banner.component'
     ButtonDirective,
     DocMigrationBanner,
     ExtensionUpdateBanner,
+    Button,
+    FeedbackFormButton,
   ],
   host: {
     class: 'basis-0 sticky z-100 top-0',
@@ -37,9 +40,12 @@ import { ExtensionUpdateBanner } from './extension-update-banner.component'
             <p-tag value="预览" severity="info" />
           </div>
         </div>
-        <a pButton rounded size="small" severity="secondary" text [href]="githubUrl" target="_blank">
-          <fa-icon [icon]="github" size="lg" />
-        </a>
+        <div>
+          <a pButton rounded size="small" severity="secondary" text [href]="githubUrl" target="_blank">
+            <fa-icon [icon]="github" size="lg" />
+          </a>
+          <da-feedback-form-button />
+        </div>
       </div>
     </div>
   `,

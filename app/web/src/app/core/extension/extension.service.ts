@@ -10,16 +10,18 @@ import { LATEST_EXTENSION_VERSION } from './latestExtensionVersion'
 export class ExtensionService {
   private clarityService = inject(ClarityService)
 
-  private readonly $_extensionVersion = signal<string | null>(null)
+  private readonly $_version = signal<string | null>(null)
+  private readonly $_id = signal<string | null>(null)
   private readonly $_isLoading = signal(true)
 
   readonly $isLoading = this.$_isLoading.asReadonly()
-  readonly $installedVersion = this.$_extensionVersion.asReadonly()
+  readonly $id = this.$_id.asReadonly()
+  readonly $installedVersion = this.$_version.asReadonly()
   readonly $isExtensionInstalled = computed(() => {
-    return this.$_extensionVersion() !== null
+    return this.$_version() !== null
   })
   readonly $isOutdated = computed(() => {
-    const version = this.$_extensionVersion()
+    const version = this.$_version()
     if (version) {
       if (compareVersion(version, LATEST_EXTENSION_VERSION) === -1) {
         return true
@@ -37,15 +39,13 @@ export class ExtensionService {
 
       if (id) {
         this.clarityService.identify(id)
-      }
-
-      if (version) {
-        this.clarityService.track('extensionVersion', version)
+        this.$_id.set(id)
       }
 
       if (version) {
         console.log('Extension version:', version)
-        this.$_extensionVersion.set(version)
+        this.clarityService.track('extensionVersion', version)
+        this.$_version.set(version)
         this.$_isLoading.set(false)
         clearInterval(interval)
         clearTimeout(timeout)
