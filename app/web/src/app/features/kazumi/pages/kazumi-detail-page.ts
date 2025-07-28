@@ -439,12 +439,12 @@ export class KazumiDetailPage {
 
   protected changeEpisode(episode: Episode) {
     this.$selectedEpisode.set(episode)
-    this.subscribeMediaStream(episode.url)
     this.$isVideoUrlLoading.set(true)
     this.$isVideoUrlError.set(false)
     this.$mediaList.set([])
     // set url to empty string to unload the current video
     this.$videoUrl.set('')
+    this.subscribeMediaStream(episode.url)
   }
 
   private updateUrlParams(params: { p?: number; e?: number }) {
