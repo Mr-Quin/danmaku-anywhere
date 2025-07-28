@@ -158,6 +158,9 @@ importers:
       karma-jasmine-html-reporter:
         specifier: ~2.1.0
         version: 2.1.0(jasmine-core@5.7.1)(karma-jasmine@5.1.0(karma@6.4.4))(karma@6.4.4)
+      wrangler:
+        specifier: ^4.26.0
+        version: 4.26.0
 
   backend/proxy:
     dependencies:

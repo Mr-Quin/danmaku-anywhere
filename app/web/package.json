@@ -9,7 +9,8 @@
     "test:ng": "ng test",
     "lint": "biome check --fix",
     "lint:ci": "biome ci",
-    "type-check": "tsgo --noEmit"
+    "type-check": "tsgo --noEmit",
+    "wrangler": "wrangler"
   },
   "private": false,
   "dependencies": {
@@ -56,6 +57,7 @@
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.1",
     "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.1.0"
+    "karma-jasmine-html-reporter": "~2.1.0",
+    "wrangler": "^4.26.0"
   }
 }
