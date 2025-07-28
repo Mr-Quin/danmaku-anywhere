@@ -11,6 +11,8 @@ import {
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Outlet, useNavigate } from 'react-router'
+import { EXTENSION_VERSION } from '@/common/constants'
+import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { Version } from '@/popup/pages/options/components/Version'
 import { OptionsPageLayout } from '../../layout/OptionsPageLayout'
@@ -49,6 +51,7 @@ const OptionsListItem = ({
 export const Options = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const { data } = useExtensionOptions()
 
   return (
     <>
@@ -81,7 +84,7 @@ export const Options = () => {
           <ListItem disablePadding>
             <ListItemButton
               component="a"
-              href="https://forms.clickup.com/90131020449/f/2ky3men1-933/ULQ3OZ8QYRXIJ5HACI"
+              href={`https://forms.clickup.com/90131020449/f/2ky3men1-933/ULQ3OZ8QYRXIJ5HACI?ID=${data.id}&Version=${EXTENSION_VERSION}`}
               target="_blank"
             >
               <ListItemText>{t('optionsPage.help.reportBug')}</ListItemText>
@@ -91,7 +94,7 @@ export const Options = () => {
           <ListItem disablePadding>
             <ListItemButton
               component="a"
-              href="https://forms.clickup.com/90131020449/f/2ky3men1-873/D9MSB7XJYAFS02Q9NO"
+              href={`https://forms.clickup.com/90131020449/f/2ky3men1-873/D9MSB7XJYAFS02Q9NO?ID=${data.id}&Version=${EXTENSION_VERSION}`}
               target="_blank"
             >
               <ListItemText>{t('optionsPage.help.feedback')}</ListItemText>
