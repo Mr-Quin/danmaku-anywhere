@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/cloudflare'
 import type { Context } from 'hono'
 import { factory } from '@/factory'
 import { type SetCacheControlFn, useCache } from '@/middleware/cache'
@@ -82,6 +83,8 @@ const verifyPathQuery = factory.createMiddleware(async (c: Context, next) => {
   if (!path) {
     return c.json({ error: 'Missing required "path" query parameter' }, 400)
   }
+
+  Sentry.setTag('ddp.path', path)
 
   return next()
 })

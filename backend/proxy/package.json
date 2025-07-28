@@ -30,6 +30,7 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@hono/zod-validator": "^0.7.1",
+    "@sentry/cloudflare": "^9.42.0",
     "hono": "^4.8.5",
     "zod": "^4.0.5"
   }
