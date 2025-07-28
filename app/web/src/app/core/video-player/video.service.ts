@@ -1,10 +1,4 @@
-import {
-  computed,
-  type ElementRef,
-  Injectable,
-  signal,
-  untracked,
-} from '@angular/core'
+import { computed, type ElementRef, Injectable, signal } from '@angular/core'
 import Artplayer from 'artplayer'
 import type { ComponentOption } from 'artplayer/types/component'
 
@@ -130,9 +124,14 @@ export class VideoService {
 
   updateUrl(url: string): void {
     this.updateConfig({ url })
-    // when the url changes, recreate the player to show the poster
-    console.log('updateUrl', url)
-    this.recreate()
+    const player = this.$player()
+    if (player) {
+      if (!url) {
+        this.updateState({ isVideoReady: false })
+      } else {
+        void player.switchUrl(url)
+      }
+    }
   }
 
   updatePoster(poster: string): void {
@@ -154,19 +153,6 @@ export class VideoService {
     const player = this.$player()
     if (player) {
       player.layers.add(layer)
-    }
-  }
-
-  removeLayer(name: string): void {
-    if (!this.layerNames.has(name)) {
-      return
-    }
-    this.layerNames.delete(name)
-    this.layers = this.layers.filter((l) => l.name !== name)
-    this.layerNames.delete(name)
-    const player = this.$player()
-    if (player) {
-      player.layers.remove(name)
     }
   }
 
@@ -251,20 +237,6 @@ export class VideoService {
     player.on('fullscreenWeb', (isFullscreenWeb: boolean) => {
       this.updateState({ isFullscreenWeb })
     })
-  }
-
-  private recreate() {
-    const player = untracked(() => this.$player())
-    if (player) {
-      this.updateState({ isVideoReady: false })
-      player.destroy(true)
-      this.initialize(
-        // biome-ignore lint/style/noNonNullAssertion: not null since player already exists
-        untracked(() => this.$container())!,
-        // biome-ignore lint/style/noNonNullAssertion: not null since player already exists
-        untracked(() => this.$config())!
-      )
-    }
   }
 
   private updateConfig(config: Partial<VideoPlayerConfig>): void {
