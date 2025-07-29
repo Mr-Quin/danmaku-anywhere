@@ -107,17 +107,6 @@ export class VirtualizedGrid {
 
   protected $scrollMargin = signal(0)
 
-  private checkScrollMargin = effect(() => {
-    const container = this.$container()
-    if (!container) {
-      return
-    }
-    const int = setTimeout(() => {
-      this.$scrollMargin.set(container.nativeElement.offsetTop)
-    }, 100)
-    return () => clearInterval(int)
-  })
-
   protected $columns = computed(() => {
     const columnConfig = this.columnConfig()
     if (typeof columnConfig === 'number') {
@@ -191,38 +180,54 @@ export class VirtualizedGrid {
     }
   })
 
-  private measureItems = effect(() => {
-    this.$virtualItems().forEach((el: ElementRef<HTMLDivElement>) => {
-      this.rowVirtualizer.measureElement(el.nativeElement)
-    })
-  })
-
   private $fetchedNext = signal(false)
 
-  private fetchNextPage = effect(() => {
-    if (!this.isInfiniteScroll() || this.isFetchingNext()) {
-      return
-    }
-
-    const lastItem =
-      this.rowVirtualizer.getVirtualItems()[
-        this.rowVirtualizer.getVirtualItems().length - 1
-      ]
-
-    if (!lastItem) {
-      return
-    }
-
-    if (lastItem.index >= this.$rows().length - 1 && !this.$fetchedNext()) {
-      this.$fetchedNext.set(true)
-      this.onLoadMore.emit()
-
-      // throttle for a little bit
-      setTimeout(() => {
-        this.$fetchedNext.set(false)
+  constructor() {
+    // check scroll margin
+    effect(() => {
+      const container = this.$container()
+      if (!container) {
+        return
+      }
+      const int = setTimeout(() => {
+        this.$scrollMargin.set(container.nativeElement.offsetTop)
       }, 100)
-    }
-  })
+      return () => clearInterval(int)
+    })
+
+    // measure items
+    effect(() => {
+      this.$virtualItems().forEach((el: ElementRef<HTMLDivElement>) => {
+        this.rowVirtualizer.measureElement(el.nativeElement)
+      })
+    })
+
+    // fetch next page
+    effect(() => {
+      if (!this.isInfiniteScroll() || this.isFetchingNext()) {
+        return
+      }
+
+      const lastItem =
+        this.rowVirtualizer.getVirtualItems()[
+          this.rowVirtualizer.getVirtualItems().length - 1
+        ]
+
+      if (!lastItem) {
+        return
+      }
+
+      if (lastItem.index >= this.$rows().length - 1 && !this.$fetchedNext()) {
+        this.$fetchedNext.set(true)
+        this.onLoadMore.emit()
+
+        // throttle for a little bit
+        setTimeout(() => {
+          this.$fetchedNext.set(false)
+        }, 100)
+      }
+    })
+  }
 
   protected getRowItems(rowIndex: number): VirtualGridItem[] {
     return this.$rows()[rowIndex] || []

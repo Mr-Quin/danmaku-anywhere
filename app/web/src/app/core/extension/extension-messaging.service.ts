@@ -96,7 +96,8 @@ export class ExtensionMessagingService {
       throw new Error('Extension is not installed.')
     }
 
-    const id = `${action}-${this.reqId++}`
+    const id = `${action}-${this.reqId}`
+    this.reqId += 1
 
     window.postMessage(
       createExtRequest({

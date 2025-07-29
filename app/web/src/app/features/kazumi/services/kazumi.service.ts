@@ -129,28 +129,6 @@ export class KazumiService {
     return false
   })
 
-  // set active policy when allPoliciesQuery resolves
-  #_ = effect(() => {
-    if (
-      !untracked(this.$_activePolicy) &&
-      this.localPoliciesQuery.isSuccess() &&
-      this.localPoliciesQuery.data().length
-    ) {
-      this.setActivePolicy(this.localPoliciesQuery.data()[0])
-    }
-  })
-
-  // update visitedTabs when _activePolicy changes
-  #__ = effect(() => {
-    const activePolicy = this.$_activePolicy()
-    // skip if there is no query
-    if (!activePolicy || !this.$_searchQuery()) return
-    this.$_visitedTabs.update((m) => {
-      m.set(activePolicy.name, true)
-      return m
-    })
-  })
-
   readonly localPoliciesQuery = injectQuery(() => ({
     queryFn: async () => {
       const policies = await this.db.policies.toArray()
@@ -273,6 +251,30 @@ export class KazumiService {
         this.extensionMessagingService.single('setRequestHeaders', headerRule)
       ),
   }))
+
+  constructor() {
+    // set active policy when allPoliciesQuery resolves
+    effect(() => {
+      if (
+        !untracked(this.$_activePolicy) &&
+        this.localPoliciesQuery.isSuccess() &&
+        this.localPoliciesQuery.data().length
+      ) {
+        this.setActivePolicy(this.localPoliciesQuery.data()[0])
+      }
+    })
+
+    // update visitedTabs when _activePolicy changes
+    effect(() => {
+      const activePolicy = this.$_activePolicy()
+      // skip if there is no query
+      if (!activePolicy || !this.$_searchQuery()) return
+      this.$_visitedTabs.update((m) => {
+        m.set(activePolicy.name, true)
+        return m
+      })
+    })
+  }
 
   getSearchQueryOptions(keyword: string, policy: KazumiPolicy) {
     return queryOptions({
