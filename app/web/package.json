@@ -30,6 +30,7 @@
     "@fortawesome/angular-fontawesome": "^2.0.1",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@microsoft/clarity": "^1.0.0",
+    "@newrelic/browser-agent": "^1.294.0",
     "@ngrx/signals": "^19.2.1",
     "@primeng/themes": "^19.1.4",
     "@tailwindcss/postcss": "^4.1.11",

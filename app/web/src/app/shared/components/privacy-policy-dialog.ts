@@ -28,7 +28,7 @@ import { Divider } from 'primeng/divider'
         <section>
           <h3 class="text-lg font-semibold mb-2">信息收集</h3>
           <p class="text-sm">
-            本应用使用 Microsoft Clarity 来收集匿名的使用数据，以改善用户体验。
+            本应用使用 Microsoft Clarity 以及 New Relic 来收集匿名的使用数据，以改善用户体验。
             收集的数据包括页面浏览、点击行为和用户交互模式。
           </p>
         </section>
@@ -53,7 +53,7 @@ import { Divider } from 'primeng/divider'
           <h3 class="text-lg font-semibold mb-2">数据共享</h3>
           <p class="text-sm">
             我们不会将您的个人数据出售、交易或以其他方式传输给外部第三方。
-            数据仅与 Microsoft Clarity 服务共享以提供分析功能。
+            数据仅与 Microsoft Clarity 与 New Relic 服务共享以提供分析功能。
           </p>
         </section>
 
@@ -62,7 +62,7 @@ import { Divider } from 'primeng/divider'
         <section>
           <h3 class="text-lg font-semibold mb-2">联系我们</h3>
           <p class="text-sm">
-            如果您对本隐私政策有任何疑问，请通过 GitHub 仓库与我们联系。
+            如果您对本隐私政策有任何疑问，请通过 GitHub 仓库或反馈表格与我们联系。
           </p>
         </section>
       </div>

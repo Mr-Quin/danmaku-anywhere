@@ -1,6 +1,6 @@
 import { computed, Injectable, inject, signal } from '@angular/core'
 import { getExtensionAttr } from '@danmaku-anywhere/web-scraper'
-import { ClarityService } from '../clarity.service'
+import { TrackingService } from '../tracking.service'
 import { compareVersion } from './compareVersion'
 import { LATEST_EXTENSION_VERSION } from './latestExtensionVersion'
 
@@ -8,7 +8,7 @@ import { LATEST_EXTENSION_VERSION } from './latestExtensionVersion'
   providedIn: 'root',
 })
 export class ExtensionService {
-  private clarityService = inject(ClarityService)
+  private trackingService = inject(TrackingService)
 
   private readonly $_version = signal<string | null>(null)
   private readonly $_id = signal<string | null>(null)
@@ -38,13 +38,13 @@ export class ExtensionService {
       const { version, id } = getExtensionAttr()
 
       if (id) {
-        this.clarityService.identify(id)
+        this.trackingService.identify(id)
         this.$_id.set(id)
       }
 
       if (version) {
         console.log('Extension version:', version)
-        this.clarityService.track('extensionVersion', version)
+        this.trackingService.track('extensionVersion', version)
         this.$_version.set(version)
         this.$_isLoading.set(false)
         clearInterval(interval)

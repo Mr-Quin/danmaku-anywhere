@@ -5,7 +5,7 @@ import {
   signal,
 } from '@angular/core'
 import { Button } from 'primeng/button'
-import { ClarityService } from '../../core/clarity.service'
+import { TrackingService } from '../../core/tracking.service'
 
 const COOKIE_CONSENT_KEY = 'cookie-consent'
 
@@ -38,7 +38,7 @@ const COOKIE_CONSENT_KEY = 'cookie-consent'
   `,
 })
 export class CookieConsentFooter {
-  private clarityService = inject(ClarityService)
+  private trackingService = inject(TrackingService)
 
   $showConsent = signal(this.shouldShowConsent())
 
@@ -50,12 +50,12 @@ export class CookieConsentFooter {
   accept() {
     localStorage.setItem(COOKIE_CONSENT_KEY, '1')
     this.$showConsent.set(false)
-    this.clarityService.cookieConsent(true)
+    this.trackingService.cookieConsent(true)
   }
 
   decline() {
     localStorage.setItem(COOKIE_CONSENT_KEY, '0')
     this.$showConsent.set(false)
-    this.clarityService.cookieConsent(false)
+    this.trackingService.cookieConsent(false)
   }
 }
