@@ -99,17 +99,8 @@ export class ProviderService {
   }
 
   async getDanmaku(data: DanmakuFetchDto): Promise<WithSeason<Episode>> {
-    const { meta, options = {}, context = {} } = data
+    const { meta, options = {} } = data
     const provider = meta.provider
-
-    // Save title mapping
-    if (context.seasonMapKey) {
-      this.logger.debug('Saving title mapping', meta)
-      void this.titleMappingService.add({
-        key: context.seasonMapKey,
-        DanDanPlay: meta.season.id,
-      })
-    }
 
     const [existingDanmaku] = await this.danmakuService.filter({
       provider,
@@ -179,7 +170,7 @@ export class ProviderService {
   async findMatchingEpisodes({
     mapKey,
     title,
-    episodeNumber,
+    episodeNumber = 1,
     seasonId,
   }: MatchEpisodeInput): Promise<MatchEpisodeResult> {
     const getMetaFromSeason = async (season: DanDanPlayOf<Season>) => {
@@ -191,7 +182,7 @@ export class ProviderService {
 
       const episodeId = this.danDanPlayService.computeEpisodeId(
         season.providerIds.animeId,
-        episodeNumber ?? 1
+        episodeNumber
       )
 
       const episode = episodes.find(
@@ -200,7 +191,7 @@ export class ProviderService {
 
       if (!episode) {
         throw new Error(
-          `Episode id ${episodeId} not found for season: ${season}`
+          `Episode ${episodeNumber} not found in season: ${season.title}`
         )
       }
 

@@ -6,6 +6,7 @@ import type { GenAIService } from '@/background/services/GenAIService'
 import type { KazumiService } from '@/background/services/KazumiService'
 import type { SeasonService } from '@/background/services/SeasonService'
 import type { TencentService } from '@/background/services/TencentService'
+import type { TitleMappingService } from '@/background/services/TitleMappingService'
 import { invalidateContentScriptData } from '@/background/utils/invalidateContentScriptData'
 import type { EpisodeSearchParams } from '@/common/danmaku/dto'
 import { Logger } from '@/common/Logger'
@@ -33,7 +34,8 @@ export const setupRpc = (
   aiService: GenAIService,
   bilibiliService: BilibiliService,
   tencentService: TencentService,
-  kazumiService: KazumiService
+  kazumiService: KazumiService,
+  titleMappingService: TitleMappingService
 ) => {
   const rpcServer = createRpcServer<BackgroundMethods>({
     seasonSearch: async (input) => {
@@ -101,6 +103,9 @@ export const setupRpc = (
     },
     seasonRefresh: async (data) => {
       return providerService.refreshSeason(data)
+    },
+    seasonMapAdd: async (data) => {
+      return titleMappingService.add(data)
     },
     episodeFetch: async (data, sender) => {
       const result = await providerService.getDanmaku(data)

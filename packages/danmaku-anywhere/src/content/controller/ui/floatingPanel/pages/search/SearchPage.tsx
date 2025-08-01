@@ -1,13 +1,6 @@
+import type { Season } from '@danmaku-anywhere/danmaku-converter'
 import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
-import {
-  Box,
-  Collapse,
-  FormControlLabel,
-  Switch,
-  Tab,
-  Tabs,
-  Typography,
-} from '@mui/material'
+import { Box, Collapse, Tab, Tabs, Typography } from '@mui/material'
 import {
   useIsFetching,
   useQueryErrorResetBoundary,
@@ -33,19 +26,12 @@ import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku
 import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
 import { SeasonDetailsPage } from '@/content/controller/ui/floatingPanel/pages/search/SeasonDetailsPage'
+import { AddSeasonMapDialog } from './AddSeasonMapDialog'
 
 export const SearchPage = () => {
   const { t } = useTranslation()
-  const {
-    searchTitle,
-    saveMapping,
-    setSearchTitle,
-    setSaveMapping,
-    providerTab,
-    setProviderTab,
-    selectedSeason,
-    setSelectedSeason,
-  } = usePopup()
+  const { searchTitle, setSearchTitle, providerTab, setProviderTab } =
+    usePopup()
   const { mediaInfo } = useStore.use.integration()
 
   const {
@@ -61,9 +47,13 @@ export const SearchPage = () => {
   const [searchParams, setSearchParams] = useState<SearchEpisodesQuery>()
   const [scrollTop, setScrollTop] = useState(0)
   const [tab, setTab] = useState('search')
+  const [showDialog, setShowDialog] = useState(false)
+  const [selectedSeason, setSelectedSeason] = useState<Season | undefined>()
+  const [localSelectedSeason, setLocalSelectedSeason] = useState<Season>()
 
   const boxRef = useRef<HTMLDivElement>(null)
   const errorRef = useRef<ErrorBoundary>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const { reset } = useQueryErrorResetBoundary()
 
   const [pending, startTransition] = useTransition()
@@ -86,10 +76,21 @@ export const SearchPage = () => {
     }) > 0
 
   useEffect(() => {
-    if (!mediaInfo) return
+    if (!mediaInfo) {
+      return
+    }
 
     setSearchTitle(mediaInfo.seasonTitle)
   }, [mediaInfo])
+
+  const handleDialogClose = () => {
+    setShowDialog(false)
+  }
+
+  const handleDialogProceed = (season: Season) => {
+    setSelectedSeason(season)
+    handleDialogClose()
+  }
 
   const handleSearch = (searchTerm: string) => {
     startTransition(() => {
@@ -99,12 +100,6 @@ export const SearchPage = () => {
 
       setSearchParams({ anime: searchTerm })
     })
-  }
-
-  const getSeasonMapKey = () => {
-    if (!mediaInfo || !saveMapping) return undefined
-
-    return `${mediaInfo.getKey()}`
   }
 
   if (!enabledProviders.length) {
@@ -120,10 +115,17 @@ export const SearchPage = () => {
   if (!providerTab) return null
 
   if (selectedSeason)
-    return <SeasonDetailsPage seasonMapKey={getSeasonMapKey()} />
+    return (
+      <SeasonDetailsPage
+        season={selectedSeason}
+        onGoBack={() => {
+          setSelectedSeason(undefined)
+        }}
+      />
+    )
 
   return (
-    <TabLayout>
+    <TabLayout ref={containerRef}>
       <TabToolbar>
         <Tabs value={tab} onChange={(_, newValue) => setTab(newValue)}>
           <Tab label={t('searchPage.name')} value="search" />
@@ -144,19 +146,6 @@ export const SearchPage = () => {
               onSearchTermChange={setSearchTitle}
               textFieldProps={{ ...withStopPropagation() }}
             />
-            {!!mediaInfo && (
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={saveMapping}
-                    onChange={(e) => {
-                      setSaveMapping(e.target.checked)
-                    }}
-                  />
-                }
-                label={t('searchPage.saveMapping')}
-              />
-            )}
           </Box>
           <ErrorBoundary
             ref={errorRef}
@@ -180,7 +169,16 @@ export const SearchPage = () => {
                         setScrollTop(boxRef.current.scrollTop)
                       }
                       if (!isProvider(season, DanmakuSourceType.Custom)) {
-                        setSelectedSeason(season)
+                        if (
+                          mediaInfo &&
+                          isProvider(season, DanmakuSourceType.DanDanPlay)
+                        ) {
+                          // this is a ddp season, ask user if they want to map it
+                          setLocalSelectedSeason(season)
+                          setShowDialog(true)
+                        } else {
+                          setSelectedSeason(season)
+                        }
                       }
                     }}
                     provider={providerTab}
@@ -194,6 +192,16 @@ export const SearchPage = () => {
       )}
       {tab === 'parse' && (
         <ParseTabCore onImportSuccess={(episode) => mountDanmaku([episode])} />
+      )}
+      {localSelectedSeason && mediaInfo && (
+        <AddSeasonMapDialog
+          open={showDialog}
+          onClose={handleDialogClose}
+          onProceed={handleDialogProceed}
+          container={containerRef.current}
+          mapKey={mediaInfo.getKey()}
+          season={localSelectedSeason}
+        />
       )}
     </TabLayout>
   )

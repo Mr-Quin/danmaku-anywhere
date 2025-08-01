@@ -1,5 +1,6 @@
 import type {
   EpisodeMeta,
+  Season,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Suspense } from 'react'
@@ -10,30 +11,25 @@ import { SeasonEpisodeList } from '@/common/components/MediaList/components/Seas
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
-import { usePopup } from '@/content/controller/store/popupStore'
 
 type SeasonDetailsPageProps = {
-  seasonMapKey?: string
+  season: Season
+  onGoBack: () => void
 }
 
-export const SeasonDetailsPage = ({ seasonMapKey }: SeasonDetailsPageProps) => {
-  const { selectedSeason, setSelectedSeason } = usePopup()
-
-  if (!selectedSeason) return null
-
+export const SeasonDetailsPage = ({
+  season,
+  onGoBack,
+}: SeasonDetailsPageProps) => {
   return (
     <TabLayout>
-      <TabToolbar
-        showBackButton
-        onGoBack={() => setSelectedSeason(undefined)}
-        title={selectedSeason.title}
-      />
+      <TabToolbar showBackButton onGoBack={onGoBack} title={season.title} />
       <ErrorBoundary
         fallbackRender={({ error }) => <ErrorMessage message={error.message} />}
       >
         <Suspense fallback={null}>
           <SeasonEpisodeList
-            season={selectedSeason}
+            season={season}
             renderEpisode={(data) => {
               const { loadMutation } = useLoadDanmaku()
 
@@ -44,9 +40,6 @@ export const SeasonDetailsPage = ({ seasonMapKey }: SeasonDetailsPageProps) => {
                   meta,
                   options: {
                     forceUpdate: true,
-                  },
-                  context: {
-                    seasonMapKey,
                   },
                 })
               }

@@ -27,17 +27,12 @@ export type CustomEpisodeQueryFilter = {
   all?: boolean
 }
 
-export interface DanmakuFetchContext {
-  seasonMapKey?: string
-}
-
 interface DanmakuFetchOptions {
   forceUpdate?: boolean // force update danmaku from the provider even if it's already in db
 }
 
 interface BaseDanmakuFetchDto {
   options?: DanmakuFetchOptions
-  context?: DanmakuFetchContext
 }
 
 export type DanmakuFetchDto = {

@@ -4,6 +4,7 @@ const common = {
   common: {
     add: '添加',
     apiEndpoint: 'API 接口',
+    confirm: '确认',
     apply: '应用',
     cancel: '取消',
     close: '关闭',
@@ -338,9 +339,15 @@ const pages = {
     retrySearch: '重试',
     episode: '集数',
     name: '搜索番剧',
-    saveMapping: '保存标题映射',
     title: '番剧标题',
     convertedTitle: '转换后的标题',
+    titleMapping: '标题映射',
+    'titleMapping.confirmation': '是否将`{{original}}` 映射为 `{{mapped}}` ?',
+    'titleMapping.searchOnly': '不映射，仅搜索',
+    alert: {
+      mappingFailed: '标题映射失败：{{message}}',
+      mappingSuccess: '标题映射成功',
+    },
     error: {
       noProviders: '没有启用的弹幕来源，请在设置中启用',
       noResultFound: '没有找到结果, 请尝试其他关键词',
@@ -348,7 +355,6 @@ const pages = {
   },
   selectorPage: {
     noAnimeFound: '没有可供选择的内容',
-    saveMapping: '记住我的选择',
     selectAnime: '找到多个匹配项：{{name}}，请选择',
   },
   stylePage: {

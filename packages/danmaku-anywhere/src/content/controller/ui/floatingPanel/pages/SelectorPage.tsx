@@ -1,14 +1,5 @@
 import type { Season } from '@danmaku-anywhere/danmaku-converter'
-import {
-  Box,
-  Button,
-  Checkbox,
-  Divider,
-  FormControl,
-  FormControlLabel,
-  Stack,
-  Typography,
-} from '@mui/material'
+import { Box, Button, Divider, Stack, Typography } from '@mui/material'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { SeasonGrid } from '@/common/components/MediaList/components/SeasonGrid'
@@ -24,7 +15,7 @@ export const SelectorPage = () => {
   const { toast } = useToast()
 
   const selectorBoxRef = useRef<HTMLDivElement>(undefined)
-  const { animes, saveMapping, setSaveMapping, toggleOpen } = usePopup()
+  const { animes, toggleOpen } = usePopup()
   const { mediaInfo } = useStore.use.integration()
 
   const [selectedSeason, setSelectedSeason] = useState<Season>()
@@ -120,21 +111,6 @@ export const SelectorPage = () => {
           >
             {t('common.apply')}
           </Button>
-          <FormControl>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  inputProps={{ 'aria-label': 'controlled' }}
-                  checked={saveMapping}
-                  onChange={(e) => {
-                    setSaveMapping(e.target.checked)
-                  }}
-                  disabled={!selectedSeason}
-                />
-              }
-              label={t('selectorPage.saveMapping')}
-            />
-          </FormControl>
         </Stack>
       </Box>
     </Box>

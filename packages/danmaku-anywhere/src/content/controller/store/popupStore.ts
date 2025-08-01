@@ -38,17 +38,11 @@ interface PopupStoreState {
   tab: PopupTab
   setTab: (tab: PopupTab) => void
 
-  saveMapping: boolean
-  setSaveMapping: (saving: boolean) => void
-
   highlighterPortal: HTMLElement | null
   setHighlighterPortal: (portal: HTMLElement) => void
 
   providerTab?: RemoteDanmakuSourceType
   setProviderTab: (tab: RemoteDanmakuSourceType) => void
-
-  selectedSeason?: Season
-  setSelectedSeason: (season?: Season) => void
 }
 
 const usePopupStoreBase = create<PopupStoreState>((set, get) => ({
@@ -88,10 +82,6 @@ const usePopupStoreBase = create<PopupStoreState>((set, get) => ({
   setTab: (tab) => {
     set({ tab })
   },
-  saveMapping: true,
-  setSaveMapping: (saving) => {
-    set({ saveMapping: saving })
-  },
 
   highlighterPortal: null,
   setHighlighterPortal: (portal) => {
@@ -101,11 +91,6 @@ const usePopupStoreBase = create<PopupStoreState>((set, get) => ({
   providerTab: undefined,
   setProviderTab: (tab) => {
     set({ providerTab: tab })
-  },
-
-  selectedSeason: undefined,
-  setSelectedSeason: (season) => {
-    set({ selectedSeason: season })
   },
 }))
 
