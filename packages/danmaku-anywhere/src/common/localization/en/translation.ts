@@ -3,6 +3,7 @@ const common = {
     add: 'Add',
     apiEndpoint: 'API Endpoint',
     apply: 'Apply',
+    confirm: 'Confirm',
     cancel: 'Cancel',
     close: 'Close',
     confirmDeleteMessage: 'Are you sure you want to delete "{{name}}"?',
@@ -341,9 +342,15 @@ const pages = {
     retrySearch: 'Retry',
     episode: 'Episode',
     name: 'Search Anime',
-    saveMapping: 'Remember selection',
     title: 'Title',
     convertedTitle: 'Converted Title',
+    titleMapping: 'Map Title',
+    'titleMapping.confirmation': 'Map `{{original}}` to `{{mapped}}` ?',
+    'titleMapping.searchOnly': 'No, just search',
+    alert: {
+      mappingFailed: 'Failed to save mapping：{{message}}',
+      mappingSuccess: 'Mapping saved successfully',
+    },
     error: {
       noProviders: 'No danmaku sources enabled, please enable in settings',
       noResultFound: 'No results found, try a different search term',
@@ -351,7 +358,6 @@ const pages = {
   },
   selectorPage: {
     noAnimeFound: 'Nothing to select from',
-    saveMapping: 'Remember selection',
     selectAnime: 'Multiple matches found for {{name}}, please select',
   },
   stylePage: {

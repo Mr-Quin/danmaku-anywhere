@@ -13,10 +13,10 @@ export const useMatchEpisode = () => {
 
   const mutation = useMutation({
     mutationFn: chromeRpcClient.episodeMatch,
-    onError: (_, v) => {
+    onError: (e) => {
       toast.error(
         t('integration.alert.searchError', {
-          message: v.title,
+          message: e.message,
         })
       )
     },

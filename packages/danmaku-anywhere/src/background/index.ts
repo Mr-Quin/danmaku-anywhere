@@ -61,7 +61,8 @@ setupRpc(
   aiService,
   bilibiliService,
   tencentService,
-  kazumiService
+  kazumiService,
+  titleMappingService
 )
 setupNetRequest()
 setupAlarms(danmakuService)
