@@ -8,14 +8,22 @@ import { queryClient } from '@/common/queries/queryClient'
 import { Theme } from '@/common/theme/Theme'
 import { App } from './App'
 import '@/common/localization/i18n'
+import { EnvironmentContext } from '@/common/environment/context'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <Theme>
-        <App />
-        <ReactQueryDevtools />
-      </Theme>
+      <EnvironmentContext
+        value={{
+          environment: import.meta.env.MODE,
+          type: 'popup',
+        }}
+      >
+        <Theme>
+          <App />
+          <ReactQueryDevtools />
+        </Theme>
+      </EnvironmentContext>
     </QueryClientProvider>
   </React.StrictMode>
 )

@@ -4,6 +4,7 @@ import { ErrorBoundary } from 'react-error-boundary'
 import { HotkeysProvider } from 'react-hotkeys-hook'
 import { usePreloadImages } from '@/common/components/image/usePreloadImages'
 import { useSetupClarity } from '@/common/hooks/useSetupClarity'
+import { useSetupTracking } from '@/common/hooks/useSetupTracking'
 import { Logger } from '@/common/Logger'
 import { usePort } from '@/content/controller/common/hooks/usePort'
 import { Content } from './Content'
@@ -12,6 +13,7 @@ import { LoadInitialData } from './LoadInitialData'
 export const App = () => {
   usePreloadImages()
   useSetupClarity(import.meta.env.VITE_CLARITY_PROJECT_ID_CONTENT)
+  useSetupTracking()
   usePort()
 
   const ref = useRef<ErrorBoundary>(null)

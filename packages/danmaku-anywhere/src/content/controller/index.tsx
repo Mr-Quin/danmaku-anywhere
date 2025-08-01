@@ -11,6 +11,7 @@ import { Theme } from '@/common/theme/Theme'
 import { tryCatchSync } from '@/common/utils/utils'
 import { App } from './App'
 import '@/common/localization/i18n'
+import { EnvironmentContext } from '@/common/environment/context'
 import { createPopoverRoot } from '@/content/common/createPopoverRoot'
 
 const { data: frameId } = await chromeRpcClient.getFrameId()
@@ -72,9 +73,16 @@ ReactDOM.createRoot(shadowRoot).render(
   <React.StrictMode>
     <CacheProvider value={cache}>
       <QueryClientProvider client={queryClient}>
-        <Theme options={themeOptions}>
-          <App />
-        </Theme>
+        <EnvironmentContext
+          value={{
+            environment: import.meta.env.MODE,
+            type: 'controller',
+          }}
+        >
+          <Theme options={themeOptions}>
+            <App />
+          </Theme>
+        </EnvironmentContext>
       </QueryClientProvider>
     </CacheProvider>
   </React.StrictMode>

@@ -43,6 +43,7 @@
     "@mui/material": "^7.1.1",
     "@mui/system": "^7.1.1",
     "@mui/x-data-grid": "^8.5.2",
+    "@newrelic/browser-agent": "^1.294.0",
     "@tanstack/react-query": "^5.80.7",
     "@tanstack/react-query-devtools": "^5.80.7",
     "@tanstack/react-virtual": "^3.13.10",

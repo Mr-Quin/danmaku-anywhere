@@ -6,6 +6,7 @@ import { usePreloadImages } from '@/common/components/image/usePreloadImages'
 import { Toast } from '@/common/components/Toast/Toast'
 import { db } from '@/common/db/db'
 import { useSetupClarity } from '@/common/hooks/useSetupClarity'
+import { useSetupTracking } from '@/common/hooks/useSetupTracking'
 import { Logger } from '@/common/Logger'
 import { useThemeContext } from '@/common/theme/Theme'
 import { PopupLayout } from './layout/PopupLayout'
@@ -20,6 +21,7 @@ const LoadInitialData = ({ children }: PropsWithChildren) => {
 export const App = () => {
   usePreloadImages()
   useSetupClarity(import.meta.env.VITE_CLARITY_PROJECT_ID_POPUP)
+  useSetupTracking()
 
   const { colorScheme } = useThemeContext()
 
