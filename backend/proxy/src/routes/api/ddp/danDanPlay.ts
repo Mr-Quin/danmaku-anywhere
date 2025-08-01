@@ -84,7 +84,8 @@ const verifyPathQuery = factory.createMiddleware(async (c: Context, next) => {
     return c.json({ error: 'Missing required "path" query parameter' }, 400)
   }
 
-  Sentry.setTag('ddp.path', path)
+  // path looks like /v2/endpoint/..., we want to extract the endpoint
+  Sentry.setTag('ddp.endpoint', path.split('/')[2])
 
   return next()
 })

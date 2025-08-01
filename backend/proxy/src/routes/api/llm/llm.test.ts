@@ -49,11 +49,10 @@ describe('LLM API', () => {
   beforeEach(() => {
     // Clear cache before each test
     vi.clearAllMocks()
-  })
-
-  afterEach(() => {
     vi.resetAllMocks()
   })
+
+  afterEach(() => {})
 
   const mockLLMResponse = (response: any) => {
     mockSendMessage.mockResolvedValue({

@@ -8,6 +8,7 @@ import { useCache } from '@/middleware/cache'
 import { setContext } from '@/middleware/setContext'
 import { danDanPlay } from '@/routes/api/ddp/danDanPlay'
 import { llmLegacy } from '@/routes/api/llm/llm'
+import { getIsTestEnv } from '@/utils/getIsTestEnv'
 import { factory } from './factory'
 import { api } from './routes/api/routes'
 
@@ -68,11 +69,14 @@ app.onError((error, c) => {
 
 export default Sentry.withSentry((env: Env) => {
   const { id: versionId } = env.CF_VERSION_METADATA
+
   return {
     dsn: 'https://a57c6ba48bc0da21d4c6f7074e7a6f0e@o4509744978460672.ingest.us.sentry.io/4509744987308032',
     release: versionId,
     sendDefaultPii: true,
     enableLogs: true,
     tracesSampleRate: 1.0,
+    environment: env.ENVIRONMENT,
+    enabled: !getIsTestEnv(),
   }
 }, app)

@@ -16,16 +16,6 @@ export const md5 = (message: string) => {
   return crypto.createHash('md5').update(message).digest('hex')
 }
 
-export class HTTPError extends Error {
-  constructor(
-    readonly status: number,
-    message: string
-  ) {
-    super(message)
-    this.name = 'HTTPError'
-  }
-}
-
 export const tryCatch = async <T>(fn: () => Promise<T>) => {
   try {
     return [await fn(), null] as const
