@@ -312,7 +312,13 @@ export class KazumiService {
     })
   }
 
-  private mediaStreamCache = new Map<string, Observable<MediaInfo[]>>()
+  private mediaStreamCache = new Map<
+    string,
+    {
+      timestamp: number
+      stream: Observable<MediaInfo[]>
+    }
+  >()
 
   getMediaInfoStream(url: string | null): Observable<MediaInfo[]> {
     if (!url) {
@@ -322,7 +328,13 @@ export class KazumiService {
     // return cached observable if there is one
     if (this.mediaStreamCache.has(url)) {
       // biome-ignore lint/style/noNonNullAssertion: checked above
-      return this.mediaStreamCache.get(url)!
+      const cache = this.mediaStreamCache.get(url)!
+      // cache for 15 minutes
+      if (Date.now() - cache.timestamp < 15 * 60 * 1000) {
+        return cache.stream
+      }
+      // delete outdated cache
+      this.mediaStreamCache.delete(url)
     }
 
     const newStream$ = this.extensionMessagingService
@@ -344,7 +356,10 @@ export class KazumiService {
       )
 
     // cache the observable
-    this.mediaStreamCache.set(url, newStream$)
+    this.mediaStreamCache.set(url, {
+      timestamp: Date.now(),
+      stream: newStream$,
+    })
     return newStream$
   }
 
