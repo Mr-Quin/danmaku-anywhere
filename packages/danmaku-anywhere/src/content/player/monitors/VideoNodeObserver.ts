@@ -24,10 +24,7 @@ export class VideoNodeObserver {
   private videoChangeListeners = new Set<VideoChangeListener>()
   private videoRemovedListeners = new Set<VideoChangeListener>()
 
-  constructor(
-    private selector: string,
-    options: VideoNodeObserverOptions = {}
-  ) {
+  constructor(selector: string, options: VideoNodeObserverOptions = {}) {
     const { onVideoNodeChange, onVideoNodeRemove } = options
     if (onVideoNodeChange) {
       this.srcObs.onSrcChange((_src, video) => onVideoNodeChange(video))

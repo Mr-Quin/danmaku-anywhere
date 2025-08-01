@@ -8,12 +8,6 @@ export class IconService {
     )
   }
 
-  private async getIconBitmap(path: string) {
-    const response = await fetch(chrome.runtime.getURL(path))
-    const blob = await response.blob()
-    return await createImageBitmap(blob)
-  }
-
   async setActive(tabId: number, commentCount: number) {
     const badgeText = commentCount > 999 ? '999+' : commentCount.toString()
     await chrome.action.setBadgeText({ text: badgeText, tabId })

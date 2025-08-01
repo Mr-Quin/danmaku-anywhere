@@ -20,7 +20,7 @@ export class ExtStorageService<T> {
 
   constructor(
     private key: string | string[] | null,
-    private options: ExtStorageServiceOptions
+    options: ExtStorageServiceOptions
   ) {
     this.storage = chrome.storage[options.storageType ?? 'local']
   }

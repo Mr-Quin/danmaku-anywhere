@@ -16,12 +16,9 @@ import type { SeasonService } from '@/background/services/SeasonService'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProvider } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
-import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 
 export class TencentService {
   private logger: typeof Logger
-
-  private extensionOptionsService = extensionOptionsService
 
   constructor(
     private seasonService: SeasonService,
