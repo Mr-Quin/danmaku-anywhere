@@ -13,9 +13,12 @@ rulesRouter.get('/', async (c) => {
 rulesRouter.get('/file', async (c) => {
   const file = c.req.query('file')
   if (!file) {
-    return c.json({ message: 'File parameter is required', success: false }, { status: 400 })
+    return c.json(
+      { message: 'File parameter is required', success: false },
+      { status: 400 }
+    )
   }
-  
+
   return await fetch(
     `https://raw.githubusercontent.com/Predidit/KazumiRules/main/${file}`
   )

@@ -1,8 +1,8 @@
 import { factory } from '@/factory'
 import { tagService } from '@/middleware/tagService'
 import { ddpRouter } from './ddp/router'
-import { llmRouter } from './llm/router'
 import { kazumiRouter } from './kazumi/router'
+import { llmRouter } from './llm/router'
 
 export const api = factory.createApp()
 

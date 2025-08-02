@@ -40,7 +40,9 @@ describe('Kazumi Rules API', () => {
       .intercept({ path: '/Predidit/KazumiRules/main/test-rule.json' })
       .reply(200, JSON.stringify(mockRuleData))
 
-    const request = new Request(createTestUrl('/kazumi/rules/file?file=test-rule.json'))
+    const request = new Request(
+      createTestUrl('/kazumi/rules/file?file=test-rule.json')
+    )
     const response = await makeUnitTestRequest(request)
 
     expect(response.status).toBe(200)
