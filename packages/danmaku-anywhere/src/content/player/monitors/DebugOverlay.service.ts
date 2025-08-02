@@ -4,6 +4,7 @@ export class DebugOverlayService {
   private readonly DEBUG_PLUGIN_NAME = 'danmaku-stats'
 
   private isDebugEnabled = false
+  private isMounted = false
   private statsNode?: HTMLElement
 
   constructor(
@@ -32,8 +33,13 @@ export class DebugOverlayService {
   }
 
   mount() {
+    if (this.isMounted) {
+      this.unmount()
+    }
     const manager = this.renderer.manager
-    if (!manager || !this.isDebugEnabled) return
+    if (!manager || !this.isDebugEnabled) {
+      return
+    }
 
     const stats = document.createElement('div')
     stats.style.position = 'absolute'
@@ -72,6 +78,7 @@ export class DebugOverlayService {
     })
 
     update()
+    this.isMounted = true
   }
 
   unmount() {
@@ -86,5 +93,7 @@ export class DebugOverlayService {
       this.statsNode.remove()
       this.statsNode = undefined
     }
+
+    this.isMounted = false
   }
 }

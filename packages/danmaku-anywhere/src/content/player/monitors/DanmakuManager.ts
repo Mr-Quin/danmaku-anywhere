@@ -8,8 +8,8 @@ import { extensionOptionsService } from '@/common/options/extensionOptions/servi
 import { DanmakuComponent } from '@/content/player/components/DanmakuComponent'
 import { DebugOverlayService } from '@/content/player/monitors/DebugOverlay.service'
 import { RectObserver } from '@/content/player/monitors/RectObserver'
-import {
-  type VideoChangeListener,
+import type {
+  VideoChangeListener,
   VideoNodeObserver,
 } from '@/content/player/monitors/VideoNodeObserver'
 
@@ -27,6 +27,8 @@ interface DanmakuManagerEventCallback {
   danmakuMounted: (comments: CommentEntity[]) => void
   danmakuUnmounted: () => void
 }
+
+const logger = Logger.sub('[DanmakuManager]')
 
 export class DanmakuManager {
   private readonly renderer = new DanmakuRenderer((node, props) => {
@@ -50,7 +52,6 @@ export class DanmakuManager {
   private rect = new DOMRectReadOnly()
 
   // Observers
-  private videoNodeObs?: VideoNodeObserver
   private rectObs?: RectObserver
 
   private debugOverlayService: DebugOverlayService
@@ -72,10 +73,9 @@ export class DanmakuManager {
     DanmakuManagerEventCallback['danmakuUnmounted']
   >()
 
-  constructor(private logger = Logger) {
+  constructor(private videoNodeObs: VideoNodeObserver) {
     const { wrapper, container } = this.createContainers()
     this.nodes = { wrapper, container }
-    this.logger = logger.sub('[DanmakuManager]')
 
     this.debugOverlayService = new DebugOverlayService(
       this.renderer,
@@ -91,12 +91,18 @@ export class DanmakuManager {
   }
 
   start(videoSelector: string) {
-    this.logger.debug('Starting')
+    logger.debug('Starting')
 
-    this.videoNodeObs = new VideoNodeObserver(videoSelector, {
-      onVideoNodeChange: this.handleVideoNodeChange,
-      onVideoNodeRemove: this.handleVideoNodeRemove,
-    })
+    this.videoNodeObs.start(videoSelector)
+
+    this.videoNodeObs.addEventListener(
+      'videoNodeChange',
+      this.handleVideoNodeChange.bind(this)
+    )
+    this.videoNodeObs.addEventListener(
+      'videoNodeRemove',
+      this.handleVideoNodeRemove.bind(this)
+    )
   }
 
   private createContainers() {
@@ -145,6 +151,7 @@ export class DanmakuManager {
 
     if (this.hasComments) {
       this.createDanmaku()
+      this.debugOverlayService.mount()
     }
 
     this.videoChangeListeners.forEach((listener) => listener(video))
@@ -179,7 +186,7 @@ export class DanmakuManager {
     if (!this.video || !this.hasComments) return
 
     if (!this.isMounted) {
-      this.logger.debug('Mounting danmaku')
+      logger.debug('Mounting danmaku')
 
       this.attachContainer()
 
@@ -203,10 +210,11 @@ export class DanmakuManager {
     // Allow deferring the creation of danmaku
     // if video is not ready, danmaku will be created when video is ready
     if (this.video) {
+      logger.debug('Mounting danmaku')
       this.createDanmaku()
       this.debugOverlayService.mount()
     } else {
-      this.logger.debug('Video is not ready, waiting for video to be ready')
+      logger.debug('Video is not ready, waiting for video to be ready')
     }
   }
 
@@ -220,7 +228,7 @@ export class DanmakuManager {
       return
     }
 
-    this.logger.debug('Unmounting danmaku')
+    logger.debug('Unmounting danmaku')
     this.debugOverlayService.unmount()
     this.removeContainer()
     this.renderer.destroy()
@@ -269,11 +277,10 @@ export class DanmakuManager {
   }
 
   stop() {
-    this.logger.debug('Stopping')
+    logger.debug('Stopping')
 
     this.teardownObs()
-    this.videoNodeObs?.cleanup()
-    this.videoNodeObs = undefined
+    this.videoNodeObs.stop()
     this.debugOverlayService.unmount()
     this.unmount()
   }

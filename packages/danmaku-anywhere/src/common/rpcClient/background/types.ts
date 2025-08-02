@@ -63,6 +63,7 @@ export type BackgroundMethods = {
   episodeFilterLite: RPCDef<EpisodeQueryFilter, WithSeason<EpisodeLite>[]>
   episodeFilter: RPCDef<EpisodeQueryFilter, WithSeason<Episode>[]>
   episodeFetch: RPCDef<DanmakuFetchDto, WithSeason<Episode>>
+  episodePreloadNext: RPCDef<DanmakuFetchDto, void>
   episodeDelete: RPCDef<EpisodeQueryFilter, void>
   episodeFilterCustom: RPCDef<CustomEpisodeQueryFilter, CustomEpisode[]>
   episodeFilterCustomLite: RPCDef<CustomEpisodeQueryFilter, CustomEpisodeLite[]>
@@ -123,4 +124,5 @@ export type PlayerRelayEvents = {
   'relay:event:playerReady': RPCDef<InputWithFrameId<void>, void>
   'relay:event:videoChange': RPCDef<InputWithFrameId<void>, void>
   'relay:event:videoRemoved': RPCDef<InputWithFrameId<void>, void>
+  'relay:event:preloadNextEpisode': RPCDef<InputWithFrameId<void>, void>
 }

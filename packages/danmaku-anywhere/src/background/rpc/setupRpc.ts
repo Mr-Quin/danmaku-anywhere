@@ -112,6 +112,9 @@ export const setupRpc = (
       void invalidateContentScriptData(sender.tab?.id)
       return result
     },
+    episodePreloadNext: async (data, sender) => {
+      return await providerService.preloadNextEpisode(data)
+    },
     episodeImport: async (data, sender) => {
       const result = await danmakuService.import(data)
       void invalidateContentScriptData(sender.tab?.id)
@@ -275,6 +278,9 @@ export const setupRpc = (
     ),
     'relay:event:videoRemoved': passThrough(
       relayFrameClient['relay:event:videoRemoved']
+    ),
+    'relay:event:preloadNextEpisode': passThrough(
+      relayFrameClient['relay:event:preloadNextEpisode']
     ),
   })
 

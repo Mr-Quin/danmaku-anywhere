@@ -8,6 +8,8 @@ import {
 import type { PlayerRelayCommands } from '@/common/rpcClient/background/types'
 import { createPopoverRoot } from '@/content/common/createPopoverRoot'
 import { DanmakuManager } from '@/content/player/monitors/DanmakuManager'
+import { VideoEventService } from '@/content/player/monitors/VideoEvent.service'
+import { VideoNodeObserver } from '@/content/player/monitors/VideoNodeObserver'
 import { createPipWindow, moveElement } from '@/content/player/pipUtils'
 
 const { data: frameId } = await chromeRpcClient.getFrameId()
@@ -16,7 +18,10 @@ const Logger = _Logger.sub(`[Player-${frameId}]`)
 
 Logger.info('Player script loaded')
 
-const manager = new DanmakuManager(Logger)
+const videoNodeObserver = new VideoNodeObserver()
+const manager = new DanmakuManager(videoNodeObserver)
+const videoEventService = new VideoEventService(videoNodeObserver)
+
 const { shadowRoot } = createPopoverRoot('danmaku-anywhere-player')
 
 manager.setParent(shadowRoot)
@@ -98,18 +103,17 @@ const playerRpcServer = createRpcServer<PlayerRelayCommands>(
 /**
  * Lifecycle events
  */
-let timeout: NodeJS.Timeout
-
-manager.addEventListener('videoChange', () => {
-  clearTimeout(timeout)
+videoNodeObserver.addEventListener('videoNodeChange', () => {
   playerRpcClient.controller['relay:event:videoChange']({ frameId })
 })
 
-manager.addEventListener('videoRemoved', () => {
-  // Add a delay to prevent flickering when the video is removed then added again quickly
-  timeout = setTimeout(() => {
-    playerRpcClient.controller['relay:event:videoRemoved']({ frameId })
-  }, 1000)
+videoNodeObserver.addEventListener('videoNodeRemove', () => {
+  // This event is debounced
+  playerRpcClient.controller['relay:event:videoRemoved']({ frameId })
+})
+
+videoEventService.onTimeEvent(0.5, () => {
+  playerRpcClient.controller['relay:event:preloadNextEpisode']({ frameId })
 })
 
 /**

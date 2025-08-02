@@ -61,7 +61,7 @@ export class DanDanPlayService {
     return this.seasonService.bulkUpsert(seasons)
   }
 
-  async getBangumiDetails(bangumiId: string) {
+  async getSeason(bangumiId: string) {
     const bangumiDetails = await danDanPlay.getBangumiAnime(bangumiId)
 
     const seasonData: DanDanPlayOf<SeasonInsert> = {
@@ -87,14 +87,14 @@ export class DanDanPlayService {
     }
   }
 
-  async getAnimeDetails(
+  async getEpisodes(
     seasonId: number
   ): Promise<WithSeason<DanDanPlayOf<EpisodeMeta>>[]> {
     this.logger.debug('Getting DanDanPlay episodes', seasonId)
     const season = await this.seasonService.mustGetById(seasonId)
     assertProvider(season, DanmakuSourceType.DanDanPlay)
 
-    const { bangumiDetails } = await this.getBangumiDetails(
+    const { bangumiDetails } = await this.getSeason(
       season.providerIds.bangumiId
     )
 
@@ -117,11 +117,7 @@ export class DanDanPlayService {
     })
   }
 
-  computeEpisodeId(animeId: number, episodeNumber: number) {
-    return animeId * 10000 + episodeNumber
-  }
-
-  async saveEpisode(
+  async getEpisodeDanmaku(
     meta: DanDanPlayOf<EpisodeMeta>,
     season: DanDanPlayOf<Season>,
     params: Partial<danDanPlay.GetCommentQuery> = {}
@@ -136,7 +132,27 @@ export class DanDanPlayService {
     })
   }
 
-  async getDanmaku(
+  async getNextEpisodeDanmaku(
+    meta: DanDanPlayOf<EpisodeMeta>,
+    season: DanDanPlayOf<Season>,
+    params: Partial<danDanPlay.GetCommentQuery> = {}
+  ) {
+    const nextEpisodeId = meta.providerIds.episodeId + 1
+
+    const episodes = await this.getEpisodes(season.id)
+    const nextEpisode = episodes.find(
+      (e) => e.providerIds.episodeId === nextEpisodeId
+    )
+
+    if (!nextEpisode) {
+      this.logger.debug('Next episode not found', nextEpisodeId)
+      return null
+    }
+
+    return this.getEpisodeDanmaku(nextEpisode, season, params)
+  }
+
+  private async getDanmaku(
     meta: DanDanPlayOf<EpisodeMeta>,
     season: DanDanPlayOf<Season>,
     params: Partial<danDanPlay.GetCommentQuery> = {}
@@ -147,7 +163,7 @@ export class DanDanPlayService {
   }> {
     const findEpisode = async (bangumiId: string, episodeId: number) => {
       const [result, err] = await tryCatch(async () =>
-        this.getBangumiDetails(bangumiId)
+        this.getSeason(bangumiId)
       )
 
       if (err) {
@@ -233,5 +249,9 @@ export class DanDanPlayService {
     this.logger.debug('Renewing token')
 
     return danDanPlay.loginRenewToken()
+  }
+
+  computeEpisodeId(animeId: number, episodeNumber: number) {
+    return animeId * 10000 + episodeNumber
   }
 }

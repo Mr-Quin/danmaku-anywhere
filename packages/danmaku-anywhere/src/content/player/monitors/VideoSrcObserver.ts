@@ -3,12 +3,10 @@ type VideoSrcChangeListener = (src: string, video: HTMLVideoElement) => void
 export class VideoSrcObserver {
   private videoNode: HTMLVideoElement | null = null
   private currentSrc = ''
-  private srcChangeListeners: Set<VideoSrcChangeListener>
+  private srcChangeListeners = new Set<VideoSrcChangeListener>()
   private observer: MutationObserver
 
   constructor() {
-    this.srcChangeListeners = new Set()
-
     this.observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         if (mutation.type !== 'attributes') continue
