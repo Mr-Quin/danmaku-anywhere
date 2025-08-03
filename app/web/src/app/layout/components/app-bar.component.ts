@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
 import { RouterLink } from '@angular/router'
 import { FaIconComponent } from '@fortawesome/angular-fontawesome'
 import { faGithub } from '@fortawesome/free-brands-svg-icons'
-import { Button, ButtonDirective } from 'primeng/button'
+import { ButtonDirective } from 'primeng/button'
 import { Tag } from 'primeng/tag'
 import { GITHUB_REPO_URL, PAGE_TITLE } from '../../shared/constants'
 import { DocMigrationBanner } from './doc-migration-banner.component'
@@ -21,7 +21,6 @@ import { FeedbackFormButton } from './feedback-form-button.component'
     ButtonDirective,
     DocMigrationBanner,
     ExtensionUpdateBanner,
-    Button,
     FeedbackFormButton,
   ],
   host: {

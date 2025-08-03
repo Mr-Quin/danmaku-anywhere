@@ -1,4 +1,4 @@
-export const API_ROOT = 'https://danmaku.weeblify.app/proxy'
+export const API_ROOT = 'https://api.danmaku.weeblify.app'
 
 interface ApiStore {
   baseUrl: string

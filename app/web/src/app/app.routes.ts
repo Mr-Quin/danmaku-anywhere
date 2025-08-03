@@ -96,7 +96,7 @@ export const routes: Routes = [
       import('./features/onboarding/pages/onboarding-page').then(
         (m) => m.OnboardingPage
       ),
-    canActivate: [noOnboarding],
+    canActivate: [noOnboarding, hasExtension],
     data: { hideNavigation: true } satisfies RouteData,
   },
   {

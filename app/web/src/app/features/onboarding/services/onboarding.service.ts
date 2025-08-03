@@ -16,26 +16,35 @@ export class OnboardingService {
   private readonly $_acceptedPolicy = signal(
     !!localStorage.getItem(ACCEPTED_POLICY_KEY)
   )
-  readonly $acceptedPolicy = this.$_acceptedPolicy.asReadonly()
 
   readonly $isOnboardingComplete = computed(() => {
     return this.$_acceptedPolicy()
   })
 
+  readonly $onboardingStatus =
+    this.kazumiService.addRecommendedPolicyMutation.status
+
   async acceptKazumiPolicyAndInstallRecommended(): Promise<void> {
-    try {
-      await this.kazumiService.addRecommendedPolicyMutation.mutateAsync()
-
-      this.acceptPolicy()
-
-      await this.router.navigate([''], { replaceUrl: true })
-    } catch (_) {
-      this.messageService.add({
-        severity: 'error',
-        detail: '添加规则失败',
-        life: 3000,
-      })
-    }
+    this.kazumiService.addRecommendedPolicyMutation.mutate(undefined, {
+      onError: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          detail: `添加初始规则失败: ${error.message}`,
+          life: 3000,
+        })
+      },
+      onSuccess: () => {
+        this.messageService.add({
+          severity: 'success',
+          detail: '初始设置成功！',
+          life: 3000,
+        })
+      },
+      onSettled: () => {
+        this.acceptPolicy()
+        void this.router.navigate([''], { replaceUrl: true })
+      },
+    })
   }
 
   private acceptPolicy() {
