@@ -33,7 +33,7 @@
       "vars": {
         "ENVIRONMENT": "staging",
         "DANDANPLAY_API_HOST": "https://api.dandanplay.net",
-        "ALLOWED_ORIGIN": "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app",
+        "ALLOWED_ORIGIN": "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app,http://localhost:4200",
         "DANDANPLAY_APP_ID": "64fw9qcpfb"
       },
       "version_metadata": {
