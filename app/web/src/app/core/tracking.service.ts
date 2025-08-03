@@ -59,9 +59,13 @@ export class TrackingService {
     Clarity.identify(userId)
   }
 
-  track(key: string, value: string) {
+  tag(key: string, value: string) {
     this.agent.setCustomAttribute(key, value)
     Clarity.setTag(key, value)
+  }
+
+  track(key: string, data?: object) {
+    this.agent.recordCustomEvent(key, data)
   }
 
   cookieConsent(consent: boolean) {
@@ -71,6 +75,6 @@ export class TrackingService {
   init() {
     this.agent.start()
     Clarity.init(environment.clarityId)
-    this.track('env', environment.name)
+    this.tag('env', environment.name)
   }
 }

@@ -26,7 +26,7 @@ import { UpdateBanner } from './update-banner.component'
     Settings,
   ],
   template: `
-    <p-toast position="top-left" />
+    <p-toast position="bottom-center" />
     <da-update-banner></da-update-banner>
     <da-cookie-consent-footer></da-cookie-consent-footer>
 

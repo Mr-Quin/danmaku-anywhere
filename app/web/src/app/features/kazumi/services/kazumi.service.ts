@@ -31,6 +31,7 @@ import {
 import { ExtensionMessagingService } from '../../../core/extension/extension-messaging.service'
 import { queryKeys } from '../../../shared/query/queryKeys'
 import { sortArrayByOrder } from '../../../shared/utils/utils'
+import { withTimeout } from '../../../shared/utils/withTimeout'
 
 interface Setting<T> {
   key: string
@@ -141,7 +142,7 @@ export class KazumiService {
 
   readonly manifestsQuery = injectQuery(() => {
     return {
-      queryFn: () => getManifest(),
+      queryFn: () => withTimeout(getManifest(), 5000),
       queryKey: queryKeys.kazumi.manifest.all(),
     }
   })
@@ -159,7 +160,7 @@ export class KazumiService {
   readonly addPolicyMutation = injectMutation(() => ({
     mutationKey: queryKeys.kazumi.local.all(),
     mutationFn: async (name: string) => {
-      const policy = await getPolicy(name)
+      const policy = await withTimeout(getPolicy(`${name}.json`), 5000)
 
       await this.db.transaction(
         'rw',
@@ -174,7 +175,7 @@ export class KazumiService {
           if (!isExisting) {
             const orderSetting = this.orderQuery.data()
             const newOrder = [...(orderSetting ?? []), name]
-            await this.updatePolicyOrderMutation.mutate(newOrder)
+            this.updatePolicyOrderMutation.mutate(newOrder)
           }
         }
       )
@@ -205,7 +206,7 @@ export class KazumiService {
           // if an order is set, remove the deleted policy's name from it
           if (orderSetting) {
             const newOrder = orderSetting.filter((pName) => pName !== name)
-            await this.updatePolicyOrderMutation.mutate(newOrder)
+            this.updatePolicyOrderMutation.mutate(newOrder)
           }
         }
       )
@@ -216,18 +217,17 @@ export class KazumiService {
   readonly addRecommendedPolicyMutation = injectMutation(() => ({
     mutationKey: queryKeys.kazumi.local.all(),
     mutationFn: async () => {
-      if (!this.manifestsQuery.isSuccess()) {
-        return
-      }
+      const manifest = await this.manifestsQuery.promise()
 
-      const manifest = this.manifestsQuery.data()
       const recommendedKeys = ['dlma', '7sefun', 'ffdm', 'yinghua']
 
-      for (const policy of manifest.filter((m) =>
-        recommendedKeys.includes(m.name)
-      )) {
-        await this.addPolicyMutation.mutateAsync(policy.name)
-      }
+      await Promise.allSettled(
+        manifest
+          .filter((m) => recommendedKeys.includes(m.name))
+          .map((policy) => {
+            return this.addPolicyMutation.mutateAsync(policy.name)
+          })
+      )
     },
   }))
 

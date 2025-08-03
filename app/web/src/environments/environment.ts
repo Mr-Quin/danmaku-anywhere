@@ -4,4 +4,5 @@ export const environment: AppEnvironment = {
   name: 'production',
   production: true,
   clarityId: 's8zgeod7h4',
+  apiRoot: 'https://api.danmaku.weeblify.app',
 }

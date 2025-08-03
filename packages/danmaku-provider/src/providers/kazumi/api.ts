@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { getApiStore } from '../../shared/store.js'
 import { fetchData } from '../utils/fetchData.js'
 import {
   type KazumaManifest,
@@ -8,19 +9,22 @@ import {
 } from './schema.js'
 
 export const getManifest = async (): Promise<KazumaManifest[]> => {
-  const res = await fetchData({
-    url: 'https://raw.githubusercontent.com/Predidit/KazumiRules/main/index.json',
+  const store = getApiStore()
+
+  return await fetchData({
+    url: `${store.baseUrl}/kazumi/rules`,
     responseSchema: z.array(zKazumaManifest),
   })
-
-  return res
 }
 
-export const getPolicy = async (id: string): Promise<KazumiPolicy> => {
-  const res = await fetchData({
-    url: `https://raw.githubusercontent.com/Predidit/KazumiRules/main/${id}.json`,
+export const getPolicy = async (fileName: string): Promise<KazumiPolicy> => {
+  const store = getApiStore()
+
+  return await fetchData({
+    url: `${store.baseUrl}/kazumi/rules/file`,
+    query: {
+      file: `${fileName}`,
+    },
     responseSchema: zKazumiPolicy,
   })
-
-  return res
 }
