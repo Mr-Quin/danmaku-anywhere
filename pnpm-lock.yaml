@@ -76,9 +76,6 @@ importers:
       '@fortawesome/free-brands-svg-icons':
         specifier: ^6.7.2
         version: 6.7.2
-      '@microsoft/clarity':
-        specifier: ^1.0.0
-        version: 1.0.0
       '@newrelic/browser-agent':
         specifier: ^1.294.0
         version: 1.294.0
@@ -1713,9 +1710,6 @@ packages:
 
   '@mdn/browser-compat-data@6.0.32':
     resolution: {integrity: sha512-XXZ0RbkrIw8mr71WbVYmtZk+zWYutS71+/8/E+gyPE3yt/ZNiW4UU5/NcrpgLO4NfIB+VBuWhPzSN6Pb1VxAWA==}
-
-  '@microsoft/clarity@1.0.0':
-    resolution: {integrity: sha512-2QY6SmXnqRj6dWhNY8NYCN3e53j4zCFebH4wGnNhdGV1mqAsQwql2fT0w8TISxCvwwfVp8idsWLIdrRHOms1PQ==}
 
   '@modelcontextprotocol/sdk@1.13.3':
     resolution: {integrity: sha512-bGwA78F/U5G2jrnsdRkPY3IwIwZeWUEfb5o764b79lb0rJmMT76TLwKhdNZOWakOQtedYefwIR4emisEMvInKA==}
@@ -7879,8 +7873,6 @@ snapshots:
     optional: true
 
   '@mdn/browser-compat-data@6.0.32': {}
-
-  '@microsoft/clarity@1.0.0': {}
 
   '@modelcontextprotocol/sdk@1.13.3':
     dependencies:

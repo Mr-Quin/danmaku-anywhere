@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core'
-import Clarity from '@microsoft/clarity'
 import type { AgentOptions } from '@newrelic/browser-agent/loaders/agent'
 import { BrowserAgent } from '@newrelic/browser-agent/loaders/browser-agent'
 import { environment } from '../../environments/environment'
@@ -56,25 +55,18 @@ export class TrackingService {
 
   identify(userId: string) {
     this.agent.setUserId(userId)
-    Clarity.identify(userId)
   }
 
   tag(key: string, value: string) {
     this.agent.setCustomAttribute(key, value)
-    Clarity.setTag(key, value)
   }
 
   track(key: string, data?: object) {
     this.agent.recordCustomEvent(key, data)
   }
 
-  cookieConsent(consent: boolean) {
-    Clarity.consent(consent)
-  }
-
   init() {
     this.agent.start()
-    Clarity.init(environment.clarityId)
     this.tag('env', environment.name)
   }
 }

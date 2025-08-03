@@ -7,7 +7,6 @@ import { UpdateService } from '../../core/update/update.service'
 import { Settings } from '../../features/settings/settings.component'
 import { AppBar } from './app-bar.component'
 import { AppFooter } from './app-footer.component'
-import { CookieConsentFooter } from './cookie-consent-footer.component'
 import { AppSidebar } from './sidebar.component'
 import { UpdateBanner } from './update-banner.component'
 
@@ -17,7 +16,6 @@ import { UpdateBanner } from './update-banner.component'
   imports: [
     AppBar,
     RouterOutlet,
-    CookieConsentFooter,
     AppFooter,
     Toast,
     UpdateBanner,
@@ -28,7 +26,6 @@ import { UpdateBanner } from './update-banner.component'
   template: `
     <p-toast position="bottom-center" />
     <da-update-banner></da-update-banner>
-    <da-cookie-consent-footer></da-cookie-consent-footer>
 
     <div class="flex flex-col min-h-screen">
       <da-app-bar></da-app-bar>
