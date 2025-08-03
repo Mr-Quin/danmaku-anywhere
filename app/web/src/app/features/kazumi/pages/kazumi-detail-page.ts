@@ -23,6 +23,7 @@ import { Select } from 'primeng/select'
 import { Skeleton } from 'primeng/skeleton'
 import { Tag } from 'primeng/tag'
 import { defer, type Subscription, tap } from 'rxjs'
+import { TrackingService } from '../../../core/tracking.service'
 import { VideoPlayer } from '../../../core/video-player/video-player'
 import { MaterialIcon } from '../../../shared/components/material-icon'
 import { UnescapePipePipe } from '../../../shared/pipes/UrlDecodePipe'
@@ -234,15 +235,16 @@ export class KazumiDetailPage {
   private bangumiService = inject(BangumiService)
   private router = inject(Router)
   private route = inject(ActivatedRoute)
+  private readonly trackingService = inject(TrackingService)
 
   // query params
-  id = input<number>()
-  type = input<string>()
-  q = input<string>()
-  url = input<string>()
-  policyName = input<string>()
-  p = input<number>()
-  e = input<number>()
+  readonly id = input<number>()
+  readonly type = input<string>()
+  readonly q = input<string>()
+  readonly url = input<string>()
+  readonly policyName = input<string>()
+  readonly p = input<number>()
+  readonly e = input<number>()
 
   protected $policy = computed(() => {
     const policyName = this.policyName()
@@ -438,6 +440,9 @@ export class KazumiDetailPage {
   }
 
   protected changeEpisode(episode: Episode) {
+    this.trackingService.track('changeEpisode', {
+      episode,
+    })
     this.$selectedEpisode.set(episode)
     this.$isVideoUrlLoading.set(true)
     this.$isVideoUrlError.set(false)
@@ -457,6 +462,7 @@ export class KazumiDetailPage {
   }
 
   protected onPreviousEpisode() {
+    this.trackingService.track('goToPreviousEpisode')
     const currentIndex = this.$currentEpisodeIndex()
     const playlist = this.$playlist()
     if (currentIndex > 0) {
@@ -466,6 +472,7 @@ export class KazumiDetailPage {
   }
 
   protected onNextEpisode() {
+    this.trackingService.track('goToNextEpisode')
     const currentIndex = this.$currentEpisodeIndex()
     const playlist = this.$playlist()
     if (currentIndex >= 0 && currentIndex < playlist.length - 1) {
@@ -484,6 +491,11 @@ export class KazumiDetailPage {
     this.mediaSubscription = defer(() => {
       return this.kazumiService.getMediaInfoStream(url).pipe(
         tap((mediaInfo) => {
+          this.trackingService.track('fetchMediaInfo', {
+            mediaInfo,
+            episode: this.$selectedEpisode(),
+            show: this.$searchDetails(),
+          })
           // if no video is available yet, set it to the first one found
           if (mediaInfo[0] && !this.$videoUrl()) {
             this.$videoUrl.set(mediaInfo[0].src)

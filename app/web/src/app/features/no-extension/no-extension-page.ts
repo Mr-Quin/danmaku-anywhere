@@ -5,6 +5,7 @@ import { faChrome, faFirefoxBrowser } from '@fortawesome/free-brands-svg-icons'
 import { Button, ButtonDirective } from 'primeng/button'
 import { UAParser } from 'ua-parser-js'
 import { isChromeFamily } from 'ua-parser-js/helpers'
+import { TrackingService } from '../../core/tracking.service'
 import {
   CHROME_STORE_URL,
   FIREFOX_STORE_URL,
@@ -24,12 +25,12 @@ import { ExternalLinkDirective } from '../../shared/directives/external-link.dir
         <h1 class="text-2xl font-bold mb-4">此应用需要Danmaku Anywhere扩展v1.1.0或以上版本</h1>
         <p-button class="hidden"></p-button>
         @if (isChromium) {
-          <a pButton target="_blank" [href]="chromeStoreUrl">
+          <a pButton target="_blank" [href]="chromeStoreUrl" (click)="onDownloadClick('chrome')">
             安装Chrome扩展
             <fa-icon [icon]="chrome" />
           </a>
         } @else if (isFirefox) {
-          <a pButton target="_blank" [href]="firefoxStoreUrl">
+          <a pButton target="_blank" [href]="firefoxStoreUrl" (click)="onDownloadClick('firefox')">
             安装Firefox扩展
             <fa-icon [icon]="firefox" />
           </a>
@@ -44,6 +45,7 @@ import { ExternalLinkDirective } from '../../shared/directives/external-link.dir
   `,
 })
 export class NoExtensionPage {
+  private trackingService = inject(TrackingService)
   private platform = inject(Platform)
   private ua = UAParser(navigator.userAgent)
   protected chrome = faChrome
@@ -58,4 +60,11 @@ export class NoExtensionPage {
     this.ua.browser.name?.toLowerCase().includes('firefox') ?? false
 
   protected isMobile = this.platform.IOS || this.platform.ANDROID
+
+  protected onDownloadClick(target: string) {
+    this.trackingService.track('clickDownloadExtension', {
+      browser: this.ua.browser.name,
+      target,
+    })
+  }
 }
