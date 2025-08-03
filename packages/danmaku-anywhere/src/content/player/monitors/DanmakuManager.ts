@@ -8,25 +8,7 @@ import { extensionOptionsService } from '@/common/options/extensionOptions/servi
 import { DanmakuComponent } from '@/content/player/components/DanmakuComponent'
 import { DebugOverlayService } from '@/content/player/monitors/DebugOverlay.service'
 import { RectObserver } from '@/content/player/monitors/RectObserver'
-import type {
-  VideoChangeListener,
-  VideoNodeObserver,
-} from '@/content/player/monitors/VideoNodeObserver'
-
-type DanmakuManagerEvents =
-  | 'videoChange'
-  | 'videoRemoved'
-  | 'rectChange'
-  | 'danmakuMounted'
-  | 'danmakuUnmounted'
-
-interface DanmakuManagerEventCallback {
-  videoChange: VideoChangeListener
-  videoRemoved: VideoChangeListener
-  rectChange: (rect: DOMRectReadOnly) => void
-  danmakuMounted: (comments: CommentEntity[]) => void
-  danmakuUnmounted: () => void
-}
+import type { VideoNodeObserver } from '@/content/player/monitors/VideoNodeObserver'
 
 const logger = Logger.sub('[DanmakuManager]')
 
@@ -55,23 +37,6 @@ export class DanmakuManager {
   private rectObs?: RectObserver
 
   private debugOverlayService: DebugOverlayService
-
-  // Listeners
-  private rectChangeListeners = new Set<
-    DanmakuManagerEventCallback['rectChange']
-  >()
-  private videoChangeListeners = new Set<
-    DanmakuManagerEventCallback['videoChange']
-  >()
-  private videoRemovedListeners = new Set<
-    DanmakuManagerEventCallback['videoChange']
-  >()
-  private danmakuMountedListeners = new Set<
-    DanmakuManagerEventCallback['danmakuMounted']
-  >()
-  private danmakuUnmountedListeners = new Set<
-    DanmakuManagerEventCallback['danmakuUnmounted']
-  >()
 
   constructor(private videoNodeObs: VideoNodeObserver) {
     const { wrapper, container } = this.createContainers()
@@ -153,8 +118,6 @@ export class DanmakuManager {
       this.createDanmaku()
       this.debugOverlayService.mount()
     }
-
-    this.videoChangeListeners.forEach((listener) => listener(video))
   }
 
   private handleVideoNodeRemove = (prev: HTMLVideoElement) => {
@@ -162,17 +125,12 @@ export class DanmakuManager {
     this.teardownObs()
     this.unmount()
     this.nodes.wrapper.style.visibility = 'hidden'
-
-    this.videoRemovedListeners.forEach((listener) => listener(prev))
   }
 
   private handleRectChange = (rect: DOMRectReadOnly, notify = true) => {
     this.rect = rect
     this.updateContainerStyles()
     this.renderer.resize()
-    if (notify) {
-      this.rectChangeListeners.forEach((listener) => listener(rect))
-    }
   }
 
   private updateContainerStyles() {
@@ -192,9 +150,6 @@ export class DanmakuManager {
 
       this.renderer.create(this.nodes.container, this.video, this.comments)
       this.isMounted = true
-      this.danmakuMountedListeners.forEach((listener) =>
-        listener(this.comments)
-      )
     } else {
       // recreate danmaku if it's already mounted
       // this fixes an issue where danmaku can get "stuck" on the screen
@@ -234,7 +189,6 @@ export class DanmakuManager {
     this.renderer.destroy()
     this.comments = []
     this.hasComments = false
-    this.danmakuUnmountedListeners.forEach((listener) => listener())
     this.isMounted = false
   }
 
@@ -283,66 +237,5 @@ export class DanmakuManager {
     this.videoNodeObs.stop()
     this.debugOverlayService.unmount()
     this.unmount()
-  }
-
-  // Events
-  addEventListener<K extends DanmakuManagerEvents>(
-    event: K,
-    callback: DanmakuManagerEventCallback[K]
-  ) {
-    switch (event) {
-      case 'videoChange':
-        this.videoChangeListeners.add(callback as VideoChangeListener)
-        break
-      case 'videoRemoved':
-        this.videoRemovedListeners.add(callback as VideoChangeListener)
-        break
-      case 'rectChange':
-        this.rectChangeListeners.add(
-          callback as (rect: DOMRectReadOnly) => void
-        )
-        break
-      case 'danmakuMounted':
-        this.danmakuMountedListeners.add(
-          callback as (comments: CommentEntity[]) => void
-        )
-        break
-      case 'danmakuUnmounted':
-        this.danmakuUnmountedListeners.add(callback as () => void)
-        break
-    }
-  }
-
-  removeEventListener<K extends DanmakuManagerEvents>(
-    event: K,
-    callback: DanmakuManagerEventCallback[K]
-  ) {
-    switch (event) {
-      case 'videoChange':
-        this.videoChangeListeners.delete(
-          callback as DanmakuManagerEventCallback['videoChange']
-        )
-        break
-      case 'videoRemoved':
-        this.videoRemovedListeners.delete(
-          callback as DanmakuManagerEventCallback['videoChange']
-        )
-        break
-      case 'rectChange':
-        this.rectChangeListeners.delete(
-          callback as DanmakuManagerEventCallback['rectChange']
-        )
-        break
-      case 'danmakuMounted':
-        this.danmakuMountedListeners.delete(
-          callback as DanmakuManagerEventCallback['danmakuMounted']
-        )
-        break
-      case 'danmakuUnmounted':
-        this.danmakuUnmountedListeners.delete(
-          callback as DanmakuManagerEventCallback['danmakuUnmounted']
-        )
-        break
-    }
   }
 }
