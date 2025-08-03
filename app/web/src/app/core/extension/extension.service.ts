@@ -44,7 +44,7 @@ export class ExtensionService {
 
       if (version) {
         console.log('Extension version:', version)
-        this.trackingService.track('extensionVersion', version)
+        this.trackingService.tag('extensionVersion', version)
         this.$_version.set(version)
         this.$_isLoading.set(false)
         clearInterval(interval)

@@ -1,6 +1,7 @@
 import { computed, Injectable, inject, signal } from '@angular/core'
 import { Router } from '@angular/router'
 import { MessageService } from 'primeng/api'
+import { TrackingService } from '../../../core/tracking.service'
 import { KazumiService } from '../../kazumi/services/kazumi.service'
 
 const ACCEPTED_POLICY_KEY = 'accepted-policy'
@@ -9,6 +10,7 @@ const ACCEPTED_POLICY_KEY = 'accepted-policy'
   providedIn: 'root',
 })
 export class OnboardingService {
+  private trackingService = inject(TrackingService)
   private readonly kazumiService = inject(KazumiService)
   private readonly router = inject(Router)
   protected messageService = inject(MessageService)
@@ -27,6 +29,10 @@ export class OnboardingService {
   async acceptKazumiPolicyAndInstallRecommended(): Promise<void> {
     this.kazumiService.addRecommendedPolicyMutation.mutate(undefined, {
       onError: (error) => {
+        this.trackingService.track('onboarding_finish', {
+          success: false,
+          error: error.message,
+        })
         this.messageService.add({
           severity: 'error',
           detail: `添加初始规则失败: ${error.message}`,
@@ -34,6 +40,7 @@ export class OnboardingService {
         })
       },
       onSuccess: () => {
+        this.trackingService.track('onboarding_finish', { success: true })
         this.messageService.add({
           severity: 'success',
           detail: '初始设置成功！',
