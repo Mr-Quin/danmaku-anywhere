@@ -1,6 +1,5 @@
-import type { GenericEpisode } from '@danmaku-anywhere/danmaku-converter'
 import { useEventCallback } from '@mui/material'
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { Logger } from '@/common/Logger'
@@ -8,9 +7,10 @@ import { createRpcServer } from '@/common/rpc/server'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type { PlayerRelayEvents } from '@/common/rpcClient/background/types'
 import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
-import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { useInjectFrames } from '@/content/controller/danmaku/frame/useInjectFrames'
+import { useMigrateDanmaku } from '@/content/controller/danmaku/frame/useMigrateDanmaku'
+import { usePreloadNextEpisode } from '@/content/controller/danmaku/frame/usePreloadNextEpisode'
 import { useStore } from '@/content/controller/store/store'
 
 export const FrameManager = () => {
@@ -19,18 +19,14 @@ export const FrameManager = () => {
 
   const config = useActiveConfig()
 
-  const { episodes } = useStore.use.danmaku()
-
   const setVideoId = useStore.use.setVideoId()
-  const { allFrames, activeFrame, setActiveFrame, updateFrame } =
-    useStore.use.frame()
+  const { activeFrame, setActiveFrame, updateFrame } = useStore.use.frame()
 
-  const prevActiveFrameId = useRef<number>(activeFrame?.frameId)
-
-  const { mountDanmaku } = useLoadDanmaku()
   const unmountDanmaku = useUnmountDanmaku()
+  const { preloadNext, canLoadNext } = usePreloadNextEpisode()
 
   useInjectFrames()
+  useMigrateDanmaku()
 
   const videoChangeHandler = useEventCallback((frameId: number) => {
     setVideoId(`${frameId}-${Date.now()}`)
@@ -61,35 +57,16 @@ export const FrameManager = () => {
     updateFrame(frameId, { hasVideo: false, mounted: false })
   })
 
-  useEffect(() => {
-    if (!activeFrame) {
-      prevActiveFrameId.current = undefined
+  const handlePreloadNext = useEventCallback((frameId: number) => {
+    if (frameId !== activeFrame?.frameId || !canLoadNext()) {
       return
     }
-
-    if (activeFrame.frameId === prevActiveFrameId.current) return
-
-    /**
-     * If the active frame changes, "migrate" danmaku to the new frame if there are comments
-     *
-     * If the previous active frame is mounted, unmount the danmaku,
-     * then mount it to the new active frame
-     */
-    if (
-      prevActiveFrameId.current &&
-      allFrames.get(prevActiveFrameId.current)?.mounted
-    ) {
-      unmountDanmaku.mutate(prevActiveFrameId.current)
-    }
-
-    if (episodes && episodes.length > 0) {
-      if ('comments' in episodes[0]) {
-        void mountDanmaku(episodes as GenericEpisode[])
-      }
-    }
-
-    prevActiveFrameId.current = activeFrame.frameId
-  }, [activeFrame])
+    preloadNext.mutate(undefined, {
+      onError: (err) => {
+        toast.error('Failed to preload next episode: ' + err.message)
+      },
+    })
+  })
 
   useEffect(() => {
     const controllerRpcServer = createRpcServer<PlayerRelayEvents>(
@@ -106,6 +83,9 @@ export const FrameManager = () => {
         },
         'relay:event:videoRemoved': async ({ frameId }) => {
           videoRemovedHandler(frameId)
+        },
+        'relay:event:preloadNextEpisode': async ({ frameId }) => {
+          handlePreloadNext(frameId)
         },
       },
       { logger: Logger.sub('[Controller]') }

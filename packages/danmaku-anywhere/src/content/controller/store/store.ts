@@ -11,7 +11,7 @@ import type { MediaInfo } from '@/content/controller/danmaku/integration/models/
 
 enableMapSet()
 
-interface FrameState {
+export interface FrameState {
   frameId: number
   documentId: string
   // The url of the frame
@@ -54,7 +54,7 @@ interface StoreState {
     comments: CommentEntity[]
 
     /**
-     * Information about the current danmaku
+     * Information about the current danmaku. This is an array since multiple episodes can be mounted at once.
      */
     episodes?: GenericEpisode[]
     setEpisodes: (episodes: GenericEpisode[] | undefined) => void

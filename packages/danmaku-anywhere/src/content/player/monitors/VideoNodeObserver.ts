@@ -9,50 +9,32 @@ const isElement = (node: Node): node is HTMLElement =>
 
 export type VideoChangeListener = (video: HTMLVideoElement) => void
 
-interface VideoNodeObserverOptions {
-  onVideoNodeChange?: VideoChangeListener
-  onVideoNodeRemove?: VideoChangeListener
-}
+export type VideoNodeObserverEvent = 'videoNodeChange' | 'videoNodeRemove'
 
 export class VideoNodeObserver {
   private videoStack: HTMLVideoElement[] = []
   private videoListeners = new WeakMap<HTMLVideoElement, () => void>()
   private activeVideoElement: HTMLVideoElement | null = null
+
   private rootObs: MutationObserver
   private srcObs = new VideoSrcObserver()
 
-  private videoChangeListeners = new Set<VideoChangeListener>()
-  private videoRemovedListeners = new Set<VideoChangeListener>()
+  private selector = 'video'
 
-  constructor(selector: string, options: VideoNodeObserverOptions = {}) {
-    const { onVideoNodeChange, onVideoNodeRemove } = options
-    if (onVideoNodeChange) {
-      this.srcObs.onSrcChange((_src, video) => onVideoNodeChange(video))
-      this.videoChangeListeners.add(onVideoNodeChange)
-    }
-    if (onVideoNodeRemove) this.videoRemovedListeners.add(onVideoNodeRemove)
+  private eventMap = new Map<VideoNodeObserverEvent, Set<VideoChangeListener>>()
+  private eventLastEmitted = new Map<VideoNodeObserverEvent, number>()
+  private videoNodeRemovedTimeout: NodeJS.Timeout | null = null
 
-    const [current, err] = tryCatchSync<HTMLVideoElement | null>(() =>
-      document.querySelector(selector)
-    )
-
-    if (err) {
-      throw new Error(`Error selecting video element: ${err.message}`)
-    }
-
-    if (current) {
-      this.handleVideoNodeAdded(current)
-    }
-
+  constructor() {
     this.rootObs = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         for (const node of mutation.addedNodes) {
           if (isVideoElement(node)) {
-            if (node.matches(selector)) {
+            if (node.matches(this.selector)) {
               this.handleVideoNodeAdded(node)
             }
           } else if (isElement(node)) {
-            const videoElements = node.querySelectorAll(selector)
+            const videoElements = node.querySelectorAll(this.selector)
             videoElements.forEach((video) => {
               this.handleVideoNodeAdded(video as HTMLVideoElement)
             })
@@ -78,11 +60,8 @@ export class VideoNodeObserver {
       }
     })
 
-    this.rootObs.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['class', 'id'],
+    this.srcObs.onSrcChange((_, video) => {
+      this.emitEvent('videoNodeChange', video)
     })
   }
 
@@ -120,14 +99,13 @@ export class VideoNodeObserver {
     // Emit video removed event if the video changed from a non-null value to null
     if (video === null) {
       if (prevVideo) {
-        this.videoRemovedListeners.forEach((listener) => {
-          listener(prevVideo)
-        })
+        this.emitEvent('videoNodeRemove', prevVideo)
       }
     } else {
       // Emit video change event if the video changed to a non-null value
-      // this.srcObs.observe(video)
-      this.videoChangeListeners.forEach((listener) => listener(video))
+      this.emitEvent('videoNodeChange', video)
+      // Move observer to the new video element
+      this.srcObs.observe(video)
     }
   }
 
@@ -165,15 +143,83 @@ export class VideoNodeObserver {
     }
   }
 
+  private emitEvent(event: VideoNodeObserverEvent, video: HTMLVideoElement) {
+    const lastEmitted = this.eventLastEmitted.get(event) || 0
+    const now = Date.now()
+
+    // Throttle events to avoid excessive calls
+    if (now - lastEmitted < 100) return
+
+    if (event === 'videoNodeRemove') {
+      // Debounce the videoNodeRemove event to allow for potential re-adding of the node
+      // This event is only called if it's the last event, and no other events are emitted within a short time
+      this.videoNodeRemovedTimeout = setTimeout(() => {
+        this.eventLastEmitted.set(event, now)
+        this.eventMap.get(event)?.forEach((listener) => listener(video))
+      }, 500)
+    } else {
+      if (this.videoNodeRemovedTimeout) {
+        clearTimeout(this.videoNodeRemovedTimeout)
+        this.videoNodeRemovedTimeout = null
+      }
+      this.eventLastEmitted.set(event, now)
+      this.eventMap.get(event)?.forEach((listener) => listener(video))
+    }
+  }
+
   private isNodeInPip(node: HTMLElement) {
     if (!window.documentPictureInPicture?.window) return false
     return window.documentPictureInPicture.window.document.contains(node)
   }
 
-  public cleanup() {
+  public addEventListener(
+    event: VideoNodeObserverEvent,
+    listener: VideoChangeListener
+  ) {
+    if (!this.eventMap.has(event)) {
+      this.eventMap.set(event, new Set())
+    }
+
+    // biome-ignore lint/style/noNonNullAssertion: checked using has
+    this.eventMap.get(event)!.add(listener)
+  }
+
+  public removeEventListener(
+    event: VideoNodeObserverEvent,
+    listener: VideoChangeListener
+  ) {
+    if (this.eventMap.has(event)) {
+      // biome-ignore lint/style/noNonNullAssertion: checked using has
+      this.eventMap.get(event)!.delete(listener)
+    }
+  }
+
+  public start(selector: string) {
+    this.selector = selector
+
+    const [current, err] = tryCatchSync<HTMLVideoElement | null>(() =>
+      document.querySelector(this.selector)
+    )
+
+    if (err) {
+      throw new Error(`Error selecting video element: ${err.message}`)
+    }
+
+    if (current) {
+      this.handleVideoNodeAdded(current)
+    }
+
+    this.rootObs.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'id'],
+    })
+  }
+
+  public stop() {
     this.rootObs.disconnect()
     this.srcObs.cleanup()
-    this.videoChangeListeners.clear()
-    this.videoRemovedListeners.clear()
+    this.eventMap.clear()
   }
 }

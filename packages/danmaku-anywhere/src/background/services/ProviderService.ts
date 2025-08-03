@@ -64,7 +64,7 @@ export class ProviderService {
     const { seasonId, provider } = params
     switch (provider) {
       case DanmakuSourceType.DanDanPlay: {
-        return this.danDanPlayService.getAnimeDetails(seasonId)
+        return this.danDanPlayService.getEpisodes(seasonId)
       }
       case DanmakuSourceType.Bilibili: {
         return this.bilibiliService.getEpisodes(seasonId)
@@ -80,9 +80,7 @@ export class ProviderService {
 
     switch (season.provider) {
       case DanmakuSourceType.DanDanPlay: {
-        await this.danDanPlayService.getBangumiDetails(
-          season.providerIds.bangumiId
-        )
+        await this.danDanPlayService.getSeason(season.providerIds.bangumiId)
         break
       }
       case DanmakuSourceType.Bilibili: {
@@ -93,6 +91,25 @@ export class ProviderService {
       }
       case DanmakuSourceType.Tencent: {
         await this.tencentService.refreshSeason(season.id)
+        break
+      }
+    }
+  }
+
+  async preloadNextEpisode(data: DanmakuFetchDto): Promise<void> {
+    switch (data.meta.provider) {
+      case DanmakuSourceType.DanDanPlay: {
+        void this.danDanPlayService.getNextEpisodeDanmaku(
+          data.meta,
+          data.meta.season,
+          data.meta.params
+        )
+        break
+      }
+      default: {
+        this.logger.warn(
+          `Preloading next episode is not supported for provider: ${data.meta.provider}`
+        )
         break
       }
     }
@@ -151,7 +168,7 @@ export class ProviderService {
         { meta: { provider: DanmakuSourceType.DanDanPlay } },
         async ({ meta }) => {
           const { season, ...rest } = meta
-          const episode = await this.danDanPlayService.saveEpisode(
+          const episode = await this.danDanPlayService.getEpisodeDanmaku(
             rest,
             meta.season,
             meta.params
@@ -174,7 +191,7 @@ export class ProviderService {
     seasonId,
   }: MatchEpisodeInput): Promise<MatchEpisodeResult> {
     const getMetaFromSeason = async (season: DanDanPlayOf<Season>) => {
-      const episodes = await this.danDanPlayService.getAnimeDetails(season.id)
+      const episodes = await this.danDanPlayService.getEpisodes(season.id)
 
       if (episodes.length === 0) {
         throw new Error(`No episodes found for season: ${season}`)
