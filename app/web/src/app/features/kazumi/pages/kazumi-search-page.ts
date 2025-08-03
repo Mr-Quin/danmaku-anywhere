@@ -20,6 +20,7 @@ import { Card } from 'primeng/card'
 import { InputTextModule } from 'primeng/inputtext'
 import { ProgressSpinner } from 'primeng/progressspinner'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'primeng/tabs'
+import { TrackingService } from '../../../core/tracking.service'
 import { MaterialIcon } from '../../../shared/components/material-icon'
 import { randomFrom } from '../../../shared/utils/utils'
 import { BangumiService } from '../../bangumi/services/bangumi.service'
@@ -178,6 +179,7 @@ export class KazumiSearchPage {
   protected route = inject(ActivatedRoute)
   private settingsService = inject(SettingsService)
   protected bangumiService = inject(BangumiService)
+  private readonly trackingService = inject(TrackingService)
 
   protected $showPolicy = signal(false)
 
@@ -222,6 +224,9 @@ export class KazumiSearchPage {
     // or if there's a queried placeholder, use that as the search string
     const searchTerm = this.$localKeyword().trim() || this.$searchPlaceholder()
     if (searchTerm) {
+      this.trackingService.track('clickKazumiSearch', {
+        searchTerm,
+      })
       this.kazumiService.updateQuery(searchTerm)
       void this.router.navigate([], {
         relativeTo: this.route,
@@ -234,6 +239,7 @@ export class KazumiSearchPage {
   }
 
   protected onTabClick(policy: KazumiPolicy) {
+    this.trackingService.track('clickKazumiPolicyTab', { policy })
     this.kazumiService.setActivePolicy(policy)
   }
 
@@ -241,6 +247,10 @@ export class KazumiSearchPage {
     item: { name: string; url: string },
     policy: KazumiPolicy
   ) {
+    this.trackingService.track('clickKazumiSearchResult', {
+      item,
+      policy,
+    })
     void this.router.navigate(['/kazumi/detail'], {
       queryParams: {
         q: item.name,

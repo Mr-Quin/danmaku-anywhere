@@ -10,6 +10,7 @@ import { Router, RouterLink } from '@angular/router'
 import { Button } from 'primeng/button'
 import { Card } from 'primeng/card'
 import { Tag } from 'primeng/tag'
+import { TrackingService } from '../../../core/tracking.service'
 import { MaterialIcon } from '../../../shared/components/material-icon'
 import { IMAGE_PLACEHOLDER_DATA } from '../../../shared/placeholder-data'
 
@@ -51,7 +52,7 @@ export interface ShowCardData {
             class="object-cover cursor-pointer hover:opacity-80 transition-opacity"
             width="340"
             height="480"
-            (click)="navigateToDetails(showData.id)" />
+            (click)="navigateToDetails(showData.id, 'image')" />
           @if (showData.rating?.score !== undefined) {
             <div class="absolute top-2 right-2">
               <p-tag
@@ -77,7 +78,7 @@ export interface ShowCardData {
         <div class="space-y-1">
           <h3
             class="text-lg font-semibold overflow-hidden text-nowrap text-ellipsis cursor-pointer hover:underline"
-            (click)="navigateToDetails(showData.id)"
+            (click)="navigateToDetails(showData.id, 'title')"
             [title]="showData.title">
             {{ showData.title }}
           </h3>
@@ -93,7 +94,7 @@ export interface ShowCardData {
         <ng-template #footer>
           <div class="flex justify-between">
             <p-button
-              [routerLink]="['/details', showData.id]"
+              (click)="navigateToDetails(showData.id, 'detailsButton')"
               label="详情"
               severity="secondary"
               size="small"
@@ -104,6 +105,7 @@ export interface ShowCardData {
               label="观看"
               severity="primary"
               size="small"
+              (click)="onWatchClick(showData)"
             >
               <ng-template #icon>
                 <da-mat-icon size="sm" icon="play_arrow" />
@@ -122,14 +124,20 @@ export interface ShowCardData {
   `,
 })
 export class ShowCard {
-  show = input.required<ShowCardData>()
-  hideAltTitle = input(false, { transform: booleanAttribute })
-  hideFooter = input(false, { transform: booleanAttribute })
+  readonly show = input.required<ShowCardData>()
+  readonly hideAltTitle = input(false, { transform: booleanAttribute })
+  readonly hideFooter = input(false, { transform: booleanAttribute })
 
   private router = inject(Router)
+  private trackingService = inject(TrackingService)
 
-  navigateToDetails(id: number): void {
+  navigateToDetails(id: number, source: string): void {
+    this.trackingService.track('clickShowCard', { id, source })
     void this.router.navigate(['/details', id])
+  }
+
+  onWatchClick(showData: ShowCardData): void {
+    this.trackingService.track('clickShowCardWatch', { showData })
   }
 
   protected readonly IMAGE_PLACEHOLDER_DATA = IMAGE_PLACEHOLDER_DATA

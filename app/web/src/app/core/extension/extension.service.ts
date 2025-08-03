@@ -1,4 +1,4 @@
-import { computed, Injectable, inject, signal } from '@angular/core'
+import { computed, effect, Injectable, inject, signal } from '@angular/core'
 import { getExtensionAttr } from '@danmaku-anywhere/web-scraper'
 import { TrackingService } from '../tracking.service'
 import { compareVersion } from './compareVersion'
@@ -30,6 +30,16 @@ export class ExtensionService {
     return false
   })
   readonly latestVersion = LATEST_EXTENSION_VERSION
+
+  constructor() {
+    effect(() => {
+      if (this.$isOutdated()) {
+        this.trackingService.tag('extensionOutdated', 'true')
+      } else {
+        this.trackingService.tag('extensionOutdated', 'false')
+      }
+    })
+  }
 
   async init() {
     const { promise, resolve } = Promise.withResolvers()

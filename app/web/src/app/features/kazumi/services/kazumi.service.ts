@@ -370,8 +370,4 @@ export class KazumiService {
   updateQuery(query: string) {
     this.$_searchQuery.set(query)
   }
-
-  updateSearchDetails(detail: MediaSearchDetails | null) {
-    this.$_mediaSearchDetails.set(detail)
-  }
 }

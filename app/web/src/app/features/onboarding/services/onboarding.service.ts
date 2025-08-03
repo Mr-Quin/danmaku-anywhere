@@ -29,7 +29,7 @@ export class OnboardingService {
   async acceptKazumiPolicyAndInstallRecommended(): Promise<void> {
     this.kazumiService.addRecommendedPolicyMutation.mutate(undefined, {
       onError: (error) => {
-        this.trackingService.track('onboarding_finish', {
+        this.trackingService.track('finishOnboarding', {
           success: false,
           error: error.message,
         })
@@ -40,7 +40,7 @@ export class OnboardingService {
         })
       },
       onSuccess: () => {
-        this.trackingService.track('onboarding_finish', { success: true })
+        this.trackingService.track('finishOnboarding', { success: true })
         this.messageService.add({
           severity: 'success',
           detail: '初始设置成功！',
