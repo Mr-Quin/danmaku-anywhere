@@ -32,6 +32,8 @@ export const bindVideo =
     getConfig: () => DanmakuOptions
   ) =>
   (manager: Manager<ParsedComment>) => {
+    const { plugin, getDanmakuOptions } = useFixedDanmaku(manager)
+
     // index of the next comment
     let cursor = 0
     // user-defined offset in seconds
@@ -45,16 +47,47 @@ export const bindVideo =
 
     updateCursor()
 
-    const { plugin, getDanmakuOptions } = useFixedDanmaku(manager)
+    const emitDanmaku = (comment: ParsedComment, progress = 0) => {
+      switch (comment.mode) {
+        case 'rtl': {
+          // since comments are time-sensitive, use unshift to prioritize the latest comment
+          manager.unshift(comment, { progress })
+          break
+        }
+        case 'ltr': {
+          manager.unshift(comment, {
+            direction: 'right',
+            progress,
+          })
+          break
+        }
+        case 'top':
+        case 'bottom': {
+          if (manager.isFreeze()) {
+            break
+          }
+
+          // check the render mode for the comment
+          const config = getConfig().specialComments[comment.mode]
+          if (config === 'normal') {
+            manager.pushFlexibleDanmaku(comment, {
+              duration: DURATION_MS,
+              direction: 'none',
+              ...getDanmakuOptions(comment.mode),
+            })
+          } else if (config === 'scroll') {
+            manager.unshift({ ...comment, mode: 'rtl' }, { progress })
+          }
+
+          break
+        }
+      }
+    }
 
     const handleTimeupdate = () => {
       const offsetTime = video.currentTime - offset
 
-      if (cursor >= comments.length) {
-        return
-      }
-
-      if (comments[cursor].time > offsetTime) {
+      if (cursor >= comments.length || comments[cursor].time > offsetTime) {
         return
       }
 
@@ -72,40 +105,7 @@ export const bindVideo =
           progress = 0
         }
 
-        switch (comment.mode) {
-          case 'rtl': {
-            // since comments are time-sensitive, use unshift to prioritize the latest comment
-            manager.push(comment, { progress })
-            break
-          }
-          case 'ltr': {
-            manager.unshift(comment, {
-              direction: 'right',
-              progress,
-            })
-            break
-          }
-          case 'top':
-          case 'bottom': {
-            if (manager.isFreeze()) {
-              break
-            }
-
-            // check the render mode for the comment
-            const config = getConfig().specialComments[comment.mode]
-            if (config === 'normal') {
-              manager.pushFlexibleDanmaku(comment, {
-                duration: DURATION_MS,
-                direction: 'none',
-                ...getDanmakuOptions(comment.mode),
-              })
-            } else if (config === 'scroll') {
-              manager.unshift({ ...comment, mode: 'rtl' })
-            }
-
-            break
-          }
-        }
+        emitDanmaku(comment, progress)
 
         cursor++
       }
@@ -130,12 +130,24 @@ export const bindVideo =
       handleTimeupdate()
     }
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        handlePause()
+      } else if (document.visibilityState === 'visible') {
+        // when the page becomes visible, we need to clear the screen and update the cursor, then resume playing
+        handleSeek()
+        handlePlay()
+      }
+    }
+
     video.addEventListener('timeupdate', handleTimeupdate)
     video.addEventListener('seeking', handleSeek)
     video.addEventListener('pause', handlePause)
     video.addEventListener('waiting', handlePause)
     video.addEventListener('play', handlePlay)
     video.addEventListener('playing', handlePlay)
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
 
     manager.use({
       name: 'bind-video',
