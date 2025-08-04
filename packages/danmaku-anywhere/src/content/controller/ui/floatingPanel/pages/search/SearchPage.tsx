@@ -1,4 +1,4 @@
-import type { Season } from '@danmaku-anywhere/danmaku-converter'
+import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { Box, Collapse, Tab, Tabs, Typography } from '@mui/material'
 import {
@@ -19,6 +19,8 @@ import { isProvider } from '@/common/danmaku/utils'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
+import { doesSeasonMapExist } from '@/common/seasonMap/doesSeasonMapExist'
+import { useAllSeasonMap } from '@/common/seasonMap/queries/useAllSeasonMap'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
@@ -40,6 +42,7 @@ export const SearchPage = () => {
 
   const { enabledProviders } = useDanmakuSources()
   const { mountDanmaku } = useLoadDanmaku()
+  const { data: seasonMaps } = useAllSeasonMap()
 
   const [localSearchUsingSimplified, setLocalSearchUsingSimplified] = useState(
     searchUsingSimplified
@@ -100,6 +103,30 @@ export const SearchPage = () => {
 
       setSearchParams({ anime: searchTerm })
     })
+  }
+
+  const handleSeasonClick = (season: Season | CustomSeason) => {
+    if (boxRef.current) {
+      setScrollTop(boxRef.current.scrollTop)
+    }
+    if (isProvider(season, DanmakuSourceType.Custom) || !mediaInfo) {
+      return
+    }
+    if (
+      isProvider(season, DanmakuSourceType.DanDanPlay) &&
+      !doesSeasonMapExist(
+        seasonMaps,
+        mediaInfo.getKey(),
+        DanmakuSourceType.DanDanPlay,
+        season.id
+      )
+    ) {
+      // this is a ddp season, ask user if they want to map it
+      setLocalSelectedSeason(season)
+      setShowDialog(true)
+    } else {
+      setSelectedSeason(season)
+    }
   }
 
   if (!enabledProviders.length) {
@@ -164,23 +191,7 @@ export const SearchPage = () => {
                   />
                   <SeasonSearchResult
                     searchParams={searchParams}
-                    onSeasonClick={(season) => {
-                      if (boxRef.current) {
-                        setScrollTop(boxRef.current.scrollTop)
-                      }
-                      if (!isProvider(season, DanmakuSourceType.Custom)) {
-                        if (
-                          mediaInfo &&
-                          isProvider(season, DanmakuSourceType.DanDanPlay)
-                        ) {
-                          // this is a ddp season, ask user if they want to map it
-                          setLocalSelectedSeason(season)
-                          setShowDialog(true)
-                        } else {
-                          setSelectedSeason(season)
-                        }
-                      }
-                    }}
+                    onSeasonClick={handleSeasonClick}
                     provider={providerTab}
                     stale={pending}
                   />

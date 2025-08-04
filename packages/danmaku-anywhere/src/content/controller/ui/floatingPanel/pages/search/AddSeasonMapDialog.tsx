@@ -9,7 +9,7 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
-import { useAddSeasonMap } from '@/content/controller/common/hooks/useAddSeasonMap'
+import { useAddSeasonMap } from '@/content/controller/ui/floatingPanel/pages/search/useAddSeasonMap'
 
 interface AddSeasonMapDialogProps {
   open: boolean

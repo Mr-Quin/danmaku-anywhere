@@ -9,18 +9,9 @@ import {
   type SeasonV1,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Dexie } from 'dexie'
+import type { SeasonMap } from '@/common/seasonMap/types'
 
 type WithoutId<T> = Omit<T, 'id'>
-
-/**
- * Maps a key to a seasonId, where the key is generated from website-specific information
- */
-export interface SeasonMap {
-  key: string
-  DanDanPlay?: number
-  Bilibili?: number
-  Tencent?: number
-}
 
 class DanmakuAnywhereDb extends Dexie {
   episode!: Dexie.Table<Episode, number, WithoutId<Episode>>
