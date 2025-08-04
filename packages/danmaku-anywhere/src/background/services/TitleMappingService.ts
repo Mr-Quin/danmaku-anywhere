@@ -1,5 +1,6 @@
-import type { db, SeasonMap } from '@/common/db/db'
+import type { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
+import type { SeasonMap } from '@/common/seasonMap/types'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 export class TitleMappingService {
@@ -31,5 +32,9 @@ export class TitleMappingService {
 
   async get(key: string) {
     return this.table.get({ key })
+  }
+
+  async getAll() {
+    return this.table.toArray()
   }
 }

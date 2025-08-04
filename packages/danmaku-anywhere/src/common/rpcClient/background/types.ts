@@ -31,8 +31,8 @@ import type {
   EpisodeQueryFilter,
   EpisodeSearchParams,
 } from '@/common/danmaku/dto'
-import type { SeasonMap } from '@/common/db/db'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
+import type { SeasonMap } from '@/common/seasonMap/types'
 import type { RPCDef } from '../../rpc/types'
 
 type IconSetDto =
@@ -70,6 +70,7 @@ export type BackgroundMethods = {
   episodeDeleteCustom: RPCDef<CustomEpisodeQueryFilter, void>
   episodeImport: RPCDef<DanmakuImportData[], DanmakuImportResult>
   seasonMapAdd: RPCDef<SeasonMap, void>
+  seasonMapGetAll: RPCDef<void, SeasonMap[]>
   danmakuPurgeCache: RPCDef<number, number>
   bilibiliSetCookies: RPCDef<void, void>
   bilibiliGetLoginStatus: RPCDef<void, BilibiliUserInfo>

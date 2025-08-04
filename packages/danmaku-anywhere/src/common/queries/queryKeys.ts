@@ -34,6 +34,10 @@ export const seasonQueryKeys = {
     [{ scope: 'season', kind: 'parseUrl', url }] as const,
 }
 
+export const seasonMapQueryKeys = {
+  all: () => [{ scope: 'seasonMap' }] as const,
+}
+
 export const episodeQueryKeys = {
   all: () => [{ scope: 'episode' }] as const,
   filter: (params: EpisodeQueryFilter) =>
