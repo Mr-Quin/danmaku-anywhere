@@ -7,10 +7,12 @@ import {
 } from '@/common/rpcClient/background/client'
 import type { PlayerRelayCommands } from '@/common/rpcClient/background/types'
 import { createPopoverRoot } from '@/content/common/createPopoverRoot'
+import { createDanmakuContainers } from '@/content/player/components/createDanmakuContainer'
 import { DanmakuManager } from '@/content/player/monitors/DanmakuManager'
 import { VideoEventService } from '@/content/player/monitors/VideoEvent.service'
 import { VideoNodeObserver } from '@/content/player/monitors/VideoNodeObserver'
 import { createPipWindow, moveElement } from '@/content/player/pipUtils'
+import { VideoSkipService } from '@/content/player/videoSkip/VideoSkip.service'
 
 const { data: frameId } = await chromeRpcClient.getFrameId()
 
@@ -18,9 +20,12 @@ const Logger = _Logger.sub(`[Player-${frameId}]`)
 
 Logger.info('Player script loaded')
 
+const { container, wrapper } = createDanmakuContainers()
+
 const videoNodeObserver = new VideoNodeObserver()
-const manager = new DanmakuManager(videoNodeObserver)
+const manager = new DanmakuManager(videoNodeObserver, wrapper, container)
 const videoEventService = new VideoEventService(videoNodeObserver)
+const videoSkipService = new VideoSkipService(videoEventService, wrapper)
 
 const { shadowRoot } = createPopoverRoot('danmaku-anywhere-player')
 
@@ -32,6 +37,7 @@ const playerRpcServer = createRpcServer<PlayerRelayCommands>(
   {
     'relay:command:mount': async ({ data: comments }) => {
       manager.mount(comments)
+      videoSkipService.setComments(comments)
       return true
     },
     'relay:command:unmount': async () => {
@@ -123,7 +129,11 @@ danmakuOptionsService.onChange((options) => {
   manager.updateConfig(options)
 })
 
-manager.updateConfig(await danmakuOptionsService.get())
+danmakuOptionsService.get().then((options) => {
+  manager.updateConfig(options)
+})
+
+videoSkipService.enable()
 
 playerRpcServer.listen()
 
