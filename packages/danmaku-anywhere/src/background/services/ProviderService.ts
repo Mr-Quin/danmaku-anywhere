@@ -22,6 +22,7 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProvider } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
+import { findDanDanPlayEpisodeInList } from '@/background/services/episodeMatching'
 
 export class ProviderService {
   private logger: typeof Logger
@@ -197,13 +198,11 @@ export class ProviderService {
         throw new Error(`No episodes found for season: ${season}`)
       }
 
-      const episodeId = this.danDanPlayService.computeEpisodeId(
+      const episode = findDanDanPlayEpisodeInList(
+        episodes,
+        episodeNumber,
         season.providerIds.animeId,
-        episodeNumber
-      )
-
-      const episode = episodes.find(
-        (ep) => ep.providerIds.episodeId === episodeId
+        (message?: any, ...optionalParams: any[]) => this.logger.debug(message, ...optionalParams)
       )
 
       if (!episode) {
