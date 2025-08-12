@@ -136,7 +136,9 @@ export const bindVideo =
       } else if (document.visibilityState === 'visible') {
         // when the page becomes visible, we need to clear the screen and update the cursor, then resume playing
         handleSeek()
-        handlePlay()
+        if (!video.paused) {
+          handlePlay()
+        }
       }
     }
 
