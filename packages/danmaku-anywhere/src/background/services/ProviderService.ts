@@ -184,6 +184,48 @@ export class ProviderService {
     return danmaku
   }
 
+  /**
+   * Find an episode in a list by episode number, with fallback to computed episode ID
+   * @param episodes List of episodes to search
+   * @param episodeNumber Episode number to find
+   * @param animeId Anime ID for computing fallback episode ID
+   * @returns Found episode or undefined if not found
+   */
+  private findEpisodeInList(
+    episodes: DanDanPlayOf<Episode>[],
+    episodeNumber: number,
+    animeId: number
+  ): DanDanPlayOf<Episode> | undefined {
+    // First try: Find by episode number (preferred method)
+    const episodeByNumber = episodes.find(
+      (ep) => String(ep.episodeNumber) === String(episodeNumber)
+    )
+
+    if (episodeByNumber) {
+      this.logger.debug(`Found episode ${episodeNumber} by episode number`)
+      return episodeByNumber
+    }
+
+    // Fallback: Find by computed episode ID (legacy method)
+    const episodeId = this.danDanPlayService.computeEpisodeId(
+      animeId,
+      episodeNumber
+    )
+    const episodeByComputedId = episodes.find(
+      (ep) => ep.providerIds.episodeId === episodeId
+    )
+
+    if (episodeByComputedId) {
+      this.logger.debug(
+        `Found episode ${episodeNumber} by computed episode ID ${episodeId}`
+      )
+      return episodeByComputedId
+    }
+
+    this.logger.debug(`Episode ${episodeNumber} not found by either method`)
+    return undefined
+  }
+
   async findMatchingEpisodes({
     mapKey,
     title,
@@ -197,8 +239,10 @@ export class ProviderService {
         throw new Error(`No episodes found for season: ${season}`)
       }
 
-      const episode = episodes.find(
-        (ep) => String(ep.episodeNumber) === String(episodeNumber)
+      const episode = this.findEpisodeInList(
+        episodes,
+        episodeNumber,
+        season.providerIds.animeId
       )
 
       if (!episode) {
