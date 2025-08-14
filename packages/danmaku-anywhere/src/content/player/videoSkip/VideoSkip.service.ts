@@ -28,12 +28,12 @@ export class VideoSkipService {
   }
 
   enable() {
-    logger.debug('Enabling VideoSkipService')
+    logger.debug('Enabling')
     this.setupEventListeners()
   }
 
   disable() {
-    logger.debug('Disabling VideoSkipService')
+    logger.debug('Disabling')
     this.cleanup()
   }
 

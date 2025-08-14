@@ -1,5 +1,6 @@
 import { Logger as _Logger } from '@/common/Logger'
 import { danmakuOptionsService } from '@/common/options/danmakuOptions/service'
+import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { createRpcServer } from '@/common/rpc/server'
 import {
   chromeRpcClient,
@@ -135,7 +136,19 @@ danmakuOptionsService.get().then((options) => {
   manager.updateConfig(options)
 })
 
-videoSkipService.enable()
+extensionOptionsService.get().then((options) => {
+  if (options.playerOptions) {
+    videoSkipService.enable()
+  }
+})
+
+extensionOptionsService.onChange((options) => {
+  if (options.playerOptions) {
+    videoSkipService.enable()
+  } else {
+    videoSkipService.disable()
+  }
+})
 
 playerRpcServer.listen()
 

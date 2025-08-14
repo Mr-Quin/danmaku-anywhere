@@ -128,3 +128,13 @@ export const extensionOptionsService = new OptionsService(
         draft.enableAnalytics = true
       }),
   })
+  .version(15, {
+    upgrade: (data: PrevOptions) =>
+      produce<ExtensionOptions>(data, (draft) => {
+        // Add playerOptions field
+        draft.playerOptions = {
+          showSkipButton: true,
+          showDanmakuTimeline: true,
+        }
+      }),
+  })
