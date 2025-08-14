@@ -48,6 +48,10 @@ export const defaultExtensionOptions: ExtensionOptions = {
       limitPerMin: 200,
     },
   },
+  playerOptions: {
+    showSkipButton: true,
+    showDanmakuTimeline: true,
+  },
   theme: {
     colorMode: ColorMode.System,
   },

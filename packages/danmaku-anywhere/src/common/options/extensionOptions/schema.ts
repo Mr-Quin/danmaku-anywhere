@@ -37,6 +37,11 @@ export const danmakuSourcesSchema = z.object({
   }),
 })
 
+export const playerOptionsSchema = z.object({
+  showSkipButton: z.boolean(),
+  showDanmakuTimeline: z.boolean(),
+})
+
 export const retentionPolicySchema = z.object({
   /**
    * Enable retention policy
@@ -89,6 +94,8 @@ export const extensionOptionsSchema = z.object({
    * Configuration for individual danmaku sources
    */
   danmakuSources: danmakuSourcesSchema,
+
+  playerOptions: playerOptionsSchema,
 
   /**
    * Configuration for retention policy

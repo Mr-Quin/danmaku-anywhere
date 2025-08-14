@@ -74,6 +74,10 @@ export const Options = () => {
           />
 
           <OptionsListItem
+            title={t('optionsPage.pages.player')}
+            onClick={() => navigate('player')}
+          />
+          <OptionsListItem
             title={t('optionsPage.pages.advanced')}
             onClick={() => navigate('advanced')}
           />

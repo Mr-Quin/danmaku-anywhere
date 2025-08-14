@@ -38,14 +38,14 @@ export class DanmakuManager {
 
   private debugOverlayService: DebugOverlayService
 
-  constructor(private videoNodeObs: VideoNodeObserver) {
-    const { wrapper, container } = this.createContainers()
+  constructor(
+    private videoNodeObs: VideoNodeObserver,
+    wrapper: HTMLDivElement,
+    container: HTMLDivElement
+  ) {
     this.nodes = { wrapper, container }
 
-    this.debugOverlayService = new DebugOverlayService(
-      this.renderer,
-      this.nodes.wrapper
-    )
+    this.debugOverlayService = new DebugOverlayService(this.renderer, wrapper)
 
     extensionOptionsService.get().then((options) => {
       this.debugOverlayService.setDebugEnabled(options.debug)
@@ -68,28 +68,6 @@ export class DanmakuManager {
       'videoNodeRemove',
       this.handleVideoNodeRemove.bind(this)
     )
-  }
-
-  private createContainers() {
-    const wrapper = document.createElement('div')
-    wrapper.id = 'danmaku-anywhere-manager-container'
-    wrapper.style.position = 'absolute'
-    wrapper.style.pointerEvents = 'none'
-    wrapper.style.top = '0'
-    wrapper.style.left = '0'
-    wrapper.style.width = '0'
-    wrapper.style.height = '0'
-    wrapper.style.overflow = 'hidden'
-    wrapper.style.border = 'none'
-    wrapper.style.boxSizing = 'border-box'
-
-    const container = document.createElement('div')
-    container.style.width = '100%'
-    container.style.height = '100%'
-
-    wrapper.appendChild(container)
-
-    return { wrapper, container }
   }
 
   public getWrapper() {
