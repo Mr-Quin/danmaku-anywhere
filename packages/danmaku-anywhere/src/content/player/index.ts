@@ -8,6 +8,7 @@ import {
 import type { PlayerRelayCommands } from '@/common/rpcClient/background/types'
 import { createPopoverRoot } from '@/content/common/createPopoverRoot'
 import { createDanmakuContainers } from '@/content/player/components/createDanmakuContainer'
+import { setupCss } from '@/content/player/components/setupCss'
 import { DanmakuManager } from '@/content/player/monitors/DanmakuManager'
 import { VideoEventService } from '@/content/player/monitors/VideoEvent.service'
 import { VideoNodeObserver } from '@/content/player/monitors/VideoNodeObserver'
@@ -30,6 +31,7 @@ const videoSkipService = new VideoSkipService(videoEventService, wrapper)
 const { shadowRoot } = createPopoverRoot('danmaku-anywhere-player')
 
 manager.setParent(shadowRoot)
+setupCss(shadowRoot)
 
 let pipWindow: Window | undefined
 

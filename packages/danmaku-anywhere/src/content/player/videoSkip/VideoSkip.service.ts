@@ -1,20 +1,31 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import { createElement } from 'react'
+import { createRoot, type Root } from 'react-dom/client'
 import { Logger } from '@/common/Logger'
+import { SkipButton } from '@/content/player/components/SkipButton/SkipButton'
 import type { SkipTarget } from '@/content/player/videoSkip/SkipTarget'
 import type { VideoEventService } from '../monitors/VideoEvent.service'
 import { parseCommentsForJumpTargets } from './videoSkipParser'
+
+type ActiveButtonEntry = { node: HTMLElement; root: Root }
 
 const logger = Logger.sub('[VideoSkipService]')
 
 export class VideoSkipService {
   private jumpTargets: SkipTarget[] = []
-  private activeButtons = new Map<number, HTMLElement>()
+  private activeButton: ActiveButtonEntry | null = null
   private currentVideo: HTMLVideoElement | null = null
+
+  private readonly boundHandleTimeUpdate: (event: Event) => void
+  private readonly boundHandleSeek: () => void
 
   constructor(
     private videoEventService: VideoEventService,
     private container: HTMLElement
-  ) {}
+  ) {
+    this.boundHandleTimeUpdate = this.handleTimeUpdate.bind(this)
+    this.boundHandleSeek = this.handleSeek.bind(this)
+  }
 
   enable() {
     logger.debug('Enabling VideoSkipService')
@@ -29,112 +40,82 @@ export class VideoSkipService {
   setComments(comments: CommentEntity[]) {
     this.jumpTargets = parseCommentsForJumpTargets(comments)
     logger.debug(
-      `Parsed ${this.jumpTargets.length} jump targets from ${comments.length} comments`
+      `Parsed ${this.jumpTargets.length} jump targets from ${comments.length} comments`,
+      this.jumpTargets
     )
   }
 
   private setupEventListeners() {
     this.videoEventService.addVideoEventListener(
       'timeupdate',
-      this.handleTimeUpdate.bind(this)
+      this.boundHandleTimeUpdate
+    )
+    this.videoEventService.addVideoEventListener('seeked', this.boundHandleSeek)
+  }
+
+  private removeEventListeners() {
+    this.videoEventService.removeVideoEventListener(
+      'timeupdate',
+      this.boundHandleTimeUpdate
+    )
+    this.videoEventService.removeVideoEventListener(
+      'seeked',
+      this.boundHandleSeek
     )
   }
 
-  private handleTimeUpdate = (event: Event) => {
+  private handleTimeUpdate(event: Event) {
     const video = event.target as HTMLVideoElement
     this.currentVideo = video
     const currentTime = video.currentTime
 
-    // Check if we should show any skip buttons
     for (const target of this.jumpTargets) {
-      if (!target.shown && Math.abs(currentTime - target.commentTime) <= 1) {
+      if (!target.shown && target.isInRange(currentTime)) {
+        // show the skip button when we are in its range
         this.showSkipButton(target)
-        target.shown = true
+      } else if (
+        target.shown &&
+        this.activeButton !== null &&
+        !target.isInRange(currentTime)
+      ) {
+        // hide the button after the range elapses
+        this.removeSkipButton()
       }
     }
+  }
+
+  private handleSeek() {
+    // reset shown status after seeking
+    this.removeSkipButton()
+    this.jumpTargets.forEach((target: SkipTarget) => {
+      target.shown = false
+    })
   }
 
   private showSkipButton(target: SkipTarget) {
     if (!this.container) return
 
-    const button = this.createSkipButton(target)
-    this.container.appendChild(button)
-    this.activeButtons.set(target.commentTime, button)
+    logger.debug('Creating skip buttons', target)
 
-    // Auto-hide after 30 seconds
-    setTimeout(() => {
-      this.hideSkipButton(target.commentTime)
-    }, 30000)
-  }
+    const mountNode = document.createElement('div')
+    this.container.appendChild(mountNode)
 
-  private createSkipButton(target: SkipTarget): HTMLElement {
-    const wrapper = document.createElement('div')
-    wrapper.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      z-index: 10000;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      pointer-events: auto;
-    `
+    const root = createRoot(mountNode)
+    root.render(
+      createElement(SkipButton, {
+        target,
+        onClick: () => {
+          this.jumpToTime(target.endTime)
+          this.removeSkipButton()
+        },
+        onClose: () => {
+          this.removeSkipButton()
+        },
+      })
+    )
 
-    const button = document.createElement('button')
-    button.textContent = `空降至 ${target.timestamp}`
-    button.style.cssText = `
-      background: rgba(0, 0, 0, 0.8);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 6px;
-      padding: 8px 16px;
-      font-size: 14px;
-      cursor: pointer;
-      margin-right: 8px;
-      transition: background-color 0.2s;
-    `
-
-    button.addEventListener('mouseenter', () => {
-      button.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'
-    })
-
-    button.addEventListener('mouseleave', () => {
-      button.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'
-    })
-
-    button.addEventListener('click', () => {
-      this.jumpToTime(target.targetTime)
-      this.hideSkipButton(target.commentTime)
-    })
-
-    const closeButton = document.createElement('button')
-    closeButton.textContent = '✕'
-    closeButton.style.cssText = `
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 6px;
-      padding: 6px 8px;
-      font-size: 12px;
-      cursor: pointer;
-      line-height: 1;
-      transition: background-color 0.2s;
-    `
-
-    closeButton.addEventListener('mouseenter', () => {
-      closeButton.style.backgroundColor = 'rgba(255, 0, 0, 0.3)'
-    })
-
-    closeButton.addEventListener('mouseleave', () => {
-      closeButton.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'
-    })
-
-    closeButton.addEventListener('click', () => {
-      this.hideSkipButton(target.commentTime)
-    })
-
-    wrapper.appendChild(button)
-    wrapper.appendChild(closeButton)
-
-    return wrapper
+    this.activeButton = { node: mountNode, root }
+    target.shown = true
   }
 
   private jumpToTime(targetTime: number) {
@@ -144,26 +125,24 @@ export class VideoSkipService {
     }
   }
 
-  private hideSkipButton(commentTime: number) {
-    const button = this.activeButtons.get(commentTime)
-    if (button) {
-      button.remove()
-      this.activeButtons.delete(commentTime)
+  private removeSkipButton() {
+    const entry = this.activeButton
+    if (!entry) {
+      return
     }
+    logger.debug('Removing active button', entry)
+    entry.root.unmount()
+    entry.node.remove()
+    this.activeButton = null
   }
 
   private cleanup() {
-    // Remove event listeners
-    this.videoEventService.removeVideoEventListener(
-      'timeupdate',
-      this.handleTimeUpdate
-    )
+    this.removeEventListeners()
 
-    // Remove buttons
-    for (const button of this.activeButtons.values()) {
-      button.remove()
+    if (this.activeButton) {
+      this.activeButton.root.unmount()
+      this.activeButton.node.remove()
     }
-    this.activeButtons.clear()
 
     this.jumpTargets = []
   }

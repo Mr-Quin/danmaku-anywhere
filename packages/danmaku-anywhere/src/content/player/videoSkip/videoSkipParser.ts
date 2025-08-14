@@ -12,11 +12,10 @@ export function parseTimestampsFromComment(
 
   if (timestampInfo) {
     return new SkipTarget({
-      commentTime,
-      targetTime: timestampInfo.targetTime,
+      startTime: commentTime,
+      endTime: timestampInfo.targetTime,
       text: comment.m,
       timestamp: timestampInfo.timestamp,
-      shown: false,
     })
   }
 
@@ -27,7 +26,7 @@ function isValidJumpTarget(
   target: SkipTarget,
   maxTimeDifference = 180
 ): boolean {
-  return Math.abs(target.targetTime - target.commentTime) <= maxTimeDifference
+  return Math.abs(target.endTime - target.startTime) <= maxTimeDifference
 }
 
 export function filterOverlappingTargets(
@@ -36,7 +35,7 @@ export function filterOverlappingTargets(
   targetTimeBuffer = 5
 ): SkipTarget[] {
   const sortedCandidates = [...candidates].sort(
-    (a, b) => a.commentTime - b.commentTime
+    (a, b) => a.startTime - b.startTime
   )
 
   const filteredTargets: SkipTarget[] = []

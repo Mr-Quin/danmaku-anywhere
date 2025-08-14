@@ -27,8 +27,8 @@ describe('parseTimestampsFromComment', () => {
       const result = parseTimestampsFromComment(comment)
 
       expect(result).toEqual({
-        commentTime: 60,
-        targetTime: 630,
+        startTime: 60,
+        endTime: 630,
         text: '空降10:30',
         timestamp: '10:30',
         shown: false,
@@ -40,8 +40,8 @@ describe('parseTimestampsFromComment', () => {
       const result = parseTimestampsFromComment(comment)
 
       expect(result).toEqual({
-        commentTime: 120.5,
-        targetTime: 345,
+        startTime: 120.5,
+        endTime: 345,
         text: '跳伞5:45快进到正片',
         timestamp: '05:45',
         shown: false,
@@ -53,8 +53,8 @@ describe('parseTimestampsFromComment', () => {
       const result = parseTimestampsFromComment(comment)
 
       expect(result).toEqual({
-        commentTime: 45.75,
-        targetTime: 920,
+        startTime: 45.75,
+        endTime: 920,
         text: '跳傘15:20',
         timestamp: '15:20',
         shown: false,
@@ -91,8 +91,8 @@ describe('parseTimestampsFromComment', () => {
       const result = parseTimestampsFromComment(comment)
 
       expect(result).toEqual({
-        commentTime: 0,
-        targetTime: 90,
+        startTime: 0,
+        endTime: 90,
         text: '空降1:30',
         timestamp: '01:30',
         shown: false,
@@ -107,8 +107,8 @@ describe('parseTimestampsFromComment', () => {
       const result = parseTimestampsFromComment(comment)
 
       expect(result).toEqual({
-        commentTime: 120,
-        targetTime: 300,
+        startTime: 120,
+        endTime: 300,
         text: '跳伞5:00',
         timestamp: '05:00',
         shown: false,
@@ -119,16 +119,15 @@ describe('parseTimestampsFromComment', () => {
 
 describe('filterOverlappingTargets', () => {
   const createJumpTarget = (
-    commentTime: number,
-    targetTime: number,
+    startTime: number,
+    endTime: number,
     text: string
   ): SkipTarget =>
     new SkipTarget({
-      commentTime,
-      targetTime,
+      startTime,
+      endTime,
       text,
-      timestamp: `${Math.floor(targetTime / 60)}:${(targetTime % 60).toString().padStart(2, '0')}`,
-      shown: false,
+      timestamp: `${Math.floor(endTime / 60)}:${(endTime % 60).toString().padStart(2, '0')}`,
     })
 
   describe('basic filtering', () => {
@@ -220,9 +219,9 @@ describe('filterOverlappingTargets', () => {
       const result = filterOverlappingTargets(targets)
       expect(result).toHaveLength(3)
       // Should be sorted by comment time
-      expect(result[0].commentTime).toBe(60)
-      expect(result[1].commentTime).toBe(180)
-      expect(result[2].commentTime).toBe(300)
+      expect(result[0].startTime).toBe(60)
+      expect(result[1].startTime).toBe(180)
+      expect(result[2].startTime).toBe(300)
     })
 
     it('should prioritize earlier comments when filtering overlaps', () => {
@@ -235,8 +234,8 @@ describe('filterOverlappingTargets', () => {
       const result = filterOverlappingTargets(targets)
       expect(result).toHaveLength(2)
       // Should keep the earlier comment (60s) and filter the later one (62s)
-      expect(result[0].commentTime).toBe(60)
-      expect(result[1].commentTime).toBe(180)
+      expect(result[0].startTime).toBe(60)
+      expect(result[1].startTime).toBe(180)
     })
   })
 
@@ -284,24 +283,24 @@ describe('parseCommentsForJumpTargets', () => {
       expect(result).toHaveLength(3) // Should filter out overlapping and invalid ones
 
       expect(result[0]).toEqual({
-        commentTime: 60,
-        targetTime: 150,
+        startTime: 60,
+        endTime: 150,
         text: '空降2:30',
         timestamp: '02:30',
         shown: false,
       })
 
       expect(result[1]).toEqual({
-        commentTime: 120,
-        targetTime: 180,
+        startTime: 120,
+        endTime: 180,
         text: '跳伞3:00',
         timestamp: '03:00',
         shown: false,
       })
 
       expect(result[2]).toEqual({
-        commentTime: 300,
-        targetTime: 330,
+        startTime: 300,
+        endTime: 330,
         text: '空降5:30',
         timestamp: '05:30',
         shown: false,
@@ -398,7 +397,7 @@ describe('parseCommentsForJumpTargets', () => {
 
       const result = parseCommentsForJumpTargets(comments)
       expect(result).toHaveLength(1)
-      expect(result[0].targetTime).toBe(150)
+      expect(result[0].endTime).toBe(150)
     })
 
     it('should handle negative time differences', () => {
@@ -421,9 +420,9 @@ describe('parseCommentsForJumpTargets', () => {
       expect(result).toHaveLength(3)
 
       // Should be sorted by comment time
-      expect(result[0].commentTime).toBe(60)
-      expect(result[1].commentTime).toBe(180)
-      expect(result[2].commentTime).toBe(300)
+      expect(result[0].startTime).toBe(60)
+      expect(result[1].startTime).toBe(180)
+      expect(result[2].startTime).toBe(300)
     })
   })
 
@@ -441,9 +440,9 @@ describe('parseCommentsForJumpTargets', () => {
       expect(result).toHaveLength(3)
 
       // Should keep first from each group
-      expect(result[0].commentTime).toBe(60)
-      expect(result[1].commentTime).toBe(180)
-      expect(result[2].commentTime).toBe(300)
+      expect(result[0].startTime).toBe(60)
+      expect(result[1].startTime).toBe(180)
+      expect(result[2].startTime).toBe(300)
     })
   })
 })

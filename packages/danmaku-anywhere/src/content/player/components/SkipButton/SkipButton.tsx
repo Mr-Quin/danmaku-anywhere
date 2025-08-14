@@ -1,0 +1,54 @@
+import { useEffect, useRef, useState } from 'react'
+import type { SkipTarget } from '@/content/player/videoSkip/SkipTarget'
+import styles from './SkipButton.module.css'
+
+export interface SkipButtonProps {
+  target: SkipTarget
+  onClick: () => void
+  onClose: () => void
+}
+
+export function SkipButton(props: SkipButtonProps) {
+  const { target, onClick, onClose } = props
+
+  const [isExiting, setIsExiting] = useState(false)
+  const timeoutRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [])
+
+  const handleClose = () => {
+    setIsExiting(true)
+    timeoutRef.current = window.setTimeout(() => {
+      onClose()
+    }, 200) // sync with CSS animation duration
+  }
+
+  const alertClassName = `${styles.alert} ${isExiting ? styles.alertExit : styles.alertEnter}`
+
+  return (
+    <div className={styles.wrapper}>
+      <div className={alertClassName}>
+        <button type="button" className={styles.textButton} onClick={onClick}>
+          {`空降至 ${target.timestamp}`}
+        </button>
+        <div className={styles.actions}>
+          <button
+            type="button"
+            className={styles.closeButton}
+            onClick={handleClose}
+            aria-label="Close"
+            title="Close"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

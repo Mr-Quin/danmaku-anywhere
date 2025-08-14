@@ -1,35 +1,37 @@
 export class SkipTarget {
-  public commentTime: number // Time when the comment appears (seconds)
-  public targetTime: number // Time to jump to (seconds)
-  public text: string // Original comment text
-  public timestamp: string // Parsed timestamp (mm:ss format)
-  public shown: boolean // Whether button has been shown for this target
+  // time when the jump label should appear
+  public startTime: number
+  // time to jump to
+  public endTime: number
+  public text: string
+  public timestamp: string
+  public shown = false
+  public dismissed = false
 
   constructor(opts: {
-    commentTime: number
-    targetTime: number
+    startTime: number
+    endTime: number
     text: string
     timestamp: string
-    shown: boolean
   }) {
-    this.commentTime = opts.commentTime
-    this.targetTime = opts.targetTime
+    this.startTime = opts.startTime
+    this.endTime = opts.endTime
     this.text = opts.text
     this.timestamp = opts.timestamp
-    this.shown = opts.shown
   }
 
+  // test if time is between the target's start time and end time
   isInRange(time: number): boolean {
-    return time >= this.commentTime && time <= this.targetTime
+    return time >= this.startTime && time <= this.endTime
   }
 
   // check for overlap and containment, touching edges are considered intersecting
   intersects(other: SkipTarget): boolean {
     return (
-      this.isInRange(other.targetTime) ||
-      this.isInRange(other.commentTime) ||
-      other.isInRange(this.targetTime) ||
-      other.isInRange(this.commentTime)
+      this.isInRange(other.endTime) ||
+      this.isInRange(other.startTime) ||
+      other.isInRange(this.endTime) ||
+      other.isInRange(this.startTime)
     )
   }
 }

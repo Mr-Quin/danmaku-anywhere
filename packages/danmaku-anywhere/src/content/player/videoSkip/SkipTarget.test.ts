@@ -5,11 +5,10 @@ describe('SkipTarget', () => {
   let skipTarget: SkipTarget
 
   const defaultOptions = {
-    commentTime: 10,
-    targetTime: 20,
+    startTime: 10,
+    endTime: 20,
     text: 'Skip to 00:20',
     timestamp: '00:20',
-    shown: false,
   }
 
   beforeEach(() => {
@@ -17,27 +16,27 @@ describe('SkipTarget', () => {
   })
 
   describe('isInRange', () => {
-    it('should return true when time is exactly at commentTime', () => {
+    it('should return true when time is exactly at startTime', () => {
       expect(skipTarget.isInRange(10)).toBe(true)
     })
 
-    it('should return true when time is exactly at targetTime', () => {
+    it('should return true when time is exactly at endTime', () => {
       expect(skipTarget.isInRange(20)).toBe(true)
     })
 
-    it('should return true when time is between commentTime and targetTime', () => {
+    it('should return true when time is between startTime and endTime', () => {
       expect(skipTarget.isInRange(15)).toBe(true)
       expect(skipTarget.isInRange(12.5)).toBe(true)
       expect(skipTarget.isInRange(17.9)).toBe(true)
     })
 
-    it('should return false when time is before commentTime', () => {
+    it('should return false when time is before startTime', () => {
       expect(skipTarget.isInRange(9)).toBe(false)
       expect(skipTarget.isInRange(5)).toBe(false)
       expect(skipTarget.isInRange(0)).toBe(false)
     })
 
-    it('should return false when time is after targetTime', () => {
+    it('should return false when time is after endTime', () => {
       expect(skipTarget.isInRange(21)).toBe(false)
       expect(skipTarget.isInRange(25)).toBe(false)
       expect(skipTarget.isInRange(100)).toBe(false)
@@ -52,11 +51,10 @@ describe('SkipTarget', () => {
 
     it('should handle negative values', () => {
       const negativeTarget = new SkipTarget({
-        commentTime: -5,
-        targetTime: 5,
+        startTime: -5,
+        endTime: 5,
         text: 'Negative test',
         timestamp: '00:05',
-        shown: false,
       })
 
       expect(negativeTarget.isInRange(-3)).toBe(true)
@@ -66,11 +64,10 @@ describe('SkipTarget', () => {
 
     it('should handle zero values', () => {
       const zeroTarget = new SkipTarget({
-        commentTime: 0,
-        targetTime: 5,
+        startTime: 0,
+        endTime: 5,
         text: 'Zero test',
         timestamp: '00:05',
-        shown: false,
       })
 
       expect(zeroTarget.isInRange(0)).toBe(true)
@@ -83,13 +80,12 @@ describe('SkipTarget', () => {
     let otherTarget: SkipTarget
 
     beforeEach(() => {
-      // skipTarget: commentTime=10, targetTime=20
+      // skipTarget: startTime=10, endTime=20
       otherTarget = new SkipTarget({
-        commentTime: 15,
-        targetTime: 25,
+        startTime: 15,
+        endTime: 25,
         text: 'Other target',
         timestamp: '00:25',
-        shown: false,
       })
     })
 
@@ -102,11 +98,10 @@ describe('SkipTarget', () => {
 
       it('should return true when other target overlaps at the beginning', () => {
         const earlierTarget = new SkipTarget({
-          commentTime: 5,
-          targetTime: 15,
+          startTime: 5,
+          endTime: 15,
           text: 'Earlier target',
           timestamp: '00:15',
-          shown: false,
         })
 
         // skipTarget: 10-20, earlierTarget: 5-15
@@ -116,11 +111,10 @@ describe('SkipTarget', () => {
 
       it('should return true when other target is completely contained within', () => {
         const containedTarget = new SkipTarget({
-          commentTime: 12,
-          targetTime: 18,
+          startTime: 12,
+          endTime: 18,
           text: 'Contained target',
           timestamp: '00:18',
-          shown: false,
         })
 
         // skipTarget: 10-20, containedTarget: 12-18
@@ -130,11 +124,10 @@ describe('SkipTarget', () => {
 
       it('should return true when current target is completely contained within other', () => {
         const containerTarget = new SkipTarget({
-          commentTime: 5,
-          targetTime: 25,
+          startTime: 5,
+          endTime: 25,
           text: 'Container target',
           timestamp: '00:25',
-          shown: false,
         })
 
         // skipTarget: 10-20, containerTarget: 5-25
@@ -144,11 +137,10 @@ describe('SkipTarget', () => {
 
       it('should return true when targets have exact same range', () => {
         const sameTarget = new SkipTarget({
-          commentTime: 10,
-          targetTime: 20,
+          startTime: 10,
+          endTime: 20,
           text: 'Same target',
           timestamp: '00:20',
-          shown: false,
         })
 
         expect(skipTarget.intersects(sameTarget)).toBe(true)
@@ -157,13 +149,12 @@ describe('SkipTarget', () => {
     })
 
     describe('touching edge cases', () => {
-      it('should return true when targets touch at targetTime/commentTime boundary', () => {
+      it('should return true when targets touch at endTime/startTime boundary', () => {
         const touchingTarget = new SkipTarget({
-          commentTime: 20, // Exactly at skipTarget's targetTime
-          targetTime: 30,
+          startTime: 20, // Exactly at skipTarget's endTime
+          endTime: 30,
           text: 'Touching target',
           timestamp: '00:30',
-          shown: false,
         })
 
         // skipTarget: 10-20, touchingTarget: 20-30
@@ -171,13 +162,12 @@ describe('SkipTarget', () => {
         expect(touchingTarget.intersects(skipTarget)).toBe(true)
       })
 
-      it('should return true when targets touch at commentTime/targetTime boundary', () => {
+      it('should return true when targets touch at startTime/endTime boundary', () => {
         const touchingTarget = new SkipTarget({
-          commentTime: 5,
-          targetTime: 10, // Exactly at skipTarget's commentTime
+          startTime: 5,
+          endTime: 10, // Exactly at skipTarget's startTime
           text: 'Touching target',
           timestamp: '00:10',
-          shown: false,
         })
 
         // skipTarget: 10-20, touchingTarget: 5-10
@@ -189,11 +179,10 @@ describe('SkipTarget', () => {
     describe('non-overlapping cases', () => {
       it('should return false when other target is completely before', () => {
         const beforeTarget = new SkipTarget({
-          commentTime: 5,
-          targetTime: 9,
+          startTime: 5,
+          endTime: 9,
           text: 'Before target',
           timestamp: '00:09',
-          shown: false,
         })
 
         // skipTarget: 10-20, beforeTarget: 5-9
@@ -203,11 +192,10 @@ describe('SkipTarget', () => {
 
       it('should return false when other target is completely after', () => {
         const afterTarget = new SkipTarget({
-          commentTime: 21,
-          targetTime: 30,
+          startTime: 21,
+          endTime: 30,
           text: 'After target',
           timestamp: '00:30',
-          shown: false,
         })
 
         // skipTarget: 10-20, afterTarget: 21-30
@@ -219,11 +207,10 @@ describe('SkipTarget', () => {
     describe('edge cases with decimals', () => {
       it('should handle decimal overlaps correctly', () => {
         const decimalTarget = new SkipTarget({
-          commentTime: 19.5,
-          targetTime: 25.7,
+          startTime: 19.5,
+          endTime: 25.7,
           text: 'Decimal target',
           timestamp: '00:25',
-          shown: false,
         })
 
         // skipTarget: 10-20, decimalTarget: 19.5-25.7
@@ -233,11 +220,10 @@ describe('SkipTarget', () => {
 
       it('should handle very small gaps correctly', () => {
         const nearMissTarget = new SkipTarget({
-          commentTime: 20.1,
-          targetTime: 25,
+          startTime: 20.1,
+          endTime: 25,
           text: 'Near miss target',
           timestamp: '00:25',
-          shown: false,
         })
 
         // skipTarget: 10-20, nearMissTarget: 20.1-25
@@ -249,11 +235,10 @@ describe('SkipTarget', () => {
     describe('zero-duration targets', () => {
       it('should handle targets with zero duration', () => {
         const pointTarget = new SkipTarget({
-          commentTime: 15,
-          targetTime: 15,
+          startTime: 15,
+          endTime: 15,
           text: 'Point target',
           timestamp: '00:15',
-          shown: false,
         })
 
         // skipTarget: 10-20, pointTarget: 15-15
@@ -263,19 +248,17 @@ describe('SkipTarget', () => {
 
       it('should handle both targets having zero duration', () => {
         const pointTarget1 = new SkipTarget({
-          commentTime: 15,
-          targetTime: 15,
+          startTime: 15,
+          endTime: 15,
           text: 'Point target 1',
           timestamp: '00:15',
-          shown: false,
         })
 
         const pointTarget2 = new SkipTarget({
-          commentTime: 15,
-          targetTime: 15,
+          startTime: 15,
+          endTime: 15,
           text: 'Point target 2',
           timestamp: '00:15',
-          shown: false,
         })
 
         expect(pointTarget1.intersects(pointTarget2)).toBe(true)
@@ -284,19 +267,17 @@ describe('SkipTarget', () => {
 
       it('should handle non-intersecting zero-duration targets', () => {
         const pointTarget1 = new SkipTarget({
-          commentTime: 15,
-          targetTime: 15,
+          startTime: 15,
+          endTime: 15,
           text: 'Point target 1',
           timestamp: '00:15',
-          shown: false,
         })
 
         const pointTarget2 = new SkipTarget({
-          commentTime: 25,
-          targetTime: 25,
+          startTime: 25,
+          endTime: 25,
           text: 'Point target 2',
           timestamp: '00:25',
-          shown: false,
         })
 
         expect(pointTarget1.intersects(pointTarget2)).toBe(false)
