@@ -2,84 +2,64 @@ import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { matchTimeStamp } from '@/content/player/videoSkip/matchTimeStamp'
 import { SkipTarget } from '@/content/player/videoSkip/SkipTarget'
 
-export function parseTimestampsFromComment(
-  comment: CommentEntity
-): SkipTarget | null {
-  const [timeStr] = comment.p.split(',')
-  const commentTime = Number.parseFloat(timeStr)
-
+function parseTimestampsFromComment(comment: CommentEntity): SkipTarget | null {
   const timestampInfo = matchTimeStamp(comment.m)
 
   if (timestampInfo) {
+    const [timeStr] = comment.p.split(',')
+    const commentTime = Number.parseFloat(timeStr)
+
     return new SkipTarget({
       startTime: commentTime,
       endTime: timestampInfo.targetTime,
-      text: comment.m,
-      timestamp: timestampInfo.timestamp,
     })
   }
 
   return null
 }
 
-function isValidJumpTarget(
-  target: SkipTarget,
-  maxTimeDifference = 180
-): boolean {
-  return Math.abs(target.endTime - target.startTime) <= maxTimeDifference
-}
+function mergeOverlappingTargets(candidates: SkipTarget[]): SkipTarget[] {
+  if (candidates.length === 0) return []
 
-export function filterOverlappingTargets(
-  candidates: SkipTarget[],
-  commentTimeBuffer = 5,
-  targetTimeBuffer = 5
-): SkipTarget[] {
-  const sortedCandidates = [...candidates].sort(
-    (a, b) => a.startTime - b.startTime
-  )
+  const normalizedStart = (t: SkipTarget) => Math.min(t.startTime, t.endTime)
+  const sorted = candidates
+    .slice()
+    .sort((a, b) => normalizedStart(a) - normalizedStart(b))
 
-  const filteredTargets: SkipTarget[] = []
+  const result: SkipTarget[] = []
+  let current = sorted[0]
 
-  for (const candidate of sortedCandidates) {
-    const hasOverlap = filteredTargets.some((existing) => {
-      return candidate.intersects(existing)
-    })
-
-    if (!hasOverlap) {
-      filteredTargets.push(candidate)
+  for (let i = 1; i < sorted.length; i++) {
+    const next = sorted[i]
+    if (current.intersects(next)) {
+      current.mergeWith(next)
+    } else {
+      result.push(current)
+      current = next
     }
   }
 
-  return filteredTargets
+  result.push(current)
+  return result.sort((a, b) => a.startTime - b.startTime)
 }
 
 export function parseCommentsForJumpTargets(
   comments: CommentEntity[],
-  options: {
-    maxTimeDifference?: number
-    commentTimeBuffer?: number
-    targetTimeBuffer?: number
-  } = {}
+  options?: { maxTimeDifference?: number }
 ): SkipTarget[] {
-  const {
-    maxTimeDifference = 180,
-    commentTimeBuffer = 5,
-    targetTimeBuffer = 5,
-  } = options
-
   const candidates: SkipTarget[] = []
+  const MAX_TIME_DIFFERENCE_SECONDS = options?.maxTimeDifference ?? 300
 
   for (const comment of comments) {
     const target = parseTimestampsFromComment(comment)
-    if (!target) continue
-    if (isValidJumpTarget(target, maxTimeDifference)) {
+    if (!target) {
+      continue
+    }
+    const timeDifference = Math.abs(target.endTime - target.startTime)
+    if (timeDifference <= MAX_TIME_DIFFERENCE_SECONDS) {
       candidates.push(target)
     }
   }
 
-  return filterOverlappingTargets(
-    candidates,
-    commentTimeBuffer,
-    targetTimeBuffer
-  )
+  return mergeOverlappingTargets(candidates)
 }

@@ -3,21 +3,14 @@ export class SkipTarget {
   public startTime: number
   // time to jump to
   public endTime: number
-  public text: string
-  public timestamp: string
   public shown = false
-  public dismissed = false
 
   constructor(opts: {
     startTime: number
     endTime: number
-    text: string
-    timestamp: string
   }) {
-    this.startTime = opts.startTime
-    this.endTime = opts.endTime
-    this.text = opts.text
-    this.timestamp = opts.timestamp
+    this.startTime = Math.min(opts.startTime, opts.endTime)
+    this.endTime = Math.max(opts.startTime, opts.endTime)
   }
 
   // test if time is between the target's start time and end time
@@ -25,13 +18,19 @@ export class SkipTarget {
     return time >= this.startTime && time <= this.endTime
   }
 
-  // check for overlap and containment, touching edges are considered intersecting
+  // Check overlap based on normalized intervals; touching edges are intersecting
   intersects(other: SkipTarget): boolean {
-    return (
-      this.isInRange(other.endTime) ||
-      this.isInRange(other.startTime) ||
-      other.isInRange(this.endTime) ||
-      other.isInRange(this.startTime)
-    )
+    return this.startTime <= other.endTime && other.startTime <= this.endTime
+  }
+
+  // Merge two intersecting targets into a new aggregated target
+  // - startTime: earliest original comment time among the two
+  // - endTime: latest target time among the two
+  mergeWith(other: SkipTarget) {
+    const startTime = Math.min(this.startTime, other.startTime)
+    const endTime = Math.max(this.endTime, other.endTime)
+
+    this.startTime = startTime
+    this.endTime = endTime
   }
 }

@@ -35,7 +35,7 @@ export function SkipButton(props: SkipButtonProps) {
     <div className={styles.wrapper}>
       <div className={alertClassName}>
         <button type="button" className={styles.textButton} onClick={onClick}>
-          {`空降至 ${target.timestamp}`}
+          {`空降至 ${formatTimestamp(target.endTime)}`}
         </button>
         <div className={styles.actions}>
           <button
@@ -51,4 +51,10 @@ export function SkipButton(props: SkipButtonProps) {
       </div>
     </div>
   )
+}
+
+function formatTimestamp(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = Math.floor(totalSeconds % 60)
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 }

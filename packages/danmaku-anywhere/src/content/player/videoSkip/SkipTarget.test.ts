@@ -7,8 +7,6 @@ describe('SkipTarget', () => {
   const defaultOptions = {
     startTime: 10,
     endTime: 20,
-    text: 'Skip to 00:20',
-    timestamp: '00:20',
   }
 
   beforeEach(() => {
@@ -53,8 +51,6 @@ describe('SkipTarget', () => {
       const negativeTarget = new SkipTarget({
         startTime: -5,
         endTime: 5,
-        text: 'Negative test',
-        timestamp: '00:05',
       })
 
       expect(negativeTarget.isInRange(-3)).toBe(true)
@@ -66,8 +62,6 @@ describe('SkipTarget', () => {
       const zeroTarget = new SkipTarget({
         startTime: 0,
         endTime: 5,
-        text: 'Zero test',
-        timestamp: '00:05',
       })
 
       expect(zeroTarget.isInRange(0)).toBe(true)
@@ -84,8 +78,6 @@ describe('SkipTarget', () => {
       otherTarget = new SkipTarget({
         startTime: 15,
         endTime: 25,
-        text: 'Other target',
-        timestamp: '00:25',
       })
     })
 
@@ -100,8 +92,6 @@ describe('SkipTarget', () => {
         const earlierTarget = new SkipTarget({
           startTime: 5,
           endTime: 15,
-          text: 'Earlier target',
-          timestamp: '00:15',
         })
 
         // skipTarget: 10-20, earlierTarget: 5-15
@@ -113,8 +103,6 @@ describe('SkipTarget', () => {
         const containedTarget = new SkipTarget({
           startTime: 12,
           endTime: 18,
-          text: 'Contained target',
-          timestamp: '00:18',
         })
 
         // skipTarget: 10-20, containedTarget: 12-18
@@ -126,8 +114,6 @@ describe('SkipTarget', () => {
         const containerTarget = new SkipTarget({
           startTime: 5,
           endTime: 25,
-          text: 'Container target',
-          timestamp: '00:25',
         })
 
         // skipTarget: 10-20, containerTarget: 5-25
@@ -139,8 +125,6 @@ describe('SkipTarget', () => {
         const sameTarget = new SkipTarget({
           startTime: 10,
           endTime: 20,
-          text: 'Same target',
-          timestamp: '00:20',
         })
 
         expect(skipTarget.intersects(sameTarget)).toBe(true)
@@ -153,8 +137,6 @@ describe('SkipTarget', () => {
         const touchingTarget = new SkipTarget({
           startTime: 20, // Exactly at skipTarget's endTime
           endTime: 30,
-          text: 'Touching target',
-          timestamp: '00:30',
         })
 
         // skipTarget: 10-20, touchingTarget: 20-30
@@ -166,8 +148,6 @@ describe('SkipTarget', () => {
         const touchingTarget = new SkipTarget({
           startTime: 5,
           endTime: 10, // Exactly at skipTarget's startTime
-          text: 'Touching target',
-          timestamp: '00:10',
         })
 
         // skipTarget: 10-20, touchingTarget: 5-10
@@ -181,8 +161,6 @@ describe('SkipTarget', () => {
         const beforeTarget = new SkipTarget({
           startTime: 5,
           endTime: 9,
-          text: 'Before target',
-          timestamp: '00:09',
         })
 
         // skipTarget: 10-20, beforeTarget: 5-9
@@ -194,8 +172,6 @@ describe('SkipTarget', () => {
         const afterTarget = new SkipTarget({
           startTime: 21,
           endTime: 30,
-          text: 'After target',
-          timestamp: '00:30',
         })
 
         // skipTarget: 10-20, afterTarget: 21-30
@@ -209,8 +185,6 @@ describe('SkipTarget', () => {
         const decimalTarget = new SkipTarget({
           startTime: 19.5,
           endTime: 25.7,
-          text: 'Decimal target',
-          timestamp: '00:25',
         })
 
         // skipTarget: 10-20, decimalTarget: 19.5-25.7
@@ -222,8 +196,6 @@ describe('SkipTarget', () => {
         const nearMissTarget = new SkipTarget({
           startTime: 20.1,
           endTime: 25,
-          text: 'Near miss target',
-          timestamp: '00:25',
         })
 
         // skipTarget: 10-20, nearMissTarget: 20.1-25
@@ -237,8 +209,6 @@ describe('SkipTarget', () => {
         const pointTarget = new SkipTarget({
           startTime: 15,
           endTime: 15,
-          text: 'Point target',
-          timestamp: '00:15',
         })
 
         // skipTarget: 10-20, pointTarget: 15-15
@@ -250,15 +220,11 @@ describe('SkipTarget', () => {
         const pointTarget1 = new SkipTarget({
           startTime: 15,
           endTime: 15,
-          text: 'Point target 1',
-          timestamp: '00:15',
         })
 
         const pointTarget2 = new SkipTarget({
           startTime: 15,
           endTime: 15,
-          text: 'Point target 2',
-          timestamp: '00:15',
         })
 
         expect(pointTarget1.intersects(pointTarget2)).toBe(true)
@@ -269,20 +235,116 @@ describe('SkipTarget', () => {
         const pointTarget1 = new SkipTarget({
           startTime: 15,
           endTime: 15,
-          text: 'Point target 1',
-          timestamp: '00:15',
         })
 
         const pointTarget2 = new SkipTarget({
           startTime: 25,
           endTime: 25,
-          text: 'Point target 2',
-          timestamp: '00:25',
         })
 
         expect(pointTarget1.intersects(pointTarget2)).toBe(false)
         expect(pointTarget2.intersects(pointTarget1)).toBe(false)
       })
+    })
+  })
+
+  describe('mergeWith', () => {
+    it('should merge overlapping ranges by expanding to min start and max end', () => {
+      // initial: 10-20, other: 15-25 -> result: 10-25
+      const other = new SkipTarget({ startTime: 15, endTime: 25 })
+      const ret = skipTarget.mergeWith(other)
+
+      expect(ret).toBeUndefined()
+      expect(skipTarget.startTime).toBe(10)
+      expect(skipTarget.endTime).toBe(25)
+      // other should remain unchanged
+      expect(other.startTime).toBe(15)
+      expect(other.endTime).toBe(25)
+    })
+
+    it('should merge touching ranges into a single continuous range', () => {
+      // initial: 10-20, other: 20-30 -> result: 10-30
+      const other = new SkipTarget({ startTime: 20, endTime: 30 })
+      skipTarget.mergeWith(other)
+
+      expect(skipTarget.startTime).toBe(10)
+      expect(skipTarget.endTime).toBe(30)
+    })
+
+    it('should keep the same range when merging with a contained range', () => {
+      // initial: 10-20, other: 12-18 -> result: 10-20
+      const other = new SkipTarget({ startTime: 12, endTime: 18 })
+      skipTarget.mergeWith(other)
+
+      expect(skipTarget.startTime).toBe(10)
+      expect(skipTarget.endTime).toBe(20)
+    })
+
+    it('should expand when the current range is contained within the other', () => {
+      // initial: 10-20, other: 5-25 -> result: 5-25
+      const other = new SkipTarget({ startTime: 5, endTime: 25 })
+      skipTarget.mergeWith(other)
+
+      expect(skipTarget.startTime).toBe(5)
+      expect(skipTarget.endTime).toBe(25)
+    })
+
+    it('should merge even when ranges are disjoint (no implicit intersection check)', () => {
+      // Note: mergeWith does not verify intersection; it simply takes min(start) and max(end)
+      // initial: 10-20, other: 5-9 -> result: 5-20
+      const before = new SkipTarget({ startTime: 5, endTime: 9 })
+      skipTarget.mergeWith(before)
+
+      expect(skipTarget.startTime).toBe(5)
+      expect(skipTarget.endTime).toBe(20)
+
+      // initial (reset): 10-20, other: 21-30 -> result: 10-30
+      const fresh = new SkipTarget({ startTime: 10, endTime: 20 })
+      const after = new SkipTarget({ startTime: 21, endTime: 30 })
+      fresh.mergeWith(after)
+      expect(fresh.startTime).toBe(10)
+      expect(fresh.endTime).toBe(30)
+    })
+
+    it('should handle decimals correctly when merging', () => {
+      // initial: 10-20, other: 19.5-25.7 -> result: 10-25.7
+      const decimal = new SkipTarget({ startTime: 19.5, endTime: 25.7 })
+      skipTarget.mergeWith(decimal)
+
+      expect(skipTarget.startTime).toBe(10)
+      expect(skipTarget.endTime).toBe(25.7)
+
+      // disjoint with tiny gap: initial (reset): 10-20, other: 20.1-25 -> result: 10-25
+      const fresh = new SkipTarget({ startTime: 10, endTime: 20 })
+      const nearMiss = new SkipTarget({ startTime: 20.1, endTime: 25 })
+      fresh.mergeWith(nearMiss)
+      expect(fresh.startTime).toBe(10)
+      expect(fresh.endTime).toBe(25)
+    })
+
+    it('should merge zero-duration ranges correctly', () => {
+      // initial: 10-20, other: 15-15 -> result: 10-20
+      const point = new SkipTarget({ startTime: 15, endTime: 15 })
+      skipTarget.mergeWith(point)
+      expect(skipTarget.startTime).toBe(10)
+      expect(skipTarget.endTime).toBe(20)
+
+      // both zero-duration at same point -> that point
+      const a = new SkipTarget({ startTime: 15, endTime: 15 })
+      const b = new SkipTarget({ startTime: 15, endTime: 15 })
+      a.mergeWith(b)
+      expect(a.startTime).toBe(15)
+      expect(a.endTime).toBe(15)
+    })
+
+    it('should normalize inputs even if constructed with reversed times and then merge', () => {
+      // constructor normalizes start/end, and mergeWith respects normalized bounds
+      const reversed = new SkipTarget({ startTime: 30, endTime: 25 }) // normalized to 25-30
+      const base = new SkipTarget({ startTime: 28, endTime: 35 })
+      reversed.mergeWith(base)
+
+      expect(reversed.startTime).toBe(25)
+      expect(reversed.endTime).toBe(35)
     })
   })
 })
