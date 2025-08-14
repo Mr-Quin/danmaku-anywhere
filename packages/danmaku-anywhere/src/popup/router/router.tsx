@@ -5,6 +5,7 @@ import { ImportConfigPage } from '@/popup/pages/config/pages/import/ImportConfig
 import { ImportPage } from '@/popup/pages/import/ImportPage'
 import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
 import { HelpOptions } from '@/popup/pages/options/pages/help/HelpOptions'
+import { PlayerOptions } from '@/popup/pages/options/pages/player/PlayerOptions'
 import { SeasonDetailsPage } from '@/popup/pages/search/seasonDetails/SeasonDetailsPage'
 import { ConfigPage } from '../pages/config/pages/ConfigPage'
 import { MountConfigEditor } from '../pages/config/pages/MountConfigEditor'
@@ -125,6 +126,10 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
       {
         path: 'retention-policy',
         Component: RetentionPolicyPage,
+      },
+      {
+        path: 'player',
+        Component: PlayerOptions,
       },
       {
         path: 'advanced',

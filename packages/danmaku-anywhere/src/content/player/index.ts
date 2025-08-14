@@ -137,13 +137,13 @@ danmakuOptionsService.get().then((options) => {
 })
 
 extensionOptionsService.get().then((options) => {
-  if (options.playerOptions) {
+  if (options.playerOptions.showSkipButton) {
     videoSkipService.enable()
   }
 })
 
 extensionOptionsService.onChange((options) => {
-  if (options.playerOptions) {
+  if (options.playerOptions.showSkipButton) {
     videoSkipService.enable()
   } else {
     videoSkipService.disable()

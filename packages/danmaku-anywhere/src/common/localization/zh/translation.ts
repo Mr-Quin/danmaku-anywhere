@@ -308,10 +308,15 @@ const pages = {
       feedback: '提交意见或建议',
       reportBug: '报告Bug',
     },
+    player: {
+      showSkipButton: '显示跳过按钮（OP/ED）',
+      showDanmakuTimeline: '显示弹幕时间线',
+    },
     pages: {
       danmakuSource: '弹幕来源',
       theme: 'UI主题',
       hotkeys: '快捷键',
+      player: '播放器',
       retentionPolicy: '缓存策略',
       advanced: '高级设置',
       help: '关于',

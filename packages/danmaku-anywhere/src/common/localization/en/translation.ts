@@ -311,10 +311,15 @@ const pages = {
       feedback: 'Provide feedback',
       reportBug: 'Report Bug',
     },
+    player: {
+      showSkipButton: 'Show skip button (OP/ED)',
+      showDanmakuTimeline: 'Show danmaku timeline',
+    },
     pages: {
       danmakuSource: 'Danmaku Source',
       theme: 'UI Theme',
       hotkeys: 'Hotkeys',
+      player: 'Player',
       retentionPolicy: 'Retention Policy',
       advanced: 'Advanced',
       help: '关于',

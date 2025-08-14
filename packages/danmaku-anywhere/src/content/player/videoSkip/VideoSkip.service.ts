@@ -138,12 +138,6 @@ export class VideoSkipService {
 
   private cleanup() {
     this.removeEventListeners()
-
-    if (this.activeButton) {
-      this.activeButton.root.unmount()
-      this.activeButton.node.remove()
-    }
-
-    this.jumpTargets = []
+    this.removeSkipButton()
   }
 }
