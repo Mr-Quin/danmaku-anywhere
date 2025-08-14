@@ -40,6 +40,14 @@ export const routes: Routes = [
         title: `详情 | ${PAGE_TITLE}`,
       },
       {
+        path: 'local',
+        loadComponent: () =>
+          import('./features/local/pages/local-player-page').then(
+            (m) => m.LocalPlayerPage
+          ),
+        title: `本地视频 | ${PAGE_TITLE}`,
+      },
+      {
         path: 'kazumi',
         loadComponent: () =>
           import('./features/kazumi/layout/kazumi-layout').then(

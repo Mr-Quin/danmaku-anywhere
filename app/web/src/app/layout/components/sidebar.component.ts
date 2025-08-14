@@ -93,6 +93,16 @@ export class AppSidebar {
       ],
     },
     {
+      title: '本地',
+      items: [
+        {
+          path: '/local',
+          label: '本地视频',
+          icon: 'folder_open',
+        },
+      ],
+    },
+    {
       title: 'Kazumi',
       items: [
         {

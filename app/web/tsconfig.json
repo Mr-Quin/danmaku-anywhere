@@ -13,7 +13,8 @@
     "importHelpers": true,
     "moduleResolution": "bundler",
     "target": "ES2022",
-    "module": "preserve"
+    "module": "preserve",
+    "lib": ["DOM.AsyncIterable", "DOM", "ESNext"]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
