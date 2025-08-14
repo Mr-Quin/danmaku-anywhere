@@ -12,19 +12,19 @@ export function SkipButton(props: SkipButtonProps) {
   const { target, onClick, onClose } = props
 
   const [isExiting, setIsExiting] = useState(false)
-  const timeoutRef = useRef<number | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     return () => {
       if (timeoutRef.current !== null) {
-        window.clearTimeout(timeoutRef.current)
+        clearTimeout(timeoutRef.current)
       }
     }
   }, [])
 
   const handleClose = () => {
     setIsExiting(true)
-    timeoutRef.current = window.setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       onClose()
     }, 200) // sync with CSS animation duration
   }

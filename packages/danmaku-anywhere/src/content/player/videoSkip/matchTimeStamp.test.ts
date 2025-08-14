@@ -107,11 +107,6 @@ describe('matchTimeStamp', () => {
       expect(result).toBeNull()
     })
 
-    // it('should return null for negative minutes', () => {
-    //   const result = matchTimeStamp('空降-5:30')
-    //   expect(result).toBeNull()
-    // })
-
     it('should return null for negative seconds', () => {
       const result = matchTimeStamp('空降5:-30')
       expect(result).toBeNull()

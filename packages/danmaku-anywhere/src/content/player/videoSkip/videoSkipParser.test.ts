@@ -34,8 +34,6 @@ describe('parseCommentsForJumpTargets', () => {
       const comments = createCommentsWithJumps()
       const result = parseCommentsForJumpTargets(comments)
 
-      console.log(result)
-
       expect(result).toHaveLength(4)
 
       expect(result[0]).toEqual({ startTime: 60, endTime: 180, shown: false })
@@ -87,10 +85,6 @@ describe('parseCommentsForJumpTargets', () => {
       })
       expect(resultSmaller).toHaveLength(0)
     })
-
-    // Buffer options no longer applicable in merged behavior; removed
-
-    // Combined options related to buffers removed
   })
 
   describe('edge cases', () => {
