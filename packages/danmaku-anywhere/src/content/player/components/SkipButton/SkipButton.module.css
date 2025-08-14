@@ -1,3 +1,25 @@
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
 .wrapper {
   position: absolute;
   bottom: 40px;
@@ -31,7 +53,6 @@
 .alert:hover {
   background-color: rgba(10, 10, 10, 0.72);
   border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
   box-shadow:
     0 10px 28px rgba(0, 0, 0, 0.5),
     0 3px 8px rgba(0, 0, 0, 0.28);
@@ -41,40 +62,12 @@
   transform: translateY(0);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-}
-
 .alertEnter {
   animation: fadeIn 200ms ease-out forwards;
 }
 
 .alertExit {
   animation: fadeOut 200ms ease-in forwards;
-}
-
-.actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .textButton {
@@ -98,17 +91,17 @@
 .textButton:hover {
   background-color: rgba(255, 255, 255, 0.08);
   color: #ffffff;
-  transform: translateY(-0.5px);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
-}
-
-.textButton:active {
-  transform: translateY(0);
 }
 
 .textButton:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18);
+}
+
+.actions {
+  display: inline-flex;
+  align-items: center;
 }
 
 .closeButton {
@@ -117,8 +110,8 @@
   background: none;
   border: none;
   color: #c7c7c7;
-  padding: 4px 6px;
-  margin-left: 4px;
+  padding: 8px;
+  line-height: 1;
   font: inherit;
   cursor: pointer;
   border-radius: 6px;
@@ -132,11 +125,6 @@
 .closeButton:hover {
   background-color: rgba(255, 255, 255, 0.08);
   color: #ffffff;
-  transform: translateY(-0.5px);
-}
-
-.closeButton:active {
-  transform: translateY(0);
 }
 
 .closeButton:focus-visible {
