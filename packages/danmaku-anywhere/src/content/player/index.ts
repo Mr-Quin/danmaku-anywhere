@@ -1,3 +1,4 @@
+import { getTrackingService } from '@/common/hooks/useSetupTracking'
 import { Logger as _Logger } from '@/common/Logger'
 import { danmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
@@ -173,5 +174,10 @@ playerRpcServer.listen()
 
 Logger.debug('Player script listening')
 
-void playerRpcClient.controller['relay:event:playerReady']({ frameId })
-void playerRpcClient.controller['relay:event:showPopover']({ frameId })
+playerRpcClient.controller['relay:event:playerReady']({ frameId })
+  .then(() => {
+    void playerRpcClient.controller['relay:event:showPopover']({ frameId })
+  })
+  .catch((err) => {
+    getTrackingService().track('playerInitError', err)
+  })
