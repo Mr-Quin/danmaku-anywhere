@@ -12,8 +12,8 @@ import { tryCatchSync } from '@/common/utils/utils'
 import { App } from './App'
 import '@/common/localization/i18n'
 import { EnvironmentContext } from '@/common/environment/context'
-import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
 import { createPopoverRoot } from '@/content/common/host/createPopoverRoot'
+import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
 
 const { data: frameId } = await chromeRpcClient.getFrameId()
 
