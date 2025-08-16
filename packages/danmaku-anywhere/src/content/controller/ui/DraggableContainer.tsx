@@ -2,7 +2,7 @@ import type { PopperProps } from '@mui/material'
 import { Popper } from '@mui/material'
 import { useDrag } from '@use-gesture/react'
 import type { ReactElement, Ref, RefObject } from 'react'
-import { useImperativeHandle, useRef, useState } from 'react'
+import { useEffect, useImperativeHandle, useRef, useState } from 'react'
 
 interface RenderProps {
   bind: ReturnType<typeof useDrag>
@@ -20,6 +20,7 @@ interface DraggableContainerProps {
   initialOffset: { x: number; y: number }
   ref?: Ref<DraggableContainerMethods>
   onTap?: (event: PointerEvent) => void
+  onDragEnd?: (offset: { x: number; y: number }) => void
 }
 
 type RefOf<T> = T extends RefObject<infer U> ? U : never
@@ -62,6 +63,7 @@ export const DraggableContainer = ({
   initialOffset,
   ref,
   onTap,
+  onDragEnd,
 }: DraggableContainerProps) => {
   const [isDragging, setIsDragging] = useState(false)
   const [popperInst, setPopperInst] = useState<PopperInstance | null>(null)
@@ -105,6 +107,11 @@ export const DraggableContainer = ({
     [resetOffset]
   )
 
+  useEffect(() => {
+    if (!popperInst) return
+    void updatePosition(translate.current.x, translate.current.y)
+  }, [popperInst])
+
   const bind = useDrag(
     ({ down, tap, event, delta: [mx, my] }) => {
       if (tap) {
@@ -115,6 +122,7 @@ export const DraggableContainer = ({
         void updatePosition(translate.current.x + mx, translate.current.y - my)
       } else {
         setIsDragging(false)
+        onDragEnd?.({ x: translate.current.x, y: translate.current.y })
       }
     },
     { delay: 1000 }
