@@ -1,5 +1,9 @@
+type PopoverRootOptions = {
+  id: string
+}
+
 // create shadow dom for extension ui
-export const createPopoverRoot = (id: string) => {
+export const createPopoverRoot = ({ id }: PopoverRootOptions) => {
   const root = document.createElement('div')
   root.id = id
   root.style.setProperty('position', 'absolute', 'important')
@@ -17,18 +21,6 @@ export const createPopoverRoot = (id: string) => {
 
   document.body.append(root)
   root.showPopover()
-
-  // Listen to fullscreenchange event to keep the popover on top
-  document.addEventListener('fullscreenchange', () => {
-    /**
-     * The last element in the top layer is shown on top.
-     * Hiding then showing the popover will make it the last element in the top layer.
-     *
-     * Do this every time something goes fullscreen, to ensure the popover is always on top.
-     */
-    root.hidePopover()
-    root.showPopover()
-  })
 
   const shadowStyle = document.createElement('style')
   shadowContainer.appendChild(shadowStyle)

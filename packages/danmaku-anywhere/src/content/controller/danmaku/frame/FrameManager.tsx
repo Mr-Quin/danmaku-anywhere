@@ -6,6 +6,7 @@ import { Logger } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type { PlayerRelayEvents } from '@/common/rpcClient/background/types'
+import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
 import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { useInjectFrames } from '@/content/controller/danmaku/frame/useInjectFrames'
@@ -86,6 +87,15 @@ export const FrameManager = () => {
         },
         'relay:event:preloadNextEpisode': async ({ frameId }) => {
           handlePreloadNext(frameId)
+        },
+        'relay:event:showPopover': async () => {
+          const root: HTMLDivElement | null = document.querySelector(
+            `#${CONTROLLER_ROOT_ID}`
+          )
+          if (root) {
+            root.hidePopover()
+            root.showPopover()
+          }
         },
       },
       { logger: Logger.sub('[Controller]') }

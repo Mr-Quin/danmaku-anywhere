@@ -13,14 +13,15 @@ import { App } from './App'
 import '@/common/localization/i18n'
 import { EnvironmentContext } from '@/common/environment/context'
 import { createPopoverRoot } from '@/content/common/createPopoverRoot'
+import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
 
 const { data: frameId } = await chromeRpcClient.getFrameId()
 
 Logger.debug(`Controller script loaded in frame ${frameId}`)
 
-const { shadowRoot, shadowStyle } = createPopoverRoot(
-  'danmaku-anywhere-controller'
-)
+const { shadowRoot, shadowStyle } = createPopoverRoot({
+  id: CONTROLLER_ROOT_ID,
+})
 
 // try to get the html font size for rem unit
 // if it fails, use 16 as default

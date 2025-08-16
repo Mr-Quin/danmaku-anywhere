@@ -1,3 +1,4 @@
+import { getTrackingService } from '@/common/hooks/useSetupTracking'
 import { Logger as _Logger } from '@/common/Logger'
 import { danmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
@@ -10,6 +11,7 @@ import type { PlayerRelayCommands } from '@/common/rpcClient/background/types'
 import { createPopoverRoot } from '@/content/common/createPopoverRoot'
 import { createDanmakuContainers } from '@/content/player/components/createDanmakuContainer'
 import { setupCss } from '@/content/player/components/setupCss'
+import { PLAYER_ROOT_ID } from '@/content/player/constants/rootId'
 import { DanmakuManager } from '@/content/player/monitors/DanmakuManager'
 import { VideoEventService } from '@/content/player/monitors/VideoEvent.service'
 import { VideoNodeObserver } from '@/content/player/monitors/VideoNodeObserver'
@@ -29,7 +31,9 @@ const manager = new DanmakuManager(videoNodeObserver, wrapper, container)
 const videoEventService = new VideoEventService(videoNodeObserver)
 const videoSkipService = new VideoSkipService(videoEventService, wrapper)
 
-const { shadowRoot } = createPopoverRoot('danmaku-anywhere-player')
+const { shadowRoot, root } = createPopoverRoot({
+  id: PLAYER_ROOT_ID,
+})
 
 manager.setParent(shadowRoot)
 setupCss(shadowRoot)
@@ -150,8 +154,30 @@ extensionOptionsService.onChange((options) => {
   }
 })
 
+/**
+ * Window events
+ */
+document.addEventListener('fullscreenchange', () => {
+  /**
+   * The last element in the top layer is shown on top.
+   * Hiding then showing the popover will make it the last element in the top layer.
+   *
+   * Do this every time something goes fullscreen, to ensure the popover is always on top.
+   */
+  root.hidePopover()
+  root.showPopover()
+  // Then notify the controller so that the controller can also toggle popover to stay on top
+  void playerRpcClient.controller['relay:event:showPopover']({ frameId })
+})
+
 playerRpcServer.listen()
 
 Logger.debug('Player script listening')
 
-await playerRpcClient.controller['relay:event:playerReady']({ frameId })
+playerRpcClient.controller['relay:event:playerReady']({ frameId })
+  .then(() => {
+    void playerRpcClient.controller['relay:event:showPopover']({ frameId })
+  })
+  .catch((err) => {
+    getTrackingService().track('playerInitError', err)
+  })
