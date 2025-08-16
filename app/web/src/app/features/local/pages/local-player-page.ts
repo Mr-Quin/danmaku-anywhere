@@ -4,11 +4,13 @@ import {
   Component,
   computed,
   effect,
-  signal,
+  inject,
 } from '@angular/core'
+import { Title } from '@angular/platform-browser'
 import { ProgressSpinner } from 'primeng/progressspinner'
 import { VideoPlayer } from '../../../core/video-player/video-player'
 import { LocalFolderSelectorComponent } from './components/local-folder-selector.component'
+import { LocalPlayerService } from './services/local-player.service'
 import type { LocalVideoFileEntry } from './util/filesystem'
 
 type FileSystemDirectoryHandleLike = FileSystemDirectoryHandle
@@ -26,9 +28,9 @@ type FileSystemFileHandleLike = FileSystemFileHandle
   template: `
     <div class="container mx-auto p-6 2xl:px-0 flex flex-col">
       <div class="mb-10 flex items-center gap-3">
-        <h1 class="text-2xl font-semibold">本地视频</h1>
+        <h1 class="text-2xl font-semibold">{{ $pageTitle() }}</h1>
         @if ($directoryName()) {
-          <span class="text-sm text-surface-400">{{$directoryName()}}</span>
+          <span class="text-sm text-surface-400">{{ $directoryName() }}</span>
         }
       </div>
 
@@ -50,8 +52,11 @@ type FileSystemFileHandleLike = FileSystemFileHandle
                 <p>正在加载视频...</p>
               } @else if (!$hasSelection()) {
                 <p>
-                  @if (!$directoryHandle()) { 请选择一个包含视频文件的文件夹 }
-                  @else { 请选择一个视频文件 }
+                  @if (!$directoryHandle()) {
+                    请选择一个包含视频文件的文件夹
+                  } @else {
+                    请选择一个视频文件
+                  }
                 </p>
               }
             </div>
@@ -70,101 +75,59 @@ type FileSystemFileHandleLike = FileSystemFileHandle
   `,
 })
 export class LocalPlayerPage {
-  protected $directoryHandle = signal<FileSystemDirectoryHandleLike | null>(
-    null
-  )
-  protected $directoryName = computed(() => this.$directoryHandle()?.name ?? '')
-  protected $files = signal<LocalVideoFileEntry[]>([])
-  protected $selectedIndex = signal<number | null>(null)
-  protected $selectedFile = computed(() => {
-    const index = this.$selectedIndex()
-    const files = this.$files()
-    if (index === null || index < 0 || index >= files.length) return null
-    return files[index]
-  })
-  protected $videoUrl = signal<string | undefined>(undefined)
-  protected $isLoading = signal(false)
-  protected $error = signal<string | null>(null)
+  private titleService = inject(Title)
+  private player = inject(LocalPlayerService)
 
-  private objectUrlToRevoke: string | null = null
+  protected $directoryHandle = this.player.$directoryHandle
+  protected $directoryName = this.player.$directoryName
+  protected $files = this.player.$files
+  protected $selectedIndex = this.player.$selectedIndex
+  protected $selectedFile = this.player.$selectedFile
+  protected $videoUrl = this.player.$videoUrl
+  protected $isLoading = this.player.$isLoading
+  protected $error = this.player.$error
+  protected $hasSelection = this.player.$hasSelection
+  protected $showOverlay = this.player.$showOverlay
+  protected $title = this.player.$title
+  protected $hasPrevious = this.player.$hasPrevious
+  protected $hasNext = this.player.$hasNext
 
-  protected $hasSelection = computed(() => this.$selectedIndex() !== null)
-  protected $showOverlay = computed(
-    () => this.$isLoading() || !this.$hasSelection()
-  )
-  protected $title = computed(() => this.$selectedFile()?.name ?? '')
-  protected $hasPrevious = computed(() => {
-    const idx = this.$selectedIndex()
-    return idx !== null && idx > 0
-  })
-  protected $hasNext = computed(() => {
-    const idx = this.$selectedIndex()
-    const total = this.$files().length
-    return idx !== null && idx < total - 1
+  protected $pageTitle = computed(() => {
+    const fileTitle = this.$title()
+    return fileTitle ? `本地视频 - ${fileTitle}` : '本地视频'
   })
 
   constructor() {
     effect(() => {
-      // Revoke old object URL when video changes
-      const currentUrl = this.$videoUrl()
-      if (this.objectUrlToRevoke && this.objectUrlToRevoke !== currentUrl) {
-        URL.revokeObjectURL(this.objectUrlToRevoke)
-        this.objectUrlToRevoke = null
-      }
+      const currentTitle = this.$title()
+      const pageTitle = currentTitle
+        ? `${currentTitle} | Danmaku Anywhere`
+        : 'Danmaku Anywhere'
+      this.titleService.setTitle(pageTitle)
     })
   }
 
   protected onDirectorySelected(handle: FileSystemDirectoryHandleLike) {
-    this.$directoryHandle.set(handle)
-    this.$files.set([])
-    this.$selectedIndex.set(null)
+    void this.player.onDirectorySelected(handle)
   }
 
   protected onFilesChanged(files: LocalVideoFileEntry[]) {
-    const sorted = [...files].sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, { numeric: true })
-    )
-    this.$files.set(sorted)
-    if (sorted.length > 0) {
-      void this.loadByIndex(0)
-    }
+    void this.player.onFilesChanged(files)
   }
 
   protected onFileHandleSelected(handle: FileSystemFileHandleLike) {
-    const index = this.$files().findIndex((f) => f.handle === handle)
-    if (index !== -1) {
-      void this.loadByIndex(index)
-    }
+    void this.player.onFileHandleSelected(handle)
   }
 
   private async loadByIndex(index: number) {
-    const files = this.$files()
-    if (index < 0 || index >= files.length) return
-    this.$selectedIndex.set(index)
-    this.$isLoading.set(true)
-    try {
-      const fileHandle = files[index].handle
-      const file = await fileHandle.getFile()
-      const url = URL.createObjectURL(file)
-      this.objectUrlToRevoke = url
-      this.$videoUrl.set(url)
-    } finally {
-      this.$isLoading.set(false)
-    }
+    await this.player.loadByIndex(index)
   }
 
   protected onPrevious() {
-    const idx = this.$selectedIndex()
-    if (idx !== null && idx > 0) {
-      void this.loadByIndex(idx - 1)
-    }
+    void this.player.onPrevious()
   }
 
   protected onNext() {
-    const idx = this.$selectedIndex()
-    const total = this.$files().length
-    if (idx !== null && idx < total - 1) {
-      void this.loadByIndex(idx + 1)
-    }
+    void this.player.onNext()
   }
 }
