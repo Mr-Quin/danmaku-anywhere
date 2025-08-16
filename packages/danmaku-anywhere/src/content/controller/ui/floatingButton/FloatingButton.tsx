@@ -15,8 +15,8 @@ import { useStore } from '@/content/controller/store/store'
 import { DraggableContainer } from '@/content/controller/ui/DraggableContainer'
 import { FabContextMenu } from '@/content/controller/ui/floatingButton/components/FabContextMenu'
 import { FabLoadingIndicator } from '@/content/controller/ui/floatingButton/components/FabLoadingIndicator'
-import { useShowFab } from './hooks/useShowFab'
 import { usePersistedFabPosition } from './hooks/usePersistedFabPosition'
+import { useShowFab } from './hooks/useShowFab'
 
 interface FloatingButtonProps extends FabProps {
   onOpen: (virtualElement: PopoverVirtualElement) => void
@@ -58,7 +58,10 @@ export const FloatingButton = forwardRef<
 
   const fabAnchor = useInitialAnchor()
 
-  const { initialOffset, handleDragEnd } = usePersistedFabPosition({ x: 0, y: 0 })
+  const { initialOffset, handleDragEnd } = usePersistedFabPosition({
+    x: 0,
+    y: 0,
+  })
 
   const handleTap = (x: number, y: number) => {
     handleCloseContextMenu()

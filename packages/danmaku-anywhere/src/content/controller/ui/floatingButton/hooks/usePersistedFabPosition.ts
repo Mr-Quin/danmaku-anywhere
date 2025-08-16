@@ -1,26 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-export interface Offset {
+export interface FabOffset {
   x: number
   y: number
 }
 
-const STORAGE_KEY_PREFIX = 'danmaku-anywhere:floatingButtonOffset:'
+const STORAGE_KEY_PREFIX = 'danmaku-anywhere:floatingButtonOffset'
 
-const getDomainKey = () => {
+const readFromStorage = (defaultOffset: FabOffset): FabOffset => {
   try {
-    return window.location.hostname || 'unknown'
-  } catch {
-    return 'unknown'
-  }
-}
-
-const readFromStorage = (defaultOffset: Offset): Offset => {
-  try {
-    const key = STORAGE_KEY_PREFIX + getDomainKey()
-    const raw = window.localStorage.getItem(key)
+    const raw = window.localStorage.getItem(STORAGE_KEY_PREFIX)
     if (!raw) return defaultOffset
-    const parsed = JSON.parse(raw) as Partial<Offset>
+    const parsed = JSON.parse(raw) as Partial<FabOffset>
     if (
       typeof parsed.x === 'number' &&
       Number.isFinite(parsed.x) &&
@@ -35,30 +26,29 @@ const readFromStorage = (defaultOffset: Offset): Offset => {
   }
 }
 
-const writeToStorage = (offset: Offset) => {
+const writeToStorage = (offset: FabOffset) => {
   try {
-    const key = STORAGE_KEY_PREFIX + getDomainKey()
-    window.localStorage.setItem(key, JSON.stringify(offset))
+    window.localStorage.setItem(STORAGE_KEY_PREFIX, JSON.stringify(offset))
   } catch {
     // ignore
   }
 }
 
-export const usePersistedFabPosition = (defaultOffset: Offset) => {
-  const [offset, setOffset] = useState<Offset>(() => readFromStorage(defaultOffset))
+export const usePersistedFabPosition = (defaultOffset: FabOffset) => {
+  const [offset, setOffset] = useState<FabOffset>(() =>
+    readFromStorage(defaultOffset)
+  )
 
   useEffect(() => {
-    // ensure defaults are written once if missing
     writeToStorage(offset)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const handleDragEnd = useCallback((newOffset: Offset) => {
+  const handleDragEnd = useCallback((newOffset: FabOffset) => {
     setOffset(newOffset)
     writeToStorage(newOffset)
   }, [])
 
-  const initialOffset = useMemo<Offset>(() => offset, [offset])
+  const initialOffset = useMemo<FabOffset>(() => offset, [offset])
 
   return { initialOffset, handleDragEnd }
 }
