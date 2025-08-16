@@ -15,7 +15,6 @@ import { useStore } from '@/content/controller/store/store'
 import { DraggableContainer } from '@/content/controller/ui/DraggableContainer'
 import { FabContextMenu } from '@/content/controller/ui/floatingButton/components/FabContextMenu'
 import { FabLoadingIndicator } from '@/content/controller/ui/floatingButton/components/FabLoadingIndicator'
-import { LoadingRing } from './components/LoadingRing'
 import { useShowFab } from './hooks/useShowFab'
 
 interface FloatingButtonProps extends FabProps {
@@ -125,14 +124,10 @@ export const FloatingButton = forwardRef<
                     onMouseOut={() => setFabHover(false)}
                   >
                     <SpeedDialIcon />
-                    <LoadingRing isLoading={isLoading && !isDisconnected} />
-                  </StyledFab>
-                  {fabRef.current && (
                     <FabLoadingIndicator
-                      anchor={fabRef.current}
-                      isLoading={isLoading}
+                      isLoading={!isDisconnected && isLoading}
                     />
-                  )}
+                  </StyledFab>
                 </div>
               </Fade>
             )
