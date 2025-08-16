@@ -1,12 +1,15 @@
-import { Refresh } from '@mui/icons-material'
+import { Refresh, Search } from '@mui/icons-material'
 import {
   CircularProgress,
   IconButton,
+  InputAdornment,
   Stack,
+  TextField,
   Toolbar,
   Tooltip,
   Typography,
 } from '@mui/material'
+import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { CommentsTable } from '@/common/components/CommentsTable'
@@ -18,8 +21,25 @@ export const CommentsPage = () => {
   const hasVideo = useStore.use.hasVideo()
   const { comments } = useStore.use.danmaku()
   const seekToTime = useStore.use.seekToTime()
+  const [filterText, setFilterText] = useState('')
 
   const { refreshComments, loadMutation, canRefresh } = useLoadDanmaku()
+
+  // Filter comments based on search text
+  const filteredComments = useMemo(() => {
+    if (!filterText.trim()) {
+      return comments
+    }
+    
+    const searchText = filterText.toLowerCase()
+    return comments.filter(comment => 
+      comment.m.toLowerCase().includes(searchText)
+    )
+  }, [comments, filterText])
+
+  const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFilterText(event.target.value)
+  }
 
   return (
     <Stack height="100%" flexGrow={1}>
@@ -33,7 +53,7 @@ export const CommentsPage = () => {
         }}
       >
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          {t('danmaku.commentCounted', { count: comments.length })}
+          {t('danmaku.commentCounted', { count: filteredComments.length })}
         </Typography>
         {canRefresh && (
           <Tooltip title={t('danmaku.refresh')}>
@@ -47,8 +67,32 @@ export const CommentsPage = () => {
           </Tooltip>
         )}
       </Toolbar>
+      
+      {/* Filter Box */}
+      <Stack sx={{ px: 2, py: 1, backgroundColor: 'background.paper' }}>
+        <TextField
+          size="small"
+          placeholder={t('common.search', { defaultValue: 'Search...' })}
+          value={filterText}
+          onChange={handleFilterChange}
+          fullWidth
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search sx={{ color: 'text.secondary' }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              backgroundColor: 'background.default',
+            },
+          }}
+        />
+      </Stack>
+      
       <CommentsTable
-        comments={comments}
+        comments={filteredComments}
         onTimeClick={seekToTime}
         isTimeClickable={hasVideo()}
       />
