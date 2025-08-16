@@ -8,6 +8,7 @@ import { match } from 'ts-pattern'
 import type { BilibiliService } from '@/background/services/BilibiliService'
 import type { DanDanPlayService } from '@/background/services/DanDanPlayService'
 import type { DanmakuService } from '@/background/services/DanmakuService'
+import { findDanDanPlayEpisodeInList } from '@/background/services/episodeMatching'
 import type { SeasonService } from '@/background/services/SeasonService'
 import type { TencentService } from '@/background/services/TencentService'
 import type { TitleMappingService } from '@/background/services/TitleMappingService'
@@ -197,13 +198,10 @@ export class ProviderService {
         throw new Error(`No episodes found for season: ${season}`)
       }
 
-      const episodeId = this.danDanPlayService.computeEpisodeId(
-        season.providerIds.animeId,
-        episodeNumber
-      )
-
-      const episode = episodes.find(
-        (ep) => ep.providerIds.episodeId === episodeId
+      const episode = findDanDanPlayEpisodeInList(
+        episodes,
+        episodeNumber,
+        season.providerIds.animeId
       )
 
       if (!episode) {
