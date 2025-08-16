@@ -1,7 +1,7 @@
 import { Box, Fade } from '@mui/material'
 import { createPortal } from 'react-dom'
 
-import { LoadingRing } from '@/content/controller/ui/floatingButton/components/LoadingRing'
+import { CircularSpinner } from '@/content/controller/ui/floatingButton/components/CircularSpinner'
 
 interface FabLoadingIndicatorProps {
   anchor: Element
@@ -24,7 +24,7 @@ export const FabLoadingIndicator = ({
           pointerEvents: 'none',
         }}
       >
-        <LoadingRing isLoading={isLoading} />
+        <CircularSpinner isLoading={isLoading} />
       </Box>
     </Fade>,
     anchor
