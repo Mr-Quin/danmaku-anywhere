@@ -285,6 +285,9 @@ export const setupRpc = (
     'relay:event:preloadNextEpisode': passThrough(
       relayFrameClient['relay:event:preloadNextEpisode']
     ),
+    'relay:event:showPopover': passThrough(
+      relayFrameClient['relay:event:showPopover']
+    ),
   })
 
   rpcServer.listen()

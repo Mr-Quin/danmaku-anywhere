@@ -126,4 +126,5 @@ export type PlayerRelayEvents = {
   'relay:event:videoChange': RPCDef<InputWithFrameId<void>, void>
   'relay:event:videoRemoved': RPCDef<InputWithFrameId<void>, void>
   'relay:event:preloadNextEpisode': RPCDef<InputWithFrameId<void>, void>
+  'relay:event:showPopover': RPCDef<InputWithFrameId<void>, void>
 }
