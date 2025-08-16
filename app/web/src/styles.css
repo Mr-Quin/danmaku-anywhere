@@ -1,5 +1,6 @@
 @layer base, utility, material-symbols;
 
+@import "primeicons/primeicons.css";
 @import "tailwindcss";
 @import "material-symbols" layer(material-symbols);
 @plugin "tailwindcss-primeui";
