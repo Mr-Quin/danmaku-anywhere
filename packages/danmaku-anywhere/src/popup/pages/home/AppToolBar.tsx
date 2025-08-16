@@ -18,6 +18,7 @@ import { StyledEnableSwitch } from '@/common/components/StyledEnableSwitch'
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ThemeToggle } from '@/popup/component/ThemeToggle'
 
 export const AppToolBar = () => {
@@ -36,12 +37,7 @@ export const AppToolBar = () => {
   const { t } = useTranslation()
 
   const openInWindow = async () => {
-    void chrome.windows.create({
-      url: window.location.href,
-      type: 'popup',
-      width: document.body.scrollWidth + 50,
-      height: document.body.scrollHeight + 50,
-    })
+    void chromeRpcClient.openPopupInNewWindow('')
   }
 
   return (

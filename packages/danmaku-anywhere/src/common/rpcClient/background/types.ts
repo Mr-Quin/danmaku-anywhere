@@ -89,6 +89,7 @@ export type BackgroundMethods = {
   kazumiGetChapters: RPCDef<KazumiChapterPayload, KazumiChapterResult[][]>
   setHeaders: RPCDef<SetHeaderRule, void>
   extractTitle: RPCDef<string, ExtractTitleResponse['result']>
+  openPopupInNewWindow: RPCDef<string, void>
 }
 
 type InputWithFrameId<TInput> = TInput extends void

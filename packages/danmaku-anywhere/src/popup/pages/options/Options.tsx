@@ -10,7 +10,7 @@ import {
 } from '@mui/material'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Outlet, useNavigate } from 'react-router'
+import { Outlet, useNavigate, useSearchParams } from 'react-router'
 import { EXTENSION_VERSION } from '@/common/constants'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
@@ -52,11 +52,17 @@ export const Options = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { data } = useExtensionOptions()
+  const [searchParams] = useSearchParams()
 
   return (
     <>
       <OptionsPageLayout direction="up">
-        <OptionsPageToolBar title={t('optionsPage.name')} />
+        <OptionsPageToolBar
+          leftElement={
+            searchParams.get('from') === 'content' ? false : undefined
+          }
+          title={t('optionsPage.name')}
+        />
         <Version />
         <List disablePadding>
           <LanguageListItem />

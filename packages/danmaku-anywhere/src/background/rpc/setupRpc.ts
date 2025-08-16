@@ -234,6 +234,14 @@ export const setupRpc = (
     setHeaders: async (rule) => {
       await setRequestHeaderRule(rule)
     },
+    openPopupInNewWindow: async (path) => {
+      void chrome.windows.create({
+        url: chrome.runtime.getURL(`pages/popup.html#/${path}`),
+        type: 'popup',
+        width: 550,
+        height: 650,
+      })
+    },
   })
 
   const passThrough = <TRPCDef extends AnyRPCDef>(
