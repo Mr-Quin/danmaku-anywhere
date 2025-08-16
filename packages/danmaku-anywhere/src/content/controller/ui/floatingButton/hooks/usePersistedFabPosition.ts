@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useState } from 'react'
 import type { DragOffset } from '@/content/controller/ui/components/dragOffset'
 
 const STORAGE_KEY_PREFIX = 'danmaku-anywhere:fabOffset'
@@ -31,20 +31,11 @@ const writeToStorage = (offset: DragOffset) => {
 }
 
 export const usePersistedFabPosition = (defaultOffset: DragOffset) => {
-  const [offset, setOffset] = useState<DragOffset>(() =>
-    readFromStorage(defaultOffset)
-  )
-
-  useEffect(() => {
-    writeToStorage(offset)
-  }, [])
+  const [offset] = useState<DragOffset>(() => readFromStorage(defaultOffset))
 
   const handleDragEnd = useCallback((newOffset: DragOffset) => {
-    setOffset(newOffset)
     writeToStorage(newOffset)
   }, [])
 
-  const initialOffset = useMemo<DragOffset>(() => offset, [offset])
-
-  return { initialOffset, handleDragEnd }
+  return { initialOffset: offset, handleDragEnd }
 }
