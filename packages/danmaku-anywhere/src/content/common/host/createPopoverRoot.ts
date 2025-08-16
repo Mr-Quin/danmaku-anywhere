@@ -1,3 +1,6 @@
+import classes from './host.module.css'
+import shadowCss from './shadow.module.css?inline'
+
 type PopoverRootOptions = {
   id: string
 }
@@ -6,10 +9,7 @@ type PopoverRootOptions = {
 export const createPopoverRoot = ({ id }: PopoverRootOptions) => {
   const root = document.createElement('div')
   root.id = id
-  root.style.setProperty('position', 'absolute', 'important')
-  root.style.setProperty('z-index', '2147483647', 'important')
-  root.style.setProperty('left', '0', 'important')
-  root.style.setProperty('top', '0', 'important')
+  root.classList.add(classes.root)
 
   // make the root element a popover so it can be shown on top of everything
   root.setAttribute('popover', 'manual')
@@ -27,11 +27,7 @@ export const createPopoverRoot = ({ id }: PopoverRootOptions) => {
 
   // prevent global styles from leaking into shadow dom
   // TODO: rem unit is still affected by html { font-size }
-  shadowStyle.textContent = `
-  :host {
-  all : initial;
-  }
-  `
+  shadowStyle.innerHTML = shadowCss
 
   return {
     // root element in the real dom
