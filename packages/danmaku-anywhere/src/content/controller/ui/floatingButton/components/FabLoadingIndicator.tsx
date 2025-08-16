@@ -1,7 +1,5 @@
-import { Box, Fade } from '@mui/material'
+import { Box, CircularProgress, Fade } from '@mui/material'
 import { createPortal } from 'react-dom'
-
-import { LoadingRing } from '@/content/controller/ui/floatingButton/components/LoadingRing'
 
 interface FabLoadingIndicatorProps {
   anchor: Element
@@ -16,15 +14,23 @@ export const FabLoadingIndicator = ({
     <Fade in={isLoading}>
       <Box
         position="absolute"
-        width={40}
-        height={40}
-        top={0}
-        left={0}
+        width={48}
+        height={48}
+        top={-4}
+        left={-4}
         sx={{
           pointerEvents: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
-        <LoadingRing isLoading={isLoading} />
+        <CircularProgress
+          size={48}
+          thickness={3}
+          color="inherit"
+          sx={{ color: 'common.white', opacity: 0.9 }}
+        />
       </Box>
     </Fade>,
     anchor
