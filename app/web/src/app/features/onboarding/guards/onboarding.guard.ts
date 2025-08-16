@@ -6,6 +6,7 @@ import {
   Router,
   type RouterStateSnapshot,
 } from '@angular/router'
+import { LayoutService } from '../../../layout/layout.service'
 import { OnboardingService } from '../services/onboarding.service'
 
 export const requireOnboarding: CanActivateFn = (
@@ -14,8 +15,12 @@ export const requireOnboarding: CanActivateFn = (
 ) => {
   const router = inject(Router)
   const onboardingService = inject(OnboardingService)
+  const layoutService = inject(LayoutService)
 
-  if (onboardingService.$isOnboardingComplete()) {
+  if (
+    onboardingService.$isOnboardingComplete() ||
+    !layoutService.$hasExtensionAndIsNotMobile()
+  ) {
     return true
   }
 

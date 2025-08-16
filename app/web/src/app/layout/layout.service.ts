@@ -1,7 +1,9 @@
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout'
+import { Platform } from '@angular/cdk/platform'
 import { computed, effect, Injectable, inject, signal } from '@angular/core'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { type ActivatedRouteSnapshot, Router } from '@angular/router'
+import { ExtensionService } from '../core/extension/extension.service'
 
 const DOC_MIGRATION_BANNER_KEY = 'hide-doc-migration-banner'
 
@@ -13,10 +15,17 @@ export type ScreenSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 export class LayoutService {
   private router = inject(Router)
   private breakpointObserver = inject(BreakpointObserver)
+  private extensionService = inject(ExtensionService)
+  private platformService = inject(Platform)
 
   private $routerEvent = toSignal(this.router.events)
 
   private $currentRoute = signal(this.router.routerState.snapshot.root)
+
+  $hasExtensionAndIsNotMobile = computed(() => {
+    const isMobile = this.platformService.IOS || this.platformService.ANDROID
+    return this.extensionService.$isExtensionInstalled() && !isMobile
+  })
 
   $showDocMigrationBanner = signal(
     !localStorage.getItem(DOC_MIGRATION_BANNER_KEY)
@@ -28,7 +37,11 @@ export class LayoutService {
   }
 
   $disableSidebar = computed(() => {
-    return this.hasHideNavigationFlag(this.$currentRoute())
+    return this.checkRouteFlag(this.$currentRoute(), 'hideNavigation')
+  })
+
+  $requireExtension = computed(() => {
+    return this.checkRouteFlag(this.$currentRoute(), 'requireExtension')
   })
 
   private screenSizeMap = new Map<string, ScreenSize>([
@@ -71,13 +84,13 @@ export class LayoutService {
     })
   }
 
-  private hasHideNavigationFlag(route: ActivatedRouteSnapshot): boolean {
-    if (route.data?.['hideNavigation'] === true) {
+  private checkRouteFlag(route: ActivatedRouteSnapshot, flag: string): boolean {
+    if (route.data?.[flag] === true) {
       return true
     }
 
     for (const child of route.children || []) {
-      if (this.hasHideNavigationFlag(child)) {
+      if (this.checkRouteFlag(child, flag)) {
         return true
       }
     }

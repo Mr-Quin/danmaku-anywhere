@@ -1,5 +1,5 @@
 import type { Routes } from '@angular/router'
-import { hasExtension, noExtension } from './core/extension/extension.guard'
+import { hasExtension } from './core/extension/extension.guard'
 import { developmentOnly } from './features/kazumi/guards/development.guard'
 import { validateKazumiPolicy } from './features/kazumi/guards/kazumi-policy-validation.guard'
 import {
@@ -12,7 +12,7 @@ import type { RouteData } from './shared/types'
 export const routes: Routes = [
   {
     path: '',
-    canActivateChild: [requireOnboarding, hasExtension],
+    canActivateChild: [requireOnboarding],
     children: [
       { path: '', redirectTo: 'trending', pathMatch: 'full' },
       {
@@ -22,6 +22,7 @@ export const routes: Routes = [
             (m) => m.TrendingPage
           ),
         title: `热门动画 | ${PAGE_TITLE}`,
+        data: { requireExtension: true } satisfies RouteData,
       },
       {
         path: 'calendar',
@@ -30,6 +31,7 @@ export const routes: Routes = [
             (m) => m.CalendarPage
           ),
         title: `放送日历 | ${PAGE_TITLE}`,
+        data: { requireExtension: true } satisfies RouteData,
       },
       {
         path: 'details/:id',
@@ -38,6 +40,7 @@ export const routes: Routes = [
             (m) => m.DetailsPage
           ),
         title: `详情 | ${PAGE_TITLE}`,
+        data: { requireExtension: true } satisfies RouteData,
       },
       {
         path: 'local',
@@ -53,6 +56,7 @@ export const routes: Routes = [
           import('./features/kazumi/layout/kazumi-layout').then(
             (m) => m.KazumiLayout
           ),
+        data: { requireExtension: true } satisfies RouteData,
         children: [
           {
             path: '',
@@ -88,23 +92,13 @@ export const routes: Routes = [
     ],
   },
   {
-    path: 'no-extension',
-    loadComponent: () =>
-      import('./features/no-extension/no-extension-page').then(
-        (m) => m.NoExtensionPage
-      ),
-    title: PAGE_TITLE,
-    canActivate: [noExtension],
-    data: { hideNavigation: true } satisfies RouteData,
-  },
-  {
     path: 'onboarding',
     title: PAGE_TITLE,
     loadComponent: () =>
       import('./features/onboarding/pages/onboarding-page').then(
         (m) => m.OnboardingPage
       ),
-    canActivate: [noOnboarding, hasExtension],
+    canActivate: [hasExtension, noOnboarding],
     data: { hideNavigation: true } satisfies RouteData,
   },
   {

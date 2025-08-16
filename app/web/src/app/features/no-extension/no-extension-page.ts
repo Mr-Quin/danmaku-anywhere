@@ -22,7 +22,7 @@ import { ExternalLinkDirective } from '../../shared/directives/external-link.dir
       @if (isMobile) {
         <h1 class="text-2xl font-bold mb-4">暂时只支持桌面端使用</h1>
       } @else {
-        <h1 class="text-2xl font-bold mb-4">此应用需要Danmaku Anywhere扩展v1.1.0或以上版本</h1>
+        <h1 class="text-2xl font-bold mb-4">此功能需要Danmaku Anywhere扩展v1.2.0或以上版本</h1>
         <p-button class="hidden"></p-button>
         @if (isChromium) {
           <a pButton target="_blank" [href]="chromeStoreUrl" (click)="onDownloadClick('chrome')">
@@ -35,7 +35,7 @@ import { ExternalLinkDirective } from '../../shared/directives/external-link.dir
             <fa-icon [icon]="firefox" />
           </a>
         } @else {
-          不支持Chromium和Fire以外的浏览器
+          暂不支持Chromium和Fire以外的浏览器
         }
         <a daExternalLink class="text-gray-500 mt-8" target="_blank" [href]="githubUrl">
           其他安装方式
