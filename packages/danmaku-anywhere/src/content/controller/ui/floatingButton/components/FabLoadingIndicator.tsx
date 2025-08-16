@@ -1,16 +1,13 @@
 import { Box, CircularProgress, Fade } from '@mui/material'
-import { createPortal } from 'react-dom'
 
 interface FabLoadingIndicatorProps {
-  anchor: Element
   isLoading: boolean
 }
 
 export const FabLoadingIndicator = ({
-  anchor,
   isLoading,
 }: FabLoadingIndicatorProps) => {
-  return createPortal(
+  return (
     <Fade in={isLoading}>
       <Box
         position="absolute"
@@ -28,11 +25,10 @@ export const FabLoadingIndicator = ({
         <CircularProgress
           size={48}
           thickness={3}
-          color="inherit"
-          sx={{ color: 'common.white', opacity: 0.9 }}
+          color="primary"
+          sx={{ opacity: 0.8 }}
         />
       </Box>
-    </Fade>,
-    anchor
+    </Fade>
   )
 }
