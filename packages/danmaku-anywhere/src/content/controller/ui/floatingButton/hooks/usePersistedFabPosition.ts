@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { getTrackingService } from '@/common/hooks/useSetupTracking'
 import type { DragOffset } from '@/content/controller/ui/components/dragOffset'
 
 const STORAGE_KEY_PREFIX = 'danmaku-anywhere:fabOffset'
@@ -35,6 +36,7 @@ export const usePersistedFabPosition = (defaultOffset: DragOffset) => {
 
   const handleDragEnd = useCallback((newOffset: DragOffset) => {
     writeToStorage(newOffset)
+    getTrackingService().track('dragFabEnd', newOffset)
   }, [])
 
   return { initialOffset: offset, handleDragEnd }
