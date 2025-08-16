@@ -24,6 +24,7 @@ export const PopupLayout = ({ children }: PropsWithChildren<{}>) => {
         sx={{
           height: 1,
           overflow: 'hidden',
+          position: 'relative',
         }}
       >
         {children}

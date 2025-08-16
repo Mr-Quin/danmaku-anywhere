@@ -6,6 +6,7 @@ import { useIsSmallScreen } from '@/content/controller/common/hooks/useIsSmallSc
 
 interface WindowToolbarProps {
   children?: ReactNode
+  additionalButtons?: ReactNode
   onClose: () => void
   showLock?: boolean
   onLock?: () => void
@@ -16,6 +17,7 @@ interface WindowToolbarProps {
 export const WindowToolbar = (props: WindowToolbarProps) => {
   const {
     children,
+    additionalButtons,
     onClose,
     showLock = false,
     onLock,
@@ -43,6 +45,7 @@ export const WindowToolbar = (props: WindowToolbarProps) => {
       <Toolbar variant="dense" sx={{ gap: 2 }}>
         {children}
         <Stack direction="row" ml="auto">
+          {additionalButtons}
           {!sm && showLock && (
             <IconButton
               onClick={handleLock}
