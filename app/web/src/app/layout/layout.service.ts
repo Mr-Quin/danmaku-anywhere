@@ -32,9 +32,7 @@ export class LayoutService {
   )
   private $_showSidebar = signal(false)
 
-  get $showSidebar() {
-    return this.$_showSidebar.asReadonly()
-  }
+  $showSidebar = this.$_showSidebar.asReadonly()
 
   $disableSidebar = computed(() => {
     return this.checkRouteFlag(this.$currentRoute(), 'hideNavigation')

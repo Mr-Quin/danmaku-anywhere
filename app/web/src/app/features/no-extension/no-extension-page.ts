@@ -5,6 +5,7 @@ import { faChrome, faFirefoxBrowser } from '@fortawesome/free-brands-svg-icons'
 import { Button, ButtonDirective } from 'primeng/button'
 import { UAParser } from 'ua-parser-js'
 import { isChromeFamily } from 'ua-parser-js/helpers'
+import { ExtensionService } from '../../core/extension/extension.service'
 import { TrackingService } from '../../core/tracking.service'
 import {
   CHROME_STORE_URL,
@@ -19,9 +20,7 @@ import { ExternalLinkDirective } from '../../shared/directives/external-link.dir
   imports: [FaIconComponent, Button, ButtonDirective, ExternalLinkDirective],
   template: `
     <div class="flex flex-col justify-center items-center h-full">
-      @if (isMobile) {
-        <h1 class="text-2xl font-bold mb-4">暂时只支持桌面端使用</h1>
-      } @else {
+      @if (extensionService.$isExtensionInstalled()) {
         <h1 class="text-2xl font-bold mb-4">此功能需要Danmaku Anywhere扩展v1.2.0或以上版本</h1>
         <p-button class="hidden"></p-button>
         @if (isChromium) {
@@ -40,6 +39,8 @@ import { ExternalLinkDirective } from '../../shared/directives/external-link.dir
         <a daExternalLink class="text-gray-500 mt-8" target="_blank" [href]="githubUrl">
           其他安装方式
         </a>
+      } @else {
+        <h1 class="text-2xl font-bold mb-4">此功能暂时只支持桌面端使用</h1>
       }
     </div>
   `,
@@ -48,6 +49,9 @@ export class NoExtensionPage {
   private trackingService = inject(TrackingService)
   private platform = inject(Platform)
   private ua = UAParser(navigator.userAgent)
+
+  protected extensionService = inject(ExtensionService)
+
   protected chrome = faChrome
   protected firefox = faFirefoxBrowser
 
