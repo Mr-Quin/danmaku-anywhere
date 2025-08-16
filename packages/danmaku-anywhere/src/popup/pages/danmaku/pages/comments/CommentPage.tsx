@@ -1,14 +1,19 @@
+import {
+  DanmakuSourceType,
+  type GenericEpisode,
+} from '@danmaku-anywhere/danmaku-converter'
 import { Box } from '@mui/material'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
-
 import { useGetSeasonSuspense } from '@/common/anime/queries/useSeasons'
 import { CommentsTable } from '@/common/components/CommentsTable'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useCustomEpisodeSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
 import { useEpisodesSuspense } from '@/common/danmaku/queries/useEpisodes'
+import { isProvider } from '@/common/danmaku/utils'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
+import { useRefreshDanmaku } from '@/popup/hooks/useRefreshDanmaku'
 
 export const CommentPage = () => {
   const navigate = useNavigate()
@@ -20,9 +25,14 @@ export const CommentPage = () => {
 
   const params = useParams()
 
+  const { refreshDanmaku, ...mutation } = useRefreshDanmaku()
+
   const episodeId = params.episodeId ? Number.parseInt(params.episodeId) : 0
 
-  const getData = () => {
+  const getData = (): {
+    title: string
+    episode: GenericEpisode | null
+  } => {
     if (isCustom) {
       const episodes = useCustomEpisodeSuspense({ id: episodeId })
 
@@ -31,13 +41,13 @@ export const CommentPage = () => {
       if (!episode) {
         return {
           title: 'Custom',
-          comments: [],
+          episode: null,
         }
       }
 
       return {
         title: episode.title,
-        comments: episode.comments,
+        episode,
       }
     }
     const params = useParams()
@@ -56,21 +66,34 @@ export const CommentPage = () => {
 
     return {
       title: `${season.title} - ${episode.title}`,
-      comments: episode.comments,
+      episode,
     }
   }
 
-  const { title, comments } = getData()
+  const { title, episode } = getData()
+
+  const canRefresh =
+    episode !== null && !isProvider(episode, DanmakuSourceType.Custom)
+
+  const handleRefresh = () => {
+    if (!canRefresh) {
+      return
+    }
+    void refreshDanmaku(episode)
+  }
 
   return (
     <TabLayout>
       <TabToolbar title={title} showBackButton onGoBack={goBack} />
-      {comments ? (
+      {episode ? (
         <CommentsTable
-          comments={comments}
+          comments={episode.comments}
           onFilterComment={(comment) =>
             navigate('/styles/filtering', { state: comment })
           }
+          onRefresh={handleRefresh}
+          showRefresh={canRefresh}
+          isRefreshing={mutation.isPending}
         />
       ) : (
         <Box p={2} flexGrow={1}>

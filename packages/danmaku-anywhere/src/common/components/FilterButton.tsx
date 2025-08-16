@@ -69,6 +69,7 @@ export const FilterButton = ({
         anchorEl={anchorRef.current}
         onClose={handleClose}
         open={open}
+        disableScrollLock
         anchorOrigin={{
           vertical: 'bottom',
           horizontal: 'right',
