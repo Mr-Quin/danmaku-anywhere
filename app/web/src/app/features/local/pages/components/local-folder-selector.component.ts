@@ -22,7 +22,7 @@ import {
   imports: [CommonModule, Card, Button, Tree],
   template: `
     <p-card>
-      <div class="max-h-72 xl:h-max xl:w-[24rem]">
+      <div class="h-[500px] xl:w-[24rem] flex flex-col">
         <div class="mb-4 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <h3 class="font-bold">文件树</h3>
@@ -32,9 +32,6 @@ import {
           </div>
           <div class="flex items-center gap-2">
             <p-button label="选择文件夹" (onClick)="onPick()" severity="secondary" />
-            @if ($hasDirectory()) {
-              <p-button label="重新选择" text (onClick)="onPick()" />
-            }
           </div>
         </div>
         @if (!$hasDirectory()) {
@@ -46,7 +43,10 @@ import {
             [value]="$nodes()"
             selectionMode="single"
             (onNodeSelect)="onNodeSelect($event)"
-            [style]="{height: '100%', overflow: 'auto'}"
+            [filter]="true"
+            filterPlaceholder="过滤"
+            class="flex-1 overflow-y-auto"
+            styleClass="p-0"
           />
         }
       </div>
