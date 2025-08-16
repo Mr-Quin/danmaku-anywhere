@@ -46,7 +46,10 @@ export const tryCatchSync = <T>(fn: () => NotPromise<T>) => {
   }
 }
 
-export const invariant = (condition: boolean, message: string) => {
+export function invariant(
+  condition: boolean,
+  message: string
+): asserts condition {
   if (!condition) {
     throw new Error(message)
   }

@@ -163,7 +163,6 @@ document.addEventListener('fullscreenchange', () => {
    *
    * Do this every time something goes fullscreen, to ensure the popover is always on top.
    */
-  console.log('toggling popover', 'player')
   root.hidePopover()
   root.showPopover()
   // Then notify the controller so that the controller can also toggle popover to stay on top
