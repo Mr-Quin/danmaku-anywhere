@@ -1,8 +1,16 @@
 import type { PopperProps } from '@mui/material'
 import { Popper } from '@mui/material'
 import { useDrag } from '@use-gesture/react'
-import type { ReactElement, Ref, RefObject } from 'react'
-import { useEffect, useImperativeHandle, useRef, useState } from 'react'
+import {
+  type ReactElement,
+  type Ref,
+  type RefObject,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react'
+import type { DragOffset } from '@/content/controller/ui/components/dragOffset'
 
 interface RenderProps {
   bind: ReturnType<typeof useDrag>
@@ -17,10 +25,10 @@ interface DraggableContainerProps {
   anchorEl: PopperProps['anchorEl']
   children: (props: RenderProps) => ReactElement<unknown, string>
   sx?: PopperProps['sx']
-  initialOffset: { x: number; y: number }
+  initialOffset: DragOffset
   ref?: Ref<DraggableContainerMethods>
   onTap?: (event: PointerEvent) => void
-  onDragEnd?: (offset: { x: number; y: number }) => void
+  onDragEnd?: (offset: DragOffset) => void
 }
 
 type RefOf<T> = T extends RefObject<infer U> ? U : never
@@ -108,7 +116,10 @@ export const DraggableContainer = ({
   )
 
   useEffect(() => {
-    if (!popperInst) return
+    if (!popperInst) {
+      return
+    }
+    // apply the initial offset
     void updatePosition(translate.current.x, translate.current.y)
   }, [popperInst])
 

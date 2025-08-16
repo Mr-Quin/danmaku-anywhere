@@ -1,17 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import type { DragOffset } from '@/content/controller/ui/components/dragOffset'
 
-export interface FabOffset {
-  x: number
-  y: number
-}
+const STORAGE_KEY_PREFIX = 'danmaku-anywhere:fabOffset'
 
-const STORAGE_KEY_PREFIX = 'danmaku-anywhere:floatingButtonOffset'
-
-const readFromStorage = (defaultOffset: FabOffset): FabOffset => {
+const readFromStorage = (defaultOffset: DragOffset): DragOffset => {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY_PREFIX)
     if (!raw) return defaultOffset
-    const parsed = JSON.parse(raw) as Partial<FabOffset>
+    const parsed = JSON.parse(raw) as Partial<DragOffset>
     if (
       typeof parsed.x === 'number' &&
       Number.isFinite(parsed.x) &&
@@ -26,7 +22,7 @@ const readFromStorage = (defaultOffset: FabOffset): FabOffset => {
   }
 }
 
-const writeToStorage = (offset: FabOffset) => {
+const writeToStorage = (offset: DragOffset) => {
   try {
     window.localStorage.setItem(STORAGE_KEY_PREFIX, JSON.stringify(offset))
   } catch {
@@ -34,8 +30,8 @@ const writeToStorage = (offset: FabOffset) => {
   }
 }
 
-export const usePersistedFabPosition = (defaultOffset: FabOffset) => {
-  const [offset, setOffset] = useState<FabOffset>(() =>
+export const usePersistedFabPosition = (defaultOffset: DragOffset) => {
+  const [offset, setOffset] = useState<DragOffset>(() =>
     readFromStorage(defaultOffset)
   )
 
@@ -43,12 +39,12 @@ export const usePersistedFabPosition = (defaultOffset: FabOffset) => {
     writeToStorage(offset)
   }, [])
 
-  const handleDragEnd = useCallback((newOffset: FabOffset) => {
+  const handleDragEnd = useCallback((newOffset: DragOffset) => {
     setOffset(newOffset)
     writeToStorage(newOffset)
   }, [])
 
-  const initialOffset = useMemo<FabOffset>(() => offset, [offset])
+  const initialOffset = useMemo<DragOffset>(() => offset, [offset])
 
   return { initialOffset, handleDragEnd }
 }
