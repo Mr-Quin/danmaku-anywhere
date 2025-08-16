@@ -109,11 +109,12 @@ export const SearchPage = () => {
     if (boxRef.current) {
       setScrollTop(boxRef.current.scrollTop)
     }
-    if (isProvider(season, DanmakuSourceType.Custom) || !mediaInfo) {
+    if (isProvider(season, DanmakuSourceType.Custom)) {
       return
     }
     if (
       isProvider(season, DanmakuSourceType.DanDanPlay) &&
+      mediaInfo &&
       !doesSeasonMapExist(
         seasonMaps,
         mediaInfo.getKey(),

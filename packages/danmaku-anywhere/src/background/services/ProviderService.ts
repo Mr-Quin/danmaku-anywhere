@@ -8,6 +8,7 @@ import { match } from 'ts-pattern'
 import type { BilibiliService } from '@/background/services/BilibiliService'
 import type { DanDanPlayService } from '@/background/services/DanDanPlayService'
 import type { DanmakuService } from '@/background/services/DanmakuService'
+import { findDanDanPlayEpisodeInList } from '@/background/services/episodeMatching'
 import type { SeasonService } from '@/background/services/SeasonService'
 import type { TencentService } from '@/background/services/TencentService'
 import type { TitleMappingService } from '@/background/services/TitleMappingService'
@@ -22,7 +23,6 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProvider } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
-import { findDanDanPlayEpisodeInList } from '@/background/services/episodeMatching'
 
 export class ProviderService {
   private logger: typeof Logger
@@ -201,8 +201,7 @@ export class ProviderService {
       const episode = findDanDanPlayEpisodeInList(
         episodes,
         episodeNumber,
-        season.providerIds.animeId,
-        (message?: any, ...optionalParams: any[]) => this.logger.debug(message, ...optionalParams)
+        season.providerIds.animeId
       )
 
       if (!episode) {
