@@ -8,7 +8,7 @@ import {
   playerRpcClient,
 } from '@/common/rpcClient/background/client'
 import type { PlayerRelayCommands } from '@/common/rpcClient/background/types'
-import { createPopoverRoot } from '@/content/common/createPopoverRoot'
+import { createPopoverRoot } from '@/content/common/host/createPopoverRoot'
 import { createDanmakuContainers } from '@/content/player/components/createDanmakuContainer'
 import { setupCss } from '@/content/player/components/setupCss'
 import { PLAYER_ROOT_ID } from '@/content/player/constants/rootId'
