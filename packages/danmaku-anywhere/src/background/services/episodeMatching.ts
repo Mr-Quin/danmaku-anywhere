@@ -13,9 +13,9 @@ export function findDanDanPlayEpisodeInList(
   animeId: number
 ): DanDanPlayOf<EpisodeMeta> | undefined {
   // prefer to match by the actual episodeNumber field
-  const episodeByNumber = episodes.find(
-    (ep) => String(ep.episodeNumber) === String(episodeNumber)
-  )
+  const episodeByNumber = episodes.find((ep) => {
+    return ep.episodeNumber?.toString() === episodeNumber.toString()
+  })
 
   if (episodeByNumber) {
     return episodeByNumber
