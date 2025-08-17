@@ -23,6 +23,9 @@ const blobToDataUrl = async (blob: Blob): Promise<string> => {
     if (typeof reader.result === 'string') resolve(reader.result)
     else reject('failed to convert image to base64')
   }
+  reader.onerror = (e) => {
+    reject(e)
+  }
   return promise
 }
 

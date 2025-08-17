@@ -22,8 +22,10 @@ export const SuspenseImage = ({
   cache,
   ...rest
 }: ImageProps) => {
+  // don't cache if src is empty
+  const shouldCache = src === '' ? false : cache
   const image = useImageSuspense(src ?? images.Fallback, {
-    cache,
+    cache: shouldCache,
   })
 
   if (!image.data) {
