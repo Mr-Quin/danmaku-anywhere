@@ -12,9 +12,10 @@ import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { useMergeRefs } from '@/common/hooks/useMergeRefs'
 import { createVirtualElement } from '@/common/utils/utils'
 import { useStore } from '@/content/controller/store/store'
-import { DraggableContainer } from '@/content/controller/ui/DraggableContainer'
+import { DraggableContainer } from '@/content/controller/ui/components/DraggableContainer'
 import { FabContextMenu } from '@/content/controller/ui/floatingButton/components/FabContextMenu'
 import { FabLoadingIndicator } from '@/content/controller/ui/floatingButton/components/FabLoadingIndicator'
+import { usePersistedFabPosition } from './hooks/usePersistedFabPosition'
 import { useShowFab } from './hooks/useShowFab'
 
 interface FloatingButtonProps extends FabProps {
@@ -57,6 +58,11 @@ export const FloatingButton = forwardRef<
 
   const fabAnchor = useInitialAnchor()
 
+  const { initialOffset, handleDragEnd } = usePersistedFabPosition({
+    x: 0,
+    y: 0,
+  })
+
   const handleTap = (x: number, y: number) => {
     handleCloseContextMenu()
     const virtualElement = createVirtualElement(x, y)
@@ -91,13 +97,14 @@ export const FloatingButton = forwardRef<
       <div>
         <DraggableContainer
           anchorEl={fabAnchor.current}
-          initialOffset={{ x: 0, y: 0 }}
+          initialOffset={initialOffset}
           sx={{
             zIndex: 1401,
           }}
           onTap={(e) => {
             handleTap(e.clientX, e.clientY)
           }}
+          onDragEnd={handleDragEnd}
         >
           {({ bind }) => {
             return (

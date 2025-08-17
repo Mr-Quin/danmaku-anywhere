@@ -4,8 +4,8 @@ import type { useDrag } from '@use-gesture/react'
 import type { ReactElement } from 'react'
 import { useEffect, useRef } from 'react'
 
-import type { DraggableContainerMethods } from '@/content/controller/ui/DraggableContainer'
-import { DraggableContainer } from '@/content/controller/ui/DraggableContainer'
+import type { DraggableContainerMethods } from '@/content/controller/ui/components/DraggableContainer'
+import { DraggableContainer } from '@/content/controller/ui/components/DraggableContainer'
 import { WindowPaneLayout } from '@/content/controller/ui/floatingPanel/layout/WindowPaneLayout'
 
 interface RenderProps {
