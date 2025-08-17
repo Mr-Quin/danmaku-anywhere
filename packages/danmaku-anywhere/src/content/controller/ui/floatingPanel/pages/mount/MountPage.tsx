@@ -1,6 +1,6 @@
 import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
 import { ChecklistRtl, Keyboard } from '@mui/icons-material'
-import { Button, IconButton, Tooltip } from '@mui/material'
+import { Button, Collapse, IconButton, Tooltip } from '@mui/material'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CaptureKeypress } from '@/common/components/CaptureKeypress'
@@ -13,7 +13,6 @@ import { TypeSelector } from '@/common/components/TypeSelector'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
-import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
 import { useMountDanmakuContent } from '@/content/controller/ui/floatingPanel/pages/mount/useMountDanmakuContent'
@@ -21,7 +20,7 @@ import { useMountDanmakuContent } from '@/content/controller/ui/floatingPanel/pa
 export const MountPage = () => {
   const { t } = useTranslation()
 
-  const { isMounted, episodes, filter, setFilter } = useStore.use.danmaku()
+  const { filter, setFilter } = useStore.use.danmaku()
   const selectedProviders = usePopup.use.selectedProviders()
   const setSelectedProviders = usePopup.use.setSelectedProviders()
 
@@ -32,7 +31,6 @@ export const MountPage = () => {
   const selectorRef = useRef<DanmakuSelectorApi>(null)
 
   const { mutate, isPending } = useMountDanmakuContent()
-  const unmountMutation = useUnmountDanmaku()
 
   const handleSelectDanmaku = (episodesLite: GenericEpisodeLite) => {
     mutate([episodesLite])
@@ -49,10 +47,6 @@ export const MountPage = () => {
     // Clear selection after mounting
     selectorRef.current.clearSelection()
     setMultiselect(false)
-  }
-
-  const handleUnmount = () => {
-    unmountMutation.mutate()
   }
 
   const toggleMultiselect = () => {
@@ -103,27 +97,20 @@ export const MountPage = () => {
                     <ChecklistRtl />
                   </IconButton>
                 </Tooltip>
-                {multiselect ? (
+                <Collapse in={multiselect} orientation="horizontal">
                   <Button
                     variant="contained"
                     type="button"
                     onClick={handleMountSelected}
                     color="primary"
-                    disabled={isPending}
+                    disabled={!multiselect || isPending}
+                    sx={{
+                      whiteSpace: 'nowrap',
+                    }}
                   >
                     {t('danmaku.mount')}
                   </Button>
-                ) : (
-                  <Button
-                    variant="outlined"
-                    type="button"
-                    onClick={handleUnmount}
-                    color="warning"
-                    disabled={!episodes || !isMounted}
-                  >
-                    {t('danmaku.unmount')}
-                  </Button>
-                )}
+                </Collapse>
               </TabToolbar>
               <DanmakuSelector
                 ref={selectorRef}
