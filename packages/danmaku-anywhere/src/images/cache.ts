@@ -1,35 +1,35 @@
 import type { ImageFetchOptions } from '@/common/components/image/types'
-import { imageDb } from '@/common/db/imageDb'
+import { type ImageCacheRecord, imageDb } from '@/common/db/imageDb'
 
 const getCachedImage = async (src: string) => {
   return imageDb.image.get(src)
 }
 
-const setCachedImage = async (src: string, dataUrl: string) => {
-  await imageDb.image.put({ src, dataUrl, timeUpdated: Date.now() })
+const setCachedImage = async (src: string, blob: Blob) => {
+  const record: ImageCacheRecord = { src, blob, timeUpdated: Date.now() }
+  await imageDb.image.put(record)
 }
 
-export const fetchImageBase64 = async (src: string) => {
+const fetchImageBlob = async (src: string) => {
   const res = await fetch(src)
-  const blob = await res.blob()
+  return res.blob()
+}
 
+const blobToDataUrl = async (blob: Blob): Promise<string> => {
   const { promise, resolve, reject } = Promise.withResolvers<string>()
   const reader = new FileReader()
   reader.readAsDataURL(blob)
   reader.onloadend = () => {
-    if (typeof reader.result === 'string') {
-      resolve(reader.result)
-    } else {
-      reject('failed to convert image to base64')
-    }
+    if (typeof reader.result === 'string') resolve(reader.result)
+    else reject('failed to convert image to base64')
   }
   return promise
 }
 
 export const fetchAndCacheImage = async (src: string) => {
-  const dataUrl = await fetchImageBase64(src)
-  await setCachedImage(src, dataUrl)
-  return dataUrl
+  const blob = await fetchImageBlob(src)
+  await setCachedImage(src, blob)
+  return blob
 }
 
 export const getOrFetchCachedImage = async (
@@ -38,25 +38,44 @@ export const getOrFetchCachedImage = async (
 ) => {
   // bypass cache entirely
   if (options?.cache === false) {
-    return fetchAndCacheImage(src)
+    const blob = await fetchImageBlob(src)
+    return blobToDataUrl(blob)
   }
 
   const cached = await getCachedImage(src)
   if (!cached) {
-    return fetchAndCacheImage(src)
+    const blob = await fetchAndCacheImage(src)
+    return blobToDataUrl(blob)
   }
 
-  // refresh if the image is more than 1 week old
-  void refreshImageInBackground(src, cached.dataUrl)
+  // 1 week in milliseconds
+  const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000
+  const isStale = Date.now() - cached.timeUpdated > ONE_WEEK_MS
 
-  return cached.dataUrl
+  // Background refresh if stale
+  if (isStale) {
+    void refreshImageInBackground(src, cached)
+  }
+
+  return blobToDataUrl(cached.blob)
 }
 
-const refreshImageInBackground = async (src: string, previous?: string) => {
+const refreshImageInBackground = async (
+  src: string,
+  previous?: ImageCacheRecord
+) => {
   try {
-    const dataUrl = await fetchImageBase64(src)
-    if (!previous || dataUrl !== previous) {
-      await setCachedImage(src, dataUrl)
+    const blob = await fetchImageBlob(src)
+    if (!previous) {
+      await setCachedImage(src, blob)
+      return
+    }
+    // Only write if changed in size or type to avoid unnecessary writes
+    if (
+      previous.blob?.size !== blob.size ||
+      previous.blob?.type !== blob.type
+    ) {
+      await setCachedImage(src, blob)
     }
   } catch {
     // ignore background refresh errors

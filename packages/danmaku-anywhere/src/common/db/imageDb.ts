@@ -2,7 +2,7 @@ import { Dexie } from 'dexie'
 
 export type ImageCacheRecord = {
   src: string
-  dataUrl: string
+  blob: Blob
   timeUpdated: number
 }
 

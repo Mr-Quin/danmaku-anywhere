@@ -20,7 +20,12 @@ export const ErrorMessage = ({ message, size = 200 }: ErrorMessageProps) => {
       <Typography color="error">{message}</Typography>
       <ErrorBoundary fallback={null}>
         <Suspense fallback={null}>
-          <SuspenseImage src={images.Apologize} width={size} height={size} />
+          <SuspenseImage
+            src={images.Apologize}
+            width={size}
+            height={size}
+            cache={false}
+          />
         </Suspense>
       </ErrorBoundary>
     </Center>

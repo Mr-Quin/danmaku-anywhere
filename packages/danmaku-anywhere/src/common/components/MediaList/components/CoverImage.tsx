@@ -60,9 +60,11 @@ type CoverImageProps = {
 const CoverImageLoader = (props: CoverImageProps) => {
   const image = useImageSuspense(props.src ?? images.Fallback)
 
+  const isFallback = !props.src
+
   return (
     <StackingContext>
-      <BackgroundImage src={image.data} />
+      {!isFallback && <BackgroundImage src={image.data} />}
       <CardMedia
         component="img"
         src={image.data}
