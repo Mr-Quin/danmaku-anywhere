@@ -75,7 +75,10 @@ export type BackgroundMethods = {
   bilibiliSetCookies: RPCDef<void, void>
   bilibiliGetLoginStatus: RPCDef<void, BilibiliUserInfo>
   tencentTestCookies: RPCDef<void, boolean>
-  fetchImage: RPCDef<string, string>
+  fetchImage: RPCDef<
+    { src: string; options?: { cache?: boolean; backgroundRefresh?: boolean } },
+    string
+  >
   getActiveTabUrl: RPCDef<void, string | null>
   getFrameId: RPCDef<void, number>
   getAllFrames: RPCDef<void, chrome.webNavigation.GetAllFrameResultDetails[]>

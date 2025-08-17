@@ -22,6 +22,7 @@ import type {
   PlayerRelayEvents,
 } from '@/common/rpcClient/background/types'
 import { relayFrameClient } from '@/common/rpcClient/controller/client'
+import { fetchImageBase64, getOrFetchCachedImage } from '@/images/cache'
 import type { DanmakuService } from '../services/DanmakuService'
 import type { IconService } from '../services/IconService'
 import type { ProviderService } from '../services/ProviderService'
@@ -209,21 +210,14 @@ export const setupRpc = (
     getPlatformInfo: async () => {
       return chrome.runtime.getPlatformInfo()
     },
-    fetchImage: async (src) => {
-      const res = await fetch(src)
-      const blob = await res.blob()
-
-      const { promise, resolve, reject } = Promise.withResolvers<string>()
-      const reader = new FileReader()
-      reader.readAsDataURL(blob)
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          resolve(reader.result)
-        } else {
-          reject('failed to convert image to base64')
-        }
+    fetchImage: async ({ src, options }) => {
+      const useCache = options?.cache !== false
+      if (!useCache) {
+        return fetchImageBase64(src)
       }
-      return promise
+      return getOrFetchCachedImage(src, {
+        backgroundRefresh: options?.backgroundRefresh,
+      })
     },
     kazumiSearchContent: async ({ keyword, policy }) => {
       return kazumiService.searchContent(keyword, policy)
