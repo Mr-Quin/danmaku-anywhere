@@ -24,7 +24,7 @@ export const CommentsPage = () => {
           isRefreshing={loadMutation.isPending}
         />
       ) : (
-        <NothingHere />
+        <NothingHere size={250} />
       )}
     </Stack>
   )

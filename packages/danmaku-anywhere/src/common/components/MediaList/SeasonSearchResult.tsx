@@ -1,8 +1,9 @@
 import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
-import { Box, Button, ListItem, ListItemText } from '@mui/material'
+import { Box, Button } from '@mui/material'
 import { Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSeasonSearchSuspense } from '@/common/anime/queries/useSeasonSearchSuspense'
+import { ErrorMessage } from '@/common/components/ErrorMessage'
 import {
   SeasonGrid,
   SeasonGridSkeleton,
@@ -48,16 +49,23 @@ const SeasonSearchResultSuspense = ({
 
   if (!result.success) {
     return (
-      <ListItem>
-        <ListItemText primary={result.error} />
-        <Button onClick={() => refetch()} variant="text">
-          {t('searchPage.retrySearch')}
-        </Button>
-      </ListItem>
+      <div>
+        <ErrorMessage
+          message={result.error}
+          size={200}
+          beforeContent={
+            <Button onClick={() => refetch()} variant="text">
+              {t('searchPage.retrySearch')}
+            </Button>
+          }
+        />
+      </div>
     )
   }
   if (result.data.length === 0) {
-    return <NothingHere message={t('searchPage.error.noResultFound')} />
+    return (
+      <NothingHere message={t('searchPage.error.noResultFound')} size={200} />
+    )
   }
   return (
     <SeasonGrid onSeasonClick={onSeasonClick} data={result.data} disableMenu />

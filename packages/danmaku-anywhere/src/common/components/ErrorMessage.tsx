@@ -1,5 +1,5 @@
 import { Typography } from '@mui/material'
-import { Suspense } from 'react'
+import { type ReactNode, Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { useTranslation } from 'react-i18next'
 import { Center } from '@/common/components/Center'
@@ -8,16 +8,28 @@ import { images } from '@/common/components/image/usePreloadImages'
 
 type ErrorMessageProps = {
   message: string
+  showMessage?: boolean
   size?: number
+  beforeContent?: ReactNode
 }
 
-export const ErrorMessage = ({ message, size = 200 }: ErrorMessageProps) => {
+export const ErrorMessage = ({
+  message,
+  showMessage = true,
+  beforeContent,
+  size = 300,
+}: ErrorMessageProps) => {
   const { t } = useTranslation()
 
   return (
     <Center>
-      <Typography>{t('error.unknown')}</Typography>
-      <Typography color="error">{message}</Typography>
+      {beforeContent}
+      {showMessage ? (
+        <>
+          <Typography>{t('error.unknown')}</Typography>
+          <Typography color="error">{message}</Typography>
+        </>
+      ) : null}
       <ErrorBoundary fallback={null}>
         <Suspense fallback={null}>
           <SuspenseImage
