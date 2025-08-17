@@ -4,6 +4,7 @@ import { useHotkeys } from 'react-hotkeys-hook'
 
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { usePopup } from '@/content/controller/store/popupStore'
+import { CONTROLLER_WINDOW_CONTENT_HEIGHT } from '@/content/controller/ui/constants/size'
 import { ControllerToolbar } from '@/content/controller/ui/floatingPanel/components/ControllerToolbar'
 import { InfoBar } from '@/content/controller/ui/floatingPanel/components/InfoBar'
 import { PanelTabs } from '@/content/controller/ui/floatingPanel/components/PanelTabs'
@@ -30,7 +31,11 @@ export const ControllerWindow = ({
       toolbar={<ControllerToolbar />}
     >
       <InfoBar />
-      <Box display="flex" height={550} minHeight={550}>
+      <Box
+        display="flex"
+        height={CONTROLLER_WINDOW_CONTENT_HEIGHT}
+        minHeight={CONTROLLER_WINDOW_CONTENT_HEIGHT}
+      >
         <PanelTabs />
         <Paper
           sx={{

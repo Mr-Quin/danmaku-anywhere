@@ -3,6 +3,10 @@ import { Paper } from '@mui/material'
 import type { ReactNode, Ref } from 'react'
 
 import { useIsSmallScreen } from '@/content/controller/common/hooks/useIsSmallScreen'
+import {
+  CONTROLLER_WINDOW_DEFAULT_WIDTH,
+  CONTROLLER_WINDOW_MIN_HEIGHT,
+} from '@/content/controller/ui/constants/size'
 
 interface WindowPaneLayoutProps {
   children: ReactNode
@@ -13,7 +17,11 @@ interface WindowPaneLayoutProps {
 }
 
 export const WindowPaneLayout = (props: WindowPaneLayoutProps) => {
-  const { ref, width = 500, height = 550 } = props
+  const {
+    ref,
+    width = CONTROLLER_WINDOW_DEFAULT_WIDTH,
+    height = CONTROLLER_WINDOW_MIN_HEIGHT,
+  } = props
   const sm = useIsSmallScreen()
 
   return (

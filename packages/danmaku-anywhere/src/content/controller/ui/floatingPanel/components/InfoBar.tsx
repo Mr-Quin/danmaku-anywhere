@@ -1,4 +1,5 @@
 import { Button, Collapse, Toolbar, Tooltip, Typography } from '@mui/material'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { episodeToString } from '@/common/danmaku/utils'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
@@ -14,14 +15,20 @@ export const InfoBar = () => {
     unmountMutation.mutate()
   }
 
-  const title =
-    episodes && episodes.length > 0 ? episodeToString(episodes[0]) : ''
-  const titles =
-    episodes && episodes.length > 0
-      ? episodes.map((e) => {
-          return <div key={e.id}>{episodeToString(e)}</div>
-        })
-      : []
+  const { titles, title } = useMemo(() => {
+    if (!episodes || episodes.length === 0) {
+      return {
+        title: '',
+        titles: [],
+      }
+    }
+    return {
+      title: episodeToString(episodes[0]),
+      titles: episodes.map((e) => {
+        return <div key={e.id}>{episodeToString(e)}</div>
+      }),
+    }
+  }, [episodes])
 
   return (
     <Collapse in={isMounted}>
