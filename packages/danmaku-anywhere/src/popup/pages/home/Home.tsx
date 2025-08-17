@@ -72,7 +72,7 @@ export const Home = () => {
           fallbackRender={({ error }) => {
             return (
               <TabLayout>
-                <ErrorMessage message={error.message} />
+                <ErrorMessage message={error.message} size={300} />
               </TabLayout>
             )
           }}

@@ -62,11 +62,9 @@ const CoverImageLoader = (props: CoverImageProps) => {
     cache: props.src !== '',
   })
 
-  const isFallback = !props.src
-
   return (
     <StackingContext>
-      {!isFallback && <BackgroundImage src={image.data} />}
+      <BackgroundImage src={image.data} />
       <CardMedia
         component="img"
         src={image.data}

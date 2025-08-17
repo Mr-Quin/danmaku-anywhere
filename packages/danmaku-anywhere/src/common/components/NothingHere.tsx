@@ -14,7 +14,7 @@ type NothingHereProps = {
 
 export const NothingHere = ({
   message,
-  size = 150,
+  size = 200,
   children,
 }: NothingHereProps) => {
   const { t } = useTranslation()
