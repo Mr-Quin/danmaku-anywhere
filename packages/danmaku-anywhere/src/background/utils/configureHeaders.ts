@@ -5,7 +5,7 @@ export const configureHeaders = async () => {
   try {
     const { id } = await extensionOptionsService.get()
     if (id) {
-      configureApiStore({ headers: { 'DA-Extension-Id': id } })
+      configureApiStore({ daId: id })
     }
   } catch (e: unknown) {
     console.error('Failed to configure headers:', e)

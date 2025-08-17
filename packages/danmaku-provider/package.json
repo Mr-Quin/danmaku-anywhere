@@ -26,6 +26,10 @@
       "types": "./dist/src/providers/tencent/index.d.ts",
       "default": "./dist/src/providers/tencent/index.js"
     },
+    "./generic": {
+      "types": "./dist/src/providers/generic/index.d.ts",
+      "default": "./dist/src/providers/generic/index.js"
+    },
     "./genAi": {
       "types": "./dist/src/providers/genAi/index.d.ts",
       "default": "./dist/src/providers/genAi/index.js"

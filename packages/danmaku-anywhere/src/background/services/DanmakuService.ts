@@ -54,6 +54,19 @@ export class DanmakuService {
     }
   }
 
+  async importCustom(importData: {
+    title: string
+    comments: CommentEntity[]
+  }): Promise<CustomEpisode> {
+    return this.addCustom({
+      provider: DanmakuSourceType.Custom,
+      comments: importData.comments,
+      commentCount: importData.comments.length,
+      title: importData.title,
+      schemaVersion: EPISODE_SCHEMA_VERSION,
+    })
+  }
+
   async filterCustom(
     filter: CustomEpisodeQueryFilter
   ): Promise<CustomEpisode[]> {
@@ -198,19 +211,6 @@ export class DanmakuService {
   }
 
   async import(importData: DanmakuImportData[]): Promise<DanmakuImportResult> {
-    const importCustom = async (importData: {
-      title: string
-      comments: CommentEntity[]
-    }): Promise<CustomEpisode> => {
-      return this.addCustom({
-        provider: DanmakuSourceType.Custom,
-        comments: importData.comments,
-        commentCount: importData.comments.length,
-        title: importData.title,
-        schemaVersion: EPISODE_SCHEMA_VERSION,
-      })
-    }
-
     const importBackup = async (data: BackupParseResult) => {
       let skipped = data.skipped.length
       const imported = []
@@ -284,7 +284,7 @@ export class DanmakuService {
         const customParse = zCombinedDanmaku.safeParse(data)
 
         if (customParse.success) {
-          await importCustom({
+          await this.importCustom({
             comments: customParse.data,
             title,
           })

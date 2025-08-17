@@ -2,6 +2,7 @@ import { setRequestHeaderRule } from '@danmaku-anywhere/web-scraper'
 import { match } from 'ts-pattern'
 import { injectVideoScript } from '@/background/scripting/setupScripting'
 import type { BilibiliService } from '@/background/services/BilibiliService'
+import { CustomProviderService } from '@/background/services/CustomProviderService'
 import type { GenAIService } from '@/background/services/GenAIService'
 import type { KazumiService } from '@/background/services/KazumiService'
 import type { SeasonService } from '@/background/services/SeasonService'
@@ -38,6 +39,7 @@ export const setupRpc = (
   kazumiService: KazumiService,
   titleMappingService: TitleMappingService
 ) => {
+  const customProviderService = new CustomProviderService(danmakuService)
   const rpcServer = createRpcServer<BackgroundMethods>({
     seasonSearch: async (input) => {
       return providerService.searchSeason(input)
@@ -218,6 +220,15 @@ export const setupRpc = (
     },
     kazumiGetChapters: async ({ url, policy }) => {
       return kazumiService.getChapters(url, policy)
+    },
+    customSearchVod: async ({ baseUrl, keyword }) => {
+      return customProviderService.search(baseUrl, keyword)
+    },
+    customParsePlayUrls: async (vod) => {
+      return customProviderService.parsePlayUrls(vod)
+    },
+    customFetchDanmakuForUrl: async ({ title, url }) => {
+      return customProviderService.fetchDanmakuForUrl(title, url)
     },
     setHeaders: async (rule) => {
       await setRequestHeaderRule(rule)
