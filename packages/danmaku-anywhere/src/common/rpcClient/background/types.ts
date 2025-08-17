@@ -23,6 +23,7 @@ import type {
   SeasonQueryFilter,
   SeasonSearchParams,
 } from '@/common/anime/dto'
+import type { ImageFetchOptions } from '@/common/components/image/types'
 import type {
   CustomEpisodeQueryFilter,
   DanmakuFetchDto,
@@ -75,10 +76,7 @@ export type BackgroundMethods = {
   bilibiliSetCookies: RPCDef<void, void>
   bilibiliGetLoginStatus: RPCDef<void, BilibiliUserInfo>
   tencentTestCookies: RPCDef<void, boolean>
-  fetchImage: RPCDef<
-    { src: string; options?: { cache?: boolean; backgroundRefresh?: boolean } },
-    string
-  >
+  fetchImage: RPCDef<{ src: string; options?: ImageFetchOptions }, string>
   getActiveTabUrl: RPCDef<void, string | null>
   getFrameId: RPCDef<void, number>
   getAllFrames: RPCDef<void, chrome.webNavigation.GetAllFrameResultDetails[]>

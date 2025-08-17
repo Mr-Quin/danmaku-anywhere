@@ -1,3 +1,4 @@
+import type { ImageFetchOptions } from '@/common/components/image/types'
 import { imageDb } from '@/common/db/imageDb'
 
 const getCachedImage = async (src: string) => {
@@ -33,17 +34,22 @@ export const fetchAndCacheImage = async (src: string) => {
 
 export const getOrFetchCachedImage = async (
   src: string,
-  options?: { backgroundRefresh?: boolean }
+  options?: ImageFetchOptions
 ) => {
-  const shouldRefresh = options?.backgroundRefresh ?? true
-  const cached = await getCachedImage(src)
-  if (cached?.dataUrl) {
-    if (shouldRefresh) {
-      void refreshImageInBackground(src, cached.dataUrl)
-    }
-    return cached.dataUrl
+  // bypass cache entirely
+  if (options?.cache === false) {
+    return fetchAndCacheImage(src)
   }
-  return fetchAndCacheImage(src)
+
+  const cached = await getCachedImage(src)
+  if (!cached) {
+    return fetchAndCacheImage(src)
+  }
+
+  // refresh if the image is more than 1 week old
+  void refreshImageInBackground(src, cached.dataUrl)
+
+  return cached.dataUrl
 }
 
 const refreshImageInBackground = async (src: string, previous?: string) => {

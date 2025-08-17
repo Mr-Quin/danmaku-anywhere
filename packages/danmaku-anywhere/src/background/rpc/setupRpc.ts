@@ -22,7 +22,7 @@ import type {
   PlayerRelayEvents,
 } from '@/common/rpcClient/background/types'
 import { relayFrameClient } from '@/common/rpcClient/controller/client'
-import { fetchImageBase64, getOrFetchCachedImage } from '@/images/cache'
+import { getOrFetchCachedImage } from '@/images/cache'
 import type { DanmakuService } from '../services/DanmakuService'
 import type { IconService } from '../services/IconService'
 import type { ProviderService } from '../services/ProviderService'
@@ -211,13 +211,7 @@ export const setupRpc = (
       return chrome.runtime.getPlatformInfo()
     },
     fetchImage: async ({ src, options }) => {
-      const useCache = options?.cache !== false
-      if (!useCache) {
-        return fetchImageBase64(src)
-      }
-      return getOrFetchCachedImage(src, {
-        backgroundRefresh: options?.backgroundRefresh,
-      })
+      return getOrFetchCachedImage(src, options)
     },
     kazumiSearchContent: async ({ keyword, policy }) => {
       return kazumiService.searchContent(keyword, policy)

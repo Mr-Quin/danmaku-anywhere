@@ -1,7 +1,6 @@
 import { CardMedia, Skeleton, styled } from '@mui/material'
 import { type ReactNode, Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
-import { SuspenseImage } from '@/common/components/image/SuspenseImage'
 import { useImageSuspense } from '@/common/components/image/useImage'
 import { images } from '@/common/components/image/usePreloadImages'
 
@@ -59,16 +58,7 @@ type CoverImageProps = {
 } & ImageAspectRatioProps
 
 const CoverImageLoader = (props: CoverImageProps) => {
-  const image = useImageSuspense(props.src ?? '')
-
-  if (!image.data)
-    return (
-      <StackingContext>
-        <ErrorBoundary fallback={null}>
-          <SuspenseImage src={images.Fallback} />
-        </ErrorBoundary>
-      </StackingContext>
-    )
+  const image = useImageSuspense(props.src ?? images.Fallback)
 
   return (
     <StackingContext>

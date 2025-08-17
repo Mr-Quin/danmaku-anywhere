@@ -13,5 +13,5 @@ export const images = {
 } as const
 
 export const usePreloadImages = () => {
-  Object.values(images).forEach((image) => useImage(image))
+  Object.values(images).forEach((image) => useImage(image, { cache: false }))
 }
