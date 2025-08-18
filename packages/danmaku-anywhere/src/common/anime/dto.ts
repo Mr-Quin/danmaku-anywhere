@@ -1,4 +1,5 @@
 import type {
+  CustomEpisode,
   DanDanPlayOf,
   EpisodeMeta,
   Season,
@@ -31,7 +32,7 @@ export interface MatchEpisodeInput {
 export type MatchEpisodeResult =
   | {
       status: 'success'
-      data: WithSeason<DanDanPlayOf<EpisodeMeta>>
+      data: WithSeason<DanDanPlayOf<EpisodeMeta>> | CustomEpisode
     }
   | {
       status: 'disambiguation'

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { Logger } from '@/common/Logger'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
@@ -29,7 +30,7 @@ export const useIntegrationPolicy = () => {
   } = useStore.use.integration()
 
   const matchEpisode = useMatchEpisode()
-  const { loadMutation } = useLoadDanmaku()
+  const { loadMutation, mountDanmaku } = useLoadDanmaku()
 
   const integrationPolicy = useActiveIntegration()
 
@@ -89,23 +90,28 @@ export const useIntegrationPolicy = () => {
               if (result.data.status !== 'success') {
                 return
               }
-              loadMutation.mutate(
-                {
-                  meta: result.data.data,
-                  options: {
-                    forceUpdate: false,
+              if (result.data.data.provider === DanmakuSourceType.Custom) {
+                toast.success(t('integration.alert.matchedLocalDanmaku'))
+                mountDanmaku([result.data.data])
+              } else {
+                loadMutation.mutate(
+                  {
+                    meta: result.data.data,
+                    options: {
+                      forceUpdate: false,
+                    },
                   },
-                },
-                {
-                  onError: () => {
-                    toast.error(
-                      t('danmaku.alert.fetchError', {
-                        message: episodeMatchPayload.title,
-                      })
-                    )
-                  },
-                }
-              )
+                  {
+                    onError: () => {
+                      toast.error(
+                        t('danmaku.alert.fetchError', {
+                          message: episodeMatchPayload.title,
+                        })
+                      )
+                    },
+                  }
+                )
+              }
             },
           })
         },

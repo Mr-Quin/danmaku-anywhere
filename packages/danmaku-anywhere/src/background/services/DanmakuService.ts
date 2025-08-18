@@ -90,6 +90,10 @@ export class DanmakuService {
     })
   }
 
+  async getCustomByTitle(title: string): Promise<CustomEpisode | undefined> {
+    return this.customTable.where('title').equals(title).first()
+  }
+
   async deleteCustom(filter: CustomEpisodeQueryFilter) {
     if (filter.all) {
       await this.customTable.clear()

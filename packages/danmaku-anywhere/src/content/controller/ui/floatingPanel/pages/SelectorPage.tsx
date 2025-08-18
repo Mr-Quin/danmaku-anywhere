@@ -1,4 +1,7 @@
-import type { Season } from '@danmaku-anywhere/danmaku-converter'
+import {
+  DanmakuSourceType,
+  type Season,
+} from '@danmaku-anywhere/danmaku-converter'
 import { Box, Button, Divider, Stack, Typography } from '@mui/material'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -44,7 +47,10 @@ export const SelectorPage = () => {
 
     matchEpisode.mutate(episodeMatchPayload, {
       onSuccess: (result) => {
-        if (result.data.status !== 'success') {
+        if (
+          result.data.status !== 'success' ||
+          result.data.data.provider === DanmakuSourceType.Custom // shouldn't happen here
+        ) {
           return
         }
         loadMutation.mutate(
