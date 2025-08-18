@@ -20,7 +20,7 @@ import { ExternalLinkDirective } from '../../shared/directives/external-link.dir
   imports: [FaIconComponent, Button, ButtonDirective, ExternalLinkDirective],
   template: `
     <div class="flex flex-col justify-center items-center h-full">
-      @if (extensionService.$isExtensionInstalled()) {
+      @if (!extensionService.$isExtensionInstalled()) {
         <h1 class="text-2xl font-bold mb-4">此功能需要Danmaku Anywhere扩展v1.2.0或以上版本</h1>
         <p-button class="hidden"></p-button>
         @if (isChromium) {
