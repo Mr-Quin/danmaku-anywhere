@@ -2,9 +2,9 @@ import { setRequestHeaderRule } from '@danmaku-anywhere/web-scraper'
 import { match } from 'ts-pattern'
 import { injectVideoScript } from '@/background/scripting/setupScripting'
 import type { BilibiliService } from '@/background/services/BilibiliService'
-import type { CustomProviderService } from '@/background/services/CustomProviderService'
 import type { GenAIService } from '@/background/services/GenAIService'
 import type { KazumiService } from '@/background/services/KazumiService'
+import type { MacCmsProviderService } from '@/background/services/MacCmsProviderService'
 import type { SeasonService } from '@/background/services/SeasonService'
 import type { TencentService } from '@/background/services/TencentService'
 import type { TitleMappingService } from '@/background/services/TitleMappingService'
@@ -38,7 +38,7 @@ export const setupRpc = (
   tencentService: TencentService,
   kazumiService: KazumiService,
   titleMappingService: TitleMappingService,
-  customProviderService: CustomProviderService
+  customProviderService: MacCmsProviderService
 ) => {
   const rpcServer = createRpcServer<BackgroundMethods>({
     seasonSearch: async (input) => {

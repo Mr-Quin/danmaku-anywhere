@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { parsePlayUrl } from './parsePlayUrl.js'
+import { parseMacCmsPlayUrl } from './parseMacCmsPlayUrl.js'
 
 const zVodItemBase = z.object({
   vod_id: z.union([z.string(), z.number()]),
@@ -13,7 +13,7 @@ const zVodItemBase = z.object({
 })
 
 export const zVodItem = zVodItemBase.transform((item) => {
-  const parsedPlayUrls = parsePlayUrl(
+  const parsedPlayUrls = parseMacCmsPlayUrl(
     item.vod_name,
     item.vod_play_from ?? '',
     item.vod_play_url ?? ''
@@ -37,4 +37,4 @@ export const zVodSearchResponse = z.object({
 
 export type GenericVodItem = z.output<typeof zVodItem>
 export type GenericVodSearchResponse = z.output<typeof zVodSearchResponse>
-export type { ParsedPlayUrl } from './parsePlayUrl.js'
+export type { MacCmsParsedPlayUrl } from './parseMacCmsPlayUrl.js'

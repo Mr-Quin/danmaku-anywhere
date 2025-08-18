@@ -6,10 +6,10 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import { match } from 'ts-pattern'
 import type { BilibiliService } from '@/background/services/BilibiliService'
-import type { CustomProviderService } from '@/background/services/CustomProviderService'
 import type { DanDanPlayService } from '@/background/services/DanDanPlayService'
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import { findDanDanPlayEpisodeInList } from '@/background/services/episodeMatching'
+import type { MacCmsProviderService } from '@/background/services/MacCmsProviderService'
 import type { SeasonService } from '@/background/services/SeasonService'
 import type { TencentService } from '@/background/services/TencentService'
 import type { TitleMappingService } from '@/background/services/TitleMappingService'
@@ -35,7 +35,7 @@ export class ProviderService {
     private danDanPlayService: DanDanPlayService,
     private bilibiliService: BilibiliService,
     private tencentService: TencentService,
-    private customProviderService: CustomProviderService
+    private customProviderService: MacCmsProviderService
   ) {
     invariant(
       isServiceWorker(),

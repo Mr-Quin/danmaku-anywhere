@@ -1,6 +1,6 @@
 import type { CustomEpisode } from '@danmaku-anywhere/danmaku-converter'
 
-import type { ParsedPlayUrl } from '@danmaku-anywhere/danmaku-provider/generic'
+import type { MacCmsParsedPlayUrl } from '@danmaku-anywhere/danmaku-provider/maccms'
 import {
   CircularProgress,
   ListItem,
@@ -12,13 +12,13 @@ import { useTranslation } from 'react-i18next'
 
 type BaseEpisodeListItemProps = {
   isLoading?: boolean
-  onClick: (episode: ParsedPlayUrl) => void
-  episode: ParsedPlayUrl
+  onClick: (episode: MacCmsParsedPlayUrl) => void
+  episode: MacCmsParsedPlayUrl
   danmaku?: CustomEpisode
   disabled?: boolean
 }
 
-export const GenericEpisodeListItem = ({
+export const MacCmsEpisodeListItem = ({
   isLoading,
   onClick,
   episode,

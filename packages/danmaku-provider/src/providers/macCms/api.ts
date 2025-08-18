@@ -23,7 +23,7 @@ const fetchJson = async <T extends ZodType>(url: string, responseSchema: T) => {
   return fetchData({ url, responseSchema })
 }
 
-export const searchVod = async (
+export const searchMacCmsVod = async (
   baseUrl: string,
   keyword: string
 ): Promise<GenericVodSearchResponse> => {

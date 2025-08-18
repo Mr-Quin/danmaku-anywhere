@@ -6,7 +6,7 @@ import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { BaseEpisodeListItem } from '@/common/components/EpisodeList/BaseEpisodeListItem'
 import { EpisodeSearchList } from '@/common/components/EpisodeList/EpisodeSearchList'
-import { GenericEpisodeListItem } from '@/common/components/EpisodeList/GenericEpisodeListItem'
+import { MacCmsEpisodeListItem } from '@/common/components/EpisodeList/MacCmsEpisodeListItem'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
@@ -58,7 +58,7 @@ export const SeasonDetailsPage = () => {
               const mutation = useFetchGenericDanmaku()
 
               return (
-                <GenericEpisodeListItem
+                <MacCmsEpisodeListItem
                   onClick={() => mutation.mutate(data.episode)}
                   isLoading={mutation.isPending}
                   episode={data.episode}

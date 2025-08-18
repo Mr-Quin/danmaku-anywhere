@@ -3,7 +3,7 @@ import type {
   EpisodeMeta,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import type { ParsedPlayUrl } from '@danmaku-anywhere/danmaku-provider/generic'
+import type { MacCmsParsedPlayUrl } from '@danmaku-anywhere/danmaku-provider/maccms'
 import type { ReactNode } from 'react'
 
 type RenderEpisodeData = {
@@ -13,7 +13,7 @@ type RenderEpisodeData = {
 }
 
 type RenderCustomEpisodeData = {
-  episode: ParsedPlayUrl
+  episode: MacCmsParsedPlayUrl
 }
 
 export type RenderEpisode = (data: RenderEpisodeData) => ReactNode

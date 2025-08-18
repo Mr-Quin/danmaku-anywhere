@@ -1,5 +1,5 @@
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
-import type { ParsedPlayUrl } from '@danmaku-anywhere/danmaku-provider/generic'
+import type { MacCmsParsedPlayUrl } from '@danmaku-anywhere/danmaku-provider/maccms'
 import { List, ListItem, ListItemText, Skeleton } from '@mui/material'
 import { useSuspenseQueries } from '@tanstack/react-query'
 import { Suspense } from 'react'
@@ -102,7 +102,9 @@ const CustomEpisodeListInner = ({
   season,
   renderEpisode,
 }: CustomSeasonListItemProps) => {
-  const episodes = (season as any).episodes as ParsedPlayUrl[]
+  // TODO: Add MacCms as a provider type
+  // biome-ignore lint/suspicious/noExplicitAny: temporary
+  const episodes = (season as any).episodes as MacCmsParsedPlayUrl[]
 
   return (
     <List dense disablePadding>

@@ -1,4 +1,4 @@
-export type ParsedPlayUrl = {
+export type MacCmsParsedPlayUrl = {
   source: string
   seasonTitle: string
   title: string
@@ -6,7 +6,7 @@ export type ParsedPlayUrl = {
   url: string
 }
 
-export const parsePlayUrl = (
+export const parseMacCmsPlayUrl = (
   seasonTitle: string,
   playFrom: string,
   playUrl: string
@@ -14,7 +14,7 @@ export const parsePlayUrl = (
   const playFromList = playFrom.split('$$$')
   const blocks = playUrl.split('$$$').filter(Boolean)
 
-  const parsedPlayUrls: ParsedPlayUrl[] = []
+  const parsedPlayUrls: MacCmsParsedPlayUrl[] = []
 
   blocks.forEach((block, i) => {
     const source = playFromList[i] ?? `source_${i}`

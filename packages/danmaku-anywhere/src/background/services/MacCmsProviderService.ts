@@ -2,21 +2,21 @@ import type { CustomSeason } from '@danmaku-anywhere/danmaku-converter'
 import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import {
   fetchDanmuIcuComments,
-  searchVod,
-} from '@danmaku-anywhere/danmaku-provider/generic'
+  searchMacCmsVod,
+} from '@danmaku-anywhere/danmaku-provider/maccms'
 import { Logger } from '@/common/Logger'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { DanmakuService } from './DanmakuService'
 
-export class CustomProviderService {
+export class MacCmsProviderService {
   private logger: typeof Logger
 
   constructor(private danmakuService: DanmakuService) {
     invariant(
       isServiceWorker(),
-      'CustomProviderService is only available in service worker'
+      'MacCmsProviderService is only available in service worker'
     )
-    this.logger = Logger.sub('[CustomProviderService]')
+    this.logger = Logger.sub('[MacCmsProviderService]')
   }
 
   async search(baseUrl: string, keyword: string): Promise<CustomSeason[]> {
@@ -24,7 +24,7 @@ export class CustomProviderService {
       baseUrl,
       keyword,
     })
-    const res = await searchVod(baseUrl, keyword)
+    const res = await searchMacCmsVod(baseUrl, keyword)
 
     return res.list.map((item, i) => {
       const id = `custom:${item.vod_id}:${i}`

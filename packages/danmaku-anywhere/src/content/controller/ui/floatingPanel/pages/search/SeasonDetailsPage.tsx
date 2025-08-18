@@ -8,7 +8,7 @@ import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { BaseEpisodeListItem } from '@/common/components/EpisodeList/BaseEpisodeListItem'
 import { EpisodeSearchList } from '@/common/components/EpisodeList/EpisodeSearchList'
-import { GenericEpisodeListItem } from '@/common/components/EpisodeList/GenericEpisodeListItem'
+import { MacCmsEpisodeListItem } from '@/common/components/EpisodeList/MacCmsEpisodeListItem'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
@@ -58,7 +58,7 @@ export const SeasonDetailsPage = ({
               const { loadGenericMutation } = useLoadDanmaku()
 
               return (
-                <GenericEpisodeListItem
+                <MacCmsEpisodeListItem
                   episode={data.episode}
                   onClick={() => loadGenericMutation.mutate(data.episode)}
                   isLoading={loadGenericMutation.isPending}
