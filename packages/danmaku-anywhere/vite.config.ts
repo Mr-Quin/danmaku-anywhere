@@ -2,8 +2,8 @@
 import { crx } from '@crxjs/vite-plugin'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-
 import { manifest } from './manifest'
+import pkg from './package.json' with { type: 'json' }
 
 const BROWSER = process.env.VITE_TARGET_BROWSER ?? 'chrome'
 
@@ -43,6 +43,7 @@ export default defineConfig({
   },
   define: {
     'import.meta.env.VITE_TARGET_BROWSER': JSON.stringify(BROWSER),
+    'import.meta.env.VERSION': JSON.stringify(pkg.version),
   },
   build: {
     emptyOutDir: true,

@@ -1,6 +1,7 @@
 import type { AgentOptions } from '@newrelic/browser-agent/loaders/agent'
 import { BrowserAgent } from '@newrelic/browser-agent/loaders/browser-agent'
 import { useEffect, useRef } from 'react'
+import { EXTENSION_VERSION } from '@/common/constants'
 import { useEnvironmentContext } from '@/common/environment/context'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { invariant } from '@/common/utils/utils'
@@ -81,6 +82,7 @@ export const useSetupTracking = () => {
     service.init()
     service.tag('environment', environment)
     service.tag('type', type)
+    service.tag('version', EXTENSION_VERSION)
 
     trackingService = service
     agentRef.current = service

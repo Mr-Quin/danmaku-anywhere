@@ -15,6 +15,6 @@ export const IS_EXTERNALLY_CONNECTABLE = EXTERNALLY_CONNECTABLE_PATTERNS.some(
 export const IS_FIREFOX = import.meta.env.VITE_TARGET_BROWSER === 'firefox'
 export const IS_CHROME = import.meta.env.VITE_TARGET_BROWSER === 'chrome'
 
-export const EXTENSION_VERSION = chrome.runtime.getManifest().version
+export const EXTENSION_VERSION = import.meta.env.VERSION
 
 export const EXTENSION_REPO = 'https://github.com/Mr-Quin/danmaku-anywhere'
