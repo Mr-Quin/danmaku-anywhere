@@ -313,6 +313,7 @@ const pages = {
       version: 'Version',
       feedback: 'Provide feedback',
       reportBug: 'Report Bug',
+      graphicalAsset: 'Graphical Assets Illustrator',
     },
     player: {
       showSkipButton: 'Show skip button (OP/ED)',

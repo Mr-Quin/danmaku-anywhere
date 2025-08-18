@@ -1,4 +1,4 @@
-import { Article, GitHub, Launch, Numbers } from '@mui/icons-material'
+import { Article, Brush, GitHub, Launch, Numbers } from '@mui/icons-material'
 import {
   ListItem,
   ListItemButton,
@@ -58,6 +58,20 @@ export const HelpOptions = () => {
             <Article />
           </ListItemIcon>
           <ListItemText>{t('optionsPage.help.docs')}</ListItemText>
+          <Launch />
+        </ListItemButton>
+      </ListItem>
+      <ListItem disablePadding>
+        <ListItemButton
+          component="a"
+          href="https://space.bilibili.com/220694183"
+          target="_blank"
+        >
+          <ListItemIcon>
+            <Brush />
+          </ListItemIcon>
+          <ListItemText>{t('optionsPage.help.graphicalAsset')}</ListItemText>
+          <Typography paddingRight={1}>猫与白月</Typography>
           <Launch />
         </ListItemButton>
       </ListItem>

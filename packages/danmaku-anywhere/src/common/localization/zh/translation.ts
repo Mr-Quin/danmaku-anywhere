@@ -310,6 +310,7 @@ const pages = {
       version: '版本',
       feedback: '提交意见或建议',
       reportBug: '报告Bug',
+      graphicalAsset: '图片素材绘制',
     },
     player: {
       showSkipButton: '显示跳过按钮（OP/ED）',
