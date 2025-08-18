@@ -1,4 +1,4 @@
-import { Box, Collapse, Divider, List, Typography } from '@mui/material'
+import { Box, Divider, List, Typography } from '@mui/material'
 import { Trans, useTranslation } from 'react-i18next'
 import { ExternalLink } from '@/common/components/ExternalLink'
 import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
@@ -8,6 +8,7 @@ import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 import { ToggleListItemButton } from '@/popup/pages/options/components/ToggleListItemButton'
 import { BilibiliOptions } from '@/popup/pages/options/pages/danmakuSource/components/BilibiliOptions'
 import { DanDanPlayOptions } from '@/popup/pages/options/pages/danmakuSource/components/DanDanPlayOptions'
+import { MacCmsOptions } from '@/popup/pages/options/pages/danmakuSource/components/MacCmsOptions'
 import { useToggleBilibili } from '@/popup/pages/options/pages/danmakuSource/hooks/useToggleBilibili'
 import { useToggleTencent } from '@/popup/pages/options/pages/danmakuSource/hooks/useToggleTencent'
 
@@ -78,12 +79,15 @@ export const DanmakuSource = () => {
     }
   }
 
-  const renderSectionHeader = (key: string) => {
+  const renderSection = (key: string) => {
     if (key === 'bilibili') {
       return <BilibiliOptions />
     }
     if (key === 'dandanplay') {
       return <DanDanPlayOptions />
+    }
+    if (key === 'custom') {
+      return <MacCmsOptions />
     }
     return null
   }
@@ -93,6 +97,7 @@ export const DanmakuSource = () => {
       <OptionsPageToolBar title={t('optionsPage.pages.danmakuSource')} />
       <List disablePadding>
         {sourcesList.map(({ key, options, provider }) => {
+          const section = renderSection(key)
           return (
             <>
               <Divider />
@@ -105,9 +110,11 @@ export const DanmakuSource = () => {
                 itemText={t(localizedDanmakuSourceType(provider))}
                 {...getOptionProps(key)}
               />
-              <Box px={2} my={1}>
-                <Collapse in>{renderSectionHeader(key)}</Collapse>
-              </Box>
+              {section ? (
+                <Box px={2} my={1}>
+                  {section}
+                </Box>
+              ) : null}
             </>
           )
         })}

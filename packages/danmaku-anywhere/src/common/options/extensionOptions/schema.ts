@@ -37,7 +37,7 @@ export const danmakuSourcesSchema = z.object({
   }),
   custom: z.object({
     enabled: z.boolean(),
-    baseUrl: z.string(),
+    baseUrl: z.string().url(),
   }),
 })
 

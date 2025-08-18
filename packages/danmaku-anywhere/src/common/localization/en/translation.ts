@@ -281,6 +281,9 @@ const pages = {
             'Protobuf：Slower but more danmaku. Up to 1000 danmaku per minute. Slower for longer videos.',
         },
       },
+      macCms: {
+        baseUrl: 'API Base URL',
+      },
     },
     retentionPolicy: {
       enabled: 'Enable Retention Policy',
