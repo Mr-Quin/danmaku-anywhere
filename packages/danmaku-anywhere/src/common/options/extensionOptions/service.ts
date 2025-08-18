@@ -148,3 +148,10 @@ export const extensionOptionsService = new OptionsService(
         }
       }),
   })
+  .version(17, {
+    upgrade: (data: PrevOptions) =>
+      produce<ExtensionOptions>(data, (draft) => {
+        // Add matchLocalDanmaku
+        draft.matchLocalDanmaku = true
+      }),
+  })

@@ -119,6 +119,7 @@ const domain = {
     name: 'Integration',
     alert: {
       usingIntegration: 'Using Integration: {{name}}',
+      matchedLocalDanmaku: 'Matched local danmaku',
       titleMapping:
         'Mapped title found for {{originalTitle}} -> {{mappedTitle}}',
       titleMappingError: 'Failed to get title mapping for {{title}}, skipping',
@@ -269,7 +270,8 @@ const pages = {
         system: 'System',
       },
     },
-    enableAnalytics: 'Collect Anonymous Data',
+    enableAnalytics: 'Enable anonymous analytics',
+    matchLocalDanmaku: 'Enable matching local Danmaku',
     searchUsingSimplified: 'Search using simplified Chinese',
     danmakuSource: {
       bilibili: {

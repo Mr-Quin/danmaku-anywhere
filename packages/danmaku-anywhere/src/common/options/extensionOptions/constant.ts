@@ -59,6 +59,7 @@ export const defaultExtensionOptions: ExtensionOptions = {
   theme: {
     colorMode: ColorMode.System,
   },
+  matchLocalDanmaku: true,
   hotkeys: defaultKeymap,
   showReleaseNotes: false,
   enableAnalytics: true,

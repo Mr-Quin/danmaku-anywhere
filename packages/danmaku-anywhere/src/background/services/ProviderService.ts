@@ -23,6 +23,8 @@ import type { DanmakuFetchDto, EpisodeSearchParams } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProvider } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
+import { extensionOptionsService } from '@/common/options/extensionOptions/service'
+import { stripExtension } from '@/common/utils/stripExtension'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 export class ProviderService {
@@ -221,6 +223,19 @@ export class ProviderService {
       return {
         ...episode,
         season,
+      }
+    }
+
+    if ((await extensionOptionsService.get()).matchLocalDanmaku) {
+      const customEpisode = await this.danmakuService.getCustomByTitle(
+        stripExtension(title)
+      )
+
+      if (customEpisode) {
+        return {
+          status: 'success',
+          data: customEpisode,
+        }
       }
     }
 

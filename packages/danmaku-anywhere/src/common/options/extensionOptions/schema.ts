@@ -106,6 +106,8 @@ export const extensionOptionsSchema = z.object({
    */
   retentionPolicy: retentionPolicySchema,
 
+  matchLocalDanmaku: z.boolean(),
+
   /**
    * Configuration for the theme
    */

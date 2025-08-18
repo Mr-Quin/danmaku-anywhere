@@ -4,6 +4,7 @@ import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 import { AnalyticsOption } from '@/popup/pages/options/pages/advanced/components/AnalyticsOption'
 import { DebugOption } from '@/popup/pages/options/pages/advanced/components/DebugOption'
+import { MatchLocalDanmakuOption } from '@/popup/pages/options/pages/advanced/components/MatchLocalDanmakuOption'
 import { SimplifiedSearchListItem } from '@/popup/pages/options/pages/advanced/components/SimplifiedSearchListItem'
 
 export const AdvancedOptions = () => {
@@ -14,6 +15,7 @@ export const AdvancedOptions = () => {
       <OptionsPageToolBar title={t('optionsPage.pages.advanced')} />
       <SimplifiedSearchListItem />
       <AnalyticsOption />
+      <MatchLocalDanmakuOption />
       <DebugOption />
     </OptionsPageLayout>
   )

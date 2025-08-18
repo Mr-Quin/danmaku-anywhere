@@ -125,6 +125,7 @@ const domain = {
     autoMode: '自动模式',
     alert: {
       usingIntegration: '使用适配规则：{{name}}',
+      matchedLocalDanmaku: '以匹配本地弹幕',
       titleMapping: '获取映射标题：{{originalTitle}} -> {{mappedTitle}}',
       titleMappingError: '获取标题映射失败：{{title}}，跳过',
       search: '搜索番剧：{{title}}',
@@ -269,6 +270,7 @@ const pages = {
     },
     searchUsingSimplified: '使用简体中文搜索',
     enableAnalytics: '匿名数据收集',
+    matchLocalDanmaku: '匹配本地弹幕',
     danmakuSource: {
       bilibili: {
         danmakuTypePreference: '弹幕获取方式',
