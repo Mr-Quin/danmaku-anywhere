@@ -3,6 +3,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import type { SeasonSearchParams } from '@/common/anime/dto'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
+import { getTrackingService } from '@/common/hooks/useSetupTracking'
 import { Logger } from '@/common/Logger'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -34,6 +35,7 @@ export const useSeasonSearchSuspense = (
         }
     > => {
       try {
+        getTrackingService().track('searchSeason', params)
         const data = await chromeRpcClient.seasonSearch(params)
         return {
           success: true,

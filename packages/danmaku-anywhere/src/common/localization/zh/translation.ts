@@ -110,7 +110,7 @@ const domain = {
       Custom: '其他',
       Backup: '备份',
       DanDanPlay: '弹弹Play',
-      Bilibili: '哔哩哔哩',
+      Bilibili: 'B站',
       Tencent: '腾讯',
       Iqiyi: '爱奇艺',
     },
@@ -278,6 +278,9 @@ const pages = {
           danmakuTypePreferenceProtobuf:
             'Protobuf：获取速度较慢，但是弹幕数量多，每分钟可达1000条。视频越长，速度越慢。',
         },
+      },
+      macCms: {
+        baseUrl: 'API地址',
       },
     },
     retentionPolicy: {

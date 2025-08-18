@@ -52,8 +52,8 @@ export const customEpisodeQueryKeys = {
     [{ scope: 'customEpisode', kind: 'filter', ...params }] as const,
   filterLite: (params: CustomEpisodeQueryFilter) =>
     [{ scope: 'customEpisode', kind: 'filterLite', ...params }] as const,
-  import: (key: string) =>
-    [{ scope: 'customEpisode', kind: 'import', key: key }] as const,
+  macCms: (key: string) =>
+    [{ scope: 'customEpisode', kind: 'macCms', key: key }] as const,
 }
 
 export const sourceQueryKeys = {
