@@ -24,9 +24,9 @@ import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import {
   CoverImage,
   CoverImageSkeleton,
-} from '@/common/components/MediaList/components/CoverImage'
-import type { HandleSeasonClick } from '@/common/components/MediaList/types'
+} from '@/common/components/image/CoverImage'
 import { ProviderLogo } from '@/common/components/ProviderLogo'
+import type { HandleSeasonClick } from '@/common/components/Season/types'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { isProvider } from '@/common/danmaku/utils'

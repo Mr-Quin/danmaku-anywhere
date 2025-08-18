@@ -1,34 +1,35 @@
-import type { Season } from '@danmaku-anywhere/danmaku-converter'
+import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import type { SeasonSearchParams } from '@/common/anime/dto'
-import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
+import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import { Logger } from '@/common/Logger'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 export const useSeasonSearchSuspense = (
-  provider: RemoteDanmakuSourceType,
-  keyword: string
+  provider: DanmakuSourceType,
+  keyword: string,
+  opts: { customBaseUrl: string }
 ) => {
   const { t } = useTranslation()
 
-  const params = { keyword, provider }
+  const params = { keyword, provider, customBaseUrl: opts.customBaseUrl }
 
   return useSuspenseQuery({
     queryKey: seasonQueryKeys.search(provider, params),
     queryFn: async (): Promise<
       | {
           success: true
-          data: Season[]
+          data: (Season | CustomSeason)[]
           params: SeasonSearchParams
-          provider: RemoteDanmakuSourceType
+          provider: DanmakuSourceType
         }
       | {
           success: false
           data: null
           params: SeasonSearchParams
-          provider: RemoteDanmakuSourceType
+          provider: DanmakuSourceType
           error: string
         }
     > => {

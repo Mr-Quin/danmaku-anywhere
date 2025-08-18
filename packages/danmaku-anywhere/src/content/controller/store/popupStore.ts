@@ -3,7 +3,6 @@ import { create } from 'zustand'
 import {
   type DanmakuSourceType,
   danmakuSourceTypeList,
-  type RemoteDanmakuSourceType,
 } from '@/common/danmaku/enums'
 import { createSelectors } from '@/common/utils/createSelectors'
 
@@ -41,8 +40,8 @@ interface PopupStoreState {
   highlighterPortal: HTMLElement | null
   setHighlighterPortal: (portal: HTMLElement) => void
 
-  providerTab?: RemoteDanmakuSourceType
-  setProviderTab: (tab: RemoteDanmakuSourceType) => void
+  providerTab?: DanmakuSourceType
+  setProviderTab: (tab: DanmakuSourceType) => void
 }
 
 const usePopupStoreBase = create<PopupStoreState>((set, get) => ({

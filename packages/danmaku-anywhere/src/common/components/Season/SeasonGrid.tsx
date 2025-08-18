@@ -13,7 +13,7 @@ import { type RefObject, useRef, useState } from 'react'
 import {
   SeasonCard,
   SeasonCardSkeleton,
-} from '@/common/components/MediaList/components/SeasonCard'
+} from '@/common/components/Season/components/SeasonCard/SeasonCard'
 import { useMergeRefs } from '@/common/hooks/useMergeRefs'
 
 const useBreakpointValue = <T,>(values: Partial<Record<Breakpoint, T>>) => {

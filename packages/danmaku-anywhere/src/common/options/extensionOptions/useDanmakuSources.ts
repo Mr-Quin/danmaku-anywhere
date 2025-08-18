@@ -1,5 +1,5 @@
 import { produce } from 'immer'
-
+import { useMemo } from 'react'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { DanmakuSources } from '@/common/options/extensionOptions/schema'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
@@ -9,27 +9,40 @@ export const useDanmakuSources = () => {
 
   const sources = data.danmakuSources
 
-  const sourcesList = [
-    {
-      key: 'dandanplay',
-      provider: DanmakuSourceType.DanDanPlay,
-      options: sources.dandanplay,
-    },
-    {
-      key: 'bilibili',
-      provider: DanmakuSourceType.Bilibili,
-      options: sources.bilibili,
-    },
-    {
-      key: 'tencent',
-      provider: DanmakuSourceType.Tencent,
-      options: sources.tencent,
-    },
-  ] as const
+  const { sourcesList, enabledSources, enabledProviders } = useMemo(() => {
+    const sourcesList = [
+      {
+        key: 'dandanplay',
+        provider: DanmakuSourceType.DanDanPlay,
+        options: sources.dandanplay,
+      },
+      {
+        key: 'bilibili',
+        provider: DanmakuSourceType.Bilibili,
+        options: sources.bilibili,
+      },
+      {
+        key: 'tencent',
+        provider: DanmakuSourceType.Tencent,
+        options: sources.tencent,
+      },
+      {
+        key: 'custom',
+        provider: DanmakuSourceType.Custom,
+        options: sources.custom,
+      },
+    ] as const
 
-  const enabledSources = sourcesList.filter((source) => source.options.enabled)
+    const enabledSources = sourcesList.filter(
+      (source) => source.options.enabled
+    )
 
-  const enabledProviders = enabledSources.map((source) => source.provider)
+    return {
+      sourcesList,
+      enabledSources,
+      enabledProviders: enabledSources.map((source) => source.provider),
+    }
+  }, [sources])
 
   const updateSource = async <K extends keyof DanmakuSources>(
     key: K,

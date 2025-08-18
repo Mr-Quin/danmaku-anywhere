@@ -10,10 +10,10 @@ import { ErrorBoundary } from 'react-error-boundary'
 import { useTranslation } from 'react-i18next'
 import { Center } from '@/common/components/Center'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
-import { SeasonSearchResult } from '@/common/components/MediaList/SeasonSearchResult'
-import { SeasonSearchTabs } from '@/common/components/MediaList/SeasonSearchTabs'
 import { ParseTabCore } from '@/common/components/ParseTabCore/ParseTabCore'
 import { SearchForm } from '@/common/components/SearchForm'
+import { SeasonSearchResult } from '@/common/components/Season/SeasonSearchResult'
+import { SeasonSearchTabs } from '@/common/components/Season/SeasonSearchTabs'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { isProvider } from '@/common/danmaku/utils'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
@@ -51,7 +51,9 @@ export const SearchPage = () => {
   const [scrollTop, setScrollTop] = useState(0)
   const [tab, setTab] = useState('search')
   const [showDialog, setShowDialog] = useState(false)
-  const [selectedSeason, setSelectedSeason] = useState<Season | undefined>()
+  const [selectedSeason, setSelectedSeason] = useState<
+    Season | CustomSeason | undefined
+  >()
   const [localSelectedSeason, setLocalSelectedSeason] = useState<Season>()
 
   const boxRef = useRef<HTMLDivElement>(null)
@@ -108,9 +110,6 @@ export const SearchPage = () => {
   const handleSeasonClick = (season: Season | CustomSeason) => {
     if (boxRef.current) {
       setScrollTop(boxRef.current.scrollTop)
-    }
-    if (isProvider(season, DanmakuSourceType.Custom)) {
-      return
     }
     if (
       isProvider(season, DanmakuSourceType.DanDanPlay) &&

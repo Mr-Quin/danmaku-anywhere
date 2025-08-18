@@ -2,6 +2,7 @@ import type {
   CommentEntity,
   CustomEpisode,
   CustomEpisodeLite,
+  CustomSeason,
   Episode,
   EpisodeLite,
   EpisodeMeta,
@@ -18,6 +19,7 @@ import type {
   SetHeaderRule,
 } from '@danmaku-anywhere/web-scraper'
 import type {
+  GenericVodSearchData,
   MatchEpisodeInput,
   MatchEpisodeResult,
   SeasonQueryFilter,
@@ -31,6 +33,7 @@ import type {
   DanmakuImportResult,
   EpisodeQueryFilter,
   EpisodeSearchParams,
+  GenericDanmakuFetchData,
 } from '@/common/danmaku/dto'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import type { SeasonMap } from '@/common/seasonMap/types'
@@ -54,7 +57,7 @@ type IconSetDto =
 export type BackgroundMethods = {
   iconSet: RPCDef<IconSetDto, void>
   mediaParseUrl: RPCDef<{ url: string }, WithSeason<EpisodeMeta>>
-  seasonSearch: RPCDef<SeasonSearchParams, Season[]>
+  seasonSearch: RPCDef<SeasonSearchParams, (Season | CustomSeason)[]>
   seasonFilter: RPCDef<SeasonQueryFilter, Season[]>
   seasonGetAll: RPCDef<void, Season[]>
   seasonDelete: RPCDef<SeasonQueryFilter, void>
@@ -88,6 +91,8 @@ export type BackgroundMethods = {
   mountConfigGetAll: RPCDef<void, MountConfig[]>
   kazumiSearchContent: RPCDef<KazumiSearchPayload, KazumiSearchResult[]>
   kazumiGetChapters: RPCDef<KazumiChapterPayload, KazumiChapterResult[][]>
+  genericVodSearch: RPCDef<GenericVodSearchData, CustomSeason[]>
+  genericFetchDanmakuForUrl: RPCDef<GenericDanmakuFetchData, CustomEpisode>
   setHeaders: RPCDef<SetHeaderRule, void>
   extractTitle: RPCDef<string, ExtractTitleResponse['result']>
   openPopupInNewWindow: RPCDef<string, void>

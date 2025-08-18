@@ -60,6 +60,9 @@ export const fetchData = async <OutSchema extends ZodType>(
   if (store.daVersion && url.startsWith(store.baseUrl)) {
     headers['DA-Version'] = store.daVersion
   }
+  if (store.daId && url.startsWith(store.baseUrl)) {
+    headers['DA-extension-id'] = store.daId
+  }
 
   // add additional headers from the store
   if (store.headers) {

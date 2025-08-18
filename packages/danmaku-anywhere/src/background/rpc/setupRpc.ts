@@ -4,6 +4,7 @@ import { injectVideoScript } from '@/background/scripting/setupScripting'
 import type { BilibiliService } from '@/background/services/BilibiliService'
 import type { GenAIService } from '@/background/services/GenAIService'
 import type { KazumiService } from '@/background/services/KazumiService'
+import type { MacCmsProviderService } from '@/background/services/MacCmsProviderService'
 import type { SeasonService } from '@/background/services/SeasonService'
 import type { TencentService } from '@/background/services/TencentService'
 import type { TitleMappingService } from '@/background/services/TitleMappingService'
@@ -36,7 +37,8 @@ export const setupRpc = (
   bilibiliService: BilibiliService,
   tencentService: TencentService,
   kazumiService: KazumiService,
-  titleMappingService: TitleMappingService
+  titleMappingService: TitleMappingService,
+  customProviderService: MacCmsProviderService
 ) => {
   const rpcServer = createRpcServer<BackgroundMethods>({
     seasonSearch: async (input) => {
@@ -218,6 +220,12 @@ export const setupRpc = (
     },
     kazumiGetChapters: async ({ url, policy }) => {
       return kazumiService.getChapters(url, policy)
+    },
+    genericVodSearch: async ({ baseUrl, keyword }) => {
+      return customProviderService.search(baseUrl, keyword)
+    },
+    genericFetchDanmakuForUrl: async ({ title, url }) => {
+      return customProviderService.fetchDanmakuForUrl(title, url)
     },
     setHeaders: async (rule) => {
       await setRequestHeaderRule(rule)

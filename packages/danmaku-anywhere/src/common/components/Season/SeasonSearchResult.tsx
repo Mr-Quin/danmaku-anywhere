@@ -4,17 +4,18 @@ import { Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSeasonSearchSuspense } from '@/common/anime/queries/useSeasonSearchSuspense'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
+import { NothingHere } from '@/common/components/NothingHere'
 import {
   SeasonGrid,
   SeasonGridSkeleton,
-} from '@/common/components/MediaList/components/SeasonGrid'
-import type { HandleSeasonClick } from '@/common/components/MediaList/types'
-import { NothingHere } from '@/common/components/NothingHere'
-import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
+} from '@/common/components/Season/SeasonGrid'
+import type { HandleSeasonClick } from '@/common/components/Season/types'
+import type { DanmakuSourceType } from '@/common/danmaku/enums'
+import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
 
 interface SeasonSearchResultProps {
   searchParams: SearchEpisodesQuery
-  provider: RemoteDanmakuSourceType
+  provider: DanmakuSourceType
   onSeasonClick: HandleSeasonClick
   stale: boolean
 }
@@ -41,10 +42,12 @@ const SeasonSearchResultSuspense = ({
   onSeasonClick,
 }: SeasonSearchResultProps) => {
   const { t } = useTranslation()
+  const { sources } = useDanmakuSources()
 
   const { data: result, refetch } = useSeasonSearchSuspense(
-    provider,
-    searchParams.anime
+    provider as DanmakuSourceType,
+    searchParams.anime,
+    { customBaseUrl: sources.custom.baseUrl }
   )
 
   if (!result.success) {

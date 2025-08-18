@@ -7,11 +7,11 @@ import { memo, Suspense, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { createSearchParams, useNavigate } from 'react-router'
 import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
+import { NothingHere } from '@/common/components/NothingHere'
 import {
   SeasonGrid,
   SeasonGridSkeleton,
-} from '@/common/components/MediaList/components/SeasonGrid'
-import { NothingHere } from '@/common/components/NothingHere'
+} from '@/common/components/Season/SeasonGrid'
 import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
 import { isProvider } from '@/common/danmaku/utils'
 import { useStoreScrollPosition } from '@/common/hooks/useStoreScrollPosition'

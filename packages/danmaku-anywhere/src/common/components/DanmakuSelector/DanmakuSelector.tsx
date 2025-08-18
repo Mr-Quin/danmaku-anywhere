@@ -26,7 +26,7 @@ import {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
-import { BaseEpisodeListItem } from '@/common/components/MediaList/components/BaseEpisodeListItem'
+import { BaseEpisodeListItem } from '@/common/components/EpisodeList/BaseEpisodeListItem'
 import { NothingHere } from '@/common/components/NothingHere'
 import { ProviderLogo } from '@/common/components/ProviderLogo'
 import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustomEpisodes'

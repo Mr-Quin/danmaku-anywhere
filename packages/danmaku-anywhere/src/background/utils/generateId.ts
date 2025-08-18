@@ -18,7 +18,7 @@ export const generateId = () => {
     const id = await _generateId()
 
     if (id) {
-      configureApiStore({ headers: { 'DA-Extension-Id': id } })
+      configureApiStore({ daId: id })
       return
     }
   })

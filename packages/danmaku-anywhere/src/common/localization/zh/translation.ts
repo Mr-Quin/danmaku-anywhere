@@ -107,7 +107,7 @@ const domain = {
     refresh: '刷新弹幕',
     style: '弹幕样式',
     type: {
-      Custom: '本地',
+      Custom: '其他',
       Backup: '备份',
       DanDanPlay: '弹弹Play',
       Bilibili: '哔哩哔哩',

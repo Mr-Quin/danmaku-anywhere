@@ -47,6 +47,10 @@ export const defaultExtensionOptions: ExtensionOptions = {
       enabled: false,
       limitPerMin: 200,
     },
+    custom: {
+      enabled: true,
+      baseUrl: 'https://zy.xmm.hk',
+    },
   },
   playerOptions: {
     showSkipButton: true,

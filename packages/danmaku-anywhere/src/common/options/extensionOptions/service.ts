@@ -138,3 +138,13 @@ export const extensionOptionsService = new OptionsService(
         }
       }),
   })
+  .version(16, {
+    upgrade: (data: PrevOptions) =>
+      produce<ExtensionOptions>(data, (draft) => {
+        // Add custom danmaku source
+        draft.danmakuSources.custom = {
+          enabled: true,
+          baseUrl: 'https://zy.xmm.hk',
+        }
+      }),
+  })

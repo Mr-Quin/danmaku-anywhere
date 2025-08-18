@@ -6,6 +6,7 @@ import { DanmakuService } from '@/background/services/DanmakuService'
 import { GenAIService } from '@/background/services/GenAIService'
 import { IconService } from '@/background/services/IconService'
 import { KazumiService } from '@/background/services/KazumiService'
+import { MacCmsProviderService } from '@/background/services/MacCmsProviderService'
 import { ProviderService } from '@/background/services/ProviderService'
 import { SeasonService } from '@/background/services/SeasonService'
 import { TencentService } from '@/background/services/TencentService'
@@ -32,6 +33,7 @@ const danmakuService = new DanmakuService(
 const danDanPlayService = new DanDanPlayService(seasonService, danmakuService)
 const tencentService = new TencentService(seasonService, danmakuService)
 const bilibiliService = new BilibiliService(seasonService, danmakuService)
+const customProviderService = new MacCmsProviderService(danmakuService)
 
 const titleMappingService = new TitleMappingService(db.seasonMap)
 const providerService = new ProviderService(
@@ -40,7 +42,8 @@ const providerService = new ProviderService(
   seasonService,
   danDanPlayService,
   bilibiliService,
-  tencentService
+  tencentService,
+  customProviderService
 )
 const kazumiService = new KazumiService()
 const iconService = new IconService()
@@ -62,7 +65,8 @@ setupRpc(
   bilibiliService,
   tencentService,
   kazumiService,
-  titleMappingService
+  titleMappingService,
+  customProviderService
 )
 setupNetRequest()
 setupAlarms(danmakuService)

@@ -4,17 +4,19 @@ import type {
   Season,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
+import type { DanmakuSourceType } from '@/common/danmaku/enums'
 
 export interface SeasonSearchParams {
   keyword: string
   episode?: string
-  provider: RemoteDanmakuSourceType
+  provider: DanmakuSourceType
+  // used for custom search
+  customBaseUrl: string
 }
 
 export type SeasonQueryFilter = {
   id?: number
-  provider?: RemoteDanmakuSourceType
+  provider?: DanmakuSourceType
   indexedId?: string
 }
 
@@ -39,3 +41,8 @@ export type MatchEpisodeResult =
       status: 'notFound'
       data: null
     }
+
+export interface GenericVodSearchData {
+  baseUrl: string
+  keyword: string
+}

@@ -9,6 +9,7 @@ import type { BilibiliService } from '@/background/services/BilibiliService'
 import type { DanDanPlayService } from '@/background/services/DanDanPlayService'
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import { findDanDanPlayEpisodeInList } from '@/background/services/episodeMatching'
+import type { MacCmsProviderService } from '@/background/services/MacCmsProviderService'
 import type { SeasonService } from '@/background/services/SeasonService'
 import type { TencentService } from '@/background/services/TencentService'
 import type { TitleMappingService } from '@/background/services/TitleMappingService'
@@ -33,7 +34,8 @@ export class ProviderService {
     private seasonService: SeasonService,
     private danDanPlayService: DanDanPlayService,
     private bilibiliService: BilibiliService,
-    private tencentService: TencentService
+    private tencentService: TencentService,
+    private customProviderService: MacCmsProviderService
   ) {
     invariant(
       isServiceWorker(),
@@ -57,6 +59,12 @@ export class ProviderService {
       }
       case DanmakuSourceType.Tencent: {
         return this.tencentService.search(params.keyword)
+      }
+      case DanmakuSourceType.Custom: {
+        return await this.customProviderService.search(
+          params.customBaseUrl,
+          params.keyword
+        )
       }
     }
   }

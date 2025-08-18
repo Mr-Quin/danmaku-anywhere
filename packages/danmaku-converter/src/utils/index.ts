@@ -21,9 +21,18 @@ export const xmlToJSON = (xml: string) => {
 export const zHex = z
   .string()
   .toUpperCase()
-  .regex(/^#[0-9A-F]{6}$/, {
+  .regex(/^#([0-9a-fA-F]{3}){1,2}$/, {
     message: 'Invalid hex color format',
   })
+  .transform((hex) => {
+    // pad hex to 6 chars and make upper case
+    if (hex.length > 6) {
+      return hex.toUpperCase()
+    }
+    const val = hex.split('#')
+    return `#${val[1].toUpperCase()}`
+  })
+
 export const zRgb888 = z.coerce
   .number()
   .int()
