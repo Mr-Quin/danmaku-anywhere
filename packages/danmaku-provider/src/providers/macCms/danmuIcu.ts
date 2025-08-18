@@ -18,7 +18,7 @@ export const zDanmuIcuDanmaku = z
           zTime, // time
           z
             .string()
-            .refine((mode) => {
+            .transform((mode) => {
               switch (mode) {
                 case 'top':
                   return CommentMode.top
