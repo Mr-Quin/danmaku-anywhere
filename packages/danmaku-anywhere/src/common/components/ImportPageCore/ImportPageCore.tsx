@@ -10,6 +10,7 @@ import type {
 } from '@/common/danmaku/dto'
 import { useInvalidateSeasonAndEpisode } from '@/common/hooks/useInvalidateSeasonAndEpisode'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { stripExtension } from '@/common/utils/stripExtension'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { FileUpload } from '@/popup/component/FileUpload'
@@ -19,6 +20,25 @@ import {
 } from '@/popup/component/ImportResultDialog'
 import { PreFormat } from '@/popup/component/PreFormat'
 import { Collapsible } from '@/popup/pages/import/components/Collapsible'
+
+const VALID_FILE_TYPES = [
+  'application/json',
+  'application/xml',
+  'text/xml',
+  'text/json',
+]
+
+const isFileValid = (file: File) => {
+  return VALID_FILE_TYPES.includes(file.type)
+}
+
+const getJson = async (file: File) => {
+  const text = await file.text()
+  const data: unknown = file.type.includes('xml')
+    ? xmlToJSON(text)
+    : JSON.parse(text)
+  return data
+}
 
 export const ImportPageCore = () => {
   const { t } = useTranslation()
@@ -33,18 +53,11 @@ export const ImportPageCore = () => {
    */
   const { mutate, data, error, reset, isError, isPending } = useMutation({
     mutationFn: async (files: File[]) => {
-      const getJson = (text: string, fileName: string) => {
-        const isXml = fileName.endsWith('.xml')
-        const data: unknown = isXml ? xmlToJSON(text) : JSON.parse(text)
-        return data
-      }
-
       return Promise.all(
-        files.map(async (file) => {
-          const text = await file.text()
-          const data = getJson(text, file.name)
+        files.filter(isFileValid).map(async (file) => {
+          const data = await getJson(file)
           return {
-            title: file.name,
+            title: stripExtension(file.name),
             data,
           } satisfies DanmakuImportData
         })
