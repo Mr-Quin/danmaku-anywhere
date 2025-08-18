@@ -72,3 +72,8 @@ export type DanmakuImportResult = {
     message: string
   }[]
 }
+
+export interface GenericDanmakuFetchData {
+  title: string
+  url: string
+}

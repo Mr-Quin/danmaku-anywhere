@@ -35,6 +35,10 @@ export const danmakuSourcesSchema = z.object({
      */
     limitPerMin: z.number().int().positive().max(1000).default(200),
   }),
+  custom: z.object({
+    enabled: z.boolean(),
+    baseUrl: z.string(),
+  }),
 })
 
 export const playerOptionsSchema = z.object({

@@ -1,4 +1,3 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { Box, Typography } from '@mui/material'
 import {
@@ -11,11 +10,11 @@ import { useTranslation } from 'react-i18next'
 import { Outlet, useNavigate } from 'react-router'
 import { Center } from '@/common/components/Center'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
-import { SeasonSearchResult } from '@/common/components/MediaList/SeasonSearchResult'
-import { SeasonSearchTabs } from '@/common/components/MediaList/SeasonSearchTabs'
-import { isProvider } from '@/common/danmaku/utils'
+import { SeasonSearchResult } from '@/common/components/Season/SeasonSearchResult'
+import { SeasonSearchTabs } from '@/common/components/Season/SeasonSearchTabs'
 import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
+
 import { PopupSearchForm } from '@/popup/pages/search/components/PopupSearchForm'
 import { useStore } from '@/popup/store'
 
@@ -42,7 +41,7 @@ export const SearchTab = () => {
     if (search.tab === undefined || !enabledProviders.includes(search.tab)) {
       search.setTab(enabledProviders[0])
     }
-  }, enabledProviders)
+  }, [enabledProviders])
 
   const isSearching =
     useIsFetching({
@@ -95,10 +94,9 @@ export const SearchTab = () => {
               searchParams={searchParams}
               provider={search.tab}
               onSeasonClick={(season) => {
-                if (!isProvider(season, DanmakuSourceType.Custom)) {
-                  search.setSeason(season)
-                  navigate('season')
-                }
+                search.setSeason(season)
+                navigate('season')
+                return
               }}
               stale={pending}
             />

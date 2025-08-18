@@ -15,13 +15,12 @@ import {
 } from '@mui/material'
 import { type ReactNode, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
-import { CoverImage } from '@/common/components/MediaList/components/CoverImage'
+import { CoverImage } from '@/common/components/image/CoverImage'
 import { isNotCustom } from '@/common/danmaku/utils'
 
 const isEpisodeLite = (
   episode: WithSeason<EpisodeMeta> | CustomEpisodeLite
 ): episode is WithSeason<EpisodeLite> => {
-  if (!isNotCustom(episode)) return false
   return 'id' in episode
 }
 

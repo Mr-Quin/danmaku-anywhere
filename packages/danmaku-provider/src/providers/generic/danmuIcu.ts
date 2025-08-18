@@ -9,9 +9,9 @@ import { z } from 'zod'
 
 export const zDanmuIcuDanmaku = z
   .object({
-    code: z.number().optional(),
-    name: z.string().optional(),
-    danum: z.number().optional(),
+    code: z.number(),
+    name: z.string(),
+    danum: z.number(),
     danmuku: z.array(
       z
         .tuple([
@@ -31,22 +31,10 @@ export const zDanmuIcuDanmaku = z
           zHex, // color
           z
             .string()
-            .optional()
             .default(''), // ?
           z.string(), // text
-          z
-            .string()
-            .optional()
-            .default(''), // ip
-          z
-            .string()
-            .optional()
-            .default(''), // ?
-          z
-            .string()
-            .optional()
-            .default(''), // font size
         ])
+        .rest(z.any())
         .transform((data) => {
           const [time, mode, color, , text] = data
 
@@ -58,5 +46,5 @@ export const zDanmuIcuDanmaku = z
     ),
   })
   .transform((data): CommentEntity[] => {
-    return data.danmuku
+    return data.danmuku.slice(-data.danum)
   })

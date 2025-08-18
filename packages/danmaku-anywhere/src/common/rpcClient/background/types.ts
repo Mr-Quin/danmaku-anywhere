@@ -11,7 +11,6 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import type { BilibiliUserInfo } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import type { ExtractTitleResponse } from '@danmaku-anywhere/danmaku-provider/genAi'
-import type { VodItem } from '@danmaku-anywhere/danmaku-provider/generic'
 import type {
   KazumiChapterPayload,
   KazumiChapterResult,
@@ -19,8 +18,8 @@ import type {
   KazumiSearchResult,
   SetHeaderRule,
 } from '@danmaku-anywhere/web-scraper'
-import type { ParsedPlayUrl } from '@/background/services/CustomProviderService'
 import type {
+  GenericVodSearchData,
   MatchEpisodeInput,
   MatchEpisodeResult,
   SeasonQueryFilter,
@@ -34,6 +33,7 @@ import type {
   DanmakuImportResult,
   EpisodeQueryFilter,
   EpisodeSearchParams,
+  GenericDanmakuFetchData,
 } from '@/common/danmaku/dto'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import type { SeasonMap } from '@/common/seasonMap/types'
@@ -57,7 +57,7 @@ type IconSetDto =
 export type BackgroundMethods = {
   iconSet: RPCDef<IconSetDto, void>
   mediaParseUrl: RPCDef<{ url: string }, WithSeason<EpisodeMeta>>
-  seasonSearch: RPCDef<SeasonSearchParams, Season[]>
+  seasonSearch: RPCDef<SeasonSearchParams, (Season | CustomSeason)[]>
   seasonFilter: RPCDef<SeasonQueryFilter, Season[]>
   seasonGetAll: RPCDef<void, Season[]>
   seasonDelete: RPCDef<SeasonQueryFilter, void>
@@ -91,15 +91,8 @@ export type BackgroundMethods = {
   mountConfigGetAll: RPCDef<void, MountConfig[]>
   kazumiSearchContent: RPCDef<KazumiSearchPayload, KazumiSearchResult[]>
   kazumiGetChapters: RPCDef<KazumiChapterPayload, KazumiChapterResult[][]>
-  customSearchVod: RPCDef<
-    { baseUrl: string; keyword: string },
-    { seasons: CustomSeason[]; list: VodItem[] }
-  >
-  customParsePlayUrls: RPCDef<VodItem, ParsedPlayUrl[]>
-  customFetchDanmakuForUrl: RPCDef<
-    { title: string; url: string },
-    CustomEpisode
-  >
+  genericVodSearch: RPCDef<GenericVodSearchData, CustomSeason[]>
+  genericFetchDanmakuForUrl: RPCDef<GenericDanmakuFetchData, CustomEpisode>
   setHeaders: RPCDef<SetHeaderRule, void>
   extractTitle: RPCDef<string, ExtractTitleResponse['result']>
   openPopupInNewWindow: RPCDef<string, void>

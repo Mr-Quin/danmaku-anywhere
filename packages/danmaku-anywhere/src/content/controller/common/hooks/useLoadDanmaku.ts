@@ -6,9 +6,13 @@ import { useEventCallback } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { DanmakuFetchDto } from '@/common/danmaku/dto'
+import type {
+  DanmakuFetchDto,
+  GenericDanmakuFetchData,
+} from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
+import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
 import { episodeToString, isProvider } from '@/common/danmaku/utils'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { concatArr } from '@/common/utils/utils'
@@ -56,6 +60,7 @@ export const useLoadDanmaku = () => {
   const { episodes } = useStore.use.danmaku()
 
   const fetchMutation = useFetchDanmaku()
+  const fetchGenericMutation = useFetchGenericDanmaku()
   const mountMutation = useMountDanmaku()
 
   const canRefresh =
@@ -105,6 +110,19 @@ export const useLoadDanmaku = () => {
     },
   })
 
+  const loadGenericMutation = useMutation({
+    mutationFn: async (data: GenericDanmakuFetchData) => {
+      return fetchGenericMutation.mutateAsync(data, {
+        onSuccess: (cache) => {
+          mountDanmaku([cache])
+        },
+        onError: (err) => {
+          toast.error(err.message)
+        },
+      })
+    },
+  })
+
   const refreshComments = useEventCallback(async () => {
     if (!canRefresh) return
     const episode = episodes[0]
@@ -127,5 +145,11 @@ export const useLoadDanmaku = () => {
     )
   })
 
-  return { loadMutation, refreshComments, canRefresh, mountDanmaku }
+  return {
+    loadMutation,
+    loadGenericMutation,
+    refreshComments,
+    canRefresh,
+    mountDanmaku,
+  }
 }

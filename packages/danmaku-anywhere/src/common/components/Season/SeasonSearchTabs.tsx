@@ -1,14 +1,14 @@
 import { Tab, Tabs } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import {
+  type DanmakuSourceType,
   localizedDanmakuSourceType,
-  type RemoteDanmakuSourceType,
 } from '@/common/danmaku/enums'
 
 interface SeasonSearchTabsProps {
-  providers: RemoteDanmakuSourceType[]
-  selectedTab: RemoteDanmakuSourceType
-  onTabChange: (tab: RemoteDanmakuSourceType) => void
+  providers: DanmakuSourceType[]
+  selectedTab: DanmakuSourceType
+  onTabChange: (tab: DanmakuSourceType) => void
 }
 
 export const SeasonSearchTabs = ({

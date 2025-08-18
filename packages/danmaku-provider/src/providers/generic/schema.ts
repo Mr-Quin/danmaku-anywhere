@@ -1,6 +1,7 @@
 import { z } from 'zod'
+import { parsePlayUrl } from './parsePlayUrl.js'
 
-export const zVodItem = z.object({
+const zVodItemBase = z.object({
   vod_id: z.union([z.string(), z.number()]),
   vod_name: z.string(),
   vod_pic: z.string().optional().nullable(),
@@ -9,6 +10,19 @@ export const zVodItem = z.object({
   vod_class: z.string().optional().nullable(),
   vod_play_from: z.string().optional().nullable().default(''),
   vod_play_url: z.string(),
+})
+
+export const zVodItem = zVodItemBase.transform((item) => {
+  const parsedPlayUrls = parsePlayUrl(
+    item.vod_name,
+    item.vod_play_from ?? '',
+    item.vod_play_url ?? ''
+  )
+
+  return {
+    ...item,
+    parsedPlayUrls,
+  }
 })
 
 export const zVodSearchResponse = z.object({
@@ -21,11 +35,6 @@ export const zVodSearchResponse = z.object({
   list: z.array(zVodItem).default([]),
 })
 
-export type VodItem = z.output<typeof zVodItem>
-export type VodSearchResponse = z.output<typeof zVodSearchResponse>
-
-export type ParsedPlayUrl = {
-  source: string
-  episodeNumber: number
-  url: string
-}
+export type GenericVodItem = z.output<typeof zVodItem>
+export type GenericVodSearchResponse = z.output<typeof zVodSearchResponse>
+export type { ParsedPlayUrl } from './parsePlayUrl.js'

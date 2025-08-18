@@ -1,6 +1,7 @@
 import { configureApiStore } from '@danmaku-anywhere/danmaku-provider'
 import { setupPorts } from '@/background/ports/setupPorts'
 import { BilibiliService } from '@/background/services/BilibiliService'
+import { CustomProviderService } from '@/background/services/CustomProviderService'
 import { DanDanPlayService } from '@/background/services/DanDanPlayService'
 import { DanmakuService } from '@/background/services/DanmakuService'
 import { GenAIService } from '@/background/services/GenAIService'
@@ -32,6 +33,7 @@ const danmakuService = new DanmakuService(
 const danDanPlayService = new DanDanPlayService(seasonService, danmakuService)
 const tencentService = new TencentService(seasonService, danmakuService)
 const bilibiliService = new BilibiliService(seasonService, danmakuService)
+const customProviderService = new CustomProviderService(danmakuService)
 
 const titleMappingService = new TitleMappingService(db.seasonMap)
 const providerService = new ProviderService(
@@ -40,7 +42,8 @@ const providerService = new ProviderService(
   seasonService,
   danDanPlayService,
   bilibiliService,
-  tencentService
+  tencentService,
+  customProviderService
 )
 const kazumiService = new KazumiService()
 const iconService = new IconService()
@@ -62,7 +65,8 @@ setupRpc(
   bilibiliService,
   tencentService,
   kazumiService,
-  titleMappingService
+  titleMappingService,
+  customProviderService
 )
 setupNetRequest()
 setupAlarms(danmakuService)

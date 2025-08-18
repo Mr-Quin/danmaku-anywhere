@@ -1,11 +1,8 @@
-import type { Season } from '@danmaku-anywhere/danmaku-converter'
+import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
-import type {
-  DanmakuSourceType,
-  RemoteDanmakuSourceType,
-} from '@/common/danmaku/enums'
+import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import { danmakuSourceTypeList } from '@/common/danmaku/enums'
 import { createMountConfig } from '@/common/options/mountConfig/constant'
 import type { MountConfigInput } from '@/common/options/mountConfig/schema'
@@ -25,10 +22,10 @@ interface StoreState {
     setSearchParams: (params?: SearchEpisodesQuery) => void
     keyword: string
     setKeyword: (keyword: string) => void
-    season?: Season
-    setSeason: (season: Season) => void
-    tab?: RemoteDanmakuSourceType
-    setTab: (tab: RemoteDanmakuSourceType) => void
+    season?: Season | CustomSeason
+    setSeason: (season: Season | CustomSeason) => void
+    tab?: DanmakuSourceType
+    setTab: (tab: DanmakuSourceType) => void
   }
   danmaku: {
     animeFilter: string
@@ -88,12 +85,12 @@ const useStoreBase = create<StoreState>()(
         })
       },
       season: undefined,
-      setSeason: (season: Season) =>
+      setSeason: (season) =>
         set((state) => {
           state.search.season = season
         }),
       tab: undefined,
-      setTab: (tab: RemoteDanmakuSourceType) =>
+      setTab: (tab: DanmakuSourceType) =>
         set((state) => {
           state.search.tab = tab
         }),

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-
+import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
 import { episodeQueryKeys, seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -12,6 +12,7 @@ import { chromeRpcClient } from '@/common/rpcClient/background/client'
  */
 export const useFetchDanmaku = () => {
   const queryClient = useQueryClient()
+  const toast = useToast.use.toast()
 
   const mutation = useMutation({
     mutationKey: episodeQueryKeys.all(),
@@ -23,6 +24,9 @@ export const useFetchDanmaku = () => {
       void queryClient.invalidateQueries({
         queryKey: seasonQueryKeys.all(),
       })
+    },
+    onError: async (error) => {
+      toast.error(error.message)
     },
   })
 

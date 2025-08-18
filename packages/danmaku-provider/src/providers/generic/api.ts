@@ -1,7 +1,7 @@
 import type { ZodType, z } from 'zod'
 import { fetchData } from '../utils/fetchData.js'
 import { zDanmuIcuDanmaku } from './danmuIcu.js'
-import { type VodSearchResponse, zVodSearchResponse } from './schema.js'
+import { type GenericVodSearchResponse, zVodSearchResponse } from './schema.js'
 
 const withQuery = (
   baseUrl: string,
@@ -26,7 +26,7 @@ const fetchJson = async <T extends ZodType>(url: string, responseSchema: T) => {
 export const searchVod = async (
   baseUrl: string,
   keyword: string
-): Promise<VodSearchResponse> => {
+): Promise<GenericVodSearchResponse> => {
   const url = withQuery(baseUrl, '/api.php/provide/vod/', {
     ac: 'detail',
     wd: keyword,
