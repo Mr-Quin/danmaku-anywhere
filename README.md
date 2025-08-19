@@ -24,24 +24,27 @@
 此项目包含多个子项目
 
 - [浏览器扩展 - 给几乎任何网站添加弹幕](#danmaku-anywhere-浏览器扩展)
-- [Web应用 - 基于Kazumi规则的看番网站](#web应用)
+- [Web应用 - 基于Kazumi规则的视频采集网站](#web应用)
 
 ## 🚀Danmaku Anywhere 浏览器扩展
 
 ### 功能特性
 
 - **在几乎任何网站观看弹幕**：
-    - 自托管的媒体服务器（如 Plex, Emby, Jellyfin）
-    - 流媒体平台（如 YouTube, Crunchyroll）
+    - 自托管的媒体服务器（如 Plex、Emby、Jellyfin、飞牛影视）
+    - 流媒体平台（如 YouTube、Crunchyroll）
     - 其他民间视频网站🏴‍☠️
 - **纯浏览器体验**：无需任何桌面客户端
 - **从多个弹幕源获取弹幕**，目前支持：
     - 弹弹Play
     - B站
     - 腾讯
+    - MacCMS
 - **手动导入**：支持手动导入本地弹幕文件 (`.xml` 格式)
 - **自动匹配**：可自定义匹配规则，或使用AI匹配功能
-- **弹幕导出**：可以方便地导出你观看过的弹幕
+    - 根据播放的视频，自动搜索弹幕
+    - 自动关联同名的本地弹幕文件
+- **弹幕导出**：将看过的弹幕导出为`.xml`文件
 
 ### 效果截图
 
@@ -63,7 +66,7 @@ YouTube
 
 推荐通过官方商店一键安装：
 
-- Chrome（Chromium内核浏览器）
+- Chromium系（Chrome、Edge、Opera等）
     - [Chrome Web Store](https://chromewebstore.google.com/detail/danmaku-anywhere/jnflbkkmffognjjhibkjnomjedogmdpo?hl=zh)
 
 - Firefox（含安卓）
@@ -79,9 +82,9 @@ YouTube
 
 **实验项目**，在浏览器中提供类似Kazumi的功能
 
-- 基于Kazumi规则，在一个网站上观看来自多个网站的番剧视频
+- 基于Kazumi规则，在一个网站上观看来自不同网站的视频
+- 播放本地视频
 - 支持PWA
-- 支持播放本地视频
 - **需要安装Danmaku Anywhere扩展后才可使用**
 
 ### 效果截图
@@ -89,11 +92,11 @@ YouTube
 ![热门动画](assets/screenshot_webapp_trending.png)
 ![搜索](assets/screenshot_webapp_kazumi.png)
 
+## ❤️美术资源
+
+### 猫与白月（[B站](https://space.bilibili.com/220694183)）
+
 ## 🧑‍💻参与开发
 
 欢迎任何形式的贡献！如果您对项目开发感兴趣，请查阅[开发文档](https://docs.danmaku.weeblify.app/development/structure/)
 
-## ❤️特别感谢
-
-- 图片素材绘制
-    - [猫与白月](https://space.bilibili.com/220694183)
