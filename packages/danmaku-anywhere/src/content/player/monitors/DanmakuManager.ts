@@ -58,8 +58,6 @@ export class DanmakuManager {
   start(videoSelector: string) {
     logger.debug('Starting')
 
-    this.videoNodeObs.start(videoSelector)
-
     this.videoNodeObs.addEventListener(
       'videoNodeChange',
       this.handleVideoNodeChange.bind(this)
@@ -68,6 +66,8 @@ export class DanmakuManager {
       'videoNodeRemove',
       this.handleVideoNodeRemove.bind(this)
     )
+
+    this.videoNodeObs.start(videoSelector)
   }
 
   public getWrapper() {
