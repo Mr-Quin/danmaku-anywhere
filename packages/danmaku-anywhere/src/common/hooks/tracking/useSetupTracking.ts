@@ -41,7 +41,7 @@ const createTrackingService = (environment: string, type: string) => {
     },
     init: {
       session_replay: {
-        enabled: isPopup, // disabled in content script
+        enabled: true,
         block_selector: '',
         mask_text_selector: isPopup ? '' : '*',
         sampling_rate: 100.0,
