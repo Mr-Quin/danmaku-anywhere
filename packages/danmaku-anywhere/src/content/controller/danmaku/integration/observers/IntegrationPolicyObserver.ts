@@ -1,3 +1,4 @@
+import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { Logger } from '@/common/Logger'
 import type { IntegrationPolicy } from '@/common/options/integrationPolicyStore/schema'
 import { queryClient } from '@/common/queries/queryClient'
@@ -377,9 +378,11 @@ export class IntegrationPolicyObserver extends MediaObserver {
     }
     if (this.policy.options.useAI) {
       this.logger.debug('Setting up using AI')
+      getTrackingService().track('setupAiIntegration', policy)
       void this.setupAi()
     } else {
       this.logger.debug('Setting up using XPath')
+      getTrackingService().track('setupXpathIntegration', policy)
       void this.setupXpath()
     }
   }

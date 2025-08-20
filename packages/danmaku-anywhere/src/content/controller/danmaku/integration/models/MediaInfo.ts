@@ -60,4 +60,13 @@ export class MediaInfo {
       this.seasonDecorator === other.seasonDecorator
     )
   }
+
+  toJSON() {
+    return {
+      seasonTitle: this.seasonTitle,
+      episode: this.episode,
+      seasonDecorator: this.seasonDecorator,
+      episodeTitle: this.episodeTitle,
+    }
+  }
 }

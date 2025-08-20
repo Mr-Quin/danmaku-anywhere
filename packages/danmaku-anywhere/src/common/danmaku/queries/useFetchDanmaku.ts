@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
+import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { episodeQueryKeys, seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
@@ -17,6 +18,7 @@ export const useFetchDanmaku = () => {
   const mutation = useMutation({
     mutationKey: episodeQueryKeys.all(),
     mutationFn: async (data: DanmakuFetchDto) => {
+      getTrackingService().track('fetchDanmaku', data)
       const res = await chromeRpcClient.episodeFetch(data)
       return res.data
     },

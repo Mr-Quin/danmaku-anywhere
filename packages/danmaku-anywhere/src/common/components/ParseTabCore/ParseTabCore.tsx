@@ -18,6 +18,7 @@ import {
   localizedDanmakuSourceType,
 } from '@/common/danmaku/enums'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
+import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
@@ -80,6 +81,9 @@ export const ParseTabCore = ({ onImportSuccess }: ParseTabCoreProps) => {
     queryKey: seasonQueryKeys.parseUrl(getValues().url),
     retry: false,
     queryFn: async () => {
+      getTrackingService().track('parseUrl', {
+        url: getValues().url,
+      })
       return chromeRpcClient.mediaParseUrl({ url: getValues().url })
     },
     select: (res) => res.data,

@@ -1,6 +1,7 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
+import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { Logger } from '@/common/Logger'
 import { SkipButton } from '@/content/player/components/SkipButton/SkipButton'
 import type { SkipTarget } from '@/content/player/videoSkip/SkipTarget'
@@ -105,6 +106,7 @@ export class VideoSkipService {
       createElement(SkipButton, {
         target,
         onClick: () => {
+          getTrackingService().track('clickSkipButton', { target })
           this.jumpToTime(target.endTime)
           this.removeSkipButton()
         },

@@ -11,7 +11,6 @@ import {
 } from '@/common/components/Season/SeasonGrid'
 import type { HandleSeasonClick } from '@/common/components/Season/types'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
-import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
 
 interface SeasonSearchResultProps {
   searchParams: SearchEpisodesQuery
@@ -42,12 +41,10 @@ const SeasonSearchResultSuspense = ({
   onSeasonClick,
 }: SeasonSearchResultProps) => {
   const { t } = useTranslation()
-  const { sources } = useDanmakuSources()
 
   const { data: result, refetch } = useSeasonSearchSuspense(
     provider as DanmakuSourceType,
-    searchParams.anime,
-    { customBaseUrl: sources.custom.baseUrl }
+    searchParams.anime
   )
 
   if (!result.success) {
