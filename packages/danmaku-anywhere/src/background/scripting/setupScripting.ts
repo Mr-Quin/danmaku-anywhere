@@ -3,6 +3,7 @@ import { match, P } from 'ts-pattern'
 import { Logger } from '@/common/Logger'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { mountConfigService } from '@/common/options/mountConfig/service'
+import { createTaskQueue } from '@/common/utils/taskQueue'
 // the ?script query is used to get the file path for the script after bundling
 // @ts-expect-error
 import contentScript from '@/content/controller?script'
@@ -71,16 +72,19 @@ const handleContentScriptRegistration = async (mountConfigs: MountConfig[]) => {
 }
 
 export const setupScripting = () => {
+  const q = createTaskQueue()
+
   chrome.runtime.onStartup.addListener(async () => {
     const configs = await mountConfigService.getAll()
 
-    await handleContentScriptRegistration(configs)
+    // ensure the handler don't run in parallel. This can happen because options.onChange can get called at startup
+    await q.run(() => handleContentScriptRegistration(configs))
   })
 
   mountConfigService.options.onChange(async (configs) => {
     if (!configs) return
 
-    await handleContentScriptRegistration(configs)
+    await q.run(() => handleContentScriptRegistration(configs))
   })
 }
 
