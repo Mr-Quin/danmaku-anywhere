@@ -9,11 +9,12 @@ export const useSearchEpisode = (
 ) => {
   return useSuspenseQuery({
     queryKey: seasonQueryKeys.episodes(provider, seasonId),
-    queryFn: () =>
-      chromeRpcClient.episodeSearch({
+    queryFn: () => {
+      return chromeRpcClient.episodeSearch({
         provider,
         seasonId,
-      }),
+      })
+    },
     select: (data) => data.data,
     staleTime: Number.POSITIVE_INFINITY,
     retry: false,

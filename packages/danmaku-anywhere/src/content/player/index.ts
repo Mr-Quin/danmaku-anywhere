@@ -1,4 +1,4 @@
-import { getTrackingService } from '@/common/hooks/useSetupTracking'
+import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { Logger as _Logger } from '@/common/Logger'
 import { danmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
+import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { Logger } from '@/common/Logger'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
@@ -65,7 +66,11 @@ export const useIntegrationPolicy = () => {
       observer.current = new IntegrationPolicyObserver(integrationPolicy.policy)
 
       observer.current.on({
-        mediaChange: async (state: MediaInfo) => {
+        mediaChange: (state: MediaInfo) => {
+          getTrackingService().track('integrationPolicyMediaChange', {
+            mediaInfo: state.toJSON(),
+            policy: integrationPolicy,
+          })
           if (observer.current?.policy.options.useAI) {
             toast.success(
               t('integration.alert.AIResult', { title: state.toString() })
@@ -92,7 +97,7 @@ export const useIntegrationPolicy = () => {
               }
               if (result.data.data.provider === DanmakuSourceType.Custom) {
                 toast.success(t('integration.alert.matchedLocalDanmaku'))
-                mountDanmaku([result.data.data])
+                void mountDanmaku([result.data.data])
               } else {
                 loadMutation.mutate(
                   {
@@ -119,6 +124,7 @@ export const useIntegrationPolicy = () => {
           setFoundElements(true)
         },
         error: (error: Error) => {
+          getTrackingService().track('integrationPolicyError', { error })
           toast.error(error.message)
           setErrorMessage(error.message)
         },

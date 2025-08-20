@@ -1,51 +1,20 @@
 import type { AgentOptions } from '@newrelic/browser-agent/loaders/agent'
-import { BrowserAgent } from '@newrelic/browser-agent/loaders/browser-agent'
-import { type Core, clarity } from 'clarity-js'
 import { useEffect, useRef } from 'react'
 import { EXTENSION_VERSION } from '@/common/constants'
 import { useEnvironmentContext } from '@/common/environment/context'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
-import { invariant } from '@/common/utils/utils'
-
-export class TrackingService {
-  private readonly agent
-
-  constructor(
-    nrOptions: AgentOptions,
-    private clarityOptions: Core.Config
-  ) {
-    this.agent = new BrowserAgent(nrOptions)
-  }
-
-  identify(userId: string) {
-    this.agent.setUserId(userId)
-    clarity.identify(userId)
-  }
-
-  track(name: string, attributes?: object) {
-    this.agent.recordCustomEvent(name, attributes)
-    try {
-      clarity.event(name, JSON.stringify(attributes))
-    } catch {
-      // ignore
-    }
-  }
-
-  tag(key: string, value: string) {
-    this.agent.setCustomAttribute(key, value)
-    clarity.set(key, value)
-  }
-
-  init() {
-    this.agent.start()
-    clarity.start(this.clarityOptions)
-  }
-}
+import {
+  CombinedTrackingService,
+  NoopTrackingService,
+  type TrackingService,
+} from './TrackingService'
 
 let trackingService: TrackingService | null = null
 
 export const getTrackingService = () => {
-  invariant(trackingService !== null, 'TrackingService is not initialized')
+  if (trackingService === null) {
+    return new NoopTrackingService()
+  }
   return trackingService
 }
 
@@ -102,7 +71,7 @@ const createTrackingService = (environment: string, type: string) => {
     content: true,
   }
 
-  const service = new TrackingService(nrOptions, clarityOptions)
+  const service = new CombinedTrackingService(nrOptions, clarityOptions)
   trackingService = service
 
   service.tag('environment', environment)

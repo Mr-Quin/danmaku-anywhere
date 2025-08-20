@@ -2,11 +2,13 @@ import { Box, Divider } from '@mui/material'
 import { produce } from 'immer'
 
 import { useToast } from '@/common/components/Toast/toastStore'
+import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { useStore } from '@/content/controller/store/store'
 
 export const DebugPage = () => {
   const state = useStore()
   const toastState = useToast()
+  const { data } = useExtensionOptions()
 
   // biome-ignore lint/suspicious/noExplicitAny: debug page does not need strict typing
   const displayState = produce(state, (draft: any) => {
@@ -19,6 +21,7 @@ export const DebugPage = () => {
       }
     }
     draft.frame.allFrames = Object.fromEntries(draft.frame.allFrames.entries())
+    draft.options = data
   })
 
   return (

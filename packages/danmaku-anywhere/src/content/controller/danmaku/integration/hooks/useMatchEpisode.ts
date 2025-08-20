@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-
+import type { MatchEpisodeInput } from '@/common/anime/dto'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
@@ -12,7 +12,9 @@ export const useMatchEpisode = () => {
   const { open, setAnimes } = usePopup()
 
   const mutation = useMutation({
-    mutationFn: chromeRpcClient.episodeMatch,
+    mutationFn: (input: MatchEpisodeInput) => {
+      return chromeRpcClient.episodeMatch(input)
+    },
     onError: (e) => {
       toast.error(
         t('integration.alert.searchError', {
