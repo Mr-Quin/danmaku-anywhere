@@ -7,13 +7,6 @@ import { extensionOptionsService } from '@/common/options/extensionOptions/servi
 const createDanmakuPurgeAlarm = async () => {
   const { retentionPolicy } = await extensionOptionsService.get()
 
-  /**
-   * This is a workaround for the case where the extension is installed but the options are not set yet.
-   * This can happen when the option migration is not complete.
-   * TODO: remove after a few versions
-   */
-  if (!retentionPolicy) return
-
   if (!retentionPolicy.enabled || retentionPolicy.deleteCommentsAfter <= 0) {
     return
   }
@@ -33,8 +26,12 @@ const createDanmakuPurgeAlarm = async () => {
 }
 
 const clearDanmakuPurgeAlarm = async () => {
-  Logger.debug('Clearing danmaku purge alarm')
-  await chrome.alarms.clear(alarmKeys.PURGE_DANMAKU)
+  const alarm = await chrome.alarms.get(alarmKeys.PURGE_DANMAKU)
+
+  if (alarm) {
+    Logger.debug('Clearing danmaku purge alarm')
+    await chrome.alarms.clear(alarmKeys.PURGE_DANMAKU)
+  }
 }
 
 const createHandleDanmakuPurgeAlarm =

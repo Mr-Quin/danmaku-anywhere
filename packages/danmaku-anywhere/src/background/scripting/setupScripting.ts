@@ -1,7 +1,7 @@
-import { debounce } from '@mui/material'
 import { Logger } from '@/common/Logger'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { mountConfigService } from '@/common/options/mountConfig/service'
+import { createTaskQueue } from '@/common/utils/taskQueue'
 // the ?script query is used to get the file path for the script after bundling
 // @ts-expect-error
 import contentScript from '@/content/controller?script'
@@ -59,23 +59,20 @@ const handleContentScriptRegistration = async (mountConfigs: MountConfig[]) => {
   }
 }
 
-// ensure the handler doesn't run in parallel. This can happen because options.onChange can get called at startup
-const debouncedHandleContentScriptRegistration = debounce(
-  handleContentScriptRegistration,
-  1000
-)
+const q = createTaskQueue()
 
 export const setupScripting = () => {
   chrome.runtime.onStartup.addListener(async () => {
     const configs = await mountConfigService.getAll()
 
-    await debouncedHandleContentScriptRegistration(configs)
+    // ensure the handler doesn't run in parallel. This can happen because options.onChange can get called at startup
+    await q.run(() => handleContentScriptRegistration(configs))
   })
 
   mountConfigService.options.onChange(async (configs) => {
     if (!configs) return
 
-    await debouncedHandleContentScriptRegistration(configs)
+    await q.run(() => handleContentScriptRegistration(configs))
   })
 }
 
