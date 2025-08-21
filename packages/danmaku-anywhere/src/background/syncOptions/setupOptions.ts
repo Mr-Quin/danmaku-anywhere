@@ -1,6 +1,8 @@
 import { upgradeOptions } from '@/background/syncOptions/upgradeOptions'
 import { Logger } from '@/common/Logger'
+import { danmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
+import { tryCatch } from '@/common/utils/utils'
 
 const tryUpgradeOptions = async () => {
   try {
@@ -19,6 +21,24 @@ export const setupOptions = () => {
       Logger.info('Danmaku Anywhere Updated')
     } else {
       Logger.info('Danmaku Anywhere Installed')
+    }
+
+    if (details.reason === 'install') {
+      // if mobile, update styles to be more mobile friendly
+      void tryCatch(async () => {
+        const platformInfo = await chrome.runtime.getPlatformInfo()
+        if (platformInfo.os === 'android') {
+          Logger.info('Updating danmaku style for android')
+          const existing = await danmakuOptionsService.get()
+          return danmakuOptionsService.update({
+            style: {
+              ...existing.style,
+              fontSize: 18,
+            },
+            trackHeight: 20,
+          })
+        }
+      })
     }
   })
 

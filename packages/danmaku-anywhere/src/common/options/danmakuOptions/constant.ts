@@ -12,7 +12,7 @@ export const defaultDanmakuOptions: DanmakuOptions = {
   allowOverlap: false,
   speed: 1,
   style: {
-    opacity: 1,
+    opacity: 0.7,
     fontSize: 25,
     fontFamily: 'sans-serif',
   },
@@ -20,7 +20,7 @@ export const defaultDanmakuOptions: DanmakuOptions = {
   trackLimit: 32,
   area: {
     yStart: 0,
-    yEnd: 100,
+    yEnd: 80,
     xStart: 0,
     xEnd: 100,
   },
