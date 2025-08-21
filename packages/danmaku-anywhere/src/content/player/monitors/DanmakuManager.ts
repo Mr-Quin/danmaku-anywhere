@@ -6,7 +6,7 @@ import { Logger } from '@/common/Logger'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { DanmakuComponent } from '@/content/player/components/DanmakuComponent'
-import { DebugOverlayService } from '@/content/player/monitors/DebugOverlay.service'
+import { DanmakuDebugOverlayService } from '@/content/player/monitors/DanmakuDebugOverlay.service'
 import { RectObserver } from '@/content/player/monitors/RectObserver'
 import type { VideoNodeObserver } from '@/content/player/monitors/VideoNodeObserver'
 
@@ -36,7 +36,7 @@ export class DanmakuManager {
   // Observers
   private rectObs?: RectObserver
 
-  private debugOverlayService: DebugOverlayService
+  private debugOverlayService: DanmakuDebugOverlayService
 
   constructor(
     private videoNodeObs: VideoNodeObserver,
@@ -45,7 +45,10 @@ export class DanmakuManager {
   ) {
     this.nodes = { wrapper, container }
 
-    this.debugOverlayService = new DebugOverlayService(this.renderer, wrapper)
+    this.debugOverlayService = new DanmakuDebugOverlayService(
+      this.renderer,
+      wrapper
+    )
 
     extensionOptionsService.get().then((options) => {
       this.debugOverlayService.setDebugEnabled(options.debug)

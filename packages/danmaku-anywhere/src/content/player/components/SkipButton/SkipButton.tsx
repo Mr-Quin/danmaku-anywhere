@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import type { SkipTarget } from '@/content/player/videoSkip/SkipTarget'
-import styles from './SkipButton.module.css'
 
 export interface SkipButtonProps {
   target: SkipTarget
@@ -29,18 +28,18 @@ export function SkipButton(props: SkipButtonProps) {
     }, 200) // sync with CSS animation duration
   }
 
-  const alertClassName = `${styles.alert} ${isExiting ? styles.alertExit : styles.alertEnter}`
+  const alertClassName = `da-alert ${isExiting ? 'da-alert-exit' : 'da-alert-enter'}`
 
   return (
-    <div className={styles.wrapper}>
+    <div className="da-skip-button-wrapper">
       <div className={alertClassName}>
-        <button type="button" className={styles.textButton} onClick={onClick}>
+        <button type="button" className="da-text-button" onClick={onClick}>
           {`空降至 ${formatTimestamp(target.endTime)}`}
         </button>
-        <div className={styles.actions}>
+        <div className="da-actions">
           <button
             type="button"
-            className={styles.closeButton}
+            className="da-close-button"
             onClick={handleClose}
             aria-label="Close"
             title="Close"

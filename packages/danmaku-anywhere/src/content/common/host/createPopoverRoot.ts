@@ -1,5 +1,4 @@
-import classes from './host.module.css'
-import shadowCss from './shadow.module.css?inline'
+import shadowCss from './shadow.css?inline'
 
 type PopoverRootOptions = {
   id: string
@@ -9,7 +8,10 @@ type PopoverRootOptions = {
 export const createPopoverRoot = ({ id }: PopoverRootOptions) => {
   const root = document.createElement('div')
   root.id = id
-  root.classList.add(classes.root)
+  root.setAttribute(
+    'style',
+    'position: absolute !important; z-index: 2147483647 !important; left: 0 !important; top: 0 !important; pointer-events: auto !important;'
+  )
 
   // make the root element a popover so it can be shown on top of everything
   root.setAttribute('popover', 'manual')
