@@ -73,6 +73,9 @@ export const FrameManager = () => {
     const controllerRpcServer = createRpcServer<PlayerRelayEvents>(
       {
         'relay:event:playerReady': async ({ frameId }) => {
+          if (!config) {
+            return
+          }
           await playerRpcClient.player['relay:command:start']({
             data: config.mediaQuery,
             frameId,

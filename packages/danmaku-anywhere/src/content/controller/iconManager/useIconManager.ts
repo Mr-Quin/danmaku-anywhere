@@ -14,6 +14,8 @@ export const useIconManager = () => {
         state: 'active',
         count: comments.length,
       })
-    if (config) return void chromeRpcClient.iconSet({ state: 'available' })
+    if (config) {
+      return void chromeRpcClient.iconSet({ state: 'available' })
+    }
   }, [config, isMounted])
 }

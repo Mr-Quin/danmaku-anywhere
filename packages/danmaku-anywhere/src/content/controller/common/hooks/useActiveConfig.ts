@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { useMatchMountConfig } from '@/common/options/mountConfig/useMatchMountConfig'
 
 /**
@@ -6,9 +8,11 @@ import { useMatchMountConfig } from '@/common/options/mountConfig/useMatchMountC
 export const useActiveConfig = () => {
   const config = useMatchMountConfig(window.location.href)
 
-  if (!config) {
-    throw new Error('No active config found, config may have been disabled.')
-  }
+  useEffect(() => {
+    if (!config) {
+      getTrackingService().track('noActiveConfig')
+    }
+  }, [config])
 
-  return config
+  return config || null
 }

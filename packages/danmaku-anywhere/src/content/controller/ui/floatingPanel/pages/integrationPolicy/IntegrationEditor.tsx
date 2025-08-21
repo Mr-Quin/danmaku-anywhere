@@ -26,7 +26,7 @@ import { IntegrationForm } from '@/content/controller/ui/floatingPanel/pages/int
 export const IntegrationEditor = () => {
   const { t } = useTranslation()
   const activePolicy = useActiveIntegration()
-  const mountConfig = useActiveConfig()
+  const activeConfig = useActiveConfig()
   const { update, add } = useIntegrationPolicyStore()
 
   const [showSelector, setShowSelector] = useState(false)
@@ -40,7 +40,8 @@ export const IntegrationEditor = () => {
   // Save form data to store so that it can be restored when the user comes back
   const { toggleEditor } = useStore.use.integrationForm()
 
-  const defaultValues = activePolicy ?? createIntegrationInput(mountConfig.name)
+  const defaultValues =
+    activePolicy ?? createIntegrationInput(activeConfig?.name ?? '')
 
   const form = useForm({
     defaultValues,
@@ -72,7 +73,9 @@ export const IntegrationEditor = () => {
       if (activePolicy) {
         return update(activePolicy.id, data)
       }
-      return add(data, mountConfig.id)
+      if (activeConfig) {
+        return add(data, activeConfig.id)
+      }
     },
     onSuccess: () => {
       if (isEdit) {
