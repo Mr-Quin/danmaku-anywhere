@@ -1,5 +1,4 @@
-import { match, P } from 'ts-pattern'
-
+import { debounce } from '@mui/material'
 import { Logger } from '@/common/Logger'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { mountConfigService } from '@/common/options/mountConfig/service'
@@ -32,55 +31,51 @@ const handleContentScriptRegistration = async (mountConfigs: MountConfig[]) => {
     ids: [contentScriptId],
   })
 
-  match([registeredScript.length, patterns.length])
-    // no registered script, but has patterns, register the script
-    .with([0, P.number.positive()], () => {
-      Logger.debug('Registering content scripts', { patterns })
-      return chrome.scripting.registerContentScripts([
-        {
-          ...mainScript,
-          matches: patterns,
-        },
-      ])
+  if (patterns.length === 0 && registeredScript.length > 0) {
+    Logger.debug('Unregistering content scripts', { patterns })
+    return chrome.scripting.unregisterContentScripts({
+      ids: [contentScriptId],
     })
-    // has registered script and patterns, update the script
-    .with([1, P.number.positive()], () => {
-      Logger.debug('Updating content scripts', { patterns })
-      return chrome.scripting.updateContentScripts([
-        {
-          id: contentScriptId,
-          matches: patterns,
-        },
-      ])
-    })
-    // has registered script, but no patterns, unregister the script
-    .with([1, 0], () => {
-      Logger.debug('Unregistering content scripts')
-      return chrome.scripting.unregisterContentScripts({
-        ids: [contentScriptId],
-      })
-    })
-    .with([P.number.positive(), P.any], () => {
-      Logger.error(
-        'Invalid state: multiple registered scripts when there should be only one'
-      )
-    })
-    .otherwise(() => {
-      // do nothing
-    })
+  }
+
+  if (patterns.length > 0 && registeredScript.length === 0) {
+    Logger.debug('Registering content scripts', { patterns })
+    return chrome.scripting.registerContentScripts([
+      {
+        ...mainScript,
+        matches: patterns,
+      },
+    ])
+  }
+
+  if (patterns.length > 0 && registeredScript.length > 0) {
+    Logger.debug('Updating content scripts', { patterns })
+    return chrome.scripting.updateContentScripts([
+      {
+        id: contentScriptId,
+        matches: patterns,
+      },
+    ])
+  }
 }
+
+// ensure the handler doesn't run in parallel. This can happen because options.onChange can get called at startup
+const debouncedHandleContentScriptRegistration = debounce(
+  handleContentScriptRegistration,
+  1000
+)
 
 export const setupScripting = () => {
   chrome.runtime.onStartup.addListener(async () => {
     const configs = await mountConfigService.getAll()
 
-    await handleContentScriptRegistration(configs)
+    await debouncedHandleContentScriptRegistration(configs)
   })
 
   mountConfigService.options.onChange(async (configs) => {
     if (!configs) return
 
-    await handleContentScriptRegistration(configs)
+    await debouncedHandleContentScriptRegistration(configs)
   })
 }
 
