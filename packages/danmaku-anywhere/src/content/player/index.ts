@@ -9,8 +9,9 @@ import {
 } from '@/common/rpcClient/background/client'
 import type { PlayerRelayCommands } from '@/common/rpcClient/background/types'
 import { createPopoverRoot } from '@/content/common/host/createPopoverRoot'
+import { injectCss } from '@/content/common/injectCss'
 import { createDanmakuContainers } from '@/content/player/components/createDanmakuContainer'
-import { setupCss } from '@/content/player/components/setupCss'
+import skipButtonCss from '@/content/player/components/SkipButton/SkipButton.css?inline'
 import { PLAYER_ROOT_ID } from '@/content/player/constants/rootId'
 import { DanmakuManager } from '@/content/player/monitors/DanmakuManager'
 import { VideoEventService } from '@/content/player/monitors/VideoEvent.service'
@@ -36,7 +37,7 @@ const { shadowRoot, root } = createPopoverRoot({
 })
 
 manager.setParent(shadowRoot)
-setupCss(shadowRoot)
+injectCss(shadowRoot, skipButtonCss)
 
 let pipWindow: Window | undefined
 
