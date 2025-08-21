@@ -59,6 +59,7 @@ const handleContentScriptRegistration = async (mountConfigs: MountConfig[]) => {
   }
 }
 
+// ensure the handler doesn't run in parallel. This can happen because options.onChange can get called at startup
 const debouncedHandleContentScriptRegistration = debounce(
   handleContentScriptRegistration,
   1000
@@ -68,7 +69,6 @@ export const setupScripting = () => {
   chrome.runtime.onStartup.addListener(async () => {
     const configs = await mountConfigService.getAll()
 
-    // ensure the handler don't run in parallel. This can happen because options.onChange can get called at startup
     await debouncedHandleContentScriptRegistration(configs)
   })
 
