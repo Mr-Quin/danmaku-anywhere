@@ -9,7 +9,9 @@ export const useActiveIntegration = () => {
   const { get } = useIntegrationPolicyStore()
 
   return useMemo(() => {
-    if (!config?.integration) return
+    if (!config?.integration) {
+      return
+    }
     return get(config?.integration)
   }, [config?.integration, get])
 }

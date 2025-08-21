@@ -30,10 +30,12 @@ export const IntegrationControl = () => {
         getOptionLabel={(option) => option.name}
         isOptionEqualToValue={(option, value) => option.id === value?.id}
         onChange={(_, value) => {
-          setIntegration.mutate({
-            configId: config.id,
-            integrationId: value?.id ?? undefined,
-          })
+          if (config) {
+            setIntegration.mutate({
+              configId: config.id,
+              integrationId: value?.id ?? undefined,
+            })
+          }
         }}
         disablePortal
       />
