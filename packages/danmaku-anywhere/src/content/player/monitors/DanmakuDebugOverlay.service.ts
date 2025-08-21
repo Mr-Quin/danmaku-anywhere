@@ -1,6 +1,6 @@
 import type { DanmakuRenderer } from '@danmaku-anywhere/danmaku-engine'
 
-export class DebugOverlayService {
+export class DanmakuDebugOverlayService {
   private readonly DEBUG_PLUGIN_NAME = 'danmaku-stats'
 
   private isDebugEnabled = false
