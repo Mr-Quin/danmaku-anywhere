@@ -8,7 +8,6 @@ type PopoverRootOptions = {
 export const createPopoverRoot = ({ id }: PopoverRootOptions) => {
   const root = document.createElement('div')
   root.id = id
-  root.classList.add('root')
   root.setAttribute(
     'style',
     'position: absolute !important; z-index: 2147483647 !important; left: 0 !important; top: 0 !important; pointer-events: auto !important;'
