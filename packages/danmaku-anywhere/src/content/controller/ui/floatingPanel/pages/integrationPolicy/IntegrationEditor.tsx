@@ -76,6 +76,7 @@ export const IntegrationEditor = () => {
       if (activeConfig) {
         return add(data, activeConfig.id)
       }
+      throw new Error('No active configuration or policy found for mutation.')
     },
     onSuccess: () => {
       if (isEdit) {
