@@ -2,28 +2,18 @@ import { CommonModule } from '@angular/common'
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
   type ElementRef,
-  EventEmitter,
   inject,
-  Output,
   output,
-  signal,
   ViewChild,
-  viewChild,
 } from '@angular/core'
 import { MessageService, type TreeNode } from 'primeng/api'
 import { Button } from 'primeng/button'
 import { Card } from 'primeng/card'
 import { Tree } from 'primeng/tree'
-import { LocalHandleDbService } from '../services/local-handle-db.service'
 import { LocalPlayerService } from '../services/local-player.service'
 import { supportsFileSystemApi } from '../util/supportsFileSystemApi'
-import {
-  buildTreeFromFiles,
-  enumerateDirectoryTree,
-  type LocalVideoFileEntry,
-} from '../util/tree-node'
+import { FileTree } from '../util/tree-node'
 
 @Component({
   selector: 'da-local-folder-selector',
@@ -76,10 +66,11 @@ export class LocalFolderSelectorComponent {
   private readonly messageService = inject(MessageService)
   protected supportsFsApi = supportsFileSystemApi()
 
+  @ViewChild('fileInput') private fileInputRef!: ElementRef<HTMLInputElement>
+
   protected $nodes = this.localPlayerService.$nodes
 
   readonly directorySelected = output<FileSystemDirectoryHandle>()
-  readonly filesChanged = output<LocalVideoFileEntry[]>()
   readonly fileSelected = output<FileSystemFileHandle>()
 
   async onPick() {
@@ -101,18 +92,18 @@ export class LocalFolderSelectorComponent {
     }
   }
 
-  onPickFiles() {}
+  onPickFiles() {
+    const el = this.fileInputRef?.nativeElement
+    if (el) el.click()
+  }
 
   onFilesInput(event: Event) {
     const input = event.target as HTMLInputElement
     const files = input.files
     if (!files || files.length === 0) return
-    const { nodes, files: playable } = buildTreeFromFiles(files)
-    this.$nodes.set(nodes)
-    this.filesChanged.emit(playable)
-    // Compute a display name from common prefix of paths
-    const name =
-      this.computeCommonRoot(playable.map((f) => f.path)) || '已选择的文件'
+    const tree = FileTree.fromFiles(files)
+    this.$nodes.set(tree.getNodes())
+    void this.localPlayerService.onFilesTreeChanged(tree)
     input.value = ''
   }
 
@@ -136,11 +127,9 @@ export class LocalFolderSelectorComponent {
     if (event.dataTransfer) {
       const files = event.dataTransfer.files
       if (files && files.length > 0) {
-        const { nodes, files: playable } = buildTreeFromFiles(files)
-        this.$nodes.set(nodes)
-        this.filesChanged.emit(playable)
-        const name =
-          this.computeCommonRoot(playable.map((f) => f.path)) || '拖拽的文件'
+        const tree = FileTree.fromFiles(files)
+        this.$nodes.set(tree.getNodes())
+        void this.localPlayerService.onFilesTreeChanged(tree)
       }
     }
   }
@@ -157,19 +146,6 @@ export class LocalFolderSelectorComponent {
     if (nodes) {
       this.$nodes.set(setExpanded(cloneNodes(nodes), false))
     }
-  }
-
-  private computeCommonRoot(paths: string[]): string {
-    if (paths.length === 0) return ''
-    const split = paths.map((p) => p.split('/').filter(Boolean))
-    const minLen = Math.min(...split.map((s) => s.length))
-    const parts: string[] = []
-    for (let i = 0; i < minLen; i++) {
-      const part = split[0][i]
-      if (split.every((s) => s[i] === part)) parts.push(part)
-      else break
-    }
-    return parts.join('/')
   }
 }
 

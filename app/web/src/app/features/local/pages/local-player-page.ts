@@ -11,7 +11,6 @@ import { ProgressSpinner } from 'primeng/progressspinner'
 import { VideoPlayer } from '../../../core/video-player/video-player'
 import { LocalFolderSelectorComponent } from './components/local-folder-selector.component'
 import { LocalPlayerService } from './services/local-player.service'
-import type { LocalVideoFileEntry } from './util/tree-node'
 
 type FileSystemDirectoryHandleLike = FileSystemDirectoryHandle
 type FileSystemFileHandleLike = FileSystemFileHandle
@@ -66,7 +65,6 @@ type FileSystemFileHandleLike = FileSystemFileHandle
         <div class="flex flex-col gap-4">
           <da-local-folder-selector
             (directorySelected)="onDirectorySelected($event)"
-            (filesChanged)="onFilesChanged($event)"
             (fileSelected)="onFileHandleSelected($event)"
           />
         </div>
@@ -80,9 +78,7 @@ export class LocalPlayerPage {
 
   protected $directoryHandle = this.player.$directoryHandle
   protected $directoryName = this.player.$directoryName
-  protected $files = this.player.$files
   protected $selectedIndex = this.player.$selectedIndex
-  protected $selectedFile = this.player.$selectedFile
   protected $videoUrl = this.player.$videoUrl
   protected $isLoading = this.player.$isLoading
   protected $error = this.player.$error
@@ -109,10 +105,6 @@ export class LocalPlayerPage {
 
   protected onDirectorySelected(handle: FileSystemDirectoryHandleLike) {
     void this.player.onAddDirectory(handle)
-  }
-
-  protected onFilesChanged(files: LocalVideoFileEntry[]) {
-    void this.player.onFilesChanged(files)
   }
 
   protected onFileHandleSelected(handle: FileSystemFileHandleLike) {

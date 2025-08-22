@@ -1,8 +1,7 @@
 import { computed, effect, Injectable, inject, signal } from '@angular/core'
 import type { TreeNode } from 'primeng/api'
 import { supportsFileSystemApi } from '../util/supportsFileSystemApi'
-import type { LocalVideoFileEntry } from '../util/tree-node'
-import { enumerateDirectoryTree } from '../util/tree-node'
+import { FileTree } from '../util/tree-node'
 import { LocalHandleDbService } from './local-handle-db.service'
 
 @Injectable({ providedIn: 'root' })
@@ -10,13 +9,15 @@ export class LocalPlayerService {
   $directoryHandle = signal<FileSystemDirectoryHandle | null>(null)
   $directoryName = computed(() => this.$directoryHandle()?.name ?? '')
   $nodes = signal<TreeNode[] | null>(null)
-  $files = signal<LocalVideoFileEntry[]>([])
+  $fileTree = signal<FileTree | null>(null)
   $selectedIndex = signal<number | null>(null)
-  $selectedFile = computed(() => {
+  $selectedNode = computed(() => {
     const index = this.$selectedIndex()
-    const files = this.$files()
-    if (index === null || index < 0 || index >= files.length) return null
-    return files[index]
+    const tree = this.$fileTree()
+    if (!tree || index === null) return null
+    const list = tree.getFileNodes()
+    if (index < 0 || index >= list.length) return null
+    return list[index]
   })
   $videoUrl = signal<string | undefined>(undefined)
   $isLoading = signal(false)
@@ -26,14 +27,14 @@ export class LocalPlayerService {
 
   $hasSelection = computed(() => this.$selectedIndex() !== null)
   $showOverlay = computed(() => this.$isLoading() || !this.$hasSelection())
-  $title = computed(() => this.$selectedFile()?.name ?? '')
+  $title = computed(() => this.$selectedNode()?.label ?? '')
   $hasPrevious = computed(() => {
     const idx = this.$selectedIndex()
     return idx !== null && idx > 0
   })
   $hasNext = computed(() => {
     const idx = this.$selectedIndex()
-    const total = this.$files().length
+    const total = this.$fileTree()?.getFileNodes().length ?? 0
     return idx !== null && idx < total - 1
   })
 
@@ -74,9 +75,9 @@ export class LocalPlayerService {
         }
       }
       this.$directoryHandle.set(handle)
-      const { nodes, files } = await enumerateDirectoryTree(handle)
-      this.$nodes.set(nodes)
-      this.setFiles(files)
+      const tree = await FileTree.fromDirectory(handle)
+      this.$nodes.set(tree.getNodes())
+      this.$fileTree.set(tree)
     } catch {
       // ignore
     }
@@ -85,36 +86,44 @@ export class LocalPlayerService {
   async onAddDirectory(handle: FileSystemDirectoryHandle) {
     this.$directoryHandle.set(handle)
     this.$nodes.set(null)
-    this.$files.set([])
+    this.$fileTree.set(null)
     this.$selectedIndex.set(null)
     await this.localHandleDbService.saveHandle(handle)
-    const { nodes, files } = await enumerateDirectoryTree(handle)
-    this.$nodes.set(nodes)
-    this.setFiles(files)
-    if (files.length > 0) await this.loadByIndex(0)
+    const tree = await FileTree.fromDirectory(handle)
+    this.$nodes.set(tree.getNodes())
+    this.$fileTree.set(tree)
+    const list = tree.getFileNodes()
+    if (list.length > 0) await this.loadByIndex(0)
   }
 
-  async onFilesChanged(files: LocalVideoFileEntry[]) {
-    const sorted = [...files].sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, { numeric: true })
-    )
+  async onFilesTreeChanged(tree: FileTree) {
     this.$directoryHandle.set(null)
-    this.setFiles(sorted)
-    if (sorted.length > 0) await this.loadByIndex(0)
+    this.$fileTree.set(tree)
+    this.$nodes.set(tree.getNodes())
+    const list = tree.getFileNodes()
+    if (list.length > 0) await this.loadByIndex(0)
   }
 
   async onFileHandleSelected(handle: FileSystemFileHandle) {
-    const index = this.$files().findIndex((f) => f.handle === handle)
+    const tree = this.$fileTree()
+    if (!tree) return
+    const node = tree.findNodeByHandle(handle)
+    if (!node) return
+    const index = tree.indexOf(node)
     if (index !== -1) await this.loadByIndex(index)
   }
 
   async loadByIndex(index: number) {
-    const files = this.$files()
-    if (index < 0 || index >= files.length) return
+    const tree = this.$fileTree()
+    if (!tree) return
+    const list = tree.getFileNodes()
+    if (index < 0 || index >= list.length) return
     this.$selectedIndex.set(index)
     this.$isLoading.set(true)
     try {
-      const fileHandle = files[index].handle
+      const node = list[index]
+      const fileHandle = tree.getHandle(node)
+      if (!fileHandle) return
       const file = await fileHandle.getFile()
       const url = URL.createObjectURL(file)
       this.objectUrlToRevoke = url
@@ -131,11 +140,7 @@ export class LocalPlayerService {
 
   async onNext() {
     const idx = this.$selectedIndex()
-    const total = this.$files().length
+    const total = this.$fileTree()?.getFileNodes().length ?? 0
     if (idx !== null && idx < total - 1) await this.loadByIndex(idx + 1)
-  }
-
-  private setFiles(files: LocalVideoFileEntry[]) {
-    this.$files.set(files)
   }
 }

@@ -1,11 +1,5 @@
 import type { TreeNode } from 'primeng/api'
 
-export interface LocalVideoFileEntry {
-  name: string
-  handle: FileSystemFileHandle
-  path: string
-}
-
 const playableExtensions = new Set<string>([
   '.mp4',
   '.webm',
@@ -15,6 +9,15 @@ const playableExtensions = new Set<string>([
   '.mkv',
   '.avi',
 ])
+
+export type FileTreeNode = TreeNode<{ handle: FileSystemHandle }>
+
+export function isPlayableFileName(name: string): boolean {
+  const lower = name.toLowerCase()
+  const dotIndex = lower.lastIndexOf('.')
+  const ext = dotIndex >= 0 ? lower.slice(dotIndex) : ''
+  return playableExtensions.has(ext)
+}
 
 function pruneEmpty(node: TreeNode): void {
   if (!node.children) {
@@ -29,166 +32,207 @@ function pruneEmpty(node: TreeNode): void {
   })
 }
 
-export async function enumerateDirectoryTree(
-  handle: FileSystemDirectoryHandle
-): Promise<{ nodes: TreeNode[]; files: LocalVideoFileEntry[] }> {
-  const files: LocalVideoFileEntry[] = []
+export class FileTree {
+  private readonly roots: FileTreeNode[]
+  private parentMap = new WeakMap<FileTreeNode, FileTreeNode | null>()
+  private handleToNode = new WeakMap<FileSystemHandle, FileTreeNode>()
+  private flatFileNodes: FileTreeNode[] = []
 
-  async function walk(
-    dir: FileSystemDirectoryHandle,
-    root: TreeNode,
-    basePath: string
-  ): Promise<void> {
-    for await (const entry of dir.values()) {
-      const key = `${basePath}/${entry.name}`
+  private constructor(roots: FileTreeNode[]) {
+    this.roots = roots
+    this.buildIndexes()
+  }
 
-      if (entry.kind === 'directory') {
-        const node = {
-          key,
-          label: entry.name,
-          type: 'directory',
-          children: [],
-          selectable: false,
-          icon: 'pi pi-folder',
-        } satisfies TreeNode
+  static async fromDirectory(
+    handle: FileSystemDirectoryHandle
+  ): Promise<FileTree> {
+    const root: FileTreeNode = {
+      key: handle.name,
+      label: handle.name,
+      type: 'directory',
+      children: [],
+      selectable: false,
+      icon: 'pi pi-folder',
+    }
 
-        root.children?.push(node)
-
-        await walk(entry as FileSystemDirectoryHandle, node, key)
-      } else if (entry.kind === 'file') {
-        const lower = entry.name.toLowerCase()
-        const dotIndex = lower.lastIndexOf('.')
-        const ext = dotIndex >= 0 ? lower.slice(dotIndex) : ''
-        if (!playableExtensions.has(ext)) {
-          continue
+    async function walk(
+      dir: FileSystemDirectoryHandle,
+      parent: FileTreeNode,
+      basePath: string
+    ): Promise<void> {
+      for await (const entry of dir.values()) {
+        const key = `${basePath}/${entry.name}`
+        if (entry.kind === 'directory') {
+          const node: FileTreeNode = {
+            key,
+            label: entry.name,
+            type: 'directory',
+            children: [],
+            data: {
+              handle: entry,
+            },
+            selectable: false,
+            icon: 'pi pi-folder',
+          }
+          parent.children?.push(node)
+          await walk(entry as FileSystemDirectoryHandle, node, key)
+        } else if (entry.kind === 'file') {
+          const lower = entry.name.toLowerCase()
+          const dotIndex = lower.lastIndexOf('.')
+          const ext = dotIndex >= 0 ? lower.slice(dotIndex) : ''
+          if (!playableExtensions.has(ext)) {
+            continue
+          }
+          parent.children?.push({
+            key,
+            label: entry.name,
+            data: { handle: entry },
+            leaf: true,
+            icon: 'pi pi-video',
+            type: 'file',
+            selectable: true,
+          })
         }
-        files.push({
-          name: entry.name,
-          handle: entry as FileSystemFileHandle,
-          path: lower,
-        })
-
-        root.children?.push({
-          key,
-          label: entry.name,
-          data: { handle: entry, path: lower },
-          leaf: true,
-          icon: 'pi pi-video',
-          type: 'file',
-          selectable: true,
-        })
       }
     }
+
+    await walk(handle, root, '')
+    pruneEmpty(root)
+    return new FileTree([root])
   }
 
-  const root = {
-    key: handle.name,
-    label: handle.name,
-    type: 'directory',
-    children: [],
-    selectable: false,
-    icon: 'pi pi-folder',
-  } satisfies TreeNode
+  static fromFiles(filesLike: FileList | File[]): FileTree {
+    const toArray = Array.from(filesLike as unknown as File[])
 
-  await walk(handle, root, '')
+    type SyntheticEntry = {
+      name: string
+      handle: FileSystemFileHandle
+      path: string
+    }
+    const entries: SyntheticEntry[] = []
 
-  pruneEmpty(root)
+    for (const file of toArray) {
+      if (!isPlayableFileName(file.name)) continue
+      const relativePath =
+        (file as File & { webkitRelativePath?: string }).webkitRelativePath ||
+        file.name
+      const handle = {
+        kind: 'file',
+        name: file.name,
+        async getFile() {
+          return file
+        },
+      } as unknown as FileSystemFileHandle
+      entries.push({ name: file.name, handle, path: relativePath })
+    }
 
-  return { nodes: [root], files }
-}
+    const root: FileTreeNode = { key: '', label: '', children: [] }
+    const dirMap = new Map<string, FileTreeNode>()
+    dirMap.set('', root)
 
-export function isPlayableFileName(name: string): boolean {
-  const lower = name.toLowerCase()
-  const dotIndex = lower.lastIndexOf('.')
-  const ext = dotIndex >= 0 ? lower.slice(dotIndex) : ''
-  return playableExtensions.has(ext)
-}
+    const pushChild = (parent: FileTreeNode, child: FileTreeNode) => {
+      if (!parent.children) parent.children = []
+      parent.children.push(child)
+    }
 
-export function buildTreeFromFiles(filesLike: FileList | File[]): {
-  nodes: TreeNode[]
-  files: LocalVideoFileEntry[]
-} {
-  const files: LocalVideoFileEntry[] = []
-
-  const toArray = Array.from(filesLike as unknown as File[])
-
-  for (const file of toArray) {
-    if (!isPlayableFileName(file.name)) continue
-    // Use webkitRelativePath when available to reconstruct directory structure
-    const relativePath = (file as any).webkitRelativePath || file.name
-
-    // Create a synthetic FileSystemFileHandle-like object using the File System Access API
-    // When not available, we fall back to a shim via the File object using getFile()
-    const handle = {
-      kind: 'file',
-      name: file.name,
-      async getFile() {
-        return file
-      },
-    } as unknown as FileSystemFileHandle
-
-    files.push({ name: file.name, handle, path: relativePath })
-  }
-
-  // Build tree nodes from relative paths
-  const root: TreeNode = { key: '', label: '', children: [] }
-  const dirMap = new Map<string, TreeNode>()
-  dirMap.set('', root)
-
-  for (const entry of files) {
-    const parts = entry.path.split('/').filter(Boolean)
-    let currentPath = ''
-    let parent = root
-    for (let i = 0; i < parts.length - 1; i++) {
-      const part = parts[i]
-      currentPath = currentPath ? `${currentPath}/${part}` : part
-      let dirNode = dirMap.get(currentPath)
-      if (!dirNode) {
-        dirNode = {
-          key: currentPath,
-          label: part,
-          type: 'directory',
-          children: [],
-          selectable: false,
-          icon: 'pi pi-folder',
+    for (const entry of entries) {
+      const parts = entry.path.split('/').filter(Boolean)
+      let currentPath = ''
+      let parent = root
+      for (let i = 0; i < parts.length - 1; i++) {
+        const part = parts[i]
+        currentPath = currentPath ? `${currentPath}/${part}` : part
+        let dirNode = dirMap.get(currentPath)
+        if (!dirNode) {
+          dirNode = {
+            key: currentPath,
+            label: part,
+            type: 'directory',
+            children: [],
+            selectable: false,
+            icon: 'pi pi-folder',
+          }
+          pushChild(parent, dirNode)
+          dirMap.set(currentPath, dirNode)
         }
-        parent.children!.push(dirNode)
-        dirMap.set(currentPath, dirNode)
+        parent = dirNode
       }
-      parent = dirNode
+      const fileName = parts[parts.length - 1]
+      pushChild(parent, {
+        key: entry.path,
+        label: fileName,
+        data: { handle: entry.handle },
+        leaf: true,
+        icon: 'pi pi-video',
+        type: 'file',
+        selectable: true,
+      })
     }
-    const fileName = parts[parts.length - 1]
-    parent.children!.push({
-      key: entry.path,
-      label: fileName,
-      data: { handle: entry.handle, path: entry.path },
-      leaf: true,
-      icon: 'pi pi-video',
-      type: 'file',
-      selectable: true,
-    })
+
+    return new FileTree(root.children ?? [])
   }
 
-  // Sort directories and files naturally by label at every level
-  function sortNodes(node: TreeNode) {
-    if (!node.children) return
-    const directories: TreeNode[] = []
-    const fileNodes: TreeNode[] = []
-    for (const child of node.children) {
-      if (child.type === 'directory') directories.push(child)
-      else fileNodes.push(child)
+  private buildIndexes() {
+    this.parentMap = new WeakMap<FileTreeNode, FileTreeNode | null>()
+    this.handleToNode = new WeakMap<FileSystemHandle, FileTreeNode>()
+    this.flatFileNodes = []
+
+    const visit = (node: FileTreeNode, parent: FileTreeNode | null) => {
+      this.parentMap.set(node, parent)
+      if (node.leaf && node.type === 'file') {
+        const data = node.data
+        const handle = data?.handle
+        if (handle) {
+          this.handleToNode.set(handle, node)
+        }
+        this.flatFileNodes.push(node)
+      }
+      if (node.children) {
+        for (const child of node.children) {
+          visit(child, node)
+        }
+      }
     }
-    directories.sort((a, b) =>
-      (a.label ?? '').localeCompare(b.label ?? '', undefined, { numeric: true })
-    )
-    fileNodes.sort((a, b) =>
-      (a.label ?? '').localeCompare(b.label ?? '', undefined, { numeric: true })
-    )
-    node.children = [...directories, ...fileNodes]
-    for (const child of directories) sortNodes(child)
+
+    for (const root of this.roots) visit(root, null)
   }
 
-  sortNodes(root)
+  getNodes(): FileTreeNode[] {
+    return this.roots
+  }
 
-  return { nodes: root.children ?? [], files }
+  getParent(node: FileTreeNode): FileTreeNode | null {
+    return this.parentMap.get(node) ?? null
+  }
+
+  getFileNodes(): FileTreeNode[] {
+    return this.flatFileNodes
+  }
+
+  getHandle(node: FileTreeNode): FileSystemFileHandle | null {
+    const data = node.data as { handle?: FileSystemFileHandle } | undefined
+    return data?.handle ?? null
+  }
+
+  findNodeByHandle(handle: FileSystemFileHandle): FileTreeNode | undefined {
+    return this.handleToNode.get(handle)
+  }
+
+  indexOf(node: FileTreeNode): number {
+    return this.flatFileNodes.indexOf(node)
+  }
+
+  nextOf(node: FileTreeNode): FileTreeNode | null {
+    const idx = this.indexOf(node)
+    if (idx === -1) return null
+    return idx < this.flatFileNodes.length - 1
+      ? this.flatFileNodes[idx + 1]
+      : null
+  }
+
+  prevOf(node: FileTreeNode): FileTreeNode | null {
+    const idx = this.indexOf(node)
+    if (idx <= 0) return null
+    return this.flatFileNodes[idx - 1]
+  }
 }
