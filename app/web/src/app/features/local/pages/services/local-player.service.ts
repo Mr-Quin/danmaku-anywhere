@@ -1,20 +1,15 @@
 import { computed, effect, Injectable, inject, signal } from '@angular/core'
 import type { TreeNode } from 'primeng/api'
 import type { LocalVideoFileEntry } from '../util/filesystem'
-import {
-  enumeratePlayableTree,
-  supportsFileSystemApi,
-} from '../util/filesystem'
-import { LocalHandlePersistenceService } from './local-handle-persistence.service'
-
-type FileSystemDirectoryHandleLike = FileSystemDirectoryHandle
-type FileSystemFileHandleLike = FileSystemFileHandle
+import { enumeratePlayableTree } from '../util/filesystem'
+import { supportsFileSystemApi } from '../util/supportsFileSystemApi'
+import { LocalHandleDbService } from './local-handle-db.service'
 
 @Injectable({ providedIn: 'root' })
 export class LocalPlayerService {
-  $directoryHandle = signal<FileSystemDirectoryHandleLike | null>(null)
+  $directoryHandle = signal<FileSystemDirectoryHandle | null>(null)
   $directoryName = computed(() => this.$directoryHandle()?.name ?? '')
-  $nodes = signal<TreeNode[]>([])
+  $nodes = signal<TreeNode[] | null>(null)
   $files = signal<LocalVideoFileEntry[]>([])
   $selectedIndex = signal<number | null>(null)
   $selectedFile = computed(() => {
@@ -42,7 +37,7 @@ export class LocalPlayerService {
     return idx !== null && idx < total - 1
   })
 
-  private persistence = inject(LocalHandlePersistenceService)
+  private localHandleDbService = inject(LocalHandleDbService)
 
   constructor() {
     effect(() => {
@@ -59,38 +54,40 @@ export class LocalPlayerService {
   async restorePersistedDirectory() {
     try {
       if (!supportsFileSystemApi()) return
-      const handle = await this.persistence.getDirectoryHandle()
+      const handles = await this.localHandleDbService.getAllHandles()
+      const [{ handle }] = handles
       if (!handle) {
         return
       }
-      // check permission
+      // check permission, request for permission if not granted
       // biome-ignore lint/suspicious/noExplicitAny: api not typed yet
       const perm = await (handle as any).queryPermission({
-        mode: 'read' as const,
+        mode: 'read',
       })
       if (perm !== 'granted') {
         // biome-ignore lint/suspicious/noExplicitAny: api not typed yet
         const status = await (handle as any).requestPermission({
-          mode: 'read' as const,
+          mode: 'read',
         })
-        if (status !== 'granted') return
+        if (status !== 'granted') {
+          return
+        }
       }
       this.$directoryHandle.set(handle)
       const { nodes, files } = await enumeratePlayableTree(handle)
       this.$nodes.set(nodes)
       this.setFiles(files)
-      if (files.length > 0) await this.loadByIndex(0)
     } catch {
       // ignore
     }
   }
 
-  async onDirectorySelected(handle: FileSystemDirectoryHandleLike) {
+  async onAddDirectory(handle: FileSystemDirectoryHandle) {
     this.$directoryHandle.set(handle)
-    this.$nodes.set([])
+    this.$nodes.set(null)
     this.$files.set([])
     this.$selectedIndex.set(null)
-    await this.persistence.saveDirectoryHandle(handle)
+    await this.localHandleDbService.saveHandle(handle)
     const { nodes, files } = await enumeratePlayableTree(handle)
     this.$nodes.set(nodes)
     this.setFiles(files)
@@ -106,7 +103,7 @@ export class LocalPlayerService {
     if (sorted.length > 0) await this.loadByIndex(0)
   }
 
-  async onFileHandleSelected(handle: FileSystemFileHandleLike) {
+  async onFileHandleSelected(handle: FileSystemFileHandle) {
     const index = this.$files().findIndex((f) => f.handle === handle)
     if (index !== -1) await this.loadByIndex(index)
   }

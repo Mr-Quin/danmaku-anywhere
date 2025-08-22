@@ -108,7 +108,7 @@ export class LocalPlayerPage {
   }
 
   protected onDirectorySelected(handle: FileSystemDirectoryHandleLike) {
-    void this.player.onDirectorySelected(handle)
+    void this.player.onAddDirectory(handle)
   }
 
   protected onFilesChanged(files: LocalVideoFileEntry[]) {

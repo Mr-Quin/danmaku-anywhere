@@ -5,21 +5,26 @@ import {
   computed,
   type ElementRef,
   EventEmitter,
+  inject,
   Output,
+  output,
   signal,
   ViewChild,
+  viewChild,
 } from '@angular/core'
-import type { TreeNode } from 'primeng/api'
+import { MessageService, type TreeNode } from 'primeng/api'
 import { Button } from 'primeng/button'
 import { Card } from 'primeng/card'
 import { Tree } from 'primeng/tree'
+import { LocalHandleDbService } from '../services/local-handle-db.service'
+import { LocalPlayerService } from '../services/local-player.service'
 import {
   buildTreeFromFiles,
   enumeratePlayableTree,
   type LocalVideoFileEntry,
   pickDirectory,
-  supportsFileSystemApi,
 } from '../util/filesystem'
+import { supportsFileSystemApi } from '../util/supportsFileSystemApi'
 
 @Component({
   selector: 'da-local-folder-selector',
@@ -35,22 +40,21 @@ import {
         <div class="mb-4 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <h3 class="font-bold">文件树</h3>
-            @if ($directoryName()) {
-              <span class="text-sm text-surface-400">{{ $directoryName() }}</span>
-            }
           </div>
           <div class="flex items-center gap-2">
-            @if ($supportsFsApi()) {
-              <p-button label="选择文件夹" (onClick)="onPick()" severity="secondary" />
+            @if (supportsFsApi) {
+              <p-button label="添加文件夹" (onClick)="onPick()" severity="secondary" icon="pi pi-folder" />
+            } @else {
+              <p-button label="选择文件" (onClick)="onPickFiles()" severity="secondary" icon="pi pi-file" />
             }
-            <p-button label="选择文件" (onClick)="onPickFiles()" severity="secondary" />
             <p-button label="展开全部" (onClick)="expandAll()" text />
             <p-button label="折叠全部" (onClick)="collapseAll()" text />
           </div>
         </div>
-        @if (!$hasAny()) {
+        @let nodes = $nodes();
+        @if (!nodes) {
           <div class="text-center">拖拽文件/文件夹到此处，或点击上方按钮选择</div>
-        } @else if ($nodes().length === 0) {
+        } @else if (nodes.length === 0) {
           <div class="text-center">没有找到可播放的视频文件</div>
         } @else {
           <p-tree
@@ -64,42 +68,41 @@ import {
           />
         }
         <input #fileInput type="file" multiple class="hidden" (change)="onFilesInput($event)" />
-        <input #dirInput type="file" class="hidden" webkitdirectory directory (change)="onFilesInput($event)" />
       </div>
     </p-card>
   `,
 })
 export class LocalFolderSelectorComponent {
-  protected $directoryName = signal('')
-  protected $nodes = signal<TreeNode[]>([])
-  protected $hasSelection = signal(false)
-  protected $supportsFsApi = signal(supportsFileSystemApi())
+  private readonly localPlayerService = inject(LocalPlayerService)
+  private readonly messageService = inject(MessageService)
+  protected supportsFsApi = supportsFileSystemApi()
 
-  @ViewChild(Tree) tree?: Tree
-  @ViewChild('fileInput') fileInput?: ElementRef<HTMLInputElement>
-  @ViewChild('dirInput') dirInput?: ElementRef<HTMLInputElement>
+  protected $nodes = this.localPlayerService.$nodes
 
-  @Output() directorySelected = new EventEmitter<FileSystemDirectoryHandle>()
-  @Output() filesChanged = new EventEmitter<LocalVideoFileEntry[]>()
-  @Output() fileSelected = new EventEmitter<FileSystemFileHandle>()
+  readonly directorySelected = output<FileSystemDirectoryHandle>()
+  readonly filesChanged = output<LocalVideoFileEntry[]>()
+  readonly fileSelected = output<FileSystemFileHandle>()
 
   async onPick() {
     try {
       const dir = await pickDirectory()
-      this.$directoryName.set(dir.name)
-      this.$hasSelection.set(true)
-      this.directorySelected.emit(dir)
-      const { nodes, files } = await enumeratePlayableTree(dir)
-      this.$nodes.set(nodes)
-      this.filesChanged.emit(files)
-    } catch {
+      await this.localPlayerService.onAddDirectory(dir)
+    } catch (e) {
+      if (e instanceof Error) {
+        this.messageService.add({
+          severity: 'error',
+          summary: '此文件夹已经添加',
+          detail: '已经添加过这个文件夹了',
+          closable: true,
+          life: 3000,
+          key: 'dir-pick-error',
+        })
+      }
       //
     }
   }
 
-  onPickFiles() {
-    this.fileInput?.nativeElement.click()
-  }
+  onPickFiles() {}
 
   onFilesInput(event: Event) {
     const input = event.target as HTMLInputElement
@@ -108,11 +111,9 @@ export class LocalFolderSelectorComponent {
     const { nodes, files: playable } = buildTreeFromFiles(files)
     this.$nodes.set(nodes)
     this.filesChanged.emit(playable)
-    this.$hasSelection.set(true)
     // Compute a display name from common prefix of paths
     const name =
       this.computeCommonRoot(playable.map((f) => f.path)) || '已选择的文件'
-    this.$directoryName.set(name)
     input.value = ''
   }
 
@@ -139,25 +140,25 @@ export class LocalFolderSelectorComponent {
         const { nodes, files: playable } = buildTreeFromFiles(files)
         this.$nodes.set(nodes)
         this.filesChanged.emit(playable)
-        this.$hasSelection.set(true)
         const name =
           this.computeCommonRoot(playable.map((f) => f.path)) || '拖拽的文件'
-        this.$directoryName.set(name)
       }
     }
   }
 
   expandAll() {
     const nodes = this.$nodes()
-    this.$nodes.set(setExpanded(cloneNodes(nodes), true))
+    if (nodes) {
+      this.$nodes.set(setExpanded(cloneNodes(nodes), true))
+    }
   }
 
   collapseAll() {
     const nodes = this.$nodes()
-    this.$nodes.set(setExpanded(cloneNodes(nodes), false))
+    if (nodes) {
+      this.$nodes.set(setExpanded(cloneNodes(nodes), false))
+    }
   }
-
-  protected $hasAny = computed(() => this.$hasSelection())
 
   private computeCommonRoot(paths: string[]): string {
     if (paths.length === 0) return ''

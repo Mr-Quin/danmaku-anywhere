@@ -1,4 +1,5 @@
 import type { TreeNode } from 'primeng/api'
+import { supportsFileSystemApi } from './supportsFileSystemApi'
 
 export interface LocalVideoFileEntry {
   name: string
@@ -104,10 +105,6 @@ export async function enumeratePlayableTree(
   const nodes: TreeNode[] = rootResult?.children ?? []
 
   return { nodes, files }
-}
-
-export function supportsFileSystemApi(): boolean {
-  return typeof window !== 'undefined' && 'showDirectoryPicker' in window
 }
 
 export function isPlayableFileName(name: string): boolean {
