@@ -1,8 +1,8 @@
 import { computed, effect, Injectable, inject, signal } from '@angular/core'
 import type { TreeNode } from 'primeng/api'
-import type { LocalVideoFileEntry } from '../util/filesystem'
-import { enumeratePlayableTree } from '../util/filesystem'
 import { supportsFileSystemApi } from '../util/supportsFileSystemApi'
+import type { LocalVideoFileEntry } from '../util/tree-node'
+import { enumerateDirectoryTree } from '../util/tree-node'
 import { LocalHandleDbService } from './local-handle-db.service'
 
 @Injectable({ providedIn: 'root' })
@@ -74,7 +74,7 @@ export class LocalPlayerService {
         }
       }
       this.$directoryHandle.set(handle)
-      const { nodes, files } = await enumeratePlayableTree(handle)
+      const { nodes, files } = await enumerateDirectoryTree(handle)
       this.$nodes.set(nodes)
       this.setFiles(files)
     } catch {
@@ -88,7 +88,7 @@ export class LocalPlayerService {
     this.$files.set([])
     this.$selectedIndex.set(null)
     await this.localHandleDbService.saveHandle(handle)
-    const { nodes, files } = await enumeratePlayableTree(handle)
+    const { nodes, files } = await enumerateDirectoryTree(handle)
     this.$nodes.set(nodes)
     this.setFiles(files)
     if (files.length > 0) await this.loadByIndex(0)

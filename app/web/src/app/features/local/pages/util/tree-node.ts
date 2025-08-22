@@ -1,5 +1,4 @@
 import type { TreeNode } from 'primeng/api'
-import { supportsFileSystemApi } from './supportsFileSystemApi'
 
 export interface LocalVideoFileEntry {
   name: string
@@ -17,94 +16,85 @@ const playableExtensions = new Set<string>([
   '.avi',
 ])
 
-export async function pickDirectory(): Promise<FileSystemDirectoryHandle> {
-  if (!supportsFileSystemApi()) {
-    throw new Error('当前浏览器不支持文件系统访问 API')
+function pruneEmpty(node: TreeNode): void {
+  if (!node.children) {
+    return
   }
-  return window.showDirectoryPicker()
+  node.children = node.children.filter((child) => {
+    if (child.type === 'directory') {
+      pruneEmpty(child)
+      return child.children && child.children.length > 0
+    }
+    return true
+  })
 }
 
-export async function enumeratePlayableTree(
-  root: FileSystemDirectoryHandle
+export async function enumerateDirectoryTree(
+  handle: FileSystemDirectoryHandle
 ): Promise<{ nodes: TreeNode[]; files: LocalVideoFileEntry[] }> {
   const files: LocalVideoFileEntry[] = []
 
   async function walk(
     dir: FileSystemDirectoryHandle,
+    root: TreeNode,
     basePath: string
-  ): Promise<TreeNode | null> {
-    const childNodes: TreeNode[] = []
-    const directories: TreeNode[] = []
-    const fileNodes: TreeNode[] = []
+  ): Promise<void> {
     for await (const entry of dir.values()) {
+      const key = `${basePath}/${entry.name}`
+
       if (entry.kind === 'directory') {
-        const child = await walk(
-          entry as FileSystemDirectoryHandle,
-          basePath ? `${basePath}/${entry.name}` : entry.name
-        )
-        if (child) {
-          directories.push(child)
-        }
+        const node = {
+          key,
+          label: entry.name,
+          type: 'directory',
+          children: [],
+          selectable: false,
+          icon: 'pi pi-folder',
+        } satisfies TreeNode
+
+        root.children?.push(node)
+
+        await walk(entry as FileSystemDirectoryHandle, node, key)
       } else if (entry.kind === 'file') {
         const lower = entry.name.toLowerCase()
         const dotIndex = lower.lastIndexOf('.')
         const ext = dotIndex >= 0 ? lower.slice(dotIndex) : ''
-        if (playableExtensions.has(ext)) {
-          const relativePath = basePath
-            ? `${basePath}/${entry.name}`
-            : entry.name
-          files.push({
-            name: entry.name,
-            handle: entry as FileSystemFileHandle,
-            path: relativePath,
-          })
-          fileNodes.push({
-            key: relativePath,
-            label: entry.name,
-            data: { handle: entry, path: relativePath },
-            leaf: true,
-            icon: 'pi pi-video',
-            type: 'file',
-            selectable: true,
-          })
+        if (!playableExtensions.has(ext)) {
+          continue
         }
+        files.push({
+          name: entry.name,
+          handle: entry as FileSystemFileHandle,
+          path: lower,
+        })
+
+        root.children?.push({
+          key,
+          label: entry.name,
+          data: { handle: entry, path: lower },
+          leaf: true,
+          icon: 'pi pi-video',
+          type: 'file',
+          selectable: true,
+        })
       }
-    }
-
-    // Sort directories and files naturally by label
-    directories.sort((a, b) =>
-      (a.label ?? '').localeCompare(b.label ?? '', undefined, { numeric: true })
-    )
-    fileNodes.sort((a, b) =>
-      (a.label ?? '').localeCompare(b.label ?? '', undefined, { numeric: true })
-    )
-
-    childNodes.push(...directories, ...fileNodes)
-
-    // If this directory (dir) is the root, we return a list of its children, not a single node
-    if (dir === root) {
-      return { key: '', label: '', children: childNodes } // placeholder, caller will unwrap children
-    }
-
-    // Prune empty directories
-    if (childNodes.length === 0) {
-      return null
-    }
-
-    return {
-      key: basePath,
-      label: dir.name,
-      type: 'directory',
-      children: childNodes,
-      selectable: false,
-      icon: 'pi pi-folder',
     }
   }
 
-  const rootResult = await walk(root, '')
-  const nodes: TreeNode[] = rootResult?.children ?? []
+  const root = {
+    key: handle.name,
+    label: handle.name,
+    type: 'directory',
+    children: [],
+    selectable: false,
+    icon: 'pi pi-folder',
+  } satisfies TreeNode
 
-  return { nodes, files }
+  await walk(handle, root, '')
+
+  pruneEmpty(root)
+
+  return { nodes: [root], files }
 }
 
 export function isPlayableFileName(name: string): boolean {
@@ -197,6 +187,7 @@ export function buildTreeFromFiles(filesLike: FileList | File[]): {
     node.children = [...directories, ...fileNodes]
     for (const child of directories) sortNodes(child)
   }
+
   sortNodes(root)
 
   return { nodes: root.children ?? [], files }

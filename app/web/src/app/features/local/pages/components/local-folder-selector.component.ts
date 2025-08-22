@@ -18,13 +18,12 @@ import { Card } from 'primeng/card'
 import { Tree } from 'primeng/tree'
 import { LocalHandleDbService } from '../services/local-handle-db.service'
 import { LocalPlayerService } from '../services/local-player.service'
+import { supportsFileSystemApi } from '../util/supportsFileSystemApi'
 import {
   buildTreeFromFiles,
-  enumeratePlayableTree,
+  enumerateDirectoryTree,
   type LocalVideoFileEntry,
-  pickDirectory,
-} from '../util/filesystem'
-import { supportsFileSystemApi } from '../util/supportsFileSystemApi'
+} from '../util/tree-node'
 
 @Component({
   selector: 'da-local-folder-selector',
@@ -85,7 +84,7 @@ export class LocalFolderSelectorComponent {
 
   async onPick() {
     try {
-      const dir = await pickDirectory()
+      const dir = await window.showDirectoryPicker()
       await this.localPlayerService.onAddDirectory(dir)
     } catch (e) {
       if (e instanceof Error) {
@@ -185,11 +184,15 @@ function setExpandedOnNode(node: TreeNode, expanded: boolean) {
   if (node.type === 'directory') {
     node.expanded = expanded
     if (node.children)
-      node.children.forEach((c) => setExpandedOnNode(c, expanded))
+      node.children.forEach((c) => {
+        setExpandedOnNode(c, expanded)
+      })
   }
 }
 
 function setExpanded(nodes: TreeNode[], expanded: boolean): TreeNode[] {
-  nodes.forEach((n) => setExpandedOnNode(n, expanded))
+  nodes.forEach((n) => {
+    setExpandedOnNode(n, expanded)
+  })
   return nodes
 }

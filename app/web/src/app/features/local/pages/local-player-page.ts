@@ -11,7 +11,7 @@ import { ProgressSpinner } from 'primeng/progressspinner'
 import { VideoPlayer } from '../../../core/video-player/video-player'
 import { LocalFolderSelectorComponent } from './components/local-folder-selector.component'
 import { LocalPlayerService } from './services/local-player.service'
-import type { LocalVideoFileEntry } from './util/filesystem'
+import type { LocalVideoFileEntry } from './util/tree-node'
 
 type FileSystemDirectoryHandleLike = FileSystemDirectoryHandle
 type FileSystemFileHandleLike = FileSystemFileHandle
