@@ -17,7 +17,7 @@ import { serializeError } from '../../../../shared/utils/serializeError'
 import { DuplicateHandleException } from '../services/duplicate-handle.exception'
 import { LocalPlayerService } from '../services/local-player.service'
 import { supportsFilesystemApi } from '../util/supports-filesystem-api'
-import { FileTree, type FileTreeNode } from '../util/tree-node'
+import type { FileTreeNode } from '../util/tree-node'
 
 @Component({
   selector: 'da-local-folder-selector',
@@ -134,9 +134,10 @@ export class LocalFolderSelectorComponent {
   onFilesInput(event: Event) {
     const input = event.target as HTMLInputElement
     const files = input.files
-    if (!files || files.length === 0) return
-    const tree = FileTree.fromFiles(files)
-    void this.localPlayerService.onFilesTreeChanged(tree)
+    if (!files || files.length === 0) {
+      return
+    }
+    this.localPlayerService.addFiles(files)
     input.value = ''
   }
 
@@ -168,8 +169,7 @@ export class LocalFolderSelectorComponent {
     if (event.dataTransfer) {
       const files = event.dataTransfer.files
       if (files && files.length > 0) {
-        const tree = FileTree.fromFiles(files)
-        void this.localPlayerService.onFilesTreeChanged(tree)
+        this.localPlayerService.addFiles(files)
       }
     }
   }

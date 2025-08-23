@@ -56,13 +56,14 @@ export class LocalPlayerService {
     await this.invalidateDirectories()
   }
 
+  async addFiles(files: FileList) {
+    const tree = FileTree.fromFiles(files)
+    void this.$fileTree.set(tree)
+  }
+
   async removeAllDirectories() {
     await this.localHandleDbService.removeAllHandles()
     await this.invalidateDirectories()
-  }
-
-  async onFilesTreeChanged(tree: FileTree) {
-    this.$fileTree.set(tree)
   }
 
   expandAll() {
