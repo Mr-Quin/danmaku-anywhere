@@ -13,6 +13,7 @@ import { Card } from 'primeng/card'
 import { Tooltip } from 'primeng/tooltip'
 import { Tree } from 'primeng/tree'
 import { TrackingService } from '../../../../core/tracking.service'
+import { serializeError } from '../../../../shared/utils/serializeError'
 import { DuplicateHandleException } from '../services/duplicate-handle.exception'
 import { LocalPlayerService } from '../services/local-player.service'
 import { supportsFileSystemApi } from '../util/supportsFileSystemApi'
@@ -64,7 +65,7 @@ import { FileTree, type FileTreeNode } from '../util/tree-node'
             class="flex-1 overflow-y-auto"
             styleClass="p-0"
           >
-            <ng-template let-node pTemplate="topLevelDirectory">
+            <ng-template let-node pTemplate="removableDirectory">
               <div class="flex justify-between items-center">
               <span [pTooltip]="node.label" tooltipPosition="top" [showDelay]="1000">{{ node.label }}
               </span>
@@ -117,6 +118,7 @@ export class LocalFolderSelectorComponent {
         this.messageService.add({
           severity: 'error',
           summary: '添加文件夹失败',
+          detail: serializeError(e),
           closable: true,
           life: 3000,
         })
@@ -154,7 +156,6 @@ export class LocalFolderSelectorComponent {
         detail: '请刷新页面',
         closable: true,
         life: 3000,
-        key: 'dir-delete-error',
       })
       return
     }

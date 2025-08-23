@@ -73,7 +73,7 @@ export class FileTree {
     const root: FileTreeNode = {
       key: settings.handle.name,
       label: settings.handle.name,
-      type: 'topLevelDirectory',
+      type: 'removableDirectory',
       data: settings,
       children: [],
       selectable: false,
@@ -194,19 +194,13 @@ export class FileTree {
       })
     }
 
+    console.log(root, filesLike)
+
     return new FileTree(root.children ?? [])
   }
 
   getNodes(): FileTreeNode[] {
     return this.roots
-  }
-
-  getParent(node: FileTreeNode): FileTreeNode | null {
-    return this.parentMap.get(node) ?? null
-  }
-
-  getFileNodes(): FileTreeNode[] {
-    return this.flatFileNodes
   }
 
   getInfo(node: FileTreeNode): TreeNodeInfo {

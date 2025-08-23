@@ -1,4 +1,6 @@
 import { computed, effect, Injectable, inject, signal } from '@angular/core'
+import { MessageService } from 'primeng/api'
+import { serializeError } from '../../../../shared/utils/serializeError'
 import { supportsFileSystemApi } from '../util/supportsFileSystemApi'
 import {
   FileTree,
@@ -9,8 +11,10 @@ import { LocalHandleDbService } from './local-handle-db.service'
 
 @Injectable({ providedIn: 'root' })
 export class LocalPlayerService {
-  private objectUrlToRevoke: string | null = null
   private readonly localHandleDbService = inject(LocalHandleDbService)
+  private readonly messageService = inject(MessageService)
+
+  private objectUrlToRevoke: string | null = null
 
   private $fileTree = signal<FileTree | null>(null)
   $nodes = computed(() => {
@@ -29,12 +33,11 @@ export class LocalPlayerService {
     if (!nodeInfo) return null
     return nodeInfo.node
   })
-
   $hasSelection = computed(() => this.$nodeInfo() !== null)
-  $showOverlay = computed(() => this.$isLoading() || !this.$hasSelection())
-
   $videoUrl = signal<string | undefined>(undefined)
   $isLoading = signal(false)
+
+  $showOverlay = computed(() => this.$isLoading() || !this.$hasSelection())
   $error = signal<string | null>(null)
 
   constructor() {
@@ -74,7 +77,12 @@ export class LocalPlayerService {
       const tree = await FileTree.fromDirectory(handleSettings)
       this.$fileTree.set(tree)
     } catch {
-      // ignore
+      this.messageService.add({
+        severity: 'error',
+        summary: '读取文件列表失败',
+        closable: true,
+        life: 3000,
+      })
     }
   }
 
@@ -118,11 +126,20 @@ export class LocalPlayerService {
     this.$isLoading.set(true)
     try {
       const fileHandle = node.data?.handle
+      console.log('loadNode', fileHandle)
       if (!fileHandle || !(fileHandle instanceof FileSystemFileHandle)) {
         return
       }
       const url = await this.createUrl(fileHandle)
       this.$videoUrl.set(url)
+    } catch (e) {
+      this.messageService.add({
+        severity: 'error',
+        summary: '读取文件失败',
+        detail: serializeError(e),
+        closable: true,
+        life: 3000,
+      })
     } finally {
       this.$isLoading.set(false)
     }
