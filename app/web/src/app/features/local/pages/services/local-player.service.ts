@@ -181,6 +181,7 @@ export class LocalPlayerService {
     if (existing.length > 0) {
       this.confirmationService.confirm({
         header: '是否恢复上次打开的文件夹？',
+        message: existing.map((s) => s.handle.name).join(', '),
         closable: false,
         acceptButtonProps: {
           label: '恢复',
@@ -201,7 +202,6 @@ export class LocalPlayerService {
   }
 
   private async createUrl(file: File): Promise<string> {
-    console.log('createUrl', file)
     if (this.objectUrlToRevoke) {
       URL.revokeObjectURL(this.objectUrlToRevoke)
     }
@@ -215,7 +215,6 @@ export class LocalPlayerService {
     }
     const url = URL.createObjectURL(file)
     this.objectUrlToRevoke = url
-    console.log('createdUrl', url)
     return url
   }
 }
