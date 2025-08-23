@@ -53,9 +53,9 @@ import { LocalPlayerService } from './services/local-player.service'
         </da-video-player>
 
         <div class="flex flex-col gap-4">
-          <da-local-folder-selector
-          />
+          <da-local-folder-selector          />
         </div>
+        
       </div>
     </div>
   `,

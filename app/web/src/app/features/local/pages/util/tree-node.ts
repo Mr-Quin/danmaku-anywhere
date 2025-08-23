@@ -61,12 +61,10 @@ function setExpanded(nodes: TreeNode[], expanded: boolean): TreeNode[] {
 }
 
 export class FileTree {
-  private readonly roots: FileTreeNode[]
   private parentMap = new WeakMap<FileTreeNode, FileTreeNode | null>()
   private flatFileNodes: FileTreeNode[] = []
 
-  private constructor(roots: FileTreeNode[]) {
-    this.roots = roots
+  private constructor(private readonly roots: FileTreeNode[]) {
     this.buildIndexes()
   }
 

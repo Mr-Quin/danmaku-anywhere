@@ -33,6 +33,10 @@ class LocalPlayerDb extends Dexie {
     return this.handles.delete(key)
   }
 
+  async removeAll() {
+    return this.handles.clear()
+  }
+
   async hasHandle(handle: FileSystemDirectoryHandle): Promise<boolean> {
     const existing = await this.getAllHandles()
     for (const setting of existing) {
@@ -64,6 +68,10 @@ export class LocalHandleDbService {
 
   async removeHandle(key: string): Promise<void> {
     await this.db.removeHandle(key)
+  }
+
+  async removeAllHandles(): Promise<void> {
+    await this.db.removeAll()
   }
 
   async getAllHandles(): Promise<DirectoryHandleSetting[]> {

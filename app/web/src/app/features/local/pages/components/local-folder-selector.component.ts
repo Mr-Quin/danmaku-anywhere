@@ -16,7 +16,7 @@ import { TrackingService } from '../../../../core/tracking.service'
 import { serializeError } from '../../../../shared/utils/serializeError'
 import { DuplicateHandleException } from '../services/duplicate-handle.exception'
 import { LocalPlayerService } from '../services/local-player.service'
-import { supportsFileSystemApi } from '../util/supportsFileSystemApi'
+import { supportsFilesystemApi } from '../util/supports-filesystem-api'
 import { FileTree, type FileTreeNode } from '../util/tree-node'
 
 @Component({
@@ -63,13 +63,12 @@ import { FileTree, type FileTreeNode } from '../util/tree-node'
             [filter]="true"
             filterPlaceholder="过滤"
             class="flex-1 overflow-y-auto"
-            styleClass="p-0"
           >
             <ng-template let-node pTemplate="removableDirectory">
               <div class="flex justify-between items-center">
               <span [pTooltip]="node.label" tooltipPosition="top" [showDelay]="1000">{{ node.label }}
               </span>
-                <p-button variant="text" severity="secondary" icon="pi pi-trash" (onClick)="onRemoveNode(node)" />
+                <p-button variant="text" size="small" severity="secondary" icon="pi pi-trash" (onClick)="onRemoveNode(node)" />
               </div>
             </ng-template>
             <ng-template let-node pTemplate="directory">
@@ -90,7 +89,7 @@ export class LocalFolderSelectorComponent {
   private readonly messageService = inject(MessageService)
   private readonly trackingService = inject(TrackingService)
 
-  protected readonly supportsFsApi = supportsFileSystemApi()
+  protected readonly supportsFsApi = supportsFilesystemApi()
 
   private $fileInputRef =
     viewChild.required<ElementRef<HTMLInputElement>>('fileInput')
@@ -106,7 +105,6 @@ export class LocalFolderSelectorComponent {
       const dir = await window.showDirectoryPicker()
       await this.localPlayerService.addDirectory(dir)
     } catch (e) {
-      this.trackingService.track('pickDirError', e as object)
       if (e instanceof DuplicateHandleException) {
         this.messageService.add({
           severity: 'error',
@@ -114,7 +112,10 @@ export class LocalFolderSelectorComponent {
           closable: true,
           life: 3000,
         })
+      } else if (e instanceof DOMException && e.name === 'AbortError') {
+        return
       } else {
+        this.trackingService.track('pickDirError', e as object)
         this.messageService.add({
           severity: 'error',
           summary: '添加文件夹失败',
