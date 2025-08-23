@@ -22,8 +22,12 @@ export class LayoutService {
 
   private $currentRoute = signal(this.router.routerState.snapshot.root)
 
+  $isMobile = computed(() => {
+    return this.platformService.IOS || this.platformService.ANDROID
+  })
+
   $hasExtensionAndIsNotMobile = computed(() => {
-    const isMobile = this.platformService.IOS || this.platformService.ANDROID
+    const isMobile = this.$isMobile()
     return this.extensionService.$isExtensionInstalled() && !isMobile
   })
 

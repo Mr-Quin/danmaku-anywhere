@@ -1,7 +1,6 @@
 import { computed, effect, Injectable, inject, signal } from '@angular/core'
 import { MessageService } from 'primeng/api'
 import { serializeError } from '../../../../shared/utils/serializeError'
-import { InlineFileSource } from '../util/file-source'
 import { supportsFileSystemApi } from '../util/supportsFileSystemApi'
 import {
   FileTree,
@@ -77,10 +76,11 @@ export class LocalPlayerService {
       }
       const tree = await FileTree.fromDirectory(handleSettings)
       this.$fileTree.set(tree)
-    } catch {
+    } catch (e) {
       this.messageService.add({
         severity: 'error',
         summary: '读取文件列表失败',
+        detail: serializeError(e),
         closable: true,
         life: 3000,
       })
@@ -131,8 +131,7 @@ export class LocalPlayerService {
         return
       }
       const file = await source.getFile()
-      const stripMatroskaType = source instanceof InlineFileSource
-      const url = await this.createUrl(file, stripMatroskaType)
+      const url = await this.createUrl(file)
       this.$videoUrl.set(url)
     } catch (e) {
       this.messageService.add({
@@ -174,13 +173,18 @@ export class LocalPlayerService {
     await this.loadNode(next)
   }
 
-  private async createUrl(
-    file: File,
-    stripMatroskaType: boolean
-  ): Promise<string> {
+  private async createUrl(file: File): Promise<string> {
     console.log('createUrl', file)
     if (this.objectUrlToRevoke) {
       URL.revokeObjectURL(this.objectUrlToRevoke)
+    }
+    if (file.type.includes('matroska')) {
+      this.messageService.add({
+        severity: 'error',
+        summary: '暂不支持播放mkv文件',
+        closable: true,
+        life: 3000,
+      })
     }
     const url = URL.createObjectURL(file)
     this.objectUrlToRevoke = url

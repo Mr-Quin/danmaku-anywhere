@@ -27,7 +27,7 @@ import { UpdateBanner } from './update-banner.component'
     NoExtensionPage,
   ],
   template: `
-    <p-toast position="bottom-center" />
+    <p-toast [position]="layoutService.$isMobile() ? 'top-center' : 'bottom-center'" />
     <da-update-banner></da-update-banner>
 
     <div class="flex flex-col min-h-screen">
