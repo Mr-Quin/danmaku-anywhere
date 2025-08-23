@@ -8,10 +8,7 @@ import {
   type TreeNodeInfo,
 } from '../util/file-tree'
 import { supportsFilesystemApi } from '../util/supports-filesystem-api'
-import {
-  type DirectoryHandleSetting,
-  LocalHandleDbService,
-} from './local-handle-db.service'
+import { LocalHandleDbService } from './local-handle-db.service'
 
 @Injectable({ providedIn: 'root' })
 export class LocalPlayerService {
@@ -127,26 +124,8 @@ export class LocalPlayerService {
 
   private async invalidateDirectories() {
     try {
-      if (!supportsFilesystemApi()) return
-      const handleSettingsList = await this.localHandleDbService.getAllHandles()
       this.fileTree.clear()
-      for (const setting of handleSettingsList) {
-        // check permission, request for permission if not granted
-        // biome-ignore lint/suspicious/noExplicitAny: api not typed yet
-        const perm = await (setting.handle as any).queryPermission({
-          mode: 'read',
-        })
-        if (perm !== 'granted') {
-          // biome-ignore lint/suspicious/noExplicitAny: api not typed yet
-          const status = await (setting.handle as any).requestPermission({
-            mode: 'read',
-          })
-          if (status !== 'granted') {
-            continue
-          }
-        }
-        await this.fileTree.addDirectory(setting)
-      }
+      await this.requestDirectoryPermission()
       this.bumpTree()
     } catch (e) {
       this.messageService.add({
@@ -159,26 +138,53 @@ export class LocalPlayerService {
     }
   }
 
+  private async requestDirectoryPermission() {
+    if (!supportsFilesystemApi()) {
+      return
+    }
+    const handleSettingsList = await this.localHandleDbService.getAllHandles()
+    for (const setting of handleSettingsList) {
+      // check permission, request for permission if not granted
+      // biome-ignore lint/suspicious/noExplicitAny: api not typed yet
+      const perm = await (setting.handle as any).queryPermission({
+        mode: 'read',
+      })
+      if (perm !== 'granted') {
+        // biome-ignore lint/suspicious/noExplicitAny: api not typed yet
+        const status = await (setting.handle as any).requestPermission({
+          mode: 'read',
+        })
+        if (status !== 'granted') {
+          continue
+        }
+      }
+      await this.fileTree.addDirectory(setting)
+    }
+  }
+
   async checkPersistence(): Promise<void> {
     if (!this.isInit) {
       return
     }
     this.isInit = false
-    const existing = await this.localHandleDbService.getAllHandles()
-    if (existing.length > 0) {
+    const hasHandles = await this.localHandleDbService.hasHandles()
+    if (hasHandles) {
       try {
-        await this.invalidateDirectories()
+        await this.requestDirectoryPermission()
+        this.bumpTree()
       } catch {
         // some browsers require user action when requesting permission for handles
-        this.promptRestoration(existing)
+        void this.promptRestoration()
       }
     }
   }
 
-  private promptRestoration(directoryHandles: DirectoryHandleSetting[]): void {
+  private async promptRestoration(): Promise<void> {
+    const handleSettingsList = await this.localHandleDbService.getAllHandles()
+
     this.confirmationService.confirm({
       header: '是否恢复上次打开的文件夹？',
-      message: directoryHandles.map((s) => s.handle.name).join(', '),
+      message: handleSettingsList.map((s) => s.handle.name).join(', '),
       closable: false,
       acceptButtonProps: {
         label: '恢复',

@@ -77,4 +77,9 @@ export class LocalHandleDbService {
   async getAllHandles(): Promise<DirectoryHandleSetting[]> {
     return this.db.getAllHandles()
   }
+
+  async hasHandles(): Promise<boolean> {
+    const count = await this.db.handles.count()
+    return count > 0
+  }
 }
