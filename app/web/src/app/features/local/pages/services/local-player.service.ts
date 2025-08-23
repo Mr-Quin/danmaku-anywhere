@@ -1,5 +1,6 @@
 import { computed, Injectable, inject, signal } from '@angular/core'
 import { ConfirmationService, MessageService } from 'primeng/api'
+import { TrackingService } from '../../../../core/tracking.service'
 import { serializeError } from '../../../../shared/utils/serializeError'
 import {
   FileTree,
@@ -17,6 +18,7 @@ export class LocalPlayerService {
   private readonly localHandleDbService = inject(LocalHandleDbService)
   private readonly messageService = inject(MessageService)
   private readonly confirmationService = inject(ConfirmationService)
+  private readonly trackingService = inject(TrackingService)
 
   private objectUrlToRevoke: string | null = null
   private isInit = true
@@ -98,7 +100,7 @@ export class LocalPlayerService {
         closable: true,
         life: 3000,
       })
-      console.error(e)
+      this.trackingService.track('errorLoadingLocalFile', e as object)
     } finally {
       this.$isLoading.set(false)
     }
@@ -213,6 +215,7 @@ export class LocalPlayerService {
       })
     }
     const url = URL.createObjectURL(file)
+    this.trackingService.track('createUrl', { url })
     this.objectUrlToRevoke = url
     return url
   }
