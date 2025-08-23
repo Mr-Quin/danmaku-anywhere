@@ -3,6 +3,7 @@ import { RouterOutlet } from '@angular/router'
 import { ConfirmDialog } from 'primeng/confirmdialog'
 import { ScrollTop } from 'primeng/scrolltop'
 import { Toast } from 'primeng/toast'
+import { PlatformService } from '../../core/services/platform.service'
 import { NoExtensionPage } from '../../features/no-extension/no-extension-page'
 import { Settings } from '../../features/settings/settings.component'
 import { LayoutService } from '../layout.service'
@@ -27,7 +28,7 @@ import { UpdateBanner } from './update-banner.component'
     ConfirmDialog,
   ],
   template: `
-    <p-toast [position]="layoutService.$isMobile() ? 'top-center' : 'bottom-center'" />
+    <p-toast [position]="platformService.isMobile ? 'top-center' : 'bottom-center'" />
     <da-update-banner></da-update-banner>
     <p-confirmDialog />
 
@@ -52,5 +53,6 @@ import { UpdateBanner } from './update-banner.component'
   `,
 })
 export class Layout {
-  protected layoutService = inject(LayoutService)
+  readonly platformService = inject(PlatformService)
+  readonly layoutService = inject(LayoutService)
 }

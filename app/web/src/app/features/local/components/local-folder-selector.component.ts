@@ -12,6 +12,7 @@ import { Button } from 'primeng/button'
 import { Card } from 'primeng/card'
 import { Tooltip } from 'primeng/tooltip'
 import { Tree } from 'primeng/tree'
+import { PlatformService } from '../../../core/services/platform.service'
 import { TrackingService } from '../../../core/tracking.service'
 import { serializeError } from '../../../shared/utils/serializeError'
 import { DuplicateHandleException } from '../duplicate-handle.exception'
@@ -42,10 +43,10 @@ import { supportsFilesystemApi } from '../util/supports-filesystem-api'
             }
           </div>
           <div>
-            @if (supportsFsApi) {
+            @if (supportsFsApi && !isMobileEdge) {
               <p-button label="添加文件夹" (onClick)="onPickDir()" severity="secondary" icon="pi pi-folder" />
             } @else {
-              <p-button label="选择文件" (onClick)="onPickFiles()" severity="secondary" icon="pi pi-file" />
+              <p-button label="添加文件" (onClick)="onPickFiles()" severity="secondary" icon="pi pi-file" />
             }
           </div>
         </div>
@@ -68,7 +69,8 @@ import { supportsFilesystemApi } from '../util/supports-filesystem-api'
               <div class="flex justify-between items-center">
               <span [pTooltip]="node.label" tooltipPosition="top" [showDelay]="1000">{{ node.label }}
               </span>
-                <p-button variant="text" size="small" severity="secondary" icon="pi pi-trash" (onClick)="onRemoveNode(node)" />
+                <p-button variant="text" size="small" severity="secondary" icon="pi pi-trash"
+                          (onClick)="onRemoveNode(node)" />
               </div>
             </ng-template>
             <ng-template let-node pTemplate="directory">
@@ -88,8 +90,11 @@ export class LocalFolderSelectorComponent {
   private readonly localPlayerService = inject(LocalPlayerService)
   private readonly messageService = inject(MessageService)
   private readonly trackingService = inject(TrackingService)
+  private readonly platformService = inject(PlatformService)
 
   protected readonly supportsFsApi = supportsFilesystemApi()
+  readonly isMobileEdge =
+    this.platformService.platform.EDGE && this.platformService.isMobile
 
   private $fileInputRef =
     viewChild.required<ElementRef<HTMLInputElement>>('fileInput')

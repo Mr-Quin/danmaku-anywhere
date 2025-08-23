@@ -1,9 +1,9 @@
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout'
-import { Platform } from '@angular/cdk/platform'
 import { computed, effect, Injectable, inject, signal } from '@angular/core'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { type ActivatedRouteSnapshot, Router } from '@angular/router'
 import { ExtensionService } from '../core/extension/extension.service'
+import { PlatformService } from '../core/services/platform.service'
 
 const DOC_MIGRATION_BANNER_KEY = 'hide-doc-migration-banner'
 
@@ -16,18 +16,14 @@ export class LayoutService {
   private router = inject(Router)
   private breakpointObserver = inject(BreakpointObserver)
   private extensionService = inject(ExtensionService)
-  private platformService = inject(Platform)
+  private platformService = inject(PlatformService)
 
   private $routerEvent = toSignal(this.router.events)
 
   private $currentRoute = signal(this.router.routerState.snapshot.root)
 
-  $isMobile = computed(() => {
-    return this.platformService.IOS || this.platformService.ANDROID
-  })
-
   $hasExtensionAndIsNotMobile = computed(() => {
-    const isMobile = this.$isMobile()
+    const isMobile = this.platformService.isMobile
     return this.extensionService.$isExtensionInstalled() && !isMobile
   })
 
