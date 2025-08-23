@@ -1,6 +1,7 @@
 import { computed, effect, Injectable, inject, signal } from '@angular/core'
 import { MessageService } from 'primeng/api'
 import { serializeError } from '../../../../shared/utils/serializeError'
+import { InlineFileSource } from '../util/file-source'
 import { supportsFileSystemApi } from '../util/supportsFileSystemApi'
 import {
   FileTree,
@@ -130,7 +131,8 @@ export class LocalPlayerService {
         return
       }
       const file = await source.getFile()
-      const url = await this.createUrl(file)
+      const stripMatroskaType = source instanceof InlineFileSource
+      const url = await this.createUrl(file, stripMatroskaType)
       this.$videoUrl.set(url)
     } catch (e) {
       this.messageService.add({
@@ -172,13 +174,17 @@ export class LocalPlayerService {
     await this.loadNode(next)
   }
 
-  private async createUrl(file: File): Promise<string> {
+  private async createUrl(
+    file: File,
+    stripMatroskaType: boolean
+  ): Promise<string> {
     console.log('createUrl', file)
     if (this.objectUrlToRevoke) {
       URL.revokeObjectURL(this.objectUrlToRevoke)
     }
     const url = URL.createObjectURL(file)
     this.objectUrlToRevoke = url
+    console.log('createdUrl', url)
     return url
   }
 }
