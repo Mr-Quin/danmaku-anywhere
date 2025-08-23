@@ -8,8 +8,7 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop'
 import { SwUpdate } from '@angular/service-worker'
 import { MessageService } from 'primeng/api'
-import { concat, interval } from 'rxjs'
-import { first } from 'rxjs/operators'
+import { TrackingService } from '../tracking.service'
 
 @Injectable({
   providedIn: 'root',
@@ -18,7 +17,13 @@ export class UpdateService {
   private readonly appRef = inject(ApplicationRef)
   private readonly swUpdate = inject(SwUpdate)
   private readonly messageService = inject(MessageService)
+  private readonly trackingService = inject(TrackingService)
 
+  private timeoutId: ReturnType<typeof setTimeout> | null = null
+
+  private readonly $isAppStable = toSignal(this.appRef.isStable, {
+    initialValue: false,
+  })
   private readonly $_showUpdateBanner = signal(false)
 
   readonly $showUpdateBanner = this.$_showUpdateBanner.asReadonly()
@@ -26,12 +31,9 @@ export class UpdateService {
   readonly $versionUpdates = toSignal(this.swUpdate.versionUpdates)
 
   constructor() {
-    this.setupVersionUpdates()
-    this.setupPeriodicUpdateChecks()
     this.setupUnrecoverableStateHandling()
-  }
 
-  private setupVersionUpdates(): void {
+    // handle version updates
     effect(() => {
       const versionUpdates = this.$versionUpdates()
       if (!versionUpdates) {
@@ -39,39 +41,38 @@ export class UpdateService {
       }
       switch (versionUpdates.type) {
         case 'VERSION_DETECTED': {
-          console.debug('Downloading new version...')
           return
         }
         case 'VERSION_READY': {
-          console.log(
-            `Current app version: ${versionUpdates.currentVersion.hash}`
-          )
-          console.log(
-            `New app version ready for use: ${versionUpdates.latestVersion.hash}`
-          )
-          this.handleVersionReady()
+          void this.handleVersionReady()
           return
         }
         case 'VERSION_INSTALLATION_FAILED': {
-          console.error(
-            `Failed to install app version '${versionUpdates.version.hash}': ${versionUpdates.error}`
+          this.trackingService.track(
+            'versionInstallationFailed',
+            versionUpdates
           )
           return
         }
       }
     })
+
+    effect(() => {
+      if (this.$isAppStable()) {
+        void this.checkForUpdate()
+        this.scheduleUpdateCheck()
+      }
+    })
   }
 
-  private setupPeriodicUpdateChecks(): void {
-    const appIsStable$ = this.appRef.isStable.pipe(
-      first((isStable) => isStable)
-    )
-    const interval$ = interval(30 * 60 * 1000)
-    const stableInterval$ = concat(appIsStable$, interval$)
-
-    stableInterval$.subscribe(async () => {
-      await this.checkForUpdate()
-    })
+  private scheduleUpdateCheck(): void {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId)
+    }
+    this.timeoutId = setTimeout(() => {
+      void this.checkForUpdate()
+      this.scheduleUpdateCheck()
+    }, 1000 * 60) // every 1 minute
   }
 
   private setupUnrecoverableStateHandling(): void {
@@ -87,26 +88,30 @@ export class UpdateService {
     })
   }
 
-  private handleVersionReady(): void {
+  private async handleVersionReady(): Promise<void> {
+    try {
+      await this.swUpdate.activateUpdate()
+    } catch (error) {
+      this.trackingService.track('handleVersionReadyError', { error })
+    }
     this.$_showUpdateBanner.set(true)
   }
 
   async activateUpdate(): Promise<void> {
     this.$_showUpdateBanner.set(false)
+    try {
+      await this.swUpdate.activateUpdate()
+    } catch (error) {
+      this.trackingService.track('activateUpdateError', { error })
+    }
     document.location.reload()
   }
 
   async checkForUpdate(): Promise<boolean> {
     try {
-      const updateFound = await this.swUpdate.checkForUpdate()
-      if (updateFound) {
-        console.log('A new version is available.')
-      } else {
-        console.log('Already on the latest version.')
-      }
-      return updateFound
+      return await this.swUpdate.checkForUpdate()
     } catch (error) {
-      console.error('Failed to check for updates:', error)
+      this.trackingService.track('checkForUpdateError', { error })
       return false
     }
   }
