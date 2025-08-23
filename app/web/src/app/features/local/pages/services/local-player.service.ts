@@ -126,7 +126,6 @@ export class LocalPlayerService {
     this.$isLoading.set(true)
     try {
       const fileHandle = node.data?.handle
-      console.log('loadNode', fileHandle)
       if (!fileHandle || !(fileHandle instanceof FileSystemFileHandle)) {
         return
       }

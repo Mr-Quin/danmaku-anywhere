@@ -16,7 +16,6 @@ export type FileTreeNode = TreeNode<{ handle: FileSystemHandle; key?: string }>
 export interface TreeNodeInfo {
   node: FileTreeNode
   name: string
-  handle: FileSystemHandle | null
   hasPrev: boolean
   hasNext: boolean
   prevNode: FileTreeNode | null
@@ -210,7 +209,6 @@ export class FileTree {
     return {
       node,
       name: node.label ?? '',
-      handle: node.data?.handle ?? null,
       hasPrev: prevNode !== null,
       hasNext: nextNode !== null,
       prevNode,
