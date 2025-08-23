@@ -1,5 +1,10 @@
 import type { TreeNode } from 'primeng/api'
 import type { DirectoryHandleSetting } from '../services/local-handle-db.service'
+import {
+  type FileSource,
+  HandleFileSource,
+  InlineFileSource,
+} from './file-source'
 
 const playableExtensions = new Set<string>([
   '.mp4',
@@ -11,7 +16,7 @@ const playableExtensions = new Set<string>([
   '.avi',
 ])
 
-export type FileTreeNode = TreeNode<{ handle: FileSystemHandle; key?: string }>
+export type FileTreeNode = TreeNode<{ source?: FileSource; key?: string }>
 
 export interface TreeNodeInfo {
   node: FileTreeNode
@@ -58,7 +63,6 @@ function setExpanded(nodes: TreeNode[], expanded: boolean): TreeNode[] {
 export class FileTree {
   private readonly roots: FileTreeNode[]
   private parentMap = new WeakMap<FileTreeNode, FileTreeNode | null>()
-  private handleToNode = new WeakMap<FileSystemHandle, FileTreeNode>()
   private flatFileNodes: FileTreeNode[] = []
 
   private constructor(roots: FileTreeNode[]) {
@@ -92,9 +96,6 @@ export class FileTree {
             label: entry.name,
             type: 'directory',
             children: [],
-            data: {
-              handle: entry,
-            },
             selectable: false,
             icon: 'pi pi-folder',
           }
@@ -110,7 +111,9 @@ export class FileTree {
           parent.children?.push({
             key,
             label: entry.name,
-            data: { handle: entry },
+            data: {
+              source: new HandleFileSource(entry as FileSystemFileHandle),
+            },
             leaf: true,
             icon: 'pi pi-video',
             type: 'file',
@@ -130,7 +133,7 @@ export class FileTree {
 
     type SyntheticEntry = {
       name: string
-      handle: FileSystemFileHandle
+      file: File
       path: string
     }
     const entries: SyntheticEntry[] = []
@@ -140,14 +143,7 @@ export class FileTree {
       const relativePath =
         (file as File & { webkitRelativePath?: string }).webkitRelativePath ||
         file.name
-      const handle = {
-        kind: 'file',
-        name: file.name,
-        async getFile() {
-          return file
-        },
-      } as unknown as FileSystemFileHandle
-      entries.push({ name: file.name, handle, path: relativePath })
+      entries.push({ name: file.name, file, path: relativePath })
     }
 
     const root: FileTreeNode = { key: '', label: '', children: [] }
@@ -185,15 +181,13 @@ export class FileTree {
       pushChild(parent, {
         key: entry.path,
         label: fileName,
-        data: { handle: entry.handle },
+        data: { source: new InlineFileSource(entry.file) },
         leaf: true,
         icon: 'pi pi-video',
         type: 'file',
         selectable: true,
       })
     }
-
-    console.log(root, filesLike)
 
     return new FileTree(root.children ?? [])
   }
@@ -226,17 +220,11 @@ export class FileTree {
 
   private buildIndexes() {
     this.parentMap = new WeakMap<FileTreeNode, FileTreeNode | null>()
-    this.handleToNode = new WeakMap<FileSystemHandle, FileTreeNode>()
     this.flatFileNodes = []
 
     const visit = (node: FileTreeNode, parent: FileTreeNode | null) => {
       this.parentMap.set(node, parent)
       if (node.leaf && node.type === 'file') {
-        const data = node.data
-        const handle = data?.handle
-        if (handle) {
-          this.handleToNode.set(handle, node)
-        }
         this.flatFileNodes.push(node)
       }
       if (node.children) {

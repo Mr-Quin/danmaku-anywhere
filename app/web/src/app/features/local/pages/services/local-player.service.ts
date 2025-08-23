@@ -125,11 +125,12 @@ export class LocalPlayerService {
     this.$nodeInfo.set(nodeInfo)
     this.$isLoading.set(true)
     try {
-      const fileHandle = node.data?.handle
-      if (!fileHandle || !(fileHandle instanceof FileSystemFileHandle)) {
+      const source = node.data?.source
+      if (!source) {
         return
       }
-      const url = await this.createUrl(fileHandle)
+      const file = await source.getFile()
+      const url = await this.createUrl(file)
       this.$videoUrl.set(url)
     } catch (e) {
       this.messageService.add({
@@ -139,6 +140,7 @@ export class LocalPlayerService {
         closable: true,
         life: 3000,
       })
+      console.error(e)
     } finally {
       this.$isLoading.set(false)
     }
@@ -170,11 +172,11 @@ export class LocalPlayerService {
     await this.loadNode(next)
   }
 
-  private async createUrl(fileHandle: FileSystemFileHandle): Promise<string> {
+  private async createUrl(file: File): Promise<string> {
+    console.log('createUrl', file)
     if (this.objectUrlToRevoke) {
       URL.revokeObjectURL(this.objectUrlToRevoke)
     }
-    const file = await fileHandle.getFile()
     const url = URL.createObjectURL(file)
     this.objectUrlToRevoke = url
     return url
