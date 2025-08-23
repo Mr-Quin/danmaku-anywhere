@@ -1,7 +1,7 @@
 import { computed, Injectable, inject, signal } from '@angular/core'
 import { ConfirmationService, MessageService } from 'primeng/api'
-import { TrackingService } from '../../../../core/tracking.service'
-import { serializeError } from '../../../../shared/utils/serializeError'
+import { TrackingService } from '../../../core/tracking.service'
+import { serializeError } from '../../../shared/utils/serializeError'
 import {
   FileTree,
   type FileTreeNode,

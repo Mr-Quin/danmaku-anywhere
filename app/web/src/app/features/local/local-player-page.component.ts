@@ -9,7 +9,7 @@ import {
 } from '@angular/core'
 import { Title } from '@angular/platform-browser'
 import { ProgressSpinner } from 'primeng/progressspinner'
-import { VideoPlayer } from '../../../core/video-player/video-player'
+import { VideoPlayer } from '../../core/video-player/video-player'
 import { LocalFolderSelectorComponent } from './components/local-folder-selector.component'
 import { LocalPlayerService } from './services/local-player.service'
 
@@ -61,7 +61,7 @@ import { LocalPlayerService } from './services/local-player.service'
     </div>
   `,
 })
-export class LocalPlayerPage implements AfterViewInit {
+export class LocalPlayerPageComponent implements AfterViewInit {
   private titleService = inject(Title)
   private localPlayerService = inject(LocalPlayerService)
 

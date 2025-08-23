@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core'
 import Dexie, { type Table } from 'dexie'
-import { DuplicateHandleException } from './duplicate-handle.exception'
+import { DuplicateHandleException } from '../duplicate-handle.exception'
 
 const DB_NAME = 'da-local-player'
 const STORE_NAME = 'handles'

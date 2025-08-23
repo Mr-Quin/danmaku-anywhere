@@ -45,8 +45,8 @@ export const routes: Routes = [
       {
         path: 'local',
         loadComponent: () =>
-          import('./features/local/pages/local-player-page').then(
-            (m) => m.LocalPlayerPage
+          import('./features/local/local-player-page.component').then(
+            (m) => m.LocalPlayerPageComponent
           ),
         title: `本地视频 | ${PAGE_TITLE}`,
       },
