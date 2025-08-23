@@ -43,20 +43,23 @@ import { supportsFilesystemApi } from '../util/supports-filesystem-api'
       >
         <div class="mb-4 flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <h3 class="font-bold">文件树</h3>
+            <h3 class="font-bold whitespace-nowrap">文件列表</h3>
             @if ($hasNodes()) {
               <div>
-                <p-button (onClick)="expandAll()" text severity="secondary" icon="pi pi-angle-down" />
-                <p-button (onClick)="collapseAll()" text severity="secondary" icon="pi pi-angle-up" />
+                <p-button (onClick)="expandAll()" rounded size="small" text severity="secondary"
+                          icon="pi pi-angle-down" />
+                <p-button (onClick)="collapseAll()" rounded size="small" text severity="secondary"
+                          icon="pi pi-angle-up" />
               </div>
             }
           </div>
           <div>
             @if (supportsFsApi && !isMobileEdge) {
-              <p-splitbutton label="添加文件夹" (onClick)="onPickFilesystemDir()" severity="secondary"
+              <p-splitbutton label="添加文件夹" size="small" (onClick)="onPickFilesystemDir()" severity="secondary"
                              icon="pi pi-folder" [model]="items" />
             } @else {
-              <p-splitbutton label="添加文件夹" (onClick)="onPickDir()" severity="secondary" icon="pi pi-file"
+              <p-splitbutton label="添加文件夹" size="small" (onClick)="onPickDir()" severity="secondary"
+                             icon="pi pi-file"
                              [model]="items" />
             }
           </div>
