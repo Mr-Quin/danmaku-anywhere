@@ -64,13 +64,11 @@ export class FileTree {
   private parentMap = new WeakMap<FileTreeNode, FileTreeNode | null>()
   private flatFileNodes: FileTreeNode[] = []
 
-  private constructor(private readonly roots: FileTreeNode[]) {
+  constructor(private roots: FileTreeNode[] = []) {
     this.buildIndexes()
   }
 
-  static async fromDirectory(
-    settings: DirectoryHandleSetting
-  ): Promise<FileTree> {
+  async addDirectory(settings: DirectoryHandleSetting): Promise<void> {
     const root: FileTreeNode = {
       key: settings.handle.name,
       label: settings.handle.name,
@@ -81,11 +79,11 @@ export class FileTree {
       icon: 'pi pi-folder',
     }
 
-    async function walk(
+    const walk = async (
       dir: FileSystemDirectoryHandle,
       parent: FileTreeNode,
       basePath: string
-    ): Promise<void> {
+    ): Promise<void> => {
       for await (const entry of dir.values()) {
         const key = `${basePath}/${entry.name}`
         if (entry.kind === 'directory') {
@@ -123,10 +121,11 @@ export class FileTree {
 
     await walk(settings.handle, root, '')
     pruneEmpty(root)
-    return new FileTree([root])
+    this.roots = [...this.roots, root]
+    this.buildIndexes()
   }
 
-  static fromFiles(filesLike: FileList | File[]): FileTree {
+  addFiles(filesLike: FileList | File[]): void {
     const toArray = Array.from(filesLike as unknown as File[])
 
     type SyntheticEntry = {
@@ -187,7 +186,15 @@ export class FileTree {
       })
     }
 
-    return new FileTree(root.children ?? [])
+    if (root.children) {
+      this.roots = [...this.roots, ...root.children]
+    }
+    this.buildIndexes()
+  }
+
+  clear(): void {
+    this.roots = []
+    this.buildIndexes()
   }
 
   getNodes(): FileTreeNode[] {
@@ -232,7 +239,9 @@ export class FileTree {
       }
     }
 
-    for (const root of this.roots) visit(root, null)
+    for (const root of this.roots) {
+      visit(root, null)
+    }
   }
 
   private indexOf(node: FileTreeNode): number {

@@ -1,12 +1,12 @@
 import { computed, Injectable, inject, signal } from '@angular/core'
 import { ConfirmationService, MessageService } from 'primeng/api'
 import { serializeError } from '../../../../shared/utils/serializeError'
-import { supportsFilesystemApi } from '../util/supports-filesystem-api'
 import {
   FileTree,
   type FileTreeNode,
   type TreeNodeInfo,
-} from '../util/tree-node'
+} from '../util/file-tree'
+import { supportsFilesystemApi } from '../util/supports-filesystem-api'
 import { LocalHandleDbService } from './local-handle-db.service'
 
 @Injectable({ providedIn: 'root' })
@@ -18,15 +18,16 @@ export class LocalPlayerService {
   private objectUrlToRevoke: string | null = null
   private isInit = true
 
-  private $fileTree = signal<FileTree | null>(null)
+  private readonly fileTree = new FileTree([])
+
+  private $treeVersion = signal(0)
   $nodes = computed(() => {
-    const tree = this.$fileTree()
-    if (!tree) return null
-    return tree.getNodes()
+    this.$treeVersion()
+    return this.fileTree.getNodes()
   })
   $hasNodes = computed(() => {
     const nodes = this.$nodes()
-    return nodes && nodes.length > 0
+    return nodes.length > 0
   })
 
   $nodeInfo = signal<TreeNodeInfo | null>(null)
@@ -57,8 +58,8 @@ export class LocalPlayerService {
   }
 
   async addFiles(files: FileList) {
-    const tree = FileTree.fromFiles(files)
-    void this.$fileTree.set(tree)
+    this.fileTree.addFiles(files)
+    this.bumpTree()
   }
 
   async removeAllDirectories() {
@@ -67,27 +68,15 @@ export class LocalPlayerService {
   }
 
   expandAll() {
-    const tree = this.$fileTree()
-    if (!tree) {
-      return
-    }
-    tree.expandAll()
+    this.fileTree.expandAll()
   }
 
   collapseAll() {
-    const tree = this.$fileTree()
-    if (!tree) {
-      return
-    }
-    tree.collapseAll()
+    this.fileTree.collapseAll()
   }
 
   async loadNode(node: FileTreeNode) {
-    const tree = this.$fileTree()
-    if (!tree) {
-      return
-    }
-    const nodeInfo = tree.getInfo(node)
+    const nodeInfo = this.fileTree.getInfo(node)
     this.$nodeInfo.set(nodeInfo)
     this.$isLoading.set(true)
     try {
@@ -113,9 +102,8 @@ export class LocalPlayerService {
   }
 
   async onPrevious() {
-    const tree = this.$fileTree()
     const info = this.$nodeInfo()
-    if (!info || !tree) {
+    if (!info) {
       return
     }
     const prev = info.prevNode
@@ -126,9 +114,8 @@ export class LocalPlayerService {
   }
 
   async onNext() {
-    const tree = this.$fileTree()
     const info = this.$nodeInfo()
-    if (!info || !tree) {
+    if (!info) {
       return
     }
     const next = info.nextNode
@@ -141,27 +128,26 @@ export class LocalPlayerService {
   private async invalidateDirectories() {
     try {
       if (!supportsFilesystemApi()) return
-      const [handleSettings] = await this.localHandleDbService.getAllHandles()
-      if (!handleSettings) {
-        this.$fileTree.set(null)
-        return
-      }
-      // check permission, request for permission if not granted
-      // biome-ignore lint/suspicious/noExplicitAny: api not typed yet
-      const perm = await (handleSettings.handle as any).queryPermission({
-        mode: 'read',
-      })
-      if (perm !== 'granted') {
+      const handleSettingsList = await this.localHandleDbService.getAllHandles()
+      this.fileTree.clear()
+      for (const setting of handleSettingsList) {
+        // check permission, request for permission if not granted
         // biome-ignore lint/suspicious/noExplicitAny: api not typed yet
-        const status = await (handleSettings.handle as any).requestPermission({
+        const perm = await (setting.handle as any).queryPermission({
           mode: 'read',
         })
-        if (status !== 'granted') {
-          return
+        if (perm !== 'granted') {
+          // biome-ignore lint/suspicious/noExplicitAny: api not typed yet
+          const status = await (setting.handle as any).requestPermission({
+            mode: 'read',
+          })
+          if (status !== 'granted') {
+            continue
+          }
         }
+        await this.fileTree.addDirectory(setting)
       }
-      const tree = await FileTree.fromDirectory(handleSettings)
-      this.$fileTree.set(tree)
+      this.bumpTree()
     } catch (e) {
       this.messageService.add({
         severity: 'error',
@@ -180,9 +166,14 @@ export class LocalPlayerService {
     this.isInit = false
     const existing = await this.localHandleDbService.getAllHandles()
     if (existing.length > 0) {
+      const names: string[] = []
+      for (const s of existing) {
+        names.push(s.handle.name)
+      }
+      const msg = names.join(', ')
       this.confirmationService.confirm({
         header: '是否恢复上次打开的文件夹？',
-        message: existing.map((s) => s.handle.name).join(', '),
+        message: msg,
         closable: false,
         acceptButtonProps: {
           label: '恢复',
@@ -206,7 +197,7 @@ export class LocalPlayerService {
     if (this.objectUrlToRevoke) {
       URL.revokeObjectURL(this.objectUrlToRevoke)
     }
-    if (file.type.includes('matroska')) {
+    if (file.type.indexOf('matroska') !== -1) {
       this.messageService.add({
         severity: 'error',
         summary: '暂不支持播放mkv文件',
@@ -217,5 +208,9 @@ export class LocalPlayerService {
     const url = URL.createObjectURL(file)
     this.objectUrlToRevoke = url
     return url
+  }
+
+  private bumpTree(): void {
+    this.$treeVersion.update((v) => v + 1)
   }
 }

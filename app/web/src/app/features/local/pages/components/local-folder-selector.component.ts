@@ -16,8 +16,8 @@ import { TrackingService } from '../../../../core/tracking.service'
 import { serializeError } from '../../../../shared/utils/serializeError'
 import { DuplicateHandleException } from '../services/duplicate-handle.exception'
 import { LocalPlayerService } from '../services/local-player.service'
+import type { FileTreeNode } from '../util/file-tree'
 import { supportsFilesystemApi } from '../util/supports-filesystem-api'
-import type { FileTreeNode } from '../util/tree-node'
 
 @Component({
   selector: 'da-local-folder-selector',
