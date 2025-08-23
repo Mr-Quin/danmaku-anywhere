@@ -99,11 +99,6 @@ export class UpdateService {
 
   async activateUpdate(): Promise<void> {
     this.$_showUpdateBanner.set(false)
-    try {
-      await this.swUpdate.activateUpdate()
-    } catch (error) {
-      this.trackingService.track('activateUpdateError', { error })
-    }
     document.location.reload()
   }
 
