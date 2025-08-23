@@ -7,7 +7,10 @@ import {
   type TreeNodeInfo,
 } from '../util/file-tree'
 import { supportsFilesystemApi } from '../util/supports-filesystem-api'
-import { LocalHandleDbService } from './local-handle-db.service'
+import {
+  type DirectoryHandleSetting,
+  LocalHandleDbService,
+} from './local-handle-db.service'
 
 @Injectable({ providedIn: 'root' })
 export class LocalPlayerService {
@@ -166,31 +169,35 @@ export class LocalPlayerService {
     this.isInit = false
     const existing = await this.localHandleDbService.getAllHandles()
     if (existing.length > 0) {
-      const names: string[] = []
-      for (const s of existing) {
-        names.push(s.handle.name)
+      try {
+        await this.invalidateDirectories()
+      } catch {
+        // some browsers require user action when requesting permission for handles
+        this.promptRestoration(existing)
       }
-      const msg = names.join(', ')
-      this.confirmationService.confirm({
-        header: '是否恢复上次打开的文件夹？',
-        message: msg,
-        closable: false,
-        acceptButtonProps: {
-          label: '恢复',
-          severity: 'primary',
-        },
-        rejectButtonProps: {
-          label: '清空',
-          severity: 'secondary',
-        },
-        accept: () => {
-          this.invalidateDirectories()
-        },
-        reject: () => {
-          this.removeAllDirectories()
-        },
-      })
     }
+  }
+
+  private promptRestoration(directoryHandles: DirectoryHandleSetting[]): void {
+    this.confirmationService.confirm({
+      header: '是否恢复上次打开的文件夹？',
+      message: directoryHandles.map((s) => s.handle.name).join(', '),
+      closable: false,
+      acceptButtonProps: {
+        label: '恢复',
+        severity: 'primary',
+      },
+      rejectButtonProps: {
+        label: '清空',
+        severity: 'secondary',
+      },
+      accept: () => {
+        void this.invalidateDirectories()
+      },
+      reject: () => {
+        void this.removeAllDirectories()
+      },
+    })
   }
 
   private async createUrl(file: File): Promise<string> {
@@ -200,7 +207,7 @@ export class LocalPlayerService {
     if (file.type.indexOf('matroska') !== -1) {
       this.messageService.add({
         severity: 'error',
-        summary: '暂不支持播放mkv文件',
+        summary: '播放MKV文件请使用Chrome',
         closable: true,
         life: 3000,
       })

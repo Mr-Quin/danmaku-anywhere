@@ -79,7 +79,7 @@ import { supportsFilesystemApi } from '../util/supports-filesystem-api'
             </ng-template>
           </p-tree>
         }
-        <input #fileInput type="file" multiple class="hidden" (change)="onFilesInput($event)" />
+        <input #fileInput type="file" webkitdirectory directory class="hidden" (change)="onFilesInput($event)" />
       </div>
     </p-card>
   `,

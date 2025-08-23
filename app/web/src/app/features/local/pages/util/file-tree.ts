@@ -125,8 +125,8 @@ export class FileTree {
     this.buildIndexes()
   }
 
-  addFiles(filesLike: FileList | File[]): void {
-    const toArray = Array.from(filesLike as unknown as File[])
+  addFiles(files: FileList): void {
+    const toArray = Array.from(files)
 
     type SyntheticEntry = {
       name: string

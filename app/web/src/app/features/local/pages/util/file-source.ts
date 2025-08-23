@@ -3,9 +3,7 @@ export interface FileSource {
 }
 
 export class HandleFileSource implements FileSource {
-  private readonly handle: FileSystemFileHandle
-
-  constructor(handle: FileSystemFileHandle) {
+  constructor(private readonly handle: FileSystemFileHandle) {
     this.handle = handle
   }
 
@@ -15,9 +13,7 @@ export class HandleFileSource implements FileSource {
 }
 
 export class InlineFileSource implements FileSource {
-  private readonly file: File
-
-  constructor(file: File) {
+  constructor(private readonly file: File) {
     this.file = file
   }
 
