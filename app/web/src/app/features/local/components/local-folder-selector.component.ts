@@ -10,6 +10,7 @@ import {
 import { MessageService, PrimeTemplate } from 'primeng/api'
 import { Button } from 'primeng/button'
 import { Card } from 'primeng/card'
+import { SplitButton } from 'primeng/splitbutton'
 import { Tooltip } from 'primeng/tooltip'
 import { Tree } from 'primeng/tree'
 import { PlatformService } from '../../../core/services/platform.service'
@@ -23,7 +24,15 @@ import { supportsFilesystemApi } from '../util/supports-filesystem-api'
 @Component({
   selector: 'da-local-folder-selector',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, Card, Button, Tree, PrimeTemplate, Tooltip],
+  imports: [
+    CommonModule,
+    Card,
+    Button,
+    Tree,
+    PrimeTemplate,
+    Tooltip,
+    SplitButton,
+  ],
   styleUrl: './local-folder-selector.component.css',
   template: `
     <p-card>
@@ -44,16 +53,16 @@ import { supportsFilesystemApi } from '../util/supports-filesystem-api'
           </div>
           <div>
             @if (supportsFsApi && !isMobileEdge) {
-              <p-button label="添加文件夹" (onClick)="onPickDir()" severity="secondary" icon="pi pi-folder" />
+              <p-splitbutton label="添加文件夹" (onClick)="onPickFilesystemDir()" severity="secondary"
+                             icon="pi pi-folder" [model]="items" />
             } @else {
-              <p-button label="添加文件" (onClick)="onPickFiles()" severity="secondary" icon="pi pi-file" />
+              <p-splitbutton label="添加文件夹" (onClick)="onPickDir()" severity="secondary" icon="pi pi-file"
+                             [model]="items" />
             }
           </div>
         </div>
         @let nodes = $nodes();
-        @if (!nodes) {
-          <div class="text-center">拖拽文件/文件夹到此处，或点击上方按钮选择</div>
-        } @else if (nodes.length === 0) {
+        @if (nodes.length === 0) {
           <div class="text-center">没有找到可播放的视频文件</div>
         } @else {
           <p-tree
@@ -81,7 +90,9 @@ import { supportsFilesystemApi } from '../util/supports-filesystem-api'
             </ng-template>
           </p-tree>
         }
-        <input #fileInput type="file" webkitdirectory directory class="hidden" (change)="onFilesInput($event)" />
+        <input #dirInput type="file" webkitdirectory directory class="hidden" (change)="onFileInput($event)" />
+        <input #fileInput type="file" multiple accept="video/mp4,video/x-m4v,video/*,.mkv" class="hidden"
+               (change)="onFileInput($event)" />
       </div>
     </p-card>
   `,
@@ -93,9 +104,10 @@ export class LocalFolderSelectorComponent {
   private readonly platformService = inject(PlatformService)
 
   protected readonly supportsFsApi = supportsFilesystemApi()
-  readonly isMobileEdge =
-    this.platformService.platform.EDGE && this.platformService.isMobile
+  readonly isMobileEdge = this.platformService.platform.EDGE
 
+  private $dirInputRef =
+    viewChild.required<ElementRef<HTMLInputElement>>('dirInput')
   private $fileInputRef =
     viewChild.required<ElementRef<HTMLInputElement>>('fileInput')
 
@@ -105,7 +117,31 @@ export class LocalFolderSelectorComponent {
 
   readonly fileSelected = output<FileTreeNode>()
 
-  async onPickDir() {
+  readonly items = this.supportsFsApi
+    ? [
+        {
+          label: '添加文件夹（备选）',
+          command: () => {
+            this.onPickDir()
+          },
+        },
+        {
+          label: '添加文件',
+          command: () => {
+            this.onPickFile()
+          },
+        },
+      ]
+    : [
+        {
+          label: '添加文件',
+          command: () => {
+            this.onPickFile()
+          },
+        },
+      ]
+
+  async onPickFilesystemDir() {
     try {
       const dir = await window.showDirectoryPicker()
       await this.localPlayerService.addDirectory(dir)
@@ -132,17 +168,21 @@ export class LocalFolderSelectorComponent {
     }
   }
 
-  onPickFiles() {
+  onPickDir() {
+    this.$dirInputRef().nativeElement.click()
+  }
+
+  onPickFile() {
     this.$fileInputRef().nativeElement.click()
   }
 
-  onFilesInput(event: Event) {
+  onFileInput(event: Event) {
     const input = event.target as HTMLInputElement
     const files = input.files
     if (!files || files.length === 0) {
       return
     }
-    this.localPlayerService.addFiles(files)
+    void this.localPlayerService.addFiles(files)
     input.value = ''
   }
 

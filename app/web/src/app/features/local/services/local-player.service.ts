@@ -1,5 +1,6 @@
 import { computed, Injectable, inject, signal } from '@angular/core'
 import { ConfirmationService, MessageService } from 'primeng/api'
+import { PlatformService } from '../../../core/services/platform.service'
 import { TrackingService } from '../../../core/tracking.service'
 import { serializeError } from '../../../shared/utils/serializeError'
 import {
@@ -16,6 +17,7 @@ export class LocalPlayerService {
   private readonly messageService = inject(MessageService)
   private readonly confirmationService = inject(ConfirmationService)
   private readonly trackingService = inject(TrackingService)
+  private readonly platformService = inject(PlatformService)
 
   private objectUrlToRevoke: string | null = null
   private isInit = true
@@ -207,7 +209,10 @@ export class LocalPlayerService {
     if (this.objectUrlToRevoke) {
       URL.revokeObjectURL(this.objectUrlToRevoke)
     }
-    if (file.type.indexOf('matroska') !== -1) {
+    if (
+      file.type.indexOf('matroska') !== -1 &&
+      this.platformService.platform.FIREFOX
+    ) {
       this.messageService.add({
         severity: 'error',
         summary: '播放MKV文件请使用Chrome',
