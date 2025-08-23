@@ -1,16 +1,17 @@
 import { Injectable } from '@angular/core'
 import Dexie, { type Table } from 'dexie'
+import { DuplicateHandleException } from './duplicate-handle.exception'
 
 const DB_NAME = 'da-local-player'
 const STORE_NAME = 'handles'
 
-interface HandleSetting {
+export interface DirectoryHandleSetting {
   handle: FileSystemDirectoryHandle
   key: string
 }
 
 class LocalPlayerDb extends Dexie {
-  handles!: Table<HandleSetting, string>
+  handles!: Table<DirectoryHandleSetting, string>
 
   constructor() {
     super(DB_NAME)
@@ -24,7 +25,7 @@ class LocalPlayerDb extends Dexie {
     return this.handles.put({ key, handle })
   }
 
-  async getAllHandles(): Promise<HandleSetting[]> {
+  async getAllHandles(): Promise<DirectoryHandleSetting[]> {
     return this.handles.toArray()
   }
 
@@ -47,19 +48,25 @@ class LocalPlayerDb extends Dexie {
 export class LocalHandleDbService {
   private readonly db = new LocalPlayerDb()
 
-  async saveHandle(handle: FileSystemDirectoryHandle): Promise<void> {
+  async saveHandle(
+    handle: FileSystemDirectoryHandle
+  ): Promise<DirectoryHandleSetting> {
     const key = crypto.randomUUID()
     if (await this.db.hasHandle(handle)) {
-      throw new Error(`${handle} already exists`)
+      throw new DuplicateHandleException(`${handle} already exists`)
     }
     await this.db.setHandle(key, handle)
+    return {
+      key,
+      handle,
+    }
   }
 
   async removeHandle(key: string): Promise<void> {
     await this.db.removeHandle(key)
   }
 
-  async getAllHandles(): Promise<HandleSetting[]> {
+  async getAllHandles(): Promise<DirectoryHandleSetting[]> {
     return this.db.getAllHandles()
   }
 }

@@ -5,20 +5,24 @@ import {
   type ElementRef,
   inject,
   output,
-  ViewChild,
+  viewChild,
 } from '@angular/core'
-import { MessageService, type TreeNode } from 'primeng/api'
+import { MessageService, PrimeTemplate } from 'primeng/api'
 import { Button } from 'primeng/button'
 import { Card } from 'primeng/card'
+import { Tooltip } from 'primeng/tooltip'
 import { Tree } from 'primeng/tree'
+import { TrackingService } from '../../../../core/tracking.service'
+import { DuplicateHandleException } from '../services/duplicate-handle.exception'
 import { LocalPlayerService } from '../services/local-player.service'
 import { supportsFileSystemApi } from '../util/supportsFileSystemApi'
-import { FileTree } from '../util/tree-node'
+import { FileTree, type FileTreeNode } from '../util/tree-node'
 
 @Component({
   selector: 'da-local-folder-selector',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, Card, Button, Tree],
+  imports: [CommonModule, Card, Button, Tree, PrimeTemplate, Tooltip],
+  styleUrl: './local-folder-selector.component.css',
   template: `
     <p-card>
       <div
@@ -29,15 +33,19 @@ import { FileTree } from '../util/tree-node'
         <div class="mb-4 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <h3 class="font-bold">文件树</h3>
+            @if ($hasNodes()) {
+              <div>
+                <p-button (onClick)="expandAll()" text severity="secondary" icon="pi pi-angle-down" />
+                <p-button (onClick)="collapseAll()" text severity="secondary" icon="pi pi-angle-up" />
+              </div>
+            }
           </div>
-          <div class="flex items-center gap-2">
+          <div>
             @if (supportsFsApi) {
-              <p-button label="添加文件夹" (onClick)="onPick()" severity="secondary" icon="pi pi-folder" />
+              <p-button label="添加文件夹" (onClick)="onPickDir()" severity="secondary" icon="pi pi-folder" />
             } @else {
               <p-button label="选择文件" (onClick)="onPickFiles()" severity="secondary" icon="pi pi-file" />
             }
-            <p-button label="展开全部" (onClick)="expandAll()" text />
-            <p-button label="折叠全部" (onClick)="collapseAll()" text />
           </div>
         </div>
         @let nodes = $nodes();
@@ -50,11 +58,26 @@ import { FileTree } from '../util/tree-node'
             [value]="$nodes()"
             selectionMode="single"
             (onNodeSelect)="onNodeSelect($event)"
+            [selection]="$selectedNode()"
             [filter]="true"
             filterPlaceholder="过滤"
             class="flex-1 overflow-y-auto"
             styleClass="p-0"
-          />
+          >
+            <ng-template let-node pTemplate="topLevelDirectory">
+              <div class="flex justify-between items-center">
+              <span [pTooltip]="node.label" tooltipPosition="top" [showDelay]="1000">{{ node.label }}
+              </span>
+                <p-button variant="text" severity="secondary" icon="pi pi-trash" (onClick)="onRemoveNode(node)" />
+              </div>
+            </ng-template>
+            <ng-template let-node pTemplate="directory">
+              <span [pTooltip]="node.label" tooltipPosition="top" [showDelay]="1000">{{ node.label }}</span>
+            </ng-template>
+            <ng-template let-node pTemplate="file">
+              <span [pTooltip]="node.label" tooltipPosition="top">{{ node.label }}</span>
+            </ng-template>
+          </p-tree>
         }
         <input #fileInput type="file" multiple class="hidden" (change)="onFilesInput($event)" />
       </div>
@@ -64,37 +87,45 @@ import { FileTree } from '../util/tree-node'
 export class LocalFolderSelectorComponent {
   private readonly localPlayerService = inject(LocalPlayerService)
   private readonly messageService = inject(MessageService)
-  protected supportsFsApi = supportsFileSystemApi()
+  private readonly trackingService = inject(TrackingService)
 
-  @ViewChild('fileInput') private fileInputRef!: ElementRef<HTMLInputElement>
+  protected readonly supportsFsApi = supportsFileSystemApi()
+
+  private $fileInputRef =
+    viewChild.required<ElementRef<HTMLInputElement>>('fileInput')
 
   protected $nodes = this.localPlayerService.$nodes
+  protected $hasNodes = this.localPlayerService.$hasNodes
+  protected $selectedNode = this.localPlayerService.$selectedNode
 
-  readonly directorySelected = output<FileSystemDirectoryHandle>()
-  readonly fileSelected = output<FileSystemFileHandle>()
+  readonly fileSelected = output<FileTreeNode>()
 
-  async onPick() {
+  async onPickDir() {
     try {
       const dir = await window.showDirectoryPicker()
-      await this.localPlayerService.onAddDirectory(dir)
+      await this.localPlayerService.addDirectory(dir)
     } catch (e) {
-      if (e instanceof Error) {
+      this.trackingService.track('pickDirError', e as object)
+      if (e instanceof DuplicateHandleException) {
         this.messageService.add({
           severity: 'error',
-          summary: '此文件夹已经添加',
-          detail: '已经添加过这个文件夹了',
+          summary: '已经添加过这个文件夹了',
           closable: true,
           life: 3000,
-          key: 'dir-pick-error',
+        })
+      } else {
+        this.messageService.add({
+          severity: 'error',
+          summary: '添加文件夹失败',
+          closable: true,
+          life: 3000,
         })
       }
-      //
     }
   }
 
   onPickFiles() {
-    const el = this.fileInputRef?.nativeElement
-    if (el) el.click()
+    this.$fileInputRef().nativeElement.click()
   }
 
   onFilesInput(event: Event) {
@@ -102,24 +133,32 @@ export class LocalFolderSelectorComponent {
     const files = input.files
     if (!files || files.length === 0) return
     const tree = FileTree.fromFiles(files)
-    this.$nodes.set(tree.getNodes())
     void this.localPlayerService.onFilesTreeChanged(tree)
     input.value = ''
   }
 
-  onNodeSelect(event: { node: TreeNode }) {
+  onNodeSelect(event: { node: FileTreeNode }) {
     const node = event.node
-    if (node && node.leaf && node.data && typeof node.data === 'object') {
-      const maybeHandle = (node.data as { handle?: FileSystemFileHandle })
-        .handle
-      if (maybeHandle) {
-        this.fileSelected.emit(maybeHandle)
-      }
-    }
+    void this.localPlayerService.loadNode(node)
   }
 
   onDragOver(event: DragEvent) {
     event.preventDefault()
+  }
+
+  onRemoveNode(node: FileTreeNode) {
+    if (node.data?.key === undefined) {
+      this.messageService.add({
+        severity: 'error',
+        summary: '移除失败',
+        detail: '请刷新页面',
+        closable: true,
+        life: 3000,
+        key: 'dir-delete-error',
+      })
+      return
+    }
+    void this.localPlayerService.removeDirectory(node.data.key)
   }
 
   onDrop(event: DragEvent) {
@@ -128,47 +167,16 @@ export class LocalFolderSelectorComponent {
       const files = event.dataTransfer.files
       if (files && files.length > 0) {
         const tree = FileTree.fromFiles(files)
-        this.$nodes.set(tree.getNodes())
         void this.localPlayerService.onFilesTreeChanged(tree)
       }
     }
   }
 
   expandAll() {
-    const nodes = this.$nodes()
-    if (nodes) {
-      this.$nodes.set(setExpanded(cloneNodes(nodes), true))
-    }
+    this.localPlayerService.expandAll()
   }
 
   collapseAll() {
-    const nodes = this.$nodes()
-    if (nodes) {
-      this.$nodes.set(setExpanded(cloneNodes(nodes), false))
-    }
+    this.localPlayerService.collapseAll()
   }
-}
-
-function cloneNodes(nodes: TreeNode[]): TreeNode[] {
-  return nodes.map((n) => ({
-    ...n,
-    children: n.children ? cloneNodes(n.children) : undefined,
-  }))
-}
-
-function setExpandedOnNode(node: TreeNode, expanded: boolean) {
-  if (node.type === 'directory') {
-    node.expanded = expanded
-    if (node.children)
-      node.children.forEach((c) => {
-        setExpandedOnNode(c, expanded)
-      })
-  }
-}
-
-function setExpanded(nodes: TreeNode[], expanded: boolean): TreeNode[] {
-  nodes.forEach((n) => {
-    setExpandedOnNode(n, expanded)
-  })
-  return nodes
 }

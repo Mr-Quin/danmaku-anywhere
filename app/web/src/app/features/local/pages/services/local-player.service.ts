@@ -1,44 +1,41 @@
 import { computed, effect, Injectable, inject, signal } from '@angular/core'
-import type { TreeNode } from 'primeng/api'
 import { supportsFileSystemApi } from '../util/supportsFileSystemApi'
-import { FileTree } from '../util/tree-node'
+import {
+  FileTree,
+  type FileTreeNode,
+  type TreeNodeInfo,
+} from '../util/tree-node'
 import { LocalHandleDbService } from './local-handle-db.service'
 
 @Injectable({ providedIn: 'root' })
 export class LocalPlayerService {
-  $directoryHandle = signal<FileSystemDirectoryHandle | null>(null)
-  $directoryName = computed(() => this.$directoryHandle()?.name ?? '')
-  $nodes = signal<TreeNode[] | null>(null)
-  $fileTree = signal<FileTree | null>(null)
-  $selectedIndex = signal<number | null>(null)
-  $selectedNode = computed(() => {
-    const index = this.$selectedIndex()
+  private objectUrlToRevoke: string | null = null
+  private readonly localHandleDbService = inject(LocalHandleDbService)
+
+  private $fileTree = signal<FileTree | null>(null)
+  $nodes = computed(() => {
     const tree = this.$fileTree()
-    if (!tree || index === null) return null
-    const list = tree.getFileNodes()
-    if (index < 0 || index >= list.length) return null
-    return list[index]
+    if (!tree) return null
+    return tree.getNodes()
   })
+  $hasNodes = computed(() => {
+    const nodes = this.$nodes()
+    return nodes && nodes.length > 0
+  })
+
+  $nodeInfo = signal<TreeNodeInfo | null>(null)
+  $selectedNode = computed(() => {
+    const nodeInfo = this.$nodeInfo()
+    if (!nodeInfo) return null
+    return nodeInfo.node
+  })
+
+  $hasSelection = computed(() => this.$nodeInfo() !== null)
+  $showOverlay = computed(() => this.$isLoading() || !this.$hasSelection())
+
   $videoUrl = signal<string | undefined>(undefined)
   $isLoading = signal(false)
   $error = signal<string | null>(null)
-
-  private objectUrlToRevoke: string | null = null
-
-  $hasSelection = computed(() => this.$selectedIndex() !== null)
-  $showOverlay = computed(() => this.$isLoading() || !this.$hasSelection())
-  $title = computed(() => this.$selectedNode()?.label ?? '')
-  $hasPrevious = computed(() => {
-    const idx = this.$selectedIndex()
-    return idx !== null && idx > 0
-  })
-  $hasNext = computed(() => {
-    const idx = this.$selectedIndex()
-    const total = this.$fileTree()?.getFileNodes().length ?? 0
-    return idx !== null && idx < total - 1
-  })
-
-  private localHandleDbService = inject(LocalHandleDbService)
 
   constructor() {
     effect(() => {
@@ -55,78 +52,76 @@ export class LocalPlayerService {
   async restorePersistedDirectory() {
     try {
       if (!supportsFileSystemApi()) return
-      const handles = await this.localHandleDbService.getAllHandles()
-      const [{ handle }] = handles
-      if (!handle) {
+      const [handleSettings] = await this.localHandleDbService.getAllHandles()
+      if (!handleSettings) {
+        this.$fileTree.set(null)
         return
       }
       // check permission, request for permission if not granted
       // biome-ignore lint/suspicious/noExplicitAny: api not typed yet
-      const perm = await (handle as any).queryPermission({
+      const perm = await (handleSettings.handle as any).queryPermission({
         mode: 'read',
       })
       if (perm !== 'granted') {
         // biome-ignore lint/suspicious/noExplicitAny: api not typed yet
-        const status = await (handle as any).requestPermission({
+        const status = await (handleSettings.handle as any).requestPermission({
           mode: 'read',
         })
         if (status !== 'granted') {
           return
         }
       }
-      this.$directoryHandle.set(handle)
-      const tree = await FileTree.fromDirectory(handle)
-      this.$nodes.set(tree.getNodes())
+      const tree = await FileTree.fromDirectory(handleSettings)
       this.$fileTree.set(tree)
     } catch {
       // ignore
     }
   }
 
-  async onAddDirectory(handle: FileSystemDirectoryHandle) {
-    this.$directoryHandle.set(handle)
-    this.$nodes.set(null)
-    this.$fileTree.set(null)
-    this.$selectedIndex.set(null)
+  async addDirectory(handle: FileSystemDirectoryHandle) {
     await this.localHandleDbService.saveHandle(handle)
-    const tree = await FileTree.fromDirectory(handle)
-    this.$nodes.set(tree.getNodes())
-    this.$fileTree.set(tree)
-    const list = tree.getFileNodes()
-    if (list.length > 0) await this.loadByIndex(0)
+    await this.restorePersistedDirectory()
+  }
+
+  async removeDirectory(key: string) {
+    await this.localHandleDbService.removeHandle(key)
+    await this.restorePersistedDirectory()
   }
 
   async onFilesTreeChanged(tree: FileTree) {
-    this.$directoryHandle.set(null)
     this.$fileTree.set(tree)
-    this.$nodes.set(tree.getNodes())
-    const list = tree.getFileNodes()
-    if (list.length > 0) await this.loadByIndex(0)
   }
 
-  async onFileHandleSelected(handle: FileSystemFileHandle) {
+  expandAll() {
     const tree = this.$fileTree()
-    if (!tree) return
-    const node = tree.findNodeByHandle(handle)
-    if (!node) return
-    const index = tree.indexOf(node)
-    if (index !== -1) await this.loadByIndex(index)
+    if (!tree) {
+      return
+    }
+    tree.expandAll()
   }
 
-  async loadByIndex(index: number) {
+  collapseAll() {
     const tree = this.$fileTree()
-    if (!tree) return
-    const list = tree.getFileNodes()
-    if (index < 0 || index >= list.length) return
-    this.$selectedIndex.set(index)
+    if (!tree) {
+      return
+    }
+    tree.collapseAll()
+  }
+
+  async loadNode(node: FileTreeNode) {
+    const tree = this.$fileTree()
+    if (!tree) {
+      return
+    }
+    const nodeInfo = tree.getInfo(node)
+    this.$nodeInfo.set(nodeInfo)
     this.$isLoading.set(true)
     try {
-      const node = list[index]
-      const fileHandle = tree.getHandle(node)
-      if (!fileHandle) return
-      const file = await fileHandle.getFile()
-      const url = URL.createObjectURL(file)
-      this.objectUrlToRevoke = url
+      const fileHandle = node.data?.handle
+      if (!fileHandle || !(fileHandle instanceof FileSystemFileHandle)) {
+        return
+      }
+      const url = await this.createUrl(fileHandle)
       this.$videoUrl.set(url)
     } finally {
       this.$isLoading.set(false)
@@ -134,13 +129,38 @@ export class LocalPlayerService {
   }
 
   async onPrevious() {
-    const idx = this.$selectedIndex()
-    if (idx !== null && idx > 0) await this.loadByIndex(idx - 1)
+    const tree = this.$fileTree()
+    const info = this.$nodeInfo()
+    if (!info || !tree) {
+      return
+    }
+    const prev = info.prevNode
+    if (!prev) {
+      return
+    }
+    await this.loadNode(prev)
   }
 
   async onNext() {
-    const idx = this.$selectedIndex()
-    const total = this.$fileTree()?.getFileNodes().length ?? 0
-    if (idx !== null && idx < total - 1) await this.loadByIndex(idx + 1)
+    const tree = this.$fileTree()
+    const info = this.$nodeInfo()
+    if (!info || !tree) {
+      return
+    }
+    const next = info.nextNode
+    if (!next) {
+      return
+    }
+    await this.loadNode(next)
+  }
+
+  private async createUrl(fileHandle: FileSystemFileHandle): Promise<string> {
+    if (this.objectUrlToRevoke) {
+      URL.revokeObjectURL(this.objectUrlToRevoke)
+    }
+    const file = await fileHandle.getFile()
+    const url = URL.createObjectURL(file)
+    this.objectUrlToRevoke = url
+    return url
   }
 }

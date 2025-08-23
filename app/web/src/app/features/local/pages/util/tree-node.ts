@@ -1,4 +1,5 @@
 import type { TreeNode } from 'primeng/api'
+import type { DirectoryHandleSetting } from '../services/local-handle-db.service'
 
 const playableExtensions = new Set<string>([
   '.mp4',
@@ -10,16 +11,26 @@ const playableExtensions = new Set<string>([
   '.avi',
 ])
 
-export type FileTreeNode = TreeNode<{ handle: FileSystemHandle }>
+export type FileTreeNode = TreeNode<{ handle: FileSystemHandle; key?: string }>
 
-export function isPlayableFileName(name: string): boolean {
+export interface TreeNodeInfo {
+  node: FileTreeNode
+  name: string
+  handle: FileSystemHandle | null
+  hasPrev: boolean
+  hasNext: boolean
+  prevNode: FileTreeNode | null
+  nextNode: FileTreeNode | null
+}
+
+function isPlayableFileName(name: string): boolean {
   const lower = name.toLowerCase()
   const dotIndex = lower.lastIndexOf('.')
   const ext = dotIndex >= 0 ? lower.slice(dotIndex) : ''
   return playableExtensions.has(ext)
 }
 
-function pruneEmpty(node: TreeNode): void {
+function pruneEmpty(node: FileTreeNode): void {
   if (!node.children) {
     return
   }
@@ -30,6 +41,19 @@ function pruneEmpty(node: TreeNode): void {
     }
     return true
   })
+}
+
+function setExpanded(nodes: TreeNode[], expanded: boolean): TreeNode[] {
+  nodes.forEach((n) => {
+    if (!n.leaf) {
+      n.expanded = expanded
+      if (n.children)
+        n.children.forEach((c) => {
+          setExpanded([c], expanded)
+        })
+    }
+  })
+  return nodes
 }
 
 export class FileTree {
@@ -44,12 +68,13 @@ export class FileTree {
   }
 
   static async fromDirectory(
-    handle: FileSystemDirectoryHandle
+    settings: DirectoryHandleSetting
   ): Promise<FileTree> {
     const root: FileTreeNode = {
-      key: handle.name,
-      label: handle.name,
-      type: 'directory',
+      key: settings.handle.name,
+      label: settings.handle.name,
+      type: 'topLevelDirectory',
+      data: settings,
       children: [],
       selectable: false,
       icon: 'pi pi-folder',
@@ -96,7 +121,7 @@ export class FileTree {
       }
     }
 
-    await walk(handle, root, '')
+    await walk(settings.handle, root, '')
     pruneEmpty(root)
     return new FileTree([root])
   }
@@ -172,6 +197,41 @@ export class FileTree {
     return new FileTree(root.children ?? [])
   }
 
+  getNodes(): FileTreeNode[] {
+    return this.roots
+  }
+
+  getParent(node: FileTreeNode): FileTreeNode | null {
+    return this.parentMap.get(node) ?? null
+  }
+
+  getFileNodes(): FileTreeNode[] {
+    return this.flatFileNodes
+  }
+
+  getInfo(node: FileTreeNode): TreeNodeInfo {
+    const prevNode = this.prevOf(node)
+    const nextNode = this.nextOf(node)
+
+    return {
+      node,
+      name: node.label ?? '',
+      handle: node.data?.handle ?? null,
+      hasPrev: prevNode !== null,
+      hasNext: nextNode !== null,
+      prevNode,
+      nextNode,
+    }
+  }
+
+  expandAll() {
+    setExpanded(this.roots, true)
+  }
+
+  collapseAll() {
+    setExpanded(this.roots, false)
+  }
+
   private buildIndexes() {
     this.parentMap = new WeakMap<FileTreeNode, FileTreeNode | null>()
     this.handleToNode = new WeakMap<FileSystemHandle, FileTreeNode>()
@@ -197,32 +257,11 @@ export class FileTree {
     for (const root of this.roots) visit(root, null)
   }
 
-  getNodes(): FileTreeNode[] {
-    return this.roots
-  }
-
-  getParent(node: FileTreeNode): FileTreeNode | null {
-    return this.parentMap.get(node) ?? null
-  }
-
-  getFileNodes(): FileTreeNode[] {
-    return this.flatFileNodes
-  }
-
-  getHandle(node: FileTreeNode): FileSystemFileHandle | null {
-    const data = node.data as { handle?: FileSystemFileHandle } | undefined
-    return data?.handle ?? null
-  }
-
-  findNodeByHandle(handle: FileSystemFileHandle): FileTreeNode | undefined {
-    return this.handleToNode.get(handle)
-  }
-
-  indexOf(node: FileTreeNode): number {
+  private indexOf(node: FileTreeNode): number {
     return this.flatFileNodes.indexOf(node)
   }
 
-  nextOf(node: FileTreeNode): FileTreeNode | null {
+  private nextOf(node: FileTreeNode): FileTreeNode | null {
     const idx = this.indexOf(node)
     if (idx === -1) return null
     return idx < this.flatFileNodes.length - 1
@@ -230,7 +269,7 @@ export class FileTree {
       : null
   }
 
-  prevOf(node: FileTreeNode): FileTreeNode | null {
+  private prevOf(node: FileTreeNode): FileTreeNode | null {
     const idx = this.indexOf(node)
     if (idx <= 0) return null
     return this.flatFileNodes[idx - 1]
