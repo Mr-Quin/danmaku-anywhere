@@ -16,11 +16,13 @@ import { provideServiceWorker } from '@angular/service-worker'
 import { definePreset } from '@primeng/themes'
 import Aura from '@primeng/themes/aura'
 import { provideQueryClient } from '@tanstack/angular-query-experimental'
-import { MessageService } from 'primeng/api'
+import { ConfirmationService, MessageService } from 'primeng/api'
 import { providePrimeNG } from 'primeng/config'
 import { routes } from './app.routes'
 import { ExtensionService } from './core/extension/extension.service'
+import { TitleService } from './core/services/title.service'
 import { TrackingService } from './core/tracking.service'
+import { UpdateService } from './core/update/update.service'
 import { queryClient } from './shared/query/queryClient'
 
 const preset = definePreset(Aura, {
@@ -67,7 +69,10 @@ export const appConfig: ApplicationConfig = {
         },
       },
     }),
+    UpdateService,
+    TitleService,
     MessageService,
+    ConfirmationService,
     provideAppInitializer(async () => {
       const trackingService = inject(TrackingService)
       trackingService.init()

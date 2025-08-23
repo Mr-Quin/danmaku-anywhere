@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import { RouterOutlet } from '@angular/router'
+import { ConfirmDialog } from 'primeng/confirmdialog'
 import { ScrollTop } from 'primeng/scrolltop'
 import { Toast } from 'primeng/toast'
-import { TitleService } from '../../core/services/title.service'
-import { UpdateService } from '../../core/update/update.service'
+import { PlatformService } from '../../core/services/platform.service'
 import { NoExtensionPage } from '../../features/no-extension/no-extension-page'
 import { Settings } from '../../features/settings/settings.component'
 import { LayoutService } from '../layout.service'
@@ -25,10 +25,12 @@ import { UpdateBanner } from './update-banner.component'
     ScrollTop,
     Settings,
     NoExtensionPage,
+    ConfirmDialog,
   ],
   template: `
-    <p-toast position="bottom-center" />
+    <p-toast [position]="platformService.isMobile ? 'top-center' : 'bottom-center'" />
     <da-update-banner></da-update-banner>
+    <p-confirmDialog />
 
     <div class="flex flex-col min-h-screen">
       <da-app-bar></da-app-bar>
@@ -51,10 +53,6 @@ import { UpdateBanner } from './update-banner.component'
   `,
 })
 export class Layout {
-  protected layoutService = inject(LayoutService)
-
-  constructor() {
-    inject(UpdateService)
-    inject(TitleService)
-  }
+  readonly platformService = inject(PlatformService)
+  readonly layoutService = inject(LayoutService)
 }

@@ -1,0 +1,7 @@
+::ng-deep .p-tree-node-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-grow: 1;
+  margin-left: 4px;
+}

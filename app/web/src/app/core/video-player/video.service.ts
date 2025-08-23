@@ -1,6 +1,14 @@
-import { computed, type ElementRef, Injectable, signal } from '@angular/core'
+import {
+  computed,
+  type ElementRef,
+  Injectable,
+  inject,
+  signal,
+} from '@angular/core'
 import Artplayer from 'artplayer'
 import type { ComponentOption } from 'artplayer/types/component'
+import { MessageService } from 'primeng/api'
+import { serializeError } from '../../shared/utils/serializeError'
 
 export interface VideoPlayerConfig {
   url: string
@@ -43,6 +51,8 @@ const defaultPlayerState = {
   providedIn: 'root',
 })
 export class VideoService {
+  private readonly messageService = inject(MessageService)
+
   private layers: ComponentOption[] = []
   private layerNames = new Set<string>()
   private controls: ComponentOption[] = []
@@ -236,6 +246,16 @@ export class VideoService {
 
     player.on('fullscreenWeb', (isFullscreenWeb: boolean) => {
       this.updateState({ isFullscreenWeb })
+    })
+
+    player.on('error', (e: unknown) => {
+      this.messageService.add({
+        severity: 'error',
+        summary: '视频加载错误',
+        detail: serializeError(e),
+        closable: false,
+        life: 3000,
+      })
     })
   }
 

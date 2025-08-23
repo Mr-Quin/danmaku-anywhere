@@ -1,4 +1,3 @@
-import { Platform } from '@angular/cdk/platform'
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import { FaIconComponent } from '@fortawesome/angular-fontawesome'
 import { faChrome, faFirefoxBrowser } from '@fortawesome/free-brands-svg-icons'
@@ -47,7 +46,6 @@ import { ExternalLinkDirective } from '../../shared/directives/external-link.dir
 })
 export class NoExtensionPage {
   private trackingService = inject(TrackingService)
-  private platform = inject(Platform)
   private ua = UAParser(navigator.userAgent)
 
   protected extensionService = inject(ExtensionService)
@@ -62,8 +60,6 @@ export class NoExtensionPage {
   protected isChromium = isChromeFamily(this.ua)
   protected isFirefox =
     this.ua.browser.name?.toLowerCase().includes('firefox') ?? false
-
-  protected isMobile = this.platform.IOS || this.platform.ANDROID
 
   protected onDownloadClick(target: string) {
     this.trackingService.track('clickDownloadExtension', {
