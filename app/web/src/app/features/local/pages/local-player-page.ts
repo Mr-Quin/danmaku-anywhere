@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common'
 import {
+  type AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -53,20 +54,19 @@ import { LocalPlayerService } from './services/local-player.service'
         </da-video-player>
 
         <div class="flex flex-col gap-4">
-          <da-local-folder-selector          />
+          <da-local-folder-selector />
         </div>
-        
+
       </div>
     </div>
   `,
 })
-export class LocalPlayerPage {
+export class LocalPlayerPage implements AfterViewInit {
   private titleService = inject(Title)
   private localPlayerService = inject(LocalPlayerService)
 
   protected $videoUrl = this.localPlayerService.$videoUrl
   protected $isLoading = this.localPlayerService.$isLoading
-  protected $error = this.localPlayerService.$error
   protected $hasSelection = this.localPlayerService.$hasSelection
   protected $showOverlay = this.localPlayerService.$showOverlay
   protected $nodeInfo = this.localPlayerService.$nodeInfo
@@ -84,6 +84,10 @@ export class LocalPlayerPage {
         : 'Danmaku Anywhere'
       this.titleService.setTitle(pageTitle)
     })
+  }
+
+  ngAfterViewInit(): void {
+    void this.localPlayerService.checkPersistence()
   }
 
   protected onPrevious() {

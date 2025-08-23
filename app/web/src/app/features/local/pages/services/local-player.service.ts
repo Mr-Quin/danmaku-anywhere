@@ -46,11 +46,6 @@ export class LocalPlayerService {
   $isLoading = signal(false)
 
   $showOverlay = computed(() => this.$isLoading() || !this.$hasSelection())
-  $error = signal<string | null>(null)
-
-  constructor() {
-    void this.checkPersistence()
-  }
 
   async addDirectory(handle: FileSystemDirectoryHandle) {
     await this.localHandleDbService.saveHandle(handle)
@@ -164,7 +159,7 @@ export class LocalPlayerService {
     }
   }
 
-  private async checkPersistence(): Promise<void> {
+  async checkPersistence(): Promise<void> {
     if (!this.isInit) {
       return
     }
