@@ -45,7 +45,7 @@ export const useLLMLogger = factory.createMiddleware(async (c, next) => {
     return
   }
   const output = await c.res.clone().json()
-  console.log('[LLM Output]', await c.res.clone().json())
+  console.log('[LLM Output]', output)
   Sentry.addBreadcrumb({
     category: 'llm.output',
     message: 'Send LLM output',
