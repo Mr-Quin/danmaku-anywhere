@@ -71,7 +71,7 @@
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "2.0.2",
-    "@types/chrome": "^0.1.4",
+    "@types/chrome": "^0.0.326",
     "@types/react": "^19.1.11",
     "@types/react-dom": "^19.1.7",
     "@types/wicg-file-system-access": "^2023.10.6",
