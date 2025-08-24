@@ -19,11 +19,22 @@ export const setContext = () =>
     if (id) {
       context.set('extensionId', id)
     }
+    const cf = context.req.raw.cf
+
+    if (cf) {
+      Sentry.setTags({
+        colo: cf.colo as string,
+        asn: cf.asn as string,
+      })
+    }
+
     Sentry.setUser({
       id,
       ip_address: context.req.header('CF-Connecting-IP'),
       geo: {
-        country_code: context.req.header('Cf-Ipcountry'),
+        country_code: cf?.country as string,
+        region: cf?.region as string,
+        city: cf?.city as string,
       },
     })
     return next()
