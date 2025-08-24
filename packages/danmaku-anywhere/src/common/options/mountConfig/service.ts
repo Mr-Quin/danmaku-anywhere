@@ -45,17 +45,6 @@ const mountConfigOptions = new OptionsService<MountConfig[]>(
         })
       ),
   })
-  .version(5, {
-    upgrade: (data: PrevOptions) =>
-      data.map((config: PrevOptions) =>
-        produce(config, (draft: PrevOptions) => {
-          // Ensure permissive flag exists and defaults to false
-          if (typeof (draft as any).permissive === 'undefined') {
-            ;(draft as any).permissive = false
-          }
-        })
-      ),
-  })
 
 class MountConfigService {
   public readonly options = mountConfigOptions

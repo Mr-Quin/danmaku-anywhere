@@ -9,7 +9,6 @@ export const createMountConfig = (url: string): MountConfigInput => {
     patterns: [url],
     mediaQuery: '',
     enabled: true,
-    permissive: false,
     name: '',
     integration: undefined,
   }
@@ -17,9 +16,7 @@ export const createMountConfig = (url: string): MountConfigInput => {
 
 export const defaultMountConfig: MountConfig[] = defaultMountConfigJson.map(
   (config) => {
-    // Ensure permissive flag exists in defaults
-    const c = config as Partial<MountConfig>
-    return { ...(c as MountConfig), permissive: c.permissive ?? false }
+    return config as MountConfig
   }
 )
 

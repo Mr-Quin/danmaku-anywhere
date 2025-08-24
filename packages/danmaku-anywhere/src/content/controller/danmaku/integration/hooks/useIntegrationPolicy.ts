@@ -1,11 +1,10 @@
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { AI_BLACKLIST_PATTERNS } from '@/common/constants'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { Logger } from '@/common/Logger'
-import { matchUrl } from '@/common/utils/matchUrl'
+import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
 import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
@@ -54,28 +53,21 @@ export const useIntegrationPolicy = () => {
   }, [integrationPolicy])
 
   useEffect(() => {
-    const url = typeof window !== 'undefined' ? window.location.href : ''
-    const isBlacklisted = AI_BLACKLIST_PATTERNS.some((p) => matchUrl(url, p))
-    const isPermissive = !!activeConfig?.permissive
-
-    if (
-      !videoId ||
-      !integrationPolicy ||
-      isManual ||
-      isBlacklisted ||
-      isPermissive
-    ) {
+    if (!videoId || !activeConfig || !integrationPolicy || isManual) {
       if (observer.current) {
         Logger.debug('Destroying integration observer')
         observer.current?.destroy()
         observer.current = undefined
         deactivate()
       }
-      if (isBlacklisted) {
-        toast.info(t('integration.alert.aiDisabledByBlacklist'))
-      } else if (isPermissive) {
-        toast.info(t('integration.alert.aiDisabledByPermissive'))
-      }
+      return
+    }
+
+    if (
+      isConfigPermissive(activeConfig) &&
+      integrationPolicy.policy.options.useAI
+    ) {
+      toast.warn(t('integration.alert.aiDisabledTooPermissive'))
       return
     }
 
@@ -159,5 +151,5 @@ export const useIntegrationPolicy = () => {
     return () => {
       observer.current?.reset()
     }
-  }, [integrationPolicy, isManual, videoId, activeConfig?.permissive])
+  }, [activeConfig, integrationPolicy, isManual, videoId])
 }

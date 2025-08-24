@@ -1,4 +1,3 @@
-import { Logger } from '@/common/Logger'
 // TODO: URLPattern is not available in Firefox yet
 import 'urlpattern-polyfill'
 
@@ -11,8 +10,7 @@ export const matchUrl = (url: string, pattern: string) => {
   try {
     const urlPattern = new URLPattern(pattern)
     return urlPattern.test(url)
-  } catch (e) {
-    Logger.error(e)
+  } catch {
     return false
   }
 }
