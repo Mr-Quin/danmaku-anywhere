@@ -47,10 +47,6 @@ const common = {
 }
 
 const domain = {
-  contextMenu: {
-    addMountConfig: '为当前站点添加配置',
-    toggleMountConfig: '装填配置：{{name}}',
-  },
   anime: {
     episode: '集',
     episode_one: '集',

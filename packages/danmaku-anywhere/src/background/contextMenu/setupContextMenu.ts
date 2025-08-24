@@ -1,8 +1,6 @@
 import { match } from 'ts-pattern'
 
 import { Logger } from '@/common/Logger'
-import enTranslation from '@/common/localization/en/translation'
-import zhTranslation from '@/common/localization/zh/translation'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { createMountConfig } from '@/common/options/mountConfig/constant'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
@@ -104,12 +102,6 @@ export const setupContextMenu = () => {
 
 const matchedConfigByTabId = new Map<number, MountConfig>()
 
-const getMenuStrings = async () => {
-  const { lang } = await extensionOptionsService.get()
-  const dict = lang === 'zh' ? zhTranslation : enTranslation
-  return dict
-}
-
 const rebuildDynamicMenus = async (tabId: number, url: string) => {
   // Remove previous dynamic items if any
   await tryCatch(async () =>
@@ -121,7 +113,6 @@ const rebuildDynamicMenus = async (tabId: number, url: string) => {
 
   if (!url) return
 
-  const strings = await getMenuStrings()
   const configs = await mountConfigService.getAll()
 
   const matched = findMatchingConfig(configs, url)
@@ -132,19 +123,19 @@ const rebuildDynamicMenus = async (tabId: number, url: string) => {
       id: ContextMenuId.TOGGLE_CONFIG,
       type: 'checkbox',
       checked: matched.enabled,
-      title: strings.contextMenu?.toggleMountConfig
-        ? strings.contextMenu.toggleMountConfig.replace(
-            '{{name}}',
-            matched.name || ''
-          )
-        : `Mount Config: ${matched.name || ''}`,
+      title: chrome.i18n.getMessage(
+        'menuToggleMountConfig',
+        matched.name || ''
+      ),
       contexts: ['action', 'page', 'video'],
     })
   } else {
     matchedConfigByTabId.delete(tabId)
     chrome.contextMenus.create({
       id: ContextMenuId.ADD_CONFIG,
-      title: strings.contextMenu?.addMountConfig ?? 'Add Config for this site',
+      title:
+        chrome.i18n.getMessage('menuAddMountConfig') ||
+        'Add Config for this site',
       contexts: ['action', 'page', 'video'],
     })
   }
