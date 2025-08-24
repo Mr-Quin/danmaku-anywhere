@@ -285,6 +285,11 @@ const pages = {
       },
       macCms: {
         baseUrl: 'API Base URL',
+        stripColor: 'Remove danmaku color',
+        help: {
+          stripColor:
+            'Danmaku from this source has random colors, enable this option to set all danmaku to white.',
+        },
       },
     },
     retentionPolicy: {

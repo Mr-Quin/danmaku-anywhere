@@ -1,5 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { debounce, TextField } from '@mui/material'
+import {
+  Checkbox,
+  debounce,
+  FormControl,
+  FormControlLabel,
+  FormHelperText,
+  TextField,
+} from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { produce } from 'immer'
 import { useEffect } from 'react'
@@ -54,6 +61,7 @@ export const MacCmsOptions = () => {
         isDirty: true,
         isValid: true,
       },
+      name: ['custom.stripColor', 'custom.baseUrl'],
       callback: ({ isDirty, isValid }) => {
         if (!isDirty || !isValid) {
           return
@@ -68,20 +76,52 @@ export const MacCmsOptions = () => {
   }, [subscribe])
 
   return (
-    <Controller
-      name="custom.baseUrl"
-      control={control}
-      render={({ field }) => {
-        return (
-          <TextField
-            {...field}
-            fullWidth
-            label={t('optionsPage.danmakuSource.macCms.baseUrl')}
-            error={!!errors.custom?.baseUrl}
-            helperText={errors.custom?.baseUrl?.message}
-          />
-        )
-      }}
-    />
+    <>
+      <Controller
+        name="custom.baseUrl"
+        control={control}
+        render={({ field }) => {
+          return (
+            <TextField
+              {...field}
+              fullWidth
+              label={t('optionsPage.danmakuSource.macCms.baseUrl')}
+              error={!!errors.custom?.baseUrl}
+              helperText={errors.custom?.baseUrl?.message}
+            />
+          )
+        }}
+      />
+      <FormControl>
+        <FormControlLabel
+          control={
+            <Controller
+              name="custom.stripColor"
+              control={control}
+              render={({ field: { value, ref, ...field } }) => {
+                return (
+                  <Checkbox
+                    {...field}
+                    slotProps={{
+                      input: {
+                        ref,
+                      },
+                    }}
+                    checked={value}
+                    color="primary"
+                  />
+                )
+              }}
+            />
+          }
+          label={t('optionsPage.danmakuSource.macCms.stripColor')}
+          labelPlacement="start"
+          sx={{ m: 0, alignSelf: 'start', color: 'text.secondary' }}
+        />
+        <FormHelperText>
+          {t('optionsPage.danmakuSource.macCms.help.stripColor')}
+        </FormHelperText>
+      </FormControl>
+    </>
   )
 }

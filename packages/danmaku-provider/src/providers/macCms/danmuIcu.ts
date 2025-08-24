@@ -46,5 +46,6 @@ export const zDanmuIcuDanmaku = z
     ),
   })
   .transform((data): CommentEntity[] => {
+    // the danmaku list often has extra items in the beginning, use slice to remove them
     return data.danmuku.slice(-data.danum)
   })
