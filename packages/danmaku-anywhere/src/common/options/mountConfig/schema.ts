@@ -30,6 +30,10 @@ export const mountConfigInputSchema = z.object({
    */
   enabled: z.boolean(),
   /**
+   * Whether patterns are deemed too permissive and AI should be disabled
+   */
+  permissive: z.boolean().optional().default(false),
+  /**
    * The name of the config
    * Should be unique
    */

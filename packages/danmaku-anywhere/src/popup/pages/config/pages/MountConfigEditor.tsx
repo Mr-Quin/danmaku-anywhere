@@ -1,5 +1,6 @@
 import { AddCircleOutline, RemoveCircleOutline } from '@mui/icons-material'
 import {
+  Alert,
   Box,
   Button,
   Checkbox,
@@ -131,6 +132,11 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
       />
       <Box p={2} component="form" onSubmit={handleSubmit(handleSave)}>
         <Stack direction="column" spacing={2} alignItems="flex-start">
+          {config.permissive && (
+            <Alert severity="warning" sx={{ width: 1 }}>
+              {t('configPage.editor.permissiveWarning')}
+            </Alert>
+          )}
           <TextField
             label={t('configPage.editor.name')}
             size="small"

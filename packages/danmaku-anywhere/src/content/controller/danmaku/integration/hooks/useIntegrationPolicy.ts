@@ -1,9 +1,12 @@
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { AI_BLACKLIST_PATTERNS } from '@/common/constants'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { Logger } from '@/common/Logger'
+import { matchUrl } from '@/common/utils/matchUrl'
+import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
@@ -34,6 +37,7 @@ export const useIntegrationPolicy = () => {
   const { loadMutation, mountDanmaku } = useLoadDanmaku()
 
   const integrationPolicy = useActiveIntegration()
+  const activeConfig = useActiveConfig()
 
   useEffect(() => {
     if (!integrationPolicy) {
@@ -50,12 +54,27 @@ export const useIntegrationPolicy = () => {
   }, [integrationPolicy])
 
   useEffect(() => {
-    if (!videoId || !integrationPolicy || isManual) {
+    const url = typeof window !== 'undefined' ? window.location.href : ''
+    const isBlacklisted = AI_BLACKLIST_PATTERNS.some((p) => matchUrl(url, p))
+    const isPermissive = !!activeConfig?.permissive
+
+    if (
+      !videoId ||
+      !integrationPolicy ||
+      isManual ||
+      isBlacklisted ||
+      isPermissive
+    ) {
       if (observer.current) {
         Logger.debug('Destroying integration observer')
         observer.current?.destroy()
         observer.current = undefined
         deactivate()
+      }
+      if (isBlacklisted) {
+        toast.info(t('integration.alert.aiDisabledByBlacklist'))
+      } else if (isPermissive) {
+        toast.info(t('integration.alert.aiDisabledByPermissive'))
       }
       return
     }
@@ -140,5 +159,5 @@ export const useIntegrationPolicy = () => {
     return () => {
       observer.current?.reset()
     }
-  }, [integrationPolicy, isManual, videoId])
+  }, [integrationPolicy, isManual, videoId, activeConfig?.permissive])
 }
