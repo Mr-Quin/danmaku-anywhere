@@ -45,6 +45,10 @@ const common = {
 }
 
 const domain = {
+  contextMenu: {
+    addMountConfig: 'Add Config for this site',
+    toggleMountConfig: 'Mount Config: {{name}}',
+  },
   anime: {
     episode: 'Episode',
     episode_one: 'Episode',
