@@ -4,6 +4,7 @@ import {
   GoogleGenerativeAIFetchError,
 } from '@google/generative-ai'
 import { zValidator } from '@hono/zod-validator'
+import * as Sentry from '@sentry/cloudflare'
 import type { MiddlewareHandler } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 import { z } from 'zod'
@@ -32,10 +33,24 @@ type ExtractInput<T> = T extends MiddlewareHandler<infer _, infer __, infer I>
 export type ExtractTitleInput = ExtractInput<typeof validateTitleInput>
 
 export const useLLMLogger = factory.createMiddleware(async (c, next) => {
-  console.log('[LLM Input]', await c.req.text())
+  const input = await c.req.text()
+  console.log('[LLM Input]', input)
+  Sentry.addBreadcrumb({
+    category: 'llm.input',
+    message: 'Received LLM input',
+    data: { input },
+  })
   await next()
-  if (!c.res || c.res.status !== 200) return
-  console.log('[LLM Output]', await c.res.clone().json())
+  if (!c.res || c.res.status !== 200) {
+    return
+  }
+  const output = await c.res.clone().json()
+  console.log('[LLM Output]', output)
+  Sentry.addBreadcrumb({
+    category: 'llm.output',
+    message: 'Send LLM output',
+    data: { output },
+  })
 })
 
 const interactWithGemini = async (

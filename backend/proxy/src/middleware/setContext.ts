@@ -18,7 +18,13 @@ export const setContext = () =>
     }
     if (id) {
       context.set('extensionId', id)
-      Sentry.setUser({ id })
     }
+    Sentry.setUser({
+      id,
+      ip_address: context.req.header('CF-Connecting-IP'),
+      geo: {
+        country_code: context.req.header('Cf-Ipcountry'),
+      },
+    })
     return next()
   })
