@@ -35,11 +35,23 @@ export const searchMacCmsVod = async (
 }
 
 export const fetchDanmuIcuComments = async (
-  videoUrl: string
+  videoUrl: string,
+  stripColor: boolean
 ): Promise<z.infer<typeof zDanmuIcuDanmaku>> => {
   const url = withQuery('https://api.danmu.icu', '/', {
     ac: 'dm',
     url: videoUrl,
   })
-  return fetchJson(url, zDanmuIcuDanmaku)
+  const comments = await fetchJson(url, zDanmuIcuDanmaku)
+  if (stripColor) {
+    // set color to white if stripColor is true
+    return comments.map((c) => {
+      const [time, mode] = c.p.split(',')
+      return {
+        ...c,
+        p: [time, mode, '16777215'].join(','),
+      }
+    })
+  }
+  return comments
 }

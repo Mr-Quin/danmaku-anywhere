@@ -283,6 +283,11 @@ const pages = {
       },
       macCms: {
         baseUrl: 'API地址',
+        stripColor: '去除弹幕颜色',
+        help: {
+          stripColor:
+            '此方式获取的弹幕带有随机颜色，启用此选项将弹幕设定为白色',
+        },
       },
     },
     retentionPolicy: {

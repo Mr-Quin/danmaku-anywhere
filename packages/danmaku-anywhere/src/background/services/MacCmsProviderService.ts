@@ -5,6 +5,7 @@ import {
   searchMacCmsVod,
 } from '@danmaku-anywhere/danmaku-provider/maccms'
 import { Logger } from '@/common/Logger'
+import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { DanmakuService } from './DanmakuService'
 
@@ -50,7 +51,11 @@ export class MacCmsProviderService {
   }
 
   async fetchDanmakuForUrl(title: string, url: string) {
-    const comments = await fetchDanmuIcuComments(url)
+    const options = await extensionOptionsService.get()
+    const comments = await fetchDanmuIcuComments(
+      url,
+      options.danmakuSources.custom.stripColor
+    )
     return this.danmakuService.importCustom({ title, comments })
   }
 }

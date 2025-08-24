@@ -145,7 +145,7 @@ export const extensionOptionsService = new OptionsService(
         draft.danmakuSources.custom = {
           enabled: true,
           baseUrl: 'https://zy.xmm.hk',
-        }
+        } as any
       }),
   })
   .version(17, {
@@ -153,5 +153,12 @@ export const extensionOptionsService = new OptionsService(
       produce<ExtensionOptions>(data, (draft) => {
         // Add matchLocalDanmaku
         draft.matchLocalDanmaku = true
+      }),
+  })
+  .version(18, {
+    upgrade: (data: PrevOptions) =>
+      produce<ExtensionOptions>(data, (draft) => {
+        // Add stripColor
+        draft.danmakuSources.custom.stripColor = true
       }),
   })
