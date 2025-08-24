@@ -50,6 +50,7 @@ export const defaultExtensionOptions: ExtensionOptions = {
     custom: {
       enabled: true,
       baseUrl: 'https://zy.xmm.hk',
+      stripColor: false,
     },
   },
   playerOptions: {

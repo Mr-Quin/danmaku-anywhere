@@ -1,4 +1,5 @@
 import { Box, Divider, List, Typography } from '@mui/material'
+import { Fragment } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { ExternalLink } from '@/common/components/ExternalLink'
 import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
@@ -99,10 +100,9 @@ export const DanmakuSource = () => {
         {sourcesList.map(({ key, options, provider }) => {
           const section = renderSection(key)
           return (
-            <>
+            <Fragment key={key}>
               <Divider />
               <ToggleListItemButton
-                key={key}
                 enabled={options.enabled}
                 onToggle={(checked) => {
                   void toggle(key, checked)
@@ -115,7 +115,7 @@ export const DanmakuSource = () => {
                   {section}
                 </Box>
               ) : null}
-            </>
+            </Fragment>
           )
         })}
       </List>
