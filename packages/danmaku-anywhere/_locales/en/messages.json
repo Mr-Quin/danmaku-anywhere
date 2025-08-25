@@ -8,7 +8,10 @@
   "menuAddMountConfig": {
     "message": "Add Config for this site"
   },
-  "menuToggleMountConfig": {
-    "message": "Mount Config: $1"
+  "menuEnableMountConfig": {
+    "message": "Enable Config: $1"
+  },
+  "menuDisableMountConfig": {
+    "message": "Disable Config: $1"
   }
 }

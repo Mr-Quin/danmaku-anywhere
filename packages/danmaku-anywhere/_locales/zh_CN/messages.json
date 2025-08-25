@@ -8,7 +8,10 @@
   "menuAddMountConfig": {
     "message": "为当前站点添加配置"
   },
-  "menuToggleMountConfig": {
-    "message": "装填配置：$1"
+  "menuEnableMountConfig": {
+    "message": "启用配置：$1"
+  },
+  "menuDisableMountConfig": {
+    "message": "禁用配置：$1"
   }
 }
