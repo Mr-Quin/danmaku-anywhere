@@ -2,7 +2,6 @@ import type {
   MountConfig,
   MountConfigInput,
 } from '@/common/options/mountConfig/schema'
-import defaultMountConfigJson from './default.json' with { type: 'json' }
 
 export const createMountConfig = (url: string): MountConfigInput => {
   return {
@@ -14,10 +13,6 @@ export const createMountConfig = (url: string): MountConfigInput => {
   }
 }
 
-export const defaultMountConfig: MountConfig[] = defaultMountConfigJson.map(
-  (config) => {
-    return config as MountConfig
-  }
-)
+export const defaultMountConfig: MountConfig[] = []
 
 Object.freeze(defaultMountConfig)
