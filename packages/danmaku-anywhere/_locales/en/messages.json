@@ -4,5 +4,14 @@
   },
   "extDescription": {
     "message": "A browser extension that injects danmaku (bullet comments) into any website with a video player."
+  },
+  "menuAddMountConfig": {
+    "message": "Add Config for this site"
+  },
+  "menuEnableMountConfig": {
+    "message": "Enable Config: $1"
+  },
+  "menuDisableMountConfig": {
+    "message": "Disable Config: $1"
   }
 }
