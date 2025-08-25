@@ -1,8 +1,10 @@
 import { AddCircleOutline, RemoveCircleOutline } from '@mui/icons-material'
 import {
+  Alert,
   Box,
   Button,
   Checkbox,
+  Collapse,
   FormControl,
   FormControlLabel,
   FormHelperText,
@@ -12,11 +14,12 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
+import { useEffect, useState } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
+import { isPatternPermissive } from '@/common/options/mountConfig/isPermissive'
 import type { MountConfigInput } from '@/common/options/mountConfig/schema'
 import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { validateOrigin } from '@/common/utils/utils'
@@ -57,6 +60,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
   const { t } = useTranslation()
   const { update, create } = useEditMountConfig()
   const { policies } = useIntegrationPolicyStore()
+  const [isPermissive, setIsPermissive] = useState(false)
   const goBack = useGoBack()
 
   const isEdit = mode === 'edit'
@@ -66,6 +70,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
     handleSubmit,
     control,
     register,
+    subscribe,
     reset: resetForm,
     formState: { errors, isSubmitting },
   } = useForm<MountConfigForm>({
@@ -78,6 +83,25 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
   })
 
   const toast = useToast.use.toast()
+
+  useEffect(() => {
+    return subscribe({
+      formState: {
+        values: true,
+      },
+      callback: ({ values }) => {
+        if (
+          values.patterns.some((p) => {
+            return isPatternPermissive(p.value)
+          })
+        ) {
+          setIsPermissive(true)
+        } else {
+          setIsPermissive(false)
+        }
+      },
+    })
+  }, [subscribe, setIsPermissive])
 
   const addPatternField = () => {
     append({ value: '' })
@@ -131,6 +155,11 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
       />
       <Box p={2} component="form" onSubmit={handleSubmit(handleSave)}>
         <Stack direction="column" spacing={2} alignItems="flex-start">
+          <Collapse in={isPermissive} sx={{ width: 1 }}>
+            <Alert severity="warning">
+              {t('configPage.editor.tooPermissive')}
+            </Alert>
+          </Collapse>
           <TextField
             label={t('configPage.editor.name')}
             size="small"

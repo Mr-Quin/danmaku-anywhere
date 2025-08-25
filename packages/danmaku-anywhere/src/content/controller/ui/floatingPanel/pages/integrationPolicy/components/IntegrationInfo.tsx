@@ -1,8 +1,10 @@
 import { CheckOutlined, CloseOutlined } from '@mui/icons-material'
-import { Box, Divider, Icon, Stack, Typography } from '@mui/material'
+import { Alert, Box, Divider, Icon, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
 import { FancyTypography } from '@/common/components/FancyTypography'
+import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
+import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useStore } from '@/content/controller/store/store'
 import { IntegrationControl } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/IntegrationControl'
@@ -31,6 +33,26 @@ export const IntegrationInfo = () => {
     useStore.use.integration()
 
   const activeIntegration = useActiveIntegration()
+  const activeConfig = useActiveConfig()
+
+  const disableAi = activeConfig ? isConfigPermissive(activeConfig) : false
+
+  const renderAiStatus = () => {
+    if (disableAi) {
+      return (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          {t('integrationPolicyPage.aiDisabledTooPermissive')}
+        </Alert>
+      )
+    }
+    return (
+      <StatusIndicator
+        text={t('integrationPolicyPage.aiParsing')}
+        active={!!mediaInfo}
+        fancy
+      />
+    )
+  }
 
   return (
     <Box height={1}>
@@ -46,11 +68,7 @@ export const IntegrationInfo = () => {
       {activeIntegration && (
         <div>
           {activeIntegration.policy.options.useAI ? (
-            <StatusIndicator
-              text={t('integrationPolicyPage.aiParsing')}
-              active={!!mediaInfo}
-              fancy
-            />
+            renderAiStatus()
           ) : (
             <>
               <StatusIndicator

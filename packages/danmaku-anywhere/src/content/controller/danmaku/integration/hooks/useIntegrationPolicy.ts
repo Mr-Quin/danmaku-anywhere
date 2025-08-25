@@ -4,6 +4,8 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { Logger } from '@/common/Logger'
+import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
+import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
@@ -34,6 +36,7 @@ export const useIntegrationPolicy = () => {
   const { loadMutation, mountDanmaku } = useLoadDanmaku()
 
   const integrationPolicy = useActiveIntegration()
+  const activeConfig = useActiveConfig()
 
   useEffect(() => {
     if (!integrationPolicy) {
@@ -50,13 +53,21 @@ export const useIntegrationPolicy = () => {
   }, [integrationPolicy])
 
   useEffect(() => {
-    if (!videoId || !integrationPolicy || isManual) {
+    if (!videoId || !activeConfig || !integrationPolicy || isManual) {
       if (observer.current) {
         Logger.debug('Destroying integration observer')
         observer.current?.destroy()
         observer.current = undefined
         deactivate()
       }
+      return
+    }
+
+    if (
+      isConfigPermissive(activeConfig) &&
+      integrationPolicy.policy.options.useAI
+    ) {
+      toast.warn(t('integration.alert.aiDisabledTooPermissive'))
       return
     }
 
@@ -140,5 +151,5 @@ export const useIntegrationPolicy = () => {
     return () => {
       observer.current?.reset()
     }
-  }, [integrationPolicy, isManual, videoId])
+  }, [activeConfig, integrationPolicy, isManual, videoId])
 }

@@ -129,6 +129,8 @@ const domain = {
       openSearch: 'Open search page',
       usingAI: 'Using AI to parse show information',
       AIResult: 'AI Parsing Result: {{title}}',
+      aiDisabledTooPermissive:
+        'AI is disabled because the match pattern is too permissive',
     },
     type: {
       None: 'None',
@@ -170,6 +172,8 @@ const pages = {
         edit: 'Edit {{name}}',
       },
       urlPatterns: 'URL Patterns',
+      tooPermissive:
+        "The match patterns are too permissive, it's recommended to use narrower patterns.",
     },
     import: {
       name: 'Import Config',
@@ -194,6 +198,8 @@ const pages = {
     integrationActive: 'Active',
     integrationInactive: 'Inactive',
     aiParsing: 'AI Parsing',
+    aiDisabledTooPermissive:
+      'AI is disabled because the match pattern is too permissive. Please use narrower match pattern or configure XPath integration.',
     editor: {
       name: 'Name',
       titleSection: 'Select Title',

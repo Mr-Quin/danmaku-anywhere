@@ -134,6 +134,7 @@ const domain = {
       openSearch: '打开搜索页面',
       usingAI: '正在使用AI解析',
       AIResult: 'AI解析结果：{{title}}',
+      aiDisabledTooPermissive: 'AI已禁用：匹配模式过于宽松',
     },
   },
   danmakuSource: {
@@ -171,6 +172,7 @@ const pages = {
         edit: '编辑{{name}}',
       },
       urlPatterns: 'URL 模式',
+      tooPermissive: '匹配模式过于宽松，建议设置更具体的匹配模式',
     },
     import: {
       name: '导入配置',
@@ -194,6 +196,8 @@ const pages = {
     integrationActive: '运行中',
     integrationInactive: '未运行',
     aiParsing: 'AI解析',
+    aiDisabledTooPermissive:
+      '由于匹配模式过于宽松已禁用AI。请调整匹配模式或使用XPath匹配规则',
     editor: {
       name: '名称',
       titleSection: '匹配标题',
