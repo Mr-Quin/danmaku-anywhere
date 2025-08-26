@@ -60,12 +60,19 @@ const interactWithGemini = async (
   generationConfig: GenerationConfig
 ) => {
   const GEMINI_API_KEY = await env.DANMAKU_GEMINI_API_KEY.get()
+  const DA_AI_GATEWAY_NAME = await env.DA_AI_GATEWAY_NAME.get()
+  const DA_AI_GATEWAY_ID = await env.DA_AI_GATEWAY_ID.get()
   const genAI = new GoogleGenerativeAI(GEMINI_API_KEY)
 
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash',
-    systemInstruction,
-  })
+  const model = genAI.getGenerativeModel(
+    {
+      model: 'gemini-2.0-flash',
+      systemInstruction,
+    },
+    {
+      baseUrl: `https://gateway.ai.cloudflare.com/v1/${DA_AI_GATEWAY_ID}/${DA_AI_GATEWAY_NAME}/google-ai-studio`,
+    }
+  )
 
   const session = model.startChat({
     generationConfig,
