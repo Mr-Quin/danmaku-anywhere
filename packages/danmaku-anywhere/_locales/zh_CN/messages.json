@@ -1,9 +1,9 @@
 {
   "extName": {
-    "message": "Danmaku Anywhere"
+    "message": "弹幕任何地方"
   },
   "extDescription": {
-    "message": "没有弹幕怎么看番？Danmaku Anywhere 是一个可以在任何视频网站上加载弹幕的浏览器扩展"
+    "message": "没有弹幕怎么看番？“弹幕任何地方”是一个可以在几乎任何视频网站上加载弹幕的浏览器扩展"
   },
   "menuAddMountConfig": {
     "message": "为当前站点添加配置"
