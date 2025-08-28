@@ -13,3 +13,5 @@ const createSecretMock = (value: string) => {
 
 env.DANMAKU_GEMINI_API_KEY = createSecretMock('gemini-api')
 env.DANDANPLAY_APP_SECRET = createSecretMock('dandanplay-app-secret')
+env.DA_AI_GATEWAY_ID = createSecretMock('da-ai-gateway-id')
+env.DA_AI_GATEWAY_NAME = createSecretMock('da-ai-gateway-name')
