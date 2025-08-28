@@ -17,7 +17,7 @@ export class VideoSkipService {
   private activeButton: ActiveButtonEntry | null = null
   private currentVideo: HTMLVideoElement | null = null
 
-  private lastChecked = Date.now()
+  private lastChecked = 0
 
   private readonly boundHandleTimeUpdate: (event: Event) => void
   private readonly boundHandleSeek: () => void
@@ -50,6 +50,11 @@ export class VideoSkipService {
 
   clear() {
     this.jumpTargets = []
+    if (this.activeButton) {
+      this.activeButton.root.unmount()
+      this.activeButton = null
+    }
+    this.currentVideo = null
   }
 
   private setupEventListeners() {
