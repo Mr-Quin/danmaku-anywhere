@@ -37,7 +37,7 @@ export type ImportResultRenderParams<T> =
   | {
       status: 'error'
       result: null
-      error: Error
+      error: Error | null
     }
 
 type ImportResultDialogProps<T> = {

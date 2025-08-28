@@ -199,7 +199,7 @@ export const ImportPageCore = () => {
             <Typography color="error.main" variant="subtitle1">
               {t('error.unknown')}
             </Typography>
-            <PreFormat variant="error">{importError.message}</PreFormat>
+            <PreFormat variant="error">{importError?.message}</PreFormat>
           </>
         )
       }

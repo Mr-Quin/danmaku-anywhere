@@ -126,7 +126,7 @@ export const ImportConfigPage = () => {
             <Typography color="error.main" variant="subtitle1">
               {t('error.unknown')}
             </Typography>
-            <PreFormat>{error.message}</PreFormat>
+            <PreFormat>{error?.message}</PreFormat>
           </>
         )
       }
