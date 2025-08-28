@@ -18,10 +18,10 @@ export class TitleMappingService {
     const existing = await db.seasonMap.get({ key: map.key })
     if (existing) {
       this.logger.debug('Updating title mapping:', map)
-      db.seasonMap.put(map, existing.key)
+      await db.seasonMap.put(map, existing.key)
     } else {
       this.logger.debug('Adding title mapping:', map)
-      db.seasonMap.add(map)
+      await db.seasonMap.add(map)
     }
   }
 
