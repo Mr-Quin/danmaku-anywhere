@@ -83,14 +83,30 @@ export class SeasonService {
   async delete(filter: SeasonQueryFilter) {
     if (filter.id === undefined)
       throw new Error('id must be provided for delete operation')
-
-    await db.transaction('rw', db.episode, db.season, async () => {
-      await db.episode
-        .where({
-          seasonId: filter.id!,
-        })
-        .delete()
-      await db.season.delete(filter.id!)
-    })
+    const id = filter.id
+    await db.transaction(
+      'rw',
+      db.episode,
+      db.season,
+      db.seasonMap,
+      async () => {
+        await db.episode
+          .where({
+            seasonId: id,
+          })
+          .delete()
+        await db.season.delete(id)
+        await db.seasonMap
+          .where('DanDanPlay')
+          .equals(id)
+          .or('Bilibili')
+          .equals(id)
+          .or('Tencent')
+          .equals(id)
+          .or('iQiyi')
+          .equals(id)
+          .delete()
+      }
+    )
   }
 }

@@ -289,6 +289,17 @@ class DanmakuAnywhereDb extends Dexie {
         })
       })
 
+    /**
+     * Index IDs in seasonMap
+     */
+    this.version(11).stores({
+      episode:
+        '++id, provider, indexedId, &[provider+indexedId], seasonId, timeUpdated, lastChecked',
+      season: '++id, provider, indexedId, &[provider+indexedId]',
+      customEpisode: '++id, title',
+      seasonMap: 'key, DanDanPlay, Tencent, Bilibili, iQiyi',
+    })
+
     this.open()
   }
 }
