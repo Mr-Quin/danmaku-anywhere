@@ -17,6 +17,8 @@ export class VideoSkipService {
   private activeButton: ActiveButtonEntry | null = null
   private currentVideo: HTMLVideoElement | null = null
 
+  private lastChecked = 0
+
   private readonly boundHandleTimeUpdate: (event: Event) => void
   private readonly boundHandleSeek: () => void
 
@@ -46,6 +48,15 @@ export class VideoSkipService {
     )
   }
 
+  clear() {
+    this.jumpTargets = []
+    if (this.activeButton) {
+      this.activeButton.root.unmount()
+      this.activeButton = null
+    }
+    this.currentVideo = null
+  }
+
   private setupEventListeners() {
     this.videoEventService.addVideoEventListener(
       'timeupdate',
@@ -66,6 +77,15 @@ export class VideoSkipService {
   }
 
   private handleTimeUpdate(event: Event) {
+    const now = Date.now()
+
+    // throttle check to every 2s
+    if (now - this.lastChecked < 2000) {
+      return
+    }
+
+    this.lastChecked = now
+
     const video = event.target as HTMLVideoElement
     this.currentVideo = video
     const currentTime = video.currentTime

@@ -50,6 +50,7 @@ const playerRpcServer = createRpcServer<PlayerRelayCommands>(
     },
     'relay:command:unmount': async () => {
       manager.unmount()
+      videoSkipService.clear()
       return true
     },
     'relay:command:start': async ({ data: query }) => {
