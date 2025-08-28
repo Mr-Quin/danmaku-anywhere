@@ -6,4 +6,5 @@ export interface SeasonMap {
   DanDanPlay?: number
   Bilibili?: number
   Tencent?: number
+  iQiyi?: number
 }
