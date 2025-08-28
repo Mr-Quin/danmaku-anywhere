@@ -4,11 +4,6 @@ import { db } from '@/common/db/db'
 import type { DbEntity } from '@/common/types/dbEntity'
 
 export class SeasonService {
-  constructor(
-    private table: typeof db.season,
-    private episodeTable: typeof db.episode
-  ) {}
-
   async bulkUpsert<T extends SeasonInsert>(data: T[]): Promise<DbEntity<T>[]> {
     const results: DbEntity<T>[] = []
 
@@ -20,7 +15,7 @@ export class SeasonService {
   }
 
   async upsert<T extends SeasonInsert>(data: T): Promise<DbEntity<T>> {
-    const existing = await this.table.get({
+    const existing = await db.season.get({
       provider: data.provider,
       indexedId: data.indexedId,
     })
@@ -31,7 +26,7 @@ export class SeasonService {
         timeUpdated: Date.now(),
         version: existing.version + 1,
       }
-      await this.table.update(existing.id, toInsert)
+      await db.season.update(existing.id, toInsert)
       return toInsert
     }
 
@@ -40,7 +35,7 @@ export class SeasonService {
       timeUpdated: Date.now(),
       version: 1,
     }
-    const id = await this.table.add(toInsert)
+    const id = await db.season.add(toInsert)
     return {
       ...toInsert,
       id,
@@ -48,21 +43,25 @@ export class SeasonService {
   }
 
   async mustGetById(id: number) {
-    const result = await this.table.get(id)
+    const result = await db.season.get(id)
     if (!result) {
       throw new Error(`No season found for id ${id}`)
     }
     return result
   }
 
+  async getById(id: number) {
+    return db.season.get(id)
+  }
+
   async getAll() {
     const seasons: Season[] = []
 
     await db.transaction('r', db.season, db.episode, async () => {
-      const allSeasons = await this.table.toArray()
+      const allSeasons = await db.season.toArray()
 
       for (const season of allSeasons) {
-        const episodeCount = await this.episodeTable
+        const episodeCount = await db.episode
           .where({ seasonId: season.id })
           .count()
         if (episodeCount > 0) {
@@ -78,7 +77,7 @@ export class SeasonService {
   }
 
   async filter(filter: SeasonQueryFilter) {
-    return this.table.where(filter).toArray()
+    return db.season.where(filter).toArray()
   }
 
   async delete(filter: SeasonQueryFilter) {
@@ -86,12 +85,12 @@ export class SeasonService {
       throw new Error('id must be provided for delete operation')
 
     await db.transaction('rw', db.episode, db.season, async () => {
-      await this.episodeTable
+      await db.episode
         .where({
           seasonId: filter.id!,
         })
         .delete()
-      await this.table.delete(filter.id!)
+      await db.season.delete(filter.id!)
     })
   }
 }
