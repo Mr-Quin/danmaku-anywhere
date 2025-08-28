@@ -1,7 +1,6 @@
 import type { Season, SeasonInsert } from '@danmaku-anywhere/danmaku-converter'
 import type { SeasonQueryFilter } from '@/common/anime/dto'
-import type { db } from '@/common/db/db'
-import { db as dbInstance } from '@/common/db/db'
+import { db } from '@/common/db/db'
 import type { DbEntity } from '@/common/types/dbEntity'
 
 export class SeasonService {
@@ -59,26 +58,21 @@ export class SeasonService {
   async getAll() {
     const seasons: Season[] = []
 
-    await dbInstance.transaction(
-      'r',
-      dbInstance.season,
-      dbInstance.episode,
-      async () => {
-        const allSeasons = await this.table.toArray()
+    await db.transaction('r', db.season, db.episode, async () => {
+      const allSeasons = await this.table.toArray()
 
-        for (const season of allSeasons) {
-          const episodeCount = await this.episodeTable
-            .where({ seasonId: season.id })
-            .count()
-          if (episodeCount > 0) {
-            seasons.push({
-              ...season,
-              localEpisodeCount: episodeCount,
-            })
-          }
+      for (const season of allSeasons) {
+        const episodeCount = await this.episodeTable
+          .where({ seasonId: season.id })
+          .count()
+        if (episodeCount > 0) {
+          seasons.push({
+            ...season,
+            localEpisodeCount: episodeCount,
+          })
         }
       }
-    )
+    })
 
     return seasons
   }
@@ -91,18 +85,13 @@ export class SeasonService {
     if (filter.id === undefined)
       throw new Error('id must be provided for delete operation')
 
-    await dbInstance.transaction(
-      'rw',
-      dbInstance.episode,
-      dbInstance.season,
-      async () => {
-        await this.episodeTable
-          .where({
-            seasonId: filter.id!,
-          })
-          .delete()
-        await this.table.delete(filter.id!)
-      }
-    )
+    await db.transaction('rw', db.episode, db.season, async () => {
+      await this.episodeTable
+        .where({
+          seasonId: filter.id!,
+        })
+        .delete()
+      await this.table.delete(filter.id!)
+    })
   }
 }

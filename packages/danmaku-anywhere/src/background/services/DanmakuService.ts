@@ -20,8 +20,7 @@ import type {
   EpisodeQueryFilter,
 } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { db } from '@/common/db/db'
-import { db as dbInstance } from '@/common/db/db'
+import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
 import type { DbEntity } from '@/common/types/dbEntity'
 import { invariant, isServiceWorker, tryCatch } from '@/common/utils/utils'
@@ -233,27 +232,22 @@ export class DanmakuService {
           } else {
             let savedSeasonId = -1
             let savedSeasonTitle = ''
-            await dbInstance.transaction(
-              'rw',
-              dbInstance.season,
-              dbInstance.episode,
-              async () => {
-                let [existingSeason] = await this.seasonService.filter({
-                  provider: item.season.provider,
-                  indexedId: item.season.indexedId,
-                })
-                if (!existingSeason) {
-                  existingSeason = await this.seasonService.upsert(item.season)
-                }
-                savedSeasonId = existingSeason.id
-                savedSeasonTitle = existingSeason.title
-
-                await this.upsert({
-                  ...item.episode,
-                  seasonId: existingSeason.id,
-                })
+            await db.transaction('rw', db.season, db.episode, async () => {
+              let [existingSeason] = await this.seasonService.filter({
+                provider: item.season.provider,
+                indexedId: item.season.indexedId,
+              })
+              if (!existingSeason) {
+                existingSeason = await this.seasonService.upsert(item.season)
               }
-            )
+              savedSeasonId = existingSeason.id
+              savedSeasonTitle = existingSeason.title
+
+              await this.upsert({
+                ...item.episode,
+                seasonId: existingSeason.id,
+              })
+            })
             imported.push({
               type: item.season.provider,
               title: item.episode.title,
