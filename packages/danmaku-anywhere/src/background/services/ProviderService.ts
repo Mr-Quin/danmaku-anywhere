@@ -258,7 +258,15 @@ export class ProviderService {
         throw new Error('No season id provided')
       }
 
-      const season = await this.seasonService.mustGetById(sid)
+      const season = await this.seasonService.getById(sid)
+
+      if (!season) {
+        return {
+          status: 'notFound',
+          data: null,
+        }
+      }
+
       assertProvider(season, DanmakuSourceType.DanDanPlay)
 
       return {

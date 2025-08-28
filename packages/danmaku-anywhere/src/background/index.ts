@@ -14,7 +14,6 @@ import { TitleMappingService } from '@/background/services/TitleMappingService'
 import { configureHeaders } from '@/background/utils/configureHeaders'
 import { generateId } from '@/background/utils/generateId'
 import { EXTENSION_VERSION, IS_FIREFOX } from '@/common/constants'
-import { db } from '@/common/db/db'
 import { setupAlarms } from './alarm/setupAlarms'
 import { setupContextMenu } from './contextMenu/setupContextMenu'
 import { setupNetRequest } from './netRequest/setupNetrequest'
@@ -23,19 +22,15 @@ import { setupScripting } from './scripting/setupScripting'
 import { setupOptions } from './syncOptions/setupOptions'
 
 // dependency injection
-const seasonService = new SeasonService(db.season, db.episode)
-const danmakuService = new DanmakuService(
-  seasonService,
-  db.episode,
-  db.customEpisode
-)
+const seasonService = new SeasonService()
+const danmakuService = new DanmakuService(seasonService)
 
 const danDanPlayService = new DanDanPlayService(seasonService, danmakuService)
 const tencentService = new TencentService(seasonService, danmakuService)
 const bilibiliService = new BilibiliService(seasonService, danmakuService)
 const customProviderService = new MacCmsProviderService(danmakuService)
 
-const titleMappingService = new TitleMappingService(db.seasonMap)
+const titleMappingService = new TitleMappingService()
 const providerService = new ProviderService(
   titleMappingService,
   danmakuService,

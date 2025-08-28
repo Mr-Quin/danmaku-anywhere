@@ -1,14 +1,9 @@
 import type { Season, SeasonInsert } from '@danmaku-anywhere/danmaku-converter'
 import type { SeasonQueryFilter } from '@/common/anime/dto'
-import type { db } from '@/common/db/db'
+import { db } from '@/common/db/db'
 import type { DbEntity } from '@/common/types/dbEntity'
 
 export class SeasonService {
-  constructor(
-    private table: typeof db.season,
-    private episodeTable: typeof db.episode
-  ) {}
-
   async bulkUpsert<T extends SeasonInsert>(data: T[]): Promise<DbEntity<T>[]> {
     const results: DbEntity<T>[] = []
 
@@ -20,7 +15,7 @@ export class SeasonService {
   }
 
   async upsert<T extends SeasonInsert>(data: T): Promise<DbEntity<T>> {
-    const existing = await this.table.get({
+    const existing = await db.season.get({
       provider: data.provider,
       indexedId: data.indexedId,
     })
@@ -31,7 +26,7 @@ export class SeasonService {
         timeUpdated: Date.now(),
         version: existing.version + 1,
       }
-      await this.table.update(existing.id, toInsert)
+      await db.season.update(existing.id, toInsert)
       return toInsert
     }
 
@@ -40,7 +35,7 @@ export class SeasonService {
       timeUpdated: Date.now(),
       version: 1,
     }
-    const id = await this.table.add(toInsert)
+    const id = await db.season.add(toInsert)
     return {
       ...toInsert,
       id,
@@ -48,48 +43,54 @@ export class SeasonService {
   }
 
   async mustGetById(id: number) {
-    const result = await this.table.get(id)
+    const result = await db.season.get(id)
     if (!result) {
       throw new Error(`No season found for id ${id}`)
     }
     return result
   }
 
+  async getById(id: number) {
+    return db.season.get(id)
+  }
+
   async getAll() {
     const seasons: Season[] = []
 
-    const episodeTable = this.episodeTable
+    await db.transaction('r', db.season, db.episode, async () => {
+      const allSeasons = await db.season.toArray()
 
-    const allSeasons = await this.table.toArray()
-
-    for (const season of allSeasons) {
-      const episodeCount = await episodeTable
-        .where({ seasonId: season.id })
-        .count()
-      if (episodeCount > 0) {
-        seasons.push({
-          ...season,
-          localEpisodeCount: episodeCount,
-        })
+      for (const season of allSeasons) {
+        const episodeCount = await db.episode
+          .where({ seasonId: season.id })
+          .count()
+        if (episodeCount > 0) {
+          seasons.push({
+            ...season,
+            localEpisodeCount: episodeCount,
+          })
+        }
       }
-    }
+    })
 
     return seasons
   }
 
   async filter(filter: SeasonQueryFilter) {
-    return this.table.where(filter).toArray()
+    return db.season.where(filter).toArray()
   }
 
   async delete(filter: SeasonQueryFilter) {
     if (filter.id === undefined)
       throw new Error('id must be provided for delete operation')
 
-    await this.episodeTable
-      .where({
-        seasonId: filter.id,
-      })
-      .delete()
-    await this.table.delete(filter.id)
+    await db.transaction('rw', db.episode, db.season, async () => {
+      await db.episode
+        .where({
+          seasonId: filter.id!,
+        })
+        .delete()
+      await db.season.delete(filter.id!)
+    })
   }
 }

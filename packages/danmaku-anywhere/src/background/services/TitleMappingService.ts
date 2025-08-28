@@ -1,4 +1,4 @@
-import type { db } from '@/common/db/db'
+import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
 import type { SeasonMap } from '@/common/seasonMap/types'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
@@ -6,7 +6,7 @@ import { invariant, isServiceWorker } from '@/common/utils/utils'
 export class TitleMappingService {
   private logger: typeof Logger
 
-  constructor(private table: typeof db.seasonMap) {
+  constructor() {
     invariant(
       isServiceWorker(),
       'TitleMappingService is only available in service worker'
@@ -15,26 +15,26 @@ export class TitleMappingService {
   }
 
   async add(map: SeasonMap) {
-    const existing = await this.table.get({ key: map.key })
+    const existing = await db.seasonMap.get({ key: map.key })
     if (existing) {
       this.logger.debug('Updating title mapping:', map)
-      this.table.put(map, existing.key)
+      await db.seasonMap.put(map, existing.key)
     } else {
       this.logger.debug('Adding title mapping:', map)
-      this.table.add(map)
+      await db.seasonMap.add(map)
     }
   }
 
   async remove(key: string) {
     this.logger.debug('Removing title mapping:', key)
-    await this.table.where({ key }).delete()
+    await db.seasonMap.where({ key }).delete()
   }
 
   async get(key: string) {
-    return this.table.get({ key })
+    return db.seasonMap.get({ key })
   }
 
   async getAll() {
-    return this.table.toArray()
+    return db.seasonMap.toArray()
   }
 }
