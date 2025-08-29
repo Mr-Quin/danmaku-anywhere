@@ -6,6 +6,7 @@ import {
   InputAdornment,
   Popover,
   TextField,
+  Tooltip,
 } from '@mui/material'
 import { type ChangeEvent, useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -60,11 +61,13 @@ export const FilterButton = ({
 
   return (
     <>
-      <IconButton ref={anchorRef} onClick={handleOpen} color="primary">
-        <Badge variant="dot" color="secondary" invisible={!filter}>
-          <Search />
-        </Badge>
-      </IconButton>
+      <Tooltip title={t('common.search')}>
+        <IconButton ref={anchorRef} onClick={handleOpen} color="primary">
+          <Badge variant="dot" color="secondary" invisible={!filter}>
+            <Search />
+          </Badge>
+        </IconButton>
+      </Tooltip>
       <Popover
         anchorEl={anchorRef.current}
         onClose={handleClose}

@@ -14,6 +14,7 @@ import {
   List,
   ListSubheader,
   Stack,
+  Tooltip,
 } from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import {
@@ -58,6 +59,7 @@ const EpisodeListItem = ({
   onToggleSelection,
 }: EpisodeListItemProps) => {
   const { mutateAsync: load, isPending } = useFetchDanmaku()
+  const { t } = useTranslation()
 
   const handleFetchDanmaku = async (meta: WithSeason<EpisodeMeta>) => {
     return await load({
@@ -120,13 +122,15 @@ const EpisodeListItem = ({
         if (!isNotCustom(episode)) return null
 
         return (
-          <IconButton
-            disabled={isPending}
-            loading={isPending}
-            onClick={() => handleFetchDanmaku(episode)}
-          >
-            <Refresh />
-          </IconButton>
+          <Tooltip title={t('danmaku.refresh')}>
+            <IconButton
+              disabled={isPending}
+              loading={isPending}
+              onClick={() => handleFetchDanmaku(episode)}
+            >
+              <Refresh />
+            </IconButton>
+          </Tooltip>
         )
       }}
     />
