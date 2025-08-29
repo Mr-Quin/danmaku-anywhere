@@ -29,7 +29,7 @@ export const MacCmsOptions = memo(() => {
 
   const form = useForm({
     resolver: zodResolver(danmakuSourcesSchema),
-    defaultValues: defaultExtensionOptions.danmakuSources,
+    defaultValues: data.danmakuSources,
     values: data.danmakuSources,
     mode: 'onChange',
   })
