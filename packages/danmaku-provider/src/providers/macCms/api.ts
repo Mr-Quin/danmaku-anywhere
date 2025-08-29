@@ -35,10 +35,11 @@ export const searchMacCmsVod = async (
 }
 
 export const fetchDanmuIcuComments = async (
+  baseUrl: string,
   videoUrl: string,
   stripColor: boolean
 ): Promise<z.infer<typeof zDanmuIcuDanmaku>> => {
-  const url = withQuery('https://api.danmu.icu', '/', {
+  const url = withQuery(baseUrl, '/', {
     ac: 'dm',
     url: videoUrl,
   })

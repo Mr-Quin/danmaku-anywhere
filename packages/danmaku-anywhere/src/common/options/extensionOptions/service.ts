@@ -162,3 +162,10 @@ export const extensionOptionsService = new OptionsService(
         draft.danmakuSources.custom.stripColor = true
       }),
   })
+  .version(19, {
+    upgrade: (data: PrevOptions) =>
+      produce<ExtensionOptions>(data, (draft) => {
+        // Add danmuicuBaseUrl
+        draft.danmakuSources.custom.danmuicuBaseUrl = 'https://api.danmu.icu'
+      }),
+  })

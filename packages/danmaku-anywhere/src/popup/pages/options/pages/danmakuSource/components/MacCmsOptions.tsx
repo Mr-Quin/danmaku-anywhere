@@ -61,7 +61,7 @@ export const MacCmsOptions = () => {
         isDirty: true,
         isValid: true,
       },
-      name: ['custom.stripColor', 'custom.baseUrl'],
+      name: ['custom.stripColor', 'custom.baseUrl', 'custom.danmuicuBaseUrl'],
       callback: ({ isDirty, isValid }) => {
         if (!isDirty || !isValid) {
           return
@@ -84,10 +84,27 @@ export const MacCmsOptions = () => {
           return (
             <TextField
               {...field}
+              sx={{ my: 1 }}
               fullWidth
               label={t('optionsPage.danmakuSource.macCms.baseUrl')}
               error={!!errors.custom?.baseUrl}
               helperText={errors.custom?.baseUrl?.message}
+            />
+          )
+        }}
+      />
+      <Controller
+        name="custom.danmuicuBaseUrl"
+        control={control}
+        render={({ field }) => {
+          return (
+            <TextField
+              {...field}
+              sx={{ my: 1 }}
+              fullWidth
+              label={t('optionsPage.danmakuSource.macCms.danmuicuBaseUrl')}
+              error={!!errors.custom?.danmuicuBaseUrl}
+              helperText={errors.custom?.danmuicuBaseUrl?.message}
             />
           )
         }}

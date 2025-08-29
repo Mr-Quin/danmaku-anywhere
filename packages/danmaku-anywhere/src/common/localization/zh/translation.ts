@@ -286,7 +286,8 @@ const pages = {
         },
       },
       macCms: {
-        baseUrl: 'API地址',
+        baseUrl: '苹果cms API地址',
+        danmuicuBaseUrl: '弹幕库API地址',
         stripColor: '去除弹幕颜色',
         help: {
           stripColor:
