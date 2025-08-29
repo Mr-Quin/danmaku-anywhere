@@ -290,7 +290,8 @@ const pages = {
         },
       },
       macCms: {
-        baseUrl: 'API Base URL',
+        baseUrl: 'Mac CMS API Base URL',
+        danmuicuBaseUrl: 'Danmaku API Base URL',
         stripColor: 'Remove danmaku color',
         help: {
           stripColor:
