@@ -1,7 +1,7 @@
 import {
   Eject,
   PictureInPicture,
-  Refresh,
+  Sync,
   Visibility,
   VisibilityOff,
 } from '@mui/icons-material'
@@ -54,7 +54,7 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
     {
       action: () => refreshComments(),
       disabled: () => !canRefresh || isLoading,
-      icon: () => <Refresh fontSize="small" />,
+      icon: () => <Sync fontSize="small" />,
       label: () => t('danmaku.refresh'),
       hotkey: getKeyCombo('refreshComments'),
     },

@@ -37,7 +37,14 @@ export const danmakuSourcesSchema = z.object({
   }),
   custom: z.object({
     enabled: z.boolean(),
-    baseUrl: z.string().url(),
+    baseUrl: z
+      .string()
+      .url()
+      .transform((val) => val.replace(/\/$/, '')),
+    danmuicuBaseUrl: z
+      .string()
+      .url()
+      .transform((val) => val.replace(/\/$/, '')),
     stripColor: z.boolean(),
   }),
 })

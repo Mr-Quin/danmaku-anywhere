@@ -53,6 +53,7 @@ export class MacCmsProviderService {
   async fetchDanmakuForUrl(title: string, url: string) {
     const options = await extensionOptionsService.get()
     const comments = await fetchDanmuIcuComments(
+      options.danmakuSources.custom.danmuicuBaseUrl,
       url,
       options.danmakuSources.custom.stripColor
     )

@@ -50,6 +50,7 @@ export const defaultExtensionOptions: ExtensionOptions = {
     custom: {
       enabled: true,
       baseUrl: 'https://zy.xmm.hk',
+      danmuicuBaseUrl: 'https://api.danmu.icu',
       stripColor: false,
     },
   },

@@ -1,23 +1,27 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Refresh } from '@mui/icons-material'
 import {
   Checkbox,
   debounce,
   FormControl,
   FormControlLabel,
   FormHelperText,
+  IconButton,
   TextField,
+  Tooltip,
 } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { produce } from 'immer'
-import { useEffect } from 'react'
+import { memo, useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { defaultExtensionOptions } from '@/common/options/extensionOptions/constant'
 import type { DanmakuSources } from '@/common/options/extensionOptions/schema'
 import { danmakuSourcesSchema } from '@/common/options/extensionOptions/schema'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 
-export const MacCmsOptions = () => {
+export const MacCmsOptions = memo(() => {
   const { t } = useTranslation()
   const { data, partialUpdate } = useExtensionOptions()
 
@@ -35,6 +39,7 @@ export const MacCmsOptions = () => {
     handleSubmit,
     formState: { errors },
     subscribe,
+    setValue,
   } = form
 
   const { mutate } = useMutation({
@@ -46,7 +51,7 @@ export const MacCmsOptions = () => {
       )
     },
     onSuccess: () => {
-      toast.success(t('common.saved'))
+      toast.success(t('common.saved'), { duration: 1000 })
     },
   })
 
@@ -57,11 +62,9 @@ export const MacCmsOptions = () => {
 
     const unsubscribe = subscribe({
       formState: {
-        values: true,
         isDirty: true,
         isValid: true,
       },
-      name: ['custom.stripColor', 'custom.baseUrl'],
       callback: ({ isDirty, isValid }) => {
         if (!isDirty || !isValid) {
           return
@@ -84,10 +87,75 @@ export const MacCmsOptions = () => {
           return (
             <TextField
               {...field}
+              sx={{ my: 1 }}
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <Tooltip title={t('common.reset')}>
+                      <IconButton
+                        color="primary"
+                        onClick={() => {
+                          setValue(
+                            'custom.baseUrl',
+                            defaultExtensionOptions.danmakuSources.custom
+                              .baseUrl,
+                            {
+                              shouldDirty: true,
+                              shouldTouch: true,
+                            }
+                          )
+                        }}
+                      >
+                        <Refresh />
+                      </IconButton>
+                    </Tooltip>
+                  ),
+                },
+              }}
               fullWidth
               label={t('optionsPage.danmakuSource.macCms.baseUrl')}
               error={!!errors.custom?.baseUrl}
               helperText={errors.custom?.baseUrl?.message}
+            />
+          )
+        }}
+      />
+      <Controller
+        name="custom.danmuicuBaseUrl"
+        control={control}
+        render={({ field }) => {
+          return (
+            <TextField
+              {...field}
+              sx={{ my: 1 }}
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <Tooltip title={t('common.reset')}>
+                      <IconButton
+                        color="primary"
+                        onClick={() => {
+                          setValue(
+                            'custom.danmuicuBaseUrl',
+                            defaultExtensionOptions.danmakuSources.custom
+                              .danmuicuBaseUrl,
+                            {
+                              shouldDirty: true,
+                              shouldTouch: true,
+                            }
+                          )
+                        }}
+                      >
+                        <Refresh />
+                      </IconButton>
+                    </Tooltip>
+                  ),
+                },
+              }}
+              fullWidth
+              label={t('optionsPage.danmakuSource.macCms.danmuicuBaseUrl')}
+              error={!!errors.custom?.danmuicuBaseUrl}
+              helperText={errors.custom?.danmuicuBaseUrl?.message}
             />
           )
         }}
@@ -124,4 +192,4 @@ export const MacCmsOptions = () => {
       </FormControl>
     </>
   )
-}
+})
