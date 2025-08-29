@@ -7,6 +7,7 @@ import {
   FormGroup,
   IconButton,
   Popover,
+  Tooltip,
 } from '@mui/material'
 import type { ChangeEvent } from 'react'
 import { useRef, useState } from 'react'
@@ -49,19 +50,22 @@ export const TypeSelector = ({
 
   return (
     <>
-      <IconButton ref={anchorRef} onClick={handleOpen} color="primary">
-        <Badge
-          variant="dot"
-          color="secondary"
-          invisible={selectedTypes.length === danmakuSourceTypeList.length}
-        >
-          <FilterList />
-        </Badge>
-      </IconButton>
+      <Tooltip title={t('common.filter')}>
+        <IconButton ref={anchorRef} onClick={handleOpen} color="primary">
+          <Badge
+            variant="dot"
+            color="secondary"
+            invisible={selectedTypes.length === danmakuSourceTypeList.length}
+          >
+            <FilterList />
+          </Badge>
+        </IconButton>
+      </Tooltip>
       <Popover
         anchorEl={anchorRef.current}
         onClose={() => setOpen(false)}
         open={open}
+        disableScrollLock
         anchorOrigin={{
           vertical: 'bottom',
           horizontal: 'right',

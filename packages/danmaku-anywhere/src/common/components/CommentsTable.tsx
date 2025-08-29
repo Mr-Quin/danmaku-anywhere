@@ -121,13 +121,15 @@ export const CommentsTable = ({
         </Typography>
         <FilterButton filter={filter} onChange={setFilter} />
         {showRefresh && (
-          <IconButton
-            color="primary"
-            onClick={onRefresh}
-            disabled={isRefreshing}
-          >
-            {isRefreshing ? <CircularProgress size={24} /> : <Refresh />}
-          </IconButton>
+          <Tooltip title={t('danmaku.refresh')}>
+            <IconButton
+              color="primary"
+              onClick={onRefresh}
+              disabled={isRefreshing}
+            >
+              {isRefreshing ? <CircularProgress size={24} /> : <Refresh />}
+            </IconButton>
+          </Tooltip>
         )}
       </Toolbar>
     )
