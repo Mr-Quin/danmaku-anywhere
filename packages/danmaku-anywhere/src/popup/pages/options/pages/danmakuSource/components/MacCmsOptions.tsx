@@ -8,6 +8,7 @@ import {
   FormHelperText,
   IconButton,
   TextField,
+  Tooltip,
 } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { produce } from 'immer'
@@ -90,20 +91,24 @@ export const MacCmsOptions = memo(() => {
               slotProps={{
                 input: {
                   endAdornment: (
-                    <IconButton
-                      onClick={() => {
-                        setValue(
-                          'custom.baseUrl',
-                          defaultExtensionOptions.danmakuSources.custom.baseUrl,
-                          {
-                            shouldDirty: true,
-                            shouldTouch: true,
-                          }
-                        )
-                      }}
-                    >
-                      <Refresh />
-                    </IconButton>
+                    <Tooltip title={t('common.reset')}>
+                      <IconButton
+                        color="primary"
+                        onClick={() => {
+                          setValue(
+                            'custom.baseUrl',
+                            defaultExtensionOptions.danmakuSources.custom
+                              .baseUrl,
+                            {
+                              shouldDirty: true,
+                              shouldTouch: true,
+                            }
+                          )
+                        }}
+                      >
+                        <Refresh />
+                      </IconButton>
+                    </Tooltip>
                   ),
                 },
               }}
@@ -126,21 +131,24 @@ export const MacCmsOptions = memo(() => {
               slotProps={{
                 input: {
                   endAdornment: (
-                    <IconButton
-                      onClick={() => {
-                        setValue(
-                          'custom.danmuicuBaseUrl',
-                          defaultExtensionOptions.danmakuSources.custom
-                            .danmuicuBaseUrl,
-                          {
-                            shouldDirty: true,
-                            shouldTouch: true,
-                          }
-                        )
-                      }}
-                    >
-                      <Refresh />
-                    </IconButton>
+                    <Tooltip title={t('common.reset')}>
+                      <IconButton
+                        color="primary"
+                        onClick={() => {
+                          setValue(
+                            'custom.danmuicuBaseUrl',
+                            defaultExtensionOptions.danmakuSources.custom
+                              .danmuicuBaseUrl,
+                            {
+                              shouldDirty: true,
+                              shouldTouch: true,
+                            }
+                          )
+                        }}
+                      >
+                        <Refresh />
+                      </IconButton>
+                    </Tooltip>
                   ),
                 },
               }}

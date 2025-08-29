@@ -6,7 +6,7 @@ import {
   type Season,
   type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Refresh } from '@mui/icons-material'
+import { Sync } from '@mui/icons-material'
 import {
   Box,
   Checkbox,
@@ -128,7 +128,7 @@ const EpisodeListItem = ({
               loading={isPending}
               onClick={() => handleFetchDanmaku(episode)}
             >
-              <Refresh />
+              <Sync />
             </IconButton>
           </Tooltip>
         )

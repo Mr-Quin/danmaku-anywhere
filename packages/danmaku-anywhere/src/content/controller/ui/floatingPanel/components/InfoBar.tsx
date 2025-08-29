@@ -1,4 +1,4 @@
-import { Refresh } from '@mui/icons-material'
+import { Sync } from '@mui/icons-material'
 import {
   Box,
   Button,
@@ -57,12 +57,16 @@ export const InfoBar = () => {
             justifyContent: 'space-between',
           }}
         >
-          <Tooltip title={titles}>
-            <Typography noWrap>{title}</Typography>
-          </Tooltip>
-          <Typography sx={{ color: 'text.secondary', pl: 0.5, flexShrink: 0 }}>
-            ({comments.length})
-          </Typography>
+          <Box display="flex" minWidth={0}>
+            <Tooltip title={titles}>
+              <Typography noWrap>{title}</Typography>
+            </Tooltip>
+            <Typography
+              sx={{ color: 'text.secondary', pl: 0.5, flexShrink: 0 }}
+            >
+              ({comments.length})
+            </Typography>
+          </Box>
           <Box flexShrink={0}>
             {canRefresh && (
               <Tooltip title={t('danmaku.refresh')}>
@@ -71,7 +75,7 @@ export const InfoBar = () => {
                   disabled={!canRefresh || loadMutation.isPending}
                   color="primary"
                 >
-                  <Refresh />
+                  <Sync />
                 </IconButton>
               </Tooltip>
             )}

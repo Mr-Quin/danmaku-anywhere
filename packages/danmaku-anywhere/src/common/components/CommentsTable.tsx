@@ -1,6 +1,6 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { parseCommentEntityP } from '@danmaku-anywhere/danmaku-converter'
-import { ContentCopy, FilterList, Refresh } from '@mui/icons-material'
+import { ContentCopy, FilterList, Sync } from '@mui/icons-material'
 import {
   Box,
   CircularProgress,
@@ -127,7 +127,7 @@ export const CommentsTable = ({
               onClick={onRefresh}
               disabled={isRefreshing}
             >
-              {isRefreshing ? <CircularProgress size={24} /> : <Refresh />}
+              {isRefreshing ? <CircularProgress size={24} /> : <Sync />}
             </IconButton>
           </Tooltip>
         )}

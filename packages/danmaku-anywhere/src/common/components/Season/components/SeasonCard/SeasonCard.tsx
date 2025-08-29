@@ -3,7 +3,7 @@ import {
   DanmakuSourceType,
   type Season,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Delete, FileDownload, Refresh } from '@mui/icons-material'
+import { Delete, FileDownload, Sync } from '@mui/icons-material'
 import {
   alpha,
   Card,
@@ -241,7 +241,7 @@ export const SeasonCard = ({
             {
               id: 'refresh',
               label: t('anime.refreshMetadata'),
-              icon: <Refresh />,
+              icon: <Sync />,
               onClick: () => {
                 refreshMutation.mutate(season.id)
               },

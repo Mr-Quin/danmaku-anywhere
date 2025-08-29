@@ -6,7 +6,7 @@ import {
   type CustomEpisodeLite,
   DanmakuSourceType,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Delete, Download, Refresh } from '@mui/icons-material'
+import { Delete, Download, Sync } from '@mui/icons-material'
 import { Box, Stack, Typography } from '@mui/material'
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import { useTranslation } from 'react-i18next'
@@ -177,7 +177,7 @@ export const EpisodeList = () => {
                       {
                         id: 'refresh',
                         label: t('danmaku.refresh'),
-                        icon: <Refresh />,
+                        icon: <Sync />,
                         onClick: () => handleFetchDanmaku(episode),
                         disabled: isPending,
                         loading: isPending,
