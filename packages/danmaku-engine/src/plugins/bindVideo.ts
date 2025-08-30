@@ -38,6 +38,7 @@ export const bindVideo =
     let cursor = 0
     // user-defined offset in seconds
     let offset = getConfig().offset / 1000
+    let documentVisible = true
 
     const updateCursor = () => {
       // include danmaku that are within the duration range
@@ -105,7 +106,10 @@ export const bindVideo =
           progress = 0
         }
 
-        emitDanmaku(comment, progress)
+        if (documentVisible) {
+          // emitting while the page is not visible causes comments to "pile up"
+          emitDanmaku(comment, progress)
+        }
 
         cursor++
       }
@@ -132,13 +136,9 @@ export const bindVideo =
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        handlePause()
+        documentVisible = false
       } else if (document.visibilityState === 'visible') {
-        // when the page becomes visible, we need to clear the screen and update the cursor, then resume playing
-        handleSeek()
-        if (!video.paused) {
-          handlePlay()
-        }
+        documentVisible = true
       }
     }
 
