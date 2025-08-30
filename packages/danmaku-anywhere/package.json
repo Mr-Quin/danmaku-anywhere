@@ -14,6 +14,7 @@
     "start:firefox": "web-ext run --source-dir ./build --devtools -p ./extention-profile --profile-create-if-missing --keep-profile-changes --pref extensions.dnr.feedback=true",
     "start:firefox-android": "pnpm run start:firefox -t firefox-android --firefox-apk org.mozilla.firefox_beta --pref extensions.dnr.feedback=true",
     "build": "vite build --outDir build --emptyOutDir",
+    "postbuild": "node ./scripts/removeViteDir.js",
     "build:firefox": "VITE_TARGET_BROWSER=firefox pnpm run build",
     "test": "vitest",
     "preview": "vite preview",

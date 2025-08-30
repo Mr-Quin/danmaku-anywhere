@@ -78,7 +78,7 @@ importers:
         version: 6.7.2
       '@newrelic/browser-agent':
         specifier: ^1.294.0
-        version: 1.295.0
+        version: 1.296.0
       '@ngrx/signals':
         specifier: ^19.2.1
         version: 19.2.1(@angular/core@20.2.1(@angular/compiler@20.2.1)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
@@ -2035,10 +2035,6 @@ packages:
 
   '@napi-rs/wasm-runtime@1.0.3':
     resolution: {integrity: sha512-rZxtMsLwjdXkMUGC3WwsPwLNVqVqnTJT6MNIB6e+5fhMcSCPP0AOsNWuMQ5mdCq6HNjs/ZeWAEchpqeprqBD2Q==}
-
-  '@newrelic/browser-agent@1.295.0':
-    resolution: {integrity: sha512-l/2hWQDTlQ8DruF1WnMi+6vP3QVlHm2uESSJh1IzC8ymGW5CJxlsx54aiZINm7Awh5Gm5PStVft1wbiJdstk+g==}
-    engines: {node: '>=12.17.0 < 13.0.0 || >=13.7.0'}
 
   '@newrelic/browser-agent@1.296.0':
     resolution: {integrity: sha512-3/rGPp0L21G4CfDafhgvTdxYk5M+BC1BxV5YjLvXxx69QtvvoB/izos5NQqyFGsdkgVhLzmouESq3zGptUgbag==}
@@ -8221,12 +8217,6 @@ snapshots:
       '@emnapi/runtime': 1.4.5
       '@tybys/wasm-util': 0.10.0
     optional: true
-
-  '@newrelic/browser-agent@1.295.0':
-    dependencies:
-      fflate: 0.8.2
-      rrweb: 2.0.0-alpha.18
-      web-vitals: 4.2.4
 
   '@newrelic/browser-agent@1.296.0':
     dependencies:
