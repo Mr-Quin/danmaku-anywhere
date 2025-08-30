@@ -1,0 +1,23 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
+const buildPath = path.resolve(import.meta.dirname, '../build')
+const viteCacheDir = path.resolve(buildPath, '.vite')
+
+async function removeViteDir() {
+  try {
+    const stat = await fs.promises.stat(viteCacheDir)
+    if (!stat.isDirectory()) {
+      console.warn(
+        `Expected directory at ${viteCacheDir}, found non-directory. Skipping.`
+      )
+      return
+    }
+    await fs.promises.rm(viteCacheDir, { force: true, recursive: true })
+    console.log(`Removed ${viteCacheDir}`)
+  } catch {
+    console.log('.vite cache not found, nothing to remove.')
+  }
+}
+
+await removeViteDir()
