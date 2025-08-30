@@ -7,10 +7,6 @@ const viteCacheDir = path.resolve(buildPath, '.vite')
 async function removeViteDir() {
   try {
     const stat = await fs.promises.stat(viteCacheDir)
-    if (!stat) {
-      console.log('.vite cache not found, nothing to remove.')
-      return
-    }
     if (!stat.isDirectory()) {
       console.warn(
         `Expected directory at ${viteCacheDir}, found non-directory. Skipping.`
@@ -19,9 +15,8 @@ async function removeViteDir() {
     }
     await fs.promises.rm(viteCacheDir, { force: true, recursive: true })
     console.log(`Removed ${viteCacheDir}`)
-  } catch (error) {
-    console.error('Failed to remove .vite directory:', error)
-    process.exitCode = 1
+  } catch {
+    console.log('.vite cache not found, nothing to remove.')
   }
 }
 
