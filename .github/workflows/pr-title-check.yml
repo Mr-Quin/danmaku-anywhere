@@ -20,7 +20,7 @@ jobs:
             // Required format: (TYPE) description [TASK-ID]
             // TYPE ∈ {extension,app,proxy,chore}
             // TASK-ID matches DA-<number>
-            const pattern = /^\((extension|app|proxy|chore)\)\s.+\s\[DA-\d+\]$/;
+            const pattern = /^\((extension|app|proxy|chore|docs)\)\s.+\s\[DA-\d+\]$/;
 
             if (!pattern.test(title)) {
               core.setFailed(
