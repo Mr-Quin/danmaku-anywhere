@@ -8,7 +8,6 @@ import { Tag } from 'primeng/tag'
 import { MaterialIcon } from '../../shared/components/material-icon'
 import { GITHUB_REPO_URL, PAGE_TITLE } from '../../shared/constants'
 import { LayoutService } from '../layout.service'
-import { DocMigrationBanner } from './doc-migration-banner.component'
 import { ExtensionUpdateBanner } from './extension-update-banner.component'
 import { FeedbackFormButton } from './feedback-form-button.component'
 
@@ -22,7 +21,6 @@ import { FeedbackFormButton } from './feedback-form-button.component'
     FaIconComponent,
     ButtonDirective,
     MaterialIcon,
-    DocMigrationBanner,
     ExtensionUpdateBanner,
     FeedbackFormButton,
   ],
@@ -30,7 +28,6 @@ import { FeedbackFormButton } from './feedback-form-button.component'
     class: 'basis-0 sticky z-100 top-0',
   },
   template: `
-    <da-doc-migration-banner />
     <da-extension-update-banner />
     <div class="backdrop-blur-sm bg-transparent border-b-surface-800 border-b h-[56px]">
       <div class="h-full mx-auto px-4 py-2 flex items-center justify-between">
