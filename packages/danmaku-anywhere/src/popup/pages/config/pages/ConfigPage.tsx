@@ -33,10 +33,13 @@ export const ConfigPage = () => {
         // try to convert url to a pattern
         // https://www.example.com/abc -> https://www.example.com/*
         const url = new URL(data)
-        return url.origin + '/*'
+        return {
+          url: url.href,
+          pattern: url.origin + '/*',
+          name: url.origin,
+        }
       } catch {
-        // fallback to empty string if the url is invalid
-        return ''
+        return null
       }
     },
   })
@@ -48,10 +51,16 @@ export const ConfigPage = () => {
 
   const handleAddConfig = async () => {
     navigate('add')
-    setEditingConfig({
-      ...createMountConfig(data),
-      mediaQuery: 'video',
-    })
+    if (data) {
+      setEditingConfig(
+        createMountConfig({
+          patterns: [data.pattern],
+          name: data.name,
+        })
+      )
+    } else {
+      setEditingConfig(createMountConfig())
+    }
   }
 
   return (

@@ -62,13 +62,15 @@ class MountConfigService {
     return config
   }
 
+  // can throw if the url is invalid
   async createByUrl(urlInput: string) {
     const url = new URL(urlInput)
     const pattern = url.origin + '/*'
-    const input = createMountConfig(pattern)
-    input.mediaQuery = 'video'
-    input.name = url.hostname
-    input.enabled = true
+    const input = createMountConfig({
+      patterns: [pattern],
+      name: url.origin,
+      enabled: true,
+    })
     return this.create(input)
   }
 
