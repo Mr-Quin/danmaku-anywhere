@@ -37,6 +37,10 @@
     "./kazumi": {
       "types": "./dist/src/providers/kazumi/index.d.ts",
       "default": "./dist/src/providers/kazumi/index.js"
+    },
+    "./config": {
+      "types": "./dist/src/providers/config/index.d.ts",
+      "default": "./dist/src/providers/config/index.js"
     }
   },
   "scripts": {

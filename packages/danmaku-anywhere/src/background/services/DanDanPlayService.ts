@@ -7,21 +7,14 @@ import type {
   SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import { configureApiStore } from '@danmaku-anywhere/danmaku-provider'
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import type { SeasonService } from '@/background/services/SeasonService'
-import { EXTENSION_VERSION } from '@/common/constants'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProvider } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { tryCatch } from '@/common/utils/utils'
-
-configureApiStore({
-  baseUrl: import.meta.env.VITE_PROXY_URL,
-  daVersion: EXTENSION_VERSION,
-})
 
 export class DanDanPlayService {
   private logger: typeof Logger

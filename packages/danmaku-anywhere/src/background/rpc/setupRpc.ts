@@ -1,3 +1,7 @@
+import {
+  getDanmuicuConfig,
+  getMaccmsConfig,
+} from '@danmaku-anywhere/danmaku-provider/config'
 import { setRequestHeaderRule } from '@danmaku-anywhere/web-scraper'
 import { match } from 'ts-pattern'
 import { injectVideoScript } from '@/background/scripting/setupScripting'
@@ -27,7 +31,6 @@ import { getOrFetchCachedImage } from '@/images/cache'
 import type { DanmakuService } from '../services/DanmakuService'
 import type { IconService } from '../services/IconService'
 import type { ProviderService } from '../services/ProviderService'
-
 export const setupRpc = (
   providerService: ProviderService,
   iconService: IconService,
@@ -233,6 +236,12 @@ export const setupRpc = (
         width: 550,
         height: 650,
       })
+    },
+    getConfigMacCms: async () => {
+      return getMaccmsConfig()
+    },
+    getConfigDanmuIcu: async () => {
+      return getDanmuicuConfig()
     },
   })
 
