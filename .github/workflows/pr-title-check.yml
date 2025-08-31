@@ -18,7 +18,7 @@ jobs:
           script: |
             const title = context.payload.pull_request?.title || '';
             // Required format: (TYPE) description [TASK-ID]
-            // TYPE ∈ {extension,app,proxy,chore}
+            // TYPE ∈ {extension,app,proxy,chore,docs}
             // TASK-ID matches DA-<number>
             const pattern = /^\((extension|app|proxy|chore|docs)\)\s.+\s\[DA-\d+\]$/;
 
