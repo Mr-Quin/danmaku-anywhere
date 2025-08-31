@@ -1,5 +1,6 @@
 import { factory } from '@/factory'
 import { tagService } from '@/middleware/tagService'
+import { configRouter } from './config/router'
 import { ddpRouter } from './ddp/router'
 import { kazumiRouter } from './kazumi/router'
 import { llmRouter } from './llm/router'
@@ -10,3 +11,4 @@ api.use(tagService)
 api.route('/ddp', ddpRouter)
 api.route('/llm', llmRouter)
 api.route('/kazumi', kazumiRouter)
+api.route('/config', configRouter)
