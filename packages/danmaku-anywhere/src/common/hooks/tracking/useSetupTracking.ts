@@ -1,7 +1,10 @@
 import type { AgentOptions } from '@newrelic/browser-agent/loaders/agent'
 import { useEffect, useRef } from 'react'
 import { EXTENSION_VERSION } from '@/common/constants'
-import { useEnvironmentContext } from '@/common/environment/context'
+import {
+  type EnvironmentType,
+  useEnvironmentContext,
+} from '@/common/environment/context'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import {
   CombinedTrackingService,
@@ -18,7 +21,7 @@ export const getTrackingService = () => {
   return trackingService
 }
 
-const createTrackingService = (environment: string, type: string) => {
+const createTrackingService = (environment: string, type: EnvironmentType) => {
   if (trackingService !== null) {
     return trackingService
   }
@@ -44,7 +47,7 @@ const createTrackingService = (environment: string, type: string) => {
         enabled: true,
         block_selector: '',
         mask_text_selector: isPopup ? '' : '*',
-        sampling_rate: 100.0,
+        sampling_rate: isPopup ? 100.0 : 0, // disable replay for non-popup
         error_sampling_rate: 100.0,
         mask_all_inputs: true,
         collect_fonts: true,
@@ -63,9 +66,7 @@ const createTrackingService = (environment: string, type: string) => {
   }
 
   const clarityOptions = {
-    projectId: isPopup
-      ? import.meta.env.VITE_CLARITY_PROJECT_ID_POPUP
-      : import.meta.env.VITE_CLARITY_PROJECT_ID_CONTENT,
+    projectId: isPopup ? 'sh0awpf0za' : 'sh39frrlqn',
     upload: 'https://m.clarity.ms/collect',
     track: true,
     content: true,
