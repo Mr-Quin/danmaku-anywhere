@@ -1,5 +1,8 @@
 import { produce } from 'immer'
-import { defaultMountConfig } from '@/common/options/mountConfig/constant'
+import {
+  createMountConfig,
+  defaultMountConfig,
+} from '@/common/options/mountConfig/constant'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { mountConfigInputSchema } from '@/common/options/mountConfig/schema'
 import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
@@ -57,6 +60,16 @@ class MountConfigService {
     await this.options.set([...configs, config])
 
     return config
+  }
+
+  async createByUrl(urlInput: string) {
+    const url = new URL(urlInput)
+    const pattern = url.origin + '/*'
+    const input = createMountConfig(pattern)
+    input.mediaQuery = 'video'
+    input.name = url.hostname
+    input.enabled = true
+    return this.create(input)
   }
 
   async get(id: string) {

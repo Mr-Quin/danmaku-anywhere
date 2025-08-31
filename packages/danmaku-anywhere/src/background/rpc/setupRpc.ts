@@ -191,11 +191,7 @@ export const setupRpc = (
 
       const activeTab = tabs[0]
 
-      if (!activeTab) {
-        throw new RpcException('No active tab found')
-      }
-
-      return activeTab.url ?? null
+      return activeTab?.url ?? null
     },
     mountConfigGetAll: async () => {
       return mountConfigService.getAll()

@@ -9,7 +9,7 @@ export const matchedConfigByTabId = new Map<number, MountConfig>()
 
 const q = createTaskQueue()
 
-const rebuildDynamicMenusInner = async (tabId: number, url: string) => {
+const baseRebuildDynamicMenus = async (tabId: number, url: string) => {
   await tryCatch(async () =>
     chrome.contextMenus.remove(ContextMenuId.ADD_CONFIG)
   )
@@ -43,7 +43,7 @@ const rebuildDynamicMenusInner = async (tabId: number, url: string) => {
 }
 
 export const rebuildDynamicMenus = (tabId: number, url: string) =>
-  q.run(() => rebuildDynamicMenusInner(tabId, url))
+  q.run(() => baseRebuildDynamicMenus(tabId, url))
 
 const findMatchingConfig = (configs: MountConfig[], url: string) => {
   return configs.find((config) => config.patterns.some((p) => matchUrl(url, p)))

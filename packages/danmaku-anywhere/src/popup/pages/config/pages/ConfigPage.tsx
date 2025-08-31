@@ -19,9 +19,11 @@ export const ConfigPage = () => {
       // this must not throw for any reason so the page doesn't break
       try {
         const res = await chromeRpcClient.getActiveTabUrl()
-        if (!res.data) return ''
+        if (!res.data) {
+          return ''
+        }
         return res.data
-      } catch (_) {
+      } catch {
         return ''
       }
     },
@@ -32,7 +34,7 @@ export const ConfigPage = () => {
         // https://www.example.com/abc -> https://www.example.com/*
         const url = new URL(data)
         return url.origin + '/*'
-      } catch (_) {
+      } catch {
         // fallback to empty string if the url is invalid
         return ''
       }
