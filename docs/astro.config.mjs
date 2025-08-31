@@ -1,7 +1,7 @@
 import react from '@astrojs/react'
 import starlight from '@astrojs/starlight'
-import { defineConfig } from 'astro/config'
 import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from 'astro/config'
 
 // https://astro.build/config
 export default defineConfig({
@@ -23,7 +23,11 @@ export default defineConfig({
           'https://github.com/Mr-Quin/danmaku-anywhere/edit/master/docs/',
       },
       social: [
-        { icon: 'github', label: 'GitHub', href: 'https://github.com/Mr-Quin/danmaku-anywhere' },
+        {
+          icon: 'github',
+          label: 'GitHub',
+          href: 'https://github.com/Mr-Quin/danmaku-anywhere',
+        },
       ],
       sidebar: [
         {
@@ -50,6 +54,31 @@ export default defineConfig({
               link: '/docs/install',
             },
             {
+              label: 'first-time',
+              translations: {
+                'zh-CN': '第一次使用',
+                en: 'First Time',
+              },
+              link: '/docs/first-time',
+            },
+            {
+              label: 'faq',
+              translations: {
+                'zh-CN': '常见问题',
+                en: 'FAQ',
+              },
+              link: '/docs/faq',
+            },
+          ],
+        },
+        {
+          label: 'features',
+          translations: {
+            'zh-CN': '功能',
+            en: 'Features',
+          },
+          items: [
+            {
               label: 'mount-profile',
               translations: {
                 'zh-CN': '装填配置',
@@ -65,38 +94,46 @@ export default defineConfig({
               },
               link: '/docs/danmaku',
             },
-          ],
-        },
-        {
-          label: 'integration-policy',
-          translations: {
-            'zh-CN': '适配规则',
-            en: 'Integration Policy',
-          },
-          items: [
             {
-              label: 'overview',
+              label: 'integration-policy',
               translations: {
-                'zh-CN': '概览',
-                en: 'Overview',
+                'zh-CN': '适配规则',
+                en: 'Integration Policy',
               },
-              link: '/integration-policy/overview',
+              items: [
+                {
+                  label: 'overview',
+                  translations: {
+                    'zh-CN': '概览',
+                    en: 'Overview',
+                  },
+                  link: '/integration-policy/overview',
+                },
+                {
+                  label: 'ai',
+                  translations: {
+                    'zh-CN': 'AI自动适配',
+                    en: 'AI',
+                  },
+                  link: '/integration-policy/ai',
+                },
+                {
+                  label: 'xpath',
+                  translations: {
+                    'zh-CN': 'XPath规则',
+                    en: 'XPath Policy',
+                  },
+                  link: '/integration-policy/xpath',
+                },
+              ],
             },
             {
-              label: 'ai',
+              label: 'plex-danmaku',
               translations: {
-                'zh-CN': 'AI自动适配',
-                en: 'AI',
+                'zh-CN': 'Plex Danmaku',
+                en: 'Plex Danmaku',
               },
-              link: '/integration-policy/ai',
-            },
-            {
-              label: 'xpath',
-              translations: {
-                'zh-CN': 'XPath规则',
-                en: 'XPath Policy',
-              },
-              link: '/integration-policy/xpath',
+              link: '/plex-danmaku',
             },
           ],
         },
@@ -129,14 +166,6 @@ export default defineConfig({
           label: 'change-log',
           translations: { 'zh-CN': '更新日志', en: 'Change Log' },
           link: '/change-log',
-        },
-        {
-          label: 'plex-danmaku',
-          translations: {
-            'zh-CN': 'Plex Danmaku',
-            en: 'Plex Danmaku',
-          },
-          link: '/plex-danmaku',
         },
       ],
       defaultLocale: 'root',

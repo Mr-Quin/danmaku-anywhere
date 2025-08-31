@@ -2,3 +2,4 @@ packages:
   - 'packages/**'
   - 'backend/**'
   - 'app/**'
+  - 'docs/**'
