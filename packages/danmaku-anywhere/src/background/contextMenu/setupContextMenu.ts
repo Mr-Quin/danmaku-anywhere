@@ -5,7 +5,6 @@ import {
   rebuildDynamicMenus,
 } from '@/background/contextMenu/rebuildDynamicMenus'
 import { Logger } from '@/common/Logger'
-import { createMountConfig } from '@/common/options/mountConfig/constant'
 import { mountConfigService } from '@/common/options/mountConfig/service'
 import { tryCatch } from '@/common/utils/utils'
 
@@ -29,14 +28,8 @@ export const setupContextMenu = () => {
     match(info.menuItemId)
       .with(ContextMenuId.ADD_CONFIG, async () => {
         try {
-          const url = new URL(tabUrl)
-          const pattern = url.origin + '/*'
-          const input = createMountConfig(pattern)
-          input.mediaQuery = 'video'
-          input.name = url.hostname
-          input.enabled = true
-          await mountConfigService.create(input)
-          chrome.tabs.reload(tabId)
+          await mountConfigService.createByUrl(tabUrl)
+          void chrome.tabs.reload(tabId)
         } catch (e) {
           Logger.error('Create mount config failed')
           Logger.error(e)
@@ -49,7 +42,7 @@ export const setupContextMenu = () => {
         }
         const { id, enabled } = matched
         await mountConfigService.update(id, { enabled: !enabled })
-        chrome.tabs.reload(tabId)
+        void chrome.tabs.reload(tabId)
       })
       .run()
   })

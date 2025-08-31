@@ -18,11 +18,11 @@ const permissions: chrome.runtime.ManifestPermissions[] = [
   'webNavigation',
   'alarms',
   'webRequest',
+  'contextMenus',
 ]
 
 if (IS_CHROME) {
   permissions.push('fontSettings')
-  permissions.push('contextMenus')
 }
 
 if (dev) {

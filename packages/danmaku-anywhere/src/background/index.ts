@@ -13,7 +13,7 @@ import { TencentService } from '@/background/services/TencentService'
 import { TitleMappingService } from '@/background/services/TitleMappingService'
 import { configureHeaders } from '@/background/utils/configureHeaders'
 import { generateId } from '@/background/utils/generateId'
-import { EXTENSION_VERSION, IS_FIREFOX } from '@/common/constants'
+import { EXTENSION_VERSION } from '@/common/constants'
 import { setupAlarms } from './alarm/setupAlarms'
 import { setupContextMenu } from './contextMenu/setupContextMenu'
 import { setupNetRequest } from './netRequest/setupNetrequest'
@@ -68,7 +68,7 @@ setupAlarms(danmakuService)
 setupPorts()
 
 chrome.runtime.getPlatformInfo().then((platformInfo) => {
-  if (platformInfo.os === 'android' || IS_FIREFOX) {
+  if (platformInfo.os === 'android') {
     return
   }
   setupContextMenu()
