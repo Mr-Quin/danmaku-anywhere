@@ -74,5 +74,13 @@ chrome.runtime.getPlatformInfo().then((platformInfo) => {
   setupContextMenu()
 })
 
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === 'install') {
+    void chrome.tabs.create({
+      url: 'https://docs.danmaku.weeblify.app/first-time/',
+    })
+  }
+})
+
 generateId()
 void configureHeaders()
