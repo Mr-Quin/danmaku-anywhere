@@ -155,4 +155,18 @@ export const configQueryKeys = {
         kind: 'presets',
       },
     ] as const,
+  maccms: () =>
+    [
+      {
+        scope: 'config',
+        kind: 'maccms',
+      },
+    ] as const,
+  danmuicu: () =>
+    [
+      {
+        scope: 'config',
+        kind: 'danmuicu',
+      },
+    ] as const,
 }

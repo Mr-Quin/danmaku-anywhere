@@ -26,6 +26,7 @@ import type {
   SeasonSearchParams,
 } from '@/common/anime/dto'
 import type { ImageFetchOptions } from '@/common/components/image/types'
+import type { BaseUrlConfig } from '@/common/configs/types'
 import type {
   CustomEpisodeQueryFilter,
   DanmakuFetchDto,
@@ -96,6 +97,8 @@ export type BackgroundMethods = {
   setHeaders: RPCDef<SetHeaderRule, void>
   extractTitle: RPCDef<string, ExtractTitleResponse['result']>
   openPopupInNewWindow: RPCDef<string, void>
+  getConfigMacCms: RPCDef<void, BaseUrlConfig>
+  getConfigDanmuIcu: RPCDef<void, BaseUrlConfig>
 }
 
 type InputWithFrameId<TInput> = TInput extends void

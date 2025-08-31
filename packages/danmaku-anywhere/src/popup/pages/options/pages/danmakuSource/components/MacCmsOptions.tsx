@@ -1,25 +1,24 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Refresh } from '@mui/icons-material'
 import {
   Checkbox,
   debounce,
   FormControl,
   FormControlLabel,
   FormHelperText,
-  IconButton,
+  MenuItem,
   TextField,
-  Tooltip,
 } from '@mui/material'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { produce } from 'immer'
-import { memo, useEffect } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { defaultExtensionOptions } from '@/common/options/extensionOptions/constant'
 import type { DanmakuSources } from '@/common/options/extensionOptions/schema'
 import { danmakuSourcesSchema } from '@/common/options/extensionOptions/schema'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
+import { configQueryKeys } from '@/common/queries/queryKeys'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 export const MacCmsOptions = memo(() => {
   const { t } = useTranslation()
@@ -39,7 +38,6 @@ export const MacCmsOptions = memo(() => {
     handleSubmit,
     formState: { errors },
     subscribe,
-    setValue,
   } = form
 
   const { mutate } = useMutation({
@@ -53,6 +51,27 @@ export const MacCmsOptions = memo(() => {
     onSuccess: () => {
       toast.success(t('common.saved'), { duration: 1000 })
     },
+  })
+
+  const [maccmsOpen, setMaccmsOpen] = useState(false)
+  const [danmuicuOpen, setDanmuicuOpen] = useState(false)
+
+  const { data: maccmsData, isFetching: isFetchingMaccms } = useQuery({
+    queryKey: configQueryKeys.maccms(),
+    queryFn: async () => chromeRpcClient.getConfigMacCms(),
+    select: (res) => {
+      return res.data
+    },
+    enabled: maccmsOpen,
+  })
+
+  const { data: danmuicuData, isFetching: isFetchingDanmuicu } = useQuery({
+    queryKey: configQueryKeys.danmuicu(),
+    queryFn: async () => chromeRpcClient.getConfigDanmuIcu(),
+    select: (res) => {
+      return res.data
+    },
+    enabled: danmuicuOpen,
   })
 
   useEffect(() => {
@@ -83,80 +102,72 @@ export const MacCmsOptions = memo(() => {
       <Controller
         name="custom.baseUrl"
         control={control}
-        render={({ field }) => {
+        render={({ field: { ref, ...field } }) => {
           return (
             <TextField
               {...field}
+              select
+              inputRef={ref}
               sx={{ my: 1 }}
               slotProps={{
-                input: {
-                  endAdornment: (
-                    <Tooltip title={t('common.reset')}>
-                      <IconButton
-                        color="primary"
-                        onClick={() => {
-                          setValue(
-                            'custom.baseUrl',
-                            defaultExtensionOptions.danmakuSources.custom
-                              .baseUrl,
-                            {
-                              shouldDirty: true,
-                              shouldTouch: true,
-                            }
-                          )
-                        }}
-                      >
-                        <Refresh />
-                      </IconButton>
-                    </Tooltip>
-                  ),
+                select: {
+                  open: maccmsOpen,
+                  onOpen: () => setMaccmsOpen(true),
+                  onClose: () => setMaccmsOpen(false),
                 },
               }}
               fullWidth
               label={t('optionsPage.danmakuSource.macCms.baseUrl')}
               error={!!errors.custom?.baseUrl}
               helperText={errors.custom?.baseUrl?.message}
-            />
+            >
+              {(maccmsData?.baseUrls ?? [field.value]).map((url) => (
+                <MenuItem key={url} value={url}>
+                  {url}
+                </MenuItem>
+              ))}
+              {isFetchingMaccms && (
+                <MenuItem disabled value="">
+                  {t('common.loading')}
+                </MenuItem>
+              )}
+            </TextField>
           )
         }}
       />
       <Controller
         name="custom.danmuicuBaseUrl"
         control={control}
-        render={({ field }) => {
+        render={({ field: { ref, ...field } }) => {
           return (
             <TextField
               {...field}
+              select
+              inputRef={ref}
               sx={{ my: 1 }}
               slotProps={{
-                input: {
-                  endAdornment: (
-                    <Tooltip title={t('common.reset')}>
-                      <IconButton
-                        color="primary"
-                        onClick={() => {
-                          setValue(
-                            'custom.danmuicuBaseUrl',
-                            defaultExtensionOptions.danmakuSources.custom
-                              .danmuicuBaseUrl,
-                            {
-                              shouldDirty: true,
-                              shouldTouch: true,
-                            }
-                          )
-                        }}
-                      >
-                        <Refresh />
-                      </IconButton>
-                    </Tooltip>
-                  ),
+                select: {
+                  open: danmuicuOpen,
+                  onOpen: () => setDanmuicuOpen(true),
+                  onClose: () => setDanmuicuOpen(false),
                 },
               }}
               fullWidth
               label={t('optionsPage.danmakuSource.macCms.danmuicuBaseUrl')}
               error={!!errors.custom?.danmuicuBaseUrl}
               helperText={errors.custom?.danmuicuBaseUrl?.message}
-            />
+            >
+              {(danmuicuData?.baseUrls ?? [field.value]).map((url) => (
+                <MenuItem key={url} value={url}>
+                  {url}
+                </MenuItem>
+              ))}
+              {isFetchingDanmuicu && (
+                <MenuItem disabled value="">
+                  {t('common.loading')}
+                </MenuItem>
+              )}
+            </TextField>
           )
         }}
       />
