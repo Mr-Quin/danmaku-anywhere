@@ -5,8 +5,6 @@ import { type ActivatedRouteSnapshot, Router } from '@angular/router'
 import { ExtensionService } from '../core/extension/extension.service'
 import { PlatformService } from '../core/services/platform.service'
 
-const DOC_MIGRATION_BANNER_KEY = 'hide-doc-migration-banner'
-
 export type ScreenSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 
 @Injectable({
@@ -27,9 +25,6 @@ export class LayoutService {
     return this.extensionService.$isExtensionInstalled() && !isMobile
   })
 
-  $showDocMigrationBanner = signal(
-    !localStorage.getItem(DOC_MIGRATION_BANNER_KEY)
-  )
   private $_showSidebar = signal(false)
 
   $showSidebar = this.$_showSidebar.asReadonly()
@@ -94,11 +89,6 @@ export class LayoutService {
     }
 
     return false
-  }
-
-  hideDocMigrationBanner() {
-    localStorage.setItem(DOC_MIGRATION_BANNER_KEY, '1')
-    this.$showDocMigrationBanner.set(false)
   }
 
   toggleSidebar() {
