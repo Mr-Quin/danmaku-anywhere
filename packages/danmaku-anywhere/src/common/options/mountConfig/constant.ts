@@ -3,13 +3,16 @@ import type {
   MountConfigInput,
 } from '@/common/options/mountConfig/schema'
 
-export const createMountConfig = (url: string): MountConfigInput => {
+export const createMountConfig = (
+  config: Partial<MountConfigInput> = {}
+): MountConfigInput => {
   return {
-    patterns: [url],
-    mediaQuery: '',
+    patterns: [],
+    mediaQuery: 'video',
     enabled: true,
     name: '',
     integration: undefined,
+    ...config,
   }
 }
 

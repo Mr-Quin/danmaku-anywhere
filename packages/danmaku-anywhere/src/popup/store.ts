@@ -136,7 +136,7 @@ const useStoreBase = create<StoreState>()(
       },
     },
     config: {
-      editingConfig: createMountConfig(''),
+      editingConfig: createMountConfig(),
       setEditingConfig: (config: MountConfigInput) => {
         set((state) => {
           state.config.editingConfig = config
