@@ -10,7 +10,6 @@
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
-    "deploy": "wrangler deploy",
     "dev": "wrangler dev",
     "dev:remote": "pnpm dev --remote",
     "test": "vitest",
@@ -18,21 +17,23 @@
     "lint:ci": "biome ci",
     "type-check:local": "tsgo --noEmit",
     "cf-typegen": "wrangler types",
-    "wrangler": "wrangler"
+    "wrangler": "wrangler",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:prod": "wrangler deploy --env production"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.1.2",
-    "@cloudflare/vitest-pool-workers": "^0.8.53",
-    "@types/node": "^24.0.14",
-    "typescript": "^5.8.3",
+    "@biomejs/biome": "^2.2.2",
+    "@cloudflare/vitest-pool-workers": "^0.8.68",
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.2",
     "vitest": "3.2.4",
-    "wrangler": "^4.24.3"
+    "wrangler": "^4.33.1"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
-    "@hono/zod-validator": "^0.7.1",
-    "@sentry/cloudflare": "^9.42.0",
-    "hono": "^4.8.5",
-    "zod": "^4.0.5"
+    "@hono/zod-validator": "^0.7.2",
+    "@sentry/cloudflare": "^9.46.0",
+    "hono": "^4.9.5",
+    "zod": "^4.1.5"
   }
 }
