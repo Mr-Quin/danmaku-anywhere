@@ -13,11 +13,9 @@ configRouter.use(
 )
 
 configRouter.get('/maccms', (c) => {
-  const baseUrls = macCmsBaseUrls
-  return c.json({ baseUrls })
+  return c.json({ baseUrls: macCmsBaseUrls })
 })
 
 configRouter.get('/danmuicu', (c) => {
-  const baseUrls = danmuIcuBaseUrls
-  return c.json({ baseUrls })
+  return c.json({ baseUrls: danmuIcuBaseUrls })
 })
