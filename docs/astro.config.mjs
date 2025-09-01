@@ -1,7 +1,7 @@
 import react from '@astrojs/react'
 import starlight from '@astrojs/starlight'
-import { defineConfig } from 'astro/config'
 import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from 'astro/config'
 
 // https://astro.build/config
 export default defineConfig({
@@ -10,7 +10,10 @@ export default defineConfig({
   integrations: [
     react(),
     starlight({
-      title: 'Danmaku Anywhere',
+      title: {
+        en: 'Danmaku Anywhere',
+        'zh-CN': '弹幕任何地方',
+      },
       customCss: ['./src/tailwind.css'],
       favicon: '/favicon.png',
       logo: {
@@ -23,7 +26,11 @@ export default defineConfig({
           'https://github.com/Mr-Quin/danmaku-anywhere/edit/master/docs/',
       },
       social: [
-        { icon: 'github', label: 'GitHub', href: 'https://github.com/Mr-Quin/danmaku-anywhere' },
+        {
+          icon: 'github',
+          label: 'GitHub',
+          href: 'https://github.com/Mr-Quin/danmaku-anywhere',
+        },
       ],
       sidebar: [
         {
@@ -35,19 +42,19 @@ export default defineConfig({
           link: '/getting-started',
         },
         {
-          label: 'docs',
+          label: 'configuration',
           translations: {
-            'zh-CN': '文档',
-            en: 'Docs',
+            'zh-CN': '配置',
+            en: 'Configuration',
           },
           items: [
             {
-              label: 'install',
+              label: 'danmaku',
               translations: {
-                'zh-CN': '安装',
-                en: 'Installation',
+                'zh-CN': '弹幕来源',
+                en: 'Danmaku Source',
               },
-              link: '/docs/install',
+              link: '/docs/danmaku',
             },
             {
               label: 'mount-profile',
@@ -58,45 +65,12 @@ export default defineConfig({
               link: '/docs/mount-profile',
             },
             {
-              label: 'danmaku',
+              label: 'integration-policy',
               translations: {
-                'zh-CN': '弹幕管理',
-                en: 'Danmaku Management',
+                'zh-CN': '自动匹配',
+                en: 'Automatic Matching',
               },
-              link: '/docs/danmaku',
-            },
-          ],
-        },
-        {
-          label: 'integration-policy',
-          translations: {
-            'zh-CN': '适配规则',
-            en: 'Integration Policy',
-          },
-          items: [
-            {
-              label: 'overview',
-              translations: {
-                'zh-CN': '概览',
-                en: 'Overview',
-              },
-              link: '/integration-policy/overview',
-            },
-            {
-              label: 'ai',
-              translations: {
-                'zh-CN': 'AI自动适配',
-                en: 'AI',
-              },
-              link: '/integration-policy/ai',
-            },
-            {
-              label: 'xpath',
-              translations: {
-                'zh-CN': 'XPath规则',
-                en: 'XPath Policy',
-              },
-              link: '/integration-policy/xpath',
+              link: '/docs/integration-policy',
             },
           ],
         },

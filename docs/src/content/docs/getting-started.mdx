@@ -3,80 +3,81 @@ title: 快速上手
 description: 快速上手
 ---
 
-## 系统要求
 
-- 最新版本的 Chrome、Edge 或其他基于 Chromium 内核的浏览器。
-- 最新版本的 Firefox（含安卓版）。
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components'
+import { Fab } from '../../components/Fab'
 
-:::note
-此扩展以 Chrome 为基础开发，主要支持 Chrome 以及 Chromium 内核的浏览器。
-
-Firefox 版由于 API 限制，部分功能无法使用，而且可能BUG更多。
-
-Firefox 安卓版只保证能用，由于UI主要是为桌面版设计的，所以在手机上体验可能不太好。
-:::
+欢迎使用**弹幕任何地方**！按照以下步骤完成首次配置并在你的视频网站上显示弹幕。
 
 ## 安装
 
-### Chrome
+### Chromium系
 
-包括 Chrome、Edge、Opera 等基于 Chromium 内核的浏览器。
+包含Chrome、Edge、Opera等
 
-从 [Chrome 应用商店](https://chromewebstore.google.com/detail/danmaku-anywhere/jnflbkkmffognjjhibkjnomjedogmdpo?hl=zh) 下载安装
+**从商店安装**
 
-使用商店安装可以自动更新，以及多设备同步设置。
+- [Chrome 应用商店](https://chromewebstore.google.com/detail/danmaku-anywhere/jnflbkkmffognjjhibkjnomjedogmdpo?hl=zh)
+- [Edge 应用商店](https://microsoftedge.microsoft.com/addons/detail/danmaku-anywhere/alcoddhlgdbhlljlnhckhomdcgbnmanf)
 
-### Firefox
+**手动安装**（安卓端浏览器Kiwi、Lemur等也可以这样安装）
+1. 从 [Github](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest) 下载最新版本
+2. 打开浏览器 [扩展页面](chrome://extensions/)，启用开发者模式
+3. 将下载的压缩包拖入扩展页面
 
-从 [Firefox Add-ons](https://addons.mozilla.org/zh-CN/firefox/addon/danmaku-anywhere/)下载安装
+### Firefox（含安卓版）
 
-其他安装方式见 [安装说明](/docs/install)
+- [Firefox Add-ons](https://addons.mozilla.org/zh-CN/firefox/addon/danmaku-anywhere/)
 
 ## 首次使用
 
-安装扩展后刷新网页，左下角会出现控件的悬浮按钮：
-![弹幕图标](../../assets/ui/fab.png)
-看到此图标表示扩展成功启用。
+<Steps>
 
-扩展默认在所有网页上生效，如果希望只在部分网页上生效，可以在[装填配置](/docs/mount-profile)中修改配置。
+1. 确保你已经安装了**弹幕任何地方**扩展
 
-## 使用流程
+2. 打开你想要显示弹幕的视频网站，在网页空白处右键，点击**为当前网站添加配置**
 
-### 1. 获取弹幕
+   <img src='/add-config-button.webp' height='33px' width='303px'/>
 
-#### [内置搜索](/docs/danmaku#内置搜索)
+   安卓端由于没有右键菜单，可以前往**扩展弹窗 - 装填配置**中添加配置，详见[装填配置](/docs/mount-profile)
 
-在搜索页输入关键词，然后点击搜索按钮，即可搜索到相关的弹幕，点击弹幕即可下载。
+3. <div>
+    网页刷新后，左下角会出现<Fab />按钮
+   </div>
 
-支持的弹幕来源有
+4. 点击<Fab />打开悬浮面板，在搜索页面中搜索你想要播放的剧集并下载弹幕
 
-- 弹弹Play
-- B站
-- 腾讯视频
+5. 在装填页面中装填已下载的弹幕，装填的弹幕会显示在页面中的视频上
 
-其中**弹弹Play**为默认开启的，其余的需要在设置页中开启。
+</Steps>
 
-部分搜索结果受登录状态，地域等因素影响
+:::caution
+**不要在短时间内从单个源大量下载弹幕，滥用可能导致你的IP或账号被提供方封禁。**
 
-#### [地址解析](/docs/danmaku#地址解析)
+如果需要批量下载弹幕，请使用其他方法获取弹幕后通过导入的方式导入弹幕。
+:::
 
-在搜索页选择**地址解析**标签页，输入视频地址，然后点击解析按钮。
+## 常见问题
 
-支持B站和腾讯视频的影视类视频。
+**网页中看不到<Fab />按钮**
 
-#### [上传本地弹幕](/docs/danmaku#用户上传)
+1. 检查浏览器版本是否为最新版
+2. 检查已经为网站添加了装填配置，可以在**扩展弹窗 - 装填配置**中查看
 
-也可以上传本地的弹幕文件（一般为 .xml）
 
-如果发现上传的弹幕文件解析失败，可能是尚不支持这个格式，请提交 [功能请求](https://github.com/Mr-Quin/danmaku-anywhere/issues/new)。
+## 下一步
 
-### 2. 加载弹幕
+### 启用或禁用弹幕源
 
-有了弹幕后，在悬浮窗口中的“装填弹幕”页中可以查看，点击“装填”按钮即可加载弹幕。此时控件按钮会变绿，播放视频即可看到弹幕。
+默认只启用了**弹弹Play**和**其他**源，其他弹幕来源需要手动开启。[弹幕来源](/docs/danmaku)
 
-### 3. 自动化
+### 自动匹配
 
-手动搜索和装填弹幕的操作比较繁琐，[适配规则](/integration-policy/overview)可以将这两个步骤自动化。
+手动搜索和装填弹幕的操作比较繁琐，[自动匹配](/docs/integration-policy)可以将这两个步骤自动化。
+
+### 为更多的网站添加装填配置
+
+可以在**扩展弹窗 - 装填配置**中添加配置，详见[装填配置](/docs/mount-profile)
 
 ## 问题反馈
 
