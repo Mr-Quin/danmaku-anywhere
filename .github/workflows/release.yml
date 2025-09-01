@@ -46,11 +46,31 @@ jobs:
           VITE_PROXY_ORIGIN: ${{ vars.VITE_PROXY_ORIGIN }}
           VITE_PROXY_URL: ${{ vars.VITE_PROXY_URL }}
 
+      - name: Resolve Chrome ZIP path for CRX
+        id: crx_paths
+        continue-on-error: true
+        shell: bash
+        run: |
+          ZIP=$(ls packages/danmaku-anywhere/package/*-chrome.zip)
+          echo "zip=$ZIP" >> $GITHUB_OUTPUT
+          CRX="${ZIP%.zip}.crx"
+          echo "crx=$CRX" >> $GITHUB_OUTPUT
+
+      - name: Build .crx from Chrome ZIP
+        uses: cardinalby/webext-buildtools-chrome-crx-action@v2
+        continue-on-error: true
+        with:
+          zipFilePath: ${{ steps.crx_paths.outputs.zip }}
+          crxFilePath: ${{ steps.crx_paths.outputs.crx }}
+          privateKey: ${{ secrets.CRX_SECRET_KEY }}
+
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: package-files
-          path: packages/danmaku-anywhere/package/*.zip
+          path: |
+            packages/danmaku-anywhere/package/*.zip
+            packages/danmaku-anywhere/package/*.crx
 
   publish-release:
     runs-on: ubuntu-latest
