@@ -3,46 +3,61 @@ title: 快速上手
 description: 快速上手
 ---
 
-## 系统要求
 
-- 最新版本的 Chrome、Edge 或其他基于 Chromium 内核的浏览器。
-- 最新版本的 Firefox（含安卓版）。
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components'
+import { Fab } from '../../components/Fab'
 
-:::note
-此扩展以 Chrome 为基础开发，主要支持 Chrome 以及 Chromium 内核的浏览器。
-
-Firefox 版由于 API 限制，部分功能无法使用，而且可能BUG更多。
-
-Firefox 安卓版只保证能用，由于UI主要是为桌面版设计的，所以在手机上体验可能不太好。
-:::
+欢迎使用**弹幕任何地方**！按照以下步骤完成首次配置并在你的视频网站上显示弹幕。
 
 ## 安装
 
-### Chrome
+### Chromium系（Chrome、Edge、Opera等）
 
-包括 Chrome、Edge、Opera 等基于 Chromium 内核的浏览器。
+**从商店安装**
 
-从 [Chrome 应用商店](https://chromewebstore.google.com/detail/danmaku-anywhere/jnflbkkmffognjjhibkjnomjedogmdpo?hl=zh) 下载安装
+- [Chrome 应用商店](https://chromewebstore.google.com/detail/danmaku-anywhere/jnflbkkmffognjjhibkjnomjedogmdpo?hl=zh)
+- [Edge 应用商店](https://microsoftedge.microsoft.com/addons/detail/danmaku-anywhere/alcoddhlgdbhlljlnhckhomdcgbnmanf)
 
-使用商店安装可以自动更新，以及多设备同步设置。
+**手动安装**（安卓端浏览器Kiwi、Lemur等也可以这样安装）
+1. 从 [Github](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest) 下载最新版本
+2. 打开浏览器 [扩展页面](chrome://extensions/)，启用开发者模式
+3. 将下载的压缩包拖入扩展页面
 
-### Firefox
+## Firefox（含安卓版）
 
-从 [Firefox Add-ons](https://addons.mozilla.org/zh-CN/firefox/addon/danmaku-anywhere/)下载安装
-
-其他安装方式见 [安装说明](/docs/install)
+- [Firefox Add-ons](https://addons.mozilla.org/zh-CN/firefox/addon/danmaku-anywhere/)
 
 ## 首次使用
 
-安装扩展后刷新网页，左下角会出现控件的悬浮按钮：
-![弹幕图标](../../assets/ui/fab.png)
-看到此图标表示扩展成功启用。
+<Steps>
 
-扩展默认在所有网页上生效，如果希望只在部分网页上生效，可以在[装填配置](/docs/mount-profile)中修改配置。
+1. 确保你已经安装了**弹幕任何地方**扩展
 
-## 使用流程
+2. 打开你想要显示弹幕的视频网站，在网页空白处右键，点击**为当前网站添加配置**
 
-### 1. 获取弹幕
+   安卓端由于没有右键菜单，可以前往**扩展弹窗 - 装填配置**中添加配置，详见[装填配置](/docs/mount-profile)
+
+3. <div>
+    网页刷新后，左下角会显示<Fab />按钮
+   </div>
+
+4. 点击<Fab />打开悬浮面板，在搜索页面中搜索你想要播放的剧集并下载弹幕
+
+5. 在装填页面中装填以下载的弹幕，装填的弹幕会显示在页面中的视频上
+
+</Steps>
+
+## 常见问题
+
+**看不到<Fab />按钮**
+
+1. 检查已经为网站添加了装填配置，可以在**扩展弹窗 - 装填配置**中查看
+2. 检查浏览器版本是否为最新版
+
+
+## 下一步
+
+### 添加弹幕源
 
 #### [内置搜索](/docs/danmaku#内置搜索)
 
@@ -64,17 +79,13 @@ Firefox 安卓版只保证能用，由于UI主要是为桌面版设计的，所�
 
 支持B站和腾讯视频的影视类视频。
 
-#### [上传本地弹幕](/docs/danmaku#用户上传)
+### 上传本地弹幕
 
 也可以上传本地的弹幕文件（一般为 .xml）
 
 如果发现上传的弹幕文件解析失败，可能是尚不支持这个格式，请提交 [功能请求](https://github.com/Mr-Quin/danmaku-anywhere/issues/new)。
 
-### 2. 加载弹幕
-
-有了弹幕后，在悬浮窗口中的“装填弹幕”页中可以查看，点击“装填”按钮即可加载弹幕。此时控件按钮会变绿，播放视频即可看到弹幕。
-
-### 3. 自动化
+### 自动化
 
 手动搜索和装填弹幕的操作比较繁琐，[适配规则](/integration-policy/overview)可以将这两个步骤自动化。
 

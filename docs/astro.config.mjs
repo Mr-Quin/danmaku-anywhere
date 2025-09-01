@@ -1,7 +1,7 @@
 import react from '@astrojs/react'
 import starlight from '@astrojs/starlight'
-import { defineConfig } from 'astro/config'
 import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from 'astro/config'
 
 // https://astro.build/config
 export default defineConfig({
@@ -10,7 +10,10 @@ export default defineConfig({
   integrations: [
     react(),
     starlight({
-      title: 'Danmaku Anywhere',
+      title: {
+        en: 'Danmaku Anywhere',
+        'zh-CN': '弹幕任何地方',
+      },
       customCss: ['./src/tailwind.css'],
       favicon: '/favicon.png',
       logo: {
@@ -23,7 +26,11 @@ export default defineConfig({
           'https://github.com/Mr-Quin/danmaku-anywhere/edit/master/docs/',
       },
       social: [
-        { icon: 'github', label: 'GitHub', href: 'https://github.com/Mr-Quin/danmaku-anywhere' },
+        {
+          icon: 'github',
+          label: 'GitHub',
+          href: 'https://github.com/Mr-Quin/danmaku-anywhere',
+        },
       ],
       sidebar: [
         {
@@ -41,14 +48,6 @@ export default defineConfig({
             en: 'Docs',
           },
           items: [
-            {
-              label: 'install',
-              translations: {
-                'zh-CN': '安装',
-                en: 'Installation',
-              },
-              link: '/docs/install',
-            },
             {
               label: 'mount-profile',
               translations: {
