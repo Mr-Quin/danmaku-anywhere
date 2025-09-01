@@ -3,6 +3,37 @@ title: 更新日志
 description: 更新日志
 ---
 
+## v1.3.0 - 2025-09-01
+
+## 特性
+* 兼容MacCMS的搜索（实验功能，获取的弹幕暂时归类为本地弹幕）
+  - 搜索失效时可以在设置中选择其他的API地址
+* 根据弹幕内容，显示跳过OP，ED的按钮（可以在设置中关闭此功能）
+* 视频定位后填充弹幕
+  - 之前：清空屏幕，弹幕从右边重新开始
+  - 现在：尝试让弹幕填满屏幕
+* 自动模式下，视频播放到一半时预下载下一集的弹幕（仅限弹弹Play源）
+* 悬浮面板中更直观的显示正在播放的弹幕
+* 弹幕列表中增加搜索按钮
+* 增加可以从悬浮面板（`+`按钮打开的窗口）中打开扩展配置页面的按钮
+* 修改剧集标题映射时会显示提示
+* 拖拽`+`按钮后记录位置
+
+## 修复
+* 修复弹幕显示在悬浮面板上层的问题
+* 修复弹弹Play集数匹配
+
+## 其他
+* 优化加载提示UI
+* 替换部分图片素材
+
+**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v1.2.2...v1.3.0
+
+## v1.2.2 - 2025-07-30
+
+Fix issues in the 1.2.0 release
+**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v1.2.1...v1.2.2
+
 ## v1.2.0 - 2025-07-20
 
 ## 新特性
@@ -324,34 +355,4 @@ description: 更新日志
 ## 新特性
 
 - 为部分功能添加键盘快捷键，设置中更改 [#44](https://github.com/Mr-Quin/danmaku-anywhere/pull/44)
-
-## v0.15.1 - 2024-09-19
-
-**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v0.15.0...v0.15.1
-
-## 修复
-
-- 修复保存按钮在浅色模式下看不见的问题 [#36](https://github.com/Mr-Quin/danmaku-anywhere/pull/36)
-
-## v0.15.0 - 2024-09-18
-
-## 自定义适配
-
-基于`XPath`和`regex`规则的自定义网页适配，替换掉原来的方案
-
-**试验功能，尚不稳定**
-
-[编写方法](https://danmaku.weeblify.app/docs/integration-policy/)
-
-注意：
-
-- 现有的适配将被清空，需要在装填配置中重新选择
-- 暂不支持视频位于&lt;iframe&gt;中的情况（研究中
-- 适配固定使用弹弹Play搜索，之后添加对其他源的支持
-
-## 其他
-修复一些关于视频检测和搜索的bug
-
-**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v0.14.1...v0.15.0
-
 
