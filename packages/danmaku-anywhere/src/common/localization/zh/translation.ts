@@ -40,6 +40,7 @@ const common = {
       day_one: '天',
       day_other: '天',
     },
+    danmakuAnywhere: '弹幕任何地方',
   },
   error: {
     unknown: '出错啦!',

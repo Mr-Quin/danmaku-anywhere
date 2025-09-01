@@ -49,7 +49,7 @@ export const AppToolBar = () => {
           </Box>
         </Fade>
         <Typography variant="h1" fontSize={20} sx={{ flexGrow: 1 }}>
-          Danmaku Anywhere
+          {t('common.danmakuAnywhere')}
         </Typography>
         <FormGroup>
           <FormControlLabel
