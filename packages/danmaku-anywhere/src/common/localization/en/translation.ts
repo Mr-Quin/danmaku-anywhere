@@ -38,6 +38,7 @@ const common = {
       day_one: 'Day',
       day_other: 'Days',
     },
+    danmakuAnywhere: 'Danmaku Anywhere',
   },
   error: {
     unknown: 'Something went wrong.',

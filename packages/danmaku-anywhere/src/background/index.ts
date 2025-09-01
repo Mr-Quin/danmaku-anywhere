@@ -77,7 +77,7 @@ chrome.runtime.getPlatformInfo().then((platformInfo) => {
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
     void chrome.tabs.create({
-      url: 'https://docs.danmaku.weeblify.app/first-time/',
+      url: 'https://docs.danmaku.weeblify.app/getting-started#首次使用',
     })
   }
 })
