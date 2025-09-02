@@ -13,6 +13,7 @@ import {
   zCombinedDanmaku,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { SeasonService } from '@/background/services/SeasonService'
+import { Dexie } from 'dexie'
 import type {
   CustomEpisodeQueryFilter,
   DanmakuImportData,
@@ -36,18 +37,75 @@ export class DanmakuService {
     this.logger = Logger.sub('[DanmakuService]')
   }
 
-  async addCustom(data: CustomEpisodeInsert): Promise<CustomEpisode> {
-    const toAdd = {
-      ...data,
-      timeUpdated: Date.now(),
-      version: 1,
+  // ---- Comment blob helpers ----
+  private async gzipComments(comments: CommentEntity[]): Promise<Blob> {
+    try {
+      const json = JSON.stringify(comments)
+      const input = new Blob([json], { type: 'application/json' })
+      // @ts-ignore CompressionStream is available in extension SW/runtime
+      const cs = new CompressionStream('gzip')
+      const stream = input.stream().pipeThrough(cs)
+      const buffer = await new Response(stream).arrayBuffer()
+      return new Blob([buffer], { type: 'application/gzip' })
+    } catch (_e) {
+      return new Blob([JSON.stringify(comments)], { type: 'application/json' })
     }
-    const id = await db.customEpisode.add(toAdd)
+  }
 
-    return {
-      id,
-      ...toAdd,
+  private async gunzipComments(blob: Blob): Promise<CommentEntity[]> {
+    try {
+      if (blob.type === 'application/gzip') {
+        // @ts-ignore DecompressionStream is available in extension SW/runtime
+        const ds = new DecompressionStream('gzip')
+        const stream = blob.stream().pipeThrough(ds)
+        const text = await new Response(stream).text()
+        return JSON.parse(text) as CommentEntity[]
+      }
+      const text = await blob.text()
+      return JSON.parse(text) as CommentEntity[]
+    } catch (_e) {
+      return []
     }
+  }
+
+  private async saveComments(comments: CommentEntity[]): Promise<number> {
+    const blob = await this.gzipComments(comments)
+    const id = await db.danmakuData.add({ blob })
+    return id
+  }
+
+  private async loadComments(refId: number | undefined): Promise<CommentEntity[]> {
+    if (refId === undefined) return []
+    const row = await db.danmakuData.get(refId)
+    if (!row) return []
+    return this.gunzipComments(row.blob)
+  }
+
+  private async withinRw<T>(tables: Dexie.Table<any, any>[], fn: () => Promise<T>) {
+    // @ts-ignore Dexie.currentTransaction exists at runtime
+    if (Dexie.currentTransaction) {
+      return fn()
+    }
+    return db.transaction('rw', ...tables, fn)
+  }
+
+  async addCustom(data: CustomEpisodeInsert): Promise<CustomEpisode> {
+    return this.withinRw([db.customEpisode, db.danmakuData], async () => {
+      const commentsRefId = await this.saveComments(data.comments)
+      const toAdd = {
+        ...data,
+        comments: undefined as unknown as CommentEntity[],
+        commentsRefId,
+        timeUpdated: Date.now(),
+        version: 1,
+      }
+      const id = await db.customEpisode.add(toAdd as any)
+      return {
+        id,
+        ...(toAdd as any),
+        comments: data.comments,
+      } as CustomEpisode
+    })
   }
 
   async importCustom(importData: {
@@ -66,14 +124,25 @@ export class DanmakuService {
   async filterCustom(
     filter: CustomEpisodeQueryFilter
   ): Promise<CustomEpisode[]> {
+    const loadAll = async (rows: any[]) => {
+      return Promise.all(
+        rows.map(async (row) => ({
+          ...(row as any),
+          comments: await this.loadComments(row.commentsRefId),
+        }))
+      )
+    }
     if (filter.all) {
-      return db.customEpisode.toArray()
+      const rows = await db.customEpisode.toArray()
+      return loadAll(rows)
     }
     if (filter.ids) {
       const res = await db.customEpisode.bulkGet(filter.ids)
-      return res.filter((item) => item !== undefined)
+      const filtered = res.filter((item) => item !== undefined) as any[]
+      return loadAll(filtered)
     }
-    return db.customEpisode.where(filter).toArray()
+    const rows = await db.customEpisode.where(filter as any).toArray()
+    return loadAll(rows)
   }
 
   async filterCustomLite(
@@ -87,19 +156,42 @@ export class DanmakuService {
   }
 
   async getCustomByTitle(title: string): Promise<CustomEpisode | undefined> {
-    return db.customEpisode.where('title').equals(title).first()
+    const row: any = await db.customEpisode.where('title').equals(title).first()
+    if (!row) return undefined
+    return {
+      ...(row as any),
+      comments: await this.loadComments(row.commentsRefId),
+    }
   }
 
   async deleteCustom(filter: CustomEpisodeQueryFilter) {
-    if (filter.all) {
-      await db.customEpisode.clear()
-      return
-    }
-    if (filter.ids) {
-      await db.customEpisode.bulkDelete(filter.ids)
-      return
-    }
-    await db.customEpisode.where(filter).delete()
+    await this.withinRw([db.customEpisode, db.danmakuData], async () => {
+      if (filter.all) {
+        const rows = await db.customEpisode.toArray()
+        const refIds = rows
+          .map((r: any) => r.commentsRefId)
+          .filter((v: any) => v !== undefined)
+        if (refIds.length) await db.danmakuData.bulkDelete(refIds)
+        await db.customEpisode.clear()
+        return
+      }
+      if (filter.ids) {
+        const rows = await db.customEpisode.bulkGet(filter.ids)
+        const refIds = rows
+          .filter((r): r is any => !!r)
+          .map((r: any) => r.commentsRefId)
+          .filter((v: any) => v !== undefined)
+        if (refIds.length) await db.danmakuData.bulkDelete(refIds)
+        await db.customEpisode.bulkDelete(filter.ids)
+        return
+      }
+      const rows = await db.customEpisode.where(filter as any).toArray()
+      const refIds = rows
+        .map((r: any) => r.commentsRefId)
+        .filter((v: any) => v !== undefined)
+      if (refIds.length) await db.danmakuData.bulkDelete(refIds)
+      await db.customEpisode.where(filter as any).delete()
+    })
   }
 
   async bulkUpsert(data: EpisodeInsert[]): Promise<Episode[]> {
@@ -111,42 +203,65 @@ export class DanmakuService {
   }
 
   async upsert<T extends EpisodeInsert>(data: T): Promise<DbEntity<T>> {
-    const existing = await db.episode.get({
+    const existing: any = await db.episode.get({
       provider: data.provider,
       indexedId: data.indexedId,
     })
 
     if (existing) {
-      return (await this.update({ ...existing, ...data })) as DbEntity<T>
+      const merged: any = { ...existing, ...data }
+      return (await this.update(merged)) as DbEntity<T>
     }
 
     return this.add(data)
   }
 
   async add<T extends EpisodeInsert>(data: T): Promise<DbEntity<T>> {
-    const toInsert = {
-      ...data,
-      timeUpdated: Date.now(),
-      version: 1,
-    }
-    const id = await db.episode.add(toInsert)
-
-    return {
-      ...toInsert,
-      id,
-    }
+    return this.withinRw([db.episode, db.danmakuData], async () => {
+      const commentsRefId = await this.saveComments(data.comments)
+      const toInsert: any = {
+        ...data,
+        comments: undefined,
+        commentsRefId,
+        timeUpdated: Date.now(),
+        version: 1,
+      }
+      const id = await db.episode.add(toInsert)
+      return {
+        ...(toInsert as T),
+        id,
+        comments: data.comments,
+      } as unknown as DbEntity<T>
+    })
   }
 
   async update<T extends Episode>(data: T): Promise<T> {
-    const toUpdate: T = {
-      ...data,
-      timeUpdated: Date.now(),
-      version: data.version + 1,
-    }
+    return this.withinRw([db.episode, db.danmakuData], async () => {
+      const existing: any = await db.episode.get(data.id)
+      let commentsRefId: number | undefined = existing?.commentsRefId
 
-    await db.episode.update(data.id, toUpdate as Omit<T, 'id'>)
+      if (Array.isArray((data as any).comments)) {
+        const blob = await this.gzipComments((data as any).comments)
+        if (commentsRefId !== undefined) {
+          await db.danmakuData.update(commentsRefId, { blob })
+        } else {
+          commentsRefId = await db.danmakuData.add({ blob })
+        }
+      }
 
-    return toUpdate
+      const toUpdateDb: any = {
+        ...(data as any),
+        comments: undefined,
+        commentsRefId,
+        timeUpdated: Date.now(),
+        version: data.version + 1,
+      }
+      await db.episode.update(data.id, toUpdateDb)
+      return {
+        ...(toUpdateDb as T),
+        comments: (data as any).comments ?? (await this.loadComments(commentsRefId)),
+      } as T
+    })
   }
 
   /**
@@ -176,38 +291,64 @@ export class DanmakuService {
 
   async filter(filter: EpisodeQueryFilter): Promise<WithSeason<Episode>[]> {
     if (filter.all) {
-      const res = await db.episode.toArray()
-      return Promise.all(res.map(this.joinSeason))
+      const res: any[] = await db.episode.toArray()
+      const withComments: any[] = await Promise.all(
+        res.map(async (r) => ({
+          ...r,
+          comments: await this.loadComments(r.commentsRefId),
+        }))
+      )
+      return Promise.all(withComments.map(this.joinSeason as any))
     }
 
     if (filter.ids) {
-      const getMany = async (ids: number[]): Promise<WithSeason<Episode>[]> => {
-        const res = await db.episode.bulkGet(ids)
-        const filtered = res.filter((r) => r !== undefined)
-        return Promise.all(filtered.map(this.joinSeason))
-      }
-      return getMany(filter.ids)
+      const res = await db.episode.bulkGet(filter.ids)
+      const filtered: any[] = res.filter((r) => r !== undefined) as any[]
+      const withComments: any[] = await Promise.all(
+        filtered.map(async (r) => ({
+          ...r,
+          comments: await this.loadComments(r.commentsRefId),
+        }))
+      )
+      return Promise.all(withComments.map(this.joinSeason as any))
     }
 
-    const res = await db.episode.where(filter).toArray()
-
+    const res: any[] = await db.episode.where(filter as any).toArray()
+    const withComments: any[] = await Promise.all(
+      res.map(async (r) => ({
+        ...r,
+        comments: await this.loadComments(r.commentsRefId),
+      }))
+    )
     return Promise.all(
-      res
+      withComments
         .toSorted((a, b) => a.indexedId.localeCompare(b.indexedId))
-        .map(this.joinSeason)
+        .map(this.joinSeason as any)
     )
   }
 
   async delete(filter: EpisodeQueryFilter) {
-    if (filter.all) {
-      // don't delete everything at once
-      return
-    }
-    if (filter.ids) {
-      await db.episode.bulkDelete(filter.ids)
-      return
-    }
-    await db.episode.where(filter).delete()
+    await this.withinRw([db.episode, db.danmakuData], async () => {
+      if (filter.all) {
+        return
+      }
+      if (filter.ids) {
+        const rows = await db.episode.bulkGet(filter.ids)
+        const refIds = rows
+          .filter((r): r is any => !!r)
+          .map((r: any) => r.commentsRefId)
+          .filter((v: any) => v !== undefined)
+        if (refIds.length) await db.danmakuData.bulkDelete(refIds)
+        await db.episode.bulkDelete(filter.ids)
+        return
+      }
+      const rows = await db.episode.where(filter as any).toArray()
+      const refIds = rows
+        .map((r: any) => r.commentsRefId)
+        .filter((v: any) => v !== undefined)
+      if (refIds.length) await db.danmakuData.bulkDelete(refIds)
+      await db.episode.where(filter as any).delete()
+    })
   }
 
   async import(importData: DanmakuImportData[]): Promise<DanmakuImportResult> {
@@ -228,7 +369,7 @@ export class DanmakuService {
           } else {
             let savedSeasonId = -1
             let savedSeasonTitle = ''
-            await db.transaction('rw', db.season, db.episode, async () => {
+            await db.transaction('rw', db.season, db.episode, db.danmakuData, async () => {
               let [existingSeason] = await this.seasonService.filter({
                 provider: item.season.provider,
                 indexedId: item.season.indexedId,
@@ -345,10 +486,18 @@ export class DanmakuService {
     const threshold = now - days * 24 * 60 * 60 * 1000
 
     // delete danmaku older than threshold, ignoring custom danmaku
-    const deleteCount = await db.episode
-      .where('timeUpdated')
-      .below(threshold)
-      .delete()
+    const deleteCount = await this.withinRw([db.episode, db.danmakuData], async () => {
+      const oldEpisodes: any[] = await db.episode
+        .where('timeUpdated')
+        .below(threshold)
+        .toArray()
+      const refIds = oldEpisodes
+        .map((r) => r.commentsRefId)
+        .filter((v) => v !== undefined)
+      if (refIds.length) await db.danmakuData.bulkDelete(refIds)
+      await db.episode.where('timeUpdated').below(threshold).delete()
+      return oldEpisodes.length
+    })
 
     this.logger.log(
       `Purged ${deleteCount} danmaku older than ${new Date(threshold).toLocaleString()}`
