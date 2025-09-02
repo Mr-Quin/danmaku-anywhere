@@ -1,7 +1,7 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { Logger } from '@/common/Logger'
-import { buildDensityAreaPath } from '@/content/player/densityPlot/buildDensityAreaPath'
 import { computeDensityBins } from '@/content/player/densityPlot/computeDensityBins'
+import { DanmakuDensityChart } from '@/content/player/densityPlot/DanmakuDensityChart'
 import type { DensityPoint } from '@/content/player/densityPlot/types'
 import type { VideoEventService } from '@/content/player/monitors/VideoEvent.service'
 
@@ -11,11 +11,7 @@ export class DanmakuDensityService {
   private comments: CommentEntity[] = []
   private currentVideo: HTMLVideoElement | null = null
 
-  private svg: SVGSVGElement | null = null
-  private pathUnplayed: Element | null = null
-  private pathPlayed: Element | null = null
-  private clipRect: Element | null = null
-  private clipId = `danmaku-density-clip-${Math.random().toString(36).slice(2)}`
+  private chart: DanmakuDensityChart
 
   private data: DensityPoint[] = []
   private binSizeSec = 30
@@ -23,21 +19,26 @@ export class DanmakuDensityService {
 
   private readonly boundHandleTimeUpdate: (event: Event) => void
   private readonly boundHandleSeeked: () => void
-  private readonly boundHandleResize: () => void
 
   constructor(
     private readonly videoEventService: VideoEventService,
     private readonly wrapper: HTMLElement
   ) {
     this.boundHandleTimeUpdate = this.handleTimeUpdate.bind(this)
-    this.boundHandleSeeked = this.updateClipWidth.bind(this)
-    this.boundHandleResize = this.redraw.bind(this)
+    this.boundHandleSeeked = this.handleSeeked.bind(this)
+    this.chart = new DanmakuDensityChart(this.wrapper, {
+      height: this.chartHeight,
+      colors: {
+        unplayed: 'rgba(255,255,255,0.25)',
+        played: 'rgba(255,255,255,0.6)',
+      },
+    })
   }
 
   enable() {
     logger.debug('Enabling density plot')
     this.setupEventListeners()
-    this.mountSvg()
+    this.chart.setup()
     this.tryComputeAndRender()
   }
 
@@ -54,7 +55,7 @@ export class DanmakuDensityService {
   clear() {
     this.comments = []
     this.data = []
-    this.teardownSvg()
+    this.chart.updateData([], 0)
   }
 
   private setupEventListeners() {
@@ -70,7 +71,6 @@ export class DanmakuDensityService {
       'loadedmetadata',
       this.boundHandleTimeUpdate
     )
-    window.addEventListener('resize', this.boundHandleResize)
   }
 
   private removeEventListeners() {
@@ -86,60 +86,6 @@ export class DanmakuDensityService {
       'loadedmetadata',
       this.boundHandleTimeUpdate
     )
-    window.removeEventListener('resize', this.boundHandleResize)
-  }
-
-  private mountSvg() {
-    if (this.svg) {
-      return
-    }
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-    svg.setAttribute('width', '100%')
-    svg.setAttribute('height', `${this.chartHeight}`)
-    svg.style.position = 'absolute'
-    svg.style.left = '0'
-    svg.style.bottom = '0'
-    svg.style.pointerEvents = 'none'
-    svg.style.zIndex = '2147483647'
-
-    const defs = document.createElementNS(svg.namespaceURI, 'defs')
-    const clip = document.createElementNS(svg.namespaceURI, 'clipPath')
-    clip.setAttribute('id', this.clipId)
-    const clipRect = document.createElementNS(svg.namespaceURI, 'rect')
-    clipRect.setAttribute('x', '0')
-    clipRect.setAttribute('y', '0')
-    clipRect.setAttribute('width', '0')
-    clipRect.setAttribute('height', `${this.chartHeight}`)
-    clip.appendChild(clipRect)
-    defs.appendChild(clip)
-
-    const pathUnplayed = document.createElementNS(svg.namespaceURI, 'path')
-    pathUnplayed.setAttribute('fill', 'rgba(255,255,255,0.25)')
-
-    const pathPlayed = document.createElementNS(svg.namespaceURI, 'path')
-    pathPlayed.setAttribute('fill', 'rgba(255,255,255,0.6)')
-    pathPlayed.setAttribute('clip-path', `url(#${this.clipId})`)
-
-    svg.appendChild(defs)
-    svg.appendChild(pathUnplayed)
-    svg.appendChild(pathPlayed)
-
-    this.wrapper.appendChild(svg)
-
-    this.svg = svg
-    this.pathUnplayed = pathUnplayed
-    this.pathPlayed = pathPlayed
-    this.clipRect = clipRect
-  }
-
-  private teardownSvg() {
-    if (this.svg) {
-      this.svg.remove()
-    }
-    this.svg = null
-    this.pathUnplayed = null
-    this.pathPlayed = null
-    this.clipRect = null
   }
 
   private computeBins(duration: number) {
@@ -159,55 +105,13 @@ export class DanmakuDensityService {
     this.currentVideo = active
 
     this.computeBins(duration)
-    this.redraw()
+    this.chart.updateData(this.data, duration)
+    this.chart.updateProgress(active.currentTime)
   }
 
-  private getSvgSize(): { width: number; height: number } {
-    if (!this.svg) return { width: 0, height: 0 }
-    const width = this.svg.clientWidth || this.wrapper.clientWidth
-    return { width, height: this.chartHeight }
-  }
-
-  private buildAreaPath(): string {
-    if (!this.svg || this.data.length === 0 || !this.currentVideo) return ''
-    const { width, height } = this.getSvgSize()
-    const duration = this.currentVideo.duration
-    return buildDensityAreaPath(this.data, width, height, duration)
-  }
-
-  private redraw() {
-    console.debug('redraw')
-    if (!this.svg || !this.currentVideo) {
-      return
-    }
-    if (this.data.length === 0) {
-      return
-    }
-
-    // Update clip rect height/width baseline
-    this.clipRect?.setAttribute('height', `${this.chartHeight}`)
-
-    const d = this.buildAreaPath()
-    if (d) {
-      this.pathUnplayed?.setAttribute('d', d)
-      this.pathPlayed?.setAttribute('d', d)
-      this.updateClipWidth()
-    }
-  }
-
-  private updateClipWidth() {
-    if (!this.svg || !this.currentVideo || !this.clipRect) {
-      return
-    }
-    const { width } = this.getSvgSize()
-    const duration = this.currentVideo.duration
-    if (!Number.isFinite(duration) || duration <= 0) return
-    const playedRatio = Math.min(
-      1,
-      Math.max(0, this.currentVideo.currentTime / duration)
-    )
-    const clipWidth = Math.round(width * playedRatio)
-    this.clipRect.setAttribute('width', `${clipWidth}`)
+  private handleSeeked() {
+    if (!this.currentVideo) return
+    this.chart.updateProgress(this.currentVideo.currentTime)
   }
 
   private handleTimeUpdate(event: Event) {
@@ -215,12 +119,12 @@ export class DanmakuDensityService {
     if (this.data.length === 0) {
       this.tryComputeAndRender()
     } else {
-      this.updateClipWidth()
+      this.chart.updateProgress(this.currentVideo.currentTime)
     }
   }
 
   private cleanup() {
     this.removeEventListeners()
-    this.teardownSvg()
+    this.chart.teardown()
   }
 }
