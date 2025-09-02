@@ -51,6 +51,7 @@
     "@use-gesture/react": "^10.3.1",
     "clarity-js": "^0.8.26",
     "core-js": "^3.45.1",
+    "d3": "^7.9.0",
     "dexie": "^4.2.0",
     "i18next": "^25.4.1",
     "immer": "^10.1.1",
@@ -73,6 +74,7 @@
   "devDependencies": {
     "@crxjs/vite-plugin": "2.2.0",
     "@types/chrome": "^0.0.326",
+    "@types/d3": "^7.4.3",
     "@types/react": "^19.1.11",
     "@types/react-dom": "^19.1.7",
     "@types/wicg-file-system-access": "^2023.10.6",
