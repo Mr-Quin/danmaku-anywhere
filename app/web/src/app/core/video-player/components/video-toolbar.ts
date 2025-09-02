@@ -4,7 +4,6 @@ import type {
   EpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Button } from 'primeng/button'
-import { OverlayPanelModule } from 'primeng/overlaypanel'
 import { Popover } from 'primeng/popover'
 import { ScrollPanel } from 'primeng/scrollpanel'
 import { Toolbar } from 'primeng/toolbar'
@@ -14,14 +13,7 @@ import { DanmakuService } from '../../danmaku/danmaku.service'
 @Component({
   selector: 'da-video-toolbar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    Toolbar,
-    Button,
-    ScrollPanel,
-    MaterialIcon,
-    OverlayPanelModule,
-    Popover,
-  ],
+  imports: [Toolbar, Button, ScrollPanel, MaterialIcon, Popover],
   template: `
     <p-toolbar>
       <ng-template #start>
