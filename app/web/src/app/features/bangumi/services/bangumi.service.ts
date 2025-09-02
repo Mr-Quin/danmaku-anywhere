@@ -361,4 +361,20 @@ export class BangumiService {
       },
       enabled: !!subjectId,
     })
+
+  searchSubjectsQueryOptions = (searchString: string, sort?: 'match' | 'heat' | 'rank' | 'score') =>
+    queryOptions({
+      queryKey: queryKeys.bangumi.search.subjects(searchString, sort),
+      queryFn: async () => {
+        const res = await bangumiNextClient.POST('/p1/search/subjects', {
+          body: {
+            searchString,
+            sort,
+          },
+        })
+        // biome-ignore lint/style/noNonNullAssertion: checked in middleware
+        return res.data!
+      },
+      enabled: !!searchString && searchString.trim() !== '',
+    })
 }

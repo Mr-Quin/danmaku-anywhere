@@ -8,6 +8,9 @@ import { NoExtensionPage } from '../../features/no-extension/no-extension-page'
 import { Settings } from '../../features/settings/settings.component'
 import { LayoutService } from '../layout.service'
 import { AppBar } from './app-bar.component'
+import { SearchDialogComponent } from '../../features/search/search-dialog'
+import { HostListener } from '@angular/core'
+import { SearchService } from '../../features/search/search.service'
 import { AppFooter } from './app-footer.component'
 import { AppSidebar } from './sidebar/sidebar.component'
 import { UpdateBanner } from './update-banner.component'
@@ -26,6 +29,7 @@ import { UpdateBanner } from './update-banner.component'
     Settings,
     NoExtensionPage,
     ConfirmDialog,
+    SearchDialogComponent,
   ],
   template: `
     <p-toast [position]="platformService.isMobile ? 'top-center' : 'bottom-center'" />
@@ -50,9 +54,20 @@ import { UpdateBanner } from './update-banner.component'
     </div>
     <p-scroll-top />
     <da-settings />
+    <da-search-dialog />
   `,
 })
 export class Layout {
   readonly platformService = inject(PlatformService)
   readonly layoutService = inject(LayoutService)
+  private readonly searchService = inject(SearchService)
+
+  @HostListener('document:keydown', ['$event'])
+  onGlobalKeydown(event: KeyboardEvent) {
+    const isK = event.key.toLowerCase() === 'k'
+    if ((event.ctrlKey || event.metaKey) && isK) {
+      event.preventDefault()
+      this.searchService.open()
+    }
+  }
 }
