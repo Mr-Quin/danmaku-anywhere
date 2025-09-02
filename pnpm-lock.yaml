@@ -8,9 +8,6 @@ patchedDependencies:
   '@mui/system':
     hash: 90842ece9932266d40d17f7702a0dd1a202cb9cbf9c0ecff6d5de1adea842f9b
     path: patches/@mui__system.patch
-  '@tanstack/angular-virtual':
-    hash: afad7fa1daf3340260df8e124c3daaef70d93dda0eb2bfdc3e35671000c0cd41
-    path: patches/@tanstack__angular-virtual.patch
 
 importers:
 
@@ -71,11 +68,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/web-scraper
       '@fortawesome/angular-fontawesome':
-        specifier: ^2.0.1
-        version: 2.0.1(@angular/core@20.2.3(@angular/compiler@20.2.3)(rxjs@7.8.2)(zone.js@0.15.1))
+        specifier: ^3.0.0
+        version: 3.0.0(@angular/core@20.2.3(@angular/compiler@20.2.3)(rxjs@7.8.2)(zone.js@0.15.1))
       '@fortawesome/free-brands-svg-icons':
-        specifier: ^6.7.2
-        version: 6.7.2
+        specifier: ^7.0.0
+        version: 7.0.0
       '@newrelic/browser-agent':
         specifier: ^1.296.0
         version: 1.296.0
@@ -92,8 +89,8 @@ importers:
         specifier: ^5.85.6
         version: 5.85.6(@angular/common@20.2.3(@angular/core@20.2.3(@angular/compiler@20.2.3)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.2.3(@angular/compiler@20.2.3)(rxjs@7.8.2)(zone.js@0.15.1))
       '@tanstack/angular-virtual':
-        specifier: ^3.13.12
-        version: 3.13.12(patch_hash=afad7fa1daf3340260df8e124c3daaef70d93dda0eb2bfdc3e35671000c0cd41)(@angular/core@20.2.3(@angular/compiler@20.2.3)(rxjs@7.8.2)(zone.js@0.15.1))
+        specifier: ^4.0.0
+        version: 4.0.0(@angular/core@20.2.3(@angular/compiler@20.2.3)(rxjs@7.8.2)(zone.js@0.15.1))
       artplayer:
         specifier: ^5.2.5
         version: 5.2.5
@@ -1340,21 +1337,21 @@ packages:
   '@fontsource/roboto@5.2.6':
     resolution: {integrity: sha512-hzarG7yAhMoP418smNgfY4fO7UmuUEm5JUtbxCoCcFHT0hOJB+d/qAEyoNjz7YkPU5OjM2LM8rJnW8hfm0JLaA==}
 
-  '@fortawesome/angular-fontawesome@2.0.1':
-    resolution: {integrity: sha512-IdklZkuw+WS2GQWhFnr1EX/tOALnrKaj4YGnUmPaUg2Uf+Amj8Xi+M/qDrr915YJ5MaDxd9tZ1kqOHRcvQqq2A==}
+  '@fortawesome/angular-fontawesome@3.0.0':
+    resolution: {integrity: sha512-+8Dd6DoJnqArfrZ5NvjHyRL64IIkTigXclbOOcFdYQ8/WFERQUDaEU6SAV8Q0JBpJhMS1McED7YCOCAE6SIVyA==}
     peerDependencies:
       '@angular/core': ^20.0.0
 
-  '@fortawesome/fontawesome-common-types@6.7.2':
-    resolution: {integrity: sha512-Zs+YeHUC5fkt7Mg1l6XTniei3k4bwG/yo3iFUtZWd/pMx9g3fdvkSK9E0FOC+++phXOka78uJcYb8JaFkW52Xg==}
+  '@fortawesome/fontawesome-common-types@7.0.0':
+    resolution: {integrity: sha512-PGMrIYXLGA5K8RWy8zwBkd4vFi4z7ubxtet6Yn13Plf6krRTwPbdlCwlcfmoX0R7B4Z643QvrtHmdQ5fNtfFCg==}
     engines: {node: '>=6'}
 
-  '@fortawesome/fontawesome-svg-core@6.7.2':
-    resolution: {integrity: sha512-yxtOBWDrdi5DD5o1pmVdq3WMCvnobT0LU6R8RyyVXPvFRd2o79/0NCuQoCjNTeZz9EzA9xS3JxNWfv54RIHFEA==}
+  '@fortawesome/fontawesome-svg-core@7.0.0':
+    resolution: {integrity: sha512-obBEF+zd98r/KtKVW6A+8UGWeaOoyMpl6Q9P3FzHsOnsg742aXsl8v+H/zp09qSSu/a/Hxe9LNKzbBaQq1CEbA==}
     engines: {node: '>=6'}
 
-  '@fortawesome/free-brands-svg-icons@6.7.2':
-    resolution: {integrity: sha512-zu0evbcRTgjKfrr77/2XX+bU+kuGfjm0LbajJHVIgBWNIDzrhpRxiCPNT8DW5AdmSsq7Mcf9D1bH0aSeSUSM+Q==}
+  '@fortawesome/free-brands-svg-icons@7.0.0':
+    resolution: {integrity: sha512-C8oY28gq/Qx/cHReJa2AunKJUHvUZDVoPlSTHtAvjriaNfi+5nugW4cx7yA/xN3f/nYkElw11gFBoJ2xUDDFgg==}
     engines: {node: '>=6'}
 
   '@fregante/relaxed-json@2.0.0':
@@ -2701,11 +2698,11 @@ packages:
       '@angular/common': '>=16.0.0'
       '@angular/core': '>=16.0.0'
 
-  '@tanstack/angular-virtual@3.13.12':
-    resolution: {integrity: sha512-aYFCEW4AA5QzTJ2ph0wVOwNebA321+sml9tYyjkshb2syS5Z7Jc7z4cUHkQVD0S7eLZnoWPP1cMrFzgOAI9YJA==}
+  '@tanstack/angular-virtual@4.0.0':
+    resolution: {integrity: sha512-mt6sUoaKV/eJkXLnruCz5XRkDoVCSPRuy/1c9prVLIvQNIEtllb1FSXQsScOZkNTtUaO1R/OnFA7+RbKimgq8Q==}
     engines: {node: '>=12'}
     peerDependencies:
-      '@angular/core': '>=17'
+      '@angular/core': '>=18.1.0'
 
   '@tanstack/query-core@5.85.6':
     resolution: {integrity: sha512-hCj0TktzdCv2bCepIdfwqVwUVWb+GSHm1Jnn8w+40lfhQ3m7lCO7ADRUJy+2unxQ/nzjh2ipC6ye69NDW3l73g==}
@@ -7681,21 +7678,21 @@ snapshots:
 
   '@fontsource/roboto@5.2.6': {}
 
-  '@fortawesome/angular-fontawesome@2.0.1(@angular/core@20.2.3(@angular/compiler@20.2.3)(rxjs@7.8.2)(zone.js@0.15.1))':
+  '@fortawesome/angular-fontawesome@3.0.0(@angular/core@20.2.3(@angular/compiler@20.2.3)(rxjs@7.8.2)(zone.js@0.15.1))':
     dependencies:
       '@angular/core': 20.2.3(@angular/compiler@20.2.3)(rxjs@7.8.2)(zone.js@0.15.1)
-      '@fortawesome/fontawesome-svg-core': 6.7.2
+      '@fortawesome/fontawesome-svg-core': 7.0.0
       tslib: 2.8.1
 
-  '@fortawesome/fontawesome-common-types@6.7.2': {}
+  '@fortawesome/fontawesome-common-types@7.0.0': {}
 
-  '@fortawesome/fontawesome-svg-core@6.7.2':
+  '@fortawesome/fontawesome-svg-core@7.0.0':
     dependencies:
-      '@fortawesome/fontawesome-common-types': 6.7.2
+      '@fortawesome/fontawesome-common-types': 7.0.0
 
-  '@fortawesome/free-brands-svg-icons@6.7.2':
+  '@fortawesome/free-brands-svg-icons@7.0.0':
     dependencies:
-      '@fortawesome/fontawesome-common-types': 6.7.2
+      '@fortawesome/fontawesome-common-types': 7.0.0
 
   '@fregante/relaxed-json@2.0.0': {}
 
@@ -8850,7 +8847,7 @@ snapshots:
       '@tanstack/query-core': 5.85.6
       '@tanstack/query-devtools': 5.84.0
 
-  '@tanstack/angular-virtual@3.13.12(patch_hash=afad7fa1daf3340260df8e124c3daaef70d93dda0eb2bfdc3e35671000c0cd41)(@angular/core@20.2.3(@angular/compiler@20.2.3)(rxjs@7.8.2)(zone.js@0.15.1))':
+  '@tanstack/angular-virtual@4.0.0(@angular/core@20.2.3(@angular/compiler@20.2.3)(rxjs@7.8.2)(zone.js@0.15.1))':
     dependencies:
       '@angular/core': 20.2.3(@angular/compiler@20.2.3)(rxjs@7.8.2)(zone.js@0.15.1)
       '@tanstack/virtual-core': 3.13.12
