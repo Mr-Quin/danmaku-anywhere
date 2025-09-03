@@ -8,6 +8,7 @@ export interface DanmakuDensityChartOptions {
     unplayed?: string
     played?: string
   }
+  opacity?: number
 }
 
 export class DanmakuDensityChart {
@@ -15,8 +16,11 @@ export class DanmakuDensityChart {
   private readonly clipId =
     `danmaku-density-clip-${Math.random().toString(36).slice(2)}`
 
-  private height: number
-  private colors: Required<NonNullable<DanmakuDensityChartOptions['colors']>>
+  private options: {
+    height: number
+    colors: { unplayed: string; played: string }
+    opacity: number
+  }
 
   private svg: d3.Selection<SVGSVGElement, unknown, null, undefined> | null =
     null
@@ -47,10 +51,13 @@ export class DanmakuDensityChart {
 
   constructor(wrapper: HTMLElement, options: DanmakuDensityChartOptions = {}) {
     this.wrapper = wrapper
-    this.height = options.height ?? 28
-    this.colors = {
-      unplayed: options.colors?.unplayed ?? 'rgba(255,255,255,0.25)',
-      played: options.colors?.played ?? 'rgba(255,255,255,0.6)',
+    this.options = {
+      height: options.height ?? 28,
+      colors: {
+        unplayed: options.colors?.unplayed ?? 'rgba(255,255,255,0.25)',
+        played: options.colors?.played ?? 'rgba(255,255,255,0.6)',
+      },
+      opacity: options.opacity ?? 1,
     }
     this.boundResize = this.redraw.bind(this)
   }
@@ -62,7 +69,8 @@ export class DanmakuDensityChart {
       .select(this.wrapper)
       .append('svg')
       .attr('width', '100%')
-      .attr('height', this.height)
+      .attr('height', this.options.height)
+      .attr('opacity', this.options.opacity)
       .style('position', 'absolute')
       .style('left', '0')
       .style('bottom', '0')
@@ -76,13 +84,15 @@ export class DanmakuDensityChart {
       .attr('x', 0)
       .attr('y', 0)
       .attr('width', 0)
-      .attr('height', this.height)
+      .attr('height', this.options.height)
 
-    const pathUnplayed = svg.append('path').attr('fill', this.colors.unplayed)
+    const pathUnplayed = svg
+      .append('path')
+      .attr('fill', this.options.colors.unplayed)
 
     const pathPlayed = svg
       .append('path')
-      .attr('fill', this.colors.played)
+      .attr('fill', this.options.colors.played)
       .attr('clip-path', `url(#${this.clipId})`)
 
     this.svg = svg
@@ -102,15 +112,37 @@ export class DanmakuDensityChart {
     this.clipRect = null
   }
 
-  setColors(
-    colors: Partial<NonNullable<DanmakuDensityChartOptions['colors']>>
-  ) {
-    this.colors = {
-      unplayed: colors.unplayed ?? this.colors.unplayed,
-      played: colors.played ?? this.colors.played,
+  setOptions(options: DanmakuDensityChartOptions) {
+    const next = {
+      height: options.height ?? this.options.height,
+      colors: {
+        unplayed: options.colors?.unplayed ?? this.options.colors.unplayed,
+        played: options.colors?.played ?? this.options.colors.played,
+      },
+      opacity: options.opacity ?? this.options.opacity,
     }
-    if (this.pathUnplayed) this.pathUnplayed.attr('fill', this.colors.unplayed)
-    if (this.pathPlayed) this.pathPlayed.attr('fill', this.colors.played)
+    const heightChanged = next.height !== this.options.height
+    const colorsChanged =
+      next.colors.unplayed !== this.options.colors.unplayed ||
+      next.colors.played !== this.options.colors.played
+    const opacityChanged = next.opacity !== this.options.opacity
+
+    this.options = next
+
+    if (this.svg && heightChanged) {
+      this.svg.attr('height', this.options.height)
+      this.clipRect?.attr('height', this.options.height)
+      this.redraw()
+    }
+    if (colorsChanged) {
+      if (this.pathUnplayed)
+        this.pathUnplayed.attr('fill', this.options.colors.unplayed)
+      if (this.pathPlayed)
+        this.pathPlayed.attr('fill', this.options.colors.played)
+    }
+    if (this.svg && opacityChanged) {
+      this.svg.attr('opacity', this.options.opacity)
+    }
   }
 
   updateData(data: DensityPoint[], duration: number) {
@@ -139,20 +171,25 @@ export class DanmakuDensityChart {
     const width =
       (this.svg?.node() as SVGSVGElement | null)?.clientWidth ||
       this.wrapper.clientWidth
-    return { width, height: this.height }
+    return { width, height: this.options.height }
   }
 
   private redraw() {
     if (!this.svg) return
 
     // Ensure height up-to-date
-    this.svg.attr('height', this.height)
-    this.clipRect?.attr('height', this.height)
+    this.svg.attr('height', this.options.height)
+    this.clipRect?.attr('height', this.options.height)
 
     if (!this.pathUnplayed || !this.pathPlayed) return
 
     const { width } = this.getSvgSize()
-    const d = buildDensityAreaPath(this.data, width, this.height, this.duration)
+    const d = buildDensityAreaPath(
+      this.data,
+      width,
+      this.options.height,
+      this.duration
+    )
 
     this.pathUnplayed.attr('d', d)
     this.pathPlayed.attr('d', d)

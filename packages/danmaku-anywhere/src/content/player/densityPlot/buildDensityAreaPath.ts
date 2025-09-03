@@ -15,6 +15,13 @@ export function buildDensityAreaPath(
   const x = d3.scaleLinear().domain([0, duration]).range([0, width])
   const y = d3.scaleLinear().domain([0, 1]).range([height, 0])
 
+  // Anchor the series to the edges at baseline to fill full width
+  const padded: DensityPoint[] = [
+    { time: 0, value: 0 },
+    ...data,
+    { time: duration, value: 0 },
+  ]
+
   const area = d3
     .area<DensityPoint>()
     .x((d) => x(d.time))
@@ -22,5 +29,5 @@ export function buildDensityAreaPath(
     .y1((d) => y(d.value))
     .curve(d3.curveMonotoneX)
 
-  return area(data) ?? ''
+  return area(padded) ?? ''
 }
