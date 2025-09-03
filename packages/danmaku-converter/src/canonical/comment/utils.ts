@@ -2,6 +2,19 @@ import { hexToRgb888, rgb888ToHex } from '../../utils/index.js'
 import type { CommentOptions } from './types.js'
 import { CommentMode } from './types.js'
 
+export const parseCommentGradient = (s: string) => {
+  const [gr, stroke] = s.split(',')
+  const [start, end] = gr.split('~')
+  const startHex = rgb888ToHex(Number.parseInt(start, 10))
+  const endHex = rgb888ToHex(Number.parseInt(end, 10))
+
+  return {
+    start: startHex,
+    end: endHex,
+    stroke: stroke === '1',
+  }
+}
+
 // convert string to object
 export const parseCommentEntityP = (p: string): CommentOptions => {
   const [time, mode, color, uid = ''] = p.split(',')

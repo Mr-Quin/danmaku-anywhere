@@ -50,6 +50,7 @@ const zXmlParsedEntry = z
             ])
             .rest(z.string())
         ),
+      s: z.string().optional(),
     }),
     _text: z.string().optional().default(''),
   })
@@ -62,6 +63,7 @@ const zXmlParsedEntry = z
     return {
       p: `${time},${mode},${color}`,
       m: data['_text'],
+      s: data['_attributes'].s,
     }
   })
 
@@ -69,10 +71,14 @@ export const zXmlParsedJson = z
   .object({
     i: z.object({
       d: z.array(zXmlParsedEntry).transform((comments) =>
-        comments.filter((comment): comment is { p: string; m: string } => {
-          if (comment === null) return false
-          return comment.m !== ''
-        })
+        comments.filter(
+          (
+            comment
+          ): comment is { p: string; m: string; s: string | undefined } => {
+            if (comment === null) return false
+            return comment.m !== ''
+          }
+        )
       ),
     }),
   })

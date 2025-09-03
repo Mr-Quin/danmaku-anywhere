@@ -1,5 +1,8 @@
-import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
-import { parseCommentEntityP } from '@danmaku-anywhere/danmaku-converter'
+import {
+  type CommentEntity,
+  parseCommentEntityP,
+  parseCommentGradient,
+} from '@danmaku-anywhere/danmaku-converter'
 
 import type { DanmakuFilter } from './DanmakuRenderer'
 
@@ -46,11 +49,11 @@ export const transformComment = (
   comment: CommentEntity,
   offset: number
 ): ParsedComment => {
-  const { p, m } = comment
+  const { p, m, s } = comment
   const { time, mode, color } = parseCommentEntityP(p)
   const offsetTime = time + offset / 1000
 
-  return {
+  const parsed: ParsedComment = {
     text: m,
     mode,
     time: offsetTime,
@@ -61,7 +64,26 @@ export const transformComment = (
           ? '-1px -1px #fff, -1px 1px #fff, 1px -1px #fff, 1px 1px #fff'
           : '-1px -1px #000, -1px 1px #000, 1px -1px #000, 1px 1px #000',
     },
-  } satisfies ParsedComment
+  }
+
+  if (s) {
+    try {
+      const { start, end, stroke } = parseCommentGradient(s)
+      parsed.style.background = `linear-gradient(to right, ${start}, ${end})`
+      parsed.style.backgroundClip = 'text'
+      parsed.style.webkitBackgroundClip = 'text'
+      if (stroke) {
+        parsed.style.webkitTextStroke = '2px transparent'
+      } else {
+        parsed.style.webkitTextFillColor = 'transparent'
+      }
+      delete parsed.style.textShadow
+    } catch {
+      // ignore errors
+    }
+  }
+
+  return parsed
 }
 
 // returns true if the comment should be filtered out
