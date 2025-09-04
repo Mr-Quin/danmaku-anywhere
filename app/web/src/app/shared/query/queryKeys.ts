@@ -26,6 +26,15 @@ export const queryKeys = {
   },
   bangumi: {
     calendar: () => ['bangumi', 'calendar'],
+    search: {
+      subjects: (query: string, sort?: 'match' | 'heat' | 'rank' | 'score') => [
+        'bangumi',
+        'search',
+        'subjects',
+        query,
+        sort,
+      ],
+    },
     trending: (limit?: number, offset?: number) => [
       'bangumi',
       'trending',
