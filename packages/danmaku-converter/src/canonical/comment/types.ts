@@ -23,6 +23,10 @@ export const zCommentEntity = z.object({
    * Comment text
    */
   m: z.string(),
+  /**
+   * Gradient
+   */
+  s: z.string().optional(),
 })
 
 export type CommentEntity = z.infer<typeof zCommentEntity>
