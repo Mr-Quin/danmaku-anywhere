@@ -14,10 +14,24 @@ import type { SeasonMap } from '@/common/seasonMap/types'
 type WithoutId<T> = Omit<T, 'id'>
 
 class DanmakuAnywhereDb extends Dexie {
-  episode!: Dexie.Table<Episode, number, WithoutId<Episode>>
-  customEpisode!: Dexie.Table<CustomEpisode, number, WithoutId<CustomEpisode>>
+  // Storage models that move comments into a separate blob table
+  episode!: Dexie.Table<
+    Omit<Episode, 'comments'> & { commentsRefId: number },
+    number,
+    WithoutId<Omit<Episode, 'comments'> & { commentsRefId: number }>
+  >
+  customEpisode!: Dexie.Table<
+    Omit<CustomEpisode, 'comments'> & { commentsRefId: number },
+    number,
+    WithoutId<Omit<CustomEpisode, 'comments'> & { commentsRefId: number }>
+  >
   season!: Dexie.Table<Season, number, WithoutId<Season>>
   seasonMap!: Dexie.Table<SeasonMap, string>
+  danmakuData!: Dexie.Table<
+    { id: number; blob: Blob },
+    number,
+    { blob: Blob }
+  >
 
   isReady = new Promise<boolean>((resolve) => {
     this.on('ready', () => resolve(true))
@@ -299,6 +313,64 @@ class DanmakuAnywhereDb extends Dexie {
       customEpisode: '++id, title',
       seasonMap: 'key, DanDanPlay, Tencent, Bilibili, iQiyi',
     })
+
+    /**
+     * 12. Extract comments into a new table (danmakuData) as gzip-compressed blobs.
+     *     - Add danmakuData table with auto-increment id
+     *     - For each episode/customEpisode, move comments to danmakuData and set commentsRefId
+     */
+    this.version(12)
+      .stores({
+        episode:
+          '++id, provider, indexedId, &[provider+indexedId], seasonId, timeUpdated, lastChecked',
+        season: '++id, provider, indexedId, &[provider+indexedId]',
+        customEpisode: '++id, title',
+        seasonMap: 'key, DanDanPlay, Tencent, Bilibili, iQiyi',
+        danmakuData: '++id',
+      })
+      .upgrade(async (tx) => {
+        const gzipBlob = async (comments: unknown): Promise<Blob> => {
+          try {
+            const json = JSON.stringify(comments)
+            const input = new Blob([json], { type: 'application/json' })
+            // @ts-ignore - CompressionStream is available in SW/extension context
+            const cs = new CompressionStream('gzip')
+            const stream = input.stream().pipeThrough(cs)
+            const arrayBuffer = await new Response(stream).arrayBuffer()
+            return new Blob([arrayBuffer], { type: 'application/gzip' })
+          } catch (e) {
+            // Fallback: store uncompressed if compression fails
+            return new Blob([JSON.stringify(comments)], {
+              type: 'application/json',
+            })
+          }
+        }
+
+        // Migrate episode comments
+        await tx.table('episode').each(async (item: any) => {
+          if (item && item.comments && !item.commentsRefId) {
+            const blob = await gzipBlob(item.comments)
+            const refId: number = await tx.table('danmakuData').add({ blob })
+            await tx.table('episode').update(item.id, {
+              commentsRefId: refId,
+              // Remove comments field to reduce record size
+              comments: undefined,
+            })
+          }
+        })
+
+        // Migrate customEpisode comments
+        await tx.table('customEpisode').each(async (item: any) => {
+          if (item && item.comments && !item.commentsRefId) {
+            const blob = await gzipBlob(item.comments)
+            const refId: number = await tx.table('danmakuData').add({ blob })
+            await tx.table('customEpisode').update(item.id, {
+              commentsRefId: refId,
+              comments: undefined,
+            })
+          }
+        })
+      })
 
     this.open()
   }
