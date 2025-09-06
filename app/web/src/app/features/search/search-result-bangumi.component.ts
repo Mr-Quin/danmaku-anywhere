@@ -1,4 +1,4 @@
-import { JsonPipe } from '@angular/common'
+import { JsonPipe, NgOptimizedImage } from '@angular/common'
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,13 +9,21 @@ import { FormsModule } from '@angular/forms'
 import { injectInfiniteQuery } from '@tanstack/angular-query-experimental'
 import { InputTextModule } from 'primeng/inputtext'
 import { Skeleton } from 'primeng/skeleton'
+import { BangumiSearchResultListItem } from '../bangumi/components/bangumi-search-result-list-item.component'
 import { BangumiService } from '../bangumi/services/bangumi.service'
 import { SearchService } from './search.service'
 
 @Component({
   selector: 'da-search-result-bangumi',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [JsonPipe, FormsModule, InputTextModule, Skeleton],
+  imports: [
+    JsonPipe,
+    FormsModule,
+    InputTextModule,
+    Skeleton,
+    BangumiSearchResultListItem,
+    NgOptimizedImage,
+  ],
   template: `
     <div>
       @if (bangumiSearchQuery.isPending()) {
@@ -28,11 +36,11 @@ import { SearchService } from './search.service'
             无结果
           </p>
         } @else {
-          @for (item of data; track item.id) {
-            <p>
-              {{ item.name }}
-            </p>
-          }
+          <div class="flex flex-col divide-y divide-surface-700/60">
+            @for (item of data; track item.id) {
+              <da-bangumi-search-result-list-item [subject]="item" />
+            }
+          </div>
         }
       }
       @if (bangumiSearchQuery.isError()) {

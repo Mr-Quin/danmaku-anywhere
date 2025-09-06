@@ -2,15 +2,16 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  type ElementRef,
   HostListener,
   inject,
   linkedSignal,
   viewChild,
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
-import { Button, ButtonDirective } from 'primeng/button'
+import { ButtonDirective } from 'primeng/button'
 import { Dialog } from 'primeng/dialog'
+import { IconField } from 'primeng/iconfield'
+import { InputIcon } from 'primeng/inputicon'
 import { InputTextModule } from 'primeng/inputtext'
 import { MaterialIcon } from '../../shared/components/material-icon'
 import { type SearchProvider, SearchService } from './search.service'
@@ -21,69 +22,85 @@ import { SearchResultBangumiComponent } from './search-result-bangumi.component'
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     Dialog,
-    Button,
     FormsModule,
     InputTextModule,
     MaterialIcon,
     ButtonDirective,
     SearchResultBangumiComponent,
+    IconField,
+    InputIcon,
   ],
   template: `
     <p-dialog
+      #dialog
       [visible]="$visible()"
       (visibleChange)="onVisibleChange($event)"
       draggable="false"
       dismissableMask="true"
       modal="true"
+      closable="true"
+      closeOnEscape="false"
+      blockScroll="false"
+      styleClass="top-0"
       contentStyleClass="w-sm md:w-md lg:w-lg"
     >
-      <ng-template #header>
-        <div class="flex items-center gap-3">
-          <da-mat-icon icon="search" />
-          <h2 class="text-xl font-bold">搜索</h2>
-        </div>
-      </ng-template>
-
-      <form (submit)="$onSubmit($event)" class="flex flex-col gap-4">
-        <div class="flex items-center gap-2">
-          <div class="inline-flex rounded-md border border-surface-700 overflow-hidden">
-            <button type="button" pButton [text]="true" [severity]="$provider() === 'kazumi' ? 'primary' : 'secondary'"
-                    (click)="setProvider('kazumi')">
-              Kazumi
-            </button>
-            <button type="button" pButton [text]="true" [severity]="$provider() === 'bangumi' ? 'primary' : 'secondary'"
+      <ng-template #headless>
+        <div class="flex flex-col p-6 w-[800px] h-[600px] overflow-hidden">
+          <form (submit)="$onSubmit($event)" class="flex flex-col">
+            <div class="flex items-center gap-2">
+              <p-iconfield class="flex-1">
+                <p-inputicon class="pi pi-search" />
+                <input
+                  pInputText
+                  type="text"
+                  name="term"
+                  placeholder="输入搜索关键词"
+                  class="w-full"
+                  [(ngModel)]="$termLocal"
+                  [ngModelOptions]="{ standalone: true }"
+                />
+                @if ($termLocal().length > 0) {
+                  <button type="button" pButton icon="pi pi-times" text severity="secondary" rounded size="small"
+                          (click)="$termLocal.set('')" class="absolute right-1 top-1/2 -translate-y-1/2">
+                  </button>
+                }
+              </p-iconfield>
+              <button pButton type="submit" [disabled]="!$canSubmit()">
+                <da-mat-icon icon="send" />
+              </button>
+            </div>
+          </form>
+          <div class="border-b border-surface-700 overflow-hidden flex-shrink-0">
+            <button type="button" pButton [text]="true" size="small"
+                    [severity]="$provider() === 'bangumi' ? 'primary' : 'secondary'"
                     (click)="setProvider('bangumi')">
               Bangumi
             </button>
+            <button type="button" pButton [text]="true" size="small"
+                    [severity]="$provider() === 'kazumi' ? 'primary' : 'secondary'"
+                    (click)="setProvider('kazumi')">
+              Kazumi
+            </button>
           </div>
-          <input
-          #searchInput
-            type="text"
-            class="flex-1"
-            pInputText
-            placeholder="输入搜索关键词"
-            autofocus
-            [(ngModel)]="$termLocal"
-            [ngModelOptions]="{ standalone: true }"
-          />
-          <p-button type="submit" [disabled]="!$canSubmit()">
-            <da-mat-icon icon="send" />
-          </p-button>
+          <div class="overflow-auto">
+            @if ($provider() === 'bangumi') {
+              <da-search-result-bangumi />
+            }
+          </div>
         </div>
-      </form>
-      @if ($provider() === 'bangumi') {
-      <da-search-result-bangumi />
-      }
+      </ng-template>
     </p-dialog>
   `,
 })
 export class SearchDialogComponent {
   private readonly searchService = inject(SearchService)
 
-  searchInput = viewChild.required<ElementRef<HTMLInputElement>>('searchInput')
+  $dialog = viewChild.required<Dialog>('dialog')
   $visible = this.searchService.$visible
   $provider = this.searchService.$provider
   $termLocal = linkedSignal(() => this.searchService.$term())
+
+  $canSubmit = computed(() => this.$termLocal().trim() !== '')
 
   close() {
     this.searchService.close()
@@ -92,16 +109,12 @@ export class SearchDialogComponent {
   onVisibleChange(visible: boolean) {
     if (!visible) {
       this.searchService.close()
-    } else {
-      this.searchInput().nativeElement.focus()
     }
   }
 
   setProvider(provider: SearchProvider) {
-    this.searchService.setProvider(provider)
+    this.$provider.set(provider)
   }
-
-  $canSubmit = computed(() => this.$termLocal().trim() !== '')
 
   async $onSubmit(event: Event) {
     event.preventDefault()
@@ -114,6 +127,14 @@ export class SearchDialogComponent {
     if ((event.ctrlKey || event.metaKey) && isK) {
       event.preventDefault()
       this.searchService.open()
+    }
+
+    if (event.key === 'Escape') {
+      if (this.$termLocal().length > 0) {
+        this.$termLocal.set('')
+      } else if (this.$dialog().visible) {
+        this.close()
+      }
     }
   }
 }

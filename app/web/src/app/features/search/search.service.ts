@@ -10,16 +10,15 @@ export class SearchService {
   private kazumiService = inject(KazumiService)
 
   private readonly $_visible = signal(false)
-  private readonly $_provider = signal<SearchProvider>('kazumi')
   private readonly $_term = signal('')
 
-  $visible = this.$_visible.asReadonly()
-  $provider = this.$_provider.asReadonly()
-  $term = this.$_term.asReadonly()
+  readonly $provider = signal<SearchProvider>('bangumi')
+  readonly $visible = this.$_visible.asReadonly()
+  readonly $term = this.$_term.asReadonly()
 
   open(options?: { provider?: SearchProvider; term?: string }) {
     if (options?.provider) {
-      this.$_provider.set(options.provider)
+      this.$provider.set(options.provider)
     }
     if (options?.term !== undefined) {
       this.$_term.set(options.term)
@@ -35,14 +34,11 @@ export class SearchService {
     this.$_term.set(term)
   }
 
-  setProvider(provider: SearchProvider) {
-    this.$_provider.set(provider)
-  }
-
   async search(term: string, provider?: SearchProvider) {
     const searchTerm = term.trim()
     this.$_term.set(searchTerm)
-    const activeProvider = provider ?? this.$_provider()
+
+    const activeProvider = provider ?? this.$provider()
     if (!searchTerm) {
       return
     }
