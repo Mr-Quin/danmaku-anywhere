@@ -12,6 +12,7 @@ import type {
   BgmSubject,
   BgmTrendingQueryResponse,
 } from '../types/bangumi.types'
+import { bangumiClient } from './bangumiClient'
 import { bangumiNextClient } from './bangumiNextClient'
 
 @Injectable({
@@ -362,13 +363,19 @@ export class BangumiService {
       enabled: !!subjectId,
     })
 
-  searchSubjectsQueryOptions = (searchString: string, sort?: 'match' | 'heat' | 'rank' | 'score') =>
+  searchSubjectsQueryOptions = (
+    searchString: string,
+    sort?: 'match' | 'heat' | 'rank' | 'score'
+  ) =>
     queryOptions({
       queryKey: queryKeys.bangumi.search.subjects(searchString, sort),
       queryFn: async () => {
-        const res = await bangumiNextClient.POST('/p1/search/subjects', {
+        const res = await bangumiClient.POST('/v0/search/subjects', {
           body: {
-            searchString,
+            keyword: searchString,
+            filter: {
+              type: [2],
+            },
             sort,
           },
         })

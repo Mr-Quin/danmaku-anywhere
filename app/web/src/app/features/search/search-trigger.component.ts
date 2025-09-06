@@ -8,20 +8,23 @@ import { SearchService } from './search.service'
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonDirective, MaterialIcon],
   template: `
-    <button
-      pButton
-      type="button"
-      severity="secondary"
-      text
-      rounded
-      (click)="open()"
-      class="inline-flex items-center gap-2"
-      aria-label="搜索 (Ctrl+K)"
-    >
-      <da-mat-icon icon="search" />
-      <span class="max-lg:hidden text-sm opacity-80">Ctrl + K</span>
-    </button>
+    <div class="">
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        text
+        (click)="open()"
+        class="inline-flex items-center gap-2 w-[280px] h-8 bg-surface-800 hover:bg-surface-700"
+      >
+        <da-mat-icon icon="search" />
+        <span class="max-lg:hidden text-sm opacity-80">Ctrl + K</span>
+      </button>
+    </div>
   `,
+  host: {
+    class: 'absolute left-[50%] translate-x-[-50%]',
+  },
 })
 export class SearchTriggerComponent {
   private readonly searchService = inject(SearchService)
@@ -30,4 +33,3 @@ export class SearchTriggerComponent {
     this.searchService.open()
   }
 }
-

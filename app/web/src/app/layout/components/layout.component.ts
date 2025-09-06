@@ -1,16 +1,20 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  inject,
+} from '@angular/core'
 import { RouterOutlet } from '@angular/router'
 import { ConfirmDialog } from 'primeng/confirmdialog'
 import { ScrollTop } from 'primeng/scrolltop'
 import { Toast } from 'primeng/toast'
 import { PlatformService } from '../../core/services/platform.service'
 import { NoExtensionPage } from '../../features/no-extension/no-extension-page'
+import { SearchService } from '../../features/search/search.service'
+import { SearchDialogComponent } from '../../features/search/search-dialog.component'
 import { Settings } from '../../features/settings/settings.component'
 import { LayoutService } from '../layout.service'
 import { AppBar } from './app-bar.component'
-import { SearchDialogComponent } from '../../features/search/search-dialog'
-import { HostListener } from '@angular/core'
-import { SearchService } from '../../features/search/search.service'
 import { AppFooter } from './app-footer.component'
 import { AppSidebar } from './sidebar/sidebar.component'
 import { UpdateBanner } from './update-banner.component'

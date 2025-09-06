@@ -1,31 +1,41 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  HostListener,
   computed,
+  type ElementRef,
+  HostListener,
   inject,
   linkedSignal,
+  viewChild,
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
+import { Button, ButtonDirective } from 'primeng/button'
 import { Dialog } from 'primeng/dialog'
-import { Button } from 'primeng/button'
 import { InputTextModule } from 'primeng/inputtext'
 import { MaterialIcon } from '../../shared/components/material-icon'
-import { SearchService, type SearchProvider } from './search.service'
+import { type SearchProvider, SearchService } from './search.service'
+import { SearchResultBangumiComponent } from './search-result-bangumi.component'
 
 @Component({
   selector: 'da-search-dialog',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Dialog, Button, FormsModule, InputTextModule, MaterialIcon],
+  imports: [
+    Dialog,
+    Button,
+    FormsModule,
+    InputTextModule,
+    MaterialIcon,
+    ButtonDirective,
+    SearchResultBangumiComponent,
+  ],
   template: `
     <p-dialog
       [visible]="$visible()"
-      (visibleChange)="$onVisibleChange($event)"
+      (visibleChange)="onVisibleChange($event)"
       draggable="false"
       dismissableMask="true"
       modal="true"
       contentStyleClass="w-sm md:w-md lg:w-lg"
-      maskStyleClass="backdrop-blur-sm"
     >
       <ng-template #header>
         <div class="flex items-center gap-3">
@@ -37,18 +47,22 @@ import { SearchService, type SearchProvider } from './search.service'
       <form (submit)="$onSubmit($event)" class="flex flex-col gap-4">
         <div class="flex items-center gap-2">
           <div class="inline-flex rounded-md border border-surface-700 overflow-hidden">
-            <button type="button" pButton [text]="true" [severity]="$provider() === 'kazumi' ? 'primary' : 'secondary'" (click)="$setProvider('kazumi')">
+            <button type="button" pButton [text]="true" [severity]="$provider() === 'kazumi' ? 'primary' : 'secondary'"
+                    (click)="setProvider('kazumi')">
               Kazumi
             </button>
-            <button type="button" pButton [text]="true" [severity]="$provider() === 'bangumi' ? 'primary' : 'secondary'" (click)="$setProvider('bangumi')">
+            <button type="button" pButton [text]="true" [severity]="$provider() === 'bangumi' ? 'primary' : 'secondary'"
+                    (click)="setProvider('bangumi')">
               Bangumi
             </button>
           </div>
           <input
+          #searchInput
             type="text"
             class="flex-1"
             pInputText
             placeholder="输入搜索关键词"
+            autofocus
             [(ngModel)]="$termLocal"
             [ngModelOptions]="{ standalone: true }"
           />
@@ -57,31 +71,33 @@ import { SearchService, type SearchProvider } from './search.service'
           </p-button>
         </div>
       </form>
-
-      <ng-template #footer>
-        <div class="flex justify-end">
-          <p-button severity="secondary" (click)="$close()">关闭</p-button>
-        </div>
-      </ng-template>
+      @if ($provider() === 'bangumi') {
+      <da-search-result-bangumi />
+      }
     </p-dialog>
   `,
 })
 export class SearchDialogComponent {
   private readonly searchService = inject(SearchService)
 
-  $visible = computed(() => this.searchService.$visible())
-  $provider = computed(() => this.searchService.$provider())
+  searchInput = viewChild.required<ElementRef<HTMLInputElement>>('searchInput')
+  $visible = this.searchService.$visible
+  $provider = this.searchService.$provider
   $termLocal = linkedSignal(() => this.searchService.$term())
 
-  $close() {
+  close() {
     this.searchService.close()
   }
 
-  $onVisibleChange(visible: boolean) {
-    if (!visible) this.searchService.close()
+  onVisibleChange(visible: boolean) {
+    if (!visible) {
+      this.searchService.close()
+    } else {
+      this.searchInput().nativeElement.focus()
+    }
   }
 
-  $setProvider(provider: SearchProvider) {
+  setProvider(provider: SearchProvider) {
     this.searchService.setProvider(provider)
   }
 
@@ -101,4 +117,3 @@ export class SearchDialogComponent {
     }
   }
 }
-
