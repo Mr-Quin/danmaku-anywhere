@@ -1,11 +1,11 @@
 .da-density-chart {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    opacity: 0;
-    transition: opacity 0.3s ease-in-out;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
 }
 
 .da-density-chart-visible {
-    opacity: 1;
+  opacity: 1;
 }
