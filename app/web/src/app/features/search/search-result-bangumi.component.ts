@@ -1,7 +1,12 @@
 import { JsonPipe } from '@angular/common'
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+} from '@angular/core'
 import { FormsModule } from '@angular/forms'
-import { injectQuery } from '@tanstack/angular-query-experimental'
+import { injectInfiniteQuery } from '@tanstack/angular-query-experimental'
 import { InputTextModule } from 'primeng/inputtext'
 import { Skeleton } from 'primeng/skeleton'
 import { BangumiService } from '../bangumi/services/bangumi.service'
@@ -17,13 +22,13 @@ import { SearchService } from './search.service'
         <p-skeleton styleClass="my-2" width="100%" height="76px" />
       }
       @if (bangumiSearchQuery.isSuccess()) {
-        @let data = bangumiSearchQuery.data();
-        @if (data.data.length === 0) {
+        @let data = searchResults();
+        @if (data.length === 0) {
           <p>
             无结果
           </p>
         } @else {
-          @for (item of data.data; track item.id) {
+          @for (item of data; track item.id) {
             <p>
               {{ item.name }}
             </p>
@@ -38,7 +43,7 @@ import { SearchService } from './search.service'
           {{ bangumiSearchQuery.error() | json }}
         </p>
       }
-      </div>
+    </div>
   `,
 })
 export class SearchResultBangumiComponent {
@@ -46,7 +51,14 @@ export class SearchResultBangumiComponent {
 
   private bangumiService = inject(BangumiService)
 
-  protected bangumiSearchQuery = injectQuery(() => {
+  searchResults = computed(() => {
+    if (!this.bangumiSearchQuery.isSuccess()) {
+      return []
+    }
+    return this.bangumiSearchQuery.data().pages.flatMap((page) => page.data)
+  })
+
+  protected bangumiSearchQuery = injectInfiniteQuery(() => {
     return {
       ...this.bangumiService.searchSubjectsQueryOptions(
         this.searchService.$term()
