@@ -4,7 +4,7 @@ import type { DensityPoint } from '@/content/player/densityPlot/types'
 export function computeDensityBins(
   comments: CommentEntity[],
   duration: number,
-  binSizeSec = 30
+  binSizeSec = 10
 ): DensityPoint[] {
   if (!Number.isFinite(duration) || duration <= 0) {
     return []

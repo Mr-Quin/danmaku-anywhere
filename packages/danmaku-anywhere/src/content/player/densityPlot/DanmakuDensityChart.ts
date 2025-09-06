@@ -63,7 +63,9 @@ export class DanmakuDensityChart {
   }
 
   setup() {
-    if (this.svg) return
+    if (this.svg) {
+      return
+    }
 
     const svg = d3
       .select(this.wrapper)
@@ -171,19 +173,24 @@ export class DanmakuDensityChart {
     const width =
       (this.svg?.node() as SVGSVGElement | null)?.clientWidth ||
       this.wrapper.clientWidth
+
     return { width, height: this.options.height }
   }
 
   private redraw() {
-    if (!this.svg) return
+    if (!this.svg) {
+      return
+    }
 
-    // Ensure height up-to-date
     this.svg.attr('height', this.options.height)
     this.clipRect?.attr('height', this.options.height)
 
-    if (!this.pathUnplayed || !this.pathPlayed) return
+    if (!this.pathUnplayed || !this.pathPlayed) {
+      return
+    }
 
     const { width } = this.getSvgSize()
+
     const d = buildDensityAreaPath(
       this.data,
       width,
@@ -194,7 +201,6 @@ export class DanmakuDensityChart {
     this.pathUnplayed.attr('d', d)
     this.pathPlayed.attr('d', d)
 
-    // Re-apply progress clip after redraw
     this.updateProgress(this.lastCurrentTime)
   }
 }

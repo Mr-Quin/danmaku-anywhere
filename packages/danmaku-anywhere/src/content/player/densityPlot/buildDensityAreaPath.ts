@@ -7,15 +7,13 @@ export function buildDensityAreaPath(
   height: number,
   duration: number
 ): string {
-  if (!Array.isArray(data) || data.length === 0) return ''
-  if (!Number.isFinite(width) || width <= 0) return ''
-  if (!Number.isFinite(height) || height <= 0) return ''
-  if (!Number.isFinite(duration) || duration <= 0) return ''
+  if (data.length === 0 || width <= 0 || height <= 0 || duration <= 0) {
+    return ''
+  }
 
   const x = d3.scaleLinear().domain([0, duration]).range([0, width])
   const y = d3.scaleLinear().domain([0, 1]).range([height, 0])
 
-  // Anchor the series to the edges at baseline to fill full width
   const padded: DensityPoint[] = [
     { time: 0, value: 0 },
     ...data,

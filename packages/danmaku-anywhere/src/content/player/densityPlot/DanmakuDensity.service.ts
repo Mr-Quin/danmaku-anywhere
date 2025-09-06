@@ -14,7 +14,7 @@ export class DanmakuDensityService {
   private chart: DanmakuDensityChart
 
   private data: DensityPoint[] = []
-  private binSizeSec = 30
+  private binSizeSec = 10
   private chartHeight = 28
 
   private readonly boundHandleTimeUpdate: (event: Event) => void
@@ -89,19 +89,16 @@ export class DanmakuDensityService {
   }
 
   private computeBins(duration: number) {
-    console.debug('computeBins')
     this.data = computeDensityBins(this.comments, duration, this.binSizeSec)
   }
 
   private tryComputeAndRender() {
-    // Defer until we have video duration
     const active = this.currentVideo
     const duration = active?.duration ?? Number.NaN
-    console.debug('tryComputeAndRender')
     if (!active || !Number.isFinite(duration) || duration <= 0) {
       return
     }
-    // Ensure we know the active video for clip updates
+
     this.currentVideo = active
 
     this.computeBins(duration)
