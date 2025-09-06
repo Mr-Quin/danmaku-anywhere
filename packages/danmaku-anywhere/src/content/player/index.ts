@@ -14,6 +14,7 @@ import { createDanmakuContainers } from '@/content/player/components/createDanma
 import skipButtonCss from '@/content/player/components/SkipButton/SkipButton.css?inline'
 import { PLAYER_ROOT_ID } from '@/content/player/constants/rootId'
 import { DanmakuDensityService } from '@/content/player/densityPlot/DanmakuDensity.service'
+import densityPlotCss from '@/content/player/densityPlot/DanmakuDensityChart.css?inline'
 import { DanmakuManager } from '@/content/player/monitors/DanmakuManager'
 import { VideoEventService } from '@/content/player/monitors/VideoEvent.service'
 import { VideoNodeObserver } from '@/content/player/monitors/VideoNodeObserver'
@@ -42,7 +43,7 @@ const { shadowRoot, root } = createPopoverRoot({
 })
 
 manager.setParent(shadowRoot)
-injectCss(shadowRoot, skipButtonCss)
+injectCss(shadowRoot, [skipButtonCss, densityPlotCss])
 
 let pipWindow: Window | undefined
 

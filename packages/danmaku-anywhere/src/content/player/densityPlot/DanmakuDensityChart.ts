@@ -70,14 +70,10 @@ export class DanmakuDensityChart {
     const svg = d3
       .select(this.wrapper)
       .append('svg')
+      .classed('da-density-chart', true)
       .attr('width', '100%')
       .attr('height', this.options.height)
       .attr('opacity', this.options.opacity)
-      .style('position', 'absolute')
-      .style('left', '0')
-      .style('bottom', '0')
-      .style('pointer-events', 'none')
-      .style('z-index', '2147483647')
 
     const defs = svg.append('defs')
     const clip = defs.append('clipPath').attr('id', this.clipId)
@@ -167,6 +163,14 @@ export class DanmakuDensityChart {
     const playedRatio = Math.min(1, Math.max(0, currentTime / this.duration))
     const clipWidth = Math.round(width * playedRatio)
     this.clipRect.attr('width', clipWidth)
+  }
+
+  show() {
+    this.svg?.classed('da-density-chart-visible', true)
+  }
+
+  hide() {
+    this.svg?.classed('da-density-chart-visible', false)
   }
 
   private getSvgSize(): { width: number; height: number } {

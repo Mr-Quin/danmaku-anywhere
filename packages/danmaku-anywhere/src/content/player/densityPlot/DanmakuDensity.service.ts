@@ -17,8 +17,11 @@ export class DanmakuDensityService {
   private binSizeSec = 10
   private chartHeight = 28
 
+  private showChartTimeout: ReturnType<typeof setTimeout> | null = null
+
   private readonly boundHandleTimeUpdate: (event: Event) => void
   private readonly boundHandleSeeked: () => void
+  private readonly boundHandleMouseMove: (event: MouseEvent) => void
 
   constructor(
     private readonly videoEventService: VideoEventService,
@@ -26,6 +29,7 @@ export class DanmakuDensityService {
   ) {
     this.boundHandleTimeUpdate = this.handleTimeUpdate.bind(this)
     this.boundHandleSeeked = this.handleSeeked.bind(this)
+    this.boundHandleMouseMove = this.handleMouseMove.bind(this)
     this.chart = new DanmakuDensityChart(this.wrapper, {
       height: this.chartHeight,
       colors: {
@@ -50,12 +54,14 @@ export class DanmakuDensityService {
   setComments(comments: CommentEntity[]) {
     this.comments = comments
     this.tryComputeAndRender()
+    // document.addEventListener('mousemove', this.boundHandleMouseMove)
   }
 
   clear() {
     this.comments = []
     this.data = []
     this.chart.updateData([], 0)
+    document.removeEventListener('mousemove', this.boundHandleMouseMove)
   }
 
   private setupEventListeners() {
@@ -71,6 +77,10 @@ export class DanmakuDensityService {
       'loadedmetadata',
       this.boundHandleTimeUpdate
     )
+    this.videoEventService.addVideoEventListener(
+      'mousemove',
+      this.boundHandleMouseMove
+    )
   }
 
   private removeEventListeners() {
@@ -85,6 +95,10 @@ export class DanmakuDensityService {
     this.videoEventService.removeVideoEventListener(
       'loadedmetadata',
       this.boundHandleTimeUpdate
+    )
+    this.videoEventService.removeVideoEventListener(
+      'mousemove',
+      this.boundHandleMouseMove
     )
   }
 
@@ -118,6 +132,24 @@ export class DanmakuDensityService {
     } else {
       this.chart.updateProgress(this.currentVideo.currentTime)
     }
+  }
+
+  private handleMouseMove(event: MouseEvent) {
+    // const videoElement = this.videoEventService.getVideoElement()
+    // if (!(event.target instanceof Element) || !videoElement) {
+    //   return
+    // }
+    // if (!videoElement.isEqualNode(event.target) && !event.target.contains(videoElement) && !videoElement.contains(event.target)) {
+    //   return
+    // }
+    // }
+    this.chart.show()
+    if (this.showChartTimeout) {
+      clearTimeout(this.showChartTimeout)
+    }
+    this.showChartTimeout = setTimeout(() => {
+      this.chart.hide()
+    }, 3000)
   }
 
   private cleanup() {
