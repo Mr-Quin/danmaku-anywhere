@@ -42,6 +42,14 @@ export default defineConfig({
           link: '/getting-started',
         },
         {
+          label: 'faq',
+          translations: {
+            'zh-CN': '常见问题',
+            en: 'FAQ',
+          },
+          link: '/faq',
+        },
+        {
           label: 'configuration',
           translations: {
             'zh-CN': '配置',
