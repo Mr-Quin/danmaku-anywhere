@@ -114,8 +114,6 @@ export class DanmakuDensityService {
       return
     }
 
-    this.currentVideo = active
-
     this.computeBins(duration)
     this.chart.updateData(this.data, duration)
     this.chart.updateProgress(active.currentTime)

@@ -16,7 +16,7 @@ export function computeDensityBins(
   for (const c of comments) {
     const [timeStr] = c.p.split(',')
     const t = Number.parseFloat(timeStr)
-    if (t === null || t < 0 || t > duration) {
+    if (!Number.isFinite(t) || t < 0 || t > duration) {
       continue
     }
     const idx = Math.min(binCount - 1, Math.floor(t / binSize))
