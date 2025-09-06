@@ -12,6 +12,7 @@ export class DanmakuDensityService {
   private currentVideo: HTMLVideoElement | null = null
 
   private chart: DanmakuDensityChart
+  private enabled = false
 
   private data: DensityPoint[] = []
   private binSizeSec = 10
@@ -34,19 +35,27 @@ export class DanmakuDensityService {
       height: this.chartHeight,
       colors: {
         unplayed: 'rgba(255,255,255,0.25)',
-        played: 'rgba(255,255,255,0.6)',
+        played: 'rgba(255, 255, 255, 0.45)',
       },
     })
   }
 
   enable() {
+    if (this.enabled) {
+      return
+    }
+    this.enabled = true
     logger.debug('Enabling density plot')
-    this.setupEventListeners()
     this.chart.setup()
     this.tryComputeAndRender()
+    this.setupEventListeners()
   }
 
   disable() {
+    if (!this.enabled) {
+      return
+    }
+    this.enabled = false
     logger.debug('Disabling density plot')
     this.cleanup()
   }
@@ -54,14 +63,12 @@ export class DanmakuDensityService {
   setComments(comments: CommentEntity[]) {
     this.comments = comments
     this.tryComputeAndRender()
-    // document.addEventListener('mousemove', this.boundHandleMouseMove)
   }
 
   clear() {
     this.comments = []
     this.data = []
     this.chart.updateData([], 0)
-    document.removeEventListener('mousemove', this.boundHandleMouseMove)
   }
 
   private setupEventListeners() {
@@ -77,10 +84,7 @@ export class DanmakuDensityService {
       'loadedmetadata',
       this.boundHandleTimeUpdate
     )
-    this.videoEventService.addVideoEventListener(
-      'mousemove',
-      this.boundHandleMouseMove
-    )
+    document.addEventListener('mousemove', this.boundHandleMouseMove)
   }
 
   private removeEventListeners() {
@@ -96,10 +100,7 @@ export class DanmakuDensityService {
       'loadedmetadata',
       this.boundHandleTimeUpdate
     )
-    this.videoEventService.removeVideoEventListener(
-      'mousemove',
-      this.boundHandleMouseMove
-    )
+    document.removeEventListener('mousemove', this.boundHandleMouseMove)
   }
 
   private computeBins(duration: number) {
@@ -135,21 +136,24 @@ export class DanmakuDensityService {
   }
 
   private handleMouseMove(event: MouseEvent) {
-    // const videoElement = this.videoEventService.getVideoElement()
-    // if (!(event.target instanceof Element) || !videoElement) {
-    //   return
-    // }
-    // if (!videoElement.isEqualNode(event.target) && !event.target.contains(videoElement) && !videoElement.contains(event.target)) {
-    //   return
-    // }
-    // }
+    const videoElement = this.videoEventService.getVideoElement()
+    if (!(event.target instanceof Element) || !videoElement) {
+      return
+    }
+    if (
+      !videoElement.isEqualNode(event.target) &&
+      !event.target.contains(videoElement) &&
+      !videoElement.contains(event.target)
+    ) {
+      return
+    }
     this.chart.show()
     if (this.showChartTimeout) {
       clearTimeout(this.showChartTimeout)
     }
     this.showChartTimeout = setTimeout(() => {
       this.chart.hide()
-    }, 3000)
+    }, 2000)
   }
 
   private cleanup() {

@@ -153,8 +153,14 @@ danmakuOptionsService.get().then((options) => {
 extensionOptionsService.get().then((options) => {
   if (options.playerOptions.showSkipButton) {
     videoSkipService.enable()
+  } else {
+    videoSkipService.disable()
   }
-  danmakuDensityService.enable()
+  if (options.playerOptions.showDanmakuTimeline) {
+    danmakuDensityService.enable()
+  } else {
+    danmakuDensityService.disable()
+  }
 })
 
 extensionOptionsService.onChange((options) => {
@@ -163,7 +169,11 @@ extensionOptionsService.onChange((options) => {
   } else {
     videoSkipService.disable()
   }
-  danmakuDensityService.enable()
+  if (options.playerOptions.showDanmakuTimeline) {
+    danmakuDensityService.enable()
+  } else {
+    danmakuDensityService.disable()
+  }
 })
 
 /**

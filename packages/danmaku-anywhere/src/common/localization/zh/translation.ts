@@ -327,13 +327,13 @@ const pages = {
     },
     player: {
       showSkipButton: '显示跳过按钮（OP/ED）',
-      showDanmakuTimeline: '显示弹幕时间线',
+      showDanmakuTimeline: '显示弹幕密度',
     },
     pages: {
       danmakuSource: '弹幕来源',
       theme: 'UI主题',
       hotkeys: '快捷键',
-      player: '播放器',
+      player: '播放设置',
       retentionPolicy: '缓存策略',
       advanced: '高级设置',
       help: '关于',
