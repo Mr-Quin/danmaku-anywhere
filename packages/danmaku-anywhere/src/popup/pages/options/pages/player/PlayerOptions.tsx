@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
+import { ShowDanmakuTimelineListItem } from '@/popup/pages/options/pages/player/components/ShowDanmakuTimelineListItem'
 import { ShowSkipButtonListItem } from './components/ShowSkipButtonListItem'
 
 export const PlayerOptions = () => {
@@ -11,6 +12,7 @@ export const PlayerOptions = () => {
     <OptionsPageLayout>
       <OptionsPageToolBar title={t('optionsPage.pages.player')} />
       <ShowSkipButtonListItem />
+      <ShowDanmakuTimelineListItem />
     </OptionsPageLayout>
   )
 }

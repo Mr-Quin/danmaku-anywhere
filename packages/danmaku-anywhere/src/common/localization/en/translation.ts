@@ -332,13 +332,13 @@ const pages = {
     },
     player: {
       showSkipButton: 'Show skip button (OP/ED)',
-      showDanmakuTimeline: 'Show danmaku timeline',
+      showDanmakuTimeline: 'Show danmaku density',
     },
     pages: {
       danmakuSource: 'Danmaku Source',
       theme: 'UI Theme',
       hotkeys: 'Hotkeys',
-      player: 'Player',
+      player: 'Player Settings',
       retentionPolicy: 'Retention Policy',
       advanced: 'Advanced',
       help: '关于',

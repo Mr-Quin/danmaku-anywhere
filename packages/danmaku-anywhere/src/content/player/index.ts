@@ -13,6 +13,8 @@ import { injectCss } from '@/content/common/injectCss'
 import { createDanmakuContainers } from '@/content/player/components/createDanmakuContainer'
 import skipButtonCss from '@/content/player/components/SkipButton/SkipButton.css?inline'
 import { PLAYER_ROOT_ID } from '@/content/player/constants/rootId'
+import { DanmakuDensityService } from '@/content/player/densityPlot/DanmakuDensity.service'
+import densityPlotCss from '@/content/player/densityPlot/DanmakuDensityChart.css?inline'
 import { DanmakuManager } from '@/content/player/monitors/DanmakuManager'
 import { VideoEventService } from '@/content/player/monitors/VideoEvent.service'
 import { VideoNodeObserver } from '@/content/player/monitors/VideoNodeObserver'
@@ -31,13 +33,17 @@ const videoNodeObserver = new VideoNodeObserver()
 const manager = new DanmakuManager(videoNodeObserver, wrapper, container)
 const videoEventService = new VideoEventService(videoNodeObserver)
 const videoSkipService = new VideoSkipService(videoEventService, wrapper)
+const danmakuDensityService = new DanmakuDensityService(
+  videoEventService,
+  wrapper
+)
 
 const { shadowRoot, root } = createPopoverRoot({
   id: PLAYER_ROOT_ID,
 })
 
 manager.setParent(shadowRoot)
-injectCss(shadowRoot, skipButtonCss)
+injectCss(shadowRoot, [skipButtonCss, densityPlotCss])
 
 let pipWindow: Window | undefined
 
@@ -46,11 +52,13 @@ const playerRpcServer = createRpcServer<PlayerRelayCommands>(
     'relay:command:mount': async ({ data: comments }) => {
       manager.mount(comments)
       videoSkipService.setComments(comments)
+      danmakuDensityService.setComments(comments)
       return true
     },
     'relay:command:unmount': async () => {
       manager.unmount()
       videoSkipService.clear()
+      danmakuDensityService.clear()
       return true
     },
     'relay:command:start': async ({ data: query }) => {
@@ -145,6 +153,13 @@ danmakuOptionsService.get().then((options) => {
 extensionOptionsService.get().then((options) => {
   if (options.playerOptions.showSkipButton) {
     videoSkipService.enable()
+  } else {
+    videoSkipService.disable()
+  }
+  if (options.playerOptions.showDanmakuTimeline) {
+    danmakuDensityService.enable()
+  } else {
+    danmakuDensityService.disable()
   }
 })
 
@@ -153,6 +168,11 @@ extensionOptionsService.onChange((options) => {
     videoSkipService.enable()
   } else {
     videoSkipService.disable()
+  }
+  if (options.playerOptions.showDanmakuTimeline) {
+    danmakuDensityService.enable()
+  } else {
+    danmakuDensityService.disable()
   }
 })
 

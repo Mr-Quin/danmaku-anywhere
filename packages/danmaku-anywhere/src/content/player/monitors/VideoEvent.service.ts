@@ -49,6 +49,10 @@ export class VideoEventService {
     )
   }
 
+  public getVideoElement(): HTMLVideoElement | null {
+    return this.activeVideoElement
+  }
+
   public addVideoEventListener<K extends VideoEventType>(
     event: K,
     callback: VideoEventCallback<K>
