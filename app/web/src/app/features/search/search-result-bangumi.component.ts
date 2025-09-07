@@ -1,4 +1,4 @@
-import { JsonPipe, NgOptimizedImage } from '@angular/common'
+import { JsonPipe } from '@angular/common'
 import {
   ChangeDetectionStrategy,
   Component,
@@ -22,32 +22,29 @@ import { SearchService } from './search.service'
     InputTextModule,
     Skeleton,
     BangumiSearchResultListItem,
-    NgOptimizedImage,
   ],
   template: `
     <div class="overflow-auto">
       @if (bangumiSearchQuery.isPending()) {
         @if (bangumiSearchQuery.isFetching()) {
           @for (i of [1, 2, 3, 4, 5]; track i) {
-            <p-skeleton styleClass="my-2" width="100%" height="76px" />
+            <p-skeleton class="my-2" width="100%" height="76px" />
           }
         }
-      }
-      @else if (bangumiSearchQuery.isSuccess()) {
+      } @else if (bangumiSearchQuery.isSuccess()) {
         @let data = searchResults();
         @if (data.length === 0) {
           <p class="text-center h-full">
             无结果
           </p>
         } @else {
-          <div class="flex flex-col divide-y divide-surface-700/60">
+          <ul class="flex flex-col divide-y divide-surface-700/60">
             @for (item of data; track item.id) {
               <da-bangumi-search-result-list-item [subject]="item" />
             }
-          </div>
+          </ul>
         }
-      }
-      @else if (bangumiSearchQuery.isError()) {
+      } @else if (bangumiSearchQuery.isError()) {
         <p>
           搜索错误
         </p>
@@ -62,7 +59,7 @@ import { SearchService } from './search.service'
   },
 })
 export class SearchResultBangumiComponent {
-  private readonly searchService = inject(SearchService)
+  protected readonly searchService = inject(SearchService)
 
   private bangumiService = inject(BangumiService)
 

@@ -10,16 +10,16 @@ import {
 import { Router } from '@angular/router'
 import { Tag } from 'primeng/tag'
 import type { LegacyBgmSubject } from '../bangumi/types/bangumi.types'
+import { SearchListItem } from './search-list-item.component'
 
 @Component({
   selector: 'da-bangumi-search-result-list-item',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, Tag],
+  imports: [CommonModule, Tag, SearchListItem],
   template: `
     @let item = subject();
-    <div class="relative">
-      <div class="flex gap-3 cursor-pointer hover:bg-surface-800/30 rounded-md p-2"
-           (click)="navigateToDetails(item.id)">
+    <da-search-list-item (click)="navigateToDetails(item.id)">
+      <div class="flex gap-3">
         <div class="w-16 h-24 shrink-0 overflow-hidden rounded-md bg-surface-700">
           <img
             [src]="$imageSrc()"
@@ -34,7 +34,8 @@ import type { LegacyBgmSubject } from '../bangumi/types/bangumi.types'
             {{ $primaryName() }}
           </p>
           @if (!hideAltTitle() && $secondaryName()) {
-            <p class="text-sm text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap" [title]="$secondaryName()">
+            <p class="text-sm text-gray-500 overflow-hidden text-ellipsis whitespace-nowrap"
+               [title]="$secondaryName()">
               {{ $secondaryName() }}
             </p>
           }
@@ -68,7 +69,7 @@ import type { LegacyBgmSubject } from '../bangumi/types/bangumi.types'
           {{ item.rating.total }}人评分
         </p>
       </div>
-    </div>
+    </da-search-list-item>
   `,
 })
 export class BangumiSearchResultListItem {

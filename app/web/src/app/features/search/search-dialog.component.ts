@@ -14,6 +14,7 @@ import { IconField } from 'primeng/iconfield'
 import { InputIcon } from 'primeng/inputicon'
 import { InputTextModule } from 'primeng/inputtext'
 import { MaterialIcon } from '../../shared/components/material-icon'
+import { SearchHistoryComponent } from './history/search-history.component'
 import { type SearchProvider, SearchService } from './search.service'
 import { SearchResultBangumiComponent } from './search-result-bangumi.component'
 
@@ -29,12 +30,14 @@ import { SearchResultBangumiComponent } from './search-result-bangumi.component'
     SearchResultBangumiComponent,
     IconField,
     InputIcon,
+    SearchHistoryComponent,
   ],
   template: `
     <p-dialog
       #dialog
       [visible]="$visible()"
       (visibleChange)="onVisibleChange($event)"
+      (onHide)="onHide()"
       draggable="false"
       dismissableMask="true"
       modal="true"
@@ -46,7 +49,7 @@ import { SearchResultBangumiComponent } from './search-result-bangumi.component'
     >
       <ng-template #headless>
         <div class="flex flex-col p-6 w-[800px] h-[600px] overflow-hidden">
-          <form (submit)="$onSubmit($event)" class="flex flex-col">
+          <form (submit)="onSubmit($event)" class="flex flex-col">
             <div class="flex items-center gap-2">
               <p-iconfield class="flex-1">
                 <p-inputicon class="pi pi-search" />
@@ -71,20 +74,24 @@ import { SearchResultBangumiComponent } from './search-result-bangumi.component'
             </div>
           </form>
           <div class="border-b border-surface-700 overflow-hidden flex-shrink-0">
-            <button type="button" pButton [text]="true" 
+            <button type="button" pButton [text]="true"
                     [severity]="$provider() === 'bangumi' ? 'primary' : 'secondary'"
                     (click)="setProvider('bangumi')">
               Bangumi
             </button>
-            <button type="button" pButton [text]="true" 
+            <button type="button" pButton [text]="true"
                     [severity]="$provider() === 'kazumi' ? 'primary' : 'secondary'"
                     (click)="setProvider('kazumi')">
               Kazumi
             </button>
           </div>
           <div class="overflow-auto">
-            @if ($provider() === 'bangumi') {
-              <da-search-result-bangumi />
+            @if ($term().length === 0) {
+              <da-search-history />
+            } @else {
+              @if ($provider() === 'bangumi') {
+                <da-search-result-bangumi />
+              }
             }
           </div>
         </div>
@@ -98,11 +105,13 @@ export class SearchDialogComponent {
   $dialog = viewChild.required<Dialog>('dialog')
   $visible = this.searchService.$visible
   $provider = this.searchService.$provider
+  $term = this.searchService.$term
   $termLocal = linkedSignal(() => this.searchService.$term())
 
   $canSubmit = computed(() => this.$termLocal().trim() !== '')
 
   close() {
+    this.onHide()
     this.searchService.close()
   }
 
@@ -116,7 +125,11 @@ export class SearchDialogComponent {
     this.$provider.set(provider)
   }
 
-  async $onSubmit(event: Event) {
+  onHide() {
+    this.searchService.setTerm('')
+  }
+
+  async onSubmit(event: Event) {
     event.preventDefault()
     await this.searchService.search(this.$termLocal())
   }

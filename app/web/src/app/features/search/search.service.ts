@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core'
 import { Router } from '@angular/router'
 import { KazumiService } from '../kazumi/services/kazumi.service'
+import { SearchHistoryService } from './history/search-history.service'
 
 export type SearchProvider = 'kazumi' | 'bangumi'
 
@@ -8,6 +9,7 @@ export type SearchProvider = 'kazumi' | 'bangumi'
 export class SearchService {
   private router = inject(Router)
   private kazumiService = inject(KazumiService)
+  private searchHistory = inject(SearchHistoryService)
 
   private readonly $_visible = signal(false)
   private readonly $_term = signal('')
@@ -30,6 +32,10 @@ export class SearchService {
     this.$_visible.set(false)
   }
 
+  setProvider(entry: SearchProvider) {
+    this.$provider.set(entry)
+  }
+
   setTerm(term: string) {
     this.$_term.set(term)
   }
@@ -42,6 +48,13 @@ export class SearchService {
     if (!searchTerm) {
       return
     }
+
+    this.searchHistory.add({
+      provider: activeProvider,
+      term: searchTerm,
+      sorting: null,
+      filter: null,
+    })
 
     if (activeProvider === 'kazumi') {
       this.kazumiService.updateQuery(searchTerm)
