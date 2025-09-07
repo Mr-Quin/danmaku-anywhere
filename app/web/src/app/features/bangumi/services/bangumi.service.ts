@@ -370,7 +370,10 @@ export class BangumiService {
   ) =>
     infiniteQueryOptions({
       queryKey: queryKeys.bangumi.search.subjects(searchString, sort),
-      queryFn: async (): Promise<LegacyBgmSubjectResponse> => {
+      queryFn: async ({ pageParam = 0 }): Promise<LegacyBgmSubjectResponse> => {
+        const limit = 10
+        const offset = pageParam
+
         const res = await bangumiClient.POST('/v0/search/subjects', {
           body: {
             keyword: searchString,
@@ -379,16 +382,22 @@ export class BangumiService {
             },
             sort,
           },
+          params: {
+            query: {
+              limit,
+              offset,
+            },
+          },
         })
         // biome-ignore lint/style/noNonNullAssertion: checked in middleware
         return res.data!
       },
       initialPageParam: 0,
-      getNextPageParam: (
-        lastPage: LegacyBgmSubjectResponse,
-        allPages: LegacyBgmSubjectResponse[]
-      ) => {
-        return lastPage.total < allPages.length ? allPages.length : undefined
+      getNextPageParam: (lastPage: LegacyBgmSubjectResponse) => {
+        if (lastPage.data.length < lastPage.limit) {
+          return undefined
+        }
+        return lastPage.offset + lastPage.limit
       },
       enabled: !!searchString && searchString.trim() !== '',
     })
