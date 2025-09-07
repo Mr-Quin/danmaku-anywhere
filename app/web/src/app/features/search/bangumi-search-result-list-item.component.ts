@@ -9,7 +9,7 @@ import {
 } from '@angular/core'
 import { Router } from '@angular/router'
 import { Tag } from 'primeng/tag'
-import type { LegacyBgmSubject } from '../types/bangumi.types'
+import type { LegacyBgmSubject } from '../bangumi/types/bangumi.types'
 
 @Component({
   selector: 'da-bangumi-search-result-list-item',

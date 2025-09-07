@@ -9,8 +9,8 @@ import { FormsModule } from '@angular/forms'
 import { injectInfiniteQuery } from '@tanstack/angular-query-experimental'
 import { InputTextModule } from 'primeng/inputtext'
 import { Skeleton } from 'primeng/skeleton'
-import { BangumiSearchResultListItem } from '../bangumi/components/bangumi-search-result-list-item.component'
 import { BangumiService } from '../bangumi/services/bangumi.service'
+import { BangumiSearchResultListItem } from './bangumi-search-result-list-item.component'
 import { SearchService } from './search.service'
 
 @Component({
@@ -25,14 +25,18 @@ import { SearchService } from './search.service'
     NgOptimizedImage,
   ],
   template: `
-    <div>
+    <div class="overflow-auto">
       @if (bangumiSearchQuery.isPending()) {
-        <p-skeleton styleClass="my-2" width="100%" height="76px" />
+        @if (bangumiSearchQuery.isFetching()) {
+          @for (i of [1, 2, 3, 4, 5]; track i) {
+            <p-skeleton styleClass="my-2" width="100%" height="76px" />
+          }
+        }
       }
-      @if (bangumiSearchQuery.isSuccess()) {
+      @else if (bangumiSearchQuery.isSuccess()) {
         @let data = searchResults();
         @if (data.length === 0) {
-          <p>
+          <p class="text-center h-full">
             无结果
           </p>
         } @else {
@@ -43,7 +47,7 @@ import { SearchService } from './search.service'
           </div>
         }
       }
-      @if (bangumiSearchQuery.isError()) {
+      @else if (bangumiSearchQuery.isError()) {
         <p>
           搜索错误
         </p>
@@ -53,6 +57,9 @@ import { SearchService } from './search.service'
       }
     </div>
   `,
+  host: {
+    class: 'h-full',
+  },
 })
 export class SearchResultBangumiComponent {
   private readonly searchService = inject(SearchService)
