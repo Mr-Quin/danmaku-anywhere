@@ -153,12 +153,6 @@ export class SearchDialogComponent {
 
   @HostListener('document:keydown', ['$event'])
   onKeydown(event: KeyboardEvent) {
-    const isK = event.key.toLowerCase() === 'k'
-    if ((event.ctrlKey || event.metaKey) && isK) {
-      event.preventDefault()
-      this.searchService.open()
-    }
-
     if (event.key === 'Escape') {
       if (this.$termLocal().length > 0) {
         this.clearTerm()
