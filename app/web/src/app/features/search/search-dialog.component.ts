@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  type ElementRef,
   HostListener,
   inject,
   linkedSignal,
@@ -38,11 +39,13 @@ import { type SearchProvider, SearchService } from './search.service'
       [visible]="$visible()"
       (visibleChange)="onVisibleChange($event)"
       (onHide)="close()"
+      (onShow)="onShow()"
       draggable="false"
       dismissableMask="true"
       modal="true"
       closable="true"
       closeOnEscape="false"
+      focusOnShow="true"
       blockScroll="false"
       styleClass="top-0"
       contentStyleClass="w-sm md:w-md lg:w-lg"
@@ -54,6 +57,7 @@ import { type SearchProvider, SearchService } from './search.service'
               <p-iconfield class="flex-1">
                 <p-inputicon class="pi pi-search" />
                 <input
+                #input
                   pInputText
                   type="text"
                   name="term"
@@ -103,6 +107,8 @@ export class SearchDialogComponent {
   private readonly searchService = inject(SearchService)
 
   $dialog = viewChild.required<Dialog>('dialog')
+  $input = viewChild.required<ElementRef<HTMLInputElement>>('input')
+
   $visible = this.searchService.$visible
   $provider = this.searchService.$provider
   $term = this.searchService.$term
@@ -112,6 +118,10 @@ export class SearchDialogComponent {
 
   close() {
     this.searchService.close()
+  }
+
+  onShow() {
+    this.$input().nativeElement.focus()
   }
 
   onVisibleChange(visible: boolean) {
