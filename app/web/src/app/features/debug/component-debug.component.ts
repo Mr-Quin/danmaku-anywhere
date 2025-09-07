@@ -23,7 +23,9 @@ import searchHistory from './component-data/search-history-v1.json' with {
   ],
   template: `
     <div>
-      <da-rating-filter [filter]="{ op: '<', value: 5 }" [showOperator]="true" label="评分" />
+      <da-search-filter-item [filter]="{ op: '>', value: 7.5 }" label="评分" type="rating" />
+      <da-search-filter-item [filter]="{ op: '<=', value: 100 }" label="排名" type="rank" />
+      <da-search-filter-item [filter]="{ op: '>=', value: '2015-01-01' }" label="播出日期" type="date" />
       @for (subject of bangumiSubjects; track subject.id) {
         <da-bangumi-search-result-list-item [subject]="subject" />
       }
