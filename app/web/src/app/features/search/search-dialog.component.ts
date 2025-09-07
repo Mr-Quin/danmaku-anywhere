@@ -41,6 +41,7 @@ import { type SearchProvider, SearchService } from './search.service'
       (visibleChange)="onVisibleChange($event)"
       (onHide)="close()"
       (onShow)="focusInput()"
+      styleClass="size-9/10 md:self-start md:mt-[180px] md:w-[800px] md:h-[600px]"
       draggable="false"
       dismissableMask="true"
       modal="true"
@@ -48,11 +49,10 @@ import { type SearchProvider, SearchService } from './search.service'
       closeOnEscape="false"
       focusOnShow="true"
       blockScroll="false"
-      styleClass="top-0"
       contentStyleClass="w-sm md:w-md lg:w-lg"
     >
       <ng-template #headless>
-        <div class="flex flex-col p-6 w-[800px] h-[600px] overflow-hidden">
+        <div class="flex flex-col p-6 overflow-hidden">
           <form (submit)="onSubmit($event)" class="flex flex-col">
             <div class="flex items-center gap-2">
               <p-iconfield class="flex-1">

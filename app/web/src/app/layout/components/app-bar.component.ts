@@ -45,7 +45,7 @@ import { FeedbackFormButton } from './feedback-form-button.component'
           >
             <da-mat-icon icon="menu" size="lg" />
           </button>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-shrink-0">
             <h1 class="text-2xl font-bold"><a routerLink="/">
               {{ PAGE_TITLE }}
             </a></h1>
