@@ -18,6 +18,11 @@ import {
   ComparisonSelector,
 } from './comparison-selector.component'
 
+interface SearchFilterModel {
+  op?: ComparisonOperator
+  value: string | number
+}
+
 @Component({
   selector: 'da-rating-filter',
   standalone: true,
@@ -39,9 +44,11 @@ import {
       <p-inputgroup-addon class="min-w-0">
         <p class="text-sm font-medium text-gray-400">{{ label() }}</p>
       </p-inputgroup-addon>
+      @if (showOperator()) {
       <p-inputgroup-addon class="min-w-0">
         <da-comparison-selector class="h-full" [op]="$comparison()" (select)="handleComparisonChange($event)" />
       </p-inputgroup-addon>
+      }
       <p-inputgroup-addon class="min-w-0">
         <p-button text severity="secondary" size="small" (click)="menu.toggle($event)">{{ $value() }}</p-button>
       </p-inputgroup-addon>
@@ -57,26 +64,26 @@ import {
 })
 export class SearchFilterItem {
   label = input.required<string>()
-  filter = input.required<string>() // e.g. >=10.0, <5
-  change = output<string>()
+  filter = input.required<SearchFilterModel>()
+  showOperator = input<boolean>()
+
+  change = output<SearchFilterModel>()
   remove = output<void>()
 
   $menu = viewChild.required<Menu>('menu')
   $numberInput = viewChild.required<InputNumber>('numberInput')
 
   $comparison = signal<ComparisonOperator>('=')
-  $value = signal<number>(0)
+  $value = signal<string | number>(0)
   $tempValue = linkedSignal(() => this.$value())
 
   constructor() {
     effect(() => {
       const filter = this.filter()
-      const match = /^(>=|>|=|<|<=)(.+)$/.exec(filter)
-      if (!match) {
-        return
+      if (filter.op) {
+        this.$comparison.set(filter.op)
       }
-      this.$comparison.set(match[1] as ComparisonOperator)
-      this.$value.set(Number(match[2]))
+      this.$value.set(this.filter().value)
     })
   }
 
@@ -104,6 +111,10 @@ export class SearchFilterItem {
   }
 
   private emitChange() {
-    this.change.emit(`${this.$comparison()}${this.$value()}`)
+    if (this.showOperator()) {
+      this.change.emit({ op: this.$comparison(), value: this.$value() })
+    } else {
+      this.change.emit({ value: this.$value() })
+    }
   }
 }
