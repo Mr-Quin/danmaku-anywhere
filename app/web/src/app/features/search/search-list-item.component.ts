@@ -6,7 +6,7 @@ import { ChangeDetectionStrategy, Component, output } from '@angular/core'
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
-    <li class="relative flex rounded-md">
+    <li class="relative flex rounded-md overflow-hidden">
       <div role="button" tabindex="0"
            class="w-full cursor-pointer p-2 hover:bg-surface-800/30 focus:bg-surface-800/50 focus:outline-none"
            (click)="click.emit()" (keydown.enter)="click.emit()">
