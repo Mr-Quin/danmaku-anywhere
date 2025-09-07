@@ -13,8 +13,8 @@ import { Panel } from 'primeng/panel'
 import { ProgressSpinner } from 'primeng/progressspinner'
 import { ScrollPanel } from 'primeng/scrollpanel'
 import { Select } from 'primeng/select'
-import { VideoService } from '../../../core/video-player/video.service'
-import { VideoPlayer } from '../../../core/video-player/video-player'
+import { VideoService } from '../../core/video-player/video.service'
+import { VideoPlayer } from '../../core/video-player/video-player'
 
 interface DebugEpisode {
   name: string
@@ -43,7 +43,7 @@ interface DebugVideoSource {
   ],
   template: `
     @let selectedEpisode = $selectedEpisode();
-    <div class="container mx-auto p-6 2xl:px-0 flex flex-col">
+    <div class="flex flex-col">
       <div class="mb-10 flex">
         <div class="flex flex-1 items-center gap-2">
           <h1 class="text-2xl font-semibold">
@@ -228,7 +228,7 @@ interface DebugVideoSource {
     </div>
   `,
 })
-export class VideoDebugPage {
+export class VideoDebugPageComponent {
   protected videoService = inject(VideoService)
 
   protected $showOverlay = signal(true)

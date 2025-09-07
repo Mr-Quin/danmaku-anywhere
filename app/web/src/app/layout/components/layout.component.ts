@@ -1,10 +1,17 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  inject,
+} from '@angular/core'
 import { RouterOutlet } from '@angular/router'
 import { ConfirmDialog } from 'primeng/confirmdialog'
 import { ScrollTop } from 'primeng/scrolltop'
 import { Toast } from 'primeng/toast'
 import { PlatformService } from '../../core/services/platform.service'
 import { NoExtensionPage } from '../../features/no-extension/no-extension-page'
+import { SearchService } from '../../features/search/search.service'
+import { SearchDialogComponent } from '../../features/search/search-dialog.component'
 import { Settings } from '../../features/settings/settings.component'
 import { LayoutService } from '../layout.service'
 import { AppBar } from './app-bar.component'
@@ -26,6 +33,7 @@ import { UpdateBanner } from './update-banner.component'
     Settings,
     NoExtensionPage,
     ConfirmDialog,
+    SearchDialogComponent,
   ],
   template: `
     <p-toast [position]="platformService.isMobile ? 'top-center' : 'bottom-center'" />
@@ -50,9 +58,20 @@ import { UpdateBanner } from './update-banner.component'
     </div>
     <p-scroll-top />
     <da-settings />
+    <da-search-dialog />
   `,
 })
 export class Layout {
   readonly platformService = inject(PlatformService)
   readonly layoutService = inject(LayoutService)
+  private readonly searchService = inject(SearchService)
+
+  @HostListener('document:keydown', ['$event'])
+  onGlobalKeydown(event: KeyboardEvent) {
+    const isK = event.key.toLowerCase() === 'k'
+    if ((event.ctrlKey || event.metaKey) && isK) {
+      event.preventDefault()
+      this.searchService.open()
+    }
+  }
 }

@@ -23,7 +23,7 @@ import { LocalPlayerService } from './services/local-player.service'
     LocalFolderSelectorComponent,
   ],
   template: `
-    <div class="container mx-auto p-6 2xl:px-0 flex flex-col">
+    <div class="container mx-auto px-6 py-4 flex flex-col">
       <div class="mb-10 flex items-center gap-3">
         <h1 class="text-2xl font-semibold" id="local-title">{{ $pageTitle() }}</h1>
       </div>

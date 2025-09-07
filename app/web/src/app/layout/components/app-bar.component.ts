@@ -5,6 +5,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome'
 import { faGithub } from '@fortawesome/free-brands-svg-icons'
 import { ButtonDirective } from 'primeng/button'
 import { Tag } from 'primeng/tag'
+import { SearchTriggerComponent } from '../../features/search/search-trigger.component'
 import { MaterialIcon } from '../../shared/components/material-icon'
 import { GITHUB_REPO_URL, PAGE_TITLE } from '../../shared/constants'
 import { LayoutService } from '../layout.service'
@@ -23,6 +24,7 @@ import { FeedbackFormButton } from './feedback-form-button.component'
     MaterialIcon,
     ExtensionUpdateBanner,
     FeedbackFormButton,
+    SearchTriggerComponent,
   ],
   host: {
     class: 'basis-0 sticky z-100 top-0',
@@ -43,15 +45,15 @@ import { FeedbackFormButton } from './feedback-form-button.component'
           >
             <da-mat-icon icon="menu" size="lg" />
           </button>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-shrink-0">
             <h1 class="text-2xl font-bold"><a routerLink="/">
               {{ PAGE_TITLE }}
             </a></h1>
             <p-tag value="预览" severity="info" />
           </div>
         </div>
-        <div class="max-md:hidden"
-        >
+        <da-search-trigger />
+        <div class="max-md:hidden flex items-center gap-2">
           <a pButton rounded size="small" severity="secondary" text [href]="githubUrl" target="_blank">
             <fa-icon [icon]="github" size="lg" />
           </a>

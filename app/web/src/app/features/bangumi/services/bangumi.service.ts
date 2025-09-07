@@ -11,7 +11,9 @@ import type {
   BgmGetTopicResponse,
   BgmSubject,
   BgmTrendingQueryResponse,
+  LegacyBgmSubjectResponse,
 } from '../types/bangumi.types'
+import { bangumiClient } from './bangumiClient'
 import { bangumiNextClient } from './bangumiNextClient'
 
 @Injectable({
@@ -360,5 +362,43 @@ export class BangumiService {
         return totalSize < lastPage.total ? allPages.length : undefined
       },
       enabled: !!subjectId,
+    })
+
+  searchSubjectsQueryOptions = (
+    searchString: string,
+    sort?: 'match' | 'heat' | 'rank' | 'score'
+  ) =>
+    infiniteQueryOptions({
+      queryKey: queryKeys.bangumi.search.subjects(searchString, sort),
+      queryFn: async ({ pageParam = 0 }): Promise<LegacyBgmSubjectResponse> => {
+        const limit = 10
+        const offset = pageParam
+
+        const res = await bangumiClient.POST('/v0/search/subjects', {
+          body: {
+            keyword: searchString,
+            filter: {
+              type: [2],
+            },
+            sort,
+          },
+          params: {
+            query: {
+              limit,
+              offset,
+            },
+          },
+        })
+        // biome-ignore lint/style/noNonNullAssertion: checked in middleware
+        return res.data!
+      },
+      initialPageParam: 0,
+      getNextPageParam: (lastPage: LegacyBgmSubjectResponse) => {
+        if (lastPage.data.length < lastPage.limit) {
+          return undefined
+        }
+        return lastPage.offset + lastPage.limit
+      },
+      enabled: !!searchString && searchString.trim() !== '',
     })
 }

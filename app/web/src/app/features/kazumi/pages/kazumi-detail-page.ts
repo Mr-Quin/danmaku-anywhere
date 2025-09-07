@@ -71,7 +71,7 @@ interface Episode {
         }
       }
     </ng-template>
-    <div class="container mx-auto p-6 2xl:px-0 flex flex-col">
+    <div class="flex flex-col">
       @let mediaDetails = $searchDetails();
       @if (mediaDetails) {
         <div class="mb-10 flex">

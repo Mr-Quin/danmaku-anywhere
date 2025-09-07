@@ -78,14 +78,33 @@ export const routes: Routes = [
               ),
             canActivate: [validateKazumiPolicy],
           },
+        ],
+      },
+      {
+        path: 'debug',
+        loadComponent: () =>
+          import('./features/kazumi/layout/kazumi-layout').then(
+            (m) => m.KazumiLayout
+          ),
+        data: { requireExtension: true } satisfies RouteData,
+        children: [
           {
-            path: 'debug',
+            path: 'video',
             loadComponent: () =>
-              import('./features/kazumi/pages/video-debug-page').then(
-                (m) => m.VideoDebugPage
+              import('./features/debug/video-debug-page.component').then(
+                (m) => m.VideoDebugPageComponent
               ),
             canActivate: [developmentOnly],
-            title: `Video Debug | ${PAGE_TITLE}`,
+            title: `Debug Video | ${PAGE_TITLE}`,
+          },
+          {
+            path: 'components',
+            loadComponent: () =>
+              import('./features/debug/component-debug.component').then(
+                (m) => m.ComponentDebugComponent
+              ),
+            canActivate: [developmentOnly],
+            title: `Debug Components | ${PAGE_TITLE}`,
           },
         ],
       },

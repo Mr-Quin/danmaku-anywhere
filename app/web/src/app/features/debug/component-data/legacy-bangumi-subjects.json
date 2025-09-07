@@ -1,0 +1,2570 @@
+[
+  {
+    "date": null,
+    "platform": "WEB",
+    "images": {
+      "small": "",
+      "grid": "",
+      "large": "",
+      "medium": "",
+      "common": ""
+    },
+    "image": "",
+    "summary": "",
+    "name": "我一个史莱姆吊打巨龙很合理吧？",
+    "name_cn": "",
+    "tags": [
+      {
+        "name": "WEB",
+        "count": 1,
+        "total_cont": 52923
+      },
+      {
+        "name": "国产",
+        "count": 1,
+        "total_cont": 136076
+      }
+    ],
+    "infobox": [
+      {
+        "key": "话数",
+        "value": "48"
+      },
+      {
+        "key": "原作",
+        "value": "三风11"
+      }
+    ],
+    "rating": {
+      "rank": 0,
+      "total": 2,
+      "count": {
+        "1": 1,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 1
+      },
+      "score": 5.5
+    },
+    "collection": {
+      "on_hold": 1,
+      "dropped": 3,
+      "wish": 1,
+      "collect": 0,
+      "doing": 1
+    },
+    "id": 440417,
+    "eps": 48,
+    "meta_tags": ["WEB"],
+    "volumes": 0,
+    "series": false,
+    "locked": false,
+    "nsfw": false,
+    "type": 2
+  },
+  {
+    "date": "2021-04-06",
+    "platform": "TV",
+    "images": {
+      "small": "https://lain.bgm.tv/r/200/pic/cover/l/4f/2f/299673_l8B8U.jpg",
+      "grid": "https://lain.bgm.tv/r/100/pic/cover/l/4f/2f/299673_l8B8U.jpg",
+      "large": "https://lain.bgm.tv/pic/cover/l/4f/2f/299673_l8B8U.jpg",
+      "medium": "https://lain.bgm.tv/r/800/pic/cover/l/4f/2f/299673_l8B8U.jpg",
+      "common": "https://lain.bgm.tv/r/400/pic/cover/l/4f/2f/299673_l8B8U.jpg"
+    },
+    "image": "https://lain.bgm.tv/pic/cover/l/4f/2f/299673_l8B8U.jpg",
+    "summary": "美妙的史莱姆人生，开始了！\r\n“由于得到了珍贵的纸，我决定将自己至今为止的经历以日记的形式记录下来。日记标题的话……就写《我转生后变成了史莱姆》。自那之后我的冒险就开始了——冒险要写的东西也长了吧？！\r\n描述了爱开玩笑且幽默的利姆鲁与特恩佩斯特的同伴们之间的日常故事的“史莱姆生活系”转生物语，现在开幕！",
+    "name": "転スラ日記 転生したらスライムだった件",
+    "name_cn": "转生史莱姆日记",
+    "tags": [
+      {
+        "name": "异世界",
+        "count": 978,
+        "total_cont": 201222
+      },
+      {
+        "name": "日常",
+        "count": 829,
+        "total_cont": 310998
+      },
+      {
+        "name": "2021年4月",
+        "count": 638,
+        "total_cont": 23506
+      },
+      {
+        "name": "漫画改",
+        "count": 436,
+        "total_cont": 677013
+      },
+      {
+        "name": "TV",
+        "count": 431,
+        "total_cont": 1168521
+      },
+      {
+        "name": "关于我转生变成史莱姆这档事",
+        "count": 352,
+        "total_cont": 2482
+      },
+      {
+        "name": "奇幻",
+        "count": 337,
+        "total_cont": 342956
+      },
+      {
+        "name": "8bit",
+        "count": 324,
+        "total_cont": 9355
+      },
+      {
+        "name": "搞笑",
+        "count": 304,
+        "total_cont": 528610
+      },
+      {
+        "name": "2021",
+        "count": 236,
+        "total_cont": 69250
+      },
+      {
+        "name": "漫改",
+        "count": 179,
+        "total_cont": 304014
+      },
+      {
+        "name": "外传",
+        "count": 171,
+        "total_cont": 3454
+      },
+      {
+        "name": "日本",
+        "count": 51,
+        "total_cont": 155666
+      },
+      {
+        "name": "转生",
+        "count": 46,
+        "total_cont": 4028
+      },
+      {
+        "name": "生原雄次",
+        "count": 29,
+        "total_cont": 40
+      },
+      {
+        "name": "治愈",
+        "count": 27,
+        "total_cont": 257403
+      },
+      {
+        "name": "穿越",
+        "count": 20,
+        "total_cont": 49622
+      },
+      {
+        "name": "轻小说改",
+        "count": 18,
+        "total_cont": 424017
+      },
+      {
+        "name": "2021年",
+        "count": 14,
+        "total_cont": 3260
+      },
+      {
+        "name": "轻改",
+        "count": 14,
+        "total_cont": 132308
+      },
+      {
+        "name": "战斗",
+        "count": 10,
+        "total_cont": 348365
+      },
+      {
+        "name": "后宫",
+        "count": 10,
+        "total_cont": 248424
+      },
+      {
+        "name": "龙傲天",
+        "count": 9,
+        "total_cont": 31124
+      },
+      {
+        "name": "8-Bit",
+        "count": 9,
+        "total_cont": 4972
+      },
+      {
+        "name": "小说改",
+        "count": 7,
+        "total_cont": 107839
+      },
+      {
+        "name": "エイトビット",
+        "count": 7,
+        "total_cont": 353
+      },
+      {
+        "name": "种田",
+        "count": 6,
+        "total_cont": 1974
+      },
+      {
+        "name": "日本动画",
+        "count": 5,
+        "total_cont": 32983
+      },
+      {
+        "name": "日漫",
+        "count": 5,
+        "total_cont": 5374
+      },
+      {
+        "name": "转生史莱姆日记",
+        "count": 4,
+        "total_cont": 4
+      }
+    ],
+    "infobox": [
+      {
+        "key": "中文名",
+        "value": "转生史莱姆日记"
+      },
+      {
+        "key": "别名",
+        "value": [
+          {
+            "v": "Tensura Nikki: Tensei shitara Slime Datta Ken"
+          },
+          {
+            "v": "The Slime Diaries: That Time I Got Reincarnated as a Slime"
+          },
+          {
+            "v": "关于我转生变成史莱姆这档事 转生史莱姆日记"
+          }
+        ]
+      },
+      {
+        "key": "话数",
+        "value": "12"
+      },
+      {
+        "key": "放送开始",
+        "value": "2021年4月6日"
+      },
+      {
+        "key": "放送星期",
+        "value": "星期二"
+      },
+      {
+        "key": "官方网站",
+        "value": "https://www.ten-sura.com/anime/tensura-nikki"
+      },
+      {
+        "key": "播放电视台",
+        "value": "TOKYO MX"
+      },
+      {
+        "key": "其他电视台",
+        "value": "MBS、BS11、テレビ愛知、テレビ北海道、TVQ九州放送、とちぎテレビ、群馬テレビ、テレビユー福島、AT-X、アニマックス"
+      },
+      {
+        "key": "播放结束",
+        "value": "2021年6月22日"
+      },
+      {
+        "key": "导演",
+        "value": "生原雄次"
+      },
+      {
+        "key": "音乐",
+        "value": "R・O・N"
+      },
+      {
+        "key": "Copyright",
+        "value": "©川上泰樹・伏瀬・講談社／転スラ製作委員会"
+      },
+      {
+        "key": "原作",
+        "value": "柴・伏瀬・みっつばー「転スラ日記 転生したらスライムだった件」(講談社『月刊少年シリウス』連載)"
+      },
+      {
+        "key": "演出",
+        "value": "中村良"
+      },
+      {
+        "key": "系列构成",
+        "value": "コタツミカン"
+      },
+      {
+        "key": "人物设定",
+        "value": "髙井里沙、入江篤"
+      },
+      {
+        "key": "美术监督",
+        "value": "佐藤歩"
+      },
+      {
+        "key": "色彩设计",
+        "value": "斉藤麻記"
+      },
+      {
+        "key": "摄影监督",
+        "value": "佐藤洋"
+      },
+      {
+        "key": "CG 导演",
+        "value": "生原雄次、相澤楓馬"
+      },
+      {
+        "key": "剪辑",
+        "value": "神宮司由美"
+      },
+      {
+        "key": "音响监督",
+        "value": "明田川仁"
+      },
+      {
+        "key": "动画制作",
+        "value": "エイトビット"
+      },
+      {
+        "key": "主题歌演出",
+        "value": "熊田茜音、リムル (CV: 岡咲美保)"
+      },
+      {
+        "key": "脚本",
+        "value": "コタツミカン"
+      },
+      {
+        "key": "分镜",
+        "value": "ロネクレア、伊能章博、松尾陽子、田中タカユキ（田中孝行）"
+      },
+      {
+        "key": "总作画监督",
+        "value": "髙井里沙"
+      },
+      {
+        "key": "作画监督",
+        "value": "髙井里沙、紺野美喜、黒川あゆみ、古林杏子、瀧原晶子、Zearth Sato、萩原愛紗、山崎千絵、本田陸、久保光寿、西川実希、上村牧子、野田猛"
+      },
+      {
+        "key": "插入歌演出",
+        "value": "エレン(CV:熊田茜音)"
+      }
+    ],
+    "rating": {
+      "rank": 3967,
+      "total": 3553,
+      "count": {
+        "1": 7,
+        "2": 3,
+        "3": 12,
+        "4": 52,
+        "5": 253,
+        "6": 1088,
+        "7": 1535,
+        "8": 468,
+        "9": 73,
+        "10": 62
+      },
+      "score": 6.7
+    },
+    "collection": {
+      "on_hold": 319,
+      "dropped": 251,
+      "wish": 610,
+      "collect": 6822,
+      "doing": 518
+    },
+    "id": 299673,
+    "eps": 12,
+    "meta_tags": ["TV", "日本", "奇幻", "漫画改", "日常"],
+    "volumes": 0,
+    "series": false,
+    "locked": false,
+    "nsfw": false,
+    "type": 2
+  },
+  {
+    "date": "2018-10-01",
+    "platform": "TV",
+    "images": {
+      "small": "https://lain.bgm.tv/r/200/pic/cover/l/7b/d6/239816_BbNdb.jpg",
+      "grid": "https://lain.bgm.tv/r/100/pic/cover/l/7b/d6/239816_BbNdb.jpg",
+      "large": "https://lain.bgm.tv/pic/cover/l/7b/d6/239816_BbNdb.jpg",
+      "medium": "https://lain.bgm.tv/r/800/pic/cover/l/7b/d6/239816_BbNdb.jpg",
+      "common": "https://lain.bgm.tv/r/400/pic/cover/l/7b/d6/239816_BbNdb.jpg"
+    },
+    "image": "https://lain.bgm.tv/pic/cover/l/7b/d6/239816_BbNdb.jpg",
+    "summary": "史莱姆生活，开始了。\r\n上班族的三上悟在道路上被歹徒给刺杀身亡后，回过神来发现自己转生到了异世界。\r\n不过，自己居然是“史莱姆”！\r\n他在得到利姆露这个名字后开始了自己的史莱姆人生，随着与各个种族相处交流的过程中，他定下了一个目标——那就是“建立一个任何种族都能愉快地一起生活的国家”！",
+    "name": "転生したらスライムだった件",
+    "name_cn": "关于我转生变成史莱姆这档事",
+    "tags": [
+      {
+        "name": "轻小说改",
+        "count": 2520,
+        "total_cont": 424083
+      },
+      {
+        "name": "异世界",
+        "count": 2261,
+        "total_cont": 201267
+      },
+      {
+        "name": "穿越",
+        "count": 2000,
+        "total_cont": 49637
+      },
+      {
+        "name": "2018年10月",
+        "count": 1761,
+        "total_cont": 24796
+      },
+      {
+        "name": "奇幻",
+        "count": 1598,
+        "total_cont": 343039
+      },
+      {
+        "name": "TV",
+        "count": 1298,
+        "total_cont": 1168746
+      },
+      {
+        "name": "8bit",
+        "count": 1043,
+        "total_cont": 9357
+      },
+      {
+        "name": "轻改",
+        "count": 876,
+        "total_cont": 132341
+      },
+      {
+        "name": "关于我转生后成为史莱姆的那件事",
+        "count": 790,
+        "total_cont": 835
+      },
+      {
+        "name": "2018",
+        "count": 687,
+        "total_cont": 69330
+      },
+      {
+        "name": "战斗",
+        "count": 647,
+        "total_cont": 348422
+      },
+      {
+        "name": "后宫",
+        "count": 606,
+        "total_cont": 248477
+      },
+      {
+        "name": "菊地康仁",
+        "count": 176,
+        "total_cont": 447
+      },
+      {
+        "name": "小说改",
+        "count": 165,
+        "total_cont": 107884
+      },
+      {
+        "name": "龙傲天",
+        "count": 143,
+        "total_cont": 31136
+      },
+      {
+        "name": "日本",
+        "count": 117,
+        "total_cont": 155845
+      },
+      {
+        "name": "漫画改",
+        "count": 85,
+        "total_cont": 677159
+      },
+      {
+        "name": "搞笑",
+        "count": 84,
+        "total_cont": 528722
+      },
+      {
+        "name": "转生",
+        "count": 46,
+        "total_cont": 4028
+      },
+      {
+        "name": "8-Bit",
+        "count": 40,
+        "total_cont": 4972
+      },
+      {
+        "name": "冒险",
+        "count": 39,
+        "total_cont": 40211
+      },
+      {
+        "name": "2018年",
+        "count": 30,
+        "total_cont": 4108
+      },
+      {
+        "name": "日常",
+        "count": 26,
+        "total_cont": 311121
+      },
+      {
+        "name": "关于我转生变成史莱姆这档事",
+        "count": 26,
+        "total_cont": 2482
+      },
+      {
+        "name": "种田",
+        "count": 26,
+        "total_cont": 1974
+      },
+      {
+        "name": "装逼",
+        "count": 24,
+        "total_cont": 7912
+      },
+      {
+        "name": "轻松",
+        "count": 23,
+        "total_cont": 916
+      },
+      {
+        "name": "史莱姆",
+        "count": 22,
+        "total_cont": 89
+      },
+      {
+        "name": "萌王",
+        "count": 20,
+        "total_cont": 1168
+      },
+      {
+        "name": "萌",
+        "count": 19,
+        "total_cont": 64458
+      }
+    ],
+    "infobox": [
+      {
+        "key": "中文名",
+        "value": "关于我转生变成史莱姆这档事"
+      },
+      {
+        "key": "别名",
+        "value": [
+          {
+            "v": "てんせいしたらスライムだったけん"
+          },
+          {
+            "v": "Tensei Shitara Suraimu datta Ken"
+          },
+          {
+            "v": "Regarding Reincarnated to Slime"
+          },
+          {
+            "v": "That Time I Got Reincarnated as a Slime"
+          },
+          {
+            "v": "关于我转生后成为史莱姆的那件事"
+          },
+          {
+            "v": "關於我轉生變成史萊姆這檔事"
+          },
+          {
+            "v": "転スラ"
+          }
+        ]
+      },
+      {
+        "key": "话数",
+        "value": "25"
+      },
+      {
+        "key": "放送开始",
+        "value": "2018年10月1日"
+      },
+      {
+        "key": "放送星期",
+        "value": "星期一"
+      },
+      {
+        "key": "官方网站",
+        "value": "http://www.ten-sura.com/"
+      },
+      {
+        "key": "播放电视台",
+        "value": "TOKYO MX"
+      },
+      {
+        "key": "其他电视台",
+        "value": "BS11 / tvk / MBS"
+      },
+      {
+        "key": "播放结束",
+        "value": "2019年3月25日"
+      },
+      {
+        "key": "导演",
+        "value": "菊地康仁"
+      },
+      {
+        "key": "音乐",
+        "value": "Elements Garden"
+      },
+      {
+        "key": "Copyright",
+        "value": "©川上泰樹・伏瀬・講談社／転スラ製作委員会"
+      },
+      {
+        "key": "怪物设计",
+        "value": "岸田隆宏"
+      },
+      {
+        "key": "原作",
+        "value": "川上泰樹・伏瀬・みっつばー『転生したらスライムだった件』（講談社「月刊少年シリウス」連載）"
+      },
+      {
+        "key": "副导演",
+        "value": "中山敦史"
+      },
+      {
+        "key": "系列构成",
+        "value": "筆安一幸（ふでやすかずゆき）"
+      },
+      {
+        "key": "人物设定",
+        "value": "江畑諒真"
+      },
+      {
+        "key": "摄影监督",
+        "value": "佐藤洋"
+      },
+      {
+        "key": "グラフィックデザイナー",
+        "value": "生原雄次"
+      },
+      {
+        "key": "剪辑",
+        "value": "神宮司由美"
+      },
+      {
+        "key": "企画",
+        "value": "濵田健二、角田真敏"
+      },
+      {
+        "key": "执行制片人",
+        "value": "近藤文吾、松下卓也→五十嵐秀幸、武内静夫、春山ゆきお、田﨑勝也、都富祐樹、森下俊一、葛西励"
+      },
+      {
+        "key": "制片人",
+        "value": "杉本紳朗、伊藤洋平"
+      },
+      {
+        "key": "动画制片人",
+        "value": "小菅秀徳"
+      },
+      {
+        "key": "助理制片人",
+        "value": "山本貴、川添千世、松尾陽子"
+      },
+      {
+        "key": "製作",
+        "value": "転スラ製作委員会【バンダイナムコアーツ（上山公一、大河原健）、講談社（千葉素久）、マイクロマガジン社（齋藤勝太）、BANPRESTO（小出慎太郎、吉川太）、日本BS放送（大和田智之、多田祐一）、アサツー ディ・ケイ（前田衛）、ピーエムオフィスエー（淡路徹）、エイトビット（四釜瞳）】"
+      },
+      {
+        "key": "宣传",
+        "value": "天野翔一朗、秋山楓；协力：冨田功一郎、小見実、三上範子、佐田敦史、星野朗宏、廣田雄一郎、松岡政孝、曳地紗亜耶"
+      },
+      {
+        "key": "音乐制作人",
+        "value": "吉江輝成"
+      },
+      {
+        "key": "录音",
+        "value": "根岸信洋"
+      },
+      {
+        "key": "录音助理",
+        "value": "大寺文彦"
+      },
+      {
+        "key": "音响",
+        "value": "マジックカプセル；音响制作担当：田中理恵、井口泰一"
+      },
+      {
+        "key": "设定制作",
+        "value": "小林祐美子；辅佐：川畑智子"
+      }
+    ],
+    "rating": {
+      "rank": 4426,
+      "total": 12572,
+      "count": {
+        "1": 28,
+        "2": 31,
+        "3": 101,
+        "4": 254,
+        "5": 1085,
+        "6": 3789,
+        "7": 5109,
+        "8": 1726,
+        "9": 212,
+        "10": 237
+      },
+      "score": 6.6
+    },
+    "collection": {
+      "on_hold": 606,
+      "dropped": 888,
+      "wish": 937,
+      "collect": 21261,
+      "doing": 1320
+    },
+    "id": 239816,
+    "eps": 25,
+    "meta_tags": ["TV", "日本", "奇幻", "漫画改", "穿越"],
+    "volumes": 0,
+    "series": false,
+    "locked": false,
+    "nsfw": false,
+    "type": 2
+  },
+  {
+    "date": "2019-07-09",
+    "platform": "OVA",
+    "images": {
+      "small": "https://lain.bgm.tv/r/200/pic/cover/l/c1/b9/268726_FWoWA.jpg",
+      "grid": "https://lain.bgm.tv/r/100/pic/cover/l/c1/b9/268726_FWoWA.jpg",
+      "large": "https://lain.bgm.tv/pic/cover/l/c1/b9/268726_FWoWA.jpg",
+      "medium": "https://lain.bgm.tv/r/800/pic/cover/l/c1/b9/268726_FWoWA.jpg",
+      "common": "https://lain.bgm.tv/r/400/pic/cover/l/c1/b9/268726_FWoWA.jpg"
+    },
+    "image": "https://lain.bgm.tv/pic/cover/l/c1/b9/268726_FWoWA.jpg",
+    "summary": "原作漫画第12、13、14、15、16卷限定版收录的OAD。",
+    "name": "転生したらスライムだった件 OAD",
+    "name_cn": "关于我转生变成史莱姆这档事 OAD",
+    "tags": [
+      {
+        "name": "OAD",
+        "count": 532,
+        "total_cont": 32782
+      },
+      {
+        "name": "OVA",
+        "count": 417,
+        "total_cont": 322425
+      },
+      {
+        "name": "2019",
+        "count": 355,
+        "total_cont": 68056
+      },
+      {
+        "name": "异世界",
+        "count": 324,
+        "total_cont": 201222
+      },
+      {
+        "name": "轻小说改",
+        "count": 316,
+        "total_cont": 424015
+      },
+      {
+        "name": "8bit",
+        "count": 259,
+        "total_cont": 9355
+      },
+      {
+        "name": "关于我转生变成史莱姆这档事",
+        "count": 250,
+        "total_cont": 2482
+      },
+      {
+        "name": "穿越",
+        "count": 221,
+        "total_cont": 49622
+      },
+      {
+        "name": "轻改",
+        "count": 164,
+        "total_cont": 132308
+      },
+      {
+        "name": "奇幻",
+        "count": 137,
+        "total_cont": 342954
+      },
+      {
+        "name": "2019年7月",
+        "count": 136,
+        "total_cont": 19419
+      },
+      {
+        "name": "后宫",
+        "count": 71,
+        "total_cont": 248423
+      },
+      {
+        "name": "菊地康仁",
+        "count": 32,
+        "total_cont": 447
+      },
+      {
+        "name": "战斗",
+        "count": 31,
+        "total_cont": 348365
+      },
+      {
+        "name": "転生したらスライムだった件",
+        "count": 29,
+        "total_cont": 63
+      },
+      {
+        "name": "小说改",
+        "count": 29,
+        "total_cont": 107839
+      },
+      {
+        "name": "漫画改",
+        "count": 23,
+        "total_cont": 677011
+      },
+      {
+        "name": "搞笑",
+        "count": 21,
+        "total_cont": 528610
+      },
+      {
+        "name": "日常",
+        "count": 14,
+        "total_cont": 310997
+      },
+      {
+        "name": "日本",
+        "count": 14,
+        "total_cont": 155665
+      },
+      {
+        "name": "2019年",
+        "count": 12,
+        "total_cont": 3328
+      },
+      {
+        "name": "8-Bit",
+        "count": 10,
+        "total_cont": 4972
+      },
+      {
+        "name": "番外",
+        "count": 9,
+        "total_cont": 3659
+      },
+      {
+        "name": "龙傲天",
+        "count": 8,
+        "total_cont": 31124
+      },
+      {
+        "name": "福利",
+        "count": 8,
+        "total_cont": 4129
+      },
+      {
+        "name": "转生",
+        "count": 7,
+        "total_cont": 4028
+      },
+      {
+        "name": "エイトビット",
+        "count": 7,
+        "total_cont": 353
+      },
+      {
+        "name": "TV",
+        "count": 7,
+        "total_cont": 1168518
+      },
+      {
+        "name": "日本动画",
+        "count": 6,
+        "total_cont": 32983
+      },
+      {
+        "name": "漫改",
+        "count": 6,
+        "total_cont": 304014
+      }
+    ],
+    "infobox": [
+      {
+        "key": "中文名",
+        "value": "关于我转生变成史莱姆这档事 OAD"
+      },
+      {
+        "key": "话数",
+        "value": "5"
+      },
+      {
+        "key": "发售日",
+        "value": "2019年7月9日"
+      },
+      {
+        "key": "官方网站",
+        "value": "https://www.ten-sura.com/"
+      },
+      {
+        "key": "开始",
+        "value": "2019年7月9日"
+      },
+      {
+        "key": "结束",
+        "value": "2020年11月27日"
+      },
+      {
+        "key": "原作",
+        "value": "川上泰樹・伏瀬・みっつばー『転生したらスライムだった件』（講談社「月刊少年シリウス」連載）"
+      },
+      {
+        "key": "导演",
+        "value": "菊地康仁"
+      },
+      {
+        "key": "人物设定",
+        "value": "江畑諒真"
+      }
+    ],
+    "rating": {
+      "rank": 6204,
+      "total": 2102,
+      "count": {
+        "1": 5,
+        "2": 8,
+        "3": 16,
+        "4": 63,
+        "5": 251,
+        "6": 950,
+        "7": 606,
+        "8": 143,
+        "9": 19,
+        "10": 41
+      },
+      "score": 6.3
+    },
+    "collection": {
+      "on_hold": 80,
+      "dropped": 29,
+      "wish": 307,
+      "collect": 4425,
+      "doing": 123
+    },
+    "id": 268726,
+    "eps": 5,
+    "meta_tags": ["奇幻", "OVA", "漫画改", "穿越"],
+    "volumes": 0,
+    "series": false,
+    "locked": false,
+    "nsfw": false,
+    "type": 2
+  },
+  {
+    "date": "2021-01-12",
+    "platform": "TV",
+    "images": {
+      "small": "https://lain.bgm.tv/r/200/pic/cover/l/e6/78/278031_skvSD.jpg",
+      "grid": "https://lain.bgm.tv/r/100/pic/cover/l/e6/78/278031_skvSD.jpg",
+      "large": "https://lain.bgm.tv/pic/cover/l/e6/78/278031_skvSD.jpg",
+      "medium": "https://lain.bgm.tv/r/800/pic/cover/l/e6/78/278031_skvSD.jpg",
+      "common": "https://lain.bgm.tv/r/400/pic/cover/l/e6/78/278031_skvSD.jpg"
+    },
+    "image": "https://lain.bgm.tv/pic/cover/l/e6/78/278031_skvSD.jpg",
+    "summary": "三上悟過著不起眼的人生，在隨機殺人魔肆虐下結束了三十七年生涯…… 看似如此。當他甦醒時，不僅眼睛看不見，就連耳朵也聽不到…… 面對一連串突發狀況，他意識到自己投胎轉世成「史萊姆」！儘管變成最弱魔物讓他頗有怨言，三上悟還是決定要快樂地過史萊姆生活，沒想到卻碰上天災級魔物「暴風龍維爾德拉」，命運就此出現巨大轉折──維爾德拉將他命名為「利姆路」，正要展開史萊姆式的異世界新生活時，卻被捲入哥布靈對牙狼族的紛爭之中，最後還莫名其妙當上魔物大王…… 能奪取對手能力的「捕食者」以及精通世界真理的「大賢者」，有這兩項特殊技能當武器，最強的史萊姆傳說正式展開！",
+    "name": "転生したらスライムだった件 第2期",
+    "name_cn": "关于我转生变成史莱姆这档事 第二季",
+    "tags": [
+      {
+        "name": "异世界",
+        "count": 1758,
+        "total_cont": 201264
+      },
+      {
+        "name": "轻小说改",
+        "count": 1142,
+        "total_cont": 424080
+      },
+      {
+        "name": "2021年1月",
+        "count": 1033,
+        "total_cont": 28552
+      },
+      {
+        "name": "TV",
+        "count": 744,
+        "total_cont": 1168739
+      },
+      {
+        "name": "奇幻",
+        "count": 665,
+        "total_cont": 343047
+      },
+      {
+        "name": "关于我转生变成史莱姆这档事",
+        "count": 614,
+        "total_cont": 2482
+      },
+      {
+        "name": "8bit",
+        "count": 556,
+        "total_cont": 9357
+      },
+      {
+        "name": "轻改",
+        "count": 489,
+        "total_cont": 132341
+      },
+      {
+        "name": "穿越",
+        "count": 453,
+        "total_cont": 49636
+      },
+      {
+        "name": "2021",
+        "count": 402,
+        "total_cont": 69277
+      },
+      {
+        "name": "战斗",
+        "count": 399,
+        "total_cont": 348440
+      },
+      {
+        "name": "第二季",
+        "count": 152,
+        "total_cont": 6706
+      },
+      {
+        "name": "龙傲天",
+        "count": 143,
+        "total_cont": 31133
+      },
+      {
+        "name": "续作",
+        "count": 85,
+        "total_cont": 36362
+      },
+      {
+        "name": "日本",
+        "count": 81,
+        "total_cont": 155839
+      },
+      {
+        "name": "小说改",
+        "count": 73,
+        "total_cont": 107885
+      },
+      {
+        "name": "漫画改",
+        "count": 61,
+        "total_cont": 677160
+      },
+      {
+        "name": "后宫",
+        "count": 56,
+        "total_cont": 248475
+      },
+      {
+        "name": "2020",
+        "count": 54,
+        "total_cont": 56650
+      },
+      {
+        "name": "中山敦史",
+        "count": 36,
+        "total_cont": 116
+      },
+      {
+        "name": "搞笑",
+        "count": 30,
+        "total_cont": 528731
+      },
+      {
+        "name": "转生",
+        "count": 27,
+        "total_cont": 4028
+      },
+      {
+        "name": "8-Bit",
+        "count": 23,
+        "total_cont": 4972
+      },
+      {
+        "name": "日常",
+        "count": 21,
+        "total_cont": 311103
+      },
+      {
+        "name": "2021年",
+        "count": 21,
+        "total_cont": 3260
+      },
+      {
+        "name": "关于我转生后成为史莱姆的那件事",
+        "count": 18,
+        "total_cont": 835
+      },
+      {
+        "name": "开会",
+        "count": 14,
+        "total_cont": 76
+      },
+      {
+        "name": "萌王",
+        "count": 14,
+        "total_cont": 1168
+      },
+      {
+        "name": "轻松",
+        "count": 14,
+        "total_cont": 916
+      },
+      {
+        "name": "幻想风",
+        "count": 13,
+        "total_cont": 16
+      }
+    ],
+    "infobox": [
+      {
+        "key": "中文名",
+        "value": "关于我转生变成史莱姆这档事 第二季"
+      },
+      {
+        "key": "别名",
+        "value": [
+          {
+            "v": "That Time I Got Reincarnated as a Slime 2nd Season"
+          },
+          {
+            "v": "Tensei Shitara Slime Datta Ken 2nd Season"
+          },
+          {
+            "v": "Tensei Shitara Slime Datta Ken (2021)"
+          },
+          {
+            "v": "That Time I Got Reincarnated as a Slime (2021)"
+          }
+        ]
+      },
+      {
+        "key": "话数",
+        "value": "12"
+      },
+      {
+        "key": "放送开始",
+        "value": "2021年1月12日"
+      },
+      {
+        "key": "放送星期",
+        "value": "星期二"
+      },
+      {
+        "key": "官方网站",
+        "value": "http://www.ten-sura.com/"
+      },
+      {
+        "key": "播放结束",
+        "value": "2021年3月30日"
+      },
+      {
+        "key": "导演",
+        "value": "中山敦史"
+      },
+      {
+        "key": "Copyright",
+        "value": "© 川上泰樹・伏瀬・講談社／転スラ製作委員会"
+      },
+      {
+        "key": "怪物设计",
+        "value": "岸田隆宏"
+      },
+      {
+        "key": "图像设计",
+        "value": "生原雄次"
+      },
+      {
+        "key": "剪辑",
+        "value": "神宮司由美"
+      },
+      {
+        "key": "原作",
+        "value": "川上泰樹・伏瀬・みっつばー『転生したらスライムだった件』（講談社「月刊少年シリウス」連載）"
+      },
+      {
+        "key": "人物设定",
+        "value": "江畑諒真"
+      },
+      {
+        "key": "製作",
+        "value": "転スラ製作委員会（バンダイナムコアーツ、講談社、マイクロマガジン社、BANDAI SPIRITS、日本BS放送、アサツー ディ・ケイ、ソニー・ミュージックソリューションズ、エイトビット）"
+      },
+      {
+        "key": "企画",
+        "value": "濵田健二、古川公平"
+      },
+      {
+        "key": "执行制片人",
+        "value": "大河原健、角田真敏、武内静夫、春山ゆきお、田﨑勝也、武田智哉、森下俊一、葛西励"
+      },
+      {
+        "key": "总制片人",
+        "value": "近藤文吾、金子義雄"
+      },
+      {
+        "key": "制片人",
+        "value": "杉本紳朗、伊藤洋平"
+      },
+      {
+        "key": "动画制片人",
+        "value": "小菅秀徳"
+      }
+    ],
+    "rating": {
+      "rank": 7150,
+      "total": 6861,
+      "count": {
+        "1": 26,
+        "2": 45,
+        "3": 108,
+        "4": 416,
+        "5": 1186,
+        "6": 2750,
+        "7": 1656,
+        "8": 490,
+        "9": 72,
+        "10": 112
+      },
+      "score": 6.1
+    },
+    "collection": {
+      "on_hold": 333,
+      "dropped": 352,
+      "wish": 655,
+      "collect": 12605,
+      "doing": 543
+    },
+    "id": 278031,
+    "eps": 12,
+    "meta_tags": ["TV", "日本", "奇幻", "漫画改", "穿越"],
+    "volumes": 0,
+    "series": false,
+    "locked": false,
+    "nsfw": false,
+    "type": 2
+  },
+  {
+    "date": "2021-07-06",
+    "platform": "TV",
+    "images": {
+      "small": "https://lain.bgm.tv/r/200/pic/cover/l/c5/e7/302523_1wCsw.jpg",
+      "grid": "https://lain.bgm.tv/r/100/pic/cover/l/c5/e7/302523_1wCsw.jpg",
+      "large": "https://lain.bgm.tv/pic/cover/l/c5/e7/302523_1wCsw.jpg",
+      "medium": "https://lain.bgm.tv/r/800/pic/cover/l/c5/e7/302523_1wCsw.jpg",
+      "common": "https://lain.bgm.tv/r/400/pic/cover/l/c5/e7/302523_1wCsw.jpg"
+    },
+    "image": "https://lain.bgm.tv/pic/cover/l/c5/e7/302523_1wCsw.jpg",
+    "summary": "三上悟過著不起眼的人生，在隨機殺人魔肆虐下結束了三十七年生涯…… 看似如此。當他甦醒時，不僅眼睛看不見，就連耳朵也聽不到…… 面對一連串突發狀況，他意識到自己投胎轉世成「史萊姆」！儘管變成最弱魔物讓他頗有怨言，三上悟還是決定要快樂地過史萊姆生活，沒想到卻碰上天災級魔物「暴風龍維爾德拉」，命運就此出現巨大轉折──維爾德拉將他命名為「利姆路」，正要展開史萊姆式的異世界新生活時，卻被捲入哥布靈對牙狼族的紛爭之中，最後還莫名其妙當上魔物大王…… 能奪取對手能力的「捕食者」以及精通世界真理的「大賢者」，有這兩項特殊技能當武器，最強的史萊姆傳說正式展開！",
+    "name": "転生したらスライムだった件 第2期 2",
+    "name_cn": "关于我转生变成史莱姆这档事 第二季 第2部分",
+    "tags": [
+      {
+        "name": "异世界",
+        "count": 1379,
+        "total_cont": 201230
+      },
+      {
+        "name": "2021年7月",
+        "count": 917,
+        "total_cont": 19408
+      },
+      {
+        "name": "轻小说改",
+        "count": 891,
+        "total_cont": 424039
+      },
+      {
+        "name": "奇幻",
+        "count": 673,
+        "total_cont": 342983
+      },
+      {
+        "name": "TV",
+        "count": 600,
+        "total_cont": 1168575
+      },
+      {
+        "name": "战斗",
+        "count": 592,
+        "total_cont": 348388
+      },
+      {
+        "name": "关于我转生变成史莱姆这档事",
+        "count": 474,
+        "total_cont": 2482
+      },
+      {
+        "name": "龙傲天",
+        "count": 371,
+        "total_cont": 31124
+      },
+      {
+        "name": "8-Bit",
+        "count": 320,
+        "total_cont": 4972
+      },
+      {
+        "name": "2021",
+        "count": 299,
+        "total_cont": 69267
+      },
+      {
+        "name": "轻改",
+        "count": 296,
+        "total_cont": 132325
+      },
+      {
+        "name": "8bit",
+        "count": 135,
+        "total_cont": 9356
+      },
+      {
+        "name": "穿越",
+        "count": 102,
+        "total_cont": 49626
+      },
+      {
+        "name": "日本",
+        "count": 68,
+        "total_cont": 155690
+      },
+      {
+        "name": "续作",
+        "count": 66,
+        "total_cont": 36358
+      },
+      {
+        "name": "小说改",
+        "count": 54,
+        "total_cont": 107844
+      },
+      {
+        "name": "漫画改",
+        "count": 45,
+        "total_cont": 677038
+      },
+      {
+        "name": "后宫",
+        "count": 35,
+        "total_cont": 248437
+      },
+      {
+        "name": "日常",
+        "count": 28,
+        "total_cont": 311025
+      },
+      {
+        "name": "转生",
+        "count": 23,
+        "total_cont": 4028
+      },
+      {
+        "name": "中山敦史",
+        "count": 21,
+        "total_cont": 116
+      },
+      {
+        "name": "搞笑",
+        "count": 20,
+        "total_cont": 528635
+      },
+      {
+        "name": "开会",
+        "count": 17,
+        "total_cont": 76
+      },
+      {
+        "name": "2021年",
+        "count": 17,
+        "total_cont": 3260
+      },
+      {
+        "name": "种田",
+        "count": 13,
+        "total_cont": 1974
+      },
+      {
+        "name": "萌王",
+        "count": 11,
+        "total_cont": 1168
+      },
+      {
+        "name": "史莱姆",
+        "count": 11,
+        "total_cont": 89
+      },
+      {
+        "name": "冒险",
+        "count": 10,
+        "total_cont": 40193
+      },
+      {
+        "name": "漫改",
+        "count": 9,
+        "total_cont": 304031
+      },
+      {
+        "name": "热血",
+        "count": 8,
+        "total_cont": 171447
+      }
+    ],
+    "infobox": [
+      {
+        "key": "中文名",
+        "value": "关于我转生变成史莱姆这档事 第二季 第2部分"
+      },
+      {
+        "key": "别名",
+        "value": [
+          {
+            "v": "关于我转生变成史莱姆这档事 第二季 下半部分"
+          },
+          {
+            "v": "Tensei Shitara Slime Datta Ken 2nd Season Part 2"
+          },
+          {
+            "v": "That Time I Got Reincarnated as a Slime Season 2 Part 2"
+          }
+        ]
+      },
+      {
+        "key": "话数",
+        "value": "12"
+      },
+      {
+        "key": "放送开始",
+        "value": "2021年7月6日"
+      },
+      {
+        "key": "放送星期",
+        "value": "星期二"
+      },
+      {
+        "key": "官方网站",
+        "value": "http://www.ten-sura.com/"
+      },
+      {
+        "key": "播放电视台",
+        "value": "TOKYO MX"
+      },
+      {
+        "key": "播放结束",
+        "value": "2021年9月22日"
+      },
+      {
+        "key": "导演",
+        "value": "中山敦史"
+      },
+      {
+        "key": "Copyright",
+        "value": "© 川上泰樹・伏瀬・講談社／転スラ製作委員会"
+      },
+      {
+        "key": "原作",
+        "value": "川上泰樹・伏瀬・みっつばー『転生したらスライムだった件』（講談社「月刊少年シリウス」連載）"
+      },
+      {
+        "key": "系列构成",
+        "value": "筆安一幸(ふでやすかずゆき)"
+      },
+      {
+        "key": "人物设定",
+        "value": "江畑諒真"
+      },
+      {
+        "key": "动画制作",
+        "value": "エイトビット"
+      },
+      {
+        "key": "设定",
+        "value": "岸田隆宏（怪物设定）"
+      },
+      {
+        "key": "摄影监督",
+        "value": "佐藤洋"
+      },
+      {
+        "key": "图像设计",
+        "value": "生原雄次"
+      },
+      {
+        "key": "剪辑",
+        "value": "神宮司由美"
+      },
+      {
+        "key": "演出",
+        "value": "中村良、榎田敬宏"
+      },
+      {
+        "key": "作画监督",
+        "value": "Jeong Yeon soon、Park Hoon、Joung Eun joung、Kim Yoon jung、菅原祐幸、紺野美喜、德永久美子、沼田広、Lee jong kyong、上村牧子、高井里沙、和島大貴"
+      }
+    ],
+    "rating": {
+      "rank": 7293,
+      "total": 5674,
+      "count": {
+        "1": 22,
+        "2": 41,
+        "3": 110,
+        "4": 345,
+        "5": 994,
+        "6": 2355,
+        "7": 1275,
+        "8": 372,
+        "9": 52,
+        "10": 108
+      },
+      "score": 6.1
+    },
+    "collection": {
+      "on_hold": 246,
+      "dropped": 233,
+      "wish": 511,
+      "collect": 10625,
+      "doing": 493
+    },
+    "id": 302523,
+    "eps": 12,
+    "meta_tags": ["TV", "日本", "奇幻", "漫画改", "战斗"],
+    "volumes": 0,
+    "series": false,
+    "locked": false,
+    "nsfw": false,
+    "type": 2
+  },
+  {
+    "date": "2024-04-05",
+    "platform": "TV",
+    "images": {
+      "small": "https://lain.bgm.tv/r/200/pic/cover/l/f0/f4/407573_993Vy.jpg",
+      "grid": "https://lain.bgm.tv/r/100/pic/cover/l/f0/f4/407573_993Vy.jpg",
+      "large": "https://lain.bgm.tv/pic/cover/l/f0/f4/407573_993Vy.jpg",
+      "medium": "https://lain.bgm.tv/r/800/pic/cover/l/f0/f4/407573_993Vy.jpg",
+      "common": "https://lain.bgm.tv/r/400/pic/cover/l/f0/f4/407573_993Vy.jpg"
+    },
+    "image": "https://lain.bgm.tv/pic/cover/l/f0/f4/407573_993Vy.jpg",
+    "summary": "利姆路擊敗克雷曼，並正式成為魔王。魔王盛宴（Walpurgis）結束後，利姆路支配的地區已經擴大至整個朱拉大森林。由於已經能預見各種族的代表受此影響將蜂擁而至前來致意，利姆路靈機一動，決定乾脆舉行讓魔王利姆路正式亮相，同時吸引新居民搬入坦派斯特的「開國祭」。\r\n另一方面，在將魔物視為敵人的魯米納斯教大本營・神聖法皇國魯貝利歐斯，聖騎士團長「日向」收到了來自利姆路的訊息。然而，那卻是遭到不明人士竄改的開戰宣言。在收到日向正朝著坦派斯特接近的報告後，利姆路做出的決定會是ーー！？　\r\n\r\n為了看清真正的敵人和盟友，並追求「人魔共榮圈」的理想，利姆路的新挑戰即將開始。　",
+    "name": "転生したらスライムだった件 第3期",
+    "name_cn": "关于我转生变成史莱姆这档事 第三季",
+    "tags": [
+      {
+        "name": "异世界",
+        "count": 930,
+        "total_cont": 201279
+      },
+      {
+        "name": "2024年4月",
+        "count": 652,
+        "total_cont": 32424
+      },
+      {
+        "name": "轻小说改",
+        "count": 555,
+        "total_cont": 424075
+      },
+      {
+        "name": "关于我转生变成史莱姆这档事",
+        "count": 401,
+        "total_cont": 2482
+      },
+      {
+        "name": "TV",
+        "count": 401,
+        "total_cont": 1168749
+      },
+      {
+        "name": "战斗",
+        "count": 361,
+        "total_cont": 348427
+      },
+      {
+        "name": "奇幻",
+        "count": 330,
+        "total_cont": 343046
+      },
+      {
+        "name": "轻改",
+        "count": 255,
+        "total_cont": 132341
+      },
+      {
+        "name": "8bit",
+        "count": 235,
+        "total_cont": 9357
+      },
+      {
+        "name": "2024",
+        "count": 221,
+        "total_cont": 60857
+      },
+      {
+        "name": "穿越",
+        "count": 188,
+        "total_cont": 49638
+      },
+      {
+        "name": "魔法",
+        "count": 102,
+        "total_cont": 16207
+      },
+      {
+        "name": "日本",
+        "count": 64,
+        "total_cont": 155853
+      },
+      {
+        "name": "利姆露谈治国理政",
+        "count": 62,
+        "total_cont": 72
+      },
+      {
+        "name": "漫画改",
+        "count": 45,
+        "total_cont": 677167
+      },
+      {
+        "name": "开会",
+        "count": 42,
+        "total_cont": 76
+      },
+      {
+        "name": "龙傲天",
+        "count": 39,
+        "total_cont": 31139
+      },
+      {
+        "name": "小说改",
+        "count": 28,
+        "total_cont": 107885
+      },
+      {
+        "name": "续作",
+        "count": 27,
+        "total_cont": 36363
+      },
+      {
+        "name": "日常",
+        "count": 21,
+        "total_cont": 311132
+      },
+      {
+        "name": "后宫",
+        "count": 16,
+        "total_cont": 248479
+      },
+      {
+        "name": "中山敦史",
+        "count": 16,
+        "total_cont": 116
+      },
+      {
+        "name": "漫改",
+        "count": 13,
+        "total_cont": 304064
+      },
+      {
+        "name": "搞笑",
+        "count": 12,
+        "total_cont": 528730
+      },
+      {
+        "name": "2024年",
+        "count": 11,
+        "total_cont": 2303
+      },
+      {
+        "name": "萌王",
+        "count": 8,
+        "total_cont": 1168
+      },
+      {
+        "name": "转生",
+        "count": 8,
+        "total_cont": 4028
+      },
+      {
+        "name": "エイトビット",
+        "count": 7,
+        "total_cont": 353
+      },
+      {
+        "name": "日漫",
+        "count": 7,
+        "total_cont": 5374
+      },
+      {
+        "name": "动画",
+        "count": 7,
+        "total_cont": 30176
+      }
+    ],
+    "infobox": [
+      {
+        "key": "中文名",
+        "value": "关于我转生变成史莱姆这档事 第三季"
+      },
+      {
+        "key": "别名",
+        "value": [
+          {
+            "v": "Tensei Shitara Slime Datta Ken (2024)"
+          },
+          {
+            "v": "That Time I Got Reincarnated as a Slime (2024)"
+          },
+          {
+            "v": "Tensei Shitara Slime Datta Ken 3rd Season"
+          },
+          {
+            "v": "That Time I Got Reincarnated as a Slime Season 3"
+          }
+        ]
+      },
+      {
+        "key": "话数",
+        "value": "24"
+      },
+      {
+        "key": "放送开始",
+        "value": "2024年4月5日"
+      },
+      {
+        "key": "放送星期",
+        "value": "星期五"
+      },
+      {
+        "key": "官方网站",
+        "value": "https://www.ten-sura.com/anime/tensura"
+      },
+      {
+        "key": "播放电视台",
+        "value": "日本テレビ"
+      },
+      {
+        "key": "其他电视台",
+        "value": "BS11"
+      },
+      {
+        "key": "播放结束",
+        "value": "2024年9月27日"
+      },
+      {
+        "key": "导演",
+        "value": "中山敦史"
+      },
+      {
+        "key": "音乐",
+        "value": "藤間仁（Elements Garden）"
+      },
+      {
+        "key": "Copyright",
+        "value": "©川上泰樹・伏瀬・講談社／転スラ製作委員会"
+      },
+      {
+        "key": "原作",
+        "value": "川上泰樹・伏瀬・みっつばー『転生したらスライムだった件』（講談社「月刊少年シリウス」連載）"
+      },
+      {
+        "key": "人物设定",
+        "value": "江畑諒真"
+      },
+      {
+        "key": "系列构成",
+        "value": "根元歳三"
+      },
+      {
+        "key": "设定",
+        "value": "怪物设定：岸田隆宏"
+      },
+      {
+        "key": "总作画监督",
+        "value": "伊藤智子、山崎秀樹、吉田和香子"
+      },
+      {
+        "key": "概念艺术",
+        "value": "富安健一郎（INEI）"
+      },
+      {
+        "key": "背景美术",
+        "value": "スタジオなや"
+      },
+      {
+        "key": "图形设计",
+        "value": "生原雄次"
+      },
+      {
+        "key": "摄影监督",
+        "value": "佐藤洋"
+      },
+      {
+        "key": "剪辑",
+        "value": "神宮司由美"
+      },
+      {
+        "key": "主题歌演出",
+        "value": "STEREO DIVE FOUNDATION(R・O・N)"
+      },
+      {
+        "key": "製作",
+        "value": "転スラ製作委員会（バンダイナムコフィルムワークス、講談社、マイクロマガジン社、バンダイナムコミュージックライブ、BANDAI SPIRITS、日本BS放送、ADKマーケティング・ソリューションズ、ソニー・ミュージックソリューションズ、エイトビット、日本テレビ；宮﨑薫、伊藤洋平、多賀井勲、小門知代、小鷹達也、吉江輝成、秋山菜保、宮本沙理、多田祐一、生嶋順、伊藤直子、山﨑孔太、小国孝志、鈴木宏枝、淡路徹、伴在正行、稲毛弘之）"
+      },
+      {
+        "key": "企画",
+        "value": "伍賀一統、古川公平；企画协力：山口崇、川添千世、梅津理一郎、市川美春、三﨑友也、関戸公人、伊藤正和"
+      },
+      {
+        "key": "执行制片人",
+        "value": "近藤文吾、高見洋平[49-59]→角田真敏[60-72]、子安喜美子、川野勝広、大矢陽久、大和田智之、三田守、井口健一、須山博一、佐藤貴博"
+      },
+      {
+        "key": "总制片人",
+        "value": "杉本紳朗、古川慎"
+      },
+      {
+        "key": "制片人",
+        "value": "成田真一郎、塩谷佳之"
+      },
+      {
+        "key": "助理制片人",
+        "value": "関根美里、尾上裕紀"
+      },
+      {
+        "key": "音乐制作",
+        "value": "ランティス"
+      },
+      {
+        "key": "音乐制作人",
+        "value": "小野可織"
+      },
+      {
+        "key": "动画制片人",
+        "value": "江口浩平"
+      }
+    ],
+    "rating": {
+      "rank": 8445,
+      "total": 3288,
+      "count": {
+        "1": 30,
+        "2": 43,
+        "3": 112,
+        "4": 343,
+        "5": 813,
+        "6": 1212,
+        "7": 548,
+        "8": 130,
+        "9": 20,
+        "10": 37
+      },
+      "score": 5.7
+    },
+    "collection": {
+      "on_hold": 427,
+      "dropped": 494,
+      "wish": 1045,
+      "collect": 5214,
+      "doing": 1379
+    },
+    "id": 407573,
+    "eps": 24,
+    "meta_tags": ["TV", "日本", "奇幻", "漫画改", "战斗"],
+    "volumes": 0,
+    "series": false,
+    "locked": false,
+    "nsfw": false,
+    "type": 2
+  },
+  {
+    "date": "2023-11-01",
+    "platform": "WEB",
+    "images": {
+      "small": "https://lain.bgm.tv/r/200/pic/cover/l/fc/78/421174_nlx3z.jpg",
+      "grid": "https://lain.bgm.tv/r/100/pic/cover/l/fc/78/421174_nlx3z.jpg",
+      "large": "https://lain.bgm.tv/pic/cover/l/fc/78/421174_nlx3z.jpg",
+      "medium": "https://lain.bgm.tv/r/800/pic/cover/l/fc/78/421174_nlx3z.jpg",
+      "common": "https://lain.bgm.tv/r/400/pic/cover/l/fc/78/421174_nlx3z.jpg"
+    },
+    "image": "https://lain.bgm.tv/pic/cover/l/fc/78/421174_nlx3z.jpg",
+    "summary": "時間線回到第一季特別篇與第二季之間，在成功拯救英格拉西亞的孩子們之後，利姆路繼續過著短暫的教師生活。某一天，自由公會的公會長優樹向利姆路提出了一項委託。委託的內容是調查，被夾在英格拉西亞王國及神聖法皇國魯貝利歐斯之間的「柯里烏斯王國」中，所爆發的王位繼承之爭的內情。利姆路以「阿悟」這個名字潛入柯里烏斯王國展開搜查。然而，事件的內情並非單純的王位繼承之爭，其中更牽扯到惡魔及吸血鬼的陰謀，情況變得愈發混亂——！",
+    "name": "転生したらスライムだった件 コリウスの夢",
+    "name_cn": "关于我转生变成史莱姆这档事 柯里乌斯之梦",
+    "tags": [
+      {
+        "name": "OVA",
+        "count": 315,
+        "total_cont": 322470
+      },
+      {
+        "name": "异世界",
+        "count": 285,
+        "total_cont": 201286
+      },
+      {
+        "name": "轻小说改",
+        "count": 177,
+        "total_cont": 424081
+      },
+      {
+        "name": "2023年10月",
+        "count": 169,
+        "total_cont": 34131
+      },
+      {
+        "name": "战斗",
+        "count": 158,
+        "total_cont": 348432
+      },
+      {
+        "name": "奇幻",
+        "count": 155,
+        "total_cont": 343040
+      },
+      {
+        "name": "关于我转生变成史莱姆这档事",
+        "count": 122,
+        "total_cont": 2482
+      },
+      {
+        "name": "2023",
+        "count": 119,
+        "total_cont": 71213
+      },
+      {
+        "name": "8bit",
+        "count": 95,
+        "total_cont": 9357
+      },
+      {
+        "name": "轻改",
+        "count": 73,
+        "total_cont": 132341
+      },
+      {
+        "name": "WEB",
+        "count": 56,
+        "total_cont": 56910
+      },
+      {
+        "name": "小说改",
+        "count": 30,
+        "total_cont": 107886
+      },
+      {
+        "name": "漫画改",
+        "count": 17,
+        "total_cont": 677186
+      },
+      {
+        "name": "穿越",
+        "count": 15,
+        "total_cont": 49638
+      },
+      {
+        "name": "龙傲天",
+        "count": 15,
+        "total_cont": 31147
+      },
+      {
+        "name": "2023年",
+        "count": 14,
+        "total_cont": 3182
+      },
+      {
+        "name": "中山敦史",
+        "count": 8,
+        "total_cont": 116
+      },
+      {
+        "name": "后宫",
+        "count": 8,
+        "total_cont": 248483
+      },
+      {
+        "name": "日本",
+        "count": 6,
+        "total_cont": 155868
+      },
+      {
+        "name": "漫改",
+        "count": 5,
+        "total_cont": 304068
+      },
+      {
+        "name": "8-Bit",
+        "count": 4,
+        "total_cont": 4972
+      },
+      {
+        "name": "剧场版",
+        "count": 4,
+        "total_cont": 624968
+      },
+      {
+        "name": "表",
+        "count": 4,
+        "total_cont": 1655
+      },
+      {
+        "name": "转生",
+        "count": 4,
+        "total_cont": 4028
+      },
+      {
+        "name": "日本动画",
+        "count": 4,
+        "total_cont": 32997
+      },
+      {
+        "name": "エイトビット",
+        "count": 4,
+        "total_cont": 353
+      },
+      {
+        "name": "史莱姆",
+        "count": 3,
+        "total_cont": 89
+      },
+      {
+        "name": "TV",
+        "count": 3,
+        "total_cont": 1168767
+      },
+      {
+        "name": "续作",
+        "count": 3,
+        "total_cont": 36364
+      },
+      {
+        "name": "2023年11月",
+        "count": 3,
+        "total_cont": 152
+      }
+    ],
+    "infobox": [
+      {
+        "key": "中文名",
+        "value": "关于我转生变成史莱姆这档事 柯里乌斯之梦"
+      },
+      {
+        "key": "别名",
+        "value": [
+          {
+            "v": "Tensei Shitara Slime Datta Ken: Coleus no Yume"
+          },
+          {
+            "v": "That Time I Got Reincarnated as a Slime: Visions of Coleus"
+          },
+          {
+            "v": "关于我转生变成史莱姆这档事 彩叶草之梦"
+          }
+        ]
+      },
+      {
+        "key": "话数",
+        "value": "3"
+      },
+      {
+        "key": "放送开始",
+        "value": "2023年11月1日"
+      },
+      {
+        "key": "官方网站",
+        "value": "https://www.ten-sura.com/anime/coleus"
+      },
+      {
+        "key": "在线播放平台",
+        "value": "アニメ放題 / ABEMAプレミアム / Amazon Prime Video / dアニメストア / DMM TV / FOD / バンダイチャンネル / Hulu / Netflix / U-NEXT / Lemino"
+      },
+      {
+        "key": "播放结束",
+        "value": "2023年11月1日"
+      },
+      {
+        "key": "导演",
+        "value": "中山敦史"
+      },
+      {
+        "key": "音乐",
+        "value": "藤間仁（Elements Garden）"
+      },
+      {
+        "key": "Copyright",
+        "value": "©川上泰樹・伏瀬・講談社／転スラ製作委員会 ©柴・伏瀬・講談社／転スラ日記製作委員会"
+      },
+      {
+        "key": "原作",
+        "value": "川上泰樹・伏瀬・みっつばー『転生したらスライムだった件』（講談社「月刊少年シリウス」連載）"
+      },
+      {
+        "key": "人物设定",
+        "value": "江畑諒真"
+      },
+      {
+        "key": "设定",
+        "value": "怪物设定：岸田隆宏；视觉设计：生原雄次"
+      },
+      {
+        "key": "概念艺术",
+        "value": "富安健一郎（INEI）"
+      },
+      {
+        "key": "主题歌编曲",
+        "value": "酒井拓也（Arte Refact） / 永塚健登"
+      },
+      {
+        "key": "主题歌作曲",
+        "value": "酒井拓也（Arte Refact） / 永塚健登"
+      },
+      {
+        "key": "主题歌作词",
+        "value": "寺島拓篤 / 永塚健登"
+      },
+      {
+        "key": "主题歌演出",
+        "value": "寺島拓篤 / 岡咲美保"
+      },
+      {
+        "key": "製作",
+        "value": "転スラ製作委員会【バンダイナムコフィルムワークス、講談社、マイクロマガジン社、バンダイナムコミュージックライブ、BANDAI SPIRITS、日本BS放送、ADKマーケティング・ソリューションズ、ソニー・ミュージックソリューションズ、エイトビット、日本テレビ】（宮﨑薫、関根美里、伊藤洋平、多賀井勲、小門知代、小鷹達也、吉江輝成、秋山菜保、宮本沙理、多田祐一、生嶋順、伊藤直子、山﨑孔太、小国孝志、鈴木宏枝、淡路徹、伴在正行、稲毛弘之）"
+      },
+      {
+        "key": "企画",
+        "value": "伍賀一統、古川公平；企画协力：山口崇、川添千世、梅津理一郎、市川美春、三﨑友也、関戸公人、伊藤正和"
+      },
+      {
+        "key": "执行制片人",
+        "value": "近藤文吾、高見洋平、子安喜美子、川野勝広、大矢陽久、大和田智之、三田守、井口健一、須山博一、佐藤貴博"
+      },
+      {
+        "key": "总制片人",
+        "value": "杉本紳朗、古川慎"
+      },
+      {
+        "key": "制片人",
+        "value": "成田真一郎、塩谷佳之"
+      },
+      {
+        "key": "助理制片人",
+        "value": "中里亮太郎、尾上裕紀"
+      },
+      {
+        "key": "音乐制作人",
+        "value": "小野可織"
+      }
+    ],
+    "rating": {
+      "rank": 7840,
+      "total": 1095,
+      "count": {
+        "1": 4,
+        "2": 7,
+        "3": 13,
+        "4": 70,
+        "5": 246,
+        "6": 531,
+        "7": 171,
+        "8": 39,
+        "9": 2,
+        "10": 12
+      },
+      "score": 5.8
+    },
+    "collection": {
+      "on_hold": 59,
+      "dropped": 40,
+      "wish": 375,
+      "collect": 2139,
+      "doing": 109
+    },
+    "id": 421174,
+    "eps": 3,
+    "meta_tags": ["奇幻", "漫画改", "战斗", "WEB"],
+    "volumes": 0,
+    "series": false,
+    "locked": false,
+    "nsfw": false,
+    "type": 2
+  },
+  {
+    "date": null,
+    "platform": "TV",
+    "images": {
+      "small": "https://lain.bgm.tv/r/200/pic/cover/l/6c/a4/515594_YV18x.jpg",
+      "grid": "https://lain.bgm.tv/r/100/pic/cover/l/6c/a4/515594_YV18x.jpg",
+      "large": "https://lain.bgm.tv/pic/cover/l/6c/a4/515594_YV18x.jpg",
+      "medium": "https://lain.bgm.tv/r/800/pic/cover/l/6c/a4/515594_YV18x.jpg",
+      "common": "https://lain.bgm.tv/r/400/pic/cover/l/6c/a4/515594_YV18x.jpg"
+    },
+    "image": "https://lain.bgm.tv/pic/cover/l/6c/a4/515594_YV18x.jpg",
+    "summary": "",
+    "name": "転生したらスライムだった件 第4期",
+    "name_cn": "关于我转生变成史莱姆这档事 第四季",
+    "tags": [
+      {
+        "name": "TV",
+        "count": 21,
+        "total_cont": 1168177
+      },
+      {
+        "name": "异世界",
+        "count": 17,
+        "total_cont": 201178
+      },
+      {
+        "name": "轻小说改",
+        "count": 17,
+        "total_cont": 423944
+      },
+      {
+        "name": "8bit",
+        "count": 13,
+        "total_cont": 9355
+      },
+      {
+        "name": "关于我转生变成史莱姆这档事",
+        "count": 11,
+        "total_cont": 2482
+      },
+      {
+        "name": "战斗",
+        "count": 11,
+        "total_cont": 348260
+      },
+      {
+        "name": "漫画改",
+        "count": 6,
+        "total_cont": 676823
+      },
+      {
+        "name": "未定档",
+        "count": 6,
+        "total_cont": 3200
+      },
+      {
+        "name": "転生したらスライムだった件",
+        "count": 6,
+        "total_cont": 63
+      },
+      {
+        "name": "奇幻",
+        "count": 5,
+        "total_cont": 342854
+      },
+      {
+        "name": "利姆露谈治国理政",
+        "count": 3,
+        "total_cont": 72
+      },
+      {
+        "name": "轻改",
+        "count": 3,
+        "total_cont": 132258
+      },
+      {
+        "name": "日本",
+        "count": 3,
+        "total_cont": 155434
+      },
+      {
+        "name": "2025年",
+        "count": 2,
+        "total_cont": 1906
+      },
+      {
+        "name": "エイトビット",
+        "count": 2,
+        "total_cont": 353
+      },
+      {
+        "name": "后宫",
+        "count": 2,
+        "total_cont": 248379
+      },
+      {
+        "name": "第四季",
+        "count": 1,
+        "total_cont": 509
+      },
+      {
+        "name": "史莱姆",
+        "count": 1,
+        "total_cont": 89
+      },
+      {
+        "name": "筆安一幸",
+        "count": 1,
+        "total_cont": 200
+      },
+      {
+        "name": "可独立观赏",
+        "count": 1,
+        "total_cont": 990
+      },
+      {
+        "name": "⭐",
+        "count": 1,
+        "total_cont": 177
+      },
+      {
+        "name": "电视动画",
+        "count": 1,
+        "total_cont": 746
+      },
+      {
+        "name": "续作",
+        "count": 1,
+        "total_cont": 36346
+      },
+      {
+        "name": "岡咲美保",
+        "count": 1,
+        "total_cont": 44
+      },
+      {
+        "name": "金手指",
+        "count": 1,
+        "total_cont": 46
+      },
+      {
+        "name": "日漫",
+        "count": 1,
+        "total_cont": 5374
+      },
+      {
+        "name": "未上映",
+        "count": 1,
+        "total_cont": 470
+      },
+      {
+        "name": "萌王",
+        "count": 1,
+        "total_cont": 1168
+      },
+      {
+        "name": "2026",
+        "count": 1,
+        "total_cont": 1395
+      },
+      {
+        "name": "菊地康仁",
+        "count": 1,
+        "total_cont": 447
+      }
+    ],
+    "infobox": [
+      {
+        "key": "中文名",
+        "value": "关于我转生变成史莱姆这档事 第四季"
+      },
+      {
+        "key": "话数",
+        "value": "*"
+      },
+      {
+        "key": "放送开始",
+        "value": "*"
+      },
+      {
+        "key": "官方网站",
+        "value": "https://www.ten-sura.com/anime/tensura"
+      },
+      {
+        "key": "Copyright",
+        "value": "©川上泰樹・伏瀬・講談社／転スラ製作委員会"
+      },
+      {
+        "key": "原作",
+        "value": "川上泰樹・伏瀬・みっつばー『転生したらスライムだった件』（講談社「月刊少年シリウス」連載）"
+      }
+    ],
+    "rating": {
+      "rank": 0,
+      "total": 4,
+      "count": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1,
+        "8": 0,
+        "9": 0,
+        "10": 0
+      },
+      "score": 5.5
+    },
+    "collection": {
+      "on_hold": 18,
+      "dropped": 4,
+      "wish": 523,
+      "collect": 33,
+      "doing": 32
+    },
+    "id": 515594,
+    "eps": 0,
+    "meta_tags": ["TV", "日本", "漫画改"],
+    "volumes": 0,
+    "series": false,
+    "locked": false,
+    "nsfw": false,
+    "type": 2
+  },
+  {
+    "date": "2024-10-14",
+    "platform": "其他",
+    "images": {
+      "small": "https://lain.bgm.tv/r/200/pic/cover/l/36/f0/520588_0kuUS.jpg",
+      "grid": "https://lain.bgm.tv/r/100/pic/cover/l/36/f0/520588_0kuUS.jpg",
+      "large": "https://lain.bgm.tv/pic/cover/l/36/f0/520588_0kuUS.jpg",
+      "medium": "https://lain.bgm.tv/r/800/pic/cover/l/36/f0/520588_0kuUS.jpg",
+      "common": "https://lain.bgm.tv/r/400/pic/cover/l/36/f0/520588_0kuUS.jpg"
+    },
+    "image": "https://lain.bgm.tv/pic/cover/l/36/f0/520588_0kuUS.jpg",
+    "summary": "",
+    "name": "『転生したらスライムだった件 魔王と竜の建国譚』3周年記念新アニメPV",
+    "name_cn": "关于我转生变成史莱姆这档事 魔王与龙的建国谭 3周年纪念新动画PV",
+    "tags": [
+      {
+        "name": "短片",
+        "count": 8,
+        "total_cont": 84458
+      },
+      {
+        "name": "2024",
+        "count": 2,
+        "total_cont": 59915
+      },
+      {
+        "name": "ChoiInseung",
+        "count": 1,
+        "total_cont": 1
+      },
+      {
+        "name": "エイトビット",
+        "count": 1,
+        "total_cont": 352
+      },
+      {
+        "name": "日本动画",
+        "count": 1,
+        "total_cont": 32731
+      }
+    ],
+    "infobox": [
+      {
+        "key": "中文名",
+        "value": "关于我转生变成史莱姆这档事 魔王与龙的建国谭 3周年纪念新动画PV"
+      },
+      {
+        "key": "上映年度",
+        "value": "2024年10月14日"
+      },
+      {
+        "key": "片长",
+        "value": "47s"
+      },
+      {
+        "key": "Copyright",
+        "value": "(C)川上泰樹・伏瀬・講談社／転スラ製作委員会 (C)柴・伏瀬・講談社／転スラ日記製作委員会 (C)Bandai Namco Entertainment Inc."
+      },
+      {
+        "key": "链接",
+        "value": [
+          {
+            "k": "YouTube",
+            "v": "https://www.youtube.com/watch?v=ThN4xA8X1JU"
+          }
+        ]
+      },
+      {
+        "key": "导演",
+        "value": "Choi Inseung"
+      },
+      {
+        "key": "演出",
+        "value": "Yun ji young"
+      },
+      {
+        "key": "作画监督",
+        "value": "Yun ji young"
+      },
+      {
+        "key": "原画",
+        "value": "Hwang so hee, Lee su Jeong, Choi Inseung Kim mi Jeong, Kang ji suk"
+      },
+      {
+        "key": "第二原画",
+        "value": "Park Sangwook, Choi JI YE, Shin Ji Eun Han soyi, Kang ji suk, Kim Dain Hwang so hee, Lee jumi, Shin seo won Jeong HaeLee, Han Dahye, Kim mingyeong Lee Gahee, Kim gahyun"
+      }
+    ],
+    "rating": {
+      "rank": 0,
+      "total": 9,
+      "count": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 2,
+        "6": 6,
+        "7": 1,
+        "8": 0,
+        "9": 0,
+        "10": 0
+      },
+      "score": 5.9
+    },
+    "collection": {
+      "on_hold": 3,
+      "dropped": 2,
+      "wish": 40,
+      "collect": 23,
+      "doing": 4
+    },
+    "id": 520588,
+    "eps": 0,
+    "meta_tags": ["短片"],
+    "volumes": 0,
+    "series": false,
+    "locked": false,
+    "nsfw": false,
+    "type": 2
+  }
+]
