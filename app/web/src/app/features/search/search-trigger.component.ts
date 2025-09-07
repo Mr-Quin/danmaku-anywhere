@@ -8,19 +8,17 @@ import { SearchService } from './search.service'
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonDirective, MaterialIcon],
   template: `
-    <div class="">
       <button
-        pButton
-        type="button"
-        severity="secondary"
-        text
-        (click)="open()"
-        class="inline-flex items-center gap-2 w-[280px] h-8 bg-surface-800 hover:bg-surface-700"
+      pButton
+      type="button"
+      severity="secondary"
+      text
+      (click)="open()"
+      class="group inline-flex justify-start gap-2 w-[280px] h-8 bg-surface-800 hover:bg-surface-700"
       >
-        <da-mat-icon icon="search" />
-        <span class="max-lg:hidden text-sm opacity-80">Ctrl + K</span>
+        <da-mat-icon icon="search" size="lg" class="opacity-60 transition-opacity group-hover:opacity-100" />
+        <span class="max-lg:hidden text-sm opacity-60">Ctrl + K</span>
       </button>
-    </div>
   `,
   host: {
     class: 'absolute left-[50%] translate-x-[-50%]',
