@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   type ElementRef,
+  effect,
   HostListener,
   inject,
   linkedSignal,
@@ -39,7 +40,7 @@ import { type SearchProvider, SearchService } from './search.service'
       [visible]="$visible()"
       (visibleChange)="onVisibleChange($event)"
       (onHide)="close()"
-      (onShow)="onShow()"
+      (onShow)="focusInput()"
       draggable="false"
       dismissableMask="true"
       modal="true"
@@ -57,7 +58,7 @@ import { type SearchProvider, SearchService } from './search.service'
               <p-iconfield class="flex-1">
                 <p-inputicon class="pi pi-search" />
                 <input
-                #input
+                  #input
                   pInputText
                   type="text"
                   name="term"
@@ -68,7 +69,7 @@ import { type SearchProvider, SearchService } from './search.service'
                 />
                 @if ($termLocal().length > 0) {
                   <button type="button" pButton icon="pi pi-times" text severity="secondary" rounded size="small"
-                          (click)="$termLocal.set('')" class="absolute right-1 top-1/2 -translate-y-1/2">
+                          (click)="clearTerm()" class="absolute right-1 top-1/2 -translate-y-1/2">
                   </button>
                 }
               </p-iconfield>
@@ -116,12 +117,23 @@ export class SearchDialogComponent {
 
   $canSubmit = computed(() => this.$termLocal().trim() !== '')
 
+  constructor() {
+    effect(() => {
+      this.$term()
+      this.focusInput()
+    })
+  }
+
   close() {
     this.searchService.close()
   }
 
-  onShow() {
+  focusInput() {
     this.$input().nativeElement.focus()
+  }
+
+  clearTerm() {
+    this.searchService.setTerm('')
   }
 
   onVisibleChange(visible: boolean) {
@@ -149,7 +161,7 @@ export class SearchDialogComponent {
 
     if (event.key === 'Escape') {
       if (this.$termLocal().length > 0) {
-        this.$termLocal.set('')
+        this.clearTerm()
       } else if (this.$dialog().visible) {
         this.close()
       }
