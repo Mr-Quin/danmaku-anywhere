@@ -45,10 +45,12 @@ export class SearchService {
     const searchTerm = term.trim()
     this.$_term.set(searchTerm)
 
-    const activeProvider = provider ?? this.$provider()
     if (!searchTerm) {
       return
     }
+
+    const activeProvider = provider ?? this.$provider()
+    this.$provider.set(activeProvider)
 
     this.searchHistory.add({
       provider: activeProvider,

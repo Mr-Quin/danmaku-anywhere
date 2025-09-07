@@ -83,11 +83,11 @@ export class SearchResultListBangumiComponent {
     }
   })
 
-  navigateToDetails(id?: number): void {
+  async navigateToDetails(id?: number): Promise<void> {
     if (!id) {
       return
     }
-    void this.router.navigate(['/details', id])
+    await this.router.navigate(['/details', id])
     this.searchService.close()
   }
 }

@@ -39,14 +39,10 @@ export class SearchHistoryComponent {
   private searchHistory = inject(SearchHistoryService)
 
   historyEntries = computed(() =>
-    this.searchHistory
-      .$entries()
-      .filter((e) => e.provider === 'bangumi')
-      .sort((a, b) => b.timestamp - a.timestamp)
+    this.searchHistory.$entries().sort((a, b) => b.timestamp - a.timestamp)
   )
 
   onHistoryClick(entry: SearchHistoryEntry) {
-    this.searchService.setProvider(entry.provider)
-    this.searchService.setTerm(entry.term)
+    this.searchService.search(entry.term, entry.provider)
   }
 }
