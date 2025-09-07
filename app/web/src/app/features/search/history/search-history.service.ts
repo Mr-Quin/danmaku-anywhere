@@ -120,13 +120,4 @@ export class SearchHistoryService {
     this.$_entries.set(next)
     this.persist()
   }
-
-  clear() {
-    this.$_entries.set([])
-    this.persist()
-  }
-
-  listByProvider(provider: SearchProvider): SearchHistoryEntry[] {
-    return this.$_entries().filter((e) => e.provider === provider)
-  }
 }
