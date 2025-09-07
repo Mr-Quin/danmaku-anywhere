@@ -14,9 +14,9 @@ import { IconField } from 'primeng/iconfield'
 import { InputIcon } from 'primeng/inputicon'
 import { InputTextModule } from 'primeng/inputtext'
 import { MaterialIcon } from '../../shared/components/material-icon'
+import { SearchResultListBangumiComponent } from './bangumi/search-result-list-bangumi.component'
 import { SearchHistoryComponent } from './history/search-history.component'
 import { type SearchProvider, SearchService } from './search.service'
-import { SearchResultBangumiComponent } from './search-result-bangumi.component'
 
 @Component({
   selector: 'da-search-dialog',
@@ -27,7 +27,7 @@ import { SearchResultBangumiComponent } from './search-result-bangumi.component'
     InputTextModule,
     MaterialIcon,
     ButtonDirective,
-    SearchResultBangumiComponent,
+    SearchResultListBangumiComponent,
     IconField,
     InputIcon,
     SearchHistoryComponent,
@@ -37,7 +37,7 @@ import { SearchResultBangumiComponent } from './search-result-bangumi.component'
       #dialog
       [visible]="$visible()"
       (visibleChange)="onVisibleChange($event)"
-      (onHide)="onHide()"
+      (onHide)="close()"
       draggable="false"
       dismissableMask="true"
       modal="true"
@@ -86,12 +86,12 @@ import { SearchResultBangumiComponent } from './search-result-bangumi.component'
             </button>
           </div>
           <div class="overflow-auto">
+            @if ($provider() === 'bangumi') {
+              <da-search-result-bangumi />
+            } @else {
+            }
             @if ($term().length === 0) {
               <da-search-history />
-            } @else {
-              @if ($provider() === 'bangumi') {
-                <da-search-result-bangumi />
-              }
             }
           </div>
         </div>
@@ -111,7 +111,6 @@ export class SearchDialogComponent {
   $canSubmit = computed(() => this.$termLocal().trim() !== '')
 
   close() {
-    this.onHide()
     this.searchService.close()
   }
 
@@ -123,10 +122,6 @@ export class SearchDialogComponent {
 
   setProvider(provider: SearchProvider) {
     this.$provider.set(provider)
-  }
-
-  onHide() {
-    this.searchService.setTerm('')
   }
 
   async onSubmit(event: Event) {

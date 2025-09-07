@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common'
 import { ChangeDetectionStrategy, Component } from '@angular/core'
 import type { LegacyBgmSubject } from '../bangumi/types/bangumi.types'
-import { BangumiSearchResultListItem } from '../search/bangumi-search-result-list-item.component'
+import { BangumiSearchResultListItem } from '../search/bangumi/search-result-list-item-bangumi.component'
 import type { SearchHistoryEntry } from '../search/history/search-history.service'
 import { SearchHistoryEntryComponent } from '../search/history/search-history-entry.component'
 import legacyBangumiSubjects from './component-data/legacy-bangumi-subjects.json' with {

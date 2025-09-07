@@ -4,13 +4,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  inject,
   input,
+  output,
 } from '@angular/core'
-import { Router } from '@angular/router'
 import { Tag } from 'primeng/tag'
-import type { LegacyBgmSubject } from '../bangumi/types/bangumi.types'
-import { SearchListItem } from './search-list-item.component'
+import type { LegacyBgmSubject } from '../../bangumi/types/bangumi.types'
+import { SearchListItem } from '../search-list-item.component'
 
 @Component({
   selector: 'da-bangumi-search-result-list-item',
@@ -18,7 +17,7 @@ import { SearchListItem } from './search-list-item.component'
   imports: [CommonModule, Tag, SearchListItem],
   template: `
     @let item = subject();
-    <da-search-list-item (click)="navigateToDetails(item.id)">
+    <da-search-list-item (click)="onSelect.emit()">
       <div class="flex gap-3">
         <div class="w-16 h-24 shrink-0 overflow-hidden rounded-md bg-surface-700">
           <img
@@ -73,10 +72,9 @@ import { SearchListItem } from './search-list-item.component'
   `,
 })
 export class BangumiSearchResultListItem {
-  private readonly router = inject(Router)
-
   subject = input.required<LegacyBgmSubject>()
   hideAltTitle = input(false, { transform: booleanAttribute })
+  onSelect = output<void>()
 
   $imageSrc = computed(() => {
     const item = this.subject()
@@ -94,11 +92,4 @@ export class BangumiSearchResultListItem {
       ? item.name
       : ''
   })
-
-  navigateToDetails(id?: number): void {
-    if (!id) {
-      return
-    }
-    void this.router.navigate(['/details', id])
-  }
 }

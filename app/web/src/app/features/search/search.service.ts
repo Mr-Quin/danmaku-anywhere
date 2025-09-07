@@ -29,6 +29,7 @@ export class SearchService {
   }
 
   close() {
+    this.$_term.set('')
     this.$_visible.set(false)
   }
 

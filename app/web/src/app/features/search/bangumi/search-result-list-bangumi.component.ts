@@ -6,12 +6,13 @@ import {
   inject,
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
+import { Router } from '@angular/router'
 import { injectInfiniteQuery } from '@tanstack/angular-query-experimental'
 import { InputTextModule } from 'primeng/inputtext'
 import { Skeleton } from 'primeng/skeleton'
-import { BangumiService } from '../bangumi/services/bangumi.service'
-import { BangumiSearchResultListItem } from './bangumi-search-result-list-item.component'
-import { SearchService } from './search.service'
+import { BangumiService } from '../../bangumi/services/bangumi.service'
+import { SearchService } from '../search.service'
+import { BangumiSearchResultListItem } from './search-result-list-item-bangumi.component'
 
 @Component({
   selector: 'da-search-result-bangumi',
@@ -40,7 +41,7 @@ import { SearchService } from './search.service'
         } @else {
           <ul class="flex flex-col divide-y divide-surface-700/60">
             @for (item of data; track item.id) {
-              <da-bangumi-search-result-list-item [subject]="item" />
+              <da-bangumi-search-result-list-item [subject]="item" (onSelect)="navigateToDetails(item.id)" />
             }
           </ul>
         }
@@ -58,8 +59,9 @@ import { SearchService } from './search.service'
     class: 'h-full',
   },
 })
-export class SearchResultBangumiComponent {
-  protected readonly searchService = inject(SearchService)
+export class SearchResultListBangumiComponent {
+  private readonly searchService = inject(SearchService)
+  private readonly router = inject(Router)
 
   private bangumiService = inject(BangumiService)
 
@@ -80,4 +82,12 @@ export class SearchResultBangumiComponent {
         this.searchService.$term().trim() !== '',
     }
   })
+
+  navigateToDetails(id?: number): void {
+    if (!id) {
+      return
+    }
+    void this.router.navigate(['/details', id])
+    this.searchService.close()
+  }
 }
