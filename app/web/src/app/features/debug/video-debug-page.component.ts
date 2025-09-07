@@ -13,8 +13,8 @@ import { Panel } from 'primeng/panel'
 import { ProgressSpinner } from 'primeng/progressspinner'
 import { ScrollPanel } from 'primeng/scrollpanel'
 import { Select } from 'primeng/select'
-import { VideoService } from '../../../core/video-player/video.service'
-import { VideoPlayer } from '../../../core/video-player/video-player'
+import { VideoService } from '../../core/video-player/video.service'
+import { VideoPlayer } from '../../core/video-player/video-player'
 
 interface DebugEpisode {
   name: string
@@ -228,7 +228,7 @@ interface DebugVideoSource {
     </div>
   `,
 })
-export class VideoDebugPage {
+export class VideoDebugPageComponent {
   protected videoService = inject(VideoService)
 
   protected $showOverlay = signal(true)

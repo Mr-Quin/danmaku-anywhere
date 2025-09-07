@@ -71,12 +71,12 @@ import { SearchResultBangumiComponent } from './search-result-bangumi.component'
             </div>
           </form>
           <div class="border-b border-surface-700 overflow-hidden flex-shrink-0">
-            <button type="button" pButton [text]="true" size="small"
+            <button type="button" pButton [text]="true" 
                     [severity]="$provider() === 'bangumi' ? 'primary' : 'secondary'"
                     (click)="setProvider('bangumi')">
               Bangumi
             </button>
-            <button type="button" pButton [text]="true" size="small"
+            <button type="button" pButton [text]="true" 
                     [severity]="$provider() === 'kazumi' ? 'primary' : 'secondary'"
                     (click)="setProvider('kazumi')">
               Kazumi

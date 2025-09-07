@@ -156,17 +156,27 @@ export class AppSidebar {
             label: 'Kazumi',
             icon: 'search',
           },
-          ...(environment.production
-            ? []
-            : [
+        ],
+      },
+      ...(environment.production
+        ? []
+        : [
+            {
+              title: 'Debug',
+              items: [
                 {
-                  path: '/kazumi/debug',
+                  path: '/debug/video',
                   label: 'Video Debug',
                   icon: 'bug_report',
                 },
-              ]),
-        ],
-      },
+                {
+                  path: '/debug/components',
+                  label: 'Components',
+                  icon: 'toolbar',
+                },
+              ],
+            },
+          ]),
     ]
   })
 
