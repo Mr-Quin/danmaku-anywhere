@@ -99,11 +99,12 @@ import type { SearchProvider } from './search-model.type'
             </div>
           }
           <div class="overflow-auto">
-            @if ($provider() === 'bangumi') {
+            @if ($hasModel()) {
+              @if ($provider() === 'bangumi') {
               <da-search-result-bangumi />
             } @else {
             }
-            @if (!$hasModel()) {
+            }@else {
               <da-search-history />
             }
           </div>
