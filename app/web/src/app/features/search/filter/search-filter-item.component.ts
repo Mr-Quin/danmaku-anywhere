@@ -21,7 +21,7 @@ import {
   ComparisonSelector,
 } from './comparison-selector.component'
 
-interface SearchFilterModel {
+export interface SearchFilterModel {
   op?: ComparisonOperator
   value: string | number
 }
@@ -62,7 +62,7 @@ type SearchFilterType = 'rating' | 'rank' | 'date'
         <p-button text severity="secondary" size="small" (click)="menu.toggle($event)">{{ $value() }}</p-button>
       </p-inputgroup-addon>
     </p-inputgroup>
-    <p-menu #menu [popup]="true" (onHide)="commitValue()">
+    <p-menu #menu [popup]="true" (onHide)="commitValue()" appendTo="body">
       <ng-template #start>
         @if (type() === 'rating') {
           <ng-container *ngTemplateOutlet="ratingInput"></ng-container>
@@ -139,6 +139,7 @@ export class SearchFilterItem {
       return
     }
     if (event.key === 'Escape') {
+      event.stopPropagation()
       // revert to the original value
       this.$tempValue.set(this.$value())
       this.$menu().hide()

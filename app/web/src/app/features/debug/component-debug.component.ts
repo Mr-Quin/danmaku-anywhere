@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common'
 import { ChangeDetectionStrategy, Component } from '@angular/core'
 import type { LegacyBgmSubject } from '../bangumi/types/bangumi.types'
+import { BangumiSearchFilterComponent } from '../search/bangumi/bangumi-search-filter.component'
 import { BangumiSearchResultListItem } from '../search/bangumi/search-result-list-item-bangumi.component'
 import { SearchFilterItem } from '../search/filter/search-filter-item.component'
 import type { SearchHistoryEntry } from '../search/history/search-history.service'
@@ -20,9 +21,11 @@ import searchHistory from './component-data/search-history-v1.json' with {
     BangumiSearchResultListItem,
     SearchHistoryEntryComponent,
     SearchFilterItem,
+    BangumiSearchFilterComponent,
   ],
   template: `
     <div>
+      <da-bangumi-subject-filter-input/>
       <da-search-filter-item [filter]="{ op: '>', value: 7.5 }" label="评分" type="rating" />
       <da-search-filter-item [filter]="{ op: '<=', value: 100 }" label="排名" type="rank" />
       <da-search-filter-item [filter]="{ op: '>=', value: '2015-01-01' }" label="播出日期" type="date" />

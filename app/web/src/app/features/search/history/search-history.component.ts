@@ -20,7 +20,7 @@ import { SearchHistoryEntryComponent } from './search-history-entry.component'
   template: `
     <div>
       <p class="text-sm text-gray-400 m-2">
-        历史记录
+        搜索记录
       </p>
       <ul>
       @for (entry of historyEntries(); track entry.timestamp) {

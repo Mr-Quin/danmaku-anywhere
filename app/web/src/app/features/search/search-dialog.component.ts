@@ -16,6 +16,7 @@ import { IconField } from 'primeng/iconfield'
 import { InputIcon } from 'primeng/inputicon'
 import { InputTextModule } from 'primeng/inputtext'
 import { MaterialIcon } from '../../shared/components/material-icon'
+import { BangumiSearchFilterComponent } from './bangumi/bangumi-search-filter.component'
 import { SearchResultListBangumiComponent } from './bangumi/search-result-list-bangumi.component'
 import { SearchHistoryComponent } from './history/search-history.component'
 import { type SearchProvider, SearchService } from './search.service'
@@ -33,6 +34,7 @@ import { type SearchProvider, SearchService } from './search.service'
     IconField,
     InputIcon,
     SearchHistoryComponent,
+    BangumiSearchFilterComponent,
   ],
   template: `
     <p-dialog
@@ -90,6 +92,11 @@ import { type SearchProvider, SearchService } from './search.service'
               Kazumi
             </button>
           </div>
+          @if ($provider() === 'bangumi') {
+            <div class="m-2">
+              <da-bangumi-subject-filter-input />
+            </div>
+          }
           <div class="overflow-auto">
             @if ($provider() === 'bangumi') {
               <da-search-result-bangumi />

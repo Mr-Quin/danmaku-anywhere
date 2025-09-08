@@ -29,7 +29,7 @@ const operatorMap: Record<ComparisonOperator, string> = {
     <p-button (click)="menu.toggle($event)" severity="secondary" text size="small" class="flex h-full"
               styleClass="px-2">{{ $displayOp() }}
     </p-button>
-    <p-menu #menu [model]="menuItems" [popup]="true" />
+    <p-menu #menu [model]="menuItems" [popup]="true" appendTo="body" />
   `,
 })
 export class ComparisonSelector {
