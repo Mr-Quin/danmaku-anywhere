@@ -408,7 +408,6 @@ export class BangumiService {
     sort?: BgmSubjectSearchSorting,
     filter?: BgmSubjectSearchFilterModel
   ) {
-    console.log('searchSubject', searchString, sort, filter)
     return queryClient.fetchInfiniteQuery(
       this.searchSubjectsQueryOptions(searchString, sort, filter)
     )

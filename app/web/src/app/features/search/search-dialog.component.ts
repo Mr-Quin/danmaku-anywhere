@@ -54,7 +54,7 @@ import type { SearchProvider } from './search-model.type'
       contentStyleClass="w-sm md:w-md lg:w-lg"
     >
       <ng-template #headless>
-        <div class="flex flex-col p-6 overflow-hidden">
+        <div class="flex flex-col p-6 pb-0 overflow-hidden">
           <form (submit)="onSubmit($event)" class="flex flex-col">
             <div class="flex items-center gap-2">
               <p-iconfield class="flex-1">

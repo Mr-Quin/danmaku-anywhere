@@ -176,40 +176,36 @@ export class VirtualizedGrid {
     return rows
   })
 
-  rowVirtualizer = this.windowVirtualizer()
-    ? injectWindowVirtualizer(() => {
-        return {
-          count: this.$rows().length,
-          estimateSize: () => this.estimateHeight(),
-          gap: this.gap(),
-          scrollMargin: this.$scrollMargin(),
-        }
-      })
-    : injectVirtualizer(() => {
-        return {
-          scrollElement: this.scrollElement(),
-          count: this.$rows().length,
-          estimateSize: () => this.estimateHeight(),
-          gap: this.gap(),
-          scrollMargin: this.$scrollMargin(),
-        }
-      })
+  rowWindowVirtualizer = injectWindowVirtualizer(() => {
+    return {
+      enabled: this.windowVirtualizer(),
+      count: this.$rows().length,
+      estimateSize: () => this.estimateHeight(),
+      gap: this.gap(),
+      scrollMargin: this.$scrollMargin(),
+    }
+  })
+
+  rowNormalVirtualizer = injectVirtualizer(() => {
+    return {
+      enabled: !this.windowVirtualizer(),
+      scrollElement: this.scrollElement(),
+      count: this.$rows().length,
+      estimateSize: () => this.estimateHeight(),
+      gap: this.gap(),
+      scrollMargin: this.$scrollMargin(),
+    }
+  })
+
+  get rowVirtualizer() {
+    return this.windowVirtualizer()
+      ? this.rowWindowVirtualizer
+      : this.rowNormalVirtualizer
+  }
 
   private $fetchedNext = signal(false)
 
   constructor() {
-    effect(() => {
-      console.log(
-        this.scrollElement()?.nativeElement,
-        'windowVirtualizer',
-        this.windowVirtualizer(),
-        this.rowVirtualizer,
-        {
-          isInfiniteScroll: this.isInfiniteScroll(),
-          isFetchingNext: this.isFetchingNext(),
-        }
-      )
-    })
     // check scroll margin
     effect(() => {
       const container = this.$container()
