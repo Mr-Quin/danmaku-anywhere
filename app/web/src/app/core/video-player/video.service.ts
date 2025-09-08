@@ -9,7 +9,6 @@ import Artplayer from 'artplayer'
 import { MessageService } from 'primeng/api'
 import { serializeError } from '../../shared/utils/serializeError'
 
-// copied from artplayer
 interface ComponentOption {
   /**
    * Html string or html element of component
@@ -35,6 +34,11 @@ interface ComponentOption {
    * Component style object
    */
   style?: Partial<CSSStyleDeclaration>
+
+  /**
+   * Component click event
+   */
+  click?: (this: Artplayer, component: any, event: Event) => void
 
   /**
    * When the component was mounted
