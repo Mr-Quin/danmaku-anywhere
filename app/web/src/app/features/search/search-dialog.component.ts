@@ -98,7 +98,7 @@ import type { SearchProvider } from './search-model.type'
               <da-bangumi-subject-filter-input />
             </div>
           }
-          <div class="overflow-auto">
+          <div class="overflow-hidden">
             @if ($hasModel()) {
               @if ($provider() === 'bangumi') {
               <da-search-result-bangumi />

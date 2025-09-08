@@ -16,19 +16,17 @@ import { SearchHistoryEntryComponent } from './search-history-entry.component'
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, InputTextModule, SearchHistoryEntryComponent],
   template: `
-    <div>
       <p class="text-sm text-gray-400 m-2">
         搜索记录
       </p>
-      <ul>
+      <ul class="overflow-auto">
       @for (entry of historyEntries(); track entry.timestamp; let i = $index) {
         <da-search-history-entry [entry]="entry" (select)="handleClick(entry)" (remove)="handleRemove(i)" />
       }
       </ul>
-    </div>
   `,
   host: {
-    class: 'h-full',
+    class: 'h-full flex flex-col',
   },
 })
 export class SearchHistoryComponent {

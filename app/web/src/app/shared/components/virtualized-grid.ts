@@ -15,7 +15,10 @@ import {
   viewChild,
   viewChildren,
 } from '@angular/core'
-import { injectWindowVirtualizer } from '@tanstack/angular-virtual'
+import {
+  injectVirtualizer,
+  injectWindowVirtualizer,
+} from '@tanstack/angular-virtual'
 import { LayoutService, type ScreenSize } from '../../layout/layout.service'
 
 export type VirtualGridItem =
@@ -98,6 +101,8 @@ export class VirtualizedGrid {
   gap = input<number>(16)
   estimateHeight = input<number>(400)
   columnConfig = input<ColumnConfig>(1)
+  windowVirtualizer = input(true, { transform: booleanAttribute })
+  scrollElement = input<ElementRef<Element>>()
 
   onLoadMore = output<void | Promise<void>>()
 
@@ -171,28 +176,50 @@ export class VirtualizedGrid {
     return rows
   })
 
-  rowVirtualizer = injectWindowVirtualizer(() => {
-    return {
-      count: this.$rows().length,
-      estimateSize: () => this.estimateHeight(),
-      gap: this.gap(),
-      scrollMargin: this.$scrollMargin(),
-    }
-  })
+  rowVirtualizer = this.windowVirtualizer()
+    ? injectWindowVirtualizer(() => {
+        return {
+          count: this.$rows().length,
+          estimateSize: () => this.estimateHeight(),
+          gap: this.gap(),
+          scrollMargin: this.$scrollMargin(),
+        }
+      })
+    : injectVirtualizer(() => {
+        return {
+          scrollElement: this.scrollElement(),
+          count: this.$rows().length,
+          estimateSize: () => this.estimateHeight(),
+          gap: this.gap(),
+          scrollMargin: this.$scrollMargin(),
+        }
+      })
 
   private $fetchedNext = signal(false)
 
   constructor() {
+    effect(() => {
+      console.log(
+        this.scrollElement()?.nativeElement,
+        'windowVirtualizer',
+        this.windowVirtualizer(),
+        this.rowVirtualizer,
+        {
+          isInfiniteScroll: this.isInfiniteScroll(),
+          isFetchingNext: this.isFetchingNext(),
+        }
+      )
+    })
     // check scroll margin
     effect(() => {
       const container = this.$container()
-      if (!container) {
+      if (!container || !this.windowVirtualizer()) {
         return
       }
       const int = setTimeout(() => {
         this.$scrollMargin.set(container.nativeElement.offsetTop)
       }, 100)
-      return () => clearInterval(int)
+      return () => clearTimeout(int)
     })
 
     // measure items
