@@ -401,7 +401,6 @@ export class BangumiService {
         }
         return lastPage.offset + lastPage.limit
       },
-      enabled: !!searchString && searchString.trim() !== '',
     })
 
   searchSubject(

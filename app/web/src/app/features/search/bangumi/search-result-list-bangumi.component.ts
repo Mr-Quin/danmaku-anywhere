@@ -25,7 +25,6 @@ import { BangumiSearchResultListItem } from './search-result-list-item-bangumi.c
     BangumiSearchResultListItem,
   ],
   template: `
-    <div class="overflow-auto">
       @if (bangumiSearchQuery.isPending()) {
         @if (bangumiSearchQuery.isFetching()) {
           @for (i of [1, 2, 3, 4, 5]; track i) {
@@ -39,6 +38,9 @@ import { BangumiSearchResultListItem } from './search-result-list-item-bangumi.c
             无结果
           </p>
         } @else {
+          <p class="text-sm text-gray-400 m-2">
+            搜索结果 ({{ data.length }} / {{totalLength()}})
+          </p>
           <ul class="flex flex-col divide-y divide-surface-700/60">
             @for (item of data; track item.id) {
               <da-bangumi-search-result-list-item [subject]="item" (onSelect)="navigateToDetails(item.id)" />
@@ -53,7 +55,6 @@ import { BangumiSearchResultListItem } from './search-result-list-item-bangumi.c
           {{ bangumiSearchQuery.error() | json }}
         </p>
       }
-    </div>
   `,
   host: {
     class: 'h-full',
@@ -70,6 +71,13 @@ export class SearchResultListBangumiComponent {
       return []
     }
     return this.bangumiSearchQuery.data().pages.flatMap((page) => page.data)
+  })
+
+  totalLength = computed(() => {
+    if (!this.bangumiSearchQuery.isSuccess()) {
+      return 0
+    }
+    return this.bangumiSearchQuery.data().pages[0]?.total ?? 0
   })
 
   protected bangumiSearchQuery = injectInfiniteQuery(() => {
