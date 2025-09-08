@@ -6,7 +6,6 @@ import {
   effect,
   HostListener,
   inject,
-  linkedSignal,
   viewChild,
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
@@ -16,9 +15,11 @@ import { IconField } from 'primeng/iconfield'
 import { InputIcon } from 'primeng/inputicon'
 import { InputTextModule } from 'primeng/inputtext'
 import { MaterialIcon } from '../../shared/components/material-icon'
+import { BangumiSearchFilterComponent } from './bangumi/bangumi-search-filter.component'
 import { SearchResultListBangumiComponent } from './bangumi/search-result-list-bangumi.component'
 import { SearchHistoryComponent } from './history/search-history.component'
-import { type SearchProvider, SearchService } from './search.service'
+import { SearchService } from './search.service'
+import type { SearchProvider } from './search-model.type'
 
 @Component({
   selector: 'da-search-dialog',
@@ -33,6 +34,7 @@ import { type SearchProvider, SearchService } from './search.service'
     IconField,
     InputIcon,
     SearchHistoryComponent,
+    BangumiSearchFilterComponent,
   ],
   template: `
     <p-dialog
@@ -52,7 +54,7 @@ import { type SearchProvider, SearchService } from './search.service'
       contentStyleClass="w-sm md:w-md lg:w-lg"
     >
       <ng-template #headless>
-        <div class="flex flex-col p-6 overflow-hidden">
+        <div class="flex flex-col p-6 pb-0 overflow-hidden">
           <form (submit)="onSubmit($event)" class="flex flex-col">
             <div class="flex items-center gap-2">
               <p-iconfield class="flex-1">
@@ -64,10 +66,11 @@ import { type SearchProvider, SearchService } from './search.service'
                   name="term"
                   placeholder="输入搜索关键词"
                   class="w-full"
-                  [(ngModel)]="$termLocal"
+                  [ngModel]="$term()"
+                  (ngModelChange)="handleTermChange($event)"
                   [ngModelOptions]="{ standalone: true }"
                 />
-                @if ($termLocal().length > 0) {
+                @if ($term().length > 0 || $hasModel()) {
                   <button type="button" pButton icon="pi pi-times" text severity="secondary" rounded size="small"
                           (click)="clearTerm()" class="absolute right-1 top-1/2 -translate-y-1/2">
                   </button>
@@ -90,12 +93,18 @@ import { type SearchProvider, SearchService } from './search.service'
               Kazumi
             </button>
           </div>
-          <div class="overflow-auto">
-            @if ($provider() === 'bangumi') {
+          @if ($provider() === 'bangumi') {
+            <div class="m-2">
+              <da-bangumi-subject-filter-input />
+            </div>
+          }
+          <div class="overflow-hidden">
+            @if ($hasModel()) {
+              @if ($provider() === 'bangumi') {
               <da-search-result-bangumi />
             } @else {
             }
-            @if ($term().length === 0) {
+            }@else {
               <da-search-history />
             }
           </div>
@@ -108,14 +117,22 @@ export class SearchDialogComponent {
   private readonly searchService = inject(SearchService)
 
   $dialog = viewChild.required<Dialog>('dialog')
-  $input = viewChild.required<ElementRef<HTMLInputElement>>('input')
+  $input = viewChild<ElementRef<HTMLInputElement>>('input')
 
   $visible = this.searchService.$visible
-  $provider = this.searchService.$provider
-  $term = this.searchService.$term
-  $termLocal = linkedSignal(() => this.searchService.$term())
+  $draft = this.searchService.$draft
+  $hasModel = this.searchService.$hasModel
 
-  $canSubmit = computed(() => this.$termLocal().trim() !== '')
+  $provider = computed(() => this.$draft().provider)
+  $term = computed(() => this.$draft().term)
+
+  $canSubmit = computed(() => {
+    const provider = this.$provider()
+    if (provider === 'bangumi') {
+      return true
+    }
+    return this.$term().trim() !== ''
+  })
 
   constructor() {
     effect(() => {
@@ -129,11 +146,16 @@ export class SearchDialogComponent {
   }
 
   focusInput() {
-    this.$input().nativeElement.focus()
+    this.$input()?.nativeElement.focus()
   }
 
   clearTerm() {
+    this.searchService.clear()
     this.searchService.setTerm('')
+  }
+
+  handleTermChange(term: string) {
+    this.searchService.setTerm(term)
   }
 
   onVisibleChange(visible: boolean) {
@@ -143,12 +165,12 @@ export class SearchDialogComponent {
   }
 
   setProvider(provider: SearchProvider) {
-    this.$provider.set(provider)
+    this.searchService.setProvider(provider)
   }
 
   async onSubmit(event: Event) {
     event.preventDefault()
-    await this.searchService.search(this.$termLocal())
+    await this.searchService.search()
   }
 
   @HostListener('document:keydown', ['$event'])
@@ -157,7 +179,7 @@ export class SearchDialogComponent {
       return
     }
     if (event.key === 'Escape') {
-      if (this.$termLocal().length > 0) {
+      if (this.$term().length > 0 || this.$hasModel()) {
         this.clearTerm()
       } else if (this.$dialog().visible) {
         this.close()

@@ -1,3 +1,8 @@
+import type {
+  BgmSubjectSearchFilterModel,
+  BgmSubjectSearchSorting,
+} from '../../features/bangumi/types/bangumi.types'
+
 export const queryKeys = {
   kazumi: {
     manifest: {
@@ -27,13 +32,11 @@ export const queryKeys = {
   bangumi: {
     calendar: () => ['bangumi', 'calendar'],
     search: {
-      subjects: (query: string, sort?: 'match' | 'heat' | 'rank' | 'score') => [
-        'bangumi',
-        'search',
-        'subjects',
-        query,
-        sort,
-      ],
+      subjects: (
+        query: string,
+        sort?: BgmSubjectSearchSorting,
+        filter?: BgmSubjectSearchFilterModel
+      ) => ['bangumi', 'search', 'subjects', query, sort, filter],
     },
     trending: (limit?: number, offset?: number) => [
       'bangumi',

@@ -7,10 +7,8 @@ import {
 import { FormsModule } from '@angular/forms'
 import { InputTextModule } from 'primeng/inputtext'
 import { SearchService } from '../search.service'
-import {
-  type SearchHistoryEntry,
-  SearchHistoryService,
-} from './search-history.service'
+import type { SearchHistoryEntry } from '../search-model.type'
+import { SearchHistoryService } from './search-history.service'
 import { SearchHistoryEntryComponent } from './search-history-entry.component'
 
 @Component({
@@ -18,19 +16,17 @@ import { SearchHistoryEntryComponent } from './search-history-entry.component'
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, InputTextModule, SearchHistoryEntryComponent],
   template: `
-    <div>
       <p class="text-sm text-gray-400 m-2">
-        历史记录
+        搜索记录
       </p>
-      <ul>
-      @for (entry of historyEntries(); track entry.timestamp) {
-        <da-search-history-entry [entry]="entry" (click)="onHistoryClick(entry)" />
+      <ul class="overflow-auto">
+      @for (entry of historyEntries(); track entry.timestamp; let i = $index) {
+        <da-search-history-entry [entry]="entry" (select)="handleClick(entry)" (remove)="handleRemove(i)" />
       }
       </ul>
-    </div>
   `,
   host: {
-    class: 'h-full',
+    class: 'h-full flex flex-col',
   },
 })
 export class SearchHistoryComponent {
@@ -42,7 +38,11 @@ export class SearchHistoryComponent {
     this.searchHistory.$entries().sort((a, b) => b.timestamp - a.timestamp)
   )
 
-  onHistoryClick(entry: SearchHistoryEntry) {
-    this.searchService.search(entry.term, entry.provider)
+  handleClick(entry: SearchHistoryEntry) {
+    this.searchService.search(entry)
+  }
+
+  handleRemove(index: number) {
+    this.searchHistory.delete(index)
   }
 }

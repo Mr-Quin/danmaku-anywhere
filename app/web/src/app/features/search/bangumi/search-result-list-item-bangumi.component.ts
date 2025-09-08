@@ -17,7 +17,7 @@ import { SearchListItem } from '../search-list-item.component'
   imports: [CommonModule, Tag, SearchListItem],
   template: `
     @let item = subject();
-    <da-search-list-item (click)="onSelect.emit()">
+    <da-search-list-item (select)="onSelect.emit()">
       <div class="flex gap-3">
         <div class="w-16 h-24 shrink-0 overflow-hidden rounded-md bg-surface-700">
           <img

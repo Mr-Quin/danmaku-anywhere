@@ -3,6 +3,7 @@ import {
   infiniteQueryOptions,
   queryOptions,
 } from '@tanstack/angular-query-experimental'
+import { queryClient } from '../../../shared/query/queryClient'
 import { queryKeys } from '../../../shared/query/queryKeys'
 import type {
   BgmCalendar,
@@ -10,6 +11,8 @@ import type {
   BgmGetSubjectReviewResponse,
   BgmGetTopicResponse,
   BgmSubject,
+  BgmSubjectSearchFilterModel,
+  BgmSubjectSearchSorting,
   BgmTrendingQueryResponse,
   LegacyBgmSubjectResponse,
 } from '../types/bangumi.types'
@@ -366,10 +369,11 @@ export class BangumiService {
 
   searchSubjectsQueryOptions = (
     searchString: string,
-    sort?: 'match' | 'heat' | 'rank' | 'score'
+    sort?: BgmSubjectSearchSorting,
+    filter?: BgmSubjectSearchFilterModel
   ) =>
     infiniteQueryOptions({
-      queryKey: queryKeys.bangumi.search.subjects(searchString, sort),
+      queryKey: queryKeys.bangumi.search.subjects(searchString, sort, filter),
       queryFn: async ({ pageParam = 0 }): Promise<LegacyBgmSubjectResponse> => {
         const limit = 10
         const offset = pageParam
@@ -377,9 +381,7 @@ export class BangumiService {
         const res = await bangumiClient.POST('/v0/search/subjects', {
           body: {
             keyword: searchString,
-            filter: {
-              type: [2],
-            },
+            filter,
             sort,
           },
           params: {
@@ -399,6 +401,15 @@ export class BangumiService {
         }
         return lastPage.offset + lastPage.limit
       },
-      enabled: !!searchString && searchString.trim() !== '',
     })
+
+  searchSubject(
+    searchString: string,
+    sort?: BgmSubjectSearchSorting,
+    filter?: BgmSubjectSearchFilterModel
+  ) {
+    return queryClient.fetchInfiniteQuery(
+      this.searchSubjectsQueryOptions(searchString, sort, filter)
+    )
+  }
 }

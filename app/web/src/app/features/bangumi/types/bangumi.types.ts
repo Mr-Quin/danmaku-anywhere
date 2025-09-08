@@ -31,3 +31,15 @@ export type BgmGetSubjectReviewResponse = {
   total: number
 }
 export type BgmGetTopicResponse = { data: BgmTopic[]; total: number }
+
+export type BgmSubjectSearchSorting = 'match' | 'heat' | 'rank' | 'score'
+
+export interface BgmSubjectSearchFilterModel {
+  type?: components['schemas']['SubjectType'][]
+  meta_tags?: string[]
+  tag?: string[]
+
+  air_date?: string[]
+  rating?: string[]
+  rank?: string[]
+}

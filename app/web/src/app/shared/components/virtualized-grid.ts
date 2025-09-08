@@ -15,7 +15,10 @@ import {
   viewChild,
   viewChildren,
 } from '@angular/core'
-import { injectWindowVirtualizer } from '@tanstack/angular-virtual'
+import {
+  injectVirtualizer,
+  injectWindowVirtualizer,
+} from '@tanstack/angular-virtual'
 import { LayoutService, type ScreenSize } from '../../layout/layout.service'
 
 export type VirtualGridItem =
@@ -98,6 +101,8 @@ export class VirtualizedGrid {
   gap = input<number>(16)
   estimateHeight = input<number>(400)
   columnConfig = input<ColumnConfig>(1)
+  windowVirtualizer = input(true, { transform: booleanAttribute })
+  scrollElement = input<ElementRef<Element>>()
 
   onLoadMore = output<void | Promise<void>>()
 
@@ -171,8 +176,9 @@ export class VirtualizedGrid {
     return rows
   })
 
-  rowVirtualizer = injectWindowVirtualizer(() => {
+  rowWindowVirtualizer = injectWindowVirtualizer(() => {
     return {
+      enabled: this.windowVirtualizer(),
       count: this.$rows().length,
       estimateSize: () => this.estimateHeight(),
       gap: this.gap(),
@@ -180,19 +186,36 @@ export class VirtualizedGrid {
     }
   })
 
+  rowNormalVirtualizer = injectVirtualizer(() => {
+    return {
+      enabled: !this.windowVirtualizer(),
+      scrollElement: this.scrollElement(),
+      count: this.$rows().length,
+      estimateSize: () => this.estimateHeight(),
+      gap: this.gap(),
+      scrollMargin: this.$scrollMargin(),
+    }
+  })
+
+  get rowVirtualizer() {
+    return this.windowVirtualizer()
+      ? this.rowWindowVirtualizer
+      : this.rowNormalVirtualizer
+  }
+
   private $fetchedNext = signal(false)
 
   constructor() {
     // check scroll margin
     effect(() => {
       const container = this.$container()
-      if (!container) {
+      if (!container || !this.windowVirtualizer()) {
         return
       }
       const int = setTimeout(() => {
         this.$scrollMargin.set(container.nativeElement.offsetTop)
       }, 100)
-      return () => clearInterval(int)
+      return () => clearTimeout(int)
     })
 
     // measure items

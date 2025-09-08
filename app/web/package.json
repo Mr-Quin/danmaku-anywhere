@@ -33,7 +33,7 @@
     "@ngrx/signals": "^20.0.1",
     "@primeng/themes": "^20.1.0",
     "@tailwindcss/postcss": "^4.1.12",
-    "@tanstack/angular-query-experimental": "^5.85.6",
+    "@tanstack/angular-query-experimental": "^5.87.1",
     "@tanstack/angular-virtual": "^4.0.0",
     "artplayer": "^5.2.5",
     "dexie": "^4.2.0",
