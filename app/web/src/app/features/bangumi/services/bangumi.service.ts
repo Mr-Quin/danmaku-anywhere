@@ -373,7 +373,7 @@ export class BangumiService {
     filter?: BgmSubjectSearchFilterModel
   ) =>
     infiniteQueryOptions({
-      queryKey: queryKeys.bangumi.search.subjects(searchString, sort),
+      queryKey: queryKeys.bangumi.search.subjects(searchString, sort, filter),
       queryFn: async ({ pageParam = 0 }): Promise<LegacyBgmSubjectResponse> => {
         const limit = 10
         const offset = pageParam
@@ -409,6 +409,7 @@ export class BangumiService {
     sort?: BgmSubjectSearchSorting,
     filter?: BgmSubjectSearchFilterModel
   ) {
+    console.log('searchSubject', searchString, sort, filter)
     return queryClient.fetchInfiniteQuery(
       this.searchSubjectsQueryOptions(searchString, sort, filter)
     )

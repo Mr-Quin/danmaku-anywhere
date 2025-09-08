@@ -87,7 +87,6 @@ export class SearchHistoryService {
   }
 
   add(entry: SearchModel) {
-    console.log('add', entry)
     const now = Date.now()
     const current = this.$_entries()
     const existingIndex = current.findIndex((e) => isSameSearch(e, entry))

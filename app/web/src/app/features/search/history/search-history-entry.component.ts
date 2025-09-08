@@ -23,7 +23,11 @@ import type { SearchHistoryEntry } from '../search-model.type'
         >
           {{ item.provider }}
         </p-tag>
-        <span class="flex-1 truncate">{{ item.term }}</span>
+        @if (item.term) {
+          <span class="flex-1 truncate">{{ item.term }}</span>
+        } @else {
+          <span class="flex-1 truncate text-gray-500">无搜索词</span>
+        }
         <ng-template #actions>
         <p-button
         actions
