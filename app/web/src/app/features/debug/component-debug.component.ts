@@ -4,8 +4,8 @@ import type { LegacyBgmSubject } from '../bangumi/types/bangumi.types'
 import { BangumiSearchFilterComponent } from '../search/bangumi/bangumi-search-filter.component'
 import { BangumiSearchResultListItem } from '../search/bangumi/search-result-list-item-bangumi.component'
 import { SearchFilterItem } from '../search/filter/search-filter-item.component'
-import type { SearchHistoryEntry } from '../search/history/search-history.service'
 import { SearchHistoryEntryComponent } from '../search/history/search-history-entry.component'
+import type { SearchHistoryEntry } from '../search/search-model.type'
 import legacyBangumiSubjects from './component-data/legacy-bangumi-subjects.json' with {
   type: 'json',
 }

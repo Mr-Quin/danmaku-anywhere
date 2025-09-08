@@ -1,100 +1,125 @@
-import {
-  computed,
-  Injectable,
-  inject,
-  linkedSignal,
-  signal,
-} from '@angular/core'
+import { computed, Injectable, inject, signal } from '@angular/core'
 import { Router } from '@angular/router'
+import { BangumiService } from '../bangumi/services/bangumi.service'
+import type {
+  BgmSubjectSearchFilterModel,
+  BgmSubjectSearchSorting,
+} from '../bangumi/types/bangumi.types'
 import { KazumiService } from '../kazumi/services/kazumi.service'
 import { SearchHistoryService } from './history/search-history.service'
+import type {
+  BangumiSearchModel,
+  SearchModel,
+  SearchProvider,
+} from './search-model.type'
 
-export type SearchProvider = 'kazumi' | 'bangumi'
-
-export interface SearchModel {
-  provider: SearchProvider
-  term: string
-  sorting?: string
-  filter?: Record<string, any>
-}
-
-const DEFAULT_MODEL: SearchModel = {
-  provider: 'bangumi',
-  term: '',
-  sorting: undefined,
-  filter: undefined,
-}
+const providerRegistry: {
+  [K in SearchProvider]: Extract<SearchModel, { provider: K }>
+} = {
+  bangumi: {
+    provider: 'bangumi',
+    term: '',
+    sorting: undefined,
+    filter: {
+      type: [2],
+    },
+  },
+  kazumi: {
+    provider: 'kazumi',
+    term: '',
+  },
+} as const
 
 @Injectable({ providedIn: 'root' })
 export class SearchService {
   private router = inject(Router)
   private kazumiService = inject(KazumiService)
+  private bangumiService = inject(BangumiService)
   private searchHistory = inject(SearchHistoryService)
 
   private readonly $_visible = signal(false)
   private readonly $_model = signal<SearchModel | null>(null)
-  private readonly $_draftModel = linkedSignal<SearchModel>(() => {
-    const model = this.$_model()
-    if (model) {
-      return model
-    }
-    return DEFAULT_MODEL
-  })
+  private readonly $_provider = signal<SearchProvider>('bangumi')
 
+  private readonly $_drafts = signal(providerRegistry)
+
+  readonly $visible = this.$_visible.asReadonly()
+  readonly $model = this.$_model.asReadonly()
+  readonly $provider = this.$_provider.asReadonly()
   readonly $hasModel = computed(() => {
-    console.log('hasModel', this.$_model(), this.$_model() !== null)
     return this.$_model() !== null
   })
-  readonly $model = this.$_model.asReadonly()
-  readonly $draft = this.$_draftModel.asReadonly()
-  readonly $visible = this.$_visible.asReadonly()
+  readonly $draft = computed(() => {
+    const provider = this.$_provider()
+    return this.$_drafts()[provider]
+  })
 
   open(options?: { provider?: SearchProvider; term?: string }) {
     this.$_model.set(null)
-    if (options?.provider) {
-      this.$_draftModel.set({ ...DEFAULT_MODEL, provider: options.provider })
-    }
-    if (options?.term !== undefined) {
-      this.$_draftModel.set({ ...DEFAULT_MODEL, term: options.term })
-    }
+    const provider = options?.provider ?? 'bangumi'
+    this.setProvider(provider)
+
+    this.$_drafts.update((drafts) => ({
+      ...drafts,
+      [provider]: { ...providerRegistry[provider], term: options?.term ?? '' },
+    }))
+
     this.$_visible.set(true)
   }
 
   close() {
-    this.$_model.set(null)
-    this.$_draftModel.set(DEFAULT_MODEL)
     this.$_visible.set(false)
   }
 
-  setProvider(entry: SearchProvider) {
-    this.$_draftModel.update((model) => ({
-      ...model,
-      provider: entry,
-      term: model.term,
+  clear() {
+    this.$_model.set(null)
+    const provider = this.$_provider()
+    this.$_drafts.update((drafts) => ({
+      ...drafts,
+      [provider]: providerRegistry[provider],
     }))
+  }
+
+  setProvider(provider: SearchProvider) {
+    this.$_provider.set(provider)
   }
 
   setTerm(term: string) {
-    this.$_draftModel.update((model) => ({ ...model, term }))
-  }
-
-  setSorting(sorting: string | null) {
-    this.$_draftModel.update((model) => ({
-      ...model,
-      sorting: sorting ?? undefined,
+    const provider = this.$_provider()
+    this.$_drafts.update((drafts) => ({
+      ...drafts,
+      [provider]: { ...drafts[provider], term },
     }))
   }
 
-  setFilter(filter: Record<string, any> | null) {
-    this.$_draftModel.update((model) => ({
-      ...model,
-      filter: filter ?? undefined,
-    }))
+  setBangumiSorting(sorting: BgmSubjectSearchSorting | null) {
+    this.$_drafts.update((drafts) => {
+      const bangumiDraft = drafts.bangumi as BangumiSearchModel
+      return {
+        ...drafts,
+        bangumi: { ...bangumiDraft, sorting: sorting ?? undefined },
+      }
+    })
+  }
+
+  setBangumiFilter(filter: BgmSubjectSearchFilterModel | null) {
+    this.$_drafts.update((drafts) => {
+      const bangumiDraft = drafts.bangumi as BangumiSearchModel
+      return {
+        ...drafts,
+        bangumi: { ...bangumiDraft, filter: filter ?? undefined },
+      }
+    })
   }
 
   async search(model?: SearchModel) {
-    const searchModel = model ?? this.$_draftModel()
+    const searchModel = model ?? this.$draft()
     this.$_model.set(searchModel)
+    this.$_drafts.update((drafts) => ({
+      ...drafts,
+      [searchModel.provider]: searchModel,
+    }))
+    this.$_provider.set(searchModel.provider)
 
     this.searchHistory.add(searchModel)
 
@@ -105,6 +130,15 @@ export class SearchService {
         queryParamsHandling: 'merge',
       })
       this.close()
+      return
+    }
+
+    if (searchModel.provider === 'bangumi') {
+      this.bangumiService.searchSubject(
+        searchModel.term,
+        searchModel.sorting,
+        searchModel.filter
+      )
       return
     }
   }

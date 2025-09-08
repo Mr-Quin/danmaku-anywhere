@@ -18,7 +18,8 @@ import { MaterialIcon } from '../../shared/components/material-icon'
 import { BangumiSearchFilterComponent } from './bangumi/bangumi-search-filter.component'
 import { SearchResultListBangumiComponent } from './bangumi/search-result-list-bangumi.component'
 import { SearchHistoryComponent } from './history/search-history.component'
-import { type SearchProvider, SearchService } from './search.service'
+import { SearchService } from './search.service'
+import type { SearchProvider } from './search-model.type'
 
 @Component({
   selector: 'da-search-dialog',
@@ -69,7 +70,7 @@ import { type SearchProvider, SearchService } from './search.service'
                   (ngModelChange)="handleTermChange($event)"
                   [ngModelOptions]="{ standalone: true }"
                 />
-                @if ($term().length > 0) {
+                @if ($term().length > 0 || $hasModel()) {
                   <button type="button" pButton icon="pi pi-times" text severity="secondary" rounded size="small"
                           (click)="clearTerm()" class="absolute right-1 top-1/2 -translate-y-1/2">
                   </button>
@@ -115,7 +116,7 @@ export class SearchDialogComponent {
   private readonly searchService = inject(SearchService)
 
   $dialog = viewChild.required<Dialog>('dialog')
-  $input = viewChild.required<ElementRef<HTMLInputElement>>('input')
+  $input = viewChild<ElementRef<HTMLInputElement>>('input')
 
   $visible = this.searchService.$visible
   $draft = this.searchService.$draft
@@ -144,10 +145,11 @@ export class SearchDialogComponent {
   }
 
   focusInput() {
-    this.$input().nativeElement.focus()
+    this.$input()?.nativeElement.focus()
   }
 
   clearTerm() {
+    this.searchService.clear()
     this.searchService.setTerm('')
   }
 
@@ -176,7 +178,7 @@ export class SearchDialogComponent {
       return
     }
     if (event.key === 'Escape') {
-      if (this.$term().length > 0) {
+      if (this.$term().length > 0 || this.$hasModel()) {
         this.clearTerm()
       } else if (this.$dialog().visible) {
         this.close()

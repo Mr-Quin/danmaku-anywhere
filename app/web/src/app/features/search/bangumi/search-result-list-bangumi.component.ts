@@ -75,26 +75,21 @@ export class SearchResultListBangumiComponent {
   protected bangumiSearchQuery = injectInfiniteQuery(() => {
     const model = this.searchService.$model()
 
-    if (!model) {
+    if (!model || model.provider !== 'bangumi') {
       return {
         ...this.bangumiService.searchSubjectsQueryOptions(''),
         enabled: false,
       }
     }
 
-    if (model.filter) {
-      model.filter['type'] = [2]
-    } else {
-      model.filter = { type: [2] }
-    }
-
+    // searching is done by the service, here we just listen to the query
     return {
       ...this.bangumiService.searchSubjectsQueryOptions(
         model.term,
-        model.sorting as any,
+        model.sorting,
         model.filter
       ),
-      enabled: this.searchService.$hasModel(),
+      enabled: false,
     }
   })
 

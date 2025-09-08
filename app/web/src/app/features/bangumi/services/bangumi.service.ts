@@ -3,14 +3,16 @@ import {
   infiniteQueryOptions,
   queryOptions,
 } from '@tanstack/angular-query-experimental'
+import { queryClient } from '../../../shared/query/queryClient'
 import { queryKeys } from '../../../shared/query/queryKeys'
 import type {
-  BangumiSubjectSearchFilterModel,
   BgmCalendar,
   BgmGetSubjectCommentResponse,
   BgmGetSubjectReviewResponse,
   BgmGetTopicResponse,
   BgmSubject,
+  BgmSubjectSearchFilterModel,
+  BgmSubjectSearchSorting,
   BgmTrendingQueryResponse,
   LegacyBgmSubjectResponse,
 } from '../types/bangumi.types'
@@ -367,8 +369,8 @@ export class BangumiService {
 
   searchSubjectsQueryOptions = (
     searchString: string,
-    sort?: 'match' | 'heat' | 'rank' | 'score',
-    filter?: BangumiSubjectSearchFilterModel
+    sort?: BgmSubjectSearchSorting,
+    filter?: BgmSubjectSearchFilterModel
   ) =>
     infiniteQueryOptions({
       queryKey: queryKeys.bangumi.search.subjects(searchString, sort),
@@ -401,4 +403,14 @@ export class BangumiService {
       },
       enabled: !!searchString && searchString.trim() !== '',
     })
+
+  searchSubject(
+    searchString: string,
+    sort?: BgmSubjectSearchSorting,
+    filter?: BgmSubjectSearchFilterModel
+  ) {
+    return queryClient.fetchInfiniteQuery(
+      this.searchSubjectsQueryOptions(searchString, sort, filter)
+    )
+  }
 }

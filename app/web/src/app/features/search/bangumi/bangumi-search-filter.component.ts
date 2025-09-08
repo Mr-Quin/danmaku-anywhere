@@ -5,36 +5,18 @@ import {
   computed,
   effect,
   inject,
-  input,
-  output,
   signal,
   viewChild,
 } from '@angular/core'
 import { Button } from 'primeng/button'
 import { type Menu, MenuModule } from 'primeng/menu'
-import type { ComparisonOperator } from '../filter/comparison-selector.component'
+import type { BgmSubjectSearchFilterModel } from '../../bangumi/types/bangumi.types'
 import {
   SearchFilterItem,
   type SearchFilterModel,
 } from '../filter/search-filter-item.component'
 import { SearchService } from '../search.service'
-
-interface ComparisonItem<TValue> {
-  op: ComparisonOperator
-  value: TValue
-}
-
-export interface BangumiSubjectSearchFilterModel {
-  // Part of schema but UI not implemented yet
-  type?: number[]
-  meta_tags?: string[]
-  tag?: string[]
-
-  // Implemented in UI below
-  air_date?: string[]
-  rating?: string[]
-  rank?: string[]
-}
+import { parseBangumiFilterList } from './parseBangumiFilter'
 
 @Component({
   selector: 'da-bangumi-subject-filter-input',
@@ -84,8 +66,13 @@ export interface BangumiSubjectSearchFilterModel {
 export class BangumiSearchFilterComponent {
   private readonly searchService = inject(SearchService)
 
-  filter = input<BangumiSubjectSearchFilterModel>({})
-  filterChange = output<BangumiSubjectSearchFilterModel>()
+  filter = computed(() => {
+    const draft = this.searchService.$draft()
+    if (draft.provider !== 'bangumi') {
+      return {}
+    }
+    return draft.filter ?? {}
+  })
 
   $addMenu = viewChild.required<Menu>('addMenu')
   readonly $addMenuItems = [
@@ -94,37 +81,21 @@ export class BangumiSearchFilterComponent {
     { label: '播出日期', command: () => this.addAirDate() },
   ]
 
-  private readonly airDates = signal<ComparisonItem<string>[]>([])
-  private readonly ratings = signal<ComparisonItem<number>[]>([])
-  private readonly ranks = signal<ComparisonItem<number>[]>([])
-
-  $airDates = computed(() => this.airDates())
-  $ratings = computed(() => this.ratings())
-  $ranks = computed(() => this.ranks())
+  readonly $airDates = signal<SearchFilterModel[]>([])
+  readonly $ratings = signal<SearchFilterModel[]>([])
+  readonly $ranks = signal<SearchFilterModel[]>([])
 
   constructor() {
     effect(() => {
       const current = this.filter()
-      this.airDates.set(
-        this.parseComparisonList(current.air_date ?? [], 'date')
-      )
-      this.ratings.set(
-        this.parseComparisonList(current.rating ?? [], 'number').map((x) => ({
-          op: x.op,
-          value: x.value as number,
-        }))
-      )
-      this.ranks.set(
-        this.parseComparisonList(current.rank ?? [], 'number').map((x) => ({
-          op: x.op,
-          value: x.value as number,
-        }))
-      )
+      this.$airDates.set(parseBangumiFilterList(current.air_date ?? []))
+      this.$ratings.set(parseBangumiFilterList(current.rating ?? []))
+      this.$ranks.set(parseBangumiFilterList(current.rank ?? []))
     })
   }
 
   addAirDate(): void {
-    this.airDates.update((arr) => [
+    this.$airDates.update((arr) => [
       ...arr,
       {
         op: '<=',
@@ -141,7 +112,7 @@ export class BangumiSearchFilterComponent {
   }
 
   updateAirDate(index: number, next: SearchFilterModel): void {
-    this.airDates.update((arr) => {
+    this.$airDates.update((arr) => {
       const copy = arr.toSpliced(index, 1, {
         op: next.op ?? '>=',
         value: String(next.value),
@@ -152,17 +123,17 @@ export class BangumiSearchFilterComponent {
   }
 
   removeAirDate(index: number): void {
-    this.airDates.update((arr) => arr.toSpliced(index, 1))
+    this.$airDates.update((arr) => arr.toSpliced(index, 1))
     this.emitChange()
   }
 
   addRating(): void {
-    this.ratings.update((arr) => [...arr, { op: '>=', value: 7 }])
+    this.$ratings.update((arr) => [...arr, { op: '>=', value: 7 }])
     this.emitChange()
   }
 
   updateRating(index: number, next: SearchFilterModel): void {
-    this.ratings.update((arr) => {
+    this.$ratings.update((arr) => {
       const numeric = Number(next.value)
       const prev = arr[index]?.value ?? 0
       const value = Number.isNaN(numeric) ? prev : numeric
@@ -173,17 +144,17 @@ export class BangumiSearchFilterComponent {
   }
 
   removeRating(index: number): void {
-    this.ratings.update((arr) => arr.toSpliced(index, 1))
+    this.$ratings.update((arr) => arr.toSpliced(index, 1))
     this.emitChange()
   }
 
   addRank(): void {
-    this.ranks.update((arr) => [...arr, { op: '>=', value: 1 }])
+    this.$ranks.update((arr) => [...arr, { op: '>=', value: 1 }])
     this.emitChange()
   }
 
   updateRank(index: number, next: SearchFilterModel): void {
-    this.ranks.update((arr) => {
+    this.$ranks.update((arr) => {
       const numeric = Number(next.value)
       const prev = arr[index]?.value ?? 1
       const value = Number.isNaN(numeric) ? prev : numeric
@@ -194,65 +165,30 @@ export class BangumiSearchFilterComponent {
   }
 
   removeRank(index: number): void {
-    this.ranks.update((arr) => arr.toSpliced(index, 1))
+    this.$ranks.update((arr) => arr.toSpliced(index, 1))
     this.emitChange()
   }
 
   emitChange(): void {
     const incoming = this.filter()
 
-    const air_date = this.airDates()
+    const air_date = this.$airDates()
       .filter((x) => x.value && String(x.value).trim().length > 0)
       .map((x) => `${x.op}${x.value}`)
 
-    const rating = this.ratings().map((x) => `${x.op}${x.value}`)
+    const rating = this.$ratings().map((x) => `${x.op}${x.value}`)
 
-    const rank = this.ranks().map((x) => `${x.op}${x.value}`)
+    const rank = this.$ranks().map((x) => `${x.op}${x.value}`)
 
-    const next: BangumiSubjectSearchFilterModel = {
-      // carry-through fields we are not editing yet
+    const next: BgmSubjectSearchFilterModel = {
       type: incoming.type,
       meta_tags: incoming.meta_tags,
       tag: incoming.tag,
-      // edited fields
       air_date: air_date.length > 0 ? air_date : undefined,
       rating: rating.length > 0 ? rating : undefined,
       rank: rank.length > 0 ? rank : undefined,
     }
 
-    this.searchService.setFilter(next)
-    this.filterChange.emit(next)
-  }
-
-  private parseComparisonList(
-    list: string[],
-    kind: 'number'
-  ): ComparisonItem<number>[]
-
-  private parseComparisonList(
-    list: string[],
-    kind: 'date'
-  ): ComparisonItem<string>[]
-
-  private parseComparisonList(
-    list: string[],
-    kind: 'number' | 'date'
-  ): ComparisonItem<number | string>[] {
-    const result: ComparisonItem<number | string>[] = []
-    for (const raw of list) {
-      const match = /^(>=|>|=|<|<=)(.+)$/.exec(raw)
-      if (!match) continue
-      const op = match[1] as ComparisonOperator
-      const valueRaw = match[2]?.trim() ?? ''
-      if (kind === 'number') {
-        const num = Number(valueRaw)
-        if (!Number.isNaN(num)) {
-          result.push({ op, value: num })
-        }
-      } else {
-        result.push({ op, value: valueRaw })
-      }
-    }
-    return result
+    this.searchService.setBangumiFilter(next)
   }
 }

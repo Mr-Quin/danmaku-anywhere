@@ -1,9 +1,6 @@
 import { computed, Injectable, signal } from '@angular/core'
-import type { SearchModel } from '../search.service'
 
-export interface SearchHistoryEntry extends SearchModel {
-  timestamp: number
-}
+import type { SearchHistoryEntry, SearchModel } from '../search-model.type'
 
 const STORAGE_KEY = 'da.search.history.v1'
 const MAX_ENTRIES = 50
@@ -40,7 +37,7 @@ function isSameSearch(a: SearchHistoryEntry, b: SearchModel): boolean {
   return (
     a.provider === b.provider &&
     a.term === b.term &&
-    (a.sorting ?? null) === (b.sorting ?? null) &&
+    a.sorting === b.sorting &&
     stableStringify(a.filter ?? null) === stableStringify(b.filter ?? null)
   )
 }
@@ -74,7 +71,7 @@ export class SearchHistoryService {
           .sort((a, b) => b.timestamp - a.timestamp)
           .slice(0, MAX_ENTRIES)
 
-        this.$_entries.set(normalized)
+        this.$_entries.set(normalized as SearchHistoryEntry[])
       }
     } catch {
       // ignore
@@ -90,14 +87,17 @@ export class SearchHistoryService {
   }
 
   add(entry: SearchModel) {
+    console.log('add', entry)
     const now = Date.now()
     const current = this.$_entries()
     const existingIndex = current.findIndex((e) => isSameSearch(e, entry))
 
     let next: SearchHistoryEntry[]
+
     if (existingIndex >= 0) {
       const existing = current[existingIndex]
       const updated: SearchHistoryEntry = { ...existing, timestamp: now }
+
       next = [
         updated,
         ...current.slice(0, existingIndex),
@@ -111,6 +111,12 @@ export class SearchHistoryService {
       next = next.slice(0, MAX_ENTRIES)
     }
 
+    this.$_entries.set(next)
+    this.persist()
+  }
+
+  delete(index: number) {
+    const next = this.$_entries().filter((_, i) => i !== index)
     this.$_entries.set(next)
     this.persist()
   }

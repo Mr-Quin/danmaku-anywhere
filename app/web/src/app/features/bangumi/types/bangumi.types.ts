@@ -32,7 +32,9 @@ export type BgmGetSubjectReviewResponse = {
 }
 export type BgmGetTopicResponse = { data: BgmTopic[]; total: number }
 
-export interface BangumiSubjectSearchFilterModel {
+export type BgmSubjectSearchSorting = 'match' | 'heat' | 'rank' | 'score'
+
+export interface BgmSubjectSearchFilterModel {
   type?: components['schemas']['SubjectType'][]
   meta_tags?: string[]
   tag?: string[]
