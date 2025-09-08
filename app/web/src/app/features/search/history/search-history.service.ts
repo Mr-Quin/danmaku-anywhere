@@ -1,15 +1,9 @@
 import { computed, Injectable, signal } from '@angular/core'
-import type { SearchProvider } from '../search.service'
+import type { SearchModel } from '../search.service'
 
-export interface SearchHistoryEntry {
-  provider: SearchProvider
-  term: string
-  sorting?: string | null
-  filter?: Record<string, any> | null
+export interface SearchHistoryEntry extends SearchModel {
   timestamp: number
 }
-
-type AddHistoryInput = Omit<SearchHistoryEntry, 'timestamp'>
 
 const STORAGE_KEY = 'da.search.history.v1'
 const MAX_ENTRIES = 50
@@ -42,7 +36,7 @@ function stableStringify(value: unknown): string {
   )
 }
 
-function isSameSearch(a: SearchHistoryEntry, b: AddHistoryInput): boolean {
+function isSameSearch(a: SearchHistoryEntry, b: SearchModel): boolean {
   return (
     a.provider === b.provider &&
     a.term === b.term &&
@@ -74,8 +68,8 @@ export class SearchHistoryService {
           .filter((e) => !!e)
           .map((e) => ({
             ...e,
-            sorting: e.sorting ?? null,
-            filter: e.filter ?? null,
+            sorting: e.sorting ?? undefined,
+            filter: e.filter ?? undefined,
           }))
           .sort((a, b) => b.timestamp - a.timestamp)
           .slice(0, MAX_ENTRIES)
@@ -95,7 +89,7 @@ export class SearchHistoryService {
     }
   }
 
-  add(entry: AddHistoryInput) {
+  add(entry: SearchModel) {
     const now = Date.now()
     const current = this.$_entries()
     const existingIndex = current.findIndex((e) => isSameSearch(e, entry))

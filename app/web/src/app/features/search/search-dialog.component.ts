@@ -6,7 +6,6 @@ import {
   effect,
   HostListener,
   inject,
-  linkedSignal,
   viewChild,
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
@@ -66,10 +65,11 @@ import { type SearchProvider, SearchService } from './search.service'
                   name="term"
                   placeholder="输入搜索关键词"
                   class="w-full"
-                  [(ngModel)]="$termLocal"
+                  [ngModel]="$term()"
+                  (ngModelChange)="handleTermChange($event)"
                   [ngModelOptions]="{ standalone: true }"
                 />
-                @if ($termLocal().length > 0) {
+                @if ($term().length > 0) {
                   <button type="button" pButton icon="pi pi-times" text severity="secondary" rounded size="small"
                           (click)="clearTerm()" class="absolute right-1 top-1/2 -translate-y-1/2">
                   </button>
@@ -102,7 +102,7 @@ import { type SearchProvider, SearchService } from './search.service'
               <da-search-result-bangumi />
             } @else {
             }
-            @if ($term().length === 0) {
+            @if (!$hasModel()) {
               <da-search-history />
             }
           </div>
@@ -118,11 +118,19 @@ export class SearchDialogComponent {
   $input = viewChild.required<ElementRef<HTMLInputElement>>('input')
 
   $visible = this.searchService.$visible
-  $provider = this.searchService.$provider
-  $term = this.searchService.$term
-  $termLocal = linkedSignal(() => this.searchService.$term())
+  $draft = this.searchService.$draft
+  $hasModel = this.searchService.$hasModel
 
-  $canSubmit = computed(() => this.$termLocal().trim() !== '')
+  $provider = computed(() => this.$draft().provider)
+  $term = computed(() => this.$draft().term)
+
+  $canSubmit = computed(() => {
+    const provider = this.$provider()
+    if (provider === 'bangumi') {
+      return true
+    }
+    return this.$term().trim() !== ''
+  })
 
   constructor() {
     effect(() => {
@@ -143,6 +151,10 @@ export class SearchDialogComponent {
     this.searchService.setTerm('')
   }
 
+  handleTermChange(term: string) {
+    this.searchService.setTerm(term)
+  }
+
   onVisibleChange(visible: boolean) {
     if (!visible) {
       this.searchService.close()
@@ -150,12 +162,12 @@ export class SearchDialogComponent {
   }
 
   setProvider(provider: SearchProvider) {
-    this.$provider.set(provider)
+    this.searchService.setProvider(provider)
   }
 
   async onSubmit(event: Event) {
     event.preventDefault()
-    await this.searchService.search(this.$termLocal())
+    await this.searchService.search()
   }
 
   @HostListener('document:keydown', ['$event'])
@@ -164,7 +176,7 @@ export class SearchDialogComponent {
       return
     }
     if (event.key === 'Escape') {
-      if (this.$termLocal().length > 0) {
+      if (this.$term().length > 0) {
         this.clearTerm()
       } else if (this.$dialog().visible) {
         this.close()

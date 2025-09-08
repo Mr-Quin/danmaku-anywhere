@@ -73,13 +73,28 @@ export class SearchResultListBangumiComponent {
   })
 
   protected bangumiSearchQuery = injectInfiniteQuery(() => {
+    const model = this.searchService.$model()
+
+    if (!model) {
+      return {
+        ...this.bangumiService.searchSubjectsQueryOptions(''),
+        enabled: false,
+      }
+    }
+
+    if (model.filter) {
+      model.filter['type'] = [2]
+    } else {
+      model.filter = { type: [2] }
+    }
+
     return {
       ...this.bangumiService.searchSubjectsQueryOptions(
-        this.searchService.$term()
+        model.term,
+        model.sorting as any,
+        model.filter
       ),
-      enabled:
-        this.searchService.$provider() === 'bangumi' &&
-        this.searchService.$term().trim() !== '',
+      enabled: this.searchService.$hasModel(),
     }
   })
 

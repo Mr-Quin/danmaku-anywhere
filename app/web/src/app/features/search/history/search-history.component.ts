@@ -43,6 +43,6 @@ export class SearchHistoryComponent {
   )
 
   onHistoryClick(entry: SearchHistoryEntry) {
-    this.searchService.search(entry.term, entry.provider)
+    this.searchService.search(entry)
   }
 }

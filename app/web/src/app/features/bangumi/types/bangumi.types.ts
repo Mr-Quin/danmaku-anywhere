@@ -31,3 +31,13 @@ export type BgmGetSubjectReviewResponse = {
   total: number
 }
 export type BgmGetTopicResponse = { data: BgmTopic[]; total: number }
+
+export interface BangumiSubjectSearchFilterModel {
+  type?: components['schemas']['SubjectType'][]
+  meta_tags?: string[]
+  tag?: string[]
+
+  air_date?: string[]
+  rating?: string[]
+  rank?: string[]
+}

@@ -5,6 +5,7 @@ import {
 } from '@tanstack/angular-query-experimental'
 import { queryKeys } from '../../../shared/query/queryKeys'
 import type {
+  BangumiSubjectSearchFilterModel,
   BgmCalendar,
   BgmGetSubjectCommentResponse,
   BgmGetSubjectReviewResponse,
@@ -366,7 +367,8 @@ export class BangumiService {
 
   searchSubjectsQueryOptions = (
     searchString: string,
-    sort?: 'match' | 'heat' | 'rank' | 'score'
+    sort?: 'match' | 'heat' | 'rank' | 'score',
+    filter?: BangumiSubjectSearchFilterModel
   ) =>
     infiniteQueryOptions({
       queryKey: queryKeys.bangumi.search.subjects(searchString, sort),
@@ -377,9 +379,7 @@ export class BangumiService {
         const res = await bangumiClient.POST('/v0/search/subjects', {
           body: {
             keyword: searchString,
-            filter: {
-              type: [2],
-            },
+            filter,
             sort,
           },
           params: {

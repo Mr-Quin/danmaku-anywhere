@@ -4,6 +4,7 @@ import {
   Component,
   computed,
   effect,
+  inject,
   input,
   output,
   signal,
@@ -16,6 +17,7 @@ import {
   SearchFilterItem,
   type SearchFilterModel,
 } from '../filter/search-filter-item.component'
+import { SearchService } from '../search.service'
 
 interface ComparisonItem<TValue> {
   op: ComparisonOperator
@@ -80,6 +82,8 @@ export interface BangumiSubjectSearchFilterModel {
   `,
 })
 export class BangumiSearchFilterComponent {
+  private readonly searchService = inject(SearchService)
+
   filter = input<BangumiSubjectSearchFilterModel>({})
   filterChange = output<BangumiSubjectSearchFilterModel>()
 
@@ -216,6 +220,7 @@ export class BangumiSearchFilterComponent {
       rank: rank.length > 0 ? rank : undefined,
     }
 
+    this.searchService.setFilter(next)
     this.filterChange.emit(next)
   }
 
