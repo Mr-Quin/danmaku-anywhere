@@ -6,9 +6,56 @@ import {
   signal,
 } from '@angular/core'
 import Artplayer from 'artplayer'
-import type { ComponentOption } from 'artplayer/types/component'
 import { MessageService } from 'primeng/api'
 import { serializeError } from '../../shared/utils/serializeError'
+
+// copied from artplayer
+interface ComponentOption {
+  /**
+   * Html string or html element of component
+   */
+  html?: string | HTMLElement
+
+  /**
+   * Whether to disable component
+   */
+  disable?: boolean
+
+  /**
+   * Unique name for component
+   */
+  name?: string
+
+  /**
+   * Component sort index
+   */
+  index?: number
+
+  /**
+   * Component style object
+   */
+  style?: Partial<CSSStyleDeclaration>
+
+  /**
+   * When the component was mounted
+   */
+  mounted?: (this: Artplayer, element: HTMLElement) => void
+
+  /**
+   * When the component was before unmount
+   */
+  beforeUnmount?: (this: Artplayer, element: HTMLElement) => void
+
+  /**
+   * Component tooltip, use in controls
+   */
+  tooltip?: string
+
+  /**
+   * Component position, use in controls
+   */
+  position?: 'top' | 'left' | 'right' | (string & Record<never, never>)
+}
 
 export interface VideoPlayerConfig {
   url: string
