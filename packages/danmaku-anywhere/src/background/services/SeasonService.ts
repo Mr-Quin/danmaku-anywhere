@@ -89,7 +89,17 @@ export class SeasonService {
       db.episode,
       db.season,
       db.seasonMap,
+      db.danmakuData,
       async () => {
+        const episodes: any[] = await db.episode
+          .where({
+            seasonId: id,
+          })
+          .toArray()
+        const refIds = episodes
+          .map((e: any) => e.commentsRefId)
+          .filter((v: any) => v !== undefined)
+        if (refIds.length) await db.danmakuData.bulkDelete(refIds)
         await db.episode
           .where({
             seasonId: id,
