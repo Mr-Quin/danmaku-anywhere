@@ -30,7 +30,7 @@ import {
 } from 'rxjs'
 import { ExtensionMessagingService } from '../../../core/extension/extension-messaging.service'
 import { queryKeys } from '../../../shared/query/queryKeys'
-import { sortArrayByOrder } from '../../../shared/utils/utils'
+import { naturalSort, sortArrayByOrder } from '../../../shared/utils/utils'
 import { withTimeout } from '../../../shared/utils/withTimeout'
 
 interface Setting<T> {
@@ -303,7 +303,7 @@ export class KazumiService {
         )
         return playlists.map((playlist) => {
           return playlist.toSorted((a, b) => {
-            return a.name.localeCompare(b.name)
+            return naturalSort(a.name, b.name)
           })
         })
       },
