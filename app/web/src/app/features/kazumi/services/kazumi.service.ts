@@ -301,11 +301,7 @@ export class KazumiService {
             policy,
           })
         )
-        return playlists.map((playlist) => {
-          return playlist.toSorted((a, b) => {
-            return a.name.localeCompare(b.name)
-          })
-        })
+        return playlists
       },
       queryKey: queryKeys.kazumi.getChapters(policy.name, url),
       staleTime: Number.POSITIVE_INFINITY,
