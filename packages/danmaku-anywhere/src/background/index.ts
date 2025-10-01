@@ -11,7 +11,7 @@ import { ProviderService } from '@/background/services/ProviderService'
 import { SeasonService } from '@/background/services/SeasonService'
 import { TencentService } from '@/background/services/TencentService'
 import { TitleMappingService } from '@/background/services/TitleMappingService'
-import { configureHeaders } from '@/background/utils/configureHeaders'
+import { deferredConfigureStore } from '@/background/utils/deferredConfigureStore'
 import { generateId } from '@/background/utils/generateId'
 import { EXTENSION_VERSION } from '@/common/constants'
 import { setupAlarms } from './alarm/setupAlarms'
@@ -83,4 +83,4 @@ chrome.runtime.onInstalled.addListener((details) => {
 })
 
 generateId()
-void configureHeaders()
+void deferredConfigureStore()

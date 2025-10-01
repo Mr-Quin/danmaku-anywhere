@@ -56,27 +56,47 @@ export const DanDanPlayOptions = () => {
   }, [formData])
 
   return (
-    <Controller
-      name="dandanplay.chConvert"
-      control={control}
-      render={({ field }) => {
-        return (
-          <TextField
-            {...field}
-            select
-            fullWidth
-            label={t('optionsPage.chConvert.name')}
-            error={!!errors.dandanplay?.chConvert}
-            helperText={errors.dandanplay?.chConvert?.message}
-          >
-            {ChConvertList.map((option) => (
-              <MenuItem value={option.value} key={option.label}>
-                {t(option.label)}
-              </MenuItem>
-            ))}
-          </TextField>
-        )
-      }}
-    />
+    <>
+      <Controller
+        name="dandanplay.baseUrl"
+        control={control}
+        render={({ field }) => {
+          return (
+            <TextField
+              {...field}
+              fullWidth
+              margin="dense"
+              label={t('optionsPage.danmakuSource.dandanplay.apiUrl')}
+              error={!!errors.dandanplay?.baseUrl}
+              helperText={errors.dandanplay?.baseUrl?.message}
+              placeholder="https://api.danmaku.weeblify.app"
+            />
+          )
+        }}
+      />
+      <Controller
+        name="dandanplay.chConvert"
+        control={control}
+        render={({ field }) => {
+          return (
+            <TextField
+              {...field}
+              select
+              fullWidth
+              margin="dense"
+              label={t('optionsPage.chConvert.name')}
+              error={!!errors.dandanplay?.chConvert}
+              helperText={errors.dandanplay?.chConvert?.message}
+            >
+              {ChConvertList.map((option) => (
+                <MenuItem value={option.value} key={option.label}>
+                  {t(option.label)}
+                </MenuItem>
+              ))}
+            </TextField>
+          )
+        }}
+      />
+    </>
   )
 }

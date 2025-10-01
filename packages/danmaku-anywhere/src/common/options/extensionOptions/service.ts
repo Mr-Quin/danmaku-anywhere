@@ -59,7 +59,7 @@ export const extensionOptionsService = new OptionsService(
         draft.danmakuSources.dandanplay.enabled = true
         draft.danmakuSources.bilibili = {
           enabled: false,
-        } as any
+        } as unknown as ExtensionOptions['danmakuSources']['bilibili']
       }),
   })
   .version(7, {
@@ -145,7 +145,9 @@ export const extensionOptionsService = new OptionsService(
         draft.danmakuSources.custom = {
           enabled: true,
           baseUrl: 'https://zy.xmm.hk',
-        } as any
+          danmuicuBaseUrl: 'https://api.danmu.icu',
+          stripColor: true,
+        }
       }),
   })
   .version(17, {
@@ -167,5 +169,28 @@ export const extensionOptionsService = new OptionsService(
       produce<ExtensionOptions>(data, (draft) => {
         // Add danmuicuBaseUrl
         draft.danmakuSources.custom.danmuicuBaseUrl = 'https://api.danmu.icu'
+      }),
+  })
+  .version(20, {
+    upgrade: (data: PrevOptions) =>
+      produce<ExtensionOptions>(data, (draft) => {
+        // Add DanDanPlay baseUrl option
+        const fallbackBaseUrl: string =
+          // @ts-ignore vite import meta type may not include this field here
+          (import.meta as unknown as { env?: Record<string, string> }).env
+            ?.VITE_PROXY_URL ?? 'https://api.danmaku.weeblify.app'
+        if (!draft.danmakuSources.dandanplay) {
+          // Ensure dandanplay exists
+          draft.danmakuSources.dandanplay = {
+            enabled: true,
+            chConvert: DanDanChConvert.None,
+            baseUrl: fallbackBaseUrl,
+          }
+        } else {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          if (!draft.danmakuSources.dandanplay.baseUrl) {
+            draft.danmakuSources.dandanplay.baseUrl = fallbackBaseUrl
+          }
+        }
       }),
   })

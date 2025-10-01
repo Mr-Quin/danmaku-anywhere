@@ -68,7 +68,7 @@ const fetchDanDanPlay = async <T extends ZodType>(
   }
 
   return fetchData<T>({
-    url: `${store.baseUrl}/ddp/v1`,
+    url: store.ddpBaseUrl,
     ...options,
     query: {
       path,
