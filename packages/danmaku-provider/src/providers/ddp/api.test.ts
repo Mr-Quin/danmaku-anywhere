@@ -93,6 +93,24 @@ describe('DanDanPlay API', () => {
     })
   })
 
+  it('should call the right url', async () => {
+    const mockResponse = {
+      errorCode: 0,
+      errorMessage: '',
+      success: true,
+      animes: [],
+      hasMore: false,
+    }
+
+    const mockFetch = mockFetchResponse(mockResponse)
+
+    await searchSearchEpisodes({ anime: 'test' })
+
+    expect(mockFetch.mock.calls[0][0]).toEqual(
+      'https://api.danmaku.weeblify.app/ddp/v1?path=%2Fv2%2Fsearch%2Fepisodes%3Fanime%3Dtest'
+    )
+  })
+
   it('should use the configured API root', async () => {
     const mockResponse = {
       errorCode: 0,
@@ -105,12 +123,12 @@ describe('DanDanPlay API', () => {
     const mockFetch = mockFetchResponse(mockResponse)
 
     const customRoot = 'https://example.com'
-    configureApiStore({ baseUrl: customRoot })
+    configureApiStore({ ddpCustomApiUrl: customRoot, ddpUseCustomUrl: true })
 
     await searchSearchEpisodes({ anime: 'test' })
 
     expect(mockFetch.mock.calls[0][0]).toEqual(
-      `${customRoot}/ddp/v1?path=${encodeURIComponent('/v2/search/episodes?anime=test')}`
+      `${customRoot}/v2/search/episodes?anime=test`
     )
   })
 })

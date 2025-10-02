@@ -31,6 +31,8 @@ export const defaultExtensionOptions: ExtensionOptions = {
   },
   danmakuSources: {
     dandanplay: {
+      baseUrl: '',
+      useCustomRoot: false,
       enabled: true,
       chConvert: DanDanChConvert.None,
     },

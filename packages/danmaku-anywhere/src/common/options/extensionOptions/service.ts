@@ -59,7 +59,7 @@ export const extensionOptionsService = new OptionsService(
         draft.danmakuSources.dandanplay.enabled = true
         draft.danmakuSources.bilibili = {
           enabled: false,
-        } as any
+        } as unknown as ExtensionOptions['danmakuSources']['bilibili']
       }),
   })
   .version(7, {
@@ -145,7 +145,9 @@ export const extensionOptionsService = new OptionsService(
         draft.danmakuSources.custom = {
           enabled: true,
           baseUrl: 'https://zy.xmm.hk',
-        } as any
+          danmuicuBaseUrl: 'https://api.danmu.icu',
+          stripColor: true,
+        }
       }),
   })
   .version(17, {
@@ -167,5 +169,12 @@ export const extensionOptionsService = new OptionsService(
       produce<ExtensionOptions>(data, (draft) => {
         // Add danmuicuBaseUrl
         draft.danmakuSources.custom.danmuicuBaseUrl = 'https://api.danmu.icu'
+      }),
+  })
+  .version(20, {
+    upgrade: (data: PrevOptions) =>
+      produce<ExtensionOptions>(data, (draft) => {
+        draft.danmakuSources.dandanplay.useCustomRoot = false
+        draft.danmakuSources.dandanplay.baseUrl = ''
       }),
   })

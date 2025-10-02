@@ -290,6 +290,10 @@ const pages = {
             'Protobuf：Slower but more danmaku. Up to 1000 danmaku per minute. Slower for longer videos.',
         },
       },
+      dandanplay: {
+        apiUrl: 'API URL',
+        useCustomRoot: 'Use custom API root',
+      },
       macCms: {
         baseUrl: 'Mac CMS API Base URL',
         danmuicuBaseUrl: 'Danmaku API Base URL',

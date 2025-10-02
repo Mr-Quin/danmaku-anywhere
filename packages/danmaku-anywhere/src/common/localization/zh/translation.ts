@@ -286,6 +286,10 @@ const pages = {
             'Protobuf：获取速度较慢，但是弹幕数量多，每分钟可达1000条。视频越长，速度越慢。',
         },
       },
+      dandanplay: {
+        apiUrl: 'API 地址',
+        useCustomRoot: '使用自定义API地址',
+      },
       macCms: {
         baseUrl: '苹果cms API地址',
         danmuicuBaseUrl: '弹幕库API地址',

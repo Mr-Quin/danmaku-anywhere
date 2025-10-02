@@ -6,11 +6,12 @@ import {
   Stack,
   Typography,
 } from '@mui/material'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { IS_CHROME } from '@/common/constants'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
+import { useResetForm } from '@/common/hooks/useResetForm'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
@@ -166,20 +167,12 @@ export const DanmakuStylesForm = ({
   const { data: config, partialUpdate } = useDanmakuOptions()
   const { isMobile } = usePlatformInfo()
 
-  const resetFlag = useRef(false)
-
-  const {
-    control,
-    reset,
-    setValue,
-    getValues,
-    watch,
-    handleSubmit,
-    subscribe,
-  } = useForm<DanmakuOptions>({
+  const form = useForm<DanmakuOptions>({
     defaultValues: config,
     mode: 'onChange',
   })
+
+  const { control, setValue, getValues, watch, handleSubmit, subscribe } = form
 
   const onSave = async (formData: DanmakuOptions) => {
     onSaveStatusChange?.('saving')
@@ -189,15 +182,10 @@ export const DanmakuStylesForm = ({
     onSaveStatusChange?.('saved')
   }
 
-  useEffect(() => {
-    resetFlag.current = true
-    reset(config)
-    // Resetting the form can trigger the subscription which will submit the form again,
-    // set a small timeout to prevent this
-    setTimeout(() => {
-      resetFlag.current = false
-    }, 100)
-  }, [config, reset])
+  const resetFlag = useResetForm({
+    form,
+    data: config,
+  })
 
   useEffect(() => {
     const debouncedSave = debounce(() => {
