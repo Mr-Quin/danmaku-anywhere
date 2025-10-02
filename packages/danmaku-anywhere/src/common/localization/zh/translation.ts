@@ -288,6 +288,7 @@ const pages = {
       },
       dandanplay: {
         apiUrl: 'API 地址',
+        useCustomRoot: '使用自定义API地址',
       },
       macCms: {
         baseUrl: '苹果cms API地址',

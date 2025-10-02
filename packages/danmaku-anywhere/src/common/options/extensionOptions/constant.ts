@@ -31,7 +31,8 @@ export const defaultExtensionOptions: ExtensionOptions = {
   },
   danmakuSources: {
     dandanplay: {
-      baseUrl: 'https://api.danmaku.weeblify.app/ddp/v1',
+      baseUrl: '',
+      useCustomRoot: false,
       enabled: true,
       chConvert: DanDanChConvert.None,
     },

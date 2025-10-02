@@ -174,23 +174,7 @@ export const extensionOptionsService = new OptionsService(
   .version(20, {
     upgrade: (data: PrevOptions) =>
       produce<ExtensionOptions>(data, (draft) => {
-        // Add DanDanPlay baseUrl option
-        const fallbackBaseUrl: string =
-          // @ts-ignore vite import meta type may not include this field here
-          (import.meta as unknown as { env?: Record<string, string> }).env
-            ?.VITE_PROXY_URL ?? 'https://api.danmaku.weeblify.app'
-        if (!draft.danmakuSources.dandanplay) {
-          // Ensure dandanplay exists
-          draft.danmakuSources.dandanplay = {
-            enabled: true,
-            chConvert: DanDanChConvert.None,
-            baseUrl: fallbackBaseUrl,
-          }
-        } else {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          if (!draft.danmakuSources.dandanplay.baseUrl) {
-            draft.danmakuSources.dandanplay.baseUrl = fallbackBaseUrl
-          }
-        }
+        draft.danmakuSources.dandanplay.useCustomRoot = false
+        draft.danmakuSources.dandanplay.baseUrl = ''
       }),
   })

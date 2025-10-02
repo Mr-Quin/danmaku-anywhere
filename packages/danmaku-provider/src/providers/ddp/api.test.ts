@@ -104,13 +104,13 @@ describe('DanDanPlay API', () => {
 
     const mockFetch = mockFetchResponse(mockResponse)
 
-    const customRoot = 'https://example.com'
-    configureApiStore({ baseUrl: customRoot })
+    const customRoot = 'https://example.com/ddp/v1'
+    configureApiStore({ ddpCustomApiUrl: customRoot })
 
     await searchSearchEpisodes({ anime: 'test' })
 
     expect(mockFetch.mock.calls[0][0]).toEqual(
-      `${customRoot}/ddp/v1?path=${encodeURIComponent('/v2/search/episodes?anime=test')}`
+      `${customRoot}?path=${encodeURIComponent('/v2/search/episodes?anime=test')}`
     )
   })
 })

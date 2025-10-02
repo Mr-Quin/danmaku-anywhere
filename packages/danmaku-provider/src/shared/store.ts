@@ -2,7 +2,8 @@ export const API_ROOT = 'https://api.danmaku.weeblify.app'
 
 interface ApiStore {
   baseUrl: string
-  ddpBaseUrl: string
+  ddpCustomApiUrl: string
+  ddpUseCustomUrl: boolean
   ddpToken: string
   daVersion: string
   daId: string
@@ -11,7 +12,8 @@ interface ApiStore {
 
 const apiStore: ApiStore = {
   baseUrl: API_ROOT,
-  ddpBaseUrl: `${API_ROOT}/ddp/v1`,
+  ddpCustomApiUrl: `${API_ROOT}/ddp/v1`,
+  ddpUseCustomUrl: false,
   ddpToken: '',
   daVersion: '',
   daId: '',

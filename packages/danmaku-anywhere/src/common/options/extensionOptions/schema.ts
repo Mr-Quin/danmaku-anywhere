@@ -8,7 +8,8 @@ import { ColorMode } from '@/common/theme/enums'
 export const danmakuSourcesSchema = z.object({
   dandanplay: z.object({
     enabled: z.boolean(),
-    baseUrl: z.string().url(),
+    baseUrl: z.string().trim(),
+    useCustomRoot: z.boolean(),
     chConvert: z.nativeEnum(DanDanChConvert),
   }),
   bilibili: z.object({

@@ -292,6 +292,7 @@ const pages = {
       },
       dandanplay: {
         apiUrl: 'API URL',
+        useCustomRoot: 'Use custom API root',
       },
       macCms: {
         baseUrl: 'Mac CMS API Base URL',

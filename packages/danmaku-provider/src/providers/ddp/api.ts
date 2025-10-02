@@ -67,8 +67,16 @@ const fetchDanDanPlay = async <T extends ZodType>(
     path += `?${new URLSearchParams(options.query as Record<string, string>).toString()}`
   }
 
+  if (store.ddpUseCustomUrl) {
+    return fetchData<T>({
+      url: `${store.ddpCustomApiUrl}${path}`,
+      ...options,
+      headers,
+    })
+  }
+
   return fetchData<T>({
-    url: store.ddpBaseUrl,
+    url: store.ddpCustomApiUrl,
     ...options,
     query: {
       path,

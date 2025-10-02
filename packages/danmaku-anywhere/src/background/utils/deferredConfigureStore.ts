@@ -7,16 +7,18 @@ export const deferredConfigureStore = async () => {
     if (id) {
       configureApiStore({ daId: id })
     }
-    if (danmakuSources?.dandanplay?.baseUrl) {
-      configureApiStore({ ddpBaseUrl: danmakuSources.dandanplay.baseUrl })
-    }
+    configureApiStore({
+      ddpUseCustomUrl: danmakuSources.dandanplay.useCustomRoot,
+      ddpCustomApiUrl: danmakuSources.dandanplay.baseUrl,
+    })
   } catch (e: unknown) {
     console.error('Failed to configure headers:', e)
   }
   extensionOptionsService.onChange((options) => {
-    const url = options.danmakuSources.dandanplay.baseUrl
-    if (url) {
-      configureApiStore({ baseUrl: url })
-    }
+    const ddpOptions = options.danmakuSources.dandanplay
+    configureApiStore({
+      ddpUseCustomUrl: ddpOptions.useCustomRoot,
+      ddpCustomApiUrl: ddpOptions.baseUrl,
+    })
   })
 }

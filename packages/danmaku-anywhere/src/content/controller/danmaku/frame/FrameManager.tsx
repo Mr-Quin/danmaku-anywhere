@@ -32,7 +32,7 @@ export const FrameManager = () => {
   const videoChangeHandler = useEventCallback((frameId: number) => {
     setVideoId(`${frameId}-${Date.now()}`)
     /**
-     * If there is an active frame, and it has video,
+     * If there is already an active frame, and it has video,
      * it means there are multiple frames with video.
      *
      * TODO: need some heuristic to handle this case
