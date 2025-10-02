@@ -14,6 +14,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
+import { useResetForm } from '@/common/hooks/useResetForm'
 import { ChConvertList } from '@/common/options/extensionOptions/constant'
 import type { DanmakuSources } from '@/common/options/extensionOptions/schema'
 import { danmakuSourcesSchema } from '@/common/options/extensionOptions/schema'
@@ -28,7 +29,6 @@ export const DanDanPlayOptions = () => {
   const form = useForm({
     resolver: zodResolver(danmakuSourcesSchema),
     defaultValues: data.danmakuSources,
-    values: data.danmakuSources,
     mode: 'onChange',
   })
 
@@ -41,7 +41,6 @@ export const DanDanPlayOptions = () => {
 
   const { mutate } = useMutation({
     mutationFn: async (update: DanmakuSources) => {
-      console.log('mutate', update)
       await partialUpdate(
         produce(data, (draft) => {
           draft.danmakuSources.dandanplay = update.dandanplay
@@ -49,8 +48,13 @@ export const DanDanPlayOptions = () => {
       )
     },
     onSuccess: () => {
-      toast.success(t('common.saved'))
+      toast.success(t('common.saved'), { duration: 1000 })
     },
+  })
+
+  const resetFlag = useResetForm({
+    form,
+    data: data.danmakuSources,
   })
 
   useEffect(() => {
@@ -62,10 +66,11 @@ export const DanDanPlayOptions = () => {
       formState: {
         isDirty: true,
         isValid: true,
+        values: true,
       },
+      name: 'dandanplay',
       callback: ({ isDirty, isValid }) => {
-        console.log('subscribe', isDirty, isValid)
-        if (!isDirty || !isValid) {
+        if (!isDirty || !isValid || resetFlag.current) {
           return
         }
         debouncedSave()

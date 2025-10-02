@@ -76,7 +76,7 @@ const fetchDanDanPlay = async <T extends ZodType>(
   }
 
   return fetchData<T>({
-    url: store.ddpCustomApiUrl,
+    url: `${store.baseUrl}/ddp/v1`,
     ...options,
     query: {
       path,
