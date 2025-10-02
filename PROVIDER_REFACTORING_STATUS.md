@@ -31,16 +31,16 @@ This document tracks the progress of refactoring the danmaku provider configurat
 - ✅ Created `components/ProviderToolbar.tsx` - add button with dropdown
 - ✅ Created `components/ConfirmDeleteDialog.tsx` - delete confirmation
 - ✅ Created `pages/ProvidersPage.tsx` - main provider management page
+- ✅ Created `pages/ProviderEditor.tsx` - add/edit form for providers
 - ✅ Updated `src/popup/store.ts` with provider state management
 
-## 🚧 Remaining Work
+### 6. Provider Context Service (`packages/danmaku-anywhere/src/common/options/context/`)
+- ✅ Created `schema.ts` with provider context schema
+- ✅ Created `service.ts` with context management (backed by local storage)
+- ✅ Updated `DanDanPlayService` to read from context service instead of parameters
+- ✅ Services now get provider config from context automatically
 
-### 6. Provider Editor Component
-- ⏳ Create `packages/danmaku-anywhere/src/popup/pages/providers/pages/ProviderEditor.tsx`
-  - Form for editing built-in providers (only options, name readonly)
-  - Form for editing custom providers (name and options editable)
-  - Validation for URLs and required fields
-  - Save/Cancel buttons
+## 🚧 Remaining Work
 
 ### 7. Routing and Navigation
 - ⏳ Add provider routes to router configuration
@@ -56,10 +56,10 @@ This document tracks the progress of refactoring the danmaku provider configurat
 - ⏳ Update existing code that references old schema
 
 ### 9. Integration Points
-- ⏳ Update all callsites of `DanDanPlayService` methods to pass provider parameter
 - ⏳ Update search/fetch flows to:
-  - Get provider config from store
-  - Pass provider to service methods
+  - Set provider context before calling service methods
+  - Use `providerContextService.setProvider()` when user selects a provider
+  - Clear context after operations complete (optional)
   - Handle multiple dandanplay-compatible providers
 
 ### 10. Localization
@@ -92,11 +92,17 @@ This document tracks the progress of refactoring the danmaku provider configurat
    - Built-in: `id` is fixed string (e.g., 'builtin-dandanplay'), cannot be deleted
    - Custom: `id` is UUID, can be deleted
 
-3. **API Context**: Provider config passed as optional `context` parameter to all API functions, allowing backward compatibility
+3. **Provider Context Service**: 
+   - Uses extension local storage to store current provider context
+   - When a search/fetch is initiated, code sets provider context via `providerContextService.setProvider()`
+   - Services (DanDanPlayService, etc.) read from context service to get current provider
+   - Eliminates need to thread provider parameter through all method calls
 
-4. **Service Layer**: `DanDanPlayService` methods now require provider parameter, creating context internally
+4. **API Context**: Provider config passed as optional `context` parameter to all API functions, allowing backward compatibility
 
-5. **UI Pattern**: Follows same pattern as mount configs with drag-and-drop list and separate editor
+5. **Service Layer**: Services get provider from context service automatically via `getCurrentProvider()` method
+
+6. **UI Pattern**: Follows same pattern as mount configs with drag-and-drop list and separate editor
 
 ## Migration Path
 
