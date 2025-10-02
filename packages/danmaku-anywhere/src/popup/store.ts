@@ -6,6 +6,8 @@ import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import { danmakuSourceTypeList } from '@/common/danmaku/enums'
 import { createMountConfig } from '@/common/options/mountConfig/constant'
 import type { MountConfigInput } from '@/common/options/mountConfig/schema'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { createCustomDanDanPlayProvider } from '@/common/options/providerConfig/constant'
 import { createSelectors } from '@/common/utils/createSelectors'
 
 interface StoreState {
@@ -44,6 +46,12 @@ interface StoreState {
   config: {
     editingConfig: MountConfigInput & { id?: string }
     setEditingConfig: (config: MountConfigInput & { id?: string }) => void
+    showConfirmDeleteDialog: boolean
+    setShowConfirmDeleteDialog: (show: boolean) => void
+  }
+  providers: {
+    editingProvider: ProviderConfig | null
+    setEditingProvider: (provider: ProviderConfig | null) => void
     showConfirmDeleteDialog: boolean
     setShowConfirmDeleteDialog: (show: boolean) => void
   }
@@ -146,6 +154,20 @@ const useStoreBase = create<StoreState>()(
       setShowConfirmDeleteDialog: (show: boolean) => {
         set((state) => {
           state.config.showConfirmDeleteDialog = show
+        })
+      },
+    },
+    providers: {
+      editingProvider: null,
+      setEditingProvider: (provider: ProviderConfig | null) => {
+        set((state) => {
+          state.providers.editingProvider = provider
+        })
+      },
+      showConfirmDeleteDialog: false,
+      setShowConfirmDeleteDialog: (show: boolean) => {
+        set((state) => {
+          state.providers.showConfirmDeleteDialog = show
         })
       },
     },

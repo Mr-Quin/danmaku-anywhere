@@ -23,6 +23,10 @@ export const zBaseSeasonV1 = z.object({
 export const zDanDanPlaySeasonProviderIds = z.object({
   animeId: z.number(),
   bangumiId: z.string(),
+  // ID of the provider instance that fetched this data
+  // For built-in dandanplay, this is 'builtin-dandanplay'
+  // For custom dandanplay-compatible providers, this is the UUID of the provider
+  providerInstanceId: z.string().optional(),
 })
 
 export const zBilibiliSeasonProviderIds = z.object({

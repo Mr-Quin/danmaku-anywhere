@@ -59,6 +59,10 @@ const zBaseEpisodeV4 = z.object({
 
 export const zDanDanPlayProviderIds = z.object({
   episodeId: z.number(),
+  // ID of the provider instance that fetched this data
+  // For built-in dandanplay, this is 'builtin-dandanplay'
+  // For custom dandanplay-compatible providers, this is the UUID of the provider
+  providerInstanceId: z.string().optional(),
 })
 
 export const zDanDanPlayParams = z.object({
