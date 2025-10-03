@@ -1,8 +1,7 @@
-import { Add } from '@mui/icons-material'
-import { Box, Button, MenuItem, Stack } from '@mui/material'
-import { useState } from 'react'
+import { Add, AddCircle } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import { DrilldownMenu } from '@/content/common/DrilldownMenu'
+import { TabToolbar } from '@/content/common/TabToolbar'
 
 interface ProviderToolbarProps {
   onAddDanDanPlayProvider: () => void
@@ -14,26 +13,27 @@ export const ProviderToolbar = ({
   onAddMacCmsProvider,
 }: ProviderToolbarProps) => {
   const { t } = useTranslation()
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
   return (
-    <Box p={2}>
-      <Stack direction="row" spacing={2}>
-        <DrilldownMenu
-          ButtonProps={{
-            startIcon: <Add />,
-            variant: 'contained',
-          }}
-          buttonText={t('providers.add')}
-        >
-          <MenuItem onClick={onAddDanDanPlayProvider}>
-            {t('providers.type.custom-dandanplay')}
-          </MenuItem>
-          <MenuItem onClick={onAddMacCmsProvider}>
-            {t('providers.type.custom-maccms')}
-          </MenuItem>
-        </DrilldownMenu>
-      </Stack>
-    </Box>
+    <TabToolbar title={t('configPage.name')}>
+      <DrilldownMenu
+        icon={<AddCircle />}
+        ButtonProps={{ color: 'primary' }}
+        items={[
+          {
+            id: 'add-dandanplay',
+            label: t('providers.type.custom-dandanplay'),
+            onClick: onAddDanDanPlayProvider,
+            icon: <Add />,
+          },
+          {
+            id: 'add-maccms',
+            label: t('providers.type.custom-maccms'),
+            onClick: onAddMacCmsProvider,
+            icon: <Add />,
+          },
+        ]}
+      />
+    </TabToolbar>
   )
 }

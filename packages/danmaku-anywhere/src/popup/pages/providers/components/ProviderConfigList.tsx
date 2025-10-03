@@ -1,34 +1,7 @@
-import {
-  closestCenter,
-  DndContext,
-  type DragEndEvent,
-  DragOverlay,
-  type DragStartEvent,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core'
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { Delete, DragIndicator } from '@mui/icons-material'
-import {
-  Chip,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  MenuItem,
-} from '@mui/material'
-import { useState } from 'react'
+import { Delete } from '@mui/icons-material'
+import { Chip, ListItemIcon, ListItemText, MenuItem } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { NothingHere } from '@/common/components/NothingHere'
+import { DraggableList } from '@/common/components/DraggableList'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import {
   useEditProviderConfig,
@@ -37,36 +10,18 @@ import {
 import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import { ProviderToggleSwitch } from './ProviderToggleSwitch'
 
-interface SortableItemProps {
-  config: ProviderConfig
-  index: number
-  onEdit: (config: ProviderConfig) => void
-  onDelete: (config: ProviderConfig) => void
-}
-
-const SortableItem = ({
-  config,
-  index,
+export const ProviderConfigList = ({
   onEdit,
   onDelete,
-}: SortableItemProps) => {
+}: {
+  onEdit: (config: ProviderConfig) => void
+  onDelete: (config: ProviderConfig) => void
+}) => {
   const { t } = useTranslation()
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: config.id })
+  const { configs } = useProviderConfig()
+  const { reorder } = useEditProviderConfig()
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  }
-
-  const getSecondaryText = () => {
+  const getSecondaryText = (config: ProviderConfig) => {
     if (config.isBuiltIn) {
       return t('providers.builtin')
     }
@@ -79,12 +34,37 @@ const SortableItem = ({
     return ''
   }
 
+  const renderChip = (config: ProviderConfig) => {
+    if (config.isBuiltIn) {
+      return (
+        <Chip
+          label={t('providers.builtin')}
+          size="small"
+          sx={{ ml: 1 }}
+          color="primary"
+        />
+      )
+    }
+    return (
+      <Chip label={config.type} size="small" sx={{ ml: 1 }} color="secondary" />
+    )
+  }
+
   return (
-    <ListItem
-      ref={setNodeRef}
-      style={style}
-      key={config.id}
-      secondaryAction={
+    <DraggableList
+      items={configs}
+      onEdit={onEdit}
+      onReorder={(sourceIndex, destinationIndex) => {
+        reorder.mutate({ sourceIndex, destinationIndex })
+      }}
+      renderPrimary={(config) => (
+        <span>
+          {config.name}
+          {renderChip(config)}
+        </span>
+      )}
+      renderSecondary={getSecondaryText}
+      renderSecondaryAction={(config) => (
         <>
           <ProviderToggleSwitch config={config} />
           {!config.isBuiltIn && (
@@ -101,151 +81,7 @@ const SortableItem = ({
             </DrilldownMenu>
           )}
         </>
-      }
-      disablePadding
-    >
-      <ListItemButton onClick={() => onEdit(config)}>
-        <ListItemIcon
-          sx={{
-            cursor: 'grab',
-            '&:active': {
-              cursor: 'grabbing',
-            },
-          }}
-          {...attributes}
-          {...listeners}
-        >
-          <DragIndicator />
-        </ListItemIcon>
-        <ListItemText
-          primary={
-            <span>
-              {config.name}
-              {config.isBuiltIn && (
-                <Chip
-                  label={t('providers.builtin')}
-                  size="small"
-                  sx={{ ml: 1 }}
-                />
-              )}
-            </span>
-          }
-          secondary={getSecondaryText()}
-        />
-      </ListItemButton>
-    </ListItem>
-  )
-}
-
-interface DragOverlayItemProps {
-  config: ProviderConfig
-}
-
-const DragOverlayItem = ({ config }: DragOverlayItemProps) => {
-  const { t } = useTranslation()
-  const isBuiltIn = config.type.startsWith('builtin-')
-
-  return (
-    <ListItem
-      sx={{
-        backgroundColor: 'background.paper',
-        boxShadow: 3,
-        borderRadius: 1,
-        opacity: 0.8,
-      }}
-      disablePadding
-    >
-      <ListItemButton>
-        <ListItemIcon>
-          <DragIndicator />
-        </ListItemIcon>
-        <ListItemText
-          primary={
-            <span>
-              {config.name}
-              {isBuiltIn && (
-                <Chip
-                  label={t('providers.builtin')}
-                  size="small"
-                  sx={{ ml: 1 }}
-                />
-              )}
-            </span>
-          }
-        />
-      </ListItemButton>
-    </ListItem>
-  )
-}
-
-export const ProviderConfigList = ({
-  onEdit,
-  onDelete,
-}: {
-  onEdit: (config: ProviderConfig) => void
-  onDelete: (config: ProviderConfig) => void
-}) => {
-  const { configs } = useProviderConfig()
-  const { reorder } = useEditProviderConfig()
-  const [activeId, setActiveId] = useState<string | null>(null)
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  )
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string)
-  }
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-
-    if (active.id !== over?.id) {
-      const oldIndex = configs.findIndex((config) => config.id === active.id)
-      const newIndex = configs.findIndex((config) => config.id === over?.id)
-
-      reorder.mutate({
-        sourceIndex: oldIndex,
-        destinationIndex: newIndex,
-      })
-    }
-
-    setActiveId(null)
-  }
-
-  const activeConfig = configs.find((config) => config.id === activeId)
-
-  if (configs.length === 0) return <NothingHere />
-
-  return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <SortableContext
-        items={configs.map((config) => config.id)}
-        strategy={verticalListSortingStrategy}
-      >
-        <List dense disablePadding>
-          {configs.map((config, index) => (
-            <SortableItem
-              key={config.id}
-              config={config}
-              index={index}
-              onEdit={onEdit}
-              onDelete={onDelete}
-            />
-          ))}
-        </List>
-      </SortableContext>
-      <DragOverlay>
-        {activeConfig && <DragOverlayItem config={activeConfig} />}
-      </DragOverlay>
-    </DndContext>
+      )}
+    />
   )
 }

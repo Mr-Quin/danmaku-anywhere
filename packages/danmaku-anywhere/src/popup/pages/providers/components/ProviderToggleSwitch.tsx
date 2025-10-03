@@ -10,12 +10,11 @@ export const ProviderToggleSwitch = ({
   const { toggle } = useEditProviderConfig()
 
   const handleToggle = () => {
-    toggle.mutate({ id: config.id, enabled: !config.enabled })
+    toggle.mutate({ id: config.id })
   }
 
   return (
     <Switch
-      edge="end"
       onChange={handleToggle}
       checked={config.enabled}
       disabled={toggle.isPending}

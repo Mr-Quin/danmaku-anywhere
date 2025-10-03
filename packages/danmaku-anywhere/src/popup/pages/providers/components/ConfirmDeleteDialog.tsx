@@ -12,11 +12,13 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 
 interface ConfirmDeleteDialogProps {
+  open: boolean
   provider: ProviderConfig | null
   onClose: () => void
 }
 
 export const ConfirmDeleteDialog = ({
+  open,
   provider,
   onClose,
 }: ConfirmDeleteDialogProps) => {
@@ -39,7 +41,7 @@ export const ConfirmDeleteDialog = ({
   }
 
   return (
-    <Dialog open={!!provider} onClose={onClose}>
+    <Dialog open={open} onClose={onClose}>
       <DialogTitle>{t('providers.delete.title')}</DialogTitle>
       <DialogContent>
         <DialogContentText>

@@ -11,10 +11,12 @@ import { ProviderToolbar } from '../components/ProviderToolbar'
 import { ProviderEditor } from './ProviderEditor'
 
 export const ProvidersPage = () => {
+  const [mode, setMode] = useState<'add' | 'edit' | null>(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
   const [editingProvider, setEditingProvider] = useState<ProviderConfig | null>(
     null
   )
-  const [mode, setMode] = useState<'add' | 'edit' | null>(null)
   const [deletingProvider, setDeletingProvider] =
     useState<ProviderConfig | null>(null)
 
@@ -39,34 +41,40 @@ export const ProvidersPage = () => {
   }
 
   const handleDelete = (provider: ProviderConfig) => {
+    setShowDeleteDialog(true)
     setDeletingProvider(provider)
   }
 
   const handleCloseDeleteDialog = () => {
+    setShowDeleteDialog(false)
     setDeletingProvider(null)
   }
 
-  if (editingProvider && mode) {
-    return (
-      <ProviderEditor
-        mode={mode}
-        provider={editingProvider}
-        onClose={handleCloseEditor}
-      />
-    )
-  }
-
   return (
-    <TabLayout>
-      <ProviderToolbar
-        onAddDanDanPlayProvider={handleAddDanDanPlayProvider}
-        onAddMacCmsProvider={handleAddMacCmsProvider}
-      />
-      <ProviderConfigList onEdit={handleEditProvider} onDelete={handleDelete} />
-      <ConfirmDeleteDialog
-        provider={deletingProvider}
-        onClose={handleCloseDeleteDialog}
-      />
-    </TabLayout>
+    <>
+      <TabLayout>
+        <ProviderToolbar
+          onAddDanDanPlayProvider={handleAddDanDanPlayProvider}
+          onAddMacCmsProvider={handleAddMacCmsProvider}
+        />
+        <ProviderConfigList
+          onEdit={handleEditProvider}
+          onDelete={handleDelete}
+        />
+        <ConfirmDeleteDialog
+          open={showDeleteDialog}
+          provider={deletingProvider}
+          onClose={handleCloseDeleteDialog}
+        />
+      </TabLayout>
+
+      {editingProvider && mode && (
+        <ProviderEditor
+          mode={mode}
+          provider={editingProvider}
+          onClose={handleCloseEditor}
+        />
+      )}
+    </>
   )
 }

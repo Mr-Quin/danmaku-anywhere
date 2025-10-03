@@ -116,7 +116,7 @@ export const ProviderEditor = ({
   }
 
   return (
-    <OptionsPageLayout direction="left">
+    <OptionsPageLayout>
       <OptionsPageToolBar title={getTitle()} onGoBack={onClose} />
       <Box p={2}>{renderForm()}</Box>
     </OptionsPageLayout>
