@@ -7,6 +7,8 @@ import { defaultKeymap } from '@/common/options/extensionOptions/hotkeys'
 import type { ExtensionOptions } from '@/common/options/extensionOptions/schema'
 import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import { migrateDanmakuSourcesToProviders } from '@/common/options/providerConfig/migration'
+import { providerConfigService } from '@/common/options/providerConfig/service'
 import { ColorMode } from '@/common/theme/enums'
 
 export const extensionOptionsService = new OptionsService(
@@ -177,4 +179,21 @@ export const extensionOptionsService = new OptionsService(
         draft.danmakuSources.dandanplay.useCustomRoot = false
         draft.danmakuSources.dandanplay.baseUrl = ''
       }),
+  })
+  .version(21, {
+    upgrade: async (data: PrevOptions) => {
+      // Migrate danmakuSources to new provider config system
+      if (data.danmakuSources) {
+        // Convert old danmakuSources to new provider configs
+        const providers = migrateDanmakuSourcesToProviders(data.danmakuSources)
+
+        // Save to provider config storage
+        await providerConfigService.options.set(providers)
+
+        // Remove danmakuSources from extension options
+        const { danmakuSources, ...rest } = data
+        return rest
+      }
+      return data
+    },
   })

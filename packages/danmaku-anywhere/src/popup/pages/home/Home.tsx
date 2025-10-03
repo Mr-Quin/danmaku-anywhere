@@ -62,6 +62,12 @@ export const Home = () => {
             component={Link}
           />
           <Tab
+            label={t('tabs.providers')}
+            value="/providers"
+            to="/providers"
+            component={Link}
+          />
+          <Tab
             label={t('tabs.import')}
             value="/import"
             to="/import"

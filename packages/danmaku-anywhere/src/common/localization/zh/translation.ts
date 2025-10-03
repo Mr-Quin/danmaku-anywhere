@@ -439,6 +439,58 @@ const pages = {
     style: '弹幕设置',
     import: '导入弹幕',
     integrationPolicy: '适配规则',
+    providers: '弹幕源',
+  },
+  providers: {
+    add: '添加弹幕源',
+    builtin: '内置',
+    'type.custom-dandanplay': '弹弹Play 兼容',
+    'type.custom-maccms': 'MacCMS',
+    delete: {
+      title: '删除弹幕源',
+      message: '确定要删除 "{{name}}" 吗？',
+    },
+    alert: {
+      created: '弹幕源已创建',
+      updated: '弹幕源已更新',
+      deleted: '弹幕源已删除',
+    },
+    editor: {
+      title: {
+        add: '添加弹幕源',
+        addDanDanPlay: '添加弹弹Play兼容弹幕源',
+        addMacCms: '添加MacCMS弹幕源',
+        edit: '编辑弹幕源: {{name}}',
+      },
+      name: '名称',
+      baseUrl: 'API地址',
+      danmakuBaseUrl: '弹幕API地址',
+      danmuicuBaseUrl: 'Danmuicu API地址',
+      chConvert: '简繁转换',
+      danmakuTypePreference: '弹幕格式',
+      protobufLimitPerMin: 'Protobuf每分钟限制',
+      limitPerMin: '每分钟限制',
+      stripColor: '移除颜色',
+      helper: {
+        builtInName: '内置弹幕源的名称不可更改',
+        baseUrl: '弹弹Play兼容服务器的API地址',
+        danmakuBaseUrl: 'MacCMS弹幕API地址',
+        danmuicuBaseUrl: 'Danmuicu API地址',
+        chConvert: '简体和繁体中文之间的转换',
+        danmakuTypePreference: '首选的弹幕格式 (Protobuf 速度更快)',
+        protobufLimitPerMin: '使用Protobuf时每分钟最大弹幕数 (1-1000)',
+        limitPerMin: '每分钟最大弹幕数 (1-1000)',
+        integration: '此配置使用的适配规则',
+      },
+      error: {
+        invalidUrl: '无效的URL格式',
+      },
+    },
+    chConvert: {
+      none: '不转换',
+      toSimplified: '转换为简体',
+      toTraditional: '转换为繁体',
+    },
   },
 }
 

@@ -40,49 +40,46 @@ This document tracks the progress of refactoring the danmaku provider configurat
 - ✅ Updated `DanDanPlayService` to read from context service instead of parameters
 - ✅ Services now get provider config from context automatically
 
-## 🚧 Remaining Work
-
 ### 7. Routing and Navigation
-- ⏳ Add provider routes to router configuration
-- ⏳ Add "Providers" tab to main navigation
-- ⏳ Remove old "Danmaku Source" options page
+- ✅ Added provider routes to router configuration
+- ✅ Added "Providers" tab to main navigation  
+- ✅ Removed old "Danmaku Source" options page route
 
 ### 8. Migration and Compatibility
-- ⏳ Create migration logic in extension options to:
-  - Move existing `danmakuSources.dandanplay.baseUrl` and `useCustomRoot` to custom providers
-  - Keep built-in provider settings
-  - Generate UUIDs for migrated custom providers
-- ⏳ Update `extensionOptionsSchema` to remove old `danmakuSources` field
-- ⏳ Update existing code that references old schema
+- ✅ Created migration logic (`migration.ts` and `migration.test.ts`)
+- ✅ Integrated migration into extension options (version 21)
+- ✅ Migration handles:
+  - Moving custom `baseUrl` from dandanplay to custom providers
+  - Keeping built-in provider settings
+  - Creating custom MacCMS provider from old `custom` source
+  - Generating UUIDs for migrated custom providers
+- ✅ Updated `extensionOptionsSchema` to make `danmakuSources` optional
+- ✅ Removed `danmakuSources` from default extension options
+- ✅ Comprehensive unit tests for migration
 
-### 9. Integration Points
+### 9. Localization
+- ✅ Added English translations
+- ✅ Added Chinese translations  
+- ✅ All provider UI strings localized
+
+## 🚧 Remaining Work
+
+### 10. Integration Points
 - ⏳ Update search/fetch flows to:
   - Set provider context before calling service methods
   - Use `providerContextService.setProvider()` when user selects a provider
-  - Clear context after operations complete (optional)
   - Handle multiple dandanplay-compatible providers
-
-### 10. Localization
-- ⏳ Add translation keys for:
-  - `providers.add` - "Add Provider"
-  - `providers.builtin` - "Built-in"
-  - `providers.type.custom-dandanplay` - "DanDanPlay Compatible"
-  - `providers.type.custom-maccms` - "MacCMS"
-  - `providers.delete.title` - "Delete Provider"
-  - `providers.delete.message` - "Are you sure you want to delete {name}?"
-  - `providers.alert.deleted` - "Provider deleted"
-  - `providers.alert.created` - "Provider created"
-  - `providers.alert.updated` - "Provider updated"
-  - Various field labels and help text
+  - Example: In search page, allow user to select which provider to use
 
 ### 11. Testing and Validation
-- ⏳ Test provider CRUD operations
-- ⏳ Test drag-and-drop reordering
-- ⏳ Test provider enable/disable functionality
-- ⏳ Test API calls with different provider contexts
-- ⏳ Test migration from old schema to new schema
-- ⏳ Test that built-in providers cannot be deleted
-- ⏳ Test that custom providers can be added/edited/deleted
+- ⏳ Manual testing of provider CRUD operations
+- ⏳ Manual testing of drag-and-drop reordering
+- ⏳ Manual testing of provider enable/disable functionality
+- ⏳ Manual testing of API calls with different provider contexts
+- ⏳ Manual testing of migration from old schema to new schema
+- ⏳ Verify that built-in providers cannot be deleted
+- ⏳ Verify that custom providers can be added/edited/deleted
+- ⏳ Unit tests pass (comprehensive migration tests written)
 
 ## Key Design Decisions
 

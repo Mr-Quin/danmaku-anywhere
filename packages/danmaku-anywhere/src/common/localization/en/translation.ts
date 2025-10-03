@@ -448,6 +448,59 @@ const pages = {
     style: 'Danmaku Settings',
     import: 'Import Danmaku',
     integrationPolicy: 'Integration Policy',
+    providers: 'Providers',
+  },
+  providers: {
+    add: 'Add Provider',
+    builtin: 'Built-in',
+    'type.custom-dandanplay': 'DanDanPlay Compatible',
+    'type.custom-maccms': 'MacCMS',
+    delete: {
+      title: 'Delete Provider',
+      message: 'Are you sure you want to delete "{{name}}"?',
+    },
+    alert: {
+      created: 'Provider created',
+      updated: 'Provider updated',
+      deleted: 'Provider deleted',
+    },
+    editor: {
+      title: {
+        add: 'Add Provider',
+        addDanDanPlay: 'Add DanDanPlay Compatible Provider',
+        addMacCms: 'Add MacCMS Provider',
+        edit: 'Edit Provider: {{name}}',
+      },
+      name: 'Name',
+      baseUrl: 'API URL',
+      danmakuBaseUrl: 'Danmaku API URL',
+      danmuicuBaseUrl: 'Danmuicu API URL',
+      chConvert: 'Chinese Conversion',
+      danmakuTypePreference: 'Danmaku Type',
+      protobufLimitPerMin: 'Protobuf Limit Per Minute',
+      limitPerMin: 'Limit Per Minute',
+      stripColor: 'Remove Colors',
+      helper: {
+        builtInName: 'Built-in provider names cannot be changed',
+        baseUrl: 'API endpoint URL for DanDanPlay-compatible server',
+        danmakuBaseUrl: 'MacCMS danmaku API endpoint',
+        danmuicuBaseUrl: 'Danmuicu API endpoint',
+        chConvert: 'Convert between Simplified and Traditional Chinese',
+        danmakuTypePreference: 'Preferred danmaku format (Protobuf is faster)',
+        protobufLimitPerMin:
+          'Maximum danmaku per minute when using Protobuf (1-1000)',
+        limitPerMin: 'Maximum danmaku per minute (1-1000)',
+        integration: 'Integration policy to use for this configuration',
+      },
+      error: {
+        invalidUrl: 'Invalid URL format',
+      },
+    },
+    chConvert: {
+      none: 'None',
+      toSimplified: 'To Simplified',
+      toTraditional: 'To Traditional',
+    },
   },
 }
 

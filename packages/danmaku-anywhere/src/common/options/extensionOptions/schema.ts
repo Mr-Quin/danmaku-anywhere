@@ -106,8 +106,10 @@ export const extensionOptionsSchema = z.object({
 
   /**
    * Configuration for individual danmaku sources
+   * @deprecated Migrated to separate provider config storage in version 21
+   * Kept optional for backwards compatibility during migration
    */
-  danmakuSources: danmakuSourcesSchema,
+  danmakuSources: danmakuSourcesSchema.optional(),
 
   playerOptions: playerOptionsSchema,
 
