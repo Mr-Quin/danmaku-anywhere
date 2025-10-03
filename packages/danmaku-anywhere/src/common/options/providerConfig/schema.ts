@@ -7,7 +7,7 @@ import { getRandomUUID } from '@/common/utils/utils'
 
 const zProviderConfigBase = z.object({
   id: z.string().uuid().default(getRandomUUID()),
-  type: z.nativeEnum(DanmakuSourceType),
+  type: z.string(),
   name: z.string().min(1),
   isBuiltIn: z.boolean(),
   enabled: z.boolean(),
@@ -15,7 +15,7 @@ const zProviderConfigBase = z.object({
 
 export const zDanDanPlayProviderConfig = zProviderConfigBase.extend({
   id: z.literal('dandanplay'),
-  type: z.literal(DanmakuSourceType.DanDanPlay),
+  type: z.literal('DanDanPlay'),
   name: z.literal('DanDanPlay'),
   isBuiltIn: z.literal(true),
   options: z.object({
@@ -27,7 +27,7 @@ export const zDanDanPlayProviderConfig = zProviderConfigBase.extend({
 
 export const zBilibiliProviderConfig = zProviderConfigBase.extend({
   id: z.literal('bilibili'),
-  type: z.literal(DanmakuSourceType.Bilibili),
+  type: z.literal('Bilibili'),
   name: z.literal('Bilibili'),
   isBuiltIn: z.literal(true),
   options: z.object({
@@ -38,7 +38,7 @@ export const zBilibiliProviderConfig = zProviderConfigBase.extend({
 
 export const zTencentProviderConfig = zProviderConfigBase.extend({
   id: z.literal('tencent'),
-  type: z.literal(DanmakuSourceType.Tencent),
+  type: z.literal('Tencent'),
   name: z.literal('Tencent'),
   isBuiltIn: z.literal(true),
   options: z.object({
@@ -47,7 +47,7 @@ export const zTencentProviderConfig = zProviderConfigBase.extend({
 })
 
 export const zDanDanPlayCompatibleProviderConfig = zProviderConfigBase.extend({
-  type: z.literal(DanmakuSourceType.DanDanPlay),
+  type: z.literal('DanDanPlayCompatible'),
   isBuiltIn: z.literal(false),
   options: z.object({
     baseUrl: z.string().trim().url(),
@@ -56,7 +56,7 @@ export const zDanDanPlayCompatibleProviderConfig = zProviderConfigBase.extend({
 })
 
 export const zMacCmsProviderConfig = zProviderConfigBase.extend({
-  type: z.literal(DanmakuSourceType.Custom),
+  type: z.literal('MacCMS'),
   isBuiltIn: z.literal(false),
   options: z.object({
     danmakuBaseUrl: z

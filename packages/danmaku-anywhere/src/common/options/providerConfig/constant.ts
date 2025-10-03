@@ -1,4 +1,3 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter/src/canonical/provider/provider'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { getRandomUUID } from '@/common/utils/utils'
 import type {
@@ -12,7 +11,7 @@ import type {
 
 export const defaultBuiltInDanDanPlayProvider: BuiltInDanDanPlayProvider = {
   id: 'dandanplay',
-  type: DanmakuSourceType.DanDanPlay,
+  type: 'DanDanPlay',
   name: 'DanDanPlay',
   enabled: true,
   isBuiltIn: true,
@@ -23,7 +22,7 @@ export const defaultBuiltInDanDanPlayProvider: BuiltInDanDanPlayProvider = {
 
 export const defaultBuiltInBilibiliProvider: BuiltInBilibiliProvider = {
   id: 'bilibili',
-  type: DanmakuSourceType.Bilibili,
+  type: 'Bilibili',
   name: 'Bilibili',
   enabled: true,
   isBuiltIn: true,
@@ -35,7 +34,7 @@ export const defaultBuiltInBilibiliProvider: BuiltInBilibiliProvider = {
 
 export const defaultBuiltInTencentProvider: BuiltInTencentProvider = {
   id: 'tencent',
-  type: DanmakuSourceType.Tencent,
+  type: 'Tencent',
   name: 'Tencent',
   enabled: true,
   isBuiltIn: true,
@@ -55,7 +54,7 @@ export const createCustomDanDanPlayProvider = (
 ): CustomDanDanPlayProvider => {
   return {
     id: input.id ?? getRandomUUID(),
-    type: DanmakuSourceType.DanDanPlay,
+    type: 'DanDanPlayCompatible',
     name: input.name ?? 'DanDanPlay Compatible',
     enabled: input.enabled ?? false,
     isBuiltIn: false,
@@ -71,7 +70,7 @@ export const createCustomMacCmsProvider = (
 ): CustomMacCmsProvider => {
   return {
     id: input.id ?? getRandomUUID(),
-    type: DanmakuSourceType.Custom,
+    type: 'MacCMS',
     name: input.name ?? 'MacCMS',
     enabled: input.enabled ?? false,
     isBuiltIn: false,

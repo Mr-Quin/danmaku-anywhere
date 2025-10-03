@@ -40,7 +40,10 @@ class ProviderConfigService {
     return this.options.get()
   }
 
-  async update(id: string, config: Partial<ProviderConfig>) {
+  async update<T extends ProviderConfig>(
+    id: string,
+    config: Partial<T>
+  ): Promise<T> {
     const configs = await this.options.get()
     const prevConfig = configs.find((item) => item.id === id)
 
@@ -48,7 +51,7 @@ class ProviderConfigService {
       throw new Error(`Provider not found: "${id}"`)
     }
 
-    const nextConfig = { ...prevConfig, ...config } as ProviderConfig
+    const nextConfig = { ...prevConfig, ...config } as T
 
     const newConfigs = produce(configs, (draft) => {
       const index = draft.findIndex((item) => item.id === id)
