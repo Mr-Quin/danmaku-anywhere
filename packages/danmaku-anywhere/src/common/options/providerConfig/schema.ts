@@ -13,6 +13,8 @@ export const zProviderConfigType = z.enum([
   'MacCMS',
 ])
 
+export type ProviderConfigType = z.infer<typeof zProviderConfigType>
+
 const zProviderConfigBase = z.object({
   id: z.string().uuid().default(getRandomUUID()),
   type: zProviderConfigType,
@@ -117,9 +119,9 @@ export type ProviderByType<T extends ProviderConfig['type']> = Extract<
 >
 
 export const providerTypeToDanmakuSource = {
-  'builtin-dandanplay': DanmakuSourceType.DanDanPlay,
-  'custom-dandanplay': DanmakuSourceType.DanDanPlay,
-  'builtin-bilibili': DanmakuSourceType.Bilibili,
-  'builtin-tencent': DanmakuSourceType.Tencent,
-  'custom-maccms': DanmakuSourceType.Custom,
-} as const
+  DanDanPlay: DanmakuSourceType.DanDanPlay,
+  Bilibili: DanmakuSourceType.Bilibili,
+  Tencent: DanmakuSourceType.Tencent,
+  DanDanPlayCompatible: DanmakuSourceType.Custom,
+  MacCMS: DanmakuSourceType.Custom,
+} as const satisfies Record<ProviderConfigType, DanmakuSourceType>

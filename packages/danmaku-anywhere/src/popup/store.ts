@@ -24,8 +24,8 @@ interface StoreState {
     setKeyword: (keyword: string) => void
     season?: Season | CustomSeason
     setSeason: (season: Season | CustomSeason) => void
-    tab?: DanmakuSourceType
-    setTab: (tab: DanmakuSourceType) => void
+    tab?: string
+    setTab: (tab: string) => void
   }
   danmaku: {
     animeFilter: string
@@ -90,7 +90,7 @@ const useStoreBase = create<StoreState>()(
           state.search.season = season
         }),
       tab: undefined,
-      setTab: (tab: DanmakuSourceType) =>
+      setTab: (tab) =>
         set((state) => {
           state.search.tab = tab
         }),

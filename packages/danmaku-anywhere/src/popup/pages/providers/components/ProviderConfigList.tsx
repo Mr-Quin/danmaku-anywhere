@@ -7,6 +7,7 @@ import {
   useEditProviderConfig,
   useProviderConfig,
 } from '@/common/options/providerConfig/useProviderConfig'
+import { localizeProviderConfigType } from '@/common/options/providerConfig/utils'
 import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import { ProviderToggleSwitch } from './ProviderToggleSwitch'
 
@@ -46,7 +47,12 @@ export const ProviderConfigList = ({
       )
     }
     return (
-      <Chip label={config.type} size="small" sx={{ ml: 1 }} color="secondary" />
+      <Chip
+        label={t(localizeProviderConfigType(config.type))}
+        size="small"
+        sx={{ ml: 1 }}
+        color="secondary"
+      />
     )
   }
 

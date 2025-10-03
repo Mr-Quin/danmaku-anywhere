@@ -1,14 +1,15 @@
 import { Tab, Tabs } from '@mui/material'
 import { useTranslation } from 'react-i18next'
+import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 import {
-  type DanmakuSourceType,
-  localizedDanmakuSourceType,
-} from '@/common/danmaku/enums'
+  type ProviderConfig,
+  providerTypeToDanmakuSource,
+} from '@/common/options/providerConfig/schema'
 
 interface SeasonSearchTabsProps {
-  providers: DanmakuSourceType[]
-  selectedTab: DanmakuSourceType
-  onTabChange: (tab: DanmakuSourceType) => void
+  providers: ProviderConfig[]
+  selectedTab: string
+  onTabChange: (tab: string) => void
 }
 
 export const SeasonSearchTabs = ({
@@ -27,14 +28,28 @@ export const SeasonSearchTabs = ({
         top: 0,
         backgroundColor: 'background.paper',
         zIndex: 1,
+        '.MuiTabs-scrollButtons.Mui-disabled': {
+          opacity: 0.3,
+        },
       }}
+      scrollButtons
+      allowScrollButtonsMobile
+      variant="scrollable"
     >
       {providers.map((provider) => {
         return (
           <Tab
-            value={provider}
-            label={t(localizedDanmakuSourceType(provider))}
-            key={provider}
+            value={provider.id}
+            label={
+              provider.isBuiltIn
+                ? t(
+                    localizedDanmakuSourceType(
+                      providerTypeToDanmakuSource[provider.type]
+                    )
+                  )
+                : provider.name
+            }
+            key={provider.id}
           />
         )
       })}

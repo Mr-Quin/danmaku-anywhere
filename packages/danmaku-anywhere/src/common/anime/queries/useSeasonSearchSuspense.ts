@@ -5,7 +5,6 @@ import type { SeasonSearchParams } from '@/common/anime/dto'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { Logger } from '@/common/Logger'
-import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
@@ -14,9 +13,8 @@ export const useSeasonSearchSuspense = (
   keyword: string
 ) => {
   const { t } = useTranslation()
-  const { sources } = useDanmakuSources()
 
-  const params = { keyword, provider, customBaseUrl: sources.custom.baseUrl }
+  const params = { keyword, provider, customBaseUrl: '' }
 
   return useSuspenseQuery({
     queryKey: seasonQueryKeys.search(provider, params),

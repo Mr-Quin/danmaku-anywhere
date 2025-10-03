@@ -4,7 +4,7 @@ import {
   useIsFetching,
   useQueryErrorResetBoundary,
 } from '@tanstack/react-query'
-import { useEffect, useRef, useState, useTransition } from 'react'
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { useTranslation } from 'react-i18next'
 import { Outlet, useNavigate } from 'react-router'
@@ -12,9 +12,8 @@ import { Center } from '@/common/components/Center'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { SeasonSearchResult } from '@/common/components/Season/SeasonSearchResult'
 import { SeasonSearchTabs } from '@/common/components/Season/SeasonSearchTabs'
-import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
+import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
-
 import { PopupSearchForm } from '@/popup/pages/search/components/PopupSearchForm'
 import { useStore } from '@/popup/store'
 
@@ -30,7 +29,7 @@ export const SearchTab = () => {
     SearchEpisodesQuery | undefined
   >(search.searchParams)
 
-  const { enabledProviders } = useDanmakuSources()
+  const { enabledProviders } = useProviderConfig()
 
   const ref = useRef<ErrorBoundary>(null)
   const { reset } = useQueryErrorResetBoundary()
@@ -38,10 +37,17 @@ export const SearchTab = () => {
   const [pending, startTransition] = useTransition()
 
   useEffect(() => {
-    if (search.tab === undefined || !enabledProviders.includes(search.tab)) {
-      search.setTab(enabledProviders[0])
+    if (
+      search.tab === undefined ||
+      !enabledProviders.some((provider) => provider.id === search.tab)
+    ) {
+      search.setTab(enabledProviders[0].id)
     }
   }, [enabledProviders])
+
+  const selectedProvider = useMemo(() => {
+    return enabledProviders.find((provider) => provider.id === search.tab)
+  }, [enabledProviders, search.tab])
 
   const isSearching =
     useIsFetching({
@@ -67,7 +73,9 @@ export const SearchTab = () => {
     )
   }
 
-  if (search.tab === undefined) return null
+  if (search.tab === undefined || !selectedProvider) {
+    return null
+  }
 
   return (
     <>
@@ -92,7 +100,7 @@ export const SearchTab = () => {
             />
             <SeasonSearchResult
               searchParams={searchParams}
-              provider={search.tab}
+              provider={selectedProvider}
               onSeasonClick={(season) => {
                 search.setSeason(season)
                 navigate('season')
