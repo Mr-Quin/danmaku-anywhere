@@ -35,7 +35,6 @@ import {
   useProviderConfig,
 } from '@/common/options/providerConfig/useProviderConfig'
 import { DrilldownMenu } from '@/content/common/DrilldownMenu'
-import { useStore } from '@/popup/store'
 import { ProviderToggleSwitch } from './ProviderToggleSwitch'
 
 interface SortableItemProps {
@@ -181,15 +180,14 @@ const DragOverlayItem = ({ config }: DragOverlayItemProps) => {
 
 export const ProviderConfigList = ({
   onEdit,
+  onDelete,
 }: {
   onEdit: (config: ProviderConfig) => void
+  onDelete: (config: ProviderConfig) => void
 }) => {
   const { configs } = useProviderConfig()
   const { reorder } = useEditProviderConfig()
   const [activeId, setActiveId] = useState<string | null>(null)
-
-  const { setShowConfirmDeleteDialog, setEditingProvider } =
-    useStore.use.providers()
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -197,11 +195,6 @@ export const ProviderConfigList = ({
       coordinateGetter: sortableKeyboardCoordinates,
     })
   )
-
-  const handleDelete = (config: ProviderConfig) => {
-    setShowConfirmDeleteDialog(true)
-    setEditingProvider(config)
-  }
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string)
@@ -245,7 +238,7 @@ export const ProviderConfigList = ({
               config={config}
               index={index}
               onEdit={onEdit}
-              onDelete={handleDelete}
+              onDelete={onDelete}
             />
           ))}
         </List>

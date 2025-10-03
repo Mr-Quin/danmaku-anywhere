@@ -4,9 +4,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
-import { useGoBack } from '@/popup/hooks/useGoBack'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
-import { useStore } from '@/popup/store'
 import { BilibiliProviderForm } from '../components/forms/BilibiliProviderForm'
 import { DanDanPlayCompatibleProviderForm } from '../components/forms/DanDanPlayCompatibleProviderForm'
 import { DanDanPlayProviderForm } from '../components/forms/DanDanPlayProviderForm'
@@ -15,22 +13,20 @@ import { TencentProviderForm } from '../components/forms/TencentProviderForm'
 
 interface ProviderEditorProps {
   mode: 'add' | 'edit'
+  provider: ProviderConfig
+  onClose: () => void
 }
 
-export const ProviderEditor = ({ mode }: ProviderEditorProps) => {
+export const ProviderEditor = ({
+  mode,
+  provider,
+  onClose,
+}: ProviderEditorProps) => {
   const { t } = useTranslation()
   const { update, create } = useEditProviderConfig()
-  const goBack = useGoBack()
   const toast = useToast.use.toast()
 
   const isEdit = mode === 'edit'
-  const { editingProvider: provider } = useStore.use.providers()
-
-  console.log('provider', provider)
-
-  if (!provider) {
-    return null
-  }
 
   const handleSave = async (data: ProviderConfig) => {
     if (isEdit && provider.id) {
@@ -39,7 +35,7 @@ export const ProviderEditor = ({ mode }: ProviderEditorProps) => {
         {
           onSuccess: () => {
             toast.success(t('providers.alert.updated'))
-            goBack()
+            onClose()
           },
           onError: (error) => {
             toast.error(error.message)
@@ -51,7 +47,7 @@ export const ProviderEditor = ({ mode }: ProviderEditorProps) => {
     return create.mutate(data, {
       onSuccess: () => {
         toast.success(t('providers.alert.created'))
-        goBack()
+        onClose()
       },
       onError: (error) => {
         toast.error(error.message)
@@ -121,7 +117,7 @@ export const ProviderEditor = ({ mode }: ProviderEditorProps) => {
 
   return (
     <OptionsPageLayout direction="left">
-      <OptionsPageToolBar title={getTitle()} />
+      <OptionsPageToolBar title={getTitle()} onGoBack={onClose} />
       <Box p={2}>{renderForm()}</Box>
     </OptionsPageLayout>
   )

@@ -8,28 +8,29 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
-import { useStore } from '@/popup/store'
 
-export const ConfirmDeleteDialog = () => {
+interface ConfirmDeleteDialogProps {
+  provider: ProviderConfig | null
+  onClose: () => void
+}
+
+export const ConfirmDeleteDialog = ({
+  provider,
+  onClose,
+}: ConfirmDeleteDialogProps) => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
   const { remove } = useEditProviderConfig()
 
-  const { showConfirmDeleteDialog, setShowConfirmDeleteDialog, editingProvider } =
-    useStore.use.providers()
-
-  const handleClose = () => {
-    setShowConfirmDeleteDialog(false)
-  }
-
   const handleConfirm = async () => {
-    if (!editingProvider?.id) return
+    if (!provider?.id) return
 
-    remove.mutate(editingProvider.id, {
+    remove.mutate(provider.id, {
       onSuccess: () => {
         toast.success(t('providers.alert.deleted'))
-        handleClose()
+        onClose()
       },
       onError: (error) => {
         toast.error(error.message)
@@ -38,15 +39,15 @@ export const ConfirmDeleteDialog = () => {
   }
 
   return (
-    <Dialog open={showConfirmDeleteDialog} onClose={handleClose}>
+    <Dialog open={!!provider} onClose={onClose}>
       <DialogTitle>{t('providers.delete.title')}</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          {t('providers.delete.message', { name: editingProvider?.name })}
+          {t('providers.delete.message', { name: provider?.name })}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>{t('common.cancel')}</Button>
+        <Button onClick={onClose}>{t('common.cancel')}</Button>
         <Button
           onClick={handleConfirm}
           color="error"

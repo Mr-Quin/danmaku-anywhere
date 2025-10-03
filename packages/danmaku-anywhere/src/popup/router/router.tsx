@@ -19,7 +19,6 @@ import { MountPage } from '../pages/mount/MountPage'
 import { Options } from '../pages/options/Options'
 import { HotkeyOptions } from '../pages/options/pages/hotkeyOptions/HotkeyOptions'
 import { RetentionPolicyPage } from '../pages/options/pages/retentionPolicy/RetentionPolicyPage'
-import { ProviderEditor } from '../pages/providers/pages/ProviderEditor'
 import { ProvidersPage } from '../pages/providers/pages/ProvidersPage'
 
 import { SearchPage } from '../pages/search/SearchPage'
@@ -88,17 +87,7 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
       },
       {
         path: 'providers',
-        children: [
-          { index: true, Component: ProvidersPage },
-          {
-            path: 'add',
-            element: <ProviderEditor mode="add" />,
-          },
-          {
-            path: 'edit',
-            element: <ProviderEditor mode="edit" />,
-          },
-        ],
+        Component: ProvidersPage,
       },
       {
         path: 'import',

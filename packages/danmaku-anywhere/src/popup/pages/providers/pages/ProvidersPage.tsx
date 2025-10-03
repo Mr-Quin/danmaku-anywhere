@@ -1,42 +1,72 @@
-import { Outlet, useNavigate } from 'react-router'
-import { createCustomDanDanPlayProvider, createCustomMacCmsProvider } from '@/common/options/providerConfig/constant'
+import { useState } from 'react'
+import {
+  createCustomDanDanPlayProvider,
+  createCustomMacCmsProvider,
+} from '@/common/options/providerConfig/constant'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { TabLayout } from '@/content/common/TabLayout'
-import { useStore } from '@/popup/store'
 import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog'
 import { ProviderConfigList } from '../components/ProviderConfigList'
 import { ProviderToolbar } from '../components/ProviderToolbar'
-import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { ProviderEditor } from './ProviderEditor'
 
 export const ProvidersPage = () => {
-  const { setEditingProvider } = useStore.use.providers()
-  const navigate = useNavigate()
+  const [editingProvider, setEditingProvider] = useState<ProviderConfig | null>(
+    null
+  )
+  const [mode, setMode] = useState<'add' | 'edit' | null>(null)
+  const [deletingProvider, setDeletingProvider] =
+    useState<ProviderConfig | null>(null)
 
   const handleEditProvider = (provider: ProviderConfig) => {
-    navigate('edit')
     setEditingProvider(provider)
+    setMode('edit')
   }
 
   const handleAddDanDanPlayProvider = () => {
-    navigate('add')
     setEditingProvider(createCustomDanDanPlayProvider())
+    setMode('add')
   }
 
   const handleAddMacCmsProvider = () => {
-    navigate('add')
     setEditingProvider(createCustomMacCmsProvider())
+    setMode('add')
+  }
+
+  const handleCloseEditor = () => {
+    setEditingProvider(null)
+    setMode(null)
+  }
+
+  const handleDelete = (provider: ProviderConfig) => {
+    setDeletingProvider(provider)
+  }
+
+  const handleCloseDeleteDialog = () => {
+    setDeletingProvider(null)
+  }
+
+  if (editingProvider && mode) {
+    return (
+      <ProviderEditor
+        mode={mode}
+        provider={editingProvider}
+        onClose={handleCloseEditor}
+      />
+    )
   }
 
   return (
-    <>
-      <TabLayout>
-        <ProviderToolbar
-          onAddDanDanPlayProvider={handleAddDanDanPlayProvider}
-          onAddMacCmsProvider={handleAddMacCmsProvider}
-        />
-        <ProviderConfigList onEdit={handleEditProvider} />
-        <ConfirmDeleteDialog />
-      </TabLayout>
-      <Outlet />
-    </>
+    <TabLayout>
+      <ProviderToolbar
+        onAddDanDanPlayProvider={handleAddDanDanPlayProvider}
+        onAddMacCmsProvider={handleAddMacCmsProvider}
+      />
+      <ProviderConfigList onEdit={handleEditProvider} onDelete={handleDelete} />
+      <ConfirmDeleteDialog
+        provider={deletingProvider}
+        onClose={handleCloseDeleteDialog}
+      />
+    </TabLayout>
   )
 }

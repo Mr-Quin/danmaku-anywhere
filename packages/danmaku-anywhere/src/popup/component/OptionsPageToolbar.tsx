@@ -9,6 +9,7 @@ interface OptionsToolbarProps {
   leftElement?: ReactNode
   rightElement?: ReactNode
   sticky?: boolean
+  onGoBack?: () => void
 }
 
 export const OptionsPageToolBar = ({
@@ -16,8 +17,10 @@ export const OptionsPageToolBar = ({
   leftElement,
   rightElement,
   sticky = false,
+  onGoBack,
 }: OptionsToolbarProps) => {
-  const goBack = useGoBack()
+  // TODO: conditional use of hook
+  const goBack = onGoBack ?? useGoBack()
 
   const defaultLeftElement = (
     <IconButton edge="start" onClick={goBack}>
