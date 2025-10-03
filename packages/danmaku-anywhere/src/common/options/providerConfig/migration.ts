@@ -25,10 +25,11 @@ export function migrateDanmakuSourcesToProviders(
   // 1. Migrate built-in DanDanPlay provider
   if (oldSources.dandanplay) {
     providers.push({
-      id: 'builtin-dandanplay',
-      type: 'builtin-dandanplay',
+      id: 'dandanplay',
+      type: 'DanDanPlay',
       name: 'DanDanPlay',
       enabled: oldSources.dandanplay.enabled,
+      isBuiltIn: true,
       options: {
         chConvert: oldSources.dandanplay.chConvert ?? DanDanChConvert.None,
       },
@@ -48,7 +49,8 @@ export function migrateDanmakuSourcesToProviders(
       if (!isDefaultUrl) {
         providers.push({
           id: getRandomUUID(),
-          type: 'custom-dandanplay',
+          type: 'DanDanPlayCompatible',
+          isBuiltIn: false,
           name: 'DanDanPlay Compatible (Migrated)',
           enabled: oldSources.dandanplay.enabled,
           options: {
@@ -66,8 +68,9 @@ export function migrateDanmakuSourcesToProviders(
   // 2. Migrate built-in Bilibili provider
   if (oldSources.bilibili) {
     providers.push({
-      id: 'builtin-bilibili',
-      type: 'builtin-bilibili',
+      id: 'bilibili',
+      type: 'Bilibili',
+      isBuiltIn: true,
       name: 'Bilibili',
       enabled: oldSources.bilibili.enabled,
       options: {
@@ -84,8 +87,9 @@ export function migrateDanmakuSourcesToProviders(
   // 3. Migrate built-in Tencent provider
   if (oldSources.tencent) {
     providers.push({
-      id: 'builtin-tencent',
-      type: 'builtin-tencent',
+      id: 'tencent',
+      type: 'Tencent',
+      isBuiltIn: true,
       name: 'Tencent',
       enabled: oldSources.tencent.enabled,
       options: {
@@ -109,7 +113,8 @@ export function migrateDanmakuSourcesToProviders(
     if (hasValidUrls) {
       providers.push({
         id: getRandomUUID(),
-        type: 'custom-maccms',
+        type: 'MacCMS',
+        isBuiltIn: false,
         name: 'MacCMS (Migrated)',
         enabled: oldSources.custom.enabled,
         options: {

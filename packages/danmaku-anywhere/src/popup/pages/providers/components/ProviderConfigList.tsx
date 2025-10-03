@@ -18,13 +18,13 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { Delete, DragIndicator } from '@mui/icons-material'
 import {
+  Chip,
   List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
   MenuItem,
-  Chip,
 } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -35,8 +35,8 @@ import {
   useProviderConfig,
 } from '@/common/options/providerConfig/useProviderConfig'
 import { DrilldownMenu } from '@/content/common/DrilldownMenu'
-import { ProviderToggleSwitch } from './ProviderToggleSwitch'
 import { useStore } from '@/popup/store'
+import { ProviderToggleSwitch } from './ProviderToggleSwitch'
 
 interface SortableItemProps {
   config: ProviderConfig
@@ -67,16 +67,14 @@ const SortableItem = ({
     opacity: isDragging ? 0.5 : 1,
   }
 
-  const isBuiltIn = config.type.startsWith('builtin-')
-  const isCustomDanDanPlay = config.type === 'custom-dandanplay'
-  const isCustomMacCms = config.type === 'custom-maccms'
-
   const getSecondaryText = () => {
-    if (isBuiltIn) {
+    if (config.isBuiltIn) {
       return t('providers.builtin')
-    } else if (isCustomDanDanPlay) {
+    }
+    if (config.type === 'DanDanPlayCompatible') {
       return config.options.baseUrl
-    } else if (isCustomMacCms) {
+    }
+    if (config.type === 'MacCMS') {
       return config.options.danmakuBaseUrl
     }
     return ''
@@ -90,7 +88,7 @@ const SortableItem = ({
       secondaryAction={
         <>
           <ProviderToggleSwitch config={config} />
-          {!isBuiltIn && (
+          {!config.isBuiltIn && (
             <DrilldownMenu
               BoxProps={{ display: 'inline' }}
               ButtonProps={{ edge: 'end' }}
@@ -120,20 +118,20 @@ const SortableItem = ({
         >
           <DragIndicator />
         </ListItemIcon>
-        <ListItemText 
+        <ListItemText
           primary={
             <span>
               {config.name}
-              {isBuiltIn && (
-                <Chip 
-                  label={t('providers.builtin')} 
-                  size="small" 
+              {config.isBuiltIn && (
+                <Chip
+                  label={t('providers.builtin')}
+                  size="small"
                   sx={{ ml: 1 }}
                 />
               )}
             </span>
-          } 
-          secondary={getSecondaryText()} 
+          }
+          secondary={getSecondaryText()}
         />
       </ListItemButton>
     </ListItem>
@@ -162,19 +160,19 @@ const DragOverlayItem = ({ config }: DragOverlayItemProps) => {
         <ListItemIcon>
           <DragIndicator />
         </ListItemIcon>
-        <ListItemText 
+        <ListItemText
           primary={
             <span>
               {config.name}
               {isBuiltIn && (
-                <Chip 
-                  label={t('providers.builtin')} 
-                  size="small" 
+                <Chip
+                  label={t('providers.builtin')}
+                  size="small"
                   sx={{ ml: 1 }}
                 />
               )}
             </span>
-          } 
+          }
         />
       </ListItemButton>
     </ListItem>
@@ -190,7 +188,8 @@ export const ProviderConfigList = ({
   const { reorder } = useEditProviderConfig()
   const [activeId, setActiveId] = useState<string | null>(null)
 
-  const { setShowConfirmDeleteDialog, setEditingProvider } = useStore.use.providers()
+  const { setShowConfirmDeleteDialog, setEditingProvider } =
+    useStore.use.providers()
 
   const sensors = useSensors(
     useSensor(PointerSensor),

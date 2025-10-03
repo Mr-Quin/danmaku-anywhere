@@ -5,9 +5,17 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { Options } from '@/common/options/OptionsService/types'
 import { getRandomUUID } from '@/common/utils/utils'
 
+export const zProviderConfigType = z.enum([
+  'DanDanPlay',
+  'Bilibili',
+  'Tencent',
+  'DanDanPlayCompatible',
+  'MacCMS',
+])
+
 const zProviderConfigBase = z.object({
   id: z.string().uuid().default(getRandomUUID()),
-  type: z.string(),
+  type: zProviderConfigType,
   name: z.string().min(1),
   isBuiltIn: z.boolean(),
   enabled: z.boolean(),

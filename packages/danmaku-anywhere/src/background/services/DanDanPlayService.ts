@@ -7,16 +7,19 @@ import type {
   SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 import type { DanDanPlayProviderContext } from '@danmaku-anywhere/danmaku-provider/ddp'
+import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import type { SeasonService } from '@/background/services/SeasonService'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProvider } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
-import { providerContextService } from '@/common/options/context/service'
+import { extensionContextService } from '@/common/options/context/service'
+import type {
+  BuiltInDanDanPlayProvider,
+  CustomDanDanPlayProvider,
+} from '@/common/options/providerConfig/schema'
 import { providerConfigService } from '@/common/options/providerConfig/service'
-import type { CustomDanDanPlayProvider, BuiltInDanDanPlayProvider } from '@/common/options/providerConfig/schema'
 import { tryCatch } from '@/common/utils/utils'
 
 export class DanDanPlayService {
@@ -35,13 +38,15 @@ export class DanDanPlayService {
   private async getCurrentProvider(): Promise<
     BuiltInDanDanPlayProvider | CustomDanDanPlayProvider
   > {
-    const providerId = await providerContextService.getProviderId()
-    
+    const providerId = await extensionContextService.getProviderId()
+
     if (!providerId) {
       // Default to built-in dandanplay if no context set
-      const provider = await providerConfigService.get('builtin-dandanplay')
+      const provider = await providerConfigService.get('dandanplay')
       if (!provider) {
-        throw new Error('No provider context set and built-in dandanplay not found')
+        throw new Error(
+          'No provider context set and built-in dandanplay not found'
+        )
       }
       return provider as BuiltInDanDanPlayProvider
     }
@@ -51,8 +56,13 @@ export class DanDanPlayService {
       throw new Error(`Provider not found: ${providerId}`)
     }
 
-    if (provider.type !== 'builtin-dandanplay' && provider.type !== 'custom-dandanplay') {
-      throw new Error(`Invalid provider type for DanDanPlay service: ${provider.type}`)
+    if (
+      provider.type !== 'DanDanPlay' &&
+      provider.type !== 'DanDanPlayCompatible'
+    ) {
+      throw new Error(
+        `Invalid provider type for DanDanPlay service: ${provider.type}`
+      )
     }
 
     return provider as BuiltInDanDanPlayProvider | CustomDanDanPlayProvider
@@ -64,17 +74,16 @@ export class DanDanPlayService {
   private createContext(
     provider: BuiltInDanDanPlayProvider | CustomDanDanPlayProvider
   ): DanDanPlayProviderContext {
-    if (provider.type === 'builtin-dandanplay') {
+    if (provider.type === 'DanDanPlay') {
       // Built-in provider uses default proxy
       return {
         providerInstanceId: provider.id,
       }
-    } else {
-      // Custom provider uses custom base URL
-      return {
-        baseUrl: provider.options.baseUrl,
-        providerInstanceId: provider.id,
-      }
+    }
+    // Custom provider uses custom base URL
+    return {
+      baseUrl: provider.options.baseUrl,
+      providerInstanceId: provider.id,
     }
   }
 
@@ -84,7 +93,10 @@ export class DanDanPlayService {
     this.logger.debug('Searching DanDanPlay', searchParams)
     const provider = await this.getCurrentProvider()
     const context = this.createContext(provider)
-    const result = await danDanPlay.searchSearchAnime(searchParams.anime, context)
+    const result = await danDanPlay.searchSearchAnime(
+      searchParams.anime,
+      context
+    )
     this.logger.debug('Search result', result)
 
     const seasons = result.map((item) => {
@@ -215,7 +227,7 @@ export class DanDanPlayService {
   }> {
     const provider = await this.getCurrentProvider()
     const context = this.createContext(provider)
-    
+
     const findEpisode = async (bangumiId: string, episodeId: number) => {
       const [result, err] = await tryCatch(async () =>
         this.getSeason(bangumiId)

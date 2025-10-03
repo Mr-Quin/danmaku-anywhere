@@ -1,32 +1,17 @@
-import {
-  Box,
-  Button,
-  Checkbox,
-  FormControl,
-  FormControlLabel,
-  MenuItem,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material'
-import { useEffect } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Box } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { useToast } from '@/common/components/Toast/toastStore'
-import type {
-  ProviderConfig,
-  BuiltInDanDanPlayProvider,
-  BuiltInBilibiliProvider,
-  BuiltInTencentProvider,
-  CustomDanDanPlayProvider,
-  CustomMacCmsProvider,
-} from '@/common/options/providerConfig/schema'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 import { useStore } from '@/popup/store'
+import { BilibiliProviderForm } from '../components/forms/BilibiliProviderForm'
+import { DanDanPlayCompatibleProviderForm } from '../components/forms/DanDanPlayCompatibleProviderForm'
+import { DanDanPlayProviderForm } from '../components/forms/DanDanPlayProviderForm'
+import { MacCmsProviderForm } from '../components/forms/MacCmsProviderForm'
+import { TencentProviderForm } from '../components/forms/TencentProviderForm'
 
 interface ProviderEditorProps {
   mode: 'add' | 'edit'
@@ -41,26 +26,11 @@ export const ProviderEditor = ({ mode }: ProviderEditorProps) => {
   const isEdit = mode === 'edit'
   const { editingProvider: provider } = useStore.use.providers()
 
-  const {
-    handleSubmit,
-    control,
-    register,
-    reset: resetForm,
-    formState: { errors, isSubmitting },
-  } = useForm<ProviderConfig>({
-    values: provider || undefined,
-  })
+  console.log('provider', provider)
 
   if (!provider) {
     return null
   }
-
-  const isBuiltIn = provider.type.startsWith('builtin-')
-  const isCustomDanDanPlay = provider.type === 'custom-dandanplay'
-  const isCustomMacCms = provider.type === 'custom-maccms'
-  const isBuiltInDanDanPlay = provider.type === 'builtin-dandanplay'
-  const isBuiltInBilibili = provider.type === 'builtin-bilibili'
-  const isBuiltInTencent = provider.type === 'builtin-tencent'
 
   const handleSave = async (data: ProviderConfig) => {
     if (isEdit && provider.id) {
@@ -77,7 +47,7 @@ export const ProviderEditor = ({ mode }: ProviderEditorProps) => {
         }
       )
     }
-    
+
     return create.mutate(data, {
       onSuccess: () => {
         toast.success(t('providers.alert.created'))
@@ -93,274 +63,66 @@ export const ProviderEditor = ({ mode }: ProviderEditorProps) => {
     if (isEdit) {
       return t('providers.editor.title.edit', { name: provider.name })
     }
-    if (isCustomDanDanPlay) {
+    if (provider.type === 'DanDanPlayCompatible') {
       return t('providers.editor.title.addDanDanPlay')
     }
-    if (isCustomMacCms) {
+    if (provider.type === 'MacCMS') {
       return t('providers.editor.title.addMacCms')
     }
     return t('providers.editor.title.add')
   }
 
+  const renderForm = () => {
+    switch (provider.type) {
+      case 'DanDanPlay':
+        return (
+          <DanDanPlayProviderForm
+            provider={provider}
+            onSubmit={handleSave}
+            isEdit={isEdit}
+          />
+        )
+      case 'Bilibili':
+        return (
+          <BilibiliProviderForm
+            provider={provider}
+            onSubmit={handleSave}
+            isEdit={isEdit}
+          />
+        )
+      case 'Tencent':
+        return (
+          <TencentProviderForm
+            provider={provider}
+            onSubmit={handleSave}
+            isEdit={isEdit}
+          />
+        )
+      case 'DanDanPlayCompatible':
+        return (
+          <DanDanPlayCompatibleProviderForm
+            provider={provider}
+            onSubmit={handleSave}
+            isEdit={isEdit}
+          />
+        )
+      case 'MacCMS':
+        return (
+          <MacCmsProviderForm
+            provider={provider}
+            onSubmit={handleSave}
+            isEdit={isEdit}
+          />
+        )
+      default:
+        return null
+    }
+  }
+
   return (
     <OptionsPageLayout direction="left">
       <OptionsPageToolBar title={getTitle()} />
-      <Box p={2} component="form" onSubmit={handleSubmit(handleSave)}>
-        <Stack direction="column" spacing={2} alignItems="flex-start">
-          {/* Name field - readonly for built-in providers */}
-          <TextField
-            label={t('providers.editor.name')}
-            size="small"
-            error={!!errors.name}
-            {...register('name', { required: !isBuiltIn })}
-            fullWidth
-            required={!isBuiltIn}
-            disabled={isBuiltIn}
-            helperText={isBuiltIn ? t('providers.editor.helper.builtInName') : undefined}
-          />
-
-          {/* Built-in DanDanPlay options */}
-          {isBuiltInDanDanPlay && (
-            <Controller
-              name="options.chConvert"
-              control={control}
-              render={({ field: { ref, ...field } }) => (
-                <TextField
-                  {...field}
-                  label={t('providers.editor.chConvert')}
-                  size="small"
-                  select
-                  inputRef={ref}
-                  fullWidth
-                  helperText={t('providers.editor.helper.chConvert')}
-                >
-                  <MenuItem value={DanDanChConvert.None}>
-                    {t('providers.chConvert.none')}
-                  </MenuItem>
-                  <MenuItem value={DanDanChConvert.ToSimplified}>
-                    {t('providers.chConvert.toSimplified')}
-                  </MenuItem>
-                  <MenuItem value={DanDanChConvert.ToTraditional}>
-                    {t('providers.chConvert.toTraditional')}
-                  </MenuItem>
-                </TextField>
-              )}
-            />
-          )}
-
-          {/* Built-in Bilibili options */}
-          {isBuiltInBilibili && (
-            <>
-              <Controller
-                name="options.danmakuTypePreference"
-                control={control}
-                render={({ field: { ref, ...field } }) => (
-                  <TextField
-                    {...field}
-                    label={t('providers.editor.danmakuTypePreference')}
-                    size="small"
-                    select
-                    inputRef={ref}
-                    fullWidth
-                    helperText={t('providers.editor.helper.danmakuTypePreference')}
-                  >
-                    <MenuItem value="xml">XML</MenuItem>
-                    <MenuItem value="protobuf">Protobuf</MenuItem>
-                  </TextField>
-                )}
-              />
-              <TextField
-                label={t('providers.editor.protobufLimitPerMin')}
-                size="small"
-                type="number"
-                error={!!errors.options}
-                {...register('options.protobufLimitPerMin', {
-                  valueAsNumber: true,
-                  min: 1,
-                  max: 1000,
-                })}
-                fullWidth
-                helperText={t('providers.editor.helper.protobufLimitPerMin')}
-              />
-            </>
-          )}
-
-          {/* Built-in Tencent options */}
-          {isBuiltInTencent && (
-            <TextField
-              label={t('providers.editor.limitPerMin')}
-              size="small"
-              type="number"
-              error={!!errors.options}
-              {...register('options.limitPerMin', {
-                valueAsNumber: true,
-                min: 1,
-                max: 1000,
-              })}
-              fullWidth
-              helperText={t('providers.editor.helper.limitPerMin')}
-            />
-          )}
-
-          {/* Custom DanDanPlay options */}
-          {isCustomDanDanPlay && (
-            <>
-              <TextField
-                label={t('providers.editor.baseUrl')}
-                size="small"
-                error={!!errors.options}
-                {...register('options.baseUrl', {
-                  required: true,
-                  pattern: {
-                    value: /^https?:\/\/.+/,
-                    message: t('providers.editor.error.invalidUrl'),
-                  },
-                })}
-                fullWidth
-                required
-                helperText={
-                  errors.options?.baseUrl?.message ||
-                  t('providers.editor.helper.baseUrl')
-                }
-              />
-              <Controller
-                name="options.chConvert"
-                control={control}
-                render={({ field: { ref, ...field } }) => (
-                  <TextField
-                    {...field}
-                    label={t('providers.editor.chConvert')}
-                    size="small"
-                    select
-                    inputRef={ref}
-                    fullWidth
-                    helperText={t('providers.editor.helper.chConvert')}
-                  >
-                    <MenuItem value={DanDanChConvert.None}>
-                      {t('providers.chConvert.none')}
-                    </MenuItem>
-                    <MenuItem value={DanDanChConvert.ToSimplified}>
-                      {t('providers.chConvert.toSimplified')}
-                    </MenuItem>
-                    <MenuItem value={DanDanChConvert.ToTraditional}>
-                      {t('providers.chConvert.toTraditional')}
-                    </MenuItem>
-                  </TextField>
-                )}
-              />
-            </>
-          )}
-
-          {/* Custom MacCMS options */}
-          {isCustomMacCms && (
-            <>
-              <TextField
-                label={t('providers.editor.danmakuBaseUrl')}
-                size="small"
-                error={!!errors.options}
-                {...register('options.danmakuBaseUrl', {
-                  required: true,
-                  pattern: {
-                    value: /^https?:\/\/.+/,
-                    message: t('providers.editor.error.invalidUrl'),
-                  },
-                })}
-                fullWidth
-                required
-                helperText={
-                  errors.options?.danmakuBaseUrl?.message ||
-                  t('providers.editor.helper.danmakuBaseUrl')
-                }
-              />
-              <TextField
-                label={t('providers.editor.danmuicuBaseUrl')}
-                size="small"
-                error={!!errors.options}
-                {...register('options.danmuicuBaseUrl', {
-                  required: true,
-                  pattern: {
-                    value: /^https?:\/\/.+/,
-                    message: t('providers.editor.error.invalidUrl'),
-                  },
-                })}
-                fullWidth
-                required
-                helperText={
-                  errors.options?.danmuicuBaseUrl?.message ||
-                  t('providers.editor.helper.danmuicuBaseUrl')
-                }
-              />
-              <FormControl>
-                <FormControlLabel
-                  control={
-                    <Controller
-                      name="options.stripColor"
-                      control={control}
-                      render={({ field: { value, ref, ...field } }) => (
-                        <Checkbox
-                          {...field}
-                          inputRef={ref}
-                          checked={value}
-                          color="primary"
-                        />
-                      )}
-                    />
-                  }
-                  label={t('providers.editor.stripColor')}
-                />
-              </FormControl>
-            </>
-          )}
-
-          {/* Enable/Disable toggle */}
-          <Stack
-            direction="row"
-            spacing={2}
-            width={1}
-            justifyContent="space-between"
-          >
-            <FormControl>
-              <FormControlLabel
-                control={
-                  <Controller
-                    name="enabled"
-                    control={control}
-                    render={({ field: { value, ref, ...field } }) => (
-                      <Checkbox
-                        {...field}
-                        inputRef={ref}
-                        checked={value}
-                        color="primary"
-                      />
-                    )}
-                  />
-                }
-                label={t('common.enable')}
-              />
-            </FormControl>
-            <div>
-              {isEdit && (
-                <Button
-                  variant="outlined"
-                  onClick={() => resetForm()}
-                  disabled={isSubmitting}
-                  sx={{ mr: 2 }}
-                >
-                  {t('common.reset')}
-                </Button>
-              )}
-              <Button
-                variant="contained"
-                color="primary"
-                type="submit"
-                loading={isSubmitting}
-              >
-                {t('common.save')}
-              </Button>
-            </div>
-          </Stack>
-        </Stack>
-      </Box>
+      <Box p={2}>{renderForm()}</Box>
     </OptionsPageLayout>
   )
 }

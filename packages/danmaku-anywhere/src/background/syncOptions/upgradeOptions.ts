@@ -1,7 +1,9 @@
+import { extensionContextService } from '@/common/options/context/service'
 import { danmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { xPathPolicyStore } from '@/common/options/integrationPolicyStore/service'
 import { mountConfigService } from '@/common/options/mountConfig/service'
+import { providerConfigService } from '@/common/options/providerConfig/service'
 
 export const upgradeOptions = async () => {
   await Promise.all([
@@ -9,5 +11,7 @@ export const upgradeOptions = async () => {
     danmakuOptionsService.upgrade(),
     mountConfigService.options.upgrade(),
     xPathPolicyStore.upgrade(),
+    providerConfigService.options.upgrade(),
+    extensionContextService.options.upgrade(),
   ])
 }

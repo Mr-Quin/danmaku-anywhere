@@ -6,16 +6,16 @@ const defaultContext: ProviderContext = {
   providerType: undefined,
 }
 
-const providerContextOptions = new OptionsService<ProviderContext>(
+const extensionContext = new OptionsService<ProviderContext>(
   'providerContext',
   defaultContext,
-  'session'
+  'local'
 ).version(1, {
   upgrade: (data) => data,
 })
 
-class ProviderContextService {
-  public readonly options = providerContextOptions
+class ExtensionContextService {
+  public readonly options = extensionContext
 
   async setProvider(
     providerId: string,
@@ -41,4 +41,4 @@ class ProviderContextService {
   }
 }
 
-export const providerContextService = new ProviderContextService()
+export const extensionContextService = new ExtensionContextService()
