@@ -1,5 +1,5 @@
-import type { ProviderContext } from './schema'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import type { ProviderContext } from './schema'
 
 const defaultContext: ProviderContext = {
   providerId: undefined,
@@ -9,7 +9,7 @@ const defaultContext: ProviderContext = {
 const providerContextOptions = new OptionsService<ProviderContext>(
   'providerContext',
   defaultContext,
-  'local' // Use local storage instead of sync for runtime context
+  'session'
 ).version(1, {
   upgrade: (data) => data,
 })
@@ -17,7 +17,10 @@ const providerContextOptions = new OptionsService<ProviderContext>(
 class ProviderContextService {
   public readonly options = providerContextOptions
 
-  async setProvider(providerId: string, providerType: ProviderContext['providerType']) {
+  async setProvider(
+    providerId: string,
+    providerType: ProviderContext['providerType']
+  ) {
     await this.options.set({
       providerId,
       providerType,

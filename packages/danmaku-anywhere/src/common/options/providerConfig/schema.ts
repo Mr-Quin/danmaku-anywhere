@@ -5,73 +5,59 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { Options } from '@/common/options/OptionsService/types'
 import { getRandomUUID } from '@/common/utils/utils'
 
-/**
- * Built-in DanDanPlay provider
- * Cannot be removed, only disabled
- */
-export const builtInDanDanPlayProviderSchema = z.object({
-  id: z.literal('builtin-dandanplay'),
-  type: z.literal('builtin-dandanplay' as const),
-  name: z.literal('DanDanPlay'),
+const zProviderConfigBase = z.object({
+  id: z.string().uuid().default(getRandomUUID()),
+  type: z.nativeEnum(DanmakuSourceType),
+  name: z.string().min(1),
+  isBuiltIn: z.boolean(),
   enabled: z.boolean(),
+})
+
+export const zDanDanPlayProviderConfig = zProviderConfigBase.extend({
+  id: z.literal('dandanplay'),
+  type: z.literal(DanmakuSourceType.DanDanPlay),
+  name: z.literal('DanDanPlay'),
+  isBuiltIn: z.literal(true),
   options: z.object({
+    baseUrl: z.string().trim().url().optional(),
+    apiKey: z.string().optional(),
     chConvert: z.nativeEnum(DanDanChConvert),
   }),
 })
 
-/**
- * Built-in Bilibili provider
- * Cannot be removed, only disabled
- */
-export const builtInBilibiliProviderSchema = z.object({
-  id: z.literal('builtin-bilibili'),
-  type: z.literal('builtin-bilibili' as const),
+export const zBilibiliProviderConfig = zProviderConfigBase.extend({
+  id: z.literal('bilibili'),
+  type: z.literal(DanmakuSourceType.Bilibili),
   name: z.literal('Bilibili'),
-  enabled: z.boolean(),
+  isBuiltIn: z.literal(true),
   options: z.object({
     danmakuTypePreference: z.enum(['xml', 'protobuf']).default('xml'),
     protobufLimitPerMin: z.number().int().positive().max(1000).default(200),
   }),
 })
 
-/**
- * Built-in Tencent provider
- * Cannot be removed, only disabled
- */
-export const builtInTencentProviderSchema = z.object({
-  id: z.literal('builtin-tencent'),
-  type: z.literal('builtin-tencent' as const),
+export const zTencentProviderConfig = zProviderConfigBase.extend({
+  id: z.literal('tencent'),
+  type: z.literal(DanmakuSourceType.Tencent),
   name: z.literal('Tencent'),
-  enabled: z.boolean(),
+  isBuiltIn: z.literal(true),
   options: z.object({
     limitPerMin: z.number().int().positive().max(1000).default(200),
   }),
 })
 
-/**
- * Custom DanDanPlay-Compatible provider
- * Can be added/removed by user
- */
-export const customDanDanPlayProviderSchema = z.object({
-  id: z.string().uuid().default(getRandomUUID()),
-  type: z.literal('custom-dandanplay' as const),
-  name: z.string().min(1),
-  enabled: z.boolean(),
+export const zDanDanPlayCompatibleProviderConfig = zProviderConfigBase.extend({
+  type: z.literal(DanmakuSourceType.DanDanPlay),
+  isBuiltIn: z.literal(false),
   options: z.object({
     baseUrl: z.string().trim().url(),
     chConvert: z.nativeEnum(DanDanChConvert),
   }),
 })
 
-/**
- * Custom MacCMS provider
- * Can be added/removed by user
- */
-export const customMacCmsProviderSchema = z.object({
-  id: z.string().uuid().default(getRandomUUID()),
-  type: z.literal('custom-maccms' as const),
-  name: z.string().min(1),
-  enabled: z.boolean(),
+export const zMacCmsProviderConfig = zProviderConfigBase.extend({
+  type: z.literal(DanmakuSourceType.Custom),
+  isBuiltIn: z.literal(false),
   options: z.object({
     danmakuBaseUrl: z
       .string()
@@ -86,28 +72,24 @@ export const customMacCmsProviderSchema = z.object({
 })
 
 export const providerConfigSchema = z.discriminatedUnion('type', [
-  builtInDanDanPlayProviderSchema,
-  builtInBilibiliProviderSchema,
-  builtInTencentProviderSchema,
-  customDanDanPlayProviderSchema,
-  customMacCmsProviderSchema,
+  zDanDanPlayProviderConfig,
+  zBilibiliProviderConfig,
+  zTencentProviderConfig,
+  zDanDanPlayCompatibleProviderConfig,
+  zMacCmsProviderConfig,
 ])
 
 export const providerConfigListSchema = z.array(providerConfigSchema)
 
 export type BuiltInDanDanPlayProvider = z.infer<
-  typeof builtInDanDanPlayProviderSchema
+  typeof zDanDanPlayProviderConfig
 >
-export type BuiltInBilibiliProvider = z.infer<
-  typeof builtInBilibiliProviderSchema
->
-export type BuiltInTencentProvider = z.infer<
-  typeof builtInTencentProviderSchema
->
+export type BuiltInBilibiliProvider = z.infer<typeof zBilibiliProviderConfig>
+export type BuiltInTencentProvider = z.infer<typeof zTencentProviderConfig>
 export type CustomDanDanPlayProvider = z.infer<
-  typeof customDanDanPlayProviderSchema
+  typeof zDanDanPlayCompatibleProviderConfig
 >
-export type CustomMacCmsProvider = z.infer<typeof customMacCmsProviderSchema>
+export type CustomMacCmsProvider = z.infer<typeof zMacCmsProviderConfig>
 
 export type ProviderConfig = z.infer<typeof providerConfigSchema>
 export type ProviderConfigInput = z.input<typeof providerConfigSchema>
@@ -121,13 +103,11 @@ export type BuiltInProvider =
 
 export type CustomProvider = CustomDanDanPlayProvider | CustomMacCmsProvider
 
-// Helper type to get provider by type
 export type ProviderByType<T extends ProviderConfig['type']> = Extract<
   ProviderConfig,
   { type: T }
 >
 
-// Map provider types to DanmakuSourceType
 export const providerTypeToDanmakuSource = {
   'builtin-dandanplay': DanmakuSourceType.DanDanPlay,
   'custom-dandanplay': DanmakuSourceType.DanDanPlay,

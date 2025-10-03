@@ -1,4 +1,6 @@
+import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter/src/canonical/provider/provider'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
+import { getRandomUUID } from '@/common/utils/utils'
 import type {
   BuiltInBilibiliProvider,
   BuiltInDanDanPlayProvider,
@@ -7,23 +9,24 @@ import type {
   CustomMacCmsProvider,
   ProviderConfig,
 } from './schema'
-import { getRandomUUID } from '@/common/utils/utils'
 
 export const defaultBuiltInDanDanPlayProvider: BuiltInDanDanPlayProvider = {
-  id: 'builtin-dandanplay',
-  type: 'builtin-dandanplay',
+  id: 'dandanplay',
+  type: DanmakuSourceType.DanDanPlay,
   name: 'DanDanPlay',
   enabled: true,
+  isBuiltIn: true,
   options: {
     chConvert: DanDanChConvert.None,
   },
 }
 
 export const defaultBuiltInBilibiliProvider: BuiltInBilibiliProvider = {
-  id: 'builtin-bilibili',
-  type: 'builtin-bilibili',
+  id: 'bilibili',
+  type: DanmakuSourceType.Bilibili,
   name: 'Bilibili',
   enabled: true,
+  isBuiltIn: true,
   options: {
     danmakuTypePreference: 'xml',
     protobufLimitPerMin: 200,
@@ -31,10 +34,11 @@ export const defaultBuiltInBilibiliProvider: BuiltInBilibiliProvider = {
 }
 
 export const defaultBuiltInTencentProvider: BuiltInTencentProvider = {
-  id: 'builtin-tencent',
-  type: 'builtin-tencent',
+  id: 'tencent',
+  type: DanmakuSourceType.Tencent,
   name: 'Tencent',
   enabled: true,
+  isBuiltIn: true,
   options: {
     limitPerMin: 200,
   },
@@ -51,9 +55,10 @@ export const createCustomDanDanPlayProvider = (
 ): CustomDanDanPlayProvider => {
   return {
     id: input.id ?? getRandomUUID(),
-    type: 'custom-dandanplay',
+    type: DanmakuSourceType.DanDanPlay,
     name: input.name ?? 'DanDanPlay Compatible',
     enabled: input.enabled ?? false,
+    isBuiltIn: false,
     options: {
       baseUrl: input.options?.baseUrl ?? '',
       chConvert: input.options?.chConvert ?? DanDanChConvert.None,
@@ -66,9 +71,10 @@ export const createCustomMacCmsProvider = (
 ): CustomMacCmsProvider => {
   return {
     id: input.id ?? getRandomUUID(),
-    type: 'custom-maccms',
+    type: DanmakuSourceType.Custom,
     name: input.name ?? 'MacCMS',
     enabled: input.enabled ?? false,
+    isBuiltIn: false,
     options: {
       danmakuBaseUrl: input.options?.danmakuBaseUrl ?? '',
       danmuicuBaseUrl: input.options?.danmuicuBaseUrl ?? '',
