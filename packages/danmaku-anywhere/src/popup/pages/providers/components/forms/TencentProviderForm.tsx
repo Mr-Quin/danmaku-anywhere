@@ -17,13 +17,12 @@ export const TencentProviderForm = ({
 
   const {
     handleSubmit,
-    control,
     register,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = useForm<BuiltInTencentProvider>({
     resolver: zodResolver(zTencentProviderConfig),
-    values: provider,
+    defaultValues: provider,
   })
 
   const handleFormSubmit = async (data: BuiltInTencentProvider) => {
@@ -43,7 +42,6 @@ export const TencentProviderForm = ({
       spacing={2}
       alignItems="flex-start"
     >
-      {/* Name field - readonly for built-in providers */}
       <TextField
         label={t('providers.editor.name')}
         size="small"
@@ -53,24 +51,7 @@ export const TencentProviderForm = ({
         helperText={t('providers.editor.helper.builtInName')}
       />
 
-      {/* Limit Per Min */}
-      <TextField
-        label={t('providers.editor.limitPerMin')}
-        size="small"
-        type="number"
-        error={!!errors.options?.limitPerMin}
-        helperText={
-          errors.options?.limitPerMin?.message ||
-          t('providers.editor.helper.limitPerMin')
-        }
-        {...register('options.limitPerMin', {
-          valueAsNumber: true,
-        })}
-        fullWidth
-      />
-
       <FormActions
-        control={control}
         isEdit={isEdit}
         isSubmitting={isSubmitting}
         onReset={handleReset}

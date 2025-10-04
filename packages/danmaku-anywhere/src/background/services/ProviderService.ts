@@ -187,7 +187,7 @@ export class ProviderService {
             await providerConfigService.getBuiltInBilibili()
           const episode = await this.bilibiliService.saveEpisode(
             meta,
-            meta.providerOptions ?? providerConfig.options
+            providerConfig.options
           )
           return {
             ...episode,

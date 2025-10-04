@@ -1,7 +1,6 @@
-import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { MenuItem, Stack, TextField } from '@mui/material'
-import { Controller, useForm } from 'react-hook-form'
+import { Stack, TextField } from '@mui/material'
+import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import type { DanDanPlayCompatProvider } from '@/common/options/providerConfig/schema'
 import { zDanDanPlayCompatibleProviderConfig } from '@/common/options/providerConfig/schema'
@@ -18,18 +17,17 @@ export const DanDanPlayCompatibleProviderForm = ({
 
   const {
     handleSubmit,
-    control,
     register,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<DanDanPlayCompatProvider>({
     resolver: zodResolver(zDanDanPlayCompatibleProviderConfig),
-    values: provider,
+    defaultValues: provider,
   })
 
-  const handleFormSubmit = async (data: DanDanPlayCompatProvider) => {
+  const handleFormSubmit = handleSubmit(async (data) => {
     await onSubmit(data)
-  }
+  })
 
   const handleReset = () => {
     reset()
@@ -39,12 +37,11 @@ export const DanDanPlayCompatibleProviderForm = ({
   return (
     <Stack
       component="form"
-      onSubmit={handleSubmit(handleFormSubmit)}
+      onSubmit={handleFormSubmit}
       direction="column"
       spacing={2}
       alignItems="flex-start"
     >
-      {/* Name field */}
       <TextField
         label={t('providers.editor.name')}
         size="small"
@@ -55,9 +52,8 @@ export const DanDanPlayCompatibleProviderForm = ({
         required
       />
 
-      {/* Base URL */}
       <TextField
-        label={t('providers.editor.baseUrl')}
+        label={t('optionsPage.danmakuSource.dandanplay.apiUrl')}
         size="small"
         error={!!errors.options?.baseUrl}
         helperText={
@@ -69,38 +65,11 @@ export const DanDanPlayCompatibleProviderForm = ({
         required
       />
 
-      {/* Chinese Convert option */}
-      <Controller
-        name="options.chConvert"
-        control={control}
-        render={({ field: { ref, ...field } }) => (
-          <TextField
-            {...field}
-            label={t('providers.editor.chConvert')}
-            size="small"
-            select
-            inputRef={ref}
-            fullWidth
-            helperText={t('providers.editor.helper.chConvert')}
-          >
-            <MenuItem value={DanDanChConvert.None}>
-              {t('providers.chConvert.none')}
-            </MenuItem>
-            <MenuItem value={DanDanChConvert.Simplified}>
-              {t('providers.chConvert.toSimplified')}
-            </MenuItem>
-            <MenuItem value={DanDanChConvert.Traditional}>
-              {t('providers.chConvert.toTraditional')}
-            </MenuItem>
-          </TextField>
-        )}
-      />
-
       <FormActions
-        control={control}
         isEdit={isEdit}
         isSubmitting={isSubmitting}
         onReset={handleReset}
+        disableReset={!isDirty}
       />
     </Stack>
   )

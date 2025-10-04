@@ -1,15 +1,20 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
+  Autocomplete,
   Checkbox,
   FormControl,
   FormControlLabel,
+  FormHelperText,
   Stack,
   TextField,
 } from '@mui/material'
+import { useQuery } from '@tanstack/react-query'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import type { CustomMacCmsProvider } from '@/common/options/providerConfig/schema'
 import { zMacCmsProviderConfig } from '@/common/options/providerConfig/schema'
+import { configQueryKeys } from '@/common/queries/queryKeys'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { FormActions } from './FormActions'
 import type { ProviderFormProps } from './types'
 
@@ -29,7 +34,19 @@ export const MacCmsProviderForm = ({
     formState: { errors, isSubmitting },
   } = useForm<CustomMacCmsProvider>({
     resolver: zodResolver(zMacCmsProviderConfig),
-    values: provider,
+    defaultValues: provider,
+  })
+
+  const { data: maccmsData } = useQuery({
+    queryKey: configQueryKeys.maccms(),
+    queryFn: async () => chromeRpcClient.getConfigMacCms(),
+    select: (res) => res.data,
+  })
+
+  const { data: danmuicuData } = useQuery({
+    queryKey: configQueryKeys.danmuicu(),
+    queryFn: async () => chromeRpcClient.getConfigDanmuIcu(),
+    select: (res) => res.data,
   })
 
   const handleFormSubmit = async (data: CustomMacCmsProvider) => {
@@ -49,7 +66,6 @@ export const MacCmsProviderForm = ({
       spacing={2}
       alignItems="flex-start"
     >
-      {/* Name field */}
       <TextField
         label={t('providers.editor.name')}
         size="small"
@@ -60,35 +76,56 @@ export const MacCmsProviderForm = ({
         required
       />
 
-      {/* Danmaku Base URL */}
-      <TextField
-        label={t('providers.editor.danmakuBaseUrl')}
-        size="small"
-        error={!!errors.options?.danmakuBaseUrl}
-        helperText={
-          errors.options?.danmakuBaseUrl?.message ||
-          t('providers.editor.helper.danmakuBaseUrl')
-        }
-        {...register('options.danmakuBaseUrl')}
-        fullWidth
-        required
+      <Controller
+        name="options.danmakuBaseUrl"
+        control={control}
+        render={({ field: { ref, onChange, ...field } }) => (
+          <Autocomplete
+            {...field}
+            options={maccmsData?.baseUrls ?? []}
+            freeSolo
+            fullWidth
+            onChange={(_, value) => onChange(value)}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                inputRef={ref}
+                label={t('optionsPage.danmakuSource.macCms.baseUrl')}
+                size="small"
+                error={!!errors.options?.danmakuBaseUrl}
+                helperText={errors.options?.danmakuBaseUrl?.message}
+                required
+              />
+            )}
+          />
+        )}
       />
 
-      {/* Danmuicu Base URL */}
-      <TextField
-        label={t('providers.editor.danmuicuBaseUrl')}
-        size="small"
-        error={!!errors.options?.danmuicuBaseUrl}
-        helperText={
-          errors.options?.danmuicuBaseUrl?.message ||
-          t('providers.editor.helper.danmuicuBaseUrl')
-        }
-        {...register('options.danmuicuBaseUrl')}
-        fullWidth
-        required
+      <Controller
+        name="options.danmuicuBaseUrl"
+        control={control}
+        render={({ field: { ref, onChange, ...field } }) => (
+          <Autocomplete
+            {...field}
+            options={danmuicuData?.baseUrls ?? []}
+            freeSolo
+            fullWidth
+            onChange={(_, value) => onChange(value)}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                inputRef={ref}
+                label={t('optionsPage.danmakuSource.macCms.danmuicuBaseUrl')}
+                size="small"
+                error={!!errors.options?.danmuicuBaseUrl}
+                helperText={errors.options?.danmuicuBaseUrl?.message}
+                required
+              />
+            )}
+          />
+        )}
       />
 
-      {/* Strip Color option */}
       <FormControl>
         <FormControlLabel
           control={
@@ -98,19 +135,27 @@ export const MacCmsProviderForm = ({
               render={({ field: { value, ref, ...field } }) => (
                 <Checkbox
                   {...field}
-                  inputRef={ref}
+                  slotProps={{
+                    input: {
+                      ref,
+                    },
+                  }}
                   checked={value}
                   color="primary"
                 />
               )}
             />
           }
-          label={t('providers.editor.stripColor')}
+          label={t('optionsPage.danmakuSource.macCms.stripColor')}
+          labelPlacement="start"
+          sx={{ m: 0, alignSelf: 'start', color: 'text.secondary' }}
         />
+        <FormHelperText>
+          {t('optionsPage.danmakuSource.macCms.help.stripColor')}
+        </FormHelperText>
       </FormControl>
 
       <FormActions
-        control={control}
         isEdit={isEdit}
         isSubmitting={isSubmitting}
         onReset={handleReset}

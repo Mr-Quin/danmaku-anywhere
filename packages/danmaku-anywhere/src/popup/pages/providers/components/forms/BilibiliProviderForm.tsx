@@ -1,5 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { MenuItem, Stack, TextField } from '@mui/material'
+import {
+  FormControl,
+  FormHelperText,
+  FormLabel,
+  MenuItem,
+  Stack,
+  TextField,
+} from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import type { BuiltInBilibiliProvider } from '@/common/options/providerConfig/schema'
@@ -20,15 +27,15 @@ export const BilibiliProviderForm = ({
     control,
     register,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting, isDirty },
   } = useForm<BuiltInBilibiliProvider>({
-    resolver: zodResolver(zBilibiliProviderConfig),
-    values: provider,
+    resolver: zodResolver(zBilibiliProviderConfig) as any,
+    defaultValues: provider,
   })
 
-  const handleFormSubmit = async (data: BuiltInBilibiliProvider) => {
-    await onSubmit(data)
-  }
+  const handleFormSubmit = handleSubmit(async (data) => {
+    await onSubmit(data as BuiltInBilibiliProvider)
+  })
 
   const handleReset = () => {
     reset()
@@ -38,12 +45,11 @@ export const BilibiliProviderForm = ({
   return (
     <Stack
       component="form"
-      onSubmit={handleSubmit(handleFormSubmit)}
+      onSubmit={handleFormSubmit}
       direction="column"
       spacing={2}
       alignItems="flex-start"
     >
-      {/* Name field - readonly for built-in providers */}
       <TextField
         label={t('providers.editor.name')}
         size="small"
@@ -53,47 +59,37 @@ export const BilibiliProviderForm = ({
         helperText={t('providers.editor.helper.builtInName')}
       />
 
-      {/* Danmaku Type Preference */}
-      <Controller
-        name="options.danmakuTypePreference"
-        control={control}
-        render={({ field: { ref, ...field } }) => (
-          <TextField
-            {...field}
-            label={t('providers.editor.danmakuTypePreference')}
-            size="small"
-            select
-            inputRef={ref}
-            fullWidth
-            helperText={t('providers.editor.helper.danmakuTypePreference')}
-          >
-            <MenuItem value="xml">XML</MenuItem>
-            <MenuItem value="protobuf">Protobuf</MenuItem>
-          </TextField>
-        )}
-      />
-
-      {/* Protobuf Limit Per Min */}
-      <TextField
-        label={t('providers.editor.protobufLimitPerMin')}
-        size="small"
-        type="number"
-        error={!!errors.options?.protobufLimitPerMin}
-        helperText={
-          errors.options?.protobufLimitPerMin?.message ||
-          t('providers.editor.helper.protobufLimitPerMin')
-        }
-        {...register('options.protobufLimitPerMin', {
-          valueAsNumber: true,
-        })}
-        fullWidth
-      />
+      <FormControl fullWidth>
+        <FormLabel>
+          {t('optionsPage.danmakuSource.bilibili.danmakuTypePreference')}
+        </FormLabel>
+        <Controller
+          name="options.danmakuTypePreference"
+          control={control}
+          render={({ field: { ref, ...field } }) => (
+            <TextField {...field} size="small" select inputRef={ref} fullWidth>
+              <MenuItem value="xml">XML</MenuItem>
+              <MenuItem value="protobuf">Protobuf</MenuItem>
+            </TextField>
+          )}
+        />
+        <FormHelperText>
+          {t(
+            'optionsPage.danmakuSource.bilibili.help.danmakuTypePreferenceXML'
+          )}
+        </FormHelperText>
+        <FormHelperText>
+          {t(
+            'optionsPage.danmakuSource.bilibili.help.danmakuTypePreferenceProtobuf'
+          )}
+        </FormHelperText>
+      </FormControl>
 
       <FormActions
-        control={control}
         isEdit={isEdit}
         isSubmitting={isSubmitting}
         onReset={handleReset}
+        disableReset={!isDirty}
       />
     </Stack>
   )

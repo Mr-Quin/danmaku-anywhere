@@ -21,11 +21,11 @@ export const zMacCMSProviderOptions = z.object({
   danmakuBaseUrl: z
     .string()
     .url()
-    .transform((val) => val.replace(/\/$/, '')),
+    .transform((val) => val.replace(/\/$/, '')), // drop trailing slash
   danmuicuBaseUrl: z
     .string()
     .url()
-    .transform((val) => val.replace(/\/$/, '')),
+    .transform((val) => val.replace(/\/$/, '')), // drop trailing slash
   stripColor: z.boolean(),
 })
 

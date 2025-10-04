@@ -36,6 +36,7 @@ interface DraggableItem {
 interface SortableItemProps<T extends DraggableItem> {
   item: T
   index: number
+  clickable?: boolean
   onEdit: (item: T) => void
   renderPrimary: (item: T) => ReactNode
   renderSecondary?: (item: T) => ReactNode
@@ -45,6 +46,7 @@ interface SortableItemProps<T extends DraggableItem> {
 function SortableItem<T extends DraggableItem>({
   item,
   index,
+  clickable = true,
   onEdit,
   renderPrimary,
   renderSecondary,
@@ -73,29 +75,39 @@ function SortableItem<T extends DraggableItem>({
     listItemTextProps.secondary = renderSecondary(item)
   }
 
+  const listItemInner = (
+    <>
+      <ListItemIcon
+        sx={{
+          cursor: 'grab',
+          '&:active': {
+            cursor: 'grabbing',
+          },
+        }}
+        {...attributes}
+        {...listeners}
+      >
+        <DragIndicator />
+      </ListItemIcon>
+      <ListItemText {...listItemTextProps} />
+    </>
+  )
+
   return (
     <ListItem
       ref={setNodeRef}
       style={style}
       key={item.id}
       secondaryAction={renderSecondaryAction(item)}
-      disablePadding
+      disablePadding={clickable}
     >
-      <ListItemButton onClick={() => onEdit(item)}>
-        <ListItemIcon
-          sx={{
-            cursor: 'grab',
-            '&:active': {
-              cursor: 'grabbing',
-            },
-          }}
-          {...attributes}
-          {...listeners}
-        >
-          <DragIndicator />
-        </ListItemIcon>
-        <ListItemText {...listItemTextProps} />
-      </ListItemButton>
+      {clickable ? (
+        <ListItemButton onClick={() => onEdit(item)}>
+          {listItemInner}
+        </ListItemButton>
+      ) : (
+        listItemInner
+      )}
     </ListItem>
   )
 }

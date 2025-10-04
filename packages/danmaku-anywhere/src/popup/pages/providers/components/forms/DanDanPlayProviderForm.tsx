@@ -21,10 +21,10 @@ export const DanDanPlayProviderForm = ({
     control,
     register,
     reset,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isDirty },
   } = useForm<BuiltInDanDanPlayProvider>({
     resolver: zodResolver(zDanDanPlayProviderConfig),
-    values: provider,
+    defaultValues: provider,
   })
 
   const handleFormSubmit = async (data: BuiltInDanDanPlayProvider) => {
@@ -61,31 +61,30 @@ export const DanDanPlayProviderForm = ({
         render={({ field: { ref, ...field } }) => (
           <TextField
             {...field}
-            label={t('providers.editor.chConvert')}
+            label={t('optionsPage.chConvert.name')}
             size="small"
             select
             inputRef={ref}
             fullWidth
-            helperText={t('providers.editor.helper.chConvert')}
           >
             <MenuItem value={DanDanChConvert.None}>
-              {t('providers.chConvert.none')}
+              {t('optionsPage.chConvert.none')}
             </MenuItem>
             <MenuItem value={DanDanChConvert.Simplified}>
-              {t('providers.chConvert.toSimplified')}
+              {t('optionsPage.chConvert.simplified')}
             </MenuItem>
             <MenuItem value={DanDanChConvert.Traditional}>
-              {t('providers.chConvert.toTraditional')}
+              {t('optionsPage.chConvert.traditional')}
             </MenuItem>
           </TextField>
         )}
       />
 
       <FormActions
-        control={control}
         isEdit={isEdit}
         isSubmitting={isSubmitting}
         onReset={handleReset}
+        disableReset={!isDirty}
       />
     </Stack>
   )

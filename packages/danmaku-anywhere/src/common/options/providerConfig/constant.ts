@@ -54,15 +54,14 @@ export const createCustomDanDanPlayProvider = (
   input: Partial<DanDanPlayCompatProvider> = {}
 ): DanDanPlayCompatProvider => {
   return {
-    id: input.id ?? getRandomUUID(),
+    id: getRandomUUID(),
     type: 'DanDanPlayCompatible',
-    name: input.name ?? 'DanDanPlay Compatible',
+    name: input.name ?? 'DanDanPlay',
     impl: DanmakuSourceType.DanDanPlay,
-    enabled: input.enabled ?? false,
+    enabled: true,
     isBuiltIn: false,
     options: {
       baseUrl: input.options?.baseUrl ?? '',
-      chConvert: input.options?.chConvert ?? DanDanChConvert.None,
     },
   }
 }
@@ -71,11 +70,11 @@ export const createCustomMacCmsProvider = (
   input: Partial<CustomMacCmsProvider> = {}
 ): CustomMacCmsProvider => {
   return {
-    id: input.id ?? getRandomUUID(),
+    id: getRandomUUID(),
     type: 'MacCMS',
     name: input.name ?? 'MacCMS',
     impl: DanmakuSourceType.MacCMS,
-    enabled: input.enabled ?? false,
+    enabled: true,
     isBuiltIn: false,
     options: {
       danmakuBaseUrl: input.options?.danmakuBaseUrl ?? '',

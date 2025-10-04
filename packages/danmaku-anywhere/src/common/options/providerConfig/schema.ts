@@ -6,7 +6,6 @@ import {
 import { z } from 'zod'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { Options } from '@/common/options/OptionsService/types'
-import { getRandomUUID } from '@/common/utils/utils'
 
 export const zProviderConfigType = z.enum([
   'DanDanPlay',
@@ -19,7 +18,7 @@ export const zProviderConfigType = z.enum([
 export type ProviderConfigType = z.infer<typeof zProviderConfigType>
 
 const zProviderConfigBase = z.object({
-  id: z.string().uuid().default(getRandomUUID()),
+  id: z.string(),
   type: zProviderConfigType,
   impl: z.nativeEnum(DanmakuSourceType),
   name: z.string().min(1),
@@ -55,6 +54,7 @@ export const zTencentProviderConfig = zProviderConfigBase.extend({
 })
 
 export const zDanDanPlayCompatibleProviderConfig = zProviderConfigBase.extend({
+  id: z.string().uuid(),
   type: z.literal('DanDanPlayCompatible'),
   impl: z.literal(DanmakuSourceType.DanDanPlay),
   isBuiltIn: z.literal(false),
@@ -62,6 +62,7 @@ export const zDanDanPlayCompatibleProviderConfig = zProviderConfigBase.extend({
 })
 
 export const zMacCmsProviderConfig = zProviderConfigBase.extend({
+  id: z.string().uuid(),
   type: z.literal('MacCMS'),
   impl: z.literal(DanmakuSourceType.MacCMS),
   isBuiltIn: z.literal(false),
