@@ -106,7 +106,7 @@ export const useIntegrationPolicy = () => {
               if (result.data.status !== 'success') {
                 return
               }
-              if (result.data.data.provider === DanmakuSourceType.Custom) {
+              if (result.data.data.provider === DanmakuSourceType.MacCMS) {
                 toast.success(t('integration.alert.matchedLocalDanmaku'))
                 void mountDanmaku([result.data.data])
               } else {

@@ -1,9 +1,5 @@
 import type { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
-import type { ProviderConfig, ProviderConfigType } from './schema'
-
-export function localizeProviderConfigType(type: ProviderConfigType): string {
-  return `providers.type.${type}`
-}
+import type { ProviderConfig } from './schema'
 
 export function assertProviderImpl<T extends DanmakuSourceType>(
   config: ProviderConfig,

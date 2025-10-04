@@ -223,8 +223,12 @@ export const setupRpc = (
     genericVodSearch: async ({ baseUrl, keyword }) => {
       return customProviderService.search(baseUrl, keyword)
     },
-    genericFetchDanmakuForUrl: async ({ title, url }) => {
-      return customProviderService.fetchDanmakuForUrl(title, url)
+    genericFetchDanmakuForUrl: async ({ title, url, providerOptions }) => {
+      return customProviderService.fetchDanmakuForUrl(
+        title,
+        url,
+        providerOptions
+      )
     },
     setHeaders: async (rule) => {
       await setRequestHeaderRule(rule)

@@ -12,8 +12,6 @@ export interface SeasonSearchParams {
   keyword: string
   episode?: string
   providerConfig: ProviderConfig
-  provider: DanmakuSourceType
-  providerId?: string
   customBaseUrl: string
 }
 

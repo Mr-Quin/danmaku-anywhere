@@ -1,6 +1,9 @@
-import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
+import {
+  zBilibiliProviderOptions,
+  zDanDanPlayProviderOptions,
+  zMacCMSProviderOptions,
+} from '@danmaku-anywhere/danmaku-converter'
 import { z } from 'zod'
-
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { Options } from '@/common/options/OptionsService/types'
 import { getRandomUUID } from '@/common/utils/utils'
@@ -27,63 +30,42 @@ const zProviderConfigBase = z.object({
 export const zDanDanPlayProviderConfig = zProviderConfigBase.extend({
   id: z.literal('dandanplay'),
   type: z.literal('DanDanPlay'),
-  impl: z.literal('DanDanPlay'),
+  impl: z.literal(DanmakuSourceType.DanDanPlay),
   name: z.literal('DanDanPlay'),
   isBuiltIn: z.literal(true),
-  options: z.object({
-    baseUrl: z.string().trim().url().optional(),
-    apiKey: z.string().optional(),
-    chConvert: z.nativeEnum(DanDanChConvert),
-  }),
+  options: zDanDanPlayProviderOptions,
 })
 
 export const zBilibiliProviderConfig = zProviderConfigBase.extend({
   id: z.literal('bilibili'),
   type: z.literal('Bilibili'),
-  impl: z.literal('Bilibili'),
+  impl: z.literal(DanmakuSourceType.Bilibili),
   name: z.literal('Bilibili'),
   isBuiltIn: z.literal(true),
-  options: z.object({
-    danmakuTypePreference: z.enum(['xml', 'protobuf']).default('xml'),
-    protobufLimitPerMin: z.number().int().positive().max(1000).default(200),
-  }),
+  options: zBilibiliProviderOptions,
 })
 
 export const zTencentProviderConfig = zProviderConfigBase.extend({
   id: z.literal('tencent'),
   type: z.literal('Tencent'),
+  impl: z.literal(DanmakuSourceType.Tencent),
   name: z.literal('Tencent'),
   isBuiltIn: z.literal(true),
-  options: z.object({
-    limitPerMin: z.number().int().positive().max(1000).default(200),
-  }),
+  options: z.object({}),
 })
 
 export const zDanDanPlayCompatibleProviderConfig = zProviderConfigBase.extend({
   type: z.literal('DanDanPlayCompatible'),
   impl: z.literal(DanmakuSourceType.DanDanPlay),
   isBuiltIn: z.literal(false),
-  options: z.object({
-    baseUrl: z.string().trim().url(),
-    chConvert: z.nativeEnum(DanDanChConvert),
-  }),
+  options: zDanDanPlayProviderOptions,
 })
 
 export const zMacCmsProviderConfig = zProviderConfigBase.extend({
   type: z.literal('MacCMS'),
-  impl: z.literal(DanmakuSourceType.Custom),
+  impl: z.literal(DanmakuSourceType.MacCMS),
   isBuiltIn: z.literal(false),
-  options: z.object({
-    danmakuBaseUrl: z
-      .string()
-      .url()
-      .transform((val) => val.replace(/\/$/, '')),
-    danmuicuBaseUrl: z
-      .string()
-      .url()
-      .transform((val) => val.replace(/\/$/, '')),
-    stripColor: z.boolean(),
-  }),
+  options: zMacCMSProviderOptions,
 })
 
 export const providerConfigSchema = z.discriminatedUnion('type', [
@@ -93,8 +75,6 @@ export const providerConfigSchema = z.discriminatedUnion('type', [
   zDanDanPlayCompatibleProviderConfig,
   zMacCmsProviderConfig,
 ])
-
-export const providerConfigListSchema = z.array(providerConfigSchema)
 
 export type BuiltInDanDanPlayProvider = z.infer<
   typeof zDanDanPlayProviderConfig
@@ -107,26 +87,5 @@ export type DanDanPlayCompatProvider = z.infer<
 export type CustomMacCmsProvider = z.infer<typeof zMacCmsProviderConfig>
 
 export type ProviderConfig = z.infer<typeof providerConfigSchema>
-export type ProviderConfigInput = z.input<typeof providerConfigSchema>
 
 export type ProviderConfigOptions = Options<ProviderConfig[]>
-
-export type BuiltInProvider =
-  | BuiltInDanDanPlayProvider
-  | BuiltInBilibiliProvider
-  | BuiltInTencentProvider
-
-export type CustomProvider = DanDanPlayCompatProvider | CustomMacCmsProvider
-
-export type ProviderByType<T extends ProviderConfig['type']> = Extract<
-  ProviderConfig,
-  { type: T }
->
-
-export const providerTypeToDanmakuSource = {
-  DanDanPlay: DanmakuSourceType.DanDanPlay,
-  Bilibili: DanmakuSourceType.Bilibili,
-  Tencent: DanmakuSourceType.Tencent,
-  DanDanPlayCompatible: DanmakuSourceType.Custom,
-  MacCMS: DanmakuSourceType.Custom,
-} as const satisfies Record<ProviderConfigType, DanmakuSourceType>

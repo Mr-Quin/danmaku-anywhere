@@ -7,7 +7,7 @@ class UnsupportedProviderException extends Error {
   }
 }
 
-export function assertProvider<
+export function assertProviderType<
   T extends { provider: DanmakuSourceType },
   S extends DanmakuSourceType,
 >(data: T, provider: S): asserts data is Extract<T, { provider: S }> {
@@ -28,8 +28,8 @@ export function isProvider<
 
 export function isNotCustom<T extends { provider: DanmakuSourceType }>(
   data: T
-): data is Exclude<T, { provider: DanmakuSourceType.Custom }> {
-  return data.provider !== DanmakuSourceType.Custom
+): data is Exclude<T, { provider: DanmakuSourceType.MacCMS }> {
+  return data.provider !== DanmakuSourceType.MacCMS
 }
 
 export const episodeToString = (episode: GenericEpisodeLite) => {

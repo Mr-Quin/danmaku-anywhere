@@ -4,7 +4,7 @@ import {
   useIsFetching,
   useQueryErrorResetBoundary,
 } from '@tanstack/react-query'
-import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { useTranslation } from 'react-i18next'
 import { Outlet, useNavigate } from 'react-router'
@@ -38,16 +38,12 @@ export const SearchTab = () => {
 
   useEffect(() => {
     if (
-      search.tab === undefined ||
-      !enabledProviders.some((provider) => provider.id === search.tab)
+      search.provider === undefined ||
+      !enabledProviders.some((provider) => provider === search.provider)
     ) {
-      search.setTab(enabledProviders[0].id)
+      search.setProvider(enabledProviders[0])
     }
   }, [enabledProviders])
-
-  const selectedProvider = useMemo(() => {
-    return enabledProviders.find((provider) => provider.id === search.tab)
-  }, [enabledProviders, search.tab])
 
   const isSearching =
     useIsFetching({
@@ -73,7 +69,7 @@ export const SearchTab = () => {
     )
   }
 
-  if (search.tab === undefined || !selectedProvider) {
+  if (search.provider === undefined || !search.provider) {
     return null
   }
 
@@ -95,12 +91,12 @@ export const SearchTab = () => {
           <>
             <SeasonSearchTabs
               providers={enabledProviders}
-              selectedTab={search.tab}
-              onTabChange={search.setTab}
+              selectedProvider={search.provider}
+              onTabChange={search.setProvider}
             />
             <SeasonSearchResult
               searchParams={searchParams}
-              provider={selectedProvider}
+              provider={search.provider}
               onSeasonClick={(season) => {
                 search.setSeason(season)
                 navigate('season')

@@ -37,7 +37,7 @@ const SeasonListSuspense = () => {
 
     // inject a custom season into the list of seasons
     const customSeason: CustomSeason = {
-      provider: DanmakuSourceType.Custom,
+      provider: DanmakuSourceType.MacCMS,
       title: t('danmaku.local'),
       type: t('danmaku.local'),
       indexedId: '',
@@ -82,7 +82,7 @@ const SeasonListSuspense = () => {
         navigate({
           pathname: `${season.id}`,
           search: createSearchParams({
-            type: isProvider(season, DanmakuSourceType.Custom)
+            type: isProvider(season, DanmakuSourceType.MacCMS)
               ? 'custom'
               : 'remote',
           }).toString(),

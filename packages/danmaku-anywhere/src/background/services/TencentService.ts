@@ -14,7 +14,7 @@ import * as tencent from '@danmaku-anywhere/danmaku-provider/tencent'
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import type { SeasonService } from '@/background/services/SeasonService'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { assertProvider } from '@/common/danmaku/utils'
+import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 
 export class TencentService {
@@ -73,7 +73,7 @@ export class TencentService {
   ): Promise<WithSeason<TencentOf<EpisodeMeta>>[]> {
     this.logger.debug('Get episode', seasonId)
     const season = await this.seasonService.mustGetById(seasonId)
-    assertProvider(season, DanmakuSourceType.Tencent)
+    assertProviderType(season, DanmakuSourceType.Tencent)
 
     const generator = tencent.listEpisodes({
       cid: season.providerIds.cid,
@@ -112,7 +112,7 @@ export class TencentService {
    */
   async refreshSeason(id: number) {
     const season = await this.seasonService.mustGetById(id)
-    assertProvider(season, DanmakuSourceType.Tencent)
+    assertProviderType(season, DanmakuSourceType.Tencent)
 
     const episodes = await this.danmakuService.filter({
       provider: DanmakuSourceType.Tencent,
@@ -126,7 +126,7 @@ export class TencentService {
     }
 
     const episode = episodes[0]
-    assertProvider(episode, DanmakuSourceType.Tencent)
+    assertProviderType(episode, DanmakuSourceType.Tencent)
 
     await this.getPageDetails(season.providerIds.cid, '')
   }

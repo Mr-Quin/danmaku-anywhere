@@ -145,7 +145,7 @@ window.addEventListener(
       case 'danmakuGet': {
         const data = request.data
         const { id } = data
-        if (isProvider(data, DanmakuSourceType.Custom)) {
+        if (isProvider(data, DanmakuSourceType.MacCMS)) {
           return wrapRpc(() =>
             chromeRpcClient.episodeFilterCustom({
               id,

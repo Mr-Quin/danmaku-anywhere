@@ -2,12 +2,12 @@ import { Delete } from '@mui/icons-material'
 import { Chip, ListItemIcon, ListItemText, MenuItem } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
+import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import {
   useEditProviderConfig,
   useProviderConfig,
 } from '@/common/options/providerConfig/useProviderConfig'
-import { localizeProviderConfigType } from '@/common/options/providerConfig/utils'
 import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import { ProviderToggleSwitch } from './ProviderToggleSwitch'
 
@@ -48,7 +48,7 @@ export const ProviderConfigList = ({
     }
     return (
       <Chip
-        label={t(localizeProviderConfigType(config.type))}
+        label={t(localizedDanmakuSourceType(config.impl))}
         size="small"
         sx={{ ml: 1 }}
         color="secondary"

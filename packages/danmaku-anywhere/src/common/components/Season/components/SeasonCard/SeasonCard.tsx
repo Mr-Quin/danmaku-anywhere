@@ -178,7 +178,7 @@ export const SeasonCard = ({
     if (disableMenu || enableSelection) {
       return null
     }
-    if (isProvider(season, DanmakuSourceType.Custom)) {
+    if (isProvider(season, DanmakuSourceType.MacCMS)) {
       return (
         <CardCornerInfo position="bottom-right" sx={{ p: 0 }}>
           <DrilldownMenu
@@ -325,7 +325,7 @@ export const SeasonCard = ({
         {season.year && (
           <CardCornerInfo position="bottom-left">{season.year}</CardCornerInfo>
         )}
-        {!isProvider(season, DanmakuSourceType.Custom) && (
+        {!isProvider(season, DanmakuSourceType.MacCMS) && (
           <Logo>
             <ProviderLogo provider={season.provider} />
           </Logo>

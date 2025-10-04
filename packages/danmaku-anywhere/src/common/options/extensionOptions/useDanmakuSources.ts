@@ -28,7 +28,7 @@ export const useDanmakuSources = () => {
       },
       {
         key: 'custom',
-        provider: DanmakuSourceType.Custom,
+        provider: DanmakuSourceType.MacCMS,
         options: sources.custom,
       },
     ] as const

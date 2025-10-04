@@ -6,6 +6,7 @@ import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import { danmakuSourceTypeList } from '@/common/danmaku/enums'
 import { createMountConfig } from '@/common/options/mountConfig/constant'
 import type { MountConfigInput } from '@/common/options/mountConfig/schema'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { createSelectors } from '@/common/utils/createSelectors'
 
 interface StoreState {
@@ -24,8 +25,8 @@ interface StoreState {
     setKeyword: (keyword: string) => void
     season?: Season | CustomSeason
     setSeason: (season: Season | CustomSeason) => void
-    tab?: string
-    setTab: (tab: string) => void
+    provider?: ProviderConfig
+    setProvider: (provider: ProviderConfig) => void
   }
   danmaku: {
     animeFilter: string
@@ -89,10 +90,10 @@ const useStoreBase = create<StoreState>()(
         set((state) => {
           state.search.season = season
         }),
-      tab: undefined,
-      setTab: (tab) =>
+      provider: undefined,
+      setProvider: (provider) =>
         set((state) => {
-          state.search.tab = tab
+          state.search.provider = provider
         }),
     },
     danmaku: {

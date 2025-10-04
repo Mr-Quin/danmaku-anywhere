@@ -6,10 +6,7 @@ import { useEventCallback } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
-import type {
-  DanmakuFetchDto,
-  GenericDanmakuFetchData,
-} from '@/common/danmaku/dto'
+import type { DanmakuFetchDto, MacCMSFetchData } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
@@ -111,7 +108,7 @@ export const useLoadDanmaku = () => {
   })
 
   const loadGenericMutation = useMutation({
-    mutationFn: async (data: GenericDanmakuFetchData) => {
+    mutationFn: async (data: MacCMSFetchData) => {
       return fetchGenericMutation.mutateAsync(data, {
         onSuccess: (cache) => {
           mountDanmaku([cache])

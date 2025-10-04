@@ -61,7 +61,7 @@ interface TencentMeta extends BaseDanmakuMeta {
  * @deprecated
  */
 interface CustomMeta extends BaseDanmakuMeta {
-  provider: DanmakuSourceType.Custom
+  provider: DanmakuSourceType.MacCMS
   seasonTitle: string
   episodeTitle: string
 }
@@ -119,7 +119,7 @@ export type DanDanPlayDanmakuInsertV3 = Omit<DanDanPlayDanmakuV3, 'id'>
  * @deprecated
  */
 export type CustomDanmakuV3 = BaseEpisodeV3 & {
-  provider: DanmakuSourceType.Custom
+  provider: DanmakuSourceType.MacCMS
   meta: CustomMeta
 }
 

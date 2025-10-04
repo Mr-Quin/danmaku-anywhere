@@ -42,7 +42,6 @@ const SeasonSearchResultSuspense = ({
 }: SeasonSearchResultProps) => {
   const { t } = useTranslation()
 
-  // Pass the full provider config to the hook so it can set the context
   const { data: result, refetch } = useSeasonSearchSuspense(
     provider,
     searchParams.anime

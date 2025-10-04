@@ -140,7 +140,7 @@ const EpisodeListItem = ({
 const EpisodeListItemMemo = memo(EpisodeListItem)
 
 const stringifyDanmakuMeta = (episode: GenericEpisodeLite) => {
-  if (isProvider(episode, DanmakuSourceType.Custom)) {
+  if (isProvider(episode, DanmakuSourceType.MacCMS)) {
     return episode.title
   }
   return `${episode.season.title} ${episode.title}`
@@ -255,7 +255,7 @@ export const DanmakuSelector = ({
           version: 0,
           timeUpdated: 0,
           id: -1,
-          provider: DanmakuSourceType.Custom,
+          provider: DanmakuSourceType.MacCMS,
           providerIds: {},
         } satisfies CustomSeason,
       })

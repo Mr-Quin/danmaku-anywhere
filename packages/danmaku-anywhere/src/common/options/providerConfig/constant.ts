@@ -31,7 +31,6 @@ export const builtInBilibiliProvider: BuiltInBilibiliProvider = {
   isBuiltIn: true,
   options: {
     danmakuTypePreference: 'xml',
-    protobufLimitPerMin: 200,
   },
 }
 
@@ -42,9 +41,7 @@ export const builtInTencentProvider: BuiltInTencentProvider = {
   impl: DanmakuSourceType.Tencent,
   enabled: true,
   isBuiltIn: true,
-  options: {
-    limitPerMin: 200,
-  },
+  options: {},
 }
 
 export const defaultProviderConfigs: ProviderConfig[] = [
@@ -77,7 +74,7 @@ export const createCustomMacCmsProvider = (
     id: input.id ?? getRandomUUID(),
     type: 'MacCMS',
     name: input.name ?? 'MacCMS',
-    impl: DanmakuSourceType.Custom,
+    impl: DanmakuSourceType.MacCMS,
     enabled: input.enabled ?? false,
     isBuiltIn: false,
     options: {

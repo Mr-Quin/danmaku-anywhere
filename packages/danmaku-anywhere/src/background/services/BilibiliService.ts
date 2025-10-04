@@ -1,4 +1,7 @@
-import type { WithSeason } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  BilibiliProviderOptions,
+  WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
 import {
   type BilibiliOf,
   type Episode,
@@ -16,14 +19,11 @@ import * as bilibili from '@danmaku-anywhere/danmaku-provider/bilibili'
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import type { SeasonService } from '@/background/services/SeasonService'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { assertProvider } from '@/common/danmaku/utils'
+import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
-import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 
 export class BilibiliService {
   private logger: typeof Logger
-
-  private extensionOptionsService = extensionOptionsService
 
   constructor(
     private seasonService: SeasonService,
@@ -161,7 +161,7 @@ export class BilibiliService {
   ): Promise<WithSeason<BilibiliOf<EpisodeMeta>>[]> {
     this.logger.debug('Get bangumi info', dbSeasonId)
     const season = await this.seasonService.mustGetById(dbSeasonId)
-    assertProvider(season, DanmakuSourceType.Bilibili)
+    assertProviderType(season, DanmakuSourceType.Bilibili)
 
     const {
       providerIds: { seasonId },
@@ -176,20 +176,23 @@ export class BilibiliService {
   }
 
   async saveEpisode(
-    meta: BilibiliOf<EpisodeMeta>
+    meta: BilibiliOf<EpisodeMeta>,
+    providerOptions: BilibiliProviderOptions
   ): Promise<BilibiliOf<Episode>> {
-    const comments = await this.getDanmaku(meta)
+    const comments = await this.getDanmaku(meta, providerOptions)
     return this.danmakuService.upsert({
       ...meta,
       comments,
       commentCount: comments.length,
+      providerOptions,
     })
   }
 
-  async getDanmaku(meta: BilibiliOf<EpisodeMeta>) {
-    const pref = await this.extensionOptionsService.get()
-
-    const { danmakuTypePreference } = pref.danmakuSources.bilibili
+  async getDanmaku(
+    meta: BilibiliOf<EpisodeMeta>,
+    providerOptions: BilibiliProviderOptions
+  ) {
+    const { danmakuTypePreference } = providerOptions
 
     const { cid, aid } = meta.providerIds
 

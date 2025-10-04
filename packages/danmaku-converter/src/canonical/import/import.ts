@@ -19,7 +19,7 @@ const zImportV3 = z
     zEpisodeImportV3.transform(episodeMigration.v3ToV3),
   ])
   .transform((data): BackupParseData => {
-    if (data.provider === DanmakuSourceType.Custom) {
+    if (data.provider === DanmakuSourceType.MacCMS) {
       return {
         type: 'Custom',
         episode: episodeMigration.customV3ToV4(data),

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { zDanDanPlayProviderOptions } from '../../provider/options.js'
 import {
   type ByProvider,
   DanmakuSourceType,
@@ -23,8 +24,6 @@ export const zBaseSeasonV1 = z.object({
 export const zDanDanPlaySeasonProviderIds = z.object({
   animeId: z.number(),
   bangumiId: z.string(),
-  // undefined means built-in provider
-  providerInstanceId: z.string().optional(),
 })
 
 export const zBilibiliSeasonProviderIds = z.object({
@@ -39,6 +38,7 @@ export const zTencentSeasonProviderIds = z.object({
 export const zDanDanPlaySeasonV1 = zBaseSeasonV1.extend({
   provider: z.literal(DanmakuSourceType.DanDanPlay),
   providerIds: zDanDanPlaySeasonProviderIds,
+  providerOptions: zDanDanPlayProviderOptions.optional(),
 })
 
 export const zBilibiliSeasonV1 = zBaseSeasonV1.extend({

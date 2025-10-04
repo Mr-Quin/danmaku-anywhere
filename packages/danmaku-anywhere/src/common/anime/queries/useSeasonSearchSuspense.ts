@@ -6,7 +6,6 @@ import type { SeasonSearchParams } from '@/common/anime/dto'
 import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { Logger } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
-import { providerTypeToDanmakuSource } from '@/common/options/providerConfig/schema'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
@@ -17,11 +16,8 @@ export const useSeasonSearchSuspense = (
   const { t } = useTranslation()
 
   const params: SeasonSearchParams = useMemo(() => {
-    const provider = providerTypeToDanmakuSource[providerConfig.type]
-
     return {
       keyword,
-      provider,
       customBaseUrl: '',
       providerId: providerConfig.id,
       providerConfig,

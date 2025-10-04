@@ -6,7 +6,7 @@ import {
 export { DanmakuSourceType, type RemoteDanmakuSourceType }
 
 export const danmakuSourceTypeList: DanmakuSourceType[] = [
-  DanmakuSourceType.Custom,
+  DanmakuSourceType.MacCMS,
   DanmakuSourceType.DanDanPlay,
   DanmakuSourceType.Bilibili,
   DanmakuSourceType.Tencent,

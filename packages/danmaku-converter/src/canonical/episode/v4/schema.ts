@@ -2,6 +2,10 @@ import { z } from 'zod'
 import { stripHtml } from '../../../utils/index.js'
 import { zCommentEntity } from '../../comment/index.js'
 import {
+  zBilibiliProviderOptions,
+  zDanDanPlayProviderOptions,
+} from '../../provider/options.js'
+import {
   type ByProvider,
   DanmakuSourceType,
   type DbEntity,
@@ -18,7 +22,7 @@ import {
  * Custom episode schema
  */
 export const zCustomEpisodeInsertV4 = z.object({
-  provider: z.literal(DanmakuSourceType.Custom),
+  provider: z.literal(DanmakuSourceType.MacCMS),
   title: z.string().refine(stripHtml),
   comments: z.array(zCommentEntity),
   commentCount: z.number(),
@@ -59,8 +63,6 @@ const zBaseEpisodeV4 = z.object({
 
 export const zDanDanPlayProviderIds = z.object({
   episodeId: z.number(),
-  // undefined means built-in provider
-  providerInstanceId: z.string().optional(),
 })
 
 export const zDanDanPlayParams = z.object({
@@ -83,12 +85,14 @@ export const zTencentProviderIds = z.object({
 export const zDanDanPlayEpisodeV4 = zBaseEpisodeV4.extend({
   provider: z.literal(DanmakuSourceType.DanDanPlay),
   providerIds: zDanDanPlayProviderIds,
+  providerOptions: zDanDanPlayProviderOptions.optional(),
   params: zDanDanPlayParams.optional(),
 })
 
 export const zBilibiliEpisodeV4 = zBaseEpisodeV4.extend({
   provider: z.literal(DanmakuSourceType.Bilibili),
   providerIds: zBilibiliProviderIds,
+  providerOptions: zBilibiliProviderOptions.optional(),
 })
 
 export const zTencentEpisodeV4 = zBaseEpisodeV4.extend({

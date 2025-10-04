@@ -2,7 +2,11 @@ import { produce } from 'immer'
 import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { defaultProviderConfigs } from './constant'
-import type { ProviderConfig } from './schema'
+import type {
+  BuiltInBilibiliProvider,
+  BuiltInDanDanPlayProvider,
+  ProviderConfig,
+} from './schema'
 import { providerConfigSchema } from './schema'
 
 const providerConfigOptions = new OptionsService<ProviderConfig[]>(
@@ -31,13 +35,29 @@ class ProviderConfigService {
     return config
   }
 
-  async get(id: string) {
+  async get(id: string): Promise<ProviderConfig | undefined> {
     const configs = await this.options.get()
     return configs.find((item) => item.id === id)
   }
 
   async getAll() {
     return this.options.get()
+  }
+
+  async getBuiltInDanDanPlay(): Promise<BuiltInDanDanPlayProvider> {
+    const config = await this.get('dandanplay')
+    if (!config) {
+      throw new Error('Built-in DanDanPlay provider not found')
+    }
+    return config as BuiltInDanDanPlayProvider
+  }
+
+  async getBuiltInBilibili(): Promise<BuiltInBilibiliProvider> {
+    const config = await this.get('bilibili')
+    if (!config) {
+      throw new Error('Built-in Bilibili provider not found')
+    }
+    return config as BuiltInBilibiliProvider
   }
 
   async update<T extends ProviderConfig>(
@@ -114,8 +134,8 @@ class ProviderConfigService {
   async getProvidersByType<T extends ProviderConfig['type']>(
     type: T
   ): Promise<Extract<ProviderConfig, { type: T }>[]> {
-    const configs = await this.options.get()
-    return configs.filter((config) => config.type === type) as any
+    const config = await this.options.get()
+    return config.filter((config) => config.type === type) as any
   }
 }
 

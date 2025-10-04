@@ -1,5 +1,6 @@
 export * from './comment/index.js'
 export * from './episode/index.js'
 export * from './import/import.js'
+export * from './provider/options.js'
 export * from './provider/provider.js'
 export * from './season/index.js'

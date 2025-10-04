@@ -186,7 +186,7 @@ export const SearchPage = () => {
                 <>
                   <SeasonSearchTabs
                     providers={enabledProviders}
-                    selectedTab={providerTab}
+                    selectedProvider={providerTab}
                     onTabChange={setProviderTab}
                   />
                   <SeasonSearchResult
