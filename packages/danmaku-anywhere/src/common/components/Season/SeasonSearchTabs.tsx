@@ -18,8 +18,13 @@ export const SeasonSearchTabs = ({
 
   return (
     <Tabs
-      value={selectedProvider}
-      onChange={(_, value) => onTabChange?.(value)}
+      value={selectedProvider.id}
+      onChange={(_, providerId: string) => {
+        const provider = providers.find((p) => p.id === providerId)
+        if (provider) {
+          onTabChange?.(provider)
+        }
+      }}
       sx={{
         position: 'sticky',
         top: 0,
@@ -36,7 +41,7 @@ export const SeasonSearchTabs = ({
       {providers.map((provider) => {
         return (
           <Tab
-            value={provider}
+            value={provider.id}
             label={
               provider.isBuiltIn
                 ? t(localizedDanmakuSourceType(provider.impl))

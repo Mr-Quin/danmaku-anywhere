@@ -19,7 +19,7 @@ export const TencentProviderForm = ({
     handleSubmit,
     register,
     reset,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isDirty },
   } = useForm<BuiltInTencentProvider>({
     resolver: zodResolver(zTencentProviderConfig),
     defaultValues: provider,
@@ -55,6 +55,7 @@ export const TencentProviderForm = ({
         isEdit={isEdit}
         isSubmitting={isSubmitting}
         onReset={handleReset}
+        disableReset={!isDirty}
       />
     </Stack>
   )

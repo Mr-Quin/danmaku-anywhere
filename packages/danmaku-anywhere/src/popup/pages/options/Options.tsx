@@ -67,10 +67,6 @@ export const Options = () => {
         <List disablePadding>
           <LanguageListItem />
           <OptionsListItem
-            title={t('optionsPage.pages.danmakuSource')}
-            onClick={() => navigate('danmaku-source')}
-          />
-          <OptionsListItem
             title={t('optionsPage.pages.retentionPolicy')}
             onClick={() => navigate('retention-policy')}
           />

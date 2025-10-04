@@ -29,12 +29,12 @@ export const BilibiliProviderForm = ({
     reset,
     formState: { isSubmitting, isDirty },
   } = useForm<BuiltInBilibiliProvider>({
-    resolver: zodResolver(zBilibiliProviderConfig) as any,
+    resolver: zodResolver(zBilibiliProviderConfig),
     defaultValues: provider,
   })
 
   const handleFormSubmit = handleSubmit(async (data) => {
-    await onSubmit(data as BuiltInBilibiliProvider)
+    await onSubmit(data)
   })
 
   const handleReset = () => {

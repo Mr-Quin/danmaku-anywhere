@@ -339,7 +339,6 @@ const pages = {
       showDanmakuTimeline: 'Show danmaku density',
     },
     pages: {
-      danmakuSource: 'Danmaku Source',
       theme: 'UI Theme',
       hotkeys: 'Hotkeys',
       player: 'Player Settings',
@@ -453,8 +452,6 @@ const pages = {
   providers: {
     add: 'Add Provider',
     builtin: 'Built-in',
-    'type.custom-dandanplay': 'DanDanPlay Compatible',
-    'type.custom-maccms': 'MacCMS',
     delete: {
       title: 'Delete Provider',
       message: 'Are you sure you want to delete "{{name}}"?',

@@ -334,7 +334,6 @@ const pages = {
       showDanmakuTimeline: '显示弹幕密度',
     },
     pages: {
-      danmakuSource: '弹幕来源',
       theme: 'UI主题',
       hotkeys: '快捷键',
       player: '播放设置',
@@ -444,8 +443,6 @@ const pages = {
   providers: {
     add: '添加弹幕源',
     builtin: '内置',
-    'type.custom-dandanplay': '弹弹Play 兼容',
-    'type.custom-maccms': 'MacCMS',
     delete: {
       title: '删除弹幕源',
       message: '确定要删除 "{{name}}" 吗？',

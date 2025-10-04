@@ -31,7 +31,7 @@ export const MacCmsProviderForm = ({
     control,
     register,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<CustomMacCmsProvider>({
     resolver: zodResolver(zMacCmsProviderConfig),
     defaultValues: provider,
@@ -159,6 +159,7 @@ export const MacCmsProviderForm = ({
         isEdit={isEdit}
         isSubmitting={isSubmitting}
         onReset={handleReset}
+        disableReset={!isDirty}
       />
     </Stack>
   )

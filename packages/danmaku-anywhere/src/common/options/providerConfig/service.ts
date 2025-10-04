@@ -144,18 +144,6 @@ class ProviderConfigService {
 
     await this.options.set(newData)
   }
-
-  async getEnabledProviders() {
-    const configs = await this.options.get()
-    return configs.filter((config) => config.enabled)
-  }
-
-  async getProvidersByType<T extends ProviderConfig['type']>(
-    type: T
-  ): Promise<Extract<ProviderConfig, { type: T }>[]> {
-    const config = await this.options.get()
-    return config.filter((config) => config.type === type) as any
-  }
 }
 
 export const providerConfigService = new ProviderConfigService()

@@ -39,7 +39,7 @@ export const SearchTab = () => {
   useEffect(() => {
     if (
       search.provider === undefined ||
-      !enabledProviders.some((provider) => provider === search.provider)
+      !enabledProviders.some((provider) => provider.id === search.provider?.id)
     ) {
       search.setProvider(enabledProviders[0])
     }

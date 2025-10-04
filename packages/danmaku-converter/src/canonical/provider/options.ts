@@ -12,7 +12,7 @@ export type DanDanDanPlayProviderOptions = z.infer<
 >
 
 export const zBilibiliProviderOptions = z.object({
-  danmakuTypePreference: z.enum(['xml', 'protobuf']).default('xml'),
+  danmakuTypePreference: z.enum(['xml', 'protobuf']),
 })
 
 export type BilibiliProviderOptions = z.infer<typeof zBilibiliProviderOptions>
