@@ -1,151 +1,123 @@
+import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
-import type { DanmakuSources } from '@/common/options/extensionOptions/schema'
 import { getRandomUUID } from '@/common/utils/utils'
 import {
   builtInBilibiliProvider,
   builtInDanDanPlayProvider,
   builtInTencentProvider,
+  defaultProviderConfigs,
 } from './constant'
 import type { ProviderConfig } from './schema'
 
-/**
- * Migrate old danmakuSources format to new provider config list
- *
- * Migration rules:
- * 1. Built-in providers (dandanplay, bilibili, tencent) → Always create as built-in
- * 2. If dandanplay has custom baseUrl and useCustomRoot=true → Create additional custom-dandanplay provider
- * 3. custom source → Create custom-maccms provider
- * 4. iqiyi → Currently not supported, will be skipped
- */
 export function migrateDanmakuSourcesToProviders(
-  oldSources: DanmakuSources
+  oldSources: any
 ): ProviderConfig[] {
-  const providers: ProviderConfig[] = []
+  try {
+    const providers: ProviderConfig[] = []
 
-  // 1. Migrate built-in DanDanPlay provider
-  if (oldSources.dandanplay) {
-    providers.push({
-      id: 'dandanplay',
-      type: 'DanDanPlay',
-      name: 'DanDanPlay',
-      enabled: oldSources.dandanplay.enabled,
-      isBuiltIn: true,
-      options: {
-        chConvert: oldSources.dandanplay.chConvert ?? DanDanChConvert.None,
-      },
-    })
-
-    // If user has custom baseUrl and useCustomRoot is true, create a custom provider
-    if (
-      oldSources.dandanplay.useCustomRoot &&
-      oldSources.dandanplay.baseUrl &&
-      oldSources.dandanplay.baseUrl.trim() !== ''
-    ) {
-      // Only create custom provider if it's not the default DanDanPlay URL
-      const isDefaultUrl =
-        oldSources.dandanplay.baseUrl.includes('api.dandanplay.net') ||
-        oldSources.dandanplay.baseUrl.includes('api.dandanplay.com')
-
-      if (!isDefaultUrl) {
+    try {
+      if (oldSources.dandanplay) {
         providers.push({
-          id: getRandomUUID(),
-          type: 'DanDanPlayCompatible',
-          isBuiltIn: false,
-          name: 'DanDanPlay Compatible (Migrated)',
-          enabled: oldSources.dandanplay.enabled,
+          id: 'dandanplay',
+          type: 'DanDanPlay',
+          name: 'DanDanPlay',
+          impl: DanmakuSourceType.DanDanPlay,
+          enabled: oldSources.dandanplay.enabled ?? true,
+          isBuiltIn: true,
           options: {
-            baseUrl: oldSources.dandanplay.baseUrl.trim(),
             chConvert: oldSources.dandanplay.chConvert ?? DanDanChConvert.None,
           },
         })
+      } else {
+        providers.push(builtInDanDanPlayProvider)
       }
+    } catch (error) {
+      console.error('Failed to migrate DanDanPlay provider:', error)
+      providers.push(builtInDanDanPlayProvider)
     }
-  } else {
-    // No dandanplay in old config, use default
-    providers.push(builtInDanDanPlayProvider)
-  }
 
-  // 2. Migrate built-in Bilibili provider
-  if (oldSources.bilibili) {
-    providers.push({
-      id: 'bilibili',
-      type: 'Bilibili',
-      isBuiltIn: true,
-      name: 'Bilibili',
-      enabled: oldSources.bilibili.enabled,
-      options: {
-        danmakuTypePreference:
-          oldSources.bilibili.danmakuTypePreference ?? 'xml',
-        protobufLimitPerMin: oldSources.bilibili.protobufLimitPerMin ?? 200,
-      },
-    })
-  } else {
-    // No bilibili in old config, use default
-    providers.push(builtInBilibiliProvider)
-  }
-
-  // 3. Migrate built-in Tencent provider
-  if (oldSources.tencent) {
-    providers.push({
-      id: 'tencent',
-      type: 'Tencent',
-      isBuiltIn: true,
-      name: 'Tencent',
-      enabled: oldSources.tencent.enabled,
-      options: {
-        limitPerMin: oldSources.tencent.limitPerMin ?? 200,
-      },
-    })
-  } else {
-    // No tencent in old config, use default
-    providers.push(builtInTencentProvider)
-  }
-
-  // 4. Migrate custom MacCMS provider
-  if (oldSources.custom) {
-    // Check if custom source has valid URLs
-    const hasValidUrls =
-      oldSources.custom.baseUrl &&
-      oldSources.custom.baseUrl.trim() !== '' &&
-      oldSources.custom.danmuicuBaseUrl &&
-      oldSources.custom.danmuicuBaseUrl.trim() !== ''
-
-    if (hasValidUrls) {
-      providers.push({
-        id: getRandomUUID(),
-        type: 'MacCMS',
-        isBuiltIn: false,
-        name: 'MacCMS (Migrated)',
-        enabled: oldSources.custom.enabled,
-        options: {
-          danmakuBaseUrl: oldSources.custom.baseUrl.trim(),
-          danmuicuBaseUrl: oldSources.custom.danmuicuBaseUrl.trim(),
-          stripColor: oldSources.custom.stripColor ?? false,
-        },
-      })
+    try {
+      if (oldSources.bilibili) {
+        providers.push({
+          id: 'bilibili',
+          type: 'Bilibili',
+          name: 'Bilibili',
+          impl: DanmakuSourceType.Bilibili,
+          isBuiltIn: true,
+          enabled: oldSources.bilibili.enabled ?? true,
+          options: {
+            danmakuTypePreference:
+              oldSources.bilibili.danmakuTypePreference ?? 'xml',
+            // Note: protobufLimitPerMin is obsolete and ignored
+          },
+        })
+      } else {
+        providers.push(builtInBilibiliProvider)
+      }
+    } catch (error) {
+      console.error('Failed to migrate Bilibili provider:', error)
+      providers.push(builtInBilibiliProvider)
     }
+
+    try {
+      if (oldSources.tencent) {
+        providers.push({
+          id: 'tencent',
+          type: 'Tencent',
+          name: 'Tencent',
+          impl: DanmakuSourceType.Tencent,
+          isBuiltIn: true,
+          enabled: oldSources.tencent.enabled ?? true,
+          options: {
+            // Note: limitPerMin is obsolete and ignored
+          },
+        })
+      } else {
+        providers.push(builtInTencentProvider)
+      }
+    } catch (error) {
+      console.error('Failed to migrate Tencent provider:', error)
+      providers.push(builtInTencentProvider)
+    }
+
+    try {
+      if (oldSources.custom) {
+        // Check if custom source has valid URLs
+        const baseUrl = oldSources.custom.baseUrl?.trim()
+        const danmuicuBaseUrl = oldSources.custom.danmuicuBaseUrl?.trim()
+
+        if (
+          baseUrl &&
+          danmuicuBaseUrl &&
+          baseUrl !== '' &&
+          danmuicuBaseUrl !== ''
+        ) {
+          providers.push({
+            id: getRandomUUID(),
+            type: 'MacCMS',
+            name: 'MacCMS (Migrated)',
+            impl: DanmakuSourceType.MacCMS,
+            isBuiltIn: false,
+            enabled: oldSources.custom.enabled ?? true,
+            options: {
+              danmakuBaseUrl: baseUrl,
+              danmuicuBaseUrl: danmuicuBaseUrl,
+              stripColor: oldSources.custom.stripColor ?? false,
+            },
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Failed to migrate custom MacCMS provider:', error)
+    }
+
+    if (providers.length === 0) {
+      return [...defaultProviderConfigs]
+    }
+
+    return providers
+  } catch (error) {
+    console.error('Failed to migrate danmaku sources:', error)
+    return [...defaultProviderConfigs]
   }
-
-  // Note: iqiyi is not currently supported in the new system
-  // We could log this for debugging purposes
-  if (oldSources.iqiyi?.enabled) {
-    console.warn(
-      'iQiyi provider was enabled but is not supported in the new provider system'
-    )
-  }
-
-  return providers
-}
-
-/**
- * Check if migration is needed by checking if danmakuSources exists in old format
- */
-export function needsMigration(options: any): boolean {
-  return (
-    options &&
-    typeof options === 'object' &&
-    'danmakuSources' in options &&
-    typeof options.danmakuSources === 'object' &&
-    options.danmakuSources !== null
-  )
 }
