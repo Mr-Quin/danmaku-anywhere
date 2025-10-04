@@ -450,6 +450,7 @@ const pages = {
     providers: 'Providers',
   },
   providers: {
+    name: 'Danmaku Providers',
     add: 'Add Provider',
     builtin: 'Built-in',
     delete: {

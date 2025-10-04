@@ -15,7 +15,7 @@ export const ProviderToolbar = ({
   const { t } = useTranslation()
 
   return (
-    <TabToolbar title={t('configPage.name')}>
+    <TabToolbar title={t('providers.name')}>
       <DrilldownMenu
         icon={<AddCircle />}
         ButtonProps={{ color: 'primary' }}

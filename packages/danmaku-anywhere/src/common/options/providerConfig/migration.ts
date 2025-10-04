@@ -44,11 +44,10 @@ export function migrateDanmakuSourcesToProviders(
           name: 'Bilibili',
           impl: DanmakuSourceType.Bilibili,
           isBuiltIn: true,
-          enabled: oldSources.bilibili.enabled ?? true,
+          enabled: oldSources.bilibili.enabled ?? false,
           options: {
             danmakuTypePreference:
               oldSources.bilibili.danmakuTypePreference ?? 'xml',
-            // Note: protobufLimitPerMin is obsolete and ignored
           },
         })
       } else {
@@ -67,10 +66,8 @@ export function migrateDanmakuSourcesToProviders(
           name: 'Tencent',
           impl: DanmakuSourceType.Tencent,
           isBuiltIn: true,
-          enabled: oldSources.tencent.enabled ?? true,
-          options: {
-            // Note: limitPerMin is obsolete and ignored
-          },
+          enabled: oldSources.tencent.enabled ?? false,
+          options: {},
         })
       } else {
         providers.push(builtInTencentProvider)
@@ -82,7 +79,6 @@ export function migrateDanmakuSourcesToProviders(
 
     try {
       if (oldSources.custom) {
-        // Check if custom source has valid URLs
         const baseUrl = oldSources.custom.baseUrl?.trim()
         const danmuicuBaseUrl = oldSources.custom.danmuicuBaseUrl?.trim()
 

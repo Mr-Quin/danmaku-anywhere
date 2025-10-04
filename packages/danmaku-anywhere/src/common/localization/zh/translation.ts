@@ -441,6 +441,7 @@ const pages = {
     providers: '弹幕源',
   },
   providers: {
+    name: '弹幕源',
     add: '添加弹幕源',
     builtin: '内置',
     delete: {
