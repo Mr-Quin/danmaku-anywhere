@@ -18,8 +18,6 @@ export const useSeasonSearchSuspense = (
   const params: SeasonSearchParams = useMemo(() => {
     return {
       keyword,
-      customBaseUrl: '',
-      providerId: providerConfig.id,
       providerConfig,
     }
   }, [providerConfig, keyword])

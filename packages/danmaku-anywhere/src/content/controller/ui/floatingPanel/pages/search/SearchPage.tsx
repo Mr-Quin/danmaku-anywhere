@@ -16,8 +16,8 @@ import { SeasonSearchResult } from '@/common/components/Season/SeasonSearchResul
 import { SeasonSearchTabs } from '@/common/components/Season/SeasonSearchTabs'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { isProvider } from '@/common/danmaku/utils'
-import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
+import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { doesSeasonMapExist } from '@/common/seasonMap/doesSeasonMapExist'
 import { useAllSeasonMap } from '@/common/seasonMap/queries/useAllSeasonMap'
@@ -40,7 +40,7 @@ export const SearchPage = () => {
     data: { searchUsingSimplified },
   } = useExtensionOptions()
 
-  const { enabledProviders } = useDanmakuSources()
+  const { enabledProviders } = useProviderConfig()
   const { mountDanmaku } = useLoadDanmaku()
   const { data: seasonMaps } = useAllSeasonMap()
 
@@ -64,10 +64,13 @@ export const SearchPage = () => {
   const [pending, startTransition] = useTransition()
 
   useEffect(() => {
-    if (providerTab === undefined || !enabledProviders.includes(providerTab)) {
+    if (
+      providerTab === undefined ||
+      !enabledProviders.some((provider) => provider.id === providerTab.id)
+    ) {
       setProviderTab(enabledProviders[0])
     }
-  }, enabledProviders)
+  }, [enabledProviders])
 
   useEffect(() => {
     if (!selectedSeason) {

@@ -20,7 +20,7 @@ import { tryCatch } from '@/common/utils/utils'
 function createQueryContext(
   provider?: DanDanDanPlayProviderOptions
 ): DanDanPlayQueryContext {
-  if (!provider) {
+  if (!provider || !provider.baseUrl || provider.baseUrl.trim().length === 0) {
     return {
       isCustom: false,
     }
@@ -45,7 +45,7 @@ export class DanDanPlayService {
     searchParams: danDanPlay.SearchEpisodesQuery,
     providerOptions?: DanDanDanPlayProviderOptions
   ): Promise<DanDanPlayOf<Season>[]> {
-    this.logger.debug('Searching DanDanPlay', searchParams)
+    this.logger.debug('Searching DanDanPlay', searchParams, providerOptions)
     const context = createQueryContext(providerOptions)
 
     const result = await danDanPlay.searchSearchAnime(

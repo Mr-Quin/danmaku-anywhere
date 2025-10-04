@@ -12,7 +12,6 @@ export interface SeasonSearchParams {
   keyword: string
   episode?: string
   providerConfig: ProviderConfig
-  customBaseUrl: string
 }
 
 export type SeasonQueryFilter = {

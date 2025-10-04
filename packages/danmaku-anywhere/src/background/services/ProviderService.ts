@@ -76,7 +76,7 @@ export class ProviderService {
       case DanmakuSourceType.MacCMS: {
         assertProviderImpl(providerConfig, DanmakuSourceType.MacCMS)
         return await this.customProviderService.search(
-          params.customBaseUrl,
+          params.providerConfig.options.danmakuBaseUrl,
           params.keyword
         )
       }
@@ -313,6 +313,7 @@ export class ProviderService {
     this.logger.debug('No mapping found, searching for season')
 
     const builtInProvider = await providerConfigService.getBuiltInDanDanPlay()
+
     const foundSeasons = await this.danDanPlayService.search(
       {
         anime: title,
