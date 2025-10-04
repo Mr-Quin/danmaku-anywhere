@@ -8,21 +8,6 @@ import type { FetchOptions } from '../utils/fetchData.js'
 import { fetchData } from '../utils/fetchData.js'
 import { DanDanPlayApiException } from './exceptions.js'
 
-export interface DanDanPlayProviderContext {
-  /**
-   * The base URL for the DanDanPlay API
-   * If not provided, uses the default proxy URL
-   */
-  baseUrl?: string
-  /**
-   * Auth token for DanDanPlay API
-   */
-  token?: string
-  /**
-   * Provider instance ID (for tracking which provider instance this request is for)
-   */
-  providerInstanceId?: string
-}
 import type {
   BangumiDetails,
   CommentData,
@@ -57,9 +42,18 @@ import {
   zSendCommentResponseV2,
 } from './schema.js'
 
+export interface DanDanPlayQueryContext {
+  // fallback to default if not provided
+  baseUrl?: string
+  isCustom?: boolean
+  auth?: {
+    token?: string
+  }
+}
+
 const fetchDanDanPlay = async <T extends ZodType>(
   options: Omit<FetchOptions<T>, 'url' | 'headers'> & { path: string },
-  context?: DanDanPlayProviderContext
+  context?: DanDanPlayQueryContext
 ) => {
   const headers: Record<string, string> = {}
 
@@ -70,7 +64,7 @@ const fetchDanDanPlay = async <T extends ZodType>(
   }
 
   // Use token from context if provided, otherwise use store token
-  const token = context?.token ?? store.ddpToken
+  const token = context?.auth?.token ?? store.ddpToken
   if (token) {
     headers['Authorization'] = `Bearer ${token}`
   }
@@ -86,8 +80,11 @@ const fetchDanDanPlay = async <T extends ZodType>(
     path += `?${new URLSearchParams(options.query as Record<string, string>).toString()}`
   }
 
-  // If a custom baseUrl is provided in context, use it directly
-  if (context?.baseUrl) {
+  // use the custom baseUrl if isCustom is true
+  if (context?.isCustom) {
+    if (!context.baseUrl) {
+      throw new Error('Custom baseUrl is required when isCustom is true')
+    }
     return fetchData<T>({
       url: `${context.baseUrl}${options.path}`, // use unmodified path
       ...options,
@@ -95,7 +92,7 @@ const fetchDanDanPlay = async <T extends ZodType>(
     })
   }
 
-  // Otherwise use the default proxy
+  // otherwise use the default proxy
   return fetchData<T>({
     url: `${store.baseUrl}/ddp/v1`,
     ...options,
@@ -108,15 +105,18 @@ const fetchDanDanPlay = async <T extends ZodType>(
 
 export const searchSearchAnime = async (
   keyword: string,
-  context?: DanDanPlayProviderContext
+  context?: DanDanPlayQueryContext
 ): Promise<SearchAnimeDetails[]> => {
-  const data = await fetchDanDanPlay({
-    path: '/v2/search/anime',
-    query: {
-      keyword,
+  const data = await fetchDanDanPlay(
+    {
+      path: '/v2/search/anime',
+      query: {
+        keyword,
+      },
+      responseSchema: zSearchAnimeResponse,
     },
-    responseSchema: zSearchAnimeResponse,
-  }, context)
+    context
+  )
 
   if (!data.success) {
     throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
@@ -127,16 +127,19 @@ export const searchSearchAnime = async (
 
 export const searchSearchEpisodes = async (
   query: SearchEpisodesQuery,
-  context?: DanDanPlayProviderContext
+  context?: DanDanPlayQueryContext
 ): Promise<SearchEpisodesAnime[]> => {
-  const data = await fetchDanDanPlay({
-    path: '/v2/search/episodes',
-    query,
-    responseSchema: zSearchEpisodesResponse,
-    requestSchema: {
-      query: zSearchEpisodeQuery,
+  const data = await fetchDanDanPlay(
+    {
+      path: '/v2/search/episodes',
+      query,
+      responseSchema: zSearchEpisodesResponse,
+      requestSchema: {
+        query: zSearchEpisodeQuery,
+      },
     },
-  }, context)
+    context
+  )
 
   if (!data.success) {
     throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
@@ -148,31 +151,37 @@ export const searchSearchEpisodes = async (
 export const commentGetComment = async (
   episodeId: number,
   query: GetCommentQuery = {},
-  context?: DanDanPlayProviderContext
+  context?: DanDanPlayQueryContext
 ): Promise<CommentData[]> => {
-  const data = await fetchDanDanPlay({
-    path: `/v2/comment/${episodeId.toString()}`,
-    query,
-    responseSchema: zCommentResponseV2,
-    requestSchema: { query: zGetCommentQuery },
-  }, context)
+  const data = await fetchDanDanPlay(
+    {
+      path: `/v2/comment/${episodeId.toString()}`,
+      query,
+      responseSchema: zCommentResponseV2,
+      requestSchema: { query: zGetCommentQuery },
+    },
+    context
+  )
 
   return data.comments
 }
 
 export const commentSendComment = async (
   request: SendCommentRequest,
-  context?: DanDanPlayProviderContext
+  context?: DanDanPlayQueryContext
 ) => {
-  const data = await fetchDanDanPlay({
-    path: '/v2/search/episodes',
-    body: request,
-    responseSchema: zSendCommentResponseV2,
-    requestSchema: {
-      body: zSendCommentRequest,
+  const data = await fetchDanDanPlay(
+    {
+      path: '/v2/search/episodes',
+      body: request,
+      responseSchema: zSendCommentResponseV2,
+      requestSchema: {
+        body: zSendCommentRequest,
+      },
+      method: 'POST',
     },
-    method: 'POST',
-  }, context)
+    context
+  )
 
   if (!data.success) {
     throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
@@ -183,13 +192,16 @@ export const commentSendComment = async (
 
 export const commentGetExtComment = async (
   query: GetExtCommentQuery,
-  context?: DanDanPlayProviderContext
+  context?: DanDanPlayQueryContext
 ): Promise<CommentData[]> => {
-  const data = await fetchDanDanPlay({
-    path: '/v2/extcomment',
-    query,
-    responseSchema: zCommentResponseV2,
-  }, context)
+  const data = await fetchDanDanPlay(
+    {
+      path: '/v2/extcomment',
+      query,
+      responseSchema: zCommentResponseV2,
+    },
+    context
+  )
 
   return data.comments
 }
@@ -197,21 +209,28 @@ export const commentGetExtComment = async (
 export const commentGetCommentManualWithRelated = async (
   episodeId: number,
   params: GetCommentQuery = {},
-  context?: DanDanPlayProviderContext
+  context?: DanDanPlayQueryContext
 ): Promise<CommentData[]> => {
-  const comments = await commentGetComment(episodeId, {
-    ...params,
-    withRelated: false, // disable this flag to fetch related comments manually
-  }, context)
+  const comments = await commentGetComment(
+    episodeId,
+    {
+      ...params,
+      withRelated: false, // disable this flag to fetch related comments manually
+    },
+    context
+  )
 
   if (params.withRelated) {
     try {
       const relatedData = await relatedGetRelated(episodeId, context)
 
       for (const entry of relatedData) {
-        const additionalComments = await commentGetExtComment({
-          url: entry.url,
-        }, context)
+        const additionalComments = await commentGetExtComment(
+          {
+            url: entry.url,
+          },
+          context
+        )
 
         additionalComments.forEach((comment) => {
           // if the shift is not 0, we need to adjust the time of the comments
@@ -234,12 +253,15 @@ export const commentGetCommentManualWithRelated = async (
 
 export const relatedGetRelated = async (
   episodeId: number,
-  context?: DanDanPlayProviderContext
+  context?: DanDanPlayQueryContext
 ): Promise<RelatedItemV2[]> => {
-  const data = await fetchDanDanPlay({
-    path: `/v2/related/${episodeId.toString()}`,
-    responseSchema: zRelatedResponseV2,
-  }, context)
+  const data = await fetchDanDanPlay(
+    {
+      path: `/v2/related/${episodeId.toString()}`,
+      responseSchema: zRelatedResponseV2,
+    },
+    context
+  )
 
   if (!data.success) {
     throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
@@ -250,12 +272,15 @@ export const relatedGetRelated = async (
 
 export const getBangumiAnime = async (
   bangumiId: string,
-  context?: DanDanPlayProviderContext
+  context?: DanDanPlayQueryContext
 ): Promise<BangumiDetails> => {
-  const data = await fetchDanDanPlay({
-    path: `/v2/bangumi/${bangumiId}`,
-    responseSchema: zBangumiDetailsResponse,
-  }, context)
+  const data = await fetchDanDanPlay(
+    {
+      path: `/v2/bangumi/${bangumiId}`,
+      responseSchema: zBangumiDetailsResponse,
+    },
+    context
+  )
 
   if (!data.success) {
     throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
@@ -266,17 +291,20 @@ export const getBangumiAnime = async (
 
 export const registerRegisterMainUser = async (
   request: RegisterRequestV2,
-  context?: DanDanPlayProviderContext
+  context?: DanDanPlayQueryContext
 ): Promise<LoginResponse> => {
-  const data = await fetchDanDanPlay({
-    path: '/v2/register',
-    responseSchema: zLoginResponse,
-    requestSchema: {
-      body: zRegisterRequestV2,
+  const data = await fetchDanDanPlay(
+    {
+      path: '/v2/register',
+      responseSchema: zLoginResponse,
+      requestSchema: {
+        body: zRegisterRequestV2,
+      },
+      body: request,
+      method: 'POST',
     },
-    body: request,
-    method: 'POST',
-  }, context)
+    context
+  )
 
   if (!data.success) {
     throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
@@ -287,17 +315,20 @@ export const registerRegisterMainUser = async (
 
 export const registerResetPassword = async (
   request: ResetPasswordRequestV2,
-  context?: DanDanPlayProviderContext
+  context?: DanDanPlayQueryContext
 ): Promise<null> => {
-  const data = await fetchDanDanPlay({
-    path: '/v2/register/resetpassword',
-    responseSchema: zResponseBase,
-    requestSchema: {
-      body: zResetPasswordRequestV2,
+  const data = await fetchDanDanPlay(
+    {
+      path: '/v2/register/resetpassword',
+      responseSchema: zResponseBase,
+      requestSchema: {
+        body: zResetPasswordRequestV2,
+      },
+      body: request,
+      method: 'POST',
     },
-    body: request,
-    method: 'POST',
-  }, context)
+    context
+  )
 
   if (!data.success) {
     throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
@@ -308,17 +339,20 @@ export const registerResetPassword = async (
 
 export const registerFindMyId = async (
   request: FindMyIdRequestV2,
-  context?: DanDanPlayProviderContext
+  context?: DanDanPlayQueryContext
 ): Promise<null> => {
-  const data = await fetchDanDanPlay({
-    path: '/v2/register/findmyid',
-    responseSchema: zResponseBase,
-    requestSchema: {
-      body: zFindMyIdRequestV2,
+  const data = await fetchDanDanPlay(
+    {
+      path: '/v2/register/findmyid',
+      responseSchema: zResponseBase,
+      requestSchema: {
+        body: zFindMyIdRequestV2,
+      },
+      body: request,
+      method: 'POST',
     },
-    body: request,
-    method: 'POST',
-  }, context)
+    context
+  )
 
   if (!data.success) {
     throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
@@ -329,17 +363,20 @@ export const registerFindMyId = async (
 
 export const loginLogin = async (
   request: LoginRequest,
-  context?: DanDanPlayProviderContext
+  context?: DanDanPlayQueryContext
 ): Promise<LoginResponse> => {
-  const data = await fetchDanDanPlay({
-    path: '/v2/login',
-    responseSchema: zLoginResponse,
-    requestSchema: {
-      body: zLoginRequest,
+  const data = await fetchDanDanPlay(
+    {
+      path: '/v2/login',
+      responseSchema: zLoginResponse,
+      requestSchema: {
+        body: zLoginRequest,
+      },
+      body: request,
+      method: 'POST',
     },
-    body: request,
-    method: 'POST',
-  }, context)
+    context
+  )
 
   if (!data.success) {
     throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
@@ -349,13 +386,16 @@ export const loginLogin = async (
 }
 
 export const loginRenewToken = async (
-  context?: DanDanPlayProviderContext
+  context?: DanDanPlayQueryContext
 ): Promise<LoginResponse> => {
-  const data = await fetchDanDanPlay({
-    path: '/v2/login',
-    responseSchema: zLoginResponse,
-    method: 'GET',
-  }, context)
+  const data = await fetchDanDanPlay(
+    {
+      path: '/v2/login',
+      responseSchema: zLoginResponse,
+      method: 'GET',
+    },
+    context
+  )
 
   if (!data.success) {
     throw new DanDanPlayApiException(data.errorMessage, data.errorCode)

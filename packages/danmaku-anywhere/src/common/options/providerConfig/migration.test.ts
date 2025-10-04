@@ -6,9 +6,8 @@ import type {
   BuiltInBilibiliProvider,
   BuiltInDanDanPlayProvider,
   BuiltInTencentProvider,
-  CustomDanDanPlayProvider,
   CustomMacCmsProvider,
-  ProviderConfig,
+  DanDanPlayCompatProvider,
 } from './schema'
 
 describe('migrateDanmakuSourcesToProviders', () => {
@@ -159,7 +158,7 @@ describe('migrateDanmakuSourcesToProviders', () => {
       expect(builtInDdp.enabled).toBe(true)
 
       // Check custom DanDanPlay
-      const customDdp = providers[1] as CustomDanDanPlayProvider
+      const customDdp = providers[1] as DanDanPlayCompatProvider
       expect(customDdp.type).toBe('custom-dandanplay')
       expect(customDdp.name).toBe('DanDanPlay Compatible (Migrated)')
       expect(customDdp.enabled).toBe(true)
@@ -496,7 +495,7 @@ describe('migrateDanmakuSourcesToProviders', () => {
 
       const customDdp = providers.find(
         (p) => p.type === 'custom-dandanplay'
-      ) as CustomDanDanPlayProvider
+      ) as DanDanPlayCompatProvider
       expect(customDdp.options.baseUrl).toBe('https://custom.example.com/api')
 
       const maccms = providers.find(

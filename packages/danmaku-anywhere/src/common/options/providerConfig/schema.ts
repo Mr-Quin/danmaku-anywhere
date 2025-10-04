@@ -18,6 +18,7 @@ export type ProviderConfigType = z.infer<typeof zProviderConfigType>
 const zProviderConfigBase = z.object({
   id: z.string().uuid().default(getRandomUUID()),
   type: zProviderConfigType,
+  impl: z.nativeEnum(DanmakuSourceType),
   name: z.string().min(1),
   isBuiltIn: z.boolean(),
   enabled: z.boolean(),
@@ -26,6 +27,7 @@ const zProviderConfigBase = z.object({
 export const zDanDanPlayProviderConfig = zProviderConfigBase.extend({
   id: z.literal('dandanplay'),
   type: z.literal('DanDanPlay'),
+  impl: z.literal('DanDanPlay'),
   name: z.literal('DanDanPlay'),
   isBuiltIn: z.literal(true),
   options: z.object({
@@ -38,6 +40,7 @@ export const zDanDanPlayProviderConfig = zProviderConfigBase.extend({
 export const zBilibiliProviderConfig = zProviderConfigBase.extend({
   id: z.literal('bilibili'),
   type: z.literal('Bilibili'),
+  impl: z.literal('Bilibili'),
   name: z.literal('Bilibili'),
   isBuiltIn: z.literal(true),
   options: z.object({
@@ -58,6 +61,7 @@ export const zTencentProviderConfig = zProviderConfigBase.extend({
 
 export const zDanDanPlayCompatibleProviderConfig = zProviderConfigBase.extend({
   type: z.literal('DanDanPlayCompatible'),
+  impl: z.literal(DanmakuSourceType.DanDanPlay),
   isBuiltIn: z.literal(false),
   options: z.object({
     baseUrl: z.string().trim().url(),
@@ -67,6 +71,7 @@ export const zDanDanPlayCompatibleProviderConfig = zProviderConfigBase.extend({
 
 export const zMacCmsProviderConfig = zProviderConfigBase.extend({
   type: z.literal('MacCMS'),
+  impl: z.literal(DanmakuSourceType.Custom),
   isBuiltIn: z.literal(false),
   options: z.object({
     danmakuBaseUrl: z
@@ -96,7 +101,7 @@ export type BuiltInDanDanPlayProvider = z.infer<
 >
 export type BuiltInBilibiliProvider = z.infer<typeof zBilibiliProviderConfig>
 export type BuiltInTencentProvider = z.infer<typeof zTencentProviderConfig>
-export type CustomDanDanPlayProvider = z.infer<
+export type DanDanPlayCompatProvider = z.infer<
   typeof zDanDanPlayCompatibleProviderConfig
 >
 export type CustomMacCmsProvider = z.infer<typeof zMacCmsProviderConfig>
@@ -111,7 +116,7 @@ export type BuiltInProvider =
   | BuiltInBilibiliProvider
   | BuiltInTencentProvider
 
-export type CustomProvider = CustomDanDanPlayProvider | CustomMacCmsProvider
+export type CustomProvider = DanDanPlayCompatProvider | CustomMacCmsProvider
 
 export type ProviderByType<T extends ProviderConfig['type']> = Extract<
   ProviderConfig,

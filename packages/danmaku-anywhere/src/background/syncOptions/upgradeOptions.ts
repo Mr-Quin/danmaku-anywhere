@@ -1,4 +1,3 @@
-import { extensionContextService } from '@/common/options/context/service'
 import { danmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { xPathPolicyStore } from '@/common/options/integrationPolicyStore/service'
@@ -12,6 +11,5 @@ export const upgradeOptions = async () => {
     mountConfigService.options.upgrade(),
     xPathPolicyStore.upgrade(),
     providerConfigService.options.upgrade(),
-    extensionContextService.options.upgrade(),
   ])
 }

@@ -7,20 +7,34 @@ import type {
   SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import type { DanDanPlayProviderContext } from '@danmaku-anywhere/danmaku-provider/ddp'
+import type { DanDanPlayQueryContext } from '@danmaku-anywhere/danmaku-provider/ddp'
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import type { SeasonService } from '@/background/services/SeasonService'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProvider } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
-import { extensionContextService } from '@/common/options/context/service'
 import type {
   BuiltInDanDanPlayProvider,
-  CustomDanDanPlayProvider,
+  DanDanPlayCompatProvider,
 } from '@/common/options/providerConfig/schema'
-import { providerConfigService } from '@/common/options/providerConfig/service'
 import { tryCatch } from '@/common/utils/utils'
+
+function createContext(
+  provider: BuiltInDanDanPlayProvider | DanDanPlayCompatProvider
+): DanDanPlayQueryContext {
+  if (provider.isBuiltIn) {
+    return {
+      isCustom: false,
+    }
+  }
+  return {
+    isCustom: true,
+    baseUrl: provider.options.baseUrl,
+  }
+}
+
+type DDPProvider = BuiltInDanDanPlayProvider | DanDanPlayCompatProvider
 
 export class DanDanPlayService {
   private logger: typeof Logger
@@ -32,67 +46,12 @@ export class DanDanPlayService {
     this.logger = Logger.sub('[DDPService]')
   }
 
-  /**
-   * Get current provider from context service
-   */
-  private async getCurrentProvider(): Promise<
-    BuiltInDanDanPlayProvider | CustomDanDanPlayProvider
-  > {
-    const providerId = await extensionContextService.getProviderId()
-
-    if (!providerId) {
-      // Default to built-in dandanplay if no context set
-      const provider = await providerConfigService.get('dandanplay')
-      if (!provider) {
-        throw new Error(
-          'No provider context set and built-in dandanplay not found'
-        )
-      }
-      return provider as BuiltInDanDanPlayProvider
-    }
-
-    const provider = await providerConfigService.get(providerId)
-    if (!provider) {
-      throw new Error(`Provider not found: ${providerId}`)
-    }
-
-    if (
-      provider.type !== 'DanDanPlay' &&
-      provider.type !== 'DanDanPlayCompatible'
-    ) {
-      throw new Error(
-        `Invalid provider type for DanDanPlay service: ${provider.type}`
-      )
-    }
-
-    return provider as BuiltInDanDanPlayProvider | CustomDanDanPlayProvider
-  }
-
-  /**
-   * Create API context from provider config
-   */
-  private createContext(
-    provider: BuiltInDanDanPlayProvider | CustomDanDanPlayProvider
-  ): DanDanPlayProviderContext {
-    if (provider.type === 'DanDanPlay') {
-      // Built-in provider uses default proxy
-      return {
-        providerInstanceId: provider.id,
-      }
-    }
-    // Custom provider uses custom base URL
-    return {
-      baseUrl: provider.options.baseUrl,
-      providerInstanceId: provider.id,
-    }
-  }
-
   async search(
-    searchParams: danDanPlay.SearchEpisodesQuery
+    searchParams: danDanPlay.SearchEpisodesQuery,
+    provider: DDPProvider
   ): Promise<DanDanPlayOf<Season>[]> {
     this.logger.debug('Searching DanDanPlay', searchParams)
-    const provider = await this.getCurrentProvider()
-    const context = this.createContext(provider)
+    const context = createContext(provider)
     const result = await danDanPlay.searchSearchAnime(
       searchParams.anime,
       context
@@ -120,15 +79,14 @@ export class DanDanPlayService {
     return this.seasonService.bulkUpsert(seasons)
   }
 
-  async getSeason(bangumiId: string) {
-    const provider = await this.getCurrentProvider()
-    const context = this.createContext(provider)
+  async getSeason(bangumiId: string, provider: DDPProvider) {
+    const context = createContext(provider)
     const bangumiDetails = await danDanPlay.getBangumiAnime(bangumiId, context)
 
     const seasonData: DanDanPlayOf<SeasonInsert> = {
       provider: DanmakuSourceType.DanDanPlay,
       title: bangumiDetails.animeTitle,
-      alternativeTitles: bangumiDetails.titles.map((t) => t.title),
+      alternativeTitles: bangumiDetails.titles?.map((t) => t.title),
       type: bangumiDetails.type,
       imageUrl: bangumiDetails.imageUrl,
       providerIds: {
@@ -150,15 +108,16 @@ export class DanDanPlayService {
   }
 
   async getEpisodes(
-    seasonId: number
+    seasonId: number,
+    provider: DDPProvider
   ): Promise<WithSeason<DanDanPlayOf<EpisodeMeta>>[]> {
     this.logger.debug('Getting DanDanPlay episodes', seasonId)
-    const provider = await this.getCurrentProvider()
     const season = await this.seasonService.mustGetById(seasonId)
     assertProvider(season, DanmakuSourceType.DanDanPlay)
 
     const { bangumiDetails } = await this.getSeason(
-      season.providerIds.bangumiId
+      season.providerIds.bangumiId,
+      provider
     )
 
     this.logger.debug('DanDanPlay Episodes fetched', bangumiDetails)
@@ -184,9 +143,10 @@ export class DanDanPlayService {
   async getEpisodeDanmaku(
     meta: DanDanPlayOf<EpisodeMeta>,
     season: DanDanPlayOf<Season>,
-    params: Partial<danDanPlay.GetCommentQuery> = {}
+    params: Partial<danDanPlay.GetCommentQuery>,
+    provider: DDPProvider
   ): Promise<DanDanPlayOf<Episode>> {
-    const { comments } = await this.getDanmaku(meta, season, params)
+    const { comments } = await this.getDanmaku(meta, season, params, provider)
 
     return this.danmakuService.upsert({
       ...meta,
@@ -199,11 +159,12 @@ export class DanDanPlayService {
   async getNextEpisodeDanmaku(
     meta: DanDanPlayOf<EpisodeMeta>,
     season: DanDanPlayOf<Season>,
-    params: Partial<danDanPlay.GetCommentQuery> = {}
+    params: Partial<danDanPlay.GetCommentQuery>,
+    provider: DDPProvider
   ) {
     const nextEpisodeId = meta.providerIds.episodeId + 1
 
-    const episodes = await this.getEpisodes(season.id)
+    const episodes = await this.getEpisodes(season.id, provider)
     const nextEpisode = episodes.find(
       (e) => e.providerIds.episodeId === nextEpisodeId
     )
@@ -213,24 +174,24 @@ export class DanDanPlayService {
       return null
     }
 
-    return this.getEpisodeDanmaku(nextEpisode, season, params)
+    return this.getEpisodeDanmaku(nextEpisode, season, params, provider)
   }
 
   private async getDanmaku(
     meta: DanDanPlayOf<EpisodeMeta>,
     season: DanDanPlayOf<Season>,
-    params: Partial<danDanPlay.GetCommentQuery> = {}
+    params: Partial<danDanPlay.GetCommentQuery>,
+    provider: DDPProvider
   ): Promise<{
     meta: DanDanPlayOf<EpisodeMeta>
     comments: CommentEntity[]
     params: danDanPlay.GetCommentQuery
   }> {
-    const provider = await this.getCurrentProvider()
-    const context = this.createContext(provider)
+    const context = createContext(provider)
 
     const findEpisode = async (bangumiId: string, episodeId: number) => {
       const [result, err] = await tryCatch(async () =>
-        this.getSeason(bangumiId)
+        this.getSeason(bangumiId, provider)
       )
 
       if (err) {

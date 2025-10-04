@@ -26,8 +26,8 @@ export const seasonQueryKeys = {
   all: () => [{ scope: 'season' }] as const,
   many: (data: SeasonQueryFilter) =>
     [{ scope: 'season', kind: 'getMany', ...data }] as const,
-  search: (provider?: DanmakuSourceType, params?: SeasonSearchParams) =>
-    [{ scope: 'season', kind: 'search', provider, params }] as const,
+  search: (params?: SeasonSearchParams) =>
+    [{ scope: 'season', kind: 'search', params }] as const,
   episodes: (provider: DanmakuSourceType, seasonId: string | number) =>
     [{ scope: 'season', kind: 'episodes', provider, seasonId }] as const,
   parseUrl: (url: string) =>

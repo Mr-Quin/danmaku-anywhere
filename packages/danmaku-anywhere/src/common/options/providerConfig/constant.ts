@@ -1,18 +1,20 @@
+import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { getRandomUUID } from '@/common/utils/utils'
 import type {
   BuiltInBilibiliProvider,
   BuiltInDanDanPlayProvider,
   BuiltInTencentProvider,
-  CustomDanDanPlayProvider,
   CustomMacCmsProvider,
+  DanDanPlayCompatProvider,
   ProviderConfig,
 } from './schema'
 
-export const defaultBuiltInDanDanPlayProvider: BuiltInDanDanPlayProvider = {
+export const builtInDanDanPlayProvider: BuiltInDanDanPlayProvider = {
   id: 'dandanplay',
   type: 'DanDanPlay',
   name: 'DanDanPlay',
+  impl: DanmakuSourceType.DanDanPlay,
   enabled: true,
   isBuiltIn: true,
   options: {
@@ -20,10 +22,11 @@ export const defaultBuiltInDanDanPlayProvider: BuiltInDanDanPlayProvider = {
   },
 }
 
-export const defaultBuiltInBilibiliProvider: BuiltInBilibiliProvider = {
+export const builtInBilibiliProvider: BuiltInBilibiliProvider = {
   id: 'bilibili',
   type: 'Bilibili',
   name: 'Bilibili',
+  impl: DanmakuSourceType.Bilibili,
   enabled: true,
   isBuiltIn: true,
   options: {
@@ -32,10 +35,11 @@ export const defaultBuiltInBilibiliProvider: BuiltInBilibiliProvider = {
   },
 }
 
-export const defaultBuiltInTencentProvider: BuiltInTencentProvider = {
+export const builtInTencentProvider: BuiltInTencentProvider = {
   id: 'tencent',
   type: 'Tencent',
   name: 'Tencent',
+  impl: DanmakuSourceType.Tencent,
   enabled: true,
   isBuiltIn: true,
   options: {
@@ -44,18 +48,19 @@ export const defaultBuiltInTencentProvider: BuiltInTencentProvider = {
 }
 
 export const defaultProviderConfigs: ProviderConfig[] = [
-  defaultBuiltInDanDanPlayProvider,
-  defaultBuiltInBilibiliProvider,
-  defaultBuiltInTencentProvider,
+  builtInDanDanPlayProvider,
+  builtInBilibiliProvider,
+  builtInTencentProvider,
 ]
 
 export const createCustomDanDanPlayProvider = (
-  input: Partial<CustomDanDanPlayProvider> = {}
-): CustomDanDanPlayProvider => {
+  input: Partial<DanDanPlayCompatProvider> = {}
+): DanDanPlayCompatProvider => {
   return {
     id: input.id ?? getRandomUUID(),
     type: 'DanDanPlayCompatible',
     name: input.name ?? 'DanDanPlay Compatible',
+    impl: DanmakuSourceType.DanDanPlay,
     enabled: input.enabled ?? false,
     isBuiltIn: false,
     options: {
@@ -72,6 +77,7 @@ export const createCustomMacCmsProvider = (
     id: input.id ?? getRandomUUID(),
     type: 'MacCMS',
     name: input.name ?? 'MacCMS',
+    impl: DanmakuSourceType.Custom,
     enabled: input.enabled ?? false,
     isBuiltIn: false,
     options: {

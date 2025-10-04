@@ -10,10 +10,7 @@ import {
   SeasonGridSkeleton,
 } from '@/common/components/Season/SeasonGrid'
 import type { HandleSeasonClick } from '@/common/components/Season/types'
-import {
-  type ProviderConfig,
-  providerTypeToDanmakuSource,
-} from '@/common/options/providerConfig/schema'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 
 interface SeasonSearchResultProps {
   searchParams: SearchEpisodesQuery
@@ -45,8 +42,9 @@ const SeasonSearchResultSuspense = ({
 }: SeasonSearchResultProps) => {
   const { t } = useTranslation()
 
+  // Pass the full provider config to the hook so it can set the context
   const { data: result, refetch } = useSeasonSearchSuspense(
-    providerTypeToDanmakuSource[provider.type],
+    provider,
     searchParams.anime
   )
 

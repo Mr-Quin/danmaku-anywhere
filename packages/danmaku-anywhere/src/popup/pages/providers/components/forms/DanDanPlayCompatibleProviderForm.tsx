@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { MenuItem, Stack, TextField } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import type { CustomDanDanPlayProvider } from '@/common/options/providerConfig/schema'
+import type { DanDanPlayCompatProvider } from '@/common/options/providerConfig/schema'
 import { zDanDanPlayCompatibleProviderConfig } from '@/common/options/providerConfig/schema'
 import { FormActions } from './FormActions'
 import type { ProviderFormProps } from './types'
@@ -13,7 +13,7 @@ export const DanDanPlayCompatibleProviderForm = ({
   onSubmit,
   onReset,
   isEdit,
-}: ProviderFormProps<CustomDanDanPlayProvider>) => {
+}: ProviderFormProps<DanDanPlayCompatProvider>) => {
   const { t } = useTranslation()
 
   const {
@@ -22,12 +22,12 @@ export const DanDanPlayCompatibleProviderForm = ({
     register,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<CustomDanDanPlayProvider>({
+  } = useForm<DanDanPlayCompatProvider>({
     resolver: zodResolver(zDanDanPlayCompatibleProviderConfig),
     values: provider,
   })
 
-  const handleFormSubmit = async (data: CustomDanDanPlayProvider) => {
+  const handleFormSubmit = async (data: DanDanPlayCompatProvider) => {
     await onSubmit(data)
   }
 

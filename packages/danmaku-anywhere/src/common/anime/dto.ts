@@ -6,12 +6,14 @@ import type {
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 
 export interface SeasonSearchParams {
   keyword: string
   episode?: string
+  providerConfig: ProviderConfig
   provider: DanmakuSourceType
-  // used for custom search
+  providerId?: string
   customBaseUrl: string
 }
 

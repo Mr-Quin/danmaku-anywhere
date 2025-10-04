@@ -2,9 +2,9 @@ import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import type { DanmakuSources } from '@/common/options/extensionOptions/schema'
 import { getRandomUUID } from '@/common/utils/utils'
 import {
-  defaultBuiltInBilibiliProvider,
-  defaultBuiltInDanDanPlayProvider,
-  defaultBuiltInTencentProvider,
+  builtInBilibiliProvider,
+  builtInDanDanPlayProvider,
+  builtInTencentProvider,
 } from './constant'
 import type { ProviderConfig } from './schema'
 
@@ -62,7 +62,7 @@ export function migrateDanmakuSourcesToProviders(
     }
   } else {
     // No dandanplay in old config, use default
-    providers.push(defaultBuiltInDanDanPlayProvider)
+    providers.push(builtInDanDanPlayProvider)
   }
 
   // 2. Migrate built-in Bilibili provider
@@ -81,7 +81,7 @@ export function migrateDanmakuSourcesToProviders(
     })
   } else {
     // No bilibili in old config, use default
-    providers.push(defaultBuiltInBilibiliProvider)
+    providers.push(builtInBilibiliProvider)
   }
 
   // 3. Migrate built-in Tencent provider
@@ -98,7 +98,7 @@ export function migrateDanmakuSourcesToProviders(
     })
   } else {
     // No tencent in old config, use default
-    providers.push(defaultBuiltInTencentProvider)
+    providers.push(builtInTencentProvider)
   }
 
   // 4. Migrate custom MacCMS provider

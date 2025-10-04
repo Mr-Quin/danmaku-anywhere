@@ -1,35 +1,47 @@
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import { useSuspenseQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { SeasonSearchParams } from '@/common/anime/dto'
-import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { Logger } from '@/common/Logger'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { providerTypeToDanmakuSource } from '@/common/options/providerConfig/schema'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 export const useSeasonSearchSuspense = (
-  provider: DanmakuSourceType,
+  providerConfig: ProviderConfig,
   keyword: string
 ) => {
   const { t } = useTranslation()
 
-  const params = { keyword, provider, customBaseUrl: '' }
+  const params: SeasonSearchParams = useMemo(() => {
+    const provider = providerTypeToDanmakuSource[providerConfig.type]
+
+    return {
+      keyword,
+      provider,
+      customBaseUrl: '',
+      providerId: providerConfig.id,
+      providerConfig,
+    }
+  }, [providerConfig, keyword])
 
   return useSuspenseQuery({
-    queryKey: seasonQueryKeys.search(provider, params),
+    queryKey: seasonQueryKeys.search(params),
     queryFn: async (): Promise<
       | {
           success: true
           data: (Season | CustomSeason)[]
           params: SeasonSearchParams
-          provider: DanmakuSourceType
+          providerConfig: ProviderConfig
         }
       | {
           success: false
           data: null
           params: SeasonSearchParams
-          provider: DanmakuSourceType
+          providerConfig: ProviderConfig
           error: string
         }
     > => {
@@ -40,7 +52,7 @@ export const useSeasonSearchSuspense = (
           success: true,
           data: data.data,
           params,
-          provider,
+          providerConfig,
         }
       } catch (error) {
         Logger.debug('useMediaSearchSuspense error', error)
@@ -50,7 +62,7 @@ export const useSeasonSearchSuspense = (
           success: false,
           data: null,
           params,
-          provider,
+          providerConfig,
           error: errorMessage,
         }
       }
