@@ -26,7 +26,7 @@ import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { providerConfigService } from '@/common/options/providerConfig/service'
-import { assertProviderImpl } from '@/common/options/providerConfig/utils'
+import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
 import { stripExtension } from '@/common/utils/stripExtension'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
@@ -56,7 +56,7 @@ export class ProviderService {
 
     switch (params.providerConfig.impl) {
       case DanmakuSourceType.DanDanPlay: {
-        assertProviderImpl(providerConfig, DanmakuSourceType.DanDanPlay)
+        assertProviderConfigImpl(providerConfig, DanmakuSourceType.DanDanPlay)
         return this.danDanPlayService.search(
           {
             anime: params.keyword,
@@ -74,7 +74,7 @@ export class ProviderService {
         return this.tencentService.search(params.keyword)
       }
       case DanmakuSourceType.MacCMS: {
-        assertProviderImpl(providerConfig, DanmakuSourceType.MacCMS)
+        assertProviderConfigImpl(providerConfig, DanmakuSourceType.MacCMS)
         return await this.customProviderService.search(
           params.providerConfig.options.danmakuBaseUrl,
           params.keyword
@@ -312,13 +312,14 @@ export class ProviderService {
 
     this.logger.debug('No mapping found, searching for season')
 
-    const builtInProvider = await providerConfigService.getBuiltInDanDanPlay()
+    const automaticProvider =
+      await providerConfigService.getFirstAutomaticProvider()
 
     const foundSeasons = await this.danDanPlayService.search(
       {
         anime: title,
       },
-      builtInProvider.options
+      automaticProvider.options
     )
 
     if (foundSeasons.length === 0) {

@@ -11,7 +11,7 @@ import { MacCmsEpisodeListItem } from '@/common/components/EpisodeList/MacCmsEpi
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
-import { assertProviderImpl } from '@/common/options/providerConfig/utils'
+import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
@@ -59,7 +59,7 @@ export const SeasonDetailsPage = () => {
             renderCustomEpisode={(data) => {
               const mutation = useFetchGenericDanmaku()
 
-              assertProviderImpl(provider, DanmakuSourceType.MacCMS)
+              assertProviderConfigImpl(provider, DanmakuSourceType.MacCMS)
 
               return (
                 <MacCmsEpisodeListItem

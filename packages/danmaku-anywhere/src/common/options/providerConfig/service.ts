@@ -1,3 +1,4 @@
+import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { produce } from 'immer'
 import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
@@ -5,9 +6,11 @@ import { defaultProviderConfigs } from './constant'
 import type {
   BuiltInBilibiliProvider,
   BuiltInDanDanPlayProvider,
+  DanDanPlayCompatProvider,
   ProviderConfig,
 } from './schema'
 import { providerConfigSchema } from './schema'
+import { assertProviderConfigImpl, assertProviderConfigType } from './utils'
 
 const providerConfigOptions = new OptionsService<ProviderConfig[]>(
   'providerConfig',
@@ -44,12 +47,27 @@ class ProviderConfigService {
     return this.options.get()
   }
 
+  async getFirstAutomaticProvider(): Promise<
+    BuiltInDanDanPlayProvider | DanDanPlayCompatProvider
+  > {
+    const configs = await this.options.get()
+    const config = configs.find(
+      (item) => item.impl === DanmakuSourceType.DanDanPlay
+    )
+    if (!config) {
+      throw new Error('No automatic provider found')
+    }
+    assertProviderConfigImpl(config, DanmakuSourceType.DanDanPlay)
+    return config
+  }
+
   async getBuiltInDanDanPlay(): Promise<BuiltInDanDanPlayProvider> {
     const config = await this.get('dandanplay')
     if (!config) {
       throw new Error('Built-in DanDanPlay provider not found')
     }
-    return config as BuiltInDanDanPlayProvider
+    assertProviderConfigType(config, 'DanDanPlay')
+    return config
   }
 
   async getBuiltInBilibili(): Promise<BuiltInBilibiliProvider> {
@@ -57,6 +75,7 @@ class ProviderConfigService {
     if (!config) {
       throw new Error('Built-in Bilibili provider not found')
     }
+    assertProviderConfigType(config, 'Bilibili')
     return config as BuiltInBilibiliProvider
   }
 
