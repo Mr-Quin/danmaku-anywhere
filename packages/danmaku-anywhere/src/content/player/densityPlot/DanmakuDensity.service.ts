@@ -85,6 +85,12 @@ export class DanmakuDensityService {
       this.boundHandleTimeUpdate
     )
     document.addEventListener('mousemove', this.boundHandleMouseMove)
+    
+    // Set the current video element for resize observation
+    const videoElement = this.videoEventService.getVideoElement()
+    if (videoElement) {
+      this.chart.setVideoElement(videoElement)
+    }
   }
 
   private removeEventListeners() {
@@ -125,7 +131,11 @@ export class DanmakuDensityService {
   }
 
   private handleTimeUpdate(event: Event) {
-    this.currentVideo = event.target as HTMLVideoElement
+    const newVideo = event.target as HTMLVideoElement
+    if (this.currentVideo !== newVideo) {
+      this.currentVideo = newVideo
+      this.chart.setVideoElement(newVideo)
+    }
     if (this.data.length === 0) {
       this.tryComputeAndRender()
     } else {
@@ -156,6 +166,7 @@ export class DanmakuDensityService {
 
   private cleanup() {
     this.removeEventListeners()
+    this.chart.setVideoElement(null)
     this.chart.teardown()
   }
 }

@@ -48,6 +48,8 @@ export class DanmakuDensityChart {
   private lastCurrentTime = 0
 
   private readonly boundResize: () => void
+  private resizeObserver: ResizeObserver | null = null
+  private videoElement: HTMLVideoElement | null = null
 
   constructor(wrapper: HTMLElement, options: DanmakuDensityChartOptions = {}) {
     this.wrapper = wrapper
@@ -99,10 +101,12 @@ export class DanmakuDensityChart {
     this.clipRect = clipRect
 
     window.addEventListener('resize', this.boundResize)
+    this.setupVideoResizeObserver()
   }
 
   teardown() {
     window.removeEventListener('resize', this.boundResize)
+    this.cleanupVideoResizeObserver()
     this.svg?.remove()
     this.svg = null
     this.pathUnplayed = null
@@ -173,6 +177,14 @@ export class DanmakuDensityChart {
     this.svg?.classed('da-density-chart-visible', false)
   }
 
+  setVideoElement(videoElement: HTMLVideoElement | null) {
+    this.cleanupVideoResizeObserver()
+    this.videoElement = videoElement
+    if (this.videoElement) {
+      this.setupVideoResizeObserver()
+    }
+  }
+
   private getSvgSize(): { width: number; height: number } {
     const width =
       (this.svg?.node() as SVGSVGElement | null)?.clientWidth ||
@@ -206,5 +218,23 @@ export class DanmakuDensityChart {
     this.pathPlayed.attr('d', d)
 
     this.updateProgress(this.lastCurrentTime)
+  }
+
+  private setupVideoResizeObserver() {
+    if (!this.videoElement || this.resizeObserver) {
+      return
+    }
+
+    this.resizeObserver = new ResizeObserver(() => {
+      this.redraw()
+    })
+    this.resizeObserver.observe(this.videoElement)
+  }
+
+  private cleanupVideoResizeObserver() {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect()
+      this.resizeObserver = null
+    }
   }
 }
