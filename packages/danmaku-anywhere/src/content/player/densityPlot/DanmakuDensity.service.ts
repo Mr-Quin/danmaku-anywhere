@@ -19,10 +19,12 @@ export class DanmakuDensityService {
   private chartHeight = 28
 
   private showChartTimeout: ReturnType<typeof setTimeout> | null = null
+  private resizeObserver: ResizeObserver | null = null
 
   private readonly boundHandleTimeUpdate: (event: Event) => void
   private readonly boundHandleSeeked: () => void
   private readonly boundHandleMouseMove: (event: MouseEvent) => void
+  private readonly boundHandleResize: () => void
 
   constructor(
     private readonly videoEventService: VideoEventService,
@@ -31,6 +33,7 @@ export class DanmakuDensityService {
     this.boundHandleTimeUpdate = this.handleTimeUpdate.bind(this)
     this.boundHandleSeeked = this.handleSeeked.bind(this)
     this.boundHandleMouseMove = this.handleMouseMove.bind(this)
+    this.boundHandleResize = this.handleResize.bind(this)
     this.chart = new DanmakuDensityChart(this.wrapper, {
       height: this.chartHeight,
       colors: {
@@ -85,11 +88,11 @@ export class DanmakuDensityService {
       this.boundHandleTimeUpdate
     )
     document.addEventListener('mousemove', this.boundHandleMouseMove)
-    
-    // Set the current video element for resize observation
+
+    // Set up video resize observation
     const videoElement = this.videoEventService.getVideoElement()
     if (videoElement) {
-      this.chart.setVideoElement(videoElement)
+      this.setupVideoResizeObserver(videoElement)
     }
   }
 
@@ -107,6 +110,7 @@ export class DanmakuDensityService {
       this.boundHandleTimeUpdate
     )
     document.removeEventListener('mousemove', this.boundHandleMouseMove)
+    this.cleanupVideoResizeObserver()
   }
 
   private computeBins(duration: number) {
@@ -134,7 +138,7 @@ export class DanmakuDensityService {
     const newVideo = event.target as HTMLVideoElement
     if (this.currentVideo !== newVideo) {
       this.currentVideo = newVideo
-      this.chart.setVideoElement(newVideo)
+      this.setupVideoResizeObserver(newVideo)
     }
     if (this.data.length === 0) {
       this.tryComputeAndRender()
@@ -164,9 +168,28 @@ export class DanmakuDensityService {
     }, 2000)
   }
 
+  private setupVideoResizeObserver(videoElement: HTMLVideoElement) {
+    // Clean up existing observer
+    this.cleanupVideoResizeObserver()
+
+    // Create new observer for the video element
+    this.resizeObserver = new ResizeObserver(this.boundHandleResize)
+    this.resizeObserver.observe(videoElement)
+  }
+
+  private cleanupVideoResizeObserver() {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect()
+      this.resizeObserver = null
+    }
+  }
+
+  private handleResize() {
+    this.chart.redraw()
+  }
+
   private cleanup() {
     this.removeEventListeners()
-    this.chart.setVideoElement(null)
     this.chart.teardown()
   }
 }
