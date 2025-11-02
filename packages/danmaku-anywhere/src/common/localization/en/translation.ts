@@ -490,10 +490,22 @@ const pages = {
           'Maximum danmaku per minute when using Protobuf (1-1000)',
         limitPerMin: 'Maximum danmaku per minute (1-1000)',
         integration: 'Integration policy to use for this configuration',
+        auth: 'Enable authentication for custom API endpoints',
+        authHeaders:
+          'Custom headers to send with each request (e.g., Authorization, X-AppSecret)',
       },
       error: {
         invalidUrl: 'Invalid URL format',
+        headerKeyRequired: 'Header key is required',
+        headerValueRequired: 'Header value is required',
       },
+      auth: 'Authentication',
+      authEnabled: 'Enable Authentication',
+      authHeaders: 'Custom Headers',
+      headerKey: 'Header Key',
+      headerValue: 'Header Value',
+      addHeader: 'Add Header',
+      removeHeader: 'Remove Header',
     },
     chConvert: {
       none: 'None',

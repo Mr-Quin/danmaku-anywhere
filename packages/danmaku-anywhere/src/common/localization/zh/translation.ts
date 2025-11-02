@@ -480,10 +480,22 @@ const pages = {
         protobufLimitPerMin: '使用Protobuf时每分钟最大弹幕数 (1-1000)',
         limitPerMin: '每分钟最大弹幕数 (1-1000)',
         integration: '此配置使用的适配规则',
+        auth: '为自定义API端点启用身份验证',
+        authHeaders:
+          '随每个请求发送的自定义请求头 (例如 Authorization、X-AppSecret)',
       },
       error: {
         invalidUrl: '无效的URL格式',
+        headerKeyRequired: '请求头键名不能为空',
+        headerValueRequired: '请求头值不能为空',
       },
+      auth: '身份验证',
+      authEnabled: '启用身份验证',
+      authHeaders: '自定义请求头',
+      headerKey: '请求头键名',
+      headerValue: '请求头值',
+      addHeader: '添加请求头',
+      removeHeader: '删除请求头',
     },
     chConvert: {
       none: '不转换',

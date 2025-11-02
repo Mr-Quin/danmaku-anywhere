@@ -2,9 +2,19 @@ import { z } from 'zod'
 import { DanDanChConvert } from '../../utils/index.js'
 
 export const zDanDanPlayProviderOptions = z.object({
-  authToken: z.string().trim().optional(),
   baseUrl: z.string().trim().url().optional(),
   chConvert: z.nativeEnum(DanDanChConvert).optional(),
+  auth: z
+    .object({
+      enabled: z.boolean(),
+      headers: z.array(
+        z.object({
+          key: z.string().trim().min(1),
+          value: z.string().trim().min(1),
+        })
+      ),
+    })
+    .optional(),
 })
 
 export type DanDanDanPlayProviderOptions = z.infer<

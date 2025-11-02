@@ -62,6 +62,10 @@ export const createCustomDanDanPlayProvider = (
     isBuiltIn: false,
     options: {
       baseUrl: input.options?.baseUrl ?? '',
+      auth: {
+        enabled: input.options?.auth?.enabled ?? false,
+        headers: input.options?.auth?.headers ?? [],
+      },
     },
   }
 }

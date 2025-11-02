@@ -48,6 +48,10 @@ export interface DanDanPlayQueryContext {
   isCustom?: boolean
   auth?: {
     token?: string
+    headers?: Array<{
+      key: string
+      value: string
+    }>
   }
 }
 
@@ -63,10 +67,11 @@ const fetchDanDanPlay = async <T extends ZodType>(
     headers['Content-Type'] = 'application/json'
   }
 
-  // Use token from context if provided, otherwise use store token
-  const token = context?.auth?.token ?? store.ddpToken
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
+  // aadd custom headers from context
+  if (context?.auth?.headers) {
+    for (const header of context.auth.headers) {
+      headers[header.key] = header.value
+    }
   }
 
   // parse query early

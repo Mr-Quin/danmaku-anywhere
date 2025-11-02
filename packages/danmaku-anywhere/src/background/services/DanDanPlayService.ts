@@ -28,6 +28,12 @@ function createQueryContext(
   return {
     isCustom: true,
     baseUrl: provider.baseUrl,
+    auth:
+      provider.auth?.enabled && provider.auth.headers
+        ? {
+            headers: provider.auth.headers,
+          }
+        : undefined,
   }
 }
 

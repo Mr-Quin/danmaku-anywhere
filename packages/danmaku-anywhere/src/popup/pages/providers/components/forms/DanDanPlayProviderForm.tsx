@@ -44,7 +44,6 @@ export const DanDanPlayProviderForm = ({
       spacing={2}
       alignItems="flex-start"
     >
-      {/* Name field - readonly for built-in providers */}
       <TextField
         label={t('providers.editor.name')}
         size="small"
@@ -54,7 +53,6 @@ export const DanDanPlayProviderForm = ({
         helperText={t('providers.editor.helper.builtInName')}
       />
 
-      {/* Chinese Convert option */}
       <Controller
         name="options.chConvert"
         control={control}

@@ -1,6 +1,17 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Stack, TextField } from '@mui/material'
-import { useForm } from 'react-hook-form'
+import { Remove } from '@mui/icons-material'
+import {
+  Box,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  FormHelperText,
+  IconButton,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
+import { useFieldArray, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import type { DanDanPlayCompatProvider } from '@/common/options/providerConfig/schema'
 import { zDanDanPlayCompatibleProviderConfig } from '@/common/options/providerConfig/schema'
@@ -19,11 +30,20 @@ export const DanDanPlayCompatibleProviderForm = ({
     handleSubmit,
     register,
     reset,
+    control,
+    watch,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<DanDanPlayCompatProvider>({
     resolver: zodResolver(zDanDanPlayCompatibleProviderConfig),
     defaultValues: provider,
   })
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'options.auth.headers',
+  })
+
+  const authEnabled = watch('options.auth.enabled')
 
   const handleFormSubmit = handleSubmit(async (data) => {
     await onSubmit(data)
@@ -64,6 +84,78 @@ export const DanDanPlayCompatibleProviderForm = ({
         fullWidth
         required
       />
+
+      <Box sx={{ width: '100%' }}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              {...register('options.auth.enabled')}
+              defaultChecked={provider?.options?.auth?.enabled}
+            />
+          }
+          label={t('providers.editor.authEnabled')}
+          sx={{ color: 'text.secondary' }}
+        />
+      </Box>
+
+      {authEnabled && (
+        <Box sx={{ width: '100%' }}>
+          <Typography sx={{ mb: 1 }}>
+            {t('providers.editor.authHeaders')}
+          </Typography>
+          <FormHelperText sx={{ mt: 0, mb: 2 }}>
+            {t('providers.editor.helper.authHeaders')}
+          </FormHelperText>
+
+          <Stack spacing={2}>
+            {fields.map((field, index) => (
+              <Stack
+                key={field.id}
+                direction="row"
+                spacing={1}
+                alignItems="flex-start"
+              >
+                <IconButton onClick={() => remove(index)} size="small">
+                  <Remove />
+                </IconButton>
+                <TextField
+                  label={t('providers.editor.headerKey')}
+                  placeholder="X-AppSecret"
+                  size="small"
+                  error={!!errors.options?.auth?.headers?.[index]?.key}
+                  helperText={
+                    errors.options?.auth?.headers?.[index]?.key?.message
+                  }
+                  {...register(`options.auth.headers.${index}.key`)}
+                  fullWidth
+                  required
+                />
+                <TextField
+                  label={t('providers.editor.headerValue')}
+                  placeholder=""
+                  size="small"
+                  error={!!errors.options?.auth?.headers?.[index]?.value}
+                  helperText={
+                    errors.options?.auth?.headers?.[index]?.value?.message
+                  }
+                  {...register(`options.auth.headers.${index}.value`)}
+                  fullWidth
+                  required
+                />
+              </Stack>
+            ))}
+
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => append({ key: '', value: '' })}
+              sx={{ alignSelf: 'flex-start' }}
+            >
+              {t('providers.editor.addHeader')}
+            </Button>
+          </Stack>
+        </Box>
+      )}
 
       <FormActions
         isEdit={isEdit}

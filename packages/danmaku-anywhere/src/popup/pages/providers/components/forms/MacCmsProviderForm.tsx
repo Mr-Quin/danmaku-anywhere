@@ -147,7 +147,6 @@ export const MacCmsProviderForm = ({
             />
           }
           label={t('optionsPage.danmakuSource.macCms.stripColor')}
-          labelPlacement="start"
           sx={{ m: 0, alignSelf: 'start', color: 'text.secondary' }}
         />
         <FormHelperText>
