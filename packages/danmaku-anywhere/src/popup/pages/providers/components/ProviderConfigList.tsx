@@ -1,14 +1,14 @@
 import { Delete } from '@mui/icons-material'
-import { Chip, ListItemIcon, ListItemText, MenuItem } from '@mui/material'
+import { ListItemIcon, ListItemText, MenuItem } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
-import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import {
   useEditProviderConfig,
   useProviderConfig,
 } from '@/common/options/providerConfig/useProviderConfig'
 import { DrilldownMenu } from '@/content/common/DrilldownMenu'
+import { ProviderConfigListItem } from './ProviderConfigListItem'
 import { ProviderToggleSwitch } from './ProviderToggleSwitch'
 
 export const ProviderConfigList = ({
@@ -23,9 +23,6 @@ export const ProviderConfigList = ({
   const { reorder } = useEditProviderConfig()
 
   const getSecondaryText = (config: ProviderConfig) => {
-    if (config.isBuiltIn) {
-      return t('providers.builtin')
-    }
     if (config.type === 'DanDanPlayCompatible') {
       return config.options.baseUrl
     }
@@ -35,27 +32,6 @@ export const ProviderConfigList = ({
     return ''
   }
 
-  const renderChip = (config: ProviderConfig) => {
-    if (config.isBuiltIn) {
-      return (
-        <Chip
-          label={t('providers.builtin')}
-          size="small"
-          sx={{ ml: 1 }}
-          color="primary"
-        />
-      )
-    }
-    return (
-      <Chip
-        label={t(localizedDanmakuSourceType(config.impl))}
-        size="small"
-        sx={{ ml: 1 }}
-        color="secondary"
-      />
-    )
-  }
-
   return (
     <DraggableList
       items={configs}
@@ -63,12 +39,7 @@ export const ProviderConfigList = ({
       onReorder={(sourceIndex, destinationIndex) => {
         reorder.mutate({ sourceIndex, destinationIndex })
       }}
-      renderPrimary={(config) => (
-        <span>
-          {config.name}
-          {renderChip(config)}
-        </span>
-      )}
+      renderPrimary={(config) => <ProviderConfigListItem config={config} />}
       renderSecondary={getSecondaryText}
       renderSecondaryAction={(config) => (
         <>

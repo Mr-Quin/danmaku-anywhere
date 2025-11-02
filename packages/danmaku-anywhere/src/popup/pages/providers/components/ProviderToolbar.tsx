@@ -22,13 +22,13 @@ export const ProviderToolbar = ({
         items={[
           {
             id: 'add-dandanplay',
-            label: t('providers.type.custom-dandanplay'),
+            label: t('danmaku.type.DanDanPlay'),
             onClick: onAddDanDanPlayProvider,
             icon: <Add />,
           },
           {
             id: 'add-maccms',
-            label: t('providers.type.custom-maccms'),
+            label: t('danmaku.type.MacCMS'),
             onClick: onAddMacCmsProvider,
             icon: <Add />,
           },

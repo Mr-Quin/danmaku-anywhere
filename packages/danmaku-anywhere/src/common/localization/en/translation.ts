@@ -112,6 +112,7 @@ const domain = {
       Bilibili: 'Bilibili',
       Tencent: 'Tencent',
       Iqiyi: 'Iqiyi',
+      MacCMS: 'MacCMS',
     },
     unmount: 'Unmount',
     local: 'Local Danmaku',

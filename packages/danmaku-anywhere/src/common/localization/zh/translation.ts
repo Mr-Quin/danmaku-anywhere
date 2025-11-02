@@ -114,6 +114,7 @@ const domain = {
       Bilibili: 'B站',
       Tencent: '腾讯',
       Iqiyi: '爱奇艺',
+      MacCMS: 'MacCMS',
     },
     unmount: '卸载弹幕',
     local: '本地弹幕',
@@ -456,7 +457,7 @@ const pages = {
     editor: {
       title: {
         add: '添加弹幕源',
-        addDanDanPlay: '添加弹弹Play兼容弹幕源',
+        addDanDanPlay: '添加弹弹Play弹幕源',
         addMacCms: '添加MacCMS弹幕源',
         edit: '编辑弹幕源: {{name}}',
       },
@@ -471,7 +472,7 @@ const pages = {
       stripColor: '移除颜色',
       helper: {
         builtInName: '内置弹幕源的名称不可更改',
-        baseUrl: '弹弹Play兼容服务器的API地址',
+        baseUrl: '弹弹Play或兼容弹弹Play的API地址',
         danmakuBaseUrl: 'MacCMS弹幕API地址',
         danmuicuBaseUrl: 'Danmuicu API地址',
         chConvert: '简体和繁体中文之间的转换',
