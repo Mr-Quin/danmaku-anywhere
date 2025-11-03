@@ -1,4 +1,5 @@
 import type {
+  CustomSeason,
   DanDanPlayOf,
   Episode,
   Season,
@@ -21,9 +22,11 @@ import type {
 } from '@/common/anime/dto'
 import type { DanmakuFetchDto, EpisodeSearchParams } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { assertProvider } from '@/common/danmaku/utils'
+import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
+import { providerConfigService } from '@/common/options/providerConfig/service'
+import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
 import { stripExtension } from '@/common/utils/stripExtension'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
@@ -46,13 +49,21 @@ export class ProviderService {
     this.logger = Logger.sub('[ProviderService]')
   }
 
-  async searchSeason(params: SeasonSearchParams) {
-    switch (params.provider) {
+  async searchSeason(
+    params: SeasonSearchParams
+  ): Promise<Season[] | CustomSeason[]> {
+    const providerConfig = params.providerConfig
+
+    switch (params.providerConfig.impl) {
       case DanmakuSourceType.DanDanPlay: {
-        return this.danDanPlayService.search({
-          anime: params.keyword,
-          episode: params.episode,
-        })
+        assertProviderConfigImpl(providerConfig, DanmakuSourceType.DanDanPlay)
+        return this.danDanPlayService.search(
+          {
+            anime: params.keyword,
+            episode: params.episode,
+          },
+          providerConfig.options
+        )
       }
       case DanmakuSourceType.Bilibili: {
         return this.bilibiliService.search({
@@ -62,11 +73,15 @@ export class ProviderService {
       case DanmakuSourceType.Tencent: {
         return this.tencentService.search(params.keyword)
       }
-      case DanmakuSourceType.Custom: {
+      case DanmakuSourceType.MacCMS: {
+        assertProviderConfigImpl(providerConfig, DanmakuSourceType.MacCMS)
         return await this.customProviderService.search(
-          params.customBaseUrl,
+          params.providerConfig.options.danmakuBaseUrl,
           params.keyword
         )
+      }
+      default: {
+        throw new Error(`Unsupported provider: ${providerConfig.type}`)
       }
     }
   }
@@ -75,7 +90,12 @@ export class ProviderService {
     const { seasonId, provider } = params
     switch (provider) {
       case DanmakuSourceType.DanDanPlay: {
-        return this.danDanPlayService.getEpisodes(seasonId)
+        const season = await this.seasonService.mustGetById(seasonId)
+        assertProviderType(season, DanmakuSourceType.DanDanPlay)
+        return this.danDanPlayService.getEpisodes(
+          seasonId,
+          season.providerOptions
+        )
       }
       case DanmakuSourceType.Bilibili: {
         return this.bilibiliService.getEpisodes(seasonId)
@@ -91,7 +111,11 @@ export class ProviderService {
 
     switch (season.provider) {
       case DanmakuSourceType.DanDanPlay: {
-        await this.danDanPlayService.getSeason(season.providerIds.bangumiId)
+        assertProviderType(season, DanmakuSourceType.DanDanPlay)
+        await this.danDanPlayService.getSeason(
+          season.providerIds.bangumiId,
+          season.providerOptions
+        )
         break
       }
       case DanmakuSourceType.Bilibili: {
@@ -113,7 +137,8 @@ export class ProviderService {
         void this.danDanPlayService.getNextEpisodeDanmaku(
           data.meta,
           data.meta.season,
-          data.meta.params
+          data.meta.params ?? {},
+          data.meta.providerOptions
         )
         break
       }
@@ -137,11 +162,11 @@ export class ProviderService {
 
     if (existingDanmaku && !options.forceUpdate) {
       this.logger.debug('Danmaku found in db', existingDanmaku)
-      assertProvider(existingDanmaku, provider)
+      assertProviderType(existingDanmaku, provider)
       const season = await this.seasonService.mustGetById(
         existingDanmaku.seasonId
       )
-      assertProvider(season, provider)
+      assertProviderType(season, provider)
       return {
         ...existingDanmaku,
         season,
@@ -158,7 +183,12 @@ export class ProviderService {
       .with(
         { meta: { provider: DanmakuSourceType.Bilibili } },
         async ({ meta }) => {
-          const episode = await this.bilibiliService.saveEpisode(meta)
+          const providerConfig =
+            await providerConfigService.getBuiltInBilibili()
+          const episode = await this.bilibiliService.saveEpisode(
+            meta,
+            providerConfig.options
+          )
           return {
             ...episode,
             season: meta.season,
@@ -179,10 +209,12 @@ export class ProviderService {
         { meta: { provider: DanmakuSourceType.DanDanPlay } },
         async ({ meta }) => {
           const { season, ...rest } = meta
+
           const episode = await this.danDanPlayService.getEpisodeDanmaku(
             rest,
             meta.season,
-            meta.params
+            meta.params ?? {},
+            meta.providerOptions
           )
           return {
             ...episode,
@@ -202,7 +234,10 @@ export class ProviderService {
     seasonId,
   }: MatchEpisodeInput): Promise<MatchEpisodeResult> {
     const getMetaFromSeason = async (season: DanDanPlayOf<Season>) => {
-      const episodes = await this.danDanPlayService.getEpisodes(season.id)
+      const episodes = await this.danDanPlayService.getEpisodes(
+        season.id,
+        season.providerOptions
+      )
 
       if (episodes.length === 0) {
         throw new Error(`No episodes found for season: ${season}`)
@@ -267,7 +302,7 @@ export class ProviderService {
         }
       }
 
-      assertProvider(season, DanmakuSourceType.DanDanPlay)
+      assertProviderType(season, DanmakuSourceType.DanDanPlay)
 
       return {
         status: 'success',
@@ -277,9 +312,15 @@ export class ProviderService {
 
     this.logger.debug('No mapping found, searching for season')
 
-    const foundSeasons = await this.danDanPlayService.search({
-      anime: title,
-    })
+    const automaticProvider =
+      await providerConfigService.getFirstAutomaticProvider()
+
+    const foundSeasons = await this.danDanPlayService.search(
+      {
+        anime: title,
+      },
+      automaticProvider.options
+    )
 
     if (foundSeasons.length === 0) {
       this.logger.debug(`No season found for title: ${title}`)

@@ -1,5 +1,6 @@
 import type {
   EpisodeMeta,
+  MacCMSProviderOptions,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type {
@@ -73,7 +74,8 @@ export type DanmakuImportResult = {
   }[]
 }
 
-export interface GenericDanmakuFetchData {
+export interface MacCMSFetchData {
   title: string
   url: string
+  providerOptions: MacCMSProviderOptions
 }

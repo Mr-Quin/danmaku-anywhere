@@ -34,7 +34,7 @@ import type {
   DanmakuImportResult,
   EpisodeQueryFilter,
   EpisodeSearchParams,
-  GenericDanmakuFetchData,
+  MacCMSFetchData,
 } from '@/common/danmaku/dto'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import type { SeasonMap } from '@/common/seasonMap/types'
@@ -93,7 +93,7 @@ export type BackgroundMethods = {
   kazumiSearchContent: RPCDef<KazumiSearchPayload, KazumiSearchResult[]>
   kazumiGetChapters: RPCDef<KazumiChapterPayload, KazumiChapterResult[][]>
   genericVodSearch: RPCDef<GenericVodSearchData, CustomSeason[]>
-  genericFetchDanmakuForUrl: RPCDef<GenericDanmakuFetchData, CustomEpisode>
+  genericFetchDanmakuForUrl: RPCDef<MacCMSFetchData, CustomEpisode>
   setHeaders: RPCDef<SetHeaderRule, void>
   extractTitle: RPCDef<string, ExtractTitleResponse['result']>
   openPopupInNewWindow: RPCDef<string, void>

@@ -55,7 +55,7 @@ export class DanmakuService {
     comments: CommentEntity[]
   }): Promise<CustomEpisode> {
     return this.addCustom({
-      provider: DanmakuSourceType.Custom,
+      provider: DanmakuSourceType.MacCMS,
       comments: importData.comments,
       commentCount: importData.comments.length,
       title: importData.title,
@@ -220,7 +220,7 @@ export class DanmakuService {
           if (item.type === 'Custom') {
             await this.addCustom(item.episode)
             imported.push({
-              type: DanmakuSourceType.Custom,
+              type: DanmakuSourceType.MacCMS,
               title: item.episode.title,
               seasonId: -1,
               seasonTitle: 'Custom',

@@ -7,6 +7,8 @@ import { defaultKeymap } from '@/common/options/extensionOptions/hotkeys'
 import type { ExtensionOptions } from '@/common/options/extensionOptions/schema'
 import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import { migrateDanmakuSourcesToProviders } from '@/common/options/providerConfig/migration'
+import { providerConfigService } from '@/common/options/providerConfig/service'
 import { ColorMode } from '@/common/theme/enums'
 
 export const extensionOptionsService = new OptionsService(
@@ -39,8 +41,10 @@ export const extensionOptionsService = new OptionsService(
   .version(4, {
     upgrade: (data: PrevOptions) =>
       produce<ExtensionOptions>(data, (draft) => {
-        // Add option to convert between simplified and traditional Chinese
-        draft.danmakuSources.dandanplay.chConvert = DanDanChConvert.None
+        if (draft.danmakuSources) {
+          // Add option to convert between simplified and traditional Chinese
+          draft.danmakuSources.dandanplay.chConvert = DanDanChConvert.None
+        }
       }),
   })
   .version(5, {
@@ -55,32 +59,39 @@ export const extensionOptionsService = new OptionsService(
   .version(6, {
     upgrade: (data: PrevOptions) =>
       produce<ExtensionOptions>(data, (draft) => {
-        // Add bilibili danmaku source and disable it by default
-        draft.danmakuSources.dandanplay.enabled = true
-        draft.danmakuSources.bilibili = {
-          enabled: false,
-        } as unknown as ExtensionOptions['danmakuSources']['bilibili']
+        if (draft.danmakuSources) {
+          // Add bilibili danmaku source and disable it by default
+          draft.danmakuSources.dandanplay.enabled = true
+          draft.danmakuSources.bilibili = {
+            enabled: false,
+            // biome-ignore lint/suspicious/noExplicitAny: deprecated field
+          } as any
+        }
       }),
   })
   .version(7, {
     upgrade: (data: PrevOptions) =>
       produce<ExtensionOptions>(data, (draft) => {
         // Add bilibili danmaku source options
-        draft.danmakuSources.bilibili.danmakuTypePreference = 'xml'
-        draft.danmakuSources.bilibili.protobufLimitPerMin = 200
+        if (draft.danmakuSources) {
+          draft.danmakuSources.bilibili.danmakuTypePreference = 'xml'
+          draft.danmakuSources.bilibili.protobufLimitPerMin = 200
+        }
       }),
   })
   .version(8, {
     upgrade: (data: PrevOptions) =>
       produce<ExtensionOptions>(data, (draft) => {
         // Add tencent and iqiyi danmaku source options
-        draft.danmakuSources.tencent = {
-          enabled: false,
-          limitPerMin: 200,
-        }
-        draft.danmakuSources.iqiyi = {
-          enabled: false,
-          limitPerMin: 200,
+        if (draft.danmakuSources) {
+          draft.danmakuSources.tencent = {
+            enabled: false,
+            limitPerMin: 200,
+          }
+          draft.danmakuSources.iqiyi = {
+            enabled: false,
+            limitPerMin: 200,
+          }
         }
       }),
   })
@@ -141,12 +152,14 @@ export const extensionOptionsService = new OptionsService(
   .version(16, {
     upgrade: (data: PrevOptions) =>
       produce<ExtensionOptions>(data, (draft) => {
-        // Add custom danmaku source
-        draft.danmakuSources.custom = {
-          enabled: true,
-          baseUrl: 'https://zy.xmm.hk',
-          danmuicuBaseUrl: 'https://api.danmu.icu',
-          stripColor: true,
+        if (draft.danmakuSources) {
+          // Add custom danmaku source
+          draft.danmakuSources.custom = {
+            enabled: true,
+            baseUrl: 'https://zy.xmm.hk',
+            danmuicuBaseUrl: 'https://api.danmu.icu',
+            stripColor: true,
+          }
         }
       }),
   })
@@ -161,20 +174,41 @@ export const extensionOptionsService = new OptionsService(
     upgrade: (data: PrevOptions) =>
       produce<ExtensionOptions>(data, (draft) => {
         // Add stripColor
-        draft.danmakuSources.custom.stripColor = true
+        if (draft.danmakuSources) {
+          draft.danmakuSources.custom.stripColor = true
+        }
       }),
   })
   .version(19, {
     upgrade: (data: PrevOptions) =>
       produce<ExtensionOptions>(data, (draft) => {
         // Add danmuicuBaseUrl
-        draft.danmakuSources.custom.danmuicuBaseUrl = 'https://api.danmu.icu'
+        if (draft.danmakuSources) {
+          draft.danmakuSources.custom.danmuicuBaseUrl = 'https://api.danmu.icu'
+        }
       }),
   })
   .version(20, {
     upgrade: (data: PrevOptions) =>
       produce<ExtensionOptions>(data, (draft) => {
-        draft.danmakuSources.dandanplay.useCustomRoot = false
-        draft.danmakuSources.dandanplay.baseUrl = ''
+        if (draft.danmakuSources) {
+          draft.danmakuSources.dandanplay.useCustomRoot = false
+          draft.danmakuSources.dandanplay.baseUrl = ''
+        }
       }),
+  })
+  .version(21, {
+    upgrade: (data: PrevOptions) => {
+      if (data.danmakuSources) {
+        const providers = migrateDanmakuSourcesToProviders(data.danmakuSources)
+
+        // set data in separate storage
+        void providerConfigService.options.set(providers)
+
+        // biome-ignore lint/correctness/noUnusedVariables: drop deprecated field
+        const { danmakuSources, ...rest } = data
+        return rest
+      }
+      return data
+    },
   })

@@ -6,8 +6,11 @@ import { episodeQueryKeys, seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 /**
- * Fetches danmaku from cache
+ * Fetches danmaku from cache or server
  * If not found in cache, fetches from server and saves to cache
+ *
+ * The background service extracts the providerInstanceId from the episode metadata
+ * to determine which provider config to use.
  *
  * This is a mutation because it updates the cache
  */

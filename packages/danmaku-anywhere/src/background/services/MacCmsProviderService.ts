@@ -1,11 +1,13 @@
-import type { CustomSeason } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  CustomSeason,
+  MacCMSProviderOptions,
+} from '@danmaku-anywhere/danmaku-converter'
 import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import {
   fetchDanmuIcuComments,
   searchMacCmsVod,
 } from '@danmaku-anywhere/danmaku-provider/maccms'
 import { Logger } from '@/common/Logger'
-import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { DanmakuService } from './DanmakuService'
 
@@ -43,19 +45,22 @@ export class MacCmsProviderService {
           ? Number.parseInt(item.vod_year) || undefined
           : undefined,
         schemaVersion: 1,
-        provider: DanmakuSourceType.Custom,
+        provider: DanmakuSourceType.MacCMS,
         providerIds: {},
         episodes: item.parsedPlayUrls,
       }
     })
   }
 
-  async fetchDanmakuForUrl(title: string, url: string) {
-    const options = await extensionOptionsService.get()
+  async fetchDanmakuForUrl(
+    title: string,
+    url: string,
+    providerOptions: MacCMSProviderOptions
+  ) {
     const comments = await fetchDanmuIcuComments(
-      options.danmakuSources.custom.danmuicuBaseUrl,
+      providerOptions.danmuicuBaseUrl,
       url,
-      options.danmakuSources.custom.stripColor
+      providerOptions.stripColor
     )
     return this.danmakuService.importCustom({ title, comments })
   }

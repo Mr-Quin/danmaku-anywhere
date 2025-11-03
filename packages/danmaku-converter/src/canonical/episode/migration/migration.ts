@@ -40,14 +40,14 @@ function v1ToV3(v1Data: z.infer<typeof zEpisodeImportV1>): DanmakuInsertV3 {
   if (v1Data.type === 0) {
     // Custom
     return {
-      provider: DanmakuSourceType.Custom,
+      provider: DanmakuSourceType.MacCMS,
       comments: v1Data.comments,
       commentCount: v1Data.comments.length,
       version: v1Data.version,
       timeUpdated: v1Data.timeUpdated,
       schemaVersion: 3,
       meta: {
-        provider: DanmakuSourceType.Custom,
+        provider: DanmakuSourceType.MacCMS,
         seasonTitle: v1Data.meta.animeTitle, // Rename animeTitle to seasonTitle
         episodeTitle:
           v1Data.meta.episodeTitle ?? v1Data.meta.episodeNumber!.toString(),
@@ -64,10 +64,10 @@ function v2ToV3(v2Data: z.infer<typeof zEpisodeImportV2>): DanmakuInsertV3 {
   if (v2Data.provider === 0) {
     return {
       ...v2Data,
-      provider: DanmakuSourceType.Custom,
+      provider: DanmakuSourceType.MacCMS,
       meta: {
         ...v2Data.meta,
-        provider: DanmakuSourceType.Custom,
+        provider: DanmakuSourceType.MacCMS,
       },
     }
   }

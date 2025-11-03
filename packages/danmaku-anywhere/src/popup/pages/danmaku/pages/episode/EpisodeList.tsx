@@ -63,7 +63,7 @@ export const EpisodeList = () => {
   const deleteMutation = useDeleteEpisode()
 
   const handleFetchDanmaku = async (episode: EpisodeRow) => {
-    if (isProvider(episode, DanmakuSourceType.Custom)) return
+    if (isProvider(episode, DanmakuSourceType.MacCMS)) return
     return refreshDanmaku(episode)
   }
 
@@ -130,7 +130,7 @@ export const EpisodeList = () => {
                 navigate({
                   pathname: `${episode.id}`,
                   search: createSearchParams({
-                    type: isProvider(episode, DanmakuSourceType.Custom)
+                    type: isProvider(episode, DanmakuSourceType.MacCMS)
                       ? 'custom'
                       : 'remote',
                   }).toString(),
@@ -171,7 +171,7 @@ export const EpisodeList = () => {
             <DrilldownMenu
               ButtonProps={{ size: 'small' }}
               items={[
-                ...(isProvider(episode, DanmakuSourceType.Custom)
+                ...(isProvider(episode, DanmakuSourceType.MacCMS)
                   ? []
                   : [
                       {

@@ -1,5 +1,5 @@
 export enum DanmakuSourceType {
-  Custom = 'Custom',
+  MacCMS = 'Custom',
   DanDanPlay = 'DanDanPlay',
   Bilibili = 'Bilibili',
   Tencent = 'Tencent',
@@ -7,7 +7,7 @@ export enum DanmakuSourceType {
 
 export type RemoteDanmakuSourceType = Exclude<
   DanmakuSourceType,
-  DanmakuSourceType.Custom
+  DanmakuSourceType.MacCMS
 >
 
 export type ByProvider<T, P extends DanmakuSourceType> = Extract<
@@ -18,7 +18,7 @@ export type ByProvider<T, P extends DanmakuSourceType> = Extract<
 export type BilibiliOf<T> = ByProvider<T, DanmakuSourceType.Bilibili>
 export type DanDanPlayOf<T> = ByProvider<T, DanmakuSourceType.DanDanPlay>
 export type TencentOf<T> = ByProvider<T, DanmakuSourceType.Tencent>
-export type CustomOf<T> = ByProvider<T, DanmakuSourceType.Custom>
+export type CustomOf<T> = ByProvider<T, DanmakuSourceType.MacCMS>
 
 type DbEntityBase = Readonly<{
   // How many times the entity has been updated

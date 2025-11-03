@@ -17,9 +17,9 @@ import { IntegrationPolicy } from '../pages/integrationPolicy/pages/IntegrationP
 import { IntegrationPolicyEditor } from '../pages/integrationPolicy/pages/IntegrationPolicyEditor'
 import { MountPage } from '../pages/mount/MountPage'
 import { Options } from '../pages/options/Options'
-import { DanmakuSource } from '../pages/options/pages/danmakuSource/DanmakuSource'
 import { HotkeyOptions } from '../pages/options/pages/hotkeyOptions/HotkeyOptions'
 import { RetentionPolicyPage } from '../pages/options/pages/retentionPolicy/RetentionPolicyPage'
+import { ProvidersPage } from '../pages/providers/pages/ProvidersPage'
 
 import { SearchPage } from '../pages/search/SearchPage'
 import { StylesPage } from '../pages/styles/StylesPage'
@@ -86,6 +86,10 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
         ],
       },
       {
+        path: 'providers',
+        Component: ProvidersPage,
+      },
+      {
         path: 'import',
         Component: ImportPage,
       },
@@ -114,11 +118,6 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
     path: '/options',
     Component: Options,
     children: [
-      {
-        path: 'danmaku-source',
-        Component: DanmakuSource,
-      },
-
       {
         path: 'hotkeys',
         Component: HotkeyOptions,

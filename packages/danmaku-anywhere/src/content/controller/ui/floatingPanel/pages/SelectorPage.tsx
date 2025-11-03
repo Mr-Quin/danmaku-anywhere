@@ -49,7 +49,7 @@ export const SelectorPage = () => {
       onSuccess: (result) => {
         if (
           result.data.status !== 'success' ||
-          result.data.data.provider === DanmakuSourceType.Custom // shouldn't happen here
+          result.data.data.provider === DanmakuSourceType.MacCMS // shouldn't happen here
         ) {
           return
         }

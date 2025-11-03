@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { GenericDanmakuFetchData } from '@/common/danmaku/dto'
+import type { MacCMSFetchData } from '@/common/danmaku/dto'
 import { customEpisodeQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
@@ -15,7 +15,7 @@ export const useFetchGenericDanmaku = () => {
 
   return useMutation({
     mutationKey: customEpisodeQueryKeys.all(),
-    mutationFn: async (data: GenericDanmakuFetchData) => {
+    mutationFn: async (data: MacCMSFetchData) => {
       const res = await chromeRpcClient.genericFetchDanmakuForUrl(data)
       return res.data
     },

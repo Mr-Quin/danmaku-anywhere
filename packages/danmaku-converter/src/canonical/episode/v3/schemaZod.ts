@@ -18,9 +18,9 @@ const zBaseEpisodeV3 = z.object({
 const schema = {
   custom: z.discriminatedUnion('provider', [
     zBaseEpisodeV3.extend({
-      provider: z.literal(DanmakuSourceType.Custom),
+      provider: z.literal(DanmakuSourceType.MacCMS),
       meta: z.object({
-        provider: z.literal(DanmakuSourceType.Custom),
+        provider: z.literal(DanmakuSourceType.MacCMS),
         seasonTitle: z.string(),
         episodeTitle: z.string(),
       }),
