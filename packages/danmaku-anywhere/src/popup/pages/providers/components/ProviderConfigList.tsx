@@ -1,5 +1,4 @@
 import { Delete } from '@mui/icons-material'
-import { ListItemIcon, ListItemText, MenuItem } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
@@ -48,14 +47,15 @@ export const ProviderConfigList = ({
             <DrilldownMenu
               BoxProps={{ display: 'inline' }}
               ButtonProps={{ edge: 'end' }}
-            >
-              <MenuItem onClick={() => onDelete(config)}>
-                <ListItemIcon>
-                  <Delete />
-                </ListItemIcon>
-                <ListItemText>{t('common.delete')}</ListItemText>
-              </MenuItem>
-            </DrilldownMenu>
+              items={[
+                {
+                  id: 'delete',
+                  label: t('common.delete'),
+                  onClick: () => onDelete(config),
+                  icon: <Delete />,
+                },
+              ]}
+            />
           )}
         </>
       )}

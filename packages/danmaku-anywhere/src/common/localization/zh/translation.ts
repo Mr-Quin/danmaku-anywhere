@@ -292,7 +292,7 @@ const pages = {
         useCustomRoot: '使用自定义API地址',
       },
       macCms: {
-        baseUrl: '苹果cms API地址',
+        baseUrl: 'MacCMS API地址',
         danmuicuBaseUrl: '弹幕库API地址',
         stripColor: '去除弹幕颜色',
         help: {
