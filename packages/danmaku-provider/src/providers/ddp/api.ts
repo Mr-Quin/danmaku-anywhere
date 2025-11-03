@@ -67,7 +67,7 @@ const fetchDanDanPlay = async <T extends ZodType>(
     headers['Content-Type'] = 'application/json'
   }
 
-  // aadd custom headers from context
+  // add custom headers from context
   if (context?.auth?.headers) {
     for (const header of context.auth.headers) {
       headers[header.key] = header.value
