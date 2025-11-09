@@ -63,7 +63,7 @@ export type BackgroundMethods = {
   seasonGetAll: RPCDef<void, Season[]>
   seasonDelete: RPCDef<SeasonQueryFilter, void>
   seasonRefresh: RPCDef<SeasonQueryFilter, void>
-  episodeSearch: RPCDef<EpisodeSearchParams, WithSeason<EpisodeMeta>[]>
+  episodeFetchBySeason: RPCDef<EpisodeSearchParams, WithSeason<EpisodeMeta>[]>
   episodeMatch: RPCDef<MatchEpisodeInput, MatchEpisodeResult>
   episodeFilterLite: RPCDef<EpisodeQueryFilter, WithSeason<EpisodeLite>[]>
   episodeFilter: RPCDef<EpisodeQueryFilter, WithSeason<Episode>[]>

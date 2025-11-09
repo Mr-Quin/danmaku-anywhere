@@ -1,4 +1,8 @@
-import type { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
+import {
+  DanmakuSourceType,
+  type Season,
+} from '@danmaku-anywhere/danmaku-converter'
+import { isProvider } from '@/common/danmaku/utils'
 import type { ProviderConfig, ProviderConfigType } from './schema'
 
 export function assertProviderConfigImpl<T extends DanmakuSourceType>(
@@ -26,4 +30,11 @@ export function assertProviderConfigType<T extends ProviderConfigType>(
       `Provider type mismatch: expected ${type}, got ${config.type}`
     )
   }
+}
+
+export function getProviderConfigId(season: Season): string | undefined {
+  if (isProvider(season, DanmakuSourceType.DanDanPlay)) {
+    return season.providerConfigId
+  }
+  return undefined
 }

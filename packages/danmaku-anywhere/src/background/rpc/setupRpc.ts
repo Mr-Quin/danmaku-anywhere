@@ -50,8 +50,8 @@ export const setupRpc = (
     mediaParseUrl: async (input) => {
       return providerService.parseUrl(input.url)
     },
-    episodeSearch: async (input: EpisodeSearchParams) => {
-      return providerService.searchEpisodes(input)
+    episodeFetchBySeason: async (input: EpisodeSearchParams) => {
+      return providerService.fetchEpisodesBySeason(input.seasonId)
     },
     episodeMatch: async (data) => {
       return providerService.findMatchingEpisodes(data)
@@ -223,11 +223,11 @@ export const setupRpc = (
     genericVodSearch: async ({ baseUrl, keyword }) => {
       return customProviderService.search(baseUrl, keyword)
     },
-    genericFetchDanmakuForUrl: async ({ title, url, providerOptions }) => {
+    genericFetchDanmakuForUrl: async ({ title, url, providerConfigId }) => {
       return customProviderService.fetchDanmakuForUrl(
         title,
         url,
-        providerOptions
+        providerConfigId
       )
     },
     setHeaders: async (rule) => {

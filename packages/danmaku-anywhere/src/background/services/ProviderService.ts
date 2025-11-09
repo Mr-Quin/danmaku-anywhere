@@ -20,7 +20,7 @@ import type {
   SeasonQueryFilter,
   SeasonSearchParams,
 } from '@/common/anime/dto'
-import type { DanmakuFetchDto, EpisodeSearchParams } from '@/common/danmaku/dto'
+import type { DanmakuFetchDto } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
@@ -62,7 +62,7 @@ export class ProviderService {
             anime: params.keyword,
             episode: params.episode,
           },
-          providerConfig.options
+          providerConfig.id
         )
       }
       case DanmakuSourceType.Bilibili: {
@@ -76,7 +76,7 @@ export class ProviderService {
       case DanmakuSourceType.MacCMS: {
         assertProviderConfigImpl(providerConfig, DanmakuSourceType.MacCMS)
         return await this.customProviderService.search(
-          params.providerConfig.options.danmakuBaseUrl,
+          providerConfig.options.danmakuBaseUrl,
           params.keyword
         )
       }
@@ -86,15 +86,14 @@ export class ProviderService {
     }
   }
 
-  async searchEpisodes(params: EpisodeSearchParams) {
-    const { seasonId, provider } = params
-    switch (provider) {
+  async fetchEpisodesBySeason(seasonId: number) {
+    const season = await this.seasonService.mustGetById(seasonId)
+
+    switch (season.provider) {
       case DanmakuSourceType.DanDanPlay: {
-        const season = await this.seasonService.mustGetById(seasonId)
-        assertProviderType(season, DanmakuSourceType.DanDanPlay)
         return this.danDanPlayService.getEpisodes(
           seasonId,
-          season.providerOptions
+          season.providerConfigId
         )
       }
       case DanmakuSourceType.Bilibili: {
@@ -114,7 +113,7 @@ export class ProviderService {
         assertProviderType(season, DanmakuSourceType.DanDanPlay)
         await this.danDanPlayService.getSeason(
           season.providerIds.bangumiId,
-          season.providerOptions
+          season.providerConfigId
         )
         break
       }
@@ -138,7 +137,7 @@ export class ProviderService {
           data.meta,
           data.meta.season,
           data.meta.params ?? {},
-          data.meta.providerOptions
+          data.meta.providerConfigId
         )
         break
       }
@@ -187,7 +186,7 @@ export class ProviderService {
             await providerConfigService.getBuiltInBilibili()
           const episode = await this.bilibiliService.saveEpisode(
             meta,
-            providerConfig.options
+            providerConfig.id
           )
           return {
             ...episode,
@@ -214,7 +213,7 @@ export class ProviderService {
             rest,
             meta.season,
             meta.params ?? {},
-            meta.providerOptions
+            meta.providerConfigId
           )
           return {
             ...episode,
@@ -236,7 +235,7 @@ export class ProviderService {
     const getMetaFromSeason = async (season: DanDanPlayOf<Season>) => {
       const episodes = await this.danDanPlayService.getEpisodes(
         season.id,
-        season.providerOptions
+        season.providerConfigId
       )
 
       if (episodes.length === 0) {
@@ -319,7 +318,7 @@ export class ProviderService {
       {
         anime: title,
       },
-      automaticProvider.options
+      automaticProvider.id
     )
 
     if (foundSeasons.length === 0) {

@@ -54,7 +54,7 @@ export const zTencentProviderConfig = zProviderConfigBase.extend({
 })
 
 export const zDanDanPlayCompatibleProviderConfig = zProviderConfigBase.extend({
-  id: z.string().uuid(),
+  id: z.string().min(1),
   type: z.literal('DanDanPlayCompatible'),
   impl: z.literal(DanmakuSourceType.DanDanPlay),
   isBuiltIn: z.literal(false),
@@ -62,7 +62,7 @@ export const zDanDanPlayCompatibleProviderConfig = zProviderConfigBase.extend({
 })
 
 export const zMacCmsProviderConfig = zProviderConfigBase.extend({
-  id: z.string().uuid(),
+  id: z.string().min(1),
   type: z.literal('MacCMS'),
   impl: z.literal(DanmakuSourceType.MacCMS),
   isBuiltIn: z.literal(false),

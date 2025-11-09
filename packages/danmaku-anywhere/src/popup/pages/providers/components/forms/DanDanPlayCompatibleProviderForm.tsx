@@ -15,6 +15,7 @@ import { useFieldArray, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import type { DanDanPlayCompatProvider } from '@/common/options/providerConfig/schema'
 import { zDanDanPlayCompatibleProviderConfig } from '@/common/options/providerConfig/schema'
+import { providerConfigService } from '@/common/options/providerConfig/service'
 import { FormActions } from './FormActions'
 import type { ProviderFormProps } from './types'
 
@@ -32,6 +33,8 @@ export const DanDanPlayCompatibleProviderForm = ({
     reset,
     control,
     watch,
+    setError,
+    clearErrors,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<DanDanPlayCompatProvider>({
     resolver: zodResolver(zDanDanPlayCompatibleProviderConfig),
@@ -46,6 +49,19 @@ export const DanDanPlayCompatibleProviderForm = ({
   const authEnabled = watch('options.auth.enabled')
 
   const handleFormSubmit = handleSubmit(async (data) => {
+    // Validate ID uniqueness
+    const isUnique = await providerConfigService.isIdUnique(
+      data.id,
+      isEdit ? provider?.id : undefined
+    )
+    if (!isUnique) {
+      setError('id', {
+        type: 'manual',
+        message: t('providers.editor.error.idExists'),
+      })
+      return
+    }
+    clearErrors('id')
     await onSubmit(data)
   })
 
@@ -62,6 +78,17 @@ export const DanDanPlayCompatibleProviderForm = ({
       spacing={2}
       alignItems="flex-start"
     >
+      <TextField
+        label={t('providers.editor.id')}
+        size="small"
+        error={!!errors.id}
+        helperText={errors.id?.message || t('providers.editor.helper.id')}
+        {...register('id')}
+        fullWidth
+        required
+        disabled={isEdit}
+      />
+
       <TextField
         label={t('providers.editor.name')}
         size="small"

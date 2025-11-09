@@ -470,6 +470,7 @@ const pages = {
         addMacCms: 'Add MacCMS Provider',
         edit: 'Edit Provider: {{name}}',
       },
+      id: 'ID',
       name: 'Name',
       baseUrl: 'API URL',
       danmakuBaseUrl: 'Danmaku API URL',
@@ -480,6 +481,7 @@ const pages = {
       limitPerMin: 'Limit Per Minute',
       stripColor: 'Remove Colors',
       helper: {
+        id: 'Unique identifier for this provider. Deleting and recreating with the same ID will reuse previous anime data',
         builtInName: 'Built-in provider names cannot be changed',
         baseUrl: 'API endpoint URL for DanDanPlay-compatible server',
         danmakuBaseUrl: 'MacCMS danmaku API endpoint',
@@ -495,6 +497,7 @@ const pages = {
           'Custom headers to send with each request (e.g., Authorization, X-AppSecret)',
       },
       error: {
+        idExists: 'This ID is already in use. Please use a different ID',
         invalidUrl: 'Invalid URL format',
         headerKeyRequired: 'Header key is required',
         headerValueRequired: 'Header value is required',

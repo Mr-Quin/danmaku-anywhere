@@ -1,17 +1,12 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
-import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
-export const useSearchEpisode = (
-  provider: RemoteDanmakuSourceType,
-  seasonId: number
-) => {
+export const useSearchEpisode = (seasonId: number) => {
   return useSuspenseQuery({
-    queryKey: seasonQueryKeys.episodes(provider, seasonId),
+    queryKey: seasonQueryKeys.episodes(seasonId),
     queryFn: () => {
-      return chromeRpcClient.episodeSearch({
-        provider,
+      return chromeRpcClient.episodeFetchBySeason({
         seasonId,
       })
     },

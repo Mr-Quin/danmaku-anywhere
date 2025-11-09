@@ -54,7 +54,7 @@ export const createCustomDanDanPlayProvider = (
   input: Partial<DanDanPlayCompatProvider> = {}
 ): DanDanPlayCompatProvider => {
   return {
-    id: getRandomUUID(),
+    id: input.id ?? getRandomUUID(),
     type: 'DanDanPlayCompatible',
     name: input.name ?? 'DanDanPlay',
     impl: DanmakuSourceType.DanDanPlay,
@@ -74,7 +74,7 @@ export const createCustomMacCmsProvider = (
   input: Partial<CustomMacCmsProvider> = {}
 ): CustomMacCmsProvider => {
   return {
-    id: getRandomUUID(),
+    id: input.id ?? getRandomUUID(),
     type: 'MacCMS',
     name: input.name ?? 'MacCMS',
     impl: DanmakuSourceType.MacCMS,

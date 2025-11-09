@@ -461,6 +461,7 @@ const pages = {
         addMacCms: '添加MacCMS弹幕源',
         edit: '编辑弹幕源: {{name}}',
       },
+      id: 'ID',
       name: '名称',
       baseUrl: 'API地址',
       danmakuBaseUrl: '弹幕API地址',
@@ -471,6 +472,7 @@ const pages = {
       limitPerMin: '每分钟限制',
       stripColor: '移除颜色',
       helper: {
+        id: '用于识别此弹幕源的唯一ID。删除并使用相同ID重新创建后，会重新使用之前的番剧数据',
         builtInName: '内置弹幕源的名称不可更改',
         baseUrl: '弹弹Play或兼容弹弹Play的API地址',
         danmakuBaseUrl: 'MacCMS弹幕API地址',
@@ -485,6 +487,7 @@ const pages = {
           '随每个请求发送的自定义请求头 (例如 Authorization、X-AppSecret)',
       },
       error: {
+        idExists: '此ID已被使用，请使用其他ID',
         invalidUrl: '无效的URL格式',
         headerKeyRequired: '请求头键名不能为空',
         headerValueRequired: '请求头值不能为空',

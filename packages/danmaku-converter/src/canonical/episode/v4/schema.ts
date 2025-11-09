@@ -2,10 +2,6 @@ import { z } from 'zod'
 import { stripHtml } from '../../../utils/index.js'
 import { zCommentEntity } from '../../comment/index.js'
 import {
-  zBilibiliProviderOptions,
-  zDanDanPlayProviderOptions,
-} from '../../provider/options.js'
-import {
   type ByProvider,
   DanmakuSourceType,
   type DbEntity,
@@ -85,14 +81,14 @@ export const zTencentProviderIds = z.object({
 export const zDanDanPlayEpisodeV4 = zBaseEpisodeV4.extend({
   provider: z.literal(DanmakuSourceType.DanDanPlay),
   providerIds: zDanDanPlayProviderIds,
-  providerOptions: zDanDanPlayProviderOptions.optional(),
+  providerConfigId: z.string().optional(),
   params: zDanDanPlayParams.optional(),
 })
 
 export const zBilibiliEpisodeV4 = zBaseEpisodeV4.extend({
   provider: z.literal(DanmakuSourceType.Bilibili),
   providerIds: zBilibiliProviderIds,
-  providerOptions: zBilibiliProviderOptions.optional(),
+  providerConfigId: z.string().optional(),
 })
 
 export const zTencentEpisodeV4 = zBaseEpisodeV4.extend({

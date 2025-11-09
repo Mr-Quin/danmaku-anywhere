@@ -24,6 +24,11 @@ const providerConfigOptions = new OptionsService<ProviderConfig[]>(
 class ProviderConfigService {
   public readonly options = providerConfigOptions
 
+  async isIdUnique(id: string, excludeId?: string): Promise<boolean> {
+    const configs = await this.options.get()
+    return !configs.some((item) => item.id === id && item.id !== excludeId)
+  }
+
   async create(input: unknown) {
     const config = await providerConfigSchema.parseAsync(input)
 
@@ -32,6 +37,12 @@ class ProviderConfigService {
     }
 
     const configs = await this.options.get()
+
+    // Check if ID already exists
+    const existingConfig = configs.find((item) => item.id === config.id)
+    if (existingConfig) {
+      throw new Error(`Provider with ID "${config.id}" already exists`)
+    }
 
     await this.options.set([...configs, config])
 
@@ -91,6 +102,14 @@ class ProviderConfigService {
     }
 
     const nextConfig = { ...prevConfig, ...config } as T
+
+    // If ID is being changed, check if the new ID already exists
+    if (config.id && config.id !== id) {
+      const existingConfig = configs.find((item) => item.id === config.id)
+      if (existingConfig) {
+        throw new Error(`Provider with ID "${config.id}" already exists`)
+      }
+    }
 
     const newConfigs = produce(configs, (draft) => {
       const index = draft.findIndex((item) => item.id === id)
