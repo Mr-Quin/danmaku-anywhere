@@ -57,9 +57,7 @@ export type BackupParseResult = {
   skipped: [number, unknown[]][]
 }
 
-export const parseBackup = (
-  data: unknown
-): BackupParseData | BackupParseError => {
+const parseBackup = (data: unknown): BackupParseData | BackupParseError => {
   const errors = []
   // first see if data is v3
   {

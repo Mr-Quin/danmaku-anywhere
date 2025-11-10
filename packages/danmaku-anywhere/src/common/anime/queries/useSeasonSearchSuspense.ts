@@ -5,12 +5,11 @@ import { useTranslation } from 'react-i18next'
 import type { SeasonSearchParams } from '@/common/anime/dto'
 import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { Logger } from '@/common/Logger'
-import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 export const useSeasonSearchSuspense = (
-  providerConfig: ProviderConfig,
+  providerConfigId: string,
   keyword: string
 ) => {
   const { t } = useTranslation()
@@ -18,9 +17,9 @@ export const useSeasonSearchSuspense = (
   const params: SeasonSearchParams = useMemo(() => {
     return {
       keyword,
-      providerConfig,
+      providerConfigId,
     }
-  }, [providerConfig, keyword])
+  }, [providerConfigId, keyword])
 
   return useSuspenseQuery({
     queryKey: seasonQueryKeys.search(params),
@@ -29,13 +28,13 @@ export const useSeasonSearchSuspense = (
           success: true
           data: (Season | CustomSeason)[]
           params: SeasonSearchParams
-          providerConfig: ProviderConfig
+          providerConfigId: string
         }
       | {
           success: false
           data: null
           params: SeasonSearchParams
-          providerConfig: ProviderConfig
+          providerConfigId: string
           error: string
         }
     > => {
@@ -46,7 +45,7 @@ export const useSeasonSearchSuspense = (
           success: true,
           data: data.data,
           params,
-          providerConfig,
+          providerConfigId,
         }
       } catch (error) {
         Logger.debug('useMediaSearchSuspense error', error)
@@ -56,7 +55,7 @@ export const useSeasonSearchSuspense = (
           success: false,
           data: null,
           params,
-          providerConfig,
+          providerConfigId,
           error: errorMessage,
         }
       }

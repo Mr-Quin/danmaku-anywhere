@@ -96,16 +96,7 @@ export class SeasonService {
           })
           .delete()
         await db.season.delete(id)
-        await db.seasonMap
-          .where('DanDanPlay')
-          .equals(id)
-          .or('Bilibili')
-          .equals(id)
-          .or('Tencent')
-          .equals(id)
-          .or('iQiyi')
-          .equals(id)
-          .delete()
+        // TODO: add back season map handling
       }
     )
   }

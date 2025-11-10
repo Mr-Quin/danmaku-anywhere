@@ -87,6 +87,10 @@ export type DanDanPlayCompatProvider = z.infer<
 >
 export type CustomMacCmsProvider = z.infer<typeof zMacCmsProviderConfig>
 
+export type DanDanPlayProviderConfig =
+  | BuiltInDanDanPlayProvider
+  | DanDanPlayCompatProvider
+
 export type ProviderConfig = z.infer<typeof providerConfigSchema>
 
 export type ProviderConfigOptions = Options<ProviderConfig[]>

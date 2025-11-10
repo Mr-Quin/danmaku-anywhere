@@ -230,7 +230,7 @@ export class DanmakuService {
             let savedSeasonTitle = ''
             await db.transaction('rw', db.season, db.episode, async () => {
               let [existingSeason] = await this.seasonService.filter({
-                provider: item.season.provider,
+                providerConfigId: item.season.providerConfigId,
                 indexedId: item.season.indexedId,
               })
               if (!existingSeason) {
