@@ -136,8 +136,7 @@ export class ProviderService {
         void this.danDanPlayService.getNextEpisodeDanmaku(
           data.meta,
           data.meta.season,
-          data.meta.params ?? {},
-          data.meta.providerConfigId
+          data.meta.params ?? {}
         )
         break
       }
@@ -182,12 +181,7 @@ export class ProviderService {
       .with(
         { meta: { provider: DanmakuSourceType.Bilibili } },
         async ({ meta }) => {
-          const providerConfig =
-            await providerConfigService.getBuiltInBilibili()
-          const episode = await this.bilibiliService.saveEpisode(
-            meta,
-            providerConfig.id
-          )
+          const episode = await this.bilibiliService.saveEpisode(meta)
           return {
             ...episode,
             season: meta.season,
@@ -212,8 +206,7 @@ export class ProviderService {
           const episode = await this.danDanPlayService.getEpisodeDanmaku(
             rest,
             meta.season,
-            meta.params ?? {},
-            meta.providerConfigId
+            meta.params ?? {}
           )
           return {
             ...episode,

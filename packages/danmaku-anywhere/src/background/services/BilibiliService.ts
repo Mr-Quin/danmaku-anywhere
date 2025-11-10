@@ -73,6 +73,7 @@ export class BilibiliService {
     const mapToSeason = (data: BilibiliMedia): BilibiliOf<SeasonInsert> => {
       return {
         provider: DanmakuSourceType.Bilibili,
+        providerConfigId: 'builtin:bilibili',
         title: stripHtml(data.title),
         type: data.season_type_name,
         imageUrl: data.cover,
@@ -106,6 +107,7 @@ export class BilibiliService {
 
     const season = await this.seasonService.upsert({
       provider: DanmakuSourceType.Bilibili,
+      providerConfigId: 'builtin:bilibili',
       title: stripHtml(seasonInfo.title),
       type: seasonInfo.type.toString(),
       imageUrl: seasonInfo.cover,
@@ -174,19 +176,21 @@ export class BilibiliService {
   }
 
   async saveEpisode(
-    meta: BilibiliOf<EpisodeMeta>,
-    providerConfigId: string
+    meta: BilibiliOf<EpisodeMeta>
   ): Promise<BilibiliOf<Episode>> {
-    const comments = await this.getDanmaku(meta, providerConfigId)
+    const comments = await this.getDanmaku(meta)
     return this.danmakuService.upsert({
       ...meta,
       comments,
       commentCount: comments.length,
-      providerConfigId,
     })
   }
 
-  async getDanmaku(meta: BilibiliOf<EpisodeMeta>, providerConfigId: string) {
+  async getDanmaku(meta: BilibiliOf<EpisodeMeta>) {
+    // Get providerConfigId from season
+    const season = await this.seasonService.mustGetById(meta.seasonId)
+    const providerConfigId = season.providerConfigId
+
     const config = await providerConfigService.get(providerConfigId)
     if (!config) {
       throw new Error(

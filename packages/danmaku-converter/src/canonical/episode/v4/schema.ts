@@ -81,14 +81,12 @@ export const zTencentProviderIds = z.object({
 export const zDanDanPlayEpisodeV4 = zBaseEpisodeV4.extend({
   provider: z.literal(DanmakuSourceType.DanDanPlay),
   providerIds: zDanDanPlayProviderIds,
-  providerConfigId: z.string().optional(),
   params: zDanDanPlayParams.optional(),
 })
 
 export const zBilibiliEpisodeV4 = zBaseEpisodeV4.extend({
   provider: z.literal(DanmakuSourceType.Bilibili),
   providerIds: zBilibiliProviderIds,
-  providerConfigId: z.string().optional(),
 })
 
 export const zTencentEpisodeV4 = zBaseEpisodeV4.extend({

@@ -18,7 +18,7 @@ export function migrateDanmakuSourcesToProviders(
     try {
       if (oldSources.dandanplay) {
         providers.push({
-          id: 'dandanplay',
+          id: 'builtin:dandanplay',
           type: 'DanDanPlay',
           name: 'DanDanPlay',
           impl: DanmakuSourceType.DanDanPlay,
@@ -39,7 +39,7 @@ export function migrateDanmakuSourcesToProviders(
     try {
       if (oldSources.bilibili) {
         providers.push({
-          id: 'bilibili',
+          id: 'builtin:bilibili',
           type: 'Bilibili',
           name: 'Bilibili',
           impl: DanmakuSourceType.Bilibili,
@@ -61,7 +61,7 @@ export function migrateDanmakuSourcesToProviders(
     try {
       if (oldSources.tencent) {
         providers.push({
-          id: 'tencent',
+          id: 'builtin:tencent',
           type: 'Tencent',
           name: 'Tencent',
           impl: DanmakuSourceType.Tencent,

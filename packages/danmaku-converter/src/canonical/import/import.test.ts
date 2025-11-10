@@ -116,7 +116,7 @@ describe('importBackup with legacy data (V1-V3)', () => {
       assertIsImportedDataArray(result.parsed)
       const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Custom')
-      expect(importedItem.episode.provider).toBe(DanmakuSourceType.MacCMS)
+      expect(importedItem.episode.provider).toBe(DanmakuSourceType.Custom)
     })
   })
 
@@ -138,7 +138,7 @@ describe('importBackup with legacy data (V1-V3)', () => {
       assertIsImportedDataArray(result.parsed)
       const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Custom')
-      expect(importedItem.episode.provider).toBe(DanmakuSourceType.MacCMS)
+      expect(importedItem.episode.provider).toBe(DanmakuSourceType.Custom)
     })
 
     it('accepts valid bilibili danmaku', () => {
@@ -184,7 +184,7 @@ describe('importBackup with legacy data (V1-V3)', () => {
       assertIsImportedDataArray(result.parsed)
       const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Custom')
-      expect(importedItem.episode.provider).toBe(DanmakuSourceType.MacCMS)
+      expect(importedItem.episode.provider).toBe(DanmakuSourceType.Custom)
       // episodeTitle is empty, fallback to seasonTitle
       expect(importedItem.episode.title).toBe(v3CustomData.seasonTitle)
     })
@@ -235,7 +235,7 @@ describe('importBackup with V4 and mixed data', () => {
     expect(backupResult.skipped).toHaveLength(0)
     const [, importedItem] = backupResult.parsed[0]
     expect(importedItem.type).toBe('Custom')
-    expect(importedItem.episode.provider).toBe(DanmakuSourceType.MacCMS)
+    expect(importedItem.episode.provider).toBe(DanmakuSourceType.Custom)
   })
 
   it('should correctly import valid V4 CustomEpisode data array', () => {
@@ -245,7 +245,7 @@ describe('importBackup with V4 and mixed data', () => {
     expect(backupResult.skipped).toHaveLength(0)
     const [, importedItem] = backupResult.parsed[0]
     expect(importedItem.type).toBe('Custom')
-    expect(importedItem.episode.provider).toBe(DanmakuSourceType.MacCMS)
+    expect(importedItem.episode.provider).toBe(DanmakuSourceType.Custom)
     expect(importedItem.episode.title).toBe(customV4EpisodeData.title)
     expect(importedItem.episode.schemaVersion).toBe(4)
     expect(importedItem.episode.comments).toEqual(customV4EpisodeData.comments)

@@ -16,7 +16,7 @@ export class SeasonService {
 
   async upsert<T extends SeasonInsert>(data: T): Promise<DbEntity<T>> {
     const existing = await db.season.get({
-      provider: data.provider,
+      providerConfigId: data.providerConfigId,
       indexedId: data.indexedId,
     })
     if (existing) {

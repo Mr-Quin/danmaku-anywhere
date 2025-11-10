@@ -52,6 +52,7 @@ export class TencentService {
     const mapToSeason = (data: TencentVideoSeason): TencentOf<SeasonInsert> => {
       return {
         provider: DanmakuSourceType.Tencent,
+        providerConfigId: 'builtin:tencent',
         title: stripHtml(data.videoInfo.title),
         type: data.videoInfo.videoType.toString(),
         imageUrl: data.videoInfo.imgUrl,
@@ -145,6 +146,7 @@ export class TencentService {
     if (foundSeason) {
       const season = await this.seasonService.upsert({
         provider: DanmakuSourceType.Tencent,
+        providerConfigId: 'builtin:tencent',
         title: stripHtml(foundSeason.item_params.title),
         type: foundSeason.item_type.toString(),
         imageUrl: foundSeason.item_params.new_pic_vt,

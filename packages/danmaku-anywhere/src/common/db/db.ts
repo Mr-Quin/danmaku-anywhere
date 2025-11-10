@@ -1,14 +1,15 @@
-import type { Episode } from '@danmaku-anywhere/danmaku-converter'
-
 import {
   type CustomEpisode,
+  type DanmakuSourceType,
   type DanmakuV3,
+  type Episode,
   type EpisodeV4,
   episodeMigration,
   type Season,
   type SeasonV1,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Dexie } from 'dexie'
+import { PROVIDER_TO_BUILTIN_ID } from '@/common/options/providerConfig/constant'
 import type { SeasonMap } from '@/common/seasonMap/types'
 
 type WithoutId<T> = Omit<T, 'id'>
@@ -299,6 +300,49 @@ class DanmakuAnywhereDb extends Dexie {
       customEpisode: '++id, title',
       seasonMap: 'key, DanDanPlay, Tencent, Bilibili, iQiyi',
     })
+
+    /**
+     * Make providerConfigId required for all seasons
+     * Remove providerConfigId from episodes (get from season instead)
+     * Change unique constraint on seasons from [provider+indexedId] to [providerConfigId+indexedId]
+     */
+    this.version(12)
+      .stores({
+        episode:
+          '++id, provider, indexedId, &[provider+indexedId], seasonId, timeUpdated, lastChecked',
+        season:
+          '++id, provider, providerConfigId, indexedId, &[providerConfigId+indexedId]',
+        customEpisode: '++id, title',
+        seasonMap: 'key',
+      })
+      .upgrade(async (tx) => {
+        // Migrate seasons to use providerConfigId
+        await tx
+          .table('season')
+          .toCollection()
+          .modify((season) => {
+            if (!season.providerConfigId) {
+              season.providerConfigId =
+                PROVIDER_TO_BUILTIN_ID[season.provider as DanmakuSourceType] ??
+                'unknown'
+            }
+          })
+
+        // Delete seasons that have an unknown provider
+        await tx
+          .table('season')
+          .where('providerConfigId')
+          .equals('unknown')
+          .delete()
+
+        // Remove provider config from episodes
+        await tx
+          .table('episode')
+          .toCollection()
+          .modify((episode) => {
+            delete episode.providerConfigId
+          })
+      })
 
     this.open()
   }

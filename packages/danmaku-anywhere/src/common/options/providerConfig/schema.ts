@@ -27,7 +27,7 @@ const zProviderConfigBase = z.object({
 })
 
 export const zDanDanPlayProviderConfig = zProviderConfigBase.extend({
-  id: z.literal('dandanplay'),
+  id: z.literal('builtin:dandanplay'),
   type: z.literal('DanDanPlay'),
   impl: z.literal(DanmakuSourceType.DanDanPlay),
   name: z.literal('DanDanPlay'),
@@ -36,7 +36,7 @@ export const zDanDanPlayProviderConfig = zProviderConfigBase.extend({
 })
 
 export const zBilibiliProviderConfig = zProviderConfigBase.extend({
-  id: z.literal('bilibili'),
+  id: z.literal('builtin:bilibili'),
   type: z.literal('Bilibili'),
   impl: z.literal(DanmakuSourceType.Bilibili),
   name: z.literal('Bilibili'),
@@ -45,7 +45,7 @@ export const zBilibiliProviderConfig = zProviderConfigBase.extend({
 })
 
 export const zTencentProviderConfig = zProviderConfigBase.extend({
-  id: z.literal('tencent'),
+  id: z.literal('builtin:tencent'),
   type: z.literal('Tencent'),
   impl: z.literal(DanmakuSourceType.Tencent),
   name: z.literal('Tencent'),

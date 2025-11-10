@@ -98,7 +98,7 @@ const sampleTencentV3: TencentDanmakuV3 = {
 
 const sampleCustomV3: CustomDanmakuV3 = {
   id: 4,
-  provider: DanmakuSourceType.MacCMS,
+  provider: DanmakuSourceType.Custom,
   episodeTitle: '第3话 还没上场就输了',
   seasonTitle: '败犬女主太多了！',
   comments: [
@@ -110,7 +110,7 @@ const sampleCustomV3: CustomDanmakuV3 = {
   ],
   commentCount: 1,
   meta: {
-    provider: DanmakuSourceType.MacCMS,
+    provider: DanmakuSourceType.Custom,
     seasonTitle: '败犬女主太多了！',
     episodeTitle: '第3话 还没上场就输了',
   },

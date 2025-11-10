@@ -10,8 +10,15 @@ import type {
   ProviderConfig,
 } from './schema'
 
+export const PROVIDER_TO_BUILTIN_ID: Record<DanmakuSourceType, string> = {
+  [DanmakuSourceType.DanDanPlay]: 'builtin:dandanplay',
+  [DanmakuSourceType.Bilibili]: 'builtin:bilibili',
+  [DanmakuSourceType.Tencent]: 'builtin:tencent',
+  [DanmakuSourceType.MacCMS]: 'builtin:maccms',
+}
+
 export const builtInDanDanPlayProvider: BuiltInDanDanPlayProvider = {
-  id: 'dandanplay',
+  id: 'builtin:dandanplay',
   type: 'DanDanPlay',
   name: 'DanDanPlay',
   impl: DanmakuSourceType.DanDanPlay,
@@ -23,7 +30,7 @@ export const builtInDanDanPlayProvider: BuiltInDanDanPlayProvider = {
 }
 
 export const builtInBilibiliProvider: BuiltInBilibiliProvider = {
-  id: 'bilibili',
+  id: 'builtin:bilibili',
   type: 'Bilibili',
   name: 'Bilibili',
   impl: DanmakuSourceType.Bilibili,
@@ -35,7 +42,7 @@ export const builtInBilibiliProvider: BuiltInBilibiliProvider = {
 }
 
 export const builtInTencentProvider: BuiltInTencentProvider = {
-  id: 'tencent',
+  id: 'builtin:tencent',
   type: 'Tencent',
   name: 'Tencent',
   impl: DanmakuSourceType.Tencent,

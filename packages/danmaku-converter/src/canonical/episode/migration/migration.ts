@@ -125,6 +125,7 @@ const v3ExtractSeason = (
     case DanmakuSourceType.DanDanPlay: {
       return {
         provider: DanmakuSourceType.DanDanPlay,
+        providerConfigId: 'builtin:dandanplay',
         providerIds: {
           animeId: item.meta.animeId,
           bangumiId: item.meta.animeId.toString(),
@@ -138,6 +139,7 @@ const v3ExtractSeason = (
     case DanmakuSourceType.Bilibili: {
       return {
         provider: DanmakuSourceType.Bilibili,
+        providerConfigId: 'builtin:bilibili',
         providerIds: {
           seasonId: item.meta.seasonId,
         },
@@ -150,6 +152,7 @@ const v3ExtractSeason = (
     case DanmakuSourceType.Tencent: {
       return {
         provider: DanmakuSourceType.Tencent,
+        providerConfigId: 'builtin:tencent',
         providerIds: {
           cid: item.meta.cid,
         },

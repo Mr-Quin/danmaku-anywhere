@@ -1,5 +1,6 @@
 import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { produce } from 'immer'
+import { db } from '@/common/db/db'
 import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { defaultProviderConfigs } from './constant'
@@ -133,6 +134,22 @@ class ProviderConfigService {
       throw new Error('Cannot delete built-in providers')
     }
 
+    // Delete all associated data
+    await db.transaction('rw', db.season, db.episode, async () => {
+      // Find all seasons using this config
+      const seasons = await db.season.where({ providerConfigId: id }).toArray()
+      const seasonIds = seasons.map((s) => s.id)
+
+      // Delete episodes for these seasons
+      if (seasonIds.length > 0) {
+        await db.episode.where('seasonId').anyOf(seasonIds).delete()
+      }
+
+      // Delete the seasons
+      await db.season.where({ providerConfigId: id }).delete()
+    })
+
+    // Delete the config
     const newData = produce(configs, (draft) => {
       const index = draft.findIndex((item) => item.id === id)
       draft.splice(index, 1)
