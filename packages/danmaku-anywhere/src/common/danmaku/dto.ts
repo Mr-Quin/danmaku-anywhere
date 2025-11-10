@@ -15,7 +15,6 @@ export type EpisodeQueryFilter = {
   id?: number
   seasonId?: number
   provider?: RemoteDanmakuSourceType
-  providerConfigId?: string
   indexedId?: string
   ids?: number[]
   all?: boolean

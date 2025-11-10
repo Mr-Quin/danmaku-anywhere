@@ -19,7 +19,7 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { PROVIDER_TO_BUILTIN_ID } from '@/common/options/providerConfig/constant'
-import { providerConfigService } from '@/common/options/providerConfig/service'
+import type { BuiltInBilibiliProvider } from '@/common/options/providerConfig/schema'
 
 export class BilibiliService {
   private logger: typeof Logger
@@ -177,9 +177,10 @@ export class BilibiliService {
   }
 
   async saveEpisode(
-    meta: BilibiliOf<EpisodeMeta>
+    meta: BilibiliOf<EpisodeMeta>,
+    config: BuiltInBilibiliProvider
   ): Promise<BilibiliOf<Episode>> {
-    const comments = await this.getDanmaku(meta)
+    const comments = await this.getDanmaku(meta, config)
     return this.danmakuService.upsert({
       ...meta,
       comments,
@@ -187,23 +188,10 @@ export class BilibiliService {
     })
   }
 
-  async getDanmaku(meta: BilibiliOf<EpisodeMeta>) {
-    // Get providerConfigId from season
-    const season = await this.seasonService.mustGetById(meta.seasonId)
-    const providerConfigId = season.providerConfigId
-
-    const config = await providerConfigService.get(providerConfigId)
-    if (!config) {
-      throw new Error(
-        `Provider config with ID "${providerConfigId}" not found. Please ensure the provider configuration exists.`
-      )
-    }
-    if (config.type !== 'Bilibili') {
-      throw new Error(
-        `Invalid provider type "${config.type}" for Bilibili service. Expected "Bilibili".`
-      )
-    }
-
+  async getDanmaku(
+    meta: BilibiliOf<EpisodeMeta>,
+    config: BuiltInBilibiliProvider
+  ) {
     const { danmakuTypePreference } = config.options
 
     const { cid, aid } = meta.providerIds

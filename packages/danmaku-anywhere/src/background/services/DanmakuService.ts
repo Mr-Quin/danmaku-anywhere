@@ -112,7 +112,7 @@ export class DanmakuService {
 
   async upsert<T extends EpisodeInsert>(data: T): Promise<DbEntity<T>> {
     const existing = await db.episode.get({
-      provider: data.provider,
+      seasonId: data.seasonId,
       indexedId: data.indexedId,
     })
 

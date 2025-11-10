@@ -56,6 +56,14 @@ class ProviderConfigService {
     return configs.find((item) => item.id === id)
   }
 
+  async mustGet(id: string): Promise<ProviderConfig> {
+    const config = await this.get(id)
+    if (!config) {
+      throw new Error(`Provider config with ID "${id}" not found.`)
+    }
+    return config
+  }
+
   async getAll() {
     return this.options.get()
   }

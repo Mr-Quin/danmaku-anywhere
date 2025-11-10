@@ -309,7 +309,7 @@ class DanmakuAnywhereDb extends Dexie {
     this.version(12)
       .stores({
         episode:
-          '++id, provider, indexedId, &[provider+indexedId], seasonId, timeUpdated, lastChecked',
+          '++id, provider, indexedId, &[seasonId+indexedId], seasonId, timeUpdated, lastChecked',
         season:
           '++id, provider, providerConfigId, indexedId, &[providerConfigId+indexedId]',
         customEpisode: '++id, title',
@@ -342,6 +342,12 @@ class DanmakuAnywhereDb extends Dexie {
           .modify((episode) => {
             delete episode.providerConfigId
           })
+
+        // Remove old index
+        const store = tx.idbtrans.objectStore('season')
+        if (store.indexNames.contains('[provider+indexedId]')) {
+          store.deleteIndex('[provider+indexedId]')
+        }
       })
 
     this.open()

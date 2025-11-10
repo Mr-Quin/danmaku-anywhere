@@ -15,7 +15,10 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { PROVIDER_TO_BUILTIN_ID } from '@/common/options/providerConfig/constant'
-import type { DanDanPlayCompatProvider } from '@/common/options/providerConfig/schema'
+import type {
+  BuiltInDanDanPlayProvider,
+  DanDanPlayCompatProvider,
+} from '@/common/options/providerConfig/schema'
 import { providerConfigService } from '@/common/options/providerConfig/service'
 import { tryCatch } from '@/common/utils/utils'
 
@@ -176,9 +179,10 @@ export class DanDanPlayService {
   async getEpisodeDanmaku(
     meta: DanDanPlayOf<EpisodeMeta>,
     season: DanDanPlayOf<Season>,
-    params: Partial<danDanPlay.GetCommentQuery>
+    params: Partial<danDanPlay.GetCommentQuery>,
+    config: BuiltInDanDanPlayProvider | DanDanPlayCompatProvider
   ): Promise<DanDanPlayOf<Episode>> {
-    const { comments } = await this.getDanmaku(meta, season, params)
+    const { comments } = await this.getDanmaku(meta, season, params, config)
 
     return this.danmakuService.upsert({
       ...meta,
@@ -191,7 +195,8 @@ export class DanDanPlayService {
   async getNextEpisodeDanmaku(
     meta: DanDanPlayOf<EpisodeMeta>,
     season: DanDanPlayOf<Season>,
-    params: Partial<danDanPlay.GetCommentQuery>
+    params: Partial<danDanPlay.GetCommentQuery>,
+    config: BuiltInDanDanPlayProvider | DanDanPlayCompatProvider
   ) {
     const nextEpisodeId = meta.providerIds.episodeId + 1
 
@@ -205,35 +210,26 @@ export class DanDanPlayService {
       return null
     }
 
-    return this.getEpisodeDanmaku(nextEpisode, season, params)
+    return this.getEpisodeDanmaku(nextEpisode, season, params, config)
   }
 
   private async getDanmaku(
     meta: DanDanPlayOf<EpisodeMeta>,
     season: DanDanPlayOf<Season>,
-    params: Partial<danDanPlay.GetCommentQuery>
+    params: Partial<danDanPlay.GetCommentQuery>,
+    config: BuiltInDanDanPlayProvider | DanDanPlayCompatProvider
   ): Promise<{
     meta: DanDanPlayOf<EpisodeMeta>
     comments: CommentEntity[]
     params: danDanPlay.GetCommentQuery
   }> {
-    const providerConfigId = season.providerConfigId
-    const context = await createQueryContext(providerConfigId)
+    const context = await createQueryContext(season.providerConfigId)
 
-    // Get chConvert from provider config if available
-    let chConvert = params.chConvert
-    if (!chConvert && providerConfigId) {
-      const config = await providerConfigService.get(providerConfigId)
-      if (config && config.type === 'DanDanPlay') {
-        chConvert = config.options.chConvert
-      } else if (config && config.type === 'DanDanPlayCompatible') {
-        chConvert = (config as DanDanPlayCompatProvider).options.chConvert
-      }
-    }
+    const chConvert = params.chConvert ?? config.options.chConvert
 
     const findEpisode = async (bangumiId: string, episodeId: number) => {
       const [result, err] = await tryCatch(async () =>
-        this.getSeason(bangumiId, providerConfigId)
+        this.getSeason(bangumiId, season.providerConfigId)
       )
 
       if (err) {

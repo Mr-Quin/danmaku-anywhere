@@ -12,7 +12,6 @@ import { ErrorMessage } from '@/common/components/ErrorMessage'
 import type { EpisodeQueryFilter } from '@/common/danmaku/dto'
 import { useSearchEpisode } from '@/common/danmaku/queries/useSearchEpisode'
 import { isNotCustom } from '@/common/danmaku/utils'
-import { getProviderConfigId } from '@/common/options/providerConfig/utils'
 import { episodeQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
@@ -61,7 +60,7 @@ const EpisodeListInner = ({
       const params = {
         provider: episode.provider,
         indexedId: episode.indexedId,
-        providerConfigId: getProviderConfigId(season),
+        seasonId: season.id,
       } satisfies EpisodeQueryFilter
       return {
         queryKey: episodeQueryKeys.filter(params),

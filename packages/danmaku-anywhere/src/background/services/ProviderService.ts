@@ -133,10 +133,16 @@ export class ProviderService {
   async preloadNextEpisode(data: DanmakuFetchDto): Promise<void> {
     switch (data.meta.provider) {
       case DanmakuSourceType.DanDanPlay: {
+        const config = await providerConfigService.mustGet(
+          data.meta.season.providerConfigId
+        )
+        assertProviderConfigImpl(config, DanmakuSourceType.DanDanPlay)
+
         void this.danDanPlayService.getNextEpisodeDanmaku(
           data.meta,
           data.meta.season,
-          data.meta.params ?? {}
+          data.meta.params ?? {},
+          config
         )
         break
       }
@@ -177,11 +183,17 @@ export class ProviderService {
       this.logger.debug('Danmaku not found in db, fetching from server')
     }
 
+    const config = await providerConfigService.mustGet(
+      meta.season.providerConfigId
+    )
+
     const danmaku = (await match(data)
       .with(
         { meta: { provider: DanmakuSourceType.Bilibili } },
         async ({ meta }) => {
-          const episode = await this.bilibiliService.saveEpisode(meta)
+          assertProviderConfigImpl(config, DanmakuSourceType.Bilibili)
+
+          const episode = await this.bilibiliService.saveEpisode(meta, config)
           return {
             ...episode,
             season: meta.season,
@@ -203,10 +215,13 @@ export class ProviderService {
         async ({ meta }) => {
           const { season, ...rest } = meta
 
+          assertProviderConfigImpl(config, DanmakuSourceType.DanDanPlay)
+
           const episode = await this.danDanPlayService.getEpisodeDanmaku(
             rest,
             meta.season,
-            meta.params ?? {}
+            meta.params ?? {},
+            config
           )
           return {
             ...episode,
