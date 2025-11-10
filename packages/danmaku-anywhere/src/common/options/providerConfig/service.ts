@@ -1,8 +1,9 @@
 import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { produce } from 'immer'
-import { db } from '@/common/db/db'
 import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { isServiceWorker } from '@/common/utils/utils'
 import { defaultProviderConfigs } from './constant'
 import type {
   BuiltInBilibiliProvider,
@@ -99,17 +100,13 @@ class ProviderConfigService {
     const prevConfig = configs.find((item) => item.id === id)
 
     if (!prevConfig) {
-      throw new Error(`Provider not found: "${id}"`)
+      throw new Error(`Provider with ID "${id}" not found.`)
     }
 
     const nextConfig = { ...prevConfig, ...config } as T
 
-    // If ID is being changed, check if the new ID already exists
     if (config.id && config.id !== id) {
-      const existingConfig = configs.find((item) => item.id === config.id)
-      if (existingConfig) {
-        throw new Error(`Provider with ID "${config.id}" already exists`)
-      }
+      throw new Error('Provider ID cannot be changed.')
     }
 
     const newConfigs = produce(configs, (draft) => {
@@ -123,39 +120,9 @@ class ProviderConfigService {
   }
 
   async delete(id: string) {
-    const configs = await this.options.get()
-    const config = configs.find((item) => item.id === id)
-
-    if (!config) {
-      throw new Error(`Provider not found: "${id}" when deleting`)
-    }
-
-    if (config.isBuiltIn) {
-      throw new Error('Cannot delete built-in providers')
-    }
-
-    // Delete all associated data
-    await db.transaction('rw', db.season, db.episode, async () => {
-      // Find all seasons using this config
-      const seasons = await db.season.where({ providerConfigId: id }).toArray()
-      const seasonIds = seasons.map((s) => s.id)
-
-      // Delete episodes for these seasons
-      if (seasonIds.length > 0) {
-        await db.episode.where('seasonId').anyOf(seasonIds).delete()
-      }
-
-      // Delete the seasons
-      await db.season.where({ providerConfigId: id }).delete()
-    })
-
-    // Delete the config
-    const newData = produce(configs, (draft) => {
-      const index = draft.findIndex((item) => item.id === id)
-      draft.splice(index, 1)
-    })
-
-    await this.options.set(newData)
+    // Deletion involves deleting seasons and episodes, which must be done in the background script
+    // So this method just calls the background script to do the deletion
+    await chromeRpcClient.providerConfigDelete(id)
   }
 
   async toggle(id: string, enabled?: boolean) {
@@ -183,3 +150,27 @@ class ProviderConfigService {
 }
 
 export const providerConfigService = new ProviderConfigService()
+
+export async function deleteProviderConfig(id: string) {
+  if (!isServiceWorker()) {
+    throw new Error('Must called from background script.')
+  }
+
+  const configs = await providerConfigService.options.get()
+  const config = configs.find((item) => item.id === id)
+
+  if (!config) {
+    throw new Error(`Provider not found: "${id}" when deleting`)
+  }
+
+  if (config.isBuiltIn) {
+    throw new Error('Cannot delete built-in providers')
+  }
+
+  const newData = produce(configs, (draft) => {
+    const index = draft.findIndex((item) => item.id === id)
+    draft.splice(index, 1)
+  })
+
+  await providerConfigService.options.set(newData)
+}

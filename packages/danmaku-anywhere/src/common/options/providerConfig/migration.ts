@@ -91,7 +91,7 @@ export function migrateDanmakuSourcesToProviders(
           providers.push({
             id: getRandomUUID(),
             type: 'MacCMS',
-            name: 'MacCMS (Migrated)',
+            name: 'MacCMS',
             impl: DanmakuSourceType.MacCMS,
             isBuiltIn: false,
             enabled: oldSources.custom.enabled ?? true,

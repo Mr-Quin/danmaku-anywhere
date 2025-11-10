@@ -14,6 +14,7 @@ import type { SeasonService } from '@/background/services/SeasonService'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
+import { PROVIDER_TO_BUILTIN_ID } from '@/common/options/providerConfig/constant'
 import type { DanDanPlayCompatProvider } from '@/common/options/providerConfig/schema'
 import { providerConfigService } from '@/common/options/providerConfig/service'
 import { tryCatch } from '@/common/utils/utils'
@@ -101,7 +102,7 @@ export class DanDanPlayService {
           animeId: item.animeId,
           bangumiId: item.bangumiId,
         },
-        providerConfigId: providerConfigId ?? 'builtin:dandanplay',
+        providerConfigId: providerConfigId ?? PROVIDER_TO_BUILTIN_ID.DanDanPlay,
         indexedId: item.animeId.toString(),
         year: new Date(item.startDate).getFullYear(),
         episodeCount: item.episodeCount,
@@ -126,7 +127,7 @@ export class DanDanPlayService {
         animeId: bangumiDetails.animeId,
         bangumiId: bangumiDetails.bangumiId,
       },
-      providerConfigId: providerConfigId ?? 'builtin:dandanplay',
+      providerConfigId: providerConfigId ?? PROVIDER_TO_BUILTIN_ID.DanDanPlay,
       indexedId: bangumiDetails.animeId.toString(),
       episodeCount: bangumiDetails.episodes.length,
       schemaVersion: 1,

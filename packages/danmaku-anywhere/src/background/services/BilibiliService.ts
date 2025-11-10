@@ -18,6 +18,7 @@ import type { SeasonService } from '@/background/services/SeasonService'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
+import { PROVIDER_TO_BUILTIN_ID } from '@/common/options/providerConfig/constant'
 import { providerConfigService } from '@/common/options/providerConfig/service'
 
 export class BilibiliService {
@@ -73,7 +74,7 @@ export class BilibiliService {
     const mapToSeason = (data: BilibiliMedia): BilibiliOf<SeasonInsert> => {
       return {
         provider: DanmakuSourceType.Bilibili,
-        providerConfigId: 'builtin:bilibili',
+        providerConfigId: PROVIDER_TO_BUILTIN_ID.Bilibili,
         title: stripHtml(data.title),
         type: data.season_type_name,
         imageUrl: data.cover,
@@ -107,7 +108,7 @@ export class BilibiliService {
 
     const season = await this.seasonService.upsert({
       provider: DanmakuSourceType.Bilibili,
-      providerConfigId: 'builtin:bilibili',
+      providerConfigId: PROVIDER_TO_BUILTIN_ID.Bilibili,
       title: stripHtml(seasonInfo.title),
       type: seasonInfo.type.toString(),
       imageUrl: seasonInfo.cover,

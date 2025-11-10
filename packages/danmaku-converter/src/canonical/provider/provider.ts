@@ -3,6 +3,7 @@ export enum DanmakuSourceType {
   DanDanPlay = 'DanDanPlay',
   Bilibili = 'Bilibili',
   Tencent = 'Tencent',
+  Custom = 'Custom',
 }
 
 export type RemoteDanmakuSourceType = Exclude<

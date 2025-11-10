@@ -7,7 +7,7 @@ import type {
   RemoteDanmakuSourceType,
 } from '@/common/danmaku/enums'
 
-export type EpisodeSearchParams = {
+export type EpisodeFetchBySeasonParams = {
   seasonId: number
 }
 
