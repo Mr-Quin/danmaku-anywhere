@@ -1,11 +1,12 @@
-import type { WithSeason } from '@danmaku-anywhere/danmaku-converter'
 import {
   type BilibiliOf,
   type Episode,
   type EpisodeMeta,
+  PROVIDER_TO_BUILTIN_ID,
   type Season,
   type SeasonInsert,
   stripHtml,
+  type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type {
   BiliBiliSearchParams,
@@ -18,7 +19,6 @@ import type { SeasonService } from '@/background/services/SeasonService'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
-import { PROVIDER_TO_BUILTIN_ID } from '@/common/options/providerConfig/constant'
 import type { BuiltInBilibiliProvider } from '@/common/options/providerConfig/schema'
 
 export class BilibiliService {

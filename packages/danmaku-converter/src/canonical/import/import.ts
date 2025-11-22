@@ -9,7 +9,10 @@ import {
 import { zEpisodeImportV1 } from '../episode/v1/schema.js'
 import { zEpisodeImportV2 } from '../episode/v2/schema.js'
 import { zEpisodeImportV3 } from '../episode/v3/schemaZod.js'
-import { DanmakuSourceType } from '../provider/provider.js'
+import {
+  DanmakuSourceType,
+  PROVIDER_TO_BUILTIN_ID,
+} from '../provider/provider.js'
 import type { SeasonInsertV1 } from '../season/index.js'
 
 const zImportV3 = z
@@ -78,6 +81,13 @@ const parseBackup = (data: unknown): BackupParseData | BackupParseError => {
       }
     }
     errors.push(parse.error)
+  }
+
+  // todo: dirty hack to fix the season provider config id
+  const provider = (data as any).season?.provider
+  if (provider && provider in PROVIDER_TO_BUILTIN_ID) {
+    ;(data as any).season.providerConfigId =
+      PROVIDER_TO_BUILTIN_ID[provider as DanmakuSourceType]
   }
 
   // try regular v4

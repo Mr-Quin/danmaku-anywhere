@@ -1,4 +1,7 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
+import {
+  DanmakuSourceType,
+  PROVIDER_TO_BUILTIN_ID,
+} from '@danmaku-anywhere/danmaku-converter'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { getRandomUUID } from '@/common/utils/utils'
 import type {
@@ -10,15 +13,8 @@ import type {
   ProviderConfig,
 } from './schema'
 
-export const PROVIDER_TO_BUILTIN_ID: Record<DanmakuSourceType, string> = {
-  [DanmakuSourceType.DanDanPlay]: 'builtin:dandanplay',
-  [DanmakuSourceType.Bilibili]: 'builtin:bilibili',
-  [DanmakuSourceType.Tencent]: 'builtin:tencent',
-  [DanmakuSourceType.MacCMS]: 'builtin:maccms',
-}
-
 export const builtInDanDanPlayProvider: BuiltInDanDanPlayProvider = {
-  id: 'builtin:dandanplay',
+  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
   type: 'DanDanPlay',
   name: 'DanDanPlay',
   impl: DanmakuSourceType.DanDanPlay,
@@ -30,7 +26,7 @@ export const builtInDanDanPlayProvider: BuiltInDanDanPlayProvider = {
 }
 
 export const builtInBilibiliProvider: BuiltInBilibiliProvider = {
-  id: 'builtin:bilibili',
+  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
   type: 'Bilibili',
   name: 'Bilibili',
   impl: DanmakuSourceType.Bilibili,
@@ -42,7 +38,7 @@ export const builtInBilibiliProvider: BuiltInBilibiliProvider = {
 }
 
 export const builtInTencentProvider: BuiltInTencentProvider = {
-  id: 'builtin:tencent',
+  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
   type: 'Tencent',
   name: 'Tencent',
   impl: DanmakuSourceType.Tencent,

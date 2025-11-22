@@ -5,11 +5,11 @@ import {
   type Episode,
   type EpisodeV4,
   episodeMigration,
+  PROVIDER_TO_BUILTIN_ID,
   type Season,
   type SeasonV1,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Dexie } from 'dexie'
-import { PROVIDER_TO_BUILTIN_ID } from '@/common/options/providerConfig/constant'
 import type { SeasonMap } from '@/common/seasonMap/types'
 
 type WithoutId<T> = Omit<T, 'id'>

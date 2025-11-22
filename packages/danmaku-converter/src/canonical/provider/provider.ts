@@ -6,6 +6,15 @@ export enum DanmakuSourceType {
   Custom = 'Custom',
 }
 
+export const LEGACY_MACCMS_ID = 'legacy:maccms'
+
+export const PROVIDER_TO_BUILTIN_ID = {
+  [DanmakuSourceType.DanDanPlay]: 'builtin:dandanplay',
+  [DanmakuSourceType.Bilibili]: 'builtin:bilibili',
+  [DanmakuSourceType.Tencent]: 'builtin:tencent',
+  [DanmakuSourceType.MacCMS]: LEGACY_MACCMS_ID, // not built-in, but used for migrations
+} as const satisfies Record<DanmakuSourceType, string>
+
 export type RemoteDanmakuSourceType = Exclude<
   DanmakuSourceType,
   DanmakuSourceType.MacCMS

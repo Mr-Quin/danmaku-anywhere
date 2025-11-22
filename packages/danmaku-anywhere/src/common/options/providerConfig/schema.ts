@@ -1,4 +1,5 @@
 import {
+  PROVIDER_TO_BUILTIN_ID,
   zBilibiliProviderOptions,
   zDanDanPlayProviderOptions,
   zMacCMSProviderOptions,
@@ -27,7 +28,7 @@ const zProviderConfigBase = z.object({
 })
 
 export const zDanDanPlayProviderConfig = zProviderConfigBase.extend({
-  id: z.literal('builtin:dandanplay'),
+  id: z.literal(PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]),
   type: z.literal('DanDanPlay'),
   impl: z.literal(DanmakuSourceType.DanDanPlay),
   name: z.literal('DanDanPlay'),
@@ -36,7 +37,7 @@ export const zDanDanPlayProviderConfig = zProviderConfigBase.extend({
 })
 
 export const zBilibiliProviderConfig = zProviderConfigBase.extend({
-  id: z.literal('builtin:bilibili'),
+  id: z.literal(PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]),
   type: z.literal('Bilibili'),
   impl: z.literal(DanmakuSourceType.Bilibili),
   name: z.literal('Bilibili'),
@@ -45,7 +46,7 @@ export const zBilibiliProviderConfig = zProviderConfigBase.extend({
 })
 
 export const zTencentProviderConfig = zProviderConfigBase.extend({
-  id: z.literal('builtin:tencent'),
+  id: z.literal(PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]),
   type: z.literal('Tencent'),
   impl: z.literal(DanmakuSourceType.Tencent),
   name: z.literal('Tencent'),
