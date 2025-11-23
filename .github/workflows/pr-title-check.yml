@@ -20,7 +20,6 @@ jobs:
       - name: Validate title
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const title = context.payload.pull_request?.title ?? '';
             const pattern = /^\((extension|app|proxy|chore|docs)\)\s.+\s\[DA-\d+\]$/;
