@@ -169,10 +169,8 @@ export class DanmakuDensityService {
   }
 
   private setupVideoResizeObserver(videoElement: HTMLVideoElement) {
-    // Clean up existing observer
     this.cleanupVideoResizeObserver()
 
-    // Create new observer for the video element
     this.resizeObserver = new ResizeObserver(this.boundHandleResize)
     this.resizeObserver.observe(videoElement)
   }
