@@ -1,4 +1,5 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import { debounce } from '@mui/material'
 import { Logger } from '@/common/Logger'
 import { computeDensityBins } from '@/content/player/densityPlot/computeDensityBins'
 import { DanmakuDensityChart } from '@/content/player/densityPlot/DanmakuDensityChart'
@@ -33,7 +34,7 @@ export class DanmakuDensityService {
     this.boundHandleTimeUpdate = this.handleTimeUpdate.bind(this)
     this.boundHandleSeeked = this.handleSeeked.bind(this)
     this.boundHandleMouseMove = this.handleMouseMove.bind(this)
-    this.boundHandleResize = this.handleResize.bind(this)
+    this.boundHandleResize = debounce(this.handleResize.bind(this), 100)
     this.chart = new DanmakuDensityChart(this.wrapper, {
       height: this.chartHeight,
       colors: {
