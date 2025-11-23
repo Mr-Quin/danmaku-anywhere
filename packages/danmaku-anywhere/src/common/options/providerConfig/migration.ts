@@ -1,0 +1,123 @@
+import {
+  DanmakuSourceType,
+  LEGACY_MACCMS_ID,
+  PROVIDER_TO_BUILTIN_ID,
+} from '@danmaku-anywhere/danmaku-converter'
+import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
+import {
+  builtInBilibiliProvider,
+  builtInDanDanPlayProvider,
+  builtInTencentProvider,
+  defaultProviderConfigs,
+} from './constant'
+import type { ProviderConfig } from './schema'
+
+// used for migrating old danmaku sources to new provider configs
+export function migrateDanmakuSourcesToProviders(
+  oldSources: any
+): ProviderConfig[] {
+  try {
+    const providers: ProviderConfig[] = []
+
+    try {
+      if (oldSources.dandanplay) {
+        providers.push({
+          id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
+          type: 'DanDanPlay',
+          name: 'DanDanPlay',
+          impl: DanmakuSourceType.DanDanPlay,
+          enabled: oldSources.dandanplay.enabled ?? true,
+          isBuiltIn: true,
+          options: {
+            chConvert: oldSources.dandanplay.chConvert ?? DanDanChConvert.None,
+          },
+        })
+      } else {
+        providers.push(builtInDanDanPlayProvider)
+      }
+    } catch (error) {
+      console.error('Failed to migrate DanDanPlay provider:', error)
+      providers.push(builtInDanDanPlayProvider)
+    }
+
+    try {
+      if (oldSources.bilibili) {
+        providers.push({
+          id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
+          type: 'Bilibili',
+          name: 'Bilibili',
+          impl: DanmakuSourceType.Bilibili,
+          isBuiltIn: true,
+          enabled: oldSources.bilibili.enabled ?? false,
+          options: {
+            danmakuTypePreference:
+              oldSources.bilibili.danmakuTypePreference ?? 'xml',
+          },
+        })
+      } else {
+        providers.push(builtInBilibiliProvider)
+      }
+    } catch (error) {
+      console.error('Failed to migrate Bilibili provider:', error)
+      providers.push(builtInBilibiliProvider)
+    }
+
+    try {
+      if (oldSources.tencent) {
+        providers.push({
+          id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
+          type: 'Tencent',
+          name: 'Tencent',
+          impl: DanmakuSourceType.Tencent,
+          isBuiltIn: true,
+          enabled: oldSources.tencent.enabled ?? false,
+          options: {},
+        })
+      } else {
+        providers.push(builtInTencentProvider)
+      }
+    } catch (error) {
+      console.error('Failed to migrate Tencent provider:', error)
+      providers.push(builtInTencentProvider)
+    }
+
+    try {
+      if (oldSources.custom) {
+        const baseUrl = oldSources.custom.baseUrl?.trim()
+        const danmuicuBaseUrl = oldSources.custom.danmuicuBaseUrl?.trim()
+
+        if (
+          baseUrl &&
+          danmuicuBaseUrl &&
+          baseUrl !== '' &&
+          danmuicuBaseUrl !== ''
+        ) {
+          providers.push({
+            id: LEGACY_MACCMS_ID,
+            type: 'MacCMS',
+            name: 'MacCMS',
+            impl: DanmakuSourceType.MacCMS,
+            isBuiltIn: false,
+            enabled: oldSources.custom.enabled ?? true,
+            options: {
+              danmakuBaseUrl: baseUrl,
+              danmuicuBaseUrl: danmuicuBaseUrl,
+              stripColor: oldSources.custom.stripColor ?? false,
+            },
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Failed to migrate custom MacCMS provider:', error)
+    }
+
+    if (providers.length === 0) {
+      return [...defaultProviderConfigs]
+    }
+
+    return providers
+  } catch (error) {
+    console.error('Failed to migrate danmaku sources:', error)
+    return [...defaultProviderConfigs]
+  }
+}

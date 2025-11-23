@@ -1,6 +1,7 @@
-import type {
-  EpisodeMeta,
-  WithSeason,
+import {
+  DanmakuSourceType,
+  type EpisodeMeta,
+  type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
@@ -10,17 +11,18 @@ import { MacCmsEpisodeListItem } from '@/common/components/EpisodeList/MacCmsEpi
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
+import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 import { useStore } from '@/popup/store'
 
 export const SeasonDetailsPage = () => {
-  const { season } = useStore.use.search()
+  const { season, provider } = useStore.use.search()
 
   const goBack = useGoBack()
 
-  if (!season) return null
+  if (!season || !provider) return null
 
   return (
     <TabLayout>
@@ -57,9 +59,16 @@ export const SeasonDetailsPage = () => {
             renderCustomEpisode={(data) => {
               const mutation = useFetchGenericDanmaku()
 
+              assertProviderConfigImpl(provider, DanmakuSourceType.MacCMS)
+
               return (
                 <MacCmsEpisodeListItem
-                  onClick={() => mutation.mutate(data.episode)}
+                  onClick={() =>
+                    mutation.mutate({
+                      ...data.episode,
+                      providerConfigId: provider.id,
+                    })
+                  }
                   isLoading={mutation.isPending}
                   episode={data.episode}
                   danmaku={mutation.data}

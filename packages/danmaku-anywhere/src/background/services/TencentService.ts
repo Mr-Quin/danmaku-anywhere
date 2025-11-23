@@ -1,10 +1,11 @@
-import type { WithSeason } from '@danmaku-anywhere/danmaku-converter'
 import {
   type EpisodeMeta,
+  PROVIDER_TO_BUILTIN_ID,
   type Season,
   type SeasonInsert,
   stripHtml,
   type TencentOf,
+  type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type {
   TencentEpisodeListItem,
@@ -14,7 +15,7 @@ import * as tencent from '@danmaku-anywhere/danmaku-provider/tencent'
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import type { SeasonService } from '@/background/services/SeasonService'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { assertProvider } from '@/common/danmaku/utils'
+import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 
 export class TencentService {
@@ -52,6 +53,7 @@ export class TencentService {
     const mapToSeason = (data: TencentVideoSeason): TencentOf<SeasonInsert> => {
       return {
         provider: DanmakuSourceType.Tencent,
+        providerConfigId: PROVIDER_TO_BUILTIN_ID.Tencent,
         title: stripHtml(data.videoInfo.title),
         type: data.videoInfo.videoType.toString(),
         imageUrl: data.videoInfo.imgUrl,
@@ -73,7 +75,7 @@ export class TencentService {
   ): Promise<WithSeason<TencentOf<EpisodeMeta>>[]> {
     this.logger.debug('Get episode', seasonId)
     const season = await this.seasonService.mustGetById(seasonId)
-    assertProvider(season, DanmakuSourceType.Tencent)
+    assertProviderType(season, DanmakuSourceType.Tencent)
 
     const generator = tencent.listEpisodes({
       cid: season.providerIds.cid,
@@ -112,7 +114,7 @@ export class TencentService {
    */
   async refreshSeason(id: number) {
     const season = await this.seasonService.mustGetById(id)
-    assertProvider(season, DanmakuSourceType.Tencent)
+    assertProviderType(season, DanmakuSourceType.Tencent)
 
     const episodes = await this.danmakuService.filter({
       provider: DanmakuSourceType.Tencent,
@@ -126,7 +128,7 @@ export class TencentService {
     }
 
     const episode = episodes[0]
-    assertProvider(episode, DanmakuSourceType.Tencent)
+    assertProviderType(episode, DanmakuSourceType.Tencent)
 
     await this.getPageDetails(season.providerIds.cid, '')
   }
@@ -145,6 +147,7 @@ export class TencentService {
     if (foundSeason) {
       const season = await this.seasonService.upsert({
         provider: DanmakuSourceType.Tencent,
+        providerConfigId: PROVIDER_TO_BUILTIN_ID.Tencent,
         title: stripHtml(foundSeason.item_params.title),
         type: foundSeason.item_type.toString(),
         imageUrl: foundSeason.item_params.new_pic_vt,

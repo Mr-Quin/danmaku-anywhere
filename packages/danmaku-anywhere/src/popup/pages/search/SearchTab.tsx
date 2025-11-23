@@ -12,9 +12,8 @@ import { Center } from '@/common/components/Center'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { SeasonSearchResult } from '@/common/components/Season/SeasonSearchResult'
 import { SeasonSearchTabs } from '@/common/components/Season/SeasonSearchTabs'
-import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
+import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
-
 import { PopupSearchForm } from '@/popup/pages/search/components/PopupSearchForm'
 import { useStore } from '@/popup/store'
 
@@ -30,7 +29,7 @@ export const SearchTab = () => {
     SearchEpisodesQuery | undefined
   >(search.searchParams)
 
-  const { enabledProviders } = useDanmakuSources()
+  const { enabledProviders } = useProviderConfig()
 
   const ref = useRef<ErrorBoundary>(null)
   const { reset } = useQueryErrorResetBoundary()
@@ -38,8 +37,11 @@ export const SearchTab = () => {
   const [pending, startTransition] = useTransition()
 
   useEffect(() => {
-    if (search.tab === undefined || !enabledProviders.includes(search.tab)) {
-      search.setTab(enabledProviders[0])
+    if (
+      search.provider === undefined ||
+      !enabledProviders.some((provider) => provider.id === search.provider?.id)
+    ) {
+      search.setProvider(enabledProviders[0])
     }
   }, [enabledProviders])
 
@@ -67,7 +69,9 @@ export const SearchTab = () => {
     )
   }
 
-  if (search.tab === undefined) return null
+  if (search.provider === undefined || !search.provider) {
+    return null
+  }
 
   return (
     <>
@@ -87,12 +91,12 @@ export const SearchTab = () => {
           <>
             <SeasonSearchTabs
               providers={enabledProviders}
-              selectedTab={search.tab}
-              onTabChange={search.setTab}
+              selectedProvider={search.provider}
+              onTabChange={search.setProvider}
             />
             <SeasonSearchResult
               searchParams={searchParams}
-              provider={search.tab}
+              provider={search.provider}
               onSeasonClick={(season) => {
                 search.setSeason(season)
                 navigate('season')

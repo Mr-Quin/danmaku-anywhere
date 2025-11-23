@@ -61,7 +61,10 @@ export const AddSeasonMapDialog = ({
             addSeasonMapMutation.mutate(
               {
                 key: mapKey,
-                DanDanPlay: season.id,
+                seasons: {
+                  [season.providerConfigId]: season.id,
+                },
+                seasonIds: [season.id],
               },
               {
                 onSettled: () => {

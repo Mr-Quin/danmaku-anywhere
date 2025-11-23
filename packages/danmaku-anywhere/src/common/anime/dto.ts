@@ -10,14 +10,13 @@ import type { DanmakuSourceType } from '@/common/danmaku/enums'
 export interface SeasonSearchParams {
   keyword: string
   episode?: string
-  provider: DanmakuSourceType
-  // used for custom search
-  customBaseUrl: string
+  providerConfigId: string
 }
 
 export type SeasonQueryFilter = {
   id?: number
   provider?: DanmakuSourceType
+  providerConfigId?: string
   indexedId?: string
 }
 

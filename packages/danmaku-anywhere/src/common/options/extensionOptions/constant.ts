@@ -29,33 +29,7 @@ export const defaultExtensionOptions: ExtensionOptions = {
     enabled: false,
     deleteCommentsAfter: 30,
   },
-  danmakuSources: {
-    dandanplay: {
-      baseUrl: '',
-      useCustomRoot: false,
-      enabled: true,
-      chConvert: DanDanChConvert.None,
-    },
-    bilibili: {
-      enabled: false,
-      danmakuTypePreference: 'xml',
-      protobufLimitPerMin: 200,
-    },
-    tencent: {
-      enabled: false,
-      limitPerMin: 200,
-    },
-    iqiyi: {
-      enabled: false,
-      limitPerMin: 200,
-    },
-    custom: {
-      enabled: true,
-      baseUrl: 'https://zy.xmm.hk',
-      danmuicuBaseUrl: 'https://api.danmu.icu',
-      stripColor: false,
-    },
-  },
+  // danmakuSources removed - now managed in separate provider config storage
   playerOptions: {
     showSkipButton: true,
     showDanmakuTimeline: true,
@@ -68,4 +42,4 @@ export const defaultExtensionOptions: ExtensionOptions = {
   showReleaseNotes: false,
   enableAnalytics: true,
   id: undefined,
-} as const
+}

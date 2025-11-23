@@ -32,9 +32,9 @@ import type {
   DanmakuFetchDto,
   DanmakuImportData,
   DanmakuImportResult,
+  EpisodeFetchBySeasonParams,
   EpisodeQueryFilter,
-  EpisodeSearchParams,
-  GenericDanmakuFetchData,
+  MacCMSFetchData,
 } from '@/common/danmaku/dto'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import type { SeasonMap } from '@/common/seasonMap/types'
@@ -63,7 +63,10 @@ export type BackgroundMethods = {
   seasonGetAll: RPCDef<void, Season[]>
   seasonDelete: RPCDef<SeasonQueryFilter, void>
   seasonRefresh: RPCDef<SeasonQueryFilter, void>
-  episodeSearch: RPCDef<EpisodeSearchParams, WithSeason<EpisodeMeta>[]>
+  episodeFetchBySeason: RPCDef<
+    EpisodeFetchBySeasonParams,
+    WithSeason<EpisodeMeta>[]
+  >
   episodeMatch: RPCDef<MatchEpisodeInput, MatchEpisodeResult>
   episodeFilterLite: RPCDef<EpisodeQueryFilter, WithSeason<EpisodeLite>[]>
   episodeFilter: RPCDef<EpisodeQueryFilter, WithSeason<Episode>[]>
@@ -93,12 +96,13 @@ export type BackgroundMethods = {
   kazumiSearchContent: RPCDef<KazumiSearchPayload, KazumiSearchResult[]>
   kazumiGetChapters: RPCDef<KazumiChapterPayload, KazumiChapterResult[][]>
   genericVodSearch: RPCDef<GenericVodSearchData, CustomSeason[]>
-  genericFetchDanmakuForUrl: RPCDef<GenericDanmakuFetchData, CustomEpisode>
+  genericFetchDanmakuForUrl: RPCDef<MacCMSFetchData, CustomEpisode>
   setHeaders: RPCDef<SetHeaderRule, void>
   extractTitle: RPCDef<string, ExtractTitleResponse['result']>
   openPopupInNewWindow: RPCDef<string, void>
   getConfigMacCms: RPCDef<void, BaseUrlConfig>
   getConfigDanmuIcu: RPCDef<void, BaseUrlConfig>
+  providerConfigDelete: RPCDef<string, void>
 }
 
 type InputWithFrameId<TInput> = TInput extends void

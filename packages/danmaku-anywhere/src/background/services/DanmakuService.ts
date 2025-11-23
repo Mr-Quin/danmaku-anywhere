@@ -55,7 +55,7 @@ export class DanmakuService {
     comments: CommentEntity[]
   }): Promise<CustomEpisode> {
     return this.addCustom({
-      provider: DanmakuSourceType.Custom,
+      provider: DanmakuSourceType.MacCMS,
       comments: importData.comments,
       commentCount: importData.comments.length,
       title: importData.title,
@@ -112,7 +112,7 @@ export class DanmakuService {
 
   async upsert<T extends EpisodeInsert>(data: T): Promise<DbEntity<T>> {
     const existing = await db.episode.get({
-      provider: data.provider,
+      seasonId: data.seasonId,
       indexedId: data.indexedId,
     })
 
@@ -220,7 +220,7 @@ export class DanmakuService {
           if (item.type === 'Custom') {
             await this.addCustom(item.episode)
             imported.push({
-              type: DanmakuSourceType.Custom,
+              type: DanmakuSourceType.MacCMS,
               title: item.episode.title,
               seasonId: -1,
               seasonTitle: 'Custom',
@@ -230,7 +230,7 @@ export class DanmakuService {
             let savedSeasonTitle = ''
             await db.transaction('rw', db.season, db.episode, async () => {
               let [existingSeason] = await this.seasonService.filter({
-                provider: item.season.provider,
+                providerConfigId: item.season.providerConfigId,
                 indexedId: item.season.indexedId,
               })
               if (!existingSeason) {

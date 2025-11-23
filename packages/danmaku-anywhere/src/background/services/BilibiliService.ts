@@ -1,11 +1,12 @@
-import type { WithSeason } from '@danmaku-anywhere/danmaku-converter'
 import {
   type BilibiliOf,
   type Episode,
   type EpisodeMeta,
+  PROVIDER_TO_BUILTIN_ID,
   type Season,
   type SeasonInsert,
   stripHtml,
+  type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type {
   BiliBiliSearchParams,
@@ -16,14 +17,12 @@ import * as bilibili from '@danmaku-anywhere/danmaku-provider/bilibili'
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import type { SeasonService } from '@/background/services/SeasonService'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { assertProvider } from '@/common/danmaku/utils'
+import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
-import { extensionOptionsService } from '@/common/options/extensionOptions/service'
+import type { BuiltInBilibiliProvider } from '@/common/options/providerConfig/schema'
 
 export class BilibiliService {
   private logger: typeof Logger
-
-  private extensionOptionsService = extensionOptionsService
 
   constructor(
     private seasonService: SeasonService,
@@ -75,6 +74,7 @@ export class BilibiliService {
     const mapToSeason = (data: BilibiliMedia): BilibiliOf<SeasonInsert> => {
       return {
         provider: DanmakuSourceType.Bilibili,
+        providerConfigId: PROVIDER_TO_BUILTIN_ID.Bilibili,
         title: stripHtml(data.title),
         type: data.season_type_name,
         imageUrl: data.cover,
@@ -108,6 +108,7 @@ export class BilibiliService {
 
     const season = await this.seasonService.upsert({
       provider: DanmakuSourceType.Bilibili,
+      providerConfigId: PROVIDER_TO_BUILTIN_ID.Bilibili,
       title: stripHtml(seasonInfo.title),
       type: seasonInfo.type.toString(),
       imageUrl: seasonInfo.cover,
@@ -161,7 +162,7 @@ export class BilibiliService {
   ): Promise<WithSeason<BilibiliOf<EpisodeMeta>>[]> {
     this.logger.debug('Get bangumi info', dbSeasonId)
     const season = await this.seasonService.mustGetById(dbSeasonId)
-    assertProvider(season, DanmakuSourceType.Bilibili)
+    assertProviderType(season, DanmakuSourceType.Bilibili)
 
     const {
       providerIds: { seasonId },
@@ -176,9 +177,10 @@ export class BilibiliService {
   }
 
   async saveEpisode(
-    meta: BilibiliOf<EpisodeMeta>
+    meta: BilibiliOf<EpisodeMeta>,
+    config: BuiltInBilibiliProvider
   ): Promise<BilibiliOf<Episode>> {
-    const comments = await this.getDanmaku(meta)
+    const comments = await this.getDanmaku(meta, config)
     return this.danmakuService.upsert({
       ...meta,
       comments,
@@ -186,10 +188,11 @@ export class BilibiliService {
     })
   }
 
-  async getDanmaku(meta: BilibiliOf<EpisodeMeta>) {
-    const pref = await this.extensionOptionsService.get()
-
-    const { danmakuTypePreference } = pref.danmakuSources.bilibili
+  async getDanmaku(
+    meta: BilibiliOf<EpisodeMeta>,
+    config: BuiltInBilibiliProvider
+  ) {
+    const { danmakuTypePreference } = config.options
 
     const { cid, aid } = meta.providerIds
 

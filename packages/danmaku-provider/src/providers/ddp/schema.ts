@@ -38,7 +38,7 @@ export const zSearchAnimeDetails = z.object({
   animeTitle: z.string(),
   type: z.string(),
   typeDescription: z.string(),
-  imageUrl: z.string().url(),
+  imageUrl: z.string(),
   startDate: z.string(),
   episodeCount: z.number(),
   rating: z.number(),
@@ -77,15 +77,17 @@ const zBangumiDetails = z.object({
   bangumiId: z.string(),
   animeTitle: z.string(),
   imageUrl: z.string(),
-  bangumiUrl: z.union([z.literal(''), z.string().url()]),
+  bangumiUrl: z.union([z.literal(''), z.string().url()]).optional(),
   type: z.string(),
   typeDescription: z.string(),
-  titles: z.array(
-    z.object({
-      language: z.string(),
-      title: z.string(),
-    })
-  ),
+  titles: z
+    .array(
+      z.object({
+        language: z.string(),
+        title: z.string(),
+      })
+    )
+    .optional(),
   episodes: z.array(
     z.object({
       episodeId: z.number(),
@@ -93,8 +95,8 @@ const zBangumiDetails = z.object({
       episodeNumber: z.union([z.coerce.number(), z.string()]), // can be a string, for example "SP1"
     })
   ),
-  summary: z.string(),
-  metadata: z.array(z.string()),
+  summary: z.string().optional(),
+  metadata: z.array(z.string()).optional(),
 })
 
 export type BangumiDetails = z.infer<typeof zBangumiDetails>

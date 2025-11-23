@@ -53,12 +53,14 @@ const EpisodeListInner = ({
   season,
   renderEpisode,
 }: NormalSeasonListItemProps) => {
-  const { data: episodes } = useSearchEpisode(season.provider, season.id)
+  const { data: episodes } = useSearchEpisode(season.id)
+
   const danmakuResults = useSuspenseQueries({
     queries: episodes.map((episode) => {
       const params = {
         provider: episode.provider,
         indexedId: episode.indexedId,
+        seasonId: season.id,
       } satisfies EpisodeQueryFilter
       return {
         queryKey: episodeQueryKeys.filter(params),

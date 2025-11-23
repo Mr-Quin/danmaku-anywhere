@@ -78,7 +78,10 @@ export const DrilldownMenu = ({
             <Tooltip title={item.tooltip} key={item.id}>
               <div>
                 <MenuItem
-                  onClick={item.onClick}
+                  onClick={() => {
+                    item.onClick()
+                    handleClose()
+                  }}
                   disabled={item.disabled || item.loading}
                 >
                   <ListItemIcon>

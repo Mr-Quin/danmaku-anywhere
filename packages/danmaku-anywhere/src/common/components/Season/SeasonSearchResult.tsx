@@ -10,11 +10,11 @@ import {
   SeasonGridSkeleton,
 } from '@/common/components/Season/SeasonGrid'
 import type { HandleSeasonClick } from '@/common/components/Season/types'
-import type { DanmakuSourceType } from '@/common/danmaku/enums'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 
 interface SeasonSearchResultProps {
   searchParams: SearchEpisodesQuery
-  provider: DanmakuSourceType
+  provider: ProviderConfig
   onSeasonClick: HandleSeasonClick
   stale: boolean
 }
@@ -28,7 +28,7 @@ export const SeasonSearchResult = (props: SeasonSearchResultProps) => {
       }}
       flexGrow={1}
     >
-      <Suspense key={props.provider} fallback={<SeasonGridSkeleton />}>
+      <Suspense key={props.provider.id} fallback={<SeasonGridSkeleton />}>
         <SeasonSearchResultSuspense {...props} />
       </Suspense>
     </Box>
@@ -43,7 +43,7 @@ const SeasonSearchResultSuspense = ({
   const { t } = useTranslation()
 
   const { data: result, refetch } = useSeasonSearchSuspense(
-    provider as DanmakuSourceType,
+    provider.id,
     searchParams.anime
   )
 

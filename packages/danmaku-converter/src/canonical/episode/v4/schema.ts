@@ -18,7 +18,7 @@ import {
  * Custom episode schema
  */
 export const zCustomEpisodeInsertV4 = z.object({
-  provider: z.literal(DanmakuSourceType.Custom),
+  provider: z.literal(DanmakuSourceType.MacCMS),
   title: z.string().refine(stripHtml),
   comments: z.array(zCommentEntity),
   commentCount: z.number(),

@@ -1,37 +1,40 @@
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import { useSuspenseQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { SeasonSearchParams } from '@/common/anime/dto'
-import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { Logger } from '@/common/Logger'
-import { useDanmakuSources } from '@/common/options/extensionOptions/useDanmakuSources'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 export const useSeasonSearchSuspense = (
-  provider: DanmakuSourceType,
+  providerConfigId: string,
   keyword: string
 ) => {
   const { t } = useTranslation()
-  const { sources } = useDanmakuSources()
 
-  const params = { keyword, provider, customBaseUrl: sources.custom.baseUrl }
+  const params: SeasonSearchParams = useMemo(() => {
+    return {
+      keyword,
+      providerConfigId,
+    }
+  }, [providerConfigId, keyword])
 
   return useSuspenseQuery({
-    queryKey: seasonQueryKeys.search(provider, params),
+    queryKey: seasonQueryKeys.search(params),
     queryFn: async (): Promise<
       | {
           success: true
           data: (Season | CustomSeason)[]
           params: SeasonSearchParams
-          provider: DanmakuSourceType
+          providerConfigId: string
         }
       | {
           success: false
           data: null
           params: SeasonSearchParams
-          provider: DanmakuSourceType
+          providerConfigId: string
           error: string
         }
     > => {
@@ -42,7 +45,7 @@ export const useSeasonSearchSuspense = (
           success: true,
           data: data.data,
           params,
-          provider,
+          providerConfigId,
         }
       } catch (error) {
         Logger.debug('useMediaSearchSuspense error', error)
@@ -52,7 +55,7 @@ export const useSeasonSearchSuspense = (
           success: false,
           data: null,
           params,
-          provider,
+          providerConfigId,
           error: errorMessage,
         }
       }

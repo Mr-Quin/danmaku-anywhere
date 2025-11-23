@@ -126,6 +126,5 @@ danDanPlay.all('*', verifyPathQuery, async (c) => {
   ddpRequest.headers.set('X-AppId', env.DANDANPLAY_APP_ID)
   ddpRequest.headers.set('X-AppSecret', DANDANPLAY_APP_SECRET)
 
-  // Fetch from DanDanPlay API
   return fetch(ddpRequest)
 })

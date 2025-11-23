@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ResponseParseException } from '../../exceptions/ResponseParseException'
-import { configureApiStore } from '../../shared/store'
 import { mockFetchResponse } from '../utils/testUtils'
 import {
   commentGetComment,
@@ -122,13 +121,12 @@ describe('DanDanPlay API', () => {
 
     const mockFetch = mockFetchResponse(mockResponse)
 
-    const customRoot = 'https://example.com'
-    configureApiStore({ ddpCustomApiUrl: customRoot, ddpUseCustomUrl: true })
+    const baseUrl = 'https://example.com'
 
-    await searchSearchEpisodes({ anime: 'test' })
+    await searchSearchEpisodes({ anime: 'test' }, { baseUrl, isCustom: true })
 
     expect(mockFetch.mock.calls[0][0]).toEqual(
-      `${customRoot}/v2/search/episodes?anime=test`
+      `${baseUrl}/v2/search/episodes?anime=test`
     )
   })
 })

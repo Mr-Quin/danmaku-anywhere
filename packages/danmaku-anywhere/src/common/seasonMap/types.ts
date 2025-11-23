@@ -3,8 +3,6 @@
  */
 export interface SeasonMap {
   key: string
-  DanDanPlay?: number
-  Bilibili?: number
-  Tencent?: number
-  iQiyi?: number
+  seasons: Record<string, number>
+  seasonIds: number[]
 }

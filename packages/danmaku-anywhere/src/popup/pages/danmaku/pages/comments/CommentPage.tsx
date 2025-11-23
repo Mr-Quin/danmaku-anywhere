@@ -73,7 +73,7 @@ export const CommentPage = () => {
   const { title, episode } = getData()
 
   const canRefresh =
-    episode !== null && !isProvider(episode, DanmakuSourceType.Custom)
+    episode !== null && !isProvider(episode, DanmakuSourceType.MacCMS)
 
   const handleRefresh = () => {
     if (!canRefresh) {

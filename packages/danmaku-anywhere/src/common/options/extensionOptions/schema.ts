@@ -5,6 +5,9 @@ import { Language } from '@/common/localization/language'
 import type { Options } from '@/common/options/OptionsService/types'
 import { ColorMode } from '@/common/theme/enums'
 
+/**
+ * @deprecated Migrated to separate provider config storage in version 21
+ */
 export const danmakuSourcesSchema = z.object({
   dandanplay: z.object({
     enabled: z.boolean(),
@@ -105,9 +108,9 @@ export const extensionOptionsSchema = z.object({
   searchUsingSimplified: z.boolean(),
 
   /**
-   * Configuration for individual danmaku sources
+   * @deprecated Migrated to separate provider config storage in version 21
    */
-  danmakuSources: danmakuSourcesSchema,
+  danmakuSources: danmakuSourcesSchema.optional(),
 
   playerOptions: playerOptionsSchema,
 
