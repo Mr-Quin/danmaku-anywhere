@@ -97,19 +97,18 @@ export class SeasonService {
           .delete()
         await db.season.delete(id)
         await db.seasonMap
-          .where('DanDanPlay')
-          .equals(id)
-          .or('Tencent')
-          .equals(id)
-          .or('Bilibili')
-          .equals(id)
-          .or('iQiyi')
+          .where('seasonIds')
           .equals(id)
           .modify((val) => {
-            if (val.DanDanPlay === id) delete val.DanDanPlay
-            if (val.Tencent === id) delete val.Tencent
-            if (val.Bilibili === id) delete val.Bilibili
-            if (val.iQiyi === id) delete val.iQiyi
+            // remove from seasonIds
+            val.seasonIds = val.seasonIds.filter((sid) => sid !== id)
+
+            // remove from seasons map
+            for (const key of Object.keys(val.seasons)) {
+              if (val.seasons[key] === id) {
+                delete val.seasons[key]
+              }
+            }
           })
       }
     )

@@ -305,6 +305,7 @@ class DanmakuAnywhereDb extends Dexie {
      * Make providerConfigId required for all seasons
      * Remove providerConfigId from episodes (get from season instead)
      * Change unique constraint on seasons from [provider+indexedId] to [providerConfigId+indexedId]
+     * Migrate seasonMap to support dynamic providers
      */
     this.version(12)
       .stores({
@@ -313,7 +314,7 @@ class DanmakuAnywhereDb extends Dexie {
         season:
           '++id, provider, providerConfigId, indexedId, &[providerConfigId+indexedId]',
         customEpisode: '++id, title',
-        seasonMap: 'key',
+        seasonMap: 'key, *seasonIds',
       })
       .upgrade(async (tx) => {
         // Migrate seasons to use providerConfigId
@@ -348,6 +349,9 @@ class DanmakuAnywhereDb extends Dexie {
         if (store.indexNames.contains('[provider+indexedId]')) {
           store.deleteIndex('[provider+indexedId]')
         }
+
+        // Wipe seasonMap table
+        await tx.table('seasonMap').clear()
       })
 
     this.open()

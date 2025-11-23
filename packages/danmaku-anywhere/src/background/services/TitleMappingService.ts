@@ -18,7 +18,18 @@ export class TitleMappingService {
     const existing = await db.seasonMap.get({ key: map.key })
     if (existing) {
       this.logger.debug('Updating title mapping:', map)
-      await db.seasonMap.put(map, existing.key)
+      const newSeasons = { ...existing.seasons, ...map.seasons }
+      const newSeasonIds = Array.from(
+        new Set([...existing.seasonIds, ...map.seasonIds])
+      )
+      await db.seasonMap.put(
+        {
+          ...existing,
+          seasons: newSeasons,
+          seasonIds: newSeasonIds,
+        },
+        existing.key
+      )
     } else {
       this.logger.debug('Adding title mapping:', map)
       await db.seasonMap.add(map)

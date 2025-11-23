@@ -1,5 +1,5 @@
 export enum DanmakuSourceType {
-  MacCMS = 'Custom',
+  MacCMS = 'Custom', // TODO: change this to not custom
   DanDanPlay = 'DanDanPlay',
   Bilibili = 'Bilibili',
   Tencent = 'Tencent',

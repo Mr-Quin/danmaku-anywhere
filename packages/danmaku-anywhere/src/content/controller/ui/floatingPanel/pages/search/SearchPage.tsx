@@ -14,8 +14,7 @@ import { ParseTabCore } from '@/common/components/ParseTabCore/ParseTabCore'
 import { SearchForm } from '@/common/components/SearchForm'
 import { SeasonSearchResult } from '@/common/components/Season/SeasonSearchResult'
 import { SeasonSearchTabs } from '@/common/components/Season/SeasonSearchTabs'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { isProvider } from '@/common/danmaku/utils'
+import { isNotCustom } from '@/common/danmaku/utils'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
@@ -115,12 +114,12 @@ export const SearchPage = () => {
       setScrollTop(boxRef.current.scrollTop)
     }
     if (
-      isProvider(season, DanmakuSourceType.DanDanPlay) &&
+      isNotCustom(season) &&
       mediaInfo &&
       !doesSeasonMapExist(
         seasonMaps,
         mediaInfo.getKey(),
-        DanmakuSourceType.DanDanPlay,
+        season.providerConfigId,
         season.id
       )
     ) {

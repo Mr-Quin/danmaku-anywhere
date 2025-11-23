@@ -34,6 +34,7 @@ import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustom
 import { useEpisodesLiteSuspense } from '@/common/danmaku/queries/useEpisodes'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { isNotCustom, isProvider } from '@/common/danmaku/utils'
+import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { matchWithPinyin } from '@/common/utils/utils'
 
 export interface DanmakuSelectorApi {
@@ -59,6 +60,8 @@ const EpisodeListItem = ({
   onToggleSelection,
 }: EpisodeListItemProps) => {
   const { mutateAsync: load, isPending } = useFetchDanmaku()
+  const { getProviderById } = useProviderConfig()
+
   const { t } = useTranslation()
 
   const handleFetchDanmaku = async (meta: WithSeason<EpisodeMeta>) => {
@@ -71,6 +74,10 @@ const EpisodeListItem = ({
   }
 
   if (item.kind === 'season') {
+    const provider = isNotCustom(item.season)
+      ? getProviderById(item.season.providerConfigId)
+      : undefined
+
     return (
       <ListSubheader title={item.season.title}>
         <Stack
@@ -87,7 +94,11 @@ const EpisodeListItem = ({
           >
             {item.season.title}
           </Box>
-          <ProviderLogo provider={item.season.provider} />
+          {provider && !provider.isBuiltIn ? (
+            provider.name
+          ) : (
+            <ProviderLogo provider={item.season.provider} />
+          )}
         </Stack>
       </ListSubheader>
     )

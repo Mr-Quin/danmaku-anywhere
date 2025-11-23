@@ -165,10 +165,14 @@ export class ProviderService {
     const { meta, options = {} } = data
     const provider = meta.provider
 
-    const [existingDanmaku] = await this.danmakuService.filter({
+    const existingDanmakuCandidates = await this.danmakuService.filter({
       provider,
       indexedId: meta.indexedId,
     })
+
+    const existingDanmaku = existingDanmakuCandidates.find(
+      (item) => item.seasonId === meta.seasonId
+    )
 
     if (existingDanmaku && !options.forceUpdate) {
       this.logger.debug('Danmaku found in db', existingDanmaku)
@@ -293,24 +297,30 @@ export class ProviderService {
 
     const mapping = await this.titleMappingService.get(mapKey)
 
+    const automaticProvider =
+      await providerConfigService.getFirstAutomaticProvider()
+
     if (mapping || seasonId) {
-      if (mapping) {
-        this.logger.debug('Mapping found, using mapped title', mapping)
-      } else if (seasonId) {
+      let season: Season | undefined
+
+      if (seasonId) {
         this.logger.debug('Using provided season id')
-        await this.titleMappingService.add({
-          key: mapKey,
-          DanDanPlay: seasonId,
-        })
+        season = await this.seasonService.getById(seasonId)
+        if (season) {
+          await this.titleMappingService.add({
+            key: mapKey,
+            seasons: {
+              [season.providerConfigId]: season.id,
+            },
+            seasonIds: [season.id],
+          })
+        }
+      } else if (mapping && mapping.seasons[automaticProvider.id]) {
+        this.logger.debug('Mapping found, using mapped title', mapping)
+        season = await this.seasonService.getById(
+          mapping.seasons[automaticProvider.id]
+        )
       }
-
-      const sid = seasonId ?? mapping?.DanDanPlay
-
-      if (!sid) {
-        throw new Error('No season id provided')
-      }
-
-      const season = await this.seasonService.getById(sid)
 
       if (!season) {
         return {
@@ -328,9 +338,6 @@ export class ProviderService {
     }
 
     this.logger.debug('No mapping found, searching for season')
-
-    const automaticProvider =
-      await providerConfigService.getFirstAutomaticProvider()
 
     const foundSeasons = await this.danDanPlayService.search(
       {
@@ -353,7 +360,10 @@ export class ProviderService {
 
       await this.titleMappingService.add({
         key: mapKey,
-        DanDanPlay: meta.seasonId,
+        seasons: {
+          [foundSeasons[0].providerConfigId]: meta.seasonId,
+        },
+        seasonIds: [meta.seasonId],
       })
 
       return {
