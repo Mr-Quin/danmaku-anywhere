@@ -78,7 +78,7 @@ describe('migrateDanmakuSourcesToProviders', () => {
 
       // Check DanDanPlay built-in
       const ddp = providers[0] as BuiltInDanDanPlayProvider
-      expect(ddp.id).toBe('dandanplay')
+      expect(ddp.id).toBe('builtin:dandanplay')
       expect(ddp.type).toBe('DanDanPlay')
       expect(ddp.impl).toBe(DanmakuSourceType.DanDanPlay)
       expect(ddp.enabled).toBe(true)
@@ -86,7 +86,7 @@ describe('migrateDanmakuSourcesToProviders', () => {
 
       // Check Bilibili built-in
       const bili = providers[1] as BuiltInBilibiliProvider
-      expect(bili.id).toBe('bilibili')
+      expect(bili.id).toBe('builtin:bilibili')
       expect(bili.type).toBe('Bilibili')
       expect(bili.impl).toBe(DanmakuSourceType.Bilibili)
       expect(bili.enabled).toBe(true)
@@ -94,21 +94,21 @@ describe('migrateDanmakuSourcesToProviders', () => {
 
       // Check Tencent built-in
       const tencent = providers[2] as BuiltInTencentProvider
-      expect(tencent.id).toBe('tencent')
+      expect(tencent.id).toBe('builtin:tencent')
       expect(tencent.type).toBe('Tencent')
       expect(tencent.impl).toBe(DanmakuSourceType.Tencent)
       expect(tencent.enabled).toBe(true)
 
       // Check custom MacCMS
       const maccms = providers[3] as CustomMacCmsProvider
+      expect(maccms.id).toBe('legacy:maccms')
       expect(maccms.type).toBe('MacCMS')
       expect(maccms.impl).toBe(DanmakuSourceType.MacCMS)
-      expect(maccms.name).toBe('MacCMS (Migrated)')
+      expect(maccms.name).toBe('MacCMS')
       expect(maccms.enabled).toBe(true)
       expect(maccms.options.danmakuBaseUrl).toBe('https://vs.okcdn100.top')
       expect(maccms.options.danmuicuBaseUrl).toBe('https://danmu.56uxi.com')
       expect(maccms.options.stripColor).toBe(true)
-      expect(maccms.id).toBeTruthy() // Should have a UUID
     })
   })
 
@@ -179,9 +179,10 @@ describe('migrateDanmakuSourcesToProviders', () => {
       expect(providers).toHaveLength(4) // 3 built-in + 1 custom MacCMS
 
       const maccms = providers[3] as CustomMacCmsProvider
+      expect(maccms.id).toBe('legacy:maccms')
       expect(maccms.type).toBe('MacCMS')
       expect(maccms.impl).toBe(DanmakuSourceType.MacCMS)
-      expect(maccms.name).toBe('MacCMS (Migrated)')
+      expect(maccms.name).toBe('MacCMS')
       expect(maccms.enabled).toBe(true)
       expect(maccms.options.danmakuBaseUrl).toBe('https://maccms.example.com')
       expect(maccms.options.danmuicuBaseUrl).toBe('https://danmu.example.com')

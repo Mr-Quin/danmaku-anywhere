@@ -1,14 +1,12 @@
-import type {
-  BilibiliProviderOptions,
-  WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
 import {
   type BilibiliOf,
   type Episode,
   type EpisodeMeta,
+  PROVIDER_TO_BUILTIN_ID,
   type Season,
   type SeasonInsert,
   stripHtml,
+  type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type {
   BiliBiliSearchParams,
@@ -21,6 +19,7 @@ import type { SeasonService } from '@/background/services/SeasonService'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
+import type { BuiltInBilibiliProvider } from '@/common/options/providerConfig/schema'
 
 export class BilibiliService {
   private logger: typeof Logger
@@ -75,6 +74,7 @@ export class BilibiliService {
     const mapToSeason = (data: BilibiliMedia): BilibiliOf<SeasonInsert> => {
       return {
         provider: DanmakuSourceType.Bilibili,
+        providerConfigId: PROVIDER_TO_BUILTIN_ID.Bilibili,
         title: stripHtml(data.title),
         type: data.season_type_name,
         imageUrl: data.cover,
@@ -108,6 +108,7 @@ export class BilibiliService {
 
     const season = await this.seasonService.upsert({
       provider: DanmakuSourceType.Bilibili,
+      providerConfigId: PROVIDER_TO_BUILTIN_ID.Bilibili,
       title: stripHtml(seasonInfo.title),
       type: seasonInfo.type.toString(),
       imageUrl: seasonInfo.cover,
@@ -177,22 +178,21 @@ export class BilibiliService {
 
   async saveEpisode(
     meta: BilibiliOf<EpisodeMeta>,
-    providerOptions: BilibiliProviderOptions
+    config: BuiltInBilibiliProvider
   ): Promise<BilibiliOf<Episode>> {
-    const comments = await this.getDanmaku(meta, providerOptions)
+    const comments = await this.getDanmaku(meta, config)
     return this.danmakuService.upsert({
       ...meta,
       comments,
       commentCount: comments.length,
-      providerOptions,
     })
   }
 
   async getDanmaku(
     meta: BilibiliOf<EpisodeMeta>,
-    providerOptions: BilibiliProviderOptions
+    config: BuiltInBilibiliProvider
   ) {
-    const { danmakuTypePreference } = providerOptions
+    const { danmakuTypePreference } = config.options
 
     const { cid, aid } = meta.providerIds
 

@@ -1,6 +1,6 @@
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { produce } from 'immer'
-
+import { Logger } from '@/common/Logger'
 import { Language } from '@/common/localization/language'
 import { defaultExtensionOptions } from '@/common/options/extensionOptions/constant'
 import { defaultKeymap } from '@/common/options/extensionOptions/hotkeys'
@@ -203,9 +203,16 @@ export const extensionOptionsService = new OptionsService(
         const providers = migrateDanmakuSourcesToProviders(data.danmakuSources)
 
         // set data in separate storage
-        void providerConfigService.options.set(providers)
+        try {
+          void providerConfigService.options.set(providers)
+        } catch (error) {
+          Logger.error(
+            'Failed to migrate provider configs from extension service to provider service'
+          )
+          Logger.error(error)
+        }
 
-        // biome-ignore lint/correctness/noUnusedVariables: drop deprecated field
+        // biome-ignore lint/correctness/noUnusedVariables: drop deprecated fields
         const { danmakuSources, ...rest } = data
         return rest
       }

@@ -13,9 +13,11 @@ import type { SeasonService } from '@/background/services/SeasonService'
 import type { TencentService } from '@/background/services/TencentService'
 import type { TitleMappingService } from '@/background/services/TitleMappingService'
 import { invalidateContentScriptData } from '@/background/utils/invalidateContentScriptData'
-import type { EpisodeSearchParams } from '@/common/danmaku/dto'
+import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
+import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
 import { mountConfigService } from '@/common/options/mountConfig/service'
+import { deleteProviderConfig } from '@/common/options/providerConfig/service'
 import type { TabRPCClientMethod } from '@/common/rpc/client'
 import type { RRPServerHandler } from '@/common/rpc/server'
 import { createRpcServer } from '@/common/rpc/server'
@@ -50,8 +52,8 @@ export const setupRpc = (
     mediaParseUrl: async (input) => {
       return providerService.parseUrl(input.url)
     },
-    episodeSearch: async (input: EpisodeSearchParams) => {
-      return providerService.searchEpisodes(input)
+    episodeFetchBySeason: async (input: EpisodeFetchBySeasonParams) => {
+      return providerService.fetchEpisodesBySeason(input.seasonId)
     },
     episodeMatch: async (data) => {
       return providerService.findMatchingEpisodes(data)
@@ -223,11 +225,11 @@ export const setupRpc = (
     genericVodSearch: async ({ baseUrl, keyword }) => {
       return customProviderService.search(baseUrl, keyword)
     },
-    genericFetchDanmakuForUrl: async ({ title, url, providerOptions }) => {
+    genericFetchDanmakuForUrl: async ({ title, url, providerConfigId }) => {
       return customProviderService.fetchDanmakuForUrl(
         title,
         url,
-        providerOptions
+        providerConfigId
       )
     },
     setHeaders: async (rule) => {
@@ -246,6 +248,24 @@ export const setupRpc = (
     },
     getConfigDanmuIcu: async () => {
       return getDanmuicuConfig()
+    },
+    providerConfigDelete: async (id, sender) => {
+      await db.transaction('rw', db.season, db.episode, async () => {
+        const seasons = await db.season
+          .where({ providerConfigId: id })
+          .toArray()
+        const seasonIds = seasons.map((s) => s.id)
+
+        if (seasonIds.length > 0) {
+          await db.episode.where('seasonId').anyOf(seasonIds).delete()
+        }
+
+        await db.season.where({ providerConfigId: id }).delete()
+      })
+
+      await deleteProviderConfig(id)
+
+      void invalidateContentScriptData(sender.tab?.id)
     },
   })
 

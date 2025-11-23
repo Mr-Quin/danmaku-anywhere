@@ -72,7 +72,7 @@ export const SeasonDetailsPage = ({
                   onClick={() =>
                     loadGenericMutation.mutate({
                       ...data.episode,
-                      providerOptions: providerTab.options,
+                      providerConfigId: providerTab.id,
                     })
                   }
                   isLoading={loadGenericMutation.isPending}

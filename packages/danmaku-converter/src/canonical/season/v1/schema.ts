@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { zDanDanPlayProviderOptions } from '../../provider/options.js'
 import {
   type ByProvider,
   DanmakuSourceType,
@@ -38,17 +37,19 @@ export const zTencentSeasonProviderIds = z.object({
 export const zDanDanPlaySeasonV1 = zBaseSeasonV1.extend({
   provider: z.literal(DanmakuSourceType.DanDanPlay),
   providerIds: zDanDanPlaySeasonProviderIds,
-  providerOptions: zDanDanPlayProviderOptions.optional(),
+  providerConfigId: z.string(),
 })
 
 export const zBilibiliSeasonV1 = zBaseSeasonV1.extend({
   provider: z.literal(DanmakuSourceType.Bilibili),
   providerIds: zBilibiliSeasonProviderIds,
+  providerConfigId: z.string(),
 })
 
 export const zTencentSeasonV1 = zBaseSeasonV1.extend({
   provider: z.literal(DanmakuSourceType.Tencent),
   providerIds: zTencentSeasonProviderIds,
+  providerConfigId: z.string(),
 })
 
 export const zSeasonInsertV1 = z.discriminatedUnion('provider', [

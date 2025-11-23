@@ -13,6 +13,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import type { CustomMacCmsProvider } from '@/common/options/providerConfig/schema'
 import { zMacCmsProviderConfig } from '@/common/options/providerConfig/schema'
+import { providerConfigService } from '@/common/options/providerConfig/service'
 import { configQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { FormActions } from './FormActions'
@@ -31,6 +32,8 @@ export const MacCmsProviderForm = ({
     control,
     register,
     reset,
+    setError,
+    clearErrors,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<CustomMacCmsProvider>({
     resolver: zodResolver(zMacCmsProviderConfig),
@@ -50,6 +53,19 @@ export const MacCmsProviderForm = ({
   })
 
   const handleFormSubmit = async (data: CustomMacCmsProvider) => {
+    // Validate ID uniqueness
+    const isUnique = await providerConfigService.isIdUnique(
+      data.id,
+      isEdit ? provider?.id : undefined
+    )
+    if (!isUnique) {
+      setError('id', {
+        type: 'manual',
+        message: t('providers.editor.error.idExists'),
+      })
+      return
+    }
+    clearErrors('id')
     await onSubmit(data)
   }
 
@@ -66,6 +82,17 @@ export const MacCmsProviderForm = ({
       spacing={2}
       alignItems="flex-start"
     >
+      <TextField
+        label={t('providers.editor.id')}
+        size="small"
+        error={!!errors.id}
+        helperText={errors.id?.message || t('providers.editor.helper.id')}
+        {...register('id')}
+        fullWidth
+        required
+        disabled={isEdit}
+      />
+
       <TextField
         label={t('providers.editor.name')}
         size="small"

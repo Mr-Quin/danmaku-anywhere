@@ -1,6 +1,10 @@
 import type { z } from 'zod'
 import { stripHtml } from '../../../utils/index.js'
-import { type ByProvider, DanmakuSourceType } from '../../provider/provider.js'
+import {
+  type ByProvider,
+  DanmakuSourceType,
+  PROVIDER_TO_BUILTIN_ID,
+} from '../../provider/provider.js'
 import type { SeasonInsertV1 } from '../../season/index.js'
 import type { zEpisodeImportV1 } from '../v1/schema.js'
 import type { zEpisodeImportV2 } from '../v2/schema.js'
@@ -125,6 +129,7 @@ const v3ExtractSeason = (
     case DanmakuSourceType.DanDanPlay: {
       return {
         provider: DanmakuSourceType.DanDanPlay,
+        providerConfigId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
         providerIds: {
           animeId: item.meta.animeId,
           bangumiId: item.meta.animeId.toString(),
@@ -138,6 +143,7 @@ const v3ExtractSeason = (
     case DanmakuSourceType.Bilibili: {
       return {
         provider: DanmakuSourceType.Bilibili,
+        providerConfigId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
         providerIds: {
           seasonId: item.meta.seasonId,
         },
@@ -150,6 +156,7 @@ const v3ExtractSeason = (
     case DanmakuSourceType.Tencent: {
       return {
         provider: DanmakuSourceType.Tencent,
+        providerConfigId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
         providerIds: {
           cid: item.meta.cid,
         },

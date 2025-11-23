@@ -43,7 +43,7 @@ const SeasonSearchResultSuspense = ({
   const { t } = useTranslation()
 
   const { data: result, refetch } = useSeasonSearchSuspense(
-    provider,
+    provider.id,
     searchParams.anime
   )
 

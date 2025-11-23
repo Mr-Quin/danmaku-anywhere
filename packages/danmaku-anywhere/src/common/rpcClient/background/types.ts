@@ -32,8 +32,8 @@ import type {
   DanmakuFetchDto,
   DanmakuImportData,
   DanmakuImportResult,
+  EpisodeFetchBySeasonParams,
   EpisodeQueryFilter,
-  EpisodeSearchParams,
   MacCMSFetchData,
 } from '@/common/danmaku/dto'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
@@ -63,7 +63,10 @@ export type BackgroundMethods = {
   seasonGetAll: RPCDef<void, Season[]>
   seasonDelete: RPCDef<SeasonQueryFilter, void>
   seasonRefresh: RPCDef<SeasonQueryFilter, void>
-  episodeSearch: RPCDef<EpisodeSearchParams, WithSeason<EpisodeMeta>[]>
+  episodeFetchBySeason: RPCDef<
+    EpisodeFetchBySeasonParams,
+    WithSeason<EpisodeMeta>[]
+  >
   episodeMatch: RPCDef<MatchEpisodeInput, MatchEpisodeResult>
   episodeFilterLite: RPCDef<EpisodeQueryFilter, WithSeason<EpisodeLite>[]>
   episodeFilter: RPCDef<EpisodeQueryFilter, WithSeason<Episode>[]>
@@ -99,6 +102,7 @@ export type BackgroundMethods = {
   openPopupInNewWindow: RPCDef<string, void>
   getConfigMacCms: RPCDef<void, BaseUrlConfig>
   getConfigDanmuIcu: RPCDef<void, BaseUrlConfig>
+  providerConfigDelete: RPCDef<string, void>
 }
 
 type InputWithFrameId<TInput> = TInput extends void

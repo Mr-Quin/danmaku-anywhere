@@ -1,6 +1,5 @@
 import type {
   EpisodeMeta,
-  MacCMSProviderOptions,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type {
@@ -8,9 +7,8 @@ import type {
   RemoteDanmakuSourceType,
 } from '@/common/danmaku/enums'
 
-export type EpisodeSearchParams = {
+export type EpisodeFetchBySeasonParams = {
   seasonId: number
-  provider: RemoteDanmakuSourceType
 }
 
 export type EpisodeQueryFilter = {
@@ -77,5 +75,5 @@ export type DanmakuImportResult = {
 export interface MacCMSFetchData {
   title: string
   url: string
-  providerOptions: MacCMSProviderOptions
+  providerConfigId: string
 }

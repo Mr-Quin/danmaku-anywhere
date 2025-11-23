@@ -1,4 +1,7 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
+import {
+  DanmakuSourceType,
+  PROVIDER_TO_BUILTIN_ID,
+} from '@danmaku-anywhere/danmaku-converter'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { getRandomUUID } from '@/common/utils/utils'
 import type {
@@ -11,7 +14,7 @@ import type {
 } from './schema'
 
 export const builtInDanDanPlayProvider: BuiltInDanDanPlayProvider = {
-  id: 'dandanplay',
+  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
   type: 'DanDanPlay',
   name: 'DanDanPlay',
   impl: DanmakuSourceType.DanDanPlay,
@@ -23,7 +26,7 @@ export const builtInDanDanPlayProvider: BuiltInDanDanPlayProvider = {
 }
 
 export const builtInBilibiliProvider: BuiltInBilibiliProvider = {
-  id: 'bilibili',
+  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
   type: 'Bilibili',
   name: 'Bilibili',
   impl: DanmakuSourceType.Bilibili,
@@ -35,7 +38,7 @@ export const builtInBilibiliProvider: BuiltInBilibiliProvider = {
 }
 
 export const builtInTencentProvider: BuiltInTencentProvider = {
-  id: 'tencent',
+  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
   type: 'Tencent',
   name: 'Tencent',
   impl: DanmakuSourceType.Tencent,
@@ -54,7 +57,7 @@ export const createCustomDanDanPlayProvider = (
   input: Partial<DanDanPlayCompatProvider> = {}
 ): DanDanPlayCompatProvider => {
   return {
-    id: getRandomUUID(),
+    id: input.id ?? getRandomUUID(),
     type: 'DanDanPlayCompatible',
     name: input.name ?? 'DanDanPlay',
     impl: DanmakuSourceType.DanDanPlay,
@@ -74,7 +77,7 @@ export const createCustomMacCmsProvider = (
   input: Partial<CustomMacCmsProvider> = {}
 ): CustomMacCmsProvider => {
   return {
-    id: getRandomUUID(),
+    id: input.id ?? getRandomUUID(),
     type: 'MacCMS',
     name: input.name ?? 'MacCMS',
     impl: DanmakuSourceType.MacCMS,

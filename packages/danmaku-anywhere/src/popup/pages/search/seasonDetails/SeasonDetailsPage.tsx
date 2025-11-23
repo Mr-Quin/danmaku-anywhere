@@ -66,7 +66,7 @@ export const SeasonDetailsPage = () => {
                   onClick={() =>
                     mutation.mutate({
                       ...data.episode,
-                      providerOptions: provider.options,
+                      providerConfigId: provider.id,
                     })
                   }
                   isLoading={mutation.isPending}

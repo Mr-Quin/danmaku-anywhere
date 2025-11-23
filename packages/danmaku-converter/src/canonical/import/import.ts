@@ -9,7 +9,10 @@ import {
 import { zEpisodeImportV1 } from '../episode/v1/schema.js'
 import { zEpisodeImportV2 } from '../episode/v2/schema.js'
 import { zEpisodeImportV3 } from '../episode/v3/schemaZod.js'
-import { DanmakuSourceType } from '../provider/provider.js'
+import {
+  DanmakuSourceType,
+  PROVIDER_TO_BUILTIN_ID,
+} from '../provider/provider.js'
 import type { SeasonInsertV1 } from '../season/index.js'
 
 const zImportV3 = z
@@ -57,9 +60,23 @@ export type BackupParseResult = {
   skipped: [number, unknown[]][]
 }
 
-export const parseBackup = (
-  data: unknown
-): BackupParseData | BackupParseError => {
+const zEpisodeInsertV4WithSeasonV1Preprocessed = z.preprocess((data) => {
+  // preprocessing to set providerConfigId based on provider
+  const d = data as any
+  const provider = d?.season?.provider
+  if (provider && provider in PROVIDER_TO_BUILTIN_ID) {
+    return {
+      ...d,
+      season: {
+        ...d.season,
+        providerConfigId: PROVIDER_TO_BUILTIN_ID[provider as DanmakuSourceType],
+      },
+    }
+  }
+  return data
+}, zEpisodeInsertV4WithSeasonV1)
+
+const parseBackup = (data: unknown): BackupParseData | BackupParseError => {
   const errors = []
   // first see if data is v3
   {
@@ -84,7 +101,7 @@ export const parseBackup = (
 
   // try regular v4
   {
-    const parse = zEpisodeInsertV4WithSeasonV1.safeParse(data)
+    const parse = zEpisodeInsertV4WithSeasonV1Preprocessed.safeParse(data)
     if (parse.success) {
       return {
         type: 'Regular',

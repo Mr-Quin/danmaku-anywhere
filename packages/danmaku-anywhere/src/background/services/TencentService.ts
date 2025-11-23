@@ -1,10 +1,11 @@
-import type { WithSeason } from '@danmaku-anywhere/danmaku-converter'
 import {
   type EpisodeMeta,
+  PROVIDER_TO_BUILTIN_ID,
   type Season,
   type SeasonInsert,
   stripHtml,
   type TencentOf,
+  type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type {
   TencentEpisodeListItem,
@@ -52,6 +53,7 @@ export class TencentService {
     const mapToSeason = (data: TencentVideoSeason): TencentOf<SeasonInsert> => {
       return {
         provider: DanmakuSourceType.Tencent,
+        providerConfigId: PROVIDER_TO_BUILTIN_ID.Tencent,
         title: stripHtml(data.videoInfo.title),
         type: data.videoInfo.videoType.toString(),
         imageUrl: data.videoInfo.imgUrl,
@@ -145,6 +147,7 @@ export class TencentService {
     if (foundSeason) {
       const season = await this.seasonService.upsert({
         provider: DanmakuSourceType.Tencent,
+        providerConfigId: PROVIDER_TO_BUILTIN_ID.Tencent,
         title: stripHtml(foundSeason.item_params.title),
         type: foundSeason.item_type.toString(),
         imageUrl: foundSeason.item_params.new_pic_vt,

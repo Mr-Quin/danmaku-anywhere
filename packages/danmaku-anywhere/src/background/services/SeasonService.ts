@@ -16,7 +16,7 @@ export class SeasonService {
 
   async upsert<T extends SeasonInsert>(data: T): Promise<DbEntity<T>> {
     const existing = await db.season.get({
-      provider: data.provider,
+      providerConfigId: data.providerConfigId,
       indexedId: data.indexedId,
     })
     if (existing) {
@@ -97,15 +97,19 @@ export class SeasonService {
           .delete()
         await db.season.delete(id)
         await db.seasonMap
-          .where('DanDanPlay')
+          .where('seasonIds')
           .equals(id)
-          .or('Bilibili')
-          .equals(id)
-          .or('Tencent')
-          .equals(id)
-          .or('iQiyi')
-          .equals(id)
-          .delete()
+          .modify((val) => {
+            // remove from seasonIds
+            val.seasonIds = val.seasonIds.filter((sid) => sid !== id)
+
+            // remove from seasons map
+            for (const key of Object.keys(val.seasons)) {
+              if (val.seasons[key] === id) {
+                delete val.seasons[key]
+              }
+            }
+          })
       }
     )
   }

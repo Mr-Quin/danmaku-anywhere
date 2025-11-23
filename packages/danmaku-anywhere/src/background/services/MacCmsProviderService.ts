@@ -1,13 +1,11 @@
-import type {
-  CustomSeason,
-  MacCMSProviderOptions,
-} from '@danmaku-anywhere/danmaku-converter'
+import type { CustomSeason } from '@danmaku-anywhere/danmaku-converter'
 import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import {
   fetchDanmuIcuComments,
   searchMacCmsVod,
 } from '@danmaku-anywhere/danmaku-provider/maccms'
 import { Logger } from '@/common/Logger'
+import { providerConfigService } from '@/common/options/providerConfig/service'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { DanmakuService } from './DanmakuService'
 
@@ -55,12 +53,24 @@ export class MacCmsProviderService {
   async fetchDanmakuForUrl(
     title: string,
     url: string,
-    providerOptions: MacCMSProviderOptions
+    providerConfigId: string
   ) {
+    const config = await providerConfigService.get(providerConfigId)
+    if (!config) {
+      throw new Error(
+        `Provider config with ID "${providerConfigId}" not found. Please ensure the provider configuration exists.`
+      )
+    }
+    if (config.type !== 'MacCMS') {
+      throw new Error(
+        `Invalid provider type "${config.type}" for MacCMS service. Expected "MacCMS".`
+      )
+    }
+
     const comments = await fetchDanmuIcuComments(
-      providerOptions.danmuicuBaseUrl,
+      config.options.danmuicuBaseUrl,
       url,
-      providerOptions.stripColor
+      config.options.stripColor
     )
     return this.danmakuService.importCustom({ title, comments })
   }

@@ -1,6 +1,9 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
+import {
+  DanmakuSourceType,
+  LEGACY_MACCMS_ID,
+  PROVIDER_TO_BUILTIN_ID,
+} from '@danmaku-anywhere/danmaku-converter'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
-import { getRandomUUID } from '@/common/utils/utils'
 import {
   builtInBilibiliProvider,
   builtInDanDanPlayProvider,
@@ -9,6 +12,7 @@ import {
 } from './constant'
 import type { ProviderConfig } from './schema'
 
+// used for migrating old danmaku sources to new provider configs
 export function migrateDanmakuSourcesToProviders(
   oldSources: any
 ): ProviderConfig[] {
@@ -18,7 +22,7 @@ export function migrateDanmakuSourcesToProviders(
     try {
       if (oldSources.dandanplay) {
         providers.push({
-          id: 'dandanplay',
+          id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
           type: 'DanDanPlay',
           name: 'DanDanPlay',
           impl: DanmakuSourceType.DanDanPlay,
@@ -39,7 +43,7 @@ export function migrateDanmakuSourcesToProviders(
     try {
       if (oldSources.bilibili) {
         providers.push({
-          id: 'bilibili',
+          id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
           type: 'Bilibili',
           name: 'Bilibili',
           impl: DanmakuSourceType.Bilibili,
@@ -61,7 +65,7 @@ export function migrateDanmakuSourcesToProviders(
     try {
       if (oldSources.tencent) {
         providers.push({
-          id: 'tencent',
+          id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
           type: 'Tencent',
           name: 'Tencent',
           impl: DanmakuSourceType.Tencent,
@@ -89,9 +93,9 @@ export function migrateDanmakuSourcesToProviders(
           danmuicuBaseUrl !== ''
         ) {
           providers.push({
-            id: getRandomUUID(),
+            id: LEGACY_MACCMS_ID,
             type: 'MacCMS',
-            name: 'MacCMS (Migrated)',
+            name: 'MacCMS',
             impl: DanmakuSourceType.MacCMS,
             isBuiltIn: false,
             enabled: oldSources.custom.enabled ?? true,
