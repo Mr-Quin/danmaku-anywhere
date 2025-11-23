@@ -27,6 +27,7 @@ import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import { providerConfigService } from '@/common/options/providerConfig/service'
 import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
+import { SeasonMap } from '@/common/seasonMap/types'
 import { stripExtension } from '@/common/utils/stripExtension'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
@@ -306,15 +307,11 @@ export class ProviderService {
       if (seasonId) {
         this.logger.debug('Using provided season id')
         season = await this.seasonService.getById(seasonId)
-        if (season) {
-          await this.titleMappingService.add({
-            key: mapKey,
-            seasons: {
-              [season.providerConfigId]: season.id,
-            },
-            seasonIds: [season.id],
-          })
-        }
+          if (season) {
+            await this.titleMappingService.add(
+              SeasonMap.fromSeason(mapKey, season)
+            )
+          }
       } else if (mapping && mapping.seasons[automaticProvider.id]) {
         this.logger.debug('Mapping found, using mapped title', mapping)
         season = await this.seasonService.getById(
@@ -358,13 +355,9 @@ export class ProviderService {
       this.logger.debug('Single season found', foundSeasons[0])
       const meta = await getMetaFromSeason(foundSeasons[0])
 
-      await this.titleMappingService.add({
-        key: mapKey,
-        seasons: {
-          [foundSeasons[0].providerConfigId]: meta.seasonId,
-        },
-        seasonIds: [meta.seasonId],
-      })
+        await this.titleMappingService.add(
+          SeasonMap.fromSeason(mapKey, foundSeasons[0])
+        )
 
       return {
         status: 'success',

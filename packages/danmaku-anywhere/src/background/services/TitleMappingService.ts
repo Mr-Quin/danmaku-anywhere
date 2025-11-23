@@ -1,6 +1,6 @@
 import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
-import type { SeasonMap } from '@/common/seasonMap/types'
+import { SeasonMap, type SeasonMapSnapshot } from '@/common/seasonMap/types'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 export class TitleMappingService {
@@ -14,25 +14,17 @@ export class TitleMappingService {
     this.logger = Logger.sub('[TitleMappingService]')
   }
 
-  async add(map: SeasonMap) {
-    const existing = await db.seasonMap.get({ key: map.key })
-    if (existing) {
-      this.logger.debug('Updating title mapping:', map)
-      const newSeasons = { ...existing.seasons, ...map.seasons }
-      const newSeasonIds = Array.from(
-        new Set([...existing.seasonIds, ...map.seasonIds])
-      )
-      await db.seasonMap.put(
-        {
-          ...existing,
-          seasons: newSeasons,
-          seasonIds: newSeasonIds,
-        },
-        existing.key
-      )
+  async add(mapInput: SeasonMap | SeasonMapSnapshot) {
+    const map = SeasonMap.from(mapInput)
+    const existingSnapshot = await db.seasonMap.get({ key: map.key })
+    if (existingSnapshot) {
+      const existing = SeasonMap.fromSnapshot(existingSnapshot)
+      this.logger.debug('Updating title mapping:', map.toSnapshot())
+      const merged = existing.merge(map)
+      await db.seasonMap.put(merged.toSnapshot(), existing.key)
     } else {
-      this.logger.debug('Adding title mapping:', map)
-      await db.seasonMap.add(map)
+      this.logger.debug('Adding title mapping:', map.toSnapshot())
+      await db.seasonMap.add(map.toSnapshot())
     }
   }
 
@@ -42,10 +34,12 @@ export class TitleMappingService {
   }
 
   async get(key: string) {
-    return db.seasonMap.get({ key })
+    const snapshot = await db.seasonMap.get({ key })
+    return snapshot ? SeasonMap.fromSnapshot(snapshot) : undefined
   }
 
   async getAll() {
-    return db.seasonMap.toArray()
+    const snapshots = await db.seasonMap.toArray()
+    return SeasonMap.reviveAll(snapshots)
   }
 }

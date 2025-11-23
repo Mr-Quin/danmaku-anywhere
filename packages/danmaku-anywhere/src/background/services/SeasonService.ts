@@ -1,6 +1,7 @@
 import type { Season, SeasonInsert } from '@danmaku-anywhere/danmaku-converter'
 import type { SeasonQueryFilter } from '@/common/anime/dto'
 import { db } from '@/common/db/db'
+import { SeasonMap } from '@/common/seasonMap/types'
 import type { DbEntity } from '@/common/types/dbEntity'
 
 export class SeasonService {
@@ -96,20 +97,15 @@ export class SeasonService {
           })
           .delete()
         await db.season.delete(id)
-        await db.seasonMap
-          .where('seasonIds')
-          .equals(id)
-          .modify((val) => {
-            // remove from seasonIds
-            val.seasonIds = val.seasonIds.filter((sid) => sid !== id)
-
-            // remove from seasons map
-            for (const key of Object.keys(val.seasons)) {
-              if (val.seasons[key] === id) {
-                delete val.seasons[key]
-              }
-            }
-          })
+          await db.seasonMap
+            .where('seasonIds')
+            .equals(id)
+            .modify((val) => {
+              const updated = SeasonMap.fromSnapshot(val).withoutSeasonId(id)
+              const snapshot = updated.toSnapshot()
+              val.seasonIds = snapshot.seasonIds
+              val.seasons = snapshot.seasons
+            })
       }
     )
   }

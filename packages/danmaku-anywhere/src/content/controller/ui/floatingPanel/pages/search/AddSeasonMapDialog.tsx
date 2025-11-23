@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-
+import { SeasonMap } from '@/common/seasonMap/types'
 import { useAddSeasonMap } from '@/content/controller/ui/floatingPanel/pages/search/useAddSeasonMap'
 
 interface AddSeasonMapDialogProps {
@@ -57,22 +57,16 @@ export const AddSeasonMapDialog = ({
         </Button>
         <Button
           variant="contained"
-          onClick={() =>
-            addSeasonMapMutation.mutate(
-              {
-                key: mapKey,
-                seasons: {
-                  [season.providerConfigId]: season.id,
-                },
-                seasonIds: [season.id],
-              },
-              {
-                onSettled: () => {
-                  onProceed(season)
-                },
-              }
-            )
-          }
+            onClick={() =>
+              addSeasonMapMutation.mutate(
+                SeasonMap.fromSeason(mapKey, season),
+                {
+                  onSettled: () => {
+                    onProceed(season)
+                  },
+                }
+              )
+            }
           loading={addSeasonMapMutation.isPending}
         >
           {t('common.confirm')}

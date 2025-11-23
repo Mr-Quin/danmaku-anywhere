@@ -37,7 +37,7 @@ import type {
   MacCMSFetchData,
 } from '@/common/danmaku/dto'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
-import type { SeasonMap } from '@/common/seasonMap/types'
+import type { SeasonMapSnapshot } from '@/common/seasonMap/types'
 import type { RPCDef } from '../../rpc/types'
 
 type IconSetDto =
@@ -77,8 +77,8 @@ export type BackgroundMethods = {
   episodeFilterCustomLite: RPCDef<CustomEpisodeQueryFilter, CustomEpisodeLite[]>
   episodeDeleteCustom: RPCDef<CustomEpisodeQueryFilter, void>
   episodeImport: RPCDef<DanmakuImportData[], DanmakuImportResult>
-  seasonMapAdd: RPCDef<SeasonMap, void>
-  seasonMapGetAll: RPCDef<void, SeasonMap[]>
+    seasonMapAdd: RPCDef<SeasonMapSnapshot, void>
+    seasonMapGetAll: RPCDef<void, SeasonMapSnapshot[]>
   danmakuPurgeCache: RPCDef<number, number>
   bilibiliSetCookies: RPCDef<void, void>
   bilibiliGetLoginStatus: RPCDef<void, BilibiliUserInfo>

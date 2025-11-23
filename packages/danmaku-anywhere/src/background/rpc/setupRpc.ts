@@ -116,7 +116,8 @@ export const setupRpc = (
       return titleMappingService.add(data)
     },
     seasonMapGetAll: async () => {
-      return titleMappingService.getAll()
+      const seasonMaps = await titleMappingService.getAll()
+      return seasonMaps.map((map) => map.toSnapshot())
     },
     episodeFetch: async (data, sender) => {
       const result = await providerService.getDanmaku(data)

@@ -18,8 +18,8 @@ import { isNotCustom } from '@/common/danmaku/utils'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
-import { doesSeasonMapExist } from '@/common/seasonMap/doesSeasonMapExist'
 import { useAllSeasonMap } from '@/common/seasonMap/queries/useAllSeasonMap'
+import { SeasonMap } from '@/common/seasonMap/types'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
@@ -116,12 +116,12 @@ export const SearchPage = () => {
     if (
       isNotCustom(season) &&
       mediaInfo &&
-      !doesSeasonMapExist(
-        seasonMaps,
-        mediaInfo.getKey(),
-        season.providerConfigId,
-        season.id
-      )
+        !SeasonMap.hasMapping(
+          seasonMaps,
+          mediaInfo.getKey(),
+          season.providerConfigId,
+          season.id
+        )
     ) {
       // this is a ddp season, ask user if they want to map it
       setLocalSelectedSeason(season)
