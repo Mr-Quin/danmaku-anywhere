@@ -1,7 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { seasonMapQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { SeasonMap } from '@/common/seasonMap/types'
+import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 
 export const useAllSeasonMap = () => {
   return useSuspenseQuery({

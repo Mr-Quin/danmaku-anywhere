@@ -19,7 +19,7 @@ import { useExtensionOptions } from '@/common/options/extensionOptions/useExtens
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { useAllSeasonMap } from '@/common/seasonMap/queries/useAllSeasonMap'
-import { SeasonMap } from '@/common/seasonMap/types'
+import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
@@ -116,12 +116,12 @@ export const SearchPage = () => {
     if (
       isNotCustom(season) &&
       mediaInfo &&
-        !SeasonMap.hasMapping(
-          seasonMaps,
-          mediaInfo.getKey(),
-          season.providerConfigId,
-          season.id
-        )
+      !SeasonMap.hasMapping(
+        seasonMaps,
+        mediaInfo.getKey(),
+        season.providerConfigId,
+        season.id
+      )
     ) {
       // this is a ddp season, ask user if they want to map it
       setLocalSelectedSeason(season)

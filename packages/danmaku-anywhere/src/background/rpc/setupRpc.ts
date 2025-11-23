@@ -29,6 +29,7 @@ import type {
   PlayerRelayEvents,
 } from '@/common/rpcClient/background/types'
 import { relayFrameClient } from '@/common/rpcClient/controller/client'
+import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { getOrFetchCachedImage } from '@/images/cache'
 import type { DanmakuService } from '../services/DanmakuService'
 import type { IconService } from '../services/IconService'
@@ -113,7 +114,7 @@ export const setupRpc = (
       return providerService.refreshSeason(data)
     },
     seasonMapAdd: async (data) => {
-      return titleMappingService.add(data)
+      return titleMappingService.add(SeasonMap.from(data))
     },
     seasonMapGetAll: async () => {
       const seasonMaps = await titleMappingService.getAll()

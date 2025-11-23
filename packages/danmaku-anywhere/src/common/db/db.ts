@@ -10,7 +10,7 @@ import {
   type SeasonV1,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Dexie } from 'dexie'
-import type { SeasonMapSnapshot } from '@/common/seasonMap/types'
+import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
 
 type WithoutId<T> = Omit<T, 'id'>
 

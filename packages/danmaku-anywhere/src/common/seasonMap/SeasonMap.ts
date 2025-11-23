@@ -1,6 +1,3 @@
-/**
- * Plain JSON representation used for persistence and RPC calls.
- */
 export type SeasonMapSnapshot = {
   key: string
   seasons: Record<string, number>
@@ -12,9 +9,6 @@ type SeasonLike = {
   id: number
 }
 
-/**
- * Rich helper used across background/content scripts for season mappings.
- */
 export class SeasonMap {
   readonly key: string
   private readonly seasonsByConfig: Map<string, number>
@@ -30,23 +24,14 @@ export class SeasonMap {
     this.seasonIdSet = seasonIdSet
   }
 
-  /**
-   * Build an empty mapping for a key.
-   */
   static empty(key: string) {
     return new SeasonMap(key, new Map(), new Set())
   }
 
-  /**
-   * Create a mapping that links the provided season immediately.
-   */
   static fromSeason(key: string, season: SeasonLike) {
     return SeasonMap.empty(key).withMapping(season.providerConfigId, season.id)
   }
 
-  /**
-   * Hydrate a SeasonMap from its persisted snapshot.
-   */
   static fromSnapshot(snapshot: SeasonMapSnapshot) {
     const map = new Map(Object.entries(snapshot.seasons))
     const ids = new Set(
@@ -57,23 +42,14 @@ export class SeasonMap {
     return new SeasonMap(snapshot.key, map, ids)
   }
 
-  /**
-   * Normalize any acceptable representation into a SeasonMap instance.
-   */
   static from(input: SeasonMap | SeasonMapSnapshot) {
     return input instanceof SeasonMap ? input : SeasonMap.fromSnapshot(input)
   }
 
-  /**
-   * Convenience helper for eagerly reviving a collection returned from RPC.
-   */
   static reviveAll(list: Array<SeasonMap | SeasonMapSnapshot>) {
     return list.map((entry) => SeasonMap.from(entry))
   }
 
-  /**
-   * Locate a mapping for the provided key within a collection.
-   */
   static findByKey(
     seasonMaps: Array<SeasonMap | SeasonMapSnapshot>,
     key: string
@@ -82,9 +58,6 @@ export class SeasonMap {
     return hit ? SeasonMap.from(hit) : undefined
   }
 
-  /**
-   * Determine whether a mapping exists for a specific provider+season pair.
-   */
   static hasMapping(
     seasonMaps: Array<SeasonMap | SeasonMapSnapshot>,
     key: string,
@@ -98,9 +71,6 @@ export class SeasonMap {
     return map.matches(providerConfigId, seasonId)
   }
 
-  /**
-   * Returns a plain JSON representation suitable for Dexie / RPC.
-   */
   toSnapshot(): SeasonMapSnapshot {
     return {
       key: this.key,
@@ -109,16 +79,10 @@ export class SeasonMap {
     }
   }
 
-  /**
-   * List of mappings keyed by provider config id.
-   */
   get seasons() {
     return Object.fromEntries(this.seasonsByConfig.entries())
   }
 
-  /**
-   * Unique list of season ids tied to this key.
-   */
   get seasonIds() {
     return Array.from(this.seasonIdSet.values())
   }
@@ -141,7 +105,7 @@ export class SeasonMap {
 
   merge(other: SeasonMap | SeasonMapSnapshot) {
     const toMerge = SeasonMap.from(other)
-    let result = this
+    let result: SeasonMap = this
     for (const [providerConfigId, seasonId] of toMerge.seasonsByConfig) {
       result = result.withMapping(providerConfigId, seasonId)
     }

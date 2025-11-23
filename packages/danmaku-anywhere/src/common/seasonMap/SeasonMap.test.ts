@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { SeasonMap } from './types'
+import { SeasonMap } from './SeasonMap'
 
 describe('SeasonMap', () => {
   it('serializes mappings created from a season', () => {

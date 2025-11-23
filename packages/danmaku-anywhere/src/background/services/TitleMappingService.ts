@@ -1,6 +1,6 @@
 import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
-import { SeasonMap, type SeasonMapSnapshot } from '@/common/seasonMap/types'
+import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 export class TitleMappingService {
@@ -14,8 +14,7 @@ export class TitleMappingService {
     this.logger = Logger.sub('[TitleMappingService]')
   }
 
-  async add(mapInput: SeasonMap | SeasonMapSnapshot) {
-    const map = SeasonMap.from(mapInput)
+  async add(map: SeasonMap) {
     const existingSnapshot = await db.seasonMap.get({ key: map.key })
     if (existingSnapshot) {
       const existing = SeasonMap.fromSnapshot(existingSnapshot)
