@@ -181,7 +181,7 @@ export class DanmakuDensityChart {
     return { width, height: this.options.height }
   }
 
-  private redraw() {
+  redraw() {
     if (!this.svg) {
       return
     }
