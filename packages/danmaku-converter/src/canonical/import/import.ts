@@ -60,6 +60,22 @@ export type BackupParseResult = {
   skipped: [number, unknown[]][]
 }
 
+const zEpisodeInsertV4WithSeasonV1Preprocessed = z.preprocess((data) => {
+  // preprocessing to set providerConfigId based on provider
+  const d = data as any
+  const provider = d?.season?.provider
+  if (provider && provider in PROVIDER_TO_BUILTIN_ID) {
+    return {
+      ...d,
+      season: {
+        ...d.season,
+        providerConfigId: PROVIDER_TO_BUILTIN_ID[provider as DanmakuSourceType],
+      },
+    }
+  }
+  return data
+}, zEpisodeInsertV4WithSeasonV1)
+
 const parseBackup = (data: unknown): BackupParseData | BackupParseError => {
   const errors = []
   // first see if data is v3
@@ -83,16 +99,9 @@ const parseBackup = (data: unknown): BackupParseData | BackupParseError => {
     errors.push(parse.error)
   }
 
-  // todo: dirty hack to fix the season provider config id
-  const provider = (data as any).season?.provider
-  if (provider && provider in PROVIDER_TO_BUILTIN_ID) {
-    ;(data as any).season.providerConfigId =
-      PROVIDER_TO_BUILTIN_ID[provider as DanmakuSourceType]
-  }
-
   // try regular v4
   {
-    const parse = zEpisodeInsertV4WithSeasonV1.safeParse(data)
+    const parse = zEpisodeInsertV4WithSeasonV1Preprocessed.safeParse(data)
     if (parse.success) {
       return {
         type: 'Regular',

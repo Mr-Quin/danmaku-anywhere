@@ -21,9 +21,9 @@ import type {
 } from '@/common/options/providerConfig/schema'
 import { tryCatch } from '@/common/utils/utils'
 
-async function createQueryContext(
+function createQueryContext(
   providerConfig: DanDanPlayProviderConfig
-): Promise<DanDanPlayQueryContext> {
+): DanDanPlayQueryContext {
   if (providerConfig.type === 'DanDanPlay') {
     return {
       isCustom: false,
@@ -67,7 +67,7 @@ export class DanDanPlayService {
     providerConfig: DanDanPlayProviderConfig
   ): Promise<DanDanPlayOf<Season>[]> {
     this.logger.debug('Searching DanDanPlay', searchParams, providerConfig)
-    const context = await createQueryContext(providerConfig)
+    const context = createQueryContext(providerConfig)
 
     const result = await danDanPlay.searchSearchAnime(
       searchParams.anime,
@@ -97,7 +97,7 @@ export class DanDanPlayService {
   }
 
   async getSeason(bangumiId: string, providerConfig: DanDanPlayProviderConfig) {
-    const context = await createQueryContext(providerConfig)
+    const context = createQueryContext(providerConfig)
     const bangumiDetails = await danDanPlay.getBangumiAnime(bangumiId, context)
 
     const seasonData: DanDanPlayOf<SeasonInsert> = {
@@ -203,7 +203,7 @@ export class DanDanPlayService {
     comments: CommentEntity[]
     params: danDanPlay.GetCommentQuery
   }> {
-    const context = await createQueryContext(providerConfig)
+    const context = createQueryContext(providerConfig)
 
     const chConvert = params.chConvert ?? providerConfig.options.chConvert
 
