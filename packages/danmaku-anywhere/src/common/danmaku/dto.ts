@@ -2,6 +2,7 @@ import type {
   EpisodeMeta,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
+import type { GetCommentQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
 import type {
   DanmakuSourceType,
   RemoteDanmakuSourceType,
@@ -28,11 +29,7 @@ export type CustomEpisodeQueryFilter = {
 
 interface DanmakuFetchOptions {
   forceUpdate?: boolean // force update danmaku from the provider even if it's already in db
-  dandanplay?: {
-    chConvert?: boolean
-    withRelated?: boolean
-    from?: number
-  }
+  dandanplay?: GetCommentQuery
 }
 
 export type DanmakuFetchRequest =
@@ -40,7 +37,7 @@ export type DanmakuFetchRequest =
       type: 'by-id'
       episodeId: number
       seasonId: number
-      provider: DanmakuSourceType
+      provider: RemoteDanmakuSourceType
       options?: DanmakuFetchOptions
     }
   | {

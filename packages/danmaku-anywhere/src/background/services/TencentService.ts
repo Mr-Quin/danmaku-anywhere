@@ -15,13 +15,13 @@ import type {
 import * as tencent from '@danmaku-anywhere/danmaku-provider/tencent'
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import type { SeasonService } from '@/background/services/SeasonService'
+import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
-import type { IDanmakuProvider } from './providers/IDanmakuProvider'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
-import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
+import type { IDanmakuProvider } from './providers/IDanmakuProvider'
 export class TencentService implements IDanmakuProvider {
   private logger: typeof Logger
 
@@ -51,8 +51,7 @@ export class TencentService implements IDanmakuProvider {
   }
 
   async search(
-    keyword: string | { keyword: string },
-    _config: ProviderConfig
+    keyword: string | { keyword: string }
   ): Promise<TencentOf<Season>[]> {
     const kw = typeof keyword === 'string' ? keyword : keyword.keyword
     this.logger.debug('Search tencent', kw)
@@ -79,8 +78,7 @@ export class TencentService implements IDanmakuProvider {
   }
 
   async getEpisodes(
-    seasonId: number,
-    _config: ProviderConfig
+    seasonId: number
   ): Promise<WithSeason<TencentOf<EpisodeMeta>>[]> {
     this.logger.debug('Get episode', seasonId)
     const season = await this.seasonService.mustGetById(seasonId)
@@ -187,7 +185,7 @@ export class TencentService implements IDanmakuProvider {
     if (request.type === 'by-id') {
       const season = await this.seasonService.mustGetById(request.seasonId)
       assertProviderType(season, DanmakuSourceType.Tencent)
-      const episodes = await this.getEpisodes(request.seasonId, config)
+      const episodes = await this.getEpisodes(request.seasonId)
       const episode = episodes.find(
         (e) => e.providerIds.vid === request.episodeId.toString()
       )
@@ -202,7 +200,8 @@ export class TencentService implements IDanmakuProvider {
     }
 
     const { meta } = request
-    const result = await this.saveEpisode(meta as TencentOf<EpisodeMeta>)
+    assertProviderType(meta, DanmakuSourceType.Tencent)
+    const result = await this.saveEpisode(meta)
     return {
       ...result,
       season: meta.season,
@@ -238,7 +237,7 @@ export class TencentService implements IDanmakuProvider {
     if (!season) throw new Error('Season not found')
 
     // get the name of the episode
-    const episodes = await this.getEpisodes(season.id, {} as ProviderConfig)
+    const episodes = await this.getEpisodes(season.id)
     const matchingEpisode = episodes.find(
       (episode) => episode.providerIds.vid === vid
     )

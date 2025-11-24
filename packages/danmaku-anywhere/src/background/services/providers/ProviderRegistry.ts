@@ -1,5 +1,5 @@
-import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { IDanmakuProvider } from '@/background/services/providers/IDanmakuProvider'
+import type { DanmakuSourceType } from '@/common/danmaku/enums'
 
 export class ProviderRegistry {
   private providers = new Map<DanmakuSourceType, IDanmakuProvider>()
@@ -10,5 +10,13 @@ export class ProviderRegistry {
 
   get(type: DanmakuSourceType): IDanmakuProvider | undefined {
     return this.providers.get(type)
+  }
+
+  mustGet(type: DanmakuSourceType): IDanmakuProvider {
+    const provider = this.get(type)
+    if (!provider) {
+      throw new Error(`Provider not found for type: ${type}`)
+    }
+    return provider
   }
 }

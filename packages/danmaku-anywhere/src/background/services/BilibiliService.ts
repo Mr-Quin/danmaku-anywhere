@@ -16,6 +16,7 @@ import type {
 import * as bilibili from '@danmaku-anywhere/danmaku-provider/bilibili'
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import type { SeasonService } from '@/background/services/SeasonService'
+import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
@@ -23,9 +24,8 @@ import type {
   BuiltInBilibiliProvider,
   ProviderConfig,
 } from '@/common/options/providerConfig/schema'
-import type { IDanmakuProvider } from './providers/IDanmakuProvider'
-import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
+import type { IDanmakuProvider } from './providers/IDanmakuProvider'
 
 export class BilibiliService implements IDanmakuProvider {
   private logger: typeof Logger
@@ -192,6 +192,7 @@ export class BilibiliService implements IDanmakuProvider {
     if (request.type === 'by-id') {
       const season = await this.seasonService.mustGetById(request.seasonId)
       assertProviderType(season, DanmakuSourceType.Bilibili)
+
       const episodes = await this.getEpisodes(request.seasonId, config)
       const episode = episodes.find(
         (e) => e.providerIds.cid === request.episodeId
@@ -200,6 +201,7 @@ export class BilibiliService implements IDanmakuProvider {
         throw new Error('Episode not found')
       }
       const result = await this.saveEpisode(episode, config)
+
       return {
         ...result,
         season,
@@ -207,10 +209,9 @@ export class BilibiliService implements IDanmakuProvider {
     }
 
     const { meta } = request
-    const result = await this.saveEpisode(
-      meta as BilibiliOf<EpisodeMeta>,
-      config
-    )
+    assertProviderType(meta, DanmakuSourceType.Bilibili)
+    const result = await this.saveEpisode(meta, config)
+
     return {
       ...result,
       season: meta.season,

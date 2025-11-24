@@ -1,23 +1,23 @@
-import type { CustomSeason } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  CustomSeason,
+  Episode,
+  EpisodeMeta,
+  WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
 import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import {
   fetchDanmuIcuComments,
   searchMacCmsVod,
 } from '@danmaku-anywhere/danmaku-provider/maccms'
+import type { SeasonSearchParams } from '@/common/anime/dto'
+import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { Logger } from '@/common/Logger'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { providerConfigService } from '@/common/options/providerConfig/service'
+import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { DanmakuService } from './DanmakuService'
 import type { IDanmakuProvider } from './providers/IDanmakuProvider'
-import type { SeasonSearchParams } from '@/common/anime/dto'
-import type { ProviderConfig } from '@/common/options/providerConfig/schema'
-import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
-import type {
-  Episode,
-  EpisodeMeta,
-  WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
-import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 
 export class MacCmsProviderService implements IDanmakuProvider {
   private logger: typeof Logger

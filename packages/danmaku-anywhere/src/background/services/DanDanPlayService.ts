@@ -11,6 +11,8 @@ import type { DanDanPlayQueryContext } from '@danmaku-anywhere/danmaku-provider/
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import type { SeasonService } from '@/background/services/SeasonService'
+import type { SeasonSearchParams } from '@/common/anime/dto'
+import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
@@ -20,11 +22,9 @@ import type {
   DanDanPlayProviderConfig,
   ProviderConfig,
 } from '@/common/options/providerConfig/schema'
+import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
 import { tryCatch } from '@/common/utils/utils'
 import type { IDanmakuProvider } from './providers/IDanmakuProvider'
-import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
-import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
-import { SeasonSearchParams } from '@/common/anime/dto'
 
 function createQueryContext(
   providerConfig: DanDanPlayProviderConfig
@@ -238,9 +238,12 @@ export class DanDanPlayService implements IDanmakuProvider {
       seasonId = request.seasonId
       params = request.options?.dandanplay ?? {}
     } else {
-      currentEpisodeId = request.meta.providerIds.episodeId
-      seasonId = request.meta.seasonId
-      params = request.options?.dandanplay ?? request.meta.params ?? {}
+      const meta = request.meta
+      assertProviderType(meta, DanmakuSourceType.DanDanPlay)
+
+      currentEpisodeId = meta.providerIds.episodeId
+      seasonId = meta.seasonId
+      params = request.options?.dandanplay ?? {}
     }
 
     const season = await this.seasonService.mustGetById(seasonId)
@@ -255,7 +258,7 @@ export class DanDanPlayService implements IDanmakuProvider {
 
     if (!nextEpisode) {
       this.logger.debug('Next episode not found', nextEpisodeId)
-      return null
+      return
     }
 
     await this.getEpisodeDanmaku(nextEpisode, season, params, providerConfig)
