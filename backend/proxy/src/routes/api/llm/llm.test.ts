@@ -239,30 +239,28 @@ describe('LLM API', () => {
       expectedStatus: 400,
       expectsSuccessProperty: true,
     },
-  ])(
-    'rejects $name',
-    async ({ body, expectedStatus, expectsSuccessProperty }) => {
-      const request = new IncomingRequest(
-        createTestUrl('/llm/v1/extractTitle'),
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body,
-        }
-      )
+  ])('rejects $name', async ({
+    body,
+    expectedStatus,
+    expectsSuccessProperty,
+  }) => {
+    const request = new IncomingRequest(createTestUrl('/llm/v1/extractTitle'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body,
+    })
 
-      const response = await makeUnitTestRequest(request)
+    const response = await makeUnitTestRequest(request)
 
-      expect(response.status).toBe(expectedStatus)
+    expect(response.status).toBe(expectedStatus)
 
-      if (expectsSuccessProperty) {
-        const data = await response.json()
-        expect(data).toHaveProperty('success', false)
-      }
-
-      expect(mockSendMessage).not.toHaveBeenCalled()
+    if (expectsSuccessProperty) {
+      const data = await response.json()
+      expect(data).toHaveProperty('success', false)
     }
-  )
+
+    expect(mockSendMessage).not.toHaveBeenCalled()
+  })
 })

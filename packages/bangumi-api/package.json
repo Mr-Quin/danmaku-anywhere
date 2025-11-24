@@ -27,6 +27,6 @@
     "openapi-fetch": "^0.14.0"
   },
   "devDependencies": {
-    "openapi-typescript": "^7.8.0"
+    "openapi-typescript": "^7.10.1"
   }
 }

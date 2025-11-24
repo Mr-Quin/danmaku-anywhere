@@ -56,13 +56,13 @@
   },
   "dependencies": {
     "@danmaku-anywhere/danmaku-converter": "workspace:*",
-    "protobufjs": "^7.5.3",
-    "zod": "^3.25.67"
+    "protobufjs": "^7.5.4",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.73.0",
+    "@hey-api/openapi-ts": "^0.88.0",
     "copyfiles": "^2.4.1",
     "protobufjs-cli": "^1.1.3",
-    "vitest": "^3.2.4"
+    "vitest": "^4.0.13"
   }
 }

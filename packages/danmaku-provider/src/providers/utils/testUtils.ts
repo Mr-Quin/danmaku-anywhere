@@ -1,7 +1,7 @@
 import { vi } from 'vitest'
 
 export const mockFetchResponse = (data?: any, status?: number) => {
-  const mockFetch = vi.spyOn(global, 'fetch').mockResolvedValue({
+  const mockFetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
     json: vi.fn().mockResolvedValue(data),
     text: vi.fn().mockResolvedValue(data),
     arrayBuffer: vi.fn().mockResolvedValue(data),
@@ -13,7 +13,7 @@ export const mockFetchResponse = (data?: any, status?: number) => {
 }
 
 export const createFetchOverride = () => {
-  const originalFetch = global.fetch
+  const originalFetch = globalThis.fetch
 
   return (headers: Record<string, string>) => {
     vi.stubGlobal(

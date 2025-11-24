@@ -57,7 +57,7 @@ export const MountPage = () => {
   }, [tabDanmakuState.data])
 
   const { mutate: unmount } = useMutation({
-    mutationFn: controllerRpcClient.danmakuUnmount,
+    mutationFn: () => controllerRpcClient.danmakuUnmount(),
     mutationKey: tabQueryKeys.getState(),
     onSuccess: () => {
       setIsMounted(false)

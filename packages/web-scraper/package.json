@@ -15,13 +15,13 @@
     "type-check": "tsgo --noEmit"
   },
   "dependencies": {
-    "@danmaku-anywhere/danmaku-provider": "workspace:*",
     "@danmaku-anywhere/danmaku-converter": "workspace:*",
-    "zod": "^3.25.67",
-    "core-js": "^3.43.0"
+    "@danmaku-anywhere/danmaku-provider": "workspace:*",
+    "core-js": "^3.47.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
-    "vitest": "^3.2.4",
-    "@types/chrome": "^0.0.325"
+    "@types/chrome": "^0.0.325",
+    "vitest": "^4.0.13"
   }
 }
