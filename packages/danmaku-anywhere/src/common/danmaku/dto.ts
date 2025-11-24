@@ -30,13 +30,21 @@ interface DanmakuFetchOptions {
   forceUpdate?: boolean // force update danmaku from the provider even if it's already in db
 }
 
-interface BaseDanmakuFetchDto {
-  options?: DanmakuFetchOptions
-}
+export type DanmakuFetchRequest =
+  | {
+      type: 'by-id'
+      episodeId: number
+      seasonId: number
+      provider: DanmakuSourceType
+      options?: DanmakuFetchOptions
+    }
+  | {
+      type: 'by-meta'
+      meta: WithSeason<EpisodeMeta>
+      options?: DanmakuFetchOptions
+    }
 
-export type DanmakuFetchDto = {
-  meta: WithSeason<EpisodeMeta>
-} & BaseDanmakuFetchDto
+export type DanmakuFetchDto = DanmakuFetchRequest
 
 export type DanmakuImportData = {
   title: string

@@ -19,9 +19,15 @@ import type { SeasonService } from '@/background/services/SeasonService'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
-import type { BuiltInBilibiliProvider } from '@/common/options/providerConfig/schema'
+import type {
+  BuiltInBilibiliProvider,
+  ProviderConfig,
+} from '@/common/options/providerConfig/schema'
+import type { IDanmakuProvider } from './providers/IDanmakuProvider'
+import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
+import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
 
-export class BilibiliService {
+export class BilibiliService implements IDanmakuProvider {
   private logger: typeof Logger
 
   constructor(
@@ -126,9 +132,9 @@ export class BilibiliService {
     }
   }
 
-  async getEpisodeByUrl(
+  async parseUrl(
     url: string
-  ): Promise<WithSeason<BilibiliOf<EpisodeMeta>>> {
+  ): Promise<WithSeason<BilibiliOf<EpisodeMeta>> | null> {
     this.logger.debug('Get episode by url', url)
 
     const { pathname } = new URL(url)
@@ -158,7 +164,8 @@ export class BilibiliService {
   }
 
   async getEpisodes(
-    dbSeasonId: number
+    dbSeasonId: number,
+    _config: ProviderConfig
   ): Promise<WithSeason<BilibiliOf<EpisodeMeta>>[]> {
     this.logger.debug('Get bangumi info', dbSeasonId)
     const season = await this.seasonService.mustGetById(dbSeasonId)
@@ -176,11 +183,34 @@ export class BilibiliService {
     })
   }
 
+  async getDanmaku(
+    request: DanmakuFetchRequest,
+    config: ProviderConfig
+  ): Promise<BilibiliOf<Episode>> {
+    assertProviderConfigImpl(config, DanmakuSourceType.Bilibili)
+
+    if (request.type === 'by-id') {
+      const season = await this.seasonService.mustGetById(request.seasonId)
+      assertProviderType(season, DanmakuSourceType.Bilibili)
+      const episodes = await this.getEpisodes(request.seasonId, config)
+      const episode = episodes.find(
+        (e) => e.providerIds.cid === request.episodeId
+      )
+      if (!episode) {
+        throw new Error('Episode not found')
+      }
+      return this.saveEpisode(episode, config)
+    }
+
+    const { meta } = request
+    return this.saveEpisode(meta as BilibiliOf<EpisodeMeta>, config)
+  }
+
   async saveEpisode(
     meta: BilibiliOf<EpisodeMeta>,
     config: BuiltInBilibiliProvider
   ): Promise<BilibiliOf<Episode>> {
-    const comments = await this.getDanmaku(meta, config)
+    const comments = await this.fetchDanmaku(meta, config)
     return this.danmakuService.upsert({
       ...meta,
       comments,
@@ -188,7 +218,7 @@ export class BilibiliService {
     })
   }
 
-  async getDanmaku(
+  async fetchDanmaku(
     meta: BilibiliOf<EpisodeMeta>,
     config: BuiltInBilibiliProvider
   ) {

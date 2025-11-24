@@ -8,8 +8,18 @@ import { Logger } from '@/common/Logger'
 import { providerConfigService } from '@/common/options/providerConfig/service'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { DanmakuService } from './DanmakuService'
+import type { IDanmakuProvider } from './providers/IDanmakuProvider'
+import type { SeasonSearchParams } from '@/common/anime/dto'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
+import type {
+  Episode,
+  EpisodeMeta,
+  WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
+import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 
-export class MacCmsProviderService {
+export class MacCmsProviderService implements IDanmakuProvider {
   private logger: typeof Logger
 
   constructor(private danmakuService: DanmakuService) {
@@ -20,7 +30,27 @@ export class MacCmsProviderService {
     this.logger = Logger.sub('[MacCmsProviderService]')
   }
 
-  async search(baseUrl: string, keyword: string): Promise<CustomSeason[]> {
+  async search(
+    params: SeasonSearchParams | string,
+    config?: ProviderConfig | string
+  ): Promise<CustomSeason[]> {
+    // Legacy support for direct call
+    if (typeof params === 'string' && typeof config === 'string') {
+      return this.searchInternal(config, params)
+    }
+
+    if (typeof params === 'object' && config && typeof config === 'object') {
+      assertProviderConfigImpl(config, DanmakuSourceType.MacCMS)
+      return this.searchInternal(config.options.danmakuBaseUrl, params.keyword)
+    }
+
+    throw new Error('Invalid arguments for MacCMS search')
+  }
+
+  private async searchInternal(
+    baseUrl: string,
+    keyword: string
+  ): Promise<CustomSeason[]> {
     this.logger.debug('Searching for', {
       baseUrl,
       keyword,
@@ -73,5 +103,19 @@ export class MacCmsProviderService {
       config.options.stripColor
     )
     return this.danmakuService.importCustom({ title, comments })
+  }
+
+  async getEpisodes(
+    _seasonId: number,
+    _config: ProviderConfig
+  ): Promise<WithSeason<EpisodeMeta>[]> {
+    throw new Error('Method not implemented.')
+  }
+
+  async getDanmaku(
+    _request: DanmakuFetchRequest,
+    _config: ProviderConfig
+  ): Promise<WithSeason<Episode>> {
+    throw new Error('Method not implemented.')
   }
 }
