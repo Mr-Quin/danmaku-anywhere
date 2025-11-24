@@ -56,8 +56,8 @@
   },
   "dependencies": {
     "@danmaku-anywhere/danmaku-converter": "workspace:*",
-    "protobufjs": "^7.5.3",
-    "zod": "^3.25.67"
+    "protobufjs": "^7.5.4",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "^0.73.0",
