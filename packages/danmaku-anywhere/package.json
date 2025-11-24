@@ -40,7 +40,7 @@
     "@fontsource/roboto": "^5.2.9",
     "@hookform/resolvers": "^5.2.2",
     "@mui/icons-material": "^7.3.5",
-    "@mui/lab": "7.0.0-beta.16",
+    "@mui/lab": "7.0.1-beta.19",
     "@mui/material": "^7.3.5",
     "@mui/system": "^7.3.5",
     "@mui/x-data-grid": "^8.19.0",
@@ -54,7 +54,7 @@
     "d3": "^7.9.0",
     "dexie": "^4.2.1",
     "i18next": "^25.6.3",
-    "immer": "^10.2.0",
+    "immer": "^11.0.0",
     "jszip": "^3.10.1",
     "opencc-js": "^1.0.5",
     "pinyin-pro": "^3.27.0",
@@ -63,7 +63,7 @@
     "react-error-boundary": "^6.0.0",
     "react-hook-form": "^7.66.1",
     "react-hotkeys-hook": "^5.2.1",
-    "react-i18next": "^15.7.4",
+    "react-i18next": "^16.3.5",
     "react-markdown": "^10.1.0",
     "react-router": "^7.9.6",
     "ts-pattern": "^5.9.0",
@@ -81,6 +81,6 @@
     "@vitejs/plugin-react": "^5.1.1",
     "vite": "^7.2.4",
     "vitest": "^3.2.4",
-    "web-ext": "^8.10.0"
+    "web-ext": "^9.2.0"
   }
 }
