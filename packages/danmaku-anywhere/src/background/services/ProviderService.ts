@@ -331,22 +331,28 @@ export class ProviderService {
 
   async parseUrl(url: string) {
     const { hostname } = new URL(url)
+    let result: WithSeason<EpisodeMeta> | null = null
 
     if (hostname === 'www.bilibili.com') {
       const service = this.providerRegistry.mustGet(DanmakuSourceType.Bilibili)
       if (!service?.parseUrl) {
         throw new Error('Bilibili service does not support parsing URL')
       }
-      return service.parseUrl(url)
-    }
-    if (hostname === 'v.qq.com') {
+      result = await service.parseUrl(url)
+    } else if (hostname === 'v.qq.com') {
       const service = this.providerRegistry.mustGet(DanmakuSourceType.Tencent)
       if (!service?.parseUrl) {
         throw new Error('Tencent service does not support parsing URL')
       }
-      return service.parseUrl(url)
+      result = await service.parseUrl(url)
+    } else {
+      throw new Error('Unknown host')
     }
 
-    throw new Error('Unknown host')
+    if (!result) {
+      throw new Error('Episode not found')
+    }
+
+    return result
   }
 }

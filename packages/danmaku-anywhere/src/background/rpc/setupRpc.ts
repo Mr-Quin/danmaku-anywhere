@@ -51,11 +51,7 @@ export const setupRpc = (
       return providerService.searchSeason(input)
     },
     mediaParseUrl: async (input) => {
-      const result = await providerService.parseUrl(input.url)
-      if (!result) {
-        throw new RpcException('Failed to parse URL')
-      }
-      return result
+      return providerService.parseUrl(input.url)
     },
     episodeFetchBySeason: async (input: EpisodeFetchBySeasonParams) => {
       return providerService.fetchEpisodesBySeason(input.seasonId)
