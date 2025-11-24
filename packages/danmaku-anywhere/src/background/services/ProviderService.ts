@@ -166,26 +166,15 @@ export class ProviderService {
     const { meta, options = {} } = data
     const provider = meta.provider
 
-    const existingDanmakuCandidates = await this.danmakuService.filter({
+    const [existingDanmaku] = await this.danmakuService.filter({
       provider,
       indexedId: meta.indexedId,
+      seasonId: meta.seasonId,
     })
-
-    const existingDanmaku = existingDanmakuCandidates.find(
-      (item) => item.seasonId === meta.seasonId
-    )
 
     if (existingDanmaku && !options.forceUpdate) {
       this.logger.debug('Danmaku found in db', existingDanmaku)
-      assertProviderType(existingDanmaku, provider)
-      const season = await this.seasonService.mustGetById(
-        existingDanmaku.seasonId
-      )
-      assertProviderType(season, provider)
-      return {
-        ...existingDanmaku,
-        season,
-      } as WithSeason<Episode>
+      return existingDanmaku
     }
 
     if (options.forceUpdate) {
