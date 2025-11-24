@@ -331,14 +331,18 @@ export class ProviderService {
     const { hostname } = new URL(url)
 
     if (hostname === 'www.bilibili.com') {
-      return this.providerRegistry
-        .get(DanmakuSourceType.Bilibili)
-        ?.parseUrl?.(url)
+      const service = this.providerRegistry.get(DanmakuSourceType.Bilibili)
+      if (!service?.parseUrl) {
+        throw new Error('Bilibili service does not support parsing URL')
+      }
+      return service.parseUrl(url)
     }
     if (hostname === 'v.qq.com') {
-      return this.providerRegistry
-        .get(DanmakuSourceType.Tencent)
-        ?.parseUrl?.(url)
+      const service = this.providerRegistry.get(DanmakuSourceType.Tencent)
+      if (!service?.parseUrl) {
+        throw new Error('Tencent service does not support parsing URL')
+      }
+      return service.parseUrl(url)
     }
 
     throw new Error('Unknown host')

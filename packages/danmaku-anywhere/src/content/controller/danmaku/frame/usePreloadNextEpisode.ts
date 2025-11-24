@@ -21,6 +21,7 @@ export const usePreloadNextEpisode = () => {
 
         if (isProvider(episode, DanmakuSourceType.DanDanPlay)) {
           return chromeRpcClient.episodePreloadNext({
+            type: 'by-meta',
             meta: episode,
           })
         }

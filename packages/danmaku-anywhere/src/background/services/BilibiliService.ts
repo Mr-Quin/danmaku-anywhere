@@ -186,7 +186,7 @@ export class BilibiliService implements IDanmakuProvider {
   async getDanmaku(
     request: DanmakuFetchRequest,
     config: ProviderConfig
-  ): Promise<BilibiliOf<Episode>> {
+  ): Promise<WithSeason<BilibiliOf<Episode>>> {
     assertProviderConfigImpl(config, DanmakuSourceType.Bilibili)
 
     if (request.type === 'by-id') {
@@ -199,11 +199,22 @@ export class BilibiliService implements IDanmakuProvider {
       if (!episode) {
         throw new Error('Episode not found')
       }
-      return this.saveEpisode(episode, config)
+      const result = await this.saveEpisode(episode, config)
+      return {
+        ...result,
+        season,
+      }
     }
 
     const { meta } = request
-    return this.saveEpisode(meta as BilibiliOf<EpisodeMeta>, config)
+    const result = await this.saveEpisode(
+      meta as BilibiliOf<EpisodeMeta>,
+      config
+    )
+    return {
+      ...result,
+      season: meta.season,
+    }
   }
 
   async saveEpisode(

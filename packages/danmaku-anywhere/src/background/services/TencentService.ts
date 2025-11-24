@@ -1,4 +1,5 @@
 import {
+  type Episode,
   type EpisodeMeta,
   PROVIDER_TO_BUILTIN_ID,
   type Season,
@@ -180,7 +181,7 @@ export class TencentService implements IDanmakuProvider {
   async getDanmaku(
     request: DanmakuFetchRequest,
     config: ProviderConfig
-  ): Promise<TencentOf<Episode>> {
+  ): Promise<WithSeason<TencentOf<Episode>>> {
     assertProviderConfigImpl(config, DanmakuSourceType.Tencent)
 
     if (request.type === 'by-id') {
@@ -193,11 +194,19 @@ export class TencentService implements IDanmakuProvider {
       if (!episode) {
         throw new Error('Episode not found')
       }
-      return this.saveEpisode(episode)
+      const result = await this.saveEpisode(episode)
+      return {
+        ...result,
+        season,
+      }
     }
 
     const { meta } = request
-    return this.saveEpisode(meta as TencentOf<EpisodeMeta>)
+    const result = await this.saveEpisode(meta as TencentOf<EpisodeMeta>)
+    return {
+      ...result,
+      season: meta.season,
+    }
   }
 
   async saveEpisode(meta: TencentOf<EpisodeMeta>) {

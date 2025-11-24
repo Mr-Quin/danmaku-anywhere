@@ -66,6 +66,7 @@ const EpisodeListItem = ({
 
   const handleFetchDanmaku = async (meta: WithSeason<EpisodeMeta>) => {
     return await load({
+      type: 'by-meta',
       meta,
       options: {
         forceUpdate: true,

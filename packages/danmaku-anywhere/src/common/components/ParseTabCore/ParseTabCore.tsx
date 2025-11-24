@@ -96,6 +96,7 @@ export const ParseTabCore = ({ onImportSuccess }: ParseTabCoreProps) => {
 
     mutation.mutate(
       {
+        type: 'by-meta',
         meta: query.data,
         options: {
           forceUpdate: true,

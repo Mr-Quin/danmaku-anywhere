@@ -128,7 +128,7 @@ export const useLoadDanmaku = () => {
 
     toast.info(t('danmaku.alert.refreshingDanmaku'))
     loadMutation.mutate(
-      { meta: episode, options: { forceUpdate: true } },
+      { type: 'by-meta', meta: episode, options: { forceUpdate: true } },
       {
         onSuccess: (result) => {
           toast.success(

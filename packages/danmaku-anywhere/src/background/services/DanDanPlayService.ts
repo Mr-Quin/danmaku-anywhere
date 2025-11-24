@@ -166,7 +166,7 @@ export class DanDanPlayService implements IDanmakuProvider {
   async getDanmaku(
     request: DanmakuFetchRequest,
     config: ProviderConfig
-  ): Promise<DanDanPlayOf<Episode>> {
+  ): Promise<WithSeason<DanDanPlayOf<Episode>>> {
     assertProviderConfigImpl(config, DanmakuSourceType.DanDanPlay)
 
     if (request.type === 'by-id') {
@@ -179,24 +179,32 @@ export class DanDanPlayService implements IDanmakuProvider {
       if (!episode) {
         throw new Error('Episode not found')
       }
-      return this.getEpisodeDanmaku(
+      const result = await this.getEpisodeDanmaku(
         episode,
         season,
-        request.options ?? {},
+        request.options?.dandanplay ?? {},
         config
       )
+      return {
+        ...result,
+        season,
+      }
     }
 
     const { meta, options = {} } = request
     const { season, ...rest } = meta
     assertProviderType(season, DanmakuSourceType.DanDanPlay)
 
-    return this.getEpisodeDanmaku(
+    const result = await this.getEpisodeDanmaku(
       rest as DanDanPlayOf<EpisodeMeta>,
       season,
-      options,
+      options.dandanplay ?? {},
       config
     )
+    return {
+      ...result,
+      season,
+    }
   }
 
   async getEpisodeDanmaku(
@@ -228,11 +236,11 @@ export class DanDanPlayService implements IDanmakuProvider {
     if (request.type === 'by-id') {
       currentEpisodeId = request.episodeId
       seasonId = request.seasonId
-      params = request.options ?? {}
+      params = request.options?.dandanplay ?? {}
     } else {
       currentEpisodeId = request.meta.providerIds.episodeId
       seasonId = request.meta.seasonId
-      params = request.meta.params ?? {}
+      params = request.options?.dandanplay ?? request.meta.params ?? {}
     }
 
     const season = await this.seasonService.mustGetById(seasonId)
@@ -250,7 +258,7 @@ export class DanDanPlayService implements IDanmakuProvider {
       return null
     }
 
-    return this.getEpisodeDanmaku(nextEpisode, season, params, providerConfig)
+    await this.getEpisodeDanmaku(nextEpisode, season, params, providerConfig)
   }
 
   private async fetchDanmaku(

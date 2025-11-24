@@ -28,6 +28,11 @@ export type CustomEpisodeQueryFilter = {
 
 interface DanmakuFetchOptions {
   forceUpdate?: boolean // force update danmaku from the provider even if it's already in db
+  dandanplay?: {
+    chConvert?: boolean
+    withRelated?: boolean
+    from?: number
+  }
 }
 
 export type DanmakuFetchRequest =
