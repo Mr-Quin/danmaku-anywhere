@@ -9,7 +9,6 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 import type { DanmakuService } from '@/background/services/DanmakuService'
-import { findDanDanPlayEpisodeInList } from '@/background/services/episodeMatching'
 import type { SeasonService } from '@/background/services/SeasonService'
 import type { SeasonSearchParams } from '@/common/anime/dto'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
@@ -27,6 +26,7 @@ import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
 import { tryCatch } from '@/common/utils/utils'
 import type { IDanmakuProvider } from '../IDanmakuProvider'
 import { DanDanPlayMapper } from './DanDanPlayMapper'
+import { findDanDanPlayEpisodeInList } from './episodeMatching'
 
 export class DanDanPlayService implements IDanmakuProvider {
   private logger: typeof Logger
@@ -117,8 +117,10 @@ export class DanDanPlayService implements IDanmakuProvider {
   ): Promise<WithSeason<DanDanPlayOf<EpisodeMeta>>[]> {
     assertProviderConfigImpl(providerConfig, DanmakuSourceType.DanDanPlay)
     this.logger.debug('Getting DanDanPlay episodes', seasonId)
-    const season = await this.seasonService.mustGetById(seasonId)
-    assertProviderType(season, DanmakuSourceType.DanDanPlay)
+    const season = await this.seasonService.getByType(
+      seasonId,
+      DanmakuSourceType.DanDanPlay
+    )
 
     const { bangumiDetails } = await this.getSeason(
       season.providerIds.bangumiId,
@@ -139,8 +141,10 @@ export class DanDanPlayService implements IDanmakuProvider {
     assertProviderConfigImpl(config, DanmakuSourceType.DanDanPlay)
 
     if (request.type === 'by-id') {
-      const season = await this.seasonService.mustGetById(request.seasonId)
-      assertProviderType(season, DanmakuSourceType.DanDanPlay)
+      const season = await this.seasonService.getByType(
+        request.seasonId,
+        DanmakuSourceType.DanDanPlay
+      )
       const episodes = await this.getEpisodes(request.seasonId, config)
       const episode = episodes.find(
         (e) => e.providerIds.episodeId === request.episodeId
@@ -148,48 +152,45 @@ export class DanDanPlayService implements IDanmakuProvider {
       if (!episode) {
         throw new Error('Episode not found')
       }
-      const result = await this.getEpisodeDanmaku(
+      return this.getEpisodeDanmaku(
         episode,
         season,
         request.options?.dandanplay ?? {},
         config
       )
-      return {
-        ...result,
-        season,
-      }
     }
 
     const { meta, options = {} } = request
     const { season, ...rest } = meta
     assertProviderType(season, DanmakuSourceType.DanDanPlay)
 
-    const result = await this.getEpisodeDanmaku(
+    return this.getEpisodeDanmaku(
       rest as DanDanPlayOf<EpisodeMeta>,
       season,
       options.dandanplay ?? {},
       config
     )
-    return {
-      ...result,
-      season,
-    }
   }
 
-  async getEpisodeDanmaku(
+  private async getEpisodeDanmaku(
     meta: DanDanPlayOf<EpisodeMeta>,
     season: DanDanPlayOf<Season>,
     params: Partial<danDanPlay.GetCommentQuery>,
     config: BuiltInDanDanPlayProvider | DanDanPlayCompatProvider
-  ): Promise<DanDanPlayOf<Episode>> {
+  ): Promise<WithSeason<DanDanPlayOf<Episode>>> {
     const { comments } = await this.fetchDanmaku(meta, season, params, config)
 
-    return this.danmakuService.upsert({
+    const saved = await this.danmakuService.upsert({
       ...meta,
       comments,
       commentCount: comments.length,
       params,
     })
+
+    return {
+      ...saved,
+      season,
+    }
   }
 
   async preloadNextEpisode(
@@ -215,8 +216,10 @@ export class DanDanPlayService implements IDanmakuProvider {
       params = request.options?.dandanplay ?? {}
     }
 
-    const season = await this.seasonService.mustGetById(seasonId)
-    assertProviderType(season, DanmakuSourceType.DanDanPlay)
+    const season = await this.seasonService.getByType(
+      seasonId,
+      DanmakuSourceType.DanDanPlay
+    )
 
     const nextEpisodeId = currentEpisodeId + 1
 

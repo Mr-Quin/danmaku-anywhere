@@ -120,8 +120,10 @@ export class BilibiliService implements IDanmakuProvider {
     _config: ProviderConfig
   ): Promise<WithSeason<BilibiliOf<EpisodeMeta>>[]> {
     this.logger.debug('Get bangumi info', dbSeasonId)
-    const season = await this.seasonService.mustGetById(dbSeasonId)
-    assertProviderType(season, DanmakuSourceType.Bilibili)
+    const season = await this.seasonService.getByType(
+      dbSeasonId,
+      DanmakuSourceType.Bilibili
+    )
 
     const {
       providerIds: { seasonId },
@@ -142,9 +144,6 @@ export class BilibiliService implements IDanmakuProvider {
     assertProviderConfigImpl(config, DanmakuSourceType.Bilibili)
 
     if (request.type === 'by-id') {
-      const season = await this.seasonService.mustGetById(request.seasonId)
-      assertProviderType(season, DanmakuSourceType.Bilibili)
-
       const episodes = await this.getEpisodes(request.seasonId, config)
       const episode = episodes.find(
         (e) => e.providerIds.cid === request.episodeId
@@ -152,53 +151,50 @@ export class BilibiliService implements IDanmakuProvider {
       if (!episode) {
         throw new Error('Episode not found')
       }
-      const result = await this.saveEpisode(episode, config)
 
-      return {
-        ...result,
-        season,
-      }
+      return this.saveEpisode(episode, config)
     }
 
     const { meta } = request
     assertProviderType(meta, DanmakuSourceType.Bilibili)
-    const result = await this.saveEpisode(meta, config)
 
-    return {
-      ...result,
-      season: meta.season,
-    }
+    return this.saveEpisode(meta, config)
   }
 
-  async saveEpisode(
-    meta: BilibiliOf<EpisodeMeta>,
+  private async saveEpisode(
+    meta: WithSeason<BilibiliOf<EpisodeMeta>>,
     config: BuiltInBilibiliProvider
-  ): Promise<BilibiliOf<Episode>> {
-    const comments = await this.fetchDanmaku(meta, config)
-    return this.danmakuService.upsert({
+  ): Promise<WithSeason<BilibiliOf<Episode>>> {
+    const { cid, aid } = meta.providerIds
+    const comments = await this.fetchDanmaku({ cid, aid }, config)
+
+    const saved = await this.danmakuService.upsert({
       ...meta,
       comments,
       commentCount: comments.length,
     })
+
+    return {
+      ...saved,
+      season: meta.season,
+    }
   }
 
-  async fetchDanmaku(
-    meta: BilibiliOf<EpisodeMeta>,
+  private async fetchDanmaku(
+    ids: { cid: number; aid?: number },
     config: BuiltInBilibiliProvider
   ) {
     const { danmakuTypePreference } = config.options
 
-    const { cid, aid } = meta.providerIds
-
     if (danmakuTypePreference === 'xml') {
-      return this.getDanmakuXml(cid)
+      return this.getDanmakuXml(ids.cid)
     }
 
-    if (aid === undefined) {
+    if (ids.aid === undefined) {
       throw new Error('aid is not provided')
     }
 
-    return this.getDanmakuProto(cid, aid)
+    return this.getDanmakuProto(ids.cid, ids.aid)
   }
 
   private async getDanmakuXml(cid: number) {

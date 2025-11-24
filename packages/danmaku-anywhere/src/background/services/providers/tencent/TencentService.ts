@@ -62,8 +62,10 @@ export class TencentService implements IDanmakuProvider {
     seasonId: number
   ): Promise<WithSeason<TencentOf<EpisodeMeta>>[]> {
     this.logger.debug('Get episode', seasonId)
-    const season = await this.seasonService.mustGetById(seasonId)
-    assertProviderType(season, DanmakuSourceType.Tencent)
+    const season = await this.seasonService.getByType(
+      seasonId,
+      DanmakuSourceType.Tencent
+    )
 
     const generator = tencent.listEpisodes({
       cid: season.providerIds.cid,
@@ -89,8 +91,10 @@ export class TencentService implements IDanmakuProvider {
    */
   async refreshSeason(season: Season, _config: ProviderConfig) {
     const id = season.id
-    const seasonData = await this.seasonService.mustGetById(id)
-    assertProviderType(seasonData, DanmakuSourceType.Tencent)
+    const seasonData = await this.seasonService.getByType(
+      id,
+      DanmakuSourceType.Tencent
+    )
 
     const episodes = await this.danmakuService.filter({
       provider: DanmakuSourceType.Tencent,
@@ -141,8 +145,6 @@ export class TencentService implements IDanmakuProvider {
     assertProviderConfigImpl(config, DanmakuSourceType.Tencent)
 
     if (request.type === 'by-id') {
-      const season = await this.seasonService.mustGetById(request.seasonId)
-      assertProviderType(season, DanmakuSourceType.Tencent)
       const episodes = await this.getEpisodes(request.seasonId)
       const episode = episodes.find(
         (e) => e.providerIds.vid === request.episodeId.toString()
@@ -150,32 +152,31 @@ export class TencentService implements IDanmakuProvider {
       if (!episode) {
         throw new Error('Episode not found')
       }
-      const result = await this.saveEpisode(episode)
-      return {
-        ...result,
-        season,
-      }
+      return this.saveEpisode(episode)
     }
 
     const { meta } = request
     assertProviderType(meta, DanmakuSourceType.Tencent)
-    const result = await this.saveEpisode(meta)
-    return {
-      ...result,
-      season: meta.season,
-    }
+    return this.saveEpisode(meta)
   }
 
-  async saveEpisode(meta: TencentOf<EpisodeMeta>) {
+  private async saveEpisode(
+    meta: WithSeason<TencentOf<EpisodeMeta>>
+  ): Promise<WithSeason<TencentOf<Episode>>> {
     const comments = await this.fetchDanmaku(meta.providerIds.vid)
-    return this.danmakuService.upsert({
+    const saved = await this.danmakuService.upsert({
       ...meta,
       comments,
       commentCount: comments.length,
     })
+
+    return {
+      ...saved,
+      season: meta.season,
+    }
   }
 
-  async fetchDanmaku(vid: string) {
+  private async fetchDanmaku(vid: string) {
     return await tencent.getDanmaku(vid)
   }
 
