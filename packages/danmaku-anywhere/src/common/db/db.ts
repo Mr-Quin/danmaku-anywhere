@@ -10,7 +10,7 @@ import {
   type SeasonV1,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Dexie } from 'dexie'
-import type { SeasonMap } from '@/common/seasonMap/types'
+import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
 
 type WithoutId<T> = Omit<T, 'id'>
 
@@ -18,7 +18,7 @@ class DanmakuAnywhereDb extends Dexie {
   episode!: Dexie.Table<Episode, number, WithoutId<Episode>>
   customEpisode!: Dexie.Table<CustomEpisode, number, WithoutId<CustomEpisode>>
   season!: Dexie.Table<Season, number, WithoutId<Season>>
-  seasonMap!: Dexie.Table<SeasonMap, string>
+  seasonMap!: Dexie.Table<SeasonMapSnapshot, string>
 
   isReady = new Promise<boolean>((resolve) => {
     this.on('ready', () => resolve(true))
