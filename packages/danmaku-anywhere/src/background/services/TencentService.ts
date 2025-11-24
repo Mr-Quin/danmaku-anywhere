@@ -221,6 +221,15 @@ export class TencentService implements IDanmakuProvider {
     return await tencent.getDanmaku(vid)
   }
 
+  canParse(url: string): boolean {
+    try {
+      const { hostname } = new URL(url)
+      return hostname === 'v.qq.com'
+    } catch {
+      return false
+    }
+  }
+
   async parseUrl(
     url: string
   ): Promise<WithSeason<TencentOf<EpisodeMeta>> | null> {

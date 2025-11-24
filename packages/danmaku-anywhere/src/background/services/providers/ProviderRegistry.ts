@@ -19,4 +19,8 @@ export class ProviderRegistry {
     }
     return provider
   }
+
+  getAll(): IDanmakuProvider[] {
+    return Array.from(this.providers.values())
+  }
 }

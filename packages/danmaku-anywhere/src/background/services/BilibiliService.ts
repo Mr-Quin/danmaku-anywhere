@@ -132,6 +132,15 @@ export class BilibiliService implements IDanmakuProvider {
     }
   }
 
+  canParse(url: string): boolean {
+    try {
+      const { hostname } = new URL(url)
+      return hostname === 'www.bilibili.com'
+    } catch {
+      return false
+    }
+  }
+
   async parseUrl(
     url: string
   ): Promise<WithSeason<BilibiliOf<EpisodeMeta>> | null> {

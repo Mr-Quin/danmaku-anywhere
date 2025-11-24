@@ -10,6 +10,7 @@ import type {
 import type { DanDanPlayQueryContext } from '@danmaku-anywhere/danmaku-provider/ddp'
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 import type { DanmakuService } from '@/background/services/DanmakuService'
+import { findDanDanPlayEpisodeInList } from '@/background/services/episodeMatching'
 import type { SeasonService } from '@/background/services/SeasonService'
 import type { SeasonSearchParams } from '@/common/anime/dto'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
@@ -22,6 +23,7 @@ import type {
   DanDanPlayProviderConfig,
   ProviderConfig,
 } from '@/common/options/providerConfig/schema'
+import { providerConfigService } from '@/common/options/providerConfig/service'
 import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
 import { tryCatch } from '@/common/utils/utils'
 import type { IDanmakuProvider } from './providers/IDanmakuProvider'
@@ -126,6 +128,40 @@ export class DanDanPlayService implements IDanmakuProvider {
 
     return {
       bangumiDetails,
+      season,
+    }
+  }
+
+  async findEpisode(
+    season: Season,
+    episodeNumber: number
+  ): Promise<WithSeason<EpisodeMeta> | null> {
+    assertProviderType(season, DanmakuSourceType.DanDanPlay)
+
+    const providerConfig = await providerConfigService.mustGet(
+      season.providerConfigId
+    )
+
+    const episodes = await this.getEpisodes(season.id, providerConfig)
+
+    if (episodes.length === 0) {
+      throw new Error(`No episodes found for season: ${season}`)
+    }
+
+    const episode = findDanDanPlayEpisodeInList(
+      episodes,
+      episodeNumber,
+      season.providerIds.animeId
+    )
+
+    if (!episode) {
+      return null
+    }
+
+    assertProviderType(episode, DanmakuSourceType.DanDanPlay)
+
+    return {
+      ...episode,
       season,
     }
   }

@@ -10,7 +10,6 @@ import type {
 import type { BilibiliService } from '@/background/services/BilibiliService'
 import type { DanDanPlayService } from '@/background/services/DanDanPlayService'
 import type { DanmakuService } from '@/background/services/DanmakuService'
-import { findDanDanPlayEpisodeInList } from '@/background/services/episodeMatching'
 import type { MacCmsProviderService } from '@/background/services/MacCmsProviderService'
 import type { SeasonService } from '@/background/services/SeasonService'
 import type { TencentService } from '@/background/services/TencentService'
@@ -23,11 +22,10 @@ import type {
 } from '@/common/anime/dto'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { providerConfigService } from '@/common/options/providerConfig/service'
-import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { stripExtension } from '@/common/utils/stripExtension'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
@@ -107,30 +105,29 @@ export class ProviderService {
   }
 
   async preloadNextEpisode(request: DanmakuFetchRequest): Promise<void> {
-    const provider =
+    const config = await this.resolveConfig(request)
+    const providerType =
       request.type === 'by-id' ? request.provider : request.meta.provider
 
-    if (provider === DanmakuSourceType.DanDanPlay) {
-      const config =
-        request.type === 'by-id'
-          ? await providerConfigService.mustGet(
-              (await this.seasonService.mustGetById(request.seasonId))
-                .providerConfigId
-            )
-          : await providerConfigService.mustGet(
-              request.meta.season.providerConfigId
-            )
+    const service = this.providerRegistry.get(providerType)
 
-      const service = this.providerRegistry.get(provider)
-
-      if (service?.preloadNextEpisode) {
-        return service.preloadNextEpisode(request, config)
-      }
+    if (service?.preloadNextEpisode) {
+      return service.preloadNextEpisode(request, config)
     }
 
     this.logger.warn(
-      `Preloading next episode is not supported for provider: ${provider}`
+      `Preloading next episode is not supported for provider: ${providerType}`
     )
+  }
+
+  private async resolveConfig(
+    request: DanmakuFetchRequest
+  ): Promise<ProviderConfig> {
+    if (request.type === 'by-id') {
+      const season = await this.seasonService.mustGetById(request.seasonId)
+      return providerConfigService.mustGet(season.providerConfigId)
+    }
+    return providerConfigService.mustGet(request.meta.season.providerConfigId)
   }
 
   async getDanmaku(request: DanmakuFetchRequest): Promise<WithSeason<Episode>> {
@@ -168,16 +165,7 @@ export class ProviderService {
       this.logger.debug('Danmaku not found in db, fetching from server')
     }
 
-    const config =
-      request.type === 'by-id'
-        ? await providerConfigService.mustGet(
-            (await this.seasonService.mustGetById(request.seasonId))
-              .providerConfigId
-          )
-        : await providerConfigService.mustGet(
-            request.meta.season.providerConfigId
-          )
-
+    const config = await this.resolveConfig(request)
     const service = this.providerRegistry.mustGet(provider)
 
     return service.getDanmaku(request, config)
@@ -189,44 +177,22 @@ export class ProviderService {
     episodeNumber = 1,
     seasonId,
   }: MatchEpisodeInput): Promise<MatchEpisodeResult> {
-    const getMetaFromSeason = async (
+    const findEpisodeInSeason = async (
       season: Season
     ): Promise<WithSeason<EpisodeMeta>> => {
-      const providerConfig = await providerConfigService.mustGet(
-        season.providerConfigId
-      )
-      assertProviderConfigImpl(providerConfig, DanmakuSourceType.DanDanPlay)
+      const service = this.providerRegistry.mustGet(season.provider)
 
-      const service = this.providerRegistry.mustGet(
-        DanmakuSourceType.DanDanPlay
-      )
-
-      const episodes = await service.getEpisodes(season.id, providerConfig)
-
-      if (episodes.length === 0) {
-        throw new Error(`No episodes found for season: ${season}`)
-      }
-
-      assertProviderType(season, DanmakuSourceType.DanDanPlay)
-
-      const episode = findDanDanPlayEpisodeInList(
-        episodes,
-        episodeNumber,
-        season.providerIds.animeId
-      )
-
-      if (!episode) {
+      if (service.findEpisode) {
+        const match = await service.findEpisode(season, episodeNumber)
+        if (match) return match
         throw new Error(
           `Episode ${episodeNumber} not found in season: ${season.title}`
         )
       }
 
-      assertProviderType(episode, DanmakuSourceType.DanDanPlay)
-
-      return {
-        ...episode,
-        season,
-      }
+      throw new Error(
+        `Provider ${season.provider} does not support episode matching.`
+      )
     }
 
     if ((await extensionOptionsService.get()).matchLocalDanmaku) {
@@ -278,17 +244,15 @@ export class ProviderService {
         }
       }
 
-      assertProviderType(season, DanmakuSourceType.DanDanPlay)
-
       return {
         status: 'success',
-        data: await getMetaFromSeason(season),
+        data: await findEpisodeInSeason(season),
       }
     }
 
     this.logger.debug('No mapping found, searching for season')
 
-    const service = this.providerRegistry.mustGet(DanmakuSourceType.DanDanPlay)
+    const service = this.providerRegistry.mustGet(automaticProvider.impl)
 
     const foundSeasons = (await service.search(
       {
@@ -315,7 +279,7 @@ export class ProviderService {
 
       return {
         status: 'success',
-        data: await getMetaFromSeason(foundSeasons[0]),
+        data: await findEpisodeInSeason(foundSeasons[0]),
       }
     }
 
@@ -330,29 +294,15 @@ export class ProviderService {
   }
 
   async parseUrl(url: string) {
-    const { hostname } = new URL(url)
-    let result: WithSeason<EpisodeMeta> | null = null
+    const providers = this.providerRegistry.getAll()
 
-    if (hostname === 'www.bilibili.com') {
-      const service = this.providerRegistry.mustGet(DanmakuSourceType.Bilibili)
-      if (!service?.parseUrl) {
-        throw new Error('Bilibili service does not support parsing URL')
+    for (const provider of providers) {
+      if (provider.parseUrl && provider.canParse?.(url)) {
+        const result = await provider.parseUrl(url)
+        if (result) return result
       }
-      result = await service.parseUrl(url)
-    } else if (hostname === 'v.qq.com') {
-      const service = this.providerRegistry.mustGet(DanmakuSourceType.Tencent)
-      if (!service?.parseUrl) {
-        throw new Error('Tencent service does not support parsing URL')
-      }
-      result = await service.parseUrl(url)
-    } else {
-      throw new Error('Unknown host')
     }
 
-    if (!result) {
-      throw new Error('Episode not found')
-    }
-
-    return result
+    throw new Error('No provider found capable of parsing URL')
   }
 }

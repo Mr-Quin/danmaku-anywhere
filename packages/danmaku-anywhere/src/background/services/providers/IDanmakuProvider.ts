@@ -32,5 +32,11 @@ export interface IDanmakuProvider {
     config: ProviderConfig
   ): Promise<void>
 
+  // Capabilities
+  canParse?(url: string): boolean
   parseUrl?(url: string): Promise<WithSeason<EpisodeMeta> | null>
+  findEpisode?(
+    season: Season,
+    episodeNumber: number
+  ): Promise<WithSeason<EpisodeMeta> | null>
 }
