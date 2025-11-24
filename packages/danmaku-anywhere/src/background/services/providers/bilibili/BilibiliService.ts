@@ -1,18 +1,11 @@
-import {
-  type BilibiliOf,
-  type Episode,
-  type EpisodeMeta,
-  PROVIDER_TO_BUILTIN_ID,
-  type Season,
-  type SeasonInsert,
-  stripHtml,
-  type WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
 import type {
-  BiliBiliSearchParams,
-  BilibiliBangumiInfo,
-  BilibiliMedia,
-} from '@danmaku-anywhere/danmaku-provider/bilibili'
+  BilibiliOf,
+  Episode,
+  EpisodeMeta,
+  Season,
+  WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
+import type { BiliBiliSearchParams } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import * as bilibili from '@danmaku-anywhere/danmaku-provider/bilibili'
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import type { SeasonService } from '@/background/services/SeasonService'
@@ -25,7 +18,8 @@ import type {
   ProviderConfig,
 } from '@/common/options/providerConfig/schema'
 import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
-import type { IDanmakuProvider } from './providers/IDanmakuProvider'
+import type { IDanmakuProvider } from '../IDanmakuProvider'
+import { BilibiliMapper } from './BilibiliMapper'
 
 export class BilibiliService implements IDanmakuProvider {
   private logger: typeof Logger
@@ -48,28 +42,6 @@ export class BilibiliService implements IDanmakuProvider {
     return result
   }
 
-  private mapToEpisode(
-    data: BilibiliBangumiInfo['episodes'][number],
-    season: BilibiliOf<Season>
-  ): WithSeason<BilibiliOf<EpisodeMeta>> {
-    return {
-      provider: DanmakuSourceType.Bilibili,
-      imageUrl: data.cover,
-      title: stripHtml(data.show_title),
-      alternativeTitle: [data.long_title, data.share_copy],
-      externalLink: data.link,
-      providerIds: {
-        cid: data.cid,
-        aid: data.aid,
-      },
-      seasonId: season.id,
-      season,
-      indexedId: data.cid.toString(),
-      lastChecked: Date.now(),
-      schemaVersion: 4,
-    }
-  }
-
   async search(
     searchParams: BiliBiliSearchParams
   ): Promise<BilibiliOf<Season>[]> {
@@ -77,26 +49,7 @@ export class BilibiliService implements IDanmakuProvider {
     const result = await bilibili.searchMedia(searchParams)
     this.logger.debug('Search result', result)
 
-    const mapToSeason = (data: BilibiliMedia): BilibiliOf<SeasonInsert> => {
-      return {
-        provider: DanmakuSourceType.Bilibili,
-        providerConfigId: PROVIDER_TO_BUILTIN_ID.Bilibili,
-        title: stripHtml(data.title),
-        type: data.season_type_name,
-        imageUrl: data.cover,
-        providerIds: {
-          seasonId: data.season_id,
-        },
-        year:
-          data.pubtime > 0
-            ? new Date(data.pubtime * 1000).getFullYear()
-            : undefined,
-        episodeCount: data.ep_size,
-        indexedId: data.season_id.toString(),
-        schemaVersion: 1,
-      }
-    }
-    const seasons = result.map(mapToSeason)
+    const seasons = result.map(BilibiliMapper.toSeasonInsert)
     return this.seasonService.bulkUpsert(seasons)
   }
 
@@ -112,19 +65,9 @@ export class BilibiliService implements IDanmakuProvider {
       episodeId,
     })
 
-    const season = await this.seasonService.upsert({
-      provider: DanmakuSourceType.Bilibili,
-      providerConfigId: PROVIDER_TO_BUILTIN_ID.Bilibili,
-      title: stripHtml(seasonInfo.title),
-      type: seasonInfo.type.toString(),
-      imageUrl: seasonInfo.cover,
-      episodeCount: seasonInfo.episodes.length,
-      providerIds: {
-        seasonId: seasonInfo.season_id,
-      },
-      indexedId: seasonInfo.season_id.toString(),
-      schemaVersion: 1,
-    })
+    const season = await this.seasonService.upsert(
+      BilibiliMapper.bangumiInfoToSeasonInsert(seasonInfo)
+    )
 
     return {
       seasonInfo,
@@ -169,7 +112,7 @@ export class BilibiliService implements IDanmakuProvider {
 
     if (!episode) throw new Error('Episode not found')
 
-    return this.mapToEpisode(episode, season)
+    return BilibiliMapper.toEpisode(episode, season)
   }
 
   async getEpisodes(
@@ -188,7 +131,7 @@ export class BilibiliService implements IDanmakuProvider {
     this.logger.debug('Get bangumi info result', result)
 
     return result.episodes.map((item) => {
-      return this.mapToEpisode(item, season)
+      return BilibiliMapper.toEpisode(item, season)
     })
   }
 

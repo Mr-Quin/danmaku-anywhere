@@ -1,17 +1,11 @@
-import {
-  type Episode,
-  type EpisodeMeta,
-  PROVIDER_TO_BUILTIN_ID,
-  type Season,
-  type SeasonInsert,
-  stripHtml,
-  type TencentOf,
-  type WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
 import type {
-  TencentEpisodeListItem,
-  TencentVideoSeason,
-} from '@danmaku-anywhere/danmaku-provider/tencent'
+  Episode,
+  EpisodeMeta,
+  Season,
+  TencentOf,
+  WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
+import type { TencentEpisodeListItem } from '@danmaku-anywhere/danmaku-provider/tencent'
 import * as tencent from '@danmaku-anywhere/danmaku-provider/tencent'
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import type { SeasonService } from '@/background/services/SeasonService'
@@ -21,7 +15,9 @@ import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
-import type { IDanmakuProvider } from './providers/IDanmakuProvider'
+import type { IDanmakuProvider } from '../IDanmakuProvider'
+import { TencentMapper } from './TencentMapper'
+
 export class TencentService implements IDanmakuProvider {
   private logger: typeof Logger
 
@@ -57,23 +53,8 @@ export class TencentService implements IDanmakuProvider {
     this.logger.debug('Search tencent', kw)
     const result = await tencent.searchMedia({ query: kw })
     this.logger.debug('Search result', result)
-    const mapToSeason = (data: TencentVideoSeason): TencentOf<SeasonInsert> => {
-      return {
-        provider: DanmakuSourceType.Tencent,
-        providerConfigId: PROVIDER_TO_BUILTIN_ID.Tencent,
-        title: stripHtml(data.videoInfo.title),
-        type: data.videoInfo.videoType.toString(),
-        imageUrl: data.videoInfo.imgUrl,
-        providerIds: {
-          cid: data.doc.id,
-        },
-        indexedId: data.doc.id,
-        episodeCount: data.videoInfo.episodeSites[0].totalEpisode,
-        year: data.videoInfo.year,
-        schemaVersion: 1,
-      }
-    }
-    const seasons = result.map(mapToSeason)
+
+    const seasons = result.map(TencentMapper.toSeasonInsert)
     return this.seasonService.bulkUpsert(seasons)
   }
 
@@ -97,20 +78,7 @@ export class TencentService implements IDanmakuProvider {
     this.logger.debug('Get episode result', result)
 
     return result.flat().map((item) => {
-      return {
-        provider: DanmakuSourceType.Tencent,
-        title: stripHtml(item.play_title),
-        alternativeTitle: [item.title, item.union_title],
-        providerIds: {
-          vid: item.vid,
-        },
-        imageUrl: item.image_url,
-        season,
-        seasonId,
-        indexedId: item.vid.toString(),
-        schemaVersion: 4,
-        lastChecked: Date.now(),
-      } satisfies WithSeason<TencentOf<EpisodeMeta>>
+      return TencentMapper.toEpisodeMeta(item, season)
     })
   }
 
@@ -153,19 +121,9 @@ export class TencentService implements IDanmakuProvider {
         ?.item_datas[0]
 
     if (foundSeason) {
-      const season = await this.seasonService.upsert({
-        provider: DanmakuSourceType.Tencent,
-        providerConfigId: PROVIDER_TO_BUILTIN_ID.Tencent,
-        title: stripHtml(foundSeason.item_params.title),
-        type: foundSeason.item_type.toString(),
-        imageUrl: foundSeason.item_params.new_pic_vt,
-        providerIds: {
-          cid: foundSeason.item_params['report.cid'],
-        },
-        episodeCount: foundSeason.item_params.episode_all,
-        indexedId: foundSeason.item_params['report.cid'],
-        schemaVersion: 1,
-      })
+      const season = await this.seasonService.upsert(
+        TencentMapper.pageDetailsToSeasonInsert(foundSeason)
+      )
 
       return {
         pageDetails,

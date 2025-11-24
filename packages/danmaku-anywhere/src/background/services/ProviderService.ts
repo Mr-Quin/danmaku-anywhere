@@ -6,13 +6,12 @@ import type {
   Season,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-
-import type { BilibiliService } from '@/background/services/BilibiliService'
-import type { DanDanPlayService } from '@/background/services/DanDanPlayService'
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import type { MacCmsProviderService } from '@/background/services/MacCmsProviderService'
+import type { BilibiliService } from '@/background/services/providers/bilibili/BilibiliService'
+import type { DanDanPlayService } from '@/background/services/providers/dandanplay/DanDanPlayService'
+import type { TencentService } from '@/background/services/providers/tencent/TencentService'
 import type { SeasonService } from '@/background/services/SeasonService'
-import type { TencentService } from '@/background/services/TencentService'
 import type { TitleMappingService } from '@/background/services/TitleMappingService'
 import type {
   MatchEpisodeInput,

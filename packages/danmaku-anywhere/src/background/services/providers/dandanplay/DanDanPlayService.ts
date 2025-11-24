@@ -7,7 +7,6 @@ import type {
   SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import type { DanDanPlayQueryContext } from '@danmaku-anywhere/danmaku-provider/ddp'
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import { findDanDanPlayEpisodeInList } from '@/background/services/episodeMatching'
@@ -26,38 +25,8 @@ import type {
 import { providerConfigService } from '@/common/options/providerConfig/service'
 import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
 import { tryCatch } from '@/common/utils/utils'
-import type { IDanmakuProvider } from './providers/IDanmakuProvider'
-
-function createQueryContext(
-  providerConfig: DanDanPlayProviderConfig
-): DanDanPlayQueryContext {
-  if (providerConfig.type === 'DanDanPlay') {
-    return {
-      isCustom: false,
-    }
-  }
-
-  const provider = providerConfig
-  if (
-    !provider.options.baseUrl ||
-    provider.options.baseUrl.trim().length === 0
-  ) {
-    return {
-      isCustom: false,
-    }
-  }
-
-  return {
-    isCustom: true,
-    baseUrl: provider.options.baseUrl,
-    auth:
-      provider.options.auth?.enabled && provider.options.auth.headers
-        ? {
-            headers: provider.options.auth.headers,
-          }
-        : undefined,
-  }
-}
+import type { IDanmakuProvider } from '../IDanmakuProvider'
+import { DanDanPlayMapper } from './DanDanPlayMapper'
 
 export class DanDanPlayService implements IDanmakuProvider {
   private logger: typeof Logger
@@ -75,7 +44,7 @@ export class DanDanPlayService implements IDanmakuProvider {
   ): Promise<DanDanPlayOf<Season>[]> {
     assertProviderConfigImpl(providerConfig, DanmakuSourceType.DanDanPlay)
     this.logger.debug('Searching DanDanPlay', searchParams, providerConfig)
-    const context = createQueryContext(providerConfig)
+    const context = DanDanPlayMapper.toQueryContext(providerConfig)
 
     const result = await danDanPlay.searchSearchAnime(
       searchParams.keyword,
@@ -83,46 +52,22 @@ export class DanDanPlayService implements IDanmakuProvider {
     )
     this.logger.debug('Search result', result)
 
-    const seasons = result.map((item) => {
-      return {
-        provider: DanmakuSourceType.DanDanPlay,
-        title: item.animeTitle,
-        type: item.type,
-        imageUrl: item.imageUrl,
-        providerIds: {
-          animeId: item.animeId,
-          bangumiId: item.bangumiId,
-        },
-        providerConfigId: providerConfig.id,
-        indexedId: item.animeId.toString(),
-        year: new Date(item.startDate).getFullYear(),
-        episodeCount: item.episodeCount,
-        schemaVersion: 1,
-      } satisfies DanDanPlayOf<SeasonInsert>
-    })
+    const seasons = result.map((item) =>
+      DanDanPlayMapper.searchResultToSeasonInsert(item, providerConfig.id)
+    )
 
     return this.seasonService.bulkUpsert(seasons)
   }
 
   async getSeason(bangumiId: string, providerConfig: DanDanPlayProviderConfig) {
-    const context = createQueryContext(providerConfig)
+    const context = DanDanPlayMapper.toQueryContext(providerConfig)
     const bangumiDetails = await danDanPlay.getBangumiAnime(bangumiId, context)
 
-    const seasonData: DanDanPlayOf<SeasonInsert> = {
-      provider: DanmakuSourceType.DanDanPlay,
-      title: bangumiDetails.animeTitle,
-      alternativeTitles: bangumiDetails.titles?.map((t) => t.title),
-      type: bangumiDetails.type,
-      imageUrl: bangumiDetails.imageUrl,
-      providerIds: {
-        animeId: bangumiDetails.animeId,
-        bangumiId: bangumiDetails.bangumiId,
-      },
-      providerConfigId: providerConfig.id,
-      indexedId: bangumiDetails.animeId.toString(),
-      episodeCount: bangumiDetails.episodes.length,
-      schemaVersion: 1,
-    }
+    const seasonData: DanDanPlayOf<SeasonInsert> =
+      DanDanPlayMapper.bangumiDetailsToSeasonInsert(
+        bangumiDetails,
+        providerConfig.id
+      )
 
     const season = await this.seasonService.upsert(seasonData)
 
@@ -183,19 +128,7 @@ export class DanDanPlayService implements IDanmakuProvider {
     this.logger.debug('DanDanPlay Episodes fetched', bangumiDetails)
 
     return bangumiDetails.episodes.map((item) => {
-      return {
-        provider: DanmakuSourceType.DanDanPlay,
-        episodeNumber: item.episodeNumber,
-        title: item.episodeTitle,
-        providerIds: {
-          episodeId: item.episodeId,
-        },
-        season,
-        seasonId: season.id,
-        indexedId: item.episodeId.toString(),
-        lastChecked: Date.now(),
-        schemaVersion: 4,
-      } satisfies WithSeason<DanDanPlayOf<EpisodeMeta>>
+      return DanDanPlayMapper.bangumiEpisodeToEpisodeMeta(item, season)
     })
   }
 
@@ -310,7 +243,7 @@ export class DanDanPlayService implements IDanmakuProvider {
     comments: CommentEntity[]
     params: danDanPlay.GetCommentQuery
   }> {
-    const context = createQueryContext(providerConfig)
+    const context = DanDanPlayMapper.toQueryContext(providerConfig)
 
     const chConvert = params.chConvert ?? providerConfig.options.chConvert
 
