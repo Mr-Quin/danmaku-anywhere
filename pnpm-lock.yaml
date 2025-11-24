@@ -98,11 +98,11 @@ importers:
         specifier: ^4.2.1
         version: 4.2.1
       material-symbols:
-        specifier: ^0.34.1
-        version: 0.34.1
+        specifier: ^0.40.0
+        version: 0.40.0
       openapi-fetch:
-        specifier: ^0.14.1
-        version: 0.14.1
+        specifier: ^0.15.0
+        version: 0.15.0
       postcss:
         specifier: ^8.5.6
         version: 8.5.6
@@ -141,8 +141,8 @@ importers:
         specifier: ~5.1.13
         version: 5.1.13
       jasmine-core:
-        specifier: ~5.7.1
-        version: 5.7.1
+        specifier: ~5.12.1
+        version: 5.12.1
       karma:
         specifier: ~6.4.4
         version: 6.4.4
@@ -157,7 +157,7 @@ importers:
         version: 5.1.0(karma@6.4.4)
       karma-jasmine-html-reporter:
         specifier: ~2.1.0
-        version: 2.1.0(jasmine-core@5.7.1)(karma-jasmine@5.1.0(karma@6.4.4))(karma@6.4.4)
+        version: 2.1.0(jasmine-core@5.12.1)(karma-jasmine@5.1.0(karma@6.4.4))(karma@6.4.4)
       wrangler:
         specifier: ^4.50.0
         version: 4.50.0
@@ -4799,8 +4799,8 @@ packages:
   jasmine-core@4.6.1:
     resolution: {integrity: sha512-VYz/BjjmC3klLJlLwA4Kw8ytk0zDSmbbDLNs794VnWmkcCB7I9aAL/D48VNQtmITyPvea2C3jdUMfc3kAoy0PQ==}
 
-  jasmine-core@5.7.1:
-    resolution: {integrity: sha512-QnurrtpKsPoixxG2R3d1xP0St/2kcX5oTZyDyQJMY+Vzi/HUlu1kGm+2V8Tz+9lV991leB1l0xcsyz40s9xOOw==}
+  jasmine-core@5.12.1:
+    resolution: {integrity: sha512-P/UbRZ0LKwXe7wEpwDheuhunPwITn4oPALhrJEQJo6756EwNGnsK/TSQrWojBB4cQDQ+VaxWYws9tFNDuiMh2Q==}
 
   jiti@2.6.1:
     resolution: {integrity: sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ==}
@@ -5170,8 +5170,8 @@ packages:
   marky@1.3.0:
     resolution: {integrity: sha512-ocnPZQLNpvbedwTy9kNrQEsknEfgvcLMvOtz3sFeWApDq1MXH1TqkCIx58xlpESsfwQOnuBO9beyQuNGzVvuhQ==}
 
-  material-symbols@0.34.1:
-    resolution: {integrity: sha512-CEvMJuhNHna8+nbXlSB+7dGoD+0bXEUnDSsaVM5qBUL5u4ekuX96PjvfFG/iNUtuairyW18fqV5e8GLP0Sagfg==}
+  material-symbols@0.40.0:
+    resolution: {integrity: sha512-sz2x2x2Ealg33LB//d6dnkgsUQsdTz7a2D2Af7rH0vxFtZWDceE50iCT9L6gClTEl7YJXkAt6LFA6SN6//hFzQ==}
 
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
@@ -5570,6 +5570,9 @@ packages:
 
   openapi-fetch@0.14.1:
     resolution: {integrity: sha512-l7RarRHxlEZYjMLd/PR0slfMVse2/vvIAGm75/F7J6MlQ8/b9uUQmUF2kCPrQhJqMXSxmYWObVgeYXbFYzZR+A==}
+
+  openapi-fetch@0.15.0:
+    resolution: {integrity: sha512-OjQUdi61WO4HYhr9+byCPMj0+bgste/LtSBEcV6FzDdONTs7x0fWn8/ndoYwzqCsKWIxEZwo4FN/TG1c1rI8IQ==}
 
   openapi-typescript-helpers@0.0.15:
     resolution: {integrity: sha512-opyTPaunsklCBpTK8JGef6mfPhLSnyy5a0IN9vKtx3+4aExf+KxEqYwIy3hqkedXIB97u357uLMJsOnm3GVjsw==}
@@ -11372,7 +11375,7 @@ snapshots:
 
   jasmine-core@4.6.1: {}
 
-  jasmine-core@5.7.1: {}
+  jasmine-core@5.12.1: {}
 
   jiti@2.6.1: {}
 
@@ -11494,9 +11497,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  karma-jasmine-html-reporter@2.1.0(jasmine-core@5.7.1)(karma-jasmine@5.1.0(karma@6.4.4))(karma@6.4.4):
+  karma-jasmine-html-reporter@2.1.0(jasmine-core@5.12.1)(karma-jasmine@5.1.0(karma@6.4.4))(karma@6.4.4):
     dependencies:
-      jasmine-core: 5.7.1
+      jasmine-core: 5.12.1
       karma: 6.4.4
       karma-jasmine: 5.1.0(karma@6.4.4)
 
@@ -11805,7 +11808,7 @@ snapshots:
 
   marky@1.3.0: {}
 
-  material-symbols@0.34.1: {}
+  material-symbols@0.40.0: {}
 
   math-intrinsics@1.1.0: {}
 
@@ -12371,6 +12374,10 @@ snapshots:
       wsl-utils: 0.3.0
 
   openapi-fetch@0.14.1:
+    dependencies:
+      openapi-typescript-helpers: 0.0.15
+
+  openapi-fetch@0.15.0:
     dependencies:
       openapi-typescript-helpers: 0.0.15
 
