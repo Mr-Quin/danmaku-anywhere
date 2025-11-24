@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.7",
-    "@cloudflare/vitest-pool-workers": "^0.8.71",
+    "@cloudflare/vitest-pool-workers": "^0.10.10",
     "@types/node": "^24.10.1",
     "typescript": "^5.9.3",
     "vitest": "3.2.4",
@@ -32,8 +32,8 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@hono/zod-validator": "^0.7.5",
-    "@sentry/cloudflare": "^9.47.1",
+    "@sentry/cloudflare": "^10.26.0",
     "hono": "^4.10.6",
-    "zod": "^4.1.12"
+    "zod": "^4.1.13"
   }
 }
