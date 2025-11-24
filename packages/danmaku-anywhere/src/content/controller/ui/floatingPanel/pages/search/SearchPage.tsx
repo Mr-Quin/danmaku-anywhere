@@ -123,7 +123,6 @@ export const SearchPage = () => {
         season.id
       )
     ) {
-      // this is a ddp season, ask user if they want to map it
       setLocalSelectedSeason(season)
       setShowDialog(true)
     } else {

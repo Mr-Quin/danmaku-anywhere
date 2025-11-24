@@ -311,12 +311,18 @@ export class ProviderService {
           await this.titleMappingService.add(
             SeasonMap.fromSeason(mapKey, season)
           )
+        } else {
+          return {
+            status: 'notFound',
+            data: null,
+          }
         }
-      } else if (mapping && mapping.seasons[automaticProvider.id]) {
-        this.logger.debug('Mapping found, using mapped title', mapping)
-        season = await this.seasonService.getById(
-          mapping.seasons[automaticProvider.id]
-        )
+      } else if (mapping) {
+        const seasonId = mapping.getSeasonId(automaticProvider.id)
+        if (seasonId !== undefined) {
+          this.logger.debug('Mapping found, using mapped title', mapping)
+          season = await this.seasonService.getById(seasonId)
+        }
       }
 
       if (!season) {
