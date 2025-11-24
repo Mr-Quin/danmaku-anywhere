@@ -113,11 +113,12 @@ describe('Tencent', () => {
     })
 
     it('should fetch comments using segments', async () => {
-      mockFetchResponse(mockData.mockBarrageBaseResponse)
+      const mockFetch = mockFetchResponse(mockData.mockBarrageBaseResponse)
       const segmentData = await tencentApi.getDanmakuSegments('m00253deqqo')
       const totalSegments = Object.values(segmentData.segment_index).length
 
-      vi.spyOn(global, 'fetch').mockImplementation(() => {
+      mockFetch.mockReset()
+      mockFetch.mockImplementation(() => {
         return {
           json: vi.fn().mockResolvedValue(mockData.mockBarrage600000Response),
           status: 200,

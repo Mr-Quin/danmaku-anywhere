@@ -80,7 +80,7 @@
     "@types/wicg-file-system-access": "^2023.10.7",
     "@vitejs/plugin-react": "^5.1.1",
     "vite": "^7.2.4",
-    "vitest": "^3.2.4",
+    "vitest": "^4.0.13",
     "web-ext": "^9.2.0"
   }
 }
