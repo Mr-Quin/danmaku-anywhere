@@ -36,6 +36,7 @@ export interface IDanmakuProvider {
   parseUrl?(url: string): Promise<WithSeason<EpisodeMeta> | null>
   findEpisode?(
     season: Season,
-    episodeNumber: number
+    episodeNumber: number,
+    config: ProviderConfig
   ): Promise<WithSeason<EpisodeMeta> | null>
 }

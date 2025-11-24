@@ -21,7 +21,6 @@ import type {
   DanDanPlayProviderConfig,
   ProviderConfig,
 } from '@/common/options/providerConfig/schema'
-import { providerConfigService } from '@/common/options/providerConfig/service'
 import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
 import { tryCatch } from '@/common/utils/utils'
 import type { IDanmakuProvider } from '../IDanmakuProvider'
@@ -79,13 +78,11 @@ export class DanDanPlayService implements IDanmakuProvider {
 
   async findEpisode(
     season: Season,
-    episodeNumber: number
+    episodeNumber: number,
+    providerConfig: ProviderConfig
   ): Promise<WithSeason<EpisodeMeta> | null> {
     assertProviderType(season, DanmakuSourceType.DanDanPlay)
-
-    const providerConfig = await providerConfigService.mustGet(
-      season.providerConfigId
-    )
+    assertProviderConfigImpl(providerConfig, DanmakuSourceType.DanDanPlay)
 
     const episodes = await this.getEpisodes(season.id, providerConfig)
 
@@ -117,10 +114,10 @@ export class DanDanPlayService implements IDanmakuProvider {
   ): Promise<WithSeason<DanDanPlayOf<EpisodeMeta>>[]> {
     assertProviderConfigImpl(providerConfig, DanmakuSourceType.DanDanPlay)
     this.logger.debug('Getting DanDanPlay episodes', seasonId)
-    const season = await this.seasonService.getByType(
+    const season = (await this.seasonService.getByType(
       seasonId,
       DanmakuSourceType.DanDanPlay
-    )
+    )) as DanDanPlayOf<Season>
 
     const { bangumiDetails } = await this.getSeason(
       season.providerIds.bangumiId,
@@ -141,10 +138,10 @@ export class DanDanPlayService implements IDanmakuProvider {
     assertProviderConfigImpl(config, DanmakuSourceType.DanDanPlay)
 
     if (request.type === 'by-id') {
-      const season = await this.seasonService.getByType(
+      const season = (await this.seasonService.getByType(
         request.seasonId,
         DanmakuSourceType.DanDanPlay
-      )
+      )) as DanDanPlayOf<Season>
       const episodes = await this.getEpisodes(request.seasonId, config)
       const episode = episodes.find(
         (e) => e.providerIds.episodeId === request.episodeId
@@ -216,10 +213,10 @@ export class DanDanPlayService implements IDanmakuProvider {
       params = request.options?.dandanplay ?? {}
     }
 
-    const season = await this.seasonService.getByType(
+    const season = (await this.seasonService.getByType(
       seasonId,
       DanmakuSourceType.DanDanPlay
-    )
+    )) as DanDanPlayOf<Season>
 
     const nextEpisodeId = currentEpisodeId + 1
 

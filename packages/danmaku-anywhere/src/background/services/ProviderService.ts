@@ -1,11 +1,11 @@
 import type {
   CustomSeason,
-  DanDanPlayOf,
   Episode,
   EpisodeMeta,
   Season,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
+
 import type { DanmakuService } from '@/background/services/DanmakuService'
 import type { MacCmsProviderService } from '@/background/services/MacCmsProviderService'
 import type { BilibiliService } from '@/background/services/providers/bilibili/BilibiliService'
@@ -182,7 +182,15 @@ export class ProviderService {
       const service = this.providerRegistry.mustGet(season.provider)
 
       if (service.findEpisode) {
-        const match = await service.findEpisode(season, episodeNumber)
+        const providerConfig = await providerConfigService.mustGet(
+          season.providerConfigId
+        )
+
+        const match = await service.findEpisode(
+          season,
+          episodeNumber,
+          providerConfig
+        )
         if (match) return match
         throw new Error(
           `Episode ${episodeNumber} not found in season: ${season.title}`
@@ -253,13 +261,14 @@ export class ProviderService {
 
     const service = this.providerRegistry.mustGet(automaticProvider.impl)
 
+    // biome-ignore lint/suspicious/noExplicitAny: unknown type
     const foundSeasons = (await service.search(
       {
         keyword: title,
         providerConfigId: automaticProvider.id,
       },
       automaticProvider
-    )) as DanDanPlayOf<Season>[]
+    )) as any[]
 
     if (foundSeasons.length === 0) {
       this.logger.debug(`No season found for title: ${title}`)
