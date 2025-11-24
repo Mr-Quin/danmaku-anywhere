@@ -1,8 +1,19 @@
 // @ts-nocheck
 
-import { vi } from 'vitest'
+import { type Mock, vi } from 'vitest'
 
-export const mockStorage = {
+type MockStorage = {
+  get: Mock
+  set: Mock
+  remove: Mock
+  clear: Mock
+  onChanged: {
+    addListener: Mock
+    removeListener: Mock
+  }
+}
+
+export const mockStorage: MockStorage = {
   get: vi.fn(),
   set: vi.fn(),
   remove: vi.fn(),
