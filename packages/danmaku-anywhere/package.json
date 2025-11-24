@@ -72,7 +72,7 @@
     "zustand": "5.0.8"
   },
   "devDependencies": {
-    "@crxjs/vite-plugin": "2.2.0",
+    "@crxjs/vite-plugin": "2.2.1",
     "@types/chrome": "^0.0.326",
     "@types/d3": "^7.4.3",
     "@types/react": "^19.2.6",
