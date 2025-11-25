@@ -2,7 +2,7 @@ import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { SeasonSearchParams } from '@/common/anime/dto'
+import type { SeasonSearchRequest } from '@/common/anime/dto'
 import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { Logger } from '@/common/Logger'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
@@ -14,7 +14,7 @@ export const useSeasonSearchSuspense = (
 ) => {
   const { t } = useTranslation()
 
-  const params: SeasonSearchParams = useMemo(() => {
+  const params: SeasonSearchRequest = useMemo(() => {
     return {
       keyword,
       providerConfigId,
@@ -27,13 +27,13 @@ export const useSeasonSearchSuspense = (
       | {
           success: true
           data: (Season | CustomSeason)[]
-          params: SeasonSearchParams
+          params: SeasonSearchRequest
           providerConfigId: string
         }
       | {
           success: false
           data: null
-          params: SeasonSearchParams
+          params: SeasonSearchRequest
           providerConfigId: string
           error: string
         }

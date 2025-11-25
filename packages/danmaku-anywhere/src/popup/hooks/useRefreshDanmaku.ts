@@ -15,6 +15,7 @@ export const useRefreshDanmaku = () => {
   const refreshDanmaku = async (episode: WithSeason<EpisodeMeta>) => {
     return await mutation.mutateAsync(
       {
+        type: 'by-meta',
         meta: episode,
         options: {
           forceUpdate: true,

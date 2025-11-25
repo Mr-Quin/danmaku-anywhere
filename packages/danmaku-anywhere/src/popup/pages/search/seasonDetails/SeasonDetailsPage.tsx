@@ -41,6 +41,7 @@ export const SeasonDetailsPage = () => {
                 meta: WithSeason<EpisodeMeta>
               ) => {
                 return await load({
+                  type: 'by-meta',
                   meta,
                   options: {
                     forceUpdate: true,

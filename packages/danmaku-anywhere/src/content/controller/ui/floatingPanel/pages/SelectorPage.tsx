@@ -55,6 +55,7 @@ export const SelectorPage = () => {
         }
         loadMutation.mutate(
           {
+            type: 'by-meta',
             meta: result.data.data,
             options: {
               forceUpdate: false,

@@ -1,13 +1,12 @@
 import type {
   CustomEpisode,
-  DanDanPlayOf,
   EpisodeMeta,
   Season,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
 
-export interface SeasonSearchParams {
+export interface SeasonSearchRequest {
   keyword: string
   episode?: string
   providerConfigId: string
@@ -31,11 +30,11 @@ export interface MatchEpisodeInput {
 export type MatchEpisodeResult =
   | {
       status: 'success'
-      data: WithSeason<DanDanPlayOf<EpisodeMeta>> | CustomEpisode
+      data: WithSeason<EpisodeMeta> | CustomEpisode
     }
   | {
       status: 'disambiguation'
-      data: DanDanPlayOf<Season>[]
+      data: Season[]
     }
   | {
       status: 'notFound'

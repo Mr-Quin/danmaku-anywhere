@@ -5,13 +5,13 @@ import {
 import { setRequestHeaderRule } from '@danmaku-anywhere/web-scraper'
 import { match } from 'ts-pattern'
 import { injectVideoScript } from '@/background/scripting/setupScripting'
-import type { BilibiliService } from '@/background/services/BilibiliService'
 import type { GenAIService } from '@/background/services/GenAIService'
 import type { KazumiService } from '@/background/services/KazumiService'
-import type { MacCmsProviderService } from '@/background/services/MacCmsProviderService'
-import type { SeasonService } from '@/background/services/SeasonService'
-import type { TencentService } from '@/background/services/TencentService'
-import type { TitleMappingService } from '@/background/services/TitleMappingService'
+import type { SeasonService } from '@/background/services/persistence/SeasonService'
+import type { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
+import { BilibiliService } from '@/background/services/providers/bilibili/BilibiliService'
+import { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
+import { TencentService } from '@/background/services/providers/tencent/TencentService'
 import { invalidateContentScriptData } from '@/background/utils/invalidateContentScriptData'
 import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
 import { db } from '@/common/db/db'
@@ -31,20 +31,17 @@ import type {
 import { relayFrameClient } from '@/common/rpcClient/controller/client'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { getOrFetchCachedImage } from '@/images/cache'
-import type { DanmakuService } from '../services/DanmakuService'
 import type { IconService } from '../services/IconService'
-import type { ProviderService } from '../services/ProviderService'
+import type { DanmakuService } from '../services/persistence/DanmakuService'
+import type { ProviderService } from '../services/providers/ProviderService'
 export const setupRpc = (
   providerService: ProviderService,
   iconService: IconService,
   danmakuService: DanmakuService,
   seasonService: SeasonService,
   aiService: GenAIService,
-  bilibiliService: BilibiliService,
-  tencentService: TencentService,
   kazumiService: KazumiService,
-  titleMappingService: TitleMappingService,
-  customProviderService: MacCmsProviderService
+  titleMappingService: TitleMappingService
 ) => {
   const rpcServer = createRpcServer<BackgroundMethods>({
     seasonSearch: async (input) => {
@@ -60,13 +57,13 @@ export const setupRpc = (
       return providerService.findMatchingEpisodes(data)
     },
     bilibiliSetCookies: async () => {
-      return bilibiliService.setCookies()
+      return BilibiliService.setCookies()
     },
     bilibiliGetLoginStatus: async () => {
-      return bilibiliService.getLoginStatus()
+      return BilibiliService.getLoginStatus()
     },
     tencentTestCookies: async () => {
-      return tencentService.testCookies()
+      return TencentService.testCookies()
     },
     iconSet: async (data, sender) => {
       if (sender.tab?.id === undefined) {
@@ -225,13 +222,14 @@ export const setupRpc = (
       return kazumiService.getChapters(url, policy)
     },
     genericVodSearch: async ({ baseUrl, keyword }) => {
-      return customProviderService.search(baseUrl, keyword)
+      return MacCmsProviderService.search(baseUrl, keyword)
     },
     genericFetchDanmakuForUrl: async ({ title, url, providerConfigId }) => {
-      return customProviderService.fetchDanmakuForUrl(
+      return MacCmsProviderService.fetchDanmakuForUrl(
         title,
         url,
-        providerConfigId
+        providerConfigId,
+        danmakuService
       )
     },
     setHeaders: async (rule) => {

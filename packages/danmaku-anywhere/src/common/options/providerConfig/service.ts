@@ -1,4 +1,7 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
+import {
+  DanmakuSourceType,
+  PROVIDER_TO_BUILTIN_ID,
+} from '@danmaku-anywhere/danmaku-converter'
 import { produce } from 'immer'
 import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
@@ -8,6 +11,7 @@ import { defaultProviderConfigs } from './constant'
 import type {
   BuiltInBilibiliProvider,
   BuiltInDanDanPlayProvider,
+  BuiltInTencentProvider,
   DanDanPlayCompatProvider,
   ProviderConfig,
 } from './schema'
@@ -83,7 +87,9 @@ class ProviderConfigService {
   }
 
   async getBuiltInDanDanPlay(): Promise<BuiltInDanDanPlayProvider> {
-    const config = await this.get('dandanplay')
+    const config = await this.get(
+      PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]
+    )
     if (!config) {
       throw new Error('Built-in DanDanPlay provider not found')
     }
@@ -92,12 +98,25 @@ class ProviderConfigService {
   }
 
   async getBuiltInBilibili(): Promise<BuiltInBilibiliProvider> {
-    const config = await this.get('bilibili')
+    const config = await this.get(
+      PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]
+    )
     if (!config) {
       throw new Error('Built-in Bilibili provider not found')
     }
     assertProviderConfigType(config, 'Bilibili')
     return config as BuiltInBilibiliProvider
+  }
+
+  async getBuiltInTencent(): Promise<BuiltInTencentProvider> {
+    const config = await this.get(
+      PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]
+    )
+    if (!config) {
+      throw new Error('Built-in Tencent provider not found')
+    }
+    assertProviderConfigType(config, 'Tencent')
+    return config as BuiltInTencentProvider
   }
 
   async update<T extends ProviderConfig>(

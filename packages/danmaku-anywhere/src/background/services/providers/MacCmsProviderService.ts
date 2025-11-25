@@ -1,27 +1,49 @@
-import type { CustomSeason } from '@danmaku-anywhere/danmaku-converter'
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  CommentEntity,
+  CustomSeason,
+  EpisodeMeta,
+} from '@danmaku-anywhere/danmaku-converter'
 import {
   fetchDanmuIcuComments,
   searchMacCmsVod,
 } from '@danmaku-anywhere/danmaku-provider/maccms'
+import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { Logger } from '@/common/Logger'
+import type { CustomMacCmsProvider } from '@/common/options/providerConfig/schema'
 import { providerConfigService } from '@/common/options/providerConfig/service'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
-import type { DanmakuService } from './DanmakuService'
+import type { DanmakuService } from '../persistence/DanmakuService'
+import type {
+  IDanmakuProvider,
+  OmitSeasonId,
+  SeasonSearchParams,
+} from './IDanmakuProvider'
 
-export class MacCmsProviderService {
-  private logger: typeof Logger
+const logger = Logger.sub('[MacCmsProviderService]')
 
-  constructor(private danmakuService: DanmakuService) {
+export class MacCmsProviderService implements IDanmakuProvider {
+  readonly forProvider = DanmakuSourceType.MacCMS
+
+  constructor(private config: CustomMacCmsProvider) {
     invariant(
       isServiceWorker(),
       'MacCmsProviderService is only available in service worker'
     )
-    this.logger = Logger.sub('[MacCmsProviderService]')
   }
 
-  async search(baseUrl: string, keyword: string): Promise<CustomSeason[]> {
-    this.logger.debug('Searching for', {
+  async search(params: SeasonSearchParams): Promise<CustomSeason[]> {
+    return MacCmsProviderService.search(
+      this.config.options.danmakuBaseUrl,
+      params.keyword
+    )
+  }
+
+  static async search(
+    baseUrl: string,
+    keyword: string
+  ): Promise<CustomSeason[]> {
+    logger.debug('Searching for', {
       baseUrl,
       keyword,
     })
@@ -50,11 +72,13 @@ export class MacCmsProviderService {
     })
   }
 
-  async fetchDanmakuForUrl(
+  static async fetchDanmakuForUrl(
     title: string,
     url: string,
-    providerConfigId: string
+    providerConfigId: string,
+    danmakuService: DanmakuService
   ) {
+    // TODO: Use the config from the instance
     const config = await providerConfigService.get(providerConfigId)
     if (!config) {
       throw new Error(
@@ -72,6 +96,17 @@ export class MacCmsProviderService {
       url,
       config.options.stripColor
     )
-    return this.danmakuService.importCustom({ title, comments })
+
+    return danmakuService.importCustom({ title, comments })
+  }
+
+  async getEpisodes(
+    _providerIds: unknown
+  ): Promise<OmitSeasonId<EpisodeMeta>[]> {
+    throw new Error('Method not implemented.')
+  }
+
+  async getDanmaku(_request: DanmakuFetchRequest): Promise<CommentEntity[]> {
+    throw new Error('Method not implemented.')
   }
 }

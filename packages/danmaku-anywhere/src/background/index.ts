@@ -1,16 +1,12 @@
 import { configureApiStore } from '@danmaku-anywhere/danmaku-provider'
 import { setupPorts } from '@/background/ports/setupPorts'
-import { BilibiliService } from '@/background/services/BilibiliService'
-import { DanDanPlayService } from '@/background/services/DanDanPlayService'
-import { DanmakuService } from '@/background/services/DanmakuService'
 import { GenAIService } from '@/background/services/GenAIService'
 import { IconService } from '@/background/services/IconService'
 import { KazumiService } from '@/background/services/KazumiService'
-import { MacCmsProviderService } from '@/background/services/MacCmsProviderService'
-import { ProviderService } from '@/background/services/ProviderService'
-import { SeasonService } from '@/background/services/SeasonService'
-import { TencentService } from '@/background/services/TencentService'
-import { TitleMappingService } from '@/background/services/TitleMappingService'
+import { DanmakuService } from '@/background/services/persistence/DanmakuService'
+import { SeasonService } from '@/background/services/persistence/SeasonService'
+import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
+import { ProviderService } from '@/background/services/providers/ProviderService'
 import { deferredConfigureStore } from '@/background/utils/deferredConfigureStore'
 import { generateId } from '@/background/utils/generateId'
 import { EXTENSION_VERSION } from '@/common/constants'
@@ -25,20 +21,11 @@ import { setupOptions } from './syncOptions/setupOptions'
 const seasonService = new SeasonService()
 const danmakuService = new DanmakuService(seasonService)
 
-const danDanPlayService = new DanDanPlayService(seasonService, danmakuService)
-const tencentService = new TencentService(seasonService, danmakuService)
-const bilibiliService = new BilibiliService(seasonService, danmakuService)
-const customProviderService = new MacCmsProviderService(danmakuService)
-
 const titleMappingService = new TitleMappingService()
 const providerService = new ProviderService(
   titleMappingService,
   danmakuService,
-  seasonService,
-  danDanPlayService,
-  bilibiliService,
-  tencentService,
-  customProviderService
+  seasonService
 )
 const kazumiService = new KazumiService()
 const iconService = new IconService()
@@ -57,11 +44,8 @@ setupRpc(
   danmakuService,
   seasonService,
   aiService,
-  bilibiliService,
-  tencentService,
   kazumiService,
-  titleMappingService,
-  customProviderService
+  titleMappingService
 )
 setupNetRequest()
 setupAlarms(danmakuService)
