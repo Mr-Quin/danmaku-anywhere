@@ -37,8 +37,13 @@ jobs:
       - name: Type check
         run: pnpm type-check
 
-      - name: Lint
-        run: pnpm lint:ci
+      - name: Lint (autofix)
+        run: pnpm lint
+
+      - name: Commit lint fixes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "(chore) apply lint autofix"
 
       - name: Test
         run: pnpm test 
