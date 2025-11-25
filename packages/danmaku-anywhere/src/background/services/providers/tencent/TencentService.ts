@@ -31,18 +31,19 @@ export class TencentService implements IDanmakuProvider {
   }
 
   // test if the cookies are working
-  async testCookies() {
-    this.logger.debug('Testing tencent cookies')
+  static async testCookies() {
+    const logger = Logger.sub('[TencentService]')
+    logger.debug('Testing tencent cookies')
     try {
       await tencent.getPageDetails('mzc00200xf3rir6', 'i0046sewh4r')
       return true
     } catch (e) {
       if (e instanceof tencent.TencentApiException) {
         if (e.cookie) {
-          this.logger.debug('Request rejected because of lack of cookies', e)
+          logger.debug('Request rejected because of lack of cookies', e)
         }
       } else {
-        this.logger.error('Test tencent cookies test failed', e)
+        logger.error('Test tencent cookies test failed', e)
       }
       return false
     }

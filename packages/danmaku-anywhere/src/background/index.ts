@@ -6,18 +6,12 @@ import { KazumiService } from '@/background/services/KazumiService'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
-import { BilibiliService } from '@/background/services/providers/bilibili/BilibiliService'
 import { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
 import { ProviderService } from '@/background/services/providers/ProviderService'
-import { TencentService } from '@/background/services/providers/tencent/TencentService'
 import { deferredConfigureStore } from '@/background/utils/deferredConfigureStore'
 import { generateId } from '@/background/utils/generateId'
 import { EXTENSION_VERSION } from '@/common/constants'
-import type {
-  BuiltInBilibiliProvider,
-  BuiltInTencentProvider,
-  CustomMacCmsProvider,
-} from '@/common/options/providerConfig/schema'
+import type { CustomMacCmsProvider } from '@/common/options/providerConfig/schema'
 import { setupAlarms } from './alarm/setupAlarms'
 import { setupContextMenu } from './contextMenu/setupContextMenu'
 import { setupNetRequest } from './netRequest/setupNetrequest'
@@ -29,10 +23,6 @@ import { setupOptions } from './syncOptions/setupOptions'
 const seasonService = new SeasonService()
 const danmakuService = new DanmakuService(seasonService)
 
-// These instances are for RPC / Global methods ONLY.
-// They are initialized with dummy configs because RPC methods don't use the config.
-const tencentService = new TencentService({} as BuiltInTencentProvider)
-const bilibiliService = new BilibiliService({} as BuiltInBilibiliProvider)
 const customProviderService = new MacCmsProviderService(
   danmakuService,
   {} as CustomMacCmsProvider
@@ -61,8 +51,6 @@ setupRpc(
   danmakuService,
   seasonService,
   aiService,
-  bilibiliService,
-  tencentService,
   kazumiService,
   titleMappingService,
   customProviderService

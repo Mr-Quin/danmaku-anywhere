@@ -30,13 +30,13 @@ export class BilibiliService implements IDanmakuProvider {
     this.logger = Logger.sub('[BilibiliService]')
   }
 
-  async setCookies() {
-    this.logger.debug('Setting bilibili cookies')
+  static async setCookies() {
+    Logger.sub('[BilibiliService]').debug('Setting bilibili cookies')
     await bilibili.setCookies()
   }
 
-  async getLoginStatus() {
-    this.logger.debug('Get bilibili login status')
+  static async getLoginStatus() {
+    Logger.sub('[BilibiliService]').debug('Get bilibili login status')
     const result = await bilibili.getCurrentUser()
     return result
   }

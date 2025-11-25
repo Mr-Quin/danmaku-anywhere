@@ -24,12 +24,13 @@ import { findDanDanPlayEpisodeInList } from './episodeMatching'
 export class DanDanPlayService implements IDanmakuProvider {
   private logger: typeof Logger
 
+  private readonly context: danDanPlay.DanDanPlayQueryContext
+
   readonly forProvider = DanmakuSourceType.DanDanPlay
-  private context: danDanPlay.DanDanPlayQueryContext =
-    DanDanPlayMapper.toQueryContext(this.config)
 
   constructor(private config: DanDanPlayProviderConfig) {
     this.logger = Logger.sub('[DDPService]')
+    this.context = DanDanPlayMapper.toQueryContext(this.config)
   }
 
   async search(searchParams: SeasonSearchParams): Promise<SeasonInsert[]> {

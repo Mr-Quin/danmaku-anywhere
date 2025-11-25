@@ -9,9 +9,9 @@ import type { GenAIService } from '@/background/services/GenAIService'
 import type { KazumiService } from '@/background/services/KazumiService'
 import type { SeasonService } from '@/background/services/persistence/SeasonService'
 import type { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
-import type { BilibiliService } from '@/background/services/providers/bilibili/BilibiliService'
+import { BilibiliService } from '@/background/services/providers/bilibili/BilibiliService'
 import type { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
-import type { TencentService } from '@/background/services/providers/tencent/TencentService'
+import { TencentService } from '@/background/services/providers/tencent/TencentService'
 import { invalidateContentScriptData } from '@/background/utils/invalidateContentScriptData'
 import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
 import { db } from '@/common/db/db'
@@ -40,8 +40,6 @@ export const setupRpc = (
   danmakuService: DanmakuService,
   seasonService: SeasonService,
   aiService: GenAIService,
-  bilibiliService: BilibiliService,
-  tencentService: TencentService,
   kazumiService: KazumiService,
   titleMappingService: TitleMappingService,
   customProviderService: MacCmsProviderService
@@ -60,13 +58,13 @@ export const setupRpc = (
       return providerService.findMatchingEpisodes(data)
     },
     bilibiliSetCookies: async () => {
-      return bilibiliService.setCookies()
+      return BilibiliService.setCookies()
     },
     bilibiliGetLoginStatus: async () => {
-      return bilibiliService.getLoginStatus()
+      return BilibiliService.getLoginStatus()
     },
     tencentTestCookies: async () => {
-      return tencentService.testCookies()
+      return TencentService.testCookies()
     },
     iconSet: async (data, sender) => {
       if (sender.tab?.id === undefined) {
