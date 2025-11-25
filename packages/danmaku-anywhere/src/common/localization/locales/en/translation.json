@@ -564,8 +564,10 @@
       "enterKey": "Enter key",
       "openSearchPanel": "Open search panel",
       "refreshComments": "Refresh comments",
+      "toggleDanmakuTimeline": "Show/Hide danmaku density",
       "toggleEnableDanmaku": "Show/Hide danmaku",
       "togglePip": "Picture-in-picture",
+      "toggleSkipButton": "Show/Hide skip button",
       "unmountComments": "Unmount comments"
     },
     "infoPanel": {
@@ -600,6 +602,8 @@
       "player": "Player Settings"
     },
     "player": {
+      "hideDanmakuTimeline": "Hide danmaku density",
+      "hideSkipButton": "Hide skip button (OP/ED)",
       "inPlayerControls": "In-player controls",
       "showDanmakuTimeline": "Show danmaku density",
       "showDanmakuTimelineDesc": "Overlay a comment-density timeline above the scrubber.",

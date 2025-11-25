@@ -285,6 +285,21 @@ export class ExtensionOptionsService implements IStoreService {
             }
           }),
       })
+      .version(28, {
+        upgrade: (data) =>
+          produce<ExtensionOptions>(data, (draft) => {
+            draft.hotkeys = {
+              ...defaultKeymap,
+              ...draft.hotkeys,
+              toggleSkipButton:
+                draft.hotkeys?.toggleSkipButton ??
+                defaultKeymap.toggleSkipButton,
+              toggleDanmakuTimeline:
+                draft.hotkeys?.toggleDanmakuTimeline ??
+                defaultKeymap.toggleDanmakuTimeline,
+            }
+          }),
+      })
   }
 
   async get() {
