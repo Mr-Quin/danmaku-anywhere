@@ -12,6 +12,9 @@
     ]
   },
   "javascript": {
-    "globals": ["chrome"]
+    "globals": ["chrome"],
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    }
   }
 }

@@ -12,6 +12,7 @@ import {
   type WithSeason,
   zCombinedDanmaku,
 } from '@danmaku-anywhere/danmaku-converter'
+import { inject, injectable } from 'inversify'
 import type { SeasonService } from '@/background/services/persistence/SeasonService'
 import type {
   CustomEpisodeQueryFilter,
@@ -24,11 +25,15 @@ import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
 import type { DbEntity } from '@/common/types/dbEntity'
 import { invariant, isServiceWorker, tryCatch } from '@/common/utils/utils'
+import { SERVICE_TYPES } from '../types'
 
+@injectable()
 export class DanmakuService {
   private logger: typeof Logger
 
-  constructor(private seasonService: SeasonService) {
+  constructor(
+    @inject(SERVICE_TYPES.SeasonService) private seasonService: SeasonService
+  ) {
     invariant(
       isServiceWorker(),
       'DanmakuService is only available in service worker'

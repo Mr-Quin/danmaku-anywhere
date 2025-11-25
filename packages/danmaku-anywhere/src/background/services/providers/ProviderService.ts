@@ -7,7 +7,7 @@ import type {
   SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-
+import { inject, injectable } from 'inversify'
 import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import type { SeasonService } from '@/background/services/persistence/SeasonService'
 import type { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
@@ -41,8 +41,9 @@ import { providerConfigService } from '@/common/options/providerConfig/service'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { stripExtension } from '@/common/utils/stripExtension'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
+import { SERVICE_TYPES } from '../types'
 import type { IDanmakuProvider, OmitSeasonId } from './IDanmakuProvider'
-import { ProviderRegistry } from './ProviderRegistry'
+import type { ProviderRegistry } from './ProviderRegistry'
 
 const enrichEpisode = <T extends DanmakuSourceType>(
   episode: OmitSeasonId<ByProvider<EpisodeMeta, T>>,
@@ -55,15 +56,19 @@ const enrichEpisode = <T extends DanmakuSourceType>(
   }
 }
 
+@injectable()
 export class ProviderService {
   private logger: typeof Logger
   private parsers: IDanmakuProvider[] = []
 
   constructor(
+    @inject(SERVICE_TYPES.TitleMappingService)
     private titleMappingService: TitleMappingService,
+    @inject(SERVICE_TYPES.DanmakuService)
     private danmakuService: DanmakuService,
-    private seasonService: SeasonService,
-    private providerRegistry: ProviderRegistry = new ProviderRegistry()
+    @inject(SERVICE_TYPES.SeasonService) private seasonService: SeasonService,
+    @inject(SERVICE_TYPES.ProviderRegistry)
+    private providerRegistry: ProviderRegistry
   ) {
     this.registerFactories()
 

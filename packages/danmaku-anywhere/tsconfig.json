@@ -5,6 +5,8 @@
     "noEmit": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "types": ["chrome", "react-dom", "react", "@types/wicg-file-system-access"],
     "jsx": "react-jsx",
     "paths": {

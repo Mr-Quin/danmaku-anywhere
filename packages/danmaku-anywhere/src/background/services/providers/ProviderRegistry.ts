@@ -1,3 +1,4 @@
+import { injectable } from 'inversify'
 import type { IDanmakuProvider } from '@/background/services/providers/IDanmakuProvider'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
@@ -15,6 +16,7 @@ interface ServiceMap {
   [DanmakuSourceType.MacCMS]: MacCmsProviderService
 }
 
+@injectable()
 export class ProviderRegistry {
   private factories = new Map<DanmakuSourceType, ProviderFactory>()
 

@@ -5,7 +5,9 @@ import {
   kazumiGetChapters,
   kazumiSearch,
 } from '@danmaku-anywhere/web-scraper'
+import { injectable } from 'inversify'
 
+@injectable()
 export class KazumiService {
   async searchContent(
     keyword: string,

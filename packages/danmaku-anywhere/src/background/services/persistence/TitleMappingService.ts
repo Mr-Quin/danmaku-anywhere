@@ -1,8 +1,10 @@
+import { injectable } from 'inversify'
 import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
+@injectable()
 export class TitleMappingService {
   private logger: typeof Logger
 
