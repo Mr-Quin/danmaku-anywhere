@@ -116,10 +116,10 @@ export class TencentService implements IDanmakuProvider {
 
     assertProviderType(meta, DanmakuSourceType.Tencent)
 
-    return this.saveEpisode(meta)
+    return this.getDanmakuInternal(meta)
   }
 
-  private async saveEpisode(
+  private async getDanmakuInternal(
     meta: WithSeason<TencentOf<EpisodeMeta>>
   ): Promise<CommentEntity[]> {
     const comments = await this.fetchDanmaku(meta.providerIds.vid)

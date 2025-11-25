@@ -20,34 +20,30 @@ import type {
   SeasonSearchParams,
 } from './IDanmakuProvider'
 
-export class MacCmsProviderService implements IDanmakuProvider {
-  private logger: typeof Logger
+const logger = Logger.sub('[MacCmsProviderService]')
 
+export class MacCmsProviderService implements IDanmakuProvider {
   readonly forProvider = DanmakuSourceType.MacCMS
 
-  constructor(
-    private danmakuService: DanmakuService,
-    private config: CustomMacCmsProvider
-  ) {
+  constructor(private config: CustomMacCmsProvider) {
     invariant(
       isServiceWorker(),
       'MacCmsProviderService is only available in service worker'
     )
-    this.logger = Logger.sub('[MacCmsProviderService]')
   }
 
   async search(params: SeasonSearchParams): Promise<CustomSeason[]> {
-    return this.searchInternal(
+    return MacCmsProviderService.search(
       this.config.options.danmakuBaseUrl,
       params.keyword
     )
   }
 
-  async searchInternal(
+  static async search(
     baseUrl: string,
     keyword: string
   ): Promise<CustomSeason[]> {
-    this.logger.debug('Searching for', {
+    logger.debug('Searching for', {
       baseUrl,
       keyword,
     })
@@ -76,10 +72,11 @@ export class MacCmsProviderService implements IDanmakuProvider {
     })
   }
 
-  async fetchDanmakuForUrl(
+  static async fetchDanmakuForUrl(
     title: string,
     url: string,
-    providerConfigId: string
+    providerConfigId: string,
+    danmakuService: DanmakuService
   ) {
     // TODO: Use the config from the instance
     const config = await providerConfigService.get(providerConfigId)
@@ -100,7 +97,7 @@ export class MacCmsProviderService implements IDanmakuProvider {
       config.options.stripColor
     )
 
-    return this.danmakuService.importCustom({ title, comments })
+    return danmakuService.importCustom({ title, comments })
   }
 
   async getEpisodes(

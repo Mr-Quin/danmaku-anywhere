@@ -89,7 +89,7 @@ export class ProviderService {
     )
     this.providerRegistry.register<CustomMacCmsProvider>(
       DanmakuSourceType.MacCMS,
-      (config) => new MacCmsProviderService(this.danmakuService, config)
+      (config) => new MacCmsProviderService(config)
     )
   }
 
@@ -342,7 +342,15 @@ export class ProviderService {
 
     const foundSeasonInserts = (await service.search({
       keyword: title,
-    })) as SeasonInsert[] // TODO: unsafe, fix this once we fold custom seasons into the season insert
+    })) as SeasonInsert[] // fixme: unsafe, fix this once we fold custom seasons into the season insert
+
+    // check if the cast is custom
+    if (
+      foundSeasonInserts[0] &&
+      isProvider(foundSeasonInserts[0], DanmakuSourceType.MacCMS)
+    ) {
+      throw new Error('Custom season found, but not supported')
+    }
 
     const foundSeasons = await this.seasonService.bulkUpsert(foundSeasonInserts)
 

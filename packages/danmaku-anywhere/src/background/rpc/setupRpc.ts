@@ -10,7 +10,7 @@ import type { KazumiService } from '@/background/services/KazumiService'
 import type { SeasonService } from '@/background/services/persistence/SeasonService'
 import type { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
 import { BilibiliService } from '@/background/services/providers/bilibili/BilibiliService'
-import type { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
+import { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
 import { TencentService } from '@/background/services/providers/tencent/TencentService'
 import { invalidateContentScriptData } from '@/background/utils/invalidateContentScriptData'
 import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
@@ -41,8 +41,7 @@ export const setupRpc = (
   seasonService: SeasonService,
   aiService: GenAIService,
   kazumiService: KazumiService,
-  titleMappingService: TitleMappingService,
-  customProviderService: MacCmsProviderService
+  titleMappingService: TitleMappingService
 ) => {
   const rpcServer = createRpcServer<BackgroundMethods>({
     seasonSearch: async (input) => {
@@ -223,13 +222,14 @@ export const setupRpc = (
       return kazumiService.getChapters(url, policy)
     },
     genericVodSearch: async ({ baseUrl, keyword }) => {
-      return customProviderService.searchInternal(baseUrl, keyword)
+      return MacCmsProviderService.search(baseUrl, keyword)
     },
     genericFetchDanmakuForUrl: async ({ title, url, providerConfigId }) => {
-      return customProviderService.fetchDanmakuForUrl(
+      return MacCmsProviderService.fetchDanmakuForUrl(
         title,
         url,
-        providerConfigId
+        providerConfigId,
+        danmakuService
       )
     },
     setHeaders: async (rule) => {

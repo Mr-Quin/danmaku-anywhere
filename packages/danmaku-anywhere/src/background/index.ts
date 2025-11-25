@@ -6,12 +6,10 @@ import { KazumiService } from '@/background/services/KazumiService'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
-import { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
 import { ProviderService } from '@/background/services/providers/ProviderService'
 import { deferredConfigureStore } from '@/background/utils/deferredConfigureStore'
 import { generateId } from '@/background/utils/generateId'
 import { EXTENSION_VERSION } from '@/common/constants'
-import type { CustomMacCmsProvider } from '@/common/options/providerConfig/schema'
 import { setupAlarms } from './alarm/setupAlarms'
 import { setupContextMenu } from './contextMenu/setupContextMenu'
 import { setupNetRequest } from './netRequest/setupNetrequest'
@@ -22,11 +20,6 @@ import { setupOptions } from './syncOptions/setupOptions'
 // dependency injection
 const seasonService = new SeasonService()
 const danmakuService = new DanmakuService(seasonService)
-
-const customProviderService = new MacCmsProviderService(
-  danmakuService,
-  {} as CustomMacCmsProvider
-)
 
 const titleMappingService = new TitleMappingService()
 const providerService = new ProviderService(
@@ -52,8 +45,7 @@ setupRpc(
   seasonService,
   aiService,
   kazumiService,
-  titleMappingService,
-  customProviderService
+  titleMappingService
 )
 setupNetRequest()
 setupAlarms(danmakuService)

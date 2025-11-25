@@ -130,7 +130,7 @@ export class BilibiliService implements IDanmakuProvider {
     const { meta } = request
     assertProviderType(meta, DanmakuSourceType.Bilibili)
 
-    return this.saveEpisode(meta)
+    return this.getDanmakuInternal(meta)
   }
 
   async getSeason(
@@ -147,7 +147,7 @@ export class BilibiliService implements IDanmakuProvider {
     return season
   }
 
-  private async saveEpisode(
+  private async getDanmakuInternal(
     meta: WithSeason<BilibiliOf<EpisodeMeta>>
   ): Promise<CommentEntity[]> {
     const { cid, aid } = meta.providerIds
