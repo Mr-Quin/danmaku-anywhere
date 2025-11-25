@@ -321,6 +321,8 @@ const pages = {
         refreshComments: '刷新弹幕',
         unmountComments: '卸载弹幕',
         togglePip: '画中画（实验）',
+        toggleSkipButton: '显示/隐藏跳过按钮',
+        toggleDanmakuTimeline: '显示/隐藏弹幕密度',
       },
     },
     help: {
@@ -332,7 +334,9 @@ const pages = {
     },
     player: {
       showSkipButton: '显示跳过按钮（OP/ED）',
+      hideSkipButton: '隐藏跳过按钮（OP/ED）',
       showDanmakuTimeline: '显示弹幕密度',
+      hideDanmakuTimeline: '隐藏弹幕密度',
     },
     pages: {
       theme: 'UI主题',

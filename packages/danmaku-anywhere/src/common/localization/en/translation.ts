@@ -326,6 +326,8 @@ const pages = {
         refreshComments: 'Refresh Comments',
         unmountComments: 'Unmount Comments',
         togglePip: 'Enter Picture-in-Picture (Experimental)',
+        toggleSkipButton: 'Show/Hide skip button',
+        toggleDanmakuTimeline: 'Show/Hide danmaku density',
       },
     },
     help: {
@@ -337,7 +339,9 @@ const pages = {
     },
     player: {
       showSkipButton: 'Show skip button (OP/ED)',
+      hideSkipButton: 'Hide skip button (OP/ED)',
       showDanmakuTimeline: 'Show danmaku density',
+      hideDanmakuTimeline: 'Hide danmaku density',
     },
     pages: {
       theme: 'UI Theme',

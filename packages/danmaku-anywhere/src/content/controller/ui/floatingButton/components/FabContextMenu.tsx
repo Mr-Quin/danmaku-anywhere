@@ -1,7 +1,9 @@
 import {
   Eject,
   PictureInPicture,
+  SkipNext,
   Sync,
+  Timeline,
   Visibility,
   VisibilityOff,
 } from '@mui/icons-material'
@@ -10,6 +12,7 @@ import { MenuList, Paper, Popper } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
 import { useHotkeyOptions } from '@/common/options/extensionOptions/useHotkeyOptions'
+import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useShowDanmaku } from '@/content/controller/common/hooks/useShowDanmaku'
@@ -47,8 +50,28 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
   const { refreshComments, loadMutation, canRefresh } = useLoadDanmaku()
 
   const { getKeyCombo } = useHotkeyOptions()
+  const { data: extensionOptions, partialUpdate } = useExtensionOptions()
 
   const isLoading = loadMutation.isPending
+  const playerOptions = extensionOptions.playerOptions
+
+  const toggleSkipButton = () => {
+    void partialUpdate({
+      playerOptions: {
+        ...playerOptions,
+        showSkipButton: !playerOptions.showSkipButton,
+      },
+    })
+  }
+
+  const toggleDanmakuTimeline = () => {
+    void partialUpdate({
+      playerOptions: {
+        ...playerOptions,
+        showDanmakuTimeline: !playerOptions.showDanmakuTimeline,
+      },
+    })
+  }
 
   const menuItems: ContextMenuItemProps[] = [
     {
@@ -75,6 +98,24 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
         ),
       label: () => (isVisible ? t('danmaku.disable') : t('danmaku.enable')),
       hotkey: getKeyCombo('toggleEnableDanmaku'),
+    },
+    {
+      action: toggleSkipButton,
+      icon: () => <SkipNext fontSize="small" />,
+      label: () =>
+        playerOptions.showSkipButton
+          ? t('optionsPage.player.hideSkipButton')
+          : t('optionsPage.player.showSkipButton'),
+      hotkey: getKeyCombo('toggleSkipButton'),
+    },
+    {
+      action: toggleDanmakuTimeline,
+      icon: () => <Timeline fontSize="small" />,
+      label: () =>
+        playerOptions.showDanmakuTimeline
+          ? t('optionsPage.player.hideDanmakuTimeline')
+          : t('optionsPage.player.showDanmakuTimeline'),
+      hotkey: getKeyCombo('toggleDanmakuTimeline'),
     },
     {
       action: () => enterPip(),
