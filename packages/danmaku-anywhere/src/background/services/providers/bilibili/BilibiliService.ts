@@ -2,7 +2,7 @@ import type {
   BilibiliOf,
   Episode,
   EpisodeMeta,
-  Season,
+  SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { BiliBiliSearchParams } from '@danmaku-anywhere/danmaku-provider/bilibili'
@@ -39,7 +39,7 @@ export class BilibiliService implements IDanmakuProvider {
     return result
   }
 
-  async search(params: SeasonSearchParams): Promise<BilibiliOf<Season>[]> {
+  async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
     const searchParams: BiliBiliSearchParams = {
       keyword: params.keyword,
     }
@@ -47,8 +47,7 @@ export class BilibiliService implements IDanmakuProvider {
     const result = await bilibili.searchMedia(searchParams)
     this.logger.debug('Search result', result)
 
-    const seasons = result.map(BilibiliMapper.toSeasonInsert)
-    return this.seasonService.bulkUpsert(seasons)
+    return result.map(BilibiliMapper.toSeasonInsert)
   }
 
   async getBangumiInfo({

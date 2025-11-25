@@ -3,6 +3,7 @@ import type {
   Episode,
   EpisodeMeta,
   Season,
+  SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
@@ -12,7 +13,7 @@ export interface SeasonSearchParams {
 }
 
 export interface IDanmakuProvider {
-  search(params: SeasonSearchParams): Promise<Season[] | CustomSeason[]>
+  search(params: SeasonSearchParams): Promise<SeasonInsert[] | CustomSeason[]>
 
   getEpisodes(seasonId: number): Promise<WithSeason<EpisodeMeta>[]>
 

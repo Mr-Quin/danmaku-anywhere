@@ -3,6 +3,7 @@ import type {
   Episode,
   EpisodeMeta,
   Season,
+  SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 
@@ -21,7 +22,7 @@ import type {
 } from '@/common/anime/dto'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { isNotCustom } from '@/common/danmaku/utils'
+import { isNotCustom, isProvider } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import type {
@@ -116,7 +117,12 @@ export class ProviderService {
 
     const service = this.providerRegistry.create(providerConfig)
 
-    return service.search(params)
+    const seasons = await service.search(params)
+    // TODO: fix this once we fold custom seasons into the season insert
+    if (seasons[0] && isProvider(seasons[0], DanmakuSourceType.MacCMS)) {
+      return seasons as CustomSeason[]
+    }
+    return this.seasonService.bulkUpsert(seasons as SeasonInsert[])
   }
 
   async fetchEpisodesBySeason(seasonId: number) {
@@ -296,9 +302,11 @@ export class ProviderService {
 
     const service = this.providerRegistry.create(automaticProvider)
 
-    const foundSeasons = await service.search({
+    const foundSeasonInserts = (await service.search({
       keyword: title,
-    })
+    })) as SeasonInsert[] // TODO: unsafe, fix this once we fold custom seasons into the season insert
+
+    const foundSeasons = await this.seasonService.bulkUpsert(foundSeasonInserts)
 
     if (foundSeasons.length === 0) {
       this.logger.debug(`No season found for title: ${title}`)

@@ -31,9 +31,7 @@ export class DanDanPlayService implements IDanmakuProvider {
     this.logger = Logger.sub('[DDPService]')
   }
 
-  async search(
-    searchParams: SeasonSearchParams
-  ): Promise<DanDanPlayOf<Season>[]> {
+  async search(searchParams: SeasonSearchParams): Promise<SeasonInsert[]> {
     this.logger.debug('Searching DanDanPlay', searchParams, this.config)
     const context = DanDanPlayMapper.toQueryContext(this.config)
 
@@ -43,11 +41,9 @@ export class DanDanPlayService implements IDanmakuProvider {
     )
     this.logger.debug('Search result', result)
 
-    const seasons = result.map((item) =>
+    return result.map((item) =>
       DanDanPlayMapper.searchResultToSeasonInsert(item, this.config.id)
     )
-
-    return this.seasonService.bulkUpsert(seasons)
   }
 
   async getSeason(bangumiId: string) {

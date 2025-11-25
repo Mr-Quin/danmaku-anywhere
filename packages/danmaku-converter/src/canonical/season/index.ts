@@ -9,7 +9,8 @@ export const SEASON_SCHEMA_VERSION = 1
 export type Season = SeasonV1
 export type SeasonInsert = SeasonInsertV1
 // Not a real season, only used to represent a group of custom episodes
-export type CustomSeason = DbEntity<z.infer<typeof zBaseSeasonV1>> & {
+export type CustomSeasonInsert = z.infer<typeof zBaseSeasonV1> & {
   provider: DanmakuSourceType.MacCMS
   providerIds: {}
 }
+export type CustomSeason = DbEntity<CustomSeasonInsert>

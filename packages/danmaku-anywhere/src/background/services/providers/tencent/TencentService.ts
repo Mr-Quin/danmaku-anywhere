@@ -2,6 +2,7 @@ import type {
   Episode,
   EpisodeMeta,
   Season,
+  SeasonInsert,
   TencentOf,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
@@ -46,14 +47,13 @@ export class TencentService implements IDanmakuProvider {
     }
   }
 
-  async search(params: SeasonSearchParams): Promise<TencentOf<Season>[]> {
+  async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
     const kw = params.keyword
     this.logger.debug('Search tencent', kw)
     const result = await tencent.searchMedia({ query: kw })
     this.logger.debug('Search result', result)
 
-    const seasons = result.map(TencentMapper.toSeasonInsert)
-    return this.seasonService.bulkUpsert(seasons)
+    return result.map(TencentMapper.toSeasonInsert)
   }
 
   async getEpisodes(
