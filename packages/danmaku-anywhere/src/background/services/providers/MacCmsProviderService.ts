@@ -13,7 +13,7 @@ import { Logger } from '@/common/Logger'
 import type { CustomMacCmsProvider } from '@/common/options/providerConfig/schema'
 import { providerConfigService } from '@/common/options/providerConfig/service'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
-import { DanmakuService } from '../persistence/DanmakuService'
+import type { DanmakuService } from '../persistence/DanmakuService'
 import type {
   IDanmakuProvider,
   OmitSeasonId,
