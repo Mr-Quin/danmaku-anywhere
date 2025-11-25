@@ -10,9 +10,8 @@ import {
 import type { PopperProps } from '@mui/material'
 import { MenuList, Paper, Popper } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-
-import { useHotkeyOptions } from '@/common/options/extensionOptions/useHotkeyOptions'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
+import { useHotkeyOptions } from '@/common/options/extensionOptions/useHotkeyOptions'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useShowDanmaku } from '@/content/controller/common/hooks/useShowDanmaku'
