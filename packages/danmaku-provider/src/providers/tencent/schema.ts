@@ -154,6 +154,10 @@ export const zTencentPageDetailResponse = zTencentApiResponseBase.extend({
     .optional(),
 })
 
+export type TencentPageDetailResponse = z.infer<
+  typeof zTencentPageDetailResponse
+>
+
 export const zTencentCommentSegment = z.object({
   segment_start: z.coerce.number(),
   segment_span: z.coerce.number(),

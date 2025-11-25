@@ -6,13 +6,13 @@ import type {
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 
-import type { DanmakuService } from '@/background/services/DanmakuService'
-import type { MacCmsProviderService } from '@/background/services/MacCmsProviderService'
+import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
+import type { SeasonService } from '@/background/services/persistence/SeasonService'
+import type { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
 import type { BilibiliService } from '@/background/services/providers/bilibili/BilibiliService'
 import type { DanDanPlayService } from '@/background/services/providers/dandanplay/DanDanPlayService'
+import type { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
 import type { TencentService } from '@/background/services/providers/tencent/TencentService'
-import type { SeasonService } from '@/background/services/SeasonService'
-import type { TitleMappingService } from '@/background/services/TitleMappingService'
 import type {
   MatchEpisodeInput,
   MatchEpisodeResult,
@@ -29,7 +29,7 @@ import { providerConfigService } from '@/common/options/providerConfig/service'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { stripExtension } from '@/common/utils/stripExtension'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
-import { ProviderRegistry } from './providers/ProviderRegistry'
+import { ProviderRegistry } from './ProviderRegistry'
 
 export class ProviderService {
   private logger: typeof Logger

@@ -9,9 +9,13 @@ import {
 } from '@danmaku-anywhere/danmaku-converter'
 import type {
   TencentEpisodeListItem,
+  TencentPageDetailResponse,
   TencentVideoSeason,
 } from '@danmaku-anywhere/danmaku-provider/tencent'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
+
+type TencentSeasonItem =
+  Required<TencentPageDetailResponse>['data']['module_list_datas'][number]['module_datas'][0]['item_data_lists']['item_datas'][0]
 
 export class TencentMapper {
   static toSeasonInsert(data: TencentVideoSeason): TencentOf<SeasonInsert> {
@@ -51,8 +55,9 @@ export class TencentMapper {
     }
   }
 
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  static pageDetailsToSeasonInsert(foundSeason: any): TencentOf<SeasonInsert> {
+  static pageDetailsToSeasonInsert(
+    foundSeason: TencentSeasonItem
+  ): TencentOf<SeasonInsert> {
     return {
       provider: DanmakuSourceType.Tencent,
       providerConfigId: PROVIDER_TO_BUILTIN_ID.Tencent,

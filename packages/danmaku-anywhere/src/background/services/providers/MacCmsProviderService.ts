@@ -16,8 +16,8 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { providerConfigService } from '@/common/options/providerConfig/service'
 import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
-import type { DanmakuService } from './DanmakuService'
-import type { IDanmakuProvider } from './providers/IDanmakuProvider'
+import type { DanmakuService } from '../persistence/DanmakuService'
+import type { IDanmakuProvider } from './IDanmakuProvider'
 
 export class MacCmsProviderService implements IDanmakuProvider {
   private logger: typeof Logger

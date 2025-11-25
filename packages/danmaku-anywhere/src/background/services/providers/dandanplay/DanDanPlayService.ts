@@ -8,8 +8,8 @@ import type {
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
-import type { DanmakuService } from '@/background/services/DanmakuService'
-import type { SeasonService } from '@/background/services/SeasonService'
+import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
+import type { SeasonService } from '@/background/services/persistence/SeasonService'
 import type { SeasonSearchParams } from '@/common/anime/dto'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'

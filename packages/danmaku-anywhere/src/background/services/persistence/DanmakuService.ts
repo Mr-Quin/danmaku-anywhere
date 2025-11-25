@@ -12,7 +12,7 @@ import {
   type WithSeason,
   zCombinedDanmaku,
 } from '@danmaku-anywhere/danmaku-converter'
-import type { SeasonService } from '@/background/services/SeasonService'
+import type { SeasonService } from '@/background/services/persistence/SeasonService'
 import type {
   CustomEpisodeQueryFilter,
   DanmakuImportData,
