@@ -21,6 +21,7 @@ import type {
 } from '@/common/anime/dto'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
+import { isNotCustom } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
@@ -261,14 +262,13 @@ export class ProviderService {
 
     const service = this.providerRegistry.mustGet(automaticProvider.impl)
 
-    // biome-ignore lint/suspicious/noExplicitAny: unknown type
-    const foundSeasons = (await service.search(
+    const foundSeasons = await service.search(
       {
         keyword: title,
         providerConfigId: automaticProvider.id,
       },
       automaticProvider
-    )) as any[]
+    )
 
     if (foundSeasons.length === 0) {
       this.logger.debug(`No season found for title: ${title}`)
@@ -279,15 +279,17 @@ export class ProviderService {
     }
 
     if (foundSeasons.length === 1) {
-      this.logger.debug('Single season found', foundSeasons[0])
+      const firstSeason = foundSeasons[0] as Season
+
+      this.logger.debug('Single season found', firstSeason)
 
       await this.titleMappingService.add(
-        SeasonMap.fromSeason(mapKey, foundSeasons[0])
+        SeasonMap.fromSeason(mapKey, firstSeason)
       )
 
       return {
         status: 'success',
-        data: await findEpisodeInSeason(foundSeasons[0]),
+        data: await findEpisodeInSeason(firstSeason),
       }
     }
 
@@ -297,7 +299,7 @@ export class ProviderService {
     )
     return {
       status: 'disambiguation',
-      data: foundSeasons,
+      data: foundSeasons.filter(isNotCustom),
     }
   }
 
