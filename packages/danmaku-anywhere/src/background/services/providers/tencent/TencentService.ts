@@ -1,5 +1,5 @@
 import type {
-  Episode,
+  CommentEntity,
   EpisodeMeta,
   Season,
   SeasonInsert,
@@ -8,8 +8,6 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import type { TencentEpisodeListItem } from '@danmaku-anywhere/danmaku-provider/tencent'
 import * as tencent from '@danmaku-anywhere/danmaku-provider/tencent'
-import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
-import type { SeasonService } from '@/background/services/persistence/SeasonService'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
@@ -28,11 +26,7 @@ export class TencentService implements IDanmakuProvider {
 
   readonly forProvider = DanmakuSourceType.Tencent
 
-  constructor(
-    private seasonService: SeasonService,
-    private danmakuService: DanmakuService,
-    _config: BuiltInTencentProvider
-  ) {
+  constructor(_config: BuiltInTencentProvider) {
     this.logger = Logger.sub('[TencentService]')
   }
 
@@ -64,12 +58,12 @@ export class TencentService implements IDanmakuProvider {
   }
 
   async getEpisodes(
-    providerIds: TencentOf<Season>['providerIds']
+    seasonRemoteIds: TencentOf<Season>['providerIds']
   ): Promise<OmitSeasonId<TencentOf<EpisodeMeta>>[]> {
-    this.logger.debug('Get episode', providerIds)
+    this.logger.debug('Get episode', seasonRemoteIds)
 
     const generator = tencent.listEpisodes({
-      cid: providerIds.cid,
+      cid: seasonRemoteIds.cid,
       vid: '',
     })
 
@@ -85,33 +79,14 @@ export class TencentService implements IDanmakuProvider {
     })
   }
 
-  /**
-   * We need both the cid and vid to refresh the season info.
-   * We can get the cid from the season info.
-   * We can get the vid from the episode info, so there must be at least one episode in the season.
-   */
-  async refreshSeason(season: Season) {
-    const id = season.id
-    const seasonData = await this.seasonService.getByType(
-      id,
-      DanmakuSourceType.Tencent
-    )
-
-    const episodes = await this.danmakuService.filter({
-      provider: DanmakuSourceType.Tencent,
-      seasonId: id,
-    })
-
-    if (!episodes.length) {
-      throw new Error(
-        'There must be at least one episode in the season to refresh'
-      )
+  async getSeason(
+    seasonRemoteIds: TencentOf<Season>['providerIds']
+  ): Promise<SeasonInsert | null> {
+    const { season } = await this.getPageDetails(seasonRemoteIds.cid, '')
+    if (!season) {
+      return null
     }
-
-    const episode = episodes[0]
-    assertProviderType(episode, DanmakuSourceType.Tencent)
-
-    await this.getPageDetails(seasonData.providerIds.cid, '')
+    return season
   }
 
   async getPageDetails(cid: string, vid: string) {
@@ -135,28 +110,19 @@ export class TencentService implements IDanmakuProvider {
     return { pageDetails }
   }
 
-  async getDanmaku(
-    request: DanmakuFetchRequest
-  ): Promise<WithSeason<TencentOf<Episode>>> {
+  async getDanmaku(request: DanmakuFetchRequest): Promise<CommentEntity[]> {
     const { meta } = request
+
     assertProviderType(meta, DanmakuSourceType.Tencent)
+
     return this.saveEpisode(meta)
   }
 
   private async saveEpisode(
     meta: WithSeason<TencentOf<EpisodeMeta>>
-  ): Promise<WithSeason<TencentOf<Episode>>> {
+  ): Promise<CommentEntity[]> {
     const comments = await this.fetchDanmaku(meta.providerIds.vid)
-    const saved = await this.danmakuService.upsert({
-      ...meta,
-      comments,
-      commentCount: comments.length,
-    })
-
-    return {
-      ...saved,
-      season: meta.season,
-    }
+    return comments
   }
 
   private async fetchDanmaku(vid: string) {

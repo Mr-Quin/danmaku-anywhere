@@ -31,16 +31,8 @@ const danmakuService = new DanmakuService(seasonService)
 
 // These instances are for RPC / Global methods ONLY.
 // They are initialized with dummy configs because RPC methods don't use the config.
-const tencentService = new TencentService(
-  seasonService,
-  danmakuService,
-  {} as BuiltInTencentProvider
-)
-const bilibiliService = new BilibiliService(
-  seasonService,
-  danmakuService,
-  {} as BuiltInBilibiliProvider
-)
+const tencentService = new TencentService({} as BuiltInTencentProvider)
+const bilibiliService = new BilibiliService({} as BuiltInBilibiliProvider)
 const customProviderService = new MacCmsProviderService(
   danmakuService,
   {} as CustomMacCmsProvider

@@ -1,7 +1,7 @@
 import type {
+  CommentEntity,
   CustomSeason,
   DanmakuSourceType,
-  Episode,
   EpisodeMeta,
   Season,
   SeasonInsert,
@@ -25,13 +25,15 @@ export interface IDanmakuProvider {
 
   search(params: SeasonSearchParams): Promise<SeasonInsert[] | CustomSeason[]>
 
+  getSeason?(
+    seasonRemoteIds: Season['providerIds']
+  ): Promise<SeasonInsert | null>
+
   getEpisodes(
-    providerIds: Season['providerIds']
+    seasonRemoteIds: Season['providerIds']
   ): Promise<OmitSeasonId<EpisodeMeta>[]>
 
-  getDanmaku(request: DanmakuFetchRequest): Promise<WithSeason<Episode>>
-
-  refreshSeason?(season: Season): Promise<void>
+  getDanmaku(request: DanmakuFetchRequest): Promise<CommentEntity[]>
 
   preloadNextEpisode?(request: DanmakuFetchRequest): Promise<void>
 

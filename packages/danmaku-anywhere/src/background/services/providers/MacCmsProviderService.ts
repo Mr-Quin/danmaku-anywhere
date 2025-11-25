@@ -1,8 +1,7 @@
 import type {
+  CommentEntity,
   CustomSeason,
-  Episode,
   EpisodeMeta,
-  WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import {
   fetchDanmuIcuComments,
@@ -100,6 +99,7 @@ export class MacCmsProviderService implements IDanmakuProvider {
       url,
       config.options.stripColor
     )
+
     return this.danmakuService.importCustom({ title, comments })
   }
 
@@ -109,9 +109,7 @@ export class MacCmsProviderService implements IDanmakuProvider {
     throw new Error('Method not implemented.')
   }
 
-  async getDanmaku(
-    _request: DanmakuFetchRequest
-  ): Promise<WithSeason<Episode>> {
+  async getDanmaku(_request: DanmakuFetchRequest): Promise<CommentEntity[]> {
     throw new Error('Method not implemented.')
   }
 }

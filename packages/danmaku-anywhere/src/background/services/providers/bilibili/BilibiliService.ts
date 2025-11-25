@@ -1,6 +1,6 @@
 import type {
   BilibiliOf,
-  Episode,
+  CommentEntity,
   EpisodeMeta,
   Season,
   SeasonInsert,
@@ -8,8 +8,6 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import type { BiliBiliSearchParams } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import * as bilibili from '@danmaku-anywhere/danmaku-provider/bilibili'
-import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
-import type { SeasonService } from '@/background/services/persistence/SeasonService'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
@@ -28,11 +26,7 @@ export class BilibiliService implements IDanmakuProvider {
 
   readonly forProvider = DanmakuSourceType.Bilibili
 
-  constructor(
-    public seasonService: SeasonService,
-    private danmakuService: DanmakuService,
-    private config: BuiltInBilibiliProvider
-  ) {
+  constructor(private config: BuiltInBilibiliProvider) {
     this.logger = Logger.sub('[BilibiliService]')
   }
 
@@ -118,12 +112,12 @@ export class BilibiliService implements IDanmakuProvider {
   }
 
   async getEpisodes(
-    providerIds: BilibiliOf<Season>['providerIds']
+    seasonRemoteIds: BilibiliOf<Season>['providerIds']
   ): Promise<OmitSeasonId<BilibiliOf<EpisodeMeta>>[]> {
-    this.logger.debug('Get bangumi info', providerIds)
+    this.logger.debug('Get bangumi info', seasonRemoteIds)
 
     const result = await bilibili.getBangumiInfo({
-      seasonId: providerIds.seasonId,
+      seasonId: seasonRemoteIds.seasonId,
     })
     this.logger.debug('Get bangumi info result', result)
 
@@ -132,31 +126,34 @@ export class BilibiliService implements IDanmakuProvider {
     })
   }
 
-  async getDanmaku(
-    request: DanmakuFetchRequest
-  ): Promise<WithSeason<BilibiliOf<Episode>>> {
+  async getDanmaku(request: DanmakuFetchRequest): Promise<CommentEntity[]> {
     const { meta } = request
     assertProviderType(meta, DanmakuSourceType.Bilibili)
 
     return this.saveEpisode(meta)
   }
 
+  async getSeason(
+    seasonRemoteIds: BilibiliOf<Season>['providerIds']
+  ): Promise<SeasonInsert | null> {
+    const { season } = await this.getBangumiInfo({
+      seasonId: seasonRemoteIds.seasonId,
+    })
+
+    if (!season) {
+      return null
+    }
+
+    return season
+  }
+
   private async saveEpisode(
     meta: WithSeason<BilibiliOf<EpisodeMeta>>
-  ): Promise<WithSeason<BilibiliOf<Episode>>> {
+  ): Promise<CommentEntity[]> {
     const { cid, aid } = meta.providerIds
     const comments = await this.fetchDanmaku({ cid, aid })
 
-    const saved = await this.danmakuService.upsert({
-      ...meta,
-      comments,
-      commentCount: comments.length,
-    })
-
-    return {
-      ...saved,
-      season: meta.season,
-    }
+    return comments
   }
 
   private async fetchDanmaku(ids: { cid: number; aid?: number }) {

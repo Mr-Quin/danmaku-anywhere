@@ -77,18 +77,15 @@ export class ProviderService {
   private registerFactories() {
     this.providerRegistry.register<DanDanPlayProviderConfig>(
       DanmakuSourceType.DanDanPlay,
-      (config) =>
-        new DanDanPlayService(this.seasonService, this.danmakuService, config)
+      (config) => new DanDanPlayService(config)
     )
     this.providerRegistry.register<BuiltInBilibiliProvider>(
       DanmakuSourceType.Bilibili,
-      (config) =>
-        new BilibiliService(this.seasonService, this.danmakuService, config)
+      (config) => new BilibiliService(config)
     )
     this.providerRegistry.register<BuiltInTencentProvider>(
       DanmakuSourceType.Tencent,
-      (config) =>
-        new TencentService(this.seasonService, this.danmakuService, config)
+      (config) => new TencentService(config)
     )
     this.providerRegistry.register<CustomMacCmsProvider>(
       DanmakuSourceType.MacCMS,
@@ -103,21 +100,9 @@ export class ProviderService {
       const ddpConfig = await providerConfigService.getBuiltInDanDanPlay()
 
       this.parsers = [
-        new BilibiliService(
-          this.seasonService,
-          this.danmakuService,
-          bilibiliConfig
-        ),
-        new TencentService(
-          this.seasonService,
-          this.danmakuService,
-          tencentConfig
-        ),
-        new DanDanPlayService(
-          this.seasonService,
-          this.danmakuService,
-          ddpConfig
-        ),
+        new BilibiliService(bilibiliConfig),
+        new TencentService(tencentConfig),
+        new DanDanPlayService(ddpConfig),
       ]
     } catch (e) {
       this.logger.error('Failed to init parsers', e)
@@ -152,7 +137,7 @@ export class ProviderService {
     const providerConfig = await providerConfigService.mustGet(
       season.providerConfigId
     )
-    const service = this.providerRegistry.create(providerConfig)
+    const service = this.providerRegistry.createTyped(providerConfig)
 
     const enrichEpisodes = <T extends DanmakuSourceType>(
       episodes: OmitSeasonId<ByProvider<EpisodeMeta, T>>[],
@@ -164,27 +149,17 @@ export class ProviderService {
     switch (service.forProvider) {
       case DanmakuSourceType.DanDanPlay: {
         assertProviderType(season, DanmakuSourceType.DanDanPlay)
-        const episodes = (await service.getEpisodes(
-          season.providerIds
-        )) as OmitSeasonId<
-          ByProvider<EpisodeMeta, DanmakuSourceType.DanDanPlay>
-        >[]
+        const episodes = await service.getEpisodes(season.providerIds)
         return enrichEpisodes(episodes, season)
       }
       case DanmakuSourceType.Bilibili: {
         assertProviderType(season, DanmakuSourceType.Bilibili)
-        const episodes = (await service.getEpisodes(
-          season.providerIds
-        )) as OmitSeasonId<
-          ByProvider<EpisodeMeta, DanmakuSourceType.Bilibili>
-        >[]
+        const episodes = await service.getEpisodes(season.providerIds)
         return enrichEpisodes(episodes, season)
       }
       case DanmakuSourceType.Tencent: {
         assertProviderType(season, DanmakuSourceType.Tencent)
-        const episodes = (await service.getEpisodes(
-          season.providerIds
-        )) as OmitSeasonId<ByProvider<EpisodeMeta, DanmakuSourceType.Tencent>>[]
+        const episodes = await service.getEpisodes(season.providerIds)
         return enrichEpisodes(episodes, season)
       }
       case DanmakuSourceType.MacCMS: {
@@ -201,8 +176,15 @@ export class ProviderService {
     )
 
     const service = this.providerRegistry.create(providerConfig)
-    if (service?.refreshSeason) {
-      await service.refreshSeason(season)
+    if (service?.getSeason) {
+      const seasonInsert = await service.getSeason(season.providerIds)
+      if (seasonInsert) {
+        await this.seasonService.upsert(seasonInsert)
+      } else {
+        throw new Error(`Season refresh failed: ${season.title}`, {
+          cause: season,
+        })
+      }
     }
   }
 
@@ -254,7 +236,21 @@ export class ProviderService {
     const config = await this.resolveConfig(request)
     const service = this.providerRegistry.create(config)
 
-    return service.getDanmaku(request)
+    const comments = await service.getDanmaku(request)
+
+    const { season, ...rest } = meta
+
+    const saved = await this.danmakuService.upsert({
+      ...rest,
+      seasonId: season.id,
+      comments,
+      commentCount: comments.length,
+    })
+
+    return {
+      ...saved,
+      season,
+    } as WithSeason<Episode>
   }
 
   async findMatchingEpisodes({

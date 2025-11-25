@@ -1,15 +1,12 @@
 import type {
   CommentEntity,
   DanDanPlayOf,
-  Episode,
   EpisodeMeta,
   Season,
   SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
-import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
-import type { SeasonService } from '@/background/services/persistence/SeasonService'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
@@ -28,46 +25,25 @@ export class DanDanPlayService implements IDanmakuProvider {
   private logger: typeof Logger
 
   readonly forProvider = DanmakuSourceType.DanDanPlay
+  private context: danDanPlay.DanDanPlayQueryContext =
+    DanDanPlayMapper.toQueryContext(this.config)
 
-  constructor(
-    private seasonService: SeasonService,
-    private danmakuService: DanmakuService,
-    private config: DanDanPlayProviderConfig
-  ) {
+  constructor(private config: DanDanPlayProviderConfig) {
     this.logger = Logger.sub('[DDPService]')
   }
 
   async search(searchParams: SeasonSearchParams): Promise<SeasonInsert[]> {
     this.logger.debug('Searching DanDanPlay', searchParams, this.config)
-    const context = DanDanPlayMapper.toQueryContext(this.config)
 
     const result = await danDanPlay.searchSearchAnime(
       searchParams.keyword,
-      context
+      this.context
     )
     this.logger.debug('Search result', result)
 
     return result.map((item) =>
       DanDanPlayMapper.searchResultToSeasonInsert(item, this.config.id)
     )
-  }
-
-  async getSeason(bangumiId: string) {
-    const context = DanDanPlayMapper.toQueryContext(this.config)
-    const bangumiDetails = await danDanPlay.getBangumiAnime(bangumiId, context)
-
-    const seasonData: DanDanPlayOf<SeasonInsert> =
-      DanDanPlayMapper.bangumiDetailsToSeasonInsert(
-        bangumiDetails,
-        this.config.id
-      )
-
-    const season = await this.seasonService.upsert(seasonData)
-
-    return {
-      bangumiDetails,
-      season,
-    }
   }
 
   async findEpisode(
@@ -102,11 +78,14 @@ export class DanDanPlayService implements IDanmakuProvider {
   }
 
   async getEpisodes(
-    providerIds: DanDanPlayOf<Season>['providerIds']
+    seasonRemoteIds: DanDanPlayOf<Season>['providerIds']
   ): Promise<OmitSeasonId<DanDanPlayOf<EpisodeMeta>>[]> {
-    this.logger.debug('Getting DanDanPlay episodes', providerIds)
+    this.logger.debug('Getting DanDanPlay episodes', seasonRemoteIds)
 
-    const { bangumiDetails } = await this.getSeason(providerIds.bangumiId)
+    const bangumiDetails = await danDanPlay.getBangumiAnime(
+      seasonRemoteIds.bangumiId,
+      this.context
+    )
 
     this.logger.debug('DanDanPlay Episodes fetched', bangumiDetails)
 
@@ -115,9 +94,7 @@ export class DanDanPlayService implements IDanmakuProvider {
     })
   }
 
-  async getDanmaku(
-    request: DanmakuFetchRequest
-  ): Promise<WithSeason<DanDanPlayOf<Episode>>> {
+  async getDanmaku(request: DanmakuFetchRequest): Promise<CommentEntity[]> {
     const { meta, options = {} } = request
     const { season, ...rest } = meta
     assertProviderType(season, DanmakuSourceType.DanDanPlay)
@@ -129,26 +106,31 @@ export class DanDanPlayService implements IDanmakuProvider {
     )
   }
 
+  async getSeason(
+    seasonRemoteIds: DanDanPlayOf<Season>['providerIds']
+  ): Promise<SeasonInsert | null> {
+    const bangumiDetails = await danDanPlay.getBangumiAnime(
+      seasonRemoteIds.bangumiId,
+      this.context
+    )
+
+    const seasonInsert: DanDanPlayOf<SeasonInsert> =
+      DanDanPlayMapper.bangumiDetailsToSeasonInsert(
+        bangumiDetails,
+        this.config.id
+      )
+
+    return seasonInsert
+  }
+
   private async getEpisodeDanmaku(
     meta: OmitSeasonId<DanDanPlayOf<EpisodeMeta>>,
     season: DanDanPlayOf<Season>,
     params: Partial<danDanPlay.GetCommentQuery>
-  ): Promise<WithSeason<DanDanPlayOf<Episode>>> {
+  ): Promise<CommentEntity[]> {
     const { comments } = await this.fetchDanmaku(meta, season, params)
 
-    const saved = await this.danmakuService.upsert({
-      ...meta,
-      seasonId: season.id,
-      season,
-      comments,
-      commentCount: comments.length,
-      params,
-    })
-
-    return {
-      ...saved,
-      season,
-    }
+    return comments
   }
 
   async preloadNextEpisode(request: DanmakuFetchRequest) {
@@ -156,17 +138,11 @@ export class DanDanPlayService implements IDanmakuProvider {
     assertProviderType(meta, DanmakuSourceType.DanDanPlay)
 
     const currentEpisodeId = meta.providerIds.episodeId
-    const seasonId = meta.seasonId
     const params = request.options?.dandanplay ?? {}
-
-    const season = (await this.seasonService.getByType(
-      seasonId,
-      DanmakuSourceType.DanDanPlay
-    )) as DanDanPlayOf<Season>
 
     const nextEpisodeId = currentEpisodeId + 1
 
-    const episodes = await this.getEpisodes(season.providerIds)
+    const episodes = await this.getEpisodes(meta.season.providerIds)
     const nextEpisode = episodes.find(
       (e) => e.providerIds.episodeId === nextEpisodeId
     )
@@ -176,7 +152,7 @@ export class DanDanPlayService implements IDanmakuProvider {
       return
     }
 
-    await this.getEpisodeDanmaku(nextEpisode, season, params)
+    await this.getEpisodeDanmaku(nextEpisode, meta.season, params)
   }
 
   private async fetchDanmaku(
@@ -188,13 +164,11 @@ export class DanDanPlayService implements IDanmakuProvider {
     comments: CommentEntity[]
     params: danDanPlay.GetCommentQuery
   }> {
-    const context = DanDanPlayMapper.toQueryContext(this.config)
-
     const chConvert = params.chConvert ?? this.config.options.chConvert
 
     const findEpisode = async (bangumiId: string, episodeId: number) => {
-      const [result, err] = await tryCatch(async () =>
-        this.getSeason(bangumiId)
+      const [bangumiDetails, err] = await tryCatch(
+        async () => await danDanPlay.getBangumiAnime(bangumiId, this.context)
       )
 
       if (err) {
@@ -202,7 +176,7 @@ export class DanDanPlayService implements IDanmakuProvider {
         throw err
       }
 
-      const episode = result.bangumiDetails.episodes.find(
+      const episode = bangumiDetails.episodes.find(
         (e) => e.episodeId === episodeId
       )
 
@@ -240,7 +214,7 @@ export class DanDanPlayService implements IDanmakuProvider {
     const comments = await danDanPlay.commentGetComment(
       providerIds.episodeId,
       paramsCopy,
-      context
+      this.context
     )
 
     this.logger.debug('Danmaku fetched from server', comments)
