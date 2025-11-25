@@ -219,3 +219,21 @@ export const extensionOptionsService = new OptionsService(
       return data
     },
   })
+  .version(22, {
+    upgrade: (data: PrevOptions) =>
+      produce<ExtensionOptions>(data, (draft) => {
+        if (!draft.hotkeys) {
+          draft.hotkeys = { ...defaultKeymap }
+          return
+        }
+
+        if (!draft.hotkeys.toggleSkipButton) {
+          draft.hotkeys.toggleSkipButton = defaultKeymap.toggleSkipButton
+        }
+
+        if (!draft.hotkeys.toggleDanmakuTimeline) {
+          draft.hotkeys.toggleDanmakuTimeline =
+            defaultKeymap.toggleDanmakuTimeline
+        }
+      }),
+  })

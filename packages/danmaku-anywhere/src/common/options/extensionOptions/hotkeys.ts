@@ -12,6 +12,8 @@ export const allHotkeys = [
   'togglePip',
   'refreshComments',
   'unmountComments',
+  'toggleSkipButton',
+  'toggleDanmakuTimeline',
 ] as const
 
 export type AllHotkeys = (typeof allHotkeys)[number]
@@ -23,6 +25,8 @@ export const defaultKeymap: Keymap = {
   refreshComments: createHotkey('shift+r'),
   unmountComments: createHotkey('shift+u'),
   togglePip: createHotkey('shift+p'),
+  toggleSkipButton: createHotkey('shift+s'),
+  toggleDanmakuTimeline: createHotkey('shift+d'),
 } as const
 
 const macModifierSymbols: Record<string, string> = {
