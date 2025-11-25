@@ -15,10 +15,16 @@ import type { CustomMacCmsProvider } from '@/common/options/providerConfig/schem
 import { providerConfigService } from '@/common/options/providerConfig/service'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { DanmakuService } from '../persistence/DanmakuService'
-import type { IDanmakuProvider, SeasonSearchParams } from './IDanmakuProvider'
+import type {
+  IDanmakuProvider,
+  OmitSeasonId,
+  SeasonSearchParams,
+} from './IDanmakuProvider'
 
 export class MacCmsProviderService implements IDanmakuProvider {
   private logger: typeof Logger
+
+  readonly forProvider = DanmakuSourceType.MacCMS
 
   constructor(
     private danmakuService: DanmakuService,
@@ -97,7 +103,9 @@ export class MacCmsProviderService implements IDanmakuProvider {
     return this.danmakuService.importCustom({ title, comments })
   }
 
-  async getEpisodes(_seasonId: number): Promise<WithSeason<EpisodeMeta>[]> {
+  async getEpisodes(
+    _providerIds: unknown
+  ): Promise<OmitSeasonId<EpisodeMeta>[]> {
     throw new Error('Method not implemented.')
   }
 

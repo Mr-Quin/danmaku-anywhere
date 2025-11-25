@@ -1,9 +1,7 @@
 import type {
   DanDanPlayOf,
   EpisodeMeta,
-  Season,
   SeasonInsert,
-  WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type {
   BangumiDetails,
@@ -12,6 +10,7 @@ import type {
 } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { DanDanPlayProviderConfig } from '@/common/options/providerConfig/schema'
+import type { OmitSeasonId } from '../IDanmakuProvider'
 
 export class DanDanPlayMapper {
   static toQueryContext(
@@ -88,9 +87,8 @@ export class DanDanPlayMapper {
   }
 
   static bangumiEpisodeToEpisodeMeta(
-    item: BangumiDetails['episodes'][number],
-    season: DanDanPlayOf<Season>
-  ): WithSeason<DanDanPlayOf<EpisodeMeta>> {
+    item: BangumiDetails['episodes'][number]
+  ): OmitSeasonId<DanDanPlayOf<EpisodeMeta>> {
     return {
       provider: DanmakuSourceType.DanDanPlay,
       episodeNumber: item.episodeNumber,
@@ -98,8 +96,6 @@ export class DanDanPlayMapper {
       providerIds: {
         episodeId: item.episodeId,
       },
-      season,
-      seasonId: season.id,
       indexedId: item.episodeId.toString(),
       lastChecked: Date.now(),
       schemaVersion: 4,

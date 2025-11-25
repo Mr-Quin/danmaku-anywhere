@@ -2,22 +2,20 @@ import {
   type BilibiliOf,
   type EpisodeMeta,
   PROVIDER_TO_BUILTIN_ID,
-  type Season,
   type SeasonInsert,
   stripHtml,
-  type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type {
   BilibiliBangumiInfo,
   BilibiliMedia,
 } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
+import type { OmitSeasonId } from '../IDanmakuProvider'
 
 export class BilibiliMapper {
   static toEpisode(
-    data: BilibiliBangumiInfo['episodes'][number],
-    season: BilibiliOf<Season>
-  ): WithSeason<BilibiliOf<EpisodeMeta>> {
+    data: BilibiliBangumiInfo['episodes'][number]
+  ): OmitSeasonId<BilibiliOf<EpisodeMeta>> {
     return {
       provider: DanmakuSourceType.Bilibili,
       imageUrl: data.cover,
@@ -28,8 +26,6 @@ export class BilibiliMapper {
         cid: data.cid,
         aid: data.aid,
       },
-      seasonId: season.id,
-      season,
       indexedId: data.cid.toString(),
       lastChecked: Date.now(),
       schemaVersion: 4,

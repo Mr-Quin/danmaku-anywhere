@@ -15,11 +15,18 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import type { BuiltInTencentProvider } from '@/common/options/providerConfig/schema'
-import type { IDanmakuProvider, SeasonSearchParams } from '../IDanmakuProvider'
+import type {
+  IDanmakuProvider,
+  OmitSeasonId,
+  ParseUrlResult,
+  SeasonSearchParams,
+} from '../IDanmakuProvider'
 import { TencentMapper } from './TencentMapper'
 
 export class TencentService implements IDanmakuProvider {
   private logger: typeof Logger
+
+  readonly forProvider = DanmakuSourceType.Tencent
 
   constructor(
     private seasonService: SeasonService,
@@ -57,16 +64,12 @@ export class TencentService implements IDanmakuProvider {
   }
 
   async getEpisodes(
-    seasonId: number
-  ): Promise<WithSeason<TencentOf<EpisodeMeta>>[]> {
-    this.logger.debug('Get episode', seasonId)
-    const season = await this.seasonService.getByType(
-      seasonId,
-      DanmakuSourceType.Tencent
-    )
+    providerIds: TencentOf<Season>['providerIds']
+  ): Promise<OmitSeasonId<TencentOf<EpisodeMeta>>[]> {
+    this.logger.debug('Get episode', providerIds)
 
     const generator = tencent.listEpisodes({
-      cid: season.providerIds.cid,
+      cid: providerIds.cid,
       vid: '',
     })
 
@@ -78,7 +81,7 @@ export class TencentService implements IDanmakuProvider {
     this.logger.debug('Get episode result', result)
 
     return result.flat().map((item) => {
-      return TencentMapper.toEpisodeMeta(item, season)
+      return TencentMapper.toEpisodeMeta(item)
     })
   }
 
@@ -123,13 +126,9 @@ export class TencentService implements IDanmakuProvider {
         ?.item_datas[0]
 
     if (foundSeason) {
-      const season = await this.seasonService.upsert(
-        TencentMapper.pageDetailsToSeasonInsert(foundSeason)
-      )
-
       return {
         pageDetails,
-        season,
+        season: TencentMapper.pageDetailsToSeasonInsert(foundSeason),
       }
     }
 
@@ -139,17 +138,6 @@ export class TencentService implements IDanmakuProvider {
   async getDanmaku(
     request: DanmakuFetchRequest
   ): Promise<WithSeason<TencentOf<Episode>>> {
-    if (request.type === 'by-id') {
-      const episodes = await this.getEpisodes(request.seasonId)
-      const episode = episodes.find(
-        (e) => e.providerIds.vid === request.episodeId.toString()
-      )
-      if (!episode) {
-        throw new Error('Episode not found')
-      }
-      return this.saveEpisode(episode)
-    }
-
     const { meta } = request
     assertProviderType(meta, DanmakuSourceType.Tencent)
     return this.saveEpisode(meta)
@@ -184,9 +172,7 @@ export class TencentService implements IDanmakuProvider {
     }
   }
 
-  async parseUrl(
-    url: string
-  ): Promise<WithSeason<TencentOf<EpisodeMeta>> | null> {
+  async parseUrl(url: string): Promise<ParseUrlResult | null> {
     const { pathname } = new URL(url)
 
     // https://v.qq.com/x/cover/mzc00200ztsl4to/m4100bardal.html
@@ -200,12 +186,15 @@ export class TencentService implements IDanmakuProvider {
     if (!season) throw new Error('Season not found')
 
     // get the name of the episode
-    const episodes = await this.getEpisodes(season.id)
+    const episodes = await this.getEpisodes(season.providerIds)
     const matchingEpisode = episodes.find(
       (episode) => episode.providerIds.vid === vid
     )
     if (!matchingEpisode) throw new Error('Episode not found')
 
-    return matchingEpisode
+    return {
+      episodeMeta: matchingEpisode,
+      seasonInsert: season,
+    }
   }
 }

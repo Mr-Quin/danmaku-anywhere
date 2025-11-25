@@ -1,4 +1,5 @@
 import type {
+  ByProvider,
   CustomSeason,
   Episode,
   EpisodeMeta,
@@ -22,7 +23,11 @@ import type {
 } from '@/common/anime/dto'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { isNotCustom, isProvider } from '@/common/danmaku/utils'
+import {
+  assertProviderType,
+  isNotCustom,
+  isProvider,
+} from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
 import type {
@@ -36,8 +41,19 @@ import { providerConfigService } from '@/common/options/providerConfig/service'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { stripExtension } from '@/common/utils/stripExtension'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
-import type { IDanmakuProvider } from './IDanmakuProvider'
+import type { IDanmakuProvider, OmitSeasonId } from './IDanmakuProvider'
 import { ProviderRegistry } from './ProviderRegistry'
+
+const enrichEpisode = <T extends DanmakuSourceType>(
+  episode: OmitSeasonId<ByProvider<EpisodeMeta, T>>,
+  season: ByProvider<Season, T>
+) => {
+  return {
+    ...episode,
+    seasonId: season.id,
+    season: season,
+  }
+}
 
 export class ProviderService {
   private logger: typeof Logger
@@ -117,24 +133,64 @@ export class ProviderService {
 
     const service = this.providerRegistry.create(providerConfig)
 
-    const seasons = await service.search(params)
+    const seasonInserts = await service.search(params)
     // TODO: fix this once we fold custom seasons into the season insert
-    if (seasons[0] && isProvider(seasons[0], DanmakuSourceType.MacCMS)) {
-      return seasons as CustomSeason[]
+    if (
+      seasonInserts[0] &&
+      isProvider(seasonInserts[0], DanmakuSourceType.MacCMS)
+    ) {
+      return seasonInserts as CustomSeason[]
     }
-    return this.seasonService.bulkUpsert(seasons as SeasonInsert[])
+    return this.seasonService.bulkUpsert(seasonInserts as SeasonInsert[])
   }
 
-  async fetchEpisodesBySeason(seasonId: number) {
+  async fetchEpisodesBySeason(
+    seasonId: number
+  ): Promise<WithSeason<EpisodeMeta>[]> {
     const season = await this.seasonService.mustGetById(seasonId)
 
     const providerConfig = await providerConfigService.mustGet(
       season.providerConfigId
     )
-
     const service = this.providerRegistry.create(providerConfig)
 
-    return service.getEpisodes(seasonId)
+    const enrichEpisodes = <T extends DanmakuSourceType>(
+      episodes: OmitSeasonId<ByProvider<EpisodeMeta, T>>[],
+      season: ByProvider<Season, T>
+    ) => {
+      return episodes.map((episode) => enrichEpisode(episode, season))
+    }
+
+    switch (service.forProvider) {
+      case DanmakuSourceType.DanDanPlay: {
+        assertProviderType(season, DanmakuSourceType.DanDanPlay)
+        const episodes = (await service.getEpisodes(
+          season.providerIds
+        )) as OmitSeasonId<
+          ByProvider<EpisodeMeta, DanmakuSourceType.DanDanPlay>
+        >[]
+        return enrichEpisodes(episodes, season)
+      }
+      case DanmakuSourceType.Bilibili: {
+        assertProviderType(season, DanmakuSourceType.Bilibili)
+        const episodes = (await service.getEpisodes(
+          season.providerIds
+        )) as OmitSeasonId<
+          ByProvider<EpisodeMeta, DanmakuSourceType.Bilibili>
+        >[]
+        return enrichEpisodes(episodes, season)
+      }
+      case DanmakuSourceType.Tencent: {
+        assertProviderType(season, DanmakuSourceType.Tencent)
+        const episodes = (await service.getEpisodes(
+          season.providerIds
+        )) as OmitSeasonId<ByProvider<EpisodeMeta, DanmakuSourceType.Tencent>>[]
+        return enrichEpisodes(episodes, season)
+      }
+      case DanmakuSourceType.MacCMS: {
+        throw new Error('MacCMS does not support fetching episodes')
+      }
+    }
   }
 
   async refreshSeason(filter: SeasonQueryFilter) {
@@ -167,36 +223,22 @@ export class ProviderService {
   private async resolveConfig(
     request: DanmakuFetchRequest
   ): Promise<ProviderConfig> {
-    if (request.type === 'by-id') {
-      const season = await this.seasonService.mustGetById(request.seasonId)
-      return providerConfigService.mustGet(season.providerConfigId)
-    }
     return providerConfigService.mustGet(request.meta.season.providerConfigId)
   }
 
   async getDanmaku(request: DanmakuFetchRequest): Promise<WithSeason<Episode>> {
     const { options = {} } = request
-    const provider =
-      request.type === 'by-id' ? request.provider : request.meta.provider
+    const provider = request.meta.provider
 
     let existingDanmaku: WithSeason<Episode> | undefined
 
-    if (request.type === 'by-id') {
-      const [found] = await this.danmakuService.filter({
-        provider,
-        seasonId: request.seasonId,
-        ids: [request.episodeId],
-      })
-      existingDanmaku = found
-    } else {
-      const { meta } = request
-      const [found] = await this.danmakuService.filter({
-        provider,
-        indexedId: meta.indexedId,
-        seasonId: meta.seasonId,
-      })
-      existingDanmaku = found
-    }
+    const { meta } = request
+    const [found] = await this.danmakuService.filter({
+      provider,
+      indexedId: meta.indexedId,
+      seasonId: meta.seasonId,
+    })
+    existingDanmaku = found
 
     if (existingDanmaku && !options.forceUpdate) {
       this.logger.debug('Danmaku found in db', existingDanmaku)
@@ -341,7 +383,7 @@ export class ProviderService {
     }
   }
 
-  async parseUrl(url: string) {
+  async parseUrl(url: string): Promise<WithSeason<EpisodeMeta>> {
     if (this.parsers.length === 0) {
       await this.initParsers()
     }
@@ -349,7 +391,12 @@ export class ProviderService {
     for (const provider of this.parsers) {
       if (provider.parseUrl && provider.canParse?.(url)) {
         const result = await provider.parseUrl(url)
-        if (result) return result
+        if (result) {
+          const { episodeMeta, seasonInsert } = result
+          const season = await this.seasonService.upsert(seasonInsert)
+
+          return enrichEpisode(episodeMeta, season) as WithSeason<EpisodeMeta>
+        }
       }
     }
 

@@ -1,11 +1,9 @@
 import {
   type EpisodeMeta,
   PROVIDER_TO_BUILTIN_ID,
-  type Season,
   type SeasonInsert,
   stripHtml,
   type TencentOf,
-  type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type {
   TencentEpisodeListItem,
@@ -13,6 +11,7 @@ import type {
   TencentVideoSeason,
 } from '@danmaku-anywhere/danmaku-provider/tencent'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
+import type { OmitSeasonId } from '../IDanmakuProvider'
 
 type TencentSeasonItem =
   Required<TencentPageDetailResponse>['data']['module_list_datas'][number]['module_datas'][0]['item_data_lists']['item_datas'][0]
@@ -36,9 +35,8 @@ export class TencentMapper {
   }
 
   static toEpisodeMeta(
-    item: TencentEpisodeListItem,
-    season: TencentOf<Season>
-  ): WithSeason<TencentOf<EpisodeMeta>> {
+    item: TencentEpisodeListItem
+  ): OmitSeasonId<TencentOf<EpisodeMeta>> {
     return {
       provider: DanmakuSourceType.Tencent,
       title: stripHtml(item.play_title),
@@ -47,8 +45,6 @@ export class TencentMapper {
         vid: item.vid,
       },
       imageUrl: item.image_url,
-      season,
-      seasonId: season.id,
       indexedId: item.vid.toString(),
       schemaVersion: 4,
       lastChecked: Date.now(),

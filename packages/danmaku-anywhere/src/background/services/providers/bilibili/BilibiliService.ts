@@ -2,6 +2,7 @@ import type {
   BilibiliOf,
   Episode,
   EpisodeMeta,
+  Season,
   SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
@@ -14,14 +15,21 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import type { BuiltInBilibiliProvider } from '@/common/options/providerConfig/schema'
-import type { IDanmakuProvider, SeasonSearchParams } from '../IDanmakuProvider'
+import type {
+  IDanmakuProvider,
+  OmitSeasonId,
+  ParseUrlResult,
+  SeasonSearchParams,
+} from '../IDanmakuProvider'
 import { BilibiliMapper } from './BilibiliMapper'
 
 export class BilibiliService implements IDanmakuProvider {
   private logger: typeof Logger
 
+  readonly forProvider = DanmakuSourceType.Bilibili
+
   constructor(
-    private seasonService: SeasonService,
+    public seasonService: SeasonService,
     private danmakuService: DanmakuService,
     private config: BuiltInBilibiliProvider
   ) {
@@ -62,13 +70,9 @@ export class BilibiliService implements IDanmakuProvider {
       episodeId,
     })
 
-    const season = await this.seasonService.upsert(
-      BilibiliMapper.bangumiInfoToSeasonInsert(seasonInfo)
-    )
-
     return {
       seasonInfo,
-      season,
+      season: BilibiliMapper.bangumiInfoToSeasonInsert(seasonInfo),
     }
   }
 
@@ -81,9 +85,7 @@ export class BilibiliService implements IDanmakuProvider {
     }
   }
 
-  async parseUrl(
-    url: string
-  ): Promise<WithSeason<BilibiliOf<EpisodeMeta>> | null> {
+  async parseUrl(url: string): Promise<ParseUrlResult | null> {
     this.logger.debug('Get episode by url', url)
 
     const { pathname } = new URL(url)
@@ -109,45 +111,30 @@ export class BilibiliService implements IDanmakuProvider {
 
     if (!episode) throw new Error('Episode not found')
 
-    return BilibiliMapper.toEpisode(episode, season)
+    return {
+      episodeMeta: BilibiliMapper.toEpisode(episode),
+      seasonInsert: season,
+    }
   }
 
   async getEpisodes(
-    dbSeasonId: number
-  ): Promise<WithSeason<BilibiliOf<EpisodeMeta>>[]> {
-    this.logger.debug('Get bangumi info', dbSeasonId)
-    const season = await this.seasonService.getByType(
-      dbSeasonId,
-      DanmakuSourceType.Bilibili
-    )
+    providerIds: BilibiliOf<Season>['providerIds']
+  ): Promise<OmitSeasonId<BilibiliOf<EpisodeMeta>>[]> {
+    this.logger.debug('Get bangumi info', providerIds)
 
-    const {
-      providerIds: { seasonId },
-    } = season
-
-    const result = await bilibili.getBangumiInfo({ seasonId })
+    const result = await bilibili.getBangumiInfo({
+      seasonId: providerIds.seasonId,
+    })
     this.logger.debug('Get bangumi info result', result)
 
     return result.episodes.map((item) => {
-      return BilibiliMapper.toEpisode(item, season)
+      return BilibiliMapper.toEpisode(item)
     })
   }
 
   async getDanmaku(
     request: DanmakuFetchRequest
   ): Promise<WithSeason<BilibiliOf<Episode>>> {
-    if (request.type === 'by-id') {
-      const episodes = await this.getEpisodes(request.seasonId)
-      const episode = episodes.find(
-        (e) => e.providerIds.cid === request.episodeId
-      )
-      if (!episode) {
-        throw new Error('Episode not found')
-      }
-
-      return this.saveEpisode(episode)
-    }
-
     const { meta } = request
     assertProviderType(meta, DanmakuSourceType.Bilibili)
 

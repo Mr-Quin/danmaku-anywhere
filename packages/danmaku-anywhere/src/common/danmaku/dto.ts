@@ -32,19 +32,11 @@ interface DanmakuFetchOptions {
   dandanplay?: GetCommentQuery
 }
 
-export type DanmakuFetchRequest =
-  | {
-      type: 'by-id'
-      episodeId: number
-      seasonId: number
-      provider: RemoteDanmakuSourceType
-      options?: DanmakuFetchOptions
-    }
-  | {
-      type: 'by-meta'
-      meta: WithSeason<EpisodeMeta>
-      options?: DanmakuFetchOptions
-    }
+export type DanmakuFetchRequest = {
+  type: 'by-meta'
+  meta: WithSeason<EpisodeMeta>
+  options?: DanmakuFetchOptions
+}
 
 export type DanmakuFetchDto = DanmakuFetchRequest
 
