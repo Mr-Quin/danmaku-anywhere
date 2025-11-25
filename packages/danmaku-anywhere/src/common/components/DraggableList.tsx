@@ -11,6 +11,7 @@ import {
 } from '@dnd-kit/core'
 import {
   SortableContext,
+  arrayMove,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
@@ -26,7 +27,7 @@ import {
   type ListItemTextProps,
 } from '@mui/material'
 import type { ReactNode } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NothingHere } from '@/common/components/NothingHere'
 
 interface DraggableItem {
@@ -35,7 +36,6 @@ interface DraggableItem {
 
 interface SortableItemProps<T extends DraggableItem> {
   item: T
-  index: number
   clickable?: boolean
   onEdit: (item: T) => void
   renderPrimary: (item: T) => ReactNode
@@ -45,7 +45,6 @@ interface SortableItemProps<T extends DraggableItem> {
 
 function SortableItem<T extends DraggableItem>({
   item,
-  index,
   clickable = true,
   onEdit,
   renderPrimary,
@@ -69,10 +68,7 @@ function SortableItem<T extends DraggableItem>({
 
   const listItemTextProps: ListItemTextProps = {
     primary: renderPrimary(item),
-  }
-
-  if (renderSecondary) {
-    listItemTextProps.secondary = renderSecondary(item)
+    secondary: renderSecondary?.(item),
   }
 
   const listItemInner = (
@@ -125,10 +121,7 @@ function DragOverlayItem<T extends DraggableItem>({
 }: DragOverlayItemProps<T>) {
   const listItemTextProps: ListItemTextProps = {
     primary: renderPrimary(item),
-  }
-
-  if (renderSecondary) {
-    listItemTextProps.secondary = renderSecondary(item)
+    secondary: renderSecondary?.(item),
   }
 
   return (
@@ -137,11 +130,11 @@ function DragOverlayItem<T extends DraggableItem>({
         backgroundColor: 'background.paper',
         boxShadow: 3,
         borderRadius: 1,
-        opacity: 0.8,
+        opacity: 0.85,
       }}
       disablePadding
     >
-      <ListItemButton>
+      <ListItemButton disableRipple>
         <ListItemIcon>
           <DragIndicator />
         </ListItemIcon>
@@ -169,6 +162,11 @@ export function DraggableList<T extends DraggableItem>({
   renderSecondaryAction,
 }: DraggableListProps<T>) {
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [orderedItems, setOrderedItems] = useState(items)
+
+  useEffect(() => {
+    setOrderedItems(items)
+  }, [items])
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -184,9 +182,29 @@ export function DraggableList<T extends DraggableItem>({
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
 
-    if (active.id !== over?.id) {
-      const oldIndex = items.findIndex((item) => item.id === active.id)
-      const newIndex = items.findIndex((item) => item.id === over?.id)
+    if (!over || active.id === over.id) {
+      setActiveId(null)
+      return
+    }
+
+    const oldIndex = orderedItems.findIndex((item) => item.id === active.id)
+    const newIndex = orderedItems.findIndex((item) => item.id === over.id)
+
+    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+      setOrderedItems((prev) => {
+        const currentOldIndex = prev.findIndex((item) => item.id === active.id)
+        const currentNewIndex = prev.findIndex((item) => item.id === over.id)
+
+        if (
+          currentOldIndex === -1 ||
+          currentNewIndex === -1 ||
+          currentOldIndex === currentNewIndex
+        ) {
+          return prev
+        }
+
+        return arrayMove(prev, currentOldIndex, currentNewIndex)
+      })
 
       onReorder(oldIndex, newIndex)
     }
@@ -194,9 +212,9 @@ export function DraggableList<T extends DraggableItem>({
     setActiveId(null)
   }
 
-  const activeItem = items.find((item) => item.id === activeId)
+  const activeItem = orderedItems.find((item) => item.id === activeId)
 
-  if (items.length === 0) {
+  if (orderedItems.length === 0) {
     return <NothingHere />
   }
 
@@ -208,15 +226,14 @@ export function DraggableList<T extends DraggableItem>({
       onDragEnd={handleDragEnd}
     >
       <SortableContext
-        items={items.map((item) => item.id)}
+        items={orderedItems.map((item) => item.id)}
         strategy={verticalListSortingStrategy}
       >
         <List dense disablePadding>
-          {items.map((item, index) => (
+          {orderedItems.map((item) => (
             <SortableItem
               key={item.id}
               item={item}
-              index={index}
               onEdit={onEdit}
               renderPrimary={renderPrimary}
               renderSecondary={renderSecondary}
