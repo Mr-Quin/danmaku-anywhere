@@ -13,12 +13,8 @@ import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
-import type {
-  BuiltInBilibiliProvider,
-  ProviderConfig,
-} from '@/common/options/providerConfig/schema'
-import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
-import type { IDanmakuProvider } from '../IDanmakuProvider'
+import type { BuiltInBilibiliProvider } from '@/common/options/providerConfig/schema'
+import type { IDanmakuProvider, SeasonSearchParams } from '../IDanmakuProvider'
 import { BilibiliMapper } from './BilibiliMapper'
 
 export class BilibiliService implements IDanmakuProvider {
@@ -26,7 +22,8 @@ export class BilibiliService implements IDanmakuProvider {
 
   constructor(
     private seasonService: SeasonService,
-    private danmakuService: DanmakuService
+    private danmakuService: DanmakuService,
+    private config: BuiltInBilibiliProvider
   ) {
     this.logger = Logger.sub('[BilibiliService]')
   }
@@ -42,9 +39,10 @@ export class BilibiliService implements IDanmakuProvider {
     return result
   }
 
-  async search(
-    searchParams: BiliBiliSearchParams
-  ): Promise<BilibiliOf<Season>[]> {
+  async search(params: SeasonSearchParams): Promise<BilibiliOf<Season>[]> {
+    const searchParams: BiliBiliSearchParams = {
+      keyword: params.keyword,
+    }
     this.logger.debug('Search bilibili', searchParams)
     const result = await bilibili.searchMedia(searchParams)
     this.logger.debug('Search result', result)
@@ -116,8 +114,7 @@ export class BilibiliService implements IDanmakuProvider {
   }
 
   async getEpisodes(
-    dbSeasonId: number,
-    _config: ProviderConfig
+    dbSeasonId: number
   ): Promise<WithSeason<BilibiliOf<EpisodeMeta>>[]> {
     this.logger.debug('Get bangumi info', dbSeasonId)
     const season = await this.seasonService.getByType(
@@ -138,13 +135,10 @@ export class BilibiliService implements IDanmakuProvider {
   }
 
   async getDanmaku(
-    request: DanmakuFetchRequest,
-    config: ProviderConfig
+    request: DanmakuFetchRequest
   ): Promise<WithSeason<BilibiliOf<Episode>>> {
-    assertProviderConfigImpl(config, DanmakuSourceType.Bilibili)
-
     if (request.type === 'by-id') {
-      const episodes = await this.getEpisodes(request.seasonId, config)
+      const episodes = await this.getEpisodes(request.seasonId)
       const episode = episodes.find(
         (e) => e.providerIds.cid === request.episodeId
       )
@@ -152,21 +146,20 @@ export class BilibiliService implements IDanmakuProvider {
         throw new Error('Episode not found')
       }
 
-      return this.saveEpisode(episode, config)
+      return this.saveEpisode(episode)
     }
 
     const { meta } = request
     assertProviderType(meta, DanmakuSourceType.Bilibili)
 
-    return this.saveEpisode(meta, config)
+    return this.saveEpisode(meta)
   }
 
   private async saveEpisode(
-    meta: WithSeason<BilibiliOf<EpisodeMeta>>,
-    config: BuiltInBilibiliProvider
+    meta: WithSeason<BilibiliOf<EpisodeMeta>>
   ): Promise<WithSeason<BilibiliOf<Episode>>> {
     const { cid, aid } = meta.providerIds
-    const comments = await this.fetchDanmaku({ cid, aid }, config)
+    const comments = await this.fetchDanmaku({ cid, aid })
 
     const saved = await this.danmakuService.upsert({
       ...meta,
@@ -180,11 +173,8 @@ export class BilibiliService implements IDanmakuProvider {
     }
   }
 
-  private async fetchDanmaku(
-    ids: { cid: number; aid?: number },
-    config: BuiltInBilibiliProvider
-  ) {
-    const { danmakuTypePreference } = config.options
+  private async fetchDanmaku(ids: { cid: number; aid?: number }) {
+    const { danmakuTypePreference } = this.config.options
 
     if (danmakuTypePreference === 'xml') {
       return this.getDanmakuXml(ids.cid)

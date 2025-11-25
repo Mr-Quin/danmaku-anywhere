@@ -10,20 +10,13 @@ import type {
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import type { SeasonService } from '@/background/services/persistence/SeasonService'
-import type { SeasonSearchParams } from '@/common/anime/dto'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
-import type {
-  BuiltInDanDanPlayProvider,
-  DanDanPlayCompatProvider,
-  DanDanPlayProviderConfig,
-  ProviderConfig,
-} from '@/common/options/providerConfig/schema'
-import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
+import type { DanDanPlayProviderConfig } from '@/common/options/providerConfig/schema'
 import { tryCatch } from '@/common/utils/utils'
-import type { IDanmakuProvider } from '../IDanmakuProvider'
+import type { IDanmakuProvider, SeasonSearchParams } from '../IDanmakuProvider'
 import { DanDanPlayMapper } from './DanDanPlayMapper'
 import { findDanDanPlayEpisodeInList } from './episodeMatching'
 
@@ -32,18 +25,17 @@ export class DanDanPlayService implements IDanmakuProvider {
 
   constructor(
     private seasonService: SeasonService,
-    private danmakuService: DanmakuService
+    private danmakuService: DanmakuService,
+    private config: DanDanPlayProviderConfig
   ) {
     this.logger = Logger.sub('[DDPService]')
   }
 
   async search(
-    searchParams: SeasonSearchParams,
-    providerConfig: ProviderConfig
+    searchParams: SeasonSearchParams
   ): Promise<DanDanPlayOf<Season>[]> {
-    assertProviderConfigImpl(providerConfig, DanmakuSourceType.DanDanPlay)
-    this.logger.debug('Searching DanDanPlay', searchParams, providerConfig)
-    const context = DanDanPlayMapper.toQueryContext(providerConfig)
+    this.logger.debug('Searching DanDanPlay', searchParams, this.config)
+    const context = DanDanPlayMapper.toQueryContext(this.config)
 
     const result = await danDanPlay.searchSearchAnime(
       searchParams.keyword,
@@ -52,20 +44,20 @@ export class DanDanPlayService implements IDanmakuProvider {
     this.logger.debug('Search result', result)
 
     const seasons = result.map((item) =>
-      DanDanPlayMapper.searchResultToSeasonInsert(item, providerConfig.id)
+      DanDanPlayMapper.searchResultToSeasonInsert(item, this.config.id)
     )
 
     return this.seasonService.bulkUpsert(seasons)
   }
 
-  async getSeason(bangumiId: string, providerConfig: DanDanPlayProviderConfig) {
-    const context = DanDanPlayMapper.toQueryContext(providerConfig)
+  async getSeason(bangumiId: string) {
+    const context = DanDanPlayMapper.toQueryContext(this.config)
     const bangumiDetails = await danDanPlay.getBangumiAnime(bangumiId, context)
 
     const seasonData: DanDanPlayOf<SeasonInsert> =
       DanDanPlayMapper.bangumiDetailsToSeasonInsert(
         bangumiDetails,
-        providerConfig.id
+        this.config.id
       )
 
     const season = await this.seasonService.upsert(seasonData)
@@ -78,13 +70,11 @@ export class DanDanPlayService implements IDanmakuProvider {
 
   async findEpisode(
     season: Season,
-    episodeNumber: number,
-    providerConfig: ProviderConfig
+    episodeNumber: number
   ): Promise<WithSeason<EpisodeMeta> | null> {
     assertProviderType(season, DanmakuSourceType.DanDanPlay)
-    assertProviderConfigImpl(providerConfig, DanmakuSourceType.DanDanPlay)
 
-    const episodes = await this.getEpisodes(season.id, providerConfig)
+    const episodes = await this.getEpisodes(season.id)
 
     if (episodes.length === 0) {
       throw new Error(`No episodes found for season: ${season}`)
@@ -109,10 +99,8 @@ export class DanDanPlayService implements IDanmakuProvider {
   }
 
   async getEpisodes(
-    seasonId: number,
-    providerConfig: ProviderConfig
+    seasonId: number
   ): Promise<WithSeason<DanDanPlayOf<EpisodeMeta>>[]> {
-    assertProviderConfigImpl(providerConfig, DanmakuSourceType.DanDanPlay)
     this.logger.debug('Getting DanDanPlay episodes', seasonId)
     const season = (await this.seasonService.getByType(
       seasonId,
@@ -120,8 +108,7 @@ export class DanDanPlayService implements IDanmakuProvider {
     )) as DanDanPlayOf<Season>
 
     const { bangumiDetails } = await this.getSeason(
-      season.providerIds.bangumiId,
-      providerConfig
+      season.providerIds.bangumiId
     )
 
     this.logger.debug('DanDanPlay Episodes fetched', bangumiDetails)
@@ -132,17 +119,14 @@ export class DanDanPlayService implements IDanmakuProvider {
   }
 
   async getDanmaku(
-    request: DanmakuFetchRequest,
-    config: ProviderConfig
+    request: DanmakuFetchRequest
   ): Promise<WithSeason<DanDanPlayOf<Episode>>> {
-    assertProviderConfigImpl(config, DanmakuSourceType.DanDanPlay)
-
     if (request.type === 'by-id') {
       const season = (await this.seasonService.getByType(
         request.seasonId,
         DanmakuSourceType.DanDanPlay
       )) as DanDanPlayOf<Season>
-      const episodes = await this.getEpisodes(request.seasonId, config)
+      const episodes = await this.getEpisodes(request.seasonId)
       const episode = episodes.find(
         (e) => e.providerIds.episodeId === request.episodeId
       )
@@ -152,8 +136,7 @@ export class DanDanPlayService implements IDanmakuProvider {
       return this.getEpisodeDanmaku(
         episode,
         season,
-        request.options?.dandanplay ?? {},
-        config
+        request.options?.dandanplay ?? {}
       )
     }
 
@@ -164,18 +147,16 @@ export class DanDanPlayService implements IDanmakuProvider {
     return this.getEpisodeDanmaku(
       rest as DanDanPlayOf<EpisodeMeta>,
       season,
-      options.dandanplay ?? {},
-      config
+      options.dandanplay ?? {}
     )
   }
 
   private async getEpisodeDanmaku(
     meta: DanDanPlayOf<EpisodeMeta>,
     season: DanDanPlayOf<Season>,
-    params: Partial<danDanPlay.GetCommentQuery>,
-    config: BuiltInDanDanPlayProvider | DanDanPlayCompatProvider
+    params: Partial<danDanPlay.GetCommentQuery>
   ): Promise<WithSeason<DanDanPlayOf<Episode>>> {
-    const { comments } = await this.fetchDanmaku(meta, season, params, config)
+    const { comments } = await this.fetchDanmaku(meta, season, params)
 
     const saved = await this.danmakuService.upsert({
       ...meta,
@@ -190,12 +171,7 @@ export class DanDanPlayService implements IDanmakuProvider {
     }
   }
 
-  async preloadNextEpisode(
-    request: DanmakuFetchRequest,
-    providerConfig: ProviderConfig
-  ) {
-    assertProviderConfigImpl(providerConfig, DanmakuSourceType.DanDanPlay)
-
+  async preloadNextEpisode(request: DanmakuFetchRequest) {
     let currentEpisodeId: number
     let seasonId: number
     let params: Partial<danDanPlay.GetCommentQuery> = {}
@@ -220,7 +196,7 @@ export class DanDanPlayService implements IDanmakuProvider {
 
     const nextEpisodeId = currentEpisodeId + 1
 
-    const episodes = await this.getEpisodes(season.id, providerConfig)
+    const episodes = await this.getEpisodes(season.id)
     const nextEpisode = episodes.find(
       (e) => e.providerIds.episodeId === nextEpisodeId
     )
@@ -230,26 +206,25 @@ export class DanDanPlayService implements IDanmakuProvider {
       return
     }
 
-    await this.getEpisodeDanmaku(nextEpisode, season, params, providerConfig)
+    await this.getEpisodeDanmaku(nextEpisode, season, params)
   }
 
   private async fetchDanmaku(
     meta: DanDanPlayOf<EpisodeMeta>,
     season: DanDanPlayOf<Season>,
-    params: Partial<danDanPlay.GetCommentQuery>,
-    providerConfig: DanDanPlayProviderConfig
+    params: Partial<danDanPlay.GetCommentQuery>
   ): Promise<{
     meta: DanDanPlayOf<EpisodeMeta>
     comments: CommentEntity[]
     params: danDanPlay.GetCommentQuery
   }> {
-    const context = DanDanPlayMapper.toQueryContext(providerConfig)
+    const context = DanDanPlayMapper.toQueryContext(this.config)
 
-    const chConvert = params.chConvert ?? providerConfig.options.chConvert
+    const chConvert = params.chConvert ?? this.config.options.chConvert
 
     const findEpisode = async (bangumiId: string, episodeId: number) => {
       const [result, err] = await tryCatch(async () =>
-        this.getSeason(bangumiId, providerConfig)
+        this.getSeason(bangumiId)
       )
 
       if (err) {

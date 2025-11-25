@@ -1,26 +1,24 @@
 import type { IDanmakuProvider } from '@/background/services/providers/IDanmakuProvider'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+
+type ProviderFactory = (config: ProviderConfig) => IDanmakuProvider
 
 export class ProviderRegistry {
-  private providers = new Map<DanmakuSourceType, IDanmakuProvider>()
+  private factories = new Map<DanmakuSourceType, ProviderFactory>()
 
-  register(type: DanmakuSourceType, provider: IDanmakuProvider) {
-    this.providers.set(type, provider)
+  register<T extends ProviderConfig>(
+    type: DanmakuSourceType,
+    factory: (config: T) => IDanmakuProvider
+  ) {
+    this.factories.set(type, factory as ProviderFactory)
   }
 
-  get(type: DanmakuSourceType): IDanmakuProvider | undefined {
-    return this.providers.get(type)
-  }
-
-  mustGet(type: DanmakuSourceType): IDanmakuProvider {
-    const provider = this.get(type)
-    if (!provider) {
-      throw new Error(`Provider not found for type: ${type}`)
+  create(config: ProviderConfig): IDanmakuProvider {
+    const factory = this.factories.get(config.impl)
+    if (!factory) {
+      throw new Error(`Provider factory not found for type: ${config.impl}`)
     }
-    return provider
-  }
-
-  getAll(): IDanmakuProvider[] {
-    return Array.from(this.providers.values())
+    return factory(config)
   }
 }

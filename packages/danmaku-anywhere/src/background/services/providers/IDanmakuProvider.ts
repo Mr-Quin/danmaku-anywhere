@@ -5,38 +5,27 @@ import type {
   Season,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import type { SeasonSearchParams } from '@/common/anime/dto'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
-import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+
+export interface SeasonSearchParams {
+  keyword: string
+}
 
 export interface IDanmakuProvider {
-  search(
-    params: SeasonSearchParams,
-    config: ProviderConfig
-  ): Promise<Season[] | CustomSeason[]>
+  search(params: SeasonSearchParams): Promise<Season[] | CustomSeason[]>
 
-  getEpisodes(
-    seasonId: number,
-    config: ProviderConfig
-  ): Promise<WithSeason<EpisodeMeta>[]>
+  getEpisodes(seasonId: number): Promise<WithSeason<EpisodeMeta>[]>
 
-  getDanmaku(
-    request: DanmakuFetchRequest,
-    config: ProviderConfig
-  ): Promise<WithSeason<Episode>>
+  getDanmaku(request: DanmakuFetchRequest): Promise<WithSeason<Episode>>
 
-  refreshSeason?(season: Season, config: ProviderConfig): Promise<void>
+  refreshSeason?(season: Season): Promise<void>
 
-  preloadNextEpisode?(
-    request: DanmakuFetchRequest,
-    config: ProviderConfig
-  ): Promise<void>
+  preloadNextEpisode?(request: DanmakuFetchRequest): Promise<void>
 
   canParse?(url: string): boolean
   parseUrl?(url: string): Promise<WithSeason<EpisodeMeta> | null>
   findEpisode?(
     season: Season,
-    episodeNumber: number,
-    config: ProviderConfig
+    episodeNumber: number
   ): Promise<WithSeason<EpisodeMeta> | null>
 }

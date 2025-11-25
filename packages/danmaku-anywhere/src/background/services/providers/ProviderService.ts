@@ -9,57 +9,47 @@ import type {
 import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import type { SeasonService } from '@/background/services/persistence/SeasonService'
 import type { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
-import type { BilibiliService } from '@/background/services/providers/bilibili/BilibiliService'
-import type { DanDanPlayService } from '@/background/services/providers/dandanplay/DanDanPlayService'
-import type { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
-import type { TencentService } from '@/background/services/providers/tencent/TencentService'
+import { BilibiliService } from '@/background/services/providers/bilibili/BilibiliService'
+import { DanDanPlayService } from '@/background/services/providers/dandanplay/DanDanPlayService'
+import { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
+import { TencentService } from '@/background/services/providers/tencent/TencentService'
 import type {
   MatchEpisodeInput,
   MatchEpisodeResult,
   SeasonQueryFilter,
-  SeasonSearchParams,
+  SeasonSearchRequest,
 } from '@/common/anime/dto'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { isNotCustom } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
-import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import type {
+  BuiltInBilibiliProvider,
+  BuiltInTencentProvider,
+  CustomMacCmsProvider,
+  DanDanPlayProviderConfig,
+  ProviderConfig,
+} from '@/common/options/providerConfig/schema'
 import { providerConfigService } from '@/common/options/providerConfig/service'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { stripExtension } from '@/common/utils/stripExtension'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
+import type { IDanmakuProvider } from './IDanmakuProvider'
 import { ProviderRegistry } from './ProviderRegistry'
 
 export class ProviderService {
   private logger: typeof Logger
+  private parsers: IDanmakuProvider[] = []
 
   constructor(
     private titleMappingService: TitleMappingService,
     private danmakuService: DanmakuService,
     private seasonService: SeasonService,
-    private danDanPlayService: DanDanPlayService,
-    private bilibiliService: BilibiliService,
-    private tencentService: TencentService,
-    private customProviderService: MacCmsProviderService,
     private providerRegistry: ProviderRegistry = new ProviderRegistry()
   ) {
-    this.providerRegistry.register(
-      DanmakuSourceType.DanDanPlay,
-      this.danDanPlayService
-    )
-    this.providerRegistry.register(
-      DanmakuSourceType.Bilibili,
-      this.bilibiliService
-    )
-    this.providerRegistry.register(
-      DanmakuSourceType.Tencent,
-      this.tencentService
-    )
-    this.providerRegistry.register(
-      DanmakuSourceType.MacCMS,
-      this.customProviderService
-    )
+    this.registerFactories()
+
     invariant(
       isServiceWorker(),
       'ProviderService is only available in service worker'
@@ -67,16 +57,66 @@ export class ProviderService {
     this.logger = Logger.sub('[ProviderService]')
   }
 
+  private registerFactories() {
+    this.providerRegistry.register<DanDanPlayProviderConfig>(
+      DanmakuSourceType.DanDanPlay,
+      (config) =>
+        new DanDanPlayService(this.seasonService, this.danmakuService, config)
+    )
+    this.providerRegistry.register<BuiltInBilibiliProvider>(
+      DanmakuSourceType.Bilibili,
+      (config) =>
+        new BilibiliService(this.seasonService, this.danmakuService, config)
+    )
+    this.providerRegistry.register<BuiltInTencentProvider>(
+      DanmakuSourceType.Tencent,
+      (config) =>
+        new TencentService(this.seasonService, this.danmakuService, config)
+    )
+    this.providerRegistry.register<CustomMacCmsProvider>(
+      DanmakuSourceType.MacCMS,
+      (config) => new MacCmsProviderService(this.danmakuService, config)
+    )
+  }
+
+  private async initParsers() {
+    try {
+      const bilibiliConfig = await providerConfigService.getBuiltInBilibili()
+      const tencentConfig = await providerConfigService.getBuiltInTencent()
+      const ddpConfig = await providerConfigService.getBuiltInDanDanPlay()
+
+      this.parsers = [
+        new BilibiliService(
+          this.seasonService,
+          this.danmakuService,
+          bilibiliConfig
+        ),
+        new TencentService(
+          this.seasonService,
+          this.danmakuService,
+          tencentConfig
+        ),
+        new DanDanPlayService(
+          this.seasonService,
+          this.danmakuService,
+          ddpConfig
+        ),
+      ]
+    } catch (e) {
+      this.logger.error('Failed to init parsers', e)
+    }
+  }
+
   async searchSeason(
-    params: SeasonSearchParams
+    params: SeasonSearchRequest
   ): Promise<Season[] | CustomSeason[]> {
     const providerConfig = await providerConfigService.mustGet(
       params.providerConfigId
     )
 
-    const service = this.providerRegistry.mustGet(providerConfig.impl)
+    const service = this.providerRegistry.create(providerConfig)
 
-    return service.search(params, providerConfig)
+    return service.search(params)
   }
 
   async fetchEpisodesBySeason(seasonId: number) {
@@ -86,9 +126,9 @@ export class ProviderService {
       season.providerConfigId
     )
 
-    const service = this.providerRegistry.mustGet(season.provider)
+    const service = this.providerRegistry.create(providerConfig)
 
-    return service.getEpisodes(seasonId, providerConfig)
+    return service.getEpisodes(seasonId)
   }
 
   async refreshSeason(filter: SeasonQueryFilter) {
@@ -98,25 +138,23 @@ export class ProviderService {
       season.providerConfigId
     )
 
-    const service = this.providerRegistry.get(season.provider)
+    const service = this.providerRegistry.create(providerConfig)
     if (service?.refreshSeason) {
-      await service.refreshSeason(season, providerConfig)
+      await service.refreshSeason(season)
     }
   }
 
   async preloadNextEpisode(request: DanmakuFetchRequest): Promise<void> {
     const config = await this.resolveConfig(request)
-    const providerType =
-      request.type === 'by-id' ? request.provider : request.meta.provider
 
-    const service = this.providerRegistry.get(providerType)
+    const service = this.providerRegistry.create(config)
 
     if (service?.preloadNextEpisode) {
-      return service.preloadNextEpisode(request, config)
+      return service.preloadNextEpisode(request)
     }
 
     this.logger.warn(
-      `Preloading next episode is not supported for provider: ${providerType}`
+      `Preloading next episode is not supported for provider: ${config.impl}`
     )
   }
 
@@ -166,9 +204,9 @@ export class ProviderService {
     }
 
     const config = await this.resolveConfig(request)
-    const service = this.providerRegistry.mustGet(provider)
+    const service = this.providerRegistry.create(config)
 
-    return service.getDanmaku(request, config)
+    return service.getDanmaku(request)
   }
 
   async findMatchingEpisodes({
@@ -180,18 +218,14 @@ export class ProviderService {
     const findEpisodeInSeason = async (
       season: Season
     ): Promise<WithSeason<EpisodeMeta>> => {
-      const service = this.providerRegistry.mustGet(season.provider)
+      const providerConfig = await providerConfigService.mustGet(
+        season.providerConfigId
+      )
+
+      const service = this.providerRegistry.create(providerConfig)
 
       if (service.findEpisode) {
-        const providerConfig = await providerConfigService.mustGet(
-          season.providerConfigId
-        )
-
-        const match = await service.findEpisode(
-          season,
-          episodeNumber,
-          providerConfig
-        )
+        const match = await service.findEpisode(season, episodeNumber)
         if (match) return match
         throw new Error(
           `Episode ${episodeNumber} not found in season: ${season.title}`
@@ -260,15 +294,11 @@ export class ProviderService {
 
     this.logger.debug('No mapping found, searching for season')
 
-    const service = this.providerRegistry.mustGet(automaticProvider.impl)
+    const service = this.providerRegistry.create(automaticProvider)
 
-    const foundSeasons = await service.search(
-      {
-        keyword: title,
-        providerConfigId: automaticProvider.id,
-      },
-      automaticProvider
-    )
+    const foundSeasons = await service.search({
+      keyword: title,
+    })
 
     if (foundSeasons.length === 0) {
       this.logger.debug(`No season found for title: ${title}`)
@@ -304,9 +334,11 @@ export class ProviderService {
   }
 
   async parseUrl(url: string) {
-    const providers = this.providerRegistry.getAll()
+    if (this.parsers.length === 0) {
+      await this.initParsers()
+    }
 
-    for (const provider of providers) {
+    for (const provider of this.parsers) {
       if (provider.parseUrl && provider.canParse?.(url)) {
         const result = await provider.parseUrl(url)
         if (result) return result

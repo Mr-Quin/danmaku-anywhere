@@ -225,7 +225,7 @@ export const setupRpc = (
       return kazumiService.getChapters(url, policy)
     },
     genericVodSearch: async ({ baseUrl, keyword }) => {
-      return customProviderService.search(baseUrl, keyword)
+      return customProviderService.searchInternal(baseUrl, keyword)
     },
     genericFetchDanmakuForUrl: async ({ title, url, providerConfigId }) => {
       return customProviderService.fetchDanmakuForUrl(

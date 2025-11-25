@@ -23,7 +23,7 @@ import type {
   MatchEpisodeInput,
   MatchEpisodeResult,
   SeasonQueryFilter,
-  SeasonSearchParams,
+  SeasonSearchRequest,
 } from '@/common/anime/dto'
 import type { ImageFetchOptions } from '@/common/components/image/types'
 import type { BaseUrlConfig } from '@/common/configs/types'
@@ -58,7 +58,7 @@ type IconSetDto =
 export type BackgroundMethods = {
   iconSet: RPCDef<IconSetDto, void>
   mediaParseUrl: RPCDef<{ url: string }, WithSeason<EpisodeMeta>>
-  seasonSearch: RPCDef<SeasonSearchParams, (Season | CustomSeason)[]>
+  seasonSearch: RPCDef<SeasonSearchRequest, (Season | CustomSeason)[]>
   seasonFilter: RPCDef<SeasonQueryFilter, Season[]>
   seasonGetAll: RPCDef<void, Season[]>
   seasonDelete: RPCDef<SeasonQueryFilter, void>

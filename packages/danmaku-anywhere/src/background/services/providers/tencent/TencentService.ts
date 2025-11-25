@@ -13,9 +13,8 @@ import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
-import type { ProviderConfig } from '@/common/options/providerConfig/schema'
-import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
-import type { IDanmakuProvider } from '../IDanmakuProvider'
+import type { BuiltInTencentProvider } from '@/common/options/providerConfig/schema'
+import type { IDanmakuProvider, SeasonSearchParams } from '../IDanmakuProvider'
 import { TencentMapper } from './TencentMapper'
 
 export class TencentService implements IDanmakuProvider {
@@ -23,7 +22,8 @@ export class TencentService implements IDanmakuProvider {
 
   constructor(
     private seasonService: SeasonService,
-    private danmakuService: DanmakuService
+    private danmakuService: DanmakuService,
+    _config: BuiltInTencentProvider
   ) {
     this.logger = Logger.sub('[TencentService]')
   }
@@ -46,10 +46,8 @@ export class TencentService implements IDanmakuProvider {
     }
   }
 
-  async search(
-    keyword: string | { keyword: string }
-  ): Promise<TencentOf<Season>[]> {
-    const kw = typeof keyword === 'string' ? keyword : keyword.keyword
+  async search(params: SeasonSearchParams): Promise<TencentOf<Season>[]> {
+    const kw = params.keyword
     this.logger.debug('Search tencent', kw)
     const result = await tencent.searchMedia({ query: kw })
     this.logger.debug('Search result', result)
@@ -89,7 +87,7 @@ export class TencentService implements IDanmakuProvider {
    * We can get the cid from the season info.
    * We can get the vid from the episode info, so there must be at least one episode in the season.
    */
-  async refreshSeason(season: Season, _config: ProviderConfig) {
+  async refreshSeason(season: Season) {
     const id = season.id
     const seasonData = await this.seasonService.getByType(
       id,
@@ -139,11 +137,8 @@ export class TencentService implements IDanmakuProvider {
   }
 
   async getDanmaku(
-    request: DanmakuFetchRequest,
-    config: ProviderConfig
+    request: DanmakuFetchRequest
   ): Promise<WithSeason<TencentOf<Episode>>> {
-    assertProviderConfigImpl(config, DanmakuSourceType.Tencent)
-
     if (request.type === 'by-id') {
       const episodes = await this.getEpisodes(request.seasonId)
       const episode = episodes.find(

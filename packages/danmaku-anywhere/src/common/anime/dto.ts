@@ -6,7 +6,7 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
 
-export interface SeasonSearchParams {
+export interface SeasonSearchRequest {
   keyword: string
   episode?: string
   providerConfigId: string

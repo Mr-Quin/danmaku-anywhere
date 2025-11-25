@@ -8,6 +8,7 @@ import { defaultProviderConfigs } from './constant'
 import type {
   BuiltInBilibiliProvider,
   BuiltInDanDanPlayProvider,
+  BuiltInTencentProvider,
   DanDanPlayCompatProvider,
   ProviderConfig,
 } from './schema'
@@ -98,6 +99,15 @@ class ProviderConfigService {
     }
     assertProviderConfigType(config, 'Bilibili')
     return config as BuiltInBilibiliProvider
+  }
+
+  async getBuiltInTencent(): Promise<BuiltInTencentProvider> {
+    const config = await this.get('tencent')
+    if (!config) {
+      throw new Error('Built-in Tencent provider not found')
+    }
+    assertProviderConfigType(config, 'Tencent')
+    return config as BuiltInTencentProvider
   }
 
   async update<T extends ProviderConfig>(

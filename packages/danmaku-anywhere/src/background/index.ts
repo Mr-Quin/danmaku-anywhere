@@ -7,13 +7,17 @@ import { DanmakuService } from '@/background/services/persistence/DanmakuService
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
 import { BilibiliService } from '@/background/services/providers/bilibili/BilibiliService'
-import { DanDanPlayService } from '@/background/services/providers/dandanplay/DanDanPlayService'
 import { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
 import { ProviderService } from '@/background/services/providers/ProviderService'
 import { TencentService } from '@/background/services/providers/tencent/TencentService'
 import { deferredConfigureStore } from '@/background/utils/deferredConfigureStore'
 import { generateId } from '@/background/utils/generateId'
 import { EXTENSION_VERSION } from '@/common/constants'
+import type {
+  BuiltInBilibiliProvider,
+  BuiltInTencentProvider,
+  CustomMacCmsProvider,
+} from '@/common/options/providerConfig/schema'
 import { setupAlarms } from './alarm/setupAlarms'
 import { setupContextMenu } from './contextMenu/setupContextMenu'
 import { setupNetRequest } from './netRequest/setupNetrequest'
@@ -25,20 +29,28 @@ import { setupOptions } from './syncOptions/setupOptions'
 const seasonService = new SeasonService()
 const danmakuService = new DanmakuService(seasonService)
 
-const danDanPlayService = new DanDanPlayService(seasonService, danmakuService)
-const tencentService = new TencentService(seasonService, danmakuService)
-const bilibiliService = new BilibiliService(seasonService, danmakuService)
-const customProviderService = new MacCmsProviderService(danmakuService)
+// These instances are for RPC / Global methods ONLY.
+// They are initialized with dummy configs because RPC methods don't use the config.
+const tencentService = new TencentService(
+  seasonService,
+  danmakuService,
+  {} as BuiltInTencentProvider
+)
+const bilibiliService = new BilibiliService(
+  seasonService,
+  danmakuService,
+  {} as BuiltInBilibiliProvider
+)
+const customProviderService = new MacCmsProviderService(
+  danmakuService,
+  {} as CustomMacCmsProvider
+)
 
 const titleMappingService = new TitleMappingService()
 const providerService = new ProviderService(
   titleMappingService,
   danmakuService,
-  seasonService,
-  danDanPlayService,
-  bilibiliService,
-  tencentService,
-  customProviderService
+  seasonService
 )
 const kazumiService = new KazumiService()
 const iconService = new IconService()

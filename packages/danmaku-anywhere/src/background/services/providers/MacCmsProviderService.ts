@@ -4,25 +4,26 @@ import type {
   EpisodeMeta,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import {
   fetchDanmuIcuComments,
   searchMacCmsVod,
 } from '@danmaku-anywhere/danmaku-provider/maccms'
-import type { SeasonSearchParams } from '@/common/anime/dto'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { Logger } from '@/common/Logger'
-import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import type { CustomMacCmsProvider } from '@/common/options/providerConfig/schema'
 import { providerConfigService } from '@/common/options/providerConfig/service'
-import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { DanmakuService } from '../persistence/DanmakuService'
-import type { IDanmakuProvider } from './IDanmakuProvider'
+import type { IDanmakuProvider, SeasonSearchParams } from './IDanmakuProvider'
 
 export class MacCmsProviderService implements IDanmakuProvider {
   private logger: typeof Logger
 
-  constructor(private danmakuService: DanmakuService) {
+  constructor(
+    private danmakuService: DanmakuService,
+    private config: CustomMacCmsProvider
+  ) {
     invariant(
       isServiceWorker(),
       'MacCmsProviderService is only available in service worker'
@@ -30,24 +31,14 @@ export class MacCmsProviderService implements IDanmakuProvider {
     this.logger = Logger.sub('[MacCmsProviderService]')
   }
 
-  async search(
-    params: SeasonSearchParams | string,
-    config?: ProviderConfig | string
-  ): Promise<CustomSeason[]> {
-    // Legacy support for direct call
-    if (typeof params === 'string' && typeof config === 'string') {
-      return this.searchInternal(config, params)
-    }
-
-    if (typeof params === 'object' && config && typeof config === 'object') {
-      assertProviderConfigImpl(config, DanmakuSourceType.MacCMS)
-      return this.searchInternal(config.options.danmakuBaseUrl, params.keyword)
-    }
-
-    throw new Error('Invalid arguments for MacCMS search')
+  async search(params: SeasonSearchParams): Promise<CustomSeason[]> {
+    return this.searchInternal(
+      this.config.options.danmakuBaseUrl,
+      params.keyword
+    )
   }
 
-  private async searchInternal(
+  async searchInternal(
     baseUrl: string,
     keyword: string
   ): Promise<CustomSeason[]> {
@@ -85,6 +76,7 @@ export class MacCmsProviderService implements IDanmakuProvider {
     url: string,
     providerConfigId: string
   ) {
+    // TODO: Use the config from the instance
     const config = await providerConfigService.get(providerConfigId)
     if (!config) {
       throw new Error(
@@ -105,16 +97,12 @@ export class MacCmsProviderService implements IDanmakuProvider {
     return this.danmakuService.importCustom({ title, comments })
   }
 
-  async getEpisodes(
-    _seasonId: number,
-    _config: ProviderConfig
-  ): Promise<WithSeason<EpisodeMeta>[]> {
+  async getEpisodes(_seasonId: number): Promise<WithSeason<EpisodeMeta>[]> {
     throw new Error('Method not implemented.')
   }
 
   async getDanmaku(
-    _request: DanmakuFetchRequest,
-    _config: ProviderConfig
+    _request: DanmakuFetchRequest
   ): Promise<WithSeason<Episode>> {
     throw new Error('Method not implemented.')
   }
