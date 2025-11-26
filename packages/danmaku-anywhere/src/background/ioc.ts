@@ -1,48 +1,32 @@
 import 'reflect-metadata'
 import { Container } from 'inversify'
-import { GenAIService } from './services/GenAIService'
-import { IconService } from './services/IconService'
-import { KazumiService } from './services/KazumiService'
-import { DanmakuService } from './services/persistence/DanmakuService'
-import { SeasonService } from './services/persistence/SeasonService'
-import { TitleMappingService } from './services/persistence/TitleMappingService'
-import { ProviderRegistry } from './services/providers/ProviderRegistry'
-import { ProviderService } from './services/providers/ProviderService'
-import { SERVICE_TYPES } from './services/types'
+import {
+  danmakuOptionsService,
+  danmakuOptionsServiceSymbol,
+} from '@/common/options/danmakuOptions/service'
+import {
+  extensionOptionsService,
+  extensionOptionsServiceSymbol,
+} from '@/common/options/extensionOptions/service'
+import {
+  DanmakuProviderFactory,
+  danmakuProviderFactory,
+  type IDanmakuProviderFactory,
+} from './services/providers/ProviderFactory'
 
-const container = new Container()
+const container = new Container({ autobind: true })
 
+// these option services are not classes so they can't autobind with inject
 container
-  .bind<SeasonService>(SERVICE_TYPES.SeasonService)
-  .to(SeasonService)
-  .inSingletonScope()
+  .bind(extensionOptionsServiceSymbol)
+  .toConstantValue(extensionOptionsService)
 container
-  .bind<DanmakuService>(SERVICE_TYPES.DanmakuService)
-  .to(DanmakuService)
-  .inSingletonScope()
+  .bind(danmakuOptionsServiceSymbol)
+  .toConstantValue(danmakuOptionsService)
+
+// factory
 container
-  .bind<TitleMappingService>(SERVICE_TYPES.TitleMappingService)
-  .to(TitleMappingService)
-  .inSingletonScope()
-container
-  .bind<ProviderRegistry>(SERVICE_TYPES.ProviderRegistry)
-  .to(ProviderRegistry)
-  .inSingletonScope()
-container
-  .bind<ProviderService>(SERVICE_TYPES.ProviderService)
-  .to(ProviderService)
-  .inSingletonScope()
-container
-  .bind<KazumiService>(SERVICE_TYPES.KazumiService)
-  .to(KazumiService)
-  .inSingletonScope()
-container
-  .bind<IconService>(SERVICE_TYPES.IconService)
-  .to(IconService)
-  .inSingletonScope()
-container
-  .bind<GenAIService>(SERVICE_TYPES.GenAIService)
-  .to(GenAIService)
-  .inSingletonScope()
+  .bind<IDanmakuProviderFactory>(DanmakuProviderFactory)
+  .toFactory(danmakuProviderFactory)
 
 export { container }

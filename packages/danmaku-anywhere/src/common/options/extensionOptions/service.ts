@@ -219,3 +219,8 @@ export const extensionOptionsService = new OptionsService(
       return data
     },
   })
+
+export const extensionOptionsServiceSymbol = Symbol.for(
+  'ExtensionOptionsService'
+)
+export type ExtensionOptionsService = typeof extensionOptionsService

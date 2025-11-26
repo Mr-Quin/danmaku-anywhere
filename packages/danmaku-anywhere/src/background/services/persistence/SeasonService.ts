@@ -7,7 +7,7 @@ import { db } from '@/common/db/db'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import type { DbEntity } from '@/common/types/dbEntity'
 
-@injectable()
+@injectable('Singleton')
 export class SeasonService {
   async bulkUpsert<T extends SeasonInsert>(data: T[]): Promise<DbEntity<T>[]> {
     const results: DbEntity<T>[] = []

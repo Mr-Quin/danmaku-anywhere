@@ -8,12 +8,11 @@ import type {
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
-import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
-import type { SeasonService } from '@/background/services/persistence/SeasonService'
-import type { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
+import { DanmakuService } from '@/background/services/persistence/DanmakuService'
+import { SeasonService } from '@/background/services/persistence/SeasonService'
+import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
 import { BilibiliService } from '@/background/services/providers/bilibili/BilibiliService'
 import { DanDanPlayService } from '@/background/services/providers/dandanplay/DanDanPlayService'
-import { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
 import { TencentService } from '@/background/services/providers/tencent/TencentService'
 import type {
   MatchEpisodeInput,
@@ -29,21 +28,20 @@ import {
   isProvider,
 } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
-import { extensionOptionsService } from '@/common/options/extensionOptions/service'
-import type {
-  BuiltInBilibiliProvider,
-  BuiltInTencentProvider,
-  CustomMacCmsProvider,
-  DanDanPlayProviderConfig,
-  ProviderConfig,
-} from '@/common/options/providerConfig/schema'
-import { providerConfigService } from '@/common/options/providerConfig/service'
+import {
+  type ExtensionOptionsService,
+  extensionOptionsServiceSymbol,
+} from '@/common/options/extensionOptions/service'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { stripExtension } from '@/common/utils/stripExtension'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
-import { SERVICE_TYPES } from '../types'
 import type { IDanmakuProvider, OmitSeasonId } from './IDanmakuProvider'
-import type { ProviderRegistry } from './ProviderRegistry'
+import {
+  DanmakuProviderFactory,
+  type IDanmakuProviderFactory,
+} from './ProviderFactory'
 
 const enrichEpisode = <T extends DanmakuSourceType>(
   episode: OmitSeasonId<ByProvider<EpisodeMeta, T>>,
@@ -56,22 +54,24 @@ const enrichEpisode = <T extends DanmakuSourceType>(
   }
 }
 
-@injectable()
+@injectable('Singleton')
 export class ProviderService {
   private logger: typeof Logger
   private parsers: IDanmakuProvider[] = []
 
   constructor(
-    @inject(SERVICE_TYPES.TitleMappingService)
+    @inject(TitleMappingService)
     private titleMappingService: TitleMappingService,
-    @inject(SERVICE_TYPES.DanmakuService)
+    @inject(DanmakuService)
     private danmakuService: DanmakuService,
-    @inject(SERVICE_TYPES.SeasonService) private seasonService: SeasonService,
-    @inject(SERVICE_TYPES.ProviderRegistry)
-    private providerRegistry: ProviderRegistry
+    @inject(SeasonService) private seasonService: SeasonService,
+    @inject(ProviderConfigService)
+    private providerConfigService: ProviderConfigService,
+    @inject(extensionOptionsServiceSymbol)
+    private extensionOptionsService: ExtensionOptionsService,
+    @inject(DanmakuProviderFactory)
+    private danmakuProviderFactory: IDanmakuProviderFactory
   ) {
-    this.registerFactories()
-
     invariant(
       isServiceWorker(),
       'ProviderService is only available in service worker'
@@ -79,33 +79,15 @@ export class ProviderService {
     this.logger = Logger.sub('[ProviderService]')
   }
 
-  private registerFactories() {
-    this.providerRegistry.register<DanDanPlayProviderConfig>(
-      DanmakuSourceType.DanDanPlay,
-      (config) => new DanDanPlayService(config)
-    )
-    this.providerRegistry.register<BuiltInBilibiliProvider>(
-      DanmakuSourceType.Bilibili,
-      (config) => new BilibiliService(config)
-    )
-    this.providerRegistry.register<BuiltInTencentProvider>(
-      DanmakuSourceType.Tencent,
-      (config) => new TencentService(config)
-    )
-    this.providerRegistry.register<CustomMacCmsProvider>(
-      DanmakuSourceType.MacCMS,
-      (config) => new MacCmsProviderService(config)
-    )
-  }
-
   private async initParsers() {
     try {
-      const bilibiliConfig = await providerConfigService.getBuiltInBilibili()
-      const tencentConfig = await providerConfigService.getBuiltInTencent()
-      const ddpConfig = await providerConfigService.getBuiltInDanDanPlay()
+      const bilibiliConfig =
+        await this.providerConfigService.getBuiltInBilibili()
+      const tencentConfig = await this.providerConfigService.getBuiltInTencent()
+      const ddpConfig = await this.providerConfigService.getBuiltInDanDanPlay()
 
       this.parsers = [
-        new BilibiliService(bilibiliConfig),
+        new BilibiliService(bilibiliConfig), // TODO: Use Factory
         new TencentService(tencentConfig),
         new DanDanPlayService(ddpConfig),
       ]
@@ -117,11 +99,11 @@ export class ProviderService {
   async searchSeason(
     params: SeasonSearchRequest
   ): Promise<Season[] | CustomSeason[]> {
-    const providerConfig = await providerConfigService.mustGet(
+    const providerConfig = await this.providerConfigService.mustGet(
       params.providerConfigId
     )
 
-    const service = this.providerRegistry.create(providerConfig)
+    const service = this.danmakuProviderFactory(providerConfig)
 
     const seasonInserts = await service.search(params)
     // TODO: fix this once we fold custom seasons into the season insert
@@ -139,10 +121,10 @@ export class ProviderService {
   ): Promise<WithSeason<EpisodeMeta>[]> {
     const season = await this.seasonService.mustGetById(seasonId)
 
-    const providerConfig = await providerConfigService.mustGet(
+    const providerConfig = await this.providerConfigService.mustGet(
       season.providerConfigId
     )
-    const service = this.providerRegistry.createTyped(providerConfig)
+    const service = this.danmakuProviderFactory.getTyped(providerConfig)
 
     const enrichEpisodes = <T extends DanmakuSourceType>(
       episodes: OmitSeasonId<ByProvider<EpisodeMeta, T>>[],
@@ -176,11 +158,11 @@ export class ProviderService {
   async refreshSeason(filter: SeasonQueryFilter) {
     const [season] = await this.seasonService.filter(filter)
 
-    const providerConfig = await providerConfigService.mustGet(
+    const providerConfig = await this.providerConfigService.mustGet(
       season.providerConfigId
     )
 
-    const service = this.providerRegistry.create(providerConfig)
+    const service = this.danmakuProviderFactory(providerConfig)
     if (service?.getSeason) {
       const seasonInsert = await service.getSeason(season.providerIds)
       if (seasonInsert) {
@@ -196,7 +178,7 @@ export class ProviderService {
   async preloadNextEpisode(request: DanmakuFetchRequest): Promise<void> {
     const config = await this.resolveConfig(request)
 
-    const service = this.providerRegistry.create(config)
+    const service = this.danmakuProviderFactory(config)
 
     if (service?.preloadNextEpisode) {
       return service.preloadNextEpisode(request)
@@ -210,7 +192,9 @@ export class ProviderService {
   private async resolveConfig(
     request: DanmakuFetchRequest
   ): Promise<ProviderConfig> {
-    return providerConfigService.mustGet(request.meta.season.providerConfigId)
+    return this.providerConfigService.mustGet(
+      request.meta.season.providerConfigId
+    )
   }
 
   async getDanmaku(request: DanmakuFetchRequest): Promise<WithSeason<Episode>> {
@@ -239,7 +223,7 @@ export class ProviderService {
     }
 
     const config = await this.resolveConfig(request)
-    const service = this.providerRegistry.create(config)
+    const service = this.danmakuProviderFactory(config)
 
     const comments = await service.getDanmaku(request)
 
@@ -267,11 +251,11 @@ export class ProviderService {
     const findEpisodeInSeason = async (
       season: Season
     ): Promise<WithSeason<EpisodeMeta>> => {
-      const providerConfig = await providerConfigService.mustGet(
+      const providerConfig = await this.providerConfigService.mustGet(
         season.providerConfigId
       )
 
-      const service = this.providerRegistry.create(providerConfig)
+      const service = this.danmakuProviderFactory(providerConfig)
 
       if (service.findEpisode) {
         const match = await service.findEpisode(season, episodeNumber)
@@ -286,7 +270,7 @@ export class ProviderService {
       )
     }
 
-    if ((await extensionOptionsService.get()).matchLocalDanmaku) {
+    if ((await this.extensionOptionsService.get()).matchLocalDanmaku) {
       const customEpisode = await this.danmakuService.getCustomByTitle(
         stripExtension(title)
       )
@@ -302,7 +286,7 @@ export class ProviderService {
     const mapping = await this.titleMappingService.get(mapKey)
 
     const automaticProvider =
-      await providerConfigService.getFirstAutomaticProvider()
+      await this.providerConfigService.getFirstAutomaticProvider()
 
     if (mapping || seasonId) {
       let season: Season | undefined
@@ -343,7 +327,7 @@ export class ProviderService {
 
     this.logger.debug('No mapping found, searching for season')
 
-    const service = this.providerRegistry.create(automaticProvider)
+    const service = this.danmakuProviderFactory(automaticProvider)
 
     const foundSeasonInserts = (await service.search({
       keyword: title,

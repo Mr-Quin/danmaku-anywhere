@@ -1,6 +1,7 @@
+import { inject, injectable } from 'inversify'
 import { Logger } from '@/common/Logger'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
-import { mountConfigService } from '@/common/options/mountConfig/service'
+import { MountConfigService } from '@/common/options/mountConfig/service'
 import { createTaskQueue } from '@/common/utils/taskQueue'
 // the ?script query is used to get the file path for the script after bundling
 // @ts-expect-error
@@ -61,19 +62,27 @@ const handleContentScriptRegistration = async (mountConfigs: MountConfig[]) => {
 
 const q = createTaskQueue()
 
-export const setupScripting = () => {
-  chrome.runtime.onStartup.addListener(async () => {
-    const configs = await mountConfigService.getAll()
+@injectable('Singleton')
+export class ScriptingManager {
+  constructor(
+    @inject(MountConfigService)
+    private mountConfigService: MountConfigService
+  ) {}
 
-    // ensure the handler doesn't run in parallel. This can happen because options.onChange can get called at startup
-    await q.run(() => handleContentScriptRegistration(configs))
-  })
+  setup() {
+    chrome.runtime.onStartup.addListener(async () => {
+      const configs = await this.mountConfigService.getAll()
 
-  mountConfigService.options.onChange(async (configs) => {
-    if (!configs) return
+      // ensure the handler doesn't run in parallel. This can happen because options.onChange can get called at startup
+      await q.run(() => handleContentScriptRegistration(configs))
+    })
 
-    await q.run(() => handleContentScriptRegistration(configs))
-  })
+    this.mountConfigService.options.onChange(async (configs) => {
+      if (!configs) return
+
+      await q.run(() => handleContentScriptRegistration(configs))
+    })
+  }
 }
 
 export const injectVideoScript = async (tabId: number, frameId: number) => {

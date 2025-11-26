@@ -54,3 +54,6 @@ export const danmakuOptionsService = new OptionsService(
       })
     },
   })
+
+export const danmakuOptionsServiceSymbol = Symbol.for('DanmakuOptionsService')
+export type DanmakuOptionsService = typeof danmakuOptionsService

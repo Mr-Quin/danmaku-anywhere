@@ -7,7 +7,7 @@ import {
 } from '@danmaku-anywhere/web-scraper'
 import { injectable } from 'inversify'
 
-@injectable()
+@injectable('Singleton')
 export class KazumiService {
   async searchContent(
     keyword: string,

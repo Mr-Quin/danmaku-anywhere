@@ -1,7 +1,7 @@
 import { injectable } from 'inversify'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
-@injectable()
+@injectable('Singleton')
 export class IconService {
   constructor() {
     invariant(

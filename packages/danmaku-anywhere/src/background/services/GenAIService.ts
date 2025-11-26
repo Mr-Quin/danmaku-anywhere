@@ -3,7 +3,7 @@ import { extractTitle } from '@danmaku-anywhere/danmaku-provider/genAi'
 import { injectable } from 'inversify'
 import { Logger } from '@/common/Logger'
 
-@injectable()
+@injectable('Singleton')
 export class GenAIService {
   private logger: typeof Logger
 
