@@ -11,9 +11,6 @@ import { inject, injectable } from 'inversify'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
-import { BilibiliService } from '@/background/services/providers/bilibili/BilibiliService'
-import { DanDanPlayService } from '@/background/services/providers/dandanplay/DanDanPlayService'
-import { TencentService } from '@/background/services/providers/tencent/TencentService'
 import type {
   MatchEpisodeInput,
   MatchEpisodeResult,
@@ -84,12 +81,10 @@ export class ProviderService {
       const bilibiliConfig =
         await this.providerConfigService.getBuiltInBilibili()
       const tencentConfig = await this.providerConfigService.getBuiltInTencent()
-      const ddpConfig = await this.providerConfigService.getBuiltInDanDanPlay()
 
       this.parsers = [
-        new BilibiliService(bilibiliConfig), // TODO: Use Factory
-        new TencentService(tencentConfig),
-        new DanDanPlayService(ddpConfig),
+        this.danmakuProviderFactory(bilibiliConfig),
+        this.danmakuProviderFactory(tencentConfig),
       ]
     } catch (e) {
       this.logger.error('Failed to init parsers', e)

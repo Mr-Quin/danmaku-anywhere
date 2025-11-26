@@ -14,7 +14,7 @@ import {
   type IDanmakuProviderFactory,
 } from './services/providers/ProviderFactory'
 
-const container = new Container({ autobind: true })
+const container = new Container({ autobind: true, defaultScope: 'Singleton' })
 
 // these option services are not classes so they can't autobind with inject
 container
