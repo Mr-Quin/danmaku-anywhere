@@ -5,7 +5,7 @@ import {
 import { setRequestHeaderRule } from '@danmaku-anywhere/web-scraper'
 import { inject, injectable } from 'inversify'
 import { match } from 'ts-pattern'
-import { injectVideoScript } from '@/background/scripting/setupScripting'
+import { injectVideoScript } from '@/background/scripting/ScriptingManager'
 import { GenAIService } from '@/background/services/GenAIService'
 import { IconService } from '@/background/services/IconService'
 import { KazumiService } from '@/background/services/KazumiService'
