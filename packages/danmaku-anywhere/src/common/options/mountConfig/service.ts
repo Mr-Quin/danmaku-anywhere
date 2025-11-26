@@ -1,4 +1,5 @@
 import { produce } from 'immer'
+import { injectable } from 'inversify'
 import {
   createMountConfig,
   defaultMountConfig,
@@ -49,7 +50,8 @@ const mountConfigOptions = new OptionsService<MountConfig[]>(
       ),
   })
 
-class MountConfigService {
+@injectable('Singleton')
+export class MountConfigService {
   public readonly options = mountConfigOptions
 
   async create(input: unknown) {

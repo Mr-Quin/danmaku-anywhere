@@ -3,6 +3,7 @@ import {
   PROVIDER_TO_BUILTIN_ID,
 } from '@danmaku-anywhere/danmaku-converter'
 import { produce } from 'immer'
+import { injectable } from 'inversify'
 import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -27,7 +28,8 @@ const providerConfigOptions = new OptionsService<ProviderConfig[]>(
   },
 })
 
-class ProviderConfigService {
+@injectable('Singleton')
+export class ProviderConfigService {
   public readonly options = providerConfigOptions
 
   async isIdUnique(id: string, excludeId?: string): Promise<boolean> {

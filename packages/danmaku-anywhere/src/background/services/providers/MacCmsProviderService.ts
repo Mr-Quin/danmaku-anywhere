@@ -7,13 +7,13 @@ import {
   fetchDanmuIcuComments,
   searchMacCmsVod,
 } from '@danmaku-anywhere/danmaku-provider/maccms'
+import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { Logger } from '@/common/Logger'
 import type { CustomMacCmsProvider } from '@/common/options/providerConfig/schema'
-import { providerConfigService } from '@/common/options/providerConfig/service'
+import type { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
-import type { DanmakuService } from '../persistence/DanmakuService'
 import type {
   IDanmakuProvider,
   OmitSeasonId,
@@ -76,7 +76,8 @@ export class MacCmsProviderService implements IDanmakuProvider {
     title: string,
     url: string,
     providerConfigId: string,
-    danmakuService: DanmakuService
+    danmakuService: DanmakuService,
+    providerConfigService: ProviderConfigService
   ) {
     // TODO: Use the config from the instance
     const config = await providerConfigService.get(providerConfigId)

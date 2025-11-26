@@ -1,3 +1,4 @@
+import { injectable } from 'inversify'
 import { Logger } from '@/common/Logger'
 
 // these enums are not defined in Firefox, so we need to define them ourselves
@@ -118,16 +119,19 @@ const rules: chrome.declarativeNetRequest.Rule[] = [
   },
 ]
 
-export const setupNetRequest = () => {
-  chrome.runtime.onInstalled.addListener(async () => {
-    try {
-      await chrome.declarativeNetRequest.updateDynamicRules({
-        removeRuleIds: rules.map((r) => r.id),
-        addRules: rules,
-      })
-      Logger.debug('Updated net request dynamic rules')
-    } catch (e) {
-      Logger.error('Failed to update net request dynamic rules', e)
-    }
-  })
+@injectable('Singleton')
+export class NetRequestManager {
+  setup() {
+    chrome.runtime.onInstalled.addListener(async () => {
+      try {
+        await chrome.declarativeNetRequest.updateDynamicRules({
+          removeRuleIds: rules.map((r) => r.id),
+          addRules: rules,
+        })
+        Logger.debug('Updated net request dynamic rules')
+      } catch (e) {
+        Logger.error('Failed to update net request dynamic rules', e)
+      }
+    })
+  }
 }
