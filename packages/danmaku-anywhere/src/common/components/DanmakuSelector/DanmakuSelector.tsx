@@ -7,27 +7,23 @@ import {
   type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Sync } from '@mui/icons-material'
-import {
-  Box,
-  Checkbox,
-  IconButton,
-  List,
-  ListSubheader,
-  Stack,
-  Tooltip,
-} from '@mui/material'
-import { useVirtualizer } from '@tanstack/react-virtual'
-import {
-  memo,
+import { Box, IconButton, Stack, Tooltip, Typography } from '@mui/material'
+import type { TreeViewBaseItem } from '@mui/x-tree-view/models'
+import { RichTreeView } from '@mui/x-tree-view/RichTreeView'
+import type { TreeItemProps } from '@mui/x-tree-view/TreeItem'
+import { TreeItem } from '@mui/x-tree-view/TreeItem'
+import React, {
+  createContext,
+  forwardRef,
   type Ref,
+  type SyntheticEvent,
+  useContext,
   useImperativeHandle,
   useMemo,
-  useRef,
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
-import { BaseEpisodeListItem } from '@/common/components/EpisodeList/BaseEpisodeListItem'
 import { NothingHere } from '@/common/components/NothingHere'
 import { ProviderLogo } from '@/common/components/ProviderLogo'
 import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
@@ -42,114 +38,150 @@ export interface DanmakuSelectorApi {
   clearSelection: () => void
 }
 
-type EpisodeListItemProps = {
-  item: FlattenedOption
+interface DanmakuSelectorProps {
+  filter: string
+  typeFilter: DanmakuSourceType[]
   onSelect: (value: GenericEpisodeLite) => void
   disabled?: boolean
-  multiselect: boolean
-  isSelected: boolean
-  onToggleSelection: (episode: GenericEpisodeLite) => void
+  multiselect?: boolean
+  ref: Ref<DanmakuSelectorApi>
 }
 
-const EpisodeListItem = ({
-  item,
-  onSelect,
-  disabled,
-  multiselect = false,
-  isSelected = false,
-  onToggleSelection,
-}: EpisodeListItemProps) => {
-  const { mutateAsync: load, isPending } = useFetchDanmaku()
+// Extended Tree Item to include data
+interface ExtendedTreeItem extends TreeViewBaseItem {
+  kind: 'season' | 'episode'
+  data: Season | CustomSeason | GenericEpisodeLite
+  children?: ExtendedTreeItem[]
+}
+
+// Context to pass item data to CustomTreeItem without prop drilling through library components
+const ItemContext = createContext<Record<string, ExtendedTreeItem>>({})
+
+const SeasonLabel = ({
+  season,
+  count,
+}: {
+  season: Season | CustomSeason
+  count?: number
+}) => {
   const { getProviderById } = useProviderConfig()
 
-  const { t } = useTranslation()
+  const provider = isNotCustom(season)
+    ? getProviderById(season.providerConfigId)
+    : undefined
 
-  const handleFetchDanmaku = async (meta: WithSeason<EpisodeMeta>) => {
-    return await load({
+  return (
+    <Stack
+      direction="row"
+      spacing={1}
+      alignItems="center"
+      justifyContent="space-between"
+      width="100%"
+      overflow="hidden"
+    >
+      <Stack direction="row" spacing={1} alignItems="center" overflow="hidden">
+        {season.imageUrl && (
+          <Box
+            component="img"
+            src={season.imageUrl}
+            alt={season.title}
+            sx={{
+              width: 32,
+              height: 48,
+              objectFit: 'cover',
+              borderRadius: 1,
+              flexShrink: 0,
+            }}
+          />
+        )}
+        <Typography noWrap variant="body2">
+          {season.title} {count !== undefined && `(${count})`}
+        </Typography>
+      </Stack>
+      <Box flexShrink={0}>
+        {provider && !provider.isBuiltIn ? (
+          <Typography variant="caption" color="text.secondary">
+            {provider.name}
+          </Typography>
+        ) : (
+          <ProviderLogo provider={season.provider} />
+        )}
+      </Box>
+    </Stack>
+  )
+}
+
+const EpisodeLabel = ({ episode }: { episode: GenericEpisodeLite }) => {
+  const { t } = useTranslation()
+  const { mutateAsync: load, isPending } = useFetchDanmaku()
+
+  const handleFetchDanmaku = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!isNotCustom(episode)) return
+
+    await load({
       type: 'by-meta',
-      meta,
+      meta: episode as WithSeason<EpisodeMeta>,
       options: {
         forceUpdate: true,
       },
     })
   }
 
-  if (item.kind === 'season') {
-    const provider = isNotCustom(item.season)
-      ? getProviderById(item.season.providerConfigId)
-      : undefined
-
-    return (
-      <ListSubheader title={item.season.title}>
-        <Stack
-          direction="row"
-          spacing={1}
-          alignItems="center"
-          justifyContent="space-between"
-        >
-          <Box
-            component="span"
-            overflow="hidden"
-            textOverflow="ellipsis"
-            whiteSpace="nowrap"
-          >
-            {item.season.title}
-          </Box>
-          {provider && !provider.isBuiltIn ? (
-            provider.name
-          ) : (
-            <ProviderLogo provider={item.season.provider} />
-          )}
-        </Stack>
-      </ListSubheader>
-    )
-  }
+  // Only show sync for standard provider episodes
+  const showSync = isNotCustom(episode)
 
   return (
-    <BaseEpisodeListItem
-      showImage={false}
-      disabled={disabled}
-      episode={item.episode}
-      onClick={(meta) => {
-        if (multiselect) {
-          onToggleSelection(meta)
-        } else {
-          onSelect(meta)
-        }
-      }}
-      renderSecondaryAction={() => {
-        const { episode } = item
-
-        if (multiselect) {
-          return (
-            <Checkbox
-              checked={isSelected}
-              onChange={() => onToggleSelection?.(episode)}
-              onClick={(e) => e.stopPropagation()}
-              disabled={disabled}
-            />
-          )
-        }
-
-        if (!isNotCustom(episode)) return null
-
-        return (
-          <Tooltip title={t('danmaku.refresh')}>
-            <IconButton
-              disabled={isPending}
-              loading={isPending}
-              onClick={() => handleFetchDanmaku(episode)}
-            >
-              <Sync />
-            </IconButton>
-          </Tooltip>
-        )
-      }}
-    />
+    <Stack
+      direction="row"
+      alignItems="center"
+      justifyContent="space-between"
+      width="100%"
+      py={0.5}
+      overflow="hidden"
+    >
+      <Typography noWrap variant="body2" sx={{ flex: 1 }}>
+        {episode.title}
+      </Typography>
+      {showSync && (
+        <Tooltip title={t('danmaku.refresh')}>
+          <IconButton
+            size="small"
+            disabled={isPending}
+            onClick={handleFetchDanmaku}
+            sx={{ ml: 1 }}
+          >
+            <Sync fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      )}
+    </Stack>
   )
 }
 
-const EpisodeListItemMemo = memo(EpisodeListItem)
+const CustomTreeItem = forwardRef<HTMLLIElement, TreeItemProps>(
+  (props, ref) => {
+    const { itemId, label, ...other } = props
+    const itemMap = useContext(ItemContext)
+    const item = itemMap[itemId]
+
+    if (!item) {
+      return <TreeItem ref={ref} itemId={itemId} label={label} {...other} />
+    }
+
+    const customLabel =
+      item.kind === 'season' ? (
+        <SeasonLabel
+          season={item.data as Season | CustomSeason}
+          count={item.children?.length}
+        />
+      ) : (
+        <EpisodeLabel episode={item.data as GenericEpisodeLite} />
+      )
+
+    return <TreeItem ref={ref} itemId={itemId} label={customLabel} {...other} />
+  }
+)
 
 const stringifyDanmakuMeta = (episode: GenericEpisodeLite) => {
   if (isProvider(episode, DanmakuSourceType.MacCMS)) {
@@ -158,7 +190,7 @@ const stringifyDanmakuMeta = (episode: GenericEpisodeLite) => {
   return `${episode.season.title} ${episode.title}`
 }
 
-const filterOptions = <T extends GenericEpisodeLite>(
+const filterEpisodes = <T extends GenericEpisodeLite>(
   options: T[],
   filter: string,
   typeFilter: DanmakuSourceType[]
@@ -178,25 +210,6 @@ const filterOptions = <T extends GenericEpisodeLite>(
   })
 }
 
-type FlattenedOption =
-  | {
-      kind: 'season'
-      season: Season | CustomSeason
-    }
-  | {
-      kind: 'episode'
-      episode: GenericEpisodeLite
-    }
-
-interface DanmakuSelectorProps {
-  filter: string
-  typeFilter: DanmakuSourceType[]
-  onSelect: (value: GenericEpisodeLite) => void
-  disabled?: boolean
-  multiselect?: boolean
-  ref: Ref<DanmakuSelectorApi>
-}
-
 export const DanmakuSelector = ({
   filter,
   typeFilter,
@@ -204,168 +217,161 @@ export const DanmakuSelector = ({
   disabled,
   multiselect = false,
   ref,
-}: DanmakuSelectorProps) => {
+}: DanmakuSelectorProps): React.ReactElement => {
   const { t } = useTranslation()
-
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const [selectedEpisodes, setSelectedEpisodes] = useState<
-    Set<GenericEpisodeLite>
-  >(new Set())
-
   const { data: episodes } = useEpisodesLiteSuspense()
   const { data: customEpisodes } = useCustomEpisodeLiteSuspense({ all: true })
   const { data: seasons } = useGetAllSeasonsSuspense()
 
-  const handleToggleSelection = (episode: GenericEpisodeLite) => {
-    setSelectedEpisodes((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(episode)) {
-        newSet.delete(episode)
-      } else {
-        newSet.add(episode)
+  // Controlled selection state
+  // We use string IDs for RichTreeView
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+
+  const { items, itemMap, episodeMap } = useMemo(() => {
+    const itemMap: Record<string, ExtendedTreeItem> = {}
+    const episodeMap: Record<string, GenericEpisodeLite> = {}
+    const treeItems: ExtendedTreeItem[] = []
+
+    const register = (item: ExtendedTreeItem) => {
+      itemMap[item.id] = item
+      if (item.kind === 'episode') {
+        episodeMap[item.id] = item.data as GenericEpisodeLite
       }
-      return newSet
-    })
-  }
+      return item
+    }
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      getSelectedEpisodes: () => {
-        const allEpisodes = [...episodes, ...customEpisodes]
-        return allEpisodes.filter((episode) => selectedEpisodes.has(episode))
-      },
-      clearSelection: () => {
-        setSelectedEpisodes(new Set())
-      },
-    }),
-    [episodes, customEpisodes, selectedEpisodes]
-  )
+    const filteredEpisodes = filterEpisodes(episodes, filter, typeFilter)
+    const filteredCustomEpisodes = filterEpisodes(
+      customEpisodes,
+      filter,
+      typeFilter
+    )
 
-  const flattened = useMemo(() => {
-    const filteredEpisodes = filterOptions(episodes, filter, typeFilter)
+    // Handle Custom Episodes (Local)
+    if (filteredCustomEpisodes.length > 0) {
+      const children = filteredCustomEpisodes.map((ep) =>
+        register({
+          id: `custom-episode-${ep.id}`,
+          label: ep.title,
+          kind: 'episode',
+          data: ep,
+        })
+      )
+
+      const customSeason: CustomSeason = {
+        title: t('danmaku.local'),
+        type: t('danmaku.local'),
+        indexedId: '',
+        schemaVersion: 1,
+        version: 0,
+        timeUpdated: 0,
+        id: -1,
+        provider: DanmakuSourceType.MacCMS,
+        providerIds: {},
+      }
+
+      treeItems.push(
+        register({
+          id: 'season-custom',
+          label: t('danmaku.local'),
+          kind: 'season',
+          data: customSeason,
+          children,
+        })
+      )
+    }
+
+    // Handle Regular Seasons
     const groupedBySeason = Object.groupBy(
       filteredEpisodes,
       (item) => item.seasonId
     )
 
-    const flattened: FlattenedOption[] = []
+    Object.entries(groupedBySeason).forEach(([seasonId, groupEpisodes]) => {
+      const season = seasons.find((s) => s.id.toString() === seasonId)
+      if (!season || !groupEpisodes) return
 
-    const filteredCustomEpisodes = filterOptions(
-      customEpisodes,
-      filter,
-      typeFilter
-    )
-    if (filteredCustomEpisodes.length) {
-      flattened.push({
-        kind: 'season',
-        season: {
-          title: t('danmaku.local'),
-          type: t('danmaku.local'),
-          indexedId: '',
-          schemaVersion: 1,
-          version: 0,
-          timeUpdated: 0,
-          id: -1,
-          provider: DanmakuSourceType.MacCMS,
-          providerIds: {},
-        } satisfies CustomSeason,
-      })
-    }
-    filteredCustomEpisodes.forEach((episode) => {
-      flattened.push({
-        kind: 'episode',
-        episode,
-      })
-    })
-
-    Object.entries(groupedBySeason).forEach(([seasonId, episodeGroup]) => {
-      const season = seasons.find((season) => season.id.toString() === seasonId)
-
-      if (!season) return
-
-      flattened.push({
-        kind: 'season',
-        season: season,
-      })
-      episodeGroup?.forEach((episode) => {
-        flattened.push({
+      const children = groupEpisodes.map((ep) =>
+        register({
+          id: `episode-${ep.id}`,
+          label: ep.title,
           kind: 'episode',
-          episode,
+          data: ep,
         })
-      })
+      )
+
+      treeItems.push(
+        register({
+          id: `season-${season.id}`,
+          label: season.title,
+          kind: 'season',
+          data: season,
+          children,
+        })
+      )
     })
 
-    return flattened
-  }, [episodes, customEpisodes, seasons, filter, typeFilter])
+    return { items: treeItems, itemMap, episodeMap }
+  }, [episodes, customEpisodes, seasons, filter, typeFilter, t])
 
-  const getKey = (item: FlattenedOption) => {
-    if (item.kind === 'season') {
-      return `season-${item.season.id}`
+  useImperativeHandle(
+    ref,
+    () => ({
+      getSelectedEpisodes: () => {
+        return selectedIds
+          .map((id) => episodeMap[id])
+          .filter((ep): ep is GenericEpisodeLite => !!ep)
+      },
+      clearSelection: () => {
+        setSelectedIds([])
+      },
+    }),
+    [selectedIds, episodeMap]
+  )
+
+  const handleSelectedItemsChange = (
+    event: SyntheticEvent | null,
+    ids: string | string[] | null
+  ) => {
+    if (disabled) return
+
+    if (multiselect) {
+      const newIds = Array.isArray(ids) ? ids : ids ? [ids] : []
+      // Filter out seasons if selected
+      const episodeIds = newIds.filter((id) => itemMap[id]?.kind === 'episode')
+      setSelectedIds(episodeIds)
+    } else {
+      // Single select
+      if (typeof ids === 'string') {
+        const item = itemMap[ids]
+        if (item && item.kind === 'episode') {
+          onSelect(item.data as GenericEpisodeLite)
+          // Optionally update selection state if we want to show it
+          // setSelectedIds([ids])
+        }
+      }
     }
-    const episode = item.episode
-    if (isNotCustom(episode)) {
-      return `season-${episode.season.id}-episode-${episode.id}`
-    }
-    return `season-custom-episode-${episode.id}`
   }
 
-  const getIsSelected = (item: FlattenedOption) => {
-    if (item.kind === 'season') {
-      return false
-    }
-    return selectedEpisodes.has(item.episode)
-  }
-
-  const virtualizer = useVirtualizer({
-    count: flattened.length,
-    getScrollElement: () => scrollRef.current,
-    estimateSize: () => 72,
-    getItemKey: (i) => getKey(flattened[i]),
-  })
-
-  if (flattened.length === 0) {
+  if (items.length === 0) {
     return <NothingHere />
   }
 
   return (
-    <Box height="100%" overflow="auto" ref={scrollRef}>
-      <List
-        sx={{
-          height: virtualizer.getTotalSize(),
-        }}
-        disablePadding
-      >
-        {virtualizer.getVirtualItems().map((virtualItem) => {
-          const item = flattened[virtualItem.index]
-
-          const key = getKey(item)
-
-          return (
-            <div
-              key={key}
-              data-index={virtualItem.index}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                transform: `translateY(${virtualItem.start}px)`,
-              }}
-              ref={virtualizer.measureElement}
-            >
-              <EpisodeListItemMemo
-                item={item}
-                onSelect={onSelect}
-                disabled={disabled}
-                multiselect={multiselect}
-                isSelected={getIsSelected(item)}
-                onToggleSelection={handleToggleSelection}
-              />
-            </div>
-          )
-        })}
-      </List>
-    </Box>
+    <ItemContext.Provider value={itemMap}>
+      <Box sx={{ height: '100%', overflowY: 'auto' }}>
+        <RichTreeView
+          items={items}
+          multiSelect={multiselect}
+          checkboxSelection={multiselect}
+          selectedItems={multiselect ? selectedIds : selectedIds[0] || null}
+          onSelectedItemsChange={handleSelectedItemsChange}
+          slots={{ item: CustomTreeItem }}
+          isItemDisabled={(item) =>
+            disabled ? (item as ExtendedTreeItem).kind === 'episode' : false
+          }
+        />
+      </Box>
+    </ItemContext.Provider>
   )
 }
