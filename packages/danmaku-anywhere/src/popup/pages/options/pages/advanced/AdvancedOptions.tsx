@@ -1,22 +1,20 @@
 import { useTranslation } from 'react-i18next'
 
+import { getSettingsByCategory } from '@/common/options/extensionOptions/settingConfigs'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
-import { AnalyticsOption } from '@/popup/pages/options/pages/advanced/components/AnalyticsOption'
-import { DebugOption } from '@/popup/pages/options/pages/advanced/components/DebugOption'
-import { MatchLocalDanmakuOption } from '@/popup/pages/options/pages/advanced/components/MatchLocalDanmakuOption'
-import { SimplifiedSearchListItem } from '@/popup/pages/options/pages/advanced/components/SimplifiedSearchListItem'
+import { DeclarativeToggleSetting } from '@/popup/pages/options/components/DeclarativeToggleSetting'
 
 export const AdvancedOptions = () => {
   const { t } = useTranslation()
+  const advancedSettings = getSettingsByCategory('advanced')
 
   return (
     <OptionsPageLayout>
       <OptionsPageToolBar title={t('optionsPage.pages.advanced')} />
-      <SimplifiedSearchListItem />
-      <AnalyticsOption />
-      <MatchLocalDanmakuOption />
-      <DebugOption />
+      {advancedSettings.map((config) => (
+        <DeclarativeToggleSetting key={config.id} config={config} />
+      ))}
     </OptionsPageLayout>
   )
 }
