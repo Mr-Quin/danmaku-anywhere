@@ -1,11 +1,10 @@
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import { Box, Stack, Typography } from '@mui/material'
-import { useState } from 'react'
-import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
+import type { ReactElement } from 'react'
 import { isNotCustom } from '@/common/danmaku/utils'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
-import { DeleteConfirmDialog } from '../dialogs/DeleteConfirmDialog'
+import { useDanmakuTreeContext } from '../DanmakuTreeContext'
 import { SeasonContextMenu } from '../menus/SeasonContextMenu'
 
 interface SeasonTreeItemProps {
@@ -13,13 +12,14 @@ interface SeasonTreeItemProps {
   count?: number
 }
 
-export const SeasonTreeItem = ({ season, count }: SeasonTreeItemProps) => {
+export const SeasonTreeItem = ({
+  season,
+  count,
+}: SeasonTreeItemProps): ReactElement => {
   const { getProviderById } = useProviderConfig()
 
   const exportDanmaku = useExportDanmaku()
-  const deleteMutation = useDeleteEpisode()
-
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const { setDeletingDanmaku } = useDanmakuTreeContext()
 
   const provider = isNotCustom(season)
     ? getProviderById(season.providerConfigId)
@@ -38,34 +38,7 @@ export const SeasonTreeItem = ({ season, count }: SeasonTreeItemProps) => {
   }
 
   const handleDelete = () => {
-    setShowDeleteConfirm(true)
-  }
-
-  const confirmDelete = () => {
-    if (isNotCustom(season)) {
-      deleteMutation.mutate(
-        {
-          isCustom: false,
-          filter: { seasonId: season.id },
-        },
-        {
-          onSuccess: () => setShowDeleteConfirm(false),
-        }
-      )
-    } else {
-      if (season.id === -1) {
-        // Delete all custom episodes
-        deleteMutation.mutate(
-          {
-            isCustom: true,
-            filter: {},
-          },
-          {
-            onSuccess: () => setShowDeleteConfirm(false),
-          }
-        )
-      }
-    }
+    setDeletingDanmaku({ kind: 'season', season })
   }
 
   return (
@@ -92,7 +65,7 @@ export const SeasonTreeItem = ({ season, count }: SeasonTreeItemProps) => {
               alt={season.title}
               sx={{
                 width: 32,
-                height: 48,
+                height: 32,
                 objectFit: 'cover',
                 borderRadius: 1,
                 flexShrink: 0,
@@ -116,12 +89,6 @@ export const SeasonTreeItem = ({ season, count }: SeasonTreeItemProps) => {
           />
         </Stack>
       </Stack>
-      <DeleteConfirmDialog
-        open={showDeleteConfirm}
-        onClose={() => setShowDeleteConfirm(false)}
-        onConfirm={confirmDelete}
-        loading={deleteMutation.isPending}
-      />
     </>
   )
 }

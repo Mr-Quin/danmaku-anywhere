@@ -15,6 +15,7 @@ import {
   type DanmakuDeleteProps,
   DanmakuTreeContext,
 } from '@/common/components/DanmakuSelector/DanmakuTreeContext'
+import { DeleteConfirmDialog } from '@/common/components/DanmakuSelector/dialogs/DeleteConfirmDialog'
 import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/ExtendedTreeItem'
 import { DanmakuTreeItem } from '@/common/components/DanmakuSelector/items/DanmakuTreeItem'
 import { useDanmakuTree } from '@/common/components/DanmakuSelector/useDanmakuTree'
@@ -46,7 +47,8 @@ export const DanmakuSelector = ({
 }: DanmakuSelectorProps): React.ReactElement => {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
 
-  const [, setDeletingDanmaku] = useState<DanmakuDeleteProps | null>(null)
+  const [deletingDanmaku, setDeletingDanmaku] =
+    useState<DanmakuDeleteProps | null>(null)
 
   const { treeItems, treeItemMap, episodeMap } = useDanmakuTree(
     filter,
@@ -86,16 +88,7 @@ export const DanmakuSelector = ({
       if (typeof ids === 'string') {
         const item = treeItemMap[ids]
         if (item && item.kind === 'episode') {
-          // onSelect(item.data as GenericEpisodeLite) // Handled by Mount button now? Or click?
-          // If we want click to select, keep this.
-          // The user asked to change mount behavior to "disable individual episodes", implying click might select?
-          // But we also added a "Mount" button in the menu.
-          // Let's keep click-to-select for now as it's standard tree behavior.
-          onSelect(item.data as GenericEpisodeLite)
-
-          // Only update internal selection state if not controlled externally via props (which it isn't really, except via ref)
-          // The previous code didn't update selectedIds on single select to avoid visual selection persistence if the action was "Mount" (run immediately)
-          // But for tree view, showing selection is good.
+          onSelect(item.data)
           setSelectedIds([ids])
         }
       }
@@ -107,9 +100,10 @@ export const DanmakuSelector = ({
       itemMap: treeItemMap,
       onSelect,
       setViewingDanmaku: onViewDanmaku,
+      deletingDanmaku,
       setDeletingDanmaku,
     }),
-    [treeItemMap, onSelect, onViewDanmaku, setDeletingDanmaku]
+    [treeItemMap, onSelect, onViewDanmaku, deletingDanmaku, setDeletingDanmaku]
   )
 
   if (treeItems.length === 0) {
@@ -123,7 +117,9 @@ export const DanmakuSelector = ({
           items={treeItems}
           multiSelect={multiselect}
           checkboxSelection={multiselect}
-          selectedItems={multiselect ? selectedIds : selectedIds[0] || null}
+          disableSelection={!multiselect}
+          selectedItems={multiselect ? selectedIds : null}
+          selectionPropagation={{ descendants: true }}
           onSelectedItemsChange={handleSelectedItemsChange}
           slots={{ item: DanmakuTreeItem }}
           isItemDisabled={(item) =>
@@ -131,6 +127,7 @@ export const DanmakuSelector = ({
           }
         />
       </Box>
+      <DeleteConfirmDialog />
     </DanmakuTreeContext.Provider>
   )
 }

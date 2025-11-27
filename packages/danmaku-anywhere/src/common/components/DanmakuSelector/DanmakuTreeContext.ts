@@ -1,4 +1,5 @@
 import type {
+  CustomSeason,
   GenericEpisodeLite,
   Season,
 } from '@danmaku-anywhere/danmaku-converter'
@@ -8,7 +9,7 @@ import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/Exten
 export type DanmakuDeleteProps =
   | {
       kind: 'season'
-      season: Season
+      season: Season | CustomSeason
     }
   | {
       kind: 'episode'
@@ -19,7 +20,8 @@ interface DanmakuTreeContextType {
   itemMap: Record<string, ExtendedTreeItem>
   onSelect: (episode: GenericEpisodeLite) => void
   setViewingDanmaku: (episode: GenericEpisodeLite) => void
-  setDeletingDanmaku: (props: DanmakuDeleteProps) => void
+  deletingDanmaku: DanmakuDeleteProps | null
+  setDeletingDanmaku: (props: DanmakuDeleteProps | null) => void
 }
 
 // Context to pass item data to CustomTreeItem without prop drilling through library components
@@ -27,7 +29,8 @@ export const DanmakuTreeContext = createContext<DanmakuTreeContextType>({
   itemMap: {},
   onSelect: () => undefined,
   setViewingDanmaku: (episode: GenericEpisodeLite) => undefined,
-  setDeletingDanmaku: (props: DanmakuDeleteProps) => undefined,
+  deletingDanmaku: null,
+  setDeletingDanmaku: (props: DanmakuDeleteProps | null) => undefined,
 })
 
 export const useDanmakuTreeContext = () => {

@@ -6,25 +6,59 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material'
+import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useDeleteSeason } from '@/common/anime/queries/useDeleteSeason'
+import { useDanmakuTreeContext } from '@/common/components/DanmakuSelector/DanmakuTreeContext'
+import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
+import { isNotCustom } from '@/common/danmaku/utils'
 
-interface DeleteConfirmDialogProps {
-  open: boolean
-  onClose: () => void
-  onConfirm: () => void
-  loading?: boolean
-}
-
-export const DeleteConfirmDialog = ({
-  open,
-  onClose,
-  onConfirm,
-  loading,
-}: DeleteConfirmDialogProps) => {
+export const DeleteConfirmDialog = (): ReactElement => {
   const { t } = useTranslation()
+  const { deletingDanmaku, setDeletingDanmaku } = useDanmakuTreeContext()
+
+  const deleteDanmakuMutation = useDeleteEpisode()
+  const deleteSeasonMutation = useDeleteSeason()
+
+  const handleClose = () => {
+    setDeletingDanmaku(null)
+  }
+
+  const handleConfirm = () => {
+    if (!deletingDanmaku) return
+
+    if (deletingDanmaku.kind === 'episode') {
+      const { episode } = deletingDanmaku
+      if (isNotCustom(episode)) {
+        deleteDanmakuMutation.mutate(
+          {
+            isCustom: false,
+            filter: { ids: [episode.id] },
+          },
+          {
+            onSuccess: handleClose,
+          }
+        )
+      } else {
+        deleteDanmakuMutation.mutate(
+          {
+            isCustom: true,
+            filter: { ids: [episode.id] },
+          },
+          {
+            onSuccess: handleClose,
+          }
+        )
+      }
+    } else if (deletingDanmaku.kind === 'season') {
+      deleteSeasonMutation.mutate(deletingDanmaku.season.id, {
+        onSuccess: handleClose,
+      })
+    }
+  }
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={!!deletingDanmaku} onClose={handleClose}>
       <DialogTitle>{t('common.confirmDeleteTitle')}</DialogTitle>
       <DialogContent>
         <DialogContentText>
@@ -32,10 +66,18 @@ export const DeleteConfirmDialog = ({
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} autoFocus disabled={loading}>
+        <Button
+          onClick={handleClose}
+          autoFocus
+          disabled={deleteDanmakuMutation.isPending}
+        >
           {t('common.cancel')}
         </Button>
-        <Button onClick={onConfirm} color="error" loading={loading}>
+        <Button
+          onClick={handleConfirm}
+          color="error"
+          loading={deleteDanmakuMutation.isPending}
+        >
           {t('common.delete')}
         </Button>
       </DialogActions>

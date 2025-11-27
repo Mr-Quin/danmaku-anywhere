@@ -5,9 +5,16 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import type { TreeViewBaseItem } from '@mui/x-tree-view/models'
 
-// Extended Tree Item to include data
-export interface ExtendedTreeItem extends TreeViewBaseItem {
-  kind: 'season' | 'episode'
-  data: Season | CustomSeason | GenericEpisodeLite
+interface SeasonTreeItem extends TreeViewBaseItem {
+  kind: 'season'
+  data: Season | CustomSeason
   children?: ExtendedTreeItem[]
 }
+
+interface EpisodeTreeItem extends TreeViewBaseItem {
+  kind: 'episode'
+  data: GenericEpisodeLite
+  children?: ExtendedTreeItem[]
+}
+
+export type ExtendedTreeItem = SeasonTreeItem | EpisodeTreeItem

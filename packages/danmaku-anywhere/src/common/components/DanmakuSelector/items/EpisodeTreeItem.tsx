@@ -1,12 +1,10 @@
 import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
 import { Stack, Typography } from '@mui/material'
-import { useState } from 'react'
-import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
+import type { ReactElement } from 'react'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { isNotCustom } from '@/common/danmaku/utils'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useDanmakuTreeContext } from '../DanmakuTreeContext'
-import { DeleteConfirmDialog } from '../dialogs/DeleteConfirmDialog'
 import { EpisodeContextMenu } from '../menus/EpisodeContextMenu'
 
 interface EpisodeTreeItemProps {
@@ -17,14 +15,11 @@ interface EpisodeTreeItemProps {
 export const EpisodeTreeItem = ({
   episode,
   onSelect,
-}: EpisodeTreeItemProps) => {
+}: EpisodeTreeItemProps): ReactElement => {
   const { mutateAsync: load, isPending } = useFetchDanmaku()
   const exportDanmaku = useExportDanmaku()
-  const deleteMutation = useDeleteEpisode()
 
-  const { setViewingDanmaku } = useDanmakuTreeContext()
-
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const { setViewingDanmaku, setDeletingDanmaku } = useDanmakuTreeContext()
 
   const handleFetchDanmaku = async () => {
     if (!isNotCustom(episode)) return
@@ -55,31 +50,7 @@ export const EpisodeTreeItem = ({
   }
 
   const handleDelete = () => {
-    setShowDeleteConfirm(true)
-  }
-
-  const confirmDelete = () => {
-    if (isNotCustom(episode)) {
-      deleteMutation.mutate(
-        {
-          isCustom: false,
-          filter: { ids: [episode.id] },
-        },
-        {
-          onSuccess: () => setShowDeleteConfirm(false),
-        }
-      )
-    } else {
-      deleteMutation.mutate(
-        {
-          isCustom: true,
-          filter: { ids: [episode.id] },
-        },
-        {
-          onSuccess: () => setShowDeleteConfirm(false),
-        }
-      )
-    }
+    setDeletingDanmaku({ kind: 'episode', episode })
   }
 
   return (
@@ -106,12 +77,6 @@ export const EpisodeTreeItem = ({
           isRefreshing={isPending}
         />
       </Stack>
-      <DeleteConfirmDialog
-        open={showDeleteConfirm}
-        onClose={() => setShowDeleteConfirm(false)}
-        onConfirm={confirmDelete}
-        loading={deleteMutation.isPending}
-      />
     </>
   )
 }
