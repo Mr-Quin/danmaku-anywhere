@@ -1,7 +1,14 @@
+import { Box, styled } from '@mui/material'
 import type { ReactElement } from 'react'
 import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/ExtendedTreeItem'
 import { EpisodeContextMenuContainer } from './EpisodeContextMenuContainer'
 import { SeasonContextMenuContainer } from './SeasonContextMenuContainer'
+
+const StyledBox = styled(Box)({
+  position: 'absolute',
+  top: '4px',
+  right: 0,
+})
 
 interface DanmakuContextMenuProps {
   item: ExtendedTreeItem
@@ -10,13 +17,12 @@ interface DanmakuContextMenuProps {
 export const DanmakuContextMenu = ({
   item,
 }: DanmakuContextMenuProps): ReactElement | null => {
-  if (item.kind === 'season') {
-    return <SeasonContextMenuContainer season={item.data} />
-  }
+  const element =
+    item.kind === 'season' ? (
+      <SeasonContextMenuContainer season={item.data} />
+    ) : (
+      <EpisodeContextMenuContainer episode={item.data} />
+    )
 
-  if (item.kind === 'episode') {
-    return <EpisodeContextMenuContainer episode={item.data} />
-  }
-
-  return null
+  return <StyledBox>{element}</StyledBox>
 }

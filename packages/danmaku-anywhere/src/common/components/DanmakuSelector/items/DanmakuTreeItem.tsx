@@ -3,7 +3,7 @@ import type {
   GenericEpisodeLite,
   Season,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Box, styled } from '@mui/material'
+import { styled } from '@mui/material'
 import {
   TreeItemCheckbox,
   TreeItemContent,
@@ -19,7 +19,7 @@ import {
   type UseTreeItemParameters,
   useTreeItem,
 } from '@mui/x-tree-view/useTreeItem'
-import { forwardRef, type Ref } from 'react'
+import { forwardRef, type Ref, useState } from 'react'
 import { useDanmakuTreeContext } from '@/common/components/DanmakuSelector/DanmakuTreeContext'
 import { EpisodeTreeItem } from '@/common/components/DanmakuSelector/items/EpisodeTreeItem'
 import { SeasonTreeItem } from '@/common/components/DanmakuSelector/items/SeasonTreeItem'
@@ -27,6 +27,11 @@ import { DanmakuContextMenu } from '@/common/components/DanmakuSelector/menus/Da
 
 const StyledTreeRoot = styled(TreeItemRoot)({
   position: 'relative',
+})
+
+const StyledTreeContent = styled(TreeItemContent)({
+  height: '40px',
+  paddingRight: '32px',
 })
 
 interface CustomTreeItemProps
@@ -39,6 +44,8 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
 ) {
   const { id, itemId, label, disabled, children, ...other } = props
 
+  const [hovering, setHovering] = useState(false)
+
   const {
     getContextProviderProps,
     getRootProps,
@@ -50,6 +57,14 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
     getDragAndDropOverlayProps,
     status,
   } = useTreeItem({ id, itemId, children, label, disabled, rootRef: ref })
+
+  function handleMouseEnter() {
+    setHovering(true)
+  }
+
+  function handleMouseLeave() {
+    setHovering(false)
+  }
 
   const { itemMap, onSelect } = useDanmakuTreeContext()
   const item = itemMap[itemId]
@@ -70,20 +85,22 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
 
   return (
     <TreeItemProvider {...getContextProviderProps()}>
-      <StyledTreeRoot {...getRootProps(other)}>
-        <TreeItemContent {...getContentProps()}>
+      <StyledTreeRoot
+        {...getRootProps({
+          ...other,
+          onMouseEnter: handleMouseEnter,
+          onMouseLeave: handleMouseLeave,
+        })}
+      >
+        <StyledTreeContent {...getContentProps()}>
           <TreeItemIconContainer {...getIconContainerProps()}>
             <TreeItemIcon status={status} />
           </TreeItemIconContainer>
           <TreeItemCheckbox {...getCheckboxProps()} />
           <TreeItemLabel {...getLabelProps()}>{customLabel}</TreeItemLabel>
           <TreeItemDragAndDropOverlay {...getDragAndDropOverlayProps()} />
-        </TreeItemContent>
-        {item && (
-          <Box position="absolute" top={0} right={0}>
-            <DanmakuContextMenu item={item} />
-          </Box>
-        )}
+        </StyledTreeContent>
+        {item && hovering && <DanmakuContextMenu item={item} />}
         {children && <TreeItemGroupTransition {...getGroupTransitionProps()} />}
       </StyledTreeRoot>
     </TreeItemProvider>

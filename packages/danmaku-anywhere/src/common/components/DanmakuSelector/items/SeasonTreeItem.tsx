@@ -1,8 +1,41 @@
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
-import { Box, Stack, Typography } from '@mui/material'
-import type { ReactElement } from 'react'
+import { Chip, Skeleton, Stack, styled, Typography } from '@mui/material'
+import { type ReactElement, Suspense } from 'react'
 import { isNotCustom } from '@/common/danmaku/utils'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
+import { SuspenseImage } from '../../image/SuspenseImage'
+
+const ProviderChip = styled(Chip)(({ theme }) => {
+  return {
+    fontSize: theme.typography.pxToRem(12),
+  }
+})
+
+const SeasonThumbnail = ({
+  imageUrl,
+  title,
+}: {
+  imageUrl?: string
+  title: string
+}) => {
+  if (!imageUrl) {
+    return null
+  }
+  return (
+    <Suspense fallback={<Skeleton width={32} height={32} variant="rounded" />}>
+      <SuspenseImage
+        src={imageUrl}
+        alt={title}
+        width={32}
+        height={32}
+        style={{
+          objectFit: 'cover',
+          borderRadius: 1,
+        }}
+      />
+    </Suspense>
+  )
+}
 
 interface SeasonTreeItemProps {
   season: Season | CustomSeason
@@ -36,28 +69,21 @@ export const SeasonTreeItem = ({
           alignItems="center"
           overflow="hidden"
         >
-          {season.imageUrl && (
-            <Box
-              component="img"
-              src={season.imageUrl}
-              alt={season.title}
-              sx={{
-                width: 32,
-                height: 32,
-                objectFit: 'cover',
-                borderRadius: 1,
-                flexShrink: 0,
-              }}
+          <SeasonThumbnail imageUrl={season.imageUrl} title={season.title} />
+          <Typography noWrap variant="body2">
+            {season.title}
+          </Typography>
+          {provider && (
+            <ProviderChip
+              label={provider.name}
+              size="small"
+              variant="outlined"
+              color={provider.isBuiltIn ? 'primary' : 'default'}
             />
           )}
-          <Typography noWrap variant="body2">
-            {season.title} {count !== undefined && `(${count})`}
-          </Typography>
-        </Stack>
-        <Stack direction="row" alignItems="center" spacing={1} flexShrink={0}>
-          {provider && (
+          {count !== undefined && (
             <Typography variant="caption" color="text.secondary">
-              {provider.name}
+              ({count})
             </Typography>
           )}
         </Stack>

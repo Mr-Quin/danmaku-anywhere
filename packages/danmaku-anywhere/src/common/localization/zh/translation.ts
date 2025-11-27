@@ -106,6 +106,7 @@ const domain = {
     exportXml: '导出XML',
     noComments: '弹幕列表为空',
     refresh: '刷新弹幕',
+    viewDanmaku: '查看弹幕',
     style: '弹幕样式',
     type: {
       Custom: '其他',

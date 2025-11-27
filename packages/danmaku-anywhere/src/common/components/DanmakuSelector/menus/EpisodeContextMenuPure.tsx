@@ -3,7 +3,6 @@ import {
   Delete,
   Download,
   MoreVert,
-  PlayArrow,
   Sync,
   Visibility,
 } from '@mui/icons-material'
@@ -18,7 +17,6 @@ export interface EpisodeContextMenuPureProps {
   episode: GenericEpisodeLite
   canRefresh: boolean
   isRefreshing: boolean
-  onMount: () => void
   onViewDanmaku: () => void
   onRefresh: () => void
   onExport: () => void
@@ -29,7 +27,6 @@ export const EpisodeContextMenuPure = ({
   episode,
   canRefresh,
   isRefreshing,
-  onMount,
   onViewDanmaku,
   onRefresh,
   onExport,
@@ -38,13 +35,6 @@ export const EpisodeContextMenuPure = ({
   const { t } = useTranslation()
 
   const items: DrilldownMenuItemProps[] = [
-    {
-      kind: 'item',
-      id: 'mount',
-      label: t('danmaku.mount'),
-      icon: <PlayArrow fontSize="small" />,
-      onClick: onMount,
-    },
     {
       kind: 'item',
       id: 'view',
@@ -68,7 +58,7 @@ export const EpisodeContextMenuPure = ({
     {
       kind: 'item',
       id: 'export',
-      label: t('danmaku.export'),
+      label: t('danmaku.exportXml'),
       icon: <Download fontSize="small" />,
       onClick: onExport,
     },
@@ -87,6 +77,7 @@ export const EpisodeContextMenuPure = ({
       items={items}
       ButtonProps={{ size: 'small' }}
       icon={<MoreVert fontSize="small" />}
+      dense
     />
   )
 }

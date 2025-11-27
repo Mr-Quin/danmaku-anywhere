@@ -28,11 +28,6 @@ export const StylesPage = () => {
           ButtonProps={{
             edge: 'end',
           }}
-          MenuProps={{
-            sx: {
-              zIndex: 1403,
-            },
-          }}
         >
           <MenuItem
             popover="manual"

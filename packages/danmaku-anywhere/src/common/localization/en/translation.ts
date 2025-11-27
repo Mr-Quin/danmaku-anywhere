@@ -104,6 +104,7 @@ const domain = {
     exportXml: 'Export XML',
     noComments: 'No comments',
     refresh: 'Refresh Danmaku',
+    viewDanmaku: 'View Danmaku',
     style: 'Style',
     type: {
       Custom: 'Custom',

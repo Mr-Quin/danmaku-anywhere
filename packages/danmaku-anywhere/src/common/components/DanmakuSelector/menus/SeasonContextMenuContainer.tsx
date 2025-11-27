@@ -1,7 +1,8 @@
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import type { ReactElement } from 'react'
+import { useRefreshSeason } from '@/common/anime/queries/useRefreshSeason'
 import { isNotCustom } from '@/common/danmaku/utils'
-import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
+import { useExportXml } from '@/popup/hooks/useExportXml'
 import { useDanmakuTreeContext } from '../DanmakuTreeContext'
 import { SeasonContextMenuPure } from './SeasonContextMenuPure'
 
@@ -12,17 +13,19 @@ interface SeasonContextMenuContainerProps {
 export const SeasonContextMenuContainer = ({
   season,
 }: SeasonContextMenuContainerProps): ReactElement => {
-  const exportDanmaku = useExportDanmaku()
+  const exportXml = useExportXml()
+
   const { setDeletingDanmaku } = useDanmakuTreeContext()
+  const refreshSeason = useRefreshSeason()
 
   const handleExport = () => {
     if (isNotCustom(season)) {
-      exportDanmaku.mutate({
-        filter: { id: season.id },
+      exportXml.mutate({
+        filter: { seasonId: season.id },
       })
     } else {
-      exportDanmaku.mutate({
-        customFilter: { id: season.id },
+      exportXml.mutate({
+        customFilter: { all: true },
       })
     }
   }
@@ -35,6 +38,9 @@ export const SeasonContextMenuContainer = ({
     <SeasonContextMenuPure
       season={season}
       onExport={handleExport}
+      isExporting={exportXml.isPending}
+      onRefresh={() => refreshSeason.mutate(season.id)}
+      isRefreshing={refreshSeason.isPending}
       onDelete={handleDelete}
     />
   )

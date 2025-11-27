@@ -2,7 +2,7 @@ import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
 import type { ReactElement } from 'react'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { isNotCustom } from '@/common/danmaku/utils'
-import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
+import { useExportXml } from '@/popup/hooks/useExportXml'
 import { useDanmakuTreeContext } from '../DanmakuTreeContext'
 import { EpisodeContextMenuPure } from './EpisodeContextMenuPure'
 
@@ -14,10 +14,9 @@ export const EpisodeContextMenuContainer = ({
   episode,
 }: EpisodeContextMenuContainerProps): ReactElement => {
   const { mutateAsync: load, isPending } = useFetchDanmaku()
-  const exportDanmaku = useExportDanmaku()
+  const exportDanmaku = useExportXml()
 
-  const { onSelect, setViewingDanmaku, setDeletingDanmaku } =
-    useDanmakuTreeContext()
+  const { setViewingDanmaku, setDeletingDanmaku } = useDanmakuTreeContext()
 
   const handleFetchDanmaku = async () => {
     if (!isNotCustom(episode)) return
@@ -29,10 +28,6 @@ export const EpisodeContextMenuContainer = ({
         forceUpdate: true,
       },
     })
-  }
-
-  const handleMount = () => {
-    onSelect(episode)
   }
 
   const handleExport = () => {
@@ -56,7 +51,6 @@ export const EpisodeContextMenuContainer = ({
       episode={episode}
       canRefresh={isNotCustom(episode)}
       isRefreshing={isPending}
-      onMount={handleMount}
       onViewDanmaku={() => setViewingDanmaku(episode)}
       onRefresh={handleFetchDanmaku}
       onExport={handleExport}

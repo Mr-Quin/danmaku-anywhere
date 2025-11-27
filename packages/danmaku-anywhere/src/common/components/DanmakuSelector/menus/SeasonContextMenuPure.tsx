@@ -1,7 +1,8 @@
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
-import { Delete, Download, MoreVert } from '@mui/icons-material'
+import { Delete, Download, MoreVert, Sync } from '@mui/icons-material'
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
+import { isNotCustom } from '@/common/danmaku/utils'
 import {
   DrilldownMenu,
   type DrilldownMenuItemProps,
@@ -11,12 +12,18 @@ export interface SeasonContextMenuPureProps {
   season: Season | CustomSeason
   onExport: () => void
   onDelete: () => void
+  onRefresh: () => void
+  isRefreshing: boolean
+  isExporting: boolean
 }
 
 export const SeasonContextMenuPure = ({
   season,
   onExport,
   onDelete,
+  onRefresh,
+  isRefreshing,
+  isExporting,
 }: SeasonContextMenuPureProps): ReactElement => {
   const { t } = useTranslation()
 
@@ -24,9 +31,10 @@ export const SeasonContextMenuPure = ({
     {
       kind: 'item',
       id: 'export',
-      label: t('danmaku.exportAll'),
+      label: t('danmaku.exportXml'),
       icon: <Download fontSize="small" />,
       onClick: onExport,
+      loading: isExporting,
     },
     { kind: 'separator', id: 'sep1' },
     {
@@ -38,11 +46,22 @@ export const SeasonContextMenuPure = ({
     },
   ]
 
+  if (isNotCustom(season)) {
+    items.unshift({
+      id: 'refresh',
+      label: t('anime.refreshMetadata'),
+      icon: <Sync />,
+      onClick: onRefresh,
+      loading: isRefreshing,
+    })
+  }
+
   return (
     <DrilldownMenu
       items={items}
       ButtonProps={{ size: 'small' }}
       icon={<MoreVert fontSize="small" />}
+      dense
     />
   )
 }
