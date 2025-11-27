@@ -1,8 +1,11 @@
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import { Delete, Download, MoreVert } from '@mui/icons-material'
-import { IconButton, ListItemIcon, Menu, MenuItem } from '@mui/material'
-import { useState } from 'react'
+import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
+import {
+  DrilldownMenu,
+  type DrilldownMenuItemProps,
+} from '@/content/common/DrilldownMenu'
 
 interface SeasonContextMenuProps {
   season: Season | CustomSeason
@@ -14,52 +17,32 @@ export const SeasonContextMenu = ({
   season,
   onExport,
   onDelete,
-}: SeasonContextMenuProps) => {
+}: SeasonContextMenuProps): ReactElement => {
   const { t } = useTranslation()
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const open = Boolean(anchorEl)
 
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation()
-    setAnchorEl(event.currentTarget)
-  }
-
-  const handleClose = () => {
-    setAnchorEl(null)
-  }
-
-  const handleAction = (action: () => void) => {
-    handleClose()
-    action()
-  }
-
-  // Only show menu if we can perform actions
-  // We can probably always export and delete seasons (even custom ones?)
+  const items: DrilldownMenuItemProps[] = [
+    {
+      kind: 'item',
+      id: 'export',
+      label: t('danmaku.exportAll'),
+      icon: <Download fontSize="small" />,
+      onClick: onExport,
+    },
+    { kind: 'separator', id: 'sep1' },
+    {
+      kind: 'item',
+      id: 'delete',
+      label: t('common.delete'),
+      icon: <Delete fontSize="small" color="error" />,
+      onClick: onDelete,
+    },
+  ]
 
   return (
-    <>
-      <IconButton size="small" onClick={handleClick}>
-        <MoreVert fontSize="small" />
-      </IconButton>
-      <Menu
-        anchorEl={anchorEl}
-        open={open}
-        onClose={handleClose}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <MenuItem onClick={() => handleAction(onExport)}>
-          <ListItemIcon>
-            <Download fontSize="small" />
-          </ListItemIcon>
-          {t('danmaku.exportAll')}
-        </MenuItem>
-        <MenuItem onClick={() => handleAction(onDelete)}>
-          <ListItemIcon>
-            <Delete fontSize="small" color="error" />
-          </ListItemIcon>
-          {t('common.delete')}
-        </MenuItem>
-      </Menu>
-    </>
+    <DrilldownMenu
+      items={items}
+      ButtonProps={{ size: 'small' }}
+      icon={<MoreVert fontSize="small" />}
+    />
   )
 }

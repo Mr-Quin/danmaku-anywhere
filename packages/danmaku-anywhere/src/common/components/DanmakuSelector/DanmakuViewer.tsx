@@ -2,19 +2,19 @@ import type {
   GenericEpisode,
   GenericEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Close } from '@mui/icons-material'
-import { Box, Dialog, IconButton, Stack, Typography } from '@mui/material'
+import { ArrowBack } from '@mui/icons-material'
+import { Box, IconButton, Stack, Typography } from '@mui/material'
+import type { ReactElement } from 'react'
 import { Suspense } from 'react'
-import { useTranslation } from 'react-i18next'
 import { CommentsTable } from '@/common/components/CommentsTable'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useCustomEpisodeSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
 import { useEpisodesSuspense } from '@/common/danmaku/queries/useEpisodes'
 import { isNotCustom } from '@/common/danmaku/utils'
 import { useRefreshDanmaku } from '@/popup/hooks/useRefreshDanmaku'
+import { FullPageSpinner } from '../FullPageSpinner'
 
-interface DanmakuViewerDialogProps {
-  open: boolean
+interface DanmakuViewerProps {
   onClose: () => void
   episode: GenericEpisodeLite
 }
@@ -63,41 +63,32 @@ const CommentsLoader = ({
   )
 }
 
-export const DanmakuViewerDialog = ({
-  open,
+export const DanmakuViewer = ({
   onClose,
   episode,
-}: DanmakuViewerDialogProps) => {
-  const { t } = useTranslation()
-
+}: DanmakuViewerProps): ReactElement => {
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      slotProps={{
-        paper: {
-          sx: { display: 'flex', flexDirection: 'column' },
-        },
-      }}
-    >
+    <Box display="flex" flexDirection="column" height="100%">
       <Stack
         direction="row"
         alignItems="center"
-        justifyContent="space-between"
-        p={2}
+        gap={1}
+        p={1}
         borderBottom={1}
         borderColor="divider"
       >
-        <Typography variant="h6">{episode.title}</Typography>
         <IconButton onClick={onClose}>
-          <Close />
+          <ArrowBack />
         </IconButton>
+        <Typography variant="h6" noWrap>
+          {episode.title}
+        </Typography>
       </Stack>
       <Box flexGrow={1} overflow="hidden" display="flex" flexDirection="column">
-        <Suspense fallback={<Box p={2}>{t('common.loading')}</Box>}>
+        <Suspense fallback={<FullPageSpinner />}>
           <CommentsLoader episodeLite={episode} />
         </Suspense>
       </Box>
-    </Dialog>
+    </Box>
   )
 }

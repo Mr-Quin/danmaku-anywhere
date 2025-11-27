@@ -3,6 +3,7 @@ import {
   Box,
   type BoxProps,
   CircularProgress,
+  Divider,
   IconButton,
   type IconButtonProps,
   ListItemIcon,
@@ -12,25 +13,36 @@ import {
   type MenuProps,
   Tooltip,
 } from '@mui/material'
-import type { MouseEvent, PropsWithChildren, ReactNode } from 'react'
+import type {
+  MouseEvent,
+  PropsWithChildren,
+  ReactElement,
+  ReactNode,
+} from 'react'
 import { useId, useState } from 'react'
 
-type MenuItemProps = {
-  icon: ReactNode
-  label: string
-  id: string
-  onClick: () => void
-  disabled?: boolean
-  tooltip?: ReactNode
-  loading?: boolean
-}
+export type DrilldownMenuItemProps =
+  | {
+      kind?: 'item'
+      icon: ReactNode
+      label: string
+      id: string
+      onClick: () => void
+      disabled?: boolean
+      tooltip?: ReactNode
+      loading?: boolean
+    }
+  | {
+      kind: 'separator'
+      id: string
+    }
 
 type DrilldownMenuProps = PropsWithChildren & {
   icon?: ReactNode
   ButtonProps?: IconButtonProps
   BoxProps?: BoxProps
   MenuProps?: Partial<MenuProps>
-  items?: MenuItemProps[]
+  items?: DrilldownMenuItemProps[]
 }
 
 export const DrilldownMenu = ({
@@ -40,7 +52,7 @@ export const DrilldownMenu = ({
   MenuProps,
   items,
   icon,
-}: DrilldownMenuProps) => {
+}: DrilldownMenuProps): ReactElement => {
   const buttonId = useId()
   const menuId = useId()
 
@@ -48,6 +60,7 @@ export const DrilldownMenu = ({
   const open = Boolean(anchorEl)
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation()
     setAnchorEl(event.currentTarget)
   }
 
@@ -74,6 +87,9 @@ export const DrilldownMenu = ({
       >
         {children}
         {items?.map((item) => {
+          if (item.kind === 'separator') {
+            return <Divider key={item.id} />
+          }
           return (
             <Tooltip title={item.tooltip} key={item.id}>
               <div>

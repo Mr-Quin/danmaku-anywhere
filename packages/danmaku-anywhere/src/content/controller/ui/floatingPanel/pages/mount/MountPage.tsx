@@ -1,6 +1,7 @@
 import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
 import { ChecklistRtl, Keyboard } from '@mui/icons-material'
 import { Button, Collapse, IconButton, Tooltip } from '@mui/material'
+import type { ReactElement } from 'react'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CaptureKeypress } from '@/common/components/CaptureKeypress'
@@ -8,6 +9,7 @@ import {
   DanmakuSelector,
   type DanmakuSelectorApi,
 } from '@/common/components/DanmakuSelector/DanmakuSelector'
+import { DanmakuViewer } from '@/common/components/DanmakuSelector/DanmakuViewer'
 import { FilterButton } from '@/common/components/FilterButton'
 import { TypeSelector } from '@/common/components/TypeSelector'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
@@ -17,7 +19,7 @@ import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
 import { useMountDanmakuContent } from '@/content/controller/ui/floatingPanel/pages/mount/useMountDanmakuContent'
 
-export const MountPage = () => {
+export const MountPage = (): ReactElement => {
   const { t } = useTranslation()
 
   const { filter, setFilter } = useStore.use.danmaku()
@@ -28,6 +30,8 @@ export const MountPage = () => {
 
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [multiselect, setMultiselect] = useState(false)
+  const [viewingEpisode, setViewingEpisode] =
+    useState<GenericEpisodeLite | null>(null)
   const selectorRef = useRef<DanmakuSelectorApi>(null)
 
   const { mutate, isPending } = useMountDanmakuContent()
@@ -54,6 +58,17 @@ export const MountPage = () => {
     if (selectorRef.current) {
       selectorRef.current.clearSelection()
     }
+  }
+
+  if (viewingEpisode) {
+    return (
+      <TabLayout>
+        <DanmakuViewer
+          episode={viewingEpisode}
+          onClose={() => setViewingEpisode(null)}
+        />
+      </TabLayout>
+    )
   }
 
   return (
@@ -117,6 +132,7 @@ export const MountPage = () => {
                 filter={filter}
                 typeFilter={selectedProviders}
                 onSelect={handleSelectDanmaku}
+                onViewDanmaku={setViewingEpisode}
                 disabled={isPending}
                 multiselect={multiselect}
               />

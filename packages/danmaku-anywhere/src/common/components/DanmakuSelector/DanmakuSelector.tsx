@@ -19,7 +19,6 @@ import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/Exten
 import { DanmakuTreeItem } from '@/common/components/DanmakuSelector/items/DanmakuTreeItem'
 import { useDanmakuTree } from '@/common/components/DanmakuSelector/useDanmakuTree'
 import { NothingHere } from '@/common/components/NothingHere'
-import { DanmakuViewerDialog } from './dialogs/DanmakuViewerDialog'
 
 export interface DanmakuSelectorApi {
   getSelectedEpisodes: () => GenericEpisodeLite[]
@@ -30,6 +29,7 @@ interface DanmakuSelectorProps {
   filter: string
   typeFilter: DanmakuSourceType[]
   onSelect: (value: GenericEpisodeLite) => void
+  onViewDanmaku: (value: GenericEpisodeLite) => void
   disabled?: boolean
   multiselect?: boolean
   ref: Ref<DanmakuSelectorApi>
@@ -39,14 +39,12 @@ export const DanmakuSelector = ({
   filter,
   typeFilter,
   onSelect,
+  onViewDanmaku,
   disabled,
   multiselect = false,
   ref,
 }: DanmakuSelectorProps): React.ReactElement => {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
-
-  const [viewingDanmaku, setViewingDanmaku] =
-    useState<GenericEpisodeLite | null>(null)
 
   const [, setDeletingDanmaku] = useState<DanmakuDeleteProps | null>(null)
 
@@ -108,10 +106,10 @@ export const DanmakuSelector = ({
     () => ({
       itemMap: treeItemMap,
       onSelect,
-      setViewingDanmaku,
+      setViewingDanmaku: onViewDanmaku,
       setDeletingDanmaku,
     }),
-    [treeItemMap, onSelect, setViewingDanmaku, setDeletingDanmaku]
+    [treeItemMap, onSelect, onViewDanmaku, setDeletingDanmaku]
   )
 
   if (treeItems.length === 0) {
@@ -133,13 +131,6 @@ export const DanmakuSelector = ({
           }
         />
       </Box>
-      {viewingDanmaku && (
-        <DanmakuViewerDialog
-          open={!!viewingDanmaku}
-          onClose={() => setViewingDanmaku(null)}
-          episode={viewingDanmaku}
-        />
-      )}
     </DanmakuTreeContext.Provider>
   )
 }

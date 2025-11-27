@@ -2,6 +2,7 @@ import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
 import { ChecklistRtl, Keyboard } from '@mui/icons-material'
 import { Button, IconButton, Tooltip } from '@mui/material'
 import { useMutation, useQuery } from '@tanstack/react-query'
+import type { ReactElement } from 'react'
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CaptureKeypress } from '@/common/components/CaptureKeypress'
@@ -9,6 +10,7 @@ import {
   DanmakuSelector,
   type DanmakuSelectorApi,
 } from '@/common/components/DanmakuSelector/DanmakuSelector'
+import { DanmakuViewer } from '@/common/components/DanmakuSelector/DanmakuViewer'
 import { FilterButton } from '@/common/components/FilterButton'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { useToast } from '@/common/components/Toast/toastStore'
@@ -23,7 +25,7 @@ import { HasDanmaku } from '@/popup/pages/mount/components/HasDanmaku'
 import { useMountDanmakuPopup } from '@/popup/pages/mount/useMountDanmakuPopup'
 import { useStore } from '@/popup/store'
 
-export const MountPage = () => {
+export const MountPage = (): ReactElement => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
   const {
@@ -39,6 +41,8 @@ export const MountPage = () => {
   const { isMobile } = usePlatformInfo()
 
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [viewingEpisode, setViewingEpisode] =
+    useState<GenericEpisodeLite | null>(null)
 
   const isConnected = useIsConnected()
   const selectorRef = useRef<DanmakuSelectorApi>(null)
@@ -82,6 +86,17 @@ export const MountPage = () => {
     mutate(episodes)
     selectorRef.current.clearSelection()
     toggleMultiselect()
+  }
+
+  if (viewingEpisode) {
+    return (
+      <TabLayout>
+        <DanmakuViewer
+          episode={viewingEpisode}
+          onClose={() => setViewingEpisode(null)}
+        />
+      </TabLayout>
+    )
   }
 
   return (
@@ -160,6 +175,7 @@ export const MountPage = () => {
                     filter={filter}
                     typeFilter={selectedTypes}
                     onSelect={handleMount}
+                    onViewDanmaku={setViewingEpisode}
                     disabled={!isConnected || isMounting}
                     multiselect={multiselect}
                   />
