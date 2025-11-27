@@ -3,37 +3,89 @@ import type {
   GenericEpisodeLite,
   Season,
 } from '@danmaku-anywhere/danmaku-converter'
-import { TreeItem, type TreeItemProps } from '@mui/x-tree-view/TreeItem'
-import type { Ref } from 'react'
+import { Box, styled } from '@mui/material'
+import {
+  TreeItemCheckbox,
+  TreeItemContent,
+  TreeItemGroupTransition,
+  TreeItemIconContainer,
+  TreeItemLabel,
+  TreeItemRoot,
+} from '@mui/x-tree-view/TreeItem'
+import { TreeItemDragAndDropOverlay } from '@mui/x-tree-view/TreeItemDragAndDropOverlay'
+import { TreeItemIcon } from '@mui/x-tree-view/TreeItemIcon'
+import { TreeItemProvider } from '@mui/x-tree-view/TreeItemProvider'
+import {
+  type UseTreeItemParameters,
+  useTreeItem,
+} from '@mui/x-tree-view/useTreeItem'
+import { forwardRef, type Ref } from 'react'
 import { useDanmakuTreeContext } from '@/common/components/DanmakuSelector/DanmakuTreeContext'
 import { EpisodeTreeItem } from '@/common/components/DanmakuSelector/items/EpisodeTreeItem'
 import { SeasonTreeItem } from '@/common/components/DanmakuSelector/items/SeasonTreeItem'
+import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 
-interface DanmakuTreeItemProps extends TreeItemProps {
-  ref?: Ref<HTMLLIElement>
-}
+const StyledTreeRoot = styled(TreeItemRoot)({
+  position: 'relative',
+})
 
-export const DanmakuTreeItem = (props: DanmakuTreeItemProps) => {
-  const { itemId, label, ref, ...other } = props
+interface CustomTreeItemProps
+  extends Omit<UseTreeItemParameters, 'rootRef'>,
+    Omit<React.HTMLAttributes<HTMLLIElement>, 'onFocus'> {}
+
+const CustomTreeItem = forwardRef(function CustomTreeItem(
+  props: CustomTreeItemProps,
+  ref: Ref<HTMLLIElement>
+) {
+  const { id, itemId, label, disabled, children, ...other } = props
+
+  const {
+    getContextProviderProps,
+    getRootProps,
+    getContentProps,
+    getIconContainerProps,
+    getCheckboxProps,
+    getLabelProps,
+    getGroupTransitionProps,
+    getDragAndDropOverlayProps,
+    status,
+  } = useTreeItem({ id, itemId, children, label, disabled, rootRef: ref })
+
   const { itemMap, onSelect } = useDanmakuTreeContext()
   const item = itemMap[itemId]
 
-  if (!item) {
-    return <TreeItem ref={ref} itemId={itemId} label={label} {...other} />
-  }
+  const customLabel = !item ? (
+    label
+  ) : item.kind === 'season' ? (
+    <SeasonTreeItem
+      season={item.data as Season | CustomSeason}
+      count={item.children?.length}
+    />
+  ) : (
+    <EpisodeTreeItem
+      episode={item.data as GenericEpisodeLite}
+      onSelect={onSelect}
+    />
+  )
 
-  const customLabel =
-    item.kind === 'season' ? (
-      <SeasonTreeItem
-        season={item.data as Season | CustomSeason}
-        count={item.children?.length}
-      />
-    ) : (
-      <EpisodeTreeItem
-        episode={item.data as GenericEpisodeLite}
-        onSelect={onSelect}
-      />
-    )
+  return (
+    <TreeItemProvider {...getContextProviderProps()}>
+      <StyledTreeRoot {...getRootProps(other)}>
+        <TreeItemContent {...getContentProps()}>
+          <TreeItemIconContainer {...getIconContainerProps()}>
+            <TreeItemIcon status={status} />
+          </TreeItemIconContainer>
+          <TreeItemCheckbox {...getCheckboxProps()} />
+          <TreeItemLabel {...getLabelProps()}>{customLabel}</TreeItemLabel>
+          <TreeItemDragAndDropOverlay {...getDragAndDropOverlayProps()} />
+        </TreeItemContent>
+        <Box position="absolute" top={0} right={0}>
+          <DrilldownMenu items={[]} />
+        </Box>
+        {children && <TreeItemGroupTransition {...getGroupTransitionProps()} />}
+      </StyledTreeRoot>
+    </TreeItemProvider>
+  )
+})
 
-  return <TreeItem ref={ref} itemId={itemId} label={customLabel} {...other} />
-}
+export { CustomTreeItem as DanmakuTreeItem }

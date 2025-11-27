@@ -82,11 +82,17 @@ export const SeasonTreeItem = ({
               {provider.name}
             </Typography>
           )}
-          <SeasonContextMenu
-            season={season}
-            onExport={handleExport}
-            onDelete={handleDelete}
-          />
+          <Box
+            onClick={(e) => {
+              e.stopPropagation()
+            }}
+          >
+            <SeasonContextMenu
+              season={season}
+              onExport={handleExport}
+              onDelete={handleDelete}
+            />
+          </Box>
         </Stack>
       </Stack>
     </>

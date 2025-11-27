@@ -1,5 +1,5 @@
 import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
-import { Stack, Typography } from '@mui/material'
+import { Box, Stack, Typography } from '@mui/material'
 import type { ReactElement } from 'react'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { isNotCustom } from '@/common/danmaku/utils'
@@ -67,15 +67,21 @@ export const EpisodeTreeItem = ({
         <Typography noWrap variant="body2" sx={{ flex: 1 }}>
           {episode.title}
         </Typography>
-        <EpisodeContextMenu
-          episode={episode}
-          onMount={handleMount}
-          onViewDanmaku={() => setViewingDanmaku(episode)}
-          onRefresh={handleFetchDanmaku}
-          onExport={handleExport}
-          onDelete={handleDelete}
-          isRefreshing={isPending}
-        />
+        <Box
+          onClick={(e) => {
+            e.stopPropagation()
+          }}
+        >
+          <EpisodeContextMenu
+            episode={episode}
+            onMount={handleMount}
+            onViewDanmaku={() => setViewingDanmaku(episode)}
+            onRefresh={handleFetchDanmaku}
+            onExport={handleExport}
+            onDelete={handleDelete}
+            isRefreshing={isPending}
+          />
+        </Box>
       </Stack>
     </>
   )
