@@ -9,34 +9,33 @@ import {
 } from '@mui/icons-material'
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
-import { isNotCustom } from '@/common/danmaku/utils'
 import {
   DrilldownMenu,
   type DrilldownMenuItemProps,
 } from '@/content/common/DrilldownMenu'
 
-interface EpisodeContextMenuProps {
+export interface EpisodeContextMenuPureProps {
   episode: GenericEpisodeLite
+  canRefresh: boolean
+  isRefreshing: boolean
   onMount: () => void
   onViewDanmaku: () => void
   onRefresh: () => void
   onExport: () => void
   onDelete: () => void
-  isRefreshing: boolean
 }
 
-export const EpisodeContextMenu = ({
+export const EpisodeContextMenuPure = ({
   episode,
+  canRefresh,
+  isRefreshing,
   onMount,
   onViewDanmaku,
   onRefresh,
   onExport,
   onDelete,
-  isRefreshing,
-}: EpisodeContextMenuProps): ReactElement => {
+}: EpisodeContextMenuPureProps): ReactElement => {
   const { t } = useTranslation()
-
-  const canRefresh = isNotCustom(episode)
 
   const items: DrilldownMenuItemProps[] = [
     {

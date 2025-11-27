@@ -7,17 +7,17 @@ import {
   type DrilldownMenuItemProps,
 } from '@/content/common/DrilldownMenu'
 
-interface SeasonContextMenuProps {
+export interface SeasonContextMenuPureProps {
   season: Season | CustomSeason
   onExport: () => void
   onDelete: () => void
 }
 
-export const SeasonContextMenu = ({
+export const SeasonContextMenuPure = ({
   season,
   onExport,
   onDelete,
-}: SeasonContextMenuProps): ReactElement => {
+}: SeasonContextMenuPureProps): ReactElement => {
   const { t } = useTranslation()
 
   const items: DrilldownMenuItemProps[] = [

@@ -23,7 +23,7 @@ import { forwardRef, type Ref } from 'react'
 import { useDanmakuTreeContext } from '@/common/components/DanmakuSelector/DanmakuTreeContext'
 import { EpisodeTreeItem } from '@/common/components/DanmakuSelector/items/EpisodeTreeItem'
 import { SeasonTreeItem } from '@/common/components/DanmakuSelector/items/SeasonTreeItem'
-import { DrilldownMenu } from '@/content/common/DrilldownMenu'
+import { DanmakuContextMenu } from '@/common/components/DanmakuSelector/menus/DanmakuContextMenu'
 
 const StyledTreeRoot = styled(TreeItemRoot)({
   position: 'relative',
@@ -33,7 +33,7 @@ interface CustomTreeItemProps
   extends Omit<UseTreeItemParameters, 'rootRef'>,
     Omit<React.HTMLAttributes<HTMLLIElement>, 'onFocus'> {}
 
-const CustomTreeItem = forwardRef(function CustomTreeItem(
+export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
   props: CustomTreeItemProps,
   ref: Ref<HTMLLIElement>
 ) {
@@ -79,13 +79,13 @@ const CustomTreeItem = forwardRef(function CustomTreeItem(
           <TreeItemLabel {...getLabelProps()}>{customLabel}</TreeItemLabel>
           <TreeItemDragAndDropOverlay {...getDragAndDropOverlayProps()} />
         </TreeItemContent>
-        <Box position="absolute" top={0} right={0}>
-          <DrilldownMenu items={[]} />
-        </Box>
+        {item && (
+          <Box position="absolute" top={0} right={0}>
+            <DanmakuContextMenu item={item} />
+          </Box>
+        )}
         {children && <TreeItemGroupTransition {...getGroupTransitionProps()} />}
       </StyledTreeRoot>
     </TreeItemProvider>
   )
 })
-
-export { CustomTreeItem as DanmakuTreeItem }

@@ -3,9 +3,6 @@ import { Box, Stack, Typography } from '@mui/material'
 import type { ReactElement } from 'react'
 import { isNotCustom } from '@/common/danmaku/utils'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
-import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
-import { useDanmakuTreeContext } from '../DanmakuTreeContext'
-import { SeasonContextMenu } from '../menus/SeasonContextMenu'
 
 interface SeasonTreeItemProps {
   season: Season | CustomSeason
@@ -18,28 +15,9 @@ export const SeasonTreeItem = ({
 }: SeasonTreeItemProps): ReactElement => {
   const { getProviderById } = useProviderConfig()
 
-  const exportDanmaku = useExportDanmaku()
-  const { setDeletingDanmaku } = useDanmakuTreeContext()
-
   const provider = isNotCustom(season)
     ? getProviderById(season.providerConfigId)
     : undefined
-
-  const handleExport = () => {
-    if (isNotCustom(season)) {
-      exportDanmaku.mutate({
-        filter: { id: season.id },
-      })
-    } else {
-      exportDanmaku.mutate({
-        customFilter: { id: season.id },
-      })
-    }
-  }
-
-  const handleDelete = () => {
-    setDeletingDanmaku({ kind: 'season', season })
-  }
 
   return (
     <>
@@ -82,17 +60,6 @@ export const SeasonTreeItem = ({
               {provider.name}
             </Typography>
           )}
-          <Box
-            onClick={(e) => {
-              e.stopPropagation()
-            }}
-          >
-            <SeasonContextMenu
-              season={season}
-              onExport={handleExport}
-              onDelete={handleDelete}
-            />
-          </Box>
         </Stack>
       </Stack>
     </>
