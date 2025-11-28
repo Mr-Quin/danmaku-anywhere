@@ -44,6 +44,7 @@
     "@mui/material": "^7.3.5",
     "@mui/system": "^7.3.5",
     "@mui/x-data-grid": "^8.19.0",
+    "@mui/x-tree-view": "^8.19.0",
     "@newrelic/browser-agent": "^1.303.0",
     "@tanstack/react-query": "^5.90.10",
     "@tanstack/react-query-devtools": "^5.91.0",

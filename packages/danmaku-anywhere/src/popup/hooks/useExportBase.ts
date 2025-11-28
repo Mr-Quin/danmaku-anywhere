@@ -75,7 +75,7 @@ export const useExportWithFormat = (formatter: ExportFormatter) => {
       // Add regular episodes
       episodes.forEach((ep) => {
         const formatted = formatter.formatEpisode(ep)
-        const fileName = `${sanitizeFilename(ep.season.title)}/${sanitizeFilename(formatted.name)}`
+        const fileName = `${sanitizeFilename(`${ep.season.provider} (${ep.season.providerConfigId})`)}/${sanitizeFilename(ep.season.title)}/${sanitizeFilename(formatted.name)}`
 
         files.push({
           name: fileName,

@@ -3,6 +3,7 @@ import {
   Box,
   type BoxProps,
   CircularProgress,
+  Divider,
   IconButton,
   type IconButtonProps,
   ListItemIcon,
@@ -10,27 +11,49 @@ import {
   Menu,
   MenuItem,
   type MenuProps,
+  styled,
   Tooltip,
 } from '@mui/material'
-import type { MouseEvent, PropsWithChildren, ReactNode } from 'react'
+import type {
+  MouseEvent,
+  PropsWithChildren,
+  ReactElement,
+  ReactNode,
+} from 'react'
 import { useId, useState } from 'react'
 
-type MenuItemProps = {
-  icon: ReactNode
-  label: string
-  id: string
-  onClick: () => void
-  disabled?: boolean
-  tooltip?: ReactNode
-  loading?: boolean
-}
+const StyledMenu = styled(Menu)({
+  zIndex: 1403,
+})
+
+const MenuDivider = styled(Divider)(({ theme }) => ({
+  marginTop: theme.spacing(1),
+  marginBottom: theme.spacing(1),
+}))
+
+export type DrilldownMenuItemProps =
+  | {
+      kind?: 'item'
+      icon: ReactNode
+      label: string
+      id: string
+      onClick: () => void
+      disabled?: boolean
+      tooltip?: ReactNode
+      loading?: boolean
+    }
+  | {
+      kind: 'separator'
+      id: string
+    }
 
 type DrilldownMenuProps = PropsWithChildren & {
   icon?: ReactNode
   ButtonProps?: IconButtonProps
   BoxProps?: BoxProps
   MenuProps?: Partial<MenuProps>
-  items?: MenuItemProps[]
+  items?: DrilldownMenuItemProps[]
+  dense?: boolean
 }
 
 export const DrilldownMenu = ({
@@ -40,7 +63,8 @@ export const DrilldownMenu = ({
   MenuProps,
   items,
   icon,
-}: DrilldownMenuProps) => {
+  dense = false,
+}: DrilldownMenuProps): ReactElement => {
   const buttonId = useId()
   const menuId = useId()
 
@@ -48,6 +72,7 @@ export const DrilldownMenu = ({
   const open = Boolean(anchorEl)
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation()
     setAnchorEl(event.currentTarget)
   }
 
@@ -60,7 +85,7 @@ export const DrilldownMenu = ({
       <IconButton id={buttonId} onClick={handleClick} {...ButtonProps}>
         {icon ?? <MoreVert />}
       </IconButton>
-      <Menu
+      <StyledMenu
         id={menuId}
         anchorEl={anchorEl}
         open={open}
@@ -68,12 +93,16 @@ export const DrilldownMenu = ({
         slotProps={{
           list: {
             'aria-labelledby': buttonId,
+            dense: dense,
           },
         }}
         {...MenuProps}
       >
         {children}
         {items?.map((item) => {
+          if (item.kind === 'separator') {
+            return <MenuDivider key={item.id} />
+          }
           return (
             <Tooltip title={item.tooltip} key={item.id}>
               <div>
@@ -93,7 +122,7 @@ export const DrilldownMenu = ({
             </Tooltip>
           )
         })}
-      </Menu>
+      </StyledMenu>
     </Box>
   )
 }

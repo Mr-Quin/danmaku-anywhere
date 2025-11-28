@@ -32,7 +32,7 @@ export const Home = () => {
           }}
         >
           <Tab
-            label={t('danmaku.mount')}
+            label={t('tabs.mount')}
             value="/mount"
             to="/mount"
             component={Link}

@@ -102,10 +102,12 @@ const domain = {
       videoNotFound: '未找到视频节点',
     },
     mount: '装填弹幕',
+    mountShort: '装填',
     backup: '导出备份',
     exportXml: '导出XML',
     noComments: '弹幕列表为空',
     refresh: '刷新弹幕',
+    viewDanmaku: '查看弹幕',
     style: '弹幕样式',
     type: {
       Custom: '其他',
@@ -255,7 +257,11 @@ const pages = {
     noActiveTab: '当前页面为空',
     noDanmaku: '弹幕列表为空',
     noDanmakuHelp: '前往搜索',
-    pageTitle: '装填控制器',
+    pageTitle: '弹幕库',
+    selectedCount: '已选择{{count}}',
+    alert: {
+      mountingDisabled: '无法在当前页面装填弹幕',
+    },
   },
   optionsPage: {
     language: '语言',
@@ -433,7 +439,7 @@ const pages = {
   tabs: {
     config: '装填配置',
     danmaku: '弹幕列表',
-    mount: '装填弹幕',
+    mount: '弹幕库',
     search: '搜索番剧',
     selector: '修正匹配',
     style: '弹幕设置',

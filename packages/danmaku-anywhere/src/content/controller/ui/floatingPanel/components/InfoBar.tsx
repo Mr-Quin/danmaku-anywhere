@@ -45,7 +45,7 @@ export const InfoBar = () => {
   }, [episodes])
 
   return (
-    <Collapse in={isMounted}>
+    <Collapse in={isMounted} unmountOnExit>
       {hasEpisodes && (
         <Toolbar
           variant="dense"
