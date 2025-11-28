@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 
+import { GlobalDialog } from '@/common/components/Dialog/GlobalDialog'
 import { Toast } from '@/common/components/Toast/Toast'
 import { SwitchLanguage } from '@/content/controller/common/components/SwitchLanguage'
 import { ControllerRpcServer } from '@/content/controller/controllerRpc/ControllerRpcServer'
@@ -24,6 +25,7 @@ export const Content = () => {
       <ControllerRpcServer />
       <PopupUi />
       <Toast stackable disableCloseOnClickAway />
+      <GlobalDialog />
       <SwitchLanguage />
       <div
         id="danmaku-anywhere-highlighter-portal"

@@ -1,5 +1,8 @@
 import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
 import type { ReactElement } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useDialog } from '@/common/components/Dialog/dialogStore'
+import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { isNotCustom } from '@/common/danmaku/utils'
 import { useExportXml } from '@/popup/hooks/useExportXml'
@@ -13,10 +16,13 @@ interface EpisodeContextMenuContainerProps {
 export const EpisodeContextMenuContainer = ({
   episode,
 }: EpisodeContextMenuContainerProps): ReactElement => {
+  const { t } = useTranslation()
   const { mutateAsync: load, isPending } = useFetchDanmaku()
   const exportDanmaku = useExportXml()
+  const deleteDanmakuMutation = useDeleteEpisode()
+  const dialog = useDialog()
 
-  const { setViewingDanmaku, setDeletingDanmaku } = useDanmakuTreeContext()
+  const { setViewingDanmaku } = useDanmakuTreeContext()
 
   const handleFetchDanmaku = async () => {
     if (!isNotCustom(episode)) return
@@ -43,7 +49,24 @@ export const EpisodeContextMenuContainer = ({
   }
 
   const handleDelete = () => {
-    setDeletingDanmaku({ kind: 'episode', episode })
+    dialog.delete({
+      title: t('common.confirmDeleteTitle'),
+      content: t('danmakuPage.confirmDeleteMessage'),
+      confirmText: t('common.delete'),
+      onConfirm: async () => {
+        if (isNotCustom(episode)) {
+          await deleteDanmakuMutation.mutateAsync({
+            isCustom: false,
+            filter: { ids: [episode.id] },
+          })
+        } else {
+          await deleteDanmakuMutation.mutateAsync({
+            isCustom: true,
+            filter: { ids: [episode.id] },
+          })
+        }
+      },
+    })
   }
 
   return (
