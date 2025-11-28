@@ -1,11 +1,5 @@
 import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
-import {
-  Delete,
-  Download,
-  MoreVert,
-  Sync,
-  Visibility,
-} from '@mui/icons-material'
+import { Delete, Download, Sync, Visibility } from '@mui/icons-material'
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -67,17 +61,11 @@ export const EpisodeContextMenuPure = ({
       kind: 'item',
       id: 'delete',
       label: t('common.delete'),
-      icon: <Delete fontSize="small" color="error" />,
+      icon: <Delete fontSize="small" />,
       onClick: onDelete,
+      color: 'error',
     },
   ]
 
-  return (
-    <DrilldownMenu
-      items={items}
-      ButtonProps={{ size: 'small' }}
-      icon={<MoreVert fontSize="small" />}
-      dense
-    />
-  )
+  return <DrilldownMenu items={items} ButtonProps={{ size: 'small' }} dense />
 }

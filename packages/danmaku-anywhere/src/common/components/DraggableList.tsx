@@ -25,10 +25,27 @@ import {
   ListItemIcon,
   ListItemText,
   type ListItemTextProps,
+  styled,
 } from '@mui/material'
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import { NothingHere } from '@/common/components/NothingHere'
+import { ScrollBox } from './layout/ScrollBox'
+
+const DraggableItemIcon = styled(ListItemIcon)(({ theme }) => {
+  return {
+    cursor: 'grab',
+    '&:active': {
+      cursor: 'grabbing',
+    },
+    minWidth: 0,
+    paddingRight: theme.spacing(1),
+    alignSelf: 'stretch',
+    ['& > svg']: {
+      margin: 'auto',
+    },
+  }
+})
 
 interface DraggableItem {
   id: string
@@ -60,6 +77,10 @@ function SortableItem<T extends DraggableItem>({
     isDragging,
   } = useSortable({ id: item.id })
 
+  function handleClick() {
+    onEdit(item)
+  }
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -73,18 +94,9 @@ function SortableItem<T extends DraggableItem>({
 
   const listItemInner = (
     <>
-      <ListItemIcon
-        sx={{
-          cursor: 'grab',
-          '&:active': {
-            cursor: 'grabbing',
-          },
-        }}
-        {...attributes}
-        {...listeners}
-      >
+      <DraggableItemIcon {...listeners}>
         <DragIndicator />
-      </ListItemIcon>
+      </DraggableItemIcon>
       <ListItemText {...listItemTextProps} />
     </>
   )
@@ -96,11 +108,10 @@ function SortableItem<T extends DraggableItem>({
       key={item.id}
       secondaryAction={renderSecondaryAction(item)}
       disablePadding={clickable}
+      {...attributes}
     >
       {clickable ? (
-        <ListItemButton onClick={() => onEdit(item)}>
-          {listItemInner}
-        </ListItemButton>
+        <ListItemButton onClick={handleClick}>{listItemInner}</ListItemButton>
       ) : (
         listItemInner
       )}
@@ -128,18 +139,13 @@ function DragOverlayItem<T extends DraggableItem>({
     <ListItem
       sx={{
         backgroundColor: 'background.paper',
-        boxShadow: 3,
-        borderRadius: 1,
         opacity: 0.85,
       }}
-      disablePadding
     >
-      <ListItemButton disableRipple>
-        <ListItemIcon>
-          <DragIndicator />
-        </ListItemIcon>
-        <ListItemText {...listItemTextProps} />
-      </ListItemButton>
+      <DraggableItemIcon>
+        <DragIndicator />
+      </DraggableItemIcon>
+      <ListItemText {...listItemTextProps} />
     </ListItem>
   )
 }
@@ -229,18 +235,20 @@ export function DraggableList<T extends DraggableItem>({
         items={orderedItems.map((item) => item.id)}
         strategy={verticalListSortingStrategy}
       >
-        <List dense disablePadding>
-          {orderedItems.map((item) => (
-            <SortableItem
-              key={item.id}
-              item={item}
-              onEdit={onEdit}
-              renderPrimary={renderPrimary}
-              renderSecondary={renderSecondary}
-              renderSecondaryAction={renderSecondaryAction}
-            />
-          ))}
-        </List>
+        <ScrollBox overflow="auto">
+          <List dense disablePadding>
+            {orderedItems.map((item) => (
+              <SortableItem
+                key={item.id}
+                item={item}
+                onEdit={onEdit}
+                renderPrimary={renderPrimary}
+                renderSecondary={renderSecondary}
+                renderSecondaryAction={renderSecondaryAction}
+              />
+            ))}
+          </List>
+        </ScrollBox>
       </SortableContext>
       <DragOverlay>
         {activeItem && (

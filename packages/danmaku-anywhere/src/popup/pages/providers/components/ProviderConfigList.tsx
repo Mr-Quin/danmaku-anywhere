@@ -46,13 +46,15 @@ export const ProviderConfigList = ({
           {!config.isBuiltIn && (
             <DrilldownMenu
               BoxProps={{ display: 'inline' }}
-              ButtonProps={{ edge: 'end' }}
+              ButtonProps={{ edge: 'end', size: 'small' }}
+              dense
               items={[
                 {
                   id: 'delete',
                   label: t('common.delete'),
                   onClick: () => onDelete(config),
                   icon: <Delete />,
+                  color: 'error',
                 },
               ]}
             />

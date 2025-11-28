@@ -27,7 +27,9 @@ export const ConfirmDeleteDialog = ({
   const { remove } = useEditProviderConfig()
 
   const handleConfirm = async () => {
-    if (!provider?.id) return
+    if (!provider?.id || provider.isBuiltIn) {
+      return
+    }
 
     remove.mutate(provider.id, {
       onSuccess: () => {

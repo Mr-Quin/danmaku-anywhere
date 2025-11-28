@@ -19,6 +19,7 @@ export const ProviderToggleSwitch = ({
       checked={config.enabled}
       disabled={toggle.isPending}
       onClick={(e) => e.stopPropagation()}
+      size="small"
     />
   )
 }
