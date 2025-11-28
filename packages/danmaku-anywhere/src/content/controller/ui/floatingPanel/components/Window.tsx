@@ -1,6 +1,6 @@
 import type { PopoverVirtualElement } from '@mui/material'
 import { SwipeableDrawer } from '@mui/material'
-import type { ReactNode } from 'react'
+import type { ReactNode, Ref } from 'react'
 import { memo } from 'react'
 import { useIsSmallScreen } from '@/content/controller/common/hooks/useIsSmallScreen'
 import { WindowPaneLayout } from '@/content/controller/ui/floatingPanel/layout/WindowPaneLayout'
@@ -13,6 +13,7 @@ interface ControlWindowProps {
   onClose: () => void
   open: boolean
   toolbar: ReactNode
+  ref?: Ref<HTMLDivElement>
 }
 
 const BaseWindow = ({
@@ -22,6 +23,7 @@ const BaseWindow = ({
   onClose,
   open,
   toolbar,
+  ref,
 }: ControlWindowProps) => {
   const sm = useIsSmallScreen()
 
@@ -35,6 +37,7 @@ const BaseWindow = ({
         disableSwipeToOpen
         hideBackdrop
         sx={{ zIndex: 1402 }}
+        ref={ref}
       >
         <WindowPaneLayout>
           <>
@@ -57,6 +60,7 @@ const BaseWindow = ({
                 cursor: 'grab',
                 touchAction: 'none',
               }}
+              ref={ref}
             >
               {toolbar}
             </div>

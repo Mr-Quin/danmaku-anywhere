@@ -3,11 +3,17 @@ import { ClickAwayListener } from '@mui/material'
 import { useRef, useState } from 'react'
 import { usePopup } from '@/content/controller/store/popupStore'
 import { ControllerWindow } from '@/content/controller/ui/floatingPanel/ControllerWindow'
+import { CONTROLLER_ROOT_ID } from '../common/constants/rootId'
 import { FloatingButton } from './floatingButton/FloatingButton'
 
 export const PopupUi = () => {
   const { isOpen, toggleOpen, lock } = usePopup()
   const fallbackAnchorEl = useRef<HTMLButtonElement | null>(null)
+
+  const rootRef = useRef<HTMLElement | null>(
+    document.getElementById(CONTROLLER_ROOT_ID)
+  )
+
   const [anchorEl, setAnchorEl] = useState<PopoverVirtualElement | null>(null)
 
   const handleOpen = (virtualElement: PopoverVirtualElement) => {
@@ -19,7 +25,12 @@ export const PopupUi = () => {
 
   return (
     <ClickAwayListener
-      onClickAway={() => {
+      onClickAway={(e) => {
+        // clicking on a dialog within the controller is detected as a click away,
+        // so we need to check if the target is within the controller root
+        if (rootRef.current && rootRef.current.contains(e.target as Node)) {
+          return
+        }
         if (!lock) {
           toggleOpen(false)
         }

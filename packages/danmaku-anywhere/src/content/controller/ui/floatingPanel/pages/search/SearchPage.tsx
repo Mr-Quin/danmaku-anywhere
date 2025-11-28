@@ -29,7 +29,7 @@ import { useStore } from '@/content/controller/store/store'
 import { SeasonDetailsPage } from '@/content/controller/ui/floatingPanel/pages/search/SeasonDetailsPage'
 import { AddSeasonMapDialog } from './AddSeasonMapDialog'
 
-export const SearchPage = () => {
+export const SearchPage = (): React.ReactElement | null => {
   const { t } = useTranslation()
   const { searchTitle, setSearchTitle, providerTab, setProviderTab } =
     usePopup()

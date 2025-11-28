@@ -16,6 +16,7 @@ export interface DialogConfig {
   hideCancel?: boolean
   hideConfirm?: boolean
   closeOnError?: boolean
+  container?: HTMLElement | null
 }
 
 type DialogInput = Omit<DialogConfig, 'id'>
@@ -23,11 +24,15 @@ type DialogInput = Omit<DialogConfig, 'id'>
 interface DialogState {
   dialogs: DialogConfig[]
   loadingIds: string[]
+  closingIds: string[]
+  container: HTMLElement | null
   open: (config: DialogInput) => string
   close: (id?: string) => void
+  remove: (id: string) => void
   setLoading: (id: string, loading: boolean) => void
   confirm: (config: DialogInput) => string
   delete: (config: DialogInput) => string
+  setContainer: (container: HTMLElement | null) => void
 }
 
 const generateId = () => Math.random().toString(36).substring(7)
@@ -35,6 +40,8 @@ const generateId = () => Math.random().toString(36).substring(7)
 const useDialogStoreBase = create<DialogState>((set, get) => ({
   dialogs: [],
   loadingIds: [],
+  closingIds: [],
+  container: null,
   open: (config) => {
     const id = generateId()
     set((state) => ({
@@ -44,22 +51,29 @@ const useDialogStoreBase = create<DialogState>((set, get) => ({
   },
   close: (id) => {
     set((state) => {
-      if (id) {
-        return {
-          dialogs: state.dialogs.filter((d) => d.id !== id),
-          loadingIds: state.loadingIds.filter((loadingId) => loadingId !== id),
-        }
+      const targetId =
+        id ||
+        (state.dialogs.length > 0
+          ? state.dialogs[state.dialogs.length - 1].id
+          : null)
+
+      if (!targetId) return state
+
+      if (state.closingIds.includes(targetId)) {
+        return state
       }
-      // Close the last one if no ID provided
-      if (state.dialogs.length === 0) return state
-      const lastId = state.dialogs[state.dialogs.length - 1].id
+
       return {
-        dialogs: state.dialogs.slice(0, -1),
-        loadingIds: state.loadingIds.filter(
-          (loadingId) => loadingId !== lastId
-        ),
+        closingIds: [...state.closingIds, targetId],
       }
     })
+  },
+  remove: (id) => {
+    set((state) => ({
+      dialogs: state.dialogs.filter((d) => d.id !== id),
+      loadingIds: state.loadingIds.filter((loadingId) => loadingId !== id),
+      closingIds: state.closingIds.filter((closingId) => closingId !== id),
+    }))
   },
   setLoading: (id, loading) => {
     set((state) => ({
@@ -80,6 +94,7 @@ const useDialogStoreBase = create<DialogState>((set, get) => ({
       ...config,
     })
   },
+  setContainer: (container) => set({ container }),
 }))
 
 export const useDialogStore = createSelectors(useDialogStoreBase)
@@ -89,11 +104,13 @@ export const useDialog = () => {
   const close = useDialogStore.use.close()
   const confirm = useDialogStore.use.confirm()
   const deleteDialog = useDialogStore.use.delete()
+  const setContainer = useDialogStore.use.setContainer()
 
   return {
     open,
     close,
     confirm,
     delete: deleteDialog,
+    setContainer,
   }
 }

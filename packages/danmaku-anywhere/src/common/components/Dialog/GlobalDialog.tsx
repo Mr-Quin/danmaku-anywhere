@@ -6,20 +6,24 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material'
+import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialogStore } from './dialogStore'
 
-export const GlobalDialog = () => {
+export const GlobalDialog = (): ReactElement | null => {
   const { t } = useTranslation()
+
   const dialogs = useDialogStore.use.dialogs()
   const loadingIds = useDialogStore.use.loadingIds()
+  const closingIds = useDialogStore.use.closingIds()
   const close = useDialogStore.use.close()
+  const remove = useDialogStore.use.remove()
   const setLoading = useDialogStore.use.setLoading()
+  const globalContainer = useDialogStore.use.container()
 
-  // We render all dialogs, but we need to ensure we don't have issues with stacking.
-  // MUI Dialog handles stacking via portals and z-index automatically.
-
-  if (dialogs.length === 0) return null
+  if (dialogs.length === 0) {
+    return null
+  }
 
   return (
     <>
@@ -35,13 +39,19 @@ export const GlobalDialog = () => {
           hideCancel = false,
           hideConfirm = false,
           closeOnError = false,
+          container,
         } = config
 
         const isLoading = loadingIds.includes(id)
+        const isClosing = closingIds.includes(id)
 
         const handleClose = () => {
-          if (isLoading) return
+          if (isLoading) {
+            return
+          }
+
           config.onCancel?.()
+
           close(id)
         }
 
@@ -79,7 +89,20 @@ export const GlobalDialog = () => {
         }
 
         return (
-          <Dialog key={id} open={true} onClose={handleClose} {...dialogProps}>
+          <Dialog
+            key={id}
+            open={!isClosing}
+            onClose={handleClose}
+            container={container || globalContainer}
+            slotProps={{
+              transition: {
+                onExited: () => {
+                  remove(id)
+                },
+              },
+            }}
+            {...dialogProps}
+          >
             {title && <DialogTitle>{title}</DialogTitle>}
             {content && <DialogContent>{renderContent()}</DialogContent>}
             <DialogActions>
