@@ -10,6 +10,7 @@ import { useTreeViewApiRef } from '@mui/x-tree-view/hooks'
 import { RichTreeView } from '@mui/x-tree-view/RichTreeView'
 import {
   type Ref,
+  type RefObject,
   type SyntheticEvent,
   useImperativeHandle,
   useMemo,
@@ -183,7 +184,7 @@ export const DanmakuTree = ({
       setViewingDanmaku: onViewDanmaku,
       deletingDanmaku,
       setDeletingDanmaku,
-      apiRef: apiRef.current as MUITreePublicApi,
+      apiRef: apiRef as RefObject<MUITreePublicApi>,
       isMultiSelect: multiselect,
     }),
     [

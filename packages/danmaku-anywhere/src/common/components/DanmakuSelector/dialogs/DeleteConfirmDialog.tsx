@@ -50,7 +50,10 @@ export const DeleteConfirmDialog = (): ReactElement => {
           }
         )
       }
-    } else if (deletingDanmaku.kind === 'season') {
+    } else if (
+      deletingDanmaku.kind === 'season' &&
+      !isNotCustom(deletingDanmaku.season)
+    ) {
       deleteSeasonMutation.mutate(deletingDanmaku.season.id, {
         onSuccess: handleClose,
       })

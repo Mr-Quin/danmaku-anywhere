@@ -68,7 +68,7 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
 
   function handleContentClick() {
     if (isMultiSelect && !isSeason) {
-      apiRef?.setItemSelection({ itemId, keepExistingSelection: true })
+      apiRef?.current?.setItemSelection({ itemId, keepExistingSelection: true })
     }
   }
 
