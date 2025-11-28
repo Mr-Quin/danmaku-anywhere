@@ -8,11 +8,10 @@ import {
   MenuItem,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-
+import { DrilldownMenu } from '@/common/components/DrilldownMenu'
 import { NothingHere } from '@/common/components/NothingHere'
 import type { Integration } from '@/common/options/integrationPolicyStore/schema'
 import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
-import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 
 export const IntegrationPolicyList = ({
   onEdit,

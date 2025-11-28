@@ -1,15 +1,16 @@
-import { Box, Divider, ListItemText, MenuItem } from '@mui/material'
+import { Divider, ListItemText, MenuItem } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { DrilldownMenu } from '@/common/components/DrilldownMenu'
+import { ScrollBox } from '@/common/components/layout/ScrollBox'
+import { TabLayout } from '@/common/components/layout/TabLayout'
+import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import {
   DanmakuStylesForm,
   type SaveStatus,
 } from '@/content/common/DanmakuStyles/DanmakuStylesForm'
 import { FilterPage } from '@/content/common/DanmakuStyles/FilterPage'
 import { SaveStatusIndicator } from '@/content/common/DanmakuStyles/SaveStatusIndicator'
-import { DrilldownMenu } from '@/content/common/DrilldownMenu'
-import { TabLayout } from '@/content/common/TabLayout'
-import { TabToolbar } from '@/content/common/TabToolbar'
 
 export const StylesPage = () => {
   const { t } = useTranslation()
@@ -40,9 +41,9 @@ export const StylesPage = () => {
         </DrilldownMenu>
       </TabToolbar>
       <Divider />
-      <Box px={3} pb={2} flexGrow={1} sx={{ overflowX: 'hidden' }}>
+      <ScrollBox px={3} pb={2} flexGrow={1} sx={{ overflowX: 'hidden' }}>
         <DanmakuStylesForm onSaveStatusChange={setSaveStatus} />
-      </Box>
+      </ScrollBox>
     </TabLayout>
   )
 }

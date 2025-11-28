@@ -9,11 +9,11 @@ import { BaseEpisodeListItem } from '@/common/components/EpisodeList/BaseEpisode
 import { EpisodeSearchList } from '@/common/components/EpisodeList/EpisodeSearchList'
 import { MacCmsEpisodeListItem } from '@/common/components/EpisodeList/MacCmsEpisodeListItem'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
+import { TabLayout } from '@/common/components/layout/TabLayout'
+import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
 import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
-import { TabLayout } from '@/content/common/TabLayout'
-import { TabToolbar } from '@/content/common/TabToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 import { useStore } from '@/popup/store'
 

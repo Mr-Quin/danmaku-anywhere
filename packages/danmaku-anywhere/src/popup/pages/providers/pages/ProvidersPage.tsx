@@ -1,10 +1,10 @@
 import { useState } from 'react'
+import { TabLayout } from '@/common/components/layout/TabLayout'
 import {
   createCustomDanDanPlayProvider,
   createCustomMacCmsProvider,
 } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
-import { TabLayout } from '@/content/common/TabLayout'
 import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog'
 import { ProviderConfigList } from '../components/ProviderConfigList'
 import { ProviderToolbar } from '../components/ProviderToolbar'

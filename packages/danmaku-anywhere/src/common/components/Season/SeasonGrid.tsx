@@ -1,6 +1,5 @@
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import {
-  Box,
   type BoxProps,
   type Breakpoint,
   Grid,
@@ -15,6 +14,7 @@ import {
   SeasonCardSkeleton,
 } from '@/common/components/Season/components/SeasonCard/SeasonCard'
 import { useMergeRefs } from '@/common/hooks/useMergeRefs'
+import { ScrollBox } from '../layout/ScrollBox'
 
 const useBreakpointValue = <T,>(values: Partial<Record<Breakpoint, T>>) => {
   const theme = useTheme()
@@ -147,7 +147,7 @@ export const SeasonGrid = ({
   }
 
   return (
-    <Box
+    <ScrollBox
       height="100%"
       overflow="auto"
       position="relative"
@@ -181,7 +181,7 @@ export const SeasonGrid = ({
           )
         })}
       </SeasonGridLayout>
-    </Box>
+    </ScrollBox>
   )
 }
 

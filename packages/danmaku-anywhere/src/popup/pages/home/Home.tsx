@@ -6,7 +6,7 @@ import { Link, Outlet, useLocation, useMatches } from 'react-router'
 
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
-import { TabLayout } from '@/content/common/TabLayout'
+import { TabLayout } from '@/common/components/layout/TabLayout'
 import { ReleaseNotes } from '@/popup/component/releaseNotes/ReleaseNotes'
 import { AppToolBar } from './AppToolBar'
 
