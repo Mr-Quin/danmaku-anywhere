@@ -261,7 +261,7 @@ const pages = {
     noActiveTab: 'No active tab',
     noDanmaku: 'No danmaku found',
     noDanmakuHelp: 'Go to Search',
-    pageTitle: 'Mount Controller',
+    pageTitle: 'Danmaku Library',
     selectedCount: '{{count}} selected',
     alert: {
       mountingDisabled: 'Cannot mount danmaku on this page',
@@ -448,7 +448,7 @@ const pages = {
   tabs: {
     config: 'Config',
     danmaku: 'Danmaku',
-    mount: 'Mount',
+    mount: 'Library',
     search: 'Search',
     selector: 'Selector',
     style: 'Danmaku Settings',

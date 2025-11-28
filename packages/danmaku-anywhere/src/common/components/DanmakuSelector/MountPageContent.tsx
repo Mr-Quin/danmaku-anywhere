@@ -2,8 +2,16 @@ import type {
   DanmakuSourceType,
   GenericEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
-import { ChecklistRtl, Keyboard } from '@mui/icons-material'
-import { Alert, Box, Button, IconButton, Tooltip } from '@mui/material'
+import { CheckBox, CheckBoxOutlined } from '@mui/icons-material'
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  Collapse,
+  Stack,
+  Typography,
+} from '@mui/material'
 import type { ReactElement, ReactNode } from 'react'
 import { Fragment, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -138,14 +146,9 @@ export const MountPageContent = ({
           height: '100%',
         }}
       >
-        {({ focused, disabled }) => (
+        {() => (
           <>
             <TabToolbar title={t('mountPage.pageTitle')}>
-              {!isMobile && (
-                <Keyboard
-                  color={disabled || !focused ? 'disabled' : 'action'}
-                />
-              )}
               <FilterButton
                 filter={filter}
                 onChange={onFilterChange}
@@ -157,26 +160,35 @@ export const MountPageContent = ({
                 selectedTypes={selectedTypes as DanmakuSourceType[]}
                 setSelectedType={(types) => onSelectedTypesChange(types)}
               />
-              <Tooltip title={t('common.multiselect')}>
-                <div>
-                  <IconButton
-                    onClick={handleToggleMultiselect}
-                    color={multiselect ? 'primary' : 'default'}
+              <Chip
+                variant="outlined"
+                label={
+                  <Stack direction="row" alignItems="center" gap={0.5}>
+                    {multiselect ? (
+                      <CheckBox fontSize="small" />
+                    ) : (
+                      <CheckBoxOutlined fontSize="small" />
+                    )}
+                    <Typography variant="body2" fontSize="small">
+                      {t('common.multiselect')}
+                    </Typography>
+                  </Stack>
+                }
+                onClick={handleToggleMultiselect}
+                color="primary"
+              />
+              {onUnmount && (
+                <Collapse in={isMounted} unmountOnExit orientation="horizontal">
+                  <Button
+                    variant="outlined"
+                    onClick={onUnmount}
+                    color="warning"
+                    disabled={!isMounted}
+                    sx={{ whiteSpace: 'nowrap', ml: 1 }}
                   >
-                    <ChecklistRtl />
-                  </IconButton>
-                </div>
-              </Tooltip>
-
-              {onUnmount && !multiselect && (
-                <Button
-                  variant="outlined"
-                  onClick={onUnmount}
-                  color="warning"
-                  disabled={!isMounted}
-                >
-                  {t('danmaku.unmount')}
-                </Button>
+                    {t('danmaku.unmount')}
+                  </Button>
+                </Collapse>
               )}
             </TabToolbar>
 
