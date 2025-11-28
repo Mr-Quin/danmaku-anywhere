@@ -16,12 +16,12 @@ import {
   useParams,
   useSearchParams,
 } from 'react-router'
+import { DrilldownMenu } from '@/common/components/DrilldownMenu'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useCustomEpisodeLite } from '@/common/danmaku/queries/useCustomEpisodes'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { useEpisodesLite } from '@/common/danmaku/queries/useEpisodes'
 import { isProvider } from '@/common/danmaku/utils'
-import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useExportXml } from '@/popup/hooks/useExportXml'
 import { useRefreshDanmaku } from '@/popup/hooks/useRefreshDanmaku'

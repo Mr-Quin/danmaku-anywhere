@@ -3,6 +3,7 @@ import { ListItemIcon, ListItemText, MenuItem } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
+import { DrilldownMenu } from '@/common/components/DrilldownMenu'
 import { combinedPolicyService } from '@/common/options/combinedPolicy'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import {
@@ -10,7 +11,6 @@ import {
   useMountConfig,
 } from '@/common/options/mountConfig/useMountConfig'
 import { createDownload } from '@/common/utils/utils'
-import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import { ConfigToggleSwitch } from '@/popup/pages/config/components/ConfigToggleSwitch'
 import { useStore } from '@/popup/store'
 

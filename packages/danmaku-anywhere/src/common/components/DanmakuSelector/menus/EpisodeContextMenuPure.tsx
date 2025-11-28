@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next'
 import {
   DrilldownMenu,
   type DrilldownMenuItemProps,
-} from '@/content/common/DrilldownMenu'
+} from '@/common/components/DrilldownMenu'
 
 export interface EpisodeContextMenuPureProps {
   episode: GenericEpisodeLite

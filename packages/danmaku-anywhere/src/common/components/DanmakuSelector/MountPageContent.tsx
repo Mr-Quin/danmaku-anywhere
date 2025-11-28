@@ -3,15 +3,7 @@ import type {
   GenericEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
 import { CheckBox, CheckBoxOutlined } from '@mui/icons-material'
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  Collapse,
-  Stack,
-  Typography,
-} from '@mui/material'
+import { Alert, Button, Chip, Collapse, Stack, Typography } from '@mui/material'
 import type { ReactElement, ReactNode } from 'react'
 import { Fragment, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -24,13 +16,14 @@ import {
 import { DanmakuViewer } from '@/common/components/DanmakuSelector/DanmakuViewer'
 import { MountPageBottomBar } from '@/common/components/DanmakuSelector/MountPageBottomBar'
 import { FilterButton } from '@/common/components/FilterButton'
+import { TabLayout } from '@/common/components/layout/TabLayout'
+import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { TypeSelector } from '@/common/components/TypeSelector'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { isNotCustom } from '@/common/danmaku/utils'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
-import { TabLayout } from '@/content/common/TabLayout'
-import { TabToolbar } from '@/content/common/TabToolbar'
 import { useExportXml } from '@/popup/hooks/useExportXml'
+import { ScrollBox } from '../layout/ScrollBox'
 
 export interface MountPageContentProps {
   filter: string
@@ -211,7 +204,7 @@ export const MountPageContent = ({
               </Alert>
             )}
 
-            <Box flexGrow={1} overflow="auto">
+            <ScrollBox flexGrow={1} overflow="auto">
               <Wrapper>
                 <DanmakuTree
                   ref={danmakuTreeRef}
@@ -226,7 +219,7 @@ export const MountPageContent = ({
                   multiselect={multiselect}
                 />
               </Wrapper>
-            </Box>
+            </ScrollBox>
 
             <MountPageBottomBar
               open={multiselect}

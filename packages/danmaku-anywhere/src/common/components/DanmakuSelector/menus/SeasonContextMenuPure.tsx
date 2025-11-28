@@ -2,11 +2,11 @@ import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import { Delete, Download, MoreVert, Sync } from '@mui/icons-material'
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
-import { isNotCustom } from '@/common/danmaku/utils'
 import {
   DrilldownMenu,
   type DrilldownMenuItemProps,
-} from '@/content/common/DrilldownMenu'
+} from '@/common/components/DrilldownMenu'
+import { isNotCustom } from '@/common/danmaku/utils'
 
 export interface SeasonContextMenuPureProps {
   season: Season | CustomSeason

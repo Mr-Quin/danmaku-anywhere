@@ -1,10 +1,9 @@
 import { Tab, Tabs } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-
+import { TabLayout } from '@/common/components/layout/TabLayout'
+import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useStoreScrollPosition } from '@/common/hooks/useStoreScrollPosition'
-import { TabLayout } from '@/content/common/TabLayout'
-import { TabToolbar } from '@/content/common/TabToolbar'
 import { ParseTab } from '@/popup/pages/search/ParseTab'
 import { SearchTab } from '@/popup/pages/search/SearchTab'
 

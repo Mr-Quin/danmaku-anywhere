@@ -1,12 +1,12 @@
 import { Delete } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
+import { DrilldownMenu } from '@/common/components/DrilldownMenu'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import {
   useEditProviderConfig,
   useProviderConfig,
 } from '@/common/options/providerConfig/useProviderConfig'
-import { DrilldownMenu } from '@/content/common/DrilldownMenu'
 import { ProviderConfigListItem } from './ProviderConfigListItem'
 import { ProviderToggleSwitch } from './ProviderToggleSwitch'
 

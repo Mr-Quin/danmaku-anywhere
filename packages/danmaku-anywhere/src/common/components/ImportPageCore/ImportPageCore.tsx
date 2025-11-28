@@ -4,6 +4,8 @@ import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
+import { TabLayout } from '@/common/components/layout/TabLayout'
+import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import type {
   DanmakuImportData,
   DanmakuImportResult,
@@ -11,8 +13,6 @@ import type {
 import { useInvalidateSeasonAndEpisode } from '@/common/hooks/useInvalidateSeasonAndEpisode'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { stripExtension } from '@/common/utils/stripExtension'
-import { TabLayout } from '@/content/common/TabLayout'
-import { TabToolbar } from '@/content/common/TabToolbar'
 import { FileUpload } from '@/popup/component/FileUpload'
 import {
   ImportResultDialog,

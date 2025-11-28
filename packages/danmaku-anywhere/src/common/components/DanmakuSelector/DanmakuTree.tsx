@@ -5,7 +5,6 @@ import type {
   GenericEpisodeLite,
   Season,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Box } from '@mui/material'
 import { useTreeViewApiRef } from '@mui/x-tree-view/hooks'
 import { RichTreeView } from '@mui/x-tree-view/RichTreeView'
 import {
@@ -203,20 +202,18 @@ export const DanmakuTree = ({
 
   return (
     <DanmakuTreeContext.Provider value={contextValue}>
-      <Box sx={{ height: '100%', overflowY: 'auto' }}>
-        <RichTreeView
-          items={treeItems}
-          multiSelect={multiselect}
-          checkboxSelection={multiselect}
-          selectedItems={
-            multiselect ? selectedNodeIds : selectedNodeIds[0] || null
-          }
-          selectionPropagation={selectionPropagation}
-          onSelectedItemsChange={handleSelectedItemsChange}
-          slots={{ item: DanmakuTreeItem }}
-          apiRef={apiRef}
-        />
-      </Box>
+      <RichTreeView
+        items={treeItems}
+        multiSelect={multiselect}
+        checkboxSelection={multiselect}
+        selectedItems={
+          multiselect ? selectedNodeIds : selectedNodeIds[0] || null
+        }
+        selectionPropagation={selectionPropagation}
+        onSelectedItemsChange={handleSelectedItemsChange}
+        slots={{ item: DanmakuTreeItem }}
+        apiRef={apiRef}
+      />
       <DeleteConfirmDialog />
     </DanmakuTreeContext.Provider>
   )

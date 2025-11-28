@@ -2,9 +2,9 @@ import { Box, Divider, Tab, Tabs, Typography } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { TabLayout } from '@/common/components/layout/TabLayout'
+import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { combinedPolicyService } from '@/common/options/combinedPolicy'
-import { TabLayout } from '@/content/common/TabLayout'
-import { TabToolbar } from '@/content/common/TabToolbar'
 import { FileUpload } from '@/popup/component/FileUpload'
 import {
   ImportResultDialog,
