@@ -55,7 +55,7 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
 
   const { itemMap, apiRef, isMultiSelect } = useDanmakuTreeContext()
 
-  const item = itemMap[itemId]
+  const item = itemMap.get(itemId)
   const isSeason = item?.kind === 'season'
 
   function handleMouseEnter() {

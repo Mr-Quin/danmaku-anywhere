@@ -21,26 +21,72 @@ import {
   type MUITreePublicApi,
 } from '@/common/components/DanmakuSelector/DanmakuTreeContext'
 import { DeleteConfirmDialog } from '@/common/components/DanmakuSelector/dialogs/DeleteConfirmDialog'
+import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/ExtendedTreeItem'
 import { DanmakuTreeItem } from '@/common/components/DanmakuSelector/items/DanmakuTreeItem'
 import { useDanmakuTree } from '@/common/components/DanmakuSelector/useDanmakuTree'
 import { NothingHere } from '@/common/components/NothingHere'
 import { isNotCustom } from '@/common/danmaku/utils'
 
 export interface DanmakuSelection {
-  genericEpisodes: GenericEpisodeLite[]
+  allEpisodes: GenericEpisodeLite[]
   episodes: EpisodeLite[]
   customEpisodes: CustomEpisodeLite[]
   seasons: Season[]
+  count: number
 }
 
-function partitionEpisodes(
-  genericEpisodes: GenericEpisodeLite[]
+function buildSelection(
+  ids: string[],
+  treeItemMap: Map<string, ExtendedTreeItem>
 ): DanmakuSelection {
+  const allEpisodes: GenericEpisodeLite[] = []
+  // regular episodes. if a season is selected, this will not include the episodes in the season
   const episodes: EpisodeLite[] = []
   const customEpisodes: CustomEpisodeLite[] = []
   const seasons: Season[] = []
 
-  for (const episode of genericEpisodes) {
+  let count = 0
+
+  const countedEpisodeIds = new Set<string>()
+  const seasonEpisodeIds = new Set<string>()
+
+  const countEpisode = (episodeId: string) => {
+    if (countedEpisodeIds.has(episodeId)) {
+      return
+    }
+    countedEpisodeIds.add(episodeId)
+    count += 1
+  }
+
+  // first pass to build seasonEpisodeIds
+  for (const id of ids) {
+    const item = treeItemMap.get(id)
+    if (!item) {
+      continue
+    }
+    if (item.kind == 'season' && isNotCustom(item.data)) {
+      seasons.push(item.data)
+      const children = item.children ?? []
+      for (const child of children) {
+        if (child.kind !== 'episode') {
+          continue
+        }
+        seasonEpisodeIds.add(child.id)
+        countEpisode(child.id)
+      }
+    } else if (item.kind == 'episode') {
+      allEpisodes.push(item.data)
+    }
+  }
+
+  for (const id of ids) {
+    const item = treeItemMap.get(id)
+    if (!item || item.kind !== 'episode' || seasonEpisodeIds.has(id)) {
+      continue
+    }
+    countEpisode(id)
+    const episode = item.data
+
     if (isNotCustom(episode)) {
       episodes.push(episode)
     } else {
@@ -49,10 +95,11 @@ function partitionEpisodes(
   }
 
   return {
-    genericEpisodes,
+    allEpisodes,
     episodes,
     customEpisodes,
     seasons,
+    count,
   }
 }
 
@@ -68,7 +115,7 @@ interface DanmakuSelectorProps {
   typeFilter: DanmakuSourceType[]
   onSelect: (value: GenericEpisodeLite) => void
   onViewDanmaku: (value: GenericEpisodeLite) => void
-  onSelectionChange?: (selectedIds: string[]) => void
+  onSelectionChange?: (selection: string[]) => void
   canMount?: boolean
   multiselect?: boolean
   ref: Ref<DanmakuTreeApi>
@@ -84,15 +131,12 @@ export const DanmakuTree = ({
   multiselect = false,
   ref,
 }: DanmakuSelectorProps): React.ReactElement => {
-  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([])
 
   const [deletingDanmaku, setDeletingDanmaku] =
     useState<DanmakuDeleteProps | null>(null)
 
-  const { treeItems, treeItemMap, episodeMap } = useDanmakuTree(
-    filter,
-    typeFilter
-  )
+  const { treeItems, treeItemMap } = useDanmakuTree(filter, typeFilter)
 
   const apiRef = useTreeViewApiRef()
 
@@ -100,14 +144,14 @@ export const DanmakuTree = ({
     ref,
     () => ({
       getSelectedEpisodes: () => {
-        return partitionEpisodes(selectedIds.map((id) => episodeMap[id]))
+        return buildSelection(selectedNodeIds, treeItemMap)
       },
       clearSelection: () => {
-        setSelectedIds([])
+        setSelectedNodeIds([])
         onSelectionChange?.([])
       },
     }),
-    [selectedIds, episodeMap, onSelectionChange]
+    [selectedNodeIds, treeItemMap, onSelectionChange]
   )
 
   const handleSelectedItemsChange = (
@@ -116,23 +160,19 @@ export const DanmakuTree = ({
   ) => {
     if (multiselect) {
       const newIds = Array.isArray(ids) ? ids : ids ? [ids] : []
-      // Filter out seasons if selected
-      const episodeIds = newIds.filter(
-        (id) => treeItemMap[id]?.kind === 'episode'
-      )
-      setSelectedIds(episodeIds)
-      onSelectionChange?.(episodeIds)
-    } else {
-      if (!canMount) {
-        return
-      }
-      // Single select
-      if (typeof ids === 'string') {
-        const item = treeItemMap[ids]
-        if (item && item.kind === 'episode') {
-          onSelect(item.data)
-          setSelectedIds([ids])
-        }
+      setSelectedNodeIds(newIds)
+      onSelectionChange?.(newIds)
+      return
+    }
+    if (!canMount) {
+      return
+    }
+    // Single select
+    if (typeof ids === 'string') {
+      const item = treeItemMap.get(ids)
+      if (item && item.kind === 'episode') {
+        onSelect(item.data)
+        setSelectedNodeIds([ids])
       }
     }
   }
@@ -167,7 +207,9 @@ export const DanmakuTree = ({
           items={treeItems}
           multiSelect={multiselect}
           checkboxSelection={multiselect}
-          selectedItems={multiselect ? selectedIds : selectedIds[0] || null}
+          selectedItems={
+            multiselect ? selectedNodeIds : selectedNodeIds[0] || null
+          }
           selectionPropagation={selectionPropagation}
           onSelectedItemsChange={handleSelectedItemsChange}
           slots={{ item: DanmakuTreeItem }}

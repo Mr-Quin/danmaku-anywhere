@@ -27,7 +27,7 @@ export interface MUITreePublicApi {
 }
 
 interface DanmakuTreeContextType {
-  itemMap: Record<string, ExtendedTreeItem>
+  itemMap: Map<string, ExtendedTreeItem>
   apiRef: MUITreePublicApi | null
   isMultiSelect: boolean
   setViewingDanmaku: (episode: GenericEpisodeLite) => void
@@ -37,7 +37,7 @@ interface DanmakuTreeContextType {
 
 // Context to pass item data to CustomTreeItem without prop drilling through library components
 export const DanmakuTreeContext = createContext<DanmakuTreeContextType>({
-  itemMap: {},
+  itemMap: new Map<string, ExtendedTreeItem>(),
   apiRef: null,
   isMultiSelect: false,
   setViewingDanmaku: (episode: GenericEpisodeLite) => undefined,

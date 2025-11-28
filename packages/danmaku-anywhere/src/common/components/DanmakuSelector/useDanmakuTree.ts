@@ -51,16 +51,16 @@ export const useDanmakuTree = (
 
   const { treeItems, treeItemMap, episodeMap } = useMemo(() => {
     // map of item id to tree item
-    const treeItemMap: Record<string, ExtendedTreeItem> = {}
+    const treeItemMap = new Map<string, ExtendedTreeItem>()
     // map of episode id to episode
-    const episodeMap: Record<string, GenericEpisodeLite> = {}
+    const episodeMap = new Map<string, GenericEpisodeLite>()
     // list of tree items
     const treeItems: ExtendedTreeItem[] = []
 
     function register(item: ExtendedTreeItem) {
-      treeItemMap[item.id] = item
+      treeItemMap.set(item.id, item)
       if (item.kind === 'episode') {
-        episodeMap[item.id] = item.data as GenericEpisodeLite
+        episodeMap.set(item.id, item.data as GenericEpisodeLite)
       }
       return item
     }

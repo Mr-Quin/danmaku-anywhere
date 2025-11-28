@@ -15,7 +15,7 @@ import {
 import type { ReactElement, ReactNode } from 'react'
 import { Fragment, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-
+import { useDeleteSeason } from '@/common/anime/queries/useDeleteSeason'
 import { CaptureKeypress } from '@/common/components/CaptureKeypress'
 import {
   DanmakuTree,
@@ -26,6 +26,7 @@ import { MountPageBottomBar } from '@/common/components/DanmakuSelector/MountPag
 import { FilterButton } from '@/common/components/FilterButton'
 import { TypeSelector } from '@/common/components/TypeSelector'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
+import { isNotCustom } from '@/common/danmaku/utils'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { TabLayout } from '@/content/common/TabLayout'
 import { TabToolbar } from '@/content/common/TabToolbar'
@@ -73,48 +74,60 @@ export const MountPageContent = ({
 
   const exportXmlMutation = useExportXml()
   const deleteEpisodeMutation = useDeleteEpisode()
+  const deleteSeasonMutation = useDeleteSeason()
 
   const handleMountSingle = (episode: GenericEpisodeLite) => {
     onMount([episode])
   }
 
-  const getSelection = () => {
+  function getSelection() {
     // biome-ignore lint/style/noNonNullAssertion: guaranteed to be not null
     return danmakuTreeRef.current!.getSelectedEpisodes()
   }
 
-  const handleMountMultiple = () => {
-    const { genericEpisodes } = getSelection()
-    if (genericEpisodes.length === 0) {
+  async function handleMountMultiple() {
+    const { allEpisodes } = getSelection()
+
+    if (allEpisodes.length === 0) {
       return
     }
 
-    onMount(genericEpisodes)
+    onMount(allEpisodes)
     danmakuTreeRef.current?.clearSelection()
     onToggleMultiselect()
   }
 
-  const handleExport = () => {
-    const { episodes, customEpisodes } = getSelection()
-    if (episodes.length === 0) {
-      return
-    }
+  async function handleExport() {
+    const { allEpisodes } = getSelection()
     exportXmlMutation.mutate({
-      filter: { ids: episodes.map((ep) => ep.id) },
-      customFilter: { ids: customEpisodes.map((ep) => ep.id) },
+      filter: {
+        ids: allEpisodes.filter((ep) => isNotCustom(ep)).map((ep) => ep.id),
+      },
+      customFilter: {
+        ids: allEpisodes.filter((ep) => !isNotCustom(ep)).map((ep) => ep.id),
+      },
     })
   }
 
-  const handleDelete = () => {
-    const { episodes, customEpisodes } = getSelection()
-    deleteEpisodeMutation.mutate({
-      isCustom: false,
-      filter: { ids: episodes.map((ep) => ep.id) },
-    })
-    deleteEpisodeMutation.mutate({
-      isCustom: true,
-      filter: { ids: customEpisodes.map((ep) => ep.id) },
-    })
+  async function handleDelete() {
+    const { episodes, customEpisodes, seasons } = getSelection()
+    if (seasons.length > 0) {
+      await Promise.all(
+        seasons.map((season) => deleteSeasonMutation.mutate(season.id))
+      )
+    }
+    if (episodes.length > 0) {
+      await deleteEpisodeMutation.mutateAsync({
+        isCustom: false,
+        filter: { ids: episodes.map((ep) => ep.id) },
+      })
+    }
+    if (customEpisodes.length > 0) {
+      await deleteEpisodeMutation.mutateAsync({
+        isCustom: true,
+        filter: { ids: customEpisodes.map((ep) => ep.id) },
+      })
+    }
   }
 
   const handleToggleMultiselect = () => {
@@ -206,7 +219,9 @@ export const MountPageContent = ({
                   typeFilter={selectedTypes as DanmakuSourceType[]}
                   onSelect={handleMountSingle}
                   onViewDanmaku={setViewingEpisode}
-                  onSelectionChange={(ids) => setSelectionCount(ids.length)}
+                  onSelectionChange={(selection) =>
+                    setSelectionCount(selection.length)
+                  }
                   canMount={isConnected || isMounting}
                   multiselect={multiselect}
                 />
