@@ -141,7 +141,15 @@ export const useDanmakuTree = (
     })
 
     return { treeItems, treeItemMap, episodeMap }
-  }, [episodes, customEpisodes, seasons, filter, typeFilter, t])
+  }, [
+    episodes,
+    customEpisodes,
+    seasons,
+    filter,
+    typeFilter,
+    t,
+    getProviderById,
+  ])
 
   return {
     episodes,

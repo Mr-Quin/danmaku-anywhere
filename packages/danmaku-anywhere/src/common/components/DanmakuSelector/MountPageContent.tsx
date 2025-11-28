@@ -113,7 +113,7 @@ export const MountPageContent = ({
     const { episodes, customEpisodes, seasons } = getSelection()
     if (seasons.length > 0) {
       await Promise.all(
-        seasons.map((season) => deleteSeasonMutation.mutate(season.id))
+        seasons.map((season) => deleteSeasonMutation.mutateAsync(season.id))
       )
     }
     if (episodes.length > 0) {
@@ -147,7 +147,7 @@ export const MountPageContent = ({
   }
 
   return (
-    <TabLayout overflow="hidden">
+    <TabLayout>
       <CaptureKeypress
         onChange={onFilterChange}
         value={filter}
@@ -222,7 +222,7 @@ export const MountPageContent = ({
                   onSelectionChange={(selection) =>
                     setSelectionCount(selection.length)
                   }
-                  canMount={isConnected || isMounting}
+                  canMount={isConnected && !isMounting}
                   multiselect={multiselect}
                 />
               </Wrapper>

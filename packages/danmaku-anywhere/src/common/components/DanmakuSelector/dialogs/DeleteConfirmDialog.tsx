@@ -69,14 +69,18 @@ export const DeleteConfirmDialog = (): ReactElement => {
         <Button
           onClick={handleClose}
           autoFocus
-          disabled={deleteDanmakuMutation.isPending}
+          disabled={
+            deleteDanmakuMutation.isPending || deleteSeasonMutation.isPending
+          }
         >
           {t('common.cancel')}
         </Button>
         <Button
           onClick={handleConfirm}
           color="error"
-          loading={deleteDanmakuMutation.isPending}
+          loading={
+            deleteDanmakuMutation.isPending || deleteSeasonMutation.isPending
+          }
         >
           {t('common.delete')}
         </Button>

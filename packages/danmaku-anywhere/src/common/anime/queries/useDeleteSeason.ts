@@ -17,6 +17,9 @@ export const useDeleteSeason = () => {
       void queryClient.invalidateQueries({
         queryKey: episodeQueryKeys.all(),
       })
+      void queryClient.invalidateQueries({
+        queryKey: seasonQueryKeys.all(),
+      })
     },
     onError: () => {
       toast.error(t('common.failed'))

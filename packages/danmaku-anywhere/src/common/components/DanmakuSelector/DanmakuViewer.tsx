@@ -28,7 +28,9 @@ const CommentsLoader = ({
 
   let episode: GenericEpisode | undefined
 
-  if (!isNotCustom(episodeLite)) {
+  const isCustom = !isNotCustom(episodeLite)
+
+  if (isCustom) {
     const { data } = useCustomEpisodeSuspense({ id: episodeLite.id })
     episode = data[0]
   } else {
@@ -36,13 +38,13 @@ const CommentsLoader = ({
     episode = data[0]
   }
 
-  const canRefresh = episode !== undefined && !isNotCustom(episode)
+  const canRefresh = episode !== undefined && !isCustom
 
   const handleRefresh = () => {
-    if (!canRefresh || !isNotCustom(episode)) {
+    if (!canRefresh) {
       return
     }
-    void refreshDanmaku(episode)
+    void refreshDanmaku(episodeLite)
   }
 
   if (!episode) {
