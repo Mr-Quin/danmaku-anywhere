@@ -1,4 +1,4 @@
-import { Chip } from '@mui/material'
+import { Chip, Stack } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
@@ -31,18 +31,17 @@ export const ProviderConfigListItem = ({
         label={t(localizedDanmakuSourceType(config.impl))}
         size="small"
         sx={{ mr: 1 }}
-        color="secondary"
       />
     )
   }
 
   return (
-    <div>
-      {renderChip()}
+    <Stack direction="row" alignItems="center" gap={1}>
       <span>
         {config.name}
         {showWarning && <ProviderWarningIcon warningType={warningType} />}
       </span>
-    </div>
+      {renderChip()}
+    </Stack>
   )
 }

@@ -1,5 +1,5 @@
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
-import { Delete, Download, MoreVert, Sync } from '@mui/icons-material'
+import { Delete, Download, Sync } from '@mui/icons-material'
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -41,7 +41,8 @@ export const SeasonContextMenuPure = ({
       kind: 'item',
       id: 'delete',
       label: t('common.delete'),
-      icon: <Delete fontSize="small" color="error" />,
+      icon: <Delete fontSize="small" />,
+      color: 'error',
       onClick: onDelete,
     },
   ]
@@ -57,12 +58,5 @@ export const SeasonContextMenuPure = ({
     })
   }
 
-  return (
-    <DrilldownMenu
-      items={items}
-      ButtonProps={{ size: 'small' }}
-      icon={<MoreVert fontSize="small" />}
-      dense
-    />
-  )
+  return <DrilldownMenu items={items} ButtonProps={{ size: 'small' }} dense />
 }

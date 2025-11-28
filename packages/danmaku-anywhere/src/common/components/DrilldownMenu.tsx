@@ -12,6 +12,7 @@ import {
   MenuItem,
   type MenuProps,
   styled,
+  type Theme,
   Tooltip,
 } from '@mui/material'
 import type {
@@ -25,6 +26,50 @@ import { useId, useState } from 'react'
 const StyledMenu = styled(Menu)({
   zIndex: 1403,
 })
+
+interface StyledMenuItemProps {
+  color?: string
+}
+
+function resolveColor(theme: Theme, colorPath: string | undefined) {
+  if (!colorPath) {
+    return
+  }
+
+  // biome-ignore lint/suspicious/noExplicitAny: cannot safely type this, instead we check the type later
+  const palette = colorPath.split('.').reduce<any>((acc, part) => {
+    if (acc) {
+      return acc[part]
+    }
+    return undefined
+  }, theme.palette)
+
+  if (!palette) {
+    return
+  }
+
+  if (typeof palette === 'string') {
+    return palette
+  }
+
+  if (typeof palette === 'object') {
+    if ('main' in palette) {
+      return palette.main
+    }
+  }
+}
+
+const StyledMenuItem = styled(MenuItem, {
+  shouldForwardProp: (prop) => prop !== 'color',
+})<StyledMenuItemProps>(({ color, theme }) => ({
+  ['.MuiListItemIcon-root']: {
+    minWidth: '28px',
+    color: resolveColor(theme, color),
+  },
+  ['.MuiListItemText-root']: {
+    color: resolveColor(theme, color),
+  },
+}))
 
 const MenuDivider = styled(Divider)(({ theme }) => ({
   marginTop: theme.spacing(1),
@@ -41,6 +86,7 @@ export type DrilldownMenuItemProps =
       disabled?: boolean
       tooltip?: ReactNode
       loading?: boolean
+      color?: string
     }
   | {
       kind: 'separator'
@@ -83,7 +129,7 @@ export const DrilldownMenu = ({
   return (
     <Box {...BoxProps}>
       <IconButton id={buttonId} onClick={handleClick} {...ButtonProps}>
-        {icon ?? <MoreVert />}
+        {icon ?? <MoreVert fontSize={ButtonProps?.size} />}
       </IconButton>
       <StyledMenu
         id={menuId}
@@ -106,18 +152,19 @@ export const DrilldownMenu = ({
           return (
             <Tooltip title={item.tooltip} key={item.id}>
               <div>
-                <MenuItem
+                <StyledMenuItem
                   onClick={() => {
                     item.onClick()
                     handleClose()
                   }}
                   disabled={item.disabled || item.loading}
+                  color={item.color}
                 >
                   <ListItemIcon>
                     {item.loading ? <CircularProgress size={24} /> : item.icon}
                   </ListItemIcon>
                   <ListItemText>{item.label}</ListItemText>
-                </MenuItem>
+                </StyledMenuItem>
               </div>
             </Tooltip>
           )
