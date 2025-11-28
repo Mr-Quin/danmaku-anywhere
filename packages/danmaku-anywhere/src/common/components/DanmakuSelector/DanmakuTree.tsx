@@ -65,7 +65,7 @@ function buildSelection(
     if (!item) {
       continue
     }
-    if (item.kind == 'season' && isNotCustom(item.data)) {
+    if (item.kind === 'season' && isNotCustom(item.data)) {
       seasons.push(item.data)
       const children = item.children ?? []
       for (const child of children) {
@@ -75,7 +75,7 @@ function buildSelection(
         seasonEpisodeIds.add(child.id)
         countEpisode(child.id)
       }
-    } else if (item.kind == 'episode') {
+    } else if (item.kind === 'episode') {
       allEpisodes.push(item.data)
     }
   }

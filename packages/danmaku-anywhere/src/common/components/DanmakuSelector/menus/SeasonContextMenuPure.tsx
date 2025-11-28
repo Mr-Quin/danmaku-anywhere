@@ -48,6 +48,7 @@ export const SeasonContextMenuPure = ({
 
   if (isNotCustom(season)) {
     items.unshift({
+      kind: 'item',
       id: 'refresh',
       label: t('anime.refreshMetadata'),
       icon: <Sync />,
