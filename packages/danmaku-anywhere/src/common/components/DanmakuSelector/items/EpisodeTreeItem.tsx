@@ -1,7 +1,8 @@
 import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
-import { ChatBubbleOutline } from '@mui/icons-material'
+import { ChatBubbleOutline, InsertDriveFile } from '@mui/icons-material'
 import { Stack, styled, Typography } from '@mui/material'
 import type { ReactElement } from 'react'
+import { isNotCustom } from '@/common/danmaku/utils'
 
 interface EpisodeTreeItemProps {
   episode: GenericEpisodeLite
@@ -28,6 +29,8 @@ const CommentCount = ({ count }: { count: number }) => {
 export const EpisodeTreeItem = ({
   episode,
 }: EpisodeTreeItemProps): ReactElement => {
+  const isCustom = !isNotCustom(episode)
+
   return (
     <>
       <Stack
@@ -39,6 +42,7 @@ export const EpisodeTreeItem = ({
         overflow="hidden"
         pr={1}
       >
+        {isCustom && <InsertDriveFile fontSize="small" />}
         <Typography noWrap variant="body2">
           {episode.title}
         </Typography>

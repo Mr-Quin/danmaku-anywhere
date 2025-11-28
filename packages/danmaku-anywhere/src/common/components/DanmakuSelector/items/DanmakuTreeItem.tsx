@@ -77,7 +77,13 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
       return label
     }
     if (isSeason) {
-      return <SeasonTreeItem season={item.data} count={item.children?.length} />
+      return (
+        <SeasonTreeItem
+          season={item.data}
+          provider={item.provider}
+          childrenCount={item.children?.length}
+        />
+      )
     }
     return <EpisodeTreeItem episode={item.data} />
   }, [item, label])

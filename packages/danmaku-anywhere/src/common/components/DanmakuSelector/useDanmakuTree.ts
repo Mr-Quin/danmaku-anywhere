@@ -10,6 +10,7 @@ import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/Exten
 import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
 import { useEpisodesLiteSuspense } from '@/common/danmaku/queries/useEpisodes'
 import { isProvider } from '@/common/danmaku/utils'
+import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { matchWithPinyin } from '@/common/utils/utils'
 
 const stringifyDanmakuMeta = (episode: GenericEpisodeLite) => {
@@ -46,6 +47,7 @@ export const useDanmakuTree = (
   const { data: episodes } = useEpisodesLiteSuspense()
   const { data: customEpisodes } = useCustomEpisodeLiteSuspense({ all: true })
   const { data: seasons } = useGetAllSeasonsSuspense()
+  const { getProviderById } = useProviderConfig()
 
   const { t } = useTranslation()
 
@@ -101,6 +103,7 @@ export const useDanmakuTree = (
           label: t('danmaku.local'),
           kind: 'season',
           data: customSeason,
+          provider: getProviderById(DanmakuSourceType.MacCMS),
           children,
         })
       )
@@ -131,6 +134,7 @@ export const useDanmakuTree = (
           label: season.title,
           kind: 'season',
           data: season,
+          provider: getProviderById(season.providerConfigId),
           children,
         })
       )

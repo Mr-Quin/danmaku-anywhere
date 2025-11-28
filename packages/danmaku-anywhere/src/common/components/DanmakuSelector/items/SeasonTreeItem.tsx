@@ -1,8 +1,9 @@
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
+import { Folder } from '@mui/icons-material'
 import { Chip, Skeleton, Stack, styled, Typography } from '@mui/material'
 import { type ReactElement, Suspense } from 'react'
 import { isNotCustom } from '@/common/danmaku/utils'
-import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { SuspenseImage } from '../../image/SuspenseImage'
 
 const ProviderChip = styled(Chip)(({ theme }) => {
@@ -39,18 +40,16 @@ const SeasonThumbnail = ({
 
 interface SeasonTreeItemProps {
   season: Season | CustomSeason
-  count?: number
+  provider?: ProviderConfig
+  childrenCount?: number
 }
 
 export const SeasonTreeItem = ({
   season,
-  count,
+  provider,
+  childrenCount,
 }: SeasonTreeItemProps): ReactElement => {
-  const { getProviderById } = useProviderConfig()
-
-  const provider = isNotCustom(season)
-    ? getProviderById(season.providerConfigId)
-    : undefined
+  const isCustom = !isNotCustom(season)
 
   return (
     <>
@@ -69,7 +68,11 @@ export const SeasonTreeItem = ({
           alignItems="center"
           overflow="hidden"
         >
-          <SeasonThumbnail imageUrl={season.imageUrl} title={season.title} />
+          {isCustom ? (
+            <Folder fontSize="small" />
+          ) : (
+            <SeasonThumbnail imageUrl={season.imageUrl} title={season.title} />
+          )}
           <Typography noWrap variant="body2">
             {season.title}
           </Typography>
@@ -81,9 +84,9 @@ export const SeasonTreeItem = ({
               color={provider.isBuiltIn ? 'primary' : 'default'}
             />
           )}
-          {count !== undefined && (
+          {childrenCount !== undefined && (
             <Typography variant="caption" color="text.secondary">
-              ({count})
+              ({childrenCount})
             </Typography>
           )}
         </Stack>

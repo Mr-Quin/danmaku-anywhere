@@ -4,10 +4,12 @@ import type {
   Season,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { TreeViewBaseItem } from '@mui/x-tree-view/models'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 
 interface SeasonTreeItem extends TreeViewBaseItem {
   kind: 'season'
   data: Season | CustomSeason
+  provider?: ProviderConfig
   children?: ExtendedTreeItem[]
 }
 
