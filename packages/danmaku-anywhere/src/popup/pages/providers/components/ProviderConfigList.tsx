@@ -1,4 +1,5 @@
 import { Delete } from '@mui/icons-material'
+import { Switch } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
 import { DrilldownMenu } from '@/common/components/DrilldownMenu'
@@ -8,7 +9,6 @@ import {
   useProviderConfig,
 } from '@/common/options/providerConfig/useProviderConfig'
 import { ProviderConfigListItem } from './ProviderConfigListItem'
-import { ProviderToggleSwitch } from './ProviderToggleSwitch'
 
 export const ProviderConfigList = ({
   onEdit,
@@ -19,7 +19,11 @@ export const ProviderConfigList = ({
 }) => {
   const { t } = useTranslation()
   const { configs } = useProviderConfig()
-  const { reorder } = useEditProviderConfig()
+  const { reorder, toggle } = useEditProviderConfig()
+
+  function handleToggle(config: ProviderConfig) {
+    toggle.mutate({ id: config.id })
+  }
 
   const getSecondaryText = (config: ProviderConfig) => {
     if (config.type === 'DanDanPlayCompatible') {
@@ -42,7 +46,13 @@ export const ProviderConfigList = ({
       renderSecondary={getSecondaryText}
       renderSecondaryAction={(config) => (
         <>
-          <ProviderToggleSwitch config={config} />
+          <Switch
+            onChange={(e) => handleToggle(config)}
+            checked={config.enabled}
+            disabled={toggle.isPending}
+            onClick={(e) => e.stopPropagation()}
+            size="small"
+          />
           {!config.isBuiltIn && (
             <DrilldownMenu
               BoxProps={{ display: 'inline' }}
