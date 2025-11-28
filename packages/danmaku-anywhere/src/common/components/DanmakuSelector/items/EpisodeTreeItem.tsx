@@ -5,7 +5,6 @@ import type { ReactElement } from 'react'
 
 interface EpisodeTreeItemProps {
   episode: GenericEpisodeLite
-  onSelect: (episode: GenericEpisodeLite) => void
 }
 
 const CommentCountIcon = styled(ChatBubbleOutline)(({ theme }) => {

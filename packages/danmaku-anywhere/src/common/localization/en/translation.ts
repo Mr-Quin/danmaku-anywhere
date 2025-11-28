@@ -100,6 +100,7 @@ const domain = {
       videoNotFound: 'Video node not found',
     },
     mount: 'Mount',
+    mountShort: 'Mount',
     backup: 'Export Backup',
     exportXml: 'Export XML',
     noComments: 'No comments',
@@ -261,6 +262,10 @@ const pages = {
     noDanmaku: 'No danmaku found',
     noDanmakuHelp: 'Go to Search',
     pageTitle: 'Mount Controller',
+    selectedCount: '{{count}} selected',
+    alert: {
+      mountingDisabled: 'Cannot mount danmaku on this page',
+    },
   },
   optionsPage: {
     language: 'Language',

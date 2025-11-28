@@ -3,7 +3,7 @@ import type {
   GenericEpisodeLite,
   Season,
 } from '@danmaku-anywhere/danmaku-converter'
-import { createContext, useContext } from 'react'
+import { createContext, type SyntheticEvent, useContext } from 'react'
 import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/ExtendedTreeItem'
 
 export type DanmakuDeleteProps =
@@ -16,9 +16,20 @@ export type DanmakuDeleteProps =
       episode: GenericEpisodeLite
     }
 
+// The API is not exported by the library, so we need to define it here
+export interface MUITreePublicApi {
+  setItemSelection: (props: {
+    event?: SyntheticEvent
+    itemId: string
+    keepExistingSelection?: boolean
+    shouldBeSelected?: boolean
+  }) => void
+}
+
 interface DanmakuTreeContextType {
   itemMap: Record<string, ExtendedTreeItem>
-  onSelect: (episode: GenericEpisodeLite) => void
+  apiRef: MUITreePublicApi | null
+  isMultiSelect: boolean
   setViewingDanmaku: (episode: GenericEpisodeLite) => void
   deletingDanmaku: DanmakuDeleteProps | null
   setDeletingDanmaku: (props: DanmakuDeleteProps | null) => void
@@ -27,7 +38,8 @@ interface DanmakuTreeContextType {
 // Context to pass item data to CustomTreeItem without prop drilling through library components
 export const DanmakuTreeContext = createContext<DanmakuTreeContextType>({
   itemMap: {},
-  onSelect: () => undefined,
+  apiRef: null,
+  isMultiSelect: false,
   setViewingDanmaku: (episode: GenericEpisodeLite) => undefined,
   deletingDanmaku: null,
   setDeletingDanmaku: (props: DanmakuDeleteProps | null) => undefined,

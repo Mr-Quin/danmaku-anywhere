@@ -102,6 +102,7 @@ const domain = {
       videoNotFound: '未找到视频节点',
     },
     mount: '装填弹幕',
+    mountShort: '装填',
     backup: '导出备份',
     exportXml: '导出XML',
     noComments: '弹幕列表为空',
@@ -257,6 +258,10 @@ const pages = {
     noDanmaku: '弹幕列表为空',
     noDanmakuHelp: '前往搜索',
     pageTitle: '装填控制器',
+    selectedCount: '已选择{{count}}',
+    alert: {
+      mountingDisabled: '无法在当前页面装填弹幕',
+    },
   },
   optionsPage: {
     language: '语言',

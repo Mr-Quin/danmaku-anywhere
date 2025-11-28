@@ -1,8 +1,3 @@
-import type {
-  CustomSeason,
-  GenericEpisodeLite,
-  Season,
-} from '@danmaku-anywhere/danmaku-converter'
 import { styled } from '@mui/material'
 import {
   TreeItemCheckbox,
@@ -19,7 +14,7 @@ import {
   type UseTreeItemParameters,
   useTreeItem,
 } from '@mui/x-tree-view/useTreeItem'
-import { forwardRef, type Ref, useState } from 'react'
+import { forwardRef, type Ref, useMemo, useState } from 'react'
 import { useDanmakuTreeContext } from '@/common/components/DanmakuSelector/DanmakuTreeContext'
 import { EpisodeTreeItem } from '@/common/components/DanmakuSelector/items/EpisodeTreeItem'
 import { SeasonTreeItem } from '@/common/components/DanmakuSelector/items/SeasonTreeItem'
@@ -58,6 +53,11 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
     status,
   } = useTreeItem({ id, itemId, children, label, disabled, rootRef: ref })
 
+  const { itemMap, apiRef, isMultiSelect } = useDanmakuTreeContext()
+
+  const item = itemMap[itemId]
+  const isSeason = item?.kind === 'season'
+
   function handleMouseEnter() {
     setHovering(true)
   }
@@ -66,22 +66,21 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
     setHovering(false)
   }
 
-  const { itemMap, onSelect } = useDanmakuTreeContext()
-  const item = itemMap[itemId]
+  function handleContentClick() {
+    if (isMultiSelect && !isSeason) {
+      apiRef?.setItemSelection({ itemId, keepExistingSelection: true })
+    }
+  }
 
-  const customLabel = !item ? (
-    label
-  ) : item.kind === 'season' ? (
-    <SeasonTreeItem
-      season={item.data as Season | CustomSeason}
-      count={item.children?.length}
-    />
-  ) : (
-    <EpisodeTreeItem
-      episode={item.data as GenericEpisodeLite}
-      onSelect={onSelect}
-    />
-  )
+  const customLabel = useMemo(() => {
+    if (!item) {
+      return label
+    }
+    if (isSeason) {
+      return <SeasonTreeItem season={item.data} count={item.children?.length} />
+    }
+    return <EpisodeTreeItem episode={item.data} />
+  }, [item, label])
 
   return (
     <TreeItemProvider {...getContextProviderProps()}>
@@ -92,11 +91,15 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
           onMouseLeave: handleMouseLeave,
         })}
       >
-        <StyledTreeContent {...getContentProps()}>
+        <StyledTreeContent
+          {...getContentProps({
+            onClick: handleContentClick,
+          })}
+        >
           <TreeItemIconContainer {...getIconContainerProps()}>
             <TreeItemIcon status={status} />
           </TreeItemIconContainer>
-          <TreeItemCheckbox {...getCheckboxProps()} />
+          <TreeItemCheckbox {...getCheckboxProps()} size="small" />
           <TreeItemLabel {...getLabelProps()}>{customLabel}</TreeItemLabel>
           <TreeItemDragAndDropOverlay {...getDragAndDropOverlayProps()} />
         </StyledTreeContent>

@@ -1,8 +1,12 @@
 import type {
+  CustomEpisodeLite,
   DanmakuSourceType,
+  EpisodeLite,
   GenericEpisodeLite,
+  Season,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Box } from '@mui/material'
+import { useTreeViewApiRef } from '@mui/x-tree-view/hooks'
 import { RichTreeView } from '@mui/x-tree-view/RichTreeView'
 import {
   type Ref,
@@ -14,15 +18,48 @@ import {
 import {
   type DanmakuDeleteProps,
   DanmakuTreeContext,
+  type MUITreePublicApi,
 } from '@/common/components/DanmakuSelector/DanmakuTreeContext'
 import { DeleteConfirmDialog } from '@/common/components/DanmakuSelector/dialogs/DeleteConfirmDialog'
-import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/ExtendedTreeItem'
 import { DanmakuTreeItem } from '@/common/components/DanmakuSelector/items/DanmakuTreeItem'
 import { useDanmakuTree } from '@/common/components/DanmakuSelector/useDanmakuTree'
 import { NothingHere } from '@/common/components/NothingHere'
+import { isNotCustom } from '@/common/danmaku/utils'
 
-export interface DanmakuSelectorApi {
-  getSelectedEpisodes: () => GenericEpisodeLite[]
+export interface DanmakuSelection {
+  genericEpisodes: GenericEpisodeLite[]
+  episodes: EpisodeLite[]
+  customEpisodes: CustomEpisodeLite[]
+  seasons: Season[]
+}
+
+function partitionEpisodes(
+  genericEpisodes: GenericEpisodeLite[]
+): DanmakuSelection {
+  const episodes: EpisodeLite[] = []
+  const customEpisodes: CustomEpisodeLite[] = []
+  const seasons: Season[] = []
+
+  for (const episode of genericEpisodes) {
+    if (isNotCustom(episode)) {
+      episodes.push(episode)
+    } else {
+      customEpisodes.push(episode)
+    }
+  }
+
+  return {
+    genericEpisodes,
+    episodes,
+    customEpisodes,
+    seasons,
+  }
+}
+
+const selectionPropagation = { descendants: true, parents: true }
+
+export interface DanmakuTreeApi {
+  getSelectedEpisodes: () => DanmakuSelection
   clearSelection: () => void
 }
 
@@ -31,17 +68,19 @@ interface DanmakuSelectorProps {
   typeFilter: DanmakuSourceType[]
   onSelect: (value: GenericEpisodeLite) => void
   onViewDanmaku: (value: GenericEpisodeLite) => void
-  disabled?: boolean
+  onSelectionChange?: (selectedIds: string[]) => void
+  canMount?: boolean
   multiselect?: boolean
-  ref: Ref<DanmakuSelectorApi>
+  ref: Ref<DanmakuTreeApi>
 }
 
-export const DanmakuSelector = ({
+export const DanmakuTree = ({
   filter,
   typeFilter,
   onSelect,
   onViewDanmaku,
-  disabled,
+  onSelectionChange,
+  canMount = true,
   multiselect = false,
   ref,
 }: DanmakuSelectorProps): React.ReactElement => {
@@ -55,27 +94,26 @@ export const DanmakuSelector = ({
     typeFilter
   )
 
+  const apiRef = useTreeViewApiRef()
+
   useImperativeHandle(
     ref,
     () => ({
       getSelectedEpisodes: () => {
-        return selectedIds
-          .map((id) => episodeMap[id])
-          .filter((ep): ep is GenericEpisodeLite => !!ep)
+        return partitionEpisodes(selectedIds.map((id) => episodeMap[id]))
       },
       clearSelection: () => {
         setSelectedIds([])
+        onSelectionChange?.([])
       },
     }),
-    [selectedIds, episodeMap]
+    [selectedIds, episodeMap, onSelectionChange]
   )
 
   const handleSelectedItemsChange = (
     event: SyntheticEvent | null,
     ids: string | string[] | null
   ) => {
-    if (disabled) return
-
     if (multiselect) {
       const newIds = Array.isArray(ids) ? ids : ids ? [ids] : []
       // Filter out seasons if selected
@@ -83,7 +121,11 @@ export const DanmakuSelector = ({
         (id) => treeItemMap[id]?.kind === 'episode'
       )
       setSelectedIds(episodeIds)
+      onSelectionChange?.(episodeIds)
     } else {
+      if (!canMount) {
+        return
+      }
       // Single select
       if (typeof ids === 'string') {
         const item = treeItemMap[ids]
@@ -98,12 +140,20 @@ export const DanmakuSelector = ({
   const contextValue = useMemo(
     () => ({
       itemMap: treeItemMap,
-      onSelect,
       setViewingDanmaku: onViewDanmaku,
       deletingDanmaku,
       setDeletingDanmaku,
+      apiRef: apiRef.current as MUITreePublicApi,
+      isMultiSelect: multiselect,
     }),
-    [treeItemMap, onSelect, onViewDanmaku, deletingDanmaku, setDeletingDanmaku]
+    [
+      treeItemMap,
+      apiRef,
+      onViewDanmaku,
+      deletingDanmaku,
+      setDeletingDanmaku,
+      multiselect,
+    ]
   )
 
   if (treeItems.length === 0) {
@@ -118,12 +168,10 @@ export const DanmakuSelector = ({
           multiSelect={multiselect}
           checkboxSelection={multiselect}
           selectedItems={multiselect ? selectedIds : selectedIds[0] || null}
-          selectionPropagation={{ descendants: true }}
+          selectionPropagation={selectionPropagation}
           onSelectedItemsChange={handleSelectedItemsChange}
           slots={{ item: DanmakuTreeItem }}
-          isItemDisabled={(item) =>
-            disabled ? (item as ExtendedTreeItem).kind === 'episode' : false
-          }
+          apiRef={apiRef}
         />
       </Box>
       <DeleteConfirmDialog />
