@@ -3,33 +3,21 @@ import {
   AppBar,
   Box,
   Fade,
-  FormControlLabel,
-  FormGroup,
   IconButton,
   LinearProgress,
   Toolbar,
   Typography,
 } from '@mui/material'
-import type { ChangeEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
-import { StyledEnableSwitch } from '@/common/components/StyledEnableSwitch'
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
-import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ThemeToggle } from '@/popup/component/ThemeToggle'
+import { EnableExtensionToggle } from './EnableExtensionToggle'
 
 export const AppToolBar = () => {
-  const { partialUpdate, data: options } = useExtensionOptions()
-
-  const handleEnable = async (event: ChangeEvent<HTMLInputElement>) => {
-    await partialUpdate({
-      enabled: event.target.checked,
-    })
-  }
-
   const navigate = useNavigate()
   const isAnyLoading = useAnyLoading()
   const { isMobile } = usePlatformInfo()
@@ -51,24 +39,7 @@ export const AppToolBar = () => {
         <Typography variant="h1" fontSize={20} sx={{ flexGrow: 1 }}>
           {t('common.danmakuAnywhere')}
         </Typography>
-        <FormGroup>
-          <FormControlLabel
-            control={
-              <StyledEnableSwitch
-                checked={options.enabled}
-                onChange={handleEnable}
-                size="small"
-              />
-            }
-            label={t('common.enable')}
-            labelPlacement="top"
-            slotProps={{
-              typography: {
-                variant: 'caption',
-              },
-            }}
-          />
-        </FormGroup>
+        <EnableExtensionToggle />
         <ThemeToggle />
         <IconButton
           onClick={() => {
