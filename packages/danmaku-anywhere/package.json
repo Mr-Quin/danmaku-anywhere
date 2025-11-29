@@ -24,7 +24,8 @@
     "format": "biome format --write",
     "package": "node ./scripts/package.js",
     "package:firefox": "VITE_TARGET_BROWSER=firefox pnpm run package",
-    "tsc": "tsc"
+    "tsc": "tsc",
+    "i18n": "i18next-cli"
   },
   "dependencies": {
     "@danmaku-anywhere/danmaku-converter": "workspace:*",
@@ -82,6 +83,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/wicg-file-system-access": "^2023.10.7",
     "@vitejs/plugin-react": "^5.1.1",
+    "i18next-cli": "^1.28.0",
     "vite": "^7.2.4",
     "vitest": "^4.0.13",
     "web-ext": "^9.2.0"
