@@ -35,7 +35,10 @@ interface DialogState {
   setContainer: (container: HTMLElement | null) => void
 }
 
-const generateId = () => Math.random().toString(36).substring(7)
+let dialogIdCounter = 0
+function generateId() {
+  return `dialog-${Date.now()}-${dialogIdCounter++}`
+}
 
 const useDialogStoreBase = create<DialogState>((set, get) => ({
   dialogs: [],
