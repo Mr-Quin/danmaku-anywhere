@@ -6,7 +6,7 @@ import { controllerRpcClient } from '@/common/rpcClient/controller/client'
 import { sleep } from '@/common/utils/utils'
 
 export const useIsConnected = () => {
-  return useSuspenseQuery({
+  const query = useSuspenseQuery({
     queryKey: tabQueryKeys.isConnected(),
     queryFn: async () => {
       try {
@@ -22,5 +22,15 @@ export const useIsConnected = () => {
       }
     },
     retry: 0,
-  }).data
+    refetchInterval: (query) => {
+      // poll until connected
+      if (query.state.data === true) {
+        return false
+      }
+
+      return 1000
+    },
+  })
+
+  return query.data
 }
