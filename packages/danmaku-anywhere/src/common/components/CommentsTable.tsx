@@ -22,6 +22,7 @@ import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { match } from 'ts-pattern'
 import { FilterButton } from '@/common/components/FilterButton'
+import { ScrollBox } from './layout/ScrollBox'
 
 interface CommentListProps {
   comments: CommentEntity[]
@@ -138,7 +139,7 @@ export const CommentsTable = ({
   return (
     <Box flex={1} display="flex" flexDirection="column" overflow="hidden">
       {renderToolbar()}
-      <TableContainer component={Box} flex={1} overflow="auto" ref={ref}>
+      <TableContainer component={ScrollBox} flex={1} overflow="auto" ref={ref}>
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
