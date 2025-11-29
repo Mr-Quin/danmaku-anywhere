@@ -1,5 +1,18 @@
-import { ContentCopy, Delete } from '@mui/icons-material'
-import { ListItemIcon, ListItemText, MenuItem } from '@mui/material'
+import {
+  AutoAwesome,
+  CheckCircle,
+  ContentCopy,
+  Delete,
+  ErrorOutline,
+} from '@mui/icons-material'
+import {
+  Chip,
+  ListItemIcon,
+  ListItemText,
+  MenuItem,
+  Stack,
+  Typography,
+} from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
@@ -65,6 +78,54 @@ export const MountConfigList = ({
     })
   }
 
+  const getBadge = (config: MountConfig) => {
+    const mode = config.mode ?? 'manual'
+    if (mode === 'ai') {
+      return (
+        <Chip
+          size="small"
+          icon={<AutoAwesome />}
+          label="AI Auto-fetch"
+          color="secondary"
+          variant="filled"
+          sx={{ height: 24 }}
+        />
+      )
+    }
+    if (mode === 'custom') {
+      if (!config.integration) {
+        return (
+          <Chip
+            size="small"
+            icon={<ErrorOutline />}
+            label="Setup Incomplete"
+            color="warning"
+            variant="filled"
+            sx={{ height: 24 }}
+          />
+        )
+      }
+      return (
+        <Chip
+          size="small"
+          icon={<CheckCircle />}
+          label="Custom Selectors"
+          color="primary"
+          variant="outlined"
+          sx={{ height: 24 }}
+        />
+      )
+    }
+    return (
+      <Chip
+        size="small"
+        label="Manual"
+        variant="outlined"
+        sx={{ height: 24 }}
+      />
+    )
+  }
+
   return (
     <DraggableList
       items={configs}
@@ -73,7 +134,14 @@ export const MountConfigList = ({
         reorder.mutate({ sourceIndex, destinationIndex })
       }}
       renderPrimary={(config) => config.name}
-      renderSecondary={(config) => config.patterns[0]}
+      renderSecondary={(config) => (
+        <Stack spacing={0.5} alignItems="flex-start">
+          <Typography variant="body2" color="text.secondary">
+            {config.patterns[0]}
+          </Typography>
+          {getBadge(config)}
+        </Stack>
+      )}
       renderSecondaryAction={(config) => (
         <>
           <ConfigToggleSwitch config={config} />

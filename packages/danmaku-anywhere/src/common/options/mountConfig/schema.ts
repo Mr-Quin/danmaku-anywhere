@@ -35,6 +35,10 @@ export const mountConfigInputSchema = z.object({
    */
   name: z.string(),
   /**
+   * The automation mode for the config
+   */
+  mode: z.enum(['manual', 'ai', 'custom']).default('manual'),
+  /**
    * The integration to associate with the config
    */
   integration: z.string().optional(),
