@@ -16,7 +16,7 @@ export const useShowAddSeasonMapDialog = () => {
   const addSeasonMapMutation = useAddSeasonMap()
 
   return ({ onProceed, season, mapKey }: AddSeasonMapDialogProps) => {
-    const dialogId = dialog.open({
+    dialog.open({
       title: t('searchPage.titleMapping'),
       content: t('searchPage.titleMapping.confirmation', {
         original: mapKey,
@@ -26,7 +26,6 @@ export const useShowAddSeasonMapDialog = () => {
       confirmText: t('common.confirm'),
       onCancel: () => {
         onProceed(season)
-        dialog.close(dialogId)
       },
       onConfirm: async () => {
         await addSeasonMapMutation.mutateAsync(

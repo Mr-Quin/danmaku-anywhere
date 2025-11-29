@@ -50,24 +50,17 @@ export const ProvidersPage = (): ReactElement => {
       content: t('providers.delete.message', { name: provider.name }),
       confirmText: t('common.delete'),
       onConfirm: async () => {
-        if (!provider.id || provider.isBuiltIn) return
+        if (!provider.id || provider.isBuiltIn) {
+          return
+        }
 
-        return new Promise<void>((resolve, reject) => {
-          remove.mutate(provider.id, {
-            onSuccess: () => {
-              toast.success(t('providers.alert.deleted'))
-              resolve()
-            },
-            onError: (error) => {
-              toast.error(error.message)
-              // We reject here to stop the dialog from closing automatically if we want,
-              // or resolve if we want it to close anyway. The dialog component doesn't close on error.
-              // But here we are using a callback style mutation.
-              // If we want the dialog loading state to persist until success, we wrap in promise.
-              // The GlobalDialog awaits the result.
-              reject(error)
-            },
-          })
+        await remove.mutateAsync(provider.id, {
+          onSuccess: () => {
+            toast.success(t('providers.alert.deleted'))
+          },
+          onError: (error) => {
+            toast.error(error.message)
+          },
         })
       },
     })
