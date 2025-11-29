@@ -1,5 +1,6 @@
 import { type PropsWithChildren, Suspense, use } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
+import { GlobalDialog } from '@/common/components/Dialog/GlobalDialog'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { usePreloadImages } from '@/common/components/image/usePreloadImages'
@@ -42,6 +43,7 @@ export const App = () => {
                 },
               }}
             />
+            <GlobalDialog />
             <RootRouter />
           </LoadInitialData>
         </Suspense>

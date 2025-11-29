@@ -1,18 +1,10 @@
 import { Checklist, Delete, Download } from '@mui/icons-material'
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  IconButton,
-  Skeleton,
-} from '@mui/material'
-import { useEffect, useState } from 'react'
+import { IconButton, Skeleton } from '@mui/material'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams, useSearchParams } from 'react-router'
 import { useGetSeason } from '@/common/anime/queries/useSeasons'
+import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { DrilldownMenu } from '@/common/components/DrilldownMenu'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
@@ -56,25 +48,20 @@ export const EpisodePage = () => {
   const exportDanmaku = useExportDanmaku()
   const exportXml = useExportXml()
   const deleteMutation = useDeleteEpisode()
+  const dialog = useDialog()
 
-  const [showDialog, setShowDialog] = useState(false)
-
-  const handleClose = () => {
-    setShowDialog(false)
-  }
-
-  const handleDelete = () => {
-    deleteMutation.mutate(
-      {
-        isCustom,
-        filter: { ids: selectedEpisodes },
+  const confirmDelete = () => {
+    dialog.delete({
+      title: t('common.confirmDeleteTitle'),
+      content: t('danmakuPage.confirmDeleteMessage'),
+      confirmText: t('common.delete'),
+      onConfirm: async () => {
+        await deleteMutation.mutateAsync({
+          isCustom,
+          filter: { ids: selectedEpisodes },
+        })
       },
-      {
-        onSuccess: () => {
-          handleClose()
-        },
-      }
-    )
+    })
   }
 
   const handleBackup = () => {
@@ -149,9 +136,7 @@ export const EpisodePage = () => {
           ]}
         />
         <IconButton
-          onClick={() => {
-            setShowDialog(true)
-          }}
+          onClick={confirmDelete}
           disabled={selectedEpisodes.length === 0}
         >
           <Delete />
@@ -165,30 +150,6 @@ export const EpisodePage = () => {
         </IconButton>
       </TabToolbar>
       <EpisodeList />
-      <Dialog open={showDialog} onClose={handleClose}>
-        <DialogTitle>{t('common.confirmDeleteTitle')}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {t('danmakuPage.confirmDeleteMessage')}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={handleClose}
-            autoFocus
-            disabled={deleteMutation.isPending}
-          >
-            {t('common.cancel')}
-          </Button>
-          <Button
-            onClick={handleDelete}
-            color="error"
-            loading={deleteMutation.isPending}
-          >
-            {t('common.delete')}
-          </Button>
-        </DialogActions>
-      </Dialog>
     </TabLayout>
   )
 }

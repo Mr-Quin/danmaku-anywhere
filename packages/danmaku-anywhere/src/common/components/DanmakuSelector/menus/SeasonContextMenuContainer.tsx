@@ -1,9 +1,12 @@
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import type { ReactElement } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useDeleteSeason } from '@/common/anime/queries/useDeleteSeason'
 import { useRefreshSeason } from '@/common/anime/queries/useRefreshSeason'
+import { useDialog } from '@/common/components/Dialog/dialogStore'
+import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { isNotCustom } from '@/common/danmaku/utils'
 import { useExportXml } from '@/popup/hooks/useExportXml'
-import { useDanmakuTreeContext } from '../DanmakuTreeContext'
 import { SeasonContextMenuPure } from './SeasonContextMenuPure'
 
 interface SeasonContextMenuContainerProps {
@@ -13,10 +16,13 @@ interface SeasonContextMenuContainerProps {
 export const SeasonContextMenuContainer = ({
   season,
 }: SeasonContextMenuContainerProps): ReactElement => {
+  const { t } = useTranslation()
   const exportXml = useExportXml()
-
-  const { setDeletingDanmaku } = useDanmakuTreeContext()
   const refreshSeason = useRefreshSeason()
+  const deleteSeasonMutation = useDeleteSeason()
+  const deleteEpisodeMutation = useDeleteEpisode()
+
+  const dialog = useDialog()
 
   const handleExport = () => {
     if (isNotCustom(season)) {
@@ -31,7 +37,21 @@ export const SeasonContextMenuContainer = ({
   }
 
   const handleDelete = () => {
-    setDeletingDanmaku({ kind: 'season', season })
+    dialog.delete({
+      title: t('common.confirmDeleteTitle'),
+      content: t('danmakuPage.confirmDeleteMessage'),
+      confirmText: t('common.delete'),
+      onConfirm: async () => {
+        if (isNotCustom(season)) {
+          await deleteSeasonMutation.mutateAsync(season.id)
+        } else {
+          await deleteEpisodeMutation.mutateAsync({
+            isCustom: true,
+            filter: { all: true },
+          })
+        }
+      },
+    })
   }
 
   return (

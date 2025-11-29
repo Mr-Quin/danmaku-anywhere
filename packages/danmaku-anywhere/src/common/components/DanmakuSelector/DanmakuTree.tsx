@@ -16,11 +16,9 @@ import {
   useState,
 } from 'react'
 import {
-  type DanmakuDeleteProps,
   DanmakuTreeContext,
   type MUITreePublicApi,
 } from '@/common/components/DanmakuSelector/DanmakuTreeContext'
-import { DeleteConfirmDialog } from '@/common/components/DanmakuSelector/dialogs/DeleteConfirmDialog'
 import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/ExtendedTreeItem'
 import { DanmakuTreeItem } from '@/common/components/DanmakuSelector/items/DanmakuTreeItem'
 import { useDanmakuTree } from '@/common/components/DanmakuSelector/useDanmakuTree'
@@ -133,9 +131,6 @@ export const DanmakuTree = ({
 }: DanmakuSelectorProps): React.ReactElement => {
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([])
 
-  const [deletingDanmaku, setDeletingDanmaku] =
-    useState<DanmakuDeleteProps | null>(null)
-
   const { treeItems, treeItemMap } = useDanmakuTree(filter, typeFilter)
 
   const apiRef = useTreeViewApiRef()
@@ -181,19 +176,10 @@ export const DanmakuTree = ({
     () => ({
       itemMap: treeItemMap,
       setViewingDanmaku: onViewDanmaku,
-      deletingDanmaku,
-      setDeletingDanmaku,
       apiRef: apiRef as RefObject<MUITreePublicApi>,
       isMultiSelect: multiselect,
     }),
-    [
-      treeItemMap,
-      apiRef,
-      onViewDanmaku,
-      deletingDanmaku,
-      setDeletingDanmaku,
-      multiselect,
-    ]
+    [treeItemMap, apiRef, onViewDanmaku, multiselect]
   )
 
   if (treeItems.length === 0) {
@@ -214,7 +200,6 @@ export const DanmakuTree = ({
         slots={{ item: DanmakuTreeItem }}
         apiRef={apiRef}
       />
-      <DeleteConfirmDialog />
     </DanmakuTreeContext.Provider>
   )
 }

@@ -6,7 +6,6 @@ import { FilterButton } from '@/common/components/FilterButton'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
-import { ConfirmDeleteDialog } from '@/popup/pages/danmaku/components/ConfirmDeleteDialog'
 import { useStore } from '@/popup/store'
 import { TypeSelector } from '../../../../../common/components/TypeSelector'
 import { ExportAllDanmakuButton } from '../../components/ExportAllDanmakuButton'
@@ -62,7 +61,6 @@ export const SeasonPage = () => {
           )
         }}
       </CaptureKeypress>
-      <ConfirmDeleteDialog />
     </TabLayout>
   )
 }
