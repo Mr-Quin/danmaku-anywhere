@@ -26,6 +26,10 @@ export const PopupUi = () => {
   return (
     <ClickAwayListener
       onClickAway={(e) => {
+        if (!rootRef.current) {
+          // try to find the root element again
+          rootRef.current = document.getElementById(CONTROLLER_ROOT_ID)
+        }
         // clicking on a dialog within the controller is detected as a click away,
         // so we need to check if the target is within the controller root
         if (rootRef.current && rootRef.current.contains(e.target as Node)) {

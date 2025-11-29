@@ -37,8 +37,6 @@ export const SeasonContextMenuContainer = ({
   }
 
   const handleDelete = () => {
-    console.log('delete season', season.id)
-
     dialog.delete({
       title: t('common.confirmDeleteTitle'),
       content: t('danmakuPage.confirmDeleteMessage'),
