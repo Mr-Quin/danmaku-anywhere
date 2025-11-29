@@ -1,35 +1,35 @@
 import { useTranslation } from 'react-i18next'
 
-import type { ToggleSettingConfig } from '@/common/options/extensionOptions/settingConfigs'
-import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
+import type { ToggleSettingConfig } from '@/common/settings/settingConfigs'
 import { ToggleListItemButton } from './ToggleListItemButton'
 
-interface DeclarativeToggleSettingProps {
-  config: ToggleSettingConfig
+interface DeclarativeToggleSettingProps<S> {
+  config: ToggleSettingConfig<S>
+  state: S
+  onUpdate: (update: Partial<S>) => Promise<void> | void
+  isLoading?: boolean
 }
 
-/**
- * Generic component for rendering a toggle setting based on declarative config
- */
-export const DeclarativeToggleSetting = ({ config }: DeclarativeToggleSettingProps) => {
+export const DeclarativeToggleSetting = <S,>({
+  config,
+  state,
+  onUpdate,
+  isLoading,
+}: DeclarativeToggleSettingProps<S>) => {
   const { t } = useTranslation()
-  const { data, partialUpdate, isLoading } = useExtensionOptions()
 
-  const currentValue = config.getValue(data)
+  const currentValue = config.getValue(state)
 
   const handleToggle = async (checked: boolean) => {
-    const update = config.createUpdate(data, checked)
-    await partialUpdate(update)
+    const update = config.createUpdate(state, checked)
+    await onUpdate(update)
   }
-
-  // Support both translation keys and hardcoded labels
-  const label = config.labelKey ? t(config.labelKey) : config.label ?? ''
 
   return (
     <ToggleListItemButton
       enabled={currentValue}
       onToggle={handleToggle}
-      itemText={label}
+      itemText={t(config.label)}
       isLoading={isLoading}
     />
   )
