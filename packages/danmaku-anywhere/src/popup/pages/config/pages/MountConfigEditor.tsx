@@ -1,50 +1,19 @@
-import {
-  AddCircleOutline,
-  AutoAwesome,
-  Build,
-  RemoveCircleOutline,
-  TouchApp,
-} from '@mui/icons-material'
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardActionArea,
-  CardContent,
-  Checkbox,
-  Collapse,
-  FormControl,
-  FormControlLabel,
-  FormHelperText,
-  IconButton,
-  Radio,
-  RadioGroup,
-  Stack,
-  Step,
-  StepLabel,
-  Stepper,
-  TextField,
-  Typography,
-} from '@mui/material'
+import { Box, Button, Stack, Step, StepLabel, Stepper } from '@mui/material'
 import type { ReactElement } from 'react'
 import { useEffect, useState } from 'react'
-import { Controller, useFieldArray, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { isPatternPermissive } from '@/common/options/mountConfig/isPermissive'
 import type { MountConfigInput } from '@/common/options/mountConfig/schema'
 import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
-import { validateOrigin } from '@/common/utils/utils'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 import { useStore } from '@/popup/store'
-
-// react-hook-form does not allow primitive arrays, so we need to convert the array to an object
-type MountConfigForm = Omit<MountConfigInput, 'patterns'> & {
-  patterns: { value: string }[]
-}
+import { MountConfigAutomationStep } from '../components/MountConfigAutomationStep'
+import { MountConfigBasicStep } from '../components/MountConfigBasicStep'
+import type { MountConfigForm } from '../components/types'
 
 const emptyIntegrationValue = '@@NONE@@'
 
@@ -96,11 +65,6 @@ export const MountConfigEditor = ({
     mode: 'onChange',
   })
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'patterns',
-  })
-
   const toast = useToast.use.toast()
 
   useEffect(() => {
@@ -122,16 +86,8 @@ export const MountConfigEditor = ({
     })
   }, [subscribe, setIsPermissive])
 
-  const addPatternField = () => {
-    append({ value: '' })
-  }
-
-  const removePatternField = (index: number) => {
-    remove(index)
-  }
-
   const handleNext = async () => {
-    const isValid = await trigger(['name', 'mediaQuery', 'patterns', 'enabled'])
+    const isValid = await trigger(['name', 'mediaQuery', 'patterns'])
     if (isValid) {
       // Check if at least one pattern is added and valid
       const currentPatterns = watch('patterns')
@@ -195,217 +151,6 @@ export const MountConfigEditor = ({
     })
   }
 
-  const renderStep1 = () => (
-    <Stack spacing={2} alignItems="flex-start">
-      <Collapse in={isPermissive} sx={{ width: 1 }}>
-        <Alert severity="warning">{t('configPage.editor.tooPermissive')}</Alert>
-      </Collapse>
-      <TextField
-        label={t('configPage.editor.name')}
-        size="small"
-        error={!!errors.name}
-        {...register('name', { required: true })}
-        fullWidth
-        required
-      />
-      <TextField
-        label={t('configPage.editor.mediaQuery')}
-        size="small"
-        error={!!errors.mediaQuery}
-        helperText={
-          errors.mediaQuery
-            ? errors.mediaQuery?.message
-            : t('configPage.editor.helper.mediaQuery')
-        }
-        {...register('mediaQuery', { required: true })}
-        fullWidth
-        required
-      />
-      <Typography variant="body2" color="textSecondary">
-        {t('configPage.editor.urlPatterns')}
-      </Typography>
-      <FormHelperText>
-        {t('configPage.editor.helper.urlPattern')}
-      </FormHelperText>
-      {fields.map((field, index, arr) => (
-        <Stack
-          direction="row"
-          spacing={2}
-          alignItems="center"
-          key={field.id}
-          sx={{ alignSelf: 'stretch' }}
-        >
-          <TextField
-            label={`${t('configPage.editor.pattern')} ${index + 1}`}
-            error={!!errors.patterns?.[index]}
-            helperText={errors.patterns?.[index]?.value?.message}
-            size="small"
-            {...register(`patterns.${index}.value`, {
-              validate: validateOrigin,
-              required: 'Pattern is required',
-            })}
-            fullWidth
-            required
-          />
-          {arr.length > 1 ? (
-            <Box>
-              <IconButton onClick={() => removePatternField(index)}>
-                <RemoveCircleOutline />
-              </IconButton>
-            </Box>
-          ) : (
-            <Box />
-          )}
-        </Stack>
-      ))}
-      <Button onClick={addPatternField} startIcon={<AddCircleOutline />}>
-        {t('configPage.editor.pattern.add')}
-      </Button>
-
-      <FormControl>
-        <FormControlLabel
-          control={
-            <Controller
-              name="enabled"
-              control={control}
-              render={({ field: { value, ref, ...field } }) => (
-                <Checkbox
-                  {...field}
-                  inputRef={ref}
-                  checked={value}
-                  color="primary"
-                />
-              )}
-            />
-          }
-          label={t('common.enable')}
-        />
-      </FormControl>
-    </Stack>
-  )
-
-  const renderStep2 = () => (
-    <Stack spacing={3}>
-      <Typography variant="h6">Select Automation Method</Typography>
-      <Controller
-        name="mode"
-        control={control}
-        render={({ field }) => (
-          <RadioGroup {...field} row={false}>
-            <Stack spacing={2}>
-              <Card
-                variant={field.value === 'manual' ? 'outlined' : 'outlined'}
-                sx={{
-                  borderColor:
-                    field.value === 'manual' ? 'primary.main' : undefined,
-                  borderWidth: field.value === 'manual' ? 2 : 1,
-                }}
-              >
-                <CardActionArea onClick={() => field.onChange('manual')}>
-                  <CardContent
-                    sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-                  >
-                    <Radio checked={field.value === 'manual'} value="manual" />
-                    <Box>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <TouchApp />
-                        <Typography variant="subtitle1" fontWeight="bold">
-                          No - Manual only
-                        </Typography>
-                      </Stack>
-                      <Typography variant="body2" color="text.secondary">
-                        I'll select danmaku manually from library or search
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-
-              <Card
-                variant={field.value === 'ai' ? 'outlined' : 'outlined'}
-                sx={{
-                  borderColor:
-                    field.value === 'ai' ? 'primary.main' : undefined,
-                  borderWidth: field.value === 'ai' ? 2 : 1,
-                }}
-              >
-                <CardActionArea onClick={() => field.onChange('ai')}>
-                  <CardContent
-                    sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-                  >
-                    <Radio checked={field.value === 'ai'} value="ai" />
-                    <Box>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <AutoAwesome color="secondary" />
-                        <Typography variant="subtitle1" fontWeight="bold">
-                          Yes - Use AI
-                        </Typography>
-                      </Stack>
-                      <Typography variant="body2" color="text.secondary">
-                        Automatically detect video info using AI
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-
-              <Card
-                variant={field.value === 'custom' ? 'outlined' : 'outlined'}
-                sx={{
-                  borderColor:
-                    field.value === 'custom' ? 'primary.main' : undefined,
-                  borderWidth: field.value === 'custom' ? 2 : 1,
-                }}
-              >
-                <CardActionArea onClick={() => field.onChange('custom')}>
-                  <CardContent
-                    sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-                  >
-                    <Radio checked={field.value === 'custom'} value="custom" />
-                    <Box>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <Build color="primary" />
-                        <Typography variant="subtitle1" fontWeight="bold">
-                          Yes - Custom selectors
-                        </Typography>
-                      </Stack>
-                      <Typography variant="body2" color="text.secondary">
-                        Use element picker on the site (requires visiting site)
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-            </Stack>
-          </RadioGroup>
-        )}
-      />
-
-      {watch('mode') === 'custom' && (
-        <Alert severity="warning">
-          You'll need to visit this site after saving to complete the setup
-          using the on-page dropper tool.
-        </Alert>
-      )}
-
-      <Stack
-        direction="row"
-        spacing={2}
-        justifyContent="space-between"
-        sx={{ mt: 2 }}
-      >
-        <Button onClick={handleBack}>Back</Button>
-        <Button
-          variant="contained"
-          onClick={handleSubmit(handleSave)}
-          loading={isSubmitting}
-        >
-          {t('common.save')}
-        </Button>
-      </Stack>
-    </Stack>
-  )
-
   return (
     <OptionsPageLayout direction="left">
       <OptionsPageToolBar
@@ -416,7 +161,7 @@ export const MountConfigEditor = ({
         }
       />
       <Box p={2}>
-        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+        <Stepper activeStep={activeStep} sx={{ mb: 1 }}>
           <Step>
             <StepLabel>Basic Info</StepLabel>
           </Step>
@@ -428,15 +173,39 @@ export const MountConfigEditor = ({
         <Box component="form">
           {activeStep === 0 && (
             <>
-              {renderStep1()}
-              <Stack direction="row" justifyContent="flex-end" sx={{ mt: 2 }}>
-                <Button variant="contained" onClick={handleNext}>
+              <MountConfigBasicStep
+                control={control}
+                register={register}
+                errors={errors}
+                isPermissive={isPermissive}
+              />
+              <Box sx={{ mt: 2 }}>
+                <Button variant="contained" onClick={handleNext} fullWidth>
                   Next
+                </Button>
+              </Box>
+            </>
+          )}
+          {activeStep === 1 && (
+            <>
+              <MountConfigAutomationStep control={control} watch={watch} />
+              <Stack
+                direction="row"
+                spacing={2}
+                justifyContent="space-between"
+                sx={{ mt: 2 }}
+              >
+                <Button onClick={handleBack}>Back</Button>
+                <Button
+                  variant="contained"
+                  onClick={handleSubmit(handleSave)}
+                  loading={isSubmitting}
+                >
+                  {t('common.save')}
                 </Button>
               </Stack>
             </>
           )}
-          {activeStep === 1 && renderStep2()}
         </Box>
       </Box>
     </OptionsPageLayout>

@@ -1,5 +1,6 @@
 import type { FabProps, PopoverVirtualElement } from '@mui/material'
 import {
+  Badge,
   ClickAwayListener,
   Fab,
   Fade,
@@ -11,6 +12,7 @@ import { forwardRef, useRef, useState } from 'react'
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { useMergeRefs } from '@/common/hooks/useMergeRefs'
 import { createVirtualElement } from '@/common/utils/utils'
+import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 import { useStore } from '@/content/controller/store/store'
 import { DraggableContainer } from '@/content/controller/ui/components/DraggableContainer'
 import { FabContextMenu } from '@/content/controller/ui/floatingButton/components/FabContextMenu'
@@ -55,6 +57,7 @@ export const FloatingButton = forwardRef<
 
   const { isMounted } = useStore.use.danmaku()
   const isDisconnected = useStore.use.isDisconnected()
+  const activeConfig = useActiveConfig()
 
   const fabAnchor = useInitialAnchor()
 
@@ -92,6 +95,9 @@ export const FloatingButton = forwardRef<
 
   const isIn = showFab || isOpen || !!contextMenuAnchor
 
+  const isIncomplete =
+    activeConfig?.mode === 'custom' && !activeConfig?.integration
+
   return (
     <ClickAwayListener onClickAway={handleCloseContextMenu}>
       <div>
@@ -121,20 +127,31 @@ export const FloatingButton = forwardRef<
                     touchAction: 'none',
                   }}
                 >
-                  <StyledFab
-                    size="small"
-                    onContextMenu={handleContextMenu}
-                    ref={mergedFabRefs}
-                    color={dialColor}
-                    hover={fabHover}
-                    onMouseOver={() => setFabHover(true)}
-                    onMouseOut={() => setFabHover(false)}
+                  <Badge
+                    color="warning"
+                    variant="dot"
+                    invisible={!isIncomplete}
+                    sx={{
+                      '& .MuiBadge-badge': {
+                        zIndex: 1402,
+                      },
+                    }}
                   >
-                    <SpeedDialIcon />
-                    <FabLoadingIndicator
-                      isLoading={!isDisconnected && isLoading}
-                    />
-                  </StyledFab>
+                    <StyledFab
+                      size="small"
+                      onContextMenu={handleContextMenu}
+                      ref={mergedFabRefs}
+                      color={dialColor}
+                      hover={fabHover}
+                      onMouseOver={() => setFabHover(true)}
+                      onMouseOut={() => setFabHover(false)}
+                    >
+                      <SpeedDialIcon />
+                      <FabLoadingIndicator
+                        isLoading={!isDisconnected && isLoading}
+                      />
+                    </StyledFab>
+                  </Badge>
                 </div>
               </Fade>
             )
