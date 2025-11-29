@@ -7,7 +7,6 @@ import { controlQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useStore } from '@/popup/store'
 import { ConfigToolbar } from '../components/ConfigToolbar'
-import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog'
 import { MountConfigList } from '../components/MountConfigList'
 
 export const ConfigPage = () => {
@@ -71,7 +70,6 @@ export const ConfigPage = () => {
           onShowIntegration={() => navigate('integration-policy')}
         />
         <MountConfigList onEdit={handleEditConfig} />
-        <ConfirmDeleteDialog />
       </TabLayout>
       <Outlet />
     </>

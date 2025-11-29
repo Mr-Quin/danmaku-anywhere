@@ -45,8 +45,6 @@ interface StoreState {
   config: {
     editingConfig: MountConfigInput & { id?: string }
     setEditingConfig: (config: MountConfigInput & { id?: string }) => void
-    showConfirmDeleteDialog: boolean
-    setShowConfirmDeleteDialog: (show: boolean) => void
   }
 }
 
@@ -141,12 +139,6 @@ const useStoreBase = create<StoreState>()(
       setEditingConfig: (config: MountConfigInput) => {
         set((state) => {
           state.config.editingConfig = config
-        })
-      },
-      showConfirmDeleteDialog: false,
-      setShowConfirmDeleteDialog: (show: boolean) => {
-        set((state) => {
-          state.config.showConfirmDeleteDialog = show
         })
       },
     },

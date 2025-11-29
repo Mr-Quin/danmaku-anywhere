@@ -27,7 +27,7 @@ import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku
 import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
 import { SeasonDetailsPage } from '@/content/controller/ui/floatingPanel/pages/search/SeasonDetailsPage'
-import { AddSeasonMapDialog } from './AddSeasonMapDialog'
+import { useShowAddSeasonMapDialog } from './AddSeasonMapDialog'
 
 export const SearchPage = (): React.ReactElement | null => {
   const { t } = useTranslation()
@@ -49,15 +49,14 @@ export const SearchPage = (): React.ReactElement | null => {
   const [searchParams, setSearchParams] = useState<SearchEpisodesQuery>()
   const [scrollTop, setScrollTop] = useState(0)
   const [tab, setTab] = useState('search')
-  const [showDialog, setShowDialog] = useState(false)
   const [selectedSeason, setSelectedSeason] = useState<
     Season | CustomSeason | undefined
   >()
-  const [localSelectedSeason, setLocalSelectedSeason] = useState<Season>()
+
+  const showAddSeasonMapDialog = useShowAddSeasonMapDialog()
 
   const boxRef = useRef<HTMLDivElement>(null)
   const errorRef = useRef<ErrorBoundary>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
   const { reset } = useQueryErrorResetBoundary()
 
   const [pending, startTransition] = useTransition()
@@ -90,13 +89,8 @@ export const SearchPage = (): React.ReactElement | null => {
     setSearchTitle(mediaInfo.seasonTitle)
   }, [mediaInfo])
 
-  const handleDialogClose = () => {
-    setShowDialog(false)
-  }
-
   const handleDialogProceed = (season: Season) => {
     setSelectedSeason(season)
-    handleDialogClose()
   }
 
   const handleSearch = (searchTerm: string) => {
@@ -123,8 +117,11 @@ export const SearchPage = (): React.ReactElement | null => {
         season.id
       )
     ) {
-      setLocalSelectedSeason(season)
-      setShowDialog(true)
+      showAddSeasonMapDialog({
+        season,
+        mapKey: mediaInfo.getKey(),
+        onProceed: handleDialogProceed,
+      })
     } else {
       setSelectedSeason(season)
     }
@@ -153,7 +150,7 @@ export const SearchPage = (): React.ReactElement | null => {
     )
 
   return (
-    <TabLayout ref={containerRef}>
+    <TabLayout>
       <TabToolbar>
         <Tabs value={tab} onChange={(_, newValue) => setTab(newValue)}>
           <Tab label={t('searchPage.name')} value="search" />
@@ -204,16 +201,6 @@ export const SearchPage = (): React.ReactElement | null => {
       )}
       {tab === 'parse' && (
         <ParseTabCore onImportSuccess={(episode) => mountDanmaku([episode])} />
-      )}
-      {localSelectedSeason && mediaInfo && (
-        <AddSeasonMapDialog
-          open={showDialog}
-          onClose={handleDialogClose}
-          onProceed={handleDialogProceed}
-          container={containerRef.current}
-          mapKey={mediaInfo.getKey()}
-          season={localSelectedSeason}
-        />
       )}
     </TabLayout>
   )
