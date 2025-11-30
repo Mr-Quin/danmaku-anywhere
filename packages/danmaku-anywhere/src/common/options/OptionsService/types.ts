@@ -5,9 +5,11 @@ export interface Options<T> {
   version: number
 }
 
+export type UpgradeContext = Record<string, unknown>
+
 export interface Version {
   version: number
-  upgrade: (prevSchema: unknown) => unknown // previous schema's type is unknown
+  upgrade: (prevSchema: unknown, context: UpgradeContext) => unknown // previous schema's type is unknown
 }
 
 export type VersionConfig = Omit<Version, 'version'>

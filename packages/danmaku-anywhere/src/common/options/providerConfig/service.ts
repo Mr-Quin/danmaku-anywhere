@@ -22,7 +22,7 @@ const providerConfigOptions = new OptionsService<ProviderConfig[]>(
   'providerConfig',
   defaultProviderConfigs
 ).version(1, {
-  upgrade: (data: PrevOptions) => {
+  upgrade: (data: PrevOptions, context: Record<string, any>) => {
     return data
   },
 })

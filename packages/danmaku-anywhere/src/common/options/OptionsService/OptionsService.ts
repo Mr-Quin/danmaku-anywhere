@@ -2,8 +2,15 @@ import { Logger } from '../../Logger'
 import type { ExtStorageType } from '../../storage/ExtStorageService'
 import { ExtStorageService } from '../../storage/ExtStorageService'
 
+import { upgradeService } from '../UpgradeService/UpgradeService'
 import { migrateOptions } from './migrationOptions'
-import type { Options, OptionsSchema, Version, VersionConfig } from './types'
+import type {
+  Options,
+  OptionsSchema,
+  UpgradeContext,
+  Version,
+  VersionConfig,
+} from './types'
 
 // biome-ignore lint/suspicious/noExplicitAny: used for data migration where the previous options type is lost
 export type PrevOptions = any
@@ -25,7 +32,7 @@ export class OptionsService<T extends OptionsSchema> {
   private isProcessingQueue = false
 
   constructor(
-    key: string,
+    readonly key: string,
     private defaultOptions: T,
     storageType: ExtStorageType = 'sync'
   ) {
@@ -34,6 +41,7 @@ export class OptionsService<T extends OptionsSchema> {
     })
     this.logger = Logger.sub('[OptionsService]').sub(`[${key}]`)
     this.setup()
+    upgradeService.register(this)
   }
 
   version(version: number, versionConfig: VersionConfig) {
@@ -50,7 +58,7 @@ export class OptionsService<T extends OptionsSchema> {
   }
 
   // upgrade options to latest version
-  async upgrade(): Promise<void> {
+  async upgrade(context: UpgradeContext = {}): Promise<void> {
     if (this.versions.length === 0) {
       throw new Error('Cannot upgrade without any versions')
     }
@@ -69,17 +77,24 @@ export class OptionsService<T extends OptionsSchema> {
     this.logger.debug(`Found options with version '${options.version}'`)
     // if options is not versioned, assume version 0 for purpose of upgrading
     options.version ??= 0
-    const upgradedOptions = migrateOptions(options, this.versions, this.logger)
+    const upgradedOptions = migrateOptions(
+      options,
+      this.versions,
+      this.logger,
+      context
+    )
     await this.storageService.set(upgradedOptions)
   }
 
   async get(): Promise<T> {
+    await upgradeService.waitUntilReady()
     const options = await this.storageService.read()
     if (!options) return this.defaultOptions
     return options.data
   }
 
   async set(data: T, version?: number) {
+    await upgradeService.waitUntilReady()
     return this.#queueOperation(async () => {
       let currentVersion = version
       if (!currentVersion) {
@@ -98,6 +113,7 @@ export class OptionsService<T extends OptionsSchema> {
 
   // allow partial update
   async update(data: Partial<T>) {
+    await upgradeService.waitUntilReady()
     return this.#queueOperation(async () => {
       const options = await this.get()
       const mergedData = { ...options, ...data }
@@ -107,6 +123,7 @@ export class OptionsService<T extends OptionsSchema> {
 
   // reset options to default
   async reset() {
+    await upgradeService.waitUntilReady()
     return this.#queueOperation(async () => {
       return this.storageService.set({
         data: this.defaultOptions,
@@ -133,6 +150,11 @@ export class OptionsService<T extends OptionsSchema> {
       operation.promise.reject(new Error('OptionsService was destroyed'))
     })
     this.operationQueue = []
+  }
+
+  // Used by UpgradeService to read data without waiting for ready
+  async readInternal() {
+    return this.storageService.read()
   }
 
   // Internal set method that doesn't queue (used within queued operations)
