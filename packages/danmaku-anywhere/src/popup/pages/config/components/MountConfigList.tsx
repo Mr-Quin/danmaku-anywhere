@@ -133,13 +133,17 @@ export const MountConfigList = ({
       onReorder={(sourceIndex, destinationIndex) => {
         reorder.mutate({ sourceIndex, destinationIndex })
       }}
-      renderPrimary={(config) => config.name}
+      renderPrimary={(config) => (
+        <Stack direction="row" alignItems="center" gap={1}>
+          {config.name}
+          {getBadge(config)}
+        </Stack>
+      )}
       renderSecondary={(config) => (
         <Stack spacing={0.5} alignItems="flex-start">
           <Typography variant="body2" color="text.secondary">
             {config.patterns[0]}
           </Typography>
-          {getBadge(config)}
         </Stack>
       )}
       renderSecondaryAction={(config) => (
