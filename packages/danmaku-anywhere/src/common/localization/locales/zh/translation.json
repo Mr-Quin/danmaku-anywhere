@@ -47,6 +47,7 @@
     "backupAll": "备份所有配置",
     "createConfig": "编写配置",
     "editor": {
+      "addPattern": "添加模式",
       "description": "说明",
       "helper": {
         "integration": "启用对应的适配规则。如果你不清楚这是什么，请保持默认设置\"无\"",
@@ -72,7 +73,6 @@
     "name": "装填配置",
     "showIntegration": "查看适配规则"
   },
-  "configPage.editor.pattern.add": "添加模式",
   "configs": {
     "alert": {
       "created": "配置已创建",
@@ -345,10 +345,12 @@
     },
     "retrySearch": "重试",
     "title": "番剧标题",
-    "titleMapping": "标题映射"
+    "titleMapping": "标题映射",
+    "titleMappingDialog": {
+      "confirmation": "是否将`{{original}}` 映射为 `{{mapped}}` ?",
+      "searchOnly": "不映射，仅搜索"
+    }
   },
-  "searchPage.titleMapping.confirmation": "是否将`{{original}}` 映射为 `{{mapped}}` ?",
-  "searchPage.titleMapping.searchOnly": "不映射，仅搜索",
   "selectorPage": {
     "noAnimeFound": "没有可供选择的内容",
     "selectAnime": "找到多个匹配项：{{name}}，请选择"
@@ -379,6 +381,10 @@
     "safeZones": "显示区域",
     "size": "字体大小",
     "specialDanmaku": "特殊弹幕",
+    "specialDanmakuConfig": {
+      "showBottom": "显示底部弹幕",
+      "showTop": "显示顶部弹幕"
+    },
     "speed": "弹幕速度",
     "tooltip": {
       "allowOverlap": "允许滚动弹幕重叠，不影响顶部/底部弹幕",
@@ -392,8 +398,6 @@
     },
     "trackHeight": "弹幕行高"
   },
-  "stylePage.specialDanmaku.showBottom": "显示底部弹幕",
-  "stylePage.specialDanmaku.showTop": "显示顶部弹幕",
   "tabs": {
     "config": "装填配置",
     "danmaku": "弹幕列表",

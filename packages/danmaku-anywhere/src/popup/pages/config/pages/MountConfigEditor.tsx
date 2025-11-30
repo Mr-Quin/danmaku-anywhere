@@ -257,7 +257,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
             </Stack>
           ))}
           <Button onClick={addPatternField} startIcon={<AddCircleOutline />}>
-            {t('configPage.editor.pattern.add', 'Add Pattern')}
+            {t('configPage.editor.addPattern', 'Add Pattern')}
           </Button>
           <Stack
             direction="row"

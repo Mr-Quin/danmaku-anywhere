@@ -480,7 +480,7 @@ export const DanmakuStylesForm = ({
           control={control}
           render={({ field }) => (
             <LabeledSwitch
-              label={t('stylePage.specialDanmaku.showTop', 'Top Danmaku')}
+              label={t('stylePage.specialDanmakuConfig.showTop', 'Top Danmaku')}
               tooltip={t(
                 'stylePage.tooltip.specialDanmaku',
                 'When off, danmaku will be shown as normal scrolling danmaku'
@@ -497,7 +497,10 @@ export const DanmakuStylesForm = ({
           control={control}
           render={({ field }) => (
             <LabeledSwitch
-              label={t('stylePage.specialDanmaku.showBottom', 'Bottom Danmaku')}
+              label={t(
+                'stylePage.specialDanmakuConfig.showBottom',
+                'Bottom Danmaku'
+              )}
               tooltip={t(
                 'stylePage.tooltip.specialDanmaku',
                 'When off, danmaku will be shown as normal scrolling danmaku'

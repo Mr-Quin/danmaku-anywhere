@@ -48,6 +48,7 @@
     "backupAll": "Backup All",
     "createConfig": "Create Config",
     "editor": {
+      "addPattern": "Add Pattern",
       "description": "Description",
       "helper": {
         "integration": "Enables the selected Integration Policy for this configuration. If you are not sure, leave it as None.",
@@ -73,7 +74,6 @@
     "name": "Configs",
     "showIntegration": "View Integration Policy"
   },
-  "configPage.editor.pattern.add": "Add Pattern",
   "configs": {
     "alert": {
       "created": "Config Created",
@@ -355,10 +355,12 @@
     },
     "retrySearch": "Retry",
     "title": "Title",
-    "titleMapping": "Map Title"
+    "titleMapping": "Map Title",
+    "titleMappingDialog": {
+      "confirmation": "Map `{{original}}` to `{{mapped}}` ?",
+      "searchOnly": "No, just search"
+    }
   },
-  "searchPage.titleMapping.confirmation": "Map `{{original}}` to `{{mapped}}` ?",
-  "searchPage.titleMapping.searchOnly": "No, just search",
   "selectorPage": {
     "noAnimeFound": "Nothing to select from",
     "selectAnime": "Multiple matches found for {{name}}, please select"
@@ -389,6 +391,10 @@
     "safeZones": "Display Area",
     "size": "Size",
     "specialDanmaku": "Special Danmaku",
+    "specialDanmakuConfig": {
+      "showBottom": "Bottom Danmaku",
+      "showTop": "Top Danmaku"
+    },
     "speed": "Speed",
     "tooltip": {
       "allowOverlap": "Allow danmaku to overlap, does not affect top or bottom fixed danmaku",
@@ -402,8 +408,6 @@
     },
     "trackHeight": "Track Height"
   },
-  "stylePage.specialDanmaku.showBottom": "Bottom Danmaku",
-  "stylePage.specialDanmaku.showTop": "Top Danmaku",
   "tabs": {
     "config": "Config",
     "danmaku": "Danmaku",
