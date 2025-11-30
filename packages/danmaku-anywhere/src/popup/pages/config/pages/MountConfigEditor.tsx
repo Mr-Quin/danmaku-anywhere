@@ -1,4 +1,4 @@
-import { Box, Button, Stack, Step, StepLabel, Stepper } from '@mui/material'
+import { Box, Button, Divider, Step, StepButton, Stepper } from '@mui/material'
 import type { ReactElement } from 'react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -44,10 +44,13 @@ export const MountConfigEditor = ({
 }: MountConfigEditorProps): ReactElement => {
   const { t } = useTranslation()
   const { update, create } = useEditMountConfig()
+
   const [isPermissive, setIsPermissive] = useState(false)
+
   const goBack = useGoBack()
 
   const isEdit = mode === 'edit'
+
   const { editingConfig: config } = useStore.use.config()
 
   const [activeStep, setActiveStep] = useState(0)
@@ -59,7 +62,7 @@ export const MountConfigEditor = ({
     subscribe,
     trigger,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<MountConfigForm>({
     values: toForm(config),
     mode: 'onChange',
@@ -100,8 +103,8 @@ export const MountConfigEditor = ({
     }
   }
 
-  const handleBack = () => {
-    setActiveStep((prev) => prev - 1)
+  const handleStep = (step: number) => {
+    setActiveStep(step)
   }
 
   const handleSave = async (data: MountConfigForm) => {
@@ -112,26 +115,12 @@ export const MountConfigEditor = ({
 
     const toUpdate = fromForm(data)
 
-    // Logic for mode
-    if (toUpdate.mode === 'custom') {
-      // If custom is selected, we keep the integration if it exists (from previous editing), or undefined if new
-      // The user flow says: "by selecting custom selector, the user is linking a integration policy (that is not created yet)"
-      // But if they are editing an existing config that already has an integration, we should probably keep it?
-      // The prompt says: "if user selects custom selector, then when they go to a matched website, we'll show an indicator... using the exisitng integration policy editor... which will finally create the policy"
-      // This implies for new setup, integration should be undefined.
-      // If switching from another mode to custom, integration should probably be cleared?
-      // Let's assume if integration is not set, it remains undefined.
-    } else {
-      // For manual and ai, we don't need integration policy (unless AI uses it for something else, but "lifts the AI flag" implies config handles it)
-      toUpdate.integration = undefined
-    }
-
     if (isEdit && config.id) {
       return update.mutate(
         { id: config.id, config: toUpdate },
         {
           onSuccess: () => {
-            toast.success(t('configs.alert.updated'))
+            toast.success(t('configs.alert.updated', 'Config Updated'))
             goBack()
           },
           onError: (error) => {
@@ -142,7 +131,7 @@ export const MountConfigEditor = ({
     }
     return create.mutate(toUpdate, {
       onSuccess: () => {
-        toast.success(t('configs.alert.created'))
+        toast.success(t('configs.alert.created', 'Config Created'))
         goBack()
       },
       onError: (error) => {
@@ -156,19 +145,26 @@ export const MountConfigEditor = ({
       <OptionsPageToolBar
         title={
           isEdit
-            ? t('configPage.editor.title.edit', { name: config.name })
-            : t('configPage.editor.title.create')
+            ? t('configPage.editor.title.edit', 'Edit {{name}}', {
+                name: config.name,
+              })
+            : t('configPage.editor.title.create', 'Add Config')
         }
       />
       <Box p={2}>
-        <Stepper activeStep={activeStep} sx={{ mb: 1 }}>
+        <Stepper activeStep={activeStep}>
           <Step>
-            <StepLabel>Basic Info</StepLabel>
+            <StepButton onClick={() => handleStep(0)}>
+              {t('configPage.editor.step.basicInfo', 'Basic Info')}
+            </StepButton>
           </Step>
           <Step>
-            <StepLabel>Automation</StepLabel>
+            <StepButton onClick={() => handleStep(1)}>
+              {t('configPage.editor.step.automation', 'Automation')}
+            </StepButton>
           </Step>
         </Stepper>
+        <Divider sx={{ my: 1 }} />
 
         <Box component="form">
           {activeStep === 0 && (
@@ -180,7 +176,12 @@ export const MountConfigEditor = ({
                 isPermissive={isPermissive}
               />
               <Box sx={{ mt: 2 }}>
-                <Button variant="contained" onClick={handleNext} fullWidth>
+                <Button
+                  variant="contained"
+                  onClick={handleNext}
+                  fullWidth
+                  disabled={!isValid}
+                >
                   Next
                 </Button>
               </Box>
@@ -188,22 +189,21 @@ export const MountConfigEditor = ({
           )}
           {activeStep === 1 && (
             <>
-              <MountConfigAutomationStep control={control} watch={watch} />
-              <Stack
-                direction="row"
-                spacing={2}
-                justifyContent="space-between"
+              <MountConfigAutomationStep
+                control={control}
+                watch={watch}
+                isPermissive={isPermissive}
+              />
+              <Button
+                variant="contained"
+                onClick={handleSubmit(handleSave)}
+                loading={isSubmitting}
+                fullWidth
                 sx={{ mt: 2 }}
+                disabled={!isValid}
               >
-                <Button onClick={handleBack}>Back</Button>
-                <Button
-                  variant="contained"
-                  onClick={handleSubmit(handleSave)}
-                  loading={isSubmitting}
-                >
-                  {t('common.save')}
-                </Button>
-              </Stack>
+                {t('common.save')}
+              </Button>
             </>
           )}
         </Box>

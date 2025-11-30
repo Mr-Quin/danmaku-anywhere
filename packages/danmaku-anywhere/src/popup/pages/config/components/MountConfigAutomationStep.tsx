@@ -10,120 +10,137 @@ import {
   Stack,
   Typography,
 } from '@mui/material'
-import type { Control, UseFormWatch } from 'react-hook-form'
+import type { ReactNode } from 'react'
+import type {
+  Control,
+  ControllerRenderProps,
+  UseFormWatch,
+} from 'react-hook-form'
 import { Controller } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
+import { i18n } from '@/common/localization/i18n'
+import type { AutomationMode } from '@/common/options/mountConfig/schema'
 import type { MountConfigForm } from './types'
 
 interface MountConfigAutomationStepProps {
   control: Control<MountConfigForm>
   watch: UseFormWatch<MountConfigForm>
+  isPermissive: boolean
+}
+
+type CardDataMap = {
+  [key in AutomationMode]: {
+    label: string
+    description: string
+    icon: () => ReactNode
+  }
+}
+
+const cardData: CardDataMap = {
+  manual: {
+    label: i18n.t('configPage.editor.automation.manualLabel', 'Manual'),
+    description: i18n.t(
+      'configPage.editor.automation.manualDescription',
+      "I'll select danmaku manually from library"
+    ),
+    icon: () => <TouchApp />,
+  },
+  ai: {
+    label: i18n.t('configPage.editor.automation.aiLabel', 'AI'),
+    description: i18n.t(
+      'configPage.editor.automation.aiDescription',
+      'Let AI detect video info automatically'
+    ),
+    icon: () => <AutoAwesome />,
+  },
+  custom: {
+    label: i18n.t('configPage.editor.automation.customLabel', 'Custom Rules'),
+    description: i18n.t(
+      'configPage.editor.automation.customDescription',
+      "I'll create custom XPath rules to extract video info (requires visiting site)"
+    ),
+    icon: () => <Build />,
+  },
+}
+
+const AutomationCard = ({
+  mode,
+  field,
+  disabled,
+}: {
+  mode: AutomationMode
+  field: ControllerRenderProps<MountConfigForm, 'mode'>
+  disabled?: boolean
+}) => {
+  const data = cardData[mode]
+
+  return (
+    <Card
+      variant="outlined"
+      sx={{
+        backgroundColor: 'transparent',
+        borderColor: field.value === mode ? 'primary.main' : undefined,
+        opacity: disabled ? 0.5 : 1,
+      }}
+    >
+      <CardActionArea onClick={() => field.onChange(mode)} disabled={disabled}>
+        <CardContent>
+          <Radio
+            checked={field.value === mode}
+            value={mode}
+            sx={{ visibility: 'hidden', position: 'absolute' }}
+          />
+          <Box>
+            <Stack direction="row" spacing={1} alignItems="center">
+              {data.icon()}
+              <Typography variant="subtitle1" fontWeight="bold">
+                {data.label}
+              </Typography>
+            </Stack>
+            <Typography variant="body2" color="text.secondary">
+              {data.description}
+            </Typography>
+          </Box>
+        </CardContent>
+      </CardActionArea>
+    </Card>
+  )
 }
 
 export const MountConfigAutomationStep = ({
   control,
   watch,
+  isPermissive,
 }: MountConfigAutomationStepProps) => {
+  const { t } = useTranslation()
+
+  const selectedMode = watch('mode')
+
   return (
-    <Stack spacing={3}>
-      <Typography variant="h6">Select Automation Method</Typography>
+    <Stack spacing={1}>
+      <Typography variant="body1">
+        {t('configPage.editor.automation.title', 'Select Automation Method')}
+      </Typography>
       <Controller
         name="mode"
         control={control}
         render={({ field }) => (
           <RadioGroup {...field} row={false}>
-            <Stack spacing={2}>
-              <Card
-                variant={field.value === 'manual' ? 'outlined' : 'outlined'}
-                sx={{
-                  borderColor:
-                    field.value === 'manual' ? 'primary.main' : undefined,
-                  borderWidth: field.value === 'manual' ? 2 : 1,
-                }}
-              >
-                <CardActionArea onClick={() => field.onChange('manual')}>
-                  <CardContent
-                    sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-                  >
-                    <Radio checked={field.value === 'manual'} value="manual" />
-                    <Box>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <TouchApp />
-                        <Typography variant="subtitle1" fontWeight="bold">
-                          No - Manual only
-                        </Typography>
-                      </Stack>
-                      <Typography variant="body2" color="text.secondary">
-                        I'll select danmaku manually from library or search
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-
-              <Card
-                variant={field.value === 'ai' ? 'outlined' : 'outlined'}
-                sx={{
-                  borderColor:
-                    field.value === 'ai' ? 'primary.main' : undefined,
-                  borderWidth: field.value === 'ai' ? 2 : 1,
-                }}
-              >
-                <CardActionArea onClick={() => field.onChange('ai')}>
-                  <CardContent
-                    sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-                  >
-                    <Radio checked={field.value === 'ai'} value="ai" />
-                    <Box>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <AutoAwesome color="secondary" />
-                        <Typography variant="subtitle1" fontWeight="bold">
-                          Yes - Use AI
-                        </Typography>
-                      </Stack>
-                      <Typography variant="body2" color="text.secondary">
-                        Automatically detect video info using AI
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-
-              <Card
-                variant={field.value === 'custom' ? 'outlined' : 'outlined'}
-                sx={{
-                  borderColor:
-                    field.value === 'custom' ? 'primary.main' : undefined,
-                  borderWidth: field.value === 'custom' ? 2 : 1,
-                }}
-              >
-                <CardActionArea onClick={() => field.onChange('custom')}>
-                  <CardContent
-                    sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-                  >
-                    <Radio checked={field.value === 'custom'} value="custom" />
-                    <Box>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <Build color="primary" />
-                        <Typography variant="subtitle1" fontWeight="bold">
-                          Yes - Custom selectors
-                        </Typography>
-                      </Stack>
-                      <Typography variant="body2" color="text.secondary">
-                        Use element picker on the site (requires visiting site)
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
+            <Stack spacing={1}>
+              <AutomationCard mode="manual" field={field} />
+              <AutomationCard mode="ai" field={field} disabled={isPermissive} />
+              <AutomationCard mode="custom" field={field} />
             </Stack>
           </RadioGroup>
         )}
       />
 
-      {watch('mode') === 'custom' && (
+      {selectedMode === 'custom' && (
         <Alert severity="warning">
-          You'll need to visit this site after saving to complete the setup
-          using the on-page dropper tool.
+          {t(
+            'configPage.editor.automation.customAlert',
+            "You'll need to visit this site after saving to complete the setup using the on-page tool."
+          )}
         </Alert>
       )}
     </Stack>

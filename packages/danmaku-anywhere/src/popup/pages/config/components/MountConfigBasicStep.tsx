@@ -42,34 +42,43 @@ export const MountConfigBasicStep = ({
     name: 'patterns',
   })
 
-  const addPatternField = () => {
+  function addPatternField() {
     append({ value: '' })
   }
 
-  const removePatternField = (index: number) => {
+  function removePatternField(index: number) {
     remove(index)
   }
 
   return (
     <Stack spacing={2} alignItems="flex-start">
       <Collapse in={isPermissive} sx={{ width: 1 }}>
-        <Alert severity="warning">{t('configPage.editor.tooPermissive')}</Alert>
+        <Alert severity="warning">
+          {t(
+            'configPage.editor.tooPermissive',
+            'The match patterns are too permissive, AI automation will not be available.'
+          )}
+        </Alert>
       </Collapse>
       <TextField
-        label={t('configPage.editor.name')}
+        label={t('configPage.editor.name', 'Name')}
         size="small"
         error={!!errors.name}
         {...register('name', { required: true })}
         fullWidth
         required
       />
-
-      <Typography variant="body2" color="textSecondary">
-        {t('configPage.editor.urlPatterns')}
-      </Typography>
-      <FormHelperText>
-        {t('configPage.editor.helper.urlPattern')}
-      </FormHelperText>
+      <div>
+        <Typography variant="body2" color="textSecondary" gutterBottom>
+          {t('configPage.editor.urlPatterns', 'URL Patterns')}
+        </Typography>
+        <FormHelperText>
+          {t(
+            'configPage.editor.helper.urlPattern',
+            'URL pattern to match the page. Format: https://example.com/*.'
+          )}
+        </FormHelperText>
+      </div>
       {fields.map((field, index, arr) => (
         <Stack
           direction="row"
@@ -101,24 +110,30 @@ export const MountConfigBasicStep = ({
           )}
         </Stack>
       ))}
-      <Button onClick={addPatternField} startIcon={<AddCircleOutline />}>
-        {t('configPage.editor.pattern.add')}
+      <Button
+        onClick={addPatternField}
+        startIcon={<AddCircleOutline />}
+        size="small"
+      >
+        {t('configPage.editor.addPattern', 'Add Pattern')}
       </Button>
-
       <Accordion
         disableGutters
         elevation={0}
         sx={{
-          width: '100%',
+          width: 1,
           '&:before': { display: 'none' },
-          border: '1px solid rgba(0, 0, 0, 0.12)',
+          ['.MuiButtonBase-root']: {
+            minHeight: '40px',
+          },
+          backgroundColor: 'transparent',
+          border: (theme) => `1px solid ${theme.palette.divider}`,
           borderRadius: 1,
-          mt: 2,
         }}
       >
         <AccordionSummary expandIcon={<ExpandMore />}>
           <Typography variant="body2" color="textSecondary">
-            Advanced
+            {t('configPage.editor.advanced', 'Advanced')}
           </Typography>
         </AccordionSummary>
         <AccordionDetails sx={{ pt: 1 }}>

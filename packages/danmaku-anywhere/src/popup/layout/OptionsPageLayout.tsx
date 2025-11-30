@@ -1,36 +1,37 @@
 import type { SlideProps } from '@mui/material'
-import { Paper, Slide } from '@mui/material'
-import type { ElementType, PropsWithChildren } from 'react'
+import { Paper, Slide, styled } from '@mui/material'
+import type { PropsWithChildren } from 'react'
 import { Suspense } from 'react'
 
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
+import { getScrollBarProps } from '@/common/components/layout/ScrollBox'
+
+const OptionsPageContainer = styled(Paper)(({ theme }) => {
+  return {
+    position: 'absolute',
+    top: 0,
+    zIndex: 1,
+    width: '100%',
+    height: '100%',
+    minHeight: 0,
+    overflow: 'auto',
+    ...getScrollBarProps(theme),
+  }
+})
 
 type OptionsPageProps = PropsWithChildren<{
   direction?: SlideProps['direction']
-  component?: ElementType
 }>
 
 export const OptionsPageLayout = ({
   children,
   direction = 'up',
-  component = 'div',
 }: OptionsPageProps) => {
   return (
     <Slide direction={direction} in mountOnEnter unmountOnExit>
-      <Paper
-        sx={{
-          position: 'absolute',
-          top: 0,
-          zIndex: 1,
-          width: 1,
-          height: 1,
-          minHeight: 0,
-          overflow: 'auto',
-        }}
-        component={component}
-      >
+      <OptionsPageContainer>
         <Suspense fallback={<FullPageSpinner />}>{children}</Suspense>
-      </Paper>
+      </OptionsPageContainer>
     </Slide>
   )
 }

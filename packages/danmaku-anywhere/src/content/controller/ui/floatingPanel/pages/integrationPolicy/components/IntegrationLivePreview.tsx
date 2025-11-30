@@ -11,7 +11,7 @@ interface StatusIndicatorProps {
   fancy?: boolean
 }
 
-const StatusIndicator = ({ text, active, fancy }: StatusIndicatorProps) => {
+const _StatusIndicator = ({ text, active, fancy }: StatusIndicatorProps) => {
   return (
     <Stack direction="row" justifyContent="space-between">
       <FancyTypography fancy={fancy}>{text}</FancyTypography>
