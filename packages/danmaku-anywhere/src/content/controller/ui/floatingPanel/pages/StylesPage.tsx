@@ -23,7 +23,7 @@ export const StylesPage = () => {
 
   return (
     <TabLayout>
-      <TabToolbar title={t('stylePage.name')}>
+      <TabToolbar title={t('stylePage.name', 'Danmaku Settings')}>
         <SaveStatusIndicator status={saveStatus} />
         <DrilldownMenu
           ButtonProps={{
@@ -36,7 +36,9 @@ export const StylesPage = () => {
               setShowFilterPage(true)
             }}
           >
-            <ListItemText>{t('stylePage.filtering.name')}</ListItemText>
+            <ListItemText>
+              {t('stylePage.filtering.name', 'Filter Settings')}
+            </ListItemText>
           </MenuItem>
         </DrilldownMenu>
       </TabToolbar>

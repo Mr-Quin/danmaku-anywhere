@@ -72,22 +72,30 @@ export const useLoadDanmaku = () => {
         if (episodes.length === 1) {
           const episode = episodes[0]
           toast.success(
-            t('danmaku.alert.mounted', {
-              name: episodeToString(episode),
-              count: episode.commentCount,
-            }),
+            t(
+              'danmaku.alert.mounted',
+              'Danmaku Mounted: {{name}} ({{count}})',
+              {
+                name: episodeToString(episode),
+                count: episode.commentCount,
+              }
+            ),
             {
               actionFn: isProvider(episode, DanmakuSourceType.DanDanPlay)
                 ? refreshComments
                 : undefined,
-              actionLabel: t('danmaku.refresh'),
+              actionLabel: t('danmaku.refresh', 'Refresh Danmaku'),
             }
           )
         } else {
           toast.success(
-            t('danmaku.alert.mountedMultiple', {
-              count: episodes.length,
-            })
+            t(
+              'danmaku.alert.mountedMultiple',
+              'Mounted {{count}} selected danmaku',
+              {
+                count: episodes.length,
+              }
+            )
           )
         }
       },
@@ -126,16 +134,20 @@ export const useLoadDanmaku = () => {
     // check again to narrow the type
     if (!isProvider(episode, DanmakuSourceType.DanDanPlay)) return
 
-    toast.info(t('danmaku.alert.refreshingDanmaku'))
+    toast.info(t('danmaku.alert.refreshingDanmaku', 'Refreshing danmaku'))
     loadMutation.mutate(
       { type: 'by-meta', meta: episode, options: { forceUpdate: true } },
       {
         onSuccess: (result) => {
           toast.success(
-            t('danmaku.alert.refreshed', {
-              name: episodeToString(result),
-              count: result.commentCount,
-            })
+            t(
+              'danmaku.alert.refreshed',
+              'Danmaku Refreshed: {{name}} ({{count}})',
+              {
+                name: episodeToString(result),
+                count: result.commentCount,
+              }
+            )
           )
         },
       }

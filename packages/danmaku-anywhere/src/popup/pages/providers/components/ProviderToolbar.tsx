@@ -15,20 +15,20 @@ export const ProviderToolbar = ({
   const { t } = useTranslation()
 
   return (
-    <TabToolbar title={t('providers.name')}>
+    <TabToolbar title={t('providers.name', 'Danmaku Providers')}>
       <DrilldownMenu
         icon={<AddCircle />}
         ButtonProps={{ color: 'primary' }}
         items={[
           {
             id: 'add-dandanplay',
-            label: t('danmaku.type.DanDanPlay'),
+            label: t('danmaku.type.DanDanPlay', 'DanDanPlay'),
             onClick: onAddDanDanPlayProvider,
             icon: <Add />,
           },
           {
             id: 'add-maccms',
-            label: t('danmaku.type.MacCMS'),
+            label: t('danmaku.type.MacCMS', 'MacCMS'),
             onClick: onAddMacCmsProvider,
             icon: <Add />,
           },

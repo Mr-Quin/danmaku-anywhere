@@ -108,7 +108,7 @@ export const GlobalDialog = (): ReactElement | null => {
             <DialogActions>
               {!hideCancel && (
                 <Button onClick={handleClose} disabled={isLoading}>
-                  {cancelText || t('common.cancel')}
+                  {cancelText || t('common.cancel', 'Cancel')}
                 </Button>
               )}
               {!hideConfirm && (
@@ -119,7 +119,7 @@ export const GlobalDialog = (): ReactElement | null => {
                   loading={isLoading}
                   autoFocus
                 >
-                  {confirmText || t('common.confirm')}
+                  {confirmText || t('common.confirm', 'Confirm')}
                 </Button>
               )}
             </DialogActions>

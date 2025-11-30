@@ -15,7 +15,10 @@ export const MatchLocalDanmakuOption = () => {
     <ToggleListItemButton
       enabled={data.matchLocalDanmaku}
       onToggle={handleToggle}
-      itemText={t('optionsPage.matchLocalDanmaku')}
+      itemText={t(
+        'optionsPage.matchLocalDanmaku',
+        'Enable matching local Danmaku'
+      )}
       isLoading={isLoading}
     />
   )

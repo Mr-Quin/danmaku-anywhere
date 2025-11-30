@@ -13,7 +13,7 @@ export const useDeleteSeason = () => {
     mutationKey: seasonQueryKeys.all(),
     mutationFn: (id: number) => chromeRpcClient.seasonDelete({ id }),
     onSuccess: () => {
-      toast.success(t('common.success'))
+      toast.success(t('common.success', 'Success'))
       void queryClient.invalidateQueries({
         queryKey: episodeQueryKeys.all(),
       })
@@ -22,7 +22,7 @@ export const useDeleteSeason = () => {
       })
     },
     onError: () => {
-      toast.error(t('common.failed'))
+      toast.error(t('common.failed', 'Failed'))
     },
   })
 }

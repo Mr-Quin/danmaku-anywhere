@@ -69,7 +69,7 @@ export const InfoBar = () => {
           </Box>
           <Box flexShrink={0}>
             {canRefresh && (
-              <Tooltip title={t('danmaku.refresh')}>
+              <Tooltip title={t('danmaku.refresh', 'Refresh Danmaku')}>
                 <IconButton
                   onClick={refreshComments}
                   disabled={!canRefresh || loadMutation.isPending}
@@ -87,7 +87,7 @@ export const InfoBar = () => {
               disabled={!isMounted}
               sx={{ flexShrink: 0 }}
             >
-              {t('danmaku.unmount')}
+              {t('danmaku.unmount', 'Unmount')}
             </Button>
           </Box>
         </Toolbar>

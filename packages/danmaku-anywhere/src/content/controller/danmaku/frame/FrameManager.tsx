@@ -38,7 +38,9 @@ export const FrameManager = () => {
      * TODO: need some heuristic to handle this case
      */
     if (activeFrame?.hasVideo && activeFrame.frameId !== frameId) {
-      toast.warn(t('danmaku.alert.multipleFrames'))
+      toast.warn(
+        t('danmaku.alert.multipleFrames', 'Multiple frames with video detected')
+      )
       return
     }
 

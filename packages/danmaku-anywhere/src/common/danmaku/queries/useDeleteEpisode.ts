@@ -40,13 +40,17 @@ export const useDeleteEpisode = () => {
     },
     onError: (e) => {
       toast.error(
-        t('danmaku.alert.deleteError', {
-          message: e.message,
-        })
+        t(
+          'danmaku.alert.deleteError',
+          'Failed to delete danmaku: {{message}}',
+          {
+            message: e.message,
+          }
+        )
       )
     },
     onSuccess: (_, input) => {
-      toast.success(t('danmaku.alert.deleted'))
+      toast.success(t('danmaku.alert.deleted', 'Danmaku Deleted'))
       void queryClient.invalidateQueries({
         queryKey: seasonQueryKeys.all(),
       })

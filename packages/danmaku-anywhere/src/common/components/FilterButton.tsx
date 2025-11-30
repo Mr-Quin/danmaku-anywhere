@@ -61,7 +61,7 @@ export const FilterButton = ({
 
   return (
     <>
-      <Tooltip title={t('common.search')}>
+      <Tooltip title={t('common.search', 'Search')}>
         <IconButton ref={anchorRef} onClick={handleOpen} color="primary">
           <Badge variant="dot" color="secondary" invisible={!filter}>
             <Search />
@@ -94,7 +94,7 @@ export const FilterButton = ({
           }}
         >
           <TextField
-            label={t('common.search')}
+            label={t('common.search', 'Search')}
             ref={(node) => {
               if (node) {
                 setTimeout(() => {

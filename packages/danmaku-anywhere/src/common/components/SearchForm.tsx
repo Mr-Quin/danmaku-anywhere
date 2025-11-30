@@ -61,7 +61,7 @@ export const SearchForm = ({
     >
       <Stack direction="row" spacing={1} alignItems="start">
         <TextField
-          label={t('searchPage.title')}
+          label={t('searchPage.title', 'Title')}
           value={searchTerm}
           onChange={(e) => handleKeywordChange(e.target.value)}
           fullWidth
@@ -88,11 +88,15 @@ export const SearchForm = ({
             }}
           />
         }
-        label={t('optionsPage.searchUsingSimplified')}
+        label={t(
+          'optionsPage.searchUsingSimplified',
+          'Search using simplified Chinese'
+        )}
       />
       {useSimplified && searchTerm && (
         <FormHelperText>
-          {t('searchPage.convertedTitle')}: {toSimplified(searchTerm)}
+          {t('searchPage.convertedTitle', 'Converted Title')}:{' '}
+          {toSimplified(searchTerm)}
         </FormHelperText>
       )}
     </Box>

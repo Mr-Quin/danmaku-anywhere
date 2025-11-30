@@ -133,13 +133,13 @@ export const SeasonCard = ({
     mutationKey: seasonQueryKeys.all(),
     mutationFn: (id: number) => chromeRpcClient.seasonDelete({ id }),
     onSuccess: () => {
-      toast.success(t('common.success'))
+      toast.success(t('common.success', 'Success'))
       void queryClient.invalidateQueries({
         queryKey: episodeQueryKeys.all(),
       })
     },
     onError: () => {
-      toast.error(t('common.failed'))
+      toast.error(t('common.failed', 'Failed'))
     },
   })
 
@@ -147,10 +147,10 @@ export const SeasonCard = ({
     mutationKey: seasonQueryKeys.all(),
     mutationFn: (id: number) => chromeRpcClient.seasonRefresh({ id }),
     onSuccess: () => {
-      toast.success(t('common.success'))
+      toast.success(t('common.success', 'Success'))
     },
     onError: () => {
-      toast.error(t('common.failed'))
+      toast.error(t('common.failed', 'Failed'))
     },
   })
 
@@ -188,7 +188,7 @@ export const SeasonCard = ({
             items={[
               {
                 id: 'export',
-                label: t('danmaku.backup'),
+                label: t('danmaku.backup', 'Export Backup'),
                 icon: <FileDownload />,
                 onClick: () => {
                   exportDanmaku.mutate({
@@ -201,7 +201,7 @@ export const SeasonCard = ({
               },
               {
                 id: 'exportXml',
-                label: t('danmaku.exportXml'),
+                label: t('danmaku.exportXml', 'Export XML'),
                 icon: <FileDownload />,
                 onClick: () => {
                   exportXml.mutate({
@@ -214,7 +214,7 @@ export const SeasonCard = ({
               },
               {
                 id: 'delete',
-                label: t('common.delete'),
+                label: t('common.delete', 'Delete'),
                 icon: <Delete />,
                 loading: deleteEpisode.isPending,
                 onClick: () => {
@@ -240,7 +240,7 @@ export const SeasonCard = ({
           items={[
             {
               id: 'refresh',
-              label: t('anime.refreshMetadata'),
+              label: t('anime.refreshMetadata', 'Refresh Metadata'),
               icon: <Sync />,
               onClick: () => {
                 refreshMutation.mutate(season.id)
@@ -249,7 +249,7 @@ export const SeasonCard = ({
             },
             {
               id: 'export',
-              label: t('danmaku.backup'),
+              label: t('danmaku.backup', 'Export Backup'),
               icon: <FileDownload />,
               onClick: () => {
                 exportDanmaku.mutate({
@@ -262,7 +262,7 @@ export const SeasonCard = ({
             },
             {
               id: 'exportXml',
-              label: t('danmaku.exportXml'),
+              label: t('danmaku.exportXml', 'Export XML'),
               icon: <FileDownload />,
               onClick: () => {
                 exportXml.mutate({
@@ -275,7 +275,7 @@ export const SeasonCard = ({
             },
             {
               id: 'delete',
-              label: t('common.delete'),
+              label: t('common.delete', 'Delete'),
               icon: <Delete />,
               loading: deleteMutation.isPending,
               onClick: () => {

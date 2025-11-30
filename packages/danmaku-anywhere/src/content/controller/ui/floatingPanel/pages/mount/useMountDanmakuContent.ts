@@ -74,7 +74,7 @@ export const useMountDanmakuContent = () => {
     },
     onError: (e) => {
       toast.error(
-        t('danmaku.alert.mountError', {
+        t('danmaku.alert.mountError', 'Failed to mount danmaku: {{message}}', {
           message: (e as Error).message,
         })
       )

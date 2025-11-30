@@ -124,7 +124,7 @@ export const ImportConfigPage = () => {
         return (
           <>
             <Typography color="error.main" variant="subtitle1">
-              {t('error.unknown')}
+              {t('error.unknown', 'Something went wrong.')}
             </Typography>
             <PreFormat>{error?.message}</PreFormat>
           </>
@@ -142,13 +142,19 @@ export const ImportConfigPage = () => {
   return (
     <TabLayout>
       <TabToolbar
-        title={t('configPage.import.name')}
+        title={t('configPage.import.name', 'Import Config')}
         showBackButton
         onGoBack={goBack}
       />
       <Tabs value={tabValue} onChange={handleTabChange}>
-        <Tab label={t('configPage.import.presets')} value="presets" />
-        <Tab label={t('configPage.import.fileUpload')} value="upload" />
+        <Tab
+          label={t('configPage.import.presets', 'Presets')}
+          value="presets"
+        />
+        <Tab
+          label={t('configPage.import.fileUpload', 'Upload File')}
+          value="upload"
+        />
       </Tabs>
       <Divider />
       {tabValue === 'upload' && (
@@ -163,7 +169,7 @@ export const ImportConfigPage = () => {
       {tabValue === 'presets' && <PresetsList />}
       <ImportResultDialog
         open={showDialog}
-        title={t('configPage.import.name')}
+        title={t('configPage.import.name', 'Import Config')}
         onClose={handleCloseDialog}
         onImport={handleImport}
         disableImport={false}

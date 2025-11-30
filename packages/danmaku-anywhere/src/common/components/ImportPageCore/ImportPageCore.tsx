@@ -102,7 +102,7 @@ export const ImportPageCore = () => {
           return (
             <>
               <Typography color="error.main">
-                {t('importPage.parseError')}
+                {t('importPage.parseError', 'Failed to parse file')}
               </Typography>
               <PreFormat variant="error">{error.message}</PreFormat>
             </>
@@ -197,7 +197,7 @@ export const ImportPageCore = () => {
         return (
           <>
             <Typography color="error.main" variant="subtitle1">
-              {t('error.unknown')}
+              {t('error.unknown', 'Something went wrong.')}
             </Typography>
             <PreFormat variant="error">{importError?.message}</PreFormat>
           </>
@@ -210,10 +210,13 @@ export const ImportPageCore = () => {
 
   return (
     <TabLayout>
-      <TabToolbar title={t('importPage.import')} />
+      <TabToolbar title={t('importPage.import', 'Import Danmaku')} />
       <Box p={2}>
         <Typography variant="subtitle2" gutterBottom>
-          {t('importPage.importDesc')}
+          {t(
+            'importPage.importDesc',
+            'When importing local danmaku, file names will be used as episode names. Supports .json and .xml files'
+          )}
         </Typography>
         <FileUpload
           onFilesSelected={handleFilesSelected}
@@ -223,7 +226,7 @@ export const ImportPageCore = () => {
       </Box>
       <ImportResultDialog
         open={showDialog}
-        title={t('importPage.import')}
+        title={t('importPage.import', 'Import Danmaku')}
         onClose={handleDialogClose}
         onImport={handleImportClick}
         disableImport={isPending || isError}

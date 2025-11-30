@@ -64,7 +64,12 @@ export const SearchTab = () => {
   if (!enabledProviders.length) {
     return (
       <Center>
-        <Typography>{t('searchPage.error.noProviders')}</Typography>
+        <Typography>
+          {t(
+            'searchPage.error.noProviders',
+            'No danmaku sources enabled, please enable in settings'
+          )}
+        </Typography>
       </Center>
     )
   }

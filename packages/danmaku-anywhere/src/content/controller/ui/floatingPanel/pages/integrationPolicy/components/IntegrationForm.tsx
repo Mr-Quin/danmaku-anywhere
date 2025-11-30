@@ -38,7 +38,7 @@ export const IntegrationForm = ({ onOpenSelector }: IntegrationFormProps) => {
         render={({ field }) => {
           return (
             <TextField
-              label={t('integrationPolicyPage.editor.name')}
+              label={t('integrationPolicyPage.editor.name', 'Name')}
               variant="standard"
               fullWidth
               required
@@ -70,10 +70,16 @@ export const IntegrationForm = ({ onOpenSelector }: IntegrationFormProps) => {
           slots={{
             typography: FancyTypography,
           }}
-          label={t('integrationPolicyPage.editor.useAI')}
+          label={t(
+            'integrationPolicyPage.editor.useAI',
+            'Use AI (Experimental)'
+          )}
         />
         <FormHelperText>
-          {t('integrationPolicyPage.editor.helper.useAI')}
+          {t(
+            'integrationPolicyPage.editor.helper.useAI',
+            'Try to use AI to parse show information. If parsing fails, try manual configuration.'
+          )}
         </FormHelperText>
       </FormControl>
       <Collapse in={!useAI} unmountOnExit>

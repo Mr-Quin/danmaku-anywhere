@@ -19,7 +19,7 @@ export const ProviderConfigListItem = ({
     if (config.isBuiltIn) {
       return (
         <Chip
-          label={t('providers.builtin')}
+          label={t('providers.builtin', 'Built-in')}
           size="small"
           sx={{ mr: 1 }}
           color="primary"

@@ -57,8 +57,8 @@ export const CommentsTable = ({
   const headerCells = useMemo(
     () =>
       [
-        { id: 'time', label: t('common.time'), width: 56 },
-        { id: 'comment', label: t('danmaku.commentContent') },
+        { id: 'time', label: t('common.time', 'Time'), width: 56 },
+        { id: 'comment', label: t('danmaku.commentContent', 'Comment') },
       ] satisfies { id: 'time' | 'comment'; label: string; width?: number }[],
     [t]
   )
@@ -122,7 +122,7 @@ export const CommentsTable = ({
         </Typography>
         <FilterButton filter={filter} onChange={setFilter} />
         {showRefresh && (
-          <Tooltip title={t('danmaku.refresh')}>
+          <Tooltip title={t('danmaku.refresh', 'Refresh Danmaku')}>
             <IconButton
               color="primary"
               onClick={onRefresh}
@@ -169,7 +169,7 @@ export const CommentsTable = ({
             {sortedComments.length === 0 && (
               <TableRow>
                 <TableCell colSpan={2} align="center">
-                  {t('danmaku.noComments')}
+                  {t('danmaku.noComments', 'No comments')}
                 </TableCell>
               </TableRow>
             )}
@@ -240,7 +240,7 @@ export const CommentsTable = ({
                     </Typography>
                     {isHovering && (
                       <Stack direction="row" spacing={0.5}>
-                        <Tooltip title={t('common.copy')}>
+                        <Tooltip title={t('common.copy', 'copy')}>
                           <IconButton
                             size="small"
                             onClick={() =>
@@ -251,7 +251,7 @@ export const CommentsTable = ({
                           </IconButton>
                         </Tooltip>
                         {onFilterComment && (
-                          <Tooltip title={t('common.filter')}>
+                          <Tooltip title={t('common.filter', 'Filter')}>
                             <IconButton
                               size="small"
                               onClick={() => onFilterComment(comment.m)}

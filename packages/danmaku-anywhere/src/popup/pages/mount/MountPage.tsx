@@ -53,7 +53,7 @@ export const MountPage = (): ReactElement => {
     onSuccess: () => {
       setIsMounted(false)
       setFilter('')
-      toast.success(t('danmaku.alert.unmounted'))
+      toast.success(t('danmaku.alert.unmounted', 'Danmaku Unmounted'))
     },
     onError: (e) => {
       toast.error(`${(e as Error).message}`)

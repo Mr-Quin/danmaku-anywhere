@@ -61,7 +61,7 @@ export const PresetsList = () => {
       return combinedPolicyService.import(preset)
     },
     onSuccess: () => {
-      toast.success(t('common.success'))
+      toast.success(t('common.success', 'Success'))
     },
   })
 
@@ -96,17 +96,17 @@ export const PresetsList = () => {
   const columns: GridColDef[] = [
     {
       field: 'name',
-      headerName: t('configPage.editor.name'),
+      headerName: t('configPage.editor.name', 'Name'),
       flex: 1,
     },
     {
       field: 'description',
-      headerName: t('configPage.editor.description'),
+      headerName: t('configPage.editor.description', 'Description'),
       flex: 2,
     },
     {
       field: 'hasIntegration',
-      headerName: t('configPage.import.hasIntegration'),
+      headerName: t('configPage.import.hasIntegration', 'Includes Integration'),
       flex: 1,
       renderCell: (params) => {
         return params.value ? (
@@ -182,12 +182,15 @@ export const PresetsList = () => {
 
               {selectedPreset.integration && (
                 <Typography variant="subtitle1" gutterBottom>
-                  {t('configPage.import.hasIntegration')}
+                  {t(
+                    'configPage.import.hasIntegration',
+                    'Includes Integration'
+                  )}
                 </Typography>
               )}
 
               <Typography variant="subtitle1" gutterBottom>
-                {t('configPage.editor.urlPatterns')}
+                {t('configPage.editor.urlPatterns', 'URL Patterns')}
               </Typography>
               <PreFormat disableCopy>
                 {selectedPreset.patterns.map((pattern, i) => (
@@ -196,14 +199,16 @@ export const PresetsList = () => {
               </PreFormat>
             </DialogContent>
             <DialogActions>
-              <Button onClick={handleCloseDialog}>{t('common.cancel')}</Button>
+              <Button onClick={handleCloseDialog}>
+                {t('common.cancel', 'Cancel')}
+              </Button>
               <Button
                 onClick={handleImport}
                 variant="contained"
                 color="primary"
                 disabled={importMutation.isPending}
               >
-                {t('common.import')}
+                {t('common.import', 'Import')}
               </Button>
             </DialogActions>
           </>

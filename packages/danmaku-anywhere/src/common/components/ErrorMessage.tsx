@@ -26,7 +26,7 @@ export const ErrorMessage = ({
       {beforeContent}
       {showMessage ? (
         <>
-          <Typography>{t('error.unknown')}</Typography>
+          <Typography>{t('error.unknown', 'Something went wrong.')}</Typography>
           <Typography color="error">{message}</Typography>
         </>
       ) : null}

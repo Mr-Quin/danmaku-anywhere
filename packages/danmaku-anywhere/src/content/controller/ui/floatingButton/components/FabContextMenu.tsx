@@ -55,14 +55,14 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
       action: () => refreshComments(),
       disabled: () => !canRefresh || isLoading,
       icon: () => <Sync fontSize="small" />,
-      label: () => t('danmaku.refresh'),
+      label: () => t('danmaku.refresh', 'Refresh Danmaku'),
       hotkey: getKeyCombo('refreshComments'),
     },
     {
       action: () => unmountMutation.mutate(),
       disabled: () => !isMounted,
       icon: () => <Eject fontSize="small" />,
-      label: () => t('danmaku.unmount'),
+      label: () => t('danmaku.unmount', 'Unmount'),
       hotkey: getKeyCombo('unmountComments'),
     },
     {
@@ -73,14 +73,17 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
         ) : (
           <Visibility fontSize="small" />
         ),
-      label: () => (isVisible ? t('danmaku.disable') : t('danmaku.enable')),
+      label: () =>
+        isVisible
+          ? t('danmaku.disable', 'Hide Danmaku')
+          : t('danmaku.enable', 'Show Danmaku'),
       hotkey: getKeyCombo('toggleEnableDanmaku'),
     },
     {
       action: () => enterPip(),
       disabled: () => !hasVideo(),
       icon: () => <PictureInPicture fontSize="small" />,
-      label: () => t('common.pip'),
+      label: () => t('common.pip', 'Picture-in-Picture'),
       hotkey: getKeyCombo('togglePip'),
     },
   ]

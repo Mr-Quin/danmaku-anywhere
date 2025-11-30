@@ -21,7 +21,7 @@ export const LanguageListItem = () => {
         <TextField
           size="small"
           sx={{ width: 150 }}
-          label={t('optionsPage.language')}
+          label={t('optionsPage.language', 'Language')}
           value={data.lang}
           onChange={(e) => handleSelect(e.target.value as Language)}
           select
@@ -34,7 +34,7 @@ export const LanguageListItem = () => {
         </TextField>
       }
     >
-      <ListItemText primary={t('optionsPage.language')} />
+      <ListItemText primary={t('optionsPage.language', 'Language')} />
     </ListItem>
   )
 }

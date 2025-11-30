@@ -61,30 +61,30 @@ export const Options = () => {
           leftElement={
             searchParams.get('from') === 'content' ? false : undefined
           }
-          title={t('optionsPage.name')}
+          title={t('optionsPage.name', 'Options')}
         />
         <Version />
         <List disablePadding>
           <LanguageListItem />
           <OptionsListItem
-            title={t('optionsPage.pages.retentionPolicy')}
+            title={t('optionsPage.pages.retentionPolicy', 'Retention Policy')}
             onClick={() => navigate('retention-policy')}
           />
           <OptionsListItem
-            title={t('optionsPage.pages.hotkeys')}
+            title={t('optionsPage.pages.hotkeys', 'Hotkeys')}
             onClick={() => navigate('hotkeys')}
           />
 
           <OptionsListItem
-            title={t('optionsPage.pages.player')}
+            title={t('optionsPage.pages.player', 'Player Settings')}
             onClick={() => navigate('player')}
           />
           <OptionsListItem
-            title={t('optionsPage.pages.advanced')}
+            title={t('optionsPage.pages.advanced', 'Advanced')}
             onClick={() => navigate('advanced')}
           />
           <OptionsListItem
-            title={t('optionsPage.pages.help')}
+            title={t('optionsPage.pages.help', '关于')}
             onClick={() => navigate('help')}
           />
           <ListItem disablePadding>
@@ -93,7 +93,9 @@ export const Options = () => {
               href={`https://forms.clickup.com/90131020449/f/2ky3men1-933/ULQ3OZ8QYRXIJ5HACI?ID=${data.id}&Version=${EXTENSION_VERSION}`}
               target="_blank"
             >
-              <ListItemText>{t('optionsPage.help.reportBug')}</ListItemText>
+              <ListItemText>
+                {t('optionsPage.help.reportBug', 'Report Bug')}
+              </ListItemText>
               <Launch />
             </ListItemButton>
           </ListItem>
@@ -103,7 +105,9 @@ export const Options = () => {
               href={`https://forms.clickup.com/90131020449/f/2ky3men1-873/D9MSB7XJYAFS02Q9NO?ID=${data.id}&Version=${EXTENSION_VERSION}`}
               target="_blank"
             >
-              <ListItemText>{t('optionsPage.help.feedback')}</ListItemText>
+              <ListItemText>
+                {t('optionsPage.help.feedback', 'Provide feedback')}
+              </ListItemText>
               <Launch />
             </ListItemButton>
           </ListItem>

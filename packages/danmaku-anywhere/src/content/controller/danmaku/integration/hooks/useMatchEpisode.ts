@@ -17,9 +17,13 @@ export const useMatchEpisode = () => {
     },
     onError: (e) => {
       toast.error(
-        t('integration.alert.searchError', {
-          message: e.message,
-        })
+        t(
+          'integration.alert.searchError',
+          'Failed to search for anime: {{message}}',
+          {
+            message: e.message,
+          }
+        )
       )
     },
     onSuccess: (result, v) => {
@@ -35,10 +39,17 @@ export const useMatchEpisode = () => {
         }
         case 'notFound':
           toast.error(
-            t('integration.alert.searchResultEmpty', { title: v.title }),
+            t(
+              'integration.alert.searchResultEmpty',
+              'No anime found for {{title}}',
+              { title: v.title }
+            ),
             {
               actionFn: () => open({ tab: PopupTab.Search }),
-              actionLabel: t('integration.alert.openSearch'),
+              actionLabel: t(
+                'integration.alert.openSearch',
+                'Open search page'
+              ),
             }
           )
           break

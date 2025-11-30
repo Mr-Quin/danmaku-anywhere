@@ -38,17 +38,27 @@ export const MountConfigList = ({
 
   const handleDelete = (config: MountConfig) => {
     dialog.delete({
-      title: t('common.confirmDeleteTitle'),
-      content: t('common.confirmDeleteMessage', { name: config.name }),
-      confirmText: t('common.delete'),
+      title: t('common.confirmDeleteTitle', 'Confirm delete'),
+      content: t(
+        'common.confirmDeleteMessage',
+        'Are you sure you want to delete "{{name}}"?',
+        { name: config.name }
+      ),
+      confirmText: t('common.delete', 'Delete'),
       onConfirm: async () => {
         if (!config.id) return
         await remove.mutateAsync(config.id, {
           onSuccess: () => {
-            toast.success(t('configs.alert.deleted'))
+            toast.success(t('configs.alert.deleted', 'Config Deleted'))
           },
           onError: (e) => {
-            toast.error(t('configs.alert.deleteError', { message: e.message }))
+            toast.error(
+              t(
+                'configs.alert.deleteError',
+                'Failed to delete config: {{message}}',
+                { message: e.message }
+              )
+            )
           },
         })
       },
@@ -75,13 +85,13 @@ export const MountConfigList = ({
               <ListItemIcon>
                 <Delete />
               </ListItemIcon>
-              <ListItemText>{t('common.delete')}</ListItemText>
+              <ListItemText>{t('common.delete', 'Delete')}</ListItemText>
             </MenuItem>
             <MenuItem onClick={() => exportConfig.mutate(config.id)}>
               <ListItemIcon>
                 <ContentCopy />
               </ListItemIcon>
-              <ListItemText>{t('common.export')}</ListItemText>
+              <ListItemText>{t('common.export', 'Export')}</ListItemText>
             </MenuItem>
           </DrilldownMenu>
         </>

@@ -45,12 +45,15 @@ export const DanDanPlayProviderForm = ({
       alignItems="flex-start"
     >
       <TextField
-        label={t('providers.editor.name')}
+        label={t('providers.editor.name', 'Name')}
         size="small"
         {...register('name')}
         fullWidth
         disabled
-        helperText={t('providers.editor.helper.builtInName')}
+        helperText={t(
+          'providers.editor.helper.builtInName',
+          'Built-in provider names cannot be changed'
+        )}
       />
 
       <Controller
@@ -59,20 +62,23 @@ export const DanDanPlayProviderForm = ({
         render={({ field: { ref, ...field } }) => (
           <TextField
             {...field}
-            label={t('optionsPage.chConvert.name')}
+            label={t(
+              'optionsPage.chConvert.name',
+              'Simplified/Traditional Conversion'
+            )}
             size="small"
             select
             inputRef={ref}
             fullWidth
           >
             <MenuItem value={DanDanChConvert.None}>
-              {t('optionsPage.chConvert.none')}
+              {t('optionsPage.chConvert.none', 'No conversion')}
             </MenuItem>
             <MenuItem value={DanDanChConvert.Simplified}>
-              {t('optionsPage.chConvert.simplified')}
+              {t('optionsPage.chConvert.simplified', 'Convert to simplified')}
             </MenuItem>
             <MenuItem value={DanDanChConvert.Traditional}>
-              {t('optionsPage.chConvert.traditional')}
+              {t('optionsPage.chConvert.traditional', 'Convert to traditional')}
             </MenuItem>
           </TextField>
         )}

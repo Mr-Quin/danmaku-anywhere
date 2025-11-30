@@ -140,10 +140,10 @@ export const FileUpload = ({
         variant="h6"
         color={isDragging ? 'primary.main' : 'textSecondary'}
       >
-        {t('importPage.help.dragNDrop1')}
+        {t('importPage.help.dragNDrop1', 'Drag and drop files here')}
       </Typography>
       <Typography variant="body2" color="textSecondary">
-        {t('importPage.help.dragNDrop2')}
+        {t('importPage.help.dragNDrop2', 'Or click to select files')}
       </Typography>
     </StyledDropZone>
   )

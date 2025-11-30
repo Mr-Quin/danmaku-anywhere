@@ -50,7 +50,7 @@ export const TypeSelector = ({
 
   return (
     <>
-      <Tooltip title={t('common.filter')}>
+      <Tooltip title={t('common.filter', 'Filter')}>
         <IconButton ref={anchorRef} onClick={handleOpen} color="primary">
           <Badge
             variant="dot"

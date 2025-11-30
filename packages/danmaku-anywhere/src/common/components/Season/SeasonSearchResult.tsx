@@ -55,7 +55,7 @@ const SeasonSearchResultSuspense = ({
           size={200}
           beforeContent={
             <Button onClick={() => refetch()} variant="text">
-              {t('searchPage.retrySearch')}
+              {t('searchPage.retrySearch', 'Retry')}
             </Button>
           }
         />
@@ -64,7 +64,13 @@ const SeasonSearchResultSuspense = ({
   }
   if (result.data.length === 0) {
     return (
-      <NothingHere message={t('searchPage.error.noResultFound')} size={200} />
+      <NothingHere
+        message={t(
+          'searchPage.error.noResultFound',
+          'No results found, try a different search term'
+        )}
+        size={200}
+      />
     )
   }
   return (

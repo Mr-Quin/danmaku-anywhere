@@ -61,7 +61,7 @@ export const ReleaseNotes = () => {
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} color="success" variant="contained">
-          {t('common.acknowledge')}
+          {t('common.acknowledge', 'Ok')}
         </Button>
       </DialogActions>
     </Dialog>

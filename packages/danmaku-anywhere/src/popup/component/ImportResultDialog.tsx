@@ -106,8 +106,8 @@ export const ImportResultDialog = <T,>({
           disabled={status === 'uploading'}
         >
           {status === 'uploadSuccess' || status === 'error'
-            ? t('common.close')
-            : t('common.cancel')}
+            ? t('common.close', 'Close')
+            : t('common.cancel', 'Cancel')}
         </Button>
         {(status === 'confirmUpload' || status === 'uploading') && (
           <>
@@ -118,7 +118,7 @@ export const ImportResultDialog = <T,>({
               disabled={disableImport || status === 'uploading'}
               loading={status === 'uploading'}
             >
-              {t('importPage.confirm')}
+              {t('importPage.confirm', 'Confirm Import')}
             </Button>
           </>
         )}

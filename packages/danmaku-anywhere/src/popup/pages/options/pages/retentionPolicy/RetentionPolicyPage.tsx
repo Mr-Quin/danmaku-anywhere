@@ -58,7 +58,7 @@ export const RetentionPolicyPage = () => {
       reset(update)
     },
     onSuccess: () => {
-      toast.success(t('common.success'))
+      toast.success(t('common.success', 'Success'))
     },
   })
 
@@ -72,9 +72,13 @@ export const RetentionPolicyPage = () => {
     },
     onSuccess: (count) => {
       toast.success(
-        t('optionsPage.retentionPolicy.alert.nDanmakuDeleted', {
-          count,
-        })
+        t(
+          'optionsPage.retentionPolicy.alert.nDanmakuDeleted',
+          '{{count}} danmaku deleted',
+          {
+            count,
+          }
+        )
       )
     },
   })
@@ -94,7 +98,9 @@ export const RetentionPolicyPage = () => {
   return (
     <>
       <OptionsPageLayout>
-        <OptionsPageToolBar title={t('optionsPage.pages.retentionPolicy')} />
+        <OptionsPageToolBar
+          title={t('optionsPage.pages.retentionPolicy', 'Retention Policy')}
+        />
         <Box px={2}>
           <List>
             <ListItem disablePadding>
@@ -105,7 +111,12 @@ export const RetentionPolicyPage = () => {
                     alignItems="center"
                     justifyContent="space-between"
                   >
-                    <>{t('optionsPage.retentionPolicy.enabled')}</>
+                    <>
+                      {t(
+                        'optionsPage.retentionPolicy.enabled',
+                        'Enable Retention Policy'
+                      )}
+                    </>
                     <Controller
                       name="enabled"
                       control={control}
@@ -126,7 +137,12 @@ export const RetentionPolicyPage = () => {
                     alignItems="center"
                     justifyContent="space-between"
                   >
-                    <>{t('optionsPage.retentionPolicy.deleteCommentsAfter')}</>
+                    <>
+                      {t(
+                        'optionsPage.retentionPolicy.deleteCommentsAfter',
+                        'Delete comments older than'
+                      )}
+                    </>
                     <Controller
                       name="deleteCommentsAfter"
                       control={control}
@@ -166,9 +182,13 @@ export const RetentionPolicyPage = () => {
                     </>
                     {retentionPolicy.enabled && nextPurgeTime && (
                       <>
-                        {t('optionsPage.retentionPolicy.tooltip.nextPurge', {
-                          time: nextPurgeTime,
-                        })}
+                        {t(
+                          'optionsPage.retentionPolicy.tooltip.nextPurge',
+                          'Next purge at {{time}}',
+                          {
+                            time: nextPurgeTime,
+                          }
+                        )}
                       </>
                     )}
                   </>
@@ -183,7 +203,7 @@ export const RetentionPolicyPage = () => {
               variant="contained"
               disabled={!isDirty}
             >
-              {t('common.apply')}
+              {t('common.apply', 'Apply')}
             </Button>
             <Button
               onClick={() => purgeDanmaku()}
@@ -193,7 +213,7 @@ export const RetentionPolicyPage = () => {
               sx={{ ml: 'auto' }}
               disabled={isDirty}
             >
-              {t('optionsPage.retentionPolicy.purgeNow')}
+              {t('optionsPage.retentionPolicy.purgeNow', 'Purge Now')}
             </Button>
           </Stack>
         </Box>

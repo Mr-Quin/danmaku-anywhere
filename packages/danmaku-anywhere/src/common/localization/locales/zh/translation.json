@@ -72,7 +72,7 @@
     "name": "装填配置",
     "showIntegration": "查看适配规则"
   },
-  "configPage.editor.pattern.add": "",
+  "configPage.editor.pattern.add": "添加模式",
   "configs": {
     "alert": {
       "created": "配置已创建",
@@ -89,7 +89,7 @@
       "mounted_other": "弹幕已装填：{{name}} ({{count}})",
       "mountedMultiple_other": "已装填{{count}}个多选弹幕",
       "mountError": "装填弹幕失败：{{message}}",
-      "multipleFrames": "",
+      "multipleFrames": "检测到多个含有视频的Frame",
       "refreshed_other": "弹幕已刷新：{{name}} ({{count}})",
       "refreshingDanmaku": "正在刷新弹幕",
       "unmounted": "弹幕已卸载"
@@ -347,8 +347,8 @@
     "title": "番剧标题",
     "titleMapping": "标题映射"
   },
-  "searchPage.titleMapping.confirmation": "",
-  "searchPage.titleMapping.searchOnly": "",
+  "searchPage.titleMapping.confirmation": "是否将`{{original}}` 映射为 `{{mapped}}` ?",
+  "searchPage.titleMapping.searchOnly": "不映射，仅搜索",
   "selectorPage": {
     "noAnimeFound": "没有可供选择的内容",
     "selectAnime": "找到多个匹配项：{{name}}，请选择"
@@ -392,8 +392,8 @@
     },
     "trackHeight": "弹幕行高"
   },
-  "stylePage.specialDanmaku.showBottom": "",
-  "stylePage.specialDanmaku.showTop": "",
+  "stylePage.specialDanmaku.showBottom": "显示底部弹幕",
+  "stylePage.specialDanmaku.showTop": "显示顶部弹幕",
   "tabs": {
     "config": "装填配置",
     "danmaku": "弹幕列表",

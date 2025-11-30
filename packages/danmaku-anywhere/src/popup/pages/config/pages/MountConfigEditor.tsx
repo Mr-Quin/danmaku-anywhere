@@ -124,7 +124,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
         { id: config.id, config: toUpdate },
         {
           onSuccess: () => {
-            toast.success(t('configs.alert.updated'))
+            toast.success(t('configs.alert.updated', 'Config Updated'))
             goBack()
           },
           onError: (error) => {
@@ -135,7 +135,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
     }
     return create.mutate(toUpdate, {
       onSuccess: () => {
-        toast.success(t('configs.alert.created'))
+        toast.success(t('configs.alert.created', 'Config Created'))
         goBack()
       },
       onError: (error) => {
@@ -149,19 +149,24 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
       <OptionsPageToolBar
         title={
           isEdit
-            ? t('configPage.editor.title.edit', { name: config.name })
-            : t('configPage.editor.title.create')
+            ? t('configPage.editor.title.edit', 'Edit {{name}}', {
+                name: config.name,
+              })
+            : t('configPage.editor.title.create', 'Add Config')
         }
       />
       <Box p={2} component="form" onSubmit={handleSubmit(handleSave)}>
         <Stack direction="column" spacing={2} alignItems="flex-start">
           <Collapse in={isPermissive} sx={{ width: 1 }}>
             <Alert severity="warning">
-              {t('configPage.editor.tooPermissive')}
+              {t(
+                'configPage.editor.tooPermissive',
+                "The match patterns are too permissive, it's recommended to use narrower patterns."
+              )}
             </Alert>
           </Collapse>
           <TextField
-            label={t('configPage.editor.name')}
+            label={t('configPage.editor.name', 'Name')}
             size="small"
             error={!!errors.name}
             {...register('name', { required: true })}
@@ -169,13 +174,16 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
             required
           />
           <TextField
-            label={t('configPage.editor.mediaQuery')}
+            label={t('configPage.editor.mediaQuery', 'Video Node')}
             size="small"
             error={!!errors.mediaQuery}
             helperText={
               errors.mediaQuery
                 ? errors.mediaQuery?.message
-                : t('configPage.editor.helper.mediaQuery')
+                : t(
+                    'configPage.editor.helper.mediaQuery',
+                    'CSS selector for the video node, normally "video"'
+                  )
             }
             {...register('mediaQuery', { required: true })}
             fullWidth
@@ -187,12 +195,15 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
             render={({ field: { ref, ...field } }) => (
               <TextField
                 {...field}
-                label={t('integration.name')}
+                label={t('integration.name', 'Integration')}
                 size="small"
                 select
                 inputRef={ref}
                 fullWidth
-                helperText={t('configPage.editor.helper.integration')}
+                helperText={t(
+                  'configPage.editor.helper.integration',
+                  'Enables the selected Integration Policy for this configuration. If you are not sure, leave it as None.'
+                )}
               >
                 {policies.map((policy) => (
                   <MenuItem value={policy.id} key={policy.id}>
@@ -201,16 +212,19 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
                 ))}
                 {/*  Extra menu item for 'none', the special string is converted to undefined */}
                 <MenuItem value={emptyIntegrationValue}>
-                  {t('integration.type.None')}
+                  {t('integration.type.None', 'None')}
                 </MenuItem>
               </TextField>
             )}
           />
           <Typography variant="body2" color="textSecondary">
-            {t('configPage.editor.urlPatterns')}
+            {t('configPage.editor.urlPatterns', 'URL Patterns')}
           </Typography>
           <FormHelperText>
-            {t('configPage.editor.helper.urlPattern')}
+            {t(
+              'configPage.editor.helper.urlPattern',
+              'URL pattern to match the page. Format: https://example.com/*.'
+            )}
           </FormHelperText>
           {fields.map((field, index, arr) => (
             <Stack
@@ -221,7 +235,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
               sx={{ alignSelf: 'stretch' }}
             >
               <TextField
-                label={`${t('configPage.editor.pattern')} ${index + 1}`}
+                label={`${t('configPage.editor.pattern', 'Pattern')} ${index + 1}`}
                 error={!!errors.patterns?.[index]}
                 helperText={errors.patterns?.[index]?.value?.message}
                 size="small"
@@ -243,7 +257,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
             </Stack>
           ))}
           <Button onClick={addPatternField} startIcon={<AddCircleOutline />}>
-            {t('configPage.editor.pattern.add')}
+            {t('configPage.editor.pattern.add', 'Add Pattern')}
           </Button>
           <Stack
             direction="row"
@@ -267,7 +281,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
                     )}
                   />
                 }
-                label={t('common.enable')}
+                label={t('common.enable', 'Enable')}
               />
             </FormControl>
             <div>
@@ -278,7 +292,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
                   disabled={isSubmitting}
                   sx={{ mr: 2 }}
                 >
-                  {t('common.reset')}
+                  {t('common.reset', 'Reset')}
                 </Button>
               )}
               <Button
@@ -287,7 +301,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
                 type="submit"
                 loading={isSubmitting}
               >
-                {t('common.save')}
+                {t('common.save', 'Save')}
               </Button>
             </div>
           </Stack>

@@ -21,7 +21,7 @@ export const ExportAllDanmakuButton = () => {
       items={[
         {
           id: 'backup',
-          label: t('danmakuPage.backupAll'),
+          label: t('danmakuPage.backupAll', 'Export All as Backup'),
           icon: <Download />,
           onClick: () =>
             exportDanmaku.mutate({
@@ -33,7 +33,7 @@ export const ExportAllDanmakuButton = () => {
         },
         {
           id: 'exportXml',
-          label: t('danmakuPage.exportAllXml'),
+          label: t('danmakuPage.exportAllXml', 'Export All as XML'),
           icon: <Download />,
           onClick: () =>
             exportXml.mutate({

@@ -13,13 +13,13 @@ export const useRefreshSeason = () => {
     mutationKey: seasonQueryKeys.all(),
     mutationFn: (id: number) => chromeRpcClient.seasonRefresh({ id }),
     onSuccess: () => {
-      toast.success(t('common.success'))
+      toast.success(t('common.success', 'Success'))
       void queryClient.invalidateQueries({
         queryKey: seasonQueryKeys.all(),
       })
     },
     onError: () => {
-      toast.error(t('common.failed'))
+      toast.error(t('common.failed', 'Failed'))
     },
   })
 }

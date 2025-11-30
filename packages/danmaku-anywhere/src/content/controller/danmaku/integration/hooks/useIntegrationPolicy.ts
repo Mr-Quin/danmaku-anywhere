@@ -47,7 +47,9 @@ export const useIntegrationPolicy = () => {
     toggleManualMode(false)
 
     toast.info(
-      t('integration.alert.usingIntegration', { name: integrationPolicy.name })
+      t('integration.alert.usingIntegration', 'Using Integration: {{name}}', {
+        name: integrationPolicy.name,
+      })
     )
     Logger.debug(`Using integration: ${integrationPolicy.name}`)
   }, [integrationPolicy])
@@ -67,7 +69,12 @@ export const useIntegrationPolicy = () => {
       isConfigPermissive(activeConfig) &&
       integrationPolicy.policy.options.useAI
     ) {
-      toast.warn(t('integration.alert.aiDisabledTooPermissive'))
+      toast.warn(
+        t(
+          'integration.alert.aiDisabledTooPermissive',
+          'AI is disabled because the match pattern is too permissive'
+        )
+      )
       return
     }
 
@@ -84,7 +91,9 @@ export const useIntegrationPolicy = () => {
           })
           if (observer.current?.policy.options.useAI) {
             toast.success(
-              t('integration.alert.AIResult', { title: state.toString() })
+              t('integration.alert.AIResult', 'AI Parsing Result: {{title}}', {
+                title: state.toString(),
+              })
             )
           }
           if (useStore.getState().danmaku.isMounted) {
@@ -99,7 +108,11 @@ export const useIntegrationPolicy = () => {
             episodeNumber: state.episode,
           }
 
-          toast.info(t('integration.alert.search', { title: state.toString() }))
+          toast.info(
+            t('integration.alert.search', 'Searching for anime: {{title}}', {
+              title: state.toString(),
+            })
+          )
 
           matchEpisode.mutate(episodeMatchPayload, {
             onSuccess: (result) => {
@@ -107,7 +120,12 @@ export const useIntegrationPolicy = () => {
                 return
               }
               if (result.data.data.provider === DanmakuSourceType.MacCMS) {
-                toast.success(t('integration.alert.matchedLocalDanmaku'))
+                toast.success(
+                  t(
+                    'integration.alert.matchedLocalDanmaku',
+                    'Matched local danmaku'
+                  )
+                )
                 void mountDanmaku([result.data.data])
               } else {
                 loadMutation.mutate(
@@ -121,9 +139,13 @@ export const useIntegrationPolicy = () => {
                   {
                     onError: () => {
                       toast.error(
-                        t('danmaku.alert.fetchError', {
-                          message: episodeMatchPayload.title,
-                        })
+                        t(
+                          'danmaku.alert.fetchError',
+                          'Failed to fetch danmaku: {{message}}',
+                          {
+                            message: episodeMatchPayload.title,
+                          }
+                        )
                       )
                     },
                   }
@@ -143,7 +165,9 @@ export const useIntegrationPolicy = () => {
       })
 
       if (integrationPolicy.policy.options.useAI) {
-        toast.info(t('integration.alert.usingAI'))
+        toast.info(
+          t('integration.alert.usingAI', 'Using AI to parse show information')
+        )
       }
     }
 

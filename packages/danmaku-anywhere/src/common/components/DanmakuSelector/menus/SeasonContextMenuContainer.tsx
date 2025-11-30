@@ -38,9 +38,12 @@ export const SeasonContextMenuContainer = ({
 
   const handleDelete = () => {
     dialog.delete({
-      title: t('common.confirmDeleteTitle'),
-      content: t('danmakuPage.confirmDeleteMessage'),
-      confirmText: t('common.delete'),
+      title: t('common.confirmDeleteTitle', 'Confirm delete'),
+      content: t(
+        'danmakuPage.confirmDeleteMessage',
+        'Are you sure to delete the selected Danmaku?'
+      ),
+      confirmText: t('common.delete', 'Delete'),
       onConfirm: async () => {
         if (isNotCustom(season)) {
           await deleteSeasonMutation.mutateAsync(season.id)

@@ -106,7 +106,7 @@ export const XPathEditor = ({ onOpenSelector }: XPathEditorProps) => {
   return (
     <>
       <CollapsableSection
-        name={t('integrationPolicyPage.editor.advanced')}
+        name={t('integrationPolicyPage.editor.advanced', 'Advanced Options')}
         initialOpen={false}
       >
         <FormControl>
@@ -125,19 +125,27 @@ export const XPathEditor = ({ onOpenSelector }: XPathEditorProps) => {
                 )}
               />
             }
-            label={t('integrationPolicyPage.editor.titleOnly')}
+            label={t(
+              'integrationPolicyPage.editor.titleOnly',
+              'Match title only'
+            )}
           />
           <FormHelperText>
-            {t('integrationPolicyPage.editor.helper.titleOnly')}
+            {t(
+              'integrationPolicyPage.editor.helper.titleOnly',
+              "If checked, only the title node will be used to match the show. Useful if all information is contained in the title, e.g. if the title is the file name. Uncheck if the show's information is spread across different nodes."
+            )}
           </FormHelperText>
         </FormControl>
       </CollapsableSection>
 
       {/* Title */}
-      <CollapsableSection name={t('integrationPolicyPage.editor.titleSection')}>
+      <CollapsableSection
+        name={t('integrationPolicyPage.editor.titleSection', 'Select Title')}
+      >
         <InputFieldArray
           name="policy.title.selector"
-          label={t('integrationPolicyPage.editor.titleSelector')}
+          label={t('integrationPolicyPage.editor.titleSelector', 'Title XPath')}
           getErrorMessage={(errors, i) =>
             errors.policy?.title?.selector?.[i]?.message
           }
@@ -146,7 +154,7 @@ export const XPathEditor = ({ onOpenSelector }: XPathEditorProps) => {
         />
         <InputFieldArray
           name="policy.title.regex"
-          label={t('integrationPolicyPage.editor.titleRegex')}
+          label={t('integrationPolicyPage.editor.titleRegex', 'Title Regex')}
           getErrorMessage={(errors, i) =>
             errors.policy?.title?.regex?.[i]?.message
           }
@@ -159,10 +167,15 @@ export const XPathEditor = ({ onOpenSelector }: XPathEditorProps) => {
       </CollapsableSection>
 
       {/*Season Number*/}
-      <CollapsableSection name={t('integrationPolicyPage.editor.season')}>
+      <CollapsableSection
+        name={t('integrationPolicyPage.editor.season', 'Select Season')}
+      >
         <InputFieldArray
           name="policy.season.selector"
-          label={t('integrationPolicyPage.editor.seasonSelector')}
+          label={t(
+            'integrationPolicyPage.editor.seasonSelector',
+            'Season XPath'
+          )}
           getErrorMessage={(errors, i) =>
             errors.policy?.season?.selector?.[i]?.message
           }
@@ -171,7 +184,7 @@ export const XPathEditor = ({ onOpenSelector }: XPathEditorProps) => {
         />
         <InputFieldArray
           name="policy.season.regex"
-          label={t('integrationPolicyPage.editor.seasonRegex')}
+          label={t('integrationPolicyPage.editor.seasonRegex', 'Season Regex')}
           getErrorMessage={(errors, i) =>
             errors.policy?.season?.regex?.[i]?.message
           }
@@ -182,10 +195,15 @@ export const XPathEditor = ({ onOpenSelector }: XPathEditorProps) => {
         />
       </CollapsableSection>
       {/*Episode Number*/}
-      <CollapsableSection name={t('integrationPolicyPage.editor.episode')}>
+      <CollapsableSection
+        name={t('integrationPolicyPage.editor.episode', 'Select Episode')}
+      >
         <InputFieldArray
           name="policy.episode.selector"
-          label={t('integrationPolicyPage.editor.episodeSelector')}
+          label={t(
+            'integrationPolicyPage.editor.episodeSelector',
+            'Episode XPath'
+          )}
           getErrorMessage={(errors, i) =>
             errors.policy?.episode?.selector?.[i]?.message
           }
@@ -194,7 +212,10 @@ export const XPathEditor = ({ onOpenSelector }: XPathEditorProps) => {
         />
         <InputFieldArray
           name="policy.episode.regex"
-          label={t('integrationPolicyPage.editor.episodeRegex')}
+          label={t(
+            'integrationPolicyPage.editor.episodeRegex',
+            'Episode Regex'
+          )}
           getErrorMessage={(errors, i) =>
             errors.policy?.episode?.regex?.[i]?.message
           }
@@ -205,10 +226,18 @@ export const XPathEditor = ({ onOpenSelector }: XPathEditorProps) => {
         />
       </CollapsableSection>
       {/*Episode Title*/}
-      <CollapsableSection name={t('integrationPolicyPage.editor.episodeTitle')}>
+      <CollapsableSection
+        name={t(
+          'integrationPolicyPage.editor.episodeTitle',
+          'Select Episode Title'
+        )}
+      >
         <InputFieldArray
           name="policy.episodeTitle.selector"
-          label={t('integrationPolicyPage.editor.episodeTitleSelector')}
+          label={t(
+            'integrationPolicyPage.editor.episodeTitleSelector',
+            'Episode Title XPath'
+          )}
           getErrorMessage={(errors, i) =>
             errors.policy?.episodeTitle?.selector?.[i]?.message
           }
@@ -217,7 +246,10 @@ export const XPathEditor = ({ onOpenSelector }: XPathEditorProps) => {
         />
         <InputFieldArray
           name="policy.episodeTitle.regex"
-          label={t('integrationPolicyPage.editor.episodeTitleRegex')}
+          label={t(
+            'integrationPolicyPage.editor.episodeTitleRegex',
+            'Episode Title Regex'
+          )}
           getErrorMessage={(errors, i) =>
             errors.policy?.episodeTitle?.regex?.[i]?.message
           }

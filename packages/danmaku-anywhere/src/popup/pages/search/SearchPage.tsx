@@ -17,8 +17,8 @@ export const SearchPage = () => {
     <TabLayout ref={layoutRef}>
       <TabToolbar>
         <Tabs value={tab} onChange={(_, newValue) => setTab(newValue)}>
-          <Tab label={t('searchPage.name')} value="search" />
-          <Tab label={t('searchPage.parse.name')} value="parse" />
+          <Tab label={t('searchPage.name', 'Search Anime')} value="search" />
+          <Tab label={t('searchPage.parse.name', 'Parse URL')} value="parse" />
         </Tabs>
       </TabToolbar>
       {tab === 'search' && <SearchTab />}

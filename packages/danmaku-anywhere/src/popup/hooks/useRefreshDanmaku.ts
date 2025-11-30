@@ -24,10 +24,14 @@ export const useRefreshDanmaku = () => {
       {
         onSuccess: (result) => {
           toast.success(
-            t('danmaku.alert.refreshed', {
-              name: `${episode.season.title} - ${episode.title}`,
-              count: result.commentCount,
-            })
+            t(
+              'danmaku.alert.refreshed',
+              'Danmaku Refreshed: {{name}} ({{count}})',
+              {
+                name: `${episode.season.title} - ${episode.title}`,
+                count: result.commentCount,
+              }
+            )
           )
         },
       }

@@ -45,7 +45,7 @@ export const MountPageBottomBar = ({
               {t('common.cancel', 'Cancel')}
             </Button>
             <Typography variant="caption" color="text.secondary" lineHeight={1}>
-              {t('mountPage.selectedCount', {
+              {t('mountPage.selectedCount', '{{count}} selected', {
                 count: selectionCount,
               })}
             </Typography>
@@ -58,7 +58,7 @@ export const MountPageBottomBar = ({
               size="small"
               disabled={selectionCount === 0 || isMounting}
             >
-              {t('danmaku.mountShort')}
+              {t('danmaku.mountShort', 'Mount')}
             </Button>
             {onExport && (
               <Button

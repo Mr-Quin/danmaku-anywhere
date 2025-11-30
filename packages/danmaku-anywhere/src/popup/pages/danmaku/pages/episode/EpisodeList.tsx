@@ -103,7 +103,7 @@ export const EpisodeList = () => {
   const columns: GridColDef<EpisodeRow>[] = [
     {
       field: 'title',
-      headerName: t('anime.title'),
+      headerName: t('anime.title', 'Title'),
       flex: 1,
       minWidth: 200,
       renderCell: (params) => {
@@ -176,7 +176,7 @@ export const EpisodeList = () => {
                   : [
                       {
                         id: 'refresh',
-                        label: t('danmaku.refresh'),
+                        label: t('danmaku.refresh', 'Refresh Danmaku'),
                         icon: <Sync />,
                         onClick: () => handleFetchDanmaku(episode),
                         disabled: isPending,
@@ -185,7 +185,7 @@ export const EpisodeList = () => {
                     ]),
                 {
                   id: 'backup',
-                  label: t('danmaku.backup'),
+                  label: t('danmaku.backup', 'Export Backup'),
                   icon: <Download />,
                   onClick: () => handleBackup(episode),
                   disabled: exportDanmaku.isPending,
@@ -193,7 +193,7 @@ export const EpisodeList = () => {
                 },
                 {
                   id: 'exportXml',
-                  label: t('danmaku.exportXml'),
+                  label: t('danmaku.exportXml', 'Export XML'),
                   icon: <Download />,
                   onClick: () => handleExportXml(episode),
                   disabled: exportXml.isPending,
@@ -201,7 +201,7 @@ export const EpisodeList = () => {
                 },
                 {
                   id: 'delete',
-                  label: t('common.delete'),
+                  label: t('common.delete', 'Delete'),
                   icon: <Delete />,
                   onClick: () => handleDelete(episode),
                   disabled: deleteMutation.isPending,

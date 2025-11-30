@@ -14,7 +14,7 @@ export const HotkeyOptions = () => {
 
   return (
     <OptionsPageLayout>
-      <OptionsPageToolBar title={t('optionsPage.pages.hotkeys')} />
+      <OptionsPageToolBar title={t('optionsPage.pages.hotkeys', 'Hotkeys')} />
       <Box px={2}>
         <List>
           {allHotkeys.map((label) => {

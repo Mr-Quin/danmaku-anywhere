@@ -67,9 +67,13 @@ export const SelectorPage = () => {
             },
             onError: () => {
               toast.error(
-                t('danmaku.alert.fetchError', {
-                  message: selectedSeason.title,
-                })
+                t(
+                  'danmaku.alert.fetchError',
+                  'Failed to fetch danmaku: {{message}}',
+                  {
+                    message: selectedSeason.title,
+                  }
+                )
               )
             },
           }
@@ -81,7 +85,9 @@ export const SelectorPage = () => {
   if (animes.length === 0) {
     return (
       <Box p={2}>
-        <Typography variant="h6">{t('selectorPage.noAnimeFound')}</Typography>
+        <Typography variant="h6">
+          {t('selectorPage.noAnimeFound', 'Nothing to select from')}
+        </Typography>
       </Box>
     )
   }
@@ -90,7 +96,11 @@ export const SelectorPage = () => {
     <Box flexGrow={1}>
       <Box p={2}>
         <Typography variant="body1">
-          {t('selectorPage.selectAnime', { name: mediaInfo?.toString() })}
+          {t(
+            'selectorPage.selectAnime',
+            'Multiple matches found for {{name}}, please select',
+            { name: mediaInfo?.toString() }
+          )}
         </Typography>
         <SeasonGrid
           data={animes}
@@ -116,7 +126,7 @@ export const SelectorPage = () => {
             onClick={handleApply}
             disabled={!selectedSeason}
           >
-            {t('common.apply')}
+            {t('common.apply', 'Apply')}
           </Button>
         </Stack>
       </Box>

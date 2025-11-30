@@ -131,7 +131,12 @@ export const SearchPage = (): React.ReactElement | null => {
     return (
       <Box flexGrow={1}>
         <Center>
-          <Typography>{t('searchPage.error.noProviders')}</Typography>
+          <Typography>
+            {t(
+              'searchPage.error.noProviders',
+              'No danmaku sources enabled, please enable in settings'
+            )}
+          </Typography>
         </Center>
       </Box>
     )
@@ -153,8 +158,8 @@ export const SearchPage = (): React.ReactElement | null => {
     <TabLayout>
       <TabToolbar>
         <Tabs value={tab} onChange={(_, newValue) => setTab(newValue)}>
-          <Tab label={t('searchPage.name')} value="search" />
-          <Tab label={t('searchPage.parse.name')} value="parse" />
+          <Tab label={t('searchPage.name', 'Search Anime')} value="search" />
+          <Tab label={t('searchPage.parse.name', 'Parse URL')} value="parse" />
         </Tabs>
       </TabToolbar>
       {tab === 'search' && (

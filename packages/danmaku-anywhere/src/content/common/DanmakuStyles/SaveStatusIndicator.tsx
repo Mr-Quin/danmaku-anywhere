@@ -17,19 +17,19 @@ export const SaveStatusIndicator = ({ status }: SaveStatusIndicatorProps) => {
           icon: (
             <Sync sx={{ fontSize: 16, animation: 'spin 1s linear infinite' }} />
           ),
-          text: t('common.saving'),
+          text: t('common.saving', 'Saving...'),
           color: 'primary.main',
         }
       case 'saved':
         return {
           icon: <CheckCircle sx={{ fontSize: 16 }} />,
-          text: t('common.saved'),
+          text: t('common.saved', 'Saved'),
           color: 'success.main',
         }
       default:
         return {
           icon: <Save sx={{ fontSize: 16 }} />,
-          text: t('common.autoSave'),
+          text: t('common.autoSave', 'Auto-save'),
           color: 'text.secondary',
         }
     }

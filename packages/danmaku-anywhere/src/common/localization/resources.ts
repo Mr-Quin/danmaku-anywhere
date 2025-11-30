@@ -1,5 +1,5 @@
-import enTranslation from './en/translation'
-import zhTranslation from './zh/translation'
+import enTranslation from './locales/en/translation.json' with { type: 'json' }
+import zhTranslation from './locales/zh/translation.json' with { type: 'json' }
 
 export const resources = {
   en: {

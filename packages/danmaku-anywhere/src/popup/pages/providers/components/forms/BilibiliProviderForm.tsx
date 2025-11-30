@@ -51,17 +51,23 @@ export const BilibiliProviderForm = ({
       alignItems="flex-start"
     >
       <TextField
-        label={t('providers.editor.name')}
+        label={t('providers.editor.name', 'Name')}
         size="small"
         {...register('name')}
         fullWidth
         disabled
-        helperText={t('providers.editor.helper.builtInName')}
+        helperText={t(
+          'providers.editor.helper.builtInName',
+          'Built-in provider names cannot be changed'
+        )}
       />
 
       <FormControl fullWidth>
         <FormLabel>
-          {t('optionsPage.danmakuSource.bilibili.danmakuTypePreference')}
+          {t(
+            'optionsPage.danmakuSource.bilibili.danmakuTypePreference',
+            'Danmaku Type Preference'
+          )}
         </FormLabel>
         <Controller
           name="options.danmakuTypePreference"
