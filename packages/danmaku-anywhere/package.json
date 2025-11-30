@@ -25,7 +25,8 @@
     "package": "node ./scripts/package.js",
     "package:firefox": "VITE_TARGET_BROWSER=firefox pnpm run package",
     "tsc": "tsc",
-    "i18n": "i18next-cli"
+    "i18n": "i18next-cli",
+    "i18n:check": "i18next-cli extract --ci"
   },
   "dependencies": {
     "@danmaku-anywhere/danmaku-converter": "workspace:*",
