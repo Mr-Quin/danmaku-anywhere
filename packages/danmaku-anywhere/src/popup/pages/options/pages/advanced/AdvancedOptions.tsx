@@ -11,7 +11,7 @@ export const AdvancedOptions = () => {
 
   return (
     <OptionsPageLayout>
-      <OptionsPageToolBar title={t('optionsPage.pages.advanced')} />
+      <OptionsPageToolBar title={t('optionsPage.pages.advanced', 'Advanced')} />
       {settingConfigs.advanced.map((config) => (
         <DeclarativeToggleSetting
           key={config.id}

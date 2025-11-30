@@ -32,43 +32,43 @@ export const Home = () => {
           }}
         >
           <Tab
-            label={t('tabs.mount')}
+            label={t('tabs.mount', 'Library')}
             value="/mount"
             to="/mount"
             component={Link}
           />
           <Tab
-            label={t('tabs.search')}
+            label={t('tabs.search', 'Search')}
             value="/search"
             to="/search"
             component={Link}
           />
           <Tab
-            label={t('tabs.danmaku')}
+            label={t('tabs.danmaku', 'Danmaku')}
             value="/danmaku"
             to="/danmaku"
             component={Link}
           />
           <Tab
-            label={t('tabs.style')}
+            label={t('tabs.style', 'Danmaku Settings')}
             value="/styles"
             to="/styles"
             component={Link}
           />
           <Tab
-            label={t('tabs.config')}
+            label={t('tabs.config', 'Config')}
             value="/config"
             to="/config"
             component={Link}
           />
           <Tab
-            label={t('tabs.providers')}
+            label={t('tabs.providers', 'Providers')}
             value="/providers"
             to="/providers"
             component={Link}
           />
           <Tab
-            label={t('tabs.import')}
+            label={t('tabs.import', 'Import Danmaku')}
             value="/import"
             to="/import"
             component={Link}

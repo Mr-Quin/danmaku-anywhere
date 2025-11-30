@@ -11,7 +11,9 @@ export const PlayerOptions = () => {
 
   return (
     <OptionsPageLayout>
-      <OptionsPageToolBar title={t('optionsPage.pages.player')} />
+      <OptionsPageToolBar
+        title={t('optionsPage.pages.player', 'Player Settings')}
+      />
       {settingConfigs.player.map((config) => (
         <DeclarativeToggleSetting
           key={config.id}

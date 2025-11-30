@@ -20,7 +20,10 @@ export const ShowSkipButtonListItem = () => {
     <ToggleListItemButton
       enabled={data.playerOptions.showSkipButton}
       onToggle={handleToggle}
-      itemText={t('optionsPage.player.showSkipButton')}
+      itemText={t(
+        'optionsPage.player.showSkipButton',
+        'Show skip button (OP/ED)'
+      )}
       isLoading={isLoading}
     />
   )

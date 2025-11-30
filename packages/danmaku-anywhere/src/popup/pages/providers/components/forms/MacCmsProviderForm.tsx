@@ -61,7 +61,10 @@ export const MacCmsProviderForm = ({
     if (!isUnique) {
       setError('id', {
         type: 'manual',
-        message: t('providers.editor.error.idExists'),
+        message: t(
+          'providers.editor.error.idExists',
+          'This ID is already in use. Please use a different ID'
+        ),
       })
       return
     }
@@ -83,10 +86,16 @@ export const MacCmsProviderForm = ({
       alignItems="flex-start"
     >
       <TextField
-        label={t('providers.editor.id')}
+        label={t('providers.editor.id', 'ID')}
         size="small"
         error={!!errors.id}
-        helperText={errors.id?.message || t('providers.editor.helper.id')}
+        helperText={
+          errors.id?.message ||
+          t(
+            'providers.editor.helper.id',
+            'Unique identifier for this provider. Deleting and recreating with the same ID will reuse previous anime data'
+          )
+        }
         {...register('id')}
         fullWidth
         required
@@ -94,7 +103,7 @@ export const MacCmsProviderForm = ({
       />
 
       <TextField
-        label={t('providers.editor.name')}
+        label={t('providers.editor.name', 'Name')}
         size="small"
         error={!!errors.name}
         helperText={errors.name?.message}
@@ -117,7 +126,10 @@ export const MacCmsProviderForm = ({
               <TextField
                 {...params}
                 inputRef={ref}
-                label={t('optionsPage.danmakuSource.macCms.baseUrl')}
+                label={t(
+                  'optionsPage.danmakuSource.macCms.baseUrl',
+                  'Mac CMS API Base URL'
+                )}
                 size="small"
                 error={!!errors.options?.danmakuBaseUrl}
                 helperText={errors.options?.danmakuBaseUrl?.message}
@@ -142,7 +154,10 @@ export const MacCmsProviderForm = ({
               <TextField
                 {...params}
                 inputRef={ref}
-                label={t('optionsPage.danmakuSource.macCms.danmuicuBaseUrl')}
+                label={t(
+                  'optionsPage.danmakuSource.macCms.danmuicuBaseUrl',
+                  'Danmaku API Base URL'
+                )}
                 size="small"
                 error={!!errors.options?.danmuicuBaseUrl}
                 helperText={errors.options?.danmuicuBaseUrl?.message}
@@ -173,11 +188,17 @@ export const MacCmsProviderForm = ({
               )}
             />
           }
-          label={t('optionsPage.danmakuSource.macCms.stripColor')}
+          label={t(
+            'optionsPage.danmakuSource.macCms.stripColor',
+            'Remove danmaku color'
+          )}
           sx={{ m: 0, alignSelf: 'start', color: 'text.secondary' }}
         />
         <FormHelperText>
-          {t('optionsPage.danmakuSource.macCms.help.stripColor')}
+          {t(
+            'optionsPage.danmakuSource.macCms.help.stripColor',
+            'Danmaku from this source has random colors, enable this option to set all danmaku to white.'
+          )}
         </FormHelperText>
       </FormControl>
 

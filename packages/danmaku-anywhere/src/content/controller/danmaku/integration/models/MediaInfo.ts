@@ -29,7 +29,9 @@ export class MediaInfo {
     // If season is a number, add an 'S' prefix
     // Otherwise, use the season as is
     if (this.isNumber(this.seasonDecorator))
-      return i18n.t('anime.numericSeason', { season: this.seasonDecorator })
+      return i18n.t('anime.numericSeason', 'Season {{season}}', {
+        season: this.seasonDecorator,
+      })
     return this.seasonDecorator
   }
 
@@ -45,7 +47,9 @@ export class MediaInfo {
   }
 
   toString() {
-    const episode = i18n.t('anime.numericEpisode', { episode: this.episode })
+    const episode = i18n.t('anime.numericEpisode', 'Episode {{episode}}', {
+      episode: this.episode,
+    })
 
     if (this.seasonDecorator === undefined)
       return `${this.seasonTitle} ${episode}`

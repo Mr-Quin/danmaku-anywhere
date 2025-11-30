@@ -14,7 +14,7 @@ export const AnalyticsOption = () => {
     <ToggleListItemButton
       enabled={data.enableAnalytics}
       onToggle={handleToggle}
-      itemText={t('optionsPage.enableAnalytics')}
+      itemText={t('optionsPage.enableAnalytics', 'Enable anonymous analytics')}
       isLoading={isLoading}
     />
   )

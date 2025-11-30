@@ -28,7 +28,7 @@ export const EnableExtensionToggle = () => {
             size="small"
           />
         }
-        label={t('common.enable')}
+        label={t('common.enable', 'Enable')}
         labelPlacement="top"
         slotProps={{
           typography: {

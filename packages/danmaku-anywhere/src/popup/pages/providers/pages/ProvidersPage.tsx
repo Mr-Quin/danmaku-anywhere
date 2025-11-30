@@ -46,9 +46,13 @@ export const ProvidersPage = (): ReactElement => {
 
   const handleDelete = (provider: ProviderConfig) => {
     dialog.delete({
-      title: t('providers.delete.title'),
-      content: t('providers.delete.message', { name: provider.name }),
-      confirmText: t('common.delete'),
+      title: t('providers.delete.title', 'Delete Provider'),
+      content: t(
+        'providers.delete.message',
+        'Are you sure you want to delete "{{name}}"?',
+        { name: provider.name }
+      ),
+      confirmText: t('common.delete', 'Delete'),
       onConfirm: async () => {
         if (!provider.id || provider.isBuiltIn) {
           return
@@ -56,7 +60,7 @@ export const ProvidersPage = (): ReactElement => {
 
         await remove.mutateAsync(provider.id, {
           onSuccess: () => {
-            toast.success(t('providers.alert.deleted'))
+            toast.success(t('providers.alert.deleted', 'Provider deleted'))
           },
           onError: (error) => {
             toast.error(error.message)

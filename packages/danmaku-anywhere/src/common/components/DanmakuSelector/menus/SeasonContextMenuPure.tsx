@@ -31,7 +31,7 @@ export const SeasonContextMenuPure = ({
     {
       kind: 'item',
       id: 'export',
-      label: t('danmaku.exportXml'),
+      label: t('danmaku.exportXml', 'Export XML'),
       icon: <Download fontSize="small" />,
       onClick: onExport,
       loading: isExporting,
@@ -40,7 +40,7 @@ export const SeasonContextMenuPure = ({
     {
       kind: 'item',
       id: 'delete',
-      label: t('common.delete'),
+      label: t('common.delete', 'Delete'),
       icon: <Delete fontSize="small" />,
       color: 'error',
       onClick: onDelete,
@@ -51,7 +51,7 @@ export const SeasonContextMenuPure = ({
     items.unshift({
       kind: 'item',
       id: 'refresh',
-      label: t('anime.refreshMetadata'),
+      label: t('anime.refreshMetadata', 'Refresh Metadata'),
       icon: <Sync />,
       onClick: onRefresh,
       loading: isRefreshing,

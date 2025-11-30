@@ -85,7 +85,7 @@ export const ControllerToolbar = () => {
                       size="small"
                     />
                   }
-                  label={t('integration.autoMode')}
+                  label={t('integration.autoMode', 'Auto Mode')}
                   labelPlacement="top"
                   slotProps={{
                     typography: {

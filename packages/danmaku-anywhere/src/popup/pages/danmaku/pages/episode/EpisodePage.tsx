@@ -52,9 +52,12 @@ export const EpisodePage = () => {
 
   const confirmDelete = () => {
     dialog.delete({
-      title: t('common.confirmDeleteTitle'),
-      content: t('danmakuPage.confirmDeleteMessage'),
-      confirmText: t('common.delete'),
+      title: t('common.confirmDeleteTitle', 'Confirm delete'),
+      content: t(
+        'danmakuPage.confirmDeleteMessage',
+        'Are you sure to delete the selected Danmaku?'
+      ),
+      confirmText: t('common.delete', 'Delete'),
       onConfirm: async () => {
         await deleteMutation.mutateAsync({
           isCustom,
@@ -89,7 +92,7 @@ export const EpisodePage = () => {
   }
 
   const getTitle = () => {
-    if (isCustom) return t('danmaku.local')
+    if (isCustom) return t('danmaku.local', 'Local Danmaku')
 
     /**
      *  conditionally calling hooks here, not ideal
@@ -119,7 +122,7 @@ export const EpisodePage = () => {
           items={[
             {
               id: 'backup',
-              label: t('danmaku.backup'),
+              label: t('danmaku.backup', 'Export Backup'),
               icon: <Download />,
               onClick: handleBackup,
               disabled: exportDanmaku.isPending,
@@ -127,7 +130,7 @@ export const EpisodePage = () => {
             },
             {
               id: 'exportXml',
-              label: t('danmaku.exportXml'),
+              label: t('danmaku.exportXml', 'Export XML'),
               icon: <Download />,
               onClick: handleExportXml,
               disabled: exportXml.isPending,

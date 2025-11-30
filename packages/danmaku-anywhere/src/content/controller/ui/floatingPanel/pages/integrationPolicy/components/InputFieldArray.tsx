@@ -109,7 +109,7 @@ export const InputFieldArray = ({
                   }}
                 />
               }
-              label={t('integrationPolicyPage.editor.quick')}
+              label={t('integrationPolicyPage.editor.quick', 'Priority')}
               labelPlacement="top"
               slotProps={{
                 typography: {
@@ -136,7 +136,7 @@ export const InputFieldArray = ({
           append({ value: '', quick: false }, { shouldFocus: true })
         }
       >
-        {t('common.add')}
+        {t('common.add', 'Add')}
       </Button>
     </Box>
   )

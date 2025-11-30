@@ -45,20 +45,20 @@ export const ConfigToolbar = ({
   }
 
   return (
-    <TabToolbar title={t('configPage.name')}>
+    <TabToolbar title={t('configPage.name', 'Configs')}>
       <DrilldownMenu
         icon={<AddCircle />}
         ButtonProps={{ color: 'primary' }}
         items={[
           {
             id: 'add',
-            label: t('configPage.createConfig'),
+            label: t('configPage.createConfig', 'Create Config'),
             onClick: onAdd,
             icon: <Edit />,
           },
           {
             id: 'import',
-            label: t('configPage.import.name'),
+            label: t('configPage.import.name', 'Import Config'),
             icon: <Upload />,
             onClick: handleImportConfigs,
           },
@@ -69,14 +69,14 @@ export const ConfigToolbar = ({
         items={[
           {
             id: 'export',
-            label: t('configPage.backupAll'),
+            label: t('configPage.backupAll', 'Backup All'),
             onClick: () => exportAll.mutate(),
             loading: exportAll.isPending,
             icon: <Download />,
           },
           {
             id: 'showIntegration',
-            label: t('configPage.showIntegration'),
+            label: t('configPage.showIntegration', 'View Integration Policy'),
             onClick: onShowIntegration,
             icon: <Visibility />,
           },

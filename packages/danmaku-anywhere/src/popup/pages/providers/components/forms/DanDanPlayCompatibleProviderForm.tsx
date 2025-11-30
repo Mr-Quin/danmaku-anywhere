@@ -57,7 +57,10 @@ export const DanDanPlayCompatibleProviderForm = ({
     if (!isUnique) {
       setError('id', {
         type: 'manual',
-        message: t('providers.editor.error.idExists'),
+        message: t(
+          'providers.editor.error.idExists',
+          'This ID is already in use. Please use a different ID'
+        ),
       })
       return
     }
@@ -79,10 +82,16 @@ export const DanDanPlayCompatibleProviderForm = ({
       alignItems="flex-start"
     >
       <TextField
-        label={t('providers.editor.id')}
+        label={t('providers.editor.id', 'ID')}
         size="small"
         error={!!errors.id}
-        helperText={errors.id?.message || t('providers.editor.helper.id')}
+        helperText={
+          errors.id?.message ||
+          t(
+            'providers.editor.helper.id',
+            'Unique identifier for this provider. Deleting and recreating with the same ID will reuse previous anime data'
+          )
+        }
         {...register('id')}
         fullWidth
         required
@@ -90,7 +99,7 @@ export const DanDanPlayCompatibleProviderForm = ({
       />
 
       <TextField
-        label={t('providers.editor.name')}
+        label={t('providers.editor.name', 'Name')}
         size="small"
         error={!!errors.name}
         helperText={errors.name?.message}
@@ -100,12 +109,15 @@ export const DanDanPlayCompatibleProviderForm = ({
       />
 
       <TextField
-        label={t('optionsPage.danmakuSource.dandanplay.apiUrl')}
+        label={t('optionsPage.danmakuSource.dandanplay.apiUrl', 'API URL')}
         size="small"
         error={!!errors.options?.baseUrl}
         helperText={
           errors.options?.baseUrl?.message ||
-          t('providers.editor.helper.baseUrl')
+          t(
+            'providers.editor.helper.baseUrl',
+            'API endpoint URL for DanDanPlay-compatible server'
+          )
         }
         {...register('options.baseUrl')}
         fullWidth
@@ -120,7 +132,7 @@ export const DanDanPlayCompatibleProviderForm = ({
               defaultChecked={provider?.options?.auth?.enabled}
             />
           }
-          label={t('providers.editor.authEnabled')}
+          label={t('providers.editor.authEnabled', 'Enable Authentication')}
           sx={{ color: 'text.secondary' }}
         />
       </Box>
@@ -128,10 +140,13 @@ export const DanDanPlayCompatibleProviderForm = ({
       {authEnabled && (
         <Box sx={{ width: '100%' }}>
           <Typography sx={{ mb: 1 }}>
-            {t('providers.editor.authHeaders')}
+            {t('providers.editor.authHeaders', 'Custom Headers')}
           </Typography>
           <FormHelperText sx={{ mt: 0, mb: 2 }}>
-            {t('providers.editor.helper.authHeaders')}
+            {t(
+              'providers.editor.helper.authHeaders',
+              'Custom headers to send with each request (e.g., Authorization, X-AppSecret)'
+            )}
           </FormHelperText>
 
           <Stack spacing={2}>
@@ -146,7 +161,7 @@ export const DanDanPlayCompatibleProviderForm = ({
                   <Remove />
                 </IconButton>
                 <TextField
-                  label={t('providers.editor.headerKey')}
+                  label={t('providers.editor.headerKey', 'Header Key')}
                   placeholder="X-AppSecret"
                   size="small"
                   error={!!errors.options?.auth?.headers?.[index]?.key}
@@ -158,7 +173,7 @@ export const DanDanPlayCompatibleProviderForm = ({
                   required
                 />
                 <TextField
-                  label={t('providers.editor.headerValue')}
+                  label={t('providers.editor.headerValue', 'Header Value')}
                   placeholder=""
                   size="small"
                   error={!!errors.options?.auth?.headers?.[index]?.value}
@@ -178,7 +193,7 @@ export const DanDanPlayCompatibleProviderForm = ({
               onClick={() => append({ key: '', value: '' })}
               sx={{ alignSelf: 'flex-start' }}
             >
-              {t('providers.editor.addHeader')}
+              {t('providers.editor.addHeader', 'Add Header')}
             </Button>
           </Stack>
         </Box>

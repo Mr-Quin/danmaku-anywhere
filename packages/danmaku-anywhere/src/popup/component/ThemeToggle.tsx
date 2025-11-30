@@ -41,11 +41,11 @@ export const ThemeToggle = () => {
   const getTooltip = () => {
     switch (colorMode) {
       case ColorMode.Light:
-        return t('optionsPage.theme.colorMode.light')
+        return t('optionsPage.theme.colorMode.light', 'Light')
       case ColorMode.System:
-        return t('optionsPage.theme.colorMode.system')
+        return t('optionsPage.theme.colorMode.system', 'System')
       case ColorMode.Dark:
-        return t('optionsPage.theme.colorMode.dark')
+        return t('optionsPage.theme.colorMode.dark', 'Dark')
     }
   }
 

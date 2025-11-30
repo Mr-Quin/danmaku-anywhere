@@ -76,7 +76,7 @@ export const HotkeyInput = ({ onKeyChange, value }: HotkeyInputProps) => {
         variant="outlined"
         color="inherit"
       >
-        {t('optionsPage.hotkeys.addHotkey')}
+        {t('optionsPage.hotkeys.addHotkey', 'Add Hotkey')}
       </Button>
     )
   }
@@ -85,7 +85,7 @@ export const HotkeyInput = ({ onKeyChange, value }: HotkeyInputProps) => {
     <TextField
       value={displayKey}
       onKeyDown={handleKeyDown}
-      placeholder={t('optionsPage.hotkeys.enterKey')}
+      placeholder={t('optionsPage.hotkeys.enterKey', 'Enter key')}
       autoComplete="off"
       size="small"
       slotProps={{

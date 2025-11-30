@@ -27,12 +27,16 @@ export const IntegrationPolicyList = ({
 
   const handleDelete = (policy: Integration) => {
     dialog.delete({
-      title: t('common.confirmDeleteTitle'),
-      content: t('common.confirmDeleteMessage', { name: policy.name }),
-      confirmText: t('common.delete'),
+      title: t('common.confirmDeleteTitle', 'Confirm delete'),
+      content: t(
+        'common.confirmDeleteMessage',
+        'Are you sure you want to delete "{{name}}"?',
+        { name: policy.name }
+      ),
+      confirmText: t('common.delete', 'Delete'),
       onConfirm: async () => {
         await remove(policy.id)
-        toast.success(t('configs.alert.deleted'))
+        toast.success(t('configs.alert.deleted', 'Config Deleted'))
       },
     })
   }
@@ -55,7 +59,7 @@ export const IntegrationPolicyList = ({
                     <ListItemIcon>
                       <Delete />
                     </ListItemIcon>
-                    <ListItemText>{t('common.delete')}</ListItemText>
+                    <ListItemText>{t('common.delete', 'Delete')}</ListItemText>
                   </MenuItem>
                 </DrilldownMenu>
               </>
@@ -67,7 +71,10 @@ export const IntegrationPolicyList = ({
                 primary={policy.name}
                 secondary={
                   policy.policy.options.titleOnly
-                    ? t('integrationPolicyPage.editor.titleOnly')
+                    ? t(
+                        'integrationPolicyPage.editor.titleOnly',
+                        'Match title only'
+                      )
                     : ''
                 }
               />

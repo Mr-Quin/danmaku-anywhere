@@ -32,7 +32,7 @@ export const EpisodeContextMenuPure = ({
     {
       kind: 'item',
       id: 'view',
-      label: t('danmaku.viewDanmaku'),
+      label: t('danmaku.viewDanmaku', 'View Danmaku'),
       icon: <Visibility fontSize="small" />,
       onClick: onViewDanmaku,
     },
@@ -41,7 +41,7 @@ export const EpisodeContextMenuPure = ({
           {
             kind: 'item',
             id: 'refresh',
-            label: t('danmaku.refresh'),
+            label: t('danmaku.refresh', 'Refresh Danmaku'),
             icon: <Sync fontSize="small" />,
             onClick: onRefresh,
             loading: isRefreshing,
@@ -52,7 +52,7 @@ export const EpisodeContextMenuPure = ({
     {
       kind: 'item',
       id: 'export',
-      label: t('danmaku.exportXml'),
+      label: t('danmaku.exportXml', 'Export XML'),
       icon: <Download fontSize="small" />,
       onClick: onExport,
     },
@@ -60,7 +60,7 @@ export const EpisodeContextMenuPure = ({
     {
       kind: 'item',
       id: 'delete',
-      label: t('common.delete'),
+      label: t('common.delete', 'Delete'),
       icon: <Delete fontSize="small" />,
       onClick: onDelete,
       color: 'error',

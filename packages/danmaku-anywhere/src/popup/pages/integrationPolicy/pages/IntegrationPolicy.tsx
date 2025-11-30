@@ -20,7 +20,7 @@ export const IntegrationPolicy = () => {
     <>
       <TabLayout>
         <TabToolbar
-          title={t('integrationPolicyPage.name')}
+          title={t('integrationPolicyPage.name', 'Integration Policy')}
           showBackButton
           onGoBack={goBack}
         />

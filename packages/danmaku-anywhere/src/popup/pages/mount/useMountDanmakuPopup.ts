@@ -21,22 +21,28 @@ export const useMountDanmakuPopup = () => {
       if (episodes.length === 1) {
         const episode = episodes[0]
         toast.success(
-          t('danmaku.alert.mounted', {
+          t('danmaku.alert.mounted', 'Danmaku Mounted: {{name}} ({{count}})', {
             name: episodeToString(episode),
             count: episode.commentCount,
           })
         )
       } else {
         toast.success(
-          t('danmaku.alert.mountedMultiple', {
-            count: episodes.length,
-          })
+          t(
+            'danmaku.alert.mountedMultiple',
+            'Mounted {{count}} selected danmaku',
+            {
+              count: episodes.length,
+            }
+          )
         )
       }
     },
     onError: (e) => {
       toast.error(
-        t('danmaku.alert.mountError', { message: (e as Error).message })
+        t('danmaku.alert.mountError', 'Failed to mount danmaku: {{message}}', {
+          message: (e as Error).message,
+        })
       )
       Logger.debug(e)
     },

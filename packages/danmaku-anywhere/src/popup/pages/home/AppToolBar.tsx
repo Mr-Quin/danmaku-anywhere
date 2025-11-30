@@ -37,7 +37,7 @@ export const AppToolBar = () => {
           </Box>
         </Fade>
         <Typography variant="h1" fontSize={20} sx={{ flexGrow: 1 }}>
-          {t('common.danmakuAnywhere')}
+          {t('common.danmakuAnywhere', 'Danmaku Anywhere')}
         </Typography>
         <EnableExtensionToggle />
         <ThemeToggle />

@@ -20,7 +20,10 @@ export const ShowDanmakuTimelineListItem = () => {
     <ToggleListItemButton
       enabled={data.playerOptions.showDanmakuTimeline}
       onToggle={handleToggle}
-      itemText={t('optionsPage.player.showDanmakuTimeline')}
+      itemText={t(
+        'optionsPage.player.showDanmakuTimeline',
+        'Show danmaku density'
+      )}
       isLoading={isLoading}
     />
   )

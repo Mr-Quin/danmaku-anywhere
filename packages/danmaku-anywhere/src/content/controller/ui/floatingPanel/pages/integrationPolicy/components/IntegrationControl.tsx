@@ -22,7 +22,7 @@ export const IntegrationControl = () => {
       <Autocomplete
         fullWidth={false}
         renderInput={(params) => (
-          <TextField {...params} label={t('integration.name')} />
+          <TextField {...params} label={t('integration.name', 'Integration')} />
         )}
         loading={setIntegration.isPending}
         options={policies}
@@ -41,10 +41,10 @@ export const IntegrationControl = () => {
       />
       <Button variant="contained" onClick={() => toggleEditor()} sx={{ mt: 1 }}>
         {activeIntegration
-          ? t('integrationPolicyPage.edit', {
+          ? t('integrationPolicyPage.edit', 'Edit {{name}}', {
               name: activeIntegration.name,
             })
-          : t('integrationPolicyPage.create')}
+          : t('integrationPolicyPage.create', 'Add Integration Policy')}
       </Button>
     </>
   )

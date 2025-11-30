@@ -104,14 +104,20 @@ export const ParseTabCore = ({ onImportSuccess }: ParseTabCoreProps) => {
       },
       {
         onSuccess: (data) => {
-          toast.success(t('searchPage.parse.alert.importSuccess'))
+          toast.success(
+            t('searchPage.parse.alert.importSuccess', 'Import successful')
+          )
           onImportSuccess?.(data)
         },
         onError: () => {
           toast.error(
-            t('danmaku.alert.fetchError', {
-              message: query.data.title,
-            })
+            t(
+              'danmaku.alert.fetchError',
+              'Failed to fetch danmaku: {{message}}',
+              {
+                message: query.data.title,
+              }
+            )
           )
         },
       }
@@ -120,7 +126,10 @@ export const ParseTabCore = ({ onImportSuccess }: ParseTabCoreProps) => {
 
   useEffect(() => {
     if (query.error) {
-      const errorMessage = t('searchPage.parse.alert.parseError')
+      const errorMessage = t(
+        'searchPage.parse.alert.parseError',
+        'Parse failed'
+      )
       toast.error(errorMessage)
     }
   }, [query.error])
@@ -141,14 +150,18 @@ export const ParseTabCore = ({ onImportSuccess }: ParseTabCoreProps) => {
               required: true,
               validate: (value) => {
                 if (!validateUrl(value)) {
-                  return t('searchPage.parse.error.invalidUrl')
+                  return t('searchPage.parse.error.invalidUrl', 'Invalid URL')
                 }
               },
             })}
-            label={t('searchPage.parse.videoUrl')}
+            label={t('searchPage.parse.videoUrl', 'Video URL')}
             error={!!errors.url}
             helperText={
-              errors.url?.message || t('searchPage.parse.tooltip.videoUrl')
+              errors.url?.message ||
+              t(
+                'searchPage.parse.tooltip.videoUrl',
+                'Only supports parsing of anime, drama, movies, and other non-user uploaded videos. Supported sources: Bilibili, Tencent Video'
+              )
             }
             fullWidth
             required
@@ -167,7 +180,7 @@ export const ParseTabCore = ({ onImportSuccess }: ParseTabCoreProps) => {
             variant="contained"
             disabled={!isValid || mutation.isPending}
           >
-            {t('searchPage.parse.parse')}
+            {t('searchPage.parse.parse', 'Parse')}
           </Button>
         </Stack>
       </Box>
@@ -176,14 +189,14 @@ export const ParseTabCore = ({ onImportSuccess }: ParseTabCoreProps) => {
           <Divider />
           <Box p={2}>
             <Typography variant="h2" fontSize={18} gutterBottom>
-              {t('searchPage.parse.parseResult')}
+              {t('searchPage.parse.parseResult', 'Parse Result')}
             </Typography>
             <Typography variant="caption" gutterBottom>
-              {t('anime.title')}
+              {t('anime.title', 'Title')}
             </Typography>
             <Typography gutterBottom>{query.data.season.title}</Typography>
             <Typography variant="caption" gutterBottom>
-              {t('anime.episodeTitle')}
+              {t('anime.episodeTitle', 'Episode Title')}
             </Typography>
             <Typography>{query.data.title}</Typography>
             <Button
@@ -194,7 +207,7 @@ export const ParseTabCore = ({ onImportSuccess }: ParseTabCoreProps) => {
               loading={mutation.isPending}
               variant="contained"
             >
-              {t('searchPage.parse.import')}
+              {t('searchPage.parse.import', 'Import Danmaku')}
             </Button>
           </Box>
         </>

@@ -38,8 +38,8 @@ const SeasonListSuspense = () => {
     // inject a custom season into the list of seasons
     const customSeason: CustomSeason = {
       provider: DanmakuSourceType.MacCMS,
-      title: t('danmaku.local'),
-      type: t('danmaku.local'),
+      title: t('danmaku.local', 'Local Danmaku'),
+      type: t('danmaku.local', 'Local Danmaku'),
       indexedId: '',
       schemaVersion: 1,
       localEpisodeCount: customEpisodes.length,
@@ -66,8 +66,12 @@ const SeasonListSuspense = () => {
         <NothingHere
           message={
             filter
-              ? t('danmakuPage.noResult', { filter: filter })
-              : t('danmakuPage.noAnime')
+              ? t(
+                  'danmakuPage.noResult',
+                  "No anime found with title '{{filter}}'",
+                  { filter: filter }
+                )
+              : t('danmakuPage.noAnime', 'No anime available')
           }
         />
       </Box>

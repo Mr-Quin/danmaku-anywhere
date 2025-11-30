@@ -34,7 +34,7 @@ export const ProviderEditor = ({
         { id: provider.id, config: data },
         {
           onSuccess: () => {
-            toast.success(t('providers.alert.updated'))
+            toast.success(t('providers.alert.updated', 'Provider updated'))
             onClose()
           },
           onError: (error) => {
@@ -46,7 +46,7 @@ export const ProviderEditor = ({
 
     return create.mutate(data, {
       onSuccess: () => {
-        toast.success(t('providers.alert.created'))
+        toast.success(t('providers.alert.created', 'Provider created'))
         onClose()
       },
       onError: (error) => {
@@ -57,15 +57,20 @@ export const ProviderEditor = ({
 
   const getTitle = () => {
     if (isEdit) {
-      return t('providers.editor.title.edit', { name: provider.name })
+      return t('providers.editor.title.edit', 'Edit Provider: {{name}}', {
+        name: provider.name,
+      })
     }
     if (provider.type === 'DanDanPlayCompatible') {
-      return t('providers.editor.title.addDanDanPlay')
+      return t(
+        'providers.editor.title.addDanDanPlay',
+        'Add DanDanPlay Compatible Provider'
+      )
     }
     if (provider.type === 'MacCMS') {
-      return t('providers.editor.title.addMacCms')
+      return t('providers.editor.title.addMacCms', 'Add MacCMS Provider')
     }
-    return t('providers.editor.title.add')
+    return t('providers.editor.title.add', 'Add Provider')
   }
 
   const renderForm = () => {

@@ -154,7 +154,7 @@ export const MountPageContent = ({
       >
         {() => (
           <>
-            <TabToolbar title={t('mountPage.pageTitle')}>
+            <TabToolbar title={t('mountPage.pageTitle', 'Danmaku Library')}>
               <FilterButton
                 filter={filter}
                 onChange={onFilterChange}
@@ -176,7 +176,7 @@ export const MountPageContent = ({
                       <CheckBoxOutlined fontSize="small" />
                     )}
                     <Typography variant="body2" fontSize="small">
-                      {t('common.multiselect')}
+                      {t('common.multiselect', 'Multiselect')}
                     </Typography>
                   </Stack>
                 }
@@ -192,7 +192,7 @@ export const MountPageContent = ({
                     disabled={!isMounted}
                     sx={{ whiteSpace: 'nowrap', ml: 1 }}
                   >
-                    {t('danmaku.unmount')}
+                    {t('danmaku.unmount', 'Unmount')}
                   </Button>
                 </Collapse>
               )}
@@ -200,7 +200,10 @@ export const MountPageContent = ({
 
             {!isConnected && (
               <Alert severity="warning" square>
-                {t('mountPage.alert.mountingDisabled')}
+                {t(
+                  'mountPage.alert.mountingDisabled',
+                  'Cannot mount danmaku on this page'
+                )}
               </Alert>
             )}
 

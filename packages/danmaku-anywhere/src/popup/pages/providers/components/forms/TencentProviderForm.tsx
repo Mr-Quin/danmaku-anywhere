@@ -43,12 +43,15 @@ export const TencentProviderForm = ({
       alignItems="flex-start"
     >
       <TextField
-        label={t('providers.editor.name')}
+        label={t('providers.editor.name', 'Name')}
         size="small"
         {...register('name')}
         fullWidth
         disabled
-        helperText={t('providers.editor.helper.builtInName')}
+        helperText={t(
+          'providers.editor.helper.builtInName',
+          'Built-in provider names cannot be changed'
+        )}
       />
 
       <FormActions

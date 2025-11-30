@@ -37,7 +37,7 @@ export const SeasonPage = () => {
         {({ focused, disabled }) => {
           return (
             <>
-              <TabToolbar title={t('danmakuPage.animeList')}>
+              <TabToolbar title={t('danmakuPage.animeList', 'Anime List')}>
                 {!isMobile && (
                   <Keyboard
                     color={disabled || !focused ? 'disabled' : 'action'}

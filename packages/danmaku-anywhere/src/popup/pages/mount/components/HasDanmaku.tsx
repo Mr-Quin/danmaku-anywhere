@@ -16,10 +16,10 @@ export const HasDanmaku = ({ children }: PropsWithChildren) => {
   if (data.length === 0 && custom.length === 0) {
     return (
       <Box flexGrow={1}>
-        <NothingHere message={t('mountPage.noDanmaku')}>
+        <NothingHere message={t('mountPage.noDanmaku', 'No danmaku found')}>
           <Box mt={2}>
             <Typography color="primary" to="/search" component={Link}>
-              {t('mountPage.noDanmakuHelp')}
+              {t('mountPage.noDanmakuHelp', 'Go to Search')}
             </Typography>
           </Box>
         </NothingHere>

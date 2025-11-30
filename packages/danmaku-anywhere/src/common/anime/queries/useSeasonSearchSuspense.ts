@@ -50,7 +50,9 @@ export const useSeasonSearchSuspense = (
       } catch (error) {
         Logger.debug('useMediaSearchSuspense error', error)
         const errorMessage =
-          error instanceof Error ? error.message : t('error.unknown')
+          error instanceof Error
+            ? error.message
+            : t('error.unknown', 'Something went wrong.')
         return {
           success: false,
           data: null,

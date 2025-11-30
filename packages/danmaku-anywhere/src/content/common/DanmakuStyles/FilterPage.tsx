@@ -159,17 +159,20 @@ export const FilterPage = ({ onGoBack, initialFilter }: FilterPageProps) => {
   return (
     <TabLayout>
       <TabToolbar
-        title={t('stylePage.filtering.name')}
+        title={t('stylePage.filtering.name', 'Filter Settings')}
         showBackButton
         onGoBack={onGoBack}
       />
       <Box p={2}>
         <Typography mb={2}>
-          {t('stylePage.filtering.addFilterPattern')}
+          {t('stylePage.filtering.addFilterPattern', 'Add Filter Pattern')}
         </Typography>
         <Stack direction="row" gap={2} alignItems="flex-start">
           <TextField
-            label={t('stylePage.filtering.enterFilterPattern')}
+            label={t(
+              'stylePage.filtering.enterFilterPattern',
+              'Enter filter pattern, wrap with "/" for regex'
+            )}
             size="small"
             error={!!filterError}
             helperText={t(filterError)}
@@ -190,21 +193,27 @@ export const FilterPage = ({ onGoBack, initialFilter }: FilterPageProps) => {
             }}
             disabled={isPending || filterPattern.length === 0}
           >
-            {t('common.add')}
+            {t('common.add', 'Add')}
           </Button>
         </Stack>
         <Typography my={2}>
-          {t('stylePage.filtering.testFilterPatterns')}
+          {t('stylePage.filtering.testFilterPatterns', 'Test Filter Patterns')}
         </Typography>
         <Stack direction="row" gap={2} alignItems="flex-start">
           <TextField
-            label={t('stylePage.filtering.enterTestText')}
+            label={t('stylePage.filtering.enterTestText', 'Enter test text')}
             size="small"
             helperText={
               filterTestResult.resolved
                 ? filterTestResult.result
-                  ? t('stylePage.filtering.testResultExclude')
-                  : t('stylePage.filtering.testResultInclude')
+                  ? t(
+                      'stylePage.filtering.testResultExclude',
+                      'This text will be filtered out'
+                    )
+                  : t(
+                      'stylePage.filtering.testResultInclude',
+                      'This text will not be filtered out'
+                    )
                 : ''
             }
             value={filterTestString}
@@ -223,7 +232,10 @@ export const FilterPage = ({ onGoBack, initialFilter }: FilterPageProps) => {
           <Tooltip
             title={
               config.filters.length === 0
-                ? t('stylePage.filtering.tooltip.noFilter')
+                ? t(
+                    'stylePage.filtering.tooltip.noFilter',
+                    'Filter is empty, add some patterns to test'
+                  )
                 : ''
             }
           >
@@ -235,14 +247,14 @@ export const FilterPage = ({ onGoBack, initialFilter }: FilterPageProps) => {
                 }}
                 disabled={config.filters.length === 0}
               >
-                {t('common.test')}
+                {t('common.test', 'Test')}
               </Button>
             </div>
           </Tooltip>
         </Stack>
       </Box>
       <Typography px={2} mt={1}>
-        {t('stylePage.filtering.patternList')}
+        {t('stylePage.filtering.patternList', 'Pattern List')}
       </Typography>
       <List>
         {config.filters.map((filter, i) => {
@@ -266,7 +278,7 @@ export const FilterPage = ({ onGoBack, initialFilter }: FilterPageProps) => {
             >
               {filter.type === 'regex' && (
                 <ListItemIcon>
-                  <Chip size="small" label={t('common.regexShort')} />
+                  <Chip size="small" label={t('common.regexShort', 'Regex')} />
                 </ListItemIcon>
               )}
               <ListItemText

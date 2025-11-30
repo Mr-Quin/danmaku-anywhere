@@ -79,9 +79,9 @@ export const IntegrationEditor = () => {
     },
     onSuccess: () => {
       if (isEdit) {
-        toast.success(t('configs.alert.updated'))
+        toast.success(t('configs.alert.updated', 'Config Updated'))
       } else {
-        toast.success(t('configs.alert.created'))
+        toast.success(t('configs.alert.created', 'Config Created'))
       }
     },
     onError: (error) => {
@@ -123,7 +123,7 @@ export const IntegrationEditor = () => {
                   href={docsLink('docs/integration-policy/')}
                   target="_blank"
                 >
-                  {t('common.docs')}
+                  {t('common.docs', 'Documentation')}
                   <OpenInNew fontSize="inherit" color="primary" />
                 </Button>
                 <Button
@@ -132,7 +132,7 @@ export const IntegrationEditor = () => {
                   variant="contained"
                   color="primary"
                 >
-                  {t('common.save')}
+                  {t('common.save', 'Save')}
                 </Button>
                 <Button
                   type="reset"
@@ -140,7 +140,7 @@ export const IntegrationEditor = () => {
                   variant="outlined"
                   color="primary"
                 >
-                  {t('common.reset')}
+                  {t('common.reset', 'Reset')}
                 </Button>
               </div>
             </TabToolbar>

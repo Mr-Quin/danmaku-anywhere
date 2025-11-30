@@ -25,7 +25,7 @@ export const FormActions = ({
           disabled={isSubmitting || disableReset}
           sx={{ mr: 2 }}
         >
-          {t('common.reset')}
+          {t('common.reset', 'Reset')}
         </Button>
       )}
       <Button
@@ -34,7 +34,7 @@ export const FormActions = ({
         type="submit"
         loading={isSubmitting}
       >
-        {t('common.save')}
+        {t('common.save', 'Save')}
       </Button>
     </Stack>
   )

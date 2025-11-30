@@ -41,13 +41,16 @@ export const IntegrationInfo = () => {
     if (disableAi) {
       return (
         <Alert severity="warning" sx={{ mb: 2 }}>
-          {t('integrationPolicyPage.aiDisabledTooPermissive')}
+          {t(
+            'integrationPolicyPage.aiDisabledTooPermissive',
+            'AI is disabled because the match pattern is too permissive. Please use narrower match pattern or configure XPath integration.'
+          )}
         </Alert>
       )
     }
     return (
       <StatusIndicator
-        text={t('integrationPolicyPage.aiParsing')}
+        text={t('integrationPolicyPage.aiParsing', 'AI Parsing')}
         active={!!mediaInfo}
         fancy
       />
@@ -58,10 +61,17 @@ export const IntegrationInfo = () => {
     <Box height={1}>
       <Typography mb={1}>
         {activeIntegration
-          ? t('integrationPolicyPage.hasIntegration', {
-              name: activeIntegration.name,
-            })
-          : t('integrationPolicyPage.noIntegration')}
+          ? t(
+              'integrationPolicyPage.hasIntegration',
+              'Using Integration: "{{name}}"',
+              {
+                name: activeIntegration.name,
+              }
+            )
+          : t(
+              'integrationPolicyPage.noIntegration',
+              'No integration policy is enabled for this page. Please select from existing policies or create a new one.'
+            )}
       </Typography>
       <IntegrationControl />
       <Divider sx={{ mt: 2, mb: 2 }} />
@@ -72,11 +82,14 @@ export const IntegrationInfo = () => {
           ) : (
             <>
               <StatusIndicator
-                text={t('integrationPolicyPage.nodesFound')}
+                text={t('integrationPolicyPage.nodesFound', 'Nodes Found')}
                 active={foundElements}
               />
               <StatusIndicator
-                text={t('integrationPolicyPage.parseComplete')}
+                text={t(
+                  'integrationPolicyPage.parseComplete',
+                  'Parse Complete'
+                )}
                 active={!!mediaInfo}
               />
             </>
@@ -85,16 +98,18 @@ export const IntegrationInfo = () => {
           {mediaInfo && (
             <>
               <Typography variant="body2">
-                {t('anime.title')}: {mediaInfo.seasonTitle}
+                {t('anime.title', 'Title')}: {mediaInfo.seasonTitle}
               </Typography>
               <Typography variant="body2">
-                {t('anime.season')}: {mediaInfo.seasonDecorator ?? 'NULL'}
+                {t('anime.season', 'Season')}:{' '}
+                {mediaInfo.seasonDecorator ?? 'NULL'}
               </Typography>
               <Typography variant="body2">
-                {t('anime.episode')}: {mediaInfo.episode}
+                {t('anime.episode', 'Episode')}: {mediaInfo.episode}
               </Typography>
               <Typography variant="body2">
-                {t('anime.episodeTitle')}: {mediaInfo.episodeTitle ?? 'NULL'}
+                {t('anime.episodeTitle', 'Episode Title')}:{' '}
+                {mediaInfo.episodeTitle ?? 'NULL'}
               </Typography>
             </>
           )}
@@ -114,11 +129,11 @@ export const IntegrationInfo = () => {
       >
         {active ? (
           <Typography color="success">
-            {t('integrationPolicyPage.integrationActive')}
+            {t('integrationPolicyPage.integrationActive', 'Active')}
           </Typography>
         ) : (
           <Typography color="textDisabled">
-            {t('integrationPolicyPage.integrationInactive')}
+            {t('integrationPolicyPage.integrationInactive', 'Inactive')}
           </Typography>
         )}
       </div>

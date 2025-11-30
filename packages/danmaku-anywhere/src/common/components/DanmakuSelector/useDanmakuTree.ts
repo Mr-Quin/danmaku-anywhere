@@ -81,8 +81,8 @@ export const useDanmakuTree = (
       )
 
       const customSeason: CustomSeason = {
-        title: t('danmaku.local'),
-        type: t('danmaku.local'),
+        title: t('danmaku.local', 'Local Danmaku'),
+        type: t('danmaku.local', 'Local Danmaku'),
         indexedId: '',
         schemaVersion: 1,
         version: 0,
@@ -95,7 +95,7 @@ export const useDanmakuTree = (
       treeItems.push(
         register({
           id: 'season-custom',
-          label: t('danmaku.local'),
+          label: t('danmaku.local', 'Local Danmaku'),
           kind: 'season',
           data: customSeason,
           provider: getProviderById(DanmakuSourceType.MacCMS),

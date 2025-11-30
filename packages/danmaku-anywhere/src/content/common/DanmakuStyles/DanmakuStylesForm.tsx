@@ -222,7 +222,7 @@ export const DanmakuStylesForm = ({
           control={control}
           render={({ field }) => (
             <LabeledSlider
-              label={t('stylePage.opacity')}
+              label={t('stylePage.opacity', 'Opacity')}
               value={field.value}
               onChange={(_e, newValue) => field.onChange(newValue as number)}
               step={0.01}
@@ -240,7 +240,7 @@ export const DanmakuStylesForm = ({
           control={control}
           render={({ field }) => (
             <LabeledSlider
-              label={t('stylePage.size')}
+              label={t('stylePage.size', 'Size')}
               value={field.value}
               onChange={(_e, newValue) => field.onChange(newValue as number)}
               step={1}
@@ -258,7 +258,7 @@ export const DanmakuStylesForm = ({
           control={control}
           render={({ field }) => (
             <LabeledSlider
-              label={t('stylePage.speed')}
+              label={t('stylePage.speed', 'Speed')}
               value={convertActualSpeedToDisplay(field.value)}
               onChange={(_e, newValue) => {
                 field.onChange(convertDisplaySpeedToActual(newValue as number))
@@ -301,8 +301,11 @@ export const DanmakuStylesForm = ({
 
             return (
               <LabeledSlider
-                label={t('stylePage.offset')}
-                tooltip={t('stylePage.tooltip.offset')}
+                label={t('stylePage.offset', 'Time Offset (milliseconds)')}
+                tooltip={t(
+                  'stylePage.tooltip.offset',
+                  'How earlier danmaku appears. Positive values make danmaku appear later, negative values make danmaku appear earlier.'
+                )}
                 value={field.value}
                 onChange={(_e, newValue) => {
                   const numericValue = newValue as number
@@ -356,7 +359,7 @@ export const DanmakuStylesForm = ({
               <FontSelector
                 value={field.value}
                 onChange={(font) => field.onChange(font)}
-                label={t('stylePage.font')}
+                label={t('stylePage.font', 'Font')}
               />
             )}
           />
@@ -365,12 +368,15 @@ export const DanmakuStylesForm = ({
 
       <Stack spacing={1} mt={2}>
         <Typography variant="h6" fontSize={18} component="div">
-          {t('stylePage.safeZones')}
+          {t('stylePage.safeZones', 'Display Area')}
         </Typography>
         <Divider />
         <LabeledSlider
-          label={t('stylePage.safeZone.y')}
-          tooltip={t('stylePage.tooltip.safeZone.y')}
+          label={t('stylePage.safeZone.y', 'Y-axis display range')}
+          tooltip={t(
+            'stylePage.tooltip.safeZone.y',
+            'Y-axis (up and down) display range'
+          )}
           value={[yStart, yEnd]}
           onChange={(_e, newValue, activeThumb) => {
             if (!Array.isArray(newValue)) return
@@ -410,8 +416,11 @@ export const DanmakuStylesForm = ({
           control={control}
           render={({ field }) => (
             <LabeledSlider
-              label={t('stylePage.trackHeight')}
-              tooltip={t('stylePage.tooltip.trackHeight')}
+              label={t('stylePage.trackHeight', 'Track Height')}
+              tooltip={t(
+                'stylePage.tooltip.trackHeight',
+                'Higher values makes danmaku farther apart'
+              )}
               value={field.value}
               onChange={(_e, newValue) => field.onChange(newValue as number)}
               step={1}
@@ -428,8 +437,11 @@ export const DanmakuStylesForm = ({
           control={control}
           render={({ field }) => (
             <LabeledSlider
-              label={t('stylePage.maxOnScreen')}
-              tooltip={t('stylePage.tooltip.maxOnScreen')}
+              label={t('stylePage.maxOnScreen', 'Maximum Limit')}
+              tooltip={t(
+                'stylePage.tooltip.maxOnScreen',
+                'The maximum number of danmaku that can be displayed on the screen at the same time.'
+              )}
               value={field.value}
               onChange={(_e, newValue) => field.onChange(newValue as number)}
               step={1}
@@ -446,8 +458,11 @@ export const DanmakuStylesForm = ({
           control={control}
           render={({ field }) => (
             <LabeledSwitch
-              label={t('stylePage.allowOverlap')}
-              tooltip={t('stylePage.tooltip.allowOverlap')}
+              label={t('stylePage.allowOverlap', 'Allow Overlap')}
+              tooltip={t(
+                'stylePage.tooltip.allowOverlap',
+                'Allow danmaku to overlap, does not affect top or bottom fixed danmaku'
+              )}
               checked={field.value}
               onChange={(e) => field.onChange(e.target.checked)}
             />
@@ -457,7 +472,7 @@ export const DanmakuStylesForm = ({
 
       <Stack spacing={1} mt={2}>
         <Typography variant="h6" fontSize={18} component="div">
-          {t('stylePage.specialDanmaku')}
+          {t('stylePage.specialDanmaku', 'Special Danmaku')}
         </Typography>
         <Divider />
         <Controller
@@ -465,8 +480,11 @@ export const DanmakuStylesForm = ({
           control={control}
           render={({ field }) => (
             <LabeledSwitch
-              label={t('stylePage.specialDanmaku.showTop')}
-              tooltip={t('stylePage.tooltip.specialDanmaku')}
+              label={t('stylePage.specialDanmakuConfig.showTop', 'Top Danmaku')}
+              tooltip={t(
+                'stylePage.tooltip.specialDanmaku',
+                'When off, danmaku will be shown as normal scrolling danmaku'
+              )}
               checked={field.value === 'normal'}
               onChange={(e) => {
                 field.onChange(e.target.checked ? 'normal' : 'scroll')
@@ -479,8 +497,14 @@ export const DanmakuStylesForm = ({
           control={control}
           render={({ field }) => (
             <LabeledSwitch
-              label={t('stylePage.specialDanmaku.showBottom')}
-              tooltip={t('stylePage.tooltip.specialDanmaku')}
+              label={t(
+                'stylePage.specialDanmakuConfig.showBottom',
+                'Bottom Danmaku'
+              )}
+              tooltip={t(
+                'stylePage.tooltip.specialDanmaku',
+                'When off, danmaku will be shown as normal scrolling danmaku'
+              )}
               checked={field.value === 'normal'}
               onChange={(e) => {
                 field.onChange(e.target.checked ? 'normal' : 'scroll')

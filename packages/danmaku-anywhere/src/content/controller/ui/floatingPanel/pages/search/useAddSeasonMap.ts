@@ -15,10 +15,18 @@ export const useAddSeasonMap = () => {
       return chromeRpcClient.seasonMapAdd(seasonMap.toSnapshot())
     },
     onSuccess: () => {
-      toast.success(t('searchPage.alert.mappingSuccess'))
+      toast.success(
+        t('searchPage.alert.mappingSuccess', 'Mapping saved successfully')
+      )
     },
     onError: (e) => {
-      toast.error(t('searchPage.alert.mappingFailed', { message: e.message }))
+      toast.error(
+        t(
+          'searchPage.alert.mappingFailed',
+          'Failed to save mapping：{{message}}',
+          { message: e.message }
+        )
+      )
     },
   })
 }

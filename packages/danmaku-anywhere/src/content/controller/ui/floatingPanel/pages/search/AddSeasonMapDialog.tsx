@@ -17,13 +17,20 @@ export const useShowAddSeasonMapDialog = () => {
 
   return ({ onProceed, season, mapKey }: AddSeasonMapDialogProps) => {
     dialog.open({
-      title: t('searchPage.titleMapping'),
-      content: t('searchPage.titleMapping.confirmation', {
-        original: mapKey,
-        mapped: season.title,
-      }),
-      cancelText: t('searchPage.titleMapping.searchOnly'),
-      confirmText: t('common.confirm'),
+      title: t('searchPage.titleMapping', 'Map Title'),
+      content: t(
+        'searchPage.titleMappingDialog.confirmation',
+        'Map `{{original}}` to `{{mapped}}` ?',
+        {
+          original: mapKey,
+          mapped: season.title,
+        }
+      ),
+      cancelText: t(
+        'searchPage.titleMappingDialog.searchOnly',
+        'No, just search'
+      ),
+      confirmText: t('common.confirm', 'Confirm'),
       onCancel: () => {
         onProceed(season)
       },

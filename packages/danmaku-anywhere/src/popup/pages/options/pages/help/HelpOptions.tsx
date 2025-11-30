@@ -18,12 +18,12 @@ export const HelpOptions = () => {
 
   return (
     <OptionsPageLayout>
-      <OptionsPageToolBar title={t('optionsPage.pages.help')} />
+      <OptionsPageToolBar title={t('optionsPage.pages.help', '关于')} />
       <ListItem>
         <ListItemIcon>
           <Numbers />
         </ListItemIcon>
-        <ListItemText>{t('optionsPage.help.version')}</ListItemText>
+        <ListItemText>{t('optionsPage.help.version', 'Version')}</ListItemText>
         <Typography>{chrome.runtime.getManifest().version}</Typography>
       </ListItem>
       {data.id && (
@@ -57,7 +57,9 @@ export const HelpOptions = () => {
           <ListItemIcon>
             <Article />
           </ListItemIcon>
-          <ListItemText>{t('optionsPage.help.docs')}</ListItemText>
+          <ListItemText>
+            {t('optionsPage.help.docs', 'Documentation')}
+          </ListItemText>
           <Launch />
         </ListItemButton>
       </ListItem>
@@ -70,7 +72,12 @@ export const HelpOptions = () => {
           <ListItemIcon>
             <Brush />
           </ListItemIcon>
-          <ListItemText>{t('optionsPage.help.graphicalAsset')}</ListItemText>
+          <ListItemText>
+            {t(
+              'optionsPage.help.graphicalAsset',
+              'Graphical Assets Illustrator'
+            )}
+          </ListItemText>
           <Typography paddingRight={1}>猫与白月</Typography>
           <Launch />
         </ListItemButton>

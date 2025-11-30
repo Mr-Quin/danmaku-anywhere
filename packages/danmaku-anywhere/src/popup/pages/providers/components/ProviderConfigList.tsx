@@ -61,7 +61,7 @@ export const ProviderConfigList = ({
               items={[
                 {
                   id: 'delete',
-                  label: t('common.delete'),
+                  label: t('common.delete', 'Delete'),
                   onClick: () => onDelete(config),
                   icon: <Delete />,
                   color: 'error',
