@@ -1,0 +1,416 @@
+{
+  "anime": {
+    "episode": "Episode",
+    "episodeTitle": "Episode Title",
+    "numericEpisode": "Episode {{episode}}",
+    "numericSeason": "Season {{season}}",
+    "refreshMetadata": "Refresh Metadata",
+    "season": "Season",
+    "title": "Title"
+  },
+  "common": {
+    "acknowledge": "Ok",
+    "add": "Add",
+    "apply": "Apply",
+    "autoSave": "Auto-save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirm": "Confirm",
+    "confirmDeleteMessage": "Are you sure you want to delete \"{{name}}\"?",
+    "confirmDeleteTitle": "Confirm delete",
+    "copy": "copy",
+    "danmakuAnywhere": "Danmaku Anywhere",
+    "delete": "Delete",
+    "docs": "Documentation",
+    "duration": {
+      "day_one": "common.duration.day",
+      "day_other": "common.duration.day"
+    },
+    "enable": "Enable",
+    "export": "Export",
+    "failed": "Failed",
+    "filter": "Filter",
+    "import": "Import",
+    "itsEmpty": "There's nothing here...",
+    "multiselect": "Multiselect",
+    "pip": "Picture-in-Picture",
+    "regexShort": "Regex",
+    "reset": "Reset",
+    "save": "Save",
+    "saved": "Saved",
+    "saving": "Saving...",
+    "search": "Search",
+    "success": "Success",
+    "test": "Test",
+    "time": "Time"
+  },
+  "configPage": {
+    "backupAll": "Backup All",
+    "createConfig": "Create Config",
+    "editor": {
+      "description": "Description",
+      "helper": {
+        "integration": "Enables the selected Integration Policy for this configuration. If you are not sure, leave it as None.",
+        "mediaQuery": "CSS selector for the video node, normally \"video\"",
+        "urlPattern": "URL pattern to match the page. Format: https://example.com/*."
+      },
+      "mediaQuery": "Video Node",
+      "name": "Name",
+      "pattern": "Pattern",
+      "title": {
+        "create": "Add Config",
+        "edit": "Edit {{name}}"
+      },
+      "tooPermissive": "The match patterns are too permissive, it's recommended to use narrower patterns.",
+      "urlPatterns": "URL Patterns"
+    },
+    "import": {
+      "fileUpload": "Upload File",
+      "hasIntegration": "Includes Integration",
+      "name": "Import Config",
+      "presets": "Presets"
+    },
+    "name": "Configs",
+    "showIntegration": "View Integration Policy"
+  },
+  "configPage.editor.pattern.add": "Add Pattern",
+  "configs": {
+    "alert": {
+      "created": "Config Created",
+      "deleted": "Config Deleted",
+      "deleteError": "Failed to delete config: {{message}}",
+      "updated": "Config Updated"
+    }
+  },
+  "danmaku": {
+    "alert": {
+      "deleted": "Danmaku Deleted",
+      "deleteError": "Failed to delete danmaku: {{message}}",
+      "fetchError": "Failed to fetch danmaku: {{message}}",
+      "mounted_one": "Danmaku Mounted: {{name}} ({{count}})",
+      "mounted_other": "Danmaku Mounted: {{name}} ({{count}})",
+      "mountedMultiple_one": "Mounted {{count}} selected danmaku",
+      "mountedMultiple_other": "Mounted {{count}} selected danmaku",
+      "mountError": "Failed to mount danmaku: {{message}}",
+      "multipleFrames": "danmaku.alert.multipleFrames",
+      "refreshed_one": "Danmaku Refreshed: {{name}} ({{count}})",
+      "refreshed_other": "Danmaku Refreshed: {{name}} ({{count}})",
+      "refreshingDanmaku": "Refreshing danmaku",
+      "unmounted": "Danmaku Unmounted"
+    },
+    "backup": "Export Backup",
+    "commentContent": "Comment",
+    "commentCounted_one": "danmaku.commentCounted",
+    "commentCounted_other": "danmaku.commentCounted",
+    "disable": "Hide Danmaku",
+    "enable": "Show Danmaku",
+    "exportXml": "Export XML",
+    "local": "Local Danmaku",
+    "mountShort": "Mount",
+    "noComments": "No comments",
+    "refresh": "Refresh Danmaku",
+    "type": {
+      "DanDanPlay": "DanDanPlay",
+      "MacCMS": "MacCMS"
+    },
+    "unmount": "Unmount",
+    "viewDanmaku": "View Danmaku"
+  },
+  "danmakuPage": {
+    "animeList": "Anime List",
+    "backupAll": "Export All as Backup",
+    "confirmDeleteMessage": "Are you sure to delete the selected Danmaku?",
+    "exportAllXml": "Export All as XML",
+    "noAnime": "No anime available",
+    "noResult": "No anime found with title '{{filter}}'"
+  },
+  "danmakuSource": {
+    "tooltip": {
+      "bilibiliNotLoggedIn": "<0></0>",
+      "tencentCookieMissing": "<0></0>"
+    }
+  },
+  "error": {
+    "unknown": "Something went wrong."
+  },
+  "importPage": {
+    "confirm": "Confirm Import",
+    "help": {
+      "dragNDrop1": "Drag and drop files here",
+      "dragNDrop2": "Or click to select files"
+    },
+    "import": "Import Danmaku",
+    "importDesc": "When importing local danmaku, file names will be used as episode names. Supports .json and .xml files",
+    "importError_one": "importPage.importError",
+    "importError_other": "importPage.importError",
+    "importSuccess_one": "importPage.importSuccess",
+    "importSuccess_other": "importPage.importSuccess",
+    "parseError": "Failed to parse file",
+    "willImport_one": "importPage.willImport",
+    "willImport_other": "importPage.willImport"
+  },
+  "integration": {
+    "alert": {
+      "aiDisabledTooPermissive": "AI is disabled because the match pattern is too permissive",
+      "AIResult": "AI Parsing Result: {{title}}",
+      "matchedLocalDanmaku": "Matched local danmaku",
+      "openSearch": "Open search page",
+      "search": "Searching for anime: {{title}}",
+      "searchError": "Failed to search for anime: {{message}}",
+      "searchResultEmpty": "No anime found for {{title}}",
+      "usingAI": "Using AI to parse show information",
+      "usingIntegration": "Using Integration: {{name}}"
+    },
+    "autoMode": "Auto Mode",
+    "name": "Integration",
+    "type": {
+      "None": "None"
+    }
+  },
+  "integrationPolicyPage": {
+    "aiDisabledTooPermissive": "AI is disabled because the match pattern is too permissive. Please use narrower match pattern or configure XPath integration.",
+    "aiParsing": "AI Parsing",
+    "create": "Add Integration Policy",
+    "edit": "Edit {{name}}",
+    "editor": {
+      "advanced": "Advanced Options",
+      "episode": "Select Episode",
+      "episodeRegex": "Episode Regex",
+      "episodeSelector": "Episode XPath",
+      "episodeTitle": "Select Episode Title",
+      "episodeTitleRegex": "Episode Title Regex",
+      "episodeTitleSelector": "Episode Title XPath",
+      "helper": {
+        "titleOnly": "If checked, only the title node will be used to match the show. Useful if all information is contained in the title, e.g. if the title is the file name. Uncheck if the show's information is spread across different nodes.",
+        "useAI": "Try to use AI to parse show information. If parsing fails, try manual configuration."
+      },
+      "name": "Name",
+      "quick": "Priority",
+      "season": "Select Season",
+      "seasonRegex": "Season Regex",
+      "seasonSelector": "Season XPath",
+      "titleOnly": "Match title only",
+      "titleRegex": "Title Regex",
+      "titleSection": "Select Title",
+      "titleSelector": "Title XPath",
+      "useAI": "Use AI (Experimental)"
+    },
+    "hasIntegration": "Using Integration: \"{{name}}\"",
+    "integrationActive": "Active",
+    "integrationInactive": "Inactive",
+    "name": "Integration Policy",
+    "nodesFound": "Nodes Found",
+    "noIntegration": "No integration policy is enabled for this page. Please select from existing policies or create a new one.",
+    "parseComplete": "Parse Complete"
+  },
+  "mountPage": {
+    "alert": {
+      "mountingDisabled": "Cannot mount danmaku on this page"
+    },
+    "noDanmaku": "No danmaku found",
+    "noDanmakuHelp": "Go to Search",
+    "pageTitle": "Danmaku Library",
+    "selectedCount_one": "{{count}} selected",
+    "selectedCount_other": "{{count}} selected"
+  },
+  "optionsPage": {
+    "chConvert": {
+      "name": "Simplified/Traditional Conversion",
+      "none": "No conversion",
+      "simplified": "Convert to simplified",
+      "traditional": "Convert to traditional"
+    },
+    "danmakuSource": {
+      "bilibili": {
+        "danmakuTypePreference": "Danmaku Type Preference",
+        "help": {
+          "danmakuTypePreferenceProtobuf": "optionsPage.danmakuSource.bilibili.help.danmakuTypePreferenceProtobuf",
+          "danmakuTypePreferenceXML": "optionsPage.danmakuSource.bilibili.help.danmakuTypePreferenceXML"
+        }
+      },
+      "dandanplay": {
+        "apiUrl": "API URL"
+      },
+      "macCms": {
+        "baseUrl": "Mac CMS API Base URL",
+        "danmuicuBaseUrl": "Danmaku API Base URL",
+        "help": {
+          "stripColor": "Danmaku from this source has random colors, enable this option to set all danmaku to white."
+        },
+        "stripColor": "Remove danmaku color"
+      }
+    },
+    "enableAnalytics": "Enable anonymous analytics",
+    "help": {
+      "docs": "Documentation",
+      "feedback": "Provide feedback",
+      "graphicalAsset": "Graphical Assets Illustrator",
+      "reportBug": "Report Bug",
+      "version": "Version"
+    },
+    "hotkeys": {
+      "addHotkey": "Add Hotkey",
+      "enterKey": "Enter key"
+    },
+    "language": "Language",
+    "matchLocalDanmaku": "Enable matching local Danmaku",
+    "name": "Options",
+    "pages": {
+      "advanced": "Advanced",
+      "help": "关于",
+      "hotkeys": "Hotkeys",
+      "player": "Player Settings",
+      "retentionPolicy": "Retention Policy"
+    },
+    "player": {
+      "showDanmakuTimeline": "Show danmaku density",
+      "showSkipButton": "Show skip button (OP/ED)"
+    },
+    "retentionPolicy": {
+      "alert": {
+        "nDanmakuDeleted_one": "{{count}} danmaku deleted",
+        "nDanmakuDeleted_other": "{{count}} danmaku deleted"
+      },
+      "deleteCommentsAfter": "Delete comments older than",
+      "enabled": "Enable Retention Policy",
+      "purgeNow": "Purge Now",
+      "tooltip": {
+        "deleteCommentsAfter": "optionsPage.retentionPolicy.tooltip.deleteCommentsAfter",
+        "nextPurge": "Next purge at {{time}}"
+      }
+    },
+    "searchUsingSimplified": "Search using simplified Chinese",
+    "theme": {
+      "colorMode": {
+        "dark": "Dark",
+        "light": "Light",
+        "system": "System"
+      }
+    }
+  },
+  "providers": {
+    "alert": {
+      "created": "Provider created",
+      "deleted": "Provider deleted",
+      "updated": "Provider updated"
+    },
+    "builtin": "Built-in",
+    "delete": {
+      "message": "Are you sure you want to delete \"{{name}}\"?",
+      "title": "Delete Provider"
+    },
+    "editor": {
+      "addHeader": "Add Header",
+      "authEnabled": "Enable Authentication",
+      "authHeaders": "Custom Headers",
+      "error": {
+        "idExists": "This ID is already in use. Please use a different ID"
+      },
+      "headerKey": "Header Key",
+      "headerValue": "Header Value",
+      "helper": {
+        "authHeaders": "Custom headers to send with each request (e.g., Authorization, X-AppSecret)",
+        "baseUrl": "API endpoint URL for DanDanPlay-compatible server",
+        "builtInName": "Built-in provider names cannot be changed",
+        "id": "Unique identifier for this provider. Deleting and recreating with the same ID will reuse previous anime data"
+      },
+      "id": "ID",
+      "name": "Name",
+      "title": {
+        "add": "Add Provider",
+        "addDanDanPlay": "Add DanDanPlay Compatible Provider",
+        "addMacCms": "Add MacCMS Provider",
+        "edit": "Edit Provider: {{name}}"
+      }
+    },
+    "name": "Danmaku Providers"
+  },
+  "searchPage": {
+    "alert": {
+      "mappingFailed": "Failed to save mapping：{{message}}",
+      "mappingSuccess": "Mapping saved successfully"
+    },
+    "convertedTitle": "Converted Title",
+    "error": {
+      "noProviders": "No danmaku sources enabled, please enable in settings",
+      "noResultFound": "No results found, try a different search term"
+    },
+    "name": "Search Anime",
+    "parse": {
+      "alert": {
+        "importSuccess": "Import successful",
+        "parseError": "Parse failed"
+      },
+      "error": {
+        "invalidUrl": "Invalid URL"
+      },
+      "import": "Import Danmaku",
+      "name": "Parse URL",
+      "parse": "Parse",
+      "parseResult": "Parse Result",
+      "tooltip": {
+        "videoUrl": "Only supports parsing of anime, drama, movies, and other non-user uploaded videos. Supported sources: Bilibili, Tencent Video"
+      },
+      "videoUrl": "Video URL"
+    },
+    "retrySearch": "Retry",
+    "title": "Title",
+    "titleMapping": "Map Title"
+  },
+  "searchPage.titleMapping.confirmation": "Map `{{original}}` to `{{mapped}}` ?",
+  "searchPage.titleMapping.searchOnly": "No, just search",
+  "selectorPage": {
+    "noAnimeFound": "Nothing to select from",
+    "selectAnime": "Multiple matches found for {{name}}, please select"
+  },
+  "stylePage": {
+    "allowOverlap": "Allow Overlap",
+    "filtering": {
+      "addFilterPattern": "Add Filter Pattern",
+      "enterFilterPattern": "Enter filter pattern, wrap with \"/\" for regex",
+      "enterTestText": "Enter test text",
+      "name": "Filter Settings",
+      "patternList": "Pattern List",
+      "testFilterPatterns": "Test Filter Patterns",
+      "testResultExclude": "This text will be filtered out",
+      "testResultInclude": "This text will not be filtered out",
+      "tooltip": {
+        "noFilter": "Filter is empty, add some patterns to test"
+      }
+    },
+    "font": "Font",
+    "maxOnScreen": "Maximum Limit",
+    "name": "Danmaku Settings",
+    "offset": "Time Offset (milliseconds)",
+    "opacity": "Opacity",
+    "safeZone": {
+      "y": "Y-axis display range"
+    },
+    "safeZones": "Display Area",
+    "size": "Size",
+    "specialDanmaku": "Special Danmaku",
+    "speed": "Speed",
+    "tooltip": {
+      "allowOverlap": "Allow danmaku to overlap, does not affect top or bottom fixed danmaku",
+      "maxOnScreen": "The maximum number of danmaku that can be displayed on the screen at the same time.",
+      "offset": "How earlier danmaku appears. Positive values make danmaku appear later, negative values make danmaku appear earlier.",
+      "safeZone": {
+        "y": "Y-axis (up and down) display range"
+      },
+      "specialDanmaku": "When off, danmaku will be shown as normal scrolling danmaku",
+      "trackHeight": "Higher values makes danmaku farther apart"
+    },
+    "trackHeight": "Track Height"
+  },
+  "stylePage.specialDanmaku.showBottom": "Bottom Danmaku",
+  "stylePage.specialDanmaku.showTop": "Top Danmaku",
+  "tabs": {
+    "config": "Config",
+    "danmaku": "Danmaku",
+    "import": "Import Danmaku",
+    "mount": "Library",
+    "providers": "Providers",
+    "search": "Search",
+    "style": "Danmaku Settings"
+  }
+}
