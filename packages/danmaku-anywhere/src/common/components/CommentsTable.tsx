@@ -240,7 +240,7 @@ export const CommentsTable = ({
                     </Typography>
                     {isHovering && (
                       <Stack direction="row" spacing={0.5}>
-                        <Tooltip title={t('common.copy', 'copy')}>
+                        <Tooltip title={t('common.copy', 'Copy')}>
                           <IconButton
                             size="small"
                             onClick={() =>

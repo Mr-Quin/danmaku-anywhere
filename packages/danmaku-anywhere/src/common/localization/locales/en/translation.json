@@ -23,8 +23,8 @@
     "delete": "Delete",
     "docs": "Documentation",
     "duration": {
-      "day_one": "common.duration.day",
-      "day_other": "common.duration.day"
+      "day_one": "{{count}} day",
+      "day_other": "{{count}} days"
     },
     "enable": "Enable",
     "export": "Export",
