@@ -1,4 +1,22 @@
 {
+  "aboutPage": {
+    "clientId": "Client ID",
+    "clientIdDescription": "Unique identifier for this installation. Include this when reporting issues.",
+    "credits": "Credits & Attribution",
+    "docs": "Documentation",
+    "docsDescription": "Learn how to use all features",
+    "feedback": "Feedback",
+    "feedbackDescription": "Provide feedback and suggestions",
+    "githubRepository": "GitHub Repository",
+    "githubRepositoryDescription": "Source code and contributions",
+    "imageIllustrator": "Graphic Illustrator",
+    "privacyPolicy": "QQ Group",
+    "reportBug": "Report a Bug",
+    "reportIssueDescription": "Use this if you cannot use GitHub Issues",
+    "resources": "Resources",
+    "technicalInfo": "Technical Information",
+    "version": "Version"
+  },
   "anime": {
     "episode": "Episode",
     "episodeTitle": "Episode Title",
@@ -18,6 +36,7 @@
     "confirm": "Confirm",
     "confirmDeleteMessage": "Are you sure you want to delete \"{{name}}\"?",
     "confirmDeleteTitle": "Confirm delete",
+    "copiedToClipboard": "Copied to clipboard",
     "copy": "copy",
     "danmakuAnywhere": "Danmaku Anywhere",
     "delete": "Delete",
@@ -242,11 +261,8 @@
     },
     "enableAnalytics": "Enable anonymous analytics",
     "help": {
-      "docs": "Documentation",
       "feedback": "Provide feedback",
-      "graphicalAsset": "Graphical Assets Illustrator",
-      "reportBug": "Report Bug",
-      "version": "Version"
+      "reportBug": "Report Bug"
     },
     "hotkeys": {
       "addHotkey": "Add Hotkey",

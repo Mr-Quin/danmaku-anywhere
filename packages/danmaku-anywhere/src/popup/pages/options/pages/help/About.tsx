@@ -44,41 +44,42 @@ interface ResourceLinkContext {
 const resources = [
   {
     icon: () => <Article color="primary" />,
-    title: i18n.t('aboutPage.docs', 'Documentation'),
-    description: i18n.t(
-      'aboutPage.docsDescription',
-      'Learn how to use all features'
-    ),
+    title: () => i18n.t('aboutPage.docs', 'Documentation'),
+    description: () =>
+      i18n.t('aboutPage.docsDescription', 'Learn how to use all features'),
     link: (ctx: ResourceLinkContext) =>
       docsLink(`getting-started?id=${ctx.id}&version=${ctx.version}`),
   },
   {
     icon: () => <GitHub />,
-    title: i18n.t('aboutPage.githubRepository', 'GitHub Repository'),
-    description: i18n.t(
-      'aboutPage.githubRepositoryDescription',
-      'Source code and contributions'
-    ),
+    title: () => i18n.t('aboutPage.githubRepository', 'GitHub Repository'),
+    description: () =>
+      i18n.t(
+        'aboutPage.githubRepositoryDescription',
+        'Source code and contributions'
+      ),
     link: (ctx: ResourceLinkContext) =>
       'https://github.com/Mr-Quin/danmaku-anywhere',
   },
   {
     icon: () => <BugReport color="error" />,
-    title: i18n.t('aboutPage.reportBug', 'Report a Bug'),
-    description: i18n.t(
-      'aboutPage.reportIssueDescription',
-      'Use this if you cannot use GitHub Issues'
-    ),
+    title: () => i18n.t('aboutPage.reportBug', 'Report a Bug'),
+    description: () =>
+      i18n.t(
+        'aboutPage.reportIssueDescription',
+        'Use this if you cannot use GitHub Issues'
+      ),
     link: (ctx: ResourceLinkContext) =>
       `https://forms.clickup.com/90131020449/f/2ky3men1-933/ULQ3OZ8QYRXIJ5HACI?ID=${ctx.id}&Version=${ctx.version}`,
   },
   {
     icon: () => <Feedback />,
-    title: i18n.t('aboutPage.feedback', 'Feedback'),
-    description: i18n.t(
-      'aboutPage.feedbackDescription',
-      'Provide feedback and suggestions'
-    ),
+    title: () => i18n.t('aboutPage.feedback', 'Feedback'),
+    description: () =>
+      i18n.t(
+        'aboutPage.feedbackDescription',
+        'Provide feedback and suggestions'
+      ),
     link: (ctx: ResourceLinkContext) =>
       `https://forms.clickup.com/90131020449/f/2ky3men1-973/SA0BEERBNFY3NR31P8?ID=${ctx.id}&Version=${ctx.version}`,
   },
@@ -88,8 +89,8 @@ const resources = [
         <QQIcon />
       </SvgIcon>
     ),
-    title: i18n.t('aboutPage.privacyPolicy', 'QQ Group'),
-    description: '531237584',
+    title: () => i18n.t('aboutPage.privacyPolicy', 'QQ Group'),
+    description: () => '531237584',
   },
 ]
 
@@ -144,7 +145,7 @@ export const About = () => {
         </Stack>
 
         {/* Resources */}
-        <Typography variant="overline" color="text.secondary" gutterBottom>
+        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
           {i18n.t('aboutPage.resources', 'Resources')}
         </Typography>
         <Stack spacing={1} mb={4}>
@@ -163,10 +164,10 @@ export const About = () => {
                 </Box>
                 <Box sx={{ flexGrow: 1 }}>
                   <Typography variant="subtitle1" fontWeight="medium">
-                    {resource.title}
+                    {resource.title()}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {resource.description}
+                    {resource.description()}
                   </Typography>
                 </Box>
                 {hasLink && <Launch color="action" fontSize="small" />}
@@ -192,7 +193,7 @@ export const About = () => {
         </Stack>
 
         {/* Credits */}
-        <Typography variant="overline" color="text.secondary" gutterBottom>
+        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
           {i18n.t('aboutPage.credits', 'Credits & Attribution')}
         </Typography>
         <Card variant="outlined" sx={{ mb: 4, p: 2 }}>
@@ -203,7 +204,7 @@ export const About = () => {
             />
             <Box>
               <Typography variant="subtitle1" fontWeight="medium">
-                {i18n.t('aboutPage.imageAssetAuthor', 'Image Asset Author')}
+                {i18n.t('aboutPage.imageIllustrator', 'Graphic Illustrator')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 <Box

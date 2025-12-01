@@ -1,4 +1,22 @@
 {
+  "aboutPage": {
+    "clientId": "客户端ID",
+    "clientIdDescription": "此安装的ID。在报告问题时请包含此ID。",
+    "credits": "鸣谢",
+    "docs": "文档",
+    "docsDescription": "学习如何使用所有功能",
+    "feedback": "反馈",
+    "feedbackDescription": "提供反馈和建议",
+    "githubRepository": "GitHub仓库",
+    "githubRepositoryDescription": "源代码",
+    "imageIllustrator": "图片绘制",
+    "privacyPolicy": "QQ群",
+    "reportBug": "报告Bug",
+    "reportIssueDescription": "如果GitHub Issues无法使用，请使用此表单",
+    "resources": "资源",
+    "technicalInfo": "技术信息",
+    "version": "版本"
+  },
   "anime": {
     "episode": "集",
     "episodeTitle": "集标题",
@@ -18,6 +36,7 @@
     "confirm": "确认",
     "confirmDeleteMessage": "确定要删除 \"{{name}}\" 吗？",
     "confirmDeleteTitle": "确认删除",
+    "copiedToClipboard": "已复制到剪贴板",
     "copy": "复制",
     "danmakuAnywhere": "弹幕任何地方",
     "delete": "删除",
@@ -233,11 +252,8 @@
     },
     "enableAnalytics": "匿名数据收集",
     "help": {
-      "docs": "说明文档",
       "feedback": "提交意见或建议",
-      "graphicalAsset": "图片素材绘制",
-      "reportBug": "报告Bug",
-      "version": "版本"
+      "reportBug": "报告Bug"
     },
     "hotkeys": {
       "addHotkey": "添加快捷键",
