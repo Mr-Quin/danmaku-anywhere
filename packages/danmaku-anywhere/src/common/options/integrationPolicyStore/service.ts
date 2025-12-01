@@ -3,6 +3,7 @@ import type {
   IntegrationV1,
   IntegrationV2,
 } from '@/common/options/integrationPolicyStore/schema'
+import type { IStoreService } from '@/common/options/IStoreService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 
 export const xPathPolicyStore = new OptionsService<Integration[]>(
@@ -69,7 +70,7 @@ export const xPathPolicyStore = new OptionsService<Integration[]>(
     },
   })
 
-class IntegrationPolicyService {
+class IntegrationPolicyService implements IStoreService {
   public readonly options = xPathPolicyStore
 
   async get(id: string): Promise<Integration | undefined> {

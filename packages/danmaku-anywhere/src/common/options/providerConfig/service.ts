@@ -5,6 +5,7 @@ import {
 import { produce } from 'immer'
 import { injectable } from 'inversify'
 import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
+import type { IStoreService } from '@/common/options/IStoreService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { isServiceWorker } from '@/common/utils/utils'
@@ -28,7 +29,7 @@ const providerConfigOptions = new OptionsService<ProviderConfig[]>(
 })
 
 @injectable('Singleton')
-export class ProviderConfigService {
+export class ProviderConfigService implements IStoreService {
   public readonly options = providerConfigOptions
 
   async isIdUnique(id: string, excludeId?: string): Promise<boolean> {

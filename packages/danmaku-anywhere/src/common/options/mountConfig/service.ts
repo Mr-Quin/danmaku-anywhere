@@ -7,6 +7,7 @@ import {
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { mountConfigInputSchema } from '@/common/options/mountConfig/schema'
 import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
+import type { IStoreService } from '@/common/options/IStoreService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { getRandomUUID } from '@/common/utils/utils'
 
@@ -51,7 +52,7 @@ const mountConfigOptions = new OptionsService<MountConfig[]>(
   })
 
 @injectable('Singleton')
-export class MountConfigService {
+export class MountConfigService implements IStoreService {
   public readonly options = mountConfigOptions
 
   async create(input: unknown) {
