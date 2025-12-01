@@ -32,7 +32,7 @@ export const Home = () => {
           }}
         >
           <Tab
-            label={t('tabs.mount', 'Library')}
+            label={t('tabs.mounts', 'Library')}
             value="/mount"
             to="/mount"
             component={Link}
