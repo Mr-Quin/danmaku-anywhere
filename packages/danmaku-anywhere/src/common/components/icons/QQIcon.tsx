@@ -1,7 +1,10 @@
 export const QQIcon = () => {
   return (
     <svg
-      enable-background="new 0 0 2094.5 2477.7"
+      fill="currentColor"
+      width="24"
+      height="24"
+      enableBackground="new 0 0 2094.5 2477.7"
       viewBox="0 0 2094.5 2477.7"
       xmlns="http://www.w3.org/2000/svg"
     >

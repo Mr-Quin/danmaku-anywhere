@@ -43,6 +43,7 @@ interface ResourceLinkContext {
 
 const resources = [
   {
+    id: 'docs',
     icon: () => <Article color="primary" />,
     title: () => i18n.t('aboutPage.docs', 'Documentation'),
     description: () =>
@@ -51,6 +52,7 @@ const resources = [
       docsLink(`getting-started?id=${ctx.id}&version=${ctx.version}`),
   },
   {
+    id: 'githubRepository',
     icon: () => <GitHub />,
     title: () => i18n.t('aboutPage.githubRepository', 'GitHub Repository'),
     description: () =>
@@ -62,6 +64,7 @@ const resources = [
       'https://github.com/Mr-Quin/danmaku-anywhere',
   },
   {
+    id: 'reportBug',
     icon: () => <BugReport color="error" />,
     title: () => i18n.t('aboutPage.reportBug', 'Report a Bug'),
     description: () =>
@@ -73,6 +76,7 @@ const resources = [
       `https://forms.clickup.com/90131020449/f/2ky3men1-933/ULQ3OZ8QYRXIJ5HACI?ID=${ctx.id}&Version=${ctx.version}`,
   },
   {
+    id: 'feedback',
     icon: () => <Feedback />,
     title: () => i18n.t('aboutPage.feedback', 'Feedback'),
     description: () =>
@@ -84,12 +88,13 @@ const resources = [
       `https://forms.clickup.com/90131020449/f/2ky3men1-973/SA0BEERBNFY3NR31P8?ID=${ctx.id}&Version=${ctx.version}`,
   },
   {
+    id: 'privacyPolicy',
     icon: () => (
       <SvgIcon>
         <QQIcon />
       </SvgIcon>
     ),
-    title: () => i18n.t('aboutPage.privacyPolicy', 'QQ Group'),
+    title: () => i18n.t('aboutPage.qqGroup', 'QQ Group'),
     description: () => '531237584',
   },
 ]
@@ -113,9 +118,9 @@ export const About = () => {
 
   const version = chrome.runtime.getManifest().version
 
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text)
-    toast.success(i18n.t('common.copiedToClipboard', 'Copied to clipboard'))
+  async function handleCopy(text: string) {
+    await navigator.clipboard.writeText(text)
+    toast.success(t('common.copiedToClipboard', 'Copied to clipboard'))
   }
 
   return (
@@ -126,7 +131,7 @@ export const About = () => {
         <Stack alignItems="center" spacing={2} mb={4}>
           <SuspenseImage
             src={images.Logo}
-            alt="Danmaku Anywhere"
+            alt={t('common.danmakuAnywhere', 'Danmaku Anywhere')}
             sx={{
               width: 80,
               height: 80,
@@ -174,12 +179,13 @@ export const About = () => {
               </Stack>
             )
             return (
-              <Card key={index} variant="outlined">
+              <Card key={resource.id} variant="outlined">
                 {hasLink ? (
                   <CardActionArea
                     component="a"
                     href={resource.link({ id: data.id || '', version })}
                     target="_blank"
+                    rel="noreferrer noopener"
                     sx={{ px: 2, py: 1 }}
                   >
                     {cardInner}
@@ -210,7 +216,7 @@ export const About = () => {
                 <Box
                   component="a"
                   href="https://space.bilibili.com/220694183"
-                  rel="noreferrer"
+                  rel="noreferrer noopener"
                   target="_blank"
                   sx={{
                     color: 'primary.main',
@@ -228,7 +234,7 @@ export const About = () => {
         {/* Technical Info */}
         <Accordion
           expanded={expanded}
-          onChange={() => setExpanded(!expanded)}
+          onChange={(_, expanded) => setExpanded(expanded)}
           variant="outlined"
           sx={{
             '&:before': { display: 'none' },
@@ -245,40 +251,46 @@ export const About = () => {
           </AccordionSummary>
           <AccordionDetails>
             <Stack spacing={2}>
-              <Box>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  {t('aboutPage.clientId', 'Client ID')}
-                </Typography>
-                <Stack direction="row" spacing={1}>
-                  <BorderTypography variant="body2" color="text.primary">
-                    {data.id || 'Loading...'}
-                  </BorderTypography>
-                  <Tooltip title="Copy ID">
-                    <IconButton
-                      onClick={() => data.id && handleCopy(data.id)}
-                      disabled={!data.id}
-                      size="small"
-                    >
-                      <ContentCopy fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                </Stack>
-                <Typography variant="caption" color="text.secondary">
-                  {t(
-                    'aboutPage.clientIdDescription',
-                    'Unique identifier for this installation. Include this when reporting issues.'
-                  )}
-                </Typography>
-              </Box>
+              {data.id && (
+                <div>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    gutterBottom
+                  >
+                    {t('aboutPage.clientId', 'Client ID')}
+                  </Typography>
+                  <Stack direction="row" spacing={1}>
+                    <BorderTypography variant="body2" color="text.primary">
+                      {data.id}
+                    </BorderTypography>
+                    <Tooltip title={t('common.copy', 'Copy')}>
+                      <IconButton
+                        onClick={() => data.id && handleCopy(data.id)}
+                        disabled={!data.id}
+                        size="small"
+                      >
+                        <ContentCopy fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+                  <Typography variant="caption" color="text.secondary">
+                    {t(
+                      'aboutPage.clientIdDescription',
+                      'Unique identifier for this installation. Include this when reporting issues.'
+                    )}
+                  </Typography>
+                </div>
+              )}
 
-              <Box>
+              <div>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   {t('aboutPage.version', 'Version')}
                 </Typography>
                 <BorderTypography variant="body2" color="text.primary">
                   {version}
                 </BorderTypography>
-              </Box>
+              </div>
             </Stack>
           </AccordionDetails>
         </Accordion>
