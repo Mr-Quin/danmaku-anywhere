@@ -16,6 +16,8 @@ module.exports = async ({ github, context, core, outcome }) => {
     return comments.find((comment) => comment.body?.includes(marker))
   }
 
+  const existingComment = await findExistingComment()
+
   if (checkFailed) {
     const commentLines = [
       marker,
@@ -38,32 +40,41 @@ module.exports = async ({ github, context, core, outcome }) => {
     ]
 
     const body = commentLines.join('\n')
-    const existingComment = await findExistingComment()
 
     if (existingComment) {
-      await github.rest.issues.updateComment({
-        owner,
-        repo,
-        comment_id: existingComment.id,
-        body,
-      })
+      try {
+        await github.rest.issues.updateComment({
+          owner,
+          repo,
+          comment_id: existingComment.id,
+          body,
+        })
+      } catch (error) {
+        core.error(`Failed to update comment: ${error.message}`)
+      }
     } else {
-      await github.rest.issues.createComment({
-        owner,
-        repo,
-        issue_number,
-        body,
-      })
+      try {
+        await github.rest.issues.createComment({
+          owner,
+          repo,
+          issue_number,
+          body,
+        })
+      } catch (error) {
+        core.error(`Failed to create comment: ${error.message}`)
+      }
     }
   } else {
-    const existingComment = await findExistingComment()
-
     if (existingComment) {
-      await github.rest.issues.deleteComment({
-        owner,
-        repo,
-        comment_id: existingComment.id,
-      })
+      try {
+        await github.rest.issues.deleteComment({
+          owner,
+          repo,
+          comment_id: existingComment.id,
+        })
+      } catch (error) {
+        core.error(`Failed to delete comment: ${error.message}`)
+      }
     }
 
     core.info('i18n check passed')
