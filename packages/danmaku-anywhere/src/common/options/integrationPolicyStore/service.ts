@@ -1,9 +1,9 @@
+import type { IStoreService } from '@/common/options/IStoreService'
 import type {
   Integration,
   IntegrationV1,
   IntegrationV2,
 } from '@/common/options/integrationPolicyStore/schema'
-import type { IStoreService } from '@/common/options/IStoreService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 
 export const xPathPolicyStore = new OptionsService<Integration[]>(

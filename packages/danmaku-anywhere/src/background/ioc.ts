@@ -8,6 +8,7 @@ import {
   extensionOptionsService,
   extensionOptionsServiceSymbol,
 } from '@/common/options/extensionOptions/service'
+import { StoreServiceSymbol } from '@/common/options/IStoreService'
 import { integrationPolicyService } from '@/common/options/integrationPolicyStore/service'
 import { mountConfigService } from '@/common/options/mountConfig/service'
 import { providerConfigService } from '@/common/options/providerConfig/service'
@@ -17,7 +18,6 @@ import {
   danmakuProviderFactory,
   type IDanmakuProviderFactory,
 } from './services/providers/ProviderFactory'
-import { StoreServiceSymbol } from '@/common/options/IStoreService'
 
 const container = new Container({ autobind: true, defaultScope: 'Singleton' })
 

@@ -1,7 +1,7 @@
 import { inject, injectable, multiInject } from 'inversify'
 import { Logger } from '@/common/Logger'
 import {
-  IStoreService,
+  type IStoreService,
   StoreServiceSymbol,
 } from '@/common/options/IStoreService'
 import { readinessService } from '@/common/options/ReadinessService/ReadinessService'
