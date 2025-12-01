@@ -46,6 +46,6 @@ jobs:
             await script({github, context, core, outcome: '${{ steps.i18n-check.outcome }}'})
 
       - name: Fail if check failed
-        if: steps['i18n-check'].outcome === 'failure'
+        if: steps['i18n-check'].outcome == 'failure'
         run: exit 1
 
