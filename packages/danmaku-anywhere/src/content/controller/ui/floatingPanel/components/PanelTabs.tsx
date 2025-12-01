@@ -1,14 +1,13 @@
 import { Badge, Tab, Tabs } from '@mui/material'
-import { useTranslation } from 'react-i18next'
 import { match } from 'ts-pattern'
 
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
+import { isConfigIncomplete } from '@/common/options/mountConfig/isPermissive'
 import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 import { routes } from '@/content/controller/ui/router/routes'
 
 export const PanelTabs = () => {
-  const { t } = useTranslation()
   const { tab, setTab } = usePopup()
   const { data: options } = useExtensionOptions()
   const activeConfig = useActiveConfig()
@@ -31,8 +30,7 @@ export const PanelTabs = () => {
       })
     })
 
-  const isIncomplete =
-    activeConfig?.mode === 'custom' && !activeConfig?.integration
+  const isIncomplete = activeConfig && isConfigIncomplete(activeConfig)
 
   return (
     <Tabs
@@ -54,10 +52,10 @@ export const PanelTabs = () => {
           label={
             tab.tab === PopupTab.Policy && isIncomplete ? (
               <Badge color="warning" variant="dot">
-                {t(tab.name)}
+                {tab.name()}
               </Badge>
             ) : (
-              t(tab.name)
+              tab.name()
             )
           }
           value={tab.tab}

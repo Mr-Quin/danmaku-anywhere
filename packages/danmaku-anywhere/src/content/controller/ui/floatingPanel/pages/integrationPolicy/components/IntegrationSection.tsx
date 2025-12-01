@@ -1,4 +1,4 @@
-import { Add, Colorize, ExpandMore, Remove } from '@mui/icons-material'
+import { Add, Colorize, Delete, ExpandMore } from '@mui/icons-material'
 import {
   Accordion,
   AccordionDetails,
@@ -6,58 +6,193 @@ import {
   Box,
   Button,
   Checkbox,
+  Divider,
   FormControlLabel,
   IconButton,
   Stack,
   styled,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import type { ReactNode } from 'react'
-import type { FieldErrors } from 'react-hook-form'
+import type { Control, FieldErrors } from 'react-hook-form'
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import type { IntegrationInput } from '@/common/options/integrationPolicyStore/schema'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
+import type { IntegrationRuleItemNames } from '../types'
 
-export type ArrayFieldNames =
-  | 'policy.title.selector'
-  | 'policy.title.regex'
-  | 'policy.episode.selector'
-  | 'policy.episode.regex'
-  | 'policy.season.selector'
-  | 'policy.season.regex'
-  | 'policy.episodeTitle.selector'
-  | 'policy.episodeTitle.regex'
+const NoRulesConfigured = () => {
+  const { t } = useTranslation()
 
-const StyledAccordion = styled(Accordion)(({ theme }) => ({
-  boxShadow: 'none',
-  border: `1px solid ${theme.palette.divider}`,
-  '&:before': {
-    display: 'none',
-  },
-  '&.Mui-expanded': {
-    margin: 0,
-    borderBottom: `1px solid ${theme.palette.divider}`,
-  },
-}))
+  return (
+    <Box
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      gap={1}
+      py={2}
+    >
+      <Typography variant="body2">
+        {t(
+          'integrationPolicyPage.editor.noRulesConfigured',
+          'No rules configured'
+        )}
+      </Typography>
+      <Typography variant="caption" color="text.secondary">
+        {t(
+          'integrationPolicyPage.editor.clickDropper',
+          'Click the dropper to select an element'
+        )}
+      </Typography>
+    </Box>
+  )
+}
+
+interface RuleItemProps {
+  index: number
+  name: IntegrationRuleItemNames
+  control: Control<IntegrationInput>
+  getErrorMessage: (
+    errors: FieldErrors<IntegrationInput>,
+    index: number
+  ) => string | undefined
+  errors: FieldErrors<IntegrationInput>
+  label: string
+  onOpenSelector: (index: number) => void
+  remove: (index: number) => void
+  renderPrefix: (index: number) => ReactNode
+}
+
+const RuleItem = ({
+  index,
+  name,
+  control,
+  getErrorMessage,
+  errors,
+  label,
+  onOpenSelector,
+  remove,
+  renderPrefix,
+}: RuleItemProps) => {
+  const { t } = useTranslation()
+
+  return (
+    <Stack spacing={1}>
+      <Stack direction="row" alignItems="center" spacing={1}>
+        {renderPrefix(index)}
+        <Typography variant="caption" color="text.secondary">
+          {t('integrationPolicyPage.editor.rule', 'Rule')}
+          {index + 1}
+        </Typography>
+        <IconButton
+          onClick={() => remove(index)}
+          sx={{
+            ml: 'auto',
+          }}
+          size="small"
+        >
+          <Delete fontSize="small" />
+        </IconButton>
+      </Stack>
+      {/* XPath input */}
+      <Stack direction="row" alignItems="center" spacing={1}>
+        <Controller
+          name={`${name}.selector.${index}.value` as const}
+          control={control}
+          render={({ field }) => (
+            <TextField
+              variant="outlined"
+              size="small"
+              fullWidth
+              placeholder='//div[@class="example"]'
+              {...withStopPropagation()}
+              {...field}
+              error={!!getErrorMessage(errors, index)}
+              helperText={getErrorMessage(errors, index)}
+              label={`${label} ${index + 1}`}
+            />
+          )}
+        />
+        <Tooltip
+          title={t(
+            'integrationPolicyPage.editor.tooltip.repickElement',
+            'Pick the element again'
+          )}
+        >
+          <IconButton onClick={() => onOpenSelector(index)} size="small">
+            <Colorize fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <FormControlLabel
+          control={
+            <Controller
+              name={`${name}.selector.${index}.quick` as const}
+              control={control}
+              defaultValue={false}
+              render={({ field: { value, ref, ...field } }) => (
+                <Checkbox
+                  {...field}
+                  inputRef={ref}
+                  checked={value}
+                  color="primary"
+                  size="small"
+                />
+              )}
+            />
+          }
+          label={t('integrationPolicyPage.editor.quick')}
+          labelPlacement="top"
+          slotProps={{
+            typography: {
+              variant: 'caption',
+              color: 'text.secondary',
+              sx: {
+                mb: -1,
+              },
+            },
+          }}
+          sx={{ m: 0 }}
+        />
+      </Stack>
+      {/* Regex input */}
+      <Stack direction="row" alignItems="center" spacing={1}>
+        <Controller
+          name={`${name}.regex.${index}.value` as const}
+          control={control}
+          render={({ field }) => (
+            <TextField variant="outlined" size="small" fullWidth {...field} />
+          )}
+        />
+      </Stack>
+    </Stack>
+  )
+}
+
+const StyledAccordion = styled(Accordion)(({ theme }) => {
+  return {
+    '&:before': { display: 'none' },
+    backgroundColor: 'transparent',
+    border: `1px solid ${theme.palette.divider}`,
+    borderRadius: 1,
+  }
+})
 
 const StyledAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
-  backgroundColor: theme.palette.background.default,
-  minHeight: 48,
-  '&.Mui-expanded': {
-    minHeight: 48,
-  },
   '& .MuiAccordionSummary-content': {
-    margin: '12px 0',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
 }))
 
+const StyledAccordionDetails = styled(AccordionDetails)(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+}))
+
 interface IntegrationSectionProps {
-  name: ArrayFieldNames
+  name: IntegrationRuleItemNames
   label: string
   getErrorMessage: (
     errors: FieldErrors<IntegrationInput>,
@@ -81,20 +216,30 @@ export const IntegrationSection = ({
     formState: { errors },
   } = useFormContext<IntegrationInput>()
 
-  const { fields, append, remove } = useFieldArray({
+  const {
+    fields: selectorFields,
+    append: appendSelector,
+    remove: removeSelector,
+  } = useFieldArray({
     control,
-    name,
+    name: `${name}.selector`,
   })
 
+  const { append: appendRegex, remove: removeRegex } = useFieldArray({
+    control,
+    name: `${name}.regex`,
+  })
   // Watch the fields to trigger re-render when the fields change
   watch(name)
 
   const handleAddManual = () => {
-    append({ value: '', quick: false }, { shouldFocus: true })
+    appendSelector({ value: '', quick: false }, { shouldFocus: true })
+    appendRegex({ value: '', quick: false }, { shouldFocus: true })
   }
 
   const handlePickElement = () => {
-    append({ value: '', quick: false })
+    appendSelector({ value: '', quick: false })
+    appendRegex({ value: '', quick: false })
     // The index of the new element is fields.length (before update) or fields.length after?
     // React state update is async.
     // We need to open selector for the NEW index.
@@ -104,110 +249,71 @@ export const IntegrationSection = ({
     // Better: just call onOpenSelector with the new index.
     // But fields is not updated yet.
     // We can assume it will be fields.length.
-    onOpenSelector(fields.length)
+    onOpenSelector(selectorFields.length)
+  }
+
+  function removeItem(index: number) {
+    removeSelector(index)
+    removeRegex(index)
   }
 
   return (
-    <StyledAccordion defaultExpanded>
+    <StyledAccordion disableGutters elevation={0}>
       <StyledAccordionSummary expandIcon={<ExpandMore />}>
         <Typography variant="subtitle2">{label}</Typography>
         <Typography variant="caption" color="text.secondary">
-          {fields.length} rules
+          {t('integrationPolicyPage.editor.rulesCount', '{{count}} rules', {
+            count: selectorFields.length,
+          })}
         </Typography>
       </StyledAccordionSummary>
-      <AccordionDetails sx={{ p: 2 }}>
-        {fields.length === 0 ? (
-          <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            gap={2}
-            py={2}
-          >
-            <Typography variant="body2" color="error">
-              No rules configured
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Click the dropper to select an element
-            </Typography>
-            <Stack direction="row" spacing={2} width="100%">
-              <Button
-                variant="contained"
-                color="secondary"
-                startIcon={<Colorize />}
-                fullWidth
-                onClick={handlePickElement}
-              >
-                Pick Element
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<Add />}
-                onClick={handleAddManual}
-              >
-                Manual
-              </Button>
+      <StyledAccordionDetails>
+        <>
+          {selectorFields.length === 0 ? (
+            <NoRulesConfigured />
+          ) : (
+            <Stack spacing={2}>
+              {selectorFields.map((value, index) => (
+                <>
+                  <RuleItem
+                    key={value.id}
+                    index={index}
+                    name={name}
+                    control={control}
+                    getErrorMessage={getErrorMessage}
+                    errors={errors}
+                    label={label}
+                    onOpenSelector={onOpenSelector}
+                    remove={removeItem}
+                    renderPrefix={renderPrefix}
+                  />
+                  {index < selectorFields.length - 1 && <Divider />}
+                </>
+              ))}
             </Stack>
-          </Box>
-        ) : (
-          <Stack spacing={2}>
-            {fields.map((value, index) => (
-              <Box display="flex" alignItems="center" key={value.id}>
-                {renderPrefix(index)}
-                <Controller
-                  name={`${name}.${index}.value` as const}
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      variant="standard"
-                      fullWidth
-                      {...withStopPropagation()}
-                      {...field}
-                      error={!!getErrorMessage(errors, index)}
-                      helperText={getErrorMessage(errors, index)}
-                      label={`${label} ${index + 1}`}
-                    />
-                  )}
-                />
-                <IconButton onClick={() => onOpenSelector(index)}>
-                  <Colorize />
-                </IconButton>
-                <FormControlLabel
-                  control={
-                    <Controller
-                      name={`${name}.${index}.quick` as const}
-                      control={control}
-                      defaultValue={false}
-                      render={({ field: { value, ref, ...field } }) => (
-                        <Checkbox
-                          {...field}
-                          inputRef={ref}
-                          checked={value}
-                          color="primary"
-                        />
-                      )}
-                    />
-                  }
-                  label={t('integrationPolicyPage.editor.quick')}
-                  labelPlacement="top"
-                  slotProps={{
-                    typography: {
-                      variant: 'caption',
-                    },
-                  }}
-                  sx={{ m: 0 }}
-                />
-                <IconButton onClick={() => remove(index)}>
-                  <Remove />
-                </IconButton>
-              </Box>
-            ))}
-            <Button startIcon={<Add />} onClick={handleAddManual}>
-              Add Rule
+          )}
+          <Stack direction="row" spacing={2} width="100%">
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<Colorize />}
+              fullWidth
+              onClick={handlePickElement}
+              size="small"
+            >
+              {t('integrationPolicyPage.editor.pickElement', 'Pick Element')}
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<Add />}
+              onClick={handleAddManual}
+              size="small"
+            >
+              {t('integrationPolicyPage.editor.addManual', 'Manual')}
             </Button>
           </Stack>
-        )}
-      </AccordionDetails>
+        </>
+      </StyledAccordionDetails>
     </StyledAccordion>
   )
 }

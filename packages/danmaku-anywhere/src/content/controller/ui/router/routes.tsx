@@ -1,3 +1,4 @@
+import { i18n } from '@/common/localization/i18n'
 import { PopupTab } from '@/content/controller/store/popupStore'
 import { CommentsPage } from '@/content/controller/ui/floatingPanel/pages/CommentsPage'
 import { DebugPage } from '@/content/controller/ui/floatingPanel/pages/DebugPage'
@@ -11,42 +12,42 @@ import { SearchPage } from '@/content/controller/ui/floatingPanel/pages/search/S
 export const routes = [
   {
     tab: PopupTab.Mount,
-    name: 'tabs.mount',
+    name: () => i18n.t('tabs.mount', 'Library'),
     element: <MountPage />,
   },
   {
     tab: PopupTab.Search,
-    name: 'tabs.search',
+    name: () => i18n.t('tabs.search', 'Search'),
     element: <SearchPage />,
   },
   {
     tab: PopupTab.Selector,
-    name: 'tabs.selector',
+    name: () => i18n.t('tabs.selector', 'Selector'),
     element: <SelectorPage />,
   },
   {
     tab: PopupTab.Comments,
-    name: 'tabs.danmaku',
+    name: () => i18n.t('tabs.danmaku', 'Danmaku'),
     element: <CommentsPage />,
   },
   {
     tab: PopupTab.Styles,
-    name: 'tabs.style',
+    name: () => i18n.t('tabs.style', 'Style'),
     element: <StylesPage />,
   },
   {
     tab: PopupTab.Policy,
-    name: 'tabs.integrationPolicy',
+    name: () => i18n.t('tabs.integrationPolicy', 'Integration'),
     element: <IntegrationPage />,
   },
   {
     tab: PopupTab.Import,
-    name: 'tabs.import',
+    name: () => i18n.t('tabs.import', 'Import'),
     element: <ImportPage />,
   },
   {
     tab: PopupTab.Debug,
-    name: 'debug',
+    name: () => i18n.t('tabs.debug', 'Debug'),
     element: <DebugPage />,
   },
 ]

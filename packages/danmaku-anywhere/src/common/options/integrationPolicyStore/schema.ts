@@ -120,20 +120,20 @@ export const createIntegrationInput = (name = ''): IntegrationInput => {
     name: name,
     policy: {
       title: {
-        selector: [{ value: '', quick: false }],
-        regex: [{ value: '', quick: false }],
+        selector: [],
+        regex: [],
       },
       episode: {
-        selector: [{ value: '', quick: false }],
-        regex: [{ value: '', quick: false }],
+        selector: [],
+        regex: [],
       },
       season: {
-        selector: [{ value: '', quick: false }],
-        regex: [{ value: '', quick: false }],
+        selector: [],
+        regex: [],
       },
       episodeTitle: {
-        selector: [{ value: '', quick: false }],
-        regex: [{ value: '', quick: false }],
+        selector: [],
+        regex: [],
       },
       options: {
         titleOnly: false,

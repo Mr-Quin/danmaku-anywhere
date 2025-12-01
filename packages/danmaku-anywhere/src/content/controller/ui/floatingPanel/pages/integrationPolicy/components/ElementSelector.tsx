@@ -1,4 +1,5 @@
-import { Popover, Typography } from '@mui/material'
+import { Box, Popover, styled, Typography } from '@mui/material'
+import { red } from '@mui/material/colors'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { createVirtualElement } from '@/common/utils/utils'
@@ -10,6 +11,19 @@ interface HighlightElementProps {
   onExit: () => void
   onSelect: (xPath: string) => void
 }
+
+const HighlightBox = styled(Box)(({ theme }) => {
+  return {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: 0,
+    height: 0,
+    border: `2px solid ${red[500]}`,
+    borderRadius: theme.shape.borderRadius,
+    pointerEvents: 'none',
+  }
+})
 
 export const ElementSelector = (props: HighlightElementProps) => {
   const { enable } = props
@@ -73,21 +87,10 @@ export const ElementSelector = (props: HighlightElementProps) => {
 
   return createPortal(
     <>
-      <div
-        ref={ref}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: 0,
-          height: 0,
-          border: '2px solid red',
-          pointerEvents: 'none',
-        }}
-      />
+      <HighlightBox ref={ref} />
       <Popover
         open={!!text}
-        anchorEl={() => createVirtualElement(x, y)}
+        anchorEl={() => createVirtualElement(x + 10, y + 10)}
         style={{ pointerEvents: 'none' }}
         anchorOrigin={{
           vertical: 'bottom',

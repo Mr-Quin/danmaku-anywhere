@@ -141,7 +141,7 @@ export const MountConfigEditor = ({
   }
 
   return (
-    <OptionsPageLayout direction="left">
+    <OptionsPageLayout direction="up">
       <OptionsPageToolBar
         title={
           isEdit

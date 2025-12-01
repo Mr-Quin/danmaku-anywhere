@@ -1,6 +1,5 @@
 import {
   AutoAwesome,
-  CheckCircle,
   ContentCopy,
   Delete,
   ErrorOutline,
@@ -11,7 +10,6 @@ import {
   ListItemText,
   MenuItem,
   Stack,
-  Typography,
 } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -27,6 +25,54 @@ import {
 } from '@/common/options/mountConfig/useMountConfig'
 import { createDownload } from '@/common/utils/utils'
 import { ConfigToggleSwitch } from '@/popup/pages/config/components/ConfigToggleSwitch'
+
+const ConfigBadge = ({ config }: { config: MountConfig }) => {
+  const { t } = useTranslation()
+
+  switch (config.mode) {
+    case 'ai':
+      return (
+        <Chip
+          size="small"
+          label={t('configPage.editor.automation.aiLabel', 'AI')}
+          color="secondary"
+          variant="filled"
+          icon={<AutoAwesome />}
+        />
+      )
+    case 'custom':
+      if (!config.integration) {
+        return (
+          <Chip
+            size="small"
+            label={t(
+              'configPage.editor.automation.setupIncomplete',
+              'Setup Incomplete'
+            )}
+            color="warning"
+            variant="filled"
+            icon={<ErrorOutline />}
+          />
+        )
+      }
+      return (
+        <Chip
+          size="small"
+          label={t('configPage.editor.automation.customLabel', 'Custom')}
+          color="primary"
+          variant="filled"
+        />
+      )
+    default:
+      return (
+        <Chip
+          size="small"
+          label={t('configPage.editor.automation.manualLabel', 'Manual')}
+          variant="filled"
+        />
+      )
+  }
+}
 
 export const MountConfigList = ({
   onEdit,
@@ -78,54 +124,6 @@ export const MountConfigList = ({
     })
   }
 
-  const getBadge = (config: MountConfig) => {
-    const mode = config.mode ?? 'manual'
-    if (mode === 'ai') {
-      return (
-        <Chip
-          size="small"
-          icon={<AutoAwesome />}
-          label="AI Auto-fetch"
-          color="secondary"
-          variant="filled"
-          sx={{ height: 24 }}
-        />
-      )
-    }
-    if (mode === 'custom') {
-      if (!config.integration) {
-        return (
-          <Chip
-            size="small"
-            icon={<ErrorOutline />}
-            label="Setup Incomplete"
-            color="warning"
-            variant="filled"
-            sx={{ height: 24 }}
-          />
-        )
-      }
-      return (
-        <Chip
-          size="small"
-          icon={<CheckCircle />}
-          label="Custom Selectors"
-          color="primary"
-          variant="outlined"
-          sx={{ height: 24 }}
-        />
-      )
-    }
-    return (
-      <Chip
-        size="small"
-        label="Manual"
-        variant="outlined"
-        sx={{ height: 24 }}
-      />
-    )
-  }
-
   return (
     <DraggableList
       items={configs}
@@ -136,16 +134,10 @@ export const MountConfigList = ({
       renderPrimary={(config) => (
         <Stack direction="row" alignItems="center" gap={1}>
           {config.name}
-          {getBadge(config)}
+          <ConfigBadge config={config} />
         </Stack>
       )}
-      renderSecondary={(config) => (
-        <Stack spacing={0.5} alignItems="flex-start">
-          <Typography variant="body2" color="text.secondary">
-            {config.patterns[0]}
-          </Typography>
-        </Stack>
-      )}
+      renderSecondary={(config) => config.patterns[0]}
       renderSecondaryAction={(config) => (
         <>
           <ConfigToggleSwitch config={config} />

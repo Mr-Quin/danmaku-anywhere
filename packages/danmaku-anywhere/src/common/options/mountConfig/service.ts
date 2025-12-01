@@ -93,7 +93,10 @@ export class MountConfigService {
 
     if (!prevConfig) throw new Error(`Config not found: "${id}"`)
 
-    const newConfig = { ...prevConfig, ...config }
+    const newConfig = await mountConfigInputSchema.parseAsync({
+      ...prevConfig,
+      ...config,
+    })
 
     const newConfigs = produce(configs, (draft) => {
       const index = draft.findIndex((item) => item.id === id)

@@ -1,17 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { AutoAwesome, OpenInNew } from '@mui/icons-material'
-import {
-  Box,
-  Button,
-  Checkbox,
-  FormControlLabel,
-  Stack,
-  Typography,
-} from '@mui/material'
+import { OpenInNew } from '@mui/icons-material'
+import { Box, Button, Stack, Typography } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import type { ReactElement } from 'react'
 import { useEffect, useState } from 'react'
-import { Controller, FormProvider, useForm } from 'react-hook-form'
+import { FormProvider, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
@@ -33,16 +26,7 @@ import { ElementSelector } from '@/content/controller/ui/floatingPanel/pages/int
 import { IntegrationLivePreview } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/IntegrationLivePreview'
 import { IntegrationSection } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/IntegrationSection'
 import { ValidationIcon } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/ValidationIcon'
-
-type ArrayFieldNames =
-  | 'policy.title.selector'
-  | 'policy.title.regex'
-  | 'policy.episode.selector'
-  | 'policy.episode.regex'
-  | 'policy.season.selector'
-  | 'policy.season.regex'
-  | 'policy.episodeTitle.selector'
-  | 'policy.episodeTitle.regex'
+import type { IntegrationArrayFieldNames } from './types'
 
 export const IntegrationEditor = (): ReactElement => {
   const { t } = useTranslation()
@@ -52,7 +36,7 @@ export const IntegrationEditor = (): ReactElement => {
 
   const [showSelector, setShowSelector] = useState(false)
   const [selectedField, setSelectedField] = useState<{
-    name: ArrayFieldNames
+    name: IntegrationArrayFieldNames
     index: number
   }>()
 
@@ -70,11 +54,12 @@ export const IntegrationEditor = (): ReactElement => {
     mode: 'onChange',
   })
 
+  console.log(form.getValues())
+
   const {
     handleSubmit,
     getValues,
     reset,
-    control,
     formState: { isSubmitting },
   } = form
 
@@ -115,7 +100,10 @@ export const IntegrationEditor = (): ReactElement => {
     },
   })
 
-  const handleOpenSelector = (name: ArrayFieldNames, index: number) => {
+  const handleOpenSelector = (
+    name: IntegrationArrayFieldNames,
+    index: number
+  ) => {
     setShowSelector(true)
     setSelectedField({ name, index })
   }
@@ -128,7 +116,7 @@ export const IntegrationEditor = (): ReactElement => {
     form.setValue(name, newValues)
   }
 
-  const renderXPathValidation = (name: ArrayFieldNames) => {
+  const renderXPathValidation = (name: IntegrationArrayFieldNames) => {
     const values = getValues(name)
 
     return (index: number) => {
@@ -178,7 +166,7 @@ export const IntegrationEditor = (): ReactElement => {
 
               <Stack spacing={2}>
                 <IntegrationSection
-                  name="policy.title.selector"
+                  name="policy.title"
                   label="Video Title"
                   getErrorMessage={(errors, i) =>
                     errors.policy?.title?.selector?.[i]?.message
@@ -190,7 +178,7 @@ export const IntegrationEditor = (): ReactElement => {
                 />
 
                 <IntegrationSection
-                  name="policy.season.selector"
+                  name="policy.season"
                   label="Season Number"
                   getErrorMessage={(errors, i) =>
                     errors.policy?.season?.selector?.[i]?.message
@@ -202,7 +190,7 @@ export const IntegrationEditor = (): ReactElement => {
                 />
 
                 <IntegrationSection
-                  name="policy.episode.selector"
+                  name="policy.episode"
                   label="Episode Number"
                   getErrorMessage={(errors, i) =>
                     errors.policy?.episode?.selector?.[i]?.message
@@ -229,37 +217,6 @@ export const IntegrationEditor = (): ReactElement => {
                   zIndex: 1,
                 }}
               >
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  mb={2}
-                >
-                  <FormControlLabel
-                    control={
-                      <Controller
-                        name="policy.options.useAI"
-                        control={control}
-                        render={({ field: { value, ref, ...field } }) => (
-                          <Checkbox
-                            {...field}
-                            inputRef={ref}
-                            checked={value}
-                            color="secondary"
-                          />
-                        )}
-                      />
-                    }
-                    label={
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        <AutoAwesome color="secondary" fontSize="small" />
-                        <Typography variant="body2">
-                          AI Auto-configure (Beta)
-                        </Typography>
-                      </Stack>
-                    }
-                  />
-                </Stack>
                 <Stack direction="row" spacing={2}>
                   <Button
                     fullWidth
