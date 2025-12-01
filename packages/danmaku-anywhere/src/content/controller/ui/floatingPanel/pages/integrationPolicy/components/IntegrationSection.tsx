@@ -3,6 +3,7 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Alert,
   Box,
   Button,
   Checkbox,
@@ -12,46 +13,152 @@ import {
   Stack,
   styled,
   TextField,
-  Tooltip,
   Typography,
 } from '@mui/material'
-import type { ReactNode } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 import type { Control, FieldErrors } from 'react-hook-form'
-import { Controller, useFieldArray, useFormContext } from 'react-hook-form'
+import {
+  Controller,
+  useFieldArray,
+  useFormContext,
+  useWatch,
+} from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import type { IntegrationInput } from '@/common/options/integrationPolicyStore/schema'
+import { getElementByXpath } from '@/common/utils/utils'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import type { IntegrationRuleItemNames } from '../types'
 
-const NoRulesConfigured = () => {
+const NoRulesConfigured = ({ type }: { type: 'selector' | 'regex' }) => {
   const { t } = useTranslation()
 
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-      gap={1}
-      py={2}
-    >
-      <Typography variant="body2">
-        {t(
-          'integrationPolicyPage.editor.noRulesConfigured',
-          'No rules configured'
-        )}
-      </Typography>
-      <Typography variant="caption" color="text.secondary">
-        {t(
-          'integrationPolicyPage.editor.clickDropper',
-          'Click the dropper to select an element'
-        )}
-      </Typography>
+    <Box display="flex" alignItems="center" justifyContent="center" py={2}>
+      {type === 'selector' ? (
+        <>
+          <Typography variant="body2" color="text.secondary">
+            {t(
+              'integrationPolicyPage.editor.noXpathSelectors',
+              'No XPath selectors. Click "Pick" to select an element'
+            )}
+          </Typography>
+        </>
+      ) : (
+        <>
+          <Typography variant="body2" color="text.secondary">
+            {t(
+              'integrationPolicyPage.editor.noRegexConfigured',
+              'No regex patterns. Click "Add" to add a regex'
+            )}
+          </Typography>
+        </>
+      )}
     </Box>
   )
 }
 
-interface RuleItemProps {
+const RuleItemBox = styled(Box)(({ theme }) => ({
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: 1,
+  padding: theme.spacing(1),
+}))
+
+interface RegexRuleItemProps {
+  index: number
+  name: IntegrationRuleItemNames
+  control: Control<IntegrationInput>
+  remove: (index: number) => void
+  getErrorMessage: (
+    errors: FieldErrors<IntegrationInput>,
+    index: number
+  ) => string | undefined
+}
+
+const RegexRuleItem = ({
+  index,
+  name,
+  control,
+  remove,
+  getErrorMessage,
+}: RegexRuleItemProps) => {
+  const { t } = useTranslation()
+
+  return (
+    <RuleItemBox>
+      <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <Typography variant="body2" color="">
+          #{index + 1}
+        </Typography>
+        <div>
+          <IconButton onClick={() => remove(index)} size="small">
+            <Delete fontSize="small" />
+          </IconButton>
+        </div>
+      </Stack>
+      <Stack direction="row" alignItems="center" spacing={1}>
+        <Controller
+          name={`${name}.regex.${index}.value` as const}
+          control={control}
+          render={({ field }) => (
+            <TextField
+              variant="outlined"
+              size="small"
+              fullWidth
+              placeholder=".*"
+              {...field}
+            />
+          )}
+        />
+        <FormControlLabel
+          control={
+            <Controller
+              name={`${name}.regex.${index}.quick` as const}
+              control={control}
+              defaultValue={false}
+              render={({ field: { value, ref, ...field } }) => (
+                <Checkbox
+                  {...field}
+                  inputRef={ref}
+                  checked={value}
+                  color="primary"
+                  size="small"
+                />
+              )}
+            />
+          }
+          label={t('integrationPolicyPage.editor.quick', 'Quick')}
+          labelPlacement="top"
+          slotProps={{
+            typography: {
+              variant: 'caption',
+              color: 'text.secondary',
+              sx: {
+                mb: -1,
+              },
+            },
+          }}
+          sx={{ m: 0 }}
+        />
+      </Stack>
+    </RuleItemBox>
+  )
+}
+
+interface MatchXPathResult {
+  isMatch: boolean
+  text: string | null
+}
+
+function matchXPath(xpath: string): MatchXPathResult {
+  const node = getElementByXpath(xpath)
+  return {
+    isMatch: !!node,
+    text: node?.textContent ?? null,
+  }
+}
+
+interface SelectorRuleItemProps {
   index: number
   name: IntegrationRuleItemNames
   control: Control<IntegrationInput>
@@ -66,7 +173,7 @@ interface RuleItemProps {
   renderPrefix: (index: number) => ReactNode
 }
 
-const RuleItem = ({
+const SelectorRuleItem = ({
   index,
   name,
   control,
@@ -76,28 +183,34 @@ const RuleItem = ({
   onOpenSelector,
   remove,
   renderPrefix,
-}: RuleItemProps) => {
+}: SelectorRuleItemProps) => {
   const { t } = useTranslation()
 
+  const value = useWatch({ control, name: `${name}.selector.${index}.value` })
+
+  const [matchText, setMatchText] = useState<MatchXPathResult | null>(() => {
+    return matchXPath(value)
+  })
+
+  useEffect(() => {
+    setMatchText(matchXPath(value))
+  }, [value])
+
   return (
-    <Stack spacing={1}>
-      <Stack direction="row" alignItems="center" spacing={1}>
-        {renderPrefix(index)}
-        <Typography variant="caption" color="text.secondary">
-          {t('integrationPolicyPage.editor.rule', 'Rule')}
-          {index + 1}
+    <RuleItemBox>
+      <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <Typography variant="body2" color="">
+          #{index + 1}
         </Typography>
-        <IconButton
-          onClick={() => remove(index)}
-          sx={{
-            ml: 'auto',
-          }}
-          size="small"
-        >
-          <Delete fontSize="small" />
-        </IconButton>
+        <div>
+          <IconButton onClick={() => onOpenSelector(index)} size="small">
+            <Colorize fontSize="small" />
+          </IconButton>
+          <IconButton onClick={() => remove(index)} size="small">
+            <Delete fontSize="small" />
+          </IconButton>
+        </div>
       </Stack>
-      {/* XPath input */}
       <Stack direction="row" alignItems="center" spacing={1}>
         <Controller
           name={`${name}.selector.${index}.value` as const}
@@ -112,20 +225,9 @@ const RuleItem = ({
               {...field}
               error={!!getErrorMessage(errors, index)}
               helperText={getErrorMessage(errors, index)}
-              label={`${label} ${index + 1}`}
             />
           )}
         />
-        <Tooltip
-          title={t(
-            'integrationPolicyPage.editor.tooltip.repickElement',
-            'Pick the element again'
-          )}
-        >
-          <IconButton onClick={() => onOpenSelector(index)} size="small">
-            <Colorize fontSize="small" />
-          </IconButton>
-        </Tooltip>
         <FormControlLabel
           control={
             <Controller
@@ -143,7 +245,7 @@ const RuleItem = ({
               )}
             />
           }
-          label={t('integrationPolicyPage.editor.quick')}
+          label={t('integrationPolicyPage.editor.quick', 'Quick')}
           labelPlacement="top"
           slotProps={{
             typography: {
@@ -157,17 +259,29 @@ const RuleItem = ({
           sx={{ m: 0 }}
         />
       </Stack>
-      {/* Regex input */}
-      <Stack direction="row" alignItems="center" spacing={1}>
-        <Controller
-          name={`${name}.regex.${index}.value` as const}
-          control={control}
-          render={({ field }) => (
-            <TextField variant="outlined" size="small" fullWidth {...field} />
-          )}
-        />
-      </Stack>
-    </Stack>
+      {matchText?.isMatch ? (
+        matchText.text ? (
+          <Alert icon={false} severity="success">
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <Typography variant="body2" color="success.main">
+                Matched:
+              </Typography>
+              <Typography variant="body2" noWrap title={matchText.text}>
+                {matchText.text}
+              </Typography>
+            </Stack>
+          </Alert>
+        ) : (
+          <Alert severity="warning">
+            A node is found, but the text is empty
+          </Alert>
+        )
+      ) : (
+        <Alert severity="error">
+          The XPath is invalid or no node is matched
+        </Alert>
+      )}
+    </RuleItemBox>
   )
 }
 
@@ -225,7 +339,11 @@ export const IntegrationSection = ({
     name: `${name}.selector`,
   })
 
-  const { append: appendRegex, remove: removeRegex } = useFieldArray({
+  const {
+    fields: regexFields,
+    append: appendRegex,
+    remove: removeRegex,
+  } = useFieldArray({
     control,
     name: `${name}.regex`,
   })
@@ -234,12 +352,14 @@ export const IntegrationSection = ({
 
   const handleAddManual = () => {
     appendSelector({ value: '', quick: false }, { shouldFocus: true })
+  }
+
+  const handleAddRegex = () => {
     appendRegex({ value: '', quick: false }, { shouldFocus: true })
   }
 
   const handlePickElement = () => {
     appendSelector({ value: '', quick: false })
-    appendRegex({ value: '', quick: false })
     // The index of the new element is fields.length (before update) or fields.length after?
     // React state update is async.
     // We need to open selector for the NEW index.
@@ -252,66 +372,126 @@ export const IntegrationSection = ({
     onOpenSelector(selectorFields.length)
   }
 
-  function removeItem(index: number) {
-    removeSelector(index)
-    removeRegex(index)
-  }
-
   return (
     <StyledAccordion disableGutters elevation={0}>
       <StyledAccordionSummary expandIcon={<ExpandMore />}>
-        <Typography variant="subtitle2">{label}</Typography>
+        <Typography variant="subtitle1">{label}</Typography>
         <Typography variant="caption" color="text.secondary">
-          {t('integrationPolicyPage.editor.rulesCount', '{{count}} rules', {
-            count: selectorFields.length,
-          })}
+          {t(
+            'integrationPolicyPage.editor.selectorRuleCount',
+            '{{count}} XPath',
+            {
+              count: selectorFields.length,
+            }
+          )}
+          {regexFields.length > 0 && (
+            <Typography variant="caption" color="text.secondary">
+              ,{' '}
+              {t(
+                'integrationPolicyPage.editor.regexRuleCount',
+                '{{count}} regex',
+                {
+                  count: regexFields.length,
+                }
+              )}
+            </Typography>
+          )}
         </Typography>
       </StyledAccordionSummary>
       <StyledAccordionDetails>
         <>
+          {/* Selector Section */}
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            sx={{ mb: 1 }}
+          >
+            <Typography variant="subtitle2">
+              {t(
+                'integrationPolicyPage.editor.xpathSelectors',
+                'XPath Selectors'
+              )}
+            </Typography>
+            <div>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<Colorize />}
+                onClick={handlePickElement}
+                size="small"
+                sx={{ mr: 1 }}
+              >
+                {t('integrationPolicyPage.editor.pickElement', 'Pick')}
+              </Button>
+              <Button
+                variant="text"
+                startIcon={<Add />}
+                onClick={handleAddManual}
+                size="small"
+              >
+                {t('integrationPolicyPage.editor.addManual', 'Add')}
+              </Button>
+            </div>
+          </Stack>
           {selectorFields.length === 0 ? (
-            <NoRulesConfigured />
+            <NoRulesConfigured type="selector" />
           ) : (
-            <Stack spacing={2}>
+            <Stack spacing={1}>
               {selectorFields.map((value, index) => (
-                <>
-                  <RuleItem
-                    key={value.id}
-                    index={index}
-                    name={name}
-                    control={control}
-                    getErrorMessage={getErrorMessage}
-                    errors={errors}
-                    label={label}
-                    onOpenSelector={onOpenSelector}
-                    remove={removeItem}
-                    renderPrefix={renderPrefix}
-                  />
-                  {index < selectorFields.length - 1 && <Divider />}
-                </>
+                <SelectorRuleItem
+                  key={value.id}
+                  index={index}
+                  name={name}
+                  control={control}
+                  getErrorMessage={getErrorMessage}
+                  errors={errors}
+                  label={label}
+                  onOpenSelector={onOpenSelector}
+                  remove={removeSelector}
+                  renderPrefix={renderPrefix}
+                />
               ))}
             </Stack>
           )}
-          <Stack direction="row" spacing={2} width="100%">
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<Colorize />}
-              fullWidth
-              onClick={handlePickElement}
-              size="small"
-            >
-              {t('integrationPolicyPage.editor.pickElement', 'Pick Element')}
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<Add />}
-              onClick={handleAddManual}
-              size="small"
-            >
-              {t('integrationPolicyPage.editor.addManual', 'Manual')}
-            </Button>
+          <Divider sx={{ my: 2, mx: -2 }} />
+          {/* Regex Section */}
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            sx={{ mb: 1 }}
+          >
+            <Typography variant="subtitle2">
+              {t('integrationPolicyPage.editor.regex', 'Regex (Optional)')}
+            </Typography>
+            <div>
+              <Button
+                variant="text"
+                startIcon={<Add />}
+                onClick={handleAddRegex}
+                size="small"
+              >
+                {t('integrationPolicyPage.editor.addRegex', 'Add')}
+              </Button>
+            </div>
           </Stack>
+          {regexFields.length === 0 ? (
+            <NoRulesConfigured type="regex" />
+          ) : (
+            <Stack spacing={1}>
+              {regexFields.map((value, index) => (
+                <RegexRuleItem
+                  key={value.id}
+                  index={index}
+                  name={name}
+                  control={control}
+                  getErrorMessage={getErrorMessage}
+                  remove={removeRegex}
+                />
+              ))}
+            </Stack>
+          )}
         </>
       </StyledAccordionDetails>
     </StyledAccordion>
