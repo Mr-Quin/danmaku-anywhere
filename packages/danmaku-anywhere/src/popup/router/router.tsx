@@ -4,7 +4,7 @@ import { FilterPageWithRouter } from '@/content/common/DanmakuStyles/FilterPage'
 import { ImportConfigPage } from '@/popup/pages/config/pages/import/ImportConfigPage'
 import { ImportPage } from '@/popup/pages/import/ImportPage'
 import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
-import { HelpOptions } from '@/popup/pages/options/pages/help/HelpOptions'
+import { About } from '@/popup/pages/options/pages/help/About'
 import { PlayerOptions } from '@/popup/pages/options/pages/player/PlayerOptions'
 import { SeasonDetailsPage } from '@/popup/pages/search/seasonDetails/SeasonDetailsPage'
 import { ConfigPage } from '../pages/config/pages/ConfigPage'
@@ -136,7 +136,7 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
       },
       {
         path: 'help',
-        Component: HelpOptions,
+        Component: About,
       },
     ],
   },

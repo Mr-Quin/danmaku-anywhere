@@ -1,4 +1,5 @@
-import type { ComponentProps, ReactNode } from 'react'
+import { Box, type BoxProps } from '@mui/material'
+import type { ReactNode } from 'react'
 import { images } from '@/common/components/image/usePreloadImages'
 import { useImageSuspense } from './useImage'
 
@@ -10,7 +11,7 @@ type ImageProps = {
   width?: number
   height?: number
   cache?: boolean
-} & ComponentProps<'img'>
+} & Omit<BoxProps<'img'>, 'src' | 'alt' | 'component'>
 
 export const SuspenseImage = ({
   fallback,
@@ -34,6 +35,13 @@ export const SuspenseImage = ({
   }
 
   return (
-    <img {...rest} src={image.data} alt={alt} width={width} height={height} />
+    <Box
+      component="img"
+      {...rest}
+      src={image.data}
+      alt={alt}
+      width={width}
+      height={height}
+    />
   )
 }
