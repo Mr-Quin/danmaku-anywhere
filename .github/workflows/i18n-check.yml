@@ -2,7 +2,6 @@ name: i18n Check
 
 on:
   pull_request:
-    types:
     paths:
       - 'packages/danmaku-anywhere/**'
 
@@ -10,6 +9,11 @@ jobs:
   check-i18n:
     name: Validate i18n translations
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [ 24.x ]
+
     permissions:
       pull-requests: write
       contents: read
@@ -19,13 +23,11 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
-      - name: Setup Node.js
+      - name: Setup Node ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
 
       - name: Install dependencies
