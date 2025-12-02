@@ -4,10 +4,13 @@ import { useRef, useState } from 'react'
 import { usePopup } from '@/content/controller/store/popupStore'
 import { ControllerWindow } from '@/content/controller/ui/floatingPanel/ControllerWindow'
 import { CONTROLLER_ROOT_ID } from '../common/constants/rootId'
+import { useStore } from '../store/store'
 import { FloatingButton } from './floatingButton/FloatingButton'
 
 export const PopupUi = () => {
   const { isOpen, toggleOpen, lock } = usePopup()
+  const isPicking = useStore((state) => state.integrationForm.isPicking)
+
   const fallbackAnchorEl = useRef<HTMLButtonElement | null>(null)
 
   const rootRef = useRef<HTMLElement | null>(
@@ -40,7 +43,13 @@ export const PopupUi = () => {
         }
       }}
     >
-      <div>
+      <div
+        style={{
+          opacity: isPicking ? 0 : 1,
+          pointerEvents: isPicking ? 'none' : 'auto',
+          transition: 'opacity 0.2s',
+        }}
+      >
         <ControllerWindow anchorEl={anchorEl ?? fallbackAnchorEl.current} />
         <FloatingButton
           color="primary"

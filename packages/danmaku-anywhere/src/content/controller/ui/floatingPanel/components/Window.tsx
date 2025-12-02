@@ -3,6 +3,7 @@ import { SwipeableDrawer } from '@mui/material'
 import type { ReactNode, Ref } from 'react'
 import { memo } from 'react'
 import { useIsSmallScreen } from '@/content/controller/common/hooks/useIsSmallScreen'
+import { useStore } from '@/content/controller/store/store'
 import { WindowPaneLayout } from '@/content/controller/ui/floatingPanel/layout/WindowPaneLayout'
 import { WindowPopper } from './WindowPopper'
 
@@ -27,16 +28,20 @@ const BaseWindow = ({
 }: ControlWindowProps) => {
   const sm = useIsSmallScreen()
 
+  const isPicking = useStore((state) => state.integrationForm.isPicking)
+
   if (sm) {
     return (
       <SwipeableDrawer
         anchor="bottom"
-        open={open}
+        open={open && !isPicking}
         onOpen={() => onOpen()}
         onClose={() => onClose()}
         disableSwipeToOpen
         hideBackdrop
-        sx={{ zIndex: 1402 }}
+        sx={{
+          zIndex: 1402,
+        }}
         ref={ref}
       >
         <WindowPaneLayout>
@@ -50,7 +55,11 @@ const BaseWindow = ({
   }
 
   return (
-    <WindowPopper anchorEl={anchorEl} open={open} unmountOnExit={false}>
+    <WindowPopper
+      anchorEl={anchorEl}
+      open={open && !isPicking}
+      unmountOnExit={false}
+    >
       {({ bind }) => {
         return (
           <>

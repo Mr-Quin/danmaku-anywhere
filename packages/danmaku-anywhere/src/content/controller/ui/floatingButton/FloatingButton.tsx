@@ -93,7 +93,9 @@ export const FloatingButton = forwardRef<
 
   const dialColor = isDisconnected ? 'error' : isMounted ? 'success' : 'primary'
 
-  const isIn = showFab || isOpen || !!contextMenuAnchor
+  const isPicking = useStore((state) => state.integrationForm.isPicking)
+
+  const isIn = !isPicking && (showFab || isOpen || !!contextMenuAnchor)
 
   const isIncomplete =
     activeConfig?.mode === 'custom' && !activeConfig?.integration

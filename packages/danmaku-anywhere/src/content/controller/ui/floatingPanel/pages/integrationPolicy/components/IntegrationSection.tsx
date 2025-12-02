@@ -168,7 +168,7 @@ interface SelectorRuleItemProps {
   ) => string | undefined
   errors: FieldErrors<IntegrationInput>
   label: string
-  onOpenSelector: (index: number) => void
+  onOpenSelector: (callback: (xpath: string) => void) => void
   remove: (index: number) => void
   renderPrefix: (index: number) => ReactNode
 }
@@ -185,6 +185,7 @@ const SelectorRuleItem = ({
   renderPrefix,
 }: SelectorRuleItemProps) => {
   const { t } = useTranslation()
+  const { setValue } = useFormContext<IntegrationInput>()
 
   const value = useWatch({ control, name: `${name}.selector.${index}.value` })
 
@@ -203,7 +204,18 @@ const SelectorRuleItem = ({
           #{index + 1}
         </Typography>
         <div>
-          <IconButton onClick={() => onOpenSelector(index)} size="small">
+          <IconButton
+            onClick={() =>
+              onOpenSelector((xpath) => {
+                setValue(`${name}.selector.${index}.value` as const, xpath, {
+                  shouldDirty: true,
+                  shouldTouch: true,
+                  shouldValidate: true,
+                })
+              })
+            }
+            size="small"
+          >
             <Colorize fontSize="small" />
           </IconButton>
           <IconButton onClick={() => remove(index)} size="small">
@@ -313,7 +325,7 @@ interface IntegrationSectionProps {
     index: number
   ) => string | undefined
   renderPrefix: (index: number) => ReactNode
-  onOpenSelector: (index: number) => void
+  onOpenSelector: (callback: (xpath: string) => void) => void
 }
 
 export const IntegrationSection = ({
@@ -359,17 +371,9 @@ export const IntegrationSection = ({
   }
 
   const handlePickElement = () => {
-    appendSelector({ value: '', quick: false })
-    // The index of the new element is fields.length (before update) or fields.length after?
-    // React state update is async.
-    // We need to open selector for the NEW index.
-    // But we can't easily know it here synchronously if we just appended.
-    // Actually, the parent `IntegrationEditor` handles `onOpenSelector` by setting state.
-    // We can pass the index.
-    // Better: just call onOpenSelector with the new index.
-    // But fields is not updated yet.
-    // We can assume it will be fields.length.
-    onOpenSelector(selectorFields.length)
+    onOpenSelector((xpath) => {
+      appendSelector({ value: xpath, quick: false })
+    })
   }
 
   return (

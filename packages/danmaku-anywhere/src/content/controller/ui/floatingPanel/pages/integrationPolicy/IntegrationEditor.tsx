@@ -35,10 +35,14 @@ export const IntegrationEditor = (): ReactElement => {
   const { update, add } = useIntegrationPolicyStore()
 
   const [showSelector, setShowSelector] = useState(false)
-  const [selectedField, setSelectedField] = useState<{
-    name: IntegrationArrayFieldNames
-    index: number
-  }>()
+  const [onSelectCallback, setOnSelectCallback] =
+    useState<(xPath: string) => void>()
+
+  const { setIsPicking } = useStore.use.integrationForm()
+
+  useEffect(() => {
+    setIsPicking(showSelector)
+  }, [showSelector, setIsPicking])
 
   const isEdit = !!activePolicy
 
@@ -53,8 +57,6 @@ export const IntegrationEditor = (): ReactElement => {
     resolver: zodResolver(zIntegration),
     mode: 'onChange',
   })
-
-  console.log(form.getValues())
 
   const {
     handleSubmit,
@@ -100,20 +102,16 @@ export const IntegrationEditor = (): ReactElement => {
     },
   })
 
-  const handleOpenSelector = (
-    name: IntegrationArrayFieldNames,
-    index: number
-  ) => {
+  const handleOpenSelector = (callback: (xPath: string) => void) => {
     setShowSelector(true)
-    setSelectedField({ name, index })
+    setOnSelectCallback(() => callback)
   }
 
   const handleSelectElement = (xPath: string) => {
-    if (!selectedField) return
-    const { name, index } = selectedField
-    const values = getValues(name)
-    const newValues = values.toSpliced(index, 1, { value: xPath, quick: false })
-    form.setValue(name, newValues)
+    if (onSelectCallback) {
+      onSelectCallback(xPath)
+    }
+    setShowSelector(false)
   }
 
   const renderXPathValidation = (name: IntegrationArrayFieldNames) => {
@@ -172,9 +170,7 @@ export const IntegrationEditor = (): ReactElement => {
                     errors.policy?.title?.selector?.[i]?.message
                   }
                   renderPrefix={renderXPathValidation('policy.title.selector')}
-                  onOpenSelector={(index) =>
-                    handleOpenSelector('policy.title.selector', index)
-                  }
+                  onOpenSelector={(callback) => handleOpenSelector(callback)}
                 />
 
                 <IntegrationSection
@@ -184,9 +180,7 @@ export const IntegrationEditor = (): ReactElement => {
                     errors.policy?.season?.selector?.[i]?.message
                   }
                   renderPrefix={renderXPathValidation('policy.season.selector')}
-                  onOpenSelector={(index) =>
-                    handleOpenSelector('policy.season.selector', index)
-                  }
+                  onOpenSelector={(callback) => handleOpenSelector(callback)}
                 />
 
                 <IntegrationSection
@@ -198,9 +192,7 @@ export const IntegrationEditor = (): ReactElement => {
                   renderPrefix={renderXPathValidation(
                     'policy.episode.selector'
                   )}
-                  onOpenSelector={(index) =>
-                    handleOpenSelector('policy.episode.selector', index)
-                  }
+                  onOpenSelector={(callback) => handleOpenSelector(callback)}
                 />
               </Stack>
 
