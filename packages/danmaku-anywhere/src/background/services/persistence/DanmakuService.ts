@@ -213,6 +213,11 @@ export class DanmakuService {
   }
 
   async import(importData: DanmakuImportData[]): Promise<DanmakuImportResult> {
+    const results: DanmakuImportResult = {
+      success: [],
+      error: [],
+    }
+
     const importBackup = async (data: BackupParseResult) => {
       let skipped = data.skipped.length
       const imported = []
@@ -221,11 +226,9 @@ export class DanmakuService {
         try {
           if (item.type === 'Custom') {
             await this.addCustom(item.episode)
-            imported.push({
-              type: DanmakuSourceType.MacCMS,
+            results.success.push({
               title: item.episode.title,
-              seasonId: -1,
-              seasonTitle: 'Custom',
+              type: 'Custom',
             })
           } else {
             let savedSeasonId = -1
@@ -276,11 +279,6 @@ export class DanmakuService {
         skipped,
         imported: grouped,
       }
-    }
-
-    const results: DanmakuImportResult = {
-      success: [],
-      error: [],
     }
 
     for (const { title, data } of importData) {

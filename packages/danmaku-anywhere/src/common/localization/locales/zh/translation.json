@@ -158,6 +158,7 @@
     "importError_other": "{{count}}个文件导入失败",
     "importSuccess_other": "成功导入{{count}}个文件",
     "parseError": "文件解析失败",
+    "skipped_other": "跳过{{count}}个文件",
     "willImport_other": "将导入{{count}}个文件"
   },
   "integration": {

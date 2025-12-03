@@ -165,6 +165,8 @@
     "importSuccess_one": "Successfully imported {{count}} file",
     "importSuccess_other": "Successfully imported {{count}} files",
     "parseError": "Failed to parse file",
+    "skipped_one": "Skpped {{count}} file",
+    "skipped_other": "Skpped {{count}} files",
     "willImport_one": "Will import {{count}} file",
     "willImport_other": "Will import {{count}} files"
   },

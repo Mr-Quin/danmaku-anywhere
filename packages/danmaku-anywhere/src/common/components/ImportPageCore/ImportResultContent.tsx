@@ -115,14 +115,14 @@ export const ImportResultContent = ({
                   count: totalImportedCount,
                 })}
                 {totalSkipped > 0 &&
-                  ` (${t('importPage.skipped', { count: totalSkipped })})`}
+                  ` (${t('importPage.skipped', 'Skpped {{count}} files', { count: totalSkipped })})`}
               </Alert>
               <Stack spacing={1}>
                 {customImports.length > 0 && (
                   <Accordion>
                     <AccordionSummary expandIcon={<ExpandMore />}>
                       <Typography>
-                        {t('importPage.customImports', 'Custom Imports')} (
+                        {t('danmaku.local', 'Local Danmaku')} (
                         {customImports.length})
                       </Typography>
                     </AccordionSummary>
