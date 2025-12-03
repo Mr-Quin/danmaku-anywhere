@@ -32,7 +32,6 @@ export const useDanmakuImport = () => {
       return Promise.all(
         files.filter(isFileValid).map(async (file) => {
           const data = await getJson(file)
-          console.log(file)
           return {
             title: file.name,
             data,

@@ -174,7 +174,9 @@ export const MountPageContent = ({
         title={t('importPage.import', 'Import Danmaku')}
         onClose={importFlow.closeDialog}
         onImport={importFlow.confirmImport}
-        disableImport={false}
+        disableImport={
+          importFlow.importState.isPending || importFlow.importState.isError
+        }
       >
         {(params) => (
           <ImportResultContent
