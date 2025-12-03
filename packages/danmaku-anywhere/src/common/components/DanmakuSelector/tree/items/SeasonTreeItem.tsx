@@ -4,7 +4,7 @@ import { Chip, Skeleton, Stack, styled, Typography } from '@mui/material'
 import { type ReactElement, Suspense } from 'react'
 import { isNotCustom } from '@/common/danmaku/utils'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
-import { SuspenseImage } from '../../image/SuspenseImage'
+import { SuspenseImage } from '../../../image/SuspenseImage'
 
 const ProviderChip = styled(Chip)(({ theme }) => {
   return {

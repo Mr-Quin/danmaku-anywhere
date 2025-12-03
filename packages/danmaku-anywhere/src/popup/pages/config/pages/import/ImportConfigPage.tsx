@@ -2,14 +2,14 @@ import { Box, Divider, Tab, Tabs, Typography } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import {
+  ImportResultDialog,
+  type ImportResultRenderParams,
+} from '@/common/components/ImportPageCore/ImportResultDialog'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { combinedPolicyService } from '@/common/options/combinedPolicy'
 import { FileUpload } from '@/popup/component/FileUpload'
-import {
-  ImportResultDialog,
-  type ImportResultRenderParams,
-} from '@/popup/component/ImportResultDialog'
 import { PreFormat } from '@/popup/component/PreFormat'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 import { PresetsList } from '@/popup/pages/config/pages/import/PresetsList'

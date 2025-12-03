@@ -12,7 +12,7 @@ import { useCustomEpisodeSuspense } from '@/common/danmaku/queries/useCustomEpis
 import { useEpisodesSuspense } from '@/common/danmaku/queries/useEpisodes'
 import { isNotCustom } from '@/common/danmaku/utils'
 import { useRefreshDanmaku } from '@/popup/hooks/useRefreshDanmaku'
-import { FullPageSpinner } from '../FullPageSpinner'
+import { FullPageSpinner } from '../../FullPageSpinner'
 
 interface DanmakuViewerProps {
   onClose: () => void

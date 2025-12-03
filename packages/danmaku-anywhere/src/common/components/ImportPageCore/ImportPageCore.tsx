@@ -1,71 +1,21 @@
-import { xmlToJSON } from '@danmaku-anywhere/danmaku-converter'
-import { Box, List, ListItem, Typography } from '@mui/material'
-import { useMutation } from '@tanstack/react-query'
+import { Box, Typography } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { FullPageSpinner } from '@/common/components/FullPageSpinner'
+import { ImportResultContent } from '@/common/components/ImportPageCore/ImportResultContent'
+import { ImportResultDialog } from '@/common/components/ImportPageCore/ImportResultDialog'
+import { useDanmakuImport } from '@/common/components/ImportPageCore/useDanmakuImport'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
-import type {
-  DanmakuImportData,
-  DanmakuImportResult,
-} from '@/common/danmaku/dto'
-import { useInvalidateSeasonAndEpisode } from '@/common/hooks/useInvalidateSeasonAndEpisode'
-import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { stripExtension } from '@/common/utils/stripExtension'
 import { FileUpload } from '@/popup/component/FileUpload'
-import {
-  ImportResultDialog,
-  type ImportResultRenderParams,
-} from '@/popup/component/ImportResultDialog'
-import { PreFormat } from '@/popup/component/PreFormat'
-import { Collapsible } from '@/popup/pages/import/components/Collapsible'
-
-const VALID_FILE_TYPES = [
-  'application/json',
-  'application/xml',
-  'text/xml',
-  'text/json',
-]
-
-const isFileValid = (file: File) => {
-  return VALID_FILE_TYPES.includes(file.type)
-}
-
-const getJson = async (file: File) => {
-  const text = await file.text()
-  const data: unknown = file.type.includes('xml')
-    ? xmlToJSON(text)
-    : JSON.parse(text)
-  return data
-}
 
 export const ImportPageCore = () => {
   const { t } = useTranslation()
-
   const [showDialog, setShowDialog] = useState(false)
 
-  const invalidateSeasonAndEpisode = useInvalidateSeasonAndEpisode()
+  const { handleImportClick, mutate, data, isPending, isError, error, reset } =
+    useDanmakuImport()
 
-  /**
-   * not a mutation, just using this to manage state
-   * converts the input files into JSON, checking for parse errors
-   */
-  const { mutate, data, error, reset, isError, isPending } = useMutation({
-    mutationFn: async (files: File[]) => {
-      return Promise.all(
-        files.filter(isFileValid).map(async (file) => {
-          const data = await getJson(file)
-          return {
-            title: stripExtension(file.name),
-            data,
-          } satisfies DanmakuImportData
-        })
-      )
-    },
-  })
-
-  const handleFilesSelected = async (files: File[]) => {
+  const handleFilesSelected = (files: File[]) => {
     mutate(files)
     setShowDialog(true)
   }
@@ -73,139 +23,6 @@ export const ImportPageCore = () => {
   const handleDialogClose = () => {
     setShowDialog(false)
     reset()
-  }
-
-  const handleImportClick = async () => {
-    if (!data || data.length === 0) {
-      throw new Error('No files to import')
-    }
-
-    const { data: results } = await chromeRpcClient.episodeImport(data)
-
-    invalidateSeasonAndEpisode()
-
-    return results
-  }
-
-  const renderDialogContent = ({
-    status,
-    error: importError,
-    result,
-  }: ImportResultRenderParams<DanmakuImportResult>) => {
-    switch (status) {
-      case 'uploading':
-      case 'confirmUpload': {
-        if (isPending) {
-          return <FullPageSpinner />
-        }
-        if (isError) {
-          return (
-            <>
-              <Typography color="error.main">
-                {t('importPage.parseError', 'Failed to parse file')}
-              </Typography>
-              <PreFormat variant="error">{error.message}</PreFormat>
-            </>
-          )
-        }
-        return (
-          <>
-            {data && (
-              <>
-                <Typography variant="subtitle1" gutterBottom>
-                  {t('importPage.willImport', { count: data.length })}
-                </Typography>
-                <PreFormat>
-                  <ul>
-                    {data.map((item, i) => (
-                      <li key={i}>{item.title}</li>
-                    ))}
-                  </ul>
-                </PreFormat>
-              </>
-            )}
-          </>
-        )
-      }
-      case 'uploadSuccess': {
-        return (
-          <>
-            {result.success.length > 0 && (
-              <>
-                <Typography color="success.main" variant="subtitle1">
-                  {t('importPage.importSuccess', {
-                    count: result.success.length,
-                  })}
-                </Typography>
-                <PreFormat disableCopy>
-                  <List>
-                    {result.success.map((item, i) => {
-                      return (
-                        <ListItem key={i}>
-                          {item.type === 'Custom' ? (
-                            <span>{item.title}</span>
-                          ) : (
-                            <Collapsible title={item.title}>
-                              {item.result.skipped > 0 && (
-                                <p>Skipped {item.result.skipped}</p>
-                              )}
-                              {Object.entries(item.result.imported).map(
-                                ([seasonTitle, episodes], i) => {
-                                  return (
-                                    <div key={i}>
-                                      {seasonTitle}
-                                      <ul>
-                                        {episodes.map((episode, j) => {
-                                          return (
-                                            <li key={j}>{episode.title}</li>
-                                          )
-                                        })}
-                                      </ul>
-                                    </div>
-                                  )
-                                }
-                              )}
-                            </Collapsible>
-                          )}
-                        </ListItem>
-                      )
-                    })}
-                  </List>
-                </PreFormat>
-              </>
-            )}
-            {result.error.length > 0 && (
-              <>
-                <Typography color="error.main" variant="subtitle1">
-                  {t('importPage.importError', { count: result.error.length })}
-                </Typography>
-                <PreFormat variant="error">
-                  {result.error.map((item, i) => {
-                    return (
-                      <Collapsible key={i} title={item.title} defaultOpen>
-                        {item.message}
-                      </Collapsible>
-                    )
-                  })}
-                </PreFormat>
-              </>
-            )}
-          </>
-        )
-      }
-      case 'error': {
-        return (
-          <>
-            <Typography color="error.main" variant="subtitle1">
-              {t('error.unknown', 'Something went wrong.')}
-            </Typography>
-            <PreFormat variant="error">{importError?.message}</PreFormat>
-          </>
-        )
-      }
-      default:
-        return null
-    }
   }
 
   return (
@@ -231,7 +48,15 @@ export const ImportPageCore = () => {
         onImport={handleImportClick}
         disableImport={isPending || isError}
       >
-        {renderDialogContent}
+        {(params) => (
+          <ImportResultContent
+            importResult={params}
+            isPending={isPending}
+            isError={isError}
+            error={error}
+            data={data}
+          />
+        )}
       </ImportResultDialog>
     </TabLayout>
   )

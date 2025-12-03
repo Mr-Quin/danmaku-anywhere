@@ -2,28 +2,102 @@ import type {
   DanmakuSourceType,
   GenericEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
-import { CheckBox, CheckBoxOutlined } from '@mui/icons-material'
-import { Alert, Button, Chip, Collapse, Stack, Typography } from '@mui/material'
-import type { ReactElement, ReactNode } from 'react'
-import { Fragment, useRef, useState } from 'react'
+import { UploadFile } from '@mui/icons-material'
+import { Alert } from '@mui/material'
+import type { ComponentType, ReactElement, ReactNode, RefObject } from 'react'
+import { Fragment, useImperativeHandle, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDeleteSeason } from '@/common/anime/queries/useDeleteSeason'
 import { CaptureKeypress } from '@/common/components/CaptureKeypress'
+import { DanmakuViewer } from '@/common/components/DanmakuSelector/components/DanmakuViewer'
+import { DragDropOverlay } from '@/common/components/DanmakuSelector/components/DragDropOverlay'
+import { MountPageBottomBar } from '@/common/components/DanmakuSelector/components/MountPageBottomBar'
+import { MountPageToolbar } from '@/common/components/DanmakuSelector/components/MountPageToolbar'
 import {
   DanmakuTree,
   type DanmakuTreeApi,
-} from '@/common/components/DanmakuSelector/DanmakuTree'
-import { DanmakuViewer } from '@/common/components/DanmakuSelector/DanmakuViewer'
-import { MountPageBottomBar } from '@/common/components/DanmakuSelector/MountPageBottomBar'
-import { FilterButton } from '@/common/components/FilterButton'
+} from '@/common/components/DanmakuSelector/tree/DanmakuTree'
+import { useFileDragDrop } from '@/common/components/DanmakuSelector/useFileDragDrop'
+import type { DrilldownMenuItemProps } from '@/common/components/DrilldownMenu'
+import { ImportResultDialog } from '@/common/components/ImportPageCore/ImportResultDialog'
+import { useDanmakuImport } from '@/common/components/ImportPageCore/useDanmakuImport'
 import { TabLayout } from '@/common/components/layout/TabLayout'
-import { TabToolbar } from '@/common/components/layout/TabToolbar'
-import { TypeSelector } from '@/common/components/TypeSelector'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { isNotCustom } from '@/common/danmaku/utils'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { useExportXml } from '@/popup/hooks/useExportXml'
+import { ImportResultContent } from '../ImportPageCore/ImportResultContent'
 import { ScrollBox } from '../layout/ScrollBox'
+
+interface ImportApi {
+  import: (files: File[]) => void
+  openFileInput: () => void
+}
+
+interface ImportDialogProps {
+  apiRef: RefObject<ImportApi | null>
+}
+
+const ImportDialog = ({ apiRef }: ImportDialogProps) => {
+  const { t } = useTranslation()
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const [showDialog, setShowDialog] = useState(false)
+
+  const { handleImportClick, mutate, data, isPending, isError, error, reset } =
+    useDanmakuImport()
+
+  const handleFilesSelected = (files: File[]) => {
+    mutate(files)
+    setShowDialog(true)
+  }
+
+  const handleDialogClose = () => {
+    setShowDialog(false)
+    reset()
+  }
+
+  useImperativeHandle(apiRef, () => ({
+    import: handleFilesSelected,
+    openFileInput: () => fileInputRef.current?.click(),
+  }))
+
+  return (
+    <>
+      <input
+        type="file"
+        hidden
+        ref={fileInputRef}
+        onChange={(e) => {
+          if (e.target.files) {
+            handleFilesSelected(Array.from(e.target.files))
+          }
+          e.target.value = ''
+        }}
+        accept=".json,.xml"
+        multiple
+      />
+      <ImportResultDialog
+        open={showDialog}
+        title={t('importPage.import', 'Import Danmaku')}
+        onClose={handleDialogClose}
+        onImport={handleImportClick}
+        disableImport={false}
+      >
+        {(params) => (
+          <ImportResultContent
+            importResult={params}
+            isPending={isPending}
+            isError={isError}
+            error={error}
+            data={data}
+          />
+        )}
+      </ImportResultDialog>
+    </>
+  )
+}
 
 export interface MountPageContentProps {
   filter: string
@@ -38,7 +112,7 @@ export interface MountPageContentProps {
   onUnmount?: () => void
   isMounted?: boolean
   isConnected?: boolean
-  selectorWrapper?: React.ComponentType<{ children: ReactNode }>
+  selectorWrapper?: ComponentType<{ children: ReactNode }>
 }
 
 export const MountPageContent = ({
@@ -68,6 +142,20 @@ export const MountPageContent = ({
   const exportXmlMutation = useExportXml()
   const deleteEpisodeMutation = useDeleteEpisode()
   const deleteSeasonMutation = useDeleteSeason()
+
+  const importDialogApiRef = useRef<ImportApi>(null)
+
+  const menuItem: DrilldownMenuItemProps = {
+    kind: 'item',
+    id: 'import',
+    label: t('importPage.import', 'Import Danmaku'),
+    icon: <UploadFile />,
+    onClick: () => importDialogApiRef.current?.openFileInput(),
+  }
+
+  const { isDragging, dragProps } = useFileDragDrop((files) =>
+    importDialogApiRef.current?.import(files)
+  )
 
   const handleMountSingle = (episode: GenericEpisodeLite) => {
     onMount([episode])
@@ -140,7 +228,8 @@ export const MountPageContent = ({
   }
 
   return (
-    <TabLayout>
+    <TabLayout {...dragProps}>
+      <DragDropOverlay in={isDragging} />
       <CaptureKeypress
         onChange={onFilterChange}
         value={filter}
@@ -152,90 +241,58 @@ export const MountPageContent = ({
           height: '100%',
         }}
       >
-        {() => (
-          <>
-            <TabToolbar title={t('mountPage.pageTitle', 'Danmaku Library')}>
-              <FilterButton
-                filter={filter}
-                onChange={onFilterChange}
-                open={isFilterOpen}
-                onOpen={() => setIsFilterOpen(true)}
-                onClose={() => setIsFilterOpen(false)}
-              />
-              <TypeSelector
-                selectedTypes={selectedTypes as DanmakuSourceType[]}
-                setSelectedType={(types) => onSelectedTypesChange(types)}
-              />
-              <Chip
-                variant="outlined"
-                label={
-                  <Stack direction="row" alignItems="center" gap={0.5}>
-                    {multiselect ? (
-                      <CheckBox fontSize="small" />
-                    ) : (
-                      <CheckBoxOutlined fontSize="small" />
-                    )}
-                    <Typography variant="body2" fontSize="small">
-                      {t('common.multiselect', 'Multiselect')}
-                    </Typography>
-                  </Stack>
-                }
-                onClick={handleToggleMultiselect}
-                color="primary"
-              />
-              {onUnmount && (
-                <Collapse in={isMounted} unmountOnExit orientation="horizontal">
-                  <Button
-                    variant="outlined"
-                    onClick={onUnmount}
-                    color="warning"
-                    disabled={!isMounted}
-                    sx={{ whiteSpace: 'nowrap', ml: 1 }}
-                  >
-                    {t('danmaku.unmount', 'Unmount')}
-                  </Button>
-                </Collapse>
-              )}
-            </TabToolbar>
+        <MountPageToolbar
+          filter={filter}
+          onFilterChange={onFilterChange}
+          isFilterOpen={isFilterOpen}
+          setIsFilterOpen={setIsFilterOpen}
+          selectedTypes={selectedTypes}
+          onSelectedTypesChange={onSelectedTypesChange}
+          multiselect={multiselect}
+          onToggleMultiselect={handleToggleMultiselect}
+          onUnmount={onUnmount}
+          isMounted={isMounted}
+          menuItem={menuItem}
+        />
 
-            {!isConnected && (
-              <Alert severity="warning" square>
-                {t(
-                  'mountPage.alert.mountingDisabled',
-                  'Cannot mount danmaku on this page'
-                )}
-              </Alert>
+        {!isConnected && (
+          <Alert severity="warning" square>
+            {t(
+              'mountPage.alert.mountingDisabled',
+              'Cannot mount danmaku on this page'
             )}
-
-            <ScrollBox flexGrow={1} overflow="auto">
-              <Wrapper>
-                <DanmakuTree
-                  ref={danmakuTreeRef}
-                  filter={filter}
-                  typeFilter={selectedTypes as DanmakuSourceType[]}
-                  onSelect={handleMountSingle}
-                  onViewDanmaku={setViewingEpisode}
-                  onSelectionChange={(selection) =>
-                    setSelectionCount(selection.length)
-                  }
-                  canMount={isConnected && !isMounting}
-                  multiselect={multiselect}
-                />
-              </Wrapper>
-            </ScrollBox>
-
-            <MountPageBottomBar
-              open={multiselect}
-              selectionCount={selectionCount}
-              isMounting={isMounting}
-              onCancel={handleToggleMultiselect}
-              onMount={handleMountMultiple}
-              onExport={handleExport}
-              onDelete={handleDelete}
-            />
-          </>
+          </Alert>
         )}
+
+        <ScrollBox flexGrow={1} overflow="auto">
+          <Wrapper>
+            <DanmakuTree
+              ref={danmakuTreeRef}
+              filter={filter}
+              typeFilter={selectedTypes as DanmakuSourceType[]}
+              onSelect={handleMountSingle}
+              onViewDanmaku={setViewingEpisode}
+              onSelectionChange={(selection) =>
+                setSelectionCount(selection.length)
+              }
+              canMount={isConnected && !isMounting}
+              multiselect={multiselect}
+            />
+          </Wrapper>
+        </ScrollBox>
+
+        <MountPageBottomBar
+          open={multiselect}
+          selectionCount={selectionCount}
+          isMounting={isMounting}
+          onCancel={handleToggleMultiselect}
+          onMount={handleMountMultiple}
+          onExport={handleExport}
+          onDelete={handleDelete}
+        />
       </CaptureKeypress>
+
+      <ImportDialog apiRef={importDialogApiRef} />
     </TabLayout>
   )
 }

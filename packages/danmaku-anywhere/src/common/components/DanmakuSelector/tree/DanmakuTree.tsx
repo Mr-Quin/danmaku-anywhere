@@ -18,10 +18,10 @@ import {
 import {
   DanmakuTreeContext,
   type MUITreePublicApi,
-} from '@/common/components/DanmakuSelector/DanmakuTreeContext'
-import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/ExtendedTreeItem'
-import { DanmakuTreeItem } from '@/common/components/DanmakuSelector/items/DanmakuTreeItem'
-import { useDanmakuTree } from '@/common/components/DanmakuSelector/useDanmakuTree'
+} from '@/common/components/DanmakuSelector/tree/DanmakuTreeContext'
+import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/tree/ExtendedTreeItem'
+import { DanmakuTreeItem } from '@/common/components/DanmakuSelector/tree/items/DanmakuTreeItem'
+import { useDanmakuTree } from '@/common/components/DanmakuSelector/tree/useDanmakuTree'
 import { NothingHere } from '@/common/components/NothingHere'
 import { isNotCustom } from '@/common/danmaku/utils'
 
