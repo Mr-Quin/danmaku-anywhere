@@ -4,7 +4,6 @@ import { useMutation } from '@tanstack/react-query'
 import type { DanmakuImportData } from '@/common/danmaku/dto'
 import { useInvalidateSeasonAndEpisode } from '@/common/hooks/useInvalidateSeasonAndEpisode'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { stripExtension } from '@/common/utils/stripExtension'
 
 const VALID_FILE_TYPES = [
   'application/json',
@@ -33,8 +32,9 @@ export const useDanmakuImport = () => {
       return Promise.all(
         files.filter(isFileValid).map(async (file) => {
           const data = await getJson(file)
+          console.log(file)
           return {
-            title: stripExtension(file.name),
+            title: file.name,
             data,
           } satisfies DanmakuImportData
         })

@@ -81,7 +81,11 @@ export const MountPageToolbar = ({
           </Button>
         </Collapse>
       )}
-      <DrilldownMenu items={[menuItem]} dense ButtonProps={{ size: 'small' }} />
+      <DrilldownMenu
+        items={[menuItem]}
+        dense
+        ButtonProps={{ size: 'small', edge: 'end' }}
+      />
     </TabToolbar>
   )
 }

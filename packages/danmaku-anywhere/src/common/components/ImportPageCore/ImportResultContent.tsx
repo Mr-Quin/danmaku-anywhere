@@ -1,4 +1,18 @@
-import { List, ListItem, Typography } from '@mui/material'
+import { ExpandMore, InsertDriveFile } from '@mui/icons-material'
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Alert,
+  AlertTitle,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Paper,
+  Stack,
+  Typography,
+} from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import type { ImportResultRenderParams } from '@/common/components/ImportPageCore/ImportResultDialog'
@@ -6,8 +20,6 @@ import type {
   DanmakuImportData,
   DanmakuImportResult,
 } from '@/common/danmaku/dto'
-import { PreFormat } from '@/popup/component/PreFormat'
-import { Collapsible } from '@/popup/pages/import/components/Collapsible'
 
 export interface ImportResultContentProps {
   importResult: ImportResultRenderParams<DanmakuImportResult>
@@ -36,105 +48,144 @@ export const ImportResultContent = ({
       }
       if (isError) {
         return (
-          <>
-            <Typography color="error.main">
-              {t('importPage.parseError', 'Failed to parse file')}
-            </Typography>
-            <PreFormat variant="error">{error?.message}</PreFormat>
-          </>
+          <Stack spacing={2}>
+            <Alert severity="error">
+              <AlertTitle>
+                {t('importPage.parseError', 'Failed to parse file')}
+              </AlertTitle>
+              {error?.message}
+            </Alert>
+          </Stack>
         )
       }
       return (
-        <>
+        <Stack spacing={2}>
           {data && (
             <>
-              <Typography variant="subtitle1" gutterBottom>
+              <Alert severity="info">
                 {t('importPage.willImport', { count: data.length })}
-              </Typography>
-              <PreFormat>
-                <ul>
+              </Alert>
+              <Paper variant="outlined">
+                <List dense>
                   {data.map((item, i) => (
-                    <li key={i}>{item.title}</li>
+                    <ListItem key={i}>
+                      <ListItemIcon>
+                        <InsertDriveFile />
+                      </ListItemIcon>
+                      <ListItemText primary={item.title} />
+                    </ListItem>
                   ))}
-                </ul>
-              </PreFormat>
+                </List>
+              </Paper>
             </>
           )}
-        </>
+        </Stack>
       )
     }
     case 'uploadSuccess': {
+      const customImports: { title: string }[] = []
+      const seasonMap: Record<string, { title: string }[]> = {}
+      let totalSkipped = 0
+      let totalImportedCount = 0
+
+      result.success.forEach((item) => {
+        if (item.type === 'Custom') {
+          customImports.push(item)
+          totalImportedCount++
+        } else {
+          totalSkipped += item.result.skipped
+          Object.entries(item.result.imported).forEach(
+            ([seasonTitle, episodes]) => {
+              if (!seasonMap[seasonTitle]) {
+                seasonMap[seasonTitle] = []
+              }
+              seasonMap[seasonTitle].push(...episodes)
+              totalImportedCount += episodes.length
+            }
+          )
+        }
+      })
+
       return (
-        <>
-          {result.success.length > 0 && (
+        <Stack spacing={2}>
+          {(totalImportedCount > 0 || totalSkipped > 0) && (
             <>
-              <Typography color="success.main" variant="subtitle1">
+              <Alert severity="success">
                 {t('importPage.importSuccess', {
-                  count: result.success.length,
+                  count: totalImportedCount,
                 })}
-              </Typography>
-              <PreFormat disableCopy>
-                <List>
-                  {result.success.map((item, i) => {
-                    return (
-                      <ListItem key={i}>
-                        {item.type === 'Custom' ? (
-                          <span>{item.title}</span>
-                        ) : (
-                          <Collapsible title={item.title}>
-                            {item.result.skipped > 0 && (
-                              <p>Skipped {item.result.skipped}</p>
-                            )}
-                            {Object.entries(item.result.imported).map(
-                              ([seasonTitle, episodes], i) => {
-                                return (
-                                  <div key={i}>
-                                    {seasonTitle}
-                                    <ul>
-                                      {episodes.map((episode, j) => {
-                                        return <li key={j}>{episode.title}</li>
-                                      })}
-                                    </ul>
-                                  </div>
-                                )
-                              }
-                            )}
-                          </Collapsible>
-                        )}
-                      </ListItem>
-                    )
-                  })}
-                </List>
-              </PreFormat>
+                {totalSkipped > 0 &&
+                  ` (${t('importPage.skipped', { count: totalSkipped })})`}
+              </Alert>
+              <Stack spacing={1}>
+                {customImports.length > 0 && (
+                  <Accordion>
+                    <AccordionSummary expandIcon={<ExpandMore />}>
+                      <Typography>
+                        {t('importPage.customImports', 'Custom Imports')} (
+                        {customImports.length})
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <List dense disablePadding>
+                        {customImports.map((item, i) => (
+                          <ListItem key={i} disablePadding>
+                            <ListItemText primary={item.title} />
+                          </ListItem>
+                        ))}
+                      </List>
+                    </AccordionDetails>
+                  </Accordion>
+                )}
+                {Object.entries(seasonMap).map(([seasonTitle, episodes], i) => (
+                  <Accordion key={i}>
+                    <AccordionSummary expandIcon={<ExpandMore />}>
+                      <Typography>
+                        {seasonTitle} ({episodes.length})
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <List dense disablePadding>
+                        {episodes.map((episode, k) => (
+                          <ListItem key={k} disablePadding>
+                            <ListItemText primary={episode.title} />
+                          </ListItem>
+                        ))}
+                      </List>
+                    </AccordionDetails>
+                  </Accordion>
+                ))}
+              </Stack>
             </>
           )}
           {result.error.length > 0 && (
             <>
-              <Typography color="error.main" variant="subtitle1">
+              <Alert severity="error">
                 {t('importPage.importError', { count: result.error.length })}
-              </Typography>
-              <PreFormat variant="error">
-                {result.error.map((item, i) => {
-                  return (
-                    <Collapsible key={i} title={item.title} defaultOpen>
-                      {item.message}
-                    </Collapsible>
-                  )
-                })}
-              </PreFormat>
+              </Alert>
+              <Stack spacing={1}>
+                {result.error.map((item, i) => (
+                  <Alert key={i} severity="error" variant="outlined">
+                    <AlertTitle>{item.title}</AlertTitle>
+                    {item.message}
+                  </Alert>
+                ))}
+              </Stack>
             </>
           )}
-        </>
+        </Stack>
       )
     }
     case 'error': {
       return (
-        <>
-          <Typography color="error.main" variant="subtitle1">
-            {t('error.unknown', 'Something went wrong.')}
-          </Typography>
-          <PreFormat variant="error">{importError?.message}</PreFormat>
-        </>
+        <Stack spacing={2}>
+          <Alert severity="error">
+            <AlertTitle>
+              {t('error.unknown', 'Something went wrong.')}
+            </AlertTitle>
+            {importError?.message}
+          </Alert>
+        </Stack>
       )
     }
     default:

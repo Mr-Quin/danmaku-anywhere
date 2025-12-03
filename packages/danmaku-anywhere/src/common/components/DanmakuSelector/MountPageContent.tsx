@@ -4,10 +4,9 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import { UploadFile } from '@mui/icons-material'
 import { Alert } from '@mui/material'
-import type { ComponentType, ReactElement, ReactNode, RefObject } from 'react'
-import { Fragment, useImperativeHandle, useRef, useState } from 'react'
+import type { ComponentType, ReactElement, ReactNode } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useDeleteSeason } from '@/common/anime/queries/useDeleteSeason'
 import { CaptureKeypress } from '@/common/components/CaptureKeypress'
 import { DanmakuViewer } from '@/common/components/DanmakuSelector/components/DanmakuViewer'
 import { DragDropOverlay } from '@/common/components/DanmakuSelector/components/DragDropOverlay'
@@ -17,87 +16,14 @@ import {
   DanmakuTree,
   type DanmakuTreeApi,
 } from '@/common/components/DanmakuSelector/tree/DanmakuTree'
-import { useFileDragDrop } from '@/common/components/DanmakuSelector/useFileDragDrop'
+import { useDanmakuTreeActions } from '@/common/components/DanmakuSelector/useDanmakuTreeActions'
+import { useImportFlow } from '@/common/components/DanmakuSelector/useImportFlow'
 import type { DrilldownMenuItemProps } from '@/common/components/DrilldownMenu'
 import { ImportResultDialog } from '@/common/components/ImportPageCore/ImportResultDialog'
-import { useDanmakuImport } from '@/common/components/ImportPageCore/useDanmakuImport'
 import { TabLayout } from '@/common/components/layout/TabLayout'
-import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
-import { isNotCustom } from '@/common/danmaku/utils'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
-import { useExportXml } from '@/popup/hooks/useExportXml'
 import { ImportResultContent } from '../ImportPageCore/ImportResultContent'
 import { ScrollBox } from '../layout/ScrollBox'
-
-interface ImportApi {
-  import: (files: File[]) => void
-  openFileInput: () => void
-}
-
-interface ImportDialogProps {
-  apiRef: RefObject<ImportApi | null>
-}
-
-const ImportDialog = ({ apiRef }: ImportDialogProps) => {
-  const { t } = useTranslation()
-
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const [showDialog, setShowDialog] = useState(false)
-
-  const { handleImportClick, mutate, data, isPending, isError, error, reset } =
-    useDanmakuImport()
-
-  const handleFilesSelected = (files: File[]) => {
-    mutate(files)
-    setShowDialog(true)
-  }
-
-  const handleDialogClose = () => {
-    setShowDialog(false)
-    reset()
-  }
-
-  useImperativeHandle(apiRef, () => ({
-    import: handleFilesSelected,
-    openFileInput: () => fileInputRef.current?.click(),
-  }))
-
-  return (
-    <>
-      <input
-        type="file"
-        hidden
-        ref={fileInputRef}
-        onChange={(e) => {
-          if (e.target.files) {
-            handleFilesSelected(Array.from(e.target.files))
-          }
-          e.target.value = ''
-        }}
-        accept=".json,.xml"
-        multiple
-      />
-      <ImportResultDialog
-        open={showDialog}
-        title={t('importPage.import', 'Import Danmaku')}
-        onClose={handleDialogClose}
-        onImport={handleImportClick}
-        disableImport={false}
-      >
-        {(params) => (
-          <ImportResultContent
-            importResult={params}
-            isPending={isPending}
-            isError={isError}
-            error={error}
-            data={data}
-          />
-        )}
-      </ImportResultDialog>
-    </>
-  )
-}
 
 export interface MountPageContentProps {
   filter: string
@@ -139,81 +65,25 @@ export const MountPageContent = ({
 
   const danmakuTreeRef = useRef<DanmakuTreeApi>(null)
 
-  const exportXmlMutation = useExportXml()
-  const deleteEpisodeMutation = useDeleteEpisode()
-  const deleteSeasonMutation = useDeleteSeason()
+  const importFlow = useImportFlow()
 
-  const importDialogApiRef = useRef<ImportApi>(null)
+  const treeActions = useDanmakuTreeActions({
+    treeRef: danmakuTreeRef,
+    onMount,
+    onToggleMultiselect,
+  })
+
+  const handleToggleMultiselect = () => {
+    danmakuTreeRef.current?.clearSelection()
+    onToggleMultiselect()
+  }
 
   const menuItem: DrilldownMenuItemProps = {
     kind: 'item',
     id: 'import',
     label: t('importPage.import', 'Import Danmaku'),
     icon: <UploadFile />,
-    onClick: () => importDialogApiRef.current?.openFileInput(),
-  }
-
-  const { isDragging, dragProps } = useFileDragDrop((files) =>
-    importDialogApiRef.current?.import(files)
-  )
-
-  const handleMountSingle = (episode: GenericEpisodeLite) => {
-    onMount([episode])
-  }
-
-  function getSelection() {
-    // biome-ignore lint/style/noNonNullAssertion: guaranteed to be not null
-    return danmakuTreeRef.current!.getSelectedEpisodes()
-  }
-
-  async function handleMountMultiple() {
-    const { allEpisodes } = getSelection()
-
-    if (allEpisodes.length === 0) {
-      return
-    }
-
-    onMount(allEpisodes)
-    danmakuTreeRef.current?.clearSelection()
-    onToggleMultiselect()
-  }
-
-  async function handleExport() {
-    const { allEpisodes } = getSelection()
-    exportXmlMutation.mutate({
-      filter: {
-        ids: allEpisodes.filter((ep) => isNotCustom(ep)).map((ep) => ep.id),
-      },
-      customFilter: {
-        ids: allEpisodes.filter((ep) => !isNotCustom(ep)).map((ep) => ep.id),
-      },
-    })
-  }
-
-  async function handleDelete() {
-    const { episodes, customEpisodes, seasons } = getSelection()
-    if (seasons.length > 0) {
-      await Promise.all(
-        seasons.map((season) => deleteSeasonMutation.mutateAsync(season.id))
-      )
-    }
-    if (episodes.length > 0) {
-      await deleteEpisodeMutation.mutateAsync({
-        isCustom: false,
-        filter: { ids: episodes.map((ep) => ep.id) },
-      })
-    }
-    if (customEpisodes.length > 0) {
-      await deleteEpisodeMutation.mutateAsync({
-        isCustom: true,
-        filter: { ids: customEpisodes.map((ep) => ep.id) },
-      })
-    }
-  }
-
-  const handleToggleMultiselect = () => {
-    danmakuTreeRef.current?.clearSelection()
-    onToggleMultiselect()
+    onClick: importFlow.openFileInput,
   }
 
   if (viewingEpisode) {
@@ -228,18 +98,27 @@ export const MountPageContent = ({
   }
 
   return (
-    <TabLayout {...dragProps}>
-      <DragDropOverlay in={isDragging} />
+    <TabLayout {...importFlow.dragProps}>
+      <DragDropOverlay in={importFlow.isDragging} />
+
+      <input
+        type="file"
+        hidden
+        ref={importFlow.fileInputRef}
+        onChange={(e) => {
+          if (e.target.files) importFlow.handleFiles(Array.from(e.target.files))
+          e.target.value = ''
+        }}
+        accept=".json,.xml"
+        multiple
+      />
+
       <CaptureKeypress
         onChange={onFilterChange}
         value={filter}
         disabled={isFilterOpen || isMobile}
         autoFocus
-        boxProps={{
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%',
-        }}
+        boxProps={{ display: 'flex', flexDirection: 'column', height: '100%' }}
       >
         <MountPageToolbar
           filter={filter}
@@ -270,11 +149,9 @@ export const MountPageContent = ({
               ref={danmakuTreeRef}
               filter={filter}
               typeFilter={selectedTypes as DanmakuSourceType[]}
-              onSelect={handleMountSingle}
+              onSelect={(ep) => onMount([ep])}
               onViewDanmaku={setViewingEpisode}
-              onSelectionChange={(selection) =>
-                setSelectionCount(selection.length)
-              }
+              onSelectionChange={(s) => setSelectionCount(s.length)}
               canMount={isConnected && !isMounting}
               multiselect={multiselect}
             />
@@ -286,13 +163,26 @@ export const MountPageContent = ({
           selectionCount={selectionCount}
           isMounting={isMounting}
           onCancel={handleToggleMultiselect}
-          onMount={handleMountMultiple}
-          onExport={handleExport}
-          onDelete={handleDelete}
+          onMount={treeActions.handleMountMultiple}
+          onExport={treeActions.handleExport}
+          onDelete={treeActions.handleDelete}
         />
       </CaptureKeypress>
 
-      <ImportDialog apiRef={importDialogApiRef} />
+      <ImportResultDialog
+        open={importFlow.showResultDialog}
+        title={t('importPage.import', 'Import Danmaku')}
+        onClose={importFlow.closeDialog}
+        onImport={importFlow.confirmImport}
+        disableImport={false}
+      >
+        {(params) => (
+          <ImportResultContent
+            importResult={params}
+            {...importFlow.importState}
+          />
+        )}
+      </ImportResultDialog>
     </TabLayout>
   )
 }
