@@ -1,6 +1,6 @@
 import { Box, styled } from '@mui/material'
 import type { ReactElement } from 'react'
-import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/ExtendedTreeItem'
+import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/tree/ExtendedTreeItem'
 import { EpisodeContextMenuContainer } from './EpisodeContextMenuContainer'
 import { SeasonContextMenuContainer } from './SeasonContextMenuContainer'
 

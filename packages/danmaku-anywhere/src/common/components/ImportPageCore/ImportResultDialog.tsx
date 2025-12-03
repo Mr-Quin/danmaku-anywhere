@@ -11,6 +11,8 @@ import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
+import { useDialogStore } from '../Dialog/dialogStore'
+import { getScrollBarProps } from '../layout/ScrollBox'
 
 export type UploadDialogStatus =
   | 'confirmUpload'
@@ -58,6 +60,7 @@ export const ImportResultDialog = <T,>({
   children,
 }: ImportResultDialogProps<T>) => {
   const { t } = useTranslation()
+  const dialogContainer = useDialogStore.use.container()
   const [status, setStatus] = useState<UploadDialogStatus>('confirmUpload')
 
   const { mutate, data, error, reset } = useMutation({
@@ -91,9 +94,15 @@ export const ImportResultDialog = <T,>({
   const renderParams = { status, error, result: data || null }
 
   return (
-    <Dialog open={open} maxWidth="md" fullWidth onClose={handleClose}>
+    <Dialog
+      open={open}
+      maxWidth="md"
+      fullWidth
+      onClose={handleClose}
+      container={dialogContainer}
+    >
       <DialogTitle>{title}</DialogTitle>
-      <DialogContent dividers>
+      <DialogContent dividers sx={(theme) => ({ ...getScrollBarProps(theme) })}>
         {children?.(renderParams as ImportResultRenderParams<T>)}
         <Backdrop open={status === 'uploading'}>
           <FullPageSpinner />
