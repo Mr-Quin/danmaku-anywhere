@@ -57,7 +57,7 @@ export const useDanmakuTreeActions = ({
     })
   }
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     const { episodes, customEpisodes, seasons } = getSelection()
 
     if (
@@ -69,7 +69,7 @@ export const useDanmakuTreeActions = ({
     }
 
     dialog.delete({
-      title: t('common.confirmDeleteTitle', 'Confirm Delete'),
+      title: t('common.confirmDeleteTitle', 'Confirm delete'),
       content: t(
         'mountPage.confirmDeleteMultiple',
         'Are you sure you want to delete {{count}} items?',
@@ -97,6 +97,7 @@ export const useDanmakuTreeActions = ({
         }
         treeRef.current?.clearSelection()
       },
+      confirmText: t('common.delete', 'Delete'),
     })
   }
 
