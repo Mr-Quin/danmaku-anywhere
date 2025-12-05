@@ -1,3 +1,4 @@
+import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { styled } from '@mui/material'
 import {
   TreeItemCheckbox,
@@ -19,6 +20,7 @@ import { useDanmakuTreeContext } from '@/common/components/DanmakuSelector/tree/
 import { EpisodeTreeItem } from '@/common/components/DanmakuSelector/tree/items/EpisodeTreeItem'
 import { SeasonTreeItem } from '@/common/components/DanmakuSelector/tree/items/SeasonTreeItem'
 import { DanmakuContextMenu } from '@/common/components/DanmakuSelector/tree/menus/DanmakuContextMenu'
+import { FolderTreeItem } from './FolderTreeItem'
 
 const StyledTreeRoot = styled(TreeItemRoot)({
   position: 'relative',
@@ -57,6 +59,9 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
 
   const item = itemMap.get(itemId)
   const isSeason = item?.kind === 'season'
+  const isCustomSeason = isSeason
+    ? item.data.provider === DanmakuSourceType.MacCMS
+    : false
 
   function handleMouseEnter() {
     setHovering(true)
@@ -67,7 +72,7 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
   }
 
   function handleContentClick() {
-    if (isMultiSelect && !isSeason) {
+    if (isMultiSelect && !isSeason && item?.kind !== 'folder') {
       apiRef?.current?.setItemSelection({ itemId, keepExistingSelection: true })
     }
   }
@@ -85,7 +90,15 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
         />
       )
     }
-    return <EpisodeTreeItem episode={item.data} />
+    if (item.kind === 'folder') {
+      return (
+        <FolderTreeItem
+          label={item.label}
+          childrenCount={item.children?.length}
+        />
+      )
+    }
+    return <EpisodeTreeItem episode={item.data} label={item.label} />
   }, [item, label])
 
   return (
@@ -95,6 +108,10 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
           ...other,
           onMouseEnter: handleMouseEnter,
           onMouseLeave: handleMouseLeave,
+          sx: {
+            borderBottom: (theme) =>
+              isCustomSeason ? `1px solid ${theme.palette.divider}` : undefined,
+          },
         })}
       >
         <StyledTreeContent

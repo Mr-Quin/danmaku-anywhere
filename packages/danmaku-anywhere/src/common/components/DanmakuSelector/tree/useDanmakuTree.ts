@@ -6,7 +6,10 @@ import {
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
-import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/tree/ExtendedTreeItem'
+import type {
+  ExtendedTreeItem,
+  FolderTreeItem,
+} from '@/common/components/DanmakuSelector/tree/ExtendedTreeItem'
 import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
 import { useEpisodesLiteSuspense } from '@/common/danmaku/queries/useEpisodes'
 import { isProvider } from '@/common/danmaku/utils'
@@ -71,14 +74,54 @@ export const useDanmakuTree = (
 
     // Handle Custom Episodes (Local)
     if (filteredCustomEpisodes.length > 0) {
-      const children = filteredCustomEpisodes.map((ep) =>
-        register({
-          id: `custom-episode-${ep.id}`,
-          label: ep.title,
-          kind: 'episode',
-          data: ep,
-        })
-      )
+      const rootChildren: ExtendedTreeItem[] = []
+      const folderMap = new Map<string, FolderTreeItem>()
+
+      const getOrCreateFolder = (pathParts: string[]): ExtendedTreeItem[] => {
+        if (pathParts.length === 0) {
+          return rootChildren
+        }
+
+        const folderPath = pathParts.join('/')
+        if (folderMap.has(folderPath)) {
+          // biome-ignore lint/style/noNonNullAssertion: safe assertion since we just checked
+          return folderMap.get(folderPath)!.children
+        }
+
+        const parentPathParts = pathParts.slice(0, -1)
+        const parentChildren = getOrCreateFolder(parentPathParts)
+        const folderName = pathParts[pathParts.length - 1]
+
+        const newFolder: FolderTreeItem = {
+          id: `folder-${folderPath}`,
+          label: folderName,
+          kind: 'folder',
+          children: [],
+        }
+        register(newFolder)
+        folderMap.set(folderPath, newFolder)
+        parentChildren.push(newFolder)
+
+        return newFolder.children
+      }
+
+      filteredCustomEpisodes.forEach((ep) => {
+        const path = ep.title
+        const parts = path.split('/').filter(Boolean)
+        const fileName = parts.pop() || ep.title
+        const folderPathParts = parts
+
+        const targetChildren = getOrCreateFolder(folderPathParts)
+
+        targetChildren.push(
+          register({
+            id: `custom-episode-${ep.id}`,
+            label: fileName,
+            kind: 'episode',
+            data: ep,
+          })
+        )
+      })
 
       const customSeason: CustomSeason = {
         title: t('danmaku.local', 'Local Danmaku'),
@@ -99,7 +142,7 @@ export const useDanmakuTree = (
           kind: 'season',
           data: customSeason,
           provider: getProviderById(DanmakuSourceType.MacCMS),
-          children,
+          children: rootChildren,
         })
       )
     }

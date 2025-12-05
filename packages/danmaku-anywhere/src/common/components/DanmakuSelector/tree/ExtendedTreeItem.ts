@@ -19,4 +19,9 @@ interface EpisodeTreeItem extends TreeViewBaseItem {
   children?: ExtendedTreeItem[]
 }
 
-export type ExtendedTreeItem = SeasonTreeItem | EpisodeTreeItem
+export interface FolderTreeItem extends TreeViewBaseItem {
+  kind: 'folder'
+  children: ExtendedTreeItem[]
+}
+
+export type ExtendedTreeItem = SeasonTreeItem | EpisodeTreeItem | FolderTreeItem

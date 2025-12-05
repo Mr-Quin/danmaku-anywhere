@@ -266,7 +266,7 @@ export class ProviderService {
     }
 
     if ((await this.extensionOptionsService.get()).matchLocalDanmaku) {
-      const customEpisode = await this.danmakuService.getCustomByTitle(
+      const customEpisode = await this.danmakuService.matchLocalByTitle(
         stripExtension(title)
       )
 

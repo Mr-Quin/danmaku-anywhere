@@ -162,6 +162,7 @@
     "importDesc": "When importing local danmaku, file names will be used as episode names. Supports .json and .xml files",
     "importError_one": "Failed to import {{count}} file",
     "importError_other": "Failed to import {{count}} files",
+    "importFolder": "Import Danmaku Folder",
     "importSuccess_one": "Successfully imported {{count}} file",
     "importSuccess_other": "Successfully imported {{count}} files",
     "parseError": "Failed to parse file",

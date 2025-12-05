@@ -78,13 +78,22 @@ export const MountPageContent = ({
     onToggleMultiselect()
   }
 
-  const menuItem: DrilldownMenuItemProps = {
-    kind: 'item',
-    id: 'import',
-    label: t('importPage.import', 'Import Danmaku'),
-    icon: <UploadFile />,
-    onClick: importFlow.openFileInput,
-  }
+  const menuItems: DrilldownMenuItemProps[] = [
+    {
+      kind: 'item',
+      id: 'import',
+      label: t('importPage.import', 'Import Danmaku'),
+      icon: <UploadFile />,
+      onClick: importFlow.openFileInput,
+    },
+    {
+      kind: 'item',
+      id: 'importFolder',
+      label: t('importPage.importFolder', 'Import Danmaku Folder'),
+      icon: <UploadFile />,
+      onClick: importFlow.openFolderInput,
+    },
+  ]
 
   if (viewingEpisode) {
     return (
@@ -106,11 +115,27 @@ export const MountPageContent = ({
         hidden
         ref={importFlow.fileInputRef}
         onChange={(e) => {
-          if (e.target.files) importFlow.handleFiles(Array.from(e.target.files))
+          if (e.target.files) {
+            importFlow.handleFiles(Array.from(e.target.files))
+          }
           e.target.value = ''
         }}
-        accept=".json,.xml"
+        accept=".json,.xml,.zip"
         multiple
+      />
+
+      <input
+        type="file"
+        hidden
+        ref={importFlow.folderInputRef}
+        onChange={(e) => {
+          if (e.target.files) {
+            importFlow.handleFiles(Array.from(e.target.files))
+          }
+          e.target.value = ''
+        }}
+        // @ts-expect-error non-standard attribute, but allows selecting folder to upload
+        webkitdirectory=""
       />
 
       <CaptureKeypress
@@ -131,7 +156,7 @@ export const MountPageContent = ({
           onToggleMultiselect={handleToggleMultiselect}
           onUnmount={onUnmount}
           isMounted={isMounted}
-          menuItem={menuItem}
+          menuItems={menuItems}
         />
 
         {!isConnected && (
