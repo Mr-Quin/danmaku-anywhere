@@ -1,6 +1,23 @@
 import { useEventCallback } from '@mui/material'
 import { type DragEvent, useMemo, useState } from 'react'
 
+async function readAllEntries(
+  directoryReader: DirectoryReader
+): Promise<FileSystemEntry[]> {
+  const allEntries: FileSystemEntry[] = []
+  let entries: FileSystemEntry[] = []
+
+  do {
+    const { promise, resolve, reject } =
+      Promise.withResolvers<FileSystemEntry[]>()
+    directoryReader.readEntries(resolve, reject)
+    entries = await promise
+    allEntries.push(...entries)
+  } while (entries.length > 0)
+
+  return allEntries
+}
+
 async function getFilesFromDataTransfer(
   dataTransfer: DataTransfer
 ): Promise<File[]> {
@@ -9,12 +26,7 @@ async function getFilesFromDataTransfer(
   async function readDirectory(entry: FileSystemDirectoryEntry) {
     const directoryReader = entry.createReader()
 
-    const { promise, resolve, reject } =
-      Promise.withResolvers<FileSystemEntry[]>()
-
-    directoryReader.readEntries(resolve, reject)
-
-    const fileEntries = await promise
+    const fileEntries = await readAllEntries(directoryReader)
 
     for (const entry of fileEntries) {
       if (entry.isFile) {

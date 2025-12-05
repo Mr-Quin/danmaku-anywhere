@@ -57,7 +57,6 @@ export class DanmakuService {
     title: string
     comments: CommentEntity[]
   }): Promise<CustomEpisode> {
-    console.log('importing')
     return this.addCustom({
       provider: DanmakuSourceType.MacCMS,
       comments: importData.comments,
@@ -92,12 +91,19 @@ export class DanmakuService {
 
   async matchLocalByTitle(title: string): Promise<CustomEpisode | undefined> {
     // episode title can be a path, so we need to match it by comparing the last part
-    const customEpisodes = await this.filterCustom({
+    const customEpisodesLite = await this.filterCustomLite({
       all: true,
     })
-    return customEpisodes.find((episode) =>
+    const match = customEpisodesLite.find((episode) =>
       matchPathByName(title, episode.title)
     )
+    if (!match) {
+      return undefined
+    }
+    const customEpisodes = await this.filterCustom({
+      ids: [match.id],
+    })
+    return customEpisodes[0]
   }
 
   async deleteCustom(filter: CustomEpisodeQueryFilter) {

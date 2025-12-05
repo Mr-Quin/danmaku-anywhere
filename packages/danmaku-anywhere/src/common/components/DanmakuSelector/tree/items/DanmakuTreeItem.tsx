@@ -20,7 +20,7 @@ import { useDanmakuTreeContext } from '@/common/components/DanmakuSelector/tree/
 import { EpisodeTreeItem } from '@/common/components/DanmakuSelector/tree/items/EpisodeTreeItem'
 import { SeasonTreeItem } from '@/common/components/DanmakuSelector/tree/items/SeasonTreeItem'
 import { DanmakuContextMenu } from '@/common/components/DanmakuSelector/tree/menus/DanmakuContextMenu'
-import { FolderTreeItem } from './FoldterTreeItem'
+import { FolderTreeItem } from './FolderTreeItem'
 
 const StyledTreeRoot = styled(TreeItemRoot)({
   position: 'relative',

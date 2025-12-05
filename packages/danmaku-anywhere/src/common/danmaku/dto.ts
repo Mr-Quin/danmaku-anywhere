@@ -43,7 +43,6 @@ export type DanmakuFetchDto = DanmakuFetchRequest
 export type DanmakuImportData = {
   title: string
   data: unknown
-  path?: string
 }
 
 export type DanmakuImportResult = {
