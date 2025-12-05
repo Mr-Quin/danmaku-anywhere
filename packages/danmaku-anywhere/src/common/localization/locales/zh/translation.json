@@ -220,6 +220,7 @@
     "alert": {
       "mountingDisabled": "无法在当前页面装填弹幕"
     },
+    "confirmDeleteMultiple_one": "确定要删除{{count}}个弹幕吗？",
     "noDanmaku": "弹幕列表为空",
     "noDanmakuHelp": "前往搜索",
     "pageTitle": "弹幕库",

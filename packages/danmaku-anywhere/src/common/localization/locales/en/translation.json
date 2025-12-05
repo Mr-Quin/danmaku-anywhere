@@ -229,6 +229,8 @@
     "alert": {
       "mountingDisabled": "Cannot mount danmaku on this page"
     },
+    "confirmDeleteMultiple_one": "Are you sure you want to delete {{count}} item?",
+    "confirmDeleteMultiple_other": "Are you sure you want to delete {{count}} items?",
     "noDanmaku": "No danmaku found",
     "noDanmakuHelp": "Go to Search",
     "pageTitle": "Danmaku Library",

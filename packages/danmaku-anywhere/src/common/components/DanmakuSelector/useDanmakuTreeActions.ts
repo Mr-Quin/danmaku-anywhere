@@ -1,7 +1,9 @@
 import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
 import type { RefObject } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useDeleteSeason } from '@/common/anime/queries/useDeleteSeason'
 import type { DanmakuTreeApi } from '@/common/components/DanmakuSelector/tree/DanmakuTree'
+import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { isNotCustom } from '@/common/danmaku/utils'
 import { useExportXml } from '@/popup/hooks/useExportXml'
@@ -17,6 +19,8 @@ export const useDanmakuTreeActions = ({
   onMount,
   onToggleMultiselect,
 }: UseDanmakuTreeActionsProps) => {
+  const { t } = useTranslation()
+  const dialog = useDialog()
   const exportXmlMutation = useExportXml()
   const deleteEpisodeMutation = useDeleteEpisode()
   const deleteSeasonMutation = useDeleteSeason()
@@ -56,23 +60,44 @@ export const useDanmakuTreeActions = ({
   const handleDelete = async () => {
     const { episodes, customEpisodes, seasons } = getSelection()
 
-    if (seasons.length > 0) {
-      await Promise.all(
-        seasons.map((s) => deleteSeasonMutation.mutateAsync(s.id))
-      )
+    if (
+      episodes.length === 0 &&
+      customEpisodes.length === 0 &&
+      seasons.length === 0
+    ) {
+      return
     }
-    if (episodes.length > 0) {
-      await deleteEpisodeMutation.mutateAsync({
-        isCustom: false,
-        filter: { ids: episodes.map((ep) => ep.id) },
-      })
-    }
-    if (customEpisodes.length > 0) {
-      await deleteEpisodeMutation.mutateAsync({
-        isCustom: true,
-        filter: { ids: customEpisodes.map((ep) => ep.id) },
-      })
-    }
+
+    dialog.delete({
+      title: t('common.confirmDeleteTitle', 'Confirm Delete'),
+      content: t(
+        'mountPage.confirmDeleteMultiple',
+        'Are you sure you want to delete {{count}} items?',
+        {
+          count: episodes.length + customEpisodes.length + seasons.length,
+        }
+      ),
+      onConfirm: async () => {
+        if (seasons.length > 0) {
+          await Promise.all(
+            seasons.map((s) => deleteSeasonMutation.mutateAsync(s.id))
+          )
+        }
+        if (episodes.length > 0) {
+          await deleteEpisodeMutation.mutateAsync({
+            isCustom: false,
+            filter: { ids: episodes.map((ep) => ep.id) },
+          })
+        }
+        if (customEpisodes.length > 0) {
+          await deleteEpisodeMutation.mutateAsync({
+            isCustom: true,
+            filter: { ids: customEpisodes.map((ep) => ep.id) },
+          })
+        }
+        treeRef.current?.clearSelection()
+      },
+    })
   }
 
   return {
