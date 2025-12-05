@@ -17,6 +17,10 @@ interface DanmakuContextMenuProps {
 export const DanmakuContextMenu = ({
   item,
 }: DanmakuContextMenuProps): ReactElement | null => {
+  if (item.kind === 'folder') {
+    return null
+  }
+
   const element =
     item.kind === 'season' ? (
       <SeasonContextMenuContainer season={item.data} />

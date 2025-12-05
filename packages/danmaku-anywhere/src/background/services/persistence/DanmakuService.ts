@@ -25,6 +25,7 @@ import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
 import type { DbEntity } from '@/common/types/dbEntity'
 import { invariant, isServiceWorker, tryCatch } from '@/common/utils/utils'
+import { matchPathByName } from './utils/matchPathByName'
 
 @injectable('Singleton')
 export class DanmakuService {
@@ -56,6 +57,7 @@ export class DanmakuService {
     title: string
     comments: CommentEntity[]
   }): Promise<CustomEpisode> {
+    console.log('importing')
     return this.addCustom({
       provider: DanmakuSourceType.MacCMS,
       comments: importData.comments,
@@ -88,8 +90,14 @@ export class DanmakuService {
     })
   }
 
-  async getCustomByTitle(title: string): Promise<CustomEpisode | undefined> {
-    return db.customEpisode.where('title').equals(title).first()
+  async matchLocalByTitle(title: string): Promise<CustomEpisode | undefined> {
+    // episode title can be a path, so we need to match it by comparing the last part
+    const customEpisodes = await this.filterCustom({
+      all: true,
+    })
+    return customEpisodes.find((episode) =>
+      matchPathByName(title, episode.title)
+    )
   }
 
   async deleteCustom(filter: CustomEpisodeQueryFilter) {
@@ -310,11 +318,16 @@ export class DanmakuService {
         if (backupParseResult.parsed.length > 0) {
           const importResult = await importBackup(backupParseResult)
 
-          results.success.push({
-            title,
-            type: 'Backup',
-            result: importResult,
-          })
+          if (
+            Object.keys(importResult.imported).length > 0 ||
+            importResult.skipped > 0
+          ) {
+            results.success.push({
+              title,
+              type: 'Backup',
+              result: importResult,
+            })
+          }
           return
         }
 

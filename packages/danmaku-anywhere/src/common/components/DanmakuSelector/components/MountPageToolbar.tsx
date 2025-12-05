@@ -21,7 +21,7 @@ interface MountPageToolbarProps {
   onToggleMultiselect: () => void
   onUnmount?: () => void
   isMounted?: boolean
-  menuItem: DrilldownMenuItemProps
+  menuItems: DrilldownMenuItemProps[]
 }
 
 export const MountPageToolbar = ({
@@ -35,7 +35,7 @@ export const MountPageToolbar = ({
   onToggleMultiselect,
   onUnmount,
   isMounted,
-  menuItem,
+  menuItems,
 }: MountPageToolbarProps) => {
   const { t } = useTranslation()
   return (
@@ -82,7 +82,7 @@ export const MountPageToolbar = ({
         </Collapse>
       )}
       <DrilldownMenu
-        items={[menuItem]}
+        items={menuItems}
         dense
         ButtonProps={{ size: 'small', edge: 'end' }}
       />

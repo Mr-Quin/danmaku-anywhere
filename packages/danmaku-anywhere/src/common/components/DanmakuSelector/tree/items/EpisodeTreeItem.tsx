@@ -6,6 +6,7 @@ import { isNotCustom } from '@/common/danmaku/utils'
 
 interface EpisodeTreeItemProps {
   episode: GenericEpisodeLite
+  label: string
 }
 
 const CommentCountIcon = styled(ChatBubbleOutline)(({ theme }) => {
@@ -28,6 +29,7 @@ const CommentCount = ({ count }: { count: number }) => {
 
 export const EpisodeTreeItem = ({
   episode,
+  label,
 }: EpisodeTreeItemProps): ReactElement => {
   const isCustom = !isNotCustom(episode)
 
@@ -44,7 +46,7 @@ export const EpisodeTreeItem = ({
       >
         {isCustom && <InsertDriveFile fontSize="small" />}
         <Typography noWrap variant="body2">
-          {episode.title}
+          {label}
         </Typography>
         <CommentCount count={episode.commentCount} />
       </Stack>

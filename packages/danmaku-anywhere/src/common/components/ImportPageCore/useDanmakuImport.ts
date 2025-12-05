@@ -35,6 +35,7 @@ export const useDanmakuImport = () => {
           return {
             title: file.name,
             data,
+            path: file.name,
           } satisfies DanmakuImportData
         })
       )
@@ -46,6 +47,7 @@ export const useDanmakuImport = () => {
       throw new Error('No files to import')
     }
 
+    console.log('importing', data)
     const { data: results } = await chromeRpcClient.episodeImport(data)
 
     invalidateSeasonAndEpisode()
