@@ -87,7 +87,7 @@ const RegexRuleItem = ({
   return (
     <RuleItemBox>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography variant="body2" color="">
+        <Typography variant="subtitle2" color="text.secondary">
           #{index + 1}
         </Typography>
         <div>
@@ -158,6 +158,10 @@ function matchXPath(xpath: string): MatchXPathResult {
   }
 }
 
+const DenseAlert = styled(Alert)(({ theme }) => ({
+  padding: theme.spacing(0, 1),
+}))
+
 interface SelectorRuleItemProps {
   index: number
   name: IntegrationRuleItemNames
@@ -200,7 +204,7 @@ const SelectorRuleItem = ({
   return (
     <RuleItemBox>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography variant="body2" color="">
+        <Typography variant="subtitle2" color="text.secondary">
           #{index + 1}
         </Typography>
         <div>
@@ -273,25 +277,25 @@ const SelectorRuleItem = ({
       </Stack>
       {matchText?.isMatch ? (
         matchText.text ? (
-          <Alert icon={false} severity="success">
+          <DenseAlert icon={false} severity="success">
             <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography variant="body2" color="success.main">
+              <Typography variant="subtitle2" color="success.main">
                 Matched:
               </Typography>
-              <Typography variant="body2" noWrap title={matchText.text}>
+              <Typography variant="subtitle2" noWrap title={matchText.text}>
                 {matchText.text}
               </Typography>
             </Stack>
-          </Alert>
+          </DenseAlert>
         ) : (
-          <Alert severity="warning">
+          <DenseAlert severity="warning">
             A node is found, but the text is empty
-          </Alert>
+          </DenseAlert>
         )
       ) : (
-        <Alert severity="error">
+        <DenseAlert severity="error">
           The XPath is invalid or no node is matched
-        </Alert>
+        </DenseAlert>
       )}
     </RuleItemBox>
   )
@@ -314,7 +318,7 @@ const StyledAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
 }))
 
 const StyledAccordionDetails = styled(AccordionDetails)(({ theme }) => ({
-  backgroundColor: theme.palette.background.paper,
+  borderTop: `1px solid ${theme.palette.divider}`,
 }))
 
 interface IntegrationSectionProps {
