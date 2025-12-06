@@ -52,6 +52,19 @@ export default defineConfig({
         app: 'pages/popup.html',
         dashboard: 'pages/dashboard.html',
       },
+      output: {
+        manualChunks: (id) => {
+          /**
+           * Force reflect-metadata into a vendor chunk
+           * This fix an issue where reflect-metadata is split into multiple chunks,
+           * which breaks shimming and results in errors like Reflect.getOwnMetadata is not a function.
+           * This also forces it to be the top import in the html files.
+           */
+          if (id.includes('node_modules/reflect-metadata')) {
+            return 'vendor'
+          }
+        },
+      },
     },
     outDir: `./dev/${BROWSER}`,
     minify: !IS_FIREFOX, // don't minify for Firefox, so they can review the code
