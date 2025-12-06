@@ -2,7 +2,7 @@ import { Box } from '@mui/material'
 import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 import { useStore } from '@/content/controller/store/store'
 import { IntegrationInfo } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/IntegrationInfo'
-import { IntegrationEditor } from './IntegrationEditor'
+import { IntegrationEditor } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/editor/IntegrationEditor'
 
 export const IntegrationPage = () => {
   const activeConfig = useActiveConfig()

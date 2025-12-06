@@ -22,10 +22,10 @@ import { docsLink, getElementByXpath } from '@/common/utils/utils'
 import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useStore } from '@/content/controller/store/store'
-import { ElementSelector } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/ElementSelector'
 import { IntegrationLivePreview } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/IntegrationLivePreview'
-import { IntegrationSection } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/IntegrationSection'
-import { ValidationIcon } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/ValidationIcon'
+import { ElementSelector } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/editor/components/ElementSelector'
+import { IntegrationSection } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/editor/components/IntegrationSection'
+import { ValidationIcon } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/editor/components/ValidationIcon'
 import type { IntegrationArrayFieldNames } from './types'
 
 export const IntegrationEditor = (): ReactElement => {
