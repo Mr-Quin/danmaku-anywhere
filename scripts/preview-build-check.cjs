@@ -13,12 +13,12 @@ module.exports = async ({ github, context, core }) => {
     is_pr = true
     pr_number = context.payload.pull_request.number
     const labels = context.payload.pull_request.labels.map((l) => l.name)
-    if (labels.includes('preview-release')) {
-      console.log('PR has preview-release label.')
+    if (labels.includes('preview release')) {
+      console.log('PR has preview release label.')
       should_run = true
       ref = context.payload.pull_request.head.sha
     } else {
-      console.log('PR does not have preview-release label.')
+      console.log('PR does not have preview release label.')
     }
   } else if (context.eventName === 'schedule') {
     is_nightly = true
