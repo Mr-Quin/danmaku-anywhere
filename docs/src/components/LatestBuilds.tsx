@@ -48,6 +48,7 @@ const ReleaseCard = ({ release }: { release: Release }) => {
                 href={release.html_url}
                 target="_blank"
                 className="hover:underline color-inherit"
+                rel="noopener"
               >
                 {release.name || release.tag_name}
               </a>
@@ -92,11 +93,9 @@ const ReleaseCard = ({ release }: { release: Release }) => {
 const ReleaseSection = ({
   children,
   title,
-  isLatest,
 }: {
   children: React.ReactNode
   title: string
-  isLatest?: boolean
 }) => {
   return (
     <div>
@@ -112,23 +111,28 @@ export const LatestBuilds = () => {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch(
-      'https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases?per_page=10'
-    )
-      .then((res) => {
+    const fetchReleases = async () => {
+      try {
+        const res = await fetch(
+          'https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases?per_page=10'
+        )
+        if (res.status === 403) {
+          setError('请求过于频繁，请稍后重试')
+          return
+        }
         if (!res.ok) {
           throw new Error('Failed to fetch releases')
         }
-        return res.json()
-      })
-      .then((data) => {
+        const data = await res.json()
         setReleases(data)
+      } catch (err) {
+        setError((err as Error).message)
+      } finally {
         setLoading(false)
-      })
-      .catch((err) => {
-        setError(err.message)
-        setLoading(false)
-      })
+      }
+    }
+
+    fetchReleases()
   }, [])
 
   if (loading)
