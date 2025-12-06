@@ -1,0 +1,81 @@
+name: Build Extension
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
+        description: "The git SHA/Tag/Branch to checkout"
+      version_suffix:
+        required: false
+        type: string
+        description: "String (number) to append to the version (e.g., build number)"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      VITE_PROXY_ORIGIN: ${{ vars.VITE_PROXY_ORIGIN }}
+      VITE_PROXY_URL: ${{ vars.VITE_PROXY_URL }}
+      VERSION_SUFFIX: ${{ inputs.version_suffix }}
+
+    strategy:
+      matrix:
+        node-version: [ 24.x ]
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        # uses version from package.json > packageManager
+
+      - name: Install and build dependencies
+        run: |
+          pnpm install
+          pnpm build:packages
+
+      - name: Package
+        run: |
+          cd packages/danmaku-anywhere
+          pnpm package
+          pnpm build:firefox
+          pnpm package:firefox
+
+      - name: Resolve Chrome ZIP path for CRX
+        id: crx_paths
+        continue-on-error: true
+        shell: bash
+        run: |
+          ZIP=$(ls packages/danmaku-anywhere/package/*-chrome.zip)
+          echo "zip=$ZIP" >> $GITHUB_OUTPUT
+          CRX="${ZIP%.zip}.crx"
+          echo "crx=$CRX" >> $GITHUB_OUTPUT
+
+      - name: Build .crx from Chrome ZIP
+        uses: cardinalby/webext-buildtools-chrome-crx-action@v2
+        continue-on-error: true
+        with:
+          zipFilePath: ${{ steps.crx_paths.outputs.zip }}
+          crxFilePath: ${{ steps.crx_paths.outputs.crx }}
+          privateKey: ${{ secrets.CRX_SECRET_KEY }}
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-files
+          path: |
+            packages/danmaku-anywhere/package/*.zip
+            packages/danmaku-anywhere/package/*.crx

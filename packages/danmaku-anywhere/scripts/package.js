@@ -4,11 +4,12 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import packageJson from '../package.json' with { type: 'json' }
+import { getBuildContext } from './getBuildContext.js'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
 const packageName = packageJson.name.replace(/@.*?\//, '') // Removing scope if present
-const packageVersion = packageJson.version
+const packageVersion = getBuildContext().appVersion
 
 const buildPath = path.resolve(__dirname, '../build')
 const packagePath = path.resolve(__dirname, '../package')

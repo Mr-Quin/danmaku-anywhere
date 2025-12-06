@@ -1,0 +1,94 @@
+name: Preview Build
+
+permissions:
+  contents: read
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # 2 AM every day
+  pull_request:
+    types: [ labeled, synchronize, opened ]
+  workflow_dispatch:
+
+jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+      ref: ${{ steps.check.outputs.ref }}
+      is_nightly: ${{ steps.check.outputs.is_nightly }}
+      is_pr: ${{ steps.check.outputs.is_pr }}
+      pr_number: ${{ steps.check.outputs.pr_number }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Need full history for tag comparison
+
+      - name: Check conditions
+        id: check
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const script = require('./scripts/preview-build-check.cjs');
+            await script({github, context, core});
+
+  call-build:
+    needs: check-changes
+    if: needs.check-changes.outputs.should_run == 'true'
+    uses: ./.github/workflows/build-extension.yml
+    with:
+      ref: ${{ needs.check-changes.outputs.ref }}
+      version_suffix: ${{ github.run_number }}
+    secrets: inherit
+
+  publish-preview:
+    needs: [ check-changes, call-build ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: package-files
+          path: packages
+
+      - name: Determine Tag Name
+        id: tag
+        run: |
+          if [[ "${{ needs.check-changes.outputs.is_pr }}" == "true" ]]; then
+            echo "tag_name=preview-pr-${{ needs.check-changes.outputs.pr_number }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ needs.check-changes.outputs.is_nightly }}" == "true" ]]; then
+            echo "tag_name=preview-nightly" >> $GITHUB_OUTPUT
+          else
+             # Manual trigger or fallback
+             echo "tag_name=preview-manual-${{ github.run_number }}" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
+      - name: Publish Release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifacts: "packages/*"
+          generateReleaseNotes: true
+          makeLatest: false
+          prerelease: true
+          tag: ${{ steps.tag.outputs.tag_name }}
+          name: "Preview Build ${{ steps.tag.outputs.tag_name }} (${{ github.run_number }})"
+          body: "Preview build generated from run ${{ github.run_number }}"
+
+  update-nightly-tag:
+    needs: [ check-changes, publish-preview ]
+    if: needs.check-changes.outputs.is_nightly == 'true' && success()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Update latest-preview tag
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const script = require('./scripts/update-nightly-tag.cjs');
+            await script({github, context});

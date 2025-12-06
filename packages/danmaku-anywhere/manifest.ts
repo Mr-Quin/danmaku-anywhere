@@ -1,13 +1,9 @@
 import { defineManifest } from '@crxjs/vite-plugin'
+import { getBuildContext } from './scripts/getBuildContext'
 
-import pkg from './package.json' with { type: 'json' }
+const { isDev, browser, appVersion } = getBuildContext()
 
-const BROWSER = process.env.VITE_TARGET_BROWSER ?? 'chrome'
-
-const dev = process.env.NODE_ENV === 'development'
-
-const IS_CHROME = BROWSER === 'chrome'
-const IS_FIREFOX = BROWSER === 'firefox'
+const { isChrome, isFirefox } = browser
 
 const permissions: chrome.runtime.ManifestPermissions[] = [
   'storage',
@@ -21,11 +17,11 @@ const permissions: chrome.runtime.ManifestPermissions[] = [
   'contextMenus',
 ]
 
-if (IS_CHROME) {
+if (isChrome) {
   permissions.push('fontSettings')
 }
 
-if (dev) {
+if (isDev) {
   permissions.push('declarativeNetRequestFeedback')
 }
 
@@ -39,7 +35,7 @@ export const manifest = defineManifest({
   manifest_version: 3,
   name: '__MSG_extName__',
   description: '__MSG_extDescription__',
-  version: pkg.version,
+  version: appVersion,
   action: {
     default_popup: 'pages/popup.html',
     default_title: 'Danmaku anywhere',
@@ -61,12 +57,12 @@ export const manifest = defineManifest({
   host_permissions: ['https://*/*', 'http://*/*', 'file:///*'],
   externally_connectable:
     // not supported in firefox
-    IS_FIREFOX
+    isFirefox
       ? undefined
       : {
           matches: [
             '*://danmaku.weeblify.app/*',
-            ...(dev ? ['http://localhost:4321/*'] : []),
+            ...(isDev ? ['http://localhost:4321/*'] : []),
           ],
         },
   icons: {
@@ -76,7 +72,7 @@ export const manifest = defineManifest({
     512: 'normal_512.png',
   },
   default_locale: 'en',
-  ...(BROWSER === 'firefox' && {
+  ...(isFirefox && {
     browser_specific_settings: {
       gecko: {
         id: 'danmakuanywhere@quin.fish',
