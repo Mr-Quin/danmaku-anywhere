@@ -60,7 +60,7 @@ const NoRulesConfigured = ({ type }: { type: 'selector' | 'regex' }) => {
 
 const RuleItemBox = styled(Box)(({ theme }) => ({
   border: `1px solid ${theme.palette.divider}`,
-  borderRadius: 1,
+  borderRadius: theme.shape.borderRadius,
   padding: theme.spacing(1),
 }))
 
@@ -306,7 +306,8 @@ const StyledAccordion = styled(Accordion)(({ theme }) => {
     '&:before': { display: 'none' },
     backgroundColor: 'transparent',
     border: `1px solid ${theme.palette.divider}`,
-    borderRadius: 1,
+    borderRadius: theme.shape.borderRadius,
+    boxShadow: theme.shadows[1],
   }
 })
 
@@ -315,10 +316,13 @@ const StyledAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: theme.palette.background.paper,
 }))
 
 const StyledAccordionDetails = styled(AccordionDetails)(({ theme }) => ({
   borderTop: `1px solid ${theme.palette.divider}`,
+  borderRadius: theme.shape.borderRadius,
 }))
 
 interface IntegrationSectionProps {
@@ -424,7 +428,7 @@ export const IntegrationSection = ({
             <div>
               <Button
                 variant="contained"
-                color="primary"
+                color="secondary"
                 startIcon={<Colorize />}
                 onClick={handlePickElement}
                 size="small"
@@ -435,6 +439,7 @@ export const IntegrationSection = ({
               <Button
                 variant="text"
                 startIcon={<Add />}
+                color="secondary"
                 onClick={handleAddManual}
                 size="small"
               >
@@ -477,6 +482,7 @@ export const IntegrationSection = ({
               <Button
                 variant="text"
                 startIcon={<Add />}
+                color="secondary"
                 onClick={handleAddRegex}
                 size="small"
               >

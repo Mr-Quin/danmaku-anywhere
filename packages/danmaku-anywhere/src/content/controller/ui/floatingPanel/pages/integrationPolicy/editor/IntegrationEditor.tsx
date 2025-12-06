@@ -6,6 +6,8 @@ import type { ReactElement } from 'react'
 import { useEffect, useState } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import { OverlayLayout } from '@/common/components/layout/OverlayLayout'
+import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useToast } from '@/common/components/Toast/toastStore'
@@ -46,7 +48,6 @@ export const IntegrationEditor = (): ReactElement => {
 
   const isEdit = !!activePolicy
 
-  // Save form data to store so that it can be restored when the user comes back
   const { toggleEditor } = useStore.use.integrationForm()
 
   const defaultValues =
@@ -82,8 +83,8 @@ export const IntegrationEditor = (): ReactElement => {
         return add(
           {
             ...data,
-            id: (data.id ?? crypto.randomUUID()) as string,
-          } as Integration,
+            id: data.id ?? crypto.randomUUID(),
+          },
           activeConfig.id
         )
       }
@@ -131,105 +132,128 @@ export const IntegrationEditor = (): ReactElement => {
   }
 
   return (
-    <>
-      <TabLayout>
+    <OverlayLayout>
+      <TabLayout height="100%">
         <form
           onSubmit={handleSubmit((data) => {
             saveForm(data)
           })}
+          style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
         >
-          <FormProvider {...form}>
-            <TabToolbar
-              title="Configure Integration"
-              showBackButton
-              onGoBack={() => toggleEditor()}
-            >
-              <div>
-                <Button
-                  variant="text"
-                  component="a"
-                  href={docsLink('docs/integration-policy/')}
-                  target="_blank"
-                >
-                  {t('common.docs')}
-                  <OpenInNew fontSize="inherit" color="primary" />
-                </Button>
-              </div>
-            </TabToolbar>
-            <Box p={2} pb={10}>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Teach the extension how to extract video info from this page
-              </Typography>
-              <IntegrationLivePreview />
-
-              <Stack spacing={2}>
-                <IntegrationSection
-                  name="policy.title"
-                  label="Video Title"
-                  getErrorMessage={(errors, i) =>
-                    errors.policy?.title?.selector?.[i]?.message
-                  }
-                  renderPrefix={renderXPathValidation('policy.title.selector')}
-                  onOpenSelector={(callback) => handleOpenSelector(callback)}
-                />
-
-                <IntegrationSection
-                  name="policy.season"
-                  label="Season Number"
-                  getErrorMessage={(errors, i) =>
-                    errors.policy?.season?.selector?.[i]?.message
-                  }
-                  renderPrefix={renderXPathValidation('policy.season.selector')}
-                  onOpenSelector={(callback) => handleOpenSelector(callback)}
-                />
-
-                <IntegrationSection
-                  name="policy.episode"
-                  label="Episode Number"
-                  getErrorMessage={(errors, i) =>
-                    errors.policy?.episode?.selector?.[i]?.message
-                  }
-                  renderPrefix={renderXPathValidation(
-                    'policy.episode.selector'
-                  )}
-                  onOpenSelector={(callback) => handleOpenSelector(callback)}
-                />
-              </Stack>
-
-              <Box
-                sx={{
-                  position: 'fixed',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  p: 2,
-                  bgcolor: 'background.paper',
-                  borderTop: 1,
-                  borderColor: 'divider',
-                  zIndex: 1,
-                }}
+          <TabToolbar
+            title={t(
+              'configs.integrationPolicy.editor.title',
+              'Configure Integration'
+            )}
+            showBackButton
+            onGoBack={() => toggleEditor()}
+          >
+            <div>
+              <Button
+                variant="text"
+                component="a"
+                href={docsLink('docs/integration-policy/')}
+                target="_blank"
               >
-                <Stack direction="row" spacing={2}>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    onClick={() => toggleEditor()}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    fullWidth
-                    type="submit"
-                    variant="contained"
-                    color="secondary"
-                    loading={isSubmitting}
-                  >
-                    Save Config
-                  </Button>
+                {t('common.docs', 'Docs')}
+                <OpenInNew fontSize="inherit" color="primary" />
+              </Button>
+            </div>
+          </TabToolbar>
+
+          <ScrollBox flexGrow={1} overflow="auto" minHeight={0}>
+            <FormProvider {...form}>
+              <Box p={2} pb={10}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 2 }}
+                >
+                  {t(
+                    'configs.integrationPolicy.editor.description',
+                    'Teach the extension how to extract video info from this page'
+                  )}
+                </Typography>
+                <IntegrationLivePreview />
+
+                <Stack spacing={2}>
+                  <IntegrationSection
+                    name="policy.title"
+                    label={t(
+                      'configs.integrationPolicy.editor.videoTitle',
+                      'Video Title'
+                    )}
+                    getErrorMessage={(errors, i) =>
+                      errors.policy?.title?.selector?.[i]?.message
+                    }
+                    renderPrefix={renderXPathValidation(
+                      'policy.title.selector'
+                    )}
+                    onOpenSelector={(callback) => handleOpenSelector(callback)}
+                  />
+
+                  <IntegrationSection
+                    name="policy.season"
+                    label={t(
+                      'configs.integrationPolicy.editor.seasonNumber',
+                      'Season Number (Optional)'
+                    )}
+                    getErrorMessage={(errors, i) =>
+                      errors.policy?.season?.selector?.[i]?.message
+                    }
+                    renderPrefix={renderXPathValidation(
+                      'policy.season.selector'
+                    )}
+                    onOpenSelector={(callback) => handleOpenSelector(callback)}
+                  />
+
+                  <IntegrationSection
+                    name="policy.episode"
+                    label={t(
+                      'configs.integrationPolicy.editor.episodeNumber',
+                      'Episode Number (Optional)'
+                    )}
+                    getErrorMessage={(errors, i) =>
+                      errors.policy?.episode?.selector?.[i]?.message
+                    }
+                    renderPrefix={renderXPathValidation(
+                      'policy.episode.selector'
+                    )}
+                    onOpenSelector={(callback) => handleOpenSelector(callback)}
+                  />
                 </Stack>
               </Box>
-            </Box>
-          </FormProvider>
+            </FormProvider>
+          </ScrollBox>
+
+          <Box
+            sx={{
+              p: 2,
+              bgcolor: 'background.paper',
+              borderTop: 1,
+              borderColor: 'divider',
+              zIndex: 1,
+            }}
+          >
+            <Stack direction="row" spacing={2}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => toggleEditor()}
+              >
+                {t('common.cancel', 'Cancel')}
+              </Button>
+              <Button
+                fullWidth
+                type="submit"
+                variant="contained"
+                color="primary"
+                loading={isSubmitting}
+              >
+                {t('common.save', 'Save')}
+              </Button>
+            </Stack>
+          </Box>
         </form>
       </TabLayout>
 
@@ -238,6 +262,6 @@ export const IntegrationEditor = (): ReactElement => {
         onExit={() => setShowSelector(false)}
         onSelect={handleSelectElement}
       />
-    </>
+    </OverlayLayout>
   )
 }

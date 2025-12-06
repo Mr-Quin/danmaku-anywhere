@@ -1,28 +1,12 @@
-import { getElementByXpath } from '@/common/utils/utils'
+import type { IntegrationPolicySelector } from '@/common/options/integrationPolicyStore/schema'
 import { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 
-export interface Selector {
-  value: string
-  quick: boolean
-}
+const DEFAULT_REGEX = '.*'
 
-export const sortSelectors = (selectors: Selector[]) => {
+export const sortSelectors = (selectors: IntegrationPolicySelector[]) => {
   const quick = selectors.filter((s) => s.quick)
   const slow = selectors.filter((s) => !s.quick)
   return [...quick, ...slow].map((s) => s.value)
-}
-
-export const getFirstElement = (
-  selectors: Selector[],
-  parent = window.document
-) => {
-  for (const p of sortSelectors(selectors)) {
-    const element = getElementByXpath(p, parent)
-    if (element) {
-      return element
-    }
-  }
-  return null
 }
 
 /**
@@ -69,13 +53,15 @@ export const parseMediaString = (text: string, regex: string) => {
 export const parseMultipleRegex = <T>(
   parser: (text: string, regex: string) => T,
   text: string,
-  regex: Selector[]
+  regex: IntegrationPolicySelector[]
 ): T | undefined => {
   const errors: string[] = []
 
   for (const reg of sortSelectors(regex)) {
     try {
-      if (reg === '') return
+      if (reg === '') {
+        return parser(text, DEFAULT_REGEX)
+      }
       return parser(text, reg)
     } catch (err) {
       if (err instanceof Error) {
@@ -91,7 +77,7 @@ export const parseMultipleRegex = <T>(
 // Expect regex to use named capture groups
 export const parseMediaFromTitle = (
   title: string,
-  regex: Selector[]
+  regex: IntegrationPolicySelector[]
 ): MediaInfo => {
   const errors: string[] = []
 

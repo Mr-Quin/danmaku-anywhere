@@ -7,7 +7,7 @@ import { createVirtualElement } from '@/common/utils/utils'
 import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
 import { useIsSmallScreen } from '@/content/controller/common/hooks/useIsSmallScreen'
 import { usePopup } from '@/content/controller/store/popupStore'
-import { xPath } from './getXPath'
+import { getXPath } from './getXPath'
 
 interface HighlightElementProps {
   enable: boolean
@@ -99,7 +99,7 @@ export const ElementSelector = (props: HighlightElementProps) => {
       }
       event.preventDefault()
       event.stopImmediatePropagation()
-      props.onSelect(xPath(selectedElement.current, true))
+      props.onSelect(getXPath(selectedElement.current, true))
       props.onExit()
     }
 

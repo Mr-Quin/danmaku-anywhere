@@ -4,7 +4,7 @@
 
 // adapted from Chromium
 // https://source.chromium.org/chromium/chromium/src/+/main:third_party/devtools-frontend/src/front_end/panels/elements/DOMPath.ts?q=case:yes%20file:DOMPath.%5Btj%5Ds&ss=chromium
-export const xPath = function (node: Node, optimized?: boolean): string {
+export function getXPath(node: Node, optimized?: boolean): string {
   if (node.nodeType === Node.DOCUMENT_NODE) {
     return '/'
   }
@@ -27,7 +27,7 @@ export const xPath = function (node: Node, optimized?: boolean): string {
   return (steps.length && steps[0].optimized ? '' : '/') + steps.join('/')
 }
 
-const xPathValue = function (node: Node, optimized?: boolean): Step | null {
+function xPathValue(node: Node, optimized?: boolean): Step | null {
   let ownValue
   const ownIndex = xPathIndex(node)
   if (ownIndex === -1) {
@@ -72,7 +72,7 @@ const xPathValue = function (node: Node, optimized?: boolean): Step | null {
   return new Step(ownValue, node.nodeType === Node.DOCUMENT_NODE)
 }
 
-const xPathIndex = function (node: Node): number {
+function xPathIndex(node: Node): number {
   /**
    * Returns -1 in case of error, 0 if no siblings matching the same expression,
    * <XPath index among the same expression-matching sibling nodes> otherwise.
