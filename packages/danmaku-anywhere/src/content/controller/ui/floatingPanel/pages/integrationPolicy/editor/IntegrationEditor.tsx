@@ -20,15 +20,13 @@ import {
   zIntegration,
 } from '@/common/options/integrationPolicyStore/schema'
 import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
-import { docsLink, getElementByXpath } from '@/common/utils/utils'
+import { docsLink } from '@/common/utils/utils'
 import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useStore } from '@/content/controller/store/store'
 import { IntegrationLivePreview } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/IntegrationLivePreview'
-import { ElementSelector } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/editor/components/ElementSelector'
 import { IntegrationSection } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/editor/components/IntegrationSection'
-import { ValidationIcon } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/editor/components/ValidationIcon'
-import type { IntegrationArrayFieldNames } from './types'
+import { ElementSelector } from './components/elementSelector/ElementSelector'
 
 export const IntegrationEditor = (): ReactElement => {
   const { t } = useTranslation()
@@ -59,13 +57,8 @@ export const IntegrationEditor = (): ReactElement => {
     mode: 'onChange',
   })
 
-  const {
-    handleSubmit,
-    getValues,
-    reset,
-    formState: { isSubmitting },
-  } = form
-
+  const { handleSubmit, reset, formState } = form
+  console.log(formState)
   useEffect(() => {
     if (activePolicy) {
       reset(activePolicy)
@@ -113,22 +106,6 @@ export const IntegrationEditor = (): ReactElement => {
       onSelectCallback(xPath)
     }
     setShowSelector(false)
-  }
-
-  const renderXPathValidation = (name: IntegrationArrayFieldNames) => {
-    const values = getValues(name)
-
-    return (index: number) => {
-      const xPath = values[index]
-      const element = getElementByXpath(xPath.value)
-
-      return (
-        <ValidationIcon
-          state={xPath ? (element ? 'success' : 'error') : 'disabled'}
-          tooltip={element?.textContent ?? ''}
-        />
-      )
-    }
   }
 
   return (
@@ -186,9 +163,6 @@ export const IntegrationEditor = (): ReactElement => {
                     getErrorMessage={(errors, i) =>
                       errors.policy?.title?.selector?.[i]?.message
                     }
-                    renderPrefix={renderXPathValidation(
-                      'policy.title.selector'
-                    )}
                     onOpenSelector={(callback) => handleOpenSelector(callback)}
                   />
 
@@ -201,9 +175,6 @@ export const IntegrationEditor = (): ReactElement => {
                     getErrorMessage={(errors, i) =>
                       errors.policy?.season?.selector?.[i]?.message
                     }
-                    renderPrefix={renderXPathValidation(
-                      'policy.season.selector'
-                    )}
                     onOpenSelector={(callback) => handleOpenSelector(callback)}
                   />
 
@@ -216,9 +187,6 @@ export const IntegrationEditor = (): ReactElement => {
                     getErrorMessage={(errors, i) =>
                       errors.policy?.episode?.selector?.[i]?.message
                     }
-                    renderPrefix={renderXPathValidation(
-                      'policy.episode.selector'
-                    )}
                     onOpenSelector={(callback) => handleOpenSelector(callback)}
                   />
                 </Stack>
@@ -230,9 +198,6 @@ export const IntegrationEditor = (): ReactElement => {
             sx={{
               p: 2,
               bgcolor: 'background.paper',
-              borderTop: 1,
-              borderColor: 'divider',
-              zIndex: 1,
             }}
           >
             <Stack direction="row" spacing={2}>
@@ -248,7 +213,12 @@ export const IntegrationEditor = (): ReactElement => {
                 type="submit"
                 variant="contained"
                 color="primary"
-                loading={isSubmitting}
+                loading={formState.isSubmitting}
+                disabled={
+                  formState.isSubmitting ||
+                  !formState.isValid ||
+                  !formState.isDirty
+                }
               >
                 {t('common.save', 'Save')}
               </Button>

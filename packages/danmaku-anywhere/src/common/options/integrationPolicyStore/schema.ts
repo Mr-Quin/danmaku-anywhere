@@ -42,7 +42,7 @@ const optionsSchema = z.object({
 export const zIntegrationPolicy = z.object({
   title: z.object({
     selector: z.array(selectorSchema).min(1),
-    regex: z.array(regexSchema).min(1),
+    regex: z.array(regexSchema),
   }),
   episode: matcherSchema,
   season: matcherSchema,
