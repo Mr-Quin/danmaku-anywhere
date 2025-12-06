@@ -1,5 +1,8 @@
 name: Build Extension
 
+permissions:
+  contents: read
+
 on:
   workflow_call:
     inputs:

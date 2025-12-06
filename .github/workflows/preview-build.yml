@@ -1,5 +1,8 @@
 name: Preview Build
 
+permissions:
+  contents: read
+
 on:
   schedule:
     - cron: '0 2 * * *' # 2 AM every day
