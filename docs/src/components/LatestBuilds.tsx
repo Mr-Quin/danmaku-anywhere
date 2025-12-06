@@ -142,7 +142,18 @@ export const LatestBuilds = () => {
     )
 
   if (error) {
-    return <div className="text-error">获取版本信息失败: {error}</div>
+    return (
+      <div>
+        <div className="text-error">获取版本信息失败: {error}</div>
+        <div>
+          请尝试刷新页面或前往{' '}
+          <a href="https://github.com/Mr-Quin/danmaku-anywhere/releases">
+            GitHub 发布页面
+          </a>{' '}
+          查看
+        </div>
+      </div>
+    )
   }
 
   const latestRelease = releases.find((r) => !r.prerelease)
