@@ -15,22 +15,20 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.4",
-    "@astrojs/react": "^4.3.0",
-    "@astrojs/starlight": "^0.35.2",
-    "@astrojs/starlight-tailwind": "^4.0.1",
+    "@astrojs/check": "^0.9.6",
+    "@astrojs/react": "^4.4.2",
+    "@astrojs/starlight": "^0.37.0",
+    "@astrojs/starlight-tailwind": "^4.0.2",
     "@tailwindcss/vite": "^4.1.7",
     "@types/chrome": "^0.0.287",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
-    "astro": "^5.13.5",
+    "astro": "^5.16.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "sharp": "^0.33.5",
     "tailwindcss": "^4.1.7",
-    "typescript": "^5.6.3"
-  },
-  "devDependencies": {
-    "daisyui": "^4.12.23"
+    "typescript": "^5.6.3",
+    "daisyui": "^5.5.8"
   }
 }
