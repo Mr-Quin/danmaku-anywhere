@@ -10,7 +10,6 @@ import {
   styled,
   Typography,
 } from '@mui/material'
-import type { FieldErrors } from 'react-hook-form'
 import { get, useFieldArray, useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
@@ -79,10 +78,7 @@ const StyledAccordionDetails = styled(AccordionDetails)(({ theme }) => ({
 interface IntegrationSectionProps {
   name: IntegrationRuleItemNames
   label: string
-  getErrorMessage: (
-    errors: FieldErrors<IntegrationInput>,
-    index: number
-  ) => string | undefined
+  defaultExpanded?: boolean
   onOpenSelector: (callback: (xpath: string) => void) => void
 }
 
@@ -90,6 +86,7 @@ export const IntegrationSection = ({
   label,
   name,
   onOpenSelector,
+  defaultExpanded,
 }: IntegrationSectionProps) => {
   const { t } = useTranslation()
   const {
@@ -139,7 +136,11 @@ export const IntegrationSection = ({
   }
 
   return (
-    <StyledAccordion disableGutters elevation={0}>
+    <StyledAccordion
+      disableGutters
+      elevation={0}
+      defaultExpanded={defaultExpanded}
+    >
       <StyledAccordionSummary expandIcon={<ExpandMore />}>
         <Typography variant="subtitle1">{label}</Typography>
         <Typography variant="caption" color="text.secondary">

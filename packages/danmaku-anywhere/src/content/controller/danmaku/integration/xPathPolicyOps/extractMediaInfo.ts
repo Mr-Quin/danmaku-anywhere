@@ -17,20 +17,37 @@ const getText = (elements: MediaElements) => {
   }
 }
 
+type MediaExtractionResult =
+  | {
+      success: true
+      mediaInfo: MediaInfo
+    }
+  | {
+      success: false
+      error: string
+    }
+
 export function extractMediaInfo(
   matchResult: MediaElements,
   policy: IntegrationPolicy
-): MediaInfo {
+): MediaExtractionResult {
   const elements = getText(matchResult)
   const titleText = elements.title
 
   if (!titleText) {
-    throw new Error('Title element not found')
+    return {
+      success: false,
+      error: 'Title element not found',
+    }
   }
 
   // If titleOnly is true, then try to parse the media info from the title alone
   if (policy.options.titleOnly) {
-    return parseMediaFromTitle(titleText, policy.title.regex)
+    const mediaInfo = parseMediaFromTitle(titleText, policy.title.regex)
+    return {
+      success: true,
+      mediaInfo: mediaInfo,
+    }
   }
 
   const title = parseMultipleRegex(
@@ -40,12 +57,13 @@ export function extractMediaInfo(
   )
 
   if (title === undefined) {
-    throw new Error(
-      `Error parsing title: ${JSON.stringify({
+    return {
+      success: false,
+      error: `Error parsing title: ${JSON.stringify({
         title: titleText,
         regex: policy.title.regex,
-      })}`
-    )
+      })}`,
+    }
   }
 
   // Default to 1 if the element is not present
@@ -81,5 +99,8 @@ export function extractMediaInfo(
     )
   }
 
-  return new MediaInfo(title, episode, season, episodeTitle)
+  return {
+    success: true,
+    mediaInfo: new MediaInfo(title, episode, season, episodeTitle),
+  }
 }

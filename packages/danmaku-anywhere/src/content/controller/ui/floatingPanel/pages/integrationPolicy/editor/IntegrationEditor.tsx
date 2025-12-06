@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { OpenInNew } from '@mui/icons-material'
-import { Box, Button, Stack, Typography } from '@mui/material'
+import { Box, Button, Stack } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import type { ReactElement } from 'react'
 import { useEffect, useState } from 'react'
@@ -27,6 +27,7 @@ import { useStore } from '@/content/controller/store/store'
 import { IntegrationLivePreview } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/IntegrationLivePreview'
 import { IntegrationSection } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/editor/components/IntegrationSection'
 import { ElementSelector } from './components/elementSelector/ElementSelector'
+import { IntegrationPreview } from './components/IntegrationPreview'
 
 export const IntegrationEditor = (): ReactElement => {
   const { t } = useTranslation()
@@ -58,7 +59,7 @@ export const IntegrationEditor = (): ReactElement => {
   })
 
   const { handleSubmit, reset, formState } = form
-  console.log(formState)
+
   useEffect(() => {
     if (activePolicy) {
       reset(activePolicy)
@@ -138,21 +139,12 @@ export const IntegrationEditor = (): ReactElement => {
             </div>
           </TabToolbar>
 
+          <IntegrationPreview control={form.control} />
+
           <ScrollBox flexGrow={1} overflow="auto" minHeight={0}>
             <FormProvider {...form}>
-              <Box p={2} pb={10}>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mb: 2 }}
-                >
-                  {t(
-                    'configs.integrationPolicy.editor.description',
-                    'Teach the extension how to extract video info from this page'
-                  )}
-                </Typography>
-                <IntegrationLivePreview />
-
+              <IntegrationLivePreview />
+              <Box p={2}>
                 <Stack spacing={2}>
                   <IntegrationSection
                     name="policy.title"
@@ -160,9 +152,7 @@ export const IntegrationEditor = (): ReactElement => {
                       'configs.integrationPolicy.editor.videoTitle',
                       'Video Title'
                     )}
-                    getErrorMessage={(errors, i) =>
-                      errors.policy?.title?.selector?.[i]?.message
-                    }
+                    defaultExpanded
                     onOpenSelector={(callback) => handleOpenSelector(callback)}
                   />
 
@@ -172,9 +162,6 @@ export const IntegrationEditor = (): ReactElement => {
                       'configs.integrationPolicy.editor.seasonNumber',
                       'Season Number (Optional)'
                     )}
-                    getErrorMessage={(errors, i) =>
-                      errors.policy?.season?.selector?.[i]?.message
-                    }
                     onOpenSelector={(callback) => handleOpenSelector(callback)}
                   />
 
@@ -184,9 +171,6 @@ export const IntegrationEditor = (): ReactElement => {
                       'configs.integrationPolicy.editor.episodeNumber',
                       'Episode Number (Optional)'
                     )}
-                    getErrorMessage={(errors, i) =>
-                      errors.policy?.episode?.selector?.[i]?.message
-                    }
                     onOpenSelector={(callback) => handleOpenSelector(callback)}
                   />
                 </Stack>

@@ -111,7 +111,11 @@ export const SelectorRuleItem = ({
         matchText.text ? (
           <DenseAlert icon={false} severity="success">
             <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography variant="subtitle2" color="success.main">
+              <Typography
+                variant="subtitle2"
+                fontWeight="bold"
+                color="success.main"
+              >
                 {t(
                   'integrationPolicy.editor.selectorRuleItem.matched',
                   'Matched'

@@ -57,6 +57,10 @@ export const parseMultipleRegex = <T>(
 ): T | undefined => {
   const errors: string[] = []
 
+  if (regex.length === 0) {
+    return parser(text, DEFAULT_REGEX)
+  }
+
   for (const reg of sortSelectors(regex)) {
     try {
       if (reg === '') {
@@ -64,6 +68,7 @@ export const parseMultipleRegex = <T>(
       }
       return parser(text, reg)
     } catch (err) {
+      console.error(err)
       if (err instanceof Error) {
         errors.push(err.message)
       }

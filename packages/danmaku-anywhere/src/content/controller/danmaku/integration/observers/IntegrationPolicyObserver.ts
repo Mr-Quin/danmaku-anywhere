@@ -185,15 +185,18 @@ export class IntegrationPolicyObserver extends MediaObserver {
   }
 
   private parseMediaElements(elements: MediaElements) {
-    try {
-      const mediaInfo = extractMediaInfo(elements, this.policy)
-      this.updateMediaInfo(mediaInfo)
-    } catch (err) {
-      if (err instanceof Error) {
-        this.emit('error', err)
-      }
-      this.logger.debug('Error while getting media info:', err)
+    const extractionResult = extractMediaInfo(elements, this.policy)
+
+    if (!extractionResult.success) {
+      this.emit('error', new Error(extractionResult.error))
+      this.logger.debug(
+        'Error while getting media info:',
+        extractionResult.error
+      )
+      return
     }
+
+    this.updateMediaInfo(extractionResult.mediaInfo)
   }
 
   private async setupXpath() {
