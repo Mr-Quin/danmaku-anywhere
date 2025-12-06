@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: '0 2 * * *' # 2 AM every day
   pull_request:
-    types: [labeled, synchronize, opened]
+    types: [ labeled, synchronize, opened ]
   workflow_dispatch:
 
 jobs:
@@ -39,7 +39,7 @@ jobs:
     secrets: inherit
 
   publish-preview:
-    needs: [check-changes, call-build]
+    needs: [ check-changes, call-build ]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -76,16 +76,16 @@ jobs:
           body: "Preview build generated from run ${{ github.run_number }}"
 
   update-nightly-tag:
-    needs: [check-changes, publish-preview]
+    needs: [ check-changes, publish-preview ]
     if: needs.check-changes.outputs.is_nightly == 'true' && success()
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-       - uses: actions/checkout@v3
-       - name: Update latest-preview tag
-         uses: actions/github-script@v6
-         with:
-           script: |
-             const script = require('./scripts/update-nightly-tag.cjs');
-             await script({github, context});
+      - uses: actions/checkout@v3
+      - name: Update latest-preview tag
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const script = require('./scripts/update-nightly-tag.cjs');
+            await script({github, context});

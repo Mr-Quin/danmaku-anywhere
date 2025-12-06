@@ -25,7 +25,7 @@ console.log('Building for', {
 
 export default defineConfig({
   // @ts-ignore
-  plugins: [react({}), crx({ manifest, browser })],
+  plugins: [react({}), crx({ manifest, browser: browser.name })],
   resolve: {
     alias: {
       '@': '/src',
@@ -40,7 +40,7 @@ export default defineConfig({
     open: false,
   },
   define: {
-    'import.meta.env.VITE_TARGET_BROWSER': JSON.stringify(browser),
+    'import.meta.env.VITE_TARGET_BROWSER': JSON.stringify(browser.name),
     'import.meta.env.VERSION': JSON.stringify(appVersion),
   },
   build: {
@@ -64,7 +64,7 @@ export default defineConfig({
         },
       },
     },
-    outDir: `./dev/${browser}`,
+    outDir: `./dev/${browser.name}`,
     minify: !isFirefox, // don't minify for Firefox, so they can review the code
     // the minimum to support top-level await
     target: ['es2022', 'edge89', 'firefox89', 'chrome89', 'safari15'],
