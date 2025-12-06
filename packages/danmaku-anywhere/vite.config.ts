@@ -3,31 +3,29 @@ import { crx } from '@crxjs/vite-plugin'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { manifest } from './manifest'
-import pkg from './package.json' with { type: 'json' }
+import { getBuildContext } from './scripts/getBuildContext'
 
-const BROWSER = process.env.VITE_TARGET_BROWSER ?? 'chrome'
+const { browser, appVersion, isDev } = getBuildContext()
 
-if (!['chrome', 'firefox'].includes(BROWSER)) {
+const { isChrome, isFirefox } = browser
+
+if (!['chrome', 'firefox'].includes(browser.name)) {
   throw new Error(
-    `Browser target must be either 'chrome' or 'firefox', but got ${BROWSER}`
+    `Browser target must be either 'chrome' or 'firefox', but got ${browser.name}`
   )
 }
 
-const IS_CHROME = BROWSER === 'chrome'
-const IS_FIREFOX = BROWSER === 'firefox'
-
-const dev = process.env.NODE_ENV === 'development'
-
-const port = IS_CHROME ? 3000 : 3001
+const port = isChrome ? 3000 : 3001
 
 console.log('Building for', {
-  browser: BROWSER,
-  dev,
+  browser,
+  appVersion,
+  isDev,
 })
 
 export default defineConfig({
   // @ts-ignore
-  plugins: [react({}), crx({ manifest, browser: BROWSER })],
+  plugins: [react({}), crx({ manifest, browser })],
   resolve: {
     alias: {
       '@': '/src',
@@ -42,8 +40,8 @@ export default defineConfig({
     open: false,
   },
   define: {
-    'import.meta.env.VITE_TARGET_BROWSER': JSON.stringify(BROWSER),
-    'import.meta.env.VERSION': JSON.stringify(pkg.version),
+    'import.meta.env.VITE_TARGET_BROWSER': JSON.stringify(browser),
+    'import.meta.env.VERSION': JSON.stringify(appVersion),
   },
   build: {
     emptyOutDir: true,
@@ -66,8 +64,8 @@ export default defineConfig({
         },
       },
     },
-    outDir: `./dev/${BROWSER}`,
-    minify: !IS_FIREFOX, // don't minify for Firefox, so they can review the code
+    outDir: `./dev/${browser}`,
+    minify: !isFirefox, // don't minify for Firefox, so they can review the code
     // the minimum to support top-level await
     target: ['es2022', 'edge89', 'firefox89', 'chrome89', 'safari15'],
   },

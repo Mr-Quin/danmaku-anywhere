@@ -1,125 +1,62 @@
-name: Release Package
+name: Release Extension
 
 on:
   push:
     tags:
       - 'v*.*.*'
   workflow_dispatch:
+    inputs:
+      target_tag:
+        description: 'Tag to release'
+        required: false
+        type: string
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    strategy:
-      matrix:
-        node-version: [ 24.x ]
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        # uses version from package.json > packageManager
-
-      - name: Install and build dependencies
-        run: |
-          pnpm install
-          pnpm build:packages
-        env:
-          VITE_PROXY_ORIGIN: ${{ vars.VITE_PROXY_ORIGIN }}
-          VITE_PROXY_URL: ${{ vars.VITE_PROXY_URL }}
-
-      - name: Package
-        run: |
-          cd packages/danmaku-anywhere
-          pnpm package
-          pnpm build:firefox
-          pnpm package:firefox
-        env:
-          VITE_PROXY_ORIGIN: ${{ vars.VITE_PROXY_ORIGIN }}
-          VITE_PROXY_URL: ${{ vars.VITE_PROXY_URL }}
-
-      - name: Resolve Chrome ZIP path for CRX
-        id: crx_paths
-        continue-on-error: true
-        shell: bash
-        run: |
-          ZIP=$(ls packages/danmaku-anywhere/package/*-chrome.zip)
-          echo "zip=$ZIP" >> $GITHUB_OUTPUT
-          CRX="${ZIP%.zip}.crx"
-          echo "crx=$CRX" >> $GITHUB_OUTPUT
-
-      - name: Build .crx from Chrome ZIP
-        uses: cardinalby/webext-buildtools-chrome-crx-action@v2
-        continue-on-error: true
-        with:
-          zipFilePath: ${{ steps.crx_paths.outputs.zip }}
-          crxFilePath: ${{ steps.crx_paths.outputs.crx }}
-          privateKey: ${{ secrets.CRX_SECRET_KEY }}
-
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: package-files
-          path: |
-            packages/danmaku-anywhere/package/*.zip
-            packages/danmaku-anywhere/package/*.crx
+  call-build:
+    uses: ./.github/workflows/build-extension.yml
+    with:
+      ref: ${{ inputs.target_tag || github.ref }}
+      version_suffix: ''
+    secrets: inherit
 
   publish-release:
+    needs: call-build
     runs-on: ubuntu-latest
-    needs: build
     permissions:
       contents: write # required by ncipollo/release-action@v1
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-
+    if: >-
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
+      (github.event_name == 'workflow_dispatch' && inputs.target_tag != '')
     steps:
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
           name: package-files
           path: packages
-
-      - name: Print current directory
-        run: |
-          ls -al
-          pwd
 
       - name: Publish Release
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
           artifacts: "packages/*"
+          tag: ${{ inputs.target_tag || github.ref_name }}
           generateReleaseNotes: true
           makeLatest: true
           draft: true
 
   publish-chrome:
+    needs: call-build
     runs-on: ubuntu-latest
-    needs: build
     environment: chrome-web-store-publish
-    # Only run this job if the push event is a tag push
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-
+    if: >-
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
+      (github.event_name == 'workflow_dispatch' && inputs.target_tag != '')
     steps:
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
           name: package-files
           path: packages
-
-      - name: Print current directory
-        run: |
-          ls -al
-          pwd
 
       - name: Publish to Chrome Web Store
         uses: mnao305/chrome-extension-upload@v5.0.0
@@ -133,20 +70,18 @@ jobs:
           publish: false
 
   publish-firefox:
+    needs: call-build
     runs-on: ubuntu-latest
-    needs: build
     environment: firefox-addon-publish
+    if: >-
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
+      (github.event_name == 'workflow_dispatch' && inputs.target_tag != '')
     steps:
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
           name: package-files
           path: packages
-
-      - name: Print current directory
-        run: |
-          ls -al
-          pwd
 
       - uses: wdzeng/firefox-addon@v1
         name: Upload to Mozilla Add-ons
