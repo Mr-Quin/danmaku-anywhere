@@ -42,6 +42,14 @@ export default defineConfig({
           link: '/getting-started',
         },
         {
+          label: 'downloads',
+          translations: {
+            'zh-CN': '下载',
+            en: 'Downloads',
+          },
+          link: '/downloads',
+        },
+        {
           label: 'faq',
           translations: {
             'zh-CN': '常见问题',
