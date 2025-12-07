@@ -12,7 +12,7 @@ import { type ReactNode, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
-import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
+import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
 import { useStore } from '@/content/controller/store/store'
 
 interface StepData {
