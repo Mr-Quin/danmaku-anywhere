@@ -31,7 +31,7 @@ export const integrationData: IntegrationDataMap = {
       ),
     icon: AutoAwesome,
   },
-  custom: {
+  xpath: {
     label: () => i18n.t('integration.mode.xpath.label', 'XPath'),
     description: () =>
       i18n.t(

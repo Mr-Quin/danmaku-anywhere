@@ -4,7 +4,7 @@ import type { Options } from '@/common/options/OptionsService/types'
 import { getRandomUUID, validateOrigin } from '@/common/utils/utils'
 
 export const automationModeSchema = z
-  .enum(['manual', 'ai', 'custom'])
+  .enum(['manual', 'ai', 'xpath'])
   .default('manual')
 
 export type AutomationMode = z.infer<typeof automationModeSchema>

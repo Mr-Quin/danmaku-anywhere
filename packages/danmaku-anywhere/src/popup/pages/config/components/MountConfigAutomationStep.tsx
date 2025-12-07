@@ -95,12 +95,12 @@ export const MountConfigAutomationStep = ({
             <Stack spacing={1}>
               <AutomationCard mode="manual" field={field} />
               <AutomationCard mode="ai" field={field} disabled={isPermissive} />
-              <AutomationCard mode="custom" field={field} />
+              <AutomationCard mode="xpath" field={field} />
             </Stack>
           </RadioGroup>
         )}
       />
-      {selectedMode === 'custom' &&
+      {selectedMode === 'xpath' &&
         (!integration || integration === EMPTY_INTEGRATION_VALUE) && (
           <Alert severity="warning">
             {t(

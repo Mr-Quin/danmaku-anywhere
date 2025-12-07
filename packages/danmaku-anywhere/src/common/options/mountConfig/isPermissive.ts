@@ -34,5 +34,5 @@ export const isConfigPermissive = (config: MountConfig): boolean => {
 }
 
 export const isConfigIncomplete = (config: MountConfig): boolean => {
-  return config.mode === 'custom' && !config.integration
+  return config.mode === 'xpath' && !config.integration
 }

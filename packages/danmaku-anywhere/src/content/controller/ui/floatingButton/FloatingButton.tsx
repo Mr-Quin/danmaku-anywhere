@@ -98,7 +98,7 @@ export const FloatingButton = forwardRef<
   const isIn = !isPicking && (showFab || isOpen || !!contextMenuAnchor)
 
   const isIncomplete =
-    activeConfig?.mode === 'custom' && !activeConfig?.integration
+    activeConfig?.mode === 'xpath' && !activeConfig?.integration
 
   return (
     <ClickAwayListener onClickAway={handleCloseContextMenu}>

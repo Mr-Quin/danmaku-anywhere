@@ -27,7 +27,7 @@ const ConfigBadge = ({ config }: { config: MountConfig }) => {
           icon={<integrationData.ai.icon />}
         />
       )
-    case 'custom':
+    case 'xpath':
       if (!config.integration) {
         return (
           <Chip
@@ -45,7 +45,7 @@ const ConfigBadge = ({ config }: { config: MountConfig }) => {
       return (
         <Chip
           size="small"
-          label={integrationData.custom.label()}
+          label={integrationData.xpath.label()}
           color="primary"
           variant="filled"
         />

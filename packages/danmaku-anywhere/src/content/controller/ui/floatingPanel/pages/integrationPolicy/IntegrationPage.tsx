@@ -75,10 +75,10 @@ export const IntegrationPage = () => {
                 {integrationData.ai.label()}
               </ToggleButton>
             </Tooltip>
-            <Tooltip title={integrationData.custom.description()}>
-              <ToggleButton value="custom">
-                <integrationData.custom.icon fontSize="small" sx={{ mr: 1 }} />
-                {integrationData.custom.label()}
+            <Tooltip title={integrationData.xpath.description()}>
+              <ToggleButton value="xpath">
+                <integrationData.xpath.icon fontSize="small" sx={{ mr: 1 }} />
+                {integrationData.xpath.label()}
               </ToggleButton>
             </Tooltip>
             <Tooltip title={integrationData.manual.description()}>
