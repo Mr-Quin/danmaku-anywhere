@@ -16,5 +16,5 @@ export const useIconManager = () => {
       })
     }
     return void chromeRpcClient.iconSet({ state: 'available' })
-  }, [config, isMounted])
+  }, [config, comments, isMounted]) // config is included to ensure icon is reset when config changes
 }
