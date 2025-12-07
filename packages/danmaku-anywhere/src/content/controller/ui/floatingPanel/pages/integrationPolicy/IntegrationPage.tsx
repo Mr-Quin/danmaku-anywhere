@@ -11,6 +11,7 @@ import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { integrationData } from '@/common/options/mountConfig/integrationData'
+import type { AutomationMode } from '@/common/options/mountConfig/schema'
 import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 import { useStore } from '@/content/controller/store/store'
@@ -39,7 +40,7 @@ export const IntegrationPage = () => {
 
   const handleModeChange = (
     _: React.MouseEvent<HTMLElement>,
-    newMode: 'ai' | 'custom' | 'manual' | null
+    newMode: AutomationMode | null
   ) => {
     if (newMode && newMode !== activeConfig.mode && activeConfig.id) {
       void setMode({ id: activeConfig.id, mode: newMode })
