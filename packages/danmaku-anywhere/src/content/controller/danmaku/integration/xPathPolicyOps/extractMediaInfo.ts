@@ -31,76 +31,86 @@ export function extractMediaInfo(
   matchResult: MediaElements,
   policy: IntegrationPolicy
 ): MediaExtractionResult {
-  const elements = getText(matchResult)
-  const titleText = elements.title
+  try {
+    const elements = getText(matchResult)
+    const titleText = elements.title
 
-  if (!titleText) {
-    return {
-      success: false,
-      error: 'Title element not found',
+    if (!titleText) {
+      return {
+        success: false,
+        error: 'Title element not found',
+      }
     }
-  }
 
-  // If titleOnly is true, then try to parse the media info from the title alone
-  if (policy.options.titleOnly) {
-    const mediaInfo = parseMediaFromTitle(titleText, policy.title.regex)
+    // If titleOnly is true, then try to parse the media info from the title alone
+    if (policy.options.titleOnly) {
+      const mediaInfo = parseMediaFromTitle(titleText, policy.title.regex)
+      return {
+        success: true,
+        mediaInfo: mediaInfo,
+      }
+    }
+
+    const title = parseMultipleRegex(
+      parseMediaString,
+      titleText,
+      policy.title.regex
+    )
+
+    if (title === undefined) {
+      return {
+        success: false,
+        error: `Error parsing title: ${JSON.stringify({
+          title: titleText,
+          regex: policy.title.regex,
+        })}`,
+      }
+    }
+
+    // Default to 1 if the element is not present
+    let episode = 1
+    let episodeTitle: string | undefined = undefined
+    let season: string | undefined = undefined
+
+    // If the episode element is not present, assume it's a movie or something that doesn't have episodes
+    if (elements.episode) {
+      const parsedEpisode = parseMultipleRegex(
+        parseMediaNumber,
+        elements.episode,
+        policy.episode.regex
+      )
+      if (parsedEpisode !== undefined) {
+        episode = parsedEpisode
+      }
+    }
+
+    if (elements.season) {
+      season = parseMultipleRegex(
+        parseMediaString,
+        elements.season,
+        policy.season.regex
+      )
+    }
+
+    if (elements.episodeTitle) {
+      episodeTitle = parseMultipleRegex(
+        parseMediaString,
+        elements.episodeTitle,
+        policy.episodeTitle.regex
+      )
+    }
+
     return {
       success: true,
-      mediaInfo: mediaInfo,
+      mediaInfo: new MediaInfo(title, episode, season, episodeTitle),
     }
-  }
-
-  const title = parseMultipleRegex(
-    parseMediaString,
-    titleText,
-    policy.title.regex
-  )
-
-  if (title === undefined) {
+  } catch (e) {
     return {
       success: false,
-      error: `Error parsing title: ${JSON.stringify({
-        title: titleText,
-        regex: policy.title.regex,
-      })}`,
+      error:
+        e instanceof Error
+          ? e.message
+          : 'An unknown error occurred during media info extraction.',
     }
-  }
-
-  // Default to 1 if the element is not present
-  let episode = 1
-  let episodeTitle: string | undefined = undefined
-  let season: string | undefined = undefined
-
-  // If the episode element is not present, assume it's a movie or something that doesn't have episodes
-  if (elements.episode) {
-    const parsedEpisode = parseMultipleRegex(
-      parseMediaNumber,
-      elements.episode,
-      policy.episode.regex
-    )
-    if (parsedEpisode !== undefined) {
-      episode = parsedEpisode
-    }
-  }
-
-  if (elements.season) {
-    season = parseMultipleRegex(
-      parseMediaString,
-      elements.season,
-      policy.season.regex
-    )
-  }
-
-  if (elements.episodeTitle) {
-    episodeTitle = parseMultipleRegex(
-      parseMediaString,
-      elements.episodeTitle,
-      policy.episodeTitle.regex
-    )
-  }
-
-  return {
-    success: true,
-    mediaInfo: new MediaInfo(title, episode, season, episodeTitle),
   }
 }
