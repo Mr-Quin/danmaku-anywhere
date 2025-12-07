@@ -23,22 +23,32 @@ export const TabToolbar = ({
     </IconButton>
   )
 
+  const renderTitle = () => {
+    if (!title) {
+      return null
+    }
+    if (typeof title === 'string') {
+      return (
+        <Typography
+          variant="h2"
+          fontSize={18}
+          sx={{ flexGrow: 1 }}
+          noWrap
+          title={title}
+        >
+          {title}
+        </Typography>
+      )
+    }
+    return title
+  }
+
   return (
     <>
-      <Toolbar>
+      <Toolbar variant="dense" sx={{ flexShrink: 0 }}>
         {showBackButton && backButton}
         {leftElement}
-        {title && (
-          <Typography
-            variant="h2"
-            fontSize={18}
-            sx={{ flexGrow: 1 }}
-            noWrap
-            title={typeof title === 'string' ? title : undefined}
-          >
-            {title}
-          </Typography>
-        )}
+        {renderTitle()}
         {children}
       </Toolbar>
       <Divider />

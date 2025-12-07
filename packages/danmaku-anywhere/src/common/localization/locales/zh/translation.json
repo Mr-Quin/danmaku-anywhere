@@ -18,12 +18,10 @@
     "version": "版本"
   },
   "anime": {
-    "episode": "集",
     "episodeTitle": "集标题",
     "numericEpisode": "第{{episode}}集",
     "numericSeason": "第{{season}}季",
     "refreshMetadata": "刷新元数据",
-    "season": "季",
     "title": "标题"
   },
   "common": {
@@ -67,20 +65,31 @@
     "createConfig": "编写配置",
     "editor": {
       "addPattern": "添加模式",
+      "advanced": "高级",
+      "automation": {
+        "title": "选择自动化方式",
+        "xPathAlert": "保存后，你需要前往对应网站完成设置。"
+      },
       "description": "说明",
       "helper": {
-        "integration": "启用对应的适配规则。如果你不清楚这是什么，请保持默认设置\"无\"",
         "mediaQuery": "用来选择视频节点, 一般为\"video\"",
         "urlPattern": "用来匹配视频页面，一般为视频网站的网址。格式：https://example.com/*。"
+      },
+      "integrationMode": {
+        "setupIncomplete": "配置未完成"
       },
       "mediaQuery": "视频节点",
       "name": "名称",
       "pattern": "模式",
+      "step": {
+        "automation": "自动化",
+        "basicInfo": "基本信息"
+      },
       "title": {
         "create": "添加配置",
         "edit": "编辑{{name}}"
       },
-      "tooPermissive": "匹配模式过于宽松，建议设置更具体的匹配模式",
+      "tooPermissive": "匹配模式过于宽松，AI功能将被禁用",
       "urlPatterns": "URL 模式"
     },
     "import": {
@@ -167,54 +176,85 @@
       "aiDisabledTooPermissive": "AI已禁用：匹配模式过于宽松",
       "AIResult": "AI解析结果：{{title}}",
       "matchedLocalDanmaku": "以匹配本地弹幕",
+      "noIntegration": "未设置适配规则",
       "openSearch": "打开搜索页面",
       "search": "搜索番剧：{{title}}",
       "searchError": "搜索番剧失败：{{message}}",
       "searchResultEmpty": "没有找到标题为 {{title}} 的番剧",
       "usingAI": "正在使用AI解析",
-      "usingIntegration": "使用适配规则：{{name}}"
+      "usingMode": "正在使用模式：{{mode}}"
     },
     "autoMode": "自动模式",
-    "name": "适配规则",
-    "type": {
-      "None": "无"
+    "createConfig": "创建配置",
+    "editConfig": "编辑配置",
+    "editor": {
+      "selectorRuleItem": {
+        "invalidXPath": "XPath无效或者没有找到匹配的节点",
+        "matched": "匹配成功",
+        "matchedButEmpty": "匹配成功，但内容为空"
+      }
+    },
+    "manualModeEnabled": "已启用手动模式，如需自动请切换至其他模式",
+    "mode": {
+      "ai": {
+        "description": "让AI自动解析视频信息并自动装填弹幕",
+        "label": "AI"
+      },
+      "manual": {
+        "description": "我会手动选择弹幕并装填",
+        "label": "手动"
+      },
+      "xpath": {
+        "description": "我会配置XPath规则来提取视频信息并自动装填弹幕",
+        "label": "XPath"
+      }
+    },
+    "noConfig": "没有适配规则",
+    "steps": {
+      "aiRequest": "AI请求",
+      "aiRequestPass": "AI请求成功",
+      "checkMountConfigPermissive": "检查适配规则",
+      "checkMountConfigPermissiveFail": "适配规则过于宽松，请调整匹配模式",
+      "checkVideo": "检查视频",
+      "checkVideoFail": "未检测到视频",
+      "checkVideoPass": "检测到视频",
+      "configAvailable": "适配规则可用",
+      "configAvailableFail": "没有适配规则，请创建",
+      "configAvailablePass": "适配规则可用",
+      "enableAi": "启用AI",
+      "enableAiPass": "AI已启用",
+      "integrationEnabled": "启用自动模式",
+      "integrationEnabledFail": "未启用自动模式",
+      "integrationEnabledPass": "自动模式已启用",
+      "matchNodes": "匹配节点",
+      "matchNodesFail": "未匹配到节点",
+      "matchNodesPass": "匹配节点成功",
+      "mediaInfo": "视频信息",
+      "parseMediaInfo": "解析视频信息",
+      "parseMediaInfoPass": "视频信息解析成功"
     }
   },
   "integrationPolicyPage": {
-    "aiDisabledTooPermissive": "由于匹配模式过于宽松已禁用AI。请调整匹配模式或使用XPath匹配规则",
-    "aiParsing": "AI解析",
-    "create": "添加适配规则",
-    "edit": "编辑{{name}}",
     "editor": {
-      "advanced": "高级选项",
-      "episode": "匹配集数",
-      "episodeRegex": "集数Regex",
-      "episodeSelector": "集数XPath",
-      "episodeTitle": "匹配单集标题",
-      "episodeTitleRegex": "单集标题Regex",
-      "episodeTitleSelector": "单集标题XPath",
-      "helper": {
-        "titleOnly": "勾选后，只使用标题节点匹配番剧。适用与标题包含番剧全部信息的情况，例如标题为文件名。如果番剧信息分散在不同的节点中，请取消勾选。",
-        "useAI": "尝试使用AI来解析番剧信息。如果解析失败，请尝试手动配置。"
-      },
-      "name": "名称",
+      "addManual": "添加",
+      "addRegex": "添加",
+      "cancelSelection": "取消选择",
+      "episodeNumber": "集数（可选）",
+      "matchResult": "匹配结果",
+      "noNodesFound": "未匹配到节点",
+      "noPreviewAvailable": "解析视频信息失败",
+      "noRegexConfigured": "没有配置正则匹配，点击添加",
+      "pickElement": "选择元素",
       "quick": "优先",
-      "season": "匹配季",
-      "seasonRegex": "季Regex",
-      "seasonSelector": "季XPath",
-      "titleOnly": "仅使用标题匹配",
-      "titleRegex": "标题Regex",
-      "titleSection": "匹配标题",
-      "titleSelector": "标题XPath",
-      "useAI": "使用AI（实验）"
+      "regex": "正则表达式（可选）",
+      "regexRuleCount_other": "{{count}}个正则规则",
+      "seasonNumber": "季数（可选）",
+      "selectorRuleCount_other": "{{count}}个XPath规则",
+      "title": "配置适配规则",
+      "videoTitle": "视频标题",
+      "xpathSelectors": "XPath"
     },
-    "hasIntegration": "当前页面已启用适配规则：\"{{name}}\"",
-    "integrationActive": "运行中",
-    "integrationInactive": "未运行",
-    "name": "适配规则",
-    "nodesFound": "找到节点",
-    "noIntegration": "当前页面没有启用的适配规则, 请从规则列表中选择或者添加新的",
-    "parseComplete": "解析完成"
+    "name": "适配规则"
   },
   "mountPage": {
     "alert": {
@@ -420,10 +460,13 @@
   "tabs": {
     "config": "装填配置",
     "danmaku": "弹幕列表",
+    "debug": "调试",
     "import": "导入弹幕",
+    "integration": "适配规则",
     "mount": "弹幕库",
     "providers": "弹幕源",
     "search": "搜索番剧",
+    "selector": "选择",
     "style": "弹幕设置"
   }
 }

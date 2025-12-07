@@ -51,6 +51,7 @@ export const ControllerWindow = ({
       <InfoBar />
       <Box
         display="flex"
+        position="relative"
         height={CONTROLLER_WINDOW_CONTENT_HEIGHT}
         minHeight={CONTROLLER_WINDOW_CONTENT_HEIGHT}
       >

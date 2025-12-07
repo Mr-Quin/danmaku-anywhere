@@ -42,7 +42,7 @@ const optionsSchema = z.object({
 export const zIntegrationPolicy = z.object({
   title: z.object({
     selector: z.array(selectorSchema).min(1),
-    regex: z.array(regexSchema).min(1),
+    regex: z.array(regexSchema),
   }),
   episode: matcherSchema,
   season: matcherSchema,
@@ -51,6 +51,8 @@ export const zIntegrationPolicy = z.object({
 })
 
 export type IntegrationPolicy = z.infer<typeof zIntegrationPolicy>
+
+export type IntegrationPolicySelector = z.input<typeof selectorSchema>
 
 export const zIntegration = z.object({
   id: z.string().uuid().optional().default(getRandomUUID()),
@@ -120,20 +122,20 @@ export const createIntegrationInput = (name = ''): IntegrationInput => {
     name: name,
     policy: {
       title: {
-        selector: [{ value: '', quick: false }],
-        regex: [{ value: '', quick: false }],
+        selector: [],
+        regex: [],
       },
       episode: {
-        selector: [{ value: '', quick: false }],
-        regex: [{ value: '', quick: false }],
+        selector: [],
+        regex: [],
       },
       season: {
-        selector: [{ value: '', quick: false }],
-        regex: [{ value: '', quick: false }],
+        selector: [],
+        regex: [],
       },
       episodeTitle: {
-        selector: [{ value: '', quick: false }],
-        regex: [{ value: '', quick: false }],
+        selector: [],
+        regex: [],
       },
       options: {
         titleOnly: false,

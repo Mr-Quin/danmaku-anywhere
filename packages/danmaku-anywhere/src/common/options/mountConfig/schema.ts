@@ -3,6 +3,12 @@ import { z } from 'zod'
 import type { Options } from '@/common/options/OptionsService/types'
 import { getRandomUUID, validateOrigin } from '@/common/utils/utils'
 
+export const automationModeSchema = z
+  .enum(['manual', 'ai', 'xpath'])
+  .default('manual')
+
+export type AutomationMode = z.infer<typeof automationModeSchema>
+
 export const mountConfigInputSchema = z.object({
   id: z.string().uuid().optional().default(getRandomUUID()),
   author: z.string().optional(),
@@ -34,6 +40,10 @@ export const mountConfigInputSchema = z.object({
    * Should be unique
    */
   name: z.string(),
+  /**
+   * The automation mode for the config
+   */
+  mode: automationModeSchema,
   /**
    * The integration to associate with the config
    */

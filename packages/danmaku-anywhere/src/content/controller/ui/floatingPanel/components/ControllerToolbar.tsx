@@ -67,15 +67,15 @@ export const ControllerToolbar = () => {
             )
           }
         >
-          {(integrationPolicy) => {
+          {(config) => {
             return (
               <>
                 <Typography
                   overflow="hidden"
                   textOverflow="ellipsis"
-                  title={integrationPolicy.name}
+                  title={config.name}
                 >
-                  {integrationPolicy.name}
+                  {config.name}
                 </Typography>
                 <FormControlLabel
                   control={

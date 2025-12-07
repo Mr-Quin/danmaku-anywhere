@@ -1,45 +1,27 @@
-import { AddCircleOutline, RemoveCircleOutline } from '@mui/icons-material'
-import {
-  Alert,
-  Box,
-  Button,
-  Checkbox,
-  Collapse,
-  FormControl,
-  FormControlLabel,
-  FormHelperText,
-  IconButton,
-  MenuItem,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material'
+import { Box, Button, Divider, Step, StepButton, Stepper } from '@mui/material'
+import type { ReactElement } from 'react'
 import { useEffect, useState } from 'react'
-import { Controller, useFieldArray, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
 import { isPatternPermissive } from '@/common/options/mountConfig/isPermissive'
 import type { MountConfigInput } from '@/common/options/mountConfig/schema'
 import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
-import { validateOrigin } from '@/common/utils/utils'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 import { useStore } from '@/popup/store'
-
-// react-hook-form does not allow primitive arrays, so we need to convert the array to an object
-type MountConfigForm = Omit<MountConfigInput, 'patterns'> & {
-  patterns: { value: string }[]
-}
-
-const emptyIntegrationValue = '@@NONE@@'
+import { MountConfigAutomationStep } from '../components/MountConfigAutomationStep'
+import { MountConfigBasicStep } from '../components/MountConfigBasicStep'
+import type { MountConfigForm } from '../components/types'
+import { EMPTY_INTEGRATION_VALUE } from '../emptyIntegrationValue.constant'
 
 const toForm = (config: MountConfigInput): MountConfigForm => {
   return {
     ...config,
     patterns: config.patterns.map((value) => ({ value })),
-    integration: config.integration ?? emptyIntegrationValue,
+    integration: config.integration ?? EMPTY_INTEGRATION_VALUE,
+    mode: config.mode ?? 'manual',
   }
 }
 
@@ -48,7 +30,9 @@ const fromForm = (form: MountConfigForm): MountConfigInput => {
     ...form,
     patterns: form.patterns.map(({ value }) => value),
     integration:
-      form.integration === emptyIntegrationValue ? undefined : form.integration,
+      form.integration === EMPTY_INTEGRATION_VALUE
+        ? undefined
+        : form.integration,
   }
 }
 
@@ -56,30 +40,33 @@ interface MountConfigEditorProps {
   mode: 'add' | 'edit'
 }
 
-export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
+export const MountConfigEditor = ({
+  mode,
+}: MountConfigEditorProps): ReactElement => {
   const { t } = useTranslation()
   const { update, create } = useEditMountConfig()
-  const { policies } = useIntegrationPolicyStore()
+
   const [isPermissive, setIsPermissive] = useState(false)
+
   const goBack = useGoBack()
 
   const isEdit = mode === 'edit'
+
   const { editingConfig: config } = useStore.use.config()
+
+  const [activeStep, setActiveStep] = useState(0)
 
   const {
     handleSubmit,
     control,
     register,
     subscribe,
-    reset: resetForm,
-    formState: { errors, isSubmitting },
+    trigger,
+    watch,
+    formState: { errors, isSubmitting, isValid },
   } = useForm<MountConfigForm>({
     values: toForm(config),
-  })
-
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'patterns',
+    mode: 'onChange',
   })
 
   const toast = useToast.use.toast()
@@ -103,12 +90,22 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
     })
   }, [subscribe, setIsPermissive])
 
-  const addPatternField = () => {
-    append({ value: '' })
+  const handleNext = async () => {
+    const isValid = await trigger(['name', 'mediaQuery', 'patterns'])
+    if (isValid) {
+      // Check if at least one pattern is added and valid
+      const currentPatterns = watch('patterns')
+      if (currentPatterns.length === 0) {
+        toast.error('At least one pattern is required')
+        return
+      }
+      // Also check pattern values manually if needed, but trigger should handle validation defined in register
+      setActiveStep((prev) => prev + 1)
+    }
   }
 
-  const removePatternField = (index: number) => {
-    remove(index)
+  const handleStep = (step: number) => {
+    setActiveStep(step)
   }
 
   const handleSave = async (data: MountConfigForm) => {
@@ -145,7 +142,7 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
   }
 
   return (
-    <OptionsPageLayout direction="left">
+    <OptionsPageLayout direction="up">
       <OptionsPageToolBar
         title={
           isEdit
@@ -155,157 +152,62 @@ export const MountConfigEditor = ({ mode }: MountConfigEditorProps) => {
             : t('configPage.editor.title.create', 'Add Config')
         }
       />
-      <Box p={2} component="form" onSubmit={handleSubmit(handleSave)}>
-        <Stack direction="column" spacing={2} alignItems="flex-start">
-          <Collapse in={isPermissive} sx={{ width: 1 }}>
-            <Alert severity="warning">
-              {t(
-                'configPage.editor.tooPermissive',
-                "The match patterns are too permissive, it's recommended to use narrower patterns."
-              )}
-            </Alert>
-          </Collapse>
-          <TextField
-            label={t('configPage.editor.name', 'Name')}
-            size="small"
-            error={!!errors.name}
-            {...register('name', { required: true })}
-            fullWidth
-            required
-          />
-          <TextField
-            label={t('configPage.editor.mediaQuery', 'Video Node')}
-            size="small"
-            error={!!errors.mediaQuery}
-            helperText={
-              errors.mediaQuery
-                ? errors.mediaQuery?.message
-                : t(
-                    'configPage.editor.helper.mediaQuery',
-                    'CSS selector for the video node, normally "video"'
-                  )
-            }
-            {...register('mediaQuery', { required: true })}
-            fullWidth
-            required
-          />
-          <Controller
-            name="integration"
-            control={control}
-            render={({ field: { ref, ...field } }) => (
-              <TextField
-                {...field}
-                label={t('integration.name', 'Integration')}
-                size="small"
-                select
-                inputRef={ref}
-                fullWidth
-                helperText={t(
-                  'configPage.editor.helper.integration',
-                  'Enables the selected Integration Policy for this configuration. If you are not sure, leave it as None.'
-                )}
-              >
-                {policies.map((policy) => (
-                  <MenuItem value={policy.id} key={policy.id}>
-                    {policy.name}
-                  </MenuItem>
-                ))}
-                {/*  Extra menu item for 'none', the special string is converted to undefined */}
-                <MenuItem value={emptyIntegrationValue}>
-                  {t('integration.type.None', 'None')}
-                </MenuItem>
-              </TextField>
-            )}
-          />
-          <Typography variant="body2" color="textSecondary">
-            {t('configPage.editor.urlPatterns', 'URL Patterns')}
-          </Typography>
-          <FormHelperText>
-            {t(
-              'configPage.editor.helper.urlPattern',
-              'URL pattern to match the page. Format: https://example.com/*.'
-            )}
-          </FormHelperText>
-          {fields.map((field, index, arr) => (
-            <Stack
-              direction="row"
-              spacing={2}
-              alignItems="center"
-              key={field.id}
-              sx={{ alignSelf: 'stretch' }}
-            >
-              <TextField
-                label={`${t('configPage.editor.pattern', 'Pattern')} ${index + 1}`}
-                error={!!errors.patterns?.[index]}
-                helperText={errors.patterns?.[index]?.value?.message}
-                size="small"
-                {...register(`patterns.${index}.value`, {
-                  validate: validateOrigin,
-                })}
-                fullWidth
-                required
+      <Box p={2}>
+        <Stepper activeStep={activeStep}>
+          <Step>
+            <StepButton onClick={() => handleStep(0)}>
+              {t('configPage.editor.step.basicInfo', 'Basic Info')}
+            </StepButton>
+          </Step>
+          <Step>
+            <StepButton onClick={() => handleStep(1)}>
+              {t('configPage.editor.step.automation', 'Automation')}
+            </StepButton>
+          </Step>
+        </Stepper>
+        <Divider sx={{ my: 1 }} />
+
+        <Box component="form">
+          {activeStep === 0 && (
+            <>
+              <MountConfigBasicStep
+                control={control}
+                register={register}
+                errors={errors}
+                isPermissive={isPermissive}
               />
-              {arr.length > 1 ? (
-                <Box>
-                  <IconButton onClick={() => removePatternField(index)}>
-                    <RemoveCircleOutline />
-                  </IconButton>
-                </Box>
-              ) : (
-                <Box />
-              )}
-            </Stack>
-          ))}
-          <Button onClick={addPatternField} startIcon={<AddCircleOutline />}>
-            {t('configPage.editor.addPattern', 'Add Pattern')}
-          </Button>
-          <Stack
-            direction="row"
-            spacing={2}
-            width={1}
-            justifyContent="space-between"
-          >
-            <FormControl>
-              <FormControlLabel
-                control={
-                  <Controller
-                    name="enabled"
-                    control={control}
-                    render={({ field: { value, ref, ...field } }) => (
-                      <Checkbox
-                        {...field}
-                        inputRef={ref}
-                        checked={value}
-                        color="primary"
-                      />
-                    )}
-                  />
-                }
-                label={t('common.enable', 'Enable')}
-              />
-            </FormControl>
-            <div>
-              {isEdit && (
+              <Box sx={{ mt: 2 }}>
                 <Button
-                  variant="outlined"
-                  onClick={() => resetForm()}
-                  disabled={isSubmitting}
-                  sx={{ mr: 2 }}
+                  variant="contained"
+                  onClick={handleNext}
+                  fullWidth
+                  disabled={!isValid}
                 >
-                  {t('common.reset', 'Reset')}
+                  Next
                 </Button>
-              )}
+              </Box>
+            </>
+          )}
+          {activeStep === 1 && (
+            <>
+              <MountConfigAutomationStep
+                control={control}
+                watch={watch}
+                isPermissive={isPermissive}
+              />
               <Button
                 variant="contained"
-                color="primary"
-                type="submit"
+                onClick={handleSubmit(handleSave)}
                 loading={isSubmitting}
+                fullWidth
+                sx={{ mt: 2 }}
+                disabled={!isValid}
               >
                 {t('common.save', 'Save')}
               </Button>
-            </div>
-          </Stack>
-        </Stack>
+            </>
+          )}
+        </Box>
       </Box>
     </OptionsPageLayout>
   )

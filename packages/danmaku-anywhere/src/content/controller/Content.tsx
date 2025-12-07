@@ -10,6 +10,7 @@ import { IconManagerComponent } from '@/content/controller/iconManager/IconManag
 import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
 import { PopupUi } from '@/content/controller/ui/PopupUi'
+import { HIGHLIGHTER_PORTAL_ID } from './common/constants/rootId'
 
 export const Content = () => {
   const isVisible = useStore((state) => state.danmaku.isVisible)
@@ -28,7 +29,7 @@ export const Content = () => {
       <GlobalDialog />
       <SwitchLanguage />
       <div
-        id="danmaku-anywhere-highlighter-portal"
+        id={HIGHLIGHTER_PORTAL_ID}
         ref={(element) => {
           if (element) {
             setHighlighterPortal(element)

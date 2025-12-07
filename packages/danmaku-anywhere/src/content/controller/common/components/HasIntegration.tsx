@@ -1,17 +1,19 @@
 import type { ReactNode } from 'react'
 
-import type { Integration } from '@/common/options/integrationPolicyStore/schema'
-import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
+import type { MountConfig } from '@/common/options/mountConfig/schema'
+import { useActiveConfig } from '../hooks/useActiveConfig'
 
 interface HasIntegrationProps {
   fallback?: ReactNode
-  children: (integrationPolicy: Integration) => ReactNode
+  children: (config: MountConfig) => ReactNode
 }
 
 export const HasIntegration = ({ children, fallback }: HasIntegrationProps) => {
-  const integrationPolicy = useActiveIntegration()
+  const activeConfig = useActiveConfig()
 
-  if (!integrationPolicy) return fallback
+  if (!activeConfig) {
+    return fallback
+  }
 
-  return children(integrationPolicy)
+  return children(activeConfig)
 }

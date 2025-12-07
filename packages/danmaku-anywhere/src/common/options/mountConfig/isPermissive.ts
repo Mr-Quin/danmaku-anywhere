@@ -32,3 +32,7 @@ export const isConfigPermissive = (config: MountConfig): boolean => {
     return isPatternPermissive(p)
   })
 }
+
+export const isConfigIncomplete = (config: MountConfig): boolean => {
+  return config.mode === 'xpath' && !config.integration
+}

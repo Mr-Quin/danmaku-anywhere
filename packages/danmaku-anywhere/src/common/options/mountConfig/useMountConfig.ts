@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
 
 import type {
+  AutomationMode,
   MountConfig,
   MountConfigOptions,
 } from '@/common/options/mountConfig/schema'
@@ -136,5 +137,10 @@ export const useEditMountConfig = () => {
     remove: deleteMutation,
     setIntegration: setIntegrationMutation,
     reorder: reorderMutation,
+    setMode: (input: { id: string; mode: AutomationMode }) =>
+      updateMutation.mutateAsync({
+        id: input.id,
+        config: { mode: input.mode },
+      }),
   }
 }

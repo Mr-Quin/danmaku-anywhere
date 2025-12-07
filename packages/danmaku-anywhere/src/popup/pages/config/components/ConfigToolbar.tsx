@@ -1,13 +1,6 @@
-import {
-  AddCircle,
-  Download,
-  Edit,
-  Upload,
-  Visibility,
-} from '@mui/icons-material'
+import { AddCircle, Download, Edit } from '@mui/icons-material'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
 import { DrilldownMenu } from '@/common/components/DrilldownMenu'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { combinedPolicyService } from '@/common/options/combinedPolicy'
@@ -23,7 +16,6 @@ export const ConfigToolbar = ({
   onShowIntegration,
 }: ConfigToolbarProps) => {
   const { t } = useTranslation()
-  const navigate = useNavigate()
 
   const exportAll = useMutation({
     mutationFn: async () => {
@@ -40,15 +32,12 @@ export const ConfigToolbar = ({
     },
   })
 
-  const handleImportConfigs = async () => {
-    navigate('import')
-  }
-
   return (
     <TabToolbar title={t('configPage.name', 'Configs')}>
       <DrilldownMenu
         icon={<AddCircle />}
-        ButtonProps={{ color: 'primary' }}
+        ButtonProps={{ color: 'primary', size: 'small' }}
+        dense
         items={[
           {
             id: 'add',
@@ -56,16 +45,17 @@ export const ConfigToolbar = ({
             onClick: onAdd,
             icon: <Edit />,
           },
-          {
-            id: 'import',
-            label: t('configPage.import.name', 'Import Config'),
-            icon: <Upload />,
-            onClick: handleImportConfigs,
-          },
+          // {
+          //   id: 'import',
+          //   label: t('configPage.import.name', 'Import Config'),
+          //   icon: <Upload />,
+          //   onClick: handleImportConfigs,
+          // },
         ]}
       />
       <DrilldownMenu
-        ButtonProps={{ edge: 'end' }}
+        ButtonProps={{ edge: 'end', size: 'small' }}
+        dense
         items={[
           {
             id: 'export',
@@ -74,12 +64,12 @@ export const ConfigToolbar = ({
             loading: exportAll.isPending,
             icon: <Download />,
           },
-          {
-            id: 'showIntegration',
-            label: t('configPage.showIntegration', 'View Integration Policy'),
-            onClick: onShowIntegration,
-            icon: <Visibility />,
-          },
+          // {
+          //   id: 'showIntegration',
+          //   label: t('configPage.showIntegration', 'View Integration Policy'),
+          //   onClick: onShowIntegration,
+          //   icon: <Visibility />,
+          // },
         ]}
       />
     </TabToolbar>

@@ -11,6 +11,7 @@ export const createMountConfig = (
     mediaQuery: 'video',
     enabled: true,
     name: '',
+    mode: 'manual',
     integration: undefined,
     ...config,
   }

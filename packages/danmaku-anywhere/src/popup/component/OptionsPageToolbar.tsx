@@ -44,6 +44,7 @@ export const OptionsPageToolBar = ({
             position: 'absolute',
             left: '50%',
             transform: 'translate(-50%)',
+            whiteSpace: 'nowrap',
           }}
         >
           {title}

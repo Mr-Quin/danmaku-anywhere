@@ -8,80 +8,8 @@ import { sleep } from '@/common/utils/utils'
 import { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import type { MediaElements } from '@/content/controller/danmaku/integration/observers/MediaObserver'
 import { MediaObserver } from '@/content/controller/danmaku/integration/observers/MediaObserver'
-import {
-  getFirstElement,
-  parseMediaFromTitle,
-  parseMediaNumber,
-  parseMediaString,
-  parseMultipleRegex,
-} from '@/content/controller/danmaku/integration/observers/parse'
-
-type MediaElementsText = {
-  [Key in keyof MediaElements]: string | null
-}
-
-const parseMediaInfo = (
-  elements: MediaElementsText,
-  policy: IntegrationPolicy
-) => {
-  const titleText = elements.title
-
-  if (!titleText) throw new Error('Title element not found')
-
-  // If titleOnly is true, then try to parse the media info from the title alone
-  if (policy.options.titleOnly)
-    return parseMediaFromTitle(titleText, policy.title.regex)
-
-  const title = parseMultipleRegex(
-    parseMediaString,
-    titleText,
-    policy.title.regex
-  )
-
-  if (title === undefined) {
-    throw new Error(
-      `Error parsing title: ${JSON.stringify({
-        title: titleText,
-        regex: policy.title.regex,
-      })}`
-    )
-  }
-
-  // Default to 1 if the element is not present
-  let episode = 1
-  let episodeTitle: string | undefined = undefined
-  let season: string | undefined = undefined
-
-  // If the episode element is not present, assume it's a movie or something that doesn't have episodes
-  if (elements.episode) {
-    const parsedEpisode = parseMultipleRegex(
-      parseMediaNumber,
-      elements.episode,
-      policy.episode.regex
-    )
-    if (parsedEpisode !== undefined) {
-      episode = parsedEpisode
-    }
-  }
-
-  if (elements.season) {
-    season = parseMultipleRegex(
-      parseMediaString,
-      elements.season,
-      policy.season.regex
-    )
-  }
-
-  if (elements.episodeTitle) {
-    episodeTitle = parseMultipleRegex(
-      parseMediaString,
-      elements.episodeTitle,
-      policy.episodeTitle.regex
-    )
-  }
-
-  return new MediaInfo(title, episode, season, episodeTitle)
-}
+import { extractMediaInfo } from '@/content/controller/danmaku/integration/xPathPolicyOps/extractMediaInfo'
+import { matchNodesByXPathPolicy } from '@/content/controller/danmaku/integration/xPathPolicyOps/matchNodesByXPathPolicy'
 
 const createTextMutationObserver = (
   element: Node,
@@ -137,17 +65,6 @@ const createRemovalMutationObserver = (element: Node, onRemove: () => void) => {
   })
 
   return observer
-}
-
-const getTextFromMediaElements = (
-  elements: MediaElements
-): MediaElementsText => {
-  return {
-    title: elements.title.textContent,
-    episode: elements.episode?.textContent ?? null,
-    season: elements.season?.textContent ?? null,
-    episodeTitle: elements.episodeTitle?.textContent ?? null,
-  }
 }
 
 const truncateString = (value: string, maxLength: number) => {
@@ -218,9 +135,16 @@ export class IntegrationPolicyObserver extends MediaObserver {
   private mediaInfo?: MediaInfo
   private abortControllerQueue: AbortController[] = []
 
-  constructor(public policy: IntegrationPolicy) {
+  constructor(
+    public policy: IntegrationPolicy | null,
+    private options: { useAi: boolean }
+  ) {
     super()
     this.logger.debug('Creating observer')
+  }
+
+  getOptions() {
+    return this.options
   }
 
   private async discoverElementsXpath() {
@@ -241,25 +165,14 @@ export class IntegrationPolicyObserver extends MediaObserver {
       }
 
       try {
-        const titleElement = getFirstElement(this.policy.title.selector)
-        // Title is required, the rest are optional
-        if (titleElement) {
+        if (!this.policy) {
+          reject('Policy not found')
+          return
+        }
+        const matchedNodes = matchNodesByXPathPolicy(this.policy)
+        if (matchedNodes) {
           clearInterval(this.interval)
-          if (this.policy.options.titleOnly) {
-            resolve({
-              title: titleElement,
-              episode: null,
-              season: null,
-              episodeTitle: null,
-            })
-          } else {
-            resolve({
-              title: titleElement,
-              episode: getFirstElement(this.policy.episode.selector),
-              season: getFirstElement(this.policy.season.selector),
-              episodeTitle: getFirstElement(this.policy.episodeTitle.selector),
-            })
-          }
+          resolve(matchedNodes)
         }
       } catch (err) {
         if (err instanceof Error) {
@@ -283,18 +196,22 @@ export class IntegrationPolicyObserver extends MediaObserver {
   }
 
   private parseMediaElements(elements: MediaElements) {
-    try {
-      const mediaInfo = parseMediaInfo(
-        getTextFromMediaElements(elements),
-        this.policy
-      )
-      this.updateMediaInfo(mediaInfo)
-    } catch (err) {
-      if (err instanceof Error) {
-        this.emit('error', err)
-      }
-      this.logger.debug('Error while getting media info:', err)
+    if (!this.policy) {
+      this.emit('error', new Error('Policy not found'))
+      return
     }
+    const extractionResult = extractMediaInfo(elements, this.policy)
+
+    if (!extractionResult.success) {
+      this.emit('error', new Error(extractionResult.error))
+      this.logger.debug(
+        'Error while getting media info:',
+        extractionResult.error
+      )
+      return
+    }
+
+    this.updateMediaInfo(extractionResult.mediaInfo)
   }
 
   private async setupXpath() {
@@ -376,7 +293,7 @@ export class IntegrationPolicyObserver extends MediaObserver {
     if (policy) {
       this.policy = policy
     }
-    if (this.policy.options.useAI) {
+    if (this.options.useAi) {
       this.logger.debug('Setting up using AI')
       getTrackingService().track('setupAiIntegration', policy)
       void this.setupAi()

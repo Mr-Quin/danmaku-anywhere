@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
+import type { IntegrationPolicySelector } from '@/common/options/integrationPolicyStore/schema'
 import { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
-import type { Selector } from './parse'
 import {
   parseMediaFromTitle,
   parseMediaNumber,
   parseMediaString,
   parseMultipleRegex,
-} from './parse'
+} from './regexMatcher'
 
 describe('parseMediaNumber', () => {
   it('should parse a valid number', () => {
@@ -63,7 +63,10 @@ describe('parseMediaString', () => {
   })
 })
 
-const createSelector = (value: string, quick?: boolean): Selector => ({
+const createSelector = (
+  value: string,
+  quick?: boolean
+): IntegrationPolicySelector => ({
   value,
   quick: quick ?? false,
 })

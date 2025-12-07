@@ -4,6 +4,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { Logger } from '@/common/Logger'
+import { integrationData } from '@/common/options/mountConfig/integrationData'
 import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
 import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
@@ -39,23 +40,40 @@ export const useIntegrationPolicy = () => {
   const activeConfig = useActiveConfig()
 
   useEffect(() => {
-    if (!integrationPolicy) {
-      toggleManualMode(true)
+    if (!activeConfig) {
       return
     }
-
-    toggleManualMode(false)
-
-    toast.info(
-      t('integration.alert.usingIntegration', 'Using Integration: {{name}}', {
-        name: integrationPolicy.name,
-      })
-    )
-    Logger.debug(`Using integration: ${integrationPolicy.name}`)
-  }, [integrationPolicy])
+    if (activeConfig.mode !== 'manual') {
+      toggleManualMode(false)
+      toast.info(
+        t('integration.alert.usingMode', 'Using Mode: {{mode}}', {
+          mode: integrationData[activeConfig.mode].label(),
+        })
+      )
+    } else {
+      toggleManualMode(true)
+    }
+    Logger.debug(`Using mode: ${activeConfig.mode}`)
+  }, [activeConfig, activeConfig?.mode])
 
   useEffect(() => {
-    if (!videoId || !activeConfig || !integrationPolicy || isManual) {
+    if (activeConfig?.mode === 'xpath' && !integrationPolicy) {
+      toast.warn(
+        t(
+          'integration.alert.noIntegration',
+          'Integration policy not configured'
+        )
+      )
+    }
+  }, [activeConfig, integrationPolicy])
+
+  useEffect(() => {
+    if (
+      !videoId ||
+      !activeConfig ||
+      isManual ||
+      (!integrationPolicy && activeConfig.mode === 'xpath')
+    ) {
       if (observer.current) {
         Logger.debug('Destroying integration observer')
         observer.current?.destroy()
@@ -65,14 +83,11 @@ export const useIntegrationPolicy = () => {
       return
     }
 
-    if (
-      isConfigPermissive(activeConfig) &&
-      integrationPolicy.policy.options.useAI
-    ) {
+    if (isConfigPermissive(activeConfig) && activeConfig.mode === 'ai') {
       toast.warn(
         t(
           'integration.alert.aiDisabledTooPermissive',
-          'AI is disabled because the match pattern is too permissive'
+          'AI is disabled because the mount config is too permissive'
         )
       )
       return
@@ -81,7 +96,12 @@ export const useIntegrationPolicy = () => {
     // Create the observer if it hasn't been created yet
     if (!observer.current) {
       activate()
-      observer.current = new IntegrationPolicyObserver(integrationPolicy.policy)
+      observer.current = new IntegrationPolicyObserver(
+        integrationPolicy?.policy ?? null,
+        {
+          useAi: activeConfig.mode === 'ai',
+        }
+      )
 
       observer.current.on({
         mediaChange: (state: MediaInfo) => {
@@ -89,7 +109,7 @@ export const useIntegrationPolicy = () => {
             mediaInfo: state.toJSON(),
             policy: integrationPolicy,
           })
-          if (observer.current?.policy.options.useAI) {
+          if (observer.current?.getOptions().useAi) {
             toast.success(
               t('integration.alert.AIResult', 'AI Parsing Result: {{title}}', {
                 title: state.toString(),
@@ -99,6 +119,7 @@ export const useIntegrationPolicy = () => {
           if (useStore.getState().danmaku.isMounted) {
             unmountDanmaku.mutate()
           }
+
           setMediaInfo(state)
           setErrorMessage()
 
@@ -164,14 +185,14 @@ export const useIntegrationPolicy = () => {
         },
       })
 
-      if (integrationPolicy.policy.options.useAI) {
+      if (activeConfig.mode === 'ai') {
         toast.info(
           t('integration.alert.usingAI', 'Using AI to parse show information')
         )
       }
     }
 
-    observer.current.setup(integrationPolicy.policy)
+    observer.current.setup(integrationPolicy?.policy)
 
     return () => {
       observer.current?.reset()
