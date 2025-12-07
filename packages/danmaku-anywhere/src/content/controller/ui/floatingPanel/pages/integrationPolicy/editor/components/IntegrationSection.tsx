@@ -220,7 +220,6 @@ export const IntegrationSection = ({
                 color="secondary"
                 onClick={handleAddRegex}
                 size="small"
-                sx={{ mr: 1 }}
               >
                 {t('integrationPolicyPage.editor.addRegex', 'Add')}
               </Button>
