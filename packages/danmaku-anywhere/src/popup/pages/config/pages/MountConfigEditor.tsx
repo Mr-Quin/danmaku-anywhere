@@ -203,7 +203,7 @@ export const MountConfigEditor = ({
                 sx={{ mt: 2 }}
                 disabled={!isValid}
               >
-                {t('common.save')}
+                {t('common.save', 'Save')}
               </Button>
             </>
           )}

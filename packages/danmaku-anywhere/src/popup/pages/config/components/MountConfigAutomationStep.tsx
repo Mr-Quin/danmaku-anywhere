@@ -80,7 +80,6 @@ export const MountConfigAutomationStep = ({
 
   const selectedMode = watch('mode')
   const integration = watch('integration')
-  console.log(integration)
 
   return (
     <Stack spacing={1}>

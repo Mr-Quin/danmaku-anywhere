@@ -89,7 +89,7 @@
         "create": "添加配置",
         "edit": "编辑{{name}}"
       },
-      "tooPermissive": "匹配模式过于宽松，建议设置更具体的匹配模式",
+      "tooPermissive": "匹配模式过于宽松，AI功能将被禁用",
       "urlPatterns": "URL 模式"
     },
     "import": {

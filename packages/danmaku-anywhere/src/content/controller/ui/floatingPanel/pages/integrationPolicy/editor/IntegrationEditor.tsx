@@ -76,7 +76,7 @@ export const IntegrationEditor = (): ReactElement => {
         return add(
           {
             ...data,
-            id: data.id ?? crypto.randomUUID(),
+            id: data.id,
           },
           activeConfig.id
         )
