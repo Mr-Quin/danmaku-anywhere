@@ -6,7 +6,7 @@ import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { Logger } from '@/common/Logger'
 import { integrationData } from '@/common/options/mountConfig/integrationData'
 import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
-import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
+import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
@@ -40,9 +40,6 @@ export const useIntegrationPolicy = () => {
   const activeConfig = useActiveConfig()
 
   useEffect(() => {
-    if (!activeConfig) {
-      return
-    }
     if (activeConfig.mode !== 'manual') {
       toggleManualMode(false)
       toast.info(
@@ -54,10 +51,10 @@ export const useIntegrationPolicy = () => {
       toggleManualMode(true)
     }
     Logger.debug(`Using mode: ${activeConfig.mode}`)
-  }, [activeConfig, activeConfig?.mode])
+  }, [activeConfig])
 
   useEffect(() => {
-    if (activeConfig?.mode === 'xpath' && !integrationPolicy) {
+    if (activeConfig.mode === 'xpath' && !integrationPolicy) {
       toast.warn(
         t(
           'integration.alert.noIntegration',
@@ -70,7 +67,6 @@ export const useIntegrationPolicy = () => {
   useEffect(() => {
     if (
       !videoId ||
-      !activeConfig ||
       isManual ||
       (!integrationPolicy && activeConfig.mode === 'xpath')
     ) {

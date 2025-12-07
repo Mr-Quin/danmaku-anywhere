@@ -11,8 +11,9 @@ import type { MouseEventHandler } from 'react'
 import { forwardRef, useRef, useState } from 'react'
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { useMergeRefs } from '@/common/hooks/useMergeRefs'
+import { isConfigIncomplete } from '@/common/options/mountConfig/isPermissive'
 import { createVirtualElement } from '@/common/utils/utils'
-import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
+import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useStore } from '@/content/controller/store/store'
 import { DraggableContainer } from '@/content/controller/ui/components/DraggableContainer'
 import { FabContextMenu } from '@/content/controller/ui/floatingButton/components/FabContextMenu'
@@ -97,8 +98,7 @@ export const FloatingButton = forwardRef<
 
   const isIn = !isPicking && (showFab || isOpen || !!contextMenuAnchor)
 
-  const isIncomplete =
-    activeConfig?.mode === 'xpath' && !activeConfig?.integration
+  const isIncomplete = isConfigIncomplete(activeConfig)
 
   return (
     <ClickAwayListener onClickAway={handleCloseContextMenu}>

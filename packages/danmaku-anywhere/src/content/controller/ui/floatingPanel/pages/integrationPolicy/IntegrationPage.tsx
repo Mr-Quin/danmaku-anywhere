@@ -1,5 +1,4 @@
 import {
-  Box,
   Stack,
   ToggleButton,
   ToggleButtonGroup,
@@ -13,7 +12,7 @@ import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { integrationData } from '@/common/options/mountConfig/integrationData'
 import type { AutomationMode } from '@/common/options/mountConfig/schema'
 import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
-import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
+import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useStore } from '@/content/controller/store/store'
 import { MatchingSteps } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/MatchingSteps'
 import { IntegrationEditor } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/editor/IntegrationEditor'
@@ -23,16 +22,6 @@ export const IntegrationPage = () => {
   const activeConfig = useActiveConfig()
   const { showEditor } = useStore.use.integrationForm()
   const { setMode } = useEditMountConfig()
-
-  if (!activeConfig) {
-    return (
-      <Box p={2}>
-        <Typography>
-          {t('integration.noConfig', 'No integration config found.')}
-        </Typography>
-      </Box>
-    )
-  }
 
   if (showEditor) {
     return <IntegrationEditor />
