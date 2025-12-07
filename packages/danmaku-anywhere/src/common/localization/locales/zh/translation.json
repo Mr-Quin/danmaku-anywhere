@@ -209,7 +209,6 @@
         "label": "XPath"
       }
     },
-    "noConfig": "没有适配规则",
     "steps": {
       "aiRequest": "AI请求",
       "aiRequestPass": "AI请求成功",
