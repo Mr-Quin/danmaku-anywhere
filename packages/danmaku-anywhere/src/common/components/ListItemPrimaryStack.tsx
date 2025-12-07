@@ -15,8 +15,7 @@ export const ListItemPrimaryStack = ({
       <Typography
         component="span"
         variant="body2"
-        overflow="hidden"
-        textOverflow="ellipsis"
+        noWrap
         flexShrink={1}
         minWidth={0}
         title={text}
