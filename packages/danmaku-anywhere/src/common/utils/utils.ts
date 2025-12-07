@@ -12,6 +12,9 @@ export const toArray = <T>(value: T | T[]): T[] => {
 
 export const validateOrigin = async (origin: string) => {
   try {
+    if (!chrome || !chrome.permissions) {
+      return
+    }
     await chrome.permissions.contains({
       origins: [origin],
     })

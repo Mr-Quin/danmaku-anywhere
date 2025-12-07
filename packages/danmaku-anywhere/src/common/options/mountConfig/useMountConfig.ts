@@ -136,5 +136,10 @@ export const useEditMountConfig = () => {
     remove: deleteMutation,
     setIntegration: setIntegrationMutation,
     reorder: reorderMutation,
+    setMode: (input: { id: string; mode: 'manual' | 'ai' | 'custom' }) =>
+      updateMutation.mutateAsync({
+        id: input.id,
+        config: { mode: input.mode },
+      }),
   }
 }

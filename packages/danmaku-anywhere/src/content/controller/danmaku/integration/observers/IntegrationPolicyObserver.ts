@@ -135,9 +135,16 @@ export class IntegrationPolicyObserver extends MediaObserver {
   private mediaInfo?: MediaInfo
   private abortControllerQueue: AbortController[] = []
 
-  constructor(public policy: IntegrationPolicy) {
+  constructor(
+    public policy: IntegrationPolicy,
+    private options: { useAi: boolean }
+  ) {
     super()
     this.logger.debug('Creating observer')
+  }
+
+  getOptions() {
+    return this.options
   }
 
   private async discoverElementsXpath() {
@@ -278,7 +285,7 @@ export class IntegrationPolicyObserver extends MediaObserver {
     if (policy) {
       this.policy = policy
     }
-    if (this.policy.options.useAI) {
+    if (this.options.useAi) {
       this.logger.debug('Setting up using AI')
       getTrackingService().track('setupAiIntegration', policy)
       void this.setupAi()

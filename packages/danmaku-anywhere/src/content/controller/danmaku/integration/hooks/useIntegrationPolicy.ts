@@ -39,20 +39,32 @@ export const useIntegrationPolicy = () => {
   const activeConfig = useActiveConfig()
 
   useEffect(() => {
-    if (!integrationPolicy) {
-      toggleManualMode(true)
+    if (!activeConfig) {
       return
     }
+    if (activeConfig.mode !== 'manual') {
+      toggleManualMode(false)
+      toast.info(
+        t('integration.alert.usingMode', 'Using Mode: {{mode}}', {
+          mode: activeConfig.mode,
+        })
+      )
+    } else {
+      toggleManualMode(true)
+    }
+    Logger.debug(`Using mode: ${activeConfig.mode}`)
+  }, [activeConfig])
 
-    toggleManualMode(false)
-
-    toast.info(
-      t('integration.alert.usingIntegration', 'Using Integration: {{name}}', {
-        name: integrationPolicy.name,
-      })
-    )
-    Logger.debug(`Using integration: ${integrationPolicy.name}`)
-  }, [integrationPolicy])
+  useEffect(() => {
+    if (activeConfig?.mode === 'custom' && !integrationPolicy) {
+      toast.warn(
+        t(
+          'integration.alert.noIntegration',
+          'Integration policy not configured'
+        )
+      )
+    }
+  }, [activeConfig, integrationPolicy])
 
   useEffect(() => {
     if (!videoId || !activeConfig || !integrationPolicy || isManual) {
@@ -65,14 +77,11 @@ export const useIntegrationPolicy = () => {
       return
     }
 
-    if (
-      isConfigPermissive(activeConfig) &&
-      integrationPolicy.policy.options.useAI
-    ) {
+    if (isConfigPermissive(activeConfig) && activeConfig.mode === 'ai') {
       toast.warn(
         t(
           'integration.alert.aiDisabledTooPermissive',
-          'AI is disabled because the match pattern is too permissive'
+          'AI is disabled because the mount config is too permissive'
         )
       )
       return
@@ -81,7 +90,12 @@ export const useIntegrationPolicy = () => {
     // Create the observer if it hasn't been created yet
     if (!observer.current) {
       activate()
-      observer.current = new IntegrationPolicyObserver(integrationPolicy.policy)
+      observer.current = new IntegrationPolicyObserver(
+        integrationPolicy.policy,
+        {
+          useAi: activeConfig.mode === 'ai',
+        }
+      )
 
       observer.current.on({
         mediaChange: (state: MediaInfo) => {
@@ -89,7 +103,7 @@ export const useIntegrationPolicy = () => {
             mediaInfo: state.toJSON(),
             policy: integrationPolicy,
           })
-          if (observer.current?.policy.options.useAI) {
+          if (observer.current?.getOptions().useAi) {
             toast.success(
               t('integration.alert.AIResult', 'AI Parsing Result: {{title}}', {
                 title: state.toString(),
@@ -164,7 +178,7 @@ export const useIntegrationPolicy = () => {
         },
       })
 
-      if (integrationPolicy.policy.options.useAI) {
+      if (activeConfig.mode === 'ai') {
         toast.info(
           t('integration.alert.usingAI', 'Using AI to parse show information')
         )
