@@ -21,8 +21,8 @@ import {
 } from '@/common/options/integrationPolicyStore/schema'
 import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
 import { docsLink } from '@/common/utils/utils'
-import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
-import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
+import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
+import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
 import { useStore } from '@/content/controller/store/store'
 import { IntegrationSection } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/editor/components/IntegrationSection'
 import { ElementSelector } from './components/elementSelector/ElementSelector'
@@ -49,7 +49,7 @@ export const IntegrationEditor = (): ReactElement => {
   const { toggleEditor } = useStore.use.integrationForm()
 
   const defaultValues =
-    activePolicy ?? createIntegrationInput(activeConfig?.name ?? '')
+    activePolicy ?? createIntegrationInput(activeConfig.name)
 
   const form = useForm<IntegrationInput, unknown, Integration>({
     defaultValues,
@@ -72,16 +72,13 @@ export const IntegrationEditor = (): ReactElement => {
       if (activePolicy) {
         return update(activePolicy.id, data)
       }
-      if (activeConfig) {
-        return add(
-          {
-            ...data,
-            id: data.id,
-          },
-          activeConfig.id
-        )
-      }
-      throw new Error('No active configuration or policy found for mutation.')
+      return add(
+        {
+          ...data,
+          id: data.id,
+        },
+        activeConfig.id
+      )
     },
     onSuccess: () => {
       if (isEdit) {

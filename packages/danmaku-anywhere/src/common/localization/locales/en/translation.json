@@ -218,7 +218,6 @@
         "label": "XPath"
       }
     },
-    "noConfig": "No integration config found.",
     "steps": {
       "aiRequest": "AI Request",
       "aiRequestPass": "AI request is successful",

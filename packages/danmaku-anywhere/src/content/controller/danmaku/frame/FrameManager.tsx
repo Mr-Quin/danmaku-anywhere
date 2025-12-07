@@ -7,7 +7,7 @@ import { createRpcServer } from '@/common/rpc/server'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type { PlayerRelayEvents } from '@/common/rpcClient/background/types'
 import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
-import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
+import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { useInjectFrames } from '@/content/controller/danmaku/frame/useInjectFrames'
 import { useMigrateDanmaku } from '@/content/controller/danmaku/frame/useMigrateDanmaku'
@@ -75,9 +75,6 @@ export const FrameManager = () => {
     const controllerRpcServer = createRpcServer<PlayerRelayEvents>(
       {
         'relay:event:playerReady': async ({ frameId }) => {
-          if (!config) {
-            return
-          }
           await playerRpcClient.player['relay:command:start']({
             data: config.mediaQuery,
             frameId,

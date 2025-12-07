@@ -11,8 +11,8 @@ import {
 import { type ReactNode, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
-import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
-import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
+import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
+import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
 import { useStore } from '@/content/controller/store/store'
 
 interface StepData {
@@ -46,8 +46,8 @@ export const MatchingSteps = () => {
   const activeIntegration = useActiveIntegration()
 
   const steps = useMemo<StepData[]>(() => {
-    const isPermissive = activeConfig ? isConfigPermissive(activeConfig) : false
-    const isAiMode = activeConfig?.mode === 'ai'
+    const isPermissive = isConfigPermissive(activeConfig)
+    const isAiMode = activeConfig.mode === 'ai'
 
     const checkIntegrationStep = {
       label: t('integration.steps.configAvailable', 'Integration Available'),

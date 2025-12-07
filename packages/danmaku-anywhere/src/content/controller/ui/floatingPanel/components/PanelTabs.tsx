@@ -3,7 +3,7 @@ import { match } from 'ts-pattern'
 
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { isConfigIncomplete } from '@/common/options/mountConfig/isPermissive'
-import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
+import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 import { routes } from '@/content/controller/ui/router/routes'
 
@@ -30,7 +30,7 @@ export const PanelTabs = () => {
       })
     })
 
-  const isIncomplete = activeConfig && isConfigIncomplete(activeConfig)
+  const isIncomplete = isConfigIncomplete(activeConfig)
 
   return (
     <Tabs

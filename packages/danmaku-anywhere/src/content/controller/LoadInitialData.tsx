@@ -3,10 +3,11 @@ import { useEffect } from 'react'
 
 import { Logger } from '@/common/Logger'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
-import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
+import { useMatchMountConfig } from '@/common/options/mountConfig/useMatchMountConfig'
+import { ActivePageProvider } from '@/content/controller/common/context/ActivePageContext'
 
 export const LoadInitialData = ({ children }: PropsWithChildren) => {
-  const config = useActiveConfig()
+  const config = useMatchMountConfig(window.location.href)
   const { data: options } = useExtensionOptions()
 
   useEffect(() => {
@@ -16,8 +17,12 @@ export const LoadInitialData = ({ children }: PropsWithChildren) => {
   // the script should not be loaded at all if the config is not enabled
   // this check is likely only necessary for when the user manually
   // disables the config after the script has been loaded
-  if (!config || !config.enabled) return null
-  if (!options.enabled) return null
+  if (!config || !config.enabled) {
+    return null
+  }
+  if (!options.enabled) {
+    return null
+  }
 
-  return children
+  return <ActivePageProvider config={config}>{children}</ActivePageProvider>
 }
