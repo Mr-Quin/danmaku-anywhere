@@ -54,10 +54,10 @@ export const useIntegrationPolicy = () => {
       toggleManualMode(true)
     }
     Logger.debug(`Using mode: ${activeConfig.mode}`)
-  }, [activeConfig])
+  }, [activeConfig, activeConfig?.mode])
 
   useEffect(() => {
-    if (activeConfig?.mode === 'custom' && !integrationPolicy) {
+    if (activeConfig?.mode === 'xpath' && !integrationPolicy) {
       toast.warn(
         t(
           'integration.alert.noIntegration',
@@ -72,7 +72,7 @@ export const useIntegrationPolicy = () => {
       !videoId ||
       !activeConfig ||
       isManual ||
-      (!integrationPolicy && activeConfig.mode === 'custom')
+      (!integrationPolicy && activeConfig.mode === 'xpath')
     ) {
       if (observer.current) {
         Logger.debug('Destroying integration observer')
