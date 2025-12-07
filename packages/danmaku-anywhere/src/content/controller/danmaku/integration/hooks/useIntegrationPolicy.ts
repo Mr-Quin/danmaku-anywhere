@@ -67,7 +67,12 @@ export const useIntegrationPolicy = () => {
   }, [activeConfig, integrationPolicy])
 
   useEffect(() => {
-    if (!videoId || !activeConfig || !integrationPolicy || isManual) {
+    if (
+      !videoId ||
+      !activeConfig ||
+      isManual ||
+      (!integrationPolicy && activeConfig.mode === 'custom')
+    ) {
       if (observer.current) {
         Logger.debug('Destroying integration observer')
         observer.current?.destroy()
@@ -91,7 +96,7 @@ export const useIntegrationPolicy = () => {
     if (!observer.current) {
       activate()
       observer.current = new IntegrationPolicyObserver(
-        integrationPolicy.policy,
+        integrationPolicy?.policy ?? null,
         {
           useAi: activeConfig.mode === 'ai',
         }
@@ -113,6 +118,7 @@ export const useIntegrationPolicy = () => {
           if (useStore.getState().danmaku.isMounted) {
             unmountDanmaku.mutate()
           }
+
           setMediaInfo(state)
           setErrorMessage()
 
@@ -185,7 +191,7 @@ export const useIntegrationPolicy = () => {
       }
     }
 
-    observer.current.setup(integrationPolicy.policy)
+    observer.current.setup(integrationPolicy?.policy)
 
     return () => {
       observer.current?.reset()

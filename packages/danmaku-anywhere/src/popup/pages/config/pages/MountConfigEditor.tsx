@@ -14,14 +14,13 @@ import { useStore } from '@/popup/store'
 import { MountConfigAutomationStep } from '../components/MountConfigAutomationStep'
 import { MountConfigBasicStep } from '../components/MountConfigBasicStep'
 import type { MountConfigForm } from '../components/types'
-
-const emptyIntegrationValue = '@@NONE@@'
+import { EMPTY_INTEGRATION_VALUE } from '../emptyIntegrationValue.constant'
 
 const toForm = (config: MountConfigInput): MountConfigForm => {
   return {
     ...config,
     patterns: config.patterns.map((value) => ({ value })),
-    integration: config.integration ?? emptyIntegrationValue,
+    integration: config.integration ?? EMPTY_INTEGRATION_VALUE,
     mode: config.mode ?? 'manual',
   }
 }
@@ -31,7 +30,9 @@ const fromForm = (form: MountConfigForm): MountConfigInput => {
     ...form,
     patterns: form.patterns.map(({ value }) => value),
     integration:
-      form.integration === emptyIntegrationValue ? undefined : form.integration,
+      form.integration === EMPTY_INTEGRATION_VALUE
+        ? undefined
+        : form.integration,
   }
 }
 

@@ -93,11 +93,6 @@ export class MountConfigService {
 
     if (!prevConfig) throw new Error(`Config not found: "${id}"`)
 
-    console.log('toUpdate', {
-      ...prevConfig,
-      ...config,
-    })
-
     const newConfig = await mountConfigInputSchema.parseAsync({
       ...prevConfig,
       ...config,

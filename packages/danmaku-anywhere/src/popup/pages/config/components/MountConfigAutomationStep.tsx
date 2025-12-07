@@ -1,4 +1,3 @@
-import { AutoAwesome, Build, TouchApp } from '@mui/icons-material'
 import {
   Alert,
   Box,
@@ -10,7 +9,6 @@ import {
   Stack,
   Typography,
 } from '@mui/material'
-import type { ReactNode } from 'react'
 import type {
   Control,
   ControllerRenderProps,
@@ -18,49 +16,15 @@ import type {
 } from 'react-hook-form'
 import { Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { i18n } from '@/common/localization/i18n'
+import { integrationData } from '@/common/options/mountConfig/integrationData'
 import type { AutomationMode } from '@/common/options/mountConfig/schema'
+import { EMPTY_INTEGRATION_VALUE } from '../emptyIntegrationValue.constant'
 import type { MountConfigForm } from './types'
 
 interface MountConfigAutomationStepProps {
   control: Control<MountConfigForm>
   watch: UseFormWatch<MountConfigForm>
   isPermissive: boolean
-}
-
-type CardDataMap = {
-  [key in AutomationMode]: {
-    label: string
-    description: string
-    icon: () => ReactNode
-  }
-}
-
-const cardData: CardDataMap = {
-  manual: {
-    label: i18n.t('configPage.editor.automation.manualLabel', 'Manual'),
-    description: i18n.t(
-      'configPage.editor.automation.manualDescription',
-      "I'll select danmaku manually from library"
-    ),
-    icon: () => <TouchApp />,
-  },
-  ai: {
-    label: i18n.t('configPage.editor.automation.aiLabel', 'AI'),
-    description: i18n.t(
-      'configPage.editor.automation.aiDescription',
-      'Let AI detect video info automatically'
-    ),
-    icon: () => <AutoAwesome />,
-  },
-  custom: {
-    label: i18n.t('configPage.editor.automation.customLabel', 'Custom Rules'),
-    description: i18n.t(
-      'configPage.editor.automation.customDescription',
-      "I'll create custom XPath rules to extract video info (requires visiting site)"
-    ),
-    icon: () => <Build />,
-  },
 }
 
 const AutomationCard = ({
@@ -72,7 +36,7 @@ const AutomationCard = ({
   field: ControllerRenderProps<MountConfigForm, 'mode'>
   disabled?: boolean
 }) => {
-  const data = cardData[mode]
+  const data = integrationData[mode]
 
   return (
     <Card
@@ -92,13 +56,13 @@ const AutomationCard = ({
           />
           <Box>
             <Stack direction="row" spacing={1} alignItems="center">
-              {data.icon()}
+              <data.icon />
               <Typography variant="subtitle1" fontWeight="bold">
-                {data.label}
+                {data.label()}
               </Typography>
             </Stack>
             <Typography variant="body2" color="text.secondary">
-              {data.description}
+              {data.description()}
             </Typography>
           </Box>
         </CardContent>
@@ -115,6 +79,8 @@ export const MountConfigAutomationStep = ({
   const { t } = useTranslation()
 
   const selectedMode = watch('mode')
+  const integration = watch('integration')
+  console.log(integration)
 
   return (
     <Stack spacing={1}>
@@ -134,15 +100,15 @@ export const MountConfigAutomationStep = ({
           </RadioGroup>
         )}
       />
-
-      {selectedMode === 'custom' && (
-        <Alert severity="warning">
-          {t(
-            'configPage.editor.automation.customAlert',
-            "You'll need to visit this site after saving to complete the setup using the on-page tool."
-          )}
-        </Alert>
-      )}
+      {selectedMode === 'custom' &&
+        (!integration || integration === EMPTY_INTEGRATION_VALUE) && (
+          <Alert severity="warning">
+            {t(
+              'configPage.editor.automation.customAlert',
+              "You'll need to visit this site after saving to complete the setup using the on-page tool."
+            )}
+          </Alert>
+        )}
     </Stack>
   )
 }

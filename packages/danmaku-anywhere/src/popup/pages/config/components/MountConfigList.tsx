@@ -1,29 +1,16 @@
-import {
-  AutoAwesome,
-  ContentCopy,
-  Delete,
-  ErrorOutline,
-} from '@mui/icons-material'
-import {
-  Chip,
-  ListItemIcon,
-  ListItemText,
-  MenuItem,
-  Stack,
-} from '@mui/material'
-import { useMutation } from '@tanstack/react-query'
+import { Delete, ErrorOutline } from '@mui/icons-material'
+import { Chip, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { DraggableList } from '@/common/components/DraggableList'
 import { DrilldownMenu } from '@/common/components/DrilldownMenu'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { combinedPolicyService } from '@/common/options/combinedPolicy'
+import { integrationData } from '@/common/options/mountConfig/integrationData'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import {
   useEditMountConfig,
   useMountConfig,
 } from '@/common/options/mountConfig/useMountConfig'
-import { createDownload } from '@/common/utils/utils'
 import { ConfigToggleSwitch } from '@/popup/pages/config/components/ConfigToggleSwitch'
 
 const ConfigBadge = ({ config }: { config: MountConfig }) => {
@@ -34,10 +21,10 @@ const ConfigBadge = ({ config }: { config: MountConfig }) => {
       return (
         <Chip
           size="small"
-          label={t('configPage.editor.automation.aiLabel', 'AI')}
+          label={integrationData.ai.label()}
           color="secondary"
           variant="filled"
-          icon={<AutoAwesome />}
+          icon={<integrationData.ai.icon />}
         />
       )
     case 'custom':
@@ -46,7 +33,7 @@ const ConfigBadge = ({ config }: { config: MountConfig }) => {
           <Chip
             size="small"
             label={t(
-              'configPage.editor.automation.setupIncomplete',
+              'configPage.editor.integrationMode.setupIncomplete',
               'Setup Incomplete'
             )}
             color="warning"
@@ -58,7 +45,7 @@ const ConfigBadge = ({ config }: { config: MountConfig }) => {
       return (
         <Chip
           size="small"
-          label={t('configPage.editor.automation.customLabel', 'Custom')}
+          label={integrationData.custom.label()}
           color="primary"
           variant="filled"
         />
@@ -67,7 +54,7 @@ const ConfigBadge = ({ config }: { config: MountConfig }) => {
       return (
         <Chip
           size="small"
-          label={t('configPage.editor.automation.manualLabel', 'Manual')}
+          label={integrationData.manual.label()}
           variant="filled"
         />
       )
@@ -85,15 +72,15 @@ export const MountConfigList = ({
   const dialog = useDialog()
   const toast = useToast.use.toast()
 
-  const exportConfig = useMutation({
-    mutationFn: async (id: string) => {
-      const config = await combinedPolicyService.export(id)
-      await createDownload(
-        new Blob([JSON.stringify(config, null, 2)], { type: 'text/json' }),
-        `${config.name}.json`
-      )
-    },
-  })
+  // const exportConfig = useMutation({
+  //   mutationFn: async (id: string) => {
+  //     const config = await combinedPolicyService.export(id)
+  //     await createDownload(
+  //       new Blob([JSON.stringify(config, null, 2)], { type: 'text/json' }),
+  //       `${config.name}.json`
+  //     )
+  //   },
+  // })
 
   const handleDelete = (config: MountConfig) => {
     dialog.delete({
@@ -133,7 +120,17 @@ export const MountConfigList = ({
       }}
       renderPrimary={(config) => (
         <Stack direction="row" alignItems="center" gap={1}>
-          {config.name}
+          <Typography
+            component="span"
+            variant="body2"
+            overflow="hidden"
+            textOverflow="ellipsis"
+            flexShrink={1}
+            minWidth={0}
+            title={config.name}
+          >
+            {config.name}
+          </Typography>
           <ConfigBadge config={config} />
         </Stack>
       )}
@@ -143,21 +140,24 @@ export const MountConfigList = ({
           <ConfigToggleSwitch config={config} />
           <DrilldownMenu
             BoxProps={{ display: 'inline' }}
-            ButtonProps={{ edge: 'end' }}
-          >
-            <MenuItem onClick={() => handleDelete(config)}>
-              <ListItemIcon>
-                <Delete />
-              </ListItemIcon>
-              <ListItemText>{t('common.delete', 'Delete')}</ListItemText>
-            </MenuItem>
-            <MenuItem onClick={() => exportConfig.mutate(config.id)}>
-              <ListItemIcon>
-                <ContentCopy />
-              </ListItemIcon>
-              <ListItemText>{t('common.export', 'Export')}</ListItemText>
-            </MenuItem>
-          </DrilldownMenu>
+            ButtonProps={{ edge: 'end', size: 'small' }}
+            dense
+            items={[
+              {
+                id: 'delete',
+                label: t('common.delete', 'Delete'),
+                onClick: () => handleDelete(config),
+                color: 'error',
+                icon: <Delete />,
+              },
+              // {
+              //   id: 'export',
+              //   label: t('common.export', 'Export'),
+              //   onClick: () => exportConfig.mutate(config.id),
+              //   icon: <ContentCopy />,
+              // },
+            ]}
+          />
         </>
       )}
     />

@@ -47,6 +47,14 @@ const DraggableItemIcon = styled(ListItemIcon)(({ theme }) => {
   }
 })
 
+const StyledListItem = styled(ListItem)(({ theme }) => {
+  return {
+    '.MuiListItemButton-root': {
+      paddingRight: theme.spacing(12), // make room for action buttons
+    },
+  }
+})
+
 interface DraggableItem {
   id: string
 }
@@ -102,7 +110,7 @@ function SortableItem<T extends DraggableItem>({
   )
 
   return (
-    <ListItem
+    <StyledListItem
       ref={setNodeRef}
       style={style}
       key={item.id}
@@ -115,7 +123,7 @@ function SortableItem<T extends DraggableItem>({
       ) : (
         listItemInner
       )}
-    </ListItem>
+    </StyledListItem>
   )
 }
 

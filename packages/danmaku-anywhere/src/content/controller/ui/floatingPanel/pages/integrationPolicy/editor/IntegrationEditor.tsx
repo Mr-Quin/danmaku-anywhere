@@ -24,7 +24,6 @@ import { docsLink } from '@/common/utils/utils'
 import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useStore } from '@/content/controller/store/store'
-import { IntegrationLivePreview } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/IntegrationLivePreview'
 import { IntegrationSection } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/editor/components/IntegrationSection'
 import { ElementSelector } from './components/elementSelector/ElementSelector'
 import { IntegrationPreview } from './components/IntegrationPreview'
@@ -143,7 +142,6 @@ export const IntegrationEditor = (): ReactElement => {
 
           <ScrollBox flexGrow={1} overflow="auto" minHeight={0}>
             <FormProvider {...form}>
-              <IntegrationLivePreview />
               <Box p={2}>
                 <Stack spacing={2}>
                   <IntegrationSection

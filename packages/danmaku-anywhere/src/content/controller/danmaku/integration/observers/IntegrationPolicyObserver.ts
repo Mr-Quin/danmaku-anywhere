@@ -136,7 +136,7 @@ export class IntegrationPolicyObserver extends MediaObserver {
   private abortControllerQueue: AbortController[] = []
 
   constructor(
-    public policy: IntegrationPolicy,
+    public policy: IntegrationPolicy | null,
     private options: { useAi: boolean }
   ) {
     super()
@@ -165,6 +165,10 @@ export class IntegrationPolicyObserver extends MediaObserver {
       }
 
       try {
+        if (!this.policy) {
+          reject('Policy not found')
+          return
+        }
         const matchedNodes = matchNodesByXPathPolicy(this.policy)
         if (matchedNodes) {
           clearInterval(this.interval)
@@ -192,6 +196,10 @@ export class IntegrationPolicyObserver extends MediaObserver {
   }
 
   private parseMediaElements(elements: MediaElements) {
+    if (!this.policy) {
+      this.emit('error', new Error('Policy not found'))
+      return
+    }
     const extractionResult = extractMediaInfo(elements, this.policy)
 
     if (!extractionResult.success) {

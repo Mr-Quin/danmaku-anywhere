@@ -1,20 +1,30 @@
 import { Movie, Settings, SmartToy, Title } from '@mui/icons-material'
 import {
   Box,
+  Button,
   Step,
   StepContent,
   StepLabel,
   Stepper,
   Typography,
 } from '@mui/material'
-import { useMemo } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
 import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
 import { useStore } from '@/content/controller/store/store'
 
-function getActiveStep(steps: { completed: boolean }[]) {
+interface StepData {
+  label: string
+  icon: () => ReactNode
+  completed: boolean
+  error: boolean
+  description?: string | false
+  renderContent?: () => ReactNode
+}
+
+function getActiveStep(steps: StepData[]) {
   let activeStep = 0
   for (let i = 0; i < steps.length; i++) {
     if (steps[i].completed) {
@@ -29,91 +39,189 @@ function getActiveStep(steps: { completed: boolean }[]) {
 export const MatchingSteps = () => {
   const { t } = useTranslation()
   const activeConfig = useActiveConfig()
-  const hasVideo = useStore.use.hasVideo()
-  const { mediaInfo, foundElements, errorMessage } = useStore.use.integration()
+  const videoId = useStore.use.videoId?.()
+  const { toggleEditor } = useStore.use.integrationForm()
+  const { mediaInfo, foundElements, errorMessage, active } =
+    useStore.use.integration()
   const activeIntegration = useActiveIntegration()
 
-  const disableAi = activeConfig ? isConfigPermissive(activeConfig) : false
-  const isAiMode = activeConfig?.mode === 'ai'
+  const steps = useMemo<StepData[]>(() => {
+    const isPermissive = activeConfig ? isConfigPermissive(activeConfig) : false
+    const isAiMode = activeConfig?.mode === 'ai'
 
-  const steps = useMemo(() => {
-    const hasIntegrationStep = {
-      label: t('integration.steps.config', 'Integration Available'),
-      icon: <Settings />,
+    const checkIntegrationStep = {
+      label: t('integration.steps.configAvailable', 'Integration Available'),
+      icon: () => <Settings />,
       completed: !!activeIntegration,
       error: !activeIntegration,
       description: activeIntegration
-        ? undefined
+        ? t('integration.steps.configAvailablePass', 'Integration is available')
         : t(
-            'integration.steps.noConfig',
+            'integration.steps.configAvailableFail',
             'Integration is not configured, please create one.'
           ),
+      renderContent: () => {
+        if (activeIntegration) {
+          return (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => toggleEditor(true)}
+              sx={{ mt: 2 }}
+            >
+              {t('integration.editConfig', 'Edit Integration')}
+            </Button>
+          )
+        }
+        return (
+          <Button
+            variant="contained"
+            size="small"
+            onClick={() => toggleEditor(true)}
+            sx={{ mt: 2 }}
+          >
+            {t('integration.createConfig', 'Create Integration')}
+          </Button>
+        )
+      },
     }
 
-    const hasAiStep = {
-      label: t('integration.steps.ai', 'AI Integration'),
-      icon: <SmartToy />,
-      completed: !!mediaInfo,
-      error: !!errorMessage,
-      description: errorMessage || (mediaInfo ? mediaInfo.seasonTitle : ''),
+    const checkAiStep = {
+      label: t('integration.steps.enableAi', 'Enable AI'),
+      icon: () => <SmartToy />,
+      completed: isAiMode,
+      error: !isAiMode,
+      description: t('integration.steps.enableAiPass', 'AI is enabled'),
     }
 
     const configPermissiveStep = {
-      label: t('integration.steps.permissive', 'Config Permissive'),
-      icon: <SmartToy />,
+      label: t('integration.steps.mountConfigPermissive', 'Check Mount Config'),
+      icon: () => <SmartToy />,
+      completed: !isPermissive,
+      error: isPermissive,
+      description:
+        isPermissive &&
+        t(
+          'integration.steps.mountConfigPermissiveFail',
+          'Mount config is too permissive, please change the pattern to be more restrictive.'
+        ),
+    }
+
+    const hasVideo = !!videoId
+
+    const checkVideoStep = {
+      label: t('integration.steps.checkVideo', 'Check Video'),
+      icon: () => <Movie />,
+      completed: hasVideo,
+      error: !hasVideo,
+      description: hasVideo
+        ? t('integration.steps.checkVideoPass', 'Video is detected')
+        : t('integration.steps.checkVideoFail', 'Video is not detected'),
+    }
+
+    const integrationEnabledStep = {
+      label: t('integration.steps.integrationEnabled', 'Integration Enabled'),
+      icon: () => <SmartToy />,
+      completed: !!active,
+      error: !active,
+      description: active
+        ? t(
+            'integration.steps.integrationEnabledPass',
+            'Integration is enabled'
+          )
+        : t(
+            'integration.steps.integrationEnabledFail',
+            'Integration is disabled'
+          ),
+    }
+
+    const aiRequestStep = {
+      label: t('integration.steps.aiRequest', 'AI Request'),
+      icon: () => <SmartToy />,
       completed: !!mediaInfo,
       error: !!errorMessage,
-      description: disableAi
-        ? t('integration.steps.aiDisabled', 'AI disabled (too permissive)')
-        : t('integration.steps.aiMatching', 'AI is analyzing page content...'),
+      description: errorMessage
+        ? errorMessage
+        : t('integration.steps.aiRequestPass', 'AI request is successful'),
     }
 
-    const hasVideoStep = {
-      label: t('integration.steps.video', 'Video Detected'),
-      icon: <Movie />,
-      completed: hasVideo(),
-      error: !hasVideo(),
-      description: t(
-        'integration.steps.videoDesc',
-        'A video element must be present on the page.'
-      ),
-    }
-
-    const matchElementsStep = {
-      label: t('integration.steps.match', 'Elements Matched'),
-      icon: <SmartToy />,
+    const matchNodesStep = {
+      label: t('integration.steps.matchNodes', 'Match Nodes'),
+      icon: () => <SmartToy />,
       completed: foundElements,
       error: !foundElements,
-      description: t(
-        'integration.steps.rulesMatching',
-        'Matching elements based on rules...'
-      ),
+      description: foundElements
+        ? t('integration.steps.matchNodesPass', 'Nodes matching is successful')
+        : t('integration.steps.matchNodesFail', 'Nodes matching failed'),
     }
-    const parsedStep = {
-      label: t('integration.steps.parsed', 'Info Parsed'),
-      icon: <Title />,
+
+    const extractMediaInfoStep = {
+      label: t('integration.steps.parseMediaInfo', 'Parse Media Info'),
+      icon: () => <Title />,
       completed: !!mediaInfo,
       error: !!errorMessage,
-      description: errorMessage || (mediaInfo ? mediaInfo.seasonTitle : ''),
+      description: errorMessage
+        ? errorMessage
+        : t(
+            'integration.steps.parseMediaInfoPass',
+            'Media info parsing is successful'
+          ),
+    }
+
+    const mediaInfoStep = {
+      label: t('integration.steps.mediaInfo', 'Media Info'),
+      icon: () => <Title />,
+      completed: !!mediaInfo,
+      error: !!errorMessage,
+      description: mediaInfo?.toString() || '',
     }
 
     if (isAiMode) {
-      return [hasAiStep, configPermissiveStep, hasVideoStep]
+      return [
+        checkAiStep,
+        configPermissiveStep,
+        checkVideoStep,
+        integrationEnabledStep,
+        aiRequestStep,
+        mediaInfoStep,
+      ]
     }
 
-    return [hasIntegrationStep, hasVideoStep, matchElementsStep, parsedStep]
-  }, [activeIntegration, hasVideo, isAiMode, mediaInfo, foundElements])
+    return [
+      checkIntegrationStep,
+      checkVideoStep,
+      integrationEnabledStep,
+      matchNodesStep,
+      extractMediaInfoStep,
+      mediaInfoStep,
+    ]
+  }, [
+    t,
+    activeIntegration,
+    videoId,
+    activeConfig,
+    active,
+    isConfigPermissive,
+    mediaInfo,
+    foundElements,
+    errorMessage,
+  ])
+
+  const activeStep = getActiveStep(steps)
 
   return (
-    <Box sx={{ maxWidth: 400 }}>
-      <Stepper activeStep={getActiveStep(steps)} orientation="vertical">
-        {steps.map((step) => (
-          <Step key={step.label}>
-            <StepLabel error={step.error}>{step.label}</StepLabel>
+    <Box>
+      <Stepper activeStep={activeStep} orientation="vertical">
+        {steps.map((step, i) => (
+          <Step key={step.label} expanded={i <= activeStep}>
+            <StepLabel error={step.error && i <= activeStep}>
+              {step.label}
+            </StepLabel>
             <StepContent>
               <Typography variant="body2" color="text.secondary">
                 {step.description}
               </Typography>
+              {step.renderContent?.()}
             </StepContent>
           </Step>
         ))}

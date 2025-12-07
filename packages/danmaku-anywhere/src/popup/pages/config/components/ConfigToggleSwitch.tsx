@@ -19,6 +19,7 @@ export const ConfigToggleSwitch = ({ config }: ConfigToggleSwitchProps) => {
           config: { ...config, enabled: e.target.checked },
         })
       }
+      size="small"
       disabled={update.isPending}
     />
   )

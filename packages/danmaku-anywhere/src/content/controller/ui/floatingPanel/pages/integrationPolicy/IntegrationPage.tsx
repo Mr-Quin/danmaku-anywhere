@@ -1,25 +1,26 @@
-import { AutoAwesome, Build, Edit } from '@mui/icons-material'
 import {
   Box,
-  Button,
   Stack,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-
+import { ScrollBox } from '@/common/components/layout/ScrollBox'
+import { TabLayout } from '@/common/components/layout/TabLayout'
+import { TabToolbar } from '@/common/components/layout/TabToolbar'
+import { integrationData } from '@/common/options/mountConfig/integrationData'
 import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 import { useStore } from '@/content/controller/store/store'
-import { EpisodeInfo } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/EpisodeInfo'
 import { MatchingSteps } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/MatchingSteps'
 import { IntegrationEditor } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/editor/IntegrationEditor'
 
 export const IntegrationPage = () => {
   const { t } = useTranslation()
   const activeConfig = useActiveConfig()
-  const { showEditor, toggleEditor } = useStore.use.integrationForm()
+  const { showEditor } = useStore.use.integrationForm()
   const { setMode } = useEditMountConfig()
 
   if (!activeConfig) {
@@ -46,44 +47,60 @@ export const IntegrationPage = () => {
   }
 
   return (
-    <Box p={2} flexGrow={1} display="flex" flexDirection="column" gap={2}>
-      <Stack direction="row" spacing={2} alignItems="center">
-        <ToggleButtonGroup
-          value={activeConfig.mode}
-          exclusive
-          onChange={handleModeChange}
-          aria-label="integration mode"
-          fullWidth
-          size="small"
-        >
-          <ToggleButton value="ai">
-            <AutoAwesome sx={{ mr: 1 }} />
-            {t('integration.mode.ai', 'Auto (AI)')}
-          </ToggleButton>
-          <ToggleButton value="custom">
-            <Build sx={{ mr: 1 }} />
-            {t('integration.mode.custom', 'Custom')}
-          </ToggleButton>
-          <ToggleButton value="manual">
-            <Edit sx={{ mr: 1 }} />
-            {t('integration.mode.manual', 'Manual')}
-          </ToggleButton>
-        </ToggleButtonGroup>
-      </Stack>
-
-      <Button
-        startIcon={<Edit />}
-        variant="text"
-        size="small"
-        onClick={() => toggleEditor(true)}
-        fullWidth
+    <TabLayout>
+      <TabToolbar title={t('tabs.integration', 'Integration')} />
+      <ScrollBox
+        p={2}
+        flexGrow={1}
+        display="flex"
+        flexDirection="column"
+        gap={2}
+        sx={{ overflowX: 'hidden' }}
       >
-        {t('integration.openEditor', 'Edit Integration Config')}
-      </Button>
+        <Stack
+          direction="row"
+          spacing={2}
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          <ToggleButtonGroup
+            value={activeConfig.mode}
+            exclusive
+            onChange={handleModeChange}
+            size="small"
+          >
+            <Tooltip title={integrationData.ai.description()}>
+              <ToggleButton value="ai">
+                <integrationData.ai.icon fontSize="small" sx={{ mr: 1 }} />
+                {integrationData.ai.label()}
+              </ToggleButton>
+            </Tooltip>
+            <Tooltip title={integrationData.custom.description()}>
+              <ToggleButton value="custom">
+                <integrationData.custom.icon fontSize="small" sx={{ mr: 1 }} />
+                {integrationData.custom.label()}
+              </ToggleButton>
+            </Tooltip>
+            <Tooltip title={integrationData.manual.description()}>
+              <ToggleButton value="manual">
+                <integrationData.manual.icon fontSize="small" sx={{ mr: 1 }} />
+                {integrationData.manual.label()}
+              </ToggleButton>
+            </Tooltip>
+          </ToggleButtonGroup>
+        </Stack>
 
-      <MatchingSteps />
-
-      <EpisodeInfo />
-    </Box>
+        {activeConfig.mode === 'manual' ? (
+          <Typography>
+            {t(
+              'integration.manualModeEnabled',
+              'Manual mode is enabled, switch to a different mode to enable automation.'
+            )}
+          </Typography>
+        ) : (
+          <MatchingSteps />
+        )}
+      </ScrollBox>
+    </TabLayout>
   )
 }
