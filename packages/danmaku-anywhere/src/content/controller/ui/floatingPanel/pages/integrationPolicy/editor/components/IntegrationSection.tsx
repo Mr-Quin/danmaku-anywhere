@@ -19,34 +19,17 @@ import type { IntegrationRuleItemNames } from '../types'
 import { RegexRuleItem } from './RegexRuleItem'
 import { SelectorRuleItem } from './SelectorRuleItem'
 
-interface NoRulesConfiguredProps {
-  type: 'selector' | 'regex'
-}
-
-const NoRulesConfigured = ({ type }: NoRulesConfiguredProps) => {
+const NoRulesConfigured = () => {
   const { t } = useTranslation()
 
   return (
     <Box display="flex" alignItems="center" justifyContent="center" py={2}>
-      {type === 'selector' ? (
-        <>
-          <Typography variant="body2" color="text.secondary">
-            {t(
-              'integrationPolicyPage.editor.noXpathSelectors',
-              'No XPath selectors. Click "Pick" to select an element'
-            )}
-          </Typography>
-        </>
-      ) : (
-        <>
-          <Typography variant="body2" color="text.secondary">
-            {t(
-              'integrationPolicyPage.editor.noRegexConfigured',
-              'No regex patterns. Click "Add" to add a regex'
-            )}
-          </Typography>
-        </>
-      )}
+      <Typography variant="body2" color="text.secondary">
+        {t(
+          'integrationPolicyPage.editor.noRegexConfigured',
+          'No regex patterns. Click "Add" to add a regex'
+        )}
+      </Typography>
     </Box>
   )
 }
@@ -203,7 +186,7 @@ export const IntegrationSection = ({
             </div>
           </Stack>
           {selectorFields.length === 0 ? (
-            <NoRulesConfigured type="selector" />
+            <NoRulesConfigured />
           ) : (
             <Stack spacing={1}>
               {selectorFields.map((value, index) => (
