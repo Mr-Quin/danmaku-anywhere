@@ -37,7 +37,7 @@ export const routes = [
   },
   {
     tab: PopupTab.Policy,
-    name: () => i18n.t('tabs.integrationPolicy', 'Integration'),
+    name: () => i18n.t('tabs.integration', 'Integration'),
     element: <IntegrationPage />,
   },
   {

@@ -95,14 +95,17 @@ export const MatchingSteps = () => {
     }
 
     const configPermissiveStep = {
-      label: t('integration.steps.mountConfigPermissive', 'Check Mount Config'),
+      label: t(
+        'integration.steps.checkMountConfigPermissive',
+        'Check Mount Config'
+      ),
       icon: () => <SmartToy />,
       completed: !isPermissive,
       error: isPermissive,
       description:
         isPermissive &&
         t(
-          'integration.steps.mountConfigPermissiveFail',
+          'integration.steps.checkMountConfigPermissiveFail',
           'Mount config is too permissive, please change the pattern to be more restrictive.'
         ),
     }
@@ -120,18 +123,21 @@ export const MatchingSteps = () => {
     }
 
     const integrationEnabledStep = {
-      label: t('integration.steps.integrationEnabled', 'Integration Enabled'),
+      label: t(
+        'integration.steps.integrationEnabled',
+        'Automatic Mode Enabled'
+      ),
       icon: () => <SmartToy />,
       completed: !!active,
       error: !active,
       description: active
         ? t(
             'integration.steps.integrationEnabledPass',
-            'Integration is enabled'
+            'Automatic mode is enabled'
           )
         : t(
             'integration.steps.integrationEnabledFail',
-            'Integration is disabled'
+            'Automatic mode is disabled'
           ),
     }
 

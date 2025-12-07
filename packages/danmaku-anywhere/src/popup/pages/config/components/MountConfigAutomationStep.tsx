@@ -104,7 +104,7 @@ export const MountConfigAutomationStep = ({
         (!integration || integration === EMPTY_INTEGRATION_VALUE) && (
           <Alert severity="warning">
             {t(
-              'configPage.editor.automation.customAlert',
+              'configPage.editor.automation.xPathAlert',
               "You'll need to visit this site after saving to complete the setup using the on-page tool."
             )}
           </Alert>

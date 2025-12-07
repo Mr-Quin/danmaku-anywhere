@@ -116,10 +116,7 @@ export const SelectorRuleItem = ({
                 fontWeight="bold"
                 color="success.main"
               >
-                {t(
-                  'integrationPolicy.editor.selectorRuleItem.matched',
-                  'Matched'
-                )}
+                {t('integration.editor.selectorRuleItem.matched', 'Matched')}
               </Typography>
               <Typography variant="subtitle2" noWrap title={matchText.text}>
                 {matchText.text}
@@ -129,7 +126,7 @@ export const SelectorRuleItem = ({
         ) : (
           <DenseAlert severity="warning">
             {t(
-              'integrationPolicy.editor.selectorRuleItem.matchedButEmpty',
+              'integration.editor.selectorRuleItem.matchedButEmpty',
               'A node is found, but the text is empty'
             )}
           </DenseAlert>
@@ -137,7 +134,7 @@ export const SelectorRuleItem = ({
       ) : (
         <DenseAlert severity="error">
           {t(
-            'integrationPolicy.editor.selectorRuleItem.invalidXPath',
+            'integration.editor.selectorRuleItem.invalidXPath',
             'The XPath is invalid or no node is matched'
           )}
         </DenseAlert>

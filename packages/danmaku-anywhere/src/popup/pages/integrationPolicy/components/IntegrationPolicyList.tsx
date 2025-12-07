@@ -67,17 +67,7 @@ export const IntegrationPolicyList = ({
             disablePadding
           >
             <ListItemButton onClick={() => onEdit(policy)}>
-              <ListItemText
-                primary={policy.name}
-                secondary={
-                  policy.policy.options.titleOnly
-                    ? t(
-                        'integrationPolicyPage.editor.titleOnly',
-                        'Match title only'
-                      )
-                    : ''
-                }
-              />
+              <ListItemText primary={policy.name} />
             </ListItemButton>
           </ListItem>
         )

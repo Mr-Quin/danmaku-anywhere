@@ -18,12 +18,10 @@
     "version": "Version"
   },
   "anime": {
-    "episode": "Episode",
     "episodeTitle": "Episode Title",
     "numericEpisode": "Episode {{episode}}",
     "numericSeason": "Season {{season}}",
     "refreshMetadata": "Refresh Metadata",
-    "season": "Season",
     "title": "Title"
   },
   "common": {
@@ -68,15 +66,26 @@
     "createConfig": "Create Config",
     "editor": {
       "addPattern": "Add Pattern",
+      "advanced": "Advanced",
+      "automation": {
+        "title": "Select Automation Method",
+        "xPathAlert": "You'll need to visit this site after saving to complete the setup using the on-page tool."
+      },
       "description": "Description",
       "helper": {
-        "integration": "Enables the selected Integration Policy for this configuration. If you are not sure, leave it as None.",
         "mediaQuery": "CSS selector for the video node, normally \"video\"",
         "urlPattern": "URL pattern to match the page. Format: https://example.com/*."
+      },
+      "integrationMode": {
+        "setupIncomplete": "Setup Incomplete"
       },
       "mediaQuery": "Video Node",
       "name": "Name",
       "pattern": "Pattern",
+      "step": {
+        "automation": "Automation",
+        "basicInfo": "Basic Info"
+      },
       "title": {
         "create": "Add Config",
         "edit": "Edit {{name}}"
@@ -176,54 +185,87 @@
       "aiDisabledTooPermissive": "AI is disabled because the match pattern is too permissive",
       "AIResult": "AI Parsing Result: {{title}}",
       "matchedLocalDanmaku": "Matched local danmaku",
+      "noIntegration": "Integration policy not configured",
       "openSearch": "Open search page",
       "search": "Searching for anime: {{title}}",
       "searchError": "Failed to search for anime: {{message}}",
       "searchResultEmpty": "No anime found for {{title}}",
       "usingAI": "Using AI to parse show information",
-      "usingIntegration": "Using Integration: {{name}}"
+      "usingMode": "Using Mode: {{mode}}"
     },
     "autoMode": "Auto Mode",
-    "name": "Integration",
-    "type": {
-      "None": "None"
+    "createConfig": "Create Integration",
+    "editConfig": "Edit Integration",
+    "editor": {
+      "selectorRuleItem": {
+        "invalidXPath": "The XPath is invalid or no node is matched",
+        "matched": "Matched",
+        "matchedButEmpty": "A node is found, but the text is empty"
+      }
+    },
+    "manualModeEnabled": "Manual mode is enabled, switch to a different mode to enable automation.",
+    "mode": {
+      "ai": {
+        "description": "Let AI detect video info automatically",
+        "label": "AI"
+      },
+      "manual": {
+        "description": "I'll select danmaku manually from library",
+        "label": "Manual"
+      },
+      "xpath": {
+        "description": "I'll create custom XPath rules to extract video info (requires visiting site)",
+        "label": "XPath"
+      }
+    },
+    "noConfig": "No integration config found.",
+    "steps": {
+      "aiRequest": "AI Request",
+      "aiRequestPass": "AI request is successful",
+      "checkMountConfigPermissive": "Check Mount Config",
+      "checkMountConfigPermissiveFail": "Mount config is too permissive, please change the pattern to be more restrictive.",
+      "checkVideo": "Check Video",
+      "checkVideoFail": "Video is not detected",
+      "checkVideoPass": "Video is detected",
+      "configAvailable": "Integration Available",
+      "configAvailableFail": "Integration is not configured, please create one.",
+      "configAvailablePass": "Integration is available",
+      "enableAi": "Enable AI",
+      "enableAiPass": "AI is enabled",
+      "integrationEnabled": "Integration Enabled",
+      "integrationEnabledFail": "Integration is disabled",
+      "integrationEnabledPass": "Integration is enabled",
+      "matchNodes": "Match Nodes",
+      "matchNodesFail": "Nodes matching failed",
+      "matchNodesPass": "Nodes matching is successful",
+      "mediaInfo": "Media Info",
+      "parseMediaInfo": "Parse Media Info",
+      "parseMediaInfoPass": "Media info parsing is successful"
     }
   },
   "integrationPolicyPage": {
-    "aiDisabledTooPermissive": "AI is disabled because the match pattern is too permissive. Please use narrower match pattern or configure XPath integration.",
-    "aiParsing": "AI Parsing",
-    "create": "Add Integration Policy",
-    "edit": "Edit {{name}}",
     "editor": {
-      "advanced": "Advanced Options",
-      "episode": "Select Episode",
-      "episodeRegex": "Episode Regex",
-      "episodeSelector": "Episode XPath",
-      "episodeTitle": "Select Episode Title",
-      "episodeTitleRegex": "Episode Title Regex",
-      "episodeTitleSelector": "Episode Title XPath",
-      "helper": {
-        "titleOnly": "If checked, only the title node will be used to match the show. Useful if all information is contained in the title, e.g. if the title is the file name. Uncheck if the show's information is spread across different nodes.",
-        "useAI": "Try to use AI to parse show information. If parsing fails, try manual configuration."
-      },
-      "name": "Name",
+      "addManual": "Add",
+      "addRegex": "Add",
+      "cancelSelection": "Cancel Selection",
+      "episodeNumber": "Episode Number (Optional)",
+      "matchResult": "Match Result",
+      "noNodesFound": "No nodes found",
+      "noPreviewAvailable": "An error occurred while extracting media info",
+      "noRegexConfigured": "No regex patterns. Click \"Add\" to add a regex",
+      "pickElement": "Pick",
       "quick": "Priority",
-      "season": "Select Season",
-      "seasonRegex": "Season Regex",
-      "seasonSelector": "Season XPath",
-      "titleOnly": "Match title only",
-      "titleRegex": "Title Regex",
-      "titleSection": "Select Title",
-      "titleSelector": "Title XPath",
-      "useAI": "Use AI (Experimental)"
+      "regex": "Regex (Optional)",
+      "regexRuleCount_one": "{{count}} regex",
+      "regexRuleCount_other": "{{count}} regex",
+      "seasonNumber": "Season Number (Optional)",
+      "selectorRuleCount_one": "{{count}} XPath",
+      "selectorRuleCount_other": "{{count}} XPath",
+      "title": "Configure Integration",
+      "videoTitle": "Video Title",
+      "xpathSelectors": "XPath Selectors"
     },
-    "hasIntegration": "Using Integration: \"{{name}}\"",
-    "integrationActive": "Active",
-    "integrationInactive": "Inactive",
-    "name": "Integration Policy",
-    "nodesFound": "Nodes Found",
-    "noIntegration": "No integration policy is enabled for this page. Please select from existing policies or create a new one.",
-    "parseComplete": "Parse Complete"
+    "name": "Integration Policy"
   },
   "mountPage": {
     "alert": {
@@ -432,10 +474,13 @@
   "tabs": {
     "config": "Config",
     "danmaku": "Danmaku",
+    "debug": "Debug",
     "import": "Import Danmaku",
+    "integration": "Integration",
     "mount": "Library",
     "providers": "Providers",
     "search": "Search",
+    "selector": "Selector",
     "style": "Danmaku Settings"
   }
 }

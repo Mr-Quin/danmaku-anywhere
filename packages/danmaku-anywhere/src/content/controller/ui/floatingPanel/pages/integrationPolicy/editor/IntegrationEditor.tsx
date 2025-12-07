@@ -119,7 +119,7 @@ export const IntegrationEditor = (): ReactElement => {
         >
           <TabToolbar
             title={t(
-              'configs.integrationPolicy.editor.title',
+              'integrationPolicyPage.editor.title',
               'Configure Integration'
             )}
             showBackButton
@@ -147,7 +147,7 @@ export const IntegrationEditor = (): ReactElement => {
                   <IntegrationSection
                     name="policy.title"
                     label={t(
-                      'configs.integrationPolicy.editor.videoTitle',
+                      'integrationPolicyPage.editor.videoTitle',
                       'Video Title'
                     )}
                     defaultExpanded
@@ -157,7 +157,7 @@ export const IntegrationEditor = (): ReactElement => {
                   <IntegrationSection
                     name="policy.season"
                     label={t(
-                      'configs.integrationPolicy.editor.seasonNumber',
+                      'integrationPolicyPage.editor.seasonNumber',
                       'Season Number (Optional)'
                     )}
                     onOpenSelector={(callback) => handleOpenSelector(callback)}
@@ -166,7 +166,7 @@ export const IntegrationEditor = (): ReactElement => {
                   <IntegrationSection
                     name="policy.episode"
                     label={t(
-                      'configs.integrationPolicy.editor.episodeNumber',
+                      'integrationPolicyPage.editor.episodeNumber',
                       'Episode Number (Optional)'
                     )}
                     onOpenSelector={(callback) => handleOpenSelector(callback)}

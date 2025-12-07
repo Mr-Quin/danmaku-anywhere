@@ -4,6 +4,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { Logger } from '@/common/Logger'
+import { integrationData } from '@/common/options/mountConfig/integrationData'
 import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
 import { useActiveConfig } from '@/content/controller/common/hooks/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/hooks/useActiveIntegration'
@@ -46,7 +47,7 @@ export const useIntegrationPolicy = () => {
       toggleManualMode(false)
       toast.info(
         t('integration.alert.usingMode', 'Using Mode: {{mode}}', {
-          mode: activeConfig.mode,
+          mode: integrationData[activeConfig.mode].label(),
         })
       )
     } else {
