@@ -161,7 +161,12 @@ export const LatestBuilds = () => {
   }
 
   const latestRelease = releases.find((r) => !r.prerelease)
-  const preReleases = releases.filter((r) => r.prerelease)
+  const preReleases = releases
+    .filter((r) => r.prerelease)
+    .sort(
+      (a, b) =>
+        new Date(b.published_at).getTime() - new Date(a.published_at).getTime()
+    )
 
   return (
     <div className="space-y-6 not-content">
