@@ -1,5 +1,5 @@
 import { Warning } from '@mui/icons-material'
-import { Icon, Tooltip, Typography } from '@mui/material'
+import { Tooltip, Typography } from '@mui/material'
 import { Trans } from 'react-i18next'
 import { ExternalLink } from '@/common/components/ExternalLink'
 
@@ -50,9 +50,7 @@ export const ProviderWarningIcon = ({
 
   return (
     <Tooltip title={getTooltipContent()} placement="top">
-      <Icon color="warning" sx={{ ml: 0.5, p: 0.5 }}>
-        <Warning fontSize="small" />
-      </Icon>
+      <Warning fontSize="small" color="warning" />
     </Tooltip>
   )
 }

@@ -1,5 +1,6 @@
-import { Chip, Stack } from '@mui/material'
+import { Chip } from '@mui/material'
 import { useTranslation } from 'react-i18next'
+import { ListItemPrimaryStack } from '@/common/components/ListItemPrimaryStack'
 import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useProviderWarning } from '../hooks/useProviderWarning'
@@ -36,12 +37,9 @@ export const ProviderConfigListItem = ({
   }
 
   return (
-    <Stack direction="row" alignItems="center" gap={1}>
-      <span>
-        {config.name}
-        {showWarning && <ProviderWarningIcon warningType={warningType} />}
-      </span>
+    <ListItemPrimaryStack text={config.name}>
+      {showWarning && <ProviderWarningIcon warningType={warningType} />}
       {renderChip()}
-    </Stack>
+    </ListItemPrimaryStack>
   )
 }

@@ -1,9 +1,10 @@
 import { Delete, ErrorOutline } from '@mui/icons-material'
-import { Chip, Stack, Typography } from '@mui/material'
+import { Chip } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { DraggableList } from '@/common/components/DraggableList'
 import { DrilldownMenu } from '@/common/components/DrilldownMenu'
+import { ListItemPrimaryStack } from '@/common/components/ListItemPrimaryStack'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { integrationData } from '@/common/options/mountConfig/integrationData'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
@@ -119,20 +120,9 @@ export const MountConfigList = ({
         reorder.mutate({ sourceIndex, destinationIndex })
       }}
       renderPrimary={(config) => (
-        <Stack direction="row" alignItems="center" gap={1}>
-          <Typography
-            component="span"
-            variant="body2"
-            overflow="hidden"
-            textOverflow="ellipsis"
-            flexShrink={1}
-            minWidth={0}
-            title={config.name}
-          >
-            {config.name}
-          </Typography>
+        <ListItemPrimaryStack text={config.name}>
           <ConfigBadge config={config} />
-        </Stack>
+        </ListItemPrimaryStack>
       )}
       renderSecondary={(config) => config.patterns[0]}
       renderSecondaryAction={(config) => (
