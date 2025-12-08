@@ -63,9 +63,9 @@ jobs:
             echo "tag_name=nightly-${{ github.run_id }}" >> $GITHUB_OUTPUT
             echo "allow_updates=false" >> $GITHUB_OUTPUT
           else
-             # Manual trigger or fallback
+             # Manual trigger or fallback - uses unique run_number so no updates needed
              echo "tag_name=preview-manual-${{ github.run_number }}" >> $GITHUB_OUTPUT
-             echo "allow_updates=true" >> $GITHUB_OUTPUT
+             echo "allow_updates=false" >> $GITHUB_OUTPUT
           fi
         shell: bash
 
