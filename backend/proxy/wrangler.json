@@ -12,17 +12,17 @@
     {
       "binding": "DANMAKU_GEMINI_API_KEY",
       "store_id": "4a9ca50edba84431879f34b0b67f9998",
-      "secret_name": "DANMAKU_GEMINI_API_KEY"
+      "secret_name": "DANMAKU_GEMINI_API_KEY_STG"
     },
     {
       "binding": "DA_AI_GATEWAY_ID",
       "store_id": "4a9ca50edba84431879f34b0b67f9998",
-      "secret_name": "DA_AI_GATEWAY_ID"
+      "secret_name": "DA_AI_GATEWAY_ID_STG"
     },
     {
       "binding": "DA_AI_GATEWAY_NAME",
       "store_id": "4a9ca50edba84431879f34b0b67f9998",
-      "secret_name": "DA_AI_GATEWAY_NAME"
+      "secret_name": "DA_AI_GATEWAY_NAME_STG"
     }
   ],
   "version_metadata": {
