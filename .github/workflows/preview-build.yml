@@ -58,18 +58,21 @@ jobs:
         run: |
           if [[ "${{ needs.check-changes.outputs.is_pr }}" == "true" ]]; then
             echo "tag_name=preview-pr-${{ needs.check-changes.outputs.pr_number }}" >> $GITHUB_OUTPUT
+            echo "allow_updates=true" >> $GITHUB_OUTPUT
           elif [[ "${{ needs.check-changes.outputs.is_nightly }}" == "true" ]]; then
-            echo "tag_name=preview-nightly" >> $GITHUB_OUTPUT
+            echo "tag_name=nightly-${{ github.run_id }}" >> $GITHUB_OUTPUT
+            echo "allow_updates=false" >> $GITHUB_OUTPUT
           else
              # Manual trigger or fallback
              echo "tag_name=preview-manual-${{ github.run_number }}" >> $GITHUB_OUTPUT
+             echo "allow_updates=true" >> $GITHUB_OUTPUT
           fi
         shell: bash
 
       - name: Publish Release
         uses: ncipollo/release-action@v1
         with:
-          allowUpdates: true
+          allowUpdates: ${{ steps.tag.outputs.allow_updates }}
           artifacts: "packages/*"
           generateReleaseNotes: true
           makeLatest: false
