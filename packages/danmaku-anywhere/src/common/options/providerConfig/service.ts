@@ -74,18 +74,29 @@ export class ProviderConfigService {
     return this.options.get()
   }
 
-  async getFirstAutomaticProvider(): Promise<
-    BuiltInDanDanPlayProvider | DanDanPlayCompatProvider
-  > {
+  async getFirstAutomaticProvider(): Promise<ProviderConfig> {
     const configs = await this.options.get()
+    // Look for any provider that supports automatic mode (DanDanPlay, Bilibili, or Tencent)
     const config = configs.find(
-      (item) => item.impl === DanmakuSourceType.DanDanPlay
+      (item) =>
+        item.enabled &&
+        (item.impl === DanmakuSourceType.DanDanPlay ||
+          item.impl === DanmakuSourceType.Bilibili ||
+          item.impl === DanmakuSourceType.Tencent)
     )
     if (!config) {
       throw new Error('No automatic provider found')
     }
-    assertProviderConfigImpl(config, DanmakuSourceType.DanDanPlay)
     return config
+  }
+
+  supportsAutomaticMode(config: ProviderConfig): boolean {
+    // Providers that support automatic mode are those that implement findEpisode
+    return (
+      config.impl === DanmakuSourceType.DanDanPlay ||
+      config.impl === DanmakuSourceType.Bilibili ||
+      config.impl === DanmakuSourceType.Tencent
+    )
   }
 
   async getBuiltInDanDanPlay(): Promise<BuiltInDanDanPlayProvider> {

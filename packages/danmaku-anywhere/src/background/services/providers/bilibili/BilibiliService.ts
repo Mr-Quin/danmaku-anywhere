@@ -20,6 +20,7 @@ import type {
   SeasonSearchParams,
 } from '../IDanmakuProvider'
 import { BilibiliMapper } from './BilibiliMapper'
+import { findBilibiliEpisodeInList } from './episodeMatching'
 
 export class BilibiliService implements IDanmakuProvider {
   private logger: typeof Logger
@@ -50,6 +51,33 @@ export class BilibiliService implements IDanmakuProvider {
     this.logger.debug('Search result', result)
 
     return result.map(BilibiliMapper.toSeasonInsert)
+  }
+
+  async findEpisode(
+    season: Season,
+    episodeNumber: number
+  ): Promise<WithSeason<EpisodeMeta> | null> {
+    assertProviderType(season, DanmakuSourceType.Bilibili)
+
+    const episodes = await this.getEpisodes(season.providerIds)
+
+    if (episodes.length === 0) {
+      throw new Error(`No episodes found for season: ${season.title}`)
+    }
+
+    const episode = findBilibiliEpisodeInList(episodes, episodeNumber)
+
+    if (!episode) {
+      return null
+    }
+
+    assertProviderType(episode, DanmakuSourceType.Bilibili)
+
+    return {
+      ...episode,
+      seasonId: season.id,
+      season,
+    }
   }
 
   async getBangumiInfo({

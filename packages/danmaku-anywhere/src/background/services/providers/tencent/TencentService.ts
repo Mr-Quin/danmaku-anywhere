@@ -20,6 +20,7 @@ import type {
   SeasonSearchParams,
 } from '../IDanmakuProvider'
 import { TencentMapper } from './TencentMapper'
+import { findTencentEpisodeInList } from './episodeMatching'
 
 export class TencentService implements IDanmakuProvider {
   private logger: typeof Logger
@@ -56,6 +57,33 @@ export class TencentService implements IDanmakuProvider {
     this.logger.debug('Search result', result)
 
     return result.map(TencentMapper.toSeasonInsert)
+  }
+
+  async findEpisode(
+    season: Season,
+    episodeNumber: number
+  ): Promise<WithSeason<EpisodeMeta> | null> {
+    assertProviderType(season, DanmakuSourceType.Tencent)
+
+    const episodes = await this.getEpisodes(season.providerIds)
+
+    if (episodes.length === 0) {
+      throw new Error(`No episodes found for season: ${season.title}`)
+    }
+
+    const episode = findTencentEpisodeInList(episodes, episodeNumber)
+
+    if (!episode) {
+      return null
+    }
+
+    assertProviderType(episode, DanmakuSourceType.Tencent)
+
+    return {
+      ...episode,
+      seasonId: season.id,
+      season,
+    }
   }
 
   async getEpisodes(
