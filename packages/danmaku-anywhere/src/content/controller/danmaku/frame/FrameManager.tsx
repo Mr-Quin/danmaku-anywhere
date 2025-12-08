@@ -14,6 +14,8 @@ import { useMigrateDanmaku } from '@/content/controller/danmaku/frame/useMigrate
 import { usePreloadNextEpisode } from '@/content/controller/danmaku/frame/usePreloadNextEpisode'
 import { useStore } from '@/content/controller/store/store'
 
+const logger = Logger.sub('[FrameManager]')
+
 export const FrameManager = () => {
   const { t } = useTranslation()
   const { toast } = useToast()
@@ -100,7 +102,7 @@ export const FrameManager = () => {
           }
         },
       },
-      { logger: Logger.sub('[Controller]') }
+      { logger }
     )
 
     controllerRpcServer.listen()
