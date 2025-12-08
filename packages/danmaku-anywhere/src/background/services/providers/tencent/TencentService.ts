@@ -19,8 +19,8 @@ import type {
   ParseUrlResult,
   SeasonSearchParams,
 } from '../IDanmakuProvider'
-import { TencentMapper } from './TencentMapper'
 import { findTencentEpisodeInList } from './episodeMatching'
+import { TencentMapper } from './TencentMapper'
 
 export class TencentService implements IDanmakuProvider {
   private logger: typeof Logger

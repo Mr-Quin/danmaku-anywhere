@@ -13,11 +13,10 @@ import type {
   BuiltInBilibiliProvider,
   BuiltInDanDanPlayProvider,
   BuiltInTencentProvider,
-  DanDanPlayCompatProvider,
   ProviderConfig,
 } from './schema'
 import { providerConfigSchema } from './schema'
-import { assertProviderConfigImpl, assertProviderConfigType } from './utils'
+import { assertProviderConfigType } from './utils'
 
 const providerConfigOptions = new OptionsService<ProviderConfig[]>(
   'providerConfig',

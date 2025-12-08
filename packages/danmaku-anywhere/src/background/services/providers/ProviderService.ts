@@ -1,5 +1,6 @@
 import type {
   ByProvider,
+  CustomEpisode,
   CustomSeason,
   Episode,
   EpisodeMeta,
@@ -268,10 +269,10 @@ export class ProviderService {
    */
   private async findLocalCustomEpisode(
     title: string
-  ): Promise<WithSeason<EpisodeMeta> | null> {
+  ): Promise<CustomEpisode | undefined> {
     const options = await this.extensionOptionsService.get()
     if (!options.matchLocalDanmaku) {
-      return null
+      return undefined
     }
 
     return this.danmakuService.matchLocalByTitle(stripExtension(title))
@@ -284,19 +285,17 @@ export class ProviderService {
     mapKey: string,
     seasonId: number | undefined,
     automaticProviderId: string
-  ): Promise<Season | null> {
+  ): Promise<Season | undefined> {
     // If seasonId is provided directly, use it
     if (seasonId) {
       this.logger.debug('Using provided season id')
       const season = await this.seasonService.getById(seasonId)
       if (season) {
         // Save the mapping for future use
-        await this.titleMappingService.add(
-          SeasonMap.fromSeason(mapKey, season)
-        )
+        await this.titleMappingService.add(SeasonMap.fromSeason(mapKey, season))
         return season
       }
-      return null
+      return undefined
     }
 
     // Try to find season from existing mapping
@@ -309,7 +308,7 @@ export class ProviderService {
       }
     }
 
-    return null
+    return undefined
   }
 
   /**
