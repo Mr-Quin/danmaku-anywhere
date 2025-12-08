@@ -26,9 +26,8 @@ const extractTitleSchema = z.object({
 
 export const validateTitleInput = zValidator('json', extractTitleSchema)
 
-type ExtractInput<T> = T extends MiddlewareHandler<infer _, infer __, infer I>
-  ? I
-  : never
+type ExtractInput<T> =
+  T extends MiddlewareHandler<infer _, infer __, infer I> ? I : never
 
 export type ExtractTitleInput = ExtractInput<typeof validateTitleInput>
 
@@ -62,11 +61,12 @@ const interactWithGemini = async (
   const GEMINI_API_KEY = await env.DANMAKU_GEMINI_API_KEY.get()
   const DA_AI_GATEWAY_NAME = await env.DA_AI_GATEWAY_NAME.get()
   const DA_AI_GATEWAY_ID = await env.DA_AI_GATEWAY_ID.get()
+  const modelName = env.GEMINI_MODEL
   const genAI = new GoogleGenerativeAI(GEMINI_API_KEY)
 
   const model = genAI.getGenerativeModel(
     {
-      model: 'gemini-2.0-flash',
+      model: modelName,
       systemInstruction,
     },
     {
