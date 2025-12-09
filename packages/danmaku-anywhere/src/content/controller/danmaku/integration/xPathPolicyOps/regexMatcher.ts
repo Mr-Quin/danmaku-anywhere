@@ -1,136 +1,273 @@
-import type { IntegrationPolicySelector } from '@/common/options/integrationPolicyStore/schema'
-import { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
+import { chineseToNumber } from './chineseToNumber'
 
-const DEFAULT_REGEX = '.*'
-
-export const sortSelectors = (selectors: IntegrationPolicySelector[]) => {
-  const quick = selectors.filter((s) => s.quick)
-  const slow = selectors.filter((s) => !s.quick)
-  return [...quick, ...slow].map((s) => s.value)
+export interface RegexMatchResult {
+  value: string | number
+  raw: string
 }
 
-/**
- * For parsing numbers like episode and season numbers
- */
-export const parseMediaNumber = (text: string, regex: string) => {
-  const match = text.match(new RegExp(regex, 'im'))
+export const RegexUtils = {
+  /**
+   * Parse regex that might return a string or number.
+   * @deprecated primarily use specific extractors below
+   */
+  parseMediaString(text: string, regex: string): string | undefined {
+    // Legacy support wrapper or direct regex
+    try {
+      const r = new RegExp(regex)
+      const m = r.exec(text)
+      if (m && m[1]) return m[1]
+    } catch {
+      // ignore
+    }
+    return undefined
+  },
 
-  if (match === null) {
-    throw new Error(
-      `Error parsing number.\nRegex ${regex} does not match text \`${text}\``
-    )
-  }
+  parseMediaNumber(text: string, regex: string): number | undefined {
+    try {
+      const r = new RegExp(regex)
+      const m = r.exec(text)
+      if (m && m[1]) return Number.parseInt(m[1], 10)
+    } catch {
+      // ignore
+    }
+    return undefined
+  },
 
-  // Prefer the first capture group if it exists
-  const parseIndex = match[1] ? 1 : 0
-  const parsed = Number.parseInt(match[parseIndex])
+  // === New Robust Extractors ===
 
-  if (isNaN(parsed)) {
-    throw new Error(
-      `Matched \`${match}\` in \`${text}\` using ${regex}, but parsing at index ${parseIndex} as number resulted in NaN`
-    )
-  }
+  extractSeason(
+    text: string,
+    userRegex?: string | { value: string }[]
+  ): RegexMatchResult | null {
+    if (!text) return null
 
-  return parsed
+    // 1. User Regex
+    if (userRegex) {
+      const regexes = Array.isArray(userRegex)
+        ? userRegex.map((r) => r.value)
+        : typeof userRegex === 'string'
+          ? [userRegex]
+          : []
+      for (const regex of regexes) {
+        try {
+          const r = new RegExp(regex)
+          const m = r.exec(text)
+          if (m && m[1]) return { value: m[1], raw: m[0] } // Approximate raw if user regex
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    // 2. Common Patterns (Strict)
+    // Avoid "DNS1" matching "S1"
+    const sPatterns = [
+      // S1, Season 1
+      /(?:^|\s|[\[(])S(\d+)(?:$|\s|[\])])/i,
+      /(?:^|\s)Season\s*(\d+)(?:$|\s)/i,
+      // Chinese
+      /第\s*(\d+)\s*季/,
+      /第\s*([零一二三四五六七八九十百]+)\s*季/,
+    ]
+
+    for (const pat of sPatterns) {
+      const m = pat.exec(text)
+      if (m) {
+        const val = m[1]
+        const raw = m[0].trim()
+
+        // If chinese
+        const cnVal = chineseToNumber(val)
+        if (cnVal !== null) return { value: cnVal.toString(), raw }
+        return { value: val, raw }
+      }
+    }
+
+    return null
+  },
+
+  extractEpisode(
+    text: string,
+    userRegex?: string | { value: string }[]
+  ): RegexMatchResult | null {
+    if (!text) return null
+
+    // 1. User Regex
+    if (userRegex) {
+      const regexes = Array.isArray(userRegex)
+        ? userRegex.map((r) => r.value)
+        : typeof userRegex === 'string'
+          ? [userRegex]
+          : []
+      for (const regex of regexes) {
+        try {
+          const r = new RegExp(regex)
+          const m = r.exec(text)
+          if (m && m[1]) {
+            // Try to parse number
+            const num = Number.parseInt(m[1], 10)
+            if (!Number.isNaN(num)) return { value: num, raw: m[0] }
+            const cn = chineseToNumber(m[1])
+            if (cn !== null) return { value: cn, raw: m[0] }
+            // Fallback to strict num parsing if needed, but user regex might return anything
+            // Assuming episode is number for now
+            return null
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    // 2. Common Patterns (Strict)
+
+    const patterns = [
+      // S1E1 - match the E part specifically. S part handled elsewhere or ignored here.
+      // We look for E followed by digits
+      /(?:^|\s|[\[(])E(\d+)(?:$|\s|[\])])/i,
+      // "Episode 1"
+      /(?:^|\s)Ep(?:isode)?\.?\s*(\d+)(?:$|\s)/i,
+      // Chinese
+      /第\s*(\d+)\s*[集话]/,
+      /第\s*([零一二三四五六七八九十百]+)\s*[集话]/,
+      // Simple trailing number "Title 12" -> 12
+      // Be careful: "Title 2023" -> year?
+      // Strict end of line anchor
+      /\s(\d+)$/,
+    ]
+
+    for (const pat of patterns) {
+      const m = pat.exec(text)
+      if (m) {
+        const val = m[1]
+        const raw = m[0].trim()
+        // If chinese
+        const cnVal = chineseToNumber(val)
+        if (cnVal !== null) return { value: cnVal, raw }
+        return { value: Number.parseInt(val, 10), raw }
+      }
+    }
+
+    // Combined S_E_ check for strictly getting Episode if simpler checks failed or for confirmation
+    const combined = /S\d+E(\d+)/i
+    const m = combined.exec(text)
+    if (m) {
+      return { value: Number.parseInt(m[1], 10), raw: m[0] }
+    }
+
+    return null
+  },
+
+  extractTitle(
+    text: string,
+    userRegex?: string | { value: string }[]
+  ): string | null {
+    if (!text) return null
+
+    // 1. User Regex
+    if (userRegex) {
+      const regexes = Array.isArray(userRegex)
+        ? userRegex.map((r) => r.value)
+        : typeof userRegex === 'string'
+          ? [userRegex]
+          : []
+      for (const regex of regexes) {
+        try {
+          const r = new RegExp(regex)
+          const m = r.exec(text) // Assume user regex captures title in group 1
+          if (m && m[1]) return m[1].trim()
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    // 2. Fallbacks
+    return text.trim()
+  },
+
+  // Legacy Adapters to keep API close to what might be expected or to simplify migration
+  parseMultipleRegex<T>(
+    parser: (text: string, regex: string) => T | undefined,
+    text: string,
+    regex?: string | { value: string }[]
+  ): T | undefined {
+    if (!regex) return undefined
+    const regexes = Array.isArray(regex) ? regex.map((r) => r.value) : [regex]
+
+    for (const r of regexes) {
+      const res = parser(text, r)
+      if (res !== undefined) return res
+    }
+    return undefined
+  },
+
+  parseMediaFromTitle(
+    titleText: string,
+    regex?: string | { value: string }[]
+  ): { title: string; season?: string; episode?: number } {
+    const info = {
+      title: titleText,
+      season: undefined as string | undefined,
+      episode: undefined as number | undefined,
+    }
+
+    // 1. User Regex for Title
+    if (regex) {
+      const regexes = Array.isArray(regex) ? regex.map((r) => r.value) : [regex]
+      for (const r of regexes) {
+        try {
+          const reg = new RegExp(r)
+          const m = reg.exec(titleText)
+          if (m) {
+            // heuristic: if group 1 exists, use it as title
+            if (m[1]) info.title = m[1]
+            break
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    // Robust Extraction
+    const s = RegexUtils.extractSeason(titleText)
+    if (s) info.season = s.value as string
+
+    const e = RegexUtils.extractEpisode(titleText)
+    if (e) info.episode = e.value as number
+
+    return info
+  },
 }
 
-/**
- * For parsing strings like season and episode titles
- */
-export const parseMediaString = (text: string, regex: string) => {
-  const match = text.match(new RegExp(regex, 'im'))
+// Export individual functions to match the imports in extractMediaInfo originally (if we want to preserve that style)
+// But I will probably refactor `extractMediaInfo` to use `RegexUtils` object or the exports below.
 
-  if (match === null) {
-    throw new Error(
-      `Error parsing string.\nRegex ${regex} does not match text \`${text}\``
-    )
-  }
+export const parseMediaString = RegexUtils.parseMediaString
+export const parseMediaNumber = RegexUtils.parseMediaNumber
+export const parseMultipleRegex = RegexUtils.parseMultipleRegex
 
-  // Prefer the first capture group if it exists
-  return match[1] ?? match[0]
-}
-
-export const parseMultipleRegex = <T>(
-  parser: (text: string, regex: string) => T,
+// Adapter for the complex one
+export function parseMediaFromTitle(
   text: string,
-  regex: IntegrationPolicySelector[]
-): T | undefined => {
-  const errors: string[] = []
-
-  if (regex.length === 0) {
-    return parser(text, DEFAULT_REGEX)
-  }
-
-  for (const reg of sortSelectors(regex)) {
-    try {
-      if (reg === '') {
-        return parser(text, DEFAULT_REGEX)
-      }
-      return parser(text, reg)
-    } catch (err) {
-      console.error(err)
-      if (err instanceof Error) {
-        errors.push(err.message)
-      }
-    }
-  }
-
-  throw new Error(errors.join('\n'))
+  regex?: string | { value: string }[]
+) {
+  const info = RegexUtils.parseMediaFromTitle(text, regex)
+  return info
 }
 
-// Try to parse the media info from the title alone
-// Expect regex to use named capture groups
-export const parseMediaFromTitle = (
-  title: string,
-  regex: IntegrationPolicySelector[]
-): MediaInfo => {
-  const errors: string[] = []
-
-  for (const reg of sortSelectors(regex)) {
-    try {
-      const match = title.match(new RegExp(reg, 'i'))
-
-      if (match === null) {
-        errors.push(
-          `Error parsing media from title.\nRegex \`${reg}\` does not match text \`${title}\``
-        )
-        continue
-      }
-
-      const titleText = match.groups?.title
-      const episode = match.groups?.episode
-      const season = match.groups?.season
-      const episodeTitle = match.groups?.episodeTitle
-
-      // Title must be present
-      if (!titleText) {
-        errors.push(
-          `Matched \`${match}\` in \`${title}\` using \`${reg}\`, but the title is not found. Did you forget to name the capture group?`
-        )
-        continue
-      }
-
-      // If the episode is not present, assume this is non-episodic
-      if (!episode) {
-        return new MediaInfo(titleText, 1, season, episodeTitle)
-      }
-
-      const episodeNumber = Number.parseInt(episode)
-
-      if (isNaN(episodeNumber)) {
-        errors.push(
-          `Matched \`${match}\` in \`${title}\` using ${reg}, but parsing episode number resulted in NaN`
-        )
-        continue
-      }
-
-      return new MediaInfo(titleText, episodeNumber, season, episodeTitle)
-    } catch (err) {
-      if (err instanceof Error) {
-        errors.push(err.message)
-      }
-    }
-  }
-
-  throw new Error(errors.join('\n'))
+/**
+ * Sort selectors by quick flag, then by value.
+ * Used in element matching.
+ */
+export function sortSelectors(
+  selectors: { value: string; quick: boolean }[]
+): string[] {
+  return selectors
+    .sort((a, b) => {
+      if (a.quick === b.quick) return 0
+      return a.quick ? -1 : 1
+    })
+    .map((s) => s.value)
 }
