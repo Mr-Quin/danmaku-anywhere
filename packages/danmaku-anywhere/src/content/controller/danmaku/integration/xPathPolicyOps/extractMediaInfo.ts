@@ -76,7 +76,7 @@ export function extractMediaInfo(
 
     // Episode Extraction
     if (elements.episode) {
-      const parsedEpisode = RegexUtils.extractEpisode(
+      const parsedEpisode = RegexUtils.extractEpisodeNumber(
         elements.episode,
         policy.episode.regex
       )

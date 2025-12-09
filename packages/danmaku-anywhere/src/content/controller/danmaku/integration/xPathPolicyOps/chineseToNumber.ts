@@ -23,6 +23,7 @@ export function chineseToNumber(text: string): number | null {
   if (!text) {
     return null
   }
+
   if (/^\d+$/.test(text)) {
     return Number.parseInt(text, 10)
   }

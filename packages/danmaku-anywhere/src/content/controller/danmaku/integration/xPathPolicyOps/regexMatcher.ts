@@ -5,6 +5,24 @@ export interface RegexMatchResult {
   raw: string
 }
 
+function regexMatchWithGroup(
+  text: string,
+  regex: string
+): [string, string] | null {
+  try {
+    const r = new RegExp(regex)
+    const m = r.exec(text)
+    if (m) {
+      // prefer the first group if available, otherwise use the full match
+      const matched = m[1] ?? m[0]
+      return [matched, m[0]]
+    }
+  } catch {
+    // ignore
+  }
+  return null
+}
+
 export const RegexUtils = {
   /**
    * Parse regex that might return a string or number.
@@ -86,31 +104,36 @@ export const RegexUtils = {
     return null
   },
 
-  extractEpisode(
+  /**
+   * Extracts an episode number from the given text using:
+   * 1. User regex
+   * 2. Common patterns
+   */
+  extractEpisodeNumber(
     text: string,
-    userRegex?: string | { value: string }[]
+    userRegex?: string[]
   ): RegexMatchResult | null {
-    if (!text) return null
+    if (!text) {
+      return null
+    }
 
-    // 1. User Regex
+    // 1. Prefer User Regex
     if (userRegex) {
-      const regexes = Array.isArray(userRegex)
-        ? userRegex.map((r) => r.value)
-        : typeof userRegex === 'string'
-          ? [userRegex]
-          : []
-      for (const regex of regexes) {
+      for (const regex of userRegex) {
         try {
-          const r = new RegExp(regex)
-          const m = r.exec(text)
-          if (m && m[1]) {
-            // Try to parse number
-            const num = Number.parseInt(m[1], 10)
-            if (!Number.isNaN(num)) return { value: num, raw: m[0] }
-            const cn = chineseToNumber(m[1])
-            if (cn !== null) return { value: cn, raw: m[0] }
-            // Fallback to strict num parsing if needed, but user regex might return anything
-            // Assuming episode is number for now
+          const res = regexMatchWithGroup(text, regex)
+
+          if (res) {
+            const [value, raw] = res
+            const num = Number.parseInt(value, 10)
+            if (!Number.isNaN(num)) {
+              return { value: num, raw }
+            }
+
+            const cn = chineseToNumber(value)
+            if (cn !== null) {
+              return { value: cn, raw }
+            }
             return null
           }
         } catch {
@@ -119,21 +142,18 @@ export const RegexUtils = {
       }
     }
 
-    // 2. Common Patterns (Strict)
-
+    // 2. Common Patterns
     const patterns = [
-      // S1E1 - match the E part specifically. S part handled elsewhere or ignored here.
+      // S1E1 - match the E part specifically.
       // We look for E followed by digits
       /(?:^|\s|[\[(])E(\d+)(?:$|\s|[\])])/i,
       // "Episode 1"
-      /(?:^|\s)Ep(?:isode)?\.?\s*(\d+)(?:$|\s)/i,
+      /(?:^|\s)Ep(?:isode)?\.?\s+(\d+)(?:$|\s)/i,
       // Chinese
       /第\s*(\d+)\s*[集话]/,
       /第\s*([零一二三四五六七八九十百]+)\s*[集话]/,
-      // Simple trailing number "Title 12" -> 12
-      // Be careful: "Title 2023" -> year?
-      // Strict end of line anchor
-      /\s(\d+)$/,
+      // S_E_
+      /S\d+E(\d+)/i,
     ]
 
     for (const pat of patterns) {
@@ -141,41 +161,30 @@ export const RegexUtils = {
       if (m) {
         const val = m[1]
         const raw = m[0].trim()
-        // If chinese
+
         const cnVal = chineseToNumber(val)
-        if (cnVal !== null) return { value: cnVal, raw }
+        if (cnVal !== null) {
+          return { value: cnVal, raw }
+        }
         return { value: Number.parseInt(val, 10), raw }
       }
-    }
-
-    // Combined S_E_ check for strictly getting Episode if simpler checks failed or for confirmation
-    const combined = /S\d+E(\d+)/i
-    const m = combined.exec(text)
-    if (m) {
-      return { value: Number.parseInt(m[1], 10), raw: m[0] }
     }
 
     return null
   },
 
-  extractTitle(
-    text: string,
-    userRegex?: string | { value: string }[]
-  ): string | null {
+  extractTitle(text: string, userRegex?: string[]): string | null {
     if (!text) return null
 
     // 1. User Regex
     if (userRegex) {
-      const regexes = Array.isArray(userRegex)
-        ? userRegex.map((r) => r.value)
-        : typeof userRegex === 'string'
-          ? [userRegex]
-          : []
-      for (const regex of regexes) {
+      for (const regex of userRegex) {
         try {
-          const r = new RegExp(regex)
-          const m = r.exec(text) // Assume user regex captures title in group 1
-          if (m && m[1]) return m[1].trim()
+          const res = regexMatchWithGroup(text, regex)
+          if (res) {
+            const [value] = res
+            return value.trim()
+          }
         } catch {
           // ignore
         }
@@ -204,18 +213,17 @@ export const RegexUtils = {
 
   parseMediaFromTitle(
     titleText: string,
-    regex?: string | { value: string }[]
-  ): { title: string; season?: string; episode?: number } {
+    userRegex?: string[]
+  ): { title: string; episode?: number } {
     const info = {
       title: titleText,
-      season: undefined as string | undefined,
       episode: undefined as number | undefined,
     }
+    let season = ''
 
-    // 1. User Regex for Title
-    if (regex) {
-      const regexes = Array.isArray(regex) ? regex.map((r) => r.value) : [regex]
-      for (const r of regexes) {
+    // 1. User Regex
+    if (userRegex) {
+      for (const r of userRegex) {
         try {
           const reg = new RegExp(r)
           const m = reg.exec(titleText)
@@ -232,10 +240,18 @@ export const RegexUtils = {
 
     // Robust Extraction
     const s = RegexUtils.extractSeason(titleText)
-    if (s) info.season = s.value as string
+    if (s) {
+      season = s.value as string
+    }
 
-    const e = RegexUtils.extractEpisode(titleText)
-    if (e) info.episode = e.value as number
+    const e = RegexUtils.extractEpisodeNumber(titleText)
+    if (e) {
+      info.episode = e.value as number
+    }
+
+    if (season) {
+      info.title = info.title + ' ' + season
+    }
 
     return info
   },

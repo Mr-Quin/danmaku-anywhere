@@ -28,38 +28,65 @@ vi.mock('@/content/controller/danmaku/integration/models/MediaInfo', () => {
   }
 })
 
-function mockElement(text: string | undefined): any {
-  if (text === undefined) return undefined
-  return { textContent: text }
+function mockElement(text: string | undefined): Node | null {
+  if (text === undefined) {
+    return null
+  }
+  return { textContent: text } as Node
+}
+
+function createMediaElements({
+  title,
+  season,
+  episode,
+  episodeTitle,
+}: {
+  title: string
+  season?: string
+  episode?: string
+  episodeTitle?: string
+}): {
+  title: Node
+  season: Node | null
+  episode: Node | null
+  episodeTitle: Node | null
+} {
+  return {
+    title: mockElement(title) as Node,
+    season: mockElement(season),
+    episode: mockElement(episode),
+    episodeTitle: mockElement(episodeTitle),
+  }
 }
 
 function mockPolicy(
   overrides: Partial<IntegrationPolicy> = {}
 ): IntegrationPolicy {
   return {
-    id: 'test',
-    name: 'test',
-    host: 'test.com',
-    url: 'test.com',
-    options: { titleOnly: false },
-    title: { regex: [], select: '' }, // regex now array
-    season: { regex: [], select: '' },
-    episode: { regex: [], select: '' },
-    episodeTitle: { regex: [], select: '' },
+    options: {
+      titleOnly: false,
+      useAI: false,
+      dandanplay: {
+        useMatchApi: false,
+      },
+    },
+    title: { regex: [], selector: [] }, // regex now array
+    season: { regex: [], selector: [] },
+    episode: { regex: [], selector: [] },
+    episodeTitle: { regex: [], selector: [] },
     ...overrides,
-  } as any
+  }
 }
 
 describe('extractMediaInfo', () => {
   it('should merge separate season string into title', () => {
-    const titleEl = mockElement('My Show')
-    const seasonEl = mockElement('S2')
-    const episodeEl = mockElement('E5')
+    const elements = createMediaElements({
+      title: 'My Show',
+      season: 'S2',
+      episode: 'E5',
+    })
 
-    const result = extractMediaInfo(
-      { title: titleEl, season: seasonEl, episode: episodeEl } as any,
-      mockPolicy()
-    )
+    const result = extractMediaInfo(elements, mockPolicy())
 
     expect(result.success).toBe(true)
     if (result.success) {
@@ -72,13 +99,12 @@ describe('extractMediaInfo', () => {
   })
 
   it('should NOT merge if already present', () => {
-    const titleEl = mockElement('My Show S2')
-    const seasonEl = mockElement('S2') // Redundant info
+    const elements = createMediaElements({
+      title: 'My Show S2',
+      season: 'S2',
+    })
 
-    const result = extractMediaInfo(
-      { title: titleEl, season: seasonEl } as any,
-      mockPolicy()
-    )
+    const result = extractMediaInfo(elements, mockPolicy())
 
     expect(result.success).toBe(true)
     if (result.success) {
@@ -87,13 +113,12 @@ describe('extractMediaInfo', () => {
   })
 
   it('should merge Chinese format', () => {
-    const titleEl = mockElement('我的动画')
-    const seasonEl = mockElement('第二季')
+    const elements = createMediaElements({
+      title: '我的动画',
+      season: '第二季',
+    })
 
-    const result = extractMediaInfo(
-      { title: titleEl, season: seasonEl } as any,
-      mockPolicy()
-    )
+    const result = extractMediaInfo(elements, mockPolicy())
 
     expect(result.success).toBe(true)
     if (result.success) {
@@ -102,13 +127,13 @@ describe('extractMediaInfo', () => {
   })
 
   it('should extract episode strictly', () => {
-    const titleEl = mockElement('Show')
-    const episodeEl = mockElement('Episode 12')
+    const elements = createMediaElements({
+      title: 'Show',
+      episode: 'Episode 12',
+    })
 
-    const result = extractMediaInfo(
-      { title: titleEl, episode: episodeEl } as any,
-      mockPolicy()
-    )
+    const result = extractMediaInfo(elements, mockPolicy())
+
     if (result.success) {
       expect(result.mediaInfo.episode).toBe(12)
     }

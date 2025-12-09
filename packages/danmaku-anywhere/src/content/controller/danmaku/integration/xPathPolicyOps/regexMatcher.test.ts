@@ -35,36 +35,48 @@ describe('RegexUtils', () => {
     })
   })
 
-  describe('extractEpisode', () => {
+  describe('extractEpisodeNumber', () => {
     it('should prefer user regex', () => {
-      expect(RegexUtils.extractEpisode('My Show E5', 'E(\\d+)')?.value).toBe(5)
+      expect(
+        RegexUtils.extractEpisodeNumber('My Show E5', ['E(\\d+)'])?.value
+      ).toBe(5)
+      expect(RegexUtils.extractEpisodeNumber('A2B', ['\\d'])?.value).toBe(2)
     })
 
     it('should handle common formats', () => {
-      expect(RegexUtils.extractEpisode('My Show E1')?.value).toBe(1)
-      expect(RegexUtils.extractEpisode('My Show Episode 2')?.value).toBe(2)
-      expect(RegexUtils.extractEpisode('S1E03')?.value).toBe(3)
+      expect(RegexUtils.extractEpisodeNumber('My Show E1')?.value).toBe(1)
+      expect(RegexUtils.extractEpisodeNumber('My Show E1')?.raw).toBe('E1')
+      expect(RegexUtils.extractEpisodeNumber('My Show Episode 2')?.value).toBe(
+        2
+      )
+      expect(RegexUtils.extractEpisodeNumber('My Show S1E03')?.value).toBe(3)
+      expect(RegexUtils.extractEpisodeNumber('My Show S1E03')?.raw).toBe(
+        'S1E03'
+      )
+      expect(RegexUtils.extractEpisodeNumber('S1E03')?.value).toBe(3)
+      expect(RegexUtils.extractEpisodeNumber('episode 102')?.value).toBe(102)
     })
 
     it('should handle Chinese formats', () => {
-      expect(RegexUtils.extractEpisode('我的动画 第一话')?.value).toBe(1)
-      expect(RegexUtils.extractEpisode('我的动画 第2集')?.value).toBe(2)
+      expect(RegexUtils.extractEpisodeNumber('我的动画 第一话')?.value).toBe(1)
+      expect(RegexUtils.extractEpisodeNumber('我的动画 第一话')?.raw).toBe(
+        '第一话'
+      )
+      expect(RegexUtils.extractEpisodeNumber('我的动画 第2集')?.value).toBe(2)
+      expect(RegexUtils.extractEpisodeNumber('第1话 我的动画')?.value).toBe(1)
+      expect(RegexUtils.extractEpisodeNumber('第12话')?.value).toBe(12)
     })
 
     it('should return raw match', () => {
-      const res = RegexUtils.extractEpisode('My Show E05')
+      const res = RegexUtils.extractEpisodeNumber('My Show E05')
       expect(res?.value).toBe(5)
       expect(res?.raw).toBe('E05')
     })
 
-    it('should handle trailing number heuristic', () => {
-      expect(RegexUtils.extractEpisode('My Show 12')?.value).toBe(12)
-    })
-
     it('should be strict', () => {
-      // "Apple12" should not be episode 12?
-      expect(RegexUtils.extractEpisode('Apple12')).toBe(null) // \s(\d+)$ requires space
-      expect(RegexUtils.extractEpisode('Apple 12')?.value).toBe(12)
+      expect(RegexUtils.extractEpisodeNumber('Apple12')).toBe(null)
+      expect(RegexUtils.extractEpisodeNumber('episode2')).toBe(null)
+      expect(RegexUtils.extractEpisodeNumber('AppleE12')).toBe(null)
     })
   })
 })
