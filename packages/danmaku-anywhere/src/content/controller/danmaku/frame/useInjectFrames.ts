@@ -76,8 +76,9 @@ export const useInjectFrames = () => {
           })
           return
         }
+      } else {
+        injectFrameMutation.mutate(frame)
       }
-      injectFrameMutation.mutate(frame)
     })
 
     // when a frame is removed, remove it from the store

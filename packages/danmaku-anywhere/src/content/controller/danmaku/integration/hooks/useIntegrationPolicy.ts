@@ -1,10 +1,9 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { Logger } from '@/common/Logger'
-import { integrationData } from '@/common/options/mountConfig/integrationData'
 import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
@@ -12,18 +11,20 @@ import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
-import { IntegrationPolicyObserver } from '@/content/controller/danmaku/integration/observers/IntegrationPolicyObserver'
+import type { MediaObserver } from '@/content/controller/danmaku/integration/observers/MediaObserver'
+import { ObserverFactory } from '@/content/controller/danmaku/integration/observers/ObserverFactory'
 import { useStore } from '@/content/controller/store/store'
+import { useSyncIntegrationManualMode } from './useSyncIntegrationManualMode'
+import { useWarnIncompleteConfig } from './useWarnIncompleteConfig'
 
 export const useIntegrationPolicy = () => {
   const { t } = useTranslation()
 
   const { toast } = useToast()
 
-  const observer = useRef<IntegrationPolicyObserver>(undefined)
+  const [observer, setObserver] = useState<MediaObserver | null>(null)
 
   const videoId = useStore.use.videoId?.()
-  const { toggleManualMode, isManual } = useStore.use.danmaku()
   const unmountDanmaku = useUnmountDanmaku()
   const {
     setMediaInfo,
@@ -31,6 +32,7 @@ export const useIntegrationPolicy = () => {
     activate,
     deactivate,
     setFoundElements,
+    resetIntegration,
   } = useStore.use.integration()
 
   const matchEpisode = useMatchEpisode()
@@ -39,41 +41,17 @@ export const useIntegrationPolicy = () => {
   const integrationPolicy = useActiveIntegration()
   const activeConfig = useActiveConfig()
 
-  useEffect(() => {
-    if (activeConfig.mode !== 'manual') {
-      toggleManualMode(false)
-      toast.info(
-        t('integration.alert.usingMode', 'Using Mode: {{mode}}', {
-          mode: integrationData[activeConfig.mode].label(),
-        })
-      )
-    } else {
-      toggleManualMode(true)
-    }
-    Logger.debug(`Using mode: ${activeConfig.mode}`)
-  }, [activeConfig])
+  const isManual = useSyncIntegrationManualMode()
+  const isConfigIncomplete = useWarnIncompleteConfig()
 
   useEffect(() => {
-    if (activeConfig.mode === 'xpath' && !integrationPolicy) {
-      toast.warn(
-        t(
-          'integration.alert.noIntegration',
-          'Integration policy not configured'
+    if (isManual || isConfigIncomplete) {
+      if (observer) {
+        Logger.debug(
+          'Destroying integration observer because manual mode or config is incomplete'
         )
-      )
-    }
-  }, [activeConfig, integrationPolicy])
-
-  useEffect(() => {
-    if (
-      !videoId ||
-      isManual ||
-      (!integrationPolicy && activeConfig.mode === 'xpath')
-    ) {
-      if (observer.current) {
-        Logger.debug('Destroying integration observer')
-        observer.current?.destroy()
-        observer.current = undefined
+        observer.destroy()
+        setObserver(null)
         deactivate()
       }
       return
@@ -89,109 +67,120 @@ export const useIntegrationPolicy = () => {
       return
     }
 
-    // Create the observer if it hasn't been created yet
-    if (!observer.current) {
-      activate()
-      observer.current = new IntegrationPolicyObserver(
-        integrationPolicy?.policy ?? null,
-        {
-          useAi: activeConfig.mode === 'ai',
-        }
-      )
+    const newObserver = ObserverFactory.create(
+      activeConfig.mode,
+      integrationPolicy?.policy ?? null
+    )
 
-      observer.current.on({
-        mediaChange: (state: MediaInfo) => {
-          getTrackingService().track('integrationPolicyMediaChange', {
-            mediaInfo: state.toJSON(),
-            policy: integrationPolicy,
-          })
-          if (observer.current?.getOptions().useAi) {
-            toast.success(
-              t('integration.alert.AIResult', 'AI Parsing Result: {{title}}', {
-                title: state.toString(),
-              })
-            )
-          }
-          if (useStore.getState().danmaku.isMounted) {
-            unmountDanmaku.mutate()
-          }
+    activate()
 
-          setMediaInfo(state)
-          setErrorMessage()
-
-          const episodeMatchPayload = {
-            mapKey: state.getKey(),
-            title: state.seasonTitle,
-            episodeNumber: state.episode,
-          }
-
-          toast.info(
-            t('integration.alert.search', 'Searching for anime: {{title}}', {
+    newObserver.on({
+      mediaChange: (state: MediaInfo) => {
+        getTrackingService().track('integrationPolicyMediaChange', {
+          mediaInfo: state.toJSON(),
+          policy: integrationPolicy,
+        })
+        if (activeConfig.mode === 'ai') {
+          toast.success(
+            t('integration.alert.AIResult', 'AI Parsing Result: {{title}}', {
               title: state.toString(),
             })
           )
+        }
+        if (useStore.getState().danmaku.isMounted) {
+          unmountDanmaku.mutate()
+        }
 
-          matchEpisode.mutate(episodeMatchPayload, {
-            onSuccess: (result) => {
-              if (result.data.status !== 'success') {
-                return
-              }
-              if (result.data.data.provider === DanmakuSourceType.MacCMS) {
-                toast.success(
-                  t(
-                    'integration.alert.matchedLocalDanmaku',
-                    'Matched local danmaku'
-                  )
-                )
-                void mountDanmaku([result.data.data])
-              } else {
-                loadMutation.mutate(
-                  {
-                    type: 'by-meta',
-                    meta: result.data.data,
-                    options: {
-                      forceUpdate: false,
-                    },
-                  },
-                  {
-                    onError: () => {
-                      toast.error(
-                        t(
-                          'danmaku.alert.fetchError',
-                          'Failed to fetch danmaku: {{message}}',
-                          {
-                            message: episodeMatchPayload.title,
-                          }
-                        )
-                      )
-                    },
-                  }
-                )
-              }
-            },
-          })
-        },
-        mediaElementsChange: () => {
-          setFoundElements(true)
-        },
-        error: (error: Error) => {
-          getTrackingService().track('integrationPolicyError', { error })
-          toast.error(error.message)
-          setErrorMessage(error.message)
-        },
-      })
+        setMediaInfo(state)
+        setErrorMessage()
 
-      if (activeConfig.mode === 'ai') {
+        const episodeMatchPayload = {
+          mapKey: state.getKey(),
+          title: state.seasonTitle,
+          episodeNumber: state.episode,
+        }
+
         toast.info(
-          t('integration.alert.usingAI', 'Using AI to parse show information')
+          t('integration.alert.search', 'Searching for anime: {{title}}', {
+            title: state.toString(),
+          })
         )
-      }
+
+        matchEpisode.mutate(episodeMatchPayload, {
+          onSuccess: (result) => {
+            if (result.data.status !== 'success') {
+              return
+            }
+            if (result.data.data.provider === DanmakuSourceType.MacCMS) {
+              toast.success(
+                t(
+                  'integration.alert.matchedLocalDanmaku',
+                  'Matched local danmaku'
+                )
+              )
+              void mountDanmaku([result.data.data])
+            } else {
+              loadMutation.mutate(
+                {
+                  type: 'by-meta',
+                  meta: result.data.data,
+                  options: {
+                    forceUpdate: false,
+                  },
+                },
+                {
+                  onError: () => {
+                    toast.error(
+                      t(
+                        'danmaku.alert.fetchError',
+                        'Failed to fetch danmaku: {{message}}',
+                        {
+                          message: episodeMatchPayload.title,
+                        }
+                      )
+                    )
+                  },
+                }
+              )
+            }
+          },
+        })
+      },
+      mediaElementsChange: () => {
+        setFoundElements(true)
+      },
+      error: (error: Error) => {
+        getTrackingService().track('integrationPolicyError', { error })
+        toast.error(error.message)
+        setErrorMessage(error.message)
+      },
+    })
+
+    if (activeConfig.mode === 'ai') {
+      toast.info(
+        t('integration.alert.usingAI', 'Using AI to parse show information')
+      )
     }
 
-    observer.current.setup(integrationPolicy?.policy)
+    newObserver.setup()
+    setObserver(newObserver)
 
     return () => {
-      observer.current?.reset()
+      newObserver.destroy()
+      setObserver(null)
     }
-  }, [activeConfig, integrationPolicy, isManual, videoId])
+  }, [activeConfig, integrationPolicy, isManual, isConfigIncomplete])
+
+  // Effect to restart observer when videoId changes
+  useEffect(() => {
+    if (!observer) {
+      return
+    }
+    if (videoId) {
+      observer.run()
+    } else {
+      observer.reset()
+      resetIntegration()
+    }
+  }, [videoId, observer])
 }

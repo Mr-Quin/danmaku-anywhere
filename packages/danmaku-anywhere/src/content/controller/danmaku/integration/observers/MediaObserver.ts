@@ -13,6 +13,7 @@ interface IntegrationHandlers {
   episodeChange: (episode: number) => void
   mediaChange: (state: MediaInfo) => void
   mediaElementsChange: (elements: MediaElements) => void
+  statusChange: (status: string) => void
   error: (err: Error) => void
 }
 
@@ -22,12 +23,34 @@ type Fn = (...args: any[]) => void
 
 export abstract class MediaObserver {
   private subscriptions: Map<IntegrationEventKey, Set<Fn>>
+  protected mediaInfo?: MediaInfo
+  protected status = ''
 
   protected constructor() {
     this.subscriptions = new Map()
   }
 
+  // For any one-time setup
   abstract setup(): void
+
+  abstract run(): void
+  abstract reset(): void
+
+  protected updateMediaInfo(mediaInfo: MediaInfo) {
+    if (this.mediaInfo?.equals(mediaInfo)) {
+      return
+    }
+    this.mediaInfo = mediaInfo
+    this.emit('mediaChange', mediaInfo)
+  }
+
+  protected updateStatus(status: string) {
+    if (this.status === status) {
+      return
+    }
+    this.status = status
+    this.emit('statusChange', status)
+  }
 
   on(handlers: Partial<IntegrationHandlers>) {
     Object.entries(handlers).forEach(([event, eventHandler]) => {

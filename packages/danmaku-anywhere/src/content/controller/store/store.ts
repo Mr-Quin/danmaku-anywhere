@@ -82,6 +82,7 @@ interface StoreState {
     setErrorMessage: (errMessage?: string) => void
     mediaInfo?: MediaInfo
     setMediaInfo: (mediaInfo: MediaInfo) => void
+    resetIntegration: () => void
   }
 
   /**
@@ -224,6 +225,12 @@ const useStoreBase = create<StoreState>()(
       setMediaInfo: (mediaInfo) =>
         set((state) => {
           state.integration.mediaInfo = mediaInfo
+        }),
+      resetIntegration: () =>
+        set((state) => {
+          state.integration.mediaInfo = undefined
+          state.integration.foundElements = false
+          state.integration.errorMessage = undefined
         }),
     },
 
