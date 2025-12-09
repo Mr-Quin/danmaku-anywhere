@@ -67,11 +67,6 @@ export const useIntegrationPolicy = () => {
       return
     }
 
-    if (observer) {
-      Logger.debug('Destroying integration observer to create a new one')
-      observer.destroy()
-    }
-
     const newObserver = ObserverFactory.create(
       activeConfig.mode,
       integrationPolicy?.policy ?? null
@@ -174,7 +169,7 @@ export const useIntegrationPolicy = () => {
     setObserver(newObserver)
 
     return () => {
-      observer?.destroy()
+      newObserver.destroy()
       setObserver(null)
     }
   }, [activeConfig, integrationPolicy, isManual, isConfigIncomplete])
@@ -186,7 +181,7 @@ export const useIntegrationPolicy = () => {
     }
     if (videoId) {
       Logger.debug('Video changed, restarting observer')
-      observer.restart()
+      observer.run()
     } else {
       Logger.debug('Video removed, resetting observer')
       observer.reset()

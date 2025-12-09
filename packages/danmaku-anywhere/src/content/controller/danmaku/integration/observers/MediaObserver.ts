@@ -33,7 +33,7 @@ export abstract class MediaObserver {
   // For any one-time setup
   abstract setup(): void
 
-  abstract restart(): void
+  abstract run(): void
   abstract reset(): void
 
   protected updateMediaInfo(mediaInfo: MediaInfo) {

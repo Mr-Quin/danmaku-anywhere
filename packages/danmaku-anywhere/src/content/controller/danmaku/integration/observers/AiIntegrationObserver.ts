@@ -130,8 +130,8 @@ export class AiIntegrationObserver extends MediaObserver {
     // noop
   }
 
-  restart() {
-    this.logger.debug('Restarting observer')
+  run() {
+    this.logger.debug('Running observer')
     this.reset()
     this.setupAi()
   }

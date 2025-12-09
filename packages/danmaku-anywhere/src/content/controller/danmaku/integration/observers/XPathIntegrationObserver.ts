@@ -163,7 +163,7 @@ export class XPathIntegrationObserver extends MediaObserver {
     // When the title element is removed, rerun setup
     const observer = createRemovalMutationObserver(elements.title, () => {
       this.logger.debug('Title element removed, rerunning setup')
-      this.restart()
+      this.run()
     })
 
     this.observerMap.set('removal', observer)
@@ -173,10 +173,10 @@ export class XPathIntegrationObserver extends MediaObserver {
     // noop
   }
 
-  restart() {
-    this.logger.debug('Restarting observer')
+  run() {
+    this.logger.debug('Running observer')
     this.reset()
-    this.setupXpath()
+    void this.setupXpath()
   }
 
   destroy() {

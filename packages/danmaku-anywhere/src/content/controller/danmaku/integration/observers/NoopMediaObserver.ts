@@ -8,7 +8,7 @@ export class NoopMediaObserver extends MediaObserver {
   setup() {
     // noop
   }
-  restart() {
+  run() {
     // noop
   }
   reset() {
@@ -16,6 +16,5 @@ export class NoopMediaObserver extends MediaObserver {
   }
   destroy() {
     super.destroy()
-    // noop
   }
 }
