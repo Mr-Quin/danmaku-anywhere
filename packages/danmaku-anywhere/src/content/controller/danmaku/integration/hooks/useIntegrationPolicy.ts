@@ -149,9 +149,6 @@ export const useIntegrationPolicy = () => {
       mediaElementsChange: () => {
         setFoundElements(true)
       },
-      statusChange: (status: string) => {
-        Logger.debug('Observer status:', status)
-      },
       error: (error: Error) => {
         getTrackingService().track('integrationPolicyError', { error })
         toast.error(error.message)
@@ -180,10 +177,8 @@ export const useIntegrationPolicy = () => {
       return
     }
     if (videoId) {
-      Logger.debug('Video changed, restarting observer')
       observer.run()
     } else {
-      Logger.debug('Video removed, resetting observer')
       observer.reset()
       resetIntegration()
     }
