@@ -3,7 +3,7 @@ import type {
   IntegrationPolicySelector,
 } from '@/common/options/integrationPolicyStore/schema'
 import { getElementByXpath } from '@/common/utils/utils'
-import { sortSelectors } from '@/content/controller/danmaku/integration/xPathPolicyOps/regexMatcher'
+import { sortSelectors } from '@/content/controller/danmaku/integration/xPathPolicyOps/mediaRegexMatcher'
 import type { MediaElements } from '../observers/MediaObserver'
 
 function matchFirstNode(

@@ -1,32 +1,6 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import type { IntegrationPolicy } from '@/common/options/integrationPolicyStore/schema'
 import { extractMediaInfo } from './extractMediaInfo'
-
-// Mock i18n
-vi.mock('@/common/localization/i18n', () => ({
-  i18n: {
-    t: (key: string, defaultVal?: string, opts?: any) => {
-      if (key === 'anime.numericSeason') return `Season ${opts?.season}`
-      if (key === 'anime.numericEpisode') return `Episode ${opts?.episode}`
-      return defaultVal || key
-    },
-  },
-}))
-
-// Mock MediaInfo to inspect constructor args easily if needed,
-// though we can check the result object
-vi.mock('@/content/controller/danmaku/integration/models/MediaInfo', () => {
-  return {
-    MediaInfo: class {
-      constructor(
-        public seasonTitle: string,
-        public episode = 1,
-        public seasonDecorator?: string,
-        public episodeTitle?: string
-      ) {}
-    },
-  }
-})
 
 function mockElement(text: string | undefined): Node | null {
   if (text === undefined) {

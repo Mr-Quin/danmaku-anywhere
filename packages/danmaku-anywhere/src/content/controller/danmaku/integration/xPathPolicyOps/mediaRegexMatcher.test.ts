@@ -1,22 +1,24 @@
 import { describe, expect, it } from 'vitest'
-import { RegexUtils } from './regexMatcher'
+import { RegexUtils } from './mediaRegexMatcher'
 
 describe('RegexUtils', () => {
   describe('extractSeason', () => {
     it('should prefer user regex', () => {
       // User regex matches number
-      expect(RegexUtils.extractSeason('My Show S5', 'S(\\d+)')?.value).toBe('5')
+      expect(RegexUtils.extractSeason('My Show S5', ['S(\\d+)'])?.value).toBe(
+        '5'
+      )
     })
 
     it('should handle common formats', () => {
-      expect(RegexUtils.extractSeason('My Show S1')?.value).toBe('1')
-      expect(RegexUtils.extractSeason('My Show Season 2')?.value).toBe('2')
-      expect(RegexUtils.extractSeason('My Show Season2')?.value).toBe('2')
+      expect(RegexUtils.extractSeason('My Show S1')?.value).toBe(1)
+      expect(RegexUtils.extractSeason('My Show Season 2')?.value).toBe(2)
+      expect(RegexUtils.extractSeason('My Show Season2')?.value).toBe(2)
     })
 
     it('should handle Chinese formats', () => {
-      expect(RegexUtils.extractSeason('我的动画 第一季')?.value).toBe('1')
-      expect(RegexUtils.extractSeason('我的动画 第2季')?.value).toBe('2')
+      expect(RegexUtils.extractSeason('我的动画 第一季')?.value).toBe(1)
+      expect(RegexUtils.extractSeason('我的动画 第2季')?.value).toBe(2)
     })
 
     it('should be strict (avoid false positives)', () => {
@@ -25,12 +27,12 @@ describe('RegexUtils', () => {
       // "Season1" -> strict boundary check?
       // Our regex is `/(?:^|\s)Season\s*(\d+)/i`
       expect(RegexUtils.extractSeason('TheSeason1')?.value).toBe(undefined) // Should assume fail if no space
-      expect(RegexUtils.extractSeason('The Season 1')?.value).toBe('1')
+      expect(RegexUtils.extractSeason('The Season 1')?.value).toBe(1)
     })
 
     it('should return raw match', () => {
       const res = RegexUtils.extractSeason('My Show S5')
-      expect(res?.value).toBe('5')
+      expect(res?.value).toBe(5)
       expect(res?.raw).toBe('S5')
     })
   })

@@ -1,21 +1,12 @@
 import type { IntegrationPolicy } from '@/common/options/integrationPolicyStore/schema'
 import { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import {
-  parseMediaFromTitle,
   parseMediaString,
   parseMultipleRegex,
-  RegexUtils,
-} from '@/content/controller/danmaku/integration/xPathPolicyOps/regexMatcher'
+  sortSelectors,
+} from '@/content/controller/danmaku/integration/xPathPolicyOps/mediaRegexMatcher'
 import type { MediaElements } from '../observers/MediaObserver'
-
-const getText = (elements: MediaElements) => {
-  return {
-    title: elements.title.textContent,
-    episode: elements.episode?.textContent ?? null,
-    season: elements.season?.textContent ?? null,
-    episodeTitle: elements.episodeTitle?.textContent ?? null,
-  }
-}
+import { MediaParser } from './MediaParser'
 
 type MediaExtractionResult =
   | {
@@ -32,101 +23,77 @@ export function extractMediaInfo(
   policy: IntegrationPolicy
 ): MediaExtractionResult {
   try {
-    const elements = getText(matchResult)
-    const titleText = elements.title
-
-    if (!titleText) {
-      return {
-        success: false,
-        error: 'Title element not found',
-      }
+    // 1. Parse using Pipeline
+    const parser = new MediaParser()
+    const rawTitle = matchResult.title.textContent || ''
+    const rawSeason = matchResult.season?.textContent
+    const rawEpisode = matchResult.episode?.textContent
+    const titleField = {
+      value: rawTitle,
+      regex: sortSelectors(policy.title.regex),
     }
+    const seasonField = rawSeason
+      ? {
+          value: rawSeason,
+          regex: sortSelectors(policy.season.regex),
+        }
+      : undefined
+    const episodeField = rawEpisode
+      ? {
+          value: rawEpisode,
+          regex: sortSelectors(policy.episode.regex),
+        }
+      : undefined
 
-    // If titleOnly is true, then try to parse the media info from the title alone
-    if (policy.options.titleOnly) {
-      const extracted = parseMediaFromTitle(titleText, policy.title.regex)
-      const mediaInfo = new MediaInfo(
-        extracted.title,
-        extracted.episode ?? 1,
-        extracted.season,
-        undefined
-      )
-      return {
-        success: true,
-        mediaInfo: mediaInfo,
-      }
-    }
+    const result = parser.parse({
+      title: titleField,
+      season: seasonField,
+      episode: episodeField,
+    })
 
-    // Title Extraction
-    let title = RegexUtils.extractTitle(titleText, policy.title.regex)
-
-    if (title === undefined || title === null) {
-      return {
-        success: false,
-        error: `Error parsing title: ${JSON.stringify({
-          title: titleText,
-          regex: policy.title.regex,
-        })}`,
-      }
-    }
-
-    // Default to 1 if the element is not present
-    let episode = 1
+    // 2. Map to MediaInfo model
+    // Note: MediaInfo construction logic might need to be carefully mapped
+    const { searchTitle, episode } = result
     let episodeTitle: string | undefined = undefined
 
-    // Episode Extraction
-    if (elements.episode) {
-      const parsedEpisode = RegexUtils.extractEpisodeNumber(
-        elements.episode,
-        policy.episode.regex
-      )
-      if (parsedEpisode !== null && parsedEpisode !== undefined) {
-        episode = parsedEpisode.value as number
-      }
-    }
-
-    // Season Extraction & Merging
-    if (elements.season) {
-      const parsedSeason = RegexUtils.extractSeason(
-        elements.season,
-        policy.season.regex
-      )
-      if (parsedSeason) {
-        // Intelligent Merging:
-        // If we found a season string (e.g. "S1", "第1季"), append it to title if not present.
-        // We use the raw match (e.g. "S2") to append.
-        const rawSeason = parsedSeason.raw
-
-        // Simple check to see if title already contains this indication
-        if (!title.includes(rawSeason)) {
-          title = `${title} ${rawSeason}`
-        }
-
-        // We do NOT pass season to MediaInfo because MediaInfo's constructor uses it to decorate
-        // the title further (e.g. adding "Season X"). Since we manually merged it into the title "My Show S1",
-        // we don't want MediaInfo to make it "My Show S1 Season 1".
-        // SO: season remains undefined in MediaInfo constructor call.
-      }
-    }
-
-    // Episode Title
-    if (elements.episodeTitle) {
-      // Assuming this is just string extraction, maybe clean it up?
-      // Old: parseMultipleRegex(parseMediaString, ...)
-      // We can stick to old parseMultipleRegex or use extractTitle/generic string extractor
+    // 3. Handle Episode Title (Legacy/Additional Logic)
+    // The parser doesn't explicitly handle episode title separate from the main pipeline yet,
+    // so we keep the original logic for that part if it exists.
+    if (matchResult.episodeTitle?.textContent) {
       const parsedEpTitle = parseMultipleRegex(
         parseMediaString,
-        elements.episodeTitle,
+        matchResult.episodeTitle.textContent,
         policy.episodeTitle.regex
       )
       if (parsedEpTitle) {
         episodeTitle = parsedEpTitle
+      } else {
+        // If no regex matched, use the raw text if available?
+        // Old logic implied if parseMultipleRegex returns undefined, we get undefined.
+        // But strict reading says if episodeTitle element exists, we might want it.
+        // The old code:
+        /*
+            const parsedEpTitle = parseMultipleRegex(...)
+            if (parsedEpTitle) episodeTitle = parsedEpTitle
+          */
+        // So if regex fails, we don't set it.
       }
     }
 
+    // MediaInfo constructor:
+    // (seasonTitle: string, episode: number, seasonDecorator?: string, episodeTitle?: string)
+    // We pass searchTitle as seasonTitle because that's what we want to search for.
+    // We leave seasonDecorator undefined because we merged season info into searchTitle already.
+    const mediaInfo = new MediaInfo(
+      searchTitle,
+      episode,
+      undefined,
+      episodeTitle
+    )
+
     return {
       success: true,
-      mediaInfo: new MediaInfo(title, episode, undefined, episodeTitle),
+      mediaInfo,
     }
   } catch (e) {
     return {
