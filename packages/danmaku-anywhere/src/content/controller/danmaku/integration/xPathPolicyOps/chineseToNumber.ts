@@ -15,6 +15,8 @@ for (let i = 0; i < cnNums.length; i++) {
 // Handling "两" as 2
 numMap['两'] = 2
 
+const numRegex = /^\d+$/
+
 /**
  * Converts Chinese numbers to Arabic numbers.
  * Supports patterns like "一", "十二", "一百零五".
@@ -24,7 +26,7 @@ export function chineseToNumber(text: string): number | null {
     return null
   }
 
-  if (/^\d+$/.test(text)) {
+  if (numRegex.test(text)) {
     return Number.parseInt(text, 10)
   }
 
@@ -35,7 +37,7 @@ export function chineseToNumber(text: string): number | null {
     return numMap[text]
   }
 
-  // Normalize
+  // can't reuse regex with global flag
   const str = text.replace(/\s/g, '')
 
   // Check for "ten" cases like "十一" (11), "十" (10)

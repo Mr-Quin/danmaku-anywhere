@@ -35,10 +35,16 @@ describe('chineseToNumber', () => {
   })
 
   it('should fallback or return null for invalid', () => {
+    expect(chineseToNumber('')).toBe(null)
     expect(chineseToNumber('Abc')).toBe(null)
+    expect(chineseToNumber('一千ABC')).toBe(null)
+    expect(chineseToNumber('一千123')).toBe(null)
+    expect(chineseToNumber('1一2千3')).toBe(null)
   })
 
   it('should return number if the string is numeric', () => {
     expect(chineseToNumber('1')).toBe(1)
+    expect(chineseToNumber('123')).toBe(123)
+    expect(chineseToNumber('123456789')).toBe(123456789)
   })
 })

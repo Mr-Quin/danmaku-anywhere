@@ -1,3 +1,4 @@
+import { chineseToNumber } from './chineseToNumber'
 import { RegexUtils } from './mediaRegexMatcher'
 import type { ExtractorMatch, MediaInfoParseResult } from './types'
 
@@ -14,6 +15,11 @@ interface MediaParserInput {
   title: ParserInputField
   season?: ParserInputField | null
   episode?: ParserInputField | null
+  episodeTitle?: ParserInputField | null
+}
+
+function convertToNumber(text: string | number): number | null {
+  return typeof text === 'number' ? text : chineseToNumber(text)
 }
 
 export class MediaParser {
@@ -22,6 +28,7 @@ export class MediaParser {
     const rawTitle = input.title
     const rawSeason = input.season
     const rawEpisode = input.episode
+    const rawEpisodeTitle = input.episodeTitle
 
     // 2. Normalize (Optional but recommended for robust UX)
     // Converts full-width chars (１２３) to half-width (123), removes zero-width spaces
@@ -30,21 +37,82 @@ export class MediaParser {
     // 3. Extraction Pipeline
     let seasonMatch: ExtractorMatch | null = null
     let episodeMatch: ExtractorMatch | null = null
+    let episodeTitle: string | undefined = undefined
+
+    // --- STRATEGY: Named Capture Groups (Highest Priority for Title Only) ---
+    // If title regex has named groups "title", "episode", "season", "episodeTitle", respect them.
+    if (rawTitle.regex.length > 0) {
+      // Check if any title regex produces a match with named groups
+      const titleMatch = RegexUtils.runUserRegex(cleanTitleText, rawTitle.regex)
+      if (titleMatch && titleMatch.groups) {
+        const g = titleMatch.groups
+        // If we have at least one useful group, we trust this strategy
+        if (g.title || g.episode || g.season || g.episodeTitle) {
+          // Update title to the captured title group
+          if (g.title) {
+            // We overwrite the raw title with the captured title for consolidation
+            // But we might want to keep originalTitle for display?
+            // "cleanTitleText" is used for further extraction, but if we extracted everything here, we might just return.
+          }
+
+          if (g.episode) {
+            episodeMatch = { value: g.episode, raw: g.episode, index: -1 } // details approximate
+          }
+          if (g.season) {
+            seasonMatch = { value: g.season, raw: g.season, index: -1 }
+          }
+          if (g.episodeTitle) {
+            episodeTitle = g.episodeTitle
+          }
+
+          // Special Case: If "title" group exists, that IS the search title.
+          if (g.title) {
+            return this.consolidate(
+              g.title,
+              seasonMatch,
+              episodeMatch,
+              episodeTitle
+            )
+          }
+        }
+      }
+    }
 
     // --- STRATEGY A: Explicit Fields (High Confidence) ---
     if (rawSeason) {
-      seasonMatch = this.extractField(
+      const match = this.extractField(
         rawSeason.value,
         rawSeason.regex,
         'season'
       )
+      if (match) seasonMatch = match
     }
     if (rawEpisode) {
-      episodeMatch = this.extractField(
+      const match = this.extractField(
         rawEpisode.value,
         rawEpisode.regex,
         'episode'
       )
+      if (match) episodeMatch = match
+    }
+
+    // Episode Title (Explicit)
+    // Note: extractField is designed for season/episode (numeric mostly).
+    // For episodeTitle, we just want the string value, optionally applying regex.
+    if (rawEpisodeTitle) {
+      // If regex exists, use it to match
+      if (rawEpisodeTitle.regex.length > 0) {
+        const match = RegexUtils.runUserRegex(
+          rawEpisodeTitle.value,
+          rawEpisodeTitle.regex
+        )
+        if (match) {
+          episodeTitle = match.value.toString()
+        }
+      } else {
+        // No regex, just use value
+        episodeTitle = rawEpisodeTitle.value
+      }
     }
 
     // --- STRATEGY B: Title Fallback (Lower Confidence) ---
@@ -67,7 +135,12 @@ export class MediaParser {
     }
 
     // 4. Consolidation & Cleaning
-    return this.consolidate(cleanTitleText, seasonMatch, episodeMatch)
+    return this.consolidate(
+      cleanTitleText,
+      seasonMatch,
+      episodeMatch,
+      episodeTitle
+    )
   }
 
   private extractField(
@@ -76,9 +149,11 @@ export class MediaParser {
     type: 'season' | 'episode'
   ): ExtractorMatch | null {
     // 1. Try User Regex
-    if (userRegex && userRegex.length > 0) {
+    if (userRegex.length > 0) {
       const match = RegexUtils.runUserRegex(text, userRegex)
-      if (match) return match
+      if (match) {
+        return match
+      }
     }
 
     // 2. Try Common Patterns (Heuristics)
@@ -90,7 +165,8 @@ export class MediaParser {
   private consolidate(
     originalTitle: string,
     season: ExtractorMatch | null,
-    episode: ExtractorMatch | null
+    episode: ExtractorMatch | null,
+    episodeTitle?: string
   ): MediaInfoParseResult {
     let searchTitle = originalTitle
     let finalSeason: number | undefined
@@ -101,16 +177,15 @@ export class MediaParser {
     // Example: "Horizon S01E05" -> Remove "E05" -> Search "Horizon S01"
 
     if (episode) {
-      finalEpisode =
-        typeof episode.value === 'number'
-          ? episode.value
-          : Number.parseInt(episode.value as string, 10)
-
-      // If the match came from the title string, strip it for the search query
-      if (originalTitle.includes(episode.raw)) {
-        // Be careful not to strip "S1" if it was part of "S1E1" match group
-        // This is a simplified stripper; real-world needs token checks
-        searchTitle = searchTitle.replace(episode.raw, '').trim()
+      const numericEpisode = convertToNumber(episode.value)
+      if (numericEpisode !== null) {
+        finalEpisode = numericEpisode
+        // If the match came from the title string, strip it for the search query
+        if (originalTitle.includes(episode.raw)) {
+          // Be careful not to strip "S1" if it was part of "S1E1" match group
+          // This is a simplified stripper; real-world needs token checks
+          searchTitle = searchTitle.replace(episode.raw, '').trim()
+        }
       }
     }
 
@@ -118,7 +193,7 @@ export class MediaParser {
       finalSeason =
         typeof season.value === 'number'
           ? season.value
-          : Number.parseInt(season.value as string, 10)
+          : chineseToNumber(season.value)!
 
       // Intelligent Merging: Ensure Season IS in the search title
       // If title is "Show Name" and season is "S2", search title becomes "Show Name S2"
@@ -135,9 +210,10 @@ export class MediaParser {
 
     return {
       searchTitle,
-      displayTitle: originalTitle,
+      originalTitle: originalTitle,
       episode: finalEpisode,
       season: finalSeason,
+      episodeTitle,
     }
   }
 }
