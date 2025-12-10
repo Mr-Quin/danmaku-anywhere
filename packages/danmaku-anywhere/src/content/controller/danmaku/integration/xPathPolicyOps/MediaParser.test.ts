@@ -23,6 +23,20 @@ describe('MediaParser', () => {
       expect(
         parser.parse({
           title: {
+            value: '败犬女主太多了！ 第三集 在战斗开始前就输了',
+            regex: ['(?<title>.+) 第(?<episode>.+)集 (?<episodeTitle>.*)'],
+          },
+        })
+      ).toMatchObject({
+        originalTitle: '败犬女主太多了！ 第三集 在战斗开始前就输了',
+        searchTitle: '败犬女主太多了!',
+        episode: 3,
+        episodeTitle: '在战斗开始前就输了',
+      })
+
+      expect(
+        parser.parse({
+          title: {
             value: 'Attack on Titan S4E10 A Sound Argument',
             regex: [
               '(?<title>.+) S(?<season>\\d+)E(?<episode>\\d+) (?<episodeTitle>.*)',
@@ -30,7 +44,7 @@ describe('MediaParser', () => {
           },
         })
       ).toMatchObject({
-        originalTitle: 'Attack on Titan S4',
+        originalTitle: 'Attack on Titan S4 E10 A Sound Argument',
         searchTitle: 'Attack on Titan S4',
         episode: 10,
         episodeTitle: 'A Sound Argument',

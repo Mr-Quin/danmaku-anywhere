@@ -68,6 +68,7 @@ export class MediaParser {
           // Special Case: If "title" group exists, that IS the search title.
           if (g.title) {
             return this.consolidate(
+              rawTitle.value,
               g.title,
               seasonMatch,
               episodeMatch,
@@ -85,7 +86,9 @@ export class MediaParser {
         rawSeason.regex,
         'season'
       )
-      if (match) seasonMatch = match
+      if (match) {
+        seasonMatch = match
+      }
     }
     if (rawEpisode) {
       const match = this.extractField(
@@ -93,7 +96,9 @@ export class MediaParser {
         rawEpisode.regex,
         'episode'
       )
-      if (match) episodeMatch = match
+      if (match) {
+        episodeMatch = match
+      }
     }
 
     // Episode Title (Explicit)
@@ -136,6 +141,7 @@ export class MediaParser {
 
     // 4. Consolidation & Cleaning
     return this.consolidate(
+      rawTitle.value,
       cleanTitleText,
       seasonMatch,
       episodeMatch,
@@ -164,12 +170,12 @@ export class MediaParser {
 
   private consolidate(
     originalTitle: string,
+    parsedTitle: string,
     season: ExtractorMatch | null,
     episode: ExtractorMatch | null,
     episodeTitle?: string
   ): MediaInfoParseResult {
-    let searchTitle = originalTitle
-    let finalSeason: number | undefined
+    let searchTitle = parsedTitle
     let finalEpisode = 1
 
     // Logic: If the episode was found INSIDE the title, we usually want to remove it
@@ -177,11 +183,12 @@ export class MediaParser {
     // Example: "Horizon S01E05" -> Remove "E05" -> Search "Horizon S01"
 
     if (episode) {
+      console.log('Episode match:', episode)
       const numericEpisode = convertToNumber(episode.value)
       if (numericEpisode !== null) {
         finalEpisode = numericEpisode
         // If the match came from the title string, strip it for the search query
-        if (originalTitle.includes(episode.raw)) {
+        if (parsedTitle.includes(episode.raw)) {
           // Be careful not to strip "S1" if it was part of "S1E1" match group
           // This is a simplified stripper; real-world needs token checks
           searchTitle = searchTitle.replace(episode.raw, '').trim()
@@ -190,11 +197,7 @@ export class MediaParser {
     }
 
     if (season) {
-      finalSeason =
-        typeof season.value === 'number'
-          ? season.value
-          : chineseToNumber(season.value)!
-
+      console.log('Season match:', season)
       // Intelligent Merging: Ensure Season IS in the search title
       // If title is "Show Name" and season is "S2", search title becomes "Show Name S2"
       // If title is "Show Name S2", we don't add it again.
@@ -210,9 +213,8 @@ export class MediaParser {
 
     return {
       searchTitle,
-      originalTitle: originalTitle,
+      originalTitle,
       episode: finalEpisode,
-      season: finalSeason,
       episodeTitle,
     }
   }

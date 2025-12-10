@@ -15,7 +15,13 @@ export const RegexUtils = {
         const m = reg.exec(text)
         if (m) {
           const val = m[1] ?? m[0]
-          return { value: val, raw: m[0], index: m.index, groups: m.groups }
+          return {
+            value: val,
+            raw: m[0],
+            index: m.index,
+            groups: m.groups,
+            regex: r.toString(),
+          }
         }
       } catch {
         continue
@@ -39,7 +45,12 @@ export const RegexUtils = {
       if (m) {
         const val = chineseToNumber(m[1])
         if (val !== null) {
-          return { value: val, raw: m[0].trim(), index: m.index }
+          return {
+            value: val,
+            raw: m[0].trim(),
+            index: m.index,
+            regex: pat.toString(),
+          }
         }
       }
     }
