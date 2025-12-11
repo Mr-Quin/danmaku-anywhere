@@ -1,4 +1,6 @@
 export const PATTERNS = {
+  // season patterns intentionally captures the whole string rather than the numeric part
+  // this is because season is used in the search key, so it should be the same as the original title
   SEASON: [
     /(?:^|\s|[\[(])(S\d+)(?:$|\s|[\])])/i, // S1
     /(?:^|\s)(Season\s*\d+)(?:$|\s)/i, // Season 1

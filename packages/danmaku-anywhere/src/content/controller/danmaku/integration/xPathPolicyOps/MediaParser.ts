@@ -167,9 +167,7 @@ export class MediaParser {
         input.season?.regex ?? [],
         'season'
       )
-      console.log('Looking for season', ctx.originalTitle)
       if (match) {
-        console.log('Found season', match)
         ctx.result.season = match.raw
       }
     }
