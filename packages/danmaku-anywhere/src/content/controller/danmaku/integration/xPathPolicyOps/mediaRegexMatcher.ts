@@ -1,8 +1,7 @@
-import { chineseToNumber } from './chineseToNumber'
 import { PATTERNS } from './mediaRegexPatterns'
 import type { ExtractorMatch } from './types'
 
-export const RegexUtils = {
+export const mediaRegexMatcher = {
   // for running user-provided regexes
   runUserRegex(text: string, regexes: string[]): ExtractorMatch | null {
     if (!regexes.length) {
@@ -43,7 +42,7 @@ export const RegexUtils = {
     for (const pat of patterns) {
       const m = pat.exec(text)
       if (m) {
-        const val = chineseToNumber(m[1])
+        const val = m[1]
         if (val !== null) {
           return {
             value: val,

@@ -1,152 +1,198 @@
 import { chineseToNumber } from './chineseToNumber'
-import { RegexUtils } from './mediaRegexMatcher'
+import { mediaRegexMatcher } from './mediaRegexMatcher'
 import type { ExtractorMatch, MediaInfoParseResult } from './types'
-
-function normalizeText(text: string): string {
-  return text.normalize('NFKC').trim()
-}
 
 interface ParserInputField {
   value: string
   regex: string[]
 }
 
-interface MediaParserInput {
+export interface MediaParserInput {
   title: ParserInputField
   season?: ParserInputField | null
   episode?: ParserInputField | null
   episodeTitle?: ParserInputField | null
 }
 
-function convertToNumber(text: string | number): number | null {
-  return typeof text === 'number' ? text : chineseToNumber(text)
+class ParsingContext {
+  searchTitle: string
+  originalTitle: string
+
+  result: {
+    season?: string
+    episode?: number
+    episodeTitle?: string
+  } = {}
+
+  episodeMatchIndex: number | null = null
+
+  constructor(originalTitle: string) {
+    this.originalTitle = originalTitle
+    this.searchTitle = this.originalTitle
+  }
+
+  public appendSeason(seasonId: string) {
+    const numericSeason = chineseToNumber(seasonId)
+    if (numericSeason !== null) {
+      // season is numeric
+      if (!this.searchTitle.includes(`S${numericSeason}`)) {
+        this.searchTitle = `${this.searchTitle} S${numericSeason}`
+      }
+    } else {
+      const trimmedSeasonId = seasonId.trim()
+      if (!this.searchTitle.includes(trimmedSeasonId)) {
+        this.searchTitle = `${this.searchTitle} ${trimmedSeasonId}`
+      }
+    }
+  }
+}
+
+function coerceToNumber(val: string | number): number {
+  if (typeof val === 'number') {
+    return val
+  }
+  return chineseToNumber(val) ?? Number.parseInt(val, 10)
 }
 
 export class MediaParser {
   public parse(input: MediaParserInput): MediaInfoParseResult {
-    // 1. Gather Candidates
-    const rawTitle = input.title
-    const rawSeason = input.season
-    const rawEpisode = input.episode
-    const rawEpisodeTitle = input.episodeTitle
+    const context = new ParsingContext(input.title.value)
 
-    // 2. Normalize (Optional but recommended for robust UX)
-    // Converts full-width chars (１２３) to half-width (123), removes zero-width spaces
-    const cleanTitleText = normalizeText(rawTitle.value)
-
-    // 3. Extraction Pipeline
-    let seasonMatch: ExtractorMatch | null = null
-    let episodeMatch: ExtractorMatch | null = null
-    let episodeTitle: string | undefined = undefined
-
-    // --- STRATEGY: Named Capture Groups (Highest Priority for Title Only) ---
-    // If title regex has named groups "title", "episode", "season", "episodeTitle", respect them.
-    if (rawTitle.regex.length > 0) {
-      // Check if any title regex produces a match with named groups
-      const titleMatch = RegexUtils.runUserRegex(cleanTitleText, rawTitle.regex)
-      if (titleMatch && titleMatch.groups) {
-        const g = titleMatch.groups
-        // If we have at least one useful group, we trust this strategy
-        if (g.title || g.episode || g.season || g.episodeTitle) {
-          // Update title to the captured title group
-          if (g.title) {
-            // We overwrite the raw title with the captured title for consolidation
-            // But we might want to keep originalTitle for display?
-            // "cleanTitleText" is used for further extraction, but if we extracted everything here, we might just return.
-          }
-
-          if (g.episode) {
-            episodeMatch = { value: g.episode, raw: g.episode, index: -1 } // details approximate
-          }
-          if (g.season) {
-            seasonMatch = { value: g.season, raw: g.season, index: -1 }
-          }
-          if (g.episodeTitle) {
-            episodeTitle = g.episodeTitle
-          }
-
-          // Special Case: If "title" group exists, that IS the search title.
-          if (g.title) {
-            return this.consolidate(
-              rawTitle.value,
-              g.title,
-              seasonMatch,
-              episodeMatch,
-              episodeTitle
-            )
-          }
-        }
-      }
+    // Try parsing using regex with named groups
+    if (this.tryApplyNamedGroups(context, input.title.regex)) {
+      return this.finalize(context)
     }
 
-    // --- STRATEGY A: Explicit Fields (High Confidence) ---
-    if (rawSeason) {
+    // Try parsing each field explicitly
+    if (input.season) {
       const match = this.extractField(
-        rawSeason.value,
-        rawSeason.regex,
+        input.season.value,
+        input.season.regex,
         'season'
       )
-      if (match) {
-        seasonMatch = match
-      }
+
+      context.result.season = match
+        ? match.value.toString()
+        : input.season.value
     }
-    if (rawEpisode) {
+
+    if (input.episode) {
       const match = this.extractField(
-        rawEpisode.value,
-        rawEpisode.regex,
+        input.episode.value,
+        input.episode.regex,
         'episode'
       )
       if (match) {
-        episodeMatch = match
-      }
-    }
-
-    // Episode Title (Explicit)
-    // Note: extractField is designed for season/episode (numeric mostly).
-    // For episodeTitle, we just want the string value, optionally applying regex.
-    if (rawEpisodeTitle) {
-      // If regex exists, use it to match
-      if (rawEpisodeTitle.regex.length > 0) {
-        const match = RegexUtils.runUserRegex(
-          rawEpisodeTitle.value,
-          rawEpisodeTitle.regex
-        )
-        if (match) {
-          episodeTitle = match.value.toString()
-        }
+        context.result.episode = coerceToNumber(match.value)
       } else {
-        // No regex, just use value
-        episodeTitle = rawEpisodeTitle.value
+        const numericEpisode = chineseToNumber(input.episode.value)
+        if (numericEpisode) {
+          context.result.episode = numericEpisode
+        }
       }
     }
 
-    // --- STRATEGY B: Title Fallback (Lower Confidence) ---
-    // If we missed fields, look inside the title
-    if (!seasonMatch) {
-      seasonMatch = this.extractField(
-        cleanTitleText,
-        rawSeason?.regex ?? [],
-        'season'
-      )
+    if (input.episodeTitle) {
+      context.result.episodeTitle = input.episodeTitle.value
     }
 
-    // For episode, we extract from title ONLY if we didn't find it in a dedicated element
-    if (!episodeMatch) {
-      episodeMatch = this.extractField(
-        cleanTitleText,
-        rawEpisode?.regex ?? [],
+    this.scanTitleForMissingInfo(context, input)
+
+    this.rebuildSearchTitle(context)
+
+    return this.finalize(context)
+  }
+
+  private tryApplyNamedGroups(ctx: ParsingContext, regexes: string[]): boolean {
+    if (!regexes || regexes.length === 0) return false
+
+    const match = mediaRegexMatcher.runUserRegex(ctx.originalTitle, regexes)
+
+    if (match && match.groups) {
+      const g = match.groups
+
+      if (g.title) {
+        ctx.searchTitle = g.title.trim()
+
+        if (g.season) {
+          ctx.result.season = g.season
+        }
+        if (g.episode) {
+          ctx.result.episode = coerceToNumber(g.episode)
+        }
+        if (g.episodeTitle) {
+          ctx.result.episodeTitle = g.episodeTitle.trim()
+        }
+
+        if (ctx.result.season) {
+          ctx.appendSeason(ctx.result.season)
+        }
+
+        return true
+      }
+    }
+
+    return false
+  }
+
+  private scanTitleForMissingInfo(
+    ctx: ParsingContext,
+    input: MediaParserInput
+  ) {
+    // Look for episode
+    if (ctx.result.episode === undefined) {
+      const match = this.extractField(
+        ctx.originalTitle,
+        input.episode?.regex ?? [],
         'episode'
       )
+      if (match) {
+        ctx.result.episode = coerceToNumber(match.value)
+        ctx.episodeMatchIndex = match.index
+
+        // Check if the match contains a season identifier
+        const combinedSeasonMatch = match.raw.match(
+          /^(S\d+|Season\s?\d+|第.+季)/i
+        )
+        if (combinedSeasonMatch && !ctx.result.season) {
+          ctx.result.season = combinedSeasonMatch[0]
+        }
+      }
     }
 
-    // 4. Consolidation & Cleaning
-    return this.consolidate(
-      rawTitle.value,
-      cleanTitleText,
-      seasonMatch,
-      episodeMatch,
-      episodeTitle
-    )
+    // Look for season if missing
+    if (ctx.result.season === undefined) {
+      const match = this.extractField(
+        ctx.originalTitle,
+        input.season?.regex ?? [],
+        'season'
+      )
+      console.log('Looking for season', ctx.originalTitle)
+      if (match) {
+        console.log('Found season', match)
+        ctx.result.season = match.raw
+      }
+    }
+  }
+
+  private rebuildSearchTitle(ctx: ParsingContext) {
+    // Truncate the title at the episode match index
+    if (ctx.episodeMatchIndex !== null && ctx.episodeMatchIndex >= 0) {
+      ctx.searchTitle = ctx.originalTitle
+        .substring(0, ctx.episodeMatchIndex)
+        .trim()
+
+      if (ctx.result.season) {
+        ctx.appendSeason(ctx.result.season)
+      }
+    }
+    // If no episode found in title, probably non-episode media
+    else if (ctx.result.season) {
+      ctx.appendSeason(ctx.result.season)
+    }
+
+    // Remove double spaces
+    ctx.searchTitle = ctx.searchTitle.replace(/\s+/g, ' ').trim()
   }
 
   private extractField(
@@ -154,68 +200,24 @@ export class MediaParser {
     userRegex: string[],
     type: 'season' | 'episode'
   ): ExtractorMatch | null {
-    // 1. Try User Regex
     if (userRegex.length > 0) {
-      const match = RegexUtils.runUserRegex(text, userRegex)
+      const match = mediaRegexMatcher.runUserRegex(text, userRegex)
       if (match) {
         return match
       }
     }
 
-    // 2. Try Common Patterns (Heuristics)
     return type === 'season'
-      ? RegexUtils.findCommonSeason(text)
-      : RegexUtils.findCommonEpisode(text)
+      ? mediaRegexMatcher.findCommonSeason(text)
+      : mediaRegexMatcher.findCommonEpisode(text)
   }
 
-  private consolidate(
-    originalTitle: string,
-    parsedTitle: string,
-    season: ExtractorMatch | null,
-    episode: ExtractorMatch | null,
-    episodeTitle?: string
-  ): MediaInfoParseResult {
-    let searchTitle = parsedTitle
-    let finalEpisode = 1
-
-    // Logic: If the episode was found INSIDE the title, we usually want to remove it
-    // to create a broader search query.
-    // Example: "Horizon S01E05" -> Remove "E05" -> Search "Horizon S01"
-
-    if (episode) {
-      console.log('Episode match:', episode)
-      const numericEpisode = convertToNumber(episode.value)
-      if (numericEpisode !== null) {
-        finalEpisode = numericEpisode
-        // If the match came from the title string, strip it for the search query
-        if (parsedTitle.includes(episode.raw)) {
-          // Be careful not to strip "S1" if it was part of "S1E1" match group
-          // This is a simplified stripper; real-world needs token checks
-          searchTitle = searchTitle.replace(episode.raw, '').trim()
-        }
-      }
-    }
-
-    if (season) {
-      console.log('Season match:', season)
-      // Intelligent Merging: Ensure Season IS in the search title
-      // If title is "Show Name" and season is "S2", search title becomes "Show Name S2"
-      // If title is "Show Name S2", we don't add it again.
-
-      const seasonIdentifier = season.raw.trim()
-      if (!searchTitle.includes(seasonIdentifier)) {
-        searchTitle = `${searchTitle} ${seasonIdentifier}`
-      }
-    }
-
-    // Cleanup: Remove double spaces or trailing punctuation left by removal
-    searchTitle = searchTitle.replace(/\s+/g, ' ').trim()
-
+  private finalize(ctx: ParsingContext): MediaInfoParseResult {
     return {
-      searchTitle,
-      originalTitle,
-      episode: finalEpisode,
-      episodeTitle,
+      searchTitle: ctx.searchTitle,
+      originalTitle: ctx.originalTitle,
+      episode: ctx.result.episode,
+      episodeTitle: ctx.result.episodeTitle,
     }
   }
 }

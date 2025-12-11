@@ -19,7 +19,6 @@ export function extractMediaInfo(
   policy: IntegrationPolicy
 ): MediaExtractionResult {
   try {
-    // 1. Parse using Pipeline
     const parser = new MediaParser()
     const rawTitle = matchResult.title.textContent || ''
     const rawSeason = matchResult.season?.textContent
@@ -55,13 +54,8 @@ export function extractMediaInfo(
       episodeTitle: episodeTitleField,
     })
 
-    // 2. Map to MediaInfo model
     const { searchTitle, episode, episodeTitle } = result
 
-    // MediaInfo constructor:
-    // (seasonTitle: string, episode: number, seasonDecorator?: string, episodeTitle?: string)
-    // We pass searchTitle as seasonTitle because that's what we want to search for.
-    // We leave seasonDecorator undefined because we merged season info into searchTitle already.
     const mediaInfo = new MediaInfo(
       searchTitle,
       episode,

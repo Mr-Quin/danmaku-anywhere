@@ -1,13 +1,16 @@
 export interface MediaInfoParseResult {
-  searchTitle: string // The clean title used for searching (e.g., "Show Name S2")
-  originalTitle: string // The original full title
-  episode: number
+  // Title which is used for searching and identification
+  searchTitle: string
+  // The original full title as it was found
+  originalTitle: string
+  episode?: number
   episodeTitle?: string
 }
 
 export interface ExtractorMatch {
   value: number | string
-  raw: string // The actual substring matched (e.g., "Season 1")
+  // The actual substring matched
+  raw: string
   index: number
   groups?: Record<string, string>
   regex?: string

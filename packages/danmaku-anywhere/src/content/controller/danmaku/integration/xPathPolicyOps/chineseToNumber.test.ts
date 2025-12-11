@@ -37,6 +37,7 @@ describe('chineseToNumber', () => {
   it('should fallback or return null for invalid', () => {
     expect(chineseToNumber('')).toBe(null)
     expect(chineseToNumber('Abc')).toBe(null)
+    expect(chineseToNumber('一个')).toBe(null)
     expect(chineseToNumber('一千ABC')).toBe(null)
     expect(chineseToNumber('一千123')).toBe(null)
     expect(chineseToNumber('1一2千3')).toBe(null)
