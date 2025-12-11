@@ -1,21 +1,8 @@
 import type { IntegrationPolicy } from '@/common/options/integrationPolicyStore/schema'
 import { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
-import {
-  parseMediaFromTitle,
-  parseMediaNumber,
-  parseMediaString,
-  parseMultipleRegex,
-} from '@/content/controller/danmaku/integration/xPathPolicyOps/regexMatcher'
+import { sortSelectors } from '@/content/controller/danmaku/integration/xPathPolicyOps/mediaRegexMatcher'
 import type { MediaElements } from '../observers/MediaObserver'
-
-const getText = (elements: MediaElements) => {
-  return {
-    title: elements.title.textContent,
-    episode: elements.episode?.textContent ?? null,
-    season: elements.season?.textContent ?? null,
-    episodeTitle: elements.episodeTitle?.textContent ?? null,
-  }
-}
+import { MediaParser } from './MediaParser'
 
 type MediaExtractionResult =
   | {
@@ -32,77 +19,53 @@ export function extractMediaInfo(
   policy: IntegrationPolicy
 ): MediaExtractionResult {
   try {
-    const elements = getText(matchResult)
-    const titleText = elements.title
-
-    if (!titleText) {
-      return {
-        success: false,
-        error: 'Title element not found',
-      }
+    const parser = new MediaParser()
+    const rawTitle = matchResult.title.textContent || ''
+    const rawSeason = matchResult.season?.textContent
+    const rawEpisode = matchResult.episode?.textContent
+    const titleField = {
+      value: rawTitle,
+      regex: sortSelectors(policy.title.regex),
     }
+    const seasonField = rawSeason
+      ? {
+          value: rawSeason,
+          regex: sortSelectors(policy.season.regex),
+        }
+      : undefined
+    const episodeField = rawEpisode
+      ? {
+          value: rawEpisode,
+          regex: sortSelectors(policy.episode.regex),
+        }
+      : undefined
 
-    // If titleOnly is true, then try to parse the media info from the title alone
-    if (policy.options.titleOnly) {
-      const mediaInfo = parseMediaFromTitle(titleText, policy.title.regex)
-      return {
-        success: true,
-        mediaInfo: mediaInfo,
-      }
-    }
+    const episodeTitleField = matchResult.episodeTitle?.textContent
+      ? {
+          value: matchResult.episodeTitle.textContent,
+          regex: sortSelectors(policy.episodeTitle.regex),
+        }
+      : undefined
 
-    const title = parseMultipleRegex(
-      parseMediaString,
-      titleText,
-      policy.title.regex
+    const result = parser.parse({
+      title: titleField,
+      season: seasonField,
+      episode: episodeField,
+      episodeTitle: episodeTitleField,
+    })
+
+    const { searchTitle, episode, episodeTitle } = result
+
+    const mediaInfo = new MediaInfo(
+      searchTitle,
+      episode,
+      undefined,
+      episodeTitle
     )
-
-    if (title === undefined) {
-      return {
-        success: false,
-        error: `Error parsing title: ${JSON.stringify({
-          title: titleText,
-          regex: policy.title.regex,
-        })}`,
-      }
-    }
-
-    // Default to 1 if the element is not present
-    let episode = 1
-    let episodeTitle: string | undefined = undefined
-    let season: string | undefined = undefined
-
-    // If the episode element is not present, assume it's a movie or something that doesn't have episodes
-    if (elements.episode) {
-      const parsedEpisode = parseMultipleRegex(
-        parseMediaNumber,
-        elements.episode,
-        policy.episode.regex
-      )
-      if (parsedEpisode !== undefined) {
-        episode = parsedEpisode
-      }
-    }
-
-    if (elements.season) {
-      season = parseMultipleRegex(
-        parseMediaString,
-        elements.season,
-        policy.season.regex
-      )
-    }
-
-    if (elements.episodeTitle) {
-      episodeTitle = parseMultipleRegex(
-        parseMediaString,
-        elements.episodeTitle,
-        policy.episodeTitle.regex
-      )
-    }
 
     return {
       success: true,
-      mediaInfo: new MediaInfo(title, episode, season, episodeTitle),
+      mediaInfo,
     }
   } catch (e) {
     return {
