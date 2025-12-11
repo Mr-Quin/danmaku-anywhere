@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { mediaRegexMatcher } from './mediaRegexMatcher'
 
-describe('RegexUtils', () => {
+describe('mediaRegexMatcher', () => {
   describe('runUserRegex', () => {
     it('should extract values using user patterns', () => {
       expect(
