@@ -13,11 +13,10 @@ import type {
   BuiltInBilibiliProvider,
   BuiltInDanDanPlayProvider,
   BuiltInTencentProvider,
-  DanDanPlayCompatProvider,
   ProviderConfig,
 } from './schema'
 import { providerConfigSchema } from './schema'
-import { assertProviderConfigImpl, assertProviderConfigType } from './utils'
+import { assertProviderConfigType } from './utils'
 
 const providerConfigOptions = new OptionsService<ProviderConfig[]>(
   'providerConfig',
@@ -65,7 +64,9 @@ export class ProviderConfigService {
   async mustGet(id: string): Promise<ProviderConfig> {
     const config = await this.get(id)
     if (!config) {
-      throw new Error(`Provider config with ID "${id}" not found.`)
+      throw new Error(
+        `Provider config with ID "${id}" not found, it might have been deleted.`
+      )
     }
     return config
   }
@@ -74,18 +75,28 @@ export class ProviderConfigService {
     return this.options.get()
   }
 
-  async getFirstAutomaticProvider(): Promise<
-    BuiltInDanDanPlayProvider | DanDanPlayCompatProvider
-  > {
+  /**
+   * Returns the first automatic provider that is enabled
+   */
+  async getFirstAutomaticProvider(): Promise<ProviderConfig | undefined> {
+    const automaticProviders = await this.getAutomaticProviders()
+    return automaticProviders.find((item) => item.enabled)
+  }
+
+  async getAutomaticProviders(): Promise<ProviderConfig[]> {
     const configs = await this.options.get()
-    const config = configs.find(
-      (item) => item.impl === DanmakuSourceType.DanDanPlay
+
+    return configs.filter(
+      (item) => item.enabled && this.supportsAutomaticMode(item)
     )
-    if (!config) {
-      throw new Error('No automatic provider found')
-    }
-    assertProviderConfigImpl(config, DanmakuSourceType.DanDanPlay)
-    return config
+  }
+
+  supportsAutomaticMode(config: ProviderConfig): boolean {
+    return (
+      config.impl === DanmakuSourceType.DanDanPlay ||
+      config.impl === DanmakuSourceType.Bilibili ||
+      config.impl === DanmakuSourceType.Tencent
+    )
   }
 
   async getBuiltInDanDanPlay(): Promise<BuiltInDanDanPlayProvider> {

@@ -5,6 +5,8 @@ import type {
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import type { MatchingStrategyType } from './MatchingStrategyType'
 
 export interface SeasonSearchRequest {
   keyword: string
@@ -27,18 +29,26 @@ export interface MatchEpisodeInput {
   seasonId?: number
 }
 
+export interface MatchEpisodeMetadata {
+  providerConfig?: ProviderConfig
+  strategy: MatchingStrategyType
+}
+
 export type MatchEpisodeResult =
   | {
       status: 'success'
       data: WithSeason<EpisodeMeta> | CustomEpisode
+      metadata: MatchEpisodeMetadata
     }
   | {
       status: 'disambiguation'
       data: Season[]
+      metadata: MatchEpisodeMetadata
     }
   | {
       status: 'notFound'
       data: null
+      cause: string
     }
 
 export interface GenericVodSearchData {

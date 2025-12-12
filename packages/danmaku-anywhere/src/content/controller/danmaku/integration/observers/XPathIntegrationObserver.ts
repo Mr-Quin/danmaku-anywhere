@@ -64,6 +64,8 @@ const createRemovalMutationObserver = (element: Node, onRemove: () => void) => {
 }
 
 export class XPathIntegrationObserver extends MediaObserver {
+  public readonly name: string = 'XPathIntegrationObserver'
+
   private interval?: NodeJS.Timeout
   private logger = Logger.sub('[XPathIntegrationObserver]')
   private observerMap = new Map<string, MutationObserver>()

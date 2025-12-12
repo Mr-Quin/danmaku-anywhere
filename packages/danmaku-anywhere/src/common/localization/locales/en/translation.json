@@ -19,6 +19,11 @@
   },
   "anime": {
     "episodeTitle": "Episode Title",
+    "matchingStrategy": {
+      "local": "Local",
+      "mapping": "Mapping",
+      "search": "Search"
+    },
     "numericEpisode": "Episode {{episode}}",
     "numericSeason": "Season {{season}}",
     "refreshMetadata": "Refresh Metadata",
@@ -185,11 +190,11 @@
       "aiDisabledTooPermissive": "AI is disabled because the match pattern is too permissive",
       "AIResult": "AI Parsing Result: {{title}}",
       "matchedLocalDanmaku": "Matched local danmaku",
+      "matchError": "Failed to match episode: {{message}}",
+      "noEpisodeMatched": "No episode matched for {{title}}: {{cause}}",
       "noIntegration": "Integration policy not configured",
       "openSearch": "Open search page",
       "search": "Searching for anime: {{title}}",
-      "searchError": "Failed to search for anime: {{message}}",
-      "searchResultEmpty": "No anime found for {{title}}",
       "usingAI": "Using AI to parse show information",
       "usingMode": "Using Mode: {{mode}}"
     },

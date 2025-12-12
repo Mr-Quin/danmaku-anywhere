@@ -1,6 +1,8 @@
 import { MediaObserver } from './MediaObserver'
 
 export class NoopMediaObserver extends MediaObserver {
+  public readonly name: string = 'NoopMediaObserver'
+
   constructor() {
     super()
   }

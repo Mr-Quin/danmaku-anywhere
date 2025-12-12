@@ -22,6 +22,8 @@ type IntegrationEventKey = keyof IntegrationHandlers
 type Fn = (...args: any[]) => void
 
 export abstract class MediaObserver {
+  public readonly name: string = 'MediaObserver'
+
   private subscriptions: Map<IntegrationEventKey, Set<Fn>>
   protected mediaInfo?: MediaInfo
   protected status = ''

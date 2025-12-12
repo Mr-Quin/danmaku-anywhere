@@ -19,6 +19,11 @@
   },
   "anime": {
     "episodeTitle": "集标题",
+    "matchingStrategy": {
+      "local": "本地匹配",
+      "mapping": "映射匹配",
+      "search": "搜索匹配"
+    },
     "numericEpisode": "第{{episode}}集",
     "numericSeason": "第{{season}}季",
     "refreshMetadata": "刷新元数据",
@@ -176,11 +181,11 @@
       "aiDisabledTooPermissive": "AI已禁用：匹配模式过于宽松",
       "AIResult": "AI解析结果：{{title}}",
       "matchedLocalDanmaku": "以匹配本地弹幕",
+      "matchError": "匹配剧集失败：{{message}}",
+      "noEpisodeMatched": "未找到匹配的剧集（{{title}}）：{{cause}}",
       "noIntegration": "未设置适配规则",
       "openSearch": "打开搜索页面",
       "search": "搜索番剧：{{title}}",
-      "searchError": "搜索番剧失败：{{message}}",
-      "searchResultEmpty": "没有找到标题为 {{title}} 的番剧",
       "usingAI": "正在使用AI解析",
       "usingMode": "正在使用模式：{{mode}}"
     },

@@ -25,13 +25,14 @@ export const zVodItem = zVodItemBase.transform((item) => {
   }
 })
 
+// the api sometimes returns strings for numbers, so we use coerce
 export const zVodSearchResponse = z.object({
-  code: z.number(),
+  code: z.coerce.number(),
   msg: z.string().optional(),
-  page: z.number().optional(),
-  pagecount: z.number().optional(),
-  limit: z.number().optional(),
-  total: z.number().optional(),
+  page: z.coerce.number().optional(),
+  pagecount: z.coerce.number().optional(),
+  limit: z.coerce.number().optional(),
+  total: z.coerce.number().optional(),
   list: z.array(zVodItem).default([]),
 })
 
