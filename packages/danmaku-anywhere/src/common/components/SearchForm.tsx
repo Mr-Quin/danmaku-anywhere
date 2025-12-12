@@ -59,14 +59,15 @@ export const SearchForm = ({
         handleSearch()
       }}
     >
-      <Stack direction="row" spacing={1} alignItems="start">
+      <Stack direction="column" spacing={1} alignItems="start">
         <TextField
-          label={t('searchPage.title', 'Title')}
           value={searchTerm}
           onChange={(e) => handleKeywordChange(e.target.value)}
+          placeholder={t('searchPage.searchPlaceholder', 'Search title...')}
           fullWidth
           required
           autoFocus
+          size="small"
           {...textFieldProps}
           {...withStopPropagation()}
         />
@@ -75,8 +76,12 @@ export const SearchForm = ({
           loading={isLoading}
           variant="contained"
           disabled={!searchTerm}
+          size="small"
+          fullWidth
+          autoCapitalize="none"
         >
           <Search />
+          {t('searchPage.search', 'Search')}
         </Button>
       </Stack>
       <FormControlLabel

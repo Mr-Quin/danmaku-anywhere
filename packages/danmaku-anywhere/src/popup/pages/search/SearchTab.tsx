@@ -80,7 +80,7 @@ export const SearchTab = () => {
 
   return (
     <>
-      <Box p={2}>
+      <Box p={1} pt={0}>
         <PopupSearchForm
           onSearch={handleSearch}
           isLoading={isSearching || pending}
