@@ -37,6 +37,7 @@ import type {
 import { relayFrameClient } from '@/common/rpcClient/controller/client'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { getOrFetchCachedImage } from '@/images/cache'
+import { EpisodeMatchingService } from '../services/matching/EpisodeMatchingService'
 import { ProviderService } from '../services/providers/ProviderService'
 
 @injectable('Singleton')
@@ -55,7 +56,9 @@ export class RpcManager {
     @inject(MountConfigService)
     private mountConfigService: MountConfigService,
     @inject(ProviderConfigService)
-    private providerConfigService: ProviderConfigService
+    private providerConfigService: ProviderConfigService,
+    @inject(EpisodeMatchingService)
+    private episodeMatchingService: EpisodeMatchingService
   ) {}
 
   setup() {
@@ -70,7 +73,7 @@ export class RpcManager {
         return this.providerService.fetchEpisodesBySeason(input.seasonId)
       },
       episodeMatch: async (data) => {
-        return this.providerService.findMatchingEpisodes(data)
+        return this.episodeMatchingService.findMatchingEpisodes(data)
       },
       bilibiliSetCookies: async () => {
         return BilibiliService.setCookies()

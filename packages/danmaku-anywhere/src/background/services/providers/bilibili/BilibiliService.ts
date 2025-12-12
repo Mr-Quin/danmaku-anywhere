@@ -13,6 +13,7 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import type { BuiltInBilibiliProvider } from '@/common/options/providerConfig/schema'
+import { findEpisodeByNumber } from '../common/findEpisodeByNumber'
 import type {
   IDanmakuProvider,
   OmitSeasonId,
@@ -52,7 +53,30 @@ export class BilibiliService implements IDanmakuProvider {
     return result.map(BilibiliMapper.toSeasonInsert)
   }
 
-  async getBangumiInfo({
+  async findEpisode(
+    season: BilibiliOf<Season>,
+    episodeNumber: number
+  ): Promise<WithSeason<EpisodeMeta> | null> {
+    const episodes = await this.getEpisodes(season.providerIds)
+
+    if (episodes.length === 0) {
+      throw new Error(`No episodes found for season: ${season.title}`)
+    }
+
+    const episode = findEpisodeByNumber(episodes, episodeNumber)
+
+    if (!episode) {
+      return null
+    }
+
+    return {
+      ...episode,
+      seasonId: season.id,
+      season,
+    }
+  }
+
+  private async getBangumiInfo({
     seasonId,
     episodeId,
   }: {

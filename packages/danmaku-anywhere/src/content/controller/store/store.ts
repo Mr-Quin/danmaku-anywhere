@@ -205,9 +205,6 @@ const useStoreBase = create<StoreState>()(
       deactivate: () => {
         set((state) => {
           state.integration.active = false
-          state.integration.mediaInfo = undefined
-          state.integration.foundElements = false
-          state.integration.errorMessage = undefined
         })
       },
       foundElements: false,

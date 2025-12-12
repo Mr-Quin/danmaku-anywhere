@@ -13,6 +13,7 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import type { BuiltInTencentProvider } from '@/common/options/providerConfig/schema'
+import { findEpisodeByNumber } from '../common/findEpisodeByNumber'
 import type {
   IDanmakuProvider,
   OmitSeasonId,
@@ -56,6 +57,33 @@ export class TencentService implements IDanmakuProvider {
     this.logger.debug('Search result', result)
 
     return result.map(TencentMapper.toSeasonInsert)
+  }
+
+  async findEpisode(
+    season: Season,
+    episodeNumber: number
+  ): Promise<WithSeason<EpisodeMeta> | null> {
+    assertProviderType(season, DanmakuSourceType.Tencent)
+
+    const episodes = await this.getEpisodes(season.providerIds)
+
+    if (episodes.length === 0) {
+      throw new Error(`No episodes found for season: ${season.title}`)
+    }
+
+    const episode = findEpisodeByNumber(episodes, episodeNumber)
+
+    if (!episode) {
+      return null
+    }
+
+    assertProviderType(episode, DanmakuSourceType.Tencent)
+
+    return {
+      ...episode,
+      seasonId: season.id,
+      season,
+    }
   }
 
   async getEpisodes(

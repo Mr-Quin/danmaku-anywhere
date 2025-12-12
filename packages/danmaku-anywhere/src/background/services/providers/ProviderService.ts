@@ -10,29 +10,13 @@ import type {
 import { inject, injectable } from 'inversify'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
-import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
-import type {
-  MatchEpisodeInput,
-  MatchEpisodeResult,
-  SeasonQueryFilter,
-  SeasonSearchRequest,
-} from '@/common/anime/dto'
+import type { SeasonQueryFilter, SeasonSearchRequest } from '@/common/anime/dto'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import {
-  assertProviderType,
-  isNotCustom,
-  isProvider,
-} from '@/common/danmaku/utils'
+import { assertProviderType, isProvider } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
-import {
-  type ExtensionOptionsService,
-  extensionOptionsServiceSymbol,
-} from '@/common/options/extensionOptions/service'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
-import { SeasonMap } from '@/common/seasonMap/SeasonMap'
-import { stripExtension } from '@/common/utils/stripExtension'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { IDanmakuProvider, OmitSeasonId } from './IDanmakuProvider'
 import {
@@ -57,15 +41,11 @@ export class ProviderService {
   private parsers: IDanmakuProvider[] = []
 
   constructor(
-    @inject(TitleMappingService)
-    private titleMappingService: TitleMappingService,
     @inject(DanmakuService)
     private danmakuService: DanmakuService,
     @inject(SeasonService) private seasonService: SeasonService,
     @inject(ProviderConfigService)
     private providerConfigService: ProviderConfigService,
-    @inject(extensionOptionsServiceSymbol)
-    private extensionOptionsService: ExtensionOptionsService,
     @inject(DanmakuProviderFactory)
     private danmakuProviderFactory: IDanmakuProviderFactory
   ) {
@@ -235,140 +215,6 @@ export class ProviderService {
       ...saved,
       season,
     } as WithSeason<Episode>
-  }
-
-  async findMatchingEpisodes({
-    mapKey,
-    title,
-    episodeNumber = 1,
-    seasonId,
-  }: MatchEpisodeInput): Promise<MatchEpisodeResult> {
-    const findEpisodeInSeason = async (
-      season: Season
-    ): Promise<WithSeason<EpisodeMeta>> => {
-      const providerConfig = await this.providerConfigService.mustGet(
-        season.providerConfigId
-      )
-
-      const service = this.danmakuProviderFactory(providerConfig)
-
-      if (service.findEpisode) {
-        const match = await service.findEpisode(season, episodeNumber)
-        if (match) return match
-        throw new Error(
-          `Episode ${episodeNumber} not found in season: ${season.title}`
-        )
-      }
-
-      throw new Error(
-        `Provider ${season.provider} does not support episode matching.`
-      )
-    }
-
-    if ((await this.extensionOptionsService.get()).matchLocalDanmaku) {
-      const customEpisode = await this.danmakuService.matchLocalByTitle(
-        stripExtension(title)
-      )
-
-      if (customEpisode) {
-        return {
-          status: 'success',
-          data: customEpisode,
-        }
-      }
-    }
-
-    const mapping = await this.titleMappingService.get(mapKey)
-
-    const automaticProvider =
-      await this.providerConfigService.getFirstAutomaticProvider()
-
-    if (mapping || seasonId) {
-      let season: Season | undefined
-
-      if (seasonId) {
-        this.logger.debug('Using provided season id')
-        season = await this.seasonService.getById(seasonId)
-        if (season) {
-          await this.titleMappingService.add(
-            SeasonMap.fromSeason(mapKey, season)
-          )
-        } else {
-          return {
-            status: 'notFound',
-            data: null,
-          }
-        }
-      } else if (mapping) {
-        const seasonId = mapping.getSeasonId(automaticProvider.id)
-        if (seasonId !== undefined) {
-          this.logger.debug('Mapping found, using mapped title', mapping)
-          season = await this.seasonService.getById(seasonId)
-        }
-      }
-
-      if (!season) {
-        return {
-          status: 'notFound',
-          data: null,
-        }
-      }
-
-      return {
-        status: 'success',
-        data: await findEpisodeInSeason(season),
-      }
-    }
-
-    this.logger.debug('No mapping found, searching for season')
-
-    const service = this.danmakuProviderFactory(automaticProvider)
-
-    const foundSeasonInserts = (await service.search({
-      keyword: title,
-    })) as SeasonInsert[] // fixme: unsafe, fix this once we fold custom seasons into the season insert
-
-    // check if the cast is custom
-    if (
-      foundSeasonInserts[0] &&
-      isProvider(foundSeasonInserts[0], DanmakuSourceType.MacCMS)
-    ) {
-      throw new Error('Custom season found, but not supported')
-    }
-
-    const foundSeasons = await this.seasonService.bulkUpsert(foundSeasonInserts)
-
-    if (foundSeasons.length === 0) {
-      this.logger.debug(`No season found for title: ${title}`)
-      return {
-        status: 'notFound',
-        data: null,
-      }
-    }
-
-    if (foundSeasons.length === 1) {
-      const firstSeason = foundSeasons[0] as Season
-
-      this.logger.debug('Single season found', firstSeason)
-
-      await this.titleMappingService.add(
-        SeasonMap.fromSeason(mapKey, firstSeason)
-      )
-
-      return {
-        status: 'success',
-        data: await findEpisodeInSeason(firstSeason),
-      }
-    }
-
-    this.logger.debug(
-      'Multiple seasons found, disambiguation required',
-      foundSeasons
-    )
-    return {
-      status: 'disambiguation',
-      data: foundSeasons.filter(isNotCustom),
-    }
   }
 
   async parseUrl(url: string): Promise<WithSeason<EpisodeMeta>> {

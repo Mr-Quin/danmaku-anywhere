@@ -53,6 +53,7 @@ export const useIntegrationPolicy = () => {
         observer.destroy()
         setObserver(null)
         deactivate()
+        resetIntegration()
       }
       return
     }
@@ -71,6 +72,7 @@ export const useIntegrationPolicy = () => {
       activeConfig.mode,
       integrationPolicy?.policy ?? null
     )
+    Logger.debug('Created integration observer', newObserver.name)
 
     activate()
 
@@ -171,7 +173,6 @@ export const useIntegrationPolicy = () => {
     }
   }, [activeConfig, integrationPolicy, isManual, isConfigIncomplete])
 
-  // Effect to restart observer when videoId changes
   useEffect(() => {
     if (!observer) {
       return

@@ -1,6 +1,9 @@
 export type SeasonMapSnapshot = {
+  // Title of the show
   key: string
+  // A map of provider config ID to season ID
   seasons: Record<string, number>
+  // A list of season IDs
   seasonIds: number[]
 }
 

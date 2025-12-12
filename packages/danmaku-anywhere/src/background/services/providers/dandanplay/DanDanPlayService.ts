@@ -9,17 +9,17 @@ import type {
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { assertProviderType } from '@/common/danmaku/utils'
+import { assertProviderType, isProvider } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import type { DanDanPlayProviderConfig } from '@/common/options/providerConfig/schema'
 import { tryCatch } from '@/common/utils/utils'
+import { findEpisodeByNumber } from '../common/findEpisodeByNumber'
 import type {
   IDanmakuProvider,
   OmitSeasonId,
   SeasonSearchParams,
 } from '../IDanmakuProvider'
 import { DanDanPlayMapper } from './DanDanPlayMapper'
-import { findDanDanPlayEpisodeInList } from './episodeMatching'
 
 export class DanDanPlayService implements IDanmakuProvider {
   private logger: typeof Logger
@@ -59,7 +59,7 @@ export class DanDanPlayService implements IDanmakuProvider {
       throw new Error(`No episodes found for season: ${season}`)
     }
 
-    const episode = findDanDanPlayEpisodeInList(
+    const episode = this.findEpisodeInList(
       episodes,
       episodeNumber,
       season.providerIds.animeId
@@ -225,6 +225,28 @@ export class DanDanPlayService implements IDanmakuProvider {
       comments,
       params: paramsCopy,
     }
+  }
+
+  private findEpisodeInList(
+    episodes: OmitSeasonId<DanDanPlayOf<EpisodeMeta>>[],
+    episodeNumber: number,
+    animeId: number
+  ) {
+    const episode = findEpisodeByNumber(episodes, episodeNumber)
+
+    if (episode) {
+      return episode
+    }
+
+    // match by computed episode id
+    const computedId = this.computeEpisodeId(animeId, episodeNumber)
+
+    return episodes.find((ep) => {
+      return (
+        isProvider(ep, DanmakuSourceType.DanDanPlay) &&
+        ep.providerIds.episodeId === computedId
+      )
+    })
   }
 
   async sendComment(request: danDanPlay.SendCommentRequest) {

@@ -68,6 +68,8 @@ const getPageMeta = () => {
 }
 
 export class AiIntegrationObserver extends MediaObserver {
+  public readonly name = 'AiIntegrationObserver'
+
   private logger = Logger.sub('[AiIntegrationObserver]')
   private abortControllerQueue: AbortController[] = []
 
