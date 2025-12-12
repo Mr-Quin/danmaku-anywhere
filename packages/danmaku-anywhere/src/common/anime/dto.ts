@@ -48,6 +48,7 @@ export type MatchEpisodeResult =
   | {
       status: 'notFound'
       data: null
+      cause: string
     }
 
 export interface GenericVodSearchData {

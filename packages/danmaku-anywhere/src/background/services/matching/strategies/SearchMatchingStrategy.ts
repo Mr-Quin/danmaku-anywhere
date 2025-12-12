@@ -11,6 +11,7 @@ import { isNotCustom, isProvider } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
+import { serializeError } from '@/common/utils/serializeError'
 import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
@@ -63,7 +64,7 @@ export class SearchMatchingStrategy implements IMatchingStrategy {
     const foundSeasons = await this.seasonService.bulkUpsert(foundSeasonInserts)
 
     if (foundSeasons.length === 0) {
-      return { status: 'notFound', data: null }
+      return { status: 'notFound', data: null, cause: 'No seasons found' }
     }
 
     if (foundSeasons.length === 1) {
@@ -75,7 +76,11 @@ export class SearchMatchingStrategy implements IMatchingStrategy {
       )
 
       if (episodeNumber === undefined) {
-        return { status: 'notFound', data: null }
+        return {
+          status: 'notFound',
+          data: null,
+          cause: 'Episode number is undefined',
+        }
       }
 
       try {
@@ -88,8 +93,8 @@ export class SearchMatchingStrategy implements IMatchingStrategy {
           data,
           metadata: { strategy: 'search', providerConfig: autoProvider },
         }
-      } catch {
-        return { status: 'notFound', data: null }
+      } catch (e) {
+        return { status: 'notFound', data: null, cause: serializeError(e) }
       }
     }
 

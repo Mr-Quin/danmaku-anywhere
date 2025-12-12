@@ -3,15 +3,18 @@ import { inject, injectable } from 'inversify'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
 import type { MatchEpisodeInput, MatchEpisodeResult } from '@/common/anime/dto'
+import { Logger } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
+import { serializeError } from '@/common/utils/serializeError'
 import { EpisodeResolutionService } from '../EpisodeResolutionService'
 import type { IMatchingStrategy } from './IMatchingStrategy'
 
 @injectable()
 export class MappingMatchingStrategy implements IMatchingStrategy {
   readonly name = 'mapping'
+  private logger = Logger.sub('[MappingMatchingStrategy]')
 
   constructor(
     @inject(TitleMappingService)
@@ -39,7 +42,11 @@ export class MappingMatchingStrategy implements IMatchingStrategy {
     }
 
     if (episodeNumber === undefined) {
-      return { status: 'notFound', data: null }
+      return {
+        status: 'notFound',
+        data: null,
+        cause: 'Episode number is undefined',
+      }
     }
 
     try {
@@ -52,8 +59,8 @@ export class MappingMatchingStrategy implements IMatchingStrategy {
         data,
         metadata: { strategy: 'mapping', providerConfig },
       }
-    } catch {
-      return { status: 'notFound', data: null }
+    } catch (e) {
+      return { status: 'notFound', data: null, cause: serializeError(e) }
     }
   }
 
@@ -83,8 +90,10 @@ export class MappingMatchingStrategy implements IMatchingStrategy {
         if (!autoProvider.enabled) {
           continue
         }
+        this.logger.debug('Checking provider', autoProvider)
         const mappedId = mapping.getSeasonId(autoProvider.id)
         if (mappedId) {
+          this.logger.debug('Found mapped season id', mappedId)
           const season = await this.seasonService.getById(mappedId)
           if (season) {
             return { season, providerConfig: autoProvider }
