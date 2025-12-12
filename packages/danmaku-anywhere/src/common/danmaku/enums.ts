@@ -2,6 +2,8 @@ import {
   DanmakuSourceType,
   type RemoteDanmakuSourceType,
 } from '@danmaku-anywhere/danmaku-converter'
+import { i18n } from '../localization/i18n'
+import { createLocalizationMap } from '../utils/createLocalizationMap'
 
 export { DanmakuSourceType, type RemoteDanmakuSourceType }
 
@@ -12,6 +14,15 @@ export const danmakuSourceTypeList: DanmakuSourceType[] = [
   DanmakuSourceType.Tencent,
 ]
 
+const DANMAKU_SOURCE_TYPE_LABEL = createLocalizationMap<DanmakuSourceType>({
+  [DanmakuSourceType.MacCMS]: () => i18n.t('danmaku.type.macCms', 'MacCMS'),
+  [DanmakuSourceType.DanDanPlay]: () =>
+    i18n.t('danmaku.type.danDanPlay', 'DanDanPlay'),
+  [DanmakuSourceType.Bilibili]: () =>
+    i18n.t('danmaku.type.bilibili', 'Bilibili'),
+  [DanmakuSourceType.Tencent]: () => i18n.t('danmaku.type.tencent', 'Tencent'),
+})
+
 export function localizedDanmakuSourceType(type: DanmakuSourceType): string {
-  return `danmaku.type.${type}`
+  return DANMAKU_SOURCE_TYPE_LABEL[type]()
 }

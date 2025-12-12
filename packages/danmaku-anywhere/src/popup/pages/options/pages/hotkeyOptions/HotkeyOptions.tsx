@@ -1,7 +1,10 @@
 import { Box, List, ListItem, ListItemText, Stack } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
-import { allHotkeys } from '@/common/options/extensionOptions/hotkeys'
+import {
+  ALL_HOTKEYS,
+  HOTKEY_LABELS,
+} from '@/common/options/extensionOptions/hotkeys'
 import { useHotkeyOptions } from '@/common/options/extensionOptions/useHotkeyOptions'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
@@ -17,7 +20,7 @@ export const HotkeyOptions = () => {
       <OptionsPageToolBar title={t('optionsPage.pages.hotkeys', 'Hotkeys')} />
       <Box px={2}>
         <List>
-          {allHotkeys.map((label) => {
+          {ALL_HOTKEYS.map((label) => {
             return (
               <ListItem disablePadding key={label}>
                 <ListItemText
@@ -27,7 +30,7 @@ export const HotkeyOptions = () => {
                       alignItems="center"
                       justifyContent="space-between"
                     >
-                      <>{t(`optionsPage.hotkeys.keymap.${label}`)}</>
+                      <>{HOTKEY_LABELS[label]()}</>
                       <HotkeyInput
                         value={getKeyCombo(label)}
                         onKeyChange={(key) => updateHotkey(label, key)}

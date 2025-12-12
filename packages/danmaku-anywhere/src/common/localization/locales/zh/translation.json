@@ -138,8 +138,10 @@
     "noComments": "弹幕列表为空",
     "refresh": "刷新弹幕",
     "type": {
-      "DanDanPlay": "弹弹Play",
-      "MacCMS": "MacCMS"
+      "bilibili": "B站",
+      "danDanPlay": "弹弹Play",
+      "macCms": "MacCMS",
+      "tencent": "腾讯"
     },
     "unmount": "卸载弹幕",
     "viewDanmaku": "查看弹幕"
@@ -304,7 +306,11 @@
     },
     "hotkeys": {
       "addHotkey": "添加快捷键",
-      "enterKey": "输入快捷键"
+      "enterKey": "输入快捷键",
+      "refreshComments": "刷新弹幕",
+      "toggleEnableDanmaku": "显示/隐藏弹幕",
+      "togglePip": "画中画（实验）",
+      "unmountComments": "卸载弹幕"
     },
     "language": "语言",
     "matchLocalDanmaku": "匹配本地弹幕",

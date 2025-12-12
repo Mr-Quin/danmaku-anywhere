@@ -1,5 +1,3 @@
-import { useTranslation } from 'react-i18next'
-
 import type { ToggleSettingConfig } from '@/common/settings/settingConfigs'
 import { ToggleListItemButton } from './ToggleListItemButton'
 
@@ -16,8 +14,6 @@ export const DeclarativeToggleSetting = <S,>({
   onUpdate,
   isLoading,
 }: DeclarativeToggleSettingProps<S>) => {
-  const { t } = useTranslation()
-
   const currentValue = config.getValue(state)
 
   const handleToggle = async (checked: boolean) => {
@@ -29,7 +25,7 @@ export const DeclarativeToggleSetting = <S,>({
     <ToggleListItemButton
       enabled={currentValue}
       onToggle={handleToggle}
-      itemText={t(config.label)}
+      itemText={config.label()}
       isLoading={isLoading}
     />
   )

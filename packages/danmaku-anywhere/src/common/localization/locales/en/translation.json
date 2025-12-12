@@ -143,8 +143,10 @@
     "noComments": "No comments",
     "refresh": "Refresh Danmaku",
     "type": {
-      "DanDanPlay": "DanDanPlay",
-      "MacCMS": "MacCMS"
+      "bilibili": "Bilibili",
+      "danDanPlay": "DanDanPlay",
+      "macCms": "MacCMS",
+      "tencent": "Tencent"
     },
     "unmount": "Unmount",
     "viewDanmaku": "View Danmaku"
@@ -317,7 +319,11 @@
     },
     "hotkeys": {
       "addHotkey": "Add Hotkey",
-      "enterKey": "Enter key"
+      "enterKey": "Enter key",
+      "refreshComments": "Refresh comments",
+      "toggleEnableDanmaku": "Show/Hide danmaku",
+      "togglePip": "Picture-in-picture",
+      "unmountComments": "Unmount comments"
     },
     "language": "Language",
     "matchLocalDanmaku": "Enable matching local Danmaku",

@@ -12,7 +12,7 @@ type CommonSettingConfig = {
   // Description (translation key)
   descriptionKey?: string
   // Label or translation key for the setting
-  label: string
+  label: () => string
 }
 
 export type ToggleSettingConfig<S> = CommonSettingConfig & {
@@ -27,7 +27,8 @@ export type SettingConfig<S> = ToggleSettingConfig<S>
 const advancedSettings: SettingConfig<ExtensionOptions>[] = [
   {
     id: 'toggle.analytics',
-    label: i18n.t('optionsPage.enableAnalytics', 'Enable anonymous analytics'),
+    label: () =>
+      i18n.t('optionsPage.enableAnalytics', 'Enable anonymous analytics'),
     category: 'advanced',
     type: 'toggle',
     getValue: (options) => options.enableAnalytics,
@@ -35,7 +36,7 @@ const advancedSettings: SettingConfig<ExtensionOptions>[] = [
   },
   {
     id: 'toggle.debug',
-    label: 'Debug',
+    label: () => 'Debug',
     category: 'advanced',
     type: 'toggle',
     getValue: (options) => options.debug,
@@ -43,10 +44,8 @@ const advancedSettings: SettingConfig<ExtensionOptions>[] = [
   },
   {
     id: 'toggle.matchLocalDanmaku',
-    label: i18n.t(
-      'optionsPage.matchLocalDanmaku',
-      'Enable matching local Danmaku'
-    ),
+    label: () =>
+      i18n.t('optionsPage.matchLocalDanmaku', 'Enable matching local Danmaku'),
     category: 'advanced',
     type: 'toggle',
     getValue: (options) => options.matchLocalDanmaku,
@@ -54,10 +53,11 @@ const advancedSettings: SettingConfig<ExtensionOptions>[] = [
   },
   {
     id: 'toggle.searchUsingSimplified',
-    label: i18n.t(
-      'optionsPage.searchUsingSimplified',
-      'Search using simplified Chinese'
-    ),
+    label: () =>
+      i18n.t(
+        'optionsPage.searchUsingSimplified',
+        'Search using simplified Chinese'
+      ),
     category: 'advanced',
     type: 'toggle',
     getValue: (options) => options.searchUsingSimplified,
@@ -68,10 +68,8 @@ const advancedSettings: SettingConfig<ExtensionOptions>[] = [
 const playerSettings: SettingConfig<ExtensionOptions>[] = [
   {
     id: 'toggle.player.showSkipButton',
-    label: i18n.t(
-      'optionsPage.player.showSkipButton',
-      'Show skip button (OP/ED)'
-    ),
+    label: () =>
+      i18n.t('optionsPage.player.showSkipButton', 'Show skip button (OP/ED)'),
     category: 'player',
     type: 'toggle',
     getValue: (options) => options.playerOptions.showSkipButton,
@@ -84,10 +82,8 @@ const playerSettings: SettingConfig<ExtensionOptions>[] = [
   },
   {
     id: 'toggle.player.showDanmakuTimeline',
-    label: i18n.t(
-      'optionsPage.player.showDanmakuTimeline',
-      'Show danmaku density'
-    ),
+    label: () =>
+      i18n.t('optionsPage.player.showDanmakuTimeline', 'Show danmaku density'),
     category: 'player',
     type: 'toggle',
     getValue: (options) => options.playerOptions.showDanmakuTimeline,

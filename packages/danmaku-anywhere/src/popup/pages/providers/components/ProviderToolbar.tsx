@@ -2,6 +2,10 @@ import { Add, AddCircle } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import { DrilldownMenu } from '@/common/components/DrilldownMenu'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
+import {
+  DanmakuSourceType,
+  localizedDanmakuSourceType,
+} from '@/common/danmaku/enums'
 
 interface ProviderToolbarProps {
   onAddDanDanPlayProvider: () => void
@@ -22,13 +26,13 @@ export const ProviderToolbar = ({
         items={[
           {
             id: 'add-dandanplay',
-            label: t('danmaku.type.DanDanPlay', 'DanDanPlay'),
+            label: localizedDanmakuSourceType(DanmakuSourceType.DanDanPlay),
             onClick: onAddDanDanPlayProvider,
             icon: <Add />,
           },
           {
             id: 'add-maccms',
-            label: t('danmaku.type.MacCMS', 'MacCMS'),
+            label: localizedDanmakuSourceType(DanmakuSourceType.MacCMS),
             onClick: onAddMacCmsProvider,
             icon: <Add />,
           },
