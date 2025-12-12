@@ -143,8 +143,10 @@
     "noComments": "No comments",
     "refresh": "Refresh Danmaku",
     "type": {
-      "DanDanPlay": "DanDanPlay",
-      "MacCMS": "MacCMS"
+      "bilibili": "Bilibili",
+      "danDanPlay": "DanDanPlay",
+      "macCms": "MacCMS",
+      "tencent": "Tencent"
     },
     "unmount": "Unmount",
     "viewDanmaku": "View Danmaku"

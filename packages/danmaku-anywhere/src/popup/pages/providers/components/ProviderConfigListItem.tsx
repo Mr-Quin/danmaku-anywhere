@@ -37,7 +37,11 @@ export const ProviderConfigListItem = ({
   }
 
   return (
-    <ListItemPrimaryStack text={config.name}>
+    <ListItemPrimaryStack
+      text={
+        config.isBuiltIn ? localizedDanmakuSourceType(config.impl) : config.name
+      }
+    >
       {showWarning && <ProviderWarningIcon warningType={warningType} />}
       {renderChip()}
     </ListItemPrimaryStack>

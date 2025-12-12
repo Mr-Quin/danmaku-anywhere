@@ -138,8 +138,10 @@
     "noComments": "弹幕列表为空",
     "refresh": "刷新弹幕",
     "type": {
-      "DanDanPlay": "弹弹Play",
-      "MacCMS": "MacCMS"
+      "bilibili": "B站",
+      "danDanPlay": "弹弹Play",
+      "macCms": "MacCMS",
+      "tencent": "腾讯"
     },
     "unmount": "卸载弹幕",
     "viewDanmaku": "查看弹幕"
