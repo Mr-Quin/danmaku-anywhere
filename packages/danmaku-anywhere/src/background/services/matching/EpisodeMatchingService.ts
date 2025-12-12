@@ -34,6 +34,10 @@ export class EpisodeMatchingService {
       }
     }
 
-    return { status: 'notFound', data: null }
+    return {
+      status: 'notFound',
+      data: null,
+      cause: 'All strategies returned null',
+    }
   }
 }

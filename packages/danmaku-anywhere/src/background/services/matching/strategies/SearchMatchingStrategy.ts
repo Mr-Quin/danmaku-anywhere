@@ -52,12 +52,13 @@ export class SearchMatchingStrategy implements IMatchingStrategy {
     this.logger.debug(`Searching for season: ${title}`)
     const foundSeasonInserts = (await service.search({
       keyword: title,
-    })) as SeasonInsert[]
+    })) as SeasonInsert[] // TODO: technically unsafe, fix by folding custom season into season
 
     if (
       foundSeasonInserts[0] &&
       isProvider(foundSeasonInserts[0], DanmakuSourceType.MacCMS)
     ) {
+      // should not be reached
       throw new Error('Custom season found, but not supported')
     }
 
