@@ -319,7 +319,11 @@
     },
     "hotkeys": {
       "addHotkey": "Add Hotkey",
-      "enterKey": "Enter key"
+      "enterKey": "Enter key",
+      "refreshComments": "Refresh comments",
+      "toggleEnableDanmaku": "Show/Hide danmaku",
+      "togglePip": "Picture-in-picture",
+      "unmountComments": "Unmount comments"
     },
     "language": "Language",
     "matchLocalDanmaku": "Enable matching local Danmaku",

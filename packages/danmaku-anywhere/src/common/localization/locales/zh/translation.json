@@ -306,7 +306,11 @@
     },
     "hotkeys": {
       "addHotkey": "添加快捷键",
-      "enterKey": "输入快捷键"
+      "enterKey": "输入快捷键",
+      "refreshComments": "刷新弹幕",
+      "toggleEnableDanmaku": "显示/隐藏弹幕",
+      "togglePip": "画中画（实验）",
+      "unmountComments": "卸载弹幕"
     },
     "language": "语言",
     "matchLocalDanmaku": "匹配本地弹幕",
