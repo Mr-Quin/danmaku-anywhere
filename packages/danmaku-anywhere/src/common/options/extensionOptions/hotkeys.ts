@@ -1,5 +1,6 @@
 import { i18n } from '@/common/localization/i18n'
 import type { Hotkey } from '@/common/options/extensionOptions/schema'
+import { createLocalizationMap } from '@/common/utils/createLocalizationMap'
 
 export const createHotkey = (key: string, enabled = true) => {
   return {
@@ -17,7 +18,7 @@ export const ALL_HOTKEYS = [
 
 export type AllHotkeys = (typeof ALL_HOTKEYS)[number]
 
-export const HOTKEY_LABELS = {
+export const HOTKEY_LABELS = createLocalizationMap<AllHotkeys>({
   toggleEnableDanmaku: () =>
     i18n.t('optionsPage.hotkeys.toggleEnableDanmaku', 'Show/Hide danmaku'),
   togglePip: () =>
@@ -26,7 +27,7 @@ export const HOTKEY_LABELS = {
     i18n.t('optionsPage.hotkeys.refreshComments', 'Refresh comments'),
   unmountComments: () =>
     i18n.t('optionsPage.hotkeys.unmountComments', 'Unmount comments'),
-}
+})
 
 export type Keymap = Record<AllHotkeys, Hotkey>
 
