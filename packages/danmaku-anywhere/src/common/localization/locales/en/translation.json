@@ -496,7 +496,6 @@
     "config": "Config",
     "danmaku": "Danmaku",
     "debug": "Debug",
-    "import": "Import Danmaku",
     "integration": "Integration",
     "mount": "Library",
     "providers": "Providers",

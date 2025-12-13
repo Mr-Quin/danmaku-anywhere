@@ -67,12 +67,6 @@ export const Home = () => {
             to="/providers"
             component={Link}
           />
-          <Tab
-            label={t('tabs.import', 'Import Danmaku')}
-            value="/import"
-            to="/import"
-            component={Link}
-          />
         </Tabs>
         <ErrorBoundary
           fallbackRender={({ error }) => {
