@@ -5,6 +5,7 @@ import { createMountConfig } from '@/common/options/mountConfig/constant'
 import type { MountConfigInput } from '@/common/options/mountConfig/schema'
 import { controlQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { useStore } from '@/popup/store'
 import { ConfigToolbar } from '../components/ConfigToolbar'
 import { MountConfigList } from '../components/MountConfigList'
@@ -46,6 +47,7 @@ export const ConfigPage = () => {
   const handleEditConfig = (config: MountConfigInput) => {
     navigate('edit')
     setEditingConfig(config)
+    getTrackingService().track('editConfig', { config })
   }
 
   const handleAddConfig = async () => {
@@ -60,6 +62,7 @@ export const ConfigPage = () => {
     } else {
       setEditingConfig(createMountConfig())
     }
+    getTrackingService().track('addConfig', { data })
   }
 
   return (

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
+import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import type { DragOffset } from '@/content/controller/ui/components/dragOffset'
 
 const STORAGE_KEY_PREFIX = 'danmaku-anywhere:fabOffset'

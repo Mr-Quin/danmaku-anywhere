@@ -1,19 +1,13 @@
 import type { AgentOptions } from '@newrelic/browser-agent/loaders/agent'
-import { useEffect, useRef } from 'react'
 import { EXTENSION_VERSION } from '@/common/constants'
-import {
-  type EnvironmentType,
-  useEnvironmentContext,
-} from '@/common/environment/context'
-import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
+import type { EnvironmentType } from '@/common/environment/context'
 import {
   CombinedTrackingService,
   NoopTrackingService,
   type TrackingService,
-} from './TrackingService'
+} from '@/common/telemetry/TrackingService'
 
 let trackingService: TrackingService | null = null
-
 export const getTrackingService = () => {
   if (trackingService === null) {
     return new NoopTrackingService()
@@ -21,7 +15,10 @@ export const getTrackingService = () => {
   return trackingService
 }
 
-const createTrackingService = (environment: string, type: EnvironmentType) => {
+export const createTrackingService = (
+  environment: string,
+  type: EnvironmentType
+) => {
   if (trackingService !== null) {
     return trackingService
   }
@@ -43,8 +40,11 @@ const createTrackingService = (environment: string, type: EnvironmentType) => {
       sa: 1,
     },
     init: {
-      session_replay: {
+      session_trace: {
         enabled: true,
+      },
+      session_replay: {
+        enabled: false,
         block_selector: '',
         mask_text_selector: isPopup ? '' : '*',
         sampling_rate: isPopup ? 100.0 : 0, // disable replay for non-popup
@@ -80,26 +80,4 @@ const createTrackingService = (environment: string, type: EnvironmentType) => {
   service.tag('version', EXTENSION_VERSION)
 
   return trackingService
-}
-
-export const useSetupTracking = () => {
-  const { data } = useExtensionOptions()
-  const { environment, type } = useEnvironmentContext()
-  const trackingServiceRef = useRef<TrackingService>(
-    createTrackingService(environment, type)
-  )
-
-  useEffect(() => {
-    if (data.enableAnalytics) {
-      getTrackingService().init()
-    }
-  }, [data.enableAnalytics])
-
-  useEffect(() => {
-    if (data.id) {
-      getTrackingService().identify(data.id)
-    }
-  }, [data.id])
-
-  return trackingServiceRef.current
 }
