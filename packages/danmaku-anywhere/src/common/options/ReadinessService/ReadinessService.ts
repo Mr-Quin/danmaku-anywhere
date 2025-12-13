@@ -1,6 +1,11 @@
 import { injectable } from 'inversify'
 import { Logger } from '@/common/Logger'
+import { ExtStorageService } from '@/common/storage/ExtStorageService'
 import { isServiceWorker } from '@/common/utils/utils'
+
+interface LastVersion {
+  lastVersion: string
+}
 
 @injectable('Singleton')
 export class ReadinessService {
@@ -8,6 +13,9 @@ export class ReadinessService {
   private readyPromise: Promise<void>
   private resolveReady: () => void
   private logger = Logger.sub('[ReadinessService]')
+  private storage = new ExtStorageService<LastVersion>('lastVersion', {
+    storageType: 'local',
+  })
 
   constructor() {
     const { promise, resolve } = Promise.withResolvers<void>()
@@ -28,36 +36,43 @@ export class ReadinessService {
     }
   }
 
+  setVersion(version: string) {
+    return this.storage.set({ lastVersion: version })
+  }
+
   private init() {
     if (isServiceWorker()) {
-      this.logger.info(
+      this.logger.debug(
         'Running in background, waiting for explicit upgrade call'
       )
       return
     }
 
     // In UI context, check if we need to wait
-    chrome.storage.local.get('lastVersion', (result) => {
-      const lastVersion = result.lastVersion
+    this.storage.read().then((result) => {
+      const lastVersion = result?.lastVersion
       const currentVersion = chrome.runtime.getManifest().version
 
       if (lastVersion === currentVersion) {
-        this.logger.info('Version match, ready immediately')
+        this.logger.debug('Version match, ready immediately')
         this.setReady()
       } else {
-        this.logger.info(
+        this.logger.debug(
           `Version mismatch (last: ${lastVersion}, current: ${currentVersion}), waiting for upgrade`
         )
-        // Wait for storage change
-        chrome.storage.onChanged.addListener((changes, areaName) => {
-          if (areaName === 'local' && changes.lastVersion) {
-            const newVersion = changes.lastVersion.newValue
-            if (newVersion === currentVersion) {
-              this.logger.info('Version updated, ready now')
-              this.setReady()
-            }
+
+        const listener = (version: LastVersion | undefined) => {
+          if (!version) {
+            return
           }
-        })
+          if (version.lastVersion === currentVersion) {
+            this.logger.debug('Version updated, ready now')
+            this.setReady()
+            this.storage.unsubscribe(listener)
+          }
+        }
+
+        this.storage.subscribe(listener)
       }
     })
   }

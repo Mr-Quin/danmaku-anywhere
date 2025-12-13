@@ -1,10 +1,10 @@
-import { injectable, multiInject } from 'inversify'
+import { inject, injectable, multiInject } from 'inversify'
 import { Logger } from '@/common/Logger'
 import {
   type IStoreService,
   StoreServiceSymbol,
 } from '@/common/options/IStoreService'
-import { readinessService } from '@/common/options/ReadinessService/ReadinessService'
+import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
 import { isServiceWorker } from '@/common/utils/utils'
 
 @injectable('Singleton')
@@ -12,11 +12,13 @@ export class UpgradeService {
   private logger = Logger.sub('[UpgradeService]')
 
   constructor(
-    @multiInject(StoreServiceSymbol) private services: IStoreService[]
+    @multiInject(StoreServiceSymbol) private services: IStoreService[],
+    @inject(ReadinessService)
+    private readinessService: ReadinessService
   ) {}
 
   async waitUntilReady() {
-    return readinessService.waitUntilReady()
+    return this.readinessService.waitUntilReady()
   }
 
   async upgrade() {
@@ -24,9 +26,9 @@ export class UpgradeService {
       throw new Error('Upgrade must be called from background script')
     }
 
-    this.logger.info('Starting upgrade...')
+    this.logger.debug('Starting upgrade...')
 
-    // 1. Read all data
+    // gather context
     const context: Record<string, unknown> = {}
     for (const service of this.services) {
       // Use internal read to bypass lock
@@ -36,16 +38,16 @@ export class UpgradeService {
       }
     }
 
-    // 2. Upgrade each service
+    // upgrade each service
     for (const service of this.services) {
       await service.options.upgrade(context)
     }
 
-    // 3. Update version marker
+    // mark as ready
     const currentVersion = chrome.runtime.getManifest().version
-    await chrome.storage.local.set({ lastVersion: currentVersion })
+    await this.readinessService.setVersion(currentVersion)
 
-    this.logger.info(`Upgrade complete. Version set to ${currentVersion}`)
-    readinessService.setReady()
+    this.logger.debug(`Upgrade complete. Version set to ${currentVersion}`)
+    this.readinessService.setReady()
   }
 }
