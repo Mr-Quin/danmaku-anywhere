@@ -54,6 +54,13 @@ export const danmakuOptionsService = new OptionsService(
       })
     },
   })
+  .version(5, {
+    upgrade: (data: PrevOptions) => {
+      return produce<any>(data, (draft) => {
+        draft.distribution = 'random'
+      })
+    },
+  })
 
 export const danmakuOptionsServiceSymbol = Symbol.for('DanmakuOptionsService')
 export type DanmakuOptionsService = typeof danmakuOptionsService

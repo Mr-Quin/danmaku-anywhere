@@ -29,4 +29,5 @@ export const defaultDanmakuOptions: DanmakuOptions = {
     bottom: 'scroll',
   },
   offset: 0,
+  distribution: 'random',
 }

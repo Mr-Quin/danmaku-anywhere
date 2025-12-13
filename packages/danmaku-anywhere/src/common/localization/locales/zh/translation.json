@@ -429,6 +429,7 @@
   },
   "stylePage": {
     "allowOverlap": "允许重叠",
+    "distribution": "弹幕分布",
     "filtering": {
       "addFilterPattern": "添加屏蔽词",
       "enterFilterPattern": "输入屏蔽词，正则以 \"/\" 开头和结尾",
@@ -447,6 +448,8 @@
     "name": "弹幕设置",
     "offset": "时间轴（毫秒）",
     "opacity": "不透明度",
+    "orderDistribution": "顺序",
+    "randomDistribution": "均匀",
     "safeZone": {
       "y": "Y轴显示范围"
     },
@@ -460,6 +463,7 @@
     "speed": "弹幕速度",
     "tooltip": {
       "allowOverlap": "允许滚动弹幕重叠，不影响顶部/底部弹幕",
+      "distribution": "均匀：弹幕将均匀分填充屏幕。顺序：弹幕将从上到下填充屏幕",
       "maxOnScreen": "屏幕上显示的弹幕数量不超过此值。超过此值的弹幕将被丢弃。",
       "offset": "弹幕出现的时间位移。 正值使弹幕延后出现，负值使弹幕提前出现。",
       "safeZone": {

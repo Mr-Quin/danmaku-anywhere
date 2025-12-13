@@ -443,6 +443,7 @@
   },
   "stylePage": {
     "allowOverlap": "Allow Overlap",
+    "distribution": "Distribution",
     "filtering": {
       "addFilterPattern": "Add Filter Pattern",
       "enterFilterPattern": "Enter filter pattern, wrap with \"/\" for regex",
@@ -461,6 +462,8 @@
     "name": "Danmaku Settings",
     "offset": "Time Offset (milliseconds)",
     "opacity": "Opacity",
+    "orderDistribution": "Order",
+    "randomDistribution": "Random",
     "safeZone": {
       "y": "Y-axis display range"
     },
@@ -474,6 +477,7 @@
     "speed": "Speed",
     "tooltip": {
       "allowOverlap": "Allow danmaku to overlap, does not affect top or bottom fixed danmaku",
+      "distribution": "Random: danmaku will be distributed uniformly. Order: danmaku will fill the screen from top to bottom.",
       "maxOnScreen": "The maximum number of danmaku that can be displayed on the screen at the same time.",
       "offset": "How earlier danmaku appears. Positive values make danmaku appear later, negative values make danmaku appear earlier.",
       "safeZone": {
