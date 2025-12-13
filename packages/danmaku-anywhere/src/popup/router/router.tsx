@@ -2,7 +2,6 @@ import { createHashRouter, Navigate } from 'react-router'
 
 import { FilterPageWithRouter } from '@/content/common/DanmakuStyles/FilterPage'
 import { ImportConfigPage } from '@/popup/pages/config/pages/import/ImportConfigPage'
-import { ImportPage } from '@/popup/pages/import/ImportPage'
 import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
 import { About } from '@/popup/pages/options/pages/help/About'
 import { PlayerOptions } from '@/popup/pages/options/pages/player/PlayerOptions'
@@ -88,10 +87,6 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
       {
         path: 'providers',
         Component: ProvidersPage,
-      },
-      {
-        path: 'import',
-        Component: ImportPage,
       },
       {
         path: 'danmaku',
