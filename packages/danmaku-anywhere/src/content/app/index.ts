@@ -10,11 +10,14 @@ import {
 } from '@danmaku-anywhere/web-scraper'
 import { EXTENSION_VERSION } from '@/common/constants'
 import { isProvider } from '@/common/danmaku/utils'
-import { extensionOptionsService } from '@/common/options/extensionOptions/service'
+import { uiContainer } from '@/common/ioc/uiIoc'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { portNames } from '@/common/ports/portNames'
 import type { RPCClientResponse } from '@/common/rpc/client'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { tryCatch } from '@/common/utils/utils'
+
+const extensionOptionsService = uiContainer.get(ExtensionOptionsService)
 
 extensionOptionsService.get().then((options) => {
   setExtensionAttr({

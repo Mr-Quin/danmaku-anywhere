@@ -253,8 +253,3 @@ export class ExtensionOptionsService implements IStoreService {
     return this.options.upgrade(context)
   }
 }
-
-export const extensionOptionsService = new ExtensionOptionsService()
-export const extensionOptionsServiceSymbol = Symbol.for(
-  'ExtensionOptionsService'
-)

@@ -1,7 +1,9 @@
 import { produce } from 'immer'
 import { injectable } from 'inversify'
-import { defaultDanmakuOptions } from '@/common/options/danmakuOptions/constant'
-import type { DanmakuOptions } from '@/common/options/danmakuOptions/schema'
+import {
+  type DanmakuOptions,
+  defaultDanmakuOptions,
+} from '@/common/options/danmakuOptions/constant'
 import type { IStoreService } from '@/common/options/IStoreService'
 import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
@@ -92,6 +94,3 @@ export class DanmakuOptionsService implements IStoreService {
     return this.options.upgrade(context)
   }
 }
-
-export const danmakuOptionsService = new DanmakuOptionsService()
-export const danmakuOptionsServiceSymbol = Symbol.for('DanmakuOptionsService')

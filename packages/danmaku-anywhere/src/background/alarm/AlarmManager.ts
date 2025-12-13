@@ -2,17 +2,14 @@ import { inject, injectable } from 'inversify'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { alarmKeys } from '@/common/alarms/constants'
 import { Logger } from '@/common/Logger'
-import {
-  type ExtensionOptionsService,
-  extensionOptionsServiceSymbol,
-} from '@/common/options/extensionOptions/service'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 
 @injectable('Singleton')
 export class AlarmManager {
   constructor(
     @inject(DanmakuService)
     private danmakuService: DanmakuService,
-    @inject(extensionOptionsServiceSymbol)
+    @inject(ExtensionOptionsService)
     private extensionOptionsService: ExtensionOptionsService
   ) {}
 

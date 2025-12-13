@@ -1,13 +1,7 @@
 import 'reflect-metadata'
 import { Container } from 'inversify'
-import {
-  danmakuOptionsService,
-  danmakuOptionsServiceSymbol,
-} from '@/common/options/danmakuOptions/service'
-import {
-  extensionOptionsService,
-  extensionOptionsServiceSymbol,
-} from '@/common/options/extensionOptions/service'
+import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { StoreServiceSymbol } from '@/common/options/IStoreService'
 import { integrationPolicyService } from '@/common/options/integrationPolicyStore/service'
 import { mountConfigService } from '@/common/options/mountConfig/service'
@@ -21,17 +15,9 @@ import {
 
 const container = new Container({ autobind: true, defaultScope: 'Singleton' })
 
-// these option services are not classes so they can't autobind with inject
-container
-  .bind(extensionOptionsServiceSymbol)
-  .toConstantValue(extensionOptionsService)
-container
-  .bind(danmakuOptionsServiceSymbol)
-  .toConstantValue(danmakuOptionsService)
-
 // Bind all store services to StoreServiceSymbol
-container.bind(StoreServiceSymbol).toConstantValue(extensionOptionsService)
-container.bind(StoreServiceSymbol).toConstantValue(danmakuOptionsService)
+container.bind(StoreServiceSymbol).toService(ExtensionOptionsService)
+container.bind(StoreServiceSymbol).toService(DanmakuOptionsService)
 container.bind(StoreServiceSymbol).toConstantValue(integrationPolicyService)
 container.bind(StoreServiceSymbol).toConstantValue(mountConfigService)
 container.bind(StoreServiceSymbol).toConstantValue(providerConfigService)

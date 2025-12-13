@@ -2,9 +2,10 @@ import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { DanmakuRenderer } from '@danmaku-anywhere/danmaku-engine'
 import { createElement } from 'react'
 import ReactDOM from 'react-dom/client'
+import { uiContainer } from '@/common/ioc/uiIoc'
 import { Logger } from '@/common/Logger'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
-import { extensionOptionsService } from '@/common/options/extensionOptions/service'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { DanmakuComponent } from '@/content/player/components/DanmakuComponent'
 import { DanmakuDebugOverlayService } from '@/content/player/monitors/DanmakuDebugOverlay.service'
 import { RectObserver } from '@/content/player/monitors/RectObserver'
@@ -49,6 +50,8 @@ export class DanmakuManager {
       this.renderer,
       wrapper
     )
+
+    const extensionOptionsService = uiContainer.get(ExtensionOptionsService)
 
     extensionOptionsService.get().then((options) => {
       this.debugOverlayService.setDebugEnabled(options.debug)

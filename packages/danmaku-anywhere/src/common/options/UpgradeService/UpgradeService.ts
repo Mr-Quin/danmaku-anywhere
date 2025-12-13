@@ -1,4 +1,4 @@
-import { inject, injectable, multiInject } from 'inversify'
+import { injectable, multiInject } from 'inversify'
 import { Logger } from '@/common/Logger'
 import {
   type IStoreService,
