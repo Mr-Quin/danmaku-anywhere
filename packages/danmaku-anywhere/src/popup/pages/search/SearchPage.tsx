@@ -18,12 +18,12 @@ export const SearchPage = () => {
       ref={layoutRef}
       searchTerm={search.keyword}
       onSearchTermChange={search.setKeyword}
-      onSeasonClick={(season) => {
+      onSeasonClick={(season, provider) => {
         search.setSeason(season)
+        search.setProvider(provider)
         navigate('season')
       }}
       onImportSuccess={(episode) => mountDanmaku([episode])}
-      showManageProvidersLink={true}
     />
   )
 }

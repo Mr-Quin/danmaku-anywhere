@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Center } from '@/common/components/Center'
 import { SearchPageCore } from '@/common/components/SearchPageCore/SearchPageCore'
 import { isNotCustom } from '@/common/danmaku/utils'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { useAllSeasonMap } from '@/common/seasonMap/queries/useAllSeasonMap'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
@@ -25,6 +26,9 @@ export const SearchPage = (): React.ReactElement | null => {
   const [selectedSeason, setSelectedSeason] = useState<
     Season | CustomSeason | undefined
   >()
+  const [selectedProvider, setSelectedProvider] = useState<
+    ProviderConfig | undefined
+  >()
 
   const showAddSeasonMapDialog = useShowAddSeasonMapDialog()
 
@@ -39,7 +43,10 @@ export const SearchPage = (): React.ReactElement | null => {
     setSelectedSeason(season)
   }
 
-  const handleSeasonClick = (season: Season | CustomSeason) => {
+  const handleSeasonClick = (
+    season: Season | CustomSeason,
+    provider: ProviderConfig
+  ) => {
     if (
       isNotCustom(season) &&
       mediaInfo &&
@@ -57,6 +64,7 @@ export const SearchPage = (): React.ReactElement | null => {
       })
     } else {
       setSelectedSeason(season)
+      setSelectedProvider(provider)
     }
   }
 
@@ -75,10 +83,11 @@ export const SearchPage = (): React.ReactElement | null => {
     )
   }
 
-  if (selectedSeason)
+  if (selectedSeason && selectedProvider)
     return (
       <SeasonDetailsPage
         season={selectedSeason}
+        provider={selectedProvider}
         onGoBack={() => {
           setSelectedSeason(undefined)
         }}

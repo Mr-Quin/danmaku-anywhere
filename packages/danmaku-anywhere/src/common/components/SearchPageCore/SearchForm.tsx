@@ -4,6 +4,7 @@ import type { TextFieldProps } from '@mui/material'
 import { Box, Button, Stack, TextField } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { toSimplified } from '@/common/utils/utils'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { ProviderResultsList } from './ProviderResultsList'
@@ -15,7 +16,10 @@ interface SearchFormProps {
   searchTerm: string
   onSearchTermChange: (searchTerm: string) => void
   textFieldProps?: TextFieldProps
-  onSeasonClick: (season: Season | CustomSeason) => void
+  onSeasonClick: (
+    season: Season | CustomSeason,
+    provider: ProviderConfig
+  ) => void
 }
 
 export const SearchForm = ({

@@ -1,7 +1,6 @@
-import { Chip } from '@mui/material'
-import { useTranslation } from 'react-i18next'
 import { ListItemPrimaryStack } from '@/common/components/ListItemPrimaryStack'
 import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
+import { ProviderConfigChip } from '@/common/options/providerConfig/ProviderConfigChip'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useProviderWarning } from '../hooks/useProviderWarning'
 import { ProviderWarningIcon } from './ProviderWarningIcon'
@@ -13,23 +12,7 @@ interface ProviderConfigListItemProps {
 export const ProviderConfigListItem = ({
   config,
 }: ProviderConfigListItemProps) => {
-  const { t } = useTranslation()
   const { showWarning, warningType } = useProviderWarning(config)
-
-  const renderChip = () => {
-    if (config.isBuiltIn) {
-      return (
-        <Chip
-          label={t('providers.builtin', 'Built-in')}
-          size="small"
-          color="primary"
-        />
-      )
-    }
-    return (
-      <Chip label={t(localizedDanmakuSourceType(config.impl))} size="small" />
-    )
-  }
 
   return (
     <ListItemPrimaryStack
@@ -38,7 +21,7 @@ export const ProviderConfigListItem = ({
       }
     >
       {showWarning && <ProviderWarningIcon warningType={warningType} />}
-      {renderChip()}
+      <ProviderConfigChip config={config} />
     </ListItemPrimaryStack>
   )
 }

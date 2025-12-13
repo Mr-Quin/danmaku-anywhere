@@ -1,4 +1,9 @@
-import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  CustomSeason,
+  Episode,
+  Season,
+  WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
 import { Settings } from '@mui/icons-material'
 import {
   IconButton,
@@ -11,18 +16,21 @@ import { type RefObject, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
-import { ParseTabCore } from '@/common/components/ParseTabCore/ParseTabCore'
+import { ParseTabCore } from '@/common/components/SearchPageCore/ParseTabCore'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useDialog } from '../Dialog/dialogStore'
 import { ScrollBox } from '../layout/ScrollBox'
 import { SearchForm } from './SearchForm'
 import { SearchSettings } from './SearchSettings'
 
 export interface SearchPageCoreProps {
-  onSeasonClick: (season: Season | CustomSeason) => void
-  onImportSuccess: (episode: any) => void // Replace 'any' with correct type if available
+  onSeasonClick: (
+    season: Season | CustomSeason,
+    provider: ProviderConfig
+  ) => void
+  onImportSuccess: (episode: WithSeason<Episode>) => void
   searchTerm: string
   onSearchTermChange: (term: string) => void
-  showManageProvidersLink?: boolean
   ref?: RefObject<HTMLDivElement | null>
 }
 
@@ -43,7 +51,6 @@ export const SearchPageCore = ({
   onImportSuccess,
   searchTerm,
   onSearchTermChange,
-  showManageProvidersLink = false,
   ref,
 }: SearchPageCoreProps) => {
   const { t } = useTranslation()
@@ -59,12 +66,7 @@ export const SearchPageCore = ({
   const handleOpenSettings = () => {
     dialog.open({
       title: t('searchPage.settings.title', 'Settings'),
-      content: (
-        <SearchSettings
-          showManageProvidersLink={showManageProvidersLink}
-          onClose={() => dialog.close()}
-        />
-      ),
+      content: <SearchSettings />,
       hideCancel: true,
       hideConfirm: true,
       showCloseButton: true,
