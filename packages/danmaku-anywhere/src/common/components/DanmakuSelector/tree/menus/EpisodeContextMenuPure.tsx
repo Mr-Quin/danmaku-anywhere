@@ -2,8 +2,8 @@ import { Delete, Download, Sync, Visibility } from '@mui/icons-material'
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig'
+import { DrilldownContextMenu } from '@/common/components/Menu/DrilldownContextMenu'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
-import { DrilldownMenuList } from '@/common/components/Menu/DrilldownMenuList'
 
 export interface EpisodeContextMenuPureProps {
   canRefresh: boolean
@@ -13,7 +13,7 @@ export interface EpisodeContextMenuPureProps {
   onExport: () => void
   onDelete: () => void
   contextMenuPosition?: { top: number; left: number } | null
-  onClose?: () => void
+  onClose: () => void
 }
 
 export const EpisodeContextMenuPure = ({
@@ -27,10 +27,6 @@ export const EpisodeContextMenuPure = ({
   onClose,
 }: EpisodeContextMenuPureProps): ReactElement => {
   const { t } = useTranslation()
-
-  const handleClose = () => {
-    onClose?.()
-  }
 
   const items: DAMenuItemConfig[] = [
     {
@@ -73,12 +69,12 @@ export const EpisodeContextMenuPure = ({
 
   if (contextMenuPosition) {
     return (
-      <DrilldownMenuList
+      <DrilldownContextMenu
         items={items}
         anchorPosition={contextMenuPosition}
         open
         dense
-        onClose={handleClose}
+        onClose={onClose}
       />
     )
   }
