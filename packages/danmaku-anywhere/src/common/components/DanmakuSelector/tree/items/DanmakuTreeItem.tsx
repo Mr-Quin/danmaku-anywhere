@@ -115,33 +115,13 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
     return <EpisodeTreeItem episode={item.data} label={item.label} />
   }, [item, label])
 
-  const {
-    // We only need touch handlers for long press as context menu handles mouse
-    onTouchStart,
-    onTouchEnd,
-    onTouchMove,
-  } = useLongPress({
-    onLongPress: (e: React.TouchEvent | React.MouseEvent) => {
-      // Mock clientX/Y for touch events if needed, but context menu usually works with just opening?
-      // Actually DrilldownMenu needs position.
-      // E is TouchEvent or MouseEvent.
-      let clientX = 0
-      let clientY = 0
-      if ('touches' in e && e.touches.length > 0) {
-        clientX = e.touches[0].clientX
-        clientY = e.touches[0].clientY
-      } else if ('clientX' in e) {
-        // @ts-ignore
-        clientX = e.clientX
-        // @ts-ignore
-        clientY = e.clientY
-      }
-
+  const bindLongPress = useLongPress({
+    onLongPress: ({ xy }) => {
       setContextMenu({
         itemId,
         position: {
-          top: clientY,
-          left: clientX,
+          top: xy[1],
+          left: xy[0],
         },
       })
     },
@@ -162,11 +142,9 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
       >
         <StyledTreeContent
           {...getContentProps({
+            ...bindLongPress(),
             onClick: handleContentClick,
             onContextMenu: handleContextMenu,
-            onTouchStart,
-            onTouchEnd,
-            onTouchMove,
           })}
         >
           <TreeItemIconContainer {...getIconContainerProps()}>

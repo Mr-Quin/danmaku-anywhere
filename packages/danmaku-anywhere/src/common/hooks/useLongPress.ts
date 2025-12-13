@@ -1,58 +1,32 @@
-import {
-  type MouseEvent,
-  type TouchEvent,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
+import { useDrag } from '@use-gesture/react'
+
+interface LongPressProps {
+  event: TouchEvent | MouseEvent | PointerEvent
+  xy: [number, number]
+}
 
 interface UseLongPressOptions {
   threshold?: number
-  onLongPress: (event: TouchEvent | MouseEvent) => void
+  onLongPress: (props: LongPressProps) => void
 }
 
 export const useLongPress = ({
   onLongPress,
   threshold = 500,
 }: UseLongPressOptions) => {
-  const [startLongPress, setStartLongPress] = useState(false)
-  const [event, setEvent] = useState<TouchEvent | MouseEvent>()
-
-  useEffect(() => {
-    let timerId: NodeJS.Timeout | undefined
-    if (startLongPress && event) {
-      timerId = setTimeout(() => {
-        onLongPress(event)
-      }, threshold)
-    } else {
-      clearTimeout(timerId)
+  const bind = useDrag(
+    ({ down, cancel, event, xy }) => {
+      if (down && !(event instanceof KeyboardEvent)) {
+        onLongPress({ event, xy })
+        cancel()
+      }
+    },
+    {
+      delay: threshold,
+      filterTaps: true,
+      threshold: 10,
     }
-
-    return () => {
-      clearTimeout(timerId)
-    }
-  }, [startLongPress, onLongPress, threshold, event])
-
-  const bind = useMemo(() => {
-    const start = (event: TouchEvent | MouseEvent) => {
-      setStartLongPress(true)
-      setEvent(event)
-    }
-
-    const stop = () => {
-      setStartLongPress(false)
-      setEvent(undefined)
-    }
-
-    return {
-      onMouseDown: (e: MouseEvent) => start(e),
-      onMouseUp: stop,
-      onMouseLeave: stop,
-      onTouchStart: (e: TouchEvent) => start(e),
-      onTouchEnd: stop,
-      onTouchMove: stop,
-    }
-  }, [setStartLongPress, setEvent])
-
+  )
+  console.log(bind())
   return bind
 }
