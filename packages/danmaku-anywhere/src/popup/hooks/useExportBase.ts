@@ -5,7 +5,6 @@ import type {
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type {
   CustomEpisodeQueryFilter,
@@ -35,8 +34,8 @@ export interface ExportFile {
 export interface ExportFormatter {
   formatEpisode: (episode: GenericEpisode) => ExportFile
   fileExtension: string
-  successMessageKey: string
-  errorMessageKey: string
+  successMessage: () => string
+  errorMessage: (errorMessage: string) => string
 }
 
 const downloadSingleFile = (file: ExportFile) => {
@@ -45,7 +44,6 @@ const downloadSingleFile = (file: ExportFile) => {
 }
 
 export const useExportWithFormat = (formatter: ExportFormatter) => {
-  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const toast = useToast.use.toast()
 
@@ -100,10 +98,10 @@ export const useExportWithFormat = (formatter: ExportFormatter) => {
       }
     },
     onSuccess: () => {
-      toast.success(t(formatter.successMessageKey))
+      toast.success(formatter.successMessage())
     },
     onError: (e) => {
-      toast.error(t(formatter.errorMessageKey, { message: e.message }))
+      toast.error(formatter.errorMessage(e.message))
     },
   })
 

@@ -1,3 +1,4 @@
+import { i18n } from '@/common/localization/i18n'
 import { type ExportFormatter, useExportWithFormat } from './useExportBase'
 
 const jsonFormatter: ExportFormatter = {
@@ -6,8 +7,11 @@ const jsonFormatter: ExportFormatter = {
     data: JSON.stringify(episode, null, 2),
   }),
   fileExtension: 'json',
-  successMessageKey: 'danmaku.alert.exported',
-  errorMessageKey: 'danmaku.alert.exportError',
+  successMessage: () => i18n.t('danmaku.alert.exported', 'Export successful'),
+  errorMessage: (errorMessage: string) =>
+    i18n.t('danmaku.alert.exportError', 'Export failed: {{message}}', {
+      message: errorMessage,
+    }),
 }
 
 export const useExportDanmaku = () => {
