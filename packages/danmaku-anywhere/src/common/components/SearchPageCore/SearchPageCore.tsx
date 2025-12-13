@@ -82,7 +82,11 @@ export const SearchPageCore = ({
         <Stack direction="row" justifyContent="space-between">
           <StyledToggleButtonGroup
             value={tab}
-            onChange={(_, newValue) => setTab(newValue)}
+            onChange={(_, newValue) => {
+              if (newValue) {
+                setTab(newValue)
+              }
+            }}
             exclusive
             size="small"
             color="primary"
