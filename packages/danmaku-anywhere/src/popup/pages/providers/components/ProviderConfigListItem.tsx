@@ -22,17 +22,12 @@ export const ProviderConfigListItem = ({
         <Chip
           label={t('providers.builtin', 'Built-in')}
           size="small"
-          sx={{ mr: 1 }}
           color="primary"
         />
       )
     }
     return (
-      <Chip
-        label={t(localizedDanmakuSourceType(config.impl))}
-        size="small"
-        sx={{ mr: 1 }}
-      />
+      <Chip label={t(localizedDanmakuSourceType(config.impl))} size="small" />
     )
   }
 

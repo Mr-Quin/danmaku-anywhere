@@ -1,37 +1,31 @@
+import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import { Search } from '@mui/icons-material'
 import type { TextFieldProps } from '@mui/material'
-import {
-  Box,
-  Button,
-  FormControlLabel,
-  FormHelperText,
-  Stack,
-  Switch,
-  TextField,
-} from '@mui/material'
+import { Box, Button, Stack, TextField } from '@mui/material'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-
 import { toSimplified } from '@/common/utils/utils'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
+import { ProviderResultsList } from './ProviderResultsList'
 
 interface SearchFormProps {
   onSearch: (searchTerm: string) => void
   isLoading: boolean
   useSimplified: boolean
-  onSimplifiedChange: (on: boolean, searchTerm: string) => void
   searchTerm: string
   onSearchTermChange: (searchTerm: string) => void
   textFieldProps?: TextFieldProps
+  onSeasonClick: (season: Season | CustomSeason) => void
 }
 
 export const SearchForm = ({
   onSearch,
   isLoading,
   useSimplified,
-  onSimplifiedChange,
   onSearchTermChange,
   searchTerm,
   textFieldProps,
+  onSeasonClick,
 }: SearchFormProps) => {
   const { t } = useTranslation()
 
@@ -39,9 +33,7 @@ export const SearchForm = ({
     onSearchTermChange(value)
   }
 
-  const handleToggleSimplified = (on: boolean) => {
-    onSimplifiedChange(on, on ? toSimplified(searchTerm) : searchTerm)
-  }
+  const [committedSearchTerm, setCommittedSearchTerm] = useState(searchTerm)
 
   const handleSearch = () => {
     const keyword = useSimplified
@@ -49,6 +41,7 @@ export const SearchForm = ({
       : searchTerm.trim()
 
     onSearch(keyword)
+    setCommittedSearchTerm(keyword)
   }
 
   return (
@@ -58,8 +51,9 @@ export const SearchForm = ({
         e.preventDefault()
         handleSearch()
       }}
+      m={1}
     >
-      <Stack direction="column" spacing={1} alignItems="start">
+      <Stack direction="column" spacing={1} alignItems="center">
         <TextField
           value={searchTerm}
           onChange={(e) => handleKeywordChange(e.target.value)}
@@ -77,33 +71,18 @@ export const SearchForm = ({
           variant="contained"
           disabled={!searchTerm}
           size="small"
-          fullWidth
           autoCapitalize="none"
+          fullWidth
         >
-          <Search />
-          {t('searchPage.search', 'Search')}
+          <Search /> {t('searchPage.search', 'Search')}
         </Button>
-      </Stack>
-      <FormControlLabel
-        control={
-          <Switch
-            checked={useSimplified}
-            onChange={(e) => {
-              handleToggleSimplified(e.target.checked)
-            }}
+        {committedSearchTerm && (
+          <ProviderResultsList
+            searchTerm={committedSearchTerm}
+            onSeasonClick={onSeasonClick}
           />
-        }
-        label={t(
-          'optionsPage.searchUsingSimplified',
-          'Search using simplified Chinese'
         )}
-      />
-      {useSimplified && searchTerm && (
-        <FormHelperText>
-          {t('searchPage.convertedTitle', 'Converted Title')}:{' '}
-          {toSimplified(searchTerm)}
-        </FormHelperText>
-      )}
+      </Stack>
     </Box>
   )
 }

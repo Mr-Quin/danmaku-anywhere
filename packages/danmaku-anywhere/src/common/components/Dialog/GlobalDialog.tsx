@@ -1,18 +1,8 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-} from '@mui/material'
 import type { ReactElement } from 'react'
-import { useTranslation } from 'react-i18next'
+import { DialogRender } from '@/common/components/Dialog/DialogRender'
 import { useDialogStore } from './dialogStore'
 
 export const GlobalDialog = (): ReactElement | null => {
-  const { t } = useTranslation()
-
   const dialogs = useDialogStore.use.dialogs()
   const loadingIds = useDialogStore.use.loadingIds()
   const closingIds = useDialogStore.use.closingIds()
@@ -28,102 +18,22 @@ export const GlobalDialog = (): ReactElement | null => {
   return (
     <>
       {dialogs.map((config) => {
-        const {
-          id,
-          title,
-          content,
-          confirmText,
-          cancelText,
-          confirmColor = 'primary',
-          dialogProps,
-          hideCancel = false,
-          hideConfirm = false,
-          closeOnError = false,
-          container,
-        } = config
+        const { id } = config
 
         const isLoading = loadingIds.includes(id)
         const isClosing = closingIds.includes(id)
 
-        const handleClose = () => {
-          if (isLoading) {
-            return
-          }
-
-          config.onCancel?.()
-
-          close(id)
-        }
-
-        const handleConfirm = async () => {
-          if (!config.onConfirm) {
-            handleClose()
-            return
-          }
-
-          try {
-            const result = config.onConfirm()
-            if (result instanceof Promise) {
-              setLoading(id, true)
-              await result
-              close(id)
-            } else {
-              close(id)
-            }
-          } catch (error) {
-            console.error('Dialog confirm error:', error)
-            if (closeOnError) {
-              close(id)
-            }
-            // If not closeOnError, we stop loading but keep dialog open
-          } finally {
-            setLoading(id, false)
-          }
-        }
-
-        const renderContent = () => {
-          if (typeof content === 'string') {
-            return <DialogContentText>{content}</DialogContentText>
-          }
-          return content
-        }
-
         return (
-          <Dialog
+          <DialogRender
             key={id}
-            open={!isClosing}
-            onClose={handleClose}
-            container={container || globalContainer}
-            slotProps={{
-              transition: {
-                onExited: () => {
-                  remove(id)
-                },
-              },
-            }}
-            {...dialogProps}
-          >
-            {title && <DialogTitle>{title}</DialogTitle>}
-            {content && <DialogContent>{renderContent()}</DialogContent>}
-            <DialogActions>
-              {!hideCancel && (
-                <Button onClick={handleClose} disabled={isLoading}>
-                  {cancelText || t('common.cancel', 'Cancel')}
-                </Button>
-              )}
-              {!hideConfirm && (
-                <Button
-                  onClick={handleConfirm}
-                  color={confirmColor}
-                  variant="contained"
-                  loading={isLoading}
-                  autoFocus
-                >
-                  {confirmText || t('common.confirm', 'Confirm')}
-                </Button>
-              )}
-            </DialogActions>
-          </Dialog>
+            config={config}
+            isLoading={isLoading}
+            isClosing={isClosing}
+            onClose={close}
+            setLoading={setLoading}
+            globalContainer={globalContainer}
+            onRemove={remove}
+          />
         )
       })}
     </>

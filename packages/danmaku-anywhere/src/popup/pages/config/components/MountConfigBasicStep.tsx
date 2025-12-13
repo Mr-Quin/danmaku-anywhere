@@ -4,7 +4,6 @@ import {
   RemoveCircleOutline,
 } from '@mui/icons-material'
 import {
-  Accordion,
   AccordionDetails,
   AccordionSummary,
   Alert,
@@ -20,6 +19,7 @@ import {
 import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form'
 import { useFieldArray } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import { OutlineAccordian } from '@/common/components/OutlineAccordian'
 import { validateOrigin } from '@/common/utils/utils'
 import type { MountConfigForm } from './types'
 
@@ -117,20 +117,7 @@ export const MountConfigBasicStep = ({
       >
         {t('configPage.editor.addPattern', 'Add Pattern')}
       </Button>
-      <Accordion
-        disableGutters
-        elevation={0}
-        sx={{
-          width: 1,
-          '&:before': { display: 'none' },
-          ['.MuiButtonBase-root']: {
-            minHeight: '40px',
-          },
-          backgroundColor: 'transparent',
-          border: (theme) => `1px solid ${theme.palette.divider}`,
-          borderRadius: 1,
-        }}
-      >
+      <OutlineAccordian disableGutters elevation={0}>
         <AccordionSummary expandIcon={<ExpandMore />}>
           <Typography variant="body2" color="textSecondary">
             {t('configPage.editor.advanced', 'Advanced')}
@@ -151,7 +138,7 @@ export const MountConfigBasicStep = ({
             required
           />
         </AccordionDetails>
-      </Accordion>
+      </OutlineAccordian>
     </Stack>
   )
 }
