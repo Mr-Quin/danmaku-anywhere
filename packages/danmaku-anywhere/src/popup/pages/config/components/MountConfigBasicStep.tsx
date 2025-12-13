@@ -19,7 +19,7 @@ import {
 import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form'
 import { useFieldArray } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { OutlineAccordian } from '@/common/components/OutlineAccordian'
+import { OutlineAccordion } from '@/common/components/OutlineAccordion'
 import { validateOrigin } from '@/common/utils/utils'
 import type { MountConfigForm } from './types'
 
@@ -117,7 +117,7 @@ export const MountConfigBasicStep = ({
       >
         {t('configPage.editor.addPattern', 'Add Pattern')}
       </Button>
-      <OutlineAccordian disableGutters elevation={0}>
+      <OutlineAccordion disableGutters elevation={0}>
         <AccordionSummary expandIcon={<ExpandMore />}>
           <Typography variant="body2" color="textSecondary">
             {t('configPage.editor.advanced', 'Advanced')}
@@ -138,7 +138,7 @@ export const MountConfigBasicStep = ({
             required
           />
         </AccordionDetails>
-      </OutlineAccordian>
+      </OutlineAccordion>
     </Stack>
   )
 }

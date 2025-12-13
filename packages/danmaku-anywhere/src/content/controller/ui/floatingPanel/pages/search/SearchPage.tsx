@@ -90,6 +90,7 @@ export const SearchPage = (): React.ReactElement | null => {
         provider={selectedProvider}
         onGoBack={() => {
           setSelectedSeason(undefined)
+          setSelectedProvider(undefined)
         }}
       />
     )

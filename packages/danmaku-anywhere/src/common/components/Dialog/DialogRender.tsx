@@ -130,23 +130,11 @@ export const DialogRender = ({
     )
   }
 
-  return (
-    <Dialog
-      key={id}
-      open={!isClosing}
-      onClose={handleClose}
-      container={container || globalContainer}
-      slotProps={{
-        transition: {
-          onExited: () => {
-            onRemove(id)
-          },
-        },
-      }}
-      {...dialogProps}
-    >
-      {renderTitle()}
-      {renderContent()}
+  const renderAction = () => {
+    if (!hideCancel && !hideConfirm) {
+      return null
+    }
+    return (
       <DialogActions>
         {!hideCancel && (
           <Button onClick={handleClose} disabled={isLoading}>
@@ -165,6 +153,27 @@ export const DialogRender = ({
           </Button>
         )}
       </DialogActions>
+    )
+  }
+
+  return (
+    <Dialog
+      key={id}
+      open={!isClosing}
+      onClose={handleClose}
+      container={container || globalContainer}
+      slotProps={{
+        transition: {
+          onExited: () => {
+            onRemove(id)
+          },
+        },
+      }}
+      {...dialogProps}
+    >
+      {renderTitle()}
+      {renderContent()}
+      {renderAction()}
     </Dialog>
   )
 }

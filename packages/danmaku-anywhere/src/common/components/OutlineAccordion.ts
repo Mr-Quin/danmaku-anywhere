@@ -1,6 +1,6 @@
 import { Accordion, styled } from '@mui/material'
 
-export const OutlineAccordian = styled(Accordion)(({ theme }) => {
+export const OutlineAccordion = styled(Accordion)(({ theme }) => {
   return {
     width: '100%',
     '&:before': { display: 'none' },

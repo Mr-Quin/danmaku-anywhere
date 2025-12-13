@@ -15,9 +15,9 @@ import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 import { ProviderConfigChip } from '@/common/options/providerConfig/ProviderConfigChip'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
-import { OutlineAccordian } from '../OutlineAccordian'
+import { OutlineAccordion } from '../OutlineAccordion'
 
-const SearchResultAccordian = styled(OutlineAccordian)(({ theme }) => {
+const SearchResultAccordian = styled(OutlineAccordion)(({ theme }) => {
   return {
     ['& .MuiAccordion-heading']: {
       position: 'sticky',
