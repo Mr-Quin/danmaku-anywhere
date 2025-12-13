@@ -20,10 +20,7 @@ import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
 import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
 import { MountConfigService } from '@/common/options/mountConfig/service'
-import {
-  deleteProviderConfig,
-  ProviderConfigService,
-} from '@/common/options/providerConfig/service'
+import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import type { TabRPCClientMethod } from '@/common/rpc/client'
 import type { RRPServerHandler } from '@/common/rpc/server'
 import { createRpcServer } from '@/common/rpc/server'
@@ -283,7 +280,7 @@ export class RpcManager {
           await db.season.where({ providerConfigId: id }).delete()
         })
 
-        await deleteProviderConfig(id)
+        await this.providerConfigService.deleteFromStorage(id)
 
         void invalidateContentScriptData(sender.tab?.id)
       },

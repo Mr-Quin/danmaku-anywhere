@@ -13,9 +13,10 @@ import {
 } from '@mui/material'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import { useService } from '@/common/hooks/useService'
 import type { DanDanPlayCompatProvider } from '@/common/options/providerConfig/schema'
 import { zDanDanPlayCompatibleProviderConfig } from '@/common/options/providerConfig/schema'
-import { providerConfigService } from '@/common/options/providerConfig/service'
+import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { FormActions } from './FormActions'
 import type { ProviderFormProps } from './types'
 
@@ -26,6 +27,8 @@ export const DanDanPlayCompatibleProviderForm = ({
   isEdit,
 }: ProviderFormProps<DanDanPlayCompatProvider>) => {
   const { t } = useTranslation()
+
+  const providerConfigService = useService(ProviderConfigService)
 
   const {
     handleSubmit,

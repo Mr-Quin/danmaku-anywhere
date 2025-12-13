@@ -1,10 +1,11 @@
 import { produce } from 'immer'
 import { useMemo } from 'react'
+import { useService } from '@/common/hooks/useService'
 import type {
   Integration,
   IntegrationInput,
 } from '@/common/options/integrationPolicyStore/schema'
-import { mountConfigService } from '@/common/options/mountConfig/service'
+import { MountConfigService } from '@/common/options/mountConfig/service'
 import type { Options } from '@/common/options/OptionsService/types'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import { createDownload } from '@/common/utils/utils'
@@ -17,6 +18,8 @@ export const useIntegrationPolicyStore = () => {
   } = useSuspenseExtStorageQuery<Options<Integration[]>>('xpathPolicy', {
     storageType: 'local',
   })
+
+  const mountConfigService = useService(MountConfigService)
 
   const methods = useMemo(() => {
     const get = (id: string) => {

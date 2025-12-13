@@ -1,6 +1,7 @@
 import { ContextMenuId } from '@/background/contextMenu/contextMenuId'
+import { container } from '@/background/ioc'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
-import { mountConfigService } from '@/common/options/mountConfig/service'
+import { MountConfigService } from '@/common/options/mountConfig/service'
 import { matchUrl } from '@/common/utils/matchUrl'
 import { createTaskQueue } from '@/common/utils/taskQueue'
 import { tryCatch } from '@/common/utils/utils'
@@ -17,6 +18,7 @@ const baseRebuildDynamicMenus = async (tabId: number, url: string) => {
     chrome.contextMenus.remove(ContextMenuId.TOGGLE_CONFIG)
   )
 
+  const mountConfigService = container.get(MountConfigService)
   const configs = await mountConfigService.getAll()
 
   const matched = findMatchingConfig(configs, url)

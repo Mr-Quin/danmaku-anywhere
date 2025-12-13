@@ -19,18 +19,16 @@ import type {
 import { providerConfigSchema } from './schema'
 import { assertProviderConfigType } from './utils'
 
-const providerConfigOptions = new OptionsService<ProviderConfig[]>(
-  'providerConfig',
-  defaultProviderConfigs
-).version(1, {
-  upgrade: (data: PrevOptions, context: Record<string, any>) => {
-    return data
-  },
-})
-
 @injectable('Singleton')
 export class ProviderConfigService implements IStoreService {
-  public readonly options = providerConfigOptions
+  public readonly options = new OptionsService<ProviderConfig[]>(
+    'providerConfig',
+    defaultProviderConfigs
+  ).version(1, {
+    upgrade: (data: PrevOptions, context: Record<string, any>) => {
+      return data
+    },
+  })
 
   async isIdUnique(id: string, excludeId?: string): Promise<boolean> {
     const configs = await this.options.get()
@@ -166,6 +164,30 @@ export class ProviderConfigService implements IStoreService {
     await chromeRpcClient.providerConfigDelete(id)
   }
 
+  async deleteFromStorage(id: string) {
+    if (!isServiceWorker()) {
+      throw new Error('Must called from background script.')
+    }
+
+    const configs = await this.options.get()
+    const config = configs.find((item) => item.id === id)
+
+    if (!config) {
+      throw new Error(`Provider not found: "${id}" when deleting`)
+    }
+
+    if (config.isBuiltIn) {
+      throw new Error('Cannot delete built-in providers')
+    }
+
+    const newData = produce(configs, (draft) => {
+      const index = draft.findIndex((item) => item.id === id)
+      draft.splice(index, 1)
+    })
+
+    await this.options.set(newData)
+  }
+
   async toggle(id: string, enabled?: boolean) {
     const config = await this.get(id)
 
@@ -188,30 +210,4 @@ export class ProviderConfigService implements IStoreService {
 
     await this.options.set(newData)
   }
-}
-
-export const providerConfigService = new ProviderConfigService()
-
-export async function deleteProviderConfig(id: string) {
-  if (!isServiceWorker()) {
-    throw new Error('Must called from background script.')
-  }
-
-  const configs = await providerConfigService.options.get()
-  const config = configs.find((item) => item.id === id)
-
-  if (!config) {
-    throw new Error(`Provider not found: "${id}" when deleting`)
-  }
-
-  if (config.isBuiltIn) {
-    throw new Error('Cannot delete built-in providers')
-  }
-
-  const newData = produce(configs, (draft) => {
-    const index = draft.findIndex((item) => item.id === id)
-    draft.splice(index, 1)
-  })
-
-  await providerConfigService.options.set(newData)
 }

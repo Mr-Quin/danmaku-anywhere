@@ -1,6 +1,6 @@
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { produce } from 'immer'
-import { injectable } from 'inversify'
+import { inject, injectable } from 'inversify'
 import { Logger } from '@/common/Logger'
 import { Language } from '@/common/localization/language'
 import { defaultExtensionOptions } from '@/common/options/extensionOptions/constant'
@@ -10,11 +10,16 @@ import type { IStoreService } from '@/common/options/IStoreService'
 import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { migrateDanmakuSourcesToProviders } from '@/common/options/providerConfig/migration'
-import { providerConfigService } from '@/common/options/providerConfig/service'
 import { ColorMode } from '@/common/theme/enums'
+import { ProviderConfigService } from '../providerConfig/service'
 
 @injectable('Singleton')
 export class ExtensionOptionsService implements IStoreService {
+  constructor(
+    @inject(ProviderConfigService)
+    private readonly providerConfigService: ProviderConfigService
+  ) {}
+
   public readonly options = new OptionsService(
     'extensionOptions',
     defaultExtensionOptions
@@ -211,7 +216,7 @@ export class ExtensionOptionsService implements IStoreService {
 
           // set data in separate storage
           try {
-            void providerConfigService.options.set(providers)
+            void this.providerConfigService.options.set(providers)
           } catch (error) {
             Logger.error(
               'Failed to migrate provider configs from extension service to provider service'

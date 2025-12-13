@@ -11,9 +11,10 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import { useService } from '@/common/hooks/useService'
 import type { CustomMacCmsProvider } from '@/common/options/providerConfig/schema'
 import { zMacCmsProviderConfig } from '@/common/options/providerConfig/schema'
-import { providerConfigService } from '@/common/options/providerConfig/service'
+import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { configQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { FormActions } from './FormActions'
@@ -51,6 +52,8 @@ export const MacCmsProviderForm = ({
     queryFn: async () => chromeRpcClient.getConfigDanmuIcu(),
     select: (res) => res.data,
   })
+
+  const providerConfigService = useService(ProviderConfigService)
 
   const handleFormSubmit = async (data: CustomMacCmsProvider) => {
     // Validate ID uniqueness

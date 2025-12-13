@@ -3,7 +3,8 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
-import { combinedPolicyService } from '@/common/options/combinedPolicy'
+import { useService } from '@/common/hooks/useService'
+import { CombinedPolicyService } from '@/common/options/combinedPolicy'
 import { downloadZip, sanitizeFilename } from '@/common/utils/utils'
 
 type ConfigToolbarProps = {
@@ -16,6 +17,8 @@ export const ConfigToolbar = ({
   onShowIntegration,
 }: ConfigToolbarProps) => {
   const { t } = useTranslation()
+
+  const combinedPolicyService = useService(CombinedPolicyService)
 
   const exportAll = useMutation({
     mutationFn: async () => {
