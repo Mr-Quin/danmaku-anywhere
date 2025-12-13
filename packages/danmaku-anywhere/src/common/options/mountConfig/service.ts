@@ -1,5 +1,5 @@
 import { produce } from 'immer'
-import { injectable } from 'inversify'
+import { inject, injectable } from 'inversify'
 import type { IStoreService } from '@/common/options/IStoreService'
 import {
   createMountConfig,
@@ -7,51 +7,64 @@ import {
 } from '@/common/options/mountConfig/constant'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { mountConfigInputSchema } from '@/common/options/mountConfig/schema'
-import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
-import { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import {
+  type IOptionsServiceFactory,
+  OptionsServiceFactory,
+} from '@/common/options/OptionsService/OptionServiceFactory'
+import type {
+  OptionsService,
+  PrevOptions,
+} from '@/common/options/OptionsService/OptionsService'
 import { getRandomUUID } from '@/common/utils/utils'
 
 @injectable('Singleton')
 export class MountConfigService implements IStoreService {
-  public readonly options = new OptionsService<MountConfig[]>(
-    'mountConfig',
-    defaultMountConfig
-  )
-    .version(1, {
-      upgrade: (data: PrevOptions) => data,
-    })
-    .version(2, {
-      upgrade: (data: PrevOptions) =>
-        data.map((config: PrevOptions) => ({
-          ...config,
-          enabled: false, // switching to new permission model. disable all configs by default, permission will be asked when enabled
-        })),
-    })
-    .version(3, {
-      upgrade: (data: PrevOptions) =>
-        data.map((config: PrevOptions) =>
-          produce(config, (draft: PrevOptions) => {
-            // add id field
-            draft.id = getRandomUUID()
-            // add integration field
-            if (draft.name === 'plex') {
-              draft.integration = 1
-            } else {
-              draft.integration = 0
-            }
-          })
-        ),
-    })
-    .version(4, {
-      upgrade: (data: PrevOptions) =>
-        data.map((config: PrevOptions) =>
-          produce(config, (draft: PrevOptions) => {
-            // Remove existing integration to migrate to new policy based integration
-            // User has to manually select the integration policy
-            delete draft.integration
-          })
-        ),
-    })
+  public readonly options: OptionsService<MountConfig[]>
+
+  constructor(
+    @inject(OptionsServiceFactory)
+    private readonly optionServiceFactory: IOptionsServiceFactory
+  ) {
+    this.options = this.optionServiceFactory<MountConfig[]>(
+      'mountConfig',
+      defaultMountConfig
+    )
+      .version(1, {
+        upgrade: (data: PrevOptions) => data,
+      })
+      .version(2, {
+        upgrade: (data: PrevOptions) =>
+          data.map((config: PrevOptions) => ({
+            ...config,
+            enabled: false, // switching to new permission model. disable all configs by default, permission will be asked when enabled
+          })),
+      })
+      .version(3, {
+        upgrade: (data: PrevOptions) =>
+          data.map((config: PrevOptions) =>
+            produce(config, (draft: PrevOptions) => {
+              // add id field
+              draft.id = getRandomUUID()
+              // add integration field
+              if (draft.name === 'plex') {
+                draft.integration = 1
+              } else {
+                draft.integration = 0
+              }
+            })
+          ),
+      })
+      .version(4, {
+        upgrade: (data: PrevOptions) =>
+          data.map((config: PrevOptions) =>
+            produce(config, (draft: PrevOptions) => {
+              // Remove existing integration to migrate to new policy based integration
+              // User has to manually select the integration policy
+              delete draft.integration
+            })
+          ),
+      })
+  }
 
   async create(input: unknown) {
     const config = await mountConfigInputSchema.parseAsync(input)

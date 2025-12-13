@@ -1,7 +1,7 @@
 import { Logger } from '../../Logger'
 import type { ExtStorageType } from '../../storage/ExtStorageService'
 import { ExtStorageService } from '../../storage/ExtStorageService'
-import { readinessService } from '../ReadinessService/ReadinessService'
+import type { ReadinessService } from '../ReadinessService/ReadinessService'
 import { migrateOptions } from './migrationOptions'
 import type {
   Options,
@@ -31,6 +31,7 @@ export class OptionsService<T extends OptionsSchema> {
   private isProcessingQueue = false
 
   constructor(
+    private readinessService: ReadinessService,
     readonly key: string,
     private defaultOptions: T,
     storageType: ExtStorageType = 'sync'
@@ -85,14 +86,14 @@ export class OptionsService<T extends OptionsSchema> {
   }
 
   async get(): Promise<T> {
-    await readinessService.waitUntilReady()
+    await this.readinessService.waitUntilReady()
     const options = await this.storageService.read()
     if (!options) return this.defaultOptions
     return options.data
   }
 
   async set(data: T, version?: number) {
-    await readinessService.waitUntilReady()
+    await this.readinessService.waitUntilReady()
     return this.#queueOperation(async () => {
       let currentVersion = version
       if (!currentVersion) {
@@ -111,7 +112,7 @@ export class OptionsService<T extends OptionsSchema> {
 
   // allow partial update
   async update(data: Partial<T>) {
-    await readinessService.waitUntilReady()
+    await this.readinessService.waitUntilReady()
     return this.#queueOperation(async () => {
       const options = await this.get()
       const mergedData = { ...options, ...data }
@@ -121,7 +122,7 @@ export class OptionsService<T extends OptionsSchema> {
 
   // reset options to default
   async reset() {
-    await readinessService.waitUntilReady()
+    await this.readinessService.waitUntilReady()
     return this.#queueOperation(async () => {
       return this.storageService.set({
         data: this.defaultOptions,

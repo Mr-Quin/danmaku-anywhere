@@ -3,10 +3,16 @@ import {
   PROVIDER_TO_BUILTIN_ID,
 } from '@danmaku-anywhere/danmaku-converter'
 import { produce } from 'immer'
-import { injectable } from 'inversify'
+import { inject, injectable } from 'inversify'
 import type { IStoreService } from '@/common/options/IStoreService'
-import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
-import { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import {
+  type IOptionsServiceFactory,
+  OptionsServiceFactory,
+} from '@/common/options/OptionsService/OptionServiceFactory'
+import type {
+  OptionsService,
+  PrevOptions,
+} from '@/common/options/OptionsService/OptionsService'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { isServiceWorker } from '@/common/utils/utils'
 import { defaultProviderConfigs } from './constant'
@@ -21,15 +27,21 @@ import { assertProviderConfigType } from './utils'
 
 @injectable('Singleton')
 export class ProviderConfigService implements IStoreService {
-  public readonly options = new OptionsService<ProviderConfig[]>(
-    'providerConfig',
-    defaultProviderConfigs
-  ).version(1, {
-    upgrade: (data: PrevOptions, context: Record<string, any>) => {
-      return data
-    },
-  })
+  public readonly options: OptionsService<ProviderConfig[]>
 
+  constructor(
+    @inject(OptionsServiceFactory)
+    private readonly optionServiceFactory: IOptionsServiceFactory
+  ) {
+    this.options = this.optionServiceFactory<ProviderConfig[]>(
+      'providerConfig',
+      defaultProviderConfigs
+    ).version(1, {
+      upgrade: (data: PrevOptions, context: Record<string, any>) => {
+        return data
+      },
+    })
+  }
   async isIdUnique(id: string, excludeId?: string): Promise<boolean> {
     const configs = await this.options.get()
     return !configs.some((item) => item.id === id && item.id !== excludeId)

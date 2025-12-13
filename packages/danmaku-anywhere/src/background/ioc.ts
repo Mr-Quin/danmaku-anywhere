@@ -5,6 +5,11 @@ import { ExtensionOptionsService } from '@/common/options/extensionOptions/servi
 import { StoreServiceSymbol } from '@/common/options/IStoreService'
 import { IntegrationPolicyService } from '@/common/options/integrationPolicyStore/service'
 import { MountConfigService } from '@/common/options/mountConfig/service'
+import {
+  type IOptionsServiceFactory,
+  OptionsServiceFactory,
+  optionsServiceFactory,
+} from '@/common/options/OptionsService/OptionServiceFactory'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { UpgradeService } from '@/common/options/UpgradeService/UpgradeService'
 import {
@@ -26,6 +31,10 @@ container.bind(StoreServiceSymbol).toService(ProviderConfigService)
 container
   .bind<IDanmakuProviderFactory>(DanmakuProviderFactory)
   .toFactory(danmakuProviderFactory)
+
+container
+  .bind<IOptionsServiceFactory>(OptionsServiceFactory)
+  .toFactory(optionsServiceFactory)
 
 // UpgradeService
 container.bind(UpgradeService).toSelf().inSingletonScope()
