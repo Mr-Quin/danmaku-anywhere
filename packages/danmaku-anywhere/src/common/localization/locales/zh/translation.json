@@ -389,7 +389,6 @@
       "mappingFailed": "标题映射失败：{{message}}",
       "mappingSuccess": "标题映射成功"
     },
-    "convertedTitle": "转换后的标题",
     "error": {
       "noProviders": "没有启用的弹幕来源，请在设置中启用",
       "noResultFound": "没有找到结果, 请尝试其他关键词"
@@ -413,7 +412,11 @@
       "videoUrl": "视频链接"
     },
     "retrySearch": "重试",
-    "title": "番剧标题",
+    "search": "搜索",
+    "searchPlaceholder": "番剧标题...",
+    "settings": {
+      "title": "设置"
+    },
     "titleMapping": "标题映射",
     "titleMappingDialog": {
       "confirmation": "是否将`{{original}}` 映射为 `{{mapped}}` ?",
