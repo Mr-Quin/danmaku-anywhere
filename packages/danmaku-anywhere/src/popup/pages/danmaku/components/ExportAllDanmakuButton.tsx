@@ -1,6 +1,6 @@
 import { Download } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
-import { DrilldownMenu } from '@/common/components/DrilldownMenu'
+import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { useEpisodesLiteSuspense } from '@/common/danmaku/queries/useEpisodes'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useExportXml } from '@/popup/hooks/useExportXml'

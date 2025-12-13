@@ -7,16 +7,20 @@ import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { isNotCustom } from '@/common/danmaku/utils'
 import { useExportXml } from '@/popup/hooks/useExportXml'
+import { useDanmakuTreeContext } from '../DanmakuTreeContext'
 import { SeasonContextMenuPure } from './SeasonContextMenuPure'
 
 interface SeasonContextMenuContainerProps {
   season: Season | CustomSeason
+  itemId: string
 }
 
 export const SeasonContextMenuContainer = ({
   season,
+  itemId,
 }: SeasonContextMenuContainerProps): ReactElement => {
   const { t } = useTranslation()
+  const { contextMenu, setContextMenu } = useDanmakuTreeContext()
   const exportXml = useExportXml()
   const refreshSeason = useRefreshSeason()
   const deleteSeasonMutation = useDeleteSeason()
@@ -57,6 +61,10 @@ export const SeasonContextMenuContainer = ({
     })
   }
 
+  const isContextOpen = contextMenu?.itemId === itemId
+  const contextPosition = isContextOpen ? contextMenu.position : undefined
+  const handleClose = () => setContextMenu(null)
+
   return (
     <SeasonContextMenuPure
       season={season}
@@ -65,6 +73,8 @@ export const SeasonContextMenuContainer = ({
       onRefresh={() => refreshSeason.mutate(season.id)}
       isRefreshing={refreshSeason.isPending}
       onDelete={handleDelete}
+      contextMenuPosition={contextPosition}
+      onClose={handleClose}
     />
   )
 }

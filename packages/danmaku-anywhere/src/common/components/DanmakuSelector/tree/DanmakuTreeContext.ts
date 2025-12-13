@@ -17,11 +17,18 @@ export interface MUITreePublicApi {
   }) => void
 }
 
+export interface DanmakuTreeContextMenuState {
+  itemId: string
+  position: { top: number; left: number }
+}
+
 interface DanmakuTreeContextType {
   itemMap: Map<string, ExtendedTreeItem>
   apiRef: RefObject<MUITreePublicApi> | null
   isMultiSelect: boolean
   setViewingDanmaku: (episode: GenericEpisodeLite) => void
+  contextMenu: DanmakuTreeContextMenuState | null
+  setContextMenu: (state: DanmakuTreeContextMenuState | null) => void
 }
 
 export const DanmakuTreeContext = createContext<DanmakuTreeContextType>({
@@ -29,6 +36,8 @@ export const DanmakuTreeContext = createContext<DanmakuTreeContextType>({
   apiRef: null,
   isMultiSelect: false,
   setViewingDanmaku: (episode: GenericEpisodeLite) => undefined,
+  contextMenu: null,
+  setContextMenu: (state: DanmakuTreeContextMenuState | null) => undefined,
 })
 
 export const useDanmakuTreeContext = () => {

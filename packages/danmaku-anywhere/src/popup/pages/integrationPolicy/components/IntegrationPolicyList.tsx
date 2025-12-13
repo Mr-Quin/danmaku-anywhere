@@ -9,7 +9,7 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
-import { DrilldownMenu } from '@/common/components/DrilldownMenu'
+import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { Integration } from '@/common/options/integrationPolicyStore/schema'

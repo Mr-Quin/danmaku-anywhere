@@ -23,9 +23,9 @@ export const DanmakuContextMenu = ({
 
   const element =
     item.kind === 'season' ? (
-      <SeasonContextMenuContainer season={item.data} />
+      <SeasonContextMenuContainer season={item.data} itemId={item.id} />
     ) : (
-      <EpisodeContextMenuContainer episode={item.data} />
+      <EpisodeContextMenuContainer episode={item.data} itemId={item.id} />
     )
 
   return <StyledBox>{element}</StyledBox>

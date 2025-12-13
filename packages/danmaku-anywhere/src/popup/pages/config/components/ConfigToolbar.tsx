@@ -1,8 +1,8 @@
 import { AddCircle, Download, Edit } from '@mui/icons-material'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { DrilldownMenu } from '@/common/components/DrilldownMenu'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
+import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { combinedPolicyService } from '@/common/options/combinedPolicy'
 import { downloadZip, sanitizeFilename } from '@/common/utils/utils'
 

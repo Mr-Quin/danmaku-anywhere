@@ -16,7 +16,7 @@ import {
   useParams,
   useSearchParams,
 } from 'react-router'
-import { DrilldownMenu } from '@/common/components/DrilldownMenu'
+import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useCustomEpisodeLite } from '@/common/danmaku/queries/useCustomEpisodes'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'

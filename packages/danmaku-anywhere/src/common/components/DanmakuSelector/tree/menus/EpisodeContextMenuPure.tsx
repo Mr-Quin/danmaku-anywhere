@@ -1,34 +1,34 @@
-import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
 import { Delete, Download, Sync, Visibility } from '@mui/icons-material'
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  DrilldownMenu,
-  type DrilldownMenuItemProps,
-} from '@/common/components/DrilldownMenu'
+import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig'
+import { DrilldownContextMenu } from '@/common/components/Menu/DrilldownContextMenu'
+import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 
 export interface EpisodeContextMenuPureProps {
-  episode: GenericEpisodeLite
   canRefresh: boolean
   isRefreshing: boolean
   onViewDanmaku: () => void
   onRefresh: () => void
   onExport: () => void
   onDelete: () => void
+  contextMenuPosition?: { top: number; left: number } | null
+  onClose: () => void
 }
 
 export const EpisodeContextMenuPure = ({
-  episode,
   canRefresh,
   isRefreshing,
   onViewDanmaku,
   onRefresh,
   onExport,
   onDelete,
+  contextMenuPosition,
+  onClose,
 }: EpisodeContextMenuPureProps): ReactElement => {
   const { t } = useTranslation()
 
-  const items: DrilldownMenuItemProps[] = [
+  const items: DAMenuItemConfig[] = [
     {
       kind: 'item',
       id: 'view',
@@ -47,7 +47,7 @@ export const EpisodeContextMenuPure = ({
             loading: isRefreshing,
             disabled: isRefreshing,
           },
-        ] as DrilldownMenuItemProps[])
+        ] as DAMenuItemConfig[])
       : []),
     {
       kind: 'item',
@@ -66,6 +66,18 @@ export const EpisodeContextMenuPure = ({
       color: 'error',
     },
   ]
+
+  if (contextMenuPosition) {
+    return (
+      <DrilldownContextMenu
+        items={items}
+        anchorPosition={contextMenuPosition}
+        open
+        dense
+        onClose={onClose}
+      />
+    )
+  }
 
   return <DrilldownMenu items={items} ButtonProps={{ size: 'small' }} dense />
 }

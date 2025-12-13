@@ -1,7 +1,7 @@
 import { Add, AddCircle } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
-import { DrilldownMenu } from '@/common/components/DrilldownMenu'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
+import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import {
   DanmakuSourceType,
   localizedDanmakuSourceType,

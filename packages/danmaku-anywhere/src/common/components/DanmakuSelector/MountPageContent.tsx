@@ -18,12 +18,12 @@ import {
 } from '@/common/components/DanmakuSelector/tree/DanmakuTree'
 import { useDanmakuTreeActions } from '@/common/components/DanmakuSelector/useDanmakuTreeActions'
 import { useImportFlow } from '@/common/components/DanmakuSelector/useImportFlow'
-import type { DrilldownMenuItemProps } from '@/common/components/DrilldownMenu'
 import { ImportResultDialog } from '@/common/components/ImportPageCore/ImportResultDialog'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { ImportResultContent } from '../ImportPageCore/ImportResultContent'
 import { ScrollBox } from '../layout/ScrollBox'
+import type { DAMenuItemConfig } from '../Menu/DAMenuItemConfig'
 
 export interface MountPageContentProps {
   filter: string
@@ -78,7 +78,7 @@ export const MountPageContent = ({
     onToggleMultiselect()
   }
 
-  const menuItems: DrilldownMenuItemProps[] = [
+  const menuItems: DAMenuItemConfig[] = [
     {
       kind: 'item',
       id: 'import',

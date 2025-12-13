@@ -2,10 +2,9 @@ import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import { Delete, Download, Sync } from '@mui/icons-material'
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  DrilldownMenu,
-  type DrilldownMenuItemProps,
-} from '@/common/components/DrilldownMenu'
+import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig'
+import { DrilldownContextMenu } from '@/common/components/Menu/DrilldownContextMenu'
+import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { isNotCustom } from '@/common/danmaku/utils'
 
 export interface SeasonContextMenuPureProps {
@@ -15,6 +14,8 @@ export interface SeasonContextMenuPureProps {
   onRefresh: () => void
   isRefreshing: boolean
   isExporting: boolean
+  contextMenuPosition?: { top: number; left: number } | null
+  onClose: () => void
 }
 
 export const SeasonContextMenuPure = ({
@@ -24,10 +25,12 @@ export const SeasonContextMenuPure = ({
   onRefresh,
   isRefreshing,
   isExporting,
+  contextMenuPosition,
+  onClose,
 }: SeasonContextMenuPureProps): ReactElement => {
   const { t } = useTranslation()
 
-  const items: DrilldownMenuItemProps[] = [
+  const items: DAMenuItemConfig[] = [
     {
       kind: 'item',
       id: 'export',
@@ -56,6 +59,18 @@ export const SeasonContextMenuPure = ({
       onClick: onRefresh,
       loading: isRefreshing,
     })
+  }
+
+  if (contextMenuPosition) {
+    return (
+      <DrilldownContextMenu
+        items={items}
+        anchorPosition={contextMenuPosition}
+        open
+        dense
+        onClose={onClose}
+      />
+    )
   }
 
   return <DrilldownMenu items={items} ButtonProps={{ size: 'small' }} dense />

@@ -20,6 +20,7 @@ import { useDanmakuTreeContext } from '@/common/components/DanmakuSelector/tree/
 import { EpisodeTreeItem } from '@/common/components/DanmakuSelector/tree/items/EpisodeTreeItem'
 import { SeasonTreeItem } from '@/common/components/DanmakuSelector/tree/items/SeasonTreeItem'
 import { DanmakuContextMenu } from '@/common/components/DanmakuSelector/tree/menus/DanmakuContextMenu'
+import { useLongPress } from '@/common/hooks/useLongPress'
 import { FolderTreeItem } from './FolderTreeItem'
 
 const StyledTreeRoot = styled(TreeItemRoot)({
@@ -55,7 +56,8 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
     status,
   } = useTreeItem({ id, itemId, children, label, disabled, rootRef: ref })
 
-  const { itemMap, apiRef, isMultiSelect } = useDanmakuTreeContext()
+  const { itemMap, apiRef, isMultiSelect, contextMenu, setContextMenu } =
+    useDanmakuTreeContext()
 
   const item = itemMap.get(itemId)
   const isSeason = item?.kind === 'season'
@@ -75,6 +77,18 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
     if (isMultiSelect && !isSeason && item?.kind !== 'folder') {
       apiRef?.current?.setItemSelection({ itemId, keepExistingSelection: true })
     }
+  }
+
+  const handleContextMenu = (event: React.MouseEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+    setContextMenu({
+      itemId,
+      position: {
+        top: event.clientY,
+        left: event.clientX,
+      },
+    })
   }
 
   const customLabel = useMemo(() => {
@@ -101,6 +115,18 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
     return <EpisodeTreeItem episode={item.data} label={item.label} />
   }, [item, label])
 
+  const bindLongPress = useLongPress({
+    onLongPress: ({ xy }) => {
+      setContextMenu({
+        itemId,
+        position: {
+          top: xy[1],
+          left: xy[0],
+        },
+      })
+    },
+  })
+
   return (
     <TreeItemProvider {...getContextProviderProps()}>
       <StyledTreeRoot
@@ -116,7 +142,9 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
       >
         <StyledTreeContent
           {...getContentProps({
+            ...bindLongPress(),
             onClick: handleContentClick,
+            onContextMenu: handleContextMenu,
           })}
         >
           <TreeItemIconContainer {...getIconContainerProps()}>
@@ -126,7 +154,9 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
           <TreeItemLabel {...getLabelProps()}>{customLabel}</TreeItemLabel>
           <TreeItemDragAndDropOverlay {...getDragAndDropOverlayProps()} />
         </StyledTreeContent>
-        {item && hovering && <DanmakuContextMenu item={item} />}
+        {item && (hovering || contextMenu?.itemId === itemId) && (
+          <DanmakuContextMenu item={item} />
+        )}
         {children && <TreeItemGroupTransition {...getGroupTransitionProps()} />}
       </StyledTreeRoot>
     </TreeItemProvider>
