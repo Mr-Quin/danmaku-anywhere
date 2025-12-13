@@ -4,6 +4,8 @@ import {
   Grid,
   Input,
   Stack,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from '@mui/material'
 import { useEffect, useState } from 'react'
@@ -466,6 +468,51 @@ export const DanmakuStylesForm = ({
               checked={field.value}
               onChange={(e) => field.onChange(e.target.checked)}
             />
+          )}
+        />
+        <Controller
+          name="distribution"
+          control={control}
+          render={({ field }) => (
+            <Stack
+              spacing={1}
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+            >
+              <div>
+                <Typography gutterBottom>
+                  {t('stylePage.distribution', 'Distribution')}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {t(
+                    'stylePage.tooltip.distribution',
+                    'Random: danmaku will be distributed uniformly. Order: danmaku will fill the screen from top to bottom.'
+                  )}
+                </Typography>
+              </div>
+              <ToggleButtonGroup
+                value={field.value}
+                onChange={(e, newValue) => {
+                  if (newValue) {
+                    field.onChange(newValue)
+                  }
+                }}
+                size="small"
+                color="primary"
+                exclusive
+                sx={{
+                  flex: '1 0 auto',
+                }}
+              >
+                <ToggleButton value="random">
+                  {t('stylePage.randomDistribution', 'Random')}
+                </ToggleButton>
+                <ToggleButton value="order">
+                  {t('stylePage.orderDistribution', 'Order')}
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Stack>
           )}
         />
       </Stack>

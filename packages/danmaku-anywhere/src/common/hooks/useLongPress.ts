@@ -27,6 +27,5 @@ export const useLongPress = ({
       threshold: 10,
     }
   )
-  console.log(bind())
   return bind
 }

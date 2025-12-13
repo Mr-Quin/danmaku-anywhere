@@ -25,6 +25,7 @@ export interface DanmakuOptions {
   readonly trackHeight: number
   readonly allowOverlap: boolean
   readonly filters: DanmakuFilter[]
+  readonly distribution: 'random' | 'order'
   /**
    * The maximum number of comments to show on the screen at the same time
    */
@@ -81,6 +82,7 @@ const configDefaults: DanmakuOptions = {
     bottom: 'scroll',
   },
   offset: 0,
+  distribution: 'random',
 }
 
 export type DanmakuRenderProps = {
@@ -133,6 +135,7 @@ export class DanmakuRenderer {
       rate: this.config.speed / 2,
       durationRange: [5000, 5000],
       mode: this.config.allowOverlap ? 'adaptive' : 'strict',
+      distribution: this.config.distribution,
       limits: {
         view: this.config.maxOnScreen,
         stash: this.config.maxOnScreen * 2,
