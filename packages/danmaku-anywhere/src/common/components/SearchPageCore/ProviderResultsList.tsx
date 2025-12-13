@@ -57,9 +57,11 @@ export const ProviderResultsList = ({
   )
 
   useEffect(() => {
-    // expand the first provider when searchTerm changes
-    setExpanded(enabledProviders[0]?.id)
-  }, [searchTerm])
+    if (!expanded) {
+      // expand the first provider when searchTerm changes
+      setExpanded(enabledProviders[0]?.id)
+    }
+  }, [searchTerm, enabledProviders])
 
   const handleChange = (id: string) => (_: unknown, isExpanded: boolean) => {
     setExpanded(isExpanded ? id : undefined)

@@ -2,17 +2,18 @@ import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import { Search } from '@mui/icons-material'
 import type { TextFieldProps } from '@mui/material'
 import { Box, Button, Stack, TextField } from '@mui/material'
+import { useIsFetching } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { toSimplified } from '@/common/utils/utils'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { ProviderResultsList } from './ProviderResultsList'
 
 interface SearchFormProps {
   onSearch: (searchTerm: string) => void
-  isLoading: boolean
-  useSimplified: boolean
   searchTerm: string
   onSearchTermChange: (searchTerm: string) => void
   textFieldProps?: TextFieldProps
@@ -24,14 +25,19 @@ interface SearchFormProps {
 
 export const SearchForm = ({
   onSearch,
-  isLoading,
-  useSimplified,
   onSearchTermChange,
   searchTerm,
   textFieldProps,
   onSeasonClick,
 }: SearchFormProps) => {
   const { t } = useTranslation()
+
+  const { data } = useExtensionOptions()
+
+  const isLoading =
+    useIsFetching({
+      queryKey: seasonQueryKeys.search({ keyword: searchTerm }),
+    }) > 0
 
   const handleKeywordChange = (value: string) => {
     onSearchTermChange(value)
@@ -40,7 +46,7 @@ export const SearchForm = ({
   const [committedSearchTerm, setCommittedSearchTerm] = useState(searchTerm)
 
   const handleSearch = () => {
-    const keyword = useSimplified
+    const keyword = data.searchUsingSimplified
       ? toSimplified(searchTerm.trim())
       : searchTerm.trim()
 

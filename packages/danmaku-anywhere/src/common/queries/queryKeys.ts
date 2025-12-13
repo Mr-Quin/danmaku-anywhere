@@ -25,7 +25,7 @@ export const seasonQueryKeys = {
   all: () => [{ scope: 'season' }] as const,
   many: (data: SeasonQueryFilter) =>
     [{ scope: 'season', kind: 'getMany', ...data }] as const,
-  search: (params?: SeasonSearchRequest) =>
+  search: (params?: Partial<SeasonSearchRequest>) =>
     [{ scope: 'season', kind: 'search', params }] as const,
   episodes: (seasonId: string | number) =>
     [{ scope: 'season', kind: 'fetchEpisodes', seasonId }] as const,

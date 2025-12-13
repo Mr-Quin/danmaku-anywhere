@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { ParseTabCore } from '@/common/components/SearchPageCore/ParseTabCore'
+import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useDialog } from '../Dialog/dialogStore'
 import { ScrollBox } from '../layout/ScrollBox'
@@ -56,6 +57,8 @@ export const SearchPageCore = ({
   const { t } = useTranslation()
 
   const dialog = useDialog()
+
+  const { data } = useExtensionOptions()
 
   const [tab, setTab] = useState<'search' | 'parse'>('search')
 
@@ -110,7 +113,7 @@ export const SearchPageCore = ({
           <SearchForm
             onSearch={handleSearch}
             isLoading={false}
-            useSimplified={false}
+            useSimplified={data.searchUsingSimplified}
             searchTerm={searchTerm}
             onSearchTermChange={onSearchTermChange}
             onSeasonClick={onSeasonClick}
