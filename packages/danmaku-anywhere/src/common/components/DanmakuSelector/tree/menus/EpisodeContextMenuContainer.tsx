@@ -81,7 +81,6 @@ export const EpisodeContextMenuContainer = ({
 
   return (
     <EpisodeContextMenuPure
-      episode={episode}
       canRefresh={isNotCustom(episode)}
       isRefreshing={isPending}
       onViewDanmaku={() => setViewingDanmaku(episode)}

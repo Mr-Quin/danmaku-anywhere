@@ -2,7 +2,7 @@ import { Delete } from '@mui/icons-material'
 import { Switch } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
-import { DrilldownMenu } from '@/common/components/DrilldownMenu'
+import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import {
   useEditProviderConfig,

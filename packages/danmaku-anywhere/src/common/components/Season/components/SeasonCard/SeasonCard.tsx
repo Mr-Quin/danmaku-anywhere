@@ -20,12 +20,12 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { DrilldownMenu } from '@/common/components/DrilldownMenu'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import {
   CoverImage,
   CoverImageSkeleton,
 } from '@/common/components/image/CoverImage'
+import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { ProviderLogo } from '@/common/components/ProviderLogo'
 import type { HandleSeasonClick } from '@/common/components/Season/types'
 import { useToast } from '@/common/components/Toast/toastStore'

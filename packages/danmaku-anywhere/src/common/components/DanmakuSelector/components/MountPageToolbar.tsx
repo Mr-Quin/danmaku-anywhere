@@ -2,13 +2,11 @@ import type { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { CheckBox, CheckBoxOutlined } from '@mui/icons-material'
 import { Button, Chip, Collapse, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import {
-  DrilldownMenu,
-  type DrilldownMenuItemProps,
-} from '@/common/components/DrilldownMenu'
 import { FilterButton } from '@/common/components/FilterButton'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
+import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { TypeSelector } from '@/common/components/TypeSelector'
+import type { DAMenuItemConfig } from '../../Menu/DAMenuItemConfig'
 
 interface MountPageToolbarProps {
   filter: string
@@ -21,7 +19,7 @@ interface MountPageToolbarProps {
   onToggleMultiselect: () => void
   onUnmount?: () => void
   isMounted?: boolean
-  menuItems: DrilldownMenuItemProps[]
+  menuItems: DAMenuItemConfig[]
 }
 
 export const MountPageToolbar = ({

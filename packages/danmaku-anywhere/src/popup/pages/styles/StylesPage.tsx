@@ -2,10 +2,10 @@ import { ListItemText, MenuItem } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
-import { DrilldownMenu } from '@/common/components/DrilldownMenu'
 import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
+import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import {
   DanmakuStylesForm,
   type SaveStatus,

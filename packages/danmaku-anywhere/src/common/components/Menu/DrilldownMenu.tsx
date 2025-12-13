@@ -14,19 +14,15 @@ import {
   useId,
   useState,
 } from 'react'
-import {
-  type DrilldownMenuItemProps,
-  DrilldownMenuList,
-} from './DrilldownMenuList'
-
-export type { DrilldownMenuItemProps }
+import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig'
+import { DrilldownMenuList } from './DrilldownMenuList'
 
 type DrilldownMenuProps = PropsWithChildren & {
   icon?: ReactNode
   ButtonProps?: IconButtonProps
   BoxProps?: BoxProps
   MenuProps?: Partial<MenuProps>
-  items?: DrilldownMenuItemProps[]
+  items?: DAMenuItemConfig[]
   dense?: boolean
 }
 

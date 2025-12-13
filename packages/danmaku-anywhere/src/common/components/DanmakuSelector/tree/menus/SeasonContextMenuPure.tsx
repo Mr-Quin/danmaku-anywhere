@@ -1,11 +1,11 @@
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import { Delete, Download, Sync } from '@mui/icons-material'
+import { ClickAwayListener } from '@mui/material'
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  DrilldownMenu,
-  type DrilldownMenuItemProps,
-} from '@/common/components/DrilldownMenu'
+import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig'
+import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
+import { DrilldownMenuList } from '@/common/components/Menu/DrilldownMenuList'
 import { isNotCustom } from '@/common/danmaku/utils'
 
 export interface SeasonContextMenuPureProps {
@@ -31,7 +31,11 @@ export const SeasonContextMenuPure = ({
 }: SeasonContextMenuPureProps): ReactElement => {
   const { t } = useTranslation()
 
-  const items: DrilldownMenuItemProps[] = [
+  const handleClose = () => {
+    onClose?.()
+  }
+
+  const items: DAMenuItemConfig[] = [
     {
       kind: 'item',
       id: 'export',
@@ -62,13 +66,26 @@ export const SeasonContextMenuPure = ({
     })
   }
 
-  return (
-    <DrilldownMenu
-      items={items}
-      ButtonProps={{ size: 'small' }}
-      dense
-      contextMenuPosition={contextMenuPosition}
-      onClose={onClose}
-    />
-  )
+  if (contextMenuPosition) {
+    return (
+      <ClickAwayListener onClickAway={handleClose}>
+        <DrilldownMenuList
+          items={items}
+          anchorPosition={contextMenuPosition}
+          open
+          dense
+          onClose={handleClose}
+          MenuProps={{
+            disableAutoFocus: true,
+            disableAutoFocusItem: true,
+            disableEnforceFocus: true,
+            disableRestoreFocus: true,
+            autoFocus: false,
+          }}
+        />
+      </ClickAwayListener>
+    )
+  }
+
+  return <DrilldownMenu items={items} ButtonProps={{ size: 'small' }} dense />
 }
