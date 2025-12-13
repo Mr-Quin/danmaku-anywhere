@@ -17,6 +17,7 @@ import {
 } from 'react'
 import {
   DanmakuTreeContext,
+  type DanmakuTreeContextMenuState,
   type MUITreePublicApi,
 } from '@/common/components/DanmakuSelector/tree/DanmakuTreeContext'
 import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/tree/ExtendedTreeItem'
@@ -130,6 +131,8 @@ export const DanmakuTree = ({
   ref,
 }: DanmakuSelectorProps): React.ReactElement => {
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([])
+  const [contextMenu, setContextMenu] =
+    useState<DanmakuTreeContextMenuState | null>(null)
 
   const { treeItems, treeItemMap } = useDanmakuTree(filter, typeFilter)
 
@@ -178,8 +181,10 @@ export const DanmakuTree = ({
       setViewingDanmaku: onViewDanmaku,
       apiRef: apiRef as RefObject<MUITreePublicApi>,
       isMultiSelect: multiselect,
+      contextMenu,
+      setContextMenu,
     }),
-    [treeItemMap, apiRef, onViewDanmaku, multiselect]
+    [treeItemMap, apiRef, onViewDanmaku, multiselect, contextMenu]
   )
 
   if (treeItems.length === 0) {

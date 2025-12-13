@@ -15,6 +15,8 @@ export interface EpisodeContextMenuPureProps {
   onRefresh: () => void
   onExport: () => void
   onDelete: () => void
+  contextMenuPosition?: { top: number; left: number } | null
+  onClose?: () => void
 }
 
 export const EpisodeContextMenuPure = ({
@@ -25,6 +27,8 @@ export const EpisodeContextMenuPure = ({
   onRefresh,
   onExport,
   onDelete,
+  contextMenuPosition,
+  onClose,
 }: EpisodeContextMenuPureProps): ReactElement => {
   const { t } = useTranslation()
 
@@ -67,5 +71,13 @@ export const EpisodeContextMenuPure = ({
     },
   ]
 
-  return <DrilldownMenu items={items} ButtonProps={{ size: 'small' }} dense />
+  return (
+    <DrilldownMenu
+      items={items}
+      ButtonProps={{ size: 'small' }}
+      dense
+      contextMenuPosition={contextMenuPosition}
+      onClose={onClose}
+    />
+  )
 }

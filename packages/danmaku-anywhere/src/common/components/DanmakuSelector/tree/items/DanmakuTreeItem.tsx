@@ -20,6 +20,7 @@ import { useDanmakuTreeContext } from '@/common/components/DanmakuSelector/tree/
 import { EpisodeTreeItem } from '@/common/components/DanmakuSelector/tree/items/EpisodeTreeItem'
 import { SeasonTreeItem } from '@/common/components/DanmakuSelector/tree/items/SeasonTreeItem'
 import { DanmakuContextMenu } from '@/common/components/DanmakuSelector/tree/menus/DanmakuContextMenu'
+import { useLongPress } from '@/common/hooks/useLongPress'
 import { FolderTreeItem } from './FolderTreeItem'
 
 const StyledTreeRoot = styled(TreeItemRoot)({
@@ -55,7 +56,8 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
     status,
   } = useTreeItem({ id, itemId, children, label, disabled, rootRef: ref })
 
-  const { itemMap, apiRef, isMultiSelect } = useDanmakuTreeContext()
+  const { itemMap, apiRef, isMultiSelect, contextMenu, setContextMenu } =
+    useDanmakuTreeContext()
 
   const item = itemMap.get(itemId)
   const isSeason = item?.kind === 'season'
@@ -75,6 +77,18 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
     if (isMultiSelect && !isSeason && item?.kind !== 'folder') {
       apiRef?.current?.setItemSelection({ itemId, keepExistingSelection: true })
     }
+  }
+
+  const handleContextMenu = (event: React.MouseEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+    setContextMenu({
+      itemId,
+      position: {
+        top: event.clientY,
+        left: event.clientX,
+      },
+    })
   }
 
   const customLabel = useMemo(() => {
@@ -101,6 +115,38 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
     return <EpisodeTreeItem episode={item.data} label={item.label} />
   }, [item, label])
 
+  const {
+    // We only need touch handlers for long press as context menu handles mouse
+    onTouchStart,
+    onTouchEnd,
+    onTouchMove,
+  } = useLongPress({
+    onLongPress: (e: React.TouchEvent | React.MouseEvent) => {
+      // Mock clientX/Y for touch events if needed, but context menu usually works with just opening?
+      // Actually DrilldownMenu needs position.
+      // E is TouchEvent or MouseEvent.
+      let clientX = 0
+      let clientY = 0
+      if ('touches' in e && e.touches.length > 0) {
+        clientX = e.touches[0].clientX
+        clientY = e.touches[0].clientY
+      } else if ('clientX' in e) {
+        // @ts-ignore
+        clientX = e.clientX
+        // @ts-ignore
+        clientY = e.clientY
+      }
+
+      setContextMenu({
+        itemId,
+        position: {
+          top: clientY,
+          left: clientX,
+        },
+      })
+    },
+  })
+
   return (
     <TreeItemProvider {...getContextProviderProps()}>
       <StyledTreeRoot
@@ -117,6 +163,10 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
         <StyledTreeContent
           {...getContentProps({
             onClick: handleContentClick,
+            onContextMenu: handleContextMenu,
+            onTouchStart,
+            onTouchEnd,
+            onTouchMove,
           })}
         >
           <TreeItemIconContainer {...getIconContainerProps()}>
@@ -126,7 +176,9 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
           <TreeItemLabel {...getLabelProps()}>{customLabel}</TreeItemLabel>
           <TreeItemDragAndDropOverlay {...getDragAndDropOverlayProps()} />
         </StyledTreeContent>
-        {item && hovering && <DanmakuContextMenu item={item} />}
+        {item && (hovering || contextMenu?.itemId === itemId) && (
+          <DanmakuContextMenu item={item} />
+        )}
         {children && <TreeItemGroupTransition {...getGroupTransitionProps()} />}
       </StyledTreeRoot>
     </TreeItemProvider>

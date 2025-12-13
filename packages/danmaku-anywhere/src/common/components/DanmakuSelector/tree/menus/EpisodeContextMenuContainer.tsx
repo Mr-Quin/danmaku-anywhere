@@ -11,10 +11,12 @@ import { EpisodeContextMenuPure } from './EpisodeContextMenuPure'
 
 interface EpisodeContextMenuContainerProps {
   episode: GenericEpisodeLite
+  itemId: string
 }
 
 export const EpisodeContextMenuContainer = ({
   episode,
+  itemId,
 }: EpisodeContextMenuContainerProps): ReactElement => {
   const { t } = useTranslation()
   const { mutateAsync: load, isPending } = useFetchDanmaku()
@@ -22,7 +24,8 @@ export const EpisodeContextMenuContainer = ({
   const deleteDanmakuMutation = useDeleteEpisode()
   const dialog = useDialog()
 
-  const { setViewingDanmaku } = useDanmakuTreeContext()
+  const { setViewingDanmaku, contextMenu, setContextMenu } =
+    useDanmakuTreeContext()
 
   const handleFetchDanmaku = async () => {
     if (!isNotCustom(episode)) return
@@ -72,6 +75,10 @@ export const EpisodeContextMenuContainer = ({
     })
   }
 
+  const isContextOpen = contextMenu?.itemId === itemId
+  const contextPosition = isContextOpen ? contextMenu.position : undefined
+  const handleClose = () => setContextMenu(null)
+
   return (
     <EpisodeContextMenuPure
       episode={episode}
@@ -81,6 +88,8 @@ export const EpisodeContextMenuContainer = ({
       onRefresh={handleFetchDanmaku}
       onExport={handleExport}
       onDelete={handleDelete}
+      contextMenuPosition={contextPosition}
+      onClose={handleClose}
     />
   )
 }

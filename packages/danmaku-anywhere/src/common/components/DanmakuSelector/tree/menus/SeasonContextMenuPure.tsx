@@ -15,6 +15,8 @@ export interface SeasonContextMenuPureProps {
   onRefresh: () => void
   isRefreshing: boolean
   isExporting: boolean
+  contextMenuPosition?: { top: number; left: number } | null
+  onClose?: () => void
 }
 
 export const SeasonContextMenuPure = ({
@@ -24,6 +26,8 @@ export const SeasonContextMenuPure = ({
   onRefresh,
   isRefreshing,
   isExporting,
+  contextMenuPosition,
+  onClose,
 }: SeasonContextMenuPureProps): ReactElement => {
   const { t } = useTranslation()
 
@@ -58,5 +62,13 @@ export const SeasonContextMenuPure = ({
     })
   }
 
-  return <DrilldownMenu items={items} ButtonProps={{ size: 'small' }} dense />
+  return (
+    <DrilldownMenu
+      items={items}
+      ButtonProps={{ size: 'small' }}
+      dense
+      contextMenuPosition={contextMenuPosition}
+      onClose={onClose}
+    />
+  )
 }
