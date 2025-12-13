@@ -118,6 +118,8 @@
     "alert": {
       "deleted": "弹幕已删除",
       "deleteError": "弹幕删除失败：{{message}}",
+      "exported": "导出成功",
+      "exportError": "导出失败：{{message}}",
       "fetchError": "获取弹幕失败：{{message}}",
       "mounted_other": "弹幕已装填：{{name}} ({{count}})",
       "mountedMultiple_other": "已装填{{count}}个多选弹幕",
@@ -125,7 +127,9 @@
       "multipleFrames": "检测到多个含有视频的Frame",
       "refreshed_other": "弹幕已刷新：{{name}} ({{count}})",
       "refreshingDanmaku": "正在刷新弹幕",
-      "unmounted": "弹幕已卸载"
+      "unmounted": "弹幕已卸载",
+      "xmlExported": "导出XML成功",
+      "xmlExportError": "导出XML失败：{{message}}"
     },
     "backup": "导出备份",
     "commentContent": "弹幕内容",

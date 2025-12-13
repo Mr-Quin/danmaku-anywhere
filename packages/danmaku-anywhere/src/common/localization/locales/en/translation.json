@@ -119,6 +119,8 @@
     "alert": {
       "deleted": "Danmaku Deleted",
       "deleteError": "Failed to delete danmaku: {{message}}",
+      "exported": "Export successful",
+      "exportError": "Export failed: {{message}}",
       "fetchError": "Failed to fetch danmaku: {{message}}",
       "mounted_one": "Danmaku Mounted: {{name}} ({{count}})",
       "mounted_other": "Danmaku Mounted: {{name}} ({{count}})",
@@ -129,7 +131,9 @@
       "refreshed_one": "Danmaku Refreshed: {{name}} ({{count}})",
       "refreshed_other": "Danmaku Refreshed: {{name}} ({{count}})",
       "refreshingDanmaku": "Refreshing danmaku",
-      "unmounted": "Danmaku Unmounted"
+      "unmounted": "Danmaku Unmounted",
+      "xmlExported": "Export XML successful",
+      "xmlExportError": "Failed to export XML: {{message}}"
     },
     "backup": "Export Backup",
     "commentContent": "Comment",
