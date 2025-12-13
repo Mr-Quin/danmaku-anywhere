@@ -1,28 +1,29 @@
-import { Tab, Tabs } from '@mui/material'
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { TabLayout } from '@/common/components/layout/TabLayout'
-import { TabToolbar } from '@/common/components/layout/TabToolbar'
+import { useNavigate } from 'react-router'
+import { SearchPageCore } from '@/common/components/SearchPageCore/SearchPageCore'
 import { useStoreScrollPosition } from '@/common/hooks/useStoreScrollPosition'
-import { ParseTab } from '@/popup/pages/search/ParseTab'
-import { SearchTab } from '@/popup/pages/search/SearchTab'
+import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
+import { useStore } from '@/popup/store'
 
 export const SearchPage = () => {
-  const [tab, setTab] = useState('search')
-  const { t } = useTranslation()
+  const navigate = useNavigate()
+
+  const search = useStore.use.search()
+
+  const { mountDanmaku } = useLoadDanmaku()
 
   const layoutRef = useStoreScrollPosition<HTMLDivElement>('searchPage')
 
   return (
-    <TabLayout ref={layoutRef}>
-      <TabToolbar>
-        <Tabs value={tab} onChange={(_, newValue) => setTab(newValue)}>
-          <Tab label={t('searchPage.name', 'Search Anime')} value="search" />
-          <Tab label={t('searchPage.parse.name', 'Parse URL')} value="parse" />
-        </Tabs>
-      </TabToolbar>
-      {tab === 'search' && <SearchTab />}
-      {tab === 'parse' && <ParseTab />}
-    </TabLayout>
+    <SearchPageCore
+      ref={layoutRef}
+      searchTerm={search.keyword}
+      onSearchTermChange={search.setKeyword}
+      onSeasonClick={(season, provider) => {
+        search.setSeason(season)
+        search.setProvider(provider)
+        navigate('season')
+      }}
+      onImportSuccess={(episode) => mountDanmaku([episode])}
+    />
   )
 }

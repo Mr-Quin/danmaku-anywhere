@@ -15,6 +15,8 @@ export interface DialogConfig {
   dialogProps?: Omit<DialogProps, 'open' | 'onClose'>
   hideCancel?: boolean
   hideConfirm?: boolean
+  // the x button on the top right
+  showCloseButton?: boolean
   closeOnError?: boolean
   container?: HTMLElement | null
 }

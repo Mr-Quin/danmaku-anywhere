@@ -403,7 +403,6 @@
       "mappingFailed": "Failed to save mapping：{{message}}",
       "mappingSuccess": "Mapping saved successfully"
     },
-    "convertedTitle": "Converted Title",
     "error": {
       "noProviders": "No danmaku sources enabled, please enable in settings",
       "noResultFound": "No results found, try a different search term"
@@ -427,7 +426,11 @@
       "videoUrl": "Video URL"
     },
     "retrySearch": "Retry",
-    "title": "Title",
+    "search": "Search",
+    "searchPlaceholder": "Search title...",
+    "settings": {
+      "title": "Settings"
+    },
     "titleMapping": "Map Title",
     "titleMappingDialog": {
       "confirmation": "Map `{{original}}` to `{{mapped}}` ?",

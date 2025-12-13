@@ -4,7 +4,6 @@ import {
   type DanmakuSourceType,
   danmakuSourceTypeList,
 } from '@/common/danmaku/enums'
-import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { createSelectors } from '@/common/utils/createSelectors'
 
 export enum PopupTab {
@@ -40,9 +39,6 @@ interface PopupStoreState {
 
   highlighterPortal: HTMLElement | null
   setHighlighterPortal: (portal: HTMLElement) => void
-
-  providerTab?: ProviderConfig
-  setProviderTab: (tab: ProviderConfig) => void
 }
 
 const usePopupStoreBase = create<PopupStoreState>((set, get) => ({
@@ -86,11 +82,6 @@ const usePopupStoreBase = create<PopupStoreState>((set, get) => ({
   highlighterPortal: null,
   setHighlighterPortal: (portal) => {
     set({ highlighterPortal: portal })
-  },
-
-  providerTab: undefined,
-  setProviderTab: (tab) => {
-    set({ providerTab: tab })
   },
 }))
 

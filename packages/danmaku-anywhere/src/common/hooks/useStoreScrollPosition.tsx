@@ -1,15 +1,15 @@
 import { useEffect, useRef } from 'react'
 
-const scrollPositions: Record<string, number> = {}
+const scrollPositions: Map<string, number> = new Map()
 
 export const useStoreScrollPosition = <T extends HTMLElement>(key: string) => {
   const ref = useRef<T>(null)
 
   useEffect(() => {
-    ref.current?.scrollTo(0, scrollPositions[key])
+    ref.current?.scrollTo(0, scrollPositions.get(key) ?? 0)
 
     const listener = () => {
-      scrollPositions[key] = ref.current?.scrollTop ?? 0
+      scrollPositions.set(key, ref.current?.scrollTop ?? 0)
     }
 
     ref.current?.addEventListener('scroll', listener)

@@ -62,7 +62,7 @@ interface DraggableItem {
 interface SortableItemProps<T extends DraggableItem> {
   item: T
   clickable?: boolean
-  onEdit: (item: T) => void
+  onEdit?: (item: T) => void
   renderPrimary: (item: T) => ReactNode
   renderSecondary?: (item: T) => ReactNode
   renderSecondaryAction: (item: T) => ReactNode
@@ -86,7 +86,7 @@ function SortableItem<T extends DraggableItem>({
   } = useSortable({ id: item.id })
 
   function handleClick() {
-    onEdit(item)
+    onEdit?.(item)
   }
 
   const style = {
@@ -160,7 +160,8 @@ function DragOverlayItem<T extends DraggableItem>({
 
 export interface DraggableListProps<T extends DraggableItem> {
   items: T[]
-  onEdit: (item: T) => void
+  clickable?: boolean
+  onEdit?: (item: T) => void
   onReorder: (sourceIndex: number, destinationIndex: number) => void
   renderPrimary: (item: T) => ReactNode
   renderSecondary?: (item: T) => ReactNode
@@ -169,6 +170,7 @@ export interface DraggableListProps<T extends DraggableItem> {
 
 export function DraggableList<T extends DraggableItem>({
   items,
+  clickable,
   onEdit,
   onReorder,
   renderPrimary,
@@ -248,6 +250,7 @@ export function DraggableList<T extends DraggableItem>({
             {orderedItems.map((item) => (
               <SortableItem
                 key={item.id}
+                clickable={clickable}
                 item={item}
                 onEdit={onEdit}
                 renderPrimary={renderPrimary}

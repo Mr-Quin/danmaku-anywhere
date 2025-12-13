@@ -1,3 +1,4 @@
+import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { Box, Button } from '@mui/material'
 import { Suspense } from 'react'
@@ -9,13 +10,15 @@ import {
   SeasonGrid,
   SeasonGridSkeleton,
 } from '@/common/components/Season/SeasonGrid'
-import type { HandleSeasonClick } from '@/common/components/Season/types'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 
 interface SeasonSearchResultProps {
   searchParams: SearchEpisodesQuery
   provider: ProviderConfig
-  onSeasonClick: HandleSeasonClick
+  onSeasonClick: (
+    season: Season | CustomSeason,
+    provider: ProviderConfig
+  ) => void
   stale: boolean
 }
 
@@ -74,6 +77,10 @@ const SeasonSearchResultSuspense = ({
     )
   }
   return (
-    <SeasonGrid onSeasonClick={onSeasonClick} data={result.data} disableMenu />
+    <SeasonGrid
+      onSeasonClick={(season) => onSeasonClick(season, provider)}
+      data={result.data}
+      disableMenu
+    />
   )
 }

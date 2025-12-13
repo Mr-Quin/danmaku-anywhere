@@ -13,23 +13,21 @@ import { MacCmsEpisodeListItem } from '@/common/components/EpisodeList/MacCmsEpi
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
-import { usePopup } from '@/content/controller/store/popupStore'
 
 type SeasonDetailsPageProps = {
   season: Season | CustomSeason
   onGoBack: () => void
+  provider: ProviderConfig
 }
 
 export const SeasonDetailsPage = ({
   season,
   onGoBack,
+  provider,
 }: SeasonDetailsPageProps) => {
-  const { providerTab } = usePopup()
-
-  if (!providerTab) return null
-
   return (
     <TabLayout>
       <TabToolbar showBackButton onGoBack={onGoBack} title={season.title} />
@@ -65,7 +63,7 @@ export const SeasonDetailsPage = ({
             renderCustomEpisode={(data) => {
               const { loadGenericMutation } = useLoadDanmaku()
 
-              assertProviderConfigImpl(providerTab, DanmakuSourceType.MacCMS)
+              assertProviderConfigImpl(provider, DanmakuSourceType.MacCMS)
 
               return (
                 <MacCmsEpisodeListItem
@@ -73,7 +71,7 @@ export const SeasonDetailsPage = ({
                   onClick={() =>
                     loadGenericMutation.mutate({
                       ...data.episode,
-                      providerConfigId: providerTab.id,
+                      providerConfigId: provider.id,
                     })
                   }
                   isLoading={loadGenericMutation.isPending}
