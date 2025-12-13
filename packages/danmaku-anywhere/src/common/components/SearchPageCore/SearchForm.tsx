@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
+import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { toSimplified } from '@/common/utils/utils'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { ProviderResultsList } from './ProviderResultsList'
@@ -52,6 +53,7 @@ export const SearchForm = ({
 
     onSearch(keyword)
     setCommittedSearchTerm(keyword)
+    getTrackingService().track('search', { keyword })
   }
 
   return (

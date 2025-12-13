@@ -3,10 +3,10 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { SeasonSearchRequest } from '@/common/anime/dto'
-import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { Logger } from '@/common/Logger'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { getTrackingService } from '@/common/telemetry/getTrackingService'
 
 export const useSeasonSearchSuspense = (
   providerConfigId: string,

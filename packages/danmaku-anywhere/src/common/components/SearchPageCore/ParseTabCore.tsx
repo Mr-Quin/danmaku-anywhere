@@ -18,9 +18,9 @@ import {
   localizedDanmakuSourceType,
 } from '@/common/danmaku/enums'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
-import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { getTrackingService } from '@/common/telemetry/getTrackingService'
 
 const validateUrl = (value: string) => {
   try {

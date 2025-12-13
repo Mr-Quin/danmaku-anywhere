@@ -1,4 +1,3 @@
-import { getTrackingService } from '@/common/hooks/tracking/useSetupTracking'
 import { Logger as _Logger } from '@/common/Logger'
 import { danmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { extensionOptionsService } from '@/common/options/extensionOptions/service'
@@ -8,6 +7,7 @@ import {
   playerRpcClient,
 } from '@/common/rpcClient/background/client'
 import type { PlayerRelayCommands } from '@/common/rpcClient/background/types'
+import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { createPopoverRoot } from '@/content/common/host/createPopoverRoot'
 import { injectCss } from '@/content/common/injectCss'
 import { createDanmakuContainers } from '@/content/player/components/createDanmakuContainer'
