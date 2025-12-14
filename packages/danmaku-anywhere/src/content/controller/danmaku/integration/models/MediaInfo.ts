@@ -24,11 +24,11 @@ export interface MediaInfoDto {
 }
 
 export class MediaInfo {
-  public title: string
-  public episode: number
-  public seasonDecorator?: string
-  public episodeTitle?: string
-  public originalTitle?: string
+  public readonly title: string
+  public readonly episode: number
+  public readonly seasonDecorator?: string
+  public readonly episodeTitle?: string
+  public readonly originalTitle?: string
 
   constructor(data: MediaInfoDto) {
     this.title = data.title
