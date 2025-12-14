@@ -42,7 +42,7 @@ export class ReadinessService {
 
   private async init() {
     // wait until version is set to the updated version
-    const [result, err] = await tryCatch(this.storage.read)
+    const [result, err] = await tryCatch(() => this.storage.read())
 
     if (err) {
       this.logger.error('Failed to read last version', err)
