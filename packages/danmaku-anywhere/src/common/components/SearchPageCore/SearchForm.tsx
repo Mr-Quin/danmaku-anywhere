@@ -5,14 +5,13 @@ import { Box, Button, Stack, TextField } from '@mui/material'
 import { useIsFetching } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { SearchMascot } from '@/common/components/SearchPageCore/SearchMascot'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { toSimplified } from '@/common/utils/utils'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
-import { SuspenseImage } from '../image/SuspenseImage'
-import { images } from '../image/usePreloadImages'
 import { ProviderResultsList } from './ProviderResultsList'
 
 interface SearchFormProps {
@@ -96,16 +95,7 @@ export const SearchForm = ({
             onSeasonClick={onSeasonClick}
           />
         ) : (
-          <SuspenseImage
-            src={images.Fallback}
-            sx={{
-              position: 'absolute',
-              bottom: '0',
-              right: '0',
-            }}
-            height={400}
-            cache={false}
-          />
+          <SearchMascot />
         )}
       </Stack>
     </Box>

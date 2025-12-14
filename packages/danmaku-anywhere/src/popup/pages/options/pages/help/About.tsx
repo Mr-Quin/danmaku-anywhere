@@ -28,11 +28,11 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { QQIcon } from '@/common/components/icons/QQIcon'
 import { SuspenseImage } from '@/common/components/image/SuspenseImage'
-import { images } from '@/common/components/image/usePreloadImages'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { i18n } from '@/common/localization/i18n'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { docsLink } from '@/common/utils/utils'
+import { IMAGE_ASSETS } from '@/images/ImageAssets'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 
@@ -130,7 +130,7 @@ export const About = () => {
         {/* Header */}
         <Stack alignItems="center" spacing={2} mb={4}>
           <SuspenseImage
-            src={images.Logo}
+            src={IMAGE_ASSETS.Logo}
             alt={t('common.danmakuAnywhere', 'Danmaku Anywhere')}
             sx={{
               width: 80,
@@ -205,7 +205,7 @@ export const About = () => {
         <Card variant="outlined" sx={{ mb: 4, p: 2 }}>
           <Stack direction="row" spacing={2} alignItems="center">
             <SuspenseImage
-              src={images.I404}
+              src={IMAGE_ASSETS.I404}
               sx={{ width: 60, height: 60, borderRadius: 1 }}
             />
             <Box>

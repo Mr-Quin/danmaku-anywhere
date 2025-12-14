@@ -2,14 +2,18 @@ import { Box, Button, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
 import { SuspenseImage } from '@/common/components/image/SuspenseImage'
-import { images } from '@/common/components/image/usePreloadImages'
 
-interface NoDanmakuTreeProps {
+import { IMAGE_ASSETS } from '@/images/ImageAssets'
+
+interface EmptyDanmakuTreeProps {
   onImport: () => void
   onGoSearch: () => void
 }
 
-export const NoDanmakuTree = ({ onImport, onGoSearch }: NoDanmakuTreeProps) => {
+export const EmptyDanmakuTree = ({
+  onImport,
+  onGoSearch,
+}: EmptyDanmakuTreeProps) => {
   const { t } = useTranslation()
 
   return (
@@ -43,8 +47,7 @@ export const NoDanmakuTree = ({ onImport, onGoSearch }: NoDanmakuTreeProps) => {
           left: '50%',
           transform: 'translateX(-50%)',
         }}
-        src={images.Empty}
-        width={300}
+        src={IMAGE_ASSETS.DrawCircle}
         height={300}
         cache={false}
       />
