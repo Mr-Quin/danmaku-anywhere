@@ -31,8 +31,8 @@ export class UpgradeService {
     // gather context
     const context: Record<string, unknown> = {}
     for (const service of this.services) {
-      // Use internal read to bypass lock
-      const data = await service.options.readInternal()
+      // special method to read without waiting for readiness
+      const data = await service.options.readUnblocked()
       if (data) {
         context[service.options.key] = data.data
       }

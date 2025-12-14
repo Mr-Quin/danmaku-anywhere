@@ -22,7 +22,6 @@ type QueuedOperation<T> = {
   }
 }
 
-//Handles creating and upgrading options schema
 export class OptionsService<T extends OptionsSchema> {
   private versions: Version[] = []
   private readonly logger: typeof Logger
@@ -87,13 +86,13 @@ export class OptionsService<T extends OptionsSchema> {
 
   async get(): Promise<T> {
     await this.readinessService.waitUntilReady()
-    const options = await this.storageService.read()
-    if (!options) return this.defaultOptions
-    return options.data
+
+    return this.readUnblocked()
   }
 
   async set(data: T, version?: number) {
     await this.readinessService.waitUntilReady()
+
     return this.#queueOperation(async () => {
       let currentVersion = version
       if (!currentVersion) {
@@ -113,6 +112,7 @@ export class OptionsService<T extends OptionsSchema> {
   // allow partial update
   async update(data: Partial<T>) {
     await this.readinessService.waitUntilReady()
+
     return this.#queueOperation(async () => {
       const options = await this.get()
       const mergedData = { ...options, ...data }
@@ -123,6 +123,7 @@ export class OptionsService<T extends OptionsSchema> {
   // reset options to default
   async reset() {
     await this.readinessService.waitUntilReady()
+
     return this.#queueOperation(async () => {
       return this.storageService.set({
         data: this.defaultOptions,
@@ -151,9 +152,13 @@ export class OptionsService<T extends OptionsSchema> {
     this.operationQueue = []
   }
 
-  // Used by UpgradeService to read data without waiting for ready
-  async readInternal() {
-    return this.storageService.read()
+  // Read without waiting for readiness
+  async readUnblocked() {
+    const options = await this.storageService.read()
+    if (!options) {
+      return this.defaultOptions
+    }
+    return options.data
   }
 
   // Internal set method that doesn't queue (used within queued operations)

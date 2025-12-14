@@ -1,7 +1,6 @@
 import { injectable } from 'inversify'
 import { Logger } from '@/common/Logger'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
-import { isServiceWorker } from '@/common/utils/utils'
 
 interface LastVersion {
   lastVersion: string
@@ -41,14 +40,7 @@ export class ReadinessService {
   }
 
   private init() {
-    if (isServiceWorker()) {
-      this.logger.debug(
-        'Running in background, waiting for explicit upgrade call'
-      )
-      return
-    }
-
-    // In UI context, check if we need to wait
+    // wait until version is set to the updated version
     this.storage.read().then((result) => {
       const lastVersion = result?.lastVersion
       const currentVersion = chrome.runtime.getManifest().version
@@ -77,5 +69,3 @@ export class ReadinessService {
     })
   }
 }
-
-export const readinessService = new ReadinessService()
