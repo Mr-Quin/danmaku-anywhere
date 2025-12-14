@@ -18,13 +18,21 @@ export const NoDanmakuTree = ({ onImport, onGoSearch }: NoDanmakuTreeProps) => {
         <Typography mb={2}>
           {t('mountPage.libraryEmpty', 'The Library is empty...')}
         </Typography>
-        <Button onClick={onGoSearch} variant="text" autoCapitalize="none">
+        <Button
+          onClick={onGoSearch}
+          variant="text"
+          sx={{ textTransform: 'none' }}
+        >
           {t('mountPage.goSearch', 'Go search')}
         </Button>
         <Typography variant="body2" fontSize="small" color="textSecondary">
           {t('mountPage.or', 'or')}
         </Typography>
-        <Button onClick={onImport} variant="text" autoCapitalize="none">
+        <Button
+          onClick={onImport}
+          variant="text"
+          sx={{ textTransform: 'none' }}
+        >
           {t('mountPage.importDanmaku', 'Import danmaku (or drag and drop)')}
         </Button>
       </Stack>

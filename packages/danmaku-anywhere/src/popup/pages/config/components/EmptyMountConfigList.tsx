@@ -17,7 +17,11 @@ export const EmptyMountConfigList = ({
         <Typography mb={2}>
           {t('configPage.noConfigs', 'No configs configured...')}
         </Typography>
-        <Button onClick={onCreate} variant="text" autoCapitalize="none">
+        <Button
+          onClick={onCreate}
+          variant="text"
+          sx={{ textTransform: 'none' }}
+        >
           {t('configPage.goCreate', 'Go create one')}
         </Button>
       </Stack>

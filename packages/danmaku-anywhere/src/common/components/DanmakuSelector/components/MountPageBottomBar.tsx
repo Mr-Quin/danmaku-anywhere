@@ -88,23 +88,21 @@ export const MountPageBottomBar = ({
               {t('danmaku.mountShort', 'Mount')}
             </Button>
             {exportItems.length > 0 && (
-              <>
-                <DrilldownMenu
-                  items={exportItems}
-                  dense
-                  renderButton={(props) => (
-                    <Button
-                      variant="contained"
-                      startIcon={<Download />}
-                      onClick={props.onClick}
-                      size="small"
-                      disabled={selectionCount === 0}
-                    >
-                      {t('common.export', 'Export')}
-                    </Button>
-                  )}
-                />
-              </>
+              <DrilldownMenu
+                items={exportItems}
+                dense
+                renderButton={(props) => (
+                  <Button
+                    variant="contained"
+                    startIcon={<Download />}
+                    onClick={props.onClick}
+                    size="small"
+                    disabled={selectionCount === 0}
+                  >
+                    {t('common.export', 'Export')}
+                  </Button>
+                )}
+              />
             )}
             {onDelete && (
               <Button
