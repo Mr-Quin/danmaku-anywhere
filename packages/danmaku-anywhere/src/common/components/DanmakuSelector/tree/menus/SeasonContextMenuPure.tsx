@@ -10,6 +10,7 @@ import { isNotCustom } from '@/common/danmaku/utils'
 export interface SeasonContextMenuPureProps {
   season: Season | CustomSeason
   onExport: () => void
+  onExportBackup: () => void
   onDelete: () => void
   onRefresh: () => void
   isRefreshing: boolean
@@ -21,6 +22,7 @@ export interface SeasonContextMenuPureProps {
 export const SeasonContextMenuPure = ({
   season,
   onExport,
+  onExportBackup,
   onDelete,
   onRefresh,
   isRefreshing,
@@ -37,6 +39,14 @@ export const SeasonContextMenuPure = ({
       label: t('danmaku.exportXml', 'Export XML'),
       icon: <Download fontSize="small" />,
       onClick: onExport,
+      loading: isExporting,
+    },
+    {
+      kind: 'item',
+      id: 'exportBackup',
+      label: t('danmaku.exportBackup', 'Export Backup'),
+      icon: <Download fontSize="small" />,
+      onClick: onExportBackup,
       loading: isExporting,
     },
     { kind: 'separator', id: 'sep1' },

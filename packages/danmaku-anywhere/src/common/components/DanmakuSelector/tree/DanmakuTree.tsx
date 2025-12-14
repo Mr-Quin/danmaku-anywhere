@@ -23,8 +23,8 @@ import {
 import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/tree/ExtendedTreeItem'
 import { DanmakuTreeItem } from '@/common/components/DanmakuSelector/tree/items/DanmakuTreeItem'
 import { useDanmakuTree } from '@/common/components/DanmakuSelector/tree/useDanmakuTree'
-import { NothingHere } from '@/common/components/NothingHere'
 import { isNotCustom } from '@/common/danmaku/utils'
+import { NoDanmakuTree } from '../components/NoDanmakuTree'
 
 export interface DanmakuSelection {
   allEpisodes: GenericEpisodeLite[]
@@ -107,6 +107,7 @@ const selectionPropagation = { descendants: true, parents: true }
 export interface DanmakuTreeApi {
   getSelectedEpisodes: () => DanmakuSelection
   clearSelection: () => void
+  selectAll: () => void
 }
 
 interface DanmakuSelectorProps {
@@ -115,6 +116,8 @@ interface DanmakuSelectorProps {
   onSelect: (value: GenericEpisodeLite) => void
   onViewDanmaku: (value: GenericEpisodeLite) => void
   onSelectionChange?: (selection: string[]) => void
+  onImport: () => void
+  onGoSearch: () => void
   canMount?: boolean
   multiselect?: boolean
   ref: Ref<DanmakuTreeApi>
@@ -128,6 +131,8 @@ export const DanmakuTree = ({
   onSelectionChange,
   canMount = true,
   multiselect = false,
+  onImport,
+  onGoSearch,
   ref,
 }: DanmakuSelectorProps): React.ReactElement => {
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([])
@@ -148,8 +153,24 @@ export const DanmakuTree = ({
         setSelectedNodeIds([])
         onSelectionChange?.([])
       },
+      selectAll: () => {
+        const episodeIds: string[] = []
+        function collectEpisodes(items: ExtendedTreeItem[]) {
+          for (const item of items) {
+            if (item.kind === 'episode') {
+              episodeIds.push(item.id)
+            }
+            if (item.children) {
+              collectEpisodes(item.children)
+            }
+          }
+        }
+        collectEpisodes(treeItems)
+        setSelectedNodeIds(episodeIds)
+        onSelectionChange?.(episodeIds)
+      },
     }),
-    [selectedNodeIds, treeItemMap, onSelectionChange]
+    [selectedNodeIds, treeItemMap, onSelectionChange, treeItems]
   )
 
   const handleSelectedItemsChange = (
@@ -188,7 +209,7 @@ export const DanmakuTree = ({
   )
 
   if (treeItems.length === 0) {
-    return <NothingHere />
+    return <NoDanmakuTree onImport={onImport} onGoSearch={onGoSearch} />
   }
 
   return (

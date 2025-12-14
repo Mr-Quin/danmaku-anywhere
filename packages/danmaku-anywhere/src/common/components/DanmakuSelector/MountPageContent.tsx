@@ -3,9 +3,9 @@ import type {
   GenericEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
 import { UploadFile } from '@mui/icons-material'
-import { Alert } from '@mui/material'
-import type { ComponentType, ReactElement, ReactNode } from 'react'
-import { Fragment, useRef, useState } from 'react'
+import { Alert, Button } from '@mui/material'
+import type { ReactElement } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CaptureKeypress } from '@/common/components/CaptureKeypress'
 import { DanmakuViewer } from '@/common/components/DanmakuSelector/components/DanmakuViewer'
@@ -38,7 +38,8 @@ export interface MountPageContentProps {
   onUnmount?: () => void
   isMounted?: boolean
   isConnected?: boolean
-  selectorWrapper?: ComponentType<{ children: ReactNode }>
+  onGoSearch: () => void
+  onGoCreateMountConfig?: () => void
 }
 
 export const MountPageContent = ({
@@ -53,7 +54,8 @@ export const MountPageContent = ({
   onUnmount,
   isMounted = false,
   isConnected = true,
-  selectorWrapper: Wrapper = Fragment,
+  onGoSearch,
+  onGoCreateMountConfig,
 }: MountPageContentProps): ReactElement => {
   const { t } = useTranslation()
   const { isMobile } = usePlatformInfo()
@@ -78,22 +80,52 @@ export const MountPageContent = ({
     onToggleMultiselect()
   }
 
-  const menuItems: DAMenuItemConfig[] = [
-    {
-      kind: 'item',
-      id: 'import',
-      label: t('importPage.import', 'Import Danmaku'),
-      icon: <UploadFile />,
-      onClick: importFlow.openFileInput,
-    },
-    {
-      kind: 'item',
-      id: 'importFolder',
-      label: t('importPage.importFolder', 'Import Danmaku Folder'),
-      icon: <UploadFile />,
-      onClick: importFlow.openFolderInput,
-    },
-  ]
+  const menuItems = useMemo<DAMenuItemConfig[]>(
+    () => [
+      {
+        kind: 'item',
+        id: 'import',
+        label: t('importPage.import', 'Import Danmaku'),
+        icon: <UploadFile />,
+        onClick: importFlow.openFileInput,
+      },
+      {
+        kind: 'item',
+        id: 'importFolder',
+        label: t('importPage.importFolder', 'Import Danmaku Folder'),
+        icon: <UploadFile />,
+        onClick: importFlow.openFolderInput,
+      },
+    ],
+    [importFlow, t]
+  )
+
+  function renderAlert() {
+    if (isConnected === undefined || isConnected) {
+      return null
+    }
+    return (
+      <Alert
+        severity="warning"
+        square
+        action={
+          <Button
+            onClick={onGoCreateMountConfig}
+            size="small"
+            color="inherit"
+            variant="text"
+          >
+            {t('mountPage.alert.checkMountConfig', 'Check Mount config')}
+          </Button>
+        }
+      >
+        {t(
+          'mountPage.alert.mountingDisabled',
+          'Cannot mount danmaku on this page'
+        )}
+      </Alert>
+    )
+  }
 
   if (viewingEpisode) {
     return (
@@ -157,30 +189,26 @@ export const MountPageContent = ({
           onUnmount={onUnmount}
           isMounted={isMounted}
           menuItems={menuItems}
+          onSelectAll={() => danmakuTreeRef.current?.selectAll()}
+          clearSelection={() => danmakuTreeRef.current?.clearSelection()}
+          selectionCount={selectionCount}
         />
 
-        {!isConnected && (
-          <Alert severity="warning" square>
-            {t(
-              'mountPage.alert.mountingDisabled',
-              'Cannot mount danmaku on this page'
-            )}
-          </Alert>
-        )}
+        {renderAlert()}
 
         <ScrollBox flexGrow={1} overflow="auto">
-          <Wrapper>
-            <DanmakuTree
-              ref={danmakuTreeRef}
-              filter={filter}
-              typeFilter={selectedTypes as DanmakuSourceType[]}
-              onSelect={(ep) => onMount([ep])}
-              onViewDanmaku={setViewingEpisode}
-              onSelectionChange={(s) => setSelectionCount(s.length)}
-              canMount={isConnected && !isMounting}
-              multiselect={multiselect}
-            />
-          </Wrapper>
+          <DanmakuTree
+            ref={danmakuTreeRef}
+            filter={filter}
+            typeFilter={selectedTypes as DanmakuSourceType[]}
+            onSelect={(ep) => onMount([ep])}
+            onViewDanmaku={setViewingEpisode}
+            onSelectionChange={(s) => setSelectionCount(s.length)}
+            canMount={isConnected && !isMounting}
+            multiselect={multiselect}
+            onImport={importFlow.openFileInput}
+            onGoSearch={onGoSearch}
+          />
         </ScrollBox>
 
         <MountPageBottomBar
@@ -190,6 +218,7 @@ export const MountPageContent = ({
           onCancel={handleToggleMultiselect}
           onMount={treeActions.handleMountMultiple}
           onExport={treeActions.handleExport}
+          onExportBackup={treeActions.handleExportBackup}
           onDelete={treeActions.handleDelete}
         />
       </CaptureKeypress>

@@ -24,6 +24,9 @@ type DrilldownMenuProps = PropsWithChildren & {
   MenuProps?: Partial<MenuProps>
   items?: DAMenuItemConfig[]
   dense?: boolean
+  renderButton?: (props: {
+    onClick: (event: MouseEvent<HTMLButtonElement>) => void
+  }) => ReactElement
 }
 
 export const DrilldownMenu = ({
@@ -34,6 +37,7 @@ export const DrilldownMenu = ({
   items,
   icon,
   dense = false,
+  renderButton: renderButtonProp,
 }: DrilldownMenuProps): ReactElement => {
   const buttonId = useId()
 
@@ -49,11 +53,20 @@ export const DrilldownMenu = ({
     setAnchorEl(null)
   }
 
-  return (
-    <Box {...BoxProps}>
+  const renderButton = () => {
+    if (renderButtonProp) {
+      return renderButtonProp({ onClick: handleClick })
+    }
+    return (
       <IconButton id={buttonId} onClick={handleClick} {...ButtonProps}>
         {icon ?? <MoreVert fontSize={ButtonProps?.size} />}
       </IconButton>
+    )
+  }
+
+  return (
+    <Box {...BoxProps}>
+      {renderButton()}
       <DrilldownMenuList
         anchorEl={anchorEl}
         open={open}

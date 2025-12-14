@@ -136,6 +136,7 @@
     "commentCounted_other": "{{count}}条弹幕",
     "disable": "隐藏弹幕",
     "enable": "显示弹幕",
+    "exportBackup": "导出备份",
     "exportXml": "导出XML",
     "local": "本地弹幕",
     "mountShort": "装填",
@@ -268,11 +269,14 @@
   },
   "mountPage": {
     "alert": {
+      "checkMountConfig": "检查网页配置",
       "mountingDisabled": "无法在当前页面装填弹幕"
     },
     "confirmDeleteMultiple_other": "确定要删除{{count}}个弹幕吗？",
-    "noDanmaku": "弹幕列表为空",
-    "noDanmakuHelp": "前往搜索",
+    "goSearch": "前往搜索",
+    "importDanmaku": "导入弹幕（或拖拽至此）",
+    "libraryEmpty": "弹幕库里什么也没有...",
+    "or": "或者",
     "pageTitle": "弹幕库",
     "selectedCount_other": "已选择{{count}}"
   },

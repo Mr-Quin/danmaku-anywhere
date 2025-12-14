@@ -2,11 +2,12 @@ import type { ReactElement } from 'react'
 import { useState } from 'react'
 
 import { MountPageContent } from '@/common/components/DanmakuSelector/MountPageContent'
-import { usePopup } from '@/content/controller/store/popupStore'
+import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
 import { useMountDanmakuContent } from '@/content/controller/ui/floatingPanel/pages/mount/useMountDanmakuContent'
 
 export const MountPage = (): ReactElement => {
+  const setTab = usePopup.use.setTab()
   const { filter, setFilter } = useStore.use.danmaku()
   const selectedProviders = usePopup.use.selectedProviders()
   const setSelectedProviders = usePopup.use.setSelectedProviders()
@@ -14,6 +15,10 @@ export const MountPage = (): ReactElement => {
   const [multiselect, setMultiselect] = useState(false)
 
   const { mutate, isPending } = useMountDanmakuContent()
+
+  function handleGoSearch() {
+    setTab(PopupTab.Search)
+  }
 
   return (
     <MountPageContent
@@ -25,6 +30,7 @@ export const MountPage = (): ReactElement => {
       onToggleMultiselect={() => setMultiselect((prev) => !prev)}
       onMount={mutate}
       isMounting={isPending}
+      onGoSearch={handleGoSearch}
     />
   )
 }

@@ -141,6 +141,7 @@
     "commentCounted_other": "{{count}} comments",
     "disable": "Hide Danmaku",
     "enable": "Show Danmaku",
+    "exportBackup": "Export Backup",
     "exportXml": "Export XML",
     "local": "Local Danmaku",
     "mountShort": "Mount",
@@ -279,13 +280,16 @@
   },
   "mountPage": {
     "alert": {
+      "checkMountConfig": "Check Mount config",
       "mountingDisabled": "Cannot mount danmaku on this page"
     },
     "confirmDeleteMultiple_one": "Are you sure you want to delete {{count}} item?",
     "confirmDeleteMultiple_other": "Are you sure you want to delete {{count}} items?",
-    "noDanmaku": "No danmaku found",
-    "noDanmakuHelp": "Go to Search",
-    "pageTitle": "Danmaku Library",
+    "goSearch": "Go search",
+    "importDanmaku": "Import danmaku (or drag and drop)",
+    "libraryEmpty": "The Library is empty...",
+    "or": "or",
+    "pageTitle": "Library",
     "selectedCount_one": "{{count}} selected",
     "selectedCount_other": "{{count}} selected"
   },
