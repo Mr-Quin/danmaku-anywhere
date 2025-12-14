@@ -1,14 +1,8 @@
 import { inject, injectable } from 'inversify'
 import { upgradeOptions } from '@/background/syncOptions/upgradeOptions'
 import { Logger } from '@/common/Logger'
-import {
-  type DanmakuOptionsService,
-  danmakuOptionsServiceSymbol,
-} from '@/common/options/danmakuOptions/service'
-import {
-  type ExtensionOptionsService,
-  extensionOptionsServiceSymbol,
-} from '@/common/options/extensionOptions/service'
+import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { tryCatch } from '@/common/utils/utils'
 
 const tryUpgradeOptions = async () => {
@@ -22,9 +16,9 @@ const tryUpgradeOptions = async () => {
 @injectable()
 export class OptionsManager {
   constructor(
-    @inject(extensionOptionsServiceSymbol)
+    @inject(ExtensionOptionsService)
     private extensionOptionsService: ExtensionOptionsService,
-    @inject(danmakuOptionsServiceSymbol)
+    @inject(DanmakuOptionsService)
     private danmakuOptionsService: DanmakuOptionsService
   ) {}
 

@@ -8,7 +8,8 @@ import {
 } from '@/common/components/ImportPageCore/ImportResultDialog'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
-import { combinedPolicyService } from '@/common/options/combinedPolicy'
+import { useInjectService } from '@/common/hooks/useInjectService'
+import { CombinedPolicyService } from '@/common/options/combinedPolicy'
 import { FileUpload } from '@/popup/component/FileUpload'
 import { PreFormat } from '@/popup/component/PreFormat'
 import { useGoBack } from '@/popup/hooks/useGoBack'
@@ -22,6 +23,8 @@ type ImportResult = {
 export const ImportConfigPage = () => {
   const { t } = useTranslation()
   const goBack = useGoBack()
+
+  const combinedPolicyService = useInjectService(CombinedPolicyService)
 
   const [tabValue, setTabValue] = useState('presets')
   const [showDialog, setShowDialog] = useState(false)

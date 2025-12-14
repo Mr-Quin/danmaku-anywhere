@@ -16,9 +16,10 @@ import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { useInjectService } from '@/common/hooks/useInjectService'
 import {
   type CombinedPolicy,
-  combinedPolicyService,
+  CombinedPolicyService,
 } from '@/common/options/combinedPolicy'
 import { configQueryKeys } from '@/common/queries/queryKeys'
 import { PreFormat } from '@/popup/component/PreFormat'
@@ -51,6 +52,9 @@ export const PresetsList = () => {
       return data.configs.mount
     },
   })
+
+  const combinedPolicyService = useInjectService(CombinedPolicyService)
+
   const [selectedPreset, setSelectedPreset] = useState<CombinedPolicy | null>(
     null
   )

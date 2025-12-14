@@ -3,9 +3,13 @@ import {
   PROVIDER_TO_BUILTIN_ID,
 } from '@danmaku-anywhere/danmaku-converter'
 import { produce } from 'immer'
-import { injectable } from 'inversify'
-import type { PrevOptions } from '@/common/options/OptionsService/OptionsService'
-import { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import { inject, injectable } from 'inversify'
+import type { IStoreService } from '@/common/options/IStoreService'
+import {
+  type IOptionsServiceFactory,
+  OptionsServiceFactory,
+} from '@/common/options/OptionsService/OptionServiceFactory'
+import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { isServiceWorker } from '@/common/utils/utils'
 import { defaultProviderConfigs } from './constant'
@@ -18,19 +22,23 @@ import type {
 import { providerConfigSchema } from './schema'
 import { assertProviderConfigType } from './utils'
 
-const providerConfigOptions = new OptionsService<ProviderConfig[]>(
-  'providerConfig',
-  defaultProviderConfigs
-).version(1, {
-  upgrade: (data: PrevOptions) => {
-    return data
-  },
-})
-
 @injectable('Singleton')
-export class ProviderConfigService {
-  public readonly options = providerConfigOptions
+export class ProviderConfigService implements IStoreService {
+  public readonly options: OptionsService<ProviderConfig[]>
 
+  constructor(
+    @inject(OptionsServiceFactory)
+    private readonly optionServiceFactory: IOptionsServiceFactory
+  ) {
+    this.options = this.optionServiceFactory<ProviderConfig[]>(
+      'providerConfig',
+      defaultProviderConfigs
+    ).version(1, {
+      upgrade: (data) => {
+        return data
+      },
+    })
+  }
   async isIdUnique(id: string, excludeId?: string): Promise<boolean> {
     const configs = await this.options.get()
     return !configs.some((item) => item.id === id && item.id !== excludeId)
@@ -165,6 +173,30 @@ export class ProviderConfigService {
     await chromeRpcClient.providerConfigDelete(id)
   }
 
+  async deleteFromStorage(id: string) {
+    if (!isServiceWorker()) {
+      throw new Error('Must called from background script.')
+    }
+
+    const configs = await this.options.get()
+    const config = configs.find((item) => item.id === id)
+
+    if (!config) {
+      throw new Error(`Provider not found: "${id}" when deleting`)
+    }
+
+    if (config.isBuiltIn) {
+      throw new Error('Cannot delete built-in providers')
+    }
+
+    const newData = produce(configs, (draft) => {
+      const index = draft.findIndex((item) => item.id === id)
+      draft.splice(index, 1)
+    })
+
+    await this.options.set(newData)
+  }
+
   async toggle(id: string, enabled?: boolean) {
     const config = await this.get(id)
 
@@ -187,30 +219,4 @@ export class ProviderConfigService {
 
     await this.options.set(newData)
   }
-}
-
-export const providerConfigService = new ProviderConfigService()
-
-export async function deleteProviderConfig(id: string) {
-  if (!isServiceWorker()) {
-    throw new Error('Must called from background script.')
-  }
-
-  const configs = await providerConfigService.options.get()
-  const config = configs.find((item) => item.id === id)
-
-  if (!config) {
-    throw new Error(`Provider not found: "${id}" when deleting`)
-  }
-
-  if (config.isBuiltIn) {
-    throw new Error('Cannot delete built-in providers')
-  }
-
-  const newData = produce(configs, (draft) => {
-    const index = draft.findIndex((item) => item.id === id)
-    draft.splice(index, 1)
-  })
-
-  await providerConfigService.options.set(newData)
 }

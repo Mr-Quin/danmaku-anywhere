@@ -1,6 +1,7 @@
+import { uiContainer } from '@/common/ioc/uiIoc'
 import { Logger as _Logger } from '@/common/Logger'
-import { danmakuOptionsService } from '@/common/options/danmakuOptions/service'
-import { extensionOptionsService } from '@/common/options/extensionOptions/service'
+import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { createRpcServer } from '@/common/rpc/server'
 import {
   chromeRpcClient,
@@ -142,6 +143,7 @@ videoEventService.onTimeEvent(0.5, () => {
 /**
  * Storage events
  */
+const danmakuOptionsService = uiContainer.get(DanmakuOptionsService)
 danmakuOptionsService.onChange((options) => {
   manager.updateConfig(options)
 })
@@ -149,6 +151,8 @@ danmakuOptionsService.onChange((options) => {
 danmakuOptionsService.get().then((options) => {
   manager.updateConfig(options)
 })
+
+const extensionOptionsService = uiContainer.get(ExtensionOptionsService)
 
 extensionOptionsService.get().then((options) => {
   if (options.playerOptions.showSkipButton) {

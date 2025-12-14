@@ -1,13 +1,16 @@
 import 'reflect-metadata'
 import { Container } from 'inversify'
+import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
+import { StoreServiceSymbol } from '@/common/options/IStoreService'
+import { IntegrationPolicyService } from '@/common/options/integrationPolicyStore/service'
+import { MountConfigService } from '@/common/options/mountConfig/service'
 import {
-  danmakuOptionsService,
-  danmakuOptionsServiceSymbol,
-} from '@/common/options/danmakuOptions/service'
-import {
-  extensionOptionsService,
-  extensionOptionsServiceSymbol,
-} from '@/common/options/extensionOptions/service'
+  type IOptionsServiceFactory,
+  OptionsServiceFactory,
+  optionsServiceFactory,
+} from '@/common/options/OptionsService/OptionServiceFactory'
+import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import {
   DanmakuProviderFactory,
   danmakuProviderFactory,
@@ -16,17 +19,20 @@ import {
 
 const container = new Container({ autobind: true, defaultScope: 'Singleton' })
 
-// these option services are not classes so they can't autobind with inject
-container
-  .bind(extensionOptionsServiceSymbol)
-  .toConstantValue(extensionOptionsService)
-container
-  .bind(danmakuOptionsServiceSymbol)
-  .toConstantValue(danmakuOptionsService)
+// Bind all store services to StoreServiceSymbol
+container.bind(StoreServiceSymbol).toService(ExtensionOptionsService)
+container.bind(StoreServiceSymbol).toService(DanmakuOptionsService)
+container.bind(StoreServiceSymbol).toService(IntegrationPolicyService)
+container.bind(StoreServiceSymbol).toService(MountConfigService)
+container.bind(StoreServiceSymbol).toService(ProviderConfigService)
 
 // factory
 container
   .bind<IDanmakuProviderFactory>(DanmakuProviderFactory)
   .toFactory(danmakuProviderFactory)
+
+container
+  .bind<IOptionsServiceFactory>(OptionsServiceFactory)
+  .toFactory(optionsServiceFactory)
 
 export { container }

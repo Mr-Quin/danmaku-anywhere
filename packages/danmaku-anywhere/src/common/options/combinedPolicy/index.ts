@@ -1,8 +1,9 @@
+import { inject, injectable } from 'inversify'
 import type { z } from 'zod'
 import { zIntegration } from '@/common/options/integrationPolicyStore/schema'
-import { integrationPolicyService } from '@/common/options/integrationPolicyStore/service'
+import { IntegrationPolicyService } from '@/common/options/integrationPolicyStore/service'
 import { mountConfigInputSchema } from '@/common/options/mountConfig/schema'
-import { mountConfigService } from '@/common/options/mountConfig/service'
+import { MountConfigService } from '@/common/options/mountConfig/service'
 
 export const zCombinedPolicy = mountConfigInputSchema.extend({
   integration: zIntegration.optional(),
@@ -10,9 +11,13 @@ export const zCombinedPolicy = mountConfigInputSchema.extend({
 
 export type CombinedPolicy = z.output<typeof zCombinedPolicy>
 
-class CombinedPolicyService {
-  public readonly configService = mountConfigService
-  public readonly integrationService = integrationPolicyService
+@injectable('Singleton')
+export class CombinedPolicyService {
+  constructor(
+    @inject(MountConfigService) private configService: MountConfigService,
+    @inject(IntegrationPolicyService)
+    private integrationService: IntegrationPolicyService
+  ) {}
 
   async export(id: string): Promise<CombinedPolicy> {
     const config = await this.configService.get(id)
@@ -66,5 +71,3 @@ class CombinedPolicyService {
     return imported.id
   }
 }
-
-export const combinedPolicyService = new CombinedPolicyService()

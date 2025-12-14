@@ -1,12 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
-
+import { useInjectService } from '@/common/hooks/useInjectService'
 import type {
   AutomationMode,
   MountConfig,
   MountConfigOptions,
 } from '@/common/options/mountConfig/schema'
-import { mountConfigService } from '@/common/options/mountConfig/service'
+import { MountConfigService } from '@/common/options/mountConfig/service'
 import { storageQueryKeys } from '@/common/queries/queryKeys'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import { matchUrl } from '@/common/utils/matchUrl'
@@ -57,6 +57,8 @@ export const useMountConfig = () => {
 export const useEditMountConfig = () => {
   const queryClient = useQueryClient()
   const queryKey = storageQueryKeys.external('sync', ['mountConfig'])
+
+  const mountConfigService = useInjectService(MountConfigService)
 
   const createMutation = useMutation({
     mutationKey: queryKey,

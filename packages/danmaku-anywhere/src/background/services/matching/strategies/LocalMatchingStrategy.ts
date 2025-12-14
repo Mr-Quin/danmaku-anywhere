@@ -1,10 +1,7 @@
 import { inject, injectable } from 'inversify'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import type { MatchEpisodeInput, MatchEpisodeResult } from '@/common/anime/dto'
-import {
-  type ExtensionOptionsService,
-  extensionOptionsServiceSymbol,
-} from '@/common/options/extensionOptions/service'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { stripExtension } from '@/common/utils/stripExtension'
 import type { IMatchingStrategy } from './IMatchingStrategy'
 
@@ -13,7 +10,7 @@ export class LocalMatchingStrategy implements IMatchingStrategy {
   readonly name = 'local'
 
   constructor(
-    @inject(extensionOptionsServiceSymbol)
+    @inject(ExtensionOptionsService)
     private extensionOptionsService: ExtensionOptionsService,
     @inject(DanmakuService) private danmakuService: DanmakuService
   ) {}

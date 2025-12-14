@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest'
-import { mockStorage } from '@/tests/mockChromeApis'
+import { mockChrome } from '@/tests/mockChromeApis'
 import { ExtStorageService } from './ExtStorageService'
 
 describe('ExtStorageService', () => {
@@ -11,24 +11,26 @@ describe('ExtStorageService', () => {
   })
 
   test('read method should get data from storage', async () => {
-    mockStorage.get.mockResolvedValue({ testKey: 'testValue' })
+    mockChrome.storage.local.get.mockResolvedValue({ testKey: 'testValue' })
     const result = await service.read()
     expect(result).toBe('testValue')
   })
 
   test('set method should set data in storage', async () => {
     await service.set('testValue')
-    expect(mockStorage.set).toHaveBeenCalledWith({ testKey: 'testValue' })
+    expect(mockChrome.storage.local.set).toHaveBeenCalledWith({
+      testKey: 'testValue',
+    })
   })
 
   test('delete method should remove data from storage', async () => {
     await service.delete()
-    expect(mockStorage.remove).toHaveBeenCalledWith('testKey')
+    expect(mockChrome.storage.local.remove).toHaveBeenCalledWith('testKey')
   })
 
   test('clearStorage method should clear all data from storage', async () => {
     await service.clearStorage()
-    expect(mockStorage.clear).toHaveBeenCalled()
+    expect(mockChrome.storage.local.clear).toHaveBeenCalled()
   })
 
   test('listeners should be added by subscribe and removed by unsubscribe', async () => {

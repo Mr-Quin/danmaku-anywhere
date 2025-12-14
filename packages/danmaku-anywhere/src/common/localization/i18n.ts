@@ -1,8 +1,8 @@
 import { use } from 'i18next'
 import { initReactI18next } from 'react-i18next'
-import { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import { uiContainer } from '../ioc/uiIoc'
 import { Logger } from '../Logger'
-import { defaultExtensionOptions } from '../options/extensionOptions/constant'
+import { ExtensionOptionsService } from '../options/extensionOptions/service'
 import { resources } from './resources'
 
 export const i18n = use(initReactI18next)
@@ -15,8 +15,8 @@ void i18n.init({
   },
 })
 
-// set default language
-new OptionsService('extensionOptions', defaultExtensionOptions)
+uiContainer
+  .get(ExtensionOptionsService)
   .get()
   .then((options) => {
     void i18n.changeLanguage(options.lang)
