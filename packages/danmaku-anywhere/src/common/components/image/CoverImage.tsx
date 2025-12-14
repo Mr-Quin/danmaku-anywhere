@@ -2,7 +2,8 @@ import { CardMedia, Skeleton, styled } from '@mui/material'
 import { type ReactNode, Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { useImageSuspense } from '@/common/components/image/useImage'
-import { images } from '@/common/components/image/usePreloadImages'
+
+import { IMAGE_ASSETS } from '@/images/ImageAssets'
 
 type ImageAspectRatioProps = {
   widthRatio?: number
@@ -58,7 +59,7 @@ type CoverImageProps = {
 } & ImageAspectRatioProps
 
 const CoverImageLoader = (props: CoverImageProps) => {
-  const image = useImageSuspense(props.src ?? images.Fallback, {
+  const image = useImageSuspense(props.src ?? IMAGE_ASSETS.Fallback, {
     cache: props.src !== '',
   })
 

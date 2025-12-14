@@ -4,7 +4,8 @@ import { ErrorBoundary } from 'react-error-boundary'
 import { useTranslation } from 'react-i18next'
 import { Center } from '@/common/components/Center'
 import { SuspenseImage } from '@/common/components/image/SuspenseImage'
-import { images } from '@/common/components/image/usePreloadImages'
+
+import { IMAGE_ASSETS } from '@/images/ImageAssets'
 
 type ErrorMessageProps = {
   message: string
@@ -33,7 +34,7 @@ export const ErrorMessage = ({
       <ErrorBoundary fallback={null}>
         <Suspense fallback={null}>
           <SuspenseImage
-            src={images.Apologize}
+            src={IMAGE_ASSETS.Apologize}
             width={size}
             height={size}
             cache={false}

@@ -1,6 +1,6 @@
 import { Box, type BoxProps } from '@mui/material'
 import type { ReactNode } from 'react'
-import { images } from '@/common/components/image/usePreloadImages'
+import { IMAGE_ASSETS } from '@/images/ImageAssets'
 import { useImageSuspense } from './useImage'
 
 type ImageProps = {
@@ -25,7 +25,7 @@ export const SuspenseImage = ({
 }: ImageProps) => {
   // don't cache if src is empty
   const shouldCache = src === '' ? false : cache
-  const image = useImageSuspense(src ?? images.Fallback, {
+  const image = useImageSuspense(src ?? IMAGE_ASSETS.Fallback, {
     cache: shouldCache,
   })
 

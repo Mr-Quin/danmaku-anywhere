@@ -24,7 +24,7 @@ import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/tree/
 import { DanmakuTreeItem } from '@/common/components/DanmakuSelector/tree/items/DanmakuTreeItem'
 import { useDanmakuTree } from '@/common/components/DanmakuSelector/tree/useDanmakuTree'
 import { isNotCustom } from '@/common/danmaku/utils'
-import { NoDanmakuTree } from '../components/NoDanmakuTree'
+import { EmptyDanmakuTree } from '../components/EmptyDanmakuTree'
 
 export interface DanmakuSelection {
   allEpisodes: GenericEpisodeLite[]
@@ -209,7 +209,7 @@ export const DanmakuTree = ({
   )
 
   if (treeItems.length === 0) {
-    return <NoDanmakuTree onImport={onImport} onGoSearch={onGoSearch} />
+    return <EmptyDanmakuTree onImport={onImport} onGoSearch={onGoSearch} />
   }
 
   return (

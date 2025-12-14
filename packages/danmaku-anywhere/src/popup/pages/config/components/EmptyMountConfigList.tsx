@@ -1,7 +1,8 @@
 import { Box, Button, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { SuspenseImage } from '@/common/components/image/SuspenseImage'
-import { images } from '@/common/components/image/usePreloadImages'
+
+import { IMAGE_ASSETS } from '@/images/ImageAssets'
 
 interface EmptyMountConfigListProps {
   onCreate: () => void
@@ -13,7 +14,7 @@ export const EmptyMountConfigList = ({
   const { t } = useTranslation()
   return (
     <Box>
-      <Stack p={4} alignItems="center" zIndex={2} position="relative">
+      <Stack p={2} pt={8} alignItems="center" zIndex={2} position="relative">
         <Typography mb={2}>
           {t('configPage.noConfigs', 'No configs configured...')}
         </Typography>
@@ -26,14 +27,13 @@ export const EmptyMountConfigList = ({
         </Button>
       </Stack>
       <SuspenseImage
-        src={images.Empty}
+        src={IMAGE_ASSETS.DrawCircle}
         sx={{
           position: 'absolute',
-          bottom: '20%',
+          bottom: '16px',
           left: '50%',
           transform: 'translateX(-50%)',
         }}
-        width={300}
         height={300}
         cache={false}
       />
