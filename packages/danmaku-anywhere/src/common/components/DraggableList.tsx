@@ -166,6 +166,7 @@ export interface DraggableListProps<T extends DraggableItem> {
   renderPrimary: (item: T) => ReactNode
   renderSecondary?: (item: T) => ReactNode
   renderSecondaryAction: (item: T) => ReactNode
+  renderEmpty?: () => ReactNode
 }
 
 export function DraggableList<T extends DraggableItem>({
@@ -173,6 +174,7 @@ export function DraggableList<T extends DraggableItem>({
   clickable,
   onEdit,
   onReorder,
+  renderEmpty,
   renderPrimary,
   renderSecondary,
   renderSecondaryAction,
@@ -231,6 +233,9 @@ export function DraggableList<T extends DraggableItem>({
   const activeItem = orderedItems.find((item) => item.id === activeId)
 
   if (orderedItems.length === 0) {
+    if (renderEmpty) {
+      return renderEmpty()
+    }
     return <NothingHere />
   }
 

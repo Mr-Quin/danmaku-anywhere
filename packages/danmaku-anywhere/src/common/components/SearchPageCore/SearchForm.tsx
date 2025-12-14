@@ -11,6 +11,8 @@ import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { toSimplified } from '@/common/utils/utils'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
+import { SuspenseImage } from '../image/SuspenseImage'
+import { images } from '../image/usePreloadImages'
 import { ProviderResultsList } from './ProviderResultsList'
 
 interface SearchFormProps {
@@ -88,10 +90,21 @@ export const SearchForm = ({
         >
           <Search /> {t('searchPage.search', 'Search')}
         </Button>
-        {committedSearchTerm && (
+        {committedSearchTerm ? (
           <ProviderResultsList
             searchTerm={committedSearchTerm}
             onSeasonClick={onSeasonClick}
+          />
+        ) : (
+          <SuspenseImage
+            src={images.Fallback}
+            sx={{
+              position: 'absolute',
+              bottom: '0',
+              right: '0',
+            }}
+            height={400}
+            cache={false}
           />
         )}
       </Stack>

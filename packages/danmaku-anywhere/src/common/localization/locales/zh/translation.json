@@ -97,14 +97,16 @@
       "tooPermissive": "匹配模式过于宽松，AI功能将被禁用",
       "urlPatterns": "URL 模式"
     },
+    "goCreate": "创建一个",
     "import": {
       "fileUpload": "上传文件",
-      "hasIntegration": "含适配规则",
+      "hasIntegration": "含自动化",
       "name": "导入配置",
       "presets": "预设"
     },
-    "name": "装填配置",
-    "showIntegration": "查看适配规则"
+    "name": "网页配置 ",
+    "noConfigs": "这里还没有配置...",
+    "showIntegration": "查看自动化配置"
   },
   "configs": {
     "alert": {
@@ -190,7 +192,7 @@
       "matchedLocalDanmaku": "以匹配本地弹幕",
       "matchError": "匹配剧集失败：{{message}}",
       "noEpisodeMatched": "未找到匹配的剧集（{{title}}）：{{cause}}",
-      "noIntegration": "未设置适配规则",
+      "noIntegration": "未设置自动化配置",
       "openSearch": "打开搜索页面",
       "search": "搜索番剧：{{title}}",
       "usingAI": "正在使用AI解析",
@@ -224,14 +226,14 @@
     "steps": {
       "aiRequest": "AI请求",
       "aiRequestPass": "AI请求成功",
-      "checkMountConfigPermissive": "检查适配规则",
-      "checkMountConfigPermissiveFail": "适配规则过于宽松，请调整匹配模式",
+      "checkMountConfigPermissive": "检查自动化配置",
+      "checkMountConfigPermissiveFail": "匹配模式过于宽松，请调整匹配模式",
       "checkVideo": "检查视频",
       "checkVideoFail": "未检测到视频",
       "checkVideoPass": "检测到视频",
-      "configAvailable": "适配规则可用",
-      "configAvailableFail": "没有适配规则，请创建",
-      "configAvailablePass": "适配规则可用",
+      "configAvailable": "自动化配置可用",
+      "configAvailableFail": "没有自动化配置，请创建",
+      "configAvailablePass": "自动化配置可用",
       "enableAi": "启用AI",
       "enableAiPass": "AI已启用",
       "integrationEnabled": "启用自动模式",
@@ -261,11 +263,11 @@
       "regexRuleCount_other": "{{count}}个正则规则",
       "seasonNumber": "季数（可选）",
       "selectorRuleCount_other": "{{count}}个XPath规则",
-      "title": "配置适配规则",
+      "title": "配置自动化配置",
       "videoTitle": "视频标题",
       "xpathSelectors": "XPath"
     },
-    "name": "适配规则"
+    "name": "自动化配置"
   },
   "mountPage": {
     "alert": {
@@ -328,7 +330,7 @@
       "help": "关于",
       "hotkeys": "快捷键",
       "player": "播放设置",
-      "retentionPolicy": "缓存策略"
+      "retentionPolicy": "自动删除"
     },
     "player": {
       "showDanmakuTimeline": "显示弹幕密度",
@@ -338,8 +340,8 @@
       "alert": {
         "nDanmakuDeleted_other": "已删除{{count}}条弹幕"
       },
-      "deleteCommentsAfter": "弹幕缓存时间",
-      "enabled": "启用缓存策略",
+      "deleteCommentsAfter": "弹幕保留时间",
+      "enabled": "启用自动删除",
       "purgeNow": "立即清理",
       "tooltip": {
         "deleteCommentsAfter": "超过指定天数的弹幕将被删除。0表示从不删除。",
@@ -483,10 +485,10 @@
     "trackHeight": "弹幕行高"
   },
   "tabs": {
-    "config": "装填配置",
+    "config": "网页配置 ",
     "danmaku": "弹幕列表",
     "debug": "调试",
-    "integration": "适配规则",
+    "integration": "自动化",
     "mount": "弹幕库",
     "providers": "弹幕源",
     "search": "搜索番剧",

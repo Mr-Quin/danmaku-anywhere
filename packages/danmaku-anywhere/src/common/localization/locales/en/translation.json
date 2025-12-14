@@ -98,6 +98,7 @@
       "tooPermissive": "The match patterns are too permissive, it's recommended to use narrower patterns.",
       "urlPatterns": "URL Patterns"
     },
+    "goCreate": "Go create one",
     "import": {
       "fileUpload": "Upload File",
       "hasIntegration": "Includes Integration",
@@ -105,6 +106,7 @@
       "presets": "Presets"
     },
     "name": "Configs",
+    "noConfigs": "No configs configured",
     "showIntegration": "View Integration Policy"
   },
   "configs": {
