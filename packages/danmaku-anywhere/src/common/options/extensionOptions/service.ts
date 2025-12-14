@@ -239,7 +239,6 @@ export class ExtensionOptionsService implements IStoreService {
       })
   }
 
-  // Proxy methods to maintain backward compatibility
   async get() {
     return this.options.get()
   }

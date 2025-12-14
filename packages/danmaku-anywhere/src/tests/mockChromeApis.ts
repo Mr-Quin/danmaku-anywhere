@@ -1,8 +1,7 @@
 // @ts-nocheck
-
 import { type Mock, vi } from 'vitest'
 
-type MockStorage = {
+interface MockStorage {
   get: Mock
   set: Mock
   remove: Mock
@@ -13,7 +12,18 @@ type MockStorage = {
   }
 }
 
-export const mockStorage: MockStorage = {
+interface MockChrome {
+  storage: {
+    local: MockStorage
+    sync: MockStorage
+    session: MockStorage
+  }
+  runtime: {
+    getManifest: Mock
+  }
+}
+
+const mockStorage: MockStorage = {
   get: vi.fn(),
   set: vi.fn(),
   remove: vi.fn(),
@@ -24,10 +34,15 @@ export const mockStorage: MockStorage = {
   },
 }
 
-global.chrome = {
+export const mockChrome: MockChrome = {
   storage: {
     local: mockStorage,
     sync: mockStorage,
     session: mockStorage,
   },
-}
+  runtime: {
+    getManifest: vi.fn(),
+  },
+} as const
+
+global.chrome = mockChrome

@@ -80,7 +80,6 @@ export class DanmakuOptionsService implements IStoreService {
       })
   }
 
-  // Proxy methods
   async get() {
     return this.options.get()
   }

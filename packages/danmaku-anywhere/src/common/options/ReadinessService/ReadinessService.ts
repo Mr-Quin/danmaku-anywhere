@@ -9,8 +9,8 @@ interface LastVersion {
 @injectable('Singleton')
 export class ReadinessService {
   private isReady = false
-  private readyPromise: Promise<void>
-  private resolveReady: () => void
+  private readonly readyPromise: Promise<void>
+  private readonly resolveReady: () => void
   private logger = Logger.sub('[ReadinessService]')
   private storage = new ExtStorageService<LastVersion>('lastVersion', {
     storageType: 'local',

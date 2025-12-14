@@ -11,7 +11,6 @@ import {
   optionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
-import { UpgradeService } from '@/common/options/UpgradeService/UpgradeService'
 import {
   DanmakuProviderFactory,
   danmakuProviderFactory,
@@ -35,8 +34,5 @@ container
 container
   .bind<IOptionsServiceFactory>(OptionsServiceFactory)
   .toFactory(optionsServiceFactory)
-
-// UpgradeService
-container.bind(UpgradeService).toSelf().inSingletonScope()
 
 export { container }
