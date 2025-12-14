@@ -11,10 +11,8 @@ import {
   type IOptionsServiceFactory,
   OptionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
-import type {
-  OptionsService,
-  PrevOptions,
-} from '@/common/options/OptionsService/OptionsService'
+import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import type { PrevOptions } from '@/common/options/OptionsService/types'
 import { getRandomUUID } from '@/common/utils/utils'
 
 @injectable('Singleton')
@@ -30,19 +28,19 @@ export class MountConfigService implements IStoreService {
       defaultMountConfig
     )
       .version(1, {
-        upgrade: (data: PrevOptions) => data,
+        upgrade: (data) => data,
       })
       .version(2, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           data.map((config: PrevOptions) => ({
             ...config,
             enabled: false, // switching to new permission model. disable all configs by default, permission will be asked when enabled
           })),
       })
       .version(3, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           data.map((config: PrevOptions) =>
-            produce(config, (draft: PrevOptions) => {
+            produce<PrevOptions>(config, (draft) => {
               // add id field
               draft.id = getRandomUUID()
               // add integration field
@@ -55,9 +53,9 @@ export class MountConfigService implements IStoreService {
           ),
       })
       .version(4, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           data.map((config: PrevOptions) =>
-            produce(config, (draft: PrevOptions) => {
+            produce<PrevOptions>(config, (draft) => {
               // Remove existing integration to migrate to new policy based integration
               // User has to manually select the integration policy
               delete draft.integration
@@ -190,5 +188,3 @@ export class MountConfigService implements IStoreService {
     await this.options.set(newData)
   }
 }
-
-// export const mountConfigService = new MountConfigService()

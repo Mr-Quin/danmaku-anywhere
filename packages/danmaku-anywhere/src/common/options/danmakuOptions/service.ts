@@ -9,10 +9,8 @@ import {
   type IOptionsServiceFactory,
   OptionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
-import type {
-  OptionsService,
-  PrevOptions,
-} from '@/common/options/OptionsService/OptionsService'
+import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import type { PrevOptions } from '../OptionsService/types'
 
 @injectable('Singleton')
 export class DanmakuOptionsService implements IStoreService {
@@ -27,10 +25,10 @@ export class DanmakuOptionsService implements IStoreService {
       defaultDanmakuOptions
     )
       .version(1, {
-        upgrade: (data: PrevOptions) => data,
+        upgrade: (data) => data,
       })
       .version(2, {
-        upgrade: (data: PrevOptions) => ({
+        upgrade: (data) => ({
           ...data,
           // add safeZones and offset
           safeZones: {
@@ -43,8 +41,8 @@ export class DanmakuOptionsService implements IStoreService {
         }),
       })
       .version(3, {
-        upgrade: (data: PrevOptions) => {
-          return produce<any>(data, (draft) => {
+        upgrade: (data) => {
+          return produce<PrevOptions>(data, (draft) => {
             // remove fields: show, filterLevel
             // add limitPerSec
             delete draft.show
@@ -54,8 +52,8 @@ export class DanmakuOptionsService implements IStoreService {
         },
       })
       .version(4, {
-        upgrade: (data: PrevOptions) => {
-          return produce<any>(data, (draft) => {
+        upgrade: (data) => {
+          return produce<PrevOptions>(data, (draft) => {
             draft.maxOnScreen = 500
             draft.trackLimit = 32
             draft.trackHeight = 32
@@ -74,8 +72,8 @@ export class DanmakuOptionsService implements IStoreService {
         },
       })
       .version(5, {
-        upgrade: (data: PrevOptions) => {
-          return produce<any>(data, (draft) => {
+        upgrade: (data) => {
+          return produce<PrevOptions>(data, (draft) => {
             draft.distribution = 'random'
           })
         },
@@ -95,15 +93,7 @@ export class DanmakuOptionsService implements IStoreService {
     return this.options.update(data)
   }
 
-  async reset() {
-    return this.options.reset()
-  }
-
   onChange(listener: (data: DanmakuOptions) => void) {
     return this.options.onChange(listener)
-  }
-
-  async upgrade(context: Record<string, unknown> = {}): Promise<void> {
-    return this.options.upgrade(context)
   }
 }

@@ -11,9 +11,6 @@ import type {
   VersionConfig,
 } from './types'
 
-// biome-ignore lint/suspicious/noExplicitAny: used for data migration where the previous options type is lost
-export type PrevOptions = any
-
 type QueuedOperation<T> = {
   operation: () => Promise<T>
   promise: {
@@ -73,15 +70,20 @@ export class OptionsService<T extends OptionsSchema> {
     }
 
     this.logger.debug(`Found options with version '${options.version}'`)
-    // if options is not versioned, assume version 0 for purpose of upgrading
-    options.version ??= 0
-    const upgradedOptions = migrateOptions(
-      options,
-      this.versions,
-      this.logger,
-      context
-    )
-    await this.storageService.set(upgradedOptions)
+    try {
+      // if options is not versioned, assume version 0 for purpose of upgrading
+      options.version ??= 0
+      const upgradedOptions = migrateOptions(
+        options,
+        this.versions,
+        this.logger,
+        context
+      )
+      await this.storageService.set(upgradedOptions)
+    } catch (error) {
+      this.logger.error('Failed to upgrade options, reset to default', error)
+      await this.reset()
+    }
   }
 
   async get(): Promise<T> {
@@ -93,7 +95,7 @@ export class OptionsService<T extends OptionsSchema> {
   async set(data: T, version?: number) {
     await this.readinessService.waitUntilReady()
 
-    return this.#queueOperation(async () => {
+    return this.queueOperation(async () => {
       let currentVersion = version
       if (!currentVersion) {
         const options = await this.storageService.read()
@@ -113,22 +115,10 @@ export class OptionsService<T extends OptionsSchema> {
   async update(data: Partial<T>) {
     await this.readinessService.waitUntilReady()
 
-    return this.#queueOperation(async () => {
+    return this.queueOperation(async () => {
       const options = await this.get()
       const mergedData = { ...options, ...data }
-      return this.#setInternal(mergedData)
-    })
-  }
-
-  // reset options to default
-  async reset() {
-    await this.readinessService.waitUntilReady()
-
-    return this.#queueOperation(async () => {
-      return this.storageService.set({
-        data: this.defaultOptions,
-        version: this.#getLatestVersion().version,
-      })
+      return this.setInternal(mergedData)
     })
   }
 
@@ -137,10 +127,6 @@ export class OptionsService<T extends OptionsSchema> {
       if (!options) return
       listener(options.data)
     })
-  }
-
-  setup() {
-    this.storageService.setup()
   }
 
   destroy() {
@@ -161,8 +147,22 @@ export class OptionsService<T extends OptionsSchema> {
     return options.data
   }
 
+  private setup() {
+    this.storageService.setup()
+  }
+
+  // reset options to default, not blocked
+  private async reset() {
+    return this.queueOperation(async () => {
+      return this.storageService.set({
+        data: this.defaultOptions,
+        version: this.getLatestVersion().version,
+      })
+    })
+  }
+
   // Internal set method that doesn't queue (used within queued operations)
-  async #setInternal(data: T, version?: number) {
+  private async setInternal(data: T, version?: number) {
     let currentVersion = version
     if (!currentVersion) {
       const options = await this.storageService.read()
@@ -177,7 +177,7 @@ export class OptionsService<T extends OptionsSchema> {
     })
   }
 
-  #queueOperation<R>(operation: () => Promise<R>): Promise<R> {
+  private queueOperation<R>(operation: () => Promise<R>): Promise<R> {
     const { promise, resolve, reject } = Promise.withResolvers<R>()
 
     this.operationQueue.push({
@@ -185,12 +185,12 @@ export class OptionsService<T extends OptionsSchema> {
       promise: { resolve: resolve as (value: unknown) => void, reject },
     })
 
-    void this.#processQueue()
+    void this.processQueue()
 
     return promise
   }
 
-  async #processQueue() {
+  private async processQueue() {
     if (this.isProcessingQueue || this.operationQueue.length === 0) {
       return
     }
@@ -212,7 +212,7 @@ export class OptionsService<T extends OptionsSchema> {
     this.isProcessingQueue = false
   }
 
-  #getLatestVersion() {
+  private getLatestVersion() {
     return this.versions.reduce((acc, v) => {
       if (acc.version < v.version) {
         return v

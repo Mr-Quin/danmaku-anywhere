@@ -11,10 +11,7 @@ import {
   type IOptionsServiceFactory,
   OptionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
-import type {
-  OptionsService,
-  PrevOptions,
-} from '@/common/options/OptionsService/OptionsService'
+import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { migrateDanmakuSourcesToProviders } from '@/common/options/providerConfig/migration'
 import { ColorMode } from '@/common/theme/enums'
 import { ProviderConfigService } from '../providerConfig/service'
@@ -34,10 +31,10 @@ export class ExtensionOptionsService implements IStoreService {
       defaultExtensionOptions
     )
       .version(1, {
-        upgrade: (data: PrevOptions) => data,
+        upgrade: (data) => data,
       })
       .version(2, {
-        upgrade: (data: PrevOptions) => {
+        upgrade: (data) => {
           return {
             ...data,
             lang: Language.zh, // add lang field
@@ -45,7 +42,7 @@ export class ExtensionOptionsService implements IStoreService {
         },
       })
       .version(3, {
-        upgrade: (data: PrevOptions) => {
+        upgrade: (data) => {
           return {
             ...data,
             danmakuSources: {
@@ -57,7 +54,7 @@ export class ExtensionOptionsService implements IStoreService {
         },
       })
       .version(4, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             if (draft.danmakuSources) {
               // Add option to convert between simplified and traditional Chinese
@@ -66,7 +63,7 @@ export class ExtensionOptionsService implements IStoreService {
           }),
       })
       .version(5, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             // Add theme options
             draft.theme = {
@@ -75,7 +72,7 @@ export class ExtensionOptionsService implements IStoreService {
           }),
       })
       .version(6, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             if (draft.danmakuSources) {
               // Add bilibili danmaku source and disable it by default
@@ -88,7 +85,7 @@ export class ExtensionOptionsService implements IStoreService {
           }),
       })
       .version(7, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             // Add bilibili danmaku source options
             if (draft.danmakuSources) {
@@ -98,7 +95,7 @@ export class ExtensionOptionsService implements IStoreService {
           }),
       })
       .version(8, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             // Add tencent and iqiyi danmaku source options
             if (draft.danmakuSources) {
@@ -114,35 +111,35 @@ export class ExtensionOptionsService implements IStoreService {
           }),
       })
       .version(9, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             // Add hotkeys
             draft.hotkeys = defaultKeymap
           }),
       })
       .version(10, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             // Add showReleaseNotes field
             draft.showReleaseNotes = false
           }),
       })
       .version(11, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             // Add searchUsingSimplified field
             draft.searchUsingSimplified = false
           }),
       })
       .version(12, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             // Add debug field
             draft.debug = false
           }),
       })
       .version(13, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             draft.retentionPolicy = {
               enabled: false,
@@ -151,14 +148,14 @@ export class ExtensionOptionsService implements IStoreService {
           }),
       })
       .version(14, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             // Add analytics field
             draft.enableAnalytics = true
           }),
       })
       .version(15, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             // Add playerOptions field
             draft.playerOptions = {
@@ -168,7 +165,7 @@ export class ExtensionOptionsService implements IStoreService {
           }),
       })
       .version(16, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             if (draft.danmakuSources) {
               // Add custom danmaku source
@@ -182,14 +179,14 @@ export class ExtensionOptionsService implements IStoreService {
           }),
       })
       .version(17, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             // Add matchLocalDanmaku
             draft.matchLocalDanmaku = true
           }),
       })
       .version(18, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             // Add stripColor
             if (draft.danmakuSources) {
@@ -198,7 +195,7 @@ export class ExtensionOptionsService implements IStoreService {
           }),
       })
       .version(19, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             // Add danmuicuBaseUrl
             if (draft.danmakuSources) {
@@ -208,7 +205,7 @@ export class ExtensionOptionsService implements IStoreService {
           }),
       })
       .version(20, {
-        upgrade: (data: PrevOptions) =>
+        upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             if (draft.danmakuSources) {
               draft.danmakuSources.dandanplay.useCustomRoot = false
@@ -217,7 +214,7 @@ export class ExtensionOptionsService implements IStoreService {
           }),
       })
       .version(21, {
-        upgrade: (data: PrevOptions) => {
+        upgrade: (data) => {
           if (data.danmakuSources) {
             const providers = migrateDanmakuSourcesToProviders(
               data.danmakuSources
@@ -255,16 +252,7 @@ export class ExtensionOptionsService implements IStoreService {
     return this.options.update(data)
   }
 
-  async reset() {
-    return this.options.reset()
-  }
-
   onChange(listener: (data: ExtensionOptions) => void) {
     return this.options.onChange(listener)
-  }
-
-  // upgrade options to latest version
-  async upgrade(context: Record<string, unknown> = {}): Promise<void> {
-    return this.options.upgrade(context)
   }
 }

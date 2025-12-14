@@ -9,10 +9,7 @@ import {
   type IOptionsServiceFactory,
   OptionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
-import type {
-  OptionsService,
-  PrevOptions,
-} from '@/common/options/OptionsService/OptionsService'
+import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { isServiceWorker } from '@/common/utils/utils'
 import { defaultProviderConfigs } from './constant'
@@ -37,7 +34,7 @@ export class ProviderConfigService implements IStoreService {
       'providerConfig',
       defaultProviderConfigs
     ).version(1, {
-      upgrade: (data: PrevOptions, context: Record<string, any>) => {
+      upgrade: (data) => {
         return data
       },
     })
