@@ -1,10 +1,8 @@
 import { Delete, ErrorOutline } from '@mui/icons-material'
-import { Box, Button, Chip, Stack, Typography } from '@mui/material'
+import { Chip } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { DraggableList } from '@/common/components/DraggableList'
-import { SuspenseImage } from '@/common/components/image/SuspenseImage'
-import { images } from '@/common/components/image/usePreloadImages'
 import { ListItemPrimaryStack } from '@/common/components/ListItemPrimaryStack'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { useToast } from '@/common/components/Toast/toastStore'
@@ -15,6 +13,7 @@ import {
   useMountConfig,
 } from '@/common/options/mountConfig/useMountConfig'
 import { ConfigToggleSwitch } from '@/popup/pages/config/components/ConfigToggleSwitch'
+import { EmptyMountConfigList } from '@/popup/pages/config/components/EmptyMountConfigList'
 
 const ConfigBadge = ({ config }: { config: MountConfig }) => {
   const { t } = useTranslation()
@@ -64,45 +63,12 @@ const ConfigBadge = ({ config }: { config: MountConfig }) => {
   }
 }
 
-interface EmptyMountConfigListProps {
-  onCreate: () => void
-}
-
-const EmptyMountConfigList = ({ onCreate }: EmptyMountConfigListProps) => {
-  const { t } = useTranslation()
-  return (
-    <Box>
-      <Stack p={4} alignItems="center" zIndex={2} position="relative">
-        <Typography mb={2}>
-          {t('configPage.noConfigs', 'No configs configured...')}
-        </Typography>
-        <Button onClick={onCreate} variant="text" autoCapitalize="none">
-          {t('configPage.goCreate', 'Go create one')}
-        </Button>
-      </Stack>
-      <SuspenseImage
-        src={images.Empty}
-        sx={{
-          position: 'absolute',
-          bottom: '20%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-        }}
-        width={300}
-        height={300}
-        cache={false}
-      />
-    </Box>
-  )
-}
-
-export const MountConfigList = ({
-  onEdit,
-  onAdd,
-}: {
+interface MountConfigListProps {
   onEdit: (config: MountConfig) => void
   onAdd: () => void
-}) => {
+}
+
+export const MountConfigList = ({ onEdit, onAdd }: MountConfigListProps) => {
   const { t } = useTranslation()
   const { configs } = useMountConfig()
   const { reorder, remove } = useEditMountConfig()
