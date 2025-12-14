@@ -11,7 +11,7 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { useService } from '@/common/hooks/useService'
+import { useInjectService } from '@/common/hooks/useInjectService'
 import type { CustomMacCmsProvider } from '@/common/options/providerConfig/schema'
 import { zMacCmsProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
@@ -53,7 +53,7 @@ export const MacCmsProviderForm = ({
     select: (res) => res.data,
   })
 
-  const providerConfigService = useService(ProviderConfigService)
+  const providerConfigService = useInjectService(ProviderConfigService)
 
   const handleFormSubmit = async (data: CustomMacCmsProvider) => {
     // Validate ID uniqueness

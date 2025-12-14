@@ -40,7 +40,11 @@ export class UpgradeService {
 
     // upgrade each service
     for (const service of this.services) {
-      await service.options.upgrade(context)
+      try {
+        await service.options.upgrade(context)
+      } catch (error) {
+        this.logger.error(`Failed to upgrade ${service.options.key}`, error)
+      }
     }
 
     // mark as ready

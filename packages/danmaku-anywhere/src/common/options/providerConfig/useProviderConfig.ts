@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
-import { useService } from '@/common/hooks/useService'
+import { useInjectService } from '@/common/hooks/useInjectService'
 import { storageQueryKeys } from '@/common/queries/queryKeys'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import type { ProviderConfig, ProviderConfigOptions } from './schema'
@@ -58,7 +58,7 @@ export const useEditProviderConfig = () => {
   const queryClient = useQueryClient()
   const queryKey = storageQueryKeys.external('sync', ['providerConfig'])
 
-  const providerConfigService = useService(ProviderConfigService)
+  const providerConfigService = useInjectService(ProviderConfigService)
 
   const createMutation = useMutation({
     mutationKey: queryKey,

@@ -1,6 +1,6 @@
 import { produce } from 'immer'
 import { useMemo } from 'react'
-import { useService } from '@/common/hooks/useService'
+import { useInjectService } from '@/common/hooks/useInjectService'
 import type {
   Integration,
   IntegrationInput,
@@ -19,7 +19,7 @@ export const useIntegrationPolicyStore = () => {
     storageType: 'local',
   })
 
-  const mountConfigService = useService(MountConfigService)
+  const mountConfigService = useInjectService(MountConfigService)
 
   const methods = useMemo(() => {
     const get = (id: string) => {

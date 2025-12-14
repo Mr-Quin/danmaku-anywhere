@@ -16,7 +16,7 @@ import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { useService } from '@/common/hooks/useService'
+import { useInjectService } from '@/common/hooks/useInjectService'
 import {
   type CombinedPolicy,
   CombinedPolicyService,
@@ -53,7 +53,7 @@ export const PresetsList = () => {
     },
   })
 
-  const combinedPolicyService = useService(CombinedPolicyService)
+  const combinedPolicyService = useInjectService(CombinedPolicyService)
 
   const [selectedPreset, setSelectedPreset] = useState<CombinedPolicy | null>(
     null

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { useService } from '@/common/hooks/useService'
+import { useInjectService } from '@/common/hooks/useInjectService'
 import type {
   AutomationMode,
   MountConfig,
@@ -58,7 +58,7 @@ export const useEditMountConfig = () => {
   const queryClient = useQueryClient()
   const queryKey = storageQueryKeys.external('sync', ['mountConfig'])
 
-  const mountConfigService = useService(MountConfigService)
+  const mountConfigService = useInjectService(MountConfigService)
 
   const createMutation = useMutation({
     mutationKey: queryKey,
