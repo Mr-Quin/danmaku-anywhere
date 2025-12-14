@@ -104,7 +104,7 @@
       "name": "导入配置",
       "presets": "预设"
     },
-    "name": "网页配置 ",
+    "name": "网页配置",
     "noConfigs": "这里还没有配置...",
     "showIntegration": "查看自动化配置"
   },
@@ -485,7 +485,7 @@
     "trackHeight": "弹幕行高"
   },
   "tabs": {
-    "config": "网页配置 ",
+    "config": "网页配置",
     "danmaku": "弹幕列表",
     "debug": "调试",
     "integration": "自动化",
