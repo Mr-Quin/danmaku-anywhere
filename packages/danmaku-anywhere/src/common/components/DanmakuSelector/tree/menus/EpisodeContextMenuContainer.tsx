@@ -5,6 +5,7 @@ import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { isNotCustom } from '@/common/danmaku/utils'
+import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useExportXml } from '@/popup/hooks/useExportXml'
 import { useDanmakuTreeContext } from '../DanmakuTreeContext'
 import { EpisodeContextMenuPure } from './EpisodeContextMenuPure'
@@ -21,6 +22,7 @@ export const EpisodeContextMenuContainer = ({
   const { t } = useTranslation()
   const { mutateAsync: load, isPending } = useFetchDanmaku()
   const exportDanmaku = useExportXml()
+  const exportBackup = useExportDanmaku()
   const deleteDanmakuMutation = useDeleteEpisode()
   const dialog = useDialog()
 
@@ -46,6 +48,18 @@ export const EpisodeContextMenuContainer = ({
       })
     } else {
       exportDanmaku.mutate({
+        customFilter: { ids: [episode.id] },
+      })
+    }
+  }
+
+  const handleExportBackup = () => {
+    if (isNotCustom(episode)) {
+      exportBackup.mutate({
+        filter: { ids: [episode.id] },
+      })
+    } else {
+      exportBackup.mutate({
         customFilter: { ids: [episode.id] },
       })
     }
@@ -86,6 +100,7 @@ export const EpisodeContextMenuContainer = ({
       onViewDanmaku={() => setViewingDanmaku(episode)}
       onRefresh={handleFetchDanmaku}
       onExport={handleExport}
+      onExportBackup={handleExportBackup}
       onDelete={handleDelete}
       contextMenuPosition={contextPosition}
       onClose={handleClose}

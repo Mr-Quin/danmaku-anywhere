@@ -1,7 +1,9 @@
 import { Delete, Download, PlayArrow } from '@mui/icons-material'
 import { Button, Collapse, Paper, Stack, Typography } from '@mui/material'
-import type { ReactElement } from 'react'
+import { type ReactElement, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import type { DAMenuItemConfig } from '../../Menu/DAMenuItemConfig'
+import { DrilldownMenu } from '../../Menu/DrilldownMenu'
 
 interface MountPageBottomBarProps {
   open: boolean
@@ -9,8 +11,9 @@ interface MountPageBottomBarProps {
   isMounting: boolean
   onCancel: () => void
   onMount: () => void
-  onExport?: () => void
-  onDelete?: () => void
+  onExport: () => void
+  onExportBackup: () => void
+  onDelete: () => void
 }
 
 export const MountPageBottomBar = ({
@@ -20,9 +23,33 @@ export const MountPageBottomBar = ({
   onCancel,
   onMount,
   onExport,
+  onExportBackup,
   onDelete,
 }: MountPageBottomBarProps): ReactElement => {
   const { t } = useTranslation()
+
+  const exportItems = useMemo((): DAMenuItemConfig[] => {
+    const items: DAMenuItemConfig[] = []
+    items.push({
+      id: 'exportXml',
+      label: t('danmaku.exportXml', 'Export XML'),
+      onClick: () => {
+        onExport()
+      },
+      icon: <Download fontSize="small" />,
+      kind: 'item',
+    })
+    items.push({
+      id: 'exportBackup',
+      label: t('danmaku.exportBackup', 'Export Backup'),
+      onClick: () => {
+        onExportBackup()
+      },
+      icon: <Download fontSize="small" />,
+      kind: 'item',
+    })
+    return items
+  }, [onExport, onExportBackup, t])
 
   return (
     <Collapse in={open} sx={{ flexShrink: 0 }}>
@@ -60,16 +87,22 @@ export const MountPageBottomBar = ({
             >
               {t('danmaku.mountShort', 'Mount')}
             </Button>
-            {onExport && (
-              <Button
-                variant="contained"
-                startIcon={<Download />}
-                onClick={onExport}
-                size="small"
-                disabled={selectionCount === 0}
-              >
-                {t('common.export', 'Export')}
-              </Button>
+            {exportItems.length > 0 && (
+              <DrilldownMenu
+                items={exportItems}
+                dense
+                renderButton={(props) => (
+                  <Button
+                    variant="contained"
+                    startIcon={<Download />}
+                    onClick={props.onClick}
+                    size="small"
+                    disabled={selectionCount === 0}
+                  >
+                    {t('common.export', 'Export')}
+                  </Button>
+                )}
+              />
             )}
             {onDelete && (
               <Button

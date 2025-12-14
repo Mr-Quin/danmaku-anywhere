@@ -131,7 +131,7 @@ export const DialogRender = ({
   }
 
   const renderAction = () => {
-    if (!hideCancel && !hideConfirm) {
+    if (hideCancel && hideConfirm) {
       return null
     }
     return (

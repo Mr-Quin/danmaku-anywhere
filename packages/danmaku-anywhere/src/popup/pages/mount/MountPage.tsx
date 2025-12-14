@@ -1,23 +1,15 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type { ReactElement } from 'react'
-import { Suspense, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-
+import { useNavigate } from 'react-router'
 import { MountPageContent } from '@/common/components/DanmakuSelector/MountPageContent'
-import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { tabQueryKeys } from '@/common/queries/queryKeys'
 import { controllerRpcClient } from '@/common/rpcClient/controller/client'
 import { useIsConnected } from '@/popup/hooks/useIsConnected'
-import { HasDanmaku } from '@/popup/pages/mount/components/HasDanmaku'
 import { useMountDanmakuPopup } from '@/popup/pages/mount/useMountDanmakuPopup'
 import { useStore } from '@/popup/store'
-
-const PopupSelectorWrapper = ({ children }: { children: React.ReactNode }) => (
-  <Suspense fallback={<FullPageSpinner />}>
-    <HasDanmaku>{children}</HasDanmaku>
-  </Suspense>
-)
 
 export const MountPage = (): ReactElement => {
   const { t } = useTranslation()
@@ -33,6 +25,8 @@ export const MountPage = (): ReactElement => {
   const { selectedTypes, setSelectedType } = useStore.use.danmaku()
 
   const isConnected = useIsConnected()
+
+  const navigate = useNavigate()
 
   const tabDanmakuState = useQuery({
     queryKey: tabQueryKeys.getState(),
@@ -62,6 +56,14 @@ export const MountPage = (): ReactElement => {
 
   const { mutate, isPending: isMounting } = useMountDanmakuPopup()
 
+  function handleGoSearch() {
+    navigate('/search')
+  }
+
+  function handleGoCreateMountConfig() {
+    navigate('/config')
+  }
+
   return (
     <MountPageContent
       filter={filter}
@@ -75,7 +77,8 @@ export const MountPage = (): ReactElement => {
       onUnmount={() => unmount()}
       isMounted={isMounted}
       isConnected={isConnected}
-      selectorWrapper={PopupSelectorWrapper}
+      onGoSearch={handleGoSearch}
+      onGoCreateMountConfig={handleGoCreateMountConfig}
     />
   )
 }

@@ -72,7 +72,7 @@ export const ConfigPage = () => {
           onAdd={handleAddConfig}
           onShowIntegration={() => navigate('integration-policy')}
         />
-        <MountConfigList onEdit={handleEditConfig} />
+        <MountConfigList onEdit={handleEditConfig} onAdd={handleAddConfig} />
       </TabLayout>
       <Outlet />
     </>

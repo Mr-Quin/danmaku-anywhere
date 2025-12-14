@@ -11,6 +11,7 @@ export interface EpisodeContextMenuPureProps {
   onViewDanmaku: () => void
   onRefresh: () => void
   onExport: () => void
+  onExportBackup: () => void
   onDelete: () => void
   contextMenuPosition?: { top: number; left: number } | null
   onClose: () => void
@@ -22,6 +23,7 @@ export const EpisodeContextMenuPure = ({
   onViewDanmaku,
   onRefresh,
   onExport,
+  onExportBackup,
   onDelete,
   contextMenuPosition,
   onClose,
@@ -55,6 +57,13 @@ export const EpisodeContextMenuPure = ({
       label: t('danmaku.exportXml', 'Export XML'),
       icon: <Download fontSize="small" />,
       onClick: onExport,
+    },
+    {
+      kind: 'item',
+      id: 'exportBackup',
+      label: t('danmaku.exportBackup', 'Export Backup'),
+      icon: <Download fontSize="small" />,
+      onClick: onExportBackup,
     },
     { kind: 'separator', id: 'sep1' },
     {

@@ -13,6 +13,7 @@ import {
   useMountConfig,
 } from '@/common/options/mountConfig/useMountConfig'
 import { ConfigToggleSwitch } from '@/popup/pages/config/components/ConfigToggleSwitch'
+import { EmptyMountConfigList } from '@/popup/pages/config/components/EmptyMountConfigList'
 
 const ConfigBadge = ({ config }: { config: MountConfig }) => {
   const { t } = useTranslation()
@@ -62,11 +63,12 @@ const ConfigBadge = ({ config }: { config: MountConfig }) => {
   }
 }
 
-export const MountConfigList = ({
-  onEdit,
-}: {
+interface MountConfigListProps {
   onEdit: (config: MountConfig) => void
-}) => {
+  onAdd: () => void
+}
+
+export const MountConfigList = ({ onEdit, onAdd }: MountConfigListProps) => {
   const { t } = useTranslation()
   const { configs } = useMountConfig()
   const { reorder, remove } = useEditMountConfig()
@@ -119,6 +121,7 @@ export const MountConfigList = ({
       onReorder={(sourceIndex, destinationIndex) => {
         reorder.mutate({ sourceIndex, destinationIndex })
       }}
+      renderEmpty={() => <EmptyMountConfigList onCreate={onAdd} />}
       renderPrimary={(config) => (
         <ListItemPrimaryStack text={config.name}>
           <ConfigBadge config={config} />

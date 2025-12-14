@@ -6,6 +6,7 @@ import { useRefreshSeason } from '@/common/anime/queries/useRefreshSeason'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { isNotCustom } from '@/common/danmaku/utils'
+import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useExportXml } from '@/popup/hooks/useExportXml'
 import { useDanmakuTreeContext } from '../DanmakuTreeContext'
 import { SeasonContextMenuPure } from './SeasonContextMenuPure'
@@ -22,6 +23,7 @@ export const SeasonContextMenuContainer = ({
   const { t } = useTranslation()
   const { contextMenu, setContextMenu } = useDanmakuTreeContext()
   const exportXml = useExportXml()
+  const exportBackup = useExportDanmaku()
   const refreshSeason = useRefreshSeason()
   const deleteSeasonMutation = useDeleteSeason()
   const deleteEpisodeMutation = useDeleteEpisode()
@@ -35,6 +37,18 @@ export const SeasonContextMenuContainer = ({
       })
     } else {
       exportXml.mutate({
+        customFilter: { all: true },
+      })
+    }
+  }
+
+  const handleExportBackup = () => {
+    if (isNotCustom(season)) {
+      exportBackup.mutate({
+        filter: { seasonId: season.id },
+      })
+    } else {
+      exportBackup.mutate({
         customFilter: { all: true },
       })
     }
@@ -69,7 +83,8 @@ export const SeasonContextMenuContainer = ({
     <SeasonContextMenuPure
       season={season}
       onExport={handleExport}
-      isExporting={exportXml.isPending}
+      onExportBackup={handleExportBackup}
+      isExporting={exportXml.isPending || exportBackup.isPending}
       onRefresh={() => refreshSeason.mutate(season.id)}
       isRefreshing={refreshSeason.isPending}
       onDelete={handleDelete}

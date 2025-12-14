@@ -6,6 +6,7 @@ import type { DanmakuTreeApi } from '@/common/components/DanmakuSelector/tree/Da
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { isNotCustom } from '@/common/danmaku/utils'
+import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useExportXml } from '@/popup/hooks/useExportXml'
 
 interface UseDanmakuTreeActionsProps {
@@ -22,6 +23,7 @@ export const useDanmakuTreeActions = ({
   const { t } = useTranslation()
   const dialog = useDialog()
   const exportXmlMutation = useExportXml()
+  const exportBackupMutation = useExportDanmaku()
   const deleteEpisodeMutation = useDeleteEpisode()
   const deleteSeasonMutation = useDeleteSeason()
 
@@ -48,6 +50,18 @@ export const useDanmakuTreeActions = ({
   const handleExport = () => {
     const { allEpisodes } = getSelection()
     exportXmlMutation.mutate({
+      filter: {
+        ids: allEpisodes.filter((ep) => isNotCustom(ep)).map((ep) => ep.id),
+      },
+      customFilter: {
+        ids: allEpisodes.filter((ep) => !isNotCustom(ep)).map((ep) => ep.id),
+      },
+    })
+  }
+
+  const handleExportBackup = () => {
+    const { allEpisodes } = getSelection()
+    exportBackupMutation.mutate({
       filter: {
         ids: allEpisodes.filter((ep) => isNotCustom(ep)).map((ep) => ep.id),
       },
@@ -104,6 +118,7 @@ export const useDanmakuTreeActions = ({
   return {
     handleMountMultiple,
     handleExport,
+    handleExportBackup,
     handleDelete,
   }
 }
