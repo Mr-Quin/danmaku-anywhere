@@ -14,6 +14,7 @@ import {
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import type { PrevOptions } from '@/common/options/OptionsService/types'
 import { getRandomUUID } from '@/common/utils/utils'
+import { migrateMountConfigV4V5 } from './migrations/migrateMountConfigV4V5'
 
 @injectable('Singleton')
 export class MountConfigService implements IStoreService {
@@ -61,6 +62,9 @@ export class MountConfigService implements IStoreService {
               delete draft.integration
             })
           ),
+      })
+      .version(5, {
+        upgrade: (data, context) => migrateMountConfigV4V5(data, context),
       })
   }
 

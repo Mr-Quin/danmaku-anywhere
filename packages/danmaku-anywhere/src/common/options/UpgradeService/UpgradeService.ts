@@ -34,7 +34,7 @@ export class UpgradeService {
       // special method to read without waiting for readiness
       const data = await service.options.readUnblocked()
       if (data) {
-        context[service.options.key] = data.data
+        context[service.options.key] = data
       }
     }
 

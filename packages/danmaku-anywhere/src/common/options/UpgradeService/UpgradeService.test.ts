@@ -20,7 +20,7 @@ describe('UpgradeService', () => {
     mockStoreService = {
       options: {
         key: 'testService',
-        readUnblocked: vi.fn().mockResolvedValue({ data: { foo: 'bar' } }),
+        readUnblocked: vi.fn().mockResolvedValue({ foo: 'bar' }),
         upgrade: vi.fn().mockResolvedValue(undefined),
       },
     }
