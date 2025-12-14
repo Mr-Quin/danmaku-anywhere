@@ -36,7 +36,7 @@ export const SearchPage = (): React.ReactElement | null => {
     if (!mediaInfo) {
       return
     }
-    setSearchTitle(mediaInfo.seasonTitle)
+    setSearchTitle(mediaInfo.title)
   }, [mediaInfo])
 
   const handleDialogProceed = (season: Season) => {

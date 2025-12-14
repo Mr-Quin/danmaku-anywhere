@@ -54,14 +54,12 @@ export function extractMediaInfo(
       episodeTitle: episodeTitleField,
     })
 
-    const { searchTitle, episode, episodeTitle } = result
-
-    const mediaInfo = new MediaInfo(
-      searchTitle,
-      episode,
-      undefined,
-      episodeTitle
-    )
+    const mediaInfo = new MediaInfo({
+      title: result.searchTitle,
+      episode: result.episode,
+      episodeTitle: result.episodeTitle,
+      originalTitle: result.originalTitle,
+    })
 
     return {
       success: true,

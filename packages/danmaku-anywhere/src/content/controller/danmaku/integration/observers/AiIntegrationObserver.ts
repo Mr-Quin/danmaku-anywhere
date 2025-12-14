@@ -116,7 +116,10 @@ export class AiIntegrationObserver extends MediaObserver {
         return
       }
 
-      const mediaInfo = new MediaInfo(data.title, data.episode)
+      const mediaInfo = new MediaInfo({
+        title: data.title,
+        episode: data.episode,
+      })
       this.updateMediaInfo(mediaInfo)
       this.updateStatus('Video info found: ' + mediaInfo.toString())
     } catch (err) {

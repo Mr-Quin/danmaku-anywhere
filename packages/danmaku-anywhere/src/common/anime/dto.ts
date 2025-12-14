@@ -27,6 +27,7 @@ export interface MatchEpisodeInput {
   episodeNumber?: number
   // if available, use seasonId to disambiguate
   seasonId?: number
+  originalTitle?: string
 }
 
 export interface MatchEpisodeMetadata {
