@@ -54,4 +54,39 @@ describe('UpgradeService', () => {
       testService: { foo: 'bar' },
     })
   })
+
+  it('should continue if one service upgrade fails', async () => {
+    const mockStoreServiceSuccess = {
+      options: {
+        key: 'successService',
+        readUnblocked: vi.fn().mockResolvedValue({ foo: 'bar' }),
+        upgrade: vi.fn().mockResolvedValue(undefined),
+      },
+    }
+    const mockStoreServiceFail = {
+      options: {
+        key: 'failService',
+        readUnblocked: vi.fn().mockResolvedValue({ baz: 'qux' }),
+        upgrade: vi.fn().mockRejectedValue(new Error('Upgrade failed')),
+      },
+    }
+
+    // Rebind services for this test
+    container.unbind(StoreServiceSymbol)
+    container.bind(StoreServiceSymbol).toConstantValue(mockStoreServiceSuccess)
+    container.bind(StoreServiceSymbol).toConstantValue(mockStoreServiceFail)
+
+    // Rebind UpgradeService to clear singleton instance and injection
+    container.unbind(UpgradeService)
+    container.bind(UpgradeService).toSelf()
+
+    // Re-resolve service to get new dependencies
+    service = container.get(UpgradeService)
+
+    await service.upgrade()
+
+    expect(mockStoreServiceSuccess.options.upgrade).toHaveBeenCalled()
+    expect(mockStoreServiceFail.options.upgrade).toHaveBeenCalled()
+    expect(mockReadinessService.setReady).toHaveBeenCalled()
+  })
 })

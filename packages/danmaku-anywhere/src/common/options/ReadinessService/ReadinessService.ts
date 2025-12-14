@@ -1,6 +1,7 @@
 import { injectable } from 'inversify'
 import { Logger } from '@/common/Logger'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
+import { tryCatch } from '@/common/utils/utils'
 
 interface LastVersion {
   lastVersion: string
@@ -21,7 +22,7 @@ export class ReadinessService {
     this.readyPromise = promise
     this.resolveReady = resolve
 
-    this.init()
+    void this.init()
   }
 
   async waitUntilReady() {
@@ -39,33 +40,39 @@ export class ReadinessService {
     return this.storage.set({ lastVersion: version })
   }
 
-  private init() {
+  private async init() {
     // wait until version is set to the updated version
-    this.storage.read().then((result) => {
-      const lastVersion = result?.lastVersion
-      const currentVersion = chrome.runtime.getManifest().version
+    const [result, err] = await tryCatch(this.storage.read)
 
-      if (lastVersion === currentVersion) {
-        this.logger.debug('Version match, ready immediately')
-        this.setReady()
-      } else {
-        this.logger.debug(
-          `Version mismatch (last: ${lastVersion}, current: ${currentVersion}), waiting for upgrade`
-        )
+    if (err) {
+      this.logger.error('Failed to read last version', err)
+      return
+    }
 
-        const listener = (version: LastVersion | undefined) => {
-          if (!version) {
-            return
-          }
-          if (version.lastVersion === currentVersion) {
-            this.logger.debug('Version updated, ready now')
-            this.setReady()
-            this.storage.unsubscribe(listener)
-          }
-        }
+    const lastVersion = result?.lastVersion
+    const currentVersion = chrome.runtime.getManifest().version
 
-        this.storage.subscribe(listener)
+    if (lastVersion === currentVersion) {
+      this.logger.debug('Version match, ready immediately')
+      this.setReady()
+      return
+    }
+
+    this.logger.debug(
+      `Version mismatch (last: ${lastVersion}, current: ${currentVersion}), waiting for upgrade`
+    )
+
+    const listener = (version: LastVersion | undefined) => {
+      if (!version) {
+        return
       }
-    })
+      if (version.lastVersion === currentVersion) {
+        this.logger.debug('Version updated, ready now')
+        this.setReady()
+        this.storage.unsubscribe(listener)
+      }
+    }
+
+    this.storage.subscribe(listener)
   }
 }

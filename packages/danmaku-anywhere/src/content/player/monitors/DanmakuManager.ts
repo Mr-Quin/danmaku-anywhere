@@ -53,9 +53,12 @@ export class DanmakuManager {
 
     const extensionOptionsService = uiContainer.get(ExtensionOptionsService)
 
-    extensionOptionsService.get().then((options) => {
-      this.debugOverlayService.setDebugEnabled(options.debug)
-    })
+    extensionOptionsService
+      .get()
+      .then((options) => {
+        this.debugOverlayService.setDebugEnabled(options.debug)
+      })
+      .catch(logger.error)
     extensionOptionsService.onChange((options) => {
       this.debugOverlayService.setDebugEnabled(options.debug)
     })
