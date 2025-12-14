@@ -65,7 +65,7 @@ describe('extractMediaInfo', () => {
     expect(result.success).toBe(true)
     if (result.success) {
       // "My Show" + "S2" merged
-      expect(result.mediaInfo.seasonTitle).toBe('My Show S2')
+      expect(result.mediaInfo.title).toBe('My Show S2')
       expect(result.mediaInfo.episode).toBe(5)
       // seasonDecorator should be undefined as we merged it
       expect(result.mediaInfo.seasonDecorator).toBe(undefined)
@@ -82,7 +82,7 @@ describe('extractMediaInfo', () => {
 
     expect(result.success).toBe(true)
     if (result.success) {
-      expect(result.mediaInfo.seasonTitle).toBe('My Show S2') // No double "S2 S2"
+      expect(result.mediaInfo.title).toBe('My Show S2') // No double "S2 S2"
     }
   })
 
@@ -96,7 +96,7 @@ describe('extractMediaInfo', () => {
 
     expect(result.success).toBe(true)
     if (result.success) {
-      expect(result.mediaInfo.seasonTitle).toBe('我的动画 第二季')
+      expect(result.mediaInfo.title).toBe('我的动画 第二季')
     }
   })
 

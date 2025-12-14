@@ -1,24 +1,42 @@
 import { i18n } from '@/common/localization/i18n'
 
+export interface MediaInfoDto {
+  /**
+   * The name of the season
+   */
+  title: string
+  /**
+   * The numeric episode within the season (1-indexed)
+   */
+  episode?: number
+  /**
+   * Any text that decorates the season, for example, S2, 2nd Season, etc.
+   */
+  seasonDecorator?: string
+  /**
+   * The title of the episode
+   */
+  episodeTitle?: string
+  /**
+   * The original title of the media as it was extracted from the page
+   */
+  originalTitle?: string
+}
+
 export class MediaInfo {
-  constructor(
-    /**
-     * The name of the season
-     */
-    public seasonTitle: string,
-    /**
-     * The numeric episode within the season (1-indexed)
-     */
-    public episode = 1,
-    /**
-     * Any text that decorates the season, for example, S2, 2nd Season, etc.
-     */
-    public seasonDecorator?: string,
-    /**
-     * The title of the episode
-     */
-    public episodeTitle?: string
-  ) {}
+  public title: string
+  public episode: number
+  public seasonDecorator?: string
+  public episodeTitle?: string
+  public originalTitle?: string
+
+  constructor(data: MediaInfoDto) {
+    this.title = data.title
+    this.episode = data.episode ?? 1
+    this.seasonDecorator = data.seasonDecorator
+    this.episodeTitle = data.episodeTitle
+    this.originalTitle = data.originalTitle
+  }
 
   private isNumber(value: string) {
     return !isNaN(Number.parseInt(value))
@@ -41,9 +59,9 @@ export class MediaInfo {
    * We assume that the same key represents the same season even on different sites.
    */
   getKey() {
-    if (this.seasonDecorator === undefined) return `${this.seasonTitle.trim()}`
+    if (this.seasonDecorator === undefined) return `${this.title.trim()}`
 
-    return `${this.seasonTitle.trim()}%%${this.seasonDecorator.trim()}`
+    return `${this.title.trim()}%%${this.seasonDecorator.trim()}`
   }
 
   toString() {
@@ -51,26 +69,26 @@ export class MediaInfo {
       episode: this.episode,
     })
 
-    if (this.seasonDecorator === undefined)
-      return `${this.seasonTitle} ${episode}`
+    if (this.seasonDecorator === undefined) return `${this.title} ${episode}`
 
-    return `${this.seasonTitle} ${this.formatSeason()} ${episode}`
+    return `${this.title} ${this.formatSeason()} ${episode}`
   }
 
   equals(other: MediaInfo) {
     return (
-      this.seasonTitle === other.seasonTitle &&
+      this.title === other.title &&
       this.episode === other.episode &&
       this.seasonDecorator === other.seasonDecorator
     )
   }
 
-  toJSON() {
+  toJSON(): MediaInfoDto {
     return {
-      seasonTitle: this.seasonTitle,
+      title: this.title,
       episode: this.episode,
       seasonDecorator: this.seasonDecorator,
       episodeTitle: this.episodeTitle,
+      originalTitle: this.originalTitle,
     }
   }
 }

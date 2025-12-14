@@ -98,8 +98,9 @@ export const useIntegrationPolicy = () => {
 
         const episodeMatchPayload = {
           mapKey: state.getKey(),
-          title: state.seasonTitle,
+          title: state.title,
           episodeNumber: state.episode,
+          originalTitle: state.originalTitle,
         }
 
         toast.info(

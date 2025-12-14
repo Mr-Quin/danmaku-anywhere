@@ -23,11 +23,12 @@ export class EpisodeMatchingService {
     input: MatchEpisodeInput
   ): Promise<MatchEpisodeResult> {
     for (const strategy of this.strategies) {
+      this.logger.debug(`Matching using strategy ${strategy.name}`, input)
       const result = await strategy.match(input)
 
       if (result) {
         this.logger.debug(
-          `Strategy ${strategy.constructor.name} returned result`,
+          `Strategy ${strategy.name} returned result`,
           result.status
         )
         return result
