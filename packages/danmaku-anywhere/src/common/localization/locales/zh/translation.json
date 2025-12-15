@@ -54,6 +54,7 @@
     "import": "导入",
     "itsEmpty": "这里什么都没有...",
     "multiselect": "多选",
+    "next": "下一步",
     "pip": "画中画",
     "regexShort": "正则",
     "reset": "重置",
@@ -104,7 +105,7 @@
       "name": "导入配置",
       "presets": "预设"
     },
-    "name": "网页配置",
+    "name": "装填配置",
     "noConfigs": "这里还没有配置...",
     "showIntegration": "查看自动化配置"
   },
@@ -271,7 +272,7 @@
   },
   "mountPage": {
     "alert": {
-      "checkMountConfig": "检查网页配置",
+      "checkMountConfig": "检查装填配置",
       "mountingDisabled": "无法在当前页面装填弹幕"
     },
     "confirmDeleteMultiple_other": "确定要删除{{count}}个弹幕吗？",
@@ -485,7 +486,7 @@
     "trackHeight": "弹幕行高"
   },
   "tabs": {
-    "config": "网页配置",
+    "config": "装填配置",
     "danmaku": "弹幕列表",
     "debug": "调试",
     "integration": "自动化",
