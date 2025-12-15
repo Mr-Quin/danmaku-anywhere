@@ -1,5 +1,5 @@
 import { Box, Paper, type PopoverVirtualElement, styled } from '@mui/material'
-import { Suspense, useEffect, useRef } from 'react'
+import { Suspense, useCallback } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useDialogStore } from '@/common/components/Dialog/dialogStore'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
@@ -25,16 +25,14 @@ export const ControllerWindow = ({
   anchorEl: PopoverVirtualElement | HTMLElement | null
 }) => {
   const { isOpen, toggleOpen, tab } = usePopup()
-  const container = useRef<HTMLDivElement | null>(null)
   const setContainer = useDialogStore.use.setContainer()
 
-  useEffect(() => {
-    setContainer(container.current)
-
-    return () => {
-      setContainer(null)
-    }
-  }, [setContainer, container])
+  const containerRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      setContainer(node)
+    },
+    [setContainer]
+  )
 
   useHotkeys('esc', () => {
     toggleOpen(false)
@@ -56,7 +54,7 @@ export const ControllerWindow = ({
         minHeight={CONTROLLER_WINDOW_CONTENT_HEIGHT}
       >
         <PanelTabs />
-        <WindowPaper ref={container}>
+        <WindowPaper ref={containerRef}>
           <Suspense
             fallback={
               <Box flexGrow={1}>
