@@ -41,7 +41,7 @@ export const createTrackingService = (
     },
     init: {
       session_trace: {
-        enabled: true,
+        enabled: false,
       },
       session_replay: {
         enabled: false,
