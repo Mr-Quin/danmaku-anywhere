@@ -183,7 +183,7 @@ export const MountConfigEditor = ({
                   fullWidth
                   disabled={!isValid}
                 >
-                  Next
+                  {t('common.next', 'Next')}
                 </Button>
               </Box>
             </>
