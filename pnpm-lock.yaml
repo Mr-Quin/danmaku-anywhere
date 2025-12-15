@@ -265,9 +265,6 @@ importers:
       '@mui/x-tree-view':
         specifier: ^8.19.0
         version: 8.19.0(@emotion/react@11.14.0(@types/react@19.2.6)(react@19.2.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.6)(react@19.2.0))(@types/react@19.2.6)(react@19.2.0))(@mui/material@7.3.5(@emotion/react@11.14.0(@types/react@19.2.6)(react@19.2.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.6)(react@19.2.0))(@types/react@19.2.6)(react@19.2.0))(@types/react@19.2.6)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@mui/system@7.3.5(patch_hash=90842ece9932266d40d17f7702a0dd1a202cb9cbf9c0ecff6d5de1adea842f9b)(@emotion/react@11.14.0(@types/react@19.2.6)(react@19.2.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.6)(react@19.2.0))(@types/react@19.2.6)(react@19.2.0))(@types/react@19.2.6)(react@19.2.0))(@types/react@19.2.6)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      '@newrelic/browser-agent':
-        specifier: ^1.303.0
-        version: 1.303.0
       '@tanstack/react-query':
         specifier: ^5.90.10
         version: 5.90.10(react@19.2.0)
