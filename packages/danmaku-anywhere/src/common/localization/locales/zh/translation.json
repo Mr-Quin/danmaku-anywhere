@@ -365,25 +365,20 @@
     },
     "builtin": "内置",
     "delete": {
-      "message": "确定要删除 \"{{name}}\" 吗？",
+      "message": "确定要删除 \"{{name}}\" 吗？删除后，与此弹幕源相关的所有番剧将无法刷新。",
       "title": "删除弹幕源"
     },
     "editor": {
       "addHeader": "添加请求头",
       "authEnabled": "启用身份验证",
       "authHeaders": "自定义请求头",
-      "error": {
-        "idExists": "此ID已被使用，请使用其他ID"
-      },
       "headerKey": "请求头键名",
       "headerValue": "请求头值",
       "helper": {
         "authHeaders": "随每个请求发送的自定义请求头 (例如 Authorization、X-AppSecret)",
         "baseUrl": "弹弹Play或兼容弹弹Play的API地址",
-        "builtInName": "内置弹幕源的名称不可更改",
-        "id": "用于识别此弹幕源的唯一ID。删除并使用相同ID重新创建后，会重新使用之前的番剧数据"
+        "builtInName": "内置弹幕源的名称不可更改"
       },
-      "id": "ID",
       "name": "名称",
       "title": {
         "add": "添加弹幕源",

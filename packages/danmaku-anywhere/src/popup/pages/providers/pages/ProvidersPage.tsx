@@ -49,7 +49,7 @@ export const ProvidersPage = (): ReactElement => {
       title: t('providers.delete.title', 'Delete Provider'),
       content: t(
         'providers.delete.message',
-        'Are you sure you want to delete "{{name}}"?',
+        'Are you sure you want to delete "{{name}}"? Once a provider is deleted, the season and episodes associated with it will no longer be able to be refreshed.',
         { name: provider.name }
       ),
       confirmText: t('common.delete', 'Delete'),
