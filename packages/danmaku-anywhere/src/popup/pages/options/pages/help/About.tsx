@@ -204,28 +204,24 @@ export const About = () => {
         </Typography>
         <Card variant="outlined" sx={{ mb: 4, p: 2 }}>
           <Stack direction="row" spacing={2} alignItems="center">
-            <SuspenseImage
-              src={IMAGE_ASSETS.I404}
-              sx={{ width: 60, height: 60, borderRadius: 1 }}
-            />
+            <Typography variant="subtitle1" fontWeight="medium">
+              {i18n.t('aboutPage.imageIllustrator', 'Graphic Illustrator')}
+            </Typography>
             <Box>
-              <Typography variant="subtitle1" fontWeight="medium">
-                {i18n.t('aboutPage.imageIllustrator', 'Graphic Illustrator')}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                <Box
-                  component="a"
-                  href="https://space.bilibili.com/220694183"
-                  rel="noreferrer noopener"
-                  target="_blank"
-                  sx={{
-                    color: 'primary.main',
-                    textDecoration: 'none',
-                    '&:hover': { textDecoration: 'underline' },
-                  }}
-                >
-                  猫与白月 <Launch fontSize="inherit" />
-                </Box>
+              <Typography variant="body2">吳都行</Typography>
+              <Typography
+                variant="body2"
+                component="a"
+                href="https://space.bilibili.com/220694183"
+                target="_blank"
+                rel="noreferrer noopener"
+                sx={{
+                  color: 'primary.main',
+                  textDecoration: 'none',
+                  '&:hover': { textDecoration: 'underline' },
+                }}
+              >
+                猫与白月 <Launch fontSize="inherit" />
               </Typography>
             </Box>
           </Stack>
