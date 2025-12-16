@@ -206,6 +206,15 @@ export const About = () => {
           <Card variant="outlined" sx={{ p: 2 }}>
             <Stack direction="row" spacing={2} alignItems="center">
               <SuspenseImage
+                src={IMAGE_ASSETS.CarryBook}
+                sx={{ width: 60, height: 60, borderRadius: 1 }}
+              />
+              <Typography variant="subtitle1">吳都行</Typography>
+            </Stack>
+          </Card>
+          <Card variant="outlined" sx={{ p: 2 }}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <SuspenseImage
                 src={IMAGE_ASSETS.I404}
                 sx={{ width: 60, height: 60, borderRadius: 1 }}
               />
@@ -223,15 +232,6 @@ export const About = () => {
               >
                 猫与白月 <Launch fontSize="inherit" />
               </Typography>
-            </Stack>
-          </Card>
-          <Card variant="outlined" sx={{ p: 2 }}>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <SuspenseImage
-                src={IMAGE_ASSETS.CarryBook}
-                sx={{ width: 60, height: 60, borderRadius: 1 }}
-              />
-              <Typography variant="subtitle1">吳都行</Typography>
             </Stack>
           </Card>
         </Stack>

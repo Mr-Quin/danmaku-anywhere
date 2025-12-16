@@ -2,7 +2,6 @@
   "aboutPage": {
     "clientId": "客户端ID",
     "clientIdDescription": "此安装的ID。在报告问题时请包含此ID。",
-    "credits": "鸣谢",
     "docs": "文档",
     "docsDescription": "学习如何使用所有功能",
     "feedback": "反馈",
