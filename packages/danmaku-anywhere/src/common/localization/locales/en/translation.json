@@ -379,25 +379,20 @@
     },
     "builtin": "Built-in",
     "delete": {
-      "message": "Are you sure you want to delete \"{{name}}\"?",
+      "message": "Are you sure you want to delete \"{{name}}\"? Once a provider is deleted, the season and episodes associated with it will no longer be able to be refreshed.",
       "title": "Delete Provider"
     },
     "editor": {
       "addHeader": "Add Header",
       "authEnabled": "Enable Authentication",
       "authHeaders": "Custom Headers",
-      "error": {
-        "idExists": "This ID is already in use. Please use a different ID"
-      },
       "headerKey": "Header Key",
       "headerValue": "Header Value",
       "helper": {
         "authHeaders": "Custom headers to send with each request (e.g., Authorization, X-AppSecret)",
         "baseUrl": "API endpoint URL for DanDanPlay-compatible server",
-        "builtInName": "Built-in provider names cannot be changed",
-        "id": "Unique identifier for this provider. Deleting and recreating with the same ID will reuse previous anime data"
+        "builtInName": "Built-in provider names cannot be changed"
       },
-      "id": "ID",
       "name": "Name",
       "title": {
         "add": "Add Provider",
