@@ -1,4 +1,4 @@
-import { Suspense, useCallback } from 'react'
+import { Suspense } from 'react'
 
 import { GlobalDialog } from '@/common/components/Dialog/GlobalDialog'
 import { Toast } from '@/common/components/Toast/Toast'
@@ -16,15 +16,6 @@ export const Content = () => {
   const isVisible = useStore((state) => state.danmaku.isVisible)
   const setHighlighterPortal = usePopup.use.setHighlighterPortal()
 
-  const highlighterPortalRef = useCallback(
-    (element: HTMLElement | null) => {
-      if (element) {
-        setHighlighterPortal(element)
-      }
-    },
-    [setHighlighterPortal]
-  )
-
   return (
     <>
       <Suspense fallback={null}>
@@ -39,7 +30,7 @@ export const Content = () => {
       <SwitchLanguage />
       <div
         id={HIGHLIGHTER_PORTAL_ID}
-        ref={highlighterPortalRef}
+        ref={setHighlighterPortal}
         style={{ zIndex: 1403, position: 'absolute' }}
       />
     </>
