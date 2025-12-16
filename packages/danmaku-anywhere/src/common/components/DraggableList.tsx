@@ -234,6 +234,8 @@ export function DraggableList<T extends DraggableItem>({
   }
 
   function renderDragOverlay() {
+    const activeItem = orderedItems.find((item) => item.id === activeId)
+
     const element = (
       <DragOverlay>
         {activeItem && (
@@ -250,8 +252,6 @@ export function DraggableList<T extends DraggableItem>({
     }
     return element
   }
-
-  const activeItem = orderedItems.find((item) => item.id === activeId)
 
   if (orderedItems.length === 0) {
     if (renderEmpty) {
