@@ -2,7 +2,6 @@
   "aboutPage": {
     "clientId": "Client ID",
     "clientIdDescription": "Unique identifier for this installation. Include this when reporting issues.",
-    "credits": "Credits & Attribution",
     "docs": "Documentation",
     "docsDescription": "Learn how to use all features",
     "feedback": "Feedback",

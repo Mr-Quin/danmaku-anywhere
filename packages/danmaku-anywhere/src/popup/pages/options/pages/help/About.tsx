@@ -200,36 +200,41 @@ export const About = () => {
 
         {/* Credits */}
         <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-          {i18n.t('aboutPage.credits', 'Credits & Attribution')}
+          {i18n.t('aboutPage.imageIllustrator', 'Graphic Illustrator')}
         </Typography>
-        <Card variant="outlined" sx={{ mb: 4, p: 2 }}>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <SuspenseImage
-              src={IMAGE_ASSETS.I404}
-              sx={{ width: 60, height: 60, borderRadius: 1 }}
-            />
-            <Box>
-              <Typography variant="subtitle1" fontWeight="medium">
-                {i18n.t('aboutPage.imageIllustrator', 'Graphic Illustrator')}
+        <Stack spacing={1} mb={4}>
+          <Card variant="outlined" sx={{ p: 2 }}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <SuspenseImage
+                src={IMAGE_ASSETS.CarryBook}
+                sx={{ width: 60, height: 60, borderRadius: 1 }}
+              />
+              <Typography variant="subtitle1">吳都行</Typography>
+            </Stack>
+          </Card>
+          <Card variant="outlined" sx={{ p: 2 }}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <SuspenseImage
+                src={IMAGE_ASSETS.I404}
+                sx={{ width: 60, height: 60, borderRadius: 1 }}
+              />
+              <Typography
+                variant="subtitle1"
+                component="a"
+                href="https://space.bilibili.com/220694183"
+                target="_blank"
+                rel="noreferrer noopener"
+                sx={{
+                  color: 'text.primary',
+                  textDecoration: 'none',
+                  '&:hover': { textDecoration: 'underline' },
+                }}
+              >
+                猫与白月 <Launch fontSize="inherit" />
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                <Box
-                  component="a"
-                  href="https://space.bilibili.com/220694183"
-                  rel="noreferrer noopener"
-                  target="_blank"
-                  sx={{
-                    color: 'primary.main',
-                    textDecoration: 'none',
-                    '&:hover': { textDecoration: 'underline' },
-                  }}
-                >
-                  猫与白月 <Launch fontSize="inherit" />
-                </Box>
-              </Typography>
-            </Box>
-          </Stack>
-        </Card>
+            </Stack>
+          </Card>
+        </Stack>
 
         {/* Technical Info */}
         <Accordion
