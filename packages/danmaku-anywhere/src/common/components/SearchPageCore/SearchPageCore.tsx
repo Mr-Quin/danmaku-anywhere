@@ -31,6 +31,7 @@ export interface SearchPageCoreProps {
   onImportSuccess: (episode: WithSeason<Episode>) => void
   searchTerm: string
   onSearchTermChange: (term: string) => void
+  dragOverlayPortal?: HTMLElement | null
   ref?: RefObject<HTMLDivElement | null>
 }
 
@@ -51,6 +52,7 @@ export const SearchPageCore = ({
   onImportSuccess,
   searchTerm,
   onSearchTermChange,
+  dragOverlayPortal,
   ref,
 }: SearchPageCoreProps) => {
   const { t } = useTranslation()
@@ -66,7 +68,7 @@ export const SearchPageCore = ({
   const handleOpenSettings = () => {
     dialog.open({
       title: t('searchPage.settings.title', 'Settings'),
-      content: <SearchSettings />,
+      content: <SearchSettings dragOverlayPortal={dragOverlayPortal} />,
       hideCancel: true,
       hideConfirm: true,
       showCloseButton: true,

@@ -30,11 +30,8 @@ export const Content = () => {
       <SwitchLanguage />
       <div
         id={HIGHLIGHTER_PORTAL_ID}
-        ref={(element) => {
-          if (element) {
-            setHighlighterPortal(element)
-          }
-        }}
+        ref={setHighlighterPortal}
+        style={{ zIndex: 1403, position: 'absolute' }}
       />
     </>
   )

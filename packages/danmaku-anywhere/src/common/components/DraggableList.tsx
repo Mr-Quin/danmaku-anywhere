@@ -29,6 +29,7 @@ import {
 } from '@mui/material'
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { NothingHere } from '@/common/components/NothingHere'
 import { ScrollBox } from './layout/ScrollBox'
 
@@ -167,11 +168,13 @@ export interface DraggableListProps<T extends DraggableItem> {
   renderSecondary?: (item: T) => ReactNode
   renderSecondaryAction: (item: T) => ReactNode
   renderEmpty?: () => ReactNode
+  overlayPortal?: Element | null
 }
 
 export function DraggableList<T extends DraggableItem>({
   items,
   clickable,
+  overlayPortal,
   onEdit,
   onReorder,
   renderEmpty,
@@ -230,7 +233,25 @@ export function DraggableList<T extends DraggableItem>({
     setActiveId(null)
   }
 
-  const activeItem = orderedItems.find((item) => item.id === activeId)
+  function renderDragOverlay() {
+    const activeItem = orderedItems.find((item) => item.id === activeId)
+
+    const element = (
+      <DragOverlay>
+        {activeItem && (
+          <DragOverlayItem
+            item={activeItem}
+            renderPrimary={renderPrimary}
+            renderSecondary={renderSecondary}
+          />
+        )}
+      </DragOverlay>
+    )
+    if (overlayPortal) {
+      return createPortal(element, overlayPortal)
+    }
+    return element
+  }
 
   if (orderedItems.length === 0) {
     if (renderEmpty) {
@@ -266,15 +287,7 @@ export function DraggableList<T extends DraggableItem>({
           </List>
         </ScrollBox>
       </SortableContext>
-      <DragOverlay>
-        {activeItem && (
-          <DragOverlayItem
-            item={activeItem}
-            renderPrimary={renderPrimary}
-            renderSecondary={renderSecondary}
-          />
-        )}
-      </DragOverlay>
+      {renderDragOverlay()}
     </DndContext>
   )
 }

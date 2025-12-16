@@ -38,7 +38,7 @@ interface PopupStoreState {
   setTab: (tab: PopupTab) => void
 
   highlighterPortal: HTMLElement | null
-  setHighlighterPortal: (portal: HTMLElement) => void
+  setHighlighterPortal: (portal: HTMLElement | null) => void
 }
 
 const usePopupStoreBase = create<PopupStoreState>((set, get) => ({
