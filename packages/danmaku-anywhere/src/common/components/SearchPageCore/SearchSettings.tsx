@@ -19,7 +19,11 @@ import {
 } from '@/common/options/providerConfig/useProviderConfig'
 import { ListItemPrimaryStack } from '../ListItemPrimaryStack'
 
-export const SearchSettings = () => {
+interface SearchSettingsProps {
+  dragOverlayPortal?: HTMLElement | null
+}
+
+export const SearchSettings = ({ dragOverlayPortal }: SearchSettingsProps) => {
   const { t } = useTranslation()
   const { configs } = useProviderConfig()
 
@@ -59,6 +63,7 @@ export const SearchSettings = () => {
       </ListSubheader>
 
       <DraggableList
+        overlayPortal={dragOverlayPortal}
         clickable={false}
         items={configs}
         onReorder={(oldIndex, newIndex) =>
