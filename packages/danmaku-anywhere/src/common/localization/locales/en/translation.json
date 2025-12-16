@@ -379,7 +379,7 @@
     },
     "builtin": "Built-in",
     "delete": {
-      "message": "Are you sure you want to delete \"{{name}}\"?",
+      "message": "Are you sure you want to delete \"{{name}}\"? Once a provider is deleted, the season and episodes associated with it will no longer be able to be refreshed.",
       "title": "Delete Provider"
     },
     "editor": {
