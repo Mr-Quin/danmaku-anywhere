@@ -200,32 +200,41 @@ export const About = () => {
 
         {/* Credits */}
         <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-          {i18n.t('aboutPage.credits', 'Credits & Attribution')}
+          {i18n.t('aboutPage.imageIllustrator', 'Graphic Illustrator')}
         </Typography>
-        <Card variant="outlined" sx={{ mb: 4, p: 2 }}>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Typography variant="subtitle1" fontWeight="medium">
-              {i18n.t('aboutPage.imageIllustrator', 'Graphic Illustrator')}
-            </Typography>
-            <Box>
-              <Typography variant="body2">吳都行</Typography>
+        <Stack spacing={1} mb={4}>
+          <Card variant="outlined" sx={{ p: 2 }}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <SuspenseImage
+                src={IMAGE_ASSETS.I404}
+                sx={{ width: 60, height: 60, borderRadius: 1 }}
+              />
               <Typography
-                variant="body2"
+                variant="subtitle1"
                 component="a"
                 href="https://space.bilibili.com/220694183"
                 target="_blank"
                 rel="noreferrer noopener"
                 sx={{
-                  color: 'primary.main',
+                  color: 'text.primary',
                   textDecoration: 'none',
                   '&:hover': { textDecoration: 'underline' },
                 }}
               >
                 猫与白月 <Launch fontSize="inherit" />
               </Typography>
-            </Box>
-          </Stack>
-        </Card>
+            </Stack>
+          </Card>
+          <Card variant="outlined" sx={{ p: 2 }}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <SuspenseImage
+                src={IMAGE_ASSETS.CarryBook}
+                sx={{ width: 60, height: 60, borderRadius: 1 }}
+              />
+              <Typography variant="subtitle1">吳都行</Typography>
+            </Stack>
+          </Card>
+        </Stack>
 
         {/* Technical Info */}
         <Accordion
