@@ -14,7 +14,7 @@ export function useExportShareCode() {
     try {
       const code = await combinedPolicyService.exportShareCode(config.id)
       await navigator.clipboard.writeText(code)
-      toast.success(t('common.copied', 'Copied to clipboard'))
+      toast.success(t('common.copiedToClipboard', 'Copied to clipboard'))
     } catch (e) {
       toast.error(serializeError(e))
     }
