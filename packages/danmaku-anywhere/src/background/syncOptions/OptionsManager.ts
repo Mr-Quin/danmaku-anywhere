@@ -3,7 +3,8 @@ import { upgradeOptions } from '@/background/syncOptions/upgradeOptions'
 import { Logger } from '@/common/Logger'
 import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
-import { tryCatch } from '@/common/utils/utils'
+
+import { tryCatch } from '@/common/utils/tryCatch'
 
 const tryUpgradeOptions = async () => {
   try {

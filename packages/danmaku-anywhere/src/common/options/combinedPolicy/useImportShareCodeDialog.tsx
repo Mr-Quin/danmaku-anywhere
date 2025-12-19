@@ -54,6 +54,7 @@ export const useImportShareCodeDialog = (
             await combinedPolicyService.importShareCode(code)
           }
           toast.success(t('configPage.import.success', 'Config imported'))
+          codeRef.current = ''
         } catch (e) {
           toast.error(
             t('configPage.import.error', 'Import failed: {{message}}', {

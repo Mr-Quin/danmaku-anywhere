@@ -3,6 +3,7 @@ import type { z } from 'zod'
 import {
   decodeShareConfig,
   encodeShareConfig,
+  type SharedMountConfig,
 } from '@/common/options/combinedPolicy/shareSchema'
 import {
   createIntegrationInput,
@@ -95,23 +96,13 @@ export class CombinedPolicyService {
   async importShareCode(code: string): Promise<string> {
     const sharedConfig = await decodeShareConfig(code)
 
-    const name = sharedConfig.name
-
-    const integrationInput = createIntegrationInput(
-      sharedConfig.patterns[0] ?? name
-    )
-
-    integrationInput.policy = {
-      ...integrationInput.policy,
-      ...sharedConfig.policy,
-    }
-
-    const integration = await this.integrationService.import(
-      zIntegration.parse(integrationInput)
+    const integration = await this.createIntegrationFromSharedConfig(
+      sharedConfig,
+      sharedConfig.name
     )
 
     const mountConfigInput = createMountConfig({
-      name,
+      name: sharedConfig.name,
       patterns: sharedConfig.patterns,
       mode: 'xpath',
       integration: integration.id,
@@ -149,16 +140,26 @@ export class CombinedPolicyService {
     }
 
     // create new integration
-    const integrationInput = createIntegrationInput(config.name)
-    integrationInput.policy = {
-      ...integrationInput.policy,
-      ...sharedConfig.policy,
-    }
-    const integration = await this.integrationService.import(
-      zIntegration.parse(integrationInput)
+    const integration = await this.createIntegrationFromSharedConfig(
+      sharedConfig,
+      config.name
     )
 
     // link new integration to config
     await this.configService.setIntegration(targetConfigId, integration.id)
+  }
+
+  private async createIntegrationFromSharedConfig(
+    sharedConfig: SharedMountConfig,
+    integrationName: string
+  ) {
+    const integrationInput = createIntegrationInput(integrationName)
+
+    integrationInput.policy = {
+      ...integrationInput.policy,
+      ...sharedConfig.policy,
+    }
+
+    return this.integrationService.import(zIntegration.parse(integrationInput))
   }
 }

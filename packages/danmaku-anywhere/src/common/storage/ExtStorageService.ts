@@ -1,5 +1,6 @@
+import { tryCatch } from '@/common/utils/tryCatch'
 import { Logger } from '../Logger'
-import { invariant, tryCatch } from '../utils/utils'
+import { invariant } from '../utils/utils'
 
 export type ExtStorageType = 'local' | 'sync' | 'session'
 

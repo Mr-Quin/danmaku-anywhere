@@ -15,7 +15,8 @@ import { ExtensionOptionsService } from '@/common/options/extensionOptions/servi
 import { portNames } from '@/common/ports/portNames'
 import type { RPCClientResponse } from '@/common/rpc/client'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { tryCatch } from '@/common/utils/utils'
+
+import { tryCatch } from '@/common/utils/tryCatch'
 
 const extensionOptionsService = uiContainer.get(ExtensionOptionsService)
 

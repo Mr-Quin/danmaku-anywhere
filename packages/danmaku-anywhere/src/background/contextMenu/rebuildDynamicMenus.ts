@@ -4,7 +4,8 @@ import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { MountConfigService } from '@/common/options/mountConfig/service'
 import { matchUrl } from '@/common/utils/matchUrl'
 import { createTaskQueue } from '@/common/utils/taskQueue'
-import { tryCatch } from '@/common/utils/utils'
+
+import { tryCatch } from '@/common/utils/tryCatch'
 
 export const matchedConfigByTabId = new Map<number, MountConfig>()
 

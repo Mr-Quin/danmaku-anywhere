@@ -1,5 +1,5 @@
 import { chromeSender, tabSender } from '@/common/rpc/sender'
-import { tryCatch } from '../utils/utils'
+import { tryCatch } from '@/common/utils/tryCatch'
 import type {
   AnyRPCDef,
   RPCPayload,

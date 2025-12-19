@@ -1,4 +1,4 @@
-import { tryCatchSync } from '@/common/utils/utils'
+import { tryCatchSync } from '@/common/utils/tryCatch'
 import { VideoSrcObserver } from './VideoSrcObserver'
 
 const isVideoElement = (node: Node): node is HTMLVideoElement =>

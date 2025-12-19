@@ -1,7 +1,7 @@
 import JSZip from 'jszip'
 import { z } from 'zod'
 import { zIntegrationPolicy } from '@/common/options/integrationPolicyStore/schema'
-import { tryCatch } from '@/common/utils/utils'
+import { tryCatch, tryCatchSync } from '@/common/utils/tryCatch'
 
 export const sharedMountConfigSchema = z.object({
   patterns: z.array(z.string()),
@@ -47,6 +47,12 @@ export const decodeShareConfig = async (
   }
 
   const text = await file.async('string')
-  const json = JSON.parse(text)
+
+  const [json, err] = tryCatchSync(() => JSON.parse(text))
+
+  if (err) {
+    throw new Error('Invalid share code: ' + err.message)
+  }
+
   return sharedMountConfigSchema.parseAsync(json)
 }

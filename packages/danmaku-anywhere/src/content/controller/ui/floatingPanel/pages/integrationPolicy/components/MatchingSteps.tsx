@@ -86,7 +86,6 @@ export const MatchingSteps = () => {
               variant="contained"
               size="small"
               onClick={() => toggleEditor(true)}
-              sx={{ mt: 2 }}
             >
               {t('integration.createConfig', 'Create Integration')}
             </Button>
@@ -97,7 +96,6 @@ export const MatchingSteps = () => {
               variant="contained"
               size="small"
               onClick={() => openImportDialog()}
-              sx={{ mt: 2 }}
             >
               {t('configPage.importShareCode', 'Import Share Code')}
             </Button>

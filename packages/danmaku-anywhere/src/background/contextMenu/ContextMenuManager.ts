@@ -7,7 +7,8 @@ import {
 } from '@/background/contextMenu/rebuildDynamicMenus'
 import { Logger } from '@/common/Logger'
 import { MountConfigService } from '@/common/options/mountConfig/service'
-import { tryCatch } from '@/common/utils/utils'
+
+import { tryCatch } from '@/common/utils/tryCatch'
 
 @injectable('Singleton')
 export class ContextMenuManager {
