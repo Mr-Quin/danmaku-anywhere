@@ -7,6 +7,7 @@ import {
 import {
   createIntegrationInput,
   zIntegration,
+  zIntegrationPolicy,
 } from '@/common/options/integrationPolicyStore/schema'
 import { IntegrationPolicyService } from '@/common/options/integrationPolicyStore/service'
 import { createMountConfig } from '@/common/options/mountConfig/constant'
@@ -84,16 +85,17 @@ export class CombinedPolicyService {
     const { options: _, ...policy } = integration.policy
 
     return encodeShareConfig({
+      name: config.name,
       patterns: config.patterns,
       policy: policy,
     })
   }
 
+  // create a new config and integration from share code
   async importShareCode(code: string): Promise<string> {
     const sharedConfig = await decodeShareConfig(code)
 
-    const dateStr = new Date().toLocaleDateString()
-    const name = `Imported Config ${dateStr}`
+    const name = sharedConfig.name
 
     const integrationInput = createIntegrationInput(
       sharedConfig.patterns[0] ?? name
@@ -118,5 +120,45 @@ export class CombinedPolicyService {
 
     const config = await this.configService.create(mountConfigInput)
     return config.id
+  }
+
+  // add integration to an existing config
+  async importShareCodeToConfig(
+    code: string,
+    targetConfigId: string
+  ): Promise<void> {
+    const sharedConfig = await decodeShareConfig(code)
+    const config = await this.configService.get(targetConfigId)
+    if (!config) throw new Error(`Config not found: "${targetConfigId}"`)
+
+    if (config.integration) {
+      const integration = await this.integrationService.get(config.integration)
+      if (integration) {
+        // update existing integration
+        const updatedPolicy = {
+          ...integration.policy,
+          ...sharedConfig.policy,
+        }
+        const updatedIntegration = {
+          ...integration,
+          policy: zIntegrationPolicy.parse(updatedPolicy),
+        }
+        await this.integrationService.import(updatedIntegration)
+        return
+      }
+    }
+
+    // create new integration
+    const integrationInput = createIntegrationInput(config.name)
+    integrationInput.policy = {
+      ...integrationInput.policy,
+      ...sharedConfig.policy,
+    }
+    const integration = await this.integrationService.import(
+      zIntegration.parse(integrationInput)
+    )
+
+    // link new integration to config
+    await this.configService.setIntegration(targetConfigId, integration.id)
   }
 }

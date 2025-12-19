@@ -2,6 +2,7 @@ import { Movie, Settings, SmartToy, Title } from '@mui/icons-material'
 import {
   Box,
   Button,
+  Stack,
   Step,
   StepContent,
   StepLabel,
@@ -10,6 +11,7 @@ import {
 } from '@mui/material'
 import { type ReactNode, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useImportShareCodeDialog } from '@/common/options/combinedPolicy/useImportShareCodeDialog'
 import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
@@ -44,6 +46,10 @@ export const MatchingSteps = () => {
   const { mediaInfo, foundElements, errorMessage, active } =
     useStore.use.integration()
   const activeIntegration = useActiveIntegration()
+  const openImportDialog = useImportShareCodeDialog({
+    type: 'integration',
+    configId: activeConfig.id,
+  })
 
   const steps = useMemo<StepData[]>(() => {
     const isPermissive = isConfigPermissive(activeConfig)
@@ -58,30 +64,44 @@ export const MatchingSteps = () => {
         ? t('integration.steps.configAvailablePass', 'Integration is available')
         : t(
             'integration.steps.configAvailableFail',
-            'Integration is not configured, please create one.'
+            'Integration is not configured.'
           ),
       renderContent: () => {
         if (activeIntegration) {
           return (
             <Button
-              variant="outlined"
+              variant="contained"
               size="small"
               onClick={() => toggleEditor(true)}
-              sx={{ mt: 2 }}
+              sx={{ mt: 1 }}
+              fullWidth
             >
               {t('integration.editConfig', 'Edit Integration')}
             </Button>
           )
         }
         return (
-          <Button
-            variant="contained"
-            size="small"
-            onClick={() => toggleEditor(true)}
-            sx={{ mt: 2 }}
-          >
-            {t('integration.createConfig', 'Create Integration')}
-          </Button>
+          <Stack direction="row" alignItems="center" spacing={1} mt={1}>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => toggleEditor(true)}
+              sx={{ mt: 2 }}
+            >
+              {t('integration.createConfig', 'Create Integration')}
+            </Button>
+            <Typography variant="body2" fontSize="small" color="textSecondary">
+              {t('mountPage.or', 'or')}
+            </Typography>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => openImportDialog()}
+              sx={{ mt: 2 }}
+            >
+              {t('configPage.importShareCode', 'Import Share Code')}
+            </Button>
+          </Stack>
         )
       },
     }

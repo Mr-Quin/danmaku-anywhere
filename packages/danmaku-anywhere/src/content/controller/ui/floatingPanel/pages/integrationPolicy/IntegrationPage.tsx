@@ -37,17 +37,17 @@ export const IntegrationPage = () => {
     }
   }
 
-  const handleImportShare = useImportShareCodeDialog()
+  const handleImportShare = useImportShareCodeDialog(
+    activeConfig.id
+      ? { type: 'integration', configId: activeConfig.id }
+      : { type: 'config' }
+  )
   const handleExportShare = useExportShareCode()
-
-  if (showEditor) {
-    return <IntegrationEditor />
-  }
 
   const menuItems: DAMenuItemConfig[] = [
     {
       id: 'import',
-      label: t('configPage.import.name', 'Import Config'),
+      label: t('configPage.importShareCode', 'Import Share Code'),
       icon: <Upload />,
       onClick: handleImportShare,
     },
@@ -56,10 +56,14 @@ export const IntegrationPage = () => {
   if (activeConfig.integration) {
     menuItems.push({
       id: 'export-share',
-      label: t('common.exportShare', 'Export Share Code'),
+      label: t('configPage.copyShareCode', 'Copy Share Code'),
       onClick: () => handleExportShare(activeConfig),
       icon: <Share />,
     })
+  }
+
+  if (showEditor) {
+    return <IntegrationEditor />
   }
 
   return (

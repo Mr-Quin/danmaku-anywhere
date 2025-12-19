@@ -134,10 +134,10 @@ export const MountConfigList = ({ onEdit, onAdd }: MountConfigListProps) => {
           },
         ]
 
-        if (!isConfigIncomplete(config)) {
+        if (config.mode === 'xpath' && !isConfigIncomplete(config)) {
           menuItems.unshift({
             id: 'share',
-            label: t('configPage.share', 'Copy Share Code'),
+            label: t('configPage.copyShareCode', 'Copy Share Code'),
             onClick: () => handleExportShare(config),
             icon: <Share />,
           })
