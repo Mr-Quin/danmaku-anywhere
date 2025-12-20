@@ -3,9 +3,7 @@ import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { tryCatchSync } from '@/common/utils/tryCatch'
 
 export const isRegex = (pattern: string) => {
-  if (pattern.startsWith('/') && pattern.endsWith('/')) {
-    return true
-  }
+  return pattern.startsWith('/') && pattern.endsWith('/')
 }
 
 type ValidationResult =
@@ -44,7 +42,7 @@ export const validateRegex = (
         i18n.t('danmakuFilter.validation.duplicate', 'Pattern already exists'),
     }
   }
-  const [_, error] = tryCatchSync(() => new RegExp(pattern))
+  const [_, error] = tryCatchSync(() => new RegExp(regexContent))
 
   if (error) {
     return {

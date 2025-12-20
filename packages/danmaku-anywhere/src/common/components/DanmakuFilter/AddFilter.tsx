@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 type AddFilterProps = {
-  onAdd: (pattern: string) => void
+  onAdd: (pattern: string) => boolean
   isPending: boolean
   error?: string
   onErrorClear?: () => void
@@ -21,8 +21,10 @@ export const AddFilter = ({
   const [filterPattern, setFilterPattern] = useState(initialFilter || '')
 
   const handleAdd = () => {
-    onAdd(filterPattern)
-    setFilterPattern('')
+    const success = onAdd(filterPattern)
+    if (success) {
+      setFilterPattern('')
+    }
   }
 
   return (
@@ -47,12 +49,11 @@ export const AddFilter = ({
           value={filterPattern}
           error={!!error}
           helperText={
-            error
-              ? t(error)
-              : t(
-                  'danmakuFilter.enterFilterPattern',
-                  "Enter filter pattern, regex starts and ends with '/'"
-                )
+            error ||
+            t(
+              'danmakuFilter.enterFilterPattern',
+              "Enter filter pattern, regex starts and ends with '/'"
+            )
           }
           onChange={(e) => {
             onErrorClear?.()

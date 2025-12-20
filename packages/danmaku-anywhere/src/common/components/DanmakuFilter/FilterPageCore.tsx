@@ -41,7 +41,7 @@ export const FilterPageCore = ({
       const result = validateRegex(pattern, config.filters)
       if (!result.success) {
         setFilterError(result.error())
-        return
+        return false
       }
       handleUpdate((draft) => {
         draft.filters.push({
@@ -54,7 +54,7 @@ export const FilterPageCore = ({
       const result = validatePattern(pattern, config.filters)
       if (!result.success) {
         setFilterError(result.error())
-        return
+        return false
       }
       handleUpdate((draft) => {
         draft.filters.push({
@@ -65,6 +65,7 @@ export const FilterPageCore = ({
       })
     }
     setFilterError('')
+    return true
   }
 
   const handleDeleteFilter = (index: number) => {

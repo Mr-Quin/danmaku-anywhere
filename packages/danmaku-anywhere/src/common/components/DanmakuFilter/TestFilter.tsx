@@ -61,7 +61,7 @@ export const TestFilter = ({ filters }: TestFilterProps) => {
           setFilterTestString(e.target.value)
           setFilterTestResult({ resolved: false })
         }}
-        sx={{ bgcolor: 'background.paper' }}
+        sx={{ bgcolor: 'background.paper', mt: 1 }}
       />
 
       <Button

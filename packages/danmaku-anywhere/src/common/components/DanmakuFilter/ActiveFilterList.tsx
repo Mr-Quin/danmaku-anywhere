@@ -36,7 +36,7 @@ export const ActiveFilterList = ({
       <Paper variant="outlined">
         <List dense disablePadding>
           {filters.map((filter, i) => (
-            <Box key={`${filter.type}-${filter.value}-${i}`}>
+            <Box key={`${filter.type}-${filter.value}`}>
               {i > 0 && <Divider component="li" />}
               <ListItem
                 secondaryAction={

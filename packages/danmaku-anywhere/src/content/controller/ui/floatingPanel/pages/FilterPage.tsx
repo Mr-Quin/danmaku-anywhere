@@ -1,4 +1,4 @@
-import { FilterPageCore as FilterPageCore } from '@/common/components/DanmakuFilter/FilterPageCore'
+import { FilterPageCore } from '@/common/components/DanmakuFilter/FilterPageCore'
 import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 
 export const FilterPage = () => {
