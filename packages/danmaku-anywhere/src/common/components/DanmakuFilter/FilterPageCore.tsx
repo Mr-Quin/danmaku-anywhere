@@ -40,7 +40,7 @@ export const FilterPageCore = ({
     if (isRegex(pattern)) {
       const result = validateRegex(pattern, config.filters)
       if (!result.success) {
-        setFilterError(result.error)
+        setFilterError(result.error())
         return
       }
       handleUpdate((draft) => {
@@ -53,7 +53,7 @@ export const FilterPageCore = ({
     } else {
       const result = validatePattern(pattern, config.filters)
       if (!result.success) {
-        setFilterError(result.error)
+        setFilterError(result.error())
         return
       }
       handleUpdate((draft) => {
