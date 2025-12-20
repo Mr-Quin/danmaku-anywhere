@@ -1,11 +1,8 @@
-import { AddCircle, Download, Edit } from '@mui/icons-material'
-import { useMutation } from '@tanstack/react-query'
+import { AddCircle, Edit, Upload } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
-import { useInjectService } from '@/common/hooks/useInjectService'
-import { CombinedPolicyService } from '@/common/options/combinedPolicy'
-import { downloadZip, sanitizeFilename } from '@/common/utils/utils'
+import { useImportShareCodeDialog } from '@/common/options/combinedPolicy/useImportShareCodeDialog'
 
 type ConfigToolbarProps = {
   onAdd: () => void
@@ -18,22 +15,7 @@ export const ConfigToolbar = ({
 }: ConfigToolbarProps) => {
   const { t } = useTranslation()
 
-  const combinedPolicyService = useInjectService(CombinedPolicyService)
-
-  const exportAll = useMutation({
-    mutationFn: async () => {
-      const configs = await combinedPolicyService.exportAll()
-      await downloadZip(
-        'configs',
-        configs.map((config) => {
-          return {
-            name: `${sanitizeFilename(config.name)}.json`,
-            data: JSON.stringify(config, null, 2),
-          }
-        })
-      )
-    },
-  })
+  const handleImportConfigs = useImportShareCodeDialog()
 
   return (
     <TabToolbar title={t('configPage.name', 'Configs')}>
@@ -48,31 +30,12 @@ export const ConfigToolbar = ({
             onClick: onAdd,
             icon: <Edit />,
           },
-          // {
-          //   id: 'import',
-          //   label: t('configPage.import.name', 'Import Config'),
-          //   icon: <Upload />,
-          //   onClick: handleImportConfigs,
-          // },
-        ]}
-      />
-      <DrilldownMenu
-        ButtonProps={{ edge: 'end', size: 'small' }}
-        dense
-        items={[
           {
-            id: 'export',
-            label: t('configPage.backupAll', 'Backup All'),
-            onClick: () => exportAll.mutate(),
-            loading: exportAll.isPending,
-            icon: <Download />,
+            id: 'import',
+            label: t('configPage.importShareCode', 'Import Share Code'),
+            icon: <Upload />,
+            onClick: handleImportConfigs,
           },
-          // {
-          //   id: 'showIntegration',
-          //   label: t('configPage.showIntegration', 'View Integration Policy'),
-          //   onClick: onShowIntegration,
-          //   icon: <Visibility />,
-          // },
         ]}
       />
     </TabToolbar>

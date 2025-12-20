@@ -66,8 +66,8 @@
     "time": "时间"
   },
   "configPage": {
-    "backupAll": "备份所有配置",
-    "createConfig": "编写配置",
+    "copyShareCode": "复制分享码",
+    "createConfig": "新建配置",
     "editor": {
       "addPattern": "添加模式",
       "advanced": "高级",
@@ -99,14 +99,17 @@
     },
     "goCreate": "创建一个",
     "import": {
+      "error": "导入失败：{{message}}",
       "fileUpload": "上传文件",
       "hasIntegration": "含自动化",
       "name": "导入配置",
-      "presets": "预设"
+      "presets": "预设",
+      "success": "导入成功"
     },
+    "importShareCode": "导入分享码",
+    "importShareCodePlaceholder": "粘贴分享码",
     "name": "装填配置",
-    "noConfigs": "这里还没有配置...",
-    "showIntegration": "查看自动化配置"
+    "noConfigs": "这里还没有配置..."
   },
   "configs": {
     "alert": {
@@ -232,7 +235,7 @@
       "checkVideoFail": "未检测到视频",
       "checkVideoPass": "检测到视频",
       "configAvailable": "自动化配置可用",
-      "configAvailableFail": "没有自动化配置，请创建",
+      "configAvailableFail": "没有自动化配置",
       "configAvailablePass": "自动化配置可用",
       "enableAi": "启用AI",
       "enableAiPass": "AI已启用",

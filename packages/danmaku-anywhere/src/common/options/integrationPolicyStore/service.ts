@@ -28,12 +28,12 @@ export class IntegrationPolicyService implements IStoreService {
         upgrade: (data) => data,
       })
       .version(2, {
-        upgrade: (data) => {
+        upgrade: (data: IntegrationV1[]) => {
           const mapValue = (value: string) => {
             return { value, quick: false }
           }
 
-          return (data as IntegrationV1[]).map((policy) => {
+          return data.map((policy) => {
             return {
               name: policy.name,
               id: policy.id,
@@ -66,8 +66,8 @@ export class IntegrationPolicyService implements IStoreService {
         },
       })
       .version(3, {
-        upgrade: (data) => {
-          return (data as IntegrationV2[]).map((policy) => {
+        upgrade: (data: IntegrationV2[]) => {
+          return data.map((policy) => {
             return {
               ...policy,
               policy: {

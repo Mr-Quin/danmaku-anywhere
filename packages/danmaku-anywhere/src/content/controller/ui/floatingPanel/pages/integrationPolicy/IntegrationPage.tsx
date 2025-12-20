@@ -1,3 +1,4 @@
+import { Share, Upload } from '@mui/icons-material'
 import {
   Stack,
   ToggleButton,
@@ -9,6 +10,10 @@ import { useTranslation } from 'react-i18next'
 import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
+import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig'
+import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
+import { useExportShareCode } from '@/common/options/combinedPolicy/useExportShareCode'
+import { useImportShareCodeDialog } from '@/common/options/combinedPolicy/useImportShareCodeDialog'
 import { integrationData } from '@/common/options/mountConfig/integrationData'
 import type { AutomationMode } from '@/common/options/mountConfig/schema'
 import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
@@ -23,10 +28,6 @@ export const IntegrationPage = () => {
   const { showEditor } = useStore.use.integrationForm()
   const { setMode } = useEditMountConfig()
 
-  if (showEditor) {
-    return <IntegrationEditor />
-  }
-
   const handleModeChange = (
     _: React.MouseEvent<HTMLElement>,
     newMode: AutomationMode | null
@@ -36,9 +37,46 @@ export const IntegrationPage = () => {
     }
   }
 
+  const handleImportShare = useImportShareCodeDialog(
+    activeConfig.id
+      ? { type: 'integration', configId: activeConfig.id }
+      : { type: 'config' }
+  )
+  const handleExportShare = useExportShareCode()
+
+  const menuItems: DAMenuItemConfig[] = [
+    {
+      id: 'import',
+      label: t('configPage.importShareCode', 'Import Share Code'),
+      icon: <Upload />,
+      onClick: handleImportShare,
+    },
+  ]
+
+  if (activeConfig.integration) {
+    menuItems.push({
+      id: 'export-share',
+      label: t('configPage.copyShareCode', 'Copy Share Code'),
+      onClick: () => handleExportShare(activeConfig),
+      icon: <Share />,
+    })
+  }
+
+  if (showEditor) {
+    return <IntegrationEditor />
+  }
+
   return (
     <TabLayout>
-      <TabToolbar title={t('tabs.integration', 'Integration')} />
+      <TabToolbar title={t('tabs.integration', 'Integration')}>
+        {activeConfig.mode === 'xpath' && (
+          <DrilldownMenu
+            ButtonProps={{ edge: 'end', size: 'small' }}
+            dense
+            items={menuItems}
+          />
+        )}
+      </TabToolbar>
       <ScrollBox
         p={2}
         flexGrow={1}

@@ -24,7 +24,8 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
 import type { DbEntity } from '@/common/types/dbEntity'
-import { invariant, isServiceWorker, tryCatch } from '@/common/utils/utils'
+import { tryCatch } from '@/common/utils/tryCatch'
+import { invariant, isServiceWorker } from '@/common/utils/utils'
 import { matchPathByName } from './utils/matchPathByName'
 
 @injectable('Singleton')

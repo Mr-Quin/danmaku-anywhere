@@ -1,7 +1,17 @@
 import { inject, injectable } from 'inversify'
 import type { z } from 'zod'
-import { zIntegration } from '@/common/options/integrationPolicyStore/schema'
+import {
+  decodeShareConfig,
+  encodeShareConfig,
+  type SharedMountConfig,
+} from '@/common/options/combinedPolicy/shareSchema'
+import {
+  createIntegrationInput,
+  zIntegration,
+  zIntegrationPolicy,
+} from '@/common/options/integrationPolicyStore/schema'
 import { IntegrationPolicyService } from '@/common/options/integrationPolicyStore/service'
+import { createMountConfig } from '@/common/options/mountConfig/constant'
 import { mountConfigInputSchema } from '@/common/options/mountConfig/schema'
 import { MountConfigService } from '@/common/options/mountConfig/service'
 
@@ -18,21 +28,6 @@ export class CombinedPolicyService {
     @inject(IntegrationPolicyService)
     private integrationService: IntegrationPolicyService
   ) {}
-
-  async export(id: string): Promise<CombinedPolicy> {
-    const config = await this.configService.get(id)
-
-    if (!config) throw new Error(`Config not found: "${id}"`)
-
-    const integration = config.integration
-      ? await this.integrationService.get(config.integration)
-      : undefined
-
-    return {
-      ...config,
-      integration,
-    }
-  }
 
   async exportAll(): Promise<CombinedPolicy[]> {
     const configs = await this.configService.getAll()
@@ -69,5 +64,102 @@ export class CombinedPolicyService {
     })
 
     return imported.id
+  }
+
+  async exportShareCode(id: string): Promise<string> {
+    const config = await this.configService.get(id)
+
+    if (!config) {
+      throw new Error(`Config not found: "${id}"`)
+    }
+
+    if (!config.integration) {
+      throw new Error(`Config "${config.name}" does not have an integration`)
+    }
+
+    const integration = await this.integrationService.get(config.integration)
+
+    if (!integration) {
+      throw new Error(`Integration not found: "${config.integration}"`)
+    }
+
+    const { options: _, ...policy } = integration.policy
+
+    return encodeShareConfig({
+      name: config.name,
+      patterns: config.patterns,
+      policy: policy,
+    })
+  }
+
+  // create a new config and integration from share code
+  async importShareCode(code: string): Promise<string> {
+    const sharedConfig = await decodeShareConfig(code)
+
+    const integration = await this.createIntegrationFromSharedConfig(
+      sharedConfig,
+      sharedConfig.name
+    )
+
+    const mountConfigInput = createMountConfig({
+      name: sharedConfig.name,
+      patterns: sharedConfig.patterns,
+      mode: 'xpath',
+      integration: integration.id,
+      enabled: true,
+    })
+
+    const config = await this.configService.create(mountConfigInput)
+    return config.id
+  }
+
+  // add integration to an existing config
+  async importShareCodeToConfig(
+    code: string,
+    targetConfigId: string
+  ): Promise<void> {
+    const sharedConfig = await decodeShareConfig(code)
+    const config = await this.configService.get(targetConfigId)
+    if (!config) throw new Error(`Config not found: "${targetConfigId}"`)
+
+    if (config.integration) {
+      const integration = await this.integrationService.get(config.integration)
+      if (integration) {
+        // update existing integration
+        const updatedPolicy = {
+          ...integration.policy,
+          ...sharedConfig.policy,
+        }
+        const updatedIntegration = {
+          ...integration,
+          policy: zIntegrationPolicy.parse(updatedPolicy),
+        }
+        await this.integrationService.import(updatedIntegration)
+        return
+      }
+    }
+
+    // create new integration
+    const integration = await this.createIntegrationFromSharedConfig(
+      sharedConfig,
+      config.name
+    )
+
+    // link new integration to config
+    await this.configService.setIntegration(targetConfigId, integration.id)
+  }
+
+  private async createIntegrationFromSharedConfig(
+    sharedConfig: SharedMountConfig,
+    integrationName: string
+  ) {
+    const integrationInput = createIntegrationInput(integrationName)
+
+    integrationInput.policy = {
+      ...integrationInput.policy,
+      ...sharedConfig.policy,
+    }
+
+    return this.integrationService.import(zIntegration.parse(integrationInput))
   }
 }

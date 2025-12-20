@@ -1,12 +1,15 @@
-import { Delete, ErrorOutline } from '@mui/icons-material'
+import { Delete, ErrorOutline, Share } from '@mui/icons-material'
 import { Chip } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { DraggableList } from '@/common/components/DraggableList'
 import { ListItemPrimaryStack } from '@/common/components/ListItemPrimaryStack'
+import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { useExportShareCode } from '@/common/options/combinedPolicy/useExportShareCode'
 import { integrationData } from '@/common/options/mountConfig/integrationData'
+import { isConfigIncomplete } from '@/common/options/mountConfig/isPermissive'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import {
   useEditMountConfig,
@@ -75,15 +78,7 @@ export const MountConfigList = ({ onEdit, onAdd }: MountConfigListProps) => {
   const dialog = useDialog()
   const toast = useToast.use.toast()
 
-  // const exportConfig = useMutation({
-  //   mutationFn: async (id: string) => {
-  //     const config = await combinedPolicyService.export(id)
-  //     await createDownload(
-  //       new Blob([JSON.stringify(config, null, 2)], { type: 'text/json' }),
-  //       `${config.name}.json`
-  //     )
-  //   },
-  // })
+  const handleExportShare = useExportShareCode()
 
   const handleDelete = (config: MountConfig) => {
     dialog.delete({
@@ -128,31 +123,42 @@ export const MountConfigList = ({ onEdit, onAdd }: MountConfigListProps) => {
         </ListItemPrimaryStack>
       )}
       renderSecondary={(config) => config.patterns[0]}
-      renderSecondaryAction={(config) => (
-        <>
-          <ConfigToggleSwitch config={config} />
-          <DrilldownMenu
-            BoxProps={{ display: 'inline' }}
-            ButtonProps={{ edge: 'end', size: 'small' }}
-            dense
-            items={[
-              {
-                id: 'delete',
-                label: t('common.delete', 'Delete'),
-                onClick: () => handleDelete(config),
-                color: 'error',
-                icon: <Delete />,
-              },
-              // {
-              //   id: 'export',
-              //   label: t('common.export', 'Export'),
-              //   onClick: () => exportConfig.mutate(config.id),
-              //   icon: <ContentCopy />,
-              // },
-            ]}
-          />
-        </>
-      )}
+      renderSecondaryAction={(config) => {
+        const menuItems: DAMenuItemConfig[] = []
+
+        if (config.mode === 'xpath' && !isConfigIncomplete(config)) {
+          menuItems.push({
+            id: 'share',
+            label: t('configPage.copyShareCode', 'Copy Share Code'),
+            onClick: () => handleExportShare(config),
+            icon: <Share />,
+          })
+          menuItems.push({
+            kind: 'separator',
+            id: 'separator',
+          })
+        }
+
+        menuItems.push({
+          id: 'delete',
+          label: t('common.delete', 'Delete'),
+          onClick: () => handleDelete(config),
+          color: 'error',
+          icon: <Delete />,
+        })
+
+        return (
+          <>
+            <ConfigToggleSwitch config={config} />
+            <DrilldownMenu
+              BoxProps={{ display: 'inline' }}
+              ButtonProps={{ edge: 'end', size: 'small' }}
+              dense
+              items={menuItems}
+            />
+          </>
+        )
+      }}
     />
   )
 }

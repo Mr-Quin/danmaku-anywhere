@@ -8,10 +8,10 @@ import { Logger } from '@/common/Logger'
 import { queryClient } from '@/common/queries/queryClient'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { Theme } from '@/common/theme/Theme'
-import { tryCatchSync } from '@/common/utils/utils'
 import { App } from './App'
 import '@/common/localization/i18n'
 import { EnvironmentContext } from '@/common/environment/context'
+import { tryCatchSync } from '@/common/utils/tryCatch'
 import { createPopoverRoot } from '@/content/common/host/createPopoverRoot'
 import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
 
@@ -22,7 +22,6 @@ Logger.debug(`Controller script loaded in frame ${frameId}`)
 const { shadowRoot, shadowStyle } = createPopoverRoot({
   id: CONTROLLER_ROOT_ID,
 })
-
 // try to get the html font size for rem unit
 // if it fails, use 16 as default
 const htmlFontSize =

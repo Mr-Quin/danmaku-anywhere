@@ -9,7 +9,8 @@ import { useTranslation } from 'react-i18next'
 import type { UserTheme } from '@/common/options/extensionOptions/schema'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { ColorMode } from '@/common/theme/enums'
-import { tryCatchSync } from '../utils/utils'
+
+import { tryCatchSync } from '@/common/utils/tryCatch'
 
 const defaultThemeOptions: ThemeOptions = {
   palette: {

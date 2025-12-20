@@ -67,7 +67,7 @@
     "time": "Time"
   },
   "configPage": {
-    "backupAll": "Backup All",
+    "copyShareCode": "Copy Share Code",
     "createConfig": "Create Config",
     "editor": {
       "addPattern": "Add Pattern",
@@ -100,14 +100,17 @@
     },
     "goCreate": "Go create one",
     "import": {
+      "error": "Import failed: {{message}}",
       "fileUpload": "Upload File",
       "hasIntegration": "Includes Integration",
       "name": "Import Config",
-      "presets": "Presets"
+      "presets": "Presets",
+      "success": "Config imported"
     },
+    "importShareCode": "Import Share Code",
+    "importShareCodePlaceholder": "Paste code here",
     "name": "Configs",
-    "noConfigs": "No configs configured",
-    "showIntegration": "View Integration Policy"
+    "noConfigs": "No configs configured"
   },
   "configs": {
     "alert": {

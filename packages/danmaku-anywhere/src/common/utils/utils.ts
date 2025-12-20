@@ -4,7 +4,6 @@ import * as OpenCC from 'opencc-js'
 import { match as matchPinyin } from 'pinyin-pro'
 
 import { Logger } from '@/common/Logger'
-import type { NotPromise } from '../types/utils'
 
 export const toArray = <T>(value: T | T[]): T[] => {
   return Array.isArray(value) ? value : [value]
@@ -23,29 +22,6 @@ export const validateOrigin = async (origin: string) => {
       return e.message
     }
     return 'invalid pattern'
-  }
-}
-
-// golang style error handling
-export const tryCatch = async <T>(fn: () => Promise<T>) => {
-  try {
-    return [await fn(), null] as const
-  } catch (e) {
-    if (!(e instanceof Error)) {
-      return [null, new Error('Unknown error')] as const
-    }
-    return [null, e as Error] as const
-  }
-}
-
-export const tryCatchSync = <T>(fn: () => NotPromise<T>) => {
-  try {
-    return [fn(), null] as const
-  } catch (e) {
-    if (!(e instanceof Error)) {
-      return [null, new Error('Unknown error')] as const
-    }
-    return [null, e as Error] as const
   }
 }
 

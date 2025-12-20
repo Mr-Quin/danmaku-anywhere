@@ -1,7 +1,8 @@
 import { injectable } from 'inversify'
 import { Logger } from '@/common/Logger'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
-import { tryCatch } from '@/common/utils/utils'
+
+import { tryCatch } from '@/common/utils/tryCatch'
 
 interface LastVersion {
   lastVersion: string

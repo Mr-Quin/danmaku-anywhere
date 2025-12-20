@@ -12,7 +12,7 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType, isProvider } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import type { DanDanPlayProviderConfig } from '@/common/options/providerConfig/schema'
-import { tryCatch } from '@/common/utils/utils'
+import { tryCatch } from '@/common/utils/tryCatch'
 import { findEpisodeByNumber } from '../common/findEpisodeByNumber'
 import type {
   IDanmakuProvider,
