@@ -29,6 +29,7 @@ export const withStopPropagation = <T extends Element>(
     onKeyDownCapture: (e) => {
       intercept(e, handlers.onKeyDownCapture)
     },
+    // deprecated event, but some websites still use this event so we need to stop propagation for it
     onKeyPressCapture: (e) => {
       intercept(e, handlers.onKeyPressCapture)
     },

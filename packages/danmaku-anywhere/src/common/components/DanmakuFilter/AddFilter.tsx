@@ -1,6 +1,7 @@
 import { Box, Button, Stack, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { withStopPropagation } from '@/common/utils/withStopPropagation'
 
 type AddFilterProps = {
   onAdd: (pattern: string) => boolean
@@ -59,6 +60,7 @@ export const AddFilter = ({
             onErrorClear?.()
             setFilterPattern(e.target.value)
           }}
+          {...withStopPropagation()}
         />
         <Button
           variant="contained"
