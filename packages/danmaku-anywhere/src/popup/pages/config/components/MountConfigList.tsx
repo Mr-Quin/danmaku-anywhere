@@ -124,28 +124,29 @@ export const MountConfigList = ({ onEdit, onAdd }: MountConfigListProps) => {
       )}
       renderSecondary={(config) => config.patterns[0]}
       renderSecondaryAction={(config) => {
-        const menuItems: DAMenuItemConfig[] = [
-          {
-            id: 'delete',
-            label: t('common.delete', 'Delete'),
-            onClick: () => handleDelete(config),
-            color: 'error',
-            icon: <Delete />,
-          },
-        ]
+        const menuItems: DAMenuItemConfig[] = []
 
         if (config.mode === 'xpath' && !isConfigIncomplete(config)) {
-          menuItems.unshift({
+          menuItems.push({
             id: 'share',
             label: t('configPage.copyShareCode', 'Copy Share Code'),
             onClick: () => handleExportShare(config),
             icon: <Share />,
           })
-          menuItems.splice(1, 0, {
+          menuItems.push({
             kind: 'separator',
             id: 'separator',
           })
         }
+
+        menuItems.push({
+          id: 'delete',
+          label: t('common.delete', 'Delete'),
+          onClick: () => handleDelete(config),
+          color: 'error',
+          icon: <Delete />,
+        })
+
         return (
           <>
             <ConfigToggleSwitch config={config} />
