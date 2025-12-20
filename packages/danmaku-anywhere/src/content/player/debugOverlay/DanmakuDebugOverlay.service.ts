@@ -1,6 +1,6 @@
 import type { DanmakuRenderer } from '@danmaku-anywhere/danmaku-engine'
 import { inject, injectable } from 'inversify'
-import { DanmakuLayoutManager } from '../DanmakuLayoutManager'
+import { DanmakuLayoutService } from '../danmakuLayout/DanmakuLayout.service'
 
 @injectable('Singleton')
 export class DanmakuDebugOverlayService {
@@ -12,8 +12,8 @@ export class DanmakuDebugOverlayService {
   private renderer?: DanmakuRenderer
 
   constructor(
-    @inject(DanmakuLayoutManager)
-    private layoutManager: DanmakuLayoutManager
+    @inject(DanmakuLayoutService)
+    private layoutManager: DanmakuLayoutService
   ) {}
 
   public attach(renderer: DanmakuRenderer) {

@@ -1,6 +1,6 @@
 import { inject, injectable } from 'inversify'
 import { invariant } from '@/common/utils/utils'
-import { VideoNodeObserver } from './VideoNodeObserver'
+import { VideoNodeObserverService } from '../videoObserver/VideoNodeObserver.service'
 
 type VideoEventType = keyof HTMLVideoElementEventMap
 type VideoEventCallback<
@@ -29,8 +29,8 @@ export class VideoEventService {
   private activeVideoElement: HTMLVideoElement | null = null
 
   constructor(
-    @inject(VideoNodeObserver)
-    private videoNodeObs: VideoNodeObserver
+    @inject(VideoNodeObserverService)
+    private videoNodeObs: VideoNodeObserverService
   ) {
     this.setupVideoObserver()
   }

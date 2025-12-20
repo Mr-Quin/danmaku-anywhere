@@ -5,9 +5,9 @@ import { createRoot, type Root } from 'react-dom/client'
 import { Logger } from '@/common/Logger'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { SkipButton } from '@/content/player/components/SkipButton/SkipButton'
-import { DanmakuLayoutManager } from '@/content/player/DanmakuLayoutManager'
+import { DanmakuLayoutService } from '@/content/player/danmakuLayout/DanmakuLayout.service'
 import type { SkipTarget } from '@/content/player/videoSkip/SkipTarget'
-import { VideoEventService } from '../monitors/VideoEvent.service'
+import { VideoEventService } from '../videoEvent/VideoEvent.service'
 import { parseCommentsForJumpTargets } from './videoSkipParser'
 
 type ActiveButtonEntry = { node: HTMLElement; root: Root }
@@ -28,8 +28,8 @@ export class VideoSkipService {
   constructor(
     @inject(VideoEventService)
     private videoEventService: VideoEventService,
-    @inject(DanmakuLayoutManager)
-    private layoutManager: DanmakuLayoutManager
+    @inject(DanmakuLayoutService)
+    private layoutManager: DanmakuLayoutService
   ) {
     this.boundHandleTimeUpdate = this.handleTimeUpdate.bind(this)
     this.boundHandleSeek = this.handleSeek.bind(this)

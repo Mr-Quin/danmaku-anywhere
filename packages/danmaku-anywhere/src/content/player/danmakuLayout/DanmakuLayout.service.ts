@@ -1,7 +1,7 @@
 import { injectable } from 'inversify'
 
 @injectable('Singleton')
-export class DanmakuLayoutManager {
+export class DanmakuLayoutService {
   public readonly wrapper: HTMLDivElement
   public readonly container: HTMLDivElement
 

@@ -2,11 +2,11 @@ import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { debounce } from '@mui/material'
 import { inject, injectable } from 'inversify'
 import { Logger } from '@/common/Logger'
-import { DanmakuLayoutManager } from '@/content/player/DanmakuLayoutManager'
+import { DanmakuLayoutService } from '@/content/player/danmakuLayout/DanmakuLayout.service'
 import { computeDensityBins } from '@/content/player/densityPlot/computeDensityBins'
 import { DanmakuDensityChart } from '@/content/player/densityPlot/DanmakuDensityChart'
 import type { DensityPoint } from '@/content/player/densityPlot/types'
-import { VideoEventService } from '@/content/player/monitors/VideoEvent.service'
+import { VideoEventService } from '@/content/player/videoEvent/VideoEvent.service'
 
 const logger = Logger.sub('[DanmakuDensityService]')
 
@@ -33,14 +33,14 @@ export class DanmakuDensityService {
   constructor(
     @inject(VideoEventService)
     private readonly videoEventService: VideoEventService,
-    @inject(DanmakuLayoutManager)
-    private readonly layoutManager: DanmakuLayoutManager
+    @inject(DanmakuLayoutService)
+    private readonly layoutService: DanmakuLayoutService
   ) {
     this.boundHandleTimeUpdate = this.handleTimeUpdate.bind(this)
     this.boundHandleSeeked = this.handleSeeked.bind(this)
     this.boundHandleMouseMove = this.handleMouseMove.bind(this)
     this.boundHandleResize = debounce(this.handleResize.bind(this), 100)
-    this.chart = new DanmakuDensityChart(this.layoutManager.wrapper, {
+    this.chart = new DanmakuDensityChart(this.layoutService.wrapper, {
       height: this.chartHeight,
       colors: {
         unplayed: 'rgba(255,255,255,0.25)',

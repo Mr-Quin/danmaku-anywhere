@@ -8,15 +8,15 @@ import { Logger } from '@/common/Logger'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { DanmakuComponent } from '@/content/player/components/DanmakuComponent'
-import { DanmakuLayoutManager } from '@/content/player/DanmakuLayoutManager'
-import { DanmakuDebugOverlayService } from '@/content/player/monitors/DanmakuDebugOverlay.service'
-import { RectObserver } from '@/content/player/monitors/RectObserver'
-import { VideoNodeObserver } from '@/content/player/monitors/VideoNodeObserver'
+import { DanmakuLayoutService } from '@/content/player/danmakuLayout/DanmakuLayout.service'
+import { RectObserver } from '@/content/player/danmakuManager/RectObserver'
+import { DanmakuDebugOverlayService } from '@/content/player/debugOverlay/DanmakuDebugOverlay.service'
+import { VideoNodeObserverService } from '@/content/player/videoObserver/VideoNodeObserver.service'
 
-const logger = Logger.sub('[DanmakuManager]')
+const logger = Logger.sub('[DanmakuManagerService]')
 
 @injectable('Singleton')
-export class DanmakuManager {
+export class DanmakuManagerService {
   private readonly renderer = new DanmakuRenderer((node, props) => {
     ReactDOM.createRoot(node).render(createElement(DanmakuComponent, props))
   })
@@ -41,10 +41,10 @@ export class DanmakuManager {
   private rectObs?: RectObserver
 
   constructor(
-    @inject(VideoNodeObserver)
-    private videoNodeObs: VideoNodeObserver,
-    @inject(DanmakuLayoutManager)
-    layoutManager: DanmakuLayoutManager,
+    @inject(VideoNodeObserverService)
+    private videoNodeObs: VideoNodeObserverService,
+    @inject(DanmakuLayoutService)
+    layoutManager: DanmakuLayoutService,
     @inject(DanmakuDebugOverlayService)
     private debugOverlayService: DanmakuDebugOverlayService
   ) {
