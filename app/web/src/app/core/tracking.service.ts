@@ -3,7 +3,7 @@ import { type Core, clarity } from 'clarity-js'
 import { environment } from '../../environments/environment'
 
 const clarityOptions: Core.Config = {
-  projectId: environment.production ? 's8zgeod7h4' : 's8yylv4jnd',
+  projectId: environment.clarityProjectId,
   upload: 'https://m.clarity.ms/collect',
   track: true,
   content: true,
@@ -23,9 +23,15 @@ export class TrackingService {
 
   track(key: string, data?: object) {
     try {
-      clarity.event(key, JSON.stringify(data))
-    } catch {
-      // ignore
+      if (data !== undefined) {
+        clarity.event(key, JSON.stringify(data))
+      } else {
+        clarity.event(key, '')
+      }
+    } catch (error) {
+      if (!environment.production) {
+        console.error('Clarity tracking error:', error)
+      }
     }
   }
 
