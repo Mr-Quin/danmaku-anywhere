@@ -1,5 +1,6 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { DanmakuRenderer } from '@danmaku-anywhere/danmaku-engine'
+import { inject, injectable } from 'inversify'
 import { createElement } from 'react'
 import ReactDOM from 'react-dom/client'
 import { uiContainer } from '@/common/ioc/uiIoc'
@@ -7,12 +8,14 @@ import { Logger } from '@/common/Logger'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { DanmakuComponent } from '@/content/player/components/DanmakuComponent'
+import { DanmakuLayoutManager } from '@/content/player/DanmakuLayoutManager'
 import { DanmakuDebugOverlayService } from '@/content/player/monitors/DanmakuDebugOverlay.service'
 import { RectObserver } from '@/content/player/monitors/RectObserver'
-import type { VideoNodeObserver } from '@/content/player/monitors/VideoNodeObserver'
+import { VideoNodeObserver } from '@/content/player/monitors/VideoNodeObserver'
 
 const logger = Logger.sub('[DanmakuManager]')
 
+@injectable()
 export class DanmakuManager {
   private readonly renderer = new DanmakuRenderer((node, props) => {
     ReactDOM.createRoot(node).render(createElement(DanmakuComponent, props))
@@ -37,19 +40,20 @@ export class DanmakuManager {
   // Observers
   private rectObs?: RectObserver
 
-  private debugOverlayService: DanmakuDebugOverlayService
-
   constructor(
+    @inject(VideoNodeObserver)
     private videoNodeObs: VideoNodeObserver,
-    wrapper: HTMLDivElement,
-    container: HTMLDivElement
+    @inject(DanmakuLayoutManager)
+    layoutManager: DanmakuLayoutManager,
+    @inject(DanmakuDebugOverlayService)
+    private debugOverlayService: DanmakuDebugOverlayService
   ) {
-    this.nodes = { wrapper, container }
+    this.nodes = {
+      wrapper: layoutManager.wrapper,
+      container: layoutManager.container,
+    }
 
-    this.debugOverlayService = new DanmakuDebugOverlayService(
-      this.renderer,
-      wrapper
-    )
+    this.debugOverlayService.attach(this.renderer)
 
     const extensionOptionsService = uiContainer.get(ExtensionOptionsService)
 

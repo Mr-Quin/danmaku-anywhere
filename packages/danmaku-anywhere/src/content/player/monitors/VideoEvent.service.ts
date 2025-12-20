@@ -1,5 +1,6 @@
+import { inject, injectable } from 'inversify'
 import { invariant } from '@/common/utils/utils'
-import type { VideoNodeObserver } from './VideoNodeObserver'
+import { VideoNodeObserver } from './VideoNodeObserver'
 
 type VideoEventType = keyof HTMLVideoElementEventMap
 type VideoEventCallback<
@@ -14,6 +15,7 @@ interface TimeEventData {
   triggered: boolean
 }
 
+@injectable()
 export class VideoEventService {
   // External event listeners for the active video element. If the active video element changes,
   // these listeners are moved to the new active video element,
@@ -26,7 +28,10 @@ export class VideoEventService {
 
   private activeVideoElement: HTMLVideoElement | null = null
 
-  constructor(private videoNodeObs: VideoNodeObserver) {
+  constructor(
+    @inject(VideoNodeObserver)
+    private videoNodeObs: VideoNodeObserver
+  ) {
     this.setupVideoObserver()
   }
 

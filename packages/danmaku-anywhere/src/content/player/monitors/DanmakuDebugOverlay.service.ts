@@ -1,16 +1,24 @@
 import type { DanmakuRenderer } from '@danmaku-anywhere/danmaku-engine'
+import { inject, injectable } from 'inversify'
+import { DanmakuLayoutManager } from '../DanmakuLayoutManager'
 
+@injectable('Singleton')
 export class DanmakuDebugOverlayService {
   private readonly DEBUG_PLUGIN_NAME = 'danmaku-stats'
 
   private isDebugEnabled = false
   private isMounted = false
   private statsNode?: HTMLElement
+  private renderer?: DanmakuRenderer
 
   constructor(
-    private renderer: DanmakuRenderer,
-    private wrapper: HTMLElement
+    @inject(DanmakuLayoutManager)
+    private layoutManager: DanmakuLayoutManager
   ) {}
+
+  public attach(renderer: DanmakuRenderer) {
+    this.renderer = renderer
+  }
 
   setDebugEnabled(enabled: boolean) {
     this.isDebugEnabled = enabled
@@ -25,17 +33,19 @@ export class DanmakuDebugOverlayService {
   }
 
   private addDebugHighlight() {
-    this.wrapper.style.border = '1px solid red'
+    this.layoutManager.wrapper.style.border = '1px solid red'
   }
 
   private removeDebugHighlight() {
-    this.wrapper.style.border = 'none'
+    this.layoutManager.wrapper.style.border = 'none'
   }
 
   mount() {
     if (this.isMounted) {
       this.unmount()
     }
+
+    if (!this.renderer) return
     const manager = this.renderer.manager
     if (!manager || !this.isDebugEnabled) {
       return
@@ -53,7 +63,7 @@ export class DanmakuDebugOverlayService {
 
     this.statsNode = stats
 
-    this.wrapper.appendChild(stats)
+    this.layoutManager.wrapper.appendChild(stats)
 
     const updateDebugStats = (all: number, stash: number, view: number) => {
       stats.innerHTML = `
@@ -83,6 +93,7 @@ export class DanmakuDebugOverlayService {
 
   unmount() {
     // Remove plugin from manager
+    if (!this.renderer) return
     const manager = this.renderer.manager
     if (manager) {
       manager.remove(this.DEBUG_PLUGIN_NAME)

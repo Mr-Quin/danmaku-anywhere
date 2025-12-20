@@ -1,3 +1,4 @@
+import { injectable } from 'inversify'
 import { tryCatchSync } from '@/common/utils/tryCatch'
 import { VideoSrcObserver } from './VideoSrcObserver'
 
@@ -11,6 +12,7 @@ export type VideoChangeListener = (video: HTMLVideoElement) => void
 
 export type VideoNodeObserverEvent = 'videoNodeChange' | 'videoNodeRemove'
 
+@injectable('Singleton')
 export class VideoNodeObserver {
   private videoStack: HTMLVideoElement[] = []
   private videoListeners = new WeakMap<HTMLVideoElement, () => void>()

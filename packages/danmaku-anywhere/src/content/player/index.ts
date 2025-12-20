@@ -11,7 +11,7 @@ import type { PlayerRelayCommands } from '@/common/rpcClient/background/types'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { createPopoverRoot } from '@/content/common/host/createPopoverRoot'
 import { injectCss } from '@/content/common/injectCss'
-import { createDanmakuContainers } from '@/content/player/components/createDanmakuContainer'
+
 import skipButtonCss from '@/content/player/components/SkipButton/SkipButton.css?inline'
 import { PLAYER_ROOT_ID } from '@/content/player/constants/rootId'
 import { DanmakuDensityService } from '@/content/player/densityPlot/DanmakuDensity.service'
@@ -28,16 +28,11 @@ const Logger = _Logger.sub(`[Player-${frameId}]`)
 
 Logger.info('Player script loaded')
 
-const { container, wrapper } = createDanmakuContainers()
-
-const videoNodeObserver = new VideoNodeObserver()
-const manager = new DanmakuManager(videoNodeObserver, wrapper, container)
-const videoEventService = new VideoEventService(videoNodeObserver)
-const videoSkipService = new VideoSkipService(videoEventService, wrapper)
-const danmakuDensityService = new DanmakuDensityService(
-  videoEventService,
-  wrapper
-)
+const videoNodeObserver = uiContainer.get(VideoNodeObserver)
+const manager = uiContainer.get(DanmakuManager)
+const videoEventService = uiContainer.get(VideoEventService)
+const videoSkipService = uiContainer.get(VideoSkipService)
+const danmakuDensityService = uiContainer.get(DanmakuDensityService)
 
 const { shadowRoot, root } = createPopoverRoot({
   id: PLAYER_ROOT_ID,
