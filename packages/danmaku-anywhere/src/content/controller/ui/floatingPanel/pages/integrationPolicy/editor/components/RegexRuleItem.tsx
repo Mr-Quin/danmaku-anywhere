@@ -3,7 +3,7 @@ import type { Control } from 'react-hook-form'
 import { Controller } from 'react-hook-form'
 
 import type { IntegrationInput } from '@/common/options/integrationPolicyStore/schema'
-
+import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import type { IntegrationRuleItemNames } from '../types'
 import { QuickCheckbox } from './QuickCheckbox'
 import { RuleItemBox } from './RuleItemBox'
@@ -37,6 +37,7 @@ export const RegexRuleItem = ({
               size="small"
               fullWidth
               placeholder=".*"
+              {...withStopPropagation()}
               {...field}
               error={!!getErrorMessage()}
               helperText={getErrorMessage()}

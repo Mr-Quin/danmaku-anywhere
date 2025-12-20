@@ -13,6 +13,7 @@ import {
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
+import { withStopPropagation } from '@/common/utils/withStopPropagation'
 
 type TestFilterProps = {
   filters: DanmakuOptions['filters']
@@ -61,6 +62,7 @@ export const TestFilter = ({ filters }: TestFilterProps) => {
           setFilterTestString(e.target.value)
           setFilterTestResult({ resolved: false })
         }}
+        {...withStopPropagation()}
         sx={{ bgcolor: 'background.paper', mt: 1 }}
       />
 
