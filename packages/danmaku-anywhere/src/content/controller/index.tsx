@@ -22,7 +22,6 @@ Logger.debug(`Controller script loaded in frame ${frameId}`)
 const { shadowRoot, shadowStyle } = createPopoverRoot({
   id: CONTROLLER_ROOT_ID,
 })
-
 // try to get the html font size for rem unit
 // if it fails, use 16 as default
 const htmlFontSize =

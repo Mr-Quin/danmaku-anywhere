@@ -19,6 +19,8 @@ export const useImportShareCodeDialog = (
 
   const codeRef = useRef<string>('')
 
+  console.log(combinedPolicyService)
+
   return () => {
     dialog.confirm({
       title: t('configPage.importShareCode', 'Import Share Code'),
