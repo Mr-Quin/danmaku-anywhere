@@ -1,72 +1,42 @@
 import { Injectable } from '@angular/core'
-import type { AgentOptions } from '@newrelic/browser-agent/loaders/agent'
-import { BrowserAgent } from '@newrelic/browser-agent/loaders/browser-agent'
+import { type Core, clarity } from 'clarity-js'
 import { environment } from '../../environments/environment'
 
-const options: AgentOptions = {
-  loader_config: {
-    accountID: '6949938',
-    trustKey: '6949938',
-    agentID: '1431855944',
-    licenseKey: 'NRJS-b18292ee8bf6c4461c2',
-    applicationID: '1431855944',
-  },
-  info: {
-    beacon: 'bam.nr-data.net',
-    errorBeacon: 'bam.nr-data.net',
-    licenseKey: 'NRJS-b18292ee8bf6c4461c2',
-    applicationID: '1431855944',
-    sa: 1,
-  },
-  init: {
-    session_replay: {
-      enabled: true,
-      block_selector: '',
-      mask_text_selector: '',
-      sampling_rate: 100.0,
-      error_sampling_rate: 100.0,
-      mask_all_inputs: false,
-      collect_fonts: true,
-      inline_images: false,
-      fix_stylesheets: true,
-      preload: false,
-      mask_input_options: {},
-      autoStart: false,
-    },
-    performance: {
-      capture_marks: true,
-      capture_detail: true,
-      capture_measures: true,
-      resources: {
-        enabled: true,
-      },
-    },
-    distributed_tracing: { enabled: true },
-    privacy: { cookies_enabled: true },
-    ajax: { deny_list: ['bam.nr-data.net'] },
-  },
+const clarityOptions: Core.Config = {
+  projectId: environment.clarityProjectId,
+  upload: 'https://m.clarity.ms/collect',
+  track: true,
+  content: true,
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class TrackingService {
-  private agent = new BrowserAgent(options)
-
   identify(userId: string) {
-    this.agent.setUserId(userId)
+    clarity.identify(userId)
   }
 
   tag(key: string, value: string) {
-    this.agent.setCustomAttribute(key, value)
+    clarity.set(key, value)
   }
 
   track(key: string, data?: object) {
-    this.agent.recordCustomEvent(key, data)
+    try {
+      if (data !== undefined) {
+        clarity.event(key, JSON.stringify(data))
+      } else {
+        clarity.event(key, '')
+      }
+    } catch (error) {
+      if (!environment.production) {
+        console.error('Clarity tracking error:', error)
+      }
+    }
   }
 
   init() {
-    this.agent.start()
+    clarity.start(clarityOptions)
     this.tag('env', environment.name)
   }
 }
