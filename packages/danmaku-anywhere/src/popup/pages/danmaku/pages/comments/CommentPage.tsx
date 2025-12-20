@@ -88,9 +88,7 @@ export const CommentPage = () => {
       {episode ? (
         <CommentsTable
           comments={episode.comments}
-          onFilterComment={(comment) =>
-            navigate('/styles/filtering', { state: comment })
-          }
+          onFilterComment={(comment) => navigate('/filter', { state: comment })}
           onRefresh={handleRefresh}
           showRefresh={canRefresh}
           isRefreshing={mutation.isPending}
