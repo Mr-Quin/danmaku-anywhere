@@ -43,7 +43,7 @@ export const useImportShareCodeDialog = (
         const code = codeRef.current
         try {
           if (!code) {
-            return
+            throw new Error('No code')
           }
           if (options.type === 'integration') {
             await combinedPolicyService.importShareCodeToConfig(
