@@ -156,6 +156,23 @@
     "unmount": "卸载弹幕",
     "viewDanmaku": "查看弹幕"
   },
+  "danmakuFilter": {
+    "activeFilters": "生效的屏蔽词",
+    "addFilterPattern": "添加屏蔽词",
+    "description": "通过关键字或正则屏蔽不需要的弹幕",
+    "enterFilterPattern": "输入屏蔽词，正则以 \"/\" 开头和结尾",
+    "enterFilterPatternPlaceholder": "输入屏蔽词",
+    "enterTestText": "输入测试文本",
+    "noActiveFilters": "没有生效的屏蔽词",
+    "testFilterPatterns": "测试屏蔽词",
+    "testResultExclude": "这段文本将被过滤",
+    "testResultInclude": "这段文本不会被过滤",
+    "validation": {
+      "duplicate": "重复的屏蔽词",
+      "invalidRegex": "无效的正则 {{message}}",
+      "patternEmpty": "屏蔽词不能为空"
+    }
+  },
   "danmakuPage": {
     "animeList": "剧集列表",
     "backupAll": "全部导出为备份",
@@ -438,19 +455,6 @@
   "stylePage": {
     "allowOverlap": "允许重叠",
     "distribution": "弹幕分布",
-    "filtering": {
-      "addFilterPattern": "添加屏蔽词",
-      "enterFilterPattern": "输入屏蔽词，正则以 \"/\" 开头和结尾",
-      "enterTestText": "输入测试文本",
-      "name": "屏蔽设置",
-      "patternList": "屏蔽词列表",
-      "testFilterPatterns": "测试屏蔽词",
-      "testResultExclude": "这段文本将被过滤",
-      "testResultInclude": "这段文本不会被过滤",
-      "tooltip": {
-        "noFilter": "不存在屏蔽词，请先添加一些屏蔽词以进行测试"
-      }
-    },
     "font": "字体",
     "maxOnScreen": "最大同屏弹幕数",
     "name": "弹幕设置",
@@ -486,6 +490,7 @@
     "config": "装填配置",
     "danmaku": "弹幕列表",
     "debug": "调试",
+    "filter": "弹幕过滤",
     "integration": "自动化",
     "mount": "弹幕库",
     "providers": "弹幕源",

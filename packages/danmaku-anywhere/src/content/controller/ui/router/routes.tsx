@@ -7,6 +7,7 @@ import { MountPage } from '@/content/controller/ui/floatingPanel/pages/mount/Mou
 import { SelectorPage } from '@/content/controller/ui/floatingPanel/pages/SelectorPage'
 import { StylesPage } from '@/content/controller/ui/floatingPanel/pages/StylesPage'
 import { SearchPage } from '@/content/controller/ui/floatingPanel/pages/search/SearchPage'
+import { FilterPage } from '../floatingPanel/pages/FilterPage'
 
 export const routes = [
   {
@@ -33,6 +34,11 @@ export const routes = [
     tab: PopupTab.Styles,
     name: () => i18n.t('tabs.style', 'Style'),
     element: <StylesPage />,
+  },
+  {
+    tab: PopupTab.Filter,
+    name: () => i18n.t('tabs.filter', 'Danmaku Filter'),
+    element: <FilterPage />,
   },
   {
     tab: PopupTab.Policy,

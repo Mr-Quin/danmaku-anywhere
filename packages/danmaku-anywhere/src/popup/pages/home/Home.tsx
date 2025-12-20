@@ -56,6 +56,12 @@ export const Home = () => {
             component={Link}
           />
           <Tab
+            label={t('tabs.filter', 'Danmaku Filter')}
+            value="/filter"
+            to="/filter"
+            component={Link}
+          />
+          <Tab
             label={t('tabs.config', 'Config')}
             value="/config"
             to="/config"

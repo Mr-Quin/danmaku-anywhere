@@ -161,6 +161,23 @@
     "unmount": "Unmount",
     "viewDanmaku": "View Danmaku"
   },
+  "danmakuFilter": {
+    "activeFilters": "Active Filters",
+    "addFilterPattern": "Add Filter Pattern",
+    "description": "Filter out unwanted danmaku by keywords or regex patterns",
+    "enterFilterPattern": "Enter filter pattern, regex starts and ends with '/'",
+    "enterFilterPatternPlaceholder": "Enter Filter Pattern",
+    "enterTestText": "Enter test text",
+    "noActiveFilters": "No active filters",
+    "testFilterPatterns": "Test Filter Patterns",
+    "testResultExclude": "This text will be filtered out",
+    "testResultInclude": "This text will not be filtered out",
+    "validation": {
+      "duplicate": "Pattern already exists",
+      "invalidRegex": "Invalid regex {{message}}",
+      "patternEmpty": "Pattern cannot be empty"
+    }
+  },
   "danmakuPage": {
     "animeList": "Anime List",
     "backupAll": "Export All as Backup",
@@ -452,19 +469,6 @@
   "stylePage": {
     "allowOverlap": "Allow Overlap",
     "distribution": "Distribution",
-    "filtering": {
-      "addFilterPattern": "Add Filter Pattern",
-      "enterFilterPattern": "Enter filter pattern, wrap with \"/\" for regex",
-      "enterTestText": "Enter test text",
-      "name": "Filter Settings",
-      "patternList": "Pattern List",
-      "testFilterPatterns": "Test Filter Patterns",
-      "testResultExclude": "This text will be filtered out",
-      "testResultInclude": "This text will not be filtered out",
-      "tooltip": {
-        "noFilter": "Filter is empty, add some patterns to test"
-      }
-    },
     "font": "Font",
     "maxOnScreen": "Maximum Limit",
     "name": "Danmaku Settings",
@@ -500,6 +504,7 @@
     "config": "Config",
     "danmaku": "Danmaku",
     "debug": "Debug",
+    "filter": "Danmaku Filter",
     "integration": "Integration",
     "mount": "Library",
     "providers": "Providers",
