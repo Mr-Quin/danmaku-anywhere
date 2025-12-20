@@ -15,7 +15,7 @@ import { VideoNodeObserver } from '@/content/player/monitors/VideoNodeObserver'
 
 const logger = Logger.sub('[DanmakuManager]')
 
-@injectable()
+@injectable('Singleton')
 export class DanmakuManager {
   private readonly renderer = new DanmakuRenderer((node, props) => {
     ReactDOM.createRoot(node).render(createElement(DanmakuComponent, props))

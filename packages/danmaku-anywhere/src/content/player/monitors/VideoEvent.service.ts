@@ -15,7 +15,7 @@ interface TimeEventData {
   triggered: boolean
 }
 
-@injectable()
+@injectable('Singleton')
 export class VideoEventService {
   // External event listeners for the active video element. If the active video element changes,
   // these listeners are moved to the new active video element,
