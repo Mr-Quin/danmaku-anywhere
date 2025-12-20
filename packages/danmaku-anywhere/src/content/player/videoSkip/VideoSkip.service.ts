@@ -1,17 +1,20 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import { inject, injectable } from 'inversify'
 import { createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { Logger } from '@/common/Logger'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { SkipButton } from '@/content/player/components/SkipButton/SkipButton'
+import { DanmakuLayoutService } from '@/content/player/danmakuLayout/DanmakuLayout.service'
 import type { SkipTarget } from '@/content/player/videoSkip/SkipTarget'
-import type { VideoEventService } from '../monitors/VideoEvent.service'
+import { VideoEventService } from '../videoEvent/VideoEvent.service'
 import { parseCommentsForJumpTargets } from './videoSkipParser'
 
 type ActiveButtonEntry = { node: HTMLElement; root: Root }
 
 const logger = Logger.sub('[VideoSkipService]')
 
+@injectable('Singleton')
 export class VideoSkipService {
   private jumpTargets: SkipTarget[] = []
   private activeButton: ActiveButtonEntry | null = null
@@ -23,8 +26,10 @@ export class VideoSkipService {
   private readonly boundHandleSeek: () => void
 
   constructor(
+    @inject(VideoEventService)
     private videoEventService: VideoEventService,
-    private container: HTMLElement
+    @inject(DanmakuLayoutService)
+    private layoutManager: DanmakuLayoutService
   ) {
     this.boundHandleTimeUpdate = this.handleTimeUpdate.bind(this)
     this.boundHandleSeek = this.handleSeek.bind(this)
@@ -114,12 +119,12 @@ export class VideoSkipService {
   }
 
   private showSkipButton(target: SkipTarget) {
-    if (!this.container) return
+    if (!this.layoutManager.wrapper) return
 
     logger.debug('Creating skip buttons', target)
 
     const mountNode = document.createElement('div')
-    this.container.appendChild(mountNode)
+    this.layoutManager.wrapper.appendChild(mountNode)
 
     const root = createRoot(mountNode)
     root.render(

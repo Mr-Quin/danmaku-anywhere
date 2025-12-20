@@ -11,15 +11,15 @@ import type { PlayerRelayCommands } from '@/common/rpcClient/background/types'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { createPopoverRoot } from '@/content/common/host/createPopoverRoot'
 import { injectCss } from '@/content/common/injectCss'
-import { createDanmakuContainers } from '@/content/player/components/createDanmakuContainer'
+
 import skipButtonCss from '@/content/player/components/SkipButton/SkipButton.css?inline'
 import { PLAYER_ROOT_ID } from '@/content/player/constants/rootId'
+import { DanmakuManagerService } from '@/content/player/danmakuManager/DanmakuManager.service'
 import { DanmakuDensityService } from '@/content/player/densityPlot/DanmakuDensity.service'
 import densityPlotCss from '@/content/player/densityPlot/DanmakuDensityChart.css?inline'
-import { DanmakuManager } from '@/content/player/monitors/DanmakuManager'
-import { VideoEventService } from '@/content/player/monitors/VideoEvent.service'
-import { VideoNodeObserver } from '@/content/player/monitors/VideoNodeObserver'
 import { createPipWindow, moveElement } from '@/content/player/pipUtils'
+import { VideoEventService } from '@/content/player/videoEvent/VideoEvent.service'
+import { VideoNodeObserverService } from '@/content/player/videoObserver/VideoNodeObserver.service'
 import { VideoSkipService } from '@/content/player/videoSkip/VideoSkip.service'
 
 const { data: frameId } = await chromeRpcClient.getFrameId()
@@ -28,22 +28,17 @@ const Logger = _Logger.sub(`[Player-${frameId}]`)
 
 Logger.info('Player script loaded')
 
-const { container, wrapper } = createDanmakuContainers()
-
-const videoNodeObserver = new VideoNodeObserver()
-const manager = new DanmakuManager(videoNodeObserver, wrapper, container)
-const videoEventService = new VideoEventService(videoNodeObserver)
-const videoSkipService = new VideoSkipService(videoEventService, wrapper)
-const danmakuDensityService = new DanmakuDensityService(
-  videoEventService,
-  wrapper
-)
+const videoNodeObserverService = uiContainer.get(VideoNodeObserverService)
+const managerService = uiContainer.get(DanmakuManagerService)
+const videoEventService = uiContainer.get(VideoEventService)
+const videoSkipService = uiContainer.get(VideoSkipService)
+const danmakuDensityService = uiContainer.get(DanmakuDensityService)
 
 const { shadowRoot, root } = createPopoverRoot({
   id: PLAYER_ROOT_ID,
 })
 
-manager.setParent(shadowRoot)
+managerService.setParent(shadowRoot)
 injectCss(shadowRoot, [skipButtonCss, densityPlotCss])
 
 let pipWindow: Window | undefined
@@ -51,28 +46,28 @@ let pipWindow: Window | undefined
 const playerRpcServer = createRpcServer<PlayerRelayCommands>(
   {
     'relay:command:mount': async ({ data: comments }) => {
-      manager.mount(comments)
+      managerService.mount(comments)
       videoSkipService.setComments(comments)
       danmakuDensityService.setComments(comments)
       return true
     },
     'relay:command:unmount': async () => {
-      manager.unmount()
+      managerService.unmount()
       videoSkipService.clear()
       danmakuDensityService.clear()
       return true
     },
     'relay:command:start': async ({ data: query }) => {
-      manager.start(query)
+      managerService.start(query)
     },
     'relay:command:seek': async ({ data: time }) => {
-      manager.seek(time)
+      managerService.seek(time)
     },
     'relay:command:show': async ({ data: show }) => {
       if (show) {
-        manager.show()
+        managerService.show()
       } else {
-        manager.hide()
+        managerService.hide()
       }
     },
     'relay:command:enterPip': async () => {
@@ -89,12 +84,18 @@ const playerRpcServer = createRpcServer<PlayerRelayCommands>(
 
       const delayResize = () => {
         setTimeout(() => {
-          manager.resize()
+          managerService.resize()
         }, 100)
       }
 
-      const restoreWrapper = moveElement(manager.getWrapper(), pipContainer)
-      const restoreVideo = moveElement(manager.video!, pipWindow.document.body)
+      const restoreWrapper = moveElement(
+        managerService.getWrapper(),
+        pipContainer
+      )
+      const restoreVideo = moveElement(
+        managerService.video!,
+        pipWindow.document.body
+      )
 
       delayResize()
 
@@ -127,11 +128,11 @@ const playerRpcServer = createRpcServer<PlayerRelayCommands>(
 /**
  * Lifecycle events
  */
-videoNodeObserver.addEventListener('videoNodeChange', () => {
+videoNodeObserverService.addEventListener('videoNodeChange', () => {
   playerRpcClient.controller['relay:event:videoChange']({ frameId })
 })
 
-videoNodeObserver.addEventListener('videoNodeRemove', () => {
+videoNodeObserverService.addEventListener('videoNodeRemove', () => {
   // This event is debounced
   playerRpcClient.controller['relay:event:videoRemoved']({ frameId })
 })
@@ -145,11 +146,11 @@ videoEventService.onTimeEvent(0.5, () => {
  */
 const danmakuOptionsService = uiContainer.get(DanmakuOptionsService)
 danmakuOptionsService.onChange((options) => {
-  manager.updateConfig(options)
+  managerService.updateConfig(options)
 })
 
 danmakuOptionsService.get().then((options) => {
-  manager.updateConfig(options)
+  managerService.updateConfig(options)
 })
 
 const extensionOptionsService = uiContainer.get(ExtensionOptionsService)
