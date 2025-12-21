@@ -3,6 +3,71 @@ title: 更新日志
 description: 更新日志
 ---
 
+## v1.4.0 - 2025-12-20
+
+## 特性
+
+### 弹幕源
+
+重做弹幕源设置，现在可以配置任意数量的源
+
+除了MacCMS外，所有源都可以进行自动匹配。自动匹配时使用排名最靠上的源。
+
+**弹弹Play**
+- 可以配置兼容弹弹Play API的弹幕服务
+- 可以使用自己的弹弹Play API key
+
+### 装填配置
+
+- 适配设置（自动化方式）转移至装填配置
+- 编辑装填配置时会提示进行自动化的设置
+- 暂时移除导入配置的功能
+- 添加导入导出分享码的功能（仅限自动化方式为xpath时）
+
+### Xpath配置（原适配配置）
+
+- 装填配置的自动化方式为xpath时可以在网页扩展窗口中进行设置
+- AI设置移动至装填配置中
+- 移除“仅使用标题匹配”选项，现在会自动判断匹配方式
+- 优化xpath配置的编写方式
+- 添加了一套内置的regex，可自动识别一些常见的剧集命名方式
+- regex改为可选项
+- 可以通过分享码分享配置
+
+### 弹幕库
+
+- 重做弹幕库UI，改为树状显示（原有的弹幕库界面暂时保留）
+- 可以使用多选功能装填/导出/删除多个剧集
+
+### 搜索
+
+- 优化搜索界面，现在可以在搜索界面快速开关弹幕源/调整顺序
+
+### 弹幕过滤
+
+- 过滤功能移动至单独的页面（之前在弹幕设置中）
+- 优化页面逻辑
+
+### 弹幕导入/导出
+
+- 导入功能转移至弹幕库右上角的菜单中
+- 移除原有的导入页面
+- 允许导入目录和zip文件
+    - 导入目录时保留导入时的目录结构（弹幕库中树状显示）
+- 可以使用弹幕库的多选功能导出所有内容
+
+### 播放
+
+- 在视频下方显示弹幕密度条（可以在设置中关闭）
+
+### 其他
+
+- 重做”关于“页面
+- 替换部分图片素材
+- 优化首次使用体验
+
+**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v1.3.0...v1.4.0
+
 ## v1.3.0 - 2025-09-01
 
 ## 特性
@@ -166,193 +231,6 @@ Fix issues in the 1.2.0 release
 
 - 修复有时换集时报错的问题 [#65](https://github.com/Mr-Quin/danmaku-anywhere/pull/65) 
 
+
 **Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v0.19.1...v0.19.2
-
-## v0.19.1 - 2025-02-14
-
-### 修复
-
-- 修复扩展在安卓Firefox中崩溃的问题
-
-**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v0.19.0...v0.19.1
-
-## v0.19.0 - 2025-02-10
-
-### 新增
-
-- AI 自动适配功能
-  - 使用 AI 从网页中提取正在播放的番剧信息
-  - 开启方法：网页控件中-&gt;适配规则-&gt;添加（或编辑）适配规则-&gt;启用AI（默认为启用）-&gt;保存
-  - 目前测试下来效果还不错，但是受网页结构影响较大，可能需要修正标题和集数。如果匹配结果不理想，请反馈问题。
-  - **注意事项：**
-    - 向服务器发送的信息中可能包含当前网页的 URL，如果是私人网站可能会暴露地址，请注意隐私。
-    - 服务器端保留 7 天内的请求记录，用于调试和分析。
-    - 由于使用的是免费的 AI 服务，调用次数限制较低，可能会出现调用失败的情况。
-  - 如果无法使用 AI 自动适配，手动编写适配规则依然可用
-- 一些 UI 上的优化
-
-### 改动
-
-- 移除弹弹Play 选项中的“使用新 API”开关
-
-### 修复
-
-- 修复一个检测不到`iframe`中文档刷新的问题
-- 修复控件按钮可以拽出窗口外的问题
-
-另外搞了个群方便提供支持
-531237584
-
-**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v0.18.3...v0.19.0
-
-## v0.18.3 - 2025-02-08
-
-## 修复
-- 修复部分B站页面打不开的问题
-- 修复一些Firefox兼容性问题
-- 修复一些UI BUG
-
-## 其他
-- 升级弹幕库，现在弹幕渲染应该比之前更流畅
-
-**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v0.18.2...v0.18.3
-
-## v0.18.2 - 2025-02-04
-
-## 修复
-- 修复简繁转换不适用的问题 [#63](https://github.com/Mr-Quin/danmaku-anywhere/pull/63) 
-- 修复缓存清理计时器可能失效的问题
-
-**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v0.18.1...v0.18.2
-
-## v0.18.1 - 2025-01-27
-
-## 修复
-- 修复一个弹弹Play API相关的bug
-- 修复在一些情况下插件升级时数据迁移失败的问题
-
-
-**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v0.18.0...v0.18.1
-
-## v0.18.0 - 2025-01-26
-
-## 改动
-- 调整与弹弹Play的交互方式 [#57](https://github.com/Mr-Quin/danmaku-anywhere/pull/57) 
-  - 如果发现弹弹Play相关功能出现问题，可以尝试在设置-弹幕来源-弹弹Play中关闭“使用新API”开关并反馈BUG
-- 调整弹弹Play关联弹幕的获取方式 [#58](https://github.com/Mr-Quin/danmaku-anywhere/pull/58) 
-- 适配配置中可以给规则添加“优先”标签 [#56](https://github.com/Mr-Quin/danmaku-anywhere/pull/56) 
-  - 优先使用带有优先标签的规则 
-- 新增缓存设置功能，自动删除旧弹幕 [#54](https://github.com/Mr-Quin/danmaku-anywhere/pull/54) 
-  - 设置-缓存策略
-- 控件弹窗可以通过拖拽工具栏调整位置
-- 控件弹窗可以锁定，锁定后点击窗口外不会关闭窗口
-
-## 修复
-- 修复通知显示位置不正确的问题
-
-## v0.17.2 - 2025-01-23
-
-## 修复
-- 暂时修复弹弹Play无法搜索的问题 [#57](https://github.com/Mr-Quin/danmaku-anywhere/pull/57)
-
-**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v0.17.1...v0.17.2
-
-## v0.17.1 - 2025-01-10
-
-## 修复
-- 修复扩展在Firefox中崩溃的问题 [#55](https://github.com/Mr-Quin/danmaku-anywhere/pull/55) 
-
-**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v0.17.0...v0.17.1
-
-## v0.17.0 - 2025-01-09
-
-## 改动
-- 优化移动端ui
-- 通知可以同时显示多个
-- 允许预装填弹幕（网页无视频时也可以装填，会吸附到第一个出现的视频上）
-- 允许拖拽移动网页控件按钮
-- 设置中增加debug开关
-
-## 修复
-- 修复移动端弹幕播放器无法启动的问题 [#52](https://github.com/Mr-Quin/danmaku-anywhere/pull/52) 
-- 修复特定标签页顺序下，使用弹出窗口装填弹幕会失败的问题
-- 修复剧集列表中排序不正确的问题
-- 修复一个弹幕装填失败时会提示成功的问题
-
-
-**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v0.16.2...v0.17.0
-
-## v0.16.2 - 2025-01-05
-
-**新特性**
-- 增加搜索时将搜索词转换为简体中文的开关 [#51](https://github.com/Mr-Quin/danmaku-anywhere/pull/51) 
-  - 全局开关在*设置-使用简体中文搜索*
-  - 搜索界面也可以临时开/关
-- 将适配配置的添加/修改移动至网页控件
-  - 适配配置中添加吸管，方便选取网页中的节点
-  - 优化适配配置的错误反馈
-
-
-**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v0.16.1...v0.16.2
-
-## v0.16.1 - 2024-12-31
-
-## 修复
-- 修复浏览器重启脚本不注入的问题
-- 修复控件在后台标签页无法工作的问题
-    - 例如扩展在标签页A运行，然后你切到了标签页B或者切换到另一个浏览器窗口，标签页A中的扩展会失效
-
-**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v0.16.0...v0.16.1
-
-## v0.16.0 - 2024-12-31
-
-## 针对iframe的优化 
-[#39](https://github.com/Mr-Quin/danmaku-anywhere/pull/39)
-&gt; [!IMPORTANT]
-更新后可能需要手动修改装填配置
-更新需要新的权限，更新后可能需要重新授权
-
-- 重写弹幕渲染方式，不再区分视频是否嵌套于`iframe` 
-- 更新后，装填配置的URL模式一律填写主网页的地址模式（也就是地址栏里的），不再需要`iframe`的地址
-    - 如果现有的URL模式填写的是`iframe`的地址，需要改成主网页的
-- 由于不再区分`iframe`，所有网站都可以使用适配配置来进行自动匹配
-
-## 已知的问题
-- 如果网页中存在多个frame（主网页也算一个frame），且有多个frame包含视频，弹幕可能会渲染在错误的视频上（暂时没有发现这种网站
-- 视频嵌套于`iframe`中时无法使用画中画
-- 切换标签页会导致检测不到视频/装填失败等问题
-
-## 其他改动
-- 净化一部分石山代码
-- 各种BUG太多了懒得写
-
-**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v0.15.4...v0.16.0
-
-## v0.15.4 - 2024-12-21
-
-## 新特性
-
-- 拓展内显示更新日志
-
-## 修复
-
-- 部分导出的弹幕无法再次导入的问题 [#50](https://github.com/Mr-Quin/danmaku-anywhere/pull/50) 
-- 部分网页中拓展窗口内无法输入文字的问题 [#47](https://github.com/Mr-Quin/danmaku-anywhere/pull/47)
-- 由于装填配置的顺序导致配置不生效的问题 [#48](https://github.com/Mr-Quin/danmaku-anywhere/pull/48)
-
-## v0.15.3 - 2024-11-15
-
-## 新特性
-将弹幕设置页移植到网页弹出菜单中 [#46](https://github.com/Mr-Quin/danmaku-anywhere/pull/46) 
-
-**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v0.15.2...v0.15.3
-
-
-## v0.15.2 - 2024-10-25
-
-**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v0.15.1...v0.15.2
-
-## 新特性
-
-- 为部分功能添加键盘快捷键，设置中更改 [#44](https://github.com/Mr-Quin/danmaku-anywhere/pull/44)
 
