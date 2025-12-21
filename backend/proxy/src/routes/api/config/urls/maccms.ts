@@ -1,5 +1,5 @@
 export const macCmsBaseUrls = [
-  'https://zy.xmm.hk',
-  'https://vs.okcdn100.top',
+  'https://zy.jinchancaiji.com',
+  'https://www.caiji.cyou',
   'https://gctf.tfdh.top',
 ] as const
