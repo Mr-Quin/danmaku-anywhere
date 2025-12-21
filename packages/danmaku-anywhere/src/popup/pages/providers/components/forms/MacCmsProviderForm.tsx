@@ -84,6 +84,7 @@ export const MacCmsProviderForm = ({
             {...field}
             options={maccmsData?.baseUrls ?? []}
             freeSolo
+            autoSelect
             fullWidth
             onChange={(_, value) => onChange(value)}
             renderInput={(params) => (
@@ -112,6 +113,7 @@ export const MacCmsProviderForm = ({
             {...field}
             options={danmuicuData?.baseUrls ?? []}
             freeSolo
+            autoSelect
             fullWidth
             onChange={(_, value) => onChange(value)}
             renderInput={(params) => (
