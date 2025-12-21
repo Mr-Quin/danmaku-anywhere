@@ -9,6 +9,7 @@ interface Release {
   published_at: string
   body: string
   draft: boolean
+  prerelease: boolean
 }
 
 async function fetchReleases(repository: string): Promise<Release[]> {
@@ -27,7 +28,7 @@ async function fetchReleases(repository: string): Promise<Release[]> {
 
 function processReleases(releases: Release[]): Release[] {
   return releases
-    .filter((release) => !release.draft)
+    .filter((release) => !release.draft && !release.prerelease)
     .sort(
       (a, b) =>
         new Date(b.published_at).getTime() - new Date(a.published_at).getTime()
