@@ -30,6 +30,12 @@ export interface CacheOptions {
   logPrefix?: string
 }
 
+interface RequestCacheControl {
+  maxAge?: number
+  noStore?: boolean
+  noCache?: boolean
+}
+
 const defaultGetCacheKey = async (c: Context, methods: string[]) => {
   if (methods.includes('POST') && c.req.method === 'POST') {
     // For POST requests, hash the body to create a unique cache key
@@ -57,6 +63,24 @@ const defaultGetCacheKey = async (c: Context, methods: string[]) => {
   return null
 }
 
+const parseCacheControl = (header?: string): RequestCacheControl => {
+  if (!header) return {}
+  const cacheControl = header.split(',').reduce(
+    (acc, part) => {
+      const [key, value] = part.trim().split('=')
+      acc[key.toLowerCase()] = value ? Number.parseInt(value, 10) : true
+      return acc
+    },
+    {} as Record<string, number | boolean>
+  )
+
+  return {
+    maxAge: cacheControl['max-age'] as number,
+    noStore: cacheControl['no-store'] as boolean,
+    noCache: cacheControl['no-cache'] as boolean,
+  }
+}
+
 export const useCache = (options: CacheOptions = {}) => {
   const {
     methods = ['GET'],
@@ -71,25 +95,59 @@ export const useCache = (options: CacheOptions = {}) => {
       return await next()
     }
 
-    // Get cache key
+    const cacheControlHeader = c.req.header('Cache-Control')
+    const directives = parseCacheControl(cacheControlHeader)
+
+    console.log('Cache-Control:', cacheControlHeader)
+
+    if (directives.noStore) {
+      console.log('no-store, skip cache')
+      return await next()
+    }
+
     const cacheKey = customGetCacheKey
       ? await customGetCacheKey(c)
       : await defaultGetCacheKey(c, methods)
 
     if (!cacheKey) {
+      console.log('no cache key, skip cache')
       return await next()
     }
 
-    // Try to get from the cache
-    const cache = caches.default
-    const cachedResponse = await cache.match(cacheKey)
+    // Attempt to read from cache unless no-cache is set
+    const noCache = directives.noCache
+    const noMaxAge =
+      typeof directives.maxAge === 'number' && directives.maxAge === 0
 
-    if (cachedResponse) {
-      const logMessage = logPrefix
-        ? `${logPrefix} Cache hit!`
-        : `${c.req.path} Cache hit!`
-      console.log(logMessage)
-      return cachedResponse
+    const cache = caches.default
+    if (!(noCache || noMaxAge)) {
+      const cachedResponse = await cache.match(cacheKey)
+
+      let cacheHit = true
+
+      if (cachedResponse) {
+        if (typeof directives.maxAge === 'number') {
+          const dateHeader = cachedResponse.headers.get('Date')
+
+          if (dateHeader) {
+            const age = (Date.now() - new Date(dateHeader).getTime()) / 1000
+            if (age > directives.maxAge) {
+              // Stale, treat as miss
+              cacheHit = false
+            }
+          }
+        }
+
+        if (cacheHit) {
+          const logMessage = logPrefix
+            ? `${logPrefix} Cache hit!`
+            : `${c.req.path} Cache hit!`
+          console.log(logMessage)
+          return cachedResponse
+        }
+
+        console.log('Cache miss')
+      }
     }
 
     await next()
@@ -107,6 +165,7 @@ export const useCache = (options: CacheOptions = {}) => {
       const logMessage = logPrefix
         ? `${logPrefix} Cache set!`
         : `${c.req.path} Cache set!`
+
       console.log(logMessage)
 
       c.executionCtx.waitUntil(cache.put(cacheKey, response.clone()))
