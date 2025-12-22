@@ -159,7 +159,8 @@ export const useCache = (options: CacheOptions = {}) => {
       }
 
       try {
-        const etag = await computeEtag(response)
+        const bodyText = await response.clone().text()
+        const etag = await computeEtag(bodyText)
         if (etag) {
           response.headers.set('ETag', etag)
         }

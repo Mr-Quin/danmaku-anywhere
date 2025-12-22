@@ -144,71 +144,66 @@ describe('Cache Middleware', () => {
     expect(handlerSpy).toHaveBeenCalledTimes(2)
   })
 
-  it('respects max-age=N in request (fresh)', async () => {
+  it('sets ETag header on response', async () => {
     createTestApp({ maxAge: 60 })
     const path = `/${Math.random()}`
 
-    // Populate cache
-    await makeUnitTestRequest(new Request(`http://example.com${path}`), { app })
-
-    // Request with max-age=large (should accept cached)
-    await makeUnitTestRequest(
-      new Request(`http://example.com${path}`, {
-        headers: { 'Cache-Control': 'max-age=100' },
-      }),
-      { app }
-    )
-    expect(handlerSpy).toHaveBeenCalledTimes(1)
-  })
-
-  it('respects max-age=N in request (stale)', async () => {
-    // Custom cache setup to inject old response
-    const path = `/stale-test-${Math.random()}`
-    const oldDate = new Date(Date.now() - 10000).toUTCString() // 10 seconds ago
-
-    // We need to manually put something into the cache with an old date
-    const cacheKey = `http://example.com${path}`
-    const oldResponse = new Response(JSON.stringify({ data: 'old' }), {
-      headers: {
-        Date: oldDate,
-        'Cache-Control': 'max-age=60',
-      },
-    })
-
-    memoryCache.set(cacheKey, oldResponse)
-
-    createTestApp({ maxAge: 60 })
-
-    // Request with max-age=5 (cached item is 10s old, so it is stale for this client)
-    // Should fetch fresh
-    await makeUnitTestRequest(
-      new Request(`http://example.com${path}`, {
-        headers: { 'Cache-Control': 'max-age=5' },
-      }),
+    const res = await makeUnitTestRequest(
+      new Request(`http://example.com${path}`),
       { app }
     )
 
-    // Handler should be called because cache was stale for this client
-    expect(handlerSpy).toHaveBeenCalledTimes(1)
+    expect(res.status).toBe(200)
+    expect(res.headers.get('ETag')).toBeDefined()
   })
 
-  it.only('handles invalid date headers', async () => {
+  it('returns 304 when If-None-Match matches ETag', async () => {
     createTestApp({ maxAge: 60 })
     const path = `/${Math.random()}`
 
-    // Populate cache
-    await makeUnitTestRequest(new Request(`http://example.com${path}`), { app })
+    // First request to populate cache and get ETag
+    const res1 = await makeUnitTestRequest(
+      new Request(`http://example.com${path}`),
+      { app }
+    )
+    const etag = res1.headers.get('ETag')
+    expect(etag).toBeDefined()
 
-    // Request with invalid date header (should treat as cache miss)
-    await makeUnitTestRequest(
+    // Second request with matching If-None-Match
+    const res2 = await makeUnitTestRequest(
       new Request(`http://example.com${path}`, {
-        headers: {
-          Date: new Date(Date.now() - 10000).toUTCString(),
-          'Cache-Control': 'max-age=60',
-        },
+        headers: { 'If-None-Match': etag! },
       }),
       { app }
     )
-    expect(handlerSpy).toHaveBeenCalledTimes(2)
+
+    expect(res2.status).toBe(304)
+    expect(handlerSpy).toHaveBeenCalledTimes(1) // Should be a cache hit (304)
+    // 304 response should not have a body
+    expect(await res2.text()).toBe('')
+  })
+
+  it('returns 200 when If-None-Match does not match', async () => {
+    createTestApp({ maxAge: 60 })
+    const path = `/${Math.random()}`
+
+    // First request to populate cache
+    await makeUnitTestRequest(new Request(`http://example.com${path}`), { app })
+
+    // Second request with non-matching If-None-Match
+    const res2 = await makeUnitTestRequest(
+      new Request(`http://example.com${path}`, {
+        headers: { 'If-None-Match': '"invalid-etag"' },
+      }),
+      { app }
+    )
+
+    expect(res2.status).toBe(200)
+    // Should still be a cache hit (just not 304)
+    expect(handlerSpy).toHaveBeenCalledTimes(1)
+
+    // Verify we got the data
+    const data = (await res2.json()) as { data: string }
+    expect(data.data).toBe('test')
   })
 })

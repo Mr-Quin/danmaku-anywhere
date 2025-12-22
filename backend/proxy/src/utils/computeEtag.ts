@@ -1,4 +1,8 @@
-export async function computeEtag(body: unknown): Promise<string> {
+export async function computeEtag(body: unknown): Promise<string | null> {
+  if (body === null || body === undefined) {
+    return null
+  }
+
   const encoder = new TextEncoder()
   const data = encoder.encode(JSON.stringify(body))
   const hashBuffer = await crypto.subtle.digest('SHA-1', data)
