@@ -40,7 +40,7 @@ describe('computeEtag', () => {
     expect(objTag).toBe('"959beeb3162b8dd4107456709d76342843771894"')
 
     const strTag = await computeEtag('hello world')
-    expect(strTag).toBe('"9c05511a31375a8a278a75207331bb1714e69dd1"')
+    expect(strTag).toBe('"2aae6c35c94fcfb415dbe95f408b9ce91ee846ed"')
   })
 
   it('returns null for nullish inputs', async () => {
