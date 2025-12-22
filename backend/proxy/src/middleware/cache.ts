@@ -130,7 +130,15 @@ export const useCache = (options: CacheOptions = {}) => {
         const clientETag = c.req.header('If-None-Match')
         const serverETag = cachedResponse.headers.get('ETag')
 
-        if (clientETag && serverETag && clientETag.includes(serverETag)) {
+        if (
+          clientETag &&
+          serverETag &&
+          (clientETag === '*' ||
+            clientETag
+              .split(',')
+              .map((t) => t.trim())
+              .includes(serverETag))
+        ) {
           console.log('Cache hit, 304')
           return new Response(null, {
             status: 304,
