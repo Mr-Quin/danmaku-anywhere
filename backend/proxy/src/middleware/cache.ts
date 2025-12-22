@@ -1,6 +1,7 @@
 import type { Context, HonoRequest } from 'hono'
 import { factory } from '@/factory'
 import { sha256, tryCatch } from '@/utils'
+import { computeEtag } from '@/utils/computeEtag'
 
 export type SetCacheControlFn = (
   request: HonoRequest,
@@ -31,7 +32,6 @@ export interface CacheOptions {
 }
 
 interface RequestCacheControl {
-  maxAge?: number
   noStore?: boolean
   noCache?: boolean
 }
@@ -63,22 +63,26 @@ const defaultGetCacheKey = async (c: Context, methods: string[]) => {
   return null
 }
 
-const parseCacheControl = (header?: string): RequestCacheControl => {
+function parseCacheControl(header?: string): RequestCacheControl {
   if (!header) return {}
-  const cacheControl = header.split(',').reduce(
-    (acc, part) => {
-      const [key, value] = part.trim().split('=')
-      acc[key.toLowerCase()] = value ? Number.parseInt(value, 10) : true
-      return acc
-    },
-    {} as Record<string, number | boolean>
-  )
 
-  return {
-    maxAge: cacheControl['max-age'] as number,
-    noStore: cacheControl['no-store'] as boolean,
-    noCache: cacheControl['no-cache'] as boolean,
+  const directives: RequestCacheControl = {}
+  for (const part of header.split(',')) {
+    let [key, value] = part.trim().split('=')
+    key = key.toLowerCase()
+
+    if (key === 'no-store') {
+      directives.noStore = true
+    } else if (key === 'no-cache') {
+      directives.noCache = true
+    } else if (key === 'max-age' && value) {
+      const maxAgeNum = Number.parseInt(value, 10)
+      if (!Number.isNaN(maxAgeNum) && maxAgeNum === 0) {
+        directives.noCache = true
+      }
+    }
   }
+  return directives
 }
 
 export const useCache = (options: CacheOptions = {}) => {
@@ -114,39 +118,31 @@ export const useCache = (options: CacheOptions = {}) => {
       return await next()
     }
 
-    // Attempt to read from cache unless no-cache is set
     const noCache = directives.noCache
-    const noMaxAge =
-      typeof directives.maxAge === 'number' && directives.maxAge === 0
 
     const cache = caches.default
-    if (!(noCache || noMaxAge)) {
+
+    if (!noCache) {
+      // Attempt to read from cache unless no-cache is set
       const cachedResponse = await cache.match(cacheKey)
 
-      let cacheHit = true
-
       if (cachedResponse) {
-        if (typeof directives.maxAge === 'number') {
-          const dateHeader = cachedResponse.headers.get('Date')
+        const clientETag = c.req.header('If-None-Match')
+        const serverETag = cachedResponse.headers.get('ETag')
 
-          if (dateHeader) {
-            const age = (Date.now() - new Date(dateHeader).getTime()) / 1000
-            if (age > directives.maxAge) {
-              // Stale, treat as miss
-              cacheHit = false
-            }
-          }
+        if (clientETag && serverETag && clientETag.includes(serverETag)) {
+          console.log('Cache hit, 304')
+          return new Response(null, {
+            status: 304,
+            headers: cachedResponse.headers,
+          })
         }
 
-        if (cacheHit) {
-          const logMessage = logPrefix
-            ? `${logPrefix} Cache hit!`
-            : `${c.req.path} Cache hit!`
-          console.log(logMessage)
-          return cachedResponse
-        }
-
-        console.log('Cache miss')
+        const logMessage = logPrefix
+          ? `${logPrefix} Cache hit!`
+          : `${c.req.path} Cache hit!`
+        console.log(logMessage)
+        return cachedResponse
       }
     }
 
@@ -160,6 +156,15 @@ export const useCache = (options: CacheOptions = {}) => {
         response.headers.set('Cache-Control', `max-age=${maxAge}`)
       } else if (options.setCacheControl) {
         options.setCacheControl(c.req, response)
+      }
+
+      try {
+        const etag = await computeEtag(response)
+        if (etag) {
+          response.headers.set('ETag', etag)
+        }
+      } catch (e) {
+        console.error('Failed to compute ETag:', e)
       }
 
       const logMessage = logPrefix

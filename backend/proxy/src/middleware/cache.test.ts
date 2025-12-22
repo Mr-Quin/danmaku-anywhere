@@ -9,13 +9,11 @@ const memoryCache = new Map<string, Response>()
 const mockCache = {
   match: async (key: Request | string) => {
     const k = (key as Request).url || key.toString()
-    console.log(`[MockCache] match: ${k}`)
     const res = memoryCache.get(k)
     return res ? res.clone() : undefined
   },
   put: async (key: Request | string, res: Response) => {
     const k = (key as Request).url || key.toString()
-    console.log(`[MockCache] put: ${k}`)
     memoryCache.set(k, res.clone())
   },
 }
@@ -192,5 +190,25 @@ describe('Cache Middleware', () => {
 
     // Handler should be called because cache was stale for this client
     expect(handlerSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it.only('handles invalid date headers', async () => {
+    createTestApp({ maxAge: 60 })
+    const path = `/${Math.random()}`
+
+    // Populate cache
+    await makeUnitTestRequest(new Request(`http://example.com${path}`), { app })
+
+    // Request with invalid date header (should treat as cache miss)
+    await makeUnitTestRequest(
+      new Request(`http://example.com${path}`, {
+        headers: {
+          Date: new Date(Date.now() - 10000).toUTCString(),
+          'Cache-Control': 'max-age=60',
+        },
+      }),
+      { app }
+    )
+    expect(handlerSpy).toHaveBeenCalledTimes(2)
   })
 })
