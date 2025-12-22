@@ -1,6 +1,7 @@
 import type { Context, HonoRequest } from 'hono'
 import { factory } from '@/factory'
 import { sha256, tryCatch } from '@/utils'
+import { computeEtag } from '@/utils/computeEtag'
 
 export type SetCacheControlFn = (
   request: HonoRequest,
@@ -30,6 +31,11 @@ export interface CacheOptions {
   logPrefix?: string
 }
 
+interface RequestCacheControl {
+  noStore?: boolean
+  noCache?: boolean
+}
+
 const defaultGetCacheKey = async (c: Context, methods: string[]) => {
   if (methods.includes('POST') && c.req.method === 'POST') {
     // For POST requests, hash the body to create a unique cache key
@@ -57,6 +63,28 @@ const defaultGetCacheKey = async (c: Context, methods: string[]) => {
   return null
 }
 
+function parseCacheControl(header?: string): RequestCacheControl {
+  if (!header) return {}
+
+  const directives: RequestCacheControl = {}
+  for (const part of header.split(',')) {
+    let [key, value] = part.trim().split('=')
+    key = key.toLowerCase()
+
+    if (key === 'no-store') {
+      directives.noStore = true
+    } else if (key === 'no-cache') {
+      directives.noCache = true
+    } else if (key === 'max-age' && value) {
+      const maxAgeNum = Number.parseInt(value, 10)
+      if (!Number.isNaN(maxAgeNum) && maxAgeNum === 0) {
+        directives.noCache = true
+      }
+    }
+  }
+  return directives
+}
+
 export const useCache = (options: CacheOptions = {}) => {
   const {
     methods = ['GET'],
@@ -71,25 +99,59 @@ export const useCache = (options: CacheOptions = {}) => {
       return await next()
     }
 
-    // Get cache key
+    const cacheControlHeader = c.req.header('Cache-Control')
+    const directives = parseCacheControl(cacheControlHeader)
+
+    console.log('Cache-Control:', cacheControlHeader)
+
+    if (directives.noStore) {
+      console.log('no-store, skip cache')
+      return await next()
+    }
+
     const cacheKey = customGetCacheKey
       ? await customGetCacheKey(c)
       : await defaultGetCacheKey(c, methods)
 
     if (!cacheKey) {
+      console.log('no cache key, skip cache')
       return await next()
     }
 
-    // Try to get from the cache
-    const cache = caches.default
-    const cachedResponse = await cache.match(cacheKey)
+    const noCache = directives.noCache
 
-    if (cachedResponse) {
-      const logMessage = logPrefix
-        ? `${logPrefix} Cache hit!`
-        : `${c.req.path} Cache hit!`
-      console.log(logMessage)
-      return cachedResponse
+    const cache = caches.default
+
+    if (!noCache) {
+      // Attempt to read from cache unless no-cache is set
+      const cachedResponse = await cache.match(cacheKey)
+
+      if (cachedResponse) {
+        const clientETag = c.req.header('If-None-Match')
+        const serverETag = cachedResponse.headers.get('ETag')
+
+        if (
+          clientETag &&
+          serverETag &&
+          (clientETag === '*' ||
+            clientETag
+              .split(',')
+              .map((t) => t.trim())
+              .includes(serverETag))
+        ) {
+          console.log('Cache hit, 304')
+          return new Response(null, {
+            status: 304,
+            headers: cachedResponse.headers,
+          })
+        }
+
+        const logMessage = logPrefix
+          ? `${logPrefix} Cache hit!`
+          : `${c.req.path} Cache hit!`
+        console.log(logMessage)
+        return cachedResponse
+      }
     }
 
     await next()
@@ -104,9 +166,20 @@ export const useCache = (options: CacheOptions = {}) => {
         options.setCacheControl(c.req, response)
       }
 
+      try {
+        const bodyText = await response.clone().text()
+        const etag = await computeEtag(bodyText)
+        if (etag) {
+          response.headers.set('ETag', etag)
+        }
+      } catch (e) {
+        console.error('Failed to compute ETag:', e)
+      }
+
       const logMessage = logPrefix
         ? `${logPrefix} Cache set!`
         : `${c.req.path} Cache set!`
+
       console.log(logMessage)
 
       c.executionCtx.waitUntil(cache.put(cacheKey, response.clone()))
