@@ -3,11 +3,19 @@ import {
   env,
   waitOnExecutionContext,
 } from 'cloudflare:test'
+import type { Hono } from 'hono'
 import worker from '@/index'
 
-export const makeUnitTestRequest = async (request: Request) => {
+interface MakeUnitTestRequestOptions {
+  app?: Hono
+}
+export const makeUnitTestRequest = async (
+  request: Request,
+  { app: appProp }: MakeUnitTestRequestOptions = {}
+) => {
   const ctx = createExecutionContext()
-  const response = await worker.fetch(request, env, ctx)
+  const app = appProp || worker
+  const response = await app.fetch(request, env, ctx)
   await waitOnExecutionContext(ctx)
   return response
 }
