@@ -100,8 +100,8 @@ export type BackgroundMethods = {
   setHeaders: RPCDef<SetHeaderRule, void>
   extractTitle: RPCDef<string, ExtractTitleResponse['result']>
   openPopupInNewWindow: RPCDef<string, void>
-  getConfigMacCms: RPCDef<void, BaseUrlConfig>
-  getConfigDanmuIcu: RPCDef<void, BaseUrlConfig>
+  getConfigMacCms: RPCDef<{ force?: boolean } | void, BaseUrlConfig>
+  getConfigDanmuIcu: RPCDef<{ force?: boolean } | void, BaseUrlConfig>
   providerConfigDelete: RPCDef<string, void>
 }
 

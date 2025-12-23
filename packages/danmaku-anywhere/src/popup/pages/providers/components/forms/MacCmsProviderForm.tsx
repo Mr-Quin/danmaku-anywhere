@@ -39,13 +39,13 @@ export const MacCmsProviderForm = ({
 
   const { data: maccmsData } = useQuery({
     queryKey: configQueryKeys.maccms(),
-    queryFn: async () => chromeRpcClient.getConfigMacCms(),
+    queryFn: async () => chromeRpcClient.getConfigMacCms({ force: true }),
     select: (res) => res.data,
   })
 
   const { data: danmuicuData } = useQuery({
     queryKey: configQueryKeys.danmuicu(),
-    queryFn: async () => chromeRpcClient.getConfigDanmuIcu(),
+    queryFn: async () => chromeRpcClient.getConfigDanmuIcu({ force: true }),
     select: (res) => res.data,
   })
 
@@ -97,7 +97,13 @@ export const MacCmsProviderForm = ({
                 )}
                 size="small"
                 error={!!errors.options?.danmakuBaseUrl}
-                helperText={errors.options?.danmakuBaseUrl?.message}
+                helperText={
+                  errors.options?.danmakuBaseUrl?.message ||
+                  t(
+                    'optionsPage.danmakuSource.macCms.baseUrlHelper',
+                    'The options in the list may stop working at any time. You can also enter the URL manually.'
+                  )
+                }
                 required
               />
             )}

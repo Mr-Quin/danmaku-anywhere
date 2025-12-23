@@ -2,23 +2,37 @@ import { getApiStore } from '../../shared/store.js'
 import { fetchData } from '../utils/fetchData.js'
 import { type ConfigResponse, zConfigResponse } from './schema.js'
 
-export const getMaccmsConfig = async (): Promise<ConfigResponse> => {
+export const getMaccmsConfig = async (
+  force = false
+): Promise<ConfigResponse> => {
+  const url = `${getApiStore().baseUrl}/config/maccms`
+  const headers = {
+    'Content-Type': 'application/json',
+  }
+  if (force) {
+    headers['Cache-Control'] = 'no-cache'
+  }
   return await fetchData({
-    url: `${getApiStore().baseUrl}/config/maccms`,
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    url,
+    headers,
     responseSchema: zConfigResponse,
     method: 'GET',
   })
 }
 
-export const getDanmuicuConfig = async (): Promise<ConfigResponse> => {
+export const getDanmuicuConfig = async (
+  force = false
+): Promise<ConfigResponse> => {
+  const url = `${getApiStore().baseUrl}/config/danmuicu`
+  const headers = {
+    'Content-Type': 'application/json',
+  }
+  if (force) {
+    headers['Cache-Control'] = 'no-cache'
+  }
   return await fetchData({
-    url: `${getApiStore().baseUrl}/config/danmuicu`,
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    url,
+    headers,
     responseSchema: zConfigResponse,
     method: 'GET',
   })
