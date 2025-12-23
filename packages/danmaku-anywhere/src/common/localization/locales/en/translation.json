@@ -335,6 +335,7 @@
       },
       "macCms": {
         "baseUrl": "Mac CMS API Base URL",
+        "baseUrlHelper": "The options in the list may stop working at any time. You can also enter the URL manually.",
         "danmuicuBaseUrl": "Danmaku API Base URL",
         "help": {
           "stripColor": "Danmaku from this source has random colors, enable this option to set all danmaku to white."

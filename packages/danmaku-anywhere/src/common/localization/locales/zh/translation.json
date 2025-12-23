@@ -322,6 +322,7 @@
       },
       "macCms": {
         "baseUrl": "MacCMS API地址",
+        "baseUrlHelper": "列表中的选项可能随时失效。你也可以手动输入地址。",
         "danmuicuBaseUrl": "弹幕库API地址",
         "help": {
           "stripColor": "此方式获取的弹幕带有随机颜色，启用此选项将弹幕设定为白色"

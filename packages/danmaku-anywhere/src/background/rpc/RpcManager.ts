@@ -260,11 +260,11 @@ export class RpcManager {
           height: 650,
         })
       },
-      getConfigMacCms: async () => {
-        return getMaccmsConfig()
+      getConfigMacCms: async (input) => {
+        return getMaccmsConfig(input?.force)
       },
-      getConfigDanmuIcu: async () => {
-        return getDanmuicuConfig()
+      getConfigDanmuIcu: async (input) => {
+        return getDanmuicuConfig(input?.force)
       },
       providerConfigDelete: async (id, sender) => {
         await db.transaction('rw', db.season, db.episode, async () => {
