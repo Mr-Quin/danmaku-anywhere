@@ -2,9 +2,9 @@ import { inject, injectable } from 'inversify'
 import type { LogEntry } from '@/common/Logger'
 import { LogsDbService } from './LogsDbService'
 
-const MAX_LOGS = 20000
+const MAX_LOGS = 2000
 const DELETE_BUFFER = 100
-const PRUNE_CHECK_PROBABILITY = 0.01
+const PRUNE_CHECK_PROBABILITY = 0.05
 
 @injectable('Singleton')
 export class LogService {
