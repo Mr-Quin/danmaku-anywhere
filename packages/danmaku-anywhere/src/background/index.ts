@@ -9,9 +9,7 @@ import { OptionsManager } from '@/background/syncOptions/OptionsManager'
 import { deferredConfigureStore } from '@/background/utils/deferredConfigureStore'
 import { generateId } from '@/background/utils/generateId'
 import { EXTENSION_VERSION } from '@/common/constants'
-import { setLogHandler } from './backgroundLogger'
 import { container } from './ioc'
-import { LogService } from './services/LogService'
 
 configureApiStore({
   baseUrl: import.meta.env.VITE_PROXY_URL,
@@ -24,13 +22,6 @@ container.get(RpcManager).setup()
 container.get(NetRequestManager).setup()
 container.get(AlarmManager).setup()
 container.get(PortsManager).setup()
-
-const logService = container.get<LogService>(LogService)
-
-setLogHandler((entry) => {
-  console.log('handle log', entry)
-  void logService.log(entry)
-})
 
 chrome.runtime.getPlatformInfo().then((platformInfo) => {
   if (platformInfo.os === 'android') {

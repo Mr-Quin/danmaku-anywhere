@@ -14,9 +14,20 @@ export interface LogEntry {
   type: 'console' | 'network'
   level: ConsoleMethod
   message: string
-  args: unknown[]
+  prefix: string
   timestamp: number
   context: string
+}
+
+function formatArgs(args: unknown[]) {
+  if (args.length === 0) return ''
+  if (args.length === 1) {
+    if (typeof args[0] === 'string') {
+      return args[0]
+    }
+  }
+  // truncate long strings
+  return JSON.stringify(args).slice(0, 200)
 }
 
 interface LoggerOptions {
@@ -41,11 +52,8 @@ export const createLogger = (
       const entry: LogEntry = {
         type: 'console',
         level: method,
-        message:
-          typeof args[0] === 'string'
-            ? args[0].replace(prefix, '')
-            : JSON.stringify(args[0]),
-        args: args.slice(1),
+        message: formatArgs(args),
+        prefix,
         timestamp: Date.now(),
         context: env || 'Unknown',
       }

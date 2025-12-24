@@ -1,17 +1,20 @@
-import { createLogger, type LogEntry } from '@/common/Logger'
+import { createLogger } from '@/common/Logger'
+import { container } from './ioc'
+import { LogService } from './services/LogService'
 
-const logHandler: {
-  handle?: (entry: LogEntry) => void
-} = {}
+let logService: LogService | null = null
 
-export function setLogHandler(handler: (entry: LogEntry) => void) {
-  logHandler.handle = handler
+function getLogService() {
+  if (!logService) {
+    logService = container.get<LogService>(LogService)
+  }
+  return logService
 }
 
 export const Logger = createLogger('', {
   onLog: (entry) => {
-    console.log('Log entry', entry, logHandler)
-    logHandler.handle?.(entry)
+    const logService = getLogService()
+    void logService.log(entry)
   },
   env: 'background',
 })
