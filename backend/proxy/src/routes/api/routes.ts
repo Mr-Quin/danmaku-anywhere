@@ -2,6 +2,7 @@ import { factory } from '@/factory'
 import { tagService } from '@/middleware/tagService'
 import { configRouter } from './config/router'
 import { ddpRouter } from './ddp/router'
+import { filesRouter } from './files/router'
 import { kazumiRouter } from './kazumi/router'
 import { llmRouter } from './llm/router'
 
@@ -12,3 +13,4 @@ api.route('/ddp', ddpRouter)
 api.route('/llm', llmRouter)
 api.route('/kazumi', kazumiRouter)
 api.route('/config', configRouter)
+api.route('/files', filesRouter)

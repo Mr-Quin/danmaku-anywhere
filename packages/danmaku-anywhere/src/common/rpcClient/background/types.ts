@@ -90,7 +90,7 @@ export type BackgroundMethods = {
   getAllFrames: RPCDef<void, chrome.webNavigation.GetAllFrameResultDetails[]>
   injectScript: RPCDef<number, void>
   remoteLog: RPCDef<LogEntry, void>
-  exportDebugData: RPCDef<void, void>
+  exportDebugData: RPCDef<void, { id: string }>
   getFontList: RPCDef<void, chrome.fontSettings.FontName[]>
   getPlatformInfo: RPCDef<void, chrome.runtime.PlatformInfo>
   mountConfigCreate: RPCDef<unknown, MountConfig>

@@ -140,4 +140,8 @@ export class NetRequestManager {
       }
     })
   }
+
+  async getRules() {
+    return rules
+  }
 }

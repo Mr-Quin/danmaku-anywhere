@@ -39,7 +39,7 @@
     "confirmDeleteMessage": "Are you sure you want to delete \"{{name}}\"?",
     "confirmDeleteTitle": "Confirm delete",
     "copiedToClipboard": "Copied to clipboard",
-    "copy": "copy",
+    "copy": "Copy",
     "danmakuAnywhere": "Danmaku Anywhere",
     "delete": "Delete",
     "docs": "Documentation",
@@ -344,7 +344,6 @@
       }
     },
     "enableAnalytics": "Enable anonymous analytics",
-    "exportDebugData": "Export Debug Data",
     "help": {
       "feedback": "Provide feedback",
       "reportBug": "Report Bug"
@@ -391,7 +390,9 @@
         "light": "Light",
         "system": "System"
       }
-    }
+    },
+    "uploadDebugData": "Submit Debug Data",
+    "uploadDebugDataSuccess": "Submitted {{ id }}"
   },
   "providers": {
     "alert": {

@@ -23,10 +23,6 @@ export class LogsDbService {
     return this.db.logs.bulkDelete(keys)
   }
 
-  async bulkDelete(keys: number[]) {
-    return this.db.logs.bulkDelete(keys)
-  }
-
   async exportSorted() {
     return this.db.logs.orderBy('timestamp').toArray()
   }
