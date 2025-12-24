@@ -4,7 +4,7 @@ import { inject, injectable } from 'inversify'
 import { createElement } from 'react'
 import ReactDOM from 'react-dom/client'
 import { uiContainer } from '@/common/ioc/uiIoc'
-import { Logger } from '@/common/Logger'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { DanmakuComponent } from '@/content/player/components/DanmakuComponent'
@@ -13,10 +13,10 @@ import { RectObserver } from '@/content/player/danmakuManager/RectObserver'
 import { DanmakuDebugOverlayService } from '@/content/player/debugOverlay/DanmakuDebugOverlay.service'
 import { VideoNodeObserverService } from '@/content/player/videoObserver/VideoNodeObserver.service'
 
-const logger = Logger.sub('[DanmakuManagerService]')
-
 @injectable('Singleton')
 export class DanmakuManagerService {
+  private logger: ILogger
+
   private readonly renderer = new DanmakuRenderer((node, props) => {
     ReactDOM.createRoot(node).render(createElement(DanmakuComponent, props))
   })
@@ -46,8 +46,11 @@ export class DanmakuManagerService {
     @inject(DanmakuLayoutService)
     layoutManager: DanmakuLayoutService,
     @inject(DanmakuDebugOverlayService)
-    private debugOverlayService: DanmakuDebugOverlayService
+    private debugOverlayService: DanmakuDebugOverlayService,
+    @inject(LoggerSymbol) logger: ILogger
   ) {
+    this.logger = logger.sub('[DanmakuManagerService]')
+
     this.nodes = {
       wrapper: layoutManager.wrapper,
       container: layoutManager.container,
@@ -62,14 +65,14 @@ export class DanmakuManagerService {
       .then((options) => {
         this.debugOverlayService.setDebugEnabled(options.debug)
       })
-      .catch(logger.error)
+      .catch((e) => this.logger.error(e))
     extensionOptionsService.onChange((options) => {
       this.debugOverlayService.setDebugEnabled(options.debug)
     })
   }
 
   start(videoSelector: string) {
-    logger.debug('Starting')
+    this.logger.debug('Starting')
 
     this.videoNodeObs.addEventListener(
       'videoNodeChange',
@@ -135,7 +138,7 @@ export class DanmakuManagerService {
     if (!this.video || !this.hasComments) return
 
     if (!this.isMounted) {
-      logger.debug('Mounting danmaku')
+      this.logger.debug('Mounting danmaku')
 
       this.attachContainer()
 
@@ -156,11 +159,11 @@ export class DanmakuManagerService {
     // Allow deferring the creation of danmaku
     // if video is not ready, danmaku will be created when video is ready
     if (this.video) {
-      logger.debug('Mounting danmaku')
+      this.logger.debug('Mounting danmaku')
       this.createDanmaku()
       this.debugOverlayService.mount()
     } else {
-      logger.debug('Video is not ready, waiting for video to be ready')
+      this.logger.debug('Video is not ready, waiting for video to be ready')
     }
   }
 
@@ -174,7 +177,7 @@ export class DanmakuManagerService {
       return
     }
 
-    logger.debug('Unmounting danmaku')
+    this.logger.debug('Unmounting danmaku')
     this.debugOverlayService.unmount()
     this.removeContainer()
     this.renderer.destroy()
@@ -222,7 +225,7 @@ export class DanmakuManagerService {
   }
 
   stop() {
-    logger.debug('Stopping')
+    this.logger.debug('Stopping')
 
     this.teardownObs()
     this.videoNodeObs.stop()
