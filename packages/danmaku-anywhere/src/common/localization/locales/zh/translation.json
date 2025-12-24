@@ -378,7 +378,7 @@
       }
     },
     "uploadDebugData": "上传调试数据",
-    "uploadDebugDataSuccess": "上传成功"
+    "uploadDebugDataSuccess": "上传成功 {{ id }}"
   },
   "providers": {
     "alert": {
