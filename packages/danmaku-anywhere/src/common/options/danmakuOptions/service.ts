@@ -1,5 +1,6 @@
 import { produce } from 'immer'
 import { inject, injectable } from 'inversify'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import {
   type DanmakuOptions,
   defaultDanmakuOptions,
@@ -17,12 +18,15 @@ export class DanmakuOptionsService implements IStoreService {
   public readonly options: OptionsService<DanmakuOptions>
 
   constructor(
+    @inject(LoggerSymbol)
+    private readonly logger: ILogger,
     @inject(OptionsServiceFactory)
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory(
       'danmakuOptions',
-      defaultDanmakuOptions
+      defaultDanmakuOptions,
+      this.logger
     )
       .version(1, {
         upgrade: (data) => data,

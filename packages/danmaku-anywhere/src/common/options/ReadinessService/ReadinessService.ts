@@ -1,7 +1,6 @@
-import { injectable } from 'inversify'
-import { Logger } from '@/common/Logger'
+import { inject, injectable } from 'inversify'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
-
 import { tryCatch } from '@/common/utils/tryCatch'
 
 interface LastVersion {
@@ -13,15 +12,17 @@ export class ReadinessService {
   private isReady = false
   private readonly readyPromise: Promise<void>
   private readonly resolveReady: () => void
-  private logger = Logger.sub('[ReadinessService]')
+  private logger: ILogger
   private storage = new ExtStorageService<LastVersion>('lastVersion', {
     storageType: 'local',
   })
 
-  constructor() {
+  constructor(@inject(LoggerSymbol) logger: ILogger) {
     const { promise, resolve } = Promise.withResolvers<void>()
     this.readyPromise = promise
     this.resolveReady = resolve
+
+    this.logger = logger.sub('[ReadinessService]')
 
     void this.init()
   }

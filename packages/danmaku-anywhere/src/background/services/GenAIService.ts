@@ -1,11 +1,12 @@
 import type { ExtractTitleResponse } from '@danmaku-anywhere/danmaku-provider/genAi'
 import { extractTitle } from '@danmaku-anywhere/danmaku-provider/genAi'
 import { injectable } from 'inversify'
-import { Logger } from '@/common/Logger'
+import { Logger } from '@/background/backgroundLogger'
+import type { ILogger } from '@/common/Logger'
 
 @injectable('Singleton')
 export class GenAIService {
-  private logger: typeof Logger
+  private logger: ILogger
 
   constructor() {
     this.logger = Logger.sub('[GenAIService]')

@@ -1,5 +1,5 @@
 import { inject, injectable, multiInject } from 'inversify'
-import { Logger } from '@/common/Logger'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import {
   type IStoreService,
   StoreServiceSymbol,
@@ -9,13 +9,17 @@ import { isServiceWorker } from '@/common/utils/utils'
 
 @injectable('Singleton')
 export class UpgradeService {
-  private logger = Logger.sub('[UpgradeService]')
+  private logger: ILogger
 
   constructor(
     @multiInject(StoreServiceSymbol) private services: IStoreService[],
     @inject(ReadinessService)
-    private readinessService: ReadinessService
-  ) {}
+    private readinessService: ReadinessService,
+    @inject(LoggerSymbol)
+    logger: ILogger
+  ) {
+    this.logger = logger.sub('[UpgradeService]')
+  }
 
   async waitUntilReady() {
     return this.readinessService.waitUntilReady()

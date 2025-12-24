@@ -1,4 +1,4 @@
-import { Logger } from '../Logger'
+import { type ILogger, Logger } from '../Logger'
 
 import type {
   AnyRPCDef,
@@ -19,7 +19,7 @@ type RPCServerHandlers<TRecords extends RPCRecord> = {
 }
 
 interface CreateRpcServerOptions<TContext extends RpcContext> {
-  logger?: typeof Logger
+  logger?: ILogger
   context?: TContext
   // Filter based on input, return false to ignore message
   filter?: (method: string, input: any) => boolean

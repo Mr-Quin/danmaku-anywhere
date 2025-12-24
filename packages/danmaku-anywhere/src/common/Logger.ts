@@ -1,15 +1,34 @@
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
+
 const prefix = '[Danmaku]'
 
-type Logger = {
+export type ILogger = {
   [Key in keyof Console]: Console[Key]
 } & {
-  sub: (subPrefix: string) => Logger
+  sub: (subPrefix: string) => ILogger
 }
 
-type ConsoleMethod = 'log' | 'info' | 'warn' | 'error' | 'debug'
+export type ConsoleMethod = 'log' | 'info' | 'warn' | 'error' | 'debug'
 
-const createLogger = (prefix: string): Logger => {
-  const logger = {} as Logger
+export interface LogEntry {
+  type: 'console' | 'network'
+  level: ConsoleMethod
+  message: string
+  args: unknown[]
+  timestamp: number
+  context: string
+}
+
+interface LoggerOptions {
+  onLog?: (entry: LogEntry) => void
+  env?: string
+}
+
+export const createLogger = (
+  prefix: string,
+  options: LoggerOptions = {}
+): ILogger => {
+  const logger = {} as ILogger
 
   const methods: ConsoleMethod[] = ['log', 'info', 'warn', 'error', 'debug']
 
@@ -19,8 +38,42 @@ const createLogger = (prefix: string): Logger => {
     logger[method] = console[method].bind(console, prefix)
   })
 
+  // Wrap methods to send logs to background
+  const originalMethods = { ...logger }
+  methods.forEach((method) => {
+    logger[method] = (...args: unknown[]) => {
+      // Always log to console
+      originalMethods[method](...args)
+
+      const env = options.env
+
+      const entry: LogEntry = {
+        type: 'console',
+        level: method,
+        message:
+          typeof args[0] === 'string'
+            ? args[0].replace(prefix, '')
+            : JSON.stringify(args[0]),
+        args: args.slice(1),
+        timestamp: Date.now(),
+        context: env || 'Unknown',
+      }
+
+      if (env !== 'Background') {
+        void chromeRpcClient.remoteLog(entry, { silent: true }).catch(() => {
+          // ignore errors if background is not ready
+        })
+      } else {
+        console.trace('Background log', entry)
+      }
+      if (options.onLog) {
+        options.onLog(entry)
+      }
+    }
+  })
+
   logger.sub = (subPrefix: string) => {
-    return createLogger(`${prefix}${subPrefix}`)
+    return createLogger(`${prefix}${subPrefix}`, options)
   }
 
   return logger
@@ -39,4 +92,8 @@ const getEnv = () => {
   return 'Content'
 }
 
-export const Logger = createLogger(prefix).sub(`[${getEnv()}]`)
+export const Logger = createLogger(prefix, { env: getEnv() }).sub(
+  `[${getEnv()}]`
+)
+
+export const LoggerSymbol = Symbol.for('Logger')

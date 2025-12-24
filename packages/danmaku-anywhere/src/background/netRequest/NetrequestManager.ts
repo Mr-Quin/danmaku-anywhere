@@ -1,5 +1,5 @@
 import { injectable } from 'inversify'
-import { Logger } from '@/common/Logger'
+import { Logger } from '@/background/backgroundLogger'
 
 // these enums are not defined in Firefox, so we need to define them ourselves
 enum RuleActionType {

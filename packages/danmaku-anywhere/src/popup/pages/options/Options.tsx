@@ -1,4 +1,4 @@
-import { ChevronRight, Launch } from '@mui/icons-material'
+import { BugReport, ChevronRight, Launch } from '@mui/icons-material'
 import {
   Icon,
   List,
@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next'
 import { Outlet, useNavigate, useSearchParams } from 'react-router'
 import { EXTENSION_VERSION } from '@/common/constants'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { Version } from '@/popup/pages/options/components/Version'
 import { OptionsPageLayout } from '../../layout/OptionsPageLayout'
@@ -82,6 +83,13 @@ export const Options = () => {
           <OptionsListItem
             title={t('optionsPage.pages.advanced', 'Advanced')}
             onClick={() => navigate('advanced')}
+          />
+          <OptionsListItem
+            icon={<BugReport />}
+            title={t('optionsPage.pages.exportLogs', 'Export Debug Logs')}
+            onClick={async () => {
+              await chromeRpcClient.exportDebugData()
+            }}
           />
           <OptionsListItem
             title={t('optionsPage.pages.help', '关于')}

@@ -7,10 +7,10 @@ import type {
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
+import { Logger } from '@/background/backgroundLogger'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType, isProvider } from '@/common/danmaku/utils'
-import { Logger } from '@/common/Logger'
 import type { DanDanPlayProviderConfig } from '@/common/options/providerConfig/schema'
 import { tryCatch } from '@/common/utils/tryCatch'
 import { findEpisodeByNumber } from '../common/findEpisodeByNumber'

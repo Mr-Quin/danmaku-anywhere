@@ -1,7 +1,7 @@
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { produce } from 'immer'
 import { inject, injectable } from 'inversify'
-import { Logger } from '@/common/Logger'
+import { type ILogger, Logger, LoggerSymbol } from '@/common/Logger'
 import { Language } from '@/common/localization/language'
 import { defaultExtensionOptions } from '@/common/options/extensionOptions/constant'
 import { defaultKeymap } from '@/common/options/extensionOptions/hotkeys'
@@ -21,6 +21,8 @@ export class ExtensionOptionsService implements IStoreService {
   public readonly options: OptionsService<ExtensionOptions>
 
   constructor(
+    @inject(LoggerSymbol)
+    private readonly logger: ILogger,
     @inject(ProviderConfigService)
     private readonly providerConfigService: ProviderConfigService,
     @inject(OptionsServiceFactory)
@@ -28,7 +30,8 @@ export class ExtensionOptionsService implements IStoreService {
   ) {
     this.options = this.optionServiceFactory(
       'extensionOptions',
-      defaultExtensionOptions
+      defaultExtensionOptions,
+      this.logger
     )
       .version(1, {
         upgrade: (data) => data,

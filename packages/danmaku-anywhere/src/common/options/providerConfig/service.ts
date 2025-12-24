@@ -4,6 +4,7 @@ import {
 } from '@danmaku-anywhere/danmaku-converter'
 import { produce } from 'immer'
 import { inject, injectable } from 'inversify'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { IStoreService } from '@/common/options/IStoreService'
 import {
   type IOptionsServiceFactory,
@@ -27,12 +28,15 @@ export class ProviderConfigService implements IStoreService {
   public readonly options: OptionsService<ProviderConfig[]>
 
   constructor(
+    @inject(LoggerSymbol)
+    private readonly logger: ILogger,
     @inject(OptionsServiceFactory)
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory<ProviderConfig[]>(
       'providerConfig',
-      defaultProviderConfigs
+      defaultProviderConfigs,
+      this.logger
     ).version(1, {
       upgrade: (data) => {
         return data

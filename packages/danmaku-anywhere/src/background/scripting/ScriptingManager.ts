@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify'
-import { Logger } from '@/common/Logger'
+import { Logger } from '@/background/backgroundLogger'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { MountConfigService } from '@/common/options/mountConfig/service'
 import { createTaskQueue } from '@/common/utils/taskQueue'

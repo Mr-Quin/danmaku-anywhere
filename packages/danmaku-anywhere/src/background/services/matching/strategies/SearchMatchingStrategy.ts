@@ -4,11 +4,11 @@ import {
   type SeasonInsert,
 } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
+import { Logger } from '@/background/backgroundLogger'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
 import type { MatchEpisodeInput, MatchEpisodeResult } from '@/common/anime/dto'
 import { isNotCustom, isProvider } from '@/common/danmaku/utils'
-import { Logger } from '@/common/Logger'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { serializeError } from '@/common/utils/serializeError'

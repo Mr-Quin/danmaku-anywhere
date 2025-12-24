@@ -1,11 +1,10 @@
-import { type PropsWithChildren, Suspense, use } from 'react'
+import { type PropsWithChildren, Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { GlobalDialog } from '@/common/components/Dialog/GlobalDialog'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { usePreloadImages } from '@/common/components/image/usePreloadImages'
 import { Toast } from '@/common/components/Toast/Toast'
-import { db } from '@/common/db/db'
 import { Logger } from '@/common/Logger'
 import { useSetupTracking } from '@/common/telemetry/useSetupTracking'
 import { useThemeContext } from '@/common/theme/Theme'
@@ -13,8 +12,6 @@ import { PopupLayout } from './layout/PopupLayout'
 import { RootRouter } from './router/RootRouter'
 
 const LoadInitialData = ({ children }: PropsWithChildren) => {
-  use(db.isReady)
-
   return children
 }
 

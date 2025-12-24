@@ -1,4 +1,4 @@
-import type { Logger } from '@/common/Logger'
+import type { ILogger } from '@/common/Logger'
 import type {
   Options,
   OptionsSchema,
@@ -9,7 +9,7 @@ import type {
 export function migrateOptions<T extends OptionsSchema>(
   fromOption: Options<T>,
   versions: Version[],
-  logger: typeof Logger,
+  logger: ILogger,
   context: UpgradeContext
 ): Options<T> {
   const getNextVersion = (version: number): Version | undefined => {

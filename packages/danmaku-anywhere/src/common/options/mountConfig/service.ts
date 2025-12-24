@@ -1,5 +1,6 @@
 import { produce } from 'immer'
 import { inject, injectable } from 'inversify'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { IStoreService } from '@/common/options/IStoreService'
 import {
   createMountConfig,
@@ -21,12 +22,15 @@ export class MountConfigService implements IStoreService {
   public readonly options: OptionsService<MountConfig[]>
 
   constructor(
+    @inject(LoggerSymbol)
+    private readonly logger: ILogger,
     @inject(OptionsServiceFactory)
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory<MountConfig[]>(
       'mountConfig',
-      defaultMountConfig
+      defaultMountConfig,
+      this.logger
     )
       .version(1, {
         upgrade: (data) => data,

@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify'
+import { Logger } from '@/background/backgroundLogger'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { alarmKeys } from '@/common/alarms/constants'
-import { Logger } from '@/common/Logger'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 
 @injectable('Singleton')

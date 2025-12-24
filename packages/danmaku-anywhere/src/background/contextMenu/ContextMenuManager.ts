@@ -1,11 +1,11 @@
 import { inject, injectable } from 'inversify'
 import { match } from 'ts-pattern'
+import { Logger } from '@/background/backgroundLogger'
 import { ContextMenuId } from '@/background/contextMenu/contextMenuId'
 import {
   matchedConfigByTabId,
   rebuildDynamicMenus,
 } from '@/background/contextMenu/rebuildDynamicMenus'
-import { Logger } from '@/common/Logger'
 import { MountConfigService } from '@/common/options/mountConfig/service'
 
 import { tryCatch } from '@/common/utils/tryCatch'

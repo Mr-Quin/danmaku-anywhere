@@ -1,6 +1,6 @@
 import { inject, injectable } from 'inversify'
+import { Logger } from '@/background/backgroundLogger'
 import type { MatchEpisodeInput, MatchEpisodeResult } from '@/common/anime/dto'
-import { Logger } from '@/common/Logger'
 import type { IMatchingStrategy } from './strategies/IMatchingStrategy'
 import { LocalMatchingStrategy } from './strategies/LocalMatchingStrategy'
 import { MappingMatchingStrategy } from './strategies/MappingMatchingStrategy'

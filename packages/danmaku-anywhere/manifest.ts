@@ -15,6 +15,7 @@ const permissions: chrome.runtime.ManifestPermissions[] = [
   'alarms',
   'webRequest',
   'contextMenus',
+  'downloads',
 ]
 
 if (isChrome) {

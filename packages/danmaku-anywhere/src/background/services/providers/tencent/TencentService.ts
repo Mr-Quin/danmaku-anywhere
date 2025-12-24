@@ -8,10 +8,10 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import type { TencentEpisodeListItem } from '@danmaku-anywhere/danmaku-provider/tencent'
 import * as tencent from '@danmaku-anywhere/danmaku-provider/tencent'
+import { Logger } from '@/background/backgroundLogger'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
-import { Logger } from '@/common/Logger'
 import type { BuiltInTencentProvider } from '@/common/options/providerConfig/schema'
 import { findEpisodeByNumber } from '../common/findEpisodeByNumber'
 import type {

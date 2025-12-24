@@ -1,4 +1,5 @@
 import type { ResolutionContext } from 'inversify'
+import type { ILogger } from '@/common/Logger'
 import type { ExtStorageType } from '@/common/storage/ExtStorageService'
 import { ReadinessService } from '../ReadinessService/ReadinessService'
 import { OptionsService } from './OptionsService'
@@ -7,6 +8,7 @@ import type { OptionsSchema } from './types'
 export type IOptionsServiceFactory = <T extends OptionsSchema>(
   key: string,
   defaultOptions: T,
+  logger: ILogger,
   storageType?: ExtStorageType
 ) => OptionsService<T>
 
@@ -18,6 +20,7 @@ export function optionsServiceFactory(
   return <T extends OptionsSchema>(
     key: string,
     defaultOptions: T,
+    logger: ILogger,
     storageType?: ExtStorageType
   ) => {
     const readinessService = context.get<ReadinessService>(ReadinessService)
@@ -25,6 +28,7 @@ export function optionsServiceFactory(
       readinessService,
       key,
       defaultOptions,
+      logger,
       storageType
     )
   }
