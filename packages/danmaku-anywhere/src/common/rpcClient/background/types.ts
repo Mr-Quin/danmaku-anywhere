@@ -36,6 +36,7 @@ import type {
   EpisodeQueryFilter,
   MacCMSFetchData,
 } from '@/common/danmaku/dto'
+import type { LogEntry } from '@/common/Logger'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
 import type { RPCDef } from '../../rpc/types'
@@ -88,7 +89,8 @@ export type BackgroundMethods = {
   getFrameId: RPCDef<void, number>
   getAllFrames: RPCDef<void, chrome.webNavigation.GetAllFrameResultDetails[]>
   injectScript: RPCDef<number, void>
-  remoteLog: RPCDef<unknown, void>
+  remoteLog: RPCDef<LogEntry, void>
+  exportDebugData: RPCDef<void, void>
   getFontList: RPCDef<void, chrome.fontSettings.FontName[]>
   getPlatformInfo: RPCDef<void, chrome.runtime.PlatformInfo>
   mountConfigCreate: RPCDef<unknown, MountConfig>

@@ -9,7 +9,9 @@ import { OptionsManager } from '@/background/syncOptions/OptionsManager'
 import { deferredConfigureStore } from '@/background/utils/deferredConfigureStore'
 import { generateId } from '@/background/utils/generateId'
 import { EXTENSION_VERSION } from '@/common/constants'
+import { setLogService } from './backgroundLogger'
 import { container } from './ioc'
+import { LogService } from './services/LogService'
 
 configureApiStore({
   baseUrl: import.meta.env.VITE_PROXY_URL,
@@ -22,6 +24,8 @@ container.get(RpcManager).setup()
 container.get(NetRequestManager).setup()
 container.get(AlarmManager).setup()
 container.get(PortsManager).setup()
+
+setLogService(container.get(LogService))
 
 chrome.runtime.getPlatformInfo().then((platformInfo) => {
   if (platformInfo.os === 'android') {

@@ -2,7 +2,7 @@ import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
 import { createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { Logger } from '@/common/Logger'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { SkipButton } from '@/content/player/components/SkipButton/SkipButton'
 import { DanmakuLayoutService } from '@/content/player/danmakuLayout/DanmakuLayout.service'
@@ -12,10 +12,10 @@ import { parseCommentsForJumpTargets } from './videoSkipParser'
 
 type ActiveButtonEntry = { node: HTMLElement; root: Root }
 
-const logger = Logger.sub('[VideoSkipService]')
-
 @injectable('Singleton')
 export class VideoSkipService {
+  private logger: ILogger
+
   private jumpTargets: SkipTarget[] = []
   private activeButton: ActiveButtonEntry | null = null
   private currentVideo: HTMLVideoElement | null = null
@@ -29,25 +29,27 @@ export class VideoSkipService {
     @inject(VideoEventService)
     private videoEventService: VideoEventService,
     @inject(DanmakuLayoutService)
-    private layoutManager: DanmakuLayoutService
+    private layoutManager: DanmakuLayoutService,
+    @inject(LoggerSymbol) logger: ILogger
   ) {
+    this.logger = logger.sub('[VideoSkipService]')
     this.boundHandleTimeUpdate = this.handleTimeUpdate.bind(this)
     this.boundHandleSeek = this.handleSeek.bind(this)
   }
 
   enable() {
-    logger.debug('Enabling')
+    this.logger.debug('Enabling')
     this.setupEventListeners()
   }
 
   disable() {
-    logger.debug('Disabling')
+    this.logger.debug('Disabling')
     this.cleanup()
   }
 
   setComments(comments: CommentEntity[]) {
     this.jumpTargets = parseCommentsForJumpTargets(comments)
-    logger.debug(
+    this.logger.debug(
       `Parsed ${this.jumpTargets.length} jump targets from ${comments.length} comments`,
       this.jumpTargets
     )
@@ -121,7 +123,7 @@ export class VideoSkipService {
   private showSkipButton(target: SkipTarget) {
     if (!this.layoutManager.wrapper) return
 
-    logger.debug('Creating skip buttons', target)
+    this.logger.debug('Creating skip buttons', target)
 
     const mountNode = document.createElement('div')
     this.layoutManager.wrapper.appendChild(mountNode)
@@ -147,7 +149,7 @@ export class VideoSkipService {
 
   private jumpToTime(targetTime: number) {
     if (this.currentVideo) {
-      logger.debug(`Jumping to time: ${targetTime}s`)
+      this.logger.debug(`Jumping to time: ${targetTime}s`)
       this.currentVideo.currentTime = targetTime
     }
   }
@@ -157,7 +159,7 @@ export class VideoSkipService {
     if (!entry) {
       return
     }
-    logger.debug('Removing active button', entry)
+    this.logger.debug('Removing active button', entry)
     entry.root.unmount()
     entry.node.remove()
     this.activeButton = null

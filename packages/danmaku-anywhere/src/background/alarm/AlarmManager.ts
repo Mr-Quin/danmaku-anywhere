@@ -1,17 +1,22 @@
 import { inject, injectable } from 'inversify'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { alarmKeys } from '@/common/alarms/constants'
-import { Logger } from '@/common/Logger'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 
 @injectable('Singleton')
 export class AlarmManager {
+  private logger: ILogger
+
   constructor(
     @inject(DanmakuService)
     private danmakuService: DanmakuService,
     @inject(ExtensionOptionsService)
-    private extensionOptionsService: ExtensionOptionsService
-  ) {}
+    private extensionOptionsService: ExtensionOptionsService,
+    @inject(LoggerSymbol) logger: ILogger
+  ) {
+    this.logger = logger.sub('[AlarmManager]')
+  }
 
   setup() {
     this.extensionOptionsService.onChange(async (extensionOptions) => {
@@ -51,7 +56,7 @@ export class AlarmManager {
       return
     }
 
-    Logger.debug('Creating danmaku purge alarm')
+    this.logger.debug('Creating danmaku purge alarm')
     await chrome.alarms.create(alarmKeys.PURGE_DANMAKU, {
       periodInMinutes: 60 * 24, // 1 day
       // run at next midnight
@@ -63,7 +68,7 @@ export class AlarmManager {
     const alarm = await chrome.alarms.get(alarmKeys.PURGE_DANMAKU)
 
     if (alarm) {
-      Logger.debug('Clearing danmaku purge alarm')
+      this.logger.debug('Clearing danmaku purge alarm')
       await chrome.alarms.clear(alarmKeys.PURGE_DANMAKU)
     }
   }

@@ -21,8 +21,8 @@ import type {
   EpisodeQueryFilter,
 } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { db } from '@/common/db/db'
-import { Logger } from '@/common/Logger'
+import { DanmakuAnywhereDb } from '@/common/db/db'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { DbEntity } from '@/common/types/dbEntity'
 import { tryCatch } from '@/common/utils/tryCatch'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
@@ -30,14 +30,18 @@ import { matchPathByName } from './utils/matchPathByName'
 
 @injectable('Singleton')
 export class DanmakuService {
-  private logger: typeof Logger
+  private logger: ILogger
 
-  constructor(@inject(SeasonService) private seasonService: SeasonService) {
+  constructor(
+    @inject(SeasonService) private seasonService: SeasonService,
+    @inject(DanmakuAnywhereDb) private db: DanmakuAnywhereDb,
+    @inject(LoggerSymbol) logger: ILogger
+  ) {
     invariant(
       isServiceWorker(),
       'DanmakuService is only available in service worker'
     )
-    this.logger = Logger.sub('[DanmakuService]')
+    this.logger = logger.sub('[DanmakuService]')
   }
 
   async addCustom(data: CustomEpisodeInsert): Promise<CustomEpisode> {
@@ -46,7 +50,7 @@ export class DanmakuService {
       timeUpdated: Date.now(),
       version: 1,
     }
-    const id = await db.customEpisode.add(toAdd)
+    const id = await this.db.customEpisode.add(toAdd)
 
     return {
       id,
@@ -71,13 +75,13 @@ export class DanmakuService {
     filter: CustomEpisodeQueryFilter
   ): Promise<CustomEpisode[]> {
     if (filter.all) {
-      return db.customEpisode.toArray()
+      return this.db.customEpisode.toArray()
     }
     if (filter.ids) {
-      const res = await db.customEpisode.bulkGet(filter.ids)
+      const res = await this.db.customEpisode.bulkGet(filter.ids)
       return res.filter((item) => item !== undefined)
     }
-    return db.customEpisode.where(filter).toArray()
+    return this.db.customEpisode.where(filter).toArray()
   }
 
   async filterCustomLite(
@@ -109,14 +113,14 @@ export class DanmakuService {
 
   async deleteCustom(filter: CustomEpisodeQueryFilter) {
     if (filter.all) {
-      await db.customEpisode.clear()
+      await this.db.customEpisode.clear()
       return
     }
     if (filter.ids) {
-      await db.customEpisode.bulkDelete(filter.ids)
+      await this.db.customEpisode.bulkDelete(filter.ids)
       return
     }
-    await db.customEpisode.where(filter).delete()
+    await this.db.customEpisode.where(filter).delete()
   }
 
   async bulkUpsert(data: EpisodeInsert[]): Promise<Episode[]> {
@@ -128,7 +132,7 @@ export class DanmakuService {
   }
 
   async upsert<T extends EpisodeInsert>(data: T): Promise<DbEntity<T>> {
-    const existing = await db.episode.get({
+    const existing = await this.db.episode.get({
       seasonId: data.seasonId,
       indexedId: data.indexedId,
     })
@@ -146,7 +150,7 @@ export class DanmakuService {
       timeUpdated: Date.now(),
       version: 1,
     }
-    const id = await db.episode.add(toInsert)
+    const id = await this.db.episode.add(toInsert)
 
     return {
       ...toInsert,
@@ -161,7 +165,7 @@ export class DanmakuService {
       version: data.version + 1,
     }
 
-    await db.episode.update(data.id, toUpdate as Omit<T, 'id'>)
+    await this.db.episode.update(data.id, toUpdate as Omit<T, 'id'>)
 
     return toUpdate
   }
@@ -193,20 +197,20 @@ export class DanmakuService {
 
   async filter(filter: EpisodeQueryFilter): Promise<WithSeason<Episode>[]> {
     if (filter.all) {
-      const res = await db.episode.toArray()
+      const res = await this.db.episode.toArray()
       return Promise.all(res.map(this.joinSeason))
     }
 
     if (filter.ids) {
       const getMany = async (ids: number[]): Promise<WithSeason<Episode>[]> => {
-        const res = await db.episode.bulkGet(ids)
+        const res = await this.db.episode.bulkGet(ids)
         const filtered = res.filter((r) => r !== undefined)
         return Promise.all(filtered.map(this.joinSeason))
       }
       return getMany(filter.ids)
     }
 
-    const res = await db.episode.where(filter).toArray()
+    const res = await this.db.episode.where(filter).toArray()
 
     return Promise.all(
       res
@@ -221,10 +225,10 @@ export class DanmakuService {
       return
     }
     if (filter.ids) {
-      await db.episode.bulkDelete(filter.ids)
+      await this.db.episode.bulkDelete(filter.ids)
       return
     }
-    await db.episode.where(filter).delete()
+    await this.db.episode.where(filter).delete()
   }
 
   async import(importData: DanmakuImportData[]): Promise<DanmakuImportResult> {
@@ -248,22 +252,27 @@ export class DanmakuService {
           } else {
             let savedSeasonId = -1
             let savedSeasonTitle = ''
-            await db.transaction('rw', db.season, db.episode, async () => {
-              let [existingSeason] = await this.seasonService.filter({
-                providerConfigId: item.season.providerConfigId,
-                indexedId: item.season.indexedId,
-              })
-              if (!existingSeason) {
-                existingSeason = await this.seasonService.upsert(item.season)
-              }
-              savedSeasonId = existingSeason.id
-              savedSeasonTitle = existingSeason.title
+            await this.db.transaction(
+              'rw',
+              this.db.season,
+              this.db.episode,
+              async () => {
+                let [existingSeason] = await this.seasonService.filter({
+                  providerConfigId: item.season.providerConfigId,
+                  indexedId: item.season.indexedId,
+                })
+                if (!existingSeason) {
+                  existingSeason = await this.seasonService.upsert(item.season)
+                }
+                savedSeasonId = existingSeason.id
+                savedSeasonTitle = existingSeason.title
 
-              await this.upsert({
-                ...item.episode,
-                seasonId: existingSeason.id,
-              })
-            })
+                await this.upsert({
+                  ...item.episode,
+                  seasonId: existingSeason.id,
+                })
+              }
+            )
             imported.push({
               type: item.season.provider,
               title: item.episode.title,
@@ -365,7 +374,7 @@ export class DanmakuService {
     const threshold = now - days * 24 * 60 * 60 * 1000
 
     // delete danmaku older than threshold, ignoring custom danmaku
-    const deleteCount = await db.episode
+    const deleteCount = await this.db.episode
       .where('timeUpdated')
       .below(threshold)
       .delete()

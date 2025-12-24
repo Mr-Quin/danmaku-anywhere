@@ -10,11 +10,13 @@ import {
   type SeasonV1,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Dexie } from 'dexie'
+import { injectable } from 'inversify'
 import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
 
 type WithoutId<T> = Omit<T, 'id'>
 
-class DanmakuAnywhereDb extends Dexie {
+@injectable('Singleton')
+export class DanmakuAnywhereDb extends Dexie {
   episode!: Dexie.Table<Episode, number, WithoutId<Episode>>
   customEpisode!: Dexie.Table<CustomEpisode, number, WithoutId<CustomEpisode>>
   season!: Dexie.Table<Season, number, WithoutId<Season>>
@@ -357,5 +359,3 @@ class DanmakuAnywhereDb extends Dexie {
     this.open()
   }
 }
-
-export const db = new DanmakuAnywhereDb()

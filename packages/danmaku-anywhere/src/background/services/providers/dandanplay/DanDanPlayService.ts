@@ -10,7 +10,7 @@ import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType, isProvider } from '@/common/danmaku/utils'
-import { Logger } from '@/common/Logger'
+import type { ILogger } from '@/common/Logger'
 import type { DanDanPlayProviderConfig } from '@/common/options/providerConfig/schema'
 import { tryCatch } from '@/common/utils/tryCatch'
 import { findEpisodeByNumber } from '../common/findEpisodeByNumber'
@@ -22,14 +22,17 @@ import type {
 import { DanDanPlayMapper } from './DanDanPlayMapper'
 
 export class DanDanPlayService implements IDanmakuProvider {
-  private logger: typeof Logger
+  private logger: ILogger
 
   private readonly context: danDanPlay.DanDanPlayQueryContext
 
   readonly forProvider = DanmakuSourceType.DanDanPlay
 
-  constructor(private config: DanDanPlayProviderConfig) {
-    this.logger = Logger.sub('[DDPService]')
+  constructor(
+    private config: DanDanPlayProviderConfig,
+    logger: ILogger
+  ) {
+    this.logger = logger.sub('[DDPService]')
     this.context = DanDanPlayMapper.toQueryContext(this.config)
   }
 

@@ -3,8 +3,6 @@ import JSZip from 'jszip'
 import * as OpenCC from 'opencc-js'
 import { match as matchPinyin } from 'pinyin-pro'
 
-import { Logger } from '@/common/Logger'
-
 export const toArray = <T>(value: T | T[]): T[] => {
   return Array.isArray(value) ? value : [value]
 }
@@ -128,7 +126,7 @@ export const getRandomUUID = () => {
   try {
     return globalThis.crypto.randomUUID()
   } catch (e) {
-    Logger.warn(
+    console.warn(
       'Failed to generate UUID using crypto.randomUUID, falling back to Math.random',
       e
     )

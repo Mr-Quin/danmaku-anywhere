@@ -1,4 +1,4 @@
-import { Logger } from '../../Logger'
+import type { ILogger } from '@/common/Logger'
 import type { ExtStorageType } from '../../storage/ExtStorageService'
 import { ExtStorageService } from '../../storage/ExtStorageService'
 import type { ReadinessService } from '../ReadinessService/ReadinessService'
@@ -21,7 +21,7 @@ type QueuedOperation<T> = {
 
 export class OptionsService<T extends OptionsSchema> {
   private versions: Version[] = []
-  private readonly logger: typeof Logger
+  private readonly logger: ILogger
   private storageService: ExtStorageService<Options<T>>
   private operationQueue: QueuedOperation<unknown>[] = []
   private isProcessingQueue = false
@@ -30,12 +30,13 @@ export class OptionsService<T extends OptionsSchema> {
     private readinessService: ReadinessService,
     readonly key: string,
     private defaultOptions: T,
+    logger: ILogger,
     storageType: ExtStorageType = 'sync'
   ) {
     this.storageService = new ExtStorageService<Options<T>>(key, {
       storageType,
     })
-    this.logger = Logger.sub('[OptionsService]').sub(`[${key}]`)
+    this.logger = logger.sub('[OptionsService]').sub(`[${key}]`)
     this.setup()
   }
 

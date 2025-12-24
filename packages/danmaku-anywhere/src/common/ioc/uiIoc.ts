@@ -5,13 +5,14 @@ import {
   OptionsServiceFactory,
   optionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
+import { type ILogger, Logger, LoggerSymbol } from '../Logger'
 
-const container = new Container({ autobind: true, defaultScope: 'Singleton' })
-
-const uiContainer = container
+const uiContainer = new Container({ autobind: true, defaultScope: 'Singleton' })
 
 uiContainer
   .bind<IOptionsServiceFactory>(OptionsServiceFactory)
   .toFactory(optionsServiceFactory)
+
+uiContainer.bind<ILogger>(LoggerSymbol).toConstantValue(Logger)
 
 export { uiContainer }

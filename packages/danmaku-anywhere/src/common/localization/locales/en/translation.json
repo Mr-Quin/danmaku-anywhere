@@ -344,6 +344,7 @@
       }
     },
     "enableAnalytics": "Enable anonymous analytics",
+    "exportDebugData": "Export Debug Data",
     "help": {
       "feedback": "Provide feedback",
       "reportBug": "Report Bug"

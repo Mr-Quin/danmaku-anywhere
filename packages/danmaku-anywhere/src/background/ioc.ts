@@ -1,5 +1,6 @@
 import 'reflect-metadata'
 import { Container } from 'inversify'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { StoreServiceSymbol } from '@/common/options/IStoreService'
@@ -11,6 +12,7 @@ import {
   optionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
+import { Logger } from './backgroundLogger'
 import {
   DanmakuProviderFactory,
   danmakuProviderFactory,
@@ -34,5 +36,7 @@ container
 container
   .bind<IOptionsServiceFactory>(OptionsServiceFactory)
   .toFactory(optionsServiceFactory)
+
+container.bind<ILogger>(LoggerSymbol).toConstantValue(Logger)
 
 export { container }

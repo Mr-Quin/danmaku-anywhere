@@ -1,4 +1,5 @@
 import { inject, injectable } from 'inversify'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { IStoreService } from '@/common/options/IStoreService'
 import type {
   Integration,
@@ -16,12 +17,15 @@ export class IntegrationPolicyService implements IStoreService {
   public readonly options: OptionsService<Integration[]>
 
   constructor(
+    @inject(LoggerSymbol)
+    private readonly logger: ILogger,
     @inject(OptionsServiceFactory)
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory<Integration[]>(
       'xpathPolicy',
       [],
+      this.logger,
       'local'
     )
       .version(1, {

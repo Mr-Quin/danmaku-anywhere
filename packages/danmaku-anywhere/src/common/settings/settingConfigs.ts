@@ -1,5 +1,6 @@
 import { i18n } from '@/common/localization/i18n'
 import type { ExtensionOptions } from '../options/extensionOptions/schema'
+import { chromeRpcClient } from '../rpcClient/background/client'
 
 // Category for UI grouping
 export type SettingCategory = 'advanced' | 'player' | 'general'
@@ -19,6 +20,11 @@ export type ToggleSettingConfig<S> = CommonSettingConfig & {
   type: 'toggle'
   getValue: (state: S) => boolean
   createUpdate: (state: S, newValue: boolean) => Partial<S>
+}
+
+export type ButtonSettingConfig = CommonSettingConfig & {
+  type: 'button'
+  onClick: () => void
 }
 
 // Union type for all setting configs
@@ -95,6 +101,16 @@ const playerSettings: SettingConfig<ExtensionOptions>[] = [
     }),
   },
 ]
+
+export const EXPORT_DEBUG_DATA_BUTTON: ButtonSettingConfig = {
+  id: 'button.exportDebugData',
+  label: () => i18n.t('optionsPage.exportDebugData', 'Export Debug Data'),
+  category: 'advanced',
+  type: 'button',
+  onClick: () => {
+    chromeRpcClient.exportDebugData()
+  },
+}
 
 export const settingConfigs = {
   advanced: advancedSettings,

@@ -1,26 +1,93 @@
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
+
 const prefix = '[Danmaku]'
 
-type Logger = {
+export type ILogger = {
   [Key in keyof Console]: Console[Key]
 } & {
-  sub: (subPrefix: string) => Logger
+  sub: (subPrefix: string) => ILogger
 }
 
-type ConsoleMethod = 'log' | 'info' | 'warn' | 'error' | 'debug'
+export type ConsoleMethod = 'log' | 'info' | 'warn' | 'error' | 'debug'
 
-const createLogger = (prefix: string): Logger => {
-  const logger = {} as Logger
+export interface LogEntry {
+  type: 'console' | 'network'
+  level: ConsoleMethod
+  message: string
+  prefix: string
+  timestamp: number
+  context: string
+}
+
+function formatArgs(args: unknown[]) {
+  if (args.length === 0) return ''
+  if (args.length === 1) {
+    if (typeof args[0] === 'string') {
+      return args[0]
+    }
+  }
+
+  try {
+    return JSON.stringify(args).slice(0, 200)
+  } catch {
+    const fallback = args
+      .map((arg) => {
+        if (typeof arg === 'string') {
+          return arg
+        }
+        if (arg instanceof Error) {
+          return arg.stack || arg.message
+        }
+        try {
+          return String(arg)
+        } catch {
+          return '[Unserializable]'
+        }
+      })
+      .join('||')
+    // truncate long strings
+    return fallback.slice(0, 200)
+  }
+}
+
+interface LoggerOptions {
+  onLog?: (entry: LogEntry) => void
+  env?: string
+}
+
+export const createLogger = (
+  prefix: string,
+  options: LoggerOptions = {}
+): ILogger => {
+  const logger = {} as ILogger
 
   const methods: ConsoleMethod[] = ['log', 'info', 'warn', 'error', 'debug']
 
-  // bind console to preserve the original console context
-  // this is needed for the correct file and line number to be shown
+  function log(method: ConsoleMethod, ...args: unknown[]) {
+    console[method].call(console, prefix, ...args)
+
+    if (options.onLog) {
+      const env = options.env
+
+      const entry: LogEntry = {
+        type: 'console',
+        level: method,
+        message: formatArgs(args),
+        prefix,
+        timestamp: Date.now(),
+        context: env || 'Unknown',
+      }
+
+      options.onLog(entry)
+    }
+  }
+
   methods.forEach((method) => {
-    logger[method] = console[method].bind(console, prefix)
+    logger[method] = log.bind(console, method)
   })
 
   logger.sub = (subPrefix: string) => {
-    return createLogger(`${prefix}${subPrefix}`)
+    return createLogger(`${prefix}${subPrefix}`, options)
   }
 
   return logger
@@ -39,4 +106,13 @@ const getEnv = () => {
   return 'Content'
 }
 
-export const Logger = createLogger(prefix).sub(`[${getEnv()}]`)
+export const Logger = createLogger(prefix, {
+  env: getEnv(),
+  onLog: (entry) => {
+    void chromeRpcClient.remoteLog(entry, { silent: true }).catch(() => {
+      // ignore errors if background is not ready
+    })
+  },
+}).sub(`[${getEnv()}]`)
+
+export const LoggerSymbol = Symbol.for('Logger')

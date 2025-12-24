@@ -1,37 +1,36 @@
 import { inject, injectable } from 'inversify'
-import { upgradeOptions } from '@/background/syncOptions/upgradeOptions'
-import { Logger } from '@/common/Logger'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
-
 import { tryCatch } from '@/common/utils/tryCatch'
-
-const tryUpgradeOptions = async () => {
-  try {
-    await upgradeOptions()
-  } catch (err) {
-    Logger.error(err)
-  }
-}
+import { UpgradeService } from './UpgradeService/UpgradeService'
 
 @injectable()
 export class OptionsManager {
+  private logger: ILogger
+
   constructor(
     @inject(ExtensionOptionsService)
     private extensionOptionsService: ExtensionOptionsService,
     @inject(DanmakuOptionsService)
-    private danmakuOptionsService: DanmakuOptionsService
-  ) {}
+    private danmakuOptionsService: DanmakuOptionsService,
+    @inject(UpgradeService)
+    private upgradeService: UpgradeService,
+    @inject(LoggerSymbol)
+    logger: ILogger
+  ) {
+    this.logger = logger.sub('[OptionsManager]')
+  }
 
   setup() {
     chrome.runtime.onInstalled.addListener(async (details) => {
-      await tryUpgradeOptions()
+      this.tryUpgradeOptions()
 
       if (details.reason === 'update') {
         await this.extensionOptionsService.update({ showReleaseNotes: true })
-        Logger.info('Danmaku Anywhere Updated')
+        this.logger.info('Danmaku Anywhere Updated')
       } else {
-        Logger.info('Danmaku Anywhere Installed')
+        this.logger.info('Danmaku Anywhere Installed')
       }
 
       if (details.reason === 'install') {
@@ -39,7 +38,7 @@ export class OptionsManager {
         void tryCatch(async () => {
           const platformInfo = await chrome.runtime.getPlatformInfo()
           if (platformInfo.os === 'android') {
-            Logger.info('Updating danmaku style for android')
+            this.logger.info('Updating danmaku style for android')
             const existing = await this.danmakuOptionsService.get()
             return this.danmakuOptionsService.update({
               style: {
@@ -56,7 +55,15 @@ export class OptionsManager {
     // configure dandanplay api on init and when options change
     chrome.runtime.onStartup.addListener(async () => {
       // Try to upgrade options on startup in case the onInstalled one failed
-      await tryUpgradeOptions()
+      await this.tryUpgradeOptions()
     })
+  }
+
+  private async tryUpgradeOptions() {
+    try {
+      await this.upgradeService.upgrade()
+    } catch (err) {
+      this.logger.error(err)
+    }
   }
 }

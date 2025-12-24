@@ -1,5 +1,5 @@
-import { injectable } from 'inversify'
-import { Logger } from '@/common/Logger'
+import { inject, injectable } from 'inversify'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 
 // these enums are not defined in Firefox, so we need to define them ourselves
 enum RuleActionType {
@@ -33,12 +33,12 @@ enum ResourceType {
   OTHER = 'other',
 }
 
-const getSelfDomain = () => {
+function getSelfDomain() {
   const url = chrome.runtime.getURL('')
   try {
     return new URL(url).host
   } catch (e) {
-    Logger.error('Failed to get self domain', e)
+    console.error('Failed to get self domain', e)
     return chrome.runtime.id
   }
 }
@@ -121,6 +121,12 @@ const rules: chrome.declarativeNetRequest.Rule[] = [
 
 @injectable('Singleton')
 export class NetRequestManager {
+  private logger: ILogger
+
+  constructor(@inject(LoggerSymbol) logger: ILogger) {
+    this.logger = logger.sub('[NetRequestManager]')
+  }
+
   setup() {
     chrome.runtime.onInstalled.addListener(async () => {
       try {
@@ -128,9 +134,9 @@ export class NetRequestManager {
           removeRuleIds: rules.map((r) => r.id),
           addRules: rules,
         })
-        Logger.debug('Updated net request dynamic rules')
+        this.logger.debug('Updated net request dynamic rules')
       } catch (e) {
-        Logger.error('Failed to update net request dynamic rules', e)
+        this.logger.error('Failed to update net request dynamic rules', e)
       }
     })
   }
