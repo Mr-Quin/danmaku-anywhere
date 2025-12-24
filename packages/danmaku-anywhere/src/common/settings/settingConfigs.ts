@@ -105,9 +105,9 @@ const playerSettings: SettingConfig<ExtensionOptions>[] = [
   },
 ]
 
-export const EXPORT_DEBUG_DATA_BUTTON: ButtonSettingConfig = {
-  id: 'button.exportDebugData',
-  label: () => i18n.t('optionsPage.exportDebugData', 'Export Debug Data'),
+export const UPLOAD_DEBUG_DATA_BUTTON: ButtonSettingConfig = {
+  id: 'button.uploadDebugData',
+  label: () => i18n.t('optionsPage.uploadDebugData', 'Upload Debug Data'),
   category: 'advanced',
   type: 'button',
   handler: async () => {

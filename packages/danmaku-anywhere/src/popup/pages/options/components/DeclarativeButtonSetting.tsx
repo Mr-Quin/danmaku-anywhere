@@ -20,8 +20,11 @@ export const DeclarativeButtonSetting = ({
 
   async function handleClick() {
     setIsLoading(true)
-    await Promise.try(config.handler)
-    setIsLoading(false)
+    try {
+      await config.handler()
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const isLoading = isLoadingState || isLoadingProp

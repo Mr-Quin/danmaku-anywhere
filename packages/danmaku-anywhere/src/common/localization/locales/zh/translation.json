@@ -331,7 +331,6 @@
       }
     },
     "enableAnalytics": "匿名数据收集",
-    "exportDebugData": "导出调试数据",
     "help": {
       "feedback": "提交意见或建议",
       "reportBug": "报告Bug"
@@ -377,7 +376,9 @@
         "light": "浅色",
         "system": "跟随系统"
       }
-    }
+    },
+    "uploadDebugData": "上传调试数据",
+    "uploadDebugDataSuccess": "上传成功"
   },
   "providers": {
     "alert": {

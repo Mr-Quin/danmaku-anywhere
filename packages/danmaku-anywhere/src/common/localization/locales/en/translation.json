@@ -344,7 +344,6 @@
       }
     },
     "enableAnalytics": "Enable anonymous analytics",
-    "exportDebugData": "Export Debug Data",
     "help": {
       "feedback": "Provide feedback",
       "reportBug": "Report Bug"
@@ -391,7 +390,9 @@
         "light": "Light",
         "system": "System"
       }
-    }
+    },
+    "uploadDebugData": "Upload Debug Data",
+    "uploadDebugDataSuccess": "Uploaded {{ id }}"
   },
   "providers": {
     "alert": {

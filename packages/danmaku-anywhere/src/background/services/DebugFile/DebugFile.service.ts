@@ -52,7 +52,7 @@ export class DebugFileService {
     )
 
     if (err2) {
-      console.error('Failed to get dynamic net request', err)
+      console.error('Failed to get dynamic net request', err2)
       ;(dynamicNetRequest as unknown) = err2.message
     }
 

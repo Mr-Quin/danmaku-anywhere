@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import {
-  EXPORT_DEBUG_DATA_BUTTON,
   settingConfigs,
+  UPLOAD_DEBUG_DATA_BUTTON,
 } from '@/common/settings/settingConfigs'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
@@ -26,7 +26,7 @@ export const AdvancedOptions = () => {
         />
       ))}
       <DeclarativeButtonSetting
-        config={EXPORT_DEBUG_DATA_BUTTON}
+        config={UPLOAD_DEBUG_DATA_BUTTON}
         isLoading={isLoading}
       />
     </OptionsPageLayout>
