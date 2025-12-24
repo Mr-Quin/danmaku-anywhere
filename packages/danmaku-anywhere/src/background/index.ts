@@ -11,7 +11,7 @@ import { generateId } from '@/background/utils/generateId'
 import { EXTENSION_VERSION } from '@/common/constants'
 import { setLogService } from './backgroundLogger'
 import { container } from './ioc'
-import { LogService } from './services/LogService'
+import { LogService } from './services/Logging/Log.service'
 
 configureApiStore({
   baseUrl: import.meta.env.VITE_PROXY_URL,

@@ -41,6 +41,10 @@
     "./config": {
       "types": "./dist/src/providers/config/index.d.ts",
       "default": "./dist/src/providers/config/index.js"
+    },
+    "./files": {
+      "types": "./dist/src/providers/files/index.d.ts",
+      "default": "./dist/src/providers/files/index.js"
     }
   },
   "scripts": {

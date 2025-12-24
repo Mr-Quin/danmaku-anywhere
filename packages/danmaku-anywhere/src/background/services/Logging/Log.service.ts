@@ -1,6 +1,6 @@
 import { inject, injectable } from 'inversify'
 import type { LogEntry } from '@/common/Logger'
-import { LogsDbService } from './LogsDbService'
+import { LogsDbService } from './LogsDb.service'
 
 const MAX_LOGS = 2000
 const DELETE_BUFFER = 100
@@ -31,13 +31,5 @@ export class LogService {
     } catch (e) {
       console.error('Failed to save log', e)
     }
-  }
-
-  async export(): Promise<LogEntry[]> {
-    return await this.logsDb.exportSorted()
-  }
-
-  async exportAndClear() {
-    await this.logsDb.clear()
   }
 }

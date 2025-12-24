@@ -4,6 +4,7 @@ import {
   ListItemButton,
   ListItemText,
 } from '@mui/material'
+import { useState } from 'react'
 import type { ButtonSettingConfig } from '@/common/settings/settingConfigs'
 
 interface DeclarativeButtonSettingProps {
@@ -13,11 +14,21 @@ interface DeclarativeButtonSettingProps {
 
 export const DeclarativeButtonSetting = ({
   config,
-  isLoading,
+  isLoading: isLoadingProp,
 }: DeclarativeButtonSettingProps) => {
+  const [isLoadingState, setIsLoading] = useState(false)
+
+  async function handleClick() {
+    setIsLoading(true)
+    await Promise.try(config.handler)
+    setIsLoading(false)
+  }
+
+  const isLoading = isLoadingState || isLoadingProp
+
   return (
     <ListItem disablePadding>
-      <ListItemButton onClick={config.onClick} disabled={isLoading}>
+      <ListItemButton onClick={handleClick} disabled={isLoading}>
         <ListItemText primary={config.label()} />
         {isLoading && <CircularProgress size={24} />}
       </ListItemButton>

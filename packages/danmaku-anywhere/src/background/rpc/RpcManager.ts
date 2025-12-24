@@ -9,7 +9,7 @@ import { ScriptingManager } from '@/background/scripting/ScriptingManager'
 import { GenAIService } from '@/background/services/GenAIService'
 import { IconService } from '@/background/services/IconService'
 import { KazumiService } from '@/background/services/KazumiService'
-import { LogService } from '@/background/services/LogService'
+import { LogService } from '@/background/services/Logging/Log.service'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
@@ -35,6 +35,7 @@ import type {
 import { relayFrameClient } from '@/common/rpcClient/controller/client'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { getOrFetchCachedImage } from '@/images/cache'
+import { DebugFileService } from '../services/DebugFile/DebugFile.service'
 import { EpisodeMatchingService } from '../services/matching/EpisodeMatchingService'
 import { ProviderService } from '../services/providers/ProviderService'
 
@@ -62,7 +63,8 @@ export class RpcManager {
     @inject(LogService) private logService: LogService,
     @inject(ScriptingManager) private scriptingManager: ScriptingManager,
     @inject(DanmakuAnywhereDb) private db: DanmakuAnywhereDb,
-    @inject(LoggerSymbol) logger: ILogger
+    @inject(LoggerSymbol) logger: ILogger,
+    @inject(DebugFileService) private debugFileService: DebugFileService
   ) {
     this.logger = logger.sub('[RpcManager]')
   }
@@ -214,7 +216,7 @@ export class RpcManager {
           void this.logService.log(data)
         },
         exportDebugData: async () => {
-          await this.logService.exportAndClear()
+          return this.debugFileService.upload()
         },
         getActiveTabUrl: async () => {
           const tabs = await chrome.tabs.query({

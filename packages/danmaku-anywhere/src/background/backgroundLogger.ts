@@ -1,5 +1,5 @@
 import { createLogger } from '@/common/Logger'
-import type { LogService } from './services/LogService'
+import type { LogService } from './services/Logging/Log.service'
 
 let logService: LogService | null = null
 

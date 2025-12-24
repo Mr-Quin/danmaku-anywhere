@@ -1,6 +1,9 @@
 import { i18n } from '@/common/localization/i18n'
+import { useToast } from '../components/Toast/toastStore'
 import type { ExtensionOptions } from '../options/extensionOptions/schema'
 import { chromeRpcClient } from '../rpcClient/background/client'
+import { copyToClipboard } from '../utils/copyToClipboard'
+import { tryCatch } from '../utils/tryCatch'
 
 // Category for UI grouping
 export type SettingCategory = 'advanced' | 'player' | 'general'
@@ -24,7 +27,7 @@ export type ToggleSettingConfig<S> = CommonSettingConfig & {
 
 export type ButtonSettingConfig = CommonSettingConfig & {
   type: 'button'
-  onClick: () => void
+  handler: () => void | Promise<void>
 }
 
 // Union type for all setting configs
@@ -107,8 +110,26 @@ export const EXPORT_DEBUG_DATA_BUTTON: ButtonSettingConfig = {
   label: () => i18n.t('optionsPage.exportDebugData', 'Export Debug Data'),
   category: 'advanced',
   type: 'button',
-  onClick: () => {
-    chromeRpcClient.exportDebugData()
+  handler: async () => {
+    const [result, error] = await tryCatch(() =>
+      chromeRpcClient.exportDebugData()
+    )
+    if (error) {
+      useToast.getState().toast.error(error.message)
+    } else {
+      useToast.getState().toast.success(
+        i18n.t('optionsPage.uploadDebugDataSuccess', 'Uploaded {{ id }}', {
+          id: result.data.id,
+        }),
+        {
+          actionFn: () => {
+            copyToClipboard(result.data.id)
+          },
+          actionLabel: i18n.t('common.copy', 'Copy'),
+          duration: 10000,
+        }
+      )
+    }
   },
 }
 
