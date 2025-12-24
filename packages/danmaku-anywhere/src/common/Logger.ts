@@ -26,8 +26,28 @@ function formatArgs(args: unknown[]) {
       return args[0]
     }
   }
-  // truncate long strings
-  return JSON.stringify(args).slice(0, 200)
+
+  try {
+    return JSON.stringify(args).slice(0, 200)
+  } catch {
+    const fallback = args
+      .map((arg) => {
+        if (typeof arg === 'string') {
+          return arg
+        }
+        if (arg instanceof Error) {
+          return arg.stack || arg.message
+        }
+        try {
+          return String(arg)
+        } catch {
+          return '[Unserializable]'
+        }
+      })
+      .join('||')
+    // truncate long strings
+    return fallback.slice(0, 200)
+  }
 }
 
 interface LoggerOptions {

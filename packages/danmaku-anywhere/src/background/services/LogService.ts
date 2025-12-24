@@ -4,6 +4,7 @@ import { LogsDbService } from './LogsDbService'
 
 const MAX_LOGS = 20000
 const DELETE_BUFFER = 100
+const PRUNE_CHECK_PROBABILITY = 0.01
 
 @injectable('Singleton')
 export class LogService {
@@ -19,7 +20,7 @@ export class LogService {
       await this.logsDb.add(entry)
 
       // loose check to avoid counting every time
-      if (Math.random() < 0.01) {
+      if (Math.random() < PRUNE_CHECK_PROBABILITY) {
         const count = await this.logsDb.count()
         if (count > MAX_LOGS) {
           // delete a bit more to avoid frequent deletes
@@ -37,18 +38,6 @@ export class LogService {
   }
 
   async exportAndClear() {
-    const logs = await this.export()
-    const jsonString = JSON.stringify(logs, null, 2)
-    // URL.createObjectURL is not available in service worker, use data uri instead
-    const url = `data:application/json;base64,${btoa(unescape(encodeURIComponent(jsonString)))}`
-    const filename = `danmaku-debug-${Date.now()}.json`
-
-    await chrome.downloads.download({
-      url,
-      filename,
-      saveAs: true,
-    })
-
     await this.logsDb.clear()
   }
 }
