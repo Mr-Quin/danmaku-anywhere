@@ -5,8 +5,7 @@ import {
 import { setRequestHeaderRule } from '@danmaku-anywhere/web-scraper'
 import { inject, injectable } from 'inversify'
 import { match } from 'ts-pattern'
-import { Logger } from '@/background/backgroundLogger'
-import { injectVideoScript } from '@/background/scripting/ScriptingManager'
+import { ScriptingManager } from '@/background/scripting/ScriptingManager'
 import { GenAIService } from '@/background/services/GenAIService'
 import { IconService } from '@/background/services/IconService'
 import { KazumiService } from '@/background/services/KazumiService'
@@ -20,6 +19,7 @@ import { TencentService } from '@/background/services/providers/tencent/TencentS
 import { invalidateContentScriptData } from '@/background/utils/invalidateContentScriptData'
 import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
 import { DanmakuAnywhereDb } from '@/common/db/db'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { MountConfigService } from '@/common/options/mountConfig/service'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import type { TabRPCClientMethod } from '@/common/rpc/client'
@@ -40,6 +40,8 @@ import { ProviderService } from '../services/providers/ProviderService'
 
 @injectable('Singleton')
 export class RpcManager {
+  private logger: ILogger
+
   constructor(
     @inject(ProviderService)
     private providerService: ProviderService,
@@ -58,8 +60,12 @@ export class RpcManager {
     @inject(EpisodeMatchingService)
     private episodeMatchingService: EpisodeMatchingService,
     @inject(LogService) private logService: LogService,
-    @inject(DanmakuAnywhereDb) private db: DanmakuAnywhereDb
-  ) {}
+    @inject(ScriptingManager) private scriptingManager: ScriptingManager,
+    @inject(DanmakuAnywhereDb) private db: DanmakuAnywhereDb,
+    @inject(LoggerSymbol) logger: ILogger
+  ) {
+    this.logger = logger.sub('[RpcManager]')
+  }
 
   setup() {
     const rpcServer = createRpcServer<BackgroundMethods>(
@@ -77,13 +83,13 @@ export class RpcManager {
           return this.episodeMatchingService.findMatchingEpisodes(data)
         },
         bilibiliSetCookies: async () => {
-          return BilibiliService.setCookies()
+          return BilibiliService.setCookies(this.logger)
         },
         bilibiliGetLoginStatus: async () => {
-          return BilibiliService.getLoginStatus()
+          return BilibiliService.getLoginStatus(this.logger)
         },
         tencentTestCookies: async () => {
-          return TencentService.testCookies()
+          return TencentService.testCookies(this.logger)
         },
         iconSet: async (data, sender) => {
           if (sender.tab?.id === undefined) {
@@ -107,7 +113,7 @@ export class RpcManager {
             })
             .exhaustive()
 
-          Logger.debug('Icon state set to:', data.state)
+          this.logger.debug('Icon state set to:', data.state)
         },
         episodeFilter: async (filter) => {
           const result = await this.danmakuService.filter(filter)
@@ -194,7 +200,7 @@ export class RpcManager {
           return sender.frameId
         },
         injectScript: async (frameId, sender) => {
-          Logger.debug('Injecting script into frame', { frameId })
+          this.logger.debug('Injecting script into frame', { frameId })
 
           if (sender.tab?.id === undefined) {
             throw new RpcException('No tab id found')
@@ -202,7 +208,7 @@ export class RpcManager {
 
           const tabId = sender.tab.id
 
-          await injectVideoScript(tabId, frameId)
+          await this.scriptingManager.injectVideoScript(tabId, frameId)
         },
         remoteLog: async (data) => {
           void this.logService.log(data)
@@ -245,7 +251,7 @@ export class RpcManager {
           return this.kazumiService.getChapters(url, policy)
         },
         genericVodSearch: async ({ baseUrl, keyword }) => {
-          return MacCmsProviderService.search(baseUrl, keyword)
+          return MacCmsProviderService.search(baseUrl, keyword, this.logger)
         },
         genericFetchDanmakuForUrl: async ({ title, url, providerConfigId }) => {
           return MacCmsProviderService.fetchDanmakuForUrl(
@@ -301,7 +307,7 @@ export class RpcManager {
         },
       },
       {
-        logger: Logger,
+        logger: this.logger,
       }
     )
 
@@ -369,7 +375,7 @@ export class RpcManager {
         ),
       },
       {
-        logger: Logger,
+        logger: this.logger,
       }
     )
 

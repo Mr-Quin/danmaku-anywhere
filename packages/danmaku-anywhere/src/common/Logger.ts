@@ -32,19 +32,10 @@ export const createLogger = (
 
   const methods: ConsoleMethod[] = ['log', 'info', 'warn', 'error', 'debug']
 
-  // bind console to preserve the original console context
-  // this is needed for the correct file and line number to be shown
-  methods.forEach((method) => {
-    logger[method] = console[method].bind(console, prefix)
-  })
+  function log(method: ConsoleMethod, ...args: unknown[]) {
+    console[method].call(console, prefix, ...args)
 
-  // Wrap methods to send logs to background
-  const originalMethods = { ...logger }
-  methods.forEach((method) => {
-    logger[method] = (...args: unknown[]) => {
-      // Always log to console
-      originalMethods[method](...args)
-
+    if (options.onLog) {
       const env = options.env
 
       const entry: LogEntry = {
@@ -59,17 +50,12 @@ export const createLogger = (
         context: env || 'Unknown',
       }
 
-      if (env !== 'Background') {
-        void chromeRpcClient.remoteLog(entry, { silent: true }).catch(() => {
-          // ignore errors if background is not ready
-        })
-      } else {
-        console.trace('Background log', entry)
-      }
-      if (options.onLog) {
-        options.onLog(entry)
-      }
+      options.onLog(entry)
     }
+  }
+
+  methods.forEach((method) => {
+    logger[method] = log.bind(console, method)
   })
 
   logger.sub = (subPrefix: string) => {
@@ -92,8 +78,13 @@ const getEnv = () => {
   return 'Content'
 }
 
-export const Logger = createLogger(prefix, { env: getEnv() }).sub(
-  `[${getEnv()}]`
-)
+export const Logger = createLogger(prefix, {
+  env: getEnv(),
+  onLog: (entry) => {
+    void chromeRpcClient.remoteLog(entry, { silent: true }).catch(() => {
+      // ignore errors if background is not ready
+    })
+  },
+}).sub(`[${getEnv()}]`)
 
 export const LoggerSymbol = Symbol.for('Logger')

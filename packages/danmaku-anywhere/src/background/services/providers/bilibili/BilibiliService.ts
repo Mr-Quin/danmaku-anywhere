@@ -8,10 +8,10 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import type { BiliBiliSearchParams } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import * as bilibili from '@danmaku-anywhere/danmaku-provider/bilibili'
-import { Logger } from '@/background/backgroundLogger'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
+import type { ILogger } from '@/common/Logger'
 import type { BuiltInBilibiliProvider } from '@/common/options/providerConfig/schema'
 import { findEpisodeByNumber } from '../common/findEpisodeByNumber'
 import type {
@@ -23,21 +23,24 @@ import type {
 import { BilibiliMapper } from './BilibiliMapper'
 
 export class BilibiliService implements IDanmakuProvider {
-  private logger: typeof Logger
+  private logger: ILogger
 
   readonly forProvider = DanmakuSourceType.Bilibili
 
-  constructor(private config: BuiltInBilibiliProvider) {
-    this.logger = Logger.sub('[BilibiliService]')
+  constructor(
+    private config: BuiltInBilibiliProvider,
+    logger: ILogger
+  ) {
+    this.logger = logger.sub('[BilibiliService]')
   }
 
-  static async setCookies() {
-    Logger.sub('[BilibiliService]').debug('Setting bilibili cookies')
+  static async setCookies(logger: ILogger) {
+    logger.sub('[BilibiliService]').debug('Setting bilibili cookies')
     await bilibili.setCookies()
   }
 
-  static async getLoginStatus() {
-    Logger.sub('[BilibiliService]').debug('Get bilibili login status')
+  static async getLoginStatus(logger: ILogger) {
+    logger.sub('[BilibiliService]').debug('Get bilibili login status')
     const result = await bilibili.getCurrentUser()
     return result
   }

@@ -8,13 +8,13 @@ import type {
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
-import { Logger } from '@/background/backgroundLogger'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import type { SeasonQueryFilter, SeasonSearchRequest } from '@/common/anime/dto'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType, isProvider } from '@/common/danmaku/utils'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
@@ -37,7 +37,7 @@ const enrichEpisode = <T extends DanmakuSourceType>(
 
 @injectable('Singleton')
 export class ProviderService {
-  private logger: typeof Logger
+  private logger: ILogger
   private parsers: IDanmakuProvider[] = []
 
   constructor(
@@ -47,13 +47,14 @@ export class ProviderService {
     @inject(ProviderConfigService)
     private providerConfigService: ProviderConfigService,
     @inject(DanmakuProviderFactory)
-    private danmakuProviderFactory: IDanmakuProviderFactory
+    private danmakuProviderFactory: IDanmakuProviderFactory,
+    @inject(LoggerSymbol) logger: ILogger
   ) {
     invariant(
       isServiceWorker(),
       'ProviderService is only available in service worker'
     )
-    this.logger = Logger.sub('[ProviderService]')
+    this.logger = logger.sub('[ProviderService]')
   }
 
   private async initParsers() {

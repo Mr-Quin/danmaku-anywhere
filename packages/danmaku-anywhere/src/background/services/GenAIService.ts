@@ -1,15 +1,14 @@
 import type { ExtractTitleResponse } from '@danmaku-anywhere/danmaku-provider/genAi'
 import { extractTitle } from '@danmaku-anywhere/danmaku-provider/genAi'
-import { injectable } from 'inversify'
-import { Logger } from '@/background/backgroundLogger'
-import type { ILogger } from '@/common/Logger'
+import { inject, injectable } from 'inversify'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 
 @injectable('Singleton')
 export class GenAIService {
   private logger: ILogger
 
-  constructor() {
-    this.logger = Logger.sub('[GenAIService]')
+  constructor(@inject(LoggerSymbol) logger: ILogger) {
+    this.logger = logger.sub('[GenAIService]')
   }
 
   async extractTitle(input: string): Promise<ExtractTitleResponse['result']> {

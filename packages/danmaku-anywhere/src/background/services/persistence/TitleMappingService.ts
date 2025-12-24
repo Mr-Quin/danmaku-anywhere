@@ -1,19 +1,22 @@
 import { inject, injectable } from 'inversify'
-import { Logger } from '@/background/backgroundLogger'
 import { DanmakuAnywhereDb } from '@/common/db/db'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 
 @injectable('Singleton')
 export class TitleMappingService {
-  private logger: typeof Logger
+  private logger: ILogger
 
-  constructor(@inject(DanmakuAnywhereDb) private db: DanmakuAnywhereDb) {
+  constructor(
+    @inject(DanmakuAnywhereDb) private db: DanmakuAnywhereDb,
+    @inject(LoggerSymbol) logger: ILogger
+  ) {
     invariant(
       isServiceWorker(),
       'TitleMappingService is only available in service worker'
     )
-    this.logger = Logger.sub('[TitleMappingService]')
+    this.logger = logger.sub('[TitleMappingService]')
   }
 
   async add(map: SeasonMap) {

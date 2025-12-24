@@ -8,10 +8,10 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import type { TencentEpisodeListItem } from '@danmaku-anywhere/danmaku-provider/tencent'
 import * as tencent from '@danmaku-anywhere/danmaku-provider/tencent'
-import { Logger } from '@/background/backgroundLogger'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
+import type { ILogger } from '@/common/Logger'
 import type { BuiltInTencentProvider } from '@/common/options/providerConfig/schema'
 import { findEpisodeByNumber } from '../common/findEpisodeByNumber'
 import type {
@@ -23,28 +23,28 @@ import type {
 import { TencentMapper } from './TencentMapper'
 
 export class TencentService implements IDanmakuProvider {
-  private logger: typeof Logger
+  private logger: ILogger
 
   readonly forProvider = DanmakuSourceType.Tencent
 
-  constructor(_config: BuiltInTencentProvider) {
-    this.logger = Logger.sub('[TencentService]')
+  constructor(_config: BuiltInTencentProvider, logger: ILogger) {
+    this.logger = logger.sub('[TencentService]')
   }
 
   // test if the cookies are working
-  static async testCookies() {
-    const logger = Logger.sub('[TencentService]')
-    logger.debug('Testing tencent cookies')
+  static async testCookies(logger: ILogger) {
+    const log = logger.sub('[TencentService]')
+    log.debug('Testing tencent cookies')
     try {
       await tencent.getPageDetails('mzc00200xf3rir6', 'i0046sewh4r')
       return true
     } catch (e) {
       if (e instanceof tencent.TencentApiException) {
         if (e.cookie) {
-          logger.debug('Request rejected because of lack of cookies', e)
+          log.debug('Request rejected because of lack of cookies', e)
         }
       } else {
-        logger.error('Test tencent cookies test failed', e)
+        log.error('Test tencent cookies test failed', e)
       }
       return false
     }

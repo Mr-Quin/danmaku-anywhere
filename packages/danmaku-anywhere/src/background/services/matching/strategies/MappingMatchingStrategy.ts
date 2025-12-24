@@ -1,9 +1,9 @@
 import type { Season } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
-import { Logger } from '@/background/backgroundLogger'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
 import type { MatchEpisodeInput, MatchEpisodeResult } from '@/common/anime/dto'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
@@ -14,7 +14,7 @@ import type { IMatchingStrategy } from './IMatchingStrategy'
 @injectable()
 export class MappingMatchingStrategy implements IMatchingStrategy {
   readonly name = 'mapping'
-  private logger = Logger.sub('[MappingMatchingStrategy]')
+  private logger: ILogger
 
   constructor(
     @inject(TitleMappingService)
@@ -23,8 +23,11 @@ export class MappingMatchingStrategy implements IMatchingStrategy {
     @inject(ProviderConfigService)
     private providerConfigService: ProviderConfigService,
     @inject(EpisodeResolutionService)
-    private episodeResolver: EpisodeResolutionService
-  ) {}
+    private episodeResolver: EpisodeResolutionService,
+    @inject(LoggerSymbol) logger: ILogger
+  ) {
+    this.logger = logger.sub('[MappingMatchingStrategy]')
+  }
 
   async match(input: MatchEpisodeInput): Promise<MatchEpisodeResult | null> {
     const { mapKey, seasonId, episodeNumber } = input

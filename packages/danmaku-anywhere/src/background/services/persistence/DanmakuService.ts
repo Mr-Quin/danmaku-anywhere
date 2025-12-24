@@ -13,7 +13,6 @@ import {
   zCombinedDanmaku,
 } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
-import { Logger } from '@/background/backgroundLogger'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import type {
   CustomEpisodeQueryFilter,
@@ -23,7 +22,7 @@ import type {
 } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { DanmakuAnywhereDb } from '@/common/db/db'
-import type { ILogger } from '@/common/Logger'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { DbEntity } from '@/common/types/dbEntity'
 import { tryCatch } from '@/common/utils/tryCatch'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
@@ -35,13 +34,14 @@ export class DanmakuService {
 
   constructor(
     @inject(SeasonService) private seasonService: SeasonService,
-    @inject(DanmakuAnywhereDb) private db: DanmakuAnywhereDb
+    @inject(DanmakuAnywhereDb) private db: DanmakuAnywhereDb,
+    @inject(LoggerSymbol) logger: ILogger
   ) {
     invariant(
       isServiceWorker(),
       'DanmakuService is only available in service worker'
     )
-    this.logger = Logger.sub('[DanmakuService]')
+    this.logger = logger.sub('[DanmakuService]')
   }
 
   async addCustom(data: CustomEpisodeInsert): Promise<CustomEpisode> {

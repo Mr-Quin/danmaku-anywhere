@@ -33,12 +33,12 @@ enum ResourceType {
   OTHER = 'other',
 }
 
-const getSelfDomain = () => {
+function getSelfDomain() {
   const url = chrome.runtime.getURL('')
   try {
     return new URL(url).host
   } catch (e) {
-    Logger.error('Failed to get self domain', e)
+    console.error('Failed to get self domain', e)
     return chrome.runtime.id
   }
 }

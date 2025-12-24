@@ -1,21 +1,26 @@
 import { inject, injectable } from 'inversify'
 import { match } from 'ts-pattern'
-import { Logger } from '@/background/backgroundLogger'
 import { ContextMenuId } from '@/background/contextMenu/contextMenuId'
 import {
   matchedConfigByTabId,
   rebuildDynamicMenus,
 } from '@/background/contextMenu/rebuildDynamicMenus'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { MountConfigService } from '@/common/options/mountConfig/service'
 
 import { tryCatch } from '@/common/utils/tryCatch'
 
 @injectable('Singleton')
 export class ContextMenuManager {
+  private logger: ILogger
+
   constructor(
     @inject(MountConfigService)
-    private mountConfigService: MountConfigService
-  ) {}
+    private mountConfigService: MountConfigService,
+    @inject(LoggerSymbol) logger: ILogger
+  ) {
+    this.logger = logger.sub('[ContextMenuManager]')
+  }
 
   setup() {
     chrome.runtime.onInstalled.addListener(async () => {
@@ -43,8 +48,7 @@ export class ContextMenuManager {
             await this.mountConfigService.createByUrl(tabUrl)
             void chrome.tabs.reload(tabId)
           } catch (e) {
-            Logger.error('Create mount config failed')
-            Logger.error(e)
+            this.logger.error('Create mount config failed', e)
           }
         })
         .with(ContextMenuId.TOGGLE_CONFIG, async () => {

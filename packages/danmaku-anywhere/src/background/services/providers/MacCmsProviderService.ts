@@ -7,10 +7,10 @@ import {
   fetchDanmuIcuComments,
   searchMacCmsVod,
 } from '@danmaku-anywhere/danmaku-provider/maccms'
-import { Logger } from '@/background/backgroundLogger'
 import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
+import type { ILogger } from '@/common/Logger'
 import type { CustomMacCmsProvider } from '@/common/options/providerConfig/schema'
 import type { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
@@ -20,12 +20,15 @@ import type {
   SeasonSearchParams,
 } from './IDanmakuProvider'
 
-const logger = Logger.sub('[MacCmsProviderService]')
-
 export class MacCmsProviderService implements IDanmakuProvider {
   readonly forProvider = DanmakuSourceType.MacCMS
+  private logger: ILogger
 
-  constructor(private config: CustomMacCmsProvider) {
+  constructor(
+    private config: CustomMacCmsProvider,
+    logger: ILogger
+  ) {
+    this.logger = logger.sub('[MacCmsProviderService]')
     invariant(
       isServiceWorker(),
       'MacCmsProviderService is only available in service worker'
@@ -35,13 +38,15 @@ export class MacCmsProviderService implements IDanmakuProvider {
   async search(params: SeasonSearchParams): Promise<CustomSeason[]> {
     return MacCmsProviderService.search(
       this.config.options.danmakuBaseUrl,
-      params.keyword
+      params.keyword,
+      this.logger
     )
   }
 
   static async search(
     baseUrl: string,
-    keyword: string
+    keyword: string,
+    logger: ILogger
   ): Promise<CustomSeason[]> {
     logger.debug('Searching for', {
       baseUrl,
