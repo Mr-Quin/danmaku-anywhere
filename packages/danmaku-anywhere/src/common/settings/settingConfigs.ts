@@ -107,7 +107,7 @@ const playerSettings: SettingConfig<ExtensionOptions>[] = [
 
 export const UPLOAD_DEBUG_DATA_BUTTON: ButtonSettingConfig = {
   id: 'button.uploadDebugData',
-  label: () => i18n.t('optionsPage.uploadDebugData', 'Upload Debug Data'),
+  label: () => i18n.t('optionsPage.uploadDebugData', 'Submit Debug Data'),
   category: 'advanced',
   type: 'button',
   handler: async () => {
@@ -118,7 +118,7 @@ export const UPLOAD_DEBUG_DATA_BUTTON: ButtonSettingConfig = {
       useToast.getState().toast.error(error.message)
     } else {
       useToast.getState().toast.success(
-        i18n.t('optionsPage.uploadDebugDataSuccess', 'Uploaded {{ id }}', {
+        i18n.t('optionsPage.uploadDebugDataSuccess', 'Submitted {{ id }}', {
           id: result.data.id,
         }),
         {

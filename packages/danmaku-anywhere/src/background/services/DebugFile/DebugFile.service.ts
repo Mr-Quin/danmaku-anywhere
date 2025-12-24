@@ -2,19 +2,34 @@ import { uploadFile } from '@danmaku-anywhere/danmaku-provider/files'
 import { inject, injectable } from 'inversify'
 import JSZip from 'jszip'
 import { NetRequestManager } from '@/background/netRequest/NetrequestManager'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
+import { IntegrationPolicyService } from '@/common/options/integrationPolicyStore/service'
+import { MountConfigService } from '@/common/options/mountConfig/service'
+import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { tryCatch } from '@/common/utils/tryCatch'
 import { LogsDbService } from '../Logging/LogsDb.service'
 
 interface DebugData {
   logs: unknown
   dynamicNetRequest: unknown
+  providerConfigs: unknown
+  extensionOptions: unknown
+  mountConfigs: unknown
+  integrationPolicies: unknown
 }
 
 @injectable('Singleton')
 export class DebugFileService {
   constructor(
     @inject(LogsDbService) private logsDb: LogsDbService,
-    @inject(NetRequestManager) private netRequestManager: NetRequestManager
+    @inject(NetRequestManager) private netRequestManager: NetRequestManager,
+    @inject(ProviderConfigService)
+    private providerConfigService: ProviderConfigService,
+    @inject(ExtensionOptionsService)
+    private extensionOptionsService: ExtensionOptionsService,
+    @inject(MountConfigService) private mountConfigService: MountConfigService,
+    @inject(IntegrationPolicyService)
+    private integrationPolicyService: IntegrationPolicyService
   ) {}
 
   async clear() {
@@ -22,7 +37,7 @@ export class DebugFileService {
   }
 
   async upload(): Promise<{ id: string }> {
-    const data = await this.getData()
+    const data = await this.collectData()
 
     const content = JSON.stringify(data)
     const zip = new JSZip()
@@ -39,26 +54,47 @@ export class DebugFileService {
     return res
   }
 
-  private async getData(): Promise<DebugData> {
-    let [logs, err] = await tryCatch(() => this.logsDb.exportSorted())
+  private async collectData(): Promise<DebugData> {
+    const getters: { key: keyof DebugData; getter: () => Promise<unknown> }[] =
+      [
+        {
+          key: 'logs',
+          getter: () => this.logsDb.exportSorted(),
+        },
+        {
+          key: 'dynamicNetRequest',
+          getter: () => this.netRequestManager.getRules(),
+        },
+        {
+          key: 'providerConfigs',
+          getter: () => this.providerConfigService.getAll(),
+        },
+        {
+          key: 'extensionOptions',
+          getter: () => this.extensionOptionsService.get(),
+        },
+        {
+          key: 'mountConfigs',
+          getter: () => this.mountConfigService.getAll(),
+        },
+        {
+          key: 'integrationPolicies',
+          getter: () => this.integrationPolicyService.getAll(),
+        },
+      ]
 
-    if (err) {
-      console.error('Failed to get logs', err)
-      ;(logs as unknown) = err.message
+    const data = {} as DebugData
+
+    for (const { key, getter } of getters) {
+      const [res, err] = await tryCatch(() => getter())
+      if (err) {
+        console.error('Failed to get logs', key, err)
+        data[key] = err.message
+      } else {
+        data[key] = res
+      }
     }
 
-    let [dynamicNetRequest, err2] = await tryCatch(() =>
-      this.netRequestManager.getRules()
-    )
-
-    if (err2) {
-      console.error('Failed to get dynamic net request', err2)
-      ;(dynamicNetRequest as unknown) = err2.message
-    }
-
-    return {
-      logs,
-      dynamicNetRequest,
-    }
+    return data
   }
 }

@@ -391,8 +391,8 @@
         "system": "System"
       }
     },
-    "uploadDebugData": "Upload Debug Data",
-    "uploadDebugDataSuccess": "Uploaded {{ id }}"
+    "uploadDebugData": "Submit Debug Data",
+    "uploadDebugDataSuccess": "Submitted {{ id }}"
   },
   "providers": {
     "alert": {

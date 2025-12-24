@@ -377,8 +377,8 @@
         "system": "跟随系统"
       }
     },
-    "uploadDebugData": "上传调试数据",
-    "uploadDebugDataSuccess": "上传成功 {{ id }}"
+    "uploadDebugData": "提交调试数据",
+    "uploadDebugDataSuccess": "提交成功 {{ id }}"
   },
   "providers": {
     "alert": {
