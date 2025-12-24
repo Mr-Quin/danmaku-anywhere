@@ -331,6 +331,7 @@
       }
     },
     "enableAnalytics": "匿名数据收集",
+    "exportDebugData": "导出调试数据",
     "help": {
       "feedback": "提交意见或建议",
       "reportBug": "报告Bug"
