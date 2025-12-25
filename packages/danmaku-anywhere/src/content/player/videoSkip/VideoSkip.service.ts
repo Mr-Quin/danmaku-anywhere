@@ -98,11 +98,15 @@ export class VideoSkipService {
     const currentTime = video.currentTime
 
     for (const target of this.jumpTargets) {
-      if (!target.shown && target.isInRange(currentTime)) {
+      if (
+        !target.isShown() &&
+        !target.isClosed() &&
+        target.isInRange(currentTime)
+      ) {
         // show the skip button when we are in its range
         this.showSkipButton(target)
       } else if (
-        target.shown &&
+        target.isShown() &&
         this.activeButton !== null &&
         !target.isInRange(currentTime)
       ) {
@@ -116,7 +120,7 @@ export class VideoSkipService {
     // reset shown status after seeking
     this.removeSkipButton()
     this.jumpTargets.forEach((target: SkipTarget) => {
-      target.shown = false
+      target.hide()
     })
   }
 
@@ -138,13 +142,14 @@ export class VideoSkipService {
           this.removeSkipButton()
         },
         onClose: () => {
+          target.close()
           this.removeSkipButton()
         },
       })
     )
 
     this.activeButton = { node: mountNode, root }
-    target.shown = true
+    target.show()
   }
 
   private jumpToTime(targetTime: number) {

@@ -36,13 +36,33 @@ describe('parseCommentsForJumpTargets', () => {
 
       expect(result).toHaveLength(4)
 
-      expect(result[0]).toEqual({ startTime: 60, endTime: 180, shown: false })
+      expect(result[0]).toEqual({
+        startTime: 60,
+        endTime: 180,
+        closed: false,
+        shown: false,
+      })
 
-      expect(result[1]).toEqual({ startTime: 300, endTime: 330, shown: false })
+      expect(result[1]).toEqual({
+        startTime: 300,
+        endTime: 330,
+        closed: false,
+        shown: false,
+      })
 
-      expect(result[2]).toEqual({ startTime: 350, endTime: 359, shown: false })
+      expect(result[2]).toEqual({
+        startTime: 350,
+        endTime: 359,
+        closed: false,
+        shown: false,
+      })
 
-      expect(result[3]).toEqual({ startTime: 600, endTime: 630, shown: false })
+      expect(result[3]).toEqual({
+        startTime: 600,
+        endTime: 630,
+        closed: false,
+        shown: false,
+      })
     })
 
     it('should handle empty comments array', () => {
