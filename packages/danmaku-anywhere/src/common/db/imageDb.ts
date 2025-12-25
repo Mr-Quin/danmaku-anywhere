@@ -28,12 +28,8 @@ export class DanmakuAnywhereImageDb extends Dexie {
         image: 'src, timeUpdated, lastAccessed',
       })
       .upgrade(async (tx) => {
-        await tx
-          .table('image')
-          .toCollection()
-          .modify((item) => {
-            item.lastAccessed = item.timeUpdated
-          })
+        // wipe all data
+        await tx.table('image').clear()
       })
 
     this.open()
