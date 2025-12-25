@@ -65,7 +65,7 @@ export class ImageCacheService {
 
   private async touch(record: ImageCacheRecord) {
     const now = Date.now()
-    // only touch if it's been at least TOUCH_INTERVAL_MS since last touch
+    // only touch if it's been at least TOUCH_INTERVAL since last touch
     if (now - record.lastAccessed < TOUCH_INTERVAL) {
       return
     }

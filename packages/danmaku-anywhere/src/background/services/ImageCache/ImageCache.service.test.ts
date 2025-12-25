@@ -99,10 +99,9 @@ describe('ImageCacheService', () => {
     // trigger a put
     mockDbService.get.mockResolvedValue(undefined)
 
-    // since prune probability is 10%, we run it 100 times to ensure it prunes
-    for (let i = 0; i < 100; i++) {
-      await service.getOrFetch('http://example.com/new.png')
-    }
+    // since prune is probabilistic, we mock Math.random to ensure it prunes
+    vi.spyOn(Math, 'random').mockReturnValue(0.05)
+    await service.getOrFetch('http://example.com/new.png')
 
     expect(mockDbService.count).toHaveBeenCalled()
     expect(mockDbService.pruneOldest).toHaveBeenCalledWith(1)
