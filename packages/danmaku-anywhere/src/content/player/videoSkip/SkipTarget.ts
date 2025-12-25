@@ -3,9 +3,9 @@ export class SkipTarget {
   public startTime: number
   // time to jump to
   public endTime: number
-  public shown = false
-  // the skip button is explicitly closed
-  public closed = false
+
+  private shown = false
+  private closed = false
 
   constructor(opts: {
     startTime: number
@@ -13,6 +13,14 @@ export class SkipTarget {
   }) {
     this.startTime = Math.min(opts.startTime, opts.endTime)
     this.endTime = Math.max(opts.startTime, opts.endTime)
+  }
+
+  isShown(): boolean {
+    return this.shown
+  }
+
+  isClosed(): boolean {
+    return this.closed
   }
 
   // test if time is between the target's start time and end time
@@ -34,5 +42,17 @@ export class SkipTarget {
 
     this.startTime = startTime
     this.endTime = endTime
+  }
+
+  show() {
+    this.shown = true
+  }
+
+  hide() {
+    this.shown = false
+  }
+
+  close() {
+    this.closed = true
   }
 }
