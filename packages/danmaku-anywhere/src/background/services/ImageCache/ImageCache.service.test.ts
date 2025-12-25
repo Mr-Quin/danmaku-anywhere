@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ImageCacheService } from './ImageCache.service'
 import type { ImageDbService } from './ImageDb.service'
 
-// Mock globals
 global.fetch = vi.fn()
 global.FileReader = class {
   readAsDataURL() {
@@ -28,7 +27,6 @@ describe('ImageCacheService', () => {
 
     service = new ImageCacheService(mockDbService)
 
-    // Reset fetch mock
     vi.mocked(global.fetch).mockReset()
     vi.mocked(global.fetch).mockResolvedValue({
       blob: () => Promise.resolve(new Blob(['mock'])),
@@ -55,7 +53,7 @@ describe('ImageCacheService', () => {
       src: 'http://example.com/image.png',
       blob: new Blob(['cached']),
       timeUpdated: Date.now(),
-      lastAccessed: Date.now(),
+      lastAccessed: Date.now() - 10 * 60 * 1000,
     })
 
     const result = await service.getOrFetch('http://example.com/image.png')
@@ -86,29 +84,27 @@ describe('ImageCacheService', () => {
 
     const result = await service.getOrFetch('http://example.com/image.png')
 
-    // Should return cached immediately
     expect(result).toBe('data:image/png;base64,mock')
 
-    // But trigger background refresh
-    // Wait for promise queue
     await new Promise((resolve) => setTimeout(resolve, 0))
 
     expect(global.fetch).toHaveBeenCalled()
-    // Depending on logic, it might update if blob changed
-    // Here logic checks size/type. 'cached' vs 'new' string blobs might have diff size/type or not
-    // Blob(['cached']).size = 6, Blob(['new']).size = 3
+
     expect(mockDbService.put).toHaveBeenCalled()
   })
 
   it('should prune if capacity exceeded', async () => {
-    mockDbService.count.mockResolvedValue(501)
+    mockDbService.count.mockResolvedValue(513)
 
-    // trigger a put (via fetchAndCacheImage)
+    // trigger a put
     mockDbService.get.mockResolvedValue(undefined)
-    await service.getOrFetch('http://example.com/new.png')
+
+    // since prune probability is 10%, we run it 100 times to ensure it prunes
+    for (let i = 0; i < 100; i++) {
+      await service.getOrFetch('http://example.com/new.png')
+    }
 
     expect(mockDbService.count).toHaveBeenCalled()
-    // 501 - 500 = 1 to delete
     expect(mockDbService.pruneOldest).toHaveBeenCalledWith(1)
   })
 })

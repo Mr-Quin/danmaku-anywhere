@@ -3,10 +3,10 @@ import { ImageDbService } from '@/background/services/ImageCache/ImageDb.service
 import type { ImageFetchOptions } from '@/common/components/image/types'
 import type { ImageCacheRecord } from '@/common/db/imageDb'
 
-const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000
+const REFETCH_INTERVAL = 7 * 24 * 60 * 60 * 1000 // 7 days
 const CACHE_CAPACITY = 512
 const PRUNE_PROBABILITY = 0.1
-const TOUCH_INTERVAL_MS = 10 * 60 * 1000 // 10 minutes
+const TOUCH_INTERVAL = 10 * 60 * 1000 // 10 minutes
 
 @injectable()
 export class ImageCacheService {
@@ -28,7 +28,7 @@ export class ImageCacheService {
     if (cached) {
       void this.touch(cached)
 
-      const isStale = Date.now() - cached.timeUpdated > ONE_WEEK_MS
+      const isStale = Date.now() - cached.timeUpdated > REFETCH_INTERVAL
 
       if (isStale) {
         void this.refreshImageInBackground(src, cached)
@@ -66,7 +66,7 @@ export class ImageCacheService {
   private async touch(record: ImageCacheRecord) {
     const now = Date.now()
     // only touch if it's been at least TOUCH_INTERVAL_MS since last touch
-    if (now - record.lastAccessed < TOUCH_INTERVAL_MS) {
+    if (now - record.lastAccessed < TOUCH_INTERVAL) {
       return
     }
     await this.imageDb.update(record.src, { lastAccessed: now })
@@ -78,6 +78,7 @@ export class ImageCacheService {
   ) {
     try {
       const blob = await this.fetchImageBlob(src)
+
       if (!previous) {
         await this.setCachedImage(src, blob)
         return
