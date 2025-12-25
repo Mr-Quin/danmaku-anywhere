@@ -4,6 +4,8 @@ export class SkipTarget {
   // time to jump to
   public endTime: number
   public shown = false
+  // the skip button is explicitly closed
+  public closed = false
 
   constructor(opts: {
     startTime: number

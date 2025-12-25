@@ -98,7 +98,7 @@ export class VideoSkipService {
     const currentTime = video.currentTime
 
     for (const target of this.jumpTargets) {
-      if (!target.shown && target.isInRange(currentTime)) {
+      if (!target.shown && !target.closed && target.isInRange(currentTime)) {
         // show the skip button when we are in its range
         this.showSkipButton(target)
       } else if (
@@ -138,6 +138,7 @@ export class VideoSkipService {
           this.removeSkipButton()
         },
         onClose: () => {
+          target.closed = true
           this.removeSkipButton()
         },
       })
