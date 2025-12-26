@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@danmaku-anywhere/danmaku-converter": "workspace:*",
-    "@mr-quin/danmu": "0.19.0"
+    "@mr-quin/danmu": "0.19.0-rc1"
   },
   "devDependencies": {
     "vitest": "^4.0.13"
