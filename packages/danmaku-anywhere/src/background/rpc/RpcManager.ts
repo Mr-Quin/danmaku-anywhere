@@ -8,6 +8,7 @@ import { match } from 'ts-pattern'
 import { ScriptingManager } from '@/background/scripting/ScriptingManager'
 import { GenAIService } from '@/background/services/GenAIService'
 import { IconService } from '@/background/services/IconService'
+import { ImageCacheService } from '@/background/services/ImageCache/ImageCache.service'
 import { KazumiService } from '@/background/services/KazumiService'
 import { LogService } from '@/background/services/Logging/Log.service'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
@@ -34,7 +35,6 @@ import type {
 } from '@/common/rpcClient/background/types'
 import { relayFrameClient } from '@/common/rpcClient/controller/client'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
-import { getOrFetchCachedImage } from '@/images/cache'
 import { DebugFileService } from '../services/DebugFile/DebugFile.service'
 import { EpisodeMatchingService } from '../services/matching/EpisodeMatchingService'
 import { ProviderService } from '../services/providers/ProviderService'
@@ -64,7 +64,8 @@ export class RpcManager {
     @inject(ScriptingManager) private scriptingManager: ScriptingManager,
     @inject(DanmakuAnywhereDb) private db: DanmakuAnywhereDb,
     @inject(LoggerSymbol) logger: ILogger,
-    @inject(DebugFileService) private debugFileService: DebugFileService
+    @inject(DebugFileService) private debugFileService: DebugFileService,
+    @inject(ImageCacheService) private imageCacheService: ImageCacheService
   ) {
     this.logger = logger.sub('[RpcManager]')
   }
@@ -243,8 +244,8 @@ export class RpcManager {
         getPlatformInfo: async () => {
           return chrome.runtime.getPlatformInfo()
         },
-        fetchImage: async ({ src, options }) => {
-          return getOrFetchCachedImage(src, options)
+        fetchImage: async ({ src }) => {
+          return this.imageCacheService.get(src)
         },
         kazumiSearchContent: async ({ keyword, policy }) => {
           return this.kazumiService.searchContent(keyword, policy)
