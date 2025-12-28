@@ -67,6 +67,10 @@ export const Options = () => {
         <List disablePadding>
           <LanguageListItem />
           <OptionsListItem
+            title={t('optionsPage.pages.aiProviders', 'AI Providers')}
+            onClick={() => navigate('/ai-providers')}
+          />
+          <OptionsListItem
             title={t('optionsPage.pages.retentionPolicy', 'Retention Policy')}
             onClick={() => navigate('retention-policy')}
           />

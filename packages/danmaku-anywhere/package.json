@@ -29,6 +29,8 @@
     "i18n:check": "i18next-cli extract --ci"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^3.0.1",
+    "@ai-sdk/openai-compatible": "^2.0.1",
     "@danmaku-anywhere/danmaku-converter": "workspace:*",
     "@danmaku-anywhere/danmaku-engine": "workspace:*",
     "@danmaku-anywhere/danmaku-provider": "workspace:*",
@@ -52,6 +54,7 @@
     "@tanstack/react-query-devtools": "^5.91.0",
     "@tanstack/react-virtual": "^3.13.12",
     "@use-gesture/react": "^10.3.1",
+    "ai": "^6.0.3",
     "clarity-js": "^0.8.41",
     "core-js": "^3.47.0",
     "d3": "^7.9.0",

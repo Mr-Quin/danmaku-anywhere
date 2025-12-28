@@ -16,6 +16,7 @@ import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
 import { useStore } from '@/content/controller/store/store'
+import { AiSettingsForm } from './AiSettingsForm'
 
 interface StepData {
   label: string
@@ -110,6 +111,12 @@ export const MatchingSteps = () => {
       completed: isAiMode,
       error: !isAiMode,
       description: t('integration.steps.enableAiPass', 'AI is enabled'),
+      renderContent: () => {
+        if (activeIntegration && isAiMode) {
+          return <AiSettingsForm policy={activeIntegration} />
+        }
+        return null
+      },
     }
 
     const configPermissiveStep = {

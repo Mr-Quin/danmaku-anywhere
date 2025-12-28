@@ -100,7 +100,17 @@ export type BackgroundMethods = {
   genericVodSearch: RPCDef<GenericVodSearchData, CustomSeason[]>
   genericFetchDanmakuForUrl: RPCDef<MacCMSFetchData, CustomEpisode>
   setHeaders: RPCDef<SetHeaderRule, void>
-  extractTitle: RPCDef<string, ExtractTitleResponse['result']>
+  extractTitle: RPCDef<
+    {
+      text: string
+      options?: {
+        providerId?: string
+        maxInputLength?: number
+        prompt?: string
+      }
+    },
+    ExtractTitleResponse['result']
+  >
   openPopupInNewWindow: RPCDef<string, void>
   getConfigMacCms: RPCDef<{ force?: boolean } | void, BaseUrlConfig>
   getConfigDanmuIcu: RPCDef<{ force?: boolean } | void, BaseUrlConfig>

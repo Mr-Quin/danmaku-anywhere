@@ -12,7 +12,7 @@ export class ObserverFactory {
   ): MediaObserver {
     switch (mode) {
       case 'ai':
-        return new AiIntegrationObserver()
+        return new AiIntegrationObserver(policy)
       case 'xpath':
         return new XPathIntegrationObserver(policy)
       case 'manual':

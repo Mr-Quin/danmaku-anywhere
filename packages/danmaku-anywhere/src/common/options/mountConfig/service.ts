@@ -15,6 +15,7 @@ import {
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import type { PrevOptions } from '@/common/options/OptionsService/types'
 import { getRandomUUID } from '@/common/utils/utils'
+import { BUILT_IN_AI_PROVIDER_ID } from '../aiProviderConfig/constant'
 import { migrateMountConfigV4V5 } from './migrations/migrateMountConfigV4V5'
 
 @injectable('Singleton')
@@ -68,7 +69,19 @@ export class MountConfigService implements IStoreService {
           ),
       })
       .version(5, {
+        // Add automation mode, either manual, xpath, or ai
         upgrade: (data, context) => migrateMountConfigV4V5(data, context),
+      })
+      .version(6, {
+        // add ai config
+        upgrade: (data) => {
+          return data.map((config: PrevOptions) => ({
+            ...config,
+            ai: {
+              providerId: BUILT_IN_AI_PROVIDER_ID,
+            },
+          }))
+        },
       })
   }
 

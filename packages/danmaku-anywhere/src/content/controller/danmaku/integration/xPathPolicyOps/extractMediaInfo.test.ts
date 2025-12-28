@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { BUILT_IN_AI_PROVIDER_ID } from '@/common/options/aiProviderConfig/constant'
 import type { IntegrationPolicy } from '@/common/options/integrationPolicyStore/schema'
 import { extractMediaInfo } from './extractMediaInfo'
 
@@ -38,10 +39,8 @@ function mockPolicy(
 ): IntegrationPolicy {
   return {
     options: {
-      titleOnly: false,
-      useAI: false,
-      dandanplay: {
-        useMatchApi: false,
+      ai: {
+        providerId: BUILT_IN_AI_PROVIDER_ID,
       },
     },
     title: { regex: [], selector: [] }, // regex now array

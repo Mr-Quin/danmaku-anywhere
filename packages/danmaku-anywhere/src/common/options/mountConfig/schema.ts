@@ -9,6 +9,12 @@ export const automationModeSchema = z
 
 export type AutomationMode = z.infer<typeof automationModeSchema>
 
+const zIntegrationAiConfig = z.object({
+  providerId: z.string(),
+  maxInputLength: z.number().optional(),
+  prompt: z.string().optional(),
+})
+
 export const mountConfigInputSchema = z.object({
   id: z.string().uuid().optional().default(getRandomUUID()),
   author: z.string().optional(),
@@ -48,6 +54,7 @@ export const mountConfigInputSchema = z.object({
    * The integration to associate with the config
    */
   integration: z.string().optional(),
+  ai: zIntegrationAiConfig,
 })
 
 export const mountConfigInputListSchema = z.array(mountConfigInputSchema)
