@@ -143,6 +143,12 @@ export class DanmakuRenderer {
       plugin: {
         init: bindVideo(this.media, parsedComments, () => this.config),
         $createNode: (danmaku, node) => {
+          // font size and family are set here because it needs to be set BEFORE
+          // size is calculated
+          // Setting it using manager.setStyle applies the style AFTER size is calculated so it's too late
+          node.style.fontSize = `${this.config.style.fontSize}px`
+          node.style.fontFamily = this.config.style.fontFamily
+
           this.render(node, {
             text: danmaku.data.text,
             styles: { ...danmaku.data.style },
@@ -203,8 +209,6 @@ export class DanmakuRenderer {
       rate: this.config.speed / 2,
     })
     this.manager.setStyle('opacity', this.config.style.opacity.toString())
-    this.manager.setStyle('fontSize', `${this.config.style.fontSize}px`)
-    this.manager.setStyle('fontFamily', this.config.style.fontFamily)
     this.manager.setStyle('pointerEvents', 'none')
   }
 
