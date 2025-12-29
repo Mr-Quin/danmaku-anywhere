@@ -45,7 +45,7 @@
     - B站
     - 腾讯
     - MacCMS (Vod)
-    - 兼容弹弹Play API的服务，如[danmu-api](https://github.com/huangxd-/danmu_api)
+    - 兼容弹弹Play API的服务，如[danmu_api](https://github.com/huangxd-/danmu_api)
 - **手动导入**：支持手动导入本地弹幕文件 (`.xml` 格式)
 - **自动匹配**：可自定义匹配规则，或使用AI匹配功能
     - 根据播放的视频，自动搜索弹幕
@@ -127,4 +127,4 @@ YouTube
 
 本项目的每个包都有自己的许可证。基本上，除了**danmaku-anywhere**扩展为AGPL，其他包都是MIT许可证。
 
-详情请查看[许可证](LICENSES)
+详情请查看[许可证](LICENSE)
