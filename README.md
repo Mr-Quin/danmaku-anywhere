@@ -31,13 +31,13 @@
 
 ## 目录
 
-- [快速开始](#-快速开始)
-- [下载安装](#-下载安装)
+- [快速开始](#quick-start)
+- [下载安装](#installation)
 - [功能特性](#extension)
-- [开发计划](#-开发计划)
+- [开发计划](#roadmap)
 - [Web 应用](#app)
-- [参与开发](#-参与开发)
-- [许可证](#-许可证)
+- [参与开发](#contributing)
+- [许可证](#license)
 
 <a id="quick-start"></a>
 
@@ -158,7 +158,7 @@
 
 ### 吳都行
 
-### 猫与白月（[B站](https://space.bilibili.com/220694183)）
+### 猫与白月（[B 站](https://space.bilibili.com/220694183)）
 
 <a id="license"></a>
 
