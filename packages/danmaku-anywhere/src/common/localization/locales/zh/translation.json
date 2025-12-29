@@ -459,6 +459,7 @@
     "allowOverlap": "允许重叠",
     "distribution": "弹幕分布",
     "font": "字体",
+    "interval": "发射间隔",
     "maxOnScreen": "最大同屏弹幕数",
     "name": "弹幕设置",
     "offset": "时间轴（毫秒）",
@@ -479,17 +480,16 @@
     "tooltip": {
       "allowOverlap": "允许滚动弹幕重叠，不影响顶部/底部弹幕",
       "distribution": "均匀：弹幕将均匀地填充屏幕。顺序：弹幕将从上到下填充屏幕",
+      "interval": "值越小弹幕越密集。过低可能导致卡顿。",
       "maxOnScreen": "屏幕上显示的弹幕数量不超过此值。超过此值的弹幕将被丢弃。",
       "offset": "弹幕出现的时间位移。 正值使弹幕延后出现，负值使弹幕提前出现。",
-      "interval": "值越小弹幕越密集。过低可能导致卡顿。",
       "safeZone": {
         "y": "Y轴（上下）的显示范围"
       },
       "specialDanmaku": "关闭后，将以普通滚动弹幕的形式显示",
       "trackHeight": "行高越高，弹幕之间的间距越大"
     },
-    "trackHeight": "弹幕行高",
-    "interval": "发射间隔"
+    "trackHeight": "弹幕行高"
   },
   "tabs": {
     "config": "装填配置",
