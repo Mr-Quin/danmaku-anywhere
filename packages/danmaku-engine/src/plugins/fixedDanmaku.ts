@@ -157,8 +157,8 @@ export const useFixedDanmaku = (manager: Manager<ParsedComment>) => {
         }
 
         return {
-          x: (container.width - danmaku.getWidth()) * 0.5,
-          y: track.location.middle - danmaku.getHeight() * 0.5,
+          x: (container.width - width) * 0.5,
+          y: track.location.middle - height * 0.5,
         }
       },
       plugin: {
