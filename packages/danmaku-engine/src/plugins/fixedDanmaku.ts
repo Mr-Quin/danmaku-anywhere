@@ -1,4 +1,9 @@
-import type { Manager, ManagerPlugin, PushFlexOptions } from '@mr-quin/danmu'
+import type {
+  Danmaku,
+  Manager,
+  ManagerPlugin,
+  PushFlexOptions,
+} from '@mr-quin/danmu'
 import type { ParsedComment } from '../parser'
 
 type Placement = 'top' | 'bottom'
@@ -92,6 +97,32 @@ class DanmakuStack {
   }
 }
 
+function waitForDimensions(
+  danmaku: Danmaku<ParsedComment>,
+  x: number,
+  y: number,
+  depth = 0
+) {
+  if (depth > 10) {
+    return
+  }
+
+  const width = danmaku.getWidth()
+  const height = danmaku.getHeight()
+
+  if (width === 0 || height === 0) {
+    requestAnimationFrame(() => {
+      waitForDimensions(danmaku, x, y, depth + 1)
+    })
+    return
+  }
+
+  danmaku._updatePosition({
+    x: (x - danmaku.getWidth()) * 0.5,
+    y: y - danmaku.getHeight() * 0.5,
+  })
+}
+
 export const useFixedDanmaku = (manager: Manager<ParsedComment>) => {
   const trackCount = manager.trackCount
   const stack = new DanmakuStack(trackCount)
@@ -100,13 +131,34 @@ export const useFixedDanmaku = (manager: Manager<ParsedComment>) => {
     placement: Placement
   ): PushFlexOptions<ParsedComment> => {
     const slot = stack.push(placement)
+
     return {
       position(danmaku, container) {
+        const width = danmaku.getWidth()
+        const height = danmaku.getHeight()
+
         const track = manager.getTrack(slot)
 
+        // TODO: maybe fix dimensions on the library side
+        /**
+         * Sometimes the dimensions are not available yet in this callback (returns 0, 0),
+         * in such cases we wait for the dimensions to be available by
+         * repeated checking for the dimensions. Typically the dimension will be available
+         * after a few frames.
+         * We hide the danmaku in the meantime by positioning it off-screen
+         */
+        if (width === 0 || height === 0) {
+          waitForDimensions(danmaku, container.width, track.location.middle)
+
+          return {
+            x: container.width,
+            y: container.height,
+          }
+        }
+
         return {
-          x: (container.width - danmaku.getWidth()) * 0.5,
-          y: track.location.middle - danmaku.getHeight() * 0.5,
+          x: (container.width - width) * 0.5,
+          y: track.location.middle - height * 0.5,
         }
       },
       plugin: {

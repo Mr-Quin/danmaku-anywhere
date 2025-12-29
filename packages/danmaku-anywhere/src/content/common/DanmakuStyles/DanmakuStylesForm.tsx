@@ -111,6 +111,21 @@ const safeZoneMarks = [
   },
 ]
 
+const intervalMarks = [
+  {
+    value: 10,
+    label: '10ms',
+  },
+  {
+    value: 500,
+    label: '500ms',
+  },
+  {
+    value: 1000,
+    label: '1000ms',
+  },
+]
+
 const opacityValueLabelFormat = (value: number) => `${value * 100}%`
 
 const fontSizeValueLabelFormat = (value: number) => `${value}px`
@@ -452,6 +467,28 @@ export const DanmakuStylesForm = ({
               marks={maxOnScreenMarks}
               size="small"
               valueLabelDisplay="auto"
+            />
+          )}
+        />
+        <Controller
+          name="interval"
+          control={control}
+          render={({ field }) => (
+            <LabeledSlider
+              label={t('stylePage.interval', 'Emission Interval')}
+              tooltip={t(
+                'stylePage.tooltip.interval',
+                'Lower value means more densely packed danmaku. May cause performance issues if set too low.'
+              )}
+              value={field.value}
+              onChange={(_e, newValue) => field.onChange(newValue as number)}
+              step={10}
+              min={10}
+              max={1000}
+              marks={intervalMarks}
+              size="small"
+              valueLabelDisplay="auto"
+              valueLabelFormat={(value) => `${value}ms`}
             />
           )}
         />
