@@ -9,7 +9,7 @@ describe('commentsToXml', () => {
       { p: '368.132,1,16777215', m: '谁懂这一抱啊啊啊啊' },
       { p: '10.5,5,16777215', m: 'Top comment' },
       { p: '368,1,16777215', m: 'int time' },
-      { p: '368,1,16777215,123456789', m: 'uid' },
+      { p: '372,1,16777215,123456789', m: 'uid' },
     ]
 
     const result = commentsToXml(comments)
@@ -23,15 +23,16 @@ describe('commentsToXml', () => {
     )
     expect(result).toContain('<d p="10,5,25,16777215,0,0,0,0">Top comment</d>')
     expect(result).toContain('<d p="368,1,25,16777215,0,0,0,0">int time</d>')
-    expect(result).toContain('<d p="368,1,25,16777215,123456789,0,0,0">uid</d>')
+    expect(result).toContain('<d p="372,1,25,16777215,123456789,0,0,0">uid</d>')
 
+    // parse back to comments
     const parsed = await zGenericXml.parseAsync(result)
 
     expect(parsed).toHaveLength(5)
     // the last comment should match the original, the uid is stripped
     expect(parsed[4]).toMatchObject({
       m: comments[4].m,
-      p: '368,1,25,16777215',
+      p: '372,1,16777215',
     })
   })
 
