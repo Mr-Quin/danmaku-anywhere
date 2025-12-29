@@ -24,11 +24,20 @@ export const commentsToXml = (comments: CommentEntity[]) => {
         const pParts = comment.p.split(',')
         const [time, mode, color, ...rest] = pParts
 
+        const uid = rest[0] || '0'
+
         return {
           _attributes: {
-            p: [Number.parseInt(time, 10), mode, '25', color, ...rest].join(
-              ','
-            ),
+            p: [
+              Number.parseInt(time, 10),
+              mode,
+              '25',
+              color,
+              uid,
+              '0',
+              '0',
+              '0',
+            ].join(','),
           },
           _text: comment.m,
         }
