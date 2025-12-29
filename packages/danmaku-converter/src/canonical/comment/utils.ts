@@ -3,7 +3,7 @@ import type { CommentOptions } from './types.js'
 import { CommentMode } from './types.js'
 
 export const parseCommentGradient = (s: string) => {
-  const [gr, stroke] = s.split(',')
+  const [gr, flag] = s.split(',')
   const [start, end] = gr.split('~')
   const startHex = rgb888ToHex(Number.parseInt(start, 10))
   const endHex = rgb888ToHex(Number.parseInt(end, 10))
@@ -11,7 +11,7 @@ export const parseCommentGradient = (s: string) => {
   return {
     start: startHex,
     end: endHex,
-    stroke: stroke === '1',
+    stroke: flag === '0',
   }
 }
 
