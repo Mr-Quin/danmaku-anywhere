@@ -31,12 +31,12 @@ export const commentsToXml = (comments: CommentEntity[]) => {
             p: [
               Number.parseInt(time, 10),
               mode,
-              '25',
+              '25', // font size
               color,
               uid,
-              '0',
-              '0',
-              '0',
+              '0', // unknown, but needed for compatibility
+              '0', // unknown
+              '0', // unknown
             ].join(','),
           },
           _text: comment.m,

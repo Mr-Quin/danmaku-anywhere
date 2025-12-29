@@ -28,10 +28,10 @@ describe('commentsToXml', () => {
     const parsed = await zGenericXml.parseAsync(result)
 
     expect(parsed).toHaveLength(5)
-    // the last comment should match the original
+    // the last comment should match the original, the uid is stripped
     expect(parsed[4]).toMatchObject({
-      ...comments[4],
-      p: '368,1,25,16777215,123456789,0,0,0',
+      m: comments[4].m,
+      p: '368,1,25,16777215',
     })
   })
 
