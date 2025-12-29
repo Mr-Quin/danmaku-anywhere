@@ -166,4 +166,4 @@
 
 本项目的每个包都有自己的许可证。基本上，除了 **danmaku-anywhere** 扩展为 AGPL，其他包都是 MIT 许可证。
 
-详情请查看 [许可证](LICENSES)。
+详情请查看 [许可证](LICENSE)。
