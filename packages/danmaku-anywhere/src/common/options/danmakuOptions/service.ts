@@ -77,8 +77,17 @@ export class DanmakuOptionsService implements IStoreService {
       })
       .version(5, {
         upgrade: (data) => {
+          // add distribution
           return produce<PrevOptions>(data, (draft) => {
             draft.distribution = 'random'
+          })
+        },
+      })
+      .version(6, {
+        upgrade: (data) => {
+          // add interval
+          return produce<PrevOptions>(data, (draft) => {
+            draft.interval = 200
           })
         },
       })

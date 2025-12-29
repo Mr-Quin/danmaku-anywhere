@@ -481,13 +481,15 @@
       "distribution": "均匀：弹幕将均匀地填充屏幕。顺序：弹幕将从上到下填充屏幕",
       "maxOnScreen": "屏幕上显示的弹幕数量不超过此值。超过此值的弹幕将被丢弃。",
       "offset": "弹幕出现的时间位移。 正值使弹幕延后出现，负值使弹幕提前出现。",
+      "interval": "值越小弹幕越密集。过低可能导致卡顿。",
       "safeZone": {
         "y": "Y轴（上下）的显示范围"
       },
       "specialDanmaku": "关闭后，将以普通滚动弹幕的形式显示",
       "trackHeight": "行高越高，弹幕之间的间距越大"
     },
-    "trackHeight": "弹幕行高"
+    "trackHeight": "弹幕行高",
+    "interval": "发射间隔"
   },
   "tabs": {
     "config": "装填配置",

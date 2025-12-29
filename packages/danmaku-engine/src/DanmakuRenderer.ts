@@ -1,89 +1,10 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { create, type Manager } from '@mr-quin/danmu'
 import { mapIter, sampleByTime } from './iterator'
+import { type DanmakuOptions, DEFAULT_DANMAKU_OPTIONS } from './options'
 import { applyFilter, type ParsedComment, transformComment } from './parser'
 import { bindVideo } from './plugins/bindVideo'
 import { deepEqual } from './utils'
-
-export interface DanmakuFilter {
-  type: 'text' | 'regex'
-  value: string
-  enabled: boolean
-}
-
-export interface DanmakuStyle {
-  opacity: number
-  fontSize: number
-  fontFamily: string
-}
-
-export type FixedCommentMode = 'normal' | 'hidden' | 'scroll'
-
-export interface DanmakuOptions {
-  readonly style: DanmakuStyle
-  readonly show: boolean
-  readonly trackHeight: number
-  readonly allowOverlap: boolean
-  readonly filters: DanmakuFilter[]
-  readonly distribution: 'random' | 'order'
-  /**
-   * The maximum number of comments to show on the screen at the same time
-   */
-  readonly maxOnScreen: number
-  readonly speed: number
-  /**
-   * The area to show the comments in percentage
-   */
-  readonly area: {
-    yStart: number
-    yEnd: number
-    xStart: number
-    xEnd: number
-  }
-  /**
-   * The maximum number of tracks
-   * -1 means no limit
-   */
-  readonly trackLimit: number
-  /**
-   * The offset in milliseconds to adjust the time of the comments
-   */
-  readonly offset: number
-  /**
-   * How to handle special comments
-   */
-  readonly specialComments: {
-    top: FixedCommentMode
-    bottom: FixedCommentMode
-  }
-}
-
-const configDefaults: DanmakuOptions = {
-  show: true,
-  allowOverlap: false,
-  trackHeight: 32,
-  filters: [],
-  speed: 1,
-  maxOnScreen: 500,
-  trackLimit: -1,
-  style: {
-    opacity: 1,
-    fontSize: 25,
-    fontFamily: 'sans-serif',
-  },
-  area: {
-    yStart: 0,
-    yEnd: 100,
-    xStart: 0,
-    xEnd: 100,
-  },
-  specialComments: {
-    top: 'normal',
-    bottom: 'scroll',
-  },
-  offset: 0,
-  distribution: 'random',
-}
 
 export type DanmakuRenderProps = {
   text: string
@@ -96,7 +17,7 @@ export class DanmakuRenderer {
   container?: HTMLElement
   media?: HTMLMediaElement
   comments: CommentEntity[] = []
-  config: DanmakuOptions = configDefaults
+  config: DanmakuOptions = DEFAULT_DANMAKU_OPTIONS
   created = false
 
   constructor(
@@ -133,6 +54,7 @@ export class DanmakuRenderer {
     const manager = create<ParsedComment>({
       trackHeight: this.config.trackHeight,
       rate: this.config.speed / 2,
+      interval: this.config.interval,
       durationRange: [5000, 5000],
       mode: this.config.allowOverlap ? 'adaptive' : 'strict',
       distribution: this.config.distribution,
@@ -207,6 +129,7 @@ export class DanmakuRenderer {
         stash: this.config.maxOnScreen * 2,
       },
       rate: this.config.speed / 2,
+      interval: this.config.interval,
     })
     this.manager.setStyle('opacity', this.config.style.opacity.toString())
     this.manager.setStyle('pointerEvents', 'none')

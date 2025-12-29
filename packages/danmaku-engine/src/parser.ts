@@ -4,7 +4,7 @@ import {
   parseCommentGradient,
 } from '@danmaku-anywhere/danmaku-converter'
 
-import type { DanmakuFilter } from './DanmakuRenderer'
+import type { DanmakuFilter } from './options'
 
 // copied from danmaku
 export interface ParsedComment {

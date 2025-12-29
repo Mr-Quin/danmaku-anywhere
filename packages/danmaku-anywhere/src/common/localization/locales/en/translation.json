@@ -495,13 +495,15 @@
       "distribution": "Random: danmaku will be distributed uniformly. Order: danmaku will fill the screen from top to bottom.",
       "maxOnScreen": "The maximum number of danmaku that can be displayed on the screen at the same time.",
       "offset": "How earlier danmaku appears. Positive values make danmaku appear later, negative values make danmaku appear earlier.",
+      "interval": "Lower value means more densely packed danmaku. May cause performance issues if set too low.",
       "safeZone": {
         "y": "Y-axis (up and down) display range"
       },
       "specialDanmaku": "When off, danmaku will be shown as normal scrolling danmaku",
       "trackHeight": "Higher values makes danmaku farther apart"
     },
-    "trackHeight": "Track Height"
+    "trackHeight": "Track Height",
+    "interval": "Emission Interval"
   },
   "tabs": {
     "config": "Config",

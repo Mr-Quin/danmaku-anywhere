@@ -1,5 +1,5 @@
 import type { Manager } from '@mr-quin/danmu'
-import type { DanmakuOptions } from '../DanmakuRenderer'
+import type { DanmakuOptions } from '../options'
 import type { ParsedComment } from '../parser'
 import { useFixedDanmaku } from './fixedDanmaku'
 

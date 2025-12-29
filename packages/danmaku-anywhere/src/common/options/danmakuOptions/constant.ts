@@ -17,6 +17,7 @@ export const defaultDanmakuOptions: DanmakuOptions = {
     fontFamily: 'sans-serif',
   },
   maxOnScreen: 500,
+  interval: 200,
   trackLimit: 32,
   area: {
     yStart: 0,
