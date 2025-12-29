@@ -55,6 +55,7 @@ const zXmlParsedEntry = z
     _text: z.string().optional().default(''),
   })
   .transform((data) => {
+    // drop font size
     const [time, mode, , color] = data['_attributes'].p
 
     // discard other modes
