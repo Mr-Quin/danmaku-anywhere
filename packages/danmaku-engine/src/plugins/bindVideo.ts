@@ -32,7 +32,7 @@ export const bindVideo =
     getConfig: () => DanmakuOptions
   ) =>
   (manager: Manager<ParsedComment>) => {
-    const { plugin, getDanmakuOptions } = useFixedDanmaku(manager)
+    const { plugin, isFull, getDanmakuOptions } = useFixedDanmaku(manager)
 
     // index of the next comment
     let cursor = 0
@@ -69,14 +69,17 @@ export const bindVideo =
           }
 
           // check the render mode for the comment
-          const config = getConfig().specialComments[comment.mode]
-          if (config === 'normal') {
-            manager.pushFlexibleDanmaku(comment, {
-              duration: DURATION_MS,
-              direction: 'none',
-              ...getDanmakuOptions(comment.mode),
-            })
-          } else if (config === 'scroll') {
+          const config = getConfig()
+          const fixedCommentMode = config.specialComments[comment.mode]
+          if (fixedCommentMode === 'normal') {
+            if (config.allowOverlap || !isFull(comment.mode)) {
+              manager.pushFlexibleDanmaku(comment, {
+                duration: DURATION_MS,
+                direction: 'none',
+                ...getDanmakuOptions(comment.mode),
+              })
+            }
+          } else if (fixedCommentMode === 'scroll') {
             manager.unshift({ ...comment, mode: 'rtl' }, { progress })
           }
 
