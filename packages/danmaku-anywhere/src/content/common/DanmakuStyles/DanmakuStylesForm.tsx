@@ -126,6 +126,21 @@ const intervalMarks = [
   },
 ]
 
+const overlapMarks = [
+  {
+    value: 0,
+    label: '0%',
+  },
+  {
+    value: 40,
+    label: '40%',
+  },
+  {
+    value: 80,
+    label: '80%',
+  },
+]
+
 const opacityValueLabelFormat = (value: number) => `${value * 100}%`
 
 const fontSizeValueLabelFormat = (value: number) => `${value}px`
@@ -504,6 +519,28 @@ export const DanmakuStylesForm = ({
               )}
               checked={field.value}
               onChange={(e) => field.onChange(e.target.checked)}
+            />
+          )}
+        />
+        <Controller
+          name="overlap"
+          control={control}
+          render={({ field }) => (
+            <LabeledSlider
+              label={t('stylePage.overlap', 'Overlap')}
+              tooltip={t(
+                'stylePage.tooltip.overlap',
+                'Setting a higher value allows danmaku to overlap.'
+              )}
+              value={field.value ?? 0}
+              onChange={(_e, newValue) => field.onChange(newValue as number)}
+              step={5}
+              min={0}
+              max={80}
+              marks={overlapMarks}
+              size="small"
+              valueLabelDisplay="auto"
+              valueLabelFormat={safeZoneValueLabelFormat}
             />
           )}
         />

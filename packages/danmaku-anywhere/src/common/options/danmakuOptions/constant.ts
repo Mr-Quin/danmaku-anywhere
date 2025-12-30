@@ -10,6 +10,7 @@ export const defaultDanmakuOptions: DanmakuOptions = {
   filters: [],
   trackHeight: 32,
   allowOverlap: false,
+  overlap: 0,
   speed: 1,
   style: {
     opacity: 0.7,

@@ -479,6 +479,7 @@
     "offset": "Time Offset (milliseconds)",
     "opacity": "Opacity",
     "orderDistribution": "Order",
+    "overlap": "Overlap",
     "randomDistribution": "Random",
     "safeZone": {
       "y": "Y-axis display range"
@@ -497,6 +498,7 @@
       "interval": "Lower value means more densely packed danmaku. May cause performance issues if set too low.",
       "maxOnScreen": "The maximum number of danmaku that can be displayed on the screen at the same time.",
       "offset": "How earlier danmaku appears. Positive values make danmaku appear later, negative values make danmaku appear earlier.",
+      "overlap": "Setting a higher value allows danmaku to overlap.",
       "safeZone": {
         "y": "Y-axis (up and down) display range"
       },

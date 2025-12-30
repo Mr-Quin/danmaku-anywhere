@@ -68,7 +68,13 @@ export class DanmakuRenderer {
           // font size and family are set here because it needs to be set BEFORE
           // size is calculated
           // Setting it using manager.setStyle applies the style AFTER size is calculated so it's too late
-          node.style.fontSize = `${this.config.style.fontSize}px`
+          const overlapScale = Math.max(
+            0,
+            Math.min(1, (this.config.overlap || 0) / 100)
+          )
+          const computedFontSize =
+            this.config.style.fontSize * (1 - overlapScale)
+          node.style.fontSize = `${computedFontSize}px`
           node.style.fontFamily = this.config.style.fontFamily
 
           this.render(node, {
@@ -132,6 +138,7 @@ export class DanmakuRenderer {
       interval: this.config.interval,
     })
     this.manager.setStyle('opacity', this.config.style.opacity.toString())
+    this.manager.setStyle('fontSize', `${this.config.style.fontSize}px`)
     this.manager.setStyle('pointerEvents', 'none')
   }
 

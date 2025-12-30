@@ -465,6 +465,7 @@
     "offset": "时间轴（毫秒）",
     "opacity": "不透明度",
     "orderDistribution": "顺序",
+    "overlap": "重叠比例",
     "randomDistribution": "均匀",
     "safeZone": {
       "y": "Y轴显示范围"
@@ -483,6 +484,7 @@
       "interval": "值越小弹幕越密集。过低可能导致卡顿。",
       "maxOnScreen": "屏幕上显示的弹幕数量不超过此值。超过此值的弹幕将被丢弃。",
       "offset": "弹幕出现的时间位移。 正值使弹幕延后出现，负值使弹幕提前出现。",
+      "overlap": "设定一个重叠百分比。值越高，允许更多弹幕重叠。",
       "safeZone": {
         "y": "Y轴（上下）的显示范围"
       },
