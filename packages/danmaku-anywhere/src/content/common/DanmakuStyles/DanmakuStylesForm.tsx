@@ -500,7 +500,7 @@ export const DanmakuStylesForm = ({
               label={t('stylePage.allowOverlap', 'Allow Overlap')}
               tooltip={t(
                 'stylePage.tooltip.allowOverlap',
-                'Allow danmaku to overlap, does not affect top or bottom fixed danmaku'
+                'Allow danmaku to overlap.'
               )}
               checked={field.value}
               onChange={(e) => field.onChange(e.target.checked)}

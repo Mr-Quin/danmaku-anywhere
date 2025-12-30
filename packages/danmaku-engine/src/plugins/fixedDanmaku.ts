@@ -16,10 +16,10 @@ class DanmakuStack {
   private bottomLen = 0
 
   constructor(private _trackCount: number) {
-    this.trackCount = _trackCount
+    this.setTrackCount(_trackCount)
   }
 
-  set trackCount(trackCount: number) {
+  setTrackCount(trackCount: number) {
     this._trackCount = trackCount
 
     this.topStack.length = trackCount
@@ -35,7 +35,7 @@ class DanmakuStack {
     }
   }
 
-  get trackCount() {
+  getTrackCount() {
     return this._trackCount
   }
 
@@ -89,6 +89,13 @@ class DanmakuStack {
     }
   }
 
+  isFull(placement: Placement) {
+    if (placement === 'top') {
+      return this.topLen >= this._trackCount
+    }
+    return this.bottomLen >= this._trackCount
+  }
+
   clear() {
     this.topStack.fill(0)
     this.bottomStack.fill(0)
@@ -126,6 +133,8 @@ function waitForDimensions(
 export const useFixedDanmaku = (manager: Manager<ParsedComment>) => {
   const trackCount = manager.trackCount
   const stack = new DanmakuStack(trackCount)
+
+  const isFull = (placement: Placement) => stack.isFull(placement)
 
   const getDanmakuOptions = (
     placement: Placement
@@ -172,13 +181,13 @@ export const useFixedDanmaku = (manager: Manager<ParsedComment>) => {
   const plugin: ManagerPlugin<ParsedComment> = {
     name: 'fixed-danmaku',
     start() {
-      stack.trackCount = manager.trackCount
+      stack.setTrackCount(manager.trackCount)
     },
     updateOptions() {
-      stack.trackCount = manager.trackCount
+      stack.setTrackCount(manager.trackCount)
     },
     format() {
-      stack.trackCount = manager.trackCount
+      stack.setTrackCount(manager.trackCount)
 
       // recalculate the position of all danmaku when the container size changes
       manager.each((danmaku) => {
@@ -196,6 +205,7 @@ export const useFixedDanmaku = (manager: Manager<ParsedComment>) => {
 
   return {
     plugin,
+    isFull,
     getDanmakuOptions,
   }
 }
