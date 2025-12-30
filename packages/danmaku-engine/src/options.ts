@@ -47,6 +47,11 @@ export interface DanmakuOptions {
    */
   readonly offset: number
   /**
+   * The percentage of the font size to reduce for overlap calculation
+   * 0 means no overlap, 100 means full overlap (0px size)
+   */
+  readonly overlap: number
+  /**
    * How to handle special comments
    */
   readonly specialComments: {
@@ -58,6 +63,7 @@ export interface DanmakuOptions {
 export const DEFAULT_DANMAKU_OPTIONS: DanmakuOptions = {
   show: true,
   allowOverlap: false,
+  overlap: 0,
   trackHeight: 32,
   filters: [],
   speed: 1,
