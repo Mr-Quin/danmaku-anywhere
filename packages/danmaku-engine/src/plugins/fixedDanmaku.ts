@@ -91,9 +91,9 @@ class DanmakuStack {
 
   isFull(placement: Placement) {
     if (placement === 'top') {
-      return this.topLen === this._trackCount
+      return this.topLen >= this._trackCount
     }
-    return this.bottomLen === this._trackCount
+    return this.bottomLen >= this._trackCount
   }
 
   clear() {
