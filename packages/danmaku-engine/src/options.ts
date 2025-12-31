@@ -52,7 +52,7 @@ export interface DanmakuOptions {
   readonly offset: number
   /**
    * The percentage of a comment's size that is allowed to overlap with other comments
-   * 0 means no overlap, 100 means full overlap (comment size is reduced to 0)
+   * 0 means no overlap, 100 means full overlap (comment size is reduced to 0), > 100 makes the size negative
    */
   readonly overlap: number
   /**

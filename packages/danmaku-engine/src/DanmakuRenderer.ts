@@ -134,6 +134,8 @@ export class DanmakuRenderer {
     })
     this.manager.setStyle('opacity', this.config.style.opacity.toString())
     this.manager.setStyle('pointerEvents', 'none')
+    this.manager.setStyle('fontSize', `${this.config.style.fontSize}px`)
+    this.manager.setStyle('fontFamily', this.config.style.fontFamily)
   }
 
   private setArea = () => {

@@ -523,7 +523,7 @@ export const DanmakuStylesForm = ({
               label={t('stylePage.overlap', 'Overlap')}
               tooltip={t(
                 'stylePage.tooltip.overlap',
-                'Higher values allow reduce distance between danmaku, allowing more danmaku to be displayed on the screen at the same time, at the cost of overlapping. Set to 0 to disable overlap.'
+                'Higher values reduce the distance between danmaku, allowing more danmaku to be displayed on the screen at the same time, at the cost of overlapping. Set to 0 to disable overlap.'
               )}
               value={field.value ?? 0}
               onChange={(_e, newValue) => field.onChange(newValue as number)}
