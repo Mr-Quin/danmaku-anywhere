@@ -16,6 +16,10 @@ export interface DanmakuOptions {
   readonly style: DanmakuStyle
   readonly show: boolean
   readonly trackHeight: number
+  /**
+   * Whether to allow comments to overlap
+   * @deprecated Use overlap instead
+   */
   readonly allowOverlap: boolean
   readonly filters: DanmakuFilter[]
   readonly distribution: 'random' | 'order'
@@ -47,8 +51,8 @@ export interface DanmakuOptions {
    */
   readonly offset: number
   /**
-   * The percentage of the font size to reduce for overlap calculation
-   * 0 means no overlap, 100 means full overlap (0px size)
+   * The percentage of a comment's size that is allowed to overlap with other comments
+   * 0 means no overlap, 100 means full overlap (comment size is reduced to 0)
    */
   readonly overlap: number
   /**

@@ -470,7 +470,6 @@
     "selectAnime": "Multiple matches found for {{name}}, please select"
   },
   "stylePage": {
-    "allowOverlap": "Allow Overlap",
     "distribution": "Distribution",
     "font": "Font",
     "interval": "Emission Interval",
@@ -493,7 +492,6 @@
     },
     "speed": "Speed",
     "tooltip": {
-      "allowOverlap": "Allow danmaku to overlap, does not affect top or bottom fixed danmaku",
       "distribution": "Random: danmaku will be distributed uniformly. Order: danmaku will fill the screen from top to bottom.",
       "interval": "Lower value means more densely packed danmaku. May cause performance issues if set too low.",
       "maxOnScreen": "The maximum number of danmaku that can be displayed on the screen at the same time.",

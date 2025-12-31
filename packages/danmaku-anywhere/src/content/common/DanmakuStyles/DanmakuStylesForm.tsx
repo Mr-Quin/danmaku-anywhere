@@ -132,12 +132,20 @@ const overlapMarks = [
     label: '0%',
   },
   {
-    value: 40,
-    label: '40%',
+    value: 100,
+    label: '100%',
   },
   {
-    value: 80,
-    label: '80%',
+    value: 200,
+    label: '200%',
+  },
+  {
+    value: 300,
+    label: '300%',
+  },
+  {
+    value: 400,
+    label: '400%',
   },
 ]
 
@@ -508,21 +516,6 @@ export const DanmakuStylesForm = ({
           )}
         />
         <Controller
-          name="allowOverlap"
-          control={control}
-          render={({ field }) => (
-            <LabeledSwitch
-              label={t('stylePage.allowOverlap', 'Allow Overlap')}
-              tooltip={t(
-                'stylePage.tooltip.allowOverlap',
-                'Allow danmaku to overlap.'
-              )}
-              checked={field.value}
-              onChange={(e) => field.onChange(e.target.checked)}
-            />
-          )}
-        />
-        <Controller
           name="overlap"
           control={control}
           render={({ field }) => (
@@ -530,13 +523,13 @@ export const DanmakuStylesForm = ({
               label={t('stylePage.overlap', 'Overlap')}
               tooltip={t(
                 'stylePage.tooltip.overlap',
-                'Setting a higher value allows danmaku to overlap.'
+                'Higher values allow reduce distance between danmaku, allowing more danmaku to be displayed on the screen at the same time, at the cost of overlapping. Set to 0 to disable overlap.'
               )}
               value={field.value ?? 0}
               onChange={(_e, newValue) => field.onChange(newValue as number)}
-              step={5}
+              step={1}
               min={0}
-              max={80}
+              max={400}
               marks={overlapMarks}
               size="small"
               valueLabelDisplay="auto"
