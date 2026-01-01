@@ -8,6 +8,7 @@ export interface DanmakuStyle {
   opacity: number
   fontSize: number
   fontFamily: string
+  customCss: string
 }
 
 export type FixedCommentMode = 'normal' | 'hidden' | 'scroll'
@@ -78,6 +79,7 @@ export const DEFAULT_DANMAKU_OPTIONS: DanmakuOptions = {
     opacity: 1,
     fontSize: 25,
     fontFamily: 'sans-serif',
+    customCss: '',
   },
   area: {
     yStart: 0,

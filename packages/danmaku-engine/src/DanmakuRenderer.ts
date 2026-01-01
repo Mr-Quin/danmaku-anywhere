@@ -1,5 +1,11 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { create, type Manager } from '@mr-quin/danmu'
+import {
+  applyCustomCss,
+  type CustomCssRule,
+  normalizeCssProperty,
+  parseCustomCss,
+} from './customCss'
 import { mapIter, sampleByTime } from './iterator'
 import { type DanmakuOptions, DEFAULT_DANMAKU_OPTIONS } from './options'
 import { applyFilter, type ParsedComment, transformComment } from './parser'
@@ -18,6 +24,8 @@ export class DanmakuRenderer {
   media?: HTMLMediaElement
   comments: CommentEntity[] = []
   config: DanmakuOptions = DEFAULT_DANMAKU_OPTIONS
+  customStyles: CustomCssRule[] = []
+  customStyleProps = new Set<string>()
   created = false
 
   constructor(
@@ -36,6 +44,7 @@ export class DanmakuRenderer {
     this.media = media
     this.comments = comments
     this.config = this.mergeConfig(config)
+    this.refreshCustomStyles()
 
     const commentGenerator = mapIter(comments, (comment) =>
       transformComment(comment, 0)
@@ -77,6 +86,7 @@ export class DanmakuRenderer {
             styles: { ...danmaku.data.style },
             mode: danmaku.data.mode,
           })
+          applyCustomCss(node, this.customStyles)
         },
         willRender: (ref) => {
           if (applyFilter(ref.danmaku.data.text, this.config.filters)) {
@@ -109,6 +119,7 @@ export class DanmakuRenderer {
   updateConfig(config: Partial<DanmakuOptions>): void {
     const prevConfig = this.config
     this.config = this.mergeConfig(config)
+    this.refreshCustomStyles()
 
     if (!this.manager) return
 
@@ -132,10 +143,29 @@ export class DanmakuRenderer {
       interval: this.config.interval,
       overlap: this.config.overlap / 100,
     })
-    this.manager.setStyle('opacity', this.config.style.opacity.toString())
-    this.manager.setStyle('pointerEvents', 'none')
-    this.manager.setStyle('fontSize', `${this.config.style.fontSize}px`)
-    this.manager.setStyle('fontFamily', this.config.style.fontFamily)
+    if (!this.hasCustomOverride('opacity')) {
+      this.manager.setStyle('opacity', this.config.style.opacity.toString())
+    }
+    if (!this.hasCustomOverride('pointerEvents')) {
+      this.manager.setStyle('pointerEvents', 'none')
+    }
+    if (!this.hasCustomOverride('fontSize')) {
+      this.manager.setStyle('fontSize', `${this.config.style.fontSize}px`)
+    }
+    if (!this.hasCustomOverride('fontFamily')) {
+      this.manager.setStyle('fontFamily', this.config.style.fontFamily)
+    }
+  }
+
+  private refreshCustomStyles = () => {
+    this.customStyles = parseCustomCss(this.config.style.customCss)
+    this.customStyleProps = new Set(
+      this.customStyles.map(([property]) => normalizeCssProperty(property))
+    )
+  }
+
+  private hasCustomOverride = (property: string) => {
+    return this.customStyleProps.has(normalizeCssProperty(property))
   }
 
   private setArea = () => {

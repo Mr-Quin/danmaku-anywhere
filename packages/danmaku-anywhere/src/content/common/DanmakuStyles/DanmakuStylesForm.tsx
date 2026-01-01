@@ -4,6 +4,7 @@ import {
   Grid,
   Input,
   Stack,
+  TextField,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
@@ -404,6 +405,33 @@ export const DanmakuStylesForm = ({
             )}
           />
         )}
+        <Controller
+          name="style.customCss"
+          control={control}
+          render={({ field }) => (
+            <Stack spacing={0.5}>
+              <TextField
+                label={t('stylePage.customCss', 'Custom CSS')}
+                placeholder={t(
+                  'stylePage.customCssPlaceholder',
+                  'color: red; font-weight: bold;'
+                )}
+                value={field.value ?? ''}
+                onChange={(e) => field.onChange(e.target.value)}
+                multiline
+                minRows={3}
+                size="small"
+                fullWidth
+              />
+              <Typography variant="caption" color="text.secondary">
+                {t(
+                  'stylePage.customCssDescription',
+                  'Custom CSS rules applied to every danmaku. These override other style settings.'
+                )}
+              </Typography>
+            </Stack>
+          )}
+        />
       </Stack>
 
       <Stack spacing={1} mt={2}>

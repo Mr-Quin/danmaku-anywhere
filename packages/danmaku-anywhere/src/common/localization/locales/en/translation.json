@@ -470,6 +470,9 @@
     "selectAnime": "Multiple matches found for {{name}}, please select"
   },
   "stylePage": {
+    "customCss": "Custom CSS",
+    "customCssDescription": "Custom CSS rules applied to every danmaku. These override other style settings.",
+    "customCssPlaceholder": "color: red; font-weight: bold;",
     "distribution": "Distribution",
     "font": "Font",
     "interval": "Emission Interval",

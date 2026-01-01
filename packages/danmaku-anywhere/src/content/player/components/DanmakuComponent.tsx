@@ -6,8 +6,8 @@ export const DanmakuComponent = ({ text, styles }: DanmakuComponentProps) => {
   return (
     <div
       style={{
-        ...styles,
         pointerEvents: 'none',
+        ...styles,
       }}
     >
       {text}

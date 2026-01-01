@@ -16,6 +16,7 @@ export const defaultDanmakuOptions: DanmakuOptions = {
     opacity: 0.7,
     fontSize: 25,
     fontFamily: 'sans-serif',
+    customCss: '',
   },
   maxOnScreen: 500,
   interval: 200,

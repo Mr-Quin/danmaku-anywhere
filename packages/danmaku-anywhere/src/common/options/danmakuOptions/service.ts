@@ -91,6 +91,13 @@ export class DanmakuOptionsService implements IStoreService {
           })
         },
       })
+      .version(7, {
+        upgrade: (data) => {
+          return produce<PrevOptions>(data, (draft) => {
+            draft.style.customCss = draft.style.customCss ?? ''
+          })
+        },
+      })
   }
 
   async get() {

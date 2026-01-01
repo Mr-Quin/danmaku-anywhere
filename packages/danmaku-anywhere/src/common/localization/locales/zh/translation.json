@@ -458,6 +458,9 @@
   "stylePage": {
     "distribution": "弹幕分布",
     "font": "字体",
+    "customCss": "自定义 CSS",
+    "customCssDescription": "自定义 CSS 将应用到每条弹幕，并覆盖其他样式设置。",
+    "customCssPlaceholder": "color: red; font-weight: bold;",
     "interval": "发射间隔",
     "maxOnScreen": "最大同屏弹幕数",
     "name": "弹幕设置",
