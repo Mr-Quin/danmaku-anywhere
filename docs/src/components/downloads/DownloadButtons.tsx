@@ -69,7 +69,7 @@ export const DownloadButtons = ({
           className="btn btn-info join-item text-white py-1 px-4 h-auto"
         >
           <span className="flex flex-col items-center">
-            <span>Edge Canary 安卓</span>
+            <span>Edge Canary (安卓)</span>
             <span className="text-xs opacity-70 font-normal">安卓 (.crx)</span>
           </span>
         </a>

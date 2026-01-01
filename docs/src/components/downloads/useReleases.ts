@@ -20,7 +20,16 @@ export function useReleases() {
         ])
 
         if (latestRes.status === 403 || listRes.status === 403) {
-          setError('请求过于频繁，请稍后重试')
+          const rateLimitRemainingHeader =
+            latestRes.headers.get('X-RateLimit-Remaining') ??
+            listRes.headers.get('X-RateLimit-Remaining')
+          const isRateLimited = rateLimitRemainingHeader === '0'
+          const baseMessage = isRateLimited
+            ? 'GitHub API 访问频率受限，请稍后重试。'
+            : '访问 GitHub 发布信息时被拒绝（HTTP 403）。'
+          const moreInfo =
+            ' 你可以稍后重试，或直接访问发布页面： https://github.com/Mr-Quin/danmaku-anywhere/releases'
+          setError(baseMessage + moreInfo)
           return
         }
 
