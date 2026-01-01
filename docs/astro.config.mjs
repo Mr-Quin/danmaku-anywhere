@@ -34,20 +34,20 @@ export default defineConfig({
       ],
       sidebar: [
         {
-          label: 'getting-started',
-          translations: {
-            'zh-CN': '快速上手',
-            en: 'Getting Started',
-          },
-          link: '/getting-started',
-        },
-        {
           label: 'downloads',
           translations: {
             'zh-CN': '下载',
             en: 'Downloads',
           },
           link: '/downloads',
+        },
+        {
+          label: 'getting-started',
+          translations: {
+            'zh-CN': '快速上手',
+            en: 'Getting Started',
+          },
+          link: '/getting-started',
         },
         {
           label: 'faq',
