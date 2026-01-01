@@ -3,31 +3,16 @@ title: 快速上手
 description: 快速上手
 ---
 
-
-import { Steps, Tabs, TabItem } from '@astrojs/starlight/components'
-import { Fab } from '../../components/Fab'
+import { Steps, Tabs, TabItem } from "@astrojs/starlight/components";
+import { Fab } from "../../components/Fab";
 
 欢迎使用**弹幕任何地方**！按照以下步骤完成首次配置并在你的视频网站上显示弹幕。
 
 ## 安装
 
-### Chromium系
+如果你还没有安装扩展，请前往 [下载](/downloads) 页面查看详细的安装说明（支持商店安装和手动下载安装包）。
 
-包含Chrome、Edge、Opera等
-
-**从商店安装**
-
-- [Chrome 应用商店](https://chromewebstore.google.com/detail/danmaku-anywhere/jnflbkkmffognjjhibkjnomjedogmdpo?hl=zh)
-- [Edge 应用商店](https://microsoftedge.microsoft.com/addons/detail/danmaku-anywhere/alcoddhlgdbhlljlnhckhomdcgbnmanf)
-
-**手动安装**（安卓端浏览器Kiwi、Lemur、Edge Canary等也可以这样安装）
-1. 从 [下载页面](/downloads) 或者 [Github](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest) 下载最新版本
-2. 打开浏览器 [扩展页面](chrome://extensions/)，启用开发者模式
-3. 将下载的压缩包（或crx）拖入扩展页面
-
-### Firefox（含安卓版）
-
-- [Firefox Add-ons](https://addons.mozilla.org/zh-CN/firefox/addon/danmaku-anywhere/)
+安装完成后，请继续阅读下面的内容。
 
 <a id="first-time"></a>
 ## 首次使用
@@ -38,12 +23,14 @@ import { Fab } from '../../components/Fab'
 
 2. 打开你想要显示弹幕的视频网站，在网页空白处右键，点击**为当前网站添加配置**
 
-   <img src='/add-config-button.webp' height='33px' width='303px'/>
+   <img src="/add-config-button.webp" height="33px" width="303px" />
 
    安卓端由于没有右键菜单，可以前往**扩展弹窗 - 装填配置**中添加配置，详见[装填配置](/docs/mount-profile)
 
 3. <div>
-    网页刷新后，左下角会出现<Fab />按钮
+     网页刷新后，左下角会出现
+     <Fab />
+     按钮
    </div>
 
 4. 点击<Fab />打开悬浮面板，在搜索页面中搜索你想要播放的剧集并下载弹幕
@@ -53,7 +40,7 @@ import { Fab } from '../../components/Fab'
 </Steps>
 
 :::caution
-**不要在短时间内从单个源大量下载弹幕，滥用可能导致你的IP或账号被提供方封禁。**
+**不要在短时间内从单个源大量下载弹幕，滥用可能导致你的 IP 或账号被提供方封禁。**
 
 如果需要批量下载弹幕，请使用其他方法获取弹幕后通过导入的方式导入弹幕。
 :::
@@ -66,7 +53,7 @@ import { Fab } from '../../components/Fab'
 
 ### 启用或禁用弹幕源
 
-默认只启用了**弹弹Play**和**其他**源，其他弹幕来源需要手动开启。[弹幕来源](/docs/danmaku)
+默认只启用了**弹弹 Play**和**其他**源，其他弹幕来源需要手动开启。[弹幕来源](/docs/danmaku)
 
 ### 自动匹配
 
