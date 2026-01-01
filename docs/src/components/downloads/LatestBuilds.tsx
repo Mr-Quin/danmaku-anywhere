@@ -150,7 +150,7 @@ const HistoryTable = ({ releases }: { releases: Release[] }) => {
                       className="hover:underline"
                       rel="noopener"
                     >
-                      {buildInfo.buildNumber}
+                      {buildInfo.buildNumber || release.tag_name}
                     </a>
                     {release.prerelease && (
                       <ReleaseBadge buildInfo={buildInfo} />
