@@ -16,8 +16,7 @@ export const useInjectFrames = () => {
 
   const { data: frames, isSuccess } = useQuery({
     queryFn: async () => {
-      // Suppress logs for getAllFrames since it's called repeatedly
-      return chromeRpcClient.getAllFrames(undefined, { silent: true })
+      return chromeRpcClient.getAllFrames(undefined)
     },
     queryKey: controlQueryKeys.allFrames(),
     select: (res) => {
