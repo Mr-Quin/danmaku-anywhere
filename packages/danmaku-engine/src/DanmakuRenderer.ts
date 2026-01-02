@@ -10,6 +10,7 @@ export type DanmakuRenderProps = {
   text: string
   styles: Record<string, string>
   mode: ParsedComment['mode']
+  color: string
 }
 
 export class DanmakuRenderer {
@@ -72,10 +73,22 @@ export class DanmakuRenderer {
           node.style.fontSize = `${this.config.style.fontSize}px`
           node.style.fontFamily = this.config.style.fontFamily
 
+          // apply the parser-generated styles
+          Object.entries(danmaku.data.style).forEach(([key, value]) => {
+            // biome-ignore lint/suspicious/noExplicitAny: key should be a valid css property
+            node.style[key as any] = value
+          })
+
+          // force top/bottom comments to be on top
+          if (danmaku.data.mode === 'top' || danmaku.data.mode === 'bottom') {
+            node.style.zIndex = '9'
+          }
+
           this.render(node, {
             text: danmaku.data.text,
             styles: { ...danmaku.data.style },
             mode: danmaku.data.mode,
+            color: danmaku.data.color,
           })
         },
         willRender: (ref) => {

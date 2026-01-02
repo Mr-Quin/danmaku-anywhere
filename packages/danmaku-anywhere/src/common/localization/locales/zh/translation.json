@@ -457,6 +457,7 @@
     "selectAnime": "找到多个匹配项：{{name}}，请选择"
   },
   "stylePage": {
+    "customCssDescription": "自定义 CSS 将应用到每条弹幕，并覆盖其他样式设置。",
     "distribution": "弹幕分布",
     "font": "字体",
     "interval": "发射间隔",
@@ -478,6 +479,8 @@
       "showTop": "显示顶部弹幕"
     },
     "speed": "弹幕速度",
+    "speedSettings": "速度设置",
+    "style": "样式",
     "tooltip": {
       "distribution": "均匀：弹幕将均匀地填充屏幕。顺序：弹幕将从上到下填充屏幕",
       "interval": "值越小弹幕越密集。过低可能导致卡顿。",
@@ -490,7 +493,8 @@
       "specialDanmaku": "关闭后，将以普通滚动弹幕的形式显示",
       "trackHeight": "行高越高，弹幕之间的间距越大"
     },
-    "trackHeight": "弹幕行高"
+    "trackHeight": "弹幕行高",
+    "useCustomCss": "使用自定义 CSS"
   },
   "tabs": {
     "config": "装填配置",

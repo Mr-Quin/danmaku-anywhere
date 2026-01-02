@@ -11,7 +11,7 @@ import type { PlayerRelayCommands } from '@/common/rpcClient/background/types'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { createPopoverRoot } from '@/content/common/host/createPopoverRoot'
 import { injectCss } from '@/content/common/injectCss'
-
+import danmakuComponentCss from '@/content/player/components/DanmakuComponent.css?inline'
 import skipButtonCss from '@/content/player/components/SkipButton/SkipButton.css?inline'
 import { PLAYER_ROOT_ID } from '@/content/player/constants/rootId'
 import { DanmakuManagerService } from '@/content/player/danmakuManager/DanmakuManager.service'
@@ -39,7 +39,7 @@ const { shadowRoot, root } = createPopoverRoot({
 })
 
 managerService.setParent(shadowRoot)
-injectCss(shadowRoot, [skipButtonCss, densityPlotCss])
+injectCss(shadowRoot, [skipButtonCss, densityPlotCss, danmakuComponentCss])
 
 let pipWindow: Window | undefined
 

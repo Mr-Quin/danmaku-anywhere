@@ -400,8 +400,8 @@ importers:
         specifier: workspace:*
         version: link:../danmaku-converter
       '@mr-quin/danmu':
-        specifier: 0.20.0-rc.3
-        version: 0.20.0-rc.3
+        specifier: 0.20.0-rc.4
+        version: 0.20.0-rc.4
     devDependencies:
       vitest:
         specifier: ^4.0.13
@@ -1976,8 +1976,8 @@ packages:
     resolution: {integrity: sha512-j/P+yuxXfgxb+mW7OEoRCM3G47zCTDqUPivJo/VzpjbG8I9csTXtOprCf5FfOfHK4whOJny0aHuBEON+kS7CCA==}
     engines: {node: '>=18'}
 
-  '@mr-quin/danmu@0.20.0-rc.3':
-    resolution: {integrity: sha512-LFbfpXNSrSZ4N9pHeIVSkJky0CKXVqCWK1XkiN6x5bZTHKWAWcVUbI+V18xaZF0jhZKUyfu7GxZecFa5HZlm/Q==}
+  '@mr-quin/danmu@0.20.0-rc.4':
+    resolution: {integrity: sha512-3DyaSqqZHCezileP15tuoKjSRh1AjIFBRbGwlizzVTDVjlousO8PaUdGCInmlGMJ1IUnNcEooI3aPbSsFbUQOg==}
 
   '@msgpackr-extract/msgpackr-extract-darwin-arm64@3.0.3':
     resolution: {integrity: sha512-QZHtlVgbAdy2zAqNA9Gu1UpIuI8Xvsd1v8ic6B2pZmeFnFcMWiPLfWXh7TVw4eGEZ/C9TH281KwhVoeQUKbyjw==}
@@ -8688,7 +8688,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@mr-quin/danmu@0.20.0-rc.3':
+  '@mr-quin/danmu@0.20.0-rc.4':
     dependencies:
       aidly: 1.37.0
       hooks-plugin: 1.3.4

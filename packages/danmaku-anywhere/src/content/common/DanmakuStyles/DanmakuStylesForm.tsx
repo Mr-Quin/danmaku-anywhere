@@ -1,9 +1,11 @@
 import {
+  Collapse,
   Divider,
   debounce,
   Grid,
   Input,
   Stack,
+  TextField,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
@@ -11,6 +13,7 @@ import {
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import { getScrollBarProps } from '@/common/components/layout/ScrollBox'
 import { IS_CHROME } from '@/common/constants'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { useResetForm } from '@/common/hooks/useResetForm'
@@ -113,8 +116,8 @@ const safeZoneMarks = [
 
 const intervalMarks = [
   {
-    value: 10,
-    label: '10ms',
+    value: 100,
+    label: '100ms',
   },
   {
     value: 500,
@@ -148,6 +151,11 @@ const overlapMarks = [
     label: '400%',
   },
 ]
+
+const customCssPlaceholder = `.da-danmaku {
+  color: red;
+  font-weight: bold;
+}`
 
 const opacityValueLabelFormat = (value: number) => `${value * 100}%`
 
@@ -212,6 +220,11 @@ export const DanmakuStylesForm = ({
     mode: 'onChange',
   })
 
+  // // Update form when config changes, this is important for multi-tab sync
+  // useEffect(() => {
+  //   form.reset(config)
+  // }, [config, form])
+
   const { control, setValue, getValues, watch, handleSubmit, subscribe } = form
 
   const onSave = async (formData: DanmakuOptions) => {
@@ -253,10 +266,15 @@ export const DanmakuStylesForm = ({
 
   const yStart = watch('area.yStart', config.area.yStart)
   const yEnd = watch('area.yEnd', config.area.yEnd)
+  const useCustomCss = watch('useCustomCss', config.useCustomCss)
 
   return (
     <>
       <Stack spacing={1} mt={2}>
+        <Typography variant="h6" fontSize={18} component="div">
+          {t('stylePage.style', 'Style')}
+        </Typography>
+        <Divider />
         <Controller
           name="style.opacity"
           control={control}
@@ -293,6 +311,71 @@ export const DanmakuStylesForm = ({
             />
           )}
         />
+        {!isMobile && IS_CHROME && (
+          <Controller
+            name="style.fontFamily"
+            control={control}
+            render={({ field }) => (
+              <FontSelector
+                value={field.value}
+                onChange={(font) => field.onChange(font)}
+                label={t('stylePage.font', 'Font')}
+              />
+            )}
+          />
+        )}
+        <Controller
+          name="useCustomCss"
+          control={control}
+          render={({ field }) => (
+            <LabeledSwitch
+              label={t('stylePage.useCustomCss', 'Use Custom CSS')}
+              edge="end"
+              checked={field.value}
+              onChange={(e) => field.onChange(e.target.checked)}
+            />
+          )}
+        />
+        <Collapse in={useCustomCss} unmountOnExit>
+          <Controller
+            name="customCss"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                placeholder={customCssPlaceholder}
+                helperText={t(
+                  'stylePage.customCssDescription',
+                  'Custom CSS rules applied to every danmaku. These override other style settings.'
+                )}
+                value={field.value ?? ''}
+                onChange={(e) => field.onChange(e.target.value)}
+                multiline
+                minRows={3}
+                maxRows={10}
+                size="small"
+                fullWidth
+                slotProps={{
+                  input: {
+                    sx: (theme) => ({
+                      fontFamily: 'monospace',
+                      fontSize: theme.typography.body2.fontSize,
+                      '& .MuiInputBase-input': {
+                        ...getScrollBarProps(theme),
+                      },
+                    }),
+                  },
+                }}
+              />
+            )}
+          />
+        </Collapse>
+      </Stack>
+
+      <Stack spacing={1} mt={2}>
+        <Typography variant="h6" fontSize={18} component="div">
+          {t('stylePage.speedSettings', 'Speed Settings')}
+        </Typography>
+        <Divider />
         <Controller
           name="speed"
           control={control}
@@ -391,19 +474,28 @@ export const DanmakuStylesForm = ({
             )
           }}
         />
-        {!isMobile && IS_CHROME && (
-          <Controller
-            name="style.fontFamily"
-            control={control}
-            render={({ field }) => (
-              <FontSelector
-                value={field.value}
-                onChange={(font) => field.onChange(font)}
-                label={t('stylePage.font', 'Font')}
-              />
-            )}
-          />
-        )}
+        <Controller
+          name="interval"
+          control={control}
+          render={({ field }) => (
+            <LabeledSlider
+              label={t('stylePage.interval', 'Emission Interval')}
+              tooltip={t(
+                'stylePage.tooltip.interval',
+                'Lower value means more densely packed danmaku. May cause performance issues if set too low.'
+              )}
+              value={field.value}
+              onChange={(_e, newValue) => field.onChange(newValue as number)}
+              step={10}
+              min={100}
+              max={1000}
+              marks={intervalMarks}
+              size="small"
+              valueLabelDisplay="auto"
+              valueLabelFormat={(value) => `${value}ms`}
+            />
+          )}
+        />
       </Stack>
 
       <Stack spacing={1} mt={2}>
@@ -490,28 +582,6 @@ export const DanmakuStylesForm = ({
               marks={maxOnScreenMarks}
               size="small"
               valueLabelDisplay="auto"
-            />
-          )}
-        />
-        <Controller
-          name="interval"
-          control={control}
-          render={({ field }) => (
-            <LabeledSlider
-              label={t('stylePage.interval', 'Emission Interval')}
-              tooltip={t(
-                'stylePage.tooltip.interval',
-                'Lower value means more densely packed danmaku. May cause performance issues if set too low.'
-              )}
-              value={field.value}
-              onChange={(_e, newValue) => field.onChange(newValue as number)}
-              step={10}
-              min={10}
-              max={1000}
-              marks={intervalMarks}
-              size="small"
-              valueLabelDisplay="auto"
-              valueLabelFormat={(value) => `${value}ms`}
             />
           )}
         />

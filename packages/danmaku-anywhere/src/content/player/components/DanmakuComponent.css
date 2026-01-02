@@ -1,0 +1,21 @@
+.da-danmaku {
+  font-size: inherit;
+  color: var(--color);
+}
+
+.da-danmaku-top {
+  z-index: 1;
+}
+
+.da-danmaku-bottom {
+  z-index: 2;
+}
+
+.da-danmaku-text-shadow {
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000,
+    0px 2px 4px rgba(0, 0, 0, 0.5);
+}
