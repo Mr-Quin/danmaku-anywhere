@@ -1,0 +1,19 @@
+@layer danmaku-default {
+  .daDanmaku {
+    font-size: 24px;
+    color: var(--color);
+    position: absolute;
+    white-space: nowrap;
+    line-height: 1.2;
+    user-select: none;
+  }
+
+  .daDanmakuTextShadow {
+    text-shadow:
+      -1px -1px 0 #000,
+      1px -1px 0 #000,
+      -1px 1px 0 #000,
+      1px 1px 0 #000,
+      0px 2px 4px rgba(0, 0, 0, 0.5);
+  }
+}

@@ -1,0 +1,167 @@
+---
+title: 自定义样式
+description: 学习如何使用 CSS 自定义弹幕的样式
+---
+
+import { Steps } from "@astrojs/starlight/components";
+import { DanmakuPlayground } from "../../../components/danmaku/DanmakuPlayground";
+
+弹幕任何地方支持输入 CSS 代码来自定义弹幕的外观。
+
+## 预览
+
+在下方的编辑器中输入 CSS 代码，实时预览效果。预设的 CSS 代码可以直接复制到扩展中。
+
+<DanmakuPlayground client:load />
+
+## 如何使用
+
+<Steps>
+
+1. 打开扩展程序的 **弹幕设置** 页面。
+2. 开启 **使用自定义 CSS** 开关。
+3. 在文本框中输入你的 CSS 代码。
+
+</Steps>
+
+## 技术规范
+
+:::tip
+以下内容可以直接复制给 AI，让 AI 帮你写 CSS
+:::
+
+### 基础类名
+
+以下类名存在于所有弹幕元素上：
+
+| 类名                      | 描述                 |
+| :------------------------ | :------------------- |
+| `.da-danmaku`             | 所有弹幕的基础类。   |
+| `.da-danmaku-text-shadow` | 默认的文字描边样式。 |
+
+每个弹幕元素还会拥有以下列表中的一个类名：
+
+| 类名                 | 描述                       |
+| :------------------- | :------------------------- |
+| `.da-danmaku-rtl`    | 普通滚动弹幕（从右向左）。 |
+| `.da-danmaku-ltr`    | 逆向滚动弹幕（从左向右）。 |
+| `.da-danmaku-top`    | 顶部固定弹幕。             |
+| `.da-danmaku-bottom` | 底部固定弹幕。             |
+
+### CSS 变量
+
+| 变量名    | 描述           | 示例      |
+| :-------- | :------------- | :-------- |
+| `--color` | 弹幕原本的颜色 | `#ffffff` |
+
+### 数据属性
+
+| 属性        | 描述               | 示例               |
+| :---------- | :----------------- | :----------------- |
+| `data-text` | 弹幕的完整文本内容 | `data-text="2333"` |
+
+### 示例代码
+
+:::note
+
+1. 不建议使用`url()`等网络资源，这些受网站 CSP 限制，可能无法加载。
+2. 过于复杂的 CSS（比如滤镜、动画效果等）可能会影响性能而导致掉帧。
+3. 影响弹幕边缘框大小（比如字体，字号、粗细等）的 CSS 可能影响弹幕尺寸计算，导致弹幕重叠。调整字体大小应使用内置的字号设置。
+4. 弹幕默认设置了`pointer-events: none`，以避免遮挡视频点击。自定义 CSS 不应修改这个设置。
+
+:::
+
+#### 柔和阴影
+
+```css
+.da-danmaku {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6), 0 0 4px rgba(0, 0, 0, 0.4);
+}
+```
+
+#### 荧光效果
+
+利用 `text-shadow` 和 `--color` 变量制作发光效果：
+
+```css
+.da-danmaku {
+  text-shadow: 0 0 5px var(--color), 0 0 10px var(--color),
+    0 0 20px var(--color);
+}
+```
+
+#### 故障风
+
+仅作示例，实际使用可能导致卡顿。
+
+```css
+.da-danmaku {
+}
+
+.da-danmaku::before,
+.da-danmaku::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #1a1a1a;
+}
+
+.da-danmaku::before {
+  left: 2px;
+  text-shadow: -1px 0 #ff00c1;
+  clip-path: inset(44% 0 61% 0);
+  animation: glitch-anim-1 2s infinite linear alternate-reverse;
+}
+
+.da-danmaku::after {
+  left: -2px;
+  text-shadow: -1px 0 #00fff9;
+  clip-path: inset(58% 0 43% 0);
+  animation: glitch-anim-2 2s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-anim-1 {
+  0% {
+    clip-path: inset(20% 0 80% 0);
+  }
+  20% {
+    clip-path: inset(60% 0 10% 0);
+  }
+  40% {
+    clip-path: inset(40% 0 50% 0);
+  }
+  60% {
+    clip-path: inset(80% 0 5% 0);
+  }
+  80% {
+    clip-path: inset(10% 0 70% 0);
+  }
+  100% {
+    clip-path: inset(30% 0 20% 0);
+  }
+}
+
+@keyframes glitch-anim-2 {
+  0% {
+    clip-path: inset(10% 0 60% 0);
+  }
+  20% {
+    clip-path: inset(30% 0 30% 0);
+  }
+  40% {
+    clip-path: inset(70% 0 20% 0);
+  }
+  60% {
+    clip-path: inset(20% 0 10% 0);
+  }
+  80% {
+    clip-path: inset(50% 0 40% 0);
+  }
+  100% {
+    clip-path: inset(0% 0 80% 0);
+  }
+}
+```
