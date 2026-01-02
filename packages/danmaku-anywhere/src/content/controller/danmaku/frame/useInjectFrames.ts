@@ -18,12 +18,10 @@ interface Frame {
 async function fallbackGetCurrentFrame(): Promise<Frame> {
   const { data: frameId } = await chromeRpcClient.getFrameId()
 
-  const { data: frame } = await chromeRpcClient.getFrameById(frameId)
-
   return {
     frameId,
-    url: frame.url,
-    documentId: frame.documentId,
+    url: window.location.href,
+    documentId: 'FALLBACK',
   }
 }
 
@@ -130,9 +128,14 @@ export const useInjectFrames = () => {
           'Browser returned an empty frame list, this likely indicates a bug in the browser.'
         )
       )
-      fallbackGetCurrentFrame().then((frame) => {
-        handleFrameMutation(frame)
-      })
+      // as a fallback, try to inject into the current frame
+      fallbackGetCurrentFrame()
+        .then((frame) => {
+          handleFrameMutation(frame)
+        })
+        .catch((e) => {
+          Logger.error('Failed to inject into fallback frame', e)
+        })
       return
     }
   }, [frames])
