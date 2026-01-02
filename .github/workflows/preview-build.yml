@@ -77,6 +77,7 @@ jobs:
           generateReleaseNotes: true
           makeLatest: false
           prerelease: true
+          removeArtifacts: true
           tag: ${{ steps.tag.outputs.tag_name }}
           name: "Preview Build ${{ steps.tag.outputs.tag_name }} (${{ github.run_number }})"
           body: "Preview build generated from run ${{ github.run_number }}"
