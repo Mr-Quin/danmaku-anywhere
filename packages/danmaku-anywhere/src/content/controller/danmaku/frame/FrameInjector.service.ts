@@ -33,10 +33,10 @@ const q = createTaskQueue()
 export class FrameInjector {
   private injectedFrames = new Set<number>()
   private isFirstGetAllFrames = true
+  private isFallbackMode = false
   private pollInterval: ReturnType<typeof setInterval> | null = null
-  private isFallback = false
-  private logger
   private visibilityCleanup: (() => void) | null = null
+  private logger: ILogger
 
   constructor(
     @inject(LoggerSymbol) logger: ILogger,
@@ -113,17 +113,17 @@ export class FrameInjector {
          */
         this.logger.debug('No frames found, using fallback frame')
         await this.handleFallbackFrame()
-        this.isFallback = true
+        this.isFallbackMode = true
         return
       }
 
       // if we for some reason start getting frames, reset fallback flag
       if (frames.length > 0) {
-        this.isFallback = false
+        this.isFallbackMode = false
       }
 
-      // if fallback frame is still active, do nothing, because continuing will delete the fallback frame
-      if (this.isFallback) {
+      // if we are in fallback mode and the API still returns no frames, do nothing to preserve the fallback frame.
+      if (this.isFallbackMode) {
         return
       }
 
@@ -204,7 +204,6 @@ export class FrameInjector {
     try {
       const fallbackFrame = await fallbackGetCurrentFrame()
       this.handleFrameLogics(fallbackFrame)
-      this.isFirstGetAllFrames = false
     } catch (e) {
       this.logger.error('Failed to inject into fallback frame', e)
     }
