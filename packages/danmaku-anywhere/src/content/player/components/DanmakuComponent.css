@@ -4,11 +4,19 @@
 }
 
 .da-danmaku-top {
-  z-index: 1;
+  /* placeholder */
 }
 
 .da-danmaku-bottom {
-  z-index: 2;
+  /* placeholder */
+}
+
+.da-danmaku-ltr {
+  /* placeholder */
+}
+
+.da-danmaku-rtl {
+  /* placeholder */
 }
 
 .da-danmaku-text-shadow {

@@ -179,6 +179,7 @@ export class DanmakuManagerService {
       return
     }
 
+    this.cleanupInjectedCss()
     this.logger.debug('Unmounting danmaku')
     this.debugOverlayService.unmount()
     this.removeContainer()
