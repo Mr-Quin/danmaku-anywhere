@@ -7,6 +7,7 @@ import { uiContainer } from '@/common/ioc/uiIoc'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
+import { injectCss } from '@/content/common/injectCss'
 import { DanmakuComponent } from '@/content/player/components/DanmakuComponent'
 import { DanmakuLayoutService } from '@/content/player/danmakuLayout/DanmakuLayout.service'
 import { RectObserver } from '@/content/player/danmakuManager/RectObserver'
@@ -36,6 +37,7 @@ export class DanmakuManagerService {
 
   // Styles
   private rect = new DOMRectReadOnly()
+  private injectedCss: HTMLElement[] = []
 
   // Observers
   private rectObs?: RectObserver
@@ -177,6 +179,7 @@ export class DanmakuManagerService {
       return
     }
 
+    this.cleanupInjectedCss()
     this.logger.debug('Unmounting danmaku')
     this.debugOverlayService.unmount()
     this.removeContainer()
@@ -192,6 +195,11 @@ export class DanmakuManagerService {
   }
 
   updateConfig(config: Partial<DanmakuOptions>) {
+    this.cleanupInjectedCss()
+    if (this.parent && config.useCustomCss === true && config.customCss) {
+      // TODO: validate css
+      this.injectedCss = injectCss(this.parent, [config.customCss])
+    }
     this.renderer.updateConfig(config)
     this.updateContainerStyles()
   }
@@ -231,5 +239,10 @@ export class DanmakuManagerService {
     this.videoNodeObs.stop()
     this.debugOverlayService.unmount()
     this.unmount()
+  }
+
+  private cleanupInjectedCss() {
+    this.injectedCss.forEach((style) => style.remove())
+    this.injectedCss = []
   }
 }

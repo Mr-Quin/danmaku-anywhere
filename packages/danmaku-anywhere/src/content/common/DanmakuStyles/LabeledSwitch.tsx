@@ -8,7 +8,7 @@ import {
 import { type ReactNode, useId } from 'react'
 
 interface LabeledSwitchProps extends SwitchProps {
-  label: string
+  label: ReactNode
   tooltip?: string
   typographyProps?: TypographyProps
   children?: ReactNode

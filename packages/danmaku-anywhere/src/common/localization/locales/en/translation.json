@@ -64,7 +64,8 @@
     "search": "Search",
     "success": "Success",
     "test": "Test",
-    "time": "Time"
+    "time": "Time",
+    "viewDocs": "View Docs"
   },
   "configPage": {
     "copyShareCode": "Copy Share Code",
@@ -471,6 +472,7 @@
     "selectAnime": "Multiple matches found for {{name}}, please select"
   },
   "stylePage": {
+    "customCssDescription": "Custom CSS rules applied to every danmaku. These override other style settings.",
     "distribution": "Distribution",
     "font": "Font",
     "interval": "Emission Interval",
@@ -492,6 +494,8 @@
       "showTop": "Top Danmaku"
     },
     "speed": "Speed",
+    "speedSettings": "Speed Settings",
+    "style": "Style",
     "tooltip": {
       "distribution": "Random: danmaku will be distributed uniformly. Order: danmaku will fill the screen from top to bottom.",
       "interval": "Lower value means more densely packed danmaku. May cause performance issues if set too low.",
@@ -504,7 +508,8 @@
       "specialDanmaku": "When off, danmaku will be shown as normal scrolling danmaku",
       "trackHeight": "Higher values makes danmaku farther apart"
     },
-    "trackHeight": "Track Height"
+    "trackHeight": "Track Height",
+    "useCustomCss": "Use Custom CSS"
   },
   "tabs": {
     "config": "Config",

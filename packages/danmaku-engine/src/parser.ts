@@ -19,6 +19,7 @@ export interface ParsedComment {
    */
   time: number
   style: Record<string, string>
+  color: string
 }
 
 export interface DanmakuOption {
@@ -57,13 +58,8 @@ export const transformComment = (
     text: m,
     mode,
     time: offsetTime,
-    style: {
-      color: `${color}`,
-      textShadow:
-        color === '00000'
-          ? '-1px -1px #fff, -1px 1px #fff, 1px -1px #fff, 1px 1px #fff'
-          : '-1px -1px #000, -1px 1px #000, 1px -1px #000, 1px 1px #000',
-    },
+    style: {},
+    color,
   }
 
   if (s) {
