@@ -195,6 +195,21 @@ export class RpcManager {
 
           return frames
         },
+        getFrameById: async (frameId, sender) => {
+          if (sender.tab?.id === undefined) {
+            throw new RpcException('No tab id found')
+          }
+
+          const tabId = sender.tab.id
+
+          const frame = await chrome.webNavigation.getFrame({ frameId, tabId })
+
+          if (!frame) {
+            throw new RpcException('No frames found')
+          }
+
+          return frame
+        },
         getFrameId: async (_, sender) => {
           if (sender.frameId === undefined) {
             throw new RpcException('Sender does not have frame id')

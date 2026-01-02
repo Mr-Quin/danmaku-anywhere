@@ -9,6 +9,24 @@ import { useStore } from '@/content/controller/store/store'
 
 const urlBlacklist = ['about:blank', 'google.com']
 
+interface Frame {
+  frameId: number
+  url: string
+  documentId: string
+}
+
+async function fallbackGetCurrentFrame(): Promise<Frame> {
+  const { data: frameId } = await chromeRpcClient.getFrameId()
+
+  const { data: frame } = await chromeRpcClient.getFrameById(frameId)
+
+  return {
+    frameId,
+    url: frame.url,
+    documentId: frame.documentId,
+  }
+}
+
 export const useInjectFrames = () => {
   const { t } = useTranslation()
 
@@ -36,9 +54,7 @@ export const useInjectFrames = () => {
   })
 
   const injectFrameMutation = useMutation({
-    mutationFn: async (
-      frame: chrome.webNavigation.GetAllFrameResultDetails
-    ) => {
+    mutationFn: async (frame: Frame) => {
       const { frameId } = frame
 
       Logger.debug('Injecting player into frame', frame)
@@ -62,29 +78,33 @@ export const useInjectFrames = () => {
     },
   })
 
+  function handleFrameMutation(frame: Frame) {
+    if (injectedFrames.has(frame.frameId)) {
+      // if documentId is different, it means the frame has been reloaded, we need to re-inject
+      const existingFrame = allFrames.get(frame.frameId)
+      if (existingFrame?.documentId !== frame.documentId) {
+        Logger.debug('Frame reloaded, re-injecting', frame)
+        injectFrameMutation.mutate(frame)
+        // remove and re-add the frame to update the documentId
+        removeFrame(frame.frameId)
+        addFrame({
+          frameId: frame.frameId,
+          url: frame.url,
+          documentId: frame.documentId,
+        })
+        return
+      }
+    } else {
+      injectFrameMutation.mutate(frame)
+    }
+  }
+
   useEffect(() => {
     if (!isSuccess) return
 
     // inject script into all frames
     frames.forEach((frame) => {
-      if (injectedFrames.has(frame.frameId)) {
-        // if documentId is different, it means the frame has been reloaded, we need to re-inject
-        const existingFrame = allFrames.get(frame.frameId)
-        if (existingFrame?.documentId !== frame.documentId) {
-          Logger.debug('Frame reloaded, re-injecting', frame)
-          injectFrameMutation.mutate(frame)
-          // remove and re-add the frame to update the documentId
-          removeFrame(frame.frameId)
-          addFrame({
-            frameId: frame.frameId,
-            url: frame.url,
-            documentId: frame.documentId,
-          })
-          return
-        }
-      } else {
-        injectFrameMutation.mutate(frame)
-      }
+      handleFrameMutation(frame)
     })
 
     // when a frame is removed, remove it from the store
@@ -98,6 +118,7 @@ export const useInjectFrames = () => {
   }, [frames])
 
   useEffect(() => {
+    // run only once
     if (!frames || !isFirstGetAllFrames.current) {
       return
     }
@@ -109,6 +130,9 @@ export const useInjectFrames = () => {
           'Browser returned an empty frame list, this likely indicates a bug in the browser.'
         )
       )
+      fallbackGetCurrentFrame().then((frame) => {
+        handleFrameMutation(frame)
+      })
       return
     }
   }, [frames])
