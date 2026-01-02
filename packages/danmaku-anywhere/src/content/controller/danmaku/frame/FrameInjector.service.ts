@@ -13,13 +13,15 @@ interface Frame {
   documentId: string
 }
 
+const FALLBACK_DOCUMENT_ID = 'FALLBACK'
+
 async function fallbackGetCurrentFrame(): Promise<Frame> {
   const { data: frameId } = await chromeRpcClient.getFrameId()
 
   return {
     frameId,
     url: window.location.href,
-    documentId: 'FALLBACK',
+    documentId: FALLBACK_DOCUMENT_ID,
   }
 }
 
@@ -31,8 +33,8 @@ const q = createTaskQueue()
 export class FrameInjector {
   private injectedFrames = new Set<number>()
   private isFirstGetAllFrames = true
-  private pollInterval: NodeJS.Timeout | null = null
-  private prevFrameIds = new Set<number>()
+  private pollInterval: ReturnType<typeof setInterval> | null = null
+  private isFallback = false
   private logger
   private visibilityCleanup: (() => void) | null = null
 
@@ -103,14 +105,25 @@ export class FrameInjector {
       this.isFirstGetAllFrames = false
 
       if (frames.length === 0 && isFirstGetAllFrames) {
-        console.log('No frames found, handling fallback')
+        /**
+         * The frames list should contain at least the main frame,
+         * but some browsers, such as Lemur, will return an empty list.
+         * In this case, we use the fallback frame so that
+         * the user can still use the extension at least in the main frame.
+         */
+        this.logger.debug('No frames found, using fallback frame')
         await this.handleFallbackFrame()
+        this.isFallback = true
         return
       }
 
-      // return early if no diff
-      const hasDiff = this.checkFrameDiff(frames)
-      if (!hasDiff) {
+      // if we for some reason start getting frames, reset fallback flag
+      if (frames.length > 0) {
+        this.isFallback = false
+      }
+
+      // if fallback frame is still active, do nothing, because continuing will delete the fallback frame
+      if (this.isFallback) {
         return
       }
 
@@ -135,7 +148,7 @@ export class FrameInjector {
   }
 
   private handleFrameLogics(frame: Frame) {
-    const { allFrames, removeFrame, addFrame } = useStore.getState().frame
+    const { allFrames } = useStore.getState().frame
 
     if (this.injectedFrames.has(frame.frameId)) {
       // if documentId is different, it means the frame has been reloaded, we need to re-inject
@@ -143,13 +156,6 @@ export class FrameInjector {
       if (existingFrame?.documentId !== frame.documentId) {
         this.logger.debug('Frame reloaded, re-injecting', frame)
         this.injectFrame(frame)
-        // remove and re-add the frame to update the documentId
-        removeFrame(frame.frameId)
-        addFrame({
-          frameId: frame.frameId,
-          url: frame.url,
-          documentId: frame.documentId,
-        })
         return
       }
     } else {
@@ -202,18 +208,5 @@ export class FrameInjector {
     } catch (e) {
       this.logger.error('Failed to inject into fallback frame', e)
     }
-  }
-
-  private checkFrameDiff(frames: Frame[]): boolean {
-    const prevFrameIds = this.prevFrameIds
-    const newFrameIds = new Set(frames.map((frame) => frame.frameId))
-    const diff = newFrameIds.difference(prevFrameIds)
-
-    if (diff.size > 0) {
-      this.prevFrameIds = newFrameIds
-      return true
-    }
-
-    return false
   }
 }
