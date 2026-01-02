@@ -2,6 +2,7 @@ import { useEventCallback } from '@mui/material'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { uiContainer } from '@/common/ioc/uiIoc'
 import { Logger } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
@@ -9,12 +10,14 @@ import type { PlayerRelayEvents } from '@/common/rpcClient/background/types'
 import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
-import { useInjectFrames } from '@/content/controller/danmaku/frame/useInjectFrames'
+import { FrameInjector } from '@/content/controller/danmaku/frame/FrameInjector.service'
 import { useMigrateDanmaku } from '@/content/controller/danmaku/frame/useMigrateDanmaku'
 import { usePreloadNextEpisode } from '@/content/controller/danmaku/frame/usePreloadNextEpisode'
 import { useStore } from '@/content/controller/store/store'
 
 const logger = Logger.sub('[FrameManager]')
+
+const frameInjector = uiContainer.get(FrameInjector)
 
 export const FrameManager = () => {
   const { t } = useTranslation()
@@ -28,7 +31,13 @@ export const FrameManager = () => {
   const unmountDanmaku = useUnmountDanmaku()
   const { preloadNext, canLoadNext } = usePreloadNextEpisode()
 
-  useInjectFrames()
+  useEffect(() => {
+    frameInjector.start()
+    return () => {
+      frameInjector.stop()
+    }
+  }, [])
+
   useMigrateDanmaku()
 
   const videoChangeHandler = useEventCallback((frameId: number) => {

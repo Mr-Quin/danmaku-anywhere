@@ -126,6 +126,7 @@
       "exported": "导出成功",
       "exportError": "导出失败：{{message}}",
       "fetchError": "获取弹幕失败：{{message}}",
+      "frameListEmpty": "浏览器返回的Frame列表为空，这可能是浏览器的bug。",
       "mounted_other": "弹幕已装填：{{name}} ({{count}})",
       "mountedMultiple_other": "已装填{{count}}个多选弹幕",
       "mountError": "装填弹幕失败：{{message}}",
