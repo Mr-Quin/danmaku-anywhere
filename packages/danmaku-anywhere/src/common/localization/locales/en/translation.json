@@ -127,6 +127,7 @@
       "exported": "Export successful",
       "exportError": "Export failed: {{message}}",
       "fetchError": "Failed to fetch danmaku: {{message}}",
+      "frameListEmpty": "Browser returned an empty frame list, this likely indicates a bug in the browser.",
       "mounted_one": "Danmaku Mounted: {{name}} ({{count}})",
       "mounted_other": "Danmaku Mounted: {{name}} ({{count}})",
       "mountedMultiple_one": "Mounted {{count}} selected danmaku",
