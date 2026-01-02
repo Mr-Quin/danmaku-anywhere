@@ -64,7 +64,8 @@
     "search": "Search",
     "success": "Success",
     "test": "Test",
-    "time": "Time"
+    "time": "Time",
+    "viewDocs": "View Docs"
   },
   "configPage": {
     "copyShareCode": "Copy Share Code",

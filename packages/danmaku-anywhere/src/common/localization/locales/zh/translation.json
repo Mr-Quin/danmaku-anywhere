@@ -63,7 +63,8 @@
     "search": "搜索",
     "success": "成功",
     "test": "测试",
-    "time": "时间"
+    "time": "时间",
+    "viewDocs": "查看文档"
   },
   "configPage": {
     "copyShareCode": "复制分享码",

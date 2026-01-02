@@ -13,6 +13,7 @@ import {
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import { DocIcon } from '@/common/components/DocIcon'
 import { getScrollBarProps } from '@/common/components/layout/ScrollBox'
 import { IS_CHROME } from '@/common/constants'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
@@ -220,11 +221,6 @@ export const DanmakuStylesForm = ({
     mode: 'onChange',
   })
 
-  // // Update form when config changes, this is important for multi-tab sync
-  // useEffect(() => {
-  //   form.reset(config)
-  // }, [config, form])
-
   const { control, setValue, getValues, watch, handleSubmit, subscribe } = form
 
   const onSave = async (formData: DanmakuOptions) => {
@@ -329,7 +325,17 @@ export const DanmakuStylesForm = ({
           control={control}
           render={({ field }) => (
             <LabeledSwitch
-              label={t('stylePage.useCustomCss', 'Use Custom CSS')}
+              label={
+                <Stack
+                  component="span"
+                  direction="row"
+                  alignItems="center"
+                  gap={1}
+                >
+                  {t('stylePage.useCustomCss', 'Use Custom CSS')}
+                  <DocIcon path="docs/custom-css" />
+                </Stack>
+              }
               edge="end"
               checked={field.value}
               onChange={(e) => field.onChange(e.target.checked)}
