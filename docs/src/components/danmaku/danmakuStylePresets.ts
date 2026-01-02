@@ -109,4 +109,16 @@ export const DANMAKU_STYLE_PRESETS = [
   -webkit-text-stroke: 1px rgba(255,255,255,0.4);
 }`,
   },
+  {
+    name: 'Gradient',
+    label: '渐变',
+    css: `.da-danmaku {
+  font-weight: 800;
+  background: linear-gradient(180deg, #FFFFFF 30%, var(--color) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.9));
+  text-shadow:unset;
+}`,
+  },
 ]

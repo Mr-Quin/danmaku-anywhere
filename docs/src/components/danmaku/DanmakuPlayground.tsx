@@ -1,16 +1,15 @@
 import { useState } from 'react'
 import { DANMAKU_STYLE_PRESETS } from './danmakuStylePresets.ts'
 import { MockDanmaku } from './MockDanmaku.tsx'
-import '../../daisy.css'
 
 export const DanmakuPlayground = () => {
   const [css, setCss] = useState('')
 
   return (
-    <div className="card bg-base-100 shadow-xl border border-base-300 not-content">
+    <div className="daisy-card bg-base-100 shadow-xl border border-base-300 not-content">
       <style>{css}</style>
 
-      <div className="card-body p-0 overflow-hidden rounded-xl">
+      <div className="daisy-card-body p-0 overflow-hidden rounded-xl">
         <div className="relative h-64 bg-gray-900 w-full overflow-hidden playground-preview bg-[url('https://picsum.photos/seed/anime/800/400')] bg-cover bg-center">
           <div className="absolute inset-0 bg-black/40" />
 
@@ -61,7 +60,7 @@ export const DanmakuPlayground = () => {
             {DANMAKU_STYLE_PRESETS.map((preset) => (
               <button
                 key={preset.name}
-                className="btn btn-sm btn-outline"
+                className="daisy-btn daisy-btn-sm daisy-btn-outline"
                 onClick={() => setCss(preset.css)}
               >
                 {preset.label}
@@ -69,10 +68,10 @@ export const DanmakuPlayground = () => {
             ))}
           </div>
 
-          <fieldset className="fieldset">
-            <legend className="fieldset-legend">自定义 CSS</legend>
+          <fieldset className="daisy-fieldset">
+            <legend className="daisy-fieldset-legend">自定义 CSS</legend>
             <textarea
-              className="textarea textarea-bordered font-mono h-32 w-full"
+              className="daisy-textarea daisy-textarea-bordered font-mono h-32 w-full"
               placeholder=".da-danmaku { color: pink; }"
               value={css}
               onChange={(e) => setCss(e.target.value)}

@@ -1,7 +1,6 @@
 import { DownloadButtons } from './DownloadButtons.tsx'
 import type { Release } from './types.ts'
 import { useReleases } from './useReleases.ts'
-import '../../daisy.css'
 
 const formatRelativeTime = (dateString: string) => {
   const date = new Date(dateString)
@@ -55,7 +54,7 @@ const getBuildInfo = (name: string, tag: string): BuildInfo => {
   if (tag.includes('nightly')) {
     return {
       label: 'Nightly',
-      color: 'badge-secondary',
+      color: 'daisy-badge-secondary',
       buildNumber,
     }
   }
@@ -64,7 +63,7 @@ const getBuildInfo = (name: string, tag: string): BuildInfo => {
     const prNumber = /(\d+)/.exec(tag)?.[1]
     return {
       label: 'PR',
-      color: 'badge-accent',
+      color: 'daisy-badge-accent',
       buildNumber,
       prNumber: prNumber ?? '',
     }
@@ -72,18 +71,20 @@ const getBuildInfo = (name: string, tag: string): BuildInfo => {
 
   return {
     label: 'Pre',
-    color: 'badge-ghost',
+    color: 'daisy-badge-ghost',
     buildNumber,
   }
 }
 
 const LatestReleaseHero = ({ release }: { release: Release }) => {
   return (
-    <div className="card bg-base-100 shadow-xl border border-primary/20">
-      <div className="card-body p-6">
-        <h3 className="card-title text-2xl mb-2">
+    <div className="daisy-card bg-base-100 shadow-xl border border-primary/20">
+      <div className="daisy-card-body p-6">
+        <h3 className="daisy-card-title text-2xl mb-2">
           最新版本: {release.name || release.tag_name}
-          <div className="badge badge-primary badge-outline ml-2">最新</div>
+          <div className="daisy-badge daisy-badge-primary daisy-badge-outline ml-2">
+            最新
+          </div>
         </h3>
         <div className="text-sm opacity-70">
           发布于 {formatRelativeTime(release.published_at)}
@@ -91,14 +92,14 @@ const LatestReleaseHero = ({ release }: { release: Release }) => {
           <a
             href={release.html_url}
             target="_blank"
-            className="link link-hover"
+            className="daisy-link daisy-link-hover"
             rel="noopener"
           >
             更新日志
           </a>
         </div>
 
-        <div className="divider my-0" />
+        <div className="daisy-divider my-0" />
 
         <DownloadButtons assets={release.assets} />
       </div>
@@ -113,14 +114,14 @@ const ReleaseBadge = ({ buildInfo }: { buildInfo: BuildInfo }) => {
         href={`https://github.com/Mr-Quin/danmaku-anywhere/pull/${buildInfo.prNumber}`}
         target="_blank"
         rel="noopener"
-        className={`badge badge-xs ${buildInfo.color}`}
+        className={`daisy-badge daisy-badge-xs ${buildInfo.color}`}
       >
         PR {buildInfo.prNumber}
       </a>
     )
   }
   return (
-    <span className={`badge badge-xs ${buildInfo.color}`}>
+    <span className={`daisy-badge daisy-badge-xs ${buildInfo.color}`}>
       {buildInfo.label}
     </span>
   )
@@ -129,7 +130,7 @@ const ReleaseBadge = ({ buildInfo }: { buildInfo: BuildInfo }) => {
 const HistoryTable = ({ releases }: { releases: Release[] }) => {
   return (
     <div className="overflow-x-auto bg-base-100 border border-primary/20 rounded-lg">
-      <table className="table w-full">
+      <table className="daisy-table w-full">
         <thead>
           <tr>
             <th>版本</th>
@@ -141,7 +142,7 @@ const HistoryTable = ({ releases }: { releases: Release[] }) => {
           {releases.map((release) => {
             const buildInfo = getBuildInfo(release.name || '', release.tag_name)
             return (
-              <tr key={release.id} className="hover">
+              <tr key={release.id} className="daisy-hover">
                 <td className="font-bold">
                   <div className="flex items-center gap-2">
                     <a
@@ -197,16 +198,16 @@ export const LatestBuilds = () => {
   if (loading)
     return (
       <div className="flex w-full flex-col gap-4">
-        <div className="skeleton h-32 w-full" />
-        <div className="skeleton h-4 w-28" />
-        <div className="skeleton h-4 w-full" />
-        <div className="skeleton h-4 w-full" />
+        <div className="daisy-skeleton h-32 w-full" />
+        <div className="daisy-skeleton h-4 w-28" />
+        <div className="daisy-skeleton h-4 w-full" />
+        <div className="daisy-skeleton h-4 w-full" />
       </div>
     )
 
   if (error) {
     return (
-      <div className="alert alert-error">
+      <div className="daisy-alert daisy-alert-error">
         <span>获取版本信息失败: {error}</span>
       </div>
     )
@@ -217,14 +218,17 @@ export const LatestBuilds = () => {
       {latestRelease && <LatestReleaseHero release={latestRelease} />}
 
       {!latestRelease && !loading && !error && (
-        <div className="alert alert-warning">
+        <div className="daisy-alert daisy-alert-warning">
           <span>未能找到最新的正式版本，请查看下方的预览构建。</span>
         </div>
       )}
 
       {preReleases.length > 0 && (
         <ReleaseSection title={`预览版 (${preReleases.length})`}>
-          <div role="alert" className="alert alert-soft mb-4 text-sm shadow-sm">
+          <div
+            role="alert"
+            className="daisy-alert daisy-alert-soft mb-4 text-sm shadow-sm"
+          >
             <span>预览版包含最新的功能更改，可能存在不稳定的情况。</span>
           </div>
           <HistoryTable releases={preReleases} />
