@@ -458,7 +458,7 @@
     "selectAnime": "找到多个匹配项：{{name}}，请选择"
   },
   "stylePage": {
-    "customCssDescription": "自定义 CSS 将应用到每条弹幕，并覆盖其他样式设置。",
+    "customCssDescription": "自定义 CSS 将应用到每条弹幕。详细说明请查看文档。",
     "distribution": "弹幕分布",
     "font": "字体",
     "interval": "发射间隔",

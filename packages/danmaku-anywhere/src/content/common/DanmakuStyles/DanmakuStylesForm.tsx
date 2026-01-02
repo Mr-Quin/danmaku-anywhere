@@ -351,7 +351,7 @@ export const DanmakuStylesForm = ({
                 placeholder={customCssPlaceholder}
                 helperText={t(
                   'stylePage.customCssDescription',
-                  'Custom CSS rules applied to every danmaku. These override other style settings.'
+                  'Custom CSS rules applied to every danmaku. See docs for more info.'
                 )}
                 value={field.value ?? ''}
                 onChange={(e) => field.onChange(e.target.value)}

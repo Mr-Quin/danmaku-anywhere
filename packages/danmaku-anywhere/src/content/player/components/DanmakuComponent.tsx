@@ -18,7 +18,7 @@ export const DanmakuComponent = ({
         } as CSSProperties
       }
       className={`da-danmaku da-danmaku-${mode} da-danmaku-text-shadow`}
-      data-text={text}
+      data-text={text} // for custom css that want to access the text
     >
       {text}
     </div>

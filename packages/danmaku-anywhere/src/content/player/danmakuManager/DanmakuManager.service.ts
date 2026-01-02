@@ -197,6 +197,7 @@ export class DanmakuManagerService {
   updateConfig(config: Partial<DanmakuOptions>) {
     this.cleanupInjectedCss()
     if (this.parent && config.useCustomCss === true && config.customCss) {
+      // TODO: validate css
       this.injectedCss = injectCss(this.parent, [config.customCss])
     }
     this.renderer.updateConfig(config)
