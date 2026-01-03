@@ -31,9 +31,7 @@ export const DANMAKU_STYLE_PRESETS = [
   {
     name: 'Glitch',
     label: '故障风',
-    css: `.da-danmaku {
-}
-
+    css: `
 .da-danmaku::before,
 .da-danmaku::after {
   content: attr(data-text);
@@ -118,7 +116,7 @@ export const DANMAKU_STYLE_PRESETS = [
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 2px 2px rgba(0,0,0,0.9));
-  text-shadow:unset;
+  text-shadow: unset;
 }`,
   },
 ]

@@ -6,7 +6,7 @@ description: 学习如何使用 CSS 自定义弹幕的样式
 import { Steps } from "@astrojs/starlight/components";
 import { DanmakuPlayground } from "../../../components/danmaku/DanmakuPlayground";
 
-弹幕任何地方支持输入 CSS 代码来自定义弹幕的外观。
+弹幕在任何地方都支持使用 CSS 代码来自定义其外观。
 
 ## 预览
 
@@ -66,7 +66,7 @@ import { DanmakuPlayground } from "../../../components/danmaku/DanmakuPlayground
 
 - 不建议使用`url()`等网络资源，这些受网站 CSP 限制，可能无法加载。
 - 过于复杂的 CSS（比如滤镜、动画效果等）可能会影响性能而导致掉帧。
-- 影响弹幕边缘框大小（比如字体，字号、粗细等）的 CSS 可能影响弹幕尺寸计算，导致弹幕重叠。调整字体大小应使用内置的字号设置。
+- 影响弹幕边缘框大小（比如字体、字号、粗细等）的 CSS 可能影响弹幕尺寸计算，导致弹幕重叠。调整字体大小应使用内置的字号设置。
 - 弹幕默认设置了`pointer-events: none`，以避免遮挡视频点击。自定义 CSS 不应修改这个设置。
 
 :::
@@ -95,9 +95,6 @@ import { DanmakuPlayground } from "../../../components/danmaku/DanmakuPlayground
 仅作示例，实际使用可能导致卡顿。
 
 ```css
-.da-danmaku {
-}
-
 .da-danmaku::before,
 .da-danmaku::after {
   content: attr(data-text);
