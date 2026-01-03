@@ -16,10 +16,5 @@
       "test",
       "jest"
     ]
-  },
-  "css": {
-    "parser": {
-      "tailwindDirectives": true
-    }
   }
 }

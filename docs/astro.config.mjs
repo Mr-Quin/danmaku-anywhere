@@ -88,6 +88,14 @@ export default defineConfig({
               },
               link: '/docs/integration-policy',
             },
+            {
+              label: 'custom-css',
+              translations: {
+                'zh-CN': '自定义样式',
+                en: 'Custom CSS',
+              },
+              link: '/docs/custom-css',
+            },
           ],
         },
         {

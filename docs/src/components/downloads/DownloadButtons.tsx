@@ -16,7 +16,7 @@ export const DownloadButtons = ({
       return (
         <a
           href={chromeZip.browser_download_url}
-          className="btn btn-xs btn-outline btn-primary"
+          className="daisy-btn daisy-btn-xs daisy-btn-outline daisy-btn-primary"
           title="下载 Chrome/Edge 压缩包"
         >
           Chrome (.zip)
@@ -27,7 +27,7 @@ export const DownloadButtons = ({
       return (
         <a
           href={firefoxZip.browser_download_url}
-          className="btn btn-xs btn-outline btn-secondary"
+          className="daisy-btn daisy-btn-xs daisy-btn-outline daisy-btn-secondary"
           title="下载 Firefox 压缩包"
         >
           Firefox (.zip)
@@ -38,7 +38,7 @@ export const DownloadButtons = ({
       return (
         <a
           href={chromeCrx.browser_download_url}
-          className="btn btn-xs btn-outline btn-info"
+          className="daisy-btn daisy-btn-xs daisy-btn-outline daisy-btn-info"
           title="下载 Android CRX"
         >
           Edge Canary (.crx)
@@ -53,7 +53,7 @@ export const DownloadButtons = ({
       {chromeZip && (
         <a
           href={chromeZip.browser_download_url}
-          className="btn btn-primary join-item py-1 px-4 h-auto"
+          className="daisy-btn daisy-btn-primary daisy-join-item py-1 px-4 h-auto"
         >
           <span className="flex flex-col items-center">
             <span>Chrome / Edge</span>
@@ -66,7 +66,7 @@ export const DownloadButtons = ({
       {chromeCrx && (
         <a
           href={chromeCrx.browser_download_url}
-          className="btn btn-info join-item text-white py-1 px-4 h-auto"
+          className="daisy-btn daisy-btn-info daisy-join-item text-white py-1 px-4 h-auto"
         >
           <span className="flex flex-col items-center">
             <span>Edge Canary (安卓)</span>
@@ -77,7 +77,7 @@ export const DownloadButtons = ({
       {firefoxZip && (
         <a
           href={firefoxZip.browser_download_url}
-          className="btn btn-secondary join-item py-1 px-4 h-auto"
+          className="daisy-btn daisy-btn-secondary daisy-join-item py-1 px-4 h-auto"
         >
           <span className="flex flex-col items-center">
             <span>Firefox</span>
