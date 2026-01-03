@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import playgroundBg from '../../assets/playground-background.jpg'
 import { DANMAKU_STYLE_PRESETS } from './danmakuStylePresets.ts'
 import { MockDanmaku } from './MockDanmaku.tsx'
 
@@ -10,7 +11,10 @@ export const DanmakuPlayground = () => {
       <style>{css}</style>
 
       <div className="daisy-card-body p-0 overflow-hidden rounded-xl">
-        <div className="relative h-64 bg-gray-900 w-full overflow-hidden playground-preview bg-[url('https://picsum.photos/seed/anime/800/400')] bg-cover bg-center">
+        <div
+          className="relative h-64 bg-gray-900 w-full overflow-hidden playground-preview bg-cover bg-center"
+          style={{ backgroundImage: `url(${playgroundBg.src})` }}
+        >
           <div className="absolute inset-0 bg-black/40" />
 
           <MockDanmaku
