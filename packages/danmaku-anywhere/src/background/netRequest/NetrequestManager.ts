@@ -82,7 +82,7 @@ export class NetRequestManager {
     chrome.runtime.onInstalled.addListener(async () => {
       try {
         await chrome.declarativeNetRequest.updateDynamicRules({
-          removeRuleIds: [1, 2, 3],
+          removeRuleIds: rules.map((r) => r.id),
           addRules: rules,
         })
         this.logger.debug('Updated net request dynamic rules')
