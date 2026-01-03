@@ -12,6 +12,7 @@ import { LogsDbService } from '../Logging/LogsDb.service'
 interface DebugData {
   logs: unknown
   dynamicNetRequest: unknown
+  enabledRulesets: unknown
   providerConfigs: unknown
   extensionOptions: unknown
   mountConfigs: unknown
@@ -64,6 +65,10 @@ export class DebugFileService {
         {
           key: 'dynamicNetRequest',
           getter: () => this.netRequestManager.getRules(),
+        },
+        {
+          key: 'enabledRulesets',
+          getter: () => this.netRequestManager.getEnabledStaticRulesets(),
         },
         {
           key: 'providerConfigs',
