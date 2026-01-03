@@ -93,6 +93,11 @@ export const manifest = defineManifest({
         enabled: true,
         path: 'rules/bgm.json',
       },
+      {
+        id: 'danmaku-provider',
+        enabled: true,
+        path: 'rules/danmaku-provider.json',
+      },
     ],
   },
 })

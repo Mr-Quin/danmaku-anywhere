@@ -46,57 +46,8 @@ function getSelfDomain() {
 const selfDomain = getSelfDomain()
 
 const rules: chrome.declarativeNetRequest.Rule[] = [
-  // Set origin and referer to bilibili.com
   {
-    id: 1,
-    action: {
-      type: RuleActionType.MODIFY_HEADERS,
-      requestHeaders: [
-        {
-          header: 'Referer',
-          operation: HeaderOperation.SET,
-          value: 'https://www.bilibili.com',
-        },
-        {
-          header: 'Origin',
-          operation: HeaderOperation.SET,
-          value: 'https://www.bilibili.com',
-        },
-      ],
-    },
-    condition: {
-      excludedInitiatorDomains: ['bilibili.com'],
-      urlFilter: '|https://*.bilibili.com/',
-      resourceTypes: [ResourceType.XMLHTTPREQUEST],
-    },
-  },
-  // Set origin and referer to v.qq.com
-  {
-    id: 2,
-    action: {
-      type: RuleActionType.MODIFY_HEADERS,
-      requestHeaders: [
-        {
-          header: 'Referer',
-          operation: HeaderOperation.SET,
-          value: 'https://v.qq.com',
-        },
-        {
-          header: 'Origin',
-          operation: HeaderOperation.SET,
-          value: 'https://v.qq.com',
-        },
-      ],
-    },
-    condition: {
-      excludedInitiatorDomains: ['qq.com'],
-      urlFilter: '|https://*.video.qq.com/',
-      resourceTypes: [ResourceType.XMLHTTPREQUEST],
-    },
-  },
-  // Set origin and referer to proxy
-  {
-    id: 3,
+    id: 3, // keep old id
     action: {
       type: RuleActionType.MODIFY_HEADERS,
       requestHeaders: [
@@ -143,5 +94,9 @@ export class NetRequestManager {
 
   async getRules() {
     return rules
+  }
+
+  async getEnabledStaticRulesets() {
+    return chrome.declarativeNetRequest.getEnabledRulesets()
   }
 }
