@@ -53,7 +53,6 @@ export class FrameInjector {
 
     this.visibilityCleanup = this.pageVisibilityService.onVisibilityChange(
       (visible) => {
-        this.logger.debug('Visibility changed', visible)
         if (visible) {
           this.startPolling()
         } else {
