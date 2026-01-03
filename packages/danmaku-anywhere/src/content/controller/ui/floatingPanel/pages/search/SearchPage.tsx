@@ -39,10 +39,6 @@ export const SearchPage = (): React.ReactElement | null => {
     setSearchTitle(mediaInfo.title)
   }, [mediaInfo])
 
-  const handleDialogProceed = (season: Season) => {
-    setSelectedSeason(season)
-  }
-
   const handleSeasonClick = (
     season: Season | CustomSeason,
     provider: ProviderConfig
@@ -60,7 +56,10 @@ export const SearchPage = (): React.ReactElement | null => {
       showAddSeasonMapDialog({
         season,
         mapKey: mediaInfo.getKey(),
-        onProceed: handleDialogProceed,
+        onProceed: (s) => {
+          setSelectedSeason(s)
+          setSelectedProvider(provider)
+        },
       })
     } else {
       setSelectedSeason(season)
