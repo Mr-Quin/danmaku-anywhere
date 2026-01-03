@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/cloudflare'
 import type { Context } from 'hono'
 import { factory } from '@/factory'
 import { type SetCacheControlFn, useCache } from '@/middleware/cache'
-import { md5, uriDecode } from '@/utils'
+import { md5 } from '@/utils'
 
 const registerEndpoints = [
   'register',
@@ -97,12 +97,13 @@ danDanPlay.use('*', useCache({ setCacheControl: setCacheHeaders }))
 danDanPlay.all('*', verifyPathQuery, async (c) => {
   const env = c.env
 
-  const encodedPath = c.req.query('path') as string
+  const rawPath = c.req.query('path') as string
 
-  const path = decodeURIComponent(encodedPath).replace(/^\/+/, '')
+  // hono decode query params automatically
+  const path = rawPath.replace(/^\/+/, '')
 
   const targetUrl = `${env.DANDANPLAY_API_HOST}/api/${path}`
-  console.log(`DanDanPlay: ${uriDecode(targetUrl)}`)
+  console.log(`DanDanPlay: ${targetUrl}`)
 
   let ddpRequest = new Request(targetUrl, {
     method: c.req.method,
