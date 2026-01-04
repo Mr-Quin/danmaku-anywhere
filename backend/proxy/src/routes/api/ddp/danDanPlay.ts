@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/cloudflare'
-import type { Context } from 'hono'
 import { factory } from '@/factory'
 import { type SetCacheControlFn, useCache } from '@/middleware/cache'
+import { useRateLimiter } from '@/middleware/rateLimit'
 import { md5 } from '@/utils'
 
 const registerEndpoints = [
@@ -77,7 +77,7 @@ const setCacheHeaders: SetCacheControlFn = (req, response) => {
   }
 }
 
-const verifyPathQuery = factory.createMiddleware(async (c: Context, next) => {
+const verifyPathQuery = factory.createMiddleware(async (c, next) => {
   const path = c.req.query('path')
 
   if (!path) {
@@ -94,38 +94,43 @@ export const danDanPlay = factory.createApp()
 
 danDanPlay.use('*', useCache({ setCacheControl: setCacheHeaders }))
 
-danDanPlay.all('*', verifyPathQuery, async (c) => {
-  const env = c.env
+danDanPlay.all(
+  '*',
+  verifyPathQuery,
+  useRateLimiter({ rateLimiter: 'DDP_RATE_LIMITER' }),
+  async (c) => {
+    const env = c.env
 
-  const rawPath = c.req.query('path') as string
+    const rawPath = c.req.query('path') as string
 
-  // hono decode query params automatically
-  const path = rawPath.replace(/^\/+/, '')
+    // hono decode query params automatically
+    const path = rawPath.replace(/^\/+/, '')
 
-  const targetUrl = `${env.DANDANPLAY_API_HOST}/api/${path}`
-  console.log(`DanDanPlay: ${targetUrl}`)
+    const targetUrl = `${env.DANDANPLAY_API_HOST}/api/${path}`
+    console.log(`DanDanPlay: ${targetUrl}`)
 
-  let ddpRequest = new Request(targetUrl, {
-    method: c.req.method,
-    headers: c.req.raw.headers,
-    body: c.req.raw.body,
-  })
+    let ddpRequest = new Request(targetUrl, {
+      method: c.req.method,
+      headers: c.req.raw.headers,
+      body: c.req.raw.body,
+    })
 
-  const DANDANPLAY_APP_SECRET = await env.DANDANPLAY_APP_SECRET.get()
-  // Update request body for register endpoints
-  if (c.req.method === 'POST' && isRegisterEndpoint(path)) {
-    console.log(`Updating request body for ${path}`)
-    ddpRequest = await updateRequestBody(
-      ddpRequest,
-      env.DANDANPLAY_APP_ID,
-      DANDANPLAY_APP_SECRET,
-      path !== 'findmyid'
-    )
+    const DANDANPLAY_APP_SECRET = await env.DANDANPLAY_APP_SECRET.get()
+    // Update request body for register endpoints
+    if (c.req.method === 'POST' && isRegisterEndpoint(path)) {
+      console.log(`Updating request body for ${path}`)
+      ddpRequest = await updateRequestBody(
+        ddpRequest,
+        env.DANDANPLAY_APP_ID,
+        DANDANPLAY_APP_SECRET,
+        path !== 'findmyid'
+      )
+    }
+
+    // Add DanDanPlay API credentials
+    ddpRequest.headers.set('X-AppId', env.DANDANPLAY_APP_ID)
+    ddpRequest.headers.set('X-AppSecret', DANDANPLAY_APP_SECRET)
+
+    return fetch(ddpRequest)
   }
-
-  // Add DanDanPlay API credentials
-  ddpRequest.headers.set('X-AppId', env.DANDANPLAY_APP_ID)
-  ddpRequest.headers.set('X-AppSecret', DANDANPLAY_APP_SECRET)
-
-  return fetch(ddpRequest)
-})
+)
