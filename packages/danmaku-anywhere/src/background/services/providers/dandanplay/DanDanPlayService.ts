@@ -6,7 +6,9 @@ import type {
   SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
+import type { DanmakuProviderError } from '@danmaku-anywhere/danmaku-provider'
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
+import type { Result } from '@danmaku-anywhere/result'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType, isProvider } from '@/common/danmaku/utils'
@@ -43,9 +45,14 @@ export class DanDanPlayService implements IDanmakuProvider {
       searchParams.keyword,
       this.context
     )
-    this.logger.debug('Search result', result)
 
-    return result.map((item) =>
+    if (!result.success) {
+      throw result.error
+    }
+
+    this.logger.debug('Search result', result.data)
+
+    return result.data.map((item) =>
       DanDanPlayMapper.searchResultToSeasonInsert(item, this.config.id)
     )
   }
@@ -86,10 +93,16 @@ export class DanDanPlayService implements IDanmakuProvider {
   ): Promise<OmitSeasonId<DanDanPlayOf<EpisodeMeta>>[]> {
     this.logger.debug('Getting DanDanPlay episodes', seasonRemoteIds)
 
-    const bangumiDetails = await danDanPlay.getBangumiAnime(
+    const bangumiDetailsRes = await danDanPlay.getBangumiAnime(
       seasonRemoteIds.bangumiId,
       this.context
     )
+
+    if (!bangumiDetailsRes.success) {
+      throw bangumiDetailsRes.error
+    }
+
+    const bangumiDetails = bangumiDetailsRes.data
 
     this.logger.debug('DanDanPlay Episodes fetched', bangumiDetails)
 
@@ -113,10 +126,16 @@ export class DanDanPlayService implements IDanmakuProvider {
   async getSeason(
     seasonRemoteIds: DanDanPlayOf<Season>['providerIds']
   ): Promise<SeasonInsert | null> {
-    const bangumiDetails = await danDanPlay.getBangumiAnime(
+    const bangumiDetailsRes = await danDanPlay.getBangumiAnime(
       seasonRemoteIds.bangumiId,
       this.context
     )
+
+    if (!bangumiDetailsRes.success) {
+      throw bangumiDetailsRes.error
+    }
+
+    const bangumiDetails = bangumiDetailsRes.data
 
     const seasonInsert: DanDanPlayOf<SeasonInsert> =
       DanDanPlayMapper.bangumiDetailsToSeasonInsert(
@@ -171,7 +190,7 @@ export class DanDanPlayService implements IDanmakuProvider {
     const chConvert = params.chConvert ?? this.config.options.chConvert
 
     const findEpisode = async (bangumiId: string, episodeId: number) => {
-      const [bangumiDetails, err] = await tryCatch(
+      const [bangumiDetailsRes, err] = await tryCatch(
         async () => await danDanPlay.getBangumiAnime(bangumiId, this.context)
       )
 
@@ -179,6 +198,12 @@ export class DanDanPlayService implements IDanmakuProvider {
         this.logger.debug('Failed to get bangumi data', err)
         throw err
       }
+
+      if (!bangumiDetailsRes.success) {
+        throw bangumiDetailsRes.error
+      }
+
+      const bangumiDetails = bangumiDetailsRes.data
 
       const episode = bangumiDetails.episodes.find(
         (e) => e.episodeId === episodeId
@@ -215,11 +240,17 @@ export class DanDanPlayService implements IDanmakuProvider {
 
     this.logger.debug('Fetching danmaku', meta, paramsCopy)
 
-    const comments = await danDanPlay.commentGetComment(
+    const commentsRes = await danDanPlay.commentGetComment(
       providerIds.episodeId,
       paramsCopy,
       this.context
     )
+
+    if (!commentsRes.success) {
+      throw commentsRes.error
+    }
+
+    const comments = commentsRes.data
 
     this.logger.debug('Danmaku fetched from server', comments)
 
@@ -252,11 +283,15 @@ export class DanDanPlayService implements IDanmakuProvider {
     })
   }
 
-  async sendComment(request: danDanPlay.SendCommentRequest) {
+  async sendComment(
+    request: danDanPlay.SendCommentRequest
+  ): Promise<Result<{ cid: number }, DanmakuProviderError>> {
     return danDanPlay.commentSendComment(request)
   }
 
-  async register(request: danDanPlay.RegisterRequestV2) {
+  async register(
+    request: danDanPlay.RegisterRequestV2
+  ): Promise<Result<danDanPlay.LoginResponse, DanmakuProviderError>> {
     this.logger.debug('Registering user', request)
 
     const res = danDanPlay.registerRegisterMainUser(request)
@@ -266,13 +301,17 @@ export class DanDanPlayService implements IDanmakuProvider {
     return res
   }
 
-  async login(request: danDanPlay.LoginRequest) {
+  async login(
+    request: danDanPlay.LoginRequest
+  ): Promise<Result<danDanPlay.LoginResponse, DanmakuProviderError>> {
     this.logger.debug('Logging in')
 
     return danDanPlay.loginLogin(request)
   }
 
-  async renew() {
+  async renew(): Promise<
+    Result<danDanPlay.LoginResponse, DanmakuProviderError>
+  > {
     this.logger.debug('Renewing token')
 
     return danDanPlay.loginRenewToken()

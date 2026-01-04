@@ -1,4 +1,6 @@
+import { ok, type Result } from '@danmaku-anywhere/result'
 import type { ZodType, z } from 'zod'
+import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
 import { fetchData } from '../utils/fetchData.js'
 import { zDanmuIcuDanmaku } from './danmuIcu.js'
 import { type GenericVodSearchResponse, zVodSearchResponse } from './schema.js'
@@ -26,7 +28,7 @@ const fetchJson = async <T extends ZodType>(url: string, responseSchema: T) => {
 export const searchMacCmsVod = async (
   baseUrl: string,
   keyword: string
-): Promise<GenericVodSearchResponse> => {
+): Promise<Result<GenericVodSearchResponse, DanmakuProviderError>> => {
   const url = withQuery(baseUrl, '/api.php/provide/vod/', {
     ac: 'detail',
     wd: keyword,
@@ -38,21 +40,30 @@ export const fetchDanmuIcuComments = async (
   baseUrl: string,
   videoUrl: string,
   stripColor: boolean
-): Promise<z.infer<typeof zDanmuIcuDanmaku>> => {
+): Promise<Result<z.infer<typeof zDanmuIcuDanmaku>, DanmakuProviderError>> => {
   const url = withQuery(baseUrl, '/', {
     ac: 'dm',
     url: videoUrl,
   })
-  const comments = await fetchJson(url, zDanmuIcuDanmaku)
+  const commentsResult = await fetchJson(url, zDanmuIcuDanmaku)
+
+  if (!commentsResult.success) {
+    return commentsResult
+  }
+
+  const comments = commentsResult.data
+
   if (stripColor) {
     // set color to white if stripColor is true
-    return comments.map((c) => {
-      const [time, mode] = c.p.split(',')
-      return {
-        ...c,
-        p: [time, mode, '16777215'].join(','),
-      }
-    })
+    return ok(
+      comments.map((c) => {
+        const [time, mode] = c.p.split(',')
+        return {
+          ...c,
+          p: [time, mode, '16777215'].join(','),
+        }
+      })
+    )
   }
-  return comments
+  return ok(comments)
 }

@@ -16,7 +16,6 @@ export const zExtractTitleSuccessResponse = zGeminiSuccessResponse.extend({
     title: z.string(),
     episode: z.number(),
     episodeTitle: z.string(),
-    altTitles: z.array(z.string()),
   }),
 })
 

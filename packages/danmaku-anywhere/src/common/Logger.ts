@@ -1,4 +1,5 @@
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { serializeErrorJson } from './utils/serializeError'
 
 const prefix = '[Danmaku]'
 
@@ -19,7 +20,7 @@ export interface LogEntry {
   context: string
 }
 
-function formatArgs(args: unknown[]) {
+function formatArgs(args: unknown[]): string {
   if (args.length === 0) return ''
   if (args.length === 1) {
     if (typeof args[0] === 'string') {
@@ -27,27 +28,23 @@ function formatArgs(args: unknown[]) {
     }
   }
 
-  try {
-    return JSON.stringify(args).slice(0, 200)
-  } catch {
-    const fallback = args
-      .map((arg) => {
-        if (typeof arg === 'string') {
-          return arg
-        }
-        if (arg instanceof Error) {
-          return arg.stack || arg.message
-        }
-        try {
-          return String(arg)
-        } catch {
-          return '[Unserializable]'
-        }
-      })
-      .join('||')
-    // truncate long strings
-    return fallback.slice(0, 200)
-  }
+  const serialized = args
+    .map((arg) => {
+      if (typeof arg === 'string') {
+        return arg
+      }
+      if (arg instanceof Error) {
+        return JSON.stringify(serializeErrorJson(arg))
+      }
+      try {
+        return JSON.stringify(arg)
+      } catch {
+        return '[Unserializable]'
+      }
+    })
+    .join(', ')
+
+  return serialized
 }
 
 interface LoggerOptions {
@@ -64,15 +61,25 @@ export const createLogger = (
   const methods: ConsoleMethod[] = ['log', 'info', 'warn', 'error', 'debug']
 
   function log(method: ConsoleMethod, ...args: unknown[]) {
-    console[method].call(console, prefix, ...args)
+    if (method === 'error') {
+      // for error, print the full error message with serialized error
+      console[method].call(console, prefix, formatArgs(args))
+    } else {
+      console[method].call(console, prefix, ...args)
+    }
 
     if (options.onLog) {
       const env = options.env
 
+      const serailizedArgs = formatArgs(args)
+
       const entry: LogEntry = {
         type: 'console',
         level: method,
-        message: formatArgs(args),
+        message:
+          method === 'error'
+            ? serailizedArgs // keep the full error message
+            : serailizedArgs.slice(0, 200) + '...',
         prefix,
         timestamp: Date.now(),
         context: env || 'Unknown',

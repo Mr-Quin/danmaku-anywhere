@@ -1,0 +1,21 @@
+{
+  "name": "@danmaku-anywhere/result",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cheap copy of neverthrow",
+  "author": "Mr-Quin",
+  "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsgo",
+    "lint": "biome check --fix",
+    "type-check": "tsgo --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "vitest": "^4.0.13"
+  }
+}

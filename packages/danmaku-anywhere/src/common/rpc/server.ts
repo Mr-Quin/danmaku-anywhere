@@ -1,4 +1,5 @@
 import { type ILogger, Logger } from '../Logger'
+import { serializeError } from '../utils/serializeError'
 
 import type {
   AnyRPCDef,
@@ -23,18 +24,6 @@ interface CreateRpcServerOptions<TContext extends RpcContext> {
   context?: TContext
   // Filter based on input, return false to ignore message
   filter?: (method: string, input: any) => boolean
-}
-
-const serializeError = (error: unknown) => {
-  if (error instanceof Error) {
-    return error.message
-  }
-
-  try {
-    return JSON.stringify(error)
-  } catch {
-    return 'Unknown error'
-  }
 }
 
 export const createRpcServer = <
