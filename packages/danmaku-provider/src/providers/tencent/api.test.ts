@@ -13,36 +13,39 @@ describe('Tencent', () => {
   })
 
   describe('search', () => {
-    it('should not throw on search', async () => {
+    it('should return success on search', async () => {
       mockFetchResponse(mockData.mockSearchMediaResponse)
 
-      await expect(
-        tencentApi.searchMedia({ query: '斗罗大陆' })
-      ).resolves.not.toThrow()
-
       const result = await tencentApi.searchMedia({ query: '斗罗大陆' })
-
-      expect(result).toHaveLength(9)
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data).toHaveLength(9)
+      }
     })
 
-    it('should throw an error on API error', async () => {
+    it('should return error on API error', async () => {
       const mockResponse = {
         ret: 400,
         msg: 'server err',
       }
 
       mockFetchResponse(mockResponse)
-      await expect(
-        tencentApi.searchMedia({ query: '斗罗大陆' })
-      ).rejects.toThrow(TencentApiException)
+
+      const result = await tencentApi.searchMedia({ query: '斗罗大陆' })
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error).toBeInstanceOf(TencentApiException)
+      }
     })
 
-    it('should throw an error on response parse error', async () => {
+    it('should return error on response parse error', async () => {
       mockFetchResponse({})
 
-      await expect(
-        tencentApi.searchMedia({ query: '斗罗大陆' })
-      ).rejects.toThrow(ResponseParseException)
+      const result = await tencentApi.searchMedia({ query: '斗罗大陆' })
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error).toBeInstanceOf(ResponseParseException)
+      }
     })
   })
 
@@ -50,8 +53,13 @@ describe('Tencent', () => {
     it('should get episode list', async () => {
       const generator = tencentApi.listEpisodes({ cid: 'm441e3rjq9kwpsc' })
       const mockFetch = mockFetchResponse(mockData.mockEpisodeListResponse)
-      const first = await generator.next()
-      expect(first.value).toHaveLength(100)
+
+      const firstResult = await generator.next()
+      expect(firstResult.value.success).toBe(true)
+      if (firstResult.value.success) {
+        expect(firstResult.value.data).toHaveLength(100)
+      }
+
       expect(mockFetch).toHaveBeenCalledTimes(1)
 
       // the payload should have stringified params
@@ -77,11 +85,27 @@ describe('Tencent', () => {
       })
 
       mockFetchResponse(mockData.mockEpisodeListLastResponse)
-      const second = await generator.next()
-      expect(second.done).toBe(true)
+
+      // Wait, listEpisodes returns generator of Promises of Result?
+      // Or AsyncGenerator yielding results?
+      // tencent/api.ts: async function* listEpisodes(...) yields Result
+
+      const secondResult = await generator.next()
+      if (!secondResult.done) {
+        // It should be done if mockEpisodeListLastResponse indicates end?
+        // Check mock logic, but usually we just check done or value
+        // If second yield is expected
+        // Let's assume the test logic was correct about 2 yields or 2nd is done?
+        // Original test: const second = await generator.next(); expect(second.done).toBe(true)
+
+        // Assuming second call returns done based on mock data
+        expect(secondResult.done).toBe(true)
+      } else {
+        expect(secondResult.done).toBe(true)
+      }
     })
 
-    it('should throw an error on API error', async () => {
+    it('should return error on API error', async () => {
       const mockResponse = {
         ret: 400,
         msg: 'server err',
@@ -89,17 +113,25 @@ describe('Tencent', () => {
 
       mockFetchResponse(mockResponse)
 
-      await expect(
-        tencentApi.listEpisodes({ cid: 'm441e3rjq9kwpsc' }).next()
-      ).rejects.toThrow(TencentApiException)
+      const generator = tencentApi.listEpisodes({ cid: 'm441e3rjq9kwpsc' })
+      const firstResult = await generator.next()
+
+      expect(firstResult.value.success).toBe(false)
+      if (!firstResult.value.success) {
+        expect(firstResult.value.error).toBeInstanceOf(TencentApiException)
+      }
     })
 
-    it('should throw an error on unexpected data', async () => {
+    it('should return error on unexpected data', async () => {
       mockFetchResponse({})
 
-      await expect(
-        tencentApi.listEpisodes({ cid: 'm441e3rjq9kwpsc' }).next()
-      ).rejects.toThrow(ResponseParseException)
+      const generator = tencentApi.listEpisodes({ cid: 'm441e3rjq9kwpsc' })
+      const firstResult = await generator.next()
+
+      expect(firstResult.value.success).toBe(false)
+      if (!firstResult.value.success) {
+        expect(firstResult.value.error).toBeInstanceOf(ResponseParseException)
+      }
     })
   })
 
@@ -107,14 +139,20 @@ describe('Tencent', () => {
     it('should get segments', async () => {
       mockFetchResponse(mockData.mockBarrageBaseResponse)
 
-      const segmentData = await tencentApi.getDanmakuSegments('m00253deqqo')
-
-      expect(segmentData).toHaveProperty('segment_index')
+      const result = await tencentApi.getDanmakuSegments('m00253deqqo')
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data).toHaveProperty('segment_index')
+      }
     })
 
     it('should fetch comments using segments', async () => {
       const mockFetch = mockFetchResponse(mockData.mockBarrageBaseResponse)
-      const segmentData = await tencentApi.getDanmakuSegments('m00253deqqo')
+
+      const segmentsResult = await tencentApi.getDanmakuSegments('m00253deqqo')
+      if (!segmentsResult.success) throw segmentsResult.error
+      const segmentData = segmentsResult.data
+
       const totalSegments = Object.values(segmentData.segment_index).length
 
       mockFetch.mockReset()
@@ -130,10 +168,13 @@ describe('Tencent', () => {
         segmentData
       )
 
-      for await (const comments of generator) {
-        expect(comments).toHaveLength(
-          mockData.mockBarrage600000Response.barrage_list.length
-        )
+      for await (const commentsResult of generator) {
+        expect(commentsResult.success).toBe(true)
+        if (commentsResult.success) {
+          expect(commentsResult.data).toHaveLength(
+            mockData.mockBarrage600000Response.barrage_list.length
+          )
+        }
       }
 
       expect(fetch).toHaveBeenCalledTimes(totalSegments)
@@ -147,9 +188,11 @@ describe('Tencent', () => {
       )
     })
 
-    it('should throw when data is invalid', async () => {
+    it('should return error when data is invalid', async () => {
       mockFetchResponse(mockData.mockBarrageBaseResponse)
-      const segmentData = await tencentApi.getDanmakuSegments('m00253deqqo')
+      const segmentsResult = await tencentApi.getDanmakuSegments('m00253deqqo')
+      if (!segmentsResult.success) throw segmentsResult.error
+      const segmentData = segmentsResult.data
 
       mockFetchResponse(new TextEncoder().encode('invalid').buffer)
 
@@ -158,7 +201,8 @@ describe('Tencent', () => {
         segmentData
       )
 
-      await expect(generator.next()).rejects.toThrow()
+      const firstResult = await generator.next()
+      expect(firstResult.value.success).toBe(false)
     })
   })
 })

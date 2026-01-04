@@ -54,7 +54,11 @@ export class MacCmsProviderService implements IDanmakuProvider {
     })
     const res = await searchMacCmsVod(baseUrl, keyword)
 
-    return res.list.map((item, i) => {
+    if (!res.success) {
+      throw res.error
+    }
+
+    return res.data.list.map((item, i) => {
       const id = `custom:${item.vod_id}:${i}`
       return {
         id: i,
@@ -97,11 +101,17 @@ export class MacCmsProviderService implements IDanmakuProvider {
       )
     }
 
-    const comments = await fetchDanmuIcuComments(
+    const commentsResult = await fetchDanmuIcuComments(
       config.options.danmuicuBaseUrl,
       url,
       config.options.stripColor
     )
+
+    if (!commentsResult.success) {
+      throw commentsResult.error
+    }
+
+    const comments = commentsResult.data
 
     return danmakuService.importCustom({ title, comments })
   }

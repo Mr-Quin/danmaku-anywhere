@@ -42,7 +42,8 @@ export class BilibiliService implements IDanmakuProvider {
   static async getLoginStatus(logger: ILogger) {
     logger.sub('[BilibiliService]').debug('Get bilibili login status')
     const result = await bilibili.getCurrentUser()
-    return result
+    if (!result.success) throw result.error
+    return result.data
   }
 
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
@@ -53,7 +54,9 @@ export class BilibiliService implements IDanmakuProvider {
     const result = await bilibili.searchMedia(searchParams)
     this.logger.debug('Search result', result)
 
-    return result.map(BilibiliMapper.toSeasonInsert)
+    if (!result.success) throw result.error
+
+    return result.data.map(BilibiliMapper.toSeasonInsert)
   }
 
   async findEpisode(
@@ -86,10 +89,14 @@ export class BilibiliService implements IDanmakuProvider {
     seasonId?: number
     episodeId?: number
   }) {
-    const seasonInfo = await bilibili.getBangumiInfo({
+    const seasonInfoResult = await bilibili.getBangumiInfo({
       seasonId,
       episodeId,
     })
+
+    if (!seasonInfoResult.success) throw seasonInfoResult.error
+
+    const seasonInfo = seasonInfoResult.data
 
     return {
       seasonInfo,
@@ -148,7 +155,9 @@ export class BilibiliService implements IDanmakuProvider {
     })
     this.logger.debug('Get bangumi info result', result)
 
-    return result.episodes.map((item) => {
+    if (!result.success) throw result.error
+
+    return result.data.episodes.map((item) => {
       return BilibiliMapper.toEpisode(item)
     })
   }
@@ -201,7 +210,8 @@ export class BilibiliService implements IDanmakuProvider {
     this.logger.debug('Get danmaku xml', cid)
     const result = await bilibili.getDanmakuXml(cid)
     this.logger.debug('Get danmaku xml result', result)
-    return result
+    if (!result.success) throw result.error
+    return result.data
   }
 
   private async getDanmakuProto(cid: number, aid: number) {
@@ -210,6 +220,7 @@ export class BilibiliService implements IDanmakuProvider {
       limitPerMinute: Number.POSITIVE_INFINITY,
     })
     this.logger.debug('Get danmaku proto result', result)
-    return result
+    if (!result.success) throw result.error
+    return result.data
   }
 }

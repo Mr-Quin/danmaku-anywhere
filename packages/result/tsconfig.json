@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "composite": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noImplicitAny": false,
+    "types": ["chrome"]
+  },
+  "include": ["./src"],
+  "exclude": ["**/*.test.ts", "**/test"],
+  "references": []
+}

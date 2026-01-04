@@ -1,4 +1,5 @@
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { serializeErrorJson } from './utils/serializeError'
 
 const prefix = '[Danmaku]'
 
@@ -27,27 +28,23 @@ function formatArgs(args: unknown[]): string {
     }
   }
 
-  try {
-    return JSON.stringify(args)
-  } catch {
-    const fallback = args
-      .map((arg) => {
-        if (typeof arg === 'string') {
-          return arg
-        }
-        if (arg instanceof Error) {
-          return arg.stack || arg.message
-        }
-        try {
-          return String(arg)
-        } catch {
-          return '[Unserializable]'
-        }
-      })
-      .join('||')
+  const serialized = args
+    .map((arg) => {
+      if (typeof arg === 'string') {
+        return arg
+      }
+      if (arg instanceof Error) {
+        return JSON.stringify(serializeErrorJson(arg))
+      }
+      try {
+        return JSON.stringify(arg)
+      } catch {
+        return '[Unserializable]'
+      }
+    })
+    .join(', ')
 
-    return fallback
-  }
+  return serialized
 }
 
 interface LoggerOptions {
@@ -64,7 +61,12 @@ export const createLogger = (
   const methods: ConsoleMethod[] = ['log', 'info', 'warn', 'error', 'debug']
 
   function log(method: ConsoleMethod, ...args: unknown[]) {
-    console[method].call(console, prefix, ...args)
+    if (method === 'error') {
+      // for error, print the full error message with serialized error
+      console[method].call(console, prefix, formatArgs(args))
+    } else {
+      console[method].call(console, prefix, ...args)
+    }
 
     if (options.onLog) {
       const env = options.env
@@ -75,7 +77,9 @@ export const createLogger = (
         type: 'console',
         level: method,
         message:
-          method === 'error' ? serailizedArgs : serailizedArgs.slice(0, 200), // keep the full error message
+          method === 'error'
+            ? serailizedArgs // keep the full error message
+            : serailizedArgs.slice(0, 200) + '...',
         prefix,
         timestamp: Date.now(),
         context: env || 'Unknown',

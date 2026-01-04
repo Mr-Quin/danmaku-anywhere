@@ -36,7 +36,11 @@ export class TencentService implements IDanmakuProvider {
     const log = logger.sub('[TencentService]')
     log.debug('Testing tencent cookies')
     try {
-      await tencent.getPageDetails('mzc00200xf3rir6', 'i0046sewh4r')
+      const result = await tencent.getPageDetails(
+        'mzc00200xf3rir6',
+        'i0046sewh4r'
+      )
+      if (!result.success) throw result.error
       return true
     } catch (e) {
       if (e instanceof tencent.TencentApiException) {
@@ -56,7 +60,9 @@ export class TencentService implements IDanmakuProvider {
     const result = await tencent.searchMedia({ query: kw })
     this.logger.debug('Search result', result)
 
-    return result.map(TencentMapper.toSeasonInsert)
+    if (!result.success) throw result.error
+
+    return result.data.map(TencentMapper.toSeasonInsert)
   }
 
   async findEpisode(
@@ -97,8 +103,9 @@ export class TencentService implements IDanmakuProvider {
     })
 
     const result: TencentEpisodeListItem[][] = []
-    for await (const items of generator) {
-      result.push(items)
+    for await (const itemsResult of generator) {
+      if (!itemsResult.success) throw itemsResult.error
+      result.push(itemsResult.data)
     }
 
     this.logger.debug('Get episode result', result)
@@ -121,9 +128,12 @@ export class TencentService implements IDanmakuProvider {
   async getPageDetails(cid: string, vid: string) {
     this.logger.debug('Get page details', { cid, vid })
 
-    const pageDetails = await tencent.getPageDetails(cid, vid)
+    const pageDetailsResult = await tencent.getPageDetails(cid, vid)
 
-    this.logger.debug('Get page details result', pageDetails)
+    this.logger.debug('Get page details result', pageDetailsResult)
+
+    if (!pageDetailsResult.success) throw pageDetailsResult.error
+    const pageDetails = pageDetailsResult.data
 
     const foundSeason =
       pageDetails.module_list_datas[0]?.module_datas[0]?.item_data_lists
@@ -155,7 +165,9 @@ export class TencentService implements IDanmakuProvider {
   }
 
   private async fetchDanmaku(vid: string) {
-    return await tencent.getDanmaku(vid)
+    const result = await tencent.getDanmaku(vid)
+    if (!result.success) throw result.error
+    return result.data
   }
 
   canParse(url: string): boolean {

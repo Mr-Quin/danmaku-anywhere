@@ -1,3 +1,5 @@
+import { err, ok, type Result } from '@danmaku-anywhere/result'
+import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
 import { getApiStore } from '../../shared/store.js'
 import { fetchData } from '../utils/fetchData.js'
 import type { ExtractTitleResponse } from './schema.js'
@@ -5,8 +7,8 @@ import { zExtractTitleResponse } from './schema.js'
 
 export const extractTitle = async (
   input: string
-): Promise<ExtractTitleResponse['result']> => {
-  const res = await fetchData({
+): Promise<Result<ExtractTitleResponse['result'], DanmakuProviderError>> => {
+  const result = await fetchData({
     url: `${getApiStore().baseUrl}/llm/v1/extractTitle`,
     body: {
       input,
@@ -16,15 +18,22 @@ export const extractTitle = async (
     },
     responseSchema: zExtractTitleResponse,
     method: 'POST',
+    isDaRequest: true,
   })
 
+  if (!result.success) {
+    return result
+  }
+
+  const res = result.data
+
   if (!res.success) {
-    throw new Error(res.message)
+    return err(new Error(res.message))
   }
 
   if (res.result.title.trim().length === 0) {
-    throw new Error('No title found')
+    return err(new Error('No title found'))
   }
 
-  return res.result
+  return ok(res.result)
 }

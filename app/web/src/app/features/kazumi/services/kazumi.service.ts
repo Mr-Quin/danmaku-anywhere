@@ -142,7 +142,11 @@ export class KazumiService {
 
   readonly manifestsQuery = injectQuery(() => {
     return {
-      queryFn: () => withTimeout(getManifest(), 5000),
+      queryFn: async () => {
+        const result = await withTimeout(getManifest(), 5000)
+        if (!result.success) throw result.error
+        return result.data
+      },
       queryKey: queryKeys.kazumi.manifest.all(),
     }
   })
@@ -161,6 +165,8 @@ export class KazumiService {
     mutationKey: queryKeys.kazumi.local.all(),
     mutationFn: async (name: string) => {
       const policy = await withTimeout(getPolicy(`${name}.json`), 5000)
+      if (!policy.success) throw policy.error
+      const policyData = policy.data
 
       await this.db.transaction(
         'rw',
@@ -168,8 +174,8 @@ export class KazumiService {
         this.db.settings,
         async (db) => {
           // if the policy exists, just do an update
-          const isExisting = !!(await db.policies.get(name))
-          await db.policies.put(policy)
+          const isExisting = !!(await db.policies.get(policyData.name))
+          await db.policies.put(policyData)
 
           // for new policies, update the order settings
           if (!isExisting) {
