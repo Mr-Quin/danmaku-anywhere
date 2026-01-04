@@ -16,7 +16,7 @@ export function useExportShareCode() {
       await navigator.clipboard.writeText(code)
       toast.success(t('common.copiedToClipboard', 'Copied to clipboard'))
     } catch (e) {
-      toast.error(serializeError(e))
+      toast.error(serializeError(e).message)
     }
   }
 

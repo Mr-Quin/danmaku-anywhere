@@ -61,12 +61,7 @@ export const createLogger = (
   const methods: ConsoleMethod[] = ['log', 'info', 'warn', 'error', 'debug']
 
   function log(method: ConsoleMethod, ...args: unknown[]) {
-    if (method === 'error') {
-      // for error, print the full error message with serialized error
-      console[method].call(console, prefix, formatArgs(args))
-    } else {
-      console[method].call(console, prefix, ...args)
-    }
+    console[method].call(console, prefix, ...args)
 
     if (options.onLog) {
       const env = options.env

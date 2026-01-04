@@ -104,10 +104,12 @@ export const createRpcServer = <
             context: messageContext,
           }
         } catch (e: unknown) {
-          logger.error('Error in RPC handler:', e)
+          const errorJson = serializeError(e)
+          logger.error('Error in RPC handler:', errorJson)
           return {
             state: 'errored',
-            error: serializeError(e),
+            error: errorJson.message,
+            detail: errorJson,
           }
         }
       }

@@ -98,7 +98,11 @@ export class SearchMatchingStrategy implements IMatchingStrategy {
           metadata: { strategy: 'search', providerConfig: autoProvider },
         }
       } catch (e) {
-        return { status: 'notFound', data: null, cause: serializeError(e) }
+        return {
+          status: 'notFound',
+          data: null,
+          cause: serializeError(e).message,
+        }
       }
     }
 

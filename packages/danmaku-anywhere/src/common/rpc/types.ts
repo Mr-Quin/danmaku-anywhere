@@ -1,3 +1,5 @@
+import type { ErrorJson } from '../utils/serializeError'
+
 // output must not be undefined because undefined is not treated well by react-query
 type NotUndefined<T> = T extends undefined ? never : T
 
@@ -39,6 +41,7 @@ interface RPCSuccessResponse<
 interface RPCErrorResponse {
   state: 'errored'
   error: string
+  detail?: ErrorJson
 }
 
 interface RPCIgnoreResponse {
