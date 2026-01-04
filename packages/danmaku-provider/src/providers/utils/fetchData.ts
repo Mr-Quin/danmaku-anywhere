@@ -45,7 +45,7 @@ const createUrl = (url: string, query?: Record<string, unknown>) => {
   return `${url}?${new URLSearchParams(query as never)}`
 }
 
-function defaultGetErrorMessage(res: Response) {
+async function defaultGetErrorMessage(res: Response) {
   if (res.headers.has('X-Error-Message')) {
     return res.headers.get('X-Error-Message')
   }
@@ -101,16 +101,16 @@ export const fetchData = async <OutSchema extends ZodType>(
     }
 
     if (res.status >= 400) {
+      const responseBody = await res.clone().text()
       const errorMessage = (await getError()) || res.statusText
 
       return err(
         new HttpException(
-          `Request failed with status ${res.status}: ${res.statusText}
-          ${errorMessage}`,
+          `Request failed with status ${res.status}: ${res.statusText} ${errorMessage}`,
           res.status,
           res.statusText,
           finalUrl,
-          errorMessage
+          responseBody
         )
       )
     }

@@ -3,7 +3,7 @@ import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
 import { BiliBiliApiException } from './exceptions.js'
 import type { BilibiliApiResponseBase } from './schema.js'
 
-export function ensureData<
+export function ensureSelectData<
   T extends BilibiliApiResponseBase,
   K extends keyof T,
   R,

@@ -47,6 +47,13 @@ function formatArgs(args: unknown[]): string {
   return serialized
 }
 
+function truncateString(str: string, maxLength: number) {
+  if (str.length <= maxLength) {
+    return str
+  }
+  return str.slice(0, maxLength) + '...'
+}
+
 interface LoggerOptions {
   onLog?: (entry: LogEntry) => void
   env?: string
@@ -66,15 +73,15 @@ export const createLogger = (
     if (options.onLog) {
       const env = options.env
 
-      const serailizedArgs = formatArgs(args)
+      const serializedArgs = formatArgs(args)
 
       const entry: LogEntry = {
         type: 'console',
         level: method,
         message:
           method === 'error'
-            ? serailizedArgs // keep the full error message
-            : serailizedArgs.slice(0, 200) + '...',
+            ? serializedArgs // keep the full error message
+            : truncateString(serializedArgs, 200),
         prefix,
         timestamp: Date.now(),
         context: env || 'Unknown',

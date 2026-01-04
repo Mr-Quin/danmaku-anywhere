@@ -54,7 +54,14 @@ export type RPCResponse<TOutput> =
   | RPCIgnoreResponse
 
 export class RpcException extends Error {
-  constructor(public error: string) {
-    super(error)
+  constructor(
+    public message: string,
+    {
+      cause,
+    }: {
+      cause?: unknown
+    } = {}
+  ) {
+    super(message, { cause })
   }
 }

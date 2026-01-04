@@ -23,7 +23,7 @@ import {
   zBilibiliSearchResponse,
   zBilibiliUserInfo,
 } from './schema.js'
-import { ensureData } from './utils.js'
+import { ensureSelectData } from './utils.js'
 
 const BILIBILI_API_URL_ROOT = 'https://api.bilibili.com'
 
@@ -68,7 +68,7 @@ const search = async (
 
   if (!result.success) return result
 
-  return ensureData(result.data, 'data', (data) => data.result)
+  return ensureSelectData(result.data, 'data', (data) => data.result)
 }
 
 // search for media by keyword
@@ -114,7 +114,7 @@ export const getBangumiInfo = async ({
 
   if (!result.success) return result
 
-  return ensureData(result.data, 'result', (data) => data)
+  return ensureSelectData(result.data, 'result', (data) => data)
 }
 
 export const getDanmakuXml = async (

@@ -4,11 +4,19 @@ export type ErrorJson =
       name: string
       message: string
       stack?: string
-      cause?: ErrorJson | string
+      cause?: ErrorJson
       [key: string]: unknown
     }
   | {
-      type: string
+      type:
+        | 'string'
+        | 'number'
+        | 'bigint'
+        | 'boolean'
+        | 'symbol'
+        | 'undefined'
+        | 'object'
+        | 'function'
       message: string
     }
 
@@ -45,11 +53,7 @@ export function serializeErrorJson(err: Error): ErrorJson {
   )
 
   // recursively serialize the cause
-  const serializedCause = err.cause
-    ? err.cause instanceof Error
-      ? serializeErrorJson(err.cause)
-      : String(err.cause)
-    : undefined
+  const serializedCause = err.cause ? serializeError(err.cause) : undefined
 
   return {
     type: 'error',
@@ -59,4 +63,34 @@ export function serializeErrorJson(err: Error): ErrorJson {
     cause: serializedCause,
     ...additionalProps,
   }
+}
+
+export function deserializeError(json: ErrorJson): Error {
+  if (json.type === 'error') {
+    const errorJson = json
+    const error = new Error(errorJson.message)
+
+    error.name = errorJson.name
+
+    if (errorJson.stack) {
+      error.stack = errorJson.stack
+    }
+
+    if (errorJson.cause) {
+      error.cause = deserializeError(errorJson.cause)
+    }
+
+    // restore custom properties
+    const knownKeys = ['type', 'name', 'message', 'stack', 'cause']
+    for (const [key, value] of Object.entries(errorJson)) {
+      if (!knownKeys.includes(key)) {
+        // biome-ignore lint/suspicious/noExplicitAny: assigning unknown properties to error
+        ;(error as any)[key] = value
+      }
+    }
+
+    return error
+  }
+
+  return new Error(json.message)
 }
