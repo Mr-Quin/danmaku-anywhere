@@ -115,6 +115,7 @@ export const createRpcServer = <
             context: messageContext,
           }
         } catch (e: unknown) {
+          console.log(e)
           logger.error('Error in RPC handler:', e)
           return {
             state: 'errored',

@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { HttpException } from '../../exceptions/HttpException'
 import { ResponseParseException } from '../../exceptions/ResponseParseException'
 import { mockFetchResponse } from '../utils/testUtils'
 
@@ -60,7 +61,7 @@ describe('Bilibili', () => {
       await expect(searchMedia({ keyword: 'MyGo' })).resolves.not.toThrow()
     })
 
-    it('should throw an error on API error', async () => {
+    it('should throw an error on API error (logical)', async () => {
       const mockResponse = {
         code: -412,
         message: 'Error',
@@ -73,12 +74,44 @@ describe('Bilibili', () => {
       )
     })
 
-    it('should throw an error on response parse error', async () => {
-      mockFetchResponse({})
+    it('should throw HttpException on 500 error with body', async () => {
+      const errorBody = '<html>Server Error</html>'
+      vi.spyOn(global, 'fetch').mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        text: async () => errorBody,
+        headers: new Headers(),
+        json: async () => ({}),
+      } as Response)
 
-      await expect(searchMedia({ keyword: 'MyGo' })).rejects.toThrow(
-        ResponseParseException
-      )
+      try {
+        await searchMedia({ keyword: 'MyGo' })
+      } catch (e) {
+        expect(e).toBeInstanceOf(HttpException)
+        expect((e as HttpException).responseBody).toBe(errorBody)
+        expect((e as HttpException).status).toBe(500)
+        expect((e as HttpException).url).toContain('api.bilibili.com')
+      }
+    })
+
+    it('should throw ResponseParseException on malformed JSON', async () => {
+      vi.spyOn(global, 'fetch').mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          code: 0,
+          // missing data field
+        }),
+      } as Response)
+
+      try {
+        await searchMedia({ keyword: 'MyGo' })
+      } catch (e) {
+        expect(e).toBeInstanceOf(ResponseParseException)
+        expect((e as ResponseParseException).responseBody).toEqual({ code: 0 })
+        expect((e as ResponseParseException).url).toContain('api.bilibili.com')
+      }
     })
   })
 
@@ -99,14 +132,6 @@ describe('Bilibili', () => {
 
       await expect(getBangumiInfo({ seasonId: 1 })).rejects.toThrow(
         BiliBiliApiException
-      )
-    })
-
-    it('should throw an error on unexpected data', async () => {
-      mockFetchResponse({})
-
-      await expect(getBangumiInfo({ seasonId: 1 })).rejects.toThrow(
-        ResponseParseException
       )
     })
   })

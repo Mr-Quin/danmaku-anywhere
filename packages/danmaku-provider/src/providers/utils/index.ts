@@ -2,19 +2,24 @@ import { ZodError } from 'zod'
 
 import { ResponseParseException } from '../../exceptions/ResponseParseException.js'
 
-export const handleParseResponse = <T>(parser: () => T): T => {
+export const handleParseResponse = <T>(
+  parser: () => T,
+  context?: { url?: string; responseBody?: unknown }
+): T => {
   try {
     return parser()
   } catch (e) {
     throw new ResponseParseException({
       cause: e,
       isZodError: e instanceof ZodError,
+      ...context,
     })
   }
 }
 
 export const handleParseResponseAsync = async <T>(
-  parser: () => Promise<T>
+  parser: () => Promise<T>,
+  context?: { url?: string; responseBody?: unknown }
 ): Promise<T> => {
   try {
     return await parser()
@@ -22,6 +27,7 @@ export const handleParseResponseAsync = async <T>(
     throw new ResponseParseException({
       cause: e,
       isZodError: e instanceof ZodError,
+      ...context,
     })
   }
 }

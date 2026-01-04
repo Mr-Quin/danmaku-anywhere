@@ -19,7 +19,7 @@ export interface LogEntry {
   context: string
 }
 
-function formatArgs(args: unknown[]) {
+function formatArgs(args: unknown[]): string {
   if (args.length === 0) return ''
   if (args.length === 1) {
     if (typeof args[0] === 'string') {
@@ -28,7 +28,7 @@ function formatArgs(args: unknown[]) {
   }
 
   try {
-    return JSON.stringify(args).slice(0, 200)
+    return JSON.stringify(args)
   } catch {
     const fallback = args
       .map((arg) => {
@@ -45,8 +45,8 @@ function formatArgs(args: unknown[]) {
         }
       })
       .join('||')
-    // truncate long strings
-    return fallback.slice(0, 200)
+
+    return fallback
   }
 }
 
@@ -69,10 +69,13 @@ export const createLogger = (
     if (options.onLog) {
       const env = options.env
 
+      const serailizedArgs = formatArgs(args)
+
       const entry: LogEntry = {
         type: 'console',
         level: method,
-        message: formatArgs(args),
+        message:
+          method === 'error' ? serailizedArgs : serailizedArgs.slice(0, 200), // keep the full error message
         prefix,
         timestamp: Date.now(),
         context: env || 'Unknown',

@@ -1,6 +1,7 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 
 import { createThrottle } from '../utils/createThrottle.js'
+import { ensureCheckResponse } from '../utils/fetchData.js'
 import {
   handleParseResponse,
   handleParseResponseAsync,
@@ -59,10 +60,16 @@ export const searchMedia = async (
     },
   })
 
+  await ensureCheckResponse(response, url)
+
   const data = await response.json()
 
-  const parsedData = handleParseResponse(() =>
-    zTencentSearchResponse.parse(data)
+  const parsedData = handleParseResponse(
+    () => zTencentSearchResponse.parse(data),
+    {
+      url,
+      responseBody: data,
+    }
   )
 
   ensureData(parsedData, 'data', response)
@@ -93,10 +100,16 @@ export const getPageDetails = async (cid: string, vid?: string) => {
     },
   })
 
+  await ensureCheckResponse(response, url)
+
   const data = await response.json()
 
-  const parsedData = handleParseResponse(() =>
-    zTencentPageDetailResponse.parse(data)
+  const parsedData = handleParseResponse(
+    () => zTencentPageDetailResponse.parse(data),
+    {
+      url,
+      responseBody: data,
+    }
   )
 
   ensureData(parsedData, 'data', response)
@@ -158,10 +171,16 @@ export async function* listEpisodes(params: TencentEpisodeListParams) {
       },
     })
 
+    await ensureCheckResponse(response, url)
+
     const data = await response.json()
 
-    const parsedData = handleParseResponse(() =>
-      zTencentEpisodeListResponse.parse(data)
+    const parsedData = handleParseResponse(
+      () => zTencentEpisodeListResponse.parse(data),
+      {
+        url,
+        responseBody: data,
+      }
     )
 
     ensureData(parsedData, 'data', response)
@@ -208,10 +227,16 @@ export const getDanmakuSegments = async (
 
   const response = await fetch(url)
 
+  await ensureCheckResponse(response, url)
+
   const json = await response.json()
 
-  const segments = await handleParseResponseAsync(() =>
-    zTencentCommentSegment.parseAsync(json)
+  const segments = await handleParseResponseAsync(
+    () => zTencentCommentSegment.parseAsync(json),
+    {
+      url,
+      responseBody: json,
+    }
   )
 
   return segments
@@ -232,10 +257,16 @@ export async function* getDanmakuGenerator(
 
     const response = await fetch(url)
 
+    await ensureCheckResponse(response, url)
+
     const json = await response.json()
 
-    const comments = await handleParseResponseAsync(() =>
-      zTencentComment.parseAsync(json)
+    const comments = await handleParseResponseAsync(
+      () => zTencentComment.parseAsync(json),
+      {
+        url,
+        responseBody: json,
+      }
     )
 
     yield comments.barrage_list

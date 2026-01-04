@@ -5,6 +5,7 @@ import {
 
 import { bilibili as bilibiliProto } from '../../protobuf/protobuf.js'
 import { createThrottle } from '../utils/createThrottle.js'
+import { ensureCheckResponse } from '../utils/fetchData.js'
 import {
   handleParseResponse,
   handleParseResponseAsync,
@@ -39,9 +40,14 @@ export const getCurrentUser = async () => {
 
   const response = await fetch(url)
 
+  await ensureCheckResponse(response, url)
+
   const data = await response.json()
 
-  const parsedData = handleParseResponse(() => zBilibiliUserInfo.parse(data))
+  const parsedData = handleParseResponse(() => zBilibiliUserInfo.parse(data), {
+    url,
+    responseBody: data,
+  })
 
   // data property is always present, even if the user is not logged in
 
@@ -60,10 +66,16 @@ const search = async (
 
   const response = await fetch(url)
 
+  await ensureCheckResponse(response, url)
+
   const data = await response.json()
 
-  const parsedData = handleParseResponse(() =>
-    zBilibiliSearchResponse.parse(data)
+  const parsedData = handleParseResponse(
+    () => zBilibiliSearchResponse.parse(data),
+    {
+      url,
+      responseBody: data,
+    }
   )
 
   ensureData(parsedData, 'data')
@@ -109,10 +121,16 @@ export const getBangumiInfo = async ({
 
   const response = await fetch(url)
 
+  await ensureCheckResponse(response, url)
+
   const data = await response.json()
 
-  const parsedData = handleParseResponse(() =>
-    zBilibiliBangumiInfoResponse.parse(data)
+  const parsedData = handleParseResponse(
+    () => zBilibiliBangumiInfoResponse.parse(data),
+    {
+      url,
+      responseBody: data,
+    }
   )
 
   ensureData(parsedData, 'result')
@@ -127,10 +145,16 @@ export const getDanmakuXml = async (cid: number): Promise<CommentEntity[]> => {
 
   const response = await fetch(url)
 
+  await ensureCheckResponse(response, url)
+
   const xmlData = await response.text()
 
-  const comments = await handleParseResponseAsync(() =>
-    zGenericXml.parseAsync(xmlData)
+  const comments = await handleParseResponseAsync(
+    () => zGenericXml.parseAsync(xmlData),
+    {
+      url,
+      responseBody: xmlData,
+    }
   )
 
   return comments
@@ -167,6 +191,8 @@ export async function* getDanmakuProtoSegment(
       return null
     }
 
+    await ensureCheckResponse(response, url)
+
     const buffer = await response.arrayBuffer()
 
     let parsed: bilibiliProto.community.service.dm.v1.IDmSegMobileReply
@@ -184,8 +210,13 @@ export async function* getDanmakuProtoSegment(
       throw new Error('Failed to decode protobuf', { cause: e })
     }
 
-    const comments = await handleParseResponseAsync(() =>
-      zBilibiliCommentProto.parseAsync(parsed)
+    const comments = await handleParseResponseAsync(
+      () => zBilibiliCommentProto.parseAsync(parsed),
+      {
+        url,
+        // protobuf is too large to print
+        responseBody: 'protobuf',
+      }
     )
 
     yield comments.elems

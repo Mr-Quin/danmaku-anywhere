@@ -39,9 +39,34 @@ const createUrl = (url: string, query?: Record<string, unknown>) => {
   return `${url}?${new URLSearchParams(query as never)}`
 }
 
-export const fetchData = async <OutSchema extends ZodType>(
+async function defaultGetErrorMessage(res: Response) {
+  if (res.headers.has('X-Error-Message')) {
+    return res.headers.get('X-Error-Message')
+  }
+  return undefined
+}
+
+export async function ensureCheckResponse(
+  res: Response,
+  url?: string
+): Promise<void> {
+  if (res.status >= 400) {
+    const errorMessage = (await defaultGetErrorMessage(res)) || res.statusText
+
+    throw new HttpException(
+      `Request failed with status ${res.status}: ${res.statusText}
+      ${errorMessage}`,
+      res.status,
+      res.statusText,
+      url,
+      errorMessage
+    )
+  }
+}
+
+export async function fetchData<OutSchema extends ZodType>(
   options: FetchOptions<OutSchema>
-): Promise<z.output<OutSchema>> => {
+): Promise<z.output<OutSchema>> {
   const validatedOptions = validateRequest(options)
 
   const {
@@ -77,24 +102,11 @@ export const fetchData = async <OutSchema extends ZodType>(
     body: body ? JSON.stringify(body) : undefined,
   })
 
-  const getErrorMessage = async () => {
-    if (res.headers.has('X-Error-Message')) {
-      return res.headers.get('X-Error-Message')
-    }
-    return res.text()
-  }
-
-  if (res.status >= 400) {
-    const errorMessage = await getErrorMessage()
-
-    throw new HttpException(
-      `Request failed with status ${res.status}: ${res.statusText}
-      ${errorMessage}`,
-      res.status,
-      res.statusText
-    )
-  }
+  await ensureCheckResponse(res, finalUrl)
 
   const json: unknown = await res.json()
-  return handleParseResponse(() => responseSchema.parse(json))
+  return handleParseResponse(() => responseSchema.parse(json), {
+    url: finalUrl,
+    responseBody: json,
+  })
 }
