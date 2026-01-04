@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/cloudflare'
 import type { Context } from 'hono'
+import { HTTPException } from 'hono/http-exception'
 import { factory } from '@/factory'
 import { type SetCacheControlFn, useCache } from '@/middleware/cache'
 import { md5 } from '@/utils'
@@ -96,6 +97,17 @@ danDanPlay.use('*', useCache({ setCacheControl: setCacheHeaders }))
 
 danDanPlay.all('*', verifyPathQuery, async (c) => {
   const env = c.env
+  const rateLimitKey = c.get('ip') || ''
+
+  const { success } = await env.DDP_RATE_LIMITER.limit({
+    key: `ddp/${rateLimitKey}`,
+  })
+
+  if (!success) {
+    throw new HTTPException(429, {
+      message: 'Rate limit exceeded',
+    })
+  }
 
   const rawPath = c.req.query('path') as string
 

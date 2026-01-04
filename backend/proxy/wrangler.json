@@ -44,6 +44,16 @@
       "bucket_name": "danmaku-anywhere-file-staging"
     }
   ],
+  "ratelimits": [
+    {
+      "name": "DDP_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 5,
+        "period": 60
+      }
+    }
+  ],
   "route": "danmaku.weeblify.app/proxy/*",
   "env": {
     "staging": {
@@ -90,6 +100,16 @@
           "binding": "FILES_BUCKET",
           "bucket_name": "danmaku-anywhere-file-staging"
         }
+      ],
+      "ratelimits": [
+        {
+          "name": "DDP_RATE_LIMITER",
+          "namespace_id": "1001",
+          "simple": {
+            "limit": 5,
+            "period": 60
+          }
+        }
       ]
     },
     "production": {
@@ -135,6 +155,16 @@
         {
           "binding": "FILES_BUCKET",
           "bucket_name": "danmaku-anywhere-file"
+        }
+      ],
+      "ratelimits": [
+        {
+          "name": "DDP_RATE_LIMITER",
+          "namespace_id": "1001",
+          "simple": {
+            "limit": 5,
+            "period": 60
+          }
         }
       ]
     }

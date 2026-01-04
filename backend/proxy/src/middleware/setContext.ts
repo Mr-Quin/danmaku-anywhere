@@ -5,6 +5,7 @@ declare module 'hono' {
   interface ContextVariableMap {
     extensionVersion?: string
     extensionId?: string
+    ip?: string
   }
 }
 
@@ -12,6 +13,7 @@ export const setContext = () =>
   factory.createMiddleware(async (context, next) => {
     const version = context.req.header('da-version')
     const id = context.req.header('da-extension-id')
+    const ip = context.req.header('CF-Connecting-IP')
     if (version) {
       context.set('extensionVersion', version)
       Sentry.setTag('extension.version', version)
@@ -19,6 +21,9 @@ export const setContext = () =>
     if (id) {
       Sentry.setTag('extension.id', id)
       context.set('extensionId', id)
+    }
+    if (ip) {
+      context.set('ip', ip)
     }
     const cf = context.req.raw.cf
 
@@ -37,7 +42,7 @@ export const setContext = () =>
 
     Sentry.setUser({
       id,
-      ip_address: context.req.header('CF-Connecting-IP'),
+      ip_address: ip,
       geo: {
         country_code: cf?.country as string,
         region: cf?.region as string,
