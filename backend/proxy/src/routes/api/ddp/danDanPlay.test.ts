@@ -1,13 +1,19 @@
 import { fetchMock } from 'cloudflare:test'
-import { afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
 import '@/test-utils/mockBindings'
+import { env } from 'cloudflare:test'
+import { createRateLimiterMock } from '@/test-utils/createMockRateLimiter'
 import { createTestUrl } from '@/test-utils/createTestUrl'
 
 describe('DanDanPlay API', () => {
   beforeAll(() => {
     fetchMock.activate()
     fetchMock.disableNetConnect()
+  })
+
+  beforeEach(() => {
+    env.DDP_RATE_LIMITER = createRateLimiterMock()
   })
 
   afterEach(() => fetchMock.assertNoPendingInterceptors())
@@ -209,5 +215,20 @@ describe('DanDanPlay API', () => {
     expect(response.status).toBe(200)
     const data = await response.json()
     expect(data).toEqual(mockResponse)
+  })
+
+  it('should be rate limited', async () => {
+    env.DDP_RATE_LIMITER = createRateLimiterMock({ success: false })
+
+    const request = new Request(
+      createTestUrl('/ddp/v1', {
+        query: {
+          path: '/v2/search/anime?keyword=nichijou',
+        },
+      })
+    )
+    const response = await makeUnitTestRequest(request)
+
+    expect(response.status).toBe(429)
   })
 })
