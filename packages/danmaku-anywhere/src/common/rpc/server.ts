@@ -1,5 +1,5 @@
 import { type ILogger, Logger } from '../Logger'
-import { serializeError, serializeErrorJson } from '../utils/serializeError'
+import { serializeError } from '../utils/serializeError'
 
 import type {
   AnyRPCDef,
@@ -104,7 +104,6 @@ export const createRpcServer = <
             context: messageContext,
           }
         } catch (e: unknown) {
-          console.log(serializeErrorJson(e as any))
           logger.error('Error in RPC handler:', e)
           return {
             state: 'errored',
