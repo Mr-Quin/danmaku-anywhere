@@ -105,7 +105,8 @@ export const fetchData = async <OutSchema extends ZodType>(
         return defaultGetErrorMessage(res)
       }
 
-      const responseBody = await res.clone().text()
+      const clone = res.clone()
+      const responseBody = await clone.text()
       const errorMessage = (await getError()) || res.statusText
 
       return err(

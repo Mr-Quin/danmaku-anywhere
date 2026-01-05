@@ -13,7 +13,9 @@ export const mockFetchResponse = (data?: any, status?: number) => {
 }
 
 export function mockFetch(res: Response) {
-  return vi.spyOn(globalThis, 'fetch').mockResolvedValue(res)
+  return vi
+    .spyOn(globalThis, 'fetch')
+    .mockImplementation(async () => res.clone())
 }
 
 export const createFetchOverride = () => {
