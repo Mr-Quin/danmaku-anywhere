@@ -162,8 +162,6 @@ export const fetchData = async <OutSchema extends ZodType>(
 
     return ok(parseResult.data)
   } catch (e) {
-    console.error('unexpected error', e, e?.name, validatedOptions)
-
     return err(
       new HttpException(
         e instanceof Error ? e.message : String(e),
