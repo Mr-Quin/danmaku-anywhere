@@ -136,7 +136,7 @@ export class TencentService implements IDanmakuProvider {
     const pageDetails = pageDetailsResult.data
 
     const foundSeason =
-      pageDetails.module_list_datas[0]?.module_datas[0]?.item_data_lists
+      pageDetails?.module_list_datas[0]?.module_datas[0]?.item_data_lists
         ?.item_datas[0]
 
     if (foundSeason) {

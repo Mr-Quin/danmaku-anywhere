@@ -86,23 +86,8 @@ describe('Tencent', () => {
 
       mockFetchResponse(mockData.mockEpisodeListLastResponse)
 
-      // Wait, listEpisodes returns generator of Promises of Result?
-      // Or AsyncGenerator yielding results?
-      // tencent/api.ts: async function* listEpisodes(...) yields Result
-
       const secondResult = await generator.next()
-      if (!secondResult.done) {
-        // It should be done if mockEpisodeListLastResponse indicates end?
-        // Check mock logic, but usually we just check done or value
-        // If second yield is expected
-        // Let's assume the test logic was correct about 2 yields or 2nd is done?
-        // Original test: const second = await generator.next(); expect(second.done).toBe(true)
-
-        // Assuming second call returns done based on mock data
-        expect(secondResult.done).toBe(true)
-      } else {
-        expect(secondResult.done).toBe(true)
-      }
+      expect(secondResult.done).toBe(true)
     })
 
     it('should return error on API error', async () => {
