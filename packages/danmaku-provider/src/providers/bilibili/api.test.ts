@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { HttpException } from '../../exceptions/HttpException'
 import { ResponseParseException } from '../../exceptions/ResponseParseException'
-import { mockFetchResponse } from '../utils/testUtils'
+import { mockFetch, mockFetchResponse } from '../utils/testUtils'
 
 import {
   getBangumiInfo,
@@ -86,37 +86,28 @@ describe('Bilibili', () => {
 
     it('should return HttpException on 500 error with body', async () => {
       const errorBody = '<html>Server Error</html>'
-      vi.spyOn(global, 'fetch').mockResolvedValue({
-        ok: false,
-        status: 500,
-        statusText: 'Internal Server Error',
-        text: async () => errorBody,
-        headers: new Headers(),
-        json: async () => ({}),
-      } as Response)
+
+      mockFetch(
+        new Response(errorBody, {
+          status: 500,
+        })
+      )
 
       const result = await searchMedia({ keyword: 'MyGo' })
       expect(result.success).toBe(false)
       if (!result.success) {
         const e = result.error
         expect(e).toBeInstanceOf(HttpException)
-        expect((e as HttpException).responseBody).toBe(errorBody)
         expect((e as HttpException).status).toBe(500)
         expect((e as HttpException).url).toContain('api.bilibili.com')
+        expect((e as HttpException).responseBody).toBe(errorBody)
       }
     })
 
     it('should return ResponseParseException on malformed JSON', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          code: 0,
-          // missing data field
-        }),
-      } as Response)
+      mockFetch(new Response(JSON.stringify({ code: 0 })))
 
-      const result = await searchMedia({ keyword: 'MyGo' })
+      const result = await searchMedia({ keyword: 'malformed json' })
       expect(result.success).toBe(false)
       if (!result.success) {
         const e = result.error
@@ -169,7 +160,7 @@ describe('Bilibili', () => {
     })
 
     it('should return error if response is not xml', async () => {
-      mockFetchResponse('not xml')
+      mockFetch(new Response('not xml'))
 
       const result = await getDanmakuXml(1)
       expect(result.success).toBe(false)

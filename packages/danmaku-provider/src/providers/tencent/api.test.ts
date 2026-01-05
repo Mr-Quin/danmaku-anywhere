@@ -181,10 +181,12 @@ describe('Tencent', () => {
       // should call all segments
       expect(fetch).toHaveBeenNthCalledWith(
         1,
-        'https://dm.video.qq.com/barrage/segment/m00253deqqo/t/v1/0/30000'
+        'https://dm.video.qq.com/barrage/segment/m00253deqqo/t/v1/0/30000',
+        expect.anything()
       )
       expect(fetch).toHaveBeenLastCalledWith(
-        'https://dm.video.qq.com/barrage/segment/m00253deqqo/t/v1/300000/330000'
+        'https://dm.video.qq.com/barrage/segment/m00253deqqo/t/v1/300000/330000',
+        expect.anything()
       )
     })
 

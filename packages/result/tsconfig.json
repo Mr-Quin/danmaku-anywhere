@@ -6,7 +6,7 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "noImplicitAny": false,
-    "types": ["chrome"]
+    "types": []
   },
   "include": ["./src"],
   "exclude": ["**/*.test.ts", "**/test"],

@@ -4,7 +4,7 @@ import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
 import { HttpException } from '../../exceptions/HttpException.js'
 import { ResponseParseException } from '../../exceptions/ResponseParseException.js'
 import { getApiStore } from '../../shared/store.js'
-import { handleParseResponseAsync } from './index.js'
+import { tryCatch } from './tryCatch.js'
 
 export interface FetchOptions<T extends ZodType> {
   url: string
@@ -21,6 +21,10 @@ export interface FetchOptions<T extends ZodType> {
   // if this request goes to the danmaku-anywhere backend
   isDaRequest?: boolean
   getErrorMessage?: (res: Response) => Promise<string | undefined>
+  responseValidator?: (
+    data: z.output<T>,
+    response: Response
+  ) => Result<z.output<T>, DanmakuProviderError>
 }
 
 const validateRequest = <T extends FetchOptions<any>>(options: T) => {
@@ -93,14 +97,14 @@ export const fetchData = async <OutSchema extends ZodType>(
       body: body ? JSON.stringify(body) : undefined,
     })
 
-    async function getError() {
-      if (getErrorMessage) {
-        return await getErrorMessage(res)
-      }
-      return defaultGetErrorMessage(res)
-    }
-
     if (res.status >= 400) {
+      async function getError() {
+        if (getErrorMessage) {
+          return await getErrorMessage(res)
+        }
+        return defaultGetErrorMessage(res)
+      }
+
       const responseBody = await res.clone().text()
       const errorMessage = (await getError()) || res.statusText
 
@@ -117,25 +121,48 @@ export const fetchData = async <OutSchema extends ZodType>(
 
     const responseType = validatedOptions.responseType || 'json'
     const json: unknown = await res[responseType]()
-    const parseResult = await handleParseResponseAsync(
-      () => responseSchema.parseAsync(json),
-      {
-        url: finalUrl,
-        responseBody: json,
-      }
+    const [parseResult, parseError] = await tryCatch(() =>
+      responseSchema.safeParseAsync(json)
     )
 
+    if (parseError) {
+      // unexpected parse error
+      return err(
+        new ResponseParseException({
+          cause: err,
+          isZodError: false,
+          url: finalUrl,
+          responseBody: json,
+        })
+      )
+    }
+
     if (!parseResult.success) {
-      return parseResult
+      // schema validation failed
+      return err(
+        new ResponseParseException({
+          cause: parseResult.error,
+          isZodError: true,
+          url: finalUrl,
+          responseBody: json,
+        })
+      )
+    }
+
+    if (validatedOptions.responseValidator) {
+      const validationResult = validatedOptions.responseValidator(
+        parseResult.data,
+        res
+      )
+      if (!validationResult.success) {
+        return validationResult
+      }
     }
 
     return ok(parseResult.data)
   } catch (e) {
-    if (e instanceof ResponseParseException) {
-      return err(e)
-    }
+    console.error('unexpected error', e, e?.name, validatedOptions)
 
-    // Network errors or other unexpected errors
     return err(
       new HttpException(
         e instanceof Error ? e.message : String(e),

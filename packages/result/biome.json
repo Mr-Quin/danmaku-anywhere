@@ -3,8 +3,5 @@
   "extends": "//",
   "files": {
     "includes": ["**", "!**/dist"]
-  },
-  "javascript": {
-    "globals": ["chrome"]
   }
 }

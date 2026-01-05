@@ -1,5 +1,3 @@
-// for when the response is not in the expected format
-// possibly due to an API change
 import { DanmakuProviderError } from './BaseError.js'
 
 // for when the response is not in the expected format
