@@ -14,7 +14,8 @@ export class GenAIService {
   async extractTitle(input: string): Promise<ExtractTitleResponse['result']> {
     this.logger.debug('Extract title')
 
-    const res = await extractTitle(input)
-    return res
+    const result = await extractTitle(input)
+    if (!result.success) throw result.error
+    return result.data
   }
 }

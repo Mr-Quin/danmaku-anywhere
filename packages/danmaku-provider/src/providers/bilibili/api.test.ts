@@ -3,8 +3,9 @@ import { resolve } from 'node:path'
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { HttpException } from '../../exceptions/HttpException'
 import { ResponseParseException } from '../../exceptions/ResponseParseException'
-import { mockFetchResponse } from '../utils/testUtils'
+import { mockFetch, mockFetchResponse } from '../utils/testUtils'
 
 import {
   getBangumiInfo,
@@ -33,34 +34,42 @@ describe('Bilibili', () => {
     it('should parse info of logged in user', async () => {
       mockFetchResponse(mockBilibiliUserLoggedInResponse)
 
-      const res = await getCurrentUser()
+      const result = await getCurrentUser()
 
-      expect(res.isLogin).toEqual(true)
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.isLogin).toEqual(true)
+      }
     })
 
     it('should parse info of not logged in user', async () => {
       mockFetchResponse(mockBilibiliUserNotLoggedInResponse)
 
-      const res = await getCurrentUser()
+      const result = await getCurrentUser()
 
-      expect(res.isLogin).toEqual(false)
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.isLogin).toEqual(false)
+      }
     })
   })
 
   describe('search', () => {
-    it('should not throw on search bangumi', async () => {
+    it('should return success on search bangumi', async () => {
       mockFetchResponse(mockBilibiliBangmumiSearchResponse)
 
-      await expect(searchMedia({ keyword: 'MyGo' })).resolves.not.toThrow()
+      const result = await searchMedia({ keyword: 'MyGo' })
+      expect(result.success).toBe(true)
     })
 
-    it('should not throw on search media', async () => {
+    it('should return success on search media', async () => {
       mockFetchResponse(mockBilibiliMediaSearchResponse)
 
-      await expect(searchMedia({ keyword: 'MyGo' })).resolves.not.toThrow()
+      const result = await searchMedia({ keyword: 'MyGo' })
+      expect(result.success).toBe(true)
     })
 
-    it('should throw an error on API error', async () => {
+    it('should return error on API error (logical)', async () => {
       const mockResponse = {
         code: -412,
         message: 'Error',
@@ -68,28 +77,56 @@ describe('Bilibili', () => {
 
       mockFetchResponse(mockResponse)
 
-      await expect(searchMedia({ keyword: 'MyGo' })).rejects.toThrow(
-        BiliBiliApiException
-      )
+      const result = await searchMedia({ keyword: 'MyGo' })
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error).toBeInstanceOf(BiliBiliApiException)
+      }
     })
 
-    it('should throw an error on response parse error', async () => {
-      mockFetchResponse({})
+    it('should return HttpException on 500 error with body', async () => {
+      const errorBody = '<html>Server Error</html>'
 
-      await expect(searchMedia({ keyword: 'MyGo' })).rejects.toThrow(
-        ResponseParseException
+      mockFetch(
+        new Response(errorBody, {
+          status: 500,
+        })
       )
+
+      const result = await searchMedia({ keyword: 'MyGo' })
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        const e = result.error
+        expect(e).toBeInstanceOf(HttpException)
+        expect((e as HttpException).status).toBe(500)
+        expect((e as HttpException).url).toContain('api.bilibili.com')
+        expect((e as HttpException).responseBody).toBe(errorBody)
+      }
+    })
+
+    it('should return ResponseParseException on malformed JSON', async () => {
+      mockFetch(new Response(JSON.stringify({ code: 0 })))
+
+      const result = await searchMedia({ keyword: 'malformed json' })
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        const e = result.error
+        expect(e).toBeInstanceOf(ResponseParseException)
+        expect((e as ResponseParseException).responseBody).toEqual({ code: 0 })
+        expect((e as ResponseParseException).url).toContain('api.bilibili.com')
+      }
     })
   })
 
   describe('getBangumiInfo', () => {
-    it('should not throw on valid response', async () => {
+    it('should return success on valid response', async () => {
       mockFetchResponse(mockBilibiliBangumiInfoResponse)
 
-      await expect(getBangumiInfo({ seasonId: 1 })).resolves.not.toThrow()
+      const result = await getBangumiInfo({ seasonId: 1 })
+      expect(result.success).toBe(true)
     })
 
-    it('should throw an error on API error', async () => {
+    it('should return error on API error', async () => {
       const mockResponse = {
         code: -412,
         message: 'Error',
@@ -97,17 +134,11 @@ describe('Bilibili', () => {
 
       mockFetchResponse(mockResponse)
 
-      await expect(getBangumiInfo({ seasonId: 1 })).rejects.toThrow(
-        BiliBiliApiException
-      )
-    })
-
-    it('should throw an error on unexpected data', async () => {
-      mockFetchResponse({})
-
-      await expect(getBangumiInfo({ seasonId: 1 })).rejects.toThrow(
-        ResponseParseException
-      )
+      const result = await getBangumiInfo({ seasonId: 1 })
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error).toBeInstanceOf(BiliBiliApiException)
+      }
     })
   })
 
@@ -115,19 +146,27 @@ describe('Bilibili', () => {
     it('should parse and return danmaku xml', async () => {
       mockFetchResponse(mockDanmakuXml)
 
-      const data = await getDanmakuXml(1)
+      const result = await getDanmakuXml(1)
 
-      expect(data).toHaveLength(17)
-      expect(data).toContainEqual({
-        m: '分多少----、',
-        p: '3771.649,1,16777215',
-      })
+      expect(result.success).toBe(true)
+      if (result.success) {
+        const data = result.data
+        expect(data).toHaveLength(17)
+        expect(data).toContainEqual({
+          m: '分多少----、',
+          p: '3771.649,1,16777215',
+        })
+      }
     })
 
-    it('should throw if response is not xml', async () => {
-      mockFetchResponse('not xml')
+    it('should return error if response is not xml', async () => {
+      mockFetch(new Response('not xml'))
 
-      await expect(getDanmakuXml(1)).rejects.toThrow(ResponseParseException)
+      const result = await getDanmakuXml(1)
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error).toBeInstanceOf(ResponseParseException)
+      }
     })
   })
 
@@ -141,19 +180,22 @@ describe('Bilibili', () => {
 
       const generator = getDanmakuProtoSegment(1)
 
-      const first = await generator.next()
+      const firstResult = await generator.next()
+      expect(firstResult.value.success).toBe(true)
+      if (firstResult.value.success) {
+        expect(firstResult.value.data).toHaveLength(937)
+      }
 
-      expect(first.value).toHaveLength(937)
-
-      const second = await generator.next()
-
-      expect(second.value).toHaveLength(937)
+      const secondResult = await generator.next()
+      expect(secondResult.value.success).toBe(true)
+      if (secondResult.value.success) {
+        expect(secondResult.value.data).toHaveLength(937)
+      }
 
       mockFetchResponse(mockProtoResponse, 304)
 
-      const third = await generator.next()
-
-      expect(third.done).toBe(true)
+      const thirdResult = await generator.next()
+      expect(thirdResult.done).toBe(true)
     })
 
     it('should fetch multiple segments', async () => {
@@ -176,18 +218,18 @@ describe('Bilibili', () => {
         } as any
       })
 
-      const promise = getDanmakuProto(1)
-
-      const comments = await promise
-      expect(comments).toHaveLength(937 * 3)
+      const result = await getDanmakuProto(1)
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data).toHaveLength(937 * 3)
+      }
     })
 
-    it('should throw when data is invalid', async () => {
+    it('should return error when data is invalid', async () => {
       mockFetchResponse(new TextEncoder().encode('invalid').buffer)
 
-      const promise = getDanmakuProto(1)
-
-      await expect(promise).rejects.toThrow()
+      const result = await getDanmakuProto(1)
+      expect(result.success).toBe(false)
     })
   })
 })

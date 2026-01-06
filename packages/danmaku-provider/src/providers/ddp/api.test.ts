@@ -15,7 +15,7 @@ describe('DanDanPlay API', () => {
   })
 
   describe('searchSearchEpisodes', () => {
-    it('should throw an error on API error', async () => {
+    it('should return error on API error', async () => {
       const mockResponse = {
         errorCode: 1,
         errorMessage: 'Error',
@@ -26,22 +26,26 @@ describe('DanDanPlay API', () => {
 
       mockFetchResponse(mockResponse)
 
-      await expect(searchSearchEpisodes({ anime: 'test' })).rejects.toThrow(
-        DanDanPlayApiException
-      )
+      const result = await searchSearchEpisodes({ anime: 'test' })
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error).toBeInstanceOf(DanDanPlayApiException)
+      }
     })
 
-    it('should throw an error on unexpected data', async () => {
+    it('should return error on unexpected data', async () => {
       mockFetchResponse({})
 
-      await expect(searchSearchEpisodes({ anime: 'test' })).rejects.toThrow(
-        ResponseParseException
-      )
+      const result = await searchSearchEpisodes({ anime: 'test' })
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error).toBeInstanceOf(ResponseParseException)
+      }
     })
   })
 
   describe('searchSearchAnime', () => {
-    it('should throw an error on API error', async () => {
+    it('should return error on API error', async () => {
       const mockResponse = {
         errorCode: 1,
         errorMessage: 'Error',
@@ -50,30 +54,40 @@ describe('DanDanPlay API', () => {
 
       mockFetchResponse(mockResponse)
 
-      await expect(searchSearchAnime('MyGo')).rejects.toThrow(
-        DanDanPlayApiException
-      )
+      const result = await searchSearchAnime('MyGo')
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error).toBeInstanceOf(DanDanPlayApiException)
+      }
     })
 
-    it('should throw an error on unexpected data', async () => {
+    it('should return error on unexpected data', async () => {
       mockFetchResponse({})
 
-      await expect(searchSearchAnime('MyGo')).rejects.toThrow(
-        ResponseParseException
-      )
+      const result = await searchSearchAnime('MyGo')
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error).toBeInstanceOf(ResponseParseException)
+      }
     })
   })
 
   describe('commentGetComment', () => {
-    it('should throw an error on unexpected data', async () => {
+    it('should return error on unexpected data', async () => {
       mockFetchResponse({})
 
-      await expect(commentGetComment(1)).rejects.toThrow(ResponseParseException)
+      const result = await commentGetComment(1)
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        // Since commentGetComment doesn't throw DDP exception (it just returns comments),
+        // but if parsing fails, it returns ResponseParseException.
+        expect(result.error).toBeInstanceOf(ResponseParseException)
+      }
     })
   })
 
   describe('getBangumiAnime', () => {
-    it('should throw an error on API error', async () => {
+    it('should return error on API error', async () => {
       const mockResponse = {
         errorCode: 1,
         errorMessage: 'Error',
@@ -82,13 +96,21 @@ describe('DanDanPlay API', () => {
 
       mockFetchResponse(mockResponse)
 
-      await expect(getBangumiAnime('1')).rejects.toThrow(DanDanPlayApiException)
+      const result = await getBangumiAnime('1')
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error).toBeInstanceOf(DanDanPlayApiException)
+      }
     })
 
-    it('should throw an error on unexpected data', async () => {
+    it('should return error on unexpected data', async () => {
       mockFetchResponse({})
 
-      await expect(getBangumiAnime('1')).rejects.toThrow(ResponseParseException)
+      const result = await getBangumiAnime('1')
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error).toBeInstanceOf(ResponseParseException)
+      }
     })
   })
 

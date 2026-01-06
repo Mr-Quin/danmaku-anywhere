@@ -63,7 +63,11 @@ export class MappingMatchingStrategy implements IMatchingStrategy {
         metadata: { strategy: 'mapping', providerConfig },
       }
     } catch (e) {
-      return { status: 'notFound', data: null, cause: serializeError(e) }
+      return {
+        status: 'notFound',
+        data: null,
+        cause: serializeError(e).message,
+      }
     }
   }
 

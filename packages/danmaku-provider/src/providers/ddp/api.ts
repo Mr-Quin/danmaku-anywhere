@@ -2,12 +2,14 @@ import {
   commentOptionsToString,
   parseCommentEntityP,
 } from '@danmaku-anywhere/danmaku-converter'
-import type { ZodType } from 'zod'
+import { err, ok, type Result } from '@danmaku-anywhere/result'
+import type { output, ZodType } from 'zod'
+import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
+import { InputError } from '../../exceptions/InputError.js'
 import { getApiStore } from '../../shared/store.js'
 import type { FetchOptions } from '../utils/fetchData.js'
 import { fetchData } from '../utils/fetchData.js'
 import { DanDanPlayApiException } from './exceptions.js'
-
 import type {
   BangumiDetails,
   CommentData,
@@ -56,9 +58,11 @@ export interface DanDanPlayQueryContext {
 }
 
 const fetchDanDanPlay = async <T extends ZodType>(
-  options: Omit<FetchOptions<T>, 'url' | 'headers'> & { path: string },
+  options: Omit<FetchOptions<T>, 'url' | 'headers' | 'isDaRequest'> & {
+    path: string
+  },
   context?: DanDanPlayQueryContext
-) => {
+): Promise<Result<output<T>, DanmakuProviderError>> => {
   const headers: Record<string, string> = {}
 
   const store = getApiStore()
@@ -88,7 +92,9 @@ const fetchDanDanPlay = async <T extends ZodType>(
   // use the custom baseUrl if isCustom is true
   if (context?.isCustom) {
     if (!context.baseUrl) {
-      throw new Error('Custom baseUrl is required when isCustom is true')
+      return err(
+        new InputError('Custom baseUrl is required when isCustom is true')
+      )
     }
     return fetchData<T>({
       url: `${context.baseUrl}${options.path}`, // use unmodified path
@@ -105,14 +111,15 @@ const fetchDanDanPlay = async <T extends ZodType>(
       path,
     },
     headers,
+    isDaRequest: true,
   })
 }
 
 export const searchSearchAnime = async (
   keyword: string,
   context?: DanDanPlayQueryContext
-): Promise<SearchAnimeDetails[]> => {
-  const data = await fetchDanDanPlay(
+): Promise<Result<SearchAnimeDetails[], DanmakuProviderError>> => {
+  const result = await fetchDanDanPlay(
     {
       path: '/v2/search/anime',
       query: {
@@ -123,18 +130,21 @@ export const searchSearchAnime = async (
     context
   )
 
+  if (!result.success) return result
+
+  const data = result.data
   if (!data.success) {
-    throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
+    return err(new DanDanPlayApiException(data.errorMessage, data.errorCode))
   }
 
-  return data.animes
+  return ok(data.animes)
 }
 
 export const searchSearchEpisodes = async (
   query: SearchEpisodesQuery,
   context?: DanDanPlayQueryContext
-): Promise<SearchEpisodesAnime[]> => {
-  const data = await fetchDanDanPlay(
+): Promise<Result<SearchEpisodesAnime[], DanmakuProviderError>> => {
+  const result = await fetchDanDanPlay(
     {
       path: '/v2/search/episodes',
       query,
@@ -146,19 +156,22 @@ export const searchSearchEpisodes = async (
     context
   )
 
+  if (!result.success) return result
+  const data = result.data
+
   if (!data.success) {
-    throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
+    return err(new DanDanPlayApiException(data.errorMessage, data.errorCode))
   }
 
-  return data.animes
+  return ok(data.animes)
 }
 
 export const commentGetComment = async (
   episodeId: number,
   query: GetCommentQuery = {},
   context?: DanDanPlayQueryContext
-): Promise<CommentData[]> => {
-  const data = await fetchDanDanPlay(
+): Promise<Result<CommentData[], DanmakuProviderError>> => {
+  const result = await fetchDanDanPlay(
     {
       path: `/v2/comment/${episodeId.toString()}`,
       query,
@@ -168,14 +181,17 @@ export const commentGetComment = async (
     context
   )
 
-  return data.comments
+  if (!result.success) return result
+  return ok(result.data.comments)
 }
 
 export const commentSendComment = async (
   request: SendCommentRequest,
   context?: DanDanPlayQueryContext
-) => {
-  const data = await fetchDanDanPlay(
+): Promise<
+  Result<output<typeof zSendCommentResponseV2>, DanmakuProviderError>
+> => {
+  const result = await fetchDanDanPlay(
     {
       path: '/v2/search/episodes',
       body: request,
@@ -188,18 +204,22 @@ export const commentSendComment = async (
     context
   )
 
+  if (!result.success) return result
+
+  const data = result.data
+
   if (!data.success) {
-    throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
+    return err(new DanDanPlayApiException(data.errorMessage, data.errorCode))
   }
 
-  return data
+  return ok(data)
 }
 
 export const commentGetExtComment = async (
   query: GetExtCommentQuery,
   context?: DanDanPlayQueryContext
-): Promise<CommentData[]> => {
-  const data = await fetchDanDanPlay(
+): Promise<Result<CommentData[], DanmakuProviderError>> => {
+  const result = await fetchDanDanPlay(
     {
       path: '/v2/extcomment',
       query,
@@ -208,15 +228,16 @@ export const commentGetExtComment = async (
     context
   )
 
-  return data.comments
+  if (!result.success) return result
+  return ok(result.data.comments)
 }
 
 export const commentGetCommentManualWithRelated = async (
   episodeId: number,
   params: GetCommentQuery = {},
   context?: DanDanPlayQueryContext
-): Promise<CommentData[]> => {
-  const comments = await commentGetComment(
+): Promise<Result<CommentData[], DanmakuProviderError>> => {
+  const commentsResult = await commentGetComment(
     episodeId,
     {
       ...params,
@@ -225,42 +246,50 @@ export const commentGetCommentManualWithRelated = async (
     context
   )
 
+  if (!commentsResult.success) return commentsResult
+  const comments = commentsResult.data
+
   if (params.withRelated) {
     try {
-      const relatedData = await relatedGetRelated(episodeId, context)
+      const relatedResult = await relatedGetRelated(episodeId, context)
+      if (relatedResult.success) {
+        const relatedData = relatedResult.data
 
-      for (const entry of relatedData) {
-        const additionalComments = await commentGetExtComment(
-          {
-            url: entry.url,
-          },
-          context
-        )
+        for (const entry of relatedData) {
+          const additionalCommentsResult = await commentGetExtComment(
+            {
+              url: entry.url,
+            },
+            context
+          )
 
-        additionalComments.forEach((comment) => {
-          // if the shift is not 0, we need to adjust the time of the comments
-          if (entry.shift !== 0) {
-            const options = parseCommentEntityP(comment.p)
-            options.time += entry.shift
-            comment.p = commentOptionsToString(options)
+          if (additionalCommentsResult.success) {
+            additionalCommentsResult.data.forEach((comment) => {
+              // if the shift is not 0, we need to adjust the time of the comments
+              if (entry.shift !== 0) {
+                const options = parseCommentEntityP(comment.p)
+                options.time += entry.shift
+                comment.p = commentOptionsToString(options)
+              }
+
+              comments.push(comment)
+            })
           }
-
-          comments.push(comment)
-        })
+        }
       }
     } catch (e: unknown) {
       console.error(e)
     }
   }
 
-  return comments
+  return ok(comments)
 }
 
 export const relatedGetRelated = async (
   episodeId: number,
   context?: DanDanPlayQueryContext
-): Promise<RelatedItemV2[]> => {
-  const data = await fetchDanDanPlay(
+): Promise<Result<RelatedItemV2[], DanmakuProviderError>> => {
+  const result = await fetchDanDanPlay(
     {
       path: `/v2/related/${episodeId.toString()}`,
       responseSchema: zRelatedResponseV2,
@@ -268,18 +297,21 @@ export const relatedGetRelated = async (
     context
   )
 
+  if (!result.success) return result
+  const data = result.data
+
   if (!data.success) {
-    throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
+    return err(new DanDanPlayApiException(data.errorMessage, data.errorCode))
   }
 
-  return data.relateds
+  return ok(data.relateds)
 }
 
 export const getBangumiAnime = async (
   bangumiId: string,
   context?: DanDanPlayQueryContext
-): Promise<BangumiDetails> => {
-  const data = await fetchDanDanPlay(
+): Promise<Result<BangumiDetails, DanmakuProviderError>> => {
+  const result = await fetchDanDanPlay(
     {
       path: `/v2/bangumi/${bangumiId}`,
       responseSchema: zBangumiDetailsResponse,
@@ -287,18 +319,21 @@ export const getBangumiAnime = async (
     context
   )
 
+  if (!result.success) return result
+  const data = result.data
+
   if (!data.success) {
-    throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
+    return err(new DanDanPlayApiException(data.errorMessage, data.errorCode))
   }
 
-  return data.bangumi
+  return ok(data.bangumi)
 }
 
 export const registerRegisterMainUser = async (
   request: RegisterRequestV2,
   context?: DanDanPlayQueryContext
-): Promise<LoginResponse> => {
-  const data = await fetchDanDanPlay(
+): Promise<Result<LoginResponse, DanmakuProviderError>> => {
+  const result = await fetchDanDanPlay(
     {
       path: '/v2/register',
       responseSchema: zLoginResponse,
@@ -311,18 +346,21 @@ export const registerRegisterMainUser = async (
     context
   )
 
+  if (!result.success) return result
+  const data = result.data
+
   if (!data.success) {
-    throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
+    return err(new DanDanPlayApiException(data.errorMessage, data.errorCode))
   }
 
-  return data
+  return ok(data)
 }
 
 export const registerResetPassword = async (
   request: ResetPasswordRequestV2,
   context?: DanDanPlayQueryContext
-): Promise<null> => {
-  const data = await fetchDanDanPlay(
+): Promise<Result<null, DanmakuProviderError>> => {
+  const result = await fetchDanDanPlay(
     {
       path: '/v2/register/resetpassword',
       responseSchema: zResponseBase,
@@ -335,18 +373,21 @@ export const registerResetPassword = async (
     context
   )
 
+  if (!result.success) return result
+  const data = result.data
+
   if (!data.success) {
-    throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
+    return err(new DanDanPlayApiException(data.errorMessage, data.errorCode))
   }
 
-  return null
+  return ok(null)
 }
 
 export const registerFindMyId = async (
   request: FindMyIdRequestV2,
   context?: DanDanPlayQueryContext
-): Promise<null> => {
-  const data = await fetchDanDanPlay(
+): Promise<Result<null, DanmakuProviderError>> => {
+  const result = await fetchDanDanPlay(
     {
       path: '/v2/register/findmyid',
       responseSchema: zResponseBase,
@@ -359,18 +400,21 @@ export const registerFindMyId = async (
     context
   )
 
+  if (!result.success) return result
+  const data = result.data
+
   if (!data.success) {
-    throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
+    return err(new DanDanPlayApiException(data.errorMessage, data.errorCode))
   }
 
-  return null
+  return ok(null)
 }
 
 export const loginLogin = async (
   request: LoginRequest,
   context?: DanDanPlayQueryContext
-): Promise<LoginResponse> => {
-  const data = await fetchDanDanPlay(
+): Promise<Result<LoginResponse, DanmakuProviderError>> => {
+  const result = await fetchDanDanPlay(
     {
       path: '/v2/login',
       responseSchema: zLoginResponse,
@@ -383,17 +427,20 @@ export const loginLogin = async (
     context
   )
 
+  if (!result.success) return result
+  const data = result.data
+
   if (!data.success) {
-    throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
+    return err(new DanDanPlayApiException(data.errorMessage, data.errorCode))
   }
 
-  return data
+  return ok(data)
 }
 
 export const loginRenewToken = async (
   context?: DanDanPlayQueryContext
-): Promise<LoginResponse> => {
-  const data = await fetchDanDanPlay(
+): Promise<Result<LoginResponse, DanmakuProviderError>> => {
+  const result = await fetchDanDanPlay(
     {
       path: '/v2/login',
       responseSchema: zLoginResponse,
@@ -402,9 +449,12 @@ export const loginRenewToken = async (
     context
   )
 
+  if (!result.success) return result
+  const data = result.data
+
   if (!data.success) {
-    throw new DanDanPlayApiException(data.errorMessage, data.errorCode)
+    return err(new DanDanPlayApiException(data.errorMessage, data.errorCode))
   }
 
-  return data
+  return ok(data)
 }

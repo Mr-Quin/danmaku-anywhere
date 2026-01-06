@@ -1,15 +1,14 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
-
+import { ok, type Result } from '@danmaku-anywhere/result'
+import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
 import { createThrottle } from '../utils/createThrottle.js'
-import {
-  handleParseResponse,
-  handleParseResponseAsync,
-} from '../utils/index.js'
+import { fetchData } from '../utils/fetchData.js'
 
 import type {
   TencentCommentSegmentData,
   TencentEpisodeListItem,
   TencentEpisodeListParams,
+  TencentPageDetailResponse,
   TencentSearchParams,
   TencentVideoSeason,
 } from './schema.js'
@@ -20,7 +19,7 @@ import {
   zTencentPageDetailResponse,
   zTencentSearchResponse,
 } from './schema.js'
-import { ensureData } from './utils.js'
+import { ensureData, parseHeader, validateTencentResponse } from './utils.js'
 
 const TENCENT_API_URL_ROOT = 'https://pbaccess.video.qq.com'
 const DM_API_URL_ROOT = 'https://dm.video.qq.com'
@@ -44,33 +43,35 @@ const searchMediaDefaultParams = {
 
 export const searchMedia = async (
   params: TencentSearchParams
-): Promise<TencentVideoSeason[]> => {
+): Promise<Result<TencentVideoSeason[], DanmakuProviderError>> => {
   await throttle()
 
   const newParams = { ...searchMediaDefaultParams, ...params }
 
   const url = `${TENCENT_API_URL_ROOT}/trpc.videosearch.mobile_search.HttpMobileRecall/MbSearchHttp`
 
-  const response = await fetch(url, {
+  const result = await fetchData({
+    url,
     method: 'POST',
-    body: JSON.stringify(newParams),
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    body: newParams,
+    headers: { 'Content-Type': 'application/json' },
+    responseSchema: zTencentSearchResponse,
+    getErrorMessage: async (res) => parseHeader(res).errorMsg,
+    responseValidator: validateTencentResponse,
   })
 
-  const data = await response.json()
+  if (!result.success) return result
 
-  const parsedData = handleParseResponse(() =>
-    zTencentSearchResponse.parse(data)
-  )
+  const dataResult = ensureData(result.data, 'data')
+  if (!dataResult.success) return dataResult
 
-  ensureData(parsedData, 'data', response)
-
-  return parsedData.data.normalList.itemList satisfies TencentVideoSeason[]
+  return ok(dataResult.data.normalList.itemList)
 }
 
-export const getPageDetails = async (cid: string, vid?: string) => {
+export const getPageDetails = async (
+  cid: string,
+  vid?: string
+): Promise<Result<TencentPageDetailResponse['data'], DanmakuProviderError>> => {
   const url = `${TENCENT_API_URL_ROOT}/trpc.universal_backend_service.page_server_rpc.PageServer/GetPageData?video_appid=3000010&vversion_name=8.2.96&vversion_platform=2`
 
   const requestBody = {
@@ -85,23 +86,22 @@ export const getPageDetails = async (cid: string, vid?: string) => {
     },
   }
 
-  const response = await fetch(url, {
+  const result = await fetchData({
+    url,
     method: 'POST',
-    body: JSON.stringify(requestBody),
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    body: requestBody,
+    headers: { 'Content-Type': 'application/json' },
+    responseSchema: zTencentPageDetailResponse,
+    getErrorMessage: async (res) => parseHeader(res).errorMsg,
+    responseValidator: validateTencentResponse,
   })
 
-  const data = await response.json()
+  if (!result.success) return result
 
-  const parsedData = handleParseResponse(() =>
-    zTencentPageDetailResponse.parse(data)
-  )
+  const dataResult = ensureData(result.data, 'data')
+  if (!dataResult.success) return dataResult
 
-  ensureData(parsedData, 'data', response)
-
-  return parsedData.data
+  return ok(dataResult.data)
 }
 
 const listEpisodeDefaultParams = {
@@ -116,7 +116,9 @@ const listEpisodeDefaultParams = {
   page_context: '',
 } satisfies TencentEpisodeListParams
 
-export async function* listEpisodes(params: TencentEpisodeListParams) {
+export async function* listEpisodes(
+  params: TencentEpisodeListParams
+): AsyncGenerator<Result<TencentEpisodeListItem[], DanmakuProviderError>> {
   const MAX_ITERATIONS = 100
 
   const appliedParams = {
@@ -134,7 +136,7 @@ export async function* listEpisodes(params: TencentEpisodeListParams) {
     return `episode_begin=${i * pageSize + 1}&episode_end=${(i + 1) * pageSize}&episode_step=${pageSize}`
   }
 
-  while (1) {
+  while (true) {
     await throttle()
 
     const pageParams = {
@@ -150,32 +152,37 @@ export async function* listEpisodes(params: TencentEpisodeListParams) {
       ),
     }
 
-    const response = await fetch(url, {
+    const result = await fetchData({
+      url,
       method: 'POST',
-      body: JSON.stringify(requestBody),
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      body: requestBody,
+      headers: { 'Content-Type': 'application/json' }, // Should be headers?
+      responseSchema: zTencentEpisodeListResponse,
+      getErrorMessage: async (res) => parseHeader(res).errorMsg,
+      responseValidator: validateTencentResponse,
     })
 
-    const data = await response.json()
+    if (!result.success) {
+      yield result
+      return
+    }
 
-    const parsedData = handleParseResponse(() =>
-      zTencentEpisodeListResponse.parse(data)
-    )
-
-    ensureData(parsedData, 'data', response)
+    const dataResult = ensureData(result.data, 'data')
+    if (!dataResult.success) {
+      yield dataResult
+      return
+    }
 
     // check if data is empty, probably only happens on the first page
     if (
-      parsedData.data.module_list_datas.length === 0 ||
-      parsedData.data.module_list_datas[0].module_datas.length === 0
+      dataResult.data.module_list_datas.length === 0 ||
+      dataResult.data.module_list_datas[0].module_datas.length === 0
     ) {
       return null
     }
 
     const episodes =
-      parsedData.data.module_list_datas[0].module_datas[0].item_data_lists.item_datas.map(
+      dataResult.data.module_list_datas[0].module_datas[0].item_data_lists.item_datas.map(
         (item) => item.item_params
       )
 
@@ -184,14 +191,14 @@ export async function* listEpisodes(params: TencentEpisodeListParams) {
       return null
     }
 
-    yield episodes satisfies TencentEpisodeListItem[]
+    yield ok(episodes)
 
     // not enough episodes to fill a page, so there is no next page
     if (episodes.length < pageSize) {
       return null
     }
 
-    lastId = episodes.at(-1)!.vid
+    lastId = episodes.at(-1)?.vid ?? ''
     i += 1
     if (i >= MAX_ITERATIONS) {
       return null
@@ -201,57 +208,58 @@ export async function* listEpisodes(params: TencentEpisodeListParams) {
 
 export const getDanmakuSegments = async (
   vid: string
-): Promise<TencentCommentSegmentData> => {
+): Promise<Result<TencentCommentSegmentData, DanmakuProviderError>> => {
   await throttle()
 
   const url = `${DM_API_URL_ROOT}/barrage/base/${vid}`
 
-  const response = await fetch(url)
-
-  const json = await response.json()
-
-  const segments = await handleParseResponseAsync(() =>
-    zTencentCommentSegment.parseAsync(json)
-  )
-
-  return segments
+  return fetchData({
+    url,
+    responseSchema: zTencentCommentSegment,
+  })
 }
 
 export async function* getDanmakuGenerator(
   vid: string,
   segmentData: TencentCommentSegmentData
-): AsyncGenerator<CommentEntity[]> {
+): AsyncGenerator<Result<CommentEntity[], DanmakuProviderError>> {
   const segments = Object.values(segmentData.segment_index)
 
-  if (segmentData.segment_span === 0) return []
+  if (segmentData.segment_span === 0) return
 
   for (const segment of segments) {
     await throttle()
 
     const url = `${DM_API_URL_ROOT}/barrage/segment/${vid}/${segment.segment_name}`
 
-    const response = await fetch(url)
+    const result = await fetchData({
+      url,
+      responseSchema: zTencentComment,
+    })
 
-    const json = await response.json()
-
-    const comments = await handleParseResponseAsync(() =>
-      zTencentComment.parseAsync(json)
-    )
-
-    yield comments.barrage_list
+    if (!result.success) {
+      yield result
+    } else {
+      yield ok(result.data.barrage_list)
+    }
   }
 }
 
-export const getDanmaku = async (vid: string) => {
-  const segmentData = await getDanmakuSegments(vid)
+export const getDanmaku = async (
+  vid: string
+): Promise<Result<CommentEntity[], DanmakuProviderError>> => {
+  const segmentDataResult = await getDanmakuSegments(vid)
 
-  const generator = getDanmakuGenerator(vid, segmentData)
+  if (!segmentDataResult.success) return segmentDataResult
+
+  const generator = getDanmakuGenerator(vid, segmentDataResult.data)
 
   const comments: CommentEntity[] = []
 
-  for await (const segmentComments of generator) {
-    comments.push(...segmentComments)
+  for await (const segmentResult of generator) {
+    if (!segmentResult.success) return segmentResult
+    comments.push(...segmentResult.data)
   }
 
-  return comments
+  return ok(comments)
 }

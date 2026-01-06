@@ -2,18 +2,20 @@ import {
   type CommentEntity,
   zGenericXml,
 } from '@danmaku-anywhere/danmaku-converter'
-
+import { err, ok, type Result } from '@danmaku-anywhere/result'
+import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
+import { HttpException } from '../../exceptions/HttpException.js'
+import { InputError } from '../../exceptions/InputError.js'
+import { ResponseParseException } from '../../exceptions/ResponseParseException.js'
 import { bilibili as bilibiliProto } from '../../protobuf/protobuf.js'
 import { createThrottle } from '../utils/createThrottle.js'
-import {
-  handleParseResponse,
-  handleParseResponseAsync,
-} from '../utils/index.js'
+import { fetchData } from '../utils/fetchData.js'
 import type {
   BiliBiliSearchParams,
   BiliBiliSearchType,
   BilibiliBangumiInfo,
   BilibiliMedia,
+  BilibiliUserInfo,
 } from './schema.js'
 import {
   zBilibiliBangumiInfoResponse,
@@ -21,7 +23,7 @@ import {
   zBilibiliSearchResponse,
   zBilibiliUserInfo,
 } from './schema.js'
-import { ensureData } from './utils.js'
+import { ensureSelectData } from './utils.js'
 
 const BILIBILI_API_URL_ROOT = 'https://api.bilibili.com'
 
@@ -32,61 +34,59 @@ export const setCookies = async () => {
   await fetch('http://bilibili.com')
 }
 
-export const getCurrentUser = async () => {
+export const getCurrentUser = async (): Promise<
+  Result<BilibiliUserInfo, DanmakuProviderError>
+> => {
   await throttle()
 
-  const url = `${BILIBILI_API_URL_ROOT}/x/web-interface/nav`
+  const result = await fetchData({
+    url: `${BILIBILI_API_URL_ROOT}/x/web-interface/nav`,
+    responseSchema: zBilibiliUserInfo,
+  })
 
-  const response = await fetch(url)
+  if (!result.success) return result
 
-  const data = await response.json()
-
-  const parsedData = handleParseResponse(() => zBilibiliUserInfo.parse(data))
-
-  // data property is always present, even if the user is not logged in
-
-  return parsedData.data
+  return ok(result.data.data)
 }
 
 const search = async (
   params: BiliBiliSearchParams,
   type: BiliBiliSearchType
-) => {
+): Promise<Result<BilibiliMedia[], DanmakuProviderError>> => {
   await throttle()
 
-  const keyword = encodeURIComponent(params.keyword)
+  const url = `${BILIBILI_API_URL_ROOT}/x/web-interface/search/type`
 
-  const url = `${BILIBILI_API_URL_ROOT}/x/web-interface/search/type?keyword=${keyword}&search_type=${type}`
+  const result = await fetchData({
+    url,
+    query: {
+      keyword: params.keyword,
+      search_type: type,
+    },
+    responseSchema: zBilibiliSearchResponse,
+  })
 
-  const response = await fetch(url)
+  if (!result.success) return result
 
-  const data = await response.json()
-
-  const parsedData = handleParseResponse(() =>
-    zBilibiliSearchResponse.parse(data)
-  )
-
-  ensureData(parsedData, 'data')
-
-  return parsedData.data.result satisfies BilibiliMedia[]
+  return ensureSelectData(result.data, 'data', (data) => data.result)
 }
 
 // search for media by keyword
 export const searchMedia = async (
   params: BiliBiliSearchParams
-): Promise<BilibiliMedia[]> => {
+): Promise<Result<BilibiliMedia[], DanmakuProviderError>> => {
   await throttle()
 
-  const mediaResult = await Promise.all([
+  // We need to handle multiple promises returning Result
+  const [ftResult, bangumiResult] = await Promise.all([
     search(params, 'media_ft'),
     search(params, 'media_bangumi'),
   ])
 
-  return mediaResult
-    .map((result) => {
-      return result
-    })
-    .flat()
+  if (!ftResult.success) return ftResult
+  if (!bangumiResult.success) return bangumiResult
+
+  return ok([...ftResult.data, ...bangumiResult.data])
 }
 
 // using season id, get a list of episodes
@@ -96,50 +96,49 @@ export const getBangumiInfo = async ({
 }: {
   seasonId?: number
   episodeId?: number
-}) => {
+}): Promise<Result<BilibiliBangumiInfo, DanmakuProviderError>> => {
   await throttle()
 
   if (!seasonId && !episodeId) {
-    throw new Error('Either seasonId or episodeId must be provided')
+    return err(new InputError('Either seasonId or episodeId must be provided'))
   }
 
-  const query = seasonId ? `season_id=${seasonId}` : `ep_id=${episodeId}`
+  const url = `${BILIBILI_API_URL_ROOT}/pgc/view/web/season`
+  const query = seasonId ? { season_id: seasonId } : { ep_id: episodeId }
 
-  const url = `${BILIBILI_API_URL_ROOT}/pgc/view/web/season?${query}`
+  const result = await fetchData({
+    url,
+    query,
+    responseSchema: zBilibiliBangumiInfoResponse,
+  })
 
-  const response = await fetch(url)
+  if (!result.success) return result
 
-  const data = await response.json()
-
-  const parsedData = handleParseResponse(() =>
-    zBilibiliBangumiInfoResponse.parse(data)
-  )
-
-  ensureData(parsedData, 'result')
-
-  return parsedData.result satisfies BilibiliBangumiInfo
+  return ensureSelectData(result.data, 'result', (data) => data)
 }
 
-export const getDanmakuXml = async (cid: number): Promise<CommentEntity[]> => {
+export const getDanmakuXml = async (
+  cid: number
+): Promise<Result<CommentEntity[], DanmakuProviderError>> => {
   await throttle()
 
   const url = `${BILIBILI_API_URL_ROOT}/x/v1/dm/list.so?oid=${cid}`
 
-  const response = await fetch(url)
+  const response = await fetchData({
+    url,
+    responseType: 'text',
+    responseSchema: zGenericXml,
+  })
 
-  const xmlData = await response.text()
+  if (!response.success) return response
 
-  const comments = await handleParseResponseAsync(() =>
-    zGenericXml.parseAsync(xmlData)
-  )
-
-  return comments
+  return response
 }
 
 export async function* getDanmakuProtoSegment(
   oid: number,
   pid?: number
-): AsyncGenerator<CommentEntity[]> {
+): AsyncGenerator<Result<CommentEntity[], DanmakuProviderError>> {
   const MAX_SEGMENT = 100 // arbitrary number
 
   let segmentIndex = 1
@@ -154,41 +153,77 @@ export async function* getDanmakuProtoSegment(
     params.set('pid', pid.toString())
   }
 
-  while (1) {
+  while (true) {
     await throttle()
 
     params.set('segment_index', segmentIndex.toString())
 
     const url = `${BILIBILI_API_URL_ROOT}/x/v2/dm/web/seg.so?${params}`
 
-    const response = await fetch(url)
-
-    if (response.status === 304) {
-      return null
-    }
-
-    const buffer = await response.arrayBuffer()
-
-    let parsed: bilibiliProto.community.service.dm.v1.IDmSegMobileReply
-
     try {
-      parsed = bilibiliProto.community.service.dm.v1.DmSegMobileReply.decode(
-        new Uint8Array(buffer)
-      )
-    } catch (e) {
-      if (e instanceof Error) {
-        console.error(e.message)
-      } else {
-        console.error(e)
+      const response = await fetch(url)
+
+      if (response.status === 304) {
+        return null
       }
-      throw new Error('Failed to decode protobuf', { cause: e })
+
+      if (response.status >= 400) {
+        yield err(
+          new HttpException(
+            'Bilibili API Error',
+            response.status,
+            response.statusText,
+            url,
+            await response.text()
+          )
+        )
+        return
+      }
+
+      const buffer = await response.arrayBuffer()
+
+      let parsed: bilibiliProto.community.service.dm.v1.IDmSegMobileReply
+
+      try {
+        parsed = bilibiliProto.community.service.dm.v1.DmSegMobileReply.decode(
+          new Uint8Array(buffer)
+        )
+      } catch (e) {
+        yield err(
+          new ResponseParseException({
+            message: 'Failed to decode protobuf',
+            cause: e,
+            url,
+            responseBody: 'protobuf',
+          })
+        )
+        return
+      }
+
+      try {
+        const comments = await zBilibiliCommentProto.parseAsync(parsed)
+        yield ok(comments.elems)
+      } catch (e) {
+        yield err(
+          new ResponseParseException({
+            cause: e,
+            url,
+            responseBody: 'protobuf',
+          })
+        )
+        return
+      }
+    } catch (e) {
+      yield err(
+        new HttpException(
+          e instanceof Error ? e.message : String(e),
+          0,
+          'Network Error',
+          url
+        )
+      )
+      return
     }
-
-    const comments = await handleParseResponseAsync(() =>
-      zBilibiliCommentProto.parseAsync(parsed)
-    )
-
-    yield comments.elems
 
     segmentIndex++
 
@@ -217,13 +252,16 @@ export const getDanmakuProto = async (
   oid: number,
   pid?: number,
   { limitPerMinute = 1000 }: { limitPerMinute?: number } = {}
-): Promise<CommentEntity[]> => {
+): Promise<Result<CommentEntity[], DanmakuProviderError>> => {
   const segments = getDanmakuProtoSegment(oid, pid)
   const comments: CommentEntity[][] = []
 
-  for await (const segment of segments) {
-    comments.push(sample(segment, limitPerMinute * 6)) // each segment is 6 minutes
+  for await (const result of segments) {
+    if (!result.success) {
+      return result
+    }
+    comments.push(sample(result.data, limitPerMinute * 6)) // each segment is 6 minutes
   }
 
-  return comments.flat()
+  return ok(comments.flat())
 }

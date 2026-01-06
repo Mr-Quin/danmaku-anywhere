@@ -277,10 +277,18 @@ export class RpcManager {
           })
         },
         getConfigMacCms: async (input) => {
-          return getMaccmsConfig(input?.force)
+          const res = await getMaccmsConfig(input?.force)
+          if (!res.success) {
+            throw res.error
+          }
+          return res.data
         },
         getConfigDanmuIcu: async (input) => {
-          return getDanmuicuConfig(input?.force)
+          const res = await getDanmuicuConfig(input?.force)
+          if (!res.success) {
+            throw res.error
+          }
+          return res.data
         },
         providerConfigDelete: async (id, sender) => {
           await this.db.transaction(

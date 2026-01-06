@@ -58,7 +58,7 @@ export const useImportShareCodeDialog = (
         } catch (e) {
           toast.error(
             t('configPage.import.error', 'Import failed: {{message}}', {
-              message: serializeError(e),
+              message: serializeError(e).message,
             })
           )
         }

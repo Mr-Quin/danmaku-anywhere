@@ -12,6 +12,12 @@ export const mockFetchResponse = (data?: any, status?: number) => {
   return mockFetch
 }
 
+export function mockFetch(res: Response) {
+  return vi
+    .spyOn(globalThis, 'fetch')
+    .mockImplementation(async () => res.clone())
+}
+
 export const createFetchOverride = () => {
   const originalFetch = globalThis.fetch
 

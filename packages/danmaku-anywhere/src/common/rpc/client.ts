@@ -1,5 +1,6 @@
 import { chromeSender, tabSender } from '@/common/rpc/sender'
 import { tryCatch } from '@/common/utils/tryCatch'
+import { deserializeError } from '../utils/serializeError'
 import type {
   AnyRPCDef,
   RPCPayload,
@@ -58,7 +59,7 @@ const handleRpcResponse = <TRecords extends RPCRecord>(
   err: Error | null
 ): RPCClientResponse<TRecords[string]> => {
   if (err) {
-    throw new RpcException(err.message)
+    throw new RpcException(err.message, { cause: err })
   }
 
   // if message is not handled, result will be undefined, we treat that as an error
@@ -69,7 +70,9 @@ const handleRpcResponse = <TRecords extends RPCRecord>(
   }
 
   if (result.state === 'errored') {
-    throw new RpcException(result.error)
+    throw new RpcException(result.error, {
+      cause: result.detail ? deserializeError(result.detail) : undefined,
+    })
   }
 
   if (result.state === 'ignored') {

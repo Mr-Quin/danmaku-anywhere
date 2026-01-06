@@ -1,4 +1,6 @@
-export class BiliBiliApiException extends Error {
+import { DanmakuProviderError } from '../../exceptions/BaseError.js'
+
+export class BiliBiliApiException extends DanmakuProviderError {
   constructor(
     message: string,
     public code: number
