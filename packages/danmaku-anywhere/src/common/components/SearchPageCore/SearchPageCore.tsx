@@ -28,7 +28,7 @@ export interface SearchPageCoreProps {
     season: Season | CustomSeason,
     provider: ProviderConfig
   ) => void
-  onImportSuccess: (episode: WithSeason<Episode>) => void
+  onImportSuccess?: (episode: WithSeason<Episode>) => void
   searchTerm: string
   onSearchTermChange: (term: string) => void
   dragOverlayPortal?: HTMLElement | null
