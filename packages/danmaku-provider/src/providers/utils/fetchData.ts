@@ -130,7 +130,8 @@ export const fetchData = async <OutSchema extends ZodType>(
       // unexpected parse error
       return err(
         new ResponseParseException({
-          cause: err,
+          message: 'Unexpected error when parsing response',
+          cause: parseError,
           isZodError: false,
           url: finalUrl,
           responseBody: json,
@@ -142,6 +143,7 @@ export const fetchData = async <OutSchema extends ZodType>(
       // schema validation failed
       return err(
         new ResponseParseException({
+          message: 'Schema validation failed',
           cause: parseResult.error,
           isZodError: true,
           url: finalUrl,

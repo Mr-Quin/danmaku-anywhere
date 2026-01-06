@@ -173,7 +173,8 @@ export async function* getDanmakuProtoSegment(
             'Bilibili API Error',
             response.status,
             response.statusText,
-            url
+            url,
+            await response.text()
           )
         )
         return

@@ -18,8 +18,7 @@ export class ResponseParseException extends DanmakuProviderError {
     url?: string
     responseBody?: unknown
   } = {}) {
-    super(message)
-    this.cause = cause
+    super(message, { cause })
     this.isZodError = isZodError
     this.url = url
     this.responseBody = responseBody
