@@ -1,11 +1,17 @@
 import { Remove } from '@mui/icons-material'
-import { Button, IconButton, Stack, TextField } from '@mui/material'
+import {
+  Button,
+  IconButton,
+  Stack,
+  TextField,
+  useEventCallback,
+} from '@mui/material'
 import { useEffect } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 
 export interface RecordEditorProps {
-  value?: Record<string, any>
-  onChange: (value: Record<string, any>) => void
+  value?: Record<string, string>
+  onChange: (value: Record<string, string>) => void
   keyLabel?: string
   valueLabel?: string
   addButtonLabel?: string
@@ -21,6 +27,16 @@ type FormValues = {
   entries: Entry[]
 }
 
+function toEntries(
+  record: Record<string, string>,
+  valueType: 'string' | 'json'
+): Entry[] {
+  return Object.entries(record).map(([k, v]) => ({
+    key: k,
+    value: valueType === 'json' ? JSON.stringify(v, null, 2) : String(v),
+  }))
+}
+
 export const RecordEditor = ({
   value = {},
   onChange,
@@ -29,17 +45,9 @@ export const RecordEditor = ({
   addButtonLabel = 'Add',
   valueType = 'string',
 }: RecordEditorProps) => {
-  // Convert Record to Array for internal form
-  const toEntries = (record: Record<string, any>): Entry[] => {
-    return Object.entries(record).map(([k, v]) => ({
-      key: k,
-      value: valueType === 'json' ? JSON.stringify(v, null, 2) : String(v),
-    }))
-  }
-
-  const { control, watch } = useForm<FormValues>({
+  const { control, subscribe } = useForm<FormValues>({
     defaultValues: {
-      entries: toEntries(value),
+      entries: toEntries(value, valueType),
     },
     mode: 'onChange',
   })
@@ -49,28 +57,40 @@ export const RecordEditor = ({
     name: 'entries',
   })
 
-  // Watch for changes and propagate to parent
+  const stableOnChange = useEventCallback(onChange)
+
   useEffect(() => {
-    const subscription = watch((data) => {
-      const newRecord: Record<string, any> = {}
-      data.entries?.forEach((entry) => {
-        if (entry?.key) {
-          if (valueType === 'json') {
-            try {
-              newRecord[entry.key] = JSON.parse(entry.value || 'null')
-            } catch {
-              // Invalid JSON
-              newRecord[entry.key] = undefined
-            }
-          } else {
-            newRecord[entry.key] = entry.value
-          }
+    const unsub = subscribe({
+      formState: {
+        values: true,
+        isDirty: true,
+      },
+      callback: ({ values, isDirty }) => {
+        if (!isDirty) {
+          return
         }
-      })
-      onChange(newRecord)
+        const newRecord: Record<string, string> = {}
+        values.entries?.forEach((entry) => {
+          if (entry.key) {
+            if (valueType === 'json') {
+              try {
+                // invalid json will throw
+                JSON.parse(entry.value)
+                newRecord[entry.key] = entry.value
+              } catch {
+                // invalid json, noop
+              }
+            } else {
+              newRecord[entry.key] = entry.value
+            }
+          }
+        })
+        stableOnChange(newRecord)
+      },
     })
-    return () => subscription.unsubscribe()
-  }, [watch, onChange, valueType])
+
+    return () => unsub()
+  }, [subscribe, stableOnChange, valueType])
 
   return (
     <Stack spacing={2}>
@@ -113,7 +133,6 @@ export const RecordEditor = ({
                 multiline={valueType === 'json'}
                 minRows={valueType === 'json' ? 1 : undefined}
                 error={!!fieldState.error}
-                // TODO: Custom validation for JSON?
                 helperText={fieldState.error?.message}
                 fullWidth
               />

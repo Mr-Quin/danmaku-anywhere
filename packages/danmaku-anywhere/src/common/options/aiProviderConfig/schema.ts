@@ -7,7 +7,7 @@ import type { Options } from '@/common/options/OptionsService/types'
 import { getRandomUUID } from '@/common/utils/utils'
 
 const zAiProviderBaseConfig = z.object({
-  id: z.string().default(getRandomUUID()),
+  id: z.string().default(() => getRandomUUID()),
   isBuiltIn: z.boolean().default(false),
   name: z.string().min(1),
   enabled: z.boolean(),

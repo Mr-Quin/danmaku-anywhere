@@ -20,5 +20,9 @@ const AI_PROVIDER_TYPE_LABELS = createLocalizationMap<AiProviderType>({
 })
 
 export function localizedAiProviderType(type: AiProviderType): string {
-  return AI_PROVIDER_TYPE_LABELS[type]()
+  // failsafe in case of unknown type
+  if (AI_PROVIDER_TYPE_LABELS[type]) {
+    return AI_PROVIDER_TYPE_LABELS[type]()
+  }
+  return type
 }
