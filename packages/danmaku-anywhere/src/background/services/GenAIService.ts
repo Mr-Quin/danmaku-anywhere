@@ -1,12 +1,17 @@
-import { createOpenAI } from '@ai-sdk/openai'
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
 import type { ExtractTitleResponse } from '@danmaku-anywhere/danmaku-provider/genAi'
 import { extractTitle } from '@danmaku-anywhere/danmaku-provider/genAi'
-import { generateObject } from 'ai'
+import { generateText, NoObjectGeneratedError, Output } from 'ai'
 import { inject, injectable } from 'inversify'
 import { z } from 'zod'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { BUILT_IN_AI_PROVIDER_ID } from '@/common/options/aiProviderConfig/constant'
+import {
+  type AiProviderConfig,
+  AiProviderType,
+} from '@/common/options/aiProviderConfig/schema'
 import { AiProviderConfigService } from '@/common/options/aiProviderConfig/service'
+import { tryCatch } from '@/common/utils/tryCatch'
 
 @injectable('Singleton')
 export class GenAIService {
@@ -49,8 +54,9 @@ export class GenAIService {
       : input
 
     try {
-      const openai = createOpenAI({
-        baseURL: providerConfig.settings.baseUrl,
+      const openai = createOpenAICompatible({
+        name: providerConfig.name,
+        baseURL: providerConfig.settings.baseUrl || '',
         apiKey: providerConfig.settings.apiKey,
       })
 
@@ -75,29 +81,71 @@ Return a JSON object with the following structure:
         ? `\n\nAdditional Instructions:\n${prompt}`
         : ''
 
-      const { object } = await generateObject({
+      const { output } = await generateText({
         model,
-        schema: z.object({
-          isShow: z.boolean(),
-          title: z.string().nullable(),
-          episode: z.preprocess((val) => Number(val), z.number()).nullable(),
+        system: systemPrompt + userInstruction,
+        prompt: truncatedInput,
+        output: Output.object({
+          schema: z.object({
+            isShow: z.boolean().describe('Whether the input is a show page'),
+            title: z.string().nullable().describe("Show's title"),
+            episode: z
+              .preprocess((val) => Number(val), z.number())
+              .nullable()
+              .describe('Episode number'),
+          }),
         }),
-        messages: [
-          { role: 'system', content: systemPrompt + userInstruction },
-          { role: 'user', content: truncatedInput },
-        ],
       })
 
       return {
-        isShow: object.isShow,
-        title: object.title ?? '',
-        episode: object.episode ?? 0,
+        isShow: output.isShow,
+        title: output.title ?? '',
+        episode: output.episode ?? 0,
         episodeTitle: '',
-        altTitles: [],
       }
     } catch (e) {
       this.logger.error('Failed to extract title using custom provider', e)
       throw e
     }
+  }
+  async testConnection(config: AiProviderConfig): Promise<boolean> {
+    if (config.provider === AiProviderType.BuiltIn) return true
+
+    const openai = createOpenAICompatible({
+      name: config.name,
+      baseURL: config.settings.baseUrl || '',
+      apiKey: config.settings.apiKey,
+      supportsStructuredOutputs: true,
+    })
+    const model = openai(config.settings.model || 'gpt-3.5-turbo')
+
+    const [res, err] = await tryCatch(() => {
+      return generateText({
+        model,
+        prompt: "What's your name?",
+        output: Output.object({
+          schema: z.object({
+            name: z.string().describe('Your name'),
+          }),
+        }),
+      })
+    })
+
+    if (err) {
+      this.logger.error('Connection check failed', err)
+      if (NoObjectGeneratedError.isInstance(err)) {
+        console.log('NoObjectGeneratederr')
+        console.log('Cause:', err.cause)
+        console.log('Text:', err.text)
+        console.log('Response:', err.response)
+        console.log('Usage:', err.usage)
+      }
+      return false
+    }
+
+    const { text, output } = res
+
+    console.log(output, text)
+    return true
   }
 }

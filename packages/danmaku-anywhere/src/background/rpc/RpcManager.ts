@@ -238,6 +238,9 @@ export class RpcManager {
         extractTitle: async ({ text, options }) => {
           return this.aiService.extractTitle(text, options)
         },
+        testAiProvider: async (config) => {
+          return this.aiService.testConnection(config)
+        },
         getFontList: async () => {
           return chrome.fontSettings.getFontList()
         },

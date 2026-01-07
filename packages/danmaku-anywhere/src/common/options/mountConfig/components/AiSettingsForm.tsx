@@ -1,92 +1,50 @@
 import { Autocomplete, Box, Stack, TextField, Typography } from '@mui/material'
-import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   type AiProviderConfig,
   AiProviderType,
 } from '@/common/options/aiProviderConfig/schema'
 import { useAiProviderConfig } from '@/common/options/aiProviderConfig/useAiProviderConfig'
-import type { Integration } from '@/common/options/integrationPolicyStore/schema'
-import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
+import type { AiConfig } from '@/common/options/mountConfig/schema'
 
 interface AiSettingsFormProps {
-  policy: Integration
+  value: AiConfig
+  onChange: (value: AiConfig) => void
 }
 
-type AiOptions = NonNullable<Integration['policy']['options']['ai']>
-
-export const AiSettingsForm = ({ policy }: AiSettingsFormProps) => {
+export const AiSettingsForm = ({ value, onChange }: AiSettingsFormProps) => {
   const { t } = useTranslation()
   const { configs } = useAiProviderConfig()
-  const { update } = useIntegrationPolicyStore()
-
-  const [localAiOptions, setLocalAiOptions] = useState<AiOptions>(
-    policy.policy.options.ai || { providerId: 'built-in' }
-  )
-
-  // Manual debounce effect
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      if (
-        JSON.stringify(localAiOptions) !==
-        JSON.stringify(policy.policy.options.ai)
-      ) {
-        update(policy.id, {
-          options: {
-            ...policy.policy.options,
-            ai: localAiOptions,
-          },
-        })
-      }
-    }, 500)
-
-    return () => {
-      clearTimeout(handler)
-    }
-  }, [localAiOptions, policy.id, policy.policy.options, update])
-
-  // Sync from props if external change (optional, but good)
-  useEffect(() => {
-    if (
-      policy.policy.options.ai &&
-      JSON.stringify(policy.policy.options.ai) !==
-        JSON.stringify(localAiOptions)
-    ) {
-      // Only update if significantly different to avoid loop?
-      // Actually if we type in local, we don't want props to overwrite immediately unless it's a real external update.
-      // For simplicity, let's ignore prop sync while editing or trust local state is master for this form.
-    }
-  }, [policy.policy.options.ai]) // Warning: incomplete sync logic
 
   const handleProviderChange = (
     _: React.SyntheticEvent,
     newValue: AiProviderConfig | null
   ) => {
     if (newValue) {
-      setLocalAiOptions((prev) => ({
-        ...prev,
+      onChange({
+        ...value,
         providerId: newValue.id,
-      }))
+      })
     }
   }
 
   const handlePromptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLocalAiOptions((prev) => ({
-      ...prev,
+    onChange({
+      ...value,
       prompt: e.target.value,
-    }))
+    })
   }
 
   const handleMaxLengthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number.parseInt(e.target.value, 10)
-    setLocalAiOptions((prev) => ({
-      ...prev,
-      maxInputLength: isNaN(val) ? undefined : val,
-    }))
+    onChange({
+      ...value,
+      maxInputLength: Number.isNaN(val) ? undefined : val,
+    })
   }
 
   const selectedProvider =
-    configs.find((c) => c.id === (localAiOptions.providerId || 'built-in')) ||
+    configs.find((c) => c.id === (value.providerId || 'built-in')) ||
     configs.find((c) => c.provider === AiProviderType.BuiltIn)
 
   return (
@@ -111,7 +69,7 @@ export const AiSettingsForm = ({ policy }: AiSettingsFormProps) => {
         label={t('integration.ai.customPrompt', 'Custom Instructions')}
         multiline
         rows={3}
-        value={localAiOptions.prompt || ''}
+        value={value.prompt || ''}
         onChange={handlePromptChange}
         size="small"
         placeholder={t(
@@ -127,7 +85,7 @@ export const AiSettingsForm = ({ policy }: AiSettingsFormProps) => {
       <TextField
         label={t('integration.ai.maxInputLength', 'Max Input Length')}
         type="number"
-        value={localAiOptions.maxInputLength || ''}
+        value={value.maxInputLength || ''}
         onChange={handleMaxLengthChange}
         size="small"
         helperText={t(

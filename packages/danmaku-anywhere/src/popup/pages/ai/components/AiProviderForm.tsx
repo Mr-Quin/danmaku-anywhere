@@ -1,15 +1,17 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Box, Button, MenuItem, Stack } from '@mui/material'
-import { useEffect } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { FormSelect } from '@/common/components/form/FormSelect'
 import { FormTextField } from '@/common/components/form/FormTextField'
+import { useToast } from '@/common/components/Toast/toastStore'
 import {
   type AiProviderConfig,
   AiProviderType,
   zAiProviderConfig,
 } from '@/common/options/aiProviderConfig/schema'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 interface AiProviderFormProps {
   provider: AiProviderConfig
@@ -34,8 +36,31 @@ export const AiProviderForm = ({
   })
 
   const providerType = watch('provider')
-
   const isBuiltIn = providerType === AiProviderType.BuiltIn
+
+  const [isTesting, setIsTesting] = useState(false)
+  const toast = useToast.use.toast()
+  const values = watch()
+
+  const handleTestConnection = async () => {
+    setIsTesting(true)
+    try {
+      const result = await chromeRpcClient.testAiProvider(values)
+      if (result) {
+        toast.success(t('ai.testConnectionSuccess', 'Connection successful'))
+      } else {
+        toast.error(t('ai.testConnectionFailed', 'Connection failed'))
+      }
+    } catch (e: any) {
+      toast.error(
+        t('ai.testConnectionError', 'Error: {{message}}', {
+          message: e.message,
+        })
+      )
+    } finally {
+      setIsTesting(false)
+    }
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -84,11 +109,22 @@ export const AiProviderForm = ({
         )}
 
         <Box display="flex" justifyContent="flex-end" gap={1}>
+          {!isBuiltIn && (
+            <Button
+              variant="outlined"
+              onClick={handleTestConnection}
+              disabled={isTesting || isSubmitting}
+            >
+              {isTesting
+                ? t('common.testing', 'Testing...')
+                : t('ai.testConnection', 'Test Connection')}
+            </Button>
+          )}
           <Button
             variant="contained"
             color="primary"
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isTesting}
           >
             {t('common.save', 'Save')}
           </Button>

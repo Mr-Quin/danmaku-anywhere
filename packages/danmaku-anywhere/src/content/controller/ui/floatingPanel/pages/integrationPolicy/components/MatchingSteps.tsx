@@ -12,11 +12,13 @@ import {
 import { type ReactNode, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useImportShareCodeDialog } from '@/common/options/combinedPolicy/useImportShareCodeDialog'
+import { AiSettingsForm } from '@/common/options/mountConfig/components/AiSettingsForm'
 import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
+import type { AiConfig } from '@/common/options/mountConfig/schema'
+import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
 import { useStore } from '@/content/controller/store/store'
-import { AiSettingsForm } from './AiSettingsForm'
 
 interface StepData {
   label: string
@@ -51,6 +53,7 @@ export const MatchingSteps = () => {
     type: 'integration',
     configId: activeConfig.id,
   })
+  const { update: updateConfig } = useEditMountConfig()
 
   const steps = useMemo<StepData[]>(() => {
     const isPermissive = isConfigPermissive(activeConfig)
@@ -112,8 +115,21 @@ export const MatchingSteps = () => {
       error: !isAiMode,
       description: t('integration.steps.enableAiPass', 'AI is enabled'),
       renderContent: () => {
-        if (activeIntegration && isAiMode) {
-          return <AiSettingsForm policy={activeIntegration} />
+        if (isAiMode) {
+          const aiConfig: AiConfig = activeConfig.ai ?? {
+            providerId: 'built-in',
+          }
+          return (
+            <AiSettingsForm
+              value={aiConfig}
+              onChange={(newVal) =>
+                updateConfig.mutate({
+                  id: activeConfig.id,
+                  config: { ai: newVal },
+                })
+              }
+            />
+          )
         }
         return null
       },

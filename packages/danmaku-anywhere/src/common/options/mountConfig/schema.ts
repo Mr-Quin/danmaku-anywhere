@@ -9,11 +9,13 @@ export const automationModeSchema = z
 
 export type AutomationMode = z.infer<typeof automationModeSchema>
 
-const zIntegrationAiConfig = z.object({
+export const zIntegrationAiConfig = z.object({
   providerId: z.string(),
   maxInputLength: z.number().optional(),
   prompt: z.string().optional(),
 })
+
+export type AiConfig = z.infer<typeof zIntegrationAiConfig>
 
 export const mountConfigInputSchema = z.object({
   id: z.string().uuid().optional().default(getRandomUUID()),

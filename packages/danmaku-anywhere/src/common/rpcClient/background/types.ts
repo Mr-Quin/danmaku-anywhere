@@ -37,6 +37,7 @@ import type {
   MacCMSFetchData,
 } from '@/common/danmaku/dto'
 import type { LogEntry } from '@/common/Logger'
+import type { AiProviderConfig } from '@/common/options/aiProviderConfig/schema'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
 import type { RPCDef } from '../../rpc/types'
@@ -115,6 +116,7 @@ export type BackgroundMethods = {
   getConfigMacCms: RPCDef<{ force?: boolean } | void, BaseUrlConfig>
   getConfigDanmuIcu: RPCDef<{ force?: boolean } | void, BaseUrlConfig>
   providerConfigDelete: RPCDef<string, void>
+  testAiProvider: RPCDef<AiProviderConfig, boolean>
 }
 
 type InputWithFrameId<TInput> = TInput extends void
