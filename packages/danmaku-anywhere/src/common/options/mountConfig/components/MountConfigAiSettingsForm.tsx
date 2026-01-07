@@ -3,14 +3,20 @@ import { useTranslation } from 'react-i18next'
 import { AiProviderType } from '@/common/options/aiProviderConfig/AiProviderType'
 import type { AiProviderConfig } from '@/common/options/aiProviderConfig/schema'
 import { useAiProviderConfig } from '@/common/options/aiProviderConfig/useAiProviderConfig'
-import type { AiConfig } from '@/common/options/mountConfig/schema'
+import {
+  DEFAULT_MOUNT_CONFIG_AI_CONFIG,
+  type MountConfigAiConfig,
+} from '@/common/options/mountConfig/schema'
 
-interface AiSettingsFormProps {
-  value: AiConfig
-  onChange: (value: AiConfig) => void
+interface MountConfigAiSettingsFormProps {
+  value?: MountConfigAiConfig
+  onChange: (value: MountConfigAiConfig) => void
 }
 
-export const AiSettingsForm = ({ value, onChange }: AiSettingsFormProps) => {
+export const MountConfigAiSettingsForm = ({
+  value = DEFAULT_MOUNT_CONFIG_AI_CONFIG,
+  onChange,
+}: MountConfigAiSettingsFormProps) => {
   const { t } = useTranslation()
   const { configs } = useAiProviderConfig()
 

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { AiSettingsForm } from '@/common/options/mountConfig/components/AiSettingsForm'
+import { MountConfigAiSettingsForm } from '@/common/options/mountConfig/components/MountConfigAiSettingsForm'
 import { isPatternPermissive } from '@/common/options/mountConfig/isPermissive'
 import type { MountConfigInput } from '@/common/options/mountConfig/schema'
 import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
@@ -236,7 +236,7 @@ export const MountConfigEditor = ({
                 control={control}
                 name="ai"
                 render={({ field }) => (
-                  <AiSettingsForm
+                  <MountConfigAiSettingsForm
                     value={field.value}
                     onChange={field.onChange}
                   />

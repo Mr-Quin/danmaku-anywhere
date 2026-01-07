@@ -114,6 +114,8 @@ interface StoreState {
   integrationForm: {
     showEditor: boolean
     toggleEditor: (show?: boolean) => void
+    showAiEditor: boolean
+    toggleAiEditor: (show?: boolean) => void
     isPicking: boolean
     setIsPicking: (picking: boolean) => void
   }
@@ -329,6 +331,19 @@ const useStoreBase = create<StoreState>()(
         } else {
           set((state) => {
             state.integrationForm.showEditor = !state.integrationForm.showEditor
+          })
+        }
+      },
+      showAiEditor: false,
+      toggleAiEditor: (show) => {
+        if (show !== undefined) {
+          set((state) => {
+            state.integrationForm.showAiEditor = show
+          })
+        } else {
+          set((state) => {
+            state.integrationForm.showAiEditor =
+              !state.integrationForm.showAiEditor
           })
         }
       },

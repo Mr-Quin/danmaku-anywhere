@@ -10,7 +10,10 @@ import type {
   AutomationMode,
   MountConfig,
 } from '@/common/options/mountConfig/schema'
-import { mountConfigInputSchema } from '@/common/options/mountConfig/schema'
+import {
+  DEFAULT_MOUNT_CONFIG_AI_CONFIG,
+  mountConfigInputSchema,
+} from '@/common/options/mountConfig/schema'
 import {
   type IOptionsServiceFactory,
   OptionsServiceFactory,
@@ -154,9 +157,7 @@ export class MountConfigService implements IStoreService {
     const newData = produce(configs, (draft) => {
       draft[index].mode = mode
       if (mode === 'ai' && !draft[index].ai) {
-        draft[index].ai = {
-          providerId: BUILT_IN_AI_PROVIDER_ID,
-        }
+        draft[index].ai = DEFAULT_MOUNT_CONFIG_AI_CONFIG
       }
     })
 

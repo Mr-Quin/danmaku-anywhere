@@ -20,12 +20,13 @@ import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useStore } from '@/content/controller/store/store'
 import { MatchingSteps } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/MatchingSteps'
+import { AiSettingsEditor } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/editor/AiSettingsEditor'
 import { IntegrationEditor } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/editor/IntegrationEditor'
 
 export const IntegrationPage = () => {
   const { t } = useTranslation()
   const activeConfig = useActiveConfig()
-  const { showEditor } = useStore.use.integrationForm()
+  const { showEditor, showAiEditor } = useStore.use.integrationForm()
   const { setMode } = useEditMountConfig()
 
   const handleModeChange = (
@@ -64,6 +65,10 @@ export const IntegrationPage = () => {
 
   if (showEditor) {
     return <IntegrationEditor />
+  }
+
+  if (showAiEditor) {
+    return <AiSettingsEditor />
   }
 
   return (

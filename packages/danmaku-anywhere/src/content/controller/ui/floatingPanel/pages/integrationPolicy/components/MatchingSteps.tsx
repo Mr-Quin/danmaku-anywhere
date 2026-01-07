@@ -12,9 +12,7 @@ import {
 import { type ReactNode, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useImportShareCodeDialog } from '@/common/options/combinedPolicy/useImportShareCodeDialog'
-import { AiSettingsForm } from '@/common/options/mountConfig/components/AiSettingsForm'
 import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
-import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
 import { useStore } from '@/content/controller/store/store'
@@ -44,7 +42,7 @@ export const MatchingSteps = () => {
   const { t } = useTranslation()
   const activeConfig = useActiveConfig()
   const videoId = useStore.use.videoId?.()
-  const { toggleEditor } = useStore.use.integrationForm()
+  const { toggleEditor, toggleAiEditor } = useStore.use.integrationForm()
   const { mediaInfo, foundElements, errorMessage, active } =
     useStore.use.integration()
   const activeIntegration = useActiveIntegration()
@@ -52,7 +50,6 @@ export const MatchingSteps = () => {
     type: 'integration',
     configId: activeConfig.id,
   })
-  const { update: updateConfig } = useEditMountConfig()
 
   const steps = useMemo<StepData[]>(() => {
     const isPermissive = isConfigPermissive(activeConfig)
@@ -122,15 +119,15 @@ export const MatchingSteps = () => {
           }
 
           return (
-            <AiSettingsForm
-              value={aiConfig}
-              onChange={(newVal) =>
-                updateConfig.mutate({
-                  id: activeConfig.id,
-                  config: { ai: newVal },
-                })
-              }
-            />
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => toggleAiEditor(true)}
+              sx={{ mt: 1 }}
+              fullWidth
+            >
+              {t('ai.configure', 'Configure AI')}
+            </Button>
           )
         }
         return null

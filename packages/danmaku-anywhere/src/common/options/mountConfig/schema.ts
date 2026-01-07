@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import type { Options } from '@/common/options/OptionsService/types'
 import { getRandomUUID, validateOrigin } from '@/common/utils/utils'
+import { BUILT_IN_AI_PROVIDER_ID } from '../aiProviderConfig/constant'
 
 export const automationModeSchema = z
   .enum(['manual', 'ai', 'xpath'])
@@ -9,13 +10,17 @@ export const automationModeSchema = z
 
 export type AutomationMode = z.infer<typeof automationModeSchema>
 
-export const zIntegrationAiConfig = z.object({
+export const zMountConfigAiConfig = z.object({
   providerId: z.string(),
   maxInputLength: z.number().optional(),
   prompt: z.string().optional(),
 })
 
-export type AiConfig = z.infer<typeof zIntegrationAiConfig>
+export type MountConfigAiConfig = z.infer<typeof zMountConfigAiConfig>
+
+export const DEFAULT_MOUNT_CONFIG_AI_CONFIG: MountConfigAiConfig = {
+  providerId: BUILT_IN_AI_PROVIDER_ID,
+}
 
 export const mountConfigInputSchema = z.object({
   id: z.string().uuid().optional().default(getRandomUUID()),
@@ -56,7 +61,7 @@ export const mountConfigInputSchema = z.object({
    * The integration to associate with the config
    */
   integration: z.string().optional(),
-  ai: zIntegrationAiConfig.optional(),
+  ai: zMountConfigAiConfig.optional(),
 })
 
 export const mountConfigInputListSchema = z.array(mountConfigInputSchema)
