@@ -25,6 +25,7 @@ import type {
   SeasonQueryFilter,
   SeasonSearchRequest,
 } from '@/common/anime/dto'
+import type { BackupData, BackupRestoreResult } from '@/common/backup/dto'
 import type { ImageFetchOptions } from '@/common/components/image/types'
 import type { BaseUrlConfig } from '@/common/configs/types'
 import type {
@@ -105,6 +106,8 @@ export type BackgroundMethods = {
   getConfigMacCms: RPCDef<{ force?: boolean } | void, BaseUrlConfig>
   getConfigDanmuIcu: RPCDef<{ force?: boolean } | void, BaseUrlConfig>
   providerConfigDelete: RPCDef<string, void>
+  backupExport: RPCDef<void, BackupData>
+  backupImport: RPCDef<BackupData, BackupRestoreResult>
 }
 
 type InputWithFrameId<TInput> = TInput extends void
