@@ -62,10 +62,14 @@ type IconSetDto =
 
 export type TestAiProviderResponse =
   | {
-      success: true
+      state: 'success'
     }
   | {
-      success: false
+      state: 'invalid'
+      message: string
+    }
+  | {
+      state: 'error'
       message: string
     }
 

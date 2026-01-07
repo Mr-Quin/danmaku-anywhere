@@ -1,4 +1,4 @@
-import { Add } from '@mui/icons-material'
+import { AddCircle } from '@mui/icons-material'
 import { Box, IconButton } from '@mui/material'
 import { type ReactElement, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -122,8 +122,8 @@ export const AiProvidersPage = (): ReactElement => {
   return (
     <TabLayout>
       <TabToolbar title={t('ai.providers', 'AI Providers')}>
-        <IconButton size="small" onClick={handleAddProvider}>
-          <Add />
+        <IconButton color="primary" size="small" onClick={handleAddProvider}>
+          <AddCircle />
         </IconButton>
       </TabToolbar>
       <AiProviderConfigList

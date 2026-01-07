@@ -44,8 +44,18 @@ function useTestConnection() {
     setIsTesting(true)
     try {
       const result = await chromeRpcClient.testAiProvider(config)
-      if (result.data.success) {
+      if (result.data.state === 'success') {
         toast.success(t('ai.testConnectionSuccess', 'Connection successful'))
+      } else if (result.data.state === 'invalid') {
+        toast.warn(
+          t(
+            'ai.testConnectionInvalid',
+            'Connection successful, but response format is invalid: {{message}}',
+            {
+              message: result.data.message,
+            }
+          )
+        )
       } else {
         toast.error(
           t('ai.testConnectionFailed', 'Connection failed: {{message}}', {
@@ -54,8 +64,9 @@ function useTestConnection() {
         )
       }
     } catch (e) {
+      // unexpected error
       toast.error(
-        t('ai.testConnectionError', 'Error: {{message}}', {
+        t('ai.testConnectionFailed', 'Connection failed: {{message}}', {
           message: serializeError(e).message,
         })
       )

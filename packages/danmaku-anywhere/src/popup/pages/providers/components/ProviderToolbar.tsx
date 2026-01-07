@@ -22,7 +22,8 @@ export const ProviderToolbar = ({
     <TabToolbar title={t('providers.name', 'Danmaku Providers')}>
       <DrilldownMenu
         icon={<AddCircle />}
-        ButtonProps={{ color: 'primary' }}
+        ButtonProps={{ color: 'primary', size: 'small' }}
+        dense
         items={[
           {
             id: 'add-dandanplay',

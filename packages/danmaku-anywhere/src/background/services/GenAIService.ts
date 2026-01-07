@@ -104,7 +104,7 @@ export class GenAIService {
   ): Promise<TestAiProviderResponse> {
     if (config.provider === 'built-in')
       return {
-        success: false,
+        state: 'error',
         message: 'Built-in provider does not support connection test',
       }
 
@@ -139,19 +139,19 @@ export class GenAIService {
 
       if (NoObjectGeneratedError.isInstance(err)) {
         return {
-          success: false,
-          message: err.message,
+          state: 'invalid',
+          message: err.text ?? err.message,
         }
       }
 
       return {
-        success: false,
+        state: 'error',
         message: serializeError(err).message,
       }
     }
 
     return {
-      success: true,
+      state: 'success',
     }
   }
 }
