@@ -6,9 +6,10 @@ import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useToast } from '@/common/components/Toast/toastStore'
-import {
-  type AiProviderConfig,
-  AiProviderType,
+import { AiProviderType } from '@/common/options/aiProviderConfig/AiProviderType'
+import type {
+  AiProviderConfig,
+  AiProviderConfigInput,
 } from '@/common/options/aiProviderConfig/schema'
 import { useEditAiProviderConfig } from '@/common/options/aiProviderConfig/useAiProviderConfig'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
@@ -24,7 +25,7 @@ export const AiProvidersPage = (): ReactElement => {
   const [mode, setMode] = useState<'add' | 'edit' | null>(null)
 
   const [editingProvider, setEditingProvider] =
-    useState<AiProviderConfig | null>(null)
+    useState<AiProviderConfigInput | null>(null)
 
   const handleEditProvider = (provider: AiProviderConfig) => {
     setEditingProvider(provider)
@@ -33,9 +34,8 @@ export const AiProvidersPage = (): ReactElement => {
 
   const handleAddProvider = () => {
     setEditingProvider({
-      id: crypto.randomUUID(),
-      name: 'New Provider',
-      provider: AiProviderType.OpenAI,
+      name: '',
+      provider: AiProviderType.OpenAICompatible,
       enabled: true,
       settings: {},
     })

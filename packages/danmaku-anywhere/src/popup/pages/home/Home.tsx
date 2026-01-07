@@ -73,6 +73,12 @@ export const Home = () => {
             to="/providers"
             component={Link}
           />
+          <Tab
+            label={t('tabs.aiProviders', 'AI Providers')}
+            value="/ai-providers"
+            to="/ai-providers"
+            component={Link}
+          />
         </Tabs>
         <ErrorBoundary
           fallbackRender={({ error }) => {

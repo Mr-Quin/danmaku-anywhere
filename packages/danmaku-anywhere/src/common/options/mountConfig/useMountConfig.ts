@@ -133,16 +133,18 @@ export const useEditMountConfig = () => {
     },
   })
 
+  const changeModeMutation = useMutation({
+    mutationKey: queryKey,
+    mutationFn: ({ id, mode }: { id: string; mode: AutomationMode }) =>
+      mountConfigService.changeMode(id, mode),
+  })
+
   return {
     create: createMutation,
     update: updateMutation,
     remove: deleteMutation,
     setIntegration: setIntegrationMutation,
     reorder: reorderMutation,
-    setMode: (input: { id: string; mode: AutomationMode }) =>
-      updateMutation.mutateAsync({
-        id: input.id,
-        config: { mode: input.mode },
-      }),
+    setMode: changeModeMutation,
   }
 }

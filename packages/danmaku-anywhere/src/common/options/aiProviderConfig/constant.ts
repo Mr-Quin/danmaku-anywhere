@@ -1,4 +1,5 @@
-import { type AiProviderConfig, AiProviderType } from './schema'
+import { AiProviderType } from '@/common/options/aiProviderConfig/AiProviderType'
+import type { AiProviderConfig } from './schema'
 
 export const BUILT_IN_AI_PROVIDER_ID = 'built-in'
 

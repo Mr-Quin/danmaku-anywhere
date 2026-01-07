@@ -56,7 +56,7 @@ export const mountConfigInputSchema = z.object({
    * The integration to associate with the config
    */
   integration: z.string().optional(),
-  ai: zIntegrationAiConfig,
+  ai: zIntegrationAiConfig.optional(),
 })
 
 export const mountConfigInputListSchema = z.array(mountConfigInputSchema)

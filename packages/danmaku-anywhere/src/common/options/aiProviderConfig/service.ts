@@ -53,8 +53,7 @@ export class AiProviderConfigService implements IStoreService {
     }
 
     if (id === BUILT_IN_AI_PROVIDER_ID) {
-      // Prevent modifying critical fields of built-in provider if necessary,
-      // but allowing enabled toggle is fine.
+      return
     }
 
     const newData = produce(configs, (draft) => {

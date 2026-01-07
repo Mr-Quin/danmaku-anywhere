@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
 import { ListItemPrimaryStack } from '@/common/components/ListItemPrimaryStack'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
+import { localizedAiProviderType } from '@/common/options/aiProviderConfig/AiProviderType'
 import { BUILT_IN_AI_PROVIDER_ID } from '@/common/options/aiProviderConfig/constant'
 import type { AiProviderConfig } from '@/common/options/aiProviderConfig/schema'
 import {
@@ -29,7 +30,11 @@ export const AiProviderConfigList = ({
   const renderItem = (config: AiProviderConfig) => {
     return (
       <ListItemPrimaryStack text={config.name}>
-        <Chip label={config.provider} size="small" variant="outlined" />
+        <Chip
+          label={localizedAiProviderType(config.provider)}
+          size="small"
+          variant="outlined"
+        />
       </ListItemPrimaryStack>
     )
   }

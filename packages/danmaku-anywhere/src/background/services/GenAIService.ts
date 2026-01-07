@@ -5,12 +5,12 @@ import { generateText, NoObjectGeneratedError, Output } from 'ai'
 import { inject, injectable } from 'inversify'
 import { z } from 'zod'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import { AiProviderType } from '@/common/options/aiProviderConfig/AiProviderType'
 import { BUILT_IN_AI_PROVIDER_ID } from '@/common/options/aiProviderConfig/constant'
-import {
-  type AiProviderConfig,
-  AiProviderType,
-} from '@/common/options/aiProviderConfig/schema'
+import type { AiProviderConfigInput } from '@/common/options/aiProviderConfig/schema'
 import { AiProviderConfigService } from '@/common/options/aiProviderConfig/service'
+import type { TestAiProviderResponse } from '@/common/rpcClient/background/types'
+import { serializeError } from '@/common/utils/serializeError'
 import { tryCatch } from '@/common/utils/tryCatch'
 
 @injectable('Singleton')
@@ -54,13 +54,17 @@ export class GenAIService {
       : input
 
     try {
-      const openai = createOpenAICompatible({
+      const openaiCompat = createOpenAICompatible({
         name: providerConfig.name,
         baseURL: providerConfig.settings.baseUrl || '',
         apiKey: providerConfig.settings.apiKey,
+        headers: providerConfig.settings.headers,
+        queryParams: providerConfig.settings.queryParams,
       })
 
-      const model = openai(providerConfig.settings.model || 'gpt-3.5-turbo')
+      const model = openaiCompat(
+        providerConfig.settings.model || 'gpt-3.5-turbo'
+      )
 
       const systemPrompt = `You are a helpful assistant that extracts show title and episode number from user provided website title/content.
 The user will provide a text, you need to extract the show title and episode number from it.
@@ -95,6 +99,8 @@ Return a JSON object with the following structure:
               .describe('Episode number'),
           }),
         }),
+        // @ts-expect-error providerOptions is a valid json but we don't have type for it
+        providerOptions: providerConfig.settings.providerOptions,
       })
 
       return {
@@ -108,44 +114,60 @@ Return a JSON object with the following structure:
       throw e
     }
   }
-  async testConnection(config: AiProviderConfig): Promise<boolean> {
-    if (config.provider === AiProviderType.BuiltIn) return true
 
-    const openai = createOpenAICompatible({
+  async testConnection(
+    config: AiProviderConfigInput
+  ): Promise<TestAiProviderResponse> {
+    if (config.provider === AiProviderType.BuiltIn)
+      return {
+        success: false,
+        message: 'Built-in provider does not support connection test',
+      }
+
+    const openaiCompat = createOpenAICompatible({
       name: config.name,
       baseURL: config.settings.baseUrl || '',
       apiKey: config.settings.apiKey,
+      headers: config.settings.headers,
+      queryParams: config.settings.queryParams,
       supportsStructuredOutputs: true,
     })
-    const model = openai(config.settings.model || 'gpt-3.5-turbo')
+    const model = openaiCompat(config.settings.model || '')
 
-    const [res, err] = await tryCatch(() => {
+    const [, err] = await tryCatch(() => {
       return generateText({
         model,
-        prompt: "What's your name?",
+        prompt: 'Reply with json {"success": true}',
         output: Output.object({
           schema: z.object({
-            name: z.string().describe('Your name'),
+            success: z
+              .boolean()
+              .describe('Whether the connection is successful'),
           }),
         }),
+        // @ts-expect-error providerOptions is a valid json but we don't have type for it
+        providerOptions: config.settings.providerOptions,
       })
     })
 
     if (err) {
-      this.logger.error('Connection check failed', err)
+      this.logger.debug('Connection check failed', err)
+
       if (NoObjectGeneratedError.isInstance(err)) {
-        console.log('NoObjectGeneratederr')
-        console.log('Cause:', err.cause)
-        console.log('Text:', err.text)
-        console.log('Response:', err.response)
-        console.log('Usage:', err.usage)
+        return {
+          success: false,
+          message: err.message,
+        }
       }
-      return false
+
+      return {
+        success: false,
+        message: serializeError(err).message,
+      }
     }
 
-    const { text, output } = res
-
-    console.log(output, text)
-    return true
+    return {
+      success: true,
+    }
   }
 }

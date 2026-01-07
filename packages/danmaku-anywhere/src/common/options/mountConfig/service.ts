@@ -6,7 +6,10 @@ import {
   createMountConfig,
   defaultMountConfig,
 } from '@/common/options/mountConfig/constant'
-import type { MountConfig } from '@/common/options/mountConfig/schema'
+import type {
+  AutomationMode,
+  MountConfig,
+} from '@/common/options/mountConfig/schema'
 import { mountConfigInputSchema } from '@/common/options/mountConfig/schema'
 import {
   type IOptionsServiceFactory,
@@ -137,6 +140,27 @@ export class MountConfigService implements IStoreService {
     await this.options.set(newConfigs)
 
     return newConfig
+  }
+
+  async changeMode(id: string, mode: AutomationMode) {
+    const configs = await this.options.get()
+
+    const index = configs.findIndex((item) => item.id === id)
+
+    if (index === -1) {
+      throw new Error(`Config not found: "${id}" when changing mode`)
+    }
+
+    const newData = produce(configs, (draft) => {
+      draft[index].mode = mode
+      if (mode === 'ai' && !draft[index].ai) {
+        draft[index].ai = {
+          providerId: BUILT_IN_AI_PROVIDER_ID,
+        }
+      }
+    })
+
+    await this.options.set(newData)
   }
 
   async delete(id: string) {

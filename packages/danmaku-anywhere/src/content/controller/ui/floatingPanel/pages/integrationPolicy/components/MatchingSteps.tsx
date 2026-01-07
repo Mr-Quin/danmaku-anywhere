@@ -14,7 +14,6 @@ import { useTranslation } from 'react-i18next'
 import { useImportShareCodeDialog } from '@/common/options/combinedPolicy/useImportShareCodeDialog'
 import { AiSettingsForm } from '@/common/options/mountConfig/components/AiSettingsForm'
 import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
-import type { AiConfig } from '@/common/options/mountConfig/schema'
 import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
@@ -116,9 +115,12 @@ export const MatchingSteps = () => {
       description: t('integration.steps.enableAiPass', 'AI is enabled'),
       renderContent: () => {
         if (isAiMode) {
-          const aiConfig: AiConfig = activeConfig.ai ?? {
-            providerId: 'built-in',
+          const aiConfig = activeConfig.ai
+
+          if (!aiConfig) {
+            return null
           }
+
           return (
             <AiSettingsForm
               value={aiConfig}

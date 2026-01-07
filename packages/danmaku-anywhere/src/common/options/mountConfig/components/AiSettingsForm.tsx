@@ -1,9 +1,7 @@
 import { Autocomplete, Box, Stack, TextField, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import {
-  type AiProviderConfig,
-  AiProviderType,
-} from '@/common/options/aiProviderConfig/schema'
+import { AiProviderType } from '@/common/options/aiProviderConfig/AiProviderType'
+import type { AiProviderConfig } from '@/common/options/aiProviderConfig/schema'
 import { useAiProviderConfig } from '@/common/options/aiProviderConfig/useAiProviderConfig'
 import type { AiConfig } from '@/common/options/mountConfig/schema'
 

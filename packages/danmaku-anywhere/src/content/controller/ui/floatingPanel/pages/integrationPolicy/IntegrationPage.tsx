@@ -33,7 +33,7 @@ export const IntegrationPage = () => {
     newMode: AutomationMode | null
   ) => {
     if (newMode && newMode !== activeConfig.mode && activeConfig.id) {
-      void setMode({ id: activeConfig.id, mode: newMode })
+      void setMode.mutate({ id: activeConfig.id, mode: newMode })
     }
   }
 
