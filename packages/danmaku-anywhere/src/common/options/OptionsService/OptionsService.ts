@@ -93,6 +93,13 @@ export class OptionsService<T extends OptionsSchema> {
     return this.readUnblocked()
   }
 
+  async getVersion(): Promise<number> {
+    await this.readinessService.waitUntilReady()
+
+    const options = await this.storageService.read()
+    return options?.version ?? 0
+  }
+
   async set(data: T, version?: number) {
     await this.readinessService.waitUntilReady()
 
