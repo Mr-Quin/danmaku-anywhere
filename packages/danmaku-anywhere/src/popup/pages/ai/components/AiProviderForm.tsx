@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import {
-  Accordion,
   AccordionDetails,
   AccordionSummary,
   Box,
@@ -16,6 +15,7 @@ import { useTranslation } from 'react-i18next'
 import { FormSelect } from '@/common/components/form/FormSelect'
 import { FormTextField } from '@/common/components/form/FormTextField'
 import { RecordEditor } from '@/common/components/form/RecordEditor'
+import { OutlineAccordion } from '@/common/components/OutlineAccordion'
 import { useToast } from '@/common/components/Toast/toastStore'
 import {
   AI_PROVIDER_LIST,
@@ -149,7 +149,7 @@ export const AiProviderForm = ({
               helperText={t('ai.modelHelper', 'e.g. gpt-4, gpt-3.5-turbo')}
             />
 
-            <Accordion>
+            <OutlineAccordion elevation={0} disableGutters>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography>{t('common.advanced', 'Advanced')}</Typography>
               </AccordionSummary>
@@ -214,7 +214,7 @@ export const AiProviderForm = ({
                   </Box>
                 </Stack>
               </AccordionDetails>
-            </Accordion>
+            </OutlineAccordion>
           </>
         )}
 
@@ -223,18 +223,18 @@ export const AiProviderForm = ({
             <Button
               variant="outlined"
               onClick={handleTestConnection}
-              disabled={isTesting || isSubmitting}
+              disabled={isSubmitting}
+              loading={isTesting}
             >
-              {isTesting
-                ? t('common.testing', 'Testing...')
-                : t('ai.testConnection', 'Test Connection')}
+              {t('ai.testConnection', 'Test Connection')}
             </Button>
           )}
           <Button
             variant="contained"
             color="primary"
             type="submit"
-            disabled={isSubmitting || isTesting || !isValid}
+            loading={isSubmitting}
+            disabled={isTesting || !isValid}
           >
             {t('common.save', 'Save')}
           </Button>

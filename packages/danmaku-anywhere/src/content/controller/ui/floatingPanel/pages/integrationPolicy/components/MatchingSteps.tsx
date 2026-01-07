@@ -11,6 +11,7 @@ import {
 } from '@mui/material'
 import { type ReactNode, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useAiProviderConfig } from '@/common/options/aiProviderConfig/useAiProviderConfig'
 import { useImportShareCodeDialog } from '@/common/options/combinedPolicy/useImportShareCodeDialog'
 import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
@@ -50,6 +51,7 @@ export const MatchingSteps = () => {
     type: 'integration',
     configId: activeConfig.id,
   })
+  const { getProviderById } = useAiProviderConfig()
 
   const steps = useMemo<StepData[]>(() => {
     const isPermissive = isConfigPermissive(activeConfig)
@@ -119,15 +121,20 @@ export const MatchingSteps = () => {
           }
 
           return (
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => toggleAiEditor(true)}
-              sx={{ mt: 1 }}
-              fullWidth
-            >
-              {t('ai.configure', 'Configure AI')}
-            </Button>
+            <>
+              <Typography variant="subtitle2">
+                {getProviderById(aiConfig.providerId)?.name}
+              </Typography>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => toggleAiEditor(true)}
+                sx={{ mt: 1 }}
+                fullWidth
+              >
+                {t('ai.configure', 'Configure AI')}
+              </Button>
+            </>
           )
         }
         return null

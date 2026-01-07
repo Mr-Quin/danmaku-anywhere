@@ -1,111 +1,134 @@
-import { Autocomplete, Box, Stack, TextField, Typography } from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import {
+  AccordionDetails,
+  AccordionSummary,
+  Alert,
+  Box,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { AiProviderType } from '@/common/options/aiProviderConfig/AiProviderType'
-import type { AiProviderConfig } from '@/common/options/aiProviderConfig/schema'
+import { EXTRACT_TITLE_SYSTEM_PROMPT } from '@/common/ai/prompts'
+import { OutlineAccordion } from '@/common/components/OutlineAccordion'
 import { useAiProviderConfig } from '@/common/options/aiProviderConfig/useAiProviderConfig'
 import {
   DEFAULT_MOUNT_CONFIG_AI_CONFIG,
   type MountConfigAiConfig,
 } from '@/common/options/mountConfig/schema'
+import { BUILT_IN_AI_PROVIDER_ID } from '../../aiProviderConfig/constant'
 
 interface MountConfigAiSettingsFormProps {
-  value?: MountConfigAiConfig
+  config?: MountConfigAiConfig
   onChange: (value: MountConfigAiConfig) => void
 }
 
 export const MountConfigAiSettingsForm = ({
-  value = DEFAULT_MOUNT_CONFIG_AI_CONFIG,
+  config = DEFAULT_MOUNT_CONFIG_AI_CONFIG,
   onChange,
 }: MountConfigAiSettingsFormProps) => {
   const { t } = useTranslation()
   const { configs } = useAiProviderConfig()
 
-  const handleProviderChange = (
-    _: React.SyntheticEvent,
-    newValue: AiProviderConfig | null
-  ) => {
-    if (newValue) {
-      onChange({
-        ...value,
-        providerId: newValue.id,
-      })
-    }
-  }
-
   const handlePromptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange({
-      ...value,
+      ...config,
       prompt: e.target.value,
     })
   }
 
-  const handleMaxLengthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = Number.parseInt(e.target.value, 10)
-    onChange({
-      ...value,
-      maxInputLength: Number.isNaN(val) ? undefined : val,
-    })
-  }
-
-  const selectedProvider =
-    configs.find((c) => c.id === (value.providerId || 'built-in')) ||
-    configs.find((c) => c.provider === AiProviderType.BuiltIn)
+  const selectedProviderId = config.providerId
+  const isBuiltIn = selectedProviderId === BUILT_IN_AI_PROVIDER_ID
 
   return (
-    <Stack spacing={2} sx={{ mt: 2 }}>
-      <Autocomplete
-        options={configs}
-        getOptionLabel={(option) => option.name}
-        value={selectedProvider}
-        onChange={handleProviderChange}
-        renderInput={(params) => (
+    <Stack spacing={2}>
+      <Typography variant="subtitle2">
+        {t(
+          'integration.ai.description',
+          'AI extracts show information from the current page content.'
+        )}
+      </Typography>
+
+      <TextField
+        value={selectedProviderId}
+        label={t('integration.ai.provider', 'AI Provider')}
+        select
+        onChange={(e) => {
+          onChange({
+            ...config,
+            providerId: e.target.value,
+          })
+        }}
+        slotProps={{
+          select: {
+            MenuProps: {
+              sx: {
+                zIndex: 1403,
+              },
+              disableScrollLock: true,
+            },
+          },
+        }}
+        fullWidth
+      >
+        {configs.map((config) => (
+          <MenuItem key={config.id} value={config.id}>
+            {config.name}
+          </MenuItem>
+        ))}
+      </TextField>
+
+      {isBuiltIn ? (
+        <Alert severity="info">
+          {t(
+            'integration.ai.cannotEditBuiltIn',
+            'Settings for the built-in provider cannot be changed. To use custom prompts, change to another AI provider.'
+          )}
+        </Alert>
+      ) : (
+        <>
           <TextField
-            {...params}
-            label={t('integration.ai.provider', 'AI Provider')}
+            label={t('integration.ai.customPrompt', 'Custom Instructions')}
+            multiline
+            disabled={isBuiltIn}
+            rows={3}
+            value={config.prompt || ''}
+            onChange={handlePromptChange}
             size="small"
-            variant="outlined"
+            placeholder={t(
+              'integration.ai.customPromptPlaceholder',
+              'Add custom instruction'
+            )}
+            helperText={t(
+              'integration.ai.customPromptHelper',
+              'These instructions will be appended to the system prompt.'
+            )}
+            fullWidth
           />
-        )}
-        disableClearable
-      />
 
-      <TextField
-        label={t('integration.ai.customPrompt', 'Custom Instructions')}
-        multiline
-        rows={3}
-        value={value.prompt || ''}
-        onChange={handlePromptChange}
-        size="small"
-        placeholder={t(
-          'integration.ai.customPromptPlaceholder',
-          'Add specific instructions for the AI...'
-        )}
-        helperText={t(
-          'integration.ai.customPromptHelper',
-          'These instructions will be appended to the system prompt.'
-        )}
-      />
-
-      <TextField
-        label={t('integration.ai.maxInputLength', 'Max Input Length')}
-        type="number"
-        value={value.maxInputLength || ''}
-        onChange={handleMaxLengthChange}
-        size="small"
-        helperText={t(
-          'integration.ai.maxInputLengthHelper',
-          'Limit the number of characters sent to AI to save tokens.'
-        )}
-      />
-
-      <Box sx={{ bgcolor: 'action.hover', p: 1, borderRadius: 1 }}>
-        <Typography variant="caption" color="text.secondary">
-          {t('integration.ai.baseSystemPrompt', 'Base System Prompt:')}
-          <br />
-          You are a helpful assistant that extracts show title and episode
-          number...
-        </Typography>
-      </Box>
+          <OutlineAccordion elevation={0} disableGutters>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography fontSize="0.875rem">
+                {t('integration.ai.systemPrompt', 'System Prompt')}
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Box
+                sx={{
+                  bgcolor: 'action.hover',
+                  p: 1,
+                  borderRadius: 1,
+                  fontFamily: 'monospace',
+                  fontSize: '0.75rem',
+                }}
+              >
+                {EXTRACT_TITLE_SYSTEM_PROMPT}
+              </Box>
+            </AccordionDetails>
+          </OutlineAccordion>
+        </>
+      )}
     </Stack>
   )
 }

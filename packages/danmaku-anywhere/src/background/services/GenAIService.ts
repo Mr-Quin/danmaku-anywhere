@@ -4,6 +4,7 @@ import { extractTitle } from '@danmaku-anywhere/danmaku-provider/genAi'
 import { generateText, NoObjectGeneratedError, Output } from 'ai'
 import { inject, injectable } from 'inversify'
 import { z } from 'zod'
+import { EXTRACT_TITLE_SYSTEM_PROMPT } from '@/common/ai/prompts'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { AiProviderType } from '@/common/options/aiProviderConfig/AiProviderType'
 import { BUILT_IN_AI_PROVIDER_ID } from '@/common/options/aiProviderConfig/constant'
@@ -66,21 +67,8 @@ export class GenAIService {
         providerConfig.settings.model || 'gpt-3.5-turbo'
       )
 
-      const systemPrompt = `You are a helpful assistant that extracts show title and episode number from user provided website title/content.
-The user will provide a text, you need to extract the show title and episode number from it.
+      const systemPrompt = EXTRACT_TITLE_SYSTEM_PROMPT
 
-Rules:
-1. If the input contains a show title, return it in the "title" field.
-2. If the input contains an episode number, return it in the "episode" field.
-3. If the input does not look like a show page (e.g. home page, list page), set "isShow" to false.
-
-Return a JSON object with the following structure:
-{
-  "isShow": boolean,
-  "title": string | null,
-  "episode": string | null
-}
-`
       const userInstruction = prompt
         ? `\n\nAdditional Instructions:\n${prompt}`
         : ''

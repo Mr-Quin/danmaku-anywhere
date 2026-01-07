@@ -2,8 +2,9 @@ import { OpenInNew } from '@mui/icons-material'
 import { Box, Button, Stack } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import type { ReactElement } from 'react'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { OverlayLayout } from '@/common/components/layout/OverlayLayout'
 import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { TabLayout } from '@/common/components/layout/TabLayout'
@@ -11,6 +12,7 @@ import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { MountConfigAiSettingsForm } from '@/common/options/mountConfig/components/MountConfigAiSettingsForm'
 import {
+  DEFAULT_MOUNT_CONFIG_AI_CONFIG,
   type MountConfigAiConfig,
   zMountConfigAiConfig,
 } from '@/common/options/mountConfig/schema'
@@ -26,16 +28,13 @@ export const AiSettingsEditor = (): ReactElement => {
   const toast = useToast.use.toast()
 
   const [value, setValue] = useState<MountConfigAiConfig>(
-    activeConfig.ai ?? {
-      providerId: 'built-in',
-    }
+    activeConfig.ai ?? DEFAULT_MOUNT_CONFIG_AI_CONFIG
   )
 
   const { update } = useEditMountConfig()
 
   const { mutate: save, isPending } = useMutation({
     mutationFn: async () => {
-      // Validate
       const result = zMountConfigAiConfig.safeParse(value)
       if (!result.success) {
         throw new Error(result.error.errors[0].message)
@@ -57,9 +56,6 @@ export const AiSettingsEditor = (): ReactElement => {
     },
   })
 
-  // Check if dirty
-  const isDirty = JSON.stringify(activeConfig.ai) !== JSON.stringify(value)
-
   return (
     <OverlayLayout>
       <TabLayout height="100%">
@@ -73,7 +69,7 @@ export const AiSettingsEditor = (): ReactElement => {
               <Button
                 variant="text"
                 component="a"
-                href={docsLink('docs/ai-setup/')}
+                href={docsLink('docs/integration/ai')}
                 target="_blank"
               >
                 {t('common.docs', 'Docs')}
@@ -83,8 +79,10 @@ export const AiSettingsEditor = (): ReactElement => {
           </TabToolbar>
 
           <ScrollBox flexGrow={1} overflow="auto" minHeight={0}>
-            <Box p={2}>
-              <MountConfigAiSettingsForm value={value} onChange={setValue} />
+            <Box px={2} py={1}>
+              <Suspense fallback={<FullPageSpinner />}>
+                <MountConfigAiSettingsForm config={value} onChange={setValue} />
+              </Suspense>
             </Box>
           </ScrollBox>
 
@@ -108,7 +106,7 @@ export const AiSettingsEditor = (): ReactElement => {
                 color="primary"
                 onClick={() => save()}
                 loading={isPending}
-                disabled={isPending || !isDirty}
+                disabled={isPending}
               >
                 {t('common.save', 'Save')}
               </Button>

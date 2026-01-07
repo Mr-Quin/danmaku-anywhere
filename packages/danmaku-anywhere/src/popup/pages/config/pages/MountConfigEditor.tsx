@@ -1,8 +1,9 @@
 import { Box, Button, Divider, Step, StepButton, Stepper } from '@mui/material'
 import type { ReactElement } from 'react'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { MountConfigAiSettingsForm } from '@/common/options/mountConfig/components/MountConfigAiSettingsForm'
 import { isPatternPermissive } from '@/common/options/mountConfig/isPermissive'
@@ -109,6 +110,7 @@ export const MountConfigEditor = ({
   const handleStep = (step: number) => {
     setActiveStep(step)
   }
+
   const handleSave = async (data: MountConfigForm) => {
     if (data.patterns.length === 0) {
       toast.error('At least one pattern is required')
@@ -236,10 +238,12 @@ export const MountConfigEditor = ({
                 control={control}
                 name="ai"
                 render={({ field }) => (
-                  <MountConfigAiSettingsForm
-                    value={field.value}
-                    onChange={field.onChange}
-                  />
+                  <Suspense fallback={<FullPageSpinner />}>
+                    <MountConfigAiSettingsForm
+                      config={field.value}
+                      onChange={field.onChange}
+                    />
+                  </Suspense>
                 )}
               />
               <Button

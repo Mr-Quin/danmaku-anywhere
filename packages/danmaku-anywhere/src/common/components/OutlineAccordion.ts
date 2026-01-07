@@ -4,7 +4,7 @@ export const OutlineAccordion = styled(Accordion)(({ theme }) => {
   return {
     width: '100%',
     '&:before': { display: 'none' },
-    ['.MuiButtonBase-root']: {
+    ['.MuiAccordionSummary-root.MuiButtonBase-root']: {
       minHeight: '40px',
     },
     backgroundColor: 'transparent',

@@ -1,5 +1,5 @@
 import { Logger } from '@/common/Logger'
-import type { IntegrationPolicy } from '@/common/options/integrationPolicyStore/schema'
+import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { queryClient } from '@/common/queries/queryClient'
 import { genAIQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -74,7 +74,7 @@ export class AiIntegrationObserver extends MediaObserver {
   private logger = Logger.sub('[AiIntegrationObserver]')
   private abortControllerQueue: AbortController[] = []
 
-  constructor(private readonly policy: IntegrationPolicy | null) {
+  constructor(private readonly config: MountConfig | null) {
     super()
   }
 
@@ -103,7 +103,7 @@ export class AiIntegrationObserver extends MediaObserver {
         queryFn: () =>
           chromeRpcClient.extractTitle({
             text: pageMeta,
-            options: this.policy?.options.ai,
+            options: this.config?.ai,
           }),
       })
 
