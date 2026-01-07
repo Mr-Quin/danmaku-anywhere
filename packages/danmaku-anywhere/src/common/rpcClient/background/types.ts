@@ -38,7 +38,10 @@ import type {
 } from '@/common/danmaku/dto'
 import type { LogEntry } from '@/common/Logger'
 import type { AiProviderConfigInput } from '@/common/options/aiProviderConfig/schema'
-import type { MountConfig } from '@/common/options/mountConfig/schema'
+import type {
+  MountConfig,
+  MountConfigAiConfig,
+} from '@/common/options/mountConfig/schema'
 import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
 import type { RPCDef } from '../../rpc/types'
 
@@ -113,11 +116,7 @@ export type BackgroundMethods = {
   extractTitle: RPCDef<
     {
       text: string
-      options?: {
-        providerId?: string
-        maxInputLength?: number
-        prompt?: string
-      }
+      options: MountConfigAiConfig
     },
     ExtractTitleResponse['result']
   >

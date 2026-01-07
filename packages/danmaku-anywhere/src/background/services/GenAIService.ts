@@ -6,13 +6,14 @@ import { inject, injectable } from 'inversify'
 import { z } from 'zod'
 import { EXTRACT_TITLE_SYSTEM_PROMPT } from '@/common/ai/prompts'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
-import { AiProviderType } from '@/common/options/aiProviderConfig/AiProviderType'
 import { BUILT_IN_AI_PROVIDER_ID } from '@/common/options/aiProviderConfig/constant'
 import type { AiProviderConfigInput } from '@/common/options/aiProviderConfig/schema'
 import { AiProviderConfigService } from '@/common/options/aiProviderConfig/service'
+import type { MountConfigAiConfig } from '@/common/options/mountConfig/schema'
 import type { TestAiProviderResponse } from '@/common/rpcClient/background/types'
 import { serializeError } from '@/common/utils/serializeError'
 import { tryCatch } from '@/common/utils/tryCatch'
+import { invariant } from '@/common/utils/utils'
 
 @injectable('Singleton')
 export class GenAIService {
@@ -28,16 +29,12 @@ export class GenAIService {
 
   async extractTitle(
     input: string,
-    options?: {
-      providerId?: string
-      maxInputLength?: number
-      prompt?: string
-    }
+    options: MountConfigAiConfig
   ): Promise<ExtractTitleResponse['result']> {
-    const { providerId, maxInputLength, prompt } = options || {}
+    const { providerId, maxInputLength, prompt } = options
     this.logger.debug('Extract title', { options })
 
-    const activeProviderId = providerId || BUILT_IN_AI_PROVIDER_ID
+    const activeProviderId = providerId
 
     if (activeProviderId === BUILT_IN_AI_PROVIDER_ID) {
       const result = await extractTitle(input)
@@ -45,68 +42,67 @@ export class GenAIService {
       return result.data
     }
 
-    const providerConfig = await this.aiProviderConfig.get(activeProviderId)
-    if (!providerConfig || !providerConfig.enabled) {
-      throw new Error(`Provider ${activeProviderId} is not available`)
-    }
+    const providerConfig = await this.aiProviderConfig.mustGet(activeProviderId)
+
+    invariant(
+      providerConfig.provider !== 'built-in',
+      'Built-in provider does not support openai compatible api'
+    )
+    invariant(
+      providerConfig.enabled,
+      `Provider ${activeProviderId} is not enabled`
+    )
 
     const truncatedInput = maxInputLength
       ? input.slice(0, maxInputLength)
       : input
 
-    try {
-      const openaiCompat = createOpenAICompatible({
-        name: providerConfig.name,
-        baseURL: providerConfig.settings.baseUrl || '',
-        apiKey: providerConfig.settings.apiKey,
-        headers: providerConfig.settings.headers,
-        queryParams: providerConfig.settings.queryParams,
-      })
+    const openaiCompat = createOpenAICompatible({
+      name: providerConfig.name,
+      baseURL: providerConfig.settings.baseUrl || '',
+      apiKey: providerConfig.settings.apiKey,
+      headers: providerConfig.settings.headers,
+      queryParams: providerConfig.settings.queryParams,
+    })
 
-      const model = openaiCompat(
-        providerConfig.settings.model || 'gpt-3.5-turbo'
-      )
+    const model = openaiCompat(providerConfig.settings.model || 'gpt-3.5-turbo')
 
-      const systemPrompt = EXTRACT_TITLE_SYSTEM_PROMPT
+    const systemPrompt = EXTRACT_TITLE_SYSTEM_PROMPT
 
-      const userInstruction = prompt
-        ? `\n\nAdditional Instructions:\n${prompt}`
-        : ''
+    const userInstruction = prompt
+      ? `\n\nAdditional Instructions:\n${prompt}`
+      : ''
 
-      const { output } = await generateText({
-        model,
-        system: systemPrompt + userInstruction,
-        prompt: truncatedInput,
-        output: Output.object({
-          schema: z.object({
-            isShow: z.boolean().describe('Whether the input is a show page'),
-            title: z.string().nullable().describe("Show's title"),
-            episode: z
-              .preprocess((val) => Number(val), z.number())
-              .nullable()
-              .describe('Episode number'),
-          }),
+    const { output } = await generateText({
+      model,
+      system: systemPrompt + userInstruction,
+      prompt: truncatedInput,
+      output: Output.object({
+        schema: z.object({
+          isShow: z.boolean().describe('Whether the input is a show page'),
+          title: z.string().nullable().describe("Show's title"),
+          episode: z
+            .preprocess((val) => Number(val), z.number())
+            .nullable()
+            .describe('Episode number'),
         }),
-        // @ts-expect-error providerOptions is a valid json but we don't have type for it
-        providerOptions: providerConfig.settings.providerOptions,
-      })
+      }),
+      // @ts-expect-error providerOptions is a valid json but we don't have type for it
+      providerOptions: providerConfig.settings.providerOptions,
+    })
 
-      return {
-        isShow: output.isShow,
-        title: output.title ?? '',
-        episode: output.episode ?? 0,
-        episodeTitle: '',
-      }
-    } catch (e) {
-      this.logger.error('Failed to extract title using custom provider', e)
-      throw e
+    return {
+      isShow: output.isShow,
+      title: output.title ?? '',
+      episode: output.episode ?? 0,
+      episodeTitle: '',
     }
   }
 
   async testConnection(
     config: AiProviderConfigInput
   ): Promise<TestAiProviderResponse> {
-    if (config.provider === AiProviderType.BuiltIn)
+    if (config.provider === 'built-in')
       return {
         success: false,
         message: 'Built-in provider does not support connection test',

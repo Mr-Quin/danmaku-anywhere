@@ -14,8 +14,6 @@ Title: Extract the show's name. Include the Season if present, but exclude the e
 
 Episode: Extract the episode as a numeric value.
 
-Episode Title: Extract the specific name of that individual episode if it is distinct from the Show Title.
-
 Output Format: Return valid JSON only:
 
 JSON
@@ -24,6 +22,5 @@ JSON
   "isShow": boolean,
   "title": string | null,
   "episode": number | null,
-  "episodeTitle": string | null
 }
 `

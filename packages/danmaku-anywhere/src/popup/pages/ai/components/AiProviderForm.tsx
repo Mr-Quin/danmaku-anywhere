@@ -19,7 +19,6 @@ import { OutlineAccordion } from '@/common/components/OutlineAccordion'
 import { useToast } from '@/common/components/Toast/toastStore'
 import {
   AI_PROVIDER_LIST,
-  AiProviderType,
   localizedAiProviderType,
 } from '@/common/options/aiProviderConfig/AiProviderType'
 import {
@@ -88,7 +87,7 @@ export const AiProviderForm = ({
   })
 
   const providerType = watch('provider')
-  const isBuiltIn = providerType === AiProviderType.BuiltIn
+  const isBuiltIn = providerType === 'built-in'
 
   const config = watch()
 
@@ -117,13 +116,13 @@ export const AiProviderForm = ({
               label={t('ai.providerType', 'Provider Type')}
               disabled={isBuiltIn || isEdit}
             >
-              {AI_PROVIDER_LIST.filter(
-                (type) => type !== AiProviderType.BuiltIn
-              ).map((type) => (
-                <MenuItem key={type} value={type}>
-                  {localizedAiProviderType(type)}
-                </MenuItem>
-              ))}
+              {AI_PROVIDER_LIST.filter((type) => type !== 'built-in').map(
+                (type) => (
+                  <MenuItem key={type} value={type}>
+                    {localizedAiProviderType(type)}
+                  </MenuItem>
+                )
+              )}
             </FormSelect>
             <FormTextField
               control={control}

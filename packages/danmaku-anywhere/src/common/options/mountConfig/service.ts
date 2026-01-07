@@ -156,6 +156,7 @@ export class MountConfigService implements IStoreService {
 
     const newData = produce(configs, (draft) => {
       draft[index].mode = mode
+      // add default ai config if no ai config exists
       if (mode === 'ai' && !draft[index].ai) {
         draft[index].ai = DEFAULT_MOUNT_CONFIG_AI_CONFIG
       }

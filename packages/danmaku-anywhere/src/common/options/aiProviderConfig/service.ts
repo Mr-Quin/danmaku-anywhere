@@ -7,6 +7,7 @@ import {
   OptionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import { invariant } from '@/common/utils/utils'
 import { BUILT_IN_AI_PROVIDER, BUILT_IN_AI_PROVIDER_ID } from './constant'
 import { type AiProviderConfig, zAiProviderConfig } from './schema'
 
@@ -38,6 +39,12 @@ export class AiProviderConfigService implements IStoreService {
     return configs.find((c) => c.id === id)
   }
 
+  async mustGet(id: string): Promise<AiProviderConfig> {
+    const config = await this.get(id)
+    invariant(config !== undefined, `Provider with id ${id} not found`)
+    return config
+  }
+
   async create(input: unknown) {
     const config = await zAiProviderConfig.parseAsync(input)
     const configs = await this.getAll()
@@ -48,16 +55,25 @@ export class AiProviderConfigService implements IStoreService {
   async update(id: string, partial: Partial<AiProviderConfig>) {
     const configs = await this.getAll()
     const index = configs.findIndex((c) => c.id === id)
-    if (index === -1) {
-      throw new Error(`Provider with id ${id} not found`)
-    }
+
+    invariant(index !== -1, `Provider with id ${id} not found`)
 
     if (id === BUILT_IN_AI_PROVIDER_ID) {
       return
     }
 
+    invariant(
+      partial.provider !== 'built-in',
+      'Cannot update built-in provider'
+    )
+    invariant(
+      partial.provider === configs[index].provider,
+      'Provider type cannot be changed'
+    )
+
     const newData = produce(configs, (draft) => {
-      draft[index] = { ...draft[index], ...partial, id } // Ensure ID doesn't change
+      // safe cast since we checked provider type above
+      draft[index] = { ...draft[index], ...partial, id } as AiProviderConfig
     })
     await this.options.set(newData)
   }

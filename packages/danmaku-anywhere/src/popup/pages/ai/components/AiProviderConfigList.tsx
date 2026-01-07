@@ -48,9 +48,7 @@ export const AiProviderConfigList = ({
       }}
       renderPrimary={renderItem}
       renderSecondary={(config) =>
-        config.provider === 'BuiltIn'
-          ? ''
-          : config.settings.baseUrl || 'OpenAI Default'
+        config.provider === 'built-in' ? '' : config.settings.baseUrl
       }
       renderSecondaryAction={(config) => (
         <>

@@ -1,5 +1,8 @@
 import { Logger } from '@/common/Logger'
-import type { MountConfig } from '@/common/options/mountConfig/schema'
+import {
+  DEFAULT_MOUNT_CONFIG_AI_CONFIG,
+  type MountConfig,
+} from '@/common/options/mountConfig/schema'
 import { queryClient } from '@/common/queries/queryClient'
 import { genAIQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -103,7 +106,7 @@ export class AiIntegrationObserver extends MediaObserver {
         queryFn: () =>
           chromeRpcClient.extractTitle({
             text: pageMeta,
-            options: this.config?.ai,
+            options: this.config?.ai ?? DEFAULT_MOUNT_CONFIG_AI_CONFIG,
           }),
       })
 
