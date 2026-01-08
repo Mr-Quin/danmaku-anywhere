@@ -16,6 +16,34 @@
     "technicalInfo": "Technical Information",
     "version": "Version"
   },
+  "ai": {
+    "addProvider": "Add Provider",
+    "apiKey": "API Key",
+    "baseUrl": "Base URL",
+    "baseUrlHelper": "e.g. https://api.openai.com/v1",
+    "configure": "Configure AI",
+    "delete": {
+      "message": "Are you sure you want to delete \"{{name}}\"?",
+      "title": "Delete Provider"
+    },
+    "editProvider": "Edit Provider",
+    "headers": "Headers",
+    "model": "Model",
+    "modelHelper": "e.g. gpt-5-nano",
+    "providerOptions": "Provider Options",
+    "providers": "AI Providers",
+    "providerType": {
+      "builtIn": "Built-in",
+      "openAICompatible": "OpenAI Compatible"
+    },
+    "providerTypeName": "Provider Type",
+    "queryParams": "Query Params",
+    "settings": "AI Settings",
+    "testConnection": "Test Connection",
+    "testConnectionFailed": "Connection failed: {{message}}",
+    "testConnectionInvalid": "Connection successful, but response format is invalid: {{message}}",
+    "testConnectionSuccess": "Connection successful"
+  },
   "anime": {
     "episodeTitle": "Episode Title",
     "matchingStrategy": {
@@ -31,6 +59,7 @@
   "common": {
     "acknowledge": "Ok",
     "add": "Add",
+    "advanced": "Advanced",
     "apply": "Apply",
     "autoSave": "Auto-save",
     "cancel": "Cancel",
@@ -40,8 +69,10 @@
     "confirmDeleteTitle": "Confirm delete",
     "copiedToClipboard": "Copied to clipboard",
     "copy": "Copy",
+    "created": "Created",
     "danmakuAnywhere": "Danmaku Anywhere",
     "delete": "Delete",
+    "deleted": "Deleted",
     "docs": "Documentation",
     "duration": {
       "day_one": "{{count}} day",
@@ -54,6 +85,7 @@
     "import": "Import",
     "itsEmpty": "There's nothing here...",
     "multiselect": "Multiselect",
+    "name": "Name",
     "next": "Next",
     "pip": "Picture-in-Picture",
     "regexShort": "Regex",
@@ -65,6 +97,7 @@
     "success": "Success",
     "test": "Test",
     "time": "Time",
+    "updated": "Updated",
     "viewDocs": "View Docs"
   },
   "configPage": {
@@ -89,6 +122,7 @@
       "name": "Name",
       "pattern": "Pattern",
       "step": {
+        "ai": "AI Configuration",
         "automation": "Automation",
         "basicInfo": "Basic Info"
       },
@@ -217,6 +251,15 @@
     "willImport_other": "Will import {{count}} files"
   },
   "integration": {
+    "ai": {
+      "cannotEditBuiltIn": "Settings for the built-in provider cannot be changed. To use custom prompts, change to another AI provider.",
+      "customPrompt": "Custom Instructions",
+      "customPromptHelper": "These instructions will be appended to the system prompt.",
+      "customPromptPlaceholder": "Add custom instruction",
+      "description": "AI extracts show information from the current page content.",
+      "provider": "AI Provider",
+      "systemPrompt": "System Prompt"
+    },
     "alert": {
       "aiDisabledTooPermissive": "AI is disabled because the match pattern is too permissive",
       "AIResult": "AI Parsing Result: {{title}}",
@@ -512,6 +555,7 @@
     "useCustomCss": "Use Custom CSS"
   },
   "tabs": {
+    "aiProviders": "AI Providers",
     "config": "Config",
     "danmaku": "Danmaku",
     "debug": "Debug",

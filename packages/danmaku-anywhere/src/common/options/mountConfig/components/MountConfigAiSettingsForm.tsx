@@ -52,7 +52,7 @@ export const MountConfigAiSettingsForm = ({
 
       <TextField
         value={selectedProviderId}
-        label={t('integration.ai.provider', 'AI Provider')}
+        label={t('ai.providerTypeName', 'Provider Type')}
         select
         onChange={(e) => {
           onChange({

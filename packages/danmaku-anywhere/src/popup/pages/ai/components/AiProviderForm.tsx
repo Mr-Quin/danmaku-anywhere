@@ -124,7 +124,7 @@ export const AiProviderForm = ({
             <FormSelect
               control={control}
               name="provider"
-              label={t('ai.providerType', 'Provider Type')}
+              label={t('ai.providerTypeName', 'Provider Type')}
               disabled={isBuiltIn || isEdit}
             >
               {AI_PROVIDER_LIST.filter((type) => type !== 'built-in').map(
@@ -156,7 +156,7 @@ export const AiProviderForm = ({
               name="settings.model"
               required
               label={t('ai.model', 'Model')}
-              helperText={t('ai.modelHelper', 'e.g. gpt-4, gpt-3.5-turbo')}
+              helperText={t('ai.modelHelper', 'e.g. gpt-5-nano')}
             />
 
             <OutlineAccordion elevation={0} disableGutters>
