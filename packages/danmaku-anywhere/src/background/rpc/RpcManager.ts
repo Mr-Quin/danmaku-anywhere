@@ -235,8 +235,11 @@ export class RpcManager {
         mountConfigCreate: async (data) => {
           return this.mountConfigService.create(data)
         },
-        extractTitle: async (input) => {
-          return this.aiService.extractTitle(input)
+        extractTitle: async ({ text, options }) => {
+          return this.aiService.extractTitle(text, options)
+        },
+        testAiProvider: async (config) => {
+          return this.aiService.testConnection(config)
         },
         getFontList: async () => {
           return chrome.fontSettings.getFontList()

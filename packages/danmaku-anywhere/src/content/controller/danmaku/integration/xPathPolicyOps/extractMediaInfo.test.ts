@@ -38,11 +38,11 @@ function mockPolicy(
 ): IntegrationPolicy {
   return {
     options: {
-      titleOnly: false,
-      useAI: false,
+      useAI: true,
       dandanplay: {
         useMatchApi: false,
       },
+      titleOnly: true,
     },
     title: { regex: [], selector: [] }, // regex now array
     season: { regex: [], selector: [] },

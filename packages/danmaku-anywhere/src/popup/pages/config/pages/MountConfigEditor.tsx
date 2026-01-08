@@ -1,11 +1,16 @@
 import { Box, Button, Divider, Step, StepButton, Stepper } from '@mui/material'
 import type { ReactElement } from 'react'
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Suspense, useEffect, useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { MountConfigAiSettingsForm } from '@/common/options/mountConfig/components/MountConfigAiSettingsForm'
 import { isPatternPermissive } from '@/common/options/mountConfig/isPermissive'
-import type { MountConfigInput } from '@/common/options/mountConfig/schema'
+import {
+  DEFAULT_MOUNT_CONFIG_AI_CONFIG,
+  type MountConfigInput,
+} from '@/common/options/mountConfig/schema'
 import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
@@ -22,6 +27,7 @@ const toForm = (config: MountConfigInput): MountConfigForm => {
     patterns: config.patterns.map((value) => ({ value })),
     integration: config.integration ?? EMPTY_INTEGRATION_VALUE,
     mode: config.mode ?? 'manual',
+    ai: config.ai ?? DEFAULT_MOUNT_CONFIG_AI_CONFIG,
   }
 }
 
@@ -141,6 +147,21 @@ export const MountConfigEditor = ({
     })
   }
 
+  const automationMode = watch('mode')
+  const isAiMode = automationMode === 'ai'
+
+  const handleSmartNext = async () => {
+    if (activeStep === 0) {
+      handleNext()
+    } else if (activeStep === 1) {
+      if (isAiMode) {
+        setActiveStep(2)
+      } else {
+        await handleSubmit(handleSave)()
+      }
+    }
+  }
+
   return (
     <OptionsPageLayout direction="up">
       <OptionsPageToolBar
@@ -164,6 +185,13 @@ export const MountConfigEditor = ({
               {t('configPage.editor.step.automation', 'Automation')}
             </StepButton>
           </Step>
+          {isAiMode && (
+            <Step>
+              <StepButton onClick={() => handleStep(2)}>
+                {t('configPage.editor.step.ai', 'AI Configuration')}
+              </StepButton>
+            </Step>
+          )}
         </Stepper>
         <Divider sx={{ my: 1 }} />
 
@@ -194,6 +222,32 @@ export const MountConfigEditor = ({
                 control={control}
                 watch={watch}
                 isPermissive={isPermissive}
+              />
+              <Button
+                variant="contained"
+                onClick={handleSmartNext}
+                loading={isSubmitting}
+                fullWidth
+                sx={{ mt: 2 }}
+                disabled={!isValid}
+              >
+                {isAiMode ? t('common.next', 'Next') : t('common.save', 'Save')}
+              </Button>
+            </>
+          )}
+          {activeStep === 2 && isAiMode && (
+            <>
+              <Controller
+                control={control}
+                name="ai"
+                render={({ field }) => (
+                  <Suspense fallback={<FullPageSpinner />}>
+                    <MountConfigAiSettingsForm
+                      config={field.value}
+                      onChange={field.onChange}
+                    />
+                  </Suspense>
+                )}
               />
               <Button
                 variant="contained"

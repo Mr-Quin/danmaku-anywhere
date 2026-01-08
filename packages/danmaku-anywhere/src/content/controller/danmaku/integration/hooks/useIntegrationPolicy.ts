@@ -69,7 +69,7 @@ export const useIntegrationPolicy = () => {
     }
 
     const newObserver = ObserverFactory.create(
-      activeConfig.mode,
+      activeConfig,
       integrationPolicy?.policy ?? null
     )
     Logger.debug('Created integration observer', newObserver.name)

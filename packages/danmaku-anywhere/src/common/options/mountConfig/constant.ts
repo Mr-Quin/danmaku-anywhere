@@ -2,6 +2,7 @@ import type {
   MountConfig,
   MountConfigInput,
 } from '@/common/options/mountConfig/schema'
+import { BUILT_IN_AI_PROVIDER_ID } from '../aiProviderConfig/constant'
 
 export const createMountConfig = (
   config: Partial<MountConfigInput> = {}
@@ -13,6 +14,9 @@ export const createMountConfig = (
     name: '',
     mode: 'manual',
     integration: undefined,
+    ai: {
+      providerId: BUILT_IN_AI_PROVIDER_ID,
+    },
     ...config,
   }
 }

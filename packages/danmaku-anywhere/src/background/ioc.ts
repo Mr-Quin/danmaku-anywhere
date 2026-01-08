@@ -1,6 +1,7 @@
 import 'reflect-metadata'
 import { Container } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import { AiProviderConfigService } from '@/common/options/aiProviderConfig/service'
 import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { StoreServiceSymbol } from '@/common/options/IStoreService'
@@ -27,6 +28,7 @@ container.bind(StoreServiceSymbol).toService(DanmakuOptionsService)
 container.bind(StoreServiceSymbol).toService(IntegrationPolicyService)
 container.bind(StoreServiceSymbol).toService(MountConfigService)
 container.bind(StoreServiceSymbol).toService(ProviderConfigService)
+container.bind(StoreServiceSymbol).toService(AiProviderConfigService)
 
 // factory
 container

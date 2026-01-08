@@ -37,7 +37,11 @@ import type {
   MacCMSFetchData,
 } from '@/common/danmaku/dto'
 import type { LogEntry } from '@/common/Logger'
-import type { MountConfig } from '@/common/options/mountConfig/schema'
+import type { AiProviderConfigInput } from '@/common/options/aiProviderConfig/schema'
+import type {
+  MountConfig,
+  MountConfigAiConfig,
+} from '@/common/options/mountConfig/schema'
 import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
 import type { RPCDef } from '../../rpc/types'
 
@@ -54,6 +58,19 @@ type IconSetDto =
     }
   | {
       state: 'unavailable'
+    }
+
+export type TestAiProviderResponse =
+  | {
+      state: 'success'
+    }
+  | {
+      state: 'invalid'
+      message: string
+    }
+  | {
+      state: 'error'
+      message: string
     }
 
 export type BackgroundMethods = {
@@ -100,11 +117,18 @@ export type BackgroundMethods = {
   genericVodSearch: RPCDef<GenericVodSearchData, CustomSeason[]>
   genericFetchDanmakuForUrl: RPCDef<MacCMSFetchData, CustomEpisode>
   setHeaders: RPCDef<SetHeaderRule, void>
-  extractTitle: RPCDef<string, ExtractTitleResponse['result']>
+  extractTitle: RPCDef<
+    {
+      text: string
+      options: MountConfigAiConfig
+    },
+    ExtractTitleResponse['result']
+  >
   openPopupInNewWindow: RPCDef<string, void>
   getConfigMacCms: RPCDef<{ force?: boolean } | void, BaseUrlConfig>
   getConfigDanmuIcu: RPCDef<{ force?: boolean } | void, BaseUrlConfig>
   providerConfigDelete: RPCDef<string, void>
+  testAiProvider: RPCDef<AiProviderConfigInput, TestAiProviderResponse>
 }
 
 type InputWithFrameId<TInput> = TInput extends void

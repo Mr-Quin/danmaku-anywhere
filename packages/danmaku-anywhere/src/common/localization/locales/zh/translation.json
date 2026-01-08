@@ -16,6 +16,34 @@
     "technicalInfo": "技术信息",
     "version": "版本"
   },
+  "ai": {
+    "addProvider": "添加AI源",
+    "apiKey": "API密钥",
+    "baseUrl": "Base URL",
+    "baseUrlHelper": "例如：https://api.openai.com/v1",
+    "configure": "配置",
+    "delete": {
+      "message": "确定要删除 \"{{name}}\" 吗？",
+      "title": "确认删除"
+    },
+    "editProvider": "编辑AI源",
+    "headers": "请求头",
+    "model": "模型",
+    "modelHelper": "例如：gpt-5-nano",
+    "providerOptions": "供应商选项",
+    "providers": "AI源",
+    "providerType": {
+      "builtIn": "内置",
+      "openAICompatible": "OpenAI 兼容"
+    },
+    "providerTypeName": "类型",
+    "queryParams": "查询参数",
+    "settings": "设置",
+    "testConnection": "测试连接",
+    "testConnectionFailed": "测试连接失败：{{message}}",
+    "testConnectionInvalid": "测试连接无效：{{message}}",
+    "testConnectionSuccess": "测试连接成功"
+  },
   "anime": {
     "episodeTitle": "集标题",
     "matchingStrategy": {
@@ -31,6 +59,7 @@
   "common": {
     "acknowledge": "知道了",
     "add": "添加",
+    "advanced": "高级",
     "apply": "应用",
     "autoSave": "自动保存",
     "cancel": "取消",
@@ -40,8 +69,10 @@
     "confirmDeleteTitle": "确认删除",
     "copiedToClipboard": "已复制到剪贴板",
     "copy": "复制",
+    "created": "已创建",
     "danmakuAnywhere": "弹幕任何地方",
     "delete": "删除",
+    "deleted": "已删除",
     "docs": "文档",
     "duration": {
       "day_other": "天"
@@ -52,7 +83,9 @@
     "filter": "过滤",
     "import": "导入",
     "itsEmpty": "这里什么都没有...",
+    "key": "键",
     "multiselect": "多选",
+    "name": "名称",
     "next": "下一步",
     "pip": "画中画",
     "regexShort": "正则",
@@ -64,6 +97,9 @@
     "success": "成功",
     "test": "测试",
     "time": "时间",
+    "updated": "已更新",
+    "value": "值",
+    "valueJson": "JSON值",
     "viewDocs": "查看文档"
   },
   "configPage": {
@@ -88,6 +124,7 @@
       "name": "名称",
       "pattern": "模式",
       "step": {
+        "ai": "编辑AI",
         "automation": "自动化",
         "basicInfo": "基本信息"
       },
@@ -208,6 +245,14 @@
     "willImport_other": "将导入{{count}}个文件"
   },
   "integration": {
+    "ai": {
+      "cannotEditBuiltIn": "内置AI源不可编辑。要使用自定义提示词，请添加并切换至别的AI源",
+      "customPrompt": "自定义提示词",
+      "customPromptHelper": "自定义提示词将添加到系统提示词后面",
+      "customPromptPlaceholder": "添加自定义提示词",
+      "description": "AI使用页面中的内容来解析视频信息",
+      "systemPrompt": "系统提示词"
+    },
     "alert": {
       "aiDisabledTooPermissive": "AI已禁用：匹配模式过于宽松",
       "AIResult": "AI解析结果：{{title}}",
@@ -498,6 +543,7 @@
     "useCustomCss": "使用自定义 CSS"
   },
   "tabs": {
+    "aiProviders": "AI源",
     "config": "装填配置",
     "danmaku": "弹幕列表",
     "debug": "调试",

@@ -6,8 +6,14 @@ import {
   createMountConfig,
   defaultMountConfig,
 } from '@/common/options/mountConfig/constant'
-import type { MountConfig } from '@/common/options/mountConfig/schema'
-import { mountConfigInputSchema } from '@/common/options/mountConfig/schema'
+import type {
+  AutomationMode,
+  MountConfig,
+} from '@/common/options/mountConfig/schema'
+import {
+  DEFAULT_MOUNT_CONFIG_AI_CONFIG,
+  mountConfigInputSchema,
+} from '@/common/options/mountConfig/schema'
 import {
   type IOptionsServiceFactory,
   OptionsServiceFactory,
@@ -15,6 +21,7 @@ import {
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import type { PrevOptions } from '@/common/options/OptionsService/types'
 import { getRandomUUID } from '@/common/utils/utils'
+import { BUILT_IN_AI_PROVIDER_ID } from '../aiProviderConfig/constant'
 import { migrateMountConfigV4V5 } from './migrations/migrateMountConfigV4V5'
 
 @injectable('Singleton')
@@ -68,7 +75,19 @@ export class MountConfigService implements IStoreService {
           ),
       })
       .version(5, {
+        // Add automation mode, either manual, xpath, or ai
         upgrade: (data, context) => migrateMountConfigV4V5(data, context),
+      })
+      .version(6, {
+        // add ai config
+        upgrade: (data) => {
+          return data.map((config: PrevOptions) => ({
+            ...config,
+            ai: {
+              providerId: BUILT_IN_AI_PROVIDER_ID,
+            },
+          }))
+        },
       })
   }
 
@@ -124,6 +143,26 @@ export class MountConfigService implements IStoreService {
     await this.options.set(newConfigs)
 
     return newConfig
+  }
+
+  async changeMode(id: string, mode: AutomationMode) {
+    const configs = await this.options.get()
+
+    const index = configs.findIndex((item) => item.id === id)
+
+    if (index === -1) {
+      throw new Error(`Config not found: "${id}" when changing mode`)
+    }
+
+    const newData = produce(configs, (draft) => {
+      draft[index].mode = mode
+      // add default ai config if no ai config exists
+      if (mode === 'ai' && !draft[index].ai) {
+        draft[index].ai = DEFAULT_MOUNT_CONFIG_AI_CONFIG
+      }
+    })
+
+    await this.options.set(newData)
   }
 
   async delete(id: string) {
