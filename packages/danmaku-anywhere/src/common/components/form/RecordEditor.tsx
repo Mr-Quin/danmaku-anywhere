@@ -132,11 +132,23 @@ export const RecordEditor = ({
                 size="small"
                 multiline={valueType === 'json'}
                 minRows={valueType === 'json' ? 1 : undefined}
+                maxRows={3}
                 error={!!fieldState.error}
                 helperText={fieldState.error?.message}
                 fullWidth
               />
             )}
+            rules={{
+              validate: (value) => {
+                if (valueType !== 'json') return true
+                try {
+                  JSON.parse(value || 'null')
+                  return true
+                } catch {
+                  return 'Invalid JSON'
+                }
+              },
+            }}
           />
         </Stack>
       ))}

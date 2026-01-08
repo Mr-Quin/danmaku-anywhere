@@ -1,8 +1,9 @@
 import { AddCircle } from '@mui/icons-material'
-import { Box, IconButton } from '@mui/material'
+import { IconButton, Stack } from '@mui/material'
 import { type ReactElement, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
+import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useToast } from '@/common/components/Toast/toastStore'
@@ -100,21 +101,23 @@ export const AiProvidersPage = (): ReactElement => {
   if (mode && editingProvider) {
     return (
       <OptionsPageLayout>
-        <OptionsPageToolBar
-          title={
-            mode === 'add'
-              ? t('ai.addProvider', 'Add Provider')
-              : t('ai.editProvider', 'Edit Provider')
-          }
-          onGoBack={handleCloseEditor}
-        />
-        <Box p={2}>
-          <AiProviderForm
-            provider={editingProvider}
-            onSubmit={handleSave}
-            isEdit={mode === 'edit'}
+        <Stack direction="column" height={1}>
+          <OptionsPageToolBar
+            title={
+              mode === 'add'
+                ? t('ai.addProvider', 'Add Provider')
+                : t('ai.editProvider', 'Edit Provider')
+            }
+            onGoBack={handleCloseEditor}
           />
-        </Box>
+          <ScrollBox p={2} overflow="auto">
+            <AiProviderForm
+              provider={editingProvider}
+              onSubmit={handleSave}
+              isEdit={mode === 'edit'}
+            />
+          </ScrollBox>
+        </Stack>
       </OptionsPageLayout>
     )
   }

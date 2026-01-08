@@ -176,8 +176,8 @@ export const AiProviderForm = ({
                         <RecordEditor
                           value={field.value}
                           onChange={field.onChange}
-                          keyLabel="Key"
-                          valueLabel="Value"
+                          keyLabel={t('common.key', 'Key')}
+                          valueLabel={t('common.value', 'Value')}
                           addButtonLabel={t('common.add', 'Add')}
                         />
                       )}
@@ -195,8 +195,8 @@ export const AiProviderForm = ({
                         <RecordEditor
                           value={field.value}
                           onChange={field.onChange}
-                          keyLabel="Header"
-                          valueLabel="Value"
+                          keyLabel={t('common.key', 'Key')}
+                          valueLabel={t('common.value', 'Value')}
                           addButtonLabel={t('common.add', 'Add')}
                         />
                       )}
@@ -214,8 +214,8 @@ export const AiProviderForm = ({
                         <RecordEditor
                           value={field.value}
                           onChange={field.onChange}
-                          keyLabel="Option"
-                          valueLabel="Value (JSON)"
+                          keyLabel={t('common.key', 'Key')}
+                          valueLabel={t('common.valueJson', 'Value (JSON)')}
                           addButtonLabel={t('common.add', 'Add')}
                           valueType="json"
                         />

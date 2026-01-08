@@ -83,6 +83,7 @@
     "filter": "过滤",
     "import": "导入",
     "itsEmpty": "这里什么都没有...",
+    "key": "键",
     "multiselect": "多选",
     "name": "名称",
     "next": "下一步",
@@ -97,6 +98,8 @@
     "test": "测试",
     "time": "时间",
     "updated": "已更新",
+    "value": "值",
+    "valueJson": "JSON值",
     "viewDocs": "查看文档"
   },
   "configPage": {
@@ -248,7 +251,6 @@
       "customPromptHelper": "自定义提示词将添加到系统提示词后面",
       "customPromptPlaceholder": "添加自定义提示词",
       "description": "AI使用页面中的内容来解析视频信息",
-      "provider": "AI源",
       "systemPrompt": "系统提示词"
     },
     "alert": {

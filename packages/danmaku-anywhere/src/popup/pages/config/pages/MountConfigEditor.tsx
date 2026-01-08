@@ -7,7 +7,10 @@ import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { MountConfigAiSettingsForm } from '@/common/options/mountConfig/components/MountConfigAiSettingsForm'
 import { isPatternPermissive } from '@/common/options/mountConfig/isPermissive'
-import type { MountConfigInput } from '@/common/options/mountConfig/schema'
+import {
+  DEFAULT_MOUNT_CONFIG_AI_CONFIG,
+  type MountConfigInput,
+} from '@/common/options/mountConfig/schema'
 import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
@@ -24,7 +27,7 @@ const toForm = (config: MountConfigInput): MountConfigForm => {
     patterns: config.patterns.map((value) => ({ value })),
     integration: config.integration ?? EMPTY_INTEGRATION_VALUE,
     mode: config.mode ?? 'manual',
-    ai: config.ai ?? { providerId: 'built-in' },
+    ai: config.ai ?? DEFAULT_MOUNT_CONFIG_AI_CONFIG,
   }
 }
 

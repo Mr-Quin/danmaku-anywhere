@@ -84,6 +84,7 @@
     "filter": "Filter",
     "import": "Import",
     "itsEmpty": "There's nothing here...",
+    "key": "Key",
     "multiselect": "Multiselect",
     "name": "Name",
     "next": "Next",
@@ -98,6 +99,8 @@
     "test": "Test",
     "time": "Time",
     "updated": "Updated",
+    "value": "Value",
+    "valueJson": "Value (JSON)",
     "viewDocs": "View Docs"
   },
   "configPage": {
@@ -257,7 +260,6 @@
       "customPromptHelper": "These instructions will be appended to the system prompt.",
       "customPromptPlaceholder": "Add custom instruction",
       "description": "AI extracts show information from the current page content.",
-      "provider": "AI Provider",
       "systemPrompt": "System Prompt"
     },
     "alert": {
