@@ -87,7 +87,6 @@ export class GenAIService {
             .describe('Episode number'),
         }),
       }),
-      // @ts-expect-error providerOptions is a valid json but we don't have type for it
       providerOptions: providerConfig.settings.providerOptions,
     })
 
@@ -129,8 +128,11 @@ export class GenAIService {
               .describe('Whether the connection is successful'),
           }),
         }),
-        // @ts-expect-error providerOptions is a valid json but we don't have type for it
-        providerOptions: config.settings.providerOptions,
+        providerOptions: Object.fromEntries(
+          Object.entries(config.settings.providerOptions || {}).map(
+            ([key, value]) => [key, JSON.parse(value)]
+          )
+        ),
       })
     })
 

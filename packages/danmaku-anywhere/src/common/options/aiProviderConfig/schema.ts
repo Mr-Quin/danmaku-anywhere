@@ -29,19 +29,22 @@ const zAiProviderOpenaiCompatible = zAiProviderBaseConfig.extend({
     // values should be valid JSON
     providerOptions: z
       .record(
-        z.string().refine(
-          (value) => {
-            try {
-              JSON.parse(value)
-              return true
-            } catch {
-              return false
+        z
+          .string()
+          .refine(
+            (value) => {
+              try {
+                JSON.parse(value)
+                return true
+              } catch {
+                return false
+              }
+            },
+            {
+              message: 'Invalid JSON',
             }
-          },
-          {
-            message: 'Invalid JSON',
-          }
-        )
+          )
+          .transform((value) => JSON.parse(value))
       )
       .optional(),
   }),
