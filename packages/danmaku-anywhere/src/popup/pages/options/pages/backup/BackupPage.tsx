@@ -14,7 +14,9 @@ import { useMutation } from '@tanstack/react-query'
 import { type ChangeEvent, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { BackupData, BackupRestoreResult } from '@/common/backup/dto'
-import { backgroundClient } from '@/common/rpcClient/background/client'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
+import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 
 const HiddenInput = styled('input')({
   display: 'none',
@@ -26,7 +28,7 @@ export function BackupPage() {
 
   const exportMutation = useMutation({
     mutationFn: async () => {
-      return await backgroundClient.backupExport()
+      return await chromeRpcClient.backupExport()
     },
     onSuccess: (data) => {
       const blob = new Blob([JSON.stringify(data, null, 2)], {
@@ -45,7 +47,7 @@ export function BackupPage() {
 
   const importMutation = useMutation({
     mutationFn: async (data: BackupData) => {
-      return await backgroundClient.backupImport(data)
+      return await chromeRpcClient.backupImport(data)
     },
   })
 
@@ -103,63 +105,64 @@ export function BackupPage() {
   }
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="h5" gutterBottom>
-        {t('Backup & Restore')}
-      </Typography>
+    <OptionsPageLayout>
+      <OptionsPageToolBar
+        title={t('optionsPage.pages.backup', 'Backup & Restore')}
+      />
+      <Box sx={{ p: 2 }}>
+        <Paper sx={{ p: 2, mb: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            {t('Export')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" paragraph>
+            {t('Export all settings to a JSON file.')}
+          </Typography>
+          <Button
+            variant="contained"
+            onClick={() => exportMutation.mutate()}
+            disabled={exportMutation.isPending}
+          >
+            {exportMutation.isPending ? (
+              <CircularProgress size={24} />
+            ) : (
+              t('Export Backup')
+            )}
+          </Button>
+        </Paper>
 
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          {t('Export')}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" paragraph>
-          {t('Export all settings to a JSON file.')}
-        </Typography>
-        <Button
-          variant="contained"
-          onClick={() => exportMutation.mutate()}
-          disabled={exportMutation.isPending}
-        >
-          {exportMutation.isPending ? (
-            <CircularProgress size={24} />
-          ) : (
-            t('Export Backup')
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            {t('Import')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" paragraph>
+            {t('Restore settings from a JSON file.')}
+          </Typography>
+          <Button
+            variant="outlined"
+            onClick={handleImportClick}
+            disabled={importMutation.isPending}
+          >
+            {importMutation.isPending ? (
+              <CircularProgress size={24} />
+            ) : (
+              t('Import Backup')
+            )}
+          </Button>
+          <HiddenInput
+            type="file"
+            ref={fileInputRef}
+            accept=".json"
+            onChange={handleFileChange}
+          />
+
+          {importMutation.isSuccess && renderImportResult(importMutation.data)}
+          {importMutation.isError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {t('Import failed')}: {importMutation.error.message}
+            </Alert>
           )}
-        </Button>
-      </Paper>
-
-      <Paper sx={{ p: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          {t('Import')}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" paragraph>
-          {t('Restore settings from a JSON file.')}
-        </Typography>
-        <Button
-          variant="outlined"
-          onClick={handleImportClick}
-          disabled={importMutation.isPending}
-        >
-          {importMutation.isPending ? (
-            <CircularProgress size={24} />
-          ) : (
-            t('Import Backup')
-          )}
-        </Button>
-        <HiddenInput
-          type="file"
-          ref={fileInputRef}
-          accept=".json"
-          onChange={handleFileChange}
-        />
-
-        {importMutation.isSuccess && renderImportResult(importMutation.data)}
-        {importMutation.isError && (
-          <Alert severity="error" sx={{ mt: 2 }}>
-            {t('Import failed')}: {importMutation.error.message}
-          </Alert>
-        )}
-      </Paper>
-    </Box>
+        </Paper>
+      </Box>
+    </OptionsPageLayout>
   )
 }
