@@ -77,6 +77,13 @@ export const useIntegrationPolicy = () => {
     activate()
 
     newObserver.on({
+      statusChange: (status: string) => {
+        if (status === 'Extracting video info using AI...') {
+          toast.info(
+            t('integration.alert.usingAI', 'Using AI to parse show information')
+          )
+        }
+      },
       mediaChange: (state: MediaInfo) => {
         getTrackingService().track('integrationPolicyMediaChange', {
           mediaInfo: state.toJSON(),
@@ -158,12 +165,6 @@ export const useIntegrationPolicy = () => {
         setErrorMessage(error.message)
       },
     })
-
-    if (activeConfig.mode === 'ai') {
-      toast.info(
-        t('integration.alert.usingAI', 'Using AI to parse show information')
-      )
-    }
 
     newObserver.setup()
     setObserver(newObserver)

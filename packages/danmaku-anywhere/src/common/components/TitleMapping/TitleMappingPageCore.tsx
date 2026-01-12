@@ -29,12 +29,10 @@ export const TitleMappingPageCore = ({
     }
   }
 
-  // Ensure current selected mapping is still valid (in case it was deleted)
   const activeMapping = selectedMapping
     ? mappings.find((m) => m.key === selectedMapping.key) || null
     : null
 
-  // If selected mapping was deleted, switch back to list
   if (selectedMapping && !activeMapping) {
     setTimeout(() => setSelectedMapping(null), 0)
   }

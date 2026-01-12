@@ -22,6 +22,7 @@ import type {
   GenericVodSearchData,
   MatchEpisodeInput,
   MatchEpisodeResult,
+  SeasonGetAllRequest,
   SeasonQueryFilter,
   SeasonSearchRequest,
 } from '@/common/anime/dto'
@@ -78,7 +79,7 @@ export type BackgroundMethods = {
   mediaParseUrl: RPCDef<{ url: string }, WithSeason<EpisodeMeta>>
   seasonSearch: RPCDef<SeasonSearchRequest, (Season | CustomSeason)[]>
   seasonFilter: RPCDef<SeasonQueryFilter, Season[]>
-  seasonGetAll: RPCDef<void, Season[]>
+  seasonGetAll: RPCDef<SeasonGetAllRequest, Season[]>
   seasonDelete: RPCDef<SeasonQueryFilter, void>
   seasonRefresh: RPCDef<SeasonQueryFilter, void>
   episodeFetchBySeason: RPCDef<

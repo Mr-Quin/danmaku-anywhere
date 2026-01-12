@@ -1,6 +1,6 @@
 import type { Season, SeasonInsert } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
-import type { SeasonQueryFilter } from '@/common/anime/dto'
+import type { SeasonGetAllRequest, SeasonQueryFilter } from '@/common/anime/dto'
 import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
 import { isProvider } from '@/common/danmaku/utils'
 import { DanmakuAnywhereDb } from '@/common/db/db'
@@ -75,7 +75,7 @@ export class SeasonService {
     return season as Extract<Season, { provider: T }>
   }
 
-  async getAll() {
+  async getAll(options: SeasonGetAllRequest) {
     const seasons: Season[] = []
 
     await this.db.transaction(
@@ -89,7 +89,7 @@ export class SeasonService {
           const episodeCount = await this.db.episode
             .where({ seasonId: season.id })
             .count()
-          if (episodeCount > 0) {
+          if (episodeCount > 0 || options.includeEmpty) {
             seasons.push({
               ...season,
               localEpisodeCount: episodeCount,

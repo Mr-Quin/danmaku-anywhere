@@ -28,7 +28,7 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
   const { configs } = useProviderConfig()
   const mutations = useSeasonMapMutations()
 
-  const { data: allSeasons } = useGetAllSeasonsSuspense()
+  const { data: allSeasons } = useGetAllSeasonsSuspense({ includeEmpty: true })
 
   const handleChange = async (
     providerConfigId: string,
@@ -49,6 +49,10 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
       const existing = grouped.get(season.providerConfigId) ?? []
       existing.push(season)
       grouped.set(season.providerConfigId, existing)
+    }
+    // sort by title
+    for (const seasons of grouped.values()) {
+      seasons.sort((a, b) => a.title.localeCompare(b.title))
     }
     return grouped
   }, [allSeasons])
@@ -72,7 +76,8 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
 
             <Autocomplete<Season>
               options={options}
-              getOptionLabel={(option) => option.title}
+              getOptionLabel={(option) => `${option.title} (${option.year})`}
+              getOptionKey={(option) => option.id}
               value={selectedSeason}
               onChange={(_, newValue) => handleChange(config.id, newValue)}
               renderInput={(params) => (
@@ -94,6 +99,13 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
                 'titleMapping.noSeasons',
                 'No options for the selected provider'
               )}
+              slotProps={{
+                popper: {
+                  sx: {
+                    zIndex: 1403,
+                  },
+                },
+              }}
             />
           </Fragment>
         )

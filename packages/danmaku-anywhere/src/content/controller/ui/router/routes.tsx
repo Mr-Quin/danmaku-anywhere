@@ -1,4 +1,3 @@
-import { TitleMappingPage } from '@/common/components/TitleMapping/TitleMappingPage'
 import { i18n } from '@/common/localization/i18n'
 import { PopupTab } from '@/content/controller/store/popupStore'
 import { CommentsPage } from '@/content/controller/ui/floatingPanel/pages/CommentsPage'
@@ -9,6 +8,7 @@ import { SelectorPage } from '@/content/controller/ui/floatingPanel/pages/Select
 import { StylesPage } from '@/content/controller/ui/floatingPanel/pages/StylesPage'
 import { SearchPage } from '@/content/controller/ui/floatingPanel/pages/search/SearchPage'
 import { FilterPage } from '../floatingPanel/pages/FilterPage'
+import { TitleMappingPage } from '../floatingPanel/pages/titleMapping/TitleMappingPage'
 
 export const routes = [
   {

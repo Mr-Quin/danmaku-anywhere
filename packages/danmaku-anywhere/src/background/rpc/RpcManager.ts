@@ -126,8 +126,8 @@ export class RpcManager {
           const result = await this.danmakuService.filterLite(filter)
           return result || null
         },
-        seasonGetAll: async () => {
-          const result = await this.seasonService.getAll()
+        seasonGetAll: async (data) => {
+          const result = await this.seasonService.getAll(data)
           return result
         },
         seasonFilter: async (data) => {

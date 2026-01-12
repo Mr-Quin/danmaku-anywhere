@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router'
+import { TitleMappingPageCore } from '@/common/components/TitleMapping/TitleMappingPageCore'
 import { useGoBack } from '@/popup/hooks/useGoBack'
-import { TitleMappingPageCore } from './TitleMappingPageCore'
 
 export const TitleMappingPage = () => {
   const goBack = useGoBack()
