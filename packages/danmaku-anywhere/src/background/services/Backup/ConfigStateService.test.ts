@@ -29,7 +29,8 @@ describe('ConfigStateService', () => {
   let mockIntegrationPolicyService: any
   let mockLogger: any
 
-  const createMockOptionService = () => ({
+  const createMockOptionService = (name: string) => ({
+    name,
     options: {
       get: vi.fn(),
       getVersion: vi.fn(),
@@ -39,11 +40,11 @@ describe('ConfigStateService', () => {
   })
 
   beforeEach(() => {
-    mockDanmakuOptionsService = createMockOptionService()
-    mockExtensionOptionsService = createMockOptionService()
-    mockMountConfigService = createMockOptionService()
-    mockProviderConfigService = createMockOptionService()
-    mockIntegrationPolicyService = createMockOptionService()
+    mockDanmakuOptionsService = createMockOptionService('danmakuOptions')
+    mockExtensionOptionsService = createMockOptionService('extensionOptions')
+    mockMountConfigService = createMockOptionService('mountConfig')
+    mockProviderConfigService = createMockOptionService('providerConfig')
+    mockIntegrationPolicyService = createMockOptionService('integrationPolicy')
 
     mockLogger = {
       sub: vi.fn().mockReturnThis(),
@@ -54,11 +55,13 @@ describe('ConfigStateService', () => {
     } as unknown as ILogger
 
     service = new ConfigStateService(
-      mockDanmakuOptionsService,
-      mockExtensionOptionsService,
-      mockMountConfigService,
-      mockProviderConfigService,
-      mockIntegrationPolicyService,
+      [
+        mockDanmakuOptionsService,
+        mockExtensionOptionsService,
+        mockMountConfigService,
+        mockProviderConfigService,
+        mockIntegrationPolicyService,
+      ],
       mockLogger
     )
   })

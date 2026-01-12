@@ -14,6 +14,7 @@ import type { OptionsService } from '@/common/options/OptionsService/OptionsServ
 
 @injectable('Singleton')
 export class IntegrationPolicyService implements IStoreService {
+  public readonly name = 'integrationPolicy'
   public readonly options: OptionsService<Integration[]>
 
   constructor(

@@ -18,6 +18,7 @@ import { ProviderConfigService } from '../providerConfig/service'
 
 @injectable('Singleton')
 export class ExtensionOptionsService implements IStoreService {
+  public readonly name = 'extensionOptions'
   public readonly options: OptionsService<ExtensionOptions>
 
   constructor(

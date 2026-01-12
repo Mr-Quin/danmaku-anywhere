@@ -30,7 +30,7 @@ export function BackupPage() {
     mutationFn: async () => {
       return await chromeRpcClient.backupExport()
     },
-    onSuccess: (data) => {
+    onSuccess: ({ data }) => {
       const blob = new Blob([JSON.stringify(data, null, 2)], {
         type: 'application/json',
       })
@@ -155,7 +155,9 @@ export function BackupPage() {
             onChange={handleFileChange}
           />
 
-          {importMutation.isSuccess && renderImportResult(importMutation.data)}
+          {importMutation.isSuccess &&
+            importMutation.data &&
+            renderImportResult(importMutation.data)}
           {importMutation.isError && (
             <Alert severity="error" sx={{ mt: 2 }}>
               {t('Import failed')}: {importMutation.error.message}

@@ -8,21 +8,16 @@ export interface BackupData {
     version: number
     timestamp: number
   }
-  services: {
-    danmakuOptions?: ServiceBackupData<unknown>
-    extensionOptions?: ServiceBackupData<unknown>
-    mountConfig?: ServiceBackupData<unknown>
-    providerConfig?: ServiceBackupData<unknown>
-    integrationPolicy?: ServiceBackupData<unknown>
-  }
+  services: Record<string, ServiceBackupData<unknown>>
 }
 
 export interface BackupRestoreResult {
   success: boolean
-  details: {
-    [key in keyof BackupData['services']]?: {
+  details: Record<
+    string,
+    {
       success: boolean
       error?: string
     }
-  }
+  >
 }
