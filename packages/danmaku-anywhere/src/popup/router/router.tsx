@@ -1,5 +1,5 @@
 import { createHashRouter, Navigate } from 'react-router'
-
+import { TitleMappingPage } from '@/common/components/TitleMapping/TitleMappingPage'
 import { ImportConfigPage } from '@/popup/pages/config/pages/import/ImportConfigPage'
 import { FilterPage } from '@/popup/pages/filterPage/FilterPage'
 import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
@@ -86,6 +86,10 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
       {
         path: 'ai-providers',
         Component: AiProvidersPage,
+      },
+      {
+        path: 'title-mapping',
+        Component: TitleMappingPage,
       },
       {
         path: 'danmaku',

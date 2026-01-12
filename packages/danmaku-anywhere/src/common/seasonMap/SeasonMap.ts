@@ -130,4 +130,32 @@ export class SeasonMap {
   isEmpty() {
     return this.seasonsByConfig.size === 0
   }
+
+  withoutProvider(providerConfigId: string) {
+    const seasons = new Map(this.seasonsByConfig)
+    const seasonId = seasons.get(providerConfigId)
+    seasons.delete(providerConfigId)
+
+    const ids = new Set(this.seasonIdSet)
+    // We only remove the ID if no other provider maps to it (which is unlikely but possible)
+    // Actually, SeasonMap structure implies 1:1 or 1:N mapping?
+    // "seasons: Record<string, number>" -> ProviderConfigID -> SeasonID
+    // "seasonIds: number[]" -> unique SeasonIDs
+
+    // If we remove a provider mapping, we should check if the seasonId is still used by other providers
+    // But for simplicity and correctness with existing logic (e.g. withoutSeasonId),
+    // we might want to rebuild the ID set.
+
+    // Let's defer strict cleanup or just keep it simple.
+    // If seasonId is removed from map, is it removed from ID set?
+    // If multiple providers point to same season ID, removing one shouldn't remove the ID from set.
+
+    // Simpler check:
+    const remainingValues = Array.from(seasons.values())
+    if (seasonId !== undefined && !remainingValues.includes(seasonId)) {
+      ids.delete(seasonId)
+    }
+
+    return new SeasonMap(this.key, seasons, ids)
+  }
 }

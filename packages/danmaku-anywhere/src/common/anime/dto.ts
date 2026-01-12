@@ -12,13 +12,16 @@ export interface SeasonSearchRequest {
   keyword: string
   episode?: string
   providerConfigId: string
+  local?: boolean
 }
 
 export type SeasonQueryFilter = {
   id?: number
+  ids?: number[]
   provider?: DanmakuSourceType
   providerConfigId?: string
   indexedId?: string
+  keyword?: string
 }
 
 export interface MatchEpisodeInput {

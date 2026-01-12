@@ -63,15 +63,17 @@ interface DraggableItem {
 interface SortableItemProps<T extends DraggableItem> {
   item: T
   clickable?: boolean
+  disableReorder?: boolean
   onEdit?: (item: T) => void
   renderPrimary: (item: T) => ReactNode
   renderSecondary?: (item: T) => ReactNode
-  renderSecondaryAction: (item: T) => ReactNode
+  renderSecondaryAction?: (item: T) => ReactNode
 }
 
 function SortableItem<T extends DraggableItem>({
   item,
   clickable = true,
+  disableReorder,
   onEdit,
   renderPrimary,
   renderSecondary,
@@ -103,9 +105,11 @@ function SortableItem<T extends DraggableItem>({
 
   const listItemInner = (
     <>
-      <DraggableItemIcon {...listeners}>
-        <DragIndicator />
-      </DraggableItemIcon>
+      {!disableReorder ? (
+        <DraggableItemIcon {...listeners}>
+          <DragIndicator />
+        </DraggableItemIcon>
+      ) : null}
       <ListItemText {...listItemTextProps} />
     </>
   )
@@ -115,7 +119,9 @@ function SortableItem<T extends DraggableItem>({
       ref={setNodeRef}
       style={style}
       key={item.id}
-      secondaryAction={renderSecondaryAction(item)}
+      secondaryAction={
+        renderSecondaryAction ? renderSecondaryAction(item) : null
+      }
       disablePadding={clickable}
       {...attributes}
     >
@@ -163,18 +169,20 @@ export interface DraggableListProps<T extends DraggableItem> {
   items: T[]
   clickable?: boolean
   onEdit?: (item: T) => void
-  onReorder: (sourceIndex: number, destinationIndex: number) => void
+  onReorder?: (sourceIndex: number, destinationIndex: number) => void
   renderPrimary: (item: T) => ReactNode
   renderSecondary?: (item: T) => ReactNode
-  renderSecondaryAction: (item: T) => ReactNode
+  renderSecondaryAction?: (item: T) => ReactNode
   renderEmpty?: () => ReactNode
   overlayPortal?: Element | null
+  disableReorder?: boolean
 }
 
 export function DraggableList<T extends DraggableItem>({
   items,
   clickable,
   overlayPortal,
+  disableReorder,
   onEdit,
   onReorder,
   renderEmpty,
@@ -227,7 +235,7 @@ export function DraggableList<T extends DraggableItem>({
         return arrayMove(prev, currentOldIndex, currentNewIndex)
       })
 
-      onReorder(oldIndex, newIndex)
+      onReorder?.(oldIndex, newIndex)
     }
 
     setActiveId(null)
@@ -278,6 +286,7 @@ export function DraggableList<T extends DraggableItem>({
                 key={item.id}
                 clickable={clickable}
                 item={item}
+                disableReorder={disableReorder}
                 onEdit={onEdit}
                 renderPrimary={renderPrimary}
                 renderSecondary={renderSecondary}

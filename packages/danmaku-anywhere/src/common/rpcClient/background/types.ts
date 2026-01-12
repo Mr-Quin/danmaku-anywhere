@@ -96,6 +96,11 @@ export type BackgroundMethods = {
   episodeDeleteCustom: RPCDef<CustomEpisodeQueryFilter, void>
   episodeImport: RPCDef<DanmakuImportData[], DanmakuImportResult>
   seasonMapAdd: RPCDef<SeasonMapSnapshot, void>
+  seasonMapDelete: RPCDef<{ key: string }, void>
+  seasonMapRemoveProvider: RPCDef<
+    { key: string; providerConfigId: string },
+    void
+  >
   seasonMapGetAll: RPCDef<void, SeasonMapSnapshot[]>
   danmakuPurgeCache: RPCDef<number, number>
   bilibiliSetCookies: RPCDef<void, void>
