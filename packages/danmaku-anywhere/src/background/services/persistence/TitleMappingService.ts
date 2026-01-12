@@ -20,35 +20,13 @@ export class TitleMappingService {
   }
 
   async add(map: SeasonMap) {
-    const existingSnapshot = await this.db.seasonMap.get({ key: map.key })
-    if (existingSnapshot) {
-      const existing = SeasonMap.fromSnapshot(existingSnapshot)
-      this.logger.debug('Updating title mapping:', map.toSnapshot())
-      const merged = existing.merge(map)
-      await this.db.seasonMap.put(merged.toSnapshot(), existing.key)
-    } else {
-      this.logger.debug('Adding title mapping:', map.toSnapshot())
-      await this.db.seasonMap.add(map.toSnapshot())
-    }
+    this.logger.debug('Adding/Updating title mapping:', map.toSnapshot())
+    await this.db.seasonMap.put(map.toSnapshot())
   }
 
   async remove(key: string) {
     this.logger.debug('Removing title mapping:', key)
     await this.db.seasonMap.where({ key }).delete()
-  }
-
-  async removeProvider(key: string, providerConfigId: string) {
-    const existingSnapshot = await this.db.seasonMap.get({ key })
-    if (existingSnapshot) {
-      const existing = SeasonMap.fromSnapshot(existingSnapshot)
-      const updated = existing.withoutProvider(providerConfigId)
-      if (updated.isEmpty()) {
-        await this.remove(key)
-      } else {
-        this.logger.debug('Removing provider mapping:', key, providerConfigId)
-        await this.db.seasonMap.put(updated.toSnapshot(), existing.key)
-      }
-    }
   }
 
   async get(key: string) {

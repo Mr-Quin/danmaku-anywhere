@@ -106,20 +106,6 @@ export class SeasonService {
     if (filter.ids) {
       return this.db.season.where('id').anyOf(filter.ids).toArray()
     }
-    if (filter.keyword) {
-      const keyword = filter.keyword.toLowerCase()
-      let collection = this.db.season.toCollection()
-
-      if (filter.providerConfigId) {
-        collection = this.db.season
-          .where('providerConfigId')
-          .equals(filter.providerConfigId)
-      }
-
-      return collection
-        .filter((s) => s.title?.toLowerCase().includes(keyword))
-        .toArray()
-    }
     return this.db.season.where(filter).toArray()
   }
 

@@ -1,25 +1,23 @@
 import type { Season } from '@danmaku-anywhere/danmaku-converter'
-import { Delete } from '@mui/icons-material'
-import {
-  IconButton,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemSecondaryAction,
-  ListItemText,
-  Paper,
-  Tooltip,
-} from '@mui/material'
-import { useMemo } from 'react'
+import { Autocomplete, Box, styled, TextField, Typography } from '@mui/material'
+import { Fragment, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
 import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
-import {
-  useSeasonMapMutations,
-  useSeasonsByIds,
-} from '@/common/seasonMap/queries/useAllSeasonMap'
+import { useSeasonMapMutations } from '@/common/seasonMap/queries/useAllSeasonMap'
 import type { SeasonMap } from '@/common/seasonMap/SeasonMap'
-import { ProviderLogo } from '../ProviderLogo'
+import { matchWithPinyin } from '@/common/utils/utils'
+
+const BoxGrid = styled(Box)(({ theme }) => {
+  return {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(140px, 1fr) 2fr',
+    alignItems: 'center',
+    rowGap: theme.spacing(2),
+    padding: theme.spacing(0, 2),
+  }
+})
 
 type TitleMappingDetailsProps = {
   map: SeasonMap
@@ -30,65 +28,76 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
   const { configs } = useProviderConfig()
   const mutations = useSeasonMapMutations()
 
-  // Fetch season details for all mapped seasons
-  const seasonIds = useMemo(() => Array.from(map.seasonIds), [map])
-  const { data: seasons = [] } = useSeasonsByIds(seasonIds)
-  const seasonLookup = useMemo(() => {
-    const lookup = new Map<number, Season>()
-    for (const season of seasons) {
-      lookup.set(season.id, season)
+  const { data: allSeasons } = useGetAllSeasonsSuspense()
+
+  const handleChange = async (
+    providerConfigId: string,
+    newValue: Season | null
+  ) => {
+    if (newValue) {
+      await mutations.add.mutateAsync(
+        map.withMapping(providerConfigId, newValue.id)
+      )
+    } else {
+      await mutations.add.mutateAsync(map.withoutProvider(providerConfigId))
     }
-    return lookup
-  }, [seasons])
-
-  const handleRemoveMapping = async (providerId: string) => {
-    await mutations.removeProvider.mutateAsync({
-      key: map.key,
-      providerConfigId: providerId,
-    })
   }
 
-  // Filter configs to only show mapped ones
-  const mappedConfigs = configs.filter((config) => map.getSeasonId(config.id))
-
-  if (mappedConfigs.length === 0) {
-    return null
-  }
+  const seasonsByProvider = useMemo(() => {
+    const grouped = new Map<string, Season[]>()
+    for (const season of allSeasons) {
+      const existing = grouped.get(season.providerConfigId) ?? []
+      existing.push(season)
+      grouped.set(season.providerConfigId, existing)
+    }
+    return grouped
+  }, [allSeasons])
 
   return (
-    <Paper variant="outlined">
-      <List disablePadding>
-        {mappedConfigs.map((config) => {
-          const seasonId = map.getSeasonId(config.id)
-          const mappedSeason = seasonId ? seasonLookup.get(seasonId) : undefined
+    <BoxGrid>
+      {configs.map((config) => {
+        const seasonId = map.getSeasonId(config.id)
+        const selectedSeason = seasonId
+          ? allSeasons.find((s) => s.id === seasonId) || null
+          : null
+        const options = seasonsByProvider.get(config.id) ?? []
 
-          return (
-            <ListItem key={config.id} divider>
-              <ListItemAvatar>
-                <ProviderLogo provider={config.impl} />
-              </ListItemAvatar>
-              <ListItemText
-                primary={
-                  config.isBuiltIn
-                    ? localizedDanmakuSourceType(config.impl)
-                    : config.name
-                }
-                secondary={mappedSeason?.title || `Season ID: ${seasonId}`}
-              />
-              <ListItemSecondaryAction>
-                <Tooltip title={t('common.remove', 'Remove')}>
-                  <IconButton
-                    edge="end"
-                    onClick={() => handleRemoveMapping(config.id)}
-                  >
-                    <Delete />
-                  </IconButton>
-                </Tooltip>
-              </ListItemSecondaryAction>
-            </ListItem>
-          )
-        })}
-      </List>
-    </Paper>
+        return (
+          <Fragment key={config.id}>
+            <Typography variant="body2">
+              {config.isBuiltIn
+                ? localizedDanmakuSourceType(config.impl)
+                : config.name}
+            </Typography>
+
+            <Autocomplete<Season>
+              options={options}
+              getOptionLabel={(option) => option.title}
+              value={selectedSeason}
+              onChange={(_, newValue) => handleChange(config.id, newValue)}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  size="small"
+                  variant="outlined"
+                  placeholder={t('seasonMapping.unmapped', 'Unmapped')}
+                  fullWidth
+                />
+              )}
+              filterOptions={(options, state) => {
+                return options.filter((option) => {
+                  return matchWithPinyin(option.title, state.inputValue)
+                })
+              }}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              noOptionsText={t(
+                'seasonMapping.noOptions',
+                'No options for the selected provider'
+              )}
+            />
+          </Fragment>
+        )
+      })}
+    </BoxGrid>
   )
 }

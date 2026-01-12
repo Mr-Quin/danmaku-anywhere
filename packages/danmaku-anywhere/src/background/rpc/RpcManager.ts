@@ -145,12 +145,7 @@ export class RpcManager {
         seasonMapDelete: async (data) => {
           return this.titleMappingService.remove(data.key)
         },
-        seasonMapRemoveProvider: async (data) => {
-          return this.titleMappingService.removeProvider(
-            data.key,
-            data.providerConfigId
-          )
-        },
+
         seasonMapGetAll: async () => {
           const seasonMaps = await this.titleMappingService.getAll()
           return seasonMaps.map((map) => map.toSnapshot())

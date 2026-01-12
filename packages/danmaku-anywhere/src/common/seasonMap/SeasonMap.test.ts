@@ -42,10 +42,10 @@ describe('SeasonMap', () => {
       bilibili: 42,
       tencent: 42,
     })
-    expect(merged.seasonIds.sort()).toEqual([10, 42])
+    expect(merged.seasonIds.toSorted()).toEqual([10, 42])
 
     const pruned = merged.withoutSeasonId(42)
-    expect(pruned.seasonIds).toEqual([10])
+    expect(pruned.seasonIds.toSorted()).toEqual([10])
     expect(pruned.seasons).toEqual({
       ddp: 10,
     })
