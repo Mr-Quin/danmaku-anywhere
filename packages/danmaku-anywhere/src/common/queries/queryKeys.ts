@@ -1,4 +1,8 @@
-import type { SeasonQueryFilter, SeasonSearchRequest } from '@/common/anime/dto'
+import type {
+  SeasonGetAllRequest,
+  SeasonQueryFilter,
+  SeasonSearchRequest,
+} from '@/common/anime/dto'
 import type {
   CustomEpisodeQueryFilter,
   EpisodeQueryFilter,
@@ -23,6 +27,8 @@ export const imageQueryKeys = {
 
 export const seasonQueryKeys = {
   all: () => [{ scope: 'season' }] as const,
+  allWithOptions: (opts: SeasonGetAllRequest) =>
+    [{ scope: 'season', kind: 'allWithOptions', ...opts }] as const,
   many: (data: SeasonQueryFilter) =>
     [{ scope: 'season', kind: 'getMany', ...data }] as const,
   search: (params?: Partial<SeasonSearchRequest>) =>

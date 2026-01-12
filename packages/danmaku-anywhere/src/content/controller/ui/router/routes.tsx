@@ -8,6 +8,7 @@ import { SelectorPage } from '@/content/controller/ui/floatingPanel/pages/Select
 import { StylesPage } from '@/content/controller/ui/floatingPanel/pages/StylesPage'
 import { SearchPage } from '@/content/controller/ui/floatingPanel/pages/search/SearchPage'
 import { FilterPage } from '../floatingPanel/pages/FilterPage'
+import { TitleMappingPage } from '../floatingPanel/pages/titleMapping/TitleMappingPage'
 
 export const routes = [
   {
@@ -49,5 +50,10 @@ export const routes = [
     tab: PopupTab.Debug,
     name: () => i18n.t('tabs.debug', 'Debug'),
     element: <DebugPage />,
+  },
+  {
+    tab: PopupTab.TitleMapping,
+    name: () => i18n.t('titleMapping.title', 'Title Mappings'),
+    element: <TitleMappingPage />,
   },
 ]

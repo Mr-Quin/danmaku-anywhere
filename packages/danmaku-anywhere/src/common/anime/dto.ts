@@ -14,8 +14,13 @@ export interface SeasonSearchRequest {
   providerConfigId: string
 }
 
+export interface SeasonGetAllRequest {
+  includeEmpty?: boolean
+}
+
 export type SeasonQueryFilter = {
   id?: number
+  ids?: number[]
   provider?: DanmakuSourceType
   providerConfigId?: string
   indexedId?: string

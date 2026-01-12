@@ -3,7 +3,7 @@ export type SeasonMapSnapshot = {
   key: string
   // A map of provider config ID to season ID
   seasons: Record<string, number>
-  // A list of season IDs
+  // A list of season IDs derived from the map. This is separated for use as a key in IDB
   seasonIds: number[]
 }
 
@@ -15,20 +15,14 @@ type SeasonLike = {
 export class SeasonMap {
   readonly key: string
   private readonly seasonsByConfig: Map<string, number>
-  private readonly seasonIdSet: Set<number>
 
-  private constructor(
-    key: string,
-    seasonsByConfig: Map<string, number>,
-    seasonIdSet: Set<number>
-  ) {
+  private constructor(key: string, seasonsByConfig: Map<string, number>) {
     this.key = key
     this.seasonsByConfig = seasonsByConfig
-    this.seasonIdSet = seasonIdSet
   }
 
   static empty(key: string) {
-    return new SeasonMap(key, new Map(), new Set())
+    return new SeasonMap(key, new Map())
   }
 
   static fromSeason(key: string, season: SeasonLike) {
@@ -37,12 +31,7 @@ export class SeasonMap {
 
   static fromSnapshot(snapshot: SeasonMapSnapshot) {
     const map = new Map(Object.entries(snapshot.seasons))
-    const ids = new Set(
-      snapshot.seasonIds.length
-        ? snapshot.seasonIds
-        : Object.values(snapshot.seasons)
-    )
-    return new SeasonMap(snapshot.key, map, ids)
+    return new SeasonMap(snapshot.key, map)
   }
 
   static from(input: SeasonMap | SeasonMapSnapshot) {
@@ -74,11 +63,16 @@ export class SeasonMap {
     return map.matches(providerConfigId, seasonId)
   }
 
+  // get deduplicated season IDs
+  getSeasonIds() {
+    return Array.from(new Set(this.seasonsByConfig.values()))
+  }
+
   toSnapshot(): SeasonMapSnapshot {
     return {
       key: this.key,
       seasons: this.seasons,
-      seasonIds: this.seasonIds,
+      seasonIds: this.getSeasonIds(),
     }
   }
 
@@ -87,7 +81,7 @@ export class SeasonMap {
   }
 
   get seasonIds() {
-    return Array.from(this.seasonIdSet.values())
+    return this.getSeasonIds()
   }
 
   getSeasonId(providerConfigId: string) {
@@ -98,12 +92,8 @@ export class SeasonMap {
     return this.getSeasonId(providerConfigId) === seasonId
   }
 
-  withMapping(providerConfigId: string, seasonId: number) {
-    const seasons = new Map(this.seasonsByConfig)
-    seasons.set(providerConfigId, seasonId)
-    const ids = new Set(this.seasonIdSet)
-    ids.add(seasonId)
-    return new SeasonMap(this.key, seasons, ids)
+  isEmpty() {
+    return this.seasonsByConfig.size === 0
   }
 
   merge(other: SeasonMap | SeasonMapSnapshot) {
@@ -115,6 +105,12 @@ export class SeasonMap {
     return result
   }
 
+  withMapping(providerConfigId: string, seasonId: number) {
+    const seasons = new Map(this.seasonsByConfig)
+    seasons.set(providerConfigId, seasonId)
+    return new SeasonMap(this.key, seasons)
+  }
+
   withoutSeasonId(seasonId: number) {
     const seasons = new Map(this.seasonsByConfig)
     for (const [providerConfigId, id] of seasons.entries()) {
@@ -122,12 +118,12 @@ export class SeasonMap {
         seasons.delete(providerConfigId)
       }
     }
-    const ids = new Set(this.seasonIdSet)
-    ids.delete(seasonId)
-    return new SeasonMap(this.key, seasons, ids)
+    return new SeasonMap(this.key, seasons)
   }
 
-  isEmpty() {
-    return this.seasonsByConfig.size === 0
+  withoutProvider(providerConfigId: string) {
+    const seasons = new Map(this.seasonsByConfig)
+    seasons.delete(providerConfigId)
+    return new SeasonMap(this.key, seasons)
   }
 }

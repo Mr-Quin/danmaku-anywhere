@@ -567,6 +567,13 @@
     "providers": "Providers",
     "search": "Search",
     "selector": "Selector",
-    "style": "Danmaku Settings"
+    "style": "Danmaku Settings",
+    "titleMapping": "Title Mapping"
+  },
+  "titleMapping": {
+    "empty": "No title mappings found.",
+    "noSeasons": "No options for the selected provider",
+    "title": "Title Mappings",
+    "unmapped": "Unmapped"
   }
 }

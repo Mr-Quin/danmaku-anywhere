@@ -79,6 +79,12 @@ export const Home = () => {
             to="/ai-providers"
             component={Link}
           />
+          <Tab
+            label={t('tabs.titleMapping', 'Title Mapping')}
+            value="/title-mapping"
+            to="/title-mapping"
+            component={Link}
+          />
         </Tabs>
         <ErrorBoundary
           fallbackRender={({ error }) => {

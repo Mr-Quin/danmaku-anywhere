@@ -1,11 +1,11 @@
 import { createHashRouter, Navigate } from 'react-router'
-
 import { ImportConfigPage } from '@/popup/pages/config/pages/import/ImportConfigPage'
 import { FilterPage } from '@/popup/pages/filterPage/FilterPage'
 import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
 import { About } from '@/popup/pages/options/pages/help/About'
 import { PlayerOptions } from '@/popup/pages/options/pages/player/PlayerOptions'
 import { SeasonDetailsPage } from '@/popup/pages/search/seasonDetails/SeasonDetailsPage'
+import { TitleMappingPage } from '@/popup/pages/titleMapping/TitleMappingPage'
 import { AiProvidersPage } from '../pages/ai/AiProvidersPage'
 import { ConfigPage } from '../pages/config/pages/ConfigPage'
 import { MountConfigEditor } from '../pages/config/pages/MountConfigEditor'
@@ -86,6 +86,10 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
       {
         path: 'ai-providers',
         Component: AiProvidersPage,
+      },
+      {
+        path: 'title-mapping',
+        Component: TitleMappingPage,
       },
       {
         path: 'danmaku',

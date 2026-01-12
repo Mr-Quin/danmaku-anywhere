@@ -126,8 +126,8 @@ export class RpcManager {
           const result = await this.danmakuService.filterLite(filter)
           return result || null
         },
-        seasonGetAll: async () => {
-          const result = await this.seasonService.getAll()
+        seasonGetAll: async (data) => {
+          const result = await this.seasonService.getAll(data)
           return result
         },
         seasonFilter: async (data) => {
@@ -142,6 +142,10 @@ export class RpcManager {
         seasonMapAdd: async (data) => {
           return this.titleMappingService.add(SeasonMap.from(data))
         },
+        seasonMapDelete: async (data) => {
+          return this.titleMappingService.remove(data.key)
+        },
+
         seasonMapGetAll: async () => {
           const seasonMaps = await this.titleMappingService.getAll()
           return seasonMaps.map((map) => map.toSnapshot())
