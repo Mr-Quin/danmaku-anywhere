@@ -57,13 +57,18 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
     return grouped
   }, [allSeasons])
 
+  const seasonsById = useMemo(() => {
+    return new Map(allSeasons.map((s) => [s.id, s]))
+  }, [allSeasons])
+
   return (
     <BoxGrid>
       {configs.map((config) => {
         const seasonId = map.getSeasonId(config.id)
         const selectedSeason = seasonId
-          ? allSeasons.find((s) => s.id === seasonId) || null
+          ? seasonsById.get(seasonId) || null
           : null
+
         const options = seasonsByProvider.get(config.id) ?? []
 
         return (

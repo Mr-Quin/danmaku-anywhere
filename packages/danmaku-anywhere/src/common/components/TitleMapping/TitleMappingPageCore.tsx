@@ -1,5 +1,5 @@
 import { Typography } from '@mui/material'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
@@ -33,9 +33,11 @@ export const TitleMappingPageCore = ({
     ? mappings.find((m) => m.key === selectedMapping.key) || null
     : null
 
-  if (selectedMapping && !activeMapping) {
-    setTimeout(() => setSelectedMapping(null), 0)
-  }
+  useEffect(() => {
+    if (selectedMapping && !activeMapping) {
+      setSelectedMapping(null)
+    }
+  }, [selectedMapping, activeMapping])
 
   return (
     <TabLayout>

@@ -69,4 +69,25 @@ describe('SeasonMap', () => {
     expect(SeasonMap.hasMapping(list, 'media-key', 'ddp', 11)).toBe(false)
     expect(SeasonMap.hasMapping(list, 'unknown', 'ddp', 10)).toBe(false)
   })
+
+  it('removes a specific provider mapping', () => {
+    const map = SeasonMap.fromSnapshot({
+      key: 'media-key',
+      seasons: {
+        ddp: 10,
+        bilibili: 42,
+      },
+      seasonIds: [10, 42],
+    })
+
+    const pruned = map.withoutProvider('ddp')
+    expect(pruned.seasons).toEqual({
+      bilibili: 42,
+    })
+    expect(pruned.getSeasonId('ddp')).toBeUndefined()
+    expect(pruned.isEmpty()).toBe(false)
+
+    const empty = pruned.withoutProvider('bilibili')
+    expect(empty.isEmpty()).toBe(true)
+  })
 })
