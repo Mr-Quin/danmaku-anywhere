@@ -80,7 +80,7 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
                   {...params}
                   size="small"
                   variant="outlined"
-                  placeholder={t('seasonMapping.unmapped', 'Unmapped')}
+                  placeholder={t('titleMapping.unmapped', 'Unmapped')}
                   fullWidth
                 />
               )}
@@ -91,7 +91,7 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
               }}
               isOptionEqualToValue={(option, value) => option.id === value.id}
               noOptionsText={t(
-                'seasonMapping.noOptions',
+                'titleMapping.noSeasons',
                 'No options for the selected provider'
               )}
             />

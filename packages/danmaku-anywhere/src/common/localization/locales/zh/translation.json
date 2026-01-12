@@ -553,6 +553,13 @@
     "providers": "弹幕源",
     "search": "搜索番剧",
     "selector": "选择",
-    "style": "弹幕设置"
+    "style": "弹幕设置",
+    "titleMapping": "标题映射"
+  },
+  "titleMapping": {
+    "empty": "没有标题映射",
+    "noSeasons": "没有可以映射的番剧",
+    "title": "标题映射",
+    "unmapped": "未映射"
   }
 }
