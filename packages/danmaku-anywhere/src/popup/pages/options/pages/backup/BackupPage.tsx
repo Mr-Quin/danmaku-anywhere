@@ -3,9 +3,6 @@ import {
   Box,
   Button,
   CircularProgress,
-  List,
-  ListItem,
-  ListItemText,
   Paper,
   Typography,
 } from '@mui/material'
@@ -13,8 +10,9 @@ import { styled } from '@mui/material/styles'
 import { useMutation } from '@tanstack/react-query'
 import { type ChangeEvent, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { BackupData, BackupRestoreResult } from '@/common/backup/dto'
+import { useToast } from '@/common/components/Toast/toastStore'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { createDownload } from '@/common/utils/utils'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 
@@ -24,6 +22,7 @@ const HiddenInput = styled('input')({
 
 export function BackupPage() {
   const { t } = useTranslation()
+  const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const exportMutation = useMutation({
@@ -31,23 +30,33 @@ export function BackupPage() {
       return await chromeRpcClient.backupExport()
     },
     onSuccess: ({ data }) => {
-      const blob = new Blob([JSON.stringify(data, null, 2)], {
-        type: 'application/json',
+      void createDownload(
+        new Blob([JSON.stringify(data, null, 2)], {
+          type: 'application/json',
+        }),
+        `danmaku-anywhere-backup-${new Date().toISOString()}.json`
+      ).then(() => {
+        toast.success(
+          t(
+            'optionsPage.backup.alert.exportSuccess',
+            'Backup exported successfully'
+          )
+        )
       })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `danmaku-anywhere-backup-${new Date().toISOString()}.json`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
     },
   })
 
   const importMutation = useMutation({
-    mutationFn: async (data: BackupData) => {
+    mutationFn: async (data) => {
       return await chromeRpcClient.backupImport(data)
+    },
+    onSuccess: () => {
+      toast.success(
+        t(
+          'optionsPage.backup.alert.importSuccess',
+          'Backup imported successfully'
+        )
+      )
     },
   })
 
@@ -63,45 +72,15 @@ export function BackupPage() {
     reader.onload = (e) => {
       try {
         const content = e.target?.result as string
-        const data = JSON.parse(content) as BackupData
+        const data = JSON.parse(content)
         importMutation.mutate(data)
       } catch (error) {
         console.error('Failed to parse backup file', error)
       }
     }
-    reader.readAsText(file) // fixed: use readAsText
+    reader.readAsText(file)
 
-    // Clear input so same file can be selected again
     event.target.value = ''
-  }
-
-  const renderImportResult = (result: BackupRestoreResult) => {
-    return (
-      <Box sx={{ mt: 2 }}>
-        <Alert severity={result.success ? 'success' : 'warning'}>
-          {result.success
-            ? t('Backup imported successfully')
-            : t('Backup imported with warnings')}
-        </Alert>
-        <List dense>
-          {Object.entries(result.details).map(([key, detail]) => (
-            <ListItem key={key}>
-              <ListItemText
-                primary={t(key)}
-                secondary={
-                  detail?.success
-                    ? t('Success')
-                    : `${t('Failed')}: ${detail?.error}`
-                }
-                secondaryTypographyProps={{
-                  color: detail?.success ? 'success.main' : 'error.main',
-                }}
-              />
-            </ListItem>
-          ))}
-        </List>
-      </Box>
-    )
   }
 
   return (
@@ -112,10 +91,13 @@ export function BackupPage() {
       <Box sx={{ p: 2 }}>
         <Paper sx={{ p: 2, mb: 2 }}>
           <Typography variant="h6" gutterBottom>
-            {t('Export')}
+            {t('common.export', 'Export')}
           </Typography>
           <Typography variant="body2" color="text.secondary" paragraph>
-            {t('Export all settings to a JSON file.')}
+            {t(
+              'optionsPage.backup.exportDescription',
+              'Export all settings to a JSON file.'
+            )}
           </Typography>
           <Button
             variant="contained"
@@ -125,17 +107,20 @@ export function BackupPage() {
             {exportMutation.isPending ? (
               <CircularProgress size={24} />
             ) : (
-              t('Export Backup')
+              t('optionsPage.backup.export', 'Export Backup')
             )}
           </Button>
         </Paper>
 
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
-            {t('Import')}
+            {t('common.import', 'Import')}
           </Typography>
           <Typography variant="body2" color="text.secondary" paragraph>
-            {t('Restore settings from a JSON file.')}
+            {t(
+              'optionsPage.backup.importDescription',
+              'Restore settings from a JSON file.'
+            )}
           </Typography>
           <Button
             variant="outlined"
@@ -145,7 +130,7 @@ export function BackupPage() {
             {importMutation.isPending ? (
               <CircularProgress size={24} />
             ) : (
-              t('Import Backup')
+              t('optionsPage.backup.import', 'Import Backup')
             )}
           </Button>
           <HiddenInput
@@ -154,13 +139,10 @@ export function BackupPage() {
             accept=".json"
             onChange={handleFileChange}
           />
-
-          {importMutation.isSuccess &&
-            importMutation.data &&
-            renderImportResult(importMutation.data)}
           {importMutation.isError && (
             <Alert severity="error" sx={{ mt: 2 }}>
-              {t('Import failed')}: {importMutation.error.message}
+              {t('optionsPage.backup.importError', 'Import failed')}:
+              {importMutation.error.message}
             </Alert>
           )}
         </Paper>

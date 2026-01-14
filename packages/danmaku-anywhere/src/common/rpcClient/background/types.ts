@@ -134,7 +134,7 @@ export type BackgroundMethods = {
   providerConfigDelete: RPCDef<string, void>
   testAiProvider: RPCDef<AiProviderConfigInput, TestAiProviderResponse>
   backupExport: RPCDef<void, BackupData>
-  backupImport: RPCDef<BackupData, BackupRestoreResult>
+  backupImport: RPCDef<unknown, BackupRestoreResult>
 }
 
 type InputWithFrameId<TInput> = TInput extends void

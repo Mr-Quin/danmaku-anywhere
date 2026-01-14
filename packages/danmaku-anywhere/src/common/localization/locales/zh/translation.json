@@ -350,6 +350,17 @@
     "selectedCount_other": "已选择{{count}}"
   },
   "optionsPage": {
+    "backup": {
+      "alert": {
+        "exportSuccess": "成功导出备份",
+        "importSuccess": "成功导入备份"
+      },
+      "export": "导出备份",
+      "exportDescription": "导出所有配置到 JSON 文件",
+      "import": "导入备份",
+      "importDescription": "从 JSON 文件导入配置",
+      "importError": "导入失败"
+    },
     "chConvert": {
       "name": "简繁转换",
       "none": "不转换",
@@ -395,6 +406,7 @@
     "name": "设置",
     "pages": {
       "advanced": "高级设置",
+      "backup": "备份",
       "help": "关于",
       "hotkeys": "快捷键",
       "player": "播放设置",

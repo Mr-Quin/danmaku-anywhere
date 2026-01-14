@@ -331,10 +331,6 @@ export class RpcManager {
         backupImport: async (data, sender) => {
           const result = await this.backupService.importAll(data)
           void invalidateContentScriptData(sender.tab?.id)
-
-          if (!result.success) {
-            this.logger.warn('Backup import completed with errors', result)
-          }
           return result
         },
       },

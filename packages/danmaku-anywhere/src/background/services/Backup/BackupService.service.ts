@@ -14,8 +14,9 @@ export class BackupService {
     return this.configStateService.getState()
   }
 
-  async importAll(backup: BackupData): Promise<BackupRestoreResult> {
-    return this.configStateService.restoreState(backup)
+  async importAll(backup: unknown): Promise<BackupRestoreResult> {
+    // TODO: validate backup data
+    return this.configStateService.restoreState(backup as BackupData)
   }
 
   async backupTo(sink: IBackupSink): Promise<void> {
