@@ -44,6 +44,13 @@
       "bucket_name": "danmaku-anywhere-file-staging"
     }
   ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "danmaku-anywhere-proxy",
+      "database_id": "danmaku-anywhere-proxy"
+    }
+  ],
   "ratelimits": [
     {
       "name": "DDP_RATE_LIMITER",

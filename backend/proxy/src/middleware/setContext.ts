@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/cloudflare'
+import { createDb, type Database } from '@/db'
 import { factory } from '@/factory'
 
 declare module 'hono' {
@@ -6,6 +7,7 @@ declare module 'hono' {
     extensionVersion?: string
     extensionId?: string
     ip?: string
+    createDb: () => Database
   }
 }
 
@@ -25,6 +27,8 @@ export const setContext = () =>
     if (ip) {
       context.set('ip', ip)
     }
+    context.set('createDb', () => createDb(context.env.DB))
+
     const cf = context.req.raw.cf
 
     if (cf) {

@@ -37,13 +37,8 @@ function mockPolicy(
   overrides: Partial<IntegrationPolicy> = {}
 ): IntegrationPolicy {
   return {
-    options: {
-      useAI: true,
-      dandanplay: {
-        useMatchApi: false,
-      },
-      titleOnly: true,
-    },
+    version: 3,
+    options: {},
     title: { regex: [], selector: [] }, // regex now array
     season: { regex: [], selector: [] },
     episode: { regex: [], selector: [] },

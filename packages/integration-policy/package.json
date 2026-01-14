@@ -1,0 +1,25 @@
+{
+  "name": "@danmaku-anywhere/integration-policy",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Integration policy",
+  "author": "Mr-Quin",
+  "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsgo",
+    "lint": "biome check --fix",
+    "type-check": "tsgo --noEmit",
+    "test": "vitest"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "vitest": "^4.0.13"
+  }
+}

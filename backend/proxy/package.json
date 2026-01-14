@@ -25,6 +25,7 @@
     "@biomejs/biome": "^2.3.7",
     "@cloudflare/vitest-pool-workers": "^0.10.10",
     "@types/node": "^24.10.1",
+    "drizzle-kit": "^0.31.8",
     "typescript": "^5.9.3",
     "vitest": "3.2.4",
     "wrangler": "^4.50.0"
@@ -33,7 +34,9 @@
     "@google/generative-ai": "^0.24.1",
     "@hono/zod-validator": "^0.7.5",
     "@sentry/cloudflare": "^10.26.0",
+    "drizzle-orm": "^0.45.1",
     "hono": "^4.10.6",
-    "zod": "^4.1.13"
+    "zod": "^4.1.13",
+    "@danmaku-anywhere/integration-policy": "workspace:*"
   }
 }

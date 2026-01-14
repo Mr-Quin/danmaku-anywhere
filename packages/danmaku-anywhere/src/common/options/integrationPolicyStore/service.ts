@@ -1,11 +1,14 @@
+import {
+  type Integration,
+  type IntegrationV1,
+  type IntegrationV2,
+  type IntegrationV3,
+  migrateV1ToV2,
+  migrateV2ToV3,
+} from '@danmaku-anywhere/integration-policy'
 import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { IStoreService } from '@/common/options/IStoreService'
-import type {
-  Integration,
-  IntegrationV1,
-  IntegrationV2,
-} from '@/common/options/integrationPolicyStore/schema'
 import {
   type IOptionsServiceFactory,
   OptionsServiceFactory,
@@ -33,45 +36,12 @@ export class IntegrationPolicyService implements IStoreService {
         upgrade: (data) => data,
       })
       .version(2, {
-        upgrade: (data: IntegrationV1[]) => {
-          const mapValue = (value: string) => {
-            return { value, quick: false }
-          }
-
-          return data.map((policy) => {
-            return {
-              name: policy.name,
-              id: policy.id,
-              policy: {
-                title: {
-                  selector: policy.policy.title.selector.map(mapValue),
-                  regex: policy.policy.title.regex.map(mapValue),
-                },
-                episode: {
-                  selector: policy.policy.episode.selector.map(mapValue),
-                  regex: policy.policy.episode.regex.map(mapValue),
-                },
-                season: {
-                  selector: policy.policy.season.selector.map(mapValue),
-                  regex: policy.policy.season.regex.map(mapValue),
-                },
-                episodeTitle: {
-                  selector: policy.policy.episodeTitle.selector.map(mapValue),
-                  regex: policy.policy.episodeTitle.regex.map(mapValue),
-                },
-                options: {
-                  titleOnly: policy.policy.titleOnly,
-                  dandanplay: {
-                    useMatchApi: false,
-                  },
-                },
-              },
-            } satisfies IntegrationV2
-          })
+        upgrade: (data: IntegrationV1[]): IntegrationV2[] => {
+          return migrateV1ToV2(data)
         },
       })
       .version(3, {
-        upgrade: (data: IntegrationV2[]) => {
+        upgrade: (data: IntegrationV2[]): IntegrationV2[] => {
           return data.map((policy) => {
             return {
               ...policy,
@@ -83,8 +53,13 @@ export class IntegrationPolicyService implements IStoreService {
                   useAI: false,
                 },
               },
-            } satisfies Integration
+            } satisfies IntegrationV2
           })
+        },
+      })
+      .version(4, {
+        upgrade: (data: IntegrationV2[]): IntegrationV3[] => {
+          return migrateV2ToV3(data)
         },
       })
   }
