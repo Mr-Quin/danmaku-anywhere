@@ -47,7 +47,7 @@ export function BackupPage() {
   })
 
   const importMutation = useMutation({
-    mutationFn: async (data) => {
+    mutationFn: async (data: unknown) => {
       return await chromeRpcClient.backupImport(data)
     },
     onSuccess: () => {
@@ -70,13 +70,8 @@ export function BackupPage() {
 
     const reader = new FileReader()
     reader.onload = (e) => {
-      try {
-        const content = e.target?.result as string
-        const data = JSON.parse(content)
-        importMutation.mutate(data)
-      } catch (error) {
-        console.error('Failed to parse backup file', error)
-      }
+      const content = e.target?.result as string
+      importMutation.mutate(content)
     }
     reader.readAsText(file)
 

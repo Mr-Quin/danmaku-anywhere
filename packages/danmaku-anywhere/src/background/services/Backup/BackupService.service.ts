@@ -15,8 +15,16 @@ export class BackupService {
   }
 
   async importAll(backup: unknown): Promise<BackupRestoreResult> {
+    let backupData = backup
+    if (typeof backup === 'string') {
+      try {
+        backupData = JSON.parse(backup)
+      } catch {
+        throw new Error('Failed to parse backup data as JSON')
+      }
+    }
     // TODO: validate backup data
-    return this.configStateService.restoreState(backup as BackupData)
+    return this.configStateService.restoreState(backupData as BackupData)
   }
 
   async backupTo(sink: IBackupSink): Promise<void> {
