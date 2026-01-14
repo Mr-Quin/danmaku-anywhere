@@ -363,6 +363,17 @@
     "selectedCount_other": "{{count}} selected"
   },
   "optionsPage": {
+    "backup": {
+      "alert": {
+        "exportSuccess": "Export success",
+        "importSuccess": "Import success"
+      },
+      "export": "Export Backup",
+      "exportDescription": "Export all settings to a JSON file.",
+      "import": "Import Backup",
+      "importDescription": "Restore settings from a JSON file.",
+      "importError": "Import failed"
+    },
     "chConvert": {
       "name": "Simplified/Traditional Conversion",
       "none": "No conversion",
@@ -408,6 +419,7 @@
     "name": "Options",
     "pages": {
       "advanced": "Advanced",
+      "backup": "Backup & Restore",
       "help": "关于",
       "hotkeys": "Hotkeys",
       "player": "Player Settings",

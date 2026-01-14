@@ -6,6 +6,7 @@ import { setRequestHeaderRule } from '@danmaku-anywhere/web-scraper'
 import { inject, injectable } from 'inversify'
 import { match } from 'ts-pattern'
 import { ScriptingManager } from '@/background/scripting/ScriptingManager'
+import { BackupService } from '@/background/services/Backup/BackupService.service'
 import { GenAIService } from '@/background/services/GenAIService'
 import { IconService } from '@/background/services/IconService'
 import { ImageCacheService } from '@/background/services/ImageCache/ImageCache.service'
@@ -65,7 +66,8 @@ export class RpcManager {
     @inject(DanmakuAnywhereDb) private db: DanmakuAnywhereDb,
     @inject(LoggerSymbol) logger: ILogger,
     @inject(DebugFileService) private debugFileService: DebugFileService,
-    @inject(ImageCacheService) private imageCacheService: ImageCacheService
+    @inject(ImageCacheService) private imageCacheService: ImageCacheService,
+    @inject(BackupService) private backupService: BackupService
   ) {
     this.logger = logger.sub('[RpcManager]')
   }
@@ -322,6 +324,14 @@ export class RpcManager {
           await this.providerConfigService.deleteFromStorage(id)
 
           void invalidateContentScriptData(sender.tab?.id)
+        },
+        backupExport: async () => {
+          return this.backupService.getBackupData()
+        },
+        backupImport: async (data, sender) => {
+          const result = await this.backupService.importAll(data)
+          void invalidateContentScriptData(sender.tab?.id)
+          return result
         },
       },
       {

@@ -15,6 +15,7 @@ import type { PrevOptions } from '../OptionsService/types'
 
 @injectable('Singleton')
 export class DanmakuOptionsService implements IStoreService {
+  public readonly name = 'danmakuOptions'
   public readonly options: OptionsService<DanmakuOptions>
 
   constructor(

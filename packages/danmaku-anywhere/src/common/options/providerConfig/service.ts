@@ -25,6 +25,7 @@ import { assertProviderConfigType } from './utils'
 
 @injectable('Singleton')
 export class ProviderConfigService implements IStoreService {
+  public readonly name = 'providerConfig'
   public readonly options: OptionsService<ProviderConfig[]>
 
   constructor(

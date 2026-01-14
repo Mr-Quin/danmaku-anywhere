@@ -26,6 +26,7 @@ import { migrateMountConfigV4V5 } from './migrations/migrateMountConfigV4V5'
 
 @injectable('Singleton')
 export class MountConfigService implements IStoreService {
+  public readonly name = 'mountConfig'
   public readonly options: OptionsService<MountConfig[]>
 
   constructor(

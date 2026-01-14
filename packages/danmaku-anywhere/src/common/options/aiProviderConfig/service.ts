@@ -13,6 +13,7 @@ import { type AiProviderConfig, zAiProviderConfig } from './schema'
 
 @injectable('Singleton')
 export class AiProviderConfigService implements IStoreService {
+  public readonly name = 'aiProviderConfig'
   public readonly options: OptionsService<AiProviderConfig[]>
 
   constructor(
