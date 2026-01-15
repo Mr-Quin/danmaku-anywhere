@@ -45,10 +45,12 @@ app.notFound((c) => {
 })
 
 app.onError((error, c) => {
-  Sentry.captureException(error)
   console.error('Error processing request:', error)
 
   if (error instanceof HTTPException) {
+    if (error.status >= 500) {
+      Sentry.captureException(error)
+    }
     return c.json(
       {
         message: error.message,
@@ -61,6 +63,7 @@ app.onError((error, c) => {
   }
 
   // Handle other types of errors
+  Sentry.captureException(error)
   const message = error.message
   const status = 500
 
