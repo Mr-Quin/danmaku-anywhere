@@ -28,15 +28,6 @@ export function matchNodesByXPathPolicy(
     return null
   }
 
-  // Title is required, the rest are optional
-  if (policy.options.titleOnly) {
-    return {
-      title: titleElement,
-      episode: null,
-      season: null,
-      episodeTitle: null,
-    }
-  }
   return {
     title: titleElement,
     episode: matchFirstNode(policy.episode.selector),

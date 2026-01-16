@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import { getRandomUUID } from '@/common/utils/utils'
+import { getRandomUUID } from '../uuid.js'
+import type { IntegrationV2 } from './v2.js'
 
 const regexString = z.string().refine(
   (v) => {
@@ -31,9 +32,11 @@ const matcherSchema = z.object({
   regex: z.array(regexSchema),
 })
 
-const optionsSchema = z.object({})
+const optionsSchema = z.object({
+  // no options
+})
 
-export const zIntegrationPolicy = z.object({
+export const zIntegrationPolicyV3 = z.object({
   version: z.literal(3),
   title: z.object({
     selector: z.array(selectorSchema).min(1),
@@ -45,11 +48,7 @@ export const zIntegrationPolicy = z.object({
   options: optionsSchema,
 })
 
-export type IntegrationPolicy = z.infer<typeof zIntegrationPolicy>
-
-export type IntegrationPolicySelector = z.input<typeof selectorSchema>
-
-export const zIntegration = z.object({
+export const zIntegrationV3 = z.object({
   version: z.literal(3),
   id: z
     .string()
@@ -57,9 +56,25 @@ export const zIntegration = z.object({
     .optional()
     .default(() => getRandomUUID()),
   name: z.string().min(1),
-  policy: zIntegrationPolicy,
+  policy: zIntegrationPolicyV3,
 })
 
-export type IntegrationInput = z.input<typeof zIntegration>
+export type IntegrationPolicySelector = z.input<typeof selectorSchema>
 
-export type Integration = z.output<typeof zIntegration>
+export type IntegrationV3 = z.infer<typeof zIntegrationV3>
+
+export type IntegrationPolicyV3 = z.infer<typeof zIntegrationPolicyV3>
+
+export function migrateV2ToV3(data: IntegrationV2[]): IntegrationV3[] {
+  return data.map((policy) => {
+    return {
+      version: 3,
+      ...policy,
+      policy: {
+        version: 3,
+        ...policy.policy,
+        options: {},
+      },
+    } satisfies IntegrationV3
+  })
+}

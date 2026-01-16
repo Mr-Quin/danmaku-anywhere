@@ -44,6 +44,15 @@
       "bucket_name": "danmaku-anywhere-file-staging"
     }
   ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "danmaku-anywhere-db-staging",
+      "database_id": "d19cbb0e-aa96-4a6b-a282-828fb9333897",
+      "preview_database_id": "danmaku-anywhere-db-preview",
+      "migrations_dir": "./drizzle"
+    }
+  ],
   "ratelimits": [
     {
       "name": "DDP_RATE_LIMITER",
@@ -101,6 +110,14 @@
           "bucket_name": "danmaku-anywhere-file-staging"
         }
       ],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "danmaku-anywhere-db-staging",
+          "database_id": "d19cbb0e-aa96-4a6b-a282-828fb9333897",
+          "migrations_dir": "./drizzle"
+        }
+      ],
       "ratelimits": [
         {
           "name": "DDP_RATE_LIMITER",
@@ -155,6 +172,14 @@
         {
           "binding": "FILES_BUCKET",
           "bucket_name": "danmaku-anywhere-file"
+        }
+      ],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "danmaku-anywhere-db",
+          "database_id": "4e09ecda-3e2f-40c5-a7c1-dcc0c99da722",
+          "migrations_dir": "./drizzle"
         }
       ],
       "ratelimits": [

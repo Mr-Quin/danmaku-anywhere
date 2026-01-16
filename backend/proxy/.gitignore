@@ -1,2 +1,4 @@
 .dev.vars
 .wrangler/
+.staging.env
+.prod.env

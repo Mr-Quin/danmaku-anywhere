@@ -1,3 +1,4 @@
+import { createIntegrationInput } from '@danmaku-anywhere/integration-policy'
 import { inject, injectable } from 'inversify'
 import type { z } from 'zod'
 import {
@@ -6,7 +7,6 @@ import {
   type SharedMountConfig,
 } from '@/common/options/combinedPolicy/shareSchema'
 import {
-  createIntegrationInput,
   zIntegration,
   zIntegrationPolicy,
 } from '@/common/options/integrationPolicyStore/schema'

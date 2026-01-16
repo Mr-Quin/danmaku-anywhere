@@ -2,7 +2,7 @@
   "root": false,
   "extends": "//",
   "files": {
-    "includes": ["**", "!**/dist", "!worker-configuration.d.ts"]
+    "includes": ["**", "!**/dist", "!worker-configuration.d.ts", "!drizzle/**"]
   },
   "javascript": {
     "globals": ["ExecutionContext", "Env", "Request"]

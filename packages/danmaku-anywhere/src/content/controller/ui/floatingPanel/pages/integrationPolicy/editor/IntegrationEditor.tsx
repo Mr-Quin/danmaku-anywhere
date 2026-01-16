@@ -1,3 +1,4 @@
+import { createIntegrationInput } from '@danmaku-anywhere/integration-policy'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { OpenInNew } from '@mui/icons-material'
 import { Box, Button, Stack } from '@mui/material'
@@ -15,10 +16,7 @@ import type {
   Integration,
   IntegrationInput,
 } from '@/common/options/integrationPolicyStore/schema'
-import {
-  createIntegrationInput,
-  zIntegration,
-} from '@/common/options/integrationPolicyStore/schema'
+import { zIntegration } from '@/common/options/integrationPolicyStore/schema'
 import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
 import { docsLink } from '@/common/utils/utils'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'

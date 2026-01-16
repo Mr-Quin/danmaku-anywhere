@@ -11,6 +11,7 @@ import { llmLegacy } from '@/routes/api/llm/llm'
 import { getIsTestEnv } from '@/utils/getIsTestEnv'
 import { factory } from './factory'
 import { api } from './routes/api/routes'
+import { serializeError } from './utils/serializeError'
 
 const app = factory.createApp()
 
@@ -45,7 +46,7 @@ app.notFound((c) => {
 })
 
 app.onError((error, c) => {
-  console.error('Error processing request:', error)
+  console.error('Error processing request:', serializeError(error))
 
   if (error instanceof HTTPException) {
     if (error.status >= 500) {

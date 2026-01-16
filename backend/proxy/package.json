@@ -19,21 +19,32 @@
     "cf-typegen": "wrangler types",
     "wrangler": "wrangler",
     "deploy:staging": "wrangler deploy --env staging",
-    "deploy:prod": "wrangler deploy --env production"
+    "deploy:prod": "wrangler deploy --env production",
+    "drizzle": "drizzle-kit",
+    "db:local": "pnpm wrangler d1 migrations apply danmaku-anywhere-db-staging --local",
+    "db:staging": "pnpm wrangler d1 migrations apply danmaku-anywhere-db-staging --env staging",
+    "db:prod": "pnpm wrangler d1 migrations apply danmaku-anywhere-db --env production",
+    "db:generate": "drizzle-kit generate --config drizzle.config.ts",
+    "db:push:prod": "drizzle-kit push --config drizzle.config.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.7",
     "@cloudflare/vitest-pool-workers": "^0.10.10",
     "@types/node": "^24.10.1",
+    "cross-env": "^10.1.0",
+    "drizzle-kit": "^0.31.8",
     "typescript": "^5.9.3",
     "vitest": "3.2.4",
     "wrangler": "^4.50.0"
   },
   "dependencies": {
+    "@danmaku-anywhere/integration-policy": "workspace:*",
     "@google/generative-ai": "^0.24.1",
     "@hono/zod-validator": "^0.7.5",
     "@sentry/cloudflare": "^10.26.0",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.45.1",
     "hono": "^4.10.6",
-    "zod": "^4.1.13"
+    "zod": "^4.3.5"
   }
 }
