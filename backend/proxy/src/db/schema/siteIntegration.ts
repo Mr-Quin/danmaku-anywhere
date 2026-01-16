@@ -10,11 +10,14 @@ export const policy = sqliteTable('site_integration_policy', {
   authorId: text('author_id'),
   authorName: text('author_name'),
 
+  // comma separated domains
+  domains: text('domains', { mode: 'json' }).$type<string[]>().default([]),
+
   // comma separated tags
-  tags: text('tags'),
+  tags: text('tags', { mode: 'json' }).$type<string[]>().default([]),
 
   // flags
-  isPublic: integer('is_public').default(0),
+  isPublic: integer('is_public', { mode: 'boolean' }).default(false),
 
   // metrics
   downloads: integer('downloads').default(0),
@@ -25,6 +28,7 @@ export const policy = sqliteTable('site_integration_policy', {
     .default(sql`(unixepoch())`),
 })
 
+// separate table for domains for easier querying by domain
 export const domains = sqliteTable(
   'site_integration_policy_domains',
   {

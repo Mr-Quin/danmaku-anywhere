@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "73fdb43f-561e-46e6-b51b-51a3d4b07c15",
+  "id": "6e2a5789-2f14-46dc-8cbd-c78277ab11d1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "site_integration_policy_domains": {
@@ -95,12 +95,21 @@
           "notNull": false,
           "autoincrement": false
         },
+        "domains": {
+          "name": "domains",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'[]'"
+        },
         "tags": {
           "name": "tags",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false
+          "autoincrement": false,
+          "default": "'[]'"
         },
         "is_public": {
           "name": "is_public",
@@ -108,7 +117,7 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
-          "default": 0
+          "default": false
         },
         "downloads": {
           "name": "downloads",

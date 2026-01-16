@@ -1,6 +1,6 @@
 import { factory } from '@/factory'
 import { useCache } from '@/middleware/cache'
-import { policyRouter } from './policy'
+import { policyRouter } from './policy/controller'
 import { danmuIcuBaseUrls } from './urls/danmuicu'
 import { macCmsBaseUrls } from './urls/maccms'
 

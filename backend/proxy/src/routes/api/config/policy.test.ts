@@ -2,7 +2,7 @@ import { env } from 'cloudflare:test'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { policyRouter } from './policy'
+import { policyRouter } from './policy/router'
 
 describe('Policy Router', () => {
   beforeAll(async () => {
