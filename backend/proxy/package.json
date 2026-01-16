@@ -22,7 +22,9 @@
     "deploy:prod": "wrangler deploy --env production",
     "drizzle": "drizzle-kit",
     "db:local": "pnpm wrangler d1 migrations apply danmaku-anywhere-db-staging --local",
-    "db:push:staging": "drizzle-kit push --config drizzle.config.staging.ts",
+    "db:staging": "pnpm wrangler d1 migrations apply danmaku-anywhere-db-staging",
+    "db:prod": "pnpm wrangler d1 migrations apply danmaku-anywhere-db",
+    "db:generate": "drizzle-kit generate --config drizzle.config.ts",
     "db:push:prod": "drizzle-kit push --config drizzle.config.ts"
   },
   "devDependencies": {
