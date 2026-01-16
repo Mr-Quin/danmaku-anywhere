@@ -64,7 +64,7 @@ const createRemovalMutationObserver = (element: Node, onRemove: () => void) => {
 }
 
 export class XPathIntegrationObserver extends MediaObserver {
-  public readonly name: string = 'XPathIntegrationObserver'
+  public override readonly name: string = 'XPathIntegrationObserver'
 
   private interval?: NodeJS.Timeout
   private logger = Logger.sub('[XPathIntegrationObserver]')
@@ -114,7 +114,7 @@ export class XPathIntegrationObserver extends MediaObserver {
     return promise
   }
 
-  protected updateMediaInfo(mediaInfo: MediaInfo) {
+  protected override updateMediaInfo(mediaInfo: MediaInfo) {
     // Only update if the media info has changed
     if (this.mediaInfo?.equals(mediaInfo)) {
       return
@@ -181,7 +181,7 @@ export class XPathIntegrationObserver extends MediaObserver {
     void this.setupXpath()
   }
 
-  destroy() {
+  override destroy() {
     this.reset()
     super.destroy()
   }

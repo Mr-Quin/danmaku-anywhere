@@ -1,7 +1,7 @@
 import { MediaObserver } from './MediaObserver'
 
 export class NoopMediaObserver extends MediaObserver {
-  public readonly name: string = 'NoopMediaObserver'
+  public override readonly name: string = 'NoopMediaObserver'
 
   constructor() {
     super()
@@ -16,7 +16,7 @@ export class NoopMediaObserver extends MediaObserver {
   reset() {
     // noop
   }
-  destroy() {
+  override destroy() {
     super.destroy()
   }
 }

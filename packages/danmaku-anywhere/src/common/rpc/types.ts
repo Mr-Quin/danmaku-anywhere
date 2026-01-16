@@ -55,7 +55,7 @@ export type RPCResponse<TOutput> =
 
 export class RpcException extends Error {
   constructor(
-    public message: string,
+    public override readonly message: string,
     {
       cause,
     }: {

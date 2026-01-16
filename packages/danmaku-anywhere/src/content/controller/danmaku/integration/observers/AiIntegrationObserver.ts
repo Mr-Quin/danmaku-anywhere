@@ -72,7 +72,7 @@ const getPageMeta = () => {
 }
 
 export class AiIntegrationObserver extends MediaObserver {
-  public readonly name = 'AiIntegrationObserver'
+  public override readonly name = 'AiIntegrationObserver'
 
   private logger = Logger.sub('[AiIntegrationObserver]')
   private abortControllerQueue: AbortController[] = []
@@ -149,7 +149,7 @@ export class AiIntegrationObserver extends MediaObserver {
     this.setupAi()
   }
 
-  destroy() {
+  override destroy() {
     this.reset()
     super.destroy()
   }
