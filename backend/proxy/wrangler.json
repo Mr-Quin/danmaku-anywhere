@@ -114,7 +114,8 @@
         {
           "binding": "DB",
           "database_name": "danmaku-anywhere-db-staging",
-          "database_id": "d19cbb0e-aa96-4a6b-a282-828fb9333897"
+          "database_id": "d19cbb0e-aa96-4a6b-a282-828fb9333897",
+          "migrations_dir": "./drizzle"
         }
       ],
       "ratelimits": [
@@ -177,7 +178,8 @@
         {
           "binding": "DB",
           "database_name": "danmaku-anywhere-db",
-          "database_id": "4e09ecda-3e2f-40c5-a7c1-dcc0c99da722"
+          "database_id": "4e09ecda-3e2f-40c5-a7c1-dcc0c99da722",
+          "migrations_dir": "./drizzle"
         }
       ],
       "ratelimits": [
