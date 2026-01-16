@@ -130,12 +130,12 @@ export async function voteOnPolicy(
     await db
       .update(policy)
       .set({ upvotes: sql`${policy.upvotes} + 1` })
-      .where(sql`${policy.id} = ${id}`)
+      .where(eq(policy.id, id))
   } else {
     await db
       .update(policy)
       .set({ downvotes: sql`${policy.downvotes} + 1` })
-      .where(sql`${policy.id} = ${id}`)
+      .where(eq(policy.id, id))
   }
 }
 
@@ -143,5 +143,5 @@ export async function incrementDownload(db: Database, id: string) {
   await db
     .update(policy)
     .set({ downloads: sql`${policy.downloads} + 1` })
-    .where(sql`${policy.id} = ${id}`)
+    .where(eq(policy.id, id))
 }

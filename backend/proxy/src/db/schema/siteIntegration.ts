@@ -10,10 +10,10 @@ export const policy = sqliteTable('site_integration_policy', {
   authorId: text('author_id'),
   authorName: text('author_name'),
 
-  // comma separated domains
+  // list of domains that this policy applies to
   domains: text('domains', { mode: 'json' }).$type<string[]>().default([]),
 
-  // comma separated tags
+  // list of tags
   tags: text('tags', { mode: 'json' }).$type<string[]>().default([]),
 
   // flags
