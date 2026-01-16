@@ -56,14 +56,13 @@ policyRouter.post(
 
 policyRouter.get(
   '/domain',
-  zValidator('query', z.object({ url: z.url() })),
+  zValidator('query', z.object({ domain: schemas.zDomain })),
   async function getByDomain(c) {
-    const { url } = c.req.valid('query')
-    const hostname = new URL(url).hostname
+    const { domain } = c.req.valid('query')
     const db = c.get('createDb')()
 
     try {
-      const data = await service.getPoliciesByDomain(db, hostname)
+      const data = await service.getPoliciesByDomain(db, domain)
       return c.json({ success: true, data })
     } catch (e) {
       throw new HTTPException(500, {
@@ -90,6 +89,25 @@ policyRouter.post(
       throw new HTTPException(500, {
         cause: e,
         message: 'Failed to vote on policy',
+      })
+    }
+  }
+)
+
+policyRouter.post(
+  '/:id/download',
+  zValidator('param', z.object({ id: z.string() })),
+  async function trackDownload(c) {
+    const configId = c.req.param('id')
+    const db = c.get('createDb')()
+
+    try {
+      await service.incrementDownload(db, configId)
+      return c.json({ success: true })
+    } catch (e) {
+      throw new HTTPException(500, {
+        cause: e,
+        message: 'Failed to track download',
       })
     }
   }

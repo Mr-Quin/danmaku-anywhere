@@ -2,7 +2,7 @@ import dotenv from 'dotenv'
 import { defineConfig } from 'drizzle-kit'
 
 dotenv.config({
-  path: '.prod.env',
+  path: '.staging.env',
 })
 
 export default defineConfig({

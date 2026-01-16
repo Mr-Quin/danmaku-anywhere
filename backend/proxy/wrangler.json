@@ -48,7 +48,9 @@
     {
       "binding": "DB",
       "database_name": "danmaku-anywhere-db-staging",
-      "database_id": "d19cbb0e-aa96-4a6b-a282-828fb9333897"
+      "database_id": "d19cbb0e-aa96-4a6b-a282-828fb9333897",
+      "preview_database_id": "danmaku-anywhere-db-preview",
+      "migrations_dir": "./drizzle"
     }
   ],
   "ratelimits": [

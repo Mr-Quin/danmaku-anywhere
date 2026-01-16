@@ -21,8 +21,9 @@
     "deploy:staging": "wrangler deploy --env staging",
     "deploy:prod": "wrangler deploy --env production",
     "drizzle": "drizzle-kit",
-    "drizzle:push:staging": "cross-env DRIZZLE_ENV_FILE=.staging.env drizzle-kit push",
-    "drizzle:push:prod": "cross-env DRIZZLE_ENV_FILE=.prod.env drizzle-kit push"
+    "db:local": "pnpm wrangler d1 migrations apply danmaku-anywhere-db-staging --local",
+    "db:push:staging": "drizzle-kit push --config drizzle.config.staging.ts",
+    "db:push:prod": "drizzle-kit push --config drizzle.config.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.7",
