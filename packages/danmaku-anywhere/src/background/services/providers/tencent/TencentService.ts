@@ -77,7 +77,7 @@ export class TencentService implements IDanmakuProvider {
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
     const kw = params.keyword
     this.logger.debug('Search tencent', kw)
-    const result = await tencent.searchMedia({ query: kw })
+    const result = await tencent.searchMedia({ keyword: kw })
     this.logger.debug('Search result', result)
 
     if (!result.success) throw result.error

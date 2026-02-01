@@ -59,19 +59,7 @@ export const zTencentSearchResponse = zTencentApiResponseBase.extend({
 export type TencentSearchResult = TencentVideoSeason[]
 
 export interface TencentSearchParams {
-  version?: string
-  filterValue?: string
-  retry?: number
-  // search keyword
-  query: string
-  pagesize?: number
-  pagenum?: number
-  queryFrom?: number
-  isneedQc?: boolean
-  adRequestInfo?: string
-  sdkRequestInfo?: string
-  sceneId?: number
-  platform?: string
+  keyword: string
 }
 
 export interface TencentEpisodeListParams {
