@@ -26,8 +26,8 @@ import { TencentMapper } from './TencentMapper'
 const defaultHeaderConfig = {
   matchUrl: 'https://*.video.qq.com/',
   headers: {
-    origin: 'https://v.qq.com',
-    referer: 'https://v.qq.com/',
+    Origin: 'https://v.qq.com',
+    Referer: 'https://v.qq.com/',
   },
 }
 
@@ -70,14 +70,14 @@ export class TencentService implements IDanmakuProvider {
     getHeaders: (args) => {
       const kw = args[0].keyword
       return {
-        referer: `https://v.qq.com/x/search/?q=${encodeURIComponent(kw)}&stag=&smartbox_ab=`,
+        Referer: `https://v.qq.com/x/search/?q=${encodeURIComponent(kw)}&stag=&smartbox_ab=`,
       }
     },
   })
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
     const kw = params.keyword
     this.logger.debug('Search tencent', kw)
-    const result = await tencent.searchMedia({ keyword: kw })
+    const result = await tencent.searchMedia({ query: kw })
     this.logger.debug('Search result', result)
 
     if (!result.success) throw result.error

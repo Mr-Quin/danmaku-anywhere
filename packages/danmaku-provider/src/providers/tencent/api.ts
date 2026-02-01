@@ -76,6 +76,14 @@ export const searchMedia = async (
   const dataResult = ensureData(result.data, 'data')
   if (!dataResult.success) return dataResult
 
+  const mainBox = dataResult.data.areaBoxList.find(
+    (box) => box.boxId === 'MainNeed'
+  )
+
+  if (mainBox) {
+    return ok(mainBox.itemList)
+  }
+
   return ok(dataResult.data.normalList.itemList)
 }
 
