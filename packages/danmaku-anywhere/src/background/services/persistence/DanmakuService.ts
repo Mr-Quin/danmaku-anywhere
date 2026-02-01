@@ -146,12 +146,12 @@ export class DanmakuService {
 
   async add<T extends EpisodeInsert>(data: T): Promise<DbEntity<T>> {
     // check if the seasonId link is valid
-    const seasonExists = await this.seasonService.getById(data.seasonId)
+    const season = await this.seasonService.getById(data.seasonId)
 
-    if (!seasonExists) {
+    if (!season) {
       this.logger.warn(
         `Season ${data.seasonId} not found when adding danmaku`,
-        data
+        { seasonId: data.seasonId }
       )
       throw new Error(
         `Inserting episode failed: Season ${data.seasonId} not found`
