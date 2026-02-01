@@ -7,51 +7,50 @@
   "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
   "license": "MIT",
   "type": "module",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/src/index.d.ts",
-      "default": "./dist/src/index.js"
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
     },
     "./ddp": {
-      "types": "./dist/src/providers/ddp/index.d.ts",
-      "default": "./dist/src/providers/ddp/index.js"
+      "types": "./src/providers/ddp/index.d.ts",
+      "default": "./src/providers/ddp/index.js"
     },
     "./bilibili": {
-      "types": "./dist/src/providers/bilibili/index.d.ts",
-      "default": "./dist/src/providers/bilibili/index.js"
+      "types": "./src/providers/bilibili/index.d.ts",
+      "default": "./src/providers/bilibili/index.js"
     },
     "./tencent": {
-      "types": "./dist/src/providers/tencent/index.d.ts",
-      "default": "./dist/src/providers/tencent/index.js"
+      "types": "./src/providers/tencent/index.d.ts",
+      "default": "./src/providers/tencent/index.js"
     },
     "./maccms": {
-      "types": "./dist/src/providers/macCms/index.d.ts",
-      "default": "./dist/src/providers/macCms/index.js"
+      "types": "./src/providers/macCms/index.d.ts",
+      "default": "./src/providers/macCms/index.js"
     },
     "./genAi": {
-      "types": "./dist/src/providers/genAi/index.d.ts",
-      "default": "./dist/src/providers/genAi/index.js"
+      "types": "./src/providers/genAi/index.d.ts",
+      "default": "./src/providers/genAi/index.js"
     },
     "./kazumi": {
-      "types": "./dist/src/providers/kazumi/index.d.ts",
-      "default": "./dist/src/providers/kazumi/index.js"
+      "types": "./src/providers/kazumi/index.d.ts",
+      "default": "./src/providers/kazumi/index.js"
     },
     "./config": {
-      "types": "./dist/src/providers/config/index.d.ts",
-      "default": "./dist/src/providers/config/index.js"
+      "types": "./src/providers/config/index.d.ts",
+      "default": "./src/providers/config/index.js"
     },
     "./files": {
-      "types": "./dist/src/providers/files/index.d.ts",
-      "default": "./dist/src/providers/files/index.js"
+      "types": "./src/providers/files/index.d.ts",
+      "default": "./src/providers/files/index.js"
     }
   },
   "scripts": {
     "test": "vitest",
-    "copy": "copyfiles -u 1 src/**/protobuf/** dist/src",
     "protobuf:compile": "pbjs -t static-module -w es6 -o src/protobuf/protobuf.js src/protobuf/definition/bilibili.dm.proto && pbts -o src/protobuf/protobuf.d.ts src/protobuf/protobuf.js",
-    "build": "pnpm protobuf:compile && tsgo && pnpm copy",
+    "build": "pnpm protobuf:compile && tsgo",
     "lint": "tsgo && biome check --fix",
     "lint:ci": "biome ci",
     "type-check": "tsgo --noEmit",

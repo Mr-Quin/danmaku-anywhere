@@ -53,6 +53,7 @@ async function defaultGetErrorMessage(res: Response) {
   if (res.headers.has('X-Error-Message')) {
     return res.headers.get('X-Error-Message')
   }
+  return null
 }
 
 export const fetchData = async <OutSchema extends ZodType>(
