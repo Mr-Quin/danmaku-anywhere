@@ -34,13 +34,22 @@ export const zTencentSearchResponse = zTencentApiResponseBase.extend({
   data: z
     .object({
       normalList: z.object({
-        itemList: z.array(zTencentVideoSeason).transform((items) => {
+        itemList: z.array(z.any()).transform((items) => {
+          const parsedItems = items.filter(
+            (item): item is TencentVideoSeason =>
+              zTencentVideoSeason.safeParse(item).success
+          )
           // remove items without year
-          return items.filter(
-            (item) =>
+          return parsedItems.filter((item) => {
+            if (!item.videoInfo) {
+              return false
+            }
+
+            return (
               item.videoInfo.year !== 0 &&
               item.videoInfo.episodeSites.length > 0
-          )
+            )
+          })
         }),
       }),
     })

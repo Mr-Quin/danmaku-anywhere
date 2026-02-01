@@ -27,19 +27,28 @@ const DM_API_URL_ROOT = 'https://dm.video.qq.com'
 const throttle = createThrottle(100)
 
 const searchMediaDefaultParams = {
-  version: '',
-  filterValue: 'firstTabid=150',
-  retry: 0,
+  version: '25071701',
+  clientType: 1,
+  filterValue: '',
+  uuid: '0379274D-05A0-4EB6-A89C-878C9A460426',
   query: '',
-  pagesize: 20,
+  retry: 0,
   pagenum: 0,
-  queryFrom: 4,
+  isPrefetch: true,
+  pagesize: 30,
+  queryFrom: 0,
+  searchDatakey: '',
+  transInfo: '',
   isneedQc: true,
-  adRequestInfo: '',
-  sdkRequestInfo: '',
-  sceneId: 21,
-  platform: '23',
-} satisfies TencentSearchParams
+  preQid: '',
+  adClientInfo: '',
+  extraInfo: {
+    multi_terminal_pc: '1',
+    themeType: '1',
+    sugRelatedIds: '{}',
+    appVersion: '',
+  },
+}
 
 export const searchMedia = async (
   params: TencentSearchParams
@@ -48,13 +57,15 @@ export const searchMedia = async (
 
   const newParams = { ...searchMediaDefaultParams, ...params }
 
-  const url = `${TENCENT_API_URL_ROOT}/trpc.videosearch.mobile_search.HttpMobileRecall/MbSearchHttp`
+  const url = `${TENCENT_API_URL_ROOT}/trpc.videosearch.mobile_search.MultiTerminalSearch/MbSearch?vplatform=2`
 
   const result = await fetchData({
     url,
     method: 'POST',
     body: newParams,
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+    },
     responseSchema: zTencentSearchResponse,
     getErrorMessage: async (res) => parseHeader(res).errorMsg,
     responseValidator: validateTencentResponse,

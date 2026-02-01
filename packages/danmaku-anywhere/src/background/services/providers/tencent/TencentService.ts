@@ -8,6 +8,7 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import type { TencentEpisodeListItem } from '@danmaku-anywhere/danmaku-provider/tencent'
 import * as tencent from '@danmaku-anywhere/danmaku-provider/tencent'
+import { WithSessionHeader } from '@/background/netRequest/setSessionHeader'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
@@ -21,6 +22,16 @@ import type {
   SeasonSearchParams,
 } from '../IDanmakuProvider'
 import { TencentMapper } from './TencentMapper'
+
+const defaultHeaderConfig = {
+  matchUrl: 'https://*.video.qq.com/',
+  headers: {
+    origin: 'https://v.qq.com',
+    referer: 'https://v.qq.com/',
+  },
+}
+
+const defaultTencentSessionHeader = WithSessionHeader(defaultHeaderConfig)
 
 export class TencentService implements IDanmakuProvider {
   private logger: ILogger
@@ -54,6 +65,15 @@ export class TencentService implements IDanmakuProvider {
     }
   }
 
+  @WithSessionHeader<[SeasonSearchParams]>({
+    ...defaultHeaderConfig,
+    getHeaders: (args) => {
+      const kw = args[0].keyword
+      return {
+        referer: `https://v.qq.com/x/search/?q=${encodeURIComponent(kw)}&stag=&smartbox_ab=`,
+      }
+    },
+  })
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
     const kw = params.keyword
     this.logger.debug('Search tencent', kw)
@@ -65,6 +85,7 @@ export class TencentService implements IDanmakuProvider {
     return result.data.map(TencentMapper.toSeasonInsert)
   }
 
+  @defaultTencentSessionHeader
   async findEpisode(
     season: Season,
     episodeNumber: number
@@ -92,6 +113,7 @@ export class TencentService implements IDanmakuProvider {
     }
   }
 
+  @defaultTencentSessionHeader
   async getEpisodes(
     seasonRemoteIds: TencentOf<Season>['providerIds']
   ): Promise<OmitSeasonId<TencentOf<EpisodeMeta>>[]> {
@@ -115,6 +137,7 @@ export class TencentService implements IDanmakuProvider {
     })
   }
 
+  @defaultTencentSessionHeader
   async getSeason(
     seasonRemoteIds: TencentOf<Season>['providerIds']
   ): Promise<SeasonInsert | null> {
@@ -125,6 +148,7 @@ export class TencentService implements IDanmakuProvider {
     return season
   }
 
+  @defaultTencentSessionHeader
   async getPageDetails(cid: string, vid: string) {
     this.logger.debug('Get page details', { cid, vid })
 
@@ -149,6 +173,7 @@ export class TencentService implements IDanmakuProvider {
     return { pageDetails }
   }
 
+  @defaultTencentSessionHeader
   async getDanmaku(request: DanmakuFetchRequest): Promise<CommentEntity[]> {
     const { meta } = request
 
@@ -164,6 +189,7 @@ export class TencentService implements IDanmakuProvider {
     return comments
   }
 
+  @defaultTencentSessionHeader
   private async fetchDanmaku(vid: string) {
     const result = await tencent.getDanmaku(vid)
     if (!result.success) throw result.error
