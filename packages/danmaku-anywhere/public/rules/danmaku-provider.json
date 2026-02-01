@@ -21,28 +21,5 @@
       "urlFilter": "|https://*.bilibili.com/",
       "resourceTypes": ["xmlhttprequest"]
     }
-  },
-  {
-    "id": 2,
-    "action": {
-      "type": "modifyHeaders",
-      "requestHeaders": [
-        {
-          "header": "Referer",
-          "operation": "set",
-          "value": "https://v.qq.com"
-        },
-        {
-          "header": "Origin",
-          "operation": "set",
-          "value": "https://v.qq.com"
-        }
-      ]
-    },
-    "condition": {
-      "excludedInitiatorDomains": ["qq.com"],
-      "urlFilter": "|https://*.video.qq.com/",
-      "resourceTypes": ["xmlhttprequest"]
-    }
   }
 ]

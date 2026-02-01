@@ -28,20 +28,30 @@ const zTencentVideoSeason = z.object({
   }),
 })
 
+function transformItemList(items: unknown[]) {
+  return items
+    .filter(
+      (item): item is TencentVideoSeason =>
+        zTencentVideoSeason.safeParse(item).success
+    )
+    .filter((item) => {
+      return item.videoInfo.year !== 0 && item.videoInfo.episodeSites.length > 0
+    })
+}
+
 export type TencentVideoSeason = z.infer<typeof zTencentVideoSeason>
 
 export const zTencentSearchResponse = zTencentApiResponseBase.extend({
   data: z
     .object({
+      areaBoxList: z.array(
+        z.object({
+          boxId: z.string(),
+          itemList: z.array(z.any()).transform(transformItemList),
+        })
+      ),
       normalList: z.object({
-        itemList: z.array(zTencentVideoSeason).transform((items) => {
-          // remove items without year
-          return items.filter(
-            (item) =>
-              item.videoInfo.year !== 0 &&
-              item.videoInfo.episodeSites.length > 0
-          )
-        }),
+        itemList: z.array(z.any()).transform(transformItemList),
       }),
     })
     .optional(),
@@ -50,19 +60,7 @@ export const zTencentSearchResponse = zTencentApiResponseBase.extend({
 export type TencentSearchResult = TencentVideoSeason[]
 
 export interface TencentSearchParams {
-  version?: string
-  filterValue?: string
-  retry?: number
-  // search keyword
   query: string
-  pagesize?: number
-  pagenum?: number
-  queryFrom?: number
-  isneedQc?: boolean
-  adRequestInfo?: string
-  sdkRequestInfo?: string
-  sceneId?: number
-  platform?: string
 }
 
 export interface TencentEpisodeListParams {
