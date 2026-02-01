@@ -5,7 +5,8 @@
     "composite": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "noEmit": true
   },
   "include": ["./src"],
   "exclude": ["**/*.test.ts", "**/test", "**/code-gen"],

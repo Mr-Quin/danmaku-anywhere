@@ -7,8 +7,8 @@
   "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
   "license": "MIT",
   "type": "module",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
   "scripts": {
     "test": "vitest",
     "build": "tsgo",

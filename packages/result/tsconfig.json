@@ -6,7 +6,8 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "noImplicitAny": false,
-    "types": []
+    "types": [],
+    "noEmit": true
   },
   "include": ["./src"],
   "exclude": ["**/*.test.ts", "**/test"],

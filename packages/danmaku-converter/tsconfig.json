@@ -6,7 +6,8 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
-    "allowJs": false
+    "allowJs": false,
+    "emitDeclarationOnly": true
   },
   "include": ["./src", "./src/**/*.json"],
   "exclude": ["**/*.test.ts"],
