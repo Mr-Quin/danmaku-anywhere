@@ -145,26 +145,35 @@ export class DanmakuService {
   }
 
   async add<T extends EpisodeInsert>(data: T): Promise<DbEntity<T>> {
-    // check if the seasonId link is valid
-    const season = await this.seasonService.getById(data.seasonId)
-
-    if (!season) {
-      this.logger.warn(
-        `Season ${data.seasonId} not found when adding danmaku`,
-        { seasonId: data.seasonId }
-      )
-      throw new Error(
-        `Inserting episode failed: Season ${data.seasonId} not found`
-      )
-    }
-
     const toInsert = {
       ...data,
       timeUpdated: Date.now(),
       version: 1,
     }
 
-    const id = await this.db.episode.add(toInsert)
+    const id = await this.db.transaction(
+      'rw',
+      this.db.episode,
+      this.db.season,
+      async () => {
+        // check if the seasonId link is valid in a transaction context so the whole operation is atomic
+        const season = await this.seasonService.getById(data.seasonId)
+
+        if (!season) {
+          this.logger.warn(
+            `Season ${data.seasonId} not found when adding danmaku`,
+            { seasonId: data.seasonId }
+          )
+          throw new Error(
+            `Inserting episode failed: Season ${data.seasonId} not found`
+          )
+        }
+
+        const id = await this.db.episode.add(toInsert)
+
+        return id
+      }
+    )
 
     return {
       ...toInsert,
