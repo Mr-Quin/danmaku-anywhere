@@ -228,10 +228,10 @@ importers:
     dependencies:
       '@ai-sdk/openai':
         specifier: ^3.0.1
-        version: 3.0.1(zod@3.25.76)
+        version: 3.0.1(zod@4.3.5)
       '@ai-sdk/openai-compatible':
         specifier: ^2.0.1
-        version: 2.0.1(zod@3.25.76)
+        version: 2.0.1(zod@4.3.5)
       '@danmaku-anywhere/danmaku-converter':
         specifier: workspace:*
         version: link:../danmaku-converter
@@ -306,7 +306,7 @@ importers:
         version: 10.3.1(react@19.2.0)
       ai:
         specifier: ^6.0.3
-        version: 6.0.3(zod@3.25.76)
+        version: 6.0.3(zod@4.3.5)
       async-mutex:
         specifier: ^0.5.0
         version: 0.5.0
@@ -374,8 +374,8 @@ importers:
         specifier: ^10.1.0
         version: 10.1.0
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^4.3.5
+        version: 4.3.5
       zustand:
         specifier: 5.0.8
         version: 5.0.8(@types/react@19.2.6)(immer@10.2.0)(react@19.2.0)(use-sync-external-store@1.6.0(react@19.2.0))
@@ -420,8 +420,8 @@ importers:
         specifier: ^1.6.11
         version: 1.6.11
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^4.3.5
+        version: 4.3.5
     devDependencies:
       vitest:
         specifier: ^4.0.13
@@ -452,8 +452,8 @@ importers:
         specifier: ^7.5.4
         version: 7.5.4
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^4.3.5
+        version: 4.3.5
     devDependencies:
       '@hey-api/openapi-ts':
         specifier: ^0.88.0
@@ -496,8 +496,8 @@ importers:
         specifier: ^3.47.0
         version: 3.47.0
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^4.3.5
+        version: 4.3.5
     devDependencies:
       '@types/chrome':
         specifier: ^0.0.325
@@ -7642,31 +7642,31 @@ packages:
 
 snapshots:
 
-  '@ai-sdk/gateway@3.0.2(zod@3.25.76)':
+  '@ai-sdk/gateway@3.0.2(zod@4.3.5)':
     dependencies:
       '@ai-sdk/provider': 3.0.0
-      '@ai-sdk/provider-utils': 4.0.1(zod@3.25.76)
+      '@ai-sdk/provider-utils': 4.0.1(zod@4.3.5)
       '@vercel/oidc': 3.0.5
-      zod: 3.25.76
+      zod: 4.3.5
 
-  '@ai-sdk/openai-compatible@2.0.1(zod@3.25.76)':
+  '@ai-sdk/openai-compatible@2.0.1(zod@4.3.5)':
     dependencies:
       '@ai-sdk/provider': 3.0.0
-      '@ai-sdk/provider-utils': 4.0.1(zod@3.25.76)
-      zod: 3.25.76
+      '@ai-sdk/provider-utils': 4.0.1(zod@4.3.5)
+      zod: 4.3.5
 
-  '@ai-sdk/openai@3.0.1(zod@3.25.76)':
+  '@ai-sdk/openai@3.0.1(zod@4.3.5)':
     dependencies:
       '@ai-sdk/provider': 3.0.0
-      '@ai-sdk/provider-utils': 4.0.1(zod@3.25.76)
-      zod: 3.25.76
+      '@ai-sdk/provider-utils': 4.0.1(zod@4.3.5)
+      zod: 4.3.5
 
-  '@ai-sdk/provider-utils@4.0.1(zod@3.25.76)':
+  '@ai-sdk/provider-utils@4.0.1(zod@4.3.5)':
     dependencies:
       '@ai-sdk/provider': 3.0.0
       '@standard-schema/spec': 1.1.0
       eventsource-parser: 3.0.6
-      zod: 3.25.76
+      zod: 4.3.5
 
   '@ai-sdk/provider@3.0.0':
     dependencies:
@@ -10466,13 +10466,13 @@ snapshots:
 
   agent-base@7.1.4: {}
 
-  ai@6.0.3(zod@3.25.76):
+  ai@6.0.3(zod@4.3.5):
     dependencies:
-      '@ai-sdk/gateway': 3.0.2(zod@3.25.76)
+      '@ai-sdk/gateway': 3.0.2(zod@4.3.5)
       '@ai-sdk/provider': 3.0.0
-      '@ai-sdk/provider-utils': 4.0.1(zod@3.25.76)
+      '@ai-sdk/provider-utils': 4.0.1(zod@4.3.5)
       '@opentelemetry/api': 1.9.0
-      zod: 3.25.76
+      zod: 4.3.5
 
   aidly@1.37.0:
     dependencies:

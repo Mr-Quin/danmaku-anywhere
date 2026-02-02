@@ -18,7 +18,7 @@
     "@danmaku-anywhere/danmaku-converter": "workspace:*",
     "@danmaku-anywhere/danmaku-provider": "workspace:*",
     "core-js": "^3.47.0",
-    "zod": "^3.25.76"
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.325",

@@ -78,7 +78,7 @@
     "reflect-metadata": "^0.2.2",
     "ts-pattern": "^5.9.0",
     "urlpattern-polyfill": "^10.1.0",
-    "zod": "^3.25.76",
+    "zod": "^4.3.5",
     "zustand": "5.0.8"
   },
   "devDependencies": {
