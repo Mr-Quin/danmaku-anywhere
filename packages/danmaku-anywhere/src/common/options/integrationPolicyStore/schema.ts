@@ -12,7 +12,7 @@ const regexString = z.string().refine(
     }
   },
   {
-    message: 'Invalid regex string',
+    error: 'Invalid regex string',
   }
 )
 
@@ -52,10 +52,9 @@ export type IntegrationPolicySelector = z.input<typeof selectorSchema>
 export const zIntegration = z.object({
   version: z.literal(3),
   id: z
-    .string()
     .uuid()
     .optional()
-    .default(() => getRandomUUID()),
+    .prefault(() => getRandomUUID()),
   name: z.string().min(1),
   policy: zIntegrationPolicy,
 })

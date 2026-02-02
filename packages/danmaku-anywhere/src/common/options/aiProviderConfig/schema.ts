@@ -24,11 +24,12 @@ const zAiProviderOpenaiCompatible = zAiProviderBaseConfig.extend({
     baseUrl: z.string(),
     apiKey: z.string().optional(),
     model: z.string(),
-    headers: z.record(z.string()).optional(),
-    queryParams: z.record(z.string()).optional(),
+    headers: z.record(z.string(), z.string()).optional(),
+    queryParams: z.record(z.string(), z.string()).optional(),
     // values should be valid JSON
     providerOptions: z
       .record(
+        z.string(),
         z
           .string()
           .refine(
@@ -41,7 +42,7 @@ const zAiProviderOpenaiCompatible = zAiProviderBaseConfig.extend({
               }
             },
             {
-              message: 'Invalid JSON',
+              error: 'Invalid JSON',
             }
           )
           .transform((value) => JSON.parse(value))

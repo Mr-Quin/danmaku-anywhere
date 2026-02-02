@@ -22,8 +22,8 @@ const zBilibiliSearchMedia = z.object({
   media_id: z.number(), // mdid
   season_id: z.number(), // ssid
   title: z.string(),
-  media_type: z.nativeEnum(BiliBiliMediaType),
-  cover: z.string().url(),
+  media_type: z.enum(BiliBiliMediaType),
+  cover: z.url(),
   season_type_name: z.string(),
   season_type: z.number(),
   ep_size: z.number(),
@@ -36,7 +36,7 @@ export type BilibiliMedia = z.infer<typeof zBilibiliSearchMedia>
 export const zBilibiliSearchResponse = zBilibiliApiResponseBase.extend({
   data: z
     .object({
-      result: z.array(zBilibiliSearchMedia).optional().default([]),
+      result: z.array(zBilibiliSearchMedia).optional().prefault([]),
     })
     .optional(),
 })
@@ -57,8 +57,8 @@ const zBilibiliEpisode = z.object({
   bvid: z.string(),
   cid: z.number(),
   // cover image url
-  cover: z.string().url(),
-  link: z.string().url(),
+  cover: z.url(),
+  link: z.url(),
   // epid
   id: z.number(),
   title: z.string(),
@@ -78,7 +78,7 @@ export const zBilibiliBangumiInfoResponse = zBilibiliApiResponseBase.extend({
         })
       }),
       title: z.string(),
-      type: z.nativeEnum(BiliBiliMediaType),
+      type: z.enum(BiliBiliMediaType),
       media_id: z.number(),
       season_id: z.number(),
       cover: z.string(),
@@ -95,27 +95,24 @@ export const zBilibiliCommentProto = z.object({
     .array(
       z
         .object({
-          progress: z.number().int(), // time in milliseconds
-          mode: z
-            .number()
-            .int()
-            .transform((mode) => {
-              switch (mode) {
-                case 1:
-                case 2:
-                case 3:
-                  return CommentMode.rtl
-                case 4:
-                  return CommentMode.bottom
-                case 5:
-                  return CommentMode.top
-                case 6:
-                  return CommentMode.ltr
-                default:
-                  return null
-              }
-            }),
-          fontsize: z.number().int(),
+          progress: z.int(), // time in milliseconds
+          mode: z.int().transform((mode) => {
+            switch (mode) {
+              case 1:
+              case 2:
+              case 3:
+                return CommentMode.rtl
+              case 4:
+                return CommentMode.bottom
+              case 5:
+                return CommentMode.top
+              case 6:
+                return CommentMode.ltr
+              default:
+                return null
+            }
+          }),
+          fontsize: z.int(),
           color: zRgb888,
           content: z.string(),
         })

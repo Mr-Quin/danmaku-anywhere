@@ -23,15 +23,15 @@ export const zDomain = z
       }
     },
     {
-      message: 'Invalid domain',
+      error: 'Invalid domain',
     }
   )
 
 export const uploadSchema = z.object({
   name: z.string().min(1).trim(),
   config: zIntegrationPolicy,
-  domains: z.array(zDomain).optional().default([]),
-  tags: z.array(z.string().min(1).trim()).optional().default([]),
+  domains: z.array(zDomain).optional().prefault([]),
+  tags: z.array(z.string().min(1).trim()).optional().prefault([]),
   authorId: z.string().trim().optional(),
   authorName: z.string().trim().optional(),
 })
@@ -40,6 +40,6 @@ export const listQuerySchema = z.object({
   keyword: z.string().optional(),
   domain: zDomain.optional(),
   tag: z.string().optional(),
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(10),
+  page: z.coerce.number().int().min(1).prefault(1),
+  limit: z.coerce.number().int().min(1).max(100).prefault(10),
 })

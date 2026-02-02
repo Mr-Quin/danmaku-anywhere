@@ -21,7 +21,7 @@ export type ProviderConfigType = z.infer<typeof zProviderConfigType>
 const zProviderConfigBase = z.object({
   id: z.string(),
   type: zProviderConfigType,
-  impl: z.nativeEnum(DanmakuSourceType),
+  impl: z.enum(DanmakuSourceType),
   name: z.string().min(1),
   isBuiltIn: z.boolean(),
   enabled: z.boolean(),

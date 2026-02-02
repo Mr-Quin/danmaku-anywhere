@@ -17,8 +17,8 @@ const zTencentVideoSeason = z.object({
     videoType: z.number(),
     typeName: z.string(),
     title: z.string(),
-    year: z.number().optional().default(0), // year of release, null or 0 for non-seasonal
-    imgUrl: z.string().url(),
+    year: z.number().optional().prefault(0), // year of release, null or 0 for non-seasonal
+    imgUrl: z.url(),
     episodeSites: z.array(
       z.object({
         showName: z.string(),
@@ -83,7 +83,7 @@ const zTencentEpisodeListItem = z.object({
   play_title: z.string(),
   title: z.string(),
   union_title: z.string(),
-  image_url: z.string().url(),
+  image_url: z.url(),
 })
 
 export const zTencentEpisodeListResponse = zTencentApiResponseBase.extend({
@@ -135,8 +135,8 @@ export const zTencentPageDetailResponse = zTencentApiResponseBase.extend({
                     item_type: z.string(),
                     item_params: z.object({
                       title: z.string(),
-                      new_pic_vt: z.string().url(),
-                      new_pic_hz: z.string().url(),
+                      new_pic_vt: z.url(),
+                      new_pic_hz: z.url(),
                       'report.cid': z.string(),
                       episode_all: z.coerce.number(),
                       year: z.coerce.number(),

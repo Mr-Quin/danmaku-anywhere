@@ -77,7 +77,7 @@ const zBangumiDetails = z.object({
   bangumiId: z.string(),
   animeTitle: z.string(),
   imageUrl: z.string(),
-  bangumiUrl: z.union([z.literal(''), z.string().url()]).optional(),
+  bangumiUrl: z.union([z.literal(''), z.url()]).optional(),
   type: z.string(),
   typeDescription: z.string(),
   titles: z
@@ -132,25 +132,22 @@ export const zGetCommentQuery = z.object({
   /**
    * 起始弹幕编号，忽略此编号以前的弹幕。默认值为0
    */
-  from: z.number().optional().default(0),
+  from: z.number().optional().prefault(0),
   /**
    * 是否同时获取关联的第三方弹幕。默认值为false
    */
-  withRelated: z.boolean().optional().default(false),
+  withRelated: z.boolean().optional().prefault(false),
   /**
    * 中文简繁转换。0-不转换，1-转换为简体，2-转换为繁体。
    */
-  chConvert: z
-    .nativeEnum(DanDanChConvert)
-    .optional()
-    .default(DanDanChConvert.None),
+  chConvert: z.enum(DanDanChConvert).optional().prefault(DanDanChConvert.None),
 })
 
 export type GetCommentQuery = z.input<typeof zGetCommentQuery>
 
 export const zGetExtCommentQuery = z.object({
   url: z.string(),
-  chConvert: z.nativeEnum(DanDanChConvert).optional(),
+  chConvert: z.enum(DanDanChConvert).optional(),
 })
 
 export type GetExtCommentQuery = z.input<typeof zGetExtCommentQuery>
@@ -198,7 +195,7 @@ export const zRelatedResponseV2 = createResponseType(
 // register
 const zUserName = z.string().min(5).max(20)
 const zPassword = z.string().min(5).max(20)
-const zEmail = z.string().max(50).email()
+const zEmail = z.email().max(50)
 const zScreenName = z.string().max(50)
 
 /**
@@ -233,16 +230,16 @@ export const zFindMyIdRequestV2 = z.object({
 export type FindMyIdRequestV2 = z.infer<typeof zFindMyIdRequestV2>
 
 export const zUserPrivileges = z.object({
-  member: z.union([z.string().datetime(), z.null()]),
-  resmonitor: z.union([z.string().datetime(), z.null()]),
+  member: z.union([z.iso.datetime(), z.null()]),
+  resmonitor: z.union([z.iso.datetime(), z.null()]),
 })
 
 export const zLoginResponse = zResponseSuccess.extend({
   registerRequired: z.boolean(),
-  userId: z.number().int(),
+  userId: z.int(),
   userName: z.string().nullish(),
   token: z.string(),
-  tokenExpireTime: z.string().datetime(),
+  tokenExpireTime: z.iso.datetime(),
   userType: z.string(),
   screenName: z.string(),
   profileImage: z.string(),

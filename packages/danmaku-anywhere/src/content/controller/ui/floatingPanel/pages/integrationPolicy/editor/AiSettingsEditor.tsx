@@ -37,7 +37,7 @@ export const AiSettingsEditor = (): ReactElement => {
     mutationFn: async () => {
       const result = zMountConfigAiConfig.safeParse(value)
       if (!result.success) {
-        throw new Error(result.error.errors[0].message)
+        throw new Error(result.error.message)
       }
 
       await update.mutateAsync({

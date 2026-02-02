@@ -13,7 +13,7 @@ export const danmakuSourcesSchema = z.object({
     enabled: z.boolean(),
     baseUrl: z.string().trim(),
     useCustomRoot: z.boolean(),
-    chConvert: z.nativeEnum(DanDanChConvert),
+    chConvert: z.enum(DanDanChConvert),
   }),
   bilibili: z.object({
     enabled: z.boolean(),
@@ -22,7 +22,7 @@ export const danmakuSourcesSchema = z.object({
      * @deprecated
      * Deprecated in favor of danmakuOptions.limitPerSec
      */
-    protobufLimitPerMin: z.number().int().positive().max(1000).default(200),
+    protobufLimitPerMin: z.int().positive().max(1000).default(200),
   }),
   tencent: z.object({
     enabled: z.boolean(),
@@ -30,7 +30,7 @@ export const danmakuSourcesSchema = z.object({
      * @deprecated
      * Deprecated in favor of danmakuOptions.limitPerSec
      */
-    limitPerMin: z.number().int().positive().max(1000).default(200),
+    limitPerMin: z.int().positive().max(1000).default(200),
   }),
   iqiyi: z.object({
     enabled: z.boolean(),
@@ -38,18 +38,12 @@ export const danmakuSourcesSchema = z.object({
      * @deprecated
      * Deprecated in favor of danmakuOptions.limitPerSec
      */
-    limitPerMin: z.number().int().positive().max(1000).default(200),
+    limitPerMin: z.int().positive().max(1000).default(200),
   }),
   custom: z.object({
     enabled: z.boolean(),
-    baseUrl: z
-      .string()
-      .url()
-      .transform((val) => val.replace(/\/$/, '')),
-    danmuicuBaseUrl: z
-      .string()
-      .url()
-      .transform((val) => val.replace(/\/$/, '')),
+    baseUrl: z.url().transform((val) => val.replace(/\/$/, '')),
+    danmuicuBaseUrl: z.url().transform((val) => val.replace(/\/$/, '')),
     stripColor: z.boolean(),
   }),
 })
@@ -68,11 +62,13 @@ export const retentionPolicySchema = z.object({
    * Comments older than this number of days will be deleted
    * 0 will disable this feature
    */
-  deleteCommentsAfter: z.coerce.number().int().min(0),
+  // TODO: the input type here should be string. it says number here to work around
+  // an issue with react-hook-form
+  deleteCommentsAfter: z.coerce.number<number>().int().min(0),
 })
 
 const userThemeSchema = z.object({
-  colorMode: z.nativeEnum(ColorMode),
+  colorMode: z.enum(ColorMode),
 })
 
 const hotkeySchema = z.object({
@@ -100,7 +96,7 @@ export const extensionOptionsSchema = z.object({
   /**
    * Language of the extension
    */
-  lang: z.nativeEnum(Language),
+  lang: z.enum(Language),
 
   /**
    * Whether to convert traditional Chinese to simplified Chinese when searching for danmaku
