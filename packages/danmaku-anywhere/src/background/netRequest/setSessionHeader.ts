@@ -15,8 +15,9 @@ export async function setSessionHeader(
   const options = await extensionOptionsService.get()
 
   try {
-    const nextRuleId =
-      (await chrome.declarativeNetRequest.getSessionRules()).length + 1
+    const rules = await chrome.declarativeNetRequest.getSessionRules()
+    const maxId = rules.reduce((max, rule) => Math.max(max, rule.id), 0)
+    const nextRuleId = maxId + 1
 
     await chrome.declarativeNetRequest.updateSessionRules({
       addRules: [
