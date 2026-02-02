@@ -437,7 +437,8 @@
       }
     },
     "uploadDebugData": "提交调试数据",
-    "uploadDebugDataSuccess": "提交成功 {{ id }}"
+    "uploadDebugDataSuccess": "提交成功 {{ id }}",
+    "restrictInitiatorDomain": "限制DNR至发起自扩展的请求"
   },
   "providers": {
     "alert": {

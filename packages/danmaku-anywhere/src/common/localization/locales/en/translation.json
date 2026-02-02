@@ -451,7 +451,8 @@
       }
     },
     "uploadDebugData": "Submit Debug Data",
-    "uploadDebugDataSuccess": "Submitted {{ id }}"
+    "uploadDebugDataSuccess": "Submitted {{ id }}",
+    "restrictInitiatorDomain": "Limit DNR initiator domains to this extension"
   },
   "providers": {
     "alert": {

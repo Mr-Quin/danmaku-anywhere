@@ -1,4 +1,7 @@
 import { Mutex } from 'async-mutex'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
+import { container } from '../ioc'
+import { getSelfDomain } from './getSelfDomain'
 
 const mutex = new Mutex()
 
@@ -7,6 +10,9 @@ export async function setSessionHeader(
   headers: Record<string, string>
 ) {
   const release = await mutex.acquire()
+
+  const extensionOptionsService = container.get(ExtensionOptionsService)
+  const options = await extensionOptionsService.get()
 
   try {
     const nextRuleId =
@@ -27,15 +33,26 @@ export async function setSessionHeader(
           condition: {
             urlFilter: `|${matchUrl}`,
             resourceTypes: ['xmlhttprequest'],
+            initiatorDomains:
+              options.restrictInitiatorDomain !== false
+                ? [getSelfDomain()]
+                : undefined,
           },
         },
       ],
     })
 
-    return async function removeRule() {
+    async function removeRule() {
       await chrome.declarativeNetRequest.updateSessionRules({
         removeRuleIds: [nextRuleId],
       })
+    }
+
+    return {
+      removeRule,
+      async [Symbol.asyncDispose]() {
+        await removeRule()
+      },
     }
   } finally {
     release()
@@ -68,16 +85,9 @@ export function WithSessionHeader<Args extends unknown[]>(
         resolvedHeaders = { ...options.headers, ...options.getHeaders(args) }
       }
 
-      const removeRule = await setSessionHeader(
-        options.matchUrl,
-        resolvedHeaders
-      )
+      await using _ = await setSessionHeader(options.matchUrl, resolvedHeaders)
 
-      try {
-        return await originalMethod.apply(this, args)
-      } finally {
-        await removeRule()
-      }
+      return await originalMethod.apply(this, args)
     }
     descriptor.value = overrideMethod
 

@@ -141,6 +141,11 @@ export const extensionOptionsSchema = z.object({
    * Auto generated user id
    */
   id: z.string().optional(),
+
+  /**
+   * Whether to limit the modifier header to requests initiated by the extension itself
+   */
+  restrictInitiatorDomain: z.boolean(),
 })
 
 export type ExtensionOptions = z.infer<typeof extensionOptionsSchema>

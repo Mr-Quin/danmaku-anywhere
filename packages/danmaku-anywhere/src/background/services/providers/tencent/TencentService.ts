@@ -43,6 +43,7 @@ export class TencentService implements IDanmakuProvider {
   }
 
   // test if the cookies are working
+  @defaultTencentSessionHeader
   static async testCookies(logger: ILogger) {
     const log = logger.sub('[TencentService]')
     log.debug('Testing tencent cookies')

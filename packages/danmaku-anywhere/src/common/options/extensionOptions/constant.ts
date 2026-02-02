@@ -42,4 +42,5 @@ export const defaultExtensionOptions: ExtensionOptions = {
   showReleaseNotes: false,
   enableAnalytics: true,
   id: undefined,
+  restrictInitiatorDomain: true,
 }
