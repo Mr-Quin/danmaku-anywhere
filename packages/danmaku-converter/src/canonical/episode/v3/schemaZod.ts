@@ -4,7 +4,7 @@ import { zCommentImport } from '../../comment/index.js'
 import { DanmakuSourceType } from '../../provider/provider.js'
 
 const zBaseEpisodeV3 = z.object({
-  provider: z.nativeEnum(DanmakuSourceType),
+  provider: z.enum(DanmakuSourceType),
   comments: z.array(zCommentImport),
   commentCount: z.number(),
   version: z.number(),
@@ -33,7 +33,7 @@ const schema = {
       provider: z.literal(DanmakuSourceType.DanDanPlay),
       params: z
         .object({
-          chConvert: z.nativeEnum(DanDanChConvert).optional(),
+          chConvert: z.enum(DanDanChConvert).optional(),
           withRelated: z.boolean().optional(),
           from: z.number().optional(),
         })
@@ -62,7 +62,7 @@ const schema = {
         seasonId: z.number(),
         title: z.string(),
         seasonTitle: z.string(),
-        mediaType: z.nativeEnum(BiliBiliMediaType),
+        mediaType: z.enum(BiliBiliMediaType),
       }),
       episodeId: z.number(),
       seasonId: z.number(),

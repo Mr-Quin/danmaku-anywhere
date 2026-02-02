@@ -22,7 +22,7 @@ const schema = {
       provider: z.literal(1),
       params: z
         .object({
-          chConvert: z.nativeEnum(DanDanChConvert).optional(),
+          chConvert: z.enum(DanDanChConvert).optional(),
           withRelated: z.boolean().optional(),
           from: z.number().optional(),
         })
@@ -51,7 +51,7 @@ const schema = {
         seasonId: z.number(),
         title: z.string(),
         seasonTitle: z.string(),
-        mediaType: z.nativeEnum(BiliBiliMediaType),
+        mediaType: z.enum(BiliBiliMediaType),
       }),
       episodeId: z.number(),
       seasonId: z.number(),

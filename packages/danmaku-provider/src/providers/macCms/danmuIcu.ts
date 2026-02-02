@@ -31,7 +31,7 @@ export const zDanmuIcuDanmaku = z
           zHex, // color
           z
             .string()
-            .default(''), // ?
+            .prefault(''), // ?
           z.string(), // text
         ])
         .rest(z.any())

@@ -6,7 +6,7 @@ import { BUILT_IN_AI_PROVIDER_ID } from '../aiProviderConfig/constant'
 
 export const automationModeSchema = z
   .enum(['manual', 'ai', 'xpath'])
-  .default('manual')
+  .prefault('manual')
 
 export type AutomationMode = z.infer<typeof automationModeSchema>
 
@@ -24,10 +24,9 @@ export const DEFAULT_MOUNT_CONFIG_AI_CONFIG: MountConfigAiConfig = {
 
 export const mountConfigInputSchema = z.object({
   id: z
-    .string()
     .uuid()
     .optional()
-    .default(() => getRandomUUID()),
+    .prefault(() => getRandomUUID()),
   author: z.string().optional(),
   description: z.string().optional(),
   patterns: z.array(
@@ -40,7 +39,7 @@ export const mountConfigInputSchema = z.object({
         return true
       },
       {
-        message: 'Invalid pattern',
+        error: 'Invalid pattern',
       }
     )
   ),

@@ -43,13 +43,13 @@ export const zCommentImport = z
     p: z
       .string()
       .transform((data) => {
-        return data.split(',')
+        return data.split(',') as unknown[]
       })
       .pipe(
         z
           .tuple([
             zTime, // time
-            z.coerce.number().pipe(z.nativeEnum(CommentMode)),
+            z.coerce.number<string>().pipe(z.enum(CommentMode)),
             zRgb888, // decimal color
           ])
           .rest(z.string())

@@ -9,7 +9,7 @@ const zXmlParsedEntry = z
     _attributes: z.object({
       p: z
         .string()
-        .transform((data) => data.split(','))
+        .transform((data) => data.split(',') as unknown[])
         .pipe(
           z
             .tuple([
@@ -52,7 +52,7 @@ const zXmlParsedEntry = z
         ),
       s: z.string().optional(),
     }),
-    _text: z.string().optional().default(''),
+    _text: z.string().optional().prefault(''),
   })
   .transform((data) => {
     // drop font size

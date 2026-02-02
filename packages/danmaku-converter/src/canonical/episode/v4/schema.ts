@@ -40,12 +40,12 @@ const zBaseEpisodeV4 = z.object({
   // Episode number
   episodeNumber: z.union([z.number(), z.string()]).optional(),
   // Cover image url
-  imageUrl: z.string().url().optional(),
+  imageUrl: z.url().optional(),
   // Link to source
-  externalLink: z.string().url().optional(),
+  externalLink: z.url().optional(),
   // alternative title
   alternativeTitle: z.array(z.string()).optional(),
-  provider: z.nativeEnum(DanmakuSourceType),
+  provider: z.enum(DanmakuSourceType),
   // unique id within the provider for indexing
   indexedId: z.string(),
   // foreign key in the season table

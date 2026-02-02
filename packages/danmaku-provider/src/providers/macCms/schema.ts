@@ -8,7 +8,7 @@ const zVodItemBase = z.object({
   vod_year: z.string().optional().nullable(),
   vod_area: z.string().optional().nullable(),
   vod_class: z.string().optional().nullable(),
-  vod_play_from: z.string().optional().nullable().default(''),
+  vod_play_from: z.string().optional().nullable().prefault(''),
   vod_play_url: z.string(),
 })
 
@@ -33,7 +33,7 @@ export const zVodSearchResponse = z.object({
   pagecount: z.coerce.number().optional(),
   limit: z.coerce.number().optional(),
   total: z.coerce.number().optional(),
-  list: z.array(zVodItem).default([]),
+  list: z.array(zVodItem).prefault([]),
 })
 
 export type GenericVodItem = z.output<typeof zVodItem>

@@ -1,4 +1,4 @@
-import { zodResolver } from '@hookform/resolvers/zod'
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema'
 import {
   Box,
   Button,
@@ -42,7 +42,7 @@ export const RetentionPolicyPage = () => {
     getValues,
     formState: { errors, isDirty },
   } = useForm<RetentionPolicy>({
-    resolver: zodResolver(retentionPolicySchema),
+    resolver: standardSchemaResolver(retentionPolicySchema),
     defaultValues: retentionPolicy,
     mode: 'onChange',
   })

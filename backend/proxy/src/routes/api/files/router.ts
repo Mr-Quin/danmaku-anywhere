@@ -24,10 +24,10 @@ filesRouter.post(
       file: z
         .instanceof(File)
         .refine((file) => file.type === 'application/zip', {
-          message: 'File must be a zip file',
+          error: 'File must be a zip file',
         })
         .refine((file) => file.size > 0, {
-          message: 'File is empty',
+          error: 'File is empty',
         })
         .refine((file) => file.size <= MAX_FILE_SIZE, {
           message: `File size must be less than ${MAX_FILE_SIZE >> 20}MB`,

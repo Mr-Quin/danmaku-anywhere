@@ -12,8 +12,8 @@ export interface FetchOptions<T extends ZodType> {
   query?: Record<string, unknown>
   body?: Record<string, unknown>
   requestSchema?: {
-    body?: ZodType
-    query?: ZodType
+    body?: ZodType<Record<string, unknown>>
+    query?: ZodType<Record<string, unknown>>
   }
   responseType?: 'json' | 'text'
   responseSchema: T

@@ -22,7 +22,7 @@ export const zHex = z
   .string()
   .toUpperCase()
   .regex(/^#([0-9a-fA-F]{3}){1,2}$/, {
-    message: 'Invalid hex color format',
+    error: 'Invalid hex color format',
   })
   .transform((hex) => {
     // pad hex to 6 chars and make upper case
@@ -34,7 +34,7 @@ export const zHex = z
   })
 
 export const zRgb888 = z.coerce
-  .number()
+  .number<string>()
   .int()
   .transform((n) => {
     /**
@@ -45,7 +45,7 @@ export const zRgb888 = z.coerce
     return Math.max(Math.min(n, 16777215), 0)
   })
 
-export const zTime = z.coerce.number().min(0)
+export const zTime = z.coerce.number<string>().min(0)
 
 /**
  * Copied from danmaku-provider
