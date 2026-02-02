@@ -1,4 +1,7 @@
 import { Mutex } from 'async-mutex'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
+import { container } from '../ioc'
+import { getSelfDomain } from './getSelfDomain'
 
 const mutex = new Mutex()
 
@@ -8,37 +11,51 @@ export async function setSessionHeader(
 ) {
   const release = await mutex.acquire()
 
-  try {
-    const nextRuleId =
-      (await chrome.declarativeNetRequest.getSessionRules()).length + 1
+  using stack = new DisposableStack()
+  stack.defer(() => release())
 
-    await chrome.declarativeNetRequest.updateSessionRules({
-      addRules: [
-        {
-          id: nextRuleId,
-          action: {
-            type: 'modifyHeaders',
-            requestHeaders: Object.entries(headers).map(([header, value]) => ({
-              header,
-              operation: 'set',
-              value,
-            })),
-          },
-          condition: {
-            urlFilter: `|${matchUrl}`,
-            resourceTypes: ['xmlhttprequest'],
-          },
+  const extensionOptionsService = container.get(ExtensionOptionsService)
+  const options = await extensionOptionsService.get()
+
+  const rules = await chrome.declarativeNetRequest.getSessionRules()
+  const maxId = rules.reduce((max, rule) => Math.max(max, rule.id), 0)
+  const nextRuleId = maxId + 1
+
+  await chrome.declarativeNetRequest.updateSessionRules({
+    addRules: [
+      {
+        id: nextRuleId,
+        action: {
+          type: 'modifyHeaders',
+          requestHeaders: Object.entries(headers).map(([header, value]) => ({
+            header,
+            operation: 'set',
+            value,
+          })),
         },
-      ],
-    })
+        condition: {
+          urlFilter: `|${matchUrl}`,
+          resourceTypes: ['xmlhttprequest'],
+          initiatorDomains:
+            options.restrictInitiatorDomain !== false
+              ? [getSelfDomain()]
+              : undefined,
+        },
+      },
+    ],
+  })
 
-    return async function removeRule() {
-      await chrome.declarativeNetRequest.updateSessionRules({
-        removeRuleIds: [nextRuleId],
-      })
-    }
-  } finally {
-    release()
+  async function removeRule() {
+    await chrome.declarativeNetRequest.updateSessionRules({
+      removeRuleIds: [nextRuleId],
+    })
+  }
+
+  return {
+    removeRule,
+    async [Symbol.asyncDispose]() {
+      await removeRule()
+    },
   }
 }
 
@@ -68,16 +85,9 @@ export function WithSessionHeader<Args extends unknown[]>(
         resolvedHeaders = { ...options.headers, ...options.getHeaders(args) }
       }
 
-      const removeRule = await setSessionHeader(
-        options.matchUrl,
-        resolvedHeaders
-      )
+      await using _ = await setSessionHeader(options.matchUrl, resolvedHeaders)
 
-      try {
-        return await originalMethod.apply(this, args)
-      } finally {
-        await removeRule()
-      }
+      return await originalMethod.apply(this, args)
     }
     descriptor.value = overrideMethod
 

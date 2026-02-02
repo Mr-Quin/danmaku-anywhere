@@ -72,6 +72,18 @@ const advancedSettings: SettingConfig<ExtensionOptions>[] = [
     getValue: (options) => options.searchUsingSimplified,
     createUpdate: (_, newValue) => ({ searchUsingSimplified: newValue }),
   },
+  {
+    id: 'toggle.restrictInitiatorDomain',
+    label: () =>
+      i18n.t(
+        'optionsPage.restrictInitiatorDomain',
+        'Limit DNR initiator domains to this extension'
+      ),
+    category: 'advanced',
+    type: 'toggle',
+    getValue: (options) => options.restrictInitiatorDomain,
+    createUpdate: (_, newValue) => ({ restrictInitiatorDomain: newValue }),
+  },
 ]
 
 const playerSettings: SettingConfig<ExtensionOptions>[] = [

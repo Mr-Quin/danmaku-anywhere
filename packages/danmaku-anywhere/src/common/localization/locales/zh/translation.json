@@ -416,6 +416,7 @@
       "showDanmakuTimeline": "显示弹幕密度",
       "showSkipButton": "显示跳过按钮（OP/ED）"
     },
+    "restrictInitiatorDomain": "限制DNR至发起自扩展的请求",
     "retentionPolicy": {
       "alert": {
         "nDanmakuDeleted_other": "已删除{{count}}条弹幕"

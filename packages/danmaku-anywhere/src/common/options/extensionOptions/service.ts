@@ -241,6 +241,13 @@ export class ExtensionOptionsService implements IStoreService {
           return data
         },
       })
+      .version(22, {
+        upgrade: (data) => {
+          return produce<ExtensionOptions>(data, (draft) => {
+            draft.restrictInitiatorDomain = true
+          })
+        },
+      })
   }
 
   async get() {

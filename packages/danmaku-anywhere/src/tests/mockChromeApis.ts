@@ -42,6 +42,8 @@ export const mockChrome: MockChrome = {
   },
   runtime: {
     getManifest: vi.fn(),
+    getURL: vi.fn(),
+    id: 'test',
   },
 } as const
 

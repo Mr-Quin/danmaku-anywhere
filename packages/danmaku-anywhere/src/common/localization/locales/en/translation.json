@@ -429,6 +429,7 @@
       "showDanmakuTimeline": "Show danmaku density",
       "showSkipButton": "Show skip button (OP/ED)"
     },
+    "restrictInitiatorDomain": "Limit DNR initiator domains to this extension",
     "retentionPolicy": {
       "alert": {
         "nDanmakuDeleted_one": "{{count}} danmaku deleted",
