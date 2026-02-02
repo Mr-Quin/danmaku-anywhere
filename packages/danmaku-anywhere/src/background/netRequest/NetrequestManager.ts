@@ -1,5 +1,6 @@
 import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import { getSelfDomain } from './getSelfDomain'
 
 // these enums are not defined in Firefox, so we need to define them ourselves
 enum RuleActionType {
@@ -31,16 +32,6 @@ enum ResourceType {
   MEDIA = 'media',
   WEBSOCKET = 'websocket',
   OTHER = 'other',
-}
-
-function getSelfDomain() {
-  const url = chrome.runtime.getURL('')
-  try {
-    return new URL(url).host
-  } catch (e) {
-    console.error('Failed to get self domain', e)
-    return chrome.runtime.id
-  }
 }
 
 const selfDomain = getSelfDomain()
