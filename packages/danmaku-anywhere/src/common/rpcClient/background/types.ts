@@ -135,6 +135,7 @@ export type BackgroundMethods = {
   testAiProvider: RPCDef<AiProviderConfigInput, TestAiProviderResponse>
   backupExport: RPCDef<void, BackupData>
   backupImport: RPCDef<unknown, BackupRestoreResult>
+  dataWipeDanmaku: RPCDef<{ includeCustomEpisodes: boolean }, void>
 }
 
 type InputWithFrameId<TInput> = TInput extends void

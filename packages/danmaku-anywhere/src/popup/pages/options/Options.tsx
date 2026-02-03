@@ -67,8 +67,8 @@ export const Options = () => {
         <List disablePadding>
           <LanguageListItem />
           <OptionsListItem
-            title={t('optionsPage.pages.retentionPolicy', 'Retention Policy')}
-            onClick={() => navigate('retention-policy')}
+            title={t('optionsPage.pages.dataManagement', 'Data Management')}
+            onClick={() => navigate('data-management')}
           />
           <OptionsListItem
             title={t('optionsPage.pages.hotkeys', 'Hotkeys')}

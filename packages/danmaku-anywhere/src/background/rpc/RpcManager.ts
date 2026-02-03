@@ -7,6 +7,7 @@ import { inject, injectable } from 'inversify'
 import { match } from 'ts-pattern'
 import { ScriptingManager } from '@/background/scripting/ScriptingManager'
 import { BackupService } from '@/background/services/Backup/BackupService.service'
+import { DataManagementService } from '@/background/services/DataManagementService'
 import { GenAIService } from '@/background/services/GenAIService'
 import { IconService } from '@/background/services/IconService'
 import { ImageCacheService } from '@/background/services/ImageCache/ImageCache.service'
@@ -67,7 +68,9 @@ export class RpcManager {
     @inject(LoggerSymbol) logger: ILogger,
     @inject(DebugFileService) private debugFileService: DebugFileService,
     @inject(ImageCacheService) private imageCacheService: ImageCacheService,
-    @inject(BackupService) private backupService: BackupService
+    @inject(BackupService) private backupService: BackupService,
+    @inject(DataManagementService)
+    private dataManagementService: DataManagementService
   ) {
     this.logger = logger.sub('[RpcManager]')
   }
@@ -332,6 +335,10 @@ export class RpcManager {
           const result = await this.backupService.importAll(data)
           void invalidateContentScriptData(sender.tab?.id)
           return result
+        },
+        dataWipeDanmaku: async (data, sender) => {
+          await this.dataManagementService.wipeAllData(data)
+          void invalidateContentScriptData(sender.tab?.id)
         },
       },
       {

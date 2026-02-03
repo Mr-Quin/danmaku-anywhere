@@ -122,7 +122,7 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
         Component: HotkeyOptions,
       },
       {
-        path: 'retention-policy',
+        path: 'data-management',
         Component: RetentionPolicyPage,
       },
       {
