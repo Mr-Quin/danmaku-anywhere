@@ -17,12 +17,11 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { produce } from 'immer'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Outlet } from 'react-router'
-
 import { alarmKeys } from '@/common/alarms/constants'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { OutlineAccordion } from '@/common/components/OutlineAccordion'
@@ -30,10 +29,44 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import type { RetentionPolicy } from '@/common/options/extensionOptions/schema'
 import { retentionPolicySchema } from '@/common/options/extensionOptions/schema'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
-import { alarmQueryKeys, episodeQueryKeys } from '@/common/queries/queryKeys'
+import {
+  alarmQueryKeys,
+  customEpisodeQueryKeys,
+  episodeQueryKeys,
+  seasonMapQueryKeys,
+  seasonQueryKeys,
+} from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
+
+function useWipeDanmakuStorage() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      includeCustomEpisodes,
+    }: {
+      includeCustomEpisodes: boolean
+    }) => {
+      await chromeRpcClient.dataWipeDanmaku({ includeCustomEpisodes })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: episodeQueryKeys.all(),
+      })
+      queryClient.invalidateQueries({
+        queryKey: seasonQueryKeys.all(),
+      })
+      queryClient.invalidateQueries({
+        queryKey: seasonMapQueryKeys.all(),
+      })
+      queryClient.invalidateQueries({
+        queryKey: customEpisodeQueryKeys.all(),
+      })
+    },
+  })
+}
 
 export const RetentionPolicyPage = () => {
   const { t } = useTranslation()
@@ -92,18 +125,7 @@ export const RetentionPolicyPage = () => {
     },
   })
 
-  const { mutate: wipeData, isPending: isWiping } = useMutation({
-    mutationFn: async ({
-      includeCustomEpisodes,
-    }: {
-      includeCustomEpisodes: boolean
-    }) => {
-      await chromeRpcClient.dataWipeDanmaku({ includeCustomEpisodes })
-    },
-    onSuccess: () => {
-      toast.success(t('common.success', 'Success'))
-    },
-  })
+  const { mutate: wipeData, isPending: isWiping } = useWipeDanmakuStorage()
 
   const handleWipeData = () => {
     let includeCustomEpisodes = false
@@ -146,7 +168,11 @@ export const RetentionPolicyPage = () => {
             'optionsPage.dataManagement.wipeData.confirm2',
             'Are you sure? This action cannot be undone.'
           ),
-          onConfirm: () => wipeData({ includeCustomEpisodes }),
+          onConfirm: () =>
+            wipeData(
+              { includeCustomEpisodes },
+              { onSuccess: () => toast.success(t('common.success', 'Success')) }
+            ),
           confirmButtonProps: { sx: { order: -1 }, color: 'error' },
           cancelButtonProps: { sx: { ml: 1 } },
         })
