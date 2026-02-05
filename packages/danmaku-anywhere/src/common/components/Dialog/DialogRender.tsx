@@ -37,7 +37,8 @@ export const DialogRender = ({
     content,
     confirmText,
     cancelText,
-    confirmColor = 'primary',
+    confirmButtonProps,
+    cancelButtonProps,
     dialogProps,
     hideCancel = false,
     hideConfirm = false,
@@ -134,24 +135,35 @@ export const DialogRender = ({
     if (hideCancel && hideConfirm) {
       return null
     }
+
+    const cancelBtn = !hideCancel && (
+      <Button
+        onClick={handleClose}
+        disabled={isLoading}
+        {...cancelButtonProps}
+        key="cancel"
+      >
+        {cancelText || t('common.cancel', 'Cancel')}
+      </Button>
+    )
+
+    const confirmBtn = !hideConfirm && (
+      <Button
+        onClick={handleConfirm}
+        variant="contained"
+        loading={isLoading}
+        autoFocus
+        {...confirmButtonProps}
+        key="confirm"
+      >
+        {confirmText || t('common.confirm', 'Confirm')}
+      </Button>
+    )
+
     return (
       <DialogActions>
-        {!hideCancel && (
-          <Button onClick={handleClose} disabled={isLoading}>
-            {cancelText || t('common.cancel', 'Cancel')}
-          </Button>
-        )}
-        {!hideConfirm && (
-          <Button
-            onClick={handleConfirm}
-            color={confirmColor}
-            variant="contained"
-            loading={isLoading}
-            autoFocus
-          >
-            {confirmText || t('common.confirm', 'Confirm')}
-          </Button>
-        )}
+        {cancelBtn}
+        {confirmBtn}
       </DialogActions>
     )
   }

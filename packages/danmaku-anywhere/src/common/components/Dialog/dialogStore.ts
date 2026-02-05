@@ -11,7 +11,8 @@ export interface DialogConfig {
   cancelText?: ReactNode
   onConfirm?: () => void | Promise<void>
   onCancel?: () => void
-  confirmColor?: ButtonProps['color']
+  confirmButtonProps?: ButtonProps
+  cancelButtonProps?: ButtonProps
   dialogProps?: Omit<DialogProps, 'open' | 'onClose'>
   hideCancel?: boolean
   hideConfirm?: boolean
@@ -89,13 +90,21 @@ const useDialogStoreBase = create<DialogState>((set, get) => ({
   },
   confirm: (config) => {
     return get().open({
-      confirmColor: 'primary',
+      confirmButtonProps: {
+        color: 'primary',
+        variant: 'contained',
+        ...config.confirmButtonProps,
+      },
       ...config,
     })
   },
   delete: (config) => {
     return get().open({
-      confirmColor: 'error',
+      confirmButtonProps: {
+        color: 'error',
+        variant: 'contained',
+        ...config.confirmButtonProps,
+      },
       ...config,
     })
   },

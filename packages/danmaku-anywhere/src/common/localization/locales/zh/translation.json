@@ -388,6 +388,14 @@
         "stripColor": "去除弹幕颜色"
       }
     },
+    "dataManagement": {
+      "wipeDanmakuData": "清空弹幕库",
+      "wipeData": {
+        "confirm1": "确定要清空所有弹幕，剧集，映射吗？此操作无法恢复。",
+        "confirm2": "此操作无法恢复，确定要继续吗？",
+        "includeCustomEpisodes": "同时清空本地弹幕"
+      }
+    },
     "enableAnalytics": "匿名数据收集",
     "help": {
       "feedback": "提交意见或建议",
@@ -407,10 +415,10 @@
     "pages": {
       "advanced": "高级设置",
       "backup": "备份",
+      "dataManagement": "数据管理",
       "help": "关于",
       "hotkeys": "快捷键",
-      "player": "播放设置",
-      "retentionPolicy": "自动删除"
+      "player": "播放设置"
     },
     "player": {
       "showDanmakuTimeline": "显示弹幕密度",

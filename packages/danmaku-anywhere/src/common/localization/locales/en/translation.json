@@ -401,6 +401,14 @@
         "stripColor": "Remove danmaku color"
       }
     },
+    "dataManagement": {
+      "wipeDanmakuData": "Wipe Danmaku Data",
+      "wipeData": {
+        "confirm1": "Are you sure you want to wipe all danmaku, seasons, and mapping data? This action cannot be undone.",
+        "confirm2": "Are you sure? This action cannot be undone.",
+        "includeCustomEpisodes": "Include custom episodes"
+      }
+    },
     "enableAnalytics": "Enable anonymous analytics",
     "help": {
       "feedback": "Provide feedback",
@@ -420,10 +428,10 @@
     "pages": {
       "advanced": "Advanced",
       "backup": "Backup & Restore",
+      "dataManagement": "Data Management",
       "help": "关于",
       "hotkeys": "Hotkeys",
-      "player": "Player Settings",
-      "retentionPolicy": "Retention Policy"
+      "player": "Player Settings"
     },
     "player": {
       "showDanmakuTimeline": "Show danmaku density",
