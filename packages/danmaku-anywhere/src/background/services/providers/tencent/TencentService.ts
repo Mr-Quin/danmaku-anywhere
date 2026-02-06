@@ -8,8 +8,8 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import type { TencentEpisodeListItem } from '@danmaku-anywhere/danmaku-provider/tencent'
 import * as tencent from '@danmaku-anywhere/danmaku-provider/tencent'
-import { resolveDnrTemplate } from '@/background/netRequest/dnrTemplate'
-import { WithSessionHeader } from '@/background/netRequest/setSessionHeader'
+import type { DnrRuleSpec } from '@/background/netRequest/dnrTemplate'
+import { runWithDnr } from '@/background/netRequest/runWithDnr'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
@@ -24,15 +24,21 @@ import type {
 } from '../IDanmakuProvider'
 import { TencentMapper } from './TencentMapper'
 
-const defaultHeaderConfig = {
+const defaultTencentSpec: DnrRuleSpec = {
   matchUrl: 'https://*.video.qq.com/',
-  headers: {
+  template: {
     Origin: 'https://v.qq.com',
     Referer: 'https://v.qq.com/',
   },
 }
 
-const defaultTencentSessionHeader = WithSessionHeader(defaultHeaderConfig)
+const searchTencentSpec: DnrRuleSpec = {
+  matchUrl: 'https://*.video.qq.com/',
+  template: {
+    Origin: 'https://v.qq.com',
+    Referer: 'https://v.qq.com/x/search/?q={keyword}&stag=&smartbox_ab=',
+  },
+}
 
 export class TencentService implements IDanmakuProvider {
   private logger: ILogger
@@ -44,17 +50,18 @@ export class TencentService implements IDanmakuProvider {
   }
 
   // test if the cookies are working
-  @defaultTencentSessionHeader
   static async testCookies(logger: ILogger) {
     const log = logger.sub('[TencentService]')
     log.debug('Testing tencent cookies')
     try {
-      const result = await tencent.getPageDetails(
-        'mzc00200xf3rir6',
-        'i0046sewh4r'
-      )
-      if (!result.success) throw result.error
-      return true
+      return await runWithDnr(defaultTencentSpec)(async () => {
+        const result = await tencent.getPageDetails(
+          'mzc00200xf3rir6',
+          'i0046sewh4r'
+        )
+        if (!result.success) throw result.error
+        return true
+      })
     } catch (e) {
       if (e instanceof tencent.TencentApiException) {
         if (e.cookie) {
@@ -67,82 +74,76 @@ export class TencentService implements IDanmakuProvider {
     }
   }
 
-  @WithSessionHeader<[SeasonSearchParams]>({
-    ...defaultHeaderConfig,
-    getHeaders: (args) => {
-      const kw = args[0].keyword
-      const tencentSearchTemplate = {
-        Referer: 'https://v.qq.com/x/search/?q={keyword}&stag=&smartbox_ab=',
-      }
-      return resolveDnrTemplate(tencentSearchTemplate, {
-        keyword: encodeURIComponent(kw),
-      })
-    },
-  })
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
     const kw = params.keyword
     this.logger.debug('Search tencent', kw)
-    const result = await tencent.searchMedia({ query: kw })
-    this.logger.debug('Search result', result)
 
-    if (!result.success) throw result.error
+    return runWithDnr(searchTencentSpec, {
+      keyword: encodeURIComponent(kw),
+    })(async () => {
+      const result = await tencent.searchMedia({ query: kw })
+      this.logger.debug('Search result', result)
 
-    return result.data.map(TencentMapper.toSeasonInsert)
+      if (!result.success) throw result.error
+
+      return result.data.map(TencentMapper.toSeasonInsert)
+    })
   }
 
-  @defaultTencentSessionHeader
   async findEpisode(
     season: Season,
     episodeNumber: number
   ): Promise<WithSeason<EpisodeMeta> | null> {
     assertProviderType(season, DanmakuSourceType.Tencent)
 
-    const episodes = await this.getEpisodes(season.providerIds)
+    return runWithDnr(defaultTencentSpec)(async () => {
+      const episodes = await this.getEpisodes(season.providerIds)
 
-    if (episodes.length === 0) {
-      throw new Error(`No episodes found for season: ${season.title}`)
-    }
+      if (episodes.length === 0) {
+        throw new Error(`No episodes found for season: ${season.title}`)
+      }
 
-    const episode = findEpisodeByNumber(episodes, episodeNumber)
+      const episode = findEpisodeByNumber(episodes, episodeNumber)
 
-    if (!episode) {
-      return null
-    }
+      if (!episode) {
+        return null
+      }
 
-    assertProviderType(episode, DanmakuSourceType.Tencent)
+      assertProviderType(episode, DanmakuSourceType.Tencent)
 
-    return {
-      ...episode,
-      seasonId: season.id,
-      season,
-    }
+      return {
+        ...episode,
+        seasonId: season.id,
+        season,
+      }
+    })
   }
 
-  @defaultTencentSessionHeader
   async getEpisodes(
     seasonRemoteIds: TencentOf<Season>['providerIds']
   ): Promise<OmitSeasonId<TencentOf<EpisodeMeta>>[]> {
     this.logger.debug('Get episode', seasonRemoteIds)
 
-    const generator = tencent.listEpisodes({
-      cid: seasonRemoteIds.cid,
-      vid: '',
-    })
+    return runWithDnr(defaultTencentSpec)(async () => {
+      const generator = tencent.listEpisodes({
+        cid: seasonRemoteIds.cid,
+        vid: '',
+      })
 
-    const result: TencentEpisodeListItem[][] = []
-    for await (const itemsResult of generator) {
-      if (!itemsResult.success) throw itemsResult.error
-      result.push(itemsResult.data)
-    }
+      const result: TencentEpisodeListItem[][] = []
+      for await (const itemsResult of generator) {
+        if (!itemsResult.success) throw itemsResult.error
+        result.push(itemsResult.data)
+      }
 
-    this.logger.debug('Get episode result', result)
+      this.logger.debug('Get episode result', result)
 
-    return result.flat().map((item) => {
-      return TencentMapper.toEpisodeMeta(item)
+      return result.flat().map((item) => {
+        return TencentMapper.toEpisodeMeta(item)
+      })
     })
   }
 
-  @defaultTencentSessionHeader
   async getSeason(
     seasonRemoteIds: TencentOf<Season>['providerIds']
   ): Promise<SeasonInsert | null> {
@@ -153,52 +154,46 @@ export class TencentService implements IDanmakuProvider {
     return season
   }
 
-  @defaultTencentSessionHeader
   async getPageDetails(cid: string, vid: string) {
     this.logger.debug('Get page details', { cid, vid })
 
-    const pageDetailsResult = await tencent.getPageDetails(cid, vid)
+    return runWithDnr(defaultTencentSpec)(async () => {
+      const pageDetailsResult = await tencent.getPageDetails(cid, vid)
 
-    this.logger.debug('Get page details result', pageDetailsResult)
+      this.logger.debug('Get page details result', pageDetailsResult)
 
-    if (!pageDetailsResult.success) throw pageDetailsResult.error
-    const pageDetails = pageDetailsResult.data
+      if (!pageDetailsResult.success) throw pageDetailsResult.error
+      const pageDetails = pageDetailsResult.data
 
-    const foundSeason =
-      pageDetails?.module_list_datas[0]?.module_datas[0]?.item_data_lists
-        ?.item_datas[0]
+      const foundSeason =
+        pageDetails?.module_list_datas[0]?.module_datas[0]?.item_data_lists
+          ?.item_datas[0]
 
-    if (foundSeason) {
-      return {
-        pageDetails,
-        season: TencentMapper.pageDetailsToSeasonInsert(foundSeason),
+      if (foundSeason) {
+        return {
+          pageDetails,
+          season: TencentMapper.pageDetailsToSeasonInsert(foundSeason),
+        }
       }
-    }
 
-    return { pageDetails }
+      return { pageDetails }
+    })
   }
 
-  @defaultTencentSessionHeader
   async getDanmaku(request: DanmakuFetchRequest): Promise<CommentEntity[]> {
     const { meta } = request
 
     assertProviderType(meta, DanmakuSourceType.Tencent)
 
-    return this.getDanmakuInternal(meta)
+    return this.fetchDanmaku(meta.providerIds.vid)
   }
 
-  private async getDanmakuInternal(
-    meta: WithSeason<TencentOf<EpisodeMeta>>
-  ): Promise<CommentEntity[]> {
-    const comments = await this.fetchDanmaku(meta.providerIds.vid)
-    return comments
-  }
-
-  @defaultTencentSessionHeader
   private async fetchDanmaku(vid: string) {
-    const result = await tencent.getDanmaku(vid)
-    if (!result.success) throw result.error
-    return result.data
+    return runWithDnr(defaultTencentSpec)(async () => {
+      const result = await tencent.getDanmaku(vid)
+      if (!result.success) throw result.error
+      return result.data
+    })
   }
 
   canParse(url: string): boolean {

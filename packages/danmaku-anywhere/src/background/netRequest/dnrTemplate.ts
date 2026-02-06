@@ -2,9 +2,16 @@ export interface DnrTemplate {
   [headerName: string]: string
 }
 
+export interface DnrRuleSpec {
+  matchUrl: string
+  template: DnrTemplate
+}
+
+export type DnrContext = Record<string, string | number | boolean>
+
 export function resolveDnrTemplate(
   template: DnrTemplate,
-  context: Record<string, unknown>
+  context: DnrContext
 ): Record<string, string> {
   const result: Record<string, string> = {}
 
