@@ -147,13 +147,11 @@ export class TencentService implements IDanmakuProvider {
   async getSeason(
     seasonRemoteIds: TencentOf<Season>['providerIds']
   ): Promise<SeasonInsert | null> {
-    return runWithDnr(defaultTencentSpec)(async () => {
-      const { season } = await this.getPageDetails(seasonRemoteIds.cid, '')
-      if (!season) {
-        return null
-      }
-      return season
-    })
+    const { season } = await this.getPageDetails(seasonRemoteIds.cid, '')
+    if (!season) {
+      return null
+    }
+    return season
   }
 
   async getPageDetails(cid: string, vid: string) {
