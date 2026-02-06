@@ -132,16 +132,23 @@ export class DanmakuService {
   }
 
   async upsert<T extends EpisodeInsert>(data: T): Promise<DbEntity<T>> {
-    const existing = await this.db.episode.get({
-      seasonId: data.seasonId,
-      indexedId: data.indexedId,
-    })
+    return this.db.transaction(
+      'rw',
+      this.db.episode,
+      this.db.season,
+      async () => {
+        const existing = await this.db.episode.get({
+          seasonId: data.seasonId,
+          indexedId: data.indexedId,
+        })
 
-    if (existing) {
-      return (await this.update({ ...existing, ...data })) as DbEntity<T>
-    }
+        if (existing) {
+          return (await this.update({ ...existing, ...data })) as DbEntity<T>
+        }
 
-    return this.add(data)
+        return this.add(data)
+      }
+    )
   }
 
   async add<T extends EpisodeInsert>(data: T): Promise<DbEntity<T>> {
