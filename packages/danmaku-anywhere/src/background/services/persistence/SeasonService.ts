@@ -21,31 +21,33 @@ export class SeasonService {
   }
 
   async upsert<T extends SeasonInsert>(data: T): Promise<DbEntity<T>> {
-    const existing = await this.db.season.get({
-      providerConfigId: data.providerConfigId,
-      indexedId: data.indexedId,
-    })
-    if (existing) {
+    return this.db.transaction('rw', this.db.season, async () => {
+      const existing = await this.db.season.get({
+        providerConfigId: data.providerConfigId,
+        indexedId: data.indexedId,
+      })
+      if (existing) {
+        const toInsert = {
+          ...existing,
+          ...data,
+          timeUpdated: Date.now(),
+          version: existing.version + 1,
+        }
+        await this.db.season.update(existing.id, toInsert)
+        return toInsert
+      }
+
       const toInsert = {
-        ...existing,
         ...data,
         timeUpdated: Date.now(),
-        version: existing.version + 1,
+        version: 1,
       }
-      await this.db.season.update(existing.id, toInsert)
-      return toInsert
-    }
-
-    const toInsert = {
-      ...data,
-      timeUpdated: Date.now(),
-      version: 1,
-    }
-    const id = await this.db.season.add(toInsert)
-    return {
-      ...toInsert,
-      id,
-    }
+      const id = await this.db.season.add(toInsert)
+      return {
+        ...toInsert,
+        id,
+      }
+    })
   }
 
   async mustGetById(id: number): Promise<Season> {

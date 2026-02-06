@@ -20,16 +20,18 @@ export class TitleMappingService {
   }
 
   async add(map: SeasonMap) {
-    const existingSnapshot = await this.db.seasonMap.get({ key: map.key })
-    if (existingSnapshot) {
-      const existing = SeasonMap.fromSnapshot(existingSnapshot)
-      this.logger.debug('Updating title mapping:', map.toSnapshot())
-      const merged = existing.merge(map)
-      await this.db.seasonMap.put(merged.toSnapshot(), existing.key)
-    } else {
-      this.logger.debug('Adding title mapping:', map.toSnapshot())
-      await this.db.seasonMap.add(map.toSnapshot())
-    }
+    await this.db.transaction('rw', this.db.seasonMap, async () => {
+      const existingSnapshot = await this.db.seasonMap.get({ key: map.key })
+      if (existingSnapshot) {
+        const existing = SeasonMap.fromSnapshot(existingSnapshot)
+        this.logger.debug('Updating title mapping:', map.toSnapshot())
+        const merged = existing.merge(map)
+        await this.db.seasonMap.put(merged.toSnapshot(), existing.key)
+      } else {
+        this.logger.debug('Adding title mapping:', map.toSnapshot())
+        await this.db.seasonMap.add(map.toSnapshot())
+      }
+    })
   }
 
   async remove(key: string) {
