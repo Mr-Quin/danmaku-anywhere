@@ -8,6 +8,7 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import type { TencentEpisodeListItem } from '@danmaku-anywhere/danmaku-provider/tencent'
 import * as tencent from '@danmaku-anywhere/danmaku-provider/tencent'
+import { resolveDnrTemplate } from '@/background/netRequest/dnrTemplate'
 import { WithSessionHeader } from '@/background/netRequest/setSessionHeader'
 import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
@@ -70,9 +71,12 @@ export class TencentService implements IDanmakuProvider {
     ...defaultHeaderConfig,
     getHeaders: (args) => {
       const kw = args[0].keyword
-      return {
-        Referer: `https://v.qq.com/x/search/?q=${encodeURIComponent(kw)}&stag=&smartbox_ab=`,
+      const tencentSearchTemplate = {
+        Referer: 'https://v.qq.com/x/search/?q={keyword}&stag=&smartbox_ab=',
       }
+      return resolveDnrTemplate(tencentSearchTemplate, {
+        keyword: encodeURIComponent(kw),
+      })
     },
   })
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
