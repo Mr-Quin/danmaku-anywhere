@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
+import { useToast } from '@/common/components/Toast/toastStore'
 import { useInjectService } from '@/common/hooks/useInjectService'
 import { storageQueryKeys } from '@/common/queries/queryKeys'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
@@ -51,9 +52,17 @@ export const useEditAiProviderConfig = () => {
 
   const service = useInjectService(AiProviderConfigService)
 
+  const { toast } = useToast()
+
   const createMutation = useMutation({
     mutationKey: queryKey,
     mutationFn: service.create.bind(service),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey })
+    },
+    onError: (e) => {
+      toast.error(e.message)
+    },
   })
 
   const updateMutation = useMutation({
@@ -68,6 +77,9 @@ export const useEditAiProviderConfig = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
     },
+    onError: (e) => {
+      toast.error(e.message)
+    },
   })
 
   const deleteMutation = useMutation({
@@ -76,6 +88,9 @@ export const useEditAiProviderConfig = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
     },
+    onError: (e) => {
+      toast.error(e.message)
+    },
   })
 
   const toggleMutation = useMutation({
@@ -83,10 +98,16 @@ export const useEditAiProviderConfig = () => {
     mutationFn: async ({ id, enabled }: { id: string; enabled?: boolean }) => {
       const config = await service.get(id)
       if (!config) return
-      return service.update(id, { enabled: enabled ?? !config.enabled })
+      return service.update(id, {
+        ...config,
+        enabled: enabled ?? !config.enabled,
+      })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
+    },
+    onError: (e) => {
+      toast.error(e.message)
     },
   })
 
@@ -105,6 +126,9 @@ export const useEditAiProviderConfig = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
+    },
+    onError: (e) => {
+      toast.error(e.message)
     },
   })
 

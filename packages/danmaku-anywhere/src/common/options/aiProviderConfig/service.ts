@@ -59,9 +59,7 @@ export class AiProviderConfigService implements IStoreService {
 
     invariant(index !== -1, `Provider with id ${id} not found`)
 
-    if (id === BUILT_IN_AI_PROVIDER_ID) {
-      return
-    }
+    invariant(id !== BUILT_IN_AI_PROVIDER_ID, 'Cannot update built-in provider')
 
     invariant(
       partial.provider !== 'built-in',

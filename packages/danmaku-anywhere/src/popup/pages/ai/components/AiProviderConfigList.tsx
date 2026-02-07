@@ -52,28 +52,30 @@ export const AiProviderConfigList = ({
       }
       renderSecondaryAction={(config) => (
         <>
-          <Switch
-            onChange={(e) => handleToggle(config)}
-            checked={config.enabled}
-            disabled={toggle.isPending}
-            onClick={(e) => e.stopPropagation()}
-            size="small"
-          />
           {config.id !== BUILT_IN_AI_PROVIDER_ID && (
-            <DrilldownMenu
-              BoxProps={{ display: 'inline' }}
-              ButtonProps={{ edge: 'end', size: 'small' }}
-              dense
-              items={[
-                {
-                  id: 'delete',
-                  label: t('common.delete', 'Delete'),
-                  onClick: () => onDelete(config),
-                  icon: <Delete />,
-                  color: 'error',
-                },
-              ]}
-            />
+            <>
+              <Switch
+                onChange={(e) => handleToggle(config)}
+                checked={config.enabled}
+                disabled={toggle.isPending}
+                onClick={(e) => e.stopPropagation()}
+                size="small"
+              />
+              <DrilldownMenu
+                BoxProps={{ display: 'inline' }}
+                ButtonProps={{ edge: 'end', size: 'small' }}
+                dense
+                items={[
+                  {
+                    id: 'delete',
+                    label: t('common.delete', 'Delete'),
+                    onClick: () => onDelete(config),
+                    icon: <Delete />,
+                    color: 'error',
+                  },
+                ]}
+              />
+            </>
           )}
         </>
       )}
