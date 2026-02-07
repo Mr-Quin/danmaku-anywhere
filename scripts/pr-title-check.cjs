@@ -178,11 +178,33 @@ const getClickUpTypeValue = (customFields) => {
     return undefined
   }
 
+  const options = typeField.type_config?.options
+
+  if (typeof typeField.value === 'number' && Array.isArray(options)) {
+    const byOrderIndex = options.find(
+      (option) => option?.orderindex === typeField.value
+    )
+    const byIndex = options[typeField.value]
+    return byOrderIndex?.name ?? byIndex?.name
+  }
+
   if (typeof typeField.value === 'string') {
+    if (Array.isArray(options)) {
+      const byId = options.find((option) => option?.id === typeField.value)
+      if (byId?.name) {
+        return byId.name
+      }
+    }
     return typeField.value
   }
 
   if (typeof typeField.value === 'object') {
+    if (Array.isArray(options)) {
+      const byId = options.find((option) => option?.id === typeField.value?.id)
+      if (byId?.name) {
+        return byId.name
+      }
+    }
     return typeField.value.value ?? typeField.value.name ?? typeField.value.id
   }
 
