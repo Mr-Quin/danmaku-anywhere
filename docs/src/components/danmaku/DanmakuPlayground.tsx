@@ -62,6 +62,20 @@ export const DanmakuPlayground = () => {
                 transform: 'translateX(-50%)',
               }}
             />
+            <MockDanmaku
+              text="渐变弹幕"
+              mode="rtl"
+              color="#ffffff"
+              gradient={{ start: '#ff00ff', end: '#00ffff' }}
+              style={{ top: '40%', left: '50%' }}
+            />
+            <MockDanmaku
+              text="描边渐变"
+              mode="rtl"
+              color="#ffffff"
+              gradient={{ start: '#ffff00', end: '#ff0000', stroke: true }}
+              style={{ top: '60%', left: '20%' }}
+            />
           </SandboxedPreview>
         </div>
 

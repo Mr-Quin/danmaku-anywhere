@@ -20,6 +20,11 @@ export interface ParsedComment {
   time: number
   style: Record<string, string>
   color: string
+  gradient?: {
+    start: string
+    end: string
+    stroke: boolean
+  }
 }
 
 export interface DanmakuOption {
@@ -65,15 +70,7 @@ export const transformComment = (
   if (s) {
     try {
       const { start, end, stroke } = parseCommentGradient(s)
-      parsed.style.background = `linear-gradient(to right, ${start}, ${end})`
-      parsed.style.backgroundClip = 'text'
-      parsed.style.webkitBackgroundClip = 'text'
-      if (stroke) {
-        parsed.style.webkitTextStroke = '2px transparent'
-      } else {
-        parsed.style.webkitTextFillColor = 'transparent'
-      }
-      delete parsed.style.textShadow
+      parsed.gradient = { start, end, stroke }
     } catch {
       // ignore errors
     }
