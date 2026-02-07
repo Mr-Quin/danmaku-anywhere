@@ -16,91 +16,11 @@ jobs:
     permissions:
       pull-requests: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Validate title
         uses: actions/github-script@v7
         with:
           script: |
-            const title = context.payload.pull_request.title ?? '';
-            const pattern = /^\((extension|app|proxy|chore|docs)\)\s.+\s\[DA-\d+\]$/;
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const issue_number = context.payload.pull_request.number;
-            const marker = '<!-- pr-title-check -->';
-
-            const findExistingComment = async () => {
-              const comments = await github.paginate(github.rest.issues.listComments, {
-                owner,
-                repo,
-                issue_number,
-                per_page: 100
-              });
-
-              return comments.find((comment) => comment.body?.includes(marker));
-            };
-
-            if (!pattern.test(title)) {
-              const errorMessage =
-                `Invalid PR title: "${title}".\n\nExpected: (TYPE) description [TASK-ID]\n- TYPE: one of extension, app, proxy, chore, docs\n- TASK-ID: DA-<number> (e.g., DA-123)`;
-
-              const commentLines = [
-                marker,
-                '## ⚠️ PR Title Format Issue',
-                '',
-                "The PR title doesn't match the required format.",
-                '',
-                '**Current title:**',
-                '```',
-                `${title}`,
-                '```',
-                '',
-                '**Expected format:**',
-                '```',
-                '(TYPE) description [TASK-ID]',
-                '```',
-                '',
-                '**Details:**',
-                '- **TYPE**: Must be one of: `extension`, `app`, `proxy`, `chore`, `docs`',
-                '- **description**: A brief description of the changes',
-                '- **TASK-ID**: Must match the pattern `DA-<number>` (e.g., `DA-123`)',
-                '',
-                '**Example:**',
-                '```',
-                '(app) Add user authentication [DA-456]',
-                '```',
-                '',
-                'Please update your PR title to match this format.'
-              ];
-
-              const body = commentLines.join('\n');
-              const existingComment = await findExistingComment();
-
-              if (existingComment) {
-                await github.rest.issues.updateComment({
-                  owner,
-                  repo,
-                  comment_id: existingComment.id,
-                  body
-                });
-              } else {
-                await github.rest.issues.createComment({
-                  owner,
-                  repo,
-                  issue_number,
-                  body
-                });
-              }
-
-              core.setFailed(errorMessage);
-            } else {
-              const existingComment = await findExistingComment();
-
-              if (existingComment) {
-                await github.rest.issues.deleteComment({
-                  owner,
-                  repo,
-                  comment_id: existingComment.id
-                });
-              }
-
-              core.info(`PR title is valid: ${title}`);
-            }
+            const { run } = require('./scripts/pr-title-check.cjs');
+            await run({ core, github, context });
