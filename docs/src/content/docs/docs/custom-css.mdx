@@ -39,6 +39,8 @@ import { DanmakuPlayground } from "../../../components/danmaku/DanmakuPlayground
 | `.da-danmaku`             | 所有弹幕的基础类。   |
 | `.da-danmaku-text-shadow` | 默认的文字描边样式。 |
 
+### 特殊类名
+
 每个弹幕元素还会拥有以下列表中的一个类名：
 
 | 类名                 | 描述                       |
@@ -48,11 +50,21 @@ import { DanmakuPlayground } from "../../../components/danmaku/DanmakuPlayground
 | `.da-danmaku-top`    | 顶部固定弹幕。             |
 | `.da-danmaku-bottom` | 底部固定弹幕。             |
 
+当弹幕本身带有渐变色时（如 Bilibili 高级弹幕），会额外拥有以下类名：
+
+| 类名                          | 描述                 |
+| :---------------------------- | :------------------- |
+| `.da-danmaku-gradient`        | 普通渐变弹幕。       |
+| `.da-danmaku-gradient-stroke` | 带有描边的渐变弹幕。 |
+
 ### CSS 变量
 
-| 变量名    | 描述           | 示例      |
-| :-------- | :------------- | :-------- |
-| `--color` | 弹幕原本的颜色 | `#ffffff` |
+| 变量名              | 描述                       | 示例           |
+| :------------------ | :------------------------- | :------------- |
+| `--color`           | 弹幕原本的颜色             | `#ffffff`      |
+| `--gradient-start`  | 渐变起始颜色               | `#ff00ff`      |
+| `--gradient-end`    | 渐变结束颜色               | `#00ffff`      |
+| `--gradient-stroke` | 描边宽度（仅用于描边渐变） | `2px` 或 `0px` |
 
 ### 数据属性
 
@@ -75,7 +87,9 @@ import { DanmakuPlayground } from "../../../components/danmaku/DanmakuPlayground
 
 ```css
 .da-danmaku {
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6), 0 0 4px rgba(0, 0, 0, 0.4);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.6),
+    0 0 4px rgba(0, 0, 0, 0.4);
 }
 ```
 
@@ -85,7 +99,9 @@ import { DanmakuPlayground } from "../../../components/danmaku/DanmakuPlayground
 
 ```css
 .da-danmaku {
-  text-shadow: 0 0 5px var(--color), 0 0 10px var(--color),
+  text-shadow:
+    0 0 5px var(--color),
+    0 0 10px var(--color),
     0 0 20px var(--color);
 }
 ```
@@ -160,5 +176,18 @@ import { DanmakuPlayground } from "../../../components/danmaku/DanmakuPlayground
   100% {
     clip-path: inset(0% 0 80% 0);
   }
+}
+```
+
+#### 自定义渐变弹幕
+
+对于自带渐变色的弹幕，你可以覆盖其渐变色：
+
+```css
+.da-danmaku-gradient,
+.da-danmaku-gradient-stroke {
+  /* 使用 !important 覆盖内联样式 */
+  --gradient-start: #ffc745ff !important;
+  --gradient-end: #ff4027ff !important;
 }
 ```

@@ -27,3 +27,27 @@
     1px 1px 0 #000,
     0px 2px 4px rgba(0, 0, 0, 0.5);
 }
+
+.da-danmaku-gradient {
+  background: linear-gradient(
+    to right,
+    var(--gradient-start),
+    var(--gradient-end)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+
+.da-danmaku-gradient-stroke {
+  background: linear-gradient(
+    to right,
+    var(--gradient-start),
+    var(--gradient-end)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  text-shadow: none;
+  -webkit-text-stroke: var(--gradient-stroke) transparent;
+}

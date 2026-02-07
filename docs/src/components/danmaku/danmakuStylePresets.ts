@@ -119,4 +119,12 @@ export const DANMAKU_STYLE_PRESETS = [
   text-shadow: unset;
 }`,
   },
+  {
+    name: 'Gradient Override',
+    label: '自定义渐变',
+    css: `.da-danmaku-gradient, .da-danmaku-gradient-stroke {
+  --gradient-start: #ffd940ff !important;
+  --gradient-end: #ff4400ff !important;
+}`,
+  },
 ]
