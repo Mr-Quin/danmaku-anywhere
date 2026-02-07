@@ -42,6 +42,7 @@ export default defineConfig({
   define: {
     'import.meta.env.VITE_TARGET_BROWSER': JSON.stringify(browser.name),
     'import.meta.env.VERSION': JSON.stringify(appVersion),
+    'import.meta.env.VITE_STANDALONE': JSON.stringify(false),
   },
   build: {
     emptyOutDir: true,

@@ -7,6 +7,7 @@ import ReactDOM from 'react-dom/client'
 import { Logger } from '@/common/Logger'
 import { queryClient } from '@/common/queries/queryClient'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { ensureStandaloneReady } from '@/common/standalone/ensureStandaloneReady'
 import { Theme } from '@/common/theme/Theme'
 import { App } from './App'
 import '@/common/localization/i18n'
@@ -14,6 +15,8 @@ import { EnvironmentContext } from '@/common/environment/context'
 import { tryCatchSync } from '@/common/utils/tryCatch'
 import { createPopoverRoot } from '@/content/common/host/createPopoverRoot'
 import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
+
+await ensureStandaloneReady()
 
 const { data: frameId } = await chromeRpcClient.getFrameId()
 

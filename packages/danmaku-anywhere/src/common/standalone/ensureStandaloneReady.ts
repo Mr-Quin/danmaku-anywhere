@@ -1,0 +1,20 @@
+import { isStandaloneRuntime } from '@/common/environment/isStandalone'
+import { uiContainer } from '@/common/ioc/uiIoc'
+import { Logger } from '@/common/Logger'
+import { StandaloneUpgradeService } from '@/common/options/UpgradeService/StandaloneUpgradeService'
+
+let readyPromise: Promise<void> | null = null
+
+export const ensureStandaloneReady = async () => {
+  if (!isStandaloneRuntime()) return
+
+  if (!readyPromise) {
+    const upgradeService = uiContainer.get(StandaloneUpgradeService)
+    readyPromise = upgradeService.upgrade().catch((error) => {
+      Logger.error('Standalone upgrade failed', error)
+      throw error
+    })
+  }
+
+  await readyPromise
+}

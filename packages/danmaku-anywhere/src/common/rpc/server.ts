@@ -1,3 +1,5 @@
+import { isStandaloneRuntime } from '@/common/environment/isStandalone'
+import { isChromeRuntimeAvailable } from '@/common/extension/chromeRuntime'
 import { type ILogger, Logger } from '../Logger'
 import { serializeError } from '../utils/serializeError'
 
@@ -33,6 +35,9 @@ export const createRpcServer = <
   handlers: RPCServerHandlers<TRecords>,
   { logger = Logger, context, filter }: CreateRpcServerOptions<TContext> = {}
 ) => {
+  const runtimeMessageEvent = isChromeRuntimeAvailable()
+    ? chrome.runtime.onMessage
+    : null
   const listener: Parameters<
     typeof chrome.runtime.onMessage.addListener
   >[number] = (message: RPCPayload<unknown>, sender, sendResponse) => {
@@ -54,15 +59,15 @@ export const createRpcServer = <
 
   const methods = {
     listen: (
-      messageEvent: chrome.runtime.ExtensionMessageEvent = chrome.runtime
-        .onMessage
+      messageEvent: chrome.runtime.ExtensionMessageEvent | null = runtimeMessageEvent
     ) => {
+      if (isStandaloneRuntime() || !messageEvent) return
       messageEvent.addListener(listener)
     },
     unlisten: (
-      messageEvent: chrome.runtime.ExtensionMessageEvent = chrome.runtime
-        .onMessage
+      messageEvent: chrome.runtime.ExtensionMessageEvent | null = runtimeMessageEvent
     ) => {
+      if (isStandaloneRuntime() || !messageEvent) return
       messageEvent.removeListener(listener)
     },
     hasHandler: (method: string) => method in handlers,

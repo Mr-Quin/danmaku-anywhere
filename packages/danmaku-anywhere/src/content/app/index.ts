@@ -10,6 +10,7 @@ import {
 } from '@danmaku-anywhere/web-scraper'
 import { EXTENSION_VERSION } from '@/common/constants'
 import { isProvider } from '@/common/danmaku/utils'
+import { connectRuntimePort } from '@/common/extension/chromeRuntime'
 import { uiContainer } from '@/common/ioc/uiIoc'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { portNames } from '@/common/ports/portNames'
@@ -77,7 +78,21 @@ window.addEventListener(
         return wrapRpc(() => chromeRpcClient.kazumiGetChapters(request.data))
       }
       case 'extractMedia': {
-        const port = chrome.runtime.connect({ name: portNames.extractMedia })
+        const port = connectRuntimePort(portNames.extractMedia)
+
+        if (!port) {
+          sendResponse(
+            createExtResponse({
+              action: request.action,
+              success: false,
+              err: 'extension runtime unavailable',
+              isLast: true,
+              id: request.id,
+              source: DA_EXT_SOURCE_CONTENT,
+            })
+          )
+          return
+        }
 
         // relay messages to window
         port.onMessage.addListener((response) => {

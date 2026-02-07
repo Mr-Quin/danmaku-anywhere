@@ -1,11 +1,10 @@
+import { getStorageArea } from '@/common/storage/getStorageArea'
 import { tryCatch } from '@/common/utils/tryCatch'
 import { Logger } from '../Logger'
 import { invariant } from '../utils/utils'
 
-export type ExtStorageType = 'local' | 'sync' | 'session'
-
 export interface ExtStorageServiceOptions {
-  storageType?: ExtStorageType
+  storageType?: 'local' | 'sync' | 'session'
 }
 
 type ExtStorageServiceListener<T> = (value: T | undefined) => void
@@ -23,7 +22,7 @@ export class ExtStorageService<T> {
     private key: string | string[] | null,
     options: ExtStorageServiceOptions
   ) {
-    this.storage = chrome.storage[options.storageType ?? 'local']
+    this.storage = getStorageArea(options.storageType ?? 'local')
   }
 
   setup() {

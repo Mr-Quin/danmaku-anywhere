@@ -29,6 +29,7 @@ import { useTranslation } from 'react-i18next'
 import { QQIcon } from '@/common/components/icons/QQIcon'
 import { SuspenseImage } from '@/common/components/image/SuspenseImage'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { getExtensionVersion } from '@/common/extension/chromeRuntime'
 import { i18n } from '@/common/localization/i18n'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { docsLink } from '@/common/utils/utils'
@@ -116,7 +117,7 @@ export const About = () => {
 
   const [expanded, setExpanded] = useState(true)
 
-  const version = chrome.runtime.getManifest().version
+  const version = getExtensionVersion()
 
   async function handleCopy(text: string) {
     await navigator.clipboard.writeText(text)
