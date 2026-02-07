@@ -1,6 +1,7 @@
 .da-danmaku {
   font-size: inherit;
   color: var(--color);
+  white-space: nowrap;
 }
 
 .da-danmaku-top {
