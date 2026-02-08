@@ -67,6 +67,8 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     getActiveTabUrl: () => 'https://example.com',
     getFrameId: () => 0,
     getAllFrames: () => [],
+    getExtensionVersion: () => import.meta.env.VERSION ?? 'standalone',
+    getAlarm: () => null,
     injectScript: () => undefined,
     remoteLog: () => undefined,
     exportDebugData: () => ({ id: 'standalone' }),

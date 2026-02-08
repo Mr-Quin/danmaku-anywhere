@@ -34,8 +34,7 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        popup: 'standalone/popup/index.html',
-        controller: 'standalone/controller/index.html',
+        index: 'index.html',
       },
     },
     outDir: path.resolve('dev/standalone'),

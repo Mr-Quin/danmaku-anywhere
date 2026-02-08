@@ -121,6 +121,16 @@ export const controlQueryKeys = {
     ] as const,
 }
 
+export const extensionQueryKeys = {
+  version: () =>
+    [
+      {
+        scope: 'extension',
+        kind: 'version',
+      },
+    ] as const,
+}
+
 export const alarmQueryKeys = {
   danmakuPurge: () =>
     [

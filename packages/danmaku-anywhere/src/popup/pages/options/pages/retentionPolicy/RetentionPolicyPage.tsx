@@ -26,7 +26,6 @@ import { alarmKeys } from '@/common/alarms/constants'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { OutlineAccordion } from '@/common/components/OutlineAccordion'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { getAlarm } from '@/common/extension/chromeRuntime'
 import type { RetentionPolicy } from '@/common/options/extensionOptions/schema'
 import { retentionPolicySchema } from '@/common/options/extensionOptions/schema'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
@@ -184,11 +183,13 @@ export const RetentionPolicyPage = () => {
   const { data: nextPurgeTime } = useQuery({
     queryKey: alarmQueryKeys.danmakuPurge(),
     queryFn: async () => {
-      const alarm = await getAlarm(alarmKeys.PURGE_DANMAKU)
-      return alarm || null
+      const { data: alarm } = await chromeRpcClient.getAlarm(
+        alarmKeys.PURGE_DANMAKU
+      )
+      return alarm
     },
     select: (data) => {
-      return new Date(data.scheduledTime).toLocaleString()
+      return data ? new Date(data.scheduledTime).toLocaleString() : null
     },
     enabled: data.retentionPolicy.enabled,
   })
