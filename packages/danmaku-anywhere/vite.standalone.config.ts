@@ -1,5 +1,4 @@
 /// <reference types="vitest" />
-
 import path from 'node:path'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
@@ -27,7 +26,7 @@ export default defineConfig({
   },
   define: {
     'import.meta.env.VITE_TARGET_BROWSER': JSON.stringify(browser.name),
-    'import.meta.env.VERSION': JSON.stringify(appVersion),
+    'import.meta.env.VERSION': JSON.stringify(`${appVersion}-standalone`),
     'import.meta.env.VITE_STANDALONE': JSON.stringify(true),
   },
   build: {

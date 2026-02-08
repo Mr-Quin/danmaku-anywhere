@@ -1,17 +1,11 @@
-export const isChromeRuntimeAvailable = () => {
+const isChromeRuntimeAvailable = () => {
   return typeof chrome !== 'undefined' && !!chrome.runtime
 }
 
-export const getExtensionVersion = () => {
-  if (isChromeRuntimeAvailable()) {
-    return chrome.runtime.getManifest().version
-  }
-
-  return import.meta.env.VERSION ?? 'standalone'
-}
+export const IS_CHROME_RUNTIME_AVAILABLE = isChromeRuntimeAvailable()
 
 export const connectRuntimePort = (name: string) => {
-  if (!isChromeRuntimeAvailable()) {
+  if (!IS_CHROME_RUNTIME_AVAILABLE) {
     return null
   }
 

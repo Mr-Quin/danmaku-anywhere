@@ -24,16 +24,14 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { QQIcon } from '@/common/components/icons/QQIcon'
 import { SuspenseImage } from '@/common/components/image/SuspenseImage'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { EXTENSION_VERSION } from '@/common/constants'
 import { i18n } from '@/common/localization/i18n'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
-import { extensionQueryKeys } from '@/common/queries/queryKeys'
-import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { docsLink } from '@/common/utils/utils'
 import { IMAGE_ASSETS } from '@/images/ImageAssets'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
@@ -119,13 +117,7 @@ export const About = () => {
 
   const [expanded, setExpanded] = useState(true)
 
-  const { data: version } = useQuery({
-    queryKey: extensionQueryKeys.version(),
-    queryFn: async () => {
-      const res = await chromeRpcClient.getExtensionManifest()
-      return res.data.version
-    },
-  })
+  const version = EXTENSION_VERSION
 
   async function handleCopy(text: string) {
     await navigator.clipboard.writeText(text)

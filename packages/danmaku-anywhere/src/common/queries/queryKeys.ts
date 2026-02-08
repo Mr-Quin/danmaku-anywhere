@@ -122,11 +122,11 @@ export const controlQueryKeys = {
 }
 
 export const extensionQueryKeys = {
-  version: () =>
+  manifest: () =>
     [
       {
         scope: 'extension',
-        kind: 'version',
+        kind: 'manifest',
       },
     ] as const,
 }

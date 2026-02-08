@@ -1,5 +1,5 @@
 import { inject, injectable, multiInject } from 'inversify'
-import { getExtensionVersion } from '@/common/environment/chromeRuntime'
+import { EXTENSION_VERSION } from '@/common/constants'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import {
   type IStoreService,
@@ -44,7 +44,7 @@ export class StandaloneUpgradeService {
       }
     }
 
-    const currentVersion = getExtensionVersion()
+    const currentVersion = EXTENSION_VERSION
     await this.readinessService.setVersion(currentVersion)
 
     this.logger.debug(`Upgrade complete. Version set to ${currentVersion}`)
