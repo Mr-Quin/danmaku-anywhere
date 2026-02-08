@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify'
-import { getExtensionVersion } from '@/common/extension/chromeRuntime'
+import { getExtensionVersion } from '@/common/environment/chromeRuntime'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
 import { tryCatch } from '@/common/utils/tryCatch'

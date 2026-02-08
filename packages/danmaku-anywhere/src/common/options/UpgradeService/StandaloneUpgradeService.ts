@@ -1,5 +1,5 @@
 import { inject, injectable, multiInject } from 'inversify'
-import { getExtensionVersion } from '@/common/extension/chromeRuntime'
+import { getExtensionVersion } from '@/common/environment/chromeRuntime'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import {
   type IStoreService,

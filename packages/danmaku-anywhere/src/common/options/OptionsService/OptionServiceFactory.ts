@@ -1,6 +1,6 @@
 import type { ResolutionContext } from 'inversify'
 import type { ILogger } from '@/common/Logger'
-import type { ExtStorageType } from '@/common/storage/ExtStorageService'
+import type { ExtStorageType } from '@/common/storage/getStorageArea'
 import { ReadinessService } from '../ReadinessService/ReadinessService'
 import { OptionsService } from './OptionsService'
 import type { OptionsSchema } from './types'

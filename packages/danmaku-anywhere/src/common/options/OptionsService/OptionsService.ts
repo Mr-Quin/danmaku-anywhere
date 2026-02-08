@@ -1,5 +1,5 @@
 import type { ILogger } from '@/common/Logger'
-import type { ExtStorageType } from '../../storage/ExtStorageService'
+import type { ExtStorageType } from '@/common/storage/getStorageArea'
 import { ExtStorageService } from '../../storage/ExtStorageService'
 import type { ReadinessService } from '../ReadinessService/ReadinessService'
 import { migrateOptions } from './migrationOptions'

@@ -32,6 +32,16 @@ const standaloneMatchEpisodeResult: MatchEpisodeResult = {
   cause: 'Standalone mode',
 }
 
+const standaloneManifest: chrome.runtime.ManifestV3 = {
+  manifest_version: 3,
+  name: 'Danmaku Anywhere (Standalone)',
+  version: 'standalone',
+  description: 'Standalone mode',
+  icons: {},
+  permissions: [],
+  content_scripts: [],
+}
+
 export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMethods> =
   {
     iconSet: () => ({ state: 'available' }),
@@ -67,7 +77,7 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     getActiveTabUrl: () => 'https://example.com',
     getFrameId: () => 0,
     getAllFrames: () => [],
-    getExtensionVersion: () => import.meta.env.VERSION ?? 'standalone',
+    getExtensionManifest: () => standaloneManifest,
     getAlarm: () => null,
     injectScript: () => undefined,
     remoteLog: () => undefined,
@@ -87,7 +97,14 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     genericFetchDanmakuForUrl: () =>
       null as unknown as BackgroundMethods['genericFetchDanmakuForUrl']['output'],
     setHeaders: () => undefined,
-    extractTitle: () => 'Standalone title',
+    extractTitle: () => {
+      return {
+        isShow: true,
+        title: 'Standalone title',
+        episode: 1,
+        episodeTitle: 'Standalone episode title',
+      }
+    },
     openPopupInNewWindow: () => undefined,
     getConfigMacCms: () => standaloneBaseUrlConfig,
     getConfigDanmuIcu: () => standaloneBaseUrlConfig,

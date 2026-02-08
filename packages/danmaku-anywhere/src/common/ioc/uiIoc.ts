@@ -1,6 +1,6 @@
 import 'reflect-metadata'
 import { Container } from 'inversify'
-import { isStandaloneRuntime } from '@/common/environment/isStandalone'
+import { IS_STANDALONE_RUNTIME } from '@/common/environment/isStandalone'
 import {
   type IOptionsServiceFactory,
   OptionsServiceFactory,
@@ -25,7 +25,7 @@ uiContainer
 uiContainer.bind<ILogger>(LoggerSymbol).toConstantValue(Logger)
 
 const initializeStandalone = async () => {
-  if (!isStandaloneRuntime()) return
+  if (!IS_STANDALONE_RUNTIME) return
 
   uiContainer.bind(StoreServiceSymbol).toService(ExtensionOptionsService)
   uiContainer.bind(StoreServiceSymbol).toService(DanmakuOptionsService)

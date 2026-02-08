@@ -119,13 +119,12 @@ export const About = () => {
 
   const [expanded, setExpanded] = useState(true)
 
-  const { data: version = 'standalone' } = useQuery({
+  const { data: version } = useQuery({
     queryKey: extensionQueryKeys.version(),
     queryFn: async () => {
-      const res = await chromeRpcClient.getExtensionVersion()
-      return res.data
+      const res = await chromeRpcClient.getExtensionManifest()
+      return res.data.version
     },
-    initialData: import.meta.env.VERSION ?? 'standalone',
   })
 
   async function handleCopy(text: string) {
@@ -193,7 +192,10 @@ export const About = () => {
                 {hasLink ? (
                   <CardActionArea
                     component="a"
-                    href={resource.link({ id: data.id || '', version })}
+                    href={resource.link({
+                      id: data.id || '',
+                      version: version || '',
+                    })}
                     target="_blank"
                     rel="noreferrer noopener"
                     sx={{ px: 2, py: 1 }}

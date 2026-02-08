@@ -1,12 +1,12 @@
-import { isStandaloneRuntime } from '@/common/environment/isStandalone'
-import { isChromeRuntimeAvailable } from '@/common/extension/chromeRuntime'
+import { isChromeRuntimeAvailable } from '@/common/environment/chromeRuntime'
+import { IS_STANDALONE_RUNTIME } from '@/common/environment/isStandalone'
 import { getStandaloneStorageArea } from '@/common/storage/standaloneStorage'
 
 export type ExtStorageType = 'local' | 'sync' | 'session'
 
 export const getStorageArea = (storageType: ExtStorageType) => {
   if (
-    !isStandaloneRuntime() &&
+    !IS_STANDALONE_RUNTIME &&
     isChromeRuntimeAvailable() &&
     chrome.storage?.[storageType]
   ) {

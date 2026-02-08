@@ -10,14 +10,6 @@ export const getExtensionVersion = () => {
   return import.meta.env.VERSION ?? 'standalone'
 }
 
-export const getAlarm = async (name: string) => {
-  if (!isChromeRuntimeAvailable() || !chrome.alarms) {
-    return null
-  }
-
-  return chrome.alarms.get(name)
-}
-
 export const connectRuntimePort = (name: string) => {
   if (!isChromeRuntimeAvailable()) {
     return null

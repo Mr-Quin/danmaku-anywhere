@@ -2,6 +2,7 @@ import { useEventCallback } from '@mui/material'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { IS_STANDALONE_RUNTIME } from '@/common/environment/isStandalone'
 import { uiContainer } from '@/common/ioc/uiIoc'
 import { Logger } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
@@ -114,10 +115,12 @@ export const FrameManager = () => {
       { logger }
     )
 
-    controllerRpcServer.listen()
+    if (!IS_STANDALONE_RUNTIME) {
+      controllerRpcServer.listen(chrome.runtime.onMessage)
 
-    return () => {
-      controllerRpcServer.unlisten()
+      return () => {
+        controllerRpcServer.unlisten(chrome.runtime.onMessage)
+      }
     }
   }, [])
 

@@ -1,5 +1,6 @@
 import { useEventCallback } from '@mui/material'
 import { useEffect } from 'react'
+import { IS_STANDALONE_RUNTIME } from '@/common/environment/isStandalone'
 import { useInvalidateSeasonAndEpisode } from '@/common/hooks/useInvalidateSeasonAndEpisode'
 import { createRpcServer } from '@/common/rpc/server'
 import type { ControllerMethods } from '@/common/rpcClient/controller/types'
@@ -37,10 +38,12 @@ export const useControllerRpcServer = () => {
       },
     })
 
-    tabRpcServer.listen()
+    if (!IS_STANDALONE_RUNTIME) {
+      tabRpcServer.listen(chrome.runtime.onMessage)
 
-    return () => {
-      tabRpcServer.unlisten()
+      return () => {
+        tabRpcServer.unlisten(chrome.runtime.onMessage)
+      }
     }
   }, [handleSetDanmaku, handleUnsetDanmaku, handleGetDanmakuState])
 

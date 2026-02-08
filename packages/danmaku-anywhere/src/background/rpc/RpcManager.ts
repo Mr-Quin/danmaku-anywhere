@@ -204,8 +204,8 @@ export class RpcManager {
 
           return frames
         },
-        getExtensionVersion: async () => {
-          return chrome.runtime.getManifest().version
+        getExtensionManifest: async () => {
+          return chrome.runtime.getManifest() as chrome.runtime.ManifestV3
         },
         getAlarm: async (name) => {
           if (!chrome.alarms) {
@@ -424,8 +424,8 @@ export class RpcManager {
       }
     )
 
-    rpcServer.listen()
-    rpcRelay.listen()
+    rpcServer.listen(chrome.runtime.onMessage)
+    rpcRelay.listen(chrome.runtime.onMessage)
 
     // also listen to external messages
     rpcServer.listen(chrome.runtime.onMessageExternal)

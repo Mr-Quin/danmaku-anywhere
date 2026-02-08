@@ -1,10 +1,8 @@
-export const isStandaloneRuntime = () => {
-  if (typeof chrome === 'undefined' || !chrome.runtime) {
+function isStandaloneRuntime(): boolean {
+  if (import.meta.env.VITE_STANDALONE === 'true') {
     return true
   }
-
-  return (
-    import.meta.env.VITE_STANDALONE === 'true' ||
-    import.meta.env.VITE_STANDALONE === true
-  )
+  return typeof chrome === 'undefined' || !chrome.runtime
 }
+
+export const IS_STANDALONE_RUNTIME = isStandaloneRuntime()
