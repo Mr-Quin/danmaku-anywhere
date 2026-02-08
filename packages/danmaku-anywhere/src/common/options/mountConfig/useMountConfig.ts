@@ -1,3 +1,4 @@
+import { arrayMove } from '@dnd-kit/sortable'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useInjectService } from '@/common/hooks/useInjectService'
@@ -10,13 +11,6 @@ import { MountConfigService } from '@/common/options/mountConfig/service'
 import { storageQueryKeys } from '@/common/queries/queryKeys'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import { matchUrl } from '@/common/utils/matchUrl'
-
-const arrayMove = <T>(array: T[], from: number, to: number): T[] => {
-  const newArray = [...array]
-  const item = newArray.splice(from, 1)[0]
-  newArray.splice(to, 0, item)
-  return newArray
-}
 
 export const useMountConfig = () => {
   const {

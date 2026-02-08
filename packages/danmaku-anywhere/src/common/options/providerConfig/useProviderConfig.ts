@@ -1,3 +1,4 @@
+import { arrayMove } from '@dnd-kit/sortable'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
@@ -6,13 +7,6 @@ import { storageQueryKeys } from '@/common/queries/queryKeys'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import type { ProviderConfig, ProviderConfigOptions } from './schema'
 import { ProviderConfigService } from './service'
-
-const arrayMove = <T>(array: T[], from: number, to: number): T[] => {
-  const newArray = [...array]
-  const item = newArray.splice(from, 1)[0]
-  newArray.splice(to, 0, item)
-  return newArray
-}
 
 export const useProviderConfig = () => {
   const {

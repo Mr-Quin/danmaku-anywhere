@@ -1,17 +1,12 @@
+import { arrayMove } from '@dnd-kit/sortable'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
+import { useToast } from '@/common/components/Toast/toastStore'
 import { useInjectService } from '@/common/hooks/useInjectService'
 import { storageQueryKeys } from '@/common/queries/queryKeys'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import type { AiProviderConfig, AiProviderConfigOptions } from './schema'
 import { AiProviderConfigService } from './service'
-
-const arrayMove = <T>(array: T[], from: number, to: number): T[] => {
-  const newArray = [...array]
-  const item = newArray.splice(from, 1)[0]
-  newArray.splice(to, 0, item)
-  return newArray
-}
 
 export const useAiProviderConfig = () => {
   const {
@@ -51,9 +46,17 @@ export const useEditAiProviderConfig = () => {
 
   const service = useInjectService(AiProviderConfigService)
 
+  const { toast } = useToast()
+
   const createMutation = useMutation({
     mutationKey: queryKey,
     mutationFn: service.create.bind(service),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey })
+    },
+    onError: (e) => {
+      toast.error(e.message)
+    },
   })
 
   const updateMutation = useMutation({
@@ -68,6 +71,9 @@ export const useEditAiProviderConfig = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
     },
+    onError: (e) => {
+      toast.error(e.message)
+    },
   })
 
   const deleteMutation = useMutation({
@@ -76,6 +82,9 @@ export const useEditAiProviderConfig = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
     },
+    onError: (e) => {
+      toast.error(e.message)
+    },
   })
 
   const toggleMutation = useMutation({
@@ -83,10 +92,15 @@ export const useEditAiProviderConfig = () => {
     mutationFn: async ({ id, enabled }: { id: string; enabled?: boolean }) => {
       const config = await service.get(id)
       if (!config) return
-      return service.update(id, { enabled: enabled ?? !config.enabled })
+      return service.update(id, {
+        enabled: enabled ?? !config.enabled,
+      })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
+    },
+    onError: (e) => {
+      toast.error(e.message)
     },
   })
 
@@ -105,6 +119,9 @@ export const useEditAiProviderConfig = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
+    },
+    onError: (e) => {
+      toast.error(e.message)
     },
   })
 
