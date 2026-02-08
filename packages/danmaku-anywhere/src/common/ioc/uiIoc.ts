@@ -24,9 +24,12 @@ uiContainer
 
 uiContainer.bind<ILogger>(LoggerSymbol).toConstantValue(Logger)
 
-const initializeStandalone = async () => {
-  if (!IS_STANDALONE_RUNTIME) return
+function initializeStandalone() {
+  if (!IS_STANDALONE_RUNTIME) {
+    return
+  }
 
+  // these bindings are needed in standalone mode for standalone storage setup
   uiContainer.bind(StoreServiceSymbol).toService(ExtensionOptionsService)
   uiContainer.bind(StoreServiceSymbol).toService(DanmakuOptionsService)
   uiContainer.bind(StoreServiceSymbol).toService(IntegrationPolicyService)
@@ -35,17 +38,18 @@ const initializeStandalone = async () => {
   uiContainer.bind(StoreServiceSymbol).toService(AiProviderConfigService)
 }
 
-const initializeLocalization = async () => {
-  try {
-    const options = await uiContainer.get(ExtensionOptionsService).get()
+initializeStandalone()
+
+uiContainer
+  .get(ExtensionOptionsService)
+  .get()
+  .then((options) => {
     void i18n.changeLanguage(options.lang)
-  } catch {
+  })
+  .catch(() => {
     Logger.error(
       'Failed to get language from extension options, fallback to default language'
     )
-  }
-}
-
-void initializeStandalone().then(() => initializeLocalization())
+  })
 
 export { uiContainer }

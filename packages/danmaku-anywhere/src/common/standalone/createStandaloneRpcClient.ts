@@ -26,7 +26,11 @@ type StandaloneRpcClient<TRecords extends RPCRecord> = {
 export const createStandaloneRpcClient = <TRecords extends RPCRecord>(
   options: StandaloneRpcOptions<TRecords> = {}
 ): StandaloneRpcClient<TRecords> => {
-  const { handlers = {}, defaultContext = {}, defaultOutput } = options
+  const {
+    handlers = {} as StandaloneRpcHandlers<TRecords>,
+    defaultContext = {},
+    defaultOutput,
+  } = options
 
   return new Proxy(
     {},

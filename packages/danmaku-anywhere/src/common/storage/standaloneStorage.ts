@@ -23,7 +23,8 @@ const createStandaloneStorageArea = (): StorageAreaLike => {
   }
 
   return {
-    async get(keys?: string | string[] | null) {
+    // biome-ignore lint/suspicious/noExplicitAny: match chrome signature
+    async get(keys?: any) {
       if (keys === null || keys === undefined) {
         return Object.fromEntries(store.entries())
       }
@@ -32,6 +33,14 @@ const createStandaloneStorageArea = (): StorageAreaLike => {
           acc[key] = store.get(key)
           return acc
         }, {})
+      }
+      if (typeof keys === 'object') {
+        const result: Record<string, unknown> = {}
+        for (const [key, defaultValue] of Object.entries(keys)) {
+          const value = store.get(key)
+          result[key] = value === undefined ? defaultValue : value
+        }
+        return result
       }
       return { [keys]: store.get(keys) }
     },
@@ -43,6 +52,10 @@ const createStandaloneStorageArea = (): StorageAreaLike => {
         changes[key] = { oldValue, newValue: value }
       })
       emitChanges(changes)
+    },
+    // biome-ignore lint/suspicious/noExplicitAny: match chrome signature
+    async getBytesInUse(keys?: any) {
+      return 0
     },
     async remove(keys: string | string[]) {
       const keysToRemove = Array.isArray(keys) ? keys : [keys]
@@ -64,12 +77,35 @@ const createStandaloneStorageArea = (): StorageAreaLike => {
       store.clear()
       emitChanges(changes)
     },
+    async setAccessLevel(accessOptions: {
+      accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS'
+    }) {
+      /* no-op */
+    },
+    async getKeys() {
+      return Array.from(store.keys())
+    },
     onChanged: {
       addListener(listener: StorageChangeListener) {
         listeners.add(listener)
       },
       removeListener(listener: StorageChangeListener) {
         listeners.delete(listener)
+      },
+      hasListener(listener: StorageChangeListener) {
+        return listeners.has(listener)
+      },
+      hasListeners() {
+        return listeners.size > 0
+      },
+      addRules: () => {
+        /* no-op */
+      },
+      getRules: () => {
+        /* no-op */
+      },
+      removeRules: () => {
+        /* no-op */
       },
     },
   } satisfies StorageAreaLike
