@@ -1,3 +1,4 @@
+import { arrayMove } from '@dnd-kit/sortable'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useToast } from '@/common/components/Toast/toastStore'
@@ -6,13 +7,6 @@ import { storageQueryKeys } from '@/common/queries/queryKeys'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import type { AiProviderConfig, AiProviderConfigOptions } from './schema'
 import { AiProviderConfigService } from './service'
-
-const arrayMove = <T>(array: T[], from: number, to: number): T[] => {
-  const newArray = [...array]
-  const item = newArray.splice(from, 1)[0]
-  newArray.splice(to, 0, item)
-  return newArray
-}
 
 export const useAiProviderConfig = () => {
   const {
@@ -99,7 +93,6 @@ export const useEditAiProviderConfig = () => {
       const config = await service.get(id)
       if (!config) return
       return service.update(id, {
-        ...config,
         enabled: enabled ?? !config.enabled,
       })
     },

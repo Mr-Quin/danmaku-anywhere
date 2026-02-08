@@ -59,16 +59,16 @@ export class AiProviderConfigService implements IStoreService {
 
     invariant(index !== -1, `Provider with id ${id} not found`)
 
-    invariant(id !== BUILT_IN_AI_PROVIDER_ID, 'Cannot update built-in provider')
-
-    invariant(
-      partial.provider !== 'built-in',
-      'Cannot update built-in provider'
-    )
-    invariant(
-      partial.provider === configs[index].provider,
-      'Provider type cannot be changed'
-    )
+    if (partial.provider) {
+      invariant(
+        partial.provider !== 'built-in',
+        'Cannot update built-in provider'
+      )
+      invariant(
+        partial.provider === configs[index].provider,
+        'Provider type cannot be changed'
+      )
+    }
 
     const newData = produce(configs, (draft) => {
       // safe cast since we checked provider type above

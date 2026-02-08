@@ -60,7 +60,6 @@ export const AiProvidersPage = (): ReactElement => {
             toast.success(t('common.updated', 'Updated'))
             handleCloseEditor()
           },
-          onError: (err) => toast.error(err.message),
         }
       )
     } else {
@@ -69,7 +68,6 @@ export const AiProvidersPage = (): ReactElement => {
           toast.success(t('common.created', 'Created'))
           handleCloseEditor()
         },
-        onError: (err) => toast.error(err.message),
       })
     }
   }
@@ -89,9 +87,6 @@ export const AiProvidersPage = (): ReactElement => {
         await remove.mutateAsync(provider.id, {
           onSuccess: () => {
             toast.success(t('common.deleted', 'Deleted'))
-          },
-          onError: (error) => {
-            toast.error(error.message)
           },
         })
       },

@@ -167,7 +167,7 @@ function DragOverlayItem<T extends DraggableItem>({
 
 export interface DraggableListProps<T extends DraggableItem> {
   items: T[]
-  clickable?: boolean
+  clickable?: boolean | ((item: T) => boolean)
   onEdit?: (item: T) => void
   onReorder?: (sourceIndex: number, destinationIndex: number) => void
   renderPrimary: (item: T) => ReactNode
@@ -241,6 +241,10 @@ export function DraggableList<T extends DraggableItem>({
     setActiveId(null)
   }
 
+  function getIsClickable(item: T) {
+    return typeof clickable === 'function' ? clickable(item) : clickable
+  }
+
   function renderDragOverlay() {
     const activeItem = orderedItems.find((item) => item.id === activeId)
 
@@ -284,7 +288,7 @@ export function DraggableList<T extends DraggableItem>({
             {orderedItems.map((item) => (
               <SortableItem
                 key={item.id}
-                clickable={clickable}
+                clickable={getIsClickable(item)}
                 item={item}
                 disableReorder={disableReorder}
                 onEdit={onEdit}

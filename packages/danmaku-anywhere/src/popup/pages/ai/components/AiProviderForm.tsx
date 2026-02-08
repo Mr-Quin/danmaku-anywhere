@@ -228,8 +228,8 @@ export const AiProviderForm = ({
           </>
         )}
 
-        <Box display="flex" justifyContent="flex-end" gap={1}>
-          {!isBuiltIn && (
+        {!isBuiltIn && (
+          <Box display="flex" justifyContent="flex-end" gap={1}>
             <Button
               variant="outlined"
               onClick={handleTestConnection}
@@ -238,17 +238,17 @@ export const AiProviderForm = ({
             >
               {t('ai.testConnection', 'Test Connection')}
             </Button>
-          )}
-          <Button
-            variant="contained"
-            color="primary"
-            type="submit"
-            loading={isSubmitting}
-            disabled={isTesting || !isValid}
-          >
-            {t('common.save', 'Save')}
-          </Button>
-        </Box>
+            <Button
+              variant="contained"
+              color="primary"
+              type="submit"
+              loading={isSubmitting}
+              disabled={isTesting || !isValid}
+            >
+              {t('common.save', 'Save')}
+            </Button>
+          </Box>
+        )}
       </Stack>
     </form>
   )
