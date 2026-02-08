@@ -19,6 +19,7 @@
     "standalone:dev": "vite --config vite.standalone.config.ts",
     "standalone:build": "vite build --config vite.standalone.config.ts --emptyOutDir",
     "standalone:serve": "vite preview --config vite.standalone.config.ts",
+    "standalone:deploy": "wrangler deploy",
     "test": "vitest",
     "preview": "vite preview",
     "lint": "tsc && biome check --fix",
@@ -29,7 +30,8 @@
     "package:firefox": "VITE_TARGET_BROWSER=firefox pnpm run package",
     "tsc": "tsc",
     "i18n": "i18next-cli",
-    "i18n:check": "i18next-cli extract --ci"
+    "i18n:check": "i18next-cli extract --ci",
+    "wrangler": "wrangler"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.1",
@@ -95,6 +97,7 @@
     "i18next-cli": "^1.28.0",
     "vite": "^7.2.4",
     "vitest": "^4.0.13",
-    "web-ext": "^9.2.0"
+    "web-ext": "^9.2.0",
+    "wrangler": "^4.50.0"
   }
 }
