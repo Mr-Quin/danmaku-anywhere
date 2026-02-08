@@ -1,7 +1,6 @@
 import { Container } from 'inversify'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { LoggerSymbol } from '@/common/Logger'
-import { mockChrome } from '@/tests/mockChromeApis'
 import { ReadinessService } from './ReadinessService'
 
 const mockStorageInstance = {
@@ -21,13 +20,19 @@ vi.mock('@/common/storage/ExtStorageService', () => {
   }
 })
 
+vi.mock('@/common/constants', () => {
+  return {
+    EXTENSION_VERSION: '1.0.0',
+  }
+})
+
 describe('ReadinessService', () => {
   let container: Container
   let service: ReadinessService
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockChrome.runtime.getManifest.mockReturnValue({ version: '1.0.0' })
+
     container = new Container()
     container.bind(ReadinessService).toSelf()
     container.bind(LoggerSymbol).toConstantValue({

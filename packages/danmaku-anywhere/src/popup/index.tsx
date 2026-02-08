@@ -5,25 +5,32 @@ import ReactDOM from 'react-dom/client'
 import './index.css'
 
 import { queryClient } from '@/common/queries/queryClient'
+import { ensureStandaloneReady } from '@/common/standalone/ensureStandaloneReady'
 import { Theme } from '@/common/theme/Theme'
 import { App } from './App'
 import '@/common/localization/i18n'
 import { EnvironmentContext } from '@/common/environment/context'
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <EnvironmentContext
-        value={{
-          environment: import.meta.env.MODE,
-          type: 'popup',
-        }}
-      >
-        <Theme>
-          <App />
-          <ReactQueryDevtools />
-        </Theme>
-      </EnvironmentContext>
-    </QueryClientProvider>
-  </React.StrictMode>
-)
+const bootstrap = async () => {
+  await ensureStandaloneReady()
+
+  ReactDOM.createRoot(document.getElementById('root')!).render(
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <EnvironmentContext
+          value={{
+            environment: import.meta.env.MODE,
+            type: 'popup',
+          }}
+        >
+          <Theme>
+            <App />
+            <ReactQueryDevtools />
+          </Theme>
+        </EnvironmentContext>
+      </QueryClientProvider>
+    </React.StrictMode>
+  )
+}
+
+void bootstrap()

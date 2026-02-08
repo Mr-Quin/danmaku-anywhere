@@ -4,6 +4,8 @@ interface ImportMetaEnv {
   readonly VITE_PROXY_URL: string
   readonly VITE_PROXY_ORIGIN: string
   readonly VITE_TARGET_BROWSER: 'chrome' | 'firefox'
+  readonly VITE_STANDALONE?: 'true' | 'false'
+  readonly VERSION: string
 }
 
 interface ImportMeta {

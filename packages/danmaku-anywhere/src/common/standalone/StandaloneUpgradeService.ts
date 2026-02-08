@@ -6,10 +6,9 @@ import {
   StoreServiceSymbol,
 } from '@/common/options/IStoreService'
 import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
-import { isServiceWorker } from '@/common/utils/utils'
 
 @injectable('Singleton')
-export class UpgradeService {
+export class StandaloneUpgradeService {
   private logger: ILogger
 
   constructor(
@@ -19,7 +18,7 @@ export class UpgradeService {
     @inject(LoggerSymbol)
     logger: ILogger
   ) {
-    this.logger = logger.sub('[UpgradeService]')
+    this.logger = logger.sub('[StandaloneUpgradeService]')
   }
 
   async waitUntilReady() {
@@ -27,23 +26,16 @@ export class UpgradeService {
   }
 
   async upgrade() {
-    if (!isServiceWorker()) {
-      throw new Error('Upgrade must be called from background script')
-    }
+    this.logger.debug('Starting standalone upgrade...')
 
-    this.logger.debug('Starting upgrade...')
-
-    // gather context
     const context: Record<string, unknown> = {}
     for (const service of this.services) {
-      // special method to read without waiting for readiness
       const data = await service.options.readUnblocked()
       if (data) {
         context[service.options.key] = data
       }
     }
 
-    // upgrade each service
     for (const service of this.services) {
       try {
         await service.options.upgrade(context)
@@ -52,7 +44,6 @@ export class UpgradeService {
       }
     }
 
-    // mark as ready
     const currentVersion = EXTENSION_VERSION
     await this.readinessService.setVersion(currentVersion)
 

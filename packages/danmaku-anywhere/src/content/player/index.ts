@@ -197,7 +197,7 @@ document.addEventListener('fullscreenchange', () => {
   void playerRpcClient.controller['relay:event:showPopover']({ frameId })
 })
 
-playerRpcServer.listen()
+playerRpcServer.listen(chrome.runtime.onMessage)
 
 Logger.debug('Player script listening')
 

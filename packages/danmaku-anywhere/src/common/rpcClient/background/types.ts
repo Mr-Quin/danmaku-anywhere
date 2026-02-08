@@ -109,6 +109,8 @@ export type BackgroundMethods = {
   getActiveTabUrl: RPCDef<void, string | null>
   getFrameId: RPCDef<void, number>
   getAllFrames: RPCDef<void, chrome.webNavigation.GetAllFrameResultDetails[]>
+  getExtensionManifest: RPCDef<void, chrome.runtime.ManifestV3>
+  getAlarm: RPCDef<string, chrome.alarms.Alarm | null>
   injectScript: RPCDef<number, void>
   remoteLog: RPCDef<LogEntry, void>
   exportDebugData: RPCDef<void, { id: string }>

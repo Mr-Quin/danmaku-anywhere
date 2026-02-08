@@ -53,16 +53,10 @@ export const createRpcServer = <
   let baseContext = { ...context }
 
   const methods = {
-    listen: (
-      messageEvent: chrome.runtime.ExtensionMessageEvent = chrome.runtime
-        .onMessage
-    ) => {
+    listen: (messageEvent: chrome.runtime.ExtensionMessageEvent) => {
       messageEvent.addListener(listener)
     },
-    unlisten: (
-      messageEvent: chrome.runtime.ExtensionMessageEvent = chrome.runtime
-        .onMessage
-    ) => {
+    unlisten: (messageEvent: chrome.runtime.ExtensionMessageEvent) => {
       messageEvent.removeListener(listener)
     },
     hasHandler: (method: string) => method in handlers,

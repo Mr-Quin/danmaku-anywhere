@@ -5,10 +5,11 @@ import {
   NoopTrackingService,
   type TrackingService,
 } from '@/common/telemetry/TrackingService'
+import { IS_STANDALONE_RUNTIME } from '../environment/isStandalone'
 
 let trackingService: TrackingService | null = null
 export const getTrackingService = () => {
-  if (trackingService === null) {
+  if (trackingService === null || IS_STANDALONE_RUNTIME) {
     return new NoopTrackingService()
   }
   return trackingService
@@ -18,7 +19,7 @@ export const createTrackingService = (
   environment: string,
   type: EnvironmentType
 ) => {
-  if (trackingService !== null) {
+  if (trackingService !== null || IS_STANDALONE_RUNTIME) {
     return trackingService
   }
 

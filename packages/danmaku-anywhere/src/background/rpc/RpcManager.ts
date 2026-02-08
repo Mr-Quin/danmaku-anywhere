@@ -204,6 +204,16 @@ export class RpcManager {
 
           return frames
         },
+        getExtensionManifest: async () => {
+          return chrome.runtime.getManifest() as chrome.runtime.ManifestV3
+        },
+        getAlarm: async (name) => {
+          if (!chrome.alarms) {
+            return null
+          }
+
+          return chrome.alarms.get(name)
+        },
         getFrameId: async (_, sender) => {
           if (sender.frameId === undefined) {
             throw new RpcException('Sender does not have frame id')
@@ -414,8 +424,8 @@ export class RpcManager {
       }
     )
 
-    rpcServer.listen()
-    rpcRelay.listen()
+    rpcServer.listen(chrome.runtime.onMessage)
+    rpcRelay.listen(chrome.runtime.onMessage)
 
     // also listen to external messages
     rpcServer.listen(chrome.runtime.onMessageExternal)

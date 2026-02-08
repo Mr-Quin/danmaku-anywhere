@@ -6,6 +6,12 @@ import { ReadinessService } from '@/common/options/ReadinessService/ReadinessSer
 import { mockChrome } from '@/tests/mockChromeApis'
 import { UpgradeService } from './UpgradeService'
 
+vi.mock('@/common/constants', () => {
+  return {
+    EXTENSION_VERSION: '1.0.0',
+  }
+})
+
 describe('UpgradeService', () => {
   let container: Container
   let service: UpgradeService
@@ -15,7 +21,6 @@ describe('UpgradeService', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    mockChrome.runtime.getManifest.mockReturnValue({ version: '1.0.0' })
     mockChrome.storage.local.get.mockImplementation((key, cb) => cb({}))
 
     mockStoreService = {

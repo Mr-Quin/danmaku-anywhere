@@ -183,11 +183,13 @@ export const RetentionPolicyPage = () => {
   const { data: nextPurgeTime } = useQuery({
     queryKey: alarmQueryKeys.danmakuPurge(),
     queryFn: async () => {
-      const alarm = await chrome.alarms.get(alarmKeys.PURGE_DANMAKU)
-      return alarm || null
+      const { data: alarm } = await chromeRpcClient.getAlarm(
+        alarmKeys.PURGE_DANMAKU
+      )
+      return alarm
     },
     select: (data) => {
-      return new Date(data.scheduledTime).toLocaleString()
+      return data ? new Date(data.scheduledTime).toLocaleString() : null
     },
     enabled: data.retentionPolicy.enabled,
   })

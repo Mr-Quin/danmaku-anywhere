@@ -1,4 +1,5 @@
 import { inject, injectable } from 'inversify'
+import { EXTENSION_VERSION } from '@/common/constants'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
 import { tryCatch } from '@/common/utils/tryCatch'
@@ -52,7 +53,7 @@ export class ReadinessService {
     }
 
     const lastVersion = result?.lastVersion
-    const currentVersion = chrome.runtime.getManifest().version
+    const currentVersion = EXTENSION_VERSION
 
     if (lastVersion === currentVersion) {
       this.logger.debug('Version match, ready immediately')
