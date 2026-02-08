@@ -1,14 +1,14 @@
 import { relations, sql } from 'drizzle-orm'
 import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { user } from './auth'
 
 export const policy = sqliteTable('site_integration_policy', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   data: text('data').notNull(),
 
-  // nullable since we don't have a user system
-  authorId: text('author_id'),
-  authorName: text('author_name'),
+  // nullable for anonymous policies
+  authorId: text('author_id').references(() => user.id),
 
   // list of domains that this policy applies to
   domains: text('domains', { mode: 'json' }).$type<string[]>().default([]),
@@ -41,9 +41,16 @@ export const domains = sqliteTable(
   (t) => [index('domain_idx').on(t.domain)]
 )
 
-export const siteIntegrationPolicyRelations = relations(policy, ({ many }) => ({
-  domains: many(domains),
-}))
+export const siteIntegrationPolicyRelations = relations(
+  policy,
+  ({ many, one }) => ({
+    domains: many(domains),
+    author: one(user, {
+      fields: [policy.authorId],
+      references: [user.id],
+    }),
+  })
+)
 
 export const siteIntegrationDomainsRelations = relations(
   domains,

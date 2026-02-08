@@ -3,75 +3,20 @@
   "main": "src/index.ts",
   "compatibility_date": "2025-05-05",
   "compatibility_flags": ["nodejs_compat"],
-  "secrets_store_secrets": [
-    {
-      "binding": "DANDANPLAY_APP_SECRET",
-      "store_id": "4a9ca50edba84431879f34b0b67f9998",
-      "secret_name": "DANDANPLAY_APP_SECRET"
-    },
-    {
-      "binding": "DANMAKU_GEMINI_API_KEY",
-      "store_id": "4a9ca50edba84431879f34b0b67f9998",
-      "secret_name": "DANMAKU_GEMINI_API_KEY_STG"
-    },
-    {
-      "binding": "DA_AI_GATEWAY_ID",
-      "store_id": "4a9ca50edba84431879f34b0b67f9998",
-      "secret_name": "DA_AI_GATEWAY_ID_STG"
-    },
-    {
-      "binding": "DA_AI_GATEWAY_NAME",
-      "store_id": "4a9ca50edba84431879f34b0b67f9998",
-      "secret_name": "DA_AI_GATEWAY_NAME_STG"
-    }
-  ],
-  "version_metadata": {
-    "binding": "CF_VERSION_METADATA"
-  },
-  "vars": {
-    "ENVIRONMENT": "dev",
-    "DANDANPLAY_API_HOST": "https://api.dandanplay.net",
-    "ALLOWED_ORIGIN": "https://danmaku.weeblify.app",
-    "DANDANPLAY_APP_ID": "64fw9qcpfb",
-    "GEMINI_MODEL": "gemini-2.5-flash-lite"
-  },
   "observability": {
     "enabled": true
   },
-  "r2_buckets": [
-    {
-      "binding": "FILES_BUCKET",
-      "bucket_name": "danmaku-anywhere-file-staging"
-    }
-  ],
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "danmaku-anywhere-db-staging",
-      "database_id": "d19cbb0e-aa96-4a6b-a282-828fb9333897",
-      "preview_database_id": "danmaku-anywhere-db-preview",
-      "migrations_dir": "./drizzle"
-    }
-  ],
-  "ratelimits": [
-    {
-      "name": "DDP_RATE_LIMITER",
-      "namespace_id": "1001",
-      "simple": {
-        "limit": 5,
-        "period": 60
-      }
-    }
-  ],
-  "route": "danmaku.weeblify.app/proxy/*",
   "env": {
     "staging": {
       "vars": {
         "ENVIRONMENT": "staging",
         "DANDANPLAY_API_HOST": "https://api.dandanplay.net",
         "ALLOWED_ORIGIN": "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app,http://localhost:4200",
+        "BETTER_AUTH_TRUSTED_ORIGINS": "https://**.weeblify.app",
         "DANDANPLAY_APP_ID": "64fw9qcpfb",
-        "GEMINI_MODEL": "gemini-2.5-flash-lite"
+        "GEMINI_MODEL": "gemini-2.5-flash-lite",
+        "BETTER_AUTH_URL": "https://api.danmaku-staging.weeblify.app",
+        "GOOGLE_CLIENT_ID": ""
       },
       "version_metadata": {
         "binding": "CF_VERSION_METADATA"
@@ -96,6 +41,16 @@
           "binding": "DA_AI_GATEWAY_NAME",
           "store_id": "4a9ca50edba84431879f34b0b67f9998",
           "secret_name": "DA_AI_GATEWAY_NAME_STG"
+        },
+        {
+          "binding": "BETTER_AUTH_SECRET",
+          "store_id": "4a9ca50edba84431879f34b0b67f9998",
+          "secret_name": "BETTER_AUTH_SECRET_STG"
+        },
+        {
+          "binding": "GOOGLE_CLIENT_SECRET",
+          "store_id": "4a9ca50edba84431879f34b0b67f9998",
+          "secret_name": "GOOGLE_CLIENT_SECRET_STG"
         }
       ],
       "routes": [
@@ -107,7 +62,8 @@
       "r2_buckets": [
         {
           "binding": "FILES_BUCKET",
-          "bucket_name": "danmaku-anywhere-file-staging"
+          "bucket_name": "danmaku-anywhere-file-staging",
+          "remote": true
         }
       ],
       "d1_databases": [
@@ -134,8 +90,11 @@
         "ENVIRONMENT": "production",
         "DANDANPLAY_API_HOST": "https://api.dandanplay.net",
         "ALLOWED_ORIGIN": "https://danmaku.weeblify.app",
+        "BETTER_AUTH_TRUSTED_ORIGINS": "https://**.weeblify.app",
         "DANDANPLAY_APP_ID": "64fw9qcpfb",
-        "GEMINI_MODEL": "gemini-2.5-flash-lite"
+        "GEMINI_MODEL": "gemini-2.5-flash-lite",
+        "BETTER_AUTH_URL": "https://api.danmaku.weeblify.app",
+        "GOOGLE_CLIENT_ID": ""
       },
       "version_metadata": {
         "binding": "CF_VERSION_METADATA"
@@ -160,6 +119,16 @@
           "binding": "DA_AI_GATEWAY_NAME",
           "store_id": "4a9ca50edba84431879f34b0b67f9998",
           "secret_name": "DA_AI_GATEWAY_NAME"
+        },
+        {
+          "binding": "BETTER_AUTH_SECRET",
+          "store_id": "4a9ca50edba84431879f34b0b67f9998",
+          "secret_name": "BETTER_AUTH_SECRET"
+        },
+        {
+          "binding": "GOOGLE_CLIENT_SECRET",
+          "store_id": "4a9ca50edba84431879f34b0b67f9998",
+          "secret_name": "GOOGLE_CLIENT_SECRET"
         }
       ],
       "routes": [

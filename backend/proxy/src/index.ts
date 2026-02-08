@@ -4,6 +4,7 @@ import { HTTPException } from 'hono/http-exception'
 import { logger } from 'hono/logger'
 import { poweredBy } from 'hono/powered-by'
 import { prettyJSON } from 'hono/pretty-json'
+import { authContext } from '@/middleware/authContext'
 import { useCache } from '@/middleware/cache'
 import { setContext } from '@/middleware/setContext'
 import { danDanPlay } from '@/routes/api/ddp/danDanPlay'
@@ -32,7 +33,8 @@ app.use(
   poweredBy({
     serverName: 'DanmakuAnywhere',
   }),
-  setContext()
+  setContext(),
+  authContext()
 )
 
 app.route('/', api)

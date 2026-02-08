@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/cloudflare'
+import type { AuthSessionData, AuthUser } from '@/auth/types'
 import { createDb, type Database } from '@/db'
 import { factory } from '@/factory'
 
@@ -8,6 +9,8 @@ declare module 'hono' {
     extensionId?: string
     ip?: string
     createDb: () => Database
+    authUser?: AuthUser | null
+    authSession?: AuthSessionData | null
   }
 }
 
