@@ -7,6 +7,7 @@ import type {
   PlayerRelayEvents,
 } from '@/common/rpcClient/background/types'
 import type { ControllerMethods } from '@/common/rpcClient/controller/types'
+import type { MountConfig } from '../options/mountConfig/schema'
 import type { StandaloneRpcHandlers } from './createStandaloneRpcClient'
 
 const standaloneBaseUrlConfig: BaseUrlConfig = {
@@ -40,6 +41,15 @@ const standaloneManifest: chrome.runtime.ManifestV3 = {
   icons: {},
   permissions: [],
   content_scripts: [],
+}
+
+const standaloneMountConfig: MountConfig = {
+  patterns: ['*://*/*'],
+  enabled: true,
+  mode: 'manual',
+  id: 'standalone',
+  name: 'Standalone',
+  mediaQuery: 'video',
 }
 
 export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMethods> =
@@ -90,7 +100,7 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     }),
     mountConfigCreate: () =>
       null as unknown as BackgroundMethods['mountConfigCreate']['output'],
-    mountConfigGetAll: () => [],
+    mountConfigGetAll: () => [standaloneMountConfig],
     kazumiSearchContent: () => [],
     kazumiGetChapters: () => [],
     genericVodSearch: () => [],

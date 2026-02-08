@@ -1,4 +1,5 @@
 import { inject, injectable, multiInject } from 'inversify'
+import { EXTENSION_VERSION } from '@/common/constants'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import {
   type IStoreService,
@@ -52,7 +53,7 @@ export class UpgradeService {
     }
 
     // mark as ready
-    const currentVersion = chrome.runtime.getManifest().version
+    const currentVersion = EXTENSION_VERSION
     await this.readinessService.setVersion(currentVersion)
 
     this.logger.debug(`Upgrade complete. Version set to ${currentVersion}`)

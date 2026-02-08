@@ -36,7 +36,7 @@ export default defineConfig({
         index: 'index.html',
       },
     },
-    outDir: path.resolve('dev/standalone'),
+    outDir: './build-standalone',
     // the minimum to support top-level await
     target: ['es2022', 'edge89', 'firefox89', 'chrome89', 'safari15'],
   },

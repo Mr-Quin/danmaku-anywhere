@@ -186,7 +186,7 @@ export const About = () => {
                     component="a"
                     href={resource.link({
                       id: data.id || '',
-                      version: version || '',
+                      version,
                     })}
                     target="_blank"
                     rel="noreferrer noopener"

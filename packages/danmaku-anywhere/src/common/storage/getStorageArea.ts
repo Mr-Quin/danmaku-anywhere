@@ -1,6 +1,6 @@
 import { IS_CHROME_RUNTIME_AVAILABLE } from '@/common/environment/chromeRuntime'
 import { IS_STANDALONE_RUNTIME } from '@/common/environment/isStandalone'
-import { getStandaloneStorageArea } from '@/common/storage/standaloneStorage'
+import { getStandaloneStorageArea } from '@/common/standalone/standaloneStorage'
 
 export type ExtStorageType = 'local' | 'sync' | 'session'
 
