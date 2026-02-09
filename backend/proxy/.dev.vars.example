@@ -1,0 +1,7 @@
+ENVIRONMENT="dev"
+DANDANPLAY_API_HOST="https://api.dandanplay.net"
+DANDANPLAY_APP_ID=""
+ALLOWED_ORIGIN="http://localhost:4200"
+GEMINI_MODEL="gemini-2.5-flash-lite"
+BETTER_AUTH_URL="http://localhost:8787"
+GOOGLE_CLIENT_ID=""

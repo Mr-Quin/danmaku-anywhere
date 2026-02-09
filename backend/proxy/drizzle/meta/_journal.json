@@ -8,6 +8,13 @@
       "when": 1768539080513,
       "tag": "0000_mixed_rattler",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1770581446051,
+      "tag": "0001_organic_boomerang",
+      "breakpoints": true
     }
   ]
 }

@@ -2,6 +2,7 @@ import { zValidator } from '@hono/zod-validator'
 import { HTTPException } from 'hono/http-exception'
 import z from 'zod'
 import { factory } from '@/factory'
+import { requireAuth } from '@/middleware/requireAuth'
 import * as schemas from './schemas'
 import * as service from './service'
 
@@ -75,6 +76,7 @@ policyRouter.get(
 
 policyRouter.post(
   '/:id/vote',
+  requireAuth(),
   zValidator('json', z.object({ type: z.enum(['up', 'down']) })),
   zValidator('param', z.object({ id: z.string() })),
   async function vote(c) {
