@@ -6,6 +6,82 @@
   "observability": {
     "enabled": true
   },
+  "vars": {
+    "ENVIRONMENT": "staging",
+    "DANDANPLAY_API_HOST": "https://api.dandanplay.net",
+    "ALLOWED_ORIGIN": "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app,http://localhost:4200",
+    "BETTER_AUTH_TRUSTED_ORIGINS": "https://**.weeblify.app",
+    "DANDANPLAY_APP_ID": "64fw9qcpfb",
+    "GEMINI_MODEL": "gemini-2.5-flash-lite",
+    "BETTER_AUTH_URL": "https://api.danmaku-staging.weeblify.app",
+    "GOOGLE_CLIENT_ID": ""
+  },
+  "version_metadata": {
+    "binding": "CF_VERSION_METADATA"
+  },
+  "secrets_store_secrets": [
+    {
+      "binding": "DANDANPLAY_APP_SECRET",
+      "store_id": "4a9ca50edba84431879f34b0b67f9998",
+      "secret_name": "DANDANPLAY_APP_SECRET"
+    },
+    {
+      "binding": "DANMAKU_GEMINI_API_KEY",
+      "store_id": "4a9ca50edba84431879f34b0b67f9998",
+      "secret_name": "DANMAKU_GEMINI_API_KEY_STG"
+    },
+    {
+      "binding": "DA_AI_GATEWAY_ID",
+      "store_id": "4a9ca50edba84431879f34b0b67f9998",
+      "secret_name": "DA_AI_GATEWAY_ID_STG"
+    },
+    {
+      "binding": "DA_AI_GATEWAY_NAME",
+      "store_id": "4a9ca50edba84431879f34b0b67f9998",
+      "secret_name": "DA_AI_GATEWAY_NAME_STG"
+    },
+    {
+      "binding": "BETTER_AUTH_SECRET",
+      "store_id": "4a9ca50edba84431879f34b0b67f9998",
+      "secret_name": "BETTER_AUTH_SECRET_STG"
+    },
+    {
+      "binding": "GOOGLE_CLIENT_SECRET",
+      "store_id": "4a9ca50edba84431879f34b0b67f9998",
+      "secret_name": "GOOGLE_CLIENT_SECRET_STG"
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "api.danmaku-staging.weeblify.app",
+      "custom_domain": true
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "FILES_BUCKET",
+      "bucket_name": "danmaku-anywhere-file-staging",
+      "remote": true
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "danmaku-anywhere-db-staging",
+      "database_id": "d19cbb0e-aa96-4a6b-a282-828fb9333897",
+      "migrations_dir": "./drizzle"
+    }
+  ],
+  "ratelimits": [
+    {
+      "name": "DDP_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 5,
+        "period": 60
+      }
+    }
+  ],
   "env": {
     "staging": {
       "vars": {

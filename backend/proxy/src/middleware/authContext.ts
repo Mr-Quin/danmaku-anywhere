@@ -1,4 +1,4 @@
-import { createAuth } from '@/auth/config'
+import { getOrCreateAuth } from '@/auth/config'
 import type { AuthSession } from '@/auth/types'
 import { factory } from '@/factory'
 import { getIsTestEnv } from '@/utils/getIsTestEnv'
@@ -23,7 +23,7 @@ export const authContext = () =>
     }
 
     try {
-      const auth = await createAuth(context.env)
+      const auth = await getOrCreateAuth(context.env)
       const { user, session } = await resolveAuthSession(
         context.req.raw.headers,
         (headers) => auth.api.getSession({ headers })
@@ -32,7 +32,8 @@ export const authContext = () =>
       context.set('authUser', user)
       context.set('authSession', session)
       return next()
-    } catch {
+    } catch (error) {
+      console.error('Error getting auth session', error)
       context.set('authUser', null)
       context.set('authSession', null)
       return next()

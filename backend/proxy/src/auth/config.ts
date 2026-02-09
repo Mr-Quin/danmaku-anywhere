@@ -2,9 +2,9 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { admin, bearer, jwt, openAPI } from 'better-auth/plugins'
 import { ac, adminRole, moderatorRole, userRole } from '@/auth/permissions'
-import { createDb } from '@/db'
+import { getOrCreateDb } from '@/db'
 
-const getGoogleProvider = async (env: Env) => {
+async function getGoogleProvider(env: Env) {
   const clientId = env.GOOGLE_CLIENT_ID?.trim()
 
   const clientSecret = await env.GOOGLE_CLIENT_SECRET.get()
@@ -19,7 +19,7 @@ const getGoogleProvider = async (env: Env) => {
   }
 }
 
-export const createAuth = async (env: Env) => {
+async function createAuth(env: Env) {
   const secret = await env.BETTER_AUTH_SECRET.get()
 
   if (!secret) {
@@ -38,7 +38,7 @@ export const createAuth = async (env: Env) => {
     trustedOrigins: [env.BETTER_AUTH_TRUSTED_ORIGINS],
     emailAndPassword: { enabled: true, minPasswordLength: 6 },
     socialProviders: googleProvider ? { google: googleProvider } : {},
-    database: drizzleAdapter(createDb(env.DB), {
+    database: drizzleAdapter(getOrCreateDb(env.DB), {
       provider: 'sqlite',
     }),
     plugins: [
@@ -59,4 +59,18 @@ export const createAuth = async (env: Env) => {
       disableOriginCheck: env.ENVIRONMENT === 'dev',
     },
   })
+}
+
+type MyAuth = Awaited<ReturnType<typeof createAuth>>
+
+let auth: MyAuth | null = null
+
+export async function getOrCreateAuth(env: Env): Promise<MyAuth> {
+  if (auth) {
+    return auth
+  }
+
+  auth = await createAuth(env)
+
+  return auth
 }
