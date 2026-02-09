@@ -2,6 +2,7 @@ import { createHashRouter, Navigate } from 'react-router'
 import { ImportConfigPage } from '@/popup/pages/config/pages/import/ImportConfigPage'
 import { FilterPage } from '@/popup/pages/filterPage/FilterPage'
 import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
+import { AuthPage } from '@/popup/pages/options/pages/auth/AuthPage'
 import { BackupPage } from '@/popup/pages/options/pages/backup/BackupPage'
 import { About } from '@/popup/pages/options/pages/help/About'
 import { PlayerOptions } from '@/popup/pages/options/pages/player/PlayerOptions'
@@ -117,6 +118,10 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
     path: '/options',
     Component: Options,
     children: [
+      {
+        path: 'auth',
+        Component: AuthPage,
+      },
       {
         path: 'hotkeys',
         Component: HotkeyOptions,

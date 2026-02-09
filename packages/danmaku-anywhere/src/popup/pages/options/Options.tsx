@@ -65,6 +65,10 @@ export const Options = () => {
         />
         <Version />
         <List disablePadding>
+          <OptionsListItem
+            title={t('optionsPage.pages.auth', 'Account')}
+            onClick={() => navigate('auth')}
+          />
           <LanguageListItem />
           <OptionsListItem
             title={t('optionsPage.pages.dataManagement', 'Data Management')}

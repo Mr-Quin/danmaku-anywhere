@@ -26,6 +26,11 @@ import type {
   SeasonQueryFilter,
   SeasonSearchRequest,
 } from '@/common/anime/dto'
+import type {
+  AuthActionResult,
+  AuthSessionState,
+  AuthSignOutResult,
+} from '@/common/auth/types'
 import type { BackupData, BackupRestoreResult } from '@/common/backup/dto'
 import type { ImageFetchOptions } from '@/common/components/image/types'
 import type { BaseUrlConfig } from '@/common/configs/types'
@@ -77,6 +82,13 @@ export type TestAiProviderResponse =
 
 export type BackgroundMethods = {
   iconSet: RPCDef<IconSetDto, void>
+  authGetSession: RPCDef<void, AuthSessionState>
+  authSignUpEmail: RPCDef<
+    { email: string; password: string; name?: string },
+    AuthActionResult
+  >
+  authSignInEmail: RPCDef<{ email: string; password: string }, AuthActionResult>
+  authSignOut: RPCDef<void, AuthSignOutResult>
   mediaParseUrl: RPCDef<{ url: string }, WithSeason<EpisodeMeta>>
   seasonSearch: RPCDef<SeasonSearchRequest, (Season | CustomSeason)[]>
   seasonFilter: RPCDef<SeasonQueryFilter, Season[]>

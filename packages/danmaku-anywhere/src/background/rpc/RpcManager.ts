@@ -20,6 +20,7 @@ import { BilibiliService } from '@/background/services/providers/bilibili/Bilibi
 import { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
 import { TencentService } from '@/background/services/providers/tencent/TencentService'
 import { invalidateContentScriptData } from '@/background/utils/invalidateContentScriptData'
+import { AuthClientService } from '@/common/auth/AuthClientService'
 import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
 import { DanmakuAnywhereDb } from '@/common/db/db'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
@@ -70,7 +71,9 @@ export class RpcManager {
     @inject(ImageCacheService) private imageCacheService: ImageCacheService,
     @inject(BackupService) private backupService: BackupService,
     @inject(DataManagementService)
-    private dataManagementService: DataManagementService
+    private dataManagementService: DataManagementService,
+    @inject(AuthClientService)
+    private authClientService: AuthClientService
   ) {
     this.logger = logger.sub('[RpcManager]')
   }
@@ -78,6 +81,18 @@ export class RpcManager {
   setup() {
     const rpcServer = createRpcServer<BackgroundMethods>(
       {
+        authGetSession: async () => {
+          return this.authClientService.getSessionState()
+        },
+        authSignUpEmail: async (input) => {
+          return this.authClientService.signUpEmail(input)
+        },
+        authSignInEmail: async (input) => {
+          return this.authClientService.signInEmail(input)
+        },
+        authSignOut: async () => {
+          return this.authClientService.signOut()
+        },
         seasonSearch: async (input) => {
           return this.providerService.searchSeason(input)
         },
