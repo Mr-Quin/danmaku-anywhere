@@ -138,8 +138,7 @@
       "r2_buckets": [
         {
           "binding": "FILES_BUCKET",
-          "bucket_name": "danmaku-anywhere-file-staging",
-          "remote": true
+          "bucket_name": "danmaku-anywhere-file-staging"
         }
       ],
       "d1_databases": [
