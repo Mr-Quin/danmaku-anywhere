@@ -160,7 +160,7 @@ importers:
         version: 2.1.0(jasmine-core@5.12.1)(karma-jasmine@5.1.0(karma@6.4.4))(karma@6.4.4)
       wrangler:
         specifier: ^4.50.0
-        version: 4.50.0
+        version: 4.63.0
 
   backend/proxy:
     dependencies:
@@ -313,6 +313,9 @@ importers:
       async-mutex:
         specifier: ^0.5.0
         version: 0.5.0
+      better-auth:
+        specifier: ^1.4.18
+        version: 1.4.18(drizzle-kit@0.31.8)(drizzle-orm@0.45.1(@opentelemetry/api@1.9.0)(kysely@0.28.11))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(vitest@4.0.13(@opentelemetry/api@1.9.0)(@types/debug@4.1.12)(@types/node@24.10.1)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.30.2)(sass@1.93.2)(yaml@2.8.1))
       clarity-js:
         specifier: ^0.8.41
         version: 0.8.41
@@ -418,7 +421,7 @@ importers:
         version: 9.2.0(body-parser@1.20.3)(jiti@2.6.1)
       wrangler:
         specifier: ^4.50.0
-        version: 4.50.0
+        version: 4.63.0
 
   packages/danmaku-converter:
     dependencies:
@@ -11318,6 +11321,27 @@ snapshots:
       react: 19.2.0
       react-dom: 19.2.0(react@19.2.0)
       vitest: 3.2.4(@types/debug@4.1.12)(@types/node@24.10.1)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.30.2)(sass@1.93.2)(yaml@2.8.1)
+
+  better-auth@1.4.18(drizzle-kit@0.31.8)(drizzle-orm@0.45.1(@opentelemetry/api@1.9.0)(kysely@0.28.11))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(vitest@4.0.13(@opentelemetry/api@1.9.0)(@types/debug@4.1.12)(@types/node@24.10.1)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.30.2)(sass@1.93.2)(yaml@2.8.1)):
+    dependencies:
+      '@better-auth/core': 1.4.18(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.8(zod@4.3.5))(jose@6.1.3)(kysely@0.28.11)(nanostores@1.1.0)
+      '@better-auth/telemetry': 1.4.18(@better-auth/core@1.4.18(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.8(zod@4.3.5))(jose@6.1.3)(kysely@0.28.11)(nanostores@1.1.0))
+      '@better-auth/utils': 0.3.0
+      '@better-fetch/fetch': 1.1.21
+      '@noble/ciphers': 2.1.1
+      '@noble/hashes': 2.0.1
+      better-call: 1.1.8(zod@4.3.5)
+      defu: 6.1.4
+      jose: 6.1.3
+      kysely: 0.28.11
+      nanostores: 1.1.0
+      zod: 4.3.5
+    optionalDependencies:
+      drizzle-kit: 0.31.8
+      drizzle-orm: 0.45.1(@opentelemetry/api@1.9.0)(kysely@0.28.11)
+      react: 19.2.0
+      react-dom: 19.2.0(react@19.2.0)
+      vitest: 4.0.13(@opentelemetry/api@1.9.0)(@types/debug@4.1.12)(@types/node@24.10.1)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.30.2)(sass@1.93.2)(yaml@2.8.1)
 
   better-call@1.1.8(zod@4.3.5):
     dependencies:

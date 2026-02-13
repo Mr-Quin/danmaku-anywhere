@@ -1,4 +1,5 @@
 import type { MatchEpisodeResult } from '@/common/anime/dto'
+import type { AuthSessionState } from '@/common/auth/types'
 import type { BackupData, BackupRestoreResult } from '@/common/backup/dto'
 import type { BaseUrlConfig } from '@/common/configs/types'
 import type {
@@ -52,8 +53,24 @@ const standaloneMountConfig: MountConfig = {
   mediaQuery: 'video',
 }
 
+const standaloneAuthSession: AuthSessionState | null = null
+
+const mockUser = {
+  id: 'standalone-user',
+  email: 'user@example.com',
+  name: 'Standalone User',
+  emailVerified: true,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+}
+
 export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMethods> =
   {
+    authGetSession: () => standaloneAuthSession,
+    authSignUp: () => ({ state: 'success', user: mockUser }),
+    authSignIn: () => ({ state: 'success', user: mockUser }),
+    authSignOut: () => ({ state: 'success' }),
+    authDeleteAccount: () => ({ state: 'success' }),
     iconSet: () => ({ state: 'available' }),
     seasonSearch: () => [],
     seasonFilter: () => [],

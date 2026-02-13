@@ -11,7 +11,8 @@ import {
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Outlet, useNavigate, useSearchParams } from 'react-router'
-import { EXTENSION_VERSION } from '@/common/constants'
+import { BUG_FORM, EXTENSION_VERSION, FEEDBACK_FORM } from '@/common/constants'
+import { useAuthSession } from '@/common/hooks/user/useAuthSession'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { Version } from '@/popup/pages/options/components/Version'
@@ -51,8 +52,9 @@ const OptionsListItem = ({
 export const Options = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { data } = useExtensionOptions()
+  const { data: extensionData } = useExtensionOptions()
   const [searchParams] = useSearchParams()
+  const { data: sessionInfo, isLoading } = useAuthSession()
 
   return (
     <>
@@ -65,6 +67,15 @@ export const Options = () => {
         />
         <Version />
         <List disablePadding>
+          <OptionsListItem
+            title={
+              sessionInfo
+                ? `${t('optionsPage.auth.signedInAs', 'Signed in as')}: ${sessionInfo.user.name}`
+                : t('optionsPage.auth.signIn', 'Sign In')
+            }
+            disabled={isLoading}
+            onClick={() => navigate('auth')}
+          />
           <LanguageListItem />
           <OptionsListItem
             title={t('optionsPage.pages.dataManagement', 'Data Management')}
@@ -94,7 +105,7 @@ export const Options = () => {
           <ListItem disablePadding>
             <ListItemButton
               component="a"
-              href={`https://forms.clickup.com/90131020449/f/2ky3men1-933/ULQ3OZ8QYRXIJ5HACI?ID=${data.id}&Version=${EXTENSION_VERSION}`}
+              href={`${BUG_FORM}?ID=${extensionData.id}&Version=${EXTENSION_VERSION}`}
               target="_blank"
             >
               <ListItemText>
@@ -106,7 +117,7 @@ export const Options = () => {
           <ListItem disablePadding>
             <ListItemButton
               component="a"
-              href={`https://forms.clickup.com/90131020449/f/2ky3men1-873/D9MSB7XJYAFS02Q9NO?ID=${data.id}&Version=${EXTENSION_VERSION}`}
+              href={`${FEEDBACK_FORM}?ID=${extensionData.id}&Version=${EXTENSION_VERSION}`}
               target="_blank"
             >
               <ListItemText>
