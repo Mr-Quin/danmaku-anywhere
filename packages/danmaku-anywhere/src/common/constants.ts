@@ -18,3 +18,9 @@ export const IS_CHROME = import.meta.env.VITE_TARGET_BROWSER === 'chrome'
 export const EXTENSION_VERSION = import.meta.env.VERSION
 
 export const EXTENSION_REPO = 'https://github.com/Mr-Quin/danmaku-anywhere'
+
+export const BUG_FORM =
+  'https://forms.clickup.com/90131020449/f/2ky3men1-933/ULQ3OZ8QYRXIJ5HACI'
+
+export const FEEDBACK_FORM =
+  'https://forms.clickup.com/90131020449/f/2ky3men1-873/D9MSB7XJYAFS02Q9NO'

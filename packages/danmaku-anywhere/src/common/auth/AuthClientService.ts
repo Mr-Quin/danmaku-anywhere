@@ -2,105 +2,131 @@ import { inject, injectable } from 'inversify'
 import { createAuthClientInstance } from '@/common/auth/createAuthClient'
 import type {
   AuthActionResult,
-  AuthSessionInfo,
   AuthSessionState,
+  AuthSignInInput,
   AuthSignOutResult,
+  AuthSignUpInput,
 } from '@/common/auth/types'
-import { UserAuthService } from '@/common/options/userAuth/service'
+import { UserAuthStore } from '@/common/options/userAuth/service'
 
 type AuthClient = ReturnType<typeof createAuthClientInstance>
-
-type EmailSignUpInput = {
-  email: string
-  password: string
-  name?: string
-}
-
-type EmailSignInInput = {
-  email: string
-  password: string
-}
 
 @injectable('Singleton')
 export class AuthClientService {
   private client: AuthClient | null = null
 
-  constructor(
-    @inject(UserAuthService) private userAuthService: UserAuthService
-  ) {}
+  constructor(@inject(UserAuthStore) private userAuthStore: UserAuthStore) {}
 
-  async signUpEmail(input: EmailSignUpInput): Promise<AuthActionResult> {
+  async signUp(input: AuthSignUpInput): Promise<AuthActionResult> {
     const client = await this.getClient()
-    const { error } = await client.signUp.email(input)
-    if (error) {
-      return { state: 'error', message: error.message }
-    }
-    const sessionState = await this.getSessionState()
-    return {
-      state: 'success',
-      session: sessionState.session,
-      token: sessionState.token,
+
+    switch (input.provider) {
+      case 'email': {
+        const { error, data } = await client.signUp.email({
+          email: input.email,
+          password: input.password,
+          name: input.name,
+          image: input.image,
+        })
+        if (error) {
+          return { state: 'error', message: error.statusText }
+        }
+
+        await this.userAuthStore.setUser(data.user)
+
+        return {
+          state: 'success',
+          user: data.user,
+        }
+      }
     }
   }
 
-  async signInEmail(input: EmailSignInInput): Promise<AuthActionResult> {
+  async signIn(input: AuthSignInInput): Promise<AuthActionResult> {
     const client = await this.getClient()
-    const { error } = await client.signIn.email(input)
-    if (error) {
-      return { state: 'error', message: error.message }
-    }
-    const sessionState = await this.getSessionState()
-    return {
-      state: 'success',
-      session: sessionState.session,
-      token: sessionState.token,
+
+    switch (input.provider) {
+      case 'email': {
+        const { data, error } = await client.signIn.email({
+          email: input.email,
+          password: input.password,
+        })
+
+        if (error) {
+          return { state: 'error', message: error.statusText }
+        }
+
+        await this.userAuthStore.setUser(data.user)
+
+        return {
+          state: 'success',
+          user: data.user,
+        }
+      }
+      case 'google': {
+        const res = await client.signIn.social({
+          provider: 'google',
+        })
+
+        if (res.error) {
+          return { state: 'error', message: res.error.statusText }
+        }
+
+        throw new Error('Not implemented')
+      }
     }
   }
 
   async signOut(): Promise<AuthSignOutResult> {
     const client = await this.getClient()
-    const { error } = await client.signOut()
-    await this.userAuthService.clearToken()
-    if (error) {
-      return { state: 'error', message: error.message }
+
+    try {
+      const { error } = await client.signOut()
+
+      if (error) {
+        return { state: 'error', message: error.statusText }
+      }
+
+      return { state: 'success' }
+    } finally {
+      await this.userAuthStore.clearSession()
     }
-    return { state: 'success' }
   }
 
-  async getSessionState(): Promise<AuthSessionState> {
+  async getSessionState(): Promise<AuthSessionState | null> {
     const client = await this.getClient()
     const { data, error } = await client.getSession()
-    const token = await this.userAuthService.getToken()
+
     if (error || !data) {
-      return { session: null, token }
+      return null
     }
-    return { session: this.mapSession(data), token }
+
+    await this.userAuthStore.setUser(data.user)
+
+    return data
+  }
+
+  async deleteAccount(): Promise<AuthSignOutResult> {
+    const client = await this.getClient()
+
+    try {
+      const { error } = await client.deleteUser()
+
+      if (error) {
+        return { state: 'error', message: error.statusText }
+      }
+
+      return { state: 'success' }
+    } finally {
+      await this.userAuthStore.clearSession()
+    }
   }
 
   private async getClient() {
     if (!this.client) {
-      await this.userAuthService.ensureReady()
-      this.client = createAuthClientInstance(this.userAuthService)
+      await this.userAuthStore.ensureReady()
+      this.client = createAuthClientInstance(this.userAuthStore)
     }
     return this.client
-  }
-
-  private mapSession(data: unknown): AuthSessionInfo | null {
-    if (!data || typeof data !== 'object') {
-      return null
-    }
-    const user = (data as { user?: Record<string, unknown> }).user
-    if (!user || typeof user !== 'object') {
-      return null
-    }
-    const idValue = user.id
-    return {
-      user: {
-        id: typeof idValue === 'string' ? idValue : String(idValue ?? ''),
-        email: typeof user.email === 'string' ? user.email : null,
-        name: typeof user.name === 'string' ? user.name : null,
-        image: typeof user.image === 'string' ? user.image : null,
-      },
-    }
   }
 }

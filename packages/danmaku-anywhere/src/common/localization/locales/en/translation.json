@@ -363,6 +363,17 @@
     "selectedCount_other": "{{count}} selected"
   },
   "optionsPage": {
+    "auth": {
+      "confirmPassword": "Confirm Password",
+      "email": "Email",
+      "name": "Name",
+      "password": "Password",
+      "signedInAs": "Signed in as",
+      "signIn": "Sign In",
+      "signOut": "Sign Out",
+      "signUp": "Sign Up",
+      "signUpSuccess": "Sign up successful"
+    },
     "backup": {
       "alert": {
         "exportSuccess": "Export success",
@@ -427,11 +438,13 @@
     "name": "Options",
     "pages": {
       "advanced": "Advanced",
+      "auth": "Account",
       "backup": "Backup & Restore",
       "dataManagement": "Data Management",
       "help": "关于",
       "hotkeys": "Hotkeys",
-      "player": "Player Settings"
+      "player": "Player Settings",
+      "signIn": "Sign In"
     },
     "player": {
       "showDanmakuTimeline": "Show danmaku density",

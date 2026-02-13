@@ -53,16 +53,22 @@ const standaloneMountConfig: MountConfig = {
   mediaQuery: 'video',
 }
 
-const standaloneAuthSession: AuthSessionState = {
-  session: null,
-  token: null,
+const standaloneAuthSession: AuthSessionState | null = null
+
+const mockUser = {
+  id: 'standalone-user',
+  email: 'user@example.com',
+  name: 'Standalone User',
+  emailVerified: true,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 }
 
 export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMethods> =
   {
     authGetSession: () => standaloneAuthSession,
-    authSignUpEmail: () => ({ state: 'success', session: null, token: null }),
-    authSignInEmail: () => ({ state: 'success', session: null, token: null }),
+    authSignUp: () => ({ state: 'success', user: mockUser }),
+    authSignIn: () => ({ state: 'success', user: mockUser }),
     authSignOut: () => ({ state: 'success' }),
     iconSet: () => ({ state: 'available' }),
     seasonSearch: () => [],

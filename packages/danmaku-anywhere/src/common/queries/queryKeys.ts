@@ -185,3 +185,9 @@ export const configQueryKeys = {
       },
     ] as const,
 }
+
+export const authQueryKeys = {
+  all: () => [{ scope: 'auth' }] as const,
+  session: () => [{ scope: 'auth', kind: 'session' }] as const,
+  details: () => [{ scope: 'auth', kind: 'details' }] as const,
+}

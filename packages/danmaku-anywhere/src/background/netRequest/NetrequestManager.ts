@@ -52,6 +52,10 @@ const rules: chrome.declarativeNetRequest.Rule[] = [
           operation: HeaderOperation.SET,
           value: selfDomain,
         },
+        {
+          header: 'Cookie',
+          operation: HeaderOperation.REMOVE,
+        },
       ],
     },
     condition: {

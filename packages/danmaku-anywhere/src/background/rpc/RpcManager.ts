@@ -84,14 +84,17 @@ export class RpcManager {
         authGetSession: async () => {
           return this.authClientService.getSessionState()
         },
-        authSignUpEmail: async (input) => {
-          return this.authClientService.signUpEmail(input)
+        authSignUp: async (input) => {
+          return this.authClientService.signUp(input)
         },
-        authSignInEmail: async (input) => {
-          return this.authClientService.signInEmail(input)
+        authSignIn: async (input) => {
+          return this.authClientService.signIn(input)
         },
         authSignOut: async () => {
           return this.authClientService.signOut()
+        },
+        authDeleteAccount: async () => {
+          return this.authClientService.deleteAccount()
         },
         seasonSearch: async (input) => {
           return this.providerService.searchSeason(input)

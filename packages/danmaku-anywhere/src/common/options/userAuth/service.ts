@@ -1,49 +1,78 @@
-import { injectable } from 'inversify'
-import { ExtStorageService } from '@/common/storage/ExtStorageService'
+import { inject, injectable } from 'inversify'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import type { IStoreService } from '@/common/options/IStoreService'
+import {
+  type IOptionsServiceFactory,
+  OptionsServiceFactory,
+} from '@/common/options/OptionsService/OptionServiceFactory'
+import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { defaultUserAuthState, type UserAuthState } from './schema'
 
-const userAuthStorageKey = 'userAuth'
-
 @injectable('Singleton')
-export class UserAuthService {
-  private storage = new ExtStorageService<UserAuthState>(userAuthStorageKey, {
-    storageType: 'local',
-  })
+export class UserAuthStore implements IStoreService {
+  public readonly name = 'userAuth'
+  public readonly options: OptionsService<UserAuthState>
   private cachedState = defaultUserAuthState
-  private readyPromise: Promise<void>
 
-  constructor() {
-    this.storage.setup()
-    this.storage.subscribe((value) => {
-      this.cachedState = value ?? defaultUserAuthState
+  constructor(
+    @inject(LoggerSymbol) private readonly logger: ILogger,
+    @inject(OptionsServiceFactory)
+    private readonly optionServiceFactory: IOptionsServiceFactory
+  ) {
+    this.options = this.optionServiceFactory<UserAuthState>(
+      'userAuth',
+      defaultUserAuthState,
+      this.logger,
+      'local'
+    ).version(1, {
+      upgrade: (data) => data,
     })
-    this.readyPromise = this.load()
+
+    this.initialize()
   }
 
   async ensureReady() {
-    await this.readyPromise
+    const data = await this.options.get()
+    this.cachedState = data ?? defaultUserAuthState
   }
 
   async getToken() {
-    await this.ensureReady()
-    return this.cachedState.token
+    const state = await this.options.get()
+    return state?.token
+  }
+
+  async getUser() {
+    const state = await this.options.get()
+    return state?.user
   }
 
   getTokenSync() {
-    return this.cachedState.token ?? ''
+    return this.cachedState?.token ?? ''
+  }
+
+  async setUser(user: UserAuthState['user']) {
+    this.cachedState = { ...this.cachedState, user }
+    await this.options.update({ user })
   }
 
   async setToken(token: string | null) {
-    this.cachedState = { token }
-    await this.storage.set(this.cachedState)
+    this.cachedState = { ...this.cachedState, token }
+    await this.options.update({ token })
   }
 
-  async clearToken() {
+  async clearSession() {
+    await this.setUser(null)
     await this.setToken(null)
   }
 
-  private async load() {
-    const stored = await this.storage.read()
-    this.cachedState = stored ?? defaultUserAuthState
+  // initialize cache and subscribe to changes
+  private initialize() {
+    this.options.onChange((data) => {
+      this.cachedState = data ?? defaultUserAuthState
+    })
+
+    void this.options.get().then((data) => {
+      this.cachedState = data ?? defaultUserAuthState
+    })
   }
 }

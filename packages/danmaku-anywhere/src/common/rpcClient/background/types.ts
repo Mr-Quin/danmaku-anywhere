@@ -29,7 +29,9 @@ import type {
 import type {
   AuthActionResult,
   AuthSessionState,
+  AuthSignInInput,
   AuthSignOutResult,
+  AuthSignUpInput,
 } from '@/common/auth/types'
 import type { BackupData, BackupRestoreResult } from '@/common/backup/dto'
 import type { ImageFetchOptions } from '@/common/components/image/types'
@@ -82,13 +84,11 @@ export type TestAiProviderResponse =
 
 export type BackgroundMethods = {
   iconSet: RPCDef<IconSetDto, void>
-  authGetSession: RPCDef<void, AuthSessionState>
-  authSignUpEmail: RPCDef<
-    { email: string; password: string; name?: string },
-    AuthActionResult
-  >
-  authSignInEmail: RPCDef<{ email: string; password: string }, AuthActionResult>
+  authGetSession: RPCDef<void, AuthSessionState | null>
+  authSignUp: RPCDef<AuthSignUpInput, AuthActionResult>
+  authSignIn: RPCDef<AuthSignInInput, AuthActionResult>
   authSignOut: RPCDef<void, AuthSignOutResult>
+  authDeleteAccount: RPCDef<void, AuthSignOutResult>
   mediaParseUrl: RPCDef<{ url: string }, WithSeason<EpisodeMeta>>
   seasonSearch: RPCDef<SeasonSearchRequest, (Season | CustomSeason)[]>
   seasonFilter: RPCDef<SeasonQueryFilter, Season[]>

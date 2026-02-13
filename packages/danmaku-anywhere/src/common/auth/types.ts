@@ -1,24 +1,34 @@
-export type AuthUserInfo = {
-  id: string
-  email: string | null
-  name: string | null
-  image: string | null
-}
+import type { Session, User } from 'better-auth'
 
-export type AuthSessionInfo = {
-  user: AuthUserInfo
-}
+export type AuthUserInfo = User
 
 export type AuthSessionState = {
-  session: AuthSessionInfo | null
-  token: string | null
+  session: Session
+  user: User
+}
+
+export type AuthSignInInput =
+  | {
+      provider: 'email'
+      email: string
+      password: string
+    }
+  | {
+      provider: 'google'
+    }
+
+export type AuthSignUpInput = {
+  provider: 'email'
+  name: string
+  email: string
+  password: string
+  image?: string
 }
 
 export type AuthActionResult =
   | {
       state: 'success'
-      session: AuthSessionInfo | null
-      token: string | null
+      user: User
     }
   | {
       state: 'error'

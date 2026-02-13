@@ -1,4 +1,5 @@
 import { createAuthClient } from 'better-auth/client'
+import { jwtClient } from 'better-auth/client/plugins'
 import { getAuthBaseUrl } from './getAuthBaseUrl'
 
 type TokenStore = {
@@ -6,9 +7,10 @@ type TokenStore = {
   setToken: (token: string | null) => Promise<void>
 }
 
-export const createAuthClientInstance = (tokenStore: TokenStore) => {
+export function createAuthClientInstance(tokenStore: TokenStore) {
   return createAuthClient({
     baseURL: getAuthBaseUrl(),
+    plugins: [jwtClient()],
     fetchOptions: {
       auth: {
         type: 'Bearer',

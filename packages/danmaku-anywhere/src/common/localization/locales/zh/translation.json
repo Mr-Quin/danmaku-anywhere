@@ -350,6 +350,17 @@
     "selectedCount_other": "已选择{{count}}"
   },
   "optionsPage": {
+    "auth": {
+      "confirmPassword": "确认密码",
+      "email": "电子邮箱",
+      "name": "昵称",
+      "password": "密码",
+      "signedInAs": "已登录",
+      "signIn": "登录",
+      "signOut": "退出登录",
+      "signUp": "注册",
+      "signUpSuccess": "注册成功"
+    },
     "backup": {
       "alert": {
         "exportSuccess": "成功导出备份",
@@ -414,11 +425,13 @@
     "name": "设置",
     "pages": {
       "advanced": "高级设置",
+      "auth": "账号",
       "backup": "备份",
       "dataManagement": "数据管理",
       "help": "关于",
       "hotkeys": "快捷键",
-      "player": "播放设置"
+      "player": "播放设置",
+      "signIn": ""
     },
     "player": {
       "showDanmakuTimeline": "显示弹幕密度",
