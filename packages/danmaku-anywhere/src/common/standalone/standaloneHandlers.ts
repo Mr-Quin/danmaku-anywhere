@@ -70,6 +70,7 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     authSignUp: () => ({ state: 'success', user: mockUser }),
     authSignIn: () => ({ state: 'success', user: mockUser }),
     authSignOut: () => ({ state: 'success' }),
+    authDeleteAccount: () => ({ state: 'success' }),
     iconSet: () => ({ state: 'available' }),
     seasonSearch: () => [],
     seasonFilter: () => [],
