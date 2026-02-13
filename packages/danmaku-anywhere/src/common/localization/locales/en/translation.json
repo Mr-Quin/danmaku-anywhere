@@ -443,8 +443,7 @@
       "dataManagement": "Data Management",
       "help": "关于",
       "hotkeys": "Hotkeys",
-      "player": "Player Settings",
-      "signIn": "Sign In"
+      "player": "Player Settings"
     },
     "player": {
       "showDanmakuTimeline": "Show danmaku density",
