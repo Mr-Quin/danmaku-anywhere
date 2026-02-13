@@ -61,8 +61,8 @@ export class UserAuthStore implements IStoreService {
   }
 
   async clearSession() {
-    await this.setUser(null)
-    await this.setToken(null)
+    this.cachedState = { ...defaultUserAuthState }
+    await this.options.update(defaultUserAuthState)
   }
 
   // initialize cache and subscribe to changes
