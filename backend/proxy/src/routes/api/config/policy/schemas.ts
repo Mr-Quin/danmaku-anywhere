@@ -43,3 +43,39 @@ export const listQuerySchema = z.object({
   page: z.coerce.number().int().min(1).prefault(1),
   limit: z.coerce.number().int().min(1).max(100).prefault(10),
 })
+
+export const policyResponseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  data: zIntegrationPolicy,
+  authorId: z.string().nullable(),
+  domains: z.array(z.string()).nullable(),
+  tags: z.array(z.string()).nullable(),
+  isPublic: z.boolean().nullable(),
+  downloads: z.number().nullable(),
+  upvotes: z.number().nullable(),
+  downvotes: z.number().nullable(),
+  createdAt: z.iso.datetime(),
+})
+
+export const paginationSchema = z.object({
+  page: z.number(),
+  limit: z.number(),
+  total: z.number(),
+  totalPages: z.number(),
+})
+
+export const listResponseSchema = z.object({
+  success: z.boolean(),
+  data: z.array(policyResponseSchema),
+  pagination: paginationSchema,
+})
+
+export const createResponseSchema = z.object({
+  success: z.boolean(),
+  configId: z.string(),
+})
+
+export const successResponseSchema = z.object({
+  success: z.boolean(),
+})
