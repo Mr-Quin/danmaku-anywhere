@@ -5,8 +5,8 @@ import {
 } from '@google/generative-ai'
 import { zValidator } from '@hono/zod-validator'
 import * as Sentry from '@sentry/cloudflare'
-import type { MiddlewareHandler } from 'hono'
 import { HTTPException } from 'hono/http-exception'
+import { describeRoute, resolver, validator } from 'hono-openapi'
 import { z } from 'zod'
 import { factory } from '@/factory'
 import { useCache } from '@/middleware/cache'
@@ -24,12 +24,17 @@ const extractTitleSchema = z.object({
     .max(4096, 'input is too long'),
 })
 
-export const validateTitleInput = zValidator('json', extractTitleSchema)
+const validateTitleInput = zValidator('json', extractTitleSchema)
+const validateTitleInputOpenApi = validator('json', extractTitleSchema)
 
-type ExtractInput<T> =
-  T extends MiddlewareHandler<infer _, infer __, infer I> ? I : never
-
-export type ExtractTitleInput = ExtractInput<typeof validateTitleInput>
+export type ExtractTitleInput = {
+  in: {
+    json: z.infer<typeof extractTitleSchema>
+  }
+  out: {
+    json: z.infer<typeof extractTitleSchema>
+  }
+}
 
 export const useLLMLogger = factory.createMiddleware(async (c, next) => {
   const input = await c.req.text()
@@ -148,6 +153,27 @@ llmLegacy.post(
 
 llm.post(
   '/extractTitle',
-  validateTitleInput,
+  describeRoute({
+    description: 'Extract title from input using LLM',
+    responses: {
+      200: {
+        description: 'Successful extraction',
+        content: {
+          'application/json': {
+            schema: resolver(
+              z.object({
+                success: z.boolean(),
+                result: z.any(),
+              })
+            ),
+          },
+        },
+      },
+      429: {
+        description: 'Rate limit exceeded',
+      },
+    },
+  }),
+  validateTitleInputOpenApi,
   ...handleExtractTitle(v2Prompt, v2GenerationConfig)
 )

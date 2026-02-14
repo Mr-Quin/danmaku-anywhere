@@ -1,5 +1,5 @@
-import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
+import { describeRoute, resolver, validator } from 'hono-openapi'
 import { z } from 'zod'
 import { requireClientId } from '@/middleware/requireClientId'
 
@@ -15,25 +15,42 @@ function getFileExtension(file: File) {
   return parts.pop() ?? ''
 }
 
+const uploadResponseSchema = z.object({
+  success: z.boolean(),
+  result: z.object({
+    id: z.string(),
+  }),
+})
+
+const fileSchema = z.object({
+  file: z
+    .instanceof(File)
+    .refine((file) => file.type === 'application/zip', {
+      message: 'File must be a zip file',
+    })
+    .refine((file) => file.size > 0, {
+      message: 'File is empty',
+    })
+    .refine((file) => file.size <= MAX_FILE_SIZE, {
+      message: `File size must be less than ${MAX_FILE_SIZE >> 20}MB`,
+    }),
+})
+
 filesRouter.post(
   '/upload',
+  describeRoute({
+    description: 'Upload a file',
+    responses: {
+      200: {
+        description: 'Successful upload',
+        content: {
+          'application/json': { schema: resolver(uploadResponseSchema) },
+        },
+      },
+    },
+  }),
   requireClientId,
-  zValidator(
-    'form',
-    z.object({
-      file: z
-        .instanceof(File)
-        .refine((file) => file.type === 'application/zip', {
-          error: 'File must be a zip file',
-        })
-        .refine((file) => file.size > 0, {
-          error: 'File is empty',
-        })
-        .refine((file) => file.size <= MAX_FILE_SIZE, {
-          message: `File size must be less than ${MAX_FILE_SIZE >> 20}MB`,
-        }),
-    })
-  ),
+  validator('form', z.any().pipe(fileSchema)),
   async (c) => {
     const { file } = c.req.valid('form')
 

@@ -1,16 +1,18 @@
+import { Scalar } from '@scalar/hono-api-reference'
 import * as Sentry from '@sentry/cloudflare'
 import { cors } from 'hono/cors'
 import { HTTPException } from 'hono/http-exception'
 import { logger } from 'hono/logger'
 import { poweredBy } from 'hono/powered-by'
 import { prettyJSON } from 'hono/pretty-json'
+import { openAPIRouteHandler } from 'hono-openapi'
+import { factory } from '@/factory'
 import { authContext } from '@/middleware/authContext'
 import { useCache } from '@/middleware/cache'
 import { setContext } from '@/middleware/setContext'
 import { danDanPlay } from '@/routes/api/ddp/danDanPlay'
 import { llmLegacy } from '@/routes/api/llm/llm'
 import { getIsTestEnv } from '@/utils/getIsTestEnv'
-import { factory } from './factory'
 import { api } from './routes/api/routes'
 import { serializeError } from './utils/serializeError'
 
@@ -37,8 +39,34 @@ app.use(
   authContext()
 )
 
+app.get(
+  '/docs',
+  openAPIRouteHandler(app, {
+    documentation: {
+      info: {
+        title: 'Danmaku Anywhere API',
+        version: '1.0.0',
+        description: 'Danmaku Anywhere Proxy API',
+      },
+      servers: [{ url: 'http://localhost:8787', description: 'Local Server' }],
+    },
+  })
+)
+
+app.get(
+  '/scalar',
+  Scalar({
+    pageTitle: 'Danmaku Anywhere API',
+    sources: [
+      { url: '/docs', title: 'API' },
+      { url: '/auth/docs', title: 'Auth' },
+    ],
+  })
+)
+
 app.route('/', api)
 
+// legacy routes
 app.use('/proxy/api/*', useCache())
 app.route('/proxy/api', danDanPlay)
 app.route('/proxy/gemini', llmLegacy)
