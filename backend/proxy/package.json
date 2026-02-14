@@ -41,6 +41,7 @@
   "dependencies": {
     "@danmaku-anywhere/integration-policy": "workspace:*",
     "@google/generative-ai": "^0.24.1",
+    "@hono/standard-validator": "^0.2.2",
     "@hono/zod-openapi": "^1.2.1",
     "@hono/zod-validator": "^0.7.5",
     "@scalar/hono-api-reference": "^0.9.40",
@@ -49,6 +50,7 @@
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
     "hono": "^4.10.6",
+    "hono-openapi": "^1.2.0",
     "zod": "^4.3.5"
   }
 }

@@ -1,4 +1,6 @@
 import * as Sentry from '@sentry/cloudflare'
+import { describeRoute, resolver, validator } from 'hono-openapi'
+import { z } from 'zod'
 import { factory } from '@/factory'
 import { type SetCacheControlFn, useCache } from '@/middleware/cache'
 import { useRateLimiter } from '@/middleware/rateLimit'
@@ -77,17 +79,17 @@ const setCacheHeaders: SetCacheControlFn = (req, response) => {
   }
 }
 
-const verifyPathQuery = factory.createMiddleware(async (c, next) => {
+const querySchema = z.object({
+  path: z.string().min(1),
+})
+
+const sentryTagMiddleware = factory.createMiddleware(async (c, next) => {
   const path = c.req.query('path')
-
-  if (!path) {
-    return c.json({ error: 'Missing required "path" query parameter' }, 400)
-  }
-
   // path looks like /v2/endpoint/..., we want to extract the endpoint
-  Sentry.setTag('ddp.endpoint', path.split('/')[2])
-
-  return next()
+  if (path) {
+    Sentry.setTag('ddp.endpoint', path.split('/')[2])
+  }
+  await next()
 })
 
 export const danDanPlay = factory.createApp()
@@ -96,7 +98,19 @@ danDanPlay.use('*', useCache({ setCacheControl: setCacheHeaders }))
 
 danDanPlay.all(
   '*',
-  verifyPathQuery,
+  describeRoute({
+    description: 'Proxy to DanDanPlay API',
+    responses: {
+      200: {
+        description: 'Proxy response',
+        content: {
+          'application/json': { schema: resolver(z.any()) },
+        },
+      },
+    },
+  }),
+  validator('query', querySchema),
+  sentryTagMiddleware,
   useRateLimiter({ rateLimiter: 'DDP_RATE_LIMITER' }),
   async (c) => {
     const env = c.env
