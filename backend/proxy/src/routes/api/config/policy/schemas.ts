@@ -55,7 +55,12 @@ export const policyResponseSchema = z.object({
   downloads: z.number().nullable(),
   upvotes: z.number().nullable(),
   downvotes: z.number().nullable(),
-  createdAt: z.iso.datetime(),
+  createdAt: z.string().datetime(),
+})
+
+export const getByDomainResponseSchema = z.object({
+  success: z.boolean(),
+  data: z.array(policyResponseSchema),
 })
 
 export const paginationSchema = z.object({

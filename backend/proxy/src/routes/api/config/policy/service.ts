@@ -73,6 +73,7 @@ export async function listPolicies(
   return {
     data: results.map((r) => ({
       ...r,
+      createdAt: r.createdAt.toISOString(),
       data: deserializeIntegration(r.data),
     })),
     pagination: {
@@ -85,7 +86,7 @@ export async function listPolicies(
 }
 
 export async function createPolicy(db: Database, data: UploadData) {
-  const { name, config, domains, tags, authorId, authorName } = data
+  const { name, config, domains, tags, authorId } = data
   const configId = crypto.randomUUID()
 
   await db.insert(policy).values({
@@ -95,7 +96,6 @@ export async function createPolicy(db: Database, data: UploadData) {
     domains,
     tags,
     authorId,
-    authorName,
     isPublic: true,
   })
 

@@ -5,6 +5,7 @@ import {
 } from '@google/generative-ai'
 import { zValidator } from '@hono/zod-validator'
 import * as Sentry from '@sentry/cloudflare'
+import type { Context } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 import { describeRoute, resolver, validator } from 'hono-openapi'
 import { z } from 'zod'
@@ -32,7 +33,10 @@ export type ExtractTitleInput = {
     json: z.infer<typeof extractTitleSchema>
   }
   out: {
-    json: z.infer<typeof extractTitleSchema>
+    json: {
+      success: boolean
+      result: any
+    }
   }
 }
 
@@ -93,45 +97,53 @@ export const handleExtractTitle = (
   prompt: string,
   config: GenerationConfig
 ) => {
-  return factory.createHandlers<ExtractTitleInput>(async (c) => {
-    try {
-      const env = c.env
-      const { input } = c.req.valid('json')
+  return factory.createHandlers(
+    async (
+      c: Context<
+        { Bindings: Env },
+        any,
+        { in: { json: z.infer<typeof extractTitleSchema> } }
+      >
+    ) => {
+      try {
+        const env = c.env
+        const { input } = c.req.valid('json' as never)
 
-      const result = await interactWithGemini(env, input, prompt, config)
+        const result = await interactWithGemini(env, input, prompt, config)
 
-      return new Response(
-        JSON.stringify({
-          result,
-          success: true,
-        }),
-        {
-          status: 200,
-          headers: {
-            'Content-Type': 'application/json',
-          },
+        return new Response(
+          JSON.stringify({
+            result,
+            success: true,
+          }),
+          {
+            status: 200,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        )
+      } catch (error) {
+        if (error instanceof GoogleGenerativeAIFetchError) {
+          console.error('Error from Google Generative AI:')
+          console.error(error.message)
+          console.error(JSON.stringify(error.errorDetails, null, 2))
+          if (error.status === 429) {
+            console.error('Rate limit exceeded')
+            throw new HTTPException(429, {
+              message: 'Rate limit exceeded, please try again later.',
+            })
+          }
+          throw new HTTPException(500, { message: 'Failed to extract title' })
         }
-      )
-    } catch (error) {
-      if (error instanceof GoogleGenerativeAIFetchError) {
-        console.error('Error from Google Generative AI:')
-        console.error(error.message)
-        console.error(JSON.stringify(error.errorDetails, null, 2))
-        if (error.status === 429) {
-          console.error('Rate limit exceeded')
-          throw new HTTPException(429, {
-            message: 'Rate limit exceeded, please try again later.',
-          })
+        if (error instanceof Error) {
+          throw new HTTPException(500, { message: error.message })
         }
+
         throw new HTTPException(500, { message: 'Failed to extract title' })
       }
-      if (error instanceof Error) {
-        throw new HTTPException(500, { message: error.message })
-      }
-
-      throw new HTTPException(500, { message: 'Failed to extract title' })
     }
-  })
+  )
 }
 
 export const llmLegacy = factory.createApp()

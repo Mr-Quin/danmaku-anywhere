@@ -50,6 +50,7 @@ filesRouter.post(
     },
   }),
   requireClientId,
+  // file schema cannot be serialized for openapi, so we use z.any().pipe(fileSchema)
   validator('form', z.any().pipe(fileSchema)),
   async (c) => {
     const { file } = c.req.valid('form')

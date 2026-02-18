@@ -88,12 +88,7 @@ policyRouter.get(
         description: 'Successful response',
         content: {
           'application/json': {
-            schema: resolver(
-              z.object({
-                success: z.boolean(),
-                data: z.array(schemas.policyResponseSchema),
-              })
-            ),
+            schema: resolver(schemas.getByDomainResponseSchema),
           },
         },
       },
