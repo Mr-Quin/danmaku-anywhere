@@ -18,11 +18,7 @@ danDanPlay.all('*', verifyPathQuery, async (c) => {
   const target = new URL(c.req.url)
   target.pathname = '/v1'
 
-  const request = new Request(target.toString(), {
-    method: c.req.method,
-    headers: c.req.raw.headers,
-    body: c.req.raw.body,
-  })
+  const request = new Request(target, c.req.raw)
 
   return service.fetch(request)
 })
