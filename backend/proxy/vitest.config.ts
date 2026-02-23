@@ -9,7 +9,15 @@ export default defineWorkersConfig({
   test: {
     poolOptions: {
       workers: {
+        singleWorkerMode: true,
         wrangler: { configPath: './wrangler.json' },
+        miniflare: {
+          serviceBindings: {
+            DDP_SERVICE: (request: Request) => {
+              return new Response('Hi')
+            },
+          },
+        },
       },
     },
   },
