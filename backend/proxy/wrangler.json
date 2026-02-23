@@ -8,10 +8,8 @@
   },
   "vars": {
     "ENVIRONMENT": "staging",
-    "DANDANPLAY_API_HOST": "https://api.dandanplay.net",
     "ALLOWED_ORIGIN": "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app,http://localhost:4200",
     "BETTER_AUTH_TRUSTED_ORIGINS": "https://**.weeblify.app",
-    "DANDANPLAY_APP_ID": "64fw9qcpfb",
     "GEMINI_MODEL": "gemini-2.5-flash-lite",
     "BETTER_AUTH_URL": "https://api.danmaku-staging.weeblify.app",
     "GOOGLE_CLIENT_ID": ""
@@ -20,11 +18,6 @@
     "binding": "CF_VERSION_METADATA"
   },
   "secrets_store_secrets": [
-    {
-      "binding": "DANDANPLAY_APP_SECRET",
-      "store_id": "4a9ca50edba84431879f34b0b67f9998",
-      "secret_name": "DANDANPLAY_APP_SECRET"
-    },
     {
       "binding": "DANMAKU_GEMINI_API_KEY",
       "store_id": "4a9ca50edba84431879f34b0b67f9998",
@@ -71,24 +64,19 @@
       "migrations_dir": "./drizzle"
     }
   ],
-  "ratelimits": [
+  "ratelimits": [],
+  "services": [
     {
-      "name": "DDP_RATE_LIMITER",
-      "namespace_id": "1001",
-      "simple": {
-        "limit": 5,
-        "period": 60
-      }
+      "binding": "DDP_SERVICE",
+      "service": "ddp-microservice-staging"
     }
   ],
   "env": {
     "staging": {
       "vars": {
         "ENVIRONMENT": "staging",
-        "DANDANPLAY_API_HOST": "https://api.dandanplay.net",
         "ALLOWED_ORIGIN": "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app,http://localhost:4200",
         "BETTER_AUTH_TRUSTED_ORIGINS": "https://**.weeblify.app",
-        "DANDANPLAY_APP_ID": "64fw9qcpfb",
         "GEMINI_MODEL": "gemini-2.5-flash-lite",
         "BETTER_AUTH_URL": "https://api.danmaku-staging.weeblify.app",
         "GOOGLE_CLIENT_ID": ""
@@ -97,11 +85,6 @@
         "binding": "CF_VERSION_METADATA"
       },
       "secrets_store_secrets": [
-        {
-          "binding": "DANDANPLAY_APP_SECRET",
-          "store_id": "4a9ca50edba84431879f34b0b67f9998",
-          "secret_name": "DANDANPLAY_APP_SECRET"
-        },
         {
           "binding": "DANMAKU_GEMINI_API_KEY",
           "store_id": "4a9ca50edba84431879f34b0b67f9998",
@@ -148,24 +131,19 @@
           "migrations_dir": "./drizzle"
         }
       ],
-      "ratelimits": [
+      "services": [
         {
-          "name": "DDP_RATE_LIMITER",
-          "namespace_id": "1001",
-          "simple": {
-            "limit": 5,
-            "period": 60
-          }
+          "binding": "DDP_SERVICE",
+          "service": "ddp-microservice-staging"
         }
-      ]
+      ],
+      "ratelimits": []
     },
     "production": {
       "vars": {
         "ENVIRONMENT": "production",
-        "DANDANPLAY_API_HOST": "https://api.dandanplay.net",
         "ALLOWED_ORIGIN": "https://danmaku.weeblify.app",
         "BETTER_AUTH_TRUSTED_ORIGINS": "https://**.weeblify.app",
-        "DANDANPLAY_APP_ID": "64fw9qcpfb",
         "GEMINI_MODEL": "gemini-2.5-flash-lite",
         "BETTER_AUTH_URL": "https://api.danmaku.weeblify.app",
         "GOOGLE_CLIENT_ID": ""
@@ -174,11 +152,6 @@
         "binding": "CF_VERSION_METADATA"
       },
       "secrets_store_secrets": [
-        {
-          "binding": "DANDANPLAY_APP_SECRET",
-          "store_id": "4a9ca50edba84431879f34b0b67f9998",
-          "secret_name": "DANDANPLAY_APP_SECRET"
-        },
         {
           "binding": "DANMAKU_GEMINI_API_KEY",
           "store_id": "4a9ca50edba84431879f34b0b67f9998",
@@ -225,16 +198,13 @@
           "migrations_dir": "./drizzle"
         }
       ],
-      "ratelimits": [
+      "services": [
         {
-          "name": "DDP_RATE_LIMITER",
-          "namespace_id": "1001",
-          "simple": {
-            "limit": 10,
-            "period": 60
-          }
+          "binding": "DDP_SERVICE",
+          "service": "ddp-microservice-prod"
         }
-      ]
+      ],
+      "ratelimits": []
     }
   }
 }

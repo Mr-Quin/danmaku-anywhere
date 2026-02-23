@@ -11,7 +11,7 @@
   "types": "dist/src/index.d.ts",
   "scripts": {
     "dev": "wrangler dev -e staging",
-    "dev:remote": "pnpm dev -e staging --remote",
+    "dev:remote": "pnpm dev --remote",
     "test": "vitest",
     "lint": "biome check --fix",
     "lint:ci": "biome ci",
