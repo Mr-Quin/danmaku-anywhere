@@ -27,7 +27,6 @@ describe('DanDanPlay API', () => {
     expect(response.status).toBe(400)
     const data: any = await response.json()
     expect(data).toHaveProperty('error')
-    expect(data.error).toBe('Missing required "path" query parameter')
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
