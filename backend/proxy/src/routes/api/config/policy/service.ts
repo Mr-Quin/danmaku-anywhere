@@ -6,7 +6,7 @@ import { and, count, desc, eq, like, sql } from 'drizzle-orm'
 import type { z } from 'zod'
 import type { Database } from '@/db'
 import { policy } from '@/db/schema/siteIntegration'
-import type { uploadSchema } from './schemas'
+import type { policyResponseSchema, uploadSchema } from './schemas'
 
 type UploadData = z.infer<typeof uploadSchema>
 
@@ -73,6 +73,7 @@ export async function listPolicies(
   return {
     data: results.map((r) => ({
       ...r,
+      createdAt: r.createdAt.toISOString(),
       data: deserializeIntegration(r.data),
     })),
     pagination: {
@@ -85,7 +86,7 @@ export async function listPolicies(
 }
 
 export async function createPolicy(db: Database, data: UploadData) {
-  const { name, config, domains, tags, authorId, authorName } = data
+  const { name, config, domains, tags, authorId } = data
   const configId = crypto.randomUUID()
 
   await db.insert(policy).values({
@@ -95,14 +96,16 @@ export async function createPolicy(db: Database, data: UploadData) {
     domains,
     tags,
     authorId,
-    authorName,
     isPublic: true,
   })
 
   return { configId }
 }
 
-export async function getPoliciesByDomain(db: Database, hostname: string) {
+export async function getPoliciesByDomain(
+  db: Database,
+  hostname: string
+): Promise<z.infer<typeof policyResponseSchema>[]> {
   const result = await db
     .select()
     .from(policy)
@@ -117,6 +120,7 @@ export async function getPoliciesByDomain(db: Database, hostname: string) {
 
   return result.map((r) => ({
     ...r,
+    createdAt: r.createdAt.toISOString(),
     data: deserializeIntegration(r.data),
   }))
 }

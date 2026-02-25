@@ -1,5 +1,5 @@
 import { factory } from '@/factory'
-import { llm } from './llm'
+import { llm } from './routes'
 
 export const llmRouter = factory.createApp()
 

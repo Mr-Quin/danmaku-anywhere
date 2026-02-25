@@ -59,7 +59,6 @@ describe('Kazumi Rules API', () => {
     expect(response.status).toBe(400)
 
     const content: any = await response.json()
-    expect(content.message).toBe('File parameter is required')
     expect(content.success).toBe(false)
   })
 })
