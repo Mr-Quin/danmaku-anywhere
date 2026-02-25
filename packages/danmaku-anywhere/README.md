@@ -4,7 +4,7 @@ Browser extension that adds danmaku (bullet comments) to video sites (Plex, Jell
 
 ## Tech Stack
 
-- React 19 + Vite
+- React 19+ + Vite
 - Material-UI (MUI), React Router, TanStack Query, Zustand
 - Chrome Extension (Manifest V3) and Firefox support
 
@@ -22,8 +22,8 @@ Browser extension that adds danmaku (bullet comments) to video sites (Plex, Jell
 
 ## Workspace Dependencies
 
-- `@danmaku-anywhere/danmaku-converter`, `danmaku-engine`, `danmaku-provider`
-- `@danmaku-anywhere/integration-policy`, `result`, `web-scraper`
+- `@danmaku-anywhere/danmaku-converter`, `@danmaku-anywhere/danmaku-engine`, `@danmaku-anywhere/danmaku-provider`
+- `@danmaku-anywhere/integration-policy`, `@danmaku-anywhere/result`, `@danmaku-anywhere/web-scraper`
 
 ## License
 
