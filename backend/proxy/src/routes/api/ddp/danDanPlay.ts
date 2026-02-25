@@ -18,10 +18,12 @@ danDanPlay.all(
   validator('query', z.object({ path: z.string().min(1) })),
   sentryTagMiddleware,
   describeRoute({
-    description: 'Proxy to DanDanPlay API',
+    description:
+      'Transparent proxy to the external DanDanPlay API. The request and response bodies are passed through to/from DanDanPlay, so the response schema is defined by the upstream DanDanPlay endpoint rather than this service.',
     responses: {
       200: {
-        description: 'Proxy response',
+        description:
+          'Successful proxy response from the external DanDanPlay API. The JSON payload is returned as-is from DanDanPlay and may vary depending on the proxied endpoint.',
         content: {
           'application/json': { schema: resolver(z.any()) },
         },
