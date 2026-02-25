@@ -13,7 +13,17 @@ rulesRouter.get(
         description: 'Successful response',
         content: {
           'application/json': {
-            schema: resolver(z.any()),
+            schema: resolver(
+              z.array(
+                z.object({
+                  name: z.string(),
+                  version: z.string(),
+                  useNativePlayer: z.boolean(),
+                  author: z.string(),
+                  lastUpdate: z.number(),
+                })
+              )
+            ),
           },
         },
       },
@@ -28,6 +38,12 @@ rulesRouter.get(
 
 rulesRouter.get(
   '/file',
+  validator(
+    'query',
+    z.object({
+      file: z.string().min(1),
+    })
+  ),
   describeRoute({
     description: 'Get Kazumi rule file',
     responses: {
@@ -35,18 +51,18 @@ rulesRouter.get(
         description: 'Successful response',
         content: {
           'application/json': {
-            schema: resolver(z.any()),
+            schema: resolver(
+              z.object({
+                api: z.string(),
+                type: z.string(),
+                version: z.string(),
+              })
+            ),
           },
         },
       },
     },
   }),
-  validator(
-    'query',
-    z.object({
-      file: z.string().min(1),
-    })
-  ),
   async (c) => {
     const { file } = c.req.valid('query')
     return await fetch(

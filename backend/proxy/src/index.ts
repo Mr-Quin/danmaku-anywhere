@@ -11,7 +11,7 @@ import { authContext } from '@/middleware/authContext'
 import { useCache } from '@/middleware/cache'
 import { setContext } from '@/middleware/setContext'
 import { danDanPlay } from '@/routes/api/ddp/danDanPlay'
-import { llmLegacy } from '@/routes/api/llm/llm'
+import { llmLegacy } from '@/routes/api/llm/routes'
 import { getIsTestEnv } from '@/utils/getIsTestEnv'
 import { api } from './routes/api/routes'
 import { serializeError } from './utils/serializeError'
@@ -46,9 +46,15 @@ app.get(
       info: {
         title: 'Danmaku Anywhere API',
         version: '1.0.0',
-        description: 'Danmaku Anywhere Proxy API',
+        description: 'Danmaku Anywhere API',
       },
-      servers: [{ url: 'http://localhost:8787', description: 'Local Server' }],
+      servers: [
+        {
+          url: 'https://api.danmaku.weeblify.app',
+          description: 'Production Server',
+        },
+        { url: 'http://localhost:8787', description: 'Local Server' },
+      ],
     },
   })
 )
@@ -93,8 +99,6 @@ app.onError((error, c) => {
     )
   }
 
-  // Handle other types of errors
-  Sentry.captureException(error)
   const message = error.message
   const status = 500
 
