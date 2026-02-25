@@ -23,7 +23,10 @@ export const authContext = () =>
     }
 
     try {
-      const auth = await getOrCreateAuth(context.env)
+      const auth = await getOrCreateAuth(
+        context.env,
+        context.executionCtx.waitUntil
+      )
       const { user, session } = await resolveAuthSession(
         context.req.raw.headers,
         (headers) => auth.api.getSession({ headers })

@@ -12,7 +12,8 @@
     "BETTER_AUTH_TRUSTED_ORIGINS": "https://**.weeblify.app",
     "GEMINI_MODEL": "gemini-2.5-flash-lite",
     "BETTER_AUTH_URL": "https://api.danmaku-staging.weeblify.app",
-    "GOOGLE_CLIENT_ID": ""
+    "GOOGLE_CLIENT_ID": "",
+    "EMAIL_FROM": "Danmaku Anywhere <hello@danmaku.weeblify.app>"
   },
   "version_metadata": {
     "binding": "CF_VERSION_METADATA"
@@ -42,6 +43,11 @@
       "binding": "GOOGLE_CLIENT_SECRET",
       "store_id": "4a9ca50edba84431879f34b0b67f9998",
       "secret_name": "GOOGLE_CLIENT_SECRET_STG"
+    },
+    {
+      "binding": "RESEND_API_KEY",
+      "store_id": "4a9ca50edba84431879f34b0b67f9998",
+      "secret_name": "RESEND_API_KEY_STG"
     }
   ],
   "routes": [
@@ -79,7 +85,8 @@
         "BETTER_AUTH_TRUSTED_ORIGINS": "https://**.weeblify.app",
         "GEMINI_MODEL": "gemini-2.5-flash-lite",
         "BETTER_AUTH_URL": "https://api.danmaku-staging.weeblify.app",
-        "GOOGLE_CLIENT_ID": ""
+        "GOOGLE_CLIENT_ID": "",
+        "EMAIL_FROM": "Danmaku Anywhere <hello@danmaku.weeblify.app>"
       },
       "version_metadata": {
         "binding": "CF_VERSION_METADATA"
@@ -109,6 +116,11 @@
           "binding": "GOOGLE_CLIENT_SECRET",
           "store_id": "4a9ca50edba84431879f34b0b67f9998",
           "secret_name": "GOOGLE_CLIENT_SECRET_STG"
+        },
+        {
+          "binding": "RESEND_API_KEY",
+          "store_id": "4a9ca50edba84431879f34b0b67f9998",
+          "secret_name": "RESEND_API_KEY_STG"
         }
       ],
       "routes": [
@@ -120,7 +132,8 @@
       "r2_buckets": [
         {
           "binding": "FILES_BUCKET",
-          "bucket_name": "danmaku-anywhere-file-staging"
+          "bucket_name": "danmaku-anywhere-file-staging",
+          "preview_bucket_name": "danmaku-anywhere-file-staging-preview"
         }
       ],
       "d1_databases": [
@@ -146,7 +159,8 @@
         "BETTER_AUTH_TRUSTED_ORIGINS": "https://**.weeblify.app",
         "GEMINI_MODEL": "gemini-2.5-flash-lite",
         "BETTER_AUTH_URL": "https://api.danmaku.weeblify.app",
-        "GOOGLE_CLIENT_ID": ""
+        "GOOGLE_CLIENT_ID": "",
+        "EMAIL_FROM": "Danmaku Anywhere <hello@danmaku.weeblify.app>"
       },
       "version_metadata": {
         "binding": "CF_VERSION_METADATA"
@@ -176,6 +190,11 @@
           "binding": "GOOGLE_CLIENT_SECRET",
           "store_id": "4a9ca50edba84431879f34b0b67f9998",
           "secret_name": "GOOGLE_CLIENT_SECRET"
+        },
+        {
+          "binding": "RESEND_API_KEY",
+          "store_id": "4a9ca50edba84431879f34b0b67f9998",
+          "secret_name": "RESEND_API_KEY"
         }
       ],
       "routes": [
