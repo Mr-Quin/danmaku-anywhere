@@ -39,6 +39,11 @@ This directory contains Cursor rules that help maintain code quality and consist
 - **Purpose**: Web scraping guidelines and best practices
 - **Content**: Ethical scraping, technical implementation, performance, data processing
 
+### `update-docs-after-changes.mdc`
+- **Applied to**: App, package, and backend code (`app/**/*`, `packages/**/*`, `backend/**/*`)
+- **Purpose**: Remind to keep README and AGENTS.md in sync with code
+- **Content**: When to update docs, what to update (README.md, AGENTS.md), and where they live per app/package/backend
+
 ## Migration from Legacy Rules
 
 These rules have been migrated from the legacy `.cursorrules` file to the new `.cursor/rules` format. The new format provides:
