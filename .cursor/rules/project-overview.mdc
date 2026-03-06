@@ -1,4 +1,4 @@
-﻿---
+---
 alwaysApply: true
 ---
 # Danmaku Anywhere - Project Overview
@@ -12,21 +12,23 @@ This is a monorepo for Danmaku Anywhere, a browser extension and web application
   - danmaku-engine/: Danmaku rendering engine
   - danmaku-provider/: Danmaku data provider and API wrappers
   - web-scraper/: Web scraping utilities
-  - shared-ui/: Shared UI components
-- pp/web/: Angular web application
-- ackend/: Cloudflare Workers backend
+  - bangumi-api/: Typed Bangumi API schemas (openapi-fetch)
+  - result/: Result<T, E> type for error handling
+  - integration-policy/: Site/feature integration policies
+- app/web/: Angular web application
+- backend/proxy/: Cloudflare Workers backend (Hono)
 - docs/: Astro-based documentation
-- legacy/: Legacy code
 
 ## Technology Stack
 
 ### Angular (app/web/)
-- Angular 20+ with standalone components
+- Angular 21+ with standalone components
 - PrimeNG for UI components
 - Tailwind CSS for styling
 - TanStack Query for data fetching
 - Signals for state management
 - RxJS for reactive programming
+- Dexie for client-side storage
 
 ### React (packages/danmaku-anywhere/)
 - React 19+ with functional components and hooks
@@ -34,16 +36,23 @@ This is a monorepo for Danmaku Anywhere, a browser extension and web application
 - React Router for routing
 - TanStack Query for data fetching
 - Zustand for state management
-- Vite for build tooling
+- Vite for build tooling (via @crxjs/vite-plugin)
+- Inversify for dependency injection
+- i18next for internationalization
+- React Hook Form + Zod for form validation
 
-### Backend (backend/)
+### Backend (backend/proxy/)
 - Cloudflare Workers
+- Hono framework with Zod OpenAPI
+- Drizzle ORM with D1 (SQLite)
+- Better Auth for authentication
 - TypeScript
 - Biome for linting and formatting
 
 ### Core Packages
 - TypeScript with strict type checking
 - Biome for linting and formatting
+- Vitest for testing
 - pnpm for package management
 
 ## Key Configuration Files
@@ -51,3 +60,13 @@ This is a monorepo for Danmaku Anywhere, a browser extension and web application
 - [pnpm-workspace.yaml](mdc:pnpm-workspace.yaml) - Workspace configuration
 - [biome.json](mdc:biome.json) - Linting and formatting configuration
 - [tsconfig.base.json](mdc:tsconfig.base.json) - Base TypeScript configuration
+- [lefthook.yml](mdc:lefthook.yml) - Git hooks configuration
+
+## Key Commands
+- `pnpm install` - Install dependencies
+- `pnpm build:packages` - Build shared packages (must run before apps)
+- `pnpm build` - Build everything
+- `pnpm lint` - Lint and auto-fix
+- `pnpm type-check` - TypeScript type checking
+- `pnpm test` - Run all tests
+- `pnpm format` - Format with Biome
