@@ -8,15 +8,10 @@ import { createContext, type PropsWithChildren, use, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { UserTheme } from '@/common/options/extensionOptions/schema'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
+import { darkThemeOptions, lightThemeOptions } from '@/common/theme/animeTheme'
 import { ColorMode } from '@/common/theme/enums'
 
 import { tryCatchSync } from '@/common/utils/tryCatch'
-
-const defaultThemeOptions: ThemeOptions = {
-  palette: {
-    mode: 'dark',
-  },
-}
 
 type ThemeContext = UserTheme & {
   setColorMode: (colorScheme: ColorMode) => void
@@ -63,9 +58,19 @@ export const Theme = ({ children, options = {} }: ThemeProps) => {
       en: enUS,
     }
 
+    const baseTheme =
+      colorScheme === 'dark' ? darkThemeOptions : lightThemeOptions
+
     return createTheme(
-      produce(defaultThemeOptions, (draft) => {
-        Object.assign(draft, options)
+      produce(baseTheme, (draft) => {
+        // Merge caller options (e.g. typography.htmlFontSize for shadow DOM)
+        if (options.typography) {
+          draft.typography = { ...draft.typography, ...options.typography }
+        }
+        if (options.palette) {
+          if (!draft.palette) draft.palette = {}
+          Object.assign(draft.palette, options.palette)
+        }
         if (!draft.palette) draft.palette = {}
         draft.palette.mode = colorScheme
       }),
