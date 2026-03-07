@@ -15,9 +15,7 @@ globs: "app/web/**/*.ts,app/web/**/*.html"
 - Use native control flow (@if, @for, @switch) instead of structural directives
 - Use injectQuery and injectMutation from @tanstack/angular-query-experimental
 - Use NgOptimizedImage for static images
-- Do NOT use 
-gClass or 
-gStyle - use class and style bindings instead
+- Do NOT use ngClass or ngStyle - use class and style bindings instead
 
 ## State Management
 - Use signals for local component state
