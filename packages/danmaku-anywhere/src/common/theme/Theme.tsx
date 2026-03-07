@@ -71,6 +71,11 @@ export const Theme = ({ children, options = {} }: ThemeProps) => {
           if (!draft.palette) draft.palette = {}
           Object.assign(draft.palette, options.palette)
         }
+        // Merge component overrides (e.g. shadow DOM container props)
+        if (options.components) {
+          if (!draft.components) draft.components = {}
+          Object.assign(draft.components, options.components)
+        }
         if (!draft.palette) draft.palette = {}
         draft.palette.mode = colorScheme
       }),
