@@ -64,15 +64,10 @@ export class AuthClientService {
         }
       }
       case 'google': {
-        const res = await client.signIn.social({
-          provider: 'google',
-        })
-
-        if (res.error) {
-          return { state: 'error', message: res.error.statusText }
+        return {
+          state: 'error',
+          message: 'Google sign-in is not yet implemented',
         }
-
-        throw new Error('Not implemented')
       }
     }
   }
@@ -98,6 +93,7 @@ export class AuthClientService {
     const { data, error } = await client.getSession()
 
     if (error || !data) {
+      await this.userAuthStore.clearSession()
       return null
     }
 

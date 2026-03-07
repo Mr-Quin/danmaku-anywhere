@@ -16,10 +16,10 @@ export function createAuthClientInstance(tokenStore: TokenStore) {
         type: 'Bearer',
         token: () => tokenStore.getTokenSync(),
       },
-      onSuccess: (ctx) => {
+      onSuccess: async (ctx) => {
         const authToken = ctx.response.headers.get('set-auth-token')
         if (authToken) {
-          void tokenStore.setToken(authToken)
+          await tokenStore.setToken(authToken)
         }
       },
     },
