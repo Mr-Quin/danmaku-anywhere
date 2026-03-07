@@ -22,7 +22,7 @@ Parse and normalize danmaku from various formats (XML, protobuf, etc.) into a co
 danmaku-engine, danmaku-provider, web-scraper, danmaku-anywhere (extension), app/web
 
 ## Workspace dependencies
-None (leaf package)
+- @danmaku-anywhere/result
 
 ## When changing
 Update this file and `README.md` if you add formats, change the canonical schema, or modify the public API.
