@@ -128,7 +128,7 @@ Packages must be built before apps that depend on them:
 ```
 result, integration-policy, bangumi-api  (no internal deps)
     → danmaku-converter  (depends on result)
-    → danmaku-engine
+    → danmaku-engine  (depends on danmaku-converter)
     → danmaku-provider  (depends on converter, result)
     → web-scraper  (depends on converter, provider)
     → danmaku-anywhere (extension, depends on all above)
