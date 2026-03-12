@@ -15,7 +15,11 @@ import {
   type TemplateRef,
   viewChild,
 } from '@angular/core'
-import { type VideoPlayerConfig, VideoService } from './video.service'
+import {
+  type SubtitleTrack,
+  type VideoPlayerConfig,
+  VideoService,
+} from './video.service'
 
 @Component({
   selector: 'da-video-player',
@@ -89,6 +93,7 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
   videoUrl = input<string>()
   poster = input<string>()
   title = input<string>()
+  subtitleTracks = input<SubtitleTrack[]>([])
   showOverlay = input<boolean>(false)
   hasPrevious = input<boolean>(false)
   hasNext = input<boolean>(false)
@@ -137,6 +142,12 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
       if (poster !== undefined) {
         this.videoService.updatePoster(poster)
       }
+    })
+
+    // update subtitles
+    effect(() => {
+      const tracks = this.subtitleTracks()
+      this.updateSubtitleControl(tracks)
     })
 
     // update controls
@@ -305,6 +316,73 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
 
   private removeNextEpisodeControl() {
     this.videoService.removeControl('next-episode')
+  }
+
+  private hasSubtitleControl = false
+
+  private updateSubtitleControl(tracks: SubtitleTrack[]) {
+    const player = this.videoService.player()
+    if (!player) return
+
+    if (tracks.length === 0) {
+      if (this.hasSubtitleControl) {
+        player.controls.remove('subtitle')
+        this.hasSubtitleControl = false
+      }
+      this.videoService.clearSubtitle()
+      return
+    }
+
+    const subtitleIcon =
+      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V6h16v12zM6 10h2v2H6zm0 4h8v2H6zm10 0h2v2h-2zm-6-4h8v2h-8z" fill="currentColor"/></svg>'
+
+    const selector = [
+      {
+        html: '关闭',
+        default: tracks.length !== 1,
+      },
+      ...tracks.map((track, index) => ({
+        html: track.name,
+        default: tracks.length === 1 && index === 0,
+      })),
+    ]
+
+    const onSelect = (item: { html: string | HTMLElement }) => {
+      const label = typeof item.html === 'string' ? item.html : ''
+      if (label === '关闭') {
+        this.videoService.clearSubtitle()
+      } else {
+        const track = tracks.find((t) => t.name === label)
+        if (track) {
+          void this.videoService.switchSubtitle(track)
+        }
+      }
+      return label
+    }
+
+    if (this.hasSubtitleControl) {
+      player.controls.update({
+        name: 'subtitle',
+        selector,
+        onSelect,
+      })
+    } else {
+      player.controls.add({
+        name: 'subtitle',
+        position: 'right',
+        index: 20,
+        html: subtitleIcon,
+        tooltip: '字幕',
+        selector,
+        onSelect,
+      })
+      this.hasSubtitleControl = true
+    }
+
+    // Auto-select if exactly one track
+    if (tracks.length === 1) {
+      void this.videoService.switchSubtitle(tracks[0])
+    }
   }
 
   private initializePlayer() {

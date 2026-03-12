@@ -27,6 +27,21 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "ffmpeg-core.*",
+                "input": "node_modules/@ffmpeg/core/dist/umd",
+                "output": "ffmpeg"
+              },
+              {
+                "glob": "jassub-worker*.{js,wasm}",
+                "input": "node_modules/jassub/dist/wasm",
+                "output": "jassub"
+              },
+              {
+                "glob": "default.woff2",
+                "input": "node_modules/jassub/dist",
+                "output": "jassub"
               }
             ],
             "styles": ["src/styles.css"],

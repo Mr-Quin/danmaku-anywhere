@@ -6,6 +6,7 @@ import {
   signal,
 } from '@angular/core'
 import Artplayer from 'artplayer'
+import JASSUB from 'jassub'
 import { MessageService } from 'primeng/api'
 import { serializeError } from '../../shared/utils/serializeError'
 
@@ -61,6 +62,17 @@ interface ComponentOption {
   position?: 'top' | 'left' | 'right' | (string & Record<never, never>)
 }
 
+export interface SubtitleTrack {
+  /** Display name for the track */
+  name: string
+  /** Blob URL or file URL for the subtitle */
+  url: string
+  /** Subtitle format */
+  type: 'vtt' | 'srt' | 'ass'
+  /** Source: external file or embedded in container */
+  source: 'external' | 'embedded'
+}
+
 export interface VideoPlayerConfig {
   url: string
   poster?: string
@@ -108,6 +120,7 @@ export class VideoService {
   private layerNames = new Set<string>()
   private controls: ComponentOption[] = []
   private controlNames = new Set<string>()
+  private jassub: JASSUB | null = null
 
   private $player = signal<Artplayer | null>(null)
   private $container = signal<ElementRef<HTMLDivElement> | null>(null)
@@ -168,6 +181,18 @@ export class VideoService {
       airplay: false,
       lang: 'zh-cn',
       theme: '#f472b6',
+    })
+
+    this.jassub = new JASSUB({
+      video: player.video,
+      subContent: '',
+      workerUrl: '/jassub/jassub-worker.js',
+      wasmUrl: '/jassub/jassub-worker.wasm',
+      modernWasmUrl: '/jassub/jassub-worker-modern.wasm',
+      availableFonts: {
+        'liberation sans': '/jassub/default.woff2',
+      },
+      debug: true,
     })
 
     this.setupEventListeners(player)
@@ -231,6 +256,40 @@ export class VideoService {
     }
   }
 
+  async switchSubtitle(track: SubtitleTrack): Promise<void> {
+    const player = this.$player()
+    if (!player) return
+
+    if (track.type === 'ass') {
+      // Use JASSUB for ASS subtitles (preserves styling, karaoke, positioning)
+      player.subtitle.url = ''
+      if (this.jassub) {
+        console.log('jassub not null')
+        await this.jassub.ready
+        console.log('jassub ready')
+        await this.jassub.renderer.setTrackByUrl(track.url)
+        console.log('jassub set track')
+      }
+    } else {
+      // Use Artplayer's built-in for SRT/VTT
+      await player.subtitle.switch(track.url, {
+        name: track.name,
+        type: track.type,
+        escape: false,
+      })
+      await this.jassub?.renderer.freeTrack()
+    }
+  }
+
+  clearSubtitle(): void {
+    const player = this.$player()
+    if (!player) return
+    player.subtitle.url = ''
+    void this.jassub?.ready.then(() => {
+      void this.jassub?.renderer.freeTrack()
+    })
+  }
+
   removeControl(name: string): void {
     if (!this.controlNames.has(name)) {
       return
@@ -246,6 +305,8 @@ export class VideoService {
   destroy(): void {
     const player = this.$player()
     if (player) {
+      this.jassub?.destroy()
+      this.jassub = null
       player.destroy()
       this.$player.set(null)
       this.$container.set(null)

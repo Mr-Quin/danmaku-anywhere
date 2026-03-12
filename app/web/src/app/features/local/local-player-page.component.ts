@@ -33,6 +33,7 @@ import { LocalPlayerService } from './services/local-player.service'
           [videoUrl]="$videoUrl()"
           [title]="$nodeInfo()?.name"
           [poster]="''"
+          [subtitleTracks]="$subtitleTracks()"
           [showOverlay]="$showOverlay()"
           [hasPrevious]="$nodeInfo()?.hasPrev ?? false"
           [hasNext]="$nodeInfo()?.hasNext ?? false"
@@ -66,6 +67,7 @@ export class LocalPlayerPageComponent implements AfterViewInit {
   private localPlayerService = inject(LocalPlayerService)
 
   protected $videoUrl = this.localPlayerService.$videoUrl
+  protected $subtitleTracks = this.localPlayerService.$subtitleTracks
   protected $isLoading = this.localPlayerService.$isLoading
   protected $hasSelection = this.localPlayerService.$hasSelection
   protected $showOverlay = this.localPlayerService.$showOverlay

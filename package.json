@@ -12,6 +12,7 @@
   ],
   "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
   "scripts": {
+    "dev:web-app": "pnpm -r -F \"./app/web\" start",
     "build": "pnpm -r build",
     "build:packages": "pnpm -r -F \"./packages/**\" build",
     "format": "pnpm -r -F \"./packages/**\" format",
