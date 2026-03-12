@@ -15,6 +15,13 @@
       "when": 1770581446051,
       "tag": "0001_organic_boomerang",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1772005992681,
+      "tag": "0002_thankful_justin_hammer",
+      "breakpoints": true
     }
   ]
 }

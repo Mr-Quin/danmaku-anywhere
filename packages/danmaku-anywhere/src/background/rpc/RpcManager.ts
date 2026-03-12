@@ -339,6 +339,15 @@ export class RpcManager {
           void invalidateContentScriptData(sender.tab?.id)
           return result
         },
+        cloudBackupList: async () => {
+          return this.backupService.getCloudBackups()
+        },
+        cloudBackupCreate: async () => {
+          return this.backupService.createCloudBackup()
+        },
+        cloudBackupDownload: async (id) => {
+          return this.backupService.downloadCloudBackup(id)
+        },
         dataWipeDanmaku: async (data, sender) => {
           await this.dataManagementService.wipeAllData(data)
           void invalidateContentScriptData(sender.tab?.id)

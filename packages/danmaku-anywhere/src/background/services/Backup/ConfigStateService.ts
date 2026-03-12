@@ -24,19 +24,21 @@ export class ConfigStateService {
 
   async getState(): Promise<BackupData> {
     const services = await Promise.all(
-      this.services.map(async (service) => {
-        const [data, version] = await Promise.all([
-          service.options.get(),
-          service.options.getVersion(),
-        ])
-        return {
-          name: service.name,
-          data: {
-            data,
-            version,
-          },
-        }
-      })
+      this.services
+        .filter((service) => service.shouldBackup !== false)
+        .map(async (service) => {
+          const [data, version] = await Promise.all([
+            service.options.get(),
+            service.options.getVersion(),
+          ])
+          return {
+            name: service.name,
+            data: {
+              data,
+              version,
+            },
+          }
+        })
     )
 
     return {

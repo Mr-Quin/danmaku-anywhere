@@ -18,7 +18,9 @@ describe('BackupService', () => {
       restoreState: vi.fn(),
     } as unknown as ConfigStateService
 
-    service = new BackupService(mockConfigStateService)
+    service = new BackupService(mockConfigStateService, {
+      getTokenSync: vi.fn(),
+    } as any)
   })
 
   afterEach(() => {
