@@ -348,7 +348,7 @@ export class VideoService {
         subUrl: track.url,
         workerUrl: '/libassjs/subtitles-octopus-worker.js',
         legacyWorkerUrl: '/libassjs/subtitles-octopus-worker-legacy.js',
-        fallbackFont: '/fonts/NotoSansCJK-VF.ttf.ttc',
+        fallbackFont: '/fonts/NotoSansSC-Regular.ttf',
       })
       this.subtitleRenderer.canvas.style.zIndex = '10'
     } else {
