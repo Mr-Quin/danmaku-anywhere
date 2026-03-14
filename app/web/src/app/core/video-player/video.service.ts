@@ -282,9 +282,9 @@ export class VideoService {
 
     if (track.type === 'ass') {
       player.subtitle.show = false
-      this.createSubtitleRenderer(track)
+      this.createAssRenderer(track)
     } else {
-      this.clearSubtitleRenderer()
+      this.clearAssRenderer()
       player.subtitle.show = true
       void player.subtitle.switch(track.url, {
         name: track.name,
@@ -301,7 +301,7 @@ export class VideoService {
     }
     this.$activeSubtitleTrack.set(null)
     player.subtitle.show = false
-    this.clearSubtitleRenderer()
+    this.clearAssRenderer()
   }
 
   removeControl(name: string): void {
@@ -319,7 +319,7 @@ export class VideoService {
   destroy(): void {
     const player = this.$player()
     if (player) {
-      this.destroySubtitleRenderer()
+      this.destroyAssRenderer()
       player.destroy()
       this.$player.set(null)
       this.$container.set(null)
@@ -335,31 +335,28 @@ export class VideoService {
     }
   }
 
-  private clearSubtitleRenderer(): void {
+  private clearAssRenderer(): void {
     if (this.subtitleRenderer) {
       this.subtitleRenderer.freeTrack()
     }
   }
 
-  private createSubtitleRenderer(track: SubtitleTrack): void {
-    if (track.type === 'ass') {
-      if (!this.subtitleRenderer) {
-        this.subtitleRenderer = new SubtitlesOctopus({
-          video: this.$player()?.video,
-          subUrl: track.url,
-          workerUrl: '/libassjs/subtitles-octopus-worker.js',
-          legacyWorkerUrl: '/libassjs/subtitles-octopus-worker-legacy.js',
-          fallbackFont: '/fonts/NotoSansCJK-VF.ttf.ttc',
-          debug: true,
-        })
-        this.subtitleRenderer.canvas.style.zIndex = '10'
-      }
+  private createAssRenderer(track: SubtitleTrack): void {
+    if (!this.subtitleRenderer) {
+      this.subtitleRenderer = new SubtitlesOctopus({
+        video: this.$player()?.video,
+        subUrl: track.url,
+        workerUrl: '/libassjs/subtitles-octopus-worker.js',
+        legacyWorkerUrl: '/libassjs/subtitles-octopus-worker-legacy.js',
+        fallbackFont: '/fonts/NotoSansCJK-VF.ttf.ttc',
+      })
+      this.subtitleRenderer.canvas.style.zIndex = '10'
     } else {
       this.subtitleRenderer.setTrackByUrl(track.url)
     }
   }
 
-  private destroySubtitleRenderer(): void {
+  private destroyAssRenderer(): void {
     if (this.subtitleRenderer) {
       this.subtitleRenderer.dispose()
       this.subtitleRenderer = null

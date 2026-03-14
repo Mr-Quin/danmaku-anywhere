@@ -162,6 +162,10 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
       const loading = this.subtitleLoading()
       this.videoService.setSubtitleTracks(tracks)
       this.videoService.setSubtitleLoading(loading)
+
+      if (!loading && tracks.length > 0) {
+        this.videoService.switchSubtitle(tracks[0])
+      }
     })
 
     // update controls

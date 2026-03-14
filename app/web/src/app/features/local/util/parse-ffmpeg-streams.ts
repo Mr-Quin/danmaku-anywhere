@@ -46,9 +46,11 @@ export function parseFfmpegStreams(log: string): ParsedStreams {
 
   // Try to find title metadata for each stream.
   // Title appears in indented metadata lines after the stream header.
+  // Use a negative lookahead to avoid crossing into the next stream's block,
+  // and \b to avoid matching "title" inside "Subtitle".
   for (const stream of [...subtitles, ...audio]) {
     const titleRegex = new RegExp(
-      `Stream #0:${stream.index}[\\s\\S]*?title\\s*:\\s*(.+)`,
+      `Stream #0:${stream.index}(?:(?!Stream #0:)[\\s\\S])*?\\btitle\\s*:\\s*(.+)`,
       'm'
     )
     const titleMatch = titleRegex.exec(log)
