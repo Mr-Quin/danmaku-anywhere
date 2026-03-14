@@ -74,6 +74,17 @@ export interface SubtitleTrack {
   source: 'external' | 'embedded'
 }
 
+export interface AudioTrack {
+  /** Display name for the track */
+  name: string
+  /** Blob URL for the audio */
+  url: string
+  /** Audio codec name */
+  codec: string
+  /** Source: embedded in container */
+  source: 'embedded'
+}
+
 export interface VideoPlayerConfig {
   url: string
   poster?: string

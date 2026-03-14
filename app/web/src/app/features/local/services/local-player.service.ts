@@ -12,7 +12,7 @@ import {
 } from '../util/file-tree'
 import { supportsFilesystemApi } from '../util/supports-filesystem-api'
 import { LocalHandleDbService } from './local-handle-db.service'
-import { SubtitleExtractorService } from './subtitle-extractor.service'
+import { MediaExtractorService } from './media-extractor.service'
 
 @Injectable({ providedIn: 'root' })
 export class LocalPlayerService {
@@ -21,7 +21,7 @@ export class LocalPlayerService {
   private readonly confirmationService = inject(ConfirmationService)
   private readonly trackingService = inject(TrackingService)
   private readonly platformService = inject(PlatformService)
-  private readonly subtitleExtractor = inject(SubtitleExtractorService)
+  private readonly mediaExtractor = inject(MediaExtractorService)
 
   private objectUrlToRevoke: string | null = null
   private subtitleUrlsToRevoke: string[] = []
@@ -101,7 +101,7 @@ export class LocalPlayerService {
       this.$subtitleTracks.set(externalTracks)
 
       // Extract embedded subtitles in the background (non-blocking)
-      this.extractEmbeddedSubtitles(file, externalTracks)
+      void this.extractEmbeddedSubtitles(file, externalTracks)
     } catch (e) {
       this.messageService.add({
         severity: 'error',
@@ -225,7 +225,7 @@ export class LocalPlayerService {
     file: File,
     existingTracks: SubtitleTrack[]
   ): void {
-    this.subtitleExtractor
+    this.mediaExtractor
       .extractSubtitles(file)
       .then((embeddedTracks) => {
         if (embeddedTracks.length > 0) {

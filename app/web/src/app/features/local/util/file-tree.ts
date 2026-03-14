@@ -33,7 +33,6 @@ export interface TreeNodeInfo {
   hasNext: boolean
   prevNode: FileTreeNode | null
   nextNode: FileTreeNode | null
-  /** Subtitle files found in the same directory */
   subtitleFiles: SubtitleFileInfo[]
 }
 
