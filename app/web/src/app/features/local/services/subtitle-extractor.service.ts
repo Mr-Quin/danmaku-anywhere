@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
-import { fetchFile, toBlobURL } from '@ffmpeg/util'
+import { fetchFile } from '@ffmpeg/util'
 import type { SubtitleTrack } from '../../../core/video-player/video.service'
 
 interface SubtitleStreamInfo {
@@ -37,10 +37,10 @@ export class SubtitleExtractorService {
 
   private async initFFmpeg(): Promise<FFmpeg> {
     const ffmpeg = new FFmpeg()
-    const base = 'ffmpeg'
     await ffmpeg.load({
-      coreURL: await toBlobURL(`${base}/ffmpeg-core.js`, 'text/javascript'),
-      wasmURL: await toBlobURL(`${base}/ffmpeg-core.wasm`, 'application/wasm'),
+      coreURL: '/ffmpeg/ffmpeg-core.js',
+      wasmURL: '/ffmpeg/ffmpeg-core.wasm',
+      classWorkerURL: '/ffmpeg/worker.js',
     })
     return ffmpeg
   }
