@@ -118,6 +118,7 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
   private $shouldShowTitle = signal(false)
   private hideTimer: ReturnType<typeof setTimeout> | null = null
   private mouseMoveTimer: ReturnType<typeof setTimeout> | null = null
+  private hasAutoSelectedSubtitle = false
 
   protected $showLoadingOverlay = computed(() => {
     if (this.videoService.$isVideoReady()) {
@@ -144,6 +145,7 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
     effect(() => {
       const url = this.videoUrl()
       if (url !== undefined) {
+        this.hasAutoSelectedSubtitle = false
         this.videoService.updateUrl(url)
       }
     })
@@ -163,8 +165,9 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
       this.videoService.setSubtitleTracks(tracks)
       this.videoService.setSubtitleLoading(loading)
 
-      if (!loading && tracks.length > 0) {
+      if (!loading && tracks.length > 0 && !this.hasAutoSelectedSubtitle) {
         this.videoService.switchSubtitle(tracks[0])
+        this.hasAutoSelectedSubtitle = true
       }
     })
 

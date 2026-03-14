@@ -26,6 +26,7 @@ export class LocalPlayerService {
   private objectUrlToRevoke: string | null = null
   private subtitleUrlsToRevoke: string[] = []
   private isInit = true
+  private subtitleExtractionToken = 0
 
   private readonly fileTree = new FileTree([])
 
@@ -226,17 +227,30 @@ export class LocalPlayerService {
     file: File,
     existingTracks: SubtitleTrack[]
   ): Promise<void> {
+    const token = ++this.subtitleExtractionToken
     this.$isExtractingSubtitles.set(true)
     try {
       const embeddedTracks = await this.mediaExtractor.extractSubtitles(file)
+      if (this.subtitleExtractionToken !== token) {
+        // A newer extraction was started; discard these results
+        for (const track of embeddedTracks) {
+          URL.revokeObjectURL(track.url)
+        }
+        return
+      }
       if (embeddedTracks.length > 0) {
+        for (const track of embeddedTracks) {
+          this.subtitleUrlsToRevoke.push(track.url)
+        }
         const merged = [...existingTracks, ...embeddedTracks]
         this.$subtitleTracks.set(merged)
       }
     } catch {
       // best-effort
     } finally {
-      this.$isExtractingSubtitles.set(false)
+      if (this.subtitleExtractionToken === token) {
+        this.$isExtractingSubtitles.set(false)
+      }
     }
   }
 
@@ -252,7 +266,7 @@ export class LocalPlayerService {
         tracks.push({
           name: sub.name,
           url,
-          type: sub.ext as SubtitleTrack['type'],
+          type: (sub.ext === 'ssa' ? 'ass' : sub.ext) as SubtitleTrack['type'],
           source: 'external',
         })
       } catch {

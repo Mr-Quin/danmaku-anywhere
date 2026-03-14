@@ -24,32 +24,52 @@ function codecToSubtitleFormat(codec: string): 'ass' | 'srt' | 'vtt' {
   return 'srt'
 }
 
+/**
+ * Helper to write a file to FFmpeg FS and ensure it is deleted when disposed.
+ */
+async function writeFfmpegFile(
+  ffmpeg: FFmpeg,
+  name: string,
+  data: Parameters<FFmpeg['writeFile']>[1]
+): Promise<AsyncDisposable> {
+  await ffmpeg.writeFile(name, data)
+  return {
+    async [Symbol.asyncDispose]() {
+      try {
+        await ffmpeg.deleteFile(name)
+      } catch {
+        // ignore cleanup errors
+      }
+    },
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class MediaExtractorService {
   private readonly ffmpegService = inject(FfmpegService)
 
+  private operationCounter = 0
+
   async listStreams(file: File): Promise<ParsedStreams> {
     const ffmpeg = await this.ffmpegService.getFFmpeg()
-    const inputName = 'input' + this.getExtension(file.name)
+    const inputName = `input_${this.nextOpId()}${this.getExtension(file.name)}`
 
-    await ffmpeg.writeFile(inputName, await fetchFile(file))
+    await using stack = new AsyncDisposableStack()
+    stack.use(await writeFfmpegFile(ffmpeg, inputName, await fetchFile(file)))
 
-    try {
-      return await this.probeStreams(ffmpeg, inputName)
-    } finally {
-      await ffmpeg.deleteFile(inputName)
-    }
+    return await this.probeStreams(ffmpeg, inputName)
   }
 
   async extractSubtitles(file: File): Promise<SubtitleTrack[]> {
     const ffmpeg = await this.ffmpegService.getFFmpeg()
-    const inputName = 'input' + this.getExtension(file.name)
+    const opId = this.nextOpId()
+    const inputName = `input_${opId}${this.getExtension(file.name)}`
 
-    await ffmpeg.writeFile(inputName, await fetchFile(file))
+    await using stack = new AsyncDisposableStack()
+    stack.use(await writeFfmpegFile(ffmpeg, inputName, await fetchFile(file)))
 
     const { subtitles: streams } = await this.probeStreams(ffmpeg, inputName)
     if (streams.length === 0) {
-      await ffmpeg.deleteFile(inputName)
       return []
     }
 
@@ -57,7 +77,7 @@ export class MediaExtractorService {
     for (let i = 0; i < streams.length; i++) {
       const stream = streams[i]
       const format = codecToSubtitleFormat(stream.codec)
-      const outputName = `subtitle_${i}.${format}`
+      const outputName = `subtitle_${i}_${opId}.${format}`
 
       try {
         await ffmpeg.exec([
@@ -87,14 +107,17 @@ export class MediaExtractorService {
           type: format,
           source: 'embedded',
         })
-
-        await ffmpeg.deleteFile(outputName)
       } catch {
         // Skip streams that fail to extract
+      } finally {
+        try {
+          await ffmpeg.deleteFile(outputName)
+        } catch {
+          // ignore cleanup errors
+        }
       }
     }
 
-    await ffmpeg.deleteFile(inputName)
     return tracks
   }
 
@@ -104,20 +127,21 @@ export class MediaExtractorService {
    */
   async extractAudioTracks(file: File): Promise<AudioTrack[]> {
     const ffmpeg = await this.ffmpegService.getFFmpeg()
-    const inputName = 'input' + this.getExtension(file.name)
+    const opId = this.nextOpId()
+    const inputName = `input_${opId}${this.getExtension(file.name)}`
 
-    await ffmpeg.writeFile(inputName, await fetchFile(file))
+    await using stack = new AsyncDisposableStack()
+    stack.use(await writeFfmpegFile(ffmpeg, inputName, await fetchFile(file)))
 
     const { audio: streams } = await this.probeStreams(ffmpeg, inputName)
     if (streams.length === 0) {
-      await ffmpeg.deleteFile(inputName)
       return []
     }
 
     const tracks: AudioTrack[] = []
     for (let i = 0; i < streams.length; i++) {
       const stream = streams[i]
-      const outputName = `audio_${i}.mp3`
+      const outputName = `audio_${i}_${opId}.mp3`
 
       try {
         await ffmpeg.exec([
@@ -147,14 +171,17 @@ export class MediaExtractorService {
           codec: stream.codec,
           source: 'embedded',
         })
-
-        await ffmpeg.deleteFile(outputName)
       } catch {
         // Skip streams that fail to extract
+      } finally {
+        try {
+          await ffmpeg.deleteFile(outputName)
+        } catch {
+          // ignore cleanup errors
+        }
       }
     }
 
-    await ffmpeg.deleteFile(inputName)
     return tracks
   }
 
@@ -179,6 +206,10 @@ export class MediaExtractorService {
     ffmpeg.off('log', logHandler)
 
     return parseFfmpegStreams(logs.join('\n'))
+  }
+
+  private nextOpId(): number {
+    return this.operationCounter++
   }
 
   private getExtension(name: string): string {

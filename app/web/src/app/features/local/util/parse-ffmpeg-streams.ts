@@ -50,7 +50,7 @@ export function parseFfmpegStreams(log: string): ParsedStreams {
   // and \b to avoid matching "title" inside "Subtitle".
   for (const stream of [...subtitles, ...audio]) {
     const titleRegex = new RegExp(
-      `Stream #0:${stream.index}(?:(?!Stream #0:)[\\s\\S])*?\\btitle\\s*:\\s*(.+)`,
+      `Stream #0:${stream.index}(?=[:(])(?:(?!Stream #0:)[\\s\\S])*?\\btitle\\s*:\\s*(.+)`,
       'm'
     )
     const titleMatch = titleRegex.exec(log)

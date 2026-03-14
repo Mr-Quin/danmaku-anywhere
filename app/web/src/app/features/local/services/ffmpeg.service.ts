@@ -6,9 +6,17 @@ export class FfmpegService {
   private ffmpeg: FFmpeg | null = null
   private loading: Promise<FFmpeg> | null = null
 
+  preload(): void {
+    void this.getFFmpeg()
+  }
+
   async getFFmpeg(): Promise<FFmpeg> {
-    if (this.ffmpeg) return this.ffmpeg
-    if (this.loading) return this.loading
+    if (this.ffmpeg) {
+      return this.ffmpeg
+    }
+    if (this.loading) {
+      return this.loading
+    }
 
     this.loading = this.initFFmpeg()
     try {

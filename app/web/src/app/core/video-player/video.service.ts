@@ -289,7 +289,7 @@ export class VideoService {
       void player.subtitle.switch(track.url, {
         name: track.name,
         type: track.type,
-        escape: false,
+        escape: true,
       })
     }
   }

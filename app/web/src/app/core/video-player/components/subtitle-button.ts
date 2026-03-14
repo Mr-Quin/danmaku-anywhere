@@ -133,10 +133,10 @@ import { type SubtitleTrack, VideoService } from '../video.service'
         >
           关闭
         </button>
-        @for (track of $tracks(); track track.name) {
+        @for (track of $tracks(); track track.url) {
           <button
             class="menu-item"
-            [class.active]="$activeTrack()?.name === track.name"
+            [class.active]="$activeTrack()?.url === track.url"
             (click)="selectTrack(track, $event)"
           >
             {{ track.name }}
