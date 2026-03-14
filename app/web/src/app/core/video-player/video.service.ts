@@ -6,7 +6,8 @@ import {
   signal,
 } from '@angular/core'
 import Artplayer from 'artplayer'
-import JASSUB from 'jassub'
+// @ts-expect-error no type definitions
+import SubtitlesOctopus from 'libass-wasm'
 import { MessageService } from 'primeng/api'
 import { serializeError } from '../../shared/utils/serializeError'
 
@@ -120,7 +121,7 @@ export class VideoService {
   private layerNames = new Set<string>()
   private controls: ComponentOption[] = []
   private controlNames = new Set<string>()
-  private jassub: JASSUB | null = null
+  private subtitleRenderer: InstanceType<typeof SubtitlesOctopus> | null = null
 
   private $player = signal<Artplayer | null>(null)
   private $container = signal<ElementRef<HTMLDivElement> | null>(null)
@@ -181,18 +182,6 @@ export class VideoService {
       airplay: false,
       lang: 'zh-cn',
       theme: '#f472b6',
-    })
-
-    this.jassub = new JASSUB({
-      video: player.video,
-      subContent: '',
-      workerUrl: '/jassub/jassub-worker.js',
-      wasmUrl: '/jassub/jassub-worker.wasm',
-      modernWasmUrl: '/jassub/jassub-worker-modern.wasm',
-      availableFonts: {
-        'liberation sans': '/jassub/default.woff2',
-      },
-      debug: true,
     })
 
     this.setupEventListeners(player)
@@ -256,38 +245,31 @@ export class VideoService {
     }
   }
 
-  async switchSubtitle(track: SubtitleTrack): Promise<void> {
+  switchSubtitle(track: SubtitleTrack): void {
     const player = this.$player()
     if (!player) return
 
     if (track.type === 'ass') {
-      // Use JASSUB for ASS subtitles (preserves styling, karaoke, positioning)
-      player.subtitle.url = ''
-      if (this.jassub) {
-        console.log('jassub not null')
-        await this.jassub.ready
-        console.log('jassub ready')
-        await this.jassub.renderer.setTrackByUrl(track.url)
-        console.log('jassub set track')
-      }
+      player.subtitle.show = false
+      this.createSubtitleRenderer(track)
     } else {
-      // Use Artplayer's built-in for SRT/VTT
-      await player.subtitle.switch(track.url, {
+      this.clearSubtitleRenderer()
+      player.subtitle.show = true
+      void player.subtitle.switch(track.url, {
         name: track.name,
         type: track.type,
         escape: false,
       })
-      await this.jassub?.renderer.freeTrack()
     }
   }
 
   clearSubtitle(): void {
     const player = this.$player()
-    if (!player) return
-    player.subtitle.url = ''
-    void this.jassub?.ready.then(() => {
-      void this.jassub?.renderer.freeTrack()
-    })
+    if (!player) {
+      return
+    }
+    player.subtitle.show = false
+    this.clearSubtitleRenderer()
   }
 
   removeControl(name: string): void {
@@ -305,8 +287,7 @@ export class VideoService {
   destroy(): void {
     const player = this.$player()
     if (player) {
-      this.jassub?.destroy()
-      this.jassub = null
+      this.destroySubtitleRenderer()
       player.destroy()
       this.$player.set(null)
       this.$container.set(null)
@@ -316,6 +297,37 @@ export class VideoService {
       this.layerNames.clear()
       this.controlNames.clear()
       this.updateState(defaultPlayerState)
+    }
+  }
+
+  private clearSubtitleRenderer(): void {
+    if (this.subtitleRenderer) {
+      this.subtitleRenderer.freeTrack()
+    }
+  }
+
+  private createSubtitleRenderer(track: SubtitleTrack): void {
+    if (track.type === 'ass') {
+      if (!this.subtitleRenderer) {
+        this.subtitleRenderer = new SubtitlesOctopus({
+          video: this.$player()?.video,
+          subUrl: track.url,
+          workerUrl: '/libassjs/subtitles-octopus-worker.js',
+          legacyWorkerUrl: '/libassjs/subtitles-octopus-worker-legacy.js',
+          fallbackFont: '/fonts/NotoSansCJK-VF.ttf.ttc',
+          debug: true,
+        })
+        this.subtitleRenderer.canvas.style.zIndex = '10'
+      }
+    } else {
+      this.subtitleRenderer.setTrackByUrl(track.url)
+    }
+  }
+
+  private destroySubtitleRenderer(): void {
+    if (this.subtitleRenderer) {
+      this.subtitleRenderer.dispose()
+      this.subtitleRenderer = null
     }
   }
 

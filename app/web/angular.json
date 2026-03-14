@@ -34,14 +34,9 @@
                 "output": "ffmpeg"
               },
               {
-                "glob": "jassub-worker*.{js,wasm}",
-                "input": "node_modules/jassub/dist/wasm",
-                "output": "jassub"
-              },
-              {
-                "glob": "default.woff2",
-                "input": "node_modules/jassub/dist",
-                "output": "jassub"
+                "glob": "subtitles-octopus-worker*.{js,wasm}",
+                "input": "node_modules/libass-wasm/dist/js",
+                "output": "libassjs"
               }
             ],
             "styles": ["src/styles.css"],
