@@ -4,8 +4,11 @@ import {
   Injectable,
   inject,
   signal,
+  untracked,
 } from '@angular/core'
 import Artplayer from 'artplayer'
+// @ts-expect-error no type definitions
+import SubtitlesOctopus from 'libass-wasm'
 import { MessageService } from 'primeng/api'
 import { serializeError } from '../../shared/utils/serializeError'
 
@@ -61,6 +64,28 @@ interface ComponentOption {
   position?: 'top' | 'left' | 'right' | (string & Record<never, never>)
 }
 
+export interface SubtitleTrack {
+  /** Display name for the track */
+  name: string
+  /** Blob URL or file URL for the subtitle */
+  url: string
+  /** Subtitle format */
+  type: 'vtt' | 'srt' | 'ass'
+  /** Source: external file or embedded in container */
+  source: 'external' | 'embedded'
+}
+
+export interface AudioTrack {
+  /** Display name for the track */
+  name: string
+  /** Blob URL for the audio */
+  url: string
+  /** Audio codec name */
+  codec: string
+  /** Source: embedded in container */
+  source: 'embedded'
+}
+
 export interface VideoPlayerConfig {
   url: string
   poster?: string
@@ -108,6 +133,7 @@ export class VideoService {
   private layerNames = new Set<string>()
   private controls: ComponentOption[] = []
   private controlNames = new Set<string>()
+  private subtitleRenderer: InstanceType<typeof SubtitlesOctopus> | null = null
 
   private $player = signal<Artplayer | null>(null)
   private $container = signal<ElementRef<HTMLDivElement> | null>(null)
@@ -118,6 +144,10 @@ export class VideoService {
   }
 
   private readonly $state = signal<VideoPlayerState>(defaultPlayerState)
+
+  readonly $subtitleTracks = signal<SubtitleTrack[]>([])
+  readonly $subtitleLoading = signal(false)
+  readonly $activeSubtitleTrack = signal<SubtitleTrack | null>(null)
 
   readonly $url = computed(() => this.$config()?.url)
   readonly $title = computed(() => this.$config()?.title)
@@ -231,6 +261,49 @@ export class VideoService {
     }
   }
 
+  setSubtitleTracks(tracks: SubtitleTrack[]): void {
+    this.$subtitleTracks.set(tracks)
+  }
+
+  setSubtitleLoading(loading: boolean): void {
+    this.$subtitleLoading.set(loading)
+  }
+
+  switchSubtitle(track: SubtitleTrack): void {
+    const player = this.$player()
+    if (!player) {
+      return
+    }
+    if (track === untracked(this.$activeSubtitleTrack)) {
+      return
+    }
+
+    this.$activeSubtitleTrack.set(track)
+
+    if (track.type === 'ass') {
+      player.subtitle.show = false
+      this.createAssRenderer(track)
+    } else {
+      this.clearAssRenderer()
+      player.subtitle.show = true
+      void player.subtitle.switch(track.url, {
+        name: track.name,
+        type: track.type,
+        escape: true,
+      })
+    }
+  }
+
+  clearSubtitle(): void {
+    const player = this.$player()
+    if (!player) {
+      return
+    }
+    this.$activeSubtitleTrack.set(null)
+    player.subtitle.show = false
+    this.clearAssRenderer()
+  }
+
   removeControl(name: string): void {
     if (!this.controlNames.has(name)) {
       return
@@ -246,6 +319,7 @@ export class VideoService {
   destroy(): void {
     const player = this.$player()
     if (player) {
+      this.destroyAssRenderer()
       player.destroy()
       this.$player.set(null)
       this.$container.set(null)
@@ -254,7 +328,38 @@ export class VideoService {
       this.controls = []
       this.layerNames.clear()
       this.controlNames.clear()
+      this.$subtitleTracks.set([])
+      this.$subtitleLoading.set(false)
+      this.$activeSubtitleTrack.set(null)
       this.updateState(defaultPlayerState)
+    }
+  }
+
+  private clearAssRenderer(): void {
+    if (this.subtitleRenderer) {
+      this.subtitleRenderer.freeTrack()
+    }
+  }
+
+  private createAssRenderer(track: SubtitleTrack): void {
+    if (!this.subtitleRenderer) {
+      this.subtitleRenderer = new SubtitlesOctopus({
+        video: this.$player()?.video,
+        subUrl: track.url,
+        workerUrl: '/libassjs/subtitles-octopus-worker.js',
+        legacyWorkerUrl: '/libassjs/subtitles-octopus-worker-legacy.js',
+        fallbackFont: '/fonts/NotoSansSC-Regular.ttf',
+      })
+      this.subtitleRenderer.canvas.style.zIndex = '10'
+    } else {
+      this.subtitleRenderer.setTrackByUrl(track.url)
+    }
+  }
+
+  private destroyAssRenderer(): void {
+    if (this.subtitleRenderer) {
+      this.subtitleRenderer.dispose()
+      this.subtitleRenderer = null
     }
   }
 

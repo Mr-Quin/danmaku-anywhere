@@ -1,11 +1,15 @@
 import { NgTemplateOutlet } from '@angular/common'
 import {
   type AfterViewInit,
+  ApplicationRef,
   ChangeDetectionStrategy,
   Component,
+  type ComponentRef,
   computed,
   contentChild,
+  createComponent,
   type ElementRef,
+  EnvironmentInjector,
   effect,
   inject,
   input,
@@ -15,7 +19,14 @@ import {
   type TemplateRef,
   viewChild,
 } from '@angular/core'
-import { type VideoPlayerConfig, VideoService } from './video.service'
+import type Artplayer from 'artplayer'
+import { SubtitleButton } from './components/subtitle-button'
+import {
+  type SubtitleTrack,
+  type VideoPlayerConfig,
+  VideoService,
+} from './video.service'
+import { NEXT_EPISODE_ICON, PREV_EPISODE_ICON } from './video-icon.const'
 
 @Component({
   selector: 'da-video-player',
@@ -31,24 +42,24 @@ import { type VideoPlayerConfig, VideoService } from './video.service'
               display: none;
           }
       }
-      
+
       :host {
           ::ng-deep .art-poster {
               opacity: 40%;
           }
       }
-      
+
       .title-container {
           transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
           opacity: 0;
           transform: translateY(-10px);
       }
-      
+
       .title-container.show {
           opacity: 1;
           transform: translateY(0);
       }
-      
+
       .title-container.hide {
           opacity: 0;
           transform: translateY(-10px);
@@ -79,6 +90,10 @@ import { type VideoPlayerConfig, VideoService } from './video.service'
 })
 export class VideoPlayer implements AfterViewInit, OnDestroy {
   private readonly videoService = inject(VideoService)
+  private readonly envInjector = inject(EnvironmentInjector)
+  private readonly appRef = inject(ApplicationRef)
+
+  private subtitleButtonRef: ComponentRef<SubtitleButton> | null = null
 
   $artPlayerDiv = viewChild.required<ElementRef<HTMLDivElement>>('artPlayer')
   $overlayLayer = viewChild.required<ElementRef<HTMLDivElement>>('overlayLayer')
@@ -89,6 +104,8 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
   videoUrl = input<string>()
   poster = input<string>()
   title = input<string>()
+  subtitleTracks = input<SubtitleTrack[]>([])
+  subtitleLoading = input<boolean>(false)
   showOverlay = input<boolean>(false)
   hasPrevious = input<boolean>(false)
   hasNext = input<boolean>(false)
@@ -101,6 +118,7 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
   private $shouldShowTitle = signal(false)
   private hideTimer: ReturnType<typeof setTimeout> | null = null
   private mouseMoveTimer: ReturnType<typeof setTimeout> | null = null
+  private hasAutoSelectedSubtitle = false
 
   protected $showLoadingOverlay = computed(() => {
     if (this.videoService.$isVideoReady()) {
@@ -127,6 +145,7 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
     effect(() => {
       const url = this.videoUrl()
       if (url !== undefined) {
+        this.hasAutoSelectedSubtitle = false
         this.videoService.updateUrl(url)
       }
     })
@@ -136,6 +155,19 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
       const poster = this.poster()
       if (poster !== undefined) {
         this.videoService.updatePoster(poster)
+      }
+    })
+
+    // update subtitles
+    effect(() => {
+      const tracks = this.subtitleTracks()
+      const loading = this.subtitleLoading()
+      this.videoService.setSubtitleTracks(tracks)
+      this.videoService.setSubtitleLoading(loading)
+
+      if (!loading && tracks.length > 0 && !this.hasAutoSelectedSubtitle) {
+        this.videoService.switchSubtitle(tracks[0])
+        this.hasAutoSelectedSubtitle = true
       }
     })
 
@@ -159,11 +191,17 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     this.initializePlayer()
     this.setupMediaSession()
+    this.updateSubtitleControl()
   }
 
   ngOnDestroy() {
     this.clearTimers()
     this.clearMediaSession()
+    if (this.subtitleButtonRef) {
+      this.appRef.detachView(this.subtitleButtonRef.hostView)
+      this.subtitleButtonRef.destroy()
+      this.subtitleButtonRef = null
+    }
     this.videoService.destroy()
   }
 
@@ -278,7 +316,7 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
       index: 9,
       name: 'previous-episode',
       position: 'left',
-      html: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" fill="currentColor"/></svg>',
+      html: PREV_EPISODE_ICON,
       tooltip: '上一集',
       click: () => {
         this.previousEpisode.emit()
@@ -295,7 +333,7 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
       index: 11,
       name: 'next-episode',
       position: 'left',
-      html: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 18h2V6h-2zm-3.5-6L4 6v12z" fill="currentColor"/></svg>',
+      html: NEXT_EPISODE_ICON,
       tooltip: '下一集',
       click: () => {
         this.nextEpisode.emit()
@@ -305,6 +343,28 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
 
   private removeNextEpisodeControl() {
     this.videoService.removeControl('next-episode')
+  }
+
+  private getOrCreateSubtitleButton(
+    player: Artplayer
+  ): ComponentRef<SubtitleButton> {
+    if (!this.subtitleButtonRef) {
+      this.subtitleButtonRef = createComponent(SubtitleButton, {
+        environmentInjector: this.envInjector,
+      })
+      this.subtitleButtonRef.setInput('player', player)
+      this.appRef.attachView(this.subtitleButtonRef.hostView)
+      this.subtitleButtonRef.changeDetectorRef.detectChanges()
+    }
+    return this.subtitleButtonRef
+  }
+
+  private updateSubtitleControl() {
+    const player = this.videoService.player()
+    if (!player) {
+      return
+    }
+    this.getOrCreateSubtitleButton(player)
   }
 
   private initializePlayer() {

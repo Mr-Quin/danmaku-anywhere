@@ -11,6 +11,7 @@ import { Title } from '@angular/platform-browser'
 import { ProgressSpinner } from 'primeng/progressspinner'
 import { VideoPlayer } from '../../core/video-player/video-player'
 import { LocalFolderSelectorComponent } from './components/local-folder-selector.component'
+import { FfmpegService } from './services/ffmpeg.service'
 import { LocalPlayerService } from './services/local-player.service'
 
 @Component({
@@ -33,6 +34,8 @@ import { LocalPlayerService } from './services/local-player.service'
           [videoUrl]="$videoUrl()"
           [title]="$nodeInfo()?.name"
           [poster]="''"
+          [subtitleTracks]="$subtitleTracks()"
+          [subtitleLoading]="$isExtractingSubtitles()"
           [showOverlay]="$showOverlay()"
           [hasPrevious]="$nodeInfo()?.hasPrev ?? false"
           [hasNext]="$nodeInfo()?.hasNext ?? false"
@@ -64,10 +67,14 @@ import { LocalPlayerService } from './services/local-player.service'
 export class LocalPlayerPageComponent implements AfterViewInit {
   private titleService = inject(Title)
   private localPlayerService = inject(LocalPlayerService)
+  private ffmpegService = inject(FfmpegService)
 
   protected $videoUrl = this.localPlayerService.$videoUrl
+  protected $subtitleTracks = this.localPlayerService.$subtitleTracks
   protected $isLoading = this.localPlayerService.$isLoading
   protected $hasSelection = this.localPlayerService.$hasSelection
+  protected $isExtractingSubtitles =
+    this.localPlayerService.$isExtractingSubtitles
   protected $showOverlay = this.localPlayerService.$showOverlay
   protected $nodeInfo = this.localPlayerService.$nodeInfo
 
@@ -87,6 +94,7 @@ export class LocalPlayerPageComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    this.ffmpegService.preload()
     void this.localPlayerService.checkPersistence()
   }
 

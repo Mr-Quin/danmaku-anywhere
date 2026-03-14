@@ -16,6 +16,14 @@ const playableExtensions = new Set<string>([
   '.avi',
 ])
 
+const subtitleExtensions = new Set<string>(['.srt', '.ass', '.ssa', '.vtt'])
+
+export interface SubtitleFileInfo {
+  name: string
+  ext: string
+  source: FileSource
+}
+
 export type FileTreeNode = TreeNode<{ source?: FileSource; key?: string }>
 
 export interface TreeNodeInfo {
@@ -25,13 +33,55 @@ export interface TreeNodeInfo {
   hasNext: boolean
   prevNode: FileTreeNode | null
   nextNode: FileTreeNode | null
+  subtitleFiles: SubtitleFileInfo[]
+}
+
+function getExtension(name: string): string {
+  const lower = name.toLowerCase()
+  const dotIndex = lower.lastIndexOf('.')
+  return dotIndex >= 0 ? lower.slice(dotIndex) : ''
 }
 
 function isPlayableFileName(name: string): boolean {
-  const lower = name.toLowerCase()
-  const dotIndex = lower.lastIndexOf('.')
-  const ext = dotIndex >= 0 ? lower.slice(dotIndex) : ''
-  return playableExtensions.has(ext)
+  return playableExtensions.has(getExtension(name))
+}
+
+function isSubtitleFileName(name: string): boolean {
+  return subtitleExtensions.has(getExtension(name))
+}
+
+/** Get the file name stem without extension */
+function getFileStem(name: string): string {
+  const dotIndex = name.lastIndexOf('.')
+  return dotIndex >= 0 ? name.slice(0, dotIndex) : name
+}
+
+/** Attach subtitle files as non-selectable children of video nodes, sorted by stem match */
+function attachSubtitleChildren(
+  videoNodes: FileTreeNode[],
+  subtitles: SubtitleFileInfo[]
+): void {
+  if (subtitles.length === 0 || videoNodes.length === 0) return
+
+  for (const videoNode of videoNodes) {
+    const videoStem = getFileStem(videoNode.label ?? '').toLowerCase()
+    const sorted = [...subtitles].sort((a, b) => {
+      const aMatch = getFileStem(a.name).toLowerCase() === videoStem ? 0 : 1
+      const bMatch = getFileStem(b.name).toLowerCase() === videoStem ? 0 : 1
+      return aMatch - bMatch
+    })
+    videoNode.children = sorted.map((sub) => ({
+      key: `${videoNode.key}/__sub__/${sub.name}`,
+      label: sub.name,
+      data: { source: sub.source },
+      leaf: true,
+      selectable: false,
+      icon: 'pi pi-file',
+      type: 'subtitle',
+    }))
+    videoNode.leaf = false
+    videoNode.expanded = false
+  }
 }
 
 function pruneEmpty(node: FileTreeNode): void {
@@ -49,7 +99,7 @@ function pruneEmpty(node: FileTreeNode): void {
 
 function setExpanded(nodes: TreeNode[], expanded: boolean): TreeNode[] {
   nodes.forEach((n) => {
-    if (!n.leaf) {
+    if (n.type === 'directory' || n.type === 'removableDirectory') {
       n.expanded = expanded
       if (n.children)
         n.children.forEach((c) => {
@@ -84,6 +134,9 @@ export class FileTree {
       parent: FileTreeNode,
       basePath: string
     ): Promise<void> => {
+      const videoNodes: FileTreeNode[] = []
+      const subtitles: SubtitleFileInfo[] = []
+
       for await (const entry of dir.values()) {
         const key = `${basePath}/${entry.name}`
         if (entry.kind === 'directory') {
@@ -98,25 +151,32 @@ export class FileTree {
           parent.children?.push(node)
           await walk(entry as FileSystemDirectoryHandle, node, key)
         } else if (entry.kind === 'file') {
-          const lower = entry.name.toLowerCase()
-          const dotIndex = lower.lastIndexOf('.')
-          const ext = dotIndex >= 0 ? lower.slice(dotIndex) : ''
-          if (!playableExtensions.has(ext)) {
-            continue
-          }
-          parent.children?.push({
-            key,
-            label: entry.name,
-            data: {
+          const ext = getExtension(entry.name)
+          if (playableExtensions.has(ext)) {
+            const node: FileTreeNode = {
+              key,
+              label: entry.name,
+              data: {
+                source: new HandleFileSource(entry as FileSystemFileHandle),
+              },
+              leaf: true,
+              icon: 'pi pi-video',
+              type: 'file',
+              selectable: true,
+            }
+            parent.children?.push(node)
+            videoNodes.push(node)
+          } else if (subtitleExtensions.has(ext)) {
+            subtitles.push({
+              name: entry.name,
+              ext: ext.slice(1), // remove the dot
               source: new HandleFileSource(entry as FileSystemFileHandle),
-            },
-            leaf: true,
-            icon: 'pi pi-video',
-            type: 'file',
-            selectable: true,
-          })
+            })
+          }
         }
       }
+
+      attachSubtitleChildren(videoNodes, subtitles)
     }
 
     await walk(settings.handle, root, '')
@@ -134,13 +194,17 @@ export class FileTree {
       path: string
     }
     const entries: SyntheticEntry[] = []
+    const subtitleEntries: { file: File; path: string }[] = []
 
     for (const file of toArray) {
-      if (!isPlayableFileName(file.name)) continue
       const relativePath =
         (file as File & { webkitRelativePath?: string }).webkitRelativePath ||
         file.name
-      entries.push({ name: file.name, file, path: relativePath })
+      if (isPlayableFileName(file.name)) {
+        entries.push({ name: file.name, file, path: relativePath })
+      } else if (isSubtitleFileName(file.name)) {
+        subtitleEntries.push({ file, path: relativePath })
+      }
     }
 
     const root: FileTreeNode = { key: '', label: '', children: [] }
@@ -151,6 +215,8 @@ export class FileTree {
       if (!parent.children) parent.children = []
       parent.children.push(child)
     }
+
+    const videoNodesByDir = new Map<string, FileTreeNode[]>()
 
     for (const entry of entries) {
       const parts = entry.path.split('/').filter(Boolean)
@@ -175,7 +241,8 @@ export class FileTree {
         parent = dirNode
       }
       const fileName = parts[parts.length - 1]
-      pushChild(parent, {
+      const dirPath = currentPath
+      const node: FileTreeNode = {
         key: entry.path,
         label: fileName,
         data: { source: new InlineFileSource(entry.file) },
@@ -183,7 +250,30 @@ export class FileTree {
         icon: 'pi pi-video',
         type: 'file',
         selectable: true,
+      }
+      pushChild(parent, node)
+      const dirNodes = videoNodesByDir.get(dirPath) ?? []
+      dirNodes.push(node)
+      videoNodesByDir.set(dirPath, dirNodes)
+    }
+
+    // Group subtitle files by directory and attach as children of video nodes
+    const subtitlesByDir = new Map<string, SubtitleFileInfo[]>()
+    for (const sub of subtitleEntries) {
+      const parts = sub.path.split('/').filter(Boolean)
+      const dirPath = parts.length > 1 ? parts.slice(0, -1).join('/') : ''
+      const existing = subtitlesByDir.get(dirPath) ?? []
+      existing.push({
+        name: sub.file.name,
+        ext: getExtension(sub.file.name).slice(1),
+        source: new InlineFileSource(sub.file),
       })
+      subtitlesByDir.set(dirPath, existing)
+    }
+
+    for (const [dirPath, subs] of subtitlesByDir) {
+      const videoNodes = videoNodesByDir.get(dirPath) ?? []
+      attachSubtitleChildren(videoNodes, subs)
     }
 
     if (root.children) {
@@ -205,6 +295,20 @@ export class FileTree {
     const prevNode = this.prevOf(node)
     const nextNode = this.nextOf(node)
 
+    // Extract subtitle info from children nodes (already sorted by stem match)
+    const subtitleFiles: SubtitleFileInfo[] = []
+    if (node.children) {
+      for (const child of node.children) {
+        if (child.type === 'subtitle' && child.label && child.data?.source) {
+          subtitleFiles.push({
+            name: child.label,
+            ext: getExtension(child.label).slice(1),
+            source: child.data.source,
+          })
+        }
+      }
+    }
+
     return {
       node,
       name: node.label ?? '',
@@ -212,6 +316,7 @@ export class FileTree {
       hasNext: nextNode !== null,
       prevNode,
       nextNode,
+      subtitleFiles,
     }
   }
 
@@ -229,8 +334,9 @@ export class FileTree {
 
     const visit = (node: FileTreeNode, parent: FileTreeNode | null) => {
       this.parentMap.set(node, parent)
-      if (node.leaf && node.type === 'file') {
+      if (node.type === 'file') {
         this.flatFileNodes.push(node)
+        return // subtitle children don't need indexing
       }
       if (node.children) {
         for (const child of node.children) {

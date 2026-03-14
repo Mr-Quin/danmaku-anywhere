@@ -27,6 +27,9 @@
     "@danmaku-anywhere/danmaku-converter": "workspace:*",
     "@danmaku-anywhere/danmaku-provider": "workspace:*",
     "@danmaku-anywhere/web-scraper": "workspace:*",
+    "@ffmpeg/core": "^0.12.10",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "@fortawesome/angular-fontawesome": "^3.0.0",
     "@fortawesome/free-brands-svg-icons": "^7.1.0",
     "@ngrx/signals": "^20.1.0",
@@ -37,6 +40,7 @@
     "artplayer": "^5.3.0",
     "clarity-js": "^0.8.41",
     "dexie": "^4.2.1",
+    "libass-wasm": "^4.1.0",
     "material-symbols": "^0.40.0",
     "openapi-fetch": "^0.15.0",
     "postcss": "^8.5.6",
@@ -52,13 +56,8 @@
     "@angular/build": "^21.0.0",
     "@angular/cli": "^21.0.0",
     "@angular/compiler-cli": "^21.0.0",
-    "@types/jasmine": "~5.1.13",
-    "jasmine-core": "~5.12.1",
-    "karma": "~6.4.4",
-    "karma-chrome-launcher": "~3.2.0",
-    "karma-coverage": "~2.2.1",
-    "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.1.0",
+    "jsdom": "^28.1.0",
+    "vitest": "^4.1.0",
     "wrangler": "^4.50.0"
   }
 }

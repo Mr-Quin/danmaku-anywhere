@@ -2,14 +2,17 @@ import { computed, Injectable, inject, signal } from '@angular/core'
 import { ConfirmationService, MessageService } from 'primeng/api'
 import { PlatformService } from '../../../core/services/platform.service'
 import { TrackingService } from '../../../core/tracking.service'
+import type { SubtitleTrack } from '../../../core/video-player/video.service'
 import { serializeError } from '../../../shared/utils/serializeError'
 import {
   FileTree,
   type FileTreeNode,
+  type SubtitleFileInfo,
   type TreeNodeInfo,
 } from '../util/file-tree'
 import { supportsFilesystemApi } from '../util/supports-filesystem-api'
 import { LocalHandleDbService } from './local-handle-db.service'
+import { MediaExtractorService } from './media-extractor.service'
 
 @Injectable({ providedIn: 'root' })
 export class LocalPlayerService {
@@ -18,9 +21,12 @@ export class LocalPlayerService {
   private readonly confirmationService = inject(ConfirmationService)
   private readonly trackingService = inject(TrackingService)
   private readonly platformService = inject(PlatformService)
+  private readonly mediaExtractor = inject(MediaExtractorService)
 
   private objectUrlToRevoke: string | null = null
+  private subtitleUrlsToRevoke: string[] = []
   private isInit = true
+  private subtitleExtractionToken = 0
 
   private readonly fileTree = new FileTree([])
 
@@ -42,6 +48,8 @@ export class LocalPlayerService {
   })
   $hasSelection = computed(() => this.$nodeInfo() !== null)
   $videoUrl = signal<string | undefined>(undefined)
+  $subtitleTracks = signal<SubtitleTrack[]>([])
+  $isExtractingSubtitles = signal(false)
   $isLoading = signal(false)
 
   $showOverlay = computed(() => this.$isLoading() || !this.$hasSelection())
@@ -78,6 +86,7 @@ export class LocalPlayerService {
     const nodeInfo = this.fileTree.getInfo(node)
     this.$nodeInfo.set(nodeInfo)
     this.$isLoading.set(true)
+    this.$subtitleTracks.set([])
     try {
       const source = node.data?.source
       if (!source) {
@@ -86,6 +95,15 @@ export class LocalPlayerService {
       const file = await source.getFile()
       const url = await this.createUrl(file)
       this.$videoUrl.set(url)
+
+      // Resolve external subtitle files in the same directory
+      const externalTracks = await this.resolveSubtitleFiles(
+        nodeInfo.subtitleFiles
+      )
+      this.$subtitleTracks.set(externalTracks)
+
+      // Extract embedded subtitles in the background (non-blocking)
+      void this.extractEmbeddedSubtitles(file, externalTracks)
     } catch (e) {
       this.messageService.add({
         severity: 'error',
@@ -205,10 +223,71 @@ export class LocalPlayerService {
     })
   }
 
+  async extractEmbeddedSubtitles(
+    file: File,
+    existingTracks: SubtitleTrack[]
+  ): Promise<void> {
+    const token = ++this.subtitleExtractionToken
+    this.$isExtractingSubtitles.set(true)
+    try {
+      const embeddedTracks = await this.mediaExtractor.extractSubtitles(file)
+      if (this.subtitleExtractionToken !== token) {
+        // A newer extraction was started; discard these results
+        for (const track of embeddedTracks) {
+          URL.revokeObjectURL(track.url)
+        }
+        return
+      }
+      if (embeddedTracks.length > 0) {
+        for (const track of embeddedTracks) {
+          this.subtitleUrlsToRevoke.push(track.url)
+        }
+        const merged = [...existingTracks, ...embeddedTracks]
+        this.$subtitleTracks.set(merged)
+      }
+    } catch {
+      // best-effort
+    } finally {
+      if (this.subtitleExtractionToken === token) {
+        this.$isExtractingSubtitles.set(false)
+      }
+    }
+  }
+
+  private async resolveSubtitleFiles(
+    subtitleFiles: SubtitleFileInfo[]
+  ): Promise<SubtitleTrack[]> {
+    const tracks: SubtitleTrack[] = []
+    for (const sub of subtitleFiles) {
+      try {
+        const file = await sub.source.getFile()
+        const url = URL.createObjectURL(file)
+        this.subtitleUrlsToRevoke.push(url)
+        tracks.push({
+          name: sub.name,
+          url,
+          type: (sub.ext === 'ssa' ? 'ass' : sub.ext) as SubtitleTrack['type'],
+          source: 'external',
+        })
+      } catch {
+        // Skip subtitle files that can't be read
+      }
+    }
+    return tracks
+  }
+
+  private revokeSubtitleUrls(): void {
+    for (const url of this.subtitleUrlsToRevoke) {
+      URL.revokeObjectURL(url)
+    }
+    this.subtitleUrlsToRevoke = []
+  }
+
   private async createUrl(file: File): Promise<string> {
     if (this.objectUrlToRevoke) {
       URL.revokeObjectURL(this.objectUrlToRevoke)
     }
+    this.revokeSubtitleUrls()
     if (
       file.type.indexOf('matroska') !== -1 &&
       this.platformService.platform.FIREFOX
