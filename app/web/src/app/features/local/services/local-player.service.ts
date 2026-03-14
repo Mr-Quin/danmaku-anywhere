@@ -48,6 +48,7 @@ export class LocalPlayerService {
   $hasSelection = computed(() => this.$nodeInfo() !== null)
   $videoUrl = signal<string | undefined>(undefined)
   $subtitleTracks = signal<SubtitleTrack[]>([])
+  $isExtractingSubtitles = signal(false)
   $isLoading = signal(false)
 
   $showOverlay = computed(() => this.$isLoading() || !this.$hasSelection())
@@ -221,21 +222,22 @@ export class LocalPlayerService {
     })
   }
 
-  private extractEmbeddedSubtitles(
+  async extractEmbeddedSubtitles(
     file: File,
     existingTracks: SubtitleTrack[]
-  ): void {
-    this.mediaExtractor
-      .extractSubtitles(file)
-      .then((embeddedTracks) => {
-        if (embeddedTracks.length > 0) {
-          const merged = [...existingTracks, ...embeddedTracks]
-          this.$subtitleTracks.set(merged)
-        }
-      })
-      .catch(() => {
-        // Embedded subtitle extraction is best-effort
-      })
+  ): Promise<void> {
+    this.$isExtractingSubtitles.set(true)
+    try {
+      const embeddedTracks = await this.mediaExtractor.extractSubtitles(file)
+      if (embeddedTracks.length > 0) {
+        const merged = [...existingTracks, ...embeddedTracks]
+        this.$subtitleTracks.set(merged)
+      }
+    } catch {
+      // best-effort
+    } finally {
+      this.$isExtractingSubtitles.set(false)
+    }
   }
 
   private async resolveSubtitleFiles(

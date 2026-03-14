@@ -1,11 +1,15 @@
 import { NgTemplateOutlet } from '@angular/common'
 import {
   type AfterViewInit,
+  ApplicationRef,
   ChangeDetectionStrategy,
   Component,
+  type ComponentRef,
   computed,
   contentChild,
+  createComponent,
   type ElementRef,
+  EnvironmentInjector,
   effect,
   inject,
   input,
@@ -15,11 +19,14 @@ import {
   type TemplateRef,
   viewChild,
 } from '@angular/core'
+import type Artplayer from 'artplayer'
+import { SubtitleButton } from './components/subtitle-button'
 import {
   type SubtitleTrack,
   type VideoPlayerConfig,
   VideoService,
 } from './video.service'
+import { NEXT_EPISODE_ICON, PREV_EPISODE_ICON } from './video-icon.const'
 
 @Component({
   selector: 'da-video-player',
@@ -35,24 +42,24 @@ import {
               display: none;
           }
       }
-      
+
       :host {
           ::ng-deep .art-poster {
               opacity: 40%;
           }
       }
-      
+
       .title-container {
           transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
           opacity: 0;
           transform: translateY(-10px);
       }
-      
+
       .title-container.show {
           opacity: 1;
           transform: translateY(0);
       }
-      
+
       .title-container.hide {
           opacity: 0;
           transform: translateY(-10px);
@@ -83,6 +90,10 @@ import {
 })
 export class VideoPlayer implements AfterViewInit, OnDestroy {
   private readonly videoService = inject(VideoService)
+  private readonly envInjector = inject(EnvironmentInjector)
+  private readonly appRef = inject(ApplicationRef)
+
+  private subtitleButtonRef: ComponentRef<SubtitleButton> | null = null
 
   $artPlayerDiv = viewChild.required<ElementRef<HTMLDivElement>>('artPlayer')
   $overlayLayer = viewChild.required<ElementRef<HTMLDivElement>>('overlayLayer')
@@ -94,6 +105,7 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
   poster = input<string>()
   title = input<string>()
   subtitleTracks = input<SubtitleTrack[]>([])
+  subtitleLoading = input<boolean>(false)
   showOverlay = input<boolean>(false)
   hasPrevious = input<boolean>(false)
   hasNext = input<boolean>(false)
@@ -147,7 +159,9 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
     // update subtitles
     effect(() => {
       const tracks = this.subtitleTracks()
-      this.updateSubtitleControl(tracks)
+      const loading = this.subtitleLoading()
+      this.videoService.setSubtitleTracks(tracks)
+      this.videoService.setSubtitleLoading(loading)
     })
 
     // update controls
@@ -170,11 +184,17 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     this.initializePlayer()
     this.setupMediaSession()
+    this.updateSubtitleControl()
   }
 
   ngOnDestroy() {
     this.clearTimers()
     this.clearMediaSession()
+    if (this.subtitleButtonRef) {
+      this.appRef.detachView(this.subtitleButtonRef.hostView)
+      this.subtitleButtonRef.destroy()
+      this.subtitleButtonRef = null
+    }
     this.videoService.destroy()
   }
 
@@ -289,7 +309,7 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
       index: 9,
       name: 'previous-episode',
       position: 'left',
-      html: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" fill="currentColor"/></svg>',
+      html: PREV_EPISODE_ICON,
       tooltip: '上一集',
       click: () => {
         this.previousEpisode.emit()
@@ -306,7 +326,7 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
       index: 11,
       name: 'next-episode',
       position: 'left',
-      html: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 18h2V6h-2zm-3.5-6L4 6v12z" fill="currentColor"/></svg>',
+      html: NEXT_EPISODE_ICON,
       tooltip: '下一集',
       click: () => {
         this.nextEpisode.emit()
@@ -318,71 +338,26 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
     this.videoService.removeControl('next-episode')
   }
 
-  private hasSubtitleControl = false
+  private getOrCreateSubtitleButton(
+    player: Artplayer
+  ): ComponentRef<SubtitleButton> {
+    if (!this.subtitleButtonRef) {
+      this.subtitleButtonRef = createComponent(SubtitleButton, {
+        environmentInjector: this.envInjector,
+      })
+      this.subtitleButtonRef.setInput('player', player)
+      this.appRef.attachView(this.subtitleButtonRef.hostView)
+      this.subtitleButtonRef.changeDetectorRef.detectChanges()
+    }
+    return this.subtitleButtonRef
+  }
 
-  private updateSubtitleControl(tracks: SubtitleTrack[]) {
+  private updateSubtitleControl() {
     const player = this.videoService.player()
-    if (!player) return
-
-    if (tracks.length === 0) {
-      if (this.hasSubtitleControl) {
-        player.controls.remove('subtitle')
-        this.hasSubtitleControl = false
-      }
-      this.videoService.clearSubtitle()
+    if (!player) {
       return
     }
-
-    const subtitleIcon =
-      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V6h16v12zM6 10h2v2H6zm0 4h8v2H6zm10 0h2v2h-2zm-6-4h8v2h-8z" fill="currentColor"/></svg>'
-
-    const selector = [
-      {
-        html: '关闭',
-        default: tracks.length !== 1,
-      },
-      ...tracks.map((track, index) => ({
-        html: track.name,
-        default: tracks.length === 1 && index === 0,
-      })),
-    ]
-
-    const onSelect = (item: { html: string | HTMLElement }) => {
-      const label = typeof item.html === 'string' ? item.html : ''
-      if (label === '关闭') {
-        this.videoService.clearSubtitle()
-      } else {
-        const track = tracks.find((t) => t.name === label)
-        if (track) {
-          void this.videoService.switchSubtitle(track)
-        }
-      }
-      return label
-    }
-
-    if (this.hasSubtitleControl) {
-      player.controls.update({
-        name: 'subtitle',
-        selector,
-        onSelect,
-      })
-    } else {
-      player.controls.add({
-        name: 'subtitle',
-        position: 'right',
-        index: 20,
-        html: subtitleIcon,
-        tooltip: '字幕',
-        selector,
-        onSelect,
-      })
-      this.hasSubtitleControl = true
-    }
-
-    // Auto-select if exactly one track
-    if (tracks.length === 1) {
-      void this.videoService.switchSubtitle(tracks[0])
-    }
+    this.getOrCreateSubtitleButton(player)
   }
 
   private initializePlayer() {

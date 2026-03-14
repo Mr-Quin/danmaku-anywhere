@@ -4,6 +4,7 @@ import {
   Injectable,
   inject,
   signal,
+  untracked,
 } from '@angular/core'
 import Artplayer from 'artplayer'
 // @ts-expect-error no type definitions
@@ -144,6 +145,10 @@ export class VideoService {
 
   private readonly $state = signal<VideoPlayerState>(defaultPlayerState)
 
+  readonly $subtitleTracks = signal<SubtitleTrack[]>([])
+  readonly $subtitleLoading = signal(false)
+  readonly $activeSubtitleTrack = signal<SubtitleTrack | null>(null)
+
   readonly $url = computed(() => this.$config()?.url)
   readonly $title = computed(() => this.$config()?.title)
 
@@ -256,9 +261,24 @@ export class VideoService {
     }
   }
 
+  setSubtitleTracks(tracks: SubtitleTrack[]): void {
+    this.$subtitleTracks.set(tracks)
+  }
+
+  setSubtitleLoading(loading: boolean): void {
+    this.$subtitleLoading.set(loading)
+  }
+
   switchSubtitle(track: SubtitleTrack): void {
     const player = this.$player()
-    if (!player) return
+    if (!player) {
+      return
+    }
+    if (track === untracked(this.$activeSubtitleTrack)) {
+      return
+    }
+
+    this.$activeSubtitleTrack.set(track)
 
     if (track.type === 'ass') {
       player.subtitle.show = false
@@ -279,6 +299,7 @@ export class VideoService {
     if (!player) {
       return
     }
+    this.$activeSubtitleTrack.set(null)
     player.subtitle.show = false
     this.clearSubtitleRenderer()
   }
@@ -307,6 +328,9 @@ export class VideoService {
       this.controls = []
       this.layerNames.clear()
       this.controlNames.clear()
+      this.$subtitleTracks.set([])
+      this.$subtitleLoading.set(false)
+      this.$activeSubtitleTrack.set(null)
       this.updateState(defaultPlayerState)
     }
   }

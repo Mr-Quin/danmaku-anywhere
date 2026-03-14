@@ -5,22 +5,14 @@ import type {
   AudioTrack,
   SubtitleTrack,
 } from '../../../core/video-player/video.service'
+import {
+  type ParsedStreams,
+  parseFfmpegStreams,
+  type StreamInfo,
+} from '../util/parse-ffmpeg-streams'
 import { FfmpegService } from './ffmpeg.service'
 
-interface StreamInfo {
-  index: number
-  language: string
-  title: string
-  codec: string
-}
-
-export interface SubtitleStreamInfo extends StreamInfo {}
-export interface AudioStreamInfo extends StreamInfo {}
-
-export interface MediaStreams {
-  subtitles: SubtitleStreamInfo[]
-  audio: AudioStreamInfo[]
-}
+export type { ParsedStreams, StreamInfo }
 
 function codecToSubtitleFormat(codec: string): 'ass' | 'srt' | 'vtt' {
   if (codec.includes('ass') || codec.includes('ssa')) {
@@ -36,7 +28,7 @@ function codecToSubtitleFormat(codec: string): 'ass' | 'srt' | 'vtt' {
 export class MediaExtractorService {
   private readonly ffmpegService = inject(FfmpegService)
 
-  async listStreams(file: File): Promise<MediaStreams> {
+  async listStreams(file: File): Promise<ParsedStreams> {
     const ffmpeg = await this.ffmpegService.getFFmpeg()
     const inputName = 'input' + this.getExtension(file.name)
 
@@ -169,9 +161,7 @@ export class MediaExtractorService {
   private async probeStreams(
     ffmpeg: FFmpeg,
     inputName: string
-  ): Promise<MediaStreams> {
-    const subtitles: SubtitleStreamInfo[] = []
-    const audio: AudioStreamInfo[] = []
+  ): Promise<ParsedStreams> {
     const logs: string[] = []
 
     const logHandler = ({ message }: { message: string }) => {
@@ -188,44 +178,7 @@ export class MediaExtractorService {
 
     ffmpeg.off('log', logHandler)
 
-    const fullLog = logs.join('\n')
-
-    // Parse subtitle streams: Stream #0:N(lang): Subtitle: codec_name
-    const subtitleRegex = /Stream #0:(\d+)(?:\(([^)]*)\))?: Subtitle: (\w+)/g
-    let match: RegExpExecArray | null
-    while ((match = subtitleRegex.exec(fullLog)) !== null) {
-      subtitles.push({
-        index: Number.parseInt(match[1], 10),
-        language: match[2] || 'und',
-        codec: match[3],
-        title: '',
-      })
-    }
-
-    // Parse audio streams: Stream #0:N(lang): Audio: codec_name
-    const audioRegex = /Stream #0:(\d+)(?:\(([^)]*)\))?: Audio: (\w+)/g
-    while ((match = audioRegex.exec(fullLog)) !== null) {
-      audio.push({
-        index: Number.parseInt(match[1], 10),
-        language: match[2] || 'und',
-        codec: match[3],
-        title: '',
-      })
-    }
-
-    // Try to find title metadata for each stream
-    for (const stream of [...subtitles, ...audio]) {
-      const titleRegex = new RegExp(
-        `Stream #0:${stream.index}[^]*?title\\s*:\\s*(.+)`,
-        'm'
-      )
-      const titleMatch = titleRegex.exec(fullLog)
-      if (titleMatch) {
-        stream.title = titleMatch[1].trim()
-      }
-    }
-
-    return { subtitles, audio }
+    return parseFfmpegStreams(logs.join('\n'))
   }
 
   private getExtension(name: string): string {

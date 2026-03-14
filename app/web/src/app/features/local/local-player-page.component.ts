@@ -34,6 +34,7 @@ import { LocalPlayerService } from './services/local-player.service'
           [title]="$nodeInfo()?.name"
           [poster]="''"
           [subtitleTracks]="$subtitleTracks()"
+          [subtitleLoading]="$isExtractingSubtitles()"
           [showOverlay]="$showOverlay()"
           [hasPrevious]="$nodeInfo()?.hasPrev ?? false"
           [hasNext]="$nodeInfo()?.hasNext ?? false"
@@ -70,6 +71,8 @@ export class LocalPlayerPageComponent implements AfterViewInit {
   protected $subtitleTracks = this.localPlayerService.$subtitleTracks
   protected $isLoading = this.localPlayerService.$isLoading
   protected $hasSelection = this.localPlayerService.$hasSelection
+  protected $isExtractingSubtitles =
+    this.localPlayerService.$isExtractingSubtitles
   protected $showOverlay = this.localPlayerService.$showOverlay
   protected $nodeInfo = this.localPlayerService.$nodeInfo
 
