@@ -1,4 +1,11 @@
-import { computed, Injectable, inject, signal } from '@angular/core'
+import { isPlatformBrowser } from '@angular/common'
+import {
+  computed,
+  Injectable,
+  inject,
+  PLATFORM_ID,
+  signal,
+} from '@angular/core'
 import { Router } from '@angular/router'
 import { MessageService } from 'primeng/api'
 import { TrackingService } from '../../../core/tracking.service'
@@ -15,8 +22,10 @@ export class OnboardingService {
   private readonly router = inject(Router)
   protected messageService = inject(MessageService)
 
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID))
+
   private readonly $_acceptedPolicy = signal(
-    !!localStorage.getItem(ACCEPTED_POLICY_KEY)
+    this.isBrowser && !!localStorage.getItem(ACCEPTED_POLICY_KEY)
   )
 
   readonly $isOnboardingComplete = computed(() => {

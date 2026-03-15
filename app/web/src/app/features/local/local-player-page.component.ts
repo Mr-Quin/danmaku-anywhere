@@ -7,7 +7,7 @@ import {
   effect,
   inject,
 } from '@angular/core'
-import { Title } from '@angular/platform-browser'
+import { Meta, Title } from '@angular/platform-browser'
 import { ProgressSpinner } from 'primeng/progressspinner'
 import { VideoPlayer } from '../../core/video-player/video-player'
 import { LocalFolderSelectorComponent } from './components/local-folder-selector.component'
@@ -66,6 +66,7 @@ import { LocalPlayerService } from './services/local-player.service'
 })
 export class LocalPlayerPageComponent implements AfterViewInit {
   private titleService = inject(Title)
+  private meta = inject(Meta)
   private localPlayerService = inject(LocalPlayerService)
   private ffmpegService = inject(FfmpegService)
 
@@ -84,6 +85,20 @@ export class LocalPlayerPageComponent implements AfterViewInit {
   })
 
   constructor() {
+    // Set meta tags for SEO (applied during prerendering)
+    this.meta.updateTag({
+      name: 'description',
+      content: '在线本地视频播放器，支持弹幕叠加、字幕提取、文件拖放',
+    })
+    this.meta.updateTag({
+      property: 'og:title',
+      content: '本地视频播放器 | Danmaku Anywhere',
+    })
+    this.meta.updateTag({
+      property: 'og:description',
+      content: '在线本地视频播放器，支持弹幕叠加、字幕提取、文件拖放',
+    })
+
     effect(() => {
       const currentTitle = this.$pageTitle()
       const pageTitle = currentTitle

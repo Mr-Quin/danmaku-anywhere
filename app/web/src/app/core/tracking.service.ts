@@ -1,32 +1,31 @@
-import { Injectable } from '@angular/core'
-import { type Core, clarity } from 'clarity-js'
+import { isPlatformBrowser } from '@angular/common'
+import { Injectable, inject, PLATFORM_ID } from '@angular/core'
 import { environment } from '../../environments/environment'
-
-const clarityOptions: Core.Config = {
-  projectId: environment.clarityProjectId,
-  upload: 'https://m.clarity.ms/collect',
-  track: true,
-  content: true,
-}
 
 @Injectable({
   providedIn: 'root',
 })
 export class TrackingService {
+  private platformId = inject(PLATFORM_ID)
+  private clarity: typeof import('clarity-js').clarity | null = null
+
   identify(userId: string) {
-    clarity.identify(userId)
+    this.clarity?.identify(userId)
   }
 
   tag(key: string, value: string) {
-    clarity.set(key, value)
+    this.clarity?.set(key, value)
   }
 
   track(key: string, data?: object) {
+    if (!this.clarity) {
+      return
+    }
     try {
       if (data !== undefined) {
-        clarity.event(key, JSON.stringify(data))
+        this.clarity.event(key, JSON.stringify(data))
       } else {
-        clarity.event(key, '')
+        this.clarity.event(key, '')
       }
     } catch (error) {
       if (!environment.production) {
@@ -35,8 +34,18 @@ export class TrackingService {
     }
   }
 
-  init() {
-    clarity.start(clarityOptions)
+  async init() {
+    if (!isPlatformBrowser(this.platformId)) {
+      return
+    }
+    const { clarity } = await import('clarity-js')
+    this.clarity = clarity
+    clarity.start({
+      projectId: environment.clarityProjectId,
+      upload: 'https://m.clarity.ms/collect',
+      track: true,
+      content: true,
+    })
     this.tag('env', environment.name)
   }
 }
