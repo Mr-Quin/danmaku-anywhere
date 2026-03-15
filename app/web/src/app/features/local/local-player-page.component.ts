@@ -86,17 +86,19 @@ export class LocalPlayerPageComponent implements AfterViewInit {
 
   constructor() {
     // Set meta tags for SEO (applied during prerendering)
+    const description =
+      '在线本地视频播放器，支持内嵌字幕与外挂字幕，读取本地文件夹'
     this.meta.updateTag({
       name: 'description',
-      content: '在线本地视频播放器，支持弹幕叠加、字幕提取、文件拖放',
+      content: description,
     })
     this.meta.updateTag({
       property: 'og:title',
-      content: '本地视频播放器 | Danmaku Anywhere',
+      content: '在线本地视频播放器 — 支持内嵌与外挂字幕',
     })
     this.meta.updateTag({
       property: 'og:description',
-      content: '在线本地视频播放器，支持弹幕叠加、字幕提取、文件拖放',
+      content: description,
     })
 
     effect(() => {
