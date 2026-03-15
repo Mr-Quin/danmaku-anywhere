@@ -1,4 +1,5 @@
-import { Injectable, inject } from '@angular/core'
+import { isPlatformBrowser } from '@angular/common'
+import { Injectable, inject, PLATFORM_ID } from '@angular/core'
 import {
   createExtRequest,
   DA_EXT_SOURCE_CONTENT,
@@ -13,6 +14,7 @@ import {
   first,
   fromEvent,
   map,
+  NEVER,
   type Observable,
   of,
   share,
@@ -28,18 +30,18 @@ import { ExtensionService } from './extension.service'
 })
 export class ExtensionMessagingService {
   private extensionService = inject(ExtensionService)
+  private isBrowser = isPlatformBrowser(inject(PLATFORM_ID))
 
-  private allMessages$ = fromEvent<MessageEvent<ExtMessage>>(
-    window,
-    'message'
-  ).pipe(
-    map((event) => event.data),
-    filter(
-      (data): data is ExtResponse =>
-        data?.source === DA_EXT_SOURCE_CONTENT && data?.type === 'response'
-    ),
-    share()
-  )
+  private allMessages$ = this.isBrowser
+    ? fromEvent<MessageEvent<ExtMessage>>(window, 'message').pipe(
+        map((event) => event.data),
+        filter(
+          (data): data is ExtResponse =>
+            data?.source === DA_EXT_SOURCE_CONTENT && data?.type === 'response'
+        ),
+        share()
+      )
+    : (NEVER as Observable<ExtResponse>)
 
   private reqId = 0
 

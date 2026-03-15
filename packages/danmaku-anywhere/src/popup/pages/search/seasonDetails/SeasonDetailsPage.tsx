@@ -28,7 +28,9 @@ export const SeasonDetailsPage = () => {
     <TabLayout>
       <TabToolbar title={season.title} showBackButton onGoBack={goBack} />
       <ErrorBoundary
-        fallbackRender={({ error }) => <ErrorMessage message={error.message} />}
+        fallbackRender={({ error }) => (
+          <ErrorMessage message={(error as Error).message} />
+        )}
       >
         <Suspense fallback={null}>
           <EpisodeSearchList

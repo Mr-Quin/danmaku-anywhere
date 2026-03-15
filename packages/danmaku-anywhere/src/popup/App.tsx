@@ -26,7 +26,7 @@ export const App = () => {
       <ErrorBoundary
         onError={Logger.error}
         fallbackRender={({ error }) => {
-          return <ErrorMessage message={error.message} />
+          return <ErrorMessage message={(error as Error).message} />
         }}
       >
         <Suspense fallback={<FullPageSpinner />}>

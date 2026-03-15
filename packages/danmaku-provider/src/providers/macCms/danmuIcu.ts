@@ -16,22 +16,18 @@ export const zDanmuIcuDanmaku = z
       z
         .tuple([
           zTime, // time
-          z
-            .string()
-            .transform((mode) => {
-              switch (mode) {
-                case 'top':
-                  return CommentMode.top
-                case 'bottom':
-                  return CommentMode.bottom
-                default:
-                  return CommentMode.rtl
-              }
-            }), // mode
+          z.string().transform((mode) => {
+            switch (mode) {
+              case 'top':
+                return CommentMode.top
+              case 'bottom':
+                return CommentMode.bottom
+              default:
+                return CommentMode.rtl
+            }
+          }), // mode
           zHex, // color
-          z
-            .string()
-            .prefault(''), // ?
+          z.string().prefault(''), // ?
           z.string(), // text
         ])
         .rest(z.any())

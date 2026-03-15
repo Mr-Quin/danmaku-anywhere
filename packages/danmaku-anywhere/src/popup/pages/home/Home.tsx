@@ -90,7 +90,7 @@ export const Home = () => {
           fallbackRender={({ error }) => {
             return (
               <TabLayout>
-                <ErrorMessage message={error.message} />
+                <ErrorMessage message={(error as Error).message} />
               </TabLayout>
             )
           }}
