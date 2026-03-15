@@ -31,7 +31,7 @@ export class FfmpegService {
     const ffmpeg = new FFmpeg()
     await ffmpeg.load({
       coreURL: '/ffmpeg/ffmpeg-core.js',
-      wasmURL: '/ffmpeg/ffmpeg-core.wasm',
+      wasmURL: 'https://assets.danmaku.weeblify.app/ffmpeg/ffmpeg-core.wasm',
       classWorkerURL: '/ffmpeg/worker.js',
     })
     return ffmpeg
