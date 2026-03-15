@@ -8,7 +8,7 @@
   "preview_urls": true,
   "routes": [
     {
-      "pattern": "danmaku-web.weeblify.app",
+      "pattern": "danmaku.weeblify.app",
       "custom_domain": true
     }
   ]
