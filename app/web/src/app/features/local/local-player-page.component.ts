@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common'
+import { CommonModule, isPlatformBrowser } from '@angular/common'
 import {
   type AfterViewInit,
   ChangeDetectionStrategy,
@@ -6,6 +6,7 @@ import {
   computed,
   effect,
   inject,
+  PLATFORM_ID,
 } from '@angular/core'
 import { Meta, Title } from '@angular/platform-browser'
 import { ProgressSpinner } from 'primeng/progressspinner'
@@ -69,6 +70,7 @@ export class LocalPlayerPageComponent implements AfterViewInit {
   private meta = inject(Meta)
   private localPlayerService = inject(LocalPlayerService)
   private ffmpegService = inject(FfmpegService)
+  private isBrowser = isPlatformBrowser(inject(PLATFORM_ID))
 
   protected $videoUrl = this.localPlayerService.$videoUrl
   protected $subtitleTracks = this.localPlayerService.$subtitleTracks
@@ -111,6 +113,7 @@ export class LocalPlayerPageComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    if (!this.isBrowser) return
     this.ffmpegService.preload()
     void this.localPlayerService.checkPersistence()
   }

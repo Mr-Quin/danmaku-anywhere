@@ -38,14 +38,21 @@ export class TrackingService {
     if (!isPlatformBrowser(this.platformId)) {
       return
     }
-    const { clarity } = await import('clarity-js')
-    this.clarity = clarity
-    clarity.start({
-      projectId: environment.clarityProjectId,
-      upload: 'https://m.clarity.ms/collect',
-      track: true,
-      content: true,
-    })
-    this.tag('env', environment.name)
+    try {
+      const { clarity } = await import('clarity-js')
+      clarity.start({
+        projectId: environment.clarityProjectId,
+        upload: 'https://m.clarity.ms/collect',
+        track: true,
+        content: true,
+      })
+      this.clarity = clarity
+      this.tag('env', environment.name)
+    } catch (error) {
+      this.clarity = null
+      if (!environment.production) {
+        console.error('Failed to initialize Clarity tracking:', error)
+      }
+    }
   }
 }

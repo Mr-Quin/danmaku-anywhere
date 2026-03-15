@@ -14,6 +14,7 @@ import {
   first,
   fromEvent,
   map,
+  NEVER,
   type Observable,
   of,
   share,
@@ -40,7 +41,7 @@ export class ExtensionMessagingService {
         ),
         share()
       )
-    : of<never>()
+    : (NEVER as Observable<ExtResponse>)
 
   private reqId = 0
 
