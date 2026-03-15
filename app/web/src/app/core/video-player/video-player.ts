@@ -1,4 +1,4 @@
-import { isPlatformBrowser, NgTemplateOutlet } from '@angular/common'
+import { NgTemplateOutlet } from '@angular/common'
 import {
   type AfterViewInit,
   ApplicationRef,
@@ -15,7 +15,6 @@ import {
   input,
   type OnDestroy,
   output,
-  PLATFORM_ID,
   signal,
   type TemplateRef,
   viewChild,
@@ -90,7 +89,6 @@ import { NEXT_EPISODE_ICON, PREV_EPISODE_ICON } from './video-icon.const'
   `,
 })
 export class VideoPlayer implements AfterViewInit, OnDestroy {
-  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID))
   private readonly videoService = inject(VideoService)
   private readonly envInjector = inject(EnvironmentInjector)
   private readonly appRef = inject(ApplicationRef)
@@ -191,9 +189,6 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    if (!this.isBrowser) {
-      return
-    }
     this.initializePlayer()
     this.setupMediaSession()
     this.updateSubtitleControl()

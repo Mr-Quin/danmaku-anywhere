@@ -1,9 +1,15 @@
 {
-  "name": "danmaku-somewhere-app",
+  "name": "danmaku-anywhere-web",
   "compatibility_date": "2025-04-01",
   "assets": {
     "directory": "./dist/web/browser",
     "not_found_handling": "single-page-application"
   },
-  "preview_urls": true
+  "preview_urls": true,
+  "routes": [
+    {
+      "pattern": "danmaku-web.weeblify.app",
+      "custom_domain": true
+    }
+  ]
 }
