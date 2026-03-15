@@ -20,4 +20,9 @@ Cloudflare Workers backend: API proxy, auth, DDP/danmaku routes, LLM, and D1 DB.
 | `pnpm db:migrate:local` | Apply D1 migrations locally (staging) |
 | `pnpm drizzle:generate` | Generate Drizzle migrations |
 
+## Key routes
+
+- API routes under `/` (see `src/routes/api/`): DDP proxy, LLM, auth, etc.
+- Uses `@danmaku-anywhere/integration-policy` for policy checks.
+
 See repo rule `backend-standards.mdc` for conventions.

@@ -14,7 +14,7 @@ Danmaku data providers and API client configuration. Supplies danmaku from multi
 | ------- | ----------- |
 | `pnpm build` | Compile protobuf + tsgo |
 | `pnpm protobuf:compile` | Regenerate Bilibili protobuf |
-| `pnpm generate:schemas` | (OpenAPI) — use `openapi-ts` as needed |
+| `pnpm openapi-ts` | (OpenAPI) — generate types/schemas using openapi-ts |
 | `pnpm test` | Vitest |
 
 ## Dependencies
