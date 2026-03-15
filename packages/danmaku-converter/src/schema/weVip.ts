@@ -8,18 +8,16 @@ export const zWevipDanmaku = z
       z
         .tuple([
           zTime, // time
-          z
-            .string()
-            .refine((mode) => {
-              switch (mode) {
-                case 'top':
-                  return CommentMode.top
-                case 'bottom':
-                  return CommentMode.bottom
-                default:
-                  return CommentMode.rtl
-              }
-            }), // mode
+          z.string().refine((mode) => {
+            switch (mode) {
+              case 'top':
+                return CommentMode.top
+              case 'bottom':
+                return CommentMode.bottom
+              default:
+                return CommentMode.rtl
+            }
+          }), // mode
           zHex, // color
           z.string(), // ?
           z.string(), // text
