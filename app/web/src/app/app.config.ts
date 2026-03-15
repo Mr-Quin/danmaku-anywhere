@@ -79,13 +79,12 @@ export const appConfig: ApplicationConfig = {
     ConfirmationService,
     provideAppInitializer(async () => {
       const platformId = inject(PLATFORM_ID)
-      if (!isPlatformBrowser(platformId)) {
-        return
+      if (isPlatformBrowser(platformId)) {
+        const trackingService = inject(TrackingService)
+        trackingService.init()
+        const extensionService = inject(ExtensionService)
+        await extensionService.init()
       }
-      const trackingService = inject(TrackingService)
-      trackingService.init()
-      const extensionService = inject(ExtensionService)
-      await extensionService.init()
       console.log('App initialized')
     }),
     provideServiceWorker('ngsw-worker.js', {

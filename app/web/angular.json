@@ -31,7 +31,7 @@
                 "input": "public"
               },
               {
-                "glob": "ffmpeg-core.*",
+                "glob": "ffmpeg-core.js",
                 "input": "node_modules/@ffmpeg/core/dist/esm",
                 "output": "ffmpeg"
               },
