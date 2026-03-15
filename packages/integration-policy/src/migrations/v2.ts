@@ -1,4 +1,4 @@
-import type { IntegrationV1 } from './v1.js'
+import type { IntegrationV1 } from './v1'
 
 export interface IntegrationV2 {
   name: string

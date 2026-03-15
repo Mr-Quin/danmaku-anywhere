@@ -2,7 +2,7 @@ import {
   type IntegrationInput,
   type IntegrationPolicy,
   zIntegrationPolicy,
-} from './schema.js'
+} from './schema'
 
 export function createIntegrationInput(name = ''): IntegrationInput {
   return {

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { DanDanChConvert } from './enums.js'
+import { DanDanChConvert } from './enums'
 
 const zResponseSuccess = z.object({
   errorCode: z.literal(0),

@@ -1,3 +1,3 @@
-export * from './migrations/index.js'
-export * from './schema.js'
-export * from './utils.js'
+export * from './migrations/index'
+export * from './schema'
+export * from './utils'

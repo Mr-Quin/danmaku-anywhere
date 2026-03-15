@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { getRandomUUID } from '../uuid.js'
-import type { IntegrationV2 } from './v2.js'
-import { migrateV2ToV3, zIntegrationV3 } from './v3.js'
+import { getRandomUUID } from '../uuid'
+import type { IntegrationV2 } from './v2'
+import { migrateV2ToV3, zIntegrationV3 } from './v3'
 
 describe('v3 migration', () => {
   it('should migrate v2 to v3', () => {

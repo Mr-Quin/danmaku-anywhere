@@ -1,1 +1,1 @@
-export * from './messaging.js'
+export * from './messaging'

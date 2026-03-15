@@ -1,7 +1,7 @@
 import { z } from 'zod'
-import { BiliBiliMediaType, DanDanChConvert } from '../../../utils/index.js'
-import { zCommentImport } from '../../comment/index.js'
-import { DanmakuSourceType } from '../../provider/provider.js'
+import { BiliBiliMediaType, DanDanChConvert } from '../../../utils/index'
+import { zCommentImport } from '../../comment/index'
+import { DanmakuSourceType } from '../../provider/provider'
 
 const zBaseEpisodeV3 = z.object({
   provider: z.enum(DanmakuSourceType),

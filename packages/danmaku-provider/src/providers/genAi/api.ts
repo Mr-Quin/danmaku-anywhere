@@ -1,9 +1,9 @@
 import { err, ok, type Result } from '@danmaku-anywhere/result'
-import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
-import { getApiStore } from '../../shared/store.js'
-import { fetchData } from '../utils/fetchData.js'
-import type { ExtractTitleResponse } from './schema.js'
-import { zExtractTitleResponse } from './schema.js'
+import type { DanmakuProviderError } from '../../exceptions/BaseError'
+import { getApiStore } from '../../shared/store'
+import { fetchData } from '../utils/fetchData'
+import type { ExtractTitleResponse } from './schema'
+import { zExtractTitleResponse } from './schema'
 
 export const extractTitle = async (
   input: string

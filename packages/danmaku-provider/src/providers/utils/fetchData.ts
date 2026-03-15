@@ -1,10 +1,10 @@
 import { err, ok, type Result } from '@danmaku-anywhere/result'
 import type { ZodType, z } from 'zod'
-import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
-import { HttpException } from '../../exceptions/HttpException.js'
-import { ResponseParseException } from '../../exceptions/ResponseParseException.js'
-import { getApiStore } from '../../shared/store.js'
-import { tryCatch } from './tryCatch.js'
+import type { DanmakuProviderError } from '../../exceptions/BaseError'
+import { HttpException } from '../../exceptions/HttpException'
+import { ResponseParseException } from '../../exceptions/ResponseParseException'
+import { getApiStore } from '../../shared/store'
+import { tryCatch } from './tryCatch'
 
 export interface FetchOptions<T extends ZodType> {
   url: string

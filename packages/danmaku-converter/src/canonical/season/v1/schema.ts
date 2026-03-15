@@ -4,7 +4,7 @@ import {
   DanmakuSourceType,
   type DbEntity,
   type RemoteDanmakuSourceType,
-} from '../../provider/provider.js'
+} from '../../provider/provider'
 
 export const zBaseSeasonV1 = z.object({
   title: z.string(),

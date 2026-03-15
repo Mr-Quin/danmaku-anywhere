@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { DanDanChConvert } from '../../../utils/index.js'
-import { zCommentImport } from '../../comment/index.js'
+import { DanDanChConvert } from '../../../utils/index'
+import { zCommentImport } from '../../comment/index'
 
 const zBaseEpisodeV1 = z.object({
   type: z.union([

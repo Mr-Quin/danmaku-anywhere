@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { zCommentImport } from '../comment'
 import { DanmakuSourceType } from '../provider/provider'
-import { parseBackupMany } from './import.js'
+import { parseBackupMany } from './import'
 import validCommentData from './test-data/common/validComment.json' with {
   type: 'json',
 }

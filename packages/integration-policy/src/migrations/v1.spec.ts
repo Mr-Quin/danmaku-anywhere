@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isIntegrationV1 } from './v1.js'
+import { isIntegrationV1 } from './v1'
 
 describe('v1 migration', () => {
   it('should identify valid v1 integration policy', () => {

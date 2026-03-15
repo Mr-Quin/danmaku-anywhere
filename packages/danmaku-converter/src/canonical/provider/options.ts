@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { DanDanChConvert } from '../../utils/index.js'
+import { DanDanChConvert } from '../../utils/index'
 
 export const zDanDanPlayProviderOptions = z.object({
   baseUrl: z.url().trim().optional(),

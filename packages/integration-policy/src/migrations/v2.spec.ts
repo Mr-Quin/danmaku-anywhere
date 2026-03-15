@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { IntegrationV1 } from './v1.js'
-import { migrateV1ToV2 } from './v2.js'
+import type { IntegrationV1 } from './v1'
+import { migrateV1ToV2 } from './v2'
 
 describe('v2 migration', () => {
   it('should migrate v1 to v2', () => {

@@ -7,15 +7,14 @@
   "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
   "license": "MIT",
   "type": "module",
-  "main": "src/index.js",
-  "types": "src/index.d.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "test": "vitest",
-    "build": "tsgo",
-    "lint": "tsgo&& biome check --fix",
+    "lint": "biome check --fix",
     "lint:ci": "biome ci",
-    "type-check": "tsgo --noEmit",
-    "dev": "tsgo -w"
+    "type-check": "tsgo --noEmit"
   },
   "dependencies": {
     "@danmaku-anywhere/danmaku-converter": "workspace:*",

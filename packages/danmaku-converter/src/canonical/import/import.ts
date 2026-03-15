@@ -5,15 +5,12 @@ import {
   episodeMigration,
   zCustomEpisodeInsertV4,
   zEpisodeInsertV4WithSeasonV1,
-} from '../episode/index.js'
-import { zEpisodeImportV1 } from '../episode/v1/schema.js'
-import { zEpisodeImportV2 } from '../episode/v2/schema.js'
-import { zEpisodeImportV3 } from '../episode/v3/schemaZod.js'
-import {
-  DanmakuSourceType,
-  PROVIDER_TO_BUILTIN_ID,
-} from '../provider/provider.js'
-import type { SeasonInsertV1 } from '../season/index.js'
+} from '../episode/index'
+import { zEpisodeImportV1 } from '../episode/v1/schema'
+import { zEpisodeImportV2 } from '../episode/v2/schema'
+import { zEpisodeImportV3 } from '../episode/v3/schemaZod'
+import { DanmakuSourceType, PROVIDER_TO_BUILTIN_ID } from '../provider/provider'
+import type { SeasonInsertV1 } from '../season/index'
 
 const zImportV3 = z
   .union([
@@ -77,7 +74,7 @@ const zEpisodeInsertV4WithSeasonV1Preprocessed = z.preprocess((data) => {
 }, zEpisodeInsertV4WithSeasonV1)
 
 const parseBackup = (data: unknown): BackupParseData | BackupParseError => {
-  const errors = []
+  const errors: z.ZodError[] = []
   // first see if data is v3
   {
     const parse = zImportV3.safeParse(data)

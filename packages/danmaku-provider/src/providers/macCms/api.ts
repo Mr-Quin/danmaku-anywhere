@@ -1,9 +1,9 @@
 import { ok, type Result } from '@danmaku-anywhere/result'
 import type { ZodType, z } from 'zod'
-import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
-import { fetchData } from '../utils/fetchData.js'
-import { zDanmuIcuDanmaku } from './danmuIcu.js'
-import { type GenericVodSearchResponse, zVodSearchResponse } from './schema.js'
+import type { DanmakuProviderError } from '../../exceptions/BaseError'
+import { fetchData } from '../utils/fetchData'
+import { zDanmuIcuDanmaku } from './danmuIcu'
+import { type GenericVodSearchResponse, zVodSearchResponse } from './schema'
 
 const withQuery = (
   baseUrl: string,

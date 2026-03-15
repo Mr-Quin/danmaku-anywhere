@@ -1,18 +1,18 @@
 import { z } from 'zod'
-import { stripHtml } from '../../../utils/index.js'
-import { zCommentEntity } from '../../comment/index.js'
+import { stripHtml } from '../../../utils/index'
+import { zCommentEntity } from '../../comment/index'
 import {
   type ByProvider,
   DanmakuSourceType,
   type DbEntity,
   type RemoteDanmakuSourceType,
-} from '../../provider/provider.js'
+} from '../../provider/provider'
 import {
   type SeasonV1,
   zBilibiliSeasonV1,
   zDanDanPlaySeasonV1,
   zTencentSeasonV1,
-} from '../../season/index.js'
+} from '../../season/index'
 
 /**
  * Custom episode schema

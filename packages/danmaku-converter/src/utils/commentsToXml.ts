@@ -1,5 +1,5 @@
 import { js2xml } from 'xml-js'
-import type { CommentEntity } from '../canonical/index.js'
+import type { CommentEntity } from '../canonical/index'
 
 /**
  * Convert comments to XML format compatible with DanDanPlay using json2xml

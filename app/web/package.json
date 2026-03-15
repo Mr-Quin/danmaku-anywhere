@@ -56,6 +56,7 @@
     "@angular/build": "^21.0.0",
     "@angular/cli": "^21.0.0",
     "@angular/compiler-cli": "^21.0.0",
+    "@types/chrome": "^0.0.326",
     "jsdom": "^28.1.0",
     "vitest": "^4.1.0",
     "wrangler": "^4.50.0"

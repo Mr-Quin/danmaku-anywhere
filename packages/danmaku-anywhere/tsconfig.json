@@ -10,19 +10,9 @@
     "types": ["chrome", "react-dom", "react", "@types/wicg-file-system-access"],
     "jsx": "react-jsx",
     "paths": {
-      "@/*": ["./src/*"],
-      "@danmaku-anywhere/danmaku-engine": ["../danmaku-engine/src"],
-      "@danmaku-anywhere/danmaku-provider": ["../danmaku-provider/src"],
-      "@danmaku-anywhere/danmaku-converter": ["../danmaku-converter/src"],
-      "@danmaku-anywhere/web-scraper": ["../web-scraper/src"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"],
-  "references": [
-    { "path": "./tsconfig.node.json" },
-    { "path": "../danmaku-engine" },
-    { "path": "../danmaku-provider" },
-    { "path": "../danmaku-converter" },
-    { "path": "../web-scraper" }
-  ]
+  "references": [{ "path": "./tsconfig.node.json" }]
 }

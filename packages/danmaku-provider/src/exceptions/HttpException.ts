@@ -1,4 +1,4 @@
-import { DanmakuProviderError } from './BaseError.js'
+import { DanmakuProviderError } from './BaseError'
 
 export class HttpException extends DanmakuProviderError {
   public statusText: string

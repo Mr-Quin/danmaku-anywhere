@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { getRandomUUID } from '../uuid.js'
-import type { IntegrationV2 } from './v2.js'
+import { getRandomUUID } from '../uuid'
+import type { IntegrationV2 } from './v2'
 
 const regexString = z.string().refine(
   (v) => {

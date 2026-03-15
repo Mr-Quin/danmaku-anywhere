@@ -7,11 +7,11 @@ import type {
   EpisodeMetaV4,
   EpisodeV4,
   WithSeasonV1,
-} from './v4/schema.js'
+} from './v4/schema'
 
-export * from './migration/migration.js'
-export * from './v3/schema.js'
-export * from './v4/schema.js'
+export * from './migration/migration'
+export * from './v3/schema'
+export * from './v4/schema'
 
 export const EPISODE_SCHEMA_VERSION = 4 as const
 

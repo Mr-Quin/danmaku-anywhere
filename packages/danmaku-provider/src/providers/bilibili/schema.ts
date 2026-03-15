@@ -1,6 +1,6 @@
 import { CommentMode, zRgb888 } from '@danmaku-anywhere/danmaku-converter'
 import { z } from 'zod'
-import { BiliBiliMediaType } from './enums.js'
+import { BiliBiliMediaType } from './enums'
 
 const zBilibiliApiResponseBase = z.object({
   code: z.number(),

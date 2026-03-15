@@ -1,6 +1,6 @@
-import type { BiliBiliMediaType } from '../../../utils/index.js'
-import type { CommentEntity } from '../../comment/index.js'
-import type { DanmakuSourceType } from '../../provider/provider.js'
+import type { BiliBiliMediaType } from '../../../utils/index'
+import type { CommentEntity } from '../../comment/index'
+import type { DanmakuSourceType } from '../../provider/provider'
 
 /**
  * Meta contains the information needed to fetch the danmaku from their provider

@@ -149,6 +149,9 @@ importers:
       '@angular/compiler-cli':
         specifier: ^21.0.0
         version: 21.0.0(@angular/compiler@21.0.0)(typescript@5.9.3)
+      '@types/chrome':
+        specifier: ^0.0.326
+        version: 0.0.326
       jsdom:
         specifier: ^28.1.0
         version: 28.1.0(@noble/hashes@2.0.1)
@@ -513,13 +516,16 @@ importers:
       core-js:
         specifier: ^3.47.0
         version: 3.47.0
+      tslib:
+        specifier: ^2.8.1
+        version: 2.8.1
       zod:
         specifier: ^4.3.5
         version: 4.3.5
     devDependencies:
       '@types/chrome':
-        specifier: ^0.0.325
-        version: 0.0.325
+        specifier: ^0.0.326
+        version: 0.0.326
       vitest:
         specifier: ^4.0.13
         version: 4.1.0(@opentelemetry/api@1.9.0)(@types/node@24.10.1)(jsdom@28.1.0(@noble/hashes@2.0.1))(vite@7.2.4(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(sass@1.93.2)(yaml@2.8.1))
@@ -3750,9 +3756,6 @@ packages:
 
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
-
-  '@types/chrome@0.0.325':
-    resolution: {integrity: sha512-iHsXfUeAjQ8a+zMGCRNHESApb/gBV6eRlukks5gqDjUP4atF/j4BLKnVVLxyG/6PARRrupwkZvULUI+ovR9luQ==}
 
   '@types/chrome@0.0.326':
     resolution: {integrity: sha512-WS7jKf3ZRZFHOX7dATCZwqNJgdfiSF0qBRFxaO0LhIOvTNBrfkab26bsZwp6EBpYtqp8loMHJTnD6vDTLWPKYw==}
@@ -10976,11 +10979,6 @@ snapshots:
     dependencies:
       '@types/deep-eql': 4.0.2
       assertion-error: 2.0.1
-
-  '@types/chrome@0.0.325':
-    dependencies:
-      '@types/filesystem': 0.0.36
-      '@types/har-format': 1.2.16
 
   '@types/chrome@0.0.326':
     dependencies:

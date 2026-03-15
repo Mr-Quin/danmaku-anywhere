@@ -14,7 +14,7 @@
   "scripts": {
     "dev:web-app": "pnpm -r -F \"./app/web\" start",
     "build": "pnpm -r build",
-    "build:packages": "pnpm -r -F \"./packages/**\" build",
+    "build:packages": "pnpm -r -F \"./packages/**\" build --if-present",
     "format": "pnpm -r -F \"./packages/**\" format",
     "lint": "pnpm -r -F \"./packages/**\" lint",
     "lint:ci": "pnpm -r lint:ci",

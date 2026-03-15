@@ -1,14 +1,9 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist/",
-    "module": "ESNext",
+    "module": "Preserve",
     "moduleResolution": "Bundler",
-    "paths": {
-      "@danmaku-anywhere/danmaku-provider": ["../danmaku-provider/src"]
-    },
-    "composite": true
+    "noEmit": true
   },
-  "include": ["./src"],
-  "references": [{ "path": "../danmaku-converter" }]
+  "include": ["./src"]
 }

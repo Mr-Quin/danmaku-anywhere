@@ -1,6 +1,6 @@
-import { hexToRgb888, rgb888ToHex } from '../../utils/index.js'
-import type { CommentOptions } from './types.js'
-import { CommentMode } from './types.js'
+import { hexToRgb888, rgb888ToHex } from '../../utils/index'
+import type { CommentOptions } from './types'
+import { CommentMode } from './types'
 
 export const parseCommentGradient = (s: string) => {
   const [gr, flag] = s.split(',')

@@ -1,4 +1,4 @@
-import { DanmakuProviderError } from '../../exceptions/BaseError.js'
+import { DanmakuProviderError } from '../../exceptions/BaseError'
 
 export class TencentApiException extends DanmakuProviderError {
   constructor(

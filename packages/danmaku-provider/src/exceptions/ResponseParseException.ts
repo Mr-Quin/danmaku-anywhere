@@ -1,4 +1,4 @@
-import { DanmakuProviderError } from './BaseError.js'
+import { DanmakuProviderError } from './BaseError'
 
 // for when the response is not in the expected format
 // possibly due to an API change

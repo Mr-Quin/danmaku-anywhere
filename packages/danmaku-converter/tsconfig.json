@@ -1,14 +1,11 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist/",
-    "composite": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
     "resolveJsonModule": true,
-    "allowJs": false
+    "noEmit": true
   },
   "include": ["./src", "./src/**/*.json"],
-  "exclude": ["**/*.test.ts"],
-  "references": []
+  "exclude": ["**/*.test.ts"]
 }

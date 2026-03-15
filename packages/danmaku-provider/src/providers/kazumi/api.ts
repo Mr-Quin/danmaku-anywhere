@@ -1,14 +1,14 @@
 import type { Result } from '@danmaku-anywhere/result'
 import { z } from 'zod'
-import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
-import { getApiStore } from '../../shared/store.js'
-import { fetchData } from '../utils/fetchData.js'
+import type { DanmakuProviderError } from '../../exceptions/BaseError'
+import { getApiStore } from '../../shared/store'
+import { fetchData } from '../utils/fetchData'
 import {
   type KazumaManifest,
   type KazumiPolicy,
   zKazumaManifest,
   zKazumiPolicy,
-} from './schema.js'
+} from './schema'
 
 export const getManifest = async (): Promise<
   Result<KazumaManifest[], DanmakuProviderError>

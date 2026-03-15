@@ -7,15 +7,14 @@
   "repository": "https://github.com/Mr-Quin/danmaku-conveter",
   "license": "MIT",
   "type": "module",
-  "main": "src/index.js",
-  "types": "src/index.d.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "test": "vitest",
-    "build": "tsgo",
-    "lint": "tsgo && biome check --fix",
+    "lint": "biome check --fix",
     "lint:ci": "biome ci",
-    "type-check": "tsgo --noEmit",
-    "dev": "tsgo -w"
+    "type-check": "tsgo --noEmit"
   },
   "dependencies": {
     "xml-js": "^1.6.11",

@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { type CommentEntity, CommentMode } from '../canonical/index.js'
-import { xmlToJSON, zRgb888, zTime } from '../utils/index.js'
+import { type CommentEntity, CommentMode } from '../canonical/index'
+import { xmlToJSON, zRgb888, zTime } from '../utils/index'
 
 // Schema based on JSON converted from xml,
 // schema may differ depending on the converter used
@@ -41,9 +41,7 @@ const zXmlParsedEntry = z
                       return null
                   }
                 }), // mode
-              z.coerce
-                .number()
-                .int(), // font size.18 - small, 25 - medium, 36 - large
+              z.coerce.number().int(), // font size.18 - small, 25 - medium, 36 - large
               zRgb888, // decimal color
               // for compatibility, discard the rest, may include:
               // timestamp, type, sender id, comment id, etc.

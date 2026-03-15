@@ -1,5 +1,5 @@
 import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
-import type { MediaInfo } from './extractMedia.js'
+import type { MediaInfo } from './extractMedia'
 
 export interface KazumiSearchResult {
   name: string

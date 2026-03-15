@@ -1,17 +1,12 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist/",
-    "composite": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "noImplicitAny": false
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    "noImplicitAny": false,
+    "allowJs": true,
+    "noEmit": true
   },
   "include": ["./src"],
-  "exclude": ["**/*.test.ts", "**/test", "**/code-gen"],
-  "references": [
-    {
-      "path": "../danmaku-converter"
-    }
-  ]
+  "exclude": ["**/*.test.ts", "**/test", "**/code-gen"]
 }

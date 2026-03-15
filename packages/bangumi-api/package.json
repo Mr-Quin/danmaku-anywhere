@@ -9,15 +9,13 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/schema.d.ts"
+      "types": "./src/schema.d.ts"
     },
     "./next": {
-      "types": "./dist/schema-next.d.ts"
+      "types": "./src/schema-next.d.ts"
     }
   },
   "scripts": {
-    "build": "tsgo && pnpm copy:schemas",
-    "copy:schemas": "node scripts/copy-schemas.js",
     "lint": "biome check --fix",
     "lint:ci": "biome ci",
     "type-check": "tsgo --noEmit",

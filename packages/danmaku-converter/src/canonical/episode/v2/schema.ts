@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { BiliBiliMediaType, DanDanChConvert } from '../../../utils/index.js'
-import { zCommentImport } from '../../comment/index.js'
+import { BiliBiliMediaType, DanDanChConvert } from '../../../utils/index'
+import { zCommentImport } from '../../comment/index'
 
 const zBaseEpisodeV2 = z.object({
   provider: z.union([

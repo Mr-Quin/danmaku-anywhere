@@ -3,27 +3,27 @@ import {
   zGenericXml,
 } from '@danmaku-anywhere/danmaku-converter'
 import { err, ok, type Result } from '@danmaku-anywhere/result'
-import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
-import { HttpException } from '../../exceptions/HttpException.js'
-import { InputError } from '../../exceptions/InputError.js'
-import { ResponseParseException } from '../../exceptions/ResponseParseException.js'
+import type { DanmakuProviderError } from '../../exceptions/BaseError'
+import { HttpException } from '../../exceptions/HttpException'
+import { InputError } from '../../exceptions/InputError'
+import { ResponseParseException } from '../../exceptions/ResponseParseException'
 import { bilibili as bilibiliProto } from '../../protobuf/protobuf.js'
-import { createThrottle } from '../utils/createThrottle.js'
-import { fetchData } from '../utils/fetchData.js'
+import { createThrottle } from '../utils/createThrottle'
+import { fetchData } from '../utils/fetchData'
 import type {
   BiliBiliSearchParams,
   BiliBiliSearchType,
   BilibiliBangumiInfo,
   BilibiliMedia,
   BilibiliUserInfo,
-} from './schema.js'
+} from './schema'
 import {
   zBilibiliBangumiInfoResponse,
   zBilibiliCommentProto,
   zBilibiliSearchResponse,
   zBilibiliUserInfo,
-} from './schema.js'
-import { ensureSelectData } from './utils.js'
+} from './schema'
+import { ensureSelectData } from './utils'
 
 const BILIBILI_API_URL_ROOT = 'https://api.bilibili.com'
 

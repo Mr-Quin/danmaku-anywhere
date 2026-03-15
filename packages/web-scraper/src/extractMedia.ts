@@ -1,4 +1,4 @@
-import { getVideoUrlFromResponse } from './cat-catch.js'
+import { getVideoUrlFromResponse } from './cat-catch'
 // polyfill for firefox
 import 'core-js/es/disposable-stack'
 import 'core-js/es/async-disposable-stack'
@@ -6,8 +6,8 @@ import 'core-js/es/iterator/dispose'
 import 'core-js/es/async-iterator/async-dispose'
 import 'core-js/es/symbol/async-dispose'
 import 'core-js/es/symbol/dispose'
-import type { HTTPHeader } from './types.js'
-import { createTab, Logger } from './utils.js'
+import type { HTTPHeader } from './types'
+import { createTab, Logger } from './utils'
 
 export type MediaInfo = {
   src: string
@@ -47,7 +47,7 @@ export const extractMedia = async (
   }
 
   const requestListener = (
-    details: chrome.webRequest.WebRequestHeadersDetails
+    details: chrome.webRequest.OnBeforeSendHeadersDetails
   ) => {
     if (details.requestHeaders) {
       requests.set(details.requestId, details.requestHeaders)
@@ -55,7 +55,7 @@ export const extractMedia = async (
   }
 
   const responseListener = (
-    details: chrome.webRequest.WebResponseHeadersDetails
+    details: chrome.webRequest.OnHeadersReceivedDetails
   ) => {
     const videoInfo = getVideoUrlFromResponse(details)
 

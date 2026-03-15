@@ -1,4 +1,4 @@
-export * from './exceptions/BaseError.js'
-export * from './exceptions/HttpException.js'
-export * from './exceptions/ResponseParseException.js'
-export { configureApiStore } from './shared/store.js'
+export * from './exceptions/BaseError'
+export * from './exceptions/HttpException'
+export * from './exceptions/ResponseParseException'
+export { configureApiStore } from './shared/store'

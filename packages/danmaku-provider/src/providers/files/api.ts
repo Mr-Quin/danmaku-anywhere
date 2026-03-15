@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { getApiStore } from '../../shared/store.js'
+import { getApiStore } from '../../shared/store'
 
 const zUploadFileResponse = z.discriminatedUnion('success', [
   z.object({

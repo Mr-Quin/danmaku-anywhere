@@ -1,8 +1,8 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { ok, type Result } from '@danmaku-anywhere/result'
-import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
-import { createThrottle } from '../utils/createThrottle.js'
-import { fetchData } from '../utils/fetchData.js'
+import type { DanmakuProviderError } from '../../exceptions/BaseError'
+import { createThrottle } from '../utils/createThrottle'
+import { fetchData } from '../utils/fetchData'
 
 import type {
   TencentCommentSegmentData,
@@ -11,15 +11,15 @@ import type {
   TencentPageDetailResponse,
   TencentSearchParams,
   TencentVideoSeason,
-} from './schema.js'
+} from './schema'
 import {
   zTencentComment,
   zTencentCommentSegment,
   zTencentEpisodeListResponse,
   zTencentPageDetailResponse,
   zTencentSearchResponse,
-} from './schema.js'
-import { ensureData, parseHeader, validateTencentResponse } from './utils.js'
+} from './schema'
+import { ensureData, parseHeader, validateTencentResponse } from './utils'
 
 const TENCENT_API_URL_ROOT = 'https://pbaccess.video.qq.com'
 const DM_API_URL_ROOT = 'https://dm.video.qq.com'

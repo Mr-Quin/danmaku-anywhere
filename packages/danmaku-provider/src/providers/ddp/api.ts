@@ -4,12 +4,12 @@ import {
 } from '@danmaku-anywhere/danmaku-converter'
 import { err, ok, type Result } from '@danmaku-anywhere/result'
 import type { output, ZodType } from 'zod'
-import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
-import { InputError } from '../../exceptions/InputError.js'
-import { getApiStore } from '../../shared/store.js'
-import type { FetchOptions } from '../utils/fetchData.js'
-import { fetchData } from '../utils/fetchData.js'
-import { DanDanPlayApiException } from './exceptions.js'
+import type { DanmakuProviderError } from '../../exceptions/BaseError'
+import { InputError } from '../../exceptions/InputError'
+import { getApiStore } from '../../shared/store'
+import type { FetchOptions } from '../utils/fetchData'
+import { fetchData } from '../utils/fetchData'
+import { DanDanPlayApiException } from './exceptions'
 import type {
   BangumiDetails,
   CommentData,
@@ -25,7 +25,7 @@ import type {
   SearchEpisodesAnime,
   SearchEpisodesQuery,
   SendCommentRequest,
-} from './schema.js'
+} from './schema'
 import {
   zBangumiDetailsResponse,
   zCommentResponseV2,
@@ -42,7 +42,7 @@ import {
   zSearchEpisodesResponse,
   zSendCommentRequest,
   zSendCommentResponseV2,
-} from './schema.js'
+} from './schema'
 
 export interface DanDanPlayQueryContext {
   // fallback to default if not provided

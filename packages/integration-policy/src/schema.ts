@@ -1,5 +1,5 @@
 import type { z } from 'zod'
-import { zIntegrationPolicyV3, zIntegrationV3 } from './migrations/v3.js'
+import { zIntegrationPolicyV3, zIntegrationV3 } from './migrations/v3'
 
 export type IntegrationPolicy = z.infer<typeof zIntegrationPolicyV3>
 

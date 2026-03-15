@@ -1,7 +1,7 @@
 import { err, ok, type Result } from '@danmaku-anywhere/result'
-import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
-import { BiliBiliApiException } from './exceptions.js'
-import type { BilibiliApiResponseBase } from './schema.js'
+import type { DanmakuProviderError } from '../../exceptions/BaseError'
+import { BiliBiliApiException } from './exceptions'
+import type { BilibiliApiResponseBase } from './schema'
 
 export function ensureSelectData<
   T extends BilibiliApiResponseBase,

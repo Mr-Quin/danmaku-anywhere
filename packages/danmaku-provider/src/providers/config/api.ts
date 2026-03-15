@@ -1,14 +1,14 @@
 import type { Result } from '@danmaku-anywhere/result'
-import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
-import { getApiStore } from '../../shared/store.js'
-import { fetchData } from '../utils/fetchData.js'
-import { type ConfigResponse, zConfigResponse } from './schema.js'
+import type { DanmakuProviderError } from '../../exceptions/BaseError'
+import { getApiStore } from '../../shared/store'
+import { fetchData } from '../utils/fetchData'
+import { type ConfigResponse, zConfigResponse } from './schema'
 
 export const getMaccmsConfig = async (
   force = false
 ): Promise<Result<ConfigResponse, DanmakuProviderError>> => {
   const url = `${getApiStore().baseUrl}/config/maccms`
-  const headers = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   }
   if (force) {
@@ -26,7 +26,7 @@ export const getDanmuicuConfig = async (
   force = false
 ): Promise<Result<ConfigResponse, DanmakuProviderError>> => {
   const url = `${getApiStore().baseUrl}/config/danmuicu`
-  const headers = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   }
   if (force) {

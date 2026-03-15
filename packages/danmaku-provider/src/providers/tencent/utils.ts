@@ -1,6 +1,6 @@
 import { err, ok, type Result } from '@danmaku-anywhere/result'
-import { TencentApiException } from './exceptions.js'
-import type { TencentApiResponseBase } from './schema.js'
+import { TencentApiException } from './exceptions'
+import type { TencentApiResponseBase } from './schema'
 
 export function validateTencentResponse<T extends TencentApiResponseBase>(
   data: T,

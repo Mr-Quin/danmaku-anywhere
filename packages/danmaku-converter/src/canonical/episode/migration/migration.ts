@@ -1,22 +1,22 @@
 import type { z } from 'zod'
-import { stripHtml } from '../../../utils/index.js'
+import { stripHtml } from '../../../utils/index'
 import {
   type ByProvider,
   DanmakuSourceType,
   PROVIDER_TO_BUILTIN_ID,
-} from '../../provider/provider.js'
-import type { SeasonInsertV1 } from '../../season/index.js'
-import type { zEpisodeImportV1 } from '../v1/schema.js'
-import type { zEpisodeImportV2 } from '../v2/schema.js'
+} from '../../provider/provider'
+import type { SeasonInsertV1 } from '../../season/index'
+import type { zEpisodeImportV1 } from '../v1/schema'
+import type { zEpisodeImportV2 } from '../v2/schema'
 import type {
   BiliBiliDanmakuInsertV3,
   CustomDanmakuInsertV3,
   DanDanPlayDanmakuInsertV3,
   DanmakuInsertV3,
   TencentDanmakuInsertV3,
-} from '../v3/schema.js'
-import type { zEpisodeImportV3 } from '../v3/schemaZod.js'
-import type { CustomEpisodeInsertV4, EpisodeInsertV4 } from '../v4/schema.js'
+} from '../v3/schema'
+import type { zEpisodeImportV3 } from '../v3/schemaZod'
+import type { CustomEpisodeInsertV4, EpisodeInsertV4 } from '../v4/schema'
 
 function v1ToV3(v1Data: z.infer<typeof zEpisodeImportV1>): DanmakuInsertV3 {
   if (v1Data.type === 1) {

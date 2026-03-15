@@ -1,8 +1,8 @@
 import type { z } from 'zod'
-import type { DanmakuSourceType, DbEntity } from '../provider/provider.js'
-import type { SeasonInsertV1, SeasonV1, zBaseSeasonV1 } from './v1/schema.js'
+import type { DanmakuSourceType, DbEntity } from '../provider/provider'
+import type { SeasonInsertV1, SeasonV1, zBaseSeasonV1 } from './v1/schema'
 
-export * from './v1/schema.js'
+export * from './v1/schema'
 
 export const SEASON_SCHEMA_VERSION = 1
 

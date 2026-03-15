@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { xmlToJSON } from '../utils'
-import { zXmlParsedJson } from './genericXml.js'
+import { zXmlParsedJson } from './genericXml'
 
 const iqyData = {
   i: {

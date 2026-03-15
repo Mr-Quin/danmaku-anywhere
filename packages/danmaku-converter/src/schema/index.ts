@@ -1,7 +1,7 @@
 import { z } from 'zod'
-import { zXmlParsedJson } from './genericXml.js'
-import { zWevipDanmaku } from './weVip.js'
+import { zXmlParsedJson } from './genericXml'
+import { zWevipDanmaku } from './weVip'
 
-export * from './genericXml.js'
+export * from './genericXml'
 
 export const zCombinedDanmaku = z.union([zXmlParsedJson, zWevipDanmaku])

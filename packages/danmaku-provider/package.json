@@ -7,54 +7,24 @@
   "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
   "license": "MIT",
   "type": "module",
-  "main": "src/index.js",
-  "types": "src/index.d.ts",
   "exports": {
-    ".": {
-      "types": "./src/index.d.ts",
-      "default": "./src/index.js"
-    },
-    "./ddp": {
-      "types": "./src/providers/ddp/index.d.ts",
-      "default": "./src/providers/ddp/index.js"
-    },
-    "./bilibili": {
-      "types": "./src/providers/bilibili/index.d.ts",
-      "default": "./src/providers/bilibili/index.js"
-    },
-    "./tencent": {
-      "types": "./src/providers/tencent/index.d.ts",
-      "default": "./src/providers/tencent/index.js"
-    },
-    "./maccms": {
-      "types": "./src/providers/macCms/index.d.ts",
-      "default": "./src/providers/macCms/index.js"
-    },
-    "./genAi": {
-      "types": "./src/providers/genAi/index.d.ts",
-      "default": "./src/providers/genAi/index.js"
-    },
-    "./kazumi": {
-      "types": "./src/providers/kazumi/index.d.ts",
-      "default": "./src/providers/kazumi/index.js"
-    },
-    "./config": {
-      "types": "./src/providers/config/index.d.ts",
-      "default": "./src/providers/config/index.js"
-    },
-    "./files": {
-      "types": "./src/providers/files/index.d.ts",
-      "default": "./src/providers/files/index.js"
-    }
+    ".": "./src/index.ts",
+    "./ddp": "./src/providers/ddp/index.ts",
+    "./bilibili": "./src/providers/bilibili/index.ts",
+    "./tencent": "./src/providers/tencent/index.ts",
+    "./maccms": "./src/providers/macCms/index.ts",
+    "./genAi": "./src/providers/genAi/index.ts",
+    "./kazumi": "./src/providers/kazumi/index.ts",
+    "./config": "./src/providers/config/index.ts",
+    "./files": "./src/providers/files/index.ts"
   },
   "scripts": {
     "test": "vitest",
     "protobuf:compile": "pbjs -t static-module -w es6 -o src/protobuf/protobuf.js src/protobuf/definition/bilibili.dm.proto && pbts -o src/protobuf/protobuf.d.ts src/protobuf/protobuf.js",
-    "build": "pnpm protobuf:compile && tsgo",
-    "lint": "tsgo && biome check --fix",
+    "build": "pnpm protobuf:compile",
+    "lint": "biome check --fix",
     "lint:ci": "biome ci",
     "type-check": "tsgo --noEmit",
-    "dev": "tsgo -w",
     "openapi-ts": "openapi-ts"
   },
   "dependencies": {

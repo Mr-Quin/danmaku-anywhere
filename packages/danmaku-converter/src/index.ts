@@ -1,4 +1,4 @@
-export * from './canonical/index.js'
-export * from './schema/index.js'
-export { commentsToXml } from './utils/commentsToXml.js'
-export * from './utils/index.js'
+export * from './canonical/index'
+export * from './schema/index'
+export { commentsToXml } from './utils/commentsToXml'
+export * from './utils/index'

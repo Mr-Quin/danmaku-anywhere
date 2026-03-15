@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { zRgb888, zTime } from '../../utils/index.js'
+import { zRgb888, zTime } from '../../utils/index'
 
 export enum CommentMode {
   ltr = 6,

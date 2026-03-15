@@ -3,8 +3,8 @@ import type {
   GenericEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
-import type { MediaInfo } from '../extractMedia.js'
-import type { HTTPHeader } from '../types.js'
+import type { MediaInfo } from '../extractMedia'
+import type { HTTPHeader } from '../types'
 
 const DA_EXT_ATTR = 'da-ext-version'
 
