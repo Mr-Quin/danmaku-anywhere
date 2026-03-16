@@ -140,7 +140,7 @@ export const NumberScrubber = ({
       }
     }
 
-   const handleKeyUp = (event: KeyboardEvent) => {
+    const handleKeyUp = (event: KeyboardEvent) => {
       if (event.key === 'Shift') {
         modifierKeysRef.current.shiftKey = false
       } else if (event.key === 'Alt') {
