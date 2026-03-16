@@ -34,9 +34,10 @@ export class ResendEmailService implements EmailService {
     console.log('Sending email to', to)
     const { error, data } = await this.resend.emails.send(payload)
 
-    console.log('Email sent successfully', data)
     if (error) {
       throw new Error(`Resend send failed: ${JSON.stringify(error)}`)
     }
+
+    console.log('Email sent successfully', data)
   }
 }

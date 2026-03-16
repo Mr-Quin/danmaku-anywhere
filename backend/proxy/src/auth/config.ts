@@ -20,10 +20,18 @@ async function getGoogleProvider(env: Env) {
   }
 }
 
-async function createAuth(
-  env: Env,
+// Updated per-request via setWaitUntil before auth handlers run
+let currentWaitUntil: (promise: Promise<unknown>) => void = () => {
+  // noop
+}
+
+export function setWaitUntil(
   waitUntil: (promise: Promise<unknown>) => void
-) {
+): void {
+  currentWaitUntil = waitUntil
+}
+
+async function createAuth(env: Env) {
   const secret = await env.BETTER_AUTH_SECRET.get()
 
   if (!secret) {
@@ -50,7 +58,7 @@ async function createAuth(
           subject: 'Reset your password',
           text: `Click the link to reset your password: ${url}`,
         })
-        waitUntil(promise)
+        currentWaitUntil(promise)
       },
     },
     emailVerification: {
@@ -62,7 +70,7 @@ async function createAuth(
           subject: 'Verify your email address',
           text: `Click the link to verify your email: ${url}`,
         })
-        waitUntil(promise)
+        currentWaitUntil(promise)
       },
     },
     socialProviders: googleProvider ? { google: googleProvider } : {},
@@ -93,15 +101,12 @@ type MyAuth = Awaited<ReturnType<typeof createAuth>>
 
 let auth: MyAuth | null = null
 
-export async function getOrCreateAuth(
-  env: Env,
-  waitUntil: (promise: Promise<unknown>) => void
-): Promise<MyAuth> {
+export async function getOrCreateAuth(env: Env): Promise<MyAuth> {
   if (auth) {
     return auth
   }
 
-  auth = await createAuth(env, waitUntil)
+  auth = await createAuth(env)
 
   return auth
 }
