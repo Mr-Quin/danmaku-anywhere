@@ -412,7 +412,7 @@ export const DanmakuStylesForm = ({
               label={t('stylePage.offset', 'Time Offset')}
               tooltip={t(
                 'stylePage.tooltip.offsetScrubber',
-                'Drag horizontally or use scroll wheel to adjust. Double-click to manual entry. Positive values make danmaku appear later.'
+                'Drag horizontally or use scroll wheel to adjust. Double-click to manual entry. Positive values make danmaku appear later, negative values earlier.'
               )}
               value={field.value}
               onChange={(newValue) => field.onChange(newValue)}
