@@ -15,7 +15,7 @@ if (!['chrome', 'firefox'].includes(browser.name)) {
   )
 }
 
-const port = isChrome ? 3000 : 3001
+const port = isChrome ? 23333 : 23334
 
 console.log('Building for', {
   browser,
