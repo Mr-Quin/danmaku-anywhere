@@ -3,6 +3,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { admin, bearer, jwt, openAPI } from 'better-auth/plugins'
 import { ac, adminRole, moderatorRole, userRole } from '@/auth/permissions'
 import { getOrCreateDb } from '@/db'
+import { getOrCreateEmailService } from '@/email'
 
 async function getGoogleProvider(env: Env) {
   const clientId = env.GOOGLE_CLIENT_ID?.trim()
@@ -17,6 +18,17 @@ async function getGoogleProvider(env: Env) {
     clientId,
     clientSecret,
   }
+}
+
+// Updated per-request via setWaitUntil before auth handlers run
+let currentWaitUntil: (promise: Promise<unknown>) => void = () => {
+  // noop
+}
+
+export function setWaitUntil(
+  waitUntil: (promise: Promise<unknown>) => void
+): void {
+  currentWaitUntil = waitUntil
 }
 
 async function createAuth(env: Env) {
@@ -36,7 +48,31 @@ async function createAuth(env: Env) {
     basePath: '/auth',
     secret,
     trustedOrigins: [env.BETTER_AUTH_TRUSTED_ORIGINS],
-    emailAndPassword: { enabled: true, minPasswordLength: 6 },
+    emailAndPassword: {
+      enabled: true,
+      minPasswordLength: 6,
+      sendResetPassword: async ({ user, url }) => {
+        const emailService = await getOrCreateEmailService(env)
+        const promise = emailService.send({
+          to: user.email,
+          subject: 'Reset your password',
+          text: `Click the link to reset your password: ${url}`,
+        })
+        currentWaitUntil(promise)
+      },
+    },
+    emailVerification: {
+      sendOnSignUp: true,
+      sendVerificationEmail: async ({ user, url }) => {
+        const emailService = await getOrCreateEmailService(env)
+        const promise = emailService.send({
+          to: user.email,
+          subject: 'Verify your email address',
+          text: `Click the link to verify your email: ${url}`,
+        })
+        currentWaitUntil(promise)
+      },
+    },
     socialProviders: googleProvider ? { google: googleProvider } : {},
     database: drizzleAdapter(getOrCreateDb(env.DB), {
       provider: 'sqlite',

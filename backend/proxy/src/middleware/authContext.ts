@@ -1,4 +1,4 @@
-import { getOrCreateAuth } from '@/auth/config'
+import { getOrCreateAuth, setWaitUntil } from '@/auth/config'
 import type { AuthSession } from '@/auth/types'
 import { factory } from '@/factory'
 import { getIsTestEnv } from '@/utils/getIsTestEnv'
@@ -23,6 +23,7 @@ export const authContext = () =>
     }
 
     try {
+      setWaitUntil(context.executionCtx.waitUntil)
       const auth = await getOrCreateAuth(context.env)
       const { user, session } = await resolveAuthSession(
         context.req.raw.headers,
