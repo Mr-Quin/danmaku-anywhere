@@ -129,14 +129,47 @@ export const NumberScrubber = ({
     return clearTimers
   }, [clearTimers])
 
+  const modifierKeysRef = useRef({ shiftKey: false, altKey: false })
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Shift') {
+        modifierKeysRef.current.shiftKey = true
+      } else if (event.key === 'Alt') {
+        modifierKeysRef.current.altKey = true
+      }
+    }
+
+   const handleKeyUp = (event: KeyboardEvent) => {
+      if (event.key === 'Shift') {
+        modifierKeysRef.current.shiftKey = false
+      } else if (event.key === 'Alt') {
+        modifierKeysRef.current.altKey = false
+      }
+    }
+
+    const handleWindowBlur = () => {
+      modifierKeysRef.current.shiftKey = false
+      modifierKeysRef.current.altKey = false
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+    window.addEventListener('blur', handleWindowBlur)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+      window.removeEventListener('blur', handleWindowBlur)
+    }
+  }, [])
+
   const doAdjustment = useCallback(
-    (
-      direction: 1 | -1,
-      e: React.MouseEvent | React.PointerEvent | MouseEvent
-    ) => {
+    (direction: 1 | -1) => {
       // Calculate current speed step
       let currentMultiplier = step
       const currentHoldMs = holdDurationRef.current
+      const { shiftKey, altKey } = modifierKeysRef.current
 
       // Stages of hold-to-fast
       if (currentHoldMs > 1500) {
@@ -146,8 +179,8 @@ export const NumberScrubber = ({
       }
 
       // Manual modifier keys override hold-to-fast
-      if (e.shiftKey) currentMultiplier = fastStep
-      if (e.altKey) currentMultiplier = slowStep
+      if (shiftKey) currentMultiplier = fastStep
+      if (altKey) currentMultiplier = slowStep
 
       // We use a functional approach using the current hook capture of `value`,
       // since onChange expects a number, not a function. Note that for setInterval
@@ -157,7 +190,7 @@ export const NumberScrubber = ({
       let newValue = valueRef.current + direction * currentMultiplier
 
       // Round to precision if in medium/fast stage and no modifier key is overriding
-      if (currentHoldMs > 500 && !e.shiftKey && !e.altKey) {
+      if (currentHoldMs > 500 && !shiftKey && !altKey) {
         // e.g. round to nearest 100 if fastStep is 100
         newValue = Math.round(newValue / currentMultiplier) * currentMultiplier
       }
@@ -176,14 +209,14 @@ export const NumberScrubber = ({
       e.currentTarget.setPointerCapture(e.pointerId)
 
       // Do one immediate adjustment
-      doAdjustment(direction, e)
+      doAdjustment(direction)
 
       // Start initial delay before repeated adjustments
       holdTimerRef.current = setTimeout(() => {
         // Start rapid interval
         intervalTimerRef.current = setInterval(() => {
           holdDurationRef.current += 50 // roughly track ms
-          doAdjustment(direction, e)
+          doAdjustment(direction)
         }, 50)
       }, 400)
     },
