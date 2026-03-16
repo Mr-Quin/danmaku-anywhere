@@ -287,7 +287,7 @@ export const NumberScrubber = ({
         el.removeEventListener('wheel', handleWheel)
       }
     }
-  }, [handleWheel])
+  }, [handleWheel, isEditing])
 
   const wrapperStyle: SxProps<Theme> = {
     display: 'flex',
