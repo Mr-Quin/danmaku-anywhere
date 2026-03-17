@@ -106,6 +106,15 @@ export const routes: Routes = [
             canActivate: [developmentOnly],
             title: `Debug Components | ${PAGE_TITLE}`,
           },
+          {
+            path: 'iframe',
+            loadComponent: () =>
+              import('./features/debug/iframe-debug-page.component').then(
+                (m) => m.IframeDebugPageComponent
+              ),
+            canActivate: [developmentOnly],
+            title: `Debug iframe | ${PAGE_TITLE}`,
+          },
         ],
       },
     ],
