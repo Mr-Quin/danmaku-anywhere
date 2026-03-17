@@ -156,6 +156,8 @@ danmakuOptionsService.get().then((options) => {
 
 const extensionOptionsService = uiContainer.get(ExtensionOptionsService)
 
+let enableFullscreenInteraction = true
+
 extensionOptionsService.get().then((options) => {
   if (options.playerOptions.showSkipButton) {
     videoSkipService.enable()
@@ -167,6 +169,8 @@ extensionOptionsService.get().then((options) => {
   } else {
     danmakuDensityService.disable()
   }
+  enableFullscreenInteraction =
+    options.playerOptions.enableFullscreenInteraction
 })
 
 extensionOptionsService.onChange((options) => {
@@ -180,22 +184,13 @@ extensionOptionsService.onChange((options) => {
   } else {
     danmakuDensityService.disable()
   }
+  enableFullscreenInteraction =
+    options.playerOptions.enableFullscreenInteraction
 })
 
 /**
  * Window events
  */
-let enableFullscreenInteraction = true
-
-extensionOptionsService.get().then((options) => {
-  enableFullscreenInteraction =
-    options.playerOptions.enableFullscreenInteraction
-})
-extensionOptionsService.onChange((options) => {
-  enableFullscreenInteraction =
-    options.playerOptions.enableFullscreenInteraction
-})
-
 document.addEventListener('fullscreenchange', () => {
   if (enableFullscreenInteraction) {
     const fullscreenElement = document.fullscreenElement
