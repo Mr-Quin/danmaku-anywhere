@@ -11,13 +11,14 @@ import type { PlayerRelayCommands } from '@/common/rpcClient/background/types'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { createPopoverRoot } from '@/content/common/host/createPopoverRoot'
 import { injectCss } from '@/content/common/injectCss'
+import { createPipWindow } from '@/content/common/pip/createPipWindow'
 import danmakuComponentCss from '@/content/player/components/DanmakuComponent.css?inline'
 import skipButtonCss from '@/content/player/components/SkipButton/SkipButton.css?inline'
 import { PLAYER_ROOT_ID } from '@/content/player/constants/rootId'
 import { DanmakuManagerService } from '@/content/player/danmakuManager/DanmakuManager.service'
 import { DanmakuDensityService } from '@/content/player/densityPlot/DanmakuDensity.service'
 import densityPlotCss from '@/content/player/densityPlot/DanmakuDensityChart.css?inline'
-import { createPipWindow, moveElement } from '@/content/player/pipUtils'
+import { moveElement } from '@/content/player/pipUtils'
 import { VideoEventService } from '@/content/player/videoEvent/VideoEvent.service'
 import { VideoNodeObserverService } from '@/content/player/videoObserver/VideoNodeObserver.service'
 import { VideoSkipService } from '@/content/player/videoSkip/VideoSkip.service'
@@ -201,6 +202,23 @@ document.addEventListener('fullscreenchange', () => {
 
   // Notify the controller so it can also handle its popover
   void playerRpcClient.controller['relay:event:showPopover']({ frameId })
+})
+
+/**
+ * Iframe identification via postMessage.
+ * The controller uses this to map frameId → <iframe> DOM element cross-origin.
+ */
+window.addEventListener('message', (e) => {
+  if (e.data?.type === 'danmaku:identify') {
+    window.parent.postMessage(
+      {
+        type: 'danmaku:identify-response',
+        nonce: e.data.nonce,
+        frameId,
+      },
+      '*'
+    )
+  }
 })
 
 playerRpcServer.listen(chrome.runtime.onMessage)
