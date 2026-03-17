@@ -174,6 +174,11 @@ export class AppSidebar {
                   label: 'Components',
                   icon: 'toolbar',
                 },
+                {
+                  path: '/debug/iframe',
+                  label: 'iframe Debug',
+                  icon: 'pip',
+                },
               ],
             },
           ]),
