@@ -165,6 +165,7 @@ export class ExtensionOptionsService implements IStoreService {
             draft.playerOptions = {
               showSkipButton: true,
               showDanmakuTimeline: true,
+              enableFullscreenInteraction: true,
             }
           }),
       })
@@ -247,6 +248,12 @@ export class ExtensionOptionsService implements IStoreService {
             draft.restrictInitiatorDomain = true
           })
         },
+      })
+      .version(23, {
+        upgrade: (data) =>
+          produce<ExtensionOptions>(data, (draft) => {
+            draft.playerOptions.enableFullscreenInteraction = true
+          }),
       })
   }
 

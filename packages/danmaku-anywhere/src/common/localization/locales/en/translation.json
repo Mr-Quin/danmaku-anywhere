@@ -429,6 +429,7 @@
       }
     },
     "enableAnalytics": "Enable anonymous analytics",
+    "enableFullscreenInteraction": "Enable fullscreen interaction",
     "help": {
       "feedback": "Provide feedback",
       "reportBug": "Report Bug"

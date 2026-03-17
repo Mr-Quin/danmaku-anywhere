@@ -21,6 +21,7 @@ import { createPipWindow, moveElement } from '@/content/player/pipUtils'
 import { VideoEventService } from '@/content/player/videoEvent/VideoEvent.service'
 import { VideoNodeObserverService } from '@/content/player/videoObserver/VideoNodeObserver.service'
 import { VideoSkipService } from '@/content/player/videoSkip/VideoSkip.service'
+import { reparentPopover } from '../common/reparentPopover'
 
 const { data: frameId } = await chromeRpcClient.getFrameId()
 
@@ -184,16 +185,26 @@ extensionOptionsService.onChange((options) => {
 /**
  * Window events
  */
+let enableFullscreenInteraction = true
+
+extensionOptionsService.get().then((options) => {
+  enableFullscreenInteraction =
+    options.playerOptions.enableFullscreenInteraction
+})
+extensionOptionsService.onChange((options) => {
+  enableFullscreenInteraction =
+    options.playerOptions.enableFullscreenInteraction
+})
+
 document.addEventListener('fullscreenchange', () => {
-  /**
-   * The last element in the top layer is shown on top.
-   * Hiding then showing the popover will make it the last element in the top layer.
-   *
-   * Do this every time something goes fullscreen, to ensure the popover is always on top.
-   */
-  root.hidePopover()
-  root.showPopover()
-  // Then notify the controller so that the controller can also toggle popover to stay on top
+  if (enableFullscreenInteraction) {
+    const fullscreenElement = document.fullscreenElement
+    reparentPopover(root, document, fullscreenElement)
+  } else {
+    reparentPopover(root, document, null)
+  }
+
+  // Notify the controller so it can also handle its popover
   void playerRpcClient.controller['relay:event:showPopover']({ frameId })
 })
 
