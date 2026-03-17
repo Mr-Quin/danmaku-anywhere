@@ -1,13 +1,15 @@
 import { useEventCallback } from '@mui/material'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { IS_STANDALONE_RUNTIME } from '@/common/environment/isStandalone'
 import { uiContainer } from '@/common/ioc/uiIoc'
 import { Logger } from '@/common/Logger'
+import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { createRpcServer } from '@/common/rpc/server'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type { PlayerRelayEvents } from '@/common/rpcClient/background/types'
+import { reparentPopover } from '@/content/common/reparentPopover'
 import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
@@ -25,6 +27,14 @@ export const FrameManager = () => {
   const { toast } = useToast()
 
   const config = useActiveConfig()
+  const { data: extensionOptions } = useExtensionOptions()
+
+  const enableFullscreenInteraction =
+    extensionOptions.playerOptions.enableFullscreenInteraction
+
+  const enableFullscreenInteractionRef = useRef(enableFullscreenInteraction)
+
+  enableFullscreenInteractionRef.current = enableFullscreenInteraction
 
   const setVideoId = useStore.use.setVideoId()
   const { activeFrame, setActiveFrame, updateFrame } = useStore.use.frame()
@@ -106,9 +116,15 @@ export const FrameManager = () => {
           const root: HTMLDivElement | null = document.querySelector(
             `#${CONTROLLER_ROOT_ID}`
           )
-          if (root) {
-            root.hidePopover()
-            root.showPopover()
+          if (!root) {
+            return
+          }
+
+          if (enableFullscreenInteractionRef.current) {
+            const fullscreenElement = document.fullscreenElement
+            reparentPopover(root, document, fullscreenElement)
+          } else {
+            reparentPopover(root, document, null)
           }
         },
       },

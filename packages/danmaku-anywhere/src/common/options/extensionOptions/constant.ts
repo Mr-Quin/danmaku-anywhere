@@ -33,6 +33,7 @@ export const defaultExtensionOptions: ExtensionOptions = {
   playerOptions: {
     showSkipButton: true,
     showDanmakuTimeline: true,
+    enableFullscreenInteraction: true,
   },
   theme: {
     colorMode: ColorMode.System,
