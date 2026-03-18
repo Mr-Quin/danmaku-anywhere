@@ -120,10 +120,8 @@ export type BackgroundMethods = {
   fetchImage: RPCDef<{ src: string; options?: ImageFetchOptions }, string>
   getActiveTabUrl: RPCDef<void, string | null>
   getFrameId: RPCDef<void, number>
-  getAllFrames: RPCDef<void, chrome.webNavigation.GetAllFrameResultDetails[]>
   getExtensionManifest: RPCDef<void, chrome.runtime.ManifestV3>
   getAlarm: RPCDef<string, chrome.alarms.Alarm | null>
-  injectScript: RPCDef<number, void>
   remoteLog: RPCDef<LogEntry, void>
   exportDebugData: RPCDef<void, { id: string }>
   getFontList: RPCDef<void, chrome.fontSettings.FontName[]>
@@ -178,12 +176,23 @@ export type PlayerRelayCommands = {
   'relay:command:seek': RPCDef<InputWithFrameId<number>, void, FrameContext>
   'relay:command:enterPip': RPCDef<InputWithFrameId<void>, void, FrameContext>
   'relay:command:show': RPCDef<InputWithFrameId<boolean>, void, FrameContext>
+  'relay:command:controllerReady': RPCDef<
+    InputWithFrameId<void>,
+    void,
+    FrameContext
+  >
+}
+
+type PlayerReadyData = {
+  url: string
+  documentId: string
 }
 
 // Player -> Controller communication
 // Here the frameId is used to identify the SOURCE frame
 export type PlayerRelayEvents = {
-  'relay:event:playerReady': RPCDef<InputWithFrameId<void>, void>
+  'relay:event:playerReady': RPCDef<InputWithFrameId<PlayerReadyData>, void>
+  'relay:event:playerUnload': RPCDef<InputWithFrameId<void>, void>
   'relay:event:videoChange': RPCDef<InputWithFrameId<void>, void>
   'relay:event:videoRemoved': RPCDef<InputWithFrameId<void>, void>
   'relay:event:preloadNextEpisode': RPCDef<InputWithFrameId<void>, void>

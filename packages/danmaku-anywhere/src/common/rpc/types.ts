@@ -7,6 +7,12 @@ export type RpcContext = Record<string, any>
 
 export interface RpcOptions {
   silent?: boolean
+  /**
+   * When true, the call is treated as best-effort.
+   * No error is thrown if no receiver handles the message
+   * or if the connection cannot be established.
+   */
+  optional?: boolean
 }
 
 export interface RPCDef<

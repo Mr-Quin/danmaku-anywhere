@@ -6,8 +6,6 @@ import { createTaskQueue } from '@/common/utils/taskQueue'
 // the ?script query is used to get the file path for the script after bundling
 // @ts-expect-error
 import contentScript from '@/content/controller?script'
-// @ts-expect-error
-import testScript from '@/content/player?script'
 
 const contentScriptId = 'main-content'
 
@@ -47,16 +45,6 @@ export class ScriptingManager {
       if (!configs) return
 
       await q.run(() => this.handleContentScriptRegistration(configs))
-    })
-  }
-
-  async injectVideoScript(tabId: number, frameId: number) {
-    this.logger.debug('Injecting player script into tab', { tabId, frameId })
-
-    await chrome.scripting.executeScript({
-      target: { tabId, frameIds: [frameId] },
-      files: [testScript],
-      world: 'ISOLATED',
     })
   }
 

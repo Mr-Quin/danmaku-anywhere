@@ -53,29 +53,38 @@ const createPayload = <TInput>(
   }
 }
 
+const emptyResponse = {
+  data: undefined,
+  context: {},
+} as RPCClientResponse<never>
+
 const handleRpcResponse = <TRecords extends RPCRecord>(
   result: RPCResponse<TRecords[string]['output']> | null,
   method: string,
-  err: Error | null
+  err: Error | null,
+  options?: RpcOptions
 ): RPCClientResponse<TRecords[string]> => {
   if (err) {
+    if (options?.optional) return emptyResponse
     throw new RpcException(err.message, { cause: err })
   }
 
-  // if message is not handled, result will be undefined, we treat that as an error
   if (!result) {
+    if (options?.optional) return emptyResponse
     throw new RpcException(
       `Method ${method} returned undefined. This likely means the method is not handled by the server.`
     )
   }
 
   if (result.state === 'errored') {
+    if (options?.optional) return emptyResponse
     throw new RpcException(result.error, {
       cause: result.detail ? deserializeError(result.detail) : undefined,
     })
   }
 
   if (result.state === 'ignored') {
+    if (options?.optional) return emptyResponse
     throw new RpcException(
       `Method ${method} is explicitly ignored by the server.`
     )
@@ -100,7 +109,7 @@ export const createChromeRpcClient = <
             chromeSender(createPayload(method, input, options))
           )
 
-          return handleRpcResponse(result, method, err)
+          return handleRpcResponse(result, method, err, options)
         }
       },
     }
@@ -128,7 +137,7 @@ export const createContentRpcClient = <
             )
           )
 
-          return handleRpcResponse(result, method, err)
+          return handleRpcResponse(result, method, err, options)
         }
       },
     }

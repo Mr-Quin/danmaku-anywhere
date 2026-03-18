@@ -52,6 +52,14 @@ export const manifest = defineManifest({
       js: ['src/content/app/index.ts'],
       run_at: 'document_start',
     },
+    {
+      matches: ['https://*/*', 'http://*/*'],
+      js: ['src/content/player/index.ts'],
+      run_at: 'document_start',
+      all_frames: true,
+      // @ts-expect-error -- crxjs types don't include `world`, but Chrome supports it
+      world: 'ISOLATED',
+    },
   ],
   permissions,
   host_permissions: ['https://*/*', 'http://*/*', 'file:///*'],

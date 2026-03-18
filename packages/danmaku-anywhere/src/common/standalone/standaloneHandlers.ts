@@ -103,10 +103,8 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     fetchImage: ({ src }) => src,
     getActiveTabUrl: () => 'https://example.com',
     getFrameId: () => 0,
-    getAllFrames: () => [],
     getExtensionManifest: () => standaloneManifest,
     getAlarm: () => null,
-    injectScript: () => undefined,
     remoteLog: () => undefined,
     exportDebugData: () => ({ id: 'standalone' }),
     getFontList: () => [],
@@ -163,11 +161,13 @@ export const standalonePlayerCommandHandlers: StandaloneRpcHandlers<PlayerRelayC
     'relay:command:seek': () => undefined,
     'relay:command:enterPip': () => undefined,
     'relay:command:show': () => undefined,
+    'relay:command:controllerReady': () => undefined,
   }
 
 export const standalonePlayerEventHandlers: StandaloneRpcHandlers<PlayerRelayEvents> =
   {
     'relay:event:playerReady': () => undefined,
+    'relay:event:playerUnload': () => undefined,
     'relay:event:videoChange': () => undefined,
     'relay:event:videoRemoved': () => undefined,
     'relay:event:preloadNextEpisode': () => undefined,
