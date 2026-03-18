@@ -13,14 +13,13 @@ import { reparentPopover } from '@/content/common/reparentPopover'
 import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
-import { FrameInjector } from '@/content/controller/danmaku/frame/FrameInjector.service'
+import { FrameRegistry } from '@/content/controller/danmaku/frame/FrameRegistry.service'
 import { useMigrateDanmaku } from '@/content/controller/danmaku/frame/useMigrateDanmaku'
 import { usePreloadNextEpisode } from '@/content/controller/danmaku/frame/usePreloadNextEpisode'
 import { useStore } from '@/content/controller/store/store'
 
 const logger = Logger.sub('[FrameManager]')
-
-const frameInjector = uiContainer.get(FrameInjector)
+const frameRegistry = uiContainer.get(FrameRegistry)
 
 export const FrameManager = () => {
   const { t } = useTranslation()
@@ -33,32 +32,19 @@ export const FrameManager = () => {
     extensionOptions.playerOptions.enableFullscreenInteraction
 
   const enableFullscreenInteractionRef = useRef(enableFullscreenInteraction)
-
   enableFullscreenInteractionRef.current = enableFullscreenInteraction
 
   const setVideoId = useStore.use.setVideoId()
-  const { activeFrame, setActiveFrame, updateFrame } = useStore.use.frame()
+  const { activeFrame, updateFrame } = useStore.use.frame()
 
   const unmountDanmaku = useUnmountDanmaku()
   const { preloadNext, canLoadNext } = usePreloadNextEpisode()
-
-  useEffect(() => {
-    frameInjector.start()
-    return () => {
-      frameInjector.stop()
-    }
-  }, [])
 
   useMigrateDanmaku()
 
   const videoChangeHandler = useEventCallback((frameId: number) => {
     setVideoId(`${frameId}-${Date.now()}`)
-    /**
-     * If there is already an active frame, and it has video,
-     * it means there are multiple frames with video.
-     *
-     * TODO: need some heuristic to handle this case
-     */
+
     if (activeFrame?.hasVideo && activeFrame.frameId !== frameId) {
       toast.warn(
         t('danmaku.alert.multipleFrames', 'Multiple frames with video detected')
@@ -67,12 +53,10 @@ export const FrameManager = () => {
     }
 
     updateFrame(frameId, { hasVideo: true })
-    setActiveFrame(frameId)
+    useStore.getState().frame.setActiveFrame(frameId)
   })
 
   const videoRemovedHandler = useEventCallback((frameId: number) => {
-    // Reset state if video is removed from the active frame,
-    // but keep the current active frame even when the video is removed
     if (activeFrame?.frameId === frameId) {
       setVideoId(undefined)
       if (activeFrame.mounted) {
@@ -96,12 +80,22 @@ export const FrameManager = () => {
   useEffect(() => {
     const controllerRpcServer = createRpcServer<PlayerRelayEvents>(
       {
-        'relay:event:playerReady': async ({ frameId }) => {
+        'relay:event:playerReady': async ({ frameId, data }) => {
+          frameRegistry.registerFrame({
+            frameId,
+            url: data.url,
+            documentId: data.documentId,
+          })
+          frameRegistry.ensureActiveFrame(frameId)
+
           await playerRpcClient.player['relay:command:start']({
             data: config.mediaQuery,
             frameId,
           })
           updateFrame(frameId, { started: true })
+        },
+        'relay:event:playerUnload': async ({ frameId }) => {
+          frameRegistry.unregisterFrame(frameId)
         },
         'relay:event:videoChange': async ({ frameId }) => {
           videoChangeHandler(frameId)
@@ -116,13 +110,10 @@ export const FrameManager = () => {
           const root: HTMLDivElement | null = document.querySelector(
             `#${CONTROLLER_ROOT_ID}`
           )
-          if (!root) {
-            return
-          }
+          if (!root) return
 
           if (enableFullscreenInteractionRef.current) {
-            const fullscreenElement = document.fullscreenElement
-            reparentPopover(root, document, fullscreenElement)
+            reparentPopover(root, document, document.fullscreenElement)
           } else {
             reparentPopover(root, document, null)
           }
@@ -133,6 +124,13 @@ export const FrameManager = () => {
 
     if (!IS_STANDALONE_RUNTIME) {
       controllerRpcServer.listen(chrome.runtime.onMessage)
+
+      // Notify all player scripts that the controller is ready.
+      // Players that loaded before the controller will re-send playerReady.
+      void playerRpcClient.player['relay:command:controllerReady'](
+        { frameId: 0 },
+        { optional: true }
+      )
 
       return () => {
         controllerRpcServer.unlisten(chrome.runtime.onMessage)

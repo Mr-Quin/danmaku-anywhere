@@ -5,7 +5,6 @@ import {
 import { setRequestHeaderRule } from '@danmaku-anywhere/web-scraper'
 import { inject, injectable } from 'inversify'
 import { match } from 'ts-pattern'
-import { ScriptingManager } from '@/background/scripting/ScriptingManager'
 import { BackupService } from '@/background/services/Backup/BackupService.service'
 import { DataManagementService } from '@/background/services/DataManagementService'
 import { GenAIService } from '@/background/services/GenAIService'
@@ -64,7 +63,6 @@ export class RpcManager {
     @inject(EpisodeMatchingService)
     private episodeMatchingService: EpisodeMatchingService,
     @inject(LogService) private logService: LogService,
-    @inject(ScriptingManager) private scriptingManager: ScriptingManager,
     @inject(DanmakuAnywhereDb) private db: DanmakuAnywhereDb,
     @inject(LoggerSymbol) logger: ILogger,
     @inject(DebugFileService) private debugFileService: DebugFileService,
@@ -207,21 +205,6 @@ export class RpcManager {
           void invalidateContentScriptData(sender.tab?.id)
           return result
         },
-        getAllFrames: async (_, sender) => {
-          if (sender.tab?.id === undefined) {
-            throw new RpcException('No tab id found')
-          }
-
-          const tabId = sender.tab.id
-
-          const frames = await chrome.webNavigation.getAllFrames({ tabId })
-
-          if (!frames) {
-            throw new RpcException('No frames found')
-          }
-
-          return frames
-        },
         getExtensionManifest: async () => {
           return chrome.runtime.getManifest() as chrome.runtime.ManifestV3
         },
@@ -238,17 +221,6 @@ export class RpcManager {
           }
 
           return sender.frameId
-        },
-        injectScript: async (frameId, sender) => {
-          this.logger.debug('Injecting script into frame', { frameId })
-
-          if (sender.tab?.id === undefined) {
-            throw new RpcException('No tab id found')
-          }
-
-          const tabId = sender.tab.id
-
-          await this.scriptingManager.injectVideoScript(tabId, frameId)
         },
         remoteLog: async (data) => {
           void this.logService.log(data)
@@ -377,25 +349,21 @@ export class RpcManager {
     const passThrough = <TRPCDef extends AnyRPCDef>(
       clientMethod: TabRPCClientMethod<TRPCDef>
     ): RRPServerHandler<TRPCDef> => {
-      return async (data, sender, setContext) => {
+      return async (data, sender, setContext, options) => {
         // Apparently tab.index can be -1 in some cases, this will cause an error so we need to handle it
         const tabIndex =
           sender.tab?.index === -1 ? undefined : sender.tab?.index
 
-        const res = await clientMethod(
-          data,
-          {},
-          {
-            tabInfo: { windowId: sender.tab?.windowId, index: tabIndex },
-            getTab: (tabs) => {
-              const tab = tabs.find((tab) => tab.id === sender.tab?.id)
-              if (!tab) {
-                throw new RpcException('Tab not found')
-              }
-              return tab
-            },
-          }
-        )
+        const res = await clientMethod(data, options, {
+          tabInfo: { windowId: sender.tab?.windowId, index: tabIndex },
+          getTab: (tabs) => {
+            const tab = tabs.find((tab) => tab.id === sender.tab?.id)
+            if (!tab) {
+              throw new RpcException('Tab not found')
+            }
+            return tab
+          },
+        })
         setContext(res.context)
         return res.data
       }
@@ -421,8 +389,14 @@ export class RpcManager {
         'relay:command:enterPip': passThrough(
           relayFrameClient['relay:command:enterPip']
         ),
+        'relay:command:controllerReady': passThrough(
+          relayFrameClient['relay:command:controllerReady']
+        ),
         'relay:event:playerReady': passThrough(
           relayFrameClient['relay:event:playerReady']
+        ),
+        'relay:event:playerUnload': passThrough(
+          relayFrameClient['relay:event:playerUnload']
         ),
         'relay:event:videoChange': passThrough(
           relayFrameClient['relay:event:videoChange']
