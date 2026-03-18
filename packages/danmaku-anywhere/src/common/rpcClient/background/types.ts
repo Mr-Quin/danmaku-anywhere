@@ -181,6 +181,11 @@ export type PlayerRelayCommands = {
     void,
     FrameContext
   >
+  'relay:command:debugSkipButton': RPCDef<
+    InputWithFrameId<void>,
+    void,
+    FrameContext
+  >
 }
 
 type PlayerReadyData = {
@@ -193,7 +198,10 @@ type PlayerReadyData = {
 export type PlayerRelayEvents = {
   'relay:event:playerReady': RPCDef<InputWithFrameId<PlayerReadyData>, void>
   'relay:event:playerUnload': RPCDef<InputWithFrameId<void>, void>
-  'relay:event:videoChange': RPCDef<InputWithFrameId<void>, void>
+  'relay:event:videoChange': RPCDef<
+    InputWithFrameId<{ src: string; width: number; height: number }>,
+    void
+  >
   'relay:event:videoRemoved': RPCDef<InputWithFrameId<void>, void>
   'relay:event:preloadNextEpisode': RPCDef<InputWithFrameId<void>, void>
   'relay:event:showPopover': RPCDef<InputWithFrameId<void>, void>

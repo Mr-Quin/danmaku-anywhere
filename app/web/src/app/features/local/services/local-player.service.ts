@@ -76,10 +76,12 @@ export class LocalPlayerService {
 
   expandAll() {
     this.fileTree.expandAll()
+    this.bumpTree()
   }
 
   collapseAll() {
     this.fileTree.collapseAll()
+    this.bumpTree()
   }
 
   async loadNode(node: FileTreeNode) {

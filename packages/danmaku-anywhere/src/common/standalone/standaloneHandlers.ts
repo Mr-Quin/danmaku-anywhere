@@ -162,6 +162,7 @@ export const standalonePlayerCommandHandlers: StandaloneRpcHandlers<PlayerRelayC
     'relay:command:enterPip': () => undefined,
     'relay:command:show': () => undefined,
     'relay:command:controllerReady': () => undefined,
+    'relay:command:debugSkipButton': () => undefined,
   }
 
 export const standalonePlayerEventHandlers: StandaloneRpcHandlers<PlayerRelayEvents> =

@@ -107,13 +107,13 @@ export const routes: Routes = [
             title: `Debug Components | ${PAGE_TITLE}`,
           },
           {
-            path: 'iframe',
+            path: 'playground',
             loadComponent: () =>
-              import('./features/debug/iframe-debug-page.component').then(
-                (m) => m.IframeDebugPageComponent
-              ),
+              import(
+                './features/debug/playground/playground-page.component'
+              ).then((m) => m.PlaygroundPageComponent),
             canActivate: [developmentOnly],
-            title: `Debug iframe | ${PAGE_TITLE}`,
+            title: `Playground | ${PAGE_TITLE}`,
           },
         ],
       },

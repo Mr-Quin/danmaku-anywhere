@@ -97,17 +97,19 @@ function pruneEmpty(node: FileTreeNode): void {
   })
 }
 
-function setExpanded(nodes: TreeNode[], expanded: boolean): TreeNode[] {
-  nodes.forEach((n) => {
+function cloneWithExpanded(nodes: TreeNode[], expanded: boolean): TreeNode[] {
+  return nodes.map((n) => {
     if (n.type === 'directory' || n.type === 'removableDirectory') {
-      n.expanded = expanded
-      if (n.children)
-        n.children.forEach((c) => {
-          setExpanded([c], expanded)
-        })
+      return {
+        ...n,
+        expanded,
+        children: n.children
+          ? cloneWithExpanded(n.children, expanded)
+          : undefined,
+      }
     }
+    return n
   })
-  return nodes
 }
 
 export class FileTree {
@@ -288,7 +290,7 @@ export class FileTree {
   }
 
   getNodes(): FileTreeNode[] {
-    return this.roots
+    return [...this.roots]
   }
 
   getInfo(node: FileTreeNode): TreeNodeInfo {
@@ -321,11 +323,13 @@ export class FileTree {
   }
 
   expandAll() {
-    setExpanded(this.roots, true)
+    this.roots = cloneWithExpanded(this.roots, true)
+    this.buildIndexes()
   }
 
   collapseAll() {
-    setExpanded(this.roots, false)
+    this.roots = cloneWithExpanded(this.roots, false)
+    this.buildIndexes()
   }
 
   private buildIndexes() {
