@@ -23,7 +23,7 @@ export const DebugPage = () => {
   const state = useStore()
   const { data: options } = useExtensionOptions()
 
-  const handleCopyState = () => {
+  const handleCopyState = async () => {
     // biome-ignore lint/suspicious/noExplicitAny: debug page serialization
     const snapshot = produce(state, (draft: any) => {
       delete draft.danmaku.comments
@@ -39,9 +39,13 @@ export const DebugPage = () => {
       )
       draft.options = options
     })
-    void navigator.clipboard.writeText(JSON.stringify(snapshot, null, 2))
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(snapshot, null, 2))
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch (e) {
+      console.error('Failed to copy debug state to clipboard', e)
+    }
   }
 
   return (

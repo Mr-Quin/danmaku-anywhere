@@ -72,9 +72,18 @@ export class CrossOriginIframePanelComponent {
 
   protected readonly $url = signal(this.presets[0].url)
 
-  protected readonly $sanitizedUrl = computed(() =>
-    this.domSanitizer.bypassSecurityTrustResourceUrl(this.$url())
-  )
+  protected readonly $sanitizedUrl = computed(() => {
+    const value = this.$url()
+    try {
+      const url = new URL(value)
+      if (url.protocol === 'http:' || url.protocol === 'https:') {
+        return this.domSanitizer.bypassSecurityTrustResourceUrl(value)
+      }
+    } catch {
+      // invalid URL
+    }
+    return this.domSanitizer.bypassSecurityTrustResourceUrl('about:blank')
+  })
 
   readonly remove = output()
 }

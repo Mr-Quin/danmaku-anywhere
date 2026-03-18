@@ -108,7 +108,7 @@ function cloneWithExpanded(nodes: TreeNode[], expanded: boolean): TreeNode[] {
           : undefined,
       }
     }
-    return { ...n }
+    return n
   })
 }
 
