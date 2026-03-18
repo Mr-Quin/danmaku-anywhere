@@ -17,10 +17,7 @@ export function reparentPopover(
     return
   }
 
-  if (
-    target instanceof HTMLVideoElement ||
-    target instanceof HTMLIFrameElement
-  ) {
+  if (target.nodeName === 'VIDEO' || target.nodeName === 'IFRAME') {
     // Cannot reparent to these elements, hide and show so the popover will be visible on top of the video
     popover.hidePopover()
     popover.showPopover()

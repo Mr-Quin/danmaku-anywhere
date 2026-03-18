@@ -2,11 +2,13 @@ import { injectable } from 'inversify'
 import { tryCatchSync } from '@/common/utils/tryCatch'
 import { VideoSrcObserver } from './VideoSrcObserver'
 
+// Use nodeName checks instead of instanceof to avoid issues with
+// Custom Elements polyfills that replace native constructors (e.g. @webcomponents/custom-elements)
 const isVideoElement = (node: Node): node is HTMLVideoElement =>
-  node instanceof HTMLVideoElement
+  node.nodeName === 'VIDEO'
 
 const isElement = (node: Node): node is HTMLElement =>
-  node instanceof HTMLElement
+  node.nodeType === Node.ELEMENT_NODE
 
 export type VideoChangeListener = (video: HTMLVideoElement) => void
 
@@ -199,6 +201,32 @@ export class VideoNodeObserverService {
   public start(selector: string) {
     this.selector = selector
 
+    this.startObserving()
+  }
+
+  /**
+   * Begins observing the DOM for video elements.
+   * Waits for document.body to be available before starting the MutationObserver,
+   * which may not exist yet in iframes when the content script runs at document_start.
+   */
+  private startObserving() {
+    if (!document.body) {
+      // Body not ready yet (common in iframes at document_start).
+      // Retry once the document has parsed enough to have a body.
+      if (document.readyState === 'loading') {
+        document.addEventListener(
+          'DOMContentLoaded',
+          () => this.startObserving(),
+          { once: true }
+        )
+      } else {
+        // readyState is 'interactive' or 'complete' but body is still null — shouldn't happen, but use documentElement as fallback
+        this.observeRoot(document.documentElement)
+      }
+      return
+    }
+
+    // Check for an existing video element before starting the observer
     const [current, err] = tryCatchSync<HTMLVideoElement | null>(() =>
       document.querySelector(this.selector)
     )
@@ -211,7 +239,11 @@ export class VideoNodeObserverService {
       this.handleVideoNodeAdded(current)
     }
 
-    this.rootObs.observe(document.body, {
+    this.observeRoot(document.body)
+  }
+
+  private observeRoot(root: Node) {
+    this.rootObs.observe(root, {
       childList: true,
       subtree: true,
       attributes: true,

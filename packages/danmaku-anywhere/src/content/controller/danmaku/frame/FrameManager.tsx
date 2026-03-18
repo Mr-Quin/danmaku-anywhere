@@ -53,7 +53,6 @@ export const FrameManager = () => {
             'Multiple frames with video detected'
           )
         )
-        return
       }
 
       updateFrame(frameId, { hasVideo: true, videoInfo: data })
@@ -130,17 +129,19 @@ export const FrameManager = () => {
     if (!IS_STANDALONE_RUNTIME) {
       controllerRpcServer.listen(chrome.runtime.onMessage)
 
-      // Notify all player scripts that the controller is ready.
-      // Players that loaded before the controller will re-send playerReady.
-      void playerRpcClient.player['relay:command:controllerReady'](
-        { frameId: 0 },
-        { optional: true }
-      )
-
       return () => {
         controllerRpcServer.unlisten(chrome.runtime.onMessage)
       }
     }
+  }, [])
+
+  useEffect(() => {
+    // Notify all player scripts that the controller is ready.
+    // Players that loaded before the controller will re-send playerReady.
+    void playerRpcClient.player['relay:command:controllerReady'](
+      { frameId: 0 },
+      { optional: true }
+    )
   }, [])
 
   return null
