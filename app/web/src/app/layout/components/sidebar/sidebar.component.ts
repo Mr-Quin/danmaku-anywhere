@@ -175,9 +175,9 @@ export class AppSidebar {
                   icon: 'toolbar',
                 },
                 {
-                  path: '/debug/iframe',
-                  label: 'iframe Debug',
-                  icon: 'pip',
+                  path: '/debug/playground',
+                  label: 'Playground',
+                  icon: 'science',
                 },
               ],
             },

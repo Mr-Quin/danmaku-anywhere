@@ -6,7 +6,7 @@ import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { SkipButton } from '@/content/player/components/SkipButton/SkipButton'
 import { DanmakuLayoutService } from '@/content/player/danmakuLayout/DanmakuLayout.service'
-import type { SkipTarget } from '@/content/player/videoSkip/SkipTarget'
+import { SkipTarget } from '@/content/player/videoSkip/SkipTarget'
 import { VideoEventService } from '../videoEvent/VideoEvent.service'
 import { parseCommentsForJumpTargets } from './videoSkipParser'
 
@@ -62,6 +62,16 @@ export class VideoSkipService {
       this.activeButton = null
     }
     this.currentVideo = null
+  }
+
+  debugShowSkipButton() {
+    this.logger.debug('Showing debug skip button')
+    const time = this.currentVideo?.currentTime ?? 120
+    const target = new SkipTarget({
+      startTime: time,
+      endTime: time + 90,
+    })
+    this.showSkipButton(target)
   }
 
   private setupEventListeners() {

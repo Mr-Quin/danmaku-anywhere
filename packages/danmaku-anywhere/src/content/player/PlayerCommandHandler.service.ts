@@ -77,9 +77,14 @@ export class PlayerCommandHandler {
   }
 
   private wireLifecycleEvents() {
-    this.videoNodeObs.addEventListener('videoNodeChange', () => {
+    this.videoNodeObs.addEventListener('videoNodeChange', (video) => {
       playerRpcClient.controller['relay:event:videoChange']({
         frameId: this.frameId,
+        data: {
+          src: video.src || video.currentSrc,
+          width: video.clientWidth,
+          height: video.clientHeight,
+        },
       })
     })
 
@@ -179,6 +184,9 @@ export class PlayerCommandHandler {
         },
         'relay:command:enterPip': async () => {
           await this.enterPip()
+        },
+        'relay:command:debugSkipButton': async () => {
+          this.videoSkip.debugShowSkipButton()
         },
       },
       {

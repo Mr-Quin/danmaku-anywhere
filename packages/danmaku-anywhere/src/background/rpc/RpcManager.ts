@@ -392,6 +392,9 @@ export class RpcManager {
         'relay:command:controllerReady': passThrough(
           relayFrameClient['relay:command:controllerReady']
         ),
+        'relay:command:debugSkipButton': passThrough(
+          relayFrameClient['relay:command:debugSkipButton']
+        ),
         'relay:event:playerReady': passThrough(
           relayFrameClient['relay:event:playerReady']
         ),

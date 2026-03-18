@@ -42,19 +42,24 @@ export const FrameManager = () => {
 
   useMigrateDanmaku()
 
-  const videoChangeHandler = useEventCallback((frameId: number) => {
-    setVideoId(`${frameId}-${Date.now()}`)
+  const videoChangeHandler = useEventCallback(
+    (frameId: number, data: { src: string; width: number; height: number }) => {
+      setVideoId(`${frameId}-${Date.now()}`)
 
-    if (activeFrame?.hasVideo && activeFrame.frameId !== frameId) {
-      toast.warn(
-        t('danmaku.alert.multipleFrames', 'Multiple frames with video detected')
-      )
-      return
+      if (activeFrame?.hasVideo && activeFrame.frameId !== frameId) {
+        toast.warn(
+          t(
+            'danmaku.alert.multipleFrames',
+            'Multiple frames with video detected'
+          )
+        )
+        return
+      }
+
+      updateFrame(frameId, { hasVideo: true, videoInfo: data })
+      useStore.getState().frame.setActiveFrame(frameId)
     }
-
-    updateFrame(frameId, { hasVideo: true })
-    useStore.getState().frame.setActiveFrame(frameId)
-  })
+  )
 
   const videoRemovedHandler = useEventCallback((frameId: number) => {
     if (activeFrame?.frameId === frameId) {
@@ -97,8 +102,8 @@ export const FrameManager = () => {
         'relay:event:playerUnload': async ({ frameId }) => {
           frameRegistry.unregisterFrame(frameId)
         },
-        'relay:event:videoChange': async ({ frameId }) => {
-          videoChangeHandler(frameId)
+        'relay:event:videoChange': async ({ frameId, data }) => {
+          videoChangeHandler(frameId, data)
         },
         'relay:event:videoRemoved': async ({ frameId }) => {
           videoRemovedHandler(frameId)

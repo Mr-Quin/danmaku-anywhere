@@ -21,6 +21,12 @@ export interface FrameState {
   mounted: boolean
   // Whether a video element is detected in this frame
   hasVideo: boolean
+  // Info about the active video element
+  videoInfo?: {
+    src: string
+    width: number
+    height: number
+  }
 }
 
 interface StoreState {
@@ -67,6 +73,7 @@ interface StoreState {
   }
 
   seekToTime: (time: number) => void
+  debugShowSkipButton: (frameId: number) => void
 
   /**
    * Media information for pages with integration
@@ -194,6 +201,12 @@ const useStoreBase = create<StoreState>()(
       void playerRpcClient.player['relay:command:seek']({
         frameId: get().frame.mustGetActiveFrame().frameId,
         data: time,
+      })
+    },
+
+    debugShowSkipButton: (frameId) => {
+      void playerRpcClient.player['relay:command:debugSkipButton']({
+        frameId,
       })
     },
 
