@@ -57,8 +57,7 @@ export const manifest = defineManifest({
       js: ['src/content/player/index.ts'],
       run_at: 'document_start',
       all_frames: true,
-      // @ts-expect-error -- crxjs types don't include `world`, but Chrome supports it
-      world: 'ISOLATED',
+      // isolated world by default
     },
   ],
   permissions,

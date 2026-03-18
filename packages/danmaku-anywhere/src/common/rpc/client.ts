@@ -53,10 +53,10 @@ const createPayload = <TInput>(
   }
 }
 
-const emptyResponse = {
-  data: undefined,
-  context: {},
-} as RPCClientResponse<never>
+// Intentionally cast: optional calls return undefined data, which doesn't match
+// the declared output type. All optional callers should discard the return value.
+// biome-ignore lint/suspicious/noExplicitAny: see above
+const emptyResponse = { data: undefined, context: {} } as RPCClientResponse<any>
 
 const handleRpcResponse = <TRecords extends RPCRecord>(
   result: RPCResponse<TRecords[string]['output']> | null,
@@ -77,7 +77,10 @@ const handleRpcResponse = <TRecords extends RPCRecord>(
   }
 
   if (result.state === 'errored') {
-    if (options?.optional) return emptyResponse
+    if (options?.optional) {
+      console.warn(`[RPC] Optional call "${method}" errored:`, result.error)
+      return emptyResponse
+    }
     throw new RpcException(result.error, {
       cause: result.detail ? deserializeError(result.detail) : undefined,
     })

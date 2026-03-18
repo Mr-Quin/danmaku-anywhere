@@ -56,8 +56,8 @@ export class PlayerScript {
         },
         'relay:command:start': async ({ data: query }) => {
           this.logger.debug('Received start, transitioning to full handler')
-          liteServer.unlisten(chrome.runtime.onMessage)
           this.createCommandHandler(query)
+          liteServer.unlisten(chrome.runtime.onMessage)
         },
       },
       {
@@ -101,7 +101,12 @@ export class PlayerScript {
   }
 
   private registerUnloadHandler() {
-    window.addEventListener('pagehide', () => {
+    window.addEventListener('pagehide', (event: PageTransitionEvent) => {
+      // Skip BFCache transitions — the page (and this script) will be restored
+      if (event.persisted) {
+        return
+      }
+
       void playerRpcClient.controller['relay:event:playerUnload'](
         { frameId: this.frameId },
         { optional: true }
