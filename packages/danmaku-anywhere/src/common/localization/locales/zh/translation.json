@@ -167,7 +167,6 @@
       "mounted_other": "弹幕已装填：{{name}} ({{count}})",
       "mountedMultiple_other": "已装填{{count}}个多选弹幕",
       "mountError": "装填弹幕失败：{{message}}",
-      "multipleFrames": "检测到多个含有视频的Frame",
       "refreshed_other": "弹幕已刷新：{{name}} ({{count}})",
       "refreshingDanmaku": "正在刷新弹幕",
       "unmounted": "弹幕已卸载",

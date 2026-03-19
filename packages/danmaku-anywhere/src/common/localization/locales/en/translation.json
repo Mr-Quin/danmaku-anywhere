@@ -170,7 +170,6 @@
       "mountedMultiple_one": "Mounted {{count}} selected danmaku",
       "mountedMultiple_other": "Mounted {{count}} selected danmaku",
       "mountError": "Failed to mount danmaku: {{message}}",
-      "multipleFrames": "Multiple frames with video detected",
       "refreshed_one": "Danmaku Refreshed: {{name}} ({{count}})",
       "refreshed_other": "Danmaku Refreshed: {{name}} ({{count}})",
       "refreshingDanmaku": "Refreshing danmaku",
