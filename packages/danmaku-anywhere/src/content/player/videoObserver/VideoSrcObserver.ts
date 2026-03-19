@@ -34,6 +34,7 @@ export class VideoSrcObserver {
   }
 
   public observe(videoNode: HTMLVideoElement) {
+    this.observer.disconnect()
     this.currentSrc = videoNode.src
     this.videoNode = videoNode
     this.observer.observe(videoNode, {

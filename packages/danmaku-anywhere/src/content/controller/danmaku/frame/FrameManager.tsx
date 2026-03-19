@@ -57,11 +57,14 @@ export const FrameManager = () => {
 
   const videoChangeHandler = useEventCallback(
     (frameId: number, data: VideoInfo) => {
+      const frame = useStore.getState().frame.allFrames.get(frameId)
       setVideoId(`${frameId}-${Date.now()}`)
       updateFrame(frameId, {
         hasVideo: true,
         videoInfo: data,
-        lastPlayTimestamp: data.playing ? Date.now() : 0,
+        lastPlayTimestamp: data.playing
+          ? Date.now()
+          : (frame?.lastPlayTimestamp ?? 0),
       })
       reEvaluateActiveFrame()
     }
@@ -126,7 +129,6 @@ export const FrameManager = () => {
             url: data.url,
             documentId: data.documentId,
           })
-          frameRegistry.ensureActiveFrame(frameId)
 
           await playerRpcClient.player['relay:command:start']({
             data: config.mediaQuery,
@@ -136,6 +138,7 @@ export const FrameManager = () => {
         },
         'relay:event:playerUnload': async ({ frameId }) => {
           frameRegistry.unregisterFrame(frameId)
+          reEvaluateActiveFrame()
         },
         'relay:event:videoChange': async ({ frameId, data }) => {
           videoChangeHandler(frameId, data)

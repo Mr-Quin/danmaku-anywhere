@@ -1,259 +1,247 @@
 import { injectable } from 'inversify'
 import { tryCatchSync } from '@/common/utils/tryCatch'
 import { VideoSrcObserver } from './VideoSrcObserver'
+import { VideoStack } from './VideoStack'
 
-// Use nodeName checks instead of instanceof to avoid issues with
-// Custom Elements polyfills that replace native constructors (e.g. @webcomponents/custom-elements)
-const isVideoElement = (node: Node): node is HTMLVideoElement =>
-  node.nodeName === 'VIDEO'
+// Use nodeName checks instead of instanceof to avoid issues with Custom Elements
+// polyfills that replace native constructors (e.g. @webcomponents/custom-elements)
+const isVideoElement = (node: Node): node is HTMLVideoElement => {
+  return node.nodeName === 'VIDEO'
+}
 
-const isElement = (node: Node): node is HTMLElement =>
-  node.nodeType === Node.ELEMENT_NODE
+const isElement = (node: Node): node is Element => {
+  return node.nodeType === Node.ELEMENT_NODE
+}
 
 export type VideoChangeListener = (video: HTMLVideoElement) => void
 
 export type VideoNodeObserverEvent = 'videoNodeChange' | 'videoNodeRemove'
 
+type VideoObserverState =
+  | { type: 'inactive' }
+  | { type: 'active'; video: HTMLVideoElement }
+  | {
+      type: 'removing'
+      video: HTMLVideoElement
+      timerId: ReturnType<typeof setTimeout>
+    }
+
+const REMOVE_DEBOUNCE_MS = 500
+
 @injectable('Singleton')
 export class VideoNodeObserverService {
-  private videoStack: HTMLVideoElement[] = []
-  private videoListeners = new WeakMap<HTMLVideoElement, () => void>()
-  private activeVideoElement: HTMLVideoElement | null = null
+  private state: VideoObserverState = { type: 'inactive' }
+  private stack = new VideoStack()
+
+  // Throttle videoNodeChange per element — prevents rapid duplicate emissions
+  // from multiple MutationObserver callbacks in one frame.
+  // WeakMap avoids retaining detached elements.
+  private lastChangeTime = new WeakMap<HTMLVideoElement, number>()
 
   private rootObs: MutationObserver
   private srcObs = new VideoSrcObserver()
-
   private selector = 'video'
 
-  private eventMap = new Map<VideoNodeObserverEvent, Set<VideoChangeListener>>()
-  private eventLastEmitted = new Map<VideoNodeObserverEvent, number>()
-  private videoNodeRemovedTimeout: NodeJS.Timeout | null = null
+  private eventListeners = new Map<
+    VideoNodeObserverEvent,
+    Set<VideoChangeListener>
+  >()
 
   constructor() {
     this.rootObs = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         for (const node of mutation.addedNodes) {
-          if (isVideoElement(node)) {
-            if (node.matches(this.selector)) {
-              this.handleVideoNodeAdded(node)
-            }
+          if (isVideoElement(node) && node.matches(this.selector)) {
+            this.handleAdded(node)
           } else if (isElement(node)) {
-            const videoElements = node.querySelectorAll(this.selector)
-            videoElements.forEach((video) => {
-              this.handleVideoNodeAdded(video as HTMLVideoElement)
-            })
+            node
+              .querySelectorAll<HTMLVideoElement>(this.selector)
+              .forEach((v) => this.handleAdded(v))
           }
         }
 
         for (const removedNode of mutation.removedNodes) {
           if (isVideoElement(removedNode)) {
-            if (this.videoStack.includes(removedNode)) {
-              this.handleVideoNodeRemoved(removedNode)
-            }
+            this.handleRemoved(removedNode)
           } else if (isElement(removedNode)) {
-            // If the removed node is a parent of the video element, remove the video element
-            if (this.videoStack.some((v) => removedNode.contains(v))) {
-              this.videoStack.forEach((v) => {
-                if (removedNode.contains(v)) {
-                  this.handleVideoNodeRemoved(v)
-                }
-              })
-            }
+            // snapshot first — remove() mutates the stack
+            this.stack.within(removedNode).forEach((v) => this.handleRemoved(v))
           }
         }
       }
     })
 
-    this.srcObs.onSrcChange((_, video) => {
-      this.emitEvent('videoNodeChange', video)
-    })
+    // Src changes are genuine state changes — dispatch without throttle
+    this.srcObs.onSrcChange((_, video) =>
+      this.dispatch('videoNodeChange', video)
+    )
   }
 
-  get activeVideo() {
-    return this.activeVideoElement
+  get activeVideo(): HTMLVideoElement | null {
+    return this.state.type === 'active' ? this.state.video : null
   }
 
-  private updateActiveNode() {
-    if (this.videoStack.length === 0) {
-      this.setActiveVideoElement(null)
-      return
-    }
-
-    // Set the active video element in this priority:
-    // 1. The first video element that is playing and visible
-    // 2. The first video element that is playing
-    // 3. The first video element that is visible
-    // 4. The first video element
-    const activeVideo =
-      this.videoStack.find((v) => !v.paused && v.checkVisibility()) ||
-      this.videoStack.find((v) => !v.paused) ||
-      this.videoStack.find((v) => v.checkVisibility()) ||
-      this.videoStack[0]
-
-    this.setActiveVideoElement(activeVideo)
-  }
-
-  private setActiveVideoElement(video: HTMLVideoElement | null) {
-    if (this.activeVideoElement === video) return
-
-    const prevVideo = this.activeVideoElement
-    this.activeVideoElement = video
-    this.srcObs.disconnect()
-
-    // Emit video removed event if the video changed from a non-null value to null
-    if (video === null) {
-      if (prevVideo) {
-        this.emitEvent('videoNodeRemove', prevVideo)
-      }
-    } else {
-      // Emit video change event if the video changed to a non-null value
-      this.emitEvent('videoNodeChange', video)
-      // Move observer to the new video element
-      this.srcObs.observe(video)
-    }
-  }
-
-  private handleVideoNodeAdded(node: HTMLVideoElement) {
-    if (this.videoStack.includes(node)) return
-
-    this.videoStack.push(node)
-    this.updateActiveNode()
-
-    const listener = () => {
-      this.updateActiveNode()
-    }
-
-    node.addEventListener('play', listener)
-    node.addEventListener('pause', listener)
-    this.videoListeners.set(node, listener)
-  }
-
-  private handleVideoNodeRemoved(node: HTMLVideoElement) {
-    // Check if the node is part of the picture-in-picture window
-    // If so, assume it was moved to pip and don't consider it removed
-    if (this.isNodeInPip(node)) return
-    const index = this.videoStack.indexOf(node)
-    if (index !== -1) {
-      this.videoStack.splice(index, 1)
-    }
-
-    this.updateActiveNode()
-
-    const listener = this.videoListeners.get(node)
-    if (listener) {
-      node.removeEventListener('play', listener)
-      node.removeEventListener('pause', listener)
-      this.videoListeners.delete(node)
-    }
-  }
-
-  private emitEvent(event: VideoNodeObserverEvent, video: HTMLVideoElement) {
-    const lastEmitted = this.eventLastEmitted.get(event) || 0
-    const now = Date.now()
-
-    // Throttle events to avoid excessive calls
-    if (now - lastEmitted < 100) return
-
-    if (event === 'videoNodeRemove') {
-      // Debounce the videoNodeRemove event to allow for potential re-adding of the node
-      // This event is only called if it's the last event, and no other events are emitted within a short time
-      this.videoNodeRemovedTimeout = setTimeout(() => {
-        this.eventLastEmitted.set(event, now)
-        this.eventMap.get(event)?.forEach((listener) => listener(video))
-      }, 500)
-    } else {
-      if (this.videoNodeRemovedTimeout) {
-        clearTimeout(this.videoNodeRemovedTimeout)
-        this.videoNodeRemovedTimeout = null
-      }
-      this.eventLastEmitted.set(event, now)
-      this.eventMap.get(event)?.forEach((listener) => listener(video))
-    }
-  }
-
-  private isNodeInPip(node: HTMLElement) {
-    if (!window.documentPictureInPicture?.window) return false
-    return window.documentPictureInPicture.window.document.contains(node)
-  }
-
-  public addEventListener(
+  addEventListener(
     event: VideoNodeObserverEvent,
     listener: VideoChangeListener
-  ) {
-    if (!this.eventMap.has(event)) {
-      this.eventMap.set(event, new Set())
+  ): void {
+    if (!this.eventListeners.has(event)) {
+      this.eventListeners.set(event, new Set())
     }
-
     // biome-ignore lint/style/noNonNullAssertion: checked using has
-    this.eventMap.get(event)!.add(listener)
+    this.eventListeners.get(event)!.add(listener)
   }
 
-  public removeEventListener(
+  removeEventListener(
     event: VideoNodeObserverEvent,
     listener: VideoChangeListener
-  ) {
-    if (this.eventMap.has(event)) {
-      // biome-ignore lint/style/noNonNullAssertion: checked using has
-      this.eventMap.get(event)!.delete(listener)
-    }
-  }
-
-  public start(selector: string) {
-    this.selector = selector
-
-    this.startObserving()
+  ): void {
+    this.eventListeners.get(event)?.delete(listener)
   }
 
   /**
-   * Begins observing the DOM for video elements.
-   * Waits for document.body to be available before starting the MutationObserver,
-   * which may not exist yet in iframes when the content script runs at document_start.
+   * Begin observing the DOM for video elements matching selector.
+   * Waits for document.body if called at document_start in an iframe.
    */
-  private startObserving() {
+  start(selector: string): void {
+    this.selector = selector
+
     if (!document.body) {
-      // Body not ready yet (common in iframes at document_start).
-      // Retry once the document has parsed enough to have a body.
       if (document.readyState === 'loading') {
         document.addEventListener(
           'DOMContentLoaded',
-          () => this.startObserving(),
-          { once: true }
+          () => this.start(selector),
+          {
+            once: true,
+          }
         )
       } else {
-        // readyState is 'interactive' or 'complete' but body is still null — shouldn't happen, but use documentElement as fallback
         this.observeRoot(document.documentElement)
       }
       return
     }
 
-    // Check for an existing video element before starting the observer
-    const [current, err] = tryCatchSync<HTMLVideoElement | null>(() =>
-      document.querySelector(this.selector)
+    const [existing, err] = tryCatchSync(() =>
+      document.querySelectorAll<HTMLVideoElement>(this.selector)
     )
-
     if (err) {
       throw new Error(`Error selecting video element: ${err.message}`)
     }
-
-    if (current) {
-      this.handleVideoNodeAdded(current)
-    }
+    existing?.forEach((v) => this.handleAdded(v))
 
     this.observeRoot(document.body)
   }
 
-  private observeRoot(root: Node) {
-    this.rootObs.observe(root, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['class', 'id'],
-    })
-  }
-
-  public stop() {
+  stop(): void {
     this.rootObs.disconnect()
     this.srcObs.cleanup()
-    this.eventMap.clear()
+    this.eventListeners.clear()
+    if (this.state.type === 'removing') clearTimeout(this.state.timerId)
+    this.stack.clear()
+    this.state = { type: 'inactive' }
+  }
+
+  private observeRoot(root: Node): void {
+    this.rootObs.observe(root, { childList: true, subtree: true })
+  }
+
+  private handleAdded(video: HTMLVideoElement): void {
+    if (!this.stack.add(video, () => this.updateActive())) {
+      return
+    }
+    this.updateActive()
+  }
+
+  private handleRemoved(video: HTMLVideoElement): void {
+    if (this.isInPip(video)) {
+      return
+    }
+    if (!this.stack.remove(video)) {
+      return
+    }
+    this.updateActive()
+  }
+
+  private updateActive(): void {
+    this.setActive(this.stack.selectBest() ?? null)
+  }
+
+  // Routes to the appropriate named transition — does no work itself
+  private setActive(video: HTMLVideoElement | null): void {
+    if (video === null) {
+      if (this.state.type === 'active') {
+        this.becomeRemoving(this.state.video)
+      }
+      return
+    }
+
+    switch (this.state.type) {
+      case 'inactive':
+        this.becomeActive(video)
+        break
+
+      case 'removing': {
+        clearTimeout(this.state.timerId)
+        if (this.state.video === video) {
+          // Same element re-added (e.g. player re-initialising) — restore
+          // active state silently, no re-emit
+          this.state = { type: 'active', video }
+          this.srcObs.observe(video)
+        } else {
+          this.becomeActive(video)
+        }
+        break
+      }
+
+      case 'active':
+        if (this.state.video !== video) {
+          this.becomeActive(video)
+        }
+        break
+    }
+  }
+
+  private becomeActive(video: HTMLVideoElement): void {
+    this.state = { type: 'active', video }
+    this.srcObs.observe(video)
+    this.emitChange(video)
+  }
+
+  private becomeRemoving(video: HTMLVideoElement): void {
+    const timerId = setTimeout(
+      () => this.becomeInactive(video),
+      REMOVE_DEBOUNCE_MS
+    )
+    this.state = { type: 'removing', video, timerId }
+  }
+
+  private becomeInactive(video: HTMLVideoElement): void {
+    this.state = { type: 'inactive' }
+    this.srcObs.disconnect()
+    this.dispatch('videoNodeRemove', video)
+  }
+
+  private emitChange(video: HTMLVideoElement): void {
+    const last = this.lastChangeTime.get(video)
+    const now = Date.now()
+    if (last !== undefined && now - last < 100) {
+      return
+    }
+    this.lastChangeTime.set(video, now)
+    this.dispatch('videoNodeChange', video)
+  }
+
+  private dispatch(
+    event: VideoNodeObserverEvent,
+    video: HTMLVideoElement
+  ): void {
+    this.eventListeners.get(event)?.forEach((l) => l(video))
+  }
+
+  private isInPip(node: HTMLElement): boolean {
+    if (!window.documentPictureInPicture?.window) {
+      return false
+    }
+    return window.documentPictureInPicture.window.document.contains(node)
   }
 }

@@ -8,21 +8,36 @@ type FrameWithVideo = FrameState & { videoInfo: VideoInfo }
  * Select the best frame to display danmaku on.
  *
  * Priority (tiebreaker order):
- * 1. Last playing video
+ * 1. Currently playing video
  * 2. Largest video (by area)
  * 3. Unmuted video
  * 4. FIFO (Map insertion order)
  *
- * Hysteresis: if the current active frame just paused (within grace period),
- * keep it to avoid disruptive switching (e.g. brief buffering pauses).
+ * Hysteresis: keeps the current active frame while it is playing, or within a
+ * grace period after it pauses (e.g. brief buffering).
  */
 export function selectBestFrame(
   allFrames: Map<number, FrameState>,
   currentActiveFrameId: number | undefined
 ): number | undefined {
+  // Fast path: check hysteresis before building the candidates array.
+  // Keep the current active frame if it's playing (stability when multiple
+  // frames are playing) or just paused within the grace period (buffering).
+  if (currentActiveFrameId !== undefined) {
+    const current = allFrames.get(currentActiveFrameId)
+    if (current?.hasVideo) {
+      const frame = current as FrameWithVideo
+      const recentlyPaused =
+        Date.now() - current.lastPlayTimestamp < GRACE_PERIOD_MS
+      if (frame.videoInfo.playing || recentlyPaused) {
+        return currentActiveFrameId
+      }
+    }
+  }
+
   // Spread preserves Map insertion order (FIFO)
   const candidates = [...allFrames.values()].filter(
-    (f): f is FrameWithVideo => f.hasVideo
+    (f): f is FrameWithVideo => f.hasVideo && f.videoInfo != null
   )
 
   if (candidates.length === 0) {
@@ -31,20 +46,6 @@ export function selectBestFrame(
 
   if (candidates.length === 1) {
     return candidates[0].frameId
-  }
-
-  // Hysteresis: if the current active frame just paused (within grace period),
-  // keep it to avoid disruptive switching (e.g. brief buffering pauses).
-  // If it's still playing, let the sort handle comparison with other playing frames.
-  if (currentActiveFrameId !== undefined) {
-    const current = candidates.find((f) => f.frameId === currentActiveFrameId)
-    if (current && !current.videoInfo.playing) {
-      const recentlyPaused =
-        Date.now() - current.lastPlayTimestamp < GRACE_PERIOD_MS
-      if (recentlyPaused) {
-        return currentActiveFrameId
-      }
-    }
   }
 
   // Stable sort: equal elements keep their original (insertion) order = FIFO
