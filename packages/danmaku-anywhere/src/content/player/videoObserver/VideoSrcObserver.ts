@@ -10,8 +10,8 @@ export class VideoSrcObserver {
     this.observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         if (mutation.type !== 'attributes') continue
-        const target = mutation.target
-        if (!(target instanceof HTMLVideoElement)) continue
+        if (mutation.target.nodeName !== 'VIDEO') continue
+        const target = mutation.target as HTMLVideoElement
 
         if (this.currentSrc !== target.src) {
           this.srcChangeListeners.forEach((listener) => {
@@ -34,6 +34,7 @@ export class VideoSrcObserver {
   }
 
   public observe(videoNode: HTMLVideoElement) {
+    this.observer.disconnect()
     this.currentSrc = videoNode.src
     this.videoNode = videoNode
     this.observer.observe(videoNode, {

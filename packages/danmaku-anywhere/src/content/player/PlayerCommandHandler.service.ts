@@ -84,6 +84,8 @@ export class PlayerCommandHandler {
           src: video.src || video.currentSrc,
           width: video.clientWidth,
           height: video.clientHeight,
+          playing: !video.paused,
+          muted: video.muted,
         },
       })
     })
@@ -94,10 +96,27 @@ export class PlayerCommandHandler {
       })
     })
 
+    for (const event of ['play', 'pause', 'volumechange'] as const) {
+      this.videoEvent.addVideoEventListener(event, () => {
+        const video = this.videoEvent.getVideoElement()
+        if (video) this.sendVideoState(video)
+      })
+    }
+
     this.videoEvent.onTimeEvent(0.5, () => {
       playerRpcClient.controller['relay:event:preloadNextEpisode']({
         frameId: this.frameId,
       })
+    })
+  }
+
+  private sendVideoState(video: HTMLVideoElement) {
+    void playerRpcClient.controller['relay:event:videoStateChange']({
+      frameId: this.frameId,
+      data: {
+        playing: !video.paused,
+        muted: video.muted,
+      },
     })
   }
 

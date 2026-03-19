@@ -1,7 +1,6 @@
-/// <reference types="vitest" />
 import { crx } from '@crxjs/vite-plugin'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import { manifest } from './manifest'
 import { getBuildContext } from './scripts/getBuildContext'
 
@@ -75,5 +74,6 @@ export default defineConfig({
   },
   test: {
     setupFiles: ['src/tests/mockChromeApis.ts', 'src/tests/mockI18n.ts'],
+    environment: 'jsdom',
   },
 })

@@ -17,6 +17,7 @@ import {
   styled,
   Typography,
 } from '@mui/material'
+import type { ReactNode } from 'react'
 import { useState } from 'react'
 import type { FrameState } from '@/content/controller/store/store'
 import { useStore } from '@/content/controller/store/store'
@@ -36,6 +37,23 @@ const FrameCard = styled(Box, {
       : theme.palette.action.hover,
   },
 }))
+
+const VideoInfoRow = ({
+  label,
+  children,
+}: {
+  label: string
+  children: ReactNode
+}) => (
+  <Typography
+    variant="caption"
+    display="block"
+    color="text.secondary"
+    fontSize={10}
+  >
+    <strong style={{ opacity: 0.7 }}>{label}:</strong> {children}
+  </Typography>
+)
 
 const FrameItem = ({
   frame,
@@ -173,28 +191,19 @@ const FrameItem = ({
               borderRadius={1}
               border={(theme) => `1px solid ${theme.palette.divider}`}
             >
-              <Typography
-                variant="caption"
-                display="block"
-                color="text.secondary"
-                noWrap
-                title={frame.videoInfo.src}
-                fontSize={10}
-                mb={0.5}
-                sx={{ userSelect: 'all' }}
-              >
-                <strong style={{ opacity: 0.7 }}>src:</strong>{' '}
-                {frame.videoInfo.src}
-              </Typography>
-              <Typography
-                variant="caption"
-                display="block"
-                color="text.secondary"
-                fontSize={10}
-              >
-                <strong style={{ opacity: 0.7 }}>size:</strong>{' '}
+              <VideoInfoRow label="src">
+                <span title={frame.videoInfo.src} style={{ userSelect: 'all' }}>
+                  {frame.videoInfo.src}
+                </span>
+              </VideoInfoRow>
+              <VideoInfoRow label="size">
                 {frame.videoInfo.width}x{frame.videoInfo.height}
-              </Typography>
+              </VideoInfoRow>
+              <VideoInfoRow label="state">
+                {frame.videoInfo.playing ? 'playing' : 'paused'}
+                {' · '}
+                {frame.videoInfo.muted ? 'muted' : 'unmuted'}
+              </VideoInfoRow>
             </Box>
           )}
 
@@ -224,7 +233,7 @@ const FrameItem = ({
 
 export const FramesPanel = () => {
   const { allFrames, activeFrame, setActiveFrame } = useStore.use.frame()
-  const frames = Array.from(allFrames.values())
+  const frames = [...allFrames.values()]
 
   return (
     <Box display="flex" flexDirection="column" height="100%">

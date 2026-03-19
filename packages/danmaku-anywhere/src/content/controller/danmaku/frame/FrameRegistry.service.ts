@@ -54,19 +54,12 @@ export class FrameRegistry {
    * No-op if the frame isn't tracked.
    */
   unregisterFrame(frameId: number) {
-    if (!this.documentIds.has(frameId)) return
+    if (!this.documentIds.has(frameId)) {
+      return
+    }
 
     this.logger.debug('Frame unloaded, removing', { frameId })
     this.removeFrameInternal(frameId)
-  }
-
-  /**
-   * Ensure there is an active frame. Sets the given frame as active if none is set.
-   */
-  ensureActiveFrame(frameId: number) {
-    if (!useStore.getState().frame.activeFrame) {
-      useStore.getState().frame.setActiveFrame(frameId)
-    }
   }
 
   private removeFrameInternal(frameId: number) {
