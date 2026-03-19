@@ -193,16 +193,25 @@ type PlayerReadyData = {
   documentId: string
 }
 
+export interface VideoInfo {
+  src: string
+  width: number
+  height: number
+  playing: boolean
+  muted: boolean
+}
+
 // Player -> Controller communication
 // Here the frameId is used to identify the SOURCE frame
 export type PlayerRelayEvents = {
   'relay:event:playerReady': RPCDef<InputWithFrameId<PlayerReadyData>, void>
   'relay:event:playerUnload': RPCDef<InputWithFrameId<void>, void>
-  'relay:event:videoChange': RPCDef<
-    InputWithFrameId<{ src: string; width: number; height: number }>,
+  'relay:event:videoChange': RPCDef<InputWithFrameId<VideoInfo>, void>
+  'relay:event:videoRemoved': RPCDef<InputWithFrameId<void>, void>
+  'relay:event:videoStateChange': RPCDef<
+    InputWithFrameId<Pick<VideoInfo, 'playing' | 'muted'>>,
     void
   >
-  'relay:event:videoRemoved': RPCDef<InputWithFrameId<void>, void>
   'relay:event:preloadNextEpisode': RPCDef<InputWithFrameId<void>, void>
   'relay:event:showPopover': RPCDef<InputWithFrameId<void>, void>
 }

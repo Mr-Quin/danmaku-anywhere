@@ -171,6 +171,7 @@ export const standalonePlayerEventHandlers: StandaloneRpcHandlers<PlayerRelayEve
     'relay:event:playerUnload': () => undefined,
     'relay:event:videoChange': () => undefined,
     'relay:event:videoRemoved': () => undefined,
+    'relay:event:videoStateChange': () => undefined,
     'relay:event:preloadNextEpisode': () => undefined,
     'relay:event:showPopover': () => undefined,
   }

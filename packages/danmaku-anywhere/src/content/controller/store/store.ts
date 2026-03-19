@@ -6,10 +6,13 @@ import { enableMapSet } from 'immer'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
+import type { VideoInfo } from '@/common/rpcClient/background/types'
 import { createSelectors } from '@/common/utils/createSelectors'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 
 enableMapSet()
+
+export type { VideoInfo }
 
 export interface FrameState {
   frameId: number
@@ -22,11 +25,9 @@ export interface FrameState {
   // Whether a video element is detected in this frame
   hasVideo: boolean
   // Info about the active video element
-  videoInfo?: {
-    src: string
-    width: number
-    height: number
-  }
+  videoInfo?: VideoInfo
+  // Timestamp of when the video last started playing (used for hysteresis)
+  lastPlayTimestamp: number
 }
 
 interface StoreState {
@@ -164,15 +165,9 @@ const useStoreBase = create<StoreState>()(
       },
       isVisible: true,
       toggleVisible: (visible) => {
-        if (visible === undefined) {
-          set((state) => {
-            state.danmaku.isVisible = !state.danmaku.isVisible
-          })
-        } else {
-          set((state) => {
-            state.danmaku.isVisible = visible
-          })
-        }
+        set((state) => {
+          state.danmaku.isVisible = visible ?? !state.danmaku.isVisible
+        })
       },
 
       comments: [],
@@ -185,15 +180,9 @@ const useStoreBase = create<StoreState>()(
 
       isManual: false,
       toggleManualMode: (manual) => {
-        if (manual !== undefined) {
-          set((state) => {
-            state.danmaku.isManual = manual
-          })
-        } else {
-          set((state) => {
-            state.danmaku.isManual = !state.danmaku.isManual
-          })
-        }
+        set((state) => {
+          state.danmaku.isManual = manual ?? !state.danmaku.isManual
+        })
       },
     },
 
@@ -286,6 +275,7 @@ const useStoreBase = create<StoreState>()(
             started: false,
             mounted: false,
             hasVideo: false,
+            lastPlayTimestamp: 0,
           })
         })
       },
@@ -335,28 +325,17 @@ const useStoreBase = create<StoreState>()(
     integrationForm: {
       showEditor: false,
       toggleEditor: (show) => {
-        if (show !== undefined) {
-          set((state) => {
-            state.integrationForm.showEditor = show
-          })
-        } else {
-          set((state) => {
-            state.integrationForm.showEditor = !state.integrationForm.showEditor
-          })
-        }
+        set((state) => {
+          state.integrationForm.showEditor =
+            show ?? !state.integrationForm.showEditor
+        })
       },
       showAiEditor: false,
       toggleAiEditor: (show) => {
-        if (show !== undefined) {
-          set((state) => {
-            state.integrationForm.showAiEditor = show
-          })
-        } else {
-          set((state) => {
-            state.integrationForm.showAiEditor =
-              !state.integrationForm.showAiEditor
-          })
-        }
+        set((state) => {
+          state.integrationForm.showAiEditor =
+            show ?? !state.integrationForm.showAiEditor
+        })
       },
       isPicking: false,
       setIsPicking: (picking) => {

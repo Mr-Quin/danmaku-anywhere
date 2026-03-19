@@ -407,6 +407,9 @@ export class RpcManager {
         'relay:event:videoRemoved': passThrough(
           relayFrameClient['relay:event:videoRemoved']
         ),
+        'relay:event:videoStateChange': passThrough(
+          relayFrameClient['relay:event:videoStateChange']
+        ),
         'relay:event:preloadNextEpisode': passThrough(
           relayFrameClient['relay:event:preloadNextEpisode']
         ),
