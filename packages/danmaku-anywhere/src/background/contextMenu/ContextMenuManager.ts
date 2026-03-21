@@ -29,7 +29,7 @@ export class ContextMenuManager {
         active: true,
         currentWindow: true,
       })
-      if (tab.id && tab.url) {
+      if (tab && tab.id && tab.url) {
         await rebuildDynamicMenus(tab.id, tab.url)
       }
     })
