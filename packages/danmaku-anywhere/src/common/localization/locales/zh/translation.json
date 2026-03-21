@@ -597,6 +597,8 @@
     "titleMapping": "标题映射"
   },
   "titleMapping": {
+    "deleteConfirm_other": "确定要删除 {{count}} 个标题映射吗？",
+    "deleteConfirmOne": "确定要删除此标题映射吗？",
     "empty": "没有标题映射",
     "noSeasons": "没有可以映射的番剧",
     "title": "标题映射",

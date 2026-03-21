@@ -39,6 +39,11 @@ export class TitleMappingService {
     await this.db.seasonMap.where({ key }).delete()
   }
 
+  async removeMany(keys: string[]) {
+    this.logger.debug('Removing title mappings:', keys)
+    await this.db.seasonMap.where('key').anyOf(keys).delete()
+  }
+
   async get(key: string) {
     const snapshot = await this.db.seasonMap.get({ key })
     return snapshot ? SeasonMap.fromSnapshot(snapshot) : undefined

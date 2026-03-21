@@ -111,6 +111,7 @@ export type BackgroundMethods = {
   episodeImport: RPCDef<DanmakuImportData[], DanmakuImportResult>
   seasonMapAdd: RPCDef<SeasonMapSnapshot, void>
   seasonMapDelete: RPCDef<{ key: string }, void>
+  seasonMapDeleteMany: RPCDef<{ keys: string[] }, void>
 
   seasonMapGetAll: RPCDef<void, SeasonMapSnapshot[]>
   danmakuPurgeCache: RPCDef<number, number>

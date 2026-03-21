@@ -166,6 +166,9 @@ export class RpcManager {
         seasonMapDelete: async (data) => {
           return this.titleMappingService.remove(data.key)
         },
+        seasonMapDeleteMany: async (data) => {
+          return this.titleMappingService.removeMany(data.keys)
+        },
 
         seasonMapGetAll: async () => {
           const seasonMaps = await this.titleMappingService.getAll()
