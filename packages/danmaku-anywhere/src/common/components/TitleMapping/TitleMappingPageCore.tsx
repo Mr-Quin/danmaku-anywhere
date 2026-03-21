@@ -64,8 +64,13 @@ export const TitleMappingPageCore = ({
     setSelectedIds([])
   }
 
+  const allSelected =
+    mappings.length > 0 && selectedIds.length === mappings.length
+  const someSelected =
+    selectedIds.length > 0 && selectedIds.length < mappings.length
+
   const handleSelectAll = () => {
-    if (selectedIds.length > 0) {
+    if (allSelected) {
       setSelectedIds([])
     } else {
       setSelectedIds(mappings.map((m) => m.key))
@@ -121,7 +126,8 @@ export const TitleMappingPageCore = ({
           showListView ? (
             <Collapse in={multiselect} orientation="horizontal" unmountOnExit>
               <Checkbox
-                checked={selectedIds.length > 0}
+                checked={allSelected}
+                indeterminate={someSelected}
                 onChange={handleSelectAll}
                 size="small"
                 edge="start"

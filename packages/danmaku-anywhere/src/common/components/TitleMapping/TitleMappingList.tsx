@@ -1,6 +1,7 @@
 import { Delete } from '@mui/icons-material'
-import { Chip, IconButton } from '@mui/material'
+import { Chip, IconButton, Tooltip } from '@mui/material'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
 import { ListItemPrimaryStack } from '@/common/components/ListItemPrimaryStack'
 import type { SeasonMap } from '@/common/seasonMap/SeasonMap'
@@ -27,6 +28,7 @@ export const TitleMappingList = ({
   onSelect,
   onDelete,
 }: TitleMappingListProps) => {
+  const { t } = useTranslation()
   const items: DraggableSeasonMap[] = useMemo(
     () => mappings.map((map) => ({ id: map.key, original: map })),
     [mappings]
@@ -47,9 +49,11 @@ export const TitleMappingList = ({
         </ListItemPrimaryStack>
       )}
       renderSecondaryAction={(item) => (
-        <IconButton edge="end" size="small" onClick={() => onDelete(item.id)}>
-          <Delete fontSize="small" />
-        </IconButton>
+        <Tooltip title={t('common.delete', 'Delete')}>
+          <IconButton edge="end" size="small" onClick={() => onDelete(item.id)}>
+            <Delete fontSize="small" />
+          </IconButton>
+        </Tooltip>
       )}
     />
   )
