@@ -33,7 +33,6 @@ export const FrameManager = () => {
   const enableFullscreenInteraction =
     extensionOptions.playerOptions.enableFullscreenInteraction
 
-  const setVideoId = useStore.use.setVideoId()
   const { updateFrame } = useStore.use.frame()
 
   const unmountDanmaku = useUnmountDanmaku()
@@ -58,7 +57,6 @@ export const FrameManager = () => {
   const videoChangeHandler = useEventCallback(
     (frameId: number, data: VideoInfo) => {
       const frame = useStore.getState().frame.allFrames.get(frameId)
-      setVideoId(`${frameId}-${Date.now()}`)
       updateFrame(frameId, {
         hasVideo: true,
         videoInfo: data,
@@ -85,7 +83,6 @@ export const FrameManager = () => {
   const videoRemovedHandler = useEventCallback((frameId: number) => {
     const activeFrame = useStore.getState().frame.activeFrame
     if (activeFrame?.frameId === frameId) {
-      setVideoId(undefined)
       if (activeFrame.mounted) {
         unmountDanmaku.mutate(frameId)
       }

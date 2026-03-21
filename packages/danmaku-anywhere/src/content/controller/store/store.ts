@@ -93,11 +93,9 @@ interface StoreState {
   }
 
   /**
-   * Whether the video element is present
+   * Whether the active frame has a video element.
    */
   hasVideo: () => boolean
-  videoId?: string
-  setVideoId: (videoId?: string) => void
 
   /**
    * State of each frame in the page
@@ -105,7 +103,7 @@ interface StoreState {
   frame: {
     allFrames: Map<number, FrameState>
     activeFrame?: FrameState
-    mustGetActiveFrame: () => FrameState
+    getActiveFrame: () => FrameState | undefined
     setActiveFrame: (frameId: number) => void
     addFrame: (init: Pick<FrameState, 'frameId' | 'url'>) => void
     removeFrame: (frameId: number) => void
@@ -187,8 +185,12 @@ const useStoreBase = create<StoreState>()(
     },
 
     seekToTime: (time) => {
+      const activeFrame = get().frame.getActiveFrame()
+      if (!activeFrame) {
+        return
+      }
       void playerRpcClient.player['relay:command:seek']({
-        frameId: get().frame.mustGetActiveFrame().frameId,
+        frameId: activeFrame.frameId,
         data: time,
       })
     },
@@ -235,24 +237,14 @@ const useStoreBase = create<StoreState>()(
     },
 
     hasVideo: () => {
-      return get().videoId !== undefined
-    },
-    videoId: undefined,
-    setVideoId: (videoId) => {
-      set((state) => {
-        state.videoId = videoId
-      })
+      return get().frame.activeFrame?.hasVideo ?? false
     },
 
     frame: {
       allFrames: new Map<number, FrameState>(),
       activeFrame: undefined,
-      mustGetActiveFrame: () => {
-        const activeFrame = get().frame.activeFrame
-        if (activeFrame === undefined) {
-          throw new Error('No active frame')
-        }
-        return activeFrame
+      getActiveFrame: () => {
+        return get().frame.activeFrame
       },
       setActiveFrame: (frameId) => {
         const selectedFrame = get().frame.allFrames.get(frameId)
@@ -289,7 +281,6 @@ const useStoreBase = create<StoreState>()(
         }
 
         if (frame.mounted) {
-          get().setVideoId(undefined)
           get().danmaku.unmount()
         }
 

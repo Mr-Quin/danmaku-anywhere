@@ -42,7 +42,7 @@ function getActiveStep(steps: StepData[]) {
 export const MatchingSteps = () => {
   const { t } = useTranslation()
   const activeConfig = useActiveConfig()
-  const videoId = useStore.use.videoId?.()
+  const activeFrame = useStore((s) => s.frame.activeFrame)
   const { toggleEditor, toggleAiEditor } = useStore.use.integrationForm()
   const { mediaInfo, foundElements, errorMessage, active } =
     useStore.use.integration()
@@ -157,7 +157,7 @@ export const MatchingSteps = () => {
         ),
     }
 
-    const hasVideo = !!videoId
+    const hasVideo = activeFrame?.hasVideo ?? false
 
     const checkVideoStep = {
       label: t('integration.steps.checkVideo', 'Check Video'),
@@ -251,7 +251,7 @@ export const MatchingSteps = () => {
   }, [
     t,
     activeIntegration,
-    videoId,
+    activeFrame,
     activeConfig,
     active,
     isConfigPermissive,

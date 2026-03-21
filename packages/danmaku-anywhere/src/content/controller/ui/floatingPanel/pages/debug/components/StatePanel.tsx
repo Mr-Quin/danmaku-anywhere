@@ -44,14 +44,14 @@ export const StatePanel = () => {
   const integration = useStore.use.integration()
   const integrationForm = useStore.use.integrationForm()
   const isDisconnected = useStore.use.isDisconnected()
-  const videoId = useStore.use.videoId?.()
+  const activeFrame = useStore((s) => s.frame.activeFrame)
   const toastState = useToast()
   const { dialogs, closingIds, loadingIds } = useDialogStore()
 
   // Build a nice serialized version of state
   const generalState = {
     isDisconnected,
-    videoId: videoId ?? null,
+    hasVideo: activeFrame?.hasVideo ?? false,
   }
 
   const cleanDanmakuState = {
