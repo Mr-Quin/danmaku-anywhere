@@ -24,7 +24,5 @@ export interface BackupRestoreResult {
 
 export interface CloudBackupItem {
   id: string
-  userId: string
-  fileKey: string
   createdAt: number
 }

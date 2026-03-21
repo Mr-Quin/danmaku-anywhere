@@ -12,6 +12,7 @@ export class BackupService {
 
   async listBackups(userId: string) {
     return await this.db.query.userBackups.findMany({
+      columns: { id: true, createdAt: true },
       where: eq(userBackups.userId, userId),
       orderBy: [desc(userBackups.createdAt)],
     })
@@ -37,18 +38,23 @@ export class BackupService {
     return await obj.json()
   }
 
-  async createBackup(userId: string, data: any) {
+  async createBackup(userId: string, data: unknown) {
     const existingBackups = await this.db.query.userBackups.findMany({
       where: eq(userBackups.userId, userId),
       orderBy: [desc(userBackups.createdAt)],
     })
 
+    // Prune oldest backups to stay within the revision limit.
+    // D1 does not support interactive transactions, so there is a
+    // theoretical race if the same user creates backups concurrently.
     if (existingBackups.length >= MAX_REVISIONS) {
       const oldestBackups = existingBackups.slice(MAX_REVISIONS - 1)
-      for (const ob of oldestBackups) {
-        await this.filesBucket.delete(`backups/${userId}/${ob.fileKey}`)
-        await this.db.delete(userBackups).where(eq(userBackups.id, ob.id))
-      }
+      await Promise.all(
+        oldestBackups.map(async (ob) => {
+          await this.filesBucket.delete(`backups/${userId}/${ob.fileKey}`)
+          await this.db.delete(userBackups).where(eq(userBackups.id, ob.id))
+        })
+      )
     }
 
     const fileKey = `${Date.now()}.json`

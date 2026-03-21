@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import type { AuthUser } from '@/auth/types'
 import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
 import '@/test-utils/mockBindings'
 import { env } from 'cloudflare:test'
@@ -10,6 +11,15 @@ import { backupRouter } from './router'
 
 const IncomingRequest = Request
 
+interface CreateBackupResponse {
+  success: boolean
+  id: string
+}
+
+interface ListBackupsResponse {
+  backups: Array<{ id: string; createdAt: number }>
+}
+
 describe('Backup API', () => {
   // We need to inject the mock auth user before the router
   const createAppWithUser = (userId: string | null) => {
@@ -20,7 +30,7 @@ describe('Backup API', () => {
           id: userId,
           name: 'Test',
           email: 'test@example.com',
-        })
+        } as AuthUser)
       } else {
         c.set('authUser', null)
       }
@@ -68,9 +78,9 @@ describe('Backup API', () => {
     })
 
     const response = await makeUnitTestRequest(request, { app })
-    expect(response.status).toBe(200)
+    expect(response.status).toBe(201)
 
-    const data: any = await response.json()
+    const data = (await response.json()) as CreateBackupResponse
     expect(data.success).toBe(true)
     expect(data.id).toBeDefined()
   })
@@ -111,19 +121,16 @@ describe('Backup API', () => {
       new IncomingRequest(createTestUrl('/backup'), { method: 'GET' }),
       { app: appUser1 }
     )
-    const body1: any = await res1.json()
+    const body1 = (await res1.json()) as ListBackupsResponse
     expect(body1.backups.length).toBe(2)
-    // they should belong to user1
-    expect(body1.backups.every((b: any) => b.userId === 'user1')).toBe(true)
 
     // User 2 should only see 1
     const res2 = await makeUnitTestRequest(
       new IncomingRequest(createTestUrl('/backup'), { method: 'GET' }),
       { app: appUser2 }
     )
-    const body2: any = await res2.json()
+    const body2 = (await res2.json()) as ListBackupsResponse
     expect(body2.backups.length).toBe(1)
-    expect(body2.backups[0].userId).toBe('user2')
   })
 
   it("prevents user from getting another user's backup", async () => {
@@ -144,7 +151,7 @@ describe('Backup API', () => {
       }),
       { app: appUser1 }
     )
-    const createData: any = await createRes.json()
+    const createData = (await createRes.json()) as CreateBackupResponse
     const backupId = createData.id
 
     // User 2 attempts to fetch user 1's backup
@@ -183,7 +190,7 @@ describe('Backup API', () => {
       new IncomingRequest(createTestUrl('/backup'), { method: 'GET' }),
       { app }
     )
-    const body: any = await res.json()
+    const body = (await res.json()) as ListBackupsResponse
 
     // Should have pruned down to latest 3
     expect(body.backups.length).toBe(3)

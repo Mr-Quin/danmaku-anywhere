@@ -66,7 +66,13 @@ export function CloudBackupSection({
       void refetch()
     },
     onError: (error) => {
-      toast.error(`Cloud backup failed: ${error.message}`)
+      toast.error(
+        t(
+          'optionsPage.backup.cloudCreateError',
+          'Cloud backup failed: {{message}}',
+          { message: error.message }
+        )
+      )
     },
   })
 
@@ -79,7 +85,13 @@ export function CloudBackupSection({
       importMutation.mutate(data)
     },
     onError: (error) => {
-      toast.error(`Failed to download cloud backup: ${error.message}`)
+      toast.error(
+        t(
+          'optionsPage.backup.cloudDownloadError',
+          'Failed to download cloud backup: {{message}}',
+          { message: error.message }
+        )
+      )
       onRestoringChange?.(false)
     },
   })

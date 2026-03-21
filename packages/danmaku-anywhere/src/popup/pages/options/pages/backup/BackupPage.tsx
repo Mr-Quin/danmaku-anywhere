@@ -17,15 +17,11 @@ export function BackupPage() {
       />
       <Box sx={{ px: 2, pb: 4 }}>
         <Stack spacing={4}>
-          <Box>
-            <LocalBackupSection isRestoringExt={isRestoringCloud} />
-          </Box>
+          <LocalBackupSection isRestoringExt={isRestoringCloud} />
           <Divider />
-          <Box>
-            <CloudBackupSection
-              onRestoringChange={(val) => setIsRestoringCloud(val)}
-            />
-          </Box>
+          <CloudBackupSection
+            onRestoringChange={(val) => setIsRestoringCloud(val)}
+          />
         </Stack>
       </Box>
     </OptionsPageLayout>
