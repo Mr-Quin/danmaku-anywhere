@@ -60,6 +60,7 @@ export const FrameManager = () => {
       updateFrame(frameId, {
         hasVideo: true,
         videoInfo: data,
+        videoChangeCount: (frame?.videoChangeCount ?? 0) + 1,
         lastPlayTimestamp: data.playing
           ? Date.now()
           : (frame?.lastPlayTimestamp ?? 0),

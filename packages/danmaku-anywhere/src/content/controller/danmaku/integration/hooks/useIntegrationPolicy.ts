@@ -29,7 +29,7 @@ export const useIntegrationPolicy = () => {
     if (!af?.hasVideo) {
       return undefined
     }
-    return af.frameId
+    return `${af.frameId}:${af.videoChangeCount}`
   })
   const unmountDanmaku = useUnmountDanmaku()
   const {

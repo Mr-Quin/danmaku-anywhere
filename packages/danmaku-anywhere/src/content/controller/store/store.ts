@@ -26,6 +26,8 @@ export interface FrameState {
   hasVideo: boolean
   // Info about the active video element
   videoInfo?: VideoInfo
+  // Monotonic counter incremented each time a new video is detected in this frame
+  videoChangeCount: number
   // Timestamp of when the video last started playing (used for hysteresis)
   lastPlayTimestamp: number
 }
@@ -267,6 +269,7 @@ const useStoreBase = create<StoreState>()(
             started: false,
             mounted: false,
             hasVideo: false,
+            videoChangeCount: 0,
             lastPlayTimestamp: 0,
           })
         })

@@ -42,13 +42,12 @@ const useMountDanmaku = () => {
       if (!res.data) {
         throw new Error('Failed to mount danmaku')
       }
+
+      return activeFrame.frameId
     },
-    onSuccess: (_, danmaku) => {
-      const activeFrame = getActiveFrame()
+    onSuccess: (mountedFrameId, danmaku) => {
       mount(danmaku)
-      if (activeFrame) {
-        updateFrame(activeFrame.frameId, { mounted: true })
-      }
+      updateFrame(mountedFrameId, { mounted: true })
     },
     onError: (err) => {
       toast.error(err.message)
