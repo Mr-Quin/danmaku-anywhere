@@ -4,6 +4,7 @@ import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type { PlayerRelayCommands } from '@/common/rpcClient/background/types'
+import { getRandomUUID } from '@/common/utils/utils'
 import { PlayerCommandHandler } from '@/content/player/PlayerCommandHandler.service'
 
 /**
@@ -20,7 +21,7 @@ import { PlayerCommandHandler } from '@/content/player/PlayerCommandHandler.serv
 export class PlayerScript {
   private logger: ILogger
   private frameId = -1
-  private readonly documentId = crypto.randomUUID()
+  private readonly documentId = getRandomUUID()
 
   constructor(@inject(LoggerSymbol) logger: ILogger) {
     this.logger = logger.sub('[PlayerScript]')

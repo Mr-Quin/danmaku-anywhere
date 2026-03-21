@@ -53,7 +53,7 @@ export const manifest = defineManifest({
       run_at: 'document_start',
     },
     {
-      matches: ['https://*/*', 'http://*/*'],
+      matches: ['<all_urls>'],
       js: ['src/content/player/index.ts'],
       run_at: 'document_start',
       all_frames: true,
