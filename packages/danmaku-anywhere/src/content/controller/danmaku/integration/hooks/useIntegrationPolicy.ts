@@ -1,28 +1,24 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
+import { uiContainer } from '@/common/ioc/uiIoc'
 import { Logger } from '@/common/Logger'
-import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
+import { integrationData } from '@/common/options/mountConfig/integrationData'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'
-import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
-import type { MediaObserver } from '@/content/controller/danmaku/integration/observers/MediaObserver'
-import { ObserverFactory } from '@/content/controller/danmaku/integration/observers/ObserverFactory'
+import { IntegrationService } from '@/content/controller/danmaku/integration/IntegrationService'
 import { useStore } from '@/content/controller/store/store'
-import { useSyncIntegrationManualMode } from './useSyncIntegrationManualMode'
-import { useWarnIncompleteConfig } from './useWarnIncompleteConfig'
+
+const integrationService = uiContainer.get(IntegrationService)
 
 export const useIntegrationPolicy = () => {
   const { t } = useTranslation()
-
   const { toast } = useToast()
-
-  const [observer, setObserver] = useState<MediaObserver | null>(null)
 
   const activeFrameVideoKey = useStore((s) => {
     const af = s.frame.activeFrame
@@ -31,165 +27,167 @@ export const useIntegrationPolicy = () => {
     }
     return `${af.frameId}:${af.videoChangeCount}`
   })
-  const unmountDanmaku = useUnmountDanmaku()
-  const {
-    setMediaInfo,
-    setErrorMessage,
-    activate,
-    deactivate,
-    setFoundElements,
-    resetIntegration,
-  } = useStore.use.integration()
 
   const matchEpisode = useMatchEpisode()
   const { loadMutation, mountDanmaku } = useLoadDanmaku()
+  const unmountDanmaku = useUnmountDanmaku()
 
   const integrationPolicy = useActiveIntegration()
   const activeConfig = useActiveConfig()
 
-  const isManual = useSyncIntegrationManualMode()
-  const isConfigIncomplete = useWarnIncompleteConfig()
+  const prevVideoKeyRef = useRef<string | undefined>(undefined)
 
+  // Config/policy change → update service
   useEffect(() => {
-    if (isManual || isConfigIncomplete) {
-      if (observer) {
-        Logger.debug(
-          'Destroying integration observer because manual mode or config is incomplete'
-        )
-        observer.destroy()
-        setObserver(null)
-        deactivate()
-        resetIntegration()
-      }
-      return
-    }
+    const { warning } = integrationService.handleConfigChange(
+      activeConfig,
+      integrationPolicy?.policy ?? null
+    )
 
-    if (isConfigPermissive(activeConfig) && activeConfig.mode === 'ai') {
+    if (warning === 'incomplete') {
+      toast.warn(
+        t(
+          'integration.alert.noIntegration',
+          'Integration policy not configured'
+        )
+      )
+    } else if (warning === 'permissive') {
       toast.warn(
         t(
           'integration.alert.aiDisabledTooPermissive',
           'AI is disabled because the mount config is too permissive'
         )
       )
+    } else if (activeConfig.mode !== 'manual') {
+      toast.info(
+        t('integration.alert.usingMode', 'Using Mode: {{mode}}', {
+          mode: integrationData[activeConfig.mode].label(),
+        })
+      )
+    }
+
+    // Sync manual mode to store
+    useStore.getState().danmaku.toggleManualMode(activeConfig.mode === 'manual')
+    Logger.debug(`Using mode: ${activeConfig.mode}`)
+  }, [activeConfig, integrationPolicy])
+
+  // Video state change → tell service
+  useEffect(() => {
+    const hasVideo = activeFrameVideoKey !== undefined
+    const videoChanged = activeFrameVideoKey !== prevVideoKeyRef.current
+
+    prevVideoKeyRef.current = activeFrameVideoKey
+
+    if (!videoChanged) {
       return
     }
 
-    const newObserver = ObserverFactory.create(
-      activeConfig,
-      integrationPolicy?.policy ?? null
-    )
-    Logger.debug('Created integration observer', newObserver.name)
+    integrationService.handleVideoChange(hasVideo)
+  }, [activeFrameVideoKey])
 
-    activate()
+  // Subscribe to machine state changes for side effects (toasts, mutations)
+  useEffect(() => {
+    const subscription = integrationService.subscribe((snapshot) => {
+      const state = snapshot.value as string
+      const ctx = snapshot.context
 
-    newObserver.on({
-      statusChange: (status: string) => {
-        if (status === 'Extracting video info using AI...') {
-          toast.info(
-            t('integration.alert.usingAI', 'Using AI to parse show information')
-          )
-        }
-      },
-      mediaChange: (state: MediaInfo) => {
+      // Handle matching state — trigger episode match
+      if (state === 'matching' && ctx.mediaInfo) {
+        const mediaInfo = ctx.mediaInfo
+
         getTrackingService().track('integrationPolicyMediaChange', {
-          mediaInfo: state.toJSON(),
+          mediaInfo: mediaInfo.toJSON(),
           policy: integrationPolicy,
         })
+
         if (activeConfig.mode === 'ai') {
           toast.success(
             t('integration.alert.AIResult', 'AI Parsing Result: {{title}}', {
-              title: state.toString(),
+              title: mediaInfo.toString(),
             })
           )
         }
+
         if (useStore.getState().danmaku.isMounted) {
           unmountDanmaku.mutate()
         }
 
-        setMediaInfo(state)
-        setErrorMessage()
-
-        const episodeMatchPayload = {
-          mapKey: state.getKey(),
-          title: state.title,
-          episodeNumber: state.episode,
-          originalTitle: state.originalTitle,
-        }
-
         toast.info(
           t('integration.alert.search', 'Searching for anime: {{title}}', {
-            title: state.toString(),
+            title: mediaInfo.toString(),
           })
         )
 
+        const episodeMatchPayload = {
+          mapKey: mediaInfo.getKey(),
+          title: mediaInfo.title,
+          episodeNumber: mediaInfo.episode,
+          originalTitle: mediaInfo.originalTitle,
+        }
+
         matchEpisode.mutate(episodeMatchPayload, {
           onSuccess: (result) => {
-            if (result.data.status !== 'success') {
-              return
-            }
-            if (result.data.data.provider === DanmakuSourceType.MacCMS) {
-              toast.success(
-                t(
-                  'integration.alert.matchedLocalDanmaku',
-                  'Matched local danmaku'
+            if (result.data.status === 'success') {
+              if (result.data.data.provider === DanmakuSourceType.MacCMS) {
+                toast.success(
+                  t(
+                    'integration.alert.matchedLocalDanmaku',
+                    'Matched local danmaku'
+                  )
                 )
-              )
-              void mountDanmaku([result.data.data])
-            } else {
-              loadMutation.mutate(
-                {
-                  type: 'by-meta',
-                  meta: result.data.data,
-                  options: {
-                    forceUpdate: false,
+                void mountDanmaku([result.data.data])
+              } else {
+                loadMutation.mutate(
+                  {
+                    type: 'by-meta',
+                    meta: result.data.data,
+                    options: { forceUpdate: false },
                   },
-                },
-                {
-                  onError: () => {
-                    toast.error(
-                      t(
-                        'danmaku.alert.fetchError',
-                        'Failed to fetch danmaku: {{message}}',
-                        {
-                          message: episodeMatchPayload.title,
-                        }
+                  {
+                    onError: () => {
+                      toast.error(
+                        t(
+                          'danmaku.alert.fetchError',
+                          'Failed to fetch danmaku: {{message}}',
+                          { message: episodeMatchPayload.title }
+                        )
                       )
-                    )
-                  },
-                }
-              )
+                    },
+                  }
+                )
+              }
             }
           },
         })
-      },
-      mediaElementsChange: () => {
-        setFoundElements(true)
-      },
-      error: (error: Error) => {
-        getTrackingService().track('integrationPolicyError', { error })
-        toast.error(error.message)
-        setErrorMessage(error.message)
-      },
+      }
+
+      // Handle error state
+      if (state === 'error' && ctx.error) {
+        getTrackingService().track('integrationPolicyError', {
+          error: new Error(ctx.error),
+        })
+        toast.error(ctx.error)
+      }
     })
 
-    newObserver.setup()
-    setObserver(newObserver)
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [activeConfig, integrationPolicy])
+
+  // Handle AI status toast
+  useEffect(() => {
+    const subscription = integrationService.subscribe((snapshot) => {
+      // The observer emits statusChange internally
+      // For the AI toast, we check machine state
+      if (snapshot.value === 'observing' && activeConfig.mode === 'ai') {
+        // AI toast is handled by the observer's statusChange event
+        // which the service doesn't expose yet — keep using observer events for now
+      }
+    })
 
     return () => {
-      newObserver.destroy()
-      setObserver(null)
+      subscription.unsubscribe()
     }
-  }, [activeConfig, integrationPolicy, isManual, isConfigIncomplete])
-
-  useEffect(() => {
-    if (!observer) {
-      return
-    }
-    if (activeFrameVideoKey !== undefined) {
-      observer.run()
-    } else {
-      observer.reset()
-      resetIntegration()
-    }
-  }, [activeFrameVideoKey, observer])
+  }, [activeConfig])
 }

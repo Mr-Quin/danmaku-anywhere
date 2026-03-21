@@ -73,7 +73,11 @@ export default defineConfig({
     skipWebSocketTokenCheck: true,
   },
   test: {
-    setupFiles: ['src/tests/mockChromeApis.ts', 'src/tests/mockI18n.ts'],
+    setupFiles: [
+      'src/tests/mockChromeApis.ts',
+      'src/tests/mockI18n.ts',
+      'src/tests/mockLogger.ts',
+    ],
     environment: 'jsdom',
   },
 })
