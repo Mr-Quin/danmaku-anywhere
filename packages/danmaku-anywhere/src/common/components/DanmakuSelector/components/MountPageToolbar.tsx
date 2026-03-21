@@ -1,17 +1,10 @@
 import type { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
-import { CheckBox, CheckBoxOutlined } from '@mui/icons-material'
-import {
-  Button,
-  Checkbox,
-  Chip,
-  Collapse,
-  Stack,
-  Typography,
-} from '@mui/material'
+import { Button, Checkbox, Collapse } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { FilterButton } from '@/common/components/FilterButton'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
+import { MultiselectChip } from '@/common/components/MultiselectChip'
 import { TypeSelector } from '@/common/components/TypeSelector'
 import type { DAMenuItemConfig } from '../../Menu/DAMenuItemConfig'
 
@@ -82,23 +75,7 @@ export const MountPageToolbar = ({
         selectedTypes={selectedTypes as DanmakuSourceType[]}
         setSelectedType={(types) => onSelectedTypesChange(types)}
       />
-      <Chip
-        variant="outlined"
-        label={
-          <Stack direction="row" alignItems="center" gap={0.5}>
-            {multiselect ? (
-              <CheckBox fontSize="small" />
-            ) : (
-              <CheckBoxOutlined fontSize="small" />
-            )}
-            <Typography variant="body2" fontSize="small">
-              {t('common.multiselect', 'Multiselect')}
-            </Typography>
-          </Stack>
-        }
-        onClick={onToggleMultiselect}
-        color="primary"
-      />
+      <MultiselectChip active={multiselect} onToggle={onToggleMultiselect} />
 
       {onUnmount && (
         <Collapse in={isMounted} unmountOnExit orientation="horizontal">

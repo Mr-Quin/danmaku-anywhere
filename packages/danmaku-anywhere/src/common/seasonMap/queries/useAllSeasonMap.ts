@@ -27,5 +27,11 @@ export const useSeasonMapMutations = () => {
         return chromeRpcClient.seasonMapDelete({ key })
       },
     }),
+    deleteMany: useMutation({
+      mutationKey: seasonMapQueryKeys.all(),
+      mutationFn: async (keys: string[]) => {
+        return chromeRpcClient.seasonMapDeleteMany({ keys })
+      },
+    }),
   }
 }

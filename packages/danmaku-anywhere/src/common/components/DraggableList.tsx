@@ -19,6 +19,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { DragIndicator } from '@mui/icons-material'
 import {
+  Checkbox,
   List,
   ListItem,
   ListItemButton,
@@ -28,7 +29,7 @@ import {
   styled,
 } from '@mui/material'
 import type { ReactNode } from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { NothingHere } from '@/common/components/NothingHere'
 import { ScrollBox } from './layout/ScrollBox'
@@ -64,7 +65,10 @@ interface SortableItemProps<T extends DraggableItem> {
   item: T
   clickable?: boolean
   disableReorder?: boolean
+  multiselect?: boolean
+  selected?: boolean
   onEdit?: (item: T) => void
+  onToggleSelect?: (item: T) => void
   renderPrimary: (item: T) => ReactNode
   renderSecondary?: (item: T) => ReactNode
   renderSecondaryAction?: (item: T) => ReactNode
@@ -74,7 +78,10 @@ function SortableItem<T extends DraggableItem>({
   item,
   clickable = true,
   disableReorder,
+  multiselect,
+  selected,
   onEdit,
+  onToggleSelect,
   renderPrimary,
   renderSecondary,
   renderSecondaryAction,
@@ -89,7 +96,11 @@ function SortableItem<T extends DraggableItem>({
   } = useSortable({ id: item.id })
 
   function handleClick() {
-    onEdit?.(item)
+    if (multiselect) {
+      onToggleSelect?.(item)
+    } else {
+      onEdit?.(item)
+    }
   }
 
   const style = {
@@ -103,9 +114,22 @@ function SortableItem<T extends DraggableItem>({
     secondary: renderSecondary?.(item),
   }
 
+  const isClickable = multiselect || clickable
+
   const listItemInner = (
     <>
-      {!disableReorder ? (
+      {multiselect ? (
+        <ListItemIcon sx={{ minWidth: 0 }}>
+          <Checkbox
+            edge="start"
+            checked={selected}
+            disableRipple
+            tabIndex={-1}
+            size="small"
+            sx={{ py: 0 }}
+          />
+        </ListItemIcon>
+      ) : !disableReorder ? (
         <DraggableItemIcon {...listeners}>
           <DragIndicator />
         </DraggableItemIcon>
@@ -120,12 +144,16 @@ function SortableItem<T extends DraggableItem>({
       style={style}
       key={item.id}
       secondaryAction={
-        renderSecondaryAction ? renderSecondaryAction(item) : null
+        multiselect
+          ? null
+          : renderSecondaryAction
+            ? renderSecondaryAction(item)
+            : null
       }
-      disablePadding={clickable}
+      disablePadding={isClickable}
       {...attributes}
     >
-      {clickable ? (
+      {isClickable ? (
         <ListItemButton onClick={handleClick}>{listItemInner}</ListItemButton>
       ) : (
         listItemInner
@@ -168,6 +196,9 @@ function DragOverlayItem<T extends DraggableItem>({
 export interface DraggableListProps<T extends DraggableItem> {
   items: T[]
   clickable?: boolean | ((item: T) => boolean)
+  multiselect?: boolean
+  selectedIds?: string[]
+  onSelectionChange?: (ids: string[]) => void
   onEdit?: (item: T) => void
   onReorder?: (sourceIndex: number, destinationIndex: number) => void
   renderPrimary: (item: T) => ReactNode
@@ -181,6 +212,9 @@ export interface DraggableListProps<T extends DraggableItem> {
 export function DraggableList<T extends DraggableItem>({
   items,
   clickable,
+  multiselect,
+  selectedIds,
+  onSelectionChange,
   overlayPortal,
   disableReorder,
   onEdit,
@@ -241,6 +275,20 @@ export function DraggableList<T extends DraggableItem>({
     setActiveId(null)
   }
 
+  const selectedIdSet = useMemo(() => new Set(selectedIds ?? []), [selectedIds])
+
+  function handleToggleSelect(item: T) {
+    if (!onSelectionChange) {
+      return
+    }
+    const currentIds = selectedIds ?? []
+    if (selectedIdSet.has(item.id)) {
+      onSelectionChange(currentIds.filter((id) => id !== item.id))
+    } else {
+      onSelectionChange([...currentIds, item.id])
+    }
+  }
+
   function getIsClickable(item: T) {
     return typeof clickable === 'function' ? clickable(item) : clickable
   }
@@ -290,8 +338,11 @@ export function DraggableList<T extends DraggableItem>({
                 key={item.id}
                 clickable={getIsClickable(item)}
                 item={item}
-                disableReorder={disableReorder}
+                disableReorder={multiselect || disableReorder}
+                multiselect={multiselect}
+                selected={selectedIdSet.has(item.id)}
                 onEdit={onEdit}
+                onToggleSelect={handleToggleSelect}
                 renderPrimary={renderPrimary}
                 renderSecondary={renderSecondary}
                 renderSecondaryAction={renderSecondaryAction}

@@ -611,6 +611,9 @@
     "titleMapping": "Title Mapping"
   },
   "titleMapping": {
+    "deleteConfirm_one": "Are you sure you want to delete {{count}} title mapping?",
+    "deleteConfirm_other": "Are you sure you want to delete {{count}} title mappings?",
+    "deleteConfirmOne": "Are you sure you want to delete this title mapping?",
     "empty": "No title mappings found.",
     "noSeasons": "No options for the selected provider",
     "title": "Title Mappings",
