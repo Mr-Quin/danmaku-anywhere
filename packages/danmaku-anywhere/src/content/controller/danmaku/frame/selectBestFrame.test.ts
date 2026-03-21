@@ -15,6 +15,7 @@ function makeFrame(
     started: true,
     mounted: false,
     hasVideo: videoInfo != null,
+    videoChangeCount: 0,
     videoInfo: videoInfo
       ? {
           playing: false,

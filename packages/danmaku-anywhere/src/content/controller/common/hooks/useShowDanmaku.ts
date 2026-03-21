@@ -8,12 +8,16 @@ export const useShowDanmaku = () => {
   const { toast } = useToast()
   const { isVisible, toggleVisible } = useStore.use.danmaku()
 
-  const { mustGetActiveFrame } = useStore.use.frame()
+  const { getActiveFrame } = useStore.use.frame()
 
   return useMutation({
     mutationFn: async () => {
+      const activeFrame = getActiveFrame()
+      if (!activeFrame) {
+        throw new Error('No active frame')
+      }
       await playerRpcClient.player['relay:command:show']({
-        frameId: mustGetActiveFrame().frameId,
+        frameId: activeFrame.frameId,
         data: !isVisible,
       })
     },

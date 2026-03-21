@@ -18,11 +18,16 @@ import { useStore } from '@/content/controller/store/store'
 const useMountDanmaku = () => {
   const { toast } = useToast()
 
-  const { mustGetActiveFrame, updateFrame } = useStore.use.frame()
+  const { getActiveFrame, updateFrame } = useStore.use.frame()
   const { mount } = useStore.use.danmaku()
 
   return useMutation({
     mutationFn: async (episodes: GenericEpisode[]) => {
+      const activeFrame = getActiveFrame()
+      if (!activeFrame) {
+        throw new Error('No active frame to mount danmaku')
+      }
+
       const comments: CommentEntity[] = []
 
       episodes.forEach((episode) => {
@@ -30,17 +35,19 @@ const useMountDanmaku = () => {
       })
 
       const res = await playerRpcClient.player['relay:command:mount']({
-        frameId: mustGetActiveFrame().frameId,
+        frameId: activeFrame.frameId,
         data: comments,
       })
 
       if (!res.data) {
         throw new Error('Failed to mount danmaku')
       }
+
+      return activeFrame.frameId
     },
-    onSuccess: (_, danmaku) => {
+    onSuccess: (mountedFrameId, danmaku) => {
       mount(danmaku)
-      updateFrame(mustGetActiveFrame().frameId, { mounted: true })
+      updateFrame(mountedFrameId, { mounted: true })
     },
     onError: (err) => {
       toast.error(err.message)

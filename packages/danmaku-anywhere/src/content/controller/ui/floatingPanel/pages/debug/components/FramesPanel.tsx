@@ -204,6 +204,9 @@ const FrameItem = ({
                 {' · '}
                 {frame.videoInfo.muted ? 'muted' : 'unmuted'}
               </VideoInfoRow>
+              <VideoInfoRow label="changes">
+                {frame.videoChangeCount}
+              </VideoInfoRow>
             </Box>
           )}
 
