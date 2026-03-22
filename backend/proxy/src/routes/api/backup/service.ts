@@ -11,11 +11,15 @@ export class BackupService {
   ) {}
 
   async listBackups(userId: string) {
-    return await this.db.query.userBackups.findMany({
+    const backups = await this.db.query.userBackups.findMany({
       columns: { id: true, createdAt: true, extensionVersion: true },
       where: eq(userBackups.userId, userId),
       orderBy: [desc(userBackups.createdAt)],
     })
+    return backups.map((b) => ({
+      ...b,
+      createdAt: b.createdAt.getTime(),
+    }))
   }
 
   async getBackup(userId: string, id: string) {
@@ -57,13 +61,12 @@ export class BackupService {
       )
     }
 
-    const fileKey = `${Date.now()}.json`
+    const backupId = crypto.randomUUID()
+    const fileKey = `${backupId}.json`
     const objectPath = `backups/${userId}/${fileKey}`
     await this.filesBucket.put(objectPath, JSON.stringify(data), {
       httpMetadata: { contentType: 'application/json' },
     })
-
-    const backupId = crypto.randomUUID()
     await this.db.insert(userBackups).values({
       id: backupId,
       userId: userId,

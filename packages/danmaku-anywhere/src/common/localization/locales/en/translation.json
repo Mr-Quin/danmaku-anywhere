@@ -392,6 +392,7 @@
       "cloudCreateSuccess": "Cloud backup created",
       "cloudDescription": "Sync your settings to the cloud. Up to 3 revisions are kept.",
       "cloudDownloadError": "Failed to download cloud backup: {{message}}",
+      "cloudListError": "Failed to load cloud backups.",
       "cloudSignInRequired": "Sign in to use cloud backup.",
       "exportToFile": "Save to File",
       "goToSignIn": "Go to Sign In",

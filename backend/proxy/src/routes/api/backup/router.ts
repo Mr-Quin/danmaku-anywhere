@@ -29,6 +29,7 @@ const backupDataSchema = z.object({
   meta: z.object({
     version: z.number(),
     timestamp: z.number(),
+    extensionVersion: z.string().optional(),
   }),
   services: z.record(z.string(), serviceBackupDataSchema),
 })

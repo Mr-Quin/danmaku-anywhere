@@ -379,6 +379,7 @@
       "cloudCreateSuccess": "云备份已创建",
       "cloudDescription": "将设置同步到云端。最多保留3个版本。",
       "cloudDownloadError": "下载云备份失败：{{message}}",
+      "cloudListError": "加载云备份失败。",
       "cloudSignInRequired": "登录后即可使用云备份。",
       "exportToFile": "保存到文件",
       "goToSignIn": "前往登录",

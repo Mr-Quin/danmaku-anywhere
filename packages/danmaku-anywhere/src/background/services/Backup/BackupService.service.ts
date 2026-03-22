@@ -46,6 +46,17 @@ export class BackupService {
     }
   }
 
+  private async throwResponseError(
+    response: Response,
+    fallback: string
+  ): Promise<never> {
+    const body = await response.json().catch(() => null)
+    const detail =
+      (body as { error?: string } | null)?.error ??
+      `${response.status} ${response.statusText}`
+    throw new Error(`${fallback}: ${detail}`)
+  }
+
   private getBaseUrl() {
     const baseUrl = import.meta.env.VITE_PROXY_URL
     if (!baseUrl) {
@@ -61,7 +72,7 @@ export class BackupService {
       headers: this.getAuthHeaders(),
     })
     if (!response.ok) {
-      throw new Error('Failed to fetch cloud backups')
+      await this.throwResponseError(response, 'Failed to fetch cloud backups')
     }
     const result = await response.json()
     return result.backups as CloudBackupItem[]
@@ -79,7 +90,7 @@ export class BackupService {
       }),
     })
     if (!response.ok) {
-      throw new Error('Failed to create cloud backup')
+      await this.throwResponseError(response, 'Failed to create cloud backup')
     }
     return response.json() as Promise<{ success: boolean; id: string }>
   }
@@ -91,7 +102,7 @@ export class BackupService {
       headers: this.getAuthHeaders(),
     })
     if (!response.ok) {
-      throw new Error('Failed to download cloud backup')
+      await this.throwResponseError(response, 'Failed to download cloud backup')
     }
     const result = await response.json()
     return result.data as BackupData

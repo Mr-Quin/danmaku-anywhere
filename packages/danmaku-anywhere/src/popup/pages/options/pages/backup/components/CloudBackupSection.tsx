@@ -33,8 +33,9 @@ export function CloudBackupSection({
     data: backups,
     refetch,
     isLoading: isLoadingBackups,
+    isError: isBackupsError,
   } = useQuery({
-    queryKey: ['cloudBackups'],
+    queryKey: ['cloudBackups', session?.user?.id],
     queryFn: async () => chromeRpcClient.cloudBackupList(),
     select: (res) => res.data,
     enabled: isSignedIn,
@@ -50,6 +51,12 @@ export function CloudBackupSection({
           'optionsPage.backup.alert.importSuccess',
           'Backup imported successfully'
         )
+      )
+    },
+    onError: (error) => {
+      toast.error(
+        t('optionsPage.backup.importError', 'Import failed') +
+          `: ${error.message}`
       )
     },
     onSettled: () => {
@@ -146,6 +153,13 @@ export function CloudBackupSection({
             <Box sx={{ py: 2, display: 'flex', justifyContent: 'flex-start' }}>
               <CircularProgress size={24} />
             </Box>
+          ) : isBackupsError ? (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {t(
+                'optionsPage.backup.cloudListError',
+                'Failed to load cloud backups.'
+              )}
+            </Alert>
           ) : !backups || backups.length === 0 ? (
             <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
               {t(
