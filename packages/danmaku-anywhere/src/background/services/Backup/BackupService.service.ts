@@ -73,7 +73,10 @@ export class BackupService {
     const response = await fetch(url, {
       method: 'POST',
       headers: this.getAuthHeaders(),
-      body: JSON.stringify({ data }),
+      body: JSON.stringify({
+        data,
+        extensionVersion: data.meta.extensionVersion,
+      }),
     })
     if (!response.ok) {
       throw new Error('Failed to create cloud backup')

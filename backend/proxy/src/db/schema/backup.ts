@@ -10,6 +10,7 @@ export const userBackups = sqliteTable(
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
     fileKey: text('file_key').notNull(),
+    extensionVersion: text('extension_version'),
     createdAt: integer('created_at', { mode: 'timestamp_ms' })
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
       .notNull(),

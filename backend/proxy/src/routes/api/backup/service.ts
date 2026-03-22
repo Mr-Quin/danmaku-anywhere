@@ -12,7 +12,7 @@ export class BackupService {
 
   async listBackups(userId: string) {
     return await this.db.query.userBackups.findMany({
-      columns: { id: true, createdAt: true },
+      columns: { id: true, createdAt: true, extensionVersion: true },
       where: eq(userBackups.userId, userId),
       orderBy: [desc(userBackups.createdAt)],
     })
@@ -38,7 +38,7 @@ export class BackupService {
     return await obj.json()
   }
 
-  async createBackup(userId: string, data: unknown) {
+  async createBackup(userId: string, data: unknown, extensionVersion?: string) {
     const existingBackups = await this.db.query.userBackups.findMany({
       where: eq(userBackups.userId, userId),
       orderBy: [desc(userBackups.createdAt)],
@@ -68,6 +68,7 @@ export class BackupService {
       id: backupId,
       userId: userId,
       fileKey,
+      extensionVersion: extensionVersion ?? null,
     })
 
     return backupId

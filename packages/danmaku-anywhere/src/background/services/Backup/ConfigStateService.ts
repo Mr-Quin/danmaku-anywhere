@@ -45,6 +45,7 @@ export class ConfigStateService {
       meta: {
         version: 1,
         timestamp: Date.now(),
+        extensionVersion: chrome.runtime.getManifest().version,
       },
       services: services.reduce(
         (acc, { name, data }) => {

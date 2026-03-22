@@ -13,6 +13,7 @@ backupRouter.use(requireAuth())
 const cloudBackupItemSchema = z.object({
   id: z.string(),
   createdAt: z.number(),
+  extensionVersion: z.string().nullable(),
 })
 
 const listBackupsResponseSchema = z.object({
@@ -43,6 +44,7 @@ const createBackupResponseSchema = z.object({
 
 const uploadSchema = z.object({
   data: backupDataSchema,
+  extensionVersion: z.string().optional(),
 })
 
 backupRouter.get(
@@ -141,9 +143,9 @@ backupRouter.post(
     }
     const db = getOrCreateDb(c.env.DB)
     const backupService = new BackupService(db, c.env.FILES_BUCKET)
-    const { data } = c.req.valid('json')
+    const { data, extensionVersion } = c.req.valid('json')
 
-    const id = await backupService.createBackup(user.id, data)
+    const id = await backupService.createBackup(user.id, data, extensionVersion)
     return c.json({ success: true, id }, 201)
   }
 )

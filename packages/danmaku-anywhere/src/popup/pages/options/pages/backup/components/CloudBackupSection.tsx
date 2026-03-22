@@ -179,11 +179,16 @@ export function CloudBackupSection({
                 >
                   <ListItemText
                     primary={new Date(backup.createdAt).toLocaleString()}
-                    secondary={
+                    secondary={[
                       index === 0
                         ? t('optionsPage.backup.latestRevision', 'Latest')
-                        : undefined
-                    }
+                        : null,
+                      backup.extensionVersion
+                        ? `v${backup.extensionVersion}`
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
                   />
                 </ListItem>
               ))}
