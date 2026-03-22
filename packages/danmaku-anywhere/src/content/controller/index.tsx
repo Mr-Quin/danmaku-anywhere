@@ -11,6 +11,8 @@ import { ensureStandaloneReady } from '@/common/standalone/ensureStandaloneReady
 import { Theme } from '@/common/theme/Theme'
 import { App } from './App'
 import '@/common/localization/i18n'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { createPortal } from 'react-dom'
 import { EnvironmentContext } from '@/common/environment/context'
 import { tryCatchSync } from '@/common/utils/tryCatch'
 import { createPopoverRoot } from '@/content/common/host/createPopoverRoot'
@@ -86,6 +88,11 @@ ReactDOM.createRoot(shadowRoot).render(
             <App />
           </Theme>
         </EnvironmentContext>
+        {import.meta.env.MODE === 'development' &&
+          createPortal(
+            <ReactQueryDevtools initialIsOpen={false} />,
+            document.body
+          )}
       </QueryClientProvider>
     </CacheProvider>
   </React.StrictMode>
