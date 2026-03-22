@@ -1,6 +1,6 @@
 import type { PopoverVirtualElement } from '@mui/material'
 import { ClickAwayListener } from '@mui/material'
-import { useRef, useState } from 'react'
+import { Suspense, useRef, useState } from 'react'
 import { usePopup } from '@/content/controller/store/popupStore'
 import { ControllerWindow } from '@/content/controller/ui/floatingPanel/ControllerWindow'
 import { CONTROLLER_ROOT_ID } from '../common/constants/rootId'
@@ -50,7 +50,9 @@ export const PopupUi = () => {
           transition: 'opacity 0.2s',
         }}
       >
-        <ControllerWindow anchorEl={anchorEl ?? fallbackAnchorEl.current} />
+        <Suspense fallback={null}>
+          <ControllerWindow anchorEl={anchorEl ?? fallbackAnchorEl.current} />
+        </Suspense>
         <FloatingButton
           color="primary"
           size="small"
