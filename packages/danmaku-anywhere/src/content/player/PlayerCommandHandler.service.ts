@@ -170,8 +170,9 @@ export class PlayerCommandHandler {
     })
   }
 
-  // --- Full RPC server (replaces the lite server after handshake) ---
-
+  /**
+   * Full RPC server, replaces the lite server after handshake
+   */
   private createRpcServer() {
     const server = createRpcServer<PlayerRelayCommands>(
       {
@@ -225,8 +226,6 @@ export class PlayerCommandHandler {
 
     server.listen(chrome.runtime.onMessage)
   }
-
-  // --- Command implementations ---
 
   private mount(comments: CommentEntity[]) {
     this.manager.mount(comments)

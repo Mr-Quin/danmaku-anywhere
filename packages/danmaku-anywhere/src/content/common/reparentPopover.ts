@@ -1,7 +1,9 @@
-// When video becomes full screen, the popover (content script) will be visible on top of the video,
-// but will become "inert" and non-interactive.
-// To maintain interactivity, we need to re-parent the popover into the fullscreen element.
-// https://github.com/whatwg/html/issues/10811
+/**
+ * When video becomes full screen, the popover (content script) will be visible on top of the video,
+ * but will become "inert" and non-interactive.
+ * To maintain interactivity, we need to re-parent the popover into the fullscreen element.
+ * https://github.com/whatwg/html/issues/10811
+ */
 export function reparentPopover(
   popover: HTMLDivElement,
   document: Document,

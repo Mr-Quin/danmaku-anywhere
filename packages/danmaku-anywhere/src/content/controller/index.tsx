@@ -40,6 +40,7 @@ const cache = createCache({
   key: 'danmaku-anywhere',
   container: shadowStyle,
   prepend: true,
+  speedy: false,
 })
 
 const themeOptions: ThemeOptions = {
