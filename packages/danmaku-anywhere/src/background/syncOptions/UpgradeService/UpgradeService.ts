@@ -31,10 +31,15 @@ export class UpgradeService {
       throw new Error('Upgrade must be called from background script')
     }
 
-    this.logger.debug('Starting upgrade...')
+    const lastVersion = await this.readinessService.getLastVersion()
+    this.logger.debug(
+      `Starting upgrade from version ${lastVersion ?? 'unknown'}...`
+    )
 
     // gather context
-    const context: Record<string, unknown> = {}
+    const context: Record<string, unknown> = {
+      __previousExtensionVersion: lastVersion,
+    }
     for (const service of this.services) {
       // special method to read without waiting for readiness
       const data = await service.options.readUnblocked()

@@ -2,7 +2,7 @@ import type {
   DanmakuSourceType,
   GenericEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
-import { UploadFile } from '@mui/icons-material'
+import { Schedule, SortByAlpha, Tag, UploadFile } from '@mui/icons-material'
 import { Alert, Button } from '@mui/material'
 import type { ReactElement } from 'react'
 import { useMemo, useRef, useState } from 'react'
@@ -16,6 +16,7 @@ import {
   DanmakuTree,
   type DanmakuTreeApi,
 } from '@/common/components/DanmakuSelector/tree/DanmakuTree'
+import type { TreeSortBy } from '@/common/components/DanmakuSelector/tree/useDanmakuTree'
 import { useDanmakuTreeActions } from '@/common/components/DanmakuSelector/useDanmakuTreeActions'
 import { useImportFlow } from '@/common/components/DanmakuSelector/useImportFlow'
 import { ImportResultDialog } from '@/common/components/ImportPageCore/ImportResultDialog'
@@ -64,6 +65,7 @@ export const MountPageContent = ({
   const [viewingEpisode, setViewingEpisode] =
     useState<GenericEpisodeLite | null>(null)
   const [selectionCount, setSelectionCount] = useState(0)
+  const [sortBy, setSortBy] = useState<TreeSortBy>('name')
 
   const danmakuTreeRef = useRef<DanmakuTreeApi>(null)
 
@@ -96,8 +98,33 @@ export const MountPageContent = ({
         icon: <UploadFile />,
         onClick: importFlow.openFolderInput,
       },
+      { kind: 'separator', id: 'sort-separator' },
+      {
+        kind: 'item',
+        id: 'sort-name',
+        label: `${t('common.sortBy', 'Sort by')}: ${t('common.name', 'Name')}`,
+        icon: <SortByAlpha />,
+        onClick: () => setSortBy('name'),
+        disabled: sortBy === 'name',
+      },
+      {
+        kind: 'item',
+        id: 'sort-date',
+        label: `${t('common.sortBy', 'Sort by')}: ${t('common.date', 'Date')}`,
+        icon: <Schedule />,
+        onClick: () => setSortBy('date'),
+        disabled: sortBy === 'date',
+      },
+      {
+        kind: 'item',
+        id: 'sort-count',
+        label: `${t('common.sortBy', 'Sort by')}: ${t('common.count', 'Count')}`,
+        icon: <Tag />,
+        onClick: () => setSortBy('count'),
+        disabled: sortBy === 'count',
+      },
     ],
-    [importFlow, t]
+    [importFlow, t, sortBy]
   )
 
   function renderAlert() {
@@ -201,6 +228,7 @@ export const MountPageContent = ({
             ref={danmakuTreeRef}
             filter={filter}
             typeFilter={selectedTypes as DanmakuSourceType[]}
+            sortBy={sortBy}
             onSelect={(ep) => onMount([ep])}
             onViewDanmaku={setViewingEpisode}
             onSelectionChange={(s) => setSelectionCount(s.length)}

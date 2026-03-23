@@ -35,6 +35,7 @@ describe('UpgradeService', () => {
       waitUntilReady: vi.fn().mockResolvedValue(undefined),
       setReady: vi.fn(),
       setVersion: vi.fn().mockResolvedValue(undefined),
+      getLastVersion: vi.fn().mockResolvedValue('0.9.0'),
     }
 
     container = new Container()
@@ -69,6 +70,7 @@ describe('UpgradeService', () => {
     await service.upgrade()
 
     expect(mockStoreService.options.upgrade).toHaveBeenCalledWith({
+      __previousExtensionVersion: '0.9.0',
       testService: { foo: 'bar' },
     })
   })

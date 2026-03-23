@@ -203,6 +203,28 @@ export class ProviderService {
 
     const comments = await service.getDanmaku(request)
 
+    // Skip saving if no danmaku was fetched
+    if (comments.length === 0) {
+      if (existingDanmaku) {
+        this.logger.debug('Fetched empty danmaku, keeping existing data')
+        return existingDanmaku
+      }
+      this.logger.debug('Fetched empty danmaku, skipping save')
+      throw new Error('No danmaku found')
+    }
+
+    // Skip update if new danmaku count is less than existing
+    if (
+      existingDanmaku &&
+      !options.forceUpdate &&
+      comments.length < existingDanmaku.commentCount
+    ) {
+      this.logger.debug(
+        `Skipping update: new count (${comments.length}) < existing (${existingDanmaku.commentCount})`
+      )
+      return existingDanmaku
+    }
+
     const { season, ...rest } = meta
 
     const saved = await this.danmakuService.upsert({

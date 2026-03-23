@@ -11,6 +11,7 @@ import {
   type Ref,
   type RefObject,
   type SyntheticEvent,
+  useCallback,
   useImperativeHandle,
   useMemo,
   useState,
@@ -22,7 +23,10 @@ import {
 } from '@/common/components/DanmakuSelector/tree/DanmakuTreeContext'
 import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/tree/ExtendedTreeItem'
 import { DanmakuTreeItem } from '@/common/components/DanmakuSelector/tree/items/DanmakuTreeItem'
-import { useDanmakuTree } from '@/common/components/DanmakuSelector/tree/useDanmakuTree'
+import {
+  type TreeSortBy,
+  useDanmakuTree,
+} from '@/common/components/DanmakuSelector/tree/useDanmakuTree'
 import { isNotCustom } from '@/common/danmaku/utils'
 import { EmptyDanmakuTree } from '../components/EmptyDanmakuTree'
 
@@ -104,6 +108,17 @@ function buildSelection(
 
 const selectionPropagation = { descendants: true, parents: true }
 
+const EXPANDED_ITEMS_KEY = 'danmaku-tree-expanded-items'
+
+const readExpandedItems = (): string[] => {
+  try {
+    const saved = localStorage.getItem(EXPANDED_ITEMS_KEY)
+    return saved ? JSON.parse(saved) : []
+  } catch {
+    return []
+  }
+}
+
 export interface DanmakuTreeApi {
   getSelectedEpisodes: () => DanmakuSelection
   clearSelection: () => void
@@ -113,6 +128,7 @@ export interface DanmakuTreeApi {
 interface DanmakuSelectorProps {
   filter: string
   typeFilter: DanmakuSourceType[]
+  sortBy?: TreeSortBy
   onSelect: (value: GenericEpisodeLite) => void
   onViewDanmaku: (value: GenericEpisodeLite) => void
   onSelectionChange?: (selection: string[]) => void
@@ -126,6 +142,7 @@ interface DanmakuSelectorProps {
 export const DanmakuTree = ({
   filter,
   typeFilter,
+  sortBy,
   onSelect,
   onViewDanmaku,
   onSelectionChange,
@@ -136,10 +153,12 @@ export const DanmakuTree = ({
   ref,
 }: DanmakuSelectorProps): React.ReactElement => {
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([])
+  const [expandedItems, setExpandedItems] =
+    useState<string[]>(readExpandedItems)
   const [contextMenu, setContextMenu] =
     useState<DanmakuTreeContextMenuState | null>(null)
 
-  const { treeItems, treeItemMap } = useDanmakuTree(filter, typeFilter)
+  const { treeItems, treeItemMap } = useDanmakuTree(filter, typeFilter, sortBy)
 
   const apiRef = useTreeViewApiRef()
 
@@ -171,6 +190,18 @@ export const DanmakuTree = ({
       },
     }),
     [selectedNodeIds, treeItemMap, onSelectionChange, treeItems]
+  )
+
+  const handleExpandedItemsChange = useCallback(
+    (_event: SyntheticEvent | null, itemIds: string[]) => {
+      setExpandedItems(itemIds)
+      try {
+        localStorage.setItem(EXPANDED_ITEMS_KEY, JSON.stringify(itemIds))
+      } catch {
+        // Ignore storage errors
+      }
+    },
+    []
   )
 
   const handleSelectedItemsChange = (
@@ -221,6 +252,8 @@ export const DanmakuTree = ({
         selectedItems={
           multiselect ? selectedNodeIds : selectedNodeIds[0] || null
         }
+        expandedItems={expandedItems}
+        onExpandedItemsChange={handleExpandedItemsChange}
         selectionPropagation={selectionPropagation}
         onSelectedItemsChange={handleSelectedItemsChange}
         slots={{ item: DanmakuTreeItem }}

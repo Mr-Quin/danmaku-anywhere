@@ -111,6 +111,40 @@ export class SeasonService {
     return this.db.season.where(filter).toArray()
   }
 
+  async deleteEmpty(): Promise<number> {
+    let deleteCount = 0
+    await this.db.transaction(
+      'rw',
+      this.db.season,
+      this.db.episode,
+      this.db.seasonMap,
+      async () => {
+        const allSeasons = await this.db.season.toArray()
+        for (const season of allSeasons) {
+          const episodeCount = await this.db.episode
+            .where({ seasonId: season.id })
+            .count()
+          if (episodeCount === 0) {
+            await this.db.season.delete(season.id)
+            await this.db.seasonMap
+              .where('seasonIds')
+              .equals(season.id)
+              .modify((val) => {
+                const updated = SeasonMap.fromSnapshot(val).withoutSeasonId(
+                  season.id
+                )
+                const snapshot = updated.toSnapshot()
+                val.seasonIds = snapshot.seasonIds
+                val.seasons = snapshot.seasons
+              })
+            deleteCount++
+          }
+        }
+      }
+    )
+    return deleteCount
+  }
+
   async delete(filter: SeasonQueryFilter): Promise<void> {
     if (filter.id === undefined)
       throw new Error('id must be provided for delete operation')

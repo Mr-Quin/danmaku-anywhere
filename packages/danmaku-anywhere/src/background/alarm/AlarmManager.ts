@@ -1,5 +1,6 @@
 import { inject, injectable } from 'inversify'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
+import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { alarmKeys } from '@/common/alarms/constants'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
@@ -11,6 +12,8 @@ export class AlarmManager {
   constructor(
     @inject(DanmakuService)
     private danmakuService: DanmakuService,
+    @inject(SeasonService)
+    private seasonService: SeasonService,
     @inject(ExtensionOptionsService)
     private extensionOptionsService: ExtensionOptionsService,
     @inject(LoggerSymbol) logger: ILogger
@@ -84,5 +87,11 @@ export class AlarmManager {
       const days = extensionOptions.retentionPolicy.deleteCommentsAfter
 
       await this.danmakuService.purgeOlderThan(days)
+
+      // Clean up seasons that no longer have any episodes
+      const deletedSeasons = await this.seasonService.deleteEmpty()
+      if (deletedSeasons > 0) {
+        this.logger.debug(`Cleaned up ${deletedSeasons} empty seasons`)
+      }
     }
 }

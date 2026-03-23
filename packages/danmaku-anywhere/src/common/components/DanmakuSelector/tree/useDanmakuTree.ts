@@ -16,6 +16,8 @@ import { isProvider } from '@/common/danmaku/utils'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { matchWithPinyin } from '@/common/utils/utils'
 
+export type TreeSortBy = 'name' | 'date' | 'count'
+
 const stringifyDanmakuMeta = (episode: GenericEpisodeLite) => {
   if (isProvider(episode, DanmakuSourceType.MacCMS)) {
     return episode.title
@@ -43,9 +45,52 @@ const filterEpisodes = <T extends GenericEpisodeLite>(
   })
 }
 
+const compareEpisodes = (
+  a: GenericEpisodeLite,
+  b: GenericEpisodeLite,
+  sortBy: TreeSortBy
+): number => {
+  switch (sortBy) {
+    case 'name': {
+      return a.title.localeCompare(b.title)
+    }
+    case 'date': {
+      return b.timeUpdated - a.timeUpdated
+    }
+    case 'count': {
+      return b.commentCount - a.commentCount
+    }
+  }
+}
+
+const sortTreeItems = (
+  items: ExtendedTreeItem[],
+  sortBy: TreeSortBy
+): ExtendedTreeItem[] => {
+  return [...items].sort((a, b) => {
+    // Folders and seasons sort by label
+    if (a.kind !== 'episode' || b.kind !== 'episode') {
+      if (sortBy === 'name') {
+        return a.label.localeCompare(b.label)
+      }
+      // For date/count sorting at season level, use timeUpdated from season data
+      if (a.kind === 'season' && b.kind === 'season') {
+        if (sortBy === 'date') {
+          return b.data.timeUpdated - a.data.timeUpdated
+        }
+        // count: sort by number of children
+        return (b.children?.length ?? 0) - (a.children?.length ?? 0)
+      }
+      return 0
+    }
+    return compareEpisodes(a.data, b.data, sortBy)
+  })
+}
+
 export const useDanmakuTree = (
   filter: string,
-  typeFilter: DanmakuSourceType[]
+  typeFilter: DanmakuSourceType[],
+  sortBy: TreeSortBy = 'name'
 ) => {
   const { data: episodes } = useEpisodesLiteSuspense()
   const { data: customEpisodes } = useCustomEpisodeLiteSuspense({ all: true })
@@ -142,7 +187,7 @@ export const useDanmakuTree = (
           kind: 'season',
           data: customSeason,
           provider: getProviderById(DanmakuSourceType.MacCMS),
-          children: rootChildren,
+          children: sortTreeItems(rootChildren, sortBy),
         })
       )
     }
@@ -173,10 +218,16 @@ export const useDanmakuTree = (
           kind: 'season',
           data: season,
           provider: getProviderById(season.providerConfigId),
-          children,
+          children: sortTreeItems(children, sortBy),
         })
       )
     })
+
+    // Sort top-level items (seasons)
+    const sortedTreeItems = sortTreeItems(treeItems, sortBy)
+    // Re-add sorted items to treeItems array
+    treeItems.length = 0
+    treeItems.push(...sortedTreeItems)
 
     return { treeItems, treeItemMap }
   }, [
@@ -185,6 +236,7 @@ export const useDanmakuTree = (
     seasons,
     filter,
     typeFilter,
+    sortBy,
     t,
     getProviderById,
   ])
