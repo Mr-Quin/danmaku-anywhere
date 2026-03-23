@@ -22,11 +22,17 @@ export class AuthClientService {
 
     switch (input.provider) {
       case 'email': {
+        const callbackURL = new URL(
+          '/pages/verify-email',
+          import.meta.env.VITE_PROXY_URL
+        ).toString()
+
         const { error, data } = await client.signUp.email({
           email: input.email,
           password: input.password,
           name: input.name,
           image: input.image,
+          callbackURL,
         })
         if (error) {
           return { state: 'error', message: error.statusText }
