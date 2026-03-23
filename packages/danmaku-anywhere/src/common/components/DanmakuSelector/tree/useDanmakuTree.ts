@@ -12,7 +12,7 @@ import type {
 } from '@/common/components/DanmakuSelector/tree/ExtendedTreeItem'
 import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
 import { useEpisodesLiteSuspense } from '@/common/danmaku/queries/useEpisodes'
-import { isProvider } from '@/common/danmaku/utils'
+import { isNotCustom, isProvider } from '@/common/danmaku/utils'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { matchWithPinyin } from '@/common/utils/utils'
 
@@ -41,6 +41,42 @@ const filterEpisodes = <T extends GenericEpisodeLite>(
       filter.toLocaleLowerCase()
     )
   })
+}
+
+const compareEpisodes = (a: ExtendedTreeItem, b: ExtendedTreeItem) => {
+  if (a.kind === 'episode' && b.kind === 'episode') {
+    if (
+      isNotCustom(a.data) &&
+      isNotCustom(b.data) &&
+      a.data.episodeNumber !== undefined &&
+      b.data.episodeNumber !== undefined
+    ) {
+      const aNum = Number(a.data.episodeNumber)
+      const bNum = Number(b.data.episodeNumber)
+      if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
+        return aNum - bNum
+      }
+    }
+  }
+  return a.label.localeCompare(b.label)
+}
+
+// put folders first, then sort by label
+function sortCustomChildren(items: ExtendedTreeItem[]) {
+  items.sort((a, b) => {
+    if (a.kind === 'folder' && b.kind !== 'folder') {
+      return -1
+    }
+    if (a.kind !== 'folder' && b.kind === 'folder') {
+      return 1
+    }
+    return a.label.localeCompare(b.label)
+  })
+  for (const item of items) {
+    if (item.children) {
+      sortCustomChildren(item.children)
+    }
+  }
 }
 
 export const useDanmakuTree = (
@@ -123,6 +159,8 @@ export const useDanmakuTree = (
         )
       })
 
+      sortCustomChildren(rootChildren)
+
       const customSeason: CustomSeason = {
         title: t('danmaku.local', 'Local Danmaku'),
         type: t('danmaku.local', 'Local Danmaku'),
@@ -166,6 +204,8 @@ export const useDanmakuTree = (
         })
       )
 
+      children.sort(compareEpisodes)
+
       treeItems.push(
         register({
           id: `season-${season.id}`,
@@ -176,6 +216,16 @@ export const useDanmakuTree = (
           children,
         })
       )
+    })
+
+    treeItems.sort((a, b) => {
+      if (a.id === 'season-custom') {
+        return -1
+      }
+      if (b.id === 'season-custom') {
+        return 1
+      }
+      return a.label.localeCompare(b.label)
     })
 
     return { treeItems, treeItemMap }
