@@ -224,7 +224,7 @@
       "services": [
         {
           "binding": "DDP_SERVICE",
-          "service": "ddp-microservice-prod"
+          "service": "ddp-microservice-production"
         }
       ],
       "ratelimits": []
