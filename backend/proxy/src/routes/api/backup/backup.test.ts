@@ -4,6 +4,7 @@ import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
 import '@/test-utils/mockBindings'
 import { env } from 'cloudflare:test'
 import { getOrCreateDb } from '@/db'
+import { user } from '@/db/schema/auth'
 import { userBackups } from '@/db/schema/backup'
 import { factory } from '@/factory'
 import { createTestUrl } from '@/test-utils/createTestUrl'
@@ -41,10 +42,34 @@ describe('Backup API', () => {
   }
 
   beforeEach(async () => {
-    // Clear out D1 and R2 for fresh state
     const db = getOrCreateDb(env.DB)
+    // Clear existing backups
     await db.delete(userBackups)
-
+    // Seed test users for FK constraints
+    await db
+      .insert(user)
+      .values([
+        {
+          id: 'user1',
+          name: 'User 1',
+          email: 'u1@test.com',
+          emailVerified: false,
+        },
+        {
+          id: 'user2',
+          name: 'User 2',
+          email: 'u2@test.com',
+          emailVerified: false,
+        },
+        {
+          id: 'user3',
+          name: 'User 3',
+          email: 'u3@test.com',
+          emailVerified: false,
+        },
+      ])
+      .onConflictDoNothing()
+    // Clear R2
     const listed = await env.FILES_BUCKET.list()
     for (const object of listed.objects) {
       await env.FILES_BUCKET.delete(object.key)

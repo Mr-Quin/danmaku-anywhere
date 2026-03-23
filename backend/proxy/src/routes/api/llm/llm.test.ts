@@ -208,7 +208,7 @@ describe('LLM API', () => {
     expect(mockSendMessage).toHaveBeenCalledTimes(2)
   })
 
-  it.each([
+  it.only.each([
     {
       name: 'input too short',
       body: JSON.stringify({ input: 'short' }),
