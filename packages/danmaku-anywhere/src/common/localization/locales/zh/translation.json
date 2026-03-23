@@ -360,8 +360,11 @@
     "auth": {
       "confirmPassword": "确认密码",
       "email": "电子邮箱",
+      "emailHelper": "邮箱仅用于找回密码",
       "name": "昵称",
+      "nameHelper": "别的用户可以看到你的昵称",
       "password": "密码",
+      "passwordHelper": "长度至少为6个字符",
       "signedInAs": "已登录",
       "signIn": "登录",
       "signOut": "退出登录",
@@ -388,7 +391,9 @@
       "latestRevision": "最新",
       "localBackup": "本地备份",
       "localDescription": "将设置保存为JSON文件，或从文件恢复。",
-      "noCloudBackups": "暂无云备份。创建一个开始使用。"
+      "noCloudBackups": "暂无云备份。创建一个开始使用。",
+      "restoreConfirmDesc": "恢复此备份将覆盖您当前的设置。确定要继续吗？",
+      "restoreConfirmTitle": "恢复设置？"
     },
     "chConvert": {
       "name": "简繁转换",

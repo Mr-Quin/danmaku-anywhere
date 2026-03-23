@@ -7,7 +7,7 @@
     "enabled": true
   },
   "vars": {
-    "ENVIRONMENT": "staging",
+    "ENVIRONMENT": "dev",
     "ALLOWED_ORIGIN": "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app,http://localhost:4200",
     "BETTER_AUTH_TRUSTED_ORIGINS": "https://**.weeblify.app",
     "GEMINI_MODEL": "gemini-2.5-flash-lite",

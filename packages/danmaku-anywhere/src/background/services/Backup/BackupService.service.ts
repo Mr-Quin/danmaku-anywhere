@@ -1,3 +1,8 @@
+import {
+  createCloudBackup as createCloudBackupApi,
+  downloadCloudBackup as downloadCloudBackupApi,
+  listCloudBackups,
+} from '@danmaku-anywhere/danmaku-provider/backup'
 import { inject, injectable } from 'inversify'
 import { ConfigStateService } from '@/background/services/Backup/ConfigStateService'
 import type { IBackupSink } from '@/background/services/Backup/sinks/BackupSink.interface'
@@ -39,72 +44,36 @@ export class BackupService {
     await sink.save(data)
   }
 
-  private getAuthHeaders() {
-    return {
-      Authorization: `Bearer ${this.userAuthStore.getTokenSync()}`,
-      'Content-Type': 'application/json',
-    }
-  }
-
-  private async throwResponseError(
-    response: Response,
-    fallback: string
-  ): Promise<never> {
-    const body = await response.json().catch(() => null)
-    const detail =
-      (body as { error?: string } | null)?.error ??
-      `${response.status} ${response.statusText}`
-    throw new Error(`${fallback}: ${detail}`)
-  }
-
-  private getBaseUrl() {
-    const baseUrl = import.meta.env.VITE_PROXY_URL
-    if (!baseUrl) {
-      throw new Error('VITE_PROXY_URL is not configured')
-    }
-    return new URL('/api/backup', baseUrl).toString()
+  private getAuth() {
+    return { token: this.userAuthStore.getTokenSync() }
   }
 
   async getCloudBackups(): Promise<CloudBackupItem[]> {
-    const url = this.getBaseUrl()
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-    if (!response.ok) {
-      await this.throwResponseError(response, 'Failed to fetch cloud backups')
+    const result = await listCloudBackups(this.getAuth())
+    if (!result.success) {
+      throw result.error
     }
-    const result = await response.json()
-    return result.backups as CloudBackupItem[]
+    return result.data
   }
 
   async createCloudBackup(): Promise<{ success: boolean; id: string }> {
     const data = await this.getBackupData()
-    const url = this.getBaseUrl()
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify({
-        data,
-        extensionVersion: data.meta.extensionVersion,
-      }),
-    })
-    if (!response.ok) {
-      await this.throwResponseError(response, 'Failed to create cloud backup')
+    const result = await createCloudBackupApi(
+      data,
+      data.meta.extensionVersion,
+      this.getAuth()
+    )
+    if (!result.success) {
+      throw result.error
     }
-    return response.json() as Promise<{ success: boolean; id: string }>
+    return result.data
   }
 
   async downloadCloudBackup(id: string): Promise<BackupData> {
-    const url = `${this.getBaseUrl()}/${id}`
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    })
-    if (!response.ok) {
-      await this.throwResponseError(response, 'Failed to download cloud backup')
+    const result = await downloadCloudBackupApi(id, this.getAuth())
+    if (!result.success) {
+      throw result.error
     }
-    const result = await response.json()
     return result.data as BackupData
   }
 }

@@ -79,7 +79,7 @@ export function LocalBackupSection({
   const isRestoring = importMutation.isPending || isRestoringExt
 
   return (
-    <>
+    <div>
       <SectionHeader
         title={t('optionsPage.backup.localBackup', 'Local Backup')}
         description={t(
@@ -125,6 +125,6 @@ export function LocalBackupSection({
           {importMutation.error.message}
         </Alert>
       )}
-    </>
+    </div>
   )
 }

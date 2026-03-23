@@ -10,7 +10,7 @@
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
-    "dev": "wrangler dev -e staging",
+    "dev": "wrangler dev",
     "dev:remote": "pnpm dev --remote",
     "test": "vitest",
     "lint": "biome check --fix",

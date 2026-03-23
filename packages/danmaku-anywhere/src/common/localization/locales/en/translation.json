@@ -373,8 +373,11 @@
     "auth": {
       "confirmPassword": "Confirm Password",
       "email": "Email",
+      "emailHelper": "Your email is only used to recover your account",
       "name": "Name",
+      "nameHelper": "The user name is public and does not need to be unique",
       "password": "Password",
+      "passwordHelper": "Must be at least 6 characters",
       "signedInAs": "Signed in as",
       "signIn": "Sign In",
       "signOut": "Sign Out",
@@ -401,7 +404,9 @@
       "latestRevision": "Latest",
       "localBackup": "Local Backup",
       "localDescription": "Save and restore your settings as a JSON file.",
-      "noCloudBackups": "No cloud backups yet. Create one to get started."
+      "noCloudBackups": "No cloud backups yet. Create one to get started.",
+      "restoreConfirmDesc": "Restoring this backup will overwrite your current settings. Are you sure you want to proceed?",
+      "restoreConfirmTitle": "Restore Settings?"
     },
     "chConvert": {
       "name": "Simplified/Traditional Conversion",

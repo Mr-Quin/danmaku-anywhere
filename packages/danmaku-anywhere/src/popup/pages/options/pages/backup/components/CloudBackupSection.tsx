@@ -4,9 +4,6 @@ import {
   Button,
   CircularProgress,
   Link,
-  List,
-  ListItem,
-  ListItemText,
   Typography,
 } from '@mui/material'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -15,6 +12,7 @@ import { useNavigate } from 'react-router'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useAuthSession } from '@/common/hooks/user/useAuthSession'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { CloudBackupList } from './CloudBackupList'
 import { SectionHeader } from './SectionHeader'
 
 export function CloudBackupSection({
@@ -107,7 +105,7 @@ export function CloudBackupSection({
     importMutation.isPending || downloadCloudBackupMutation.isPending
 
   return (
-    <>
+    <div>
       <SectionHeader
         title={t('optionsPage.backup.cloudBackup', 'Cloud Backup')}
         description={t(
@@ -168,48 +166,15 @@ export function CloudBackupSection({
               )}
             </Typography>
           ) : (
-            <List disablePadding>
-              {backups.map((backup, index) => (
-                <ListItem
-                  key={backup.id}
-                  disablePadding
-                  sx={{ mb: 1.5 }}
-                  secondaryAction={
-                    <Button
-                      size="small"
-                      disabled={isRestoring}
-                      onClick={() =>
-                        downloadCloudBackupMutation.mutate(backup.id)
-                      }
-                    >
-                      {downloadCloudBackupMutation.isPending &&
-                      downloadCloudBackupMutation.variables === backup.id ? (
-                        <CircularProgress size={18} />
-                      ) : (
-                        t('common.restore', 'Restore')
-                      )}
-                    </Button>
-                  }
-                >
-                  <ListItemText
-                    primary={new Date(backup.createdAt).toLocaleString()}
-                    secondary={[
-                      index === 0
-                        ? t('optionsPage.backup.latestRevision', 'Latest')
-                        : null,
-                      backup.extensionVersion
-                        ? `v${backup.extensionVersion}`
-                        : null,
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')}
-                  />
-                </ListItem>
-              ))}
-            </List>
+            <CloudBackupList
+              backups={backups}
+              isRestoring={isRestoring}
+              restoringId={downloadCloudBackupMutation.variables}
+              onRestore={(id) => downloadCloudBackupMutation.mutate(id)}
+            />
           )}
         </>
       )}
-    </>
+    </div>
   )
 }
