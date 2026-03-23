@@ -1,10 +1,13 @@
 import { zValidator } from '@hono/zod-validator'
+import { HTTPException } from 'hono/http-exception'
 import { describeRoute, resolver } from 'hono-openapi'
 import { z } from 'zod'
 import { getOrCreateDb } from '@/db'
 import { factory } from '@/factory'
 import { requireAuth } from '@/middleware/requireAuth'
 import { BackupService } from './service'
+
+const MAX_BACKUP_SIZE = 5 * 1024 * 1024 // 5 MB
 
 export const backupRouter = factory.createApp()
 
@@ -136,6 +139,15 @@ backupRouter.post(
       },
     },
   }),
+  async (c, next) => {
+    const contentLength = Number(c.req.header('content-length') ?? 0)
+    if (contentLength > MAX_BACKUP_SIZE) {
+      throw new HTTPException(413, {
+        message: `Backup too large. Maximum size is ${MAX_BACKUP_SIZE / 1024 / 1024}MB`,
+      })
+    }
+    await next()
+  },
   zValidator('json', uploadSchema),
   async (c) => {
     const user = c.get('authUser')

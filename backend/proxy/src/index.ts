@@ -99,10 +99,12 @@ app.onError((error, c) => {
     )
   }
 
-  const message = error.message
-  const status = 500
+  Sentry.captureException(error)
 
-  return c.json({ message, success: false }, { status })
+  const message =
+    c.env.ENVIRONMENT === 'dev' ? error.message : 'Internal server error'
+
+  return c.json({ message, success: false }, { status: 500 })
 })
 
 export default Sentry.withSentry((env: Env) => {
@@ -111,7 +113,7 @@ export default Sentry.withSentry((env: Env) => {
   return {
     dsn: 'https://a57c6ba48bc0da21d4c6f7074e7a6f0e@o4509744978460672.ingest.us.sentry.io/4509744987308032',
     release: versionId,
-    sendDefaultPii: true,
+    sendDefaultPii: false,
     enableLogs: true,
     tracesSampleRate: 1.0,
     environment: env.ENVIRONMENT,
