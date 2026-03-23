@@ -1,4 +1,4 @@
-import { desc, eq } from 'drizzle-orm'
+import { desc, eq, inArray } from 'drizzle-orm'
 import type { Database } from '@/db'
 import { userBackups } from '@/db/schema/backup'
 
@@ -43,24 +43,7 @@ export class BackupService {
   }
 
   async createBackup(userId: string, data: unknown, extensionVersion?: string) {
-    const existingBackups = await this.db.query.userBackups.findMany({
-      where: eq(userBackups.userId, userId),
-      orderBy: [desc(userBackups.createdAt)],
-    })
-
-    // Prune oldest backups to stay within the revision limit.
-    // D1 does not support interactive transactions, so there is a
-    // theoretical race if the same user creates backups concurrently.
-    if (existingBackups.length >= MAX_REVISIONS) {
-      const oldestBackups = existingBackups.slice(MAX_REVISIONS - 1)
-      await Promise.all(
-        oldestBackups.map(async (ob) => {
-          await this.filesBucket.delete(`backups/${userId}/${ob.fileKey}`)
-          await this.db.delete(userBackups).where(eq(userBackups.id, ob.id))
-        })
-      )
-    }
-
+    // Write the new backup first so we don't lose old ones if this fails.
     const backupId = crypto.randomUUID()
     const fileKey = `${backupId}.json`
     const objectPath = `backups/${userId}/${fileKey}`
@@ -73,6 +56,25 @@ export class BackupService {
       fileKey,
       extensionVersion: extensionVersion ?? null,
     })
+
+    // Prune oldest backups to stay within the revision limit.
+    // D1 does not support interactive transactions, so there is a
+    // theoretical race if the same user creates backups concurrently.
+    const existingBackups = await this.db.query.userBackups.findMany({
+      where: eq(userBackups.userId, userId),
+      orderBy: [desc(userBackups.createdAt)],
+    })
+
+    if (existingBackups.length > MAX_REVISIONS) {
+      const backupsToPrune = existingBackups.slice(MAX_REVISIONS)
+      const fileKeys = backupsToPrune.map(
+        (b) => `backups/${userId}/${b.fileKey}`
+      )
+      const ids = backupsToPrune.map((b) => b.id)
+
+      await this.filesBucket.delete(fileKeys)
+      await this.db.delete(userBackups).where(inArray(userBackups.id, ids))
+    }
 
     return backupId
   }

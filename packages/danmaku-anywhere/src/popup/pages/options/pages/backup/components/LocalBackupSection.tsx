@@ -1,4 +1,4 @@
-import { Alert, Button, CircularProgress, Stack } from '@mui/material'
+import { Button, CircularProgress, Stack } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import { useMutation } from '@tanstack/react-query'
 import { type ChangeEvent, useRef } from 'react'
@@ -52,6 +52,12 @@ export function LocalBackupSection({
           'optionsPage.backup.alert.importSuccess',
           'Backup imported successfully'
         )
+      )
+    },
+    onError: (error) => {
+      toast.error(
+        t('optionsPage.backup.importError', 'Import failed') +
+          `: ${error.message}`
       )
     },
   })
@@ -118,13 +124,6 @@ export function LocalBackupSection({
         accept=".json"
         onChange={handleFileChange}
       />
-
-      {importMutation.isError && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {t('optionsPage.backup.importError', 'Import failed')}:{' '}
-          {importMutation.error.message}
-        </Alert>
-      )}
     </div>
   )
 }

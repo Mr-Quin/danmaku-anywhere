@@ -137,6 +137,9 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     testAiProvider: () => ({ state: 'success' }),
     backupExport: () => standaloneBackupData,
     backupImport: () => standaloneBackupRestoreResult,
+    cloudBackupList: () => [],
+    cloudBackupCreate: () => ({ success: false, id: '' }),
+    cloudBackupDownload: () => standaloneBackupData,
     dataWipeDanmaku: () => undefined,
     bilibiliSetCookies: () => undefined,
   }
