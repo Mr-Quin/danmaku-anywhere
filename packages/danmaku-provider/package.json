@@ -45,6 +45,10 @@
     "./files": {
       "types": "./src/providers/files/index.d.ts",
       "default": "./src/providers/files/index.js"
+    },
+    "./backup": {
+      "types": "./src/providers/backup/index.d.ts",
+      "default": "./src/providers/backup/index.js"
     }
   },
   "scripts": {

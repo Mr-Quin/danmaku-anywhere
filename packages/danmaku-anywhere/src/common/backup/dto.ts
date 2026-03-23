@@ -7,6 +7,7 @@ export interface BackupData {
   meta: {
     version: number
     timestamp: number
+    extensionVersion?: string
   }
   services: Record<string, ServiceBackupData<unknown>>
 }
@@ -20,4 +21,10 @@ export interface BackupRestoreResult {
       error?: string
     }
   >
+}
+
+export interface CloudBackupItem {
+  id: string
+  createdAt: number
+  extensionVersion: string | null
 }

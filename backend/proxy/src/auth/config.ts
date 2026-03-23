@@ -51,12 +51,13 @@ async function createAuth(env: Env) {
     emailAndPassword: {
       enabled: true,
       minPasswordLength: 6,
-      sendResetPassword: async ({ user, url }) => {
+      sendResetPassword: async ({ user, token }) => {
+        const resetUrl = `${baseURL}/pages/reset-password?token=${token}`
         const emailService = await getOrCreateEmailService(env)
         const promise = emailService.send({
           to: user.email,
           subject: 'Reset your password',
-          text: `Click the link to reset your password: ${url}`,
+          text: `Click the link to reset your password: ${resetUrl}`,
         })
         currentWaitUntil(promise)
       },

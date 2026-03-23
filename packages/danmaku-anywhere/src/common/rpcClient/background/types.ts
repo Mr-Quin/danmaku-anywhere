@@ -33,7 +33,11 @@ import type {
   AuthSignOutResult,
   AuthSignUpInput,
 } from '@/common/auth/types'
-import type { BackupData, BackupRestoreResult } from '@/common/backup/dto'
+import type {
+  BackupData,
+  BackupRestoreResult,
+  CloudBackupItem,
+} from '@/common/backup/dto'
 import type { ImageFetchOptions } from '@/common/components/image/types'
 import type { BaseUrlConfig } from '@/common/configs/types'
 import type {
@@ -148,6 +152,9 @@ export type BackgroundMethods = {
   testAiProvider: RPCDef<AiProviderConfigInput, TestAiProviderResponse>
   backupExport: RPCDef<void, BackupData>
   backupImport: RPCDef<unknown, BackupRestoreResult>
+  cloudBackupList: RPCDef<void, CloudBackupItem[]>
+  cloudBackupCreate: RPCDef<void, { success: boolean; id: string }>
+  cloudBackupDownload: RPCDef<string, BackupData>
   dataWipeDanmaku: RPCDef<{ includeCustomEpisodes: boolean }, void>
 }
 

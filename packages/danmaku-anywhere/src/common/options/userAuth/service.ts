@@ -11,6 +11,7 @@ import { defaultUserAuthState, type UserAuthState } from './schema'
 @injectable('Singleton')
 export class UserAuthStore implements IStoreService {
   public readonly name = 'userAuth'
+  public readonly shouldBackup = false
   public readonly options: OptionsService<UserAuthState>
   private cachedState = defaultUserAuthState
 

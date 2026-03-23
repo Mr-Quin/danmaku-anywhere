@@ -1,0 +1,1 @@
+ALTER TABLE `user_backups` ADD `extension_version` text;

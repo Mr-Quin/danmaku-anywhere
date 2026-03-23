@@ -24,25 +24,28 @@ export class ConfigStateService {
 
   async getState(): Promise<BackupData> {
     const services = await Promise.all(
-      this.services.map(async (service) => {
-        const [data, version] = await Promise.all([
-          service.options.get(),
-          service.options.getVersion(),
-        ])
-        return {
-          name: service.name,
-          data: {
-            data,
-            version,
-          },
-        }
-      })
+      this.services
+        .filter((service) => service.shouldBackup !== false)
+        .map(async (service) => {
+          const [data, version] = await Promise.all([
+            service.options.get(),
+            service.options.getVersion(),
+          ])
+          return {
+            name: service.name,
+            data: {
+              data,
+              version,
+            },
+          }
+        })
     )
 
     return {
       meta: {
         version: 1,
         timestamp: Date.now(),
+        extensionVersion: chrome.runtime.getManifest().version,
       },
       services: services.reduce(
         (acc, { name, data }) => {

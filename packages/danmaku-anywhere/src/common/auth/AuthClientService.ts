@@ -22,11 +22,17 @@ export class AuthClientService {
 
     switch (input.provider) {
       case 'email': {
+        const callbackURL = new URL(
+          '/pages/verify-email',
+          import.meta.env.VITE_PROXY_URL
+        ).toString()
+
         const { error, data } = await client.signUp.email({
           email: input.email,
           password: input.password,
           name: input.name,
           image: input.image,
+          callbackURL,
         })
         if (error) {
           return { state: 'error', message: error.statusText }
@@ -53,7 +59,10 @@ export class AuthClientService {
         })
 
         if (error) {
-          return { state: 'error', message: error.statusText }
+          return {
+            state: 'error',
+            message: error.message || error.statusText || 'Unknown error',
+          }
         }
 
         await this.userAuthStore.setUser(data.user)
@@ -64,12 +73,15 @@ export class AuthClientService {
         }
       }
       case 'google': {
-        const res = await client.signIn.social({
+        const { error } = await client.signIn.social({
           provider: 'google',
         })
 
-        if (res.error) {
-          return { state: 'error', message: res.error.statusText }
+        if (error) {
+          return {
+            state: 'error',
+            message: error.message || error.statusText || 'Unknown error',
+          }
         }
 
         throw new Error('Not implemented')
@@ -84,7 +96,10 @@ export class AuthClientService {
       const { error } = await client.signOut()
 
       if (error) {
-        return { state: 'error', message: error.statusText }
+        return {
+          state: 'error',
+          message: error.message || error.statusText || 'Unknown error',
+        }
       }
 
       return { state: 'success' }

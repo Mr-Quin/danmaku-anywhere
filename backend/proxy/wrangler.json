@@ -3,13 +3,17 @@
   "main": "src/index.ts",
   "compatibility_date": "2025-05-05",
   "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "none"
+  },
   "observability": {
     "enabled": true
   },
   "vars": {
-    "ENVIRONMENT": "staging",
+    "ENVIRONMENT": "dev",
     "ALLOWED_ORIGIN": "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app,http://localhost:4200",
-    "BETTER_AUTH_TRUSTED_ORIGINS": "https://**.weeblify.app",
+    "BETTER_AUTH_TRUSTED_ORIGINS": "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app,https://api.danmaku-staging.weeblify.app,http://localhost:4200",
     "GEMINI_MODEL": "gemini-2.5-flash-lite",
     "BETTER_AUTH_URL": "https://api.danmaku-staging.weeblify.app",
     "GOOGLE_CLIENT_ID": "",
@@ -82,7 +86,7 @@
       "vars": {
         "ENVIRONMENT": "staging",
         "ALLOWED_ORIGIN": "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app,http://localhost:4200",
-        "BETTER_AUTH_TRUSTED_ORIGINS": "https://**.weeblify.app",
+        "BETTER_AUTH_TRUSTED_ORIGINS": "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app,https://api.danmaku-staging.weeblify.app",
         "GEMINI_MODEL": "gemini-2.5-flash-lite",
         "BETTER_AUTH_URL": "https://api.danmaku-staging.weeblify.app",
         "GOOGLE_CLIENT_ID": "",
@@ -156,7 +160,7 @@
       "vars": {
         "ENVIRONMENT": "production",
         "ALLOWED_ORIGIN": "https://danmaku.weeblify.app",
-        "BETTER_AUTH_TRUSTED_ORIGINS": "https://**.weeblify.app",
+        "BETTER_AUTH_TRUSTED_ORIGINS": "https://danmaku.weeblify.app,https://api.danmaku.weeblify.app",
         "GEMINI_MODEL": "gemini-2.5-flash-lite",
         "BETTER_AUTH_URL": "https://api.danmaku.weeblify.app",
         "GOOGLE_CLIENT_ID": "",
@@ -220,7 +224,7 @@
       "services": [
         {
           "binding": "DDP_SERVICE",
-          "service": "ddp-microservice-prod"
+          "service": "ddp-microservice-production"
         }
       ],
       "ratelimits": []

@@ -1,0 +1,180 @@
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Link,
+  Typography,
+} from '@mui/material'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router'
+import { useToast } from '@/common/components/Toast/toastStore'
+import { useAuthSession } from '@/common/hooks/user/useAuthSession'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { CloudBackupList } from './CloudBackupList'
+import { SectionHeader } from './SectionHeader'
+
+export function CloudBackupSection({
+  onRestoringChange,
+}: {
+  onRestoringChange?: (isRestoring: boolean) => void
+}) {
+  const { t } = useTranslation()
+  const { toast } = useToast()
+  const navigate = useNavigate()
+
+  const { data: session } = useAuthSession()
+  const isSignedIn = !!session
+
+  const {
+    data: backups,
+    refetch,
+    isLoading: isLoadingBackups,
+    isError: isBackupsError,
+  } = useQuery({
+    queryKey: ['cloudBackups', session?.user?.id],
+    queryFn: async () => chromeRpcClient.cloudBackupList(),
+    select: (res) => res.data,
+    enabled: isSignedIn,
+  })
+
+  const importMutation = useMutation({
+    mutationFn: async (data: unknown) => {
+      return await chromeRpcClient.backupImport(data)
+    },
+    onSuccess: () => {
+      toast.success(
+        t(
+          'optionsPage.backup.alert.importSuccess',
+          'Backup imported successfully'
+        )
+      )
+    },
+    onError: (error) => {
+      toast.error(
+        t('optionsPage.backup.importError', 'Import failed') +
+          `: ${error.message}`
+      )
+    },
+    onSettled: () => {
+      onRestoringChange?.(false)
+    },
+  })
+
+  const createCloudBackupMutation = useMutation({
+    mutationFn: async () => chromeRpcClient.cloudBackupCreate(),
+    onSuccess: () => {
+      toast.success(
+        t('optionsPage.backup.cloudCreateSuccess', 'Cloud backup created')
+      )
+      void refetch()
+    },
+    onError: (error) => {
+      toast.error(
+        t(
+          'optionsPage.backup.cloudCreateError',
+          'Cloud backup failed: {{message}}',
+          { message: error.message }
+        )
+      )
+    },
+  })
+
+  const downloadCloudBackupMutation = useMutation({
+    mutationFn: async (id: string) => chromeRpcClient.cloudBackupDownload(id),
+    onMutate: () => {
+      onRestoringChange?.(true)
+    },
+    onSuccess: ({ data }) => {
+      importMutation.mutate(data)
+    },
+    onError: (error) => {
+      toast.error(
+        t(
+          'optionsPage.backup.cloudDownloadError',
+          'Failed to download cloud backup: {{message}}',
+          { message: error.message }
+        )
+      )
+      onRestoringChange?.(false)
+    },
+  })
+
+  const isRestoring =
+    importMutation.isPending || downloadCloudBackupMutation.isPending
+
+  return (
+    <div>
+      <SectionHeader
+        title={t('optionsPage.backup.cloudBackup', 'Cloud Backup')}
+        description={t(
+          'optionsPage.backup.cloudDescription',
+          'Sync your settings to the cloud. Up to 3 revisions are kept.'
+        )}
+      />
+
+      {!isSignedIn ? (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          <Typography variant="body2">
+            {t(
+              'optionsPage.backup.cloudSignInRequired',
+              'Sign in to use cloud backup.'
+            )}{' '}
+            <Link
+              component="button"
+              variant="body2"
+              onClick={() => navigate('/options/auth')}
+              sx={{ verticalAlign: 'baseline' }}
+            >
+              {t('optionsPage.backup.goToSignIn', 'Go to Sign In')}
+            </Link>
+          </Typography>
+        </Alert>
+      ) : (
+        <>
+          <Box sx={{ mb: 3 }}>
+            <Button
+              variant="contained"
+              onClick={() => createCloudBackupMutation.mutate()}
+              disabled={createCloudBackupMutation.isPending}
+            >
+              {createCloudBackupMutation.isPending ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                t('optionsPage.backup.cloudBackupCreate', 'Create Cloud Backup')
+              )}
+            </Button>
+          </Box>
+
+          {isLoadingBackups ? (
+            <Box sx={{ py: 2, display: 'flex', justifyContent: 'flex-start' }}>
+              <CircularProgress size={24} />
+            </Box>
+          ) : isBackupsError ? (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {t(
+                'optionsPage.backup.cloudListError',
+                'Failed to load cloud backups.'
+              )}
+            </Alert>
+          ) : !backups || backups.length === 0 ? (
+            <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
+              {t(
+                'optionsPage.backup.noCloudBackups',
+                'No cloud backups yet. Create one to get started.'
+              )}
+            </Typography>
+          ) : (
+            <CloudBackupList
+              backups={backups}
+              isRestoring={isRestoring}
+              restoringId={downloadCloudBackupMutation.variables}
+              onRestore={(id) => downloadCloudBackupMutation.mutate(id)}
+            />
+          )}
+        </>
+      )}
+    </div>
+  )
+}

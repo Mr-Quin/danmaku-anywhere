@@ -68,10 +68,16 @@ export const SignUpForm = () => {
     <Box component="form" onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={2}>
         <TextField
-          label={t('optionsPage.auth.name', 'Name')}
+          label={t('optionsPage.auth.name', 'User Name')}
           fullWidth
           error={!!errors.name}
-          helperText={errors.name?.message}
+          helperText={
+            errors.name?.message ||
+            t(
+              'optionsPage.auth.nameHelper',
+              'The user name is public and does not need to be unique'
+            )
+          }
           {...register('name')}
         />
         <TextField
@@ -79,7 +85,13 @@ export const SignUpForm = () => {
           type="email"
           fullWidth
           error={!!errors.email}
-          helperText={errors.email?.message}
+          helperText={
+            errors.email?.message ||
+            t(
+              'optionsPage.auth.emailHelper',
+              'Your email is only used to recover your account'
+            )
+          }
           {...register('email')}
         />
         <TextField
@@ -87,7 +99,13 @@ export const SignUpForm = () => {
           type="password"
           fullWidth
           error={!!errors.password}
-          helperText={errors.password?.message}
+          helperText={
+            errors.password?.message ||
+            t(
+              'optionsPage.auth.passwordHelper',
+              'Must be at least 6 characters'
+            )
+          }
           {...register('password')}
         />
         <TextField

@@ -7,7 +7,7 @@ import type { Hono } from 'hono'
 import worker from '@/index'
 
 interface MakeUnitTestRequestOptions {
-  app?: Hono
+  app?: Hono<{ Bindings: Env }>
 }
 export const makeUnitTestRequest = async (
   request: Request,

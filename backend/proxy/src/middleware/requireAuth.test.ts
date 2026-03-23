@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import type { AuthUser } from '@/auth/types'
 import { factory } from '@/factory'
 import { requireAuth } from '@/middleware/requireAuth'
 import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
@@ -25,7 +26,7 @@ describe('requireAuth', () => {
   it('allows request when user exists', async () => {
     const app = factory.createApp()
     app.use('*', async (context, next) => {
-      context.set('authUser', { id: 'user-1' })
+      context.set('authUser', { id: 'user-1' } as AuthUser)
       return next()
     })
     app.get('/protected', requireAuth(), (context) =>

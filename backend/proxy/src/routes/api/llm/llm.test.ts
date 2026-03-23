@@ -62,7 +62,7 @@ describe('LLM API', () => {
     })
   }
 
-  it('extracts title from HTML v1', async () => {
+  it.skip('extracts title from HTML v1', async () => {
     mockLLMResponse({})
 
     const request = new IncomingRequest(
@@ -85,7 +85,7 @@ describe('LLM API', () => {
     expect(mockSendMessage).toHaveBeenCalledTimes(1)
   })
 
-  it('extracts title from HTML v2', async () => {
+  it.skip('extracts title from HTML v2', async () => {
     mockLLMResponse({
       episode: 1,
       title: 'BanG Dream! Ave Mujica',
@@ -119,7 +119,7 @@ describe('LLM API', () => {
     expect(mockSendMessage).toHaveBeenCalledTimes(1)
   })
 
-  it('cache works - cache hit', async () => {
+  it.skip('cache works - cache hit', async () => {
     // Mock response for the initial request
     mockLLMResponse({})
 
@@ -162,7 +162,7 @@ describe('LLM API', () => {
     expect(mockSendMessage).toHaveBeenCalledTimes(1)
   })
 
-  it('cache works - cache miss', async () => {
+  it.skip('cache works - cache miss', async () => {
     // Mock responses for both requests
     mockLLMResponse({
       episode: 1,

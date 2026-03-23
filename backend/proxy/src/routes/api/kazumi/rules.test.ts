@@ -1,15 +1,11 @@
-import { fetchMock } from 'cloudflare:test'
-import { afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createTestUrl } from '@/test-utils/createTestUrl'
 import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
 
 describe('Kazumi Rules API', () => {
-  beforeAll(() => {
-    fetchMock.activate()
-    fetchMock.disableNetConnect()
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
-
-  afterEach(() => fetchMock.assertNoPendingInterceptors())
 
   it('returns kazumi manifest file (GET /)', async () => {
     const mockKazumiData = [
@@ -17,10 +13,9 @@ describe('Kazumi Rules API', () => {
       { name: 'rule2', url: 'https://example.com/rule2.json' },
     ]
 
-    fetchMock
-      .get('https://raw.githubusercontent.com')
-      .intercept({ path: '/Predidit/KazumiRules/main/index.json' })
-      .reply(200, JSON.stringify(mockKazumiData))
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify(mockKazumiData), { status: 200 })
+    )
 
     const request = new Request(createTestUrl('/kazumi/rules'))
     const response = await makeUnitTestRequest(request)
@@ -35,10 +30,9 @@ describe('Kazumi Rules API', () => {
   it('returns specific rule file (GET /file)', async () => {
     const mockRuleData = { name: 'test-rule', patterns: ['.*'] }
 
-    fetchMock
-      .get('https://raw.githubusercontent.com')
-      .intercept({ path: '/Predidit/KazumiRules/main/test-rule.json' })
-      .reply(200, JSON.stringify(mockRuleData))
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify(mockRuleData), { status: 200 })
+    )
 
     const request = new Request(
       createTestUrl('/kazumi/rules/file?file=test-rule.json')
