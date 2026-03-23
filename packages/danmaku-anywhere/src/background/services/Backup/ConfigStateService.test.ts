@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { BackupData } from '@/common/backup/dto'
 import type { ILogger } from '@/common/Logger'
+import { mockChrome } from '@/tests/mockChromeApis'
 import { ConfigStateService } from './ConfigStateService'
 
 // Manual mocks without relying on IOC
@@ -64,6 +65,10 @@ describe('ConfigStateService', () => {
       ],
       mockLogger
     )
+
+    mockChrome.runtime.getManifest.mockReturnValue({
+      version: '1.0.0',
+    })
   })
 
   afterEach(() => {
