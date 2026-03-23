@@ -14,7 +14,7 @@
     "ENVIRONMENT": "dev",
     "ALLOWED_ORIGIN": "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app,http://localhost:4200",
     "BETTER_AUTH_TRUSTED_ORIGINS": "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app,https://api.danmaku-staging.weeblify.app,http://localhost:4200",
-    "GEMINI_MODEL": "gemini-2.5-flash-lite",
+    "GEMINI_MODEL": "gemini-flash-lite-latest",
     "BETTER_AUTH_URL": "https://api.danmaku-staging.weeblify.app",
     "GOOGLE_CLIENT_ID": "",
     "EMAIL_FROM": "Danmaku Anywhere <hello@danmaku.weeblify.app>"
@@ -87,7 +87,7 @@
         "ENVIRONMENT": "staging",
         "ALLOWED_ORIGIN": "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app,http://localhost:4200",
         "BETTER_AUTH_TRUSTED_ORIGINS": "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app,https://api.danmaku-staging.weeblify.app",
-        "GEMINI_MODEL": "gemini-2.5-flash-lite",
+        "GEMINI_MODEL": "gemini-flash-lite-latest",
         "BETTER_AUTH_URL": "https://api.danmaku-staging.weeblify.app",
         "GOOGLE_CLIENT_ID": "",
         "EMAIL_FROM": "Danmaku Anywhere <hello@danmaku.weeblify.app>"
@@ -161,7 +161,7 @@
         "ENVIRONMENT": "production",
         "ALLOWED_ORIGIN": "https://danmaku.weeblify.app",
         "BETTER_AUTH_TRUSTED_ORIGINS": "https://danmaku.weeblify.app,https://api.danmaku.weeblify.app",
-        "GEMINI_MODEL": "gemini-2.5-flash-lite",
+        "GEMINI_MODEL": "gemini-flash-lite-latest",
         "BETTER_AUTH_URL": "https://api.danmaku.weeblify.app",
         "GOOGLE_CLIENT_ID": "",
         "EMAIL_FROM": "Danmaku Anywhere <hello@danmaku.weeblify.app>"
