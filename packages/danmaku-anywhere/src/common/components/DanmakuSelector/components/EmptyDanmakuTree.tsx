@@ -49,7 +49,6 @@ export const EmptyDanmakuTree = ({
         }}
         src={IMAGE_ASSETS.DrawCircle}
         height={300}
-        cache={false}
       />
     </Box>
   )

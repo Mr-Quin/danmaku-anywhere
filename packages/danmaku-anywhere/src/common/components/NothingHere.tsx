@@ -28,12 +28,7 @@ export const NothingHere = ({
       {children}
       <ErrorBoundary fallback={null}>
         <Suspense fallback={null}>
-          <SuspenseImage
-            src={IMAGE_ASSETS.Empty}
-            width={size}
-            height={size}
-            cache={false}
-          />
+          <SuspenseImage src={IMAGE_ASSETS.Empty} width={size} height={size} />
         </Suspense>
       </ErrorBoundary>
     </Center>

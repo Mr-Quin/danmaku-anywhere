@@ -38,7 +38,6 @@ import type {
   BackupRestoreResult,
   CloudBackupItem,
 } from '@/common/backup/dto'
-import type { ImageFetchOptions } from '@/common/components/image/types'
 import type { BaseUrlConfig } from '@/common/configs/types'
 import type {
   CustomEpisodeQueryFilter,
@@ -122,7 +121,7 @@ export type BackgroundMethods = {
   bilibiliSetCookies: RPCDef<void, void>
   bilibiliGetLoginStatus: RPCDef<void, BilibiliUserInfo>
   tencentTestCookies: RPCDef<void, boolean>
-  fetchImage: RPCDef<{ src: string; options?: ImageFetchOptions }, string>
+  fetchImage: RPCDef<{ src: string }, string | null>
   getActiveTabUrl: RPCDef<void, string | null>
   getFrameId: RPCDef<void, number>
   getExtensionManifest: RPCDef<void, chrome.runtime.ManifestV3>

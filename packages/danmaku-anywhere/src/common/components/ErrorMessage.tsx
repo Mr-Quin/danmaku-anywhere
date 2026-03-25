@@ -37,7 +37,6 @@ export const ErrorMessage = ({
             src={IMAGE_ASSETS.Apologize}
             width={size}
             height={size}
-            cache={false}
           />
         </Suspense>
       </ErrorBoundary>

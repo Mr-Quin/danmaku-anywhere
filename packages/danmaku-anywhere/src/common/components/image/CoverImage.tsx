@@ -59,16 +59,21 @@ type CoverImageProps = {
 } & ImageAspectRatioProps
 
 const CoverImageLoader = (props: CoverImageProps) => {
-  const image = useImageSuspense(props.src ?? IMAGE_ASSETS.Fallback, {
-    cache: props.src !== '',
-  })
+  const image = useImageSuspense(props.src || IMAGE_ASSETS.Fallback)
+  const fallbackImage = useImageSuspense(IMAGE_ASSETS.Fallback)
+
+  const src = image.data ?? fallbackImage.data
+
+  if (!src) {
+    return null
+  }
 
   return (
     <StackingContext>
-      <BackgroundImage src={image.data} />
+      <BackgroundImage src={src} />
       <CardMedia
         component="img"
-        src={image.data}
+        src={src}
         alt={props.alt}
         sx={{ maxHeight: '100%', position: 'relative' }}
       />
