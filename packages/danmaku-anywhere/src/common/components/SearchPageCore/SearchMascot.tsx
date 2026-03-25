@@ -42,7 +42,6 @@ export const SearchMascot = () => {
           transform: image.transform,
         }}
         height={400}
-        cache={false}
       />
     </Box>
   )

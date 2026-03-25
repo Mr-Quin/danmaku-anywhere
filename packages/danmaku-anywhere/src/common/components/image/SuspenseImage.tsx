@@ -1,5 +1,6 @@
 import { Box, type BoxProps } from '@mui/material'
 import type { ReactNode } from 'react'
+import { ErrorBoundary } from 'react-error-boundary'
 import { IMAGE_ASSETS } from '@/images/ImageAssets'
 import { useImageSuspense } from './useImage'
 
@@ -10,27 +11,26 @@ type ImageProps = {
   alt?: string
   width?: number
   height?: number
-  cache?: boolean
 } & Omit<BoxProps<'img'>, 'src' | 'alt' | 'component'>
 
-export const SuspenseImage = ({
+const SuspenseImageLoader = ({
   fallback,
   throwOnNull,
   src,
   alt,
   width,
   height,
-  cache,
   ...rest
 }: ImageProps) => {
-  // don't cache if src is empty
-  const shouldCache = src === '' ? false : cache
-  const image = useImageSuspense(src ?? IMAGE_ASSETS.Fallback, {
-    cache: shouldCache,
-  })
+  const image = useImageSuspense(src ?? IMAGE_ASSETS.Fallback)
+  const fallbackImage = useImageSuspense(IMAGE_ASSETS.Fallback)
 
-  if (!image.data) {
-    if (throwOnNull) throw new Error(`Image ${src} not found`)
+  const data = image.data ?? fallbackImage.data
+
+  if (!data) {
+    if (throwOnNull) {
+      throw new Error(`Image ${src} not found`)
+    }
     return fallback
   }
 
@@ -38,10 +38,18 @@ export const SuspenseImage = ({
     <Box
       component="img"
       {...rest}
-      src={image.data}
+      src={data}
       alt={alt}
       width={width}
       height={height}
     />
+  )
+}
+
+export const SuspenseImage = ({ fallback, ...rest }: ImageProps) => {
+  return (
+    <ErrorBoundary fallback={<>{fallback}</>}>
+      <SuspenseImageLoader fallback={fallback} {...rest} />
+    </ErrorBoundary>
   )
 }
