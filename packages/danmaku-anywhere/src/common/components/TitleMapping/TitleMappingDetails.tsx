@@ -1,5 +1,12 @@
 import type { Season } from '@danmaku-anywhere/danmaku-converter'
-import { Autocomplete, Box, styled, TextField, Typography } from '@mui/material'
+import {
+  Autocomplete,
+  Box,
+  Button,
+  styled,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { Fragment, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
@@ -21,9 +28,13 @@ const BoxGrid = styled(Box)(({ theme }) => {
 
 type TitleMappingDetailsProps = {
   map: SeasonMap
+  onCreateLocalRule?: (mapKey: string) => void
 }
 
-export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
+export const TitleMappingDetails = ({
+  map,
+  onCreateLocalRule,
+}: TitleMappingDetailsProps) => {
   const { t } = useTranslation()
   const { configs } = useProviderConfig()
   const mutations = useSeasonMapMutations()
@@ -62,59 +73,75 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
   }, [allSeasons])
 
   return (
-    <BoxGrid>
-      {configs.map((config) => {
-        const seasonId = map.getSeasonId(config.id)
-        const selectedSeason = seasonId
-          ? seasonsById.get(seasonId) || null
-          : null
+    <Box>
+      <BoxGrid>
+        {configs.map((config) => {
+          const seasonId = map.getSeasonId(config.id)
+          const selectedSeason = seasonId
+            ? seasonsById.get(seasonId) || null
+            : null
 
-        const options = seasonsByProvider.get(config.id) ?? []
+          const options = seasonsByProvider.get(config.id) ?? []
 
-        return (
-          <Fragment key={config.id}>
-            <Typography variant="body2">
-              {config.isBuiltIn
-                ? localizedDanmakuSourceType(config.impl)
-                : config.name}
-            </Typography>
+          return (
+            <Fragment key={config.id}>
+              <Typography variant="body2">
+                {config.isBuiltIn
+                  ? localizedDanmakuSourceType(config.impl)
+                  : config.name}
+              </Typography>
 
-            <Autocomplete<Season>
-              options={options}
-              getOptionLabel={(option) => `${option.title} (${option.year})`}
-              getOptionKey={(option) => option.id}
-              value={selectedSeason}
-              onChange={(_, newValue) => handleChange(config.id, newValue)}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  size="small"
-                  variant="outlined"
-                  placeholder={t('titleMapping.unmapped', 'Unmapped')}
-                  fullWidth
-                />
-              )}
-              filterOptions={(options, state) => {
-                return options.filter((option) => {
-                  return matchWithPinyin(option.title, state.inputValue)
-                })
-              }}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
-              noOptionsText={t(
-                'titleMapping.noSeasons',
-                'No options for the selected provider'
-              )}
-              slotProps={{
-                popper: {
-                  sx: {
-                    zIndex: 1403,
+              <Autocomplete<Season>
+                options={options}
+                getOptionLabel={(option) => `${option.title} (${option.year})`}
+                getOptionKey={(option) => option.id}
+                value={selectedSeason}
+                onChange={(_, newValue) => handleChange(config.id, newValue)}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    size="small"
+                    variant="outlined"
+                    placeholder={t('titleMapping.unmapped', 'Unmapped')}
+                    fullWidth
+                  />
+                )}
+                filterOptions={(options, state) => {
+                  return options.filter((option) => {
+                    return matchWithPinyin(option.title, state.inputValue)
+                  })
+                }}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                noOptionsText={t(
+                  'titleMapping.noSeasons',
+                  'No options for the selected provider'
+                )}
+                slotProps={{
+                  popper: {
+                    sx: {
+                      zIndex: 1403,
+                    },
                   },
-                },
-              }}
-            />
-          </Fragment>
-        )
-      })}
-    </BoxGrid>
+                }}
+              />
+            </Fragment>
+          )
+        })}
+      </BoxGrid>
+      {onCreateLocalRule && (
+        <Box sx={{ px: 2, pt: 2 }}>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => onCreateLocalRule(map.key)}
+          >
+            {t(
+              'localMatchingRule.createFromMapping',
+              'Create Local Matching Rule'
+            )}
+          </Button>
+        </Box>
+      )}
+    </Box>
   )
 }

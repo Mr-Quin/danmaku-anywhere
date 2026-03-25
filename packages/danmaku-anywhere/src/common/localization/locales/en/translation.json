@@ -639,6 +639,26 @@
     "empty": "No title mappings found.",
     "noSeasons": "No options for the selected provider",
     "title": "Title Mappings",
-    "unmapped": "Unmapped"
+    "unmapped": "Unmapped",
+    "seasonMappingsTab": "Season Mappings",
+    "localMatchingRulesTab": "Local Matching Rules"
+  },
+  "localMatchingRule": {
+    "title": "Local Matching Rules",
+    "empty": "No local matching rules found.",
+    "create": "Create Rule",
+    "createFromMapping": "Create Local Matching Rule",
+    "mapKey": "Media Key",
+    "mapKeyHelp": "The title key detected from the video page, e.g. \"Attack on Titan\" or \"Attack on Titan%%S2\"",
+    "folder": "Folder",
+    "rootFolder": "(root)",
+    "template": "Filename Template",
+    "templateHelp": "Use {episode} for episode number, {episode:02d} for zero-padded. Example: {episode:03d}.xml",
+    "patternResult": "Pattern",
+    "filesInFolder": "Files in folder",
+    "matchCount": "{{matched}} / {{total}} matched",
+    "deleteConfirmOne": "Are you sure you want to delete this local matching rule?",
+    "deleteConfirm_one": "Are you sure you want to delete {{count}} local matching rule?",
+    "deleteConfirm_other": "Are you sure you want to delete {{count}} local matching rules?"
   }
 }

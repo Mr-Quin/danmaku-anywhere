@@ -624,6 +624,25 @@
     "empty": "没有标题映射",
     "noSeasons": "没有可以映射的番剧",
     "title": "标题映射",
-    "unmapped": "未映射"
+    "unmapped": "未映射",
+    "seasonMappingsTab": "番剧映射",
+    "localMatchingRulesTab": "本地匹配规则"
+  },
+  "localMatchingRule": {
+    "title": "本地匹配规则",
+    "empty": "没有本地匹配规则",
+    "create": "创建规则",
+    "createFromMapping": "创建本地匹配规则",
+    "mapKey": "媒体标题",
+    "mapKeyHelp": "从视频页面检测到的标题键，例如 \"进击的巨人\" 或 \"进击的巨人%%S2\"",
+    "folder": "文件夹",
+    "rootFolder": "（根目录）",
+    "template": "文件名模板",
+    "templateHelp": "使用 {episode} 表示集数，{episode:02d} 表示补零。例如: {episode:03d}.xml",
+    "patternResult": "匹配模式",
+    "filesInFolder": "文件夹中的文件",
+    "matchCount": "{{matched}} / {{total}} 已匹配",
+    "deleteConfirmOne": "确定要删除此本地匹配规则吗？",
+    "deleteConfirm_other": "确定要删除 {{count}} 个本地匹配规则吗？"
   }
 }
