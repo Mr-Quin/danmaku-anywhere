@@ -4,7 +4,7 @@ import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 /**
  * Fetching images from the content script has issues with the same-origin policy and images in the extension assets.
- * This hook sends the fetch task to the background script and returns the image as a base64 string.
+ * This hook sends the fetch task to the background script and returns the image as a base64 data URL, or null if the fetch fails.
  */
 export const useImageSuspense = (src: string) => {
   return useSuspenseQuery({

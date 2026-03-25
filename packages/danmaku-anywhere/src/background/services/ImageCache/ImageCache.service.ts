@@ -13,6 +13,9 @@ export class ImageCacheService {
 
   private fetchImageBlob = async (src: string): Promise<Blob> => {
     const res = await fetch(src)
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} fetching image: ${src}`)
+    }
     return res.blob()
   }
 

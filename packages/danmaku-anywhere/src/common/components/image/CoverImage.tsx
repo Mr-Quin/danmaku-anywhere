@@ -59,7 +59,7 @@ type CoverImageProps = {
 } & ImageAspectRatioProps
 
 const CoverImageLoader = (props: CoverImageProps) => {
-  const image = useImageSuspense(props.src ?? IMAGE_ASSETS.Fallback)
+  const image = useImageSuspense(props.src || IMAGE_ASSETS.Fallback)
   const fallbackImage = useImageSuspense(IMAGE_ASSETS.Fallback)
 
   const src = image.data ?? fallbackImage.data

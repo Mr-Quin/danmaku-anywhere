@@ -22,7 +22,7 @@ const SuspenseImageLoader = ({
   height,
   ...rest
 }: ImageProps) => {
-  const image = useImageSuspense(src ?? IMAGE_ASSETS.Fallback)
+  const image = useImageSuspense(src || IMAGE_ASSETS.Fallback)
   const fallbackImage = useImageSuspense(IMAGE_ASSETS.Fallback)
 
   const data = image.data ?? fallbackImage.data
@@ -48,7 +48,7 @@ const SuspenseImageLoader = ({
 
 export const SuspenseImage = ({ fallback, ...rest }: ImageProps) => {
   return (
-    <ErrorBoundary fallback={<>{fallback}</>}>
+    <ErrorBoundary fallback={<>{fallback}</>} resetKeys={[rest.src]}>
       <SuspenseImageLoader fallback={fallback} {...rest} />
     </ErrorBoundary>
   )
