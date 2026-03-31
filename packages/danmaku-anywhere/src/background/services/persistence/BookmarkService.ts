@@ -1,12 +1,10 @@
-import {
-  type Bookmark,
-  DanmakuSourceType,
-  type EpisodeMeta,
-  type EpisodeStub,
-  type WithSeason,
+import type {
+  Bookmark,
+  EpisodeMeta,
+  EpisodeStub,
+  WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
-import { match } from 'ts-pattern'
 import type { ProviderService } from '@/background/services/providers/ProviderService'
 import { BOOKMARK_REFRESH_TTL_MS } from '@/common/bookmark/constants'
 import { DanmakuAnywhereDb } from '@/common/db/db'
@@ -15,30 +13,14 @@ import { invariant, isServiceWorker } from '@/common/utils/utils'
 type WithoutId<T> = Omit<T, 'id'>
 
 const toStub = (meta: WithSeason<EpisodeMeta>): EpisodeStub => {
-  return match(meta)
-    .returnType<EpisodeStub>()
-    .with({ provider: DanmakuSourceType.DanDanPlay }, (m) => ({
-      title: m.title,
-      episodeNumber: m.episodeNumber,
-      indexedId: m.indexedId,
-      provider: m.provider,
-      providerIds: m.providerIds,
-    }))
-    .with({ provider: DanmakuSourceType.Bilibili }, (m) => ({
-      title: m.title,
-      episodeNumber: m.episodeNumber,
-      indexedId: m.indexedId,
-      provider: m.provider,
-      providerIds: m.providerIds,
-    }))
-    .with({ provider: DanmakuSourceType.Tencent }, (m) => ({
-      title: m.title,
-      episodeNumber: m.episodeNumber,
-      indexedId: m.indexedId,
-      provider: m.provider,
-      providerIds: m.providerIds,
-    }))
-    .exhaustive()
+  const { title, episodeNumber, indexedId, provider, providerIds } = meta
+  return {
+    title,
+    episodeNumber,
+    indexedId,
+    provider,
+    providerIds,
+  } as EpisodeStub
 }
 
 @injectable('Singleton')
@@ -55,29 +37,38 @@ export class BookmarkService {
     providerService: ProviderService
   ): Promise<Bookmark> {
     const existing = await this.getBySeason(seasonId)
-
     if (existing) {
       return existing
     }
-
-    const episodes = await providerService.fetchEpisodesBySeason(seasonId)
-    const stubs = episodes.map(toStub)
 
     const season = await this.db.season.get(seasonId)
     if (!season) {
       throw new Error(`Season not found: ${seasonId}`)
     }
 
-    const toInsert: WithoutId<Bookmark> = {
-      seasonId,
-      providerConfigId: season.providerConfigId,
-      episodes: stubs,
-      lastRefreshed: Date.now(),
-      timeUpdated: Date.now(),
-      version: 1,
-    }
-    const id = await this.db.bookmark.add(toInsert)
-    return { ...toInsert, id }
+    const episodes = await providerService.fetchEpisodesBySeason(seasonId)
+    const stubs = episodes.map(toStub)
+
+    return this.db.transaction('rw', this.db.bookmark, async () => {
+      // Re-check inside transaction: the first check above avoids the API call,
+      // but a concurrent add could have inserted between then and now.
+      // Without this, the second add would throw a ConstraintError on &seasonId.
+      const existing = await this.getBySeason(seasonId)
+      if (existing) {
+        return existing
+      }
+
+      const toInsert: WithoutId<Bookmark> = {
+        seasonId,
+        providerConfigId: season.providerConfigId,
+        episodes: stubs,
+        lastRefreshed: Date.now(),
+        timeUpdated: Date.now(),
+        version: 1,
+      }
+      const id = await this.db.bookmark.add(toInsert)
+      return { ...toInsert, id }
+    })
   }
 
   async delete(id: number): Promise<void> {

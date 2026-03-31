@@ -1,6 +1,6 @@
 import type { EpisodeStub, Season } from '@danmaku-anywhere/danmaku-converter'
 import { CloudDownload } from '@mui/icons-material'
-import { CircularProgress, IconButton, Stack, Typography } from '@mui/material'
+import { CircularProgress, Stack, Typography } from '@mui/material'
 import type { ReactElement } from 'react'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 
@@ -17,8 +17,11 @@ export const StubEpisodeTreeItem = ({
 }: StubEpisodeTreeItemProps): ReactElement => {
   const fetchDanmaku = useFetchDanmaku()
 
-  const handleFetch = (e: React.MouseEvent) => {
+  const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
+    if (fetchDanmaku.isPending) {
+      return
+    }
     fetchDanmaku.mutate({
       type: 'by-stub',
       stub,
@@ -35,22 +38,21 @@ export const StubEpisodeTreeItem = ({
       py={0.5}
       overflow="hidden"
       pr={1}
+      onClick={handleClick}
+      sx={{ cursor: 'pointer' }}
     >
       <Typography noWrap variant="body2" color="text.disabled">
         {label}
       </Typography>
-      <IconButton
-        size="small"
-        onClick={handleFetch}
-        disabled={fetchDanmaku.isPending}
-        sx={{ ml: 'auto' }}
-      >
-        {fetchDanmaku.isPending ? (
-          <CircularProgress size={16} />
-        ) : (
-          <CloudDownload fontSize="small" color="action" />
-        )}
-      </IconButton>
+      {fetchDanmaku.isPending ? (
+        <CircularProgress size={16} sx={{ ml: 'auto', flexShrink: 0 }} />
+      ) : (
+        <CloudDownload
+          fontSize="small"
+          color="action"
+          sx={{ ml: 'auto', flexShrink: 0 }}
+        />
+      )}
     </Stack>
   )
 }

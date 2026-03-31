@@ -5,13 +5,13 @@ import type {
   GenericEpisodeLite,
   Season,
 } from '@danmaku-anywhere/danmaku-converter'
+import { useEventCallback } from '@mui/material'
 import { useTreeViewApiRef } from '@mui/x-tree-view/hooks'
 import { RichTreeView } from '@mui/x-tree-view/RichTreeView'
 import {
   type Ref,
   type RefObject,
   type SyntheticEvent,
-  useCallback,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -156,7 +156,7 @@ export const DanmakuTree = ({
     return new Map(bookmarks.map((b) => [b.seasonId, b]))
   }, [bookmarks])
 
-  const handleExpandedItemsChange = useCallback(
+  const handleExpandedItemsChange = useEventCallback(
     (_event: SyntheticEvent | null, itemIds: string[]) => {
       for (const itemId of itemIds) {
         const item = treeItemMap.get(itemId)
@@ -172,8 +172,7 @@ export const DanmakuTree = ({
           bookmarkRefresh.mutate(bookmark.id)
         }
       }
-    },
-    [treeItemMap, bookmarkBySeasonId, bookmarkRefresh]
+    }
   )
 
   useImperativeHandle(
@@ -257,6 +256,7 @@ export const DanmakuTree = ({
         selectionPropagation={selectionPropagation}
         onSelectedItemsChange={handleSelectedItemsChange}
         onExpandedItemsChange={handleExpandedItemsChange}
+        isItemSelectionDisabled={(item) => item.kind === 'stub'}
         slots={{ item: DanmakuTreeItem }}
         apiRef={apiRef}
       />
