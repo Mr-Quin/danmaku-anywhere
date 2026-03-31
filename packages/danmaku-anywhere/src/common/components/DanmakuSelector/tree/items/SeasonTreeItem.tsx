@@ -1,5 +1,5 @@
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
-import { Folder } from '@mui/icons-material'
+import { Bookmark, Folder } from '@mui/icons-material'
 import { Chip, Skeleton, Stack, styled, Typography } from '@mui/material'
 import { type ReactElement, Suspense } from 'react'
 import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
@@ -42,15 +42,47 @@ const SeasonThumbnail = ({
 interface SeasonTreeItemProps {
   season: Season | CustomSeason
   provider?: ProviderConfig
-  childrenCount?: number
+  fetchedCount?: number
+  stubCount?: number
+  bookmarked?: boolean
 }
 
 export const SeasonTreeItem = ({
   season,
   provider,
-  childrenCount,
+  fetchedCount,
+  stubCount,
+  bookmarked,
 }: SeasonTreeItemProps): ReactElement => {
   const isCustom = !isNotCustom(season)
+
+  const renderCounts = () => {
+    const hasFetched = fetchedCount !== undefined && fetchedCount > 0
+    const hasStubs = stubCount !== undefined && stubCount > 0
+
+    if (!hasFetched && !hasStubs) {
+      return null
+    }
+
+    return (
+      <Typography
+        variant="caption"
+        component="span"
+        sx={{ whiteSpace: 'nowrap' }}
+      >
+        {hasFetched && (
+          <Typography variant="caption" component="span" color="text.secondary">
+            ({fetchedCount})
+          </Typography>
+        )}
+        {hasStubs && (
+          <Typography variant="caption" component="span" color="text.disabled">
+            {` +${stubCount}`}
+          </Typography>
+        )}
+      </Typography>
+    )
+  }
 
   return (
     <>
@@ -89,12 +121,11 @@ export const SeasonTreeItem = ({
               color={provider.isBuiltIn ? 'primary' : 'default'}
             />
           )}
-          {childrenCount !== undefined && (
-            <Typography variant="caption" color="text.secondary">
-              ({childrenCount})
-            </Typography>
-          )}
+          {renderCounts()}
         </Stack>
+        {bookmarked && (
+          <Bookmark fontSize="small" color="action" sx={{ flexShrink: 0 }} />
+        )}
       </Stack>
     </>
   )

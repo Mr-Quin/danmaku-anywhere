@@ -31,6 +31,7 @@ export const DrilldownMenuList = ({
 }: DrilldownMenuListProps): ReactElement => {
   return (
     <StyledMenu
+      disableScrollLock
       anchorEl={anchorEl}
       anchorReference={anchorPosition ? 'anchorPosition' : 'anchorEl'}
       anchorPosition={anchorPosition || undefined}

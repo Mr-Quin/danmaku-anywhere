@@ -7,6 +7,7 @@ import {
 } from '@danmaku-anywhere/danmaku-converter'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
+import { BookmarkToggleButton } from '@/common/bookmark/components/BookmarkToggleButton'
 import { BaseEpisodeListItem } from '@/common/components/EpisodeList/BaseEpisodeListItem'
 import { EpisodeSearchList } from '@/common/components/EpisodeList/EpisodeSearchList'
 import { MacCmsEpisodeListItem } from '@/common/components/EpisodeList/MacCmsEpisodeListItem'
@@ -30,7 +31,9 @@ export const SeasonDetailsPage = ({
 }: SeasonDetailsPageProps) => {
   return (
     <TabLayout>
-      <TabToolbar showBackButton onGoBack={onGoBack} title={season.title} />
+      <TabToolbar showBackButton onGoBack={onGoBack} title={season.title}>
+        <BookmarkToggleButton season={season} />
+      </TabToolbar>
       <ErrorBoundary
         fallbackRender={({ error }) => (
           <ErrorMessage message={(error as Error).message} />

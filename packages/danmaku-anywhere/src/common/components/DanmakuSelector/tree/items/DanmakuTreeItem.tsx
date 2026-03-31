@@ -97,11 +97,16 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
       return label
     }
     if (isSeason) {
+      const children = item.children ?? []
+      const fetchedCount = children.filter((c) => c.kind === 'episode').length
+      const stubCount = children.filter((c) => c.kind === 'stub').length
       return (
         <SeasonTreeItem
           season={item.data}
           provider={item.provider}
-          childrenCount={item.children?.length}
+          fetchedCount={fetchedCount}
+          stubCount={stubCount}
+          bookmarked={item.bookmarked}
         />
       )
     }
