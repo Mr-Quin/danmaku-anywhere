@@ -5,6 +5,7 @@ import type {
   GenericEpisodeLite,
   Season,
 } from '@danmaku-anywhere/danmaku-converter'
+import { useEventCallback } from '@mui/material'
 import { useTreeViewApiRef } from '@mui/x-tree-view/hooks'
 import { RichTreeView } from '@mui/x-tree-view/RichTreeView'
 import {
@@ -13,8 +14,11 @@ import {
   type SyntheticEvent,
   useImperativeHandle,
   useMemo,
+  useRef,
   useState,
 } from 'react'
+import { BOOKMARK_REFRESH_TTL_MS } from '@/common/bookmark/constants'
+import { useBookmarkRefresh } from '@/common/bookmark/queries/useBookmarkRefresh'
 import {
   DanmakuTreeContext,
   type DanmakuTreeContextMenuState,
@@ -139,9 +143,37 @@ export const DanmakuTree = ({
   const [contextMenu, setContextMenu] =
     useState<DanmakuTreeContextMenuState | null>(null)
 
-  const { treeItems, treeItemMap } = useDanmakuTree(filter, typeFilter)
+  const { treeItems, treeItemMap, bookmarks } = useDanmakuTree(
+    filter,
+    typeFilter
+  )
 
   const apiRef = useTreeViewApiRef()
+  const bookmarkRefresh = useBookmarkRefresh({ silent: true })
+  const refreshedRef = useRef(new Set<number>())
+
+  const bookmarkBySeasonId = useMemo(() => {
+    return new Map(bookmarks.map((b) => [b.seasonId, b]))
+  }, [bookmarks])
+
+  const handleExpandedItemsChange = useEventCallback(
+    (_event: SyntheticEvent | null, itemIds: string[]) => {
+      for (const itemId of itemIds) {
+        const item = treeItemMap.get(itemId)
+        if (!item || item.kind !== 'season' || !item.bookmarked) {
+          continue
+        }
+        const bookmark = bookmarkBySeasonId.get(item.data.id)
+        if (!bookmark || refreshedRef.current.has(bookmark.id)) {
+          continue
+        }
+        if (Date.now() - bookmark.lastRefreshed > BOOKMARK_REFRESH_TTL_MS) {
+          refreshedRef.current.add(bookmark.id)
+          bookmarkRefresh.mutate(bookmark.id)
+        }
+      }
+    }
+  )
 
   useImperativeHandle(
     ref,
@@ -223,6 +255,8 @@ export const DanmakuTree = ({
         }
         selectionPropagation={selectionPropagation}
         onSelectedItemsChange={handleSelectedItemsChange}
+        onExpandedItemsChange={handleExpandedItemsChange}
+        isItemSelectionDisabled={(item) => item.kind === 'stub'}
         slots={{ item: DanmakuTreeItem }}
         apiRef={apiRef}
       />

@@ -1,7 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
-import { episodeQueryKeys, seasonQueryKeys } from '@/common/queries/queryKeys'
+import {
+  bookmarkQueryKeys,
+  episodeQueryKeys,
+  seasonQueryKeys,
+} from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
 
@@ -28,6 +32,9 @@ export const useFetchDanmaku = () => {
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: seasonQueryKeys.all(),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: bookmarkQueryKeys.all(),
       })
     },
     onError: async (error) => {

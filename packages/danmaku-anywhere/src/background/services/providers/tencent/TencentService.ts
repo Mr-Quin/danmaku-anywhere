@@ -10,7 +10,7 @@ import type { TencentEpisodeListItem } from '@danmaku-anywhere/danmaku-provider/
 import * as tencent from '@danmaku-anywhere/danmaku-provider/tencent'
 import type { DnrRuleSpec } from '@/background/netRequest/dnrTemplate'
 import { runWithDnr } from '@/background/netRequest/runWithDnr'
-import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
+import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import type { ILogger } from '@/common/Logger'
@@ -180,7 +180,7 @@ export class TencentService implements IDanmakuProvider {
     })
   }
 
-  async getDanmaku(request: DanmakuFetchRequest): Promise<CommentEntity[]> {
+  async getDanmaku(request: DanmakuFetchByMeta): Promise<CommentEntity[]> {
     const { meta } = request
 
     assertProviderType(meta, DanmakuSourceType.Tencent)

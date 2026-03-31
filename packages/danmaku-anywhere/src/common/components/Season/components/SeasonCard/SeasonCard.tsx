@@ -3,7 +3,13 @@ import {
   DanmakuSourceType,
   type Season,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Delete, FileDownload, Sync } from '@mui/icons-material'
+import {
+  BookmarkBorder,
+  Bookmark as BookmarkIcon,
+  Delete,
+  FileDownload,
+  Sync,
+} from '@mui/icons-material'
 import {
   alpha,
   Card,
@@ -20,6 +26,9 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useBookmarkAdd } from '@/common/bookmark/queries/useBookmarkAdd'
+import { useBookmarkDeleteBySeason } from '@/common/bookmark/queries/useBookmarkDelete'
+import { useBookmarkedSeasonIds } from '@/common/bookmark/queries/useBookmarks'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import {
   CoverImage,
@@ -128,6 +137,13 @@ export const SeasonCard = ({
   const exportXml = useExportXml()
   const exportDanmaku = useExportDanmaku()
   const deleteEpisode = useDeleteEpisode()
+
+  const { data: bookmarkedSeasonIds } = useBookmarkedSeasonIds()
+
+  const isBookmarked = bookmarkedSeasonIds?.has(season.id) ?? false
+
+  const bookmarkAddMutation = useBookmarkAdd()
+  const bookmarkDeleteMutation = useBookmarkDeleteBySeason()
 
   const deleteMutation = useMutation({
     mutationKey: seasonQueryKeys.all(),
@@ -238,6 +254,23 @@ export const SeasonCard = ({
             size: 'small',
           }}
           items={[
+            {
+              id: 'bookmark',
+              label: isBookmarked
+                ? t('bookmark.remove', 'Remove Bookmark')
+                : t('bookmark.add', 'Bookmark'),
+              icon: isBookmarked ? <BookmarkIcon /> : <BookmarkBorder />,
+              onClick: () => {
+                if (isBookmarked) {
+                  bookmarkDeleteMutation.mutate(season.id)
+                } else {
+                  bookmarkAddMutation.mutate(season.id)
+                }
+              },
+              loading:
+                bookmarkAddMutation.isPending ||
+                bookmarkDeleteMutation.isPending,
+            },
             {
               id: 'refresh',
               label: t('anime.refreshMetadata', 'Refresh Metadata'),

@@ -1,5 +1,6 @@
 import type {
   EpisodeMeta,
+  EpisodeStub,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { GetCommentQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
@@ -32,11 +33,20 @@ interface DanmakuFetchOptions {
   dandanplay?: GetCommentQuery
 }
 
-export type DanmakuFetchRequest = {
+export type DanmakuFetchByMeta = {
   type: 'by-meta'
   meta: WithSeason<EpisodeMeta>
   options?: DanmakuFetchOptions
 }
+
+export type DanmakuFetchByStub = {
+  type: 'by-stub'
+  stub: EpisodeStub
+  seasonId: number
+  options?: DanmakuFetchOptions
+}
+
+export type DanmakuFetchRequest = DanmakuFetchByMeta | DanmakuFetchByStub
 
 export type DanmakuFetchDto = DanmakuFetchRequest
 

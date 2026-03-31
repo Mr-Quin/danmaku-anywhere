@@ -56,6 +56,11 @@
     "refreshMetadata": "Refresh Metadata",
     "title": "Title"
   },
+  "bookmark": {
+    "add": "Bookmark",
+    "refreshEpisodes": "Refresh Episodes",
+    "remove": "Remove Bookmark"
+  },
   "common": {
     "acknowledge": "Ok",
     "add": "Add",

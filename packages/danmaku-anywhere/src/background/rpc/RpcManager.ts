@@ -12,6 +12,7 @@ import { IconService } from '@/background/services/IconService'
 import { ImageCacheService } from '@/background/services/ImageCache/ImageCache.service'
 import { KazumiService } from '@/background/services/KazumiService'
 import { LogService } from '@/background/services/Logging/Log.service'
+import { BookmarkService } from '@/background/services/persistence/BookmarkService'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
@@ -71,7 +72,9 @@ export class RpcManager {
     @inject(DataManagementService)
     private dataManagementService: DataManagementService,
     @inject(AuthClientService)
-    private authClientService: AuthClientService
+    private authClientService: AuthClientService,
+    @inject(BookmarkService)
+    private bookmarkService: BookmarkService
   ) {
     this.logger = logger.sub('[RpcManager]')
   }
@@ -310,6 +313,7 @@ export class RpcManager {
             'rw',
             this.db.season,
             this.db.episode,
+            this.db.bookmark,
             async () => {
               const seasons = await this.db.season
                 .where({ providerConfigId: id })
@@ -321,6 +325,7 @@ export class RpcManager {
                   .where('seasonId')
                   .anyOf(seasonIds)
                   .delete()
+                await this.bookmarkService.deleteBySeasonIds(seasonIds)
               }
 
               await this.db.season.where({ providerConfigId: id }).delete()
@@ -351,6 +356,21 @@ export class RpcManager {
         dataWipeDanmaku: async (data, sender) => {
           await this.dataManagementService.wipeAllData(data)
           void invalidateContentScriptData(sender.tab?.id)
+        },
+        bookmarkGetAll: async () => {
+          return this.bookmarkService.getAll()
+        },
+        bookmarkAdd: async (data) => {
+          return this.bookmarkService.add(data.seasonId, this.providerService)
+        },
+        bookmarkDelete: async (data) => {
+          return this.bookmarkService.delete(data.id)
+        },
+        bookmarkDeleteBySeason: async (data) => {
+          return this.bookmarkService.deleteBySeason(data.seasonId)
+        },
+        bookmarkRefresh: async (data) => {
+          return this.bookmarkService.refresh(data.id, this.providerService)
         },
       },
       {

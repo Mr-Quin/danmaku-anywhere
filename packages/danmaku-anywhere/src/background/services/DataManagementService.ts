@@ -10,21 +10,22 @@ export class DataManagementService {
   }: {
     includeCustomEpisodes: boolean
   }): Promise<void> {
-    await this.db.transaction(
-      'rw',
+    const tables = [
       this.db.episode,
       this.db.season,
       this.db.seasonMap,
       this.db.customEpisode,
-      async () => {
-        await this.db.episode.clear()
-        await this.db.season.clear()
-        await this.db.seasonMap.clear()
+      this.db.bookmark,
+    ]
+    await this.db.transaction('rw', tables, async () => {
+      await this.db.episode.clear()
+      await this.db.season.clear()
+      await this.db.seasonMap.clear()
+      await this.db.bookmark.clear()
 
-        if (includeCustomEpisodes) {
-          await this.db.customEpisode.clear()
-        }
+      if (includeCustomEpisodes) {
+        await this.db.customEpisode.clear()
       }
-    )
+    })
   }
 }

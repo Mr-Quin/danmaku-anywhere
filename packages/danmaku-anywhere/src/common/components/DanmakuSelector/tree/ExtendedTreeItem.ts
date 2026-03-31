@@ -1,5 +1,6 @@
 import type {
   CustomSeason,
+  EpisodeStub,
   GenericEpisodeLite,
   Season,
 } from '@danmaku-anywhere/danmaku-converter'
@@ -10,6 +11,7 @@ interface SeasonTreeItem extends TreeViewBaseItem {
   kind: 'season'
   data: Season | CustomSeason
   provider?: ProviderConfig
+  bookmarked?: boolean
   children?: ExtendedTreeItem[]
 }
 
@@ -24,4 +26,16 @@ export interface FolderTreeItem extends TreeViewBaseItem {
   children: ExtendedTreeItem[]
 }
 
-export type ExtendedTreeItem = SeasonTreeItem | EpisodeTreeItem | FolderTreeItem
+interface StubEpisodeTreeItem extends TreeViewBaseItem {
+  kind: 'stub'
+  data: EpisodeStub
+  seasonId: number
+  season: Season
+  children?: never
+}
+
+export type ExtendedTreeItem =
+  | SeasonTreeItem
+  | EpisodeTreeItem
+  | FolderTreeItem
+  | StubEpisodeTreeItem

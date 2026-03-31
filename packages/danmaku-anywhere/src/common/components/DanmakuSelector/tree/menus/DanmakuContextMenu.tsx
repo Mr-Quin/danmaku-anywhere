@@ -17,7 +17,7 @@ interface DanmakuContextMenuProps {
 export const DanmakuContextMenu = ({
   item,
 }: DanmakuContextMenuProps): ReactElement | null => {
-  if (item.kind === 'folder') {
+  if (item.kind === 'folder' || item.kind === 'stub') {
     return null
   }
 
