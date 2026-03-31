@@ -8,7 +8,7 @@ import {
   searchMacCmsVod,
 } from '@danmaku-anywhere/danmaku-provider/maccms'
 import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
-import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
+import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { ILogger } from '@/common/Logger'
 import type { CustomMacCmsProvider } from '@/common/options/providerConfig/schema'
@@ -122,7 +122,7 @@ export class MacCmsProviderService implements IDanmakuProvider {
     throw new Error('Method not implemented.')
   }
 
-  async getDanmaku(_request: DanmakuFetchRequest): Promise<CommentEntity[]> {
+  async getDanmaku(_request: DanmakuFetchByMeta): Promise<CommentEntity[]> {
     throw new Error('Method not implemented.')
   }
 }

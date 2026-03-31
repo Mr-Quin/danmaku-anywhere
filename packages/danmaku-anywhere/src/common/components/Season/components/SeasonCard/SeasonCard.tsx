@@ -23,11 +23,12 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useBookmarkAdd } from '@/common/bookmark/queries/useBookmarkAdd'
 import { useBookmarkDeleteBySeason } from '@/common/bookmark/queries/useBookmarkDelete'
+import { useBookmarkedSeasonIds } from '@/common/bookmark/queries/useBookmarks'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import {
   CoverImage,
@@ -39,11 +40,7 @@ import type { HandleSeasonClick } from '@/common/components/Season/types'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { isProvider } from '@/common/danmaku/utils'
-import {
-  bookmarkQueryKeys,
-  episodeQueryKeys,
-  seasonQueryKeys,
-} from '@/common/queries/queryKeys'
+import { episodeQueryKeys, seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useExportXml } from '@/popup/hooks/useExportXml'
@@ -141,14 +138,9 @@ export const SeasonCard = ({
   const exportDanmaku = useExportDanmaku()
   const deleteEpisode = useDeleteEpisode()
 
-  const { data: bookmarks } = useQuery({
-    queryKey: bookmarkQueryKeys.all(),
-    queryFn: () => chromeRpcClient.bookmarkGetAll(),
-    select: (data) => data.data,
-    staleTime: 1000 * 60 * 5,
-  })
+  const { data: bookmarkedSeasonIds } = useBookmarkedSeasonIds()
 
-  const isBookmarked = bookmarks?.some((b) => b.seasonId === season.id) ?? false
+  const isBookmarked = bookmarkedSeasonIds?.has(season.id) ?? false
 
   const bookmarkAddMutation = useBookmarkAdd()
   const bookmarkDeleteMutation = useBookmarkDeleteBySeason()

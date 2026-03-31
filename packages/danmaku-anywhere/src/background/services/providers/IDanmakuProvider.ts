@@ -7,7 +7,7 @@ import type {
   SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
+import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 
 export type OmitSeasonId<T> = Omit<T, 'seasonId'>
 
@@ -33,9 +33,9 @@ export interface IDanmakuProvider {
     seasonRemoteIds: Season['providerIds']
   ): Promise<OmitSeasonId<EpisodeMeta>[]>
 
-  getDanmaku(request: DanmakuFetchRequest): Promise<CommentEntity[]>
+  getDanmaku(request: DanmakuFetchByMeta): Promise<CommentEntity[]>
 
-  preloadNextEpisode?(request: DanmakuFetchRequest): Promise<void>
+  preloadNextEpisode?(request: DanmakuFetchByMeta): Promise<void>
 
   canParse?(url: string): boolean
 

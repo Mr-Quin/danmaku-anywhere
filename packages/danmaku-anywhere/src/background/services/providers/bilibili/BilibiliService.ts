@@ -8,7 +8,7 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import type { BiliBiliSearchParams } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import * as bilibili from '@danmaku-anywhere/danmaku-provider/bilibili'
-import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
+import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import type { ILogger } from '@/common/Logger'
@@ -162,7 +162,7 @@ export class BilibiliService implements IDanmakuProvider {
     })
   }
 
-  async getDanmaku(request: DanmakuFetchRequest): Promise<CommentEntity[]> {
+  async getDanmaku(request: DanmakuFetchByMeta): Promise<CommentEntity[]> {
     const { meta } = request
     assertProviderType(meta, DanmakuSourceType.Bilibili)
 

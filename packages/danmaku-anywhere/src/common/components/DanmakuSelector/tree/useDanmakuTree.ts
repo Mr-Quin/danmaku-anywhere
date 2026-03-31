@@ -99,15 +99,11 @@ function sortCustomChildren(items: ExtendedTreeItem[]) {
  */
 function computeBookmarkStubs(
   bookmark: Bookmark,
-  allEpisodes: EpisodeLite[],
+  fetchedForSeason: EpisodeLite[],
   filter: string,
   seasonTitle: string
 ): EpisodeStub[] {
-  const fetchedIndexedIds = new Set(
-    allEpisodes
-      .filter((ep) => ep.seasonId === bookmark.seasonId)
-      .map((ep) => ep.indexedId)
-  )
+  const fetchedIndexedIds = new Set(fetchedForSeason.map((ep) => ep.indexedId))
 
   const unfetchedStubs = bookmark.episodes.filter(
     (stub) => !fetchedIndexedIds.has(stub.indexedId)
@@ -264,8 +260,11 @@ export const useDanmakuTree = (
     })
 
     // Merge bookmark stubs into season nodes
-    // Use the full unfiltered episode list to determine fetched state
-    const allNonCustomEpisodes = episodes.filter(isNotCustom)
+    // Pre-group episodes by seasonId for O(1) lookup
+    const episodesBySeason = Object.groupBy(
+      episodes.filter(isNotCustom),
+      (ep) => ep.seasonId
+    )
 
     for (const bookmark of bookmarks) {
       const season = seasons.find((s) => s.id === bookmark.seasonId)
@@ -279,22 +278,16 @@ export const useDanmakuTree = (
 
       const filteredStubs = computeBookmarkStubs(
         bookmark,
-        allNonCustomEpisodes,
+        episodesBySeason[bookmark.seasonId] ?? [],
         filter,
         season.title
       )
 
-      // Mark existing season node as bookmarked
-      const existingIndex = treeItems.findIndex(
-        (item) => item.id === `season-${season.id}`
-      )
+      const existingNode = treeItemMap.get(`season-${season.id}`)
 
       if (filteredStubs.length === 0) {
-        if (existingIndex >= 0) {
-          const existingNode = treeItems[existingIndex]
-          if (existingNode.kind === 'season') {
-            existingNode.bookmarked = true
-          }
+        if (existingNode?.kind === 'season') {
+          existingNode.bookmarked = true
         }
         continue
       }
@@ -310,17 +303,11 @@ export const useDanmakuTree = (
         })
       )
 
-      if (existingIndex >= 0) {
+      if (existingNode?.kind === 'season') {
         // Season node already exists (some episodes are fetched)
-        const existingNode = treeItems[existingIndex]
-        if (existingNode.kind === 'season') {
-          existingNode.children = [
-            ...(existingNode.children ?? []),
-            ...stubNodes,
-          ]
-          existingNode.children.sort(compareEpisodes)
-          existingNode.bookmarked = true
-        }
+        existingNode.children = [...(existingNode.children ?? []), ...stubNodes]
+        existingNode.children.sort(compareEpisodes)
+        existingNode.bookmarked = true
       } else {
         // Season has no fetched episodes — create node from stubs only
         const seasonNode = register({

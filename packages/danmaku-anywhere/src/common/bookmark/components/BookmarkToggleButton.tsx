@@ -5,14 +5,12 @@ import {
 } from '@danmaku-anywhere/danmaku-converter'
 import { Bookmark, BookmarkBorder } from '@mui/icons-material'
 import { CircularProgress, IconButton, Tooltip } from '@mui/material'
-import { useQuery } from '@tanstack/react-query'
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useBookmarkAdd } from '@/common/bookmark/queries/useBookmarkAdd'
 import { useBookmarkDeleteBySeason } from '@/common/bookmark/queries/useBookmarkDelete'
+import { useBookmarkedSeasonIds } from '@/common/bookmark/queries/useBookmarks'
 import { isProvider } from '@/common/danmaku/utils'
-import { bookmarkQueryKeys } from '@/common/queries/queryKeys'
-import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 interface BookmarkToggleButtonProps {
   season: Season | CustomSeason
@@ -23,12 +21,7 @@ export const BookmarkToggleButton = ({
 }: BookmarkToggleButtonProps): ReactElement | null => {
   const { t } = useTranslation()
 
-  const { data: bookmarks } = useQuery({
-    queryKey: bookmarkQueryKeys.all(),
-    queryFn: () => chromeRpcClient.bookmarkGetAll(),
-    select: (data) => data.data,
-    staleTime: 1000 * 60 * 5,
-  })
+  const { data: bookmarkedSeasonIds, isLoading } = useBookmarkedSeasonIds()
 
   const bookmarkAdd = useBookmarkAdd()
   const bookmarkDelete = useBookmarkDeleteBySeason()
@@ -37,10 +30,14 @@ export const BookmarkToggleButton = ({
     return null
   }
 
-  const isBookmarked = bookmarks?.some((b) => b.seasonId === season.id) ?? false
-  const isPending = bookmarkAdd.isPending || bookmarkDelete.isPending
+  const isBookmarked = bookmarkedSeasonIds?.has(season.id) ?? false
+  const isPending =
+    isLoading || bookmarkAdd.isPending || bookmarkDelete.isPending
 
   const handleToggle = () => {
+    if (isPending) {
+      return
+    }
     if (isBookmarked) {
       bookmarkDelete.mutate(season.id)
     } else {

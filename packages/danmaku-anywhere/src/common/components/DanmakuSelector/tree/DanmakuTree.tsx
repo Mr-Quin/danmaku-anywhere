@@ -149,22 +149,22 @@ export const DanmakuTree = ({
   )
 
   const apiRef = useTreeViewApiRef()
-  const bookmarkRefresh = useBookmarkRefresh()
+  const bookmarkRefresh = useBookmarkRefresh({ silent: true })
   const refreshedRef = useRef(new Set<number>())
+
+  const bookmarkBySeasonId = useMemo(() => {
+    return new Map(bookmarks.map((b) => [b.seasonId, b]))
+  }, [bookmarks])
 
   const handleExpandedItemsChange = useCallback(
     (_event: SyntheticEvent | null, itemIds: string[]) => {
       for (const itemId of itemIds) {
-        const match = itemId.match(/^season-(\d+)$/)
-        if (!match) {
+        const item = treeItemMap.get(itemId)
+        if (!item || item.kind !== 'season' || !item.bookmarked) {
           continue
         }
-        const seasonId = Number(match[1])
-        const bookmark = bookmarks.find((b) => b.seasonId === seasonId)
-        if (!bookmark) {
-          continue
-        }
-        if (refreshedRef.current.has(bookmark.id)) {
+        const bookmark = bookmarkBySeasonId.get(item.data.id)
+        if (!bookmark || refreshedRef.current.has(bookmark.id)) {
           continue
         }
         if (Date.now() - bookmark.lastRefreshed > BOOKMARK_REFRESH_TTL_MS) {
@@ -173,7 +173,7 @@ export const DanmakuTree = ({
         }
       }
     },
-    [bookmarks, bookmarkRefresh]
+    [treeItemMap, bookmarkBySeasonId, bookmarkRefresh]
   )
 
   useImperativeHandle(

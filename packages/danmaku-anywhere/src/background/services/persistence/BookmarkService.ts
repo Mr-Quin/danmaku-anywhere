@@ -1,14 +1,12 @@
 import {
-  type BilibiliOf,
   type Bookmark,
-  type DanDanPlayOf,
   DanmakuSourceType,
   type EpisodeMeta,
   type EpisodeStub,
-  type TencentOf,
   type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
+import { match } from 'ts-pattern'
 import type { ProviderService } from '@/background/services/providers/ProviderService'
 import { BOOKMARK_REFRESH_TTL_MS } from '@/common/bookmark/constants'
 import { DanmakuAnywhereDb } from '@/common/db/db'
@@ -17,37 +15,30 @@ import { invariant, isServiceWorker } from '@/common/utils/utils'
 type WithoutId<T> = Omit<T, 'id'>
 
 const toStub = (meta: WithSeason<EpisodeMeta>): EpisodeStub => {
-  const base = {
-    title: meta.title,
-    episodeNumber: meta.episodeNumber,
-    indexedId: meta.indexedId,
-  }
-  switch (meta.provider) {
-    case DanmakuSourceType.DanDanPlay: {
-      const typed = meta as DanDanPlayOf<WithSeason<EpisodeMeta>>
-      return {
-        ...base,
-        provider: typed.provider,
-        providerIds: typed.providerIds,
-      }
-    }
-    case DanmakuSourceType.Bilibili: {
-      const typed = meta as BilibiliOf<WithSeason<EpisodeMeta>>
-      return {
-        ...base,
-        provider: typed.provider,
-        providerIds: typed.providerIds,
-      }
-    }
-    case DanmakuSourceType.Tencent: {
-      const typed = meta as TencentOf<WithSeason<EpisodeMeta>>
-      return {
-        ...base,
-        provider: typed.provider,
-        providerIds: typed.providerIds,
-      }
-    }
-  }
+  return match(meta)
+    .returnType<EpisodeStub>()
+    .with({ provider: DanmakuSourceType.DanDanPlay }, (m) => ({
+      title: m.title,
+      episodeNumber: m.episodeNumber,
+      indexedId: m.indexedId,
+      provider: m.provider,
+      providerIds: m.providerIds,
+    }))
+    .with({ provider: DanmakuSourceType.Bilibili }, (m) => ({
+      title: m.title,
+      episodeNumber: m.episodeNumber,
+      indexedId: m.indexedId,
+      provider: m.provider,
+      providerIds: m.providerIds,
+    }))
+    .with({ provider: DanmakuSourceType.Tencent }, (m) => ({
+      title: m.title,
+      episodeNumber: m.episodeNumber,
+      indexedId: m.indexedId,
+      provider: m.provider,
+      providerIds: m.providerIds,
+    }))
+    .exhaustive()
 }
 
 @injectable('Singleton')
@@ -63,6 +54,12 @@ export class BookmarkService {
     seasonId: number,
     providerService: ProviderService
   ): Promise<Bookmark> {
+    const existing = await this.getBySeason(seasonId)
+
+    if (existing) {
+      return existing
+    }
+
     const episodes = await providerService.fetchEpisodesBySeason(seasonId)
     const stubs = episodes.map(toStub)
 
@@ -133,7 +130,7 @@ export class BookmarkService {
       timeUpdated: Date.now(),
       version: existing.version + 1,
     }
-    await this.db.bookmark.update(id, updated)
+    await this.db.bookmark.put(updated)
     return updated
   }
 

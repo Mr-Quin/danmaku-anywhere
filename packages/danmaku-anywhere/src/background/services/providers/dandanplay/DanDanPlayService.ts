@@ -9,7 +9,7 @@ import type {
 import type { DanmakuProviderError } from '@danmaku-anywhere/danmaku-provider'
 import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 import type { Result } from '@danmaku-anywhere/result'
-import type { DanmakuFetchRequest } from '@/common/danmaku/dto'
+import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType, isProvider } from '@/common/danmaku/utils'
 import type { ILogger } from '@/common/Logger'
@@ -111,7 +111,7 @@ export class DanDanPlayService implements IDanmakuProvider {
     })
   }
 
-  async getDanmaku(request: DanmakuFetchRequest): Promise<CommentEntity[]> {
+  async getDanmaku(request: DanmakuFetchByMeta): Promise<CommentEntity[]> {
     const { meta, options = {} } = request
     const { season, ...rest } = meta
     assertProviderType(season, DanmakuSourceType.DanDanPlay)
@@ -156,7 +156,7 @@ export class DanDanPlayService implements IDanmakuProvider {
     return comments
   }
 
-  async preloadNextEpisode(request: DanmakuFetchRequest) {
+  async preloadNextEpisode(request: DanmakuFetchByMeta) {
     const meta = request.meta
     assertProviderType(meta, DanmakuSourceType.DanDanPlay)
 
