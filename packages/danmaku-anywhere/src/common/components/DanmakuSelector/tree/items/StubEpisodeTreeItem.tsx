@@ -1,18 +1,21 @@
-import type {
-  EpisodeMeta,
-  EpisodeStub,
-  Season,
-  WithSeason,
+import {
+  type BilibiliOf,
+  type DanDanPlayOf,
+  DanmakuSourceType,
+  type EpisodeMeta,
+  type EpisodeStub,
+  type Season,
+  type TencentOf,
+  type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { CloudDownload } from '@mui/icons-material'
 import { CircularProgress, IconButton, Stack, Typography } from '@mui/material'
 import type { ReactElement } from 'react'
-import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 
 interface StubEpisodeTreeItemProps {
   stub: EpisodeStub
-  seasonId: number
+  season: Season
   label: string
 }
 
@@ -20,29 +23,52 @@ const buildFetchMeta = (
   stub: EpisodeStub,
   season: Season
 ): WithSeason<EpisodeMeta> => {
-  return {
-    ...stub,
+  const base = {
+    title: stub.title,
+    episodeNumber: stub.episodeNumber,
+    indexedId: stub.indexedId,
     seasonId: season.id,
     season,
-    schemaVersion: 4,
+    schemaVersion: 4 as const,
     lastChecked: 0,
-  } as WithSeason<EpisodeMeta>
+  }
+  switch (stub.provider) {
+    case DanmakuSourceType.DanDanPlay: {
+      const typed = stub as DanDanPlayOf<EpisodeStub>
+      return {
+        ...base,
+        provider: typed.provider,
+        providerIds: typed.providerIds,
+      } as DanDanPlayOf<WithSeason<EpisodeMeta>>
+    }
+    case DanmakuSourceType.Bilibili: {
+      const typed = stub as BilibiliOf<EpisodeStub>
+      return {
+        ...base,
+        provider: typed.provider,
+        providerIds: typed.providerIds,
+      } as BilibiliOf<WithSeason<EpisodeMeta>>
+    }
+    case DanmakuSourceType.Tencent: {
+      const typed = stub as TencentOf<EpisodeStub>
+      return {
+        ...base,
+        provider: typed.provider,
+        providerIds: typed.providerIds,
+      } as TencentOf<WithSeason<EpisodeMeta>>
+    }
+  }
 }
 
 export const StubEpisodeTreeItem = ({
   stub,
-  seasonId,
+  season,
   label,
 }: StubEpisodeTreeItemProps): ReactElement => {
   const fetchDanmaku = useFetchDanmaku()
-  const { data: seasons } = useGetAllSeasonsSuspense()
-  const season = seasons.find((s) => s.id === seasonId)
 
   const handleFetch = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!season) {
-      return
-    }
     fetchDanmaku.mutate({
       type: 'by-meta',
       meta: buildFetchMeta(stub, season),

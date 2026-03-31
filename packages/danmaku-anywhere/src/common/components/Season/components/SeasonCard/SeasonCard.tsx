@@ -26,6 +26,8 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useBookmarkAdd } from '@/common/bookmark/queries/useBookmarkAdd'
+import { useBookmarkDeleteBySeason } from '@/common/bookmark/queries/useBookmarkDelete'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import {
   CoverImage,
@@ -148,32 +150,8 @@ export const SeasonCard = ({
 
   const isBookmarked = bookmarks?.some((b) => b.seasonId === season.id) ?? false
 
-  const bookmarkAddMutation = useMutation({
-    mutationFn: (id: number) => chromeRpcClient.bookmarkAdd({ seasonId: id }),
-    onSuccess: () => {
-      toast.success(t('common.success', 'Success'))
-      void queryClient.invalidateQueries({
-        queryKey: bookmarkQueryKeys.all(),
-      })
-    },
-    onError: () => {
-      toast.error(t('common.failed', 'Failed'))
-    },
-  })
-
-  const bookmarkDeleteMutation = useMutation({
-    mutationFn: (id: number) =>
-      chromeRpcClient.bookmarkDeleteBySeason({ seasonId: id }),
-    onSuccess: () => {
-      toast.success(t('common.success', 'Success'))
-      void queryClient.invalidateQueries({
-        queryKey: bookmarkQueryKeys.all(),
-      })
-    },
-    onError: () => {
-      toast.error(t('common.failed', 'Failed'))
-    },
-  })
+  const bookmarkAddMutation = useBookmarkAdd()
+  const bookmarkDeleteMutation = useBookmarkDeleteBySeason()
 
   const deleteMutation = useMutation({
     mutationKey: seasonQueryKeys.all(),

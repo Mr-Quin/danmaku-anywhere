@@ -56,6 +56,11 @@
     "refreshMetadata": "刷新元数据",
     "title": "标题"
   },
+  "bookmark": {
+    "add": "收藏",
+    "refreshEpisodes": "刷新剧集",
+    "remove": "取消收藏"
+  },
   "common": {
     "acknowledge": "知道了",
     "add": "添加",

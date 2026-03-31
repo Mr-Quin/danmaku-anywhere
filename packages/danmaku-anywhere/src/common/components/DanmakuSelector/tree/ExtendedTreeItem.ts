@@ -30,6 +30,7 @@ interface StubEpisodeTreeItem extends TreeViewBaseItem {
   kind: 'stub'
   data: EpisodeStub
   seasonId: number
+  season: Season
   children?: never
 }
 

@@ -12,10 +12,7 @@ import { IconService } from '@/background/services/IconService'
 import { ImageCacheService } from '@/background/services/ImageCache/ImageCache.service'
 import { KazumiService } from '@/background/services/KazumiService'
 import { LogService } from '@/background/services/Logging/Log.service'
-import {
-  BookmarkService,
-  episodeMetaToStub,
-} from '@/background/services/persistence/BookmarkService'
+import { BookmarkService } from '@/background/services/persistence/BookmarkService'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
@@ -316,6 +313,7 @@ export class RpcManager {
             'rw',
             this.db.season,
             this.db.episode,
+            this.db.bookmark,
             async () => {
               const seasons = await this.db.season
                 .where({ providerConfigId: id })
@@ -327,6 +325,7 @@ export class RpcManager {
                   .where('seasonId')
                   .anyOf(seasonIds)
                   .delete()
+                await this.bookmarkService.deleteBySeasonIds(seasonIds)
               }
 
               await this.db.season.where({ providerConfigId: id }).delete()
@@ -362,17 +361,7 @@ export class RpcManager {
           return this.bookmarkService.getAll()
         },
         bookmarkAdd: async (data) => {
-          const season = await this.seasonService.mustGetById(data.seasonId)
-          const episodes = await this.providerService.fetchEpisodesBySeason(
-            data.seasonId
-          )
-          const stubs = episodes.map(episodeMetaToStub)
-          return this.bookmarkService.add({
-            seasonId: data.seasonId,
-            providerConfigId: season.providerConfigId,
-            episodes: stubs,
-            lastRefreshed: Date.now(),
-          })
+          return this.bookmarkService.add(data.seasonId, this.providerService)
         },
         bookmarkDelete: async (data) => {
           return this.bookmarkService.delete(data.id)
@@ -381,15 +370,7 @@ export class RpcManager {
           return this.bookmarkService.deleteBySeason(data.seasonId)
         },
         bookmarkRefresh: async (data) => {
-          const bookmark = await this.bookmarkService.getBySeason(data.id)
-          if (!bookmark) {
-            throw new Error(`Bookmark not found: ${data.id}`)
-          }
-          const episodes = await this.providerService.fetchEpisodesBySeason(
-            bookmark.seasonId
-          )
-          const stubs = episodes.map(episodeMetaToStub)
-          return this.bookmarkService.updateEpisodes(bookmark.id, stubs)
+          return this.bookmarkService.refresh(data.id, this.providerService)
         },
       },
       {

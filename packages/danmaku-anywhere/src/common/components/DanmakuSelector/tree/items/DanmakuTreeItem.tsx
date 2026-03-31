@@ -117,7 +117,7 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
       return (
         <StubEpisodeTreeItem
           stub={item.data}
-          seasonId={item.seasonId}
+          season={item.season}
           label={item.label}
         />
       )
