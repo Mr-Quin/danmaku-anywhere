@@ -11,10 +11,14 @@ import {
   type Ref,
   type RefObject,
   type SyntheticEvent,
+  useCallback,
   useImperativeHandle,
   useMemo,
+  useRef,
   useState,
 } from 'react'
+import { BOOKMARK_REFRESH_TTL_MS } from '@/common/bookmark/constants'
+import { useBookmarkRefresh } from '@/common/bookmark/queries/useBookmarkRefresh'
 import {
   DanmakuTreeContext,
   type DanmakuTreeContextMenuState,
@@ -139,9 +143,38 @@ export const DanmakuTree = ({
   const [contextMenu, setContextMenu] =
     useState<DanmakuTreeContextMenuState | null>(null)
 
-  const { treeItems, treeItemMap } = useDanmakuTree(filter, typeFilter)
+  const { treeItems, treeItemMap, bookmarks } = useDanmakuTree(
+    filter,
+    typeFilter
+  )
 
   const apiRef = useTreeViewApiRef()
+  const bookmarkRefresh = useBookmarkRefresh()
+  const refreshedRef = useRef(new Set<number>())
+
+  const handleExpandedItemsChange = useCallback(
+    (_event: SyntheticEvent | null, itemIds: string[]) => {
+      for (const itemId of itemIds) {
+        const match = itemId.match(/^season-(\d+)$/)
+        if (!match) {
+          continue
+        }
+        const seasonId = Number(match[1])
+        const bookmark = bookmarks.find((b) => b.seasonId === seasonId)
+        if (!bookmark) {
+          continue
+        }
+        if (refreshedRef.current.has(bookmark.id)) {
+          continue
+        }
+        if (Date.now() - bookmark.lastRefreshed > BOOKMARK_REFRESH_TTL_MS) {
+          refreshedRef.current.add(bookmark.id)
+          bookmarkRefresh.mutate(bookmark.id)
+        }
+      }
+    },
+    [bookmarks, bookmarkRefresh]
+  )
 
   useImperativeHandle(
     ref,
@@ -223,6 +256,7 @@ export const DanmakuTree = ({
         }
         selectionPropagation={selectionPropagation}
         onSelectedItemsChange={handleSelectedItemsChange}
+        onExpandedItemsChange={handleExpandedItemsChange}
         slots={{ item: DanmakuTreeItem }}
         apiRef={apiRef}
       />

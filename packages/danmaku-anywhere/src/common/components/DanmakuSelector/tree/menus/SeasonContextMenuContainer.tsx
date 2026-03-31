@@ -3,6 +3,10 @@ import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDeleteSeason } from '@/common/anime/queries/useDeleteSeason'
 import { useRefreshSeason } from '@/common/anime/queries/useRefreshSeason'
+import { useBookmarkAdd } from '@/common/bookmark/queries/useBookmarkAdd'
+import { useBookmarkDeleteBySeason } from '@/common/bookmark/queries/useBookmarkDelete'
+import { useBookmarkRefresh } from '@/common/bookmark/queries/useBookmarkRefresh'
+import { useBookmarksSuspense } from '@/common/bookmark/queries/useBookmarks'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { isNotCustom } from '@/common/danmaku/utils'
@@ -27,6 +31,16 @@ export const SeasonContextMenuContainer = ({
   const refreshSeason = useRefreshSeason()
   const deleteSeasonMutation = useDeleteSeason()
   const deleteEpisodeMutation = useDeleteEpisode()
+
+  const { data: bookmarks } = useBookmarksSuspense()
+  const bookmarkAdd = useBookmarkAdd()
+  const bookmarkDeleteBySeason = useBookmarkDeleteBySeason()
+  const bookmarkRefresh = useBookmarkRefresh()
+
+  const bookmark = isNotCustom(season)
+    ? bookmarks.find((b) => b.seasonId === season.id)
+    : undefined
+  const isBookmarked = !!bookmark
 
   const dialog = useDialog()
 
@@ -75,6 +89,20 @@ export const SeasonContextMenuContainer = ({
     })
   }
 
+  const handleBookmarkToggle = () => {
+    if (isBookmarked) {
+      bookmarkDeleteBySeason.mutate(season.id)
+    } else if (isNotCustom(season)) {
+      bookmarkAdd.mutate(season.id)
+    }
+  }
+
+  const handleBookmarkRefresh = () => {
+    if (bookmark) {
+      bookmarkRefresh.mutate(bookmark.id)
+    }
+  }
+
   const isContextOpen = contextMenu?.itemId === itemId
   const contextPosition = isContextOpen ? contextMenu.position : undefined
   const handleClose = () => setContextMenu(null)
@@ -87,6 +115,14 @@ export const SeasonContextMenuContainer = ({
       isExporting={exportXml.isPending || exportBackup.isPending}
       onRefresh={() => refreshSeason.mutate(season.id)}
       isRefreshing={refreshSeason.isPending}
+      bookmarked={isBookmarked}
+      onBookmarkToggle={handleBookmarkToggle}
+      onBookmarkRefresh={handleBookmarkRefresh}
+      isBookmarkLoading={
+        bookmarkAdd.isPending ||
+        bookmarkDeleteBySeason.isPending ||
+        bookmarkRefresh.isPending
+      }
       onDelete={handleDelete}
       contextMenuPosition={contextPosition}
       onClose={handleClose}

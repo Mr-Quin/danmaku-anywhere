@@ -1,4 +1,5 @@
 import type {
+  Bookmark,
   CommentEntity,
   CustomEpisode,
   CustomEpisodeLite,
@@ -38,6 +39,12 @@ import type {
   BackupRestoreResult,
   CloudBackupItem,
 } from '@/common/backup/dto'
+import type {
+  BookmarkAddInput,
+  BookmarkDeleteBySeasonInput,
+  BookmarkDeleteInput,
+  BookmarkRefreshInput,
+} from '@/common/bookmark/dto'
 import type { BaseUrlConfig } from '@/common/configs/types'
 import type {
   CustomEpisodeQueryFilter,
@@ -155,6 +162,11 @@ export type BackgroundMethods = {
   cloudBackupCreate: RPCDef<void, { success: boolean; id: string }>
   cloudBackupDownload: RPCDef<string, BackupData>
   dataWipeDanmaku: RPCDef<{ includeCustomEpisodes: boolean }, void>
+  bookmarkAdd: RPCDef<BookmarkAddInput, Bookmark>
+  bookmarkDelete: RPCDef<BookmarkDeleteInput, void>
+  bookmarkDeleteBySeason: RPCDef<BookmarkDeleteBySeasonInput, void>
+  bookmarkGetAll: RPCDef<void, Bookmark[]>
+  bookmarkRefresh: RPCDef<BookmarkRefreshInput, Bookmark>
 }
 
 type InputWithFrameId<TInput> = TInput extends void

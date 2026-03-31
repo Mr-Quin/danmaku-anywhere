@@ -22,6 +22,7 @@ import { SeasonTreeItem } from '@/common/components/DanmakuSelector/tree/items/S
 import { DanmakuContextMenu } from '@/common/components/DanmakuSelector/tree/menus/DanmakuContextMenu'
 import { useLongPress } from '@/common/hooks/useLongPress'
 import { FolderTreeItem } from './FolderTreeItem'
+import { StubEpisodeTreeItem } from './StubEpisodeTreeItem'
 
 const StyledTreeRoot = styled(TreeItemRoot)({
   position: 'relative',
@@ -109,6 +110,15 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
         <FolderTreeItem
           label={item.label}
           childrenCount={item.children?.length}
+        />
+      )
+    }
+    if (item.kind === 'stub') {
+      return (
+        <StubEpisodeTreeItem
+          stub={item.data}
+          seasonId={item.seasonId}
+          label={item.label}
         />
       )
     }

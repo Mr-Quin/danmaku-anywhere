@@ -1,5 +1,11 @@
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
-import { Delete, Download, Sync } from '@mui/icons-material'
+import {
+  Bookmark,
+  BookmarkBorder,
+  Delete,
+  Download,
+  Sync,
+} from '@mui/icons-material'
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig'
@@ -15,6 +21,10 @@ export interface SeasonContextMenuPureProps {
   onRefresh: () => void
   isRefreshing: boolean
   isExporting: boolean
+  bookmarked: boolean
+  onBookmarkToggle: () => void
+  onBookmarkRefresh: () => void
+  isBookmarkLoading: boolean
   contextMenuPosition?: { top: number; left: number } | null
   onClose: () => void
 }
@@ -27,6 +37,10 @@ export const SeasonContextMenuPure = ({
   onRefresh,
   isRefreshing,
   isExporting,
+  bookmarked,
+  onBookmarkToggle,
+  onBookmarkRefresh,
+  isBookmarkLoading,
   contextMenuPosition,
   onClose,
 }: SeasonContextMenuPureProps): ReactElement => {
@@ -69,6 +83,36 @@ export const SeasonContextMenuPure = ({
       onClick: onRefresh,
       loading: isRefreshing,
     })
+
+    if (bookmarked) {
+      items.unshift(
+        {
+          kind: 'item',
+          id: 'bookmarkRefresh',
+          label: t('bookmark.refreshEpisodes', 'Refresh Episodes'),
+          icon: <Sync fontSize="small" />,
+          onClick: onBookmarkRefresh,
+          loading: isBookmarkLoading,
+        },
+        {
+          kind: 'item',
+          id: 'bookmarkRemove',
+          label: t('bookmark.remove', 'Remove Bookmark'),
+          icon: <Bookmark fontSize="small" />,
+          onClick: onBookmarkToggle,
+          loading: isBookmarkLoading,
+        }
+      )
+    } else {
+      items.unshift({
+        kind: 'item',
+        id: 'bookmarkAdd',
+        label: t('bookmark.add', 'Bookmark'),
+        icon: <BookmarkBorder fontSize="small" />,
+        onClick: onBookmarkToggle,
+        loading: isBookmarkLoading,
+      })
+    }
   }
 
   if (contextMenuPosition) {

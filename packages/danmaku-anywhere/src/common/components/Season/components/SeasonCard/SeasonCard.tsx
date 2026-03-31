@@ -3,7 +3,13 @@ import {
   DanmakuSourceType,
   type Season,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Delete, FileDownload, Sync } from '@mui/icons-material'
+import {
+  BookmarkBorder,
+  Bookmark as BookmarkIcon,
+  Delete,
+  FileDownload,
+  Sync,
+} from '@mui/icons-material'
 import {
   alpha,
   Card,
@@ -17,7 +23,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
@@ -31,7 +37,11 @@ import type { HandleSeasonClick } from '@/common/components/Season/types'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { isProvider } from '@/common/danmaku/utils'
-import { episodeQueryKeys, seasonQueryKeys } from '@/common/queries/queryKeys'
+import {
+  bookmarkQueryKeys,
+  episodeQueryKeys,
+  seasonQueryKeys,
+} from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useExportXml } from '@/popup/hooks/useExportXml'
@@ -128,6 +138,42 @@ export const SeasonCard = ({
   const exportXml = useExportXml()
   const exportDanmaku = useExportDanmaku()
   const deleteEpisode = useDeleteEpisode()
+
+  const { data: bookmarks } = useQuery({
+    queryKey: bookmarkQueryKeys.all(),
+    queryFn: () => chromeRpcClient.bookmarkGetAll(),
+    select: (data) => data.data,
+    staleTime: 1000 * 60 * 5,
+  })
+
+  const isBookmarked = bookmarks?.some((b) => b.seasonId === season.id) ?? false
+
+  const bookmarkAddMutation = useMutation({
+    mutationFn: (id: number) => chromeRpcClient.bookmarkAdd({ seasonId: id }),
+    onSuccess: () => {
+      toast.success(t('common.success', 'Success'))
+      void queryClient.invalidateQueries({
+        queryKey: bookmarkQueryKeys.all(),
+      })
+    },
+    onError: () => {
+      toast.error(t('common.failed', 'Failed'))
+    },
+  })
+
+  const bookmarkDeleteMutation = useMutation({
+    mutationFn: (id: number) =>
+      chromeRpcClient.bookmarkDeleteBySeason({ seasonId: id }),
+    onSuccess: () => {
+      toast.success(t('common.success', 'Success'))
+      void queryClient.invalidateQueries({
+        queryKey: bookmarkQueryKeys.all(),
+      })
+    },
+    onError: () => {
+      toast.error(t('common.failed', 'Failed'))
+    },
+  })
 
   const deleteMutation = useMutation({
     mutationKey: seasonQueryKeys.all(),
@@ -238,6 +284,23 @@ export const SeasonCard = ({
             size: 'small',
           }}
           items={[
+            {
+              id: 'bookmark',
+              label: isBookmarked
+                ? t('bookmark.remove', 'Remove Bookmark')
+                : t('bookmark.add', 'Bookmark'),
+              icon: isBookmarked ? <BookmarkIcon /> : <BookmarkBorder />,
+              onClick: () => {
+                if (isBookmarked) {
+                  bookmarkDeleteMutation.mutate(season.id)
+                } else {
+                  bookmarkAddMutation.mutate(season.id)
+                }
+              },
+              loading:
+                bookmarkAddMutation.isPending ||
+                bookmarkDeleteMutation.isPending,
+            },
             {
               id: 'refresh',
               label: t('anime.refreshMetadata', 'Refresh Metadata'),

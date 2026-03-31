@@ -1,4 +1,5 @@
 import {
+  type Bookmark,
   type CustomEpisode,
   type DanmakuSourceType,
   type DanmakuV3,
@@ -21,6 +22,7 @@ export class DanmakuAnywhereDb extends Dexie {
   customEpisode!: Dexie.Table<CustomEpisode, number, WithoutId<CustomEpisode>>
   season!: Dexie.Table<Season, number, WithoutId<Season>>
   seasonMap!: Dexie.Table<SeasonMapSnapshot, string>
+  bookmark!: Dexie.Table<Bookmark, number, WithoutId<Bookmark>>
 
   isReady = new Promise<boolean>((resolve) => {
     this.on('ready', () => resolve(true))
@@ -355,6 +357,19 @@ export class DanmakuAnywhereDb extends Dexie {
         // Wipe seasonMap table
         await tx.table('seasonMap').clear()
       })
+
+    /**
+     * Add bookmark table for saving season episode snapshots
+     */
+    this.version(13).stores({
+      episode:
+        '++id, provider, indexedId, &[seasonId+indexedId], seasonId, timeUpdated, lastChecked',
+      season:
+        '++id, provider, providerConfigId, indexedId, &[providerConfigId+indexedId]',
+      customEpisode: '++id, title',
+      seasonMap: 'key, *seasonIds',
+      bookmark: '++id, &seasonId, providerConfigId',
+    })
 
     this.open()
   }

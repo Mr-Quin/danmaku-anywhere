@@ -120,7 +120,9 @@ export class SeasonService {
       this.db.episode,
       this.db.season,
       this.db.seasonMap,
+      this.db.bookmark,
       async () => {
+        await this.db.bookmark.where({ seasonId: id }).delete()
         await this.db.episode
           .where({
             seasonId: id,

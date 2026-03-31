@@ -12,6 +12,10 @@ import { IconService } from '@/background/services/IconService'
 import { ImageCacheService } from '@/background/services/ImageCache/ImageCache.service'
 import { KazumiService } from '@/background/services/KazumiService'
 import { LogService } from '@/background/services/Logging/Log.service'
+import {
+  BookmarkService,
+  episodeMetaToStub,
+} from '@/background/services/persistence/BookmarkService'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
@@ -71,7 +75,9 @@ export class RpcManager {
     @inject(DataManagementService)
     private dataManagementService: DataManagementService,
     @inject(AuthClientService)
-    private authClientService: AuthClientService
+    private authClientService: AuthClientService,
+    @inject(BookmarkService)
+    private bookmarkService: BookmarkService
   ) {
     this.logger = logger.sub('[RpcManager]')
   }
@@ -351,6 +357,39 @@ export class RpcManager {
         dataWipeDanmaku: async (data, sender) => {
           await this.dataManagementService.wipeAllData(data)
           void invalidateContentScriptData(sender.tab?.id)
+        },
+        bookmarkGetAll: async () => {
+          return this.bookmarkService.getAll()
+        },
+        bookmarkAdd: async (data) => {
+          const season = await this.seasonService.mustGetById(data.seasonId)
+          const episodes = await this.providerService.fetchEpisodesBySeason(
+            data.seasonId
+          )
+          const stubs = episodes.map(episodeMetaToStub)
+          return this.bookmarkService.add({
+            seasonId: data.seasonId,
+            providerConfigId: season.providerConfigId,
+            episodes: stubs,
+            lastRefreshed: Date.now(),
+          })
+        },
+        bookmarkDelete: async (data) => {
+          return this.bookmarkService.delete(data.id)
+        },
+        bookmarkDeleteBySeason: async (data) => {
+          return this.bookmarkService.deleteBySeason(data.seasonId)
+        },
+        bookmarkRefresh: async (data) => {
+          const bookmark = await this.bookmarkService.getBySeason(data.id)
+          if (!bookmark) {
+            throw new Error(`Bookmark not found: ${data.id}`)
+          }
+          const episodes = await this.providerService.fetchEpisodesBySeason(
+            bookmark.seasonId
+          )
+          const stubs = episodes.map(episodeMetaToStub)
+          return this.bookmarkService.updateEpisodes(bookmark.id, stubs)
         },
       },
       {

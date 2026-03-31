@@ -6,6 +6,7 @@ import {
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
+import { useBookmarksSuspense } from '@/common/bookmark/queries/useBookmarks'
 import type {
   ExtendedTreeItem,
   FolderTreeItem,
@@ -43,20 +44,27 @@ const filterEpisodes = <T extends GenericEpisodeLite>(
   })
 }
 
+const getEpisodeNumber = (item: ExtendedTreeItem): number | undefined => {
+  if (
+    item.kind === 'episode' &&
+    isNotCustom(item.data) &&
+    item.data.episodeNumber !== undefined
+  ) {
+    const num = Number(item.data.episodeNumber)
+    return Number.isNaN(num) ? undefined : num
+  }
+  if (item.kind === 'stub' && item.data.episodeNumber !== undefined) {
+    const num = Number(item.data.episodeNumber)
+    return Number.isNaN(num) ? undefined : num
+  }
+  return undefined
+}
+
 const compareEpisodes = (a: ExtendedTreeItem, b: ExtendedTreeItem) => {
-  if (a.kind === 'episode' && b.kind === 'episode') {
-    if (
-      isNotCustom(a.data) &&
-      isNotCustom(b.data) &&
-      a.data.episodeNumber !== undefined &&
-      b.data.episodeNumber !== undefined
-    ) {
-      const aNum = Number(a.data.episodeNumber)
-      const bNum = Number(b.data.episodeNumber)
-      if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
-        return aNum - bNum
-      }
-    }
+  const aNum = getEpisodeNumber(a)
+  const bNum = getEpisodeNumber(b)
+  if (aNum !== undefined && bNum !== undefined) {
+    return aNum - bNum
   }
   return a.label.localeCompare(b.label)
 }
@@ -86,6 +94,7 @@ export const useDanmakuTree = (
   const { data: episodes } = useEpisodesLiteSuspense()
   const { data: customEpisodes } = useCustomEpisodeLiteSuspense({ all: true })
   const { data: seasons } = useGetAllSeasonsSuspense()
+  const { data: bookmarks } = useBookmarksSuspense()
   const { getProviderById } = useProviderConfig()
 
   const { t } = useTranslation()
@@ -193,7 +202,9 @@ export const useDanmakuTree = (
 
     Object.entries(groupedBySeason).forEach(([seasonId, groupEpisodes]) => {
       const season = seasons.find((s) => s.id.toString() === seasonId)
-      if (!season || !groupEpisodes) return
+      if (!season || !groupEpisodes) {
+        return
+      }
 
       const children = groupEpisodes.map((ep) =>
         register({
@@ -218,6 +229,91 @@ export const useDanmakuTree = (
       )
     })
 
+    // Merge bookmark stubs into season nodes
+    for (const bookmark of bookmarks) {
+      const season = seasons.find((s) => s.id === bookmark.seasonId)
+      if (!season) {
+        continue
+      }
+
+      // Check if type filter allows this provider
+      if (!typeFilter.includes(season.provider)) {
+        continue
+      }
+
+      // Find fetched episode indexedIds for this season
+      const fetchedIndexedIds = new Set(
+        filteredEpisodes
+          .filter((ep) => isNotCustom(ep) && ep.seasonId === bookmark.seasonId)
+          .map((ep) => ep.indexedId)
+      )
+
+      // Compute unfetched stubs
+      const unfetchedStubs = bookmark.episodes.filter(
+        (stub) => !fetchedIndexedIds.has(stub.indexedId)
+      )
+
+      // Apply text filter to stubs
+      const filteredStubs = filter
+        ? unfetchedStubs.filter((stub) =>
+            matchWithPinyin(
+              `${season.title} ${stub.title}`,
+              filter.toLocaleLowerCase()
+            )
+          )
+        : unfetchedStubs
+
+      // Mark existing season node as bookmarked
+      const existingIndex = treeItems.findIndex(
+        (item) => item.id === `season-${season.id}`
+      )
+
+      if (filteredStubs.length === 0) {
+        if (existingIndex >= 0) {
+          const existingNode = treeItems[existingIndex]
+          if (existingNode.kind === 'season') {
+            existingNode.bookmarked = true
+          }
+        }
+        continue
+      }
+
+      const stubNodes = filteredStubs.map((stub) =>
+        register({
+          id: `stub-${bookmark.seasonId}-${stub.indexedId}`,
+          label: stub.title,
+          kind: 'stub' as const,
+          data: stub,
+          seasonId: bookmark.seasonId,
+        })
+      )
+
+      if (existingIndex >= 0) {
+        // Season node already exists (some episodes are fetched)
+        const existingNode = treeItems[existingIndex]
+        if (existingNode.kind === 'season') {
+          existingNode.children = [
+            ...(existingNode.children ?? []),
+            ...stubNodes,
+          ]
+          existingNode.children.sort(compareEpisodes)
+          existingNode.bookmarked = true
+        }
+      } else {
+        // Season has no fetched episodes — create node from stubs only
+        const seasonNode = register({
+          id: `season-${season.id}`,
+          label: season.title,
+          kind: 'season' as const,
+          data: season,
+          provider: getProviderById(season.providerConfigId),
+          bookmarked: true,
+          children: stubNodes.sort(compareEpisodes),
+        })
+        treeItems.push(seasonNode)
+      }
+    }
+
     treeItems.sort((a, b) => {
       if (a.id === 'season-custom') {
         return -1
@@ -233,6 +329,7 @@ export const useDanmakuTree = (
     episodes,
     customEpisodes,
     seasons,
+    bookmarks,
     filter,
     typeFilter,
     t,
@@ -243,6 +340,7 @@ export const useDanmakuTree = (
     episodes,
     customEpisodes,
     seasons,
+    bookmarks,
     treeItems,
     treeItemMap,
   }
