@@ -110,19 +110,21 @@ export class BookmarkService {
   }
 
   async updateEpisodes(id: number, episodes: EpisodeStub[]): Promise<Bookmark> {
-    const existing = await this.db.bookmark.get(id)
-    if (!existing) {
-      throw new Error(`Bookmark not found: ${id}`)
-    }
-    const updated: Bookmark = {
-      ...existing,
-      episodes,
-      lastRefreshed: Date.now(),
-      timeUpdated: Date.now(),
-      version: existing.version + 1,
-    }
-    await this.db.bookmark.put(updated)
-    return updated
+    return this.db.transaction('rw', this.db.bookmark, async () => {
+      const existing = await this.db.bookmark.get(id)
+      if (!existing) {
+        throw new Error(`Bookmark not found: ${id}`)
+      }
+      const updated: Bookmark = {
+        ...existing,
+        episodes,
+        lastRefreshed: Date.now(),
+        timeUpdated: Date.now(),
+        version: existing.version + 1,
+      }
+      await this.db.bookmark.put(updated)
+      return updated
+    })
   }
 
   isStale(bookmark: Bookmark): boolean {

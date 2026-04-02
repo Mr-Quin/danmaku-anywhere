@@ -59,7 +59,7 @@ export const useExtStorage = <T>(
   })
 
   const deleteMutation = useMutation({
-    mutationFn: storageService.set.bind(storageService),
+    mutationFn: storageService.delete.bind(storageService),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey })
     },
