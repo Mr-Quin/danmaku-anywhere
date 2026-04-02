@@ -94,6 +94,11 @@ export class DanmakuService {
     })
   }
 
+  /**
+   * Exact-match lookup by title. Used by rule-based local matching
+   * where the pattern renders to a precise title string.
+   * For fuzzy path-suffix matching, use {@link matchLocalByTitle} instead.
+   */
   async getCustomByTitle(title: string): Promise<CustomEpisode | undefined> {
     return this.db.customEpisode.get({ title })
   }

@@ -213,7 +213,7 @@ export const TitleMappingPageCore = ({
         </>
       )}
       {activeTab === 1 && (
-        <Suspense>
+        <Suspense fallback={null}>
           <LocalMatchingRulePageContent initialMapKey={initialMapKey} />
         </Suspense>
       )}

@@ -13,7 +13,10 @@ import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { MultiselectChip } from '@/common/components/MultiselectChip'
 import { SelectionBottomBar } from '@/common/components/SelectionBottomBar'
 import type { LocalMatchingRule } from '@/common/options/localMatchingRule/schema'
-import { useLocalMatchingRules } from '@/common/options/localMatchingRule/useLocalMatchingRule'
+import {
+  useEditLocalMatchingRules,
+  useLocalMatchingRules,
+} from '@/common/options/localMatchingRule/useLocalMatchingRule'
 import { LocalMatchingRuleDetails } from './LocalMatchingRuleDetails'
 import { LocalMatchingRuleList } from './LocalMatchingRuleList'
 
@@ -25,7 +28,8 @@ export const LocalMatchingRulePageContent = ({
   initialMapKey,
 }: LocalMatchingRulePageContentProps) => {
   const { t } = useTranslation()
-  const { rules, addRule, removeRule, removeRules } = useLocalMatchingRules()
+  const { rules } = useLocalMatchingRules()
+  const mutations = useEditLocalMatchingRules()
   const dialog = useDialog()
   const [selectedRule, setSelectedRule] = useState<LocalMatchingRule | null>(
     null
@@ -84,12 +88,13 @@ export const LocalMatchingRulePageContent = ({
   const handleDeleteOne = (mapKey: string) => {
     dialog.delete({
       title: t('common.delete', 'Delete'),
-      content: t(
-        'localMatchingRule.deleteConfirmOne',
-        'Are you sure you want to delete this local matching rule?'
-      ),
+      content: t('localMatchingRule.deleteConfirm', {
+        count: 1,
+        defaultValue:
+          'Are you sure you want to delete {{count}} local matching rule?',
+      }),
       onConfirm: async () => {
-        await removeRule(mapKey)
+        await mutations.removeRule.mutateAsync(mapKey)
       },
     })
   }
@@ -101,13 +106,13 @@ export const LocalMatchingRulePageContent = ({
 
     dialog.delete({
       title: t('common.delete', 'Delete'),
-      content: t(
-        'localMatchingRule.deleteConfirm',
-        'Are you sure you want to delete {{count}} local matching rule(s)?',
-        { count: selectedIds.length }
-      ),
+      content: t('localMatchingRule.deleteConfirm', {
+        count: selectedIds.length,
+        defaultValue:
+          'Are you sure you want to delete {{count}} local matching rules?',
+      }),
       onConfirm: async () => {
-        await removeRules(selectedIds)
+        await mutations.removeRules.mutateAsync(selectedIds)
         setSelectedIds([])
         setMultiselect(false)
       },
@@ -115,14 +120,14 @@ export const LocalMatchingRulePageContent = ({
   }
 
   const handleSave = async (rule: LocalMatchingRule) => {
-    await addRule(rule)
+    await mutations.addRule.mutateAsync(rule)
     setSelectedRule(null)
     setIsCreating(false)
     setCreateMapKey(undefined)
   }
 
   const handleDelete = async (mapKey: string) => {
-    await removeRule(mapKey)
+    await mutations.removeRule.mutateAsync(mapKey)
     setSelectedRule(null)
   }
 

@@ -1,5 +1,5 @@
 import type { CustomEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
-import { Check, Close } from '@mui/icons-material'
+import { AutoFixHigh, Check, Close } from '@mui/icons-material'
 import {
   Autocomplete,
   Box,
@@ -10,6 +10,7 @@ import {
   ListItemText,
   styled,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import { useMemo, useState } from 'react'
@@ -18,7 +19,7 @@ import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustom
 import type { LocalMatchingRule } from '@/common/options/localMatchingRule/schema'
 import {
   localMatchingRuleSchema,
-  renderLocalMatchingPattern,
+  patternToRegex,
 } from '@/common/options/localMatchingRule/schema'
 
 const FormGrid = styled(Box)(({ theme }) => {
@@ -90,6 +91,98 @@ function decomposePattern(
   return { folder: ROOT_FOLDER, template: pattern }
 }
 
+type FileMatch = {
+  fileName: string
+  fullPath: string
+  episodeNumber: number | null
+}
+
+/**
+ * Match files against the template using reverse-matching (regex extraction).
+ * Returns each file with its matched episode number (or null if no match).
+ */
+function matchFilesWithTemplate(
+  files: { fileName: string; fullPath: string }[],
+  template: string
+): FileMatch[] {
+  const regex = patternToRegex(template)
+
+  return files.map((file) => {
+    if (!regex) {
+      return { ...file, episodeNumber: null }
+    }
+    const match = file.fileName.match(regex)
+    if (match?.[1]) {
+      return { ...file, episodeNumber: Number.parseInt(match[1], 10) }
+    }
+    return { ...file, episodeNumber: null }
+  })
+}
+
+/**
+ * Auto-detect a filename template from a list of filenames.
+ *
+ * Finds the longest common prefix and suffix across all filenames,
+ * then uses the varying middle part to determine the episode placeholder format.
+ *
+ * Returns null if detection fails (fewer than 2 files, or no numeric variation found).
+ */
+function detectPatternFromFiles(files: { fileName: string }[]): string | null {
+  if (files.length < 2) {
+    return null
+  }
+
+  const names = files.map((f) => f.fileName)
+
+  // Find longest common prefix
+  let prefix = ''
+  const first = names[0]
+  for (let i = 0; i < first.length; i++) {
+    const ch = first[i]
+    if (names.every((n) => n[i] === ch)) {
+      prefix += ch
+    } else {
+      break
+    }
+  }
+
+  // Find longest common suffix (excluding the prefix part)
+  const reversed = names.map((n) =>
+    n.slice(prefix.length).split('').reverse().join('')
+  )
+  let suffixReversed = ''
+  const firstRev = reversed[0]
+  for (let i = 0; i < firstRev.length; i++) {
+    const ch = firstRev[i]
+    if (reversed.every((n) => n[i] === ch)) {
+      suffixReversed += ch
+    } else {
+      break
+    }
+  }
+  const suffix = suffixReversed.split('').reverse().join('')
+
+  // Extract the varying middle parts
+  const middles = names.map((n) => {
+    return n.slice(prefix.length, n.length - suffix.length)
+  })
+
+  // All middle parts should be numeric
+  if (!middles.every((m) => /^\d+$/.test(m))) {
+    return null
+  }
+
+  // Determine padding width (consistent digit count = zero-padded)
+  const digitWidths = middles.map((m) => m.length)
+  const allSameWidth = digitWidths.every((w) => w === digitWidths[0])
+  const hasLeadingZeros = middles.some((m) => m.length > 1 && m.startsWith('0'))
+
+  if (allSameWidth && hasLeadingZeros) {
+    return `${prefix}{episode:0${digitWidths[0]}d}${suffix}`
+  }
+  return `${prefix}{episode}${suffix}`
+}
+
 type LocalMatchingRuleDetailsProps = {
   rule?: LocalMatchingRule
   initialMapKey?: string
@@ -130,23 +223,12 @@ export const LocalMatchingRuleDetails = ({
     [customEpisodes, folder]
   )
 
-  // Build a set of rendered pattern results for episodes 1..N to check matches
-  const matchedFiles = useMemo(() => {
-    if (!template) {
-      return new Set<string>()
-    }
-    const matched = new Set<string>()
-    // Check a generous range of episode numbers
-    const maxEp = Math.max(filesInFolder.length + 10, 200)
-    for (let ep = 1; ep <= maxEp; ep++) {
-      const rendered = composePattern(
-        folder,
-        renderLocalMatchingPattern(template, ep)
-      )
-      matched.add(rendered)
-    }
-    return matched
-  }, [template, folder, filesInFolder.length])
+  const fileMatches = useMemo(
+    () => matchFilesWithTemplate(filesInFolder, template),
+    [filesInFolder, template]
+  )
+
+  const matchCount = fileMatches.filter((f) => f.episodeNumber !== null).length
 
   const handleSave = () => {
     const result = localMatchingRuleSchema.safeParse({
@@ -166,9 +248,14 @@ export const LocalMatchingRuleDetails = ({
     onSave(result.data)
   }
 
-  const matchCount = filesInFolder.filter((f) =>
-    matchedFiles.has(f.fullPath)
-  ).length
+  const handleAutoDetect = () => {
+    const detected = detectPatternFromFiles(filesInFolder)
+    if (detected) {
+      setTemplate(detected)
+    }
+  }
+
+  const canAutoDetect = filesInFolder.length >= 2
 
   return (
     <FormGrid>
@@ -212,26 +299,45 @@ export const LocalMatchingRuleDetails = ({
           },
         }}
       />
-      <TextField
-        label={t('localMatchingRule.template', 'Filename Template')}
-        value={template}
-        onChange={(e) => setTemplate(e.target.value)}
-        error={!!errors.pattern}
-        helperText={
-          errors.pattern ||
-          t(
-            'localMatchingRule.templateHelp',
-            'Use {episode} for episode number, {episode:02d} for zero-padded. Example: {episode:03d}.xml'
-          )
-        }
-        size="small"
-        fullWidth
-        slotProps={{
-          input: {
-            sx: { fontFamily: 'monospace' },
-          },
-        }}
-      />
+      <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+        <TextField
+          label={t('localMatchingRule.template', 'Filename Template')}
+          value={template}
+          onChange={(e) => setTemplate(e.target.value)}
+          error={!!errors.pattern}
+          helperText={
+            errors.pattern ||
+            t(
+              'localMatchingRule.templateHelp',
+              'Use {episode} for episode number, {episode:02d} for zero-padded. Example: {episode:03d}.xml'
+            )
+          }
+          size="small"
+          fullWidth
+          slotProps={{
+            input: {
+              sx: { fontFamily: 'monospace' },
+            },
+          }}
+        />
+        {canAutoDetect && (
+          <Tooltip
+            title={t(
+              'localMatchingRule.autoDetect',
+              'Auto-detect pattern from files'
+            )}
+          >
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={handleAutoDetect}
+              sx={{ minWidth: 'auto', px: 1, mt: '1px' }}
+            >
+              <AutoFixHigh fontSize="small" />
+            </Button>
+          </Tooltip>
+        )}
+      </Box>
       {template && (
         <Typography variant="body2" color="text.secondary">
           {t('localMatchingRule.patternResult', 'Pattern')}: {pattern}
@@ -251,8 +357,8 @@ export const LocalMatchingRuleDetails = ({
             )
           </Typography>
           <List dense disablePadding sx={{ maxHeight: 200, overflow: 'auto' }}>
-            {filesInFolder.map((file) => {
-              const isMatch = template && matchedFiles.has(file.fullPath)
+            {fileMatches.map((file) => {
+              const isMatch = template && file.episodeNumber !== null
               return (
                 <ListItem key={file.fullPath} disablePadding sx={{ pl: 1 }}>
                   {template && (
@@ -266,10 +372,23 @@ export const LocalMatchingRuleDetails = ({
                   )}
                   <ListItemText
                     primary={file.fileName}
+                    secondary={
+                      isMatch
+                        ? t(
+                            'localMatchingRule.episodeMatch',
+                            'Episode {{number}}',
+                            { number: file.episodeNumber }
+                          )
+                        : undefined
+                    }
                     primaryTypographyProps={{
                       variant: 'body2',
                       fontFamily: 'monospace',
                       fontSize: '0.75rem',
+                    }}
+                    secondaryTypographyProps={{
+                      variant: 'caption',
+                      color: 'success.main',
                     }}
                   />
                 </ListItem>

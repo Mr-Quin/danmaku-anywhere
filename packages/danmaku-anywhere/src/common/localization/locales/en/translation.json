@@ -657,7 +657,8 @@
     "patternResult": "Pattern",
     "filesInFolder": "Files in folder",
     "matchCount": "{{matched}} / {{total}} matched",
-    "deleteConfirmOne": "Are you sure you want to delete this local matching rule?",
+    "episodeMatch": "Episode {{number}}",
+    "autoDetect": "Auto-detect pattern from files",
     "deleteConfirm_one": "Are you sure you want to delete {{count}} local matching rule?",
     "deleteConfirm_other": "Are you sure you want to delete {{count}} local matching rules?"
   }

@@ -642,7 +642,8 @@
     "patternResult": "匹配模式",
     "filesInFolder": "文件夹中的文件",
     "matchCount": "{{matched}} / {{total}} 已匹配",
-    "deleteConfirmOne": "确定要删除此本地匹配规则吗？",
+    "episodeMatch": "第 {{number}} 集",
+    "autoDetect": "从文件自动检测模式",
     "deleteConfirm_other": "确定要删除 {{count}} 个本地匹配规则吗？"
   }
 }
