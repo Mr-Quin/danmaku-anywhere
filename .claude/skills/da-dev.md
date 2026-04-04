@@ -153,8 +153,22 @@ EOF
 /loop 5m check PR #N for review comments using gh pr view and gh api, address them, and push fixes
 ```
 
+When review comments are found:
+
+1. **Evaluate each comment** — determine if the feedback is valid and worth addressing. Not all bot suggestions are correct.
+2. **If valid**: make the fix, then reply to the thread with a short comment explaining what was changed
+3. **If not valid**: reply to the thread explaining why the suggestion was declined
+4. **Resolve the thread** after replying:
+
+```bash
+# Get thread IDs
+gh api graphql -f query='{ repository(owner: "Mr-Quin", name: "danmaku-anywhere") { pullRequest(number: N) { reviewThreads(first: 50) { nodes { id isResolved } } } } }'
+# Resolve each thread
+gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "THREAD_ID"}) { thread { isResolved } } }'
+```
+
 **Stop the loop when:**
-1. You've addressed all review comments — stop loop, alert human
+1. All review comments have been addressed/declined, threads resolved — stop loop, alert human
 2. No comments AND no pending reviews (no bots "awaiting review", no review agents still reacting) — stop loop, alert human
 
 **Keep looping when:**
