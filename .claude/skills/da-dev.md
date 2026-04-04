@@ -25,7 +25,7 @@ digraph dev_workflow {
   has_task [label="Task exists?" shape=diamond];
   create_task [label="Create ClickUp task\n(Extension Tasks list\nset Type field)"];
   get_id [label="Get custom ID (DA-XXX)"];
-  branch [label="git fetch origin master\nCreate branch DA-XXX_desc\n(worktree for features/fixes)"];
+  branch [label="git fetch origin master\nCreate branch DA-XXX_description\n(worktree for features/fixes)"];
   implement [label="Implement changes"];
   verify [label="pnpm type-check && pnpm lint && pnpm test"];
   commit [label="Commit (do not push yet)"];
@@ -86,9 +86,9 @@ Pick the Type based on the scope of the change. Get the custom ID (DA-XXX) from 
 ```bash
 git fetch origin master
 # For features/fixes — use a worktree:
-git worktree add ../danmaku-anywhere-DA-XXX -b DA-XXX_short-description origin/master
+git worktree add ../danmaku-anywhere-DA-XXX -b DA-XXX_description origin/master
 # For trivial changes — branch directly:
-git checkout -b DA-XXX_short-description origin/master
+git checkout -b DA-XXX_description origin/master
 ```
 
 Reuse an existing worktree if its previous work is already done.
@@ -103,7 +103,7 @@ Make the changes. Follow CLAUDE.md conventions.
 pnpm type-check && pnpm lint && pnpm test
 ```
 
-Skip backend/proxy tests on Windows (workerd EBUSY failures).
+On Windows, backend/proxy tests fail due to workerd EBUSY errors. If the change does **not** touch backend code, exclude them with `pnpm test --filter '!backend/proxy'`. If the change **does** touch backend code, run the full test suite (consider using WSL or CI to verify).
 
 ### 5. Commit (do not push yet)
 
@@ -134,8 +134,8 @@ Determine if the change is **simple** (docs, config, skills, formatting) or **su
 ### 8. Push and Create PR
 
 ```bash
-git push -u origin DA-XXX_short-description
-gh pr create --title "(TYPE) description [DA-XXX]" --body "$(cat <<'EOF'
+git push -u origin DA-XXX_description
+gh pr create --title "(type) description [DA-XXX]" --body "$(cat <<'EOF'
 ## Summary
 - <bullet points>
 EOF
@@ -150,7 +150,7 @@ EOF
 ### 9. Review Monitoring
 
 ```
-/loop 5m <check PR #N for review comments, address them, push fixes>
+/loop 5m check PR #N for review comments using gh pr view and gh api, address them, and push fixes
 ```
 
 **Stop the loop when:**
