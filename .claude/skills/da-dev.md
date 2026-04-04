@@ -28,10 +28,14 @@ digraph dev_workflow {
   branch [label="git fetch origin master\nCreate branch DA-XXX_desc\n(worktree for features/fixes)"];
   implement [label="Implement changes"];
   verify [label="pnpm type-check && pnpm lint && pnpm test"];
-  commit [label="Commit and push"];
-  create_pr [label="gh pr create\n(TYPE) description [DA-XXX]"];
+  commit [label="Commit (do not push yet)"];
+  review [label="Self-review:\n/review and /security-review\n(use clean subagent, no prior context)"];
+  is_simple [label="Simple change?\n(docs, config, skills)" shape=diamond];
+  human_gate [label="Alert human\nWait for go/no-go"];
+  create_pr [label="Push + gh pr create\n(TYPE) description [DA-XXX]"];
   loop [label="/loop 5m — monitor for reviews"];
   reviews [label="New review comments?" shape=diamond];
+  pending [label="Reviews still pending?\n(bots awaiting, agents reacting)" shape=diamond];
   address [label="Address reviews\ncommit and push"];
   stop [label="Stop loop\nAlert human"];
   done [label="Human reviews/merges" shape=ellipse];
@@ -45,13 +49,18 @@ digraph dev_workflow {
   branch -> implement;
   implement -> verify;
   verify -> commit;
-  commit -> create_pr;
+  commit -> review;
+  review -> is_simple;
+  is_simple -> create_pr [label="yes"];
+  is_simple -> human_gate [label="no (bug/feature)"];
+  human_gate -> create_pr [label="human approves"];
   create_pr -> loop;
   loop -> reviews;
   reviews -> address [label="yes"];
-  reviews -> reviews [label="no, wait"];
+  reviews -> pending [label="no"];
+  pending -> loop [label="yes, wait"];
+  pending -> stop [label="no, all clear"];
   address -> stop;
-  stop -> done;
 }
 ```
 
@@ -96,19 +105,36 @@ pnpm type-check && pnpm lint && pnpm test
 
 Skip backend/proxy tests on Windows (workerd EBUSY failures).
 
-### 5. Commit and Push
+### 5. Commit (do not push yet)
 
 ```bash
 git add <specific files>
 git commit -m "<descriptive message>"
-git push -u origin DA-XXX_short-description
 ```
 
 Never include Co-Authored-By or AI attribution in commits.
 
-### 6. Create PR
+### 6. Self-Review
+
+Before pushing, run reviews using **clean subagents** (no prior context on the changes):
+
+- Always run `/review` (code review)
+- Run `/security-review` when the change touches code that handles user input, auth, APIs, or data storage
+
+Use the Agent tool to dispatch these in a clean context. Fix any issues found, then amend or add a commit.
+
+### 7. Human Gate
+
+Determine if the change is **simple** (docs, config, skills, formatting) or **substantive** (bug fix, feature, refactor):
+
+- **Simple**: proceed directly to PR
+- **Substantive**: alert the human with a summary of changes and review results. **Wait for explicit go** before proceeding
+- **When in doubt**: alert the human
+
+### 8. Push and Create PR
 
 ```bash
+git push -u origin DA-XXX_short-description
 gh pr create --title "(TYPE) description [DA-XXX]" --body "$(cat <<'EOF'
 ## Summary
 - <bullet points>
@@ -121,13 +147,19 @@ EOF
 - **DA-XXX must match** the branch name (CI validates this)
 - Do NOT include ClickUp links in the PR body — they are posted automatically
 
-### 7. Review Monitoring
+### 9. Review Monitoring
 
 ```
 /loop 5m <check PR #N for review comments, address them, push fixes>
 ```
 
-When reviews are addressed: **stop the loop** and alert the human.
+**Stop the loop when:**
+1. You've addressed all review comments — stop loop, alert human
+2. No comments AND no pending reviews (no bots "awaiting review", no review agents still reacting) — stop loop, alert human
+
+**Keep looping when:**
+- Review bots are still processing (e.g., copilot status is "awaiting review")
+- A review agent has reacted but not yet posted comments
 
 ## Hard Rules
 
