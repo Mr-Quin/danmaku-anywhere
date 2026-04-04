@@ -91,6 +91,8 @@ docs/                   # Astro-based documentation site
 - Strict mode enabled everywhere (`tsconfig.base.json`)
 - Prefer type inference when the type is obvious
 - Use proper type annotations for function parameters and return types
+- Prefer string union types over TypeScript enums
+- Minimize type assertions (`as`) — only use when truly necessary
 
 ### React (extension)
 - Functional components with hooks only
@@ -121,6 +123,12 @@ docs/                   # Astro-based documentation site
 - **No same-line if bodies**: always use a block `{ }` on the next line, even for early returns. `if (x) return` → `if (x) { return }`
 - **No bodyless one-liner arrow functions**: use an explicit block with `return` when the function has a type annotation or is non-trivial. `(x) => x.foo` is fine for simple callbacks; named/typed functions should use `{ return ... }`
 - **No syntax soup**: avoid dense ternary chains, chained optional calls, or expressions that require more than one read to parse
+- **Decouple business logic**: keep logic decoupled from UI frameworks for testability — single source of truth over scattered state
+- **No sectional comments**: sectional comments in a class are a code smell — split the class instead
+
+### Refactoring guidelines
+- Use TDD when refactoring — write tests first, start with reusable primitives
+- Step back and think holistically before refactoring — don't anchor to the current implementation
 
 ### Error handling
 - Use the `Result` type from `@danmaku-anywhere/result` for explicit error handling
