@@ -5,64 +5,7 @@ description: Use when implementing features, fixing bugs, or making any code/con
 
 # da-dev — Development Workflow
 
-Orchestrates: ClickUp task → branch → implement → PR → review monitoring → human handoff.
-
-## Input
-
-`/da-dev <description of the change>`
-
-If the description is ambiguous, ask one round of clarifying questions before starting.
-
-## Workflow
-
-```dot
-digraph dev_workflow {
-  rankdir=TB;
-  node [shape=box];
-
-  start [label="Parse task description" shape=ellipse];
-  find_task [label="Search ClickUp for existing task"];
-  has_task [label="Task exists?" shape=diamond];
-  create_task [label="Create ClickUp task\n(Extension Tasks list\nset Type field)"];
-  get_id [label="Get custom ID (DA-XXX)"];
-  branch [label="git fetch origin master\nCreate branch DA-XXX_description\n(worktree for features/fixes)"];
-  implement [label="Implement changes"];
-  verify [label="pnpm type-check && pnpm lint && pnpm test"];
-  commit [label="Commit (do not push yet)"];
-  review [label="Self-review:\n/review and /security-review\n(use clean subagent, no prior context)"];
-  is_simple [label="Simple change?\n(docs, config, skills)" shape=diamond];
-  human_gate [label="Alert human\nWait for go/no-go"];
-  create_pr [label="Push + gh pr create\n(TYPE) description [DA-XXX]"];
-  loop [label="/loop 5m — monitor for reviews"];
-  reviews [label="New review comments?" shape=diamond];
-  pending [label="Reviews still pending?\n(bots awaiting, agents reacting)" shape=diamond];
-  address [label="Address reviews\ncommit and push"];
-  stop [label="Stop loop\nAlert human"];
-  done [label="Human reviews/merges" shape=ellipse];
-
-  start -> find_task;
-  find_task -> has_task;
-  has_task -> get_id [label="yes"];
-  has_task -> create_task [label="no"];
-  create_task -> get_id;
-  get_id -> branch;
-  branch -> implement;
-  implement -> verify;
-  verify -> commit;
-  commit -> review;
-  review -> is_simple;
-  is_simple -> create_pr [label="yes"];
-  is_simple -> human_gate [label="no (bug/feature)"];
-  human_gate -> create_pr [label="human approves"];
-  create_pr -> loop;
-  loop -> reviews;
-  reviews -> address [label="yes"];
-  reviews -> pending [label="no"];
-  pending -> loop [label="yes, wait"];
-  pending -> stop [label="no, all clear"];
-  address -> stop;
-}
-```
+Orchestrates: ClickUp task → branch → implement → verify → self-review → human gate → PR → review monitoring → human handoff.
 
 ## Step Details
 
@@ -99,45 +42,50 @@ Make the changes. Follow CLAUDE.md conventions.
 
 ### 4. Verify
 
-Always run lint and type-check. For tests and build verification, follow the relevant area's process:
+Always run lint and type-check. For tests and build, follow the relevant area's process:
 
-| Area | Verify command | Notes |
+| Area | Verify command | Manual verification |
 |---|---|---|
-| Extension | See `packages/danmaku-anywhere/AGENTS.md` | Build with `pnpm dev` or `pnpm build` in package dir |
-| Web app | See `app/web/AGENTS.md` | Build with `pnpm ng build` in app dir |
-| Backend | See `backend/proxy/AGENTS.md` | Tests fail on Windows (workerd EBUSY) — use WSL or CI |
-| Packages | `pnpm test --filter <package>` | Run tests for affected packages |
-| Cross-cutting | `pnpm type-check && pnpm lint && pnpm test` | Full suite, exclude backend on Windows if untouched |
+| Extension | See `packages/danmaku-anywhere/AGENTS.md` | **Open dev browser** at start of work (see below) |
+| Web app | See `app/web/AGENTS.md` | **CF preview URL** from PR deploy comment |
+| Backend | See `backend/proxy/AGENTS.md` | N/A |
+| Packages | `pnpm test --filter <package>` | N/A |
+| Cross-cutting | `pnpm type-check && pnpm lint && pnpm test` | Depends on areas touched |
 
-When the change spans multiple areas, verify each affected area.
+#### Extension: open dev browser
 
-### 5. Commit (do not push yet)
+For extension changes, launch a dev browser with HMR **at the start of implementation**:
+
+```bash
+start powershell -NoExit -Command "cd '<worktree-path>/packages/danmaku-anywhere'; node e2e/open-browser.ts"
+```
+
+Human verifies behavior live. Skip for trivial changes (config-only, types, docs).
+
+#### Web app: Cloudflare preview
+
+After the PR is created, Cloudflare posts a preview URL. Include it when alerting the human.
+
+### 5. Commit and Self-Review
 
 ```bash
 git add <specific files>
 git commit -m "<descriptive message>"
 ```
 
-Never include Co-Authored-By or AI attribution in commits.
+Before pushing, run reviews using **clean subagents** (no prior context):
+- Always run `/review`
+- Run `/security-review` when the change touches user input, auth, APIs, or data storage
 
-### 6. Self-Review
+Fix any issues found, then add a commit. Never include Co-Authored-By or AI attribution.
 
-Before pushing, run reviews using **clean subagents** (no prior context on the changes):
+### 6. Human Gate
 
-- Always run `/review` (code review)
-- Run `/security-review` when the change touches code that handles user input, auth, APIs, or data storage
-
-Use the Agent tool to dispatch these in a clean context. Fix any issues found, then amend or add a commit.
-
-### 7. Human Gate
-
-Determine if the change is **simple** (docs, config, skills, formatting) or **substantive** (bug fix, feature, refactor):
-
-- **Simple**: proceed directly to PR
-- **Substantive**: alert the human with a summary of changes and review results. **Wait for explicit go** before proceeding
+- **Simple** (docs, config, skills, formatting): proceed directly to PR
+- **Substantive** (bug fix, feature, refactor): alert human with summary + review results, **wait for explicit go**
 - **When in doubt**: alert the human
 
-### 8. Push and Create PR
+### 7. Push and Create PR
 
 ```bash
 git push -u origin DA-XXX_description
@@ -148,58 +96,44 @@ EOF
 )"
 ```
 
-- **TYPE** must be one of: `extension`, `app`, `proxy`, `chore`, `docs`
-- **TYPE must match** the ClickUp task's Type field (CI validates this)
-- **DA-XXX must match** the branch name (CI validates this)
+- **type** must be one of: `extension`, `app`, `proxy`, `chore`, `docs` (lowercase, CI validates)
+- **type must match** the ClickUp task's Type field
+- **DA-XXX must match** the branch name
 - Do NOT include ClickUp links in the PR body — they are posted automatically
 
-### 9. Review Monitoring
+### 8. Review Monitoring
 
 ```
-/loop 5m check PR #N for review comments, report reviewer status, address comments, and push fixes
+/loop 5m check PR #N for review comments, report status, address comments, push fixes
 ```
 
-**Each loop iteration must report status** by running these checks and printing results:
+**Each iteration reports status:**
 
 ```bash
-# Review states (COMMENTED, APPROVED, CHANGES_REQUESTED, PENDING, DISMISSED)
 gh api repos/Mr-Quin/danmaku-anywhere/pulls/N/reviews --jq '[.[] | {author: .user.login, state: .state}]'
-# PR reactions (eyes emoji = bot is processing)
 gh api repos/Mr-Quin/danmaku-anywhere/issues/N/reactions --jq '[.[] | {user: .user.login, reaction: .content}]'
-# Pending reviewer requests
 gh api repos/Mr-Quin/danmaku-anywhere/pulls/N --jq '{requested_reviewers: [.requested_reviewers[]? | .login]}'
-# Inline comments
 gh api repos/Mr-Quin/danmaku-anywhere/pulls/N/comments
+gh pr checks N
 ```
-
-Report a summary like:
-> **PR #N status**: Copilot: COMMENTED (1 comment), Gemini: eyes reaction (processing). 1 unresolved thread.
 
 **When review comments are found:**
 
-1. **Evaluate each comment** — determine if the feedback is valid and worth addressing. Not all bot suggestions are correct.
-2. **If valid**: make the fix, then reply to the thread with a short comment explaining what was changed
-3. **If not valid**: reply to the thread explaining why the suggestion was declined
-4. **Resolve the thread** after replying:
+1. **Evaluate validity** — not all bot suggestions are correct
+2. **If valid**: fix, reply with what changed
+3. **If not valid**: reply with why it was declined
+4. **Resolve the thread**:
 
 ```bash
-# Get unresolved thread IDs
 gh api graphql -f query='{ repository(owner: "Mr-Quin", name: "danmaku-anywhere") { pullRequest(number: N) { reviewThreads(first: 50) { nodes { id isResolved } } } } }'
-# Resolve each thread
 gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "THREAD_ID"}) { thread { isResolved } } }'
 ```
 
-**Stop the loop when:**
-1. All review comments have been addressed/declined and threads resolved — stop loop, alert human
-2. No comments AND no pending reviews — stop loop, alert human
+**Stop the loop when ALL are true:**
+1. All review threads handled (addressed/declined/resolved)
+2. No pending reviews (no unmatched eyes reactions, no pending reviewer requests)
+3. All CI checks completed — if any **fail**, fix before stopping
 
-**Keep looping when:**
-- A bot has reacted with eyes emoji but hasn't posted a review yet
-- `requested_reviewers` is non-empty
-- A review state is PENDING
+**Keep looping when:** bots still processing (eyes emoji without review), reviewers pending, or CI running.
 
-## Hard Rules
-
-- **NEVER merge PRs** — merging is always a human action
-- **NEVER skip the ClickUp task** — every PR needs a DA-XXX reference
-- **NEVER force push** without explicit human approval
+On stop: alert human. **NEVER merge PRs** — merging is always a human action.
