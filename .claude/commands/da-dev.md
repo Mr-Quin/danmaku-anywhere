@@ -5,6 +5,8 @@ description: Use when implementing features, fixing bugs, or making any code/con
 
 # da-dev — Development Workflow
 
+Task: $ARGUMENTS
+
 Orchestrates: ClickUp task → branch → implement → verify → self-review → human gate → PR → review monitoring → human handoff.
 
 ## Step Details
@@ -44,13 +46,13 @@ Make the changes. Follow CLAUDE.md conventions.
 
 Always run lint and type-check. For tests and build, follow the relevant area's process:
 
-| Area | Verify command | Manual verification |
-|---|---|---|
-| Extension | See `packages/danmaku-anywhere/AGENTS.md` | **Open dev browser** at start of work (see below) |
-| Web app | See `app/web/AGENTS.md` | **CF preview URL** from PR deploy comment |
-| Backend | See `backend/proxy/AGENTS.md` | N/A |
-| Packages | `pnpm test --filter <package>` | N/A |
-| Cross-cutting | `pnpm type-check && pnpm lint && pnpm test` | Depends on areas touched |
+| Area          | Verify command                              | Manual verification                               |
+| ------------- | ------------------------------------------- | ------------------------------------------------- |
+| Extension     | See `packages/danmaku-anywhere/AGENTS.md`   | **Open dev browser** at start of work (see below) |
+| Web app       | See `app/web/AGENTS.md`                     | **CF preview URL** from PR deploy comment         |
+| Backend       | See `backend/proxy/AGENTS.md`               | N/A                                               |
+| Packages      | `pnpm test --filter <package>`              | N/A                                               |
+| Cross-cutting | `pnpm type-check && pnpm lint && pnpm test` | Depends on areas touched                          |
 
 #### Extension: open dev browser
 
@@ -74,6 +76,7 @@ git commit -m "<descriptive message>"
 ```
 
 Before pushing, run reviews using **clean subagents** (no prior context):
+
 - Always run `/review`
 - Run `/security-review` when the change touches user input, auth, APIs, or data storage
 
@@ -130,6 +133,7 @@ gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "THREA
 ```
 
 **Stop the loop when ALL are true:**
+
 1. All review threads handled (addressed/declined/resolved)
 2. No pending reviews (no unmatched eyes reactions, no pending reviewer requests)
 3. All CI checks completed — if any **fail**, fix before stopping
