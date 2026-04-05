@@ -1,10 +1,3 @@
-/**
- * Single-command dev verification: starts a Vite dev server on a free port,
- * then opens Chromium with the extension dev build loaded.
- *
- * Usage: pnpm open-browser
- * Override port: VITE_PORT=23335 pnpm open-browser
- */
 import { chromium } from '@playwright/test'
 import fs from 'fs'
 import net from 'net'

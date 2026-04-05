@@ -79,5 +79,6 @@ export default defineConfig({
   test: {
     setupFiles: ['src/tests/mockChromeApis.ts', 'src/tests/mockI18n.ts'],
     environment: 'jsdom',
+    exclude: ['e2e/**', 'node_modules/**'],
   },
 })
