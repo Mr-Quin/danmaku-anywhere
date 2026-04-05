@@ -99,11 +99,17 @@ Make the changes. Follow CLAUDE.md conventions.
 
 ### 4. Verify
 
-```bash
-pnpm type-check && pnpm lint && pnpm test
-```
+Always run lint and type-check. For tests and build verification, follow the relevant area's process:
 
-On Windows, backend/proxy tests fail due to workerd EBUSY errors. If the change does **not** touch backend code, exclude them with `pnpm test --filter '!backend/proxy'`. If the change **does** touch backend code, run the full test suite (consider using WSL or CI to verify).
+| Area | Verify command | Notes |
+|---|---|---|
+| Extension | See `packages/danmaku-anywhere/AGENTS.md` | Build with `pnpm dev` or `pnpm build` in package dir |
+| Web app | See `app/web/AGENTS.md` | Build with `pnpm ng build` in app dir |
+| Backend | See `backend/proxy/AGENTS.md` | Tests fail on Windows (workerd EBUSY) — use WSL or CI |
+| Packages | `pnpm test --filter <package>` | Run tests for affected packages |
+| Cross-cutting | `pnpm type-check && pnpm lint && pnpm test` | Full suite, exclude backend on Windows if untouched |
+
+When the change spans multiple areas, verify each affected area.
 
 ### 5. Commit (do not push yet)
 
@@ -150,10 +156,26 @@ EOF
 ### 9. Review Monitoring
 
 ```
-/loop 5m check PR #N for review comments using gh pr view and gh api, address them, and push fixes
+/loop 5m check PR #N for review comments, report reviewer status, address comments, and push fixes
 ```
 
-When review comments are found:
+**Each loop iteration must report status** by running these checks and printing results:
+
+```bash
+# Review states (COMMENTED, APPROVED, CHANGES_REQUESTED, PENDING, DISMISSED)
+gh api repos/Mr-Quin/danmaku-anywhere/pulls/N/reviews --jq '[.[] | {author: .user.login, state: .state}]'
+# PR reactions (eyes emoji = bot is processing)
+gh api repos/Mr-Quin/danmaku-anywhere/issues/N/reactions --jq '[.[] | {user: .user.login, reaction: .content}]'
+# Pending reviewer requests
+gh api repos/Mr-Quin/danmaku-anywhere/pulls/N --jq '{requested_reviewers: [.requested_reviewers[]? | .login]}'
+# Inline comments
+gh api repos/Mr-Quin/danmaku-anywhere/pulls/N/comments
+```
+
+Report a summary like:
+> **PR #N status**: Copilot: COMMENTED (1 comment), Gemini: eyes reaction (processing). 1 unresolved thread.
+
+**When review comments are found:**
 
 1. **Evaluate each comment** — determine if the feedback is valid and worth addressing. Not all bot suggestions are correct.
 2. **If valid**: make the fix, then reply to the thread with a short comment explaining what was changed
@@ -161,19 +183,20 @@ When review comments are found:
 4. **Resolve the thread** after replying:
 
 ```bash
-# Get thread IDs
+# Get unresolved thread IDs
 gh api graphql -f query='{ repository(owner: "Mr-Quin", name: "danmaku-anywhere") { pullRequest(number: N) { reviewThreads(first: 50) { nodes { id isResolved } } } } }'
 # Resolve each thread
 gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "THREAD_ID"}) { thread { isResolved } } }'
 ```
 
 **Stop the loop when:**
-1. All review comments have been addressed/declined, threads resolved — stop loop, alert human
-2. No comments AND no pending reviews (no bots "awaiting review", no review agents still reacting) — stop loop, alert human
+1. All review comments have been addressed/declined and threads resolved — stop loop, alert human
+2. No comments AND no pending reviews — stop loop, alert human
 
 **Keep looping when:**
-- Review bots are still processing (e.g., copilot status is "awaiting review")
-- A review agent has reacted but not yet posted comments
+- A bot has reacted with eyes emoji but hasn't posted a review yet
+- `requested_reviewers` is non-empty
+- A review state is PENDING
 
 ## Hard Rules
 
