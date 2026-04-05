@@ -1,6 +1,7 @@
 import type { PopoverVirtualElement } from '@mui/material'
 import { ClickAwayListener } from '@mui/material'
 import { Suspense, useRef, useState } from 'react'
+import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { usePopup } from '@/content/controller/store/popupStore'
 import { ControllerWindow } from '@/content/controller/ui/floatingPanel/ControllerWindow'
 import { CONTROLLER_ROOT_ID } from '../common/constants/rootId'
@@ -10,6 +11,8 @@ import { FloatingButton } from './floatingButton/FloatingButton'
 export const PopupUi = () => {
   const { isOpen, toggleOpen, lock } = usePopup()
   const isPicking = useStore((state) => state.integrationForm.isPicking)
+  const { data: options } = useExtensionOptions()
+  const { showFloatingButton } = options.playerOptions
 
   const fallbackAnchorEl = useRef<HTMLButtonElement | null>(null)
 
@@ -59,6 +62,7 @@ export const PopupUi = () => {
           onOpen={handleOpen}
           isOpen={isOpen}
           ref={fallbackAnchorEl}
+          showFloatingButton={showFloatingButton}
         />
       </div>
     </ClickAwayListener>

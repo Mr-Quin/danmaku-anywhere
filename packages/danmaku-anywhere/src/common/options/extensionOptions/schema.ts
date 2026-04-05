@@ -52,6 +52,7 @@ export const playerOptionsSchema = z.object({
   showSkipButton: z.boolean(),
   showDanmakuTimeline: z.boolean(),
   enableFullscreenInteraction: z.boolean(),
+  showFloatingButton: z.boolean(),
 })
 
 export const retentionPolicySchema = z.object({

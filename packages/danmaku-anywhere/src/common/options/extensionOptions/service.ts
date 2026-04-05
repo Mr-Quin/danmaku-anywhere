@@ -166,6 +166,7 @@ export class ExtensionOptionsService implements IStoreService {
               showSkipButton: true,
               showDanmakuTimeline: true,
               enableFullscreenInteraction: true,
+              showFloatingButton: true,
             }
           }),
       })
@@ -253,6 +254,12 @@ export class ExtensionOptionsService implements IStoreService {
         upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             draft.playerOptions.enableFullscreenInteraction = true
+          }),
+      })
+      .version(24, {
+        upgrade: (data) =>
+          produce<ExtensionOptions>(data, (draft) => {
+            draft.playerOptions.showFloatingButton = true
           }),
       })
   }

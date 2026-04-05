@@ -24,6 +24,7 @@ import { useShowFab } from './hooks/useShowFab'
 interface FloatingButtonProps extends FabProps {
   onOpen: (virtualElement: PopoverVirtualElement) => void
   isOpen: boolean
+  showFloatingButton: boolean
 }
 
 const StyledFab = styled(Fab, {
@@ -47,7 +48,7 @@ const useInitialAnchor = () => {
 export const FloatingButton = forwardRef<
   HTMLButtonElement,
   FloatingButtonProps
->(({ onOpen, isOpen }: FloatingButtonProps, ref) => {
+>(({ onOpen, isOpen, showFloatingButton }: FloatingButtonProps, ref) => {
   const isLoading = useAnyLoading()
 
   const showFab = useShowFab()
@@ -96,7 +97,7 @@ export const FloatingButton = forwardRef<
 
   const isPicking = useStore((state) => state.integrationForm.isPicking)
 
-  const isIn = !isPicking && (showFab || isOpen || !!contextMenuAnchor)
+  const isIn = !isPicking && showFloatingButton && (showFab || isOpen || !!contextMenuAnchor)
 
   const isIncomplete = isConfigIncomplete(activeConfig)
 

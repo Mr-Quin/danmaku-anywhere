@@ -132,6 +132,20 @@ const playerSettings: SettingConfig<ExtensionOptions>[] = [
       },
     }),
   },
+  {
+    id: 'toggle.player.showFloatingButton',
+    label: () =>
+      i18n.t('optionsPage.player.showFloatingButton', 'Show floating button'),
+    category: 'player',
+    type: 'toggle',
+    getValue: (options) => options.playerOptions.showFloatingButton,
+    createUpdate: (options, newValue) => ({
+      playerOptions: {
+        ...options.playerOptions,
+        showFloatingButton: newValue,
+      },
+    }),
+  },
 ]
 
 export const UPLOAD_DEBUG_DATA_BUTTON: ButtonSettingConfig = {
