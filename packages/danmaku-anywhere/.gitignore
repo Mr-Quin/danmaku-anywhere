@@ -1,2 +1,6 @@
 extention-profile
 build-standalone
+test-results
+playwright-report
+blob-report
+.playwright-profile

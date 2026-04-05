@@ -14,7 +14,11 @@ if (!['chrome', 'firefox'].includes(browser.name)) {
   )
 }
 
-const port = isChrome ? 23333 : 23334
+const defaultPort = isChrome ? 23333 : 23334
+const envPort = process.env.VITE_PORT
+  ? Number(process.env.VITE_PORT)
+  : undefined
+const port = envPort && !Number.isNaN(envPort) ? envPort : defaultPort
 
 console.log('Building for', {
   browser,
@@ -75,5 +79,6 @@ export default defineConfig({
   test: {
     setupFiles: ['src/tests/mockChromeApis.ts', 'src/tests/mockI18n.ts'],
     environment: 'jsdom',
+    exclude: ['e2e/**', 'node_modules/**'],
   },
 })
