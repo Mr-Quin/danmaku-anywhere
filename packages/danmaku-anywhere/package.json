@@ -21,6 +21,8 @@
     "standalone:serve": "vite preview --config vite.standalone.config.ts",
     "standalone:deploy": "wrangler deploy",
     "test": "vitest",
+    "test:e2e": "playwright test",
+    "open-browser": "npx tsx e2e/open-browser.ts",
     "preview": "vite preview",
     "lint": "tsc && biome check --fix",
     "lint:ci": "biome ci",
@@ -89,6 +91,7 @@
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "2.2.1",
+    "@playwright/test": "^1.59.1",
     "@types/chrome": "^0.0.326",
     "@types/d3": "^7.4.3",
     "@types/jsdom": "^28.0.0",

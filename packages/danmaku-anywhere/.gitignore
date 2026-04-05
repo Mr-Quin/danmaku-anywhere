@@ -1,2 +1,4 @@
 extention-profile
 build-standalone
+test-results
+.playwright-profile
