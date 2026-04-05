@@ -5,7 +5,8 @@ export default defineConfig({
   timeout: 30_000,
   retries: 0,
   use: {
-    // Extensions require the full chromium channel, not headless shell
+    // Extensions require the full chromium channel and headed mode
     channel: 'chromium',
+    headless: false,
   },
 })

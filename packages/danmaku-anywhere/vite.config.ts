@@ -15,7 +15,10 @@ if (!['chrome', 'firefox'].includes(browser.name)) {
 }
 
 const defaultPort = isChrome ? 23333 : 23334
-const port = process.env.VITE_PORT ? Number(process.env.VITE_PORT) : defaultPort
+const envPort = process.env.VITE_PORT
+  ? Number(process.env.VITE_PORT)
+  : undefined
+const port = envPort && !Number.isNaN(envPort) ? envPort : defaultPort
 
 console.log('Building for', {
   browser,
