@@ -101,6 +101,20 @@ const advancedSettings: SettingConfig<ExtensionOptions>[] = [
     getValue: (options) => options.restrictInitiatorDomain,
     createUpdate: (_, newValue) => ({ restrictInitiatorDomain: newValue }),
   },
+  {
+    id: 'toggle.showFloatingButton',
+    label: () =>
+      i18n.t('optionsPage.showFloatingButton', 'Show floating button'),
+    category: 'advanced',
+    type: 'toggle',
+    getValue: (options) => options.playerOptions.showFloatingButton,
+    createUpdate: (options, newValue) => ({
+      playerOptions: {
+        ...options.playerOptions,
+        showFloatingButton: newValue,
+      },
+    }),
+  },
 ]
 
 const playerSettings: SettingConfig<ExtensionOptions>[] = [
@@ -129,20 +143,6 @@ const playerSettings: SettingConfig<ExtensionOptions>[] = [
       playerOptions: {
         ...options.playerOptions,
         showDanmakuTimeline: newValue,
-      },
-    }),
-  },
-  {
-    id: 'toggle.player.showFloatingButton',
-    label: () =>
-      i18n.t('optionsPage.player.showFloatingButton', 'Show floating button'),
-    category: 'player',
-    type: 'toggle',
-    getValue: (options) => options.playerOptions.showFloatingButton,
-    createUpdate: (options, newValue) => ({
-      playerOptions: {
-        ...options.playerOptions,
-        showFloatingButton: newValue,
       },
     }),
   },

@@ -476,10 +476,10 @@
     },
     "player": {
       "showDanmakuTimeline": "Show danmaku density",
-      "showSkipButton": "Show skip button (OP/ED)",
-      "showFloatingButton": "Show floating button"
+      "showSkipButton": "Show skip button (OP/ED)"
     },
     "restrictInitiatorDomain": "Limit DNR initiator domains to this extension",
+    "showFloatingButton": "Show floating button",
     "retentionPolicy": {
       "alert": {
         "nDanmakuDeleted_one": "{{count}} danmaku deleted",
