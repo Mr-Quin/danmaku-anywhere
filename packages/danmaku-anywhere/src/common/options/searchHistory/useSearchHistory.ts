@@ -1,20 +1,16 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { useInjectService } from '@/common/hooks/useInjectService'
-import type { SearchHistoryOptions } from '@/common/options/searchHistory/schema'
 import { SearchHistoryService } from '@/common/options/searchHistory/service'
 import { storageQueryKeys } from '@/common/queries/queryKeys'
-import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 
 export function useSearchHistory() {
-  const store = useSuspenseExtStorageQuery<SearchHistoryOptions>(
-    'searchHistory',
-    {
-      storageType: 'local',
-    }
-  )
-
   const service = useInjectService(SearchHistoryService)
   const queryKey = storageQueryKeys.external('local', ['searchHistory'])
+
+  const { data } = useSuspenseQuery({
+    queryKey,
+    queryFn: () => service.get(),
+  })
 
   const addEntryMutation = useMutation({
     mutationKey: queryKey,
@@ -32,7 +28,7 @@ export function useSearchHistory() {
   })
 
   return {
-    entries: store.data.data.entries,
+    entries: data.entries,
     addEntry: addEntryMutation,
     removeEntry: removeEntryMutation,
     clearHistory: clearHistoryMutation,
