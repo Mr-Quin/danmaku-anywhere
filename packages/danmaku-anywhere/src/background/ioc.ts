@@ -13,6 +13,7 @@ import {
   optionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
+import { SearchHistoryService } from '@/common/options/searchHistory/service'
 import { Logger } from './backgroundLogger'
 import {
   DanmakuProviderFactory,
@@ -29,6 +30,7 @@ container.bind(StoreServiceSymbol).toService(IntegrationPolicyService)
 container.bind(StoreServiceSymbol).toService(MountConfigService)
 container.bind(StoreServiceSymbol).toService(ProviderConfigService)
 container.bind(StoreServiceSymbol).toService(AiProviderConfigService)
+container.bind(StoreServiceSymbol).toService(SearchHistoryService)
 
 // factory
 container
