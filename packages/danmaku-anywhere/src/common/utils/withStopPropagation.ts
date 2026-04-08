@@ -1,15 +1,25 @@
 import type { KeyboardEvent, KeyboardEventHandler } from 'react'
 
+interface WithStopPropagationOptions<T extends Element> {
+  onKeyPressCapture?: KeyboardEventHandler<T>
+  onKeyDownCapture?: KeyboardEventHandler<T>
+  whitelistKeys?: string[]
+}
+
 interface WithStopPropagationHandlers<T extends Element> {
   onKeyPressCapture?: KeyboardEventHandler<T>
   onKeyDownCapture?: KeyboardEventHandler<T>
 }
 
-export const withStopPropagation = <T extends Element>(
-  handlers: WithStopPropagationHandlers<T> = {}
-): WithStopPropagationHandlers<T> => {
+const defaultWhitelistKeys = ['Escape', 'Enter']
+
+export function withStopPropagation<T extends Element>(
+  options: WithStopPropagationOptions<T> = {}
+): WithStopPropagationHandlers<T> {
+  const { whitelistKeys = defaultWhitelistKeys, ...handlers } = options
+
   const isWhitelistKey = (e: KeyboardEvent<T>) => {
-    return e.key === 'Escape' || e.key === 'Enter'
+    return whitelistKeys.includes(e.key)
   }
 
   const intercept = (
