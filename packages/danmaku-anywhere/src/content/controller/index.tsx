@@ -24,7 +24,7 @@ const { data: frameId } = await chromeRpcClient.getFrameId()
 
 Logger.debug(`Controller script loaded in frame ${frameId}`)
 
-const { shadowRoot, shadowStyle } = createPopoverRoot({
+const { shadowRoot, shadowStyle } = await createPopoverRoot({
   id: CONTROLLER_ROOT_ID,
 })
 // try to get the html font size for rem unit

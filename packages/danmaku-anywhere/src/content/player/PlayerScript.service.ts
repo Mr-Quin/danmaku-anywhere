@@ -57,7 +57,7 @@ export class PlayerScript {
         },
         'relay:command:start': async ({ data: query }) => {
           this.logger.debug('Received start, transitioning to full handler')
-          this.createCommandHandler(query)
+          await this.createCommandHandler(query)
           liteServer.unlisten(chrome.runtime.onMessage)
         },
       },
@@ -75,9 +75,9 @@ export class PlayerScript {
     liteServer.listen(chrome.runtime.onMessage)
   }
 
-  private createCommandHandler(query: string) {
+  private async createCommandHandler(query: string) {
     const handler = uiContainer.get(PlayerCommandHandler)
-    handler.start({
+    await handler.start({
       frameId: this.frameId,
       query,
       sendPlayerReady: () => void this.sendPlayerReady(),

@@ -24,6 +24,7 @@
     "pretest:e2e": "pnpm run build",
     "test:e2e": "playwright test",
     "open-browser": "node e2e/open-browser.ts",
+    "open-browser:build": "node e2e/open-browser.ts --build",
     "preview": "vite preview",
     "lint": "tsc && biome check --fix",
     "lint:ci": "biome ci",

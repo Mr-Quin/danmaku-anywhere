@@ -1,11 +1,14 @@
 import shadowCss from './shadow.css?inline'
+import { waitForBody } from './waitForBody'
 
 type PopoverRootOptions = {
   id: string
 }
 
 // create shadow dom for extension ui
-export const createPopoverRoot = ({ id }: PopoverRootOptions) => {
+export async function createPopoverRoot({ id }: PopoverRootOptions) {
+  const body = await waitForBody()
+
   const root = document.createElement('div')
   root.id = id
   root.setAttribute(
@@ -21,7 +24,7 @@ export const createPopoverRoot = ({ id }: PopoverRootOptions) => {
 
   shadowContainer.appendChild(shadowRoot)
 
-  document.body.append(root)
+  body.append(root)
   root.showPopover()
 
   const shadowStyle = document.createElement('style')

@@ -1,5 +1,6 @@
 import { injectable } from 'inversify'
 import { tryCatchSync } from '@/common/utils/tryCatch'
+import { waitForBody } from '@/content/common/host/waitForBody'
 import { VideoSrcObserver } from './VideoSrcObserver'
 import { VideoStack } from './VideoStack'
 
@@ -103,23 +104,10 @@ export class VideoNodeObserverService {
    * Begin observing the DOM for video elements matching selector.
    * Waits for document.body if called at document_start in an iframe.
    */
-  start(selector: string): void {
+  async start(selector: string): Promise<void> {
     this.selector = selector
 
-    if (!document.body) {
-      if (document.readyState === 'loading') {
-        document.addEventListener(
-          'DOMContentLoaded',
-          () => this.start(selector),
-          {
-            once: true,
-          }
-        )
-      } else {
-        this.observeRoot(document.documentElement)
-      }
-      return
-    }
+    const body = await waitForBody()
 
     const [existing, err] = tryCatchSync(() =>
       document.querySelectorAll<HTMLVideoElement>(this.selector)
@@ -129,7 +117,7 @@ export class VideoNodeObserverService {
     }
     existing?.forEach((v) => this.handleAdded(v))
 
-    this.observeRoot(document.body)
+    this.observeRoot(body)
   }
 
   stop(): void {
