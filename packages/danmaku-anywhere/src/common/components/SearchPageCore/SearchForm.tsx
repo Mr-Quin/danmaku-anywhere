@@ -12,6 +12,7 @@ import {
 import { useIsFetching } from '@tanstack/react-query'
 import { type SyntheticEvent, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { getScrollBarProps } from '@/common/components/layout/ScrollBox'
 import { SearchMascot } from '@/common/components/SearchPageCore/SearchMascot'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
@@ -91,6 +92,7 @@ export function SearchForm({
       <Stack direction="column" spacing={1} alignItems="center">
         <Autocomplete
           freeSolo
+          openOnFocus
           options={entries}
           inputValue={searchTerm}
           onInputChange={(_event, value, reason) => {
@@ -109,7 +111,11 @@ export function SearchForm({
           }}
           renderOption={(props, option) => {
             return (
-              <li {...props} key={option}>
+              <li
+                {...props}
+                key={option}
+                style={{ ...props.style, paddingBlock: 2, minHeight: 'auto' }}
+              >
                 <Box
                   sx={{
                     display: 'flex',
@@ -149,7 +155,22 @@ export function SearchForm({
               </li>
             )
           }}
+          size="small"
           fullWidth
+          slotProps={{
+            popper: {
+              sx: {
+                zIndex: 1403,
+              },
+            },
+            listbox: {
+              sx: (theme) => ({
+                py: 0.5,
+                maxHeight: 200,
+                ...getScrollBarProps(theme),
+              }),
+            },
+          }}
           renderInput={(params) => {
             return (
               <TextField
