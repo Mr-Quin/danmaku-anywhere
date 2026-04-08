@@ -17,15 +17,14 @@ describe('compareLocale', () => {
     expect(compareLocale('Naruto', 'naruto')).toBe(0)
   })
 
-  it('sorts mixed CJK and Latin strings consistently', () => {
+  it('preserves relative order within CJK and within Latin subsets', () => {
     const items = ['Naruto', '北斗神拳', 'Attack on Titan', '东京喰种']
     const sorted = items.sort(compareLocale)
-    // CJK characters sort before Latin in zh collation
-    expect(sorted).toEqual([
-      '北斗神拳',
-      '东京喰种',
-      'Attack on Titan',
-      'Naruto',
-    ])
+    // Cross-script ordering (CJK vs Latin) varies by engine/ICU version,
+    // so only assert within-script relative order
+    expect(sorted.indexOf('北斗神拳')).toBeLessThan(sorted.indexOf('东京喰种'))
+    expect(sorted.indexOf('Attack on Titan')).toBeLessThan(
+      sorted.indexOf('Naruto')
+    )
   })
 })
