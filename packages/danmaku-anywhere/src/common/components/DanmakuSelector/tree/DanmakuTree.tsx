@@ -155,6 +155,11 @@ export const DanmakuTree = ({
   const { expandedItems, handleExpandedItemsChange: persistExpandedItems } =
     usePersistedExpandedItems()
 
+  // Filter out stale IDs from deleted seasons/folders
+  const validExpandedItems = useMemo(() => {
+    return expandedItems.filter((id) => treeItemMap.has(id))
+  }, [expandedItems, treeItemMap])
+
   const bookmarkBySeasonId = useMemo(() => {
     return new Map(bookmarks.map((b) => [b.seasonId, b]))
   }, [bookmarks])
@@ -255,7 +260,7 @@ export const DanmakuTree = ({
         items={treeItems}
         multiSelect={multiselect}
         checkboxSelection={multiselect}
-        expandedItems={expandedItems}
+        expandedItems={validExpandedItems}
         selectedItems={
           multiselect ? selectedNodeIds : selectedNodeIds[0] || null
         }
