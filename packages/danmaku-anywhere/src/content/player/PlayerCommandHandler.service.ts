@@ -198,9 +198,12 @@ export class PlayerCommandHandler {
       )
     }
 
-    document.addEventListener('mousemove', sendInteraction)
-    document.addEventListener('click', sendInteraction)
-    document.addEventListener('touchmove', sendInteraction, { capture: true })
+    document.addEventListener('mousemove', sendInteraction, { capture: true })
+    document.addEventListener('click', sendInteraction, { capture: true })
+    document.addEventListener('touchmove', sendInteraction, {
+      capture: true,
+      passive: true,
+    })
   }
 
   /**
