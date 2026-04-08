@@ -152,7 +152,8 @@ export const FrameManager = () => {
         },
         'relay:event:showPopover': async () => handleShowPopover(),
         'relay:event:userInteraction': async () => {
-          window.dispatchEvent(new MouseEvent('mousemove'))
+          window.dispatchEvent(new Event('mousemove'))
+          window.dispatchEvent(new Event('touchmove'))
         },
       },
       { logger }
