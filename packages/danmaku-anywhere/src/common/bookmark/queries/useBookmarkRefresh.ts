@@ -13,8 +13,10 @@ export const useBookmarkRefresh = (options: UseBookmarkRefreshOptions = {}) => {
   const toast = useToast.use.toast()
 
   return useMutation({
-    mutationKey: bookmarkQueryKeys.all(),
     mutationFn: (id: number) => chromeRpcClient.bookmarkRefresh({ id }),
+    meta: {
+      invalidates: [bookmarkQueryKeys.all()],
+    },
     onSuccess: () => {
       if (!options.silent) {
         toast.success(t('common.success', 'Success'))

@@ -9,8 +9,10 @@ export const useBookmarkAdd = () => {
   const toast = useToast.use.toast()
 
   return useMutation({
-    mutationKey: bookmarkQueryKeys.all(),
     mutationFn: (seasonId: number) => chromeRpcClient.bookmarkAdd({ seasonId }),
+    meta: {
+      invalidates: [bookmarkQueryKeys.all()],
+    },
     onSuccess: () => {
       toast.success(t('common.success', 'Success'))
     },

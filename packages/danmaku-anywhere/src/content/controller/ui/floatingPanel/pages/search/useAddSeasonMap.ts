@@ -10,9 +10,11 @@ export const useAddSeasonMap = () => {
   const toast = useToast.use.toast()
 
   return useMutation({
-    mutationKey: seasonMapQueryKeys.all(),
     mutationFn: (seasonMap: SeasonMap) => {
       return chromeRpcClient.seasonMapAdd(seasonMap.toSnapshot())
+    },
+    meta: {
+      invalidates: [seasonMapQueryKeys.all()],
     },
     onSuccess: () => {
       toast.success(

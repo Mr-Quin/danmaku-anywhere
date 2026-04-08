@@ -51,18 +51,16 @@ export const useExtStorage = <T>(
     ...queryOptions,
   })
 
+  const meta = { invalidates: [queryKey] }
+
   const updateMutation = useMutation({
     mutationFn: storageService.set.bind(storageService),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey })
-    },
+    meta,
   })
 
   const deleteMutation = useMutation({
     mutationFn: storageService.set.bind(storageService),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey })
-    },
+    meta,
   })
 
   return {

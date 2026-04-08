@@ -12,19 +12,21 @@ export function useSearchHistory() {
     queryFn: () => service.get(),
   })
 
+  const meta = { invalidates: [queryKey] }
+
   const addEntryMutation = useMutation({
-    mutationKey: queryKey,
     mutationFn: service.addEntry.bind(service),
+    meta,
   })
 
   const removeEntryMutation = useMutation({
-    mutationKey: queryKey,
     mutationFn: service.removeEntry.bind(service),
+    meta,
   })
 
   const clearHistoryMutation = useMutation({
-    mutationKey: queryKey,
     mutationFn: service.clearHistory.bind(service),
+    meta,
   })
 
   return {

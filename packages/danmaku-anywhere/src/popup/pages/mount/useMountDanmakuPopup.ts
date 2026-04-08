@@ -13,9 +13,11 @@ export const useMountDanmakuPopup = () => {
   const toast = useToast.use.toast()
 
   return useMutation({
-    mutationKey: tabQueryKeys.getState(),
     mutationFn: async (episodes: GenericEpisodeLite[]) => {
       await controllerRpcClient.danmakuMount(episodes)
+    },
+    meta: {
+      invalidates: [tabQueryKeys.getState()],
     },
     onSuccess: (_, episodes) => {
       if (episodes.length === 1) {

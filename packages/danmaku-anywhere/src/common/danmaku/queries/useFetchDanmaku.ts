@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
 import {
@@ -19,23 +19,20 @@ import { getTrackingService } from '@/common/telemetry/getTrackingService'
  * This is a mutation because it updates the cache
  */
 export const useFetchDanmaku = () => {
-  const queryClient = useQueryClient()
   const toast = useToast.use.toast()
 
   const mutation = useMutation({
-    mutationKey: episodeQueryKeys.all(),
     mutationFn: async (data: DanmakuFetchDto) => {
       getTrackingService().track('fetchDanmaku', data)
       const res = await chromeRpcClient.episodeFetch(data)
       return res.data
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: seasonQueryKeys.all(),
-      })
-      void queryClient.invalidateQueries({
-        queryKey: bookmarkQueryKeys.all(),
-      })
+    meta: {
+      invalidates: [
+        episodeQueryKeys.all(),
+        seasonQueryKeys.all(),
+        bookmarkQueryKeys.all(),
+      ],
     },
     onError: async (error) => {
       toast.error(error.message)
