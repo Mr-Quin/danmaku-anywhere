@@ -255,6 +255,12 @@ export class ExtensionOptionsService implements IStoreService {
             draft.playerOptions.enableFullscreenInteraction = true
           }),
       })
+      .version(24, {
+        upgrade: (data) =>
+          produce<ExtensionOptions>(data, (draft) => {
+            draft.showFloatingButton = true
+          }),
+      })
   }
 
   async get() {

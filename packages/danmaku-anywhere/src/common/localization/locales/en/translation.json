@@ -493,6 +493,7 @@
       }
     },
     "searchUsingSimplified": "Search using simplified Chinese",
+    "showFloatingButton": "Show floating button",
     "theme": {
       "colorMode": {
         "dark": "Dark",

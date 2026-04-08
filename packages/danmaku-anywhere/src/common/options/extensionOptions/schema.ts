@@ -147,6 +147,11 @@ export const extensionOptionsSchema = z.object({
    * Whether to limit the modifier header to requests initiated by the extension itself
    */
   restrictInitiatorDomain: z.boolean(),
+
+  /**
+   * Whether to show the floating action button on video pages
+   */
+  showFloatingButton: z.boolean(),
 })
 
 export type ExtensionOptions = z.infer<typeof extensionOptionsSchema>

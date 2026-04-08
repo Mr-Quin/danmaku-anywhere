@@ -44,4 +44,5 @@ export const defaultExtensionOptions: ExtensionOptions = {
   enableAnalytics: true,
   id: undefined,
   restrictInitiatorDomain: true,
+  showFloatingButton: true,
 }

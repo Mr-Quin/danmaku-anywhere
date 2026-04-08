@@ -479,6 +479,7 @@
       }
     },
     "searchUsingSimplified": "使用简体中文搜索",
+    "showFloatingButton": "显示浮动按钮",
     "theme": {
       "colorMode": {
         "dark": "深色",

@@ -101,6 +101,15 @@ const advancedSettings: SettingConfig<ExtensionOptions>[] = [
     getValue: (options) => options.restrictInitiatorDomain,
     createUpdate: (_, newValue) => ({ restrictInitiatorDomain: newValue }),
   },
+  {
+    id: 'toggle.showFloatingButton',
+    label: () =>
+      i18n.t('optionsPage.showFloatingButton', 'Show floating button'),
+    category: 'advanced',
+    type: 'toggle',
+    getValue: (options) => options.showFloatingButton,
+    createUpdate: (_, newValue) => ({ showFloatingButton: newValue }),
+  },
 ]
 
 const playerSettings: SettingConfig<ExtensionOptions>[] = [
