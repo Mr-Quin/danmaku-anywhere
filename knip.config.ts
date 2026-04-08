@@ -20,6 +20,7 @@ const config: KnipConfig = {
       entry: [
         'src/background/index.ts',
         'src/content/app/index.ts',
+        'src/content/controller/index.tsx',
         'src/content/player/index.ts',
         'src/popup/index.tsx',
         'manifest.ts',
