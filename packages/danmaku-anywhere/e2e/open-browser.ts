@@ -1,17 +1,20 @@
 import { chromium } from '@playwright/test'
+import { execSync } from 'child_process'
 import fs from 'fs'
 import net from 'net'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { createServer } from 'vite'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const EXTENSION_ROOT = path.join(__dirname, '..')
 const DEV_BUILD_PATH = path.join(EXTENSION_ROOT, 'dev', 'chrome')
+const PROD_BUILD_PATH = path.join(EXTENSION_ROOT, 'build')
 const USER_DATA_DIR = path.join(EXTENSION_ROOT, '.playwright-profile')
 const WEB_APP_URL = 'https://danmaku.weeblify.app/local'
 const BUILD_TIMEOUT_MS = 30_000
 const BUILD_POLL_MS = 500
+
+const useBuild = process.argv.includes('--build')
 
 async function findFreePort(): Promise<number> {
   const { promise, resolve, reject } = Promise.withResolvers<number>()
@@ -71,27 +74,14 @@ function ensureDeveloperMode(): void {
   }
 }
 
-async function main(): Promise<void> {
-  const port = await resolvePort()
-  console.log(`Starting Vite dev server on port ${port}...`)
-
-  const server = await createServer({
-    configFile: path.join(EXTENSION_ROOT, 'vite.config.ts'),
-    server: { port, strictPort: true, hmr: { clientPort: port } },
-  })
-
+async function openBrowser(
+  extensionPath: string,
+  cleanup?: () => Promise<void>
+): Promise<void> {
   await using stack = new AsyncDisposableStack()
-  stack.defer(async () => {
-    await server.close()
-  })
-
-  await server.listen()
-  console.log(`Vite dev server ready on port ${port}`)
-
-  await waitForFile(
-    path.join(DEV_BUILD_PATH, 'manifest.json'),
-    BUILD_TIMEOUT_MS
-  )
+  if (cleanup) {
+    stack.defer(cleanup)
+  }
 
   ensureDeveloperMode()
 
@@ -101,8 +91,8 @@ async function main(): Promise<void> {
     headless: false,
     viewport: null,
     args: [
-      `--disable-extensions-except=${DEV_BUILD_PATH}`,
-      `--load-extension=${DEV_BUILD_PATH}`,
+      `--disable-extensions-except=${extensionPath}`,
+      `--load-extension=${extensionPath}`,
     ],
   })
   stack.defer(async () => {
@@ -123,7 +113,12 @@ async function main(): Promise<void> {
   console.log(
     `Dashboard: chrome-extension://${extensionId}/pages/dashboard.html`
   )
-  console.log('HMR is active. Close the browser window to stop.')
+
+  if (!useBuild) {
+    console.log('HMR is active. Close the browser window to stop.')
+  } else {
+    console.log('Running production build. Close the browser window to stop.')
+  }
 
   const { promise: waitForClose, resolve: onClose } =
     Promise.withResolvers<void>()
@@ -132,6 +127,45 @@ async function main(): Promise<void> {
 
   await waitForClose
   console.log('Shutting down...')
+}
+
+async function startDev(): Promise<void> {
+  const { createServer } = await import('vite')
+
+  const port = await resolvePort()
+  console.log(`Starting Vite dev server on port ${port}...`)
+
+  const server = await createServer({
+    configFile: path.join(EXTENSION_ROOT, 'vite.config.ts'),
+    server: { port, strictPort: true, hmr: { clientPort: port } },
+  })
+
+  await server.listen()
+  console.log(`Vite dev server ready on port ${port}`)
+
+  await waitForFile(
+    path.join(DEV_BUILD_PATH, 'manifest.json'),
+    BUILD_TIMEOUT_MS
+  )
+
+  await openBrowser(DEV_BUILD_PATH, async () => {
+    await server.close()
+  })
+}
+
+async function startBuild(): Promise<void> {
+  console.log('Building extension...')
+  execSync('pnpm build', { cwd: EXTENSION_ROOT, stdio: 'inherit' })
+
+  await openBrowser(PROD_BUILD_PATH)
+}
+
+async function main(): Promise<void> {
+  if (useBuild) {
+    await startBuild()
+  } else {
+    await startDev()
+  }
 }
 
 await main()
