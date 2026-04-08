@@ -13,7 +13,7 @@ export async function createPopoverRoot({ id }: PopoverRootOptions) {
   root.id = id
   root.setAttribute(
     'style',
-    'position: absolute !important; z-index: 2147483647 !important; left: 0 !important; top: 0 !important; pointer-events: auto !important;'
+    'display: block !important; position: absolute !important; z-index: 2147483647 !important; left: 0 !important; top: 0 !important; pointer-events: auto !important;'
   )
 
   // make the root element a popover so it can be shown on top of everything
