@@ -7,6 +7,7 @@ import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { useSeasonMapMutations } from '@/common/seasonMap/queries/useAllSeasonMap'
 import type { SeasonMap } from '@/common/seasonMap/SeasonMap'
+import { compareLocale } from '@/common/utils/collator'
 import { matchWithPinyin } from '@/common/utils/utils'
 
 const BoxGrid = styled(Box)(({ theme }) => {
@@ -52,7 +53,7 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
     }
     // sort by title
     for (const seasons of grouped.values()) {
-      seasons.sort((a, b) => a.title.localeCompare(b.title))
+      seasons.sort((a, b) => compareLocale(a.title, b.title))
     }
     return grouped
   }, [allSeasons])

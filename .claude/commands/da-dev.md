@@ -68,7 +68,7 @@ Steps 1–2 are already complete.
 2. Open Claude in a new tab:
 
 ```bash
-wt -w 0 new-tab -d '<worktree-path>' -- powershell -NoExit -Command "claude --permission-mode acceptEdits 'Read .claude-task.md and follow the instructions'"
+wt -w 0 new-tab --title 'DA-XXX: <short description>' -d '<worktree-path>' -- powershell -NoExit -Command "claude --permission-mode acceptEdits 'Read .claude-task.md and follow the instructions'"
 ```
 
 3. **Stop here.** The current session is done. The new Claude session handles steps 3–8.
@@ -96,7 +96,7 @@ Always run lint and type-check. For tests and build, follow the relevant area's 
 For extension changes, launch a dev browser with HMR **at the start of implementation**:
 
 ```bash
-wt -w 0 new-tab -d '<worktree-path>/packages/danmaku-anywhere' -- powershell -NoExit -Command "node e2e/open-browser.ts"
+wt -w 0 new-tab --title 'DA-XXX: dev browser' -d '<worktree-path>/packages/danmaku-anywhere' -- powershell -NoExit -Command "node e2e/open-browser.ts"
 ```
 
 Human verifies behavior live. Skip for trivial changes (config-only, types, docs).
