@@ -1,4 +1,3 @@
-// CI test - will revert
 export * from './canonical/index.js'
 export * from './schema/index.js'
 export { commentsToXml } from './utils/commentsToXml.js'
