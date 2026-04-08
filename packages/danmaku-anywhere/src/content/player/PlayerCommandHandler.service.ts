@@ -168,6 +168,42 @@ export class PlayerCommandHandler {
         frameId: this.frameId,
       })
     })
+
+    this.wireInteractionProxy()
+  }
+
+  /**
+   * Forward user interaction events to the controller so the FAB
+   * shows/hides correctly when the user interacts inside an iframe.
+   * Only active for iframe frames (frameId > 0) since the main frame
+   * already has direct event listeners on its own window.
+   */
+  private wireInteractionProxy() {
+    if (this.frameId === 0) {
+      return
+    }
+
+    let lastSent = 0
+    const THROTTLE_MS = 1000
+
+    const sendInteraction = () => {
+      const now = Date.now()
+      if (now - lastSent < THROTTLE_MS) {
+        return
+      }
+      lastSent = now
+      void playerRpcClient.controller['relay:event:userInteraction'](
+        { frameId: this.frameId },
+        { silent: true, optional: true }
+      )
+    }
+
+    document.addEventListener('mousemove', sendInteraction, { capture: true })
+    document.addEventListener('click', sendInteraction, { capture: true })
+    document.addEventListener('touchmove', sendInteraction, {
+      capture: true,
+      passive: true,
+    })
   }
 
   /**

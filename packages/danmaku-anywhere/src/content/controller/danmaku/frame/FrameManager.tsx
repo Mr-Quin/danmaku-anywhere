@@ -151,6 +151,9 @@ export const FrameManager = () => {
           handlePreloadNext(frameId)
         },
         'relay:event:showPopover': async () => handleShowPopover(),
+        'relay:event:userInteraction': async () => {
+          window.dispatchEvent(new Event('touchmove'))
+        },
       },
       { logger }
     )

@@ -233,4 +233,5 @@ export type PlayerRelayEvents = {
   >
   'relay:event:preloadNextEpisode': RPCDef<InputWithFrameId<void>, void>
   'relay:event:showPopover': RPCDef<InputWithFrameId<void>, void>
+  'relay:event:userInteraction': RPCDef<InputWithFrameId<void>, void>
 }
