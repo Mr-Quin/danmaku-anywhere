@@ -10,7 +10,7 @@ import {
   TextField,
 } from '@mui/material'
 import { useIsFetching } from '@tanstack/react-query'
-import { type SyntheticEvent, useRef, useState } from 'react'
+import { type SyntheticEvent, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { SearchMascot } from '@/common/components/SearchPageCore/SearchMascot'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
@@ -52,14 +52,12 @@ export function SearchForm({
 
   const [committedSearchTerm, setCommittedSearchTerm] = useState(searchTerm)
 
-  // Ref to track if we should submit on the next searchTerm change from Autocomplete selection
-  const pendingSubmitRef = useRef(false)
-
   const handleSearch = (keyword?: string) => {
     const raw = keyword ?? searchTerm
+    const trimmed = raw.trim()
     const processed = data.searchUsingSimplified
-      ? toSimplified(raw.trim())
-      : raw.trim()
+      ? toSimplified(trimmed)
+      : trimmed
 
     if (!processed) {
       return
@@ -67,7 +65,7 @@ export function SearchForm({
 
     onSearch(processed)
     setCommittedSearchTerm(processed)
-    void addEntry(processed)
+    void addEntry(trimmed)
     getTrackingService().track('search', { keyword: processed })
   }
 
@@ -77,15 +75,7 @@ export function SearchForm({
   ) => {
     if (value !== null) {
       onSearchTermChange(value)
-      // Submit immediately when selecting a history item
-      pendingSubmitRef.current = true
-      // Use queueMicrotask so the state update is flushed before we submit
-      queueMicrotask(() => {
-        if (pendingSubmitRef.current) {
-          pendingSubmitRef.current = false
-          handleSearch(value)
-        }
-      })
+      handleSearch(value)
     }
   }
 
@@ -94,7 +84,6 @@ export function SearchForm({
       component="form"
       onSubmit={(e) => {
         e.preventDefault()
-        pendingSubmitRef.current = false
         handleSearch()
       }}
       m={1}
