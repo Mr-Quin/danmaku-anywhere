@@ -56,10 +56,10 @@ Read `.claude/commands/da-dev.md` for the full workflow.
 Steps 1–2 are already complete.
 ```
 
-2. Open Claude in a new terminal:
+2. Open Claude in a new tab:
 
 ```bash
-start powershell -NoExit -Command "cd '<worktree-path>'; claude 'Read .claude-task.md and follow the instructions'"
+wt -w 0 new-tab -d '<worktree-path>' -- claude --permission-mode acceptEdits 'Read .claude-task.md and follow the instructions'
 ```
 
 3. **Stop here.** The current session is done. The new Claude session handles steps 3–8.
@@ -87,7 +87,7 @@ Always run lint and type-check. For tests and build, follow the relevant area's 
 For extension changes, launch a dev browser with HMR **at the start of implementation**:
 
 ```bash
-start powershell -NoExit -Command "cd '<worktree-path>/packages/danmaku-anywhere'; node e2e/open-browser.ts"
+wt -w 0 new-tab -d '<worktree-path>/packages/danmaku-anywhere' -- node e2e/open-browser.ts
 ```
 
 Human verifies behavior live. Skip for trivial changes (config-only, types, docs).
@@ -169,3 +169,7 @@ gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "THREA
 **Keep looping when:** bots still processing (eyes emoji without review), reviewers pending, or CI running.
 
 On stop: alert human. **NEVER merge PRs** — merging is always a human action.
+
+### 9. Worktree Cleanup
+
+After the PR is merged, run `/da-cleanup` to remove completed worktrees. This also cleans up stale `additionalDirectories` and `Read(...)` allow rules from `~/.claude/settings.json`.
