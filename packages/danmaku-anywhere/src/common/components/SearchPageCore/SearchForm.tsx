@@ -66,7 +66,7 @@ export function SearchForm({
 
     onSearch(processed)
     setCommittedSearchTerm(processed)
-    void addEntry(trimmed)
+    addEntry.mutate(trimmed)
     getTrackingService().track('search', { keyword: processed })
   }
 
@@ -149,7 +149,7 @@ export function SearchForm({
                     onClick={(e) => {
                       e.stopPropagation()
                       e.preventDefault()
-                      void removeEntry(option)
+                      removeEntry.mutate(option)
                     }}
                     sx={{ ml: 1, opacity: 0.5, '&:hover': { opacity: 1 } }}
                   >

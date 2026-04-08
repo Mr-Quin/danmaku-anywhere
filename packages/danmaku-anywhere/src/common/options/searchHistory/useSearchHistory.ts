@@ -1,10 +1,8 @@
-import { useMemo } from 'react'
-import { MAX_SEARCH_HISTORY_ENTRIES } from '@/common/options/searchHistory/constant'
-import type {
-  SearchHistoryData,
-  SearchHistoryOptions,
-} from '@/common/options/searchHistory/schema'
-import { ExtStorageService } from '@/common/storage/ExtStorageService'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useInjectService } from '@/common/hooks/useInjectService'
+import type { SearchHistoryOptions } from '@/common/options/searchHistory/schema'
+import { SearchHistoryService } from '@/common/options/searchHistory/service'
+import { storageQueryKeys } from '@/common/queries/queryKeys'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 
 export function useSearchHistory() {
@@ -15,54 +13,38 @@ export function useSearchHistory() {
     }
   )
 
-  const storageService = useMemo(() => {
-    return new ExtStorageService<SearchHistoryOptions>('searchHistory', {
-      storageType: 'local',
-    })
-  }, [])
+  const service = useInjectService(SearchHistoryService)
+  const queryClient = useQueryClient()
+  const queryKey = storageQueryKeys.external('local', ['searchHistory'])
 
-  const entries = store.data.data.entries
+  const addEntryMutation = useMutation({
+    mutationKey: queryKey,
+    mutationFn: service.addEntry.bind(service),
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey })
+    },
+  })
 
-  const readLatestEntries = async () => {
-    const current = await storageService.read()
-    return current?.data.entries ?? []
-  }
+  const removeEntryMutation = useMutation({
+    mutationKey: queryKey,
+    mutationFn: service.removeEntry.bind(service),
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey })
+    },
+  })
 
-  const writeEntries = async (newEntries: string[]) => {
-    await store.update.mutateAsync({
-      data: { entries: newEntries } satisfies SearchHistoryData,
-      version: store.data.version,
-    })
-  }
-
-  const addEntry = async (query: string) => {
-    const trimmed = query.trim()
-    if (!trimmed) {
-      return
-    }
-    const latest = await readLatestEntries()
-    const filtered = latest.filter((e) => e !== trimmed)
-    const newEntries = [trimmed, ...filtered].slice(
-      0,
-      MAX_SEARCH_HISTORY_ENTRIES
-    )
-    await writeEntries(newEntries)
-  }
-
-  const removeEntry = async (query: string) => {
-    const latest = await readLatestEntries()
-    const newEntries = latest.filter((e) => e !== query)
-    await writeEntries(newEntries)
-  }
-
-  const clearHistory = async () => {
-    await writeEntries([])
-  }
+  const clearHistoryMutation = useMutation({
+    mutationKey: queryKey,
+    mutationFn: service.clearHistory.bind(service),
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey })
+    },
+  })
 
   return {
-    entries,
-    addEntry,
-    removeEntry,
-    clearHistory,
+    entries: store.data.data.entries,
+    addEntry: addEntryMutation,
+    removeEntry: removeEntryMutation,
+    clearHistory: clearHistoryMutation,
   }
 }

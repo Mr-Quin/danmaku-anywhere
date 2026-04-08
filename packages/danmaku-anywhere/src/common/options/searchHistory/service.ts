@@ -6,8 +6,24 @@ import {
   OptionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
-import { defaultSearchHistory } from './constant'
+import { defaultSearchHistory, MAX_SEARCH_HISTORY_ENTRIES } from './constant'
 import type { SearchHistoryData } from './schema'
+
+export function addHistoryEntry(
+  entries: string[],
+  query: string
+): string[] | null {
+  const trimmed = query.trim()
+  if (!trimmed) {
+    return null
+  }
+  const filtered = entries.filter((e) => e !== trimmed)
+  return [trimmed, ...filtered].slice(0, MAX_SEARCH_HISTORY_ENTRIES)
+}
+
+export function removeHistoryEntry(entries: string[], query: string): string[] {
+  return entries.filter((e) => e !== query)
+}
 
 @injectable('Singleton')
 export class SearchHistoryService implements IStoreService {
@@ -41,6 +57,24 @@ export class SearchHistoryService implements IStoreService {
 
   async update(data: Partial<SearchHistoryData>) {
     return this.options.update(data)
+  }
+
+  async addEntry(query: string) {
+    const current = await this.options.get()
+    const newEntries = addHistoryEntry(current.entries, query)
+    if (newEntries) {
+      await this.options.update({ entries: newEntries })
+    }
+  }
+
+  async removeEntry(query: string) {
+    const current = await this.options.get()
+    const newEntries = removeHistoryEntry(current.entries, query)
+    await this.options.update({ entries: newEntries })
+  }
+
+  async clearHistory() {
+    await this.options.update({ entries: [] })
   }
 
   onChange(listener: (data: SearchHistoryData) => void) {
