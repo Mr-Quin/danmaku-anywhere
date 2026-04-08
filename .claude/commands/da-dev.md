@@ -13,16 +13,9 @@ Orchestrates: ClickUp task → branch → implement → verify → self-review �
 
 ### 1. ClickUp Task
 
-Search Extension Tasks list for an existing task. If none, create one:
+Search the dev tasks list for an existing task matching the work. If none, create one.
 
-- **List ID**: `901309979467` (Extension Tasks under Dev tasks)
-- **Type field ID**: `e8372633-e6ec-4cec-93ab-bea34f57f701`
-- **Type option IDs**:
-  - Extension: `8a8f30a3-3f61-452a-9c90-132149f3ea71`
-  - App: `301521c2-4110-439c-8d87-92cfbf62ca48`
-  - Proxy: `43ba1953-371b-49f5-9a8c-ebdb6cfa7bad`
-  - Chore: `1c48d81d-fb7f-474e-9d28-09c024f1314d`
-  - Docs: `8f33f585-082f-4eb2-b229-5d235e8689e2`
+Look up ClickUp workspace IDs (list ID, Type field ID, option IDs) from memory. If not in memory, ask the user.
 
 Pick the Type based on the scope of the change. Get the custom ID (DA-XXX) from the created/found task.
 
@@ -37,6 +30,22 @@ git checkout -b DA-XXX_description origin/master
 ```
 
 Reuse an existing worktree if its previous work is already done.
+
+### 2a. Worktree Setup
+
+After creating a worktree, perform these setup steps:
+
+**Copy environment files** — gitignored files are not shared between worktrees:
+
+```bash
+for f in packages/danmaku-anywhere/.env packages/danmaku-anywhere/.env.local; do
+  if [ -f "$f" ]; then
+    cp "$f" "../danmaku-anywhere-DA-XXX/$f"
+  fi
+done
+```
+
+**Register worktree for permissions** — add the worktree root path to `additionalDirectories` in the user's Claude Code settings (use the `update-config` skill) so the new session has file access without re-prompting.
 
 ### 2b. Worktree Handoff
 
