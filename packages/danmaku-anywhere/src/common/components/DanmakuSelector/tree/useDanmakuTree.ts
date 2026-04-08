@@ -18,6 +18,7 @@ import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustom
 import { useEpisodesLiteSuspense } from '@/common/danmaku/queries/useEpisodes'
 import { isNotCustom, isProvider } from '@/common/danmaku/utils'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
+import { compareLocale } from '@/common/utils/collator'
 import { matchWithPinyin } from '@/common/utils/utils'
 
 const stringifyDanmakuMeta = (episode: GenericEpisodeLite) => {
@@ -71,7 +72,7 @@ const compareEpisodes = (a: ExtendedTreeItem, b: ExtendedTreeItem) => {
   if (aNum !== undefined && bNum !== undefined) {
     return aNum - bNum
   }
-  return a.label.localeCompare(b.label)
+  return compareLocale(a.label, b.label)
 }
 
 // put folders first, then sort by label
@@ -83,7 +84,7 @@ function sortCustomChildren(items: ExtendedTreeItem[]) {
     if (a.kind !== 'folder' && b.kind === 'folder') {
       return 1
     }
-    return a.label.localeCompare(b.label)
+    return compareLocale(a.label, b.label)
   })
   for (const item of items) {
     if (item.children) {
@@ -330,7 +331,7 @@ export const useDanmakuTree = (
       if (b.id === 'season-custom') {
         return 1
       }
-      return a.label.localeCompare(b.label)
+      return compareLocale(a.label, b.label)
     })
 
     return { treeItems, treeItemMap }
