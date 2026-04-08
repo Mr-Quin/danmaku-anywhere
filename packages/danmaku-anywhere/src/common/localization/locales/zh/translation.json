@@ -192,7 +192,7 @@
     "refresh": "刷新弹幕",
     "type": {
       "bilibili": "B站",
-      "danDanPlay": "弹弹Play",
+      "danDanPlay": "弹弹play",
       "macCms": "MacCMS",
       "tencent": "腾讯"
     },
@@ -509,13 +509,13 @@
       "headerValue": "请求头值",
       "helper": {
         "authHeaders": "随每个请求发送的自定义请求头 (例如 Authorization、X-AppSecret)",
-        "baseUrl": "弹弹Play或兼容弹弹Play的API地址",
+        "baseUrl": "弹弹play或兼容弹弹play的API地址",
         "builtInName": "内置弹幕源的名称不可更改"
       },
       "name": "名称",
       "title": {
         "add": "添加弹幕源",
-        "addDanDanPlay": "添加弹弹Play弹幕源",
+        "addDanDanPlay": "添加弹弹play弹幕源",
         "addMacCms": "添加MacCMS弹幕源",
         "edit": "编辑弹幕源: {{name}}"
       }

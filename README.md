@@ -81,11 +81,11 @@
   - 其他视频网站
 - **纯浏览器体验**：无需任何桌面客户端
 - **从多个弹幕源获取弹幕**，目前支持：
-  - 弹弹 Play
+  - 弹弹play
   - B 站
   - 腾讯
   - MacCMS (Vod)
-  - 兼容弹弹 Play API 的服务，如[danmu-api](https://github.com/huangxd-/danmu_api)
+  - 兼容弹弹play API 的服务，如[danmu-api](https://github.com/huangxd-/danmu_api)
 - **手动导入**：支持手动导入本地弹幕文件 (`.xml` 格式)
 - **自动匹配**：可自定义匹配规则，或使用 AI 匹配功能
   - 根据播放的视频，自动搜索弹幕
