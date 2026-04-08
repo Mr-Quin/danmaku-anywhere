@@ -85,7 +85,7 @@ export class DanmakuManagerService {
       this.handleVideoNodeRemove.bind(this)
     )
 
-    this.videoNodeObs.start(videoSelector)
+    void this.videoNodeObs.start(videoSelector)
   }
 
   public getWrapper() {

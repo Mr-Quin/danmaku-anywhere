@@ -10,5 +10,10 @@ export function waitForBody(): Promise<HTMLElement> {
   document.addEventListener('DOMContentLoaded', () => resolve(document.body), {
     once: true,
   })
+  // Guard against DOMContentLoaded having already fired between the check
+  // and the listener. Resolving an already-resolved promise is a no-op.
+  if (document.body) {
+    resolve(document.body)
+  }
   return promise
 }

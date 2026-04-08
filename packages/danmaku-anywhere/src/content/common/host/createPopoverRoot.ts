@@ -6,7 +6,7 @@ type PopoverRootOptions = {
 }
 
 // create shadow dom for extension ui
-export const createPopoverRoot = async ({ id }: PopoverRootOptions) => {
+export async function createPopoverRoot({ id }: PopoverRootOptions) {
   const body = await waitForBody()
 
   const root = document.createElement('div')
