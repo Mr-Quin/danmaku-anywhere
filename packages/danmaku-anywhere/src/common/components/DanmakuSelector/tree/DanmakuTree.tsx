@@ -27,6 +27,7 @@ import {
 import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/tree/ExtendedTreeItem'
 import { DanmakuTreeItem } from '@/common/components/DanmakuSelector/tree/items/DanmakuTreeItem'
 import { useDanmakuTree } from '@/common/components/DanmakuSelector/tree/useDanmakuTree'
+import { usePersistedExpandedItems } from '@/common/components/DanmakuSelector/tree/usePersistedExpandedItems'
 import { isNotCustom } from '@/common/danmaku/utils'
 import { EmptyDanmakuTree } from '../components/EmptyDanmakuTree'
 
@@ -151,6 +152,8 @@ export const DanmakuTree = ({
   const apiRef = useTreeViewApiRef()
   const bookmarkRefresh = useBookmarkRefresh({ silent: true })
   const refreshedRef = useRef(new Set<number>())
+  const { expandedItems, handleExpandedItemsChange: persistExpandedItems } =
+    usePersistedExpandedItems()
 
   const bookmarkBySeasonId = useMemo(() => {
     return new Map(bookmarks.map((b) => [b.seasonId, b]))
@@ -158,6 +161,8 @@ export const DanmakuTree = ({
 
   const handleExpandedItemsChange = useEventCallback(
     (_event: SyntheticEvent | null, itemIds: string[]) => {
+      persistExpandedItems(itemIds)
+
       for (const itemId of itemIds) {
         const item = treeItemMap.get(itemId)
         if (!item || item.kind !== 'season' || !item.bookmarked) {
@@ -250,6 +255,7 @@ export const DanmakuTree = ({
         items={treeItems}
         multiSelect={multiselect}
         checkboxSelection={multiselect}
+        expandedItems={expandedItems}
         selectedItems={
           multiselect ? selectedNodeIds : selectedNodeIds[0] || null
         }
