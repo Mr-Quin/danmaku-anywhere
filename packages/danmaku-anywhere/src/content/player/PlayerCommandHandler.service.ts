@@ -192,9 +192,10 @@ export class PlayerCommandHandler {
         return
       }
       lastSent = now
-      void playerRpcClient.controller['relay:event:userInteraction']({
-        frameId: this.frameId,
-      })
+      void playerRpcClient.controller['relay:event:userInteraction'](
+        { frameId: this.frameId },
+        { silent: true }
+      )
     }
 
     document.addEventListener('mousemove', sendInteraction)
