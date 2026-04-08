@@ -32,7 +32,7 @@ const config: KnipConfig = {
     'app/web': {},
     'backend/proxy': {
       ignoreDependencies: [
-        // cloudflare module is provided by the Workers runtime
+        // cloudflare:test is a virtual module provided by the Workers runtime
         'cloudflare',
       ],
     },
