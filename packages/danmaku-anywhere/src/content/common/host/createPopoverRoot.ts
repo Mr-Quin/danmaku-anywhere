@@ -11,6 +11,7 @@ export async function createPopoverRoot({ id }: PopoverRootOptions) {
 
   const root = document.createElement('div')
   root.id = id
+  // Use !important to prevent third-party CSS (e.g. userscripts) from hiding the root
   root.setAttribute(
     'style',
     'display: block !important; position: absolute !important; z-index: 2147483647 !important; left: 0 !important; top: 0 !important; pointer-events: auto !important;'
