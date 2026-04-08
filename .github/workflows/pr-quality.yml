@@ -50,8 +50,5 @@ jobs:
         with:
           commit_message: "(chore) apply lint autofix"
 
-      - name: Fetch base branch
-        run: git fetch origin ${{ github.event.pull_request.base.ref }}
-
       - name: Test (changed packages only)
-        run: pnpm --filter '...[origin/${{ github.event.pull_request.base.ref }}]' test run
+        run: pnpm --filter '...[${{ github.event.pull_request.base.sha }}]' test run
