@@ -12,7 +12,7 @@ export const PopupUi = () => {
   const { isOpen, toggleOpen, lock } = usePopup()
   const isPicking = useStore((state) => state.integrationForm.isPicking)
   const { data: options } = useExtensionOptions()
-  const { showFloatingButton } = options.playerOptions
+  const { showFloatingButton } = options
 
   const fallbackAnchorEl = useRef<HTMLButtonElement | null>(null)
 
@@ -56,14 +56,15 @@ export const PopupUi = () => {
         <Suspense fallback={null}>
           <ControllerWindow anchorEl={anchorEl ?? fallbackAnchorEl.current} />
         </Suspense>
-        <FloatingButton
-          color="primary"
-          size="small"
-          onOpen={handleOpen}
-          isOpen={isOpen}
-          ref={fallbackAnchorEl}
-          showFloatingButton={showFloatingButton}
-        />
+        {showFloatingButton && (
+          <FloatingButton
+            color="primary"
+            size="small"
+            onOpen={handleOpen}
+            isOpen={isOpen}
+            ref={fallbackAnchorEl}
+          />
+        )}
       </div>
     </ClickAwayListener>
   )

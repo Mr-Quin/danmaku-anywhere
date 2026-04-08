@@ -24,7 +24,9 @@ export const Content = () => {
         <FrameManager />
       </Suspense>
       <ControllerRpcServer />
-      <PopupUi />
+      <Suspense fallback={null}>
+        <PopupUi />
+      </Suspense>
       <Toast stackable disableCloseOnClickAway />
       <GlobalDialog />
       <SwitchLanguage />

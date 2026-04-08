@@ -52,7 +52,6 @@ export const playerOptionsSchema = z.object({
   showSkipButton: z.boolean(),
   showDanmakuTimeline: z.boolean(),
   enableFullscreenInteraction: z.boolean(),
-  showFloatingButton: z.boolean(),
 })
 
 export const retentionPolicySchema = z.object({
@@ -148,6 +147,11 @@ export const extensionOptionsSchema = z.object({
    * Whether to limit the modifier header to requests initiated by the extension itself
    */
   restrictInitiatorDomain: z.boolean(),
+
+  /**
+   * Whether to show the floating action button on video pages
+   */
+  showFloatingButton: z.boolean(),
 })
 
 export type ExtensionOptions = z.infer<typeof extensionOptionsSchema>

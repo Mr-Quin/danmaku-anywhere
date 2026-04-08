@@ -107,13 +107,8 @@ const advancedSettings: SettingConfig<ExtensionOptions>[] = [
       i18n.t('optionsPage.showFloatingButton', 'Show floating button'),
     category: 'advanced',
     type: 'toggle',
-    getValue: (options) => options.playerOptions.showFloatingButton,
-    createUpdate: (options, newValue) => ({
-      playerOptions: {
-        ...options.playerOptions,
-        showFloatingButton: newValue,
-      },
-    }),
+    getValue: (options) => options.showFloatingButton,
+    createUpdate: (_, newValue) => ({ showFloatingButton: newValue }),
   },
 ]
 
