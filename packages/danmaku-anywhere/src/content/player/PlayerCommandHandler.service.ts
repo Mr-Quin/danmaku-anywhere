@@ -194,7 +194,7 @@ export class PlayerCommandHandler {
       lastSent = now
       void playerRpcClient.controller['relay:event:userInteraction'](
         { frameId: this.frameId },
-        { silent: true }
+        { silent: true, optional: true }
       )
     }
 
