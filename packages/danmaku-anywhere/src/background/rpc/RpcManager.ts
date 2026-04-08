@@ -448,6 +448,9 @@ export class RpcManager {
         'relay:event:showPopover': passThrough(
           relayFrameClient['relay:event:showPopover']
         ),
+        'relay:event:userInteraction': passThrough(
+          relayFrameClient['relay:event:userInteraction']
+        ),
       },
       {
         logger: this.logger,

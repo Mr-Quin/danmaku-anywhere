@@ -38,6 +38,34 @@ git checkout -b DA-XXX_description origin/master
 
 Reuse an existing worktree if its previous work is already done.
 
+### 2b. Worktree Handoff
+
+**If a worktree was created**, hand off to a new Claude session running in it:
+
+1. Write `.claude-task.md` in the worktree root with the task context:
+
+```markdown
+# Task: <task description>
+- **ClickUp ID**: DA-XXX
+- **Type**: <extension|app|proxy|chore|docs>
+- **Branch**: DA-XXX_description
+
+## Instructions
+Execute the da-dev workflow starting from step 3 (Implement).
+Read `.claude/commands/da-dev.md` for the full workflow.
+Steps 1–2 are already complete.
+```
+
+2. Open Claude in a new terminal:
+
+```bash
+start powershell -NoExit -Command "cd '<worktree-path>'; claude 'Read .claude-task.md and follow the instructions'"
+```
+
+3. **Stop here.** The current session is done. The new Claude session handles steps 3–8.
+
+**If no worktree** (trivial change on a local branch), continue with steps 3–8 below.
+
 ### 3. Implement
 
 Make the changes. Follow CLAUDE.md conventions.
