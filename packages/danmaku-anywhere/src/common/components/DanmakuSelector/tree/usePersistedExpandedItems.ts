@@ -1,38 +1,18 @@
-import { useCallback, useState } from 'react'
-
-const STORAGE_KEY = 'danmaku-anywhere:treeExpandedItems'
-
-function readFromStorage(): string[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) {
-      return []
-    }
-    const parsed: unknown = JSON.parse(raw)
-    if (Array.isArray(parsed) && parsed.every((v) => typeof v === 'string')) {
-      return parsed
-    }
-    return []
-  } catch {
-    return []
-  }
-}
-
-function writeToStorage(items: string[]) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
-  } catch {
-    // ignore quota errors
-  }
-}
+import { useCallback } from 'react'
+import { useLocalStorageState } from '@/common/storage/hooks/useLocalStorageState'
 
 export function usePersistedExpandedItems() {
-  const [expandedItems, setExpandedItems] = useState<string[]>(readFromStorage)
+  const [expandedItems, setExpandedItems] = useLocalStorageState<string[]>(
+    'treeExpandedItems',
+    []
+  )
 
-  const handleExpandedItemsChange = useCallback((itemIds: string[]) => {
-    setExpandedItems(itemIds)
-    writeToStorage(itemIds)
-  }, [])
+  const handleExpandedItemsChange = useCallback(
+    (itemIds: string[]) => {
+      setExpandedItems(itemIds)
+    },
+    [setExpandedItems]
+  )
 
   return { expandedItems, handleExpandedItemsChange }
 }
