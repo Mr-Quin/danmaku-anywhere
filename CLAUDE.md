@@ -121,6 +121,7 @@ docs/                   # Astro-based documentation site
 
 ### Code style (additional rules)
 - **No same-line if bodies**: always use a block `{ }` on the next line, even for early returns. `if (x) return` → `if (x) { return }`
+- **Prefer `function` declarations**: use `function` declarations over `const` arrow functions for named/exported functions. Arrow functions are fine for callbacks and inline expressions.
 - **No bodyless one-liner arrow functions**: use an explicit block with `return` when the function has a type annotation or is non-trivial. `(x) => x.foo` is fine for simple callbacks; named/typed functions should use `{ return ... }`
 - **No syntax soup**: avoid dense ternary chains, chained optional calls, or expressions that require more than one read to parse
 - **Decouple business logic**: keep logic decoupled from UI frameworks for testability — single source of truth over scattered state

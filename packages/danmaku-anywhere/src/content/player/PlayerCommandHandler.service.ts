@@ -55,11 +55,11 @@ export class PlayerCommandHandler {
   /**
    * Initialize DOM, wire events, create the full RPC server, and start video detection.
    */
-  start(ctx: StartContext) {
+  async start(ctx: StartContext) {
     this.frameId = ctx.frameId
     this.sendPlayerReady = ctx.sendPlayerReady
 
-    this.setupDom()
+    await this.setupDom()
     this.wireLifecycleEvents()
     this.wireStorageEvents()
     this.wireWindowEvents()
@@ -68,8 +68,8 @@ export class PlayerCommandHandler {
     this.manager.start(ctx.query)
   }
 
-  private setupDom() {
-    const { root, shadowRoot } = createPopoverRoot({ id: PLAYER_ROOT_ID })
+  private async setupDom() {
+    const { root, shadowRoot } = await createPopoverRoot({ id: PLAYER_ROOT_ID })
     this.root = root
 
     this.manager.setParent(shadowRoot)
