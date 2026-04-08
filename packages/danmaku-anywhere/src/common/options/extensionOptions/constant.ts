@@ -34,7 +34,6 @@ export const defaultExtensionOptions: ExtensionOptions = {
     showSkipButton: true,
     showDanmakuTimeline: true,
     enableFullscreenInteraction: true,
-    showFloatingButton: true,
   },
   theme: {
     colorMode: ColorMode.System,
@@ -45,4 +44,5 @@ export const defaultExtensionOptions: ExtensionOptions = {
   enableAnalytics: true,
   id: undefined,
   restrictInitiatorDomain: true,
+  showFloatingButton: true,
 }
