@@ -13,16 +13,9 @@ Orchestrates: ClickUp task → branch → implement → verify → self-review �
 
 ### 1. ClickUp Task
 
-Search Extension Tasks list for an existing task. If none, create one:
+Search the dev tasks list for an existing task matching the work. If none, create one.
 
-- **List ID**: `901309979467` (Extension Tasks under Dev tasks)
-- **Type field ID**: `e8372633-e6ec-4cec-93ab-bea34f57f701`
-- **Type option IDs**:
-  - Extension: `8a8f30a3-3f61-452a-9c90-132149f3ea71`
-  - App: `301521c2-4110-439c-8d87-92cfbf62ca48`
-  - Proxy: `43ba1953-371b-49f5-9a8c-ebdb6cfa7bad`
-  - Chore: `1c48d81d-fb7f-474e-9d28-09c024f1314d`
-  - Docs: `8f33f585-082f-4eb2-b229-5d235e8689e2`
+Look up ClickUp workspace IDs (list ID, Type field ID, option IDs) from memory. If not in memory, ask the user.
 
 Pick the Type based on the scope of the change. Get the custom ID (DA-XXX) from the created/found task.
 
@@ -37,6 +30,22 @@ git checkout -b DA-XXX_description origin/master
 ```
 
 Reuse an existing worktree if its previous work is already done.
+
+### 2a. Worktree Setup
+
+After creating a worktree, perform these setup steps:
+
+**Copy environment files** — gitignored files are not shared between worktrees:
+
+```bash
+for f in packages/danmaku-anywhere/.env packages/danmaku-anywhere/.env.local; do
+  if [ -f "$f" ]; then
+    cp "$f" "../danmaku-anywhere-DA-XXX/$f"
+  fi
+done
+```
+
+**Register worktree for permissions** — add the worktree root path to `additionalDirectories` in the user's Claude Code settings (use the `update-config` skill) so the new session has file access without re-prompting.
 
 ### 2b. Worktree Handoff
 
@@ -56,10 +65,10 @@ Read `.claude/commands/da-dev.md` for the full workflow.
 Steps 1–2 are already complete.
 ```
 
-2. Open Claude in a new terminal:
+2. Open Claude in a new tab:
 
 ```bash
-start powershell -NoExit -Command "cd '<worktree-path>'; claude 'Read .claude-task.md and follow the instructions'"
+wt -w 0 new-tab -d '<worktree-path>' -- powershell -NoExit -Command "claude --permission-mode acceptEdits 'Read .claude-task.md and follow the instructions'"
 ```
 
 3. **Stop here.** The current session is done. The new Claude session handles steps 3–8.
@@ -87,7 +96,7 @@ Always run lint and type-check. For tests and build, follow the relevant area's 
 For extension changes, launch a dev browser with HMR **at the start of implementation**:
 
 ```bash
-start powershell -NoExit -Command "cd '<worktree-path>/packages/danmaku-anywhere'; node e2e/open-browser.ts"
+wt -w 0 new-tab -d '<worktree-path>/packages/danmaku-anywhere' -- powershell -NoExit -Command "node e2e/open-browser.ts"
 ```
 
 Human verifies behavior live. Skip for trivial changes (config-only, types, docs).
@@ -169,3 +178,7 @@ gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "THREA
 **Keep looping when:** bots still processing (eyes emoji without review), reviewers pending, or CI running.
 
 On stop: alert human. **NEVER merge PRs** — merging is always a human action.
+
+### 9. Worktree Cleanup
+
+After the PR is merged, run `/da-cleanup` to remove completed worktrees. This also cleans up stale `additionalDirectories` and `Read(...)` allow rules from `~/.claude/settings.json`.

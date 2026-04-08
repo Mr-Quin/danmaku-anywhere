@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -48,5 +50,5 @@ jobs:
         with:
           commit_message: "(chore) apply lint autofix"
 
-      - name: Test
-        run: pnpm test 
+      - name: Test (changed packages only)
+        run: pnpm --filter '...[${{ github.event.pull_request.base.sha }}]' test run

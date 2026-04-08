@@ -28,4 +28,11 @@ git branch -d DA-XXX_description
 
 Remote branches are auto-deleted by GitHub's "delete branch after merge" setting.
 
-5. **Report** what was cleaned up and what was kept (with task status).
+5. **Clean up Claude Code settings** for each removed worktree:
+
+- Read `~/.claude/settings.json`
+- Remove any `additionalDirectories` entries whose path references the removed worktree
+- Remove any `Read(...)` allow rules whose path references the removed worktree
+- Write the updated settings back
+
+6. **Report** what was cleaned up and what was kept (with task status).
