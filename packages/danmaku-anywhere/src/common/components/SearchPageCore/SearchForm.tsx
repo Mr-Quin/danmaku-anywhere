@@ -71,12 +71,16 @@ export function SearchForm({
   }
 
   const handleAutocompleteChange = (
-    _event: SyntheticEvent,
+    event: SyntheticEvent,
     value: string | null
   ) => {
     if (value !== null) {
       onSearchTermChange(value)
-      handleSearch(value)
+      // Only trigger immediate search on click selection.
+      // Enter key selection also fires form onSubmit, which handles the search.
+      if (event.type === 'click') {
+        handleSearch(value)
+      }
     }
   }
 

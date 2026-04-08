@@ -1,5 +1,10 @@
+import { useMemo } from 'react'
 import { MAX_SEARCH_HISTORY_ENTRIES } from '@/common/options/searchHistory/constant'
-import type { SearchHistoryOptions } from '@/common/options/searchHistory/schema'
+import type {
+  SearchHistoryData,
+  SearchHistoryOptions,
+} from '@/common/options/searchHistory/schema'
+import { ExtStorageService } from '@/common/storage/ExtStorageService'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 
 export function useSearchHistory() {
@@ -10,11 +15,22 @@ export function useSearchHistory() {
     }
   )
 
+  const storageService = useMemo(() => {
+    return new ExtStorageService<SearchHistoryOptions>('searchHistory', {
+      storageType: 'local',
+    })
+  }, [])
+
   const entries = store.data.data.entries
 
-  const updateEntries = async (newEntries: string[]) => {
+  const readLatestEntries = async () => {
+    const current = await storageService.read()
+    return current?.data.entries ?? []
+  }
+
+  const writeEntries = async (newEntries: string[]) => {
     await store.update.mutateAsync({
-      data: { entries: newEntries },
+      data: { entries: newEntries } satisfies SearchHistoryData,
       version: store.data.version,
     })
   }
@@ -24,21 +40,23 @@ export function useSearchHistory() {
     if (!trimmed) {
       return
     }
-    const filtered = entries.filter((e) => e !== trimmed)
+    const latest = await readLatestEntries()
+    const filtered = latest.filter((e) => e !== trimmed)
     const newEntries = [trimmed, ...filtered].slice(
       0,
       MAX_SEARCH_HISTORY_ENTRIES
     )
-    await updateEntries(newEntries)
+    await writeEntries(newEntries)
   }
 
   const removeEntry = async (query: string) => {
-    const newEntries = entries.filter((e) => e !== query)
-    await updateEntries(newEntries)
+    const latest = await readLatestEntries()
+    const newEntries = latest.filter((e) => e !== query)
+    await writeEntries(newEntries)
   }
 
   const clearHistory = async () => {
-    await updateEntries([])
+    await writeEntries([])
   }
 
   return {
