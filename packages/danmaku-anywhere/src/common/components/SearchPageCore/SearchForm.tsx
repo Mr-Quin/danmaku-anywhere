@@ -188,7 +188,9 @@ export function SearchForm({
                 size="small"
                 autoComplete="off"
                 {...textFieldProps}
-                {...withStopPropagation()}
+                {...withStopPropagation({
+                  whitelistKeys: ['Escape', 'Enter', 'ArrowUp', 'ArrowDown'],
+                })}
               />
             )
           }}
