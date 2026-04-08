@@ -4,6 +4,9 @@
  * Uses a multi-locale fallback chain (zh, ja, ko) so that Chinese,
  * Japanese, and Korean characters are sorted by their natural reading
  * order (e.g. pinyin for Chinese) instead of raw Unicode codepoint.
+ *
+ * sensitivity: 'base' groups case/accent variants together (e.g. "A" == "a")
+ * which gives stable, predictable ordering for mixed CJK/Latin title lists.
  */
 const collator = new Intl.Collator(['zh', 'ja', 'ko'], {
   numeric: true,
