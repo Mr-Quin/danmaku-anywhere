@@ -23,11 +23,13 @@
     "test": "pnpm -r test run",
     "type-check": "pnpm -r type-check",
     "sync-changelog": "node --experimental-strip-types scripts/sync-changelog.ts Mr-Quin/danmaku-anywhere docs/src/content/docs/change-log.mdx",
+    "knip": "knip",
     "prepare": "lefthook install"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.7",
     "@typescript/native-preview": "7.0.0-dev.20251123.1",
+    "knip": "^6.3.0",
     "lefthook": "^2.0.4",
     "typescript": "^5.9.3"
   },
