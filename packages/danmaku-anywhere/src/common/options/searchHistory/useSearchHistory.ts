@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { useInjectService } from '@/common/hooks/useInjectService'
 import type { SearchHistoryOptions } from '@/common/options/searchHistory/schema'
 import { SearchHistoryService } from '@/common/options/searchHistory/service'
@@ -14,31 +14,21 @@ export function useSearchHistory() {
   )
 
   const service = useInjectService(SearchHistoryService)
-  const queryClient = useQueryClient()
   const queryKey = storageQueryKeys.external('local', ['searchHistory'])
 
   const addEntryMutation = useMutation({
     mutationKey: queryKey,
     mutationFn: service.addEntry.bind(service),
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey })
-    },
   })
 
   const removeEntryMutation = useMutation({
     mutationKey: queryKey,
     mutationFn: service.removeEntry.bind(service),
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey })
-    },
   })
 
   const clearHistoryMutation = useMutation({
     mutationKey: queryKey,
     mutationFn: service.clearHistory.bind(service),
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey })
-    },
   })
 
   return {
