@@ -96,14 +96,17 @@ export const FrameManager = () => {
     reEvaluateActiveFrame()
   })
 
-  const handlePreloadNext = useEventCallback((frameId: number) => {
+  const handlePreloadNext = useEventCallback(async (frameId: number) => {
     const activeFrame = useStore.getState().frame.activeFrame
-    if (frameId !== activeFrame?.frameId || !canLoadNext()) return
-    preloadNext.mutate(undefined, {
-      onError: (err) => {
-        toast.error('Failed to preload next episode: ' + err.message)
-      },
-    })
+    if (frameId !== activeFrame?.frameId || !canLoadNext()) {
+      return
+    }
+    try {
+      await preloadNext()
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      toast.error('Failed to preload next episode: ' + message)
+    }
   })
 
   const handleShowPopover = useEventCallback(() => {

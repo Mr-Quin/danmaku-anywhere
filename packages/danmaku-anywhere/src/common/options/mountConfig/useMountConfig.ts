@@ -51,16 +51,16 @@ export const useMountConfig = () => {
 export const useEditMountConfig = () => {
   const queryClient = useQueryClient()
   const queryKey = storageQueryKeys.external('sync', ['mountConfig'])
+  const meta = { invalidates: [queryKey] }
 
   const mountConfigService = useInjectService(MountConfigService)
 
   const createMutation = useMutation({
-    mutationKey: queryKey,
     mutationFn: mountConfigService.create.bind(mountConfigService),
+    meta,
   })
 
   const updateMutation = useMutation({
-    mutationKey: queryKey,
     mutationFn: ({
       id,
       config,
@@ -68,25 +68,25 @@ export const useEditMountConfig = () => {
       id: string
       config: Partial<MountConfig>
     }) => mountConfigService.update(id, config),
+    meta,
   })
 
   const deleteMutation = useMutation({
-    mutationKey: queryKey,
     mutationFn: mountConfigService.delete.bind(mountConfigService),
+    meta,
   })
 
   const setIntegrationMutation = useMutation({
-    mutationKey: queryKey,
     mutationFn: (input: { configId: string; integrationId?: string }) => {
       return mountConfigService.setIntegration(
         input.configId,
         input.integrationId
       )
     },
+    meta,
   })
 
   const reorderMutation = useMutation({
-    mutationKey: queryKey,
     mutationFn: (input: { sourceIndex: number; destinationIndex: number }) => {
       return mountConfigService.reorder(
         input.sourceIndex,
@@ -99,7 +99,6 @@ export const useEditMountConfig = () => {
       const previousData =
         queryClient.getQueryData<MountConfigOptions>(queryKey)
 
-      // Optimistically update the cache
       if (previousData) {
         const newData = {
           ...previousData,
@@ -112,25 +111,22 @@ export const useEditMountConfig = () => {
         queryClient.setQueryData(queryKey, newData)
       }
 
-      // Return a context object so we can roll back if needed
       return { previousData }
     },
     onError: (_, __, context) => {
-      // Revert optimistic update if the mutation fails
       if (context?.previousData) {
         queryClient.setQueryData(queryKey, context.previousData)
       }
     },
     onSettled: () => {
-      // Sync state
       void queryClient.invalidateQueries({ queryKey })
     },
   })
 
   const changeModeMutation = useMutation({
-    mutationKey: queryKey,
     mutationFn: ({ id, mode }: { id: string; mode: AutomationMode }) =>
       mountConfigService.changeMode(id, mode),
+    meta,
   })
 
   return {

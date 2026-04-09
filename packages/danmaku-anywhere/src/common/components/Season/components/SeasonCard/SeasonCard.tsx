@@ -23,9 +23,10 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useDeleteSeason } from '@/common/anime/queries/useDeleteSeason'
+import { useRefreshSeason } from '@/common/anime/queries/useRefreshSeason'
 import { useBookmarkAdd } from '@/common/bookmark/queries/useBookmarkAdd'
 import { useBookmarkDeleteBySeason } from '@/common/bookmark/queries/useBookmarkDelete'
 import { useBookmarkedSeasonIds } from '@/common/bookmark/queries/useBookmarks'
@@ -37,11 +38,8 @@ import {
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { ProviderLogo } from '@/common/components/ProviderLogo'
 import type { HandleSeasonClick } from '@/common/components/Season/types'
-import { useToast } from '@/common/components/Toast/toastStore'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { isProvider } from '@/common/danmaku/utils'
-import { episodeQueryKeys, seasonQueryKeys } from '@/common/queries/queryKeys'
-import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useExportXml } from '@/popup/hooks/useExportXml'
 
@@ -130,9 +128,6 @@ export const SeasonCard = ({
   onSelect,
 }: SeasonCardProps) => {
   const { t } = useTranslation()
-  const { toast } = useToast()
-
-  const queryClient = useQueryClient()
 
   const exportXml = useExportXml()
   const exportDanmaku = useExportDanmaku()
@@ -145,30 +140,8 @@ export const SeasonCard = ({
   const bookmarkAddMutation = useBookmarkAdd()
   const bookmarkDeleteMutation = useBookmarkDeleteBySeason()
 
-  const deleteMutation = useMutation({
-    mutationKey: seasonQueryKeys.all(),
-    mutationFn: (id: number) => chromeRpcClient.seasonDelete({ id }),
-    onSuccess: () => {
-      toast.success(t('common.success', 'Success'))
-      void queryClient.invalidateQueries({
-        queryKey: episodeQueryKeys.all(),
-      })
-    },
-    onError: () => {
-      toast.error(t('common.failed', 'Failed'))
-    },
-  })
-
-  const refreshMutation = useMutation({
-    mutationKey: seasonQueryKeys.all(),
-    mutationFn: (id: number) => chromeRpcClient.seasonRefresh({ id }),
-    onSuccess: () => {
-      toast.success(t('common.success', 'Success'))
-    },
-    onError: () => {
-      toast.error(t('common.failed', 'Failed'))
-    },
-  })
+  const deleteMutation = useDeleteSeason()
+  const refreshMutation = useRefreshSeason()
 
   const renderEpisodeCount = () => {
     if (season.localEpisodeCount) {

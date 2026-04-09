@@ -9,8 +9,10 @@ export const useBookmarkDelete = () => {
   const toast = useToast.use.toast()
 
   return useMutation({
-    mutationKey: bookmarkQueryKeys.all(),
     mutationFn: (id: number) => chromeRpcClient.bookmarkDelete({ id }),
+    meta: {
+      invalidates: [bookmarkQueryKeys.all()],
+    },
     onSuccess: () => {
       toast.success(t('common.success', 'Success'))
     },
@@ -25,9 +27,11 @@ export const useBookmarkDeleteBySeason = () => {
   const toast = useToast.use.toast()
 
   return useMutation({
-    mutationKey: bookmarkQueryKeys.all(),
     mutationFn: (seasonId: number) =>
       chromeRpcClient.bookmarkDeleteBySeason({ seasonId }),
+    meta: {
+      invalidates: [bookmarkQueryKeys.all()],
+    },
     onSuccess: () => {
       toast.success(t('common.success', 'Success'))
     },

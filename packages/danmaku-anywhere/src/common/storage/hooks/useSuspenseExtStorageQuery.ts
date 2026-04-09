@@ -70,8 +70,8 @@ export const useSuspenseExtStorageQuery = <T>(
 
   const updateMutation = useMutation({
     mutationFn: storageService.set.bind(storageService),
+    meta: { invalidates: [queryKey] },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey })
       updateMutationOptions?.onSuccess?.()
     },
     onError: (error) => {
@@ -81,8 +81,8 @@ export const useSuspenseExtStorageQuery = <T>(
 
   const deleteMutation = useMutation({
     mutationFn: storageService.set.bind(storageService),
+    meta: { invalidates: [queryKey] },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey })
       deleteMutationOptions?.onSuccess?.()
     },
     onError: (error) => {

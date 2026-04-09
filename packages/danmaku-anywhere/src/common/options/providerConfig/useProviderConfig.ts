@@ -51,16 +51,16 @@ export const useProviderConfig = () => {
 export const useEditProviderConfig = () => {
   const queryClient = useQueryClient()
   const queryKey = storageQueryKeys.external('sync', ['providerConfig'])
+  const meta = { invalidates: [queryKey] }
 
   const providerConfigService = useInjectService(ProviderConfigService)
 
   const createMutation = useMutation({
-    mutationKey: queryKey,
     mutationFn: providerConfigService.create.bind(providerConfigService),
+    meta,
   })
 
   const updateMutation = useMutation({
-    mutationKey: queryKey,
     mutationFn: ({
       id,
       config,
@@ -68,21 +68,21 @@ export const useEditProviderConfig = () => {
       id: string
       config: Partial<ProviderConfig>
     }) => providerConfigService.update(id, config),
+    meta,
   })
 
   const deleteMutation = useMutation({
-    mutationKey: queryKey,
     mutationFn: providerConfigService.delete.bind(providerConfigService),
+    meta,
   })
 
   const toggleMutation = useMutation({
-    mutationKey: queryKey,
     mutationFn: ({ id, enabled }: { id: string; enabled?: boolean }) =>
       providerConfigService.toggle(id, enabled),
+    meta,
   })
 
   const reorderMutation = useMutation({
-    mutationKey: queryKey,
     mutationFn: (input: { sourceIndex: number; destinationIndex: number }) => {
       return providerConfigService.reorder(
         input.sourceIndex,
@@ -95,7 +95,6 @@ export const useEditProviderConfig = () => {
       const previousData =
         queryClient.getQueryData<ProviderConfigOptions>(queryKey)
 
-      // Optimistically update the cache
       if (previousData) {
         const newData = {
           ...previousData,
@@ -108,17 +107,14 @@ export const useEditProviderConfig = () => {
         queryClient.setQueryData(queryKey, newData)
       }
 
-      // Return a context object so we can roll back if needed
       return { previousData }
     },
     onError: (_, __, context) => {
-      // Revert optimistic update if the mutation fails
       if (context?.previousData) {
         queryClient.setQueryData(queryKey, context.previousData)
       }
     },
     onSettled: () => {
-      // Sync state
       void queryClient.invalidateQueries({ queryKey })
     },
   })

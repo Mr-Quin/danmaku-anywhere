@@ -25,9 +25,7 @@ export type DeleteDanmakuData =
 
 export const useDeleteEpisode = () => {
   const { t } = useTranslation()
-
   const toast = useToast.use.toast()
-
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -37,6 +35,9 @@ export const useDeleteEpisode = () => {
       } else {
         await chromeRpcClient.episodeDeleteCustom(data.filter)
       }
+    },
+    meta: {
+      invalidates: [seasonQueryKeys.all()],
     },
     onError: (e) => {
       toast.error(
@@ -52,12 +53,9 @@ export const useDeleteEpisode = () => {
     onSuccess: (_, input) => {
       toast.success(t('danmaku.alert.deleted', 'Danmaku Deleted'))
       void queryClient.invalidateQueries({
-        queryKey: seasonQueryKeys.all(),
-      })
-      void queryClient.invalidateQueries({
-        queryKey: !input.isCustom
-          ? episodeQueryKeys.all()
-          : customEpisodeQueryKeys.all(),
+        queryKey: input.isCustom
+          ? customEpisodeQueryKeys.all()
+          : episodeQueryKeys.all(),
       })
     },
   })

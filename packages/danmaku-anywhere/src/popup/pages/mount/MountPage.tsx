@@ -43,7 +43,9 @@ export const MountPage = (): ReactElement => {
 
   const { mutate: unmount } = useMutation({
     mutationFn: () => controllerRpcClient.danmakuUnmount(),
-    mutationKey: tabQueryKeys.getState(),
+    meta: {
+      invalidates: [tabQueryKeys.getState()],
+    },
     onSuccess: () => {
       setIsMounted(false)
       setFilter('')

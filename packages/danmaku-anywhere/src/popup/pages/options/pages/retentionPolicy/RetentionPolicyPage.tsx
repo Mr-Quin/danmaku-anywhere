@@ -17,7 +17,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { produce } from 'immer'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -41,8 +41,6 @@ import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 
 function useWipeDanmakuStorage() {
-  const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async ({
       includeCustomEpisodes,
@@ -51,19 +49,13 @@ function useWipeDanmakuStorage() {
     }) => {
       await chromeRpcClient.dataWipeDanmaku({ includeCustomEpisodes })
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: episodeQueryKeys.all(),
-      })
-      queryClient.invalidateQueries({
-        queryKey: seasonQueryKeys.all(),
-      })
-      queryClient.invalidateQueries({
-        queryKey: seasonMapQueryKeys.all(),
-      })
-      queryClient.invalidateQueries({
-        queryKey: customEpisodeQueryKeys.all(),
-      })
+    meta: {
+      invalidates: [
+        episodeQueryKeys.all(),
+        seasonQueryKeys.all(),
+        seasonMapQueryKeys.all(),
+        customEpisodeQueryKeys.all(),
+      ],
     },
   })
 }
@@ -90,7 +82,9 @@ export const RetentionPolicyPage = () => {
   })
 
   const { mutate: handleApply, isPending } = useMutation({
-    mutationKey: alarmQueryKeys.danmakuPurge(),
+    meta: {
+      invalidates: [alarmQueryKeys.danmakuPurge()],
+    },
     mutationFn: async (update: RetentionPolicy) => {
       await partialUpdate(
         produce(data, (draft) => {
@@ -105,7 +99,9 @@ export const RetentionPolicyPage = () => {
   })
 
   const { mutate: purgeDanmaku, isPending: isPurgingDanmaku } = useMutation({
-    mutationKey: episodeQueryKeys.all(),
+    meta: {
+      invalidates: [episodeQueryKeys.all(), seasonQueryKeys.all()],
+    },
     mutationFn: async () => {
       const res = await chromeRpcClient.danmakuPurgeCache(
         getValues().deleteCommentsAfter

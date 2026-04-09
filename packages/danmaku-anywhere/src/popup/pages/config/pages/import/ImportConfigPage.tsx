@@ -1,5 +1,4 @@
 import { Box, Divider, Tab, Tabs, Typography } from '@mui/material'
-import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -30,24 +29,6 @@ export const ImportConfigPage = () => {
   const [showDialog, setShowDialog] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
 
-  const importMutation = useMutation({
-    mutationFn: async (files: File[]) => {
-      const succeeded: string[] = []
-      const errored: string[] = []
-      for (const file of files) {
-        const result = await combinedPolicyService.import(
-          JSON.parse(await file.text())
-        )
-        if (result) {
-          succeeded.push(file.name)
-        } else {
-          errored.push(file.name)
-        }
-      }
-      return { succeeded, errored } satisfies ImportResult
-    },
-  })
-
   const handleSelectFiles = async (files: File[]) => {
     setSelectedFiles(files)
     setShowDialog(true)
@@ -58,8 +39,20 @@ export const ImportConfigPage = () => {
     setSelectedFiles([])
   }
 
-  const handleImport = async () => {
-    return importMutation.mutateAsync(selectedFiles)
+  const handleImport = async (): Promise<ImportResult> => {
+    const succeeded: string[] = []
+    const errored: string[] = []
+    for (const file of selectedFiles) {
+      const result = await combinedPolicyService.import(
+        JSON.parse(await file.text())
+      )
+      if (result) {
+        succeeded.push(file.name)
+      } else {
+        errored.push(file.name)
+      }
+    }
+    return { succeeded, errored }
   }
 
   const renderDialogContent = ({
