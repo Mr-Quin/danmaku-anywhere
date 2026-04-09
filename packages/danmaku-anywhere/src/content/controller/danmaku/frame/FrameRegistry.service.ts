@@ -56,9 +56,10 @@ export class FrameRegistry {
    * after registration, before videoChange fires.
    */
   private ensureActiveFrame(frameId: number) {
-    if (!useStore.getState().frame.activeFrame) {
+    const { activeFrame, setActiveFrame } = useStore.getState().frame
+    if (!activeFrame) {
       this.logger.debug('No active frame, setting', { frameId })
-      useStore.getState().frame.setActiveFrame(frameId)
+      setActiveFrame(frameId)
     }
   }
 
