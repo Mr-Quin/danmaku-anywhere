@@ -47,6 +47,20 @@ export class FrameRegistry {
       frameId: info.frameId,
       url: info.url,
     })
+    this.ensureActiveFrame(info.frameId)
+  }
+
+  /**
+   * If no frame is currently active, set the given frame as active.
+   * This ensures single-frame pages have an active frame immediately
+   * after registration, before videoChange fires.
+   */
+  private ensureActiveFrame(frameId: number) {
+    const { activeFrame, setActiveFrame } = useStore.getState().frame
+    if (!activeFrame) {
+      this.logger.debug('No active frame, setting', { frameId })
+      setActiveFrame(frameId)
+    }
   }
 
   /**
