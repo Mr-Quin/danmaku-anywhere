@@ -1,6 +1,6 @@
 # CLAUDE.md — Agent Guide for Danmaku Anywhere
 
-This file provides context for AI agents (Claude, Cursor, Copilot, etc.) working on this codebase.
+This file provides context for Claude and Cursor working on this codebase.
 
 ## What is this project?
 
@@ -170,6 +170,7 @@ Each package/app has its own `AGENTS.md` with package-specific context. Read the
 
 ## Common pitfalls
 
+- **Use package.json scripts**: always prefer scripts defined in `package.json` over ad-hoc commands. Run `pnpm type-check` instead of `tsc`/`tsgo`, `pnpm lint` instead of `biome check`, etc. When you need to run a CLI tool not available as a script, use `pnpx` (never `npx`).
 - Always run `pnpm build:packages` before running the extension or web app in dev mode, since they import from workspace packages
 - The extension uses `@crxjs/vite-plugin` which has its own HMR behavior — don't confuse with standard Vite
 - The web app requires the browser extension to be installed for scraping features

@@ -37,7 +37,7 @@ Angular SPA for video discovery and playback using Kazumi rules. Requires the Da
 - @danmaku-anywhere/web-scraper
 
 ## Angular conventions
-See `.cursor/rules/angular-standards.mdc` and `.junie/guidelines.md` for Angular best practices. Key rules:
+See CLAUDE.md and `.cursor/rules/angular-standards.mdc` for Angular best practices. Key rules:
 - Standalone components only, `standalone: true` is implied
 - Use `input()`/`output()` functions, not decorators
 - Use signals and `computed()` for state
