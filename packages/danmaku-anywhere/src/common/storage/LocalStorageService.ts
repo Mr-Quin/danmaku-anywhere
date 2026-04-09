@@ -1,4 +1,4 @@
-const NAMESPACE = 'danmaku-anywhere:'
+const NAMESPACE = '__da_x:'
 
 /**
  * Typed wrapper around localStorage with namespaced keys.

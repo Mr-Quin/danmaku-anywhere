@@ -24,7 +24,7 @@ describe('LocalStorageService', () => {
 
   test('namespaces keys with danmaku-anywhere prefix', () => {
     service.write(['x'])
-    expect(localStorage.getItem('danmaku-anywhere:testKey')).toBe('["x"]')
+    expect(localStorage.getItem('__da_x:testKey')).toBe('["x"]')
   })
 
   test('remove clears the stored value', () => {
@@ -34,7 +34,7 @@ describe('LocalStorageService', () => {
   })
 
   test('read returns undefined for invalid JSON', () => {
-    localStorage.setItem('danmaku-anywhere:testKey', '{not valid json')
+    localStorage.setItem('__da_x:testKey', '{not valid json')
     expect(service.read()).toBeUndefined()
   })
 
