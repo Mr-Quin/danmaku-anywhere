@@ -1,32 +1,9 @@
 ---
-description: Update README and AGENTS.md when making significant changes to apps and packages
+description: Update AGENTS.md when adding conventions or gotchas to a package
 globs: "app/**/*,packages/**/*,backend/**/*"
 alwaysApply: false
 ---
 
 # Update Docs After Changes
 
-When you make **significant changes** to an app or package, update its docs so they stay accurate.
-
-## What counts as significant
-
-- New public API, exports, or CLI commands
-- New workspace or runtime dependencies
-- New scripts in `package.json`
-- Change of entry point, build output, or configuration
-- New features or modules that other packages or contributors need to know about
-
-## What to update
-
-1. **README.md** (in the same directory as the app or package)
-   - Scripts table, dependencies, usage, and any setup/run instructions.
-2. **AGENTS.md** (in the same directory)
-   - Purpose, entry points, key areas, and a note that README/AGENTS.md should be updated when making further changes.
-
-## Where the docs live
-
-- `app/web/` — Angular web app
-- `packages/<name>/` — Each package (danmaku-anywhere, danmaku-converter, danmaku-engine, danmaku-provider, web-scraper, bangumi-api, result, integration-policy)
-- `backend/proxy/` — Cloudflare Workers backend
-
-If you add a **new** app, package, or backend service, add a new `README.md` and `AGENTS.md` in its root and keep them in sync as you change the code.
+When you add conventions or gotchas specific to a package or app, update its `AGENTS.md`. Don't duplicate info that's derivable from code (scripts, dependencies, directory structure) — just document what an agent couldn't figure out by reading the source.
