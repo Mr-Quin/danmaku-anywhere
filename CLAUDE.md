@@ -15,18 +15,18 @@ Danmaku Anywhere is an open-source project for overlaying danmaku (bullet commen
 
 ```
 packages/
-  danmaku-anywhere/     # Browser extension (React 19, Vite, MUI, Zustand)
-  danmaku-converter/    # Parse/normalize danmaku formats (XML, etc.)
-  danmaku-engine/       # Render danmaku on video containers (wraps @mr-quin/danmu)
-  danmaku-provider/     # Fetch danmaku from APIs (DDP, Bilibili, Tencent, MacCMS, Kazumi)
+  danmaku-anywhere/     # Browser extension
+  danmaku-converter/    # Parse/normalize danmaku formats
+  danmaku-engine/       # Render danmaku on video containers
+  danmaku-provider/     # Fetch danmaku from APIs
   web-scraper/          # Scrape video/page metadata from sites
-  bangumi-api/          # Typed Bangumi API schemas for openapi-fetch
-  result/               # Result<T, E> type for explicit error handling
+  bangumi-api/          # Typed Bangumi API schemas
+  result/               # Result<T, E> type for error handling
   integration-policy/   # Schema for site/feature integration policies
 app/
-  web/                  # Angular 21+ web app (PrimeNG, Tailwind, TanStack Query)
+  web/                  # Angular web app
 backend/
-  proxy/                # Cloudflare Workers (Hono, Drizzle, Better Auth, D1)
+  proxy/                # Cloudflare Workers backend
 docs/                   # Astro-based documentation site
 ```
 
@@ -45,81 +45,24 @@ docs/                   # Astro-based documentation site
 | Dev web app | `cd app/web && pnpm start` |
 | Dev backend | `cd backend/proxy && pnpm dev` |
 
-## Tech stack by area
+Always prefer scripts defined in `package.json` over ad-hoc commands. Run `pnpm type-check` instead of `tsc`/`tsgo`, `pnpm lint` instead of `biome check`, etc. When you need to run a CLI tool not available as a script, use `pnpx` (never `npx`).
 
-### Extension (`packages/danmaku-anywhere/`)
-- React 19, TypeScript, Vite (via @crxjs/vite-plugin)
-- MUI (Material UI) for components
-- Zustand for client state, TanStack Query for server state
-- React Router, React Hook Form + Zod validation
-- Inversify for dependency injection (IoC)
-- Dexie (IndexedDB) for local storage
-- i18next for internationalization
-- Content scripts + background service worker architecture
+## Testing strategy
 
-### Web App (`app/web/`)
-- Angular 21+ with standalone components (no NgModules)
-- PrimeNG + Tailwind CSS for UI
-- TanStack Angular Query for data fetching
-- Signals for state, NgRx Signals for store
-- Artplayer for video playback
-- Dexie for client-side storage
+- **Run affected tests only**: `pnpm --filter '...[origin/master]' test` to test only packages changed since master
+- **Single package**: `pnpm --filter <package> test`
+- **All tests**: `pnpm test` at root
+- Packages and backend use Vitest. The web app uses Jasmine+Karma (`pnpm test:ng` in `app/web/`).
+- Always run `pnpm type-check` and `pnpm lint` — these are fast and catch most issues.
 
-### Backend (`backend/proxy/`)
-- Cloudflare Workers runtime
-- Hono framework with Zod OpenAPI
-- Drizzle ORM with D1 (SQLite)
-- Better Auth for authentication
-- Sentry for error monitoring
+## Code style
 
-### Shared packages
-- TypeScript with strict mode
-- Biome for linting and formatting
-- Vitest for testing
-
-## Key patterns and conventions
-
-### Code style
 - **Formatter/linter**: Biome (not ESLint/Prettier). Config at root `biome.json`.
 - **Quotes**: Single quotes, no semicolons (except where required)
 - **Indentation**: 2 spaces
 - **Trailing commas**: ES5 style
 - **Imports**: Use `import type` for type-only imports (enforced by Biome)
 - **No `any`**: Use `unknown` when type is uncertain. `any` triggers a warning.
-
-### TypeScript
-- Strict mode enabled everywhere (`tsconfig.base.json`)
-- Prefer type inference when the type is obvious
-- Use proper type annotations for function parameters and return types
-- Prefer string union types over TypeScript enums
-- Minimize type assertions (`as`) — only use when truly necessary
-
-### React (extension)
-- Functional components with hooks only
-- Zustand for global client state, `useState` for local state
-- TanStack Query for all server/async state
-- React Hook Form + Zod for form validation
-- Error boundaries for error handling
-- Inversify IoC container for dependency injection in `src/common/ioc/`
-
-### Angular (web app)
-- Standalone components only (no NgModules, `standalone: true` is implied)
-- Use `input()`/`output()` functions, not decorators
-- Use signals and `computed()` for state
-- `ChangeDetectionStrategy.OnPush` always
-- Native control flow (`@if`, `@for`, `@switch`), not structural directives
-- `injectQuery`/`injectMutation` from TanStack Query
-- `inject()` function, not constructor injection
-- Reactive forms, not template-driven
-- Do NOT use `ngClass`/`ngStyle` — use `class`/`style` bindings
-
-### Backend
-- Hono routes in `src/routes/api/`
-- Middleware in `src/middleware/`
-- Drizzle migrations for D1 schema changes
-- Environment-based deployment: staging, production
-
-### Code style (additional rules)
 - **No same-line if bodies**: always use a block `{ }` on the next line, even for early returns. `if (x) return` → `if (x) { return }`
 - **Prefer `function` declarations**: use `function` declarations over `const` arrow functions for named/exported functions. Arrow functions are fine for callbacks and inline expressions.
 - **No bodyless one-liner arrow functions**: use an explicit block with `return` when the function has a type annotation or is non-trivial. `(x) => x.foo` is fine for simple callbacks; named/typed functions should use `{ return ... }`
@@ -127,50 +70,32 @@ docs/                   # Astro-based documentation site
 - **Decouple business logic**: keep logic decoupled from UI frameworks for testability — single source of truth over scattered state
 - **No sectional comments**: sectional comments in a class are a code smell — split the class instead
 
-### Refactoring guidelines
-- Use TDD when refactoring — write tests first, start with reusable primitives
-- Step back and think holistically before refactoring — don't anchor to the current implementation
+## TypeScript
 
-### Error handling
+- Strict mode enabled everywhere (`tsconfig.base.json`)
+- Prefer type inference when the type is obvious
+- Use proper type annotations for function parameters and return types
+- Prefer string union types over TypeScript enums
+- Minimize type assertions (`as`) — only use when truly necessary
+
+## Error handling
+
 - Use the `Result` type from `@danmaku-anywhere/result` for explicit error handling
 - Avoid throwing exceptions for expected error paths
 
-## Build order and dependencies
+## Refactoring guidelines
 
-Packages must be built before apps that depend on them:
+- Use TDD when refactoring — write tests first, start with reusable primitives
+- Step back and think holistically before refactoring — don't anchor to the current implementation
 
-```
-result, integration-policy, bangumi-api  (no internal deps)
-    → danmaku-converter  (depends on result)
-    → danmaku-engine  (depends on danmaku-converter)
-    → danmaku-provider  (depends on converter, result)
-    → web-scraper  (depends on converter, provider)
-    → danmaku-anywhere (extension, depends on all above)
-    → app/web  (depends on converter, provider, web-scraper, bangumi-api)
-    → backend/proxy  (depends on integration-policy)
-```
+## Per-package context
 
-`pnpm build:packages` builds the library packages. `pnpm build` builds everything.
+Each package/app has its own `AGENTS.md` with package-specific conventions and gotchas. Read the relevant `AGENTS.md` when working on a specific package. See `package.json` in each package for available scripts and dependencies.
 
-## Git hooks and CI
-
-- **Pre-commit**: Lefthook runs Biome check on staged files (auto-fixes formatting)
-- **CI (PR Quality)**: Runs type-check, lint, and test on PRs
-- **PR titles**: Checked by CI workflow
-
-## Testing
-
-- **Packages and backend**: Vitest (`pnpm test` in each package or root)
-- **Web app**: Jasmine + Karma (`pnpm test:ng` in `app/web/`)
-- Run `pnpm test` at root to run all tests
-
-## Per-package documentation
-
-Each package/app has its own `AGENTS.md` with package-specific context. Read the relevant `AGENTS.md` when working on a specific package.
+Keep `AGENTS.md` files updated when adding conventions or gotchas that are specific to that package.
 
 ## Common pitfalls
 
-- **Use package.json scripts**: always prefer scripts defined in `package.json` over ad-hoc commands. Run `pnpm type-check` instead of `tsc`/`tsgo`, `pnpm lint` instead of `biome check`, etc. When you need to run a CLI tool not available as a script, use `pnpx` (never `npx`).
 - Always run `pnpm build:packages` before running the extension or web app in dev mode, since they import from workspace packages
 - The extension uses `@crxjs/vite-plugin` which has its own HMR behavior — don't confuse with standard Vite
 - The web app requires the browser extension to be installed for scraping features
