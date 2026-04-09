@@ -27,7 +27,7 @@ export class LocalStorageService<T> {
     try {
       localStorage.setItem(this.namespacedKey, JSON.stringify(value))
     } catch {
-      // ignore quota errors
+      // ignore write failures (e.g. quota limits or unavailable storage)
     }
   }
 
