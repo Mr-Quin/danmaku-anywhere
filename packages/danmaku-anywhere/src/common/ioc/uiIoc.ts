@@ -13,6 +13,7 @@ import { DanmakuOptionsService } from '../options/danmakuOptions/service'
 import { ExtensionOptionsService } from '../options/extensionOptions/service'
 import { StoreServiceSymbol } from '../options/IStoreService'
 import { IntegrationPolicyService } from '../options/integrationPolicyStore/service'
+import { NamingRuleService } from '../options/localMatchingRule/service'
 import { MountConfigService } from '../options/mountConfig/service'
 import { ProviderConfigService } from '../options/providerConfig/service'
 
@@ -36,6 +37,7 @@ function initializeStandalone() {
   uiContainer.bind(StoreServiceSymbol).toService(MountConfigService)
   uiContainer.bind(StoreServiceSymbol).toService(ProviderConfigService)
   uiContainer.bind(StoreServiceSymbol).toService(AiProviderConfigService)
+  uiContainer.bind(StoreServiceSymbol).toService(NamingRuleService)
 }
 
 initializeStandalone()

@@ -361,6 +361,23 @@
     "pageTitle": "弹幕库",
     "selectedCount_other": "已选择{{count}}"
   },
+  "namingRule": {
+    "create": "创建命名规则",
+    "duplicateTitle": "已存在相同标题的命名规则",
+    "edit": "编辑命名规则",
+    "episodeLabel": "第 {{number}} 集",
+    "filesInFolder": "文件夹中的文件",
+    "folder": "文件夹",
+    "local": "本地",
+    "matchCount": "{{matched}} / {{total}} 已匹配",
+    "noRules": "没有定义命名规则",
+    "rootFolder": "（根目录）",
+    "ruleCreated": "命名规则已保存",
+    "ruleDeleted": "命名规则已删除",
+    "template": "文件名模板",
+    "templateHelp": "使用 {episode} 表示集数，{episode:02d} 表示补零",
+    "title": "标题"
+  },
   "optionsPage": {
     "auth": {
       "confirmPassword": "确认密码",

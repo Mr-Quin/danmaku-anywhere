@@ -17,10 +17,12 @@ import {
 } from '@mui/x-tree-view/useTreeItem'
 import { forwardRef, type Ref, useMemo, useState } from 'react'
 import { useDanmakuTreeContext } from '@/common/components/DanmakuSelector/tree/DanmakuTreeContext'
+import { extractFolderPath } from '@/common/components/DanmakuSelector/tree/ExtendedTreeItem'
 import { EpisodeTreeItem } from '@/common/components/DanmakuSelector/tree/items/EpisodeTreeItem'
 import { SeasonTreeItem } from '@/common/components/DanmakuSelector/tree/items/SeasonTreeItem'
 import { DanmakuContextMenu } from '@/common/components/DanmakuSelector/tree/menus/DanmakuContextMenu'
 import { useLongPress } from '@/common/hooks/useLongPress'
+import { useNamingRules } from '@/common/options/localMatchingRule/useLocalMatchingRule'
 import { FolderTreeItem } from './FolderTreeItem'
 import { StubEpisodeTreeItem } from './StubEpisodeTreeItem'
 
@@ -59,6 +61,7 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
 
   const { itemMap, apiRef, isMultiSelect, contextMenu, setContextMenu } =
     useDanmakuTreeContext()
+  const { rules: namingRules } = useNamingRules()
 
   const item = itemMap.get(itemId)
   const isSeason = item?.kind === 'season'
@@ -111,10 +114,13 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
       )
     }
     if (item.kind === 'folder') {
+      const folderPath = extractFolderPath(item.id)
+      const namingRule = namingRules.find((r) => r.folderPath === folderPath)
       return (
         <FolderTreeItem
           label={item.label}
           childrenCount={item.children?.length}
+          namingRuleTitle={namingRule?.title}
         />
       )
     }
@@ -128,7 +134,7 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
       )
     }
     return <EpisodeTreeItem episode={item.data} label={item.label} />
-  }, [item, label])
+  }, [item, label, namingRules])
 
   const bindLongPress = useLongPress({
     onLongPress: ({ xy }) => {

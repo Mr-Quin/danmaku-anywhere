@@ -20,6 +20,8 @@ export interface DialogConfig {
   showCloseButton?: boolean
   closeOnError?: boolean
   container?: HTMLElement | null
+  /** Extra element rendered at the start of the action bar (left side) */
+  extraAction?: ReactNode
 }
 
 type DialogInput = Omit<DialogConfig, 'id'>

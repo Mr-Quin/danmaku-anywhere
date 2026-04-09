@@ -39,3 +39,9 @@ export type ExtendedTreeItem =
   | EpisodeTreeItem
   | FolderTreeItem
   | StubEpisodeTreeItem
+
+const FOLDER_ID_PREFIX = 'folder-'
+
+export function extractFolderPath(itemId: string): string {
+  return itemId.slice(FOLDER_ID_PREFIX.length)
+}

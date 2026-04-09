@@ -94,6 +94,11 @@ export class DanmakuService {
     })
   }
 
+  async getCustomByTitle(title: string): Promise<CustomEpisode | undefined> {
+    const normalized = title.startsWith('/') ? title : `/${title}`
+    return this.db.customEpisode.get({ title: normalized })
+  }
+
   async matchLocalByTitle(title: string): Promise<CustomEpisode | undefined> {
     // episode title can be a path, so we need to match it by comparing the last part
     const customEpisodesLite = await this.filterCustomLite({
