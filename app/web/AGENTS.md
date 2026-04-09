@@ -25,6 +25,7 @@ Angular SPA for video discovery and playback using Kazumi rules. Requires the Da
 - `inject()` function, not constructor injection
 - Reactive forms, not template-driven
 - Do NOT use `ngClass`/`ngStyle` — use `class`/`style` bindings
+- Use `providedIn: 'root'` for singleton services
 
 ## Gotchas
 

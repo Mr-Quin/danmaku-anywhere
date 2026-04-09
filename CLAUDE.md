@@ -94,6 +94,10 @@ Each package/app has its own `AGENTS.md` with package-specific conventions and g
 
 Keep `AGENTS.md` files updated when adding conventions or gotchas that are specific to that package.
 
+## Pre-commit hooks
+
+Lefthook runs Biome check on staged files before each commit (auto-fixes formatting). If a commit fails, check the Biome output.
+
 ## Common pitfalls
 
 - Always run `pnpm build:packages` before running the extension or web app in dev mode, since they import from workspace packages
