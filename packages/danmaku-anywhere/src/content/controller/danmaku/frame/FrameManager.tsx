@@ -104,7 +104,8 @@ export const FrameManager = () => {
     try {
       await preloadNext()
     } catch (err) {
-      toast.error('Failed to preload next episode: ' + (err as Error).message)
+      const message = err instanceof Error ? err.message : String(err)
+      toast.error('Failed to preload next episode: ' + message)
     }
   })
 
