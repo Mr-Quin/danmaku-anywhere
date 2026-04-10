@@ -4,6 +4,7 @@ import { ContextMenuManager } from '@/background/contextMenu/ContextMenuManager'
 import { NetRequestManager } from '@/background/netRequest/NetrequestManager'
 import { PortsManager } from '@/background/ports/PortsManager'
 import { RpcManager } from '@/background/rpc/RpcManager'
+import { MountConfigTabReloader } from '@/background/scripting/MountConfigTabReloader'
 import { ScriptingManager } from '@/background/scripting/ScriptingManager'
 import { OptionsManager } from '@/background/syncOptions/OptionsManager'
 import { deferredConfigureStore } from '@/background/utils/deferredConfigureStore'
@@ -20,6 +21,7 @@ configureApiStore({
 
 container.get(OptionsManager).setup()
 container.get(ScriptingManager).setup()
+container.get(MountConfigTabReloader).setup()
 container.get(RpcManager).setup()
 container.get(NetRequestManager).setup()
 container.get(AlarmManager).setup()

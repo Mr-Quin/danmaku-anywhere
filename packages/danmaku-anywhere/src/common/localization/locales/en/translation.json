@@ -361,8 +361,10 @@
   },
   "mountPage": {
     "alert": {
-      "checkMountConfig": "Check Mount config",
-      "mountingDisabled": "Cannot mount danmaku on this page"
+      "createMountConfig": "Create mount config",
+      "extensionDisabled": "Danmaku Anywhere is disabled",
+      "noMountConfig": "No mount config for this site",
+      "pageUnsupported": "This page cannot host danmaku"
     },
     "confirmDeleteMultiple_one": "Are you sure you want to delete {{count}} item?",
     "confirmDeleteMultiple_other": "Are you sure you want to delete {{count}} items?",

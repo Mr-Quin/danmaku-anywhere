@@ -3,7 +3,7 @@ import type {
   GenericEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
 import { UploadFile } from '@mui/icons-material'
-import { Alert, Button } from '@mui/material'
+import { Alert, Button, Collapse } from '@mui/material'
 import type { ReactElement } from 'react'
 import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -25,6 +25,20 @@ import { ImportResultContent } from '../ImportPageCore/ImportResultContent'
 import { ScrollBox } from '../layout/ScrollBox'
 import type { DAMenuItemConfig } from '../Menu/DAMenuItemConfig'
 
+export type MountAvailability =
+  | { kind: 'pending' }
+  | { kind: 'connected' }
+  | { kind: 'unsupported' }
+  | { kind: 'disabled' }
+  | {
+      kind: 'noConfig'
+      url: string
+      pattern: string
+      name: string
+    }
+
+const CONNECTED_AVAILABILITY: MountAvailability = { kind: 'connected' }
+
 export interface MountPageContentProps {
   filter: string
   onFilterChange: (filter: string) => void
@@ -37,7 +51,7 @@ export interface MountPageContentProps {
 
   onUnmount?: () => void
   isMounted?: boolean
-  isConnected?: boolean
+  availability?: MountAvailability
   onGoSearch: () => void
   onGoCreateMountConfig?: () => void
 }
@@ -53,7 +67,7 @@ export const MountPageContent = ({
   isMounting,
   onUnmount,
   isMounted = false,
-  isConnected = true,
+  availability = CONNECTED_AVAILABILITY,
   onGoSearch,
   onGoCreateMountConfig,
 }: MountPageContentProps): ReactElement => {
@@ -100,31 +114,59 @@ export const MountPageContent = ({
     [importFlow, t]
   )
 
-  function renderAlert() {
-    if (isConnected === undefined || isConnected) {
-      return null
+  const showAlert =
+    availability.kind !== 'connected' && availability.kind !== 'pending'
+
+  // Keep the last visible availability mounted so Collapse can animate the
+  // alert out after the state flips back to connected/pending.
+  const displayedAvailabilityRef = useRef<MountAvailability | null>(null)
+  if (showAlert) {
+    displayedAvailabilityRef.current = availability
+  }
+  const displayedAvailability = displayedAvailabilityRef.current
+
+  function renderAlertContent(av: MountAvailability) {
+    if (av.kind === 'disabled') {
+      return (
+        <Alert severity="warning" square>
+          {t(
+            'mountPage.alert.extensionDisabled',
+            'Danmaku Anywhere is disabled'
+          )}
+        </Alert>
+      )
     }
-    return (
-      <Alert
-        severity="warning"
-        square
-        action={
-          <Button
-            onClick={onGoCreateMountConfig}
-            size="small"
-            color="inherit"
-            variant="text"
-          >
-            {t('mountPage.alert.checkMountConfig', 'Check Mount config')}
-          </Button>
-        }
-      >
-        {t(
-          'mountPage.alert.mountingDisabled',
-          'Cannot mount danmaku on this page'
-        )}
-      </Alert>
-    )
+    if (av.kind === 'unsupported') {
+      return (
+        <Alert severity="warning" square>
+          {t(
+            'mountPage.alert.pageUnsupported',
+            'This page cannot host danmaku'
+          )}
+        </Alert>
+      )
+    }
+    if (av.kind === 'noConfig') {
+      return (
+        <Alert
+          severity="info"
+          square
+          action={
+            <Button
+              onClick={onGoCreateMountConfig}
+              size="small"
+              color="inherit"
+              variant="text"
+            >
+              {t('mountPage.alert.createMountConfig', 'Create mount config')}
+            </Button>
+          }
+        >
+          {t('mountPage.alert.noMountConfig', 'No mount config for this site')}
+        </Alert>
+      )
+    }
+    return null
   }
 
   if (viewingEpisode) {
@@ -194,7 +236,10 @@ export const MountPageContent = ({
           selectionCount={selectionCount}
         />
 
-        {renderAlert()}
+        <Collapse in={showAlert} unmountOnExit>
+          {displayedAvailability !== null &&
+            renderAlertContent(displayedAvailability)}
+        </Collapse>
 
         <ScrollBox flexGrow={1} overflow="auto">
           <DanmakuTree
@@ -204,7 +249,7 @@ export const MountPageContent = ({
             onSelect={(ep) => onMount([ep])}
             onViewDanmaku={setViewingEpisode}
             onSelectionChange={(s) => setSelectionCount(s.length)}
-            canMount={isConnected && !isMounting}
+            canMount={availability.kind === 'connected' && !isMounting}
             multiselect={multiselect}
             onImport={importFlow.openFileInput}
             onGoSearch={onGoSearch}
