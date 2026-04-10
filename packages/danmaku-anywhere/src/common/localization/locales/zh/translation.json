@@ -363,6 +363,7 @@
   },
   "namingRule": {
     "create": "创建命名规则",
+    "deleteConfirm": "确定要删除此命名规则吗？",
     "duplicateTitle": "已存在相同标题的命名规则",
     "edit": "编辑命名规则",
     "episodeLabel": "第 {{number}} 集",
@@ -373,6 +374,7 @@
     "noRules": "没有定义命名规则",
     "rootFolder": "（根目录）",
     "ruleCreated": "命名规则已保存",
+    "ruleCreateFailed": "保存命名规则失败",
     "ruleDeleted": "命名规则已删除",
     "template": "文件名模板",
     "templateHelp": "使用 {episode} 表示集数，{episode:02d} 表示补零",

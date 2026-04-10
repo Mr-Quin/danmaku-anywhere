@@ -15,13 +15,12 @@ import {
   type UseTreeItemParameters,
   useTreeItem,
 } from '@mui/x-tree-view/useTreeItem'
-import { type Ref, useMemo, useState } from 'react'
+import { forwardRef, type Ref, useMemo, useState } from 'react'
 import { useDanmakuTreeContext } from '@/common/components/DanmakuSelector/tree/DanmakuTreeContext'
 import { EpisodeTreeItem } from '@/common/components/DanmakuSelector/tree/items/EpisodeTreeItem'
 import { SeasonTreeItem } from '@/common/components/DanmakuSelector/tree/items/SeasonTreeItem'
 import { DanmakuContextMenu } from '@/common/components/DanmakuSelector/tree/menus/DanmakuContextMenu'
 import { useLongPress } from '@/common/hooks/useLongPress'
-import { useNamingRules } from '@/common/options/localMatchingRule/useLocalMatchingRule'
 import { FolderTreeItem } from './FolderTreeItem'
 import { StubEpisodeTreeItem } from './StubEpisodeTreeItem'
 
@@ -36,11 +35,12 @@ const StyledTreeContent = styled(TreeItemContent)({
 
 interface CustomTreeItemProps
   extends Omit<UseTreeItemParameters, 'rootRef'>,
-    Omit<React.HTMLAttributes<HTMLLIElement>, 'onFocus'> {
-  ref: Ref<HTMLLIElement>
-}
+    Omit<React.HTMLAttributes<HTMLLIElement>, 'onFocus'> {}
 
-export function DanmakuTreeItem(props: CustomTreeItemProps) {
+export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
+  props: CustomTreeItemProps,
+  ref: Ref<HTMLLIElement>
+) {
   const { id, itemId, label, disabled, children, ...other } = props
 
   const [hovering, setHovering] = useState(false)
@@ -55,11 +55,16 @@ export function DanmakuTreeItem(props: CustomTreeItemProps) {
     getGroupTransitionProps,
     getDragAndDropOverlayProps,
     status,
-  } = useTreeItem({ id, itemId, children, label, disabled, rootRef: props.ref })
+  } = useTreeItem({ id, itemId, children, label, disabled, rootRef: ref })
 
-  const { itemMap, apiRef, isMultiSelect, contextMenu, setContextMenu } =
-    useDanmakuTreeContext()
-  const { rules: namingRules } = useNamingRules()
+  const {
+    itemMap,
+    apiRef,
+    isMultiSelect,
+    contextMenu,
+    setContextMenu,
+    namingRuleByFolderPath,
+  } = useDanmakuTreeContext()
 
   const item = itemMap.get(itemId)
   const isSeason = item?.kind === 'season'
@@ -112,9 +117,7 @@ export function DanmakuTreeItem(props: CustomTreeItemProps) {
       )
     }
     if (item.kind === 'folder') {
-      const namingRule = namingRules.find(
-        (r) => r.folderPath === item.folderPath
-      )
+      const namingRule = namingRuleByFolderPath.get(item.folderPath)
       return (
         <FolderTreeItem
           label={item.label}
@@ -133,7 +136,7 @@ export function DanmakuTreeItem(props: CustomTreeItemProps) {
       )
     }
     return <EpisodeTreeItem episode={item.data} label={item.label} />
-  }, [item, label, namingRules])
+  }, [item, label, namingRuleByFolderPath])
 
   const bindLongPress = useLongPress({
     onLongPress: ({ xy }) => {
@@ -181,4 +184,4 @@ export function DanmakuTreeItem(props: CustomTreeItemProps) {
       </StyledTreeRoot>
     </TreeItemProvider>
   )
-}
+})

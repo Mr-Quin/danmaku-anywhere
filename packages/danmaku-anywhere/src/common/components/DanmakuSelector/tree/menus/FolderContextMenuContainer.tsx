@@ -1,12 +1,11 @@
 import { AutoFixHigh, Edit } from '@mui/icons-material'
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNamingRuleDialog } from '@/common/components/DanmakuSelector/useNamingRuleDialog'
 import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig'
 import { DrilldownContextMenu } from '@/common/components/Menu/DrilldownContextMenu'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
-import { useNamingRules } from '@/common/options/localMatchingRule/useLocalMatchingRule'
 import { useDanmakuTreeContext } from '../DanmakuTreeContext'
-import { useCreateMatchingRuleDialog } from './useCreateMatchingRuleDialog'
 
 interface FolderContextMenuContainerProps {
   folderPath: string
@@ -18,10 +17,10 @@ export const FolderContextMenuContainer = ({
   itemId,
 }: FolderContextMenuContainerProps): ReactElement | null => {
   const { t } = useTranslation()
-  const { contextMenu, setContextMenu } = useDanmakuTreeContext()
-  const openDialog = useCreateMatchingRuleDialog()
-  const { rules } = useNamingRules()
-  const existingRule = rules.find((r) => r.folderPath === folderPath)
+  const { contextMenu, setContextMenu, namingRuleByFolderPath } =
+    useDanmakuTreeContext()
+  const openDialog = useNamingRuleDialog()
+  const existingRule = namingRuleByFolderPath.get(folderPath)
 
   const handleOpenDialog = () => {
     setContextMenu(null)

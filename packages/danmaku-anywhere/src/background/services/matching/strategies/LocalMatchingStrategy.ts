@@ -107,7 +107,9 @@ export class LocalMatchingStrategy implements IMatchingStrategy {
     episodeNumber: number
   ): Promise<MatchEpisodeResult | null> {
     const renderedFilename = renderNamingPattern(rule.pattern, episodeNumber)
-    const fullPath = `${rule.folderPath}/${renderedFilename}`
+    const fullPath = rule.folderPath
+      ? `${rule.folderPath}/${renderedFilename}`
+      : renderedFilename
     const customEpisode = await this.danmakuService.getCustomByTitle(fullPath)
 
     if (customEpisode) {

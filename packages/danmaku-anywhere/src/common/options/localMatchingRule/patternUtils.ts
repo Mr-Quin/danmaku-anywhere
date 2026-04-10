@@ -18,6 +18,9 @@ export function buildPatternRegex(template: string): RegExp | null {
   let hasPlaceholder = false
 
   for (const match of template.matchAll(PLACEHOLDER_RE)) {
+    if (match.index == null) {
+      continue
+    }
     hasPlaceholder = true
     parts.push(escapeRegExp(template.slice(lastIndex, match.index)))
     const padWidth = match[1]

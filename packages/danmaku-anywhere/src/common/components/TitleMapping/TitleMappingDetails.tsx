@@ -48,19 +48,14 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
     const updated = newValue
       ? map.withMapping(providerConfigId, newValue.id)
       : map.withoutProvider(providerConfigId)
-    if (updated.isEmpty()) {
-      await mutations.delete.mutateAsync(updated.key)
-    } else {
-      await mutations.put.mutateAsync(updated)
-    }
+    await mutations.put.mutateAsync(updated)
   }
 
   const handleLocalChange = async (newValue: NamingRule | null) => {
-    if (newValue) {
-      await mutations.add.mutateAsync(map.withLocal(newValue.folderPath))
-    } else {
-      await mutations.add.mutateAsync(map.withoutLocal())
-    }
+    const updated = newValue
+      ? map.withLocal(newValue.folderPath)
+      : map.withoutLocal()
+    await mutations.put.mutateAsync(updated)
   }
 
   const selectedLocal = useMemo(() => {

@@ -38,3 +38,17 @@ export const episodeToString = (episode: GenericEpisodeLite) => {
   }
   return episode.title
 }
+
+/**
+ * Split a custom episode path-like title into a folder path and filename.
+ * Leading/trailing slashes are stripped. Empty segments are discarded.
+ */
+export const splitCustomEpisodePath = (title: string) => {
+  const parts = title.split('/').filter(Boolean)
+  const fileName = parts.pop() ?? title
+  return {
+    parts,
+    folderPath: parts.join('/'),
+    fileName,
+  }
+}

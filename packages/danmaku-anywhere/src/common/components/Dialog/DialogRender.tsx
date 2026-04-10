@@ -1,6 +1,5 @@
 import { Close } from '@mui/icons-material'
 import {
-  Box,
   Button,
   Dialog,
   DialogActions,
@@ -46,7 +45,6 @@ export const DialogRender = ({
     closeOnError = false,
     showCloseButton = false,
     container,
-    extraAction,
   } = config
 
   const { t } = useTranslation()
@@ -164,7 +162,6 @@ export const DialogRender = ({
 
     return (
       <DialogActions>
-        {extraAction && <Box sx={{ mr: 'auto' }}>{extraAction}</Box>}
         {cancelBtn}
         {confirmBtn}
       </DialogActions>

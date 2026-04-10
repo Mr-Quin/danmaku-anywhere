@@ -86,10 +86,9 @@ describe('SeasonMap', () => {
       bilibili: 42,
     })
     expect(pruned.getSeasonId('ddp')).toBeUndefined()
-    expect(pruned.isEmpty()).toBe(false)
 
     const empty = pruned.withoutProvider('bilibili')
-    expect(empty.isEmpty()).toBe(true)
+    expect(empty.seasons).toEqual({})
   })
 
   describe('local field', () => {
@@ -129,21 +128,11 @@ describe('SeasonMap', () => {
       expect(map.local).toBe('anime/show')
     })
 
-    it('isEmpty returns false when local is set', () => {
-      const map = SeasonMap.empty('test').withLocal('anime/show')
-      expect(map.isEmpty()).toBe(false)
-    })
-
-    it('isEmpty returns true when no seasons and no local', () => {
-      const map = SeasonMap.empty('test')
-      expect(map.isEmpty()).toBe(true)
-    })
-
-    it('merge takes non-undefined local from self', () => {
+    it('merge prefers incoming local over self', () => {
       const a = SeasonMap.empty('test').withLocal('folder-a')
       const b = SeasonMap.empty('test').withLocal('folder-b')
       const merged = a.merge(b)
-      expect(merged.local).toBe('folder-a')
+      expect(merged.local).toBe('folder-b')
     })
 
     it('merge takes local from other when self has none', () => {
@@ -151,6 +140,14 @@ describe('SeasonMap', () => {
       const b = SeasonMap.empty('test').withLocal('folder-b')
       const merged = a.merge(b)
       expect(merged.local).toBe('folder-b')
+    })
+
+    it('merge preserves self.local when other has none (additive)', () => {
+      const a = SeasonMap.empty('test').withLocal('folder-a')
+      const b = SeasonMap.empty('test').withMapping('provider1', 42)
+      const merged = a.merge(b)
+      expect(merged.local).toBe('folder-a')
+      expect(merged.getSeasonId('provider1')).toBe(42)
     })
 
     it('withLocal preserves existing season mappings', () => {

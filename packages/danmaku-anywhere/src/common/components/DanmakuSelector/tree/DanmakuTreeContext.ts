@@ -6,6 +6,7 @@ import {
   useContext,
 } from 'react'
 import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/tree/ExtendedTreeItem'
+import type { NamingRule } from '@/common/options/localMatchingRule/schema'
 
 // The API is not exported by the library, so we need to define it here
 export interface MUITreePublicApi {
@@ -29,6 +30,7 @@ interface DanmakuTreeContextType {
   setViewingDanmaku: (episode: GenericEpisodeLite) => void
   contextMenu: DanmakuTreeContextMenuState | null
   setContextMenu: (state: DanmakuTreeContextMenuState | null) => void
+  namingRuleByFolderPath: Map<string, NamingRule>
 }
 
 export const DanmakuTreeContext = createContext<DanmakuTreeContextType>({
@@ -38,6 +40,7 @@ export const DanmakuTreeContext = createContext<DanmakuTreeContextType>({
   setViewingDanmaku: (episode: GenericEpisodeLite) => undefined,
   contextMenu: null,
   setContextMenu: (state: DanmakuTreeContextMenuState | null) => undefined,
+  namingRuleByFolderPath: new Map(),
 })
 
 export const useDanmakuTreeContext = () => {

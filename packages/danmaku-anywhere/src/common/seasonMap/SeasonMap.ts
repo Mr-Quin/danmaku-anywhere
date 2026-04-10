@@ -93,26 +93,14 @@ export class SeasonMap {
     return this.getSeasonId(providerConfigId) === seasonId
   }
 
-  isEmpty() {
-    return this.seasonsByConfig.size === 0 && !this.local
-  }
-
   merge(other: SeasonMap | SeasonMapSnapshot) {
     const toMerge = SeasonMap.from(other)
-    let result: SeasonMap = this
+    const seasons = new Map(this.seasonsByConfig)
     for (const [providerConfigId, seasonId] of toMerge.seasonsByConfig) {
-      result = result.withMapping(providerConfigId, seasonId)
+      seasons.set(providerConfigId, seasonId)
     }
-    // Preserve local from self, fall back to other
-    const mergedLocal = this.local ?? toMerge.local
-    if (mergedLocal !== result.local) {
-      result = new SeasonMap(
-        result.key,
-        new Map(result.seasonsByConfig),
-        mergedLocal
-      )
-    }
-    return result
+    // Preserve self.local when the other side didn't set one; additive merge
+    return new SeasonMap(this.key, seasons, toMerge.local ?? this.local)
   }
 
   withMapping(providerConfigId: string, seasonId: number) {
