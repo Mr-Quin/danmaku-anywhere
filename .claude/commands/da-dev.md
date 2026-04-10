@@ -45,6 +45,12 @@ for f in packages/danmaku-anywhere/.env packages/danmaku-anywhere/.env.local; do
 done
 ```
 
+**Install dependencies** — `node_modules/` is not shared between worktrees, so type-check/lint/tests will fail until deps are installed. Build packages too so downstream type-checks can find `dist/`:
+
+```bash
+cd ../danmaku-anywhere-DA-XXX && pnpm install && pnpm build:packages
+```
+
 **Register worktree for permissions** — add the worktree root path to `additionalDirectories` in the user's Claude Code settings (use the `update-config` skill) so the new session has file access without re-prompting.
 
 ### 2b. Worktree Handoff
@@ -93,10 +99,10 @@ Always run lint and type-check. For tests and build, follow the relevant area's 
 
 #### Extension: open dev browser
 
-For extension changes, launch a dev browser with HMR **at the start of implementation**:
+For extension changes, launch a dev browser with HMR **at the start of implementation**. Always run `pnpm install` first — fresh worktrees have no `node_modules`, and stale worktrees may be out of date with the lockfile:
 
 ```bash
-wt -w 0 new-tab --title 'DA-XXX: dev browser' -d '<worktree-path>/packages/danmaku-anywhere' -- powershell -NoExit -Command "node e2e/open-browser.ts"
+wt -w 0 new-tab --title 'DA-XXX: dev browser' -d '<worktree-path>/packages/danmaku-anywhere' -- powershell -NoExit -Command "pnpm install; node e2e/open-browser.ts"
 ```
 
 Human verifies behavior live. Skip for trivial changes (config-only, types, docs).
