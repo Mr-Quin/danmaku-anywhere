@@ -351,6 +351,8 @@
   "mountPage": {
     "alert": {
       "createMountConfig": "创建装填配置",
+      "disabledMountConfig": "装填配置 \"{{name}}\" 已禁用",
+      "enableMountConfig": "启用配置",
       "extensionDisabled": "弹幕任何地方已禁用",
       "noMountConfig": "该网站暂无装填配置",
       "pageUnsupported": "该类型页面无法装填弹幕"

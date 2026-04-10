@@ -362,6 +362,8 @@
   "mountPage": {
     "alert": {
       "createMountConfig": "Create mount config",
+      "disabledMountConfig": "Mount config \"{{name}}\" is disabled",
+      "enableMountConfig": "Enable config",
       "extensionDisabled": "Danmaku Anywhere is disabled",
       "noMountConfig": "No mount config for this site",
       "pageUnsupported": "This page cannot host danmaku"

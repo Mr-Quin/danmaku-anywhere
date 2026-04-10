@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { MountPageContent } from '@/common/components/DanmakuSelector/MountPageContent'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { createMountConfig } from '@/common/options/mountConfig/constant'
 import { tabQueryKeys } from '@/common/queries/queryKeys'
 import { controllerRpcClient } from '@/common/rpcClient/controller/client'
 import { useMountAvailability } from '@/popup/hooks/useMountAvailability'
@@ -24,9 +23,9 @@ export const MountPage = (): ReactElement => {
     multiselect,
   } = useStore.use.mount()
   const { selectedTypes, setSelectedType } = useStore.use.danmaku()
-  const { setEditingConfig } = useStore.use.config()
 
   const availability = useMountAvailability()
+  const isConnected = availability.kind === 'connected'
 
   const navigate = useNavigate()
 
@@ -64,19 +63,6 @@ export const MountPage = (): ReactElement => {
     navigate('/search')
   }
 
-  function handleGoCreateMountConfig() {
-    if (availability.kind !== 'noConfig') {
-      return
-    }
-    setEditingConfig(
-      createMountConfig({
-        patterns: [availability.pattern],
-        name: availability.name,
-      })
-    )
-    navigate('/config/add')
-  }
-
   return (
     <MountPageContent
       filter={filter}
@@ -89,9 +75,8 @@ export const MountPage = (): ReactElement => {
       isMounting={isMounting}
       onUnmount={() => unmount()}
       isMounted={isMounted}
-      availability={availability}
+      isConnected={isConnected}
       onGoSearch={handleGoSearch}
-      onGoCreateMountConfig={handleGoCreateMountConfig}
     />
   )
 }
