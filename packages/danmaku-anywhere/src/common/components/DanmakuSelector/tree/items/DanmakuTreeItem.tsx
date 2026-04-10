@@ -31,6 +31,8 @@ const StyledTreeRoot = styled(TreeItemRoot)({
 const StyledTreeContent = styled(TreeItemContent)({
   height: '40px',
   paddingRight: '32px',
+  // pan-y preserves native vertical scroll of the enclosing tree container
+  touchAction: 'pan-y',
 })
 
 interface CustomTreeItemProps
