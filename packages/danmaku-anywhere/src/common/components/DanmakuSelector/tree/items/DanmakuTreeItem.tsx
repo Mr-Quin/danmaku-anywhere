@@ -15,9 +15,8 @@ import {
   type UseTreeItemParameters,
   useTreeItem,
 } from '@mui/x-tree-view/useTreeItem'
-import { forwardRef, type Ref, useMemo, useState } from 'react'
+import { type Ref, useMemo, useState } from 'react'
 import { useDanmakuTreeContext } from '@/common/components/DanmakuSelector/tree/DanmakuTreeContext'
-import { extractFolderPath } from '@/common/components/DanmakuSelector/tree/ExtendedTreeItem'
 import { EpisodeTreeItem } from '@/common/components/DanmakuSelector/tree/items/EpisodeTreeItem'
 import { SeasonTreeItem } from '@/common/components/DanmakuSelector/tree/items/SeasonTreeItem'
 import { DanmakuContextMenu } from '@/common/components/DanmakuSelector/tree/menus/DanmakuContextMenu'
@@ -37,12 +36,11 @@ const StyledTreeContent = styled(TreeItemContent)({
 
 interface CustomTreeItemProps
   extends Omit<UseTreeItemParameters, 'rootRef'>,
-    Omit<React.HTMLAttributes<HTMLLIElement>, 'onFocus'> {}
-
-export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
-  props: CustomTreeItemProps,
+    Omit<React.HTMLAttributes<HTMLLIElement>, 'onFocus'> {
   ref: Ref<HTMLLIElement>
-) {
+}
+
+export function DanmakuTreeItem(props: CustomTreeItemProps) {
   const { id, itemId, label, disabled, children, ...other } = props
 
   const [hovering, setHovering] = useState(false)
@@ -57,7 +55,7 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
     getGroupTransitionProps,
     getDragAndDropOverlayProps,
     status,
-  } = useTreeItem({ id, itemId, children, label, disabled, rootRef: ref })
+  } = useTreeItem({ id, itemId, children, label, disabled, rootRef: props.ref })
 
   const { itemMap, apiRef, isMultiSelect, contextMenu, setContextMenu } =
     useDanmakuTreeContext()
@@ -114,8 +112,9 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
       )
     }
     if (item.kind === 'folder') {
-      const folderPath = extractFolderPath(item.id)
-      const namingRule = namingRules.find((r) => r.folderPath === folderPath)
+      const namingRule = namingRules.find(
+        (r) => r.folderPath === item.folderPath
+      )
       return (
         <FolderTreeItem
           label={item.label}
@@ -182,4 +181,4 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
       </StyledTreeRoot>
     </TreeItemProvider>
   )
-})
+}

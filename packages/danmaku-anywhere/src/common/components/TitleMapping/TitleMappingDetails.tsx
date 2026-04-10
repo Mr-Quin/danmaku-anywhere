@@ -1,5 +1,12 @@
 import type { Season } from '@danmaku-anywhere/danmaku-converter'
-import { Autocomplete, Box, styled, TextField, Typography } from '@mui/material'
+import {
+  Autocomplete,
+  Box,
+  Divider,
+  styled,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { Fragment, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
@@ -84,36 +91,6 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
   return (
     <Box>
       <BoxGrid>
-        <Typography variant="body2">
-          {t('namingRule.local', 'Local')}
-        </Typography>
-        <Autocomplete<NamingRule>
-          options={namingRules}
-          getOptionLabel={(option) => `${option.title} (${option.folderPath})`}
-          getOptionKey={(option) => option.folderPath}
-          value={selectedLocal}
-          onChange={(_, newValue) => handleLocalChange(newValue)}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              size="small"
-              variant="outlined"
-              placeholder={t('titleMapping.unmapped', 'Unmapped')}
-              fullWidth
-            />
-          )}
-          isOptionEqualToValue={(option, value) =>
-            option.folderPath === value.folderPath
-          }
-          noOptionsText={t('namingRule.noRules', 'No naming rules defined')}
-          slotProps={{
-            popper: {
-              sx: {
-                zIndex: 1403,
-              },
-            },
-          }}
-        />
         {configs.map((config) => {
           const seasonId = map.getSeasonId(config.id)
           const selectedSeason = seasonId
@@ -166,6 +143,37 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
             </Fragment>
           )
         })}
+        <Divider sx={{ gridColumn: '1 / -1' }} />
+        <Typography variant="body2">
+          {t('namingRule.local', 'Local')}
+        </Typography>
+        <Autocomplete<NamingRule>
+          options={namingRules}
+          getOptionLabel={(option) => `${option.title} (${option.folderPath})`}
+          getOptionKey={(option) => option.folderPath}
+          value={selectedLocal}
+          onChange={(_, newValue) => handleLocalChange(newValue)}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              size="small"
+              variant="outlined"
+              placeholder={t('titleMapping.unmapped', 'Unmapped')}
+              fullWidth
+            />
+          )}
+          isOptionEqualToValue={(option, value) =>
+            option.folderPath === value.folderPath
+          }
+          noOptionsText={t('namingRule.noRules', 'No naming rules defined')}
+          slotProps={{
+            popper: {
+              sx: {
+                zIndex: 1403,
+              },
+            },
+          }}
+        />
       </BoxGrid>
     </Box>
   )

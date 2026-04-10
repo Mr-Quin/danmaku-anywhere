@@ -319,7 +319,6 @@ export const useCreateMatchingRuleDialog = () => {
         <Button
           variant="outlined"
           color="error"
-          size="small"
           onClick={() => {
             dialog.delete({
               title: t('common.delete', 'Delete'),

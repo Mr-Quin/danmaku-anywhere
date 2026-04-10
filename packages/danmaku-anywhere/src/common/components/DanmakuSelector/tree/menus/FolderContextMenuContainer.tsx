@@ -6,22 +6,21 @@ import { DrilldownContextMenu } from '@/common/components/Menu/DrilldownContextM
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { useNamingRules } from '@/common/options/localMatchingRule/useLocalMatchingRule'
 import { useDanmakuTreeContext } from '../DanmakuTreeContext'
-import { extractFolderPath } from '../ExtendedTreeItem'
 import { useCreateMatchingRuleDialog } from './useCreateMatchingRuleDialog'
 
 interface FolderContextMenuContainerProps {
+  folderPath: string
   itemId: string
 }
 
 export const FolderContextMenuContainer = ({
+  folderPath,
   itemId,
 }: FolderContextMenuContainerProps): ReactElement | null => {
   const { t } = useTranslation()
   const { contextMenu, setContextMenu } = useDanmakuTreeContext()
   const openDialog = useCreateMatchingRuleDialog()
   const { rules } = useNamingRules()
-
-  const folderPath = extractFolderPath(itemId)
   const existingRule = rules.find((r) => r.folderPath === folderPath)
 
   const handleOpenDialog = () => {

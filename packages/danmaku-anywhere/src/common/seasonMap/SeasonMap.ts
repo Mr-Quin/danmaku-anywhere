@@ -15,19 +15,11 @@ type SeasonLike = {
 }
 
 export class SeasonMap {
-  readonly key: string
-  private readonly seasonsByConfig: Map<string, number>
-  readonly local?: string
-
   private constructor(
-    key: string,
-    seasonsByConfig: Map<string, number>,
-    local?: string
-  ) {
-    this.key = key
-    this.seasonsByConfig = seasonsByConfig
-    this.local = local
-  }
+    readonly key: string,
+    private readonly seasonsByConfig: Map<string, number>,
+    readonly local?: string
+  ) {}
 
   static empty(key: string) {
     return new SeasonMap(key, new Map())

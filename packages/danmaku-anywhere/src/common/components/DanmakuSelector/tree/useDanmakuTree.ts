@@ -172,6 +172,7 @@ export const useDanmakuTree = (
           id: `folder-${folderPath}`,
           label: folderName,
           kind: 'folder',
+          folderPath,
           children: [],
         }
         register(newFolder)

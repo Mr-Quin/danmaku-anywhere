@@ -4,10 +4,10 @@ import type {
   GenericEpisodeLite,
   Season,
 } from '@danmaku-anywhere/danmaku-converter'
-import type { TreeViewBaseItem } from '@mui/x-tree-view/models'
+import type { TreeViewDefaultItemModelProperties } from '@mui/x-tree-view/models'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 
-interface SeasonTreeItem extends TreeViewBaseItem {
+interface SeasonTreeItem extends TreeViewDefaultItemModelProperties {
   kind: 'season'
   data: Season | CustomSeason
   provider?: ProviderConfig
@@ -15,18 +15,19 @@ interface SeasonTreeItem extends TreeViewBaseItem {
   children?: ExtendedTreeItem[]
 }
 
-interface EpisodeTreeItem extends TreeViewBaseItem {
+interface EpisodeTreeItem extends TreeViewDefaultItemModelProperties {
   kind: 'episode'
   data: GenericEpisodeLite
   children?: ExtendedTreeItem[]
 }
 
-export interface FolderTreeItem extends TreeViewBaseItem {
+export interface FolderTreeItem extends TreeViewDefaultItemModelProperties {
   kind: 'folder'
+  folderPath: string
   children: ExtendedTreeItem[]
 }
 
-interface StubEpisodeTreeItem extends TreeViewBaseItem {
+interface StubEpisodeTreeItem extends TreeViewDefaultItemModelProperties {
   kind: 'stub'
   data: EpisodeStub
   seasonId: number
@@ -39,9 +40,3 @@ export type ExtendedTreeItem =
   | EpisodeTreeItem
   | FolderTreeItem
   | StubEpisodeTreeItem
-
-const FOLDER_ID_PREFIX = 'folder-'
-
-export function extractFolderPath(itemId: string): string {
-  return itemId.slice(FOLDER_ID_PREFIX.length)
-}

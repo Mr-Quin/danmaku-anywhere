@@ -25,7 +25,10 @@ export const DanmakuContextMenu = ({
   if (item.kind === 'folder') {
     return (
       <StyledBox>
-        <FolderContextMenuContainer itemId={item.id} />
+        <FolderContextMenuContainer
+          folderPath={item.folderPath}
+          itemId={item.id}
+        />
       </StyledBox>
     )
   }
