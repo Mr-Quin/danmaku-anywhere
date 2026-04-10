@@ -26,23 +26,28 @@ export class MountConfigTabReloader {
   }
 
   setup() {
-    void this.initializePreviousPatterns()
-
+    // Register the change listener first so we don't miss events that arrive
+    // while the initial getAll() is still in flight. Whichever of the two
+    // completes first seeds `previousEnabledPatterns`; the other is a no-op
+    // guarded by `initialized`.
     this.mountConfigService.options.onChange(async (configs) => {
       if (!configs) {
         return
       }
       await this.handleConfigChange(configs)
     })
+
+    void this.initializePreviousPatterns()
   }
 
   private async initializePreviousPatterns() {
-    try {
-      const configs = await this.mountConfigService.getAll()
-      this.previousEnabledPatterns = collectEnabledPatterns(configs)
-    } finally {
-      this.initialized = true
+    const configs = await this.mountConfigService.getAll()
+    if (this.initialized) {
+      // An onChange already seeded us with fresher data — don't overwrite.
+      return
     }
+    this.previousEnabledPatterns = collectEnabledPatterns(configs)
+    this.initialized = true
   }
 
   private async handleConfigChange(configs: MountConfig[]) {
@@ -50,6 +55,7 @@ export class MountConfigTabReloader {
     // would treat every existing pattern as newly-added on startup.
     if (!this.initialized) {
       this.previousEnabledPatterns = collectEnabledPatterns(configs)
+      this.initialized = true
       return
     }
 
@@ -70,38 +76,27 @@ export class MountConfigTabReloader {
   }
 
   private async reloadTabsMatching(patterns: string[]) {
-    const seenTabIds = new Set<number>()
+    let tabs: chrome.tabs.Tab[]
+    try {
+      // chrome.tabs.query accepts a string array, deduping matches for us.
+      tabs = await chrome.tabs.query({ url: patterns })
+    } catch (error) {
+      this.logger.debug('Failed to query tabs for patterns', {
+        patterns,
+        error,
+      })
+      return
+    }
 
-    for (const pattern of patterns) {
-      let tabs: chrome.tabs.Tab[]
-      try {
-        tabs = await chrome.tabs.query({ url: pattern })
-      } catch (error) {
-        this.logger.debug('Failed to query tabs for pattern', {
-          pattern,
-          error,
-        })
+    for (const tab of tabs) {
+      if (tab.id === undefined) {
         continue
       }
-
-      for (const tab of tabs) {
-        if (tab.id === undefined || seenTabIds.has(tab.id)) {
-          continue
-        }
-        seenTabIds.add(tab.id)
-        this.logger.debug('Reloading tab', {
-          tabId: tab.id,
-          url: tab.url,
-          pattern,
-        })
-        try {
-          await chrome.tabs.reload(tab.id)
-        } catch (error) {
-          this.logger.debug('Failed to reload tab', {
-            tabId: tab.id,
-            error,
-          })
-        }
+      this.logger.debug('Reloading tab', { tabId: tab.id, url: tab.url })
+      try {
+        await chrome.tabs.reload(tab.id)
+      } catch (error) {
+        this.logger.debug('Failed to reload tab', { tabId: tab.id, error })
       }
     }
   }

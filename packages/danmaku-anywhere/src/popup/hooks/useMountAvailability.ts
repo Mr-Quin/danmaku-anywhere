@@ -31,14 +31,22 @@ export function useMountAvailability(): MountAvailability {
   const isExtensionEnabled = extensionOptions.enabled
   const isMountableUrl = info !== null && MOUNTABLE_PROTOCOLS.has(info.protocol)
 
-  // Match against the URL ignoring the enabled flag so we can tell the
-  // difference between "no config exists" and "config exists but is disabled".
-  const matchingConfig = info
-    ? configs.find((config) =>
-        config.patterns.some((pattern) => matchUrl(info.url, pattern))
-      )
+  // Prefer an enabled match — only fall back to a disabled match when there
+  // is no enabled config for this URL. Otherwise a disabled config listed
+  // before an enabled one would incorrectly show the "disabled" banner.
+  const matchUrlAgainstConfig = (config: (typeof configs)[number]) =>
+    info !== null &&
+    config.patterns.some((pattern) => matchUrl(info.url, pattern))
+  const enabledMatch = info
+    ? configs.find((config) => config.enabled && matchUrlAgainstConfig(config))
     : undefined
-  const hasEnabledMatch = matchingConfig?.enabled === true
+  const disabledMatch =
+    info && !enabledMatch
+      ? configs.find(
+          (config) => !config.enabled && matchUrlAgainstConfig(config)
+        )
+      : undefined
+  const hasEnabledMatch = enabledMatch !== undefined
 
   // Only ping the content script when we expect one to be running: extension
   // globally enabled, URL mountable, and an enabled config matches.
@@ -52,14 +60,14 @@ export function useMountAvailability(): MountAvailability {
   if (!isMountableUrl || info === null) {
     return { kind: 'unsupported' }
   }
-  if (matchingConfig && !matchingConfig.enabled) {
+  if (disabledMatch) {
     return {
       kind: 'disabledConfig',
-      configId: matchingConfig.id,
-      configName: matchingConfig.name,
+      configId: disabledMatch.id,
+      configName: disabledMatch.name,
     }
   }
-  if (!matchingConfig) {
+  if (!enabledMatch) {
     return {
       kind: 'noConfig',
       url: info.url,
