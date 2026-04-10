@@ -38,7 +38,11 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
     const updated = newValue
       ? map.withMapping(providerConfigId, newValue.id)
       : map.withoutProvider(providerConfigId)
-    await mutations.put.mutateAsync(updated)
+    if (updated.isEmpty()) {
+      await mutations.delete.mutateAsync(updated.key)
+    } else {
+      await mutations.put.mutateAsync(updated)
+    }
   }
 
   const seasonsByProvider = useMemo(() => {
