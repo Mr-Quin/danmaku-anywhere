@@ -120,6 +120,7 @@ export type BackgroundMethods = {
   episodeDeleteCustom: RPCDef<CustomEpisodeQueryFilter, void>
   episodeImport: RPCDef<DanmakuImportData[], DanmakuImportResult>
   seasonMapAdd: RPCDef<SeasonMapSnapshot, void>
+  seasonMapPut: RPCDef<SeasonMapSnapshot, void>
   seasonMapDelete: RPCDef<{ key: string }, void>
   seasonMapDeleteMany: RPCDef<{ keys: string[] }, void>
 

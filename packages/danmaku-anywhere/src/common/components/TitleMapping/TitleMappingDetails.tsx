@@ -35,13 +35,10 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
     providerConfigId: string,
     newValue: Season | null
   ) => {
-    if (newValue) {
-      await mutations.add.mutateAsync(
-        map.withMapping(providerConfigId, newValue.id)
-      )
-    } else {
-      await mutations.add.mutateAsync(map.withoutProvider(providerConfigId))
-    }
+    const updated = newValue
+      ? map.withMapping(providerConfigId, newValue.id)
+      : map.withoutProvider(providerConfigId)
+    await mutations.put.mutateAsync(updated)
   }
 
   const seasonsByProvider = useMemo(() => {
