@@ -18,7 +18,7 @@ export class EpisodeMatchingService {
     @inject(LoggerSymbol) logger: ILogger
   ) {
     this.strategies = [localStrategy, mappingStrategy, searchStrategy]
-    this.logger = logger.sub('EpisodeMatchingService')
+    this.logger = logger.sub('[EpisodeMatchingService]')
   }
 
   async findMatchingEpisodes(

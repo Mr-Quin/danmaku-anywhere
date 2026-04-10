@@ -374,6 +374,25 @@
     "selectedCount_one": "{{count}} selected",
     "selectedCount_other": "{{count}} selected"
   },
+  "namingRule": {
+    "create": "Create Naming Rule",
+    "deleteConfirm": "Are you sure you want to delete this naming rule?",
+    "duplicateTitle": "A naming rule with this title already exists",
+    "edit": "Edit Naming Rule",
+    "episodeLabel": "Episode {{number}}",
+    "filesInFolder": "Files in folder",
+    "folder": "Folder",
+    "local": "Local",
+    "matchCount": "{{matched}} / {{total}} matched",
+    "noRules": "No naming rules defined",
+    "rootFolder": "(root)",
+    "ruleCreated": "Naming rule saved",
+    "ruleCreateFailed": "Failed to save naming rule",
+    "ruleDeleted": "Naming rule deleted",
+    "template": "Filename Template",
+    "templateHelp": "Use {episode} for episode number, {episode:02d} for zero-padded",
+    "title": "Title"
+  },
   "optionsPage": {
     "auth": {
       "confirmPassword": "Confirm Password",

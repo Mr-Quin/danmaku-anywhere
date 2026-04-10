@@ -6,6 +6,7 @@ import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { StoreServiceSymbol } from '@/common/options/IStoreService'
 import { IntegrationPolicyService } from '@/common/options/integrationPolicyStore/service'
+import { NamingRuleService } from '@/common/options/localMatchingRule/service'
 import { MountConfigService } from '@/common/options/mountConfig/service'
 import {
   type IOptionsServiceFactory,
@@ -31,6 +32,7 @@ container.bind(StoreServiceSymbol).toService(MountConfigService)
 container.bind(StoreServiceSymbol).toService(ProviderConfigService)
 container.bind(StoreServiceSymbol).toService(AiProviderConfigService)
 container.bind(StoreServiceSymbol).toService(SearchHistoryService)
+container.bind(StoreServiceSymbol).toService(NamingRuleService)
 
 // factory
 container

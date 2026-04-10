@@ -14,6 +14,7 @@ describe('SeasonMap', () => {
         ddp: 10,
       },
       seasonIds: [10],
+      local: undefined,
     })
   })
 
@@ -85,9 +86,76 @@ describe('SeasonMap', () => {
       bilibili: 42,
     })
     expect(pruned.getSeasonId('ddp')).toBeUndefined()
-    expect(pruned.isEmpty()).toBe(false)
 
     const empty = pruned.withoutProvider('bilibili')
-    expect(empty.isEmpty()).toBe(true)
+    expect(empty.seasons).toEqual({})
+  })
+
+  describe('local field', () => {
+    it('withLocal returns new instance with local set', () => {
+      const map = SeasonMap.empty('test')
+      const updated = map.withLocal('anime/show')
+      expect(updated.local).toBe('anime/show')
+      expect(map.local).toBeUndefined()
+    })
+
+    it('withoutLocal returns new instance with local cleared', () => {
+      const map = SeasonMap.empty('test').withLocal('anime/show')
+      const cleared = map.withoutLocal()
+      expect(cleared.local).toBeUndefined()
+      expect(map.local).toBe('anime/show')
+    })
+
+    it('toSnapshot includes local field', () => {
+      const map = SeasonMap.empty('test').withLocal('anime/show')
+      const snapshot = map.toSnapshot()
+      expect(snapshot.local).toBe('anime/show')
+    })
+
+    it('toSnapshot omits local when undefined', () => {
+      const map = SeasonMap.empty('test')
+      const snapshot = map.toSnapshot()
+      expect(snapshot.local).toBeUndefined()
+    })
+
+    it('fromSnapshot reads local field', () => {
+      const map = SeasonMap.fromSnapshot({
+        key: 'test',
+        seasons: {},
+        seasonIds: [],
+        local: 'anime/show',
+      })
+      expect(map.local).toBe('anime/show')
+    })
+
+    it('merge prefers incoming local over self', () => {
+      const a = SeasonMap.empty('test').withLocal('folder-a')
+      const b = SeasonMap.empty('test').withLocal('folder-b')
+      const merged = a.merge(b)
+      expect(merged.local).toBe('folder-b')
+    })
+
+    it('merge takes local from other when self has none', () => {
+      const a = SeasonMap.empty('test')
+      const b = SeasonMap.empty('test').withLocal('folder-b')
+      const merged = a.merge(b)
+      expect(merged.local).toBe('folder-b')
+    })
+
+    it('merge preserves self.local when other has none (additive)', () => {
+      const a = SeasonMap.empty('test').withLocal('folder-a')
+      const b = SeasonMap.empty('test').withMapping('provider1', 42)
+      const merged = a.merge(b)
+      expect(merged.local).toBe('folder-a')
+      expect(merged.getSeasonId('provider1')).toBe(42)
+    })
+
+    it('withLocal preserves existing season mappings', () => {
+      const map = SeasonMap.empty('test')
+        .withMapping('provider1', 42)
+        .withLocal('anime/show')
+      expect(map.getSeasonId('provider1')).toBe(42)
+      expect(map.local).toBe('anime/show')
+    })
   })
 })

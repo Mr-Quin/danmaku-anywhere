@@ -1,9 +1,18 @@
 import type { Season } from '@danmaku-anywhere/danmaku-converter'
-import { Autocomplete, Box, styled, TextField, Typography } from '@mui/material'
+import {
+  Autocomplete,
+  Box,
+  Divider,
+  styled,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { Fragment, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
 import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
+import type { NamingRule } from '@/common/options/localMatchingRule/schema'
+import { useNamingRules } from '@/common/options/localMatchingRule/useLocalMatchingRule'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { useSeasonMapMutations } from '@/common/seasonMap/queries/useAllSeasonMap'
 import type { SeasonMap } from '@/common/seasonMap/SeasonMap'
@@ -28,6 +37,7 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
   const { t } = useTranslation()
   const { configs } = useProviderConfig()
   const mutations = useSeasonMapMutations()
+  const { rules: namingRules } = useNamingRules()
 
   const { data: allSeasons } = useGetAllSeasonsSuspense({ includeEmpty: true })
 
@@ -38,12 +48,22 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
     const updated = newValue
       ? map.withMapping(providerConfigId, newValue.id)
       : map.withoutProvider(providerConfigId)
-    if (updated.isEmpty()) {
-      await mutations.delete.mutateAsync(updated.key)
-    } else {
-      await mutations.put.mutateAsync(updated)
-    }
+    await mutations.put.mutateAsync(updated)
   }
+
+  const handleLocalChange = async (newValue: NamingRule | null) => {
+    const updated = newValue
+      ? map.withLocal(newValue.folderPath)
+      : map.withoutLocal()
+    await mutations.put.mutateAsync(updated)
+  }
+
+  const selectedLocal = useMemo(() => {
+    if (!map.local) {
+      return null
+    }
+    return namingRules.find((r) => r.folderPath === map.local) ?? null
+  }, [map.local, namingRules])
 
   const seasonsByProvider = useMemo(() => {
     const grouped = new Map<string, Season[]>()
@@ -64,59 +84,92 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
   }, [allSeasons])
 
   return (
-    <BoxGrid>
-      {configs.map((config) => {
-        const seasonId = map.getSeasonId(config.id)
-        const selectedSeason = seasonId
-          ? seasonsById.get(seasonId) || null
-          : null
+    <Box>
+      <BoxGrid>
+        {configs.map((config) => {
+          const seasonId = map.getSeasonId(config.id)
+          const selectedSeason = seasonId
+            ? seasonsById.get(seasonId) || null
+            : null
 
-        const options = seasonsByProvider.get(config.id) ?? []
+          const options = seasonsByProvider.get(config.id) ?? []
 
-        return (
-          <Fragment key={config.id}>
-            <Typography variant="body2">
-              {config.isBuiltIn
-                ? localizedDanmakuSourceType(config.impl)
-                : config.name}
-            </Typography>
+          return (
+            <Fragment key={config.id}>
+              <Typography variant="body2">
+                {config.isBuiltIn
+                  ? localizedDanmakuSourceType(config.impl)
+                  : config.name}
+              </Typography>
 
-            <Autocomplete<Season>
-              options={options}
-              getOptionLabel={(option) => `${option.title} (${option.year})`}
-              getOptionKey={(option) => option.id}
-              value={selectedSeason}
-              onChange={(_, newValue) => handleChange(config.id, newValue)}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  size="small"
-                  variant="outlined"
-                  placeholder={t('titleMapping.unmapped', 'Unmapped')}
-                  fullWidth
-                />
-              )}
-              filterOptions={(options, state) => {
-                return options.filter((option) => {
-                  return matchWithPinyin(option.title, state.inputValue)
-                })
-              }}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
-              noOptionsText={t(
-                'titleMapping.noSeasons',
-                'No options for the selected provider'
-              )}
-              slotProps={{
-                popper: {
-                  sx: {
-                    zIndex: 1403,
+              <Autocomplete<Season>
+                options={options}
+                getOptionLabel={(option) => `${option.title} (${option.year})`}
+                getOptionKey={(option) => option.id}
+                value={selectedSeason}
+                onChange={(_, newValue) => handleChange(config.id, newValue)}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    size="small"
+                    variant="outlined"
+                    placeholder={t('titleMapping.unmapped', 'Unmapped')}
+                    fullWidth
+                  />
+                )}
+                filterOptions={(options, state) => {
+                  return options.filter((option) => {
+                    return matchWithPinyin(option.title, state.inputValue)
+                  })
+                }}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                noOptionsText={t(
+                  'titleMapping.noSeasons',
+                  'No options for the selected provider'
+                )}
+                slotProps={{
+                  popper: {
+                    sx: {
+                      zIndex: 1403,
+                    },
                   },
-                },
-              }}
+                }}
+              />
+            </Fragment>
+          )
+        })}
+        <Divider sx={{ gridColumn: '1 / -1' }} />
+        <Typography variant="body2">
+          {t('namingRule.local', 'Local')}
+        </Typography>
+        <Autocomplete<NamingRule>
+          options={namingRules}
+          getOptionLabel={(option) => `${option.title} (${option.folderPath})`}
+          getOptionKey={(option) => option.folderPath}
+          value={selectedLocal}
+          onChange={(_, newValue) => handleLocalChange(newValue)}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              size="small"
+              variant="outlined"
+              placeholder={t('titleMapping.unmapped', 'Unmapped')}
+              fullWidth
             />
-          </Fragment>
-        )
-      })}
-    </BoxGrid>
+          )}
+          isOptionEqualToValue={(option, value) =>
+            option.folderPath === value.folderPath
+          }
+          noOptionsText={t('namingRule.noRules', 'No naming rules defined')}
+          slotProps={{
+            popper: {
+              sx: {
+                zIndex: 1403,
+              },
+            },
+          }}
+        />
+      </BoxGrid>
+    </Box>
   )
 }

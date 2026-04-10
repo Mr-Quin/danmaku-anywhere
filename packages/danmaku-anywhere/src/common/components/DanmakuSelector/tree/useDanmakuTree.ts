@@ -16,7 +16,11 @@ import type {
 } from '@/common/components/DanmakuSelector/tree/ExtendedTreeItem'
 import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
 import { useEpisodesLiteSuspense } from '@/common/danmaku/queries/useEpisodes'
-import { isNotCustom, isProvider } from '@/common/danmaku/utils'
+import {
+  isNotCustom,
+  isProvider,
+  splitCustomEpisodePath,
+} from '@/common/danmaku/utils'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { compareLocale } from '@/common/utils/collator'
 import { matchWithPinyin } from '@/common/utils/utils'
@@ -172,6 +176,7 @@ export const useDanmakuTree = (
           id: `folder-${folderPath}`,
           label: folderName,
           kind: 'folder',
+          folderPath,
           children: [],
         }
         register(newFolder)
@@ -182,12 +187,8 @@ export const useDanmakuTree = (
       }
 
       filteredCustomEpisodes.forEach((ep) => {
-        const path = ep.title
-        const parts = path.split('/').filter(Boolean)
-        const fileName = parts.pop() || ep.title
-        const folderPathParts = parts
-
-        const targetChildren = getOrCreateFolder(folderPathParts)
+        const { parts, fileName } = splitCustomEpisodePath(ep.title)
+        const targetChildren = getOrCreateFolder(parts)
 
         targetChildren.push(
           register({

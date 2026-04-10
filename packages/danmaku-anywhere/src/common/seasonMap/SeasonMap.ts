@@ -5,6 +5,8 @@ export type SeasonMapSnapshot = {
   seasons: Record<string, number>
   // A list of season IDs derived from the map. This is separated for use as a key in IDB
   seasonIds: number[]
+  // Optional folder path pointing to a naming rule
+  local?: string
 }
 
 type SeasonLike = {
@@ -13,13 +15,11 @@ type SeasonLike = {
 }
 
 export class SeasonMap {
-  readonly key: string
-  private readonly seasonsByConfig: Map<string, number>
-
-  private constructor(key: string, seasonsByConfig: Map<string, number>) {
-    this.key = key
-    this.seasonsByConfig = seasonsByConfig
-  }
+  private constructor(
+    readonly key: string,
+    private readonly seasonsByConfig: Map<string, number>,
+    readonly local?: string
+  ) {}
 
   static empty(key: string) {
     return new SeasonMap(key, new Map())
@@ -31,7 +31,7 @@ export class SeasonMap {
 
   static fromSnapshot(snapshot: SeasonMapSnapshot) {
     const map = new Map(Object.entries(snapshot.seasons))
-    return new SeasonMap(snapshot.key, map)
+    return new SeasonMap(snapshot.key, map, snapshot.local)
   }
 
   static from(input: SeasonMap | SeasonMapSnapshot) {
@@ -73,6 +73,7 @@ export class SeasonMap {
       key: this.key,
       seasons: this.seasons,
       seasonIds: this.getSeasonIds(),
+      local: this.local,
     }
   }
 
@@ -92,23 +93,28 @@ export class SeasonMap {
     return this.getSeasonId(providerConfigId) === seasonId
   }
 
-  isEmpty() {
-    return this.seasonsByConfig.size === 0
-  }
-
   merge(other: SeasonMap | SeasonMapSnapshot) {
     const toMerge = SeasonMap.from(other)
-    let result: SeasonMap = this
+    const seasons = new Map(this.seasonsByConfig)
     for (const [providerConfigId, seasonId] of toMerge.seasonsByConfig) {
-      result = result.withMapping(providerConfigId, seasonId)
+      seasons.set(providerConfigId, seasonId)
     }
-    return result
+    // Preserve self.local when the other side didn't set one; additive merge
+    return new SeasonMap(this.key, seasons, toMerge.local ?? this.local)
   }
 
   withMapping(providerConfigId: string, seasonId: number) {
     const seasons = new Map(this.seasonsByConfig)
     seasons.set(providerConfigId, seasonId)
-    return new SeasonMap(this.key, seasons)
+    return new SeasonMap(this.key, seasons, this.local)
+  }
+
+  withLocal(folderPath: string) {
+    return new SeasonMap(this.key, new Map(this.seasonsByConfig), folderPath)
+  }
+
+  withoutLocal() {
+    return new SeasonMap(this.key, new Map(this.seasonsByConfig))
   }
 
   withoutSeasonId(seasonId: number) {
@@ -118,12 +124,12 @@ export class SeasonMap {
         seasons.delete(providerConfigId)
       }
     }
-    return new SeasonMap(this.key, seasons)
+    return new SeasonMap(this.key, seasons, this.local)
   }
 
   withoutProvider(providerConfigId: string) {
     const seasons = new Map(this.seasonsByConfig)
     seasons.delete(providerConfigId)
-    return new SeasonMap(this.key, seasons)
+    return new SeasonMap(this.key, seasons, this.local)
   }
 }

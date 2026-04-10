@@ -57,8 +57,14 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
     status,
   } = useTreeItem({ id, itemId, children, label, disabled, rootRef: ref })
 
-  const { itemMap, apiRef, isMultiSelect, contextMenu, setContextMenu } =
-    useDanmakuTreeContext()
+  const {
+    itemMap,
+    apiRef,
+    isMultiSelect,
+    contextMenu,
+    setContextMenu,
+    namingRuleByFolderPath,
+  } = useDanmakuTreeContext()
 
   const item = itemMap.get(itemId)
   const isSeason = item?.kind === 'season'
@@ -111,10 +117,12 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
       )
     }
     if (item.kind === 'folder') {
+      const namingRule = namingRuleByFolderPath.get(item.folderPath)
       return (
         <FolderTreeItem
           label={item.label}
           childrenCount={item.children?.length}
+          namingRuleTitle={namingRule?.title}
         />
       )
     }
@@ -128,7 +136,7 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
       )
     }
     return <EpisodeTreeItem episode={item.data} label={item.label} />
-  }, [item, label])
+  }, [item, label, namingRuleByFolderPath])
 
   const bindLongPress = useLongPress({
     onLongPress: ({ xy }) => {

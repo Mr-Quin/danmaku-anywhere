@@ -29,6 +29,7 @@ import { DanmakuTreeItem } from '@/common/components/DanmakuSelector/tree/items/
 import { useDanmakuTree } from '@/common/components/DanmakuSelector/tree/useDanmakuTree'
 import { usePersistedExpandedItems } from '@/common/components/DanmakuSelector/tree/usePersistedExpandedItems'
 import { isNotCustom } from '@/common/danmaku/utils'
+import { useNamingRules } from '@/common/options/localMatchingRule/useLocalMatchingRule'
 import { EmptyDanmakuTree } from '../components/EmptyDanmakuTree'
 
 export interface DanmakuSelection {
@@ -238,6 +239,13 @@ export const DanmakuTree = ({
     }
   }
 
+  const { rules: namingRules } = useNamingRules()
+
+  const namingRuleByFolderPath = useMemo(
+    () => new Map(namingRules.map((rule) => [rule.folderPath, rule])),
+    [namingRules]
+  )
+
   const contextValue = useMemo(
     () => ({
       itemMap: treeItemMap,
@@ -246,8 +254,16 @@ export const DanmakuTree = ({
       isMultiSelect: multiselect,
       contextMenu,
       setContextMenu,
+      namingRuleByFolderPath,
     }),
-    [treeItemMap, apiRef, onViewDanmaku, multiselect, contextMenu]
+    [
+      treeItemMap,
+      apiRef,
+      onViewDanmaku,
+      multiselect,
+      contextMenu,
+      namingRuleByFolderPath,
+    ]
   )
 
   if (treeItems.length === 0) {
