@@ -34,6 +34,11 @@ export class TitleMappingService {
     })
   }
 
+  async put(map: SeasonMap) {
+    this.logger.debug('Replacing title mapping:', map.toSnapshot())
+    await this.db.seasonMap.put(map.toSnapshot())
+  }
+
   async remove(key: string) {
     this.logger.debug('Removing title mapping:', key)
     await this.db.seasonMap.where({ key }).delete()

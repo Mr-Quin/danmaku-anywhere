@@ -23,6 +23,12 @@ export const useSeasonMapMutations = () => {
       },
       meta,
     }),
+    put: useMutation({
+      mutationFn: async (map: SeasonMap) => {
+        return chromeRpcClient.seasonMapPut(map.toSnapshot())
+      },
+      meta,
+    }),
     delete: useMutation({
       mutationFn: async (key: string) => {
         return chromeRpcClient.seasonMapDelete({ key })

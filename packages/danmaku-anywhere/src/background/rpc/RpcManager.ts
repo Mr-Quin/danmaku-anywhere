@@ -166,6 +166,9 @@ export class RpcManager {
         seasonMapAdd: async (data) => {
           return this.titleMappingService.add(SeasonMap.from(data))
         },
+        seasonMapPut: async (data) => {
+          return this.titleMappingService.put(SeasonMap.from(data))
+        },
         seasonMapDelete: async (data) => {
           return this.titleMappingService.remove(data.key)
         },

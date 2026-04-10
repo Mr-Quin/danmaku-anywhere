@@ -35,12 +35,13 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
     providerConfigId: string,
     newValue: Season | null
   ) => {
-    if (newValue) {
-      await mutations.add.mutateAsync(
-        map.withMapping(providerConfigId, newValue.id)
-      )
+    const updated = newValue
+      ? map.withMapping(providerConfigId, newValue.id)
+      : map.withoutProvider(providerConfigId)
+    if (updated.isEmpty()) {
+      await mutations.delete.mutateAsync(updated.key)
     } else {
-      await mutations.add.mutateAsync(map.withoutProvider(providerConfigId))
+      await mutations.put.mutateAsync(updated)
     }
   }
 
