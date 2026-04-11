@@ -84,9 +84,6 @@ export function useMountAvailability(): MountAvailability {
       return { kind: 'pending' }
     }
     return { kind: 'connected' }
-    // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally
-    // keyed on primitive fields of info / matches so the result stays stable
-    // across unstable object references from upstream queries.
   }, [
     isExtensionEnabled,
     info?.url,
