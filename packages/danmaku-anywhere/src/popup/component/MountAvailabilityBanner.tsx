@@ -1,7 +1,8 @@
 import { Close } from '@mui/icons-material'
+import type { AlertColor } from '@mui/material'
 import { Alert, Box, Button, Collapse, IconButton } from '@mui/material'
 import type { ReactElement } from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
@@ -11,6 +12,75 @@ import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import type { MountAvailability } from '@/popup/hooks/useMountAvailability'
 import { useMountAvailability } from '@/popup/hooks/useMountAvailability'
 import { useStore } from '@/popup/store'
+
+type TFunc = ReturnType<typeof useTranslation>['t']
+
+interface AlertDescriptor {
+  severity: AlertColor
+  message: string
+  cta?: {
+    label: string
+    onClick: () => void
+  }
+}
+
+interface AlertContext {
+  onCreateMountConfig: () => void
+  onEnableMountConfig: (configId: string) => void
+}
+
+function describeAlert(
+  av: MountAvailability,
+  t: TFunc,
+  ctx: AlertContext
+): AlertDescriptor | null {
+  switch (av.kind) {
+    case 'connected':
+    case 'pending':
+      return null
+    case 'disabled':
+      return {
+        severity: 'warning',
+        message: t(
+          'mountPage.alert.extensionDisabled',
+          'Danmaku Anywhere is disabled'
+        ),
+      }
+    case 'unsupported':
+      return {
+        severity: 'warning',
+        message: t(
+          'mountPage.alert.pageUnsupported',
+          'This page cannot host danmaku'
+        ),
+      }
+    case 'disabledConfig':
+      return {
+        severity: 'info',
+        message: t(
+          'mountPage.alert.disabledMountConfig',
+          'Mount config "{{name}}" is disabled',
+          { name: av.configName }
+        ),
+        cta: {
+          label: t('mountPage.alert.enableMountConfig', 'Enable config'),
+          onClick: () => ctx.onEnableMountConfig(av.configId),
+        },
+      }
+    case 'noConfig':
+      return {
+        severity: 'info',
+        message: t(
+          'mountPage.alert.noMountConfig',
+          'No mount config for this site'
+        ),
+        cta: {
+          label: t('mountPage.alert.createMountConfig', 'Create mount config'),
+          onClick: ctx.onCreateMountConfig,
+        },
+      }
+  }
+}
 
 export const MountAvailabilityBanner = (): ReactElement => {
   const { t } = useTranslation()
@@ -24,31 +94,32 @@ export const MountAvailabilityBanner = (): ReactElement => {
   const [dismissedKind, setDismissedKind] = useState<
     MountAvailability['kind'] | null
   >(null)
+  const [displayedAvailability, setDisplayedAvailability] =
+    useState<MountAvailability | null>(null)
 
-  // A new availability kind means a new reason to alert — clear any previous
-  // dismissal so the user sees the new banner.
-  useEffect(() => {
+  const shouldShow =
+    availability.kind !== 'connected' &&
+    availability.kind !== 'pending' &&
+    dismissedKind !== availability.kind
+
+  // Sync the displayed availability before paint so Collapse has content to
+  // measure on the frame the banner opens. We clear on the Collapse onExited
+  // callback below instead of tearing down mid-animation.
+  useLayoutEffect(() => {
     if (dismissedKind !== null && dismissedKind !== availability.kind) {
       setDismissedKind(null)
     }
-  }, [availability.kind, dismissedKind])
-
-  const hasAlertableAvailability =
-    availability.kind !== 'connected' && availability.kind !== 'pending'
-  const showAlert =
-    hasAlertableAvailability && dismissedKind !== availability.kind
-
-  // Keep the last visible availability mounted so Collapse can animate the
-  // alert out after the state flips back to connected/pending or after the
-  // user dismisses it.
-  const displayedAvailabilityRef = useRef<MountAvailability | null>(null)
-  if (showAlert) {
-    displayedAvailabilityRef.current = availability
-  }
-  const displayedAvailability = displayedAvailabilityRef.current
+    if (shouldShow) {
+      setDisplayedAvailability(availability)
+    }
+  }, [availability, dismissedKind, shouldShow])
 
   const handleDismiss = () => {
     setDismissedKind(availability.kind)
+  }
+
+  const handleExited = () => {
+    setDisplayedAvailability(null)
   }
 
   const handleCreateMountConfig = () => {
@@ -75,107 +146,60 @@ export const MountAvailabilityBanner = (): ReactElement => {
     )
   }
 
+  const descriptor = displayedAvailability
+    ? describeAlert(displayedAvailability, t, {
+        onCreateMountConfig: handleCreateMountConfig,
+        onEnableMountConfig: handleEnableMountConfig,
+      })
+    : null
+
   return (
-    <Collapse in={showAlert} unmountOnExit>
-      {displayedAvailability !== null &&
-        renderAlertContent(displayedAvailability, {
-          t,
-          onDismiss: handleDismiss,
-          onCreateMountConfig: handleCreateMountConfig,
-          onEnableMountConfig: handleEnableMountConfig,
-        })}
+    <Collapse
+      in={shouldShow && descriptor !== null}
+      onExited={handleExited}
+      // Pin to natural height in the popup's flex column — without this the
+      // Box below (which has flexGrow=1) shrinks the banner by a couple of
+      // pixels and the alert's bottom border clips into the content.
+      sx={{ flexShrink: 0 }}
+    >
+      {descriptor && (
+        <Alert
+          severity={descriptor.severity}
+          square
+          action={
+            <AlertActions
+              t={t}
+              onDismiss={handleDismiss}
+              cta={descriptor.cta}
+            />
+          }
+        >
+          {descriptor.message}
+        </Alert>
+      )}
     </Collapse>
   )
 }
 
-interface RenderContext {
-  t: ReturnType<typeof useTranslation>['t']
-  onDismiss: () => void
-  onCreateMountConfig: () => void
-  onEnableMountConfig: (configId: string) => void
-}
-
-function renderAlertContent(
-  av: MountAvailability,
-  ctx: RenderContext
-): ReactElement | null {
-  const { t, onDismiss, onCreateMountConfig, onEnableMountConfig } = ctx
-
-  if (av.kind === 'disabled') {
-    return (
-      <Alert severity="warning" square onClose={onDismiss}>
-        {t('mountPage.alert.extensionDisabled', 'Danmaku Anywhere is disabled')}
-      </Alert>
-    )
-  }
-  if (av.kind === 'unsupported') {
-    return (
-      <Alert severity="warning" square onClose={onDismiss}>
-        {t('mountPage.alert.pageUnsupported', 'This page cannot host danmaku')}
-      </Alert>
-    )
-  }
-  if (av.kind === 'disabledConfig') {
-    return (
-      <Alert
-        severity="info"
-        square
-        action={
-          <AlertActions t={t} onDismiss={onDismiss}>
-            <Button
-              onClick={() => onEnableMountConfig(av.configId)}
-              size="small"
-              color="inherit"
-              variant="text"
-            >
-              {t('mountPage.alert.enableMountConfig', 'Enable config')}
-            </Button>
-          </AlertActions>
-        }
-      >
-        {t(
-          'mountPage.alert.disabledMountConfig',
-          'Mount config "{{name}}" is disabled',
-          { name: av.configName }
-        )}
-      </Alert>
-    )
-  }
-  if (av.kind === 'noConfig') {
-    return (
-      <Alert
-        severity="info"
-        square
-        action={
-          <AlertActions t={t} onDismiss={onDismiss}>
-            <Button
-              onClick={onCreateMountConfig}
-              size="small"
-              color="inherit"
-              variant="text"
-            >
-              {t('mountPage.alert.createMountConfig', 'Create mount config')}
-            </Button>
-          </AlertActions>
-        }
-      >
-        {t('mountPage.alert.noMountConfig', 'No mount config for this site')}
-      </Alert>
-    )
-  }
-  return null
-}
-
 interface AlertActionsProps {
-  t: ReturnType<typeof useTranslation>['t']
+  t: TFunc
   onDismiss: () => void
-  children: ReactElement
+  cta?: AlertDescriptor['cta']
 }
 
-function AlertActions({ t, onDismiss, children }: AlertActionsProps) {
+function AlertActions({ t, onDismiss, cta }: AlertActionsProps) {
   return (
     <Box display="flex" alignItems="center" gap={0.5}>
-      {children}
+      {cta && (
+        <Button
+          onClick={cta.onClick}
+          size="small"
+          color="inherit"
+          variant="text"
+        >
+          {cta.label}
+        </Button>
+      )}
       <IconButton
         size="small"
         color="inherit"

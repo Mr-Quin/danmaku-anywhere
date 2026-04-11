@@ -10,27 +10,37 @@ export interface ActiveTabInfo {
   name: string
 }
 
+const MOUNTABLE_PROTOCOLS = new Set(['http:', 'https:', 'file:'])
+
 function deriveActiveTabInfo(rawUrl: string): ActiveTabInfo | null {
+  let url: URL
   try {
-    const url = new URL(rawUrl)
-    // file:// URLs have `origin === 'null'` per the WHATWG URL spec, so fall
-    // back to a match-all file pattern the user can narrow down.
-    if (url.protocol === 'file:') {
-      return {
-        url: url.href,
-        protocol: url.protocol,
-        pattern: 'file:///*',
-        name: 'file://',
-      }
-    }
+    url = new URL(rawUrl)
+  } catch {
+    return null
+  }
+  // Non-mountable schemes (chrome:, chrome-extension:, about:, etc.) have
+  // `origin === 'null'` per the WHATWG URL spec, which would turn into a
+  // garbage `null/*` pattern. Reject them outright so callers fall back to
+  // empty defaults instead of pre-filling with bad data.
+  if (!MOUNTABLE_PROTOCOLS.has(url.protocol)) {
+    return null
+  }
+  // file:// URLs also have a `null` origin, so fall back to a match-all file
+  // pattern the user can narrow down.
+  if (url.protocol === 'file:') {
     return {
       url: url.href,
       protocol: url.protocol,
-      pattern: `${url.origin}/*`,
-      name: url.origin,
+      pattern: 'file:///*',
+      name: 'file://',
     }
-  } catch {
-    return null
+  }
+  return {
+    url: url.href,
+    protocol: url.protocol,
+    pattern: `${url.origin}/*`,
+    name: url.origin,
   }
 }
 

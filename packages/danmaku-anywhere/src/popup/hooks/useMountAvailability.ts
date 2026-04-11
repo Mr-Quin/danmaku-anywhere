@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { useMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { matchUrl } from '@/common/utils/matchUrl'
@@ -21,15 +23,12 @@ export type MountAvailability =
       name: string
     }
 
-const MOUNTABLE_PROTOCOLS = new Set(['http:', 'https:', 'file:'])
-
 export function useMountAvailability(): MountAvailability {
   const { data: extensionOptions } = useExtensionOptions()
   const { configs } = useMountConfig()
   const info = useActiveTabInfo()
 
   const isExtensionEnabled = extensionOptions.enabled
-  const isMountableUrl = info !== null && MOUNTABLE_PROTOCOLS.has(info.protocol)
 
   // Prefer an enabled match — only fall back to a disabled match when there
   // is no enabled config for this URL. Otherwise a disabled config listed
@@ -46,38 +45,56 @@ export function useMountAvailability(): MountAvailability {
           (config) => !config.enabled && matchUrlAgainstConfig(config)
         )
       : undefined
-  const hasEnabledMatch = enabledMatch !== undefined
 
   // Only ping the content script when we expect one to be running: extension
-  // globally enabled, URL mountable, and an enabled config matches.
+  // globally enabled, URL is mountable (non-null info), and an enabled config
+  // matches.
   const isConnected = useIsConnected({
-    enabled: isExtensionEnabled && isMountableUrl && hasEnabledMatch,
+    enabled: isExtensionEnabled && info !== null && enabledMatch !== undefined,
   })
 
-  if (!isExtensionEnabled) {
-    return { kind: 'disabled' }
-  }
-  if (!isMountableUrl || info === null) {
-    return { kind: 'unsupported' }
-  }
-  if (disabledMatch) {
-    return {
-      kind: 'disabledConfig',
-      configId: disabledMatch.id,
-      configName: disabledMatch.name,
+  // Memoize by primitive identifiers so the returned object has a stable
+  // reference across renders when nothing actually changed. Consumers (the
+  // banner) rely on this stability to avoid infinite render loops when the
+  // availability is used as a useEffect dependency.
+  return useMemo<MountAvailability>(() => {
+    if (!isExtensionEnabled) {
+      return { kind: 'disabled' }
     }
-  }
-  if (!enabledMatch) {
-    return {
-      kind: 'noConfig',
-      url: info.url,
-      pattern: info.pattern,
-      name: info.name,
+    if (info === null) {
+      return { kind: 'unsupported' }
     }
-  }
-  // Matching enabled config: wait for the content script to respond.
-  if (isConnected === undefined || !isConnected) {
-    return { kind: 'pending' }
-  }
-  return { kind: 'connected' }
+    if (disabledMatch) {
+      return {
+        kind: 'disabledConfig',
+        configId: disabledMatch.id,
+        configName: disabledMatch.name,
+      }
+    }
+    if (!enabledMatch) {
+      return {
+        kind: 'noConfig',
+        url: info.url,
+        pattern: info.pattern,
+        name: info.name,
+      }
+    }
+    // Matching enabled config: wait for the content script to respond.
+    if (isConnected === undefined || !isConnected) {
+      return { kind: 'pending' }
+    }
+    return { kind: 'connected' }
+    // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally
+    // keyed on primitive fields of info / matches so the result stays stable
+    // across unstable object references from upstream queries.
+  }, [
+    isExtensionEnabled,
+    info?.url,
+    info?.pattern,
+    info?.name,
+    disabledMatch?.id,
+    disabledMatch?.name,
+    enabledMatch?.id,
+    isConnected,
+  ])
 }
