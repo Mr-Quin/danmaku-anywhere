@@ -3,7 +3,6 @@ import type {
   GenericEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
 import { UploadFile } from '@mui/icons-material'
-import { Alert, Button } from '@mui/material'
 import type { ReactElement } from 'react'
 import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -39,7 +38,6 @@ export interface MountPageContentProps {
   isMounted?: boolean
   isConnected?: boolean
   onGoSearch: () => void
-  onGoCreateMountConfig?: () => void
 }
 
 export const MountPageContent = ({
@@ -55,7 +53,6 @@ export const MountPageContent = ({
   isMounted = false,
   isConnected = true,
   onGoSearch,
-  onGoCreateMountConfig,
 }: MountPageContentProps): ReactElement => {
   const { t } = useTranslation()
   const { isMobile } = usePlatformInfo()
@@ -99,33 +96,6 @@ export const MountPageContent = ({
     ],
     [importFlow, t]
   )
-
-  function renderAlert() {
-    if (isConnected === undefined || isConnected) {
-      return null
-    }
-    return (
-      <Alert
-        severity="warning"
-        square
-        action={
-          <Button
-            onClick={onGoCreateMountConfig}
-            size="small"
-            color="inherit"
-            variant="text"
-          >
-            {t('mountPage.alert.checkMountConfig', 'Check Mount config')}
-          </Button>
-        }
-      >
-        {t(
-          'mountPage.alert.mountingDisabled',
-          'Cannot mount danmaku on this page'
-        )}
-      </Alert>
-    )
-  }
 
   if (viewingEpisode) {
     return (
@@ -193,8 +163,6 @@ export const MountPageContent = ({
           clearSelection={() => danmakuTreeRef.current?.clearSelection()}
           selectionCount={selectionCount}
         />
-
-        {renderAlert()}
 
         <ScrollBox flexGrow={1} overflow="auto">
           <DanmakuTree

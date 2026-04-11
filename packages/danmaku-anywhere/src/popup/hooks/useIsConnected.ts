@@ -5,9 +5,16 @@ import { tabQueryKeys } from '@/common/queries/queryKeys'
 import { controllerRpcClient } from '@/common/rpcClient/controller/client'
 import { sleep } from '@/common/utils/utils'
 
-export const useIsConnected = () => {
+interface UseIsConnectedOptions {
+  enabled?: boolean
+}
+
+export const useIsConnected = ({
+  enabled = true,
+}: UseIsConnectedOptions = {}) => {
   const query = useQuery({
     queryKey: tabQueryKeys.isConnected(),
+    enabled,
     queryFn: async () => {
       try {
         const res = (await Promise.any([

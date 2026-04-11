@@ -350,8 +350,12 @@
   },
   "mountPage": {
     "alert": {
-      "checkMountConfig": "检查装填配置",
-      "mountingDisabled": "无法在当前页面装填弹幕"
+      "createMountConfig": "创建装填配置",
+      "disabledMountConfig": "装填配置 \"{{name}}\" 已禁用",
+      "enableMountConfig": "启用配置",
+      "extensionDisabled": "弹幕任何地方已禁用",
+      "noMountConfig": "该网站暂无装填配置",
+      "pageUnsupported": "该类型页面无法装填弹幕"
     },
     "confirmDeleteMultiple_other": "确定要删除{{count}}个弹幕吗？",
     "goSearch": "前往搜索",
