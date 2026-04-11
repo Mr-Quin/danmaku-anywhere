@@ -70,7 +70,7 @@ export const SignUpForm = () => {
         <TextField
           label={t('optionsPage.auth.name', 'User Name')}
           fullWidth
-          autoComplete="name"
+          autoComplete="nickname"
           error={!!errors.name}
           helperText={
             errors.name?.message ||
@@ -85,7 +85,7 @@ export const SignUpForm = () => {
           label={t('optionsPage.auth.email', 'Email')}
           type="email"
           fullWidth
-          autoComplete="email"
+          autoComplete="username"
           error={!!errors.email}
           helperText={
             errors.email?.message ||
