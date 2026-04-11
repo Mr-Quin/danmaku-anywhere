@@ -50,6 +50,7 @@ export const SignInForm = () => {
           label={t('optionsPage.auth.email', 'Email')}
           type="email"
           fullWidth
+          autoComplete="username"
           error={!!errors.email}
           helperText={errors.email?.message}
           {...register('email')}
@@ -58,6 +59,7 @@ export const SignInForm = () => {
           label={t('optionsPage.auth.password', 'Password')}
           type="password"
           fullWidth
+          autoComplete="current-password"
           error={!!errors.password}
           helperText={errors.password?.message}
           {...register('password')}

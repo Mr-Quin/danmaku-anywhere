@@ -70,6 +70,7 @@ export const SignUpForm = () => {
         <TextField
           label={t('optionsPage.auth.name', 'User Name')}
           fullWidth
+          autoComplete="name"
           error={!!errors.name}
           helperText={
             errors.name?.message ||
@@ -84,6 +85,7 @@ export const SignUpForm = () => {
           label={t('optionsPage.auth.email', 'Email')}
           type="email"
           fullWidth
+          autoComplete="email"
           error={!!errors.email}
           helperText={
             errors.email?.message ||
@@ -98,6 +100,7 @@ export const SignUpForm = () => {
           label={t('optionsPage.auth.password', 'Password')}
           type="password"
           fullWidth
+          autoComplete="new-password"
           error={!!errors.password}
           helperText={
             errors.password?.message ||
@@ -112,6 +115,7 @@ export const SignUpForm = () => {
           label={t('optionsPage.auth.confirmPassword', 'Confirm Password')}
           type="password"
           fullWidth
+          autoComplete="new-password"
           error={!!errors.confirmPassword}
           helperText={errors.confirmPassword?.message}
           {...register('confirmPassword')}
