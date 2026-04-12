@@ -15,6 +15,7 @@ import {
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { SearchHistoryService } from '@/common/options/searchHistory/service'
+import { UserAuthStore } from '@/common/options/userAuth/service'
 import { Logger } from './backgroundLogger'
 import {
   DanmakuProviderFactory,
@@ -33,6 +34,7 @@ container.bind(StoreServiceSymbol).toService(ProviderConfigService)
 container.bind(StoreServiceSymbol).toService(AiProviderConfigService)
 container.bind(StoreServiceSymbol).toService(SearchHistoryService)
 container.bind(StoreServiceSymbol).toService(NamingRuleService)
+container.bind(StoreServiceSymbol).toService(UserAuthStore)
 
 // factory
 container

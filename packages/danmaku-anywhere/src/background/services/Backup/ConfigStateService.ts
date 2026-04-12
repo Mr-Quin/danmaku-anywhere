@@ -96,9 +96,11 @@ export class ConfigStateService {
     }
 
     await Promise.all(
-      this.services.map((service) => {
-        return restoreService(service.name, service, services[service.name])
-      })
+      this.services
+        .filter((service) => service.shouldBackup !== false)
+        .map((service) => {
+          return restoreService(service.name, service, services[service.name])
+        })
     )
 
     return result
