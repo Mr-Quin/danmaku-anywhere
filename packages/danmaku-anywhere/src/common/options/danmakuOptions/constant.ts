@@ -1,10 +1,22 @@
-import type { DanmakuOptions as DanmakuEngineOptions } from '@danmaku-anywhere/danmaku-engine'
+import type {
+  DanmakuOptions as DanmakuEngineOptions,
+  DanmakuFilter,
+} from '@danmaku-anywhere/danmaku-engine'
 
 import type { Options } from '@/common/options/OptionsService/types'
 
-export type DanmakuOptions = Omit<DanmakuEngineOptions, 'show'> & {
+export interface DedupOptions {
+  readonly enabled: boolean
+  /** Seconds tolerance for same-timestamp bucket. */
+  readonly tolerance: number
+  /** Comments whose text matches any enabled entry are exempted from dedup. */
+  readonly whitelist: DanmakuFilter[]
+}
+
+export type DanmakuOptions = Omit<DanmakuEngineOptions, 'show' | 'dedup'> & {
   readonly customCss: string
   readonly useCustomCss: boolean
+  readonly dedup: DedupOptions
 }
 
 export type DanmakuOptionsOptions = Options<DanmakuOptions>
@@ -37,4 +49,16 @@ export const defaultDanmakuOptions: DanmakuOptions = {
   },
   offset: 0,
   distribution: 'random',
+  dedup: {
+    enabled: true,
+    tolerance: 0.5,
+    whitelist: [
+      { type: 'regex', value: '^[?？!！。.,，~～\\s]+$', enabled: true },
+      { type: 'regex', value: '^(哈|h){2,}$', enabled: true },
+      { type: 'regex', value: '^w{2,}$', enabled: true },
+      { type: 'regex', value: '^(6|六){2,}$', enabled: true },
+      { type: 'regex', value: '^(草|艹)+$', enabled: true },
+      { type: 'regex', value: '^(笑|lol|LOL)$', enabled: true },
+    ],
+  },
 }

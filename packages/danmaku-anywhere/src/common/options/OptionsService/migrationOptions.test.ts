@@ -111,6 +111,55 @@ describe('migrateOptions', () => {
     expect(result).toEqual(createOptions({ foo: { bar: {} } }, 2))
   })
 
+  it('should add dedup options in v8 migration', () => {
+    const options = createOptions(
+      {
+        filters: [],
+        customCss: '',
+        useCustomCss: false,
+      },
+      7
+    )
+    const versions: Version[] = [
+      {
+        version: 8,
+        upgrade: (d) =>
+          produce<any>(d, (draft) => {
+            draft.dedup = {
+              enabled: true,
+              tolerance: 0.5,
+              whitelist: [
+                {
+                  type: 'regex',
+                  value: '^[?？!！。.,，~～\\s]+$',
+                  enabled: true,
+                },
+                { type: 'regex', value: '^(哈|h){2,}$', enabled: true },
+                { type: 'regex', value: '^w{2,}$', enabled: true },
+                { type: 'regex', value: '^(6|六){2,}$', enabled: true },
+                { type: 'regex', value: '^(草|艹)+$', enabled: true },
+                { type: 'regex', value: '^(笑|lol|LOL)$', enabled: true },
+              ],
+            }
+          }),
+      },
+    ]
+
+    const result = migrateOptions(options, versions, logger, {})
+    const data = result.data as Record<string, unknown>
+    const dedup = data.dedup as {
+      enabled: boolean
+      tolerance: number
+      whitelist: unknown[]
+    }
+
+    expect(result.version).toBe(8)
+    expect(dedup).toBeDefined()
+    expect(dedup.enabled).toBe(true)
+    expect(dedup.tolerance).toBe(0.5)
+    expect(dedup.whitelist).toHaveLength(6)
+  })
+
   it('should handle complex nested changes (add, remove, update)', () => {
     const options = createOptions({ a: { b: 1, c: 2 }, d: 3 }, 1)
     const versions: Version[] = [
