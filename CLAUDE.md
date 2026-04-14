@@ -44,6 +44,7 @@ docs/                   # Astro-based documentation site
 | Dev extension | `cd packages/danmaku-anywhere && pnpm dev` |
 | Dev web app | `cd app/web && pnpm start` |
 | Dev backend | `cd backend/proxy && pnpm dev` |
+| Extract i18n keys | `cd packages/danmaku-anywhere && pnpm i18n extract` |
 
 Always prefer scripts defined in `package.json` over ad-hoc commands. Run `pnpm type-check` instead of `tsc`/`tsgo`, `pnpm lint` instead of `biome check`, etc. When you need to run a CLI tool not available as a script, use `pnpx` (never `npx`).
 

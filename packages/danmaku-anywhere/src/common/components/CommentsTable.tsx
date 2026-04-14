@@ -1,6 +1,7 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { parseCommentEntityP } from '@danmaku-anywhere/danmaku-converter'
-import { ContentCopy, FilterList, Sync } from '@mui/icons-material'
+import { dedupComments } from '@danmaku-anywhere/danmaku-engine'
+import { ContentCopy, Deblur, FilterList, Sync } from '@mui/icons-material'
 import {
   Box,
   CircularProgress,
@@ -22,6 +23,7 @@ import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { match } from 'ts-pattern'
 import { FilterButton } from '@/common/components/FilterButton'
+import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
 import { compareLocale } from '@/common/utils/collator'
 import { ScrollBox } from './layout/ScrollBox'
 
@@ -69,13 +71,29 @@ export const CommentsTable = ({
   const [hoverRow, setHoverRow] = useState<number>()
   const [filter, setFilter] = useState('')
 
+  const { data: danmakuOptions } = useDanmakuOptions()
+  const [localHideDuplicates, setLocalHideDuplicates] = useState<
+    boolean | null
+  >(null)
+  const hideDuplicates = localHideDuplicates ?? danmakuOptions.dedup.enabled
+
+  const dedupedComments = useMemo(() => {
+    if (!hideDuplicates) {
+      return comments
+    }
+    return dedupComments(comments, {
+      ...danmakuOptions.dedup,
+      enabled: true,
+    })
+  }, [comments, hideDuplicates, danmakuOptions.dedup])
+
   const filteredComments = useMemo(() => {
     const keyword = filter.trim().toLowerCase()
     if (!keyword) {
-      return comments
+      return dedupedComments
     }
-    return comments.filter((c) => c.m.toLowerCase().includes(keyword))
-  }, [comments, filter])
+    return dedupedComments.filter((c) => c.m.toLowerCase().includes(keyword))
+  }, [dedupedComments, filter])
 
   const sortedComments = useMemo(() => {
     return match(orderBy)
@@ -119,8 +137,23 @@ export const CommentsTable = ({
         }}
       >
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          {t('danmaku.commentCounted', { count: comments.length })}
+          {t('danmaku.commentCounted', { count: dedupedComments.length })}
         </Typography>
+        <Tooltip
+          title={t('danmakuFilter.dedup.hideDuplicates', 'Hide duplicates')}
+        >
+          <IconButton
+            color={hideDuplicates ? 'primary' : 'default'}
+            onClick={() =>
+              setLocalHideDuplicates(
+                (prev) => !(prev ?? danmakuOptions.dedup.enabled)
+              )
+            }
+            size="small"
+          >
+            <Deblur />
+          </IconButton>
+        </Tooltip>
         <FilterButton filter={filter} onChange={setFilter} />
         {showRefresh && (
           <Tooltip title={t('danmaku.refresh', 'Refresh Danmaku')}>

@@ -100,6 +100,28 @@ export class DanmakuOptionsService implements IStoreService {
           })
         },
       })
+      .version(8, {
+        upgrade: (data) => {
+          return produce<PrevOptions>(data, (draft) => {
+            draft.dedup = {
+              enabled: true,
+              tolerance: 0.5,
+              whitelist: [
+                {
+                  type: 'regex',
+                  value: '^[?？!！。.,，~～\\s]+$',
+                  enabled: true,
+                },
+                { type: 'regex', value: '^(哈|h){2,}$', enabled: true },
+                { type: 'regex', value: '^w{2,}$', enabled: true },
+                { type: 'regex', value: '^(6|六){2,}$', enabled: true },
+                { type: 'regex', value: '^(草|艹)+$', enabled: true },
+                { type: 'regex', value: '^(笑|lol|LOL)$', enabled: true },
+              ],
+            }
+          })
+        },
+      })
   }
 
   async get() {

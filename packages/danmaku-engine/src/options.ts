@@ -4,6 +4,12 @@ export interface DanmakuFilter {
   enabled: boolean
 }
 
+export interface DedupConfig {
+  enabled: boolean
+  tolerance: number
+  whitelist: DanmakuFilter[]
+}
+
 export interface DanmakuStyle {
   opacity: number
   fontSize: number
@@ -56,6 +62,10 @@ export interface DanmakuOptions {
    */
   readonly overlap: number
   /**
+   * Deduplication configuration
+   */
+  readonly dedup: DedupConfig
+  /**
    * How to handle special comments
    */
   readonly specialComments: {
@@ -88,6 +98,11 @@ export const DEFAULT_DANMAKU_OPTIONS: DanmakuOptions = {
   specialComments: {
     top: 'normal',
     bottom: 'scroll',
+  },
+  dedup: {
+    enabled: false,
+    tolerance: 0,
+    whitelist: [],
   },
   offset: 0,
   distribution: 'random',

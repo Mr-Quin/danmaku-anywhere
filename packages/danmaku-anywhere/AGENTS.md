@@ -37,4 +37,5 @@ Inversify IoC container (`src/common/ioc/`) wires up dependencies across these c
 
 - `@crxjs/vite-plugin` has its own HMR behavior — don't confuse with standard Vite
 - Content scripts run in an isolated world — communication with the page requires messaging
+- **i18n workflow**: after adding or changing translation keys in source code, run `pnpm i18n extract` in this package to regenerate the JSON files (it sorts keys and removes unused ones). Then translate any new entries in the `zh` locale file. CI validates that extracted keys match the committed JSON — commits will fail the `Validate i18n translations` check if extraction is skipped.
 - See `package.json` for available scripts and dependencies

@@ -107,6 +107,16 @@ wt -w 0 new-tab --title 'DA-XXX: dev browser' -d '<worktree-path>/packages/danma
 
 Human verifies behavior live. Skip for trivial changes (config-only, types, docs).
 
+#### Extension: i18n extraction
+
+When adding or modifying i18n keys (`t('...')` calls), run extraction **before committing**:
+
+```bash
+cd <worktree-path>/packages/danmaku-anywhere && pnpm i18n extract
+```
+
+This regenerates the JSON translation files (sorts keys, removes unused entries). Then translate any new entries in the `zh` locale. CI runs `i18n:check` and will fail if the committed JSON doesn't match what extraction produces.
+
 #### Web app: Cloudflare preview
 
 After the PR is created, Cloudflare posts a preview URL. Include it when alerting the human.

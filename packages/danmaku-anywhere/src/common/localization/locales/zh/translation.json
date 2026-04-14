@@ -202,10 +202,20 @@
   "danmakuFilter": {
     "activeFilters": "生效的屏蔽词",
     "addFilterPattern": "添加屏蔽词",
+    "dedup": {
+      "description": "隐藏在相近时间出现的重复弹幕。白名单中的弹幕不受去重影响。",
+      "enableLabel": "启用去重",
+      "hideDuplicates": "隐藏重复",
+      "resetButton": "重置白名单为默认值",
+      "toleranceLabel": "时间容差（秒）",
+      "whitelistHelp": "匹配这些规则的弹幕不会被去重"
+    },
+    "dedupTab": "去重",
     "description": "通过关键字或正则屏蔽不需要的弹幕",
     "enterFilterPattern": "输入屏蔽词，正则以 \"/\" 开头和结尾",
     "enterFilterPatternPlaceholder": "输入屏蔽词",
     "enterTestText": "输入测试文本",
+    "filterTab": "过滤",
     "noActiveFilters": "没有生效的屏蔽词",
     "testFilterPatterns": "测试屏蔽词",
     "testResultExclude": "这段文本将被过滤",
