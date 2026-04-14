@@ -4,7 +4,7 @@ import {
   parseCommentGradient,
 } from '@danmaku-anywhere/danmaku-converter'
 
-import type { DanmakuFilter } from './options'
+import type { DanmakuFilter, DedupConfig } from './options'
 
 // copied from danmaku
 export interface ParsedComment {
@@ -100,4 +100,52 @@ export const filterComments = (
   return comments.filter((comment) => {
     return !applyFilter(comment.m, filters)
   })
+}
+
+export function dedupComments(
+  comments: CommentEntity[],
+  config: DedupConfig
+): CommentEntity[] {
+  if (!config.enabled) {
+    return comments
+  }
+
+  if (comments.length <= 1) {
+    return comments
+  }
+
+  // Create index pairs so we can sort by time but restore to mark kept/dropped
+  const indexed = comments.map((c, i) => ({
+    comment: c,
+    time: parseCommentEntityP(c.p).time,
+    originalIndex: i,
+  }))
+
+  // Stable sort by time
+  indexed.sort((a, b) => a.time - b.time)
+
+  // Track which original indices are kept
+  const kept = new Set<number>()
+  const lastKeptTime = new Map<string, number>()
+
+  for (const { comment, time, originalIndex } of indexed) {
+    // Check if whitelisted (exempt from dedup)
+    if (applyFilter(comment.m, config.whitelist)) {
+      kept.add(originalIndex)
+      continue
+    }
+
+    const prev = lastKeptTime.get(comment.m)
+    if (prev !== undefined && Math.abs(time - prev) <= config.tolerance) {
+      // Duplicate within tolerance — drop
+      continue
+    }
+
+    // Keep this comment
+    kept.add(originalIndex)
+    lastKeptTime.set(comment.m, time)
+  }
+
+  // Preserve original order
+  return comments.filter((_, i) => kept.has(i))
 }
