@@ -219,6 +219,18 @@
       "duplicate": "Pattern already exists",
       "invalidRegex": "Invalid regex {{message}}",
       "patternEmpty": "Pattern cannot be empty"
+    },
+    "filterTab": "Filter",
+    "dedupTab": "Dedup",
+    "dedup": {
+      "title": "Deduplication",
+      "description": "Hide duplicate danmaku that appear at similar timestamps. Whitelist entries are exempt from deduplication.",
+      "enableLabel": "Enable deduplication",
+      "toleranceLabel": "Time tolerance (seconds)",
+      "resetButton": "Reset whitelist to defaults",
+      "whitelistTitle": "Whitelist",
+      "whitelistHelp": "Danmaku matching these patterns will not be deduplicated",
+      "hideDuplicates": "Hide duplicates"
     }
   },
   "danmakuPage": {

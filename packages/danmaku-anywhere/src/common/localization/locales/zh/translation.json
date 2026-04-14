@@ -214,6 +214,18 @@
       "duplicate": "重复的屏蔽词",
       "invalidRegex": "无效的正则 {{message}}",
       "patternEmpty": "屏蔽词不能为空"
+    },
+    "filterTab": "过滤",
+    "dedupTab": "去重",
+    "dedup": {
+      "title": "去重",
+      "description": "隐藏在相近时间出现的重复弹幕。白名单中的弹幕不受去重影响。",
+      "enableLabel": "启用去重",
+      "toleranceLabel": "时间容差（秒）",
+      "resetButton": "重置白名单为默认值",
+      "whitelistTitle": "白名单",
+      "whitelistHelp": "匹配这些规则的弹幕不会被去重",
+      "hideDuplicates": "隐藏重复"
     }
   },
   "danmakuPage": {
