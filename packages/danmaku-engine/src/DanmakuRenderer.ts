@@ -2,7 +2,12 @@ import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { create, type Manager } from '@mr-quin/danmu'
 import { mapIter, sampleByTime } from './iterator'
 import { type DanmakuOptions, DEFAULT_DANMAKU_OPTIONS } from './options'
-import { applyFilter, type ParsedComment, transformComment } from './parser'
+import {
+  applyFilter,
+  dedupComments,
+  type ParsedComment,
+  transformComment,
+} from './parser'
 import { bindVideo } from './plugins/bindVideo'
 import { deepEqual } from './utils'
 
@@ -39,7 +44,9 @@ export class DanmakuRenderer {
     this.comments = comments
     this.config = this.mergeConfig(config)
 
-    const commentGenerator = mapIter(comments, (comment) =>
+    const dedupedComments = dedupComments(comments, this.config.dedup)
+
+    const commentGenerator = mapIter(dedupedComments, (comment) =>
       transformComment(comment, 0)
     )
 
@@ -127,6 +134,15 @@ export class DanmakuRenderer {
 
     if (!this.manager) return
 
+    // If dedup config changed, we need to re-create with the original comments
+    // because dedup is a set-level operation
+    if (!deepEqual(prevConfig.dedup, this.config.dedup)) {
+      if (this.container && this.media) {
+        this.create(this.container, this.media, this.comments, this.config)
+      }
+      return
+    }
+
     if (!deepEqual(prevConfig.area, this.config.area)) {
       this.setArea()
     }
@@ -171,9 +187,12 @@ export class DanmakuRenderer {
   private mergeConfig = (config?: Partial<DanmakuOptions>): DanmakuOptions => {
     if (!config) return this.config
 
-    // manually merge styles
+    // manually merge nested objects
     const style = { ...this.config.style, ...config.style }
-    return { ...this.config, ...config, style }
+    const dedup = config.dedup
+      ? { ...this.config.dedup, ...config.dedup }
+      : this.config.dedup
+    return { ...this.config, ...config, style, dedup }
   }
 
   destroy(): void {
