@@ -114,23 +114,35 @@ export function dedupComments(
     return comments
   }
 
-  // Create index pairs so we can sort by time but restore to mark kept/dropped
+  // Create index pairs so we can sort by time and break ties by original order
   const indexed = comments.map((c, i) => ({
     comment: c,
     time: parseCommentEntityP(c.p).time,
     originalIndex: i,
   }))
 
-  // Stable sort by time
-  indexed.sort((a, b) => a.time - b.time)
+  // Deterministic sort by time, then original order for equal timestamps
+  indexed.sort((a, b) => a.time - b.time || a.originalIndex - b.originalIndex)
 
   // Track which original indices are kept
   const kept = new Set<number>()
   const lastKeptTime = new Map<string, number>()
 
+  // Cache whitelist results per message text to avoid recompiling regexes
+  const whitelistCache = new Map<string, boolean>()
+  const isWhitelisted = (text: string): boolean => {
+    const cached = whitelistCache.get(text)
+    if (cached !== undefined) {
+      return cached
+    }
+    const matched = applyFilter(text, config.whitelist)
+    whitelistCache.set(text, matched)
+    return matched
+  }
+
   for (const { comment, time, originalIndex } of indexed) {
     // Check if whitelisted (exempt from dedup)
-    if (applyFilter(comment.m, config.whitelist)) {
+    if (isWhitelisted(comment.m)) {
       kept.add(originalIndex)
       continue
     }

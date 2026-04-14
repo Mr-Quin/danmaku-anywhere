@@ -7,7 +7,7 @@ import type { Options } from '@/common/options/OptionsService/types'
 
 export interface DedupOptions {
   readonly enabled: boolean
-  /** Seconds tolerance for same-timestamp bucket. */
+  /** Seconds tolerance for considering comments duplicates within a rolling +/- time window. */
   readonly tolerance: number
   /** Comments whose text matches any enabled entry are exempted from dedup. */
   readonly whitelist: DanmakuFilter[]

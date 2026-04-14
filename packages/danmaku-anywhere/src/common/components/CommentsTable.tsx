@@ -72,9 +72,10 @@ export const CommentsTable = ({
   const [filter, setFilter] = useState('')
 
   const { data: danmakuOptions } = useDanmakuOptions()
-  const [hideDuplicates, setHideDuplicates] = useState(
-    danmakuOptions.dedup.enabled
-  )
+  const [localHideDuplicates, setLocalHideDuplicates] = useState<
+    boolean | null
+  >(null)
+  const hideDuplicates = localHideDuplicates ?? danmakuOptions.dedup.enabled
 
   const dedupedComments = useMemo(() => {
     if (!hideDuplicates) {
@@ -143,7 +144,11 @@ export const CommentsTable = ({
         >
           <IconButton
             color={hideDuplicates ? 'primary' : 'default'}
-            onClick={() => setHideDuplicates((prev) => !prev)}
+            onClick={() =>
+              setLocalHideDuplicates(
+                (prev) => !(prev ?? danmakuOptions.dedup.enabled)
+              )
+            }
             size="small"
           >
             <Deblur />

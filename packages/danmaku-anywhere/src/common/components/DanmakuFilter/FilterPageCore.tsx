@@ -44,6 +44,7 @@ export const FilterPageCore = ({
   const [activeTab, setActiveTab] = useState(0)
   const [filterError, setFilterError] = useState<string>('')
   const [dedupFilterError, setDedupFilterError] = useState<string>('')
+  const [localTolerance, setLocalTolerance] = useState<number | null>(null)
 
   const handleUpdate = (updater: (draft: Draft<DanmakuOptions>) => void) => {
     void partialUpdate(produce(config, updater))
@@ -188,8 +189,12 @@ export const FilterPageCore = ({
             {t('danmakuFilter.dedup.toleranceLabel')}
           </Typography>
           <Slider
-            value={config.dedup.tolerance}
+            value={localTolerance ?? config.dedup.tolerance}
             onChange={(_, value) => {
+              setLocalTolerance(value as number)
+            }}
+            onChangeCommitted={(_, value) => {
+              setLocalTolerance(null)
               handleUpdate((draft) => {
                 draft.dedup.tolerance = value as number
               })
