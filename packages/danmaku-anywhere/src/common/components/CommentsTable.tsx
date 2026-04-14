@@ -80,7 +80,10 @@ export const CommentsTable = ({
     if (!hideDuplicates) {
       return comments
     }
-    return dedupComments(comments, danmakuOptions.dedup)
+    return dedupComments(comments, {
+      ...danmakuOptions.dedup,
+      enabled: true,
+    })
   }, [comments, hideDuplicates, danmakuOptions.dedup])
 
   const filteredComments = useMemo(() => {
