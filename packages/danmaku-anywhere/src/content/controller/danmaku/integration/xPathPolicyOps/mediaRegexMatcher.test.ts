@@ -53,6 +53,15 @@ describe('mediaRegexMatcher', () => {
       )
     })
 
+    it('should handle formal Chinese numerals (大写数字)', () => {
+      expect(mediaRegexMatcher.findCommonSeason('我的动画 第叁季')?.value).toBe(
+        '第叁季'
+      )
+      expect(mediaRegexMatcher.findCommonSeason('我的动画 第拾季')?.value).toBe(
+        '第拾季'
+      )
+    })
+
     it('should be strict (avoid false positives)', () => {
       expect(mediaRegexMatcher.findCommonSeason('DNS1')).toBe(null)
       expect(mediaRegexMatcher.findCommonSeason('TheSeason1')?.value).toBe(
@@ -91,6 +100,17 @@ describe('mediaRegexMatcher', () => {
       expect(mediaRegexMatcher.findCommonEpisode('Apple12')).toBe(null)
       expect(mediaRegexMatcher.findCommonEpisode('episode2')).toBe(null)
       expect(mediaRegexMatcher.findCommonEpisode('AppleE12')).toBe(null)
+    })
+
+    it('should handle formal Chinese numerals (大写数字)', () => {
+      expect(mediaRegexMatcher.findCommonEpisode('第叁集')?.value).toBe('叁')
+      expect(mediaRegexMatcher.findCommonEpisode('第壹集')?.value).toBe('壹')
+      expect(mediaRegexMatcher.findCommonEpisode('第拾贰集')?.value).toBe(
+        '拾贰'
+      )
+      expect(mediaRegexMatcher.findCommonEpisode('第贰拾叁话')?.value).toBe(
+        '贰拾叁'
+      )
     })
   })
 })

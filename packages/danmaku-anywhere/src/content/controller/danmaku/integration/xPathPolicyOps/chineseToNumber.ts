@@ -1,19 +1,38 @@
 const unitMap: Record<string, number> = {
   十: 10,
+  拾: 10,
   百: 100,
+  佰: 100,
   千: 1000,
+  仟: 1000,
   万: 10000,
 }
 
 const cnNums = '零一二三四五六七八九'
-const numMap: Record<string, number> = {}
+// Formal numerals (大写数字) for digits 1–9, including simplified and traditional variants
+const formalNums: Record<string, number> = {
+  壹: 1,
+  贰: 2,
+  貳: 2,
+  叁: 3,
+  參: 3,
+  弎: 3,
+  肆: 4,
+  伍: 5,
+  陆: 6,
+  陸: 6,
+  柒: 7,
+  捌: 8,
+  玖: 9,
+}
+const numMap: Record<string, number> = { ...formalNums }
 for (let i = 0; i < cnNums.length; i++) {
   numMap[cnNums[i]] = i
 }
 
-// Additional mapping for complex chars if needed, but basic ones cover most cases
-// Handling "两" as 2
+// "两" / "兩" used informally for 2
 numMap['两'] = 2
+numMap['兩'] = 2
 
 const numRegex = /^\d+$/
 
