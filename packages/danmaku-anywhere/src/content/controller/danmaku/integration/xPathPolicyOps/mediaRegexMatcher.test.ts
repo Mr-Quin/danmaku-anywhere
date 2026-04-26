@@ -112,5 +112,11 @@ describe('mediaRegexMatcher', () => {
         '贰拾叁'
       )
     })
+
+    it('should handle formal Chinese season and episode in the same title', () => {
+      const input = '我的动画 第叁季 第拾贰集'
+      expect(mediaRegexMatcher.findCommonSeason(input)?.value).toBe('第叁季')
+      expect(mediaRegexMatcher.findCommonEpisode(input)?.value).toBe('拾贰')
+    })
   })
 })

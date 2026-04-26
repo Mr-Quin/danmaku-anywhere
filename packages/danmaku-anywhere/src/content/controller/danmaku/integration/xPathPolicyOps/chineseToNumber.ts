@@ -6,6 +6,7 @@ const unitMap: Record<string, number> = {
   千: 1000,
   仟: 1000,
   万: 10000,
+  萬: 10000,
 }
 
 const cnNums = '零一二三四五六七八九'
