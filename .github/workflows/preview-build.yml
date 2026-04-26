@@ -102,6 +102,7 @@ jobs:
     if: needs.check-changes.outputs.is_pr == 'true' && success()
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: write
       issues: write
     steps:

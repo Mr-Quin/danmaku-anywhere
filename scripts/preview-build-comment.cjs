@@ -46,19 +46,26 @@ module.exports = async ({ github, context, prNumber, ref, runNumber }) => {
 
   await upsertComment(Number(prNumber))
 
-  const linked = await github.graphql(
-    `query($owner:String!,$repo:String!,$pr:Int!) {
-       repository(owner:$owner, name:$repo) {
-         pullRequest(number:$pr) {
-           closingIssuesReferences(first: 50) { nodes { number } }
+  let issueNumbers = []
+  try {
+    const linked = await github.graphql(
+      `query($owner:String!,$repo:String!,$pr:Int!) {
+         repository(owner:$owner, name:$repo) {
+           pullRequest(number:$pr) {
+             closingIssuesReferences(first: 50) { nodes { number } }
+           }
          }
-       }
-     }`,
-    { owner, repo, pr: Number(prNumber) }
-  )
-  const issueNumbers = (
-    linked?.repository?.pullRequest?.closingIssuesReferences?.nodes ?? []
-  ).map((n) => n.number)
+       }`,
+      { owner, repo, pr: Number(prNumber) }
+    )
+    issueNumbers = (
+      linked?.repository?.pullRequest?.closingIssuesReferences?.nodes ?? []
+    ).map((n) => n.number)
+  } catch (error) {
+    console.warn(
+      `Failed to fetch linked issues for PR #${prNumber}: ${error.message}`
+    )
+  }
 
   for (const num of issueNumbers) {
     await upsertComment(num)
