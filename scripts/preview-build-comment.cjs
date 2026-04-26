@@ -18,13 +18,21 @@ module.exports = async ({ github, context, prNumber, ref, runNumber }) => {
   ].join('\n')
 
   async function upsertComment(issueNumber) {
-    const comments = await github.paginate(github.rest.issues.listComments, {
-      owner,
-      repo,
-      issue_number: issueNumber,
-      per_page: 100,
-    })
-    const existing = comments.find((c) => c.body && c.body.includes(MARKER))
+    let existing = null
+    for await (const { data: comments } of github.paginate.iterator(
+      github.rest.issues.listComments,
+      {
+        owner,
+        repo,
+        issue_number: issueNumber,
+        per_page: 100,
+      }
+    )) {
+      existing = comments.find((c) => c.body && c.body.includes(MARKER))
+      if (existing) {
+        break
+      }
+    }
     if (existing) {
       await github.rest.issues.updateComment({
         owner,
@@ -52,15 +60,27 @@ module.exports = async ({ github, context, prNumber, ref, runNumber }) => {
       `query($owner:String!,$repo:String!,$pr:Int!) {
          repository(owner:$owner, name:$repo) {
            pullRequest(number:$pr) {
-             closingIssuesReferences(first: 50) { nodes { number } }
+             closingIssuesReferences(first: 50) {
+               nodes {
+                 number
+                 repository { nameWithOwner }
+               }
+             }
            }
          }
        }`,
       { owner, repo, pr: Number(prNumber) }
     )
-    issueNumbers = (
+    const currentRepo = `${owner}/${repo}`
+    const nodes =
       linked?.repository?.pullRequest?.closingIssuesReferences?.nodes ?? []
-    ).map((n) => n.number)
+    issueNumbers = [
+      ...new Set(
+        nodes
+          .filter((n) => n?.repository?.nameWithOwner === currentRepo)
+          .map((n) => n.number)
+      ),
+    ]
   } catch (error) {
     console.warn(
       `Failed to fetch linked issues for PR #${prNumber}: ${error.message}`
@@ -68,6 +88,12 @@ module.exports = async ({ github, context, prNumber, ref, runNumber }) => {
   }
 
   for (const num of issueNumbers) {
-    await upsertComment(num)
+    try {
+      await upsertComment(num)
+    } catch (error) {
+      console.warn(
+        `Failed to comment on linked issue #${num}: ${error.message}`
+      )
+    }
   }
 }
