@@ -96,3 +96,25 @@ jobs:
           script: |
             const script = require('./scripts/update-nightly-tag.cjs');
             await script({github, context});
+
+  comment-preview-pr:
+    needs: [ check-changes, publish-preview ]
+    if: needs.check-changes.outputs.is_pr == 'true' && success()
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Comment release link on PR and linked issues
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const script = require('./scripts/preview-build-comment.cjs');
+            await script({
+              github,
+              context,
+              prNumber: '${{ needs.check-changes.outputs.pr_number }}',
+              ref: '${{ needs.check-changes.outputs.ref }}',
+              runNumber: '${{ github.run_number }}',
+            });
