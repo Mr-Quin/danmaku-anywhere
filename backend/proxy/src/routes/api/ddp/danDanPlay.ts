@@ -37,6 +37,10 @@ danDanPlay.all(
     target.pathname = '/v1'
 
     const request = new Request(target, c.req.raw)
+    request.headers.delete('da-authenticated')
+    if (c.get('authUser')) {
+      request.headers.set('da-authenticated', '1')
+    }
 
     return service.fetch(request)
   }

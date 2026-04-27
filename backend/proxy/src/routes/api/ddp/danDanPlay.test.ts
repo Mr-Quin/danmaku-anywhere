@@ -1,11 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AuthUser } from '@/auth/types'
 import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
 import '@/test-utils/mockBindings'
 import { env } from 'cloudflare:test'
+import { factory } from '@/factory'
 import { createTestUrl } from '@/test-utils/createTestUrl'
+import { ddpRouter } from './router'
 
 describe('DanDanPlay API', () => {
   const fetchMock = vi.fn<(request: Request) => Promise<Response>>()
+
+  const createAppWithUser = (user: AuthUser | null) => {
+    const app = factory.createApp()
+    app.use('*', async (c, next) => {
+      c.set('authUser', user)
+      return next()
+    })
+    app.route('/ddp', ddpRouter)
+    return app
+  }
 
   beforeEach(() => {
     fetchMock.mockReset()
@@ -64,5 +77,39 @@ describe('DanDanPlay API', () => {
     expect(forwardedRequest.url).toBe(
       'http://example.com/v1?path=%2Fv2%2Fcomment%2F12345%3Ffrom%3D0%26withRelated%3Dtrue&source=legacy'
     )
+  })
+
+  it('sets da-authenticated header when user is signed in', async () => {
+    const app = createAppWithUser({ id: 'user-1' } as AuthUser)
+    const request = new Request(
+      createTestUrl('/ddp/v1', { query: { path: '/v2/search/anime' } })
+    )
+    await makeUnitTestRequest(request, { app })
+
+    const forwardedRequest = fetchMock.mock.calls[0][0]
+    expect(forwardedRequest.headers.get('da-authenticated')).toBe('1')
+  })
+
+  it('does not set da-authenticated header when user is not signed in', async () => {
+    const app = createAppWithUser(null)
+    const request = new Request(
+      createTestUrl('/ddp/v1', { query: { path: '/v2/search/anime' } })
+    )
+    await makeUnitTestRequest(request, { app })
+
+    const forwardedRequest = fetchMock.mock.calls[0][0]
+    expect(forwardedRequest.headers.get('da-authenticated')).toBeNull()
+  })
+
+  it('strips client-supplied da-authenticated header when not signed in', async () => {
+    const app = createAppWithUser(null)
+    const request = new Request(
+      createTestUrl('/ddp/v1', { query: { path: '/v2/search/anime' } }),
+      { headers: { 'da-authenticated': '1' } }
+    )
+    await makeUnitTestRequest(request, { app })
+
+    const forwardedRequest = fetchMock.mock.calls[0][0]
+    expect(forwardedRequest.headers.get('da-authenticated')).toBeNull()
   })
 })
