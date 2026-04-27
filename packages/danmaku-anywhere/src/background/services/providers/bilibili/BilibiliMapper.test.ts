@@ -4,7 +4,7 @@ import { BilibiliMapper } from './BilibiliMapper'
 
 type BilibiliEpisode = BilibiliBangumiInfo['episodes'][number]
 
-function makeBilibiliEpisode(show_title: string): BilibiliEpisode {
+function makeBilibiliEpisode(show_title: string) {
   return {
     aid: 1,
     cid: 1,
