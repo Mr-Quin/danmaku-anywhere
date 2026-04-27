@@ -12,14 +12,23 @@ import type {
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { OmitSeasonId } from '../IDanmakuProvider'
 
+const BARE_NUMERIC_TITLE_RE = /^\d+$/
+
 export class BilibiliMapper {
   static toEpisode(
     data: BilibiliBangumiInfo['episodes'][number]
   ): OmitSeasonId<BilibiliOf<EpisodeMeta>> {
+    const title = stripHtml(data.show_title).trim()
+    // if title is a bare number, treat it as episode number
+    const episodeNumber = BARE_NUMERIC_TITLE_RE.test(title)
+      ? Number.parseInt(title, 10)
+      : undefined
+
     return {
       provider: DanmakuSourceType.Bilibili,
       imageUrl: data.cover,
-      title: stripHtml(data.show_title),
+      title,
+      episodeNumber,
       alternativeTitle: [data.long_title, data.share_copy],
       externalLink: data.link,
       providerIds: {
