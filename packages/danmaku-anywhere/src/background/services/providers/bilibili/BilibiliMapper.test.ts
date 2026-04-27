@@ -27,6 +27,11 @@ describe('BilibiliMapper.toEpisode', () => {
     expect(result.episodeNumber).toBe(10)
   })
 
+  it('sets episodeNumber to 0 when show_title is "0"', () => {
+    const result = BilibiliMapper.toEpisode(makeBilibiliEpisode('0'))
+    expect(result.episodeNumber).toBe(0)
+  })
+
   it('leaves episodeNumber undefined when show_title has a 第N话 prefix', () => {
     const result = BilibiliMapper.toEpisode(
       makeBilibiliEpisode('第1话 小埋、再一次！')
