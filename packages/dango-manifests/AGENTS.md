@@ -34,16 +34,31 @@ The whole upstream path + query is embedded as the **value** of the single `path
 
 For sources that don't need a proxy (Bilibili, Tencent, etc.), point at the upstream host directly and list it in `hosts`.
 
-## ddp-compat (planned, separate manifest)
+## ddp-compat (`builtin:ddp-compat`)
 
-The legacy provider had an `isCustom` mode that swapped the proxy URL for a user-supplied base URL pointing at a self-hosted DDP-compatible server. Under the manifest model this becomes a **separate manifest** (`builtin:ddp-compat`), not a flag on `builtin:dandanplay`:
+The legacy provider had an `isCustom` mode that swapped the proxy URL for a user-supplied base URL pointing at a self-hosted DDP-compatible server. Under the manifest model this is a **separate manifest** with one runtime instance per user config:
 
-- `configSchema` declares a user-supplied `baseUrl` field
-- URL templates reference it via JSONata: `url: configSchema.baseUrl & '/v2/search/anime'`
-- `hosts: ['*']` (wildcard, since the host comes from config — the engine already supports this)
+- `configSchema` declares `baseUrl` (user-editable string)
+- `authHeaders` is a per-call input array of `{key, value}` pairs — the extension supplies it from the stored provider config's `options.auth.headers`. Single `headers` expression on the request evaluates to `authHeaders.{key: value}` (grouping operator) which builds the dynamic header map.
+- `hosts: ['*']` (wildcard, since the host comes from config)
 - No proxy routing — direct calls
 
-The engine pattern is exercised in [`packages/dango/src/__tests__/rewriteHeaders.test.ts`](../dango/src/__tests__/rewriteHeaders.test.ts) ("supports config-templated rewrite values (DDP-Compat use case)"). It's not in this package yet.
+One template manifest serves N user-added `DanDanPlayCompatible` provider configs. The user's instance UUID and `options` live in the provider config DB and reference this manifest by id at dispatch time.
+
+## Bilibili (`builtin:bilibili`)
+
+Two parallel `media_bangumi` + `media_ft` calls under `search`. Episodes go through `/pgc/view/web/season`. Danmaku has two variants:
+
+- `xml` — single call, response is XML; the manifest splits each `<d p="...">` attribute's comma-separated fields and rebuilds the canonical `time,mode,color,uid` shape.
+- `protobuf` (default) — `forEach` over `$range(1, 31)` (up to 30 six-minute segments = 3 hour cap). Each iteration decodes the inline `dm.v1.DmSegMobileReply` proto carried in `protoSchemas.bili`. Bilibili returns 304 past the last segment, which the request opts into via `acceptStatus: [304]`; the engine treats the empty body as an empty payload.
+
+Modes 2 and 3 (substyles of scroll-right) collapse to mode 1 in the canonical output; modes outside `{1,4,5,6}` are filtered out.
+
+## Tencent (`builtin:tencent`)
+
+POST endpoints with complex JSON bodies. Episodes pagination uses `forEach.breakOn` ("stop when this page has < 100 items"), forcing sequential iteration. Danmaku is two-phase: an `http` step hits `barrage/base/{vid}` to discover segment names, an `assign` step flattens `segment_index.*.segment_name` into an array, and a `forEach` fetches each segment in parallel.
+
+Comment styling: `content_style` is a JSON-encoded string in the response. The manifest uses `$jsonParse` to extract the hex color, falling back to white when missing or unparseable.
 
 ## Conventions
 

@@ -125,27 +125,44 @@ async function runStep(
         `forEach.in must evaluate to an array, got ${typeof items}`
       )
     }
-    const perItemResults = await runWithConcurrency(
-      items,
-      step.concurrency,
-      step.throttleMs,
-      options.signal,
-      async (element: unknown) => {
-        throwIfAborted(options.signal)
-        const iterContext: Context = { ...context, [step.as]: element }
-        const response = await executeRequest(step.request, iterContext, {
-          fetcher: options.fetcher,
-          allowedHosts: manifest.hosts,
-          signal: options.signal,
-          protoRegistry: options.protoRegistry,
-        })
-        const extracted = await runHttpExtract(response, step.extract)
-        if (!step.collect) {
-          return extracted
-        }
-        return evalExpr(step.collect, extracted)
+    const runIteration = async (element: unknown) => {
+      throwIfAborted(options.signal)
+      const iterContext: Context = { ...context, [step.as]: element }
+      const response = await executeRequest(step.request, iterContext, {
+        fetcher: options.fetcher,
+        allowedHosts: manifest.hosts,
+        signal: options.signal,
+        protoRegistry: options.protoRegistry,
+      })
+      const extracted = await runHttpExtract(response, step.extract)
+      if (!step.collect) {
+        return extracted
       }
-    )
+      return evalExpr(step.collect, extracted)
+    }
+    let perItemResults: unknown[]
+    if (step.breakOn) {
+      // Sequential mode with early exit. The breakOn predicate is evaluated
+      // against each iteration's collected result; truthy stops the loop AFTER
+      // including the current result (so a "this page is partial" predicate
+      // still keeps the final partial page).
+      perItemResults = []
+      const stopExpr = step.breakOn
+      for (const element of items) {
+        const result = await runIteration(element)
+        perItemResults.push(result)
+        const stop = await evalExpr(stopExpr, result)
+        if (stop) break
+      }
+    } else {
+      perItemResults = await runWithConcurrency(
+        items,
+        step.concurrency,
+        step.throttleMs,
+        options.signal,
+        runIteration
+      )
+    }
     /** Flat-concat per-iteration arrays; non-array values contribute themselves. */
     const flat: unknown[] = []
     for (const r of perItemResults) {

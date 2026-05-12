@@ -97,11 +97,36 @@ async function buildHeaders(
 ): Promise<Record<string, string>> {
   const out: Record<string, string> = {}
   if (!spec.headers) return out
-  for (const [name, expr] of Object.entries(spec.headers)) {
+  const entries = await resolveHeaderEntries(spec.headers, context)
+  for (const [name, value] of entries) {
     if (FORBIDDEN_HEADERS.has(name.toLowerCase())) {
       throw new Error(`header "${name}" not allowed in manifest`)
     }
-    out[name] = await evalString(expr, context)
+    out[name] = value
+  }
+  return out
+}
+
+async function resolveHeaderEntries(
+  headers: NonNullable<RequestSpec['headers']>,
+  context: unknown
+): Promise<[string, string][]> {
+  if (typeof headers === 'string') {
+    const obj = await evalExpr(headers, context)
+    if (obj === null || obj === undefined) return []
+    if (typeof obj !== 'object' || Array.isArray(obj)) {
+      throw new TypeError(
+        `request.headers expression must evaluate to an object, got ${Array.isArray(obj) ? 'array' : typeof obj}`
+      )
+    }
+    return Object.entries(obj as Record<string, unknown>).map(([k, v]) => [
+      k,
+      String(v ?? ''),
+    ])
+  }
+  const out: [string, string][] = []
+  for (const [name, expr] of Object.entries(headers)) {
+    out.push([name, await evalString(expr, context)])
   }
   return out
 }
@@ -169,7 +194,9 @@ export async function executeRequest(
     signal: options.signal,
     rewriteHeaders,
   })
-  if (res.status < 200 || res.status >= 300) {
+  const isOk = res.status >= 200 && res.status < 300
+  const isAccepted = spec.acceptStatus.includes(res.status)
+  if (!isOk && !isAccepted) {
     throw new Error(`HTTP ${res.status} for ${url}`)
   }
   if (spec.format === 'proto') {

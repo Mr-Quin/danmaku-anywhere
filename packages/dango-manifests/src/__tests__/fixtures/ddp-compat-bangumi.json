@@ -1,0 +1,17 @@
+{
+  "errorCode": 0,
+  "errorMessage": "",
+  "success": true,
+  "bangumi": {
+    "animeId": 991,
+    "bangumiId": "compat-991",
+    "animeTitle": "Self-Hosted Show",
+    "type": "tvseries",
+    "typeDescription": "TV动画",
+    "imageUrl": "https://my-server.com/img/991.jpg",
+    "episodes": [
+      { "episodeId": 9910001, "episodeTitle": "EP1", "episodeNumber": "1" },
+      { "episodeId": 9910002, "episodeTitle": "EP2", "episodeNumber": "2" }
+    ]
+  }
+}

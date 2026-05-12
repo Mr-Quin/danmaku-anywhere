@@ -88,6 +88,17 @@ function timeToSeconds(s: string): number {
   return parts[0] ?? 0
 }
 
+/** Parse a JSON-encoded string. Returns null on parse error (manifests should
+ * use ` ? : ` to default when a field is sometimes JSON-encoded, sometimes
+ * already an object). */
+function jsonParse(input: string): unknown {
+  try {
+    return JSON.parse(input)
+  } catch {
+    return null
+  }
+}
+
 /** Strip `callback(...)` wrapper. Safe parse only — no eval. */
 function jsonpUnwrap(input: string): unknown {
   const first = input.indexOf('(')
@@ -115,6 +126,7 @@ export const helpers: Record<string, Helper> = {
       String(pattern),
       typeof group === 'number' ? group : 1
     ),
+  jsonParse: (s) => jsonParse(String(s)),
   jsonpUnwrap: (s) => jsonpUnwrap(String(s)),
   timeToSeconds: (s) => timeToSeconds(String(s)),
 
