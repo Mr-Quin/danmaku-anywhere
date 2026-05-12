@@ -1,0 +1,23 @@
+{
+  "apiVersion": 1,
+  "id": "youku",
+  "name": "Youku",
+  "version": "0.1.0",
+  "hosts": ["search.youku.com", "openapi.youku.com"],
+  "search": {
+    "inputs": ["q"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "search",
+        "request": {
+          "method": "GET",
+          "url": "'https://search.youku.com/api/search'",
+          "query": "{ 'keyword': q, 'site': '1', 'categories': '0', 'ftype': '0', 'ob': '0', 'pg': '1' }",
+          "headers": { "Referer": "'https://www.youku.com/'" }
+        }
+      }
+    ],
+    "output": "[search.pageComponentList[commonData.isYouku=1 or commonData.hasYouku=1].commonData.{ 'providerIds': { 'showId': showId }, 'title': $replace(titleDTO.displayName, /<[^>]+>/, '') ~> $replace(/【.+?】/, '') ~> $trim, 'type': cats, 'year': $number($regexExtract(feature, '([12][890][0-9][0-9])')), 'imageUrl': posterDTO.vThumbUrl, 'episodeCount': episodeTotal }[providerIds.showId]]"
+  }
+}
