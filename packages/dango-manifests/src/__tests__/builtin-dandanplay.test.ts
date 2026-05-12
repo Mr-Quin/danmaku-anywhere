@@ -1,7 +1,9 @@
 import type { FetchLike } from '@danmaku-anywhere/dango'
 import { ManifestRunner, zManifest } from '@danmaku-anywhere/dango'
 import { describe, expect, it } from 'vitest'
-import { builtinDandanplay } from '../index.js'
+import builtinDandanplay from '../manifests/builtin-dandanplay.json' with {
+  type: 'json',
+}
 import bangumiFixture from './fixtures/ddp-bangumi.json' with { type: 'json' }
 import commentsFixture from './fixtures/ddp-comments.json' with { type: 'json' }
 import searchFixture from './fixtures/ddp-search.json' with { type: 'json' }
@@ -40,14 +42,16 @@ function mockFetcher(handlers: Record<string, MockResponse>): {
   return { fetcher, calls }
 }
 
+const PROXY_BASE = 'https://api.danmaku.weeblify.app/ddp/v1'
+
 describe('builtin:dandanplay manifest', () => {
   it('parses against zManifest', () => {
     expect(() => zManifest.parse(builtinDandanplay)).not.toThrow()
   })
 
-  it('runs the search pipeline and maps to canonical shape', async () => {
+  it('runs the search pipeline through the proxy and maps to canonical shape', async () => {
     const { fetcher, calls } = mockFetcher({
-      'https://api.dandanplay.net/api/v2/search/anime?keyword=frieren': {
+      [`${PROXY_BASE}?path=%2Fv2%2Fsearch%2Fanime%3Fkeyword%3Dfrieren`]: {
         body: JSON.stringify(searchFixture),
       },
     })
@@ -81,14 +85,11 @@ describe('builtin:dandanplay manifest', () => {
     ])
 
     expect(calls).toHaveLength(1)
-    expect(calls[0].url).toBe(
-      'https://api.dandanplay.net/api/v2/search/anime?keyword=frieren'
-    )
   })
 
-  it('runs the episodes pipeline and maps to canonical shape', async () => {
+  it('runs the episodes pipeline through the proxy and maps to canonical shape', async () => {
     const { fetcher, calls } = mockFetcher({
-      'https://api.dandanplay.net/api/v2/bangumi/400602': {
+      [`${PROXY_BASE}?path=%2Fv2%2Fbangumi%2F400602`]: {
         body: JSON.stringify(bangumiFixture),
       },
     })
@@ -132,16 +133,14 @@ describe('builtin:dandanplay manifest', () => {
     ])
 
     expect(calls).toHaveLength(1)
-    expect(calls[0].url).toBe(
-      'https://api.dandanplay.net/api/v2/bangumi/400602'
-    )
   })
 
-  it('runs the danmaku pipeline and emits {cid, p, m} entries', async () => {
+  it('runs the danmaku pipeline through the proxy and emits {cid, p, m} entries', async () => {
     const { fetcher, calls } = mockFetcher({
-      'https://api.dandanplay.net/api/v2/comment/183980001?withRelated=false': {
-        body: JSON.stringify(commentsFixture),
-      },
+      [`${PROXY_BASE}?path=%2Fv2%2Fcomment%2F183980001%3FwithRelated%3Dfalse`]:
+        {
+          body: JSON.stringify(commentsFixture),
+        },
     })
     const runner = new ManifestRunner(zManifest.parse(builtinDandanplay), {
       fetcher,
@@ -157,8 +156,5 @@ describe('builtin:dandanplay manifest', () => {
     ])
 
     expect(calls).toHaveLength(1)
-    expect(calls[0].url).toBe(
-      'https://api.dandanplay.net/api/v2/comment/183980001?withRelated=false'
-    )
   })
 })

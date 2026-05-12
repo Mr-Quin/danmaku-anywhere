@@ -2,39 +2,70 @@
 
 ## Purpose
 
-Ships the JSON manifests that drive [@danmaku-anywhere/dango](../dango/AGENTS.md). One manifest per source. This package is data + tests; engine logic lives in dango.
+Ships the JSON manifests that drive [@danmaku-anywhere/dango](../dango/AGENTS.md). One manifest per source. This package is data + tests + a manual live smoke; engine logic lives in dango.
 
 ## Layout
 
-- `src/manifests/*.json` — the manifests themselves. Filenames mirror the manifest `id` (`builtin:<source>` → `builtin-<source>.json`).
-- `src/index.ts` — exports `BUILTIN_MANIFESTS` (an `as const` record), one `BuiltinManifestId` type, and named exports per manifest.
+- `src/manifests/*.json` — the manifests. Filenames mirror the manifest `id` (`builtin:<source>` → `builtin-<source>.json`).
 - `src/__tests__/<manifest>.test.ts` — per-manifest pipeline tests.
 - `src/__tests__/fixtures/<source>-*.json` — captured representative responses. Each manifest owns its fixtures.
+- `scripts/smoke-test.ts` — manual end-to-end test against the real proxy. Not in CI.
+
+## Consumer entry point
+
+There is no `index.ts`. Consumers import each manifest JSON directly via the package's `./manifests/*` subpath export:
+
+```ts
+import ddp from '@danmaku-anywhere/dango-manifests/manifests/builtin-dandanplay.json' with { type: 'json' }
+```
+
+Adding an aggregate index is a footgun: it forces every consumer to load every manifest even when they need one, and it makes bundlers think this package has a single runtime entry point when it actually has none.
+
+## URL strategy
+
+DDP-style sources are routed through the backend proxy at `api.danmaku.weeblify.app`, not direct to `api.dandanplay.net`. The proxy holds credentials via a Cloudflare service binding and unwraps `?path=<upstream-path-and-query>` to forward signed requests upstream. So `builtin:dandanplay`'s manifest looks like:
+
+```
+url:   'https://api.danmaku.weeblify.app/ddp/v1'
+query: { 'path': '/v2/search/anime?' & $sortedQueryString({ 'keyword': q }) }
+```
+
+The whole upstream path + query is embedded as the **value** of the single `path` query param. `$sortedQueryString` builds a properly URL-encoded `k=v&k=v` string, which the engine then encodes again as it builds the outer request URL. The proxy decodes once and the microservice re-parses to drive the upstream request.
+
+For sources that don't need a proxy (Bilibili, Tencent, etc.), point at the upstream host directly and list it in `hosts`.
+
+## ddp-compat (planned, separate manifest)
+
+The legacy provider had an `isCustom` mode that swapped the proxy URL for a user-supplied base URL pointing at a self-hosted DDP-compatible server. Under the manifest model this becomes a **separate manifest** (`builtin:ddp-compat`), not a flag on `builtin:dandanplay`:
+
+- `configSchema` declares a user-supplied `baseUrl` field
+- URL templates reference it via JSONata: `url: configSchema.baseUrl & '/v2/search/anime'`
+- `hosts: ['*']` (wildcard, since the host comes from config — the engine already supports this)
+- No proxy routing — direct calls
+
+The engine pattern is exercised in [`packages/dango/src/__tests__/rewriteHeaders.test.ts`](../dango/src/__tests__/rewriteHeaders.test.ts) ("supports config-templated rewrite values (DDP-Compat use case)"). It's not in this package yet.
 
 ## Conventions
 
-- Manifests are exported **unparsed**. Consumers wrap with `zManifest.parse()` at startup. Don't pre-parse in this package — that would force a dango dependency at type-level and tie shipping versions tighter than needed.
-- One manifest per file. Multi-source manifest splitting is intentional; do not consolidate.
-- Manifest `id` must be `builtin:<source>` for anything shipped here. Reserve other prefixes for user-installed manifests in the future.
-- Tests must:
-  1. Parse the manifest against `zManifest` (catches schema drift the moment dango tightens it).
-  2. Mock `FetchLike` with the captured fixture for each pipeline.
-  3. Assert the exact canonical shape the pipeline emits (`providerIds`, `indexedId`, `title`, etc.).
-- Fixtures are captured responses, edited only to redact noise (long arrays, irrelevant fields). Keep representative shape and value types — don't substitute test placeholders that hide real-world quirks.
+- Manifests use **raw JSON, not pre-parsed**. Consumers wrap with `zManifest.parse()` at startup. Pre-parsing in this package would force a dango type dependency to flow through and tie shipping versions tighter than needed.
+- One manifest per file.
+- Manifest `id` must be `builtin:<source>` for anything shipped here.
+- Tests must (1) parse against `zManifest`, (2) mock `FetchLike` with captured fixtures per pipeline, (3) assert the exact canonical output shape. Use exact URL match in the mock fetcher — silent query-string mismatches should surface as test failures.
+- Fixtures are captured responses, edited only to redact noise. Keep representative shape and value types.
 
 ## Gotchas
 
-- **URLs in manifests are JSONata expressions, not raw strings.** String literals must be wrapped in single quotes: `"url": "'https://api.example.com/path'"`. See dango's AGENTS.md.
-- **Live API auth.** Some sources (e.g. DanDanPlay) require auth held by the backend proxy / a Cloudflare service-binding microservice. The manifests in this package describe the wire-level pipeline; the extension's `FetchLike` is what actually routes requests through the proxy and attaches auth. Tests in this package use fixtures and never hit the network.
-- **JSON imports use `with { type: 'json' }`** — required by NodeNext module mode (see tsconfig).
-- **No engine reimplementation here.** If a test fails because of dango behavior, fix dango. This package's tests are integration tests, not engine unit tests.
+- **URLs in manifests are JSONata expressions**, not raw strings. String literals must be wrapped in single quotes: `'https://...'`. Forgetting the quotes makes `https` look like a variable.
+- **`$sortedQueryString` for proxy `path` values.** Raw concat of user input into the upstream query string breaks when the input contains `&`, `=`, or `?`. The helper URL-encodes each value.
+- **JSON imports need `with { type: 'json' }`** under NodeNext module mode.
+- **No engine reimplementation here.** If a test fails because of dango behavior, fix dango.
 
 ## Adding a manifest
 
 1. Drop the JSON file in `src/manifests/`. Validate locally with `zManifest.parse()` in a scratch script if you want fast feedback.
-2. Add it to `BUILTIN_MANIFESTS` in `src/index.ts` and re-export it by name.
-3. Capture a fixture per pipeline (search/episodes/danmaku) to `src/__tests__/fixtures/`.
-4. Add `src/__tests__/<source>.test.ts` covering all three pipelines.
+2. Capture a fixture per pipeline to `src/__tests__/fixtures/`.
+3. Add `src/__tests__/<source>.test.ts` covering all three pipelines.
+4. (Optional) Extend `scripts/smoke-test.ts` so the new manifest can be exercised live.
 5. Run `pnpm --filter @danmaku-anywhere/dango-manifests test`.
 
 ## Conventions (code style)

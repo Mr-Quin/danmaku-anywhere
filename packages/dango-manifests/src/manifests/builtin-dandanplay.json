@@ -3,7 +3,7 @@
   "id": "builtin:dandanplay",
   "name": "DanDanPlay",
   "version": "1.0.0",
-  "hosts": ["api.dandanplay.net"],
+  "hosts": ["api.danmaku.weeblify.app"],
   "search": {
     "inputs": ["q"],
     "steps": [
@@ -12,8 +12,8 @@
         "id": "search",
         "request": {
           "method": "GET",
-          "url": "'https://api.dandanplay.net/api/v2/search/anime'",
-          "query": "{ 'keyword': q }"
+          "url": "'https://api.danmaku.weeblify.app/ddp/v1'",
+          "query": "{ 'path': '/v2/search/anime?' & $sortedQueryString({ 'keyword': q }) }"
         }
       }
     ],
@@ -27,7 +27,8 @@
         "id": "bangumi",
         "request": {
           "method": "GET",
-          "url": "'https://api.dandanplay.net/api/v2/bangumi/' & $string(bangumiId)"
+          "url": "'https://api.danmaku.weeblify.app/ddp/v1'",
+          "query": "{ 'path': '/v2/bangumi/' & $string(bangumiId) }"
         }
       }
     ],
@@ -41,8 +42,8 @@
         "id": "comments",
         "request": {
           "method": "GET",
-          "url": "'https://api.dandanplay.net/api/v2/comment/' & $string(episodeId)",
-          "query": "{ 'withRelated': 'false' }"
+          "url": "'https://api.danmaku.weeblify.app/ddp/v1'",
+          "query": "{ 'path': '/v2/comment/' & $string(episodeId) & '?withRelated=false' }"
         }
       }
     ],

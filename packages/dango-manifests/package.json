@@ -6,10 +6,12 @@
   "author": "Mr-Quin",
   "license": "MIT",
   "type": "module",
-  "main": "src/index.js",
-  "types": "src/index.d.ts",
+  "exports": {
+    "./manifests/*.json": "./src/manifests/*.json"
+  },
   "scripts": {
     "test": "vitest",
+    "smoke": "pnpx tsx scripts/smoke-test.ts",
     "build": "tsgo",
     "lint": "tsgo && biome check --fix",
     "lint:ci": "biome ci",
