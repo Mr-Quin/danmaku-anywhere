@@ -93,6 +93,32 @@ describe('request.headers single-expression form', () => {
     )
   })
 
+  it('throws when an expression header value is not a string', async () => {
+    const manifest = zManifest.parse({
+      ...baseManifest,
+      search: {
+        ...baseManifest.search,
+        steps: [
+          {
+            ...baseManifest.search.steps[0],
+            request: {
+              ...baseManifest.search.steps[0].request,
+              headers: "{ 'X-Token': { 'oops': 'object' } }",
+            },
+          },
+        ],
+      },
+    })
+    const { fetcher } = mockFetcher({
+      'https://api.example.com/search?q=x': { body: '{}' },
+    })
+    const runner = new ManifestRunner(manifest, { fetcher })
+
+    await expect(runner.runSearch({ q: 'x', authHeaders: [] })).rejects.toThrow(
+      /must evaluate to a string/
+    )
+  })
+
   it('throws when the expression evaluates to a non-object', async () => {
     const manifest = zManifest.parse({
       ...baseManifest,

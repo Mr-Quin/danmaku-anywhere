@@ -10,7 +10,7 @@ This package is data, not code. There is no `index.ts` — consumers import each
 | --- | --- | --- |
 | `builtin:dandanplay` | `api.danmaku.weeblify.app/ddp/v1` (proxy) | Proxy holds DDP credentials; client carries none. |
 | `builtin:ddp-compat` | User-supplied `baseUrl` (configSchema) | Template for user-added `DanDanPlayCompatible` provider configs; auth headers pass through as inputs. |
-| `builtin:bilibili` | `api.bilibili.com` + `dm.video.qq.com` | Parallel media_bangumi + media_ft search; xml + protobuf danmaku variants. |
+| `builtin:bilibili` | `api.bilibili.com` | Parallel media_bangumi + media_ft search; xml + protobuf danmaku variants. |
 | `builtin:tencent` | `pbaccess.video.qq.com` + `dm.video.qq.com` | POST bodies, page-cursor episode pagination via forEach `breakOn`, two-phase danmaku (segment index → per-segment fetch). |
 
 ## Layout

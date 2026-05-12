@@ -3,7 +3,7 @@
   "id": "builtin:bilibili",
   "name": "Bilibili",
   "version": "1.0.0",
-  "hosts": ["api.bilibili.com", "comment.bilibili.com"],
+  "hosts": ["api.bilibili.com"],
   "configSchema": {
     "danmakuFormat": {
       "type": "enum",

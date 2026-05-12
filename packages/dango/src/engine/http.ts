@@ -61,10 +61,13 @@ const xmlParser = new XMLParser({
 function parseTextBody(format: string, raw: string): unknown {
   switch (format) {
     case 'json':
-      return JSON.parse(raw)
+      // 304 + acceptStatus or other empty-body cases should decode to null
+      // rather than throwing on `JSON.parse('')`.
+      return raw === '' ? null : JSON.parse(raw)
     case 'xml':
-      return xmlParser.parse(raw)
+      return raw === '' ? null : xmlParser.parse(raw)
     case 'jsonp': {
+      if (raw === '') return null
       const jsonpUnwrap = helpers.jsonpUnwrap
       if (jsonpUnwrap === undefined) {
         throw new Error('jsonpUnwrap helper missing')
@@ -119,10 +122,17 @@ async function resolveHeaderEntries(
         `request.headers expression must evaluate to an object, got ${Array.isArray(obj) ? 'array' : typeof obj}`
       )
     }
-    return Object.entries(obj as Record<string, unknown>).map(([k, v]) => [
-      k,
-      String(v ?? ''),
-    ])
+    const out: [string, string][] = []
+    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+      if (v === null || v === undefined) continue
+      if (typeof v !== 'string') {
+        throw new TypeError(
+          `request.headers["${k}"] must evaluate to a string, got ${typeof v}`
+        )
+      }
+      out.push([k, v])
+    }
+    return out
   }
   const out: [string, string][] = []
   for (const [name, expr] of Object.entries(headers)) {

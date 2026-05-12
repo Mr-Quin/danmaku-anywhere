@@ -6,6 +6,7 @@
  * Usage:
  *   pnpm smoke ddp [keyword]         # api.danmaku.weeblify.app proxy
  *   pnpm smoke bilibili [keyword]    # api.bilibili.com direct
+ *   pnpm smoke tencent [keyword]     # pbaccess.video.qq.com + dm.video.qq.com
  *
  * NOT wired into CI — hits real network endpoints and is not deterministic.
  * Exists to verify each manifest's wire format still matches the live API
@@ -27,7 +28,7 @@ const keyword = process.argv[3] ?? 'Frieren'
 
 if (!source) {
   console.error('usage: pnpm smoke <source> [keyword]')
-  console.error('  source: ddp | bilibili')
+  console.error('  source: ddp | bilibili | tencent')
   process.exit(2)
 }
 

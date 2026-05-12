@@ -40,19 +40,18 @@ async function runHttpExtract(
   return bag
 }
 
-async function runWithConcurrency<T, R>(
-  items: T[],
-  limit: number,
+/**
+ * Returns a `waitForSlot` closure that enforces `throttleMs` between
+ * consecutive request starts. Reserves the slot synchronously so concurrent
+ * callers don't both observe the same `earliestStart` and fire at the same
+ * instant. Throws AbortedError if the signal aborts while waiting.
+ */
+function makeThrottle(
   throttleMs: number,
-  signal: AbortSignal | undefined,
-  task: (item: T) => Promise<R>
-): Promise<R[]> {
-  // Shared earliest-next-start so concurrency > 1 still respects throttleMs.
-  // Reservation MUST happen synchronously (before any await) so two workers
-  // entering waitForSlot in succession don't both read the same `earliestStart`
-  // and end up firing at the same instant.
+  signal: AbortSignal | undefined
+): () => Promise<void> {
   let earliestStart = 0
-  const waitForSlot = async () => {
+  return async () => {
     if (throttleMs <= 0) return
     const slotStart = Math.max(earliestStart, Date.now())
     earliestStart = slotStart + throttleMs
@@ -75,6 +74,16 @@ async function runWithConcurrency<T, R>(
       signal?.addEventListener('abort', onAbort, { once: true })
     })
   }
+}
+
+async function runWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  throttleMs: number,
+  signal: AbortSignal | undefined,
+  task: (item: T) => Promise<R>
+): Promise<R[]> {
+  const waitForSlot = makeThrottle(throttleMs, signal)
 
   if (limit <= 1 || items.length <= 1) {
     const out: R[] = []
@@ -145,10 +154,13 @@ async function runStep(
       // Sequential mode with early exit. The breakOn predicate is evaluated
       // against each iteration's collected result; truthy stops the loop AFTER
       // including the current result (so a "this page is partial" predicate
-      // still keeps the final partial page).
+      // still keeps the final partial page). throttleMs still applies between
+      // iteration starts so cursor pagination respects upstream rate limits.
       perItemResults = []
       const stopExpr = step.breakOn
+      const waitForSlot = makeThrottle(step.throttleMs, options.signal)
       for (const element of items) {
+        await waitForSlot()
         const result = await runIteration(element)
         perItemResults.push(result)
         const stop = await evalExpr(stopExpr, result)
