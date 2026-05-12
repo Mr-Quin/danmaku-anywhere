@@ -1,0 +1,31 @@
+{
+  "errorCode": 0,
+  "errorMessage": "",
+  "success": true,
+  "animes": [
+    {
+      "animeId": 18398,
+      "bangumiId": "400602",
+      "animeTitle": "葬送的芙莉莲",
+      "type": "tvseries",
+      "typeDescription": "TV动画",
+      "imageUrl": "https://img.dandanplay.net/anime/18398.jpg",
+      "startDate": "2023-09-29T00:00:00",
+      "episodeCount": 28,
+      "rating": 0,
+      "isFavorited": false
+    },
+    {
+      "animeId": 17000,
+      "bangumiId": "300000",
+      "animeTitle": "Cyberpunk: Edgerunners",
+      "type": "ova",
+      "typeDescription": "OVA",
+      "imageUrl": "https://img.dandanplay.net/anime/17000.jpg",
+      "startDate": "2022-09-13T00:00:00",
+      "episodeCount": 10,
+      "rating": 0,
+      "isFavorited": false
+    }
+  ]
+}

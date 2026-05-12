@@ -1,0 +1,51 @@
+{
+  "apiVersion": 1,
+  "id": "builtin:dandanplay",
+  "name": "DanDanPlay",
+  "version": "1.0.0",
+  "hosts": ["api.dandanplay.net"],
+  "search": {
+    "inputs": ["q"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "search",
+        "request": {
+          "method": "GET",
+          "url": "'https://api.dandanplay.net/api/v2/search/anime'",
+          "query": "{ 'keyword': q }"
+        }
+      }
+    ],
+    "output": "[search.animes.{ 'providerIds': { 'animeId': animeId, 'bangumiId': bangumiId }, 'indexedId': $string(animeId), 'title': animeTitle, 'type': type, 'typeDescription': typeDescription, 'imageUrl': imageUrl, 'episodeCount': episodeCount, 'year': $number($substringBefore(startDate, '-')) }]"
+  },
+  "episodes": {
+    "inputs": ["bangumiId"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "bangumi",
+        "request": {
+          "method": "GET",
+          "url": "'https://api.dandanplay.net/api/v2/bangumi/' & $string(bangumiId)"
+        }
+      }
+    ],
+    "output": "[bangumi.bangumi.episodes.{ 'providerIds': { 'episodeId': episodeId, 'animeId': %.animeId, 'bangumiId': %.bangumiId }, 'indexedId': $string(episodeId), 'title': episodeTitle, 'episodeNumber': episodeNumber }]"
+  },
+  "danmaku": {
+    "inputs": ["episodeId"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "comments",
+        "request": {
+          "method": "GET",
+          "url": "'https://api.dandanplay.net/api/v2/comment/' & $string(episodeId)",
+          "query": "{ 'withRelated': 'false' }"
+        }
+      }
+    ],
+    "output": "[comments.comments.{ 'cid': cid, 'p': p, 'm': m }]"
+  }
+}
