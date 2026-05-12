@@ -50,7 +50,9 @@ See [`src/index.ts`](src/index.ts) for the complete export surface.
 
 ## Trust model
 
-Dango assumes manifests are **trusted code**. Official manifests are vetted by the project; user-installed manifests must be presented to the user with an explicit warning that they're third-party code and carry the same risks as installing any browser extension. The engine intentionally does NOT include DoS protections (response-size caps, forEach iteration caps, eval timeouts, regex caps) — those would add complexity and false safety against a problem already addressed by vetting + user consent.
+Dango assumes manifests are **trusted code**. Official manifests are vetted by the project; user-installed manifests must be presented to the user with an explicit warning that they're third-party code and carry the same risks as installing any browser extension. The engine intentionally does NOT include DoS protections (no response-size cap, no forEach iteration cap, no eval timeout, no regex pattern/input caps) — those would add complexity and false safety against a problem already addressed by vetting + user consent.
+
+The one exception is `$range(start, end)`: it caps generated array length at 10,000 entries. This is a typo guard (catches `$range(0, 1e9)`-style mistakes), not a security boundary.
 
 The engine does enforce a small set of correctness guards that don't depend on trust:
 

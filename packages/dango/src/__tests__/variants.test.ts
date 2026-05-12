@@ -91,6 +91,39 @@ describe('Pipeline variants', () => {
     expect(result).toEqual([{ path: 'xml', cid: 12345 }])
   })
 
+  it('default placed before conditionals is still a fallback (conditional wins)', async () => {
+    // Regression: previously selectVariant short-circuited on the first
+    // variant without `when`, masking later conditionals that would have matched.
+    const defaultFirst = {
+      ...variantManifest,
+      danmaku: [
+        {
+          // unconditional default appears FIRST
+          inputs: ['cid'],
+          steps: variantManifest.danmaku[1].steps,
+          output: "[{ 'path': 'xml-default', 'cid': cid }]",
+        },
+        {
+          when: "danmakuFormat = 'protobuf'",
+          inputs: ['cid'],
+          steps: variantManifest.danmaku[0].steps,
+          output: "[{ 'path': 'protobuf-conditional', 'cid': cid }]",
+        },
+      ],
+    }
+    const manifest = zManifest.parse(defaultFirst)
+    const { fetcher } = mockFetcher({
+      'https://api.example.com/seg.bin': { body: '{}' },
+    })
+    const result = await runPipeline(
+      manifest,
+      manifest.danmaku!,
+      { cid: 1, danmakuFormat: 'protobuf' },
+      { fetcher }
+    )
+    expect(result).toEqual([{ path: 'protobuf-conditional', cid: 1 }])
+  })
+
   it('errors when no variant matches and there is no default', async () => {
     const noDefault = {
       ...variantManifest,

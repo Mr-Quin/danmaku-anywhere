@@ -151,6 +151,59 @@ describe('http step extract requires id', () => {
   })
 })
 
+describe('forEach throttle with concurrency > 1', () => {
+  it('spaces request starts even when multiple workers run in parallel', async () => {
+    // Regression: previously the shared earliestStart was updated AFTER the
+    // sleep, so two workers reading it concurrently both used the same value
+    // and fired at the same instant. Slot reservation must be synchronous.
+    const manifest = zManifest.parse({
+      apiVersion: 1,
+      id: 'throttle-race',
+      name: 'throttle race',
+      version: '0.1.0',
+      hosts: ['api.example.com'],
+      search: {
+        inputs: ['q'],
+        steps: [
+          {
+            type: 'forEach',
+            id: 'loop',
+            in: '$range(0, 4)',
+            as: 'i',
+            request: {
+              method: 'GET',
+              url: "'https://api.example.com/x?i=' & $string(i)",
+            },
+            concurrency: 4,
+            throttleMs: 100,
+          },
+        ],
+        output: 'loop',
+      },
+    })
+
+    const callTimes: number[] = []
+    const start = Date.now()
+    const { fetcher } = mockFetcher({
+      'https://api.example.com/x': () => {
+        callTimes.push(Date.now() - start)
+        return { body: '{}' }
+      },
+    })
+
+    await runPipeline(manifest, manifest.search!, { q: 'x' }, { fetcher })
+
+    expect(callTimes).toHaveLength(4)
+    // Each consecutive call must be ≥throttleMs after the previous start.
+    callTimes.sort((a, b) => a - b)
+    for (let i = 1; i < callTimes.length; i++) {
+      const gap = callTimes[i]! - callTimes[i - 1]!
+      // Loose threshold for OS timer jitter; the pre-fix bug had gap ~0.
+      expect(gap).toBeGreaterThanOrEqual(80)
+    }
+  })
+})
+
 describe('forEach abort during throttle sleep', () => {
   it('surfaces AbortedError promptly without waiting out the throttle', async () => {
     const manifest = zManifest.parse({

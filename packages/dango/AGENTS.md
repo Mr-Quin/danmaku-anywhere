@@ -8,7 +8,14 @@ A dango is a stack of items on a skewer — each pipeline is a stack of named st
 
 ## Trust model
 
-**Manifests are trusted code.** Official ones are vetted by the project; user-installed ones come with explicit user warnings about third-party risk. The engine intentionally does NOT have DoS protections (no response-size caps, no forEach iteration caps, no eval timeouts, no regex caps) — those add complexity without addressing a real threat in this model. The few guards that remain (auth-header forbid-list, step-id prototype-pollution rejection, hosts allowlist) are correctness boundaries, not DoS mitigations.
+**Manifests are trusted code.** Official ones are vetted by the project; user-installed ones come with explicit user warnings about third-party risk. The engine intentionally does NOT have DoS protections (no response-size cap, no forEach iteration cap, no eval timeout, no regex caps) — those add complexity without addressing a real threat in this model. The few guards that remain are correctness boundaries, not DoS mitigations:
+
+- auth-header forbid-list (`Cookie`/`Authorization`/etc. rejected in `request.headers`)
+- `rewriteHeaders` allowlist (Origin/Referer/UA only)
+- step-id prototype-pollution rejection
+- hosts allowlist for request URLs
+
+`$range` has an internal 10k cap, but that's a typo guard (`$range(0, 1e9)` returning early instead of allocating GB), not a security control.
 
 ## Architecture in a paragraph
 

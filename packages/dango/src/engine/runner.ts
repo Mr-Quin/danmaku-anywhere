@@ -48,31 +48,32 @@ async function runWithConcurrency<T, R>(
   task: (item: T) => Promise<R>
 ): Promise<R[]> {
   // Shared earliest-next-start so concurrency > 1 still respects throttleMs.
+  // Reservation MUST happen synchronously (before any await) so two workers
+  // entering waitForSlot in succession don't both read the same `earliestStart`
+  // and end up firing at the same instant.
   let earliestStart = 0
   const waitForSlot = async () => {
     if (throttleMs <= 0) return
-    const now = Date.now()
-    if (now < earliestStart) {
-      // Abort-aware sleep; large throttleMs would otherwise delay abort.
-      await new Promise<void>((resolve, reject) => {
-        const delay = earliestStart - now
-        const timer = setTimeout(() => {
-          signal?.removeEventListener('abort', onAbort)
-          resolve()
-        }, delay)
-        const onAbort = () => {
-          clearTimeout(timer)
-          reject(new AbortedError())
-        }
-        if (signal?.aborted) {
-          clearTimeout(timer)
-          reject(new AbortedError())
-          return
-        }
-        signal?.addEventListener('abort', onAbort, { once: true })
-      })
-    }
-    earliestStart = Math.max(earliestStart, Date.now()) + throttleMs
+    const slotStart = Math.max(earliestStart, Date.now())
+    earliestStart = slotStart + throttleMs
+    const delay = slotStart - Date.now()
+    if (delay <= 0) return
+    await new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        signal?.removeEventListener('abort', onAbort)
+        resolve()
+      }, delay)
+      const onAbort = () => {
+        clearTimeout(timer)
+        reject(new AbortedError())
+      }
+      if (signal?.aborted) {
+        clearTimeout(timer)
+        reject(new AbortedError())
+        return
+      }
+      signal?.addEventListener('abort', onAbort, { once: true })
+    })
   }
 
   if (limit <= 1 || items.length <= 1) {
@@ -178,15 +179,17 @@ async function selectVariant(
   variants: VariantPipeline[],
   context: Context
 ): Promise<VariantPipeline> {
+  // First matching `when` wins. A variant without `when` is the fallback,
+  // used only if no conditional matched — placement in the array is irrelevant.
+  let fallback: VariantPipeline | undefined
   for (const v of variants) {
     if (v.when === undefined) {
-      return v
+      if (fallback === undefined) fallback = v
+      continue
     }
-    const matched = await evalExpr(v.when, context)
-    if (matched) {
-      return v
-    }
+    if (await evalExpr(v.when, context)) return v
   }
+  if (fallback !== undefined) return fallback
   throw new Error('no pipeline variant matched (and no unconditional default)')
 }
 
