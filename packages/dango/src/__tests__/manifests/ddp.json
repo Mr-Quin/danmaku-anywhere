@@ -1,0 +1,23 @@
+{
+  "apiVersion": 1,
+  "id": "ddp",
+  "name": "DanDanPlay",
+  "version": "0.1.0",
+  "hosts": ["api.dandanplay.net"],
+  "search": {
+    "inputs": ["q"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "search",
+        "request": {
+          "method": "GET",
+          "url": "'https://api.dandanplay.net/api/v2/search/anime'",
+          "query": "{ 'keyword': q }",
+          "headers": { "Accept": "'application/json'" }
+        }
+      }
+    ],
+    "output": "[search.animes.{ 'providerIds': { 'animeId': $string(animeId), 'bangumiId': bangumiId }, 'title': animeTitle, 'type': type, 'episodeCount': $count(episodes) }]"
+  }
+}

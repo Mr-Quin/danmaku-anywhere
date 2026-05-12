@@ -19,6 +19,7 @@ packages/
   danmaku-converter/    # Parse/normalize danmaku formats
   danmaku-engine/       # Render danmaku on video containers
   danmaku-provider/     # Fetch danmaku from APIs
+  dango/                # Declarative manifest engine for danmaku sources
   web-scraper/          # Scrape video/page metadata from sites
   bangumi-api/          # Typed Bangumi API schemas
   result/               # Result<T, E> type for error handling
