@@ -15,10 +15,8 @@
     "lint:ci": "biome ci",
     "type-check": "tsgo --noEmit"
   },
-  "dependencies": {
-    "@danmaku-anywhere/dango": "workspace:*"
-  },
   "devDependencies": {
+    "@danmaku-anywhere/dango": "workspace:*",
     "vitest": "^4.0.13"
   }
 }
