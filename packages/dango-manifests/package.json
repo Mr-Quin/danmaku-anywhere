@@ -1,0 +1,24 @@
+{
+  "name": "@danmaku-anywhere/dango-manifests",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Built-in dango manifests for danmaku sources",
+  "author": "Mr-Quin",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./manifests/*.json": "./src/manifests/*.json"
+  },
+  "scripts": {
+    "test": "vitest",
+    "smoke": "pnpx tsx scripts/smoke-test.ts",
+    "build": "tsgo",
+    "lint": "tsgo && biome check --fix",
+    "lint:ci": "biome ci",
+    "type-check": "tsgo --noEmit"
+  },
+  "devDependencies": {
+    "@danmaku-anywhere/dango": "workspace:*",
+    "vitest": "^4.0.13"
+  }
+}
