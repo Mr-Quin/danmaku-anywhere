@@ -14,7 +14,7 @@
           "method": "GET",
           "url": "'https://search.youku.com/api/search'",
           "query": "{ 'keyword': q, 'site': '1', 'categories': '0', 'ftype': '0', 'ob': '0', 'pg': '1' }",
-          "headers": { "Referer": "'https://www.youku.com/'" }
+          "rewriteHeaders": { "Referer": "'https://www.youku.com/'" }
         }
       }
     ],

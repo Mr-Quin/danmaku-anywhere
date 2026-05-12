@@ -19,7 +19,7 @@
           "method": "GET",
           "url": "'https://mobileso.bz.mgtv.com/msite/search/v2'",
           "query": "{ 'q': q, 'pc': '30', 'pn': '1', 'sort': '-99', 'ty': '0', 'du': '0', 'pt': '0', 'corr': '1', 'abroad': '0', '_support': '10000000000000000' }",
-          "headers": { "Referer": "'https://www.mgtv.com/'" }
+          "rewriteHeaders": { "Referer": "'https://www.mgtv.com/'" }
         }
       }
     ],
@@ -35,7 +35,7 @@
           "method": "GET",
           "url": "'https://pcweb.api.mgtv.com/variety/showlist'",
           "query": "{ 'allowedRC': '1', 'collection_id': collectionId, 'month': '', 'page': '1', '_support': '10000000' }",
-          "headers": { "Referer": "'https://www.mgtv.com/'" }
+          "rewriteHeaders": { "Referer": "'https://www.mgtv.com/'" }
         },
         "extract": {
           "months": "data.tab_m.m"
@@ -50,7 +50,7 @@
           "method": "GET",
           "url": "'https://pcweb.api.mgtv.com/variety/showlist'",
           "query": "{ 'allowedRC': '1', 'collection_id': collectionId, 'month': month, 'page': '1', '_support': '10000000' }",
-          "headers": { "Referer": "'https://www.mgtv.com/'" }
+          "rewriteHeaders": { "Referer": "'https://www.mgtv.com/'" }
         },
         "extract": {
           "items": "data.list"
@@ -71,7 +71,7 @@
           "method": "GET",
           "url": "'https://pcweb.api.mgtv.com/video/info'",
           "query": "{ 'cid': cid, 'vid': vid }",
-          "headers": { "Referer": "'https://www.mgtv.com/'" }
+          "rewriteHeaders": { "Referer": "'https://www.mgtv.com/'" }
         },
         "extract": {
           "durationSec": "$timeToSeconds(data.info.time)"
@@ -84,7 +84,7 @@
           "method": "GET",
           "url": "'https://galaxy.bz.mgtv.com/getctlbarrage'",
           "query": "{ 'version': '8.1.39', 'abroad': '0', 'uuid': '', 'os': '10.15.7', 'platform': '0', 'mac': '', 'vid': vid, 'pid': '', 'cid': cid, 'ticket': '' }",
-          "headers": { "Referer": "'https://www.mgtv.com/'" }
+          "rewriteHeaders": { "Referer": "'https://www.mgtv.com/'" }
         },
         "extract": {
           "cdn": "$substringBefore(data.cdn_list, ',')",

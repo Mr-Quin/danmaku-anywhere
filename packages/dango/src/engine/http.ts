@@ -1,7 +1,6 @@
 import { XMLParser } from 'fast-xml-parser'
 import { helpers } from '../helpers/registry.js'
 import type { RequestSpec } from '../manifest/schema.js'
-import { isPrivateOrLocalHost } from './host-policy.js'
 import { evalExpr, evalString } from './jsonata-eval.js'
 import type { ProtoRegistry } from './proto.js'
 
@@ -13,17 +12,12 @@ export type FetchLike = (
     body?: string
     credentials?: 'include' | 'omit'
     signal?: AbortSignal
-    /**
-     * Wire-level header rewrites the host should apply (e.g. via
-     * chrome.declarativeNetRequest in the extension, or directly as headers
-     * in a server context). The engine is agnostic to how this is implemented.
-     */
+    /** Wire-level overrides the host applies (e.g. via chrome DNR). */
     rewriteHeaders?: Record<string, string>
   }
 ) => Promise<{
   status: number
   text: () => Promise<string>
-  /** Raw response body bytes. Used for `format: 'proto'`. */
   bytes: () => Promise<Uint8Array>
   headers: Map<string, string>
 }>
@@ -32,46 +26,25 @@ export interface HttpRunOptions {
   fetcher?: FetchLike
   /** Hosts allowlist (manifest.hosts). Resolved URLs must match. */
   allowedHosts: string[]
-  /**
-   * Optional cancellation signal. If aborted, fetcher receives it and the
-   * request is rejected.
-   */
+  /** Cancellation signal threaded into the fetcher. */
   signal?: AbortSignal
-  /**
-   * Maximum response body size in bytes. Defaults to 5MB. A malicious or
-   * compromised upstream can otherwise return arbitrarily large bodies and
-   * blow up memory.
-   */
-  maxResponseBytes?: number
   /** Required when any request uses `format: 'proto'`. */
   protoRegistry?: ProtoRegistry
 }
 
-const DEFAULT_MAX_RESPONSE_BYTES = 5 * 1024 * 1024
-
 function hostMatches(url: string, allowed: string[]): boolean {
   let host: string
   try {
-    /**
-     * `.hostname` (not `.host`) — strips port so `api.example.com:443` matches
-     * the `api.example.com` allowlist entry, and so `127.0.0.1:8080` can't
-     * sneak past the private-host check by appending a port.
-     */
+    // Use `.hostname` (not `.host`) so port-suffixed URLs match bare entries.
     host = new URL(url).hostname
   } catch {
     return false
   }
   return allowed.some((pattern) => {
-    /**
-     * `*` is the "match anything" wildcard reserved for DDP-Compat templates
-     * where the host comes from per-installation config. The private-host
-     * check in executeRequest still applies — this only opens the allowlist.
-     */
     if (pattern === '*') return true
     if (pattern === host) return true
     if (pattern.startsWith('*.')) {
-      const suffix = pattern.slice(1) // ".example.com"
-      return host.endsWith(suffix)
+      return host.endsWith(pattern.slice(1))
     }
     return false
   })
@@ -105,12 +78,17 @@ function parseTextBody(format: string, raw: string): unknown {
   }
 }
 
+// Headers manifests can't set via `request.headers`: auth (Cookie/Auth/
+// Set-Cookie) and the fetch-spec forbidden set (Origin/Referer/UA/Host —
+// silently dropped by browser fetch; manifests must use rewriteHeaders).
 const FORBIDDEN_HEADERS = new Set([
   'cookie',
   'set-cookie',
   'authorization',
   'host',
   'origin',
+  'referer',
+  'user-agent',
 ])
 
 async function buildHeaders(
@@ -179,22 +157,6 @@ export async function executeRequest(
   if (!hostMatches(url, options.allowedHosts)) {
     throw new Error(`URL host not in manifest.hosts allowlist: ${url}`)
   }
-  /**
-   * Defense-in-depth: re-validate the resolved URL host against the
-   * local/private address policy. A templated URL or a `*` host (DDP-Compat)
-   * could land on a private IP even if the allowlist would otherwise accept.
-   */
-  let resolvedHost: string
-  try {
-    resolvedHost = new URL(url).hostname
-  } catch {
-    throw new Error(`invalid URL produced by manifest: ${url}`)
-  }
-  if (isPrivateOrLocalHost(resolvedHost)) {
-    throw new Error(
-      `resolved URL host "${resolvedHost}" is a local/private address`
-    )
-  }
   const headers = await buildHeaders(spec, context)
   const rewriteHeaders = await buildRewriteHeaders(spec, context)
   const body = await buildBody(spec, context)
@@ -210,7 +172,6 @@ export async function executeRequest(
   if (res.status < 200 || res.status >= 300) {
     throw new Error(`HTTP ${res.status} for ${url}`)
   }
-  const cap = options.maxResponseBytes ?? DEFAULT_MAX_RESPONSE_BYTES
   if (spec.format === 'proto') {
     if (options.protoRegistry === undefined) {
       throw new Error(
@@ -222,27 +183,13 @@ export async function executeRequest(
         `format: 'proto' requires protoSchema and protoMessage fields`
       )
     }
-    const bytes = await res.bytes()
-    if (bytes.length > cap) {
-      throw new Error(`response from ${url} exceeds maxResponseBytes (${cap})`)
-    }
     return options.protoRegistry.decode(
       spec.protoSchema,
       spec.protoMessage,
-      bytes
+      await res.bytes()
     )
   }
-  const text = await res.text()
-  /**
-   * `text.length` counts UTF-16 code units, not bytes. For our cap-purpose
-   * use it as a conservative byte proxy — a non-ASCII string with N code
-   * units is at most 4N bytes, so `text.length > cap` is a strict bound on
-   * UTF-8 size. We don't need exact byte counts to enforce a memory ceiling.
-   */
-  if (text.length > cap) {
-    throw new Error(`response from ${url} exceeds maxResponseBytes (${cap})`)
-  }
-  return parseTextBody(spec.format, text)
+  return parseTextBody(spec.format, await res.text())
 }
 
 const defaultFetcher: FetchLike = async (input, init) => {

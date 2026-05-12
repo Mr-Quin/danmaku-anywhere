@@ -65,9 +65,13 @@ describe('Bilibili (simple, no WBI)', () => {
       const init = c.init as {
         credentials?: string
         headers?: Record<string, string>
+        rewriteHeaders?: Record<string, string>
       }
       expect(init.credentials).toBe('include')
-      expect(init.headers).toEqual({ Referer: 'https://www.bilibili.com/' })
+      expect(init.headers).toEqual({})
+      expect(init.rewriteHeaders).toEqual({
+        Referer: 'https://www.bilibili.com/',
+      })
     }
 
     expect(result).toEqual([

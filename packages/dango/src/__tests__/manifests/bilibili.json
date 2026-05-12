@@ -15,7 +15,7 @@
           "url": "'https://api.bilibili.com/x/web-interface/search/type'",
           "query": "{ 'keyword': q, 'search_type': 'media_bangumi' }",
           "credentials": "include",
-          "headers": { "Referer": "'https://www.bilibili.com/'" }
+          "rewriteHeaders": { "Referer": "'https://www.bilibili.com/'" }
         }
       },
       {
@@ -26,7 +26,7 @@
           "url": "'https://api.bilibili.com/x/web-interface/search/type'",
           "query": "{ 'keyword': q, 'search_type': 'media_ft' }",
           "credentials": "include",
-          "headers": { "Referer": "'https://www.bilibili.com/'" }
+          "rewriteHeaders": { "Referer": "'https://www.bilibili.com/'" }
         }
       }
     ],

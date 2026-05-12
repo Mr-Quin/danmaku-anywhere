@@ -1,8 +1,5 @@
 export { AbortedError, type FetchLike } from './engine/http.js'
-export {
-  EvalTimeoutError,
-  JsonataEvaluator,
-} from './engine/jsonata-eval.js'
+export { JsonataEvaluator } from './engine/jsonata-eval.js'
 export {
   type ManifestInputs,
   ManifestRunner,

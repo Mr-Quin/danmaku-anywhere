@@ -1,9 +1,8 @@
 import { md5 } from 'js-md5'
 
 /**
- * Closed namespace of helpers callable from JSONata expressions as $<name>(...).
- * Adding a helper requires an engine code change — manifests cannot register
- * arbitrary code. Every helper must be a pure function.
+ * Closed namespace callable from JSONata as `$<name>(...)`. Helpers must be
+ * pure; adding one needs an engine code change.
  */
 export type Helper = (...args: unknown[]) => unknown
 
@@ -20,17 +19,11 @@ function utf8Encode(s: string): Uint8Array {
 }
 
 function base64Encode(s: string): string {
-  /**
-   * Iterative concatenation rather than `String.fromCharCode(...bytes)`.
-   * Spreading a long Uint8Array as function args overflows the call stack
-   * (V8 argument limit is ~65k). Manifests may feed arbitrary upstream
-   * strings into this helper.
-   */
+  // Iterative (not `String.fromCharCode(...bytes)`) so large inputs don't
+  // overflow the V8 argument limit (~65k spread args).
   const bytes = utf8Encode(s)
   let binary = ''
-  for (const b of bytes) {
-    binary += String.fromCharCode(b)
-  }
+  for (const b of bytes) binary += String.fromCharCode(b)
   return btoa(binary)
 }
 
@@ -40,11 +33,8 @@ function base64Decode(s: string): string {
   )
 }
 
-/**
- * Generic positional permutation: build a new string by reading `source` at
- * each index in `indices`. Out-of-range indices are skipped. Source-specific
- * permutation tables (e.g. Bilibili WBI) live in the manifest, not the engine.
- */
+// Build a new string by reading `source` at each index in `indices`.
+// Source-specific tables (e.g. Bilibili WBI's) live in manifests, not here.
 function permute(indices: number[], source: string): string {
   let out = ''
   for (const i of indices) {
@@ -55,7 +45,7 @@ function permute(indices: number[], source: string): string {
   return out
 }
 
-/** Build a sorted, URL-encoded query string from an object. For request URLs. */
+/** Sorted-by-key, URL-encoded `k=v&k=v` string. For URL query construction. */
 function sortedQueryString(obj: Record<string, unknown>): string {
   const keys = Object.keys(obj).sort()
   return keys
@@ -66,38 +56,17 @@ function sortedQueryString(obj: Record<string, unknown>): string {
     .join('&')
 }
 
-/**
- * Build a sorted, RAW (no URL encoding) string from an object. For signing
- * canonical forms — many upstreams hash the un-encoded representation.
- */
+/** Sorted-by-key, un-encoded `k=v` joined by `sep`. For sign-then-hash canonical forms. */
 function sortedRawString(obj: Record<string, unknown>, sep = '&'): string {
   const keys = Object.keys(obj).sort()
   return keys.map((k) => `${k}=${obj[k] ?? ''}`).join(sep)
 }
-
-/**
- * Length caps to mitigate ReDoS. Promise.race-based timeouts can't preempt
- * synchronous regex backtracking in V8/SpiderMonkey, so the practical defense
- * is bounding pattern complexity and input size at the call site.
- */
-const REGEX_MAX_PATTERN_LENGTH = 256
-const REGEX_MAX_INPUT_LENGTH = 64 * 1024
 
 function regexExtract(
   input: string,
   pattern: string,
   group = 1
 ): string | null {
-  if (pattern.length > REGEX_MAX_PATTERN_LENGTH) {
-    throw new Error(
-      `$regexExtract: pattern exceeds ${REGEX_MAX_PATTERN_LENGTH} chars`
-    )
-  }
-  if (input.length > REGEX_MAX_INPUT_LENGTH) {
-    throw new Error(
-      `$regexExtract: input exceeds ${REGEX_MAX_INPUT_LENGTH} chars`
-    )
-  }
   const m = new RegExp(pattern).exec(input)
   return m ? (m[group] ?? null) : null
 }
@@ -169,7 +138,7 @@ export const helpers: Record<string, Helper> = {
     const hi = e
     if (!Number.isFinite(lo) || !Number.isFinite(hi)) return []
     if (hi <= lo) return []
-    /** Cap to prevent runaway loops in a misbehaving manifest. */
+    // 10k hard cap — guards against a manifest typo like $range(0, 1e9).
     const len = Math.min(hi - lo, 10_000)
     return Array.from({ length: len }, (_, i) => lo + i)
   },

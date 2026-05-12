@@ -173,38 +173,4 @@ describe('format: proto', () => {
     const runner = new ManifestRunner(manifest, { fetcher })
     await expect(runner.runDanmaku({ x: 1 })).rejects.toThrow()
   })
-
-  it('rejects proto schemas larger than the cap', async () => {
-    const huge = `${dmSegProto}\n${'// '.padEnd(64 * 1024 + 10, 'a')}`
-    const manifest = zManifest.parse({
-      apiVersion: 1,
-      id: 'huge-proto',
-      name: 'huge',
-      version: '0.1.0',
-      hosts: ['api.example.com'],
-      protoSchemas: { dm: huge },
-      danmaku: {
-        inputs: ['x'],
-        steps: [
-          {
-            type: 'http',
-            id: 'r',
-            request: {
-              method: 'GET',
-              url: "'https://api.example.com/x'",
-              format: 'proto',
-              protoSchema: 'dm',
-              protoMessage: 'dm.v1.Segment',
-            },
-          },
-        ],
-        output: 'r',
-      },
-    })
-    const { fetcher } = mockFetcher({
-      'https://api.example.com/x': { body: new Uint8Array(0) },
-    })
-    const runner = new ManifestRunner(manifest, { fetcher })
-    await expect(runner.runDanmaku({ x: 1 })).rejects.toThrow(/exceeds/)
-  })
 })

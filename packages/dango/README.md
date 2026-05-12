@@ -42,25 +42,28 @@ const danmaku = await runner.runDanmaku({ cid: 456 })
 
 Lower-level entry points:
 - `runPipeline(manifest, variants, inputs, options)` — direct pipeline execution
-- `JsonataEvaluator` — bounded expression evaluator (per-instance cache, configurable timeout)
+- `JsonataEvaluator` — per-instance compile cache
 - `ProtoRegistry` — manifest-scoped protobuf schema cache
-- `findManifestForUrl(manifests, url)` — URL → manifest resolver (replaces `ProviderService.initParsers()`)
+- `findManifestForUrl(manifests, url)` — URL → manifest resolver
 
 See [`src/index.ts`](src/index.ts) for the complete export surface.
 
-## Safety surface
+## Trust model
 
-| Threat | Mitigation |
+Dango assumes manifests are **trusted code**. Official manifests are vetted by the project; user-installed manifests must be presented to the user with an explicit warning that they're third-party code and carry the same risks as installing any browser extension. The engine intentionally does NOT include DoS protections (response-size caps, forEach iteration caps, eval timeouts, regex caps) — those would add complexity and false safety against a problem already addressed by vetting + user consent.
+
+The engine does enforce a small set of correctness guards that don't depend on trust:
+
+| Concern | Guard |
 |---|---|
-| SSRF to private addresses | Host pattern rejection at manifest load + `.hostname` re-check at request time (covers `localhost`, `127/8`, `10/8`, `192.168/16`, `172.16-31`, `169.254/16`, `::1`, `fc00::/7`, `fe80::/10`, `.local`) |
-| Auth header forgery | Forbidden-headers allowlist for `headers`; restricted allowlist for `rewriteHeaders` (Origin / Referer / User-Agent only) |
-| ReDoS via `$regexExtract` | Pattern length cap 256, input length cap 64KB. Promise.race timeout is best-effort (V8 regex is synchronous) |
-| Response size DoS | Default 5MB cap per response, configurable via `RunOptions.maxResponseBytes` |
-| forEach iteration DoS | Default 1000 iterations per `forEach` step; `$range` capped at 10k inside the helper |
+| Auth header forgery | `Cookie`, `Authorization`, `Set-Cookie`, `Host` rejected in `headers` at runtime; `rewriteHeaders` allowlist is `Origin` / `Referer` / `User-Agent` only |
 | Prototype pollution | Step IDs must be JS identifiers; `__proto__` / `constructor` / `prototype` rejected at manifest load |
-| JSONata eval pathology | Per-instance `timeoutMs` (default 250ms) with `Promise.race` |
-| Protobuf compile DoS | 64KB per schema cap; lazy-compiled and cached per `ProtoRegistry` |
-| Manifest-supplied executable code | None — JSONata is the only expression language; helpers are a closed namespace; manifest cannot register code |
+| Manifest-supplied executable code | None — JSONata is the only expression language, helpers are a closed namespace, manifests cannot register code |
+| Hosts allowlist | Resolved request URLs must match the manifest's `hosts` (or the `*` wildcard for templates where the host comes from config) |
+
+## Manifests live in a separate package (planned)
+
+This package is the engine only — no actual manifests for real sources live here. Real manifests will live in a sibling `@danmaku-anywhere/dango-manifests` package, alongside their fixtures and per-source tests. That package depends on `dango`, the extension depends on both. The separation lets the manifest repo move to its own home later if independent release cadence is wanted.
 
 ## Scripts
 
