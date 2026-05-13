@@ -94,12 +94,16 @@ export class TencentMapper {
   static manifestEpisodeToEpisodeMeta(item: {
     providerIds: { vid: string; cid: string }
     title: string
+    episodeNumber: string
     alternativeTitle?: string[]
     imageUrl?: string
   }): OmitSeasonId<TencentOf<EpisodeMeta>> {
     return {
       provider: DanmakuSourceType.Tencent,
       title: stripHtml(item.title),
+      // Tencent's `title` field is the bare number ("1", "01") while
+      // `play_title` is the formatted "第01话 名称" we use for display.
+      episodeNumber: item.episodeNumber,
       alternativeTitle: item.alternativeTitle,
       providerIds: { vid: item.providerIds.vid },
       imageUrl: item.imageUrl,

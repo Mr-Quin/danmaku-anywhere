@@ -95,8 +95,8 @@ function makeEpisodePage(start: number, count: number) {
         vid: `vid_${n}`,
         cid: 'mzc00200qkxg2td',
         is_trailer: '0',
-        play_title: `${n}`,
-        title: `第${n}集`,
+        play_title: `第${n}集`,
+        title: `${n}`,
         union_title: `第${n}集 - 标题${n}`,
         image_url: `https://example.com/${n}.jpg`,
       },
@@ -280,6 +280,7 @@ describe('builtin:tencent manifest', () => {
     })) as Array<{
       providerIds: { vid: string }
       title: string
+      episodeNumber: string
       alternativeTitle?: string[]
     }>
 
@@ -287,10 +288,12 @@ describe('builtin:tencent manifest', () => {
     expect(result).toHaveLength(245)
     expect(result[0].providerIds.vid).toBe('vid_1')
     expect(result[244].providerIds.vid).toBe('vid_245')
-    // play_title is the canonical title (matches legacy TencentMapper),
-    // title + union_title go to alternativeTitle.
-    expect(result[0].title).toBe('1')
-    expect(result[0].alternativeTitle).toEqual(['第1集', '第1集 - 标题1'])
+    // play_title → title (the formatted "第N话 名称"),
+    // raw `title` field → episodeNumber (just the number),
+    // union_title → alternativeTitle. All source-provided fields.
+    expect(result[0].title).toBe('第1集')
+    expect(result[0].episodeNumber).toBe('1')
+    expect(result[0].alternativeTitle).toEqual(['第1集 - 标题1'])
   })
 
   it('handles a series whose total fits in one (full) page', async () => {
