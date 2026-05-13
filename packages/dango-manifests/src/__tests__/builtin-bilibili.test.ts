@@ -163,6 +163,8 @@ describe('builtin:bilibili manifest', () => {
         indexedId: '1300001',
         title: '旅途的终点',
         episodeNumber: '1',
+        imageUrl: 'https://i0.hdslb.com/bfs/bangumi/ep1.jpg',
+        alternativeTitle: ['葬送的芙莉莲 第1话'],
       },
       {
         providerIds: {
@@ -174,6 +176,8 @@ describe('builtin:bilibili manifest', () => {
         indexedId: '1300002',
         title: '不杀人的魔法',
         episodeNumber: '2',
+        imageUrl: 'https://i0.hdslb.com/bfs/bangumi/ep2.jpg',
+        alternativeTitle: ['葬送的芙莉莲 第2话'],
       },
     ])
   })

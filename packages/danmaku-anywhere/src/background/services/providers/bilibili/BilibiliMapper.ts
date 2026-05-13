@@ -110,15 +110,22 @@ export class BilibiliMapper {
     }
     title: string
     episodeNumber: string
+    imageUrl?: string
+    alternativeTitle?: string[]
   }): OmitSeasonId<BilibiliOf<EpisodeMeta>> {
     const titleClean = stripHtml(item.title).trim()
-    const numericMatch = BARE_NUMERIC_TITLE_RE.test(titleClean)
-      ? Number.parseInt(titleClean, 10)
-      : undefined
+    // Manifest's episodeNumber is bilibili's `show_title` (e.g. "1", "01",
+    // "SP1"). Convert to number when it's a bare numeric string so sort /
+    // matching can use it; otherwise pass through as-is for the renderer.
+    const episodeNumber = BARE_NUMERIC_TITLE_RE.test(item.episodeNumber)
+      ? Number.parseInt(item.episodeNumber, 10)
+      : item.episodeNumber || undefined
     return {
       provider: DanmakuSourceType.Bilibili,
       title: titleClean,
-      episodeNumber: numericMatch,
+      episodeNumber,
+      alternativeTitle: item.alternativeTitle,
+      imageUrl: item.imageUrl,
       providerIds: {
         cid: item.providerIds.cid,
         aid: item.providerIds.aid,
