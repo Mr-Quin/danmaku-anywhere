@@ -14,6 +14,7 @@ import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import type { ILogger } from '@/common/Logger'
+import type { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import type { BuiltInTencentProvider } from '@/common/options/providerConfig/schema'
 import { findEpisodeByNumber } from '../common/findEpisodeByNumber'
 import type {
@@ -22,6 +23,7 @@ import type {
   ParseUrlResult,
   SeasonSearchParams,
 } from '../IDanmakuProvider'
+import { getTencentRunner } from '../manifestRunners'
 import { TencentMapper } from './TencentMapper'
 
 const defaultTencentSpec: DnrRuleSpec = {
@@ -45,8 +47,17 @@ export class TencentService implements IDanmakuProvider {
 
   readonly forProvider = DanmakuSourceType.Tencent
 
-  constructor(_config: BuiltInTencentProvider, logger: ILogger) {
+  constructor(
+    _config: BuiltInTencentProvider,
+    logger: ILogger,
+    private readonly extensionOptionsService: ExtensionOptionsService
+  ) {
     this.logger = logger.sub('[TencentService]')
+  }
+
+  private async useManifest(): Promise<boolean> {
+    const opts = await this.extensionOptionsService.get()
+    return opts.useManifest
   }
 
   // test if the cookies are working
@@ -77,6 +88,20 @@ export class TencentService implements IDanmakuProvider {
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
     const kw = params.keyword
     this.logger.debug('Search tencent', kw)
+
+    if (await this.useManifest()) {
+      const runner = getTencentRunner()
+      const results = (await runner.runSearch({ q: kw })) as Array<{
+        providerIds: { cid: string }
+        title: string
+        type: string
+        imageUrl?: string
+        episodeCount?: number
+        year?: number
+      }>
+      this.logger.debug('Manifest search result', results)
+      return results.map(TencentMapper.manifestSearchToSeasonInsert)
+    }
 
     return runWithDnr(searchTencentSpec, {
       keyword: encodeURIComponent(kw),
@@ -123,6 +148,20 @@ export class TencentService implements IDanmakuProvider {
     seasonRemoteIds: TencentOf<Season>['providerIds']
   ): Promise<OmitSeasonId<TencentOf<EpisodeMeta>>[]> {
     this.logger.debug('Get episode', seasonRemoteIds)
+
+    if (await this.useManifest()) {
+      const runner = getTencentRunner()
+      const results = (await runner.runEpisodes({
+        cid: seasonRemoteIds.cid,
+      })) as Array<{
+        providerIds: { vid: string; cid: string }
+        title: string
+        episodeNumber: string
+        imageUrl?: string
+      }>
+      this.logger.debug('Manifest episodes result', results)
+      return results.map(TencentMapper.manifestEpisodeToEpisodeMeta)
+    }
 
     return runWithDnr(defaultTencentSpec)(async () => {
       const generator = tencent.listEpisodes({
@@ -189,6 +228,12 @@ export class TencentService implements IDanmakuProvider {
   }
 
   private async fetchDanmaku(vid: string) {
+    if (await this.useManifest()) {
+      const runner = getTencentRunner()
+      const comments = (await runner.runDanmaku({ vid })) as CommentEntity[]
+      this.logger.debug('Manifest danmaku fetched', comments.length)
+      return comments
+    }
     return runWithDnr(defaultTencentSpec)(async () => {
       const result = await tencent.getDanmaku(vid)
       if (!result.success) throw result.error

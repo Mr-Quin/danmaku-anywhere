@@ -68,4 +68,44 @@ export class TencentMapper {
       schemaVersion: 1,
     }
   }
+
+  static manifestSearchToSeasonInsert(item: {
+    providerIds: { cid: string }
+    title: string
+    type: string
+    imageUrl?: string
+    episodeCount?: number
+    year?: number
+  }): TencentOf<SeasonInsert> {
+    return {
+      provider: DanmakuSourceType.Tencent,
+      providerConfigId: PROVIDER_TO_BUILTIN_ID.Tencent,
+      title: stripHtml(item.title),
+      type: item.type,
+      imageUrl: item.imageUrl,
+      providerIds: { cid: item.providerIds.cid },
+      indexedId: item.providerIds.cid,
+      episodeCount: item.episodeCount,
+      year: item.year,
+      schemaVersion: 1,
+    }
+  }
+
+  static manifestEpisodeToEpisodeMeta(item: {
+    providerIds: { vid: string; cid: string }
+    title: string
+    episodeNumber: string
+    imageUrl?: string
+  }): OmitSeasonId<TencentOf<EpisodeMeta>> {
+    return {
+      provider: DanmakuSourceType.Tencent,
+      title: stripHtml(item.title),
+      episodeNumber: item.episodeNumber,
+      providerIds: { vid: item.providerIds.vid },
+      imageUrl: item.imageUrl,
+      indexedId: item.providerIds.vid,
+      lastChecked: Date.now(),
+      schemaVersion: 4,
+    }
+  }
 }
