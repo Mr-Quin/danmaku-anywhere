@@ -10,10 +10,9 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
-  Skeleton,
   Tooltip,
 } from '@mui/material'
-import { type ReactNode, Suspense } from 'react'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CoverImage } from '@/common/components/image/CoverImage'
 import { isNotCustom } from '@/common/danmaku/utils'
@@ -67,13 +66,7 @@ export const BaseEpisodeListItem = <
       >
         {showImage && !isCustom && episode.imageUrl && (
           <Box width={40} mr={2} flexShrink={0}>
-            <Suspense fallback={<Skeleton width={40} height={40} />}>
-              <CoverImage
-                src={episode.imageUrl}
-                widthRatio={1}
-                heightRatio={1}
-              />
-            </Suspense>
+            <CoverImage src={episode.imageUrl} widthRatio={1} heightRatio={1} />
           </Box>
         )}
         <Tooltip
