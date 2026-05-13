@@ -90,9 +90,9 @@ export class TencentService implements IDanmakuProvider {
     this.logger.debug('Search tencent', kw)
 
     if (await this.useManifest()) {
-      const results = (await getTencentRunner().runSearch({
-        q: kw,
-      })) as Parameters<typeof TencentMapper.manifestSearchToSeasonInsert>[0][]
+      const results = await getTencentRunner().runSearch<
+        Parameters<typeof TencentMapper.manifestSearchToSeasonInsert>[0][]
+      >({ q: kw })
       this.logger.debug('Manifest search result', results)
       return results.map(TencentMapper.manifestSearchToSeasonInsert)
     }
@@ -144,9 +144,9 @@ export class TencentService implements IDanmakuProvider {
     this.logger.debug('Get episode', seasonRemoteIds)
 
     if (await this.useManifest()) {
-      const results = (await getTencentRunner().runEpisodes({
-        cid: seasonRemoteIds.cid,
-      })) as Parameters<typeof TencentMapper.manifestEpisodeToEpisodeMeta>[0][]
+      const results = await getTencentRunner().runEpisodes<
+        Parameters<typeof TencentMapper.manifestEpisodeToEpisodeMeta>[0][]
+      >({ cid: seasonRemoteIds.cid })
       this.logger.debug('Manifest episodes result', results)
       return results.map(TencentMapper.manifestEpisodeToEpisodeMeta)
     }
@@ -217,9 +217,10 @@ export class TencentService implements IDanmakuProvider {
 
   private async fetchDanmaku(vid: string) {
     if (await this.useManifest()) {
-      const comments = (await getTencentRunner().runDanmaku({
-        vid,
-      })) as CommentEntity[]
+      const raw = await getTencentRunner().runDanmaku<
+        Parameters<typeof TencentMapper.manifestBarrageToComments>[0]
+      >({ vid })
+      const comments = TencentMapper.manifestBarrageToComments(raw)
       this.logger.debug('Manifest danmaku fetched', comments.length)
       return comments
     }

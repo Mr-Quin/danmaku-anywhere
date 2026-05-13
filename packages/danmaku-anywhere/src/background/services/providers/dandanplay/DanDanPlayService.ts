@@ -99,10 +99,9 @@ export class DanDanPlayService implements IDanmakuProvider {
   ): Promise<SeasonInsert[]> {
     this.logger.debug('Searching DanDanPlay via manifest', searchParams)
     const { runner, extraInputs } = this.resolveManifest()
-    const results = (await runner.runSearch({
-      q: searchParams.keyword,
-      ...extraInputs,
-    })) as Parameters<typeof DanDanPlayMapper.manifestSearchToSeasonInsert>[0][]
+    const results = await runner.runSearch<
+      Parameters<typeof DanDanPlayMapper.manifestSearchToSeasonInsert>[0][]
+    >({ q: searchParams.keyword, ...extraInputs })
     this.logger.debug('Manifest search result', results)
     return results.map((item) =>
       DanDanPlayMapper.manifestSearchToSeasonInsert(item, this.config.id)
@@ -147,12 +146,9 @@ export class DanDanPlayService implements IDanmakuProvider {
 
     if (await this.useManifest()) {
       const { runner, extraInputs } = this.resolveManifest()
-      const results = (await runner.runEpisodes({
-        bangumiId: seasonRemoteIds.bangumiId,
-        ...extraInputs,
-      })) as Parameters<
-        typeof DanDanPlayMapper.manifestEpisodeToEpisodeMeta
-      >[0][]
+      const results = await runner.runEpisodes<
+        Parameters<typeof DanDanPlayMapper.manifestEpisodeToEpisodeMeta>[0][]
+      >({ bangumiId: seasonRemoteIds.bangumiId, ...extraInputs })
       this.logger.debug('Manifest episodes fetched', results)
       return results.map(DanDanPlayMapper.manifestEpisodeToEpisodeMeta)
     }
@@ -217,10 +213,10 @@ export class DanDanPlayService implements IDanmakuProvider {
   ): Promise<CommentEntity[]> {
     if (await this.useManifest()) {
       const { runner, extraInputs } = this.resolveManifest()
-      const comments = (await runner.runDanmaku({
+      const comments = await runner.runDanmaku<CommentEntity[]>({
         episodeId: meta.providerIds.episodeId,
         ...extraInputs,
-      })) as CommentEntity[]
+      })
       this.logger.debug('Manifest danmaku fetched', comments.length)
       return comments
     }

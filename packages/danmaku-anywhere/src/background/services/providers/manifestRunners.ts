@@ -47,9 +47,6 @@ const manifestSpecs: Record<
   tencent: { manifest: builtinTencent },
 }
 
-// `ManifestRunner` parses the manifest and builds a `ProtoRegistry` on
-// construction. Cache one per shipped manifest so the per-call service
-// factory doesn't re-parse the JSON on every search.
 const runners = new Map<RunnerKey, ManifestRunner>()
 
 function getRunner(key: RunnerKey): ManifestRunner {

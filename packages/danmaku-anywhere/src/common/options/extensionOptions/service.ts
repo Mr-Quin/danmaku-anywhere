@@ -264,8 +264,6 @@ export class ExtensionOptionsService implements IStoreService {
       .version(25, {
         upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
-            // Global manifest toggle. Defaults to legacy fetchers until
-            // verified through the manifest path.
             draft.useManifest = false
           }),
       })

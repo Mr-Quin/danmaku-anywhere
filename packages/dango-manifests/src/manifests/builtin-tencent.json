@@ -96,6 +96,6 @@
         "collect": "barrage_list"
       }
     ],
-    "output": "[segments.($style := $exists(content_style) and content_style != '' ? $jsonParse(content_style) : null; $color := ($exists($style) and $exists($style.color) and $style.color != '') ? $style.color : 'FFFFFF'; { 'cid': $number(id), 'p': $string($number(time_offset) / 1000) & ',1,' & $string($hexToInt($color)), 'm': content })]"
+    "output": "[segments]"
   }
 }

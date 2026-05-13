@@ -1,5 +1,8 @@
 import {
+  type CommentEntity,
+  CommentMode,
   type EpisodeMeta,
+  hexToRgb888,
   PROVIDER_TO_BUILTIN_ID,
   type SeasonInsert,
   stripHtml,
@@ -101,8 +104,6 @@ export class TencentMapper {
     return {
       provider: DanmakuSourceType.Tencent,
       title: stripHtml(item.title),
-      // Tencent's `title` field is the bare number ("1", "01") while
-      // `play_title` is the formatted "第01话 名称" we use for display.
       episodeNumber: item.episodeNumber,
       alternativeTitle: item.alternativeTitle,
       providerIds: { vid: item.providerIds.vid },
@@ -111,5 +112,42 @@ export class TencentMapper {
       lastChecked: Date.now(),
       schemaVersion: 4,
     }
+  }
+
+  static manifestBarrageToComments(
+    items: ManifestBarrageItem[]
+  ): CommentEntity[] {
+    const out: CommentEntity[] = new Array(items.length)
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      out[i] = {
+        p: `${Number(item.time_offset) / 1000},${CommentMode.rtl},${parseTencentBarrageColor(item.content_style)}`,
+        m: item.content,
+      }
+    }
+    return out
+  }
+}
+
+interface ManifestBarrageItem {
+  id: string
+  content: string
+  time_offset: string | number
+  content_style?: string
+}
+
+function parseTencentBarrageColor(style: string | undefined): number {
+  if (!style) {
+    return hexToRgb888('#ffffff')
+  }
+  try {
+    const parsed = JSON.parse(style) as {
+      color?: string
+      gradient_colors?: [string, string]
+    }
+    const hex = parsed.gradient_colors?.[0] ?? parsed.color
+    return hexToRgb888(hex ? `#${hex}` : '#ffffff')
+  } catch {
+    return hexToRgb888('#ffffff')
   }
 }
