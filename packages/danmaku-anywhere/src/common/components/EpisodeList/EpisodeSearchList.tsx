@@ -68,7 +68,7 @@ const EpisodeRow = ({ episode, seasonId, renderEpisode }: EpisodeRowProps) => {
   } satisfies EpisodeQueryFilter
 
   const danmakuQuery = useQuery({
-    queryKey: episodeQueryKeys.filter(params),
+    queryKey: episodeQueryKeys.filterLite(params),
     queryFn: async () => {
       const res = await chromeRpcClient.episodeFilterLite(params)
       if (res.data.length === 0) {
@@ -79,10 +79,17 @@ const EpisodeRow = ({ episode, seasonId, renderEpisode }: EpisodeRowProps) => {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     staleTime: Number.POSITIVE_INFINITY,
+    throwOnError: true,
   })
 
   return (
-    <ErrorBoundary fallback={<ListItemText primary="An error occurred" />}>
+    <ErrorBoundary
+      fallback={
+        <ListItem>
+          <ListItemText primary="An error occurred" />
+        </ListItem>
+      }
+    >
       <Suspense fallback={<EpisodeSkeleton />}>
         {renderEpisode({
           episode,
@@ -129,7 +136,11 @@ const CustomEpisodeListInner = ({
       {episodes.map((episode, i) => {
         return (
           <ErrorBoundary
-            fallback={<ListItemText primary="An error occurred" />}
+            fallback={
+              <ListItem>
+                <ListItemText primary="An error occurred" />
+              </ListItem>
+            }
             key={episode.url}
           >
             <Suspense fallback={<EpisodeSkeleton />}>
