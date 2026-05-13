@@ -177,7 +177,7 @@ describe('builtin:ddp-compat manifest', () => {
 
   it('runs the danmaku pipeline and emits {cid, p, m} entries', async () => {
     const { fetcher, calls } = mockFetcher({
-      [`${BASE}/v2/comment/9910001?withRelated=false`]: {
+      [`${BASE}/v2/comment/9910001?withRelated=true`]: {
         body: JSON.stringify(commentsFixture),
       },
     })
@@ -195,6 +195,6 @@ describe('builtin:ddp-compat manifest', () => {
       { cid: 91000001, p: '10.50,1,16777215,abcdef01', m: 'self-host 1' },
       { cid: 91000002, p: '20.75,4,16711680,abcdef02', m: 'self-host 2' },
     ])
-    expect(calls[0].url).toBe(`${BASE}/v2/comment/9910001?withRelated=false`)
+    expect(calls[0].url).toBe(`${BASE}/v2/comment/9910001?withRelated=true`)
   })
 })

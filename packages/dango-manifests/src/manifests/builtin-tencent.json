@@ -29,7 +29,7 @@
         }
       }
     ],
-    "output": "[picked.items[videoInfo.episodeSites and $count(videoInfo.episodeSites) > 0].{ 'providerIds': { 'cid': doc.id }, 'indexedId': doc.id, 'title': videoInfo.title, 'type': videoInfo.typeName, 'typeDescription': videoInfo.typeName, 'imageUrl': videoInfo.imgUrl, 'episodeCount': videoInfo.episodeSites[0].totalEpisode, 'year': videoInfo.year > 0 ? videoInfo.year : null }]"
+    "output": "[picked.items[videoInfo.year > 0 and videoInfo.episodeSites and $count(videoInfo.episodeSites) > 0].{ 'providerIds': { 'cid': doc.id }, 'indexedId': doc.id, 'title': videoInfo.title, 'type': videoInfo.typeName, 'typeDescription': videoInfo.typeName, 'imageUrl': videoInfo.imgUrl, 'episodeCount': videoInfo.episodeSites[0].totalEpisode, 'year': videoInfo.year }]"
   },
   "episodes": {
     "inputs": ["cid"],
