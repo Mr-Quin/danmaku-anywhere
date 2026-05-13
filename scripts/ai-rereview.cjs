@@ -1,6 +1,17 @@
 const RE_REVIEW_LABEL = 'ai-rereview'
-const GEMINI_LOGIN = 'gemini-code-assist[bot]'
-const GEMINI_REVIEW_COMMAND = '/gemini review'
+
+const BOTS = [
+  {
+    name: 'gemini',
+    reviewLogin: 'gemini-code-assist[bot]',
+    command: '/gemini review',
+  },
+  {
+    name: 'copilot',
+    reviewLogin: 'copilot-pull-request-reviewer[bot]',
+    command: '@copilot review',
+  },
+]
 
 const hasLabel = (pullRequest, labelName) => {
   const labels = pullRequest?.labels ?? []
@@ -44,19 +55,27 @@ const run = async ({ core, github, context }) => {
     per_page: 100,
   })
 
-  if (hasReviewedHead(reviews, GEMINI_LOGIN, headSha)) {
-    core.info(`Gemini already reviewed head ${headSha}; skipping.`)
-    return
-  }
+  for (const bot of BOTS) {
+    if (hasReviewedHead(reviews, bot.reviewLogin, headSha)) {
+      core.info(`${bot.name} already reviewed head ${headSha}; skipping.`)
+      continue
+    }
 
-  core.info('Posting /gemini review comment.')
-  await github.rest.issues.createComment({
-    owner,
-    repo,
-    issue_number: pull_number,
-    body: GEMINI_REVIEW_COMMAND,
-  })
-  core.info('Re-review triggered for Gemini.')
+    core.info(`Posting "${bot.command}" for ${bot.name}.`)
+    try {
+      await github.rest.issues.createComment({
+        owner,
+        repo,
+        issue_number: pull_number,
+        body: bot.command,
+      })
+      core.info(`Re-review triggered for ${bot.name}.`)
+    } catch (error) {
+      core.warning(
+        `Failed to trigger re-review for ${bot.name}: ${error.message}`
+      )
+    }
+  }
 }
 
 module.exports = { run }

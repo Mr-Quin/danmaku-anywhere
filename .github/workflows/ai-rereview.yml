@@ -1,4 +1,4 @@
-name: Gemini Re-review
+name: AI Re-review
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   re-request:
-    name: Re-request Gemini review
+    name: Re-request AI reviewers
     if: |
       (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'ai-rereview'))
       || (github.event.action == 'labeled' && github.event.label.name == 'ai-rereview')
@@ -19,11 +19,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Re-request review
+      - name: Re-request reviewers
         uses: actions/github-script@v7
         with:
-          # AI_REREVIEW_PAT is required: Gemini ignores /gemini review
-          # comments posted by github-actions[bot].
+          # AI_REREVIEW_PAT is required: bots ignore comments posted
+          # by github-actions[bot].
           github-token: ${{ secrets.AI_REREVIEW_PAT || secrets.GITHUB_TOKEN }}
           script: |
             const { run } = require('./scripts/ai-rereview.cjs');
