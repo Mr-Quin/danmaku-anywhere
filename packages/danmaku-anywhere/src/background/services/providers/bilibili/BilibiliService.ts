@@ -186,6 +186,8 @@ export class BilibiliService implements IDanmakuProvider {
         }
         title: string
         episodeNumber: string
+        imageUrl?: string
+        alternativeTitle?: string[]
       }>
       this.logger.debug('Manifest episodes result', results)
       return results.map(BilibiliMapper.manifestEpisodeToEpisodeMeta)
