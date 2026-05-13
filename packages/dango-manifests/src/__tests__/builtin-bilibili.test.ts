@@ -118,7 +118,7 @@ describe('builtin:bilibili manifest', () => {
 
     expect(result).toEqual([
       {
-        providerIds: { seasonId: '41410', mediaId: '28219412' },
+        providerIds: { seasonId: 41410, mediaId: 28219412 },
         indexedId: '41410',
         title: '葬送的芙莉莲',
         type: '番剧',
@@ -128,7 +128,7 @@ describe('builtin:bilibili manifest', () => {
         year: 2023,
       },
       {
-        providerIds: { seasonId: '91234', mediaId: '91234' },
+        providerIds: { seasonId: 91234, mediaId: 91234 },
         indexedId: '91234',
         title: 'Demon Slayer Movie',
         type: '电影',
@@ -155,11 +155,10 @@ describe('builtin:bilibili manifest', () => {
     expect(result).toEqual([
       {
         providerIds: {
-          cid: '1300001',
-          aid: '100001',
+          cid: 1300001,
+          aid: 100001,
           bvid: 'BV1aaaaaaaa',
-          epId: '700001',
-          seasonId: '41410',
+          epid: 700001,
         },
         indexedId: '1300001',
         title: '旅途的终点',
@@ -167,11 +166,10 @@ describe('builtin:bilibili manifest', () => {
       },
       {
         providerIds: {
-          cid: '1300002',
-          aid: '100002',
+          cid: 1300002,
+          aid: 100002,
           bvid: 'BV1bbbbbbbb',
-          epId: '700002',
-          seasonId: '41410',
+          epid: 700002,
         },
         indexedId: '1300002',
         title: '不杀人的魔法',
@@ -203,9 +201,7 @@ describe('builtin:bilibili manifest', () => {
     expect(calls).toHaveLength(1)
   })
 
-  it('protobuf variant paginates over segments and emits canonical comments', {
-    timeout: 15000,
-  }, async () => {
+  it('protobuf variant paginates until the first empty segment', async () => {
     const seg1 = encodeSegment([
       {
         progress: 12340,
@@ -255,15 +251,14 @@ describe('builtin:bilibili manifest', () => {
       { p: '23.45,4,16711680,h2', m: 'proto 底部' },
       { p: '365,5,255,h3', m: 'proto 顶部' },
     ])
-    // 30 segments fetched (in concurrency batches) — past-the-end return empty.
-    expect(calls.length).toBe(30)
+    // breakOn stops the loop on the first empty segment — segs 1, 2, then
+    // 3 (empty) triggers stop. No more requests fire.
+    expect(calls.length).toBe(3)
   })
 
-  it('protobuf variant is the default when danmakuFormat omitted', {
-    timeout: 15000,
-  }, async () => {
+  it('protobuf variant is the default when danmakuFormat omitted', async () => {
     const emptySeg = encodeSegment([])
-    const { fetcher } = mockFetcher({
+    const { fetcher, calls } = mockFetcher({
       'https://api.bilibili.com/x/v2/dm/web/seg.so': { body: emptySeg },
     })
     const runner = new ManifestRunner(zManifest.parse(builtinBilibili), {
@@ -272,11 +267,10 @@ describe('builtin:bilibili manifest', () => {
     // No danmakuFormat input — should pick the no-`when` (default) variant.
     const result = await runner.runDanmaku({ cid: 1300001 })
     expect(result).toEqual([])
+    expect(calls.length).toBe(1) // breakOn fires immediately on empty seg 1
   })
 
-  it('protobuf variant decodes 304-with-empty-body as no-more-segments', {
-    timeout: 15000,
-  }, async () => {
+  it('protobuf variant decodes 304-with-empty-body as no-more-segments', async () => {
     // Bilibili abuses 304 as "no danmaku for this segment". The manifest
     // opts in via acceptStatus: [304], and the engine decodes the empty
     // body as an empty proto message (zero elems contributed).
@@ -310,9 +304,7 @@ describe('builtin:bilibili manifest', () => {
     expect(result).toEqual([{ p: '1,1,16777215,a', m: 'only one' }])
   })
 
-  it('protobuf variant collapses bilibili modes 2/3 to scroll-right (1)', {
-    timeout: 15000,
-  }, async () => {
+  it('protobuf variant collapses bilibili modes 2/3 to scroll-right (1)', async () => {
     const seg1 = encodeSegment([
       {
         progress: 10000,

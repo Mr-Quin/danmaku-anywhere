@@ -51,7 +51,7 @@
         "request": {
           "method": "GET",
           "url": "$replace(baseUrl, /\\/$/, '') & '/v2/comment/' & $string(episodeId)",
-          "query": "{ 'withRelated': 'false' }",
+          "query": "{ 'withRelated': 'true' }",
           "headers": "$merge(authHeaders.{ key: value })"
         }
       }
