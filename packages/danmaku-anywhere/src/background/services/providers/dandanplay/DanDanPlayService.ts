@@ -13,6 +13,7 @@ import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType, isProvider } from '@/common/danmaku/utils'
 import type { ILogger } from '@/common/Logger'
+import type { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import type { DanDanPlayProviderConfig } from '@/common/options/providerConfig/schema'
 import { tryCatch } from '@/common/utils/tryCatch'
 import { findEpisodeByNumber } from '../common/findEpisodeByNumber'
@@ -21,6 +22,7 @@ import type {
   OmitSeasonId,
   SeasonSearchParams,
 } from '../IDanmakuProvider'
+import { getDdpRunner } from '../manifestRunners'
 import { DanDanPlayMapper } from './DanDanPlayMapper'
 
 export class DanDanPlayService implements IDanmakuProvider {
@@ -32,14 +34,24 @@ export class DanDanPlayService implements IDanmakuProvider {
 
   constructor(
     private config: DanDanPlayProviderConfig,
-    logger: ILogger
+    logger: ILogger,
+    private readonly extensionOptionsService: ExtensionOptionsService
   ) {
     this.logger = logger.sub('[DDPService]')
     this.context = DanDanPlayMapper.toQueryContext(this.config)
   }
 
+  private async useManifest(): Promise<boolean> {
+    const opts = await this.extensionOptionsService.get()
+    return opts.useManifest.dandanplay
+  }
+
   async search(searchParams: SeasonSearchParams): Promise<SeasonInsert[]> {
     this.logger.debug('Searching DanDanPlay', searchParams, this.config)
+
+    if (await this.useManifest()) {
+      return this.searchViaManifest(searchParams)
+    }
 
     const result = await danDanPlay.searchSearchAnime(
       searchParams.keyword,
@@ -54,6 +66,27 @@ export class DanDanPlayService implements IDanmakuProvider {
 
     return result.data.map((item) =>
       DanDanPlayMapper.searchResultToSeasonInsert(item, this.config.id)
+    )
+  }
+
+  private async searchViaManifest(
+    searchParams: SeasonSearchParams
+  ): Promise<SeasonInsert[]> {
+    this.logger.debug('Searching DanDanPlay via manifest', searchParams)
+    const runner = getDdpRunner()
+    const results = (await runner.runSearch({
+      q: searchParams.keyword,
+    })) as Array<{
+      providerIds: { animeId: number; bangumiId: string }
+      title: string
+      type: string
+      imageUrl?: string
+      episodeCount?: number
+      year?: number
+    }>
+    this.logger.debug('Manifest search result', results)
+    return results.map((item) =>
+      DanDanPlayMapper.manifestSearchToSeasonInsert(item, this.config.id)
     )
   }
 
@@ -92,6 +125,21 @@ export class DanDanPlayService implements IDanmakuProvider {
     seasonRemoteIds: DanDanPlayOf<Season>['providerIds']
   ): Promise<OmitSeasonId<DanDanPlayOf<EpisodeMeta>>[]> {
     this.logger.debug('Getting DanDanPlay episodes', seasonRemoteIds)
+
+    if (await this.useManifest()) {
+      const runner = getDdpRunner()
+      const results = (await runner.runEpisodes({
+        bangumiId: seasonRemoteIds.bangumiId,
+      })) as Array<{
+        providerIds: { episodeId: number }
+        title: string
+        episodeNumber: string
+      }>
+      this.logger.debug('Manifest episodes fetched', results)
+      return results.map((item) =>
+        DanDanPlayMapper.manifestEpisodeToEpisodeMeta(item)
+      )
+    }
 
     const bangumiDetailsRes = await danDanPlay.getBangumiAnime(
       seasonRemoteIds.bangumiId,
@@ -151,6 +199,14 @@ export class DanDanPlayService implements IDanmakuProvider {
     season: DanDanPlayOf<Season>,
     params: Partial<danDanPlay.GetCommentQuery>
   ): Promise<CommentEntity[]> {
+    if (await this.useManifest()) {
+      const runner = getDdpRunner()
+      const comments = (await runner.runDanmaku({
+        episodeId: meta.providerIds.episodeId,
+      })) as CommentEntity[]
+      this.logger.debug('Manifest danmaku fetched', comments.length)
+      return comments
+    }
     const { comments } = await this.fetchDanmaku(meta, season, params)
 
     return comments
