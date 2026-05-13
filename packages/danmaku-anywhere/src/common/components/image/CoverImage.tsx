@@ -61,10 +61,14 @@ const CoverImageLoader = (props: CoverImageProps) => {
   const image = useImage(props.src || IMAGE_ASSETS.Fallback)
   const fallbackImage = useImage(IMAGE_ASSETS.Fallback)
 
+  if (image.isPending) {
+    return <Skeleton width="100%" height="100%" variant="rounded" />
+  }
+
   const src = image.data ?? fallbackImage.data
 
   if (!src) {
-    return <Skeleton width="100%" height="100%" variant="rounded" />
+    return null
   }
 
   return (

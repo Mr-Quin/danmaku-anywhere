@@ -79,7 +79,6 @@ const EpisodeRow = ({ episode, seasonId, renderEpisode }: EpisodeRowProps) => {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     staleTime: Number.POSITIVE_INFINITY,
-    throwOnError: true,
   })
 
   return (
@@ -90,13 +89,11 @@ const EpisodeRow = ({ episode, seasonId, renderEpisode }: EpisodeRowProps) => {
         </ListItem>
       }
     >
-      <Suspense fallback={<EpisodeSkeleton />}>
-        {renderEpisode({
-          episode,
-          danmaku: danmakuQuery.data ?? null,
-          isLoading: danmakuQuery.isLoading,
-        })}
-      </Suspense>
+      {renderEpisode({
+        episode,
+        danmaku: danmakuQuery.data ?? null,
+        isLoading: danmakuQuery.isLoading,
+      })}
     </ErrorBoundary>
   )
 }
