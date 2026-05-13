@@ -1,15 +1,13 @@
 const RE_REVIEW_LABEL = 'ai-rereview'
 
+// Add a new entry to register a comment-triggered AI reviewer (e.g. Cursor,
+// Claude). Each bot needs its own response to a comment posted as a real
+// user — most bots ignore comments authored by github-actions[bot].
 const BOTS = [
   {
     name: 'gemini',
     reviewLogin: 'gemini-code-assist[bot]',
     command: '/gemini review',
-  },
-  {
-    name: 'copilot',
-    reviewLogin: 'copilot-pull-request-reviewer[bot]',
-    command: '@copilot review',
   },
 ]
 
