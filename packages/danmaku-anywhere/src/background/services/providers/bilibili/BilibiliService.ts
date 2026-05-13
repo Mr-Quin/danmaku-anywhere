@@ -189,8 +189,10 @@ export class BilibiliService implements IDanmakuProvider {
         imageUrl?: string
         alternativeTitle?: string[]
       }>
-      this.logger.debug('Manifest episodes result', results)
-      return results.map(BilibiliMapper.manifestEpisodeToEpisodeMeta)
+      this.logger.debug('Manifest episodes raw', results)
+      const mapped = results.map(BilibiliMapper.manifestEpisodeToEpisodeMeta)
+      this.logger.debug('Manifest episodes mapped', mapped)
+      return mapped
     }
 
     const result = await bilibili.getBangumiInfo({
