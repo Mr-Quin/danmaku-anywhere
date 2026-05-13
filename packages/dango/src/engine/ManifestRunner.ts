@@ -1,12 +1,21 @@
 import type { Manifest, VariantPipeline } from '../manifest/schema.js'
 import type { FetchLike } from './http.js'
-import { ProtoRegistry } from './proto.js'
+import { ProtoRegistry, type ProtoTypeOverrides } from './proto.js'
 import { type RunOptions, runPipeline } from './runner.js'
 
 /** Bound at construction; per-call overrides via the `opts` arg on each method. */
 export interface ManifestRunnerOptions {
   fetcher?: FetchLike
   signal?: AbortSignal
+  /**
+   * Pre-compiled `protobuf.Type` instances keyed by manifest schema name
+   * and message name. The engine prefers these over parsing the manifest's
+   * inline `.proto` text. Required in CSP-restricted hosts (MV3 service
+   * worker) where the parsed Type's lazy codegen would trigger
+   * `unsafe-eval`. Static-generated types (`pbjs --target static-module`)
+   * are CSP-safe — pass them here.
+   */
+  protoTypes?: ProtoTypeOverrides
 }
 
 /** Per-call inputs merged with the installation's config values by the caller. */
@@ -28,7 +37,10 @@ export class ManifestRunner {
     public readonly manifest: Manifest,
     private readonly options: ManifestRunnerOptions = {}
   ) {
-    this.protoRegistry = new ProtoRegistry(manifest.protoSchemas)
+    this.protoRegistry = new ProtoRegistry(
+      manifest.protoSchemas,
+      options.protoTypes
+    )
   }
 
   get id(): string {
