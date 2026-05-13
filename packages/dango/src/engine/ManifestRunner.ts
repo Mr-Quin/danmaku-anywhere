@@ -7,14 +7,7 @@ import { type RunOptions, runPipeline } from './runner.js'
 export interface ManifestRunnerOptions {
   fetcher?: FetchLike
   signal?: AbortSignal
-  /**
-   * Pre-compiled `protobuf.Type` instances keyed by manifest schema name
-   * and message name. The engine prefers these over parsing the manifest's
-   * inline `.proto` text. Required in CSP-restricted hosts (MV3 service
-   * worker) where the parsed Type's lazy codegen would trigger
-   * `unsafe-eval`. Static-generated types (`pbjs --target static-module`)
-   * are CSP-safe — pass them here.
-   */
+  /** See {@link ProtoTypeOverrides}. */
   protoTypes?: ProtoTypeOverrides
 }
 

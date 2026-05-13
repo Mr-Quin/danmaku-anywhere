@@ -1,3 +1,4 @@
+import type { ManifestRunner } from '@danmaku-anywhere/dango'
 import type {
   CommentEntity,
   DanDanPlayOf,
@@ -42,21 +43,17 @@ export class DanDanPlayService implements IDanmakuProvider {
   }
 
   private async useManifest(): Promise<boolean> {
-    const opts = await this.extensionOptionsService.get()
-    return opts.useManifest
+    const { useManifest } = await this.extensionOptionsService.get()
+    return useManifest
   }
 
   /**
-   * Built-in `'DanDanPlay'` configs use `builtin:dandanplay` (proxy-routed,
-   * no extra inputs). User-added `'DanDanPlayCompatible'` configs with a
-   * valid `baseUrl` use `builtin:ddp-compat` and pass `baseUrl` plus the
-   * (possibly empty) auth-header array as pipeline inputs.
-   *
-   * Compat configs without a `baseUrl` are silently rerouted to the
-   * proxy-backed manifest, mirroring `DanDanPlayMapper.toQueryContext`.
+   * Picks `builtin:ddp-compat` for `'DanDanPlayCompatible'` configs that
+   * supply a `baseUrl`, otherwise routes through `builtin:dandanplay`
+   * (proxy-backed). Mirrors `DanDanPlayMapper.toQueryContext`.
    */
   private resolveManifest(): {
-    runner: ReturnType<typeof getDdpRunner>
+    runner: ManifestRunner
     extraInputs: Record<string, unknown>
   } {
     if (this.config.type !== 'DanDanPlayCompatible') {
@@ -66,7 +63,7 @@ export class DanDanPlayService implements IDanmakuProvider {
     if (!baseUrl) {
       return { runner: getDdpRunner(), extraInputs: {} }
     }
-    const auth = this.config.options.auth
+    const { auth } = this.config.options
     const authHeaders = auth?.enabled && auth.headers ? auth.headers : []
     return {
       runner: getDdpCompatRunner(),
@@ -105,14 +102,7 @@ export class DanDanPlayService implements IDanmakuProvider {
     const results = (await runner.runSearch({
       q: searchParams.keyword,
       ...extraInputs,
-    })) as Array<{
-      providerIds: { animeId: number; bangumiId: string }
-      title: string
-      type: string
-      imageUrl?: string
-      episodeCount?: number
-      year?: number
-    }>
+    })) as Parameters<typeof DanDanPlayMapper.manifestSearchToSeasonInsert>[0][]
     this.logger.debug('Manifest search result', results)
     return results.map((item) =>
       DanDanPlayMapper.manifestSearchToSeasonInsert(item, this.config.id)
@@ -160,15 +150,11 @@ export class DanDanPlayService implements IDanmakuProvider {
       const results = (await runner.runEpisodes({
         bangumiId: seasonRemoteIds.bangumiId,
         ...extraInputs,
-      })) as Array<{
-        providerIds: { episodeId: number }
-        title: string
-        episodeNumber: string
-      }>
+      })) as Parameters<
+        typeof DanDanPlayMapper.manifestEpisodeToEpisodeMeta
+      >[0][]
       this.logger.debug('Manifest episodes fetched', results)
-      return results.map((item) =>
-        DanDanPlayMapper.manifestEpisodeToEpisodeMeta(item)
-      )
+      return results.map(DanDanPlayMapper.manifestEpisodeToEpisodeMeta)
     }
 
     const bangumiDetailsRes = await danDanPlay.getBangumiAnime(

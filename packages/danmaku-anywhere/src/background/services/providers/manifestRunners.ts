@@ -19,17 +19,13 @@ import { bilibili as bilibiliProto } from '@danmaku-anywhere/danmaku-provider/bi
 import { extensionFetchLike } from './extensionFetchLike'
 
 /**
- * Pre-compiled `protobuf.Type` overrides registered against the manifests
- * that need them. MV3 service workers block `unsafe-eval`, so the engine
- * can't parse `manifest.protoSchemas`'s inline `.proto` text at runtime
- * (`protobufjs`'s lazy codegen for Type.ctor/decode/toObject triggers
- * `new Function`). Static-generated types replace those lazy properties
- * with hand-rolled implementations that don't use eval.
+ * Pre-compiled `protobuf.Type` overrides for manifests that need them.
+ * MV3 service workers block `unsafe-eval`, so the engine can't compile
+ * inline `.proto` text at runtime (protobufjs's lazy codegen triggers
+ * `new Function`). Static-generated types bypass that.
  *
- * Adding a new protobuf-using manifest requires extending this map. See
- * DA-474 for the longer-term plan to move to `@bufbuild/protobuf`, which
- * would let the manifest carry a CSP-safe binary descriptor and avoid
- * the explicit registration step here.
+ * DA-474 plans to migrate to `@bufbuild/protobuf` so the manifest can
+ * carry a CSP-safe binary descriptor and drop these registrations.
  */
 const bilibiliProtoTypes: ProtoTypeOverrides = {
   bili: {
@@ -39,51 +35,48 @@ const bilibiliProtoTypes: ProtoTypeOverrides = {
   },
 }
 
-/**
- * `ManifestRunner` parses the manifest and builds a `ProtoRegistry` at
- * construction. That's not free, so we lazily build one per shipped manifest
- * and reuse it across calls. The factory creates per-call `*Service`
- * instances, so without caching here every search would re-parse the JSON.
- */
+type RunnerKey = 'ddp' | 'ddpCompat' | 'bilibili' | 'tencent'
 
-let ddpRunner: ManifestRunner | null = null
-let ddpCompatRunner: ManifestRunner | null = null
-let bilibiliRunner: ManifestRunner | null = null
-let tencentRunner: ManifestRunner | null = null
+const manifestSpecs: Record<
+  RunnerKey,
+  { manifest: unknown; protoTypes?: ProtoTypeOverrides }
+> = {
+  ddp: { manifest: builtinDandanplay },
+  ddpCompat: { manifest: builtinDdpCompat },
+  bilibili: { manifest: builtinBilibili, protoTypes: bilibiliProtoTypes },
+  tencent: { manifest: builtinTencent },
+}
+
+// `ManifestRunner` parses the manifest and builds a `ProtoRegistry` on
+// construction. Cache one per shipped manifest so the per-call service
+// factory doesn't re-parse the JSON on every search.
+const runners = new Map<RunnerKey, ManifestRunner>()
+
+function getRunner(key: RunnerKey): ManifestRunner {
+  let runner = runners.get(key)
+  if (!runner) {
+    const { manifest, protoTypes } = manifestSpecs[key]
+    runner = new ManifestRunner(zManifest.parse(manifest), {
+      fetcher: extensionFetchLike,
+      protoTypes,
+    })
+    runners.set(key, runner)
+  }
+  return runner
+}
 
 export function getDdpRunner(): ManifestRunner {
-  if (!ddpRunner) {
-    ddpRunner = new ManifestRunner(zManifest.parse(builtinDandanplay), {
-      fetcher: extensionFetchLike,
-    })
-  }
-  return ddpRunner
+  return getRunner('ddp')
 }
 
 export function getDdpCompatRunner(): ManifestRunner {
-  if (!ddpCompatRunner) {
-    ddpCompatRunner = new ManifestRunner(zManifest.parse(builtinDdpCompat), {
-      fetcher: extensionFetchLike,
-    })
-  }
-  return ddpCompatRunner
+  return getRunner('ddpCompat')
 }
 
 export function getBilibiliRunner(): ManifestRunner {
-  if (!bilibiliRunner) {
-    bilibiliRunner = new ManifestRunner(zManifest.parse(builtinBilibili), {
-      fetcher: extensionFetchLike,
-      protoTypes: bilibiliProtoTypes,
-    })
-  }
-  return bilibiliRunner
+  return getRunner('bilibili')
 }
 
 export function getTencentRunner(): ManifestRunner {
-  if (!tencentRunner) {
-    tencentRunner = new ManifestRunner(zManifest.parse(builtinTencent), {
-      fetcher: extensionFetchLike,
-    })
-  }
-  return tencentRunner
+  return getRunner('tencent')
 }

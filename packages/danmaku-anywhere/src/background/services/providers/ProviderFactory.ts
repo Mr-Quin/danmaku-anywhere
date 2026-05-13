@@ -43,22 +43,18 @@ function createDanmakuProvider(
 export function danmakuProviderFactory(
   context: ResolutionContext
 ): IDanmakuProviderFactory {
-  function get(config: ProviderConfig): IDanmakuProvider {
-    const logger = context.get<ILogger>(LoggerSymbol)
-    const extensionOptionsService = context.get<ExtensionOptionsService>(
-      ExtensionOptionsService
+  function build(config: ProviderConfig): ServiceMap[ProviderConfig['impl']] {
+    return createDanmakuProvider(
+      config,
+      context.get<ILogger>(LoggerSymbol),
+      context.get<ExtensionOptionsService>(ExtensionOptionsService)
     )
-    return createDanmakuProvider(config, logger, extensionOptionsService)
   }
 
-  get.getTyped = (
-    config: ProviderConfig
-  ): ServiceMap[ProviderConfig['impl']] => {
-    const logger = context.get<ILogger>(LoggerSymbol)
-    const extensionOptionsService = context.get<ExtensionOptionsService>(
-      ExtensionOptionsService
-    )
-    return createDanmakuProvider(config, logger, extensionOptionsService)
+  function get(config: ProviderConfig): IDanmakuProvider {
+    return build(config)
   }
+
+  get.getTyped = build
   return get
 }

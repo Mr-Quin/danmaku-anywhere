@@ -56,8 +56,8 @@ export class TencentService implements IDanmakuProvider {
   }
 
   private async useManifest(): Promise<boolean> {
-    const opts = await this.extensionOptionsService.get()
-    return opts.useManifest
+    const { useManifest } = await this.extensionOptionsService.get()
+    return useManifest
   }
 
   // test if the cookies are working
@@ -90,15 +90,9 @@ export class TencentService implements IDanmakuProvider {
     this.logger.debug('Search tencent', kw)
 
     if (await this.useManifest()) {
-      const runner = getTencentRunner()
-      const results = (await runner.runSearch({ q: kw })) as Array<{
-        providerIds: { cid: string }
-        title: string
-        type: string
-        imageUrl?: string
-        episodeCount?: number
-        year?: number
-      }>
+      const results = (await getTencentRunner().runSearch({
+        q: kw,
+      })) as Parameters<typeof TencentMapper.manifestSearchToSeasonInsert>[0][]
       this.logger.debug('Manifest search result', results)
       return results.map(TencentMapper.manifestSearchToSeasonInsert)
     }
@@ -150,16 +144,9 @@ export class TencentService implements IDanmakuProvider {
     this.logger.debug('Get episode', seasonRemoteIds)
 
     if (await this.useManifest()) {
-      const runner = getTencentRunner()
-      const results = (await runner.runEpisodes({
+      const results = (await getTencentRunner().runEpisodes({
         cid: seasonRemoteIds.cid,
-      })) as Array<{
-        providerIds: { vid: string; cid: string }
-        title: string
-        episodeNumber: string
-        alternativeTitle?: string[]
-        imageUrl?: string
-      }>
+      })) as Parameters<typeof TencentMapper.manifestEpisodeToEpisodeMeta>[0][]
       this.logger.debug('Manifest episodes result', results)
       return results.map(TencentMapper.manifestEpisodeToEpisodeMeta)
     }
@@ -230,8 +217,9 @@ export class TencentService implements IDanmakuProvider {
 
   private async fetchDanmaku(vid: string) {
     if (await this.useManifest()) {
-      const runner = getTencentRunner()
-      const comments = (await runner.runDanmaku({ vid })) as CommentEntity[]
+      const comments = (await getTencentRunner().runDanmaku({
+        vid,
+      })) as CommentEntity[]
       this.logger.debug('Manifest danmaku fetched', comments.length)
       return comments
     }
