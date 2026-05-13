@@ -1,33 +1,6 @@
 const RE_REVIEW_LABEL = 'ai-rereview'
-
-const BOTS = [
-  {
-    name: 'copilot',
-    reviewLogin: 'copilot-pull-request-reviewer[bot]',
-    requestedReviewerLogins: ['Copilot', 'copilot-pull-request-reviewer'],
-    trigger: async ({ github, owner, repo, pull_number }) => {
-      await github.rest.pulls.requestReviewers({
-        owner,
-        repo,
-        pull_number,
-        reviewers: ['copilot-pull-request-reviewer'],
-      })
-    },
-  },
-  {
-    name: 'gemini',
-    reviewLogin: 'gemini-code-assist[bot]',
-    requestedReviewerLogins: [],
-    trigger: async ({ github, owner, repo, pull_number }) => {
-      await github.rest.issues.createComment({
-        owner,
-        repo,
-        issue_number: pull_number,
-        body: '/gemini review',
-      })
-    },
-  },
-]
+const GEMINI_LOGIN = 'gemini-code-assist[bot]'
+const GEMINI_REVIEW_COMMAND = '/gemini review'
 
 const hasLabel = (pullRequest, labelName) => {
   const labels = pullRequest?.labels ?? []
@@ -35,28 +8,13 @@ const hasLabel = (pullRequest, labelName) => {
 }
 
 const hasReviewedHead = (reviews, botLogin, headSha) => {
+  const target = botLogin.toLowerCase()
   return reviews.some(
     (review) =>
-      review?.user?.login === botLogin &&
+      review?.user?.login?.toLowerCase() === target &&
       review?.state !== 'PENDING' &&
       review?.commit_id === headSha
   )
-}
-
-const hasPendingRequest = (requestedReviewers, candidateLogins) => {
-  if (candidateLogins.length === 0) {
-    return false
-  }
-  return requestedReviewers.some((reviewer) => {
-    const login = reviewer?.login
-    if (!login) {
-      return false
-    }
-    const normalized = login.replace(/\[bot\]$/, '')
-    return (
-      candidateLogins.includes(login) || candidateLogins.includes(normalized)
-    )
-  })
 }
 
 const run = async ({ core, github, context }) => {
@@ -86,31 +44,19 @@ const run = async ({ core, github, context }) => {
     per_page: 100,
   })
 
-  const requestedReviewers = pullRequest.requested_reviewers ?? []
-
-  for (const bot of BOTS) {
-    if (hasReviewedHead(reviews, bot.reviewLogin, headSha)) {
-      core.info(
-        `${bot.name} (${bot.reviewLogin}) already reviewed head ${headSha}; skipping.`
-      )
-      continue
-    }
-
-    if (hasPendingRequest(requestedReviewers, bot.requestedReviewerLogins)) {
-      core.info(`${bot.name} already has a pending review request; skipping.`)
-      continue
-    }
-
-    core.info(`Triggering re-review for ${bot.name}.`)
-    try {
-      await bot.trigger({ github, owner, repo, pull_number })
-      core.info(`Re-review triggered for ${bot.name}.`)
-    } catch (error) {
-      core.warning(
-        `Failed to trigger re-review for ${bot.name}: ${error.message}`
-      )
-    }
+  if (hasReviewedHead(reviews, GEMINI_LOGIN, headSha)) {
+    core.info(`Gemini already reviewed head ${headSha}; skipping.`)
+    return
   }
+
+  core.info('Posting /gemini review comment.')
+  await github.rest.issues.createComment({
+    owner,
+    repo,
+    issue_number: pull_number,
+    body: GEMINI_REVIEW_COMMAND,
+  })
+  core.info('Re-review triggered for Gemini.')
 }
 
 module.exports = { run }
