@@ -22,7 +22,7 @@ import type {
   OmitSeasonId,
   SeasonSearchParams,
 } from '../IDanmakuProvider'
-import { getDdpRunner } from '../manifestRunners'
+import { getDdpCompatRunner, getDdpRunner } from '../manifestRunners'
 import { DanDanPlayMapper } from './DanDanPlayMapper'
 
 export class DanDanPlayService implements IDanmakuProvider {
@@ -44,6 +44,34 @@ export class DanDanPlayService implements IDanmakuProvider {
   private async useManifest(): Promise<boolean> {
     const opts = await this.extensionOptionsService.get()
     return opts.useManifest
+  }
+
+  /**
+   * Built-in `'DanDanPlay'` configs use `builtin:dandanplay` (proxy-routed,
+   * no extra inputs). User-added `'DanDanPlayCompatible'` configs with a
+   * valid `baseUrl` use `builtin:ddp-compat` and pass `baseUrl` plus the
+   * (possibly empty) auth-header array as pipeline inputs.
+   *
+   * Compat configs without a `baseUrl` are silently rerouted to the
+   * proxy-backed manifest, mirroring `DanDanPlayMapper.toQueryContext`.
+   */
+  private resolveManifest(): {
+    runner: ReturnType<typeof getDdpRunner>
+    extraInputs: Record<string, unknown>
+  } {
+    if (this.config.type !== 'DanDanPlayCompatible') {
+      return { runner: getDdpRunner(), extraInputs: {} }
+    }
+    const baseUrl = this.config.options.baseUrl?.trim()
+    if (!baseUrl) {
+      return { runner: getDdpRunner(), extraInputs: {} }
+    }
+    const auth = this.config.options.auth
+    const authHeaders = auth?.enabled && auth.headers ? auth.headers : []
+    return {
+      runner: getDdpCompatRunner(),
+      extraInputs: { baseUrl, authHeaders },
+    }
   }
 
   async search(searchParams: SeasonSearchParams): Promise<SeasonInsert[]> {
@@ -73,9 +101,10 @@ export class DanDanPlayService implements IDanmakuProvider {
     searchParams: SeasonSearchParams
   ): Promise<SeasonInsert[]> {
     this.logger.debug('Searching DanDanPlay via manifest', searchParams)
-    const runner = getDdpRunner()
+    const { runner, extraInputs } = this.resolveManifest()
     const results = (await runner.runSearch({
       q: searchParams.keyword,
+      ...extraInputs,
     })) as Array<{
       providerIds: { animeId: number; bangumiId: string }
       title: string
@@ -127,9 +156,10 @@ export class DanDanPlayService implements IDanmakuProvider {
     this.logger.debug('Getting DanDanPlay episodes', seasonRemoteIds)
 
     if (await this.useManifest()) {
-      const runner = getDdpRunner()
+      const { runner, extraInputs } = this.resolveManifest()
       const results = (await runner.runEpisodes({
         bangumiId: seasonRemoteIds.bangumiId,
+        ...extraInputs,
       })) as Array<{
         providerIds: { episodeId: number }
         title: string
@@ -200,9 +230,10 @@ export class DanDanPlayService implements IDanmakuProvider {
     params: Partial<danDanPlay.GetCommentQuery>
   ): Promise<CommentEntity[]> {
     if (await this.useManifest()) {
-      const runner = getDdpRunner()
+      const { runner, extraInputs } = this.resolveManifest()
       const comments = (await runner.runDanmaku({
         episodeId: meta.providerIds.episodeId,
+        ...extraInputs,
       })) as CommentEntity[]
       this.logger.debug('Manifest danmaku fetched', comments.length)
       return comments
