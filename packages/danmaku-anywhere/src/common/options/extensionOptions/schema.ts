@@ -154,16 +154,11 @@ export const extensionOptionsSchema = z.object({
   showFloatingButton: z.boolean(),
 
   /**
-   * Per-source toggle: when true, the source's service dispatches via
-   * the dango manifest engine instead of the legacy per-source TS fetcher.
-   * Defaults to false during the migration; flip per source once the
-   * manifest path is verified behaviorally.
+   * Global toggle: when true, all sources dispatch through the dango
+   * manifest engine instead of their legacy per-source TS fetchers.
+   * Defaults to false during the migration.
    */
-  useManifest: z.object({
-    dandanplay: z.boolean(),
-    bilibili: z.boolean(),
-    tencent: z.boolean(),
-  }),
+  useManifest: z.boolean(),
 })
 
 export type ExtensionOptions = z.infer<typeof extensionOptionsSchema>

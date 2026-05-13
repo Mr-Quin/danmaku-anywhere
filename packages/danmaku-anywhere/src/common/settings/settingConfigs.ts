@@ -110,6 +110,18 @@ const advancedSettings: SettingConfig<ExtensionOptions>[] = [
     getValue: (options) => options.showFloatingButton,
     createUpdate: (_, newValue) => ({ showFloatingButton: newValue }),
   },
+  {
+    id: 'toggle.useManifest',
+    label: () =>
+      i18n.t(
+        'optionsPage.useManifest',
+        'Use manifest engine for danmaku sources (experimental)'
+      ),
+    category: 'advanced',
+    type: 'toggle',
+    getValue: (options) => options.useManifest,
+    createUpdate: (_, newValue) => ({ useManifest: newValue }),
+  },
 ]
 
 const playerSettings: SettingConfig<ExtensionOptions>[] = [
