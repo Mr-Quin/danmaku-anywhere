@@ -1,4 +1,8 @@
-import { ManifestRunner, zManifest } from '@danmaku-anywhere/dango'
+import {
+  ManifestRunner,
+  type ProtoTypeOverrides,
+  zManifest,
+} from '@danmaku-anywhere/dango'
 import builtinBilibili from '@danmaku-anywhere/dango-manifests/manifests/builtin-bilibili.json' with {
   type: 'json',
 }
@@ -11,7 +15,29 @@ import builtinDdpCompat from '@danmaku-anywhere/dango-manifests/manifests/builti
 import builtinTencent from '@danmaku-anywhere/dango-manifests/manifests/builtin-tencent.json' with {
   type: 'json',
 }
+import { bilibili as bilibiliProto } from '@danmaku-anywhere/danmaku-provider/bilibili-proto'
 import { extensionFetchLike } from './extensionFetchLike'
+
+/**
+ * Pre-compiled `protobuf.Type` overrides registered against the manifests
+ * that need them. MV3 service workers block `unsafe-eval`, so the engine
+ * can't parse `manifest.protoSchemas`'s inline `.proto` text at runtime
+ * (`protobufjs`'s lazy codegen for Type.ctor/decode/toObject triggers
+ * `new Function`). Static-generated types replace those lazy properties
+ * with hand-rolled implementations that don't use eval.
+ *
+ * Adding a new protobuf-using manifest requires extending this map. See
+ * DA-474 for the longer-term plan to move to `@bufbuild/protobuf`, which
+ * would let the manifest carry a CSP-safe binary descriptor and avoid
+ * the explicit registration step here.
+ */
+const bilibiliProtoTypes: ProtoTypeOverrides = {
+  bili: {
+    'dm.v1.DmSegMobileReply':
+      bilibiliProto.community.service.dm.v1.DmSegMobileReply,
+    'dm.v1.DanmakuElem': bilibiliProto.community.service.dm.v1.DanmakuElem,
+  },
+}
 
 /**
  * `ManifestRunner` parses the manifest and builds a `ProtoRegistry` at
@@ -47,6 +73,7 @@ export function getBilibiliRunner(): ManifestRunner {
   if (!bilibiliRunner) {
     bilibiliRunner = new ManifestRunner(zManifest.parse(builtinBilibili), {
       fetcher: extensionFetchLike,
+      protoTypes: bilibiliProtoTypes,
     })
   }
   return bilibiliRunner

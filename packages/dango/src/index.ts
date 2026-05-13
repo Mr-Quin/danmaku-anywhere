@@ -5,7 +5,7 @@ export {
   ManifestRunner,
   type ManifestRunnerOptions,
 } from './engine/ManifestRunner.js'
-export { ProtoRegistry } from './engine/proto.js'
+export { ProtoRegistry, type ProtoTypeOverrides } from './engine/proto.js'
 export {
   type PipelineInput,
   type RunOptions,
