@@ -152,6 +152,18 @@ export const extensionOptionsSchema = z.object({
    * Whether to show the floating action button on video pages
    */
   showFloatingButton: z.boolean(),
+
+  /**
+   * Per-source toggle: when true, the source's service dispatches via
+   * the dango manifest engine instead of the legacy per-source TS fetcher.
+   * Defaults to false during the migration; flip per source once the
+   * manifest path is verified behaviorally.
+   */
+  useManifest: z.object({
+    dandanplay: z.boolean(),
+    bilibili: z.boolean(),
+    tencent: z.boolean(),
+  }),
 })
 
 export type ExtensionOptions = z.infer<typeof extensionOptionsSchema>
