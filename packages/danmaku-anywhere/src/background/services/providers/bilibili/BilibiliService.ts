@@ -237,32 +237,18 @@ export class BilibiliService implements IDanmakuProvider {
 
   private async fetchDanmaku(ids: { cid: number; aid?: number }) {
     const { danmakuTypePreference } = this.config.options
-    const manifest = await this.useManifest()
-    this.logger.debug('fetchDanmaku decision', {
-      manifest,
-      preference: danmakuTypePreference,
-      cid: ids.cid,
-      aid: ids.aid,
-    })
 
-    // The manifest path covers XML danmaku, but protobuf decoding goes
-    // through protobufjs's runtime codegen (new Function), which MV3
-    // service workers block via CSP. Until the engine moves to a
-    // CSP-safe decoder (DA-473 follow-up), keep protobuf on the legacy
-    // statically-generated decoder regardless of the toggle.
-    if (manifest && danmakuTypePreference === 'xml') {
-      this.logger.debug('-> manifest xml')
+    if (await this.useManifest()) {
       const runner = getBilibiliRunner()
       const comments = (await runner.runDanmaku({
         cid: ids.cid,
-        danmakuFormat: 'xml',
+        danmakuFormat: danmakuTypePreference,
       })) as CommentEntity[]
       this.logger.debug('Manifest danmaku fetched', comments.length)
       return comments
     }
 
     if (danmakuTypePreference === 'xml') {
-      this.logger.debug('-> legacy xml')
       return this.getDanmakuXml(ids.cid)
     }
 
@@ -270,7 +256,6 @@ export class BilibiliService implements IDanmakuProvider {
       throw new Error('aid is not provided')
     }
 
-    this.logger.debug('-> legacy protobuf')
     return this.getDanmakuProto(ids.cid, ids.aid)
   }
 
