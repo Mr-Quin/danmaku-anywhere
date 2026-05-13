@@ -61,10 +61,13 @@ const xmlParser = new XMLParser({
 function parseTextBody(format: string, raw: string): unknown {
   switch (format) {
     case 'json':
-      return JSON.parse(raw)
+      // 304 + acceptStatus or other empty-body cases should decode to null
+      // rather than throwing on `JSON.parse('')`.
+      return raw === '' ? null : JSON.parse(raw)
     case 'xml':
-      return xmlParser.parse(raw)
+      return raw === '' ? null : xmlParser.parse(raw)
     case 'jsonp': {
+      if (raw === '') return null
       const jsonpUnwrap = helpers.jsonpUnwrap
       if (jsonpUnwrap === undefined) {
         throw new Error('jsonpUnwrap helper missing')
@@ -97,11 +100,43 @@ async function buildHeaders(
 ): Promise<Record<string, string>> {
   const out: Record<string, string> = {}
   if (!spec.headers) return out
-  for (const [name, expr] of Object.entries(spec.headers)) {
+  const entries = await resolveHeaderEntries(spec.headers, context)
+  for (const [name, value] of entries) {
     if (FORBIDDEN_HEADERS.has(name.toLowerCase())) {
       throw new Error(`header "${name}" not allowed in manifest`)
     }
-    out[name] = await evalString(expr, context)
+    out[name] = value
+  }
+  return out
+}
+
+async function resolveHeaderEntries(
+  headers: NonNullable<RequestSpec['headers']>,
+  context: unknown
+): Promise<[string, string][]> {
+  if (typeof headers === 'string') {
+    const obj = await evalExpr(headers, context)
+    if (obj === null || obj === undefined) return []
+    if (typeof obj !== 'object' || Array.isArray(obj)) {
+      throw new TypeError(
+        `request.headers expression must evaluate to an object, got ${Array.isArray(obj) ? 'array' : typeof obj}`
+      )
+    }
+    const out: [string, string][] = []
+    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+      if (v === null || v === undefined) continue
+      if (typeof v !== 'string') {
+        throw new TypeError(
+          `request.headers["${k}"] must evaluate to a string, got ${typeof v}`
+        )
+      }
+      out.push([k, v])
+    }
+    return out
+  }
+  const out: [string, string][] = []
+  for (const [name, expr] of Object.entries(headers)) {
+    out.push([name, await evalString(expr, context)])
   }
   return out
 }
@@ -169,7 +204,9 @@ export async function executeRequest(
     signal: options.signal,
     rewriteHeaders,
   })
-  if (res.status < 200 || res.status >= 300) {
+  const isOk = res.status >= 200 && res.status < 300
+  const isAccepted = spec.acceptStatus.includes(res.status)
+  if (!isOk && !isAccepted) {
     throw new Error(`HTTP ${res.status} for ${url}`)
   }
   if (spec.format === 'proto') {

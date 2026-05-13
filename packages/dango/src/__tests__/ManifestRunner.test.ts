@@ -3,7 +3,31 @@ import { JsonataEvaluator } from '../engine/jsonata-eval.js'
 import { ManifestRunner } from '../engine/ManifestRunner.js'
 import { zManifest } from '../manifest/schema.js'
 import { mockFetcher } from './fixtures.js'
-import ddpManifest from './manifests/ddp.json' with { type: 'json' }
+
+// Minimal search-only manifest. Anything more complex belongs in
+// dango-manifests where real source manifests live.
+const ddpManifest = {
+  apiVersion: 1,
+  id: 'ddp',
+  name: 'DanDanPlay',
+  version: '0.1.0',
+  hosts: ['api.dandanplay.net'],
+  search: {
+    inputs: ['q'],
+    steps: [
+      {
+        type: 'http',
+        id: 'search',
+        request: {
+          method: 'GET',
+          url: "'https://api.dandanplay.net/api/v2/search/anime'",
+          query: "{ 'keyword': q }",
+        },
+      },
+    ],
+    output: '[search.animes]',
+  },
+}
 
 describe('ManifestRunner', () => {
   const parsed = zManifest.parse(ddpManifest)

@@ -1,0 +1,118 @@
+{
+  "apiVersion": 1,
+  "id": "builtin:bilibili",
+  "name": "Bilibili",
+  "version": "1.0.0",
+  "hosts": ["api.bilibili.com"],
+  "configSchema": {
+    "danmakuFormat": {
+      "type": "enum",
+      "values": ["xml", "protobuf"],
+      "default": "protobuf",
+      "label": "Danmaku format",
+      "description": "xml is the legacy endpoint capped at ~3000 comments; protobuf paginates and returns everything"
+    }
+  },
+  "protoSchemas": {
+    "bili": "syntax = \"proto3\"; package dm.v1; message DanmakuElem { int64 id = 1; int32 progress = 2; int32 mode = 3; int32 fontsize = 4; uint32 color = 5; string midHash = 6; string content = 7; int64 ctime = 8; int32 weight = 9; string action = 10; int32 pool = 11; string idStr = 12; } message DmSegMobileReply { repeated DanmakuElem elems = 1; }"
+  },
+  "search": {
+    "inputs": ["q"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "media_bangumi",
+        "request": {
+          "method": "GET",
+          "url": "'https://api.bilibili.com/x/web-interface/search/type'",
+          "query": "{ 'keyword': q, 'search_type': 'media_bangumi' }",
+          "credentials": "include",
+          "rewriteHeaders": { "Referer": "'https://www.bilibili.com/'" }
+        }
+      },
+      {
+        "type": "http",
+        "id": "media_ft",
+        "request": {
+          "method": "GET",
+          "url": "'https://api.bilibili.com/x/web-interface/search/type'",
+          "query": "{ 'keyword': q, 'search_type': 'media_ft' }",
+          "credentials": "include",
+          "rewriteHeaders": { "Referer": "'https://www.bilibili.com/'" }
+        }
+      }
+    ],
+    "output": "[[media_bangumi.data.result, media_ft.data.result].{ 'providerIds': { 'seasonId': $string(season_id), 'mediaId': $string(media_id) }, 'indexedId': $string(season_id), 'title': $replace(title, /<[^>]+>/, ''), 'type': season_type_name, 'typeDescription': season_type_name, 'imageUrl': cover, 'episodeCount': ep_size, 'year': pubtime > 0 ? $number($substring($string($fromMillis(pubtime * 1000)), 0, 4)) : null }]"
+  },
+  "episodes": {
+    "inputs": ["seasonId"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "season",
+        "request": {
+          "method": "GET",
+          "url": "'https://api.bilibili.com/pgc/view/web/season'",
+          "query": "{ 'season_id': $string(seasonId) }",
+          "credentials": "include",
+          "rewriteHeaders": { "Referer": "'https://www.bilibili.com/'" }
+        }
+      }
+    ],
+    "output": "[season.result.episodes.{ 'providerIds': { 'cid': $string(cid), 'aid': $string(aid), 'bvid': bvid, 'epId': $string(id), 'seasonId': $string($$.seasonId) }, 'indexedId': $string(cid), 'title': long_title ? long_title : title, 'episodeNumber': title }]"
+  },
+  "danmaku": [
+    {
+      "when": "danmakuFormat = 'xml'",
+      "inputs": ["cid", "danmakuFormat"],
+      "steps": [
+        {
+          "type": "http",
+          "id": "dm",
+          "request": {
+            "method": "GET",
+            "url": "'https://api.bilibili.com/x/v1/dm/list.so'",
+            "query": "{ 'oid': $string(cid) }",
+            "format": "xml",
+            "credentials": "include",
+            "rewriteHeaders": { "Referer": "'https://www.bilibili.com/'" }
+          }
+        },
+        {
+          "type": "assign",
+          "id": "items",
+          "values": {
+            "all": "[dm.i.d.{ 'parts': $split(`@_p`, ','), 'm': `#text` }]"
+          }
+        }
+      ],
+      "output": "[items.all.($parts := parts; { 'p': $parts[0] & ',' & $parts[1] & ',' & $parts[3] & ',' & $parts[6], 'm': m })]"
+    },
+    {
+      "inputs": ["cid"],
+      "steps": [
+        {
+          "type": "forEach",
+          "id": "segments",
+          "in": "$range(1, 31)",
+          "as": "segmentIndex",
+          "request": {
+            "method": "GET",
+            "url": "'https://api.bilibili.com/x/v2/dm/web/seg.so'",
+            "query": "{ 'type': '1', 'oid': $string(cid), 'segment_index': $string(segmentIndex) }",
+            "format": "proto",
+            "protoSchema": "bili",
+            "protoMessage": "dm.v1.DmSegMobileReply",
+            "credentials": "include",
+            "rewriteHeaders": { "Referer": "'https://www.bilibili.com/'" },
+            "acceptStatus": [304]
+          },
+          "collect": "elems",
+          "concurrency": 4,
+          "throttleMs": 200
+        }
+      ],
+      "output": "[segments[mode in [1,2,3,4,5,6]].{ 'p': $string($number(progress) / 1000) & ',' & $string(mode in [2,3] ? 1 : mode) & ',' & $string(color) & ',' & midHash, 'm': content }]"
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "apiVersion": 1,
+  "id": "builtin:tencent",
+  "name": "Tencent Video",
+  "version": "1.0.0",
+  "hosts": ["pbaccess.video.qq.com", "dm.video.qq.com"],
+  "search": {
+    "inputs": ["q"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "search",
+        "request": {
+          "method": "POST",
+          "url": "'https://pbaccess.video.qq.com/trpc.videosearch.mobile_search.MultiTerminalSearch/MbSearch?vplatform=2'",
+          "headers": { "Content-Type": "'application/json'" },
+          "body": "{ 'version': '25071701', 'clientType': 1, 'filterValue': '', 'uuid': '0379274D-05A0-4EB6-A89C-878C9A460426', 'query': q, 'retry': 0, 'pagenum': 0, 'isPrefetch': true, 'pagesize': 30, 'queryFrom': 0, 'searchDatakey': '', 'transInfo': '', 'isneedQc': true, 'preQid': '', 'adClientInfo': '', 'extraInfo': { 'multi_terminal_pc': '1', 'themeType': '1', 'sugRelatedIds': '{}', 'appVersion': '' } }",
+          "rewriteHeaders": {
+            "Origin": "'https://v.qq.com'",
+            "Referer": "'https://v.qq.com/'"
+          }
+        }
+      },
+      {
+        "type": "assign",
+        "id": "picked",
+        "values": {
+          "items": "$exists(search.data.areaBoxList[boxId = 'MainNeed']) ? search.data.areaBoxList[boxId = 'MainNeed'].itemList : search.data.normalList.itemList"
+        }
+      }
+    ],
+    "output": "[picked.items[videoInfo.episodeSites and $count(videoInfo.episodeSites) > 0].{ 'providerIds': { 'cid': doc.id }, 'indexedId': doc.id, 'title': videoInfo.title, 'type': videoInfo.typeName, 'typeDescription': videoInfo.typeName, 'imageUrl': videoInfo.imgUrl, 'episodeCount': videoInfo.episodeSites[0].totalEpisode, 'year': videoInfo.year > 0 ? videoInfo.year : null }]"
+  },
+  "episodes": {
+    "inputs": ["cid"],
+    "steps": [
+      {
+        "type": "forEach",
+        "id": "pages",
+        "in": "$range(0, 5)",
+        "as": "page",
+        "request": {
+          "method": "POST",
+          "url": "'https://pbaccess.video.qq.com/trpc.universal_backend_service.page_server_rpc.PageServer/GetPageData?video_appid=3000010&vversion_name=8.2.96&vversion_platform=2'",
+          "headers": { "Content-Type": "'application/json'" },
+          "body": "{ 'has_cache': 1, 'pageParams': { 'cid': $string(cid), 'lid': '0', 'vid': '', 'req_from': 'web_mobile', 'page_type': 'detail_operation', 'page_id': 'vsite_episode_list', 'id_type': '1', 'page_size': '100', 'page_context': 'episode_begin=' & $string(page * 100 + 1) & '&episode_end=' & $string((page + 1) * 100) & '&episode_step=100' } }",
+          "rewriteHeaders": {
+            "Origin": "'https://v.qq.com'",
+            "Referer": "'https://v.qq.com/'"
+          }
+        },
+        "collect": "[data.module_list_datas[0].module_datas[0].item_data_lists.item_datas[item_params.is_trailer != '1'].item_params]",
+        "breakOn": "$count($) < 100"
+      }
+    ],
+    "output": "[pages.{ 'providerIds': { 'vid': vid, 'cid': cid }, 'indexedId': vid, 'title': $exists(union_title) and union_title != '' ? union_title : title, 'episodeNumber': play_title, 'imageUrl': image_url }]"
+  },
+  "danmaku": {
+    "inputs": ["vid"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "base",
+        "request": {
+          "method": "GET",
+          "url": "'https://dm.video.qq.com/barrage/base/' & vid",
+          "rewriteHeaders": {
+            "Origin": "'https://v.qq.com'",
+            "Referer": "'https://v.qq.com/'"
+          }
+        }
+      },
+      {
+        "type": "assign",
+        "id": "segmentNames",
+        "values": {
+          "names": "[base.segment_index.*.segment_name]"
+        }
+      },
+      {
+        "type": "forEach",
+        "id": "segments",
+        "in": "segmentNames.names",
+        "as": "segName",
+        "concurrency": 4,
+        "throttleMs": 100,
+        "request": {
+          "method": "GET",
+          "url": "'https://dm.video.qq.com/barrage/segment/' & vid & '/' & segName",
+          "rewriteHeaders": {
+            "Origin": "'https://v.qq.com'",
+            "Referer": "'https://v.qq.com/'"
+          }
+        },
+        "collect": "barrage_list"
+      }
+    ],
+    "output": "[segments.($style := $exists(content_style) and content_style != '' ? $jsonParse(content_style) : null; $color := ($exists($style) and $exists($style.color) and $style.color != '') ? $style.color : 'FFFFFF'; { 'cid': $number(id), 'p': $string($number(time_offset) / 1000) & ',1,' & $string($hexToInt($color)), 'm': content })]"
+  }
+}

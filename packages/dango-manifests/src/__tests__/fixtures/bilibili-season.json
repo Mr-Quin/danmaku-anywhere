@@ -1,0 +1,26 @@
+{
+  "code": 0,
+  "message": "success",
+  "result": {
+    "season_id": 41410,
+    "season_title": "葬送的芙莉莲",
+    "episodes": [
+      {
+        "id": 700001,
+        "aid": 100001,
+        "bvid": "BV1aaaaaaaa",
+        "cid": 1300001,
+        "title": "1",
+        "long_title": "旅途的终点"
+      },
+      {
+        "id": 700002,
+        "aid": 100002,
+        "bvid": "BV1bbbbbbbb",
+        "cid": 1300002,
+        "title": "2",
+        "long_title": "不杀人的魔法"
+      }
+    ]
+  }
+}

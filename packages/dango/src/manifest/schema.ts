@@ -34,7 +34,13 @@ const zRewriteHeaders = z
 export const zRequestSpec = z.object({
   method: zHttpMethod.default('GET'),
   url: zString,
-  headers: z.record(z.string(), zString).optional(),
+  /**
+   * Either a static map of `name → expr` (each value evaluated as a string),
+   * or a single expression that evaluates to a `{ name: value }` object. Use
+   * the single-expression form when header names are dynamic (e.g. a
+   * user-configured auth-header list).
+   */
+  headers: z.union([z.record(z.string(), zString), zString]).optional(),
   /** Expression evaluating to an object; values become URL-encoded query params. */
   query: zExpr.optional(),
   /** Expression evaluating to an object (JSON-encoded), string, or null. */
@@ -48,6 +54,13 @@ export const zRequestSpec = z.object({
   protoMessage: z.string().optional(),
   /** Host-applied overrides for headers fetch can't set (Origin/Referer/UA). */
   rewriteHeaders: zRewriteHeaders.optional(),
+  /**
+   * Extra HTTP status codes the engine treats as a successful response (body
+   * parsed as usual; empty bodies decode to empty payloads). 2xx is always
+   * accepted. Use for upstreams that abuse 3xx as "no more data" signals
+   * (e.g. Bilibili's `seg.so` returns 304 past the last danmaku segment).
+   */
+  acceptStatus: z.array(z.number().int()).default([]),
 })
 export type RequestSpec = z.infer<typeof zRequestSpec>
 
@@ -82,21 +95,34 @@ const zAssignStep = z.object({
   values: z.record(z.string(), zExpr),
 })
 
-const zForEachStep = z.object({
-  type: z.literal('forEach'),
-  id: zStepId,
-  /** Expression evaluating to an array; each element drives one iteration. */
-  in: zExpr,
-  /** Name the current element is bound to during iteration. */
-  as: z.string().min(1),
-  request: zRequestSpec,
-  extract: z.record(z.string(), zExpr).optional(),
-  /** Per-iteration projection over the extract bag; flat-concatenated into context[id]. */
-  collect: zExpr.optional(),
-  concurrency: z.number().int().min(1).max(50).default(1),
-  /** Minimum milliseconds between consecutive request starts. */
-  throttleMs: z.number().int().min(0).max(60_000).default(0),
-})
+const zForEachStep = z
+  .object({
+    type: z.literal('forEach'),
+    id: zStepId,
+    /** Expression evaluating to an array; each element drives one iteration. */
+    in: zExpr,
+    /** Name the current element is bound to during iteration. */
+    as: z.string().min(1),
+    request: zRequestSpec,
+    extract: z.record(z.string(), zExpr).optional(),
+    /** Per-iteration projection over the extract bag; flat-concatenated into context[id]. */
+    collect: zExpr.optional(),
+    concurrency: z.number().int().min(1).max(50).default(1),
+    /** Minimum milliseconds between consecutive request starts. */
+    throttleMs: z.number().int().min(0).max(60_000).default(0),
+    /**
+     * Optional stop predicate evaluated after each iteration's collected
+     * result. If truthy, this iteration's result is included and subsequent
+     * iterations are skipped. Forces sequential execution (concurrency:1)
+     * because parallel iterations would race past the stop signal. Used for
+     * cursor-style pagination ("stop when this page is partial").
+     */
+    breakOn: zExpr.optional(),
+  })
+  .refine((s) => s.breakOn === undefined || s.concurrency === 1, {
+    message: 'forEach.breakOn requires concurrency: 1 (sequential execution)',
+    path: ['concurrency'],
+  })
 
 export const zStep = z.discriminatedUnion('type', [
   zHttpStep,

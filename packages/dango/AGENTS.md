@@ -39,9 +39,25 @@ A `Manifest` is JSON validated by zod. Each manifest declares up to three `Pipel
 - **Singleton-unwrap**: JSONata unwraps single-element projection results. Wrap the output expression in `[...]` to force an array.
 - **`Referer` / `User-Agent` / `Origin` go in `rewriteHeaders`, not `headers`** — browser fetch silently drops them when set normally. The host applies them via DNR. Manifests setting them in `headers` are rejected at runtime.
 - **`runWithDnr` is extension-side**, not engine-side. The engine just hands `rewriteHeaders` to `FetchLike.init`; whether the host applies them via DNR, sets them directly, or ignores them is the host's concern.
+- **`request.headers` accepts two forms**: a static record `{ Name: expr }` where each value is an expression, OR a single expression that evaluates to a `{ Name: value }` object. Use the single-expression form when header names are dynamic (e.g. user-supplied auth headers in `builtin:ddp-compat`).
+- **`request.acceptStatus`** is a per-step allowlist of HTTP status codes that should be parsed as success instead of throwing. 2xx is always accepted; opt extra statuses in here. Used by `builtin:bilibili`'s protobuf segment loop, where bilibili abuses `304` as "no more data".
+- **`forEach.breakOn`** lets a forEach iteration stop the loop early. Sequential-only (the schema rejects `breakOn` + `concurrency > 1`). The predicate is evaluated against the per-iteration collected result after each iteration; truthy stops AFTER including the current iteration. Used for cursor-style pagination ("stop when this page is partial") in `builtin:tencent`'s episodes pipeline.
 - **Protobuf .proto text** is carried inline in the manifest. Each `ManifestRunner` owns one `ProtoRegistry`; schemas compile on first use, then cache.
 - **Step IDs must be JS identifiers** and cannot be `__proto__` / `constructor` / `prototype`.
 - **Backend testing**: `mockFetcher` accepts both `string` and `Uint8Array` bodies — bytes for `format: 'proto'`.
+
+## Helpers
+
+`src/helpers/registry.ts` is the closed namespace callable from JSONata as `$<name>`. Current set:
+
+- crypto: `$md5`
+- codec: `$base64Encode`, `$base64Decode`, `$hexToInt`, `$bytesToHex`
+- text: `$regexExtract`, `$jsonParse`, `$jsonpUnwrap`, `$timeToSeconds`
+- query/signing: `$sortedQueryString`, `$sortedRawString`
+- structural: `$permute`
+- misc: `$now`, `$range`
+
+Adding a helper requires an engine release; manifests cannot register their own.
 
 ## Conventions
 

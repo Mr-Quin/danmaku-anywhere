@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@danmaku-anywhere/dango": "workspace:*",
+    "protobufjs": "^7.5.4",
     "vitest": "^4.0.13"
   }
 }
