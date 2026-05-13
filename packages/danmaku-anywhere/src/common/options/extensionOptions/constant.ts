@@ -45,4 +45,9 @@ export const defaultExtensionOptions: ExtensionOptions = {
   id: undefined,
   restrictInitiatorDomain: true,
   showFloatingButton: true,
+  useManifest: {
+    dandanplay: false,
+    bilibili: false,
+    tencent: false,
+  },
 }
