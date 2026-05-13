@@ -101,4 +101,45 @@ export class DanDanPlayMapper {
       schemaVersion: 4,
     }
   }
+
+  static manifestSearchToSeasonInsert(
+    item: {
+      providerIds: { animeId: number; bangumiId: string }
+      title: string
+      type: string
+      imageUrl?: string
+      episodeCount?: number
+      year?: number
+    },
+    providerConfigId: string
+  ): DanDanPlayOf<SeasonInsert> {
+    return {
+      provider: DanmakuSourceType.DanDanPlay,
+      title: item.title,
+      type: item.type,
+      imageUrl: item.imageUrl,
+      providerIds: item.providerIds,
+      providerConfigId,
+      indexedId: item.providerIds.animeId.toString(),
+      year: item.year,
+      episodeCount: item.episodeCount,
+      schemaVersion: 1,
+    }
+  }
+
+  static manifestEpisodeToEpisodeMeta(item: {
+    providerIds: { episodeId: number }
+    title: string
+    episodeNumber: string
+  }): OmitSeasonId<DanDanPlayOf<EpisodeMeta>> {
+    return {
+      provider: DanmakuSourceType.DanDanPlay,
+      episodeNumber: item.episodeNumber,
+      title: item.title,
+      providerIds: { episodeId: item.providerIds.episodeId },
+      indexedId: item.providerIds.episodeId.toString(),
+      lastChecked: Date.now(),
+      schemaVersion: 4,
+    }
+  }
 }
