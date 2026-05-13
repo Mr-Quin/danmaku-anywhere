@@ -54,7 +54,7 @@
         "throttleMs": 100
       }
     ],
-    "output": "[pages.{ 'providerIds': { 'vid': vid, 'cid': cid }, 'indexedId': vid, 'title': play_title, 'alternativeTitle': [title, union_title][$ != ''], 'imageUrl': image_url }]"
+    "output": "[pages.{ 'providerIds': { 'vid': vid, 'cid': cid }, 'indexedId': vid, 'title': play_title, 'episodeNumber': title, 'alternativeTitle': union_title and union_title != '' ? [union_title] : undefined, 'imageUrl': image_url }]"
   },
   "danmaku": {
     "inputs": ["vid"],
