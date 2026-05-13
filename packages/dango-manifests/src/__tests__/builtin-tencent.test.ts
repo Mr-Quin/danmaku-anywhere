@@ -277,13 +277,20 @@ describe('builtin:tencent manifest', () => {
 
     const result = (await runner.runEpisodes({
       cid: 'mzc00200qkxg2td',
-    })) as Array<{ providerIds: { vid: string }; episodeNumber: string }>
+    })) as Array<{
+      providerIds: { vid: string }
+      title: string
+      alternativeTitle?: string[]
+    }>
 
     expect(calls).toHaveLength(3)
     expect(result).toHaveLength(245)
     expect(result[0].providerIds.vid).toBe('vid_1')
     expect(result[244].providerIds.vid).toBe('vid_245')
-    expect(result[0].episodeNumber).toBe('1')
+    // play_title is the canonical title (matches legacy TencentMapper),
+    // title + union_title go to alternativeTitle.
+    expect(result[0].title).toBe('1')
+    expect(result[0].alternativeTitle).toEqual(['第1集', '第1集 - 标题1'])
   })
 
   it('handles a series whose total fits in one (full) page', async () => {

@@ -156,7 +156,7 @@ export class TencentService implements IDanmakuProvider {
       })) as Array<{
         providerIds: { vid: string; cid: string }
         title: string
-        episodeNumber: string
+        alternativeTitle?: string[]
         imageUrl?: string
       }>
       this.logger.debug('Manifest episodes result', results)

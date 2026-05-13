@@ -50,10 +50,11 @@
           }
         },
         "collect": "[data.module_list_datas[0].module_datas[0].item_data_lists.item_datas[item_params.is_trailer != '1'].item_params]",
-        "breakOn": "$count($) < 100"
+        "breakOn": "$count($) < 100",
+        "throttleMs": 100
       }
     ],
-    "output": "[pages.{ 'providerIds': { 'vid': vid, 'cid': cid }, 'indexedId': vid, 'title': $exists(union_title) and union_title != '' ? union_title : title, 'episodeNumber': play_title, 'imageUrl': image_url }]"
+    "output": "[pages.{ 'providerIds': { 'vid': vid, 'cid': cid }, 'indexedId': vid, 'title': play_title, 'alternativeTitle': [title, union_title][$ != ''], 'imageUrl': image_url }]"
   },
   "danmaku": {
     "inputs": ["vid"],
