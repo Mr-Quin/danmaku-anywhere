@@ -245,16 +245,32 @@ describe('builtin:bilibili manifest', () => {
       fetcher,
     })
 
-    const result = await runner.runDanmaku({
+    const result = (await runner.runDanmaku({
       cid: 1300001,
       danmakuFormat: 'protobuf',
-    })
+    })) as Array<{
+      progress: number
+      mode: number
+      color: number
+      midHash: string
+      content: string
+    }>
 
-    expect(result).toEqual([
-      { p: '12.34,1,16777215,h1', m: 'proto 1' },
-      { p: '23.45,4,16711680,h2', m: 'proto 底部' },
-      { p: '365,5,255,h3', m: 'proto 顶部' },
-    ])
+    expect(result).toHaveLength(3)
+    expect(result[0]).toMatchObject({
+      progress: 12340,
+      mode: 1,
+      color: 16777215,
+      midHash: 'h1',
+      content: 'proto 1',
+    })
+    expect(result[2]).toMatchObject({
+      progress: 365000,
+      mode: 5,
+      color: 255,
+      midHash: 'h3',
+      content: 'proto 顶部',
+    })
     // breakOn stops the loop on the first empty segment — segs 1, 2, then
     // 3 (empty) triggers stop. No more requests fire.
     expect(calls.length).toBe(3)
@@ -300,15 +316,16 @@ describe('builtin:bilibili manifest', () => {
       fetcher,
     })
 
-    const result = await runner.runDanmaku({
+    const result = (await runner.runDanmaku({
       cid: 1300001,
       danmakuFormat: 'protobuf',
-    })
+    })) as Array<{ progress: number; content: string }>
 
-    expect(result).toEqual([{ p: '1,1,16777215,a', m: 'only one' }])
+    expect(result).toHaveLength(1)
+    expect(result[0]).toMatchObject({ progress: 1000, content: 'only one' })
   })
 
-  it('protobuf variant collapses bilibili modes 2/3 to scroll-right (1)', async () => {
+  it('protobuf variant emits raw decoded elems (mode mapping done by host)', async () => {
     const seg1 = encodeSegment([
       {
         progress: 10000,
@@ -339,8 +356,8 @@ describe('builtin:bilibili manifest', () => {
     const result = (await runner.runDanmaku({
       cid: 1300001,
       danmakuFormat: 'protobuf',
-    })) as Array<{ p: string; m: string }>
+    })) as Array<{ mode: number }>
 
-    expect(result.map((c) => c.p.split(',')[1])).toEqual(['1', '1'])
+    expect(result.map((c) => c.mode)).toEqual([2, 3])
   })
 })

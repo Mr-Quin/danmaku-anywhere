@@ -47,6 +47,6 @@
         }
       }
     ],
-    "output": "[comments.comments.{ 'cid': cid, 'p': p, 'm': m }]"
+    "output": "[comments.comments]"
   }
 }
