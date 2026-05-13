@@ -113,7 +113,7 @@
           "breakOn": "$count($) = 0"
         }
       ],
-      "output": "[segments[mode in [1,2,3,4,5,6]].{ 'p': $string($number(progress) / 1000) & ',' & $string(mode in [2,3] ? 1 : mode) & ',' & $string(color) & ',' & midHash, 'm': content }]"
+      "output": "[segments[mode in [1,2,3,4,5,6]]]"
     }
   ]
 }

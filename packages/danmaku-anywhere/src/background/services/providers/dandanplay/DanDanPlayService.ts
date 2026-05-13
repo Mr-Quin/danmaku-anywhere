@@ -213,10 +213,13 @@ export class DanDanPlayService implements IDanmakuProvider {
   ): Promise<CommentEntity[]> {
     if (await this.useManifest()) {
       const { runner, extraInputs } = this.resolveManifest()
-      const comments = await runner.runDanmaku<CommentEntity[]>({
+      const raw = await runner.runDanmaku<
+        Parameters<typeof DanDanPlayMapper.manifestCommentsToComments>[0]
+      >({
         episodeId: meta.providerIds.episodeId,
         ...extraInputs,
       })
+      const comments = DanDanPlayMapper.manifestCommentsToComments(raw)
       this.logger.debug('Manifest danmaku fetched', comments.length)
       return comments
     }

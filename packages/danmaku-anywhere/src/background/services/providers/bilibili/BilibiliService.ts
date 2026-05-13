@@ -225,11 +225,22 @@ export class BilibiliService implements IDanmakuProvider {
     const { danmakuTypePreference } = this.config.options
 
     if (await this.useManifest()) {
-      const comments = await getBilibiliRunner().runDanmaku<CommentEntity[]>({
+      if (danmakuTypePreference === 'xml') {
+        const comments = await getBilibiliRunner().runDanmaku<CommentEntity[]>({
+          cid: ids.cid,
+          danmakuFormat: danmakuTypePreference,
+        })
+        this.logger.debug('Manifest danmaku (xml) fetched', comments.length)
+        return comments
+      }
+      const raw = await getBilibiliRunner().runDanmaku<
+        Parameters<typeof BilibiliMapper.manifestSegmentsToComments>[0]
+      >({
         cid: ids.cid,
         danmakuFormat: danmakuTypePreference,
       })
-      this.logger.debug('Manifest danmaku fetched', comments.length)
+      const comments = BilibiliMapper.manifestSegmentsToComments(raw)
+      this.logger.debug('Manifest danmaku (proto) fetched', comments.length)
       return comments
     }
 

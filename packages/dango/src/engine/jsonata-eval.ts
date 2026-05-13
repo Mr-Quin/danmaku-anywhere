@@ -45,17 +45,16 @@ export class JsonataEvaluator {
 }
 
 // JSONata projections sometimes attach a `sequence: true` property to the
-// result array. Strip it so structural equality (test toEqual) is stable.
+// result array. Strip it (via slice/recurse) so structural equality is stable
+// for tests, but skip the walk when the marker isn't present — for large
+// pipelines (10k+ rows from danmaku endpoints) the deep clone dominates
+// post-eval cost.
 function normalize(v: unknown): unknown {
   if (Array.isArray(v)) {
-    return v.map(normalize)
-  }
-  if (v && typeof v === 'object') {
-    const out: Record<string, unknown> = {}
-    for (const k of Object.keys(v as object)) {
-      out[k] = normalize((v as Record<string, unknown>)[k])
+    if (!(v as unknown as Record<string, unknown>).sequence) {
+      return v
     }
-    return out
+    return v.map(normalize)
   }
   return v
 }
