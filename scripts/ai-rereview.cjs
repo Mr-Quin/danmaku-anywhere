@@ -3,7 +3,8 @@ const RE_REVIEW_LABEL = 'ai-rereview'
 const BOTS = [
   {
     name: 'copilot',
-    login: 'copilot-pull-request-reviewer[bot]',
+    reviewLogin: 'copilot-pull-request-reviewer[bot]',
+    requestedReviewerLogins: ['Copilot', 'copilot-pull-request-reviewer'],
     trigger: async ({ github, owner, repo, pull_number }) => {
       await github.rest.pulls.requestReviewers({
         owner,
@@ -15,7 +16,8 @@ const BOTS = [
   },
   {
     name: 'gemini',
-    login: 'gemini-code-assist[bot]',
+    reviewLogin: 'gemini-code-assist[bot]',
+    requestedReviewerLogins: [],
     trigger: async ({ github, owner, repo, pull_number }) => {
       await github.rest.issues.createComment({
         owner,
@@ -41,10 +43,12 @@ const hasReviewedHead = (reviews, botLogin, headSha) => {
   )
 }
 
-const hasPendingRequest = (requestedReviewers, botLogin) => {
-  const baseLogin = botLogin.replace(/\[bot\]$/, '')
-  return requestedReviewers.some(
-    (reviewer) => reviewer?.login === botLogin || reviewer?.login === baseLogin
+const hasPendingRequest = (requestedReviewers, candidateLogins) => {
+  if (candidateLogins.length === 0) {
+    return false
+  }
+  return requestedReviewers.some((reviewer) =>
+    candidateLogins.includes(reviewer?.login)
   )
 }
 
@@ -78,21 +82,19 @@ const run = async ({ core, github, context }) => {
   const requestedReviewers = pullRequest.requested_reviewers ?? []
 
   for (const bot of BOTS) {
-    if (hasReviewedHead(reviews, bot.login, headSha)) {
+    if (hasReviewedHead(reviews, bot.reviewLogin, headSha)) {
       core.info(
-        `${bot.name} (${bot.login}) already reviewed head ${headSha}; skipping.`
+        `${bot.name} (${bot.reviewLogin}) already reviewed head ${headSha}; skipping.`
       )
       continue
     }
 
-    if (hasPendingRequest(requestedReviewers, bot.login)) {
-      core.info(
-        `${bot.name} (${bot.login}) already has a pending review request; skipping.`
-      )
+    if (hasPendingRequest(requestedReviewers, bot.requestedReviewerLogins)) {
+      core.info(`${bot.name} already has a pending review request; skipping.`)
       continue
     }
 
-    core.info(`Triggering re-review for ${bot.name} (${bot.login}).`)
+    core.info(`Triggering re-review for ${bot.name}.`)
     try {
       await bot.trigger({ github, owner, repo, pull_number })
       core.info(`Re-review triggered for ${bot.name}.`)
