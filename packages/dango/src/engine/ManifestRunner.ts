@@ -56,30 +56,33 @@ export class ManifestRunner {
     return this.manifest.danmaku !== undefined
   }
 
-  async runSearch(inputs: ManifestInputs, opts?: RunOptions): Promise<unknown> {
-    return this.run('search', this.manifest.search, inputs, opts)
-  }
-
-  async runEpisodes(
+  async runSearch<T = unknown>(
     inputs: ManifestInputs,
     opts?: RunOptions
-  ): Promise<unknown> {
-    return this.run('episodes', this.manifest.episodes, inputs, opts)
+  ): Promise<T> {
+    return this.run<T>('search', this.manifest.search, inputs, opts)
   }
 
-  async runDanmaku(
+  async runEpisodes<T = unknown>(
     inputs: ManifestInputs,
     opts?: RunOptions
-  ): Promise<unknown> {
-    return this.run('danmaku', this.manifest.danmaku, inputs, opts)
+  ): Promise<T> {
+    return this.run<T>('episodes', this.manifest.episodes, inputs, opts)
   }
 
-  private async run(
+  async runDanmaku<T = unknown>(
+    inputs: ManifestInputs,
+    opts?: RunOptions
+  ): Promise<T> {
+    return this.run<T>('danmaku', this.manifest.danmaku, inputs, opts)
+  }
+
+  private async run<T>(
     name: string,
     variants: VariantPipeline[] | undefined,
     inputs: ManifestInputs,
     opts?: RunOptions
-  ): Promise<unknown> {
+  ): Promise<T> {
     if (variants === undefined) {
       throw new Error(
         `manifest "${this.manifest.id}" does not declare a ${name} pipeline`
@@ -90,6 +93,6 @@ export class ManifestRunner {
       signal: opts?.signal ?? this.options.signal,
       protoRegistry: opts?.protoRegistry ?? this.protoRegistry,
     }
-    return runPipeline(this.manifest, variants, inputs, merged)
+    return runPipeline(this.manifest, variants, inputs, merged) as Promise<T>
   }
 }

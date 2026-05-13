@@ -1,15 +1,11 @@
 import type { FetchLike } from '@danmaku-anywhere/dango'
 import { setSessionHeader } from '@/background/netRequest/setSessionHeader'
 
-/**
- * `FetchLike` adapter that runs `ManifestRunner` requests through the
- * browser `fetch`. When a step declares `rewriteHeaders` (Origin /
- * Referer / User-Agent), `fetch` silently drops them, so we install a
- * short-lived `chrome.declarativeNetRequest` session rule for the call.
- * `setSessionHeader` is mutex-serialized — concurrent steps won't race
- * on rule IDs. Unknown init fields like `rewriteHeaders` are ignored
- * by `fetch`, so passing `init` through is safe.
- */
+// `fetch` silently drops forbidden request headers like Origin / Referer /
+// User-Agent, so when a manifest step declares `rewriteHeaders` we install a
+// short-lived `chrome.declarativeNetRequest` session rule for the call.
+// `setSessionHeader` is mutex-serialized so concurrent steps don't race on
+// rule IDs.
 export const extensionFetchLike: FetchLike = async (input, init) => {
   const rewrite = init?.rewriteHeaders
   const dnr =

@@ -57,9 +57,9 @@ export class BilibiliService implements IDanmakuProvider {
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
     if (await this.useManifest()) {
       this.logger.debug('Search bilibili via manifest', params)
-      const results = (await getBilibiliRunner().runSearch({
-        q: params.keyword,
-      })) as Parameters<typeof BilibiliMapper.manifestSearchToSeasonInsert>[0][]
+      const results = await getBilibiliRunner().runSearch<
+        Parameters<typeof BilibiliMapper.manifestSearchToSeasonInsert>[0][]
+      >({ q: params.keyword })
       this.logger.debug('Manifest search result', results)
       return results.map(BilibiliMapper.manifestSearchToSeasonInsert)
     }
@@ -168,9 +168,11 @@ export class BilibiliService implements IDanmakuProvider {
     this.logger.debug('Get bangumi info', seasonRemoteIds)
 
     if (await this.useManifest()) {
-      const results = (await getBilibiliRunner().runEpisodes({
+      const results = await getBilibiliRunner().runEpisodes<
+        Parameters<typeof BilibiliMapper.manifestEpisodeToEpisodeMeta>[0][]
+      >({
         seasonId: seasonRemoteIds.seasonId,
-      })) as Parameters<typeof BilibiliMapper.manifestEpisodeToEpisodeMeta>[0][]
+      })
       this.logger.debug('Manifest episodes raw', results)
       const mapped = results.map(BilibiliMapper.manifestEpisodeToEpisodeMeta)
       this.logger.debug('Manifest episodes mapped', mapped)
@@ -223,10 +225,10 @@ export class BilibiliService implements IDanmakuProvider {
     const { danmakuTypePreference } = this.config.options
 
     if (await this.useManifest()) {
-      const comments = (await getBilibiliRunner().runDanmaku({
+      const comments = await getBilibiliRunner().runDanmaku<CommentEntity[]>({
         cid: ids.cid,
         danmakuFormat: danmakuTypePreference,
-      })) as CommentEntity[]
+      })
       this.logger.debug('Manifest danmaku fetched', comments.length)
       return comments
     }
