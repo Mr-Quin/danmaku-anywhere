@@ -1,7 +1,6 @@
 import { CardMedia, Skeleton, styled } from '@mui/material'
-import { type ReactNode, Suspense } from 'react'
-import { ErrorBoundary } from 'react-error-boundary'
-import { useImageSuspense } from '@/common/components/image/useImage'
+import type { ReactNode } from 'react'
+import { useImage } from '@/common/components/image/useImage'
 
 import { IMAGE_ASSETS } from '@/images/ImageAssets'
 
@@ -59,8 +58,12 @@ type CoverImageProps = {
 } & ImageAspectRatioProps
 
 const CoverImageLoader = (props: CoverImageProps) => {
-  const image = useImageSuspense(props.src || IMAGE_ASSETS.Fallback)
-  const fallbackImage = useImageSuspense(IMAGE_ASSETS.Fallback)
+  const image = useImage(props.src || IMAGE_ASSETS.Fallback)
+  const fallbackImage = useImage(IMAGE_ASSETS.Fallback)
+
+  if (image.isPending) {
+    return <Skeleton width="100%" height="100%" variant="rounded" />
+  }
 
   const src = image.data ?? fallbackImage.data
 
@@ -89,13 +92,7 @@ export const CoverImage = ({
 }: CoverImageProps) => {
   return (
     <ImageAspectRatio widthRatio={widthRatio} heightRatio={heightRatio}>
-      <ErrorBoundary fallback={<div>Failed to load image</div>}>
-        <Suspense
-          fallback={<Skeleton width="100%" height="100%" variant="rounded" />}
-        >
-          <CoverImageLoader {...rest} />
-        </Suspense>
-      </ErrorBoundary>
+      <CoverImageLoader {...rest} />
       {children}
     </ImageAspectRatio>
   )

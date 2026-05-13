@@ -1,7 +1,12 @@
-import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  CustomSeason,
+  EpisodeMeta,
+  Season,
+  WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
 import type { MacCmsParsedPlayUrl } from '@danmaku-anywhere/danmaku-provider/maccms'
 import { List, ListItem, ListItemText, Skeleton } from '@mui/material'
-import { useSuspenseQueries } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import type {
@@ -49,51 +54,66 @@ const FallbackEpisodeList = () => {
   )
 }
 
+interface EpisodeRowProps {
+  episode: WithSeason<EpisodeMeta>
+  seasonId: number
+  renderEpisode: RenderEpisode
+}
+
+const EpisodeRow = ({ episode, seasonId, renderEpisode }: EpisodeRowProps) => {
+  const params = {
+    provider: episode.provider,
+    indexedId: episode.indexedId,
+    seasonId,
+  } satisfies EpisodeQueryFilter
+
+  const danmakuQuery = useQuery({
+    queryKey: episodeQueryKeys.filterLite(params),
+    queryFn: async () => {
+      const res = await chromeRpcClient.episodeFilterLite(params)
+      if (res.data.length === 0) {
+        return null
+      }
+      return res.data[0]
+    },
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: Number.POSITIVE_INFINITY,
+  })
+
+  return (
+    <ErrorBoundary
+      fallback={
+        <ListItem>
+          <ListItemText primary="An error occurred" />
+        </ListItem>
+      }
+    >
+      {renderEpisode({
+        episode,
+        danmaku: danmakuQuery.data ?? null,
+        isLoading: danmakuQuery.isLoading,
+      })}
+    </ErrorBoundary>
+  )
+}
+
 const EpisodeListInner = ({
   season,
   renderEpisode,
 }: NormalSeasonListItemProps) => {
   const { data: episodes } = useSearchEpisode(season.id)
 
-  const danmakuResults = useSuspenseQueries({
-    queries: episodes.map((episode) => {
-      const params = {
-        provider: episode.provider,
-        indexedId: episode.indexedId,
-        seasonId: season.id,
-      } satisfies EpisodeQueryFilter
-      return {
-        queryKey: episodeQueryKeys.filter(params),
-        queryFn: async () => {
-          const res = await chromeRpcClient.episodeFilterLite(params)
-          if (res.data.length === 0) return null
-          return res.data[0]
-        },
-        refetchOnMount: false,
-        refetchOnWindowFocus: false,
-        staleTime: Number.POSITIVE_INFINITY,
-      }
-    }),
-  })
-
   return (
     <List dense disablePadding>
-      {episodes.map((episode, i) => {
-        const danmakuResult = danmakuResults[i]
-
+      {episodes.map((episode) => {
         return (
-          <ErrorBoundary
-            fallback={<ListItemText primary="An error occurred" />}
+          <EpisodeRow
             key={episode.indexedId}
-          >
-            <Suspense fallback={<EpisodeSkeleton />}>
-              {renderEpisode({
-                episode,
-                danmaku: danmakuResult.data,
-                isLoading: danmakuResult.isLoading,
-              })}
-            </Suspense>
-          </ErrorBoundary>
+            episode={episode}
+            seasonId={season.id}
+            renderEpisode={renderEpisode}
+          />
         )
       })}
     </List>
@@ -113,7 +133,11 @@ const CustomEpisodeListInner = ({
       {episodes.map((episode, i) => {
         return (
           <ErrorBoundary
-            fallback={<ListItemText primary="An error occurred" />}
+            fallback={
+              <ListItem>
+                <ListItemText primary="An error occurred" />
+              </ListItem>
+            }
             key={episode.url}
           >
             <Suspense fallback={<EpisodeSkeleton />}>
