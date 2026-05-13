@@ -264,7 +264,7 @@ export class ExtensionOptionsService implements IStoreService {
       .version(25, {
         upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
-            draft.useManifest = false
+            draft.useManifest = true
           }),
       })
   }
