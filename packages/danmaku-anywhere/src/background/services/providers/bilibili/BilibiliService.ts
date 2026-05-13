@@ -12,6 +12,7 @@ import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { assertProviderType } from '@/common/danmaku/utils'
 import type { ILogger } from '@/common/Logger'
+import type { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import type { BuiltInBilibiliProvider } from '@/common/options/providerConfig/schema'
 import { findEpisodeByNumber } from '../common/findEpisodeByNumber'
 import type {
@@ -20,6 +21,7 @@ import type {
   ParseUrlResult,
   SeasonSearchParams,
 } from '../IDanmakuProvider'
+import { getBilibiliRunner } from '../manifestRunners'
 import { BilibiliMapper } from './BilibiliMapper'
 
 export class BilibiliService implements IDanmakuProvider {
@@ -29,9 +31,15 @@ export class BilibiliService implements IDanmakuProvider {
 
   constructor(
     private config: BuiltInBilibiliProvider,
-    logger: ILogger
+    logger: ILogger,
+    private readonly extensionOptionsService: ExtensionOptionsService
   ) {
     this.logger = logger.sub('[BilibiliService]')
+  }
+
+  private async useManifest(): Promise<boolean> {
+    const opts = await this.extensionOptionsService.get()
+    return opts.useManifest
   }
 
   static async setCookies(logger: ILogger) {
@@ -47,6 +55,21 @@ export class BilibiliService implements IDanmakuProvider {
   }
 
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
+    if (await this.useManifest()) {
+      this.logger.debug('Search bilibili via manifest', params)
+      const runner = getBilibiliRunner()
+      const results = (await runner.runSearch({ q: params.keyword })) as Array<{
+        providerIds: { seasonId: number; mediaId: number }
+        title: string
+        type: string
+        imageUrl?: string
+        episodeCount?: number
+        year?: number
+      }>
+      this.logger.debug('Manifest search result', results)
+      return results.map(BilibiliMapper.manifestSearchToSeasonInsert)
+    }
+
     const searchParams: BiliBiliSearchParams = {
       keyword: params.keyword,
     }
@@ -150,6 +173,24 @@ export class BilibiliService implements IDanmakuProvider {
   ): Promise<OmitSeasonId<BilibiliOf<EpisodeMeta>>[]> {
     this.logger.debug('Get bangumi info', seasonRemoteIds)
 
+    if (await this.useManifest()) {
+      const runner = getBilibiliRunner()
+      const results = (await runner.runEpisodes({
+        seasonId: seasonRemoteIds.seasonId,
+      })) as Array<{
+        providerIds: {
+          cid: number
+          aid: number
+          bvid?: string
+          epid?: number
+        }
+        title: string
+        episodeNumber: string
+      }>
+      this.logger.debug('Manifest episodes result', results)
+      return results.map(BilibiliMapper.manifestEpisodeToEpisodeMeta)
+    }
+
     const result = await bilibili.getBangumiInfo({
       seasonId: seasonRemoteIds.seasonId,
     })
@@ -194,6 +235,17 @@ export class BilibiliService implements IDanmakuProvider {
 
   private async fetchDanmaku(ids: { cid: number; aid?: number }) {
     const { danmakuTypePreference } = this.config.options
+
+    if (await this.useManifest()) {
+      this.logger.debug('Fetch bilibili danmaku via manifest', ids)
+      const runner = getBilibiliRunner()
+      const comments = (await runner.runDanmaku({
+        cid: ids.cid,
+        danmakuFormat: danmakuTypePreference,
+      })) as CommentEntity[]
+      this.logger.debug('Manifest danmaku fetched', comments.length)
+      return comments
+    }
 
     if (danmakuTypePreference === 'xml') {
       return this.getDanmakuXml(ids.cid)
