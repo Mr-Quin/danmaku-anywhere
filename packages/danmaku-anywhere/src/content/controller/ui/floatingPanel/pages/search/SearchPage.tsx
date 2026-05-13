@@ -1,7 +1,13 @@
-import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  CustomSeason,
+  Season,
+  SeasonInsert,
+} from '@danmaku-anywhere/danmaku-converter'
 import { Box, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useUpsertSeason } from '@/common/anime/queries/useUpsertSeason'
+import { isPersistedSeason } from '@/common/anime/utils'
 import { Center } from '@/common/components/Center'
 import { SearchPageCore } from '@/common/components/SearchPageCore/SearchPageCore'
 import { isNotCustom } from '@/common/danmaku/utils'
@@ -22,6 +28,7 @@ export const SearchPage = (): React.ReactElement | null => {
   const { enabledProviders } = useProviderConfig()
   const { mountDanmaku } = useLoadDanmaku()
   const { data: seasonMaps } = useAllSeasonMap()
+  const upsertSeason = useUpsertSeason()
 
   const [selectedSeason, setSelectedSeason] = useState<
     Season | CustomSeason | undefined
@@ -39,22 +46,37 @@ export const SearchPage = (): React.ReactElement | null => {
     setSearchTitle(mediaInfo.title)
   }, [mediaInfo])
 
-  const handleSeasonClick = (
-    season: Season | CustomSeason,
+  const handleSeasonClick = async (
+    season: Season | SeasonInsert | CustomSeason,
     provider: ProviderConfig
   ) => {
+    // Search results are not persisted; the user picking one is the signal to
+    // commit it to the seasons table so downstream APIs (season map, bookmark,
+    // episode list) have a real seasonId.
+    let persisted
+    if (isPersistedSeason(season)) {
+      persisted = season
+    } else {
+      try {
+        persisted = await upsertSeason.mutateAsync(season)
+      } catch {
+        // useUpsertSeason surfaces the error via toast; stop here so we don't
+        // open the season map dialog or detail page for an unpersisted season.
+        return
+      }
+    }
     if (
-      isNotCustom(season) &&
+      isNotCustom(persisted) &&
       mediaInfo &&
       !SeasonMap.hasMapping(
         seasonMaps,
         mediaInfo.getKey(),
-        season.providerConfigId,
-        season.id
+        persisted.providerConfigId,
+        persisted.id
       )
     ) {
       showAddSeasonMapDialog({
-        season,
+        season: persisted,
         mapKey: mediaInfo.getKey(),
         onProceed: (s) => {
           setSelectedSeason(s)
@@ -62,7 +84,7 @@ export const SearchPage = (): React.ReactElement | null => {
         },
       })
     } else {
-      setSelectedSeason(season)
+      setSelectedSeason(persisted)
       setSelectedProvider(provider)
     }
   }

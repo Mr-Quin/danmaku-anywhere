@@ -1,4 +1,8 @@
-import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  CustomSeason,
+  Season,
+  SeasonInsert,
+} from '@danmaku-anywhere/danmaku-converter'
 import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { Box, Button } from '@mui/material'
 import { Suspense } from 'react'
@@ -16,7 +20,7 @@ interface SeasonSearchResultProps {
   searchParams: SearchEpisodesQuery
   provider: ProviderConfig
   onSeasonClick: (
-    season: Season | CustomSeason,
+    season: Season | SeasonInsert | CustomSeason,
     provider: ProviderConfig
   ) => void
   stale: boolean

@@ -7,6 +7,7 @@ import { memo, Suspense, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { createSearchParams, useNavigate } from 'react-router'
 import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
+import { isPersistedSeason } from '@/common/anime/utils'
 import { NothingHere } from '@/common/components/NothingHere'
 import {
   SeasonGrid,
@@ -83,6 +84,11 @@ const SeasonListSuspense = () => {
       boxProps={{ p: 2 }}
       data={filteredSeasons}
       onSeasonClick={(season) => {
+        // SeasonList only renders persisted seasons (from getAllSeasons) plus a
+        // synthetic local-danmaku entry, so id is always present here.
+        if (!isPersistedSeason(season)) {
+          return
+        }
         navigate({
           pathname: `${season.id}`,
           search: createSearchParams({

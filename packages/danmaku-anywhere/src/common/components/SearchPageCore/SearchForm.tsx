@@ -1,4 +1,8 @@
-import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  CustomSeason,
+  Season,
+  SeasonInsert,
+} from '@danmaku-anywhere/danmaku-converter'
 import { Close, Search } from '@mui/icons-material'
 import type { TextFieldProps } from '@mui/material'
 import {
@@ -29,7 +33,7 @@ interface SearchFormProps {
   onSearchTermChange: (searchTerm: string) => void
   textFieldProps?: TextFieldProps
   onSeasonClick: (
-    season: Season | CustomSeason,
+    season: Season | SeasonInsert | CustomSeason,
     provider: ProviderConfig
   ) => void
 }

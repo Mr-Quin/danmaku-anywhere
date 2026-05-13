@@ -1,4 +1,8 @@
-import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  CustomSeason,
+  Season,
+  SeasonInsert,
+} from '@danmaku-anywhere/danmaku-converter'
 import { ExpandMore } from '@mui/icons-material'
 import {
   AccordionDetails,
@@ -35,7 +39,7 @@ const SearchResultAccordian = styled(OutlineAccordion)(({ theme }) => {
 interface ProviderResultsListProps {
   searchTerm: string
   onSeasonClick: (
-    season: Season | CustomSeason,
+    season: Season | SeasonInsert | CustomSeason,
     provider: ProviderConfig
   ) => void
 }

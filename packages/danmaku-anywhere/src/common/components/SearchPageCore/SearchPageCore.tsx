@@ -2,6 +2,7 @@ import type {
   CustomSeason,
   Episode,
   Season,
+  SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Settings } from '@mui/icons-material'
@@ -25,7 +26,7 @@ import { SearchSettings } from './SearchSettings'
 
 export interface SearchPageCoreProps {
   onSeasonClick: (
-    season: Season | CustomSeason,
+    season: Season | SeasonInsert | CustomSeason,
     provider: ProviderConfig
   ) => void
   onImportSuccess?: (episode: WithSeason<Episode>) => void
