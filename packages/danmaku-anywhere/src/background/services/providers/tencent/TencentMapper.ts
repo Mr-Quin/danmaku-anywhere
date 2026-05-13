@@ -94,13 +94,13 @@ export class TencentMapper {
   static manifestEpisodeToEpisodeMeta(item: {
     providerIds: { vid: string; cid: string }
     title: string
-    episodeNumber: string
+    alternativeTitle?: string[]
     imageUrl?: string
   }): OmitSeasonId<TencentOf<EpisodeMeta>> {
     return {
       provider: DanmakuSourceType.Tencent,
       title: stripHtml(item.title),
-      episodeNumber: item.episodeNumber,
+      alternativeTitle: item.alternativeTitle,
       providerIds: { vid: item.providerIds.vid },
       imageUrl: item.imageUrl,
       indexedId: item.providerIds.vid,
