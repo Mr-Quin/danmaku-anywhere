@@ -9,7 +9,9 @@ on:
 jobs:
   re-request:
     name: Re-request AI reviewers
-    if: contains(github.event.pull_request.labels.*.name, 'ai-rereview')
+    if: |
+      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'ai-rereview'))
+      || (github.event.action == 'labeled' && github.event.label.name == 'ai-rereview')
     runs-on: ubuntu-latest
     permissions:
       contents: read
