@@ -47,9 +47,16 @@ const hasPendingRequest = (requestedReviewers, candidateLogins) => {
   if (candidateLogins.length === 0) {
     return false
   }
-  return requestedReviewers.some((reviewer) =>
-    candidateLogins.includes(reviewer?.login)
-  )
+  return requestedReviewers.some((reviewer) => {
+    const login = reviewer?.login
+    if (!login) {
+      return false
+    }
+    const normalized = login.replace(/\[bot\]$/, '')
+    return (
+      candidateLogins.includes(login) || candidateLogins.includes(normalized)
+    )
+  })
 }
 
 const run = async ({ core, github, context }) => {
