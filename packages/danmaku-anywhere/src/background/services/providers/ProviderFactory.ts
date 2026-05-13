@@ -32,7 +32,7 @@ function createDanmakuProvider(
     case DanmakuSourceType.DanDanPlay:
       return new DanDanPlayService(config, logger, extensionOptionsService)
     case DanmakuSourceType.Bilibili:
-      return new BilibiliService(config, logger)
+      return new BilibiliService(config, logger, extensionOptionsService)
     case DanmakuSourceType.Tencent:
       return new TencentService(config, logger)
     case DanmakuSourceType.MacCMS:

@@ -78,4 +78,56 @@ export class BilibiliMapper {
       schemaVersion: 1,
     }
   }
+
+  static manifestSearchToSeasonInsert(item: {
+    providerIds: { seasonId: number; mediaId: number }
+    title: string
+    type: string
+    imageUrl?: string
+    episodeCount?: number
+    year?: number
+  }): BilibiliOf<SeasonInsert> {
+    return {
+      provider: DanmakuSourceType.Bilibili,
+      providerConfigId: PROVIDER_TO_BUILTIN_ID.Bilibili,
+      title: stripHtml(item.title),
+      type: item.type,
+      imageUrl: item.imageUrl,
+      providerIds: { seasonId: item.providerIds.seasonId },
+      indexedId: item.providerIds.seasonId.toString(),
+      year: item.year,
+      episodeCount: item.episodeCount,
+      schemaVersion: 1,
+    }
+  }
+
+  static manifestEpisodeToEpisodeMeta(item: {
+    providerIds: {
+      cid: number
+      aid: number
+      bvid?: string
+      epid?: number
+    }
+    title: string
+    episodeNumber: string
+  }): OmitSeasonId<BilibiliOf<EpisodeMeta>> {
+    const titleClean = stripHtml(item.title).trim()
+    const numericMatch = BARE_NUMERIC_TITLE_RE.test(titleClean)
+      ? Number.parseInt(titleClean, 10)
+      : undefined
+    return {
+      provider: DanmakuSourceType.Bilibili,
+      title: titleClean,
+      episodeNumber: numericMatch,
+      providerIds: {
+        cid: item.providerIds.cid,
+        aid: item.providerIds.aid,
+        bvid: item.providerIds.bvid,
+        epid: item.providerIds.epid,
+      },
+      indexedId: item.providerIds.cid.toString(),
+      lastChecked: Date.now(),
+      schemaVersion: 4,
+    }
+  }
 }
