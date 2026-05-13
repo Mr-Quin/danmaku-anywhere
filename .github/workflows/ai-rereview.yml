@@ -12,6 +12,7 @@ jobs:
     if: contains(github.event.pull_request.labels.*.name, 'ai-rereview')
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: write
     steps:
       - name: Checkout
