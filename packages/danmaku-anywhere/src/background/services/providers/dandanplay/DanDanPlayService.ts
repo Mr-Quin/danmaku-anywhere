@@ -43,7 +43,7 @@ export class DanDanPlayService implements IDanmakuProvider {
 
   private async useManifest(): Promise<boolean> {
     const opts = await this.extensionOptionsService.get()
-    return opts.useManifest.dandanplay
+    return opts.useManifest
   }
 
   async search(searchParams: SeasonSearchParams): Promise<SeasonInsert[]> {

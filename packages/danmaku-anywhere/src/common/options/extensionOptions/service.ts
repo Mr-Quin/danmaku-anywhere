@@ -264,13 +264,9 @@ export class ExtensionOptionsService implements IStoreService {
       .version(25, {
         upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
-            // Add per-source manifest toggle. Defaults to legacy fetchers
-            // until each source is verified through the manifest path.
-            draft.useManifest = {
-              dandanplay: false,
-              bilibili: false,
-              tencent: false,
-            }
+            // Global manifest toggle. Defaults to legacy fetchers until
+            // verified through the manifest path.
+            draft.useManifest = false
           }),
       })
   }
