@@ -25,6 +25,28 @@ describe('zCombinedDanmaku', () => {
     expect(result).toEqual([{ p: '5,1,16777215,user-1', m: 'hi' }])
   })
 
+  it('preserves the optional gradient `s` field on array entries', () => {
+    const input = [
+      { p: '5,1,16777215', m: 'hi', s: 'linear-gradient(...)' },
+      { p: '6,1,16777215', m: 'no gradient' },
+    ]
+
+    const result = zCombinedDanmaku.parse(input)
+
+    expect(result).toEqual([
+      { p: '5,1,16777215', m: 'hi', s: 'linear-gradient(...)' },
+      { p: '6,1,16777215', m: 'no gradient' },
+    ])
+  })
+
+  it('preserves cid when present on array entries', () => {
+    const input = [{ p: '5,1,16777215', m: 'hi', cid: 12345 }]
+
+    const result = zCombinedDanmaku.parse(input)
+
+    expect(result).toEqual([{ p: '5,1,16777215', m: 'hi', cid: 12345 }])
+  })
+
   it('rejects arrays that are not comment entities', () => {
     expect(() => zCombinedDanmaku.parse([{ foo: 'bar' }])).toThrow()
   })

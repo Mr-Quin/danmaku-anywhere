@@ -122,7 +122,7 @@ export const MountPageContent = ({
           }
           e.target.value = ''
         }}
-        accept=".json,.xml,.zip"
+        accept=".json,.xml,.bin,.zip"
         multiple
       />
 

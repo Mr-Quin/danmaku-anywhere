@@ -21,13 +21,21 @@ async function extractZipFile(file: File): Promise<File[]> {
       continue
     }
 
-    if (!path.endsWith('.json') && !path.endsWith('.xml')) {
+    if (
+      !path.endsWith('.json') &&
+      !path.endsWith('.xml') &&
+      !path.endsWith('.bin')
+    ) {
       continue
     }
 
     const blob = await zipEntry.async('blob')
     const extractedFile = new File([blob], toAbsolutePath(path), {
-      type: path.endsWith('.xml') ? 'text/xml' : 'application/json',
+      type: path.endsWith('.xml')
+        ? 'text/xml'
+        : path.endsWith('.bin')
+          ? 'application/octet-stream'
+          : 'application/json',
     })
     files.push(extractedFile)
   }
