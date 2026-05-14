@@ -9,7 +9,12 @@ import { ScriptingManager } from '@/background/scripting/ScriptingManager'
 import { OptionsManager } from '@/background/syncOptions/OptionsManager'
 import { deferredConfigureStore } from '@/background/utils/deferredConfigureStore'
 import { generateId } from '@/background/utils/generateId'
-import { DA_ENV, EXTENSION_VERSION, IS_DA_PROD } from '@/common/constants'
+import {
+  DA_ENV,
+  EXTENSION_VERSION,
+  IS_DA_DEV,
+  IS_DA_PROD,
+} from '@/common/constants'
 import { attachDevApi } from '@/devApi'
 import { setLogService } from './backgroundLogger'
 import { container } from './ioc'
@@ -38,7 +43,7 @@ chrome.runtime.getPlatformInfo().then((platformInfo) => {
 })
 
 chrome.runtime.onInstalled.addListener((details) => {
-  if (details.reason === 'install') {
+  if (details.reason === 'install' && !IS_DA_DEV) {
     void chrome.tabs.create({
       url: 'https://docs.danmaku.weeblify.app/getting-started#首次使用',
     })
