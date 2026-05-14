@@ -37,9 +37,10 @@ export interface DdpFixtures {
   comments: unknown
 }
 
-// Matches both prod (api.danmaku.weeblify.app) and staging
-// (api.danmaku-staging.weeblify.app) — dev builds default to staging.
-const DDP_PROXY_PATTERN = /api\.danmaku(-staging)?\.weeblify\.app\/ddp\/v1/
+// Match the path only — VITE_PROXY_URL varies (prod, staging, CI's unset
+// "undefined" host) and the path is stable regardless. We assume any
+// /ddp/v1 request in tests came from the DDP provider.
+const DDP_PROXY_PATTERN = /\/ddp\/v1(\?|$)/
 
 export function mockDandanplay(fixtures: DdpFixtures): NetworkMock {
   return {

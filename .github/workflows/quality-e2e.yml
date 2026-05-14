@@ -73,6 +73,11 @@ jobs:
         working-directory: packages/danmaku-anywhere
         env:
           VITE_DA_ENV: dev
+          # .env files are gitignored so CI has no proxy URL by default.
+          # Pin to a synthetic host the e2e specs intercept; never reaches
+          # the network because every request is mocked via context.route.
+          VITE_PROXY_URL: https://api.danmaku.test
+          VITE_PROXY_ORIGIN: https://danmaku.test
         run: pnpm build
 
       - name: Run E2E tests
