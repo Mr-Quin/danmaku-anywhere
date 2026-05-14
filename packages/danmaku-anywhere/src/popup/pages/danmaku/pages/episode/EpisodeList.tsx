@@ -229,6 +229,9 @@ export const EpisodeList = () => {
           rowHeight={60}
           checkboxSelection={enableEpisodeSelection}
           getRowId={(row) => row.id}
+          getRowClassName={(params) =>
+            `episode-row episode-row-${params.row.provider}-${params.row.id}`
+          }
           onRowSelectionModelChange={(model) => {
             setSelectedEpisodes(Array.from(model.ids) as number[])
           }}

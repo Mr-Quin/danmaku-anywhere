@@ -1,5 +1,13 @@
 import type { Container } from 'inversify'
 import {
+  type BookmarkApi,
+  BookmarkNamespace,
+} from './namespaces/BookmarkNamespace'
+import {
+  type EpisodeApi,
+  EpisodeNamespace,
+} from './namespaces/EpisodeNamespace'
+import {
   type ExtensionOptionsApi,
   ExtensionOptionsNamespace,
 } from './namespaces/ExtensionOptionsNamespace'
@@ -11,6 +19,7 @@ import {
   type RuntimeApi,
   RuntimeNamespace,
 } from './namespaces/RuntimeNamespace'
+import { type SeasonApi, SeasonNamespace } from './namespaces/SeasonNamespace'
 import {
   type StorageApi,
   StorageNamespace,
@@ -27,6 +36,9 @@ const NAMESPACE_TOKENS = [
   StorageNamespace,
   ExtensionOptionsNamespace,
   RuntimeNamespace,
+  SeasonNamespace,
+  EpisodeNamespace,
+  BookmarkNamespace,
 ] as const
 
 export interface DaApi {
@@ -36,6 +48,9 @@ export interface DaApi {
   storage: StorageApi
   extensionOptions: ExtensionOptionsApi
   runtime: RuntimeApi
+  season: SeasonApi
+  episode: EpisodeApi
+  bookmark: BookmarkApi
 }
 
 declare global {

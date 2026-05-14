@@ -58,7 +58,12 @@ export const DrilldownMenu = ({
       return renderButtonProp({ onClick: handleClick })
     }
     return (
-      <IconButton id={buttonId} onClick={handleClick} {...ButtonProps}>
+      <IconButton
+        id={buttonId}
+        onClick={handleClick}
+        data-testid="drilldown-menu-button"
+        {...ButtonProps}
+      >
         {icon ?? <MoreVert fontSize={ButtonProps?.size} />}
       </IconButton>
     )
