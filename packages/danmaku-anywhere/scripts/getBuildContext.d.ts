@@ -6,4 +6,5 @@ export function getBuildContext(): {
   }
   appVersion: string
   isDev: boolean
+  daEnv: 'dev' | 'preview' | 'prod'
 }

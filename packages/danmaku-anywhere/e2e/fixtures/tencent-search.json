@@ -1,0 +1,25 @@
+{
+  "ret": 0,
+  "msg": "",
+  "data": {
+    "areaBoxList": [
+      {
+        "boxId": "MainNeed",
+        "itemList": [
+          {
+            "doc": { "dataType": 1, "id": "mzc00200qkxg2td" },
+            "videoInfo": {
+              "videoType": 2,
+              "typeName": "动漫",
+              "title": "葬送的芙莉莲",
+              "year": 2023,
+              "imgUrl": "https://puui.qpic.cn/vcover/frieren.jpg",
+              "episodeSites": [{ "showName": "正片", "totalEpisode": 28 }]
+            }
+          }
+        ]
+      }
+    ],
+    "normalList": { "itemList": [] }
+  }
+}

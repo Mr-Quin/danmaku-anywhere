@@ -51,6 +51,12 @@ export const BaseEpisodeListItem = <
 
   const episodeLite = isLite ? episode : undefined
 
+  // Custom episodes lack indexedId; use the DB id instead.
+  const testIdSuffix = isNotCustom(episode)
+    ? episode.indexedId
+    : (episode as CustomEpisodeLite).id
+  const testId = `episode-list-item-${episode.provider}-${testIdSuffix}`
+
   const renderSecondaryAction = () => {
     if (renderSecondaryActionProp) {
       return renderSecondaryActionProp()
@@ -59,7 +65,11 @@ export const BaseEpisodeListItem = <
   }
 
   return (
-    <ListItem disablePadding secondaryAction={renderSecondaryAction()}>
+    <ListItem
+      disablePadding
+      secondaryAction={renderSecondaryAction()}
+      data-testid={testId}
+    >
       <ListItemButton
         onClick={() => onClick(episode)}
         disabled={isLoading || disabled}

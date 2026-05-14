@@ -310,7 +310,12 @@ export const SeasonCard = ({
           position: 'relative',
         }}
       >
-        <CardActionArea onClick={handleCardClick}>
+        <CardActionArea
+          onClick={handleCardClick}
+          data-testid={`season-card-${season.provider}-${
+            isPersistedSeason(season) ? season.id : season.indexedId
+          }`}
+        >
           <CoverImage src={season.imageUrl} alt={season.title} />
           {enableSelection && (
             <SelectionOverlay>

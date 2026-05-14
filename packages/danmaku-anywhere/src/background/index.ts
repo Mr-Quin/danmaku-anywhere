@@ -9,7 +9,8 @@ import { ScriptingManager } from '@/background/scripting/ScriptingManager'
 import { OptionsManager } from '@/background/syncOptions/OptionsManager'
 import { deferredConfigureStore } from '@/background/utils/deferredConfigureStore'
 import { generateId } from '@/background/utils/generateId'
-import { EXTENSION_VERSION } from '@/common/constants'
+import { DA_ENV, EXTENSION_VERSION, IS_DA_PROD } from '@/common/constants'
+import { attachDevApi } from '@/devApi'
 import { setLogService } from './backgroundLogger'
 import { container } from './ioc'
 import { LogService } from './services/Logging/Log.service'
@@ -46,3 +47,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 
 generateId()
 void deferredConfigureStore()
+
+if (!IS_DA_PROD) {
+  attachDevApi(container, DA_ENV)
+}

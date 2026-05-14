@@ -1,0 +1,18 @@
+{
+  "barrage_list": [
+    {
+      "id": "101",
+      "content": "hello",
+      "time_offset": 5000,
+      "content_score": 0,
+      "content_style": "{\"color\":\"FFFFFF\",\"gradient_colors\":[\"FFFFFF\",\"\"],\"position\":0}"
+    },
+    {
+      "id": "102",
+      "content": "测试",
+      "time_offset": 12345,
+      "content_score": 0,
+      "content_style": "{\"color\":\"FF0000\",\"gradient_colors\":[\"FF0000\",\"\"],\"position\":0}"
+    }
+  ]
+}

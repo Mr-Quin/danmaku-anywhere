@@ -1,0 +1,11 @@
+{
+  "barrage_list": [
+    {
+      "id": "201",
+      "content": "world",
+      "time_offset": 35000,
+      "content_score": 0,
+      "content_style": ""
+    }
+  ]
+}

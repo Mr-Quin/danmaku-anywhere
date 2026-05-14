@@ -6,6 +6,21 @@ const dev = process.env.NODE_ENV === 'development'
 const IS_CHROME = BROWSER === 'chrome'
 const IS_FIREFOX = BROWSER === 'firefox'
 
+const VALID_DA_ENVS = ['dev', 'preview', 'prod']
+function resolveDaEnv() {
+  const explicit = process.env.VITE_DA_ENV
+  if (explicit) {
+    if (!VALID_DA_ENVS.includes(explicit)) {
+      throw new Error(
+        `VITE_DA_ENV must be one of ${VALID_DA_ENVS.join('|')}, got: ${explicit}`
+      )
+    }
+    return explicit
+  }
+  return dev ? 'dev' : 'prod'
+}
+const DA_ENV = resolveDaEnv()
+
 function getVersion() {
   if (!VERSION_SUFFIX) {
     return packageJson.version
@@ -22,5 +37,6 @@ export function getBuildContext() {
     },
     appVersion: getVersion(),
     isDev: dev,
+    daEnv: DA_ENV,
   }
 }

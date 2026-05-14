@@ -1,0 +1,44 @@
+{
+  "ret": 0,
+  "msg": "",
+  "data": {
+    "has_next_page": false,
+    "module_list_datas": [
+      {
+        "module_datas": [
+          {
+            "module_id": "main",
+            "item_data_lists": {
+              "item_datas": [
+                {
+                  "item_id": "id_1",
+                  "item_params": {
+                    "vid": "vid_1",
+                    "cid": "mzc00200qkxg2td",
+                    "is_trailer": "0",
+                    "play_title": "1",
+                    "title": "第1集",
+                    "union_title": "第1集 - 旅途的终点",
+                    "image_url": "https://example.com/1.jpg"
+                  }
+                },
+                {
+                  "item_id": "id_2",
+                  "item_params": {
+                    "vid": "vid_2",
+                    "cid": "mzc00200qkxg2td",
+                    "is_trailer": "0",
+                    "play_title": "2",
+                    "title": "第2集",
+                    "union_title": "第2集 - 不杀人的魔法",
+                    "image_url": "https://example.com/2.jpg"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

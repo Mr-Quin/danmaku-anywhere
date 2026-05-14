@@ -1,0 +1,30 @@
+{
+  "errorCode": 0,
+  "errorMessage": "",
+  "success": true,
+  "bangumi": {
+    "animeId": 18398,
+    "bangumiId": "400602",
+    "animeTitle": "葬送的芙莉莲",
+    "type": "tvseries",
+    "typeDescription": "TV动画",
+    "imageUrl": "https://img.dandanplay.net/anime/18398.jpg",
+    "episodes": [
+      {
+        "episodeId": 183980001,
+        "episodeTitle": "第1话 旅途的终点",
+        "episodeNumber": "1"
+      },
+      {
+        "episodeId": 183980002,
+        "episodeTitle": "第2话 不杀人的魔法",
+        "episodeNumber": "2"
+      },
+      {
+        "episodeId": 183980003,
+        "episodeTitle": "第3话 蓝月草",
+        "episodeNumber": "3"
+      }
+    ]
+  }
+}
