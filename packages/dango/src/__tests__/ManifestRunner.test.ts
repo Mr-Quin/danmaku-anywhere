@@ -72,6 +72,137 @@ describe('ManifestRunner', () => {
   })
 })
 
+/**
+ * Covers ManifestRunner.runParseUrl: URL pattern matching, named-capture-group
+ * extraction into pipeline inputs, the no-match returns-null path, and the
+ * no-pipeline returns-null path.
+ */
+describe('ManifestRunner.runParseUrl', () => {
+  const parseUrlManifest = {
+    apiVersion: 1,
+    id: 'demo',
+    name: 'Demo',
+    version: '0.1.0',
+    hosts: ['api.example.com'],
+    urlMatch: [{ host: 'www.example.com', path: '^/play/(?<id>\\d+)$' }],
+    parseUrl: {
+      inputs: [],
+      steps: [
+        {
+          type: 'http',
+          id: 'lookup',
+          request: {
+            method: 'GET',
+            url: "'https://api.example.com/items/' & id",
+          },
+        },
+      ],
+      output: "{ 'id': id, 'title': lookup.title, 'url': url }",
+    },
+  }
+
+  it('runs the parseUrl pipeline with named capture groups as inputs', async () => {
+    const { fetcher, calls } = mockFetcher({
+      'https://api.example.com/items/42': {
+        body: JSON.stringify({ title: 'Hello' }),
+      },
+    })
+    const runner = new ManifestRunner(zManifest.parse(parseUrlManifest), {
+      fetcher,
+    })
+    const result = await runner.runParseUrl('https://www.example.com/play/42')
+    expect(result).toEqual({
+      id: '42',
+      title: 'Hello',
+      url: 'https://www.example.com/play/42',
+    })
+    expect(calls).toHaveLength(1)
+  })
+
+  it('returns null when no urlMatch pattern matches', async () => {
+    const runner = new ManifestRunner(zManifest.parse(parseUrlManifest))
+    const result = await runner.runParseUrl('https://other.example.com/x')
+    expect(result).toBeNull()
+  })
+
+  it('returns null when the manifest declares no parseUrl pipeline', async () => {
+    const noParseUrl = {
+      apiVersion: 1,
+      id: 'no-pu',
+      name: 'NoParseUrl',
+      version: '0.1.0',
+      hosts: ['api.example.com'],
+      urlMatch: [{ host: 'www.example.com', path: '.*' }],
+    }
+    const runner = new ManifestRunner(zManifest.parse(noParseUrl))
+    const result = await runner.runParseUrl('https://www.example.com/anything')
+    expect(result).toBeNull()
+  })
+
+  it('merges extraInputs alongside captured groups', async () => {
+    const { fetcher, calls } = mockFetcher({
+      'https://api.example.com/items/7': {
+        body: JSON.stringify({ title: 'X' }),
+      },
+    })
+    const manifestWithBaseUrl = {
+      ...parseUrlManifest,
+      parseUrl: {
+        inputs: ['extra'],
+        steps: [
+          {
+            type: 'http',
+            id: 'lookup',
+            request: {
+              method: 'GET',
+              url: "'https://api.example.com/items/' & id",
+            },
+          },
+        ],
+        output: "{ 'id': id, 'extra': extra }",
+      },
+    }
+    const runner = new ManifestRunner(zManifest.parse(manifestWithBaseUrl), {
+      fetcher,
+    })
+    const result = await runner.runParseUrl('https://www.example.com/play/7', {
+      extra: 'hello',
+    })
+    expect(result).toEqual({ id: '7', extra: 'hello' })
+    expect(calls).toHaveLength(1)
+  })
+})
+
+describe('ManifestRunner.canParse', () => {
+  it('returns true when any urlMatch entry matches', () => {
+    const runner = new ManifestRunner(
+      zManifest.parse({
+        apiVersion: 1,
+        id: 'x',
+        name: 'X',
+        version: '0.1.0',
+        hosts: ['x.com'],
+        urlMatch: [{ host: 'www.x.com', path: '^/play/' }],
+      })
+    )
+    expect(runner.canParse('https://www.x.com/play/123')).toBe(true)
+    expect(runner.canParse('https://www.x.com/festival')).toBe(false)
+  })
+
+  it('returns false when urlMatch is empty', () => {
+    const runner = new ManifestRunner(
+      zManifest.parse({
+        apiVersion: 1,
+        id: 'x',
+        name: 'X',
+        version: '0.1.0',
+        hosts: ['x.com'],
+      })
+    )
+    expect(runner.canParse('https://www.x.com/anything')).toBe(false)
+  })
+})
+
 describe('JsonataEvaluator', () => {
   it('caches compiled expressions across calls', async () => {
     const ev = new JsonataEvaluator({ maxCacheSize: 10 })

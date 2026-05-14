@@ -15,6 +15,7 @@ import { findEpisodeByNumber } from './common/findEpisodeByNumber'
 import type {
   IDanmakuProvider,
   OmitSeasonId,
+  ParseUrlResult,
   SeasonSearchParams,
 } from './IDanmakuProvider'
 import type { ManifestRegistry } from './ManifestRegistry'
@@ -42,6 +43,14 @@ interface ManifestEpisodeRow {
   imageUrl?: string
   alternativeTitle?: string[]
   externalLink?: string
+}
+
+interface ManifestParseUrlOutput {
+  seasonInsert: ManifestSearchRow
+  // Pipeline emits undefined when the URL pattern matched but the API
+  // response did not yield a matching episode. The host treats that as a
+  // hard error (URL is on a recognized host, but we can't resolve it).
+  episodeMeta?: ManifestEpisodeRow
 }
 
 export interface ManifestProviderConfig {
@@ -143,6 +152,38 @@ export class ManifestProviderService implements IDanmakuProvider {
       ...episode,
       seasonId: season.id,
       season,
+    }
+  }
+
+  canParse(url: string): boolean {
+    return this.registry.getRunner(this.config.manifestId).canParse(url)
+  }
+
+  async parseUrl(url: string): Promise<ParseUrlResult | null> {
+    this.logger.debug('Parse URL via manifest', this.config.manifestId, url)
+    const runner = this.registry.getRunner(this.config.manifestId)
+    const extras = this.config.extraInputs ? this.config.extraInputs() : {}
+    const result = await runner.runParseUrl<ManifestParseUrlOutput>(url, extras)
+    if (result === null) return null
+    if (result.episodeMeta === undefined) {
+      throw new Error(`Could not resolve episode for url: ${url}`)
+    }
+    const now = Date.now()
+    return {
+      seasonInsert: {
+        ...result.seasonInsert,
+        title: stripHtml(result.seasonInsert.title),
+        provider: this.forProvider,
+        providerConfigId: this.config.providerConfigId,
+        schemaVersion: SEASON_SCHEMA_VERSION,
+      },
+      episodeMeta: {
+        ...result.episodeMeta,
+        title: stripHtml(result.episodeMeta.title),
+        provider: this.forProvider,
+        schemaVersion: EPISODE_SCHEMA_VERSION,
+        lastChecked: now,
+      },
     }
   }
 }
