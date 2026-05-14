@@ -7,6 +7,15 @@ import {
   migrateProviderConfigsToFlat,
 } from './migration'
 
+/**
+ * Exercises both provider-config migrations:
+ * - `migrateDanmakuSourcesToProviders`: pre-v21 `danmakuSources` blob →
+ *   flat ProviderConfig[].
+ * - `migrateProviderConfigsToFlat`: v1 discriminated-union ProviderConfig
+ *   records → flat shape (idempotent on already-flat input, drops
+ *   corrupted records).
+ */
+
 describe('migrateDanmakuSourcesToProviders', () => {
   describe('basic migration', () => {
     it('should migrate all built-in providers with default settings', () => {
@@ -313,8 +322,9 @@ describe('migrateDanmakuSourcesToProviders', () => {
 
     it('should fall back to defaults when migration fails completely', () => {
       // Pass invalid data to trigger catch block
-      // biome-ignore lint/suspicious/noExplicitAny: testing failure path
-      const providers = migrateDanmakuSourcesToProviders(null as any)
+      const providers = migrateDanmakuSourcesToProviders(
+        null as unknown as DanmakuSources
+      )
 
       expect(providers).toHaveLength(3)
       expect(providers[0].manifestId).toBe('builtin:dandanplay')

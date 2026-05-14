@@ -1,7 +1,4 @@
-import {
-  DanmakuSourceType,
-  PROVIDER_TO_BUILTIN_ID,
-} from '@danmaku-anywhere/danmaku-converter'
+import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { produce } from 'immer'
 import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
@@ -109,18 +106,6 @@ export class ProviderConfigService implements IStoreService {
       config.impl === DanmakuSourceType.Bilibili ||
       config.impl === DanmakuSourceType.Tencent
     )
-  }
-
-  async getBuiltInDanDanPlay(): Promise<ProviderConfig> {
-    return this.mustGet(PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay])
-  }
-
-  async getBuiltInBilibili(): Promise<ProviderConfig> {
-    return this.mustGet(PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili])
-  }
-
-  async getBuiltInTencent(): Promise<ProviderConfig> {
-    return this.mustGet(PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent])
   }
 
   async update<T extends ProviderConfig>(
