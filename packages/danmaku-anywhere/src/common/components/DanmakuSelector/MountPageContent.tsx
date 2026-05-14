@@ -18,6 +18,7 @@ import {
 import { useDanmakuTreeActions } from '@/common/components/DanmakuSelector/useDanmakuTreeActions'
 import { useImportFlow } from '@/common/components/DanmakuSelector/useImportFlow'
 import { ImportResultDialog } from '@/common/components/ImportPageCore/ImportResultDialog'
+import { VALID_EXTENSIONS } from '@/common/components/ImportPageCore/useDanmakuImport'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { ImportResultContent } from '../ImportPageCore/ImportResultContent'
@@ -122,7 +123,7 @@ export const MountPageContent = ({
           }
           e.target.value = ''
         }}
-        accept=".json,.xml,.zip"
+        accept={[...VALID_EXTENSIONS, '.zip'].join(',')}
         multiple
       />
 

@@ -3,7 +3,10 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ImportResultContent } from '@/common/components/ImportPageCore/ImportResultContent'
 import { ImportResultDialog } from '@/common/components/ImportPageCore/ImportResultDialog'
-import { useDanmakuImport } from '@/common/components/ImportPageCore/useDanmakuImport'
+import {
+  useDanmakuImport,
+  VALID_EXTENSIONS,
+} from '@/common/components/ImportPageCore/useDanmakuImport'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { FileUpload } from '@/popup/component/FileUpload'
@@ -32,12 +35,12 @@ export const ImportPageCore = () => {
         <Typography variant="subtitle2" gutterBottom>
           {t(
             'importPage.importDesc',
-            'When importing local danmaku, file names will be used as episode names. Supports .json and .xml files'
+            'When importing local danmaku, file names will be used as episode names. Supports .json, .xml, and .bin (Bilibili protobuf) files'
           )}
         </Typography>
         <FileUpload
           onFilesSelected={handleFilesSelected}
-          accept=".json,.xml"
+          accept={VALID_EXTENSIONS.join(',')}
           multiple={true}
         />
       </Box>

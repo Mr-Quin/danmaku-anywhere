@@ -1,7 +1,10 @@
 import JSZip from 'jszip'
 import { useRef, useState } from 'react'
 import { useFileDragDrop } from '@/common/components/DanmakuSelector/useFileDragDrop'
-import { useDanmakuImport } from '@/common/components/ImportPageCore/useDanmakuImport'
+import {
+  useDanmakuImport,
+  VALID_EXTENSIONS,
+} from '@/common/components/ImportPageCore/useDanmakuImport'
 
 function toAbsolutePath(path: string): string {
   if (path.startsWith('/')) {
@@ -21,13 +24,18 @@ async function extractZipFile(file: File): Promise<File[]> {
       continue
     }
 
-    if (!path.endsWith('.json') && !path.endsWith('.xml')) {
+    const lowerPath = path.toLowerCase()
+    if (!VALID_EXTENSIONS.some((ext) => lowerPath.endsWith(ext))) {
       continue
     }
 
     const blob = await zipEntry.async('blob')
     const extractedFile = new File([blob], toAbsolutePath(path), {
-      type: path.endsWith('.xml') ? 'text/xml' : 'application/json',
+      type: lowerPath.endsWith('.xml')
+        ? 'text/xml'
+        : lowerPath.endsWith('.bin')
+          ? 'application/octet-stream'
+          : 'application/json',
     })
     files.push(extractedFile)
   }

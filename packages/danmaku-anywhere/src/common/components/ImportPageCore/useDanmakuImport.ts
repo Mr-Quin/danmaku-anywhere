@@ -1,27 +1,36 @@
 import { xmlToJSON } from '@danmaku-anywhere/danmaku-converter'
 import { useMutation } from '@tanstack/react-query'
+import { decodeBilibiliDanmakuProto } from '@/common/components/ImportPageCore/decodeBilibiliDanmakuProto'
 
 import type { DanmakuImportData } from '@/common/danmaku/dto'
 import { useInvalidateSeasonAndEpisode } from '@/common/hooks/useInvalidateSeasonAndEpisode'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
-const VALID_FILE_TYPES = [
-  'application/json',
-  'application/xml',
-  'text/xml',
-  'text/json',
-]
+export const VALID_EXTENSIONS = ['.json', '.xml', '.bin'] as const
 
-const isFileValid = (file: File) => {
-  return VALID_FILE_TYPES.includes(file.type)
+function getExtension(file: File): string {
+  const idx = file.name.lastIndexOf('.')
+  if (idx === -1) {
+    return ''
+  }
+  return file.name.slice(idx).toLowerCase()
 }
 
-const getJson = async (file: File) => {
+function isFileValid(file: File) {
+  return (VALID_EXTENSIONS as readonly string[]).includes(getExtension(file))
+}
+
+async function parseFile(file: File): Promise<unknown> {
+  const ext = getExtension(file)
+  if (ext === '.bin') {
+    const buffer = await file.arrayBuffer()
+    return decodeBilibiliDanmakuProto(new Uint8Array(buffer))
+  }
   const text = await file.text()
-  const data: unknown = file.type.includes('xml')
-    ? xmlToJSON(text)
-    : JSON.parse(text)
-  return data
+  if (ext === '.xml') {
+    return xmlToJSON(text)
+  }
+  return JSON.parse(text)
 }
 
 export const useDanmakuImport = () => {
@@ -31,7 +40,7 @@ export const useDanmakuImport = () => {
     mutationFn: async (files: File[]) => {
       return Promise.all(
         files.filter(isFileValid).map(async (file) => {
-          const data = await getJson(file)
+          const data = await parseFile(file)
           return {
             title: file.name,
             data,
