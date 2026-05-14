@@ -1,6 +1,5 @@
 import type {
   CommentEntity,
-  DanDanPlayOf,
   EpisodeMeta,
   SeasonInsert,
 } from '@danmaku-anywhere/danmaku-converter'
@@ -48,7 +47,7 @@ export class DanDanPlayMapper {
   static searchResultToSeasonInsert(
     item: SearchAnimeDetails,
     providerConfigId: string
-  ): DanDanPlayOf<SeasonInsert> {
+  ): SeasonInsert {
     return {
       provider: DanmakuSourceType.DanDanPlay,
       title: item.animeTitle,
@@ -69,7 +68,7 @@ export class DanDanPlayMapper {
   static bangumiDetailsToSeasonInsert(
     bangumiDetails: BangumiDetails,
     providerConfigId: string
-  ): DanDanPlayOf<SeasonInsert> {
+  ): SeasonInsert {
     return {
       provider: DanmakuSourceType.DanDanPlay,
       title: bangumiDetails.animeTitle,
@@ -89,7 +88,7 @@ export class DanDanPlayMapper {
 
   static bangumiEpisodeToEpisodeMeta(
     item: BangumiDetails['episodes'][number]
-  ): OmitSeasonId<DanDanPlayOf<EpisodeMeta>> {
+  ): OmitSeasonId<EpisodeMeta> {
     return {
       provider: DanmakuSourceType.DanDanPlay,
       episodeNumber: item.episodeNumber,
@@ -113,7 +112,7 @@ export class DanDanPlayMapper {
       year?: number
     },
     providerConfigId: string
-  ): DanDanPlayOf<SeasonInsert> {
+  ): SeasonInsert {
     return {
       provider: DanmakuSourceType.DanDanPlay,
       title: item.title,
@@ -132,7 +131,7 @@ export class DanDanPlayMapper {
     providerIds: { episodeId: number }
     title: string
     episodeNumber: string
-  }): OmitSeasonId<DanDanPlayOf<EpisodeMeta>> {
+  }): OmitSeasonId<EpisodeMeta> {
     return {
       provider: DanmakuSourceType.DanDanPlay,
       episodeNumber: item.episodeNumber,

@@ -1,6 +1,8 @@
 import {
   DanmakuSourceType,
+  type Episode,
   type GenericEpisode,
+  type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Box } from '@mui/material'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
@@ -79,7 +81,7 @@ export const CommentPage = () => {
     if (!canRefresh) {
       return
     }
-    void refreshDanmaku(episode)
+    void refreshDanmaku(episode as WithSeason<Episode>)
   }
 
   return (

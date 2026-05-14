@@ -6,7 +6,6 @@ import {
   PROVIDER_TO_BUILTIN_ID,
   type SeasonInsert,
   stripHtml,
-  type TencentOf,
 } from '@danmaku-anywhere/danmaku-converter'
 import type {
   TencentEpisodeListItem,
@@ -20,7 +19,7 @@ type TencentSeasonItem =
   Required<TencentPageDetailResponse>['data']['module_list_datas'][number]['module_datas'][0]['item_data_lists']['item_datas'][0]
 
 export class TencentMapper {
-  static toSeasonInsert(data: TencentVideoSeason): TencentOf<SeasonInsert> {
+  static toSeasonInsert(data: TencentVideoSeason): SeasonInsert {
     return {
       provider: DanmakuSourceType.Tencent,
       providerConfigId: PROVIDER_TO_BUILTIN_ID.Tencent,
@@ -39,7 +38,7 @@ export class TencentMapper {
 
   static toEpisodeMeta(
     item: TencentEpisodeListItem
-  ): OmitSeasonId<TencentOf<EpisodeMeta>> {
+  ): OmitSeasonId<EpisodeMeta> {
     return {
       provider: DanmakuSourceType.Tencent,
       title: stripHtml(item.play_title),
@@ -56,7 +55,7 @@ export class TencentMapper {
 
   static pageDetailsToSeasonInsert(
     foundSeason: TencentSeasonItem
-  ): TencentOf<SeasonInsert> {
+  ): SeasonInsert {
     return {
       provider: DanmakuSourceType.Tencent,
       providerConfigId: PROVIDER_TO_BUILTIN_ID.Tencent,
@@ -79,7 +78,7 @@ export class TencentMapper {
     imageUrl?: string
     episodeCount?: number
     year?: number
-  }): TencentOf<SeasonInsert> {
+  }): SeasonInsert {
     return {
       provider: DanmakuSourceType.Tencent,
       providerConfigId: PROVIDER_TO_BUILTIN_ID.Tencent,
@@ -100,7 +99,7 @@ export class TencentMapper {
     episodeNumber: string
     alternativeTitle?: string[]
     imageUrl?: string
-  }): OmitSeasonId<TencentOf<EpisodeMeta>> {
+  }): OmitSeasonId<EpisodeMeta> {
     return {
       provider: DanmakuSourceType.Tencent,
       title: stripHtml(item.title),
