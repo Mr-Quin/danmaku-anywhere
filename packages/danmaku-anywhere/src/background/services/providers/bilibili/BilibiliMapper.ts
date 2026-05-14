@@ -5,10 +5,7 @@ import {
   type SeasonInsert,
   stripHtml,
 } from '@danmaku-anywhere/danmaku-converter'
-import type {
-  BilibiliBangumiInfo,
-  BilibiliMedia,
-} from '@danmaku-anywhere/danmaku-provider/bilibili'
+import type { BilibiliBangumiInfo } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { OmitSeasonId } from '../IDanmakuProvider'
 
@@ -41,26 +38,6 @@ export class BilibiliMapper {
     }
   }
 
-  static toSeasonInsert(data: BilibiliMedia): SeasonInsert {
-    return {
-      provider: DanmakuSourceType.Bilibili,
-      providerConfigId: PROVIDER_TO_BUILTIN_ID.Bilibili,
-      title: stripHtml(data.title),
-      type: data.season_type_name,
-      imageUrl: data.cover,
-      providerIds: {
-        seasonId: data.season_id,
-      },
-      year:
-        data.pubtime > 0
-          ? new Date(data.pubtime * 1000).getFullYear()
-          : undefined,
-      episodeCount: data.ep_size,
-      indexedId: data.season_id.toString(),
-      schemaVersion: 1,
-    }
-  }
-
   static bangumiInfoToSeasonInsert(
     seasonInfo: BilibiliBangumiInfo
   ): SeasonInsert {
@@ -79,28 +56,6 @@ export class BilibiliMapper {
     }
   }
 
-  static manifestSearchToSeasonInsert(item: {
-    providerIds: { seasonId: number; mediaId: number }
-    title: string
-    type: string
-    imageUrl?: string
-    episodeCount?: number
-    year?: number
-  }): SeasonInsert {
-    return {
-      provider: DanmakuSourceType.Bilibili,
-      providerConfigId: PROVIDER_TO_BUILTIN_ID.Bilibili,
-      title: stripHtml(item.title),
-      type: item.type,
-      imageUrl: item.imageUrl,
-      providerIds: { seasonId: item.providerIds.seasonId },
-      indexedId: item.providerIds.seasonId.toString(),
-      year: item.year,
-      episodeCount: item.episodeCount,
-      schemaVersion: 1,
-    }
-  }
-
   static manifestSegmentsToComments(
     items: ManifestBilibiliDanmakuElem[]
   ): CommentEntity[] {
@@ -114,41 +69,6 @@ export class BilibiliMapper {
       }
     }
     return out
-  }
-
-  static manifestEpisodeToEpisodeMeta(item: {
-    providerIds: {
-      cid: number
-      aid: number
-      bvid?: string
-      epid?: number
-    }
-    title: string
-    episodeNumber: string
-    imageUrl?: string
-    alternativeTitle?: string[]
-  }): OmitSeasonId<EpisodeMeta> {
-    return {
-      provider: DanmakuSourceType.Bilibili,
-      title: stripHtml(item.title).trim(),
-      // Bilibili's `show_title` is the raw episode number when bare-numeric
-      // ("1", "01") and a label like "PV" / "SP" otherwise. Convert numeric
-      // strings so sort/match can use them; pass labels through.
-      episodeNumber: BARE_NUMERIC_TITLE_RE.test(item.episodeNumber)
-        ? Number.parseInt(item.episodeNumber, 10)
-        : item.episodeNumber || undefined,
-      alternativeTitle: item.alternativeTitle,
-      imageUrl: item.imageUrl,
-      providerIds: {
-        cid: item.providerIds.cid,
-        aid: item.providerIds.aid,
-        bvid: item.providerIds.bvid,
-        epid: item.providerIds.epid,
-      },
-      indexedId: item.providerIds.cid.toString(),
-      lastChecked: Date.now(),
-      schemaVersion: 4,
-    }
   }
 }
 

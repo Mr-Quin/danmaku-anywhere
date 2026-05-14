@@ -10,7 +10,6 @@ import {
 import type {
   TencentEpisodeListItem,
   TencentPageDetailResponse,
-  TencentVideoSeason,
 } from '@danmaku-anywhere/danmaku-provider/tencent'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { OmitSeasonId } from '../IDanmakuProvider'
@@ -19,23 +18,6 @@ type TencentSeasonItem =
   Required<TencentPageDetailResponse>['data']['module_list_datas'][number]['module_datas'][0]['item_data_lists']['item_datas'][0]
 
 export class TencentMapper {
-  static toSeasonInsert(data: TencentVideoSeason): SeasonInsert {
-    return {
-      provider: DanmakuSourceType.Tencent,
-      providerConfigId: PROVIDER_TO_BUILTIN_ID.Tencent,
-      title: stripHtml(data.videoInfo.title),
-      type: data.videoInfo.videoType.toString(),
-      imageUrl: data.videoInfo.imgUrl,
-      providerIds: {
-        cid: data.doc.id,
-      },
-      indexedId: data.doc.id,
-      episodeCount: data.videoInfo.episodeSites[0].totalEpisode,
-      year: data.videoInfo.year,
-      schemaVersion: 1,
-    }
-  }
-
   static toEpisodeMeta(
     item: TencentEpisodeListItem
   ): OmitSeasonId<EpisodeMeta> {
@@ -68,48 +50,6 @@ export class TencentMapper {
       episodeCount: foundSeason.item_params.episode_all,
       indexedId: foundSeason.item_params['report.cid'],
       schemaVersion: 1,
-    }
-  }
-
-  static manifestSearchToSeasonInsert(item: {
-    providerIds: { cid: string }
-    title: string
-    type: string
-    imageUrl?: string
-    episodeCount?: number
-    year?: number
-  }): SeasonInsert {
-    return {
-      provider: DanmakuSourceType.Tencent,
-      providerConfigId: PROVIDER_TO_BUILTIN_ID.Tencent,
-      title: stripHtml(item.title),
-      type: item.type,
-      imageUrl: item.imageUrl,
-      providerIds: { cid: item.providerIds.cid },
-      indexedId: item.providerIds.cid,
-      episodeCount: item.episodeCount,
-      year: item.year,
-      schemaVersion: 1,
-    }
-  }
-
-  static manifestEpisodeToEpisodeMeta(item: {
-    providerIds: { vid: string; cid: string }
-    title: string
-    episodeNumber: string
-    alternativeTitle?: string[]
-    imageUrl?: string
-  }): OmitSeasonId<EpisodeMeta> {
-    return {
-      provider: DanmakuSourceType.Tencent,
-      title: stripHtml(item.title),
-      episodeNumber: item.episodeNumber,
-      alternativeTitle: item.alternativeTitle,
-      providerIds: { vid: item.providerIds.vid },
-      imageUrl: item.imageUrl,
-      indexedId: item.providerIds.vid,
-      lastChecked: Date.now(),
-      schemaVersion: 4,
     }
   }
 

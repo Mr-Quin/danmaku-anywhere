@@ -1,4 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod'
 import { Remove } from '@mui/icons-material'
 import {
   Box,
@@ -13,18 +12,33 @@ import {
 } from '@mui/material'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import type { DanDanPlayCompatProvider } from '@/common/options/providerConfig/schema'
-import { zDanDanPlayCompatibleProviderConfig } from '@/common/options/providerConfig/schema'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { FormActions } from './FormActions'
 import type { ProviderFormProps } from './types'
+
+interface FormValues {
+  name: string
+  baseUrl: string
+  auth: {
+    enabled: boolean
+    headers: { key: string; value: string }[]
+  }
+}
+
+interface DdpCompatConfigValues {
+  baseUrl?: string
+  auth?: { enabled?: boolean; headers?: { key: string; value: string }[] }
+}
 
 export const DanDanPlayCompatibleProviderForm = ({
   provider,
   onSubmit,
   onReset,
   isEdit,
-}: ProviderFormProps<DanDanPlayCompatProvider>) => {
+}: ProviderFormProps) => {
   const { t } = useTranslation()
+
+  const values = provider.configValues as DdpCompatConfigValues
 
   const {
     handleSubmit,
@@ -33,20 +47,34 @@ export const DanDanPlayCompatibleProviderForm = ({
     control,
     watch,
     formState: { errors, isSubmitting, isDirty },
-  } = useForm<DanDanPlayCompatProvider>({
-    resolver: zodResolver(zDanDanPlayCompatibleProviderConfig),
-    defaultValues: provider,
+  } = useForm<FormValues>({
+    defaultValues: {
+      name: provider.name,
+      baseUrl: values.baseUrl ?? '',
+      auth: {
+        enabled: values.auth?.enabled ?? false,
+        headers: values.auth?.headers ?? [],
+      },
+    },
   })
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: 'options.auth.headers',
+    name: 'auth.headers',
   })
 
-  const authEnabled = watch('options.auth.enabled')
+  const authEnabled = watch('auth.enabled')
 
   const handleFormSubmit = handleSubmit(async (data) => {
-    await onSubmit(data)
+    const next: ProviderConfig = {
+      ...provider,
+      name: data.name,
+      configValues: {
+        baseUrl: data.baseUrl,
+        auth: data.auth,
+      },
+    }
+    await onSubmit(next)
   })
 
   const handleReset = () => {
@@ -67,7 +95,7 @@ export const DanDanPlayCompatibleProviderForm = ({
         size="small"
         error={!!errors.name}
         helperText={errors.name?.message}
-        {...register('name')}
+        {...register('name', { required: true })}
         fullWidth
         required
       />
@@ -75,25 +103,24 @@ export const DanDanPlayCompatibleProviderForm = ({
       <TextField
         label={t('optionsPage.danmakuSource.dandanplay.apiUrl', 'API URL')}
         size="small"
-        error={!!errors.options?.baseUrl}
+        error={!!errors.baseUrl}
         helperText={
-          errors.options?.baseUrl?.message ||
+          errors.baseUrl?.message ||
           t(
             'providers.editor.helper.baseUrl',
-            'API endpoint URL for DanDanPlay-compatible server'
+            'API endpoint URL for DanDanPlay-compatible server. Leave empty to use the proxy-backed DanDanPlay manifest.'
           )
         }
-        {...register('options.baseUrl')}
+        {...register('baseUrl')}
         fullWidth
-        required
       />
 
       <Box sx={{ width: '100%' }}>
         <FormControlLabel
           control={
             <Checkbox
-              {...register('options.auth.enabled')}
-              defaultChecked={provider?.options?.auth?.enabled}
+              {...register('auth.enabled')}
+              defaultChecked={values.auth?.enabled ?? false}
             />
           }
           label={t('providers.editor.authEnabled', 'Enable Authentication')}
@@ -128,11 +155,9 @@ export const DanDanPlayCompatibleProviderForm = ({
                   label={t('providers.editor.headerKey', 'Header Key')}
                   placeholder="X-AppSecret"
                   size="small"
-                  error={!!errors.options?.auth?.headers?.[index]?.key}
-                  helperText={
-                    errors.options?.auth?.headers?.[index]?.key?.message
-                  }
-                  {...register(`options.auth.headers.${index}.key`)}
+                  error={!!errors.auth?.headers?.[index]?.key}
+                  helperText={errors.auth?.headers?.[index]?.key?.message}
+                  {...register(`auth.headers.${index}.key`, { required: true })}
                   fullWidth
                   required
                 />
@@ -140,11 +165,11 @@ export const DanDanPlayCompatibleProviderForm = ({
                   label={t('providers.editor.headerValue', 'Header Value')}
                   placeholder=""
                   size="small"
-                  error={!!errors.options?.auth?.headers?.[index]?.value}
-                  helperText={
-                    errors.options?.auth?.headers?.[index]?.value?.message
-                  }
-                  {...register(`options.auth.headers.${index}.value`)}
+                  error={!!errors.auth?.headers?.[index]?.value}
+                  helperText={errors.auth?.headers?.[index]?.value?.message}
+                  {...register(`auth.headers.${index}.value`, {
+                    required: true,
+                  })}
                   fullWidth
                   required
                 />

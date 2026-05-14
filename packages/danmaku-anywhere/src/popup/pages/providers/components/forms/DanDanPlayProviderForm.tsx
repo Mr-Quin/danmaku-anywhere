@@ -1,19 +1,22 @@
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { MenuItem, Stack, TextField } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import type { BuiltInDanDanPlayProvider } from '@/common/options/providerConfig/schema'
-import { zDanDanPlayProviderConfig } from '@/common/options/providerConfig/schema'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { FormActions } from './FormActions'
 import type { ProviderFormProps } from './types'
+
+interface FormValues {
+  name: string
+  chConvert: DanDanChConvert
+}
 
 export const DanDanPlayProviderForm = ({
   provider,
   onSubmit,
   onReset,
   isEdit,
-}: ProviderFormProps<BuiltInDanDanPlayProvider>) => {
+}: ProviderFormProps) => {
   const { t } = useTranslation()
 
   const {
@@ -22,14 +25,23 @@ export const DanDanPlayProviderForm = ({
     register,
     reset,
     formState: { isSubmitting, isDirty },
-  } = useForm<BuiltInDanDanPlayProvider>({
-    resolver: zodResolver(zDanDanPlayProviderConfig),
-    defaultValues: provider,
+  } = useForm<FormValues>({
+    defaultValues: {
+      name: provider.name,
+      chConvert:
+        (provider.configValues.chConvert as DanDanChConvert) ??
+        DanDanChConvert.None,
+    },
   })
 
-  const handleFormSubmit = async (data: BuiltInDanDanPlayProvider) => {
-    await onSubmit(data)
-  }
+  const handleFormSubmit = handleSubmit(async (data) => {
+    const next: ProviderConfig = {
+      ...provider,
+      name: data.name,
+      configValues: { ...provider.configValues, chConvert: data.chConvert },
+    }
+    await onSubmit(next)
+  })
 
   const handleReset = () => {
     reset()
@@ -39,7 +51,7 @@ export const DanDanPlayProviderForm = ({
   return (
     <Stack
       component="form"
-      onSubmit={handleSubmit(handleFormSubmit)}
+      onSubmit={handleFormSubmit}
       direction="column"
       spacing={2}
       alignItems="flex-start"
@@ -57,7 +69,7 @@ export const DanDanPlayProviderForm = ({
       />
 
       <Controller
-        name="options.chConvert"
+        name="chConvert"
         control={control}
         render={({ field: { ref, ...field } }) => (
           <TextField
