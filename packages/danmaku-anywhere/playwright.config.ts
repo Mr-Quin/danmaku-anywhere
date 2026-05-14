@@ -8,6 +8,5 @@ export default defineConfig({
     // Extensions require the full chromium channel and headed mode
     channel: 'chromium',
     headless: false,
-    trace: 'retain-on-failure',
   },
 })
