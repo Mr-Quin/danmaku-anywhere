@@ -31,4 +31,6 @@ patch-*
 
 .wrangler
 .claude-task.md
+.claude/scheduled_tasks.lock
+.specs/
 docs/superpowers/
