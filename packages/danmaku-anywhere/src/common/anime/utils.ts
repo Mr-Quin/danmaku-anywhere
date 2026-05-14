@@ -4,6 +4,8 @@ import type {
   SeasonInsert,
 } from '@danmaku-anywhere/danmaku-converter'
 
-export type HandleSeasonClick = (
+export function isPersistedSeason(
   season: Season | SeasonInsert | CustomSeason
-) => void
+): season is Season | CustomSeason {
+  return 'id' in season && season.id !== undefined
+}

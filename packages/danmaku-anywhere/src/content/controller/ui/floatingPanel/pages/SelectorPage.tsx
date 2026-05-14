@@ -5,6 +5,7 @@ import {
 import { Box, Button, Divider, Stack, Typography } from '@mui/material'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { isPersistedSeason } from '@/common/anime/utils'
 import { SeasonGrid } from '@/common/components/Season/SeasonGrid'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { isNotCustom } from '@/common/danmaku/utils'
@@ -105,7 +106,11 @@ export const SelectorPage = () => {
         <SeasonGrid
           data={animes}
           onSelectionChange={([season]) => {
-            if (isNotCustom(season)) {
+            if (!season) {
+              setSelectedSeason(undefined)
+              return
+            }
+            if (isNotCustom(season) && isPersistedSeason(season)) {
               handleAnimeSelect(season)
             }
           }}

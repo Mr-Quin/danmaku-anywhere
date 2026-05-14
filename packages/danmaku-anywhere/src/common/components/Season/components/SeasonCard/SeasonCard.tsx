@@ -2,6 +2,7 @@ import {
   type CustomSeason,
   DanmakuSourceType,
   type Season,
+  type SeasonInsert,
 } from '@danmaku-anywhere/danmaku-converter'
 import {
   BookmarkBorder,
@@ -27,6 +28,7 @@ import type { MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDeleteSeason } from '@/common/anime/queries/useDeleteSeason'
 import { useRefreshSeason } from '@/common/anime/queries/useRefreshSeason'
+import { isPersistedSeason } from '@/common/anime/utils'
 import { useBookmarkAdd } from '@/common/bookmark/queries/useBookmarkAdd'
 import { useBookmarkDeleteBySeason } from '@/common/bookmark/queries/useBookmarkDelete'
 import { useBookmarkedSeasonIds } from '@/common/bookmark/queries/useBookmarks'
@@ -98,12 +100,15 @@ const Logo = styled('div')(({ theme }) => {
 })
 
 type SeasonCardProps = {
-  season: Season | CustomSeason
+  season: Season | SeasonInsert | CustomSeason
   onClick?: HandleSeasonClick
   disableMenu?: boolean
   enableSelection?: boolean
   isSelected?: boolean
-  onSelect?: (season: Season | CustomSeason, selected: boolean) => void
+  onSelect?: (
+    season: Season | SeasonInsert | CustomSeason,
+    selected: boolean
+  ) => void
 }
 
 const SelectionOverlay = styled('div')(() => ({
@@ -135,7 +140,8 @@ export const SeasonCard = ({
 
   const { data: bookmarkedSeasonIds } = useBookmarkedSeasonIds()
 
-  const isBookmarked = bookmarkedSeasonIds?.has(season.id) ?? false
+  const isBookmarked =
+    (isPersistedSeason(season) && bookmarkedSeasonIds?.has(season.id)) ?? false
 
   const bookmarkAddMutation = useBookmarkAdd()
   const bookmarkDeleteMutation = useBookmarkDeleteBySeason()
@@ -165,6 +171,9 @@ export const SeasonCard = ({
 
   const renderMenu = () => {
     if (disableMenu || enableSelection) {
+      return null
+    }
+    if (!isPersistedSeason(season)) {
       return null
     }
     if (isProvider(season, DanmakuSourceType.MacCMS)) {

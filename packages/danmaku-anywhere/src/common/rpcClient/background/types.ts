@@ -8,6 +8,7 @@ import type {
   EpisodeLite,
   EpisodeMeta,
   Season,
+  SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { BilibiliUserInfo } from '@danmaku-anywhere/danmaku-provider/bilibili'
@@ -100,7 +101,11 @@ export type BackgroundMethods = {
   authSignOut: RPCDef<void, AuthSignOutResult>
   authDeleteAccount: RPCDef<void, AuthSignOutResult>
   mediaParseUrl: RPCDef<{ url: string }, WithSeason<EpisodeMeta>>
-  seasonSearch: RPCDef<SeasonSearchRequest, (Season | CustomSeason)[]>
+  seasonSearch: RPCDef<
+    SeasonSearchRequest,
+    (Season | SeasonInsert | CustomSeason)[]
+  >
+  seasonUpsert: RPCDef<SeasonInsert, Season>
   seasonFilter: RPCDef<SeasonQueryFilter, Season[]>
   seasonGetAll: RPCDef<SeasonGetAllRequest, Season[]>
   seasonDelete: RPCDef<SeasonQueryFilter, void>

@@ -1,4 +1,8 @@
-import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  CustomSeason,
+  Season,
+  SeasonInsert,
+} from '@danmaku-anywhere/danmaku-converter'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -7,6 +11,8 @@ import { Logger } from '@/common/Logger'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
+
+export type SeasonSearchResultItem = Season | SeasonInsert | CustomSeason
 
 export const useSeasonSearchSuspense = (
   providerConfigId: string,
@@ -26,7 +32,7 @@ export const useSeasonSearchSuspense = (
     queryFn: async (): Promise<
       | {
           success: true
-          data: (Season | CustomSeason)[]
+          data: SeasonSearchResultItem[]
           params: SeasonSearchRequest
           providerConfigId: string
         }

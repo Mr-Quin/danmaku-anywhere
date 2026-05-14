@@ -1,7 +1,12 @@
-import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  CustomSeason,
+  Season,
+  SeasonInsert,
+} from '@danmaku-anywhere/danmaku-converter'
 import { Box, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useUpsertSeason } from '@/common/anime/queries/useUpsertSeason'
 import { Center } from '@/common/components/Center'
 import { SearchPageCore } from '@/common/components/SearchPageCore/SearchPageCore'
 import { isNotCustom } from '@/common/danmaku/utils'
@@ -22,6 +27,7 @@ export const SearchPage = (): React.ReactElement | null => {
   const { enabledProviders } = useProviderConfig()
   const { mountDanmaku } = useLoadDanmaku()
   const { data: seasonMaps } = useAllSeasonMap()
+  const upsertSeason = useUpsertSeason()
 
   const [selectedSeason, setSelectedSeason] = useState<
     Season | CustomSeason | undefined
@@ -40,31 +46,35 @@ export const SearchPage = (): React.ReactElement | null => {
   }, [mediaInfo])
 
   const handleSeasonClick = (
-    season: Season | CustomSeason,
+    season: Season | SeasonInsert | CustomSeason,
     provider: ProviderConfig
   ) => {
-    if (
-      isNotCustom(season) &&
-      mediaInfo &&
-      !SeasonMap.hasMapping(
-        seasonMaps,
-        mediaInfo.getKey(),
-        season.providerConfigId,
-        season.id
-      )
-    ) {
-      showAddSeasonMapDialog({
-        season,
-        mapKey: mediaInfo.getKey(),
-        onProceed: (s) => {
-          setSelectedSeason(s)
+    upsertSeason.mutate(season, {
+      onSuccess: (persisted) => {
+        if (
+          isNotCustom(persisted) &&
+          mediaInfo &&
+          !SeasonMap.hasMapping(
+            seasonMaps,
+            mediaInfo.getKey(),
+            persisted.providerConfigId,
+            persisted.id
+          )
+        ) {
+          showAddSeasonMapDialog({
+            season: persisted,
+            mapKey: mediaInfo.getKey(),
+            onProceed: (s) => {
+              setSelectedSeason(s)
+              setSelectedProvider(provider)
+            },
+          })
+        } else {
+          setSelectedSeason(persisted)
           setSelectedProvider(provider)
-        },
-      })
-    } else {
-      setSelectedSeason(season)
-      setSelectedProvider(provider)
-    }
+        }
+      },
+    })
   }
 
   if (!enabledProviders.length) {

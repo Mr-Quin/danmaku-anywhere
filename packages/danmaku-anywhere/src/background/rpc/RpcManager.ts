@@ -100,6 +100,9 @@ export class RpcManager {
         seasonSearch: async (input) => {
           return this.providerService.searchSeason(input)
         },
+        seasonUpsert: async (input) => {
+          return this.providerService.upsertSeason(input)
+        },
         mediaParseUrl: async (input) => {
           return this.providerService.parseUrl(input.url)
         },

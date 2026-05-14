@@ -20,6 +20,15 @@ export class SeasonService {
     return results
   }
 
+  async findExisting<T extends SeasonInsert>(
+    data: T
+  ): Promise<DbEntity<T> | undefined> {
+    return this.db.season.get({
+      providerConfigId: data.providerConfigId,
+      indexedId: data.indexedId,
+    }) as Promise<DbEntity<T> | undefined>
+  }
+
   async upsert<T extends SeasonInsert>(data: T): Promise<DbEntity<T>> {
     return this.db.transaction('rw', this.db.season, async () => {
       const existing = await this.db.season.get({

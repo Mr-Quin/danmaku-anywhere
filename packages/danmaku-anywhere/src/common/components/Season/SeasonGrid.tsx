@@ -1,4 +1,8 @@
-import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  CustomSeason,
+  Season,
+  SeasonInsert,
+} from '@danmaku-anywhere/danmaku-converter'
 import {
   type BoxProps,
   type Breakpoint,
@@ -9,12 +13,22 @@ import {
 } from '@mui/material'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { type RefObject, useRef, useState } from 'react'
+import { isPersistedSeason } from '@/common/anime/utils'
 import {
   SeasonCard,
   SeasonCardSkeleton,
 } from '@/common/components/Season/components/SeasonCard/SeasonCard'
 import { useMergeRefs } from '@/common/hooks/useMergeRefs'
 import { ScrollBox } from '../layout/ScrollBox'
+
+type SeasonOrInsert = Season | SeasonInsert | CustomSeason
+
+function itemKey(season: SeasonOrInsert): string | number {
+  if (isPersistedSeason(season)) {
+    return season.id
+  }
+  return `${season.provider}-${season.indexedId}`
+}
 
 const useBreakpointValue = <T,>(values: Partial<Record<Breakpoint, T>>) => {
   const theme = useTheme()
@@ -50,10 +64,10 @@ const SeasonGridLayout = (props: GridProps) => {
 }
 
 interface SeasonGridProps {
-  data: (Season | CustomSeason)[]
-  onSeasonClick?: (season: Season | CustomSeason) => void
-  onSelectionChange?: (selection: (Season | CustomSeason)[]) => void
-  selectionModel?: (Season | CustomSeason)[]
+  data: SeasonOrInsert[]
+  onSeasonClick?: (season: SeasonOrInsert) => void
+  onSelectionChange?: (selection: SeasonOrInsert[]) => void
+  selectionModel?: SeasonOrInsert[]
   singleSelect?: boolean
   virtualize?: boolean
   disableMenu?: boolean
@@ -74,9 +88,9 @@ export const SeasonGrid = ({
   boxProps,
   ref: refProp,
 }: SeasonGridProps) => {
-  const [selectionModel, setSelectionModel] = useState<
-    (Season | CustomSeason)[]
-  >(selectionModelProp ?? [])
+  const [selectionModel, setSelectionModel] = useState<SeasonOrInsert[]>(
+    selectionModelProp ?? []
+  )
 
   const ref = useRef<HTMLDivElement>(null)
 
@@ -102,7 +116,7 @@ export const SeasonGrid = ({
     getScrollElement: () => ref.current || null,
     estimateSize: () => 250,
     getItemKey: (index) => {
-      return data[index].id
+      return itemKey(data[index])
     },
     gap: Number.parseInt(spacing),
     lanes,
@@ -111,7 +125,7 @@ export const SeasonGrid = ({
 
   const gridSize = { xs: 2, sm: 4, md: 4 }
 
-  const handleSelect = (season: Season | CustomSeason) => {
+  const handleSelect = (season: SeasonOrInsert) => {
     if (selectionModel.includes(season)) {
       const selection = singleSelect
         ? []
@@ -130,7 +144,7 @@ export const SeasonGrid = ({
       <SeasonGridLayout>
         {data.map((season) => {
           return (
-            <Grid size={gridSize} key={season.id}>
+            <Grid size={gridSize} key={itemKey(season)}>
               <SeasonCard
                 season={season}
                 onClick={onSeasonClick}
@@ -165,7 +179,7 @@ export const SeasonGrid = ({
                 top: 0,
                 transform: `translateY(${virtualItem.start}px) translateX(calc(${virtualItem.lane * 100}% + ${virtualItem.lane * Number.parseInt(spacing)}px))`,
               }}
-              key={season.id}
+              key={itemKey(season)}
               data-index={virtualItem.index}
               ref={virtualizer.measureElement}
             >

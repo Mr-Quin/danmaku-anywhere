@@ -76,7 +76,7 @@ export class ProviderService {
 
   async searchSeason(
     params: SeasonSearchRequest
-  ): Promise<Season[] | CustomSeason[]> {
+  ): Promise<(Season | SeasonInsert)[] | CustomSeason[]> {
     const providerConfig = await this.providerConfigService.mustGet(
       params.providerConfigId
     )
@@ -91,7 +91,18 @@ export class ProviderService {
     ) {
       return seasonInserts as CustomSeason[]
     }
-    return this.seasonService.bulkUpsert(seasonInserts as SeasonInsert[])
+    // Surface existing ids so bookmark / cache indicators still resolve.
+    const inserts = seasonInserts as SeasonInsert[]
+    return Promise.all(
+      inserts.map(async (insert) => {
+        const existing = await this.seasonService.findExisting(insert)
+        return existing ?? insert
+      })
+    )
+  }
+
+  async upsertSeason(data: SeasonInsert): Promise<Season> {
+    return this.seasonService.upsert(data)
   }
 
   async fetchEpisodesBySeason(
