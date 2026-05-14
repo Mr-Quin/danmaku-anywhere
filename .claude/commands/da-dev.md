@@ -102,7 +102,7 @@ Always run lint and type-check. For tests and build, follow the relevant area's 
 For extension changes, launch a dev browser with HMR **at the start of implementation**. Always run `pnpm install` first — fresh worktrees have no `node_modules`, and stale worktrees may be out of date with the lockfile:
 
 ```bash
-wt -w 0 new-tab --title 'DA-XXX: dev browser' -d '<worktree-path>/packages/danmaku-anywhere' -- powershell -NoExit -Command "pnpm install; node e2e/open-browser.ts"
+wt -w 0 new-tab --title 'DA-XXX: dev browser' -d '<worktree-path>/packages/danmaku-anywhere' -- powershell -NoExit -Command "pnpm install; pnpm dev:browser"
 ```
 
 Human verifies behavior live. Skip for trivial changes (config-only, types, docs).
@@ -145,7 +145,7 @@ Fix any issues found, then add a commit. Never include Co-Authored-By or AI attr
 
 ```bash
 git push -u origin DA-XXX_description
-gh pr create --title "(type) description [DA-XXX]" --body "$(cat <<'EOF'
+gh pr create --title "(type) description [DA-XXX]" --label "ai-rereview" --body "$(cat <<'EOF'
 ## Summary
 - <bullet points>
 EOF
