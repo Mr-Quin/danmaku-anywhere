@@ -198,9 +198,27 @@ describe('builtin:bilibili manifest', () => {
     })
 
     expect(result).toEqual([
-      { p: '12.34,1,16777215,abcd1234', m: '第一条' },
-      { p: '23.45,4,16711680,efgh5678', m: '底部弹幕' },
-      { p: '34.56,5,255,ijkl9012', m: '顶部蓝色' },
+      {
+        progress: 12340,
+        mode: 1,
+        color: 16777215,
+        midHash: 'abcd1234',
+        content: '第一条',
+      },
+      {
+        progress: 23450,
+        mode: 4,
+        color: 16711680,
+        midHash: 'efgh5678',
+        content: '底部弹幕',
+      },
+      {
+        progress: 34560,
+        mode: 5,
+        color: 255,
+        midHash: 'ijkl9012',
+        content: '顶部蓝色',
+      },
     ])
     expect(calls).toHaveLength(1)
   })

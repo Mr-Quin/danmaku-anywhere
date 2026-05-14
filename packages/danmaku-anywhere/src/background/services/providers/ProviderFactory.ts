@@ -32,9 +32,14 @@ function withMapper<T>(
   return (raw) => fn(raw as T)
 }
 
+interface DdpConfig {
+  chConvert?: number
+}
+
 interface DdpCompatConfig {
   baseUrl?: string
   auth?: { enabled?: boolean; headers?: { key: string; value: string }[] }
+  chConvert?: number
 }
 
 function createDanmakuProvider(
@@ -48,12 +53,14 @@ function createDanmakuProvider(
     return new MacCmsProviderService(config, logger)
   }
   switch (config.manifestId) {
-    case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]:
+    case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]: {
+      const values = config.configValues as DdpConfig
       return new ManifestProviderService(
         {
           manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
           provider: DanmakuSourceType.DanDanPlay,
           providerConfigId: config.id,
+          extraInputs: () => ({ chConvert: values.chConvert }),
           commentMapper: withMapper(
             DanDanPlayMapper.manifestCommentsToComments
           ),
@@ -61,6 +68,7 @@ function createDanmakuProvider(
         registry,
         logger
       )
+    }
     case DDP_COMPAT_MANIFEST_ID: {
       const values = config.configValues as DdpCompatConfig
       const baseUrl = values.baseUrl?.trim()
@@ -72,6 +80,7 @@ function createDanmakuProvider(
             manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
             provider: DanmakuSourceType.DanDanPlay,
             providerConfigId: config.id,
+            extraInputs: () => ({ chConvert: values.chConvert }),
             commentMapper: withMapper(
               DanDanPlayMapper.manifestCommentsToComments
             ),
@@ -87,7 +96,11 @@ function createDanmakuProvider(
           manifestId: DDP_COMPAT_MANIFEST_ID,
           provider: DanmakuSourceType.DanDanPlay,
           providerConfigId: config.id,
-          extraInputs: () => ({ baseUrl, authHeaders }),
+          extraInputs: () => ({
+            baseUrl,
+            authHeaders,
+            chConvert: values.chConvert,
+          }),
           commentMapper: withMapper(
             DanDanPlayMapper.manifestCommentsToComments
           ),

@@ -52,7 +52,7 @@
         }
       }
     ],
-    "output": "[[media_bangumi.data.result, media_ft.data.result].{ 'providerIds': { 'seasonId': season_id, 'mediaId': media_id }, 'indexedId': $string(season_id), 'title': $replace(title, /<[^>]+>/, ''), 'type': season_type_name, 'typeDescription': season_type_name, 'imageUrl': cover, 'episodeCount': ep_size, 'year': pubtime > 0 ? $number($substring($string($fromMillis(pubtime * 1000)), 0, 4)) : null }]"
+    "output": "[[media_bangumi.data.result, media_ft.data.result].{ 'providerIds': { 'seasonId': season_id, 'mediaId': media_id }, 'indexedId': $string(season_id), 'title': $replace(title, /<[^>]+>/, ''), 'type': season_type_name, 'typeDescription': season_type_name, 'imageUrl': cover, 'episodeCount': ep_size, 'year': pubtime > 0 ? $number($substring($string($fromMillis(pubtime * 1000)), 0, 4)) : undefined }]"
   },
   "episodes": {
     "inputs": ["seasonId"],
@@ -96,7 +96,7 @@
           }
         }
       ],
-      "output": "[items.all.($parts := parts; { 'p': $parts[0] & ',' & $parts[1] & ',' & $parts[3] & ',' & $parts[6], 'm': m })]"
+      "output": "[items.all.($parts := parts; { 'progress': $number($parts[0]) * 1000, 'mode': $number($parts[1]), 'color': $number($parts[3]), 'midHash': $parts[6], 'content': m })]"
     },
     {
       "inputs": ["cid"],
