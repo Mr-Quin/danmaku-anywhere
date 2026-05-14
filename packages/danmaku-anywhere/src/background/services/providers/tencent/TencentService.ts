@@ -3,7 +3,6 @@ import type {
   EpisodeMeta,
   Season,
   SeasonInsert,
-  TencentOf,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { TencentEpisodeListItem } from '@danmaku-anywhere/danmaku-provider/tencent'
@@ -25,6 +24,19 @@ import type {
 } from '../IDanmakuProvider'
 import { getTencentRunner } from '../manifestRunners'
 import { TencentMapper } from './TencentMapper'
+
+// Tencent's `providerIds` shape — opaque at the storage layer, narrowed here
+// at the service boundary where we know the manifest produced it.
+type TencentSeasonIds = { cid: string }
+type TencentEpisodeIds = { vid: string }
+
+function seasonIds(p: Record<string, unknown>): TencentSeasonIds {
+  return p as TencentSeasonIds
+}
+
+function episodeIds(p: Record<string, unknown>): TencentEpisodeIds {
+  return p as TencentEpisodeIds
+}
 
 const defaultTencentSpec: DnrRuleSpec = {
   matchUrl: 'https://*.video.qq.com/',
@@ -128,8 +140,6 @@ export class TencentService implements IDanmakuProvider {
         return null
       }
 
-      assertProviderType(episode, DanmakuSourceType.Tencent)
-
       return {
         ...episode,
         seasonId: season.id,
@@ -139,23 +149,21 @@ export class TencentService implements IDanmakuProvider {
   }
 
   async getEpisodes(
-    seasonRemoteIds: TencentOf<Season>['providerIds']
-  ): Promise<OmitSeasonId<TencentOf<EpisodeMeta>>[]> {
+    seasonRemoteIds: Season['providerIds']
+  ): Promise<OmitSeasonId<EpisodeMeta>[]> {
     this.logger.debug('Get episode', seasonRemoteIds)
+    const { cid } = seasonIds(seasonRemoteIds)
 
     if (await this.useManifest()) {
       const results = await getTencentRunner().runEpisodes<
         Parameters<typeof TencentMapper.manifestEpisodeToEpisodeMeta>[0][]
-      >({ cid: seasonRemoteIds.cid })
+      >({ cid })
       this.logger.debug('Manifest episodes result', results)
       return results.map(TencentMapper.manifestEpisodeToEpisodeMeta)
     }
 
     return runWithDnr(defaultTencentSpec)(async () => {
-      const generator = tencent.listEpisodes({
-        cid: seasonRemoteIds.cid,
-        vid: '',
-      })
+      const generator = tencent.listEpisodes({ cid, vid: '' })
 
       const result: TencentEpisodeListItem[][] = []
       for await (const itemsResult of generator) {
@@ -172,9 +180,12 @@ export class TencentService implements IDanmakuProvider {
   }
 
   async getSeason(
-    seasonRemoteIds: TencentOf<Season>['providerIds']
+    seasonRemoteIds: Season['providerIds']
   ): Promise<SeasonInsert | null> {
-    const { season } = await this.getPageDetails(seasonRemoteIds.cid, '')
+    const { season } = await this.getPageDetails(
+      seasonIds(seasonRemoteIds).cid,
+      ''
+    )
     if (!season) {
       return null
     }
@@ -212,7 +223,7 @@ export class TencentService implements IDanmakuProvider {
 
     assertProviderType(meta, DanmakuSourceType.Tencent)
 
-    return this.fetchDanmaku(meta.providerIds.vid)
+    return this.fetchDanmaku(episodeIds(meta.providerIds).vid)
   }
 
   private async fetchDanmaku(vid: string) {
@@ -256,7 +267,7 @@ export class TencentService implements IDanmakuProvider {
     // get the name of the episode
     const episodes = await this.getEpisodes(season.providerIds)
     const matchingEpisode = episodes.find(
-      (episode) => episode.providerIds.vid === vid
+      (episode) => episodeIds(episode.providerIds).vid === vid
     )
     if (!matchingEpisode) throw new Error('Episode not found')
 

@@ -1,5 +1,4 @@
 import type {
-  BilibiliOf,
   CommentEntity,
   EpisodeMeta,
   Season,
@@ -23,6 +22,24 @@ import type {
 } from '../IDanmakuProvider'
 import { getBilibiliRunner } from '../manifestRunners'
 import { BilibiliMapper } from './BilibiliMapper'
+
+// Bilibili's `providerIds` shape — opaque at the storage layer, narrowed
+// here at the service boundary where we know the manifest produced it.
+type BilibiliSeasonIds = { seasonId: number; mediaId?: number }
+type BilibiliEpisodeIds = {
+  cid: number
+  aid?: number
+  bvid?: string
+  epid?: number
+}
+
+function seasonIds(p: Record<string, unknown>): BilibiliSeasonIds {
+  return p as BilibiliSeasonIds
+}
+
+function episodeIds(p: Record<string, unknown>): BilibiliEpisodeIds {
+  return p as BilibiliEpisodeIds
+}
 
 export class BilibiliService implements IDanmakuProvider {
   private logger: ILogger
@@ -77,7 +94,7 @@ export class BilibiliService implements IDanmakuProvider {
   }
 
   async findEpisode(
-    season: BilibiliOf<Season>,
+    season: Season,
     episodeNumber: number
   ): Promise<WithSeason<EpisodeMeta> | null> {
     const episodes = await this.getEpisodes(season.providerIds)
@@ -163,15 +180,16 @@ export class BilibiliService implements IDanmakuProvider {
   }
 
   async getEpisodes(
-    seasonRemoteIds: BilibiliOf<Season>['providerIds']
-  ): Promise<OmitSeasonId<BilibiliOf<EpisodeMeta>>[]> {
+    seasonRemoteIds: Season['providerIds']
+  ): Promise<OmitSeasonId<EpisodeMeta>[]> {
     this.logger.debug('Get bangumi info', seasonRemoteIds)
+    const { seasonId } = seasonIds(seasonRemoteIds)
 
     if (await this.useManifest()) {
       const results = await getBilibiliRunner().runEpisodes<
         Parameters<typeof BilibiliMapper.manifestEpisodeToEpisodeMeta>[0][]
       >({
-        seasonId: seasonRemoteIds.seasonId,
+        seasonId,
       })
       this.logger.debug('Manifest episodes raw', results)
       const mapped = results.map(BilibiliMapper.manifestEpisodeToEpisodeMeta)
@@ -179,9 +197,7 @@ export class BilibiliService implements IDanmakuProvider {
       return mapped
     }
 
-    const result = await bilibili.getBangumiInfo({
-      seasonId: seasonRemoteIds.seasonId,
-    })
+    const result = await bilibili.getBangumiInfo({ seasonId })
     this.logger.debug('Get bangumi info result', result)
 
     if (!result.success) throw result.error
@@ -199,10 +215,10 @@ export class BilibiliService implements IDanmakuProvider {
   }
 
   async getSeason(
-    seasonRemoteIds: BilibiliOf<Season>['providerIds']
+    seasonRemoteIds: Season['providerIds']
   ): Promise<SeasonInsert | null> {
     const { season } = await this.getBangumiInfo({
-      seasonId: seasonRemoteIds.seasonId,
+      seasonId: seasonIds(seasonRemoteIds).seasonId,
     })
 
     if (!season) {
@@ -213,9 +229,9 @@ export class BilibiliService implements IDanmakuProvider {
   }
 
   private async getDanmakuInternal(
-    meta: WithSeason<BilibiliOf<EpisodeMeta>>
+    meta: WithSeason<EpisodeMeta>
   ): Promise<CommentEntity[]> {
-    const { cid, aid } = meta.providerIds
+    const { cid, aid } = episodeIds(meta.providerIds)
     const comments = await this.fetchDanmaku({ cid, aid })
 
     return comments

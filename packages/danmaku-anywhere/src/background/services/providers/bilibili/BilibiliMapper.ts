@@ -1,5 +1,4 @@
 import {
-  type BilibiliOf,
   type CommentEntity,
   type EpisodeMeta,
   PROVIDER_TO_BUILTIN_ID,
@@ -18,7 +17,7 @@ const BARE_NUMERIC_TITLE_RE = /^\d+$/
 export class BilibiliMapper {
   static toEpisode(
     data: BilibiliBangumiInfo['episodes'][number]
-  ): OmitSeasonId<BilibiliOf<EpisodeMeta>> {
+  ): OmitSeasonId<EpisodeMeta> {
     const title = stripHtml(data.show_title).trim()
     // if title is a bare number, treat it as episode number
     const episodeNumber = BARE_NUMERIC_TITLE_RE.test(title)
@@ -42,7 +41,7 @@ export class BilibiliMapper {
     }
   }
 
-  static toSeasonInsert(data: BilibiliMedia): BilibiliOf<SeasonInsert> {
+  static toSeasonInsert(data: BilibiliMedia): SeasonInsert {
     return {
       provider: DanmakuSourceType.Bilibili,
       providerConfigId: PROVIDER_TO_BUILTIN_ID.Bilibili,
@@ -64,7 +63,7 @@ export class BilibiliMapper {
 
   static bangumiInfoToSeasonInsert(
     seasonInfo: BilibiliBangumiInfo
-  ): BilibiliOf<SeasonInsert> {
+  ): SeasonInsert {
     return {
       provider: DanmakuSourceType.Bilibili,
       providerConfigId: PROVIDER_TO_BUILTIN_ID.Bilibili,
@@ -87,7 +86,7 @@ export class BilibiliMapper {
     imageUrl?: string
     episodeCount?: number
     year?: number
-  }): BilibiliOf<SeasonInsert> {
+  }): SeasonInsert {
     return {
       provider: DanmakuSourceType.Bilibili,
       providerConfigId: PROVIDER_TO_BUILTIN_ID.Bilibili,
@@ -128,7 +127,7 @@ export class BilibiliMapper {
     episodeNumber: string
     imageUrl?: string
     alternativeTitle?: string[]
-  }): OmitSeasonId<BilibiliOf<EpisodeMeta>> {
+  }): OmitSeasonId<EpisodeMeta> {
     return {
       provider: DanmakuSourceType.Bilibili,
       title: stripHtml(item.title).trim(),

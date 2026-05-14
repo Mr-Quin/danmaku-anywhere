@@ -1,7 +1,6 @@
 import type { ManifestRunner } from '@danmaku-anywhere/dango'
 import type {
   CommentEntity,
-  DanDanPlayOf,
   EpisodeMeta,
   Season,
   SeasonInsert,
@@ -12,7 +11,7 @@ import * as danDanPlay from '@danmaku-anywhere/danmaku-provider/ddp'
 import type { Result } from '@danmaku-anywhere/result'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { assertProviderType, isProvider } from '@/common/danmaku/utils'
+import { assertProviderType } from '@/common/danmaku/utils'
 import type { ILogger } from '@/common/Logger'
 import type { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import type { DanDanPlayProviderConfig } from '@/common/options/providerConfig/schema'
@@ -25,6 +24,19 @@ import type {
 } from '../IDanmakuProvider'
 import { getDdpCompatRunner, getDdpRunner } from '../manifestRunners'
 import { DanDanPlayMapper } from './DanDanPlayMapper'
+
+// DDP's `providerIds` shape — opaque at the storage layer, narrowed here
+// at the service boundary where we know the manifest produced it.
+type DdpSeasonIds = { animeId: number; bangumiId: string }
+type DdpEpisodeIds = { episodeId: number }
+
+function seasonIds(p: Record<string, unknown>): DdpSeasonIds {
+  return p as DdpSeasonIds
+}
+
+function episodeIds(p: Record<string, unknown>): DdpEpisodeIds {
+  return p as DdpEpisodeIds
+}
 
 export class DanDanPlayService implements IDanmakuProvider {
   private logger: ILogger
@@ -123,14 +135,12 @@ export class DanDanPlayService implements IDanmakuProvider {
     const episode = this.findEpisodeInList(
       episodes,
       episodeNumber,
-      season.providerIds.animeId
+      seasonIds(season.providerIds).animeId
     )
 
     if (!episode) {
       return null
     }
-
-    assertProviderType(episode, DanmakuSourceType.DanDanPlay)
 
     return {
       ...episode,
@@ -140,21 +150,22 @@ export class DanDanPlayService implements IDanmakuProvider {
   }
 
   async getEpisodes(
-    seasonRemoteIds: DanDanPlayOf<Season>['providerIds']
-  ): Promise<OmitSeasonId<DanDanPlayOf<EpisodeMeta>>[]> {
+    seasonRemoteIds: Season['providerIds']
+  ): Promise<OmitSeasonId<EpisodeMeta>[]> {
     this.logger.debug('Getting DanDanPlay episodes', seasonRemoteIds)
+    const { bangumiId } = seasonIds(seasonRemoteIds)
 
     if (await this.useManifest()) {
       const { runner, extraInputs } = this.resolveManifest()
       const results = await runner.runEpisodes<
         Parameters<typeof DanDanPlayMapper.manifestEpisodeToEpisodeMeta>[0][]
-      >({ bangumiId: seasonRemoteIds.bangumiId, ...extraInputs })
+      >({ bangumiId, ...extraInputs })
       this.logger.debug('Manifest episodes fetched', results)
       return results.map(DanDanPlayMapper.manifestEpisodeToEpisodeMeta)
     }
 
     const bangumiDetailsRes = await danDanPlay.getBangumiAnime(
-      seasonRemoteIds.bangumiId,
+      bangumiId,
       this.context
     )
 
@@ -176,18 +187,14 @@ export class DanDanPlayService implements IDanmakuProvider {
     const { season, ...rest } = meta
     assertProviderType(season, DanmakuSourceType.DanDanPlay)
 
-    return this.getEpisodeDanmaku(
-      rest as DanDanPlayOf<EpisodeMeta>,
-      season,
-      options.dandanplay ?? {}
-    )
+    return this.getEpisodeDanmaku(rest, season, options.dandanplay ?? {})
   }
 
   async getSeason(
-    seasonRemoteIds: DanDanPlayOf<Season>['providerIds']
+    seasonRemoteIds: Season['providerIds']
   ): Promise<SeasonInsert | null> {
     const bangumiDetailsRes = await danDanPlay.getBangumiAnime(
-      seasonRemoteIds.bangumiId,
+      seasonIds(seasonRemoteIds).bangumiId,
       this.context
     )
 
@@ -197,18 +204,15 @@ export class DanDanPlayService implements IDanmakuProvider {
 
     const bangumiDetails = bangumiDetailsRes.data
 
-    const seasonInsert: DanDanPlayOf<SeasonInsert> =
-      DanDanPlayMapper.bangumiDetailsToSeasonInsert(
-        bangumiDetails,
-        this.config.id
-      )
-
-    return seasonInsert
+    return DanDanPlayMapper.bangumiDetailsToSeasonInsert(
+      bangumiDetails,
+      this.config.id
+    )
   }
 
   private async getEpisodeDanmaku(
-    meta: OmitSeasonId<DanDanPlayOf<EpisodeMeta>>,
-    season: DanDanPlayOf<Season>,
+    meta: OmitSeasonId<EpisodeMeta>,
+    season: Season,
     params: Partial<danDanPlay.GetCommentQuery>
   ): Promise<CommentEntity[]> {
     if (await this.useManifest()) {
@@ -216,7 +220,7 @@ export class DanDanPlayService implements IDanmakuProvider {
       const raw = await runner.runDanmaku<
         Parameters<typeof DanDanPlayMapper.manifestCommentsToComments>[0]
       >({
-        episodeId: meta.providerIds.episodeId,
+        episodeId: episodeIds(meta.providerIds).episodeId,
         ...extraInputs,
       })
       const comments = DanDanPlayMapper.manifestCommentsToComments(raw)
@@ -232,14 +236,14 @@ export class DanDanPlayService implements IDanmakuProvider {
     const meta = request.meta
     assertProviderType(meta, DanmakuSourceType.DanDanPlay)
 
-    const currentEpisodeId = meta.providerIds.episodeId
+    const currentEpisodeId = episodeIds(meta.providerIds).episodeId
     const params = request.options?.dandanplay ?? {}
 
     const nextEpisodeId = currentEpisodeId + 1
 
     const episodes = await this.getEpisodes(meta.season.providerIds)
     const nextEpisode = episodes.find(
-      (e) => e.providerIds.episodeId === nextEpisodeId
+      (e) => episodeIds(e.providerIds).episodeId === nextEpisodeId
     )
 
     if (!nextEpisode) {
@@ -251,11 +255,11 @@ export class DanDanPlayService implements IDanmakuProvider {
   }
 
   private async fetchDanmaku(
-    meta: OmitSeasonId<DanDanPlayOf<EpisodeMeta>>,
-    season: DanDanPlayOf<Season>,
+    meta: OmitSeasonId<EpisodeMeta>,
+    season: Season,
     params: Partial<danDanPlay.GetCommentQuery>
   ): Promise<{
-    meta: OmitSeasonId<DanDanPlayOf<EpisodeMeta>>
+    meta: OmitSeasonId<EpisodeMeta>
     comments: CommentEntity[]
     params: danDanPlay.GetCommentQuery
   }> {
@@ -284,7 +288,8 @@ export class DanDanPlayService implements IDanmakuProvider {
       return episode?.episodeTitle
     }
 
-    const { providerIds, title } = meta
+    const { episodeId } = episodeIds(meta.providerIds)
+    const seasonIdsResolved = seasonIds(season.providerIds)
 
     // apply default params, use chConvert specified in options
     const paramsCopy: danDanPlay.GetCommentQuery = {
@@ -296,9 +301,9 @@ export class DanDanPlayService implements IDanmakuProvider {
     // since the title can change, we'll try to update it
     const episodeTitle =
       (await findEpisode(
-        season.providerIds.bangumiId ?? season.providerIds.animeId.toString(),
-        providerIds.episodeId
-      )) ?? title // if for some reason we can't get the title, use the one we have
+        seasonIdsResolved.bangumiId ?? seasonIdsResolved.animeId.toString(),
+        episodeId
+      )) ?? meta.title // if for some reason we can't get the title, use the one we have
 
     if (!episodeTitle) {
       this.logger.debug('Failed to get episode title from server')
@@ -313,7 +318,7 @@ export class DanDanPlayService implements IDanmakuProvider {
     this.logger.debug('Fetching danmaku', meta, paramsCopy)
 
     const commentsRes = await danDanPlay.commentGetComment(
-      providerIds.episodeId,
+      episodeId,
       paramsCopy,
       this.context
     )
@@ -334,7 +339,7 @@ export class DanDanPlayService implements IDanmakuProvider {
   }
 
   private findEpisodeInList(
-    episodes: OmitSeasonId<DanDanPlayOf<EpisodeMeta>>[],
+    episodes: OmitSeasonId<EpisodeMeta>[],
     episodeNumber: number,
     animeId: number
   ) {
@@ -347,12 +352,9 @@ export class DanDanPlayService implements IDanmakuProvider {
     // match by computed episode id
     const computedId = this.computeEpisodeId(animeId, episodeNumber)
 
-    return episodes.find((ep) => {
-      return (
-        isProvider(ep, DanmakuSourceType.DanDanPlay) &&
-        ep.providerIds.episodeId === computedId
-      )
-    })
+    return episodes.find(
+      (ep) => episodeIds(ep.providerIds).episodeId === computedId
+    )
   }
 
   async sendComment(
