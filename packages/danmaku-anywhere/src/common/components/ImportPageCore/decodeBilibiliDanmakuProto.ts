@@ -1,6 +1,8 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
-import { bilibili as bilibiliProto } from '../../protobuf/protobuf.js'
-import { zBilibiliCommentProto } from './schema.js'
+import {
+  bilibiliProto,
+  zBilibiliCommentProto,
+} from '@danmaku-anywhere/danmaku-provider/bilibili'
 
 export async function decodeBilibiliDanmakuProto(
   bytes: Uint8Array

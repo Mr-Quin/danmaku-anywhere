@@ -1,6 +1,6 @@
 import { xmlToJSON } from '@danmaku-anywhere/danmaku-converter'
-import { decodeBilibiliDanmakuProto } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import { useMutation } from '@tanstack/react-query'
+import { decodeBilibiliDanmakuProto } from '@/common/components/ImportPageCore/decodeBilibiliDanmakuProto'
 
 import type { DanmakuImportData } from '@/common/danmaku/dto'
 import { useInvalidateSeasonAndEpisode } from '@/common/hooks/useInvalidateSeasonAndEpisode'
