@@ -91,15 +91,11 @@ export class ProviderService {
     ) {
       return seasonInserts as CustomSeason[]
     }
-    // Do not persist search results — that inflates the seasons table with
-    // entries the user may never act on. Read-enrich with existing DB rows so
-    // bookmark/cache indicators still resolve for seasons the user has already
-    // interacted with. New results stay in-memory until the user picks an
-    // episode, bookmarks, or otherwise acts on them.
+    // Surface existing ids so bookmark / cache indicators still resolve.
     const inserts = seasonInserts as SeasonInsert[]
     return Promise.all(
       inserts.map(async (insert) => {
-        const existing = await this.seasonService.findByNaturalKey(insert)
+        const existing = await this.seasonService.findExisting(insert)
         return existing ?? insert
       })
     )

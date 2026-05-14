@@ -173,9 +173,6 @@ export const SeasonCard = ({
     if (disableMenu || enableSelection) {
       return null
     }
-    // The menu only makes sense for persisted seasons (it operates on season.id).
-    // Search results that haven't been persisted yet pass disableMenu, so this
-    // branch is effectively a type narrow for the saved-seasons usage.
     if (!isPersistedSeason(season)) {
       return null
     }

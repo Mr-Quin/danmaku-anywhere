@@ -84,8 +84,6 @@ const SeasonListSuspense = () => {
       boxProps={{ p: 2 }}
       data={filteredSeasons}
       onSeasonClick={(season) => {
-        // SeasonList only renders persisted seasons (from getAllSeasons) plus a
-        // synthetic local-danmaku entry, so id is always present here.
         if (!isPersistedSeason(season)) {
           return
         }

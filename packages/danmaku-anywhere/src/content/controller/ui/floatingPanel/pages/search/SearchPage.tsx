@@ -7,7 +7,6 @@ import { Box, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useUpsertSeason } from '@/common/anime/queries/useUpsertSeason'
-import { isPersistedSeason } from '@/common/anime/utils'
 import { Center } from '@/common/components/Center'
 import { SearchPageCore } from '@/common/components/SearchPageCore/SearchPageCore'
 import { isNotCustom } from '@/common/danmaku/utils'
@@ -46,47 +45,36 @@ export const SearchPage = (): React.ReactElement | null => {
     setSearchTitle(mediaInfo.title)
   }, [mediaInfo])
 
-  const handleSeasonClick = async (
+  const handleSeasonClick = (
     season: Season | SeasonInsert | CustomSeason,
     provider: ProviderConfig
   ) => {
-    // Search results are not persisted; the user picking one is the signal to
-    // commit it to the seasons table so downstream APIs (season map, bookmark,
-    // episode list) have a real seasonId.
-    let persisted
-    if (isPersistedSeason(season)) {
-      persisted = season
-    } else {
-      try {
-        persisted = await upsertSeason.mutateAsync(season)
-      } catch {
-        // useUpsertSeason surfaces the error via toast; stop here so we don't
-        // open the season map dialog or detail page for an unpersisted season.
-        return
-      }
-    }
-    if (
-      isNotCustom(persisted) &&
-      mediaInfo &&
-      !SeasonMap.hasMapping(
-        seasonMaps,
-        mediaInfo.getKey(),
-        persisted.providerConfigId,
-        persisted.id
-      )
-    ) {
-      showAddSeasonMapDialog({
-        season: persisted,
-        mapKey: mediaInfo.getKey(),
-        onProceed: (s) => {
-          setSelectedSeason(s)
+    upsertSeason.mutate(season, {
+      onSuccess: (persisted) => {
+        if (
+          isNotCustom(persisted) &&
+          mediaInfo &&
+          !SeasonMap.hasMapping(
+            seasonMaps,
+            mediaInfo.getKey(),
+            persisted.providerConfigId,
+            persisted.id
+          )
+        ) {
+          showAddSeasonMapDialog({
+            season: persisted,
+            mapKey: mediaInfo.getKey(),
+            onProceed: (s) => {
+              setSelectedSeason(s)
+              setSelectedProvider(provider)
+            },
+          })
+        } else {
+          setSelectedSeason(persisted)
           setSelectedProvider(provider)
-        },
-      })
-    } else {
-      setSelectedSeason(persisted)
-      setSelectedProvider(provider)
-    }
+        }
+      },
+    })
   }
 
   if (!enabledProviders.length) {

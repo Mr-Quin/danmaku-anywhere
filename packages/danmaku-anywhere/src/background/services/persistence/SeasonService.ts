@@ -20,7 +20,7 @@ export class SeasonService {
     return results
   }
 
-  async findByNaturalKey<T extends SeasonInsert>(
+  async findExisting<T extends SeasonInsert>(
     data: T
   ): Promise<DbEntity<T> | undefined> {
     return this.db.season.get({

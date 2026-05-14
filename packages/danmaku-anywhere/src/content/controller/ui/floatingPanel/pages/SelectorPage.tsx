@@ -106,8 +106,6 @@ export const SelectorPage = () => {
         <SeasonGrid
           data={animes}
           onSelectionChange={([season]) => {
-            // Disambiguation results come from auto-match, which already
-            // persists, so season is always a real Season with id here.
             if (isNotCustom(season) && isPersistedSeason(season)) {
               handleAnimeSelect(season)
             }
