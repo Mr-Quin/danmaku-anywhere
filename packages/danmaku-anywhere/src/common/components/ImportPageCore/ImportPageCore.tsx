@@ -3,7 +3,10 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ImportResultContent } from '@/common/components/ImportPageCore/ImportResultContent'
 import { ImportResultDialog } from '@/common/components/ImportPageCore/ImportResultDialog'
-import { useDanmakuImport } from '@/common/components/ImportPageCore/useDanmakuImport'
+import {
+  useDanmakuImport,
+  VALID_EXTENSIONS,
+} from '@/common/components/ImportPageCore/useDanmakuImport'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { FileUpload } from '@/popup/component/FileUpload'
@@ -37,7 +40,7 @@ export const ImportPageCore = () => {
         </Typography>
         <FileUpload
           onFilesSelected={handleFilesSelected}
-          accept=".json,.xml,.bin"
+          accept={VALID_EXTENSIONS.join(',')}
           multiple={true}
         />
       </Box>

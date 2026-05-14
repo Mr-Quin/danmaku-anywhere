@@ -6,7 +6,7 @@ import type { DanmakuImportData } from '@/common/danmaku/dto'
 import { useInvalidateSeasonAndEpisode } from '@/common/hooks/useInvalidateSeasonAndEpisode'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
-const VALID_EXTENSIONS = ['.json', '.xml', '.bin'] as const
+export const VALID_EXTENSIONS = ['.json', '.xml', '.bin'] as const
 
 function getExtension(file: File): string {
   const idx = file.name.lastIndexOf('.')

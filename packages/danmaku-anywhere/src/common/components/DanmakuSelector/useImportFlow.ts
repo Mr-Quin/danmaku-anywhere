@@ -1,7 +1,10 @@
 import JSZip from 'jszip'
 import { useRef, useState } from 'react'
 import { useFileDragDrop } from '@/common/components/DanmakuSelector/useFileDragDrop'
-import { useDanmakuImport } from '@/common/components/ImportPageCore/useDanmakuImport'
+import {
+  useDanmakuImport,
+  VALID_EXTENSIONS,
+} from '@/common/components/ImportPageCore/useDanmakuImport'
 
 function toAbsolutePath(path: string): string {
   if (path.startsWith('/')) {
@@ -22,11 +25,7 @@ async function extractZipFile(file: File): Promise<File[]> {
     }
 
     const lowerPath = path.toLowerCase()
-    if (
-      !lowerPath.endsWith('.json') &&
-      !lowerPath.endsWith('.xml') &&
-      !lowerPath.endsWith('.bin')
-    ) {
+    if (!VALID_EXTENSIONS.some((ext) => lowerPath.endsWith(ext))) {
       continue
     }
 
