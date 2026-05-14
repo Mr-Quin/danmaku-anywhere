@@ -258,7 +258,7 @@
       "dragNDrop2": "或点击此处选择文件"
     },
     "import": "导入弹幕",
-    "importDesc": "导入本地弹幕时文件名将用为弹幕名称。支持.json和.xml文件",
+    "importDesc": "导入本地弹幕时文件名将用为弹幕名称。支持 .json、.xml 和 .bin（B站 protobuf）文件",
     "importError_other": "{{count}}个文件导入失败",
     "importFolder": "导入文件夹",
     "importSuccess_other": "成功导入{{count}}个文件",

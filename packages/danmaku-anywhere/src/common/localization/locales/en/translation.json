@@ -263,7 +263,7 @@
       "dragNDrop2": "Or click to select files"
     },
     "import": "Import Danmaku",
-    "importDesc": "When importing local danmaku, file names will be used as episode names. Supports .json and .xml files",
+    "importDesc": "When importing local danmaku, file names will be used as episode names. Supports .json, .xml, and .bin (Bilibili protobuf) files",
     "importError_one": "Failed to import {{count}} file",
     "importError_other": "Failed to import {{count}} files",
     "importFolder": "Import Danmaku Folder",
