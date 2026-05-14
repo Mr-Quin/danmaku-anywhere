@@ -72,15 +72,21 @@ jobs:
         working-directory: packages/danmaku-anywhere
         run: pnpm exec playwright install --with-deps chromium
 
+      # .env files are gitignored. Write one before the build so Vite picks
+      # up the proxy URLs the e2e specs intercept. Step-level `env:` doesn't
+      # reliably propagate through `pnpm` → `vite` in our setup; .env does.
+      - name: Write .env for build
+        working-directory: packages/danmaku-anywhere
+        run: |
+          cat > .env <<'EOF'
+          VITE_PROXY_URL=https://api.danmaku.test
+          VITE_PROXY_ORIGIN=https://danmaku.test
+          EOF
+
       - name: Build extension (dev API on)
         working-directory: packages/danmaku-anywhere
         env:
           VITE_DA_ENV: dev
-          # .env files are gitignored so CI has no proxy URL by default.
-          # Pin to a synthetic host the e2e specs intercept; never reaches
-          # the network because every request is mocked via context.route.
-          VITE_PROXY_URL: https://api.danmaku.test
-          VITE_PROXY_ORIGIN: https://danmaku.test
         run: pnpm build
 
       - name: Run E2E tests
