@@ -1,12 +1,15 @@
 import type { Page } from '@playwright/test'
+import { MountPage } from './MountPage'
 import { SearchPage } from './SearchPage'
 import { SeasonDetailsPage } from './SeasonDetailsPage'
 
 export class Popup {
+  readonly mount: MountPage
   readonly search: SearchPage
   readonly seasonDetails: SeasonDetailsPage
 
   private constructor(page: Page) {
+    this.mount = new MountPage(page)
     this.search = new SearchPage(page)
     this.seasonDetails = new SeasonDetailsPage(page)
   }

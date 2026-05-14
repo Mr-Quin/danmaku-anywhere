@@ -1,3 +1,10 @@
+import type {
+  Bookmark,
+  Episode,
+  EpisodeInsert,
+  Season,
+  SeasonInsert,
+} from '@danmaku-anywhere/danmaku-converter'
 import type { BrowserContext, Worker } from '@playwright/test'
 import type { ExtensionOptions } from '../../src/common/options/extensionOptions/schema'
 import type { ProviderConfig } from '../../src/common/options/providerConfig/schema'
@@ -68,6 +75,33 @@ export class DaClient {
       this.sw.evaluate(() => self.__da.runtime.reload()),
     runUpgrade: (): Promise<void> =>
       this.sw.evaluate(() => self.__da.runtime.runUpgrade()),
+  }
+
+  season = {
+    list: (): Promise<Season[]> =>
+      this.sw.evaluate(() => self.__da.season.list()),
+    get: (id: number): Promise<Season | undefined> =>
+      this.sw.evaluate((id) => self.__da.season.get(id), id),
+    add: (insert: SeasonInsert): Promise<Season> =>
+      this.sw.evaluate((s) => self.__da.season.add(s), insert),
+    delete: (id: number): Promise<void> =>
+      this.sw.evaluate((id) => self.__da.season.delete(id), id),
+  }
+
+  episode = {
+    add: (insert: EpisodeInsert): Promise<Episode> =>
+      this.sw.evaluate((e) => self.__da.episode.add(e), insert),
+    get: (id: number): Promise<Episode | undefined> =>
+      this.sw.evaluate((id) => self.__da.episode.get(id), id),
+  }
+
+  bookmark = {
+    list: (): Promise<Bookmark[]> =>
+      this.sw.evaluate(() => self.__da.bookmark.list()),
+    bySeason: (seasonId: number): Promise<Bookmark | undefined> =>
+      this.sw.evaluate((id) => self.__da.bookmark.bySeason(id), seasonId),
+    deleteBySeason: (seasonId: number): Promise<void> =>
+      this.sw.evaluate((id) => self.__da.bookmark.deleteBySeason(id), seasonId),
   }
 }
 

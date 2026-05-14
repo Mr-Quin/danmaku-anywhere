@@ -78,6 +78,7 @@ export const DAMenuItem = ({ item, onClose }: DAMenuItemProps) => {
           }}
           disabled={item.disabled || item.loading}
           color={item.color}
+          data-testid={`drilldown-menu-item-${item.id}`}
         >
           <ListItemIcon>
             {item.loading ? <CircularProgress size={24} /> : item.icon}

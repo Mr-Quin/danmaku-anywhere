@@ -8,7 +8,7 @@
     "animeTitle": "Self-Hosted Show",
     "type": "tvseries",
     "typeDescription": "TV动画",
-    "imageUrl": "https://my-server.com/img/991.jpg",
+    "imageUrl": "https://compat-cdn.invalid/img/991.jpg",
     "episodes": [
       { "episodeId": 9910001, "episodeTitle": "EP1", "episodeNumber": "1" },
       { "episodeId": 9910002, "episodeTitle": "EP2", "episodeNumber": "2" }

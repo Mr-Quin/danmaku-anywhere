@@ -5,6 +5,7 @@ const SELECTORS = {
   searchSubmit: '[data-testid="search-submit"]',
   seasonCardForProvider: (provider: string) =>
     `[data-testid^="season-card-${provider}-"]`,
+  seasonCardAction: '[data-testid="season-card-action"]',
 }
 
 export class SearchPage {
@@ -32,6 +33,6 @@ export class SearchPage {
   async openFirstResult(provider: string, timeout = 15_000): Promise<void> {
     const card = this.seasonCard(provider)
     await expect(card).toBeVisible({ timeout })
-    await card.click()
+    await card.locator(SELECTORS.seasonCardAction).click()
   }
 }

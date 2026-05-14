@@ -9,7 +9,7 @@
       "animeTitle": "Self-Hosted Show",
       "type": "tvseries",
       "typeDescription": "TV动画",
-      "imageUrl": "https://my-server.com/img/991.jpg",
+      "imageUrl": "https://compat-cdn.invalid/img/991.jpg",
       "startDate": "2024-04-01T00:00:00",
       "episodeCount": 12,
       "rating": 0,
