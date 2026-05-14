@@ -7,8 +7,7 @@ export interface DandanplayFixtures {
   comments: unknown
 }
 
-// Path-only match — VITE_PROXY_URL varies (prod, staging, the synthetic CI
-// host). Tests intercept every request, so a stray match is moot.
+// Path-only match — VITE_PROXY_URL host varies between local, CI, and prod.
 const PROXY_PATH = /\/ddp\/v1(\?|$)/
 
 export function mockDandanplay(fixtures: DandanplayFixtures): NetworkMock {

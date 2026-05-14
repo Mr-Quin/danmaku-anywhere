@@ -33,6 +33,11 @@ Inversify IoC container (`src/common/ioc/`) wires up dependencies across these c
 - Error boundaries for error handling
 - Inversify IoC container for dependency injection
 
+## Testing conventions
+
+- **Every test file gets a header JSDoc block** (3-6 lines) describing what the test exercises and what it asserts. Place it immediately after imports, before the first `test()`. Treat it as the spec a future reader sees first.
+- e2e specs live under `e2e/specs/<area>/<source>.spec.ts`. Use the `Popup` POM in `e2e/pom/` and the `applyProfile` helper in `e2e/setup/` instead of touching selectors or chrome.storage directly. Per-source mock builders live in `e2e/network/<source>.ts`.
+
 ## Gotchas
 
 - `@crxjs/vite-plugin` has its own HMR behavior — don't confuse with standard Vite

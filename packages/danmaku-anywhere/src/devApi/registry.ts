@@ -66,7 +66,6 @@ export class DevApiError extends Error {
 
 interface CompiledMethod {
   def: AnyMethodDef
-  // True when the method should be filtered out for the current env.
   filtered: boolean
 }
 

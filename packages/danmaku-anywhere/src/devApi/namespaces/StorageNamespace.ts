@@ -73,8 +73,6 @@ export class StorageNamespace implements DevNamespace {
       description: 'Clear all storage areas',
       kind: 'write',
       handler: async () => {
-        // Skip areas the runtime doesn't expose (session not on older
-        // Firefox / pre-Chrome-102).
         await Promise.all(
           ALLOWED_AREAS.filter((a) => chrome.storage[a]).map((a) =>
             chrome.storage[a].clear()

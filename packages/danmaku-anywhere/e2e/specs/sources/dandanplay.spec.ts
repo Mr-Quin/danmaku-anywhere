@@ -5,6 +5,14 @@ import { test } from '../../setup/fixtures'
 import { loadJsonFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
 
+/**
+ * Built-in DanDanPlay provider happy path through the proxy URL:
+ * /v2/search/anime → /v2/bangumi/{id} → /v2/comment/{id}. Verifies that
+ * the search submit, season-card click, episode-list render, and per-
+ * episode danmaku fetch all wire through the popup → background RPC →
+ * danmaku-provider stack and surface a comment count in the UI.
+ */
+
 test('dandanplay: search → season → episode → fetch danmaku', async ({
   context,
   page,

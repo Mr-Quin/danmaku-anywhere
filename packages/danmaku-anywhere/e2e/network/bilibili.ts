@@ -11,8 +11,6 @@ export interface BilibiliXmlFixtures extends BilibiliCommonFixtures {
 }
 
 export interface BilibiliProtoFixtures extends BilibiliCommonFixtures {
-  // First segment carries the real protobuf bytes; later segments return 304
-  // (the manifest treats it as "no more data").
   protoSegment1: Buffer
 }
 

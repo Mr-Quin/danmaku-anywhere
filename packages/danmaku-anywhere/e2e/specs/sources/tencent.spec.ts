@@ -5,6 +5,13 @@ import { test } from '../../setup/fixtures'
 import { loadJsonFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
 
+/**
+ * Tencent happy path: MbSearch → GetPageData (episode list) → /barrage/base
+ * → /barrage/segment/{name}. Exercises the segmented danmaku fetch flow
+ * unique to Tencent and confirms episode-list rendering ends in a comment
+ * count being shown.
+ */
+
 test('tencent: search → season → episode → fetch danmaku', async ({
   context,
   page,

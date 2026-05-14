@@ -6,9 +6,6 @@ import { type AnyMethodDef, type DevNamespace, defineMethod } from '../registry'
 export interface RuntimeApi {
   version(): Promise<string>
   reload(): Promise<void>
-  // Trigger the OptionsManager upgrade chain explicitly. Tests use this to
-  // exercise migrations without relying on chrome.runtime.onInstalled, which
-  // doesn't fire on same-version reloads.
   runUpgrade(): Promise<void>
 }
 

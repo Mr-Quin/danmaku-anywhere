@@ -31,12 +31,8 @@ export default defineConfig({
   // @ts-ignore
   plugins: [react({}), crx({ manifest, browser: browser.name })],
   resolve: {
-    // Order matters: more specific aliases must come first so they're
-    // matched before the generic '@' prefix.
+    // Specific alias must precede the generic '@' prefix.
     alias: [
-      // In prod builds, swap the dev API entry for a stub so the entire
-      // src/devApi tree drops out of the bundle. CI grep guard in
-      // .github/workflows/quality-e2e.yml enforces this.
       ...(daEnv === 'prod'
         ? [{ find: '@/devApi', replacement: '/src/devApi/index.prod.ts' }]
         : []),

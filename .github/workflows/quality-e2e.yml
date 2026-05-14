@@ -61,9 +61,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          # Include the lockfile so transitive Playwright bumps invalidate
-          # the cache (the package.json caret range alone won't change when
-          # pnpm-lock.yaml resolves to a new patch version).
+          # Hash the lockfile so transitive Playwright version bumps
+          # invalidate the cache.
           key: ${{ runner.os }}-playwright-${{ hashFiles('packages/danmaku-anywhere/package.json', 'pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-playwright-
@@ -72,9 +71,8 @@ jobs:
         working-directory: packages/danmaku-anywhere
         run: pnpm exec playwright install --with-deps chromium
 
-      # .env files are gitignored. Write one before the build so Vite picks
-      # up the proxy URLs the e2e specs intercept. Step-level `env:` doesn't
-      # reliably propagate through `pnpm` → `vite` in our setup; .env does.
+      # .env is gitignored, so write a synthetic one for the build. The
+      # hosts are intercepted by Playwright routes; nothing reaches them.
       - name: Write .env for build
         working-directory: packages/danmaku-anywhere
         run: |
@@ -91,10 +89,9 @@ jobs:
 
       - name: Run E2E tests
         working-directory: packages/danmaku-anywhere
+        # MV3 extensions need headed Chromium; xvfb provides a display.
         run: xvfb-run --auto-servernum pnpm test:e2e
         env:
-          # Headed mode is required for MV3 extension service workers; xvfb
-          # provides the display.
           PLAYWRIGHT_HEADED: '1'
 
       - name: Upload Playwright report on failure
@@ -145,10 +142,8 @@ jobs:
 
       - name: Assert dev API is not in the prod bundle
         working-directory: packages/danmaku-anywhere
-        # Greps for strings unique to the dev API IMPLEMENTATION (not the
-        # prod stub at src/devApi/index.prod.ts, which only re-exports a
-        # throwing no-op). If any of these appear, the alias swap or
-        # tree-shaking failed and dev-only code is being shipped to users.
+        # These strings only exist in src/devApi implementation files, not
+        # in src/devApi/index.prod.ts. A match means DCE failed.
         run: |
           if grep -rE "DevApiError|Unknown dev API|Read/write provider configs|Service worker lifecycle and metadata" build/ ; then
             echo "::error::Dev API implementation leaked into prod build (DCE guard failed)"

@@ -22,8 +22,6 @@ import {
   type Registry,
 } from './registry'
 
-// Adding a namespace = new file under namespaces/ + token in this array +
-// matching field on DaApi.
 const NAMESPACE_TOKENS = [
   ProviderConfigNamespace,
   StorageNamespace,
@@ -40,9 +38,6 @@ export interface DaApi {
   runtime: RuntimeApi
 }
 
-// Typed as DaApi (not DaApi | undefined). In prod builds the alias swap
-// removes this module entirely; everywhere else, attachDevApi has run by
-// the time a caller reads __da.
 declare global {
   // biome-ignore lint/correctness/noUnusedVariables: ambient global
   // biome-ignore lint/style/useConst: var required for ambient declaration
@@ -50,7 +45,6 @@ declare global {
 }
 
 export function attachDevApi(container: Container, env: DaEnv): Registry {
-  // Defense in depth — primary gate is the !IS_DA_PROD check at the call site.
   if (env === 'prod') {
     throw new Error('attachDevApi must not be called in prod env')
   }

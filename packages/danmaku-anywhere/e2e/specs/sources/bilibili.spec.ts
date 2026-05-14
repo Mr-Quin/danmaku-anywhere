@@ -10,6 +10,15 @@ import {
 } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
 
+/**
+ * Bilibili happy path in two danmakuTypePreference modes:
+ *  - xml:   /x/v1/dm/list.so → text fixture parsed by danmaku-converter
+ *  - proto: /x/v2/dm/web/seg.so → real protobuf segment dump exercising
+ *           the bundled protobufjs decoder
+ * Both share the same search (media_bangumi + media_ft) and season fetch
+ * paths via runHappyPath().
+ */
+
 const COMMON = {
   searchBangumi: loadJsonFixture('bilibili-search-bangumi.json'),
   searchFt: loadJsonFixture('bilibili-search-ft.json'),

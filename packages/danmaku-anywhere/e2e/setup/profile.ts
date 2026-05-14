@@ -31,12 +31,13 @@ export interface NetworkMock {
 }
 
 export interface TestProfile {
-  // Built-ins not listed default to disabled (test isolation).
+  // Built-ins not listed default to disabled.
   providers?: BuiltInProvidersProfile
   customProviders?: ProviderConfig[]
   extensionOptions?: Partial<ExtensionOptions>
-  // Pre-typed-write storage values; for migration tests, set runUpgrade too.
+  // Raw chrome.storage seeds applied before typed writes.
   rawStorage?: RawStorageSeed[]
+  // If true, runs storage migrations after rawStorage is applied.
   runUpgrade?: boolean
   network?: NetworkMock[]
 }
@@ -85,9 +86,6 @@ function buildBuiltInProviderConfigs(
   ]
 }
 
-// Apply order: clear → raw seed → optional upgrade → typed writes → routes.
-// Typed writes after upgrade so migrated state isn't clobbered for migration
-// specs (which leave `providers` unset).
 export async function applyProfile(
   context: BrowserContext,
   da: DaClient,

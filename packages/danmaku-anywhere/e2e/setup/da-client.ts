@@ -4,10 +4,6 @@ import type { ProviderConfig } from '../../src/common/options/providerConfig/sch
 import type { StorageArea } from '../../src/devApi/namespaces/StorageNamespace'
 import type { NamespaceDescription } from '../../src/devApi/registry'
 
-// `self.__da` is the ambient SW-side dev API global declared in
-// src/devApi/index.ts. Each method below evaluates a thunk in the SW context
-// where `self.__da` is in scope; the wrapper just types and routes the call.
-
 export class DaClient {
   constructor(private readonly sw: Worker) {}
 
@@ -40,8 +36,8 @@ export class DaClient {
     snapshot: (area: StorageArea): Promise<Record<string, unknown>> =>
       this.sw.evaluate((a) => self.__da.storage.snapshot(a), area),
     setRaw: (area: StorageArea, key: string, value: unknown): Promise<void> => {
-      // structuredClone errors out of sw.evaluate are opaque; surface bad
-      // inputs at the boundary instead.
+      // sw.evaluate args go through structuredClone; surface non-clonable
+      // inputs here instead of letting an opaque IPC error fire.
       try {
         JSON.stringify(value)
       } catch (e) {

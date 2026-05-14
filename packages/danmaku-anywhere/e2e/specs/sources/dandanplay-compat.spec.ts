@@ -7,14 +7,19 @@ import { test } from '../../setup/fixtures'
 import { loadJsonFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
 
+/**
+ * DanDanPlayCompatible provider happy path against an arbitrary baseUrl
+ * (no built-ins enabled). Confirms that custom-host DDP requests bypass
+ * the weeblify proxy and that the compat provider still renders under the
+ * canonical DanDanPlay impl/testid.
+ */
+
 const COMPAT_BASE_URL = 'https://compat.example.invalid'
 
 const compatConfig: ProviderConfig = {
   id: 'compat-test-1',
   type: 'DanDanPlayCompatible',
   name: 'CompatTest',
-  // The compat provider routes through the DanDanPlay implementation, so
-  // its rendered cards use season-card-DanDanPlay-* testids.
   impl: DanmakuSourceType.DanDanPlay,
   enabled: true,
   isBuiltIn: false,

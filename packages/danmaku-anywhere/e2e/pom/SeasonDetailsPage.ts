@@ -3,11 +3,10 @@ import { expect, type Locator, type Page } from '@playwright/test'
 const SELECTORS = {
   episodeForProvider: (provider: string) =>
     `[data-testid^="episode-list-item-${provider}-"]`,
-  // Tolerate either i18n locale (zh: "条弹幕", en: "comment(s)").
+  // Matches either zh ("X条弹幕") or en ("X comments") locales.
   COMMENT_COUNT_RE: /\d+\s*(条弹幕|comments?)/i,
 }
 
-// Page object for /search/season — episode list and per-episode danmaku fetch.
 export class SeasonDetailsPage {
   constructor(private readonly page: Page) {}
 
