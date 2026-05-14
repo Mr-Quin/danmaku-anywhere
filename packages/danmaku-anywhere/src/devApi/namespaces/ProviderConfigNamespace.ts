@@ -4,6 +4,14 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { type AnyMethodDef, type DevNamespace, defineMethod } from '../registry'
 
+export interface ProviderConfigApi {
+  list(): Promise<ProviderConfig[]>
+  get(id: string): Promise<ProviderConfig | undefined>
+  set(configs: ProviderConfig[]): Promise<void>
+  toggle(id: string, enabled?: boolean): Promise<ProviderConfig>
+  reset(): Promise<void>
+}
+
 @injectable('Singleton')
 export class ProviderConfigNamespace implements DevNamespace {
   readonly name = 'providerConfig'

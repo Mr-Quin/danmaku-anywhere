@@ -3,6 +3,15 @@ import { UpgradeService } from '@/background/syncOptions/UpgradeService/UpgradeS
 import { EXTENSION_VERSION } from '@/common/constants'
 import { type AnyMethodDef, type DevNamespace, defineMethod } from '../registry'
 
+export interface RuntimeApi {
+  version(): Promise<string>
+  reload(): Promise<void>
+  // Trigger the OptionsManager upgrade chain explicitly. Tests use this to
+  // exercise migrations without relying on chrome.runtime.onInstalled, which
+  // doesn't fire on same-version reloads.
+  runUpgrade(): Promise<void>
+}
+
 @injectable('Singleton')
 export class RuntimeNamespace implements DevNamespace {
   readonly name = 'runtime'
@@ -28,8 +37,7 @@ export class RuntimeNamespace implements DevNamespace {
       }),
       defineMethod({
         name: 'runUpgrade',
-        description:
-          'Run storage migrations explicitly. Used by tests to exercise migration paths without relying on chrome.runtime.onInstalled side effects.',
+        description: 'Run storage migrations explicitly',
         kind: 'write',
         handler: () => this.upgradeService.upgrade(),
       }),

@@ -3,6 +3,11 @@ import type { ExtensionOptions } from '@/common/options/extensionOptions/schema'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { type AnyMethodDef, type DevNamespace, defineMethod } from '../registry'
 
+export interface ExtensionOptionsApi {
+  get(): Promise<ExtensionOptions>
+  update(partial: Partial<ExtensionOptions>): Promise<void>
+}
+
 @injectable('Singleton')
 export class ExtensionOptionsNamespace implements DevNamespace {
   readonly name = 'extensionOptions'

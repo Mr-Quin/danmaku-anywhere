@@ -1,13 +1,13 @@
+import type { Page } from '@playwright/test'
+import { mockBilibiliProto, mockBilibiliXml } from '../../network/bilibili'
+import { Popup } from '../../pom/Popup'
 import { getDaClient } from '../../setup/da-client'
-import { expect, test } from '../../setup/fixtures'
+import { test } from '../../setup/fixtures'
 import {
   loadBinaryFixture,
   loadJsonFixture,
   loadTextFixture,
-  mockBilibiliProto,
-  mockBilibiliXml,
-} from '../../setup/network'
-import { openPopup, submitSearch } from '../../setup/popup'
+} from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
 
 const COMMON = {
@@ -16,28 +16,13 @@ const COMMON = {
   season: loadJsonFixture('bilibili-season.json'),
 }
 
-async function runHappyPath(
-  page: Parameters<Parameters<typeof test>[1]>[0]['page'],
-  extensionId: string
-) {
-  await openPopup(page, extensionId)
-  await submitSearch(page, 'frieren')
-
-  const seasonCard = page
-    .locator('[data-testid^="season-card-Bilibili-"]')
-    .first()
-  await expect(seasonCard).toBeVisible({ timeout: 15_000 })
-  await seasonCard.click()
-
-  const firstEpisode = page
-    .locator('[data-testid^="episode-list-item-Bilibili-"]')
-    .first()
-  await expect(firstEpisode).toBeVisible({ timeout: 15_000 })
-  await firstEpisode.click()
-
-  await expect(firstEpisode).toContainText(/\d+\s*(条弹幕|comments?)/i, {
-    timeout: 15_000,
-  })
+async function runHappyPath(page: Page, extensionId: string): Promise<void> {
+  const popup = await Popup.open(page, extensionId)
+  await popup.search.submit('frieren')
+  await popup.search.openFirstResult('Bilibili')
+  const episode =
+    await popup.seasonDetails.fetchDanmakuForFirstEpisode('Bilibili')
+  await popup.seasonDetails.expectCommentCount(episode)
 }
 
 test('bilibili xml: search → season → episode → fetch xml danmaku', async ({

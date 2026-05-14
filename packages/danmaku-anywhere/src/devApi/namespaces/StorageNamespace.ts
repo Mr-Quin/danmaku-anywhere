@@ -6,7 +6,7 @@ import {
   defineMethod,
 } from '../registry'
 
-type StorageArea = 'sync' | 'local' | 'session'
+export type StorageArea = 'sync' | 'local' | 'session'
 
 const ALLOWED_AREAS: StorageArea[] = ['sync', 'local', 'session']
 
@@ -14,9 +14,6 @@ function getArea(area: StorageArea): chrome.storage.StorageArea {
   if (!ALLOWED_AREAS.includes(area)) {
     throw new DevApiError(`Unknown storage area: ${area}`)
   }
-  // chrome.storage.session is Chrome 102+ and not in older Firefox builds.
-  // Fail loudly with a clear error rather than letting `.get is not a
-  // function` surface from the runtime.
   const handle = chrome.storage[area]
   if (!handle) {
     throw new DevApiError(
@@ -26,10 +23,13 @@ function getArea(area: StorageArea): chrome.storage.StorageArea {
   return handle
 }
 
-// Raw chrome.storage access. Bypasses the typed OptionsService layer — only
-// for tests that need to seed pre-migration shapes or snapshot the full state.
-// Anything that needs schema/migration safety should go through the typed
-// namespaces (providerConfig, extensionOptions).
+export interface StorageApi {
+  get(area: StorageArea, key: string): Promise<unknown>
+  snapshot(area: StorageArea): Promise<Record<string, unknown>>
+  setRaw(area: StorageArea, key: string, value: unknown): Promise<void>
+  clear(): Promise<void>
+}
+
 @injectable('Singleton')
 export class StorageNamespace implements DevNamespace {
   readonly name = 'storage'

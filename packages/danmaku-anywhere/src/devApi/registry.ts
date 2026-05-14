@@ -1,8 +1,3 @@
-// Dev API registry. The dev API exposes typed introspection + dispatch over
-// the extension's internal services for tests, dev tooling, and agentic
-// interactions. Production builds DCE this entire module via the
-// VITE_DA_ENV !== 'prod' import boundary in src/background/index.ts.
-
 export type MethodKind = 'read' | 'write'
 
 export type DaEnv = 'dev' | 'preview' | 'prod'
@@ -15,10 +10,7 @@ export interface ArgSpec {
 }
 
 export interface MethodDef<
-  // Args and Ret are specific at the defineMethod() call site. The registry
-  // erases them to AnyMethodDef when storing in a namespace's methods array,
-  // since dispatch is uniform across method shapes.
-  // biome-ignore lint/suspicious/noExplicitAny: variance helper
+  // biome-ignore lint/suspicious/noExplicitAny: variance helper for AnyMethodDef
   Args extends readonly any[] = readonly unknown[],
   Ret = unknown,
 > {
@@ -29,8 +21,6 @@ export interface MethodDef<
   handler: (...args: Args) => Ret | Promise<Ret>
 }
 
-// Type-erased MethodDef for storage in namespace methods arrays. Used
-// internally by buildRegistry() and as the array element type on DevNamespace.
 // biome-ignore lint/suspicious/noExplicitAny: variance helper
 export type AnyMethodDef = MethodDef<any[], any>
 
@@ -62,9 +52,8 @@ export interface NamespaceDescription {
 export interface Registry {
   describe(): NamespaceDescription[]
   dispatch(namespace: string, method: string, args: unknown[]): Promise<unknown>
-  // Two-level Proxy attached to globalThis.__da. All access funnels through
-  // dispatch() so env-gating, validation, and future telemetry all happen in
-  // one place.
+  // Two-level Proxy attached to globalThis.__da. All callable access funnels
+  // through dispatch() so env-gating and validation share a single path.
   readonly proxy: unknown
 }
 
@@ -101,7 +90,7 @@ function compile(
       if (methods.has(m.name)) {
         throw new DevApiError(`Duplicate method: ${ns.name}.${m.name}`)
       }
-      // Preview gating: only reads are exposed.
+      // preview env exposes reads only
       const filtered = env === 'preview' && m.kind === 'write'
       methods.set(m.name, { def: m, filtered })
     }
@@ -114,16 +103,11 @@ function compile(
   return out
 }
 
-// Top-level methods exposed directly on __da (alongside namespace access).
-// describe() returns the API tree; help() is an alias for human callers.
-// Use a null-prototype object so `Object.hasOwn(topLevel, key)` is the
-// authoritative check — `key in topLevel` would also match Object.prototype
-// keys like `toString`/`constructor`.
 type TopLevelKey = 'describe' | 'help'
 
-// Keys we explicitly silence (return undefined) without throwing. These come
-// from JS introspection: `console.log(__da)`, `await __da` thenable check,
-// `JSON.stringify(__da)`, etc. Without this, basic devtools usage throws.
+// Keys returned undefined without throwing, so `console.log(__da)`,
+// `await __da` thenable probing, JSON.stringify, jest matchers, and React
+// devtools don't trip the unknown-namespace error path.
 const SILENT_KEYS = new Set<string | symbol>([
   'then',
   'toJSON',
@@ -143,6 +127,8 @@ function makeProxy(
   describe: () => NamespaceDescription[],
   compiled: Map<string, CompiledNamespace>
 ): unknown {
+  // null-prototype so Object.hasOwn is authoritative — `key in topLevel`
+  // would also match Object.prototype.toString etc.
   const topLevel: Record<TopLevelKey, unknown> = Object.assign(
     Object.create(null),
     {
@@ -150,10 +136,6 @@ function makeProxy(
       help: () => describe(),
     }
   )
-  // Outer Proxy: namespace access OR top-level method. Returns an inner Proxy
-  // whose function-call trap dispatches. Unknown keys throw a typed error so
-  // typos surface fast — except keys used by JS introspection, which return
-  // undefined so console.log/await/JSON.stringify don't blow up.
   return new Proxy(Object.create(null), {
     get(_t, key: string | symbol) {
       if (SILENT_KEYS.has(key)) {

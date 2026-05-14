@@ -1,10 +1,3 @@
-// TestProfile: declarative spec setup. A spec describes the world it wants
-// (which providers enabled, what extension options, what raw storage seeds,
-// what network mocks) and applyProfile() applies it via the dev API and
-// Playwright's context.route.
-//
-// Adding a knob = add an optional field here, handle it in applyProfile.
-
 import {
   type BilibiliProviderOptions,
   DanDanChConvert,
@@ -14,9 +7,8 @@ import {
 import type { BrowserContext, Route } from '@playwright/test'
 import type { ExtensionOptions } from '../../src/common/options/extensionOptions/schema'
 import type { ProviderConfig } from '../../src/common/options/providerConfig/schema'
+import type { StorageArea } from '../../src/devApi/namespaces/StorageNamespace'
 import type { DaClient } from './da-client'
-
-export type StorageArea = 'sync' | 'local' | 'session'
 
 export interface BuiltInProvidersProfile {
   bilibili?: { enabled?: boolean; options?: Partial<BilibiliProviderOptions> }
@@ -39,32 +31,15 @@ export interface NetworkMock {
 }
 
 export interface TestProfile {
-  // Built-in provider toggles + per-provider options. Anything not specified
-  // remains DISABLED — test isolation by default. Override at the spec level.
+  // Built-ins not listed default to disabled (test isolation).
   providers?: BuiltInProvidersProfile
-  // Custom providers (DanDanPlayCompatible, MacCMS) appended to the config.
   customProviders?: ProviderConfig[]
-  // Partial extension options to merge over the current state.
   extensionOptions?: Partial<ExtensionOptions>
-  // Raw storage seeds — escape hatch for migration tests.
-  // Applied BEFORE provider/extensionOptions writes. Pre-migration shapes go
-  // here; the migration is then triggered with `runUpgrade: true`.
+  // Pre-typed-write storage values; for migration tests, set runUpgrade too.
   rawStorage?: RawStorageSeed[]
-  // After applying rawStorage, optionally call da.runtime.runUpgrade() to
-  // exercise migration paths (used by upgrade-install.spec.ts).
   runUpgrade?: boolean
-  // Playwright network mocks installed via context.route.
   network?: NetworkMock[]
 }
-
-// Built-in provider IDs are stable string literals declared in
-// PROVIDER_TO_BUILTIN_ID. Keeping them inlined here avoids importing the
-// canonical map (which pulls in danmaku-converter just to look up 3 strings).
-const BUILTIN_IDS = {
-  dandanplay: 'builtin:dandanplay',
-  bilibili: 'builtin:bilibili',
-  tencent: 'builtin:tencent',
-} as const
 
 function buildBuiltInProviderConfigs(
   profile: BuiltInProvidersProfile = {}
@@ -75,7 +50,7 @@ function buildBuiltInProviderConfigs(
 
   return [
     {
-      id: BUILTIN_IDS.dandanplay,
+      id: 'builtin:dandanplay',
       type: 'DanDanPlay',
       name: 'DanDanPlay',
       impl: DanmakuSourceType.DanDanPlay,
@@ -87,7 +62,7 @@ function buildBuiltInProviderConfigs(
       },
     },
     {
-      id: BUILTIN_IDS.bilibili,
+      id: 'builtin:bilibili',
       type: 'Bilibili',
       name: 'Bilibili',
       impl: DanmakuSourceType.Bilibili,
@@ -99,7 +74,7 @@ function buildBuiltInProviderConfigs(
       },
     },
     {
-      id: BUILTIN_IDS.tencent,
+      id: 'builtin:tencent',
       type: 'Tencent',
       name: 'Tencent',
       impl: DanmakuSourceType.Tencent,
@@ -110,21 +85,14 @@ function buildBuiltInProviderConfigs(
   ]
 }
 
+// Apply order: clear → raw seed → optional upgrade → typed writes → routes.
+// Typed writes after upgrade so migrated state isn't clobbered for migration
+// specs (which leave `providers` unset).
 export async function applyProfile(
   context: BrowserContext,
   da: DaClient,
   profile: TestProfile
 ): Promise<void> {
-  // Always start from a clean storage slate so spec ordering can't leak
-  // state across tests. Each Playwright test gets a fresh persistent
-  // context, but a future change (test parallelism inside one context,
-  // serial specs that share one context) shouldn't introduce subtle bugs.
-  //
-  // Order: clear → seed (migration shapes) → optional upgrade → typed
-  // overrides → network mocks. Typed writes go AFTER the upgrade so the
-  // migration result isn't clobbered. If a profile sets BOTH rawStorage +
-  // runUpgrade + providers, the typed providerConfig.set wins on purpose
-  // (specs that need the migrated state should not also set providers).
   await da.storage.clear()
 
   for (const seed of profile.rawStorage ?? []) {
