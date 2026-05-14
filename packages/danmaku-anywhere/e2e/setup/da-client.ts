@@ -91,6 +91,8 @@ export class DaClient {
   episode = {
     add: (insert: EpisodeInsert): Promise<Episode> =>
       this.sw.evaluate((e) => self.__da.episode.add(e), insert),
+    get: (id: number): Promise<Episode | undefined> =>
+      this.sw.evaluate((id) => self.__da.episode.get(id), id),
   }
 
   bookmark = {

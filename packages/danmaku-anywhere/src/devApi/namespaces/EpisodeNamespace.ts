@@ -8,6 +8,7 @@ import { type AnyMethodDef, type DevNamespace, defineMethod } from '../registry'
 
 export interface EpisodeApi {
   add(insert: EpisodeInsert): Promise<Episode>
+  get(id: number): Promise<Episode | undefined>
 }
 
 @injectable('Singleton')
@@ -27,6 +28,16 @@ export class EpisodeNamespace implements DevNamespace {
         kind: 'write',
         args: [{ name: 'insert', type: 'EpisodeInsert' }],
         handler: (insert: EpisodeInsert) => this.service.upsert(insert),
+      }),
+      defineMethod({
+        name: 'get',
+        description: 'Fetch a persisted episode by id',
+        kind: 'read',
+        args: [{ name: 'id', type: 'number' }],
+        handler: async (id: number) => {
+          const res = await this.service.filter({ ids: [id] })
+          return res[0]
+        },
       }),
     ]
   }

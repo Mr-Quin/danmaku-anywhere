@@ -164,6 +164,7 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
               isCustomSeason ? `1px solid ${theme.palette.divider}` : undefined,
           },
         })}
+        data-testid={`tree-item-${itemId}`}
       >
         <StyledTreeContent
           {...getContentProps({
@@ -172,7 +173,10 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
             onContextMenu: handleContextMenu,
           })}
         >
-          <TreeItemIconContainer {...getIconContainerProps()}>
+          <TreeItemIconContainer
+            {...getIconContainerProps()}
+            data-testid={`tree-item-expand-${itemId}`}
+          >
             <TreeItemIcon status={status} />
           </TreeItemIconContainer>
           <TreeItemCheckbox {...getCheckboxProps()} size="small" />

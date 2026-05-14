@@ -1,20 +1,17 @@
 import type { Page } from '@playwright/test'
-import { EpisodeListPage } from './EpisodeListPage'
+import { MountPage } from './MountPage'
 import { SearchPage } from './SearchPage'
 import { SeasonDetailsPage } from './SeasonDetailsPage'
-import { SeasonListPage } from './SeasonListPage'
 
 export class Popup {
+  readonly mount: MountPage
   readonly search: SearchPage
   readonly seasonDetails: SeasonDetailsPage
-  readonly seasonList: SeasonListPage
-  readonly episodeList: EpisodeListPage
 
   private constructor(page: Page) {
+    this.mount = new MountPage(page)
     this.search = new SearchPage(page)
     this.seasonDetails = new SeasonDetailsPage(page)
-    this.seasonList = new SeasonListPage(page)
-    this.episodeList = new EpisodeListPage(page)
   }
 
   static async open(

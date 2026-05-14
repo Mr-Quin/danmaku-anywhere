@@ -11,22 +11,20 @@ import { loadJsonFixture, loadTextFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
 
 /**
- * Refresh Metadata menu on a season card. Seeds a Bilibili season with a
- * stale title, navigates to /danmaku, clicks the Refresh menu item, mocks
- * the upstream season endpoint with a fresh title, then asserts the season
- * in DB has been re-upserted (version bumped + title updated).
+ * Refresh Danmaku from an episode's context menu in the DanmakuTree.
+ * Seeds an episode with zero comments, clicks the per-episode Refresh
+ * action, mocks the bilibili XML danmaku endpoint, and asserts the
+ * episode's commentCount in the DB bumps above zero.
  */
 
-const STALE_TITLE = '旧标题 (stale)'
-
-const BILIBILI_SEASON: SeasonInsert = {
+const SEASON: SeasonInsert = {
   provider: DanmakuSourceType.Bilibili,
   providerIds: { seasonId: 41410, mediaId: 28219412 },
   providerConfigId: 'builtin:bilibili',
   indexedId: '41410',
-  title: STALE_TITLE,
+  title: '葬送的芙莉莲',
   type: '番剧',
-  imageUrl: 'https://i0.hdslb.com/bfs/bangumi/image/frieren.jpg',
+  imageUrl: 'https://bilibili-cdn.invalid/x.jpg',
   episodeCount: 28,
   year: 2023,
   schemaVersion: 1,
@@ -37,7 +35,7 @@ function makeEpisode(seasonId: number): EpisodeInsert {
     provider: DanmakuSourceType.Bilibili,
     providerIds: { cid: 1300001, aid: 100001, bvid: 'BV1aaaaaaaa' },
     indexedId: '1300001',
-    title: 'Episode 1',
+    title: 'Ep1',
     episodeNumber: '1',
     seasonId,
     comments: [],
@@ -47,16 +45,14 @@ function makeEpisode(seasonId: number): EpisodeInsert {
   }
 }
 
-test('danmaku list: refresh metadata pulls fresh season info', async ({
+test('mount tree: refresh danmaku fetches new comments for an episode', async ({
   context,
   page,
   extensionId,
 }) => {
   const da = await getDaClient(context)
-
   await applyProfile(context, da, {
     providers: { bilibili: { enabled: true } },
-    // The /pgc/view/web/season fixture has the canonical (fresh) title.
     network: mockBilibiliXml({
       searchBangumi: loadJsonFixture('bilibili-search-bangumi.json'),
       searchFt: loadJsonFixture('bilibili-search-ft.json'),
@@ -65,24 +61,24 @@ test('danmaku list: refresh metadata pulls fresh season info', async ({
     }),
   })
 
-  const seeded = await da.season.add(BILIBILI_SEASON)
-  await da.episode.add(makeEpisode(seeded.id))
-  expect(seeded.title).toBe(STALE_TITLE)
-  expect(seeded.version).toBe(1)
+  const season = await da.season.add(SEASON)
+  const episode = await da.episode.add(makeEpisode(season.id))
+  expect(episode.commentCount).toBe(0)
 
-  const popup = await Popup.open(page, extensionId, '/danmaku')
-  const card = await popup.seasonList.waitForFirstCard('Bilibili')
+  const popup = await Popup.open(page, extensionId, '/mount')
+  await popup.mount.waitForSeason(season.id)
+  await popup.mount.expandSeason(season.id)
 
-  await popup.seasonList.openCardMenu(card, 'refresh')
+  const episodeItem = await popup.mount.episodeItem(episode.id).first()
+  await expect(episodeItem).toBeVisible({ timeout: 10_000 })
 
-  // Refresh calls SeasonService.upsert which bumps version. Title becomes
-  // whatever the bilibili-season.json fixture says.
+  await popup.mount.openItemMenu(episodeItem, 'refresh')
+
+  // Refresh writes new comments to db.episode. The seeded episode had 0;
+  // the XML fixture has > 0.
   await expect
-    .poll(async () => (await da.season.get(seeded.id))?.version, {
+    .poll(async () => (await da.episode.get(episode.id))?.commentCount, {
       timeout: 10_000,
     })
-    .toBeGreaterThan(1)
-
-  const refreshed = await da.season.get(seeded.id)
-  expect(refreshed?.title).not.toBe(STALE_TITLE)
+    .toBeGreaterThan(0)
 })
