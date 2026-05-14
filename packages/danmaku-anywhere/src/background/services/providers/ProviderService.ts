@@ -17,13 +17,16 @@ import type {
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { isProvider } from '@/common/danmaku/utils'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
+import { BilibiliService } from './bilibili/BilibiliService'
 import type { IDanmakuProvider, OmitSeasonId } from './IDanmakuProvider'
 import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
 } from './ProviderFactory'
+import { TencentService } from './tencent/TencentService'
 
 function enrichEpisode(
   episode: OmitSeasonId<EpisodeMeta>,
@@ -49,6 +52,8 @@ export class ProviderService {
     private providerConfigService: ProviderConfigService,
     @inject(DanmakuProviderFactory)
     private danmakuProviderFactory: IDanmakuProviderFactory,
+    @inject(ExtensionOptionsService)
+    private extensionOptionsService: ExtensionOptionsService,
     @inject(LoggerSymbol) logger: ILogger
   ) {
     invariant(
@@ -58,6 +63,10 @@ export class ProviderService {
     this.logger = logger.sub('[ProviderService]')
   }
 
+  // URL detection still goes through per-source services because the
+  // manifest engine doesn't have a parseUrl pipeline kind yet (Phase 2).
+  // Constructed directly here rather than through the factory, which
+  // returns ManifestProviderService for the main fetch path.
   private async initParsers() {
     try {
       const bilibiliConfig =
@@ -65,8 +74,16 @@ export class ProviderService {
       const tencentConfig = await this.providerConfigService.getBuiltInTencent()
 
       this.parsers = [
-        this.danmakuProviderFactory(bilibiliConfig),
-        this.danmakuProviderFactory(tencentConfig),
+        new BilibiliService(
+          bilibiliConfig,
+          this.logger,
+          this.extensionOptionsService
+        ),
+        new TencentService(
+          tencentConfig,
+          this.logger,
+          this.extensionOptionsService
+        ),
       ]
     } catch (e) {
       this.logger.error('Failed to init parsers', e)

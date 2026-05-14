@@ -59,7 +59,7 @@
         }
       }
     ],
-    "output": "[season.result.episodes[$not($contains(badge ? badge : '', '预告'))].{ 'providerIds': { 'cid': cid, 'aid': aid, 'bvid': bvid, 'epid': id }, 'indexedId': $string(cid), 'title': long_title and long_title != '' ? long_title : show_title, 'episodeNumber': show_title, 'imageUrl': cover, 'alternativeTitle': share_copy and share_copy != '' ? [share_copy] : undefined }]"
+    "output": "[season.result.episodes[$not($contains(badge ? badge : '', '预告'))].{ 'providerIds': { 'cid': cid, 'aid': aid, 'bvid': bvid, 'epid': id }, 'indexedId': $string(cid), 'title': long_title and long_title != '' ? long_title : show_title, 'episodeNumber': $match(show_title, /^\\d+$/) ? $number(show_title) : (show_title and show_title != '' ? show_title : undefined), 'imageUrl': cover, 'alternativeTitle': share_copy and share_copy != '' ? [share_copy] : undefined }]"
   },
   "danmaku": [
     {
