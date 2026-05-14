@@ -106,6 +106,10 @@ export const SelectorPage = () => {
         <SeasonGrid
           data={animes}
           onSelectionChange={([season]) => {
+            if (!season) {
+              setSelectedSeason(undefined)
+              return
+            }
             if (isNotCustom(season) && isPersistedSeason(season)) {
               handleAnimeSelect(season)
             }
