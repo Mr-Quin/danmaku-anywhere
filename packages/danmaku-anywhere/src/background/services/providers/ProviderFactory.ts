@@ -1,4 +1,7 @@
-import { PROVIDER_TO_BUILTIN_ID } from '@danmaku-anywhere/danmaku-converter'
+import {
+  type CommentEntity,
+  PROVIDER_TO_BUILTIN_ID,
+} from '@danmaku-anywhere/danmaku-converter'
 import type { ResolutionContext } from 'inversify'
 import type { IDanmakuProvider } from '@/background/services/providers/IDanmakuProvider'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
@@ -17,6 +20,16 @@ export type IDanmakuProviderFactory = (
 
 export const DanmakuProviderFactory = Symbol.for('DanmakuProviderFactory')
 
+// Adapter: ManifestProviderService hands the mapper an `unknown` payload
+// (the raw output of the manifest's danmaku pipeline). Mappers are typed
+// to a specific shape they expect. Goes away when DA-477's per-row `map`
+// step kind moves the transform into the manifest.
+function withMapper<T>(
+  fn: (arg: T) => CommentEntity[]
+): (raw: unknown) => CommentEntity[] {
+  return (raw) => fn(raw as T)
+}
+
 function createDanmakuProvider(
   config: ProviderConfig,
   logger: ILogger
@@ -28,6 +41,9 @@ function createDanmakuProvider(
       // manifest with the user's baseUrl + auth headers injected. Anything
       // else (regular DanDanPlay, or DDP-Compat without baseUrl) goes
       // through the proxy-backed dandanplay manifest.
+      const ddpCommentMapper = withMapper(
+        DanDanPlayMapper.manifestCommentsToComments
+      )
       if (
         config.type === 'DanDanPlayCompatible' &&
         config.options.baseUrl?.trim()
@@ -41,12 +57,7 @@ function createDanmakuProvider(
             provider: DanmakuSourceType.DanDanPlay,
             providerConfigId: config.id,
             extraInputs: () => ({ baseUrl, authHeaders }),
-            commentMapper: (raw) =>
-              DanDanPlayMapper.manifestCommentsToComments(
-                raw as Parameters<
-                  typeof DanDanPlayMapper.manifestCommentsToComments
-                >[0]
-              ),
+            commentMapper: ddpCommentMapper,
           },
           registry,
           logger
@@ -57,12 +68,7 @@ function createDanmakuProvider(
           manifestId: 'builtin:dandanplay',
           provider: DanmakuSourceType.DanDanPlay,
           providerConfigId: config.id,
-          commentMapper: (raw) =>
-            DanDanPlayMapper.manifestCommentsToComments(
-              raw as Parameters<
-                typeof DanDanPlayMapper.manifestCommentsToComments
-              >[0]
-            ),
+          commentMapper: ddpCommentMapper,
         },
         registry,
         logger
@@ -74,12 +80,7 @@ function createDanmakuProvider(
           manifestId: 'builtin:bilibili',
           provider: DanmakuSourceType.Bilibili,
           providerConfigId: PROVIDER_TO_BUILTIN_ID.Bilibili,
-          commentMapper: (raw) =>
-            BilibiliMapper.manifestSegmentsToComments(
-              raw as Parameters<
-                typeof BilibiliMapper.manifestSegmentsToComments
-              >[0]
-            ),
+          commentMapper: withMapper(BilibiliMapper.manifestSegmentsToComments),
           extraInputs: () => ({
             danmakuFormat: config.options.danmakuTypePreference,
           }),
@@ -93,12 +94,7 @@ function createDanmakuProvider(
           manifestId: 'builtin:tencent',
           provider: DanmakuSourceType.Tencent,
           providerConfigId: PROVIDER_TO_BUILTIN_ID.Tencent,
-          commentMapper: (raw) =>
-            TencentMapper.manifestBarrageToComments(
-              raw as Parameters<
-                typeof TencentMapper.manifestBarrageToComments
-              >[0]
-            ),
+          commentMapper: withMapper(TencentMapper.manifestBarrageToComments),
         },
         registry,
         logger

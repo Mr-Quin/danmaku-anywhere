@@ -535,8 +535,7 @@
       }
     },
     "uploadDebugData": "Submit Debug Data",
-    "uploadDebugDataSuccess": "Submitted {{ id }}",
-    "useManifest": "Use manifest engine for danmaku sources (experimental)"
+    "uploadDebugDataSuccess": "Submitted {{ id }}"
   },
   "providers": {
     "alert": {

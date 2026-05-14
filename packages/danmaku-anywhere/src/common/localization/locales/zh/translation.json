@@ -521,8 +521,7 @@
       }
     },
     "uploadDebugData": "提交调试数据",
-    "uploadDebugDataSuccess": "提交成功 {{ id }}",
-    "useManifest": "使用清单引擎获取弹幕（实验性）"
+    "uploadDebugDataSuccess": "提交成功 {{ id }}"
   },
   "providers": {
     "alert": {

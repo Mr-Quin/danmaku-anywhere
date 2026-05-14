@@ -45,5 +45,4 @@ export const defaultExtensionOptions: ExtensionOptions = {
   id: undefined,
   restrictInitiatorDomain: true,
   showFloatingButton: true,
-  useManifest: true,
 }
