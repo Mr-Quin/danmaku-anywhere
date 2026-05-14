@@ -25,4 +25,18 @@ describe('decodeBilibiliDanmakuProto', () => {
       Error
     )
   })
+
+  it('decodes a real-world `.bin` segment file', async () => {
+    const bytes = await readFile(
+      resolve(__dirname, './test/danmakuProtoMuli.bin')
+    )
+
+    const comments = await decodeBilibiliDanmakuProto(new Uint8Array(bytes))
+
+    expect(comments.length).toBeGreaterThan(0)
+    expect(comments[0]).toMatchObject({
+      p: expect.stringMatching(/^\d+(\.\d+)?,\d+,\d+$/),
+      m: expect.any(String),
+    })
+  })
 })
