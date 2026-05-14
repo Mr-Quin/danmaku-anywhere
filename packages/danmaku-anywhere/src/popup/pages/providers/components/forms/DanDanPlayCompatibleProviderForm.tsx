@@ -117,12 +117,7 @@ export const DanDanPlayCompatibleProviderForm = ({
 
       <Box sx={{ width: '100%' }}>
         <FormControlLabel
-          control={
-            <Checkbox
-              {...register('auth.enabled')}
-              defaultChecked={values.auth?.enabled ?? false}
-            />
-          }
+          control={<Checkbox {...register('auth.enabled')} />}
           label={t('providers.editor.authEnabled', 'Enable Authentication')}
           sx={{ color: 'text.secondary' }}
         />

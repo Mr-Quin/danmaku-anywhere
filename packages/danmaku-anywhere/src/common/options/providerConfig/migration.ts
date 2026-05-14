@@ -8,6 +8,7 @@ import {
   builtInBilibiliProvider,
   builtInDanDanPlayProvider,
   builtInTencentProvider,
+  DDP_COMPAT_MANIFEST_ID,
   defaultProviderConfigs,
 } from './constant'
 import type { ProviderConfig } from './schema'
@@ -175,7 +176,7 @@ export function migrateProviderConfigsToFlat(
       case 'DanDanPlayCompatible':
         out.push({
           ...base,
-          manifestId: 'builtin:ddp-compat',
+          manifestId: DDP_COMPAT_MANIFEST_ID,
           configValues: options,
         })
         break

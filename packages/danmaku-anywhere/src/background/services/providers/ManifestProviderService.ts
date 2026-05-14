@@ -1,11 +1,13 @@
-import type {
-  CommentEntity,
-  EpisodeMeta,
-  Season,
-  SeasonInsert,
-  WithSeason,
+import {
+  type CommentEntity,
+  EPISODE_SCHEMA_VERSION,
+  type EpisodeMeta,
+  SEASON_SCHEMA_VERSION,
+  type Season,
+  type SeasonInsert,
+  stripHtml,
+  type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import { stripHtml } from '@danmaku-anywhere/danmaku-converter'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { ILogger } from '@/common/Logger'
@@ -84,7 +86,7 @@ export class ManifestProviderService implements IDanmakuProvider {
       title: stripHtml(row.title),
       provider: this.forProvider,
       providerConfigId: this.config.providerConfigId,
-      schemaVersion: 1 as const,
+      schemaVersion: SEASON_SCHEMA_VERSION,
     }))
   }
 
@@ -104,7 +106,7 @@ export class ManifestProviderService implements IDanmakuProvider {
       ...row,
       title: stripHtml(row.title),
       provider: this.forProvider,
-      schemaVersion: 4 as const,
+      schemaVersion: EPISODE_SCHEMA_VERSION,
       lastChecked: now,
     }))
   }
