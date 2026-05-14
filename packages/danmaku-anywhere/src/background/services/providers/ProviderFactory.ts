@@ -1,11 +1,13 @@
 import {
   type CommentEntity,
+  LEGACY_MACCMS_ID,
   PROVIDER_TO_BUILTIN_ID,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { ResolutionContext } from 'inversify'
 import type { IDanmakuProvider } from '@/background/services/providers/IDanmakuProvider'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import { DDP_COMPAT_MANIFEST_ID } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { BilibiliMapper } from './bilibili/BilibiliMapper'
 import { DanDanPlayMapper } from './dandanplay/DanDanPlayMapper'
@@ -30,77 +32,97 @@ function withMapper<T>(
   return (raw) => fn(raw as T)
 }
 
+interface DdpCompatConfig {
+  baseUrl?: string
+  auth?: { enabled?: boolean; headers?: { key: string; value: string }[] }
+}
+
 function createDanmakuProvider(
   config: ProviderConfig,
   logger: ILogger
 ): IDanmakuProvider {
   const registry = getManifestRegistry()
-  switch (config.impl) {
-    case DanmakuSourceType.DanDanPlay: {
-      // DDP-Compat with a configured baseUrl routes to the ddp-compat
-      // manifest with the user's baseUrl + auth headers injected. Anything
-      // else (regular DanDanPlay, or DDP-Compat without baseUrl) goes
-      // through the proxy-backed dandanplay manifest.
-      const ddpCommentMapper = withMapper(
-        DanDanPlayMapper.manifestCommentsToComments
+  // MacCMS still routes to its legacy service until Phase 4 ships a
+  // template manifest.
+  if (config.manifestId === LEGACY_MACCMS_ID) {
+    return new MacCmsProviderService(config, logger)
+  }
+  switch (config.manifestId) {
+    case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]:
+      return new ManifestProviderService(
+        {
+          manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
+          provider: DanmakuSourceType.DanDanPlay,
+          providerConfigId: config.id,
+          commentMapper: withMapper(
+            DanDanPlayMapper.manifestCommentsToComments
+          ),
+        },
+        registry,
+        logger
       )
-      if (
-        config.type === 'DanDanPlayCompatible' &&
-        config.options.baseUrl?.trim()
-      ) {
-        const baseUrl = config.options.baseUrl.trim()
-        const { auth } = config.options
-        const authHeaders = auth?.enabled && auth.headers ? auth.headers : []
+    case DDP_COMPAT_MANIFEST_ID: {
+      const values = config.configValues as DdpCompatConfig
+      const baseUrl = values.baseUrl?.trim()
+      // DDP-Compat without a baseUrl falls back to the proxy-backed
+      // dandanplay manifest.
+      if (!baseUrl) {
         return new ManifestProviderService(
           {
-            manifestId: 'builtin:ddp-compat',
+            manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
             provider: DanmakuSourceType.DanDanPlay,
             providerConfigId: config.id,
-            extraInputs: () => ({ baseUrl, authHeaders }),
-            commentMapper: ddpCommentMapper,
+            commentMapper: withMapper(
+              DanDanPlayMapper.manifestCommentsToComments
+            ),
           },
           registry,
           logger
         )
       }
+      const authHeaders =
+        values.auth?.enabled && values.auth.headers ? values.auth.headers : []
       return new ManifestProviderService(
         {
-          manifestId: 'builtin:dandanplay',
+          manifestId: DDP_COMPAT_MANIFEST_ID,
           provider: DanmakuSourceType.DanDanPlay,
           providerConfigId: config.id,
-          commentMapper: ddpCommentMapper,
+          extraInputs: () => ({ baseUrl, authHeaders }),
+          commentMapper: withMapper(
+            DanDanPlayMapper.manifestCommentsToComments
+          ),
         },
         registry,
         logger
       )
     }
-    case DanmakuSourceType.Bilibili:
+    case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]: {
+      const values = config.configValues as { danmakuFormat?: string }
       return new ManifestProviderService(
         {
-          manifestId: 'builtin:bilibili',
+          manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
           provider: DanmakuSourceType.Bilibili,
-          providerConfigId: PROVIDER_TO_BUILTIN_ID.Bilibili,
+          providerConfigId: config.id,
           commentMapper: withMapper(BilibiliMapper.manifestSegmentsToComments),
-          extraInputs: () => ({
-            danmakuFormat: config.options.danmakuTypePreference,
-          }),
+          extraInputs: () => ({ danmakuFormat: values.danmakuFormat ?? 'xml' }),
         },
         registry,
         logger
       )
-    case DanmakuSourceType.Tencent:
+    }
+    case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]:
       return new ManifestProviderService(
         {
-          manifestId: 'builtin:tencent',
+          manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
           provider: DanmakuSourceType.Tencent,
-          providerConfigId: PROVIDER_TO_BUILTIN_ID.Tencent,
+          providerConfigId: config.id,
           commentMapper: withMapper(TencentMapper.manifestBarrageToComments),
         },
         registry,
         logger
       )
-    case DanmakuSourceType.MacCMS:
-      return new MacCmsProviderService(config, logger)
+    default:
+      throw new Error(`Unknown manifestId: ${config.manifestId}`)
   }
 }
 
