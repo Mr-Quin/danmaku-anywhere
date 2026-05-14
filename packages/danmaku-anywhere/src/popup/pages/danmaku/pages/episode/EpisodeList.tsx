@@ -1,4 +1,5 @@
 import type {
+  Episode,
   EpisodeLite,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
@@ -64,7 +65,7 @@ export const EpisodeList = () => {
 
   const handleFetchDanmaku = async (episode: EpisodeRow) => {
     if (isProvider(episode, DanmakuSourceType.MacCMS)) return
-    return refreshDanmaku(episode)
+    return refreshDanmaku(episode as WithSeason<Episode>)
   }
 
   const handleDelete = (episode: EpisodeRow) => {

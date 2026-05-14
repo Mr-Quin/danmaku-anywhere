@@ -1,5 +1,4 @@
 import type {
-  ByProvider,
   CustomSeason,
   Episode,
   EpisodeMeta,
@@ -16,31 +15,30 @@ import type {
   DanmakuFetchRequest,
 } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { assertProviderType, isProvider } from '@/common/danmaku/utils'
+import { isProvider } from '@/common/danmaku/utils'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
-import type { IDanmakuProvider, OmitSeasonId } from './IDanmakuProvider'
+import type { OmitSeasonId } from './IDanmakuProvider'
 import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
 } from './ProviderFactory'
 
-const enrichEpisode = <T extends DanmakuSourceType>(
-  episode: OmitSeasonId<ByProvider<EpisodeMeta, T>>,
-  season: ByProvider<Season, T>
-) => {
+function enrichEpisode(
+  episode: OmitSeasonId<EpisodeMeta>,
+  season: Season
+): WithSeason<EpisodeMeta> {
   return {
     ...episode,
     seasonId: season.id,
-    season: season,
+    season,
   }
 }
 
 @injectable('Singleton')
 export class ProviderService {
   private logger: ILogger
-  private parsers: IDanmakuProvider[] = []
 
   constructor(
     @inject(DanmakuService)
@@ -57,21 +55,6 @@ export class ProviderService {
       'ProviderService is only available in service worker'
     )
     this.logger = logger.sub('[ProviderService]')
-  }
-
-  private async initParsers() {
-    try {
-      const bilibiliConfig =
-        await this.providerConfigService.getBuiltInBilibili()
-      const tencentConfig = await this.providerConfigService.getBuiltInTencent()
-
-      this.parsers = [
-        this.danmakuProviderFactory(bilibiliConfig),
-        this.danmakuProviderFactory(tencentConfig),
-      ]
-    } catch (e) {
-      this.logger.error('Failed to init parsers', e)
-    }
   }
 
   async searchSeason(
@@ -113,35 +96,14 @@ export class ProviderService {
     const providerConfig = await this.providerConfigService.mustGet(
       season.providerConfigId
     )
-    const service = this.danmakuProviderFactory.getTyped(providerConfig)
+    const service = this.danmakuProviderFactory(providerConfig)
 
-    const enrichEpisodes = <T extends DanmakuSourceType>(
-      episodes: OmitSeasonId<ByProvider<EpisodeMeta, T>>[],
-      season: ByProvider<Season, T>
-    ) => {
-      return episodes.map((episode) => enrichEpisode(episode, season))
+    if (service.forProvider === DanmakuSourceType.MacCMS) {
+      throw new Error('MacCMS does not support fetching episodes')
     }
 
-    switch (service.forProvider) {
-      case DanmakuSourceType.DanDanPlay: {
-        assertProviderType(season, DanmakuSourceType.DanDanPlay)
-        const episodes = await service.getEpisodes(season.providerIds)
-        return enrichEpisodes(episodes, season)
-      }
-      case DanmakuSourceType.Bilibili: {
-        assertProviderType(season, DanmakuSourceType.Bilibili)
-        const episodes = await service.getEpisodes(season.providerIds)
-        return enrichEpisodes(episodes, season)
-      }
-      case DanmakuSourceType.Tencent: {
-        assertProviderType(season, DanmakuSourceType.Tencent)
-        const episodes = await service.getEpisodes(season.providerIds)
-        return enrichEpisodes(episodes, season)
-      }
-      case DanmakuSourceType.MacCMS: {
-        throw new Error('MacCMS does not support fetching episodes')
-      }
-    }
+    const episodes = await service.getEpisodes(season.providerIds)
+    return episodes.map((episode) => enrichEpisode(episode, season))
   }
 
   async refreshSeason(filter: SeasonQueryFilter) {
@@ -195,7 +157,7 @@ export class ProviderService {
         lastChecked: 0,
       },
       season
-    ) as WithSeason<EpisodeMeta>
+    )
     return { type: 'by-meta', meta, options: request.options }
   }
 
@@ -203,6 +165,10 @@ export class ProviderService {
     const resolved = await this.resolveMeta(request)
     const { options = {} } = resolved
     const provider = resolved.meta.provider
+
+    if (provider === DanmakuSourceType.MacCMS) {
+      throw new Error('MacCMS episodes are not refetchable')
+    }
 
     let existingDanmaku: WithSeason<Episode> | undefined
 
@@ -244,23 +210,21 @@ export class ProviderService {
     return {
       ...saved,
       season,
-    } as WithSeason<Episode>
+    }
   }
 
   async parseUrl(url: string): Promise<WithSeason<EpisodeMeta>> {
-    if (this.parsers.length === 0) {
-      await this.initParsers()
-    }
-
-    for (const provider of this.parsers) {
-      if (provider.parseUrl && provider.canParse?.(url)) {
-        const result = await provider.parseUrl(url)
-        if (result) {
-          const { episodeMeta, seasonInsert } = result
-          const season = await this.seasonService.upsert(seasonInsert)
-
-          return enrichEpisode(episodeMeta, season) as WithSeason<EpisodeMeta>
-        }
+    const configs = await this.providerConfigService.getAll()
+    for (const config of configs) {
+      if (!config.enabled) continue
+      const service = this.danmakuProviderFactory(config)
+      if (!service.canParse?.(url)) continue
+      if (!service.parseUrl) continue
+      const result = await service.parseUrl(url)
+      if (result) {
+        const { episodeMeta, seasonInsert } = result
+        const season = await this.seasonService.upsert(seasonInsert)
+        return enrichEpisode(episodeMeta, season)
       }
     }
 

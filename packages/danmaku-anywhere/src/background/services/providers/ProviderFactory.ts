@@ -1,56 +1,148 @@
+import {
+  type CommentEntity,
+  LEGACY_MACCMS_ID,
+  PROVIDER_TO_BUILTIN_ID,
+} from '@danmaku-anywhere/danmaku-converter'
 import type { ResolutionContext } from 'inversify'
 import type { IDanmakuProvider } from '@/background/services/providers/IDanmakuProvider'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import { DDP_COMPAT_MANIFEST_ID } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
-import { BilibiliService } from './bilibili/BilibiliService'
-import { DanDanPlayService } from './dandanplay/DanDanPlayService'
+import { BilibiliMapper } from './bilibili/BilibiliMapper'
+import { DanDanPlayMapper } from './dandanplay/DanDanPlayMapper'
 import { MacCmsProviderService } from './MacCmsProviderService'
-import { TencentService } from './tencent/TencentService'
+import { ManifestProviderService } from './ManifestProviderService'
+import { getManifestRegistry } from './ManifestRegistry'
+import { TencentMapper } from './tencent/TencentMapper'
 
-interface ServiceMap {
-  [DanmakuSourceType.DanDanPlay]: DanDanPlayService
-  [DanmakuSourceType.Bilibili]: BilibiliService
-  [DanmakuSourceType.Tencent]: TencentService
-  [DanmakuSourceType.MacCMS]: MacCmsProviderService
-}
-
-export interface IDanmakuProviderFactory {
-  (config: ProviderConfig): IDanmakuProvider
-  getTyped(config: ProviderConfig): ServiceMap[ProviderConfig['impl']]
-}
+export type IDanmakuProviderFactory = (
+  config: ProviderConfig
+) => IDanmakuProvider
 
 export const DanmakuProviderFactory = Symbol.for('DanmakuProviderFactory')
+
+// Adapter: ManifestProviderService hands the mapper an `unknown` payload
+// (the raw output of the manifest's danmaku pipeline). Mappers are typed
+// to a specific shape they expect. Goes away when DA-477's per-row `map`
+// step kind moves the transform into the manifest.
+function withMapper<T>(
+  fn: (arg: T) => CommentEntity[]
+): (raw: unknown) => CommentEntity[] {
+  return (raw) => fn(raw as T)
+}
+
+interface DdpConfig {
+  chConvert?: number
+}
+
+interface DdpCompatConfig {
+  baseUrl?: string
+  auth?: { enabled?: boolean; headers?: { key: string; value: string }[] }
+  chConvert?: number
+}
 
 function createDanmakuProvider(
   config: ProviderConfig,
   logger: ILogger
-): ServiceMap[ProviderConfig['impl']] {
-  switch (config.impl) {
-    case DanmakuSourceType.DanDanPlay:
-      return new DanDanPlayService(config, logger)
-    case DanmakuSourceType.Bilibili:
-      return new BilibiliService(config, logger)
-    case DanmakuSourceType.Tencent:
-      return new TencentService(config, logger)
-    case DanmakuSourceType.MacCMS:
-      return new MacCmsProviderService(config, logger)
+): IDanmakuProvider {
+  const registry = getManifestRegistry()
+  // MacCMS still routes to its legacy service until Phase 4 ships a
+  // template manifest.
+  if (config.manifestId === LEGACY_MACCMS_ID) {
+    return new MacCmsProviderService(config, logger)
+  }
+  switch (config.manifestId) {
+    case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]: {
+      const values = config.configValues as DdpConfig
+      return new ManifestProviderService(
+        {
+          manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
+          provider: DanmakuSourceType.DanDanPlay,
+          providerConfigId: config.id,
+          extraInputs: () => ({ chConvert: values.chConvert }),
+          commentMapper: withMapper(
+            DanDanPlayMapper.manifestCommentsToComments
+          ),
+        },
+        registry,
+        logger
+      )
+    }
+    case DDP_COMPAT_MANIFEST_ID: {
+      const values = config.configValues as DdpCompatConfig
+      const baseUrl = values.baseUrl?.trim()
+      // DDP-Compat without a baseUrl falls back to the proxy-backed
+      // dandanplay manifest.
+      if (!baseUrl) {
+        return new ManifestProviderService(
+          {
+            manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
+            provider: DanmakuSourceType.DanDanPlay,
+            providerConfigId: config.id,
+            extraInputs: () => ({ chConvert: values.chConvert }),
+            commentMapper: withMapper(
+              DanDanPlayMapper.manifestCommentsToComments
+            ),
+          },
+          registry,
+          logger
+        )
+      }
+      const authHeaders =
+        values.auth?.enabled && values.auth.headers ? values.auth.headers : []
+      return new ManifestProviderService(
+        {
+          manifestId: DDP_COMPAT_MANIFEST_ID,
+          provider: DanmakuSourceType.DanDanPlay,
+          providerConfigId: config.id,
+          extraInputs: () => ({
+            baseUrl,
+            authHeaders,
+            chConvert: values.chConvert,
+          }),
+          commentMapper: withMapper(
+            DanDanPlayMapper.manifestCommentsToComments
+          ),
+        },
+        registry,
+        logger
+      )
+    }
+    case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]: {
+      const values = config.configValues as { danmakuFormat?: string }
+      return new ManifestProviderService(
+        {
+          manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
+          provider: DanmakuSourceType.Bilibili,
+          providerConfigId: config.id,
+          commentMapper: withMapper(BilibiliMapper.manifestSegmentsToComments),
+          extraInputs: () => ({ danmakuFormat: values.danmakuFormat ?? 'xml' }),
+        },
+        registry,
+        logger
+      )
+    }
+    case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]:
+      return new ManifestProviderService(
+        {
+          manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
+          provider: DanmakuSourceType.Tencent,
+          providerConfigId: config.id,
+          commentMapper: withMapper(TencentMapper.manifestBarrageToComments),
+        },
+        registry,
+        logger
+      )
+    default:
+      throw new Error(`Unknown manifestId: ${config.manifestId}`)
   }
 }
 
 export function danmakuProviderFactory(
   context: ResolutionContext
 ): IDanmakuProviderFactory {
-  function get(config: ProviderConfig): IDanmakuProvider {
-    const logger = context.get<ILogger>(LoggerSymbol)
-    return createDanmakuProvider(config, logger)
+  return (config: ProviderConfig): IDanmakuProvider => {
+    return createDanmakuProvider(config, context.get<ILogger>(LoggerSymbol))
   }
-
-  get.getTyped = (
-    config: ProviderConfig
-  ): ServiceMap[ProviderConfig['impl']] => {
-    const logger = context.get<ILogger>(LoggerSymbol)
-    return createDanmakuProvider(config, logger)
-  }
-  return get
 }

@@ -4,10 +4,7 @@ import type {
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { GetCommentQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
-import type {
-  DanmakuSourceType,
-  RemoteDanmakuSourceType,
-} from '@/common/danmaku/enums'
+import type { DanmakuSourceType } from '@/common/danmaku/enums'
 
 export type EpisodeFetchBySeasonParams = {
   seasonId: number
@@ -16,7 +13,7 @@ export type EpisodeFetchBySeasonParams = {
 export type EpisodeQueryFilter = {
   id?: number
   seasonId?: number
-  provider?: RemoteDanmakuSourceType
+  provider?: DanmakuSourceType
   indexedId?: string
   ids?: number[]
   all?: boolean

@@ -14,13 +14,30 @@ export function urlMatches(
   url: string,
   entry: { host: string; path: string }
 ): boolean {
+  return matchUrl(url, entry) !== null
+}
+
+export interface UrlMatchResult {
+  /** Named capture groups from the `path` regex (empty object if none). */
+  groups: Record<string, string>
+}
+
+/**
+ * Like `urlMatches` but returns the named capture groups when matched, or
+ * null when not. Used by parseUrl pipelines to extract identifiers from the
+ * URL (e.g. `(?<ssid>\d+)` becomes `inputs.ssid`).
+ */
+export function matchUrl(
+  url: string,
+  entry: { host: string; path: string }
+): UrlMatchResult | null {
   let parsed: URL
   try {
     parsed = new URL(url)
   } catch {
-    return false
+    return null
   }
-  /** Use `.hostname` (no port) for consistent matching. */
+  // Use `.hostname` (no port) for consistent matching.
   const host = parsed.hostname
   const wantHost = entry.host
   let hostOk = false
@@ -29,12 +46,16 @@ export function urlMatches(
   } else if (wantHost.startsWith('*.')) {
     hostOk = host.endsWith(wantHost.slice(1))
   }
-  if (!hostOk) return false
+  if (!hostOk) return null
+  let pattern: RegExp
   try {
-    return new RegExp(entry.path).test(parsed.pathname)
+    pattern = new RegExp(entry.path)
   } catch {
-    return false
+    return null
   }
+  const m = pattern.exec(parsed.pathname)
+  if (m === null) return null
+  return { groups: { ...(m.groups ?? {}) } }
 }
 
 /**
@@ -49,6 +70,26 @@ export function findManifestForUrl(
   for (const m of manifests) {
     for (const entry of m.urlMatch) {
       if (urlMatches(url, entry)) return m
+    }
+  }
+  return null
+}
+
+/**
+ * Find the first manifest+matched-entry pair for a URL, returning both the
+ * manifest and the named capture groups. Used by parseUrl dispatch where
+ * the host needs both "which manifest" and "what did the URL extract."
+ */
+export function findManifestMatchForUrl(
+  manifests: readonly Manifest[],
+  url: string
+): { manifest: Manifest; groups: Record<string, string> } | null {
+  for (const m of manifests) {
+    for (const entry of m.urlMatch) {
+      const match = matchUrl(url, entry)
+      if (match !== null) {
+        return { manifest: m, groups: match.groups }
+      }
     }
   }
   return null

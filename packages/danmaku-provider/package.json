@@ -22,6 +22,10 @@
       "types": "./src/providers/bilibili/index.d.ts",
       "default": "./src/providers/bilibili/index.js"
     },
+    "./bilibili-proto": {
+      "types": "./src/protobuf/protobuf.d.ts",
+      "default": "./src/protobuf/protobuf.js"
+    },
     "./tencent": {
       "types": "./src/providers/tencent/index.d.ts",
       "default": "./src/providers/tencent/index.js"

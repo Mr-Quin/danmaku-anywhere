@@ -227,5 +227,12 @@ export const zManifest = z.object({
   search: zPipelineField.optional(),
   episodes: zPipelineField.optional(),
   danmaku: zPipelineField.optional(),
+  /**
+   * Resolve a URL to a `{ seasonInsert, episodeMeta }` pair. Named capture
+   * groups from the first matching `urlMatch` entry become pipeline inputs
+   * (e.g. `path: '/play/ss(?<ssid>\\d+)'` → input `ssid` available in the
+   * pipeline context).
+   */
+  parseUrl: zPipelineField.optional(),
 })
 export type Manifest = z.infer<typeof zManifest>

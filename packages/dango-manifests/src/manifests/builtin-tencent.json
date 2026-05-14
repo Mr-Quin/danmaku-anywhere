@@ -4,6 +4,12 @@
   "name": "Tencent Video",
   "version": "1.0.0",
   "hosts": ["pbaccess.video.qq.com", "dm.video.qq.com"],
+  "urlMatch": [
+    {
+      "host": "v.qq.com",
+      "path": "^/x/cover/(?<cid>[^/]+)/(?<vid>[^/]+)\\.html"
+    }
+  ],
   "search": {
     "inputs": ["q"],
     "steps": [
@@ -29,7 +35,7 @@
         }
       }
     ],
-    "output": "[picked.items[videoInfo.episodeSites and $count(videoInfo.episodeSites) > 0].{ 'providerIds': { 'cid': doc.id }, 'indexedId': doc.id, 'title': videoInfo.title, 'type': videoInfo.typeName, 'typeDescription': videoInfo.typeName, 'imageUrl': videoInfo.imgUrl, 'episodeCount': videoInfo.episodeSites[0].totalEpisode, 'year': videoInfo.year > 0 ? videoInfo.year : null }]"
+    "output": "[picked.items[videoInfo.episodeSites and $count(videoInfo.episodeSites) > 0].{ 'providerIds': { 'cid': doc.id }, 'indexedId': doc.id, 'title': videoInfo.title, 'type': videoInfo.typeName, 'typeDescription': videoInfo.typeName, 'imageUrl': videoInfo.imgUrl, 'episodeCount': videoInfo.episodeSites[0].totalEpisode, 'year': videoInfo.year > 0 ? videoInfo.year : undefined }]"
   },
   "episodes": {
     "inputs": ["cid"],
@@ -50,10 +56,11 @@
           }
         },
         "collect": "[data.module_list_datas[0].module_datas[0].item_data_lists.item_datas[item_params.is_trailer != '1'].item_params]",
-        "breakOn": "$count($) < 100"
+        "breakOn": "$count($) < 100",
+        "throttleMs": 100
       }
     ],
-    "output": "[pages.{ 'providerIds': { 'vid': vid, 'cid': cid }, 'indexedId': vid, 'title': $exists(union_title) and union_title != '' ? union_title : title, 'episodeNumber': play_title, 'imageUrl': image_url }]"
+    "output": "[pages.{ 'providerIds': { 'vid': vid, 'cid': cid }, 'indexedId': vid, 'title': play_title, 'episodeNumber': title, 'alternativeTitle': union_title and union_title != '' ? [union_title] : undefined, 'imageUrl': image_url }]"
   },
   "danmaku": {
     "inputs": ["vid"],
@@ -95,6 +102,53 @@
         "collect": "barrage_list"
       }
     ],
-    "output": "[segments.($style := $exists(content_style) and content_style != '' ? $jsonParse(content_style) : null; $color := ($exists($style) and $exists($style.color) and $style.color != '') ? $style.color : 'FFFFFF'; { 'cid': $number(id), 'p': $string($number(time_offset) / 1000) & ',1,' & $string($hexToInt($color)), 'm': content })]"
+    "output": "[segments]"
+  },
+  "parseUrl": {
+    "inputs": [],
+    "steps": [
+      {
+        "type": "http",
+        "id": "details",
+        "request": {
+          "method": "POST",
+          "url": "'https://pbaccess.video.qq.com/trpc.universal_backend_service.page_server_rpc.PageServer/GetPageData?video_appid=3000010&vversion_name=8.2.96&vversion_platform=2'",
+          "headers": { "Content-Type": "'application/json'" },
+          "body": "{ 'has_cache': 1, 'pageParams': { 'cid': cid, 'lid': '0', 'vid': vid, 'req_from': 'web_mobile', 'page_type': 'detail_operation', 'page_id': 'detail_page_introduction' } }",
+          "rewriteHeaders": {
+            "Origin": "'https://v.qq.com'",
+            "Referer": "'https://v.qq.com/'"
+          }
+        }
+      },
+      {
+        "type": "forEach",
+        "id": "pages",
+        "in": "$range(0, 5)",
+        "as": "page",
+        "request": {
+          "method": "POST",
+          "url": "'https://pbaccess.video.qq.com/trpc.universal_backend_service.page_server_rpc.PageServer/GetPageData?video_appid=3000010&vversion_name=8.2.96&vversion_platform=2'",
+          "headers": { "Content-Type": "'application/json'" },
+          "body": "{ 'has_cache': 1, 'pageParams': { 'cid': cid, 'lid': '0', 'vid': '', 'req_from': 'web_mobile', 'page_type': 'detail_operation', 'page_id': 'vsite_episode_list', 'id_type': '1', 'page_size': '100', 'page_context': 'episode_begin=' & $string(page * 100 + 1) & '&episode_end=' & $string((page + 1) * 100) & '&episode_step=100' } }",
+          "rewriteHeaders": {
+            "Origin": "'https://v.qq.com'",
+            "Referer": "'https://v.qq.com/'"
+          }
+        },
+        "collect": "[data.module_list_datas[0].module_datas[0].item_data_lists.item_datas[item_params.is_trailer != '1'].item_params]",
+        "breakOn": "$count($) < 100",
+        "throttleMs": 100
+      },
+      {
+        "type": "assign",
+        "id": "picked",
+        "values": {
+          "season": "details.data.module_list_datas[0].module_datas[0].item_data_lists.item_datas[0]",
+          "ep": "($v := vid; pages[vid = $v])"
+        }
+      }
+    ],
+    "output": "{ 'seasonInsert': { 'providerIds': { 'cid': picked.season.item_params.`report.cid` }, 'indexedId': picked.season.item_params.`report.cid`, 'title': picked.season.item_params.title, 'type': $string(picked.season.item_type), 'imageUrl': picked.season.item_params.new_pic_vt, 'episodeCount': picked.season.item_params.episode_all }, 'episodeMeta': $exists(picked.ep) ? { 'providerIds': { 'vid': picked.ep.vid }, 'indexedId': picked.ep.vid, 'title': picked.ep.play_title, 'episodeNumber': picked.ep.title, 'alternativeTitle': picked.ep.union_title and picked.ep.union_title != '' ? [picked.ep.union_title] : undefined, 'imageUrl': picked.ep.image_url } : undefined }"
   }
 }

@@ -4,6 +4,16 @@
   "name": "Bilibili",
   "version": "1.0.0",
   "hosts": ["api.bilibili.com"],
+  "urlMatch": [
+    {
+      "host": "www.bilibili.com",
+      "path": "^/bangumi/play/ss(?<ssid>\\d+)"
+    },
+    {
+      "host": "www.bilibili.com",
+      "path": "^/bangumi/play/ep(?<epid>\\d+)"
+    }
+  ],
   "configSchema": {
     "danmakuFormat": {
       "type": "enum",
@@ -42,7 +52,7 @@
         }
       }
     ],
-    "output": "[[media_bangumi.data.result, media_ft.data.result].{ 'providerIds': { 'seasonId': $string(season_id), 'mediaId': $string(media_id) }, 'indexedId': $string(season_id), 'title': $replace(title, /<[^>]+>/, ''), 'type': season_type_name, 'typeDescription': season_type_name, 'imageUrl': cover, 'episodeCount': ep_size, 'year': pubtime > 0 ? $number($substring($string($fromMillis(pubtime * 1000)), 0, 4)) : null }]"
+    "output": "[[media_bangumi.data.result, media_ft.data.result].{ 'providerIds': { 'seasonId': season_id, 'mediaId': media_id }, 'indexedId': $string(season_id), 'title': $replace(title, /<[^>]+>/, ''), 'type': season_type_name, 'typeDescription': season_type_name, 'imageUrl': cover, 'episodeCount': ep_size, 'year': pubtime > 0 ? $number($substring($string($fromMillis(pubtime * 1000)), 0, 4)) : undefined }]"
   },
   "episodes": {
     "inputs": ["seasonId"],
@@ -59,7 +69,7 @@
         }
       }
     ],
-    "output": "[season.result.episodes.{ 'providerIds': { 'cid': $string(cid), 'aid': $string(aid), 'bvid': bvid, 'epId': $string(id), 'seasonId': $string($$.seasonId) }, 'indexedId': $string(cid), 'title': long_title ? long_title : title, 'episodeNumber': title }]"
+    "output": "[season.result.episodes[$not($contains(badge ? badge : '', '预告'))].{ 'providerIds': { 'cid': cid, 'aid': aid, 'bvid': bvid, 'epid': id }, 'indexedId': $string(cid), 'title': long_title and long_title != '' ? long_title : show_title, 'episodeNumber': $match(show_title, /^\\d+$/) ? $number(show_title) : (show_title and show_title != '' ? show_title : undefined), 'imageUrl': cover, 'alternativeTitle': share_copy and share_copy != '' ? [share_copy] : undefined }]"
   },
   "danmaku": [
     {
@@ -86,7 +96,7 @@
           }
         }
       ],
-      "output": "[items.all.($parts := parts; { 'p': $parts[0] & ',' & $parts[1] & ',' & $parts[3] & ',' & $parts[6], 'm': m })]"
+      "output": "[items.all.($parts := parts; { 'progress': $number($parts[0]) * 1000, 'mode': $number($parts[1]), 'color': $number($parts[3]), 'midHash': $parts[6], 'content': m })]"
     },
     {
       "inputs": ["cid"],
@@ -94,7 +104,7 @@
         {
           "type": "forEach",
           "id": "segments",
-          "in": "$range(1, 31)",
+          "in": "$range(1, 101)",
           "as": "segmentIndex",
           "request": {
             "method": "GET",
@@ -107,12 +117,37 @@
             "rewriteHeaders": { "Referer": "'https://www.bilibili.com/'" },
             "acceptStatus": [304]
           },
-          "collect": "elems",
-          "concurrency": 4,
-          "throttleMs": 200
+          "collect": "[elems]",
+          "concurrency": 1,
+          "throttleMs": 200,
+          "breakOn": "$count($) = 0"
         }
       ],
-      "output": "[segments[mode in [1,2,3,4,5,6]].{ 'p': $string($number(progress) / 1000) & ',' & $string(mode in [2,3] ? 1 : mode) & ',' & $string(color) & ',' & midHash, 'm': content }]"
+      "output": "[segments[mode in [1,2,3,4,5,6]]]"
     }
-  ]
+  ],
+  "parseUrl": {
+    "inputs": [],
+    "steps": [
+      {
+        "type": "http",
+        "id": "season",
+        "request": {
+          "method": "GET",
+          "url": "'https://api.bilibili.com/pgc/view/web/season'",
+          "query": "{ 'season_id': ssid ? $string(ssid) : undefined, 'ep_id': epid ? $string(epid) : undefined }",
+          "credentials": "include",
+          "rewriteHeaders": { "Referer": "'https://www.bilibili.com/'" }
+        }
+      },
+      {
+        "type": "assign",
+        "id": "picked",
+        "values": {
+          "ep": "epid ? ($epIdNum := $number(epid); season.result.episodes[id = $epIdNum]) : season.result.episodes[0]"
+        }
+      }
+    ],
+    "output": "{ 'seasonInsert': { 'providerIds': { 'seasonId': season.result.season_id }, 'indexedId': $string(season.result.season_id), 'title': $replace(season.result.title, /<[^>]+>/, ''), 'type': $string(season.result.type), 'imageUrl': season.result.cover, 'episodeCount': $count(season.result.episodes) }, 'episodeMeta': $exists(picked.ep) ? { 'providerIds': { 'cid': picked.ep.cid, 'aid': picked.ep.aid, 'bvid': picked.ep.bvid, 'epid': picked.ep.id }, 'indexedId': $string(picked.ep.cid), 'title': picked.ep.long_title and picked.ep.long_title != '' ? picked.ep.long_title : picked.ep.show_title, 'episodeNumber': $match(picked.ep.show_title, /^\\d+$/) ? $number(picked.ep.show_title) : (picked.ep.show_title and picked.ep.show_title != '' ? picked.ep.show_title : undefined), 'imageUrl': picked.ep.cover, 'externalLink': picked.ep.link } : undefined }"
+  }
 }

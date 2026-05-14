@@ -1,18 +1,19 @@
-import { zodResolver } from '@hookform/resolvers/zod'
 import { Stack, TextField } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import type { BuiltInTencentProvider } from '@/common/options/providerConfig/schema'
-import { zTencentProviderConfig } from '@/common/options/providerConfig/schema'
 import { FormActions } from './FormActions'
 import type { ProviderFormProps } from './types'
+
+interface FormValues {
+  name: string
+}
 
 export const TencentProviderForm = ({
   provider,
   onSubmit,
   onReset,
   isEdit,
-}: ProviderFormProps<BuiltInTencentProvider>) => {
+}: ProviderFormProps) => {
   const { t } = useTranslation()
 
   const {
@@ -20,14 +21,13 @@ export const TencentProviderForm = ({
     register,
     reset,
     formState: { isSubmitting, isDirty },
-  } = useForm<BuiltInTencentProvider>({
-    resolver: zodResolver(zTencentProviderConfig),
-    defaultValues: provider,
+  } = useForm<FormValues>({
+    defaultValues: { name: provider.name },
   })
 
-  const handleFormSubmit = async (data: BuiltInTencentProvider) => {
-    await onSubmit(data)
-  }
+  const handleFormSubmit = handleSubmit(async (data) => {
+    await onSubmit({ ...provider, name: data.name })
+  })
 
   const handleReset = () => {
     reset()
@@ -37,7 +37,7 @@ export const TencentProviderForm = ({
   return (
     <Stack
       component="form"
-      onSubmit={handleSubmit(handleFormSubmit)}
+      onSubmit={handleFormSubmit}
       direction="column"
       spacing={2}
       alignItems="flex-start"

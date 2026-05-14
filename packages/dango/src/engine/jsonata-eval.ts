@@ -44,18 +44,40 @@ export class JsonataEvaluator {
   }
 }
 
-// JSONata projections sometimes attach a `sequence: true` property to the
-// result array. Strip it so structural equality (test toEqual) is stable.
+// JSONata projections attach a `sequence: true` property to result arrays.
+// Strip it so structural equality is stable for tests. Copy-on-write: only
+// allocate when a marker is actually present somewhere in the tree —
+// otherwise return the original value. For 10k+ row danmaku outputs the old
+// unconditional deep clone was 50-400ms of allocation per call.
 function normalize(v: unknown): unknown {
   if (Array.isArray(v)) {
-    return v.map(normalize)
+    const hasMarker = (v as unknown as Record<string, unknown>).sequence
+    let cloned: unknown[] | null = hasMarker ? v.slice() : null
+    for (let i = 0; i < v.length; i++) {
+      const inner = v[i]
+      const next = normalize(inner)
+      if (next !== inner) {
+        if (cloned === null) {
+          cloned = v.slice()
+        }
+        cloned[i] = next
+      }
+    }
+    return cloned ?? v
   }
   if (v && typeof v === 'object') {
-    const out: Record<string, unknown> = {}
+    let cloned: Record<string, unknown> | null = null
     for (const k of Object.keys(v as object)) {
-      out[k] = normalize((v as Record<string, unknown>)[k])
+      const inner = (v as Record<string, unknown>)[k]
+      const next = normalize(inner)
+      if (next !== inner) {
+        if (cloned === null) {
+          cloned = { ...(v as Record<string, unknown>) }
+        }
+        cloned[k] = next
+      }
     }
-    return out
+    return cloned ?? v
   }
   return v
 }

@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest'
-import { findManifestForUrl, urlMatches } from '../engine/url-match.js'
+import {
+  findManifestForUrl,
+  findManifestMatchForUrl,
+  matchUrl,
+  urlMatches,
+} from '../engine/url-match.js'
 import { zManifest } from '../manifest/schema.js'
+
+/**
+ * Tests url-match.ts: urlMatches (boolean), matchUrl (named capture groups),
+ * findManifestForUrl (first-match priority), and findManifestMatchForUrl
+ * (manifest + groups together). Covers host wildcards, path regex,
+ * malformed input tolerance, and empty-urlMatch handling.
+ */
 
 function manifestWith(
   id: string,
@@ -92,6 +104,98 @@ describe('findManifestForUrl', () => {
     const m = manifestWith('no-url-match', [])
     expect(
       findManifestForUrl([m], 'https://www.bilibili.com/anything')
+    ).toBeNull()
+  })
+})
+
+describe('matchUrl', () => {
+  it('returns empty groups when the path has no named captures', () => {
+    const r = matchUrl('https://www.bilibili.com/bangumi/play/ss12345', {
+      host: 'www.bilibili.com',
+      path: '^/bangumi/play/',
+    })
+    expect(r).toEqual({ groups: {} })
+  })
+
+  it('extracts named capture groups', () => {
+    const r = matchUrl('https://www.bilibili.com/bangumi/play/ss12345', {
+      host: 'www.bilibili.com',
+      path: '^/bangumi/play/ss(?<ssid>\\d+)',
+    })
+    expect(r?.groups).toEqual({ ssid: '12345' })
+  })
+
+  it('extracts multiple named groups', () => {
+    const r = matchUrl(
+      'https://v.qq.com/x/cover/mzc00200ztsl4to/m4100bardal.html',
+      {
+        host: 'v.qq.com',
+        path: '^/x/cover/(?<cid>[^/]+)/(?<vid>[^/]+)\\.html',
+      }
+    )
+    expect(r?.groups).toEqual({
+      cid: 'mzc00200ztsl4to',
+      vid: 'm4100bardal',
+    })
+  })
+
+  it('returns null when host does not match', () => {
+    expect(
+      matchUrl('https://example.com/x', { host: 'other.com', path: '.*' })
+    ).toBeNull()
+  })
+
+  it('returns null when path does not match', () => {
+    expect(
+      matchUrl('https://www.bilibili.com/festival', {
+        host: 'www.bilibili.com',
+        path: '^/bangumi/',
+      })
+    ).toBeNull()
+  })
+})
+
+describe('findManifestMatchForUrl', () => {
+  it('returns the matched manifest plus named capture groups', () => {
+    const bili = manifestWith('bilibili', [
+      { host: 'www.bilibili.com', path: '^/bangumi/play/ss(?<ssid>\\d+)' },
+      { host: 'www.bilibili.com', path: '^/bangumi/play/ep(?<epid>\\d+)' },
+    ])
+    const tencent = manifestWith('tencent', [
+      {
+        host: 'v.qq.com',
+        path: '^/x/cover/(?<cid>[^/]+)/(?<vid>[^/]+)\\.html',
+      },
+    ])
+
+    const ss = findManifestMatchForUrl(
+      [bili, tencent],
+      'https://www.bilibili.com/bangumi/play/ss12345'
+    )
+    expect(ss?.manifest.id).toBe('bilibili')
+    expect(ss?.groups).toEqual({ ssid: '12345' })
+
+    const ep = findManifestMatchForUrl(
+      [bili, tencent],
+      'https://www.bilibili.com/bangumi/play/ep67890'
+    )
+    expect(ep?.manifest.id).toBe('bilibili')
+    expect(ep?.groups).toEqual({ epid: '67890' })
+
+    const t = findManifestMatchForUrl(
+      [bili, tencent],
+      'https://v.qq.com/x/cover/abc/def.html'
+    )
+    expect(t?.manifest.id).toBe('tencent')
+    expect(t?.groups).toEqual({ cid: 'abc', vid: 'def' })
+  })
+
+  it('returns null when no manifest matches', () => {
+    const m = manifestWith('bilibili', [
+      { host: 'www.bilibili.com', path: '.*' },
+    ])
+    expect(
+      findManifestMatchForUrl([m], 'https://www.youtube.com/watch?v=x')
     ).toBeNull()
   })
 })

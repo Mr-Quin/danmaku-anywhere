@@ -261,6 +261,12 @@ export class ExtensionOptionsService implements IStoreService {
             draft.showFloatingButton = true
           }),
       })
+      .version(25, {
+        // `useManifest` toggle (added then removed during the manifest-only
+        // migration). v25 records may still have it stored; zod strips
+        // unknown fields on read.
+        upgrade: (data) => data,
+      })
   }
 
   async get() {
