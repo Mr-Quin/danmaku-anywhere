@@ -10,6 +10,29 @@ test('dandanplay: search → season → episode → fetch danmaku', async ({
   page,
   extensionId,
 }) => {
+  // TEMP CI DIAGNOSTIC — log every SW-originated URL involving danmaku/ddp
+  // and any popup console error so we can see what hostname the failing
+  // run is actually hitting.
+  context.on('request', (req) => {
+    const u = req.url()
+    if (u.includes('ddp') || u.includes('danmaku') || u.includes('weeblify')) {
+      console.log('[REQ]', req.method(), u)
+    }
+  })
+  page.on('console', (m) => {
+    if (m.type() === 'error') console.log('[POPUP-ERR]', m.text())
+  })
+  context.on('serviceworker', (sw) => {
+    sw.on('console', (m) => {
+      if (m.type() === 'error') console.log('[SW-ERR]', m.text())
+    })
+  })
+  for (const sw of context.serviceWorkers()) {
+    sw.on('console', (m) => {
+      if (m.type() === 'error') console.log('[SW-ERR]', m.text())
+    })
+  }
+
   const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: { dandanplay: { enabled: true } },
