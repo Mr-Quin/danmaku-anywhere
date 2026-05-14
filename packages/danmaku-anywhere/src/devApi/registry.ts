@@ -116,26 +116,53 @@ function compile(
 
 // Top-level methods exposed directly on __da (alongside namespace access).
 // describe() returns the API tree; help() is an alias for human callers.
+// Use a null-prototype object so `Object.hasOwn(topLevel, key)` is the
+// authoritative check — `key in topLevel` would also match Object.prototype
+// keys like `toString`/`constructor`.
 type TopLevelKey = 'describe' | 'help'
+
+// Keys we explicitly silence (return undefined) without throwing. These come
+// from JS introspection: `console.log(__da)`, `await __da` thenable check,
+// `JSON.stringify(__da)`, etc. Without this, basic devtools usage throws.
+const SILENT_KEYS = new Set<string | symbol>([
+  'then',
+  'toJSON',
+  'toString',
+  'valueOf',
+  'constructor',
+  'asymmetricMatch',
+  '$$typeof',
+  Symbol.toPrimitive,
+  Symbol.toStringTag,
+  Symbol.iterator,
+  Symbol.asyncIterator,
+])
 
 function makeProxy(
   dispatch: Registry['dispatch'],
   describe: () => NamespaceDescription[],
   compiled: Map<string, CompiledNamespace>
 ): unknown {
-  const topLevel: Record<TopLevelKey, unknown> = {
-    describe: () => describe(),
-    help: () => describe(),
-  }
+  const topLevel: Record<TopLevelKey, unknown> = Object.assign(
+    Object.create(null),
+    {
+      describe: () => describe(),
+      help: () => describe(),
+    }
+  )
   // Outer Proxy: namespace access OR top-level method. Returns an inner Proxy
   // whose function-call trap dispatches. Unknown keys throw a typed error so
-  // callers get a clear failure mode.
+  // typos surface fast — except keys used by JS introspection, which return
+  // undefined so console.log/await/JSON.stringify don't blow up.
   return new Proxy(Object.create(null), {
     get(_t, key: string | symbol) {
+      if (SILENT_KEYS.has(key)) {
+        return undefined
+      }
       if (typeof key !== 'string') {
         return undefined
       }
-      if (key in topLevel) {
+      if (Object.hasOwn(topLevel, key)) {
         return topLevel[key as TopLevelKey]
       }
       const ns = compiled.get(key)
@@ -146,6 +173,9 @@ function makeProxy(
       }
       return new Proxy(Object.create(null), {
         get(_t2, methodKey: string | symbol) {
+          if (SILENT_KEYS.has(methodKey)) {
+            return undefined
+          }
           if (typeof methodKey !== 'string') {
             return undefined
           }

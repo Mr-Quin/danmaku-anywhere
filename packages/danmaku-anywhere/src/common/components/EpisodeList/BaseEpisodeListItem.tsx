@@ -51,7 +51,13 @@ export const BaseEpisodeListItem = <
 
   const episodeLite = isLite ? episode : undefined
 
-  const testIdSuffix = isNotCustom(episode) ? episode.indexedId : episode.title
+  // Remote episodes have a stable indexedId from the upstream provider.
+  // Custom episodes don't, so fall back to the DB id (CustomEpisodeLite is
+  // a DbEntity and always carries one). Avoid `episode.title` — titles can
+  // collide and contain arbitrary characters.
+  const testIdSuffix = isNotCustom(episode)
+    ? episode.indexedId
+    : (episode as CustomEpisodeLite).id
   const testId = `episode-list-item-${episode.provider}-${testIdSuffix}`
 
   const renderSecondaryAction = () => {

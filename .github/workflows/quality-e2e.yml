@@ -16,6 +16,9 @@ on:
       - 'pnpm-workspace.yaml'
       - '.github/workflows/quality-e2e.yml'
 
+permissions:
+  contents: read
+
 jobs:
   e2e:
     runs-on: ubuntu-latest

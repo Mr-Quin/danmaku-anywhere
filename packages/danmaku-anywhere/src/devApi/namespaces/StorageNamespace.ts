@@ -14,7 +14,16 @@ function getArea(area: StorageArea): chrome.storage.StorageArea {
   if (!ALLOWED_AREAS.includes(area)) {
     throw new DevApiError(`Unknown storage area: ${area}`)
   }
-  return chrome.storage[area]
+  // chrome.storage.session is Chrome 102+ and not in older Firefox builds.
+  // Fail loudly with a clear error rather than letting `.get is not a
+  // function` surface from the runtime.
+  const handle = chrome.storage[area]
+  if (!handle) {
+    throw new DevApiError(
+      `chrome.storage.${area} is unavailable in this browser/runtime`
+    )
+  }
+  return handle
 }
 
 // Raw chrome.storage access. Bypasses the typed OptionsService layer — only
@@ -64,7 +73,13 @@ export class StorageNamespace implements DevNamespace {
       description: 'Clear all storage areas',
       kind: 'write',
       handler: async () => {
-        await Promise.all(ALLOWED_AREAS.map((a) => chrome.storage[a].clear()))
+        // Skip areas the runtime doesn't expose (session not on older
+        // Firefox / pre-Chrome-102).
+        await Promise.all(
+          ALLOWED_AREAS.filter((a) => chrome.storage[a]).map((a) =>
+            chrome.storage[a].clear()
+          )
+        )
       },
     }),
   ]
