@@ -1,0 +1,41 @@
+{
+  "version": 20,
+  "data": {
+    "enabled": true,
+    "debug": false,
+    "lang": "zh",
+    "searchUsingSimplified": false,
+    "retentionPolicy": { "enabled": false, "deleteCommentsAfter": 30 },
+    "playerOptions": {
+      "showSkipButton": true,
+      "showDanmakuTimeline": true,
+      "enableFullscreenInteraction": true
+    },
+    "theme": { "colorMode": "system" },
+    "matchLocalDanmaku": true,
+    "hotkeys": {},
+    "showReleaseNotes": false,
+    "enableAnalytics": true,
+    "danmakuSources": {
+      "dandanplay": {
+        "enabled": true,
+        "chConvert": 0,
+        "useCustomRoot": false,
+        "baseUrl": ""
+      },
+      "bilibili": {
+        "enabled": true,
+        "danmakuTypePreference": "protobuf",
+        "protobufLimitPerMin": 200
+      },
+      "tencent": { "enabled": true, "limitPerMin": 200 },
+      "iqiyi": { "enabled": false, "limitPerMin": 200 },
+      "custom": {
+        "enabled": true,
+        "baseUrl": "https://my-maccms.example.com",
+        "danmuicuBaseUrl": "https://my-danmuicu.example.com",
+        "stripColor": true
+      }
+    }
+  }
+}

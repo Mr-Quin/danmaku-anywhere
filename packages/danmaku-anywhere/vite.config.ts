@@ -4,7 +4,7 @@ import { defineConfig } from 'vitest/config'
 import { manifest } from './manifest'
 import { getBuildContext } from './scripts/getBuildContext'
 
-const { browser, appVersion, isDev } = getBuildContext()
+const { browser, appVersion, isDev, daEnv } = getBuildContext()
 
 const { isChrome, isFirefox } = browser
 
@@ -24,15 +24,24 @@ console.log('Building for', {
   browser,
   appVersion,
   isDev,
+  daEnv,
 })
 
 export default defineConfig({
   // @ts-ignore
   plugins: [react({}), crx({ manifest, browser: browser.name })],
   resolve: {
-    alias: {
-      '@': '/src',
-    },
+    // Order matters: more specific aliases must come first so they're
+    // matched before the generic '@' prefix.
+    alias: [
+      // In prod builds, swap the dev API entry for a stub so the entire
+      // src/devApi tree drops out of the bundle. CI grep guard in
+      // .github/workflows/quality-e2e.yml enforces this.
+      ...(daEnv === 'prod'
+        ? [{ find: '@/devApi', replacement: '/src/devApi/index.prod.ts' }]
+        : []),
+      { find: '@', replacement: '/src' },
+    ],
   },
   server: {
     strictPort: true,
@@ -46,6 +55,7 @@ export default defineConfig({
     'import.meta.env.VITE_TARGET_BROWSER': JSON.stringify(browser.name),
     'import.meta.env.VERSION': JSON.stringify(appVersion),
     'import.meta.env.VITE_STANDALONE': JSON.stringify(false),
+    'import.meta.env.VITE_DA_ENV': JSON.stringify(daEnv),
   },
   build: {
     emptyOutDir: true,

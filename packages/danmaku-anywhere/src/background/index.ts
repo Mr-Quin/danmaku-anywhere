@@ -10,6 +10,7 @@ import { OptionsManager } from '@/background/syncOptions/OptionsManager'
 import { deferredConfigureStore } from '@/background/utils/deferredConfigureStore'
 import { generateId } from '@/background/utils/generateId'
 import { EXTENSION_VERSION } from '@/common/constants'
+import { attachDevApi } from '@/devApi'
 import { setLogService } from './backgroundLogger'
 import { container } from './ioc'
 import { LogService } from './services/Logging/Log.service'
@@ -46,3 +47,11 @@ chrome.runtime.onInstalled.addListener((details) => {
 
 generateId()
 void deferredConfigureStore()
+
+// Dev API attach. Static import because dynamic import via __vitePreload is
+// broken for MV3 SWs under crxjs (silently never resolves). Trade-off: the
+// devApi module sits in the bundle even for VITE_DA_ENV=prod; CI's grep
+// guard is the DCE enforcement (see .github/workflows/quality-e2e.yml).
+if (import.meta.env.VITE_DA_ENV !== 'prod') {
+  attachDevApi(container, import.meta.env.VITE_DA_ENV)
+}

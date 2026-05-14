@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures'
+import { expect, test } from '../../setup/fixtures'
 
 test('extension service worker loads successfully', async ({ extensionId }) => {
   expect(extensionId).toBeTruthy()

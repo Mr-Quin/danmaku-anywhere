@@ -51,6 +51,9 @@ export const BaseEpisodeListItem = <
 
   const episodeLite = isLite ? episode : undefined
 
+  const testIdSuffix = isNotCustom(episode) ? episode.indexedId : episode.title
+  const testId = `episode-list-item-${episode.provider}-${testIdSuffix}`
+
   const renderSecondaryAction = () => {
     if (renderSecondaryActionProp) {
       return renderSecondaryActionProp()
@@ -59,7 +62,11 @@ export const BaseEpisodeListItem = <
   }
 
   return (
-    <ListItem disablePadding secondaryAction={renderSecondaryAction()}>
+    <ListItem
+      disablePadding
+      secondaryAction={renderSecondaryAction()}
+      data-testid={testId}
+    >
       <ListItemButton
         onClick={() => onClick(episode)}
         disabled={isLoading || disabled}

@@ -191,6 +191,12 @@ export function SearchForm({
                 autoFocus
                 size="small"
                 autoComplete="off"
+                slotProps={{
+                  htmlInput: {
+                    ...params.inputProps,
+                    'data-testid': 'search-input',
+                  },
+                }}
                 {...textFieldProps}
                 {...withStopPropagation({
                   whitelistKeys: ['Escape', 'Enter', 'ArrowUp', 'ArrowDown'],
@@ -207,6 +213,7 @@ export function SearchForm({
           size="small"
           autoCapitalize="none"
           fullWidth
+          data-testid="search-submit"
         >
           <Search /> {t('searchPage.search', 'Search')}
         </Button>

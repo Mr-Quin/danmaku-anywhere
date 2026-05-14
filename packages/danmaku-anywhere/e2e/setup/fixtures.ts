@@ -3,7 +3,8 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const pathToExtension = path.join(__dirname, '..', 'build')
+// e2e/setup/fixtures.ts → ../../build
+const pathToExtension = path.join(__dirname, '..', '..', 'build')
 
 export const test = base.extend<{
   context: BrowserContext

@@ -1,0 +1,142 @@
+name: PR E2E Quality
+
+on:
+  pull_request:
+    paths:
+      - 'packages/danmaku-anywhere/**'
+      - 'packages/danmaku-converter/**'
+      - 'packages/danmaku-engine/**'
+      - 'packages/danmaku-provider/**'
+      - 'packages/dango/**'
+      - 'packages/dango-manifests/**'
+      - 'packages/integration-policy/**'
+      - 'packages/result/**'
+      - 'packages/web-scraper/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/quality-e2e.yml'
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [24.x]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build:packages
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          # Include the lockfile so transitive Playwright bumps invalidate
+          # the cache (the package.json caret range alone won't change when
+          # pnpm-lock.yaml resolves to a new patch version).
+          key: ${{ runner.os }}-playwright-${{ hashFiles('packages/danmaku-anywhere/package.json', 'pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install Playwright Chromium
+        working-directory: packages/danmaku-anywhere
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build extension (dev API on)
+        working-directory: packages/danmaku-anywhere
+        env:
+          VITE_DA_ENV: dev
+        run: pnpm build
+
+      - name: Run E2E tests
+        working-directory: packages/danmaku-anywhere
+        run: xvfb-run --auto-servernum pnpm test:e2e
+        env:
+          # Headed mode is required for MV3 extension service workers; xvfb
+          # provides the display.
+          PLAYWRIGHT_HEADED: '1'
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: packages/danmaku-anywhere/playwright-report/
+          retention-days: 7
+
+      - name: Upload test artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: packages/danmaku-anywhere/test-results/
+          retention-days: 7
+
+  prod-build-dce-guard:
+    name: Verify dev API is stripped from prod build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [24.x]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build:packages
+
+      - name: Build extension (prod)
+        working-directory: packages/danmaku-anywhere
+        env:
+          VITE_DA_ENV: prod
+        run: pnpm build
+
+      - name: Assert dev API is not in the prod bundle
+        working-directory: packages/danmaku-anywhere
+        # Greps for strings unique to the dev API IMPLEMENTATION (not the
+        # prod stub at src/devApi/index.prod.ts, which only re-exports a
+        # throwing no-op). If any of these appear, the alias swap or
+        # tree-shaking failed and dev-only code is being shipped to users.
+        run: |
+          if grep -rE "DevApiError|Unknown dev API|Read/write provider configs|Service worker lifecycle and metadata" build/ ; then
+            echo "::error::Dev API implementation leaked into prod build (DCE guard failed)"
+            exit 1
+          fi
