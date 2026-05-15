@@ -26,7 +26,10 @@ export const test = base.extend<{
   // Per-test opt-out: override with `test.use({ expectedConsoleErrors: [...] })`
   // (or pass an array via `test('name', { expectedConsoleErrors: [...] })`)
   // to allow specific errors. Entries match by `includes` (string) or `.test`
-  // (RegExp) against the formatted watcher entry.
+  // (RegExp) against the formatted watcher entry — the line includes a
+  // `[sw]`/`[page <url>]` prefix and a trailing `(<url>:<line>:<col>)`
+  // location, not just the raw console message text. Patterns can target
+  // any of those parts.
   expectedConsoleErrors: [[], { option: true }],
 
   // biome-ignore lint: Playwright fixture pattern requires destructuring
