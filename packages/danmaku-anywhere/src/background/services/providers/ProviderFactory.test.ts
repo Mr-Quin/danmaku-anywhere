@@ -20,6 +20,7 @@ const mockRunner = {
   runSearch: vi.fn(async () => []),
   runEpisodes: vi.fn(async () => []),
   runDanmaku: vi.fn(async () => []),
+  configDefaults: vi.fn(() => ({})),
 }
 
 vi.mock('./ManifestRegistry', () => ({

@@ -156,15 +156,25 @@ async function runStep(
       // including the current result (so a "this page is partial" predicate
       // still keeps the final partial page). throttleMs still applies between
       // iteration starts so cursor pagination respects upstream rate limits.
+      // `breakOnConsecutive` requires N consecutive truthy results before
+      // stopping (resets on a non-match) so a single transient empty doesn't
+      // truncate the rest of the loop.
       perItemResults = []
       const stopExpr = step.breakOn
+      const threshold = step.breakOnConsecutive
       const waitForSlot = makeThrottle(step.throttleMs, options.signal)
+      let consecutive = 0
       for (const element of items) {
         await waitForSlot()
         const result = await runIteration(element)
         perItemResults.push(result)
         const stop = await evalExpr(stopExpr, result)
-        if (stop) break
+        if (stop) {
+          consecutive += 1
+          if (consecutive >= threshold) break
+        } else {
+          consecutive = 0
+        }
       }
     } else {
       perItemResults = await runWithConcurrency(

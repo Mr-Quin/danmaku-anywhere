@@ -4,8 +4,8 @@ import { setSessionHeader } from '@/background/netRequest/setSessionHeader'
 // `fetch` silently drops forbidden request headers like Origin / Referer /
 // User-Agent, so when a manifest step declares `rewriteHeaders` we install a
 // short-lived `chrome.declarativeNetRequest` session rule for the call.
-// `setSessionHeader` is mutex-serialized so concurrent steps don't race on
-// rule IDs.
+// `setSessionHeader` is mutex-serialized for rule installation; a
+// monotonic counter inside that module is the source of new rule IDs.
 export const extensionFetchLike: FetchLike = async (input, init) => {
   const rewrite = init?.rewriteHeaders
   const dnr =
@@ -23,6 +23,19 @@ export const extensionFetchLike: FetchLike = async (input, init) => {
       headers,
     }
   } finally {
-    await dnr?.removeRule()
+    // Cleanup must not mask the original fetch error. If removeRule throws
+    // (e.g. SW reload, DNR backpressure), swallow it here and log; the
+    // session rule will be GC'd on session end. If we re-threw, the caller
+    // would see the cleanup error and never the real network failure.
+    if (dnr) {
+      try {
+        await dnr.removeRule()
+      } catch (cleanupErr) {
+        console.warn(
+          "extensionFetchLike: failed to remove session rule (will be GC'd on session end):",
+          cleanupErr
+        )
+      }
+    }
   }
 }

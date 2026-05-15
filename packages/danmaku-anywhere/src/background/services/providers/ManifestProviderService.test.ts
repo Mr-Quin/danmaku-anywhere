@@ -23,6 +23,9 @@ function makeRunner(returns: Record<string, unknown>): ManifestRunner {
     runSearch: vi.fn(async () => returns.search ?? []),
     runEpisodes: vi.fn(async () => returns.episodes ?? []),
     runDanmaku: vi.fn(async () => returns.danmaku ?? []),
+    configDefaults: vi.fn(
+      () => (returns.configDefaults as Record<string, unknown>) ?? {}
+    ),
   } as unknown as ManifestRunner
 }
 
@@ -60,6 +63,7 @@ describe('ManifestProviderService.search', () => {
         manifestId: 'builtin:bilibili',
         provider: DanmakuSourceType.Bilibili,
         providerConfigId: 'builtin:bilibili',
+        commentMapper: (raw) => raw as CommentEntity[],
       },
       makeRegistry(runner),
       silentLogger
@@ -89,6 +93,7 @@ describe('ManifestProviderService.search', () => {
           baseUrl: 'https://compat.example',
           authHeaders: [],
         }),
+        commentMapper: (raw) => raw as CommentEntity[],
       },
       makeRegistry(runner),
       silentLogger
@@ -120,6 +125,7 @@ describe('ManifestProviderService.getEpisodes', () => {
         manifestId: 'builtin:bilibili',
         provider: DanmakuSourceType.Bilibili,
         providerConfigId: 'builtin:bilibili',
+        commentMapper: (raw) => raw as CommentEntity[],
       },
       makeRegistry(runner),
       silentLogger
@@ -158,7 +164,7 @@ describe('ManifestProviderService.getDanmaku', () => {
     }
   }
 
-  it('returns raw output as CommentEntity[] when no commentMapper configured', async () => {
+  it('runs commentMapper as identity for sources whose pipeline already emits CommentEntity', async () => {
     const raw: CommentEntity[] = [{ cid: 1, p: '1,1,16777215', m: 'hi' }]
     const runner = makeRunner({ danmaku: raw })
     const svc = new ManifestProviderService(
@@ -166,6 +172,7 @@ describe('ManifestProviderService.getDanmaku', () => {
         manifestId: 'builtin:dandanplay',
         provider: DanmakuSourceType.DanDanPlay,
         providerConfigId: 'builtin:dandanplay',
+        commentMapper: (input) => input as CommentEntity[],
       },
       makeRegistry(runner),
       silentLogger

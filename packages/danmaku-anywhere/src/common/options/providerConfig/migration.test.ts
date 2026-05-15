@@ -320,6 +320,21 @@ describe('migrateDanmakuSourcesToProviders', () => {
       expect(tencent?.enabled).toBe(true) // Default enabled
     })
 
+    it('omits danmakuFormat from configValues when legacy record lacks danmakuTypePreference', () => {
+      // Regression for the silent-downgrade bug: pre-fix, a legacy source
+      // missing `danmakuTypePreference` got `danmakuFormat: 'xml'` written,
+      // which capped users at ~3000 danmaku. Now the key is omitted so the
+      // manifest's configSchema default ('protobuf') fires at run time.
+      const oldSources = {
+        bilibili: { enabled: true },
+      }
+      const providers = migrateDanmakuSourcesToProviders(
+        oldSources as DanmakuSources
+      )
+      const bili = providers.find((p) => p.manifestId === 'builtin:bilibili')
+      expect(bili?.configValues).toEqual({})
+    })
+
     it('should fall back to defaults when migration fails completely', () => {
       // Pass invalid data to trigger catch block
       const providers = migrateDanmakuSourcesToProviders(
@@ -485,7 +500,12 @@ describe('migrateProviderConfigsToFlat', () => {
 
     expect(flat).toHaveLength(1)
     expect(flat[0].manifestId).toBe('builtin:bilibili')
-    expect(flat[0].configValues).toEqual({ danmakuFormat: undefined })
+    // Migration strips undefined keys so the manifest's configSchema default
+    // ('protobuf') fires at run time via ManifestRunner.configDefaults().
+    // Previously this stored `{ danmakuFormat: undefined }`, which silently
+    // downgraded users to 'xml' because ProviderFactory's `?? 'xml'`
+    // fallback ran on a present-but-undefined key.
+    expect(flat[0].configValues).toEqual({})
   })
 
   it('defaults enabled to true when missing on legacy records', () => {
@@ -504,6 +524,80 @@ describe('migrateProviderConfigsToFlat', () => {
     const flat = migrateProviderConfigsToFlat(legacy)
 
     expect(flat[0].enabled).toBe(true)
+  })
+
+  it('recovers records with missing type by inferring from impl', () => {
+    // Pre-fix, `type: undefined` (common when a record was partially written
+    // or migrated from a non-discriminated shape) silently fell through to
+    // the default branch and dropped the user's provider.
+    const legacy = [
+      {
+        id: 'builtin:bilibili',
+        // type omitted entirely
+        name: 'Bilibili',
+        impl: DanmakuSourceType.Bilibili,
+        enabled: true,
+        isBuiltIn: true,
+        options: { danmakuTypePreference: 'protobuf' },
+      },
+    ]
+    const flat = migrateProviderConfigsToFlat(legacy)
+    expect(flat).toHaveLength(1)
+    expect(flat[0].manifestId).toBe('builtin:bilibili')
+    expect(flat[0].configValues).toEqual({ danmakuFormat: 'protobuf' })
+  })
+
+  it('skips non-object entries without crashing', () => {
+    const legacy = [
+      null,
+      undefined,
+      'a string somehow',
+      42,
+      {
+        id: 'builtin:dandanplay',
+        type: 'DanDanPlay',
+        name: 'DanDanPlay',
+        impl: DanmakuSourceType.DanDanPlay,
+        enabled: true,
+        isBuiltIn: true,
+        options: {},
+      },
+    ]
+    const flat = migrateProviderConfigsToFlat(legacy as unknown[] as never)
+    expect(flat).toHaveLength(1)
+    expect(flat[0].id).toBe('builtin:dandanplay')
+  })
+
+  it('skips records with null configValues by routing through the legacy path', () => {
+    // A partially-flat record with `configValues: null` previously hit the
+    // idempotent branch via `old.configValues` (falsy), fell through to the
+    // switch, and dropped on type-undefined. Now: the idempotent check
+    // requires configValues to be an object, the record falls back to legacy
+    // handling, and inferTypeFromImpl recovers it from `impl`.
+    const legacy = [
+      {
+        id: 'builtin:tencent',
+        manifestId: 'builtin:tencent',
+        impl: DanmakuSourceType.Tencent,
+        name: 'Tencent',
+        enabled: true,
+        isBuiltIn: true,
+        configValues: null,
+      },
+    ]
+    const flat = migrateProviderConfigsToFlat(legacy)
+    expect(flat).toHaveLength(1)
+    expect(flat[0].manifestId).toBe('builtin:tencent')
+    expect(flat[0].configValues).toEqual({})
+  })
+
+  it('returns empty array if data is not an array', () => {
+    // Defends against storage corruption where the providers slot was
+    // overwritten with a non-array value entirely.
+    expect(migrateProviderConfigsToFlat(null as unknown as never[])).toEqual([])
+    expect(
+      migrateProviderConfigsToFlat({ foo: 'bar' } as unknown as never[])
+    ).toEqual([])
   })
 
   it('drops corrupted records with unknown type', () => {

@@ -118,6 +118,13 @@ const zForEachStep = z
      * cursor-style pagination ("stop when this page is partial").
      */
     breakOn: zExpr.optional(),
+    /**
+     * Require this many consecutive truthy `breakOn` results before stopping.
+     * Default is 1 (stop immediately). Use a higher value when single-iteration
+     * empties are a known transient failure mode (e.g. flaky pagination APIs
+     * that 304 on real gaps). A non-matching iteration resets the counter.
+     */
+    breakOnConsecutive: z.number().int().min(1).max(20).default(1),
   })
   .refine((s) => s.breakOn === undefined || s.concurrency === 1, {
     message: 'forEach.breakOn requires concurrency: 1 (sequential execution)',

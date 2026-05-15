@@ -110,7 +110,8 @@
           "collect": "[elems]",
           "concurrency": 1,
           "throttleMs": 200,
-          "breakOn": "$count($) = 0"
+          "breakOn": "$count($) = 0",
+          "breakOnConsecutive": 3
         }
       ],
       "output": "[segments[mode in [1,2,3,4,5,6]]]"

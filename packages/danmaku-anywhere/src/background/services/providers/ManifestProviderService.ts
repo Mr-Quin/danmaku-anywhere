@@ -51,11 +51,11 @@ export interface ManifestProviderConfig {
   // Per-call extra inputs threaded into every pipeline run. Used by
   // DDP-Compat to inject the user-configured `baseUrl` / `authHeaders`.
   extraInputs?: () => Record<string, unknown>
-  // Per-row danmaku transform. DDP's manifest output already matches
-  // CommentEntity shape (identity). Bilibili and Tencent need to convert
-  // raw protobuf-decoded elems / barrage items into CommentEntity.
-  // Goes away when DA-477's per-row `map` step kind lands.
-  commentMapper?: (raw: unknown) => CommentEntity[]
+  // Per-row danmaku transform. Required: every built-in source declares one,
+  // including DDP (whose mapper is an explicit identity cast — see
+  // DanDanPlayMapper). Goes away when DA-477's per-row `map` step kind moves
+  // the transform into the manifest.
+  commentMapper: (raw: unknown) => CommentEntity[]
 }
 
 export class ManifestProviderService implements IDanmakuProvider {
@@ -69,11 +69,26 @@ export class ManifestProviderService implements IDanmakuProvider {
     this.forProvider = config.provider
   }
 
+  // Merge order matters: per-call inputs at the base, then manifest config
+  // defaults, then user-saved configValues from extraInputs. Defaults fire
+  // only for keys the user hasn't explicitly set. This keeps the source of
+  // truth for defaults in the manifest's configSchema instead of letting
+  // code-level `?? 'xml'` fallbacks silently downgrade users whose stored
+  // configValues are missing the key entirely.
   private resolveInputs(
     inputs: Record<string, unknown>
   ): Record<string, unknown> {
-    const extras = this.config.extraInputs ? this.config.extraInputs() : {}
-    return { ...inputs, ...extras }
+    const runner = this.registry.getRunner(this.config.manifestId)
+    const defaults = runner.configDefaults()
+    const rawExtras = this.config.extraInputs ? this.config.extraInputs() : {}
+    // Drop undefined values so they don't blank out manifest defaults.
+    const extras: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(rawExtras)) {
+      if (v !== undefined) {
+        extras[k] = v
+      }
+    }
+    return { ...inputs, ...defaults, ...extras }
   }
 
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
@@ -121,10 +136,7 @@ export class ManifestProviderService implements IDanmakuProvider {
     const runner = this.registry.getRunner(this.config.manifestId)
     const inputs = this.resolveInputs(meta.providerIds)
     const raw = await runner.runDanmaku<unknown>(inputs)
-    if (this.config.commentMapper) {
-      return this.config.commentMapper(raw)
-    }
-    return raw as CommentEntity[]
+    return this.config.commentMapper(raw)
   }
 
   async findEpisode(
@@ -132,9 +144,8 @@ export class ManifestProviderService implements IDanmakuProvider {
     episodeNumber: number
   ): Promise<WithSeason<EpisodeMeta> | null> {
     const episodes = await this.getEpisodes(season.providerIds)
-    if (episodes.length === 0) {
-      throw new Error(`No episodes found for season: ${season.title}`)
-    }
+    // Empty episodes is a legitimate "no match" result, not an exception.
+    // `findEpisodeByNumber` already returns null on an empty array.
     const episode = findEpisodeByNumber(episodes, episodeNumber)
     if (!episode) {
       return null

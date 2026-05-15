@@ -13,6 +13,34 @@ import {
 } from './constant'
 import type { ProviderConfig } from './schema'
 
+// Drop keys whose value is undefined. Keeps an empty key absent so manifest
+// defaults (read at run time via ManifestRunner.configDefaults) fire instead
+// of getting silently overridden by an undefined-valued key.
+function pruneUndefined(obj: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(obj)) {
+    if (v !== undefined) {
+      out[k] = v
+    }
+  }
+  return out
+}
+
+interface MigrationStep<T> {
+  label: string
+  build: () => T
+  fallback: T
+}
+
+function runStep<T>(step: MigrationStep<T>): T {
+  try {
+    return step.build()
+  } catch (error) {
+    console.error(`Failed to migrate ${step.label}:`, error)
+    return step.fallback
+  }
+}
+
 // One-shot bridge from the legacy `danmakuSources` blob (extensionOptions
 // pre-v21) to the new providerConfig array. Called from extensionOptions v21
 // migration; idempotent because v21 only runs once on upgrade.
@@ -23,95 +51,111 @@ export function migrateDanmakuSourcesToProviders(
   try {
     const providers: ProviderConfig[] = []
 
-    try {
-      if (oldSources.dandanplay) {
-        providers.push({
-          id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-          manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-          name: 'DanDanPlay',
-          impl: DanmakuSourceType.DanDanPlay,
-          enabled: oldSources.dandanplay.enabled ?? true,
-          isBuiltIn: true,
-          configValues: {
-            chConvert: oldSources.dandanplay.chConvert ?? DanDanChConvert.None,
-          },
-        })
-      } else {
-        providers.push(builtInDanDanPlayProvider)
-      }
-    } catch (error) {
-      console.error('Failed to migrate DanDanPlay provider:', error)
-      providers.push(builtInDanDanPlayProvider)
-    }
+    providers.push(
+      runStep({
+        label: 'DanDanPlay provider',
+        fallback: builtInDanDanPlayProvider,
+        build: () => {
+          if (!oldSources.dandanplay) {
+            return builtInDanDanPlayProvider
+          }
+          return {
+            id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
+            manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
+            name: 'DanDanPlay',
+            impl: DanmakuSourceType.DanDanPlay,
+            enabled: oldSources.dandanplay.enabled ?? true,
+            isBuiltIn: true,
+            configValues: pruneUndefined({
+              chConvert:
+                oldSources.dandanplay.chConvert ?? DanDanChConvert.None,
+            }),
+          }
+        },
+      })
+    )
 
-    try {
-      if (oldSources.bilibili) {
-        providers.push({
-          id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
-          manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
-          name: 'Bilibili',
-          impl: DanmakuSourceType.Bilibili,
-          isBuiltIn: true,
-          enabled: oldSources.bilibili.enabled ?? false,
-          configValues: {
-            danmakuFormat: oldSources.bilibili.danmakuTypePreference ?? 'xml',
-          },
-        })
-      } else {
-        providers.push(builtInBilibiliProvider)
-      }
-    } catch (error) {
-      console.error('Failed to migrate Bilibili provider:', error)
-      providers.push(builtInBilibiliProvider)
-    }
+    providers.push(
+      runStep({
+        label: 'Bilibili provider',
+        fallback: builtInBilibiliProvider,
+        build: () => {
+          if (!oldSources.bilibili) {
+            return builtInBilibiliProvider
+          }
+          // No `?? 'xml'` fallback — leave the key absent if the user never
+          // set it so the manifest's configSchema default ('protobuf') wins
+          // at run time. The old fallback silently downgraded users.
+          return {
+            id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
+            manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
+            name: 'Bilibili',
+            impl: DanmakuSourceType.Bilibili,
+            isBuiltIn: true,
+            enabled: oldSources.bilibili.enabled ?? false,
+            configValues: pruneUndefined({
+              danmakuFormat: oldSources.bilibili.danmakuTypePreference,
+            }),
+          }
+        },
+      })
+    )
 
-    try {
-      if (oldSources.tencent) {
-        providers.push({
-          id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
-          manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
-          name: 'Tencent',
-          impl: DanmakuSourceType.Tencent,
-          isBuiltIn: true,
-          enabled: oldSources.tencent.enabled ?? false,
-          configValues: {},
-        })
-      } else {
-        providers.push(builtInTencentProvider)
-      }
-    } catch (error) {
-      console.error('Failed to migrate Tencent provider:', error)
-      providers.push(builtInTencentProvider)
-    }
+    providers.push(
+      runStep({
+        label: 'Tencent provider',
+        fallback: builtInTencentProvider,
+        build: () => {
+          if (!oldSources.tencent) {
+            return builtInTencentProvider
+          }
+          return {
+            id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
+            manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
+            name: 'Tencent',
+            impl: DanmakuSourceType.Tencent,
+            isBuiltIn: true,
+            enabled: oldSources.tencent.enabled ?? false,
+            configValues: {},
+          }
+        },
+      })
+    )
 
-    try {
-      if (oldSources.custom) {
+    const macCms = runStep<ProviderConfig | null>({
+      label: 'custom MacCMS provider',
+      fallback: null,
+      build: () => {
+        if (!oldSources.custom) {
+          return null
+        }
         const baseUrl = oldSources.custom.baseUrl?.trim()
         const danmuicuBaseUrl = oldSources.custom.danmuicuBaseUrl?.trim()
-
         if (
-          baseUrl &&
-          danmuicuBaseUrl &&
-          baseUrl !== '' &&
-          danmuicuBaseUrl !== ''
+          !baseUrl ||
+          !danmuicuBaseUrl ||
+          baseUrl === '' ||
+          danmuicuBaseUrl === ''
         ) {
-          providers.push({
-            id: LEGACY_MACCMS_ID,
-            manifestId: LEGACY_MACCMS_ID,
-            name: 'MacCMS',
-            impl: DanmakuSourceType.MacCMS,
-            isBuiltIn: false,
-            enabled: oldSources.custom.enabled ?? true,
-            configValues: {
-              danmakuBaseUrl: baseUrl,
-              danmuicuBaseUrl: danmuicuBaseUrl,
-              stripColor: oldSources.custom.stripColor ?? false,
-            },
-          })
+          return null
         }
-      }
-    } catch (error) {
-      console.error('Failed to migrate custom MacCMS provider:', error)
+        return {
+          id: LEGACY_MACCMS_ID,
+          manifestId: LEGACY_MACCMS_ID,
+          name: 'MacCMS',
+          impl: DanmakuSourceType.MacCMS,
+          isBuiltIn: false,
+          enabled: oldSources.custom.enabled ?? true,
+          configValues: pruneUndefined({
+            danmakuBaseUrl: baseUrl,
+            danmuicuBaseUrl: danmuicuBaseUrl,
+            stripColor: oldSources.custom.stripColor ?? false,
+          }),
+        }
+      },
+    })
+    if (macCms !== null) {
+      providers.push(macCms)
     }
 
     if (providers.length === 0) {
@@ -120,7 +164,14 @@ export function migrateDanmakuSourcesToProviders(
 
     return providers
   } catch (error) {
-    console.error('Failed to migrate danmaku sources:', error)
+    // Outer guard: any unexpected throw (a Proxy that errors on access,
+    // a getter that throws) falls back to the default set rather than
+    // crashing the extension boot. Surface to console so the user can
+    // report it; defaults are at least a working starting point.
+    console.error(
+      'Failed to migrate danmaku sources — falling back to defaults:',
+      error
+    )
     return [...defaultProviderConfigs]
   }
 }
@@ -133,10 +184,28 @@ export function migrateProviderConfigsToFlat(
   // biome-ignore lint/suspicious/noExplicitAny: legacy input shape
   data: any[]
 ): ProviderConfig[] {
+  if (!Array.isArray(data)) {
+    console.error(
+      'migrateProviderConfigsToFlat: input is not an array, returning empty:',
+      data
+    )
+    return []
+  }
   const out: ProviderConfig[] = []
   for (const old of data) {
+    // Defend against null/non-object entries that crash the switch below.
+    if (old === null || old === undefined || typeof old !== 'object') {
+      console.warn('Skipping non-object provider record during migration:', old)
+      continue
+    }
     // Already flat (idempotent re-run, or v2-shape record landed here somehow).
-    if (typeof old.manifestId === 'string' && old.configValues) {
+    // `configValues` may be an empty object (which is falsy via Object.keys.length
+    // but truthy as a reference), so check for object-ness rather than truthiness.
+    if (
+      typeof old.manifestId === 'string' &&
+      typeof old.configValues === 'object' &&
+      old.configValues !== null
+    ) {
       out.push(old as ProviderConfig)
       continue
     }
@@ -145,25 +214,34 @@ export function migrateProviderConfigsToFlat(
       name: old.name as string,
       impl: old.impl as DanmakuSourceType,
       isBuiltIn: !!old.isBuiltIn,
-      // Default to true if missing — old defaults had DDP enabled and
-      // Bilibili/Tencent disabled, but treating absent fields as enabled
-      // is less destructive than silently flipping a user's preference.
+      // Default to true if missing. The sister function
+      // migrateDanmakuSourcesToProviders defaults Bilibili/Tencent to false,
+      // but that branch has fresh-install context (no prior user choice);
+      // here the record IS the user's choice and an absent enabled is
+      // ambiguous. Lean toward keeping the provider visible to the user.
       enabled: old.enabled ?? true,
     }
     const options = old.options ?? {}
-    switch (old.type) {
+    // Best-effort recovery for records with a missing/null type: try to infer
+    // from `impl` (the discriminator on the legacy union usually matched the
+    // DanmakuSourceType). If that also fails, drop with a warning.
+    const inferredType =
+      old.type ?? inferTypeFromImpl(old.impl as DanmakuSourceType | undefined)
+    switch (inferredType) {
       case 'DanDanPlay':
         out.push({
           ...base,
           manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-          configValues: { chConvert: options.chConvert },
+          configValues: pruneUndefined({ chConvert: options.chConvert }),
         })
         break
       case 'Bilibili':
         out.push({
           ...base,
           manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
-          configValues: { danmakuFormat: options.danmakuTypePreference },
+          configValues: pruneUndefined({
+            danmakuFormat: options.danmakuTypePreference,
+          }),
         })
         break
       case 'Tencent':
@@ -177,23 +255,43 @@ export function migrateProviderConfigsToFlat(
         out.push({
           ...base,
           manifestId: DDP_COMPAT_MANIFEST_ID,
-          configValues: options,
+          configValues: pruneUndefined(options),
         })
         break
       case 'MacCMS':
         out.push({
           ...base,
           manifestId: LEGACY_MACCMS_ID,
-          configValues: options,
+          configValues: pruneUndefined(options),
         })
         break
       default:
         console.warn(
-          'Dropping corrupted provider config record during v1→v2 migration:',
+          'Dropping corrupted provider config record during v1→v2 migration (unrecognized type):',
           old
         )
       // Drop — no `manifestId` means we can't route it through the factory.
     }
   }
   return out
+}
+
+function inferTypeFromImpl(
+  impl: DanmakuSourceType | undefined
+): string | undefined {
+  if (impl === undefined) {
+    return undefined
+  }
+  switch (impl) {
+    case DanmakuSourceType.DanDanPlay:
+      return 'DanDanPlay'
+    case DanmakuSourceType.Bilibili:
+      return 'Bilibili'
+    case DanmakuSourceType.Tencent:
+      return 'Tencent'
+    case DanmakuSourceType.MacCMS:
+      return 'MacCMS'
+    default:
+      return undefined
+  }
 }

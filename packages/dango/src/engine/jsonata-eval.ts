@@ -51,14 +51,17 @@ export class JsonataEvaluator {
 // unconditional deep clone was 50-400ms of allocation per call.
 function normalize(v: unknown): unknown {
   if (Array.isArray(v)) {
-    const hasMarker = (v as unknown as Record<string, unknown>).sequence
-    let cloned: unknown[] | null = hasMarker ? v.slice() : null
-    for (let i = 0; i < v.length; i++) {
-      const inner = v[i]
+    const arr = v as unknown[] & { sequence?: unknown }
+    const hasSequenceMarker = arr.sequence !== undefined
+    // slice() returns a new array with only indexed elements — the
+    // `sequence` property does not survive the copy, which is the point.
+    let cloned: unknown[] | null = hasSequenceMarker ? arr.slice() : null
+    for (let i = 0; i < arr.length; i++) {
+      const inner = arr[i]
       const next = normalize(inner)
       if (next !== inner) {
         if (cloned === null) {
-          cloned = v.slice()
+          cloned = arr.slice()
         }
         cloned[i] = next
       }
@@ -66,13 +69,14 @@ function normalize(v: unknown): unknown {
     return cloned ?? v
   }
   if (v && typeof v === 'object') {
+    const obj = v as Record<string, unknown>
     let cloned: Record<string, unknown> | null = null
-    for (const k of Object.keys(v as object)) {
-      const inner = (v as Record<string, unknown>)[k]
+    for (const k of Object.keys(obj)) {
+      const inner = obj[k]
       const next = normalize(inner)
       if (next !== inner) {
         if (cloned === null) {
-          cloned = { ...(v as Record<string, unknown>) }
+          cloned = { ...obj }
         }
         cloned[k] = next
       }

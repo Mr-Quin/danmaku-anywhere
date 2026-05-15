@@ -37,6 +37,45 @@ interface DdpCompatConfig {
   auth?: { enabled?: boolean; headers?: { key: string; value: string }[] }
 }
 
+interface BuiltinDispatch {
+  provider: DanmakuSourceType
+  commentMapper: (raw: unknown) => CommentEntity[]
+  /**
+   * Optional per-call extra-inputs builder. Receives the raw configValues
+   * (already validated as a Record by zod). Defaults are sourced from the
+   * manifest's `configSchema` in `ManifestProviderService.resolveInputs`, so
+   * this should pass user-set values straight through — do NOT `?? defaultValue`
+   * here (the manifest is the single source of truth for defaults).
+   */
+  extraInputs?: (config: ProviderConfig) => Record<string, unknown>
+}
+
+const builtinDispatch: Record<string, BuiltinDispatch> = {
+  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]]: {
+    provider: DanmakuSourceType.DanDanPlay,
+    commentMapper: withMapper(DanDanPlayMapper.manifestCommentsToComments),
+  },
+  [DDP_COMPAT_MANIFEST_ID]: {
+    provider: DanmakuSourceType.DanDanPlay,
+    commentMapper: withMapper(DanDanPlayMapper.manifestCommentsToComments),
+    // `extraInputs` for DDP-Compat is supplied per-call from
+    // createDanmakuProvider because it needs baseUrl/authHeaders captured
+    // from the specific config — see the DDP_COMPAT_MANIFEST_ID branch below.
+  },
+  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]]: {
+    provider: DanmakuSourceType.Bilibili,
+    commentMapper: withMapper(BilibiliMapper.manifestSegmentsToComments),
+    extraInputs: (config) => {
+      const values = config.configValues as { danmakuFormat?: string }
+      return { danmakuFormat: values.danmakuFormat }
+    },
+  },
+  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]]: {
+    provider: DanmakuSourceType.Tencent,
+    commentMapper: withMapper(TencentMapper.manifestBarrageToComments),
+  },
+}
+
 function createDanmakuProvider(
   config: ProviderConfig,
   logger: ILogger
@@ -47,83 +86,37 @@ function createDanmakuProvider(
   if (config.manifestId === LEGACY_MACCMS_ID) {
     return new MacCmsProviderService(config, logger)
   }
-  switch (config.manifestId) {
-    case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]:
-      return new ManifestProviderService(
-        {
-          manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-          provider: DanmakuSourceType.DanDanPlay,
-          providerConfigId: config.id,
-          commentMapper: withMapper(
-            DanDanPlayMapper.manifestCommentsToComments
-          ),
-        },
-        registry,
-        logger
-      )
-    case DDP_COMPAT_MANIFEST_ID: {
-      const values = config.configValues as DdpCompatConfig
-      const baseUrl = values.baseUrl?.trim()
-      // DDP-Compat without a baseUrl falls back to the proxy-backed
-      // dandanplay manifest.
-      if (!baseUrl) {
-        return new ManifestProviderService(
-          {
-            manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-            provider: DanmakuSourceType.DanDanPlay,
-            providerConfigId: config.id,
-            commentMapper: withMapper(
-              DanDanPlayMapper.manifestCommentsToComments
-            ),
-          },
-          registry,
-          logger
-        )
-      }
+  // DDP-Compat with no baseUrl is treated as plain DDP — fall through to
+  // the dispatch table with the DDP manifestId substituted.
+  let effectiveManifestId = config.manifestId
+  let compatExtras: BuiltinDispatch['extraInputs']
+  if (config.manifestId === DDP_COMPAT_MANIFEST_ID) {
+    const values = config.configValues as DdpCompatConfig
+    const baseUrl = values.baseUrl?.trim()
+    if (!baseUrl) {
+      effectiveManifestId = PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]
+    } else {
       const authHeaders =
         values.auth?.enabled && values.auth.headers ? values.auth.headers : []
-      return new ManifestProviderService(
-        {
-          manifestId: DDP_COMPAT_MANIFEST_ID,
-          provider: DanmakuSourceType.DanDanPlay,
-          providerConfigId: config.id,
-          extraInputs: () => ({ baseUrl, authHeaders }),
-          commentMapper: withMapper(
-            DanDanPlayMapper.manifestCommentsToComments
-          ),
-        },
-        registry,
-        logger
-      )
+      compatExtras = () => ({ baseUrl, authHeaders })
     }
-    case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]: {
-      const values = config.configValues as { danmakuFormat?: string }
-      return new ManifestProviderService(
-        {
-          manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
-          provider: DanmakuSourceType.Bilibili,
-          providerConfigId: config.id,
-          commentMapper: withMapper(BilibiliMapper.manifestSegmentsToComments),
-          extraInputs: () => ({ danmakuFormat: values.danmakuFormat ?? 'xml' }),
-        },
-        registry,
-        logger
-      )
-    }
-    case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]:
-      return new ManifestProviderService(
-        {
-          manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
-          provider: DanmakuSourceType.Tencent,
-          providerConfigId: config.id,
-          commentMapper: withMapper(TencentMapper.manifestBarrageToComments),
-        },
-        registry,
-        logger
-      )
-    default:
-      throw new Error(`Unknown manifestId: ${config.manifestId}`)
   }
+  const entry = builtinDispatch[effectiveManifestId]
+  if (entry === undefined) {
+    throw new Error(`Unknown manifestId: ${config.manifestId}`)
+  }
+  const extras = compatExtras ?? entry.extraInputs
+  return new ManifestProviderService(
+    {
+      manifestId: effectiveManifestId,
+      provider: entry.provider,
+      providerConfigId: config.id,
+      commentMapper: entry.commentMapper,
+      extraInputs: extras ? () => extras(config) : undefined,
+    },
+    registry,
+    logger
+  )
 }
 
 export function danmakuProviderFactory(

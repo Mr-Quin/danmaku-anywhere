@@ -205,7 +205,7 @@ describe('builtin:bilibili manifest', () => {
     expect(calls).toHaveLength(1)
   })
 
-  it('protobuf variant paginates until the first empty segment', async () => {
+  it('protobuf variant paginates and stops after 3 consecutive empties', async () => {
     const seg1 = encodeSegment([
       {
         progress: 12340,
@@ -271,9 +271,9 @@ describe('builtin:bilibili manifest', () => {
       midHash: 'h3',
       content: 'proto 顶部',
     })
-    // breakOn stops the loop on the first empty segment — segs 1, 2, then
-    // 3 (empty) triggers stop. No more requests fire.
-    expect(calls.length).toBe(3)
+    // breakOnConsecutive: 3 — segs 1 and 2 have content (reset counter),
+    // then segs 3, 4, 5 are empty (3 consecutive empties) → loop stops.
+    expect(calls.length).toBe(5)
   })
 
   it('protobuf variant is the default when danmakuFormat omitted', async () => {
@@ -287,7 +287,8 @@ describe('builtin:bilibili manifest', () => {
     // No danmakuFormat input — should pick the no-`when` (default) variant.
     const result = await runner.runDanmaku({ cid: 1300001 })
     expect(result).toEqual([])
-    expect(calls.length).toBe(1) // breakOn fires immediately on empty seg 1
+    // breakOnConsecutive: 3 — three empty segments in a row stop the loop.
+    expect(calls.length).toBe(3)
   })
 
   it('protobuf variant decodes 304-with-empty-body as no-more-segments', async () => {
@@ -323,6 +324,41 @@ describe('builtin:bilibili manifest', () => {
 
     expect(result).toHaveLength(1)
     expect(result[0]).toMatchObject({ progress: 1000, content: 'only one' })
+  })
+
+  it('protobuf variant survives a single transient empty mid-stream', async () => {
+    // Regression for the breakOnConsecutive: 3 setting. Pre-fix, one empty
+    // segment cut off the rest of the video silently. Now the loop tolerates
+    // up to 2 consecutive empties as transient.
+    const segWith = (progress: number, content: string) =>
+      encodeSegment([
+        { progress, mode: 1, color: 16777215, content, midHash: 'x' },
+      ])
+    const emptySeg = encodeSegment([])
+    const { fetcher, calls } = mockFetcher({
+      'https://api.bilibili.com/x/v2/dm/web/seg.so': (url) => {
+        const segIdx = Number(new URL(url).searchParams.get('segment_index'))
+        // Pattern: 1=full, 2=full, 3=EMPTY (transient), 4=full, 5..7 empty
+        if (segIdx === 1) return { body: segWith(1000, 'a') }
+        if (segIdx === 2) return { body: segWith(2000, 'b') }
+        if (segIdx === 3) return { body: emptySeg }
+        if (segIdx === 4) return { body: segWith(4000, 'c') }
+        return { body: emptySeg }
+      },
+    })
+    const runner = new ManifestRunner(zManifest.parse(builtinBilibili), {
+      fetcher,
+    })
+    const result = (await runner.runDanmaku({
+      cid: 1300001,
+      danmakuFormat: 'protobuf',
+    })) as Array<{ progress: number; content: string }>
+
+    // 3 items survived; the transient empty at seg 3 did not stop the loop.
+    expect(result).toHaveLength(3)
+    expect(result.map((r) => r.content)).toEqual(['a', 'b', 'c'])
+    // Stops after segs 5, 6, 7 are 3 consecutive empties.
+    expect(calls.length).toBe(7)
   })
 
   it('protobuf variant emits raw decoded elems (mode mapping done by host)', async () => {
