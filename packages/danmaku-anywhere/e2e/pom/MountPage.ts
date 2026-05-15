@@ -45,25 +45,12 @@ export class MountPage {
     return item
   }
 
-  // Open the per-item DrilldownMenu and click an action. The drilldown
-  // button only mounts while the tree item's `hovering` React state is
-  // true. item.hover() moves the OS mouse, but on headed CI runners with
-  // parallel workers the resulting mouseenter delegation can be lost,
-  // leaving the button unmounted and the click timing out. React uses
-  // `mouseover` at the root to compute onMouseEnter, so dispatching that
-  // synthetic event flips the state regardless of mouse position; we
-  // then wait for the button to render before clicking.
+  // Open the per-item DrilldownMenu and click an action. The menu only
+  // mounts while the item is hovered, so we hover first.
   async openItemMenu(item: Locator, actionId: string): Promise<void> {
-    await item.dispatchEvent('mouseover')
-    const button = item.locator(SELECTORS.drilldownButton)
-    await expect(button).toBeVisible({ timeout: 5_000 })
-    await button.click()
-    const menuItem = this.page.locator(SELECTORS.menuItem(actionId))
-    await menuItem.click()
-    // Wait for the MUI Popover to finish closing — its backdrop persists
-    // through the fade-out transition and would intercept the next
-    // openItemMenu's click.
-    await expect(menuItem).toBeHidden({ timeout: 5_000 })
+    await item.hover()
+    await item.locator(SELECTORS.drilldownButton).click()
+    await this.page.locator(SELECTORS.menuItem(actionId)).click()
   }
 
   // Click the tree item's expand chevron to reveal children. RichTreeView
