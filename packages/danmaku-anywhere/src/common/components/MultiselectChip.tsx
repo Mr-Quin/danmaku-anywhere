@@ -13,6 +13,7 @@ export const MultiselectChip = ({ active, onToggle }: MultiselectChipProps) => {
   return (
     <Chip
       variant="outlined"
+      data-testid="multiselect-toggle"
       label={
         <Stack direction="row" alignItems="center" gap={0.5}>
           {active ? (

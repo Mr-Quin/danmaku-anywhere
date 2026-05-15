@@ -141,6 +141,7 @@ export const DialogRender = ({
         onClick={handleClose}
         disabled={isLoading}
         {...cancelButtonProps}
+        data-testid="dialog-cancel"
         key="cancel"
       >
         {cancelText || t('common.cancel', 'Cancel')}
@@ -154,6 +155,7 @@ export const DialogRender = ({
         loading={isLoading}
         autoFocus
         {...confirmButtonProps}
+        data-testid="dialog-confirm"
         key="confirm"
       >
         {confirmText || t('common.confirm', 'Confirm')}

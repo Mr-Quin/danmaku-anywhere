@@ -60,6 +60,7 @@ export const MountPageToolbar = ({
             onChange={handleSelection}
             size="small"
             edge="start"
+            data-testid="multiselect-select-all"
           />
         </Collapse>
       }
