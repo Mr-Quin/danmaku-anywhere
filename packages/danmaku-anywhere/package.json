@@ -22,7 +22,7 @@
     "standalone:serve": "vite preview --config vite.standalone.config.ts",
     "standalone:deploy": "wrangler deploy",
     "test": "vitest",
-    "pretest:e2e": "VITE_DA_ENV=dev pnpm run build",
+    "pretest:e2e": "VITE_DA_ENV=e2e pnpm run build",
     "test:e2e": "playwright test",
     "dev:browser": "node e2e/setup/open-browser.ts",
     "dev:browser:build": "node e2e/setup/open-browser.ts --build",

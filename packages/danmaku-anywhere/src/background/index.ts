@@ -12,8 +12,8 @@ import { generateId } from '@/background/utils/generateId'
 import {
   DA_ENV,
   EXTENSION_VERSION,
-  IS_DA_DEV,
   IS_DA_PROD,
+  isDaEnv,
 } from '@/common/constants'
 import { attachDevApi } from '@/devApi'
 import { setLogService } from './backgroundLogger'
@@ -43,7 +43,10 @@ chrome.runtime.getPlatformInfo().then((platformInfo) => {
 })
 
 chrome.runtime.onInstalled.addListener((details) => {
-  if (details.reason === 'install' && !IS_DA_DEV) {
+  // Skip the docs tab in dev and e2e — devs already know where the docs
+  // are, and opening an extra tab in e2e flakes Playwright's active-tab
+  // assumptions.
+  if (details.reason === 'install' && !isDaEnv('dev', 'e2e')) {
     void chrome.tabs.create({
       url: 'https://docs.danmaku.weeblify.app/getting-started#首次使用',
     })

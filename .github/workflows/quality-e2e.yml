@@ -81,10 +81,10 @@ jobs:
           VITE_PROXY_ORIGIN=https://danmaku.test
           EOF
 
-      - name: Build extension (dev API on)
+      - name: Build extension (e2e — dev API on, open shadow root)
         working-directory: packages/danmaku-anywhere
         env:
-          VITE_DA_ENV: dev
+          VITE_DA_ENV: e2e
         run: pnpm build
 
       - name: Run E2E tests

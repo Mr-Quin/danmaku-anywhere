@@ -15,10 +15,20 @@ export const IS_EXTERNALLY_CONNECTABLE = EXTERNALLY_CONNECTABLE_PATTERNS.some(
 export const IS_FIREFOX = import.meta.env.VITE_TARGET_BROWSER === 'firefox'
 export const IS_CHROME = import.meta.env.VITE_TARGET_BROWSER === 'chrome'
 
-export const DA_ENV = import.meta.env.VITE_DA_ENV
+export type DaEnv = 'dev' | 'preview' | 'prod' | 'e2e'
+
+export const DA_ENV: DaEnv = import.meta.env.VITE_DA_ENV
 export const IS_DA_DEV = DA_ENV === 'dev'
 export const IS_DA_PREVIEW = DA_ENV === 'preview'
 export const IS_DA_PROD = DA_ENV === 'prod'
+export const IS_DA_E2E = DA_ENV === 'e2e'
+
+// Variadic env check — prefer this over chaining IS_DA_* booleans when a
+// check spans multiple envs (e.g. `isDaEnv('dev', 'e2e')`). Single-env
+// checks can keep using the IS_DA_* constants.
+export function isDaEnv(...envs: DaEnv[]): boolean {
+  return envs.includes(DA_ENV)
+}
 
 export const EXTENSION_VERSION = import.meta.env.VERSION
 

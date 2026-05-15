@@ -1,6 +1,8 @@
+import type { DaEnv } from '@/common/constants'
+
 export type MethodKind = 'read' | 'write'
 
-export type DaEnv = 'dev' | 'preview' | 'prod'
+export type { DaEnv }
 
 export interface ArgSpec {
   name: string

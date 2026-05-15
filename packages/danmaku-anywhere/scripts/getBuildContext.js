@@ -6,7 +6,7 @@ const dev = process.env.NODE_ENV === 'development'
 const IS_CHROME = BROWSER === 'chrome'
 const IS_FIREFOX = BROWSER === 'firefox'
 
-const VALID_DA_ENVS = ['dev', 'preview', 'prod']
+const VALID_DA_ENVS = ['dev', 'preview', 'prod', 'e2e']
 function resolveDaEnv() {
   const explicit = process.env.VITE_DA_ENV
   if (explicit) {

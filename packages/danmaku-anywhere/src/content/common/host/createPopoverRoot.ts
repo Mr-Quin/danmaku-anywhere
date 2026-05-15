@@ -1,4 +1,4 @@
-import { IS_DA_PROD } from '@/common/constants'
+import { IS_DA_E2E } from '@/common/constants'
 import shadowCss from './shadow.css?inline'
 import { waitForBody } from './waitForBody'
 
@@ -21,11 +21,12 @@ export async function createPopoverRoot({ id }: PopoverRootOptions) {
   // make the root element a popover so it can be shown on top of everything
   root.setAttribute('popover', 'manual')
 
-  // dev/preview builds use an open shadow root so Playwright selectors can
-  // pierce into the player/controller UI during e2e. Production keeps it
-  // closed so page scripts (and userscripts) can't reach in.
+  // Open shadow root only in e2e builds so Playwright selectors can pierce
+  // into the player/controller UI. Dev, preview, and prod all stay closed —
+  // dev users and the preview channel get the same isolation as prod from
+  // page scripts and userscripts.
   const shadowContainer = root.attachShadow({
-    mode: IS_DA_PROD ? 'closed' : 'open',
+    mode: IS_DA_E2E ? 'open' : 'closed',
   })
   const shadowRoot = document.createElement('div')
 
