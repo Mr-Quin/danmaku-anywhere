@@ -11,6 +11,7 @@ import {
   type ExtensionOptionsApi,
   ExtensionOptionsNamespace,
 } from './namespaces/ExtensionOptionsNamespace'
+import { type MountApi, MountNamespace } from './namespaces/MountNamespace'
 import {
   type ProviderConfigApi,
   ProviderConfigNamespace,
@@ -39,6 +40,7 @@ const NAMESPACE_TOKENS = [
   SeasonNamespace,
   EpisodeNamespace,
   BookmarkNamespace,
+  MountNamespace,
 ] as const
 
 export interface DaApi {
@@ -51,6 +53,7 @@ export interface DaApi {
   season: SeasonApi
   episode: EpisodeApi
   bookmark: BookmarkApi
+  mount: MountApi
 }
 
 declare global {

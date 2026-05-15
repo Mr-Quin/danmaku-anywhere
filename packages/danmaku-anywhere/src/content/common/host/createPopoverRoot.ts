@@ -1,3 +1,4 @@
+import { IS_DA_PROD } from '@/common/constants'
 import shadowCss from './shadow.css?inline'
 import { waitForBody } from './waitForBody'
 
@@ -20,7 +21,12 @@ export async function createPopoverRoot({ id }: PopoverRootOptions) {
   // make the root element a popover so it can be shown on top of everything
   root.setAttribute('popover', 'manual')
 
-  const shadowContainer = root.attachShadow({ mode: 'closed' })
+  // dev/preview builds use an open shadow root so Playwright selectors can
+  // pierce into the player/controller UI during e2e. Production keeps it
+  // closed so page scripts (and userscripts) can't reach in.
+  const shadowContainer = root.attachShadow({
+    mode: IS_DA_PROD ? 'closed' : 'open',
+  })
   const shadowRoot = document.createElement('div')
 
   shadowContainer.appendChild(shadowRoot)

@@ -10,8 +10,11 @@ import type {
 import type { BrowserContext, Worker } from '@playwright/test'
 import type { ExtensionOptions } from '../../src/common/options/extensionOptions/schema'
 import type { ProviderConfig } from '../../src/common/options/providerConfig/schema'
+import type { MountMirror } from '../../src/devApi/namespaces/MountNamespace'
 import type { StorageArea } from '../../src/devApi/namespaces/StorageNamespace'
 import type { NamespaceDescription } from '../../src/devApi/registry'
+
+export type { MountMirror }
 
 export class DaClient {
   constructor(private readonly sw: Worker) {}
@@ -108,6 +111,21 @@ export class DaClient {
       this.sw.evaluate((id) => self.__da.bookmark.bySeason(id), seasonId),
     deleteBySeason: (seasonId: number): Promise<void> =>
       this.sw.evaluate((id) => self.__da.bookmark.deleteBySeason(id), seasonId),
+  }
+
+  mount = {
+    current: (tabId?: number): Promise<MountMirror | undefined> =>
+      this.sw.evaluate((id) => self.__da.mount.current(id), tabId),
+    waitForMount: (tabId?: number, timeoutMs?: number): Promise<MountMirror> =>
+      this.sw.evaluate(([id, t]) => self.__da.mount.waitForMount(id, t), [
+        tabId,
+        timeoutMs,
+      ] as const),
+    waitForRegistration: (pattern: string, timeoutMs?: number): Promise<void> =>
+      this.sw.evaluate(([p, t]) => self.__da.mount.waitForRegistration(p, t), [
+        pattern,
+        timeoutMs,
+      ] as const),
   }
 }
 
