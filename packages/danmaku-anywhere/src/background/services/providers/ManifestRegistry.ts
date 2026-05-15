@@ -49,7 +49,19 @@ export class ManifestRegistry {
 
   constructor() {
     for (const spec of builtinSpecs) {
-      const manifest = zManifest.parse(spec.manifest)
+      // Per-manifest safeParse so a single malformed manifest (e.g. a
+      // breaking schema change against a stale shipped JSON) doesn't take
+      // down the whole registry — only its source becomes unavailable.
+      const parsed = zManifest.safeParse(spec.manifest)
+      if (!parsed.success) {
+        console.error(
+          'Failed to load built-in manifest:',
+          (spec.manifest as { id?: string }).id ?? '<unknown>',
+          parsed.error.issues
+        )
+        continue
+      }
+      const manifest = parsed.data
       const runner = new ManifestRunner(manifest, {
         fetcher: extensionFetchLike,
         protoTypes: spec.protoTypes,
