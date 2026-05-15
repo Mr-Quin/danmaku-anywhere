@@ -5,8 +5,10 @@ import {
 } from '@danmaku-anywhere/danmaku-converter'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ILogger } from '@/common/Logger'
+import { LoggerSymbol } from '@/common/Logger'
 import { DDP_COMPAT_MANIFEST_ID } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import type { ManifestRegistry } from './ManifestRegistry'
 
 /**
  * ProviderFactory dispatches on `config.manifestId` and constructs either
@@ -23,11 +25,9 @@ const mockRunner = {
   configDefaults: vi.fn(() => ({})),
 }
 
-vi.mock('./ManifestRegistry', () => ({
-  getManifestRegistry: () => ({
-    getRunner: () => mockRunner,
-  }),
-}))
+const fakeRegistry = {
+  getRunner: () => mockRunner,
+} as unknown as ManifestRegistry
 
 vi.mock('./MacCmsProviderService', () => ({
   MacCmsProviderService: class FakeMacCmsProvider {
@@ -45,11 +45,13 @@ const silentLogger = {
   sub: () => silentLogger,
 } as unknown as ILogger
 
-const fakeContext = {
-  get: () => silentLogger,
-} as unknown as Parameters<
-  typeof import('./ProviderFactory').danmakuProviderFactory
->[0]
+function fakeContext(logger: ILogger = silentLogger) {
+  return {
+    get: (token: unknown) => (token === LoggerSymbol ? logger : fakeRegistry),
+  } as unknown as Parameters<
+    typeof import('./ProviderFactory').danmakuProviderFactory
+  >[0]
+}
 
 beforeEach(() => {
   mockRunner.runSearch.mockClear()
@@ -59,7 +61,7 @@ beforeEach(() => {
 
 async function buildFactory() {
   const { danmakuProviderFactory } = await import('./ProviderFactory')
-  return danmakuProviderFactory(fakeContext)
+  return danmakuProviderFactory(fakeContext())
 }
 
 function ddpCompat(opts: {
@@ -163,9 +165,9 @@ describe('ProviderFactory dispatch', () => {
       error: () => {},
       sub: () => noisyLogger,
     } as unknown as ILogger
-    const factory = (await import('./ProviderFactory')).danmakuProviderFactory({
-      get: () => noisyLogger,
-    } as never)
+    const factory = (await import('./ProviderFactory')).danmakuProviderFactory(
+      fakeContext(noisyLogger)
+    )
     const service = factory(
       ddpCompat({
         baseUrl: '',

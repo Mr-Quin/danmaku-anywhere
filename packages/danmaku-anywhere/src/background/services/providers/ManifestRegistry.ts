@@ -1,5 +1,4 @@
 import {
-  type Manifest,
   ManifestRunner,
   type ProtoTypeOverrides,
   zManifest,
@@ -17,6 +16,8 @@ import builtinTencent from '@danmaku-anywhere/dango-manifests/manifests/builtin-
   type: 'json',
 }
 import { bilibili as bilibiliProto } from '@danmaku-anywhere/danmaku-provider/bilibili-proto'
+import { inject, injectable } from 'inversify'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { extensionFetchLike } from './extensionFetchLike'
 
 // MV3 CSP blocks protobufjs's runtime codegen; pre-compiled types are
@@ -41,16 +42,17 @@ const builtinSpecs: ManifestSpec[] = [
   { manifest: builtinTencent },
 ]
 
+@injectable('Singleton')
 export class ManifestRegistry {
   private readonly runners = new Map<string, ManifestRunner>()
-  private readonly manifests = new Map<string, Manifest>()
 
-  constructor() {
+  constructor(@inject(LoggerSymbol) logger: ILogger) {
+    const log = logger.sub('[ManifestRegistry]')
     for (const spec of builtinSpecs) {
       // Per-manifest so one bad spec doesn't take the registry down.
       const parsed = zManifest.safeParse(spec.manifest)
       if (!parsed.success) {
-        console.error(
+        log.error(
           'Failed to load built-in manifest:',
           (spec.manifest as { id?: string }).id ?? '<unknown>',
           parsed.error.issues
@@ -63,7 +65,6 @@ export class ManifestRegistry {
         protoTypes: spec.protoTypes,
       })
       this.runners.set(manifest.id, runner)
-      this.manifests.set(manifest.id, manifest)
     }
   }
 
@@ -74,21 +75,4 @@ export class ManifestRegistry {
     }
     return runner
   }
-
-  getManifest(manifestId: string): Manifest {
-    const manifest = this.manifests.get(manifestId)
-    if (!manifest) {
-      throw new Error(`no manifest registered with id: ${manifestId}`)
-    }
-    return manifest
-  }
-}
-
-let cached: ManifestRegistry | undefined
-
-export function getManifestRegistry(): ManifestRegistry {
-  if (!cached) {
-    cached = new ManifestRegistry()
-  }
-  return cached
 }

@@ -180,15 +180,12 @@ export class ProviderService {
       throw new Error('MacCMS episodes are not refetchable')
     }
 
-    let existingDanmaku: WithSeason<Episode> | undefined
-
     const { meta } = resolved
-    const [found] = await this.danmakuService.filter({
+    const [existingDanmaku] = await this.danmakuService.filter({
       provider,
       indexedId: meta.indexedId,
       seasonId: meta.seasonId,
     })
-    existingDanmaku = found
 
     if (existingDanmaku && !options.forceUpdate) {
       this.logger.debug('Danmaku found in db', existingDanmaku)

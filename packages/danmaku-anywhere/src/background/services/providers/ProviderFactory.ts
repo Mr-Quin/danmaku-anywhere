@@ -13,7 +13,7 @@ import { BilibiliMapper } from './bilibili/BilibiliMapper'
 import { DanDanPlayMapper } from './dandanplay/DanDanPlayMapper'
 import { MacCmsProviderService } from './MacCmsProviderService'
 import { ManifestProviderService } from './ManifestProviderService'
-import { getManifestRegistry } from './ManifestRegistry'
+import { ManifestRegistry } from './ManifestRegistry'
 import { TencentMapper } from './tencent/TencentMapper'
 
 export type IDanmakuProviderFactory = (
@@ -70,9 +70,9 @@ const builtinDispatch: Record<string, BuiltinDispatch> = {
 
 function createDanmakuProvider(
   config: ProviderConfig,
+  registry: ManifestRegistry,
   logger: ILogger
 ): IDanmakuProvider {
-  const registry = getManifestRegistry()
   // MacCMS still uses the legacy service until a template manifest ships.
   if (config.manifestId === LEGACY_MACCMS_ID) {
     return new MacCmsProviderService(config, logger)
@@ -122,6 +122,10 @@ export function danmakuProviderFactory(
   context: ResolutionContext
 ): IDanmakuProviderFactory {
   return (config: ProviderConfig): IDanmakuProvider => {
-    return createDanmakuProvider(config, context.get<ILogger>(LoggerSymbol))
+    return createDanmakuProvider(
+      config,
+      context.get<ManifestRegistry>(ManifestRegistry),
+      context.get<ILogger>(LoggerSymbol)
+    )
   }
 }

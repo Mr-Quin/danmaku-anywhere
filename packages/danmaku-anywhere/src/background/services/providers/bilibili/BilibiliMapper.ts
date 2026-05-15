@@ -59,16 +59,13 @@ export class BilibiliMapper {
   static manifestSegmentsToComments(
     items: ManifestBilibiliDanmakuElem[]
   ): CommentEntity[] {
-    const out: CommentEntity[] = new Array(items.length)
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i]
+    return items.map((item) => {
       const mode = item.mode === 2 || item.mode === 3 ? 1 : item.mode
-      out[i] = {
-        p: `${Number(item.progress) / 1000},${mode},${item.color},${item.midHash ?? ''}`,
+      return {
+        p: `${item.progress / 1000},${mode},${item.color},${item.midHash ?? ''}`,
         m: item.content,
       }
-    }
-    return out
+    })
   }
 }
 
