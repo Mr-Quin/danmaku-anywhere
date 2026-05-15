@@ -19,8 +19,6 @@ export const createTrackingService = (
   environment: string,
   type: EnvironmentType
 ) => {
-  // Skip in e2e builds so strict-mode network checks don't catch clarity
-  // upload calls — telemetry shouldn't fire under test anyway.
   if (trackingService !== null || IS_STANDALONE_RUNTIME || IS_DA_E2E) {
     return trackingService
   }

@@ -24,10 +24,7 @@ interface ContextWatchers {
 // Playwright doesn't buffer console events for existing workers.
 const watchersByContext = new WeakMap<BrowserContext, ContextWatchers>()
 
-// The network watcher needs to read the per-test `allowedNetworkOrigins`
-// at request time (it's installed once, during context setup, but each
-// test can supply its own list). The fixture below populates this map
-// before the test body runs.
+// Per-test allowlist, read lazily by the network watcher at request time.
 const allowedByContext = new WeakMap<
   BrowserContext,
   readonly AllowedNetworkPattern[]
@@ -54,12 +51,9 @@ export const test = base.extend<{
   // any of those parts.
   expectedConsoleErrors: [[], { option: true }],
 
-  // Per-test opt-in: override with `test.use({ allowedNetworkOrigins: [...] })`
-  // to whitelist extra origins beyond the project defaults (extension://,
-  // data:/blob:/about:, *.invalid hosts). Entries match by `includes`
-  // (string) or `.test` (RegExp) against the full request URL. Use this
-  // sparingly — the goal is to catch leaked traffic, so prefer adding a
-  // per-spec mock over widening the allowlist.
+  // Per-test opt-in for extra origins; matched by `includes` (string) or
+  // `.test` (RegExp). Project defaults (extension://, data:, blob:, about:,
+  // *.invalid) are always allowed. Prefer a per-spec mock over widening this.
   allowedNetworkOrigins: [[], { option: true }],
 
   // biome-ignore lint: Playwright fixture pattern requires destructuring
@@ -133,11 +127,6 @@ export const test = base.extend<{
     { auto: true },
   ],
 
-  // Auto fixture: populate the per-context allowlist before the test body
-  // runs (the network watcher reads it on each unmocked request), then
-  // after the test fail if any unmocked-and-not-allowlisted request was
-  // intercepted. Mirrors the `_assertNoUnexpectedConsoleErrors` shape —
-  // skipped on prior failure so the real cause isn't drowned out.
   _assertNoUnmockedNetwork: [
     async ({ context, allowedNetworkOrigins }, use, testInfo) => {
       allowedByContext.set(context, allowedNetworkOrigins)
@@ -153,7 +142,7 @@ export const test = base.extend<{
       if (entries.length > 0) {
         const lines = entries.map((e) => `  - ${e}`).join('\n')
         throw new Error(
-          `Unmocked network requests during test (${entries.length}):\n${lines}\n\nIf these are expected, allow them via test.use({ allowedNetworkOrigins: [...] }) — but prefer adding a per-spec mock so the request's response is asserted, not just its origin.`
+          `Unmocked network requests (${entries.length}):\n${lines}\n\nAdd a per-spec mock, or allow via test.use({ allowedNetworkOrigins: [...] }).`
         )
       }
     },
