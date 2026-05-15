@@ -57,11 +57,13 @@ export default defineConfig({
     // so inject placeholder hosts that Playwright routes intercept.
     ...(daEnv === 'e2e'
       ? {
+          // Use `||` so an empty-string env var still falls back to the
+          // placeholder — Chrome rejects empty DNR header values.
           'import.meta.env.VITE_PROXY_URL': JSON.stringify(
-            process.env.VITE_PROXY_URL ?? 'https://api.danmaku.test'
+            process.env.VITE_PROXY_URL || 'https://api.danmaku.test'
           ),
           'import.meta.env.VITE_PROXY_ORIGIN': JSON.stringify(
-            process.env.VITE_PROXY_ORIGIN ?? 'https://danmaku.test'
+            process.env.VITE_PROXY_ORIGIN || 'https://danmaku.test'
           ),
         }
       : {}),
