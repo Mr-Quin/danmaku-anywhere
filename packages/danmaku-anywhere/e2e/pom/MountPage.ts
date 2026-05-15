@@ -90,9 +90,12 @@ export class MountPage {
 
   // Confirm the active MUI delete/confirm dialog. The Dialog renders in a
   // portal, so the testid is looked up at the page level (not scoped to a
-  // tree item).
-  async confirmDialog(): Promise<void> {
+  // tree item). Waits for the button to be visible first — without the
+  // explicit wait, a regression that no longer opens a dialog hangs on
+  // Playwright's default 30s auto-wait instead of failing fast.
+  async confirmDialog(timeout = 5_000): Promise<void> {
     const confirm = this.page.locator(SELECTORS.dialogConfirm)
+    await expect(confirm).toBeVisible({ timeout })
     await confirm.click()
   }
 
