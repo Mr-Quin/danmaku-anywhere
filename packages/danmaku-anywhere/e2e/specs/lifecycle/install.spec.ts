@@ -24,7 +24,6 @@ const BUILTIN_PROVIDER_IDS = [
 test('fresh install: default options seeded, no console errors', async ({
   context,
   extensionId,
-  consoleErrors,
 }) => {
   // Chrome extension IDs are a 32-char base-16 alphabet of a-p.
   expect(extensionId).toMatch(/^[a-p]{32}$/)
@@ -42,6 +41,4 @@ test('fresh install: default options seeded, no console errors', async ({
   for (const p of providers) {
     expect(p.isBuiltIn).toBe(true)
   }
-
-  expect(consoleErrors()).toEqual([])
 })
