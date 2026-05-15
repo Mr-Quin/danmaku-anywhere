@@ -52,6 +52,19 @@ export default defineConfig({
     'import.meta.env.VERSION': JSON.stringify(appVersion),
     'import.meta.env.VITE_STANDALONE': JSON.stringify(false),
     'import.meta.env.VITE_DA_ENV': JSON.stringify(daEnv),
+    // E2E builds run without a developer .env (CI and fresh checkouts).
+    // The DNR rule that sets the Origin header rejects undefined values,
+    // so inject placeholder hosts that Playwright routes intercept.
+    ...(daEnv === 'e2e'
+      ? {
+          'import.meta.env.VITE_PROXY_URL': JSON.stringify(
+            process.env.VITE_PROXY_URL ?? 'https://api.danmaku.test'
+          ),
+          'import.meta.env.VITE_PROXY_ORIGIN': JSON.stringify(
+            process.env.VITE_PROXY_ORIGIN ?? 'https://danmaku.test'
+          ),
+        }
+      : {}),
   },
   build: {
     emptyOutDir: true,
