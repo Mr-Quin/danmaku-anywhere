@@ -7,10 +7,10 @@ import { createTaskQueue } from '@/common/utils/taskQueue'
 // @ts-expect-error
 import contentScript from '@/content/controller?script'
 
-const contentScriptId = 'main-content'
+export const MAIN_CONTENT_SCRIPT_ID = 'main-content'
 
 const mainScript: chrome.scripting.RegisteredContentScript = {
-  id: contentScriptId,
+  id: MAIN_CONTENT_SCRIPT_ID,
   js: [contentScript],
   matches: [],
   persistAcrossSessions: true,
@@ -57,14 +57,14 @@ export class ScriptingManager {
 
     const registeredScript = await chrome.scripting.getRegisteredContentScripts(
       {
-        ids: [contentScriptId],
+        ids: [MAIN_CONTENT_SCRIPT_ID],
       }
     )
 
     if (patterns.length === 0 && registeredScript.length > 0) {
       this.logger.debug('Unregistering content scripts', { patterns })
       return chrome.scripting.unregisterContentScripts({
-        ids: [contentScriptId],
+        ids: [MAIN_CONTENT_SCRIPT_ID],
       })
     }
 
@@ -82,7 +82,7 @@ export class ScriptingManager {
       this.logger.debug('Updating content scripts', { patterns })
       return chrome.scripting.updateContentScripts([
         {
-          id: contentScriptId,
+          id: MAIN_CONTENT_SCRIPT_ID,
           matches: patterns,
         },
       ])

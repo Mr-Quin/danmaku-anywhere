@@ -5,7 +5,7 @@ interface ImportMetaEnv {
   readonly VITE_PROXY_ORIGIN: string
   readonly VITE_TARGET_BROWSER: 'chrome' | 'firefox'
   readonly VITE_STANDALONE?: 'true' | 'false'
-  readonly VITE_DA_ENV: 'dev' | 'preview' | 'prod'
+  readonly VITE_DA_ENV: 'dev' | 'preview' | 'prod' | 'e2e'
   readonly VERSION: string
 }
 

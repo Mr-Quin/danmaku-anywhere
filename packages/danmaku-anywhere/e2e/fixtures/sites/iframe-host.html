@@ -1,0 +1,29 @@
+<!--
+  Generic iframe-host fixture for the integration auto-mount iframe scenario.
+  The integration policy extracts title + episode from this top frame (where
+  the controller content script runs), while the <video> lives in an iframe
+  (where the player content script runs in a separate frame). Tests that the
+  controller can locate the iframe's video and instruct that frame's player
+  to mount.
+
+  The iframe is loaded from a same-origin path so page.route can serve the
+  inner fixture. Spec dispatches play/seek events to the iframe's video.
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Integration test iframe host</title>
+  </head>
+  <body>
+    <h1 data-testid="da-title">DA Integration Test</h1>
+    <span data-testid="da-episode">Episode 1</span>
+    <iframe
+      data-testid="da-iframe"
+      src="/iframe-inner.html"
+      width="640"
+      height="360"
+      style="border: 0"
+    ></iframe>
+  </body>
+</html>

@@ -13,12 +13,19 @@ import { App } from './App'
 import '@/common/localization/i18n'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { createPortal } from 'react-dom'
+import { IS_DA_PROD } from '@/common/constants'
 import { EnvironmentContext } from '@/common/environment/context'
 import { tryCatchSync } from '@/common/utils/tryCatch'
 import { createPopoverRoot } from '@/content/common/host/createPopoverRoot'
 import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
+import { attachMountMirror } from '@/content/controller/common/devMountMirror'
+import { useStore } from '@/content/controller/store/store'
 
 await ensureStandaloneReady()
+
+if (!IS_DA_PROD) {
+  attachMountMirror(useStore)
+}
 
 const { data: frameId } = await chromeRpcClient.getFrameId()
 

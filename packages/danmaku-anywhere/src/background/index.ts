@@ -12,8 +12,8 @@ import { generateId } from '@/background/utils/generateId'
 import {
   DA_ENV,
   EXTENSION_VERSION,
-  IS_DA_DEV,
   IS_DA_PROD,
+  isDaEnv,
 } from '@/common/constants'
 import { attachDevApi } from '@/devApi'
 import { setLogService } from './backgroundLogger'
@@ -43,7 +43,7 @@ chrome.runtime.getPlatformInfo().then((platformInfo) => {
 })
 
 chrome.runtime.onInstalled.addListener((details) => {
-  if (details.reason === 'install' && !IS_DA_DEV) {
+  if (details.reason === 'install' && !isDaEnv('dev', 'e2e')) {
     void chrome.tabs.create({
       url: 'https://docs.danmaku.weeblify.app/getting-started#首次使用',
     })

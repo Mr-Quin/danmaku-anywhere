@@ -1,3 +1,4 @@
+import { IS_DA_E2E } from '@/common/constants'
 import shadowCss from './shadow.css?inline'
 import { waitForBody } from './waitForBody'
 
@@ -20,7 +21,10 @@ export async function createPopoverRoot({ id }: PopoverRootOptions) {
   // make the root element a popover so it can be shown on top of everything
   root.setAttribute('popover', 'manual')
 
-  const shadowContainer = root.attachShadow({ mode: 'closed' })
+  // Open shadow only in e2e so Playwright selectors can pierce.
+  const shadowContainer = root.attachShadow({
+    mode: IS_DA_E2E ? 'open' : 'closed',
+  })
   const shadowRoot = document.createElement('div')
 
   shadowContainer.appendChild(shadowRoot)

@@ -1,0 +1,23 @@
+<!--
+  Generic native-video fixture for the integration auto-mount happy path.
+  Served via page.route at an arbitrary URL the test's MountConfig pattern
+  covers — there's no real site behind this, just enough DOM for:
+
+  - the player to find a <video> via the mountConfig.mediaQuery selector
+  - the controller's XPath integration policy to extract title and episode
+    via stable data-testid hooks (no site-specific selectors)
+
+  The spec dispatches play/seek/timeupdate directly, so the video has no src.
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Integration test page</title>
+  </head>
+  <body>
+    <h1 data-testid="da-title">DA Integration Test</h1>
+    <span data-testid="da-episode">Episode 1</span>
+    <video data-testid="da-video" playsinline></video>
+  </body>
+</html>
