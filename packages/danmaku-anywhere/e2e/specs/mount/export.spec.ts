@@ -72,9 +72,11 @@ test('mount tree: season export downloads an XML payload', async ({
   const popup = await Popup.open(page, extensionId, '/mount')
   const seasonItem = await popup.mount.waitForSeason(season.id)
 
-  // waitForEvent must be armed before the click that triggers the
-  // download.
-  const downloadPromise = page.waitForEvent('download', { timeout: 10_000 })
+  // waitForEvent must be armed before the click that triggers it. 20s
+  // (vs the usual 10) gives slack for slow CI runners: the export
+  // mutation fetches via RPC, serializes, then triggers a programmatic
+  // <a download> click.
+  const downloadPromise = page.waitForEvent('download', { timeout: 20_000 })
   await popup.mount.openItemMenu(seasonItem, 'export')
   const download = await downloadPromise
 
@@ -105,7 +107,7 @@ test('mount tree: season exportBackup downloads a JSON payload', async ({
   const popup = await Popup.open(page, extensionId, '/mount')
   const seasonItem = await popup.mount.waitForSeason(season.id)
 
-  const downloadPromise = page.waitForEvent('download', { timeout: 10_000 })
+  const downloadPromise = page.waitForEvent('download', { timeout: 20_000 })
   await popup.mount.openItemMenu(seasonItem, 'exportBackup')
   const download = await downloadPromise
 
