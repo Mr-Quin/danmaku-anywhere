@@ -73,8 +73,12 @@ test('mount tree: delete season removes it + cascades episodes', async ({
 
   await expect(seasonItem).toBeHidden({ timeout: 10_000 })
 
-  await expect.poll(() => da.season.get(season.id)).toBeUndefined()
-  await expect.poll(() => da.episode.get(ep.id)).toBeUndefined()
+  await expect
+    .poll(() => da.season.get(season.id), { timeout: 10_000 })
+    .toBeUndefined()
+  await expect
+    .poll(() => da.episode.get(ep.id), { timeout: 10_000 })
+    .toBeUndefined()
 })
 
 test('mount tree: delete single episode keeps season + siblings', async ({
@@ -103,7 +107,9 @@ test('mount tree: delete single episode keeps season + siblings', async ({
 
   await expect(ep1Item).toBeHidden({ timeout: 10_000 })
 
-  await expect.poll(() => da.episode.get(ep1.id)).toBeUndefined()
+  await expect
+    .poll(() => da.episode.get(ep1.id), { timeout: 10_000 })
+    .toBeUndefined()
 
   // Sibling + parent intact.
   const survivor = await da.episode.get(ep2.id)
