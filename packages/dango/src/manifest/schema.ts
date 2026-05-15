@@ -118,6 +118,11 @@ const zForEachStep = z
      * cursor-style pagination ("stop when this page is partial").
      */
     breakOn: zExpr.optional(),
+    /**
+     * Require N consecutive truthy `breakOn` results before stopping.
+     * Default 1 (stop immediately). Raise it to tolerate transient empties.
+     */
+    breakOnConsecutive: z.number().int().min(1).max(20).default(1),
   })
   .refine((s) => s.breakOn === undefined || s.concurrency === 1, {
     message: 'forEach.breakOn requires concurrency: 1 (sequential execution)',
@@ -227,5 +232,7 @@ export const zManifest = z.object({
   search: zPipelineField.optional(),
   episodes: zPipelineField.optional(),
   danmaku: zPipelineField.optional(),
+  /** Re-fetch a stored season's metadata. Inputs are the season's providerIds. */
+  season: zPipelineField.optional(),
 })
 export type Manifest = z.infer<typeof zManifest>

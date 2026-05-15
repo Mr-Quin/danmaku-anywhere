@@ -43,10 +43,10 @@
         "request": {
           "method": "GET",
           "url": "'https://api.danmaku.weeblify.app/ddp/v1'",
-          "query": "{ 'path': '/v2/comment/' & $string(episodeId) & '?withRelated=false' }"
+          "query": "{ 'path': '/v2/comment/' & $string(episodeId) & '?' & $sortedQueryString({ 'withRelated': 'true', 'chConvert': chConvert ? $string(chConvert) : undefined }) }"
         }
       }
     ],
-    "output": "[comments.comments.{ 'cid': cid, 'p': p, 'm': m }]"
+    "output": "[comments.comments]"
   }
 }

@@ -261,6 +261,10 @@ export class ExtensionOptionsService implements IStoreService {
             draft.showFloatingButton = true
           }),
       })
+      .version(25, {
+        // Drops the now-removed `useManifest` field. zod strips it on read.
+        upgrade: (data) => data,
+      })
   }
 
   async get() {

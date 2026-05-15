@@ -1,6 +1,12 @@
+import {
+  LEGACY_MACCMS_ID,
+  PROVIDER_TO_BUILTIN_ID,
+} from '@danmaku-anywhere/danmaku-converter'
 import { Box } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
+import { DDP_COMPAT_MANIFEST_ID } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
@@ -61,21 +67,21 @@ export const ProviderEditor = ({
         name: provider.name,
       })
     }
-    if (provider.type === 'DanDanPlayCompatible') {
+    if (provider.manifestId === DDP_COMPAT_MANIFEST_ID) {
       return t(
         'providers.editor.title.addDanDanPlay',
         'Add DanDanPlay Compatible Provider'
       )
     }
-    if (provider.type === 'MacCMS') {
+    if (provider.manifestId === LEGACY_MACCMS_ID) {
       return t('providers.editor.title.addMacCms', 'Add MacCMS Provider')
     }
     return t('providers.editor.title.add', 'Add Provider')
   }
 
   const renderForm = () => {
-    switch (provider.type) {
-      case 'DanDanPlay':
+    switch (provider.manifestId) {
+      case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]:
         return (
           <DanDanPlayProviderForm
             provider={provider}
@@ -83,7 +89,7 @@ export const ProviderEditor = ({
             isEdit={isEdit}
           />
         )
-      case 'Bilibili':
+      case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]:
         return (
           <BilibiliProviderForm
             provider={provider}
@@ -91,7 +97,7 @@ export const ProviderEditor = ({
             isEdit={isEdit}
           />
         )
-      case 'Tencent':
+      case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]:
         return (
           <TencentProviderForm
             provider={provider}
@@ -99,7 +105,7 @@ export const ProviderEditor = ({
             isEdit={isEdit}
           />
         )
-      case 'DanDanPlayCompatible':
+      case DDP_COMPAT_MANIFEST_ID:
         return (
           <DanDanPlayCompatibleProviderForm
             provider={provider}
@@ -107,7 +113,7 @@ export const ProviderEditor = ({
             isEdit={isEdit}
           />
         )
-      case 'MacCMS':
+      case LEGACY_MACCMS_ID:
         return (
           <MacCmsProviderForm
             provider={provider}

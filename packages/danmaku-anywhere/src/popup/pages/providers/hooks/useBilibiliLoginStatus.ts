@@ -1,10 +1,12 @@
+import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { useQuery } from '@tanstack/react-query'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { sourceQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 export const useBilibiliLoginStatus = (config: ProviderConfig) => {
-  const isBilibili = config.type === 'Bilibili'
+  const isBilibili =
+    config.impl === DanmakuSourceType.Bilibili && config.isBuiltIn
 
   const query = useQuery({
     queryFn: () => chromeRpcClient.bilibiliGetLoginStatus(),

@@ -1,7 +1,8 @@
-import type {
-  CommentEntity,
-  CustomSeason,
-  EpisodeMeta,
+import {
+  type CommentEntity,
+  type CustomSeason,
+  type EpisodeMeta,
+  LEGACY_MACCMS_ID,
 } from '@danmaku-anywhere/danmaku-converter'
 import {
   fetchDanmuIcuComments,
@@ -11,7 +12,7 @@ import type { DanmakuService } from '@/background/services/persistence/DanmakuSe
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { ILogger } from '@/common/Logger'
-import type { CustomMacCmsProvider } from '@/common/options/providerConfig/schema'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import type { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type {
@@ -25,7 +26,7 @@ export class MacCmsProviderService implements IDanmakuProvider {
   private logger: ILogger
 
   constructor(
-    private config: CustomMacCmsProvider,
+    private config: ProviderConfig,
     logger: ILogger
   ) {
     this.logger = logger.sub('[MacCmsProviderService]')
@@ -35,9 +36,13 @@ export class MacCmsProviderService implements IDanmakuProvider {
     )
   }
 
+  private get configValues(): MacCmsConfigValues {
+    return this.config.configValues as unknown as MacCmsConfigValues
+  }
+
   async search(params: SeasonSearchParams): Promise<CustomSeason[]> {
     return MacCmsProviderService.search(
-      this.config.options.danmakuBaseUrl,
+      this.configValues.danmakuBaseUrl,
       params.keyword,
       this.logger
     )
@@ -95,16 +100,17 @@ export class MacCmsProviderService implements IDanmakuProvider {
         `Provider config with ID "${providerConfigId}" not found. Please ensure the provider configuration exists.`
       )
     }
-    if (config.type !== 'MacCMS') {
+    if (config.manifestId !== LEGACY_MACCMS_ID) {
       throw new Error(
-        `Invalid provider type "${config.type}" for MacCMS service. Expected "MacCMS".`
+        `Invalid provider manifest "${config.manifestId}" for MacCMS service. Expected ${LEGACY_MACCMS_ID}.`
       )
     }
 
+    const values = config.configValues as unknown as MacCmsConfigValues
     const commentsResult = await fetchDanmuIcuComments(
-      config.options.danmuicuBaseUrl,
+      values.danmuicuBaseUrl,
       url,
-      config.options.stripColor
+      values.stripColor
     )
 
     if (!commentsResult.success) {
@@ -125,4 +131,10 @@ export class MacCmsProviderService implements IDanmakuProvider {
   async getDanmaku(_request: DanmakuFetchByMeta): Promise<CommentEntity[]> {
     throw new Error('Method not implemented.')
   }
+}
+
+interface MacCmsConfigValues {
+  danmakuBaseUrl: string
+  danmuicuBaseUrl: string
+  stripColor: boolean
 }

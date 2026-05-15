@@ -1,3 +1,4 @@
+import type { DanmakuSourceType } from '../provider/provider.js'
 import type {
   CustomEpisodeInsertV4,
   CustomEpisodeLiteV4,
@@ -20,7 +21,8 @@ export type EpisodeInsert = EpisodeInsertV4
 export type EpisodeLite = EpisodeLiteV4
 export type EpisodeMeta = EpisodeMetaV4
 
-export type WithSeason<T> = WithSeasonV1<T>
+export type WithSeason<T extends { provider: DanmakuSourceType }> =
+  WithSeasonV1<T>
 
 export type CustomEpisode = CustomEpisodeV4
 export type CustomEpisodeInsert = CustomEpisodeInsertV4

@@ -1,12 +1,14 @@
 import type { Manifest, VariantPipeline } from '../manifest/schema.js'
 import type { FetchLike } from './http.js'
-import { ProtoRegistry } from './proto.js'
+import { ProtoRegistry, type ProtoTypeOverrides } from './proto.js'
 import { type RunOptions, runPipeline } from './runner.js'
 
 /** Bound at construction; per-call overrides via the `opts` arg on each method. */
 export interface ManifestRunnerOptions {
   fetcher?: FetchLike
   signal?: AbortSignal
+  /** See {@link ProtoTypeOverrides}. */
+  protoTypes?: ProtoTypeOverrides
 }
 
 /** Per-call inputs merged with the installation's config values by the caller. */
@@ -28,7 +30,10 @@ export class ManifestRunner {
     public readonly manifest: Manifest,
     private readonly options: ManifestRunnerOptions = {}
   ) {
-    this.protoRegistry = new ProtoRegistry(manifest.protoSchemas)
+    this.protoRegistry = new ProtoRegistry(
+      manifest.protoSchemas,
+      options.protoTypes
+    )
   }
 
   get id(): string {
@@ -51,30 +56,56 @@ export class ManifestRunner {
     return this.manifest.danmaku !== undefined
   }
 
-  async runSearch(inputs: ManifestInputs, opts?: RunOptions): Promise<unknown> {
-    return this.run('search', this.manifest.search, inputs, opts)
+  /** Defaults extracted from `configSchema`; merge under user values. */
+  configDefaults(): Record<string, unknown> {
+    const out: Record<string, unknown> = {}
+    for (const [key, item] of Object.entries(this.manifest.configSchema)) {
+      if ('default' in item && item.default !== undefined) {
+        out[key] = item.default
+      }
+    }
+    return out
   }
 
-  async runEpisodes(
+  async runSearch<T = unknown>(
     inputs: ManifestInputs,
     opts?: RunOptions
-  ): Promise<unknown> {
-    return this.run('episodes', this.manifest.episodes, inputs, opts)
+  ): Promise<T> {
+    return this.run<T>('search', this.manifest.search, inputs, opts)
   }
 
-  async runDanmaku(
+  async runEpisodes<T = unknown>(
     inputs: ManifestInputs,
     opts?: RunOptions
-  ): Promise<unknown> {
-    return this.run('danmaku', this.manifest.danmaku, inputs, opts)
+  ): Promise<T> {
+    return this.run<T>('episodes', this.manifest.episodes, inputs, opts)
   }
 
-  private async run(
+  async runDanmaku<T = unknown>(
+    inputs: ManifestInputs,
+    opts?: RunOptions
+  ): Promise<T> {
+    return this.run<T>('danmaku', this.manifest.danmaku, inputs, opts)
+  }
+
+  hasSeason(): boolean {
+    return this.manifest.season !== undefined
+  }
+
+  async runSeason<T = unknown>(
+    inputs: ManifestInputs,
+    opts?: RunOptions
+  ): Promise<T | null> {
+    if (this.manifest.season === undefined) return null
+    return this.run<T>('season', this.manifest.season, inputs, opts)
+  }
+
+  private async run<T>(
     name: string,
     variants: VariantPipeline[] | undefined,
     inputs: ManifestInputs,
     opts?: RunOptions
-  ): Promise<unknown> {
+  ): Promise<T> {
     if (variants === undefined) {
       throw new Error(
         `manifest "${this.manifest.id}" does not declare a ${name} pipeline`
@@ -85,6 +116,6 @@ export class ManifestRunner {
       signal: opts?.signal ?? this.options.signal,
       protoRegistry: opts?.protoRegistry ?? this.protoRegistry,
     }
-    return runPipeline(this.manifest, variants, inputs, merged)
+    return runPipeline(this.manifest, variants, inputs, merged) as Promise<T>
   }
 }

@@ -2,6 +2,13 @@ import type { BilibiliBangumiInfo } from '@danmaku-anywhere/danmaku-provider/bil
 import { describe, expect, it } from 'vitest'
 import { BilibiliMapper } from './BilibiliMapper'
 
+/**
+ * Covers `BilibiliMapper.toEpisode`'s `show_title → episodeNumber`
+ * conversion: bare ASCII digits become numbers, formal Chinese numerals
+ * and labels like "正片" pass through as strings, empty/whitespace
+ * inputs become undefined.
+ */
+
 type BilibiliEpisode = BilibiliBangumiInfo['episodes'][number]
 
 function makeBilibiliEpisode(show_title: string) {
