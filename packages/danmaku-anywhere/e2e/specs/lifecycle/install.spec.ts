@@ -1,3 +1,7 @@
+import {
+  DanmakuSourceType,
+  PROVIDER_TO_BUILTIN_ID,
+} from '@danmaku-anywhere/danmaku-converter'
 import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 
@@ -12,9 +16,9 @@ import { expect, test } from '../../setup/fixtures'
  */
 
 const BUILTIN_PROVIDER_IDS = [
-  'builtin:dandanplay',
-  'builtin:bilibili',
-  'builtin:tencent',
+  PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
+  PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
+  PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
 ] as const
 
 test('fresh install: default options seeded, no console errors', async ({

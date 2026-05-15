@@ -23,14 +23,14 @@ export function attachConsoleWatcher(context: BrowserContext): ConsoleWatcher {
     return ` (${loc.url}:${loc.lineNumber}:${loc.columnNumber})`
   }
 
-  function watchWorker(worker: Worker, label = 'sw'): void {
+  function watchWorker(worker: Worker): void {
     if (watched.has(worker)) {
       return
     }
     watched.add(worker)
     worker.on('console', (msg) => {
       if (msg.type() === 'error') {
-        errors.push(`[${label}] ${msg.text()}${formatLocation(msg)}`)
+        errors.push(`[sw] ${msg.text()}${formatLocation(msg)}`)
       }
     })
   }
@@ -48,11 +48,6 @@ export function attachConsoleWatcher(context: BrowserContext): ConsoleWatcher {
     page.on('pageerror', (err) => {
       errors.push(`[page ${page.url()}] ${err.stack ?? err.message}`)
     })
-    // Web Workers spawned by the page (distinct from extension SWs).
-    page.on('worker', (w) => watchWorker(w, 'page-worker'))
-    for (const w of page.workers()) {
-      watchWorker(w, 'page-worker')
-    }
   }
 
   // Attach context-level listeners FIRST so any worker/page that registers
