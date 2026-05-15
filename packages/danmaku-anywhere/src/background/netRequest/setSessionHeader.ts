@@ -5,10 +5,18 @@ import { getSelfDomain } from './getSelfDomain'
 
 const mutex = new Mutex()
 
-// Monotonic per-session counter for DNR rule IDs; guarded by the mutex.
-// Reseeds near Chrome's MAX_NUMBER_OF_SESSION_RULES (~5000) ceiling.
-let nextRuleIdCounter = 0
+// Monotonic per-SW-instance counter for DNR rule IDs; guarded by the mutex.
+// `undefined` triggers a one-time prime from getSessionRules: on cold start
+// or after an MV3 service-worker restart, persisted session rules from a
+// prior instance still live in chrome, and starting from 0 would collide.
+// Same prime happens when we near MAX_NUMBER_OF_SESSION_RULES (~5000).
+let nextRuleIdCounter: number | undefined
 const MAX_DNR_SESSION_RULES = 4500
+
+async function primeCounterFromExisting(): Promise<number> {
+  const existing = await chrome.declarativeNetRequest.getSessionRules()
+  return existing.reduce((m, r) => Math.max(m, r.id), 0)
+}
 
 export async function setSessionHeader(
   matchUrl: string,
@@ -17,10 +25,11 @@ export async function setSessionHeader(
   const release = await mutex.acquire()
   let nextRuleId: number
   try {
-    if (nextRuleIdCounter >= MAX_DNR_SESSION_RULES) {
-      const existing = await chrome.declarativeNetRequest.getSessionRules()
-      const maxId = existing.reduce((m, r) => Math.max(m, r.id), 0)
-      nextRuleIdCounter = maxId
+    if (
+      nextRuleIdCounter === undefined ||
+      nextRuleIdCounter >= MAX_DNR_SESSION_RULES
+    ) {
+      nextRuleIdCounter = await primeCounterFromExisting()
     }
     nextRuleIdCounter += 1
     nextRuleId = nextRuleIdCounter
