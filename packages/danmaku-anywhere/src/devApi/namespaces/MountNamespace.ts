@@ -26,16 +26,11 @@ async function resolveTabId(tabId?: number): Promise<number | undefined> {
   return tab?.id
 }
 
-// Reads the controller's mirror global. Returns undefined if the controller
-// content script hasn't loaded (no mount config matches the tab URL) or if the
-// tab no longer exists. Other executeScript failures propagate.
 async function readMirror(tabId: number): Promise<MountMirror | undefined> {
   try {
     const results = await chrome.scripting.executeScript({
       target: { tabId },
       world: 'ISOLATED',
-      // The injected function name is referenced by string; the global symbol
-      // must match MOUNT_MIRROR_GLOBAL.
       func: (key: string) => {
         return (globalThis as unknown as Record<string, unknown>)[key] as
           | MountMirror
@@ -45,9 +40,8 @@ async function readMirror(tabId: number): Promise<MountMirror | undefined> {
     })
     return results[0]?.result ?? undefined
   } catch (err) {
+    // Swallow tab-gone / no-permission so polling callers can keep retrying.
     const message = err instanceof Error ? err.message : String(err)
-    // Tab closed mid-call or no permission for this URL — treat as "nothing
-    // mounted" rather than propagating, so polling callers can keep retrying.
     if (
       message.includes('No tab with id') ||
       message.includes('Cannot access') ||
@@ -95,9 +89,6 @@ export class MountNamespace implements DevNamespace {
           throw new Error('mount.waitForMount: no tab to inspect')
         }
         const deadline = Date.now() + (timeoutMs ?? DEFAULT_WAIT_TIMEOUT_MS)
-        // Poll rather than subscribe — the mirror lives in the content
-        // script's globalThis, not in the SW, so there's nothing to observe
-        // from here.
         while (Date.now() < deadline) {
           const mirror = await readMirror(target)
           if (mirror?.isMounted) {

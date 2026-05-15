@@ -23,9 +23,6 @@ export const IS_DA_PREVIEW = DA_ENV === 'preview'
 export const IS_DA_PROD = DA_ENV === 'prod'
 export const IS_DA_E2E = DA_ENV === 'e2e'
 
-// Variadic env check — prefer this over chaining IS_DA_* booleans when a
-// check spans multiple envs (e.g. `isDaEnv('dev', 'e2e')`). Single-env
-// checks can keep using the IS_DA_* constants.
 export function isDaEnv(...envs: DaEnv[]): boolean {
   return envs.includes(DA_ENV)
 }

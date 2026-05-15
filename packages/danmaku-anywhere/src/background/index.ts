@@ -43,9 +43,6 @@ chrome.runtime.getPlatformInfo().then((platformInfo) => {
 })
 
 chrome.runtime.onInstalled.addListener((details) => {
-  // Skip the docs tab in dev and e2e — devs already know where the docs
-  // are, and opening an extra tab in e2e flakes Playwright's active-tab
-  // assumptions.
   if (details.reason === 'install' && !isDaEnv('dev', 'e2e')) {
     void chrome.tabs.create({
       url: 'https://docs.danmaku.weeblify.app/getting-started#首次使用',
