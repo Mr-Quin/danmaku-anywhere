@@ -24,12 +24,6 @@ interface ContextWatchers {
 // Playwright doesn't buffer console events for existing workers.
 const watchersByContext = new WeakMap<BrowserContext, ContextWatchers>()
 
-// Per-test allowlist, read lazily by the network watcher at request time.
-const allowedByContext = new WeakMap<
-  BrowserContext,
-  readonly AllowedNetworkPattern[]
->()
-
 export type ExpectedConsoleErrorPattern = string | RegExp
 export type { AllowedNetworkPattern } from './network-watcher'
 
@@ -56,8 +50,7 @@ export const test = base.extend<{
   // *.invalid) are always allowed. Prefer a per-spec mock over widening this.
   allowedNetworkOrigins: [[], { option: true }],
 
-  // biome-ignore lint: Playwright fixture pattern requires destructuring
-  context: async ({}, use) => {
+  context: async ({ allowedNetworkOrigins }, use) => {
     const context = await chromium.launchPersistentContext('', {
       channel: 'chromium',
       args: [
@@ -68,7 +61,7 @@ export const test = base.extend<{
     const consoleWatcher = attachConsoleWatcher(context)
     const networkWatcher = await attachNetworkWatcher(
       context,
-      () => allowedByContext.get(context) ?? []
+      () => allowedNetworkOrigins
     )
     watchersByContext.set(context, {
       console: consoleWatcher,
@@ -128,8 +121,7 @@ export const test = base.extend<{
   ],
 
   _assertNoUnmockedNetwork: [
-    async ({ context, allowedNetworkOrigins }, use, testInfo) => {
-      allowedByContext.set(context, allowedNetworkOrigins)
+    async ({ context }, use, testInfo) => {
       await use()
       if (testInfo.status === 'failed' || testInfo.status === 'timedOut') {
         return
