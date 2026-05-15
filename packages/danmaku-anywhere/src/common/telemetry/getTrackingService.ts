@@ -20,7 +20,7 @@ export const createTrackingService = (
   type: EnvironmentType
 ) => {
   if (trackingService !== null || IS_STANDALONE_RUNTIME || IS_DA_E2E) {
-    return trackingService
+    return trackingService ?? new NoopTrackingService()
   }
 
   const isPopup = type === 'popup'
