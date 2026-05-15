@@ -45,12 +45,22 @@ export class MountPage {
     return item
   }
 
-  // Open the per-item DrilldownMenu and click an action. The menu only
-  // mounts while the item is hovered, so we hover first.
+  // Open the per-item action menu by right-click. The tree item renders
+  // two menu variants:
+  //   - DrilldownMenu (anchored to a 3-dot IconButton, MUI Modal/Backdrop)
+  //   - DrilldownContextMenu (Popper, no Modal/Backdrop) on right-click
+  // Both render the same DAMenuItem entries with the same testids. The
+  // Modal path is brittle: the IconButton is conditionally mounted on a
+  // `hovering` React state that races with Playwright's hover() under
+  // xvfb, and the Modal's Backdrop intercepts pointer events during its
+  // close transition. The Popper path has neither footgun.
   async openItemMenu(item: Locator, actionId: string): Promise<void> {
-    await item.hover()
-    await item.locator(SELECTORS.drilldownButton).click()
-    await this.page.locator(SELECTORS.menuItem(actionId)).click()
+    await item.click({ button: 'right' })
+    const menuItem = this.page.locator(SELECTORS.menuItem(actionId))
+    await menuItem.click()
+    // Ensure the menu has fully closed before returning so a follow-up
+    // openItemMenu call doesn't race the close.
+    await expect(menuItem).toBeHidden({ timeout: 5_000 })
   }
 
   // Click the tree item's expand chevron to reveal children. RichTreeView
