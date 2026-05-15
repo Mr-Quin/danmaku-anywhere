@@ -2,26 +2,39 @@ import { type BrowserContext, test as base, chromium } from '@playwright/test'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { attachConsoleWatcher, type ConsoleWatcher } from './console-watcher'
+import {
+  type AllowedNetworkPattern,
+  attachNetworkWatcher,
+  type NetworkWatcher,
+} from './network-watcher'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // e2e/setup/fixtures.ts → ../../build
 const pathToExtension = path.join(__dirname, '..', '..', 'build')
 
+interface ContextWatchers {
+  console: ConsoleWatcher
+  network: NetworkWatcher
+}
+
 // Watchers are attached eagerly inside the context fixture (before the SW
-// has a chance to boot) and looked up later by the consoleErrors fixture.
+// has a chance to boot) and looked up later by per-test fixtures.
 // Playwright resolves fixtures in dependency order, so a fixture that
 // depends only on `context` runs after the SW may have already emitted —
 // Playwright doesn't buffer console events for existing workers.
-const watchersByContext = new WeakMap<BrowserContext, ConsoleWatcher>()
+const watchersByContext = new WeakMap<BrowserContext, ContextWatchers>()
 
 export type ExpectedConsoleErrorPattern = string | RegExp
+export type { AllowedNetworkPattern } from './network-watcher'
 
 export const test = base.extend<{
   context: BrowserContext
   extensionId: string
   consoleErrors: () => string[]
   expectedConsoleErrors: ExpectedConsoleErrorPattern[]
+  allowedNetworkOrigins: AllowedNetworkPattern[]
   _assertNoUnexpectedConsoleErrors: void
+  _assertNoUnmockedNetwork: void
 }>({
   // Per-test opt-out: override with `test.use({ expectedConsoleErrors: [...] })`
   // (or pass an array via `test('name', { expectedConsoleErrors: [...] })`)
@@ -32,8 +45,12 @@ export const test = base.extend<{
   // any of those parts.
   expectedConsoleErrors: [[], { option: true }],
 
-  // biome-ignore lint: Playwright fixture pattern requires destructuring
-  context: async ({}, use) => {
+  // Per-test opt-in for extra origins; matched by `includes` (string) or
+  // `.test` (RegExp). Project defaults (extension://, data:, blob:, about:,
+  // *.invalid) are always allowed. Prefer a per-spec mock over widening this.
+  allowedNetworkOrigins: [[], { option: true }],
+
+  context: async ({ allowedNetworkOrigins }, use) => {
     const context = await chromium.launchPersistentContext('', {
       channel: 'chromium',
       args: [
@@ -41,7 +58,15 @@ export const test = base.extend<{
         `--load-extension=${pathToExtension}`,
       ],
     })
-    watchersByContext.set(context, attachConsoleWatcher(context))
+    const consoleWatcher = attachConsoleWatcher(context)
+    const networkWatcher = await attachNetworkWatcher(
+      context,
+      () => allowedNetworkOrigins
+    )
+    watchersByContext.set(context, {
+      console: consoleWatcher,
+      network: networkWatcher,
+    })
     await use(context)
     await context.close()
   },
@@ -54,13 +79,13 @@ export const test = base.extend<{
     await use(extensionId)
   },
   consoleErrors: async ({ context }, use) => {
-    const watcher = watchersByContext.get(context)
-    if (!watcher) {
+    const watchers = watchersByContext.get(context)
+    if (!watchers) {
       throw new Error(
         'consoleErrors fixture used without a watcher attached to the context'
       )
     }
-    await use(watcher.getErrors)
+    await use(watchers.console.getErrors)
   },
 
   // Auto fixture: after every test, fail if any console errors slipped
@@ -74,11 +99,11 @@ export const test = base.extend<{
       if (testInfo.status === 'failed' || testInfo.status === 'timedOut') {
         return
       }
-      const watcher = watchersByContext.get(context)
-      if (!watcher) {
+      const watchers = watchersByContext.get(context)
+      if (!watchers) {
         return
       }
-      const unexpected = watcher.getErrors().filter((err) => {
+      const unexpected = watchers.console.getErrors().filter((err) => {
         return !expectedConsoleErrors.some((pattern) => {
           return typeof pattern === 'string'
             ? err.includes(pattern)
@@ -89,6 +114,27 @@ export const test = base.extend<{
         const lines = unexpected.map((e) => `  - ${e}`).join('\n')
         throw new Error(
           `Unexpected console errors during test (${unexpected.length}):\n${lines}\n\nIf these are expected, allow them via test.use({ expectedConsoleErrors: [...] }).`
+        )
+      }
+    },
+    { auto: true },
+  ],
+
+  _assertNoUnmockedNetwork: [
+    async ({ context }, use, testInfo) => {
+      await use()
+      if (testInfo.status === 'failed' || testInfo.status === 'timedOut') {
+        return
+      }
+      const watchers = watchersByContext.get(context)
+      if (!watchers) {
+        return
+      }
+      const entries = watchers.network.getEntries()
+      if (entries.length > 0) {
+        const lines = entries.map((e) => `  - ${e}`).join('\n')
+        throw new Error(
+          `Unmocked network requests (${entries.length}):\n${lines}\n\nAdd a per-spec mock, or allow via test.use({ allowedNetworkOrigins: [...] }).`
         )
       }
     },

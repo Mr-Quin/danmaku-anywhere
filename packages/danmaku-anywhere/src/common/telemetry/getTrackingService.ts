@@ -1,4 +1,4 @@
-import { EXTENSION_VERSION } from '@/common/constants'
+import { EXTENSION_VERSION, IS_DA_E2E } from '@/common/constants'
 import type { EnvironmentType } from '@/common/environment/context'
 import {
   CombinedTrackingService,
@@ -19,8 +19,8 @@ export const createTrackingService = (
   environment: string,
   type: EnvironmentType
 ) => {
-  if (trackingService !== null || IS_STANDALONE_RUNTIME) {
-    return trackingService
+  if (trackingService !== null || IS_STANDALONE_RUNTIME || IS_DA_E2E) {
+    return trackingService ?? new NoopTrackingService()
   }
 
   const isPopup = type === 'popup'
