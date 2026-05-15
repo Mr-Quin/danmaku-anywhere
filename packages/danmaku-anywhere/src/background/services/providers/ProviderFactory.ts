@@ -80,6 +80,8 @@ function createDanmakuProvider(
     return new MacCmsProviderService(config, logger)
   }
   // DDP-Compat without a baseUrl falls back to the proxy-backed DDP manifest.
+  // Any configured authHeaders are silently dropped on the fallback path —
+  // log so users editing an existing record have a breadcrumb.
   let effectiveManifestId = config.manifestId
   let compatExtras: BuiltinDispatch['extraInputs']
   if (config.manifestId === DDP_COMPAT_MANIFEST_ID) {
@@ -87,6 +89,15 @@ function createDanmakuProvider(
     const baseUrl = values.baseUrl?.trim()
     if (!baseUrl) {
       effectiveManifestId = PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]
+      const hasAuth =
+        values.auth?.enabled && (values.auth.headers?.length ?? 0) > 0
+      if (hasAuth) {
+        logger
+          .sub('[ProviderFactory]')
+          .warn(
+            `DDP-Compat config ${config.id} has authHeaders but empty baseUrl — falling back to proxy-backed DanDanPlay; authHeaders ignored.`
+          )
+      }
     } else {
       const authHeaders =
         values.auth?.enabled && values.auth.headers ? values.auth.headers : []

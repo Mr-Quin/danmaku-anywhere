@@ -67,8 +67,10 @@ export class ManifestProviderService implements IDanmakuProvider {
     this.forProvider = config.provider
   }
 
-  // Merge order: per-call inputs, manifest defaults, then user values.
-  // Undefined extras are dropped so they don't blank out manifest defaults.
+  // Merge precedence (low → high): manifest defaults, per-call inputs,
+  // user extras. Per-call inputs (q, seasonId, cid, ...) must win over any
+  // configSchema default that happens to declare a same-named key.
+  // Undefined extras are dropped so they don't blank out lower layers.
   private resolveInputs(
     inputs: Record<string, unknown>
   ): Record<string, unknown> {
@@ -81,7 +83,7 @@ export class ManifestProviderService implements IDanmakuProvider {
         extras[k] = v
       }
     }
-    return { ...inputs, ...defaults, ...extras }
+    return { ...defaults, ...inputs, ...extras }
   }
 
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
@@ -96,6 +98,32 @@ export class ManifestProviderService implements IDanmakuProvider {
       providerConfigId: this.config.providerConfigId,
       schemaVersion: SEASON_SCHEMA_VERSION,
     }))
+  }
+
+  async getSeason(
+    seasonRemoteIds: Season['providerIds']
+  ): Promise<SeasonInsert | null> {
+    this.logger.debug(
+      'Get season via manifest',
+      this.config.manifestId,
+      seasonRemoteIds
+    )
+    const runner = this.registry.getRunner(this.config.manifestId)
+    if (!runner.hasSeason()) {
+      return null
+    }
+    const inputs = this.resolveInputs(seasonRemoteIds)
+    const row = await runner.runSeason<ManifestSearchRow | null>(inputs)
+    if (row === null) {
+      return null
+    }
+    return {
+      ...row,
+      title: stripHtml(row.title),
+      provider: this.forProvider,
+      providerConfigId: this.config.providerConfigId,
+      schemaVersion: SEASON_SCHEMA_VERSION,
+    }
   }
 
   async getEpisodes(

@@ -11,7 +11,17 @@ export const extensionFetchLike: FetchLike = async (input, init) => {
       ? await setSessionHeader(input, rewrite)
       : null
   try {
-    const res = await fetch(input, init as RequestInit)
+    // Build a real RequestInit from the dango FetchLike init; drop the
+    // `rewriteHeaders` field (applied above via DNR) and the rest of the
+    // dango-only shape that doesn't belong on the wire request.
+    const requestInit: RequestInit = {}
+    if (init?.method !== undefined) requestInit.method = init.method
+    if (init?.headers !== undefined) requestInit.headers = init.headers
+    if (init?.body !== undefined) requestInit.body = init.body
+    if (init?.credentials !== undefined)
+      requestInit.credentials = init.credentials
+    if (init?.signal !== undefined) requestInit.signal = init.signal
+    const res = await fetch(input, requestInit)
     const headers = new Map<string, string>()
     res.headers.forEach((value, key) => headers.set(key, value))
     return {

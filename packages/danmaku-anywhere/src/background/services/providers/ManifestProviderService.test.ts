@@ -23,6 +23,8 @@ function makeRunner(returns: Record<string, unknown>): ManifestRunner {
     runSearch: vi.fn(async () => returns.search ?? []),
     runEpisodes: vi.fn(async () => returns.episodes ?? []),
     runDanmaku: vi.fn(async () => returns.danmaku ?? []),
+    runSeason: vi.fn(async () => returns.season ?? null),
+    hasSeason: vi.fn(() => 'season' in returns),
     configDefaults: vi.fn(
       () => (returns.configDefaults as Record<string, unknown>) ?? {}
     ),
@@ -106,6 +108,70 @@ describe('ManifestProviderService.search', () => {
       baseUrl: 'https://compat.example',
       authHeaders: [],
     })
+  })
+})
+
+describe('ManifestProviderService.getSeason', () => {
+  it('returns null when the manifest does not declare a season pipeline', async () => {
+    const runner = makeRunner({})
+    const svc = new ManifestProviderService(
+      {
+        manifestId: 'builtin:tencent',
+        provider: DanmakuSourceType.Tencent,
+        providerConfigId: 'builtin:tencent',
+        commentMapper: (raw) => raw as CommentEntity[],
+      },
+      makeRegistry(runner),
+      silentLogger
+    )
+    expect(await svc.getSeason({ cid: 'x' })).toBeNull()
+  })
+
+  it('runs the season pipeline and maps to a canonical SeasonInsert', async () => {
+    const runner = makeRunner({
+      season: {
+        providerIds: { seasonId: 41410 },
+        indexedId: '41410',
+        title: '<b>新标题</b>',
+        type: 'tv',
+        imageUrl: 'https://x',
+        episodeCount: 12,
+      },
+    })
+    const svc = new ManifestProviderService(
+      {
+        manifestId: 'builtin:bilibili',
+        provider: DanmakuSourceType.Bilibili,
+        providerConfigId: 'builtin:bilibili',
+        commentMapper: (raw) => raw as CommentEntity[],
+      },
+      makeRegistry(runner),
+      silentLogger
+    )
+    const result = await svc.getSeason({ seasonId: 41410 })
+    expect(result).toMatchObject({
+      providerIds: { seasonId: 41410 },
+      title: '新标题',
+      provider: DanmakuSourceType.Bilibili,
+      providerConfigId: 'builtin:bilibili',
+      schemaVersion: SEASON_SCHEMA_VERSION,
+    })
+    expect(runner.runSeason).toHaveBeenCalledWith({ seasonId: 41410 })
+  })
+
+  it('returns null when the season pipeline yields null', async () => {
+    const runner = makeRunner({ season: null })
+    const svc = new ManifestProviderService(
+      {
+        manifestId: 'builtin:bilibili',
+        provider: DanmakuSourceType.Bilibili,
+        providerConfigId: 'builtin:bilibili',
+        commentMapper: (raw) => raw as CommentEntity[],
+      },
+      makeRegistry(runner),
+      silentLogger
+    )
+    expect(await svc.getSeason({ seasonId: 999 })).toBeNull()
   })
 })
 

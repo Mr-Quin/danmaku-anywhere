@@ -11,7 +11,7 @@ import {
   DDP_COMPAT_MANIFEST_ID,
   defaultProviderConfigs,
 } from './constant'
-import type { ProviderConfig } from './schema'
+import { type ProviderConfig, providerConfigSchema } from './schema'
 
 // Drop undefined-valued keys so manifest configSchema defaults can apply.
 function pruneUndefined(obj: Record<string, unknown>): Record<string, unknown> {
@@ -188,14 +188,23 @@ export function migrateProviderConfigsToFlat(
       console.warn('Skipping non-object provider record during migration:', old)
       continue
     }
-    // Already flat (idempotent re-run). Check configValues is an object so
-    // an empty `{}` still counts as "already migrated".
+    // Already flat (idempotent re-run): validate via schema so a partially
+    // corrupted record (missing impl/name/etc.) doesn't sneak through.
     if (
       typeof old.manifestId === 'string' &&
       typeof old.configValues === 'object' &&
       old.configValues !== null
     ) {
-      out.push(old as ProviderConfig)
+      const parsed = providerConfigSchema.safeParse(old)
+      if (parsed.success) {
+        out.push(parsed.data)
+        continue
+      }
+      console.warn(
+        'Dropping partially-flat provider record that fails schema:',
+        old,
+        parsed.error.issues
+      )
       continue
     }
     const base = {

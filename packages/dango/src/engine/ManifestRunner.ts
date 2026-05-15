@@ -88,6 +88,18 @@ export class ManifestRunner {
     return this.run<T>('danmaku', this.manifest.danmaku, inputs, opts)
   }
 
+  hasSeason(): boolean {
+    return this.manifest.season !== undefined
+  }
+
+  async runSeason<T = unknown>(
+    inputs: ManifestInputs,
+    opts?: RunOptions
+  ): Promise<T | null> {
+    if (this.manifest.season === undefined) return null
+    return this.run<T>('season', this.manifest.season, inputs, opts)
+  }
+
   private async run<T>(
     name: string,
     variants: VariantPipeline[] | undefined,

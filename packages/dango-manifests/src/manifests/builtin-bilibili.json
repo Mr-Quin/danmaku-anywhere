@@ -61,6 +61,23 @@
     ],
     "output": "[season.result.episodes[$not($contains(badge ? badge : '', '预告'))].{ 'providerIds': { 'cid': cid, 'aid': aid, 'bvid': bvid, 'epid': id }, 'indexedId': $string(cid), 'title': long_title and long_title != '' ? long_title : show_title, 'episodeNumber': $match(show_title, /^\\d+$/) ? $number(show_title) : (show_title and show_title != '' ? show_title : undefined), 'imageUrl': cover, 'alternativeTitle': share_copy and share_copy != '' ? [share_copy] : undefined }]"
   },
+  "season": {
+    "inputs": ["seasonId"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "season",
+        "request": {
+          "method": "GET",
+          "url": "'https://api.bilibili.com/pgc/view/web/season'",
+          "query": "{ 'season_id': $string(seasonId) }",
+          "credentials": "include",
+          "rewriteHeaders": { "Referer": "'https://www.bilibili.com/'" }
+        }
+      }
+    ],
+    "output": "season.result ? { 'providerIds': { 'seasonId': season.result.season_id, 'mediaId': season.result.media_id }, 'indexedId': $string(season.result.season_id), 'title': $replace(season.result.title, /<[^>]+>/, ''), 'type': $string(season.result.type), 'imageUrl': season.result.cover, 'episodeCount': $count(season.result.episodes) } : undefined"
+  },
   "danmaku": [
     {
       "when": "danmakuFormat = 'xml'",

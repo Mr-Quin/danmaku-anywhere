@@ -7,7 +7,10 @@ const mutex = new Mutex()
 
 // Monotonic per-session counter for DNR rule IDs; guarded by the mutex.
 // Avoids the read-after-remove race that came with `getSessionRules + maxId + 1`.
+// MAX_NUMBER_OF_SESSION_RULES is 5000 on Chrome; reclaim when we approach
+// that ceiling so long-running sessions don't collide.
 let nextRuleIdCounter = 0
+const MAX_DNR_SESSION_RULES = 4500
 
 export async function setSessionHeader(
   matchUrl: string,
@@ -16,6 +19,11 @@ export async function setSessionHeader(
   const release = await mutex.acquire()
   let nextRuleId: number
   try {
+    if (nextRuleIdCounter >= MAX_DNR_SESSION_RULES) {
+      const existing = await chrome.declarativeNetRequest.getSessionRules()
+      const maxId = existing.reduce((m, r) => Math.max(m, r.id), 0)
+      nextRuleIdCounter = maxId
+    }
     nextRuleIdCounter += 1
     nextRuleId = nextRuleIdCounter
     const extensionOptionsService = container.get(ExtensionOptionsService)

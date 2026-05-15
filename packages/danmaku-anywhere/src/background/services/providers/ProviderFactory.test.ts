@@ -62,7 +62,10 @@ async function buildFactory() {
   return danmakuProviderFactory(fakeContext)
 }
 
-function ddpCompat(opts: { baseUrl?: string }): ProviderConfig {
+function ddpCompat(opts: {
+  baseUrl?: string
+  auth?: { enabled?: boolean; headers?: { key: string; value: string }[] }
+}): ProviderConfig {
   return {
     id: 'compat-1',
     manifestId: DDP_COMPAT_MANIFEST_ID,
@@ -151,6 +154,34 @@ describe('ProviderFactory dispatch', () => {
     await service.search({ keyword: 'x' })
     // No baseUrl threaded — the plain dandanplay manifest takes over.
     expect(mockRunner.runSearch).toHaveBeenCalledWith({ q: 'x' })
+  })
+
+  it('drops authHeaders silently when DDP-Compat falls back, but logs a warning', async () => {
+    const warn = vi.fn()
+    const noisyLogger = {
+      debug: () => {},
+      info: () => {},
+      warn,
+      error: () => {},
+      sub: () => noisyLogger,
+    } as unknown as ILogger
+    const factory = (await import('./ProviderFactory')).danmakuProviderFactory({
+      get: () => noisyLogger,
+    } as never)
+    const service = factory(
+      ddpCompat({
+        baseUrl: '',
+        auth: { enabled: true, headers: [{ key: 'X-Token', value: 'secret' }] },
+      })
+    )
+
+    await service.search({ keyword: 'x' })
+    // baseUrl/authHeaders are NOT threaded — confirmed by the strict
+    // `toHaveBeenCalledWith` (any extra keys would fail the equality).
+    expect(mockRunner.runSearch).toHaveBeenCalledWith({ q: 'x' })
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringMatching(/authHeaders.*baseUrl|authHeaders ignored/i)
+    )
   })
 
   it('routes legacy MacCMS to MacCmsProviderService (not ManifestProviderService)', async () => {

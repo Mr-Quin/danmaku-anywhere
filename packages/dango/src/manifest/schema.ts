@@ -232,5 +232,7 @@ export const zManifest = z.object({
   search: zPipelineField.optional(),
   episodes: zPipelineField.optional(),
   danmaku: zPipelineField.optional(),
+  /** Re-fetch a stored season's metadata. Inputs are the season's providerIds. */
+  season: zPipelineField.optional(),
 })
 export type Manifest = z.infer<typeof zManifest>

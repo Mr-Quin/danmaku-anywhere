@@ -40,8 +40,11 @@ function enrichEpisode(
 
 @injectable('Singleton')
 export class ProviderService {
-  private logger: ILogger
-  private parsers: IUrlParser[] = []
+  private readonly logger: ILogger
+  // URL detection still goes through per-source services because the
+  // manifest engine doesn't have a parseUrl pipeline kind yet (Phase 2).
+  // The factory returns ManifestProviderService for the main fetch path.
+  private readonly parsers: IUrlParser[]
 
   constructor(
     @inject(DanmakuService)
@@ -58,13 +61,6 @@ export class ProviderService {
       'ProviderService is only available in service worker'
     )
     this.logger = logger.sub('[ProviderService]')
-  }
-
-  // URL detection still goes through per-source services because the
-  // manifest engine doesn't have a parseUrl pipeline kind yet (Phase 2).
-  // Constructed directly here rather than through the factory, which
-  // returns ManifestProviderService for the main fetch path.
-  private initParsers() {
     this.parsers = [
       new BilibiliService(this.logger),
       new TencentService(this.logger),
@@ -128,15 +124,16 @@ export class ProviderService {
     )
 
     const service = this.danmakuProviderFactory(providerConfig)
-    if (service?.getSeason) {
-      const seasonInsert = await service.getSeason(season.providerIds)
-      if (seasonInsert) {
-        await this.seasonService.upsert(seasonInsert)
-      } else {
-        throw new Error(`Season refresh failed: ${season.title}`, {
-          cause: season,
-        })
-      }
+    if (!service.getSeason) {
+      return
+    }
+    const seasonInsert = await service.getSeason(season.providerIds)
+    if (seasonInsert) {
+      await this.seasonService.upsert(seasonInsert)
+    } else {
+      throw new Error(`Season refresh failed: ${season.title}`, {
+        cause: season,
+      })
     }
   }
 
@@ -148,7 +145,7 @@ export class ProviderService {
 
     const service = this.danmakuProviderFactory(config)
 
-    if (service?.preloadNextEpisode) {
+    if (service.preloadNextEpisode) {
       return service.preloadNextEpisode(resolved)
     }
 
@@ -228,10 +225,6 @@ export class ProviderService {
   }
 
   async parseUrl(url: string): Promise<WithSeason<EpisodeMeta>> {
-    if (this.parsers.length === 0) {
-      this.initParsers()
-    }
-
     for (const parser of this.parsers) {
       if (parser.canParse(url)) {
         const result = await parser.parseUrl(url)
