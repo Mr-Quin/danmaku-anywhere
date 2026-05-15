@@ -58,7 +58,12 @@ export class MountPage {
     const button = item.locator(SELECTORS.drilldownButton)
     await expect(button).toBeVisible({ timeout: 5_000 })
     await button.click()
-    await this.page.locator(SELECTORS.menuItem(actionId)).click()
+    const menuItem = this.page.locator(SELECTORS.menuItem(actionId))
+    await menuItem.click()
+    // Wait for the MUI Popover to finish closing — its backdrop persists
+    // through the fade-out transition and would intercept the next
+    // openItemMenu's click.
+    await expect(menuItem).toBeHidden({ timeout: 5_000 })
   }
 
   // Click the tree item's expand chevron to reveal children. RichTreeView
