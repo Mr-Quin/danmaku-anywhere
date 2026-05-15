@@ -7,6 +7,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // e2e/setup/fixtures.ts → ../../build
 const pathToExtension = path.join(__dirname, '..', '..', 'build')
 
+// Watchers are attached eagerly inside the context fixture (before the SW
+// has a chance to boot) and looked up later by the consoleErrors fixture.
+// Playwright resolves fixtures in dependency order, so a fixture that
+// depends only on `context` runs after the SW may have already emitted —
+// Playwright doesn't buffer console events for existing workers.
+const watchersByContext = new WeakMap<BrowserContext, ConsoleWatcher>()
+
 export const test = base.extend<{
   context: BrowserContext
   extensionId: string
@@ -21,6 +28,7 @@ export const test = base.extend<{
         `--load-extension=${pathToExtension}`,
       ],
     })
+    watchersByContext.set(context, attachConsoleWatcher(context))
     await use(context)
     await context.close()
   },
@@ -33,7 +41,12 @@ export const test = base.extend<{
     await use(extensionId)
   },
   consoleErrors: async ({ context }, use) => {
-    const watcher: ConsoleWatcher = attachConsoleWatcher(context)
+    const watcher = watchersByContext.get(context)
+    if (!watcher) {
+      throw new Error(
+        'consoleErrors fixture used without a watcher attached to the context'
+      )
+    }
     await use(watcher.getErrors)
   },
 })

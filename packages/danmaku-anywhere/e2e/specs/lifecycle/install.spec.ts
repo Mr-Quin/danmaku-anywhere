@@ -22,7 +22,8 @@ test('fresh install: default options seeded, no console errors', async ({
   extensionId,
   consoleErrors,
 }) => {
-  expect(extensionId).toMatch(/^[a-z]{32}$/)
+  // Chrome extension IDs are a 32-char base-16 alphabet of a-p.
+  expect(extensionId).toMatch(/^[a-p]{32}$/)
 
   const da = await getDaClient(context)
 
