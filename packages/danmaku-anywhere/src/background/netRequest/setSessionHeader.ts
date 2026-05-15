@@ -6,9 +6,7 @@ import { getSelfDomain } from './getSelfDomain'
 const mutex = new Mutex()
 
 // Monotonic per-session counter for DNR rule IDs; guarded by the mutex.
-// Avoids the read-after-remove race that came with `getSessionRules + maxId + 1`.
-// MAX_NUMBER_OF_SESSION_RULES is 5000 on Chrome; reclaim when we approach
-// that ceiling so long-running sessions don't collide.
+// Reseeds near Chrome's MAX_NUMBER_OF_SESSION_RULES (~5000) ceiling.
 let nextRuleIdCounter = 0
 const MAX_DNR_SESSION_RULES = 4500
 

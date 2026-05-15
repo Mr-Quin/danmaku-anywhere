@@ -45,10 +45,8 @@ export class JsonataEvaluator {
 }
 
 // JSONata projections attach a `sequence: true` property to result arrays.
-// Strip it so structural equality is stable for tests. Copy-on-write: only
-// allocate when a marker is actually present somewhere in the tree —
-// otherwise return the original value. For 10k+ row danmaku outputs the old
-// unconditional deep clone was 50-400ms of allocation per call.
+// Strip it so structural equality is stable. Copy-on-write: only allocate
+// when a marker is present somewhere in the tree.
 function normalize(v: unknown): unknown {
   if (Array.isArray(v)) {
     const arr = v as unknown[] & { sequence?: unknown }

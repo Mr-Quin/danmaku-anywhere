@@ -321,8 +321,6 @@ describe('migrateDanmakuSourcesToProviders', () => {
     })
 
     it('omits danmakuFormat from configValues when legacy record lacks danmakuTypePreference', () => {
-      // Absent key lets the manifest's configSchema default fire instead
-      // of writing a stored value that masks it.
       const oldSources = {
         bilibili: { enabled: true },
       }
@@ -498,8 +496,6 @@ describe('migrateProviderConfigsToFlat', () => {
 
     expect(flat).toHaveLength(1)
     expect(flat[0].manifestId).toBe('builtin:bilibili')
-    // Undefined keys are stripped so the manifest's configSchema default
-    // applies at run time.
     expect(flat[0].configValues).toEqual({})
   })
 

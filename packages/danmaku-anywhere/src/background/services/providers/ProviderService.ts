@@ -41,9 +41,8 @@ function enrichEpisode(
 @injectable('Singleton')
 export class ProviderService {
   private readonly logger: ILogger
-  // URL detection still goes through per-source services because the
-  // manifest engine doesn't have a parseUrl pipeline kind yet (Phase 2).
-  // The factory returns ManifestProviderService for the main fetch path.
+  // URL parsing stays on per-source services until DA-483 lands a parseUrl
+  // pipeline kind in the manifest engine.
   private readonly parsers: IUrlParser[]
 
   constructor(

@@ -262,9 +262,7 @@ export class ExtensionOptionsService implements IStoreService {
           }),
       })
       .version(25, {
-        // `useManifest` toggle (added then removed during the manifest-only
-        // migration). v25 records may still have it stored; zod strips
-        // unknown fields on read.
+        // Drops the now-removed `useManifest` field. zod strips it on read.
         upgrade: (data) => data,
       })
   }

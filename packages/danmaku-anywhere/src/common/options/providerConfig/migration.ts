@@ -188,8 +188,7 @@ export function migrateProviderConfigsToFlat(
       console.warn('Skipping non-object provider record during migration:', old)
       continue
     }
-    // Already flat (idempotent re-run): validate via schema so a partially
-    // corrupted record (missing impl/name/etc.) doesn't sneak through.
+    // Idempotent path for already-flat records; safeParse rejects partial corruption.
     if (
       typeof old.manifestId === 'string' &&
       typeof old.configValues === 'object' &&
@@ -212,12 +211,10 @@ export function migrateProviderConfigsToFlat(
       name: old.name as string,
       impl: old.impl as DanmakuSourceType,
       isBuiltIn: !!old.isBuiltIn,
-      // Absent `enabled` on an existing user record is ambiguous; lean
-      // toward keeping the provider visible.
+      // Default to visible when the field is missing.
       enabled: old.enabled ?? true,
     }
     const options = old.options ?? {}
-    // Records with a missing `type` field fall back to inferring from `impl`.
     const inferredType =
       old.type ?? inferTypeFromImpl(old.impl as DanmakuSourceType | undefined)
     switch (inferredType) {
@@ -263,7 +260,6 @@ export function migrateProviderConfigsToFlat(
           'Dropping corrupted provider config record during v1→v2 migration (unrecognized type):',
           old
         )
-      // Drop — no `manifestId` means we can't route it through the factory.
     }
   }
   return out

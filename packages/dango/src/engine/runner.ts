@@ -151,9 +151,8 @@ async function runStep(
     }
     let perItemResults: unknown[]
     if (step.breakOn) {
-      // Sequential mode with early exit. breakOn evaluates after each
-      // iteration's result is included; breakOnConsecutive requires N
-      // back-to-back truthy results before stopping (a non-match resets).
+      // Sequential. Current result is included before the stop check;
+      // breakOnConsecutive requires N back-to-back truthy to stop.
       perItemResults = []
       const stopExpr = step.breakOn
       const threshold = step.breakOnConsecutive

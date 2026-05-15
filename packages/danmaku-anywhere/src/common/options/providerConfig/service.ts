@@ -35,8 +35,6 @@ export class ProviderConfigService implements IStoreService {
         upgrade: (data) => data,
       })
       .version(2, {
-        // v1 used a discriminated union keyed on `type` with typed
-        // `options`. Flatten to `{ manifestId, configValues }`.
         upgrade: (data) => migrateProviderConfigsToFlat(data),
       })
   }

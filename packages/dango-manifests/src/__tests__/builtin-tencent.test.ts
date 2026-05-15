@@ -288,9 +288,7 @@ describe('builtin:tencent manifest', () => {
     expect(result).toHaveLength(245)
     expect(result[0].providerIds.vid).toBe('vid_1')
     expect(result[244].providerIds.vid).toBe('vid_245')
-    // play_title → title (the formatted "第N话 名称"),
-    // raw `title` field → episodeNumber (just the number),
-    // union_title → alternativeTitle. All source-provided fields.
+    // Field mapping: play_title→title, title→episodeNumber, union_title→alternativeTitle.
     expect(result[0].title).toBe('第1集')
     expect(result[0].episodeNumber).toBe('1')
     expect(result[0].alternativeTitle).toEqual(['第1集 - 标题1'])

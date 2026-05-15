@@ -19,10 +19,8 @@ import builtinTencent from '@danmaku-anywhere/dango-manifests/manifests/builtin-
 import { bilibili as bilibiliProto } from '@danmaku-anywhere/danmaku-provider/bilibili-proto'
 import { extensionFetchLike } from './extensionFetchLike'
 
-// MV3 service workers block `unsafe-eval`, so protobufjs's lazy codegen
-// can't compile `.proto` text at runtime. Bilibili's manifest references
-// pre-compiled types instead. DA-474 plans to migrate to `@bufbuild/protobuf`
-// so the manifest can carry a CSP-safe binary descriptor.
+// MV3 CSP blocks protobufjs's runtime codegen; pre-compiled types are
+// referenced here. DA-474 migrates this to @bufbuild/protobuf.
 const bilibiliProtoTypes: ProtoTypeOverrides = {
   bili: {
     'dm.v1.DmSegMobileReply':
@@ -49,9 +47,7 @@ export class ManifestRegistry {
 
   constructor() {
     for (const spec of builtinSpecs) {
-      // Per-manifest safeParse so a single malformed manifest (e.g. a
-      // breaking schema change against a stale shipped JSON) doesn't take
-      // down the whole registry — only its source becomes unavailable.
+      // Per-manifest so one bad spec doesn't take the registry down.
       const parsed = zManifest.safeParse(spec.manifest)
       if (!parsed.success) {
         console.error(

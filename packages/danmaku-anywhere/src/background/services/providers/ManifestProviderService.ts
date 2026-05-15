@@ -48,11 +48,8 @@ export interface ManifestProviderConfig {
   manifestId: string
   provider: DanmakuSourceType
   providerConfigId: string
-  // Per-call extra inputs threaded into every pipeline run. Used by
-  // DDP-Compat to inject the user-configured `baseUrl` / `authHeaders`.
   extraInputs?: () => Record<string, unknown>
-  // Per-row danmaku transform. Goes away when DA-477's per-row `map` step
-  // kind moves the transform into the manifest.
+  // Per-row transform; replaced by DA-477's per-row `map` step kind.
   commentMapper: (raw: unknown) => CommentEntity[]
 }
 
@@ -67,10 +64,8 @@ export class ManifestProviderService implements IDanmakuProvider {
     this.forProvider = config.provider
   }
 
-  // Merge precedence (low → high): manifest defaults, per-call inputs,
-  // user extras. Per-call inputs (q, seasonId, cid, ...) must win over any
-  // configSchema default that happens to declare a same-named key.
-  // Undefined extras are dropped so they don't blank out lower layers.
+  // Precedence (low → high): defaults, inputs, extras. Undefined extras
+  // are dropped so they don't shadow defaults.
   private resolveInputs(
     inputs: Record<string, unknown>
   ): Record<string, unknown> {

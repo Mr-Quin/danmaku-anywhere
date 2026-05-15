@@ -92,7 +92,6 @@ describe('ProviderFactory dispatch', () => {
 
     expect(service.forProvider).toBe(DanmakuSourceType.DanDanPlay)
     await service.search({ keyword: 'x' })
-    // No extraInputs for the plain DDP path
     expect(mockRunner.runSearch).toHaveBeenCalledWith({ q: 'x' })
   })
 
@@ -152,7 +151,6 @@ describe('ProviderFactory dispatch', () => {
 
     expect(service.forProvider).toBe(DanmakuSourceType.DanDanPlay)
     await service.search({ keyword: 'x' })
-    // No baseUrl threaded — the plain dandanplay manifest takes over.
     expect(mockRunner.runSearch).toHaveBeenCalledWith({ q: 'x' })
   })
 
@@ -176,8 +174,6 @@ describe('ProviderFactory dispatch', () => {
     )
 
     await service.search({ keyword: 'x' })
-    // baseUrl/authHeaders are NOT threaded — confirmed by the strict
-    // `toHaveBeenCalledWith` (any extra keys would fail the equality).
     expect(mockRunner.runSearch).toHaveBeenCalledWith({ q: 'x' })
     expect(warn).toHaveBeenCalledWith(
       expect.stringMatching(/authHeaders.*baseUrl|authHeaders ignored/i)
@@ -197,7 +193,6 @@ describe('ProviderFactory dispatch', () => {
     })
 
     expect(service.forProvider).toBe(DanmakuSourceType.MacCMS)
-    // The mock above tags the legacy service so we can distinguish it.
     expect((service as unknown as { tag?: string }).tag).toBe('maccms-legacy')
   })
 

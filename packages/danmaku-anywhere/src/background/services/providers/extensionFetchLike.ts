@@ -11,9 +11,7 @@ export const extensionFetchLike: FetchLike = async (input, init) => {
       ? await setSessionHeader(input, rewrite)
       : null
   try {
-    // Build a real RequestInit from the dango FetchLike init; drop the
-    // `rewriteHeaders` field (applied above via DNR) and the rest of the
-    // dango-only shape that doesn't belong on the wire request.
+    // Drop `rewriteHeaders` (applied via DNR above) before handing to fetch.
     const requestInit: RequestInit = {}
     if (init?.method !== undefined) requestInit.method = init.method
     if (init?.headers !== undefined) requestInit.headers = init.headers
