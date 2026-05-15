@@ -34,9 +34,7 @@ export const BilibiliProviderForm = ({
   } = useForm<FormValues>({
     defaultValues: {
       name: provider.name,
-      // Falls back to 'protobuf' to match the manifest's configSchema default
-      // (builtin-bilibili.json). Keep this in sync with the manifest — or
-      // better, source it from the runner's configDefaults() at form mount.
+      // Keep in sync with builtin-bilibili.json's configSchema default.
       danmakuFormat:
         (provider.configValues.danmakuFormat as 'xml' | 'protobuf') ??
         'protobuf',

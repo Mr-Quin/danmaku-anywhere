@@ -52,9 +52,8 @@ export class JsonataEvaluator {
 function normalize(v: unknown): unknown {
   if (Array.isArray(v)) {
     const arr = v as unknown[] & { sequence?: unknown }
+    // slice() drops the non-indexed `sequence` marker from the copy.
     const hasSequenceMarker = arr.sequence !== undefined
-    // slice() returns a new array with only indexed elements — the
-    // `sequence` property does not survive the copy, which is the point.
     let cloned: unknown[] | null = hasSequenceMarker ? arr.slice() : null
     for (let i = 0; i < arr.length; i++) {
       const inner = arr[i]

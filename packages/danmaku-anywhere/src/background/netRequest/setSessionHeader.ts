@@ -5,13 +5,8 @@ import { getSelfDomain } from './getSelfDomain'
 
 const mutex = new Mutex()
 
-// Monotonic per-session counter for DNR rule IDs. Reading from
-// `chrome.declarativeNetRequest.getSessionRules()` was racy: rules added
-// by an earlier setSessionHeader call could be removed by its caller
-// concurrently with another setSessionHeader running, leaving a gap that
-// a later call would happily reuse while the older `updateSessionRules`
-// was still draining. A monotonic counter guarded by the mutex never
-// hands out the same id twice for the session.
+// Monotonic per-session counter for DNR rule IDs; guarded by the mutex.
+// Avoids the read-after-remove race that came with `getSessionRules + maxId + 1`.
 let nextRuleIdCounter = 0
 
 export async function setSessionHeader(

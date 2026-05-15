@@ -47,9 +47,7 @@ describe('setSessionHeader', () => {
       'X-Test': '1',
     })
     expect(rules).toHaveLength(1)
-    // IDs are positive integers from a monotonic per-session counter; we no
-    // longer assert the exact starting value because earlier tests in the
-    // file share that counter.
+    // The counter is shared across tests in this file, so don't assert the value.
     expect(typeof rules[0].id).toBe('number')
     expect(rules[0].id).toBeGreaterThan(0)
     expect(rules[0].action.requestHeaders[0].header).toBe('X-Test')
@@ -100,8 +98,8 @@ describe('setSessionHeader', () => {
     // If race conditions occurred, we would have duplicate IDs
     expect(uniqueIds.size).toBe(iterations)
 
-    // IDs are sequential within this batch (consecutive integers), even
-    // though the starting value depends on prior tests in this file.
+    // IDs in this batch are consecutive integers (starting value may differ
+    // between runs due to the shared counter).
     const sortedIds = ids.toSorted((a: number, b: number) => a - b)
     for (let i = 1; i < sortedIds.length; i++) {
       expect(sortedIds[i]).toBe(sortedIds[i - 1] + 1)

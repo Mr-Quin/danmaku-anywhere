@@ -13,9 +13,7 @@ import {
 } from './constant'
 import type { ProviderConfig } from './schema'
 
-// Drop keys whose value is undefined. Keeps an empty key absent so manifest
-// defaults (read at run time via ManifestRunner.configDefaults) fire instead
-// of getting silently overridden by an undefined-valued key.
+// Drop undefined-valued keys so manifest configSchema defaults can apply.
 function pruneUndefined(obj: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(obj)) {
@@ -83,9 +81,6 @@ export function migrateDanmakuSourcesToProviders(
           if (!oldSources.bilibili) {
             return builtInBilibiliProvider
           }
-          // No `?? 'xml'` fallback — leave the key absent if the user never
-          // set it so the manifest's configSchema default ('protobuf') wins
-          // at run time. The old fallback silently downgraded users.
           return {
             id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
             manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
@@ -164,10 +159,6 @@ export function migrateDanmakuSourcesToProviders(
 
     return providers
   } catch (error) {
-    // Outer guard: any unexpected throw (a Proxy that errors on access,
-    // a getter that throws) falls back to the default set rather than
-    // crashing the extension boot. Surface to console so the user can
-    // report it; defaults are at least a working starting point.
     console.error(
       'Failed to migrate danmaku sources — falling back to defaults:',
       error
@@ -193,14 +184,12 @@ export function migrateProviderConfigsToFlat(
   }
   const out: ProviderConfig[] = []
   for (const old of data) {
-    // Defend against null/non-object entries that crash the switch below.
     if (old === null || old === undefined || typeof old !== 'object') {
       console.warn('Skipping non-object provider record during migration:', old)
       continue
     }
-    // Already flat (idempotent re-run, or v2-shape record landed here somehow).
-    // `configValues` may be an empty object (which is falsy via Object.keys.length
-    // but truthy as a reference), so check for object-ness rather than truthiness.
+    // Already flat (idempotent re-run). Check configValues is an object so
+    // an empty `{}` still counts as "already migrated".
     if (
       typeof old.manifestId === 'string' &&
       typeof old.configValues === 'object' &&
@@ -214,17 +203,12 @@ export function migrateProviderConfigsToFlat(
       name: old.name as string,
       impl: old.impl as DanmakuSourceType,
       isBuiltIn: !!old.isBuiltIn,
-      // Default to true if missing. The sister function
-      // migrateDanmakuSourcesToProviders defaults Bilibili/Tencent to false,
-      // but that branch has fresh-install context (no prior user choice);
-      // here the record IS the user's choice and an absent enabled is
-      // ambiguous. Lean toward keeping the provider visible to the user.
+      // Absent `enabled` on an existing user record is ambiguous; lean
+      // toward keeping the provider visible.
       enabled: old.enabled ?? true,
     }
     const options = old.options ?? {}
-    // Best-effort recovery for records with a missing/null type: try to infer
-    // from `impl` (the discriminator on the legacy union usually matched the
-    // DanmakuSourceType). If that also fails, drop with a warning.
+    // Records with a missing `type` field fall back to inferring from `impl`.
     const inferredType =
       old.type ?? inferTypeFromImpl(old.impl as DanmakuSourceType | undefined)
     switch (inferredType) {

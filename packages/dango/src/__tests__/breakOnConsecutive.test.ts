@@ -4,10 +4,9 @@ import { zManifest } from '../manifest/schema.js'
 import { mockFetcher } from './fixtures.js'
 
 /**
- * `breakOnConsecutive` lets a forEach pagination loop tolerate transient
- * empties: the stop predicate must fire on N back-to-back iterations before
- * the loop exits. A non-matching iteration resets the counter. Without this,
- * a flaky API that returns an empty page mid-stream truncates the rest.
+ * Tests that forEach.breakOnConsecutive requires N back-to-back truthy
+ * breakOn results to stop, that a non-match resets the counter, and that
+ * the schema accepts the field standalone.
  */
 
 function buildManifest(breakOnConsecutive?: number) {
@@ -49,7 +48,6 @@ describe('forEach breakOnConsecutive', () => {
     const { fetcher } = mockFetcher({
       'https://api.example.com/page': () => {
         calls += 1
-        // Returns one item for the first 3 pages, then empties forever.
         const items = calls <= 3 ? [`item-${calls}`] : []
         return { body: JSON.stringify({ items }) }
       },
@@ -70,7 +68,6 @@ describe('forEach breakOnConsecutive', () => {
     const { fetcher } = mockFetcher({
       'https://api.example.com/page': () => {
         calls += 1
-        // Single transient empty at page 3, real content resumes, then ends.
         const empties = new Set([3, 7, 8, 9])
         const items = empties.has(calls) ? [] : [`item-${calls}`]
         return { body: JSON.stringify({ items }) }
@@ -82,7 +79,7 @@ describe('forEach breakOnConsecutive', () => {
       {},
       { fetcher }
     )) as string[]
-    // Pages 7,8,9 are 3 consecutive empties → stop after page 9.
+    // 3 in a row at pages 7..9 → stop.
     expect(calls).toBe(9)
     expect(result).toEqual(['item-1', 'item-2', 'item-4', 'item-5', 'item-6'])
   })
@@ -93,8 +90,6 @@ describe('forEach breakOnConsecutive', () => {
     const { fetcher } = mockFetcher({
       'https://api.example.com/page': () => {
         calls += 1
-        // empty, empty-reset (one item), empty, empty → 2 consecutive at end
-        // pattern: 1=empty, 2=full, 3=empty, 4=empty → stop after 4
         const fullPages = new Set([2])
         const items = fullPages.has(calls) ? [`item-${calls}`] : []
         return { body: JSON.stringify({ items }) }
@@ -110,10 +105,7 @@ describe('forEach breakOnConsecutive', () => {
     expect(result).toEqual(['item-2'])
   })
 
-  it('rejects breakOnConsecutive without breakOn at parse time', () => {
-    // The refine only enforces breakOn+concurrency:1; breakOnConsecutive
-    // without breakOn parses but is a no-op (counter is never incremented).
-    // This documents the behavior rather than guards against it.
+  it('accepts breakOnConsecutive without breakOn at parse time (no-op)', () => {
     expect(() =>
       zManifest.parse({
         apiVersion: 1,

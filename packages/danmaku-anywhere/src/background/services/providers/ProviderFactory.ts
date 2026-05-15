@@ -40,13 +40,8 @@ interface DdpCompatConfig {
 interface BuiltinDispatch {
   provider: DanmakuSourceType
   commentMapper: (raw: unknown) => CommentEntity[]
-  /**
-   * Optional per-call extra-inputs builder. Receives the raw configValues
-   * (already validated as a Record by zod). Defaults are sourced from the
-   * manifest's `configSchema` in `ManifestProviderService.resolveInputs`, so
-   * this should pass user-set values straight through — do NOT `?? defaultValue`
-   * here (the manifest is the single source of truth for defaults).
-   */
+  // Pass user-set values straight through; defaults come from the
+  // manifest's configSchema, not from `??` fallbacks here.
   extraInputs?: (config: ProviderConfig) => Record<string, unknown>
 }
 
@@ -58,9 +53,7 @@ const builtinDispatch: Record<string, BuiltinDispatch> = {
   [DDP_COMPAT_MANIFEST_ID]: {
     provider: DanmakuSourceType.DanDanPlay,
     commentMapper: withMapper(DanDanPlayMapper.manifestCommentsToComments),
-    // `extraInputs` for DDP-Compat is supplied per-call from
-    // createDanmakuProvider because it needs baseUrl/authHeaders captured
-    // from the specific config — see the DDP_COMPAT_MANIFEST_ID branch below.
+    // extraInputs supplied per-call below; needs baseUrl/authHeaders from config.
   },
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]]: {
     provider: DanmakuSourceType.Bilibili,
@@ -86,8 +79,7 @@ function createDanmakuProvider(
   if (config.manifestId === LEGACY_MACCMS_ID) {
     return new MacCmsProviderService(config, logger)
   }
-  // DDP-Compat with no baseUrl is treated as plain DDP — fall through to
-  // the dispatch table with the DDP manifestId substituted.
+  // DDP-Compat without a baseUrl falls back to the proxy-backed DDP manifest.
   let effectiveManifestId = config.manifestId
   let compatExtras: BuiltinDispatch['extraInputs']
   if (config.manifestId === DDP_COMPAT_MANIFEST_ID) {

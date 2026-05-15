@@ -119,10 +119,8 @@ const zForEachStep = z
      */
     breakOn: zExpr.optional(),
     /**
-     * Require this many consecutive truthy `breakOn` results before stopping.
-     * Default is 1 (stop immediately). Use a higher value when single-iteration
-     * empties are a known transient failure mode (e.g. flaky pagination APIs
-     * that 304 on real gaps). A non-matching iteration resets the counter.
+     * Require N consecutive truthy `breakOn` results before stopping.
+     * Default 1 (stop immediately). Raise it to tolerate transient empties.
      */
     breakOnConsecutive: z.number().int().min(1).max(20).default(1),
   })

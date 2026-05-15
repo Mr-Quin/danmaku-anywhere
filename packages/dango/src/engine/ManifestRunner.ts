@@ -56,13 +56,7 @@ export class ManifestRunner {
     return this.manifest.danmaku !== undefined
   }
 
-  /**
-   * Build the config-defaults object from `configSchema` — keys whose schema
-   * item declares a `default` get that default; the rest are omitted. Callers
-   * merge user-saved `configValues` over this, so any user value (even
-   * `undefined`) wins, but missing keys fall back to the manifest's default
-   * rather than getting silently overridden by code-level fallbacks.
-   */
+  /** Defaults extracted from `configSchema`; merge under user values. */
   configDefaults(): Record<string, unknown> {
     const out: Record<string, unknown> = {}
     for (const [key, item] of Object.entries(this.manifest.configSchema)) {

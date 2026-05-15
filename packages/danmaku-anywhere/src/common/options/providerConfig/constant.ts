@@ -28,10 +28,7 @@ export const builtInBilibiliProvider: ProviderConfig = {
   impl: DanmakuSourceType.Bilibili,
   enabled: true,
   isBuiltIn: true,
-  // configValues intentionally empty — the manifest's configSchema declares
-  // `danmakuFormat: 'protobuf'` as the default. Leaving the key absent lets
-  // ManifestProviderService apply the manifest default at run time, so the
-  // default lives in exactly one place (the manifest).
+  // Empty so the manifest's configSchema is the single source of truth for defaults.
   configValues: {},
 }
 

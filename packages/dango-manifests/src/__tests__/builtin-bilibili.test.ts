@@ -271,8 +271,7 @@ describe('builtin:bilibili manifest', () => {
       midHash: 'h3',
       content: 'proto 顶部',
     })
-    // breakOnConsecutive: 3 — segs 1 and 2 have content (reset counter),
-    // then segs 3, 4, 5 are empty (3 consecutive empties) → loop stops.
+    // segs 1,2 have content; 3,4,5 empty (3 in a row) → stop.
     expect(calls.length).toBe(5)
   })
 
@@ -287,7 +286,6 @@ describe('builtin:bilibili manifest', () => {
     // No danmakuFormat input — should pick the no-`when` (default) variant.
     const result = await runner.runDanmaku({ cid: 1300001 })
     expect(result).toEqual([])
-    // breakOnConsecutive: 3 — three empty segments in a row stop the loop.
     expect(calls.length).toBe(3)
   })
 
@@ -327,9 +325,6 @@ describe('builtin:bilibili manifest', () => {
   })
 
   it('protobuf variant survives a single transient empty mid-stream', async () => {
-    // Regression for the breakOnConsecutive: 3 setting. Pre-fix, one empty
-    // segment cut off the rest of the video silently. Now the loop tolerates
-    // up to 2 consecutive empties as transient.
     const segWith = (progress: number, content: string) =>
       encodeSegment([
         { progress, mode: 1, color: 16777215, content, midHash: 'x' },
@@ -338,7 +333,6 @@ describe('builtin:bilibili manifest', () => {
     const { fetcher, calls } = mockFetcher({
       'https://api.bilibili.com/x/v2/dm/web/seg.so': (url) => {
         const segIdx = Number(new URL(url).searchParams.get('segment_index'))
-        // Pattern: 1=full, 2=full, 3=EMPTY (transient), 4=full, 5..7 empty
         if (segIdx === 1) return { body: segWith(1000, 'a') }
         if (segIdx === 2) return { body: segWith(2000, 'b') }
         if (segIdx === 3) return { body: emptySeg }
@@ -354,10 +348,8 @@ describe('builtin:bilibili manifest', () => {
       danmakuFormat: 'protobuf',
     })) as Array<{ progress: number; content: string }>
 
-    // 3 items survived; the transient empty at seg 3 did not stop the loop.
     expect(result).toHaveLength(3)
     expect(result.map((r) => r.content)).toEqual(['a', 'b', 'c'])
-    // Stops after segs 5, 6, 7 are 3 consecutive empties.
     expect(calls.length).toBe(7)
   })
 

@@ -321,10 +321,8 @@ describe('migrateDanmakuSourcesToProviders', () => {
     })
 
     it('omits danmakuFormat from configValues when legacy record lacks danmakuTypePreference', () => {
-      // Regression for the silent-downgrade bug: pre-fix, a legacy source
-      // missing `danmakuTypePreference` got `danmakuFormat: 'xml'` written,
-      // which capped users at ~3000 danmaku. Now the key is omitted so the
-      // manifest's configSchema default ('protobuf') fires at run time.
+      // Absent key lets the manifest's configSchema default fire instead
+      // of writing a stored value that masks it.
       const oldSources = {
         bilibili: { enabled: true },
       }
@@ -500,11 +498,8 @@ describe('migrateProviderConfigsToFlat', () => {
 
     expect(flat).toHaveLength(1)
     expect(flat[0].manifestId).toBe('builtin:bilibili')
-    // Migration strips undefined keys so the manifest's configSchema default
-    // ('protobuf') fires at run time via ManifestRunner.configDefaults().
-    // Previously this stored `{ danmakuFormat: undefined }`, which silently
-    // downgraded users to 'xml' because ProviderFactory's `?? 'xml'`
-    // fallback ran on a present-but-undefined key.
+    // Undefined keys are stripped so the manifest's configSchema default
+    // applies at run time.
     expect(flat[0].configValues).toEqual({})
   })
 
@@ -527,9 +522,6 @@ describe('migrateProviderConfigsToFlat', () => {
   })
 
   it('recovers records with missing type by inferring from impl', () => {
-    // Pre-fix, `type: undefined` (common when a record was partially written
-    // or migrated from a non-discriminated shape) silently fell through to
-    // the default branch and dropped the user's provider.
     const legacy = [
       {
         id: 'builtin:bilibili',
@@ -568,12 +560,7 @@ describe('migrateProviderConfigsToFlat', () => {
     expect(flat[0].id).toBe('builtin:dandanplay')
   })
 
-  it('skips records with null configValues by routing through the legacy path', () => {
-    // A partially-flat record with `configValues: null` previously hit the
-    // idempotent branch via `old.configValues` (falsy), fell through to the
-    // switch, and dropped on type-undefined. Now: the idempotent check
-    // requires configValues to be an object, the record falls back to legacy
-    // handling, and inferTypeFromImpl recovers it from `impl`.
+  it('recovers a partially-flat record with null configValues via the legacy path', () => {
     const legacy = [
       {
         id: 'builtin:tencent',
@@ -592,8 +579,6 @@ describe('migrateProviderConfigsToFlat', () => {
   })
 
   it('returns empty array if data is not an array', () => {
-    // Defends against storage corruption where the providers slot was
-    // overwritten with a non-array value entirely.
     expect(migrateProviderConfigsToFlat(null as unknown as never[])).toEqual([])
     expect(
       migrateProviderConfigsToFlat({ foo: 'bar' } as unknown as never[])

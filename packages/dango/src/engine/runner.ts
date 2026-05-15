@@ -151,14 +151,9 @@ async function runStep(
     }
     let perItemResults: unknown[]
     if (step.breakOn) {
-      // Sequential mode with early exit. The breakOn predicate is evaluated
-      // against each iteration's collected result; truthy stops the loop AFTER
-      // including the current result (so a "this page is partial" predicate
-      // still keeps the final partial page). throttleMs still applies between
-      // iteration starts so cursor pagination respects upstream rate limits.
-      // `breakOnConsecutive` requires N consecutive truthy results before
-      // stopping (resets on a non-match) so a single transient empty doesn't
-      // truncate the rest of the loop.
+      // Sequential mode with early exit. breakOn evaluates after each
+      // iteration's result is included; breakOnConsecutive requires N
+      // back-to-back truthy results before stopping (a non-match resets).
       perItemResults = []
       const stopExpr = step.breakOn
       const threshold = step.breakOnConsecutive

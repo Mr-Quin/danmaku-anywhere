@@ -51,10 +51,8 @@ export interface ManifestProviderConfig {
   // Per-call extra inputs threaded into every pipeline run. Used by
   // DDP-Compat to inject the user-configured `baseUrl` / `authHeaders`.
   extraInputs?: () => Record<string, unknown>
-  // Per-row danmaku transform. Required: every built-in source declares one,
-  // including DDP (whose mapper is an explicit identity cast — see
-  // DanDanPlayMapper). Goes away when DA-477's per-row `map` step kind moves
-  // the transform into the manifest.
+  // Per-row danmaku transform. Goes away when DA-477's per-row `map` step
+  // kind moves the transform into the manifest.
   commentMapper: (raw: unknown) => CommentEntity[]
 }
 
@@ -69,19 +67,14 @@ export class ManifestProviderService implements IDanmakuProvider {
     this.forProvider = config.provider
   }
 
-  // Merge order matters: per-call inputs at the base, then manifest config
-  // defaults, then user-saved configValues from extraInputs. Defaults fire
-  // only for keys the user hasn't explicitly set. This keeps the source of
-  // truth for defaults in the manifest's configSchema instead of letting
-  // code-level `?? 'xml'` fallbacks silently downgrade users whose stored
-  // configValues are missing the key entirely.
+  // Merge order: per-call inputs, manifest defaults, then user values.
+  // Undefined extras are dropped so they don't blank out manifest defaults.
   private resolveInputs(
     inputs: Record<string, unknown>
   ): Record<string, unknown> {
     const runner = this.registry.getRunner(this.config.manifestId)
     const defaults = runner.configDefaults()
     const rawExtras = this.config.extraInputs ? this.config.extraInputs() : {}
-    // Drop undefined values so they don't blank out manifest defaults.
     const extras: Record<string, unknown> = {}
     for (const [k, v] of Object.entries(rawExtras)) {
       if (v !== undefined) {
@@ -144,8 +137,6 @@ export class ManifestProviderService implements IDanmakuProvider {
     episodeNumber: number
   ): Promise<WithSeason<EpisodeMeta> | null> {
     const episodes = await this.getEpisodes(season.providerIds)
-    // Empty episodes is a legitimate "no match" result, not an exception.
-    // `findEpisodeByNumber` already returns null on an empty array.
     const episode = findEpisodeByNumber(episodes, episodeNumber)
     if (!episode) {
       return null
