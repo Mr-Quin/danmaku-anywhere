@@ -32,9 +32,14 @@ function withMapper<T>(
   return (raw) => fn(raw as T)
 }
 
+interface DdpConfig {
+  chConvert?: number
+}
+
 interface DdpCompatConfig {
   baseUrl?: string
   auth?: { enabled?: boolean; headers?: { key: string; value: string }[] }
+  chConvert?: number
 }
 
 interface BuiltinDispatch {
@@ -48,6 +53,10 @@ const builtinDispatch: Record<string, BuiltinDispatch> = {
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]]: {
     provider: DanmakuSourceType.DanDanPlay,
     commentMapper: withMapper(DanDanPlayMapper.manifestCommentsToComments),
+    extraInputs: (config) => {
+      const values = config.configValues as DdpConfig
+      return { chConvert: values.chConvert }
+    },
   },
   [DDP_COMPAT_MANIFEST_ID]: {
     provider: DanmakuSourceType.DanDanPlay,
@@ -97,7 +106,8 @@ function createDanmakuProvider(
     } else {
       const authHeaders =
         values.auth?.enabled && values.auth.headers ? values.auth.headers : []
-      compatExtras = () => ({ baseUrl, authHeaders })
+      const chConvert = values.chConvert
+      compatExtras = () => ({ baseUrl, authHeaders, chConvert })
     }
   }
   const entry = builtinDispatch[effectiveManifestId]

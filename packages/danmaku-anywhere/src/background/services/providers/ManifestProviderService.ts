@@ -150,7 +150,9 @@ export class ManifestProviderService implements IDanmakuProvider {
       meta.providerIds
     )
     const runner = this.registry.getRunner(this.config.manifestId)
-    const inputs = this.resolveInputs(meta.providerIds)
+    // meta.params holds per-episode hints stashed at search/episodes time
+    // (e.g. chConvert/withRelated). providerIds take precedence on key collision.
+    const inputs = this.resolveInputs({ ...meta.params, ...meta.providerIds })
     const raw = await runner.runDanmaku<unknown>(inputs)
     return this.config.commentMapper(raw)
   }
