@@ -85,6 +85,9 @@ test('mount tree: multi-select bulk delete removes every selected episode', asyn
   await popup.mount.confirmDialog()
 
   for (const ep of seeded) {
+    await expect(popup.mount.episodeItem(ep.id)).toBeHidden({
+      timeout: 10_000,
+    })
     await expect
       .poll(() => da.episode.get(ep.id), { timeout: 10_000 })
       .toBeUndefined()

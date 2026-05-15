@@ -111,7 +111,10 @@ test('mount tree: delete single episode keeps season + siblings', async ({
     .poll(() => da.episode.get(ep1.id), { timeout: 10_000 })
     .toBeUndefined()
 
-  // Sibling + parent intact.
+  // Sibling + parent intact — checked in both UI and DB so a regression
+  // that wipes more than intended (or only updates one layer) is caught.
+  await expect(popup.mount.episodeItem(ep2.id)).toBeVisible()
+  await expect(popup.mount.seasonItem(season.id)).toBeVisible()
   const survivor = await da.episode.get(ep2.id)
   expect(survivor?.id).toBe(ep2.id)
   const survivingSeason = await da.season.get(season.id)
