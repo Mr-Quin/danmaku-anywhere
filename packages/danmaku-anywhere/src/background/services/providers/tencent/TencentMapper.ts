@@ -84,7 +84,10 @@ function parseTencentBarrageColor(style: string | undefined): number {
       color?: string
       gradient_colors?: [string, string]
     }
-    const hex = parsed.gradient_colors?.[0] ?? parsed.color
+    const hex = (parsed.gradient_colors?.[0] ?? parsed.color)?.replace(
+      /^#/,
+      ''
+    )
     return hexToRgb888(hex ? `#${hex}` : '#ffffff')
   } catch {
     return hexToRgb888('#ffffff')
