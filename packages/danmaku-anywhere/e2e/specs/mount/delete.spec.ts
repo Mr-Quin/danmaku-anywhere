@@ -95,7 +95,7 @@ test('mount tree: delete single episode keeps season + siblings', async ({
   await popup.mount.waitForSeason(season.id)
   await popup.mount.expandSeason(season.id)
 
-  const ep1Item = popup.mount.episodeItem(ep1.id).first()
+  const ep1Item = popup.mount.episodeItem(ep1.id)
   await expect(ep1Item).toBeVisible({ timeout: 10_000 })
 
   await popup.mount.openItemMenu(ep1Item, 'delete')

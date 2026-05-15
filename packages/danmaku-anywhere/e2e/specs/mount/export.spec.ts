@@ -4,8 +4,6 @@ import {
   type SeasonInsert,
 } from '@danmaku-anywhere/danmaku-converter'
 import { readFile } from 'fs/promises'
-import { tmpdir } from 'os'
-import { join } from 'path'
 import { Popup } from '../../pom/Popup'
 import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
@@ -22,8 +20,9 @@ import { applyProfile } from '../../setup/profile'
  *
  * Each test seeds a season + exactly one episode so the export emits a
  * single-file download (multi-episode exports zip; out of scope here).
- * Downloads are captured via Playwright's `page.waitForEvent('download')`,
- * saved to a tmp path, read back, and asserted.
+ * Downloads are captured via Playwright's `page.waitForEvent('download')`
+ * and read from `download.path()` — Playwright auto-manages the temp file
+ * and cleans it up when the browser context closes.
  */
 
 const SEASON: SeasonInsert = {
@@ -81,9 +80,8 @@ test('mount tree: season export downloads an XML payload', async ({
 
   expect(download.suggestedFilename()).toMatch(/\.xml$/i)
 
-  const dest = join(tmpdir(), `da-export-${Date.now()}.xml`)
-  await download.saveAs(dest)
-  const content = await readFile(dest, 'utf-8')
+  const path = await download.path()
+  const content = await readFile(path, 'utf-8')
 
   expect(content).toContain('<i>')
   expect(content).toContain('</i>')
@@ -113,9 +111,8 @@ test('mount tree: season exportBackup downloads a JSON payload', async ({
 
   expect(download.suggestedFilename()).toMatch(/\.json$/i)
 
-  const dest = join(tmpdir(), `da-export-${Date.now()}.json`)
-  await download.saveAs(dest)
-  const content = await readFile(dest, 'utf-8')
+  const path = await download.path()
+  const content = await readFile(path, 'utf-8')
 
   const parsed = JSON.parse(content) as {
     title?: string

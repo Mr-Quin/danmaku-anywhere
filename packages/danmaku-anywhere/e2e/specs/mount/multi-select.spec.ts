@@ -74,7 +74,7 @@ test('mount tree: multi-select bulk delete removes every selected episode', asyn
   // Episodes must be in the DOM before "select all" — selectAll() walks
   // the rendered tree and picks every `kind === 'episode'` node.
   for (const ep of seeded) {
-    await expect(popup.mount.episodeItem(ep.id).first()).toBeVisible({
+    await expect(popup.mount.episodeItem(ep.id)).toBeVisible({
       timeout: 10_000,
     })
   }
