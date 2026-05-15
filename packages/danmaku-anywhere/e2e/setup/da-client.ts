@@ -1,5 +1,7 @@
 import type {
   Bookmark,
+  CustomEpisode,
+  CustomEpisodeInsert,
   Episode,
   EpisodeInsert,
   Season,
@@ -93,6 +95,10 @@ export class DaClient {
       this.sw.evaluate((e) => self.__da.episode.add(e), insert),
     get: (id: number): Promise<Episode | undefined> =>
       this.sw.evaluate((id) => self.__da.episode.get(id), id),
+    addCustom: (insert: CustomEpisodeInsert): Promise<CustomEpisode> =>
+      this.sw.evaluate((e) => self.__da.episode.addCustom(e), insert),
+    listCustom: (): Promise<CustomEpisode[]> =>
+      this.sw.evaluate(() => self.__da.episode.listCustom()),
   }
 
   bookmark = {

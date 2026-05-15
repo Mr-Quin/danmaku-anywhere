@@ -112,6 +112,7 @@ export const MountPageBottomBar = ({
                 onClick={onDelete}
                 size="small"
                 disabled={selectionCount === 0}
+                data-testid="mount-bulk-delete"
               >
                 {t('common.delete', 'Delete')}
               </Button>

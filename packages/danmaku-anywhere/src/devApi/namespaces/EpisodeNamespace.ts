@@ -1,4 +1,6 @@
 import type {
+  CustomEpisode,
+  CustomEpisodeInsert,
   Episode,
   EpisodeInsert,
 } from '@danmaku-anywhere/danmaku-converter'
@@ -9,6 +11,8 @@ import { type AnyMethodDef, type DevNamespace, defineMethod } from '../registry'
 export interface EpisodeApi {
   add(insert: EpisodeInsert): Promise<Episode>
   get(id: number): Promise<Episode | undefined>
+  addCustom(insert: CustomEpisodeInsert): Promise<CustomEpisode>
+  listCustom(): Promise<CustomEpisode[]>
 }
 
 @injectable('Singleton')
@@ -38,6 +42,20 @@ export class EpisodeNamespace implements DevNamespace {
           const res = await this.service.filter({ ids: [id] })
           return res[0]
         },
+      }),
+      defineMethod({
+        name: 'addCustom',
+        description: 'Insert a custom (local) episode directly',
+        kind: 'write',
+        args: [{ name: 'insert', type: 'CustomEpisodeInsert' }],
+        handler: (insert: CustomEpisodeInsert) =>
+          this.service.addCustom(insert),
+      }),
+      defineMethod({
+        name: 'listCustom',
+        description: 'List all persisted custom (local) episodes',
+        kind: 'read',
+        handler: () => this.service.filterCustom({ all: true }),
       }),
     ]
   }
