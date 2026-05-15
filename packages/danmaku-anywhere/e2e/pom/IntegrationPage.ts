@@ -34,6 +34,9 @@ export class IntegrationPage {
     fixtureFile: string,
     options: OpenOptions = {}
   ): Promise<void> {
+    this.videoFrame = null
+    this.iframeSelector = null
+
     const html = readFileSync(path.join(SITES_ROOT, fixtureFile), 'utf-8')
     await this.page.route(url, async (route) => {
       await route.fulfill({
@@ -43,12 +46,14 @@ export class IntegrationPage {
       })
     })
     // Same-origin sub-resources (e.g. iframe-inner.html). Each entry routes
-    // a same-origin path to a static fixture file.
+    // a same-origin path to a static fixture file. Anchor against the origin
+    // (not `url`) so a bare 'iframe-inner.html' key resolves at root, matching
+    // the host HTML's `<iframe src="/iframe-inner.html">`.
     const origin = new URL(url).origin
     for (const [pathSuffix, fixture] of Object.entries(
       options.extraFixtures ?? {}
     )) {
-      const extraUrl = `${origin}${pathSuffix.startsWith('/') ? '' : '/'}${pathSuffix}`
+      const extraUrl = new URL(pathSuffix, origin).href
       const body = readFileSync(path.join(SITES_ROOT, fixture), 'utf-8')
       await this.page.route(extraUrl, async (route) => {
         await route.fulfill({
@@ -65,12 +70,7 @@ export class IntegrationPage {
   // named iframe (located by selector on the host page). Subsequent
   // setVideoTime / playVideo calls dispatch into that iframe's document.
   async useIframeVideo(iframeSelector: string): Promise<void> {
-    const handle = await this.page.locator(iframeSelector).elementHandle()
-    if (!handle) {
-      throw new Error(
-        `IntegrationPage.useIframeVideo: iframe '${iframeSelector}' not found`
-      )
-    }
+    const handle = await this.page.waitForSelector(iframeSelector)
     const frame = await handle.contentFrame()
     if (!frame) {
       throw new Error(

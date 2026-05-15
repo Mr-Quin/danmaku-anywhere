@@ -1,4 +1,5 @@
 import { injectable } from 'inversify'
+import { MAIN_CONTENT_SCRIPT_ID } from '@/background/scripting/ScriptingManager'
 import type { MountMirror } from '@/content/controller/common/devMountMirror'
 import { MOUNT_MIRROR_GLOBAL } from '@/content/controller/common/devMountMirror'
 import { type AnyMethodDef, type DevNamespace, defineMethod } from '../registry'
@@ -13,7 +14,6 @@ export interface MountApi {
 
 const DEFAULT_WAIT_TIMEOUT_MS = 10_000
 const POLL_INTERVAL_MS = 100
-const CONTENT_SCRIPT_ID = 'main-content'
 
 async function resolveTabId(tabId?: number): Promise<number | undefined> {
   if (tabId !== undefined) {
@@ -114,7 +114,7 @@ export class MountNamespace implements DevNamespace {
         const deadline = Date.now() + (timeoutMs ?? DEFAULT_WAIT_TIMEOUT_MS)
         while (Date.now() < deadline) {
           const scripts = await chrome.scripting.getRegisteredContentScripts({
-            ids: [CONTENT_SCRIPT_ID],
+            ids: [MAIN_CONTENT_SCRIPT_ID],
           })
           if (scripts[0]?.matches?.includes(pattern)) {
             return
