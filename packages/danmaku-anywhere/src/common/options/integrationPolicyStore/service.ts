@@ -14,6 +14,7 @@ import {
   OptionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import { LATEST_INTEGRATION_POLICY_VERSION } from './version'
 
 @injectable('Singleton')
 export class IntegrationPolicyService implements IStoreService {
@@ -57,7 +58,7 @@ export class IntegrationPolicyService implements IStoreService {
           })
         },
       })
-      .version(4, {
+      .version(LATEST_INTEGRATION_POLICY_VERSION, {
         upgrade: (data: IntegrationV2[]): IntegrationV3[] => {
           return migrateV2ToV3(data)
         },

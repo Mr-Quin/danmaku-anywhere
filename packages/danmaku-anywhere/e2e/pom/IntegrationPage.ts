@@ -91,7 +91,9 @@ export class IntegrationPage {
   // these events to advance the danmaku cursor.
   async setVideoTime(seconds: number): Promise<void> {
     await this.target.evaluate((t) => {
-      const v = document.querySelector('video') as HTMLVideoElement | null
+      const v = document.querySelector(
+        'video[data-testid="da-video"]'
+      ) as HTMLVideoElement | null
       if (!v) {
         throw new Error('IntegrationPage.setVideoTime: no <video> element')
       }
@@ -106,7 +108,9 @@ export class IntegrationPage {
   // listens for. Idempotent.
   async playVideo(): Promise<void> {
     await this.target.evaluate(() => {
-      const v = document.querySelector('video') as HTMLVideoElement | null
+      const v = document.querySelector(
+        'video[data-testid="da-video"]'
+      ) as HTMLVideoElement | null
       if (!v) {
         throw new Error('IntegrationPage.playVideo: no <video> element')
       }
@@ -117,7 +121,9 @@ export class IntegrationPage {
 
   async pauseVideo(): Promise<void> {
     await this.target.evaluate(() => {
-      const v = document.querySelector('video') as HTMLVideoElement | null
+      const v = document.querySelector(
+        'video[data-testid="da-video"]'
+      ) as HTMLVideoElement | null
       if (!v) {
         throw new Error('IntegrationPage.pauseVideo: no <video> element')
       }

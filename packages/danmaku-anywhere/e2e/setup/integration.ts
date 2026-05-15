@@ -1,15 +1,9 @@
 import { randomUUID } from 'node:crypto'
 import type { Integration } from '@danmaku-anywhere/integration-policy'
 import { BUILT_IN_AI_PROVIDER_ID } from '../../src/common/options/aiProviderConfig/constant'
+import { LATEST_INTEGRATION_POLICY_VERSION } from '../../src/common/options/integrationPolicyStore/version'
+import { LATEST_MOUNT_CONFIG_VERSION } from '../../src/common/options/mountConfig/version'
 import type { DaClient } from './da-client'
-
-// Storage versions match the latest version declared by the corresponding
-// services. Bumping a service version (look for `.version(N, {...})` in
-// `src/common/options/mountConfig/service.ts` and
-// `src/common/options/integrationPolicyStore/service.ts`) means bumping the
-// matching constant here — there's no compile-time link.
-const MOUNT_CONFIG_VERSION = 6
-const INTEGRATION_POLICY_VERSION = 4
 
 export interface IntegrationSeedInput {
   // Match patterns the controller content script will be registered for.
@@ -47,7 +41,7 @@ export async function seedXPathIntegration(
 
   await da.storage.setRaw('local', 'xpathPolicy', {
     data: [integration],
-    version: INTEGRATION_POLICY_VERSION,
+    version: LATEST_INTEGRATION_POLICY_VERSION,
   })
 
   await da.storage.setRaw('sync', 'mountConfig', {
@@ -63,7 +57,7 @@ export async function seedXPathIntegration(
         ai: { providerId: BUILT_IN_AI_PROVIDER_ID },
       },
     ],
-    version: MOUNT_CONFIG_VERSION,
+    version: LATEST_MOUNT_CONFIG_VERSION,
   })
 
   return { mountConfigId, integrationId }

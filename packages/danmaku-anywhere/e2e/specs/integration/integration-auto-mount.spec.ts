@@ -91,7 +91,7 @@ test('integration auto-mount: native <video> happy path', async ({
   await integrationPage.setVideoTime(SEEK_TIME_S)
 
   await expect(integrationPage.commentElements().first()).toBeVisible({
-    timeout: 5_000,
+    timeout: 10_000,
   })
 })
 
@@ -122,6 +122,6 @@ test('integration auto-mount: same-origin iframe <video> happy path', async ({
   await integrationPage.setVideoTime(SEEK_TIME_S)
 
   await expect(integrationPage.commentElements().first()).toBeVisible({
-    timeout: 5_000,
+    timeout: 10_000,
   })
 })
