@@ -58,7 +58,7 @@ export const Theme = ({ children, options = {} }: ThemeProps) => {
   const colorScheme: 'dark' | 'light' =
     colorMode === 'system' ? preferredColorScheme : colorMode
 
-  const useSakura = data.experimental.sakuraTheme
+  const useSakura = data.experimental?.sakuraTheme ?? false
 
   const theme = useMemo(() => {
     const languageMap: Record<string, Localization> = {
