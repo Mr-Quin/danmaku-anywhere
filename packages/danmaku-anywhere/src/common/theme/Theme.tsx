@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next'
 import type { UserTheme } from '@/common/options/extensionOptions/schema'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { ColorMode } from '@/common/theme/enums'
+import { createSakuraTheme } from '@/common/theme/sakura'
 
 import { tryCatchSync } from '@/common/utils/tryCatch'
 
@@ -57,10 +58,19 @@ export const Theme = ({ children, options = {} }: ThemeProps) => {
   const colorScheme: 'dark' | 'light' =
     colorMode === 'system' ? preferredColorScheme : colorMode
 
+  const useSakura = data.experimental.sakuraTheme
+
   const theme = useMemo(() => {
     const languageMap: Record<string, Localization> = {
       zh: zhCN,
       en: enUS,
+    }
+    const locale = languageMap[i18n.language]
+
+    if (useSakura) {
+      return locale
+        ? createSakuraTheme(colorScheme, options, locale)
+        : createSakuraTheme(colorScheme, options)
     }
 
     return createTheme(
@@ -69,9 +79,9 @@ export const Theme = ({ children, options = {} }: ThemeProps) => {
         if (!draft.palette) draft.palette = {}
         draft.palette.mode = colorScheme
       }),
-      languageMap[i18n.language]
+      locale
     )
-  }, [colorScheme, options, i18n.language])
+  }, [colorScheme, options, i18n.language, useSakura])
 
   const themeContextValue = useMemo(
     () => ({

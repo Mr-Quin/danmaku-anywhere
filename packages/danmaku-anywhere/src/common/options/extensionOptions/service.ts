@@ -261,6 +261,12 @@ export class ExtensionOptionsService implements IStoreService {
             draft.showFloatingButton = true
           }),
       })
+      .version(25, {
+        upgrade: (data) =>
+          produce<ExtensionOptions>(data, (draft) => {
+            draft.experimental = { sakuraTheme: false }
+          }),
+      })
   }
 
   async get() {

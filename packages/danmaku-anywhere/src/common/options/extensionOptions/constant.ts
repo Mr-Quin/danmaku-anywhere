@@ -45,4 +45,7 @@ export const defaultExtensionOptions: ExtensionOptions = {
   id: undefined,
   restrictInitiatorDomain: true,
   showFloatingButton: true,
+  experimental: {
+    sakuraTheme: false,
+  },
 }

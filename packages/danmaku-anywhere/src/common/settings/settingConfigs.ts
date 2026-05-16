@@ -110,6 +110,23 @@ const advancedSettings: SettingConfig<ExtensionOptions>[] = [
     getValue: (options) => options.showFloatingButton,
     createUpdate: (_, newValue) => ({ showFloatingButton: newValue }),
   },
+  {
+    id: 'toggle.experimental.sakuraTheme',
+    label: () =>
+      i18n.t(
+        'optionsPage.experimental.sakuraTheme',
+        'Use experimental Sakura theme'
+      ),
+    category: 'advanced',
+    type: 'toggle',
+    getValue: (options) => options.experimental.sakuraTheme,
+    createUpdate: (options, newValue) => ({
+      experimental: {
+        ...options.experimental,
+        sakuraTheme: newValue,
+      },
+    }),
+  },
 ]
 
 const playerSettings: SettingConfig<ExtensionOptions>[] = [
