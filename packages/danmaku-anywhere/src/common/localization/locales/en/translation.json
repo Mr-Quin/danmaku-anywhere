@@ -232,12 +232,7 @@
     }
   },
   "danmakuPage": {
-    "animeList": "Anime List",
-    "backupAll": "Export All as Backup",
-    "confirmDeleteMessage": "Are you sure to delete the selected Danmaku?",
-    "exportAllXml": "Export All as XML",
-    "noAnime": "No anime available",
-    "noResult": "No anime found with title '{{filter}}'"
+    "confirmDeleteMessage": "Are you sure to delete the selected Danmaku?"
   },
   "danmakuSource": {
     "tooltip": {

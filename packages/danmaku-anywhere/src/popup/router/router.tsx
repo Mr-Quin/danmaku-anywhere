@@ -11,9 +11,6 @@ import { TitleMappingPage } from '@/popup/pages/titleMapping/TitleMappingPage'
 import { AiProvidersPage } from '../pages/ai/AiProvidersPage'
 import { ConfigPage } from '../pages/config/pages/ConfigPage'
 import { MountConfigEditor } from '../pages/config/pages/MountConfigEditor'
-import { CommentPage } from '../pages/danmaku/pages/comments/CommentPage'
-import { EpisodePage } from '../pages/danmaku/pages/episode/EpisodePage'
-import { SeasonPage } from '../pages/danmaku/pages/season/SeasonPage'
 import { Home } from '../pages/home/Home'
 import { IntegrationPolicy } from '../pages/integrationPolicy/pages/IntegrationPolicy'
 import { IntegrationPolicyEditor } from '../pages/integrationPolicy/pages/IntegrationPolicyEditor'
@@ -92,25 +89,6 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
       {
         path: 'title-mapping',
         Component: TitleMappingPage,
-      },
-      {
-        path: 'danmaku',
-        children: [
-          {
-            index: true,
-            Component: SeasonPage,
-          },
-          {
-            path: ':seasonId',
-            children: [
-              { index: true, Component: EpisodePage },
-              {
-                path: ':episodeId',
-                Component: CommentPage,
-              },
-            ],
-          },
-        ],
       },
     ],
   },

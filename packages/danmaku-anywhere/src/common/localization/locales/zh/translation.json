@@ -227,12 +227,7 @@
     }
   },
   "danmakuPage": {
-    "animeList": "剧集列表",
-    "backupAll": "全部导出为备份",
-    "confirmDeleteMessage": "确定要删除选中的弹幕吗？",
-    "exportAllXml": "全部导出为XML",
-    "noAnime": "没有可用的番剧",
-    "noResult": "没有找到标题为 '{{filter}}' 的番剧"
+    "confirmDeleteMessage": "确定要删除选中的弹幕吗？"
   },
   "danmakuSource": {
     "tooltip": {
