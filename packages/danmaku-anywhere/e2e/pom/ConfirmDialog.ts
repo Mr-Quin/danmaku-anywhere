@@ -61,12 +61,12 @@ export class ConfirmDialog {
 
   async confirm(options: ExpectOptions = {}): Promise<void> {
     await this.expectVisible(options)
-    await this.confirmButton.click()
+    await this.confirmButton.click({ timeout: options.timeout })
   }
 
   async cancel(options: ExpectOptions = {}): Promise<void> {
     const { timeout = 5_000 } = options
     await expect(this.cancelButton).toBeVisible({ timeout })
-    await this.cancelButton.click()
+    await this.cancelButton.click({ timeout })
   }
 }
