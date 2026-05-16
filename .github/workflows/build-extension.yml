@@ -54,6 +54,14 @@ jobs:
           pnpm build:firefox
           pnpm package:firefox
 
+      - name: Assert dev API is stripped from prod bundle (DCE guard)
+        working-directory: packages/danmaku-anywhere
+        run: |
+          if grep -rE "DevApiError|Unknown dev API|Read/write provider configs|Service worker lifecycle and metadata" build/ ; then
+            echo "::error::Dev API implementation leaked into prod build (DCE guard failed)"
+            exit 1
+          fi
+
       - name: Resolve Chrome ZIP path for CRX
         id: crx_paths
         continue-on-error: true
