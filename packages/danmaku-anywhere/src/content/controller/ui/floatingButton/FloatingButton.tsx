@@ -37,9 +37,8 @@ const StyledFab = styled(Fab, {
 })
 
 const useInitialAnchor = () => {
-  // bottom 12, left 3
-  const left = 24
-  const bottom = window.innerHeight - 96
+  const left = 32
+  const bottom = window.innerHeight - 128
 
   return useRef(createVirtualElement(left, bottom))
 }
