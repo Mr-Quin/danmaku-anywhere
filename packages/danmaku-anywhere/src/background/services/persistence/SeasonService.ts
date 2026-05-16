@@ -96,10 +96,17 @@ export class SeasonService {
       async () => {
         const allSeasons = await this.db.season.toArray()
 
+        // Index-only cursor: walks the seasonId index without reading the
+        // episode rows, so the heavy comments field (can be 30k+ entries
+        // per row) is never deserialized.
+        const counts = new Map<number, number>()
+        await this.db.episode.orderBy('seasonId').eachKey((key) => {
+          const seasonId = key as number
+          counts.set(seasonId, (counts.get(seasonId) ?? 0) + 1)
+        })
+
         for (const season of allSeasons) {
-          const episodeCount = await this.db.episode
-            .where({ seasonId: season.id })
-            .count()
+          const episodeCount = counts.get(season.id) ?? 0
           if (episodeCount > 0 || options.includeEmpty) {
             seasons.push({
               ...season,

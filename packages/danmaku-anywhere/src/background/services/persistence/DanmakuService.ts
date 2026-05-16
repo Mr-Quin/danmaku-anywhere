@@ -9,6 +9,7 @@ import {
   type EpisodeInsert,
   type EpisodeLite,
   parseBackupMany,
+  type Season,
   type WithSeason,
   zCombinedDanmaku,
 } from '@danmaku-anywhere/danmaku-converter'
@@ -205,18 +206,30 @@ export class DanmakuService {
     return toUpdate
   }
 
-  /**
-   * This is an arrow function so that the "this" keyword is bound to the class instance
-   */
-  private joinSeason = async <T extends EpisodeLite>(
-    episode: T
-  ): Promise<WithSeason<T>> => {
-    const season = await this.seasonService.mustGetById(episode.seasonId)
+  // Filtering by seasonId — the common path — returns N episodes that
+  // share one season, so a per-episode lookup reads the same row N times.
+  private async joinSeasons<T extends EpisodeLite>(
+    episodes: T[]
+  ): Promise<WithSeason<T>[]> {
+    if (episodes.length === 0) {
+      return []
+    }
 
-    return {
+    const uniqueIds = [...new Set(episodes.map((e) => e.seasonId))]
+    const seasonRows = await this.db.season.bulkGet(uniqueIds)
+    const seasonById = new Map<number, Season>()
+    for (let i = 0; i < uniqueIds.length; i++) {
+      const season = seasonRows[i]
+      if (!season) {
+        throw new Error(`No season found for id ${uniqueIds[i]}`)
+      }
+      seasonById.set(uniqueIds[i], season)
+    }
+
+    return episodes.map((episode) => ({
       ...episode,
-      season,
-    } as WithSeason<T>
+      season: seasonById.get(episode.seasonId),
+    })) as WithSeason<T>[]
   }
 
   async filterLite(
@@ -233,24 +246,18 @@ export class DanmakuService {
   async filter(filter: EpisodeQueryFilter): Promise<WithSeason<Episode>[]> {
     if (filter.all) {
       const res = await this.db.episode.toArray()
-      return Promise.all(res.map(this.joinSeason))
+      return this.joinSeasons(res)
     }
 
     if (filter.ids) {
-      const getMany = async (ids: number[]): Promise<WithSeason<Episode>[]> => {
-        const res = await this.db.episode.bulkGet(ids)
-        const filtered = res.filter((r) => r !== undefined)
-        return Promise.all(filtered.map(this.joinSeason))
-      }
-      return getMany(filter.ids)
+      const res = await this.db.episode.bulkGet(filter.ids)
+      return this.joinSeasons(res.filter((r) => r !== undefined))
     }
 
     const res = await this.db.episode.where(filter).toArray()
 
-    return Promise.all(
-      res
-        .toSorted((a, b) => a.indexedId.localeCompare(b.indexedId))
-        .map(this.joinSeason)
+    return this.joinSeasons(
+      res.toSorted((a, b) => a.indexedId.localeCompare(b.indexedId))
     )
   }
 
