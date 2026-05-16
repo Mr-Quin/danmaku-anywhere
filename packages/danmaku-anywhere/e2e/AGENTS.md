@@ -90,3 +90,6 @@ One-line justification per entry. Treat opt-outs as tech debt — leaving them u
 POMs live under `e2e/pom/`. The composed root is `Popup` (`e2e/pom/Popup.ts`); page-area POMs hang off it (`popup.mount`, `popup.search`, `popup.seasonDetails`, `popup.toast`, `popup.dialog`). `IntegrationPage` is standalone — it doesn't open via `chrome-extension://`.
 
 Add methods to a POM rather than reaching into selectors from a spec. If a spec needs a one-off selector that isn't worth a POM method, add a one-line comment explaining why a method wasn't added.
+
+### Locale-stable matchers
+Toast text and dialog title/body are i18n-translated. Prefer `popup.toast.expectSuccess` / `expectError` (which scope by `data-severity`) over raw text matching. When asserting message text, use a regex that matches both locales — see `SeasonDetailsPage.expectCommentCount` (matches `条弹幕` and `comments`).

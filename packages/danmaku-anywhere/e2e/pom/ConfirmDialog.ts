@@ -11,9 +11,9 @@ interface ExpectOptions {
   timeout?: number
 }
 
-// POM for the global confirm Dialog (dialogStore-driven). Anchors on the
-// confirm button — present whenever the dialog has a confirm action,
-// which covers every spec call site.
+// POM for the global confirm Dialog (dialogStore-driven). expectVisible
+// anchors on the confirm button — true for confirm-style dialogs only.
+// Info dialogs without a confirm action need their own POM.
 export class ConfirmDialog {
   constructor(private readonly page: Page) {}
 
