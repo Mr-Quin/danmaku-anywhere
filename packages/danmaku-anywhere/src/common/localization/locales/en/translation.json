@@ -267,11 +267,26 @@
     "importError_one": "Failed to import {{count}} file",
     "importError_other": "Failed to import {{count}} files",
     "importFolder": "Import Danmaku Folder",
+    "importFromUrl": "Import from URL",
     "importSuccess_one": "Successfully imported {{count}} file",
     "importSuccess_other": "Successfully imported {{count}} files",
     "parseError": "Failed to parse file",
     "skipped_one": "Skpped {{count}} file",
     "skipped_other": "Skpped {{count}} files",
+    "urlDialog": {
+      "errors": {
+        "fetch_failed": "Failed to fetch the URL.",
+        "http_error": "Server returned {{status}}.",
+        "invalid_scheme": "Only http and https URLs are supported.",
+        "invalid_url": "Not a valid URL.",
+        "size_limit_exceeded": "File is larger than the {{limit}} limit.",
+        "unsupported_extension": "URL must point to a .json, .xml, .bin, or .zip file."
+      },
+      "submit": "Fetch & Import",
+      "title": "Import from URL",
+      "urlHelper": "Direct link to a .json, .xml, .bin, or .zip file",
+      "urlLabel": "URL"
+    },
     "willImport_one": "Will import {{count}} file",
     "willImport_other": "Will import {{count}} files"
   },
