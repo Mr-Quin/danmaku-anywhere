@@ -53,6 +53,13 @@ export class MountPage {
     await expect(menuItem).toBeHidden({ timeout: 5_000 })
   }
 
+  async openToolbarMenu(actionId: string): Promise<void> {
+    await this.page.locator(SELECTORS.drilldownButton).click()
+    const menuItem = this.page.locator(SELECTORS.menuItem(actionId))
+    await menuItem.click()
+    await expect(menuItem).toBeHidden({ timeout: 5_000 })
+  }
+
   async expandSeason(seasonId: number): Promise<void> {
     const item = this.seasonItem(seasonId)
     if ((await item.getAttribute('aria-expanded')) === 'true') {

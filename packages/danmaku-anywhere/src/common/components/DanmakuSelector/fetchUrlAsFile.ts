@@ -1,10 +1,10 @@
 export type ImportFromUrlErrorCode =
-  | 'invalid_url'
-  | 'invalid_scheme'
-  | 'unsupported_extension'
-  | 'fetch_failed'
-  | 'http_error'
-  | 'size_limit_exceeded'
+  | 'invalidUrl'
+  | 'invalidScheme'
+  | 'unsupportedExtension'
+  | 'fetchFailed'
+  | 'httpError'
+  | 'sizeLimitExceeded'
   | 'aborted'
 
 export class ImportFromUrlError extends Error {
@@ -33,7 +33,7 @@ export type ValidateImportUrlResult =
       ok: false
       reason: Extract<
         ImportFromUrlErrorCode,
-        'invalid_url' | 'invalid_scheme' | 'unsupported_extension'
+        'invalidUrl' | 'invalidScheme' | 'unsupportedExtension'
       >
     }
 
@@ -42,18 +42,18 @@ export function validateImportUrl(rawUrl: string): ValidateImportUrlResult {
   try {
     parsed = new URL(rawUrl)
   } catch {
-    return { ok: false, reason: 'invalid_url' }
+    return { ok: false, reason: 'invalidUrl' }
   }
 
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    return { ok: false, reason: 'invalid_scheme' }
+    return { ok: false, reason: 'invalidScheme' }
   }
 
   let decodedPath: string
   try {
     decodedPath = decodeURIComponent(parsed.pathname)
   } catch {
-    return { ok: false, reason: 'invalid_url' }
+    return { ok: false, reason: 'invalidUrl' }
   }
 
   const lastSlash = decodedPath.lastIndexOf('/')
@@ -61,7 +61,7 @@ export function validateImportUrl(rawUrl: string): ValidateImportUrlResult {
     lastSlash === -1 ? decodedPath : decodedPath.slice(lastSlash + 1)
 
   if (basename === '' || basename === '.') {
-    return { ok: false, reason: 'unsupported_extension' }
+    return { ok: false, reason: 'unsupportedExtension' }
   }
 
   const lowerBasename = basename.toLowerCase()
@@ -69,7 +69,7 @@ export function validateImportUrl(rawUrl: string): ValidateImportUrlResult {
     lowerBasename.endsWith(ext)
   )
   if (!extension) {
-    return { ok: false, reason: 'unsupported_extension' }
+    return { ok: false, reason: 'unsupportedExtension' }
   }
 
   return { ok: true, filename: basename, extension }
@@ -120,11 +120,11 @@ export async function fetchUrlAsFile(
     ) {
       throw new ImportFromUrlError('aborted')
     }
-    throw new ImportFromUrlError('fetch_failed')
+    throw new ImportFromUrlError('fetchFailed')
   }
 
   if (!response.ok) {
-    throw new ImportFromUrlError('http_error', { status: response.status })
+    throw new ImportFromUrlError('httpError', { status: response.status })
   }
 
   const buffer = await readBodyWithCap(response, maxBytes, signal)
@@ -142,7 +142,7 @@ async function readBodyWithCap(
   if (!response.body) {
     const buffer = await response.arrayBuffer()
     if (buffer.byteLength > maxBytes) {
-      throw new ImportFromUrlError('size_limit_exceeded', {
+      throw new ImportFromUrlError('sizeLimitExceeded', {
         limit: formatBytes(maxBytes),
       })
     }
@@ -163,7 +163,7 @@ async function readBodyWithCap(
         total += value.byteLength
         if (total > maxBytes) {
           await reader.cancel()
-          throw new ImportFromUrlError('size_limit_exceeded', {
+          throw new ImportFromUrlError('sizeLimitExceeded', {
             limit: formatBytes(maxBytes),
           })
         }
@@ -180,7 +180,7 @@ async function readBodyWithCap(
     ) {
       throw new ImportFromUrlError('aborted')
     }
-    throw new ImportFromUrlError('fetch_failed')
+    throw new ImportFromUrlError('fetchFailed')
   }
 
   const merged = new ArrayBuffer(total)

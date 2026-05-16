@@ -267,12 +267,12 @@
     "skipped_other": "跳过{{count}}个文件",
     "urlDialog": {
       "errors": {
-        "fetch_failed": "请求 URL 失败",
-        "http_error": "服务器返回 {{status}}",
-        "invalid_scheme": "仅支持 http 和 https URL",
-        "invalid_url": "URL 格式不正确",
-        "size_limit_exceeded": "文件大小超过 {{limit}} 限制",
-        "unsupported_extension": "URL 必须指向 .json、.xml、.bin 或 .zip 文件"
+        "fetchFailed": "请求 URL 失败",
+        "httpError": "服务器返回 {{status}}",
+        "invalidScheme": "仅支持 http 和 https URL",
+        "invalidUrl": "URL 格式不正确",
+        "sizeLimitExceeded": "文件大小超过 {{limit}} 限制",
+        "unsupportedExtension": "URL 必须指向 .json、.xml、.bin 或 .zip 文件"
       },
       "submit": "下载并导入",
       "title": "从 URL 导入",

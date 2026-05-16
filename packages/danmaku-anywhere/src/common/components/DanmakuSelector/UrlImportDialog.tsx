@@ -10,6 +10,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialogStore } from '@/common/components/Dialog/dialogStore'
+import { i18n } from '@/common/localization/i18n'
 import {
   ImportFromUrlError,
   type ImportFromUrlErrorCode,
@@ -29,20 +30,39 @@ type DisplayedError = {
   params: Record<string, string | number>
 }
 
-// Static key declarations for i18next-cli (it doesn't trace t(map[var])):
-// t('importPage.urlDialog.errors.invalid_url', 'Not a valid URL.')
-// t('importPage.urlDialog.errors.invalid_scheme', 'Only http and https URLs are supported.')
-// t('importPage.urlDialog.errors.unsupported_extension', 'URL must point to a .json, .xml, .bin, or .zip file.')
-// t('importPage.urlDialog.errors.fetch_failed', 'Failed to fetch the URL.')
-// t('importPage.urlDialog.errors.http_error', 'Server returned {{status}}.')
-// t('importPage.urlDialog.errors.size_limit_exceeded', 'File is larger than the {{limit}} limit.')
-const ERROR_MESSAGE_KEY: Record<DisplayedErrorCode, string> = {
-  invalid_url: 'importPage.urlDialog.errors.invalid_url',
-  invalid_scheme: 'importPage.urlDialog.errors.invalid_scheme',
-  unsupported_extension: 'importPage.urlDialog.errors.unsupported_extension',
-  fetch_failed: 'importPage.urlDialog.errors.fetch_failed',
-  http_error: 'importPage.urlDialog.errors.http_error',
-  size_limit_exceeded: 'importPage.urlDialog.errors.size_limit_exceeded',
+const ERROR_MESSAGE: Record<
+  DisplayedErrorCode,
+  (params: Record<string, string | number>) => string
+> = {
+  invalidUrl: () =>
+    i18n.t('importPage.urlDialog.errors.invalidUrl', 'Not a valid URL.'),
+  invalidScheme: () =>
+    i18n.t(
+      'importPage.urlDialog.errors.invalidScheme',
+      'Only http and https URLs are supported.'
+    ),
+  unsupportedExtension: () =>
+    i18n.t(
+      'importPage.urlDialog.errors.unsupportedExtension',
+      'URL must point to a .json, .xml, .bin, or .zip file.'
+    ),
+  fetchFailed: () =>
+    i18n.t(
+      'importPage.urlDialog.errors.fetchFailed',
+      'Failed to fetch the URL.'
+    ),
+  httpError: (params) =>
+    i18n.t(
+      'importPage.urlDialog.errors.httpError',
+      'Server returned {{status}}.',
+      params
+    ),
+  sizeLimitExceeded: (params) =>
+    i18n.t(
+      'importPage.urlDialog.errors.sizeLimitExceeded',
+      'File is larger than the {{limit}} limit.',
+      params
+    ),
 }
 
 export function UrlImportDialog({
@@ -70,7 +90,7 @@ export function UrlImportDialog({
         }
         return
       }
-      setError({ code: 'fetch_failed', params: {} })
+      setError({ code: 'fetchFailed', params: {} })
     },
   })
 
@@ -109,7 +129,7 @@ export function UrlImportDialog({
       onClose={handleClose}
       container={dialogContainer}
     >
-      <DialogTitle>
+      <DialogTitle data-testid="url-import-dialog">
         {t('importPage.urlDialog.title', 'Import from URL')}
       </DialogTitle>
       <DialogContent>
@@ -135,13 +155,14 @@ export function UrlImportDialog({
           error={error !== null}
           helperText={
             error
-              ? t(ERROR_MESSAGE_KEY[error.code], error.params)
+              ? ERROR_MESSAGE[error.code](error.params)
               : t(
                   'importPage.urlDialog.urlHelper',
                   'Direct link to a .json, .xml, .bin, or .zip file'
                 )
           }
           disabled={mutation.isPending}
+          slotProps={{ htmlInput: { 'data-testid': 'url-import-input' } }}
         />
       </DialogContent>
       <DialogActions>
@@ -154,6 +175,7 @@ export function UrlImportDialog({
           color="primary"
           disabled={!canSubmit}
           loading={mutation.isPending}
+          data-testid="url-import-submit"
         >
           {t('importPage.urlDialog.submit', 'Fetch & Import')}
         </Button>
