@@ -54,6 +54,16 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Skip `pnpm build:packages` (~30-45s) when no workspace package
+      # source changed. tsgo's tsbuildinfo lives inside dist/.
+      - name: Cache built workspace packages
+        uses: actions/cache@v4
+        with:
+          path: packages/*/dist
+          key: built-packages-${{ runner.os }}-${{ hashFiles('packages/*/src/**', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'tsconfig.base.json', 'tsconfig.json', 'pnpm-lock.yaml') }}
+          restore-keys: |
+            built-packages-${{ runner.os }}-
+
       - name: Build packages
         run: pnpm build:packages
 
@@ -120,16 +130,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Cache built workspace packages
+        uses: actions/cache@v4
+        with:
+          path: packages/*/dist
+          key: built-packages-${{ runner.os }}-${{ hashFiles('packages/*/src/**', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'tsconfig.base.json', 'tsconfig.json', 'pnpm-lock.yaml') }}
+          restore-keys: |
+            built-packages-${{ runner.os }}-
 
       - name: Build packages
         run: pnpm build:packages
