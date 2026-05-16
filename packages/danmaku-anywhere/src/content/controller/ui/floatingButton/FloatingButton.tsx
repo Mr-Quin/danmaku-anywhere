@@ -37,9 +37,6 @@ const StyledFab = styled(Fab, {
 })
 
 const useInitialAnchor = () => {
-  // Keep some margin from the viewport edges: on sites whose body height is
-  // close to the viewport, an edge-hugging FAB can push the document past the
-  // viewport, triggering a scrollbar add/remove loop and page shake.
   const left = 32
   const bottom = window.innerHeight - 128
 
