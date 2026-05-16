@@ -63,7 +63,7 @@ Well-named identifiers are the WHAT. Comment only the WHY, and only when WHY is 
 
 These are enforced by `e2e/setup/fixtures.ts` and apply to every spec by default.
 
-### Network strict-mode (DA-503)
+### Network strict-mode
 Any HTTP request that isn't mocked by a per-spec route or covered by the project allow-list **fails the test**. Project allow-list covers `chrome-extension:`, `data:`, `blob:`, `about:`, and `*.invalid` hostnames.
 
 To opt extra origins in:
@@ -74,7 +74,7 @@ test.use({ allowedNetworkOrigins: ['accounts.google.com'] }) // OAuth redirect â
 
 One-line justification per entry. Prefer a per-spec mock over widening the allow-list.
 
-### Console-error default-fail (DA-502)
+### Console-error default-fail
 Any `console.error` during the test body fails it. Patterns match by `includes` (string) or `.test` (RegExp) against the formatted line â€” the entry includes a `[sw]` / `[page <url>]` prefix and a trailing `(<url>:<line>:<col>)`, so patterns can target any of those parts.
 
 To opt out:

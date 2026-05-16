@@ -29,7 +29,7 @@ export class Toast {
     options: ExpectOptions = {}
   ): Promise<void> {
     const { timeout = 5_000 } = options
-    await expect(this.all().filter({ hasText: matcher }).first()).toBeVisible({
+    await expect(this.all().filter({ hasText: matcher })).toBeVisible({
       timeout,
     })
   }
@@ -40,7 +40,7 @@ export class Toast {
   ): Promise<void> {
     const { timeout = 5_000 } = options
     await expect(
-      this.bySeverity('success').filter({ hasText: matcher }).first()
+      this.bySeverity('success').filter({ hasText: matcher })
     ).toBeVisible({ timeout })
   }
 
@@ -50,7 +50,7 @@ export class Toast {
   ): Promise<void> {
     const { timeout = 5_000 } = options
     await expect(
-      this.bySeverity('error').filter({ hasText: matcher }).first()
+      this.bySeverity('error').filter({ hasText: matcher })
     ).toBeVisible({ timeout })
   }
 }
