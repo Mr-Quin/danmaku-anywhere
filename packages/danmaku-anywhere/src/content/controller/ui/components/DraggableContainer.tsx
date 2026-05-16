@@ -145,7 +145,6 @@ export const DraggableContainer = ({
       anchorEl={anchorEl}
       popperRef={setPopperInst}
       placement="top-start"
-      popperOptions={{ strategy: 'fixed' }}
       sx={{
         zIndex: 1402,
         userSelect: isDragging ? 'none' : 'auto',
