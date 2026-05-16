@@ -152,16 +152,18 @@ const sakuraComponents: ThemeOptions['components'] = {
             color: theme.palette.text.primary,
           }
         }
-        const pal =
-          theme.palette[
-            c as
-              | 'primary'
-              | 'secondary'
-              | 'error'
-              | 'warning'
-              | 'info'
-              | 'success'
-          ]
+        const pal = theme.palette[
+          c as
+            | 'primary'
+            | 'secondary'
+            | 'error'
+            | 'warning'
+            | 'info'
+            | 'success'
+        ] as { main: string } | undefined
+        if (!pal?.main) {
+          return {}
+        }
         return { backgroundColor: alpha(pal.main, 0.18), color: pal.main }
       },
       outlined: ({ theme }) => ({
@@ -315,8 +317,8 @@ export function createSakuraTheme(
       shape: { borderRadius: 8 },
       typography: sakuraTypography,
       components: sakuraComponents,
-      ...extra,
     },
+    extra ?? {},
     ...args
   )
 }
