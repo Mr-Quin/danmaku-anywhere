@@ -32,8 +32,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      # Skip `pnpm build:packages` (~30-45s) when no workspace package
-      # source changed. tsgo's tsbuildinfo lives inside dist/.
       - name: Cache built workspace packages
         uses: actions/cache@v4
         with:
