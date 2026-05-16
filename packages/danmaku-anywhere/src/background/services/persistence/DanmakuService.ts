@@ -206,9 +206,8 @@ export class DanmakuService {
     return toUpdate
   }
 
-  // One bulkGet on the unique seasonIds replaces N per-episode mustGetById
-  // reads. Throws on any missing row to preserve the mustGetById semantics
-  // this used to call inside the per-episode map.
+  // Filtering by seasonId — the common path — returns N episodes that
+  // share one season, so a per-episode lookup reads the same row N times.
   private async joinSeasons<T extends EpisodeLite>(
     episodes: T[]
   ): Promise<WithSeason<T>[]> {
