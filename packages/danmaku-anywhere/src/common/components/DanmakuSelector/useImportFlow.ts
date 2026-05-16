@@ -1,5 +1,6 @@
 import JSZip from 'jszip'
 import { useRef, useState } from 'react'
+import { fetchUrlAsFile } from '@/common/components/DanmakuSelector/fetchUrlAsFile'
 import { useFileDragDrop } from '@/common/components/DanmakuSelector/useFileDragDrop'
 import {
   useDanmakuImport,
@@ -47,6 +48,7 @@ export const useImportFlow = () => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const folderInputRef = useRef<HTMLInputElement>(null)
   const [showResultDialog, setShowResultDialog] = useState(false)
+  const [urlDialogOpen, setUrlDialogOpen] = useState(false)
 
   const { handleImportClick, mutate, data, isPending, isError, error, reset } =
     useDanmakuImport()
@@ -55,7 +57,7 @@ export const useImportFlow = () => {
     const processedFiles: File[] = []
 
     for (const file of files) {
-      if (file.name.endsWith('.zip')) {
+      if (file.name.toLowerCase().endsWith('.zip')) {
         processedFiles.push(...(await extractZipFile(file)))
       } else if (file.webkitRelativePath !== '') {
         // convert the relative path to the file's name
@@ -81,6 +83,22 @@ export const useImportFlow = () => {
     folderInputRef.current?.click()
   }
 
+  const openUrlInput = () => {
+    setUrlDialogOpen(true)
+  }
+
+  const closeUrlInput = () => {
+    setUrlDialogOpen(false)
+  }
+
+  const importFromUrl = async (url: string, signal: AbortSignal) => {
+    const file = await fetchUrlAsFile(url, { signal })
+    // Await handleFiles before closing so a corrupt-zip extraction throw
+    // surfaces in the URL dialog instead of closing it silently.
+    await handleFiles([file])
+    setUrlDialogOpen(false)
+  }
+
   const closeDialog = () => {
     setShowResultDialog(false)
     reset()
@@ -91,6 +109,7 @@ export const useImportFlow = () => {
   return {
     // State
     showResultDialog,
+    urlDialogOpen,
     isDragging,
     dragProps,
     fileInputRef,
@@ -100,6 +119,9 @@ export const useImportFlow = () => {
     // Actions
     openFileInput,
     openFolderInput,
+    openUrlInput,
+    closeUrlInput,
+    importFromUrl,
     handleFiles,
     closeDialog,
     confirmImport: handleImportClick,

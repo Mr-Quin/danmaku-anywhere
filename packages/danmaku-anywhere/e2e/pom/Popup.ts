@@ -1,9 +1,11 @@
 import type { Page } from '@playwright/test'
 import { ConfirmDialog } from './ConfirmDialog'
+import { ImportResultDialog } from './ImportResultDialog'
 import { MountPage } from './MountPage'
 import { SearchPage } from './SearchPage'
 import { SeasonDetailsPage } from './SeasonDetailsPage'
 import { Toast } from './Toast'
+import { UrlImportDialog } from './UrlImportDialog'
 
 export class Popup {
   readonly mount: MountPage
@@ -11,6 +13,8 @@ export class Popup {
   readonly seasonDetails: SeasonDetailsPage
   readonly toast: Toast
   readonly dialog: ConfirmDialog
+  readonly urlImport: UrlImportDialog
+  readonly importResult: ImportResultDialog
 
   private constructor(page: Page) {
     this.mount = new MountPage(page)
@@ -18,6 +22,8 @@ export class Popup {
     this.seasonDetails = new SeasonDetailsPage(page)
     this.toast = new Toast(page)
     this.dialog = new ConfirmDialog(page)
+    this.urlImport = new UrlImportDialog(page)
+    this.importResult = new ImportResultDialog(page)
   }
 
   static async open(

@@ -2,7 +2,7 @@ import type {
   DanmakuSourceType,
   GenericEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
-import { UploadFile } from '@mui/icons-material'
+import { CloudDownload, UploadFile } from '@mui/icons-material'
 import type { ReactElement } from 'react'
 import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -15,6 +15,7 @@ import {
   DanmakuTree,
   type DanmakuTreeApi,
 } from '@/common/components/DanmakuSelector/tree/DanmakuTree'
+import { UrlImportDialog } from '@/common/components/DanmakuSelector/UrlImportDialog'
 import { useDanmakuTreeActions } from '@/common/components/DanmakuSelector/useDanmakuTreeActions'
 import { useImportFlow } from '@/common/components/DanmakuSelector/useImportFlow'
 import { ImportResultDialog } from '@/common/components/ImportPageCore/ImportResultDialog'
@@ -93,6 +94,13 @@ export const MountPageContent = ({
         label: t('importPage.importFolder', 'Import Danmaku Folder'),
         icon: <UploadFile />,
         onClick: importFlow.openFolderInput,
+      },
+      {
+        kind: 'item',
+        id: 'importUrl',
+        label: t('importPage.importFromUrl', 'Import from URL'),
+        icon: <CloudDownload />,
+        onClick: importFlow.openUrlInput,
       },
     ],
     [importFlow, t]
@@ -191,6 +199,12 @@ export const MountPageContent = ({
           onDelete={treeActions.handleDelete}
         />
       </CaptureKeypress>
+
+      <UrlImportDialog
+        open={importFlow.urlDialogOpen}
+        onClose={importFlow.closeUrlInput}
+        onSubmit={importFlow.importFromUrl}
+      />
 
       <ImportResultDialog
         open={importFlow.showResultDialog}

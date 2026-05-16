@@ -126,6 +126,7 @@ export const ImportResultDialog = <T,>({
               color="primary"
               disabled={disableImport || status === 'uploading'}
               loading={status === 'uploading'}
+              data-testid="import-result-confirm"
             >
               {t('importPage.confirm', 'Confirm Import')}
             </Button>

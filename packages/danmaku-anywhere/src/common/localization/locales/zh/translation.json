@@ -256,9 +256,24 @@
     "importDesc": "导入本地弹幕时文件名将用为弹幕名称。支持 .json、.xml 和 .bin（B站 protobuf）文件",
     "importError_other": "{{count}}个文件导入失败",
     "importFolder": "导入文件夹",
+    "importFromUrl": "从 URL 导入",
     "importSuccess_other": "成功导入{{count}}个文件",
     "parseError": "文件解析失败",
     "skipped_other": "跳过{{count}}个文件",
+    "urlDialog": {
+      "errors": {
+        "fetchFailed": "请求 URL 失败",
+        "httpError": "服务器返回 {{status}}",
+        "invalidScheme": "仅支持 http 和 https URL",
+        "invalidUrl": "URL 格式不正确",
+        "sizeLimitExceeded": "文件大小超过 {{limit}} 限制",
+        "unsupportedExtension": "URL 必须指向 .json、.xml、.bin 或 .zip 文件"
+      },
+      "submit": "下载并导入",
+      "title": "从 URL 导入",
+      "urlHelper": "指向 .json、.xml、.bin 或 .zip 文件的直链",
+      "urlLabel": "URL"
+    },
     "willImport_other": "将导入{{count}}个文件"
   },
   "integration": {
