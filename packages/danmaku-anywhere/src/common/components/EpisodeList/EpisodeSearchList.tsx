@@ -1,5 +1,6 @@
 import type {
   CustomSeason,
+  EpisodeLite,
   EpisodeMeta,
   Season,
   WithSeason,
@@ -7,14 +8,13 @@ import type {
 import type { MacCmsParsedPlayUrl } from '@danmaku-anywhere/danmaku-provider/maccms'
 import { List, ListItem, ListItemText, Skeleton } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
-import { Suspense } from 'react'
+import { Suspense, useMemo } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import type {
   RenderCustomEpisode,
   RenderEpisode,
 } from '@/common/components/EpisodeList/types'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
-import type { EpisodeQueryFilter } from '@/common/danmaku/dto'
 import { useSearchEpisode } from '@/common/danmaku/queries/useSearchEpisode'
 import { isNotCustom } from '@/common/danmaku/utils'
 import { episodeQueryKeys } from '@/common/queries/queryKeys'
@@ -56,31 +56,17 @@ const FallbackEpisodeList = () => {
 
 interface EpisodeRowProps {
   episode: WithSeason<EpisodeMeta>
-  seasonId: number
+  danmaku: WithSeason<EpisodeLite> | null
+  isLoading: boolean
   renderEpisode: RenderEpisode
 }
 
-const EpisodeRow = ({ episode, seasonId, renderEpisode }: EpisodeRowProps) => {
-  const params = {
-    provider: episode.provider,
-    indexedId: episode.indexedId,
-    seasonId,
-  } satisfies EpisodeQueryFilter
-
-  const danmakuQuery = useQuery({
-    queryKey: episodeQueryKeys.filterLite(params),
-    queryFn: async () => {
-      const res = await chromeRpcClient.episodeFilterLite(params)
-      if (res.data.length === 0) {
-        return null
-      }
-      return res.data[0]
-    },
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    staleTime: Number.POSITIVE_INFINITY,
-  })
-
+const EpisodeRow = ({
+  episode,
+  danmaku,
+  isLoading,
+  renderEpisode,
+}: EpisodeRowProps) => {
   return (
     <ErrorBoundary
       fallback={
@@ -91,8 +77,8 @@ const EpisodeRow = ({ episode, seasonId, renderEpisode }: EpisodeRowProps) => {
     >
       {renderEpisode({
         episode,
-        danmaku: danmakuQuery.data ?? null,
-        isLoading: danmakuQuery.isLoading,
+        danmaku,
+        isLoading,
       })}
     </ErrorBoundary>
   )
@@ -104,6 +90,27 @@ const EpisodeListInner = ({
 }: NormalSeasonListItemProps) => {
   const { data: episodes } = useSearchEpisode(season.id)
 
+  const danmakuQuery = useQuery({
+    queryKey: episodeQueryKeys.filterLite({ seasonId: season.id }),
+    queryFn: async () => {
+      const res = await chromeRpcClient.episodeFilterLite({
+        seasonId: season.id,
+      })
+      return res.data
+    },
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: Number.POSITIVE_INFINITY,
+  })
+
+  const danmakuByIndexedId = useMemo(() => {
+    const map = new Map<string, WithSeason<EpisodeLite>>()
+    for (const item of danmakuQuery.data ?? []) {
+      map.set(item.indexedId, item)
+    }
+    return map
+  }, [danmakuQuery.data])
+
   return (
     <List dense disablePadding>
       {episodes.map((episode) => {
@@ -111,7 +118,8 @@ const EpisodeListInner = ({
           <EpisodeRow
             key={episode.indexedId}
             episode={episode}
-            seasonId={season.id}
+            danmaku={danmakuByIndexedId.get(episode.indexedId) ?? null}
+            isLoading={danmakuQuery.isLoading}
             renderEpisode={renderEpisode}
           />
         )
