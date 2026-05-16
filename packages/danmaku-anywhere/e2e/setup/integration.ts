@@ -6,12 +6,9 @@ import { LATEST_MOUNT_CONFIG_VERSION } from '../../src/common/options/mountConfi
 import type { DaClient } from './da-client'
 
 export interface IntegrationSeedInput {
-  // Match patterns the controller content script will be registered for.
-  // Use Chrome match-pattern syntax (e.g. https://www.example.com/play/*).
+  // Chrome match-pattern syntax (e.g. https://www.example.com/play/*).
   patterns: string[]
-  // CSS selector for the <video> element on the integration target page.
   mediaQuery?: string
-  // Human-readable name shown in the popup; doesn't affect runtime behavior.
   name?: string
   policy: Integration['policy']
 }
@@ -21,10 +18,8 @@ export interface IntegrationSeedResult {
   integrationId: string
 }
 
-// Seed a single MountConfig + matching IntegrationPolicy via raw storage
-// writes. Writes are immediate but content-script (re)registration happens
-// asynchronously when MountConfigService picks up the chrome.storage change —
-// the caller must wait via da.mount.waitForRegistration before navigating.
+// Storage writes are immediate; content-script registration is async, so
+// callers must `da.mount.waitForRegistration` before navigating.
 export async function seedXPathIntegration(
   da: DaClient,
   input: IntegrationSeedInput
@@ -63,9 +58,7 @@ export async function seedXPathIntegration(
   return { mountConfigId, integrationId }
 }
 
-// Generic integration policy keyed to data-testid hooks on the fixture
-// pages (native-video.html, iframe-host.html). Lets multiple specs reuse the
-// same selectors without restating XPath strings.
+// Generic policy keyed to data-testid hooks on the fixture pages.
 export function buildFixtureIntegrationPolicy(): Integration['policy'] {
   return {
     version: 3,

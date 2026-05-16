@@ -11,8 +11,7 @@ export interface ConsoleWatcher {
 
 export function attachConsoleWatcher(context: BrowserContext): ConsoleWatcher {
   const errors: string[] = []
-  // Dedupe so a worker/page that races between context.on(...) firing and
-  // the initial enumeration below isn't double-watched.
+  // Dedupe — the context.on listener and the initial enumeration can race.
   const watched = new WeakSet<Page | Worker>()
 
   function formatLocation(msg: ConsoleMessage): string {
@@ -50,8 +49,7 @@ export function attachConsoleWatcher(context: BrowserContext): ConsoleWatcher {
     })
   }
 
-  // Attach context-level listeners FIRST so any worker/page that registers
-  // mid-enumeration is still captured, then walk the current lists.
+  // Context listeners FIRST so a mid-enumeration register is still captured.
   context.on('serviceworker', watchWorker)
   context.on('page', watchPage)
 

@@ -104,6 +104,8 @@ export const Toast = (props: ToastProps) => {
             },
           }}
           disableWindowBlurListener
+          data-testid="snackbar"
+          data-severity={severity}
           {...props.snackbarProps}
         >
           <AlertWithIndicator

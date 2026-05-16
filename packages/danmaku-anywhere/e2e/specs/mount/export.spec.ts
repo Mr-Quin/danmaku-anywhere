@@ -10,19 +10,11 @@ import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
 /**
- * Export actions on the DanmakuTree (/mount). Two paths exercised
- * through the season context menu:
- *   - `export` (XML) — downloads a `.xml` payload starting with the
- *     `<i>` root element produced by `commentsToXml`.
- *   - `exportBackup` (JSON) — downloads a `.json` payload that round-
- *     trips through JSON.parse and carries the seeded episode's title
- *     + commentCount.
+ * Export actions on the DanmakuTree (/mount), via the season context menu:
+ *   - `export` — downloads a `.xml` payload with the `<i>` root + comments.
+ *   - `exportBackup` — downloads a `.json` payload with title + commentCount.
  *
- * Each test seeds a season + exactly one episode so the export emits a
- * single-file download (multi-episode exports zip; out of scope here).
- * Downloads are captured via Playwright's `page.waitForEvent('download')`
- * and read from `download.path()` — Playwright auto-manages the temp file
- * and cleans it up when the browser context closes.
+ * Single-episode seasons only; multi-episode exports zip (out of scope).
  */
 
 const SEASON: SeasonInsert = {
@@ -72,10 +64,8 @@ test('mount tree: season export downloads an XML payload', async ({
   const popup = await Popup.open(page, extensionId, '/mount')
   const seasonItem = await popup.mount.waitForSeason(season.id)
 
-  // waitForEvent must be armed before the click that triggers it. 20s
-  // (vs the usual 10) gives slack for slow CI runners: the export
-  // mutation fetches via RPC, serializes, then triggers a programmatic
-  // <a download> click.
+  // Arm before the click. Wider timeout — RPC + serialize + programmatic
+  // <a download> click is slow on CI.
   const downloadPromise = page.waitForEvent('download', { timeout: 20_000 })
   await popup.mount.openItemMenu(seasonItem, 'export')
   const download = await downloadPromise

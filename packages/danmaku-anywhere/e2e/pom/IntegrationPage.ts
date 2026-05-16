@@ -7,24 +7,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const SITES_ROOT = path.join(__dirname, '..', 'fixtures', 'sites')
 
 export interface OpenOptions {
-  // Additional fixture files to serve at same-origin paths (e.g. for
-  // iframe-inner.html when the host page references it via /iframe-inner.html).
-  // Keys are URL path segments under the host URL's origin, values are
-  // fixture file names under e2e/fixtures/sites/.
+  // Same-origin sub-resources to serve, keyed by path under the host URL's
+  // origin (e.g. 'iframe-inner.html'), valued by fixture filename.
   extraFixtures?: Record<string, string>
 }
 
-// Page object for synthetic pages used to exercise the integration pipeline
-// (URL match → policy → media-info → auto-mount → render). Generic — works
-// for any fixture under e2e/fixtures/sites/, including top-frame video and
-// iframe-hosted video setups.
 export class IntegrationPage {
-  // Frame containing the <video>. Defaults to the top frame; overridden by
-  // useIframeVideo() for iframe scenarios.
   private videoFrame: Frame | null = null
-  // Selector passed to useIframeVideo, kept so commentElements() can build a
-  // frameLocator off the same selector instead of re-deriving one from the
-  // frame URL (which is fragile under query-string / hash changes).
   private iframeSelector: string | null = null
 
   constructor(private readonly page: Page) {}
@@ -45,10 +34,6 @@ export class IntegrationPage {
         body: html,
       })
     })
-    // Same-origin sub-resources (e.g. iframe-inner.html). Each entry routes
-    // a same-origin path to a static fixture file. Anchor against the origin
-    // (not `url`) so a bare 'iframe-inner.html' key resolves at root, matching
-    // the host HTML's `<iframe src="/iframe-inner.html">`.
     const origin = new URL(url).origin
     for (const [pathSuffix, fixture] of Object.entries(
       options.extraFixtures ?? {}
@@ -66,9 +51,7 @@ export class IntegrationPage {
     await this.page.goto(url)
   }
 
-  // Switch the video-control methods to operate on the <video> inside the
-  // named iframe (located by selector on the host page). Subsequent
-  // setVideoTime / playVideo calls dispatch into that iframe's document.
+  // After this, video methods target the <video> inside the named iframe.
   async useIframeVideo(iframeSelector: string): Promise<void> {
     const handle = await this.page.waitForSelector(iframeSelector)
     const frame = await handle.contentFrame()
@@ -85,10 +68,7 @@ export class IntegrationPage {
     return this.videoFrame ?? this.page
   }
 
-  // Programmatically set currentTime. An empty <video> won't fire seeking /
-  // timeupdate events on its own with no media to seek through, so we
-  // synthesize them — the renderer's bindVideo plugin listens for exactly
-  // these events to advance the danmaku cursor.
+  // Synthesize seek events — an empty <video> won't fire them on its own.
   async setVideoTime(seconds: number): Promise<void> {
     await this.target.evaluate((t) => {
       const v = document.querySelector(
@@ -103,9 +83,7 @@ export class IntegrationPage {
     }, seconds)
   }
 
-  // Force the renderer into the "playing" branch. The bare <video> has no
-  // src so .play() can't drive playback; we dispatch the events the engine
-  // listens for. Idempotent.
+  // Synthesize play events — the bare <video> has no src so .play() is a no-op.
   async playVideo(): Promise<void> {
     await this.target.evaluate(() => {
       const v = document.querySelector(
@@ -131,11 +109,8 @@ export class IntegrationPage {
     })
   }
 
-  // Danmaku comment DOM nodes rendered by the engine. Scoped to the player
-  // popover root so we don't accidentally match anything from the host page.
-  // In dev builds the shadow root is open, so Playwright's CSS selectors
-  // pierce through automatically. For iframe scenarios the renderer mounts
-  // inside the iframe's document — use page.frameLocator there.
+  // Rendered danmaku nodes inside the player's (open) shadow root. For
+  // iframe scenarios the renderer mounts in the iframe's document.
   commentElements(): Locator {
     if (this.iframeSelector) {
       return this.page

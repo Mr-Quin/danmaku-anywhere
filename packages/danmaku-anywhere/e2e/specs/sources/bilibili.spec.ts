@@ -12,11 +12,9 @@ import { applyProfile } from '../../setup/profile'
 
 /**
  * Bilibili happy path in two danmakuTypePreference modes:
- *  - xml:   /x/v1/dm/list.so → text fixture parsed by danmaku-converter
- *  - proto: /x/v2/dm/web/seg.so → real protobuf segment dump exercising
- *           the bundled protobufjs decoder
- * Both share the same search (media_bangumi + media_ft) and season fetch
- * paths via runHappyPath().
+ *  - xml:   /x/v1/dm/list.so → text fixture
+ *  - proto: /x/v2/dm/web/seg.so → protobuf segment (exercises the decoder)
+ * Both share the search + season fetch paths via runHappyPath().
  */
 
 const COMMON = {
