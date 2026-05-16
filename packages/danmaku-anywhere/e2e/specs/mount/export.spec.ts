@@ -65,12 +65,15 @@ test('mount tree: season export downloads an XML payload', async ({
   const seasonItem = await popup.mount.waitForSeason(season.id)
 
   // Arm before the click. Wider timeout — RPC + serialize + programmatic
-  // <a download> click is slow on CI.
+  // <a download> click is slow on CI. Assert the toast before awaiting
+  // the download so a slow download event can't outrun the toast's
+  // autoHideDuration (~3500ms) and produce a false-negative flake.
   const downloadPromise = page.waitForEvent('download', { timeout: 20_000 })
   await popup.mount.openItemMenu(seasonItem, 'export')
-  const download = await downloadPromise
 
   await popup.toast.expectSuccess(/Export XML successful|导出XML成功/i)
+
+  const download = await downloadPromise
 
   expect(download.suggestedFilename()).toMatch(/\.xml$/i)
 
@@ -101,9 +104,10 @@ test('mount tree: season exportBackup downloads a JSON payload', async ({
 
   const downloadPromise = page.waitForEvent('download', { timeout: 20_000 })
   await popup.mount.openItemMenu(seasonItem, 'exportBackup')
-  const download = await downloadPromise
 
   await popup.toast.expectSuccess(/Export successful|导出成功/i)
+
+  const download = await downloadPromise
 
   expect(download.suggestedFilename()).toMatch(/\.json$/i)
 
