@@ -9,13 +9,10 @@ import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
 /**
- * Multi-select bulk delete from the DanmakuTree (/mount). Seeds a season
- * with three episodes, toggles multi-select via the toolbar chip, uses
- * the toolbar's "select all" checkbox to mark every visible episode,
- * then clicks the bottom-bar Delete and confirms the dialog. Asserts
- * all three episode rows are gone from the DB. The parent season has
- * no remaining episodes, so the parent tree row disappears too — this
- * doubles as coverage that bulk delete fires once for the whole batch.
+ * Multi-select bulk delete on the DanmakuTree (/mount). Toggles multi-select,
+ * selects all visible episodes, deletes via the bulk-delete action, confirms
+ * the dialog. Asserts every row + DB record is gone. With no surviving
+ * episodes the parent season row also disappears.
  */
 
 const SEASON: SeasonInsert = {
@@ -71,8 +68,7 @@ test('mount tree: multi-select bulk delete removes every selected episode', asyn
   await popup.mount.waitForSeason(season.id)
   await popup.mount.expandSeason(season.id)
 
-  // Episodes must be in the DOM before "select all" — selectAll() walks
-  // the rendered tree and picks every `kind === 'episode'` node.
+  // Episodes must be rendered before selectAll — it walks the visible tree.
   for (const ep of seeded) {
     await expect(popup.mount.episodeItem(ep.id)).toBeVisible({
       timeout: 10_000,
@@ -82,7 +78,7 @@ test('mount tree: multi-select bulk delete removes every selected episode', asyn
   await popup.mount.enterMultiSelect()
   await popup.mount.selectAll()
   await popup.mount.bulkDelete()
-  await popup.mount.confirmDialog()
+  await popup.dialog.confirm()
 
   for (const ep of seeded) {
     await expect(popup.mount.episodeItem(ep.id)).toBeHidden({

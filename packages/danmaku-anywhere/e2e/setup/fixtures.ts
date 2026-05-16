@@ -17,11 +17,9 @@ interface ContextWatchers {
   network: NetworkWatcher
 }
 
-// Watchers are attached eagerly inside the context fixture (before the SW
-// has a chance to boot) and looked up later by per-test fixtures.
-// Playwright resolves fixtures in dependency order, so a fixture that
-// depends only on `context` runs after the SW may have already emitted —
-// Playwright doesn't buffer console events for existing workers.
+// Watchers attach inside the context fixture before the SW boots; per-test
+// fixtures look them up. Attaching from a later fixture loses console events
+// from already-running workers (Playwright doesn't buffer).
 const watchersByContext = new WeakMap<BrowserContext, ContextWatchers>()
 
 export type ExpectedConsoleErrorPattern = string | RegExp
@@ -36,18 +34,8 @@ export const test = base.extend<{
   _assertNoUnexpectedConsoleErrors: void
   _assertNoUnmockedNetwork: void
 }>({
-  // Per-test opt-out: override with `test.use({ expectedConsoleErrors: [...] })`
-  // (or pass an array via `test('name', { expectedConsoleErrors: [...] })`)
-  // to allow specific errors. Entries match by `includes` (string) or `.test`
-  // (RegExp) against the formatted watcher entry — the line includes a
-  // `[sw]`/`[page <url>]` prefix and a trailing `(<url>:<line>:<col>)`
-  // location, not just the raw console message text. Patterns can target
-  // any of those parts.
+  // See e2e/AGENTS.md → Baselines for the opt-out / opt-in contract.
   expectedConsoleErrors: [[], { option: true }],
-
-  // Per-test opt-in for extra origins; matched by `includes` (string) or
-  // `.test` (RegExp). Project defaults (extension://, data:, blob:, about:,
-  // *.invalid) are always allowed. Prefer a per-spec mock over widening this.
   allowedNetworkOrigins: [[], { option: true }],
 
   context: async ({ allowedNetworkOrigins }, use) => {
@@ -88,11 +76,7 @@ export const test = base.extend<{
     await use(watchers.console.getErrors)
   },
 
-  // Auto fixture: after every test, fail if any console errors slipped
-  // through that weren't allow-listed via `expectedConsoleErrors`. Depends
-  // on `context` so teardown runs before the context closes — keeping the
-  // watcher reachable. Skipped when the test already failed so the real
-  // failure isn't drowned out.
+  // Skipped when the test already failed so a real failure isn't drowned out.
   _assertNoUnexpectedConsoleErrors: [
     async ({ context, expectedConsoleErrors }, use, testInfo) => {
       await use()

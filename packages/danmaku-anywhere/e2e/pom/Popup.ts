@@ -1,17 +1,23 @@
 import type { Page } from '@playwright/test'
+import { ConfirmDialog } from './ConfirmDialog'
 import { MountPage } from './MountPage'
 import { SearchPage } from './SearchPage'
 import { SeasonDetailsPage } from './SeasonDetailsPage'
+import { Toast } from './Toast'
 
 export class Popup {
   readonly mount: MountPage
   readonly search: SearchPage
   readonly seasonDetails: SeasonDetailsPage
+  readonly toast: Toast
+  readonly dialog: ConfirmDialog
 
   private constructor(page: Page) {
     this.mount = new MountPage(page)
     this.search = new SearchPage(page)
     this.seasonDetails = new SeasonDetailsPage(page)
+    this.toast = new Toast(page)
+    this.dialog = new ConfirmDialog(page)
   }
 
   static async open(

@@ -11,19 +11,12 @@ import { loadJsonFixture, loadTextFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
 
 /**
- * Bookmark add/remove on the DanmakuTree (/mount). Seeds a Bilibili season
- * + one persisted episode, bookmarks via the season's context menu, and
- * asserts that:
- *   - bookmark.bySeason returns a Bookmark whose .episodes carries the
- *     upstream-fetched stubs (the "additional undownloaded episodes"
- *     surfaced to the user)
- *   - the season tree item shows the +N stub indicator
- * Then removes the bookmark and asserts both signals revert.
+ * Bookmark add/remove on the DanmakuTree (/mount) via the season context
+ * menu. Asserts the Bookmark record carries upstream stubs and the season
+ * row shows the +N stub indicator; remove reverts both.
  *
- * BookmarkService.add triggers an upstream episode fetch
- * (ProviderService.fetchEpisodesBySeason), so the Bilibili season fixture
- * (2 episodes) is mocked — yielding 1 stub after deduping the persisted
- * episode by indexedId.
+ * Bilibili season fixture has 2 episodes → 1 stub after deduping the seeded
+ * persisted episode by indexedId.
  */
 
 const SEASON: SeasonInsert = {
@@ -40,8 +33,7 @@ const SEASON: SeasonInsert = {
 }
 
 function makeEpisode(seasonId: number): EpisodeInsert {
-  // Matches the fixture's first episode by indexedId (= cid) so that the
-  // bookmark stubs dedupe it down to one undownloaded episode.
+  // indexedId matches the fixture's first episode so stub dedup leaves 1.
   return {
     provider: DanmakuSourceType.Bilibili,
     providerIds: { cid: 1300001, aid: 100001, bvid: 'BV1aaaaaaaa' },
@@ -80,27 +72,18 @@ test('mount tree: bookmark adds stubs, remove clears them', async ({
 
   await popup.mount.openItemMenu(seasonItem, 'bookmarkAdd')
 
-  // Ground truth: bookmark exists in DB.
+  await expect(seasonItem).toContainText(/\+1/, { timeout: 10_000 })
+
   await expect
     .poll(() => da.bookmark.bySeason(season.id), { timeout: 10_000 })
     .toBeTruthy()
-
-  // Bookmark stores all upstream episodes (2 from the season fixture).
   const bookmark = await da.bookmark.bySeason(season.id)
   expect(bookmark?.episodes.length).toBe(2)
 
-  // UI surface: the season tree item now shows a `+N` indicator for
-  // undownloaded stubs (2 from upstream - 1 already persisted = 1 stub).
-  await expect(seasonItem).toContainText(/\+1/, { timeout: 10_000 })
-
-  // Remove the bookmark via the same menu (id changes to bookmarkRemove
-  // once bookmarked).
   await popup.mount.openItemMenu(seasonItem, 'bookmarkRemove')
 
+  await expect(seasonItem).not.toContainText(/\+\d+/)
   await expect
     .poll(() => da.bookmark.bySeason(season.id), { timeout: 10_000 })
     .toBeUndefined()
-
-  // +N indicator gone.
-  await expect(seasonItem).not.toContainText(/\+\d+/)
 })

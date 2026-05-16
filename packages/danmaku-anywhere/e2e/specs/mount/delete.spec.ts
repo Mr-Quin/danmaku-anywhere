@@ -9,15 +9,11 @@ import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
 /**
- * Per-item delete on the DanmakuTree (/mount). Two paths:
- *   - Season delete via the season's context menu — cascades to its
- *     episodes; the season row disappears and `da.season.get` returns
- *     undefined.
- *   - Episode delete via the episode's context menu — removes a single
- *     row, leaving the parent season intact (still has another episode).
+ * Per-item delete on the DanmakuTree (/mount) via the context menu:
+ *   - Season delete cascades to its episodes — row vanishes, DB cleared.
+ *   - Episode delete removes one row — parent + sibling stay intact.
  *
- * Both delete actions open a shared confirmation Dialog rendered in a
- * portal; the spec clicks `[data-testid="dialog-confirm"]` to commit.
+ * Both paths route through the shared confirm Dialog (`popup.dialog`).
  */
 
 const SEASON: SeasonInsert = {
@@ -69,7 +65,7 @@ test('mount tree: delete season removes it + cascades episodes', async ({
   const seasonItem = await popup.mount.waitForSeason(season.id)
 
   await popup.mount.openItemMenu(seasonItem, 'delete')
-  await popup.mount.confirmDialog()
+  await popup.dialog.confirm()
 
   await expect(seasonItem).toBeHidden({ timeout: 10_000 })
 
@@ -103,7 +99,7 @@ test('mount tree: delete single episode keeps season + siblings', async ({
   await expect(ep1Item).toBeVisible({ timeout: 10_000 })
 
   await popup.mount.openItemMenu(ep1Item, 'delete')
-  await popup.mount.confirmDialog()
+  await popup.dialog.confirm()
 
   await expect(ep1Item).toBeHidden({ timeout: 10_000 })
 
@@ -111,8 +107,8 @@ test('mount tree: delete single episode keeps season + siblings', async ({
     .poll(() => da.episode.get(ep1.id), { timeout: 10_000 })
     .toBeUndefined()
 
-  // Sibling + parent intact — checked in both UI and DB so a regression
-  // that wipes more than intended (or only updates one layer) is caught.
+  // Sibling + parent intact — checked in both UI and DB so a wider-than-
+  // intended delete (or one that updates only one layer) is caught.
   await expect(popup.mount.episodeItem(ep2.id)).toBeVisible()
   await expect(popup.mount.seasonItem(season.id)).toBeVisible()
   const survivor = await da.episode.get(ep2.id)

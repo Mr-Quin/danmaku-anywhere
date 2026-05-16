@@ -6,13 +6,11 @@ import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 
 /**
- * Fresh-install smoke for the extension. Asserts the SW registers, the
- * onInstalled upgrade path seeds default extensionOptions plus the three
- * built-in provider configs, and no console errors fire during boot.
+ * Fresh-install smoke. Asserts the SW registers, onInstalled seeds default
+ * extensionOptions + the three built-in provider configs, no console errors.
  *
- * A chrome.runtime.reload() variant was intentionally dropped: under
- * Playwright's --load-extension launch, the extension does not respawn
- * after runtime.reload(), so the case isn't exercisable here.
+ * A runtime.reload() variant was dropped — under --load-extension, the
+ * extension does not respawn after reload, so the case isn't exercisable.
  */
 
 const BUILTIN_PROVIDER_IDS = [

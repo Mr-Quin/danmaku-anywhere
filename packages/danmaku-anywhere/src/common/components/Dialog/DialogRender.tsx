@@ -91,7 +91,7 @@ export const DialogRender = ({
     }
     if (typeof title === 'string') {
       return (
-        <DialogTitle>
+        <DialogTitle data-testid="dialog-title">
           {title}
           {showCloseButton && (
             <IconButton
@@ -119,13 +119,16 @@ export const DialogRender = ({
     }
     if (typeof content === 'string') {
       return (
-        <DialogContent>
+        <DialogContent data-testid="dialog-content">
           <DialogContentText>{content}</DialogContentText>
         </DialogContent>
       )
     }
     return (
-      <DialogContent sx={(theme) => getScrollBarProps(theme, 0.4)}>
+      <DialogContent
+        data-testid="dialog-content"
+        sx={(theme) => getScrollBarProps(theme, 0.4)}
+      >
         {content}
       </DialogContent>
     )

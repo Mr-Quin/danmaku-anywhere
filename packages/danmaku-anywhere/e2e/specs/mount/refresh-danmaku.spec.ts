@@ -74,8 +74,6 @@ test('mount tree: refresh danmaku fetches new comments for an episode', async ({
 
   await popup.mount.openItemMenu(episodeItem, 'refresh')
 
-  // Refresh writes new comments to db.episode. The seeded episode had 0;
-  // the XML fixture has > 0.
   await expect
     .poll(async () => (await da.episode.get(episode.id))?.commentCount, {
       timeout: 10_000,

@@ -113,6 +113,8 @@ export const Toast = (props: ToastProps) => {
             onMouseLeave={() => unpause(key)}
             pause={paused}
             severity={severity}
+            data-testid="snackbar"
+            data-severity={severity}
             sx={{ width: '100%' }}
             action={
               actionFn ? (

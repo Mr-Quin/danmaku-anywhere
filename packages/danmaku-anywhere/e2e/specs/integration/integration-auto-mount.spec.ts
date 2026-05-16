@@ -9,14 +9,10 @@ import {
 import { applyProfile } from '../../setup/profile'
 
 /**
- * Generic happy-path proof for the integration auto-mount pipeline. Covers
- * the full chain — URL match → XPath policy → media-info extraction →
- * auto-mount → render at correct timestamp — with no site-specific
- * dependencies. Two scenarios: a native top-frame video, and a video hosted
- * inside a same-origin iframe (the player content script runs in every
- * frame, the controller only in the top frame). Both resolve through the
- * LocalMatchingStrategy against a seeded custom episode, so no provider
- * network calls are exercised here — that's covered by sources/*.spec.ts.
+ * Auto-mount happy path: URL match → XPath policy → media-info → mount →
+ * render at the right timestamp. Two video setups: top-frame and
+ * same-origin iframe. Both resolve via LocalMatchingStrategy against a
+ * seeded custom episode — no provider network is exercised here.
  */
 
 const ORIGIN = 'https://da-test.invalid'
@@ -25,8 +21,7 @@ const IFRAME_URL = `${ORIGIN}/iframe/`
 const MOUNT_PATTERN = `${ORIGIN}/*`
 
 const EPISODE_TITLE = 'DA Integration Test'
-// 3 comments at known timestamps so a seek past `SEEK_TIME_S` lands the
-// renderer's cursor on at least the first one and emits a DOM node.
+// Seeking past SEEK_TIME_S lands the cursor on at least one comment.
 const COMMENTS = [
   { p: '12,1,16777215,e2e-1', m: 'first' },
   { p: '24,1,16777215,e2e-2', m: 'second' },
@@ -42,9 +37,8 @@ async function seedFixtureProfile(
     extensionOptions: { matchLocalDanmaku: true },
   })
 
-  // Custom (MacCMS) episode keyed to the title the integration extracts from
-  // the fixture page. LocalMatchingStrategy's fuzzy fallback matches by
-  // title path-last-segment, so this resolves without naming rules.
+  // Title matches what the policy extracts from the fixture; LocalMatching
+  // resolves it via fuzzy title fallback (no naming rules needed).
   const customEpisode = await da.episode.addCustom({
     provider: DanmakuSourceType.MacCMS,
     title: EPISODE_TITLE,
@@ -59,8 +53,7 @@ async function seedFixtureProfile(
     policy: buildFixtureIntegrationPolicy(),
   })
 
-  // MountConfig write triggers async content-script registration — wait for
-  // it before navigating or the controller never loads on the page.
+  // Content-script registration is async; wait or the controller never loads.
   await da.mount.waitForRegistration(MOUNT_PATTERN, 5_000)
 
   return { episodeId: customEpisode.id }
@@ -77,16 +70,11 @@ test('integration auto-mount: native <video> happy path', async ({
   await page.bringToFront()
   await integrationPage.open(NATIVE_URL, 'native-video.html')
 
-  // Auto-mount has to thread URL match → policy extraction → local match →
-  // mount. No provider network round-trips on this path; the 15s budget is
-  // a safety margin for the observer's 1s discovery interval and React
-  // mount latency.
+  // 15s = video-discovery observer interval (1s) + React mount + slack.
   const mirror = await da.mount.waitForMount(undefined, 15_000)
   expect(mirror.isMounted).toBe(true)
   expect(mirror.episodeIds).toEqual([episodeId])
 
-  // Cross the first comment's timestamp. handleSeek + handleTimeupdate in
-  // the renderer's bindVideo plugin should emit at least one DOM node.
   await integrationPage.playVideo()
   await integrationPage.setVideoTime(SEEK_TIME_S)
 
@@ -108,10 +96,8 @@ test('integration auto-mount: same-origin iframe <video> happy path', async ({
     extraFixtures: { 'iframe-inner.html': 'iframe-inner.html' },
   })
 
-  // Same mount pipeline, but the <video> lives in a child frame. The
-  // controller (top frame only) extracts media info; the player content
-  // script (allFrames: true) running inside the iframe is what actually
-  // mounts the renderer onto the video.
+  // <video> in a child frame — controller (top) extracts media info,
+  // player content script (allFrames) inside the iframe mounts the renderer.
   await integrationPage.useIframeVideo('iframe[data-testid="da-iframe"]')
 
   const mirror = await da.mount.waitForMount(undefined, 15_000)

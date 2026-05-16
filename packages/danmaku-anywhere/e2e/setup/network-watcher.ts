@@ -23,8 +23,7 @@ function isProjectAllowed(url: string): boolean {
     ) {
       return true
     }
-    // `.invalid` is a project-wide fixture convention (image URLs, the
-    // da-test.invalid integration origin); RFC 6761 reserves it.
+    // `.invalid` (RFC 6761) — project-wide fixture convention.
     const host = parsed.hostname
     return host === 'invalid' || host.endsWith('.invalid')
   } catch {
@@ -43,9 +42,8 @@ function matchesAllowed(
   })
 }
 
-// Registered before per-spec routes so it lands older in Playwright's
-// handler chain (newest fires first) — only fires when nothing specific
-// matched.
+// Register before per-spec routes — Playwright fires newest handler first,
+// so this catch-all only runs when nothing specific matched.
 export async function attachNetworkWatcher(
   context: BrowserContext,
   getAllowed: () => readonly AllowedNetworkPattern[]

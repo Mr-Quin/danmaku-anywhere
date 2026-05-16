@@ -19,8 +19,8 @@ export class SearchPage {
     return this.page.locator(SELECTORS.searchSubmit)
   }
 
-  // Press Enter to submit; the autocomplete dropdown intercepts pointer
-  // events on the submit button when it's open.
+  // Enter, not click — the autocomplete dropdown intercepts the submit
+  // button when open.
   async submit(term: string): Promise<void> {
     await this.input.fill(term)
     await this.input.press('Enter')
