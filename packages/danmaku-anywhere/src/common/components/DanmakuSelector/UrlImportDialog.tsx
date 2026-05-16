@@ -162,12 +162,14 @@ export function UrlImportDialog({
           }}
           error={displayedError !== null}
           helperText={
-            displayedError
-              ? ERROR_MESSAGE[displayedError.code](displayedError.params)
-              : t(
-                  'importPage.urlDialog.urlHelper',
-                  'Direct link to a .json, .xml, .bin, or .zip file'
-                )
+            <span data-testid="url-import-helper">
+              {displayedError
+                ? ERROR_MESSAGE[displayedError.code](displayedError.params)
+                : t(
+                    'importPage.urlDialog.urlHelper',
+                    'Direct link to a .json, .xml, .bin, or .zip file'
+                  )}
+            </span>
           }
           disabled={mutation.isPending}
           slotProps={{ htmlInput: { 'data-testid': 'url-import-input' } }}
