@@ -1,6 +1,7 @@
-import { Badge, Tab, Tabs } from '@mui/material'
+import { Badge, Tab } from '@mui/material'
 import { match } from 'ts-pattern'
 
+import { SidebarTabs } from '@/common/components/SidebarTabs'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { isConfigIncomplete } from '@/common/options/mountConfig/isPermissive'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
@@ -33,35 +34,29 @@ export const PanelTabs = () => {
   const isIncomplete = isConfigIncomplete(activeConfig)
 
   return (
-    <Tabs
-      value={tab}
-      onChange={handleTabChange}
-      aria-label="Popup"
-      variant="scrollable"
-      scrollButtons="auto"
-      orientation="vertical"
-      sx={{
-        borderRight: 1,
-        borderColor: 'divider',
-        width: 100,
-        flexShrink: 0,
-      }}
-    >
-      {tabs.map((tab) => (
-        <Tab
-          label={
-            tab.tab === PopupTab.Policy && isIncomplete ? (
+    <SidebarTabs value={tab} onChange={handleTabChange} aria-label="Popup">
+      {tabs.map((route) => {
+        const icon =
+          route.tab === PopupTab.Policy && isIncomplete ? (
+            <span>
               <Badge color="warning" variant="dot">
-                {tab.name()}
+                {route.icon}
               </Badge>
-            ) : (
-              tab.name()
-            )
-          }
-          value={tab.tab}
-          key={tab.tab}
-        />
-      ))}
-    </Tabs>
+            </span>
+          ) : (
+            route.icon
+          )
+
+        return (
+          <Tab
+            icon={icon}
+            iconPosition="top"
+            label={route.name()}
+            value={route.tab}
+            key={route.tab}
+          />
+        )
+      })}
+    </SidebarTabs>
   )
 }
