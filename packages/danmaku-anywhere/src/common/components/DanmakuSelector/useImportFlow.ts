@@ -57,7 +57,7 @@ export const useImportFlow = () => {
     const processedFiles: File[] = []
 
     for (const file of files) {
-      if (file.name.endsWith('.zip')) {
+      if (file.name.toLowerCase().endsWith('.zip')) {
         processedFiles.push(...(await extractZipFile(file)))
       } else if (file.webkitRelativePath !== '') {
         // convert the relative path to the file's name
