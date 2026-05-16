@@ -1,7 +1,7 @@
 import { expect, type Locator, type Page } from '@playwright/test'
 
 const SELECTORS = {
-  dialog: '[data-testid="url-import-dialog"]',
+  title: '[data-testid="url-import-title"]',
   input: '[data-testid="url-import-input"]',
   submit: '[data-testid="url-import-submit"]',
   helper: '[data-testid="url-import-helper"]',
@@ -14,8 +14,8 @@ interface ExpectOptions {
 export class UrlImportDialog {
   constructor(private readonly page: Page) {}
 
-  get root(): Locator {
-    return this.page.locator(SELECTORS.dialog)
+  get title(): Locator {
+    return this.page.locator(SELECTORS.title)
   }
 
   get input(): Locator {
@@ -40,12 +40,12 @@ export class UrlImportDialog {
 
   async expectVisible(options: ExpectOptions = {}): Promise<void> {
     const { timeout = 5_000 } = options
-    await expect(this.root).toBeVisible({ timeout })
+    await expect(this.title).toBeVisible({ timeout })
   }
 
   async expectHidden(options: ExpectOptions = {}): Promise<void> {
     const { timeout = 5_000 } = options
-    await expect(this.root).toBeHidden({ timeout })
+    await expect(this.title).toBeHidden({ timeout })
   }
 
   async fillUrl(url: string): Promise<void> {

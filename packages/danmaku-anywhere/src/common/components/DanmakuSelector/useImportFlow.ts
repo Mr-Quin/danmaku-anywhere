@@ -93,8 +93,10 @@ export const useImportFlow = () => {
 
   const importFromUrl = async (url: string, signal: AbortSignal) => {
     const file = await fetchUrlAsFile(url, { signal })
-    setUrlDialogOpen(false)
+    // Await handleFiles before closing so a corrupt-zip extraction throw
+    // surfaces in the URL dialog instead of closing it silently.
     await handleFiles([file])
+    setUrlDialogOpen(false)
   }
 
   const closeDialog = () => {

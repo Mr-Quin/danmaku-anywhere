@@ -127,9 +127,11 @@ export async function fetchUrlAsFile(
     throw new ImportFromUrlError('httpError', { status: response.status })
   }
 
-  const buffer = await readBodyWithCap(response, maxBytes, signal)
+  const chunks = await readBodyWithCap(response, maxBytes, signal)
 
-  return new File([buffer], validation.filename, {
+  // Hand chunks straight to File — pre-merging into one ArrayBuffer here
+  // would double peak memory near maxBytes.
+  return new File(chunks as BlobPart[], validation.filename, {
     type: contentTypeFor(validation.extension),
   })
 }
@@ -138,7 +140,7 @@ async function readBodyWithCap(
   response: Response,
   maxBytes: number,
   signal: AbortSignal | undefined
-): Promise<ArrayBuffer> {
+): Promise<Uint8Array[]> {
   if (!response.body) {
     const buffer = await response.arrayBuffer()
     if (buffer.byteLength > maxBytes) {
@@ -146,7 +148,7 @@ async function readBodyWithCap(
         limit: formatBytes(maxBytes),
       })
     }
-    return buffer
+    return [new Uint8Array(buffer)]
   }
 
   const reader = response.body.getReader()
@@ -183,14 +185,7 @@ async function readBodyWithCap(
     throw new ImportFromUrlError('fetchFailed')
   }
 
-  const merged = new ArrayBuffer(total)
-  const view = new Uint8Array(merged)
-  let offset = 0
-  for (const chunk of chunks) {
-    view.set(chunk, offset)
-    offset += chunk.byteLength
-  }
-  return merged
+  return chunks
 }
 
 function formatBytes(bytes: number): string {

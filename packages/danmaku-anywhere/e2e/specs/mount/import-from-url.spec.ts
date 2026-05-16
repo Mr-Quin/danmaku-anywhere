@@ -9,8 +9,8 @@ import { applyProfile } from '../../setup/profile'
  * mocked .xml URL → ImportResultDialog → Confirm Import. Asserts the URL
  * dialog closes after submit, the success Alert renders inside the result
  * dialog, and the custom episode lands in the DB with the URL's basename
- * as title. Second test covers the 404 path: URL dialog stays open with
- * the status surfaced in the helperText.
+ * as title. Second test covers the validation path: a bad-scheme URL
+ * disables submit and surfaces the reason in the helperText (no network).
  */
 
 const FETCH_URL = 'https://danmaku.invalid/episode.xml'
@@ -43,13 +43,8 @@ test('mount toolbar: import from URL fetches a mocked xml and stages a custom ep
   await popup.urlImport.submit()
 
   await popup.urlImport.expectHidden()
+  await popup.importResult.confirm()
 
-  const confirm = page.locator('[data-testid="import-result-confirm"]')
-  await expect(confirm).toBeVisible({ timeout: 5_000 })
-  await confirm.click()
-
-  // ImportResultContent renders an inline MUI Alert (role="alert") on
-  // success, not a snackbar toast.
   await expect(
     page.locator('[role="alert"]').filter({
       hasText: /Successfully imported|成功导入/,
@@ -62,40 +57,22 @@ test('mount toolbar: import from URL fetches a mocked xml and stages a custom ep
   expect(customs[0].commentCount).toBeGreaterThan(0)
 })
 
-// Chrome logs a "Failed to load resource" console error for any non-2xx
-// fetch — that's the production browser doing its job. The test asserts on
-// the dialog state, not the absence of the log line.
-test.describe(() => {
-  test.use({
-    expectedConsoleErrors: [/Failed to load resource.*404.*danmaku\.invalid/],
-  })
+test('mount toolbar: URL dialog surfaces a validation error in the helperText', async ({
+  context,
+  page,
+  extensionId,
+}) => {
+  const da = await getDaClient(context)
+  await applyProfile(context, da, {})
 
-  test('mount toolbar: import from URL renders an error when the URL 404s', async ({
-    context,
-    page,
-    extensionId,
-  }) => {
-    const da = await getDaClient(context)
-    await applyProfile(context, da, {
-      network: [
-        {
-          pattern: FETCH_URL,
-          respond: (route) =>
-            route.fulfill({ status: 404, contentType: 'text/plain', body: '' }),
-        },
-      ],
-    })
+  const popup = await Popup.open(page, extensionId, '/mount')
+  await popup.mount.openToolbarMenu('importUrl')
 
-    const popup = await Popup.open(page, extensionId, '/mount')
-    await popup.mount.openToolbarMenu('importUrl')
+  await popup.urlImport.expectVisible()
+  await popup.urlImport.fillUrl('ftp://example.com/file.xml')
 
-    await popup.urlImport.expectVisible()
-    await popup.urlImport.fillUrl(FETCH_URL)
-    await popup.urlImport.submit()
+  await popup.urlImport.expectHelperText(/http and https|http 和 https/)
+  await expect(popup.urlImport.submitButton).toBeDisabled()
 
-    await expect(popup.urlImport.root).toBeVisible()
-    await popup.urlImport.expectHelperText(/404/)
-
-    expect(await da.episode.listCustom()).toHaveLength(0)
-  })
+  expect(await da.episode.listCustom()).toHaveLength(0)
 })

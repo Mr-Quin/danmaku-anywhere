@@ -106,8 +106,6 @@ export function UrlImportDialog({
   const validation = validateImportUrl(url)
   const canSubmit = url.length > 0 && validation.ok && !mutation.isPending
 
-  // Surface validation errors inline once the user has typed something
-  // invalid. The submit button is also disabled — this just tells them why.
   const validationError: DisplayedError | null =
     url.length > 0 && !validation.ok
       ? { code: validation.reason, params: {} }
@@ -137,7 +135,7 @@ export function UrlImportDialog({
       onClose={handleClose}
       container={dialogContainer}
     >
-      <DialogTitle data-testid="url-import-dialog">
+      <DialogTitle data-testid="url-import-title">
         {t('importPage.urlDialog.title', 'Import from URL')}
       </DialogTitle>
       <DialogContent>
