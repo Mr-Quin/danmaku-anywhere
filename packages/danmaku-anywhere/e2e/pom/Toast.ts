@@ -35,22 +35,39 @@ export class Toast {
   }
 
   async expectSuccess(
-    matcher: string | RegExp,
+    matcher?: string | RegExp,
     options: ExpectOptions = {}
   ): Promise<void> {
     const { timeout = 5_000 } = options
-    await expect(
-      this.bySeverity('success').filter({ hasText: matcher })
-    ).toBeVisible({ timeout })
+    const locator =
+      matcher === undefined
+        ? this.bySeverity('success')
+        : this.bySeverity('success').filter({ hasText: matcher })
+    await expect(locator.first()).toBeVisible({ timeout })
   }
 
   async expectError(
-    matcher: string | RegExp,
+    matcher?: string | RegExp,
     options: ExpectOptions = {}
   ): Promise<void> {
     const { timeout = 5_000 } = options
-    await expect(
-      this.bySeverity('error').filter({ hasText: matcher })
-    ).toBeVisible({ timeout })
+    const locator =
+      matcher === undefined
+        ? this.bySeverity('error')
+        : this.bySeverity('error').filter({ hasText: matcher })
+    await expect(locator.first()).toBeVisible({ timeout })
+  }
+
+  // Click each visible toast's close button and wait for them to leave the
+  // DOM. Use between back-to-back identical-text mutations so the second
+  // expectSuccess() can't pass on the first toast lingering through its
+  // autoHideDuration (default 3500ms, see toastStore.notify).
+  async dismissAll(timeout = 5_000): Promise<void> {
+    const closeButtons = this.all().getByRole('button', { name: 'Close' })
+    const count = await closeButtons.count()
+    for (let i = 0; i < count; i++) {
+      await closeButtons.first().click()
+    }
+    await expect(this.all()).toHaveCount(0, { timeout })
   }
 }

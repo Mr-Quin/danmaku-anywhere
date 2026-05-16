@@ -67,6 +67,8 @@ test('mount tree: delete season removes it + cascades episodes', async ({
   await popup.mount.openItemMenu(seasonItem, 'delete')
   await popup.dialog.confirm()
 
+  await popup.toast.expectSuccess()
+
   await expect(seasonItem).toBeHidden({ timeout: 10_000 })
 
   await expect
@@ -100,6 +102,8 @@ test('mount tree: delete single episode keeps season + siblings', async ({
 
   await popup.mount.openItemMenu(ep1Item, 'delete')
   await popup.dialog.confirm()
+
+  await popup.toast.expectSuccess(/Danmaku Deleted|弹幕已删除/i)
 
   await expect(ep1Item).toBeHidden({ timeout: 10_000 })
 
