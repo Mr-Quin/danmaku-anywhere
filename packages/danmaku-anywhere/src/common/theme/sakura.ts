@@ -466,7 +466,6 @@ const sakuraTypography: ThemeOptions['typography'] = {
     fontSize: '0.625rem',
     lineHeight: 1.3,
     letterSpacing: 0.1,
-    fontFamily: `'Plus Jakarta Sans', 'Noto Sans SC', system-ui, sans-serif`,
   },
   button: {
     fontSize: '0.75rem',
