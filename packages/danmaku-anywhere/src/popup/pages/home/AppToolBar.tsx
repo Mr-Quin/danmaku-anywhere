@@ -30,13 +30,13 @@ export const AppToolBar = () => {
 
   return (
     <AppBar position="static">
-      <Toolbar>
+      <Toolbar variant="dense">
         <Fade in={isAnyLoading} unmountOnExit>
           <Box position="absolute" top={0} left={0} width={1}>
             <LinearProgress sx={{ height: '1px' }} />
           </Box>
         </Fade>
-        <Typography variant="h1" fontSize={20} sx={{ flexGrow: 1 }}>
+        <Typography variant="h5" sx={{ flexGrow: 1 }}>
           {t('common.danmakuAnywhere', 'Danmaku Anywhere')}
         </Typography>
         <EnableExtensionToggle />

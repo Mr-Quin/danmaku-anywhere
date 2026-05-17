@@ -7,10 +7,9 @@ import {
 } from '@mui/material/styles'
 import type * as React from 'react'
 
-// Self-host display + body fonts. MV3 CSP blocks Google Fonts CDN.
-// The browser only fetches woff2 when the families resolve.
-import '@fontsource/fraunces/latin-600.css'
-import '@fontsource/fraunces/latin-700.css'
+// Self-host body fonts. MV3 CSP blocks Google Fonts CDN.
+// Fraunces was dropped — its display serif looked off next to CJK glyphs,
+// so all tiers now use Plus Jakarta Sans with Noto Sans SC as the CJK fallback.
 import '@fontsource/plus-jakarta-sans/latin-400.css'
 import '@fontsource/plus-jakarta-sans/latin-500.css'
 import '@fontsource/plus-jakarta-sans/latin-600.css'
@@ -263,11 +262,39 @@ const sakuraComponents: ThemeOptions['components'] = {
         }
         return {}
       },
-      outlined: ({ theme }) => ({
-        borderColor: theme.palette.divider,
-        color: theme.palette.text.secondary,
-        backgroundColor: 'transparent',
-      }),
+      outlined: ({ theme, ownerState }) => {
+        const c = ownerState.color
+        if (!c || c === 'default') {
+          return {
+            borderColor: theme.palette.divider,
+            color: theme.palette.text.secondary,
+            backgroundColor: 'transparent',
+          }
+        }
+        if (c === 'primary') {
+          return {
+            borderColor: theme.palette.primary.main,
+            color: theme.palette.primaryInk,
+            backgroundColor: 'transparent',
+          }
+        }
+        if (c === 'secondary') {
+          return {
+            borderColor: theme.palette.secondary.main,
+            color: theme.palette.secondaryInk,
+            backgroundColor: 'transparent',
+          }
+        }
+        if ((severityKeys as readonly string[]).includes(c)) {
+          const sev = c as SeverityKey
+          return {
+            borderColor: theme.palette[sev].main,
+            color: theme.palette.severityInk[sev],
+            backgroundColor: 'transparent',
+          }
+        }
+        return {}
+      },
     },
   },
 
@@ -319,24 +346,29 @@ const sakuraComponents: ThemeOptions['components'] = {
   },
 
   MuiTabs: {
-    styleOverrides: { indicator: { height: 2 } },
-  },
-
-  MuiTypography: {
-    defaultProps: {
-      variantMapping: {
-        meta: 'span',
-      },
+    styleOverrides: {
+      // Match the shrunken Tab minHeight so the indicator hugs the tab strip
+      // instead of floating below the labels at MUI's default 48px height.
+      root: { minHeight: 36 },
+      indicator: { height: 2 },
     },
   },
   MuiTab: {
     styleOverrides: {
       root: {
         textTransform: 'none',
-        minHeight: 0,
+        minHeight: 36,
         padding: '8px 10px',
         fontSize: '0.8125rem',
         fontWeight: 600,
+      },
+    },
+  },
+
+  MuiTypography: {
+    defaultProps: {
+      variantMapping: {
+        meta: 'span',
       },
     },
   },
@@ -378,7 +410,13 @@ const sakuraComponents: ThemeOptions['components'] = {
       root: { padding: 6 },
     },
   },
-  MuiSlider: { defaultProps: { size: 'small' } },
+  MuiSlider: {
+    defaultProps: { size: 'small' },
+    styleOverrides: {
+      markLabel: { fontSize: '0.625rem', lineHeight: 1.3 },
+      valueLabel: { fontSize: '0.625rem' },
+    },
+  },
 
   MuiDivider: {
     styleOverrides: {
@@ -411,42 +449,12 @@ const sakuraComponents: ThemeOptions['components'] = {
 
 const sakuraTypography: ThemeOptions['typography'] = {
   fontFamily: `'Plus Jakarta Sans', 'Noto Sans SC', system-ui, sans-serif`,
-  h1: {
-    fontFamily: `'Fraunces', 'Plus Jakarta Sans', serif`,
-    fontWeight: 700,
-    fontSize: '1.375rem',
-    lineHeight: 1.3,
-  },
-  h2: {
-    fontFamily: `'Fraunces', 'Plus Jakarta Sans', serif`,
-    fontWeight: 700,
-    fontSize: '1.125rem',
-    lineHeight: 1.3,
-  },
-  h3: {
-    fontFamily: `'Fraunces', 'Plus Jakarta Sans', serif`,
-    fontWeight: 700,
-    fontSize: '1rem',
-    lineHeight: 1.3,
-  },
-  h4: {
-    fontFamily: `'Fraunces', 'Plus Jakarta Sans', serif`,
-    fontWeight: 700,
-    fontSize: '0.9375rem',
-    lineHeight: 1.3,
-  },
-  h5: {
-    fontFamily: `'Fraunces', 'Plus Jakarta Sans', serif`,
-    fontWeight: 700,
-    fontSize: '0.875rem',
-    lineHeight: 1.3,
-  },
-  h6: {
-    fontFamily: `'Fraunces', 'Plus Jakarta Sans', serif`,
-    fontWeight: 700,
-    fontSize: '0.8125rem',
-    lineHeight: 1.3,
-  },
+  h1: { fontWeight: 700, fontSize: '1.375rem', lineHeight: 1.3 },
+  h2: { fontWeight: 700, fontSize: '1.125rem', lineHeight: 1.3 },
+  h3: { fontWeight: 700, fontSize: '1rem', lineHeight: 1.3 },
+  h4: { fontWeight: 700, fontSize: '0.9375rem', lineHeight: 1.3 },
+  h5: { fontWeight: 700, fontSize: '0.875rem', lineHeight: 1.3 },
+  h6: { fontWeight: 700, fontSize: '0.8125rem', lineHeight: 1.3 },
   body1: { fontSize: '0.875rem', lineHeight: 1.45 },
   body2: { fontSize: '0.8125rem', lineHeight: 1.4 },
   caption: { fontSize: '0.75rem', lineHeight: 1.35, letterSpacing: 0.1 },

@@ -29,10 +29,15 @@ interface FloatingButtonProps extends FabProps {
 const StyledFab = styled(Fab, {
   shouldForwardProp: (prop) => prop !== 'hover',
 })<{ hover: boolean }>(({ hover }) => {
+  // Rotate the inner SpeedDialIcon SVG rather than the whole Fab so the
+  // animation does not fight any transform the Fab itself applies (elevation,
+  // active scale, etc.). Visually identical — the FAB body is a circle.
   return {
-    transition: 'transform 0.2s ease-in-out',
-    transform: hover ? 'rotate(45deg)' : 'rotate(0deg)',
     touchAction: 'none',
+    '& .MuiSpeedDialIcon-icon': {
+      transition: 'transform 0.2s ease-in-out',
+      transform: hover ? 'rotate(45deg)' : 'rotate(0deg)',
+    },
   }
 })
 
