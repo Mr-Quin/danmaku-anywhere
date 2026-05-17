@@ -36,7 +36,7 @@ export const AppToolBar = () => {
             <LinearProgress sx={{ height: '1px' }} />
           </Box>
         </Fade>
-        <Typography variant="h1" sx={{ flexGrow: 1 }}>
+        <Typography variant="h5" sx={{ flexGrow: 1 }}>
           {t('common.danmakuAnywhere', 'Danmaku Anywhere')}
         </Typography>
         <EnableExtensionToggle />
