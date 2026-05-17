@@ -1,6 +1,6 @@
 import { useMediaQuery } from '@mui/material'
 import type { ThemeOptions } from '@mui/material/styles'
-import { createTheme, ThemeProvider } from '@mui/material/styles'
+import { ThemeProvider } from '@mui/material/styles'
 import type { Localization } from '@mui/x-data-grid/internals'
 import { enUS, zhCN } from '@mui/x-data-grid/locales'
 import { produce } from 'immer'
@@ -12,12 +12,6 @@ import { ColorMode } from '@/common/theme/enums'
 import { createSakuraTheme } from '@/common/theme/sakura'
 
 import { tryCatchSync } from '@/common/utils/tryCatch'
-
-const defaultThemeOptions: ThemeOptions = {
-  palette: {
-    mode: 'dark',
-  },
-}
 
 type ThemeContext = UserTheme & {
   setColorMode: (colorScheme: ColorMode) => void
@@ -58,8 +52,6 @@ export const Theme = ({ children, options = {} }: ThemeProps) => {
   const colorScheme: 'dark' | 'light' =
     colorMode === 'system' ? preferredColorScheme : colorMode
 
-  const useSakura = data.experimental?.sakuraTheme ?? false
-
   const theme = useMemo(() => {
     const languageMap: Record<string, Localization> = {
       zh: zhCN,
@@ -67,21 +59,10 @@ export const Theme = ({ children, options = {} }: ThemeProps) => {
     }
     const locale = languageMap[i18n.language]
 
-    if (useSakura) {
-      return locale
-        ? createSakuraTheme(colorScheme, options, locale)
-        : createSakuraTheme(colorScheme, options)
-    }
-
-    return createTheme(
-      produce(defaultThemeOptions, (draft) => {
-        Object.assign(draft, options)
-        if (!draft.palette) draft.palette = {}
-        draft.palette.mode = colorScheme
-      }),
-      locale
-    )
-  }, [colorScheme, options, i18n.language, useSakura])
+    return locale
+      ? createSakuraTheme(colorScheme, options, locale)
+      : createSakuraTheme(colorScheme, options)
+  }, [colorScheme, options, i18n.language])
 
   const themeContextValue = useMemo(
     () => ({

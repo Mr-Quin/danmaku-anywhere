@@ -493,9 +493,6 @@
     },
     "enableAnalytics": "Enable anonymous analytics",
     "enableFullscreenInteraction": "Enable fullscreen interaction",
-    "experimental": {
-      "sakuraTheme": "Use experimental Sakura theme"
-    },
     "help": {
       "feedback": "Provide feedback",
       "reportBug": "Report Bug"

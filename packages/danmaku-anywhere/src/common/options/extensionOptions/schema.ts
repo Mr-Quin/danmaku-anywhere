@@ -72,15 +72,6 @@ const userThemeSchema = z.object({
   colorMode: z.enum(ColorMode),
 })
 
-const experimentalSchema = z.object({
-  /**
-   * Opt in to the Sakura MUI theme redesign for the popup
-   */
-  sakuraTheme: z.boolean(),
-})
-
-export type Experimental = z.infer<typeof experimentalSchema>
-
 const hotkeySchema = z.object({
   key: z.string(),
   enabled: z.boolean(),
@@ -161,11 +152,6 @@ export const extensionOptionsSchema = z.object({
    * Whether to show the floating action button on video pages
    */
   showFloatingButton: z.boolean(),
-
-  /**
-   * Experimental, opt-in feature flags
-   */
-  experimental: experimentalSchema,
 })
 
 export type ExtensionOptions = z.infer<typeof extensionOptionsSchema>
