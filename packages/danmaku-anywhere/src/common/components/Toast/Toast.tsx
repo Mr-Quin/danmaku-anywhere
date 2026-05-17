@@ -18,9 +18,17 @@ interface AlertWithIndicatorProps {
 const AlertWithIndicator = styled(Alert, {
   shouldForwardProp: (prop) => prop !== 'pause',
 })<AlertWithIndicatorProps>(({ severity, duration, pause, theme }) => {
-  if (!duration) return {}
+  const opaqueBase = {
+    backgroundColor: theme.palette.background.paper,
+    border: `1px solid ${theme.palette.divider}`,
+  }
+
+  if (!duration) {
+    return opaqueBase
+  }
 
   return {
+    ...opaqueBase,
     '&::after': {
       content: '""',
       position: 'absolute',
