@@ -74,6 +74,14 @@ Always prefer scripts defined in `package.json` over ad-hoc commands. Run `pnpm 
 - **No sectional comments**: sectional comments in a class are a code smell — split the class instead
 - **Test header comment**: every test file has a 3-6 line JSDoc block immediately after imports describing what the test exercises and what it asserts. Goes before the first `test()`/`describe()` call
 
+## Comments
+
+- Default to no comments. Add one only when the **what** or **why** is non-obvious from the code itself — a hidden constraint, a subtle invariant, a workaround, behavior that would surprise a future reader.
+- **No narration.** Don't restate what the next few lines do. Well-named identifiers carry that load.
+- **No conversation summaries.** Comments are not changelogs, review-response notes, or rationalizations for a decision someone questioned. Those belong in commit messages and PR descriptions.
+- **Don't reference invisible-from-code context.** No `// Added for DA-XXX`, `// Per Gemini review`, `// As discussed`, `// Phase 2 fix`, `// Previously…`. If a future reader can't see it in the tree, the comment is dead weight.
+- **No defensive comments.** If you're tempted to justify code that looks reasonable on its own, delete the comment. If the code looks unreasonable, fix the code.
+
 ## TypeScript
 
 - Strict mode enabled everywhere (`tsconfig.base.json`)
