@@ -7,9 +7,7 @@ import {
 } from '@mui/material/styles'
 import type * as React from 'react'
 
-// Self-host body fonts. MV3 CSP blocks Google Fonts CDN.
-// Fraunces was dropped — its display serif looked off next to CJK glyphs,
-// so all tiers now use Plus Jakarta Sans with Noto Sans SC as the CJK fallback.
+// Self-hosted — MV3 CSP blocks Google Fonts CDN.
 import '@fontsource/plus-jakarta-sans/latin-400.css'
 import '@fontsource/plus-jakarta-sans/latin-500.css'
 import '@fontsource/plus-jakarta-sans/latin-600.css'
@@ -150,7 +148,6 @@ const severityKeys: readonly SeverityKey[] = [
 ] as const
 
 const sakuraComponents: ThemeOptions['components'] = {
-  // Density defaults — responsible for most of the visual tightening
   MuiButton: {
     defaultProps: { size: 'small', disableElevation: true },
     styleOverrides: {
@@ -202,8 +199,6 @@ const sakuraComponents: ThemeOptions['components'] = {
   MuiTable: { defaultProps: { size: 'small' } },
   MuiList: { defaultProps: { dense: true } },
 
-  // Shrink icons globally so they sit comfortably next to dense body text.
-  // 1.125rem = 18px at the 16px root. IconButton sizeSmall stays 1.25rem (20px).
   MuiSvgIcon: {
     styleOverrides: {
       root: { fontSize: '1.125rem' },
@@ -298,8 +293,6 @@ const sakuraComponents: ThemeOptions['components'] = {
     },
   },
 
-  // Chips rendered by Autocomplete + Select multiple inherit MuiChip — no
-  // separate override needed.
   MuiAutocomplete: {
     styleOverrides: {
       tag: { margin: 2 },
@@ -347,8 +340,6 @@ const sakuraComponents: ThemeOptions['components'] = {
 
   MuiTabs: {
     styleOverrides: {
-      // Match the shrunken Tab minHeight so the indicator hugs the tab strip
-      // instead of floating below the labels at MUI's default 48px height.
       root: { minHeight: 36 },
       indicator: { height: 2 },
     },
@@ -373,8 +364,6 @@ const sakuraComponents: ThemeOptions['components'] = {
     },
   },
 
-  // Severity-tinted alert backgrounds match the chip + soft button system.
-  // Snackbar/Toast renders an Alert internally, so this re-themes toasts too.
   MuiAlert: {
     styleOverrides: {
       root: { borderRadius: 8, padding: '6px 10px', fontSize: '0.8125rem' },
@@ -465,7 +454,6 @@ const sakuraTypography: ThemeOptions['typography'] = {
     letterSpacing: 0.6,
     textTransform: 'uppercase',
   },
-  // Custom tertiary tier — count badges, slider ticks, tiny right-aligned meta.
   meta: {
     fontSize: '0.625rem',
     lineHeight: 1.3,
@@ -483,7 +471,7 @@ const sakuraTypography: ThemeOptions['typography'] = {
 export function createSakuraTheme(
   mode: 'light' | 'dark',
   extra?: ThemeOptions,
-  ...args: object[]
+  locale?: object
 ): Theme {
   const palette = mode === 'dark' ? SAKURA_DARK : SAKURA_LIGHT
   return createTheme(
@@ -494,6 +482,6 @@ export function createSakuraTheme(
       components: sakuraComponents,
     },
     extra ?? {},
-    ...args
+    locale ?? {}
   )
 }

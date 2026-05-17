@@ -2,8 +2,6 @@ import { styled, Tabs, type TabsProps } from '@mui/material'
 
 const StyledTabs = styled(Tabs)(({ theme }) => ({
   borderRight: `1px solid ${theme.palette.divider}`,
-  // Sidebar sits on `background.paper` (white in light, dark surface in dark)
-  // so it visually lifts off the cream/charcoal `background.default` page canvas.
   backgroundColor: theme.palette.background.paper,
   width: 76,
   flexShrink: 0,

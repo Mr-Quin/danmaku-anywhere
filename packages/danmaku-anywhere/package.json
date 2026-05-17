@@ -55,7 +55,6 @@
     "@emotion/styled": "^11.14.1",
     "@fontsource/noto-sans-sc": "^5.2.9",
     "@fontsource/plus-jakarta-sans": "^5.2.8",
-    "@fontsource/roboto": "^5.2.9",
     "@hookform/resolvers": "^5.2.2",
     "@mui/icons-material": "^7.3.5",
     "@mui/lab": "7.0.1-beta.19",

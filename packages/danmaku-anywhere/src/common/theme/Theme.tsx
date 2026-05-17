@@ -57,11 +57,7 @@ export const Theme = ({ children, options = {} }: ThemeProps) => {
       zh: zhCN,
       en: enUS,
     }
-    const locale = languageMap[i18n.language]
-
-    return locale
-      ? createSakuraTheme(colorScheme, options, locale)
-      : createSakuraTheme(colorScheme, options)
+    return createSakuraTheme(colorScheme, options, languageMap[i18n.language])
   }, [colorScheme, options, i18n.language])
 
   const themeContextValue = useMemo(
