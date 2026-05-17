@@ -23,7 +23,7 @@ export const OptionsPageToolBar = ({
   const goBack = onGoBack ?? useGoBack()
 
   const defaultLeftElement = (
-    <IconButton edge="start" onClick={goBack}>
+    <IconButton edge="start" color="inherit" onClick={goBack}>
       <ChevronLeft />
     </IconButton>
   )

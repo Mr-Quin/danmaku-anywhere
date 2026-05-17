@@ -31,6 +31,7 @@ export const ToggleListItemButton = ({
 }: ToggleListItemButtonProps) => {
   return (
     <ListItem
+      sx={{ px: 1 }}
       secondaryAction={
         isLoading ? (
           <CircularProgress size={24} sx={{ mr: 2 }} />

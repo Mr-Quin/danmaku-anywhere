@@ -66,7 +66,7 @@ export const AddFilter = ({
           variant="contained"
           type="submit"
           disabled={isPending || filterPattern.length === 0}
-          sx={{ minWidth: 80, height: 40 }}
+          sx={{ minWidth: 80 }}
         >
           + {t('common.add', 'Add')}
         </Button>

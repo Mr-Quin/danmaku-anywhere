@@ -88,6 +88,8 @@ export const HotkeyInput = ({ onKeyChange, value }: HotkeyInputProps) => {
       placeholder={t('optionsPage.hotkeys.enterKey', 'Enter key')}
       autoComplete="off"
       size="small"
+      fullWidth={false}
+      sx={{ width: 180 }}
       slotProps={{
         input: {
           endAdornment: [

@@ -17,6 +17,7 @@ export const LanguageListItem = () => {
 
   return (
     <ListItem
+      sx={{ px: 1 }}
       secondaryAction={
         <TextField
           size="small"
