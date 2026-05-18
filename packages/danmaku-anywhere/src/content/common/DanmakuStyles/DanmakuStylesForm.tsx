@@ -270,7 +270,7 @@ export const DanmakuStylesForm = ({
   return (
     <>
       <Stack spacing={1} mt={2}>
-        <Typography variant="h6" fontSize={18} component="div">
+        <Typography variant="h5" component="div">
           {t('stylePage.style', 'Style')}
         </Typography>
         <Divider />
@@ -381,7 +381,7 @@ export const DanmakuStylesForm = ({
       </Stack>
 
       <Stack spacing={1} mt={2}>
-        <Typography variant="h6" fontSize={18} component="div">
+        <Typography variant="h5" component="div">
           {t('stylePage.speedSettings', 'Speed Settings')}
         </Typography>
         <Divider />
@@ -452,7 +452,7 @@ export const DanmakuStylesForm = ({
       </Stack>
 
       <Stack spacing={1} mt={2}>
-        <Typography variant="h6" fontSize={18} component="div">
+        <Typography variant="h5" component="div">
           {t('stylePage.safeZones', 'Display Area')}
         </Typography>
         <Divider />
@@ -608,7 +608,7 @@ export const DanmakuStylesForm = ({
       </Stack>
 
       <Stack spacing={1} mt={2}>
-        <Typography variant="h6" fontSize={18} component="div">
+        <Typography variant="h5" component="div">
           {t('stylePage.specialDanmaku', 'Special Danmaku')}
         </Typography>
         <Divider />

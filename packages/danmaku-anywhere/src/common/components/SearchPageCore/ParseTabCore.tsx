@@ -188,7 +188,7 @@ export const ParseTabCore = ({ onImportSuccess }: ParseTabCoreProps) => {
         <>
           <Divider />
           <Box p={2}>
-            <Typography variant="h2" fontSize={18} gutterBottom>
+            <Typography variant="h5" gutterBottom>
               {t('searchPage.parse.parseResult', 'Parse Result')}
             </Typography>
             <Typography variant="caption" gutterBottom>

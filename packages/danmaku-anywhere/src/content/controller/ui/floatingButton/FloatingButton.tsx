@@ -28,13 +28,14 @@ interface FloatingButtonProps extends FabProps {
 
 const StyledFab = styled(Fab, {
   shouldForwardProp: (prop) => prop !== 'hover',
-})<{ hover: boolean }>(({ hover }) => {
-  return {
-    transition: 'transform 0.2s ease-in-out',
-    transform: hover ? 'rotate(45deg)' : 'rotate(0deg)',
-    touchAction: 'none',
-  }
-})
+})<{ hover: boolean }>(({ hover }) => ({
+  transition: 'transform 0.2s ease-in-out',
+  transform: hover ? 'rotate(45deg)' : 'rotate(0deg)',
+  touchAction: 'none',
+  '& .MuiSvgIcon-root': {
+    fontSize: '1.5rem',
+  },
+}))
 
 const useInitialAnchor = () => {
   const left = 32

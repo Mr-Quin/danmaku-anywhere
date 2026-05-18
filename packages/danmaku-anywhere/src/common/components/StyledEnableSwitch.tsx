@@ -1,18 +1,28 @@
-import { Switch, styled } from '@mui/material'
+import { alpha, Switch, styled } from '@mui/material'
 
-// The thumb and track color of the switch are invisible in light mode, so we need to set the color
 export const StyledEnableSwitch = styled(Switch)(({ theme }) => {
-  if (theme.palette.mode === 'dark') return {}
+  const isDark = theme.palette.mode === 'dark'
+  const onPrimary = theme.palette.primary.contrastText
+  const trackOff = alpha(onPrimary, isDark ? 0.45 : 0.55)
+  const trackOn = isDark
+    ? alpha('#FFFFFF', 0.55)
+    : theme.palette.background.default
 
   return {
-    '&.MuiSwitch-root': {
-      '& .MuiSwitch-switchBase.Mui-checked': {
-        '& .MuiSwitch-thumb': {
-          color: theme.palette.primary.light,
-        },
-        '+ .MuiSwitch-track': {
-          backgroundColor: theme.palette.background.default,
-        },
+    '&.MuiSwitch-root .MuiSwitch-track': {
+      backgroundColor: trackOff,
+      opacity: 1,
+    },
+    '&.MuiSwitch-root .MuiSwitch-thumb': {
+      color: onPrimary,
+    },
+    '&.MuiSwitch-root .MuiSwitch-switchBase.Mui-checked': {
+      '& .MuiSwitch-thumb': {
+        color: onPrimary,
+      },
+      '+ .MuiSwitch-track': {
+        backgroundColor: trackOn,
+        opacity: 1,
       },
     },
   }

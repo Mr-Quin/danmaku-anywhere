@@ -29,13 +29,7 @@ export const TabToolbar = ({
     }
     if (typeof title === 'string') {
       return (
-        <Typography
-          variant="h2"
-          fontSize={18}
-          sx={{ flexGrow: 1 }}
-          noWrap
-          title={title}
-        >
+        <Typography variant="h4" sx={{ flexGrow: 1 }} noWrap title={title}>
           {title}
         </Typography>
       )

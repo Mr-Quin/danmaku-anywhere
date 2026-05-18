@@ -1,4 +1,4 @@
-import { Container, Paper } from '@mui/material'
+import { Box, Container } from '@mui/material'
 import type { PropsWithChildren } from 'react'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 
@@ -20,15 +20,16 @@ export const PopupLayout = ({ children }: PropsWithChildren<{}>) => {
       }}
       fixed
     >
-      <Paper
+      <Box
         sx={{
           height: 1,
           overflow: 'hidden',
           position: 'relative',
+          bgcolor: 'background.default',
         }}
       >
         {children}
-      </Paper>
+      </Box>
     </Container>
   )
 }

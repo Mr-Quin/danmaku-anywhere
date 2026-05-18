@@ -1,6 +1,6 @@
 import { useMediaQuery } from '@mui/material'
 import type { ThemeOptions } from '@mui/material/styles'
-import { createTheme, ThemeProvider } from '@mui/material/styles'
+import { ThemeProvider } from '@mui/material/styles'
 import type { Localization } from '@mui/x-data-grid/internals'
 import { enUS, zhCN } from '@mui/x-data-grid/locales'
 import { produce } from 'immer'
@@ -9,14 +9,9 @@ import { useTranslation } from 'react-i18next'
 import type { UserTheme } from '@/common/options/extensionOptions/schema'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { ColorMode } from '@/common/theme/enums'
+import { createSakuraTheme } from '@/common/theme/sakura'
 
 import { tryCatchSync } from '@/common/utils/tryCatch'
-
-const defaultThemeOptions: ThemeOptions = {
-  palette: {
-    mode: 'dark',
-  },
-}
 
 type ThemeContext = UserTheme & {
   setColorMode: (colorScheme: ColorMode) => void
@@ -62,15 +57,7 @@ export const Theme = ({ children, options = {} }: ThemeProps) => {
       zh: zhCN,
       en: enUS,
     }
-
-    return createTheme(
-      produce(defaultThemeOptions, (draft) => {
-        Object.assign(draft, options)
-        if (!draft.palette) draft.palette = {}
-        draft.palette.mode = colorScheme
-      }),
-      languageMap[i18n.language]
-    )
+    return createSakuraTheme(colorScheme, options, languageMap[i18n.language])
   }, [colorScheme, options, i18n.language])
 
   const themeContextValue = useMemo(
