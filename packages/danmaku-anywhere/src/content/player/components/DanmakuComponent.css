@@ -2,6 +2,7 @@
   font-size: inherit;
   color: var(--color);
   white-space: nowrap;
+  line-height: 1;
 }
 
 .da-danmaku-top {
@@ -51,4 +52,30 @@
   -webkit-background-clip: text;
   text-shadow: none;
   -webkit-text-stroke: var(--gradient-stroke) transparent;
+}
+
+.dan-collapsed {
+  /* Whole-element pill. Tight padding; gradient/color overrides reset so the
+   * pill stays plain white regardless of the source comment's color. */
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  color: #fff;
+  -webkit-text-fill-color: #fff;
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+  background-clip: padding-box;
+  -webkit-background-clip: padding-box;
+}
+
+.dan-collapsed__count {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 0.75em;
+  opacity: 0.9;
+  transform-origin: center;
 }

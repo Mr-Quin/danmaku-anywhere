@@ -134,37 +134,32 @@ export const useFixedDanmaku = (manager: Manager<ParsedComment>) => {
   const trackCount = manager.trackCount
   const stack = new DanmakuStack(trackCount)
 
+  // `$destroyed` fires asynchronously after `manager.clear()`. Without this
+  // token guard, a stale destroy could decrement a freshly-assigned slot and
+  // produce overlapping danmaku after a seek.
+  const activeTokens = new Set<object>()
+
   const isFull = (placement: Placement) => stack.isFull(placement)
 
-  const getDanmakuOptions = (
+  function buildOptions(
+    slot: number,
     placement: Placement
-  ): PushFlexOptions<ParsedComment> => {
-    const slot = stack.push(placement)
-
+  ): PushFlexOptions<ParsedComment> {
+    const token = {}
+    activeTokens.add(token)
     return {
       position(danmaku, container) {
         const width = danmaku.getWidth()
         const height = danmaku.getHeight()
-
         const track = manager.getTrack(slot)
 
-        // TODO: maybe fix dimensions on the library side
-        /**
-         * Sometimes the dimensions are not available yet in this callback (returns 0, 0),
-         * in such cases we wait for the dimensions to be available by
-         * repeated checking for the dimensions. Typically the dimension will be available
-         * after a few frames.
-         * We hide the danmaku in the meantime by positioning it off-screen
-         */
+        // Lib quirk: dimensions can read as 0 here for the first few frames.
+        // Hide off-screen and retry on rAF until they're available.
+        // TODO: fix dimensions on the library side.
         if (width === 0 || height === 0) {
           waitForDimensions(danmaku, container.width, track.location.middle)
-
-          return {
-            x: container.width,
-            y: container.height,
-          }
+          return { x: container.width, y: container.height }
         }
-
         return {
           x: (container.width - width) * 0.5,
           y: track.location.middle - height * 0.5,
@@ -172,11 +167,19 @@ export const useFixedDanmaku = (manager: Manager<ParsedComment>) => {
       },
       plugin: {
         destroyed: () => {
+          if (!activeTokens.delete(token)) return
           stack.remove(slot, placement)
         },
       },
     }
   }
+
+  const getDanmakuOptions = (placement: Placement) =>
+    buildOptions(stack.push(placement), placement)
+
+  /** Pills bypass the `isFull` gate but share the top stack so a regular top
+   *  can't claim a track already held by a pill. */
+  const getPillOptions = () => buildOptions(stack.push('top'), 'top')
 
   const plugin: ManagerPlugin<ParsedComment> = {
     name: 'fixed-danmaku',
@@ -189,10 +192,8 @@ export const useFixedDanmaku = (manager: Manager<ParsedComment>) => {
     format() {
       stack.setTrackCount(manager.trackCount)
 
-      // recalculate the position of all danmaku when the container size changes
       manager.each((danmaku) => {
         if (danmaku.type === 'facile') return
-
         danmaku._updatePosition({
           x: (manager.container.width - danmaku.getWidth()) * 0.5,
         })
@@ -200,6 +201,7 @@ export const useFixedDanmaku = (manager: Manager<ParsedComment>) => {
     },
     clear() {
       stack.clear()
+      activeTokens.clear()
     },
   }
 
@@ -207,5 +209,6 @@ export const useFixedDanmaku = (manager: Manager<ParsedComment>) => {
     plugin,
     isFull,
     getDanmakuOptions,
+    getPillOptions,
   }
 }

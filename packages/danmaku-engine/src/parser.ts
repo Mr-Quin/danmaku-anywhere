@@ -4,7 +4,8 @@ import {
   parseCommentGradient,
 } from '@danmaku-anywhere/danmaku-converter'
 
-import type { DanmakuFilter, DedupConfig } from './options'
+import type { CollapseAnnotation } from './collapse/types'
+import type { DanmakuFilter } from './options'
 
 // copied from danmaku
 export interface ParsedComment {
@@ -25,6 +26,7 @@ export interface ParsedComment {
     end: string
     stroke: boolean
   }
+  collapse?: CollapseAnnotation
 }
 
 export interface DanmakuOption {
@@ -88,7 +90,11 @@ export const applyFilter = (comment: string, filters: DanmakuFilter[]) => {
       case 'text':
         return comment.includes(value)
       case 'regex':
-        return new RegExp(value).test(comment)
+        try {
+          return new RegExp(value).test(comment)
+        } catch {
+          return false
+        }
     }
   })
 }
@@ -100,64 +106,4 @@ export const filterComments = (
   return comments.filter((comment) => {
     return !applyFilter(comment.m, filters)
   })
-}
-
-export function dedupComments(
-  comments: CommentEntity[],
-  config: DedupConfig
-): CommentEntity[] {
-  if (!config.enabled) {
-    return comments
-  }
-
-  if (comments.length <= 1) {
-    return comments
-  }
-
-  // Create index pairs so we can sort by time and break ties by original order
-  const indexed = comments.map((c, i) => ({
-    comment: c,
-    time: parseCommentEntityP(c.p).time,
-    originalIndex: i,
-  }))
-
-  // Deterministic sort by time, then original order for equal timestamps
-  indexed.sort((a, b) => a.time - b.time || a.originalIndex - b.originalIndex)
-
-  // Track which original indices are kept
-  const kept = new Set<number>()
-  const lastKeptTime = new Map<string, number>()
-
-  // Cache whitelist results per message text to avoid recompiling regexes
-  const whitelistCache = new Map<string, boolean>()
-  const isWhitelisted = (text: string): boolean => {
-    const cached = whitelistCache.get(text)
-    if (cached !== undefined) {
-      return cached
-    }
-    const matched = applyFilter(text, config.whitelist)
-    whitelistCache.set(text, matched)
-    return matched
-  }
-
-  for (const { comment, time, originalIndex } of indexed) {
-    // Check if whitelisted (exempt from dedup)
-    if (isWhitelisted(comment.m)) {
-      kept.add(originalIndex)
-      continue
-    }
-
-    const prev = lastKeptTime.get(comment.m)
-    if (prev !== undefined && Math.abs(time - prev) <= config.tolerance) {
-      // Duplicate within tolerance — drop
-      continue
-    }
-
-    // Keep this comment
-    kept.add(originalIndex)
-    lastKeptTime.set(comment.m, time)
-  }
-
-  // Preserve original order
-  return comments.filter((_, i) => kept.has(i))
 }

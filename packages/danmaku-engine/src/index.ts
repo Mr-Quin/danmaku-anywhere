@@ -1,3 +1,4 @@
+export * from './collapse'
 export * from './DanmakuRenderer'
 export { mapIter, sampleByTime, sampleFromBucket } from './iterator'
 export * from './options'

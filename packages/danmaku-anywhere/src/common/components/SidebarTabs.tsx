@@ -18,6 +18,7 @@ const StyledTabs = styled(Tabs)(({ theme }) => ({
   },
   '& .MuiButtonBase-root': {
     minHeight: 0,
+    minWidth: 76,
   },
 }))
 

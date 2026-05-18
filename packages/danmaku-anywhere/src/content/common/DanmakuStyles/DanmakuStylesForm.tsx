@@ -571,7 +571,7 @@ export const DanmakuStylesForm = ({
               justifyContent="space-between"
             >
               <div>
-                <Typography gutterBottom>
+                <Typography gutterBottom variant="body2" fontWeight={600}>
                   {t('stylePage.distribution', 'Distribution')}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">

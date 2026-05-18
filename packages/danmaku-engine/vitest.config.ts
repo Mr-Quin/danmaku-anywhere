@@ -1,5 +1,7 @@
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
-  test: {},
+  test: {
+    exclude: ['**/node_modules/**', '**/dist/**'],
+  },
 })
