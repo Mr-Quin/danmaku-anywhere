@@ -59,7 +59,8 @@
   "bookmark": {
     "add": "关注",
     "refreshEpisodes": "刷新剧集",
-    "remove": "已关注"
+    "remove": "已关注",
+    "tooltip": "关注此番剧后即可在弹幕库中查看全部剧集，包括尚未下载的。"
   },
   "common": {
     "acknowledge": "知道了",

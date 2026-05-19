@@ -10,7 +10,6 @@ import { IconButton } from '@mui/material'
 import type { RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
-import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
@@ -27,6 +26,8 @@ export interface SearchPageCoreProps {
   onSearchTermChange: (term: string) => void
   dragOverlayPortal?: HTMLElement | null
   ref?: RefObject<HTMLDivElement | null>
+  showHotkey?: boolean
+  focusToken?: number
 }
 
 export const SearchPageCore = ({
@@ -36,6 +37,8 @@ export const SearchPageCore = ({
   onSearchTermChange,
   dragOverlayPortal,
   ref,
+  showHotkey,
+  focusToken,
 }: SearchPageCoreProps) => {
   const { t } = useTranslation()
   const dialog = useDialog()
@@ -62,14 +65,14 @@ export const SearchPageCore = ({
         </IconButton>
       </TabToolbar>
 
-      <ScrollBox sx={{ overflow: 'auto', flex: 1, minHeight: 0 }}>
-        <SearchForm
-          searchTerm={searchTerm}
-          onSearchTermChange={onSearchTermChange}
-          onSeasonClick={onSeasonClick}
-          onImportSuccess={onImportSuccess}
-        />
-      </ScrollBox>
+      <SearchForm
+        searchTerm={searchTerm}
+        onSearchTermChange={onSearchTermChange}
+        onSeasonClick={onSeasonClick}
+        onImportSuccess={onImportSuccess}
+        showHotkey={showHotkey}
+        focusToken={focusToken}
+      />
     </TabLayout>
   )
 }

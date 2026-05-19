@@ -21,6 +21,22 @@ interface SeasonResultsListProps {
 
 const SKELETON_ROWS = 4
 
+const CenterFill = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <Box
+      sx={{
+        flex: 1,
+        minHeight: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {children}
+    </Box>
+  )
+}
+
 export function SeasonResultsList({
   isLoading,
   data,
@@ -42,27 +58,31 @@ export function SeasonResultsList({
 
   if (error) {
     return (
-      <ErrorMessage
-        message={error}
-        size={200}
-        beforeContent={
-          <Button onClick={onRetry} variant="text">
-            {t('searchPage.retrySearch', 'Retry')}
-          </Button>
-        }
-      />
+      <CenterFill>
+        <ErrorMessage
+          message={error}
+          size={160}
+          beforeContent={
+            <Button onClick={onRetry} variant="text">
+              {t('searchPage.retrySearch', 'Retry')}
+            </Button>
+          }
+        />
+      </CenterFill>
     )
   }
 
   if (!data || data.length === 0) {
     return (
-      <NothingHere
-        message={t(
-          'searchPage.error.noResultFound',
-          'No results found, try a different search term'
-        )}
-        size={200}
-      />
+      <CenterFill>
+        <NothingHere
+          message={t(
+            'searchPage.error.noResultFound',
+            'No results found, try a different search term'
+          )}
+          size={160}
+        />
+      </CenterFill>
     )
   }
 

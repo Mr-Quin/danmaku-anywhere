@@ -22,7 +22,8 @@ import { useShowAddSeasonMapDialog } from './AddSeasonMapDialog'
 
 export const SearchPage = (): React.ReactElement | null => {
   const { t } = useTranslation()
-  const { searchTitle, setSearchTitle, highlighterPortal } = usePopup()
+  const { searchTitle, setSearchTitle, highlighterPortal, searchFocusToken } =
+    usePopup()
   const { mediaInfo } = useStore.use.integration()
   const { enabledProviders } = useProviderConfig()
   const { mountDanmaku } = useLoadDanmaku()
@@ -111,6 +112,8 @@ export const SearchPage = (): React.ReactElement | null => {
       onSeasonClick={handleSeasonClick}
       onImportSuccess={(episode) => mountDanmaku([episode])}
       dragOverlayPortal={highlighterPortal}
+      showHotkey
+      focusToken={searchFocusToken}
     />
   )
 }

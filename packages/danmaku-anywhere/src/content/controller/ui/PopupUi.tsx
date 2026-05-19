@@ -1,18 +1,36 @@
 import type { PopoverVirtualElement } from '@mui/material'
 import { ClickAwayListener } from '@mui/material'
-import { Suspense, useRef, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
-import { usePopup } from '@/content/controller/store/popupStore'
+import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 import { ControllerWindow } from '@/content/controller/ui/floatingPanel/ControllerWindow'
 import { CONTROLLER_ROOT_ID } from '../common/constants/rootId'
 import { useStore } from '../store/store'
 import { FloatingButton } from './floatingButton/FloatingButton'
 
 export const PopupUi = () => {
-  const { isOpen, toggleOpen, lock } = usePopup()
+  const { isOpen, toggleOpen, lock, open, triggerSearchFocus } = usePopup()
   const isPicking = useStore((state) => state.integrationForm.isPicking)
   const { data: options } = useExtensionOptions()
   const { showFloatingButton } = options
+
+  useEffect(() => {
+    function handler(event: KeyboardEvent) {
+      if (
+        event.altKey &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        event.key.toLowerCase() === 'k'
+      ) {
+        event.preventDefault()
+        event.stopPropagation()
+        open({ tab: PopupTab.Search })
+        triggerSearchFocus()
+      }
+    }
+    window.addEventListener('keydown', handler, true)
+    return () => window.removeEventListener('keydown', handler, true)
+  }, [open, triggerSearchFocus])
 
   const fallbackAnchorEl = useRef<HTMLButtonElement | null>(null)
 

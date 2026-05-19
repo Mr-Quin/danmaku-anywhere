@@ -53,7 +53,7 @@ export const MacCmsEpisodeListItem = ({
         display: 'flex',
         alignItems: 'center',
         gap: 1,
-        padding: '3px 10px',
+        padding: '3px 6px',
         borderRadius: 0.75,
         textAlign: 'left',
         '&:hover': { bgcolor: 'action.hover' },
@@ -64,7 +64,7 @@ export const MacCmsEpisodeListItem = ({
       <Typography
         component="span"
         sx={{
-          width: 26,
+          width: 18,
           flexShrink: 0,
           textAlign: 'right',
           fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',

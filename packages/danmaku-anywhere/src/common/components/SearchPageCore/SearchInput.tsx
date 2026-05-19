@@ -31,11 +31,13 @@ interface SearchInputProps {
   onSubmit: (value: string) => void
   inputRef?: RefObject<HTMLInputElement | null>
   urlMode?: boolean
+  showHotkey?: boolean
+  focusToken?: number
 }
 
 const HOTKEY_LABEL = navigator.platform.toLowerCase().includes('mac')
-  ? '⌘K'
-  : 'Ctrl K'
+  ? '⌥K'
+  : 'Alt K'
 
 export function SearchInput({
   value,
@@ -43,6 +45,8 @@ export function SearchInput({
   onSubmit,
   inputRef,
   urlMode,
+  showHotkey,
+  focusToken,
 }: SearchInputProps) {
   const { t } = useTranslation()
   const { entries, removeEntry, clearHistory } = useSearchHistory()
@@ -50,17 +54,13 @@ export function SearchInput({
   const localInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
-    function handler(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault()
-        const target = inputRef?.current ?? localInputRef.current
-        target?.focus()
-        target?.select()
-      }
+    if (focusToken === undefined || focusToken === 0) {
+      return
     }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [inputRef])
+    const target = inputRef?.current ?? localInputRef.current
+    target?.focus()
+    target?.select()
+  }, [focusToken, inputRef])
 
   const handleAutocompleteChange = (
     event: SyntheticEvent,
@@ -76,12 +76,14 @@ export function SearchInput({
   }
 
   const providerLabel = urlMode ? getUrlProviderLabel(value) : undefined
+  const historyEnabled = !urlMode
 
   return (
     <Autocomplete
       freeSolo
-      openOnFocus
-      options={entries}
+      openOnFocus={historyEnabled}
+      disablePortal={false}
+      options={historyEnabled ? entries : []}
       inputValue={value}
       onInputChange={(_event, next, reason) => {
         if (reason !== 'reset') {
@@ -104,13 +106,14 @@ export function SearchInput({
         popper: { sx: { zIndex: 1403 } },
         listbox: {
           sx: (theme) => ({
-            py: 0.5,
+            py: 0,
+            pb: 0.5,
             maxHeight: 220,
             ...getScrollBarProps(theme),
           }),
         },
         paper: {
-          hasEntries: entries.length > 0,
+          hasEntries: historyEnabled && entries.length > 0,
           onClearHistory: () => clearHistory.mutate(),
         },
       }}
@@ -235,7 +238,7 @@ export function SearchInput({
                 </InputAdornment>
               ),
               endAdornment:
-                !value && !urlMode ? (
+                showHotkey && !value && !urlMode ? (
                   <InputAdornment position="end">
                     <Typography
                       component="span"
@@ -325,7 +328,7 @@ function HistoryDropdownPaper({
             alignItems: 'center',
             gap: 0.75,
             px: 1.25,
-            py: 0.75,
+            py: 0.5,
             color: theme.palette.text.secondary,
           })}
         >

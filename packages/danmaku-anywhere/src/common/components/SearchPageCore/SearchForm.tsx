@@ -10,6 +10,7 @@ import { Box, Button, Stack, Typography } from '@mui/material'
 import { useQueries } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { Logger } from '@/common/Logger'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
@@ -61,6 +62,8 @@ interface SearchFormProps {
   onSearchTermChange: (term: string) => void
   onSeasonClick: (season: SeasonOrInsert, provider: ProviderConfig) => void
   onImportSuccess?: (episode: WithSeason<Episode>) => void
+  showHotkey?: boolean
+  focusToken?: number
 }
 
 export function SearchForm({
@@ -68,6 +71,8 @@ export function SearchForm({
   onSearchTermChange,
   onSeasonClick,
   onImportSuccess,
+  showHotkey,
+  focusToken,
 }: SearchFormProps) {
   const { t } = useTranslation()
 
@@ -187,7 +192,12 @@ export function SearchForm({
     <Box
       component="form"
       onSubmit={handleSubmit}
-      sx={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        minHeight: 0,
+      }}
     >
       <Stack
         spacing={1}
@@ -205,6 +215,8 @@ export function SearchForm({
               onChange={onSearchTermChange}
               onSubmit={handleInputSubmit}
               urlMode={isUrl}
+              showHotkey={showHotkey}
+              focusToken={focusToken}
             />
           </Box>
           {isUrl ? (
@@ -256,7 +268,17 @@ export function SearchForm({
         )}
       </Stack>
 
-      <Box sx={{ flex: 1, minHeight: 0, px: 1.25, pb: 1.5 }}>
+      <ScrollBox
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          overflow: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          px: 1.25,
+          pb: 1.5,
+        }}
+      >
         {isUrl ? (
           <UrlParseSection
             url={searchTerm}
@@ -280,7 +302,7 @@ export function SearchForm({
         ) : (
           <SearchMascot />
         )}
-      </Box>
+      </ScrollBox>
     </Box>
   )
 }

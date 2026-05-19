@@ -59,7 +59,8 @@
   "bookmark": {
     "add": "Follow",
     "refreshEpisodes": "Refresh Episodes",
-    "remove": "Following"
+    "remove": "Following",
+    "tooltip": "Save to your library to see all episodes anytime — including ones you have not downloaded yet."
   },
   "common": {
     "acknowledge": "Ok",

@@ -29,7 +29,11 @@ const THUMB_SIZE = 24
 function EpisodeThumb({ src }: { src?: string }) {
   const image = useImage(src ?? '')
 
-  if (src && image.isPending) {
+  if (!src) {
+    return null
+  }
+
+  if (image.isPending) {
     return (
       <Skeleton
         variant="rounded"
@@ -40,33 +44,22 @@ function EpisodeThumb({ src }: { src?: string }) {
     )
   }
 
-  if (image.data) {
-    return (
-      <Box
-        component="img"
-        src={image.data}
-        alt=""
-        sx={{
-          width: THUMB_SIZE,
-          height: THUMB_SIZE,
-          borderRadius: 0.5,
-          objectFit: 'cover',
-          flexShrink: 0,
-        }}
-      />
-    )
+  if (!image.data) {
+    return null
   }
 
   return (
     <Box
-      sx={(theme) => ({
+      component="img"
+      src={image.data}
+      alt=""
+      sx={{
         width: THUMB_SIZE,
         height: THUMB_SIZE,
         borderRadius: 0.5,
+        objectFit: 'cover',
         flexShrink: 0,
-        backgroundColor: theme.palette.paperAlt,
-        border: `1px solid ${theme.palette.divider}`,
-      })}
+      }}
     />
   )
 }
@@ -144,7 +137,7 @@ export function BaseEpisodeListItem<
         display: 'flex',
         alignItems: 'center',
         gap: 1,
-        padding: '3px 10px',
+        padding: '3px 6px',
         borderRadius: 0.75,
         textAlign: 'left',
         '&:hover': { bgcolor: 'action.hover' },
@@ -155,7 +148,7 @@ export function BaseEpisodeListItem<
       <Typography
         component="span"
         sx={{
-          width: 26,
+          width: 18,
           flexShrink: 0,
           textAlign: 'right',
           fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
