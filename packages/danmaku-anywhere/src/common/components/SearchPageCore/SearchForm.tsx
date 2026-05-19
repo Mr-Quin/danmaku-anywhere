@@ -241,11 +241,17 @@ export function SearchForm({
           />
         )}
 
-        {!isUrl && committedSearchTerm && typeof activeCount === 'number' && (
-          <Typography variant="overline" color="text.secondary">
-            {t('searchPage.resultsCount', '{{count}} results', {
-              count: activeCount,
-            })}
+        {!isUrl && committedSearchTerm && (
+          <Typography
+            variant="overline"
+            color="text.secondary"
+            sx={{ minHeight: 16, lineHeight: '16px' }}
+          >
+            {typeof activeCount === 'number'
+              ? t('searchPage.resultsCount', '{{count}} results', {
+                  count: activeCount,
+                })
+              : ' '}
           </Typography>
         )}
       </Stack>

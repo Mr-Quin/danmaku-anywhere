@@ -610,12 +610,14 @@
       "mappingFailed": "Failed to save mapping：{{message}}",
       "mappingSuccess": "Mapping saved successfully"
     },
+    "episodesHint": "Tap an episode to download. Downloaded ones show in your library.",
     "epsCount_one": "{{count}} eps",
     "epsCount_other": "{{count}} eps",
     "error": {
       "noProviders": "No danmaku sources enabled, please enable in settings",
       "noResultFound": "No results found, try a different search term"
     },
+    "filterEpisodes": "Filter episodes…",
     "history": {
       "clear": "Clear",
       "recent": "Recent"
@@ -636,6 +638,8 @@
     "search": "Search",
     "searchPlaceholder": "Search title or paste a video URL…",
     "settings": {
+      "simplifiedHelper": "Convert search terms to Simplified Chinese before sending.",
+      "sources": "Sources",
       "title": "Settings"
     },
     "title": "Search",

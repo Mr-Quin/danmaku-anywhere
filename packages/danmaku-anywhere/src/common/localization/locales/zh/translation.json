@@ -594,11 +594,13 @@
       "mappingFailed": "标题映射失败：{{message}}",
       "mappingSuccess": "标题映射成功"
     },
+    "episodesHint": "点击剧集下载弹幕。已下载的剧集会显示在弹幕库中。",
     "epsCount_other": "{{count}} 集",
     "error": {
       "noProviders": "没有启用的弹幕来源，请在设置中启用",
       "noResultFound": "没有找到结果, 请尝试其他关键词"
     },
+    "filterEpisodes": "筛选剧集…",
     "history": {
       "clear": "清除",
       "recent": "最近"
@@ -618,6 +620,8 @@
     "search": "搜索",
     "searchPlaceholder": "搜索标题或粘贴视频链接…",
     "settings": {
+      "simplifiedHelper": "搜索前将关键词转换为简体中文。",
+      "sources": "来源",
       "title": "设置"
     },
     "title": "搜索",

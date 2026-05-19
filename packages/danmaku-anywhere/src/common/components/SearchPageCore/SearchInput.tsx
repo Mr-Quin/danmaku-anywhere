@@ -312,7 +312,7 @@ function HistoryDropdownPaper({
       sx={(theme) => ({
         backgroundColor: theme.palette.background.paper,
         border: `1px solid ${theme.palette.divider}`,
-        borderRadius: 1.5,
+        borderRadius: 1,
         boxShadow: '0 12px 32px -16px rgba(10,5,20,.25)',
         overflow: 'hidden',
         marginTop: 0.5,
