@@ -1,8 +1,10 @@
-import { Close, Search } from '@mui/icons-material'
+import { Close, Link, Search } from '@mui/icons-material'
 import {
   Autocomplete,
   alpha,
   Box,
+  Button,
+  Chip,
   IconButton,
   InputAdornment,
   TextField,
@@ -14,12 +16,14 @@ import { getScrollBarProps } from '@/common/components/layout/ScrollBox'
 import { useSearchHistory } from '@/common/options/searchHistory/useSearchHistory'
 import { matchWithPinyin } from '@/common/utils/utils'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
+import { getUrlProviderLabel } from './UrlParseSection'
 
 interface SearchInputProps {
   value: string
   onChange: (value: string) => void
   onSubmit: (value: string) => void
   inputRef?: RefObject<HTMLInputElement | null>
+  urlMode?: boolean
 }
 
 const HOTKEY_LABEL = navigator.platform.toLowerCase().includes('mac')
@@ -31,9 +35,10 @@ export function SearchInput({
   onChange,
   onSubmit,
   inputRef,
+  urlMode,
 }: SearchInputProps) {
   const { t } = useTranslation()
-  const { entries, removeEntry } = useSearchHistory()
+  const { entries, removeEntry, clearHistory } = useSearchHistory()
 
   const localInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -63,6 +68,18 @@ export function SearchInput({
     }
   }
 
+  const providerLabel = urlMode ? getUrlProviderLabel(value) : undefined
+
+  const PaperComponent = (paperProps: React.HTMLAttributes<HTMLDivElement>) => {
+    return (
+      <HistoryDropdownPaper
+        {...paperProps}
+        hasEntries={entries.length > 0}
+        onClearHistory={() => clearHistory.mutate()}
+      />
+    )
+  }
+
   return (
     <Autocomplete
       freeSolo
@@ -83,6 +100,19 @@ export function SearchInput({
           return matchWithPinyin(option, state.inputValue)
         })
       }}
+      slots={{
+        paper: PaperComponent,
+      }}
+      slotProps={{
+        popper: { sx: { zIndex: 1403 } },
+        listbox: {
+          sx: (theme) => ({
+            py: 0.5,
+            maxHeight: 220,
+            ...getScrollBarProps(theme),
+          }),
+        },
+      }}
       renderOption={(props, option) => {
         return (
           <li
@@ -96,18 +126,41 @@ export function SearchInput({
                 alignItems: 'center',
                 width: '100%',
                 justifyContent: 'space-between',
+                gap: 1,
               }}
             >
               <Box
-                sx={{
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
+                sx={(theme) => ({
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.75,
                   flex: 1,
-                  fontSize: 13,
-                }}
+                  minWidth: 0,
+                  color: theme.palette.text.primary,
+                })}
               >
-                {option}
+                <Box
+                  component="span"
+                  sx={(theme) => ({
+                    display: 'inline-flex',
+                    color: theme.palette.text.secondary,
+                    transform: 'scaleX(-1)',
+                  })}
+                  aria-hidden
+                >
+                  <Search sx={{ fontSize: 12 }} />
+                </Box>
+                <Box
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    flex: 1,
+                    fontSize: 13,
+                  }}
+                >
+                  {option}
+                </Box>
               </Box>
               <IconButton
                 size="small"
@@ -122,7 +175,7 @@ export function SearchInput({
                   e.preventDefault()
                   removeEntry.mutate(option)
                 }}
-                sx={{ ml: 1, opacity: 0.5, '&:hover': { opacity: 1 } }}
+                sx={{ opacity: 0.5, '&:hover': { opacity: 1 } }}
               >
                 <Close fontSize="small" />
               </IconButton>
@@ -132,16 +185,6 @@ export function SearchInput({
       }}
       size="small"
       fullWidth
-      slotProps={{
-        popper: { sx: { zIndex: 1403 } },
-        listbox: {
-          sx: (theme) => ({
-            py: 0.5,
-            maxHeight: 220,
-            ...getScrollBarProps(theme),
-          }),
-        },
-      }}
       renderInput={(params) => (
         <TextField
           {...params}
@@ -162,41 +205,62 @@ export function SearchInput({
             htmlInput: {
               ...params.inputProps,
               'data-testid': 'search-input',
+              style: urlMode
+                ? {
+                    fontFamily:
+                      'ui-monospace, SFMono-Regular, Menlo, monospace',
+                    fontSize: 12,
+                  }
+                : undefined,
             },
             input: {
               ...params.InputProps,
-              startAdornment: (
+              startAdornment: urlMode ? (
+                <InputAdornment position="start" sx={{ mr: 0.5 }}>
+                  {providerLabel ? (
+                    <Chip
+                      label={t(providerLabel)}
+                      color="secondary"
+                      size="small"
+                      sx={{ height: 18, fontSize: 10 }}
+                    />
+                  ) : (
+                    <Link sx={{ fontSize: 14, color: 'text.secondary' }} />
+                  )}
+                </InputAdornment>
+              ) : (
                 <InputAdornment position="start" sx={{ mr: 0.5 }}>
                   <Search sx={{ fontSize: 16, color: 'text.secondary' }} />
                 </InputAdornment>
               ),
-              endAdornment: !value ? (
-                <InputAdornment position="end">
-                  <Typography
-                    component="span"
-                    sx={(theme) => ({
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      px: 0.75,
-                      py: 0.125,
-                      borderRadius: 1,
-                      bgcolor: 'background.paper',
-                      border: `1px solid ${theme.palette.divider}`,
-                      fontFamily:
-                        'ui-monospace, SFMono-Regular, Menlo, monospace',
-                      fontSize: 11,
-                      fontWeight: 700,
-                      color: 'text.secondary',
-                      letterSpacing: 0.4,
-                      lineHeight: 1.4,
-                    })}
-                  >
-                    {HOTKEY_LABEL}
-                  </Typography>
-                </InputAdornment>
-              ) : (
-                params.InputProps.endAdornment
-              ),
+              endAdornment:
+                !value && !urlMode ? (
+                  <InputAdornment position="end">
+                    <Typography
+                      component="span"
+                      sx={(theme) => ({
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        px: 0.75,
+                        py: 0.125,
+                        borderRadius: 1,
+                        bgcolor: 'background.paper',
+                        border: `1px solid ${theme.palette.divider}`,
+                        fontFamily:
+                          'ui-monospace, SFMono-Regular, Menlo, monospace',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: 'text.secondary',
+                        letterSpacing: 0.4,
+                        lineHeight: 1.4,
+                      })}
+                    >
+                      {HOTKEY_LABEL}
+                    </Typography>
+                  </InputAdornment>
+                ) : (
+                  params.InputProps.endAdornment
+                ),
             },
           }}
           sx={(theme) => ({
@@ -210,6 +274,12 @@ export function SearchInput({
                 borderColor: theme.palette.primary.main,
                 borderWidth: 1,
               },
+              ...(urlMode && {
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: theme.palette.primary.main,
+                },
+                boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.18)}`,
+              }),
             },
           })}
           {...withStopPropagation({
@@ -218,5 +288,75 @@ export function SearchInput({
         />
       )}
     />
+  )
+}
+
+interface HistoryDropdownPaperProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  onClearHistory?: () => void
+  hasEntries?: boolean
+}
+
+function HistoryDropdownPaper({
+  onClearHistory,
+  hasEntries,
+  children,
+  ...rest
+}: HistoryDropdownPaperProps) {
+  const { t } = useTranslation()
+
+  return (
+    <Box
+      {...rest}
+      sx={(theme) => ({
+        backgroundColor: theme.palette.background.paper,
+        border: `1px solid ${theme.palette.divider}`,
+        borderRadius: 1.5,
+        boxShadow: '0 12px 32px -16px rgba(10,5,20,.25)',
+        overflow: 'hidden',
+        marginTop: 0.5,
+      })}
+    >
+      {hasEntries && (
+        <Box
+          sx={(theme) => ({
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.75,
+            px: 1.25,
+            py: 0.75,
+            color: theme.palette.text.secondary,
+          })}
+        >
+          <Typography
+            variant="overline"
+            sx={{ flex: 1, color: 'text.secondary' }}
+          >
+            {t('searchPage.history.recent', 'Recent')}
+          </Typography>
+          <Button
+            size="small"
+            variant="text"
+            color="inherit"
+            onMouseDown={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              onClearHistory?.()
+            }}
+            sx={{
+              minWidth: 0,
+              minHeight: 0,
+              padding: 0,
+              fontSize: 11,
+              textTransform: 'none',
+              letterSpacing: 0,
+            }}
+          >
+            {t('searchPage.history.clear', 'Clear')}
+          </Button>
+        </Box>
+      )}
+      {children}
+    </Box>
   )
 }

@@ -57,9 +57,9 @@
     "title": "标题"
   },
   "bookmark": {
-    "add": "收藏",
+    "add": "关注",
     "refreshEpisodes": "刷新剧集",
-    "remove": "取消收藏"
+    "remove": "已关注"
   },
   "common": {
     "acknowledge": "知道了",
@@ -599,28 +599,24 @@
       "noProviders": "没有启用的弹幕来源，请在设置中启用",
       "noResultFound": "没有找到结果, 请尝试其他关键词"
     },
-    "name": "搜索番剧",
+    "history": {
+      "clear": "清除",
+      "recent": "最近"
+    },
     "parse": {
       "alert": {
         "importSuccess": "导入成功",
         "parseError": "解析失败"
       },
-      "error": {
-        "invalidUrl": "无效的链接"
-      },
       "import": "获取弹幕",
-      "name": "解析链接",
       "parse": "解析",
-      "parseResult": "解析结果",
-      "tooltip": {
-        "videoUrl": "仅支持解析番剧，电影等非用户上传类视频。支持来源：哔哩哔哩、腾讯视频"
-      },
-      "videoUrl": "视频链接"
+      "parsed": "已解析",
+      "urlDetected": "检测到链接 — 改为解析"
     },
     "resultsCount_other": "{{count}} 个结果",
     "retrySearch": "重试",
     "search": "搜索",
-    "searchPlaceholder": "番剧标题...",
+    "searchPlaceholder": "搜索标题或粘贴视频链接…",
     "settings": {
       "title": "设置"
     },

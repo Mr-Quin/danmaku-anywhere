@@ -1,9 +1,11 @@
 import type {
   CustomSeason,
+  Episode,
   Season,
   SeasonInsert,
+  WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Search } from '@mui/icons-material'
+import { Download, Search } from '@mui/icons-material'
 import { Box, Button, Stack, Typography } from '@mui/material'
 import { useQueries } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
@@ -21,6 +23,7 @@ import { SearchInput } from './SearchInput'
 import { SearchMascot } from './SearchMascot'
 import { SeasonResultsList } from './SeasonResultsList'
 import { SourceFilterChips } from './SourceFilterChips'
+import { isParseableUrl, UrlParseSection } from './UrlParseSection'
 
 type SeasonOrInsert = Season | SeasonInsert | CustomSeason
 
@@ -57,12 +60,14 @@ interface SearchFormProps {
   searchTerm: string
   onSearchTermChange: (term: string) => void
   onSeasonClick: (season: SeasonOrInsert, provider: ProviderConfig) => void
+  onImportSuccess?: (episode: WithSeason<Episode>) => void
 }
 
 export function SearchForm({
   searchTerm,
   onSearchTermChange,
   onSeasonClick,
+  onImportSuccess,
 }: SearchFormProps) {
   const { t } = useTranslation()
 
@@ -79,6 +84,9 @@ export function SearchForm({
   const [activeProviderId, setActiveProviderId] = useState<string | undefined>(
     enabledProviders[0]?.id
   )
+  const [parseSubmitToken, setParseSubmitToken] = useState(0)
+
+  const isUrl = isParseableUrl(searchTerm)
 
   useEffect(() => {
     if (
@@ -99,7 +107,7 @@ export function SearchForm({
       }),
       queryFn: () =>
         runSeasonSearch(provider.id, committedSearchTerm, unknownErrorMessage),
-      enabled: !!committedSearchTerm,
+      enabled: !!committedSearchTerm && !isUrl,
       staleTime: Number.POSITIVE_INFINITY,
       retry: false,
     })),
@@ -129,7 +137,7 @@ export function SearchForm({
     : undefined
   const activeProvider = enabledProviders.find((p) => p.id === activeProviderId)
 
-  const handleSearch = (keyword?: string) => {
+  const handleSearchSubmit = (keyword?: string) => {
     const raw = keyword ?? searchTerm
     const trimmed = raw.trim()
     const processed = extOptions.searchUsingSimplified
@@ -146,6 +154,30 @@ export function SearchForm({
     getTrackingService().track('search', { keyword: processed })
   }
 
+  const handleParseSubmit = () => {
+    if (!searchTerm.trim()) {
+      return
+    }
+    setParseSubmitToken((token) => token + 1)
+  }
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (isUrl) {
+      handleParseSubmit()
+    } else {
+      handleSearchSubmit()
+    }
+  }
+
+  const handleInputSubmit = (value: string) => {
+    if (isParseableUrl(value)) {
+      handleParseSubmit()
+    } else {
+      handleSearchSubmit(value)
+    }
+  }
+
   const activeCount =
     activeQuery?.data?.success === true
       ? activeQuery.data.data.length
@@ -154,10 +186,7 @@ export function SearchForm({
   return (
     <Box
       component="form"
-      onSubmit={(e) => {
-        e.preventDefault()
-        handleSearch()
-      }}
+      onSubmit={handleSubmit}
       sx={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}
     >
       <Stack
@@ -174,22 +203,36 @@ export function SearchForm({
             <SearchInput
               value={searchTerm}
               onChange={onSearchTermChange}
-              onSubmit={handleSearch}
+              onSubmit={handleInputSubmit}
+              urlMode={isUrl}
             />
           </Box>
-          <Button
-            type="submit"
-            variant="contained"
-            disabled={!searchTerm.trim()}
-            startIcon={<Search sx={{ fontSize: 14 }} />}
-            data-testid="search-submit"
-            sx={{ flexShrink: 0, minHeight: 32, alignSelf: 'stretch' }}
-          >
-            {t('searchPage.search', 'Search')}
-          </Button>
+          {isUrl ? (
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={!searchTerm.trim()}
+              startIcon={<Download sx={{ fontSize: 14 }} />}
+              data-testid="parse-submit"
+              sx={{ flexShrink: 0, minHeight: 32, alignSelf: 'stretch' }}
+            >
+              {t('searchPage.parse.parse', 'Parse')}
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={!searchTerm.trim()}
+              startIcon={<Search sx={{ fontSize: 14 }} />}
+              data-testid="search-submit"
+              sx={{ flexShrink: 0, minHeight: 32, alignSelf: 'stretch' }}
+            >
+              {t('searchPage.search', 'Search')}
+            </Button>
+          )}
         </Stack>
 
-        {committedSearchTerm && enabledProviders.length > 1 && (
+        {!isUrl && committedSearchTerm && enabledProviders.length > 1 && (
           <SourceFilterChips
             providers={enabledProviders}
             counts={counts}
@@ -198,7 +241,7 @@ export function SearchForm({
           />
         )}
 
-        {committedSearchTerm && typeof activeCount === 'number' && (
+        {!isUrl && committedSearchTerm && typeof activeCount === 'number' && (
           <Typography variant="overline" color="text.secondary">
             {t('searchPage.resultsCount', '{{count}} results', {
               count: activeCount,
@@ -208,7 +251,13 @@ export function SearchForm({
       </Stack>
 
       <Box sx={{ flex: 1, minHeight: 0, px: 1.25, pb: 1.5 }}>
-        {committedSearchTerm && activeProvider && activeQuery ? (
+        {isUrl ? (
+          <UrlParseSection
+            url={searchTerm}
+            submitToken={parseSubmitToken}
+            onImportSuccess={onImportSuccess}
+          />
+        ) : committedSearchTerm && activeProvider && activeQuery ? (
           <SeasonResultsList
             isLoading={activeQuery.isPending}
             data={activeQuery.data?.success ? activeQuery.data.data : null}
