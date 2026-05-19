@@ -3,11 +3,12 @@ import type {
   Season,
   SeasonInsert,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Check, PlayArrow } from '@mui/icons-material'
-import { alpha, Box, ButtonBase, Stack, Typography } from '@mui/material'
+import { Check } from '@mui/icons-material'
+import { Box, ButtonBase, Skeleton, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { isPersistedSeason } from '@/common/anime/utils'
 import { useImage } from '@/common/components/image/useImage'
+import { IMAGE_ASSETS } from '@/images/ImageAssets'
 
 type SeasonOrInsert = Season | SeasonInsert | CustomSeason
 
@@ -16,45 +17,34 @@ interface SeasonResultRowProps {
   onClick: (season: SeasonOrInsert) => void
 }
 
-function PosterThumb({ src, alt }: { src?: string; alt?: string }) {
-  const { data } = useImage(src ?? '')
+const THUMB_SX = {
+  width: 36,
+  height: 50,
+  flexShrink: 0,
+  borderRadius: 0.75,
+} as const
 
-  if (src && data) {
-    return (
-      <Box
-        component="img"
-        src={data}
-        alt={alt}
-        sx={{
-          width: 36,
-          height: 50,
-          flexShrink: 0,
-          borderRadius: 0.75,
-          objectFit: 'cover',
-        }}
-      />
-    )
+function PosterThumb({ src, alt }: { src?: string; alt?: string }) {
+  const image = useImage(src ?? '')
+  const fallback = useImage(IMAGE_ASSETS.Fallback)
+
+  if (src && image.isPending) {
+    return <Skeleton variant="rounded" sx={THUMB_SX} />
+  }
+
+  const resolved = image.data ?? fallback.data
+
+  if (!resolved) {
+    return <Skeleton variant="rounded" sx={THUMB_SX} />
   }
 
   return (
     <Box
-      sx={(theme) => ({
-        width: 36,
-        height: 50,
-        flexShrink: 0,
-        borderRadius: 0.75,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: theme.palette.text.secondary,
-        background: `linear-gradient(135deg, ${alpha(
-          theme.palette.primary.main,
-          0.28
-        )}, ${alpha(theme.palette.secondary.main, 0.22)})`,
-      })}
-    >
-      <PlayArrow sx={{ fontSize: 14 }} />
-    </Box>
+      component="img"
+      src={resolved}
+      alt={alt}
+      sx={{ ...THUMB_SX, objectFit: 'cover' }}
+    />
   )
 }
 
@@ -126,5 +116,26 @@ export function SeasonResultRow({ season, onClick }: SeasonResultRowProps) {
         <Check sx={{ fontSize: 14, color: 'success.main', flexShrink: 0 }} />
       )}
     </ButtonBase>
+  )
+}
+
+export function SeasonResultRowSkeleton() {
+  return (
+    <Box
+      sx={{
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1.25,
+        padding: '7px 10px',
+        borderRadius: 1,
+      }}
+    >
+      <Skeleton variant="rounded" sx={THUMB_SX} />
+      <Stack sx={{ flex: 1, minWidth: 0 }} spacing={0.5}>
+        <Skeleton variant="text" width="62%" height={16} />
+        <Skeleton variant="text" width="40%" height={12} />
+      </Stack>
+    </Box>
   )
 }

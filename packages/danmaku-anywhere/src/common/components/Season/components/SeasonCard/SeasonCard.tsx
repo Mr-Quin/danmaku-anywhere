@@ -5,9 +5,9 @@ import {
   type SeasonInsert,
 } from '@danmaku-anywhere/danmaku-converter'
 import {
-  BookmarkBorder,
-  Bookmark as BookmarkIcon,
   Delete,
+  FavoriteBorder,
+  Favorite as FavoriteIcon,
   FileDownload,
   Sync,
 } from '@mui/icons-material'
@@ -239,9 +239,9 @@ export const SeasonCard = ({
             {
               id: 'bookmark',
               label: isBookmarked
-                ? t('bookmark.remove', 'Remove Bookmark')
-                : t('bookmark.add', 'Bookmark'),
-              icon: isBookmarked ? <BookmarkIcon /> : <BookmarkBorder />,
+                ? t('bookmark.remove', 'Following')
+                : t('bookmark.add', 'Follow'),
+              icon: isBookmarked ? <FavoriteIcon /> : <FavoriteBorder />,
               onClick: () => {
                 if (isBookmarked) {
                   bookmarkDeleteMutation.mutate(season.id)

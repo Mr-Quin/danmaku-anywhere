@@ -75,7 +75,7 @@ export function UrlParseSection({
       return
     }
     void query.refetch()
-  }, [submitToken])
+  }, [submitToken, trimmedUrl, query.refetch])
 
   useEffect(() => {
     if (query.error) {

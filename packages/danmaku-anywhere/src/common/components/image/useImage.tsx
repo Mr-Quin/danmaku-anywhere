@@ -25,6 +25,7 @@ export const useImage = (src: string) => {
       const res = await chromeRpcClient.fetchImage({ src }, { silent: true })
       return res.data
     },
+    enabled: !!src,
     staleTime: Number.POSITIVE_INFINITY,
     retry: false,
   })

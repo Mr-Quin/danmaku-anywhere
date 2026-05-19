@@ -3,11 +3,11 @@ import type {
   Season,
   SeasonInsert,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Box, Button, CircularProgress, Stack } from '@mui/material'
+import { Box, Button } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { NothingHere } from '@/common/components/NothingHere'
-import { SeasonResultRow } from './SeasonResultRow'
+import { SeasonResultRow, SeasonResultRowSkeleton } from './SeasonResultRow'
 
 type SeasonOrInsert = Season | SeasonInsert | CustomSeason
 
@@ -18,6 +18,8 @@ interface SeasonResultsListProps {
   onRetry: () => void
   onSeasonClick: (season: SeasonOrInsert) => void
 }
+
+const SKELETON_ROWS = 4
 
 export function SeasonResultsList({
   isLoading,
@@ -30,9 +32,11 @@ export function SeasonResultsList({
 
   if (isLoading) {
     return (
-      <Stack alignItems="center" sx={{ py: 4 }}>
-        <CircularProgress size={20} />
-      </Stack>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+        {Array.from({ length: SKELETON_ROWS }, (_, index) => (
+          <SeasonResultRowSkeleton key={`skeleton-${index}`} />
+        ))}
+      </Box>
     )
   }
 

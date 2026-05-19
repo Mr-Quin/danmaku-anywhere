@@ -3,7 +3,7 @@ import {
   DanmakuSourceType,
   type Season,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Bookmark, BookmarkBorder } from '@mui/icons-material'
+import { Favorite, FavoriteBorder } from '@mui/icons-material'
 import { CircularProgress, IconButton, Tooltip } from '@mui/material'
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -49,8 +49,8 @@ export const BookmarkToggleButton = ({
     <Tooltip
       title={
         isBookmarked
-          ? t('bookmark.remove', 'Remove Bookmark')
-          : t('bookmark.add', 'Bookmark')
+          ? t('bookmark.remove', 'Following')
+          : t('bookmark.add', 'Follow')
       }
     >
       <span>
@@ -58,9 +58,9 @@ export const BookmarkToggleButton = ({
           {isPending ? (
             <CircularProgress size={20} />
           ) : isBookmarked ? (
-            <Bookmark />
+            <Favorite color="primary" />
           ) : (
-            <BookmarkBorder />
+            <FavoriteBorder />
           )}
         </IconButton>
       </span>

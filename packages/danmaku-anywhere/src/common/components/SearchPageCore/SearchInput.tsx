@@ -18,6 +18,13 @@ import { matchWithPinyin } from '@/common/utils/utils'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { getUrlProviderLabel } from './UrlParseSection'
 
+declare module '@mui/material/Autocomplete' {
+  interface AutocompletePaperSlotPropsOverrides {
+    onClearHistory?: () => void
+    hasEntries?: boolean
+  }
+}
+
 interface SearchInputProps {
   value: string
   onChange: (value: string) => void
@@ -70,16 +77,6 @@ export function SearchInput({
 
   const providerLabel = urlMode ? getUrlProviderLabel(value) : undefined
 
-  const PaperComponent = (paperProps: React.HTMLAttributes<HTMLDivElement>) => {
-    return (
-      <HistoryDropdownPaper
-        {...paperProps}
-        hasEntries={entries.length > 0}
-        onClearHistory={() => clearHistory.mutate()}
-      />
-    )
-  }
-
   return (
     <Autocomplete
       freeSolo
@@ -101,7 +98,7 @@ export function SearchInput({
         })
       }}
       slots={{
-        paper: PaperComponent,
+        paper: HistoryDropdownPaper,
       }}
       slotProps={{
         popper: { sx: { zIndex: 1403 } },
@@ -111,6 +108,10 @@ export function SearchInput({
             maxHeight: 220,
             ...getScrollBarProps(theme),
           }),
+        },
+        paper: {
+          hasEntries: entries.length > 0,
+          onClearHistory: () => clearHistory.mutate(),
         },
       }}
       renderOption={(props, option) => {
