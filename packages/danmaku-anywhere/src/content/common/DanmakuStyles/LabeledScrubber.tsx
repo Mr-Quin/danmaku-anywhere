@@ -37,7 +37,13 @@ export const LabeledScrubber = ({
   return (
     <Box>
       <Box mb={1}>
-        <Typography id={id} gutterBottom {...typographyProps}>
+        <Typography
+          id={id}
+          gutterBottom
+          {...typographyProps}
+          variant="body2"
+          fontWeight={600}
+        >
           {label}
         </Typography>
         <Typography variant="caption" color="text.secondary">

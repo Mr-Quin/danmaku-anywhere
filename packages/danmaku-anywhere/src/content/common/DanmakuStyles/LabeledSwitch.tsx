@@ -25,7 +25,12 @@ export const LabeledSwitch = ({
   return (
     <Stack direction="row" alignItems="center" justifyContent="space-between">
       <div>
-        <Typography id={id} {...typographyProps}>
+        <Typography
+          variant="body2"
+          fontWeight={600}
+          id={id}
+          {...typographyProps}
+        >
           {label}
         </Typography>
         <Typography variant="caption" color="text.secondary">

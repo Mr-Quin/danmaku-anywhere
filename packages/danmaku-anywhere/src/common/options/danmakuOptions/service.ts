@@ -122,6 +122,16 @@ export class DanmakuOptionsService implements IStoreService {
           })
         },
       })
+      .version(9, {
+        upgrade: (data) => {
+          return produce<PrevOptions>(data, (draft) => {
+            // dedupe never shipped — discard the old `dedup` field, seed
+            // collapse defaults so the live engine starts in a sane state.
+            delete draft.dedup
+            draft.collapse = defaultDanmakuOptions.collapse
+          })
+        },
+      })
   }
 
   async get() {

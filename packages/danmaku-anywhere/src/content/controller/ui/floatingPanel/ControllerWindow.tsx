@@ -11,12 +11,15 @@ import { PanelTabs } from '@/content/controller/ui/floatingPanel/components/Pane
 import { Window } from '@/content/controller/ui/floatingPanel/components/Window'
 import { routes } from '@/content/controller/ui/router/routes'
 
-const WindowPaper = styled(Paper)({
-  borderRadius: 0,
-  overflow: 'auto',
-  height: '100%',
-  flex: 1,
-  display: 'flex',
+const WindowPaper = styled(Paper)(({ theme }) => {
+  return {
+    borderRadius: 0,
+    overflow: 'auto',
+    height: '100%',
+    flex: 1,
+    display: 'flex',
+    backgroundColor: theme.palette.background.default,
+  }
 })
 
 export const ControllerWindow = ({

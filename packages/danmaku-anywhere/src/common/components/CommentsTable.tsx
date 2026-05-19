@@ -1,9 +1,15 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { parseCommentEntityP } from '@danmaku-anywhere/danmaku-converter'
-import { dedupComments } from '@danmaku-anywhere/danmaku-engine'
-import { ContentCopy, Deblur, FilterList, Sync } from '@mui/icons-material'
+import {
+  compile,
+  type Decision,
+  STAGE_DURATION_MS,
+} from '@danmaku-anywhere/danmaku-engine'
+import { ContentCopy, FilterList, Sync } from '@mui/icons-material'
 import {
   Box,
+  Chip,
+  type ChipProps,
   CircularProgress,
   IconButton,
   Stack,
@@ -46,6 +52,73 @@ const formatTime = (seconds: number) => {
   ).padStart(2, '0')}`
 }
 
+function chipFor(
+  decision: Decision,
+  headLabelOf: (idx: number) => string,
+  t: ReturnType<typeof useTranslation>['t']
+): { label: string; color: ChipProps['color'] } | null {
+  switch (decision.kind) {
+    case 'block':
+      return {
+        label: t('danmaku.disposition.blocked', 'Blocked'),
+        color: 'error',
+      }
+    case 'whitelist':
+      return {
+        label: t('danmaku.disposition.whitelist', 'White list'),
+        color: 'info',
+      }
+    case 'head':
+      return {
+        label: t(
+          'danmaku.disposition.collapseHead',
+          'Collapse head: {{label}} ×{{count}}',
+          { label: decision.label, count: decision.finalCount }
+        ),
+        color: 'secondary',
+      }
+    case 'absorbed':
+      return {
+        label: t(
+          'danmaku.disposition.collapsed',
+          'Collapsed: {{label}} ×{{count}}',
+          {
+            label: headLabelOf(decision.headIndex),
+            count: decision.count,
+          }
+        ),
+        color: 'secondary',
+      }
+    case 'dedupe':
+      return {
+        label: t('danmaku.disposition.duplicate', 'Duplicate'),
+        color: 'default',
+      }
+    case 'normal':
+      return null
+  }
+}
+
+function DispositionChip({
+  decision,
+  headLabelOf,
+}: {
+  decision: Decision
+  headLabelOf: (idx: number) => string
+}) {
+  const { t } = useTranslation()
+  const props = chipFor(decision, headLabelOf, t)
+  if (!props) return null
+  return (
+    <Chip
+      label={props.label}
+      color={props.color}
+      variant="outlined"
+      sx={{ flexShrink: 0 }}
+    />
+  )
+}
+
 export const CommentsTable = ({
   comments,
   isTimeClickable,
@@ -56,6 +129,7 @@ export const CommentsTable = ({
   showRefresh,
 }: CommentListProps) => {
   const { t } = useTranslation()
+  const { data: danmakuOptions } = useDanmakuOptions()
 
   const headerCells = useMemo(
     () =>
@@ -71,49 +145,70 @@ export const CommentsTable = ({
   const [hoverRow, setHoverRow] = useState<number>()
   const [filter, setFilter] = useState('')
 
-  const { data: danmakuOptions } = useDanmakuOptions()
-  const [localHideDuplicates, setLocalHideDuplicates] = useState<
-    boolean | null
-  >(null)
-  const hideDuplicates = localHideDuplicates ?? danmakuOptions.dedup.enabled
+  const timeOf = useMemo(() => {
+    const map = new Map<CommentEntity, number>()
+    for (const c of comments) map.set(c, parseCommentEntityP(c.p).time)
+    return (c: CommentEntity) => map.get(c) ?? 0
+  }, [comments])
 
-  const dedupedComments = useMemo(() => {
-    if (!hideDuplicates) {
-      return comments
-    }
-    return dedupComments(comments, {
-      ...danmakuOptions.dedup,
-      enabled: true,
+  const { decisionByComment, headLabelByIndex } = useMemo(() => {
+    const inTimeOrder = comments.toSorted((a, b) => timeOf(a) - timeOf(b))
+    const { decisions } = compile(
+      inTimeOrder.map((c) => ({ text: c.m, time: timeOf(c) })),
+      {
+        filters: danmakuOptions.filters,
+        collapse: danmakuOptions.collapse,
+        stageDurationSec:
+          STAGE_DURATION_MS / 1000 / Math.max(danmakuOptions.speed, 0.1),
+      }
+    )
+    const decisionByComment = new Map<CommentEntity, Decision>()
+    const headLabelByIndex = new Map<number, string>()
+    inTimeOrder.forEach((c, i) => {
+      decisionByComment.set(c, decisions[i])
+      const d = decisions[i]
+      if (d.kind === 'head') headLabelByIndex.set(i, d.label)
     })
-  }, [comments, hideDuplicates, danmakuOptions.dedup])
+    return { decisionByComment, headLabelByIndex }
+  }, [
+    comments,
+    timeOf,
+    danmakuOptions.filters,
+    danmakuOptions.collapse,
+    danmakuOptions.speed,
+  ])
 
   const filteredComments = useMemo(() => {
     const keyword = filter.trim().toLowerCase()
-    if (!keyword) {
-      return dedupedComments
-    }
-    return dedupedComments.filter((c) => c.m.toLowerCase().includes(keyword))
-  }, [dedupedComments, filter])
+    const withDecision = comments.map((c) => ({
+      comment: c,
+      decision: decisionByComment.get(c) ?? ({ kind: 'normal' } as Decision),
+    }))
+    if (!keyword) return withDecision
+    return withDecision.filter(({ comment }) =>
+      comment.m.toLowerCase().includes(keyword)
+    )
+  }, [comments, decisionByComment, filter])
 
   const sortedComments = useMemo(() => {
     return match(orderBy)
       .with('comment', () => {
         return filteredComments.toSorted((a, b) => {
           return order === 'asc'
-            ? compareLocale(a.m, b.m)
-            : compareLocale(b.m, a.m)
+            ? compareLocale(a.comment.m, b.comment.m)
+            : compareLocale(b.comment.m, a.comment.m)
         })
       })
       .with('time', () => {
         return filteredComments.toSorted((a, b) => {
-          const aTime = parseCommentEntityP(a.p).time
-          const bTime = parseCommentEntityP(b.p).time
-
-          return order === 'asc' ? aTime - bTime : bTime - aTime
+          const diff = timeOf(a.comment) - timeOf(b.comment)
+          return order === 'asc' ? diff : -diff
         })
       })
       .exhaustive()
-  }, [filteredComments, orderBy, order])
+  }, [filteredComments, orderBy, order, timeOf])
+
+  const headLabelOf = (idx: number) => headLabelByIndex.get(idx) ?? ''
 
   const ref = useRef<HTMLTableSectionElement>(null)
 
@@ -137,23 +232,8 @@ export const CommentsTable = ({
         }}
       >
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          {t('danmaku.commentCounted', { count: dedupedComments.length })}
+          {t('danmaku.commentCounted', { count: sortedComments.length })}
         </Typography>
-        <Tooltip
-          title={t('danmakuFilter.dedup.hideDuplicates', 'Hide duplicates')}
-        >
-          <IconButton
-            color={hideDuplicates ? 'primary' : 'default'}
-            onClick={() =>
-              setLocalHideDuplicates(
-                (prev) => !(prev ?? danmakuOptions.dedup.enabled)
-              )
-            }
-            size="small"
-          >
-            <Deblur />
-          </IconButton>
-        </Tooltip>
         <FilterButton filter={filter} onChange={setFilter} />
         {showRefresh && (
           <Tooltip title={t('danmaku.refresh', 'Refresh Danmaku')}>
@@ -208,8 +288,8 @@ export const CommentsTable = ({
               </TableRow>
             )}
             {virtualizer.getVirtualItems().map((virtualItem) => {
-              const comment = sortedComments[virtualItem.index]
-              const { time } = parseCommentEntityP(comment.p)
+              const { comment, decision } = sortedComments[virtualItem.index]
+              const time = timeOf(comment)
               const isHovering = hoverRow === virtualItem.index
 
               return (
@@ -257,6 +337,8 @@ export const CommentsTable = ({
                       textOverflow: 'ellipsis',
                       flexGrow: 1,
                       display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
                     }}
                     title={comment.m}
                   >
@@ -266,12 +348,19 @@ export const CommentsTable = ({
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
+                        opacity: decision.kind === 'block' ? 0.5 : 1,
+                        textDecoration:
+                          decision.kind === 'block' ? 'line-through' : 'none',
                       }}
                       title={comment.m}
                       flexGrow={1}
                     >
                       {comment.m}
                     </Typography>
+                    <DispositionChip
+                      decision={decision}
+                      headLabelOf={headLabelOf}
+                    />
                     {isHovering && (
                       <Stack direction="row" spacing={0.5}>
                         <Tooltip title={t('common.copy', 'Copy')}>

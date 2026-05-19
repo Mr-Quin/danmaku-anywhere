@@ -1,25 +1,34 @@
 import type {
+  CollapseConfig,
   DanmakuOptions as DanmakuEngineOptions,
-  DanmakuFilter,
 } from '@danmaku-anywhere/danmaku-engine'
 
 import type { Options } from '@/common/options/OptionsService/types'
 
-export interface DedupOptions {
-  readonly enabled: boolean
-  /** Seconds tolerance for considering comments duplicates within a rolling +/- time window. */
-  readonly tolerance: number
-  /** Comments whose text matches any enabled entry are exempted from dedup. */
-  readonly whitelist: DanmakuFilter[]
-}
-
-export type DanmakuOptions = Omit<DanmakuEngineOptions, 'show' | 'dedup'> & {
+export type DanmakuOptions = Omit<DanmakuEngineOptions, 'show'> & {
   readonly customCss: string
   readonly useCustomCss: boolean
-  readonly dedup: DedupOptions
 }
 
 export type DanmakuOptionsOptions = Options<DanmakuOptions>
+
+export const defaultCollapseConfig: CollapseConfig = {
+  dedupe: { enabled: true, windowMs: 100, maxDedupe: 2 },
+  pattern: {
+    enabled: true,
+    autoCollapse: true,
+    minCount: 5,
+    liveCount: true,
+    pulse: true,
+    patterns: [
+      { label: '草', type: 'regex', value: '^(草|艹)+$', enabled: true },
+      { label: '哈哈哈', type: 'regex', value: '^(哈|h){2,}$', enabled: true },
+      { label: '逆天', type: 'text', value: '逆天', enabled: true },
+      { label: '?', type: 'regex', value: '^[?？!！.,]+$', enabled: true },
+    ],
+  },
+  whiteList: [],
+}
 
 export const defaultDanmakuOptions: DanmakuOptions = {
   filters: [],
@@ -49,16 +58,5 @@ export const defaultDanmakuOptions: DanmakuOptions = {
   },
   offset: 0,
   distribution: 'random',
-  dedup: {
-    enabled: true,
-    tolerance: 0.5,
-    whitelist: [
-      { type: 'regex', value: '^[?？!！。.,，~～\\s]+$', enabled: true },
-      { type: 'regex', value: '^(哈|h){2,}$', enabled: true },
-      { type: 'regex', value: '^w{2,}$', enabled: true },
-      { type: 'regex', value: '^(6|六){2,}$', enabled: true },
-      { type: 'regex', value: '^(草|艹)+$', enabled: true },
-      { type: 'regex', value: '^(笑|lol|LOL)$', enabled: true },
-    ],
-  },
+  collapse: defaultCollapseConfig,
 }

@@ -1,13 +1,9 @@
+import type { CollapseConfig } from './collapse/types'
+
 export interface DanmakuFilter {
   type: 'text' | 'regex'
   value: string
   enabled: boolean
-}
-
-export interface DedupConfig {
-  enabled: boolean
-  tolerance: number
-  whitelist: DanmakuFilter[]
 }
 
 export interface DanmakuStyle {
@@ -62,9 +58,9 @@ export interface DanmakuOptions {
    */
   readonly overlap: number
   /**
-   * Deduplication configuration
+   * Live collapse engine configuration (dedupe + pattern aggregation).
    */
-  readonly dedup: DedupConfig
+  readonly collapse: CollapseConfig
   /**
    * How to handle special comments
    */
@@ -99,10 +95,17 @@ export const DEFAULT_DANMAKU_OPTIONS: DanmakuOptions = {
     top: 'normal',
     bottom: 'scroll',
   },
-  dedup: {
-    enabled: false,
-    tolerance: 0,
-    whitelist: [],
+  collapse: {
+    dedupe: { enabled: false, windowMs: 100, maxDedupe: 2 },
+    pattern: {
+      enabled: false,
+      autoCollapse: false,
+      minCount: 5,
+      liveCount: true,
+      pulse: true,
+      patterns: [],
+    },
+    whiteList: [],
   },
   offset: 0,
   distribution: 'random',

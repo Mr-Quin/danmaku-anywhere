@@ -1,15 +1,26 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { create, type Manager } from '@mr-quin/danmu'
+import { compile, createGroupStore } from './collapse/compile'
+import type {
+  BumpEvent,
+  CollapseAnnotation,
+  CompileResult,
+  Decision,
+  GroupStore,
+} from './collapse/types'
 import { mapIter, sampleByTime } from './iterator'
 import { type DanmakuOptions, DEFAULT_DANMAKU_OPTIONS } from './options'
-import {
-  applyFilter,
-  dedupComments,
-  type ParsedComment,
-  transformComment,
-} from './parser'
-import { bindVideo } from './plugins/bindVideo'
+import { type ParsedComment, transformComment } from './parser'
+import { type BindContext, bindVideo } from './plugins/bindVideo'
 import { deepEqual } from './utils'
+
+export const STAGE_DURATION_MS = 5000
+
+/** In-place array replacement that avoids `push(...src)`'s arg-count overflow on large arrays. */
+function replaceInPlace<T>(target: T[], source: readonly T[]) {
+  target.length = source.length
+  for (let i = 0; i < source.length; i++) target[i] = source[i]
+}
 
 export type DanmakuRenderProps = {
   text: string
@@ -17,6 +28,7 @@ export type DanmakuRenderProps = {
   mode: ParsedComment['mode']
   color: string
   gradient?: ParsedComment['gradient']
+  collapse?: CollapseAnnotation
 }
 
 export class DanmakuRenderer {
@@ -26,6 +38,13 @@ export class DanmakuRenderer {
   comments: CommentEntity[] = []
   config: DanmakuOptions = DEFAULT_DANMAKU_OPTIONS
   created = false
+
+  private parsedComments: ParsedComment[] = []
+  private decisions: Decision[] = []
+  private bumpEvents: BumpEvent[] = []
+  private bumpsByHead = new Map<number, BumpEvent[]>()
+  private heads: number[] = []
+  private headStores = new Map<number, GroupStore>()
 
   constructor(
     public render: (node: HTMLElement, renderProps: DanmakuRenderProps) => void
@@ -44,12 +63,9 @@ export class DanmakuRenderer {
     this.comments = comments
     this.config = this.mergeConfig(config)
 
-    const dedupedComments = dedupComments(comments, this.config.dedup)
-
-    const commentGenerator = mapIter(dedupedComments, (comment) =>
+    const commentGenerator = mapIter(comments, (comment) =>
       transformComment(comment, 0)
     )
-
     const sampledGenerator = sampleByTime(
       Array.from(commentGenerator)
         .toSorted((a, b) => a.time - b.time)
@@ -57,14 +73,24 @@ export class DanmakuRenderer {
       Number.POSITIVE_INFINITY,
       (item) => item.time
     )
+    this.parsedComments = Array.from(sampledGenerator)
+    this.runCompile()
 
-    const parsedComments = Array.from(sampledGenerator)
+    this.bindCtx = {
+      decisions: this.decisions,
+      bumpEvents: this.bumpEvents,
+      bumpsByHead: this.bumpsByHead,
+      heads: this.heads,
+      onHeadEmit: (headIndex) => this.createHeadAnnotation(headIndex),
+      onSetCount: (headIndex, count) =>
+        this.headStores.get(headIndex)?.setCount(count),
+    }
 
     const manager = create<ParsedComment>({
       trackHeight: this.config.trackHeight,
       rate: this.config.speed / 2,
       interval: this.config.interval,
-      durationRange: [5000, 5000],
+      durationRange: [STAGE_DURATION_MS, STAGE_DURATION_MS],
       mode: 'strict',
       distribution: this.config.distribution,
       overlap: this.config.overlap / 100,
@@ -73,22 +99,29 @@ export class DanmakuRenderer {
         stash: this.config.maxOnScreen * 2,
       },
       plugin: {
-        init: bindVideo(this.media, parsedComments, () => this.config),
+        init: bindVideo(
+          this.media,
+          this.parsedComments,
+          () => this.config,
+          this.bindCtx
+        ),
         $createNode: (danmaku, node) => {
-          // font size and family are set here because it needs to be set BEFORE
-          // size is calculated
-          // Setting it using manager.setStyle applies the style AFTER size is calculated so it's too late
+          // Font size + family must be set before the lib measures the node.
           node.style.fontSize = `${this.config.style.fontSize}px`
           node.style.fontFamily = this.config.style.fontFamily
 
-          // apply the parser-generated styles
           Object.entries(danmaku.data.style).forEach(([key, value]) => {
-            // biome-ignore lint/suspicious/noExplicitAny: key should be a valid css property
+            // biome-ignore lint/suspicious/noExplicitAny: key is a CSS property
             node.style[key as any] = value
           })
 
-          // force top/bottom comments to be on top
-          if (danmaku.data.mode === 'top' || danmaku.data.mode === 'bottom') {
+          if (danmaku.data.collapse) {
+            // Pills win the layering contest over regular top/bottom danmaku.
+            node.style.zIndex = '10'
+          } else if (
+            danmaku.data.mode === 'top' ||
+            danmaku.data.mode === 'bottom'
+          ) {
             node.style.zIndex = '9'
           }
 
@@ -98,27 +131,20 @@ export class DanmakuRenderer {
             mode: danmaku.data.mode,
             color: danmaku.data.color,
             gradient: danmaku.data.gradient,
+            collapse: danmaku.data.collapse,
           })
-        },
-        willRender: (ref) => {
-          if (applyFilter(ref.danmaku.data.text, this.config.filters)) {
-            ref.prevent = true
-          }
-          return ref
         },
       },
     })
     this.manager = manager
 
     manager.mount(container)
-
     this.setArea()
     this.updateOptions()
 
     if (!this.media.paused) {
       manager.startPlaying()
     }
-
     if (this.config.show) {
       void manager.show()
     } else {
@@ -134,25 +160,52 @@ export class DanmakuRenderer {
 
     if (!this.manager) return
 
-    // If dedup config changed, we need to re-create with the original comments
-    // because dedup is a set-level operation
-    if (!deepEqual(prevConfig.dedup, this.config.dedup)) {
-      if (this.container && this.media) {
-        this.create(this.container, this.media, this.comments, this.config)
-      }
-      return
-    }
+    const collapseChanged = !deepEqual(
+      prevConfig.collapse,
+      this.config.collapse
+    )
+    const filtersChanged = !deepEqual(prevConfig.filters, this.config.filters)
+    const speedChanged = prevConfig.speed !== this.config.speed
 
+    if (collapseChanged || filtersChanged || speedChanged) {
+      this.runCompile()
+    }
     if (!deepEqual(prevConfig.area, this.config.area)) {
       this.setArea()
     }
-
     this.updateOptions()
+  }
+
+  private bindCtx?: BindContext
+
+  private runCompile(): void {
+    const stageDurationSec =
+      STAGE_DURATION_MS / 1000 / Math.max(this.config.speed, 0.1)
+    const result: CompileResult = compile(this.parsedComments, {
+      filters: this.config.filters,
+      collapse: this.config.collapse,
+      stageDurationSec,
+    })
+    replaceInPlace(this.decisions, result.decisions)
+    replaceInPlace(this.bumpEvents, result.bumpEvents)
+    replaceInPlace(this.heads, result.heads)
+    this.bumpsByHead.clear()
+    for (const [headIndex, bumps] of result.bumpsByHead) {
+      this.bumpsByHead.set(headIndex, bumps)
+    }
+    this.bindCtx?.resyncBumps?.()
+  }
+
+  private createHeadAnnotation(headIndex: number): CollapseAnnotation | null {
+    const d = this.decisions[headIndex]
+    if (!d || d.kind !== 'head') return null
+    const store = createGroupStore()
+    this.headStores.set(headIndex, store)
+    return { label: d.label, pulse: d.pulse, store, headIndex }
   }
 
   private updateOptions = () => {
     if (!this.manager) return
-
     this.manager.updateOptions({
       trackHeight: this.config.trackHeight,
       limits: {
@@ -171,7 +224,6 @@ export class DanmakuRenderer {
 
   private setArea = () => {
     if (!this.manager) return
-
     this.manager.setArea({
       y: {
         start: `${this.config.area.yStart}%`,
@@ -186,26 +238,29 @@ export class DanmakuRenderer {
 
   private mergeConfig = (config?: Partial<DanmakuOptions>): DanmakuOptions => {
     if (!config) return this.config
-
-    // manually merge nested objects
     const style = { ...this.config.style, ...config.style }
-    const dedup = config.dedup
-      ? { ...this.config.dedup, ...config.dedup }
-      : this.config.dedup
-    return { ...this.config, ...config, style, dedup }
+    const collapse = config.collapse
+      ? { ...this.config.collapse, ...config.collapse }
+      : this.config.collapse
+    return { ...this.config, ...config, style, collapse }
   }
 
   destroy(): void {
     this.manager?.stopPlaying()
     this.manager?.unmount()
+    this.headStores.clear()
     this.manager = undefined
     this.container = undefined
     this.media = undefined
     this.comments = []
+    this.parsedComments = []
+    this.decisions = []
+    this.bumpEvents = []
+    this.bumpsByHead.clear()
+    this.heads = []
     this.created = false
   }
 
-  // Pass through methods
   show(): void {
     this.manager?.show()
   }
@@ -216,13 +271,13 @@ export class DanmakuRenderer {
 
   clear(): void {
     this.manager?.clear()
+    this.headStores.clear()
   }
 
   resize(): void {
     if (!this.manager) return
     this.manager.format()
     if (!this.manager.isFreeze()) {
-      // Freezing and unfreezing the manager to force danmaku position to be recalculated
       this.manager.freeze()
       this.manager.unfreeze()
     }
