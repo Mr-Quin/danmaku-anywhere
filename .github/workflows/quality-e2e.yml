@@ -79,16 +79,6 @@ jobs:
         working-directory: packages/danmaku-anywhere
         run: pnpm exec playwright install --with-deps chromium
 
-      # .env is gitignored, so write a synthetic one for the build. The
-      # hosts are intercepted by Playwright routes; nothing reaches them.
-      - name: Write .env for build
-        working-directory: packages/danmaku-anywhere
-        run: |
-          cat > .env <<'EOF'
-          VITE_PROXY_URL=https://api.danmaku.test
-          VITE_PROXY_ORIGIN=https://danmaku.test
-          EOF
-
       - name: Build extension (e2e — dev API on, open shadow root)
         working-directory: packages/danmaku-anywhere
         env:
