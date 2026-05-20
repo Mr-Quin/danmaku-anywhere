@@ -2,3 +2,18 @@ packages:
   - 'packages/**'
   - 'backend/**'
   - 'app/**'
+allowBuilds:
+  '@parcel/watcher': true
+  '@swc/core': true
+  core-js: true
+  esbuild: true
+  lefthook: true
+  lmdb: true
+  msgpackr-extract: true
+  protobufjs: true
+  sharp: true
+  spawn-sync: true
+  workerd: true
+patchedDependencies:
+  '@mui/system': patches/@mui__system.patch
+nodeLinker: isolated

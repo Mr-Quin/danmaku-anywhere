@@ -27,19 +27,11 @@
     "prepare": "lefthook install"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.7",
-    "@typescript/native-preview": "7.0.0-dev.20251123.1",
-    "knip": "^6.3.0",
-    "lefthook": "^2.0.4",
-    "typescript": "^5.9.3"
+    "@biomejs/biome": "^2.4.15",
+    "@typescript/native-preview": "7.0.0-dev.20260519.1",
+    "knip": "^6.14.1",
+    "lefthook": "^2.1.8",
+    "typescript": "^6.0.3"
   },
-  "pnpm": {
-    "patchedDependencies": {
-      "@mui/system": "patches/@mui__system.patch"
-    },
-    "ignoredBuiltDependencies": [
-      "workerd"
-    ]
-  },
-  "packageManager": "pnpm@10.11.0+sha256.a69e9cb077da419d47d18f1dd52e207245b29cac6e076acedbeb8be3b1a67bd7"
+  "packageManager": "pnpm@11.1.3"
 }
