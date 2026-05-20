@@ -41,6 +41,9 @@ interface PopupStoreState {
 
   highlighterPortal: HTMLElement | null
   setHighlighterPortal: (portal: HTMLElement | null) => void
+
+  searchFocusToken: number
+  triggerSearchFocus: () => void
 }
 
 const usePopupStoreBase = create<PopupStoreState>((set, get) => ({
@@ -84,6 +87,11 @@ const usePopupStoreBase = create<PopupStoreState>((set, get) => ({
   highlighterPortal: null,
   setHighlighterPortal: (portal) => {
     set({ highlighterPortal: portal })
+  },
+
+  searchFocusToken: 0,
+  triggerSearchFocus: () => {
+    set({ searchFocusToken: get().searchFocusToken + 1 })
   },
 }))
 

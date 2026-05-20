@@ -1,66 +1,152 @@
 import type {
   CustomSeason,
+  Episode,
   Season,
   SeasonInsert,
+  WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Close, Search } from '@mui/icons-material'
-import type { TextFieldProps } from '@mui/material'
-import {
-  Autocomplete,
-  Box,
-  Button,
-  IconButton,
-  Stack,
-  TextField,
-} from '@mui/material'
-import { useIsFetching } from '@tanstack/react-query'
-import { type SyntheticEvent, useState } from 'react'
+import { Download, Search } from '@mui/icons-material'
+import { Box, Button, Stack, Typography } from '@mui/material'
+import { useQueries } from '@tanstack/react-query'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { getScrollBarProps } from '@/common/components/layout/ScrollBox'
-import { SearchMascot } from '@/common/components/SearchPageCore/SearchMascot'
+import { ScrollBox } from '@/common/components/layout/ScrollBox'
+import { Logger } from '@/common/Logger'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { useSearchHistory } from '@/common/options/searchHistory/useSearchHistory'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
-import { matchWithPinyin, toSimplified } from '@/common/utils/utils'
-import { withStopPropagation } from '@/common/utils/withStopPropagation'
-import { ProviderResultsList } from './ProviderResultsList'
+import { toSimplified } from '@/common/utils/utils'
+import { SearchInput } from './SearchInput'
+import { SearchMascot } from './SearchMascot'
+import { SeasonResultsList } from './SeasonResultsList'
+import { SourceFilterChips } from './SourceFilterChips'
+import { isParseableUrl, UrlParseSection } from './UrlParseSection'
+
+type SeasonOrInsert = Season | SeasonInsert | CustomSeason
+
+type ProviderQueryResult =
+  | {
+      success: true
+      data: SeasonOrInsert[]
+    }
+  | {
+      success: false
+      error: string
+    }
+
+async function runSeasonSearch(
+  providerConfigId: string,
+  keyword: string,
+  unknownErrorMessage: string
+): Promise<ProviderQueryResult> {
+  try {
+    getTrackingService().track('searchSeason', { keyword, providerConfigId })
+    const data = await chromeRpcClient.seasonSearch({
+      keyword,
+      providerConfigId,
+    })
+    return { success: true, data: data.data }
+  } catch (error) {
+    Logger.debug('useMediaSearchSuspense error', error)
+    const message = error instanceof Error ? error.message : unknownErrorMessage
+    return { success: false, error: message }
+  }
+}
 
 interface SearchFormProps {
-  onSearch: (searchTerm: string) => void
   searchTerm: string
-  onSearchTermChange: (searchTerm: string) => void
-  textFieldProps?: TextFieldProps
-  onSeasonClick: (
-    season: Season | SeasonInsert | CustomSeason,
-    provider: ProviderConfig
-  ) => void
+  onSearchTermChange: (term: string) => void
+  onSeasonClick: (season: SeasonOrInsert, provider: ProviderConfig) => void
+  onImportSuccess?: (episode: WithSeason<Episode>) => void
+  showHotkey?: boolean
+  focusToken?: number
 }
 
 export function SearchForm({
-  onSearch,
-  onSearchTermChange,
   searchTerm,
-  textFieldProps,
+  onSearchTermChange,
   onSeasonClick,
+  onImportSuccess,
+  showHotkey,
+  focusToken,
 }: SearchFormProps) {
   const { t } = useTranslation()
 
-  const { data } = useExtensionOptions()
-  const { entries, addEntry, removeEntry } = useSearchHistory()
+  const { data: extOptions } = useExtensionOptions()
+  const { configs } = useProviderConfig()
+  const { addEntry } = useSearchHistory()
 
-  const isLoading =
-    useIsFetching({
-      queryKey: seasonQueryKeys.search({ keyword: searchTerm }),
-    }) > 0
+  const enabledProviders = useMemo(
+    () => configs.filter((c) => c.enabled),
+    [configs]
+  )
 
   const [committedSearchTerm, setCommittedSearchTerm] = useState(searchTerm)
+  const [activeProviderId, setActiveProviderId] = useState<string | undefined>(
+    enabledProviders[0]?.id
+  )
+  const [parseSubmitToken, setParseSubmitToken] = useState(0)
 
-  const handleSearch = (keyword?: string) => {
+  const isUrl = isParseableUrl(searchTerm)
+
+  useEffect(() => {
+    if (
+      !activeProviderId ||
+      !enabledProviders.some((p) => p.id === activeProviderId)
+    ) {
+      setActiveProviderId(enabledProviders[0]?.id)
+    }
+  }, [activeProviderId, enabledProviders])
+
+  const unknownErrorMessage = t('error.unknown', 'Something went wrong.')
+
+  const providerQueries = useQueries({
+    queries: enabledProviders.map((provider) => ({
+      queryKey: seasonQueryKeys.search({
+        keyword: committedSearchTerm,
+        providerConfigId: provider.id,
+      }),
+      queryFn: () =>
+        runSeasonSearch(provider.id, committedSearchTerm, unknownErrorMessage),
+      enabled: !!committedSearchTerm && !isUrl,
+      staleTime: Number.POSITIVE_INFINITY,
+      retry: false,
+    })),
+  })
+
+  const queryByProvider = useMemo(() => {
+    const map: Record<string, (typeof providerQueries)[number]> = {}
+    enabledProviders.forEach((provider, index) => {
+      map[provider.id] = providerQueries[index]
+    })
+    return map
+  }, [providerQueries, enabledProviders])
+
+  const chipStates = useMemo(() => {
+    const out: Record<string, { isPending: boolean; count?: number }> = {}
+    for (const provider of enabledProviders) {
+      const query = queryByProvider[provider.id]
+      const isPending =
+        !!query && query.isPending && query.fetchStatus !== 'idle'
+      const count = query?.data?.success ? query.data.data.length : undefined
+      out[provider.id] = { isPending, count }
+    }
+    return out
+  }, [enabledProviders, queryByProvider])
+
+  const activeQuery = activeProviderId
+    ? queryByProvider[activeProviderId]
+    : undefined
+  const activeProvider = enabledProviders.find((p) => p.id === activeProviderId)
+
+  const handleSearchSubmit = (keyword?: string) => {
     const raw = keyword ?? searchTerm
     const trimmed = raw.trim()
-    const processed = data.searchUsingSimplified
+    const processed = extOptions.searchUsingSimplified
       ? toSimplified(trimmed)
       : trimmed
 
@@ -68,164 +154,156 @@ export function SearchForm({
       return
     }
 
-    onSearch(processed)
+    onSearchTermChange(processed)
     setCommittedSearchTerm(processed)
     addEntry.mutate(trimmed)
     getTrackingService().track('search', { keyword: processed })
   }
 
-  const handleAutocompleteChange = (
-    event: SyntheticEvent,
-    value: string | null
-  ) => {
-    if (value !== null) {
-      onSearchTermChange(value)
-      // Only trigger immediate search on click selection.
-      // Enter key selection also fires form onSubmit, which handles the search.
-      if (event.type === 'click') {
-        handleSearch(value)
-      }
+  const handleParseSubmit = () => {
+    if (!searchTerm.trim()) {
+      return
+    }
+    setParseSubmitToken((token) => token + 1)
+  }
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (isUrl) {
+      handleParseSubmit()
+    } else {
+      handleSearchSubmit()
     }
   }
+
+  const handleInputSubmit = (value: string) => {
+    if (isParseableUrl(value)) {
+      handleParseSubmit()
+    } else {
+      handleSearchSubmit(value)
+    }
+  }
+
+  const activeCount =
+    activeQuery?.data?.success === true
+      ? activeQuery.data.data.length
+      : undefined
 
   return (
     <Box
       component="form"
-      onSubmit={(e) => {
-        e.preventDefault()
-        handleSearch()
+      onSubmit={handleSubmit}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        minHeight: 0,
       }}
-      m={1}
     >
-      <Stack direction="column" spacing={1} alignItems="center">
-        <Autocomplete
-          freeSolo
-          openOnFocus
-          options={entries}
-          inputValue={searchTerm}
-          onInputChange={(_event, value, reason) => {
-            if (reason !== 'reset') {
-              onSearchTermChange(value)
+      <Stack
+        spacing={1}
+        sx={{
+          px: 1.25,
+          pt: 1,
+          pb: 0.75,
+          flexShrink: 0,
+        }}
+      >
+        <Stack direction="row" spacing={0.75} alignItems="stretch">
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <SearchInput
+              value={searchTerm}
+              onChange={onSearchTermChange}
+              onSubmit={handleInputSubmit}
+              urlMode={isUrl}
+              showHotkey={showHotkey}
+              focusToken={focusToken}
+            />
+          </Box>
+          {isUrl ? (
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={!searchTerm.trim()}
+              startIcon={<Download sx={{ fontSize: 14 }} />}
+              data-testid="parse-submit"
+              sx={{ flexShrink: 0, minHeight: 32, alignSelf: 'stretch' }}
+            >
+              {t('searchPage.parse.parse', 'Parse')}
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={!searchTerm.trim()}
+              startIcon={<Search sx={{ fontSize: 14 }} />}
+              data-testid="search-submit"
+              sx={{ flexShrink: 0, minHeight: 32, alignSelf: 'stretch' }}
+            >
+              {t('searchPage.search', 'Search')}
+            </Button>
+          )}
+        </Stack>
+
+        {!isUrl && committedSearchTerm && enabledProviders.length > 1 && (
+          <SourceFilterChips
+            providers={enabledProviders}
+            states={chipStates}
+            activeId={activeProviderId ?? enabledProviders[0]?.id ?? ''}
+            onChange={setActiveProviderId}
+          />
+        )}
+
+        {!isUrl && committedSearchTerm && (
+          <Typography
+            variant="overline"
+            color="text.secondary"
+            sx={{ minHeight: 16, lineHeight: '16px' }}
+          >
+            {typeof activeCount === 'number'
+              ? t('searchPage.resultsCount', '{{count}} results', {
+                  count: activeCount,
+                })
+              : ' '}
+          </Typography>
+        )}
+      </Stack>
+
+      <ScrollBox
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          overflow: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          px: 1.25,
+          pb: 1.5,
+        }}
+      >
+        {isUrl ? (
+          <UrlParseSection
+            url={searchTerm}
+            submitToken={parseSubmitToken}
+            onImportSuccess={onImportSuccess}
+          />
+        ) : committedSearchTerm && activeProvider && activeQuery ? (
+          <SeasonResultsList
+            isLoading={activeQuery.isPending}
+            data={activeQuery.data?.success ? activeQuery.data.data : null}
+            error={
+              activeQuery.data?.success === false
+                ? activeQuery.data.error
+                : undefined
             }
-          }}
-          onChange={handleAutocompleteChange}
-          filterOptions={(options, state) => {
-            if (!state.inputValue) {
-              return options
-            }
-            return options.filter((option) => {
-              return matchWithPinyin(option, state.inputValue)
-            })
-          }}
-          renderOption={(props, option) => {
-            return (
-              <li
-                {...props}
-                key={option}
-                style={{ ...props.style, paddingBlock: 2, minHeight: 'auto' }}
-              >
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    width: '100%',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      flex: 1,
-                    }}
-                  >
-                    {option}
-                  </Box>
-                  <IconButton
-                    size="small"
-                    edge="end"
-                    aria-label={t('common.delete')}
-                    onMouseDown={(e) => {
-                      e.stopPropagation()
-                      e.preventDefault()
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      e.preventDefault()
-                      removeEntry.mutate(option)
-                    }}
-                    sx={{ ml: 1, opacity: 0.5, '&:hover': { opacity: 1 } }}
-                  >
-                    <Close fontSize="small" />
-                  </IconButton>
-                </Box>
-              </li>
-            )
-          }}
-          size="small"
-          fullWidth
-          slotProps={{
-            popper: {
-              sx: {
-                zIndex: 1403,
-              },
-            },
-            listbox: {
-              sx: (theme) => ({
-                py: 0.5,
-                maxHeight: 200,
-                ...getScrollBarProps(theme),
-              }),
-            },
-          }}
-          renderInput={(params) => {
-            return (
-              <TextField
-                {...params}
-                placeholder={t(
-                  'searchPage.searchPlaceholder',
-                  'Search title...'
-                )}
-                required
-                autoFocus
-                size="small"
-                autoComplete="off"
-                slotProps={{
-                  htmlInput: {
-                    ...params.inputProps,
-                    'data-testid': 'search-input',
-                  },
-                }}
-                {...textFieldProps}
-                {...withStopPropagation({
-                  whitelistKeys: ['Escape', 'Enter', 'ArrowUp', 'ArrowDown'],
-                })}
-              />
-            )
-          }}
-        />
-        <Button
-          type="submit"
-          loading={isLoading}
-          variant="contained"
-          disabled={!searchTerm}
-          size="small"
-          autoCapitalize="none"
-          fullWidth
-          data-testid="search-submit"
-        >
-          <Search /> {t('searchPage.search', 'Search')}
-        </Button>
-        {committedSearchTerm ? (
-          <ProviderResultsList
-            searchTerm={committedSearchTerm}
-            onSeasonClick={onSeasonClick}
+            onRetry={() => {
+              void activeQuery.refetch()
+            }}
+            onSeasonClick={(season) => onSeasonClick(season, activeProvider)}
           />
         ) : (
           <SearchMascot />
         )}
-      </Stack>
+      </ScrollBox>
     </Box>
   )
 }

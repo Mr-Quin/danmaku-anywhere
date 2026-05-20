@@ -3,8 +3,8 @@ import {
   DanmakuSourceType,
   type Season,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Bookmark, BookmarkBorder } from '@mui/icons-material'
-import { CircularProgress, IconButton, Tooltip } from '@mui/material'
+import { Favorite, FavoriteBorder } from '@mui/icons-material'
+import { Button, CircularProgress, Tooltip } from '@mui/material'
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useBookmarkAdd } from '@/common/bookmark/queries/useBookmarkAdd'
@@ -45,25 +45,35 @@ export const BookmarkToggleButton = ({
     }
   }
 
+  const icon = isPending ? (
+    <CircularProgress size={12} thickness={6} />
+  ) : isBookmarked ? (
+    <Favorite sx={{ fontSize: 12 }} />
+  ) : (
+    <FavoriteBorder sx={{ fontSize: 12 }} />
+  )
+
   return (
     <Tooltip
-      title={
-        isBookmarked
-          ? t('bookmark.remove', 'Remove Bookmark')
-          : t('bookmark.add', 'Bookmark')
-      }
+      title={t(
+        'bookmark.tooltip',
+        'Save to your library to see all episodes anytime — including ones you have not downloaded yet.'
+      )}
+      placement="bottom-end"
     >
-      <span>
-        <IconButton onClick={handleToggle} disabled={isPending} size="small">
-          {isPending ? (
-            <CircularProgress size={20} />
-          ) : isBookmarked ? (
-            <Bookmark />
-          ) : (
-            <BookmarkBorder />
-          )}
-        </IconButton>
-      </span>
+      <Button
+        onClick={handleToggle}
+        disabled={isPending}
+        size="small"
+        variant={isBookmarked ? 'soft' : 'text'}
+        color="primary"
+        startIcon={icon}
+        sx={{ minHeight: 26, paddingInline: 1 }}
+      >
+        {isBookmarked
+          ? t('bookmark.remove', 'Following')
+          : t('bookmark.add', 'Follow')}
+      </Button>
     </Tooltip>
   )
 }

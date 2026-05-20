@@ -57,9 +57,10 @@
     "title": "Title"
   },
   "bookmark": {
-    "add": "Bookmark",
+    "add": "Follow",
     "refreshEpisodes": "Refresh Episodes",
-    "remove": "Remove Bookmark"
+    "remove": "Following",
+    "tooltip": "Save to your library to see all episodes anytime — including ones you have not downloaded yet."
   },
   "common": {
     "acknowledge": "Ok",
@@ -610,34 +611,39 @@
       "mappingFailed": "Failed to save mapping：{{message}}",
       "mappingSuccess": "Mapping saved successfully"
     },
+    "episodesHint": "Tap an episode to download. Downloaded ones show in your library.",
+    "epsCount_one": "{{count}} eps",
+    "epsCount_other": "{{count}} eps",
     "error": {
       "noProviders": "No danmaku sources enabled, please enable in settings",
       "noResultFound": "No results found, try a different search term"
     },
-    "name": "Search Anime",
+    "filterEpisodes": "Filter episodes…",
+    "history": {
+      "clear": "Clear",
+      "recent": "Recent"
+    },
     "parse": {
       "alert": {
         "importSuccess": "Import successful",
         "parseError": "Parse failed"
       },
-      "error": {
-        "invalidUrl": "Invalid URL"
-      },
-      "import": "Import Danmaku",
-      "name": "Parse URL",
+      "import": "Download Danmaku",
       "parse": "Parse",
-      "parseResult": "Parse Result",
-      "tooltip": {
-        "videoUrl": "Only supports parsing of anime, drama, movies, and other non-user uploaded videos. Supported sources: Bilibili, Tencent Video"
-      },
-      "videoUrl": "Video URL"
+      "parsed": "Parsed",
+      "urlDetected": "URL detected — parsing instead of searching."
     },
+    "resultsCount_one": "{{count}} results",
+    "resultsCount_other": "{{count}} results",
     "retrySearch": "Retry",
     "search": "Search",
-    "searchPlaceholder": "Search title...",
+    "searchPlaceholder": "Search title or paste a video URL…",
     "settings": {
+      "simplifiedHelper": "Convert search terms to Simplified Chinese before sending.",
+      "sources": "Sources",
       "title": "Settings"
     },
+    "title": "Search",
     "titleMapping": "Map Title",
     "titleMappingDialog": {
       "confirmation": "Map `{{original}}` to `{{mapped}}` ?",
