@@ -126,13 +126,14 @@ export function SearchForm({
     return map
   }, [providerQueries, enabledProviders])
 
-  const counts = useMemo(() => {
-    const out: Record<string, number | undefined> = {}
+  const chipStates = useMemo(() => {
+    const out: Record<string, { isPending: boolean; count?: number }> = {}
     for (const provider of enabledProviders) {
       const query = queryByProvider[provider.id]
-      if (query?.data?.success) {
-        out[provider.id] = query.data.data.length
-      }
+      const isPending =
+        !!query && query.isPending && query.fetchStatus !== 'idle'
+      const count = query?.data?.success ? query.data.data.length : undefined
+      out[provider.id] = { isPending, count }
     }
     return out
   }, [enabledProviders, queryByProvider])
@@ -247,7 +248,7 @@ export function SearchForm({
         {!isUrl && committedSearchTerm && enabledProviders.length > 1 && (
           <SourceFilterChips
             providers={enabledProviders}
-            counts={counts}
+            states={chipStates}
             activeId={activeProviderId ?? enabledProviders[0]?.id ?? ''}
             onChange={setActiveProviderId}
           />

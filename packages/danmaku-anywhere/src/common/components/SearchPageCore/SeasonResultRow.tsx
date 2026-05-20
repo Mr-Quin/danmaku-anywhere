@@ -61,9 +61,6 @@ export function SeasonResultRow({ season, onClick }: SeasonResultRowProps) {
   if (season.year) {
     metaParts.push(String(season.year))
   }
-  if (season.type) {
-    metaParts.push(season.type)
-  }
   if (season.episodeCount) {
     metaParts.push(
       t('searchPage.epsCount', '{{count}} eps', {

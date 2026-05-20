@@ -1,4 +1,4 @@
-import { Close, Link, Search } from '@mui/icons-material'
+import { Close, History, Link, Search } from '@mui/icons-material'
 import {
   Autocomplete,
   alpha,
@@ -10,7 +10,14 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { type RefObject, type SyntheticEvent, useEffect, useRef } from 'react'
+import {
+  type RefObject,
+  type SyntheticEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import { getScrollBarProps } from '@/common/components/layout/ScrollBox'
 import { useSearchHistory } from '@/common/options/searchHistory/useSearchHistory'
@@ -78,12 +85,29 @@ export function SearchInput({
   const providerLabel = urlMode ? getUrlProviderLabel(value) : undefined
   const historyEnabled = !urlMode
 
+  const filteredEntries = useMemo(() => {
+    if (!historyEnabled) {
+      return []
+    }
+    if (!value) {
+      return entries
+    }
+    return entries.filter((entry) => matchWithPinyin(entry, value))
+  }, [historyEnabled, entries, value])
+
+  const [autocompleteOpen, setAutocompleteOpen] = useState(false)
+  const computedOpen = autocompleteOpen && filteredEntries.length > 0
+
   return (
     <Autocomplete
       freeSolo
+      open={computedOpen}
+      onOpen={() => setAutocompleteOpen(true)}
+      onClose={() => setAutocompleteOpen(false)}
       openOnFocus={historyEnabled}
       disablePortal={false}
-      options={historyEnabled ? entries : []}
+      options={filteredEntries}
+      filterOptions={(options) => options}
       inputValue={value}
       onInputChange={(_event, next, reason) => {
         if (reason !== 'reset') {
@@ -91,14 +115,6 @@ export function SearchInput({
         }
       }}
       onChange={handleAutocompleteChange}
-      filterOptions={(options, state) => {
-        if (!state.inputValue) {
-          return options
-        }
-        return options.filter((option) => {
-          return matchWithPinyin(option, state.inputValue)
-        })
-      }}
       slots={{
         paper: HistoryDropdownPaper,
       }}
@@ -113,7 +129,7 @@ export function SearchInput({
           }),
         },
         paper: {
-          hasEntries: historyEnabled && entries.length > 0,
+          hasEntries: filteredEntries.length > 0,
           onClearHistory: () => clearHistory.mutate(),
         },
       }}
@@ -122,68 +138,59 @@ export function SearchInput({
           <li
             {...props}
             key={option}
-            style={{ ...props.style, paddingBlock: 2, minHeight: 'auto' }}
+            style={{
+              ...props.style,
+              paddingBlock: 2,
+              paddingInline: 10,
+              minHeight: 'auto',
+            }}
           >
             <Box
+              sx={(theme) => ({
+                display: 'inline-flex',
+                color: theme.palette.text.secondary,
+                width: 18,
+                flexShrink: 0,
+                justifyContent: 'flex-start',
+              })}
+              aria-hidden
+            >
+              <History sx={{ fontSize: 14 }} />
+            </Box>
+            <Box
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                width: '100%',
-                justifyContent: 'space-between',
-                gap: 1,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                flex: 1,
+                minWidth: 0,
+                fontSize: 13,
               }}
             >
-              <Box
-                sx={(theme) => ({
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.75,
-                  flex: 1,
-                  minWidth: 0,
-                  color: theme.palette.text.primary,
-                })}
-              >
-                <Box
-                  component="span"
-                  sx={(theme) => ({
-                    display: 'inline-flex',
-                    color: theme.palette.text.secondary,
-                    transform: 'scaleX(-1)',
-                  })}
-                  aria-hidden
-                >
-                  <Search sx={{ fontSize: 12 }} />
-                </Box>
-                <Box
-                  sx={{
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    flex: 1,
-                    fontSize: 13,
-                  }}
-                >
-                  {option}
-                </Box>
-              </Box>
-              <IconButton
-                size="small"
-                edge="end"
-                aria-label={t('common.delete')}
-                onMouseDown={(e) => {
-                  e.stopPropagation()
-                  e.preventDefault()
-                }}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  e.preventDefault()
-                  removeEntry.mutate(option)
-                }}
-                sx={{ opacity: 0.5, '&:hover': { opacity: 1 } }}
-              >
-                <Close fontSize="small" />
-              </IconButton>
+              {option}
             </Box>
+            <IconButton
+              size="small"
+              aria-label={t('common.delete')}
+              onMouseDown={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+              }}
+              onClick={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+                removeEntry.mutate(option)
+              }}
+              sx={{
+                ml: 0.5,
+                mr: -0.5,
+                p: 0.25,
+                opacity: 0.5,
+                '&:hover': { opacity: 1 },
+              }}
+            >
+              <Close sx={{ fontSize: 14 }} />
+            </IconButton>
           </li>
         )
       }}
@@ -327,7 +334,8 @@ function HistoryDropdownPaper({
             display: 'flex',
             alignItems: 'center',
             gap: 0.75,
-            px: 1.25,
+            pl: '10px',
+            pr: '10px',
             py: 0.5,
             color: theme.palette.text.secondary,
           })}

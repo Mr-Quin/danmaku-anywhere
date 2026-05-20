@@ -1,10 +1,15 @@
-import { ButtonBase, Stack, styled } from '@mui/material'
+import { ButtonBase, CircularProgress, Stack, styled } from '@mui/material'
 import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 
+export interface SourceChipState {
+  isPending: boolean
+  count?: number
+}
+
 interface SourceFilterChipsProps {
   providers: ProviderConfig[]
-  counts: Record<string, number | undefined>
+  states: Record<string, SourceChipState>
   activeId: string
   onChange: (id: string) => void
 }
@@ -56,7 +61,7 @@ function providerLabel(provider: ProviderConfig): string {
 
 export function SourceFilterChips({
   providers,
-  counts,
+  states,
   activeId,
   onChange,
 }: SourceFilterChipsProps) {
@@ -74,7 +79,8 @@ export function SourceFilterChips({
     >
       {providers.map((provider) => {
         const active = provider.id === activeId
-        const count = counts[provider.id]
+        const state = states[provider.id]
+        const count = state?.count
         return (
           <Chip
             key={provider.id}
@@ -83,9 +89,18 @@ export function SourceFilterChips({
             aria-pressed={active}
           >
             {providerLabel(provider)}
-            {typeof count === 'number' && count > 0 && (
+            {state?.isPending ? (
+              <CircularProgress
+                size={9}
+                thickness={6}
+                sx={{
+                  color: active ? 'primary.contrastText' : 'text.secondary',
+                  ml: 0.25,
+                }}
+              />
+            ) : typeof count === 'number' ? (
               <CountText active={active}>· {count}</CountText>
-            )}
+            ) : null}
           </Chip>
         )
       })}
