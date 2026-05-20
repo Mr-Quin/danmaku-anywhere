@@ -72,6 +72,8 @@ test('mount tree: bookmark adds stubs, remove clears them', async ({
 
   await popup.mount.openItemMenu(seasonItem, 'bookmarkAdd')
 
+  await popup.toast.expectSuccess()
+
   await expect(seasonItem).toContainText(/\+1/, { timeout: 10_000 })
 
   await expect
@@ -80,7 +82,11 @@ test('mount tree: bookmark adds stubs, remove clears them', async ({
   const bookmark = await da.bookmark.bySeason(season.id)
   expect(bookmark?.episodes.length).toBe(2)
 
+  await popup.toast.dismissAll()
+
   await popup.mount.openItemMenu(seasonItem, 'bookmarkRemove')
+
+  await popup.toast.expectSuccess()
 
   await expect(seasonItem).not.toContainText(/\+\d+/)
   await expect

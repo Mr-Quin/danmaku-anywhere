@@ -80,6 +80,8 @@ test('mount tree: multi-select bulk delete removes every selected episode', asyn
   await popup.mount.bulkDelete()
   await popup.dialog.confirm()
 
+  await popup.toast.expectSuccess(/Danmaku Deleted|弹幕已删除/i)
+
   for (const ep of seeded) {
     await expect(popup.mount.episodeItem(ep.id)).toBeHidden({
       timeout: 10_000,
