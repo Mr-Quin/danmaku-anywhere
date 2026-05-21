@@ -64,7 +64,7 @@ export function RulesList({
                 label={rules.length}
                 size="small"
                 variant="outlined"
-                sx={{ height: 20, fontSize: '0.6875rem' }}
+                sx={{ height: 20 }}
               />
             </>
           )}
@@ -180,7 +180,7 @@ function DisplayRow({ rule, canEdit, onEdit, onDelete }: DisplayRowProps) {
               color: theme.palette.secondary.main,
               fontWeight: 'bold',
               height: 20,
-              fontSize: '0.75rem',
+              fontSize: theme.typography.caption.fontSize,
               borderRadius: 1,
             }}
           />
@@ -193,7 +193,7 @@ function DisplayRow({ rule, canEdit, onEdit, onDelete }: DisplayRowProps) {
           }
           size="small"
           variant="outlined"
-          sx={{ height: 20, fontSize: '0.75rem' }}
+          sx={{ height: 20, fontSize: theme.typography.caption.fontSize }}
         />
         {canEdit && (
           <IconButton size="small" onClick={onEdit} sx={{ ml: 0.5 }}>
@@ -259,13 +259,13 @@ function EditRow({ rule, existing, onCancel, onSave }: EditRowProps) {
           helperText={error || undefined}
           slotProps={{
             formHelperText: {
-              sx: {
+              sx: (theme) => ({
                 position: 'absolute',
                 top: '100%',
                 left: 0,
                 mt: 0.25,
-                fontSize: '0.7rem',
-              },
+                fontSize: theme.typography.overline.fontSize,
+              }),
             },
           }}
           sx={{ position: 'relative' }}

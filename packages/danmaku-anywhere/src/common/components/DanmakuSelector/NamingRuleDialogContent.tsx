@@ -281,11 +281,11 @@ export const NamingRuleDialogContent = ({
                             <Typography
                               component="span"
                               color="success.main"
-                              sx={{
-                                fontSize: '0.7rem',
+                              sx={(theme) => ({
+                                fontSize: theme.typography.overline.fontSize,
                                 lineHeight: 'inherit',
                                 flexShrink: 0,
-                              }}
+                              })}
                             >
                               {t('namingRule.episodeLabel', 'Ep {{number}}', {
                                 number: file.episodeNumber,
@@ -307,9 +307,8 @@ export const NamingRuleDialogContent = ({
                         )
                       }
                       primaryTypographyProps={{
-                        variant: 'body2',
+                        variant: 'caption',
                         fontFamily: 'monospace',
-                        fontSize: '0.75rem',
                         lineHeight: 1.5,
                       }}
                       sx={{ my: 0 }}

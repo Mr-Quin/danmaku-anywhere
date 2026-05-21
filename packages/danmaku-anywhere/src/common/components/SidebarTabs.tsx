@@ -8,13 +8,10 @@ const StyledTabs = styled(Tabs)(({ theme }) => ({
   '& .MuiTab-root': {
     padding: theme.spacing(0.875, 0.5),
     minWidth: 0,
-    fontSize: '0.6875rem',
+    fontSize: theme.typography.overline.fontSize,
     lineHeight: 1.2,
     textTransform: 'none',
     gap: theme.spacing(0.5),
-  },
-  '& .MuiTab-iconWrapper': {
-    fontSize: '1.125rem',
   },
   '& .MuiButtonBase-root': {
     minHeight: 0,

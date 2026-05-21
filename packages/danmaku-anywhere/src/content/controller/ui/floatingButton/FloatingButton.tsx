@@ -28,12 +28,12 @@ interface FloatingButtonProps extends FabProps {
 
 const StyledFab = styled(Fab, {
   shouldForwardProp: (prop) => prop !== 'hover',
-})<{ hover: boolean }>(({ hover }) => ({
+})<{ hover: boolean }>(({ hover, theme }) => ({
   transition: 'transform 0.2s ease-in-out',
   transform: hover ? 'rotate(45deg)' : 'rotate(0deg)',
   touchAction: 'none',
   '& .MuiSvgIcon-root': {
-    fontSize: '1.5rem',
+    fontSize: theme.typography.pxToRem(24),
   },
 }))
 
