@@ -30,6 +30,17 @@ console.log('Building for', {
 export default defineConfig({
   // @ts-ignore
   plugins: [react({}), crx({ manifest, browser: browser.name })],
+  // Don't pre-bundle the variable font packages: when crxjs serves dev assets,
+  // `?url` for pre-bundled CSS resolves to a `/vendor/...__url.js` shim instead
+  // of the real CSS path, which breaks <link rel=stylesheet> font loading.
+  optimizeDeps: {
+    exclude: [
+      '@fontsource-variable/noto-sans-jp',
+      '@fontsource-variable/noto-sans-sc',
+      '@fontsource-variable/noto-sans-tc',
+      '@fontsource-variable/plus-jakarta-sans',
+    ],
+  },
   resolve: {
     // Specific alias must precede the generic '@' prefix.
     alias: [

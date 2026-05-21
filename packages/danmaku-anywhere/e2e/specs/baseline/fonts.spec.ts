@@ -8,15 +8,16 @@ import {
 } from '../../setup/integration'
 
 /**
- * Mounts the controller on a host-origin page and asserts the injected
- * font CSS declares @font-face with absolute chrome-extension:// woff2
- * URLs — no bundler-relative paths that 404 against the host origin
- * inside the shadow DOM.
+ * Mounts the controller on a host-origin page and asserts every injected
+ * font <link> uses a chrome-extension:// href and that no inline <style>
+ * inside the shadow carries a /assets/*.woff fallback that would 404
+ * against the host origin.
  */
 
 const HOST_ORIGIN = 'https://da-test.invalid'
 const HOST_URL = `${HOST_ORIGIN}/fonts/`
 const MOUNT_PATTERN = `${HOST_ORIGIN}/*`
+const EXPECTED_FONT_LINK_COUNT = 4
 
 test('content-script controller loads fonts from extension origin', async ({
   context,
@@ -38,23 +39,41 @@ test('content-script controller loads fonts from extension origin', async ({
     timeout: 15_000,
   })
 
-  const result = await page.evaluate((rootId) => {
+  const result = await page.evaluate(async (rootId) => {
     const shadow = document.getElementById(rootId)?.shadowRoot
     if (!shadow) {
       throw new Error('controller shadow root missing or not open')
     }
+    const links = Array.from(
+      shadow.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')
+    )
+    await Promise.all(
+      links.map((link) => {
+        if (link.sheet) {
+          return null
+        }
+        return new Promise<void>((resolve, reject) => {
+          link.addEventListener('load', () => resolve(), { once: true })
+          link.addEventListener(
+            'error',
+            () => reject(new Error(`stylesheet failed to load: ${link.href}`)),
+            { once: true }
+          )
+        })
+      })
+    )
     const styleText = Array.from(shadow.querySelectorAll('style'))
       .map((s) => s.textContent ?? '')
       .join('\n')
     return {
-      fontFaceRuleCount: (styleText.match(/@font-face/g) ?? []).length,
-      hasExtensionWoffUrls:
-        /url\(\s*['"]?chrome-extension:\/\/[^)'"]*\.woff/i.test(styleText),
-      hasRelativeWoffUrls: /url\(\s*['"]?\/[^)'" ]*\.woff/i.test(styleText),
+      hrefs: links.map((l) => l.href),
+      hasRelativeFontUrl: /url\(\s*['"]?\/assets\/[^)]*\.woff/i.test(styleText),
     }
   }, CONTROLLER_ROOT_ID)
 
-  expect(result.fontFaceRuleCount).toBeGreaterThan(0)
-  expect(result.hasExtensionWoffUrls).toBe(true)
-  expect(result.hasRelativeWoffUrls).toBe(false)
+  expect(result.hrefs).toHaveLength(EXPECTED_FONT_LINK_COUNT)
+  for (const href of result.hrefs) {
+    expect(href).toMatch(/^chrome-extension:\/\//)
+  }
+  expect(result.hasRelativeFontUrl).toBe(false)
 })
