@@ -1,3 +1,4 @@
+import crypto from 'node:crypto'
 import { chromium } from '@playwright/test'
 import { execSync } from 'child_process'
 import fs from 'fs'
@@ -63,16 +64,87 @@ async function waitForFile(filePath: string, timeoutMs: number): Promise<void> {
   return promise
 }
 
-function ensureDeveloperMode(): void {
+// Mirrors Chrome's Extension::GenerateIdForPath: SHA-1 of the absolute
+// extension path (UTF-16LE on Windows, UTF-8 elsewhere), first 16 bytes
+// converted from hex (0-f) to letters (a-p).
+function computeExtensionIdFromPath(extensionPath: string): string {
+  const absPath = path.resolve(extensionPath)
+  const bytes =
+    process.platform === 'win32'
+      ? Buffer.from(absPath, 'utf16le')
+      : Buffer.from(absPath, 'utf8')
+  const hex = crypto.createHash('sha1').update(bytes).digest('hex').slice(0, 32)
+  const aCode = 'a'.charCodeAt(0)
+  let id = ''
+  for (const c of hex) {
+    id += String.fromCharCode(aCode + Number.parseInt(c, 16))
+  }
+  return id
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function readPreferences(prefsPath: string): Record<string, unknown> {
+  if (!fs.existsSync(prefsPath)) {
+    return {}
+  }
+  try {
+    const parsed: unknown = JSON.parse(fs.readFileSync(prefsPath, 'utf8'))
+    return isPlainObject(parsed) ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+function setNested(
+  root: Record<string, unknown>,
+  pathSegments: string[],
+  value: unknown
+): void {
+  let cursor: Record<string, unknown> = root
+  for (let i = 0; i < pathSegments.length - 1; i++) {
+    const key = pathSegments[i]
+    const next = cursor[key]
+    if (!isPlainObject(next)) {
+      cursor[key] = {}
+    }
+    cursor = cursor[key] as Record<string, unknown>
+  }
+  cursor[pathSegments[pathSegments.length - 1]] = value
+}
+
+function getNested(
+  root: Record<string, unknown>,
+  pathSegments: string[]
+): unknown {
+  let cursor: unknown = root
+  for (const key of pathSegments) {
+    if (!isPlainObject(cursor)) {
+      return undefined
+    }
+    cursor = cursor[key]
+  }
+  return cursor
+}
+
+function configureChromePreferences(extensionId: string): void {
   const defaultDir = path.join(USER_DATA_DIR, 'Default')
   fs.mkdirSync(defaultDir, { recursive: true })
   const prefsPath = path.join(defaultDir, 'Preferences')
-  if (!fs.existsSync(prefsPath)) {
-    fs.writeFileSync(
-      prefsPath,
-      JSON.stringify({ extensions: { ui: { developer_mode: true } } })
-    )
+
+  const prefs = readPreferences(prefsPath)
+  setNested(prefs, ['extensions', 'ui', 'developer_mode'], true)
+
+  const pinned = getNested(prefs, ['extensions', 'pinned_extensions'])
+  const pinnedArr = Array.isArray(pinned) ? (pinned as string[]) : []
+  if (!pinnedArr.includes(extensionId)) {
+    pinnedArr.push(extensionId)
   }
+  setNested(prefs, ['extensions', 'pinned_extensions'], pinnedArr)
+
+  fs.writeFileSync(prefsPath, JSON.stringify(prefs))
 }
 
 async function openBrowser(
@@ -84,7 +156,8 @@ async function openBrowser(
     stack.defer(cleanup)
   }
 
-  ensureDeveloperMode()
+  const expectedExtensionId = computeExtensionIdFromPath(extensionPath)
+  configureChromePreferences(expectedExtensionId)
 
   console.log('Opening browser...')
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
@@ -105,6 +178,13 @@ async function openBrowser(
     serviceWorker = await context.waitForEvent('serviceworker')
   }
   const extensionId = serviceWorker.url().split('/')[2]
+
+  if (extensionId !== expectedExtensionId) {
+    console.warn(
+      `Extension ID mismatch — predicted ${expectedExtensionId}, got ${extensionId}. Repinning on next launch...`
+    )
+    configureChromePreferences(extensionId)
+  }
 
   const page = await context.newPage()
   await page.goto(WEB_APP_URL)

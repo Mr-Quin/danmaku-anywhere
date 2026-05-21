@@ -4,7 +4,7 @@ import { defineConfig } from 'vitest/config'
 import { manifest } from './manifest'
 import { getBuildContext } from './scripts/getBuildContext'
 
-const { browser, appVersion, isDev, daEnv } = getBuildContext()
+const { browser, appVersion, isDev, daEnv, gitBranch } = getBuildContext()
 
 const { isChrome, isFirefox } = browser
 
@@ -25,6 +25,7 @@ console.log('Building for', {
   appVersion,
   isDev,
   daEnv,
+  gitBranch,
 })
 
 export default defineConfig({
@@ -69,6 +70,7 @@ export default defineConfig({
     'import.meta.env.VITE_DEV_SERVER_URL': JSON.stringify(
       `http://localhost:${port}`
     ),
+    'import.meta.env.VITE_DA_BRANCH': JSON.stringify(gitBranch),
   },
   build: {
     emptyOutDir: true,

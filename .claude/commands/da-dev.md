@@ -21,13 +21,17 @@ Pick the Type based on the scope of the change. Get the custom ID (DA-XXX) from 
 
 ### 2. Branch
 
+Pick a `hint` — 2-4 kebab-case words describing the task (e.g. `dev-workflow`, `bilibili-cookie-fix`, `theme-redesign`). The same hint goes in both the branch name and the worktree directory so concurrent worktrees are recognisable at a glance — both in `git worktree list` and on disk.
+
 ```bash
 git fetch origin master
 # For features/fixes — use a worktree:
-git worktree add ../danmaku-anywhere-DA-XXX -b DA-XXX_description origin/master
+git worktree add ../danmaku-anywhere-DA-XXX-<hint> -b DA-XXX_<hint> origin/master
 # For trivial changes — branch directly:
-git checkout -b DA-XXX_description origin/master
+git checkout -b DA-XXX_<hint> origin/master
 ```
+
+The `hint` underscore-separated inside the branch (`DA-524_dev_workflow`) and dash-separated inside the worktree dir (`danmaku-anywhere-DA-524-dev-workflow`) matches established convention. The dev mode watermark surfaces the branch name in the popup and content UI so you can tell which worktree's build is currently loaded.
 
 Reuse an existing worktree if its previous work is already done.
 
@@ -40,7 +44,7 @@ After creating a worktree, perform these setup steps:
 ```bash
 for f in packages/danmaku-anywhere/.env packages/danmaku-anywhere/.env.local; do
   if [ -f "$f" ]; then
-    cp "$f" "../danmaku-anywhere-DA-XXX/$f"
+    cp "$f" "../danmaku-anywhere-DA-XXX-<hint>/$f"
   fi
 done
 ```
@@ -48,7 +52,7 @@ done
 **Install dependencies** — `node_modules/` is not shared between worktrees, so type-check/lint/tests will fail until deps are installed. Build packages too so downstream type-checks can find `dist/`:
 
 ```bash
-cd ../danmaku-anywhere-DA-XXX && pnpm install && pnpm build:packages
+cd ../danmaku-anywhere-DA-XXX-<hint> && pnpm install && pnpm build:packages
 ```
 
 **Register worktree for permissions** — add the worktree root path to `additionalDirectories` in the user's Claude Code settings (use the `update-config` skill) so the new session has file access without re-prompting.
@@ -63,7 +67,7 @@ cd ../danmaku-anywhere-DA-XXX && pnpm install && pnpm build:packages
 # Task: <task description>
 - **ClickUp ID**: DA-XXX
 - **Type**: <extension|app|proxy|chore|docs>
-- **Branch**: DA-XXX_description
+- **Branch**: DA-XXX_<hint>
 
 ## Instructions
 Execute the da-dev workflow starting from step 3 (Implement).
@@ -105,6 +109,8 @@ For extension changes, launch a dev browser with HMR **at the start of implement
 wt -w 0 new-tab --title 'DA-XXX: dev browser' -d '<worktree-path>/packages/danmaku-anywhere' -- powershell -NoExit -Command "pnpm install; pnpm dev:browser"
 ```
 
+`dev:browser` launches Chromium with developer mode enabled and the extension pre-pinned to the toolbar. The dev mode watermark (top-right of popup + content overlay) shows the current branch name so multi-worktree sessions are unambiguous.
+
 Human verifies behavior live. Skip for trivial changes (config-only, types, docs).
 
 #### Extension: i18n extraction
@@ -144,7 +150,7 @@ Fix any issues found, then add a commit. Never include Co-Authored-By or AI attr
 ### 7. Push and Create PR
 
 ```bash
-git push -u origin DA-XXX_description
+git push -u origin DA-XXX_<hint>
 gh pr create --title "(type) description [DA-XXX]" --label "ai-rereview" --body "$(cat <<'EOF'
 ## Summary
 - <bullet points>
