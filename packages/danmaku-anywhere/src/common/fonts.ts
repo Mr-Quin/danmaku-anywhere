@@ -11,18 +11,12 @@ const FONT_CSS_URLS = [
   notoSansJpCssUrl,
 ]
 
-// Stylesheets in content-script shadow DOMs resolve url() against the host
-// origin (→ 404). Loading via the extension origin makes the woff2 refs work.
-// Standalone builds (vite.standalone.config.ts) run without chrome.* APIs at
-// a regular HTTP origin, so the bundler-relative path resolves directly.
+// Shadow-DOM url() refs resolve against host origin; rewrite to extension origin.
 function toExtensionUrl(url: string): string {
-  if (IS_STANDALONE_RUNTIME) {
+  if (IS_STANDALONE_RUNTIME || !url.startsWith('/')) {
     return url
   }
-  if (/^[a-z][a-z0-9+.-]*:/i.test(url)) {
-    return url
-  }
-  return chrome.runtime.getURL(url.replace(/^\//, ''))
+  return chrome.runtime.getURL(url.slice(1))
 }
 
 export function injectFonts(target: ParentNode): void {

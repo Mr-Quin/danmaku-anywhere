@@ -1,3 +1,4 @@
+import { CONTROLLER_ROOT_ID } from '../../../src/content/controller/common/constants/rootId'
 import { IntegrationPage } from '../../pom/IntegrationPage'
 import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
@@ -7,11 +8,10 @@ import {
 } from '../../setup/integration'
 
 /**
- * Mounts the controller on a host-origin page and asserts each injected
- * <link> uses a chrome-extension:// href, its stylesheet parses, and no
- * inline <style> inside the shadow contains a /assets/*.woff fallback.
- * DA-523 regression guard: bundled @fontsource CSS would re-introduce
- * host-origin-relative woff2 paths that 404 inside the shadow.
+ * Mounts the controller on a host-origin page and asserts every injected
+ * font <link> uses a chrome-extension:// href and that no inline <style>
+ * inside the shadow carries a /assets/*.woff fallback that would 404
+ * against the host origin.
  */
 
 const HOST_ORIGIN = 'https://da-test.invalid'
@@ -35,25 +35,25 @@ test('content-script controller loads fonts from extension origin', async ({
   await integrationPage.open(HOST_URL, 'native-video.html')
   await page.bringToFront()
 
-  // One-off selector — controller mount root id, not used by other specs.
-  await expect(page.locator('#danmaku-anywhere-controller')).toBeAttached({
+  await expect(page.locator(`#${CONTROLLER_ROOT_ID}`)).toBeAttached({
     timeout: 15_000,
   })
 
-  const result = await page.evaluate(async () => {
-    const root = document.querySelector('#danmaku-anywhere-controller')
-    if (!root?.shadowRoot) {
+  const result = await page.evaluate(async (rootId) => {
+    const shadow = document.getElementById(rootId)?.shadowRoot
+    if (!shadow) {
       throw new Error('controller shadow root missing or not open')
     }
-    const shadow = root.shadowRoot
 
     const links = Array.from(
       shadow.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')
     )
+    // Throw on load error so the test surfaces the failing href instead of
+    // timing out on a vague Promise.all hang.
     await Promise.all(
       links.map((link) => {
         if (link.sheet) {
-          return Promise.resolve()
+          return null
         }
         return new Promise<void>((resolve, reject) => {
           link.addEventListener('load', () => resolve(), { once: true })
@@ -72,23 +72,13 @@ test('content-script controller loads fonts from extension origin', async ({
 
     return {
       hrefs: links.map((l) => l.href),
-      sheetsLoaded: links.map((l) => l.sheet !== null),
       hasRelativeFontUrl: /url\(\s*['"]?\/assets\/[^)]*\.woff/i.test(styleText),
     }
-  })
+  }, CONTROLLER_ROOT_ID)
 
-  expect(
-    result.hrefs.length,
-    `expected ${EXPECTED_FONT_LINK_COUNT} font links, got: ${result.hrefs.join(', ')}`
-  ).toBe(EXPECTED_FONT_LINK_COUNT)
+  expect(result.hrefs).toHaveLength(EXPECTED_FONT_LINK_COUNT)
   for (const href of result.hrefs) {
-    expect(href, `font link href: ${href}`).toMatch(/^chrome-extension:\/\//)
+    expect(href).toMatch(/^chrome-extension:\/\//)
   }
-  for (const [i, loaded] of result.sheetsLoaded.entries()) {
-    expect(loaded, `stylesheet loaded: ${result.hrefs[i]}`).toBe(true)
-  }
-  expect(
-    result.hasRelativeFontUrl,
-    'no inline <style> may contain /assets/*.woff refs (host-origin 404)'
-  ).toBe(false)
+  expect(result.hasRelativeFontUrl).toBe(false)
 })
